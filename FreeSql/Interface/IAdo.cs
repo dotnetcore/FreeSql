@@ -1,0 +1,138 @@
+﻿using FreeSql.DatabaseModel;
+using SafeObjectPool;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.Common;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace FreeSql {
+	public partial interface IAdo {
+		/// <summary>
+		/// 主库连接池
+		/// </summary>
+		ObjectPool<DbConnection> MasterPool { get; }
+		/// <summary>
+		/// 从库连接池
+		/// </summary>
+		List<ObjectPool<DbConnection>> SlavePools { get; }
+		/// <summary>
+		/// 是否跟踪记录SQL执行性能日志
+		/// </summary>
+		bool IsTracePerformance { get; set; }
+
+		#region 事务
+		/// <summary>
+		/// 开启事务（不支持异步），60秒未执行完将自动提交
+		/// </summary>
+		/// <param name="handler">事务体 () => {}</param>
+		void Transaction(Action handler);
+		/// <summary>
+		/// 开启事务（不支持异步）
+		/// </summary>
+		/// <param name="handler">事务体 () => {}</param>
+		/// <param name="timeout">超时，未执行完将自动提交</param>
+		void Transaction(Action handler, TimeSpan timeout);
+		/// <summary>
+		/// 当前线程的事务
+		/// </summary>
+		DbTransaction TransactionCurrentThread { get; }
+		/// <summary>
+		/// 事务完成前预删除缓存
+		/// </summary>
+		/// <param name="keys"></param>
+		void TransactionPreRemoveCache(params string[] keys);
+		#endregion
+
+		/// <summary>
+		/// 若使用读写分离，查询【从库】条件cmdText.StartsWith("SELECT ")，否则查询【主库】
+		/// </summary>
+		/// <param name="readerHander"></param>
+		/// <param name="cmdType"></param>
+		/// <param name="cmdText"></param>
+		/// <param name="cmdParms"></param>
+		void ExecuteReader(Action<DbDataReader> readerHander, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		/// <summary>
+		/// 若使用读写分离，查询【从库】条件cmdText.StartsWith("SELECT ")，否则查询【主库】
+		/// </summary>
+		/// <param name="cmdText"></param>
+		/// <param name="cmdParms"></param>
+		object[][] ExecuteArray(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		/// <summary>
+		/// 若使用读写分离，查询【从库】条件cmdText.StartsWith("SELECT ")，否则查询【主库】
+		/// </summary>
+		/// <param name="cmdText"></param>
+		/// <param name="cmdParms"></param>
+		DataTable ExecuteDataTable(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		/// <summary>
+		/// 在【主库】执行
+		/// </summary>
+		/// <param name="cmdType"></param>
+		/// <param name="cmdText"></param>
+		/// <param name="cmdParms"></param>
+		int ExecuteNonQuery(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		/// <summary>
+		/// 在【主库】执行
+		/// </summary>
+		/// <param name="cmdType"></param>
+		/// <param name="cmdText"></param>
+		/// <param name="cmdParms"></param>
+		object ExecuteScalar(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+
+		/// <summary>
+		/// 执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > @age", new { age = 25 })
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="cmdText"></param>
+		/// <param name="parms"></param>
+		/// <returns></returns>
+		List<T> Query<T>(string cmdText, object parms = null);
+
+		#region async
+		/// <summary>
+		/// 若使用读写分离，查询【从库】条件cmdText.StartsWith("SELECT ")，否则查询【主库】
+		/// </summary>
+		/// <param name="readerHander"></param>
+		/// <param name="cmdType"></param>
+		/// <param name="cmdText"></param>
+		/// <param name="cmdParms"></param>
+		Task ExecuteReaderAsync(Func<DbDataReader, Task> readerHander, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		/// <summary>
+		/// 若使用读写分离，查询【从库】条件cmdText.StartsWith("SELECT ")，否则查询【主库】
+		/// </summary>
+		/// <param name="cmdText"></param>
+		/// <param name="cmdParms"></param>
+		Task<object[][]> ExecuteArrayAsync(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		/// <summary>
+		/// 若使用读写分离，查询【从库】条件cmdText.StartsWith("SELECT ")，否则查询【主库】
+		/// </summary>
+		/// <param name="cmdText"></param>
+		/// <param name="cmdParms"></param>
+		Task<DataTable> ExecuteDataTableAsync(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		/// <summary>
+		/// 在【主库】执行
+		/// </summary>
+		/// <param name="cmdType"></param>
+		/// <param name="cmdText"></param>
+		/// <param name="cmdParms"></param>
+		Task<int> ExecuteNonQueryAsync(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		/// <summary>
+		/// 在【主库】执行
+		/// </summary>
+		/// <param name="cmdType"></param>
+		/// <param name="cmdText"></param>
+		/// <param name="cmdParms"></param>
+		Task<object> ExecuteScalarAsync(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+
+		/// <summary>
+		/// 执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > @age", new { age = 25 })
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="cmdText"></param>
+		/// <param name="parms"></param>
+		/// <returns></returns>
+		Task<List<T>> QueryAsync<T>(string cmdText, object parms = null);
+		#endregion
+	}
+}

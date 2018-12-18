@@ -1,0 +1,57 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+
+namespace FreeSql {
+	public interface IDelete<T1> where T1 : class {
+		/// <summary>
+		/// lambda表达式条件，仅支持实体基础成员（不包含导航对象）
+		/// </summary>
+		/// <param name="exp">lambda表达式条件</param>
+		/// <returns></returns>
+		IDelete<T1> Where(Expression<Func<T1, bool>> exp);
+		/// <summary>
+		/// 原生sql语法条件，Where("id = ?id", new { id = 1 })
+		/// </summary>
+		/// <param name="sql">sql语法条件</param>
+		/// <param name="parms">参数</param>
+		/// <returns></returns>
+		IDelete<T1> Where(string sql, object parms = null);
+		/// <summary>
+		/// 传入实体，将主键作为条件
+		/// </summary>
+		/// <param name="item">实体</param>
+		/// <returns></returns>
+		IDelete<T1> Where(T1 item);
+		/// <summary>
+		/// 传入实体集合，将主键作为条件
+		/// </summary>
+		/// <param name="items">实体集合</param>
+		/// <returns></returns>
+		IDelete<T1> Where(IEnumerable<T1> items);
+		/// <summary>
+		/// 子查询是否存在
+		/// </summary>
+		/// <typeparam name="TEntity2"></typeparam>
+		/// <param name="select">子查询</param>
+		/// <param name="notExists">不存在</param>
+		/// <returns></returns>
+		IDelete<T1> WhereExists<TEntity2>(ISelect<TEntity2> select, bool notExists = false) where TEntity2 : class;
+
+		/// <summary>
+		/// 返回即将执行的SQL语句
+		/// </summary>
+		/// <returns></returns>
+		string ToSql();
+		/// <summary>
+		/// 执行SQL语句，返回影响的行数
+		/// </summary>
+		/// <returns></returns>
+		long ExecuteAffrows();
+		/// <summary>
+		/// 执行SQL语句，返回被删除的记录
+		/// </summary>
+		/// <returns></returns>
+		List<T1> ExecuteDeleted();
+	}
+}
