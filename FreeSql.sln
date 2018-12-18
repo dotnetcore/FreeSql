@@ -12,6 +12,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{C6A74E2A-6
 		Docs\codefirst.md = Docs\codefirst.md
 		Docs\dbfirst.md = Docs\dbfirst.md
 		Docs\delete.md = Docs\delete.md
+		Docs\generator.md = Docs\generator.md
 		Docs\insert.md = Docs\insert.md
 		readme.md = readme.md
 		Docs\select.md = Docs\select.md
