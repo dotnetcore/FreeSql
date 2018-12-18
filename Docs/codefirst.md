@@ -2,9 +2,9 @@
 
 ### 支持的类型
 
-bool, byte, short, int, long, byte, ushort, uint, ulong, double, float, decimal, int
+bool, byte, short, int, long, byte, ushort, uint, ulong, double, float, decimal, int, Guid
 
-bool?, byte?, short?, int?, long?, byte?, ushort?, uint?, ulong?, double?, float?, decimal?, int?
+bool?, byte?, short?, int?, long?, byte?, ushort?, uint?, ulong?, double?, float?, decimal?, int?, Guid?
 
 TimeSpan, DateTime
 
