@@ -124,20 +124,20 @@ List<Topic> t1 = select.Where(a => a.Id > 0).Skip(100).Limit(200).ToList();
 
 ### 返回 List + 导航属性的数据
 ```csharp
-List<Topic> t5 = select.LeftJoin<TestTypeInfo>((a, b) => a.TypeGuid == b.Guid && b.Name == "111").ToList();
+List<Topic> t2 = select.LeftJoin(a => a.Type.Guid == a.TestTypeInfoGuid).ToList();
 //此时会返回普通字段 + 导航对象 Type 的数据
 ```
 
 ### 指定字段返回
 ```csharp
 //返回一个字段
-List<int> t2 = select.Where(a => a.Id > 0).Skip(100).Limit(200).ToList(a => a.Id);
+List<int> t3 = select.Where(a => a.Id > 0).Skip(100).Limit(200).ToList(a => a.Id);
 
 //返回匿名类
-List<匿名类> t3 = select.Where(a => a.Id > 0).Skip(100).Limit(200).ToList(a => new { a.Id, a.Title });
+List<匿名类> t4 = select.Where(a => a.Id > 0).Skip(100).Limit(200).ToList(a => new { a.Id, a.Title });
 
 //返回元组
-List<(int, string)> t4 = select.Where(a => a.Id > 0).Skip(100).Limit(200).ToList<(int, string)>("id, title");
+List<(int, string)> t5 = select.Where(a => a.Id > 0).Skip(100).Limit(200).ToList<(int, string)>("id, title");
 ```
 
 ### 执行SQL返回数据
@@ -148,9 +148,9 @@ class xxx {
     public string Title2 { get; set; }
 }
 
-List<xxx> t3 = fsql.Ado.Query<xxx>("select * from song");
-List<(int, string ,string)> t4 = fsql.Ado.Query<(int, string, string)>("select * from song");
-List<dynamic> t5 = fsql.Ado.Query<dynamic>("select * from song");
+List<xxx> t6 = fsql.Ado.Query<xxx>("select * from song");
+List<(int, string ,string)> t7 = fsql.Ado.Query<(int, string, string)>("select * from song");
+List<dynamic> t8 = fsql.Ado.Query<dynamic>("select * from song");
 ```
 
 # 更多文档整理中。。。
