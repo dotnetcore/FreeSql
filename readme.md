@@ -11,6 +11,36 @@
 
 # 查询数据
 
+```csharp
+IFreeSql fsql = new FreeSql.FreeSqlBuilder()
+    .UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=10")
+    .Build();
+ISelect<Topic> select => fsql.Select<Topic>();
+
+[Table(Name = "tb_topic")]
+class Topic {
+    [Column(IsIdentity = true, IsPrimary = true)]
+    public int Id { get; set; }
+    public int Clicks { get; set; }
+    public int TestTypeInfoGuid { get; set; }
+    public TestTypeInfo Type { get; set; }
+    public string Title { get; set; }
+    public DateTime CreateTime { get; set; }
+}
+class TestTypeInfo {
+    public int Guid { get; set; }
+    public int ParentId { get; set; }
+    public TestTypeParentInfo Parent { get; set; }
+    public string Name { get; set; }
+}
+class TestTypeParentInfo {
+    public int Id { get; set; }
+    public string Name { get; set; }
+
+    public List<TestTypeInfo> Types { get; set; }
+}
+```
+
 ### 返回 List
 ```csharp
 List<Topic> t1 = select.Where(a => a.Id > 0).Skip(100).Limit(200).ToList();
