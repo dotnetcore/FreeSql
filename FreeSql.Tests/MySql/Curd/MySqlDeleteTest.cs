@@ -66,7 +66,7 @@ namespace FreeSql.Tests.MySql {
 		[Fact]
 		public void ExecuteDeleted() {
 
-			Assert.Throws<NotImplementedException>(() => delete.Where(a => a.Id > 0).ExecuteDeleted());
+			delete.Where(a => a.Id > 0).ExecuteDeleted();
 		}
 	}
 }

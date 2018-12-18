@@ -32,8 +32,10 @@ class Topic {
 	public DateTime CreateTime { get; set; }
 }
 
-var mysql = new MySql("Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=3");
-IUpdate<Topic> update => mysql.Update<Topic>();
+IFreeSql fsql = new FreeSql.FreeSqlBuilder()
+    .UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=10")
+    .Build();
+IUpdate<Topic> update => fsql.Update<Topic>();
 ```
 
 ### 动态条件
@@ -50,13 +52,13 @@ dywhere 支持
 
 ### 更新指定列
 ```csharp
-var t1 = mysql.Update<Topic>(1).Set(a => a.CreateTime, DateTime.Now).ToSql();
+var t1 = fsql.Update<Topic>(1).Set(a => a.CreateTime, DateTime.Now).ToSql();
 //UPDATE `tb_topic` SET `CreateTime` = '2018-12-08 00:04:59' WHERE (`Id` = 1)
 ```
 
 ### 更新指定列，累加
 ```csharp
-var t2 = mysql.Update<Topic>(1).Set(a => a.Clicks + 1).ToSql();
+var t2 = fsql.Update<Topic>(1).Set(a => a.Clicks + 1).ToSql();
 //UPDATE `tb_topic` SET `Clicks` = ifnull(`Clicks`,0) + 1 WHERE (`Id` = 1)
 ```
 

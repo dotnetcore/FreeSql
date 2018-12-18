@@ -17,8 +17,10 @@
 ### 测试代码
 
 ```csharp
-var mysql = new MySql("Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=3");
-IInsert<Topic> insert => mysql.Insert<Topic>();
+IFreeSql fsql = new FreeSql.FreeSqlBuilder()
+    .UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=10")
+    .Build();
+IInsert<Topic> insert => fsql.Insert<Topic>();
 
 [Table(Name = "tb_topic")]
 class Topic {

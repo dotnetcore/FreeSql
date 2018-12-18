@@ -13,8 +13,10 @@
 ### 测试代码
 
 ```csharp
-var mysql = new MySql("Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=3");
-IDelete<Topic> delete => mysql.Delete<Topic>();
+IFreeSql fsql = new FreeSql.FreeSqlBuilder()
+    .UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=10")
+    .Build();
+IDelete<Topic> delete => fsql.Delete<Topic>();
 
 [Table(Name = "tb_topic")]
 class Topic {
@@ -40,16 +42,16 @@ dywhere 支持
 * new { id = 1 }
 
 ```csharp
-var t1 = mysql.Delete<Topic>(new[] { 1, 2 }).ToSql();
+var t1 = fsql.Delete<Topic>(new[] { 1, 2 }).ToSql();
 //DELETE FROM `tb_topic` WHERE (`Id` = 1 OR `Id` = 2)
 
-var t2 = mysql.Delete<Topic>(new Topic { Id = 1, Title = "test" }).ToSql();
+var t2 = fsql.Delete<Topic>(new Topic { Id = 1, Title = "test" }).ToSql();
 //DELETE FROM `tb_topic` WHERE (`Id` = 1)
 
-var t3 = mysql.Delete<Topic>(new[] { new Topic { Id = 1, Title = "test" }, new Topic { Id = 2, Title = "test" } }).ToSql();
+var t3 = fsql.Delete<Topic>(new[] { new Topic { Id = 1, Title = "test" }, new Topic { Id = 2, Title = "test" } }).ToSql();
 //DELETE FROM `tb_topic` WHERE (`Id` = 1 OR `Id` = 2)
 
-var t4 = mysql.Delete<Topic>(new { id = 1 }).ToSql();
+var t4 = fsql.Delete<Topic>(new { id = 1 }).ToSql();
 //DELETE FROM `tb_topic` WHERE (`Id` = 1)
 ```
 
