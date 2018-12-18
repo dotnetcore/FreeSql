@@ -2,11 +2,13 @@
 
 生成器是基于 dbfirst 开发的辅助工具，适用老项目一键生成实体。生成器采用模板的方式，作者实现了三种生成模板：
 
-| 模板名称 | 路径 | 类型映射 | 外键导航属性 | 缓存管理 | 失血 | 贫血 | 充血 |
+| 模板名称 | 类型映射 | 外键导航属性 | 缓存管理 | 失血 | 贫血 | 充血 |
 | ------------- | - | - |- | - |- | - |- |
-| simple-entity | ../Templates/MySql/simple-entity | √  | X | X | √ | X | X |
-| simple-entity-navigation-object | ../Templates/MySql/simple-entity-navigation-object | √  | √ | X | √ | X | X |
-| rich-entity-navigation-object | ../Templates/MySql/rich-entity-navigation-object | √  | √ | √ | X | √ | X |
+| simple-entity | √  | X | X | √ | X | X |
+| simple-entity-navigation-object | √  | √ | X | √ | X | X |
+| rich-entity-navigation-object | √  | √ | √ | X | √ | X |
+
+模板在项目目录：/Templates/MySql
 
 > 更多模板逐步开发中。。。
 
