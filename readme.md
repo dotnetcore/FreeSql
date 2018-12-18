@@ -115,4 +115,12 @@ sql = select.LeftJoin("TestTypeInfo b on b.Guid = a.TestTypeInfoGuid and b.Name 
 //SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5 FROM `tb_topic` a LEFT JOIN TestTypeInfo b on b.Guid = a.TestTypeInfoGuid and b.Name = ?bname
 ```
 
+### 表达式函数支持
+
+#### String 对象方法
+StartsWith, EndsWith, Contains, ToLower, ToUpper, Substring, Length, IndexOf, PadLeft, PadRight, Trim, TrimStart, TrimEnd, Replace, CompareTo
+
+#### Math 方法
+...
+
 # 更多文档整理中。。。

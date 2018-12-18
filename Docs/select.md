@@ -34,6 +34,14 @@ class TestTypeParentInfo {
 
 # Where
 
+### 表达式函数支持
+
+#### String 对象方法
+StartsWith, EndsWith, Contains, ToLower, ToUpper, Substring, Length, IndexOf, PadLeft, PadRight, Trim, TrimStart, TrimEnd, Replace, CompareTo
+
+#### Math 方法
+...
+
 ### 单表
 ```csharp
 var sql = select.Where(a => a.Id == 10).ToSql();
