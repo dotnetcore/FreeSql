@@ -15,7 +15,9 @@ byte[], string
 MygisPoint, MygisLineString, MygisPolygon, MygisMultiPoint, MygisMultiLineString, MygisMultiPolygon 
 
 ```csharp
-var mysql = new MySql(null, null, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=3", null, null);
+IFreeSql fsql = new FreeSql.FreeSqlBuilder()
+    .UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=10")
+    .Build();
 ```
 
 ### 自动同步实体结构【开发环境必备】
@@ -23,7 +25,7 @@ var mysql = new MySql(null, null, "Data Source=127.0.0.1;Port=3306;User ID=root;
 自动同步实体结构到数据库，程序运行中检查实体表是否存在，然后创建或修改
 
 ```csharp
-mysql.CodeFirst.IsAutoSyncDataStructure = true;
+fsql.CodeFirst.IsAutoSyncDataStructure = true;
 ```
 
 > 此功能默认为开启状态，发布正式环境后，请修改此设置
@@ -130,6 +132,6 @@ ALTER TABLE `cccddd`.`Topic2` CHANGE COLUMN `Title2` `Title` VARCHAR(255);
 7、提供方法同步结构
 
 ```csharp
-var t2 = mysql.CodeFirst.SyncStructure<Topic>();
+var t2 = fsql.CodeFirst.SyncStructure<Topic>();
 //同步实体类型到数据库
 ```

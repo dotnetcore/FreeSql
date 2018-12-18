@@ -1,20 +1,22 @@
 # DbFirst
 
 ```csharp
-MySql mysql = new MySql(null, null, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=3", null, null);
+IFreeSql fsql = new FreeSql.FreeSqlBuilder()
+    .UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=10")
+    .Build();
 ```
 
 ### 获取所有数据库
 
 ```csharp
-var t1 = mysql.DbFirst.GetDatabases();
+var t1 = fsql.DbFirst.GetDatabases();
 //返回字符串数组, ["cccddd", "test"]
 ```
 
 ### 获取指定数据库的表信息
 
 ```csharp
-var t2 = mysql.DbFirst.GetTablesByDatabase(mysql.DbFirst.GetDatabases()[0]);
+var t2 = fsql.DbFirst.GetTablesByDatabase(fsql.DbFirst.GetDatabases()[0]);
 //返回包括表、列详情、主键、唯一键、索引、外键
 ```
 
@@ -31,14 +33,9 @@ var t2 = mysql.DbFirst.GetTablesByDatabase(mysql.DbFirst.GetDatabases()[0]);
 > 更多模板逐步开发中。。。
 
 ```csharp
-//定义 mysql FreeSql
-var mysql = new FreeSql.FreeSqlBuilder()
-    .UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=10")
-    .Build();
-
 //创建模板生成类现实
 var gen = new FreeSql.Generator.TemplateGenerator();
-gen.Build(mysql.DbFirst, 
+gen.Build(fsql.DbFirst, 
     @"C:\Users\28810\Desktop\github\FreeSql\Templates\MySql\simple-entity",  //模板目录（事先下载）
     @"C:\Users\28810\Desktop\新建文件夹 (9)",  //生成后保存的目录
     "cccddd" //数据库
