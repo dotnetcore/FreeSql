@@ -1,18 +1,10 @@
 # CodeFirst
 
-### 支持的类型
+| 数据库 | 支持的类型类型 |
+| - | - |
+| MySql | bool, sbyte, short, int, long, byte, ushort, uint, ulong, double, float, decimal, Guid, TimeSpan, DateTime<br>bool?, sbyte?, short?, int?, long?, byte?, ushort?, uint?, ulong?, double?, float?, decimal?, Guid?, TimeSpan?, DateTime?<br>byte[], string, Enum & FlagsEnum<br>MygisPoint, MygisLineString, MygisPolygon, MygisMultiPoint, MygisMultiLineString, MygisMultiPolygon |
+| SqlServer | bool, sbyte, short, int, long, byte, ushort, uint, ulong, double, float, decimal, Guid, TimeSpan, DateTime, DateTimeOffset<br>bool?, sbyte?, short?, int?, long?, byte?, ushort?, uint?, ulong?, double?, float?, decimal?, Guid?, TimeSpan?, DateTime?, DateTimeOffset?<br>byte[], string, Enum & FlagsEnum |
 
-bool, byte, short, int, long, byte, ushort, uint, ulong, double, float, decimal, int, Guid
-
-bool?, byte?, short?, int?, long?, byte?, ushort?, uint?, ulong?, double?, float?, decimal?, int?, Guid?
-
-TimeSpan, DateTime
-
-TimeSpan?, DateTime?
-
-byte[], string
-
-MygisPoint, MygisLineString, MygisPolygon, MygisMultiPoint, MygisMultiLineString, MygisMultiPolygon 
 
 ```csharp
 IFreeSql fsql = new FreeSql.FreeSqlBuilder()

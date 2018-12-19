@@ -231,7 +231,8 @@ namespace test.Model {
 				var affrows = mysql.Update<{#UString(table.Name)}>().Where(a => {#parmsByWhereLambda}).ExecuteAffrows();
 				if (affrows > 0) return;
 			}{/if}
-			{if pks.Count > 0}this.{#UString(idensCol.Name)} = {#GetCsType(idensCol).Replace("?", "") == "long" ? "" : ("(" + GetCsType(idensCol) + ")")}mysql.Insert<{#UString(table.Name)}>().AppendData(this).ExecuteIdentity();{else}mysql.Insert<{#UString(table.Name)}>().AppendData(this).ExecuteAffrows();{/if}
+			{if idens > 0}this.{#UString(idensCol.Name)} = {#GetCsType(idensCol).Replace("?", "") == "long" ? "" : ("(" + GetCsType(idensCol) + ")")}mysql.Insert<{#UString(table.Name)}>().AppendData(this).ExecuteIdentity();{else}
+			mysql.Insert<{#UString(table.Name)}>().AppendData(this).ExecuteAffrows();{/if}
 		}
 {/if}
 	}
