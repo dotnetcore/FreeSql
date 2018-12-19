@@ -1,5 +1,8 @@
 # FreeSql
 
+打造 .NETCore 最方便的orm，dbfirst codefirst混合使用，codefirst模式下的开发阶段，建好实体不用执行任何，就能创建表和修改字段，dbfirst模式下提供api+模板，自定义生成代码，
+https://github.com/2881099/FreeSql/blob/master/Docs/generator.md 默认提供了3种模板。
+
 * [Insert 插入数据](Docs/insert.md)
 * [Update 更新数据](Docs/update.md)
 * [Delete 删除数据](Docs/delete.md)
@@ -124,3 +127,6 @@ StartsWith, EndsWith, Contains, ToLower, ToUpper, Substring, Length, IndexOf, Pa
 ...
 
 # 更多文档整理中。。。
+
+## 贡献者名单
+
