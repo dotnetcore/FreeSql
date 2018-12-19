@@ -21,7 +21,7 @@ namespace FreeSql.Tests.Generator {
 		[Fact]
 		public void BuildRichEntityNavigationObject() {
 			var gen = new TemplateGenerator();
-			gen.Build(g.mysql.DbFirst, @"C:\Users\28810\Desktop\github\FreeSql\Templates\MySql\rich-entity-navigation-object", @"C:\Users\28810\Desktop\新建文件夹 (9)", "ManagerDB");
+			gen.Build(g.mysql.DbFirst, @"C:\Users\28810\Desktop\github\FreeSql\Templates\MySql\rich-entity-navigation-object", @"C:\Users\28810\Desktop\新建文件夹 (9)", "cccddd");
 		}
 	}
 }
