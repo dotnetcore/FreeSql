@@ -410,5 +410,9 @@ use {olddatabase};
 			}
 			return tables;
 		}
+
+		public List<DbEnumInfo> GetEnumsByDatabase(params string[] database) {
+			return new List<DbEnumInfo>();
+		}
 	}
 }

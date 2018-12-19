@@ -372,5 +372,25 @@ where a.constraint_schema in ({1}) and a.table_name in ({0}) and not isnull(posi
 			loc3.Clear();
 			return loc1;
 		}
+
+		public List<DbEnumInfo> GetEnumsByDatabase(params string[] database) {
+			if (database == null || database.Length == 0) return new List<DbEnumInfo>();
+			var drs = _orm.Ado.Query<(string name, string label)>(CommandType.Text, @"select
+ns.nspname || '.' || a.typname,
+b.enumlabel
+from pg_type a
+inner join pg_enum b on b.enumtypid = a.oid
+inner join pg_namespace ns on ns.oid = a.typnamespace
+where a.typtype = 'e' and ns.nspname in (SELECT ""schema_name"" FROM information_schema.schemata where catalog_name in {0})".FormatPostgreSQL(database));
+			var ret = new Dictionary<string, Dictionary<string, string>>();
+			foreach (var dr in drs) {
+				if (ret.TryGetValue(dr.name, out var labels) == false) ret.Add(dr.name, labels = new Dictionary<string, string>());
+				var key = dr.label;
+				if (Regex.IsMatch(key, @"^[\u0391-\uFFE5a-zA-Z_\$][\u0391-\uFFE5a-zA-Z_\$\d]*$") == false)
+					key = $"Unkown{ret[dr.name].Count + 1}";
+				if (labels.ContainsKey(key) == false) labels.Add(key, dr.label);
+			}
+			return ret.Select(a => new DbEnumInfo { Name = a.Key, Labels = a.Value }).ToList();
+		}
 	}
 }

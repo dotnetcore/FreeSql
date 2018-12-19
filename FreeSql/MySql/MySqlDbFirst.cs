@@ -373,5 +373,9 @@ where a.constraint_schema in ({1}) and a.table_name in ({0}) and not isnull(posi
 			loc3.Clear();
 			return loc1;
 		}
+
+		public List<DbEnumInfo> GetEnumsByDatabase(params string[] database) {
+			return new List<DbEnumInfo>();
+		}
 	}
 }
