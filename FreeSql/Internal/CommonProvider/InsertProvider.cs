@@ -76,7 +76,7 @@ namespace FreeSql.Internal.CommonProvider {
 				foreach (var col in _table.Columns.Values)
 					if (col.Attribute.IsIdentity == false && _ignore.ContainsKey(col.Attribute.Name) == false) {
 						if (colidx2 > 0) sb.Append(", ");
-						sb.Append("?").Append(col.CsName).Append(didx);
+						sb.Append(_commonUtils.QuoteParamterName(col.CsName)).Append(didx);
 						_params[didx * colidx + colidx2] = _commonUtils.AppendParamter(null, $"{col.CsName}{didx}", _table.Properties.TryGetValue(col.CsName, out var tryp) ? tryp.GetValue(d) : DBNull.Value);
 						++colidx2;
 					}

@@ -85,7 +85,7 @@ namespace FreeSql.SqlServer {
 
 					if (tboldname != null && _orm.Ado.ExecuteScalar(CommandType.Text, string.Format("select 1 from dbo.sysobjects where id = object_id(N'[{0}].[{1}]') and OBJECTPROPERTY(id, N'IsUserTable') = 1", tboldname)) != null) { //旧表存在
 																																																									//修改表名
-						sb.Append(_commonUtils.FormatSql("EXEC sp_rename {0}, {1} \r\nGO \r\n", _commonUtils.QuoteSqlName($"{tboldname[0]}.{tboldname[1]}"), _commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")));
+						sb.Append(_commonUtils.FormatSql("EXEC sp_rename {0}, {1};\r\n", _commonUtils.QuoteSqlName($"{tboldname[0]}.{tboldname[1]}"), _commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")));
 						isRenameTable = true;
 
 					} else {
@@ -98,7 +98,7 @@ namespace FreeSql.SqlServer {
 							if (tbcol.Attribute.IsPrimary) sb.Append(" primary key");
 							sb.Append(",");
 						}
-						sb.Remove(sb.Length - 1, 1).Append("\r\n) \r\nGO \r\n");
+						sb.Remove(sb.Length - 1, 1).Append("\r\n);\r\n");
 						continue;
 					}
 				}
@@ -137,7 +137,7 @@ where a.object_id in (object_id(N'[{0}].[{1}]'))", isRenameTable ? tboldname : t
 							trycol.Attribute.IsIdentity != is_identity) {
 							sb.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ALTER COLUMN ").Append(_commonUtils.QuoteSqlName(column)).Append(" ").Append(trycol.Attribute.DbType.ToUpper());
 							if (trycol.Attribute.IsIdentity && trycol.Attribute.DbType.IndexOf("identity", StringComparison.CurrentCultureIgnoreCase) == -1) sb.Append(" identity(1,1)");
-							sb.Append(" \r\nGO \r\n");
+							sb.Append(";\r\n");
 						}
 						addcols.Remove(column);
 					} else
@@ -145,15 +145,15 @@ where a.object_id in (object_id(N'[{0}].[{1}]'))", isRenameTable ? tboldname : t
 				}
 				foreach (var addcol in addcols.Values) {
 					if (string.IsNullOrEmpty(addcol.Attribute.OldName) == false && surplus.ContainsKey(addcol.Attribute.OldName)) { //修改列名
-						sb.Append(_commonUtils.FormatSql("EXEC sp_rename {0}, {1}, 'COLUMN' \r\nGO \r\n", $"{tbname[0]}.{tbname[1]}.{addcol.Attribute.OldName}", addcol.Attribute.Name));
+						sb.Append(_commonUtils.FormatSql("EXEC sp_rename {0}, {1}, 'COLUMN';\r\n", $"{tbname[0]}.{tbname[1]}.{addcol.Attribute.OldName}", addcol.Attribute.Name));
 						sb.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ALTER COLUMN ").Append(_commonUtils.QuoteSqlName(addcol.Attribute.Name)).Append(" ").Append(addcol.Attribute.DbType.ToUpper());
 						if (addcol.Attribute.IsIdentity && addcol.Attribute.DbType.IndexOf("identity", StringComparison.CurrentCultureIgnoreCase) == -1) sb.Append(" identity(1,1)");
-						sb.Append(" \r\nGO \r\n");
+						sb.Append(";\r\n");
 
 					} else { //添加列
 						sb.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ADD ").Append(_commonUtils.QuoteSqlName(addcol.Attribute.Name)).Append(" ").Append(addcol.Attribute.DbType.ToUpper());
 						if (addcol.Attribute.IsIdentity && addcol.Attribute.DbType.IndexOf("identity", StringComparison.CurrentCultureIgnoreCase) == -1) sb.Append(" identity(1,1)");
-						sb.Append(" \r\nGO \r\n");
+						sb.Append(";\r\n");
 					}
 				}
 			}

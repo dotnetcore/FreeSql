@@ -81,6 +81,15 @@ namespace FreeSql {
 		object ExecuteScalar(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
 
 		/// <summary>
+		/// 执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > @age", new SqlParameter { ParameterName = "age", Value = 25 })
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="cmdType"></param>
+		/// <param name="cmdText"></param>
+		/// <param name="cmdParms"></param>
+		/// <returns></returns>
+		List<T> Query<T>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		/// <summary>
 		/// 执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > @age", new { age = 25 })
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
@@ -126,7 +135,16 @@ namespace FreeSql {
 		Task<object> ExecuteScalarAsync(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
 
 		/// <summary>
-		/// 执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > @age", new { age = 25 })
+		/// 执行SQL返回对象集合，QueryAsync&lt;User&gt;("select * from user where age > @age", new SqlParameter { ParameterName = "age", Value = 25 })
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="cmdType"></param>
+		/// <param name="cmdText"></param>
+		/// <param name="cmdParms"></param>
+		/// <returns></returns>
+		Task<List<T>> QueryAsync<T>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		/// <summary>
+		/// 执行SQL返回对象集合，QueryAsync&lt;User&gt;("select * from user where age > @age", new { age = 25 })
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
 		/// <param name="cmdText"></param>

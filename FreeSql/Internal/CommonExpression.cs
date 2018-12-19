@@ -113,15 +113,36 @@ namespace FreeSql.Internal {
 			{ ExpressionType.Equal, "=" },
 		};
 		internal string ExpressionWhereLambdaNoneForeignObject(List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Expression exp) {
-			return ExpressionLambdaToSql(exp, _tables, _selectColumnMap, SelectTableInfoType.From, true);
+			var sql = ExpressionLambdaToSql(exp, _tables, _selectColumnMap, SelectTableInfoType.From, true);
+			switch(sql) {
+				case "1":
+				case "'t'": return "1=1";
+				case "0":
+				case "'f'": return "1=2";
+				default:return sql;
+			}
 		}
 
 		internal string ExpressionWhereLambda(List<SelectTableInfo> _tables, Expression exp) {
-			return ExpressionLambdaToSql(exp, _tables, null, SelectTableInfoType.From, true);
+			var sql = ExpressionLambdaToSql(exp, _tables, null, SelectTableInfoType.From, true);
+			switch (sql) {
+				case "1":
+				case "'t'": return "1=1";
+				case "0":
+				case "'f'": return "1=2";
+				default: return sql;
+			}
 		}
 		internal void ExpressionJoinLambda(List<SelectTableInfo> _tables, SelectTableInfoType tbtype, Expression exp) {
 			var tbidx = _tables.Count;
 			var filter = ExpressionLambdaToSql(exp, _tables, null, tbtype, true);
+			switch (filter) {
+				case "1":
+				case "'t'": filter = "1=1"; break;
+				case "0":
+				case "'f'": filter = "1=2"; break;
+				default: break;
+			}
 			if (_tables.Count > tbidx) {
 				_tables[tbidx].Type = tbtype;
 				_tables[tbidx].On = filter;

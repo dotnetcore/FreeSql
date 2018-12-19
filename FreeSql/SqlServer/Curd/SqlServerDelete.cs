@@ -1,6 +1,7 @@
 ﻿using FreeSql.Internal;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Text;
 
 namespace FreeSql.SqlServer.Curd {
@@ -28,7 +29,7 @@ namespace FreeSql.SqlServer.Curd {
 			sb.Insert(0, sql.Substring(0, validx));
 			sb.Append(sql.Substring(validx));
 
-			return _orm.Ado.Query<T1>(sb.ToString());
+			return _orm.Ado.Query<T1>(CommandType.Text, sb.ToString(), _params.ToArray());
 		}
 	}
 }

@@ -1,6 +1,8 @@
 ﻿using FreeSql.Internal;
 using FreeSql.Internal.Model;
 using System.Collections.Generic;
+using System.Data;
+using System.Linq;
 using System.Text;
 
 namespace FreeSql.PostgreSQL.Curd {
@@ -21,29 +23,37 @@ namespace FreeSql.PostgreSQL.Curd {
 				sb.Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
 				++colidx;
 			}
-			return _orm.Ado.Query<T1>(sb.ToString());
+			return _orm.Ado.Query<T1>(CommandType.Text, sb.ToString(), _params.Concat(_paramsSource).ToArray());
 		}
 
 		protected override void ToSqlCase(StringBuilder caseWhen, ColumnInfo[] primarys) {
-			if (_table.Primarys.Length > 1) caseWhen.Append("(");
+			if (_table.Primarys.Length == 1) {
+				caseWhen.Append(_commonUtils.QuoteSqlName(_table.Primarys.First().Attribute.Name));
+				return;
+			}
+			caseWhen.Append("(");
 			var pkidx = 0;
 			foreach (var pk in _table.Primarys) {
-				if (pkidx > 0) caseWhen.Append(", ");
+				if (pkidx > 0) caseWhen.Append(" || ");
 				caseWhen.Append(_commonUtils.QuoteSqlName(pk.Attribute.Name)).Append("::varchar");
 				++pkidx;
 			}
-			if (_table.Primarys.Length > 1) caseWhen.Append(")");
+			caseWhen.Append(")");
 		}
 
 		protected override void ToSqlWhen(StringBuilder sb, ColumnInfo[] primarys, object d) {
-			if (_table.Primarys.Length > 1) sb.Append("(");
+			if (_table.Primarys.Length == 1) {
+				sb.Append(_commonUtils.FormatSql("{0}", _table.Properties.TryGetValue(_table.Primarys.First().CsName, out var tryp2) ? tryp2.GetValue(d) : null));
+				return;
+			}
+			sb.Append("(");
 			var pkidx = 0;
 			foreach (var pk in _table.Primarys) {
-				if (pkidx > 0) sb.Append(", ");
+				if (pkidx > 0) sb.Append(" || ");
 				sb.Append(_commonUtils.FormatSql("{0}", _table.Properties.TryGetValue(pk.CsName, out var tryp2) ? tryp2.GetValue(d) : null)).Append("::varchar");
 				++pkidx;
 			}
-			if (_table.Primarys.Length > 1) sb.Append(")");
+			sb.Append(")");
 		}
 	}
 }

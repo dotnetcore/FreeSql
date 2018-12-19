@@ -28,10 +28,10 @@ namespace FreeSql.SqlServer.Curd {
 
 			var validx = sql.IndexOf(") VALUES");
 			if (validx == -1) throw new ArgumentException("找不到 VALUES");
-			sb.Insert(0, sql.Substring(0, validx)).Insert(0, ")");
+			sb.Insert(0, sql.Substring(0, validx + 1));
 			sb.Append(sql.Substring(validx + 1));
 
-			return _orm.Ado.Query<T1>(sb.ToString());
+			return _orm.Ado.Query<T1>(CommandType.Text, sb.ToString(), _params);
 		}
 	}
 }

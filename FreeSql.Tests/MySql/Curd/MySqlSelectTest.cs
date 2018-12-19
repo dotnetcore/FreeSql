@@ -343,9 +343,9 @@ namespace FreeSql.Tests.MySql {
 			query2.ToList();
 
 			//������϶����㲻��
-			query = select.Where("a.clicks > 100 && a.id = ?id", new { id = 10 });
+			query = select.Where("a.clicks > 100 and a.id = ?id", new { id = 10 });
 			sql = query.ToSql().Replace("\r\n", "");
-			Assert.Equal("SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5 FROM `tb_topic` a WHERE (a.clicks > 100 && a.id = ?id)", sql);
+			Assert.Equal("SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5 FROM `tb_topic` a WHERE (a.clicks > 100 and a.id = ?id)", sql);
 			query.ToList();
 		}
 		[Fact]
@@ -390,9 +390,9 @@ namespace FreeSql.Tests.MySql {
 			query2.ToList();
 
 			//������϶����㲻��
-			query = select.WhereIf(true, "a.clicks > 100 && a.id = ?id", new { id = 10 });
+			query = select.WhereIf(true, "a.clicks > 100 and a.id = ?id", new { id = 10 });
 			sql = query.ToSql().Replace("\r\n", "");
-			Assert.Equal("SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5 FROM `tb_topic` a WHERE (a.clicks > 100 && a.id = ?id)", sql);
+			Assert.Equal("SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5 FROM `tb_topic` a WHERE (a.clicks > 100 and a.id = ?id)", sql);
 			query.ToList();
 
 			// ==========================================WhereIf(false)
@@ -437,7 +437,7 @@ namespace FreeSql.Tests.MySql {
 			query2.ToList();
 
 			//������϶����㲻��
-			query = select.WhereIf(false, "a.clicks > 100 && a.id = ?id", new { id = 10 });
+			query = select.WhereIf(false, "a.clicks > 100 and a.id = ?id", new { id = 10 });
 			sql = query.ToSql().Replace("\r\n", "");
 			Assert.Equal("SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5 FROM `tb_topic` a", sql);
 			query.ToList();
