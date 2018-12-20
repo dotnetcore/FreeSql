@@ -4,8 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
-namespace FreeSql.Tests.MySql {
-	public class MySqlExpressionTest {
+namespace FreeSql.Tests.MySql.Expression {
+	public class TimeSpanTest {
 
 		ISelect<Topic> select => g.mysql.Select<Topic>();
 
@@ -33,50 +33,43 @@ namespace FreeSql.Tests.MySql {
 		}
 
 		[Fact]
-		public void StartsWith() {
+		public void Days() {
 		}
 		[Fact]
-		public void EndsWith() {
+		public void Hours() {
 		}
 		[Fact]
-		public void Contains() {
+		public void Milliseconds() {
 		}
 		[Fact]
-		public void ToLower() {
+		public void Minutes() {
 		}
 		[Fact]
-		public void ToUpper() {
-			
+		public void Seconds() {
 		}
 		[Fact]
-		public void Substring() {
+		public void Ticks() {
 		}
 		[Fact]
-		public void Length() {
+		public void TotalDays() {
 		}
 		[Fact]
-		public void IndexOf() {
+		public void TotalHours() {
 		}
 		[Fact]
-		public void PadLeft() {
+		public void TotalMilliseconds() {
 		}
 		[Fact]
-		public void PadRight() {
+		public void TotalMinutes() {
 		}
 		[Fact]
-		public void Trim() {
+		public void TotalSeconds() {
 		}
 		[Fact]
-		public void TrimStart() {
+		public void Add() {
 		}
 		[Fact]
-		public void TrimEnd() {
-		}
-		[Fact]
-		public void Replace() {
-		}
-		[Fact]
-		public void CompareTo() {
+		public void Subtract() {
 		}
 	}
 }

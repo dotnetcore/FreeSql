@@ -100,8 +100,8 @@ namespace FreeSql.PostgreSQL {
 			if (enumType == null && type.FullName.StartsWith("System.Nullable`1[") && type.GenericTypeArguments.Length == 1 && type.GenericTypeArguments.First().IsEnum) enumType = type.GenericTypeArguments.First();
 			if (enumType != null) {
 				var newItem = enumType.GetCustomAttributes(typeof(FlagsAttribute), false).Any() ?
-					(NpgsqlDbType.Bigint, "int8", $"int8{(type.IsEnum ? " NOT NULL" : "")}", false, type.IsEnum ? false : true) :
-					(NpgsqlDbType.Integer, "int4", $"int4{(type.IsEnum ? " NOT NULL" : "")}", false, type.IsEnum ? false : true);
+					(NpgsqlDbType.Varchar, "varchar", $"varchar(32){(type.IsEnum ? " NOT NULL" : "")}", false, type.IsEnum ? false : true) :
+					(NpgsqlDbType.Varchar, "varchar", $"varchar(32){(type.IsEnum ? " NOT NULL" : "")}", false, type.IsEnum ? false : true);
 				if (_dicCsToDb.ContainsKey(type.FullName) == false) {
 					lock (_dicCsToDbLock) {
 						if (_dicCsToDb.ContainsKey(type.FullName) == false)
@@ -116,6 +116,7 @@ namespace FreeSql.PostgreSQL {
 		public string GetComparisonDDLStatements<TEntity>() => this.GetComparisonDDLStatements(typeof(TEntity));
 		public string GetComparisonDDLStatements(params Type[] entityTypes) {
 			var sb = new StringBuilder();
+			var seqcols = new List<(ColumnInfo, string[], bool)>(); //序列
 			foreach (var entityType in entityTypes) {
 				if (sb.Length > 0) sb.Append("\r\n");
 				var tb = _commonUtils.GetTableByEntity(entityType);
@@ -134,13 +135,10 @@ namespace FreeSql.PostgreSQL {
 
 					} else {
 						//创建表
-						var seqcols = new List<ColumnInfo>();
 						sb.Append("CREATE TABLE IF NOT EXISTS ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" (");
 						foreach (var tbcol in tb.Columns.Values) {
-							sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ");
-							sb.Append(tbcol.Attribute.DbType.ToUpper());
-							if (tbcol.Attribute.IsIdentity && tbcol.Attribute.DbType.IndexOf("serial", StringComparison.CurrentCultureIgnoreCase) == -1) seqcols.Add(tbcol);
-							sb.Append(",");
+							sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType.ToUpper()).Append(",");
+							if (tbcol.Attribute.IsIdentity) seqcols.Add((tbcol, tbname, true));
 						}
 						if (tb.Primarys.Any() == false)
 							sb.Remove(sb.Length - 1, 1);
@@ -187,38 +185,54 @@ where ns.nspname = {0} and c.relname = {1}".FormatPostgreSQL(isRenameTable ? tbo
 
 					if (addcols.TryGetValue(column, out var trycol)) {
 						if (trycol.Attribute.DbType.ToLower().StartsWith(sqlType.ToLower()) == false ||
-							(trycol.Attribute.DbType.IndexOf("NOT NULL") == -1) != is_nullable ||
-							trycol.Attribute.IsIdentity != is_identity) {
-							sb.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ALTER COLUMN ").Append(_commonUtils.QuoteSqlName(column)).Append(" TYPE ").Append(trycol.Attribute.DbType.ToUpper());
-							if (trycol.Attribute.IsIdentity) sb.Append(" AUTO_INCREMENT");
-							sb.Append(";\r\n");
+							(trycol.Attribute.DbType.IndexOf("NOT NULL") == -1) != is_nullable) {
+							sb.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ALTER COLUMN ").Append(_commonUtils.QuoteSqlName(column)).Append(" TYPE ").Append(trycol.Attribute.DbType.ToUpper()).Append(";\r\n");
 						}
+						if (trycol.Attribute.IsIdentity != is_identity) seqcols.Add((trycol, tbname, trycol.Attribute.IsIdentity));
 						addcols.Remove(column);
-					} else
+					} else {
+						if (trycol.Attribute.IsIdentity != is_identity) seqcols.Add((trycol, tbname, trycol.Attribute.IsIdentity));
 						surplus.Add(column, true); //记录剩余字段
+					}
 				}
 				foreach (var addcol in addcols.Values) {
 					if (string.IsNullOrEmpty(addcol.Attribute.OldName) == false && surplus.ContainsKey(addcol.Attribute.OldName)) { //修改列名
 						sb.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" RENAME COLUMN ").Append(_commonUtils.QuoteSqlName(addcol.Attribute.OldName)).Append(" TO ").Append(_commonUtils.QuoteSqlName(addcol.Attribute.Name)).Append(";\r\n");
-						if (addcol.Attribute.IsIdentity) sb.Append(" AUTO_INCREMENT");
-						sb.Append(";\r\n");
-
 					} else { //添加列
-						sb.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ADD COLUMN ").Append(_commonUtils.QuoteSqlName(addcol.Attribute.Name)).Append(" ").Append(addcol.Attribute.DbType.ToUpper());
-						if (addcol.Attribute.IsIdentity) sb.Append(" AUTO_INCREMENT");
-						sb.Append(";\r\n");
+						sb.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ADD COLUMN ").Append(_commonUtils.QuoteSqlName(addcol.Attribute.Name)).Append(" ").Append(addcol.Attribute.DbType.ToUpper()).Append(";\r\n");
 					}
+				}
+			}
+			foreach(var seqcol in seqcols) {
+				var tbname = seqcol.Item2;
+				var seqname = Utils.GetCsName($"{tbname[0]}.{tbname[1]}_{seqcol.Item1.Attribute.Name}_sequence_name");
+				var tbname2 = _commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}");
+				var colname2 = _commonUtils.QuoteSqlName(seqcol.Item1.Attribute.Name);
+				sb.Append("ALTER TABLE ").Append(tbname2).Append(" ALTER COLUMN ").Append(colname2).Append(" SET DEFAULT null;");
+				sb.Append("DROP SEQUENCE IF EXISTS ").Append(seqname).Append(";");
+				if (seqcol.Item3) {
+					sb.Append("CREATE SEQUENCE ").Append(seqname).Append(" START WITH (select coalesce(max(").Append(colname2).Append("),1) from ").Append(tbname2).Append(");");
+					sb.Append("ALTER TABLE ").Append(tbname2).Append(" ALTER COLUMN ").Append(colname2).Append(" SET DEFAULT nextval('").Append(seqname).Append("'::regclass);");
 				}
 			}
 			return sb.Length == 0 ? null : sb.ToString();
 		}
 
+		Dictionary<string, bool> dicSyced = new Dictionary<string, bool>();
 		public bool SyncStructure<TEntity>() => this.SyncStructure(typeof(TEntity));
 		public bool SyncStructure(params Type[] entityTypes) {
-			var ddl = this.GetComparisonDDLStatements(entityTypes);
-			if (string.IsNullOrEmpty(ddl)) return true;
+			if (entityTypes == null) return true;
+			var syncTypes = entityTypes.Where(a => dicSyced.ContainsKey(a.FullName) == false).ToArray();
+			if (syncTypes.Any() == false) return true;
+			var ddl = this.GetComparisonDDLStatements(syncTypes);
+			if (string.IsNullOrEmpty(ddl)) {
+				foreach (var syncType in syncTypes) dicSyced.Add(syncType.FullName, true);
+				return true;
+			}
 			try {
-				return _orm.Ado.ExecuteNonQuery(CommandType.Text, ddl) > 0;
+				var affrows = _orm.Ado.ExecuteNonQuery(CommandType.Text, ddl);
+				foreach (var syncType in syncTypes) dicSyced.Add(syncType.FullName, true);
+				return affrows > 0;
 			} catch {
 				return false;
 			}

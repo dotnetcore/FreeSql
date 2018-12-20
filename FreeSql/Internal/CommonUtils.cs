@@ -16,6 +16,7 @@ namespace FreeSql.Internal {
 		internal abstract string QuoteSqlName(string name);
 		internal abstract string QuoteParamterName(string name);
 		internal abstract string IsNull(string sql, object value);
+		internal abstract string StringConcat(string left, string right, Type leftType, Type rightType);
 
 		internal ICodeFirst CodeFirst { get; set; }
 		internal TableInfo GetTableByEntity(Type entity) => Utils.GetTableByEntity(entity, this);

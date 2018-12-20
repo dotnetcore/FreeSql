@@ -44,5 +44,6 @@ namespace FreeSql.MySql {
 		internal override string QuoteSqlName(string name) => $"`{name.Trim('`').Replace(".", "`.`")}`";
 		internal override string QuoteParamterName(string name) => $"?{name}";
 		internal override string IsNull(string sql, object value) => $"ifnull({sql}, {value})";
+		internal override string StringConcat(string left, string right, Type leftType, Type rightType) => $"concat({left}, {right})";
 	}
 }
