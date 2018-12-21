@@ -36,13 +36,11 @@ namespace FreeSql.SqlServer {
 				return string.Concat("'", ((DateTime)param).ToString("yyyy-MM-dd HH:mm:ss.fff"), "'");
 			else if (param is DateTime?)
 				return string.Concat("'", (param as DateTime?).Value.ToString("yyyy-MM-dd HH:mm:ss.fff"), "'");
-			else if (param is TimeSpan) {
-				var ts = (TimeSpan)param;
-				return string.Concat("'", dt1970.Add(ts).ToString("yyyy-MM-dd HH:mm:ss.fff"), "'");
-			} else if (param is TimeSpan) {
-				var ts = (param as TimeSpan?).Value;
-				return string.Concat("'", dt1970.Add(ts).ToString("yyyy-MM-dd HH:mm:ss.fff"), "'");
-			} else if (param is IEnumerable) {
+			else if (param is TimeSpan)
+				return ((TimeSpan)param).Ticks / 10;
+			else if (param is TimeSpan?)
+				return (param as TimeSpan?).Value.Ticks / 10;
+			else if (param is IEnumerable) {
 				var sb = new StringBuilder();
 				var ie = param as IEnumerable;
 				foreach (var z in ie) sb.Append(",").Append(AddslashesProcessParam(z));

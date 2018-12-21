@@ -4,10 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
-namespace FreeSql.Tests.MySqlExpression {
+namespace FreeSql.Tests.SqlServerExpression {
 	public class TimeSpanTest {
 
-		ISelect<Topic> select => g.mysql.Select<Topic>();
+		ISelect<Topic> select => g.sqlserver.Select<Topic>();
 
 		[Table(Name = "tb_topic")]
 		class Topic {

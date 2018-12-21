@@ -3,6 +3,7 @@ using FreeSql.Internal;
 using FreeSql.Internal.Model;
 using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Data;
 using System.Linq;
 using System.Text;
@@ -148,11 +149,13 @@ where a.object_id in (object_id(N'[{0}].[{1}]'))", isRenameTable ? tboldname : t
 						sb.Append(_commonUtils.FormatSql("EXEC sp_rename {0}, {1}, 'COLUMN';\r\n", $"{tbname[0]}.{tbname[1]}.{addcol.Attribute.OldName}", addcol.Attribute.Name));
 						sb.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ALTER COLUMN ").Append(_commonUtils.QuoteSqlName(addcol.Attribute.Name)).Append(" ").Append(addcol.Attribute.DbType.ToUpper());
 						if (addcol.Attribute.IsIdentity && addcol.Attribute.DbType.IndexOf("identity", StringComparison.CurrentCultureIgnoreCase) == -1) sb.Append(" identity(1,1)");
+						if (addcol.Attribute.DbType.ToUpper().Contains("NOT NULL")) sb.Append(_commonUtils.FormatSql(" default({0})", Activator.CreateInstance(addcol.CsType.GenericTypeArguments.FirstOrDefault() ?? addcol.CsType)));
 						sb.Append(";\r\n");
 
 					} else { //添加列
 						sb.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ADD ").Append(_commonUtils.QuoteSqlName(addcol.Attribute.Name)).Append(" ").Append(addcol.Attribute.DbType.ToUpper());
 						if (addcol.Attribute.IsIdentity && addcol.Attribute.DbType.IndexOf("identity", StringComparison.CurrentCultureIgnoreCase) == -1) sb.Append(" identity(1,1)");
+						if (addcol.Attribute.DbType.ToUpper().Contains("NOT NULL")) sb.Append(_commonUtils.FormatSql(" default({0})", Activator.CreateInstance(addcol.CsType.GenericTypeArguments.FirstOrDefault() ?? addcol.CsType)));
 						sb.Append(";\r\n");
 					}
 				}
@@ -160,7 +163,7 @@ where a.object_id in (object_id(N'[{0}].[{1}]'))", isRenameTable ? tboldname : t
 			return sb.Length == 0 ? null : sb.ToString();
 		}
 
-		Dictionary<string, bool> dicSyced = new Dictionary<string, bool>();
+		ConcurrentDictionary<string, bool> dicSyced = new ConcurrentDictionary<string, bool>();
 		public bool SyncStructure<TEntity>() => this.SyncStructure(typeof(TEntity));
 		public bool SyncStructure(params Type[] entityTypes) {
 			if (entityTypes == null) return true;
@@ -168,16 +171,12 @@ where a.object_id in (object_id(N'[{0}].[{1}]'))", isRenameTable ? tboldname : t
 			if (syncTypes.Any() == false) return true;
 			var ddl = this.GetComparisonDDLStatements(syncTypes);
 			if (string.IsNullOrEmpty(ddl)) {
-				foreach (var syncType in syncTypes) dicSyced.Add(syncType.FullName, true);
+				foreach (var syncType in syncTypes) dicSyced.TryAdd(syncType.FullName, true);
 				return true;
 			}
-			try {
-				var affrows = _orm.Ado.ExecuteNonQuery(CommandType.Text, ddl);
-				foreach (var syncType in syncTypes) dicSyced.Add(syncType.FullName, true);
-				return affrows > 0;
-			} catch {
-				return false;
-			}
+			var affrows = _orm.Ado.ExecuteNonQuery(CommandType.Text, ddl);
+			foreach (var syncType in syncTypes) dicSyced.TryAdd(syncType.FullName, true);
+			return affrows > 0;
 		}
 
 	}

@@ -37,7 +37,7 @@ namespace FreeSql.MySql {
 			var left = ExpressionLambdaToSql(exp.Expression, _tables, _selectColumnMap, tbtype, isQuoteName);
 			switch (exp.Member.Name) {
 				case "Date": return $"cast(date_format({left}, '%Y-%m-%d') as datetime)";
-				case "TimeOfDay": return $"(time_to_sec(date_format({left}, '1970-1-1 %H:%i:%s.%f')) * 1000000 + microsecond({left}) + 6213559680000000)";
+				case "TimeOfDay": return $"(timestampdiff(microsecond, date_format({left}, '1970-1-1 %H:%i:%s.%f'), {left}) + 62135596800000000)";
 				case "DayOfWeek": return $"(dayofweek({left}) - 1)";
 				case "Day": return $"dayofmonth({left})";
 				case "DayOfYear": return $"dayofyear({left})";
@@ -47,7 +47,7 @@ namespace FreeSql.MySql {
 				case "Minute": return $"minute({left})";
 				case "Second": return $"second({left})";
 				case "Millisecond": return $"floor(microsecond({left}) / 1000)";
-				case "Ticks": return $"(time_to_sec({left}) * 10000000 + microsecond({left}) * 10 + 62135596800000000)";
+				case "Ticks": return $"(timestampdiff(microsecond, '1970-1-1', {left}) * 10 + 621355968000000000)";
 			}
 			return null;
 		}
@@ -196,7 +196,7 @@ namespace FreeSql.MySql {
 				case "AddYears": return $"date_add({left}, interval ({args1}) year)";
 				case "Subtract":
 					if (exp.Arguments[0].Type.FullName == "System.DateTime" || exp.Arguments[0].Type.GenericTypeArguments.FirstOrDefault()?.FullName == "System.DateTime")
-						return $"((time_to_sec({left}) - time_to_sec({args1})) * 1000000 + microsecond({left}) - microsecond({args1}))";
+						return $"timestampdiff(microsecond, {args1}, {left})";
 					if (exp.Arguments[0].Type.FullName == "System.TimeSpan" || exp.Arguments[0].Type.GenericTypeArguments.FirstOrDefault()?.FullName == "System.TimeSpan")
 						return $"date_sub({left}, interval ({args1}) microsecond)";
 					break;
@@ -231,7 +231,7 @@ namespace FreeSql.MySql {
 				case "Subtract": return $"({left} - {args1})";
 				case "Equals": return $"({left} = {ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)})";
 				case "CompareTo": return $"(({left}) - ({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)}))";
-				case "ToString": return $"date_format(date_add(cast('0001/1/1 0:00:00' as datetime), interval ({left}) microsecond), '%Y-%m-%d %H:%i:%s.%f')";
+				case "ToString": return $"cast({left} as varchar)";
 			}
 			throw new Exception($"MySqlExpression 未现实函数表达式 {exp} 解析");
 			

@@ -3,6 +3,7 @@ using FreeSql.Internal;
 using FreeSql.Internal.Model;
 using MySql.Data.MySqlClient;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -169,7 +170,7 @@ where a.table_schema in ({0}) and a.table_name in ({1})".FormatMySql(isRenameTab
 			return sb.Length == 0 ? null : sb.ToString();
 		}
 
-		Dictionary<string, bool> dicSyced = new Dictionary<string, bool>();
+		ConcurrentDictionary<string, bool> dicSyced = new ConcurrentDictionary<string, bool>();
 		public bool SyncStructure<TEntity>() => this.SyncStructure(typeof(TEntity));
 		public bool SyncStructure(params Type[] entityTypes) {
 			if (entityTypes == null) return true;
@@ -177,16 +178,12 @@ where a.table_schema in ({0}) and a.table_name in ({1})".FormatMySql(isRenameTab
 			if (syncTypes.Any() == false) return true;
 			var ddl = this.GetComparisonDDLStatements(syncTypes);
 			if (string.IsNullOrEmpty(ddl)) {
-				foreach (var syncType in syncTypes) dicSyced.Add(syncType.FullName, true);
+				foreach (var syncType in syncTypes) dicSyced.TryAdd(syncType.FullName, true);
 				return true;
 			}
-			try {
-				var affrows = _orm.Ado.ExecuteNonQuery(CommandType.Text, ddl);
-				foreach (var syncType in syncTypes) dicSyced.Add(syncType.FullName, true);
-				return affrows > 0;
-			} catch {
-				return false;
-			}
+			var affrows = _orm.Ado.ExecuteNonQuery(CommandType.Text, ddl);
+			foreach (var syncType in syncTypes) dicSyced.TryAdd(syncType.FullName, true);
+			return affrows > 0;
 		}
 
 	}
