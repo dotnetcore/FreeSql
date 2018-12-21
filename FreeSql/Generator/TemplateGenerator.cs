@@ -34,6 +34,7 @@ namespace FreeSql.Generator {
 					if (fi.Name.StartsWith("for-table.")) {
 						foreach (var table in tables) {
 							var result = tpl.RenderFile(file, new Dictionary<string, object>() { { "table", table }, { "dbfirst", dbfirst } });
+							if (result.EndsWith("return;")) continue;
 							var outputName = table.Name + outputExtension;
 							var mcls = Regex.Match(result, @"\s+class\s+(\w+)");
 							if (mcls.Success) outputName = mcls.Groups[1].Value + outputExtension;

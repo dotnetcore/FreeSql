@@ -113,15 +113,36 @@ namespace FreeSql.Internal {
 			{ ExpressionType.Equal, "=" },
 		};
 		internal string ExpressionWhereLambdaNoneForeignObject(List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Expression exp) {
-			return ExpressionLambdaToSql(exp, _tables, _selectColumnMap, SelectTableInfoType.From, true);
+			var sql = ExpressionLambdaToSql(exp, _tables, _selectColumnMap, SelectTableInfoType.From, true);
+			switch(sql) {
+				case "1":
+				case "'t'": return "1=1";
+				case "0":
+				case "'f'": return "1=2";
+				default:return sql;
+			}
 		}
 
 		internal string ExpressionWhereLambda(List<SelectTableInfo> _tables, Expression exp) {
-			return ExpressionLambdaToSql(exp, _tables, null, SelectTableInfoType.From, true);
+			var sql = ExpressionLambdaToSql(exp, _tables, null, SelectTableInfoType.From, true);
+			switch (sql) {
+				case "1":
+				case "'t'": return "1=1";
+				case "0":
+				case "'f'": return "1=2";
+				default: return sql;
+			}
 		}
 		internal void ExpressionJoinLambda(List<SelectTableInfo> _tables, SelectTableInfoType tbtype, Expression exp) {
 			var tbidx = _tables.Count;
 			var filter = ExpressionLambdaToSql(exp, _tables, null, tbtype, true);
+			switch (filter) {
+				case "1":
+				case "'t'": filter = "1=1"; break;
+				case "0":
+				case "'f'": filter = "1=2"; break;
+				default: break;
+			}
 			if (_tables.Count > tbidx) {
 				_tables[tbidx].Type = tbtype;
 				_tables[tbidx].On = filter;
@@ -139,11 +160,27 @@ namespace FreeSql.Internal {
 				case ExpressionType.Lambda: return ExpressionLambdaToSql((exp as LambdaExpression)?.Body, _tables, _selectColumnMap, tbtype, isQuoteName);
 				case ExpressionType.Convert: return ExpressionLambdaToSql((exp as UnaryExpression)?.Operand, _tables, _selectColumnMap, tbtype, isQuoteName);
 				case ExpressionType.Constant: return _common.FormatSql("{0}", (exp as ConstantExpression)?.Value);
+				case ExpressionType.Call:
+					var exp3 = exp as MethodCallExpression;
+					if (exp3.Object.Type.FullName == "System.String") return ExpressionLambdaToSqlCallString(exp3, _tables, _selectColumnMap, tbtype, isQuoteName);
+					if (exp3.Object.Type.FullName == "System.Math") return ExpressionLambdaToSqlCallMath(exp3, _tables, _selectColumnMap, tbtype, isQuoteName);
+					if (exp3.Object.Type.FullName == "System.DateTime" || exp3.Object.Type.GenericTypeArguments.FirstOrDefault()?.FullName == "System.DateTime") return ExpressionLambdaToSqlCallDateTime(exp3, _tables, _selectColumnMap, tbtype, isQuoteName);
+					if (exp3.Object.Type.FullName == "System.TimeSpan" || exp3.Object.Type.GenericTypeArguments.FirstOrDefault()?.FullName == "System.TimeSpan") return ExpressionLambdaToSqlCallTimeSpan(exp3, _tables, _selectColumnMap, tbtype, isQuoteName);
+					throw new Exception($"MySqlExpression 未现实函数表达式 {exp3} 解析");
 				case ExpressionType.MemberAccess:
+					var exp4 = exp as MemberExpression;
+					var extRet = "";
+					if (exp4.Expression == null && exp4.Type.FullName == "System.DateTime" && exp4.Member.Name == "Now") return ExpressionLambdaToSqlMemberAccessDateTime(exp4, _tables, _selectColumnMap, tbtype, isQuoteName);
+					if (exp4.Expression.Type.FullName == "System.String") extRet = ExpressionLambdaToSqlMemberAccessString(exp4, _tables, _selectColumnMap, tbtype, isQuoteName);
+					else if (exp4.Expression.Type.FullName == "System.Math") extRet = ExpressionLambdaToSqlMemberAccessMath(exp4, _tables, _selectColumnMap, tbtype, isQuoteName);
+					else if (exp4.Expression.Type.FullName == "System.DateTime" || exp4.Type.GenericTypeArguments.FirstOrDefault()?.FullName == "System.DateTime") extRet = ExpressionLambdaToSqlMemberAccessDateTime(exp4, _tables, _selectColumnMap, tbtype, isQuoteName);
+					else if (exp4.Expression.Type.FullName == "System.TimeSpan" || exp4.Type.GenericTypeArguments.FirstOrDefault()?.FullName == "System.TimeSpan") extRet = ExpressionLambdaToSqlMemberAccessTimeSpan(exp4, _tables, _selectColumnMap, tbtype, isQuoteName);
+					if (string.IsNullOrEmpty(extRet) == false) return extRet;
+
 					var expStack = new Stack<Expression>();
 					expStack.Push(exp);
 					MethodCallExpression callExp = null;
-					var exp2 = (exp as MemberExpression).Expression;
+					var exp2 = exp4.Expression;
 					while (true) {
 						switch(exp2.NodeType) {
 							case ExpressionType.Constant:
@@ -167,7 +204,7 @@ namespace FreeSql.Internal {
 						break;
 					}
 					if (expStack.First().NodeType != ExpressionType.Parameter) return _common.FormatSql("{0}", Expression.Lambda(exp).Compile().DynamicInvoke());
-					if (callExp != null) return ExpressionLambdaToSqlCall(callExp, _tables, _selectColumnMap, tbtype, isQuoteName);
+					if (callExp != null) return ExpressionLambdaToSql(callExp, _tables, _selectColumnMap, tbtype, isQuoteName);
 					if (_tables == null) {
 						var pp = expStack.Pop() as ParameterExpression;
 						var memberExp = expStack.Pop() as MemberExpression;
@@ -234,7 +271,6 @@ namespace FreeSql.Internal {
 					}
 					if (isQuoteName) name2 = _common.QuoteSqlName(name2);
 					return $"{alias2}.{name2}";
-				case ExpressionType.Call: return ExpressionLambdaToSqlCall(exp as MethodCallExpression, _tables, _selectColumnMap, tbtype, isQuoteName);
 			}
 			if (dicExpressionOperator.TryGetValue(exp.NodeType, out var tryoper) == false) return "";
 			var expBinary = exp as BinaryExpression;
@@ -247,10 +283,17 @@ namespace FreeSql.Internal {
 				left = tmp;
 			}
 			if (right == "NULL") tryoper = tryoper == "=" ? " IS " : " IS NOT ";
+			if (tryoper == "+" && (expBinary.Left.Type.FullName == "System.String" || expBinary.Right.Type.FullName == "System.String")) return _common.StringConcat(left, right, expBinary.Left.Type, expBinary.Right.Type);
 			return $"{left} {tryoper} {right}";
 		}
 
-		internal abstract string ExpressionLambdaToSqlCall(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, SelectTableInfoType tbtype, bool isQuoteName);
-
+		internal abstract string ExpressionLambdaToSqlMemberAccessString(MemberExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, SelectTableInfoType tbtype, bool isQuoteName);
+		internal abstract string ExpressionLambdaToSqlMemberAccessMath(MemberExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, SelectTableInfoType tbtype, bool isQuoteName);
+		internal abstract string ExpressionLambdaToSqlMemberAccessDateTime(MemberExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, SelectTableInfoType tbtype, bool isQuoteName);
+		internal abstract string ExpressionLambdaToSqlMemberAccessTimeSpan(MemberExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, SelectTableInfoType tbtype, bool isQuoteName);
+		internal abstract string ExpressionLambdaToSqlCallString(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, SelectTableInfoType tbtype, bool isQuoteName);
+		internal abstract string ExpressionLambdaToSqlCallMath(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, SelectTableInfoType tbtype, bool isQuoteName);
+		internal abstract string ExpressionLambdaToSqlCallDateTime(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, SelectTableInfoType tbtype, bool isQuoteName);
+		internal abstract string ExpressionLambdaToSqlCallTimeSpan(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, SelectTableInfoType tbtype, bool isQuoteName);
 	}
 }

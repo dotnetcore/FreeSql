@@ -358,10 +358,24 @@ where a.constraint_schema in ({1}) and a.table_name in ({0}) and not isnull(posi
 				if (ret == 0) ret = t1.Name.CompareTo(t2.Name);
 				return ret;
 			});
+			foreach(var loc4 in loc1) {
+				var dicUniques = new Dictionary<string, List<DbColumnInfo>>();
+				if (loc4.Primarys.Count > 0) dicUniques.Add(string.Join(",", loc4.Primarys.Select(a => a.Name)), loc4.Primarys);
+				foreach(var loc5 in loc4.Uniques) {
+					var dickey = string.Join(",", loc5.Select(a => a.Name));
+					if (dicUniques.ContainsKey(dickey)) continue;
+					dicUniques.Add(dickey, loc5);
+				}
+				loc4.Uniques = dicUniques.Values.ToList();
+			}
 
 			loc2.Clear();
 			loc3.Clear();
 			return loc1;
+		}
+
+		public List<DbEnumInfo> GetEnumsByDatabase(params string[] database) {
+			return new List<DbEnumInfo>();
 		}
 	}
 }

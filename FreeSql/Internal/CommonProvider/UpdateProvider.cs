@@ -54,7 +54,7 @@ namespace FreeSql.Internal.CommonProvider {
 		public IUpdate<T1> Set<TMember>(Expression<Func<T1, TMember>> column, TMember value) {
 			var col = _commonExpression.ExpressionSelectColumn_MemberAccess(null, null, SelectTableInfoType.From, column?.Body, true);
 			if (string.IsNullOrEmpty(col)) return this;
-			_set.Append(", ").Append(col).Append(" = ?p_").Append(_params.Count);
+			_set.Append(", ").Append(col).Append(" = ").Append(_commonUtils.QuoteParamterName("p_")).Append(_params.Count);
 			_commonUtils.AppendParamter(_params, null, value);
 			//foreach (var t in _source) Utils.FillPropertyValue(t, tryf.CsName, value);
 			return this;
@@ -135,7 +135,7 @@ namespace FreeSql.Internal.CommonProvider {
 				//	++pkidx;
 				//}
 				//if (_table.Primarys.Length > 1) caseWhen.Append(")");
-				var cw = caseWhen.Append(" ").ToString();
+				var cw = caseWhen.ToString();
 
 				_paramsSource.Clear();
 				var colidx = 0;

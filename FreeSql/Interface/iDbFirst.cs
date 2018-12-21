@@ -66,5 +66,12 @@ namespace FreeSql {
 		/// <param name="column"></param>
 		/// <returns></returns>
 		string GetCsParse(DbColumnInfo column);
+
+		/// <summary>
+		/// 获取数据库枚举类型，适用 PostgreSQL
+		/// </summary>
+		/// <param name="database"></param>
+		/// <returns></returns>
+		List<DbEnumInfo> GetEnumsByDatabase(params string[] database);
 	}
 }

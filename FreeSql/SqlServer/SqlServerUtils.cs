@@ -45,5 +45,6 @@ namespace FreeSql.SqlServer {
 		internal override string QuoteSqlName(string name) => $"[{name.TrimStart('[').TrimEnd(']').Replace(".", "].[")}]";
 		internal override string QuoteParamterName(string name) => $"@{name}";
 		internal override string IsNull(string sql, object value) => $"isnull({sql}, {value})";
+		internal override string StringConcat(string left, string right, Type leftType, Type rightType) => $"{(leftType.FullName == "System.String" ? left : $"cast({left} as nvarchar)")} + {(rightType.FullName == "System.String" ? right : $"cast({right} as nvarchar)")}";
 	}
 }

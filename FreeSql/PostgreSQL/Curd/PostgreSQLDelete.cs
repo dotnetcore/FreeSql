@@ -1,5 +1,6 @@
 ﻿using FreeSql.Internal;
 using System.Collections.Generic;
+using System.Data;
 using System.Text;
 
 namespace FreeSql.PostgreSQL.Curd {
@@ -19,7 +20,7 @@ namespace FreeSql.PostgreSQL.Curd {
 				sb.Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
 				++colidx;
 			}
-			return _orm.Ado.Query<T1>(sb.ToString());
+			return _orm.Ado.Query<T1>(CommandType.Text, sb.ToString(), _params.ToArray());
 		}
 	}
 }

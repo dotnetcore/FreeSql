@@ -57,8 +57,8 @@ namespace test.Model {
 		{/if}{/for}{for fk in fks}
 		public {#UString(fk.ReferencedTable.Name)} {#GetFkObjectName(fk)} { get; set; }
 		{/for}
-		internal static IFreeSql mysql => Const.mysql;
-		public static ISelect<{#UString(table.Name)}> Select => mysql.Select<{#UString(table.Name)}>();
+		internal static IFreeSql freesql => Const.mysql;
+		public static ISelect<{#UString(table.Name)}> Select => freesql.Select<{#UString(table.Name)}>();
 {if (table.Uniques.Count > 0)}
 		public static int ItemCacheTimeout = 180;{for uk001 in table.Uniques}{%
 
@@ -79,7 +79,7 @@ namespace test.Model {
 		parmsNodeTypeUpdateCacheRemove = parmsNodeTypeUpdateCacheRemove.Substring(0, parmsNodeTypeUpdateCacheRemove.Length - 9);
 		%}
 		public static {#UString(table.Name)} GetItem{#uk001[0].IsPrimary ? string.Empty : parmsBy}({#parms}) => Select.Where(a => {#parmsByWhereLambda}).Caching(ItemCacheTimeout, string.Concat("test:{#table.Name}{#uk001[0].IsPrimary ? string.Empty : parmsBy}:", {#parmsNodeTypeUpdateCacheRemove.Replace("item.", "")})).ToOne();{/for}
-{/if}{if (table.Uniques.Count > 0)}{for uk001 in table.Uniques}{%
+{for uk001 in table.Uniques}{%
 
 		string parms = string.Empty;
 		string parmsByWhereLambda = string.Empty;
@@ -101,12 +101,12 @@ namespace test.Model {
 		parmsNoneType = parmsNoneType.Substring(0, parmsNoneType.Length - 2);
 		%}
 		public static long Delete{#uk001[0].IsPrimary ? string.Empty : parmsBy}({#parms}) {
-			var affrows = mysql.Delete<{#UString(table.Name)}>().Where(a => {#parmsByWhereLambda}).ExecuteAffrows();{if table.Uniques.Count > 1}
+			var affrows = freesql.Delete<{#UString(table.Name)}>().Where(a => {#parmsByWhereLambda}).ExecuteAffrows();{if table.Uniques.Count > 1}
 			if (ItemCacheTimeout > 0) RemoveCache(GetItem{#uk001[0].IsPrimary ? string.Empty : parmsBy}({#parmsNoneType}));{else}
 			if (ItemCacheTimeout > 0) RemoveCache(new {#UString(table.Name)} { {#parmsNewItem} });{/if}
 			return affrows;
 		}{/for}
-{/if}{for fkcoldel in fks}{%
+{for fkcoldel in fks}{%
 		string parms = string.Empty;
 		string parmsBy = "By";
 		string parmsByWhereLambda = string.Empty;
@@ -121,9 +121,9 @@ namespace test.Model {
 		parmsByWhereLambda = parmsByWhereLambda.Substring(0, parmsByWhereLambda.Length - 4);
 		%}
 		public static long DeleteBy{#parmsBy}({#parms}) {
-			return mysql.Delete<{#UString(table.Name)}>().Where(a => {#parmsByWhereLambda}).ExecuteAffrows(); //删除缓存
+			return freesql.Delete<{#UString(table.Name)}>().Where(a => {#parmsByWhereLambda}).ExecuteAffrows(); //删除缓存
 		}
-{/for}{if (table.Uniques.Count > 0)}{% string redisRemoveCode = string.Empty; %}{for uk001 in table.Uniques}{%
+{/for}{% string redisRemoveCode = string.Empty; %}{for uk001 in table.Uniques}{%
 
 		string parmsBy = "By";
 		string parmsNodeTypeUpdateCacheRemove = string.Empty;
@@ -143,10 +143,10 @@ namespace test.Model {
 			var keysIdx = 0;
 			foreach (var item in items) {{#redisRemoveCode}
 			}
-			if (mysql.Ado.TransactionCurrentThread != null) mysql.Ado.TransactionPreRemoveCache(keys);
-			else mysql.Cache.Remove(keys);
+			if (freesql.Ado.TransactionCurrentThread != null) freesql.Ado.TransactionPreRemoveCache(keys);
+			else freesql.Cache.Remove(keys);
 		}
-{/if}{if (table.Columns.Count < 100)}{%
+{if (table.Columns.Count < 100)}{%
 		string CsParam3 = string.Empty;
 		string CsParamNoType3 = string.Empty;
 		string parms = string.Empty;
@@ -186,54 +186,55 @@ namespace test.Model {
 		if (CsParamNoType3.Length > 0) CsParamNoType3 = CsParamNoType3.Substring(0, CsParamNoType3.Length - 2);
 		%}{if idens > 0}
 		public static {#GetCsType(idensCol)} Insert({#UString(table.Name)} item) {
-			item.{#UString(idensCol.Name)} = ({#GetCsType(idensCol)})mysql.Insert<{#UString(table.Name)}>().AppendData(item).ExecuteIdentity();
+			item.{#UString(idensCol.Name)} = ({#GetCsType(idensCol)})freesql.Insert<{#UString(table.Name)}>().AppendData(item).ExecuteIdentity();
 			if (ItemCacheTimeout > 0) RemoveCache(item);
 			return item.{#UString(idensCol.Name)};
 		}{else}
 		public static void Insert({#UString(table.Name)} item) {
 			if (ItemCacheTimeout > 0) RemoveCache(item);
-			mysql.Insert<{#UString(table.Name)}>().AppendData(item).ExecuteAffrows();
+			freesql.Insert<{#UString(table.Name)}>().AppendData(item).ExecuteAffrows();
 		}
 		public static long Insert(IEnumerable<{#UString(table.Name)}> items) {
 			if (ItemCacheTimeout > 0) RemoveCache(items);
-			return mysql.Insert<{#UString(table.Name)}>().AppendData(items).ExecuteAffrows();
+			return freesql.Insert<{#UString(table.Name)}>().AppendData(items).ExecuteAffrows();
 		}{/if}
 		{if CsParamNoType3.Split('=').Length <= 5}{if idens > 0}
 		public static {#GetCsType(idensCol)} Insert({#CsParam3}) {
 			var item = new {#UString(table.Name)} {{#CsParamNoType3}};
-			item.{#UString(idensCol.Name)} = ({#GetCsType(idensCol)})mysql.Insert<{#UString(table.Name)}>().AppendData(new {#UString(table.Name)} {{#CsParamNoType3}}).ExecuteIdentity();
+			item.{#UString(idensCol.Name)} = ({#GetCsType(idensCol)})freesql.Insert<{#UString(table.Name)}>().AppendData(new {#UString(table.Name)} {{#CsParamNoType3}}).ExecuteIdentity();
 			if (ItemCacheTimeout > 0) RemoveCache(item);
 			return item.{#UString(idensCol.Name)};
 		}{else}
 		public static {#UString(table.Name)} Insert({#CsParam3}) {
 			var item = new {#UString(table.Name)} {{#CsParamNoType3}};
-			mysql.Insert<{#UString(table.Name)}>().AppendData(item).ExecuteAffrows();
+			freesql.Insert<{#UString(table.Name)}>().AppendData(item).ExecuteAffrows();
 			if (ItemCacheTimeout > 0) RemoveCache(item);
 			return item;
 		}{/if}{/if}
 		public static long Update({#UString(table.Name)} item) {
 			if (ItemCacheTimeout > 0) RemoveCache(item);
-			return mysql.Update<{#UString(table.Name)}>().SetSource(item).ExecuteAffrows();
+			return freesql.Update<{#UString(table.Name)}>().SetSource(item).ExecuteAffrows();
 		}
 		public static long Update(IEnumerable<{#UString(table.Name)}> items) {
 			if (ItemCacheTimeout > 0) RemoveCache(items);
-			return mysql.Update<{#UString(table.Name)}>().SetSource(items).ExecuteAffrows();
+			return freesql.Update<{#UString(table.Name)}>().SetSource(items).ExecuteAffrows();
 		}
 		/// <summary>
 		/// 指定字段更新
 		/// </summary>
-		public IUpdate<{#UString(table.Name)}> UpdateDiy => mysql.Update<{#UString(table.Name)}>().Where(a => {#parmsByWhereLambda});
+		public IUpdate<{#UString(table.Name)}> UpdateDiy => freesql.Update<{#UString(table.Name)}>().Where(a => {#parmsByWhereLambda});
 		/// <summary>
 		/// {if pks.Count > 0}保存或添加，如果主键有值则尝试 Update，如果影响的行为 0 则尝试 Insert{else}添加{/if}
 		/// </summary>
 		public void Save() {{if pks.Count > 0}
 			if ({#string.Join(" && ", pks.Select(pkssa => "this." + UString(pkssa.Name) + " != default(" + GetCsType(pkssa) + ")"))}) {
-				var affrows = mysql.Update<{#UString(table.Name)}>().Where(a => {#parmsByWhereLambda}).ExecuteAffrows();
+				var affrows = freesql.Update<{#UString(table.Name)}>().Where(a => {#parmsByWhereLambda}).ExecuteAffrows();
 				if (affrows > 0) return;
 			}{/if}
-			{if pks.Count > 0}this.{#UString(idensCol.Name)} = {#GetCsType(idensCol).Replace("?", "") == "long" ? "" : ("(" + GetCsType(idensCol) + ")")}mysql.Insert<{#UString(table.Name)}>().AppendData(this).ExecuteIdentity();{else}mysql.Insert<{#UString(table.Name)}>().AppendData(this).ExecuteAffrows();{/if}
+			{if idens > 0}this.{#UString(idensCol.Name)} = {#GetCsType(idensCol).Replace("?", "") == "long" ? "" : ("(" + GetCsType(idensCol) + ")")}freesql.Insert<{#UString(table.Name)}>().AppendData(this).ExecuteIdentity();{else}
+			freesql.Insert<{#UString(table.Name)}>().AppendData(this).ExecuteAffrows();{/if}
 		}
-{/if}
+{/if}{/if}
 	}
 {include ../../include/enumtype.tpl}
 }

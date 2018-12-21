@@ -60,7 +60,6 @@ namespace FreeSql.SqlServer {
 				{ (int)SqlDbType.Int, ("(int?)", "int.Parse({0})", "{0}.ToString()", "int?", typeof(int), typeof(int?), "{0}.Value", "GetInt32") },
 				{ (int)SqlDbType.BigInt, ("(long?)", "long.Parse({0})", "{0}.ToString()", "long?", typeof(long), typeof(long?), "{0}.Value", "GetInt64") },
 
-				{ (int)SqlDbType.Decimal, ("(decimal?)", "decimal.Parse({0})", "{0}.ToString()", "decimal?", typeof(decimal), typeof(decimal?), "{0}.Value", "GetDecimal") },
 				{ (int)SqlDbType.SmallMoney, ("(decimal?)", "decimal.Parse({0})", "{0}.ToString()", "decimal?", typeof(decimal), typeof(decimal?), "{0}.Value", "GetDecimal") },
 				{ (int)SqlDbType.Money, ("(decimal?)", "decimal.Parse({0})", "{0}.ToString()", "decimal?", typeof(decimal), typeof(decimal?), "{0}.Value", "GetDecimal") },
 				{ (int)SqlDbType.Decimal, ("(decimal?)", "decimal.Parse({0})", "{0}.ToString()", "decimal?", typeof(decimal), typeof(decimal?), "{0}.Value", "GetDecimal") },
@@ -86,7 +85,7 @@ namespace FreeSql.SqlServer {
 				{ (int)SqlDbType.NVarChar, ("", "{0}.Replace(StringifySplit, \"|\")", "{0}.Replace(\"|\", StringifySplit)", "string", typeof(string), typeof(string), "{0}", "GetString") },
 				{ (int)SqlDbType.NText, ("", "{0}.Replace(StringifySplit, \"|\")", "{0}.Replace(\"|\", StringifySplit)", "string", typeof(string), typeof(string), "{0}", "GetString") },
 
-				{ (int)SqlDbType.UniqueIdentifier, ("(Guid?)", "Guid.Parse({0})", "{0}.ToString()", "MygisGeometry", typeof(Guid), typeof(Guid?), "{0}.Value", "GetGuid") },
+				{ (int)SqlDbType.UniqueIdentifier, ("(Guid?)", "Guid.Parse({0})", "{0}.ToString()", "Guid?", typeof(Guid), typeof(Guid?), "{0}.Value", "GetGuid") },
 			};
 
 		public string GetCsConvert(DbColumnInfo column) => _dicDbToCs.TryGetValue(column.DbType, out var trydc) ? (column.IsNullable ? trydc.csConvert : trydc.csConvert.Replace("?", "")) : null;
@@ -104,11 +103,22 @@ namespace FreeSql.SqlServer {
 		}
 
 		public List<DbTableInfo> GetTablesByDatabase(params string[] database) {
-			List<DbTableInfo> loc1 = null;
-			Dictionary<int, DbTableInfo> loc2 = new Dictionary<int, DbTableInfo>();
-			Dictionary<int, Dictionary<string, DbColumnInfo>> loc3 = new Dictionary<int, Dictionary<string, DbColumnInfo>>();
+			var olddatabase = "";
+			using (var conn = _orm.Ado.MasterPool.Get(TimeSpan.FromSeconds(5))) {
+				olddatabase = conn.Value.Database;
+			}
+			var dbs = database?.ToArray() ?? new[] { olddatabase };
+			var tables = new List<DbTableInfo>();
 
-			var sql = @"
+			foreach (var db in dbs) {
+				if (string.IsNullOrEmpty(db)) continue;
+
+				var loc1 = new List<DbTableInfo>();
+				var loc2 = new Dictionary<int, DbTableInfo>();
+				var loc3 = new Dictionary<int, Dictionary<string, DbColumnInfo>>();
+
+				var sql = $@"
+use {db};
 select 
  a.Object_id
 ,b.name 'Owner'
@@ -135,34 +145,37 @@ from sys.procedures a
 inner join sys.schemas b on b.schema_id = a.schema_id
 where a.type = 'P' and charindex('$NPSP', a.name) = 0 and charindex('diagram', a.name) = 0
 order by type desc, b.name, a.name
+;
+use {olddatabase};
 ";
-			var ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
-			if (ds == null) return loc1;
+				var ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
+				if (ds == null) return loc1;
 
-			var loc6 = new List<int>();
-			var loc66 = new List<int>();
-			foreach (object[] row in ds) {
-				int object_id = int.Parse(string.Concat(row[0]));
-				var owner = string.Concat(row[1]);
-				var table = string.Concat(row[2]);
-				Enum.TryParse<DbTableType>(string.Concat(row[3]), out var type);
-				loc2.Add(object_id, new DbTableInfo { Id = object_id.ToString(), Schema = owner, Name = table, Type = type });
-				loc3.Add(object_id, new Dictionary<string, DbColumnInfo>());
-				switch (type) {
-					case DbTableType.VIEW:
-					case DbTableType.TABLE:
-						loc6.Add(object_id);
-						break;
-					case DbTableType.StoreProcedure:
-						loc66.Add(object_id);
-						break;
+				var loc6 = new List<int>();
+				var loc66 = new List<int>();
+				foreach (object[] row in ds) {
+					int object_id = int.Parse(string.Concat(row[0]));
+					var owner = string.Concat(row[1]);
+					var table = string.Concat(row[2]);
+					Enum.TryParse<DbTableType>(string.Concat(row[3]), out var type);
+					loc2.Add(object_id, new DbTableInfo { Id = object_id.ToString(), Schema = owner, Name = table, Type = type });
+					loc3.Add(object_id, new Dictionary<string, DbColumnInfo>());
+					switch (type) {
+						case DbTableType.VIEW:
+						case DbTableType.TABLE:
+							loc6.Add(object_id);
+							break;
+						case DbTableType.StoreProcedure:
+							loc66.Add(object_id);
+							break;
+					}
 				}
-			}
-			if (loc6.Count == 0) return loc1;
-			var loc8 = string.Join(",", loc6.Select(a => string.Concat(a)));
-			var loc88 = string.Join(",", loc66.Select(a => string.Concat(a)));
+				if (loc6.Count == 0) return loc1;
+				var loc8 = string.Join(",", loc6.Select(a => string.Concat(a)));
+				var loc88 = string.Join(",", loc66.Select(a => string.Concat(a)));
 
-			var tsql_place = @"
+				var tsql_place = @"
+
 select 
 isnull(e.name,'') + '.' + isnull(d.name,'')
 ,a.Object_id
@@ -187,50 +200,52 @@ left join sys.tables d on d.object_id = a.object_id
 left join sys.schemas e on e.schema_id = d.schema_id
 where a.object_id in ({1})
 ";
-			sql = string.Format(tsql_place, @"
+				sql = string.Format(tsql_place, @"
 ,a.is_nullable 'IsNullable'
 ,a.is_identity 'IsIdentity'
 from sys.columns", loc8);
-			if (loc88.Length > 0) {
-				sql += "union all" +
-				string.Format(tsql_place.Replace(
-					"left join sys.extended_properties AS c ON c.major_id = a.object_id AND c.minor_id = a.column_id",
-					"left join sys.extended_properties AS c ON c.major_id = a.object_id AND c.minor_id = a.parameter_id"), @"
+				if (loc88.Length > 0) {
+					sql += "union all" +
+					string.Format(tsql_place.Replace(
+						"left join sys.extended_properties AS c ON c.major_id = a.object_id AND c.minor_id = a.column_id",
+						"left join sys.extended_properties AS c ON c.major_id = a.object_id AND c.minor_id = a.parameter_id"), @"
 ,cast(0 as bit) 'IsNullable'
 ,a.is_output 'IsIdentity'
 from sys.parameters", loc88);
-			}
-			ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
-			if (ds == null) return loc1;
+				}
+				sql = $"use {db};{sql};use {olddatabase}; ";
+				ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
+				if (ds == null) return loc1;
 
-			foreach (object[] row in ds) {
-				var table_id = string.Concat(row[0]);
-				var object_id = int.Parse(string.Concat(row[1]));
-				var column = string.Concat(row[2]);
-				var type = string.Concat(row[3]);
-				var max_length = int.Parse(string.Concat(row[4]));
-				var sqlType = string.Concat(row[5]);
-				var comment = string.Concat(row[6]);
-				var is_nullable = bool.Parse(string.Concat(row[7]));
-				var is_identity = bool.Parse(string.Concat(row[8]));
-				if (max_length == 0) max_length = -1;
+				foreach (object[] row in ds) {
+					var table_id = string.Concat(row[0]);
+					var object_id = int.Parse(string.Concat(row[1]));
+					var column = string.Concat(row[2]);
+					var type = string.Concat(row[3]);
+					var max_length = int.Parse(string.Concat(row[4]));
+					var sqlType = string.Concat(row[5]);
+					var comment = string.Concat(row[6]);
+					var is_nullable = bool.Parse(string.Concat(row[7]));
+					var is_identity = bool.Parse(string.Concat(row[8]));
+					if (max_length == 0) max_length = -1;
 
-				loc3[object_id].Add(column, new DbColumnInfo {
-					Name = column,
-					MaxLength = max_length,
-					IsIdentity = is_identity,
-					IsNullable = is_nullable,
-					IsPrimary = false,
-					DbTypeText = type,
-					DbTypeTextFull = sqlType,
-					Table = loc2[object_id],
-					Coment = comment
-				});
-				loc3[object_id][column].DbType = this.GetDbType(loc3[object_id][column]);
-				loc3[object_id][column].CsType = this.GetCsTypeInfo(loc3[object_id][column]);
-			}
+					loc3[object_id].Add(column, new DbColumnInfo {
+						Name = column,
+						MaxLength = max_length,
+						IsIdentity = is_identity,
+						IsNullable = is_nullable,
+						IsPrimary = false,
+						DbTypeText = type,
+						DbTypeTextFull = sqlType,
+						Table = loc2[object_id],
+						Coment = comment
+					});
+					loc3[object_id][column].DbType = this.GetDbType(loc3[object_id][column]);
+					loc3[object_id][column].CsType = this.GetCsTypeInfo(loc3[object_id][column]);
+				}
 
-			sql = string.Format(@"
+				sql = $@"
+use {db};
 select 
  a.object_id 'Object_id'
 ,c.name 'Column'
@@ -242,53 +257,55 @@ select
 from sys.index_columns a
 inner join sys.indexes b on b.object_id = a.object_id and b.index_id = a.index_id
 left join sys.columns c on c.object_id = a.object_id and c.column_id = a.column_id
-where a.object_id in ({0})
-", loc8);
-			ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
-			if (ds == null) return loc1;
+where a.object_id in ({loc8})
+;
+use {olddatabase};
+";
+				ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
+				if (ds == null) return loc1;
 
-			var indexColumns = new Dictionary<int, Dictionary<int, List<DbColumnInfo>>>();
-			var uniqueColumns = new Dictionary<int, Dictionary<int, List<DbColumnInfo>>>();
-			foreach (object[] row in ds) {
-				int object_id = int.Parse(string.Concat(row[0]));
-				string column = string.Concat(row[1]);
-				int index_id = int.Parse(string.Concat(row[2]));
-				bool is_unique = bool.Parse(string.Concat(row[3]));
-				bool is_primary_key = bool.Parse(string.Concat(row[4]));
-				bool is_clustered = bool.Parse(string.Concat(row[5]));
-				int is_desc = int.Parse(string.Concat(row[6]));
+				var indexColumns = new Dictionary<int, Dictionary<int, List<DbColumnInfo>>>();
+				var uniqueColumns = new Dictionary<int, Dictionary<int, List<DbColumnInfo>>>();
+				foreach (object[] row in ds) {
+					int object_id = int.Parse(string.Concat(row[0]));
+					string column = string.Concat(row[1]);
+					int index_id = int.Parse(string.Concat(row[2]));
+					bool is_unique = bool.Parse(string.Concat(row[3]));
+					bool is_primary_key = bool.Parse(string.Concat(row[4]));
+					bool is_clustered = bool.Parse(string.Concat(row[5]));
+					int is_desc = int.Parse(string.Concat(row[6]));
 
-				if (loc3.ContainsKey(object_id) == false || loc3[object_id].ContainsKey(column) == false) continue;
-				DbColumnInfo loc9 = loc3[object_id][column];
-				if (loc9.IsPrimary == false && is_primary_key) loc9.IsPrimary = is_primary_key;
+					if (loc3.ContainsKey(object_id) == false || loc3[object_id].ContainsKey(column) == false) continue;
+					DbColumnInfo loc9 = loc3[object_id][column];
+					if (loc9.IsPrimary == false && is_primary_key) loc9.IsPrimary = is_primary_key;
 
-				Dictionary<int, List<DbColumnInfo>> loc10 = null;
-				List<DbColumnInfo> loc11 = null;
-				if (!indexColumns.TryGetValue(object_id, out loc10))
-					indexColumns.Add(object_id, loc10 = new Dictionary<int, List<DbColumnInfo>>());
-				if (!loc10.TryGetValue(index_id, out loc11))
-					loc10.Add(index_id, loc11 = new List<DbColumnInfo>());
-				loc11.Add(loc9);
-				if (is_unique) {
-					if (!uniqueColumns.TryGetValue(object_id, out loc10))
-						uniqueColumns.Add(object_id, loc10 = new Dictionary<int, List<DbColumnInfo>>());
+					Dictionary<int, List<DbColumnInfo>> loc10 = null;
+					List<DbColumnInfo> loc11 = null;
+					if (!indexColumns.TryGetValue(object_id, out loc10))
+						indexColumns.Add(object_id, loc10 = new Dictionary<int, List<DbColumnInfo>>());
 					if (!loc10.TryGetValue(index_id, out loc11))
 						loc10.Add(index_id, loc11 = new List<DbColumnInfo>());
 					loc11.Add(loc9);
+					if (is_unique) {
+						if (!uniqueColumns.TryGetValue(object_id, out loc10))
+							uniqueColumns.Add(object_id, loc10 = new Dictionary<int, List<DbColumnInfo>>());
+						if (!loc10.TryGetValue(index_id, out loc11))
+							loc10.Add(index_id, loc11 = new List<DbColumnInfo>());
+						loc11.Add(loc9);
+					}
 				}
-			}
-			foreach (var object_id in indexColumns.Keys) {
-				foreach (List<DbColumnInfo> columns in indexColumns[object_id].Values)
-					loc2[object_id].Indexes.Add(columns);
-			}
-			foreach (var object_id in uniqueColumns.Keys) {
-				foreach (var columns in uniqueColumns[object_id].Values) {
-					columns.Sort((c1, c2) => c1.Name.CompareTo(c2.Name));
-					loc2[object_id].Uniques.Add(columns);
+				foreach (var object_id in indexColumns.Keys) {
+					foreach (List<DbColumnInfo> columns in indexColumns[object_id].Values)
+						loc2[object_id].Indexes.Add(columns);
 				}
-			}
+				foreach (var object_id in uniqueColumns.Keys) {
+					foreach (var columns in uniqueColumns[object_id].Values) {
+						columns.Sort((c1, c2) => c1.Name.CompareTo(c2.Name));
+						loc2[object_id].Uniques.Add(columns);
+					}
+				}
 
-			sql = string.Format(@"
+				sql = $@"
 select 
  b.object_id 'Object_id'
 ,c.name 'Column'
@@ -302,82 +319,100 @@ from sys.foreign_key_columns a
 inner join sys.tables b on b.object_id = a.parent_object_id
 inner join sys.columns c on c.object_id = a.parent_object_id and c.column_id = a.parent_column_id
 inner join sys.columns d on d.object_id = a.referenced_object_id and d.column_id = a.referenced_column_id
-where b.object_id in ({0})
-", loc8);
-			ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
-			if (ds == null) return loc1;
+where b.object_id in ({loc8})
+;
+use {olddatabase};
+";
+				ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
+				if (ds == null) return loc1;
 
-			var fkColumns = new Dictionary<int, Dictionary<int, DbForeignInfo>>();
-			foreach (object[] row in ds) {
-				int object_id, fk_id, referenced_object_id;
-				int.TryParse(string.Concat(row[0]), out object_id);
-				var column = string.Concat(row[1]);
-				int.TryParse(string.Concat(row[2]), out fk_id);
-				int.TryParse(string.Concat(row[3]), out referenced_object_id);
-				var is_foreign_key = bool.Parse(string.Concat(row[4]));
-				var referenced_column = string.Concat(row[5]);
-				var referenced_db = string.Concat(row[6]);
-				var referenced_table = string.Concat(row[7]);
-				DbColumnInfo loc9 = loc3[object_id][column];
-				DbTableInfo loc10 = null;
-				DbColumnInfo loc11 = null;
-				bool isThisSln = referenced_object_id != 0;
+				var fkColumns = new Dictionary<int, Dictionary<int, DbForeignInfo>>();
+				foreach (object[] row in ds) {
+					int object_id, fk_id, referenced_object_id;
+					int.TryParse(string.Concat(row[0]), out object_id);
+					var column = string.Concat(row[1]);
+					int.TryParse(string.Concat(row[2]), out fk_id);
+					int.TryParse(string.Concat(row[3]), out referenced_object_id);
+					var is_foreign_key = bool.Parse(string.Concat(row[4]));
+					var referenced_column = string.Concat(row[5]);
+					var referenced_db = string.Concat(row[6]);
+					var referenced_table = string.Concat(row[7]);
+					DbColumnInfo loc9 = loc3[object_id][column];
+					DbTableInfo loc10 = null;
+					DbColumnInfo loc11 = null;
+					bool isThisSln = referenced_object_id != 0;
 
-				if (isThisSln) {
-					loc10 = loc2[referenced_object_id];
-					loc11 = loc3[referenced_object_id][referenced_column];
-				} else {
+					if (isThisSln) {
+						loc10 = loc2[referenced_object_id];
+						loc11 = loc3[referenced_object_id][referenced_column];
+					} else {
 
+					}
+					Dictionary<int, DbForeignInfo> loc12 = null;
+					DbForeignInfo loc13 = null;
+					if (!fkColumns.TryGetValue(object_id, out loc12))
+						fkColumns.Add(object_id, loc12 = new Dictionary<int, DbForeignInfo>());
+					if (!loc12.TryGetValue(fk_id, out loc13))
+						loc12.Add(fk_id, loc13 = new DbForeignInfo { Table = loc2[object_id], ReferencedTable = loc10 });
+					loc13.Columns.Add(loc9);
+					loc13.ReferencedColumns.Add(loc11);
 				}
-				Dictionary<int, DbForeignInfo> loc12 = null;
-				DbForeignInfo loc13 = null;
-				if (!fkColumns.TryGetValue(object_id, out loc12))
-					fkColumns.Add(object_id, loc12 = new Dictionary<int, DbForeignInfo>());
-				if (!loc12.TryGetValue(fk_id, out loc13))
-					loc12.Add(fk_id, new DbForeignInfo { Table = loc2[object_id], ReferencedTable = loc10 });
-				loc13.Columns.Add(loc9);
-				loc13.ReferencedColumns.Add(loc11);
-			}
-			foreach (var table_id in fkColumns.Keys)
-				foreach (var fk in fkColumns[table_id].Values)
-					loc2[table_id].Foreigns.Add(fk);
+				foreach (var table_id in fkColumns.Keys)
+					foreach (var fk in fkColumns[table_id].Values)
+						loc2[table_id].Foreigns.Add(fk);
 
-			foreach (var table_id in loc3.Keys) {
-				foreach (var loc5 in loc3[table_id].Values) {
-					loc2[table_id].Columns.Add(loc5);
-					if (loc5.IsIdentity) loc2[table_id].Identitys.Add(loc5);
-					if (loc5.IsPrimary) loc2[table_id].Primarys.Add(loc5);
-				}
-			}
-			foreach (var loc4 in loc2.Values) {
-				if (loc4.Primarys.Count == 0 && loc4.Uniques.Count > 0) {
-					foreach (var loc5 in loc4.Uniques[0]) {
-						loc5.IsPrimary = true;
-						loc4.Primarys.Add(loc5);
+				foreach (var table_id in loc3.Keys) {
+					foreach (var loc5 in loc3[table_id].Values) {
+						loc2[table_id].Columns.Add(loc5);
+						if (loc5.IsIdentity) loc2[table_id].Identitys.Add(loc5);
+						if (loc5.IsPrimary) loc2[table_id].Primarys.Add(loc5);
 					}
 				}
-				loc4.Primarys.Sort((c1, c2) => c1.Name.CompareTo(c2.Name));
-				loc4.Columns.Sort((c1, c2) => {
-					int compare = c2.IsPrimary.CompareTo(c1.IsPrimary);
-					if (compare == 0) {
-						bool b1 = loc4.Foreigns.Find(fk => fk.Columns.Find(c3 => c3.Name == c1.Name) != null) != null;
-						bool b2 = loc4.Foreigns.Find(fk => fk.Columns.Find(c3 => c3.Name == c2.Name) != null) != null;
-						compare = b2.CompareTo(b1);
+				foreach (var loc4 in loc2.Values) {
+					if (loc4.Primarys.Count == 0 && loc4.Uniques.Count > 0) {
+						foreach (var loc5 in loc4.Uniques[0]) {
+							loc5.IsPrimary = true;
+							loc4.Primarys.Add(loc5);
+						}
 					}
-					if (compare == 0) compare = c1.Name.CompareTo(c2.Name);
-					return compare;
+					loc4.Primarys.Sort((c1, c2) => c1.Name.CompareTo(c2.Name));
+					loc4.Columns.Sort((c1, c2) => {
+						int compare = c2.IsPrimary.CompareTo(c1.IsPrimary);
+						if (compare == 0) {
+							bool b1 = loc4.Foreigns.Find(fk => fk.Columns.Find(c3 => c3.Name == c1.Name) != null) != null;
+							bool b2 = loc4.Foreigns.Find(fk => fk.Columns.Find(c3 => c3.Name == c2.Name) != null) != null;
+							compare = b2.CompareTo(b1);
+						}
+						if (compare == 0) compare = c1.Name.CompareTo(c2.Name);
+						return compare;
+					});
+					loc1.Add(loc4);
+				}
+				loc1.Sort((t1, t2) => {
+					var ret = t1.Schema.CompareTo(t2.Schema);
+					if (ret == 0) ret = t1.Name.CompareTo(t2.Name);
+					return ret;
 				});
-				loc1.Add(loc4);
-			}
-			loc1.Sort((t1, t2) => {
-				var ret = t1.Schema.CompareTo(t2.Schema);
-				if (ret == 0) ret = t1.Name.CompareTo(t2.Name);
-				return ret;
-			});
+				foreach (var loc4 in loc1) {
+					var dicUniques = new Dictionary<string, List<DbColumnInfo>>();
+					if (loc4.Primarys.Count > 0) dicUniques.Add(string.Join(",", loc4.Primarys.Select(a => a.Name)), loc4.Primarys);
+					foreach (var loc5 in loc4.Uniques) {
+						var dickey = string.Join(",", loc5.Select(a => a.Name));
+						if (dicUniques.ContainsKey(dickey)) continue;
+						dicUniques.Add(dickey, loc5);
+					}
+					loc4.Uniques = dicUniques.Values.ToList();
+				}
 
-			loc2.Clear();
-			loc3.Clear();
-			return loc1;
+				loc2.Clear();
+				loc3.Clear();
+				tables.AddRange(loc1);
+			}
+			return tables;
+		}
+
+		public List<DbEnumInfo> GetEnumsByDatabase(params string[] database) {
+			return new List<DbEnumInfo>();
 		}
 	}
 }

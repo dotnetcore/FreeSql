@@ -23,6 +23,7 @@ namespace FreeSql.MySql {
 				}
 			}
 		}
+		static DateTime dt1970 = new DateTime(1970, 1, 1);
 		public override object AddslashesProcessParam(object param) {
 			if (param == null) return "NULL";
 			if (param is bool || param is bool?)
@@ -33,21 +34,24 @@ namespace FreeSql.MySql {
 				return ((Enum)param).ToInt64();
 			else if (decimal.TryParse(string.Concat(param), out var trydec))
 				return param;
-			else if (param is DateTime) {
-				DateTime dt = (DateTime)param;
-				return string.Concat("'", dt.ToString("yyyy-MM-dd HH:mm:ss"), "'");
-			} else if (param is DateTime?) {
-				DateTime? dt = param as DateTime?;
-				return string.Concat("'", dt.Value.ToString("yyyy-MM-dd HH:mm:ss"), "'");
+			else if (param is DateTime)
+				return string.Concat("'", ((DateTime)param).ToString("yyyy-MM-dd HH:mm:ss"), "'");
+			else if (param is DateTime?)
+				return string.Concat("'", (param as DateTime?).Value.ToString("yyyy-MM-dd HH:mm:ss"), "'");
+			else if (param is TimeSpan) {
+				var ts = (TimeSpan)param;
+				return string.Concat("'", ts.Ticks > 0 ? "" : "-", ts.TotalHours, dt1970.AddTicks(Math.Abs(ts.Ticks)).ToString(":mm:ss.fff"), "'");
+			} else if (param is TimeSpan) {
+				var ts = (param as TimeSpan?).Value;
+				return string.Concat("'", ts.Ticks > 0 ? "" : "-", ts.TotalHours, dt1970.AddTicks(Math.Abs(ts.Ticks)).ToString(":mm:ss.fff"), "'");
 			} else if (param is IEnumerable) {
 				var sb = new StringBuilder();
 				var ie = param as IEnumerable;
 				foreach (var z in ie) sb.Append(",").Append(AddslashesProcessParam(z));
 				return sb.Length == 0 ? "(NULL)" : sb.Remove(0, 1).Insert(0, "(").Append(")").ToString();
-			} else {
-				return string.Concat("'", param.ToString().Replace("'", "''"), "'");
-				//if (param is string) return string.Concat('N', nparms[a]);
 			}
+			return string.Concat("'", param.ToString().Replace("'", "''"), "'");
+			//if (param is string) return string.Concat('N', nparms[a]);
 		}
 
 		protected override DbCommand CreateCommand() {

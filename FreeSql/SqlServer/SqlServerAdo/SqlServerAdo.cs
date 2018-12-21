@@ -23,6 +23,7 @@ namespace FreeSql.SqlServer {
 				}
 			}
 		}
+		static DateTime dt1970 = new DateTime(1970, 1, 1);
 		public override object AddslashesProcessParam(object param) {
 			if (param == null) return "NULL";
 			if (param is bool || param is bool?)
@@ -31,12 +32,16 @@ namespace FreeSql.SqlServer {
 				return string.Concat("'", param.ToString().Replace("'", "''"), "'");
 			else if (decimal.TryParse(string.Concat(param), out var trydec))
 				return param;
-			else if (param is DateTime) {
-				DateTime dt = (DateTime)param;
-				return string.Concat("'", dt.ToString("yyyy-MM-dd HH:mm:ss.ffffff"), "'");
-			} else if (param is DateTime?) {
-				DateTime? dt = param as DateTime?;
-				return string.Concat("'", dt.Value.ToString("yyyy-MM-dd HH:mm:ss.ffffff"), "'");
+			else if (param is DateTime)
+				return string.Concat("'", ((DateTime)param).ToString("yyyy-MM-dd HH:mm:ss.fff"), "'");
+			else if (param is DateTime?)
+				return string.Concat("'", (param as DateTime?).Value.ToString("yyyy-MM-dd HH:mm:ss.fff"), "'");
+			else if (param is TimeSpan) {
+				var ts = (TimeSpan)param;
+				return string.Concat("'", dt1970.Add(ts).ToString("yyyy-MM-dd HH:mm:ss.fff"), "'");
+			} else if (param is TimeSpan) {
+				var ts = (param as TimeSpan?).Value;
+				return string.Concat("'", dt1970.Add(ts).ToString("yyyy-MM-dd HH:mm:ss.fff"), "'");
 			} else if (param is IEnumerable) {
 				var sb = new StringBuilder();
 				var ie = param as IEnumerable;

@@ -10,6 +10,6 @@ public class g {
 		.Build();
 
 	public static IFreeSql sqlserver = new FreeSql.FreeSqlBuilder()
-		.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=shop;Pooling=true;Max Pool Size=10")
+		.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=cms;Pooling=true;Max Pool Size=10")
 		.Build();
 }

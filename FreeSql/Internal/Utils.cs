@@ -27,17 +27,20 @@ namespace FreeSql.Internal {
 			trytb.SelectFilter = tbattr?.SelectFilter;
 			foreach (var p in trytb.Properties.Values) {
 				var tp = common.CodeFirst.GetDbInfo(p.PropertyType);
-				if (tp == null) continue;
-				var colattr = p.GetCustomAttributes(typeof(ColumnAttribute), false).LastOrDefault() as ColumnAttribute ?? new ColumnAttribute {
-					Name = p.Name,
-					DbType = tp.Value.dbtypeFull,
-					IsIdentity = false,
-					IsNullable = tp.Value.isnullable ?? false,
-					IsPrimary = false,
-				};
+				//if (tp == null) continue;
+				var colattr = p.GetCustomAttributes(typeof(ColumnAttribute), false).LastOrDefault() as ColumnAttribute;
+				if (tp == null && colattr == null) continue;
+				if (colattr == null)
+					colattr = new ColumnAttribute {
+						Name = p.Name,
+						DbType = tp.Value.dbtypeFull,
+						IsIdentity = false,
+						IsNullable = tp.Value.isnullable ?? false,
+						IsPrimary = false,
+					};
 				if (string.IsNullOrEmpty(colattr.Name)) colattr.Name = p.Name;
-				if (string.IsNullOrEmpty(colattr.DbType)) colattr.DbType = tp.Value.dbtypeFull;
-				if (colattr.DbType.IndexOf("NOT NULL") == -1 && tp.Value.isnullable == false) colattr.DbType += " NOT NULL";
+				if (string.IsNullOrEmpty(colattr.DbType)) colattr.DbType = tp?.dbtypeFull ?? "varchar(255)";
+				if (colattr.DbType.IndexOf("NOT NULL") == -1 && tp?.isnullable == false) colattr.DbType += " NOT NULL";
 
 				var col = new ColumnInfo {
 					Table = trytb,
