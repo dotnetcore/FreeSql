@@ -9,19 +9,19 @@ namespace FreeSql.Tests.Generator {
 		[Fact]
 		public void BuildSimpleEntity() {
 			var gen = new TemplateGenerator();
-			gen.Build(g.mysql.DbFirst, @"C:\Users\28810\Desktop\github\FreeSql\Templates\MySql\simple-entity", @"C:\Users\28810\Desktop\新建文件夹 (9)", "cccddd");
+			gen.Build(g.mysql.DbFirst, @"E:\GitHub\temp\FreeSql\Templates\MySql\simple-entity", @"E:\GitHub\temp\FreeSql2", "cccddd");
 		}
 
 		[Fact]
 		public void BuildSimpleEntityNavigationObject () {
 			var gen = new TemplateGenerator();
-			gen.Build(g.mysql.DbFirst, @"C:\Users\28810\Desktop\github\FreeSql\Templates\MySql\simple-entity-navigation-object", @"C:\Users\28810\Desktop\新建文件夹 (9)", "cccddd");
+			gen.Build(g.mysql.DbFirst, @"E:\GitHub\temp\FreeSql\Templates\MySql\simple-entity-navigation-object", @"E:\GitHub\temp\FreeSql2", "cccddd");
 		}
 
 		[Fact]
 		public void BuildRichEntityNavigationObject() {
 			var gen = new TemplateGenerator();
-			gen.Build(g.mysql.DbFirst, @"C:\Users\28810\Desktop\github\FreeSql\Templates\MySql\rich-entity-navigation-object", @"C:\Users\28810\Desktop\新建文件夹 (9)", "cccddd");
+			gen.Build(g.mysql.DbFirst, @"E:\GitHub\temp\FreeSql\Templates\MySql\rich-entity-navigation-object", @"E:\GitHub\temp\FreeSql2", "cccddd");
 		}
 	}
 }
