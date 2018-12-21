@@ -37,7 +37,7 @@ namespace FreeSql.SqlServer {
 			var left = ExpressionLambdaToSql(exp.Expression, _tables, _selectColumnMap, tbtype, isQuoteName);
 			switch (exp.Member.Name) {
 				case "Date": return $"convert(char(10),{left},120)";
-				case "TimeOfDay": return $"(datediff(millisecond, '1970-1-1 ' + convert(varchar, {left}, 14), {left}) * 1000 + 62135596800000000)";
+				case "TimeOfDay": return $"datediff(second, '1970-1-1 ' + convert(varchar, {left}, 14), {left})";
 				case "DayOfWeek": return $"(datepart(weekday, {left}) - 1)";
 				case "Day": return $"datepart(day, {left})";
 				case "DayOfYear": return $"datepart(dayofyear, {left})";
@@ -47,7 +47,7 @@ namespace FreeSql.SqlServer {
 				case "Minute": return $"datepart(minute, {left})";
 				case "Second": return $"datepart(second, {left})";
 				case "Millisecond": return $"datepart(millisecond, {left})";
-				case "Ticks": return $"(datediff(millisecond, '1970-1-1', {left}) * 10000 + 621355968000000000)";
+				case "Ticks": return $"datediff(second, '1970-1-1', {left})";
 			}
 			return null;
 		}
@@ -62,17 +62,17 @@ namespace FreeSql.SqlServer {
 			}
 			var left = ExpressionLambdaToSql(exp.Expression, _tables, _selectColumnMap, tbtype, isQuoteName);
 			switch (exp.Member.Name) {
-				case "Days": return $"(({left}) div {(long)1000000 * 60 * 60 * 24})";
-				case "Hours": return $"(({left}) div {(long)1000000 * 60 * 60} mod 24)";
-				case "Milliseconds": return $"(({left}) div 1000 mod 1000)";
-				case "Minutes": return $"(({left}) div {(long)1000000 * 60} mod 60)";
-				case "Seconds": return $"(({left}) div 1000000 mod 60)";
-				case "Ticks": return $"(({left}) * 10)";
-				case "TotalDays": return $"(({left}) / {(long)1000000 * 60 * 60 * 24})";
-				case "TotalHours": return $"(({left}) / {(long)1000000 * 60 * 60})";
-				case "TotalMilliseconds": return $"(({left}) / 1000)";
-				case "TotalMinutes": return $"(({left}) / {(long)1000000 * 60})";
-				case "TotalSeconds": return $"(({left}) / 1000000)";
+				case "Days": return $"floor(({left}) / {60 * 60 * 24})";
+				case "Hours": return $"floor(({left}) / {60 * 60} % 24)";
+				case "Milliseconds": return $"(cast({left} as bigint) * 1000)";
+				case "Minutes": return $"floor(({left}) / 60 % 60)";
+				case "Seconds": return $"(({left}) % 60)";
+				case "Ticks": return $"(cast({left} as bigint) * 10000000)";
+				case "TotalDays": return $"(({left}) / {60 * 60 * 24})";
+				case "TotalHours": return $"(({left}) / {60 * 60})";
+				case "TotalMilliseconds": return $"(cast({left} as bigint) * 1000)";
+				case "TotalMinutes": return $"(({left}) / 60)";
+				case "TotalSeconds": return $"({left})";
 			}
 			return null;
 		}
@@ -162,20 +162,20 @@ namespace FreeSql.SqlServer {
 			var left = ExpressionLambdaToSql(exp.Object, _tables, _selectColumnMap, tbtype, isQuoteName);
 			var args1 = exp.Arguments.Count == 0 ? null : ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName);
 			switch (exp.Method.Name) {
-				case "Add": return $"dateadd(millisecond, {args1} / 1000, {left})";
+				case "Add": return $"dateadd(second, {args1}, {left})";
 				case "AddDays": return $"dateadd(day, {args1}, {left})";
 				case "AddHours": return $"dateadd(hour, {args1}, {left})";
-				case "AddMilliseconds": return $"dateadd(millisecond, {args1}, {left})";
+				case "AddMilliseconds": return $"dateadd(second, {args1} / 1000, {left})";
 				case "AddMinutes": return $"dateadd(minute, {args1}, {left})";
 				case "AddMonths": return $"dateadd(month, {args1}, {left})";
 				case "AddSeconds": return $"dateadd(second, {args1}, {left})";
-				case "AddTicks": return $"dateadd(millisecond, {args1} / 10000, {left})";
+				case "AddTicks": return $"dateadd(second, {args1} / 10000000, {left})";
 				case "AddYears": return $"dateadd(year, {args1}, {left})";
 				case "Subtract":
 					if (exp.Arguments[0].Type.FullName == "System.DateTime" || exp.Arguments[0].Type.GenericTypeArguments.FirstOrDefault()?.FullName == "System.DateTime")
-						return $"(datediff(millisecond, {args1}, {left}) * 1000)";
+						return $"datediff(second, {args1}, {left})";
 					if (exp.Arguments[0].Type.FullName == "System.TimeSpan" || exp.Arguments[0].Type.GenericTypeArguments.FirstOrDefault()?.FullName == "System.TimeSpan")
-						return $"dateadd(millisecond, {args1} / -1000, {left})";
+						return $"dateadd(second, {args1} * -1, {left})";
 					break;
 				case "Equals": return $"({left} = {ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)})";
 				case "CompareTo": return $"(({left}) - ({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)}))";
@@ -188,12 +188,12 @@ namespace FreeSql.SqlServer {
 				switch (exp.Method.Name) {
 					case "Compare": return $"(({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)}) - ({ExpressionLambdaToSql(exp.Arguments[1], _tables, _selectColumnMap, tbtype, isQuoteName)}))";
 					case "Equals": return $"({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)} = {ExpressionLambdaToSql(exp.Arguments[1], _tables, _selectColumnMap, tbtype, isQuoteName)})";
-					case "FromDays": return $"({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)} * {(long)1000000 * 60 * 60 * 24})";
-					case "FromHours": return $"({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)} * {(long)1000000 * 60 * 60})";
-					case "FromMilliseconds": return $"({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)} * 1000)";
-					case "FromMinutes": return $"({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)} * {(long)1000000 * 60})";
-					case "FromSeconds": return $"({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)} * 1000000)";
-					case "FromTicks": return $"({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)} / 10)";
+					case "FromDays": return $"({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)} * {60 * 60 * 24})";
+					case "FromHours": return $"({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)} * {60 * 60})";
+					case "FromMilliseconds": return $"({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)} / 1000)";
+					case "FromMinutes": return $"({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)} * 60)";
+					case "FromSeconds": return $"({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)})";
+					case "FromTicks": return $"({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)} / 10000000)";
 					case "Parse": return $"cast({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)} as bigint)";
 					case "ParseExact":
 					case "TryParse":

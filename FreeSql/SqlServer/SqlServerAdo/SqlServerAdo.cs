@@ -37,9 +37,9 @@ namespace FreeSql.SqlServer {
 			else if (param is DateTime?)
 				return string.Concat("'", (param as DateTime?).Value.ToString("yyyy-MM-dd HH:mm:ss.fff"), "'");
 			else if (param is TimeSpan)
-				return ((TimeSpan)param).Ticks / 10;
+				return ((TimeSpan)param).TotalSeconds;
 			else if (param is TimeSpan?)
-				return (param as TimeSpan?).Value.Ticks / 10;
+				return (param as TimeSpan?).Value.TotalSeconds;
 			else if (param is IEnumerable) {
 				var sb = new StringBuilder();
 				var ie = param as IEnumerable;

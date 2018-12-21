@@ -71,7 +71,7 @@
 | a.ToString() | date_format(a, '%Y-%m-%d %H:%i:%s.%f') | convert(varchar, a, 121) | - | 转换字符串 |
 
 ### 时间对象
-| 表达式 | MySql | SqlServer | PostgreSQL | 功能说明 |
+| 表达式 | MySql(微秒) | SqlServer(秒) | PostgreSQL | 功能说明 |
 | - | - | - | - | - |
 | TimeSpan.Zero | 0 | 0 | - | 0微秒 |
 | TimeSpan.MaxValue | 922337203685477580 | 922337203685477580 | - | 最大微秒时间 |
