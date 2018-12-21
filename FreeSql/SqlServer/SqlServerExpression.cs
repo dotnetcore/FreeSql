@@ -11,23 +11,27 @@ namespace FreeSql.SqlServer {
 		public SqlServerExpression(CommonUtils common) : base(common) { }
 
 		internal override string ExpressionLambdaToSqlMemberAccessString(MemberExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, SelectTableInfoType tbtype, bool isQuoteName) {
+			if (exp.Expression == null) {
+				switch (exp.Member.Name) {
+					case "Empty": return "''";
+				}
+				return null;
+			}
 			var left = ExpressionLambdaToSql(exp.Expression, _tables, _selectColumnMap, tbtype, isQuoteName);
 			switch (exp.Member.Name) {
 				case "Length": return $"len({left})";
 			}
 			throw new Exception($"SqlServerExpression 未现实函数表达式 {exp} 解析");
 		}
-
-		internal override string ExpressionLambdaToSqlMemberAccessMath(MemberExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, SelectTableInfoType tbtype, bool isQuoteName) {
-			var left = ExpressionLambdaToSql(exp.Expression, _tables, _selectColumnMap, tbtype, isQuoteName);
-			switch (exp.Member.Name) {
-				case "PI": return $"pi()";
-			}
-			throw new Exception($"SqlServerExpression 未现实函数表达式 {exp} 解析");
-		}
-
 		internal override string ExpressionLambdaToSqlMemberAccessDateTime(MemberExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, SelectTableInfoType tbtype, bool isQuoteName) {
-			if (exp.Expression == null && exp.Member.Name == "Now") return "getdate()";
+			if (exp.Expression == null) {
+				switch (exp.Member.Name) {
+					case "Now": return "getdate()";
+					case "UtcNow": return "getutcdate()";
+					case "Today": return "cast(convert(char(10),getdate(),120) as date)()";
+				}
+				return null;
+			}
 			var left = ExpressionLambdaToSql(exp.Expression, _tables, _selectColumnMap, tbtype, isQuoteName);
 			switch (exp.Member.Name) {
 				case "DayOfWeek": return $"(datepart(weekday, {left}) - 1)";
@@ -43,7 +47,6 @@ namespace FreeSql.SqlServer {
 			}
 			throw new Exception($"SqlServerExpression 未现实函数表达式 {exp} 解析");
 		}
-
 		internal override string ExpressionLambdaToSqlMemberAccessTimeSpan(MemberExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, SelectTableInfoType tbtype, bool isQuoteName) {
 			var left = ExpressionLambdaToSql(exp.Expression, _tables, _selectColumnMap, tbtype, isQuoteName);
 			switch (exp.Member.Name) {
@@ -61,6 +64,7 @@ namespace FreeSql.SqlServer {
 			}
 			throw new Exception($"SqlServerExpression 未现实函数表达式 {exp} 解析");
 		}
+
 		internal override string ExpressionLambdaToSqlCallString(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, SelectTableInfoType tbtype, bool isQuoteName) {
 			var left = ExpressionLambdaToSql(exp.Object, _tables, _selectColumnMap, tbtype, isQuoteName);
 			switch (exp.Method.Name) {
@@ -69,8 +73,8 @@ namespace FreeSql.SqlServer {
 				case "Contains":
 					var args0Value = ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName);
 					if (args0Value == "NULL") return $"({left}) IS NULL";
-					if (exp.Method.Name == "StartsWith") return $"({left}) LIKE {(args0Value.StartsWith("'") ? args0Value.Insert(1, "%") : $"('%' + cast({args0Value} as nvarchar))")}";
-					if (exp.Method.Name == "EndsWith") return $"({left}) LIKE {(args0Value.EndsWith("'") ? args0Value.Insert(args0Value.Length - 1, "%") : $"(cast({args0Value} as nvarchar) + '%')")}";
+					if (exp.Method.Name == "StartsWith") return $"({left}) LIKE {(args0Value.EndsWith("'") ? args0Value.Insert(args0Value.Length - 1, "%") : $"(cast({args0Value} as nvarchar) + '%')")}";
+					if (exp.Method.Name == "EndsWith") return $"({left}) LIKE {(args0Value.StartsWith("'") ? args0Value.Insert(1, "%") : $"('%' + cast({args0Value} as nvarchar))")}";
 					if (args0Value.StartsWith("'") && args0Value.EndsWith("'")) return $"({left}) LIKE {args0Value.Insert(1, "%").Insert(args0Value.Length, "%")}";
 					return $"({left}) LIKE ('%' + cast({args0Value} as nvarchar) + '%')";
 				case "ToLower": return $"lower({left})";
@@ -99,7 +103,6 @@ namespace FreeSql.SqlServer {
 			}
 			throw new Exception($"SqlServerExpression 未现实函数表达式 {exp} 解析");
 		}
-
 		internal override string ExpressionLambdaToSqlCallMath(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, SelectTableInfoType tbtype, bool isQuoteName) {
 			switch (exp.Method.Name) {
 				case "Abs": return $"abs({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)})";
@@ -125,7 +128,6 @@ namespace FreeSql.SqlServer {
 			}
 			throw new Exception($"SqlServerExpression 未现实函数表达式 {exp} 解析");
 		}
-
 		internal override string ExpressionLambdaToSqlCallDateTime(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, SelectTableInfoType tbtype, bool isQuoteName) {
 			var left = ExpressionLambdaToSql(exp.Object, _tables, _selectColumnMap, tbtype, isQuoteName);
 			var args1 = ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName);

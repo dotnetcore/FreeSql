@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
-namespace FreeSql.Tests.MySql.Expression {
+namespace FreeSql.Tests.MySqlExpression {
 	public class StringTest {
 
 		ISelect<Topic> select => g.mysql.Select<Topic>();
@@ -33,11 +33,21 @@ namespace FreeSql.Tests.MySql.Expression {
 		}
 
 		[Fact]
+		public void Empty() {
+			var data = new List<object>();
+			data.Add(select.Where(a => (a.Title ?? "") == string.Empty).ToSql());
+			//SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5 
+			//FROM `tb_topic` a 
+			//WHERE (ifnull(a.`Title`, '') = '')
+		}
+
+		[Fact]
 		public void StartsWith() {
-			var list = select.Where(a => a.Title.StartsWith("aaa")).ToList();
-			list = select.Where(a => a.Title.StartsWith(a.Title)).ToList();
-			list = select.Where(a => a.Title.StartsWith(a.Title + 1)).ToList();
-			list = select.Where(a => a.Title.StartsWith(a.Type.Name)).ToList();
+			var list = new List<object>();
+			list.Add(select.Where(a => a.Title.StartsWith("aaa")).ToList());
+			list.Add(select.Where(a => a.Title.StartsWith(a.Title)).ToList());
+			list.Add(select.Where(a => a.Title.StartsWith(a.Title + 1)).ToList());
+			list.Add(select.Where(a => a.Title.StartsWith(a.Type.Name)).ToList());
 			//SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5
 			//FROM `tb_topic` a
 			//WHERE((a.`Title`) LIKE '%aaa')
@@ -53,10 +63,10 @@ namespace FreeSql.Tests.MySql.Expression {
 			//SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a__Type.`Guid` as4, a__Type.`ParentId` as5, a__Type.`Name` as6, a.`Title` as7, a.`CreateTime` as8
 			//FROM `tb_topic` a, `TestTypeInfo` a__Type
 			//WHERE((a.`Title`) LIKE concat('%', a__Type.`Name`))
-			list = select.Where(a => (a.Title + "aaa").StartsWith("aaa")).ToList();
-			list = select.Where(a => (a.Title + "aaa").StartsWith(a.Title)).ToList();
-			list = select.Where(a => (a.Title + "aaa").StartsWith(a.Title + 1)).ToList();
-			list = select.Where(a => (a.Title + "aaa").StartsWith(a.Type.Name)).ToList();
+			list.Add(select.Where(a => (a.Title + "aaa").StartsWith("aaa")).ToList());
+			list.Add(select.Where(a => (a.Title + "aaa").StartsWith(a.Title)).ToList());
+			list.Add(select.Where(a => (a.Title + "aaa").StartsWith(a.Title + 1)).ToList());
+			list.Add(select.Where(a => (a.Title + "aaa").StartsWith(a.Type.Name)).ToList());
 			//SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5
 			//FROM `tb_topic` a
 			//WHERE((concat(a.`Title`, 'aaa')) LIKE '%aaa')
@@ -75,10 +85,11 @@ namespace FreeSql.Tests.MySql.Expression {
 		}
 		[Fact]
 		public void EndsWith() {
-			var list = select.Where(a => a.Title.EndsWith("aaa")).ToList();
-			list = select.Where(a => a.Title.EndsWith(a.Title)).ToList();
-			list = select.Where(a => a.Title.EndsWith(a.Title + 1)).ToList();
-			list = select.Where(a => a.Title.EndsWith(a.Type.Name)).ToList();
+			var list = new List<object>();
+			list.Add(select.Where(a => a.Title.EndsWith("aaa")).ToList());
+			list.Add(select.Where(a => a.Title.EndsWith(a.Title)).ToList());
+			list.Add(select.Where(a => a.Title.EndsWith(a.Title + 1)).ToList());
+			list.Add(select.Where(a => a.Title.EndsWith(a.Type.Name)).ToList());
 			//SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5
 			//FROM `tb_topic` a
 			//WHERE((a.`Title`) LIKE 'aaa%')
@@ -94,10 +105,10 @@ namespace FreeSql.Tests.MySql.Expression {
 			//SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a__Type.`Guid` as4, a__Type.`ParentId` as5, a__Type.`Name` as6, a.`Title` as7, a.`CreateTime` as8
 			//FROM `tb_topic` a, `TestTypeInfo` a__Type
 			//WHERE((a.`Title`) LIKE concat(a__Type.`Name`, '%'))
-			list = select.Where(a => (a.Title + "aaa").EndsWith("aaa")).ToList();
-			list = select.Where(a => (a.Title + "aaa").EndsWith(a.Title)).ToList();
-			list = select.Where(a => (a.Title + "aaa").EndsWith(a.Title + 1)).ToList();
-			list = select.Where(a => (a.Title + "aaa").EndsWith(a.Type.Name)).ToList();
+			list.Add(select.Where(a => (a.Title + "aaa").EndsWith("aaa")).ToList());
+			list.Add(select.Where(a => (a.Title + "aaa").EndsWith(a.Title)).ToList());
+			list.Add(select.Where(a => (a.Title + "aaa").EndsWith(a.Title + 1)).ToList());
+			list.Add(select.Where(a => (a.Title + "aaa").EndsWith(a.Type.Name)).ToList());
 			//SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5
 			//FROM `tb_topic` a
 			//WHERE((concat(a.`Title`, 'aaa')) LIKE 'aaa%')
@@ -116,10 +127,11 @@ namespace FreeSql.Tests.MySql.Expression {
 		}
 		[Fact]
 		public void Contains() {
-			var ToList = select.Where(a => a.Title.Contains("aaa")).ToList();
-			ToList = select.Where(a => a.Title.Contains(a.Title)).ToList();
-			ToList = select.Where(a => a.Title.Contains(a.Title + 1)).ToList();
-			ToList = select.Where(a => a.Title.Contains(a.Type.Name)).ToList();
+			var list = new List<object>();
+			list.Add(select.Where(a => a.Title.Contains("aaa")).ToList());
+			list.Add(select.Where(a => a.Title.Contains(a.Title)).ToList());
+			list.Add(select.Where(a => a.Title.Contains(a.Title + 1)).ToList());
+			list.Add(select.Where(a => a.Title.Contains(a.Type.Name)).ToList());
 			//SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5
 			//FROM `tb_topic` a
 			//WHERE((a.`Title`) LIKE '%aaa%')
@@ -135,10 +147,10 @@ namespace FreeSql.Tests.MySql.Expression {
 			//SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a__Type.`Guid` as4, a__Type.`ParentId` as5, a__Type.`Name` as6, a.`Title` as7, a.`CreateTime` as8
 			//FROM `tb_topic` a, `TestTypeInfo` a__Type
 			//WHERE((a.`Title`) LIKE concat('%', a__Type.`Name`, '%'))
-			ToList = select.Where(a => (a.Title + "aaa").Contains("aaa")).ToList();
-			ToList = select.Where(a => (a.Title + "aaa").Contains(a.Title)).ToList();
-			ToList = select.Where(a => (a.Title + "aaa").Contains(a.Title + 1)).ToList();
-			ToList = select.Where(a => (a.Title + "aaa").Contains(a.Type.Name)).ToList();
+			list.Add(select.Where(a => (a.Title + "aaa").Contains("aaa")).ToList());
+			list.Add(select.Where(a => (a.Title + "aaa").Contains(a.Title)).ToList());
+			list.Add(select.Where(a => (a.Title + "aaa").Contains(a.Title + 1)).ToList());
+			list.Add(select.Where(a => (a.Title + "aaa").Contains(a.Type.Name)).ToList());
 			//SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5
 			//FROM `tb_topic` a
 			//WHERE((concat(a.`Title`, 'aaa')) LIKE '%aaa%')

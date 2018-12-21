@@ -17,17 +17,14 @@ namespace FreeSql.PostgreSQL {
 			}
 			throw new Exception($"PostgreSQLExpression 未现实函数表达式 {exp} 解析");
 		}
-
-		internal override string ExpressionLambdaToSqlMemberAccessMath(MemberExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, SelectTableInfoType tbtype, bool isQuoteName) {
-			var left = ExpressionLambdaToSql(exp.Expression, _tables, _selectColumnMap, tbtype, isQuoteName);
-			switch (exp.Member.Name) {
-				case "PI": return $"pi()";
-			}
-			throw new Exception($"PostgreSQLExpression 未现实函数表达式 {exp} 解析");
-		}
-
 		internal override string ExpressionLambdaToSqlMemberAccessDateTime(MemberExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, SelectTableInfoType tbtype, bool isQuoteName) {
-			if (exp.Expression == null && exp.Member.Name == "Now") return "current_timestamp";
+			if (exp.Expression == null) {
+				switch (exp.Member.Name) {
+					case "Now": return "current_timestamp";
+					case "UtcNow": return "(current_timestamp at time zone 'UTC')";
+					case "Today": return "current_date";
+				}
+			}
 			var left = ExpressionLambdaToSql(exp.Expression, _tables, _selectColumnMap, tbtype, isQuoteName);
 			switch (exp.Member.Name) {
 				case "DayOfWeek": return $"extract(dow from ({left})::timestamp)";
@@ -43,7 +40,6 @@ namespace FreeSql.PostgreSQL {
 			}
 			throw new Exception($"PostgreSQLExpression 未现实函数表达式 {exp} 解析");
 		}
-
 		internal override string ExpressionLambdaToSqlMemberAccessTimeSpan(MemberExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, SelectTableInfoType tbtype, bool isQuoteName) {
 			var left = ExpressionLambdaToSql(exp.Expression, _tables, _selectColumnMap, tbtype, isQuoteName);
 			switch (exp.Member.Name) {
@@ -61,6 +57,7 @@ namespace FreeSql.PostgreSQL {
 			}
 			throw new Exception($"PostgreSQLExpression 未现实函数表达式 {exp} 解析");
 		}
+
 		internal override string ExpressionLambdaToSqlCallString(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, SelectTableInfoType tbtype, bool isQuoteName) {
 			var left = ExpressionLambdaToSql(exp.Object, _tables, _selectColumnMap, tbtype, isQuoteName);
 			switch (exp.Method.Name) {
@@ -74,8 +71,8 @@ namespace FreeSql.PostgreSQL {
 						if (exp.Arguments[1].Type == typeof(bool) ||
 							exp.Arguments[1].Type == typeof(StringComparison) && ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName).Contains("IgnoreCase")) likeOpt = "ILIKE";
 					}
-					if (exp.Method.Name == "StartsWith") return $"({left}) {likeOpt} {(args0Value.StartsWith("'") ? args0Value.Insert(1, "%") : $"('%' || ({args0Value})::varchar)")}";
-					if (exp.Method.Name == "EndsWith") return $"({left}) {likeOpt} {(args0Value.EndsWith("'") ? args0Value.Insert(args0Value.Length - 1, "%") : $"(({args0Value})::varchar || '%')")}";
+					if (exp.Method.Name == "StartsWith") return $"({left}) {likeOpt} {(args0Value.EndsWith("'") ? args0Value.Insert(args0Value.Length - 1, "%") : $"(({args0Value})::varchar || '%')")}";
+					if (exp.Method.Name == "EndsWith") return $"({left}) {likeOpt} {(args0Value.StartsWith("'") ? args0Value.Insert(1, "%") : $"('%' || ({args0Value})::varchar)")}";
 					if (args0Value.StartsWith("'") && args0Value.EndsWith("'")) return $"({left}) {likeOpt} {args0Value.Insert(1, "%").Insert(args0Value.Length, "%")}";
 					return $"({left}) {likeOpt} ('%' || ({args0Value})::varchar || '%')";
 				case "ToLower": return $"lower({left})";
@@ -123,7 +120,6 @@ namespace FreeSql.PostgreSQL {
 			}
 			throw new Exception($"PostgreSQLExpression 未现实函数表达式 {exp} 解析");
 		}
-
 		internal override string ExpressionLambdaToSqlCallMath(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, SelectTableInfoType tbtype, bool isQuoteName) {
 			switch (exp.Method.Name) {
 				case "Abs": return $"abs({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)})";
@@ -149,7 +145,6 @@ namespace FreeSql.PostgreSQL {
 			}
 			throw new Exception($"PostgreSQLExpression 未现实函数表达式 {exp} 解析");
 		}
-
 		internal override string ExpressionLambdaToSqlCallDateTime(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, SelectTableInfoType tbtype, bool isQuoteName) {
 			var left = ExpressionLambdaToSql(exp.Object, _tables, _selectColumnMap, tbtype, isQuoteName);
 			var args1 = ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName);
