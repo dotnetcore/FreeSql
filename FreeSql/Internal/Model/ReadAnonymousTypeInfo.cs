@@ -6,6 +6,7 @@ using System.Text;
 namespace FreeSql.Internal.Model {
 	class ReadAnonymousTypeInfo {
 		public string CsName { get; set; }
+		public Type CsType { get; set; }
 		public ConstructorInfo Consturctor { get; set; }
 		public ReadAnonymousTypeInfoConsturctorType ConsturctorType { get; set; }
 		public List<ReadAnonymousTypeInfo> Childs = new List<ReadAnonymousTypeInfo>();

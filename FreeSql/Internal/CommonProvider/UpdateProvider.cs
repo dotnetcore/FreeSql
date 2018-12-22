@@ -66,13 +66,10 @@ namespace FreeSql.Internal.CommonProvider {
 			if (cols.Any() == false) return this;
 			foreach (var col in cols) {
 				if (col.Column.Attribute.IsNullable) {
-					var repltype = col.Column.CsType;
-					if (repltype.FullName.StartsWith("System.Nullable`1[[System.")) repltype = repltype.GenericTypeArguments[0];
-					var replval = Activator.CreateInstance(repltype);
+					var replval = col.Column.Attribute.DbDefautValue;
 					if (replval == null) continue;
 					var replname = _commonUtils.QuoteSqlName(col.Column.Attribute.Name);
-					replval = _commonUtils.FormatSql("{0}", replval);
-					expt = expt.Replace(replname, _commonUtils.IsNull(replname, replval));
+					expt = expt.Replace(replname, _commonUtils.IsNull(replname, _commonUtils.FormatSql("{0}", replval)));
 				}
 			}
 			_set.Append(", ").Append(_commonUtils.QuoteSqlName(cols.First().Column.Attribute.Name)).Append(" = ").Append(expt);

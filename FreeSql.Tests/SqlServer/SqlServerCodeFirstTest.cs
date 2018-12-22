@@ -7,6 +7,30 @@ using Xunit;
 
 namespace FreeSql.Tests.SqlServer {
 	public class SqlServerCodeFirstTest {
+
+		[Fact]
+		public void AddField() {
+			var sql = g.sqlserver.CodeFirst.GetComparisonDDLStatements<TopicAddField>();
+
+			var id = g.sqlserver.Insert<TopicAddField>().AppendData(new TopicAddField { }).ExecuteIdentity();
+		}
+
+		public class TopicAddField {
+			[Column(IsIdentity = true)]
+			public int Id { get; set; }
+
+			public int name { get; set; } = 3000;
+
+			[Column(DbType = "varchar(200) not null", OldName = "title")]
+			public string title222 { get; set; } = "333";
+
+			[Column(DbType = "varchar(200) not null")]
+			public string title222333 { get; set; } = "xxx";
+
+			[Column(DbType = "varchar(100) not null", OldName = "title122333aaa")]
+			public string titleaaa { get; set; } = "fsdf";
+		}
+
 		[Fact]
 		public void GetComparisonDDLStatements() {
 

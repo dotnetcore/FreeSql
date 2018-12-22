@@ -248,7 +248,7 @@ namespace FreeSql.Internal.CommonProvider {
 			}
 
 			var tran = TransactionCurrentThread;
-			if (IsTracePerformance) logtxt += $"	PrepareCommand_part1: {DateTime.Now.Subtract(dt).TotalMilliseconds}ms cmdParms: {cmdParms.Length}\r\n";
+			if (IsTracePerformance) logtxt += $"	PrepareCommand_part1: {DateTime.Now.Subtract(dt).TotalMilliseconds}ms cmdParms: {cmd.Parameters.Count}\r\n";
 
 			if (tran != null) {
 				if (IsTracePerformance) dt = DateTime.Now;

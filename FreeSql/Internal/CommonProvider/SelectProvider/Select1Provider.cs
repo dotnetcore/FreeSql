@@ -47,9 +47,8 @@ namespace FreeSql.Internal.CommonProvider {
 						default: throw new NotImplementedException($"未现实 {expCall.Method.Name}");
 					}
 				}
-				return this;
 			}
-			throw new NotImplementedException($"未现实 {exp}");
+			return this;
 		}
 
 		public ISelect<T1> As(string alias) {

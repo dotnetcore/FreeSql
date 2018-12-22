@@ -7,6 +7,24 @@ using Xunit;
 
 namespace FreeSql.Tests.MySql {
 	public class MySqlCodeFirstTest {
+
+		[Fact]
+		public void AddField() {
+			var sql = g.mysql.CodeFirst.GetComparisonDDLStatements<TopicAddField>();
+
+			var id = g.mysql.Insert<TopicAddField>().AppendData(new TopicAddField { }).ExecuteIdentity();
+		}
+
+		public class TopicAddField {
+			[Column(IsIdentity = true)]
+			public int? Id { get; set; }
+
+			public int name { get; set; }
+
+			[Column(DbType = "varchar(200) not null", OldName = "title")]
+			public string title222 { get; set; } = "10";
+		}
+
 		[Fact]
 		public void GetComparisonDDLStatements() {
 

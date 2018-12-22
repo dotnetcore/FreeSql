@@ -178,6 +178,7 @@ namespace FreeSql.Internal.CommonProvider {
 			var type = typeof(T1);
 			var map = new ReadAnonymousTypeInfo { Consturctor = type.GetConstructor(new Type[0]), ConsturctorType = ReadAnonymousTypeInfoConsturctorType.Properties };
 			var field = new StringBuilder();
+			var dicfield = new Dictionary<string, bool>();
 			var tb = _tables.First();
 			var index = 0;
 			var ps = typeof(T1).GetProperties();
@@ -185,7 +186,11 @@ namespace FreeSql.Internal.CommonProvider {
 				var child = new ReadAnonymousTypeInfo { CsName = p.Name };
 				if (tb.Table.ColumnsByCs.TryGetValue(p.Name, out var col)) { //普通字段
 					if (index > 0) field.Append(", ");
-					field.Append(tb.Alias).Append(".").Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" as").Append(++index);
+					var quoteName = _commonUtils.QuoteSqlName(col.Attribute.Name);
+					field.Append(tb.Alias).Append(".").Append(quoteName);
+					++index;
+					if (dicfield.ContainsKey(quoteName)) field.Append(" as").Append(index);
+					else dicfield.Add(quoteName, true);
 				} else {
 					var tb2 = _tables.Where(a => a.Table.Type == p.PropertyType && a.Alias.Contains(p.Name)).FirstOrDefault();
 					if (tb2 == null && ps.Where(pw => pw.PropertyType == p.PropertyType).Count() == 1) tb2 = _tables.Where(a => a.Table.Type == p.PropertyType).FirstOrDefault();
@@ -194,7 +199,11 @@ namespace FreeSql.Internal.CommonProvider {
 					child.ConsturctorType = ReadAnonymousTypeInfoConsturctorType.Properties;
 					foreach (var col2 in tb2.Table.Columns.Values) {
 						if (index > 0) field.Append(", ");
-						field.Append(tb2.Alias).Append(".").Append(_commonUtils.QuoteSqlName(col2.Attribute.Name)).Append(" as").Append(++index);
+						var quoteName = _commonUtils.QuoteSqlName(col2.Attribute.Name);
+						field.Append(tb2.Alias).Append(".").Append(quoteName);
+						++index;
+						if (dicfield.ContainsKey(quoteName)) field.Append(" as").Append(index);
+						else dicfield.Add(quoteName, true);
 						child.Childs.Add(new ReadAnonymousTypeInfo { CsName = col2.CsName });
 					}
 				}

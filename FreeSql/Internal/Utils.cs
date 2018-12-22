@@ -35,12 +35,22 @@ namespace FreeSql.Internal {
 						Name = p.Name,
 						DbType = tp.Value.dbtypeFull,
 						IsIdentity = false,
-						IsNullable = tp.Value.isnullable ?? false,
+						IsNullable = tp.Value.isnullable ?? true,
 						IsPrimary = false,
 					};
+				if (string.IsNullOrEmpty(colattr.DbType) == false) colattr.DbType = colattr.DbType.ToUpper();
+				if (tp != null && tp.Value.isnullable == null) colattr.IsNullable = tp.Value.dbtypeFull.Contains("NOT NULL") == false;
+				if (string.IsNullOrEmpty(colattr.DbType) == false) colattr.IsNullable = colattr.DbType.Contains("NOT NULL") == false;
 				if (string.IsNullOrEmpty(colattr.Name)) colattr.Name = p.Name;
 				if (string.IsNullOrEmpty(colattr.DbType)) colattr.DbType = tp?.dbtypeFull ?? "varchar(255)";
-				if (colattr.DbType.IndexOf("NOT NULL") == -1 && tp?.isnullable == false) colattr.DbType += " NOT NULL";
+				if ((colattr.IsNullable == false || colattr.IsIdentity || colattr.IsPrimary) && colattr.DbType.Contains("NOT NULL") == false) colattr.DbType += " NOT NULL";
+				if (colattr.IsNullable == true && colattr.DbType.Contains("NOT NULL")) colattr.DbType = colattr.DbType.Replace("NOT NULL", "");
+				colattr.DbType = Regex.Replace(colattr.DbType, @"\([^\)]+\)", m => Regex.Replace(m.Groups[0].Value, @"\s", ""));
+				colattr.DbDefautValue = trytb.Properties[p.Name].GetValue(Activator.CreateInstance(trytb.Type));
+				if (colattr.DbDefautValue == null && p.PropertyType.FullName == "System.String") colattr.DbDefautValue = string.Empty;
+				if (colattr.DbDefautValue == null) colattr.DbDefautValue = Activator.CreateInstance(p.PropertyType.GenericTypeArguments.FirstOrDefault() ?? p.PropertyType);
+				if (colattr.DbDefautValue == null) colattr.DbDefautValue = "";
+				if (colattr.DbDefautValue.GetType().FullName == "System.DateTime") colattr.DbDefautValue = new DateTime(1970, 1, 1);
 
 				var col = new ColumnInfo {
 					Table = trytb,
@@ -52,6 +62,7 @@ namespace FreeSql.Internal {
 				trytb.ColumnsByCs.Add(p.Name, col);
 			}
 			trytb.Primarys = trytb.Columns.Values.Where(a => a.Attribute.IsPrimary).ToArray();
+			if (trytb.Primarys.Any() == false) trytb.Primarys = trytb.Columns.Values.Where(a => a.Attribute.IsIdentity).ToArray();
 			_cacheGetTableByEntity.TryAdd(entity.FullName, trytb);
 			return trytb;
 		}
@@ -122,22 +133,14 @@ namespace FreeSql.Internal {
 				if (prop == null) throw new Exception(string.Concat(type.FullName, " 没有定义属性 ", members[a]));
 				if (a < members.Length - 1) current = prop.GetValue(current);
 			}
-			if (value == null || value == DBNull.Value) {
-				prop.SetValue(current, null, null);
-				return;
-			}
-			var propType = prop.PropertyType;
-			if (propType.FullName.StartsWith("System.Nullable`1[")) propType = propType.GenericTypeArguments.First();
-			if (propType.IsEnum) {
-				var valueStr = string.Concat(value);
-				if (string.IsNullOrEmpty(valueStr) == false) prop.SetValue(current, Enum.Parse(propType, valueStr), null);
-				return;
-			}
-			if (propType != value.GetType()) {
-				prop.SetValue(current, Convert.ChangeType(value, propType), null);
-				return;
-			}
-			prop.SetValue(current, value, null);
+			prop.SetValue(current, GetDataReaderValue(prop.PropertyType, value), null);
+		}
+		internal static object GetDataReaderValue(Type type, object value) {
+			if (value == null || value == DBNull.Value) return null;
+			if (type.FullName.StartsWith("System.Nullable`1[")) type = type.GenericTypeArguments.First();
+			if (type.IsEnum) return Enum.Parse(type, string.Concat(value));
+			if (type != value.GetType()) return Convert.ChangeType(value, type);
+			return value;
 		}
 		internal static string GetCsName(string name) {
 			name = Regex.Replace(name.TrimStart('@'), @"[^\w]", "_");

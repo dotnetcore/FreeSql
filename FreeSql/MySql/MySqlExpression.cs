@@ -36,9 +36,9 @@ namespace FreeSql.MySql {
 			}
 			var left = ExpressionLambdaToSql(exp.Expression, _tables, _selectColumnMap, tbtype, isQuoteName);
 			switch (exp.Member.Name) {
-				case "Date": return $"cast(date_format({left}, '%Y-%m-%d') as datetime)";
-				case "TimeOfDay": return $"(timestampdiff(microsecond, date_format({left}, '1970-1-1 %H:%i:%s.%f'), {left}) + 62135596800000000)";
-				case "DayOfWeek": return $"(dayofweek({left}) - 1)";
+				case "Date": return $"cast(date_format({left},'%Y-%m-%d') as datetime)";
+				case "TimeOfDay": return $"timestampdiff(microsecond, date_format({left},'%Y-%m-%d'), {left})";
+				case "DayOfWeek": return $"(dayofweek({left})-1)";
 				case "Day": return $"dayofmonth({left})";
 				case "DayOfYear": return $"dayofyear({left})";
 				case "Month": return $"month({left})";
@@ -46,8 +46,8 @@ namespace FreeSql.MySql {
 				case "Hour": return $"hour({left})";
 				case "Minute": return $"minute({left})";
 				case "Second": return $"second({left})";
-				case "Millisecond": return $"floor(microsecond({left}) / 1000)";
-				case "Ticks": return $"(timestampdiff(microsecond, '1970-1-1', {left}) * 10 + 621355968000000000)";
+				case "Millisecond": return $"floor(microsecond({left})/1000)";
+				case "Ticks": return $"(timestampdiff(microsecond, '0001-1-1', {left})*10)";
 			}
 			return null;
 		}
@@ -94,7 +94,7 @@ namespace FreeSql.MySql {
 				case "Substring":
 					var substrArgs1 = ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName);
 					if (long.TryParse(substrArgs1, out var testtrylng1)) substrArgs1 = (testtrylng1 + 1).ToString();
-					else substrArgs1 += " + 1";
+					else substrArgs1 += "+1";
 					if (exp.Arguments.Count == 1) return $"substr({left}, {substrArgs1})";
 					return $"substr({left}, {substrArgs1}, {ExpressionLambdaToSql(exp.Arguments[1], _tables, _selectColumnMap, tbtype, isQuoteName)})";
 				case "IndexOf":
@@ -102,10 +102,10 @@ namespace FreeSql.MySql {
 					if (exp.Arguments.Count > 1 && exp.Arguments[1].Type.FullName == "System.Int32") {
 						var locateArgs1 = ExpressionLambdaToSql(exp.Arguments[1], _tables, _selectColumnMap, tbtype, isQuoteName);
 						if (long.TryParse(locateArgs1, out var testtrylng2)) locateArgs1 = (testtrylng2 + 1).ToString();
-						else locateArgs1 += " + 1";
-						return $"(locate({left}, {indexOfFindStr}, {locateArgs1}) - 1)";
+						else locateArgs1 += "+1";
+						return $"(locate({left}, {indexOfFindStr}, {locateArgs1})-1)";
 					}
-					return $"(locate({left}, {indexOfFindStr}) - 1)";
+					return $"(locate({left}, {indexOfFindStr})-1)";
 				case "PadLeft":
 					if (exp.Arguments.Count == 1) return $"lpad({left}, {ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)})";
 					return $"lpad({left}, {ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)}, {ExpressionLambdaToSql(exp.Arguments[1], _tables, _selectColumnMap, tbtype, isQuoteName)})";
@@ -167,74 +167,95 @@ namespace FreeSql.MySql {
 		internal override string ExpressionLambdaToSqlCallDateTime(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, SelectTableInfoType tbtype, bool isQuoteName) {
 			if (exp.Object == null) {
 				switch (exp.Method.Name) {
-					case "Compare": return $"(({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)}) - ({ExpressionLambdaToSql(exp.Arguments[1], _tables, _selectColumnMap, tbtype, isQuoteName)}))";
+					case "Compare": return $"({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)} - ({ExpressionLambdaToSql(exp.Arguments[1], _tables, _selectColumnMap, tbtype, isQuoteName)}))";
 					case "DaysInMonth": return $"dayofmonth(last_day(concat({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)}, '-', {ExpressionLambdaToSql(exp.Arguments[1], _tables, _selectColumnMap, tbtype, isQuoteName)}, '-01')))";
 					case "Equals": return $"({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)} = {ExpressionLambdaToSql(exp.Arguments[1], _tables, _selectColumnMap, tbtype, isQuoteName)})";
 
 					case "IsLeapYear":
 						var isLeapYearArgs1 = ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName);
-						return $"(({isLeapYearArgs1}) % 4 = 0 AND ({isLeapYearArgs1}) % 100 <> 0 OR ({isLeapYearArgs1}) % 400 = 0)";
+						return $"(({isLeapYearArgs1})%4=0 AND ({isLeapYearArgs1})%100 <> 0 OR ({isLeapYearArgs1})%400 = 0)";
 
 					case "Parse": return $"cast({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)} as datetime)";
 					case "ParseExact":
 					case "TryParse":
 					case "TryParseExact": return $"cast({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)} as datetime)";
 				}
-				return null;
-			}
-			var left = ExpressionLambdaToSql(exp.Object, _tables, _selectColumnMap, tbtype, isQuoteName);
-			var args1 = exp.Arguments.Count == 0 ? null : ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName);
-			switch (exp.Method.Name) {
-				case "Add": return $"date_add({left}, interval ({args1}) microsecond)";
-				case "AddDays": return $"date_add({left}, interval ({args1}) day)";
-				case "AddHours": return $"date_add({left}, interval ({args1}) hour)";
-				case "AddMilliseconds": return $"date_add({left}, interval ({args1}) * 1000 microsecond)";
-				case "AddMinutes": return $"date_add({left}, interval ({args1}) minute)";
-				case "AddMonths": return $"date_add({left}, interval ({args1}) month)";
-				case "AddSeconds": return $"date_add({left}, interval ({args1}) second)";
-				case "AddTicks": return $"date_add({left}, interval ({args1}) / 10 microsecond)";
-				case "AddYears": return $"date_add({left}, interval ({args1}) year)";
-				case "Subtract":
-					if (exp.Arguments[0].Type.FullName == "System.DateTime" || exp.Arguments[0].Type.GenericTypeArguments.FirstOrDefault()?.FullName == "System.DateTime")
-						return $"timestampdiff(microsecond, {args1}, {left})";
-					if (exp.Arguments[0].Type.FullName == "System.TimeSpan" || exp.Arguments[0].Type.GenericTypeArguments.FirstOrDefault()?.FullName == "System.TimeSpan")
-						return $"date_sub({left}, interval ({args1}) microsecond)";
-					break;
-				case "Equals": return $"({left} = {ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)})";
-				case "CompareTo": return $"(({left}) - ({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)}))";
-				case "ToString": return $"date_format({left}, '%Y-%m-%d %H:%i:%s.%f')";
+			} else {
+				var left = ExpressionLambdaToSql(exp.Object, _tables, _selectColumnMap, tbtype, isQuoteName);
+				var args1 = exp.Arguments.Count == 0 ? null : ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName);
+				switch (exp.Method.Name) {
+					case "Add": return $"date_add({left}, interval ({args1}) microsecond)";
+					case "AddDays": return $"date_add({left}, interval ({args1}) day)";
+					case "AddHours": return $"date_add({left}, interval ({args1}) hour)";
+					case "AddMilliseconds": return $"date_add({left}, interval ({args1})*1000 microsecond)";
+					case "AddMinutes": return $"date_add({left}, interval ({args1}) minute)";
+					case "AddMonths": return $"date_add({left}, interval ({args1}) month)";
+					case "AddSeconds": return $"date_add({left}, interval ({args1}) second)";
+					case "AddTicks": return $"date_add({left}, interval ({args1})/10 microsecond)";
+					case "AddYears": return $"date_add({left}, interval ({args1}) year)";
+					case "Subtract":
+						if (exp.Arguments[0].Type.FullName == "System.DateTime" || exp.Arguments[0].Type.GenericTypeArguments.FirstOrDefault()?.FullName == "System.DateTime")
+							return $"timestampdiff(microsecond, {args1}, {left})";
+						if (exp.Arguments[0].Type.FullName == "System.TimeSpan" || exp.Arguments[0].Type.GenericTypeArguments.FirstOrDefault()?.FullName == "System.TimeSpan")
+							return $"date_sub({left}, interval ({args1}) microsecond)";
+						break;
+					case "Equals": return $"({left} = {ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)})";
+					case "CompareTo": return $"(({left}) - ({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)}))";
+					case "ToString": return $"date_format({left}, '%Y-%m-%d %H:%i:%s.%f')";
+				}
 			}
 			throw new Exception($"MySqlExpression 未现实函数表达式 {exp} 解析");
 		}
 		internal override string ExpressionLambdaToSqlCallTimeSpan(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, SelectTableInfoType tbtype, bool isQuoteName) {
 			if (exp.Object == null) {
 				switch (exp.Method.Name) {
-					case "Compare": return $"(({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)}) - ({ExpressionLambdaToSql(exp.Arguments[1], _tables, _selectColumnMap, tbtype, isQuoteName)}))";
+					case "Compare": return $"({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)}-({ExpressionLambdaToSql(exp.Arguments[1], _tables, _selectColumnMap, tbtype, isQuoteName)}))";
 					case "Equals": return $"({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)} = {ExpressionLambdaToSql(exp.Arguments[1], _tables, _selectColumnMap, tbtype, isQuoteName)})";
-					case "FromDays": return $"({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)} * {(long)1000000 * 60 * 60 * 24})";
-					case "FromHours": return $"({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)} * {(long)1000000 * 60 * 60})";
-					case "FromMilliseconds": return $"({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)} * 1000)";
-					case "FromMinutes": return $"({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)} * {(long)1000000 * 60})";
-					case "FromSeconds": return $"({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)} * 1000000)";
-					case "FromTicks": return $"({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)} / 10)";
+					case "FromDays": return $"(({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)})*{(long)1000000 * 60 * 60 * 24})";
+					case "FromHours": return $"(({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)})*{(long)1000000 * 60 * 60})";
+					case "FromMilliseconds": return $"(({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)})*1000)";
+					case "FromMinutes": return $"(({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)})*{(long)1000000 * 60})";
+					case "FromSeconds": return $"(({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)})*1000000)";
+					case "FromTicks": return $"(({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)})/10)";
 					case "Parse": return $"cast({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)} as signed)";
 					case "ParseExact":
 					case "TryParse":
 					case "TryParseExact": return $"cast({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)} as signed)";
 				}
-				return null;
-			}
-			var left = ExpressionLambdaToSql(exp.Object, _tables, _selectColumnMap, tbtype, isQuoteName);
-			var args1 = exp.Arguments.Count == 0 ? null : ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName);
-			switch (exp.Method.Name) {
-				case "Add": return $"({left} + {args1})";
-				case "Subtract": return $"({left} - {args1})";
-				case "Equals": return $"({left} = {ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)})";
-				case "CompareTo": return $"(({left}) - ({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)}))";
-				case "ToString": return $"cast({left} as varchar)";
+			} else {
+				var left = ExpressionLambdaToSql(exp.Object, _tables, _selectColumnMap, tbtype, isQuoteName);
+				var args1 = exp.Arguments.Count == 0 ? null : ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName);
+				switch (exp.Method.Name) {
+					case "Add": return $"({left}+{args1})";
+					case "Subtract": return $"({left}-({args1}))";
+					case "Equals": return $"({left} = {ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)})";
+					case "CompareTo": return $"({left}-({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)}))";
+					case "ToString": return $"cast({left} as char)";
+				}
 			}
 			throw new Exception($"MySqlExpression 未现实函数表达式 {exp} 解析");
-			
+		}
+		internal override string ExpressionLambdaToSqlCallConvert(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, SelectTableInfoType tbtype, bool isQuoteName) {
+			if (exp.Object == null) {
+				switch (exp.Method.Name) {
+					case "ToBoolean": return $"({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)} not in ('0','false'))";
+					case "ToByte": return $"cast({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)} as unsigned)";
+					case "ToChar": return $"substr(cast({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)} as char), 1, 1)";
+					case "ToDateTime": return $"cast({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)} as datetime)";
+					case "ToDecimal": return $"cast({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)} as decimal(36,18))";
+					case "ToDouble": return $"cast({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)} as decimal(32,16))";
+					case "ToInt16": 
+					case "ToInt32": 
+					case "ToInt64":
+					case "ToSByte": return $"cast({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)} as signed)";
+					case "ToSingle": return $"cast({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)} as decimal(14,7))";
+					case "ToString": return $"cast({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)} as char)";
+					case "ToUInt16":
+					case "ToUInt32":
+					case "ToUInt64": return $"cast({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)} as unsigned)";
+				}
+			}
+			throw new Exception($"MySqlExpression 未现实函数表达式 {exp} 解析");
 		}
 	}
 }

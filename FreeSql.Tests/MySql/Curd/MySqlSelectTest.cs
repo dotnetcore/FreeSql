@@ -34,6 +34,83 @@ namespace FreeSql.Tests.MySql {
 
 		[Fact]
 		public void ToList() {
+			var t1 = g.mysql.Select<TestInfo>().Where("").Where(a => a.Id > 0).Skip(100).Limit(200).ToSql();
+			var t2 = g.mysql.Select<TestInfo>().As("b").Where("").Where(a => a.Id > 0).Skip(100).Limit(200).ToSql();
+
+
+			var sql1 = select.LeftJoin(a => a.Type.Guid == a.TestTypeInfoGuid).ToSql();
+			var sql2 = select.LeftJoin<TestTypeInfo>((a, b) => a.TestTypeInfoGuid == b.Guid && b.Name == "111").ToSql();
+			var sql3 = select.LeftJoin("TestTypeInfo b on b.Guid = a.TypeGuid").ToSql();
+
+			//g.mysql.Select<TestInfo, TestTypeInfo, TestTypeParentInfo>().Join((a, b, c) => new Model.JoinResult3(
+			//   Model.JoinType.LeftJoin, a.TypeGuid == b.Guid,
+			//   Model.JoinType.InnerJoin, c.Id == b.ParentId && c.Name == "xxx")
+			//);
+
+			//var sql4 = select.From<TestTypeInfo, TestTypeParentInfo>((a, b, c) => new SelectFrom()
+			//	.InnerJoin(a.TypeGuid == b.Guid)
+			//	.LeftJoin(c.Id == b.ParentId)
+			//	.Where(b.Name == "xxx"))
+			//.Where(a => a.Id == 1).ToSql();
+
+			var sql4 = select.From<TestTypeInfo, TestTypeParentInfo>((s, b, c) => s
+				.InnerJoin(a => a.TestTypeInfoGuid == b.Guid)
+				.LeftJoin(a => c.Id == b.ParentId)
+				.Where(a => b.Name == "xxx")).ToSql();
+			//.Where(a => a.Id == 1).ToSql();
+
+
+			var list111 = select.From<TestTypeInfo, TestTypeParentInfo>((s, b, c) => s
+				.InnerJoin(a => a.TestTypeInfoGuid == b.Guid)
+				.LeftJoin(a => c.Id == b.ParentId)
+				.Where(a => b.Name != "xxx"));
+			var list111sql = list111.ToSql();
+			var list111data = list111.ToList((a, b, c) => new {
+					a.Id,
+					title_substring = a.Title.Substring(0, 1),
+					a.Type,
+					ccc = new { a.Id, a.Title },
+					tp = a.Type,
+					tp2 = new {
+						a.Id,
+						tp2 = a.Type.Name
+					},
+					tp3 = new {
+						a.Id,
+						tp33 = new {
+							a.Id
+						}
+					}
+				});
+
+			var ttt122 = g.mysql.Select<TestTypeParentInfo>().Where(a => a.Id > 0).ToSql();
+			var sql5 = g.mysql.Select<TestInfo>().From<TestTypeInfo, TestTypeParentInfo>((s, b, c) => s).Where((a, b, c) => a.Id == b.ParentId).ToSql();
+			var t11112 = g.mysql.Select<TestInfo>().ToList(a => new {
+				a.Id,
+				a.Title,
+				a.Type,
+				ccc = new { a.Id, a.Title },
+				tp = a.Type,
+				tp2 = new {
+					a.Id,
+					tp2 = a.Type.Name
+				},
+				tp3 = new {
+					a.Id,
+					tp33 = new {
+						a.Id
+					}
+				}
+
+			});
+
+			var t100 = g.mysql.Select<TestInfo>().Where("").Where(a => a.Id > 0).Skip(100).Limit(200).Caching(50).ToList();
+			var t101 = g.mysql.Select<TestInfo>().As("b").Where("").Where(a => a.Id > 0).Skip(100).Limit(200).Caching(50).ToList();
+
+
+			var t1111 = g.mysql.Select<TestInfo>().ToList(a => new { a.Id, a.Title, a.Type });
+
+			var t2222 = g.mysql.Select<TestInfo>().ToList(a => new { a.Id, a.Title, a.Type.Name });
 		}
 		[Fact]
 		public void ToOne() {

@@ -176,5 +176,28 @@ namespace FreeSql.PostgreSQL {
 			}
 			throw new Exception($"PostgreSQLExpression 未现实函数表达式 {exp} 解析");
 		}
+		internal override string ExpressionLambdaToSqlCallConvert(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, SelectTableInfoType tbtype, bool isQuoteName) {
+			if (exp.Object == null) {
+				switch (exp.Method.Name) {
+					case "ToBoolean": return $"({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)} not in ('0','false'))";
+					case "ToByte": return $"cast({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)} as unsigned)";
+					case "ToChar": return $"substr(cast({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)} as char), 1, 1)";
+					case "ToDateTime": return $"cast({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)} as datetime)";
+					case "ToDecimal": return $"cast({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)} as decimal(36,18))";
+					case "ToDouble": return $"cast({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)} as decimal(32,16))";
+					case "ToInt16":
+					case "ToInt32":
+					case "ToInt64":
+					case "ToSByte": return $"cast({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)} as signed)";
+					case "ToSingle": return $"cast({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)} as decimal(14,7))";
+					case "ToString": return $"cast({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)} as char)";
+					case "ToUInt16":
+					case "ToUInt32":
+					case "ToUInt64": return $"cast({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)} as unsigned)";
+				}
+				throw new Exception($"MySqlExpression 未现实函数表达式 {exp} 解析");
+			}
+			throw new Exception($"MySqlExpression 未现实函数表达式 {exp} 解析");
+		}
 	}
 }

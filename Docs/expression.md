@@ -1,7 +1,8 @@
 # 表达式函数
 | 表达式 | MySql | SqlServer | PostgreSQL | 功能说明 |
 | - | - | - | - | - |
-| (a ?? b) | ifnull(a, b) | isnull(a, b) | coalesce(a, b) | 当a为null时，取b值 |
+| a ? b : c | case when a then b else c end | case when a then b else c end | - | a成立时取b值，否则取c值 |
+| a ?? b | ifnull(a, b) | isnull(a, b) | coalesce(a, b) | 当a为null时，取b值 |
 | 数字 + 数字 | a + b | a + b | a + b | 数字相加 |
 | 数字 + 字符串 | concat(a, b) | cast(a as varchar) + cast(b as varchar) | case(a as varchar) \|\| b | 字符串相加，a或b任意一个为字符串时 |
 | a - b | a - b | a - b | a - b | 减
@@ -63,8 +64,8 @@
 | a.Month | month(a) | datepart(month, a) | - | 月 |
 | a.Second | second(a) | datepart(second, a) | - | 秒 |
 | a.Subtract(b) | timestampdiff(microsecond, b, a) | datediff(millisecond, b, a) * 1000 | - | 将a的值和b相减 |
-| a.Ticks | timestampdiff(microsecond, '1970-1-1', a) * 10 + 621355968000000000 | datediff(millisecond, '1970-1-1', a) * 10000 + 621355968000000000 | - | 刻度总数 |
-| a.TimeOfDay | timestampdiff(microsecond, date_format(a, '1970-1-1 %H:%i:%s.%f'), a) + 62135596800000000 | '1970-1-1 ' + convert(varchar, a, 14) | - | 获取a的时间部分 |
+| a.Ticks | timestampdiff(microsecond, '0001-1-1', a) * 10 | datediff(millisecond, '1970-1-1', a) * 10000 + 621355968000000000 | - | 刻度总数 |
+| a.TimeOfDay | timestampdiff(microsecond, date_format(a, '%Y-%m-%d'), a) | '1970-1-1 ' + convert(varchar, a, 14) | - | 获取a的时间部分 |
 | a.Year | year(a) | datepart(year, a) | - | 年 |
 | a.Equals(b) | a = b | a = b | - | 比较a和b相等 |
 | a.CompareTo(b) | a - b | a - b | - | 比较a和b大小 |
@@ -122,3 +123,22 @@
 | Math.Sqrt(a) | sqrt(a) | sqrt(a) | - | - |
 | Math.Tan(a) | tan(a) | tan(a) | - | - |
 | Math.Truncate(a) | truncate(a, 0) | floor(a) | - | - |
+
+### 类型转换
+| 表达式 | MySql | SqlServer | PostgreSQL | 功能说明 |
+| - | - | - | - | - |
+| Convert.ToBoolean(a) | (a not in ('0','false)) | - | - | - |
+| Convert.ToByte | cast(a as unsigned) | - | - | - |
+| Convert.ToChar | substr(cast(a as char),1,1) | - | - | - |
+| Convert.ToDateTime | cast(a as datetime) | - | - | - |
+| Convert.ToDecimal | cast(a as decimal(36,18)) | - | - | - |
+| Convert.ToDouble | cast(a as decimal(32,16)) | - | - | - |
+| Convert.ToInt16 | cast(a as signed) | - | - | - |
+| Convert.ToInt32 | cast(a as signed) | - | - | - |
+| Convert.ToInt64 | cast(a as signed) | - | - | - |
+| Convert.ToSByte | cast(a as signed) | - | - | - |
+| Convert.ToSingle | cast(a as char) | - | - | - |
+| Convert.ToString | cast(a as decimal(14,7)) | - | - | - |
+| Convert.ToUInt16 | cast(a as unsigned) | - | - | - |
+| Convert.ToUInt32 | cast(a as unsigned) | - | - | - |
+| Convert.ToUInt64 | cast(a as unsigned) | - | - | - |

@@ -106,7 +106,7 @@ namespace FreeSql.MySql {
 						sb.Append("CREATE TABLE IF NOT EXISTS ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" (");
 						foreach (var tbcol in tb.Columns.Values) {
 							sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ");
-							sb.Append(tbcol.Attribute.DbType.ToUpper());
+							sb.Append(tbcol.Attribute.DbType);
 							if (tbcol.Attribute.IsIdentity && tbcol.Attribute.DbType.IndexOf("AUTO_INCREMENT", StringComparison.CurrentCultureIgnoreCase) == -1) sb.Append(" AUTO_INCREMENT");
 							sb.Append(",");
 						}
@@ -143,10 +143,10 @@ where a.table_schema in ({0}) and a.table_name in ({1})".FormatMySql(isRenameTab
 
 					if (addcols.TryGetValue(column, out var trycol)) {
 						if ((trycol.Attribute.DbType.IndexOf(" unsigned", StringComparison.CurrentCultureIgnoreCase) != -1) != is_unsigned ||
-							Regex.Replace(trycol.Attribute.DbType, @"\([^\)]+\)", m => Regex.Replace(m.Groups[0].Value, @"\s", "")).StartsWith(sqlType, StringComparison.CurrentCultureIgnoreCase) == false ||
-							(trycol.Attribute.DbType.IndexOf("NOT NULL", StringComparison.CurrentCultureIgnoreCase) == -1) != is_nullable ||
+							trycol.Attribute.DbType.StartsWith(sqlType, StringComparison.CurrentCultureIgnoreCase) == false ||
+							trycol.Attribute.IsNullable != is_nullable ||
 							trycol.Attribute.IsIdentity != is_identity) {
-							sb.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" MODIFY ").Append(_commonUtils.QuoteSqlName(column)).Append(" ").Append(trycol.Attribute.DbType.ToUpper());
+							sb.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" MODIFY ").Append(_commonUtils.QuoteSqlName(column)).Append(" ").Append(trycol.Attribute.DbType);
 							if (trycol.Attribute.IsIdentity && trycol.Attribute.DbType.IndexOf("AUTO_INCREMENT", StringComparison.CurrentCultureIgnoreCase) == -1) sb.Append(" AUTO_INCREMENT");
 							sb.Append(";\r\n");
 						}
@@ -156,12 +156,12 @@ where a.table_schema in ({0}) and a.table_name in ({1})".FormatMySql(isRenameTab
 				}
 				foreach (var addcol in addcols.Values) {
 					if (string.IsNullOrEmpty(addcol.Attribute.OldName) == false && surplus.ContainsKey(addcol.Attribute.OldName)) { //修改列名
-						sb.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" CHANGE COLUMN ").Append(_commonUtils.QuoteSqlName(addcol.Attribute.OldName)).Append(" ").Append(_commonUtils.QuoteSqlName(addcol.Attribute.Name)).Append(" ").Append(addcol.Attribute.DbType.ToUpper());
+						sb.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" CHANGE COLUMN ").Append(_commonUtils.QuoteSqlName(addcol.Attribute.OldName)).Append(" ").Append(_commonUtils.QuoteSqlName(addcol.Attribute.Name)).Append(" ").Append(addcol.Attribute.DbType);
 						if (addcol.Attribute.IsIdentity && addcol.Attribute.DbType.IndexOf("AUTO_INCREMENT", StringComparison.CurrentCultureIgnoreCase) == -1) sb.Append(" AUTO_INCREMENT");
 						sb.Append(";\r\n");
 
 					} else { //添加列
-						sb.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ADD ").Append(_commonUtils.QuoteSqlName(addcol.Attribute.Name)).Append(" ").Append(addcol.Attribute.DbType.ToUpper());
+						sb.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ADD ").Append(_commonUtils.QuoteSqlName(addcol.Attribute.Name)).Append(" ").Append(addcol.Attribute.DbType);
 						if (addcol.Attribute.IsIdentity && addcol.Attribute.DbType.IndexOf("AUTO_INCREMENT", StringComparison.CurrentCultureIgnoreCase) == -1) sb.Append(" AUTO_INCREMENT");
 						sb.Append(";\r\n");
 					}

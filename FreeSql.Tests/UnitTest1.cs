@@ -33,7 +33,7 @@ namespace FreeSql.Tests {
 			var sql4 = select.From<TestTypeInfo, TestTypeParentInfo>((s, b, c) => s
 				.InnerJoin(a => a.TypeGuid == b.Guid)
 				.LeftJoin(a => c.Id == b.ParentId)
-				.Where(a => b.Name == "xxx"));
+				.Where(a => b.Name == "xxx")).ToSql();
 			//.Where(a => a.Id == 1).ToSql();
 
 			

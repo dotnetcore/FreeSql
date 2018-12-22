@@ -65,7 +65,6 @@ namespace FreeSql.Internal.CommonProvider {
 					sb.Append(_commonUtils.QuoteSqlName(col.Attribute.Name));
 					++colidx;
 				}
-			if (colidx == 0) return null;
 			sb.Append(") VALUES");
 			_params = new DbParameter[colidx * _source.Count];
 			var didx = 0;

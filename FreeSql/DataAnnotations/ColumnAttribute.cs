@@ -28,5 +28,10 @@ namespace FreeSql.DataAnnotations {
 		/// 是否可DBNull
 		/// </summary>
 		public bool IsNullable { get; set; }
+
+		/// <summary>
+		/// 数据库默认值
+		/// </summary>
+		internal object DbDefautValue { get; set; }
 	}
 }

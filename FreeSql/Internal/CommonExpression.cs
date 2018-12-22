@@ -17,21 +17,31 @@ namespace FreeSql.Internal {
 			switch (exp.NodeType) {
 				case ExpressionType.Quote: return ReadAnonymousField(_tables, field, parent, ref index, (exp as UnaryExpression)?.Operand);
 				case ExpressionType.Lambda: return ReadAnonymousField(_tables, field, parent, ref index, (exp as LambdaExpression)?.Body);
+				case ExpressionType.Negate:
+				case ExpressionType.NegateChecked:
+					field.Append(", ").Append(ExpressionLambdaToSql(exp, _tables, null, SelectTableInfoType.From, true)).Append(" as").Append(++index);
+					return false;
 				case ExpressionType.Convert: return ReadAnonymousField(_tables, field, parent, ref index, (exp as UnaryExpression)?.Operand);
 				case ExpressionType.Constant:
 					var constExp = exp as ConstantExpression;
 					field.Append(", ").Append(constExp?.Value).Append(" as").Append(++index);
 					return false;
+				case ExpressionType.Call:
+					field.Append(", ").Append(ExpressionLambdaToSql(exp, _tables, null, SelectTableInfoType.From, true)).Append(" as").Append(++index);
+					return false;
 				case ExpressionType.MemberAccess:
-					var map = new List<SelectColumnInfo>();
-					ExpressionSelectColumn_MemberAccess(_tables, map, SelectTableInfoType.From, exp, true);
-					if (map.Count > 1) {
+					if (_common.GetTableByEntity(exp.Type) != null) { //加载表所有字段
+						var map = new List<SelectColumnInfo>();
+						ExpressionSelectColumn_MemberAccess(_tables, map, SelectTableInfoType.From, exp, true);
 						parent.Consturctor = map.First().Table.Table.Type.GetConstructor(new Type[0]);
 						parent.ConsturctorType = ReadAnonymousTypeInfoConsturctorType.Properties;
-					}
-					for (var idx = 0; idx < map.Count; idx++) {
-						field.Append(", ").Append(map[idx].Table.Alias).Append(".").Append(_common.QuoteSqlName(map[idx].Column.Attribute.Name)).Append(" as").Append(++index);
-						if (map.Count > 1) parent.Childs.Add(new ReadAnonymousTypeInfo { CsName = map[idx].Column.CsName });
+						for (var idx = 0; idx < map.Count; idx++) {
+							field.Append(", ").Append(map[idx].Table.Alias).Append(".").Append(_common.QuoteSqlName(map[idx].Column.Attribute.Name)).Append(" as").Append(++index);
+							parent.Childs.Add(new ReadAnonymousTypeInfo { CsName = map[idx].Column.CsName });
+						}
+					} else {
+						field.Append(", ").Append(ExpressionLambdaToSql(exp, _tables, null, SelectTableInfoType.From, true)).Append(" as").Append(++index);
+						return false;
 					}
 					return false;
 				case ExpressionType.New:
@@ -39,7 +49,7 @@ namespace FreeSql.Internal {
 					parent.Consturctor = newExp.Type.GetConstructors()[0];
 					parent.ConsturctorType = ReadAnonymousTypeInfoConsturctorType.Arguments;
 					for (var a = 0; a < newExp.Members.Count; a++) {
-						var child = new ReadAnonymousTypeInfo { CsName = newExp.Members[a].Name };
+						var child = new ReadAnonymousTypeInfo { CsName = newExp.Members[a].Name, CsType = newExp.Arguments[a].Type };
 						parent.Childs.Add(child);
 						ReadAnonymousField(_tables, field, child, ref index, newExp.Arguments[a]);
 					}
@@ -53,7 +63,7 @@ namespace FreeSql.Internal {
 				case ReadAnonymousTypeInfoConsturctorType.Arguments:
 					var args = new object[parent.Childs.Count];
 					for (var a = 0; a < parent.Childs.Count; a++) {
-						args[a] = ReadAnonymous(parent.Childs[a], dr, ref index);
+						args[a] = Utils.GetDataReaderValue(parent.Childs[a].CsType, ReadAnonymous(parent.Childs[a], dr, ref index));
 					}
 					return parent.Consturctor.Invoke(args);
 				case ReadAnonymousTypeInfoConsturctorType.Properties:
@@ -162,6 +172,9 @@ namespace FreeSql.Internal {
 				case ExpressionType.Negate:
 				case ExpressionType.NegateChecked: return "-" + ExpressionLambdaToSql((exp as UnaryExpression)?.Operand, _tables, _selectColumnMap, tbtype, isQuoteName);
 				case ExpressionType.Constant: return _common.FormatSql("{0}", (exp as ConstantExpression)?.Value);
+				case ExpressionType.Conditional:
+					var condExp = exp as ConditionalExpression;
+					return $"case when {ExpressionLambdaToSql(condExp.Test, _tables, _selectColumnMap, tbtype, isQuoteName)} then {ExpressionLambdaToSql(condExp.IfTrue, _tables, _selectColumnMap, tbtype, isQuoteName)} else {ExpressionLambdaToSql(condExp.IfFalse, _tables, _selectColumnMap, tbtype, isQuoteName)} end";
 				case ExpressionType.Call:
 					var exp3 = exp as MethodCallExpression;
 					switch (exp3.Object?.Type.FullName ?? exp3.Method.DeclaringType.FullName) {
@@ -169,6 +182,7 @@ namespace FreeSql.Internal {
 						case "System.Math": return ExpressionLambdaToSqlCallMath(exp3, _tables, _selectColumnMap, tbtype, isQuoteName);
 						case "System.DateTime": return ExpressionLambdaToSqlCallDateTime(exp3, _tables, _selectColumnMap, tbtype, isQuoteName);
 						case "System.TimeSpan": return ExpressionLambdaToSqlCallTimeSpan(exp3, _tables, _selectColumnMap, tbtype, isQuoteName);
+						case "System.Convert": return ExpressionLambdaToSqlCallConvert(exp3, _tables, _selectColumnMap, tbtype, isQuoteName);
 					}
 					throw new Exception($"MySqlExpression 未现实函数表达式 {exp3} 解析");
 				case ExpressionType.MemberAccess:
@@ -304,5 +318,6 @@ namespace FreeSql.Internal {
 		internal abstract string ExpressionLambdaToSqlCallMath(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, SelectTableInfoType tbtype, bool isQuoteName);
 		internal abstract string ExpressionLambdaToSqlCallDateTime(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, SelectTableInfoType tbtype, bool isQuoteName);
 		internal abstract string ExpressionLambdaToSqlCallTimeSpan(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, SelectTableInfoType tbtype, bool isQuoteName);
+		internal abstract string ExpressionLambdaToSqlCallConvert(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, SelectTableInfoType tbtype, bool isQuoteName);
 	}
 }
