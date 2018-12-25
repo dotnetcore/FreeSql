@@ -36,9 +36,5 @@ namespace FreeSql.Internal.CommonProvider {
 		ISelect<T1, T2, T3, T4, T5, T6, T7> ISelect<T1, T2, T3, T4, T5, T6, T7>.Where(Expression<Func<T1, T2, T3, T4, T5, T6, T7, bool>> exp) => this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp?.Body));
 
 		ISelect<T1, T2, T3, T4, T5, T6, T7> ISelect<T1, T2, T3, T4, T5, T6, T7>.WhereIf(bool condition, Expression<Func<T1, T2, T3, T4, T5, T6, T7, bool>> exp) => condition ? this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp?.Body)) : this;
-
-		ISelect<T1, T2, T3, T4, T5, T6, T7> ISelect<T1, T2, T3, T4, T5, T6, T7>.WhereLike(Expression<Func<T1, T2, T3, T4, T5, T6, T7, string[]>> columns, string pattern, bool notLike) => this.InternalWhereLikeOr(columns?.Body, pattern, notLike);
-
-		ISelect<T1, T2, T3, T4, T5, T6, T7> ISelect<T1, T2, T3, T4, T5, T6, T7>.WhereLike(Expression<Func<T1, T2, T3, T4, T5, T6, T7, string>> column, string pattern, bool notLike) => this.InternalWhereLike(column?.Body, pattern, notLike);
 	}
 }

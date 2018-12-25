@@ -19,15 +19,18 @@ namespace FreeSql.Internal {
 				case ExpressionType.Lambda: return ReadAnonymousField(_tables, field, parent, ref index, (exp as LambdaExpression)?.Body);
 				case ExpressionType.Negate:
 				case ExpressionType.NegateChecked:
-					field.Append(", ").Append(ExpressionLambdaToSql(exp, _tables, null, SelectTableInfoType.From, true)).Append(" as").Append(++index);
+					parent.DbField = $"-{ExpressionLambdaToSql(exp, _tables, null, SelectTableInfoType.From, true)}";
+					field.Append(", ").Append(parent.DbField).Append(" as").Append(++index);
 					return false;
 				case ExpressionType.Convert: return ReadAnonymousField(_tables, field, parent, ref index, (exp as UnaryExpression)?.Operand);
 				case ExpressionType.Constant:
 					var constExp = exp as ConstantExpression;
-					field.Append(", ").Append(constExp?.Value).Append(" as").Append(++index);
+					parent.DbField = _common.FormatSql("{0}", constExp?.Value);
+					field.Append(", ").Append(parent.DbField).Append(" as").Append(++index);
 					return false;
 				case ExpressionType.Call:
-					field.Append(", ").Append(ExpressionLambdaToSql(exp, _tables, null, SelectTableInfoType.From, true)).Append(" as").Append(++index);
+					parent.DbField = ExpressionLambdaToSql(exp, _tables, null, SelectTableInfoType.From, true);
+					field.Append(", ").Append(parent.DbField).Append(" as").Append(++index);
 					return false;
 				case ExpressionType.MemberAccess:
 					if (_common.GetTableByEntity(exp.Type) != null) { //加载表所有字段
@@ -36,11 +39,13 @@ namespace FreeSql.Internal {
 						parent.Consturctor = map.First().Table.Table.Type.GetConstructor(new Type[0]);
 						parent.ConsturctorType = ReadAnonymousTypeInfoConsturctorType.Properties;
 						for (var idx = 0; idx < map.Count; idx++) {
-							field.Append(", ").Append(map[idx].Table.Alias).Append(".").Append(_common.QuoteSqlName(map[idx].Column.Attribute.Name)).Append(" as").Append(++index);
-							parent.Childs.Add(new ReadAnonymousTypeInfo { CsName = map[idx].Column.CsName });
+							var child = new ReadAnonymousTypeInfo { CsName = map[idx].Column.CsName, DbField = $"{map[idx].Table.Alias}.{_common.QuoteSqlName(map[idx].Column.Attribute.Name)}" };
+							field.Append(", ").Append(child.DbField).Append(" as").Append(++index);
+							parent.Childs.Add(child);
 						}
 					} else {
-						field.Append(", ").Append(ExpressionLambdaToSql(exp, _tables, null, SelectTableInfoType.From, true)).Append(" as").Append(++index);
+						parent.DbField = ExpressionLambdaToSql(exp, _tables, null, SelectTableInfoType.From, true);
+						field.Append(", ").Append(parent.DbField).Append(" as").Append(++index);
 						return false;
 					}
 					return false;

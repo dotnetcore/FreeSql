@@ -3,6 +3,7 @@ using FreeSql;
 using System;
 using System.Collections.Generic;
 using Xunit;
+using System.Linq;
 
 namespace FreeSql.Tests {
 	public class UnitTest1 {
@@ -10,6 +11,18 @@ namespace FreeSql.Tests {
 		ISelect<TestInfo> select => g.mysql.Select<TestInfo>();
 		[Fact]
 		public void Test1() {
+
+			//g.mysql.Select<TestInfo>().Where(a => a.Id == 1)
+			//	.GroupBy(a => new { tt2 = a.Title.Substring(0, 2), mod4 = a.Id % 4 })
+			//	.Having(a => a.Count() > 2 && a.Avg(a.Key.mod4) > 0 && a.Key.mod4 > 0)
+			//	.OrderBy(a => a.Key.tt2)
+			//	.OrderByDescending(a => a.Count())
+			//	.ToList(a => new { a.Key.tt2, cou1 = a.Count(), arg1 = a.Avg(a.Key.mod4) });
+			
+
+			var sss = new[] { 1, 2, 3 };
+			sss.Count();
+
 
 			var t1 = g.mysql.Select<TestInfo>().Where("").Where(a => a.Id > 0).Skip(100).Limit(200).ToSql();
 			var t2 = g.mysql.Select<TestInfo>().As("b").Where("").Where(a => a.Id > 0).Skip(100).Limit(200).ToSql();

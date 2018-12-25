@@ -15,9 +15,6 @@ namespace FreeSql {
 		ISelect<T1, T2> Where(Expression<Func<T1, T2, bool>> exp);
 		ISelect<T1, T2> WhereIf(bool condition, Expression<Func<T1, T2, bool>> exp);
 
-		ISelect<T1, T2> WhereLike(Expression<Func<T1, T2, string[]>> columns, string pattern, bool notLike = false);
-		ISelect<T1, T2> WhereLike(Expression<Func<T1, T2, string>> column, string pattern, bool notLike = false);
-
 		ISelect<T1, T2> GroupBy(Expression<Func<T1, T2, object>> columns);
 
 		ISelect<T1, T2> OrderBy<TMember>(Expression<Func<T1, T2, TMember>> column);

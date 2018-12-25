@@ -188,7 +188,6 @@ List<dynamic> t8 = fsql.Ado.Query<dynamic>("select * from song");
 | WhereIf | \<this\> | bool, Lambda | 支持多表查询表达式 |
 | Where | \<this\> | string, parms | 原生sql语法条件，Where("id = ?id", new { id = 1 }) |
 | WhereIf | \<this\> | bool, string, parms | 原生sql语法条件，WhereIf(true, "id = ?id", new { id = 1 }) |
-| WhereLike | \<this\> | Lambda, string, bool | like 查询条件，where title like '%xxx%' or content like '%xxx%' |
 | 【分组】 |
 | GroupBy | \<this\> | Lambda | 按选择的列分组，GroupBy(a => a.Name) | GroupBy(a => new{a.Name,a.Time}) | GroupBy(a => new[]{"name","time"}) |
 | GroupBy | \<this\> | string, parms | 按原生sql语法分组，GroupBy("concat(name, ?cc)", new { cc = 1 }) |

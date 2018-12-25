@@ -48,7 +48,10 @@ namespace FreeSql.Internal {
 				colattr.DbType = Regex.Replace(colattr.DbType, @"\([^\)]+\)", m => Regex.Replace(m.Groups[0].Value, @"\s", ""));
 				colattr.DbDefautValue = trytb.Properties[p.Name].GetValue(Activator.CreateInstance(trytb.Type));
 				if (colattr.DbDefautValue == null && p.PropertyType.FullName == "System.String") colattr.DbDefautValue = string.Empty;
-				if (colattr.DbDefautValue == null) colattr.DbDefautValue = Activator.CreateInstance(p.PropertyType.GenericTypeArguments.FirstOrDefault() ?? p.PropertyType);
+				if (colattr.DbDefautValue == null) {
+					var consturctorType = p.PropertyType.GenericTypeArguments.FirstOrDefault() ?? p.PropertyType;
+					if (consturctorType.GetConstructor(new Type[0]) != null) colattr.DbDefautValue = Activator.CreateInstance(consturctorType);
+				}
 				if (colattr.DbDefautValue == null) colattr.DbDefautValue = "";
 				if (colattr.DbDefautValue.GetType().FullName == "System.DateTime") colattr.DbDefautValue = new DateTime(1970, 1, 1);
 

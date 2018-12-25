@@ -101,8 +101,8 @@ namespace FreeSql.PostgreSQL {
 			if (enumType == null && type.FullName.StartsWith("System.Nullable`1[") && type.GenericTypeArguments.Length == 1 && type.GenericTypeArguments.First().IsEnum) enumType = type.GenericTypeArguments.First();
 			if (enumType != null) {
 				var newItem = enumType.GetCustomAttributes(typeof(FlagsAttribute), false).Any() ?
-					(NpgsqlDbType.Varchar, "varchar", $"varchar(32){(type.IsEnum ? " NOT NULL" : "")}", false, type.IsEnum ? false : true) :
-					(NpgsqlDbType.Varchar, "varchar", $"varchar(32){(type.IsEnum ? " NOT NULL" : "")}", false, type.IsEnum ? false : true);
+					(NpgsqlDbType.Bigint, "int8", $"int8{(type.IsEnum ? " NOT NULL" : "")}", false, type.IsEnum ? false : true) :
+					(NpgsqlDbType.Integer, "int4", $"int4{(type.IsEnum ? " NOT NULL" : "")}", false, type.IsEnum ? false : true);
 				if (_dicCsToDb.ContainsKey(type.FullName) == false) {
 					lock (_dicCsToDbLock) {
 						if (_dicCsToDb.ContainsKey(type.FullName) == false)
@@ -118,23 +118,28 @@ namespace FreeSql.PostgreSQL {
 		public string GetComparisonDDLStatements(params Type[] entityTypes) {
 			var sb = new StringBuilder();
 			var seqcols = new List<(ColumnInfo, string[], bool)>(); //序列
+
 			foreach (var entityType in entityTypes) {
 				if (sb.Length > 0) sb.Append("\r\n");
 				var tb = _commonUtils.GetTableByEntity(entityType);
+				var tbname = tb.DbName.Split(new[] { '.' }, 2);
+				if (tbname?.Length == 1) tbname = new[] { "public", tbname[0] };
+
 				var tboldname = tb.DbOldName?.Split(new[] { '.' }, 2); //旧表名
 				if (tboldname?.Length == 1) tboldname = new[] { "public", tboldname[0] };
 
-				var isRenameTable = false;
-				var tbname = tb.DbName.Split(new[] { '.' }, 2);
-				if (tbname.Length == 1) tbname = new[] { "public", tbname[0] };
-				if (_orm.Ado.ExecuteScalar(CommandType.Text, "select 1 from pg_tables a inner join pg_namespace b on b.nspname = a.schemaname where b.nspname || '.' || a.tablename = {0}.{1}".FormatPostgreSQL(tbname)) == null) { //表不存在
+				if (string.Compare(tbname[0], "public", true) != 0 && _orm.Ado.ExecuteScalar(CommandType.Text, $"select 1 from pg_namespace where nspname='{tbname[0]}'") == null) //创建模式
+					sb.Append("CREATE SCHEMA IF NOT EXISTS ").Append(tbname[0]).Append(";\r\n");
 
-					if (tboldname != null && _orm.Ado.ExecuteScalar(CommandType.Text, "select 1 from pg_tables a inner join pg_namespace b on b.nspname = a.schemaname where b.nspname || '.' || a.tablename = {0}.{1}".FormatPostgreSQL(tboldname)) != null) { //旧表存在
-																																																															//修改表名
-						sb.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tboldname[0]}.{tboldname[1]}")).Append(" RENAME TO ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(";\r\n");
-						isRenameTable = true;
-
-					} else {
+				var sbalter = new StringBuilder();
+				var istmpatler = false; //创建临时表，导入数据，删除旧表，修改
+				if (_orm.Ado.ExecuteScalar(CommandType.Text, string.Format("select 1 from pg_tables a inner join pg_namespace b on b.nspname = a.schemaname where b.nspname || '.' || a.tablename = '{0}.{1}'", tbname)) == null) { //表不存在
+					if (tboldname != null) {
+						if (_orm.Ado.ExecuteScalar(CommandType.Text, string.Format("select 1 from pg_tables a inner join pg_namespace b on b.nspname = a.schemaname where b.nspname || '.' || a.tablename = '{0}.{1}'", tboldname)) == null)
+							//旧表不存在
+							tboldname = null;
+					}
+					if (tboldname == null) {
 						//创建表
 						sb.Append("CREATE TABLE IF NOT EXISTS ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" (");
 						foreach (var tbcol in tb.Columns.Values) {
@@ -151,19 +156,24 @@ namespace FreeSql.PostgreSQL {
 						sb.Append("\r\n) WITH (OIDS=FALSE);\r\n");
 						continue;
 					}
-				}
+					//如果新表，旧表在一个数据库和模式下，直接修改表名
+					if (string.Compare(tbname[0], tboldname[0], true) == 0)
+						sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tboldname[0]}.{tboldname[1]}")).Append(" RENAME TO ").Append(_commonUtils.QuoteSqlName($"{tbname[1]}")).Append(";\r\n");
+					else {
+						//如果新表，旧表不在一起，创建新表，导入数据，删除旧表
+						istmpatler = true;
+					}
+				} else
+					tboldname = null; //如果新表已经存在，不走改表名逻辑
+
 				//对比字段，只可以修改类型、增加字段、有限的修改字段名；保证安全不删除字段
-				var addcols = new Dictionary<string, ColumnInfo>(StringComparer.CurrentCultureIgnoreCase);
-				foreach (var tbcol in tb.Columns) addcols.Add(tbcol.Value.Attribute.Name, tbcol.Value);
-				var surplus = new Dictionary<string, bool>(StringComparer.CurrentCultureIgnoreCase);
-				var dbcols = new List<DbColumnInfo>();
 				var sql = @"select
 a.attname,
 t.typname,
 case when a.atttypmod > 0 and a.atttypmod < 32767 then a.atttypmod - 4 else a.attlen end len,
 case when t.typelem = 0 then t.typname else t2.typname end,
 case when a.attnotnull then '0' else '1' end as is_nullable,
-case when e.adsrc = 1 then '1' else '0' end as is_identity,
+e.adsrc,
 a.attndims
 from pg_class c
 inner join pg_attribute a on a.attnum > 0 and a.attrelid = c.oid
@@ -173,47 +183,96 @@ left join pg_description d on d.objoid = a.attrelid and d.objsubid = a.attnum
 left join pg_attrdef e on e.adrelid = a.attrelid and e.adnum = a.attnum
 inner join pg_namespace ns on ns.oid = c.relnamespace
 inner join pg_namespace ns2 on ns2.oid = t.typnamespace
-where ns.nspname = {0} and c.relname = {1}".FormatPostgreSQL(isRenameTable ? tboldname : tbname);
+where ns.nspname = {0} and c.relname = {1}".FormatPostgreSQL(tboldname ?? tbname);
 				var ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
-				foreach (var row in ds) {
-					string column = string.Concat(row[0]);
-					string sqlType = string.Concat(row[3]);
-					long max_length = long.Parse(string.Concat(row[2]));
-					bool is_nullable = string.Concat(row[4]) == "1";
-					bool is_identity = string.Concat(row[5]).StartsWith(@"nextval('") && string.Concat(row[6]).EndsWith(@"_seq'::regclass)");
-					var attndims = long.Parse(string.Concat(row[6]));
-					if (attndims > 0) sqlType += "[]";
+				var tbstruct = ds.ToDictionary(a => string.Concat(a[0]), a => new {
+					column = string.Concat(a[0]),
+					sqlType = string.Concat(a[3], long.Parse(string.Concat(a[6])) > 0 ? "[]" : ""),
+					max_length = long.Parse(string.Concat(a[2])),
+					is_nullable = string.Concat(a[4]) == "1",
+					is_identity = string.Concat(a[5]).StartsWith(@"nextval('") && string.Concat(a[5]).EndsWith(@"'::regclass)"),
+					attndims = long.Parse(string.Concat(a[6]))
+				}, StringComparer.CurrentCultureIgnoreCase);
 
-					if (addcols.TryGetValue(column, out var trycol)) {
-						if (trycol.Attribute.DbType.ToLower().StartsWith(sqlType.ToLower()) == false ||
-							(trycol.Attribute.DbType.IndexOf("NOT NULL") == -1) != is_nullable) {
-							sb.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ALTER COLUMN ").Append(_commonUtils.QuoteSqlName(column)).Append(" TYPE ").Append(trycol.Attribute.DbType.ToUpper()).Append(";\r\n");
+				if (istmpatler == false) {
+					foreach (var tbcol in tb.Columns.Values) {
+						if (tbstruct.TryGetValue(tbcol.Attribute.Name, out var tbstructcol) ||
+							string.IsNullOrEmpty(tbcol.Attribute.OldName) == false && tbstruct.TryGetValue(tbcol.Attribute.OldName, out tbstructcol)) {
+							if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.CurrentCultureIgnoreCase) == false ||
+								tbcol.Attribute.IsNullable != tbstructcol.is_nullable) {
+								sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ALTER COLUMN ").Append(_commonUtils.QuoteSqlName(tbstructcol.column)).Append(" TYPE ").Append(tbcol.Attribute.DbType.ToUpper()).Append(";\r\n");
+								break;
+							}
+							if (tbcol.Attribute.IsIdentity != tbstructcol.is_identity) seqcols.Add((tbcol, tbname, tbcol.Attribute.IsIdentity));
+							if (tbstructcol.column == tbcol.Attribute.OldName) {
+								//修改列名
+								sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" RENAME COLUMN ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.OldName)).Append(" TO ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(";\r\n");
+							}
+							continue;
 						}
-						if (trycol.Attribute.IsIdentity != is_identity) seqcols.Add((trycol, tbname, trycol.Attribute.IsIdentity));
-						addcols.Remove(column);
-					} else {
-						if (trycol.Attribute.IsIdentity != is_identity) seqcols.Add((trycol, tbname, trycol.Attribute.IsIdentity));
-						surplus.Add(column, true); //记录剩余字段
+						//添加列
+						sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ADD COLUMN ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType.ToUpper()).Append(";\r\n");
+						if (tbcol.Attribute.IsIdentity != tbstructcol.is_identity) seqcols.Add((tbcol, tbname, tbcol.Attribute.IsIdentity));
 					}
 				}
-				foreach (var addcol in addcols.Values) {
-					if (string.IsNullOrEmpty(addcol.Attribute.OldName) == false && surplus.ContainsKey(addcol.Attribute.OldName)) { //修改列名
-						sb.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" RENAME COLUMN ").Append(_commonUtils.QuoteSqlName(addcol.Attribute.OldName)).Append(" TO ").Append(_commonUtils.QuoteSqlName(addcol.Attribute.Name)).Append(";\r\n");
-					} else { //添加列
-						sb.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ADD COLUMN ").Append(_commonUtils.QuoteSqlName(addcol.Attribute.Name)).Append(" ").Append(addcol.Attribute.DbType.ToUpper()).Append(";\r\n");
+				if (istmpatler == false) {
+					sb.Append(sbalter);
+					continue;
+				}
+				//创建临时表，数据导进临时表，然后删除原表，将临时表改名为原表名
+				var tablename = tboldname == null ? _commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}") : _commonUtils.QuoteSqlName($"{tboldname[0]}.{tboldname[1]}");
+				var tmptablename = _commonUtils.QuoteSqlName($"{tbname[0]}.FreeSqlTmp_{tbname[1]}");
+				//创建临时表
+				sb.Append("CREATE TABLE IF NOT EXISTS ").Append(tmptablename).Append(" (");
+				foreach (var tbcol in tb.Columns.Values) {
+					sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType.ToUpper()).Append(",");
+					if (tbcol.Attribute.IsIdentity) seqcols.Add((tbcol, tbname, true));
+				}
+				if (tb.Primarys.Any() == false)
+					sb.Remove(sb.Length - 1, 1);
+				else {
+					sb.Append(" \r\n  CONSTRAINT ").Append(tbname[0]).Append("_").Append(tbname[1]).Append("_pkey PRIMARY KEY (");
+					foreach (var tbcol in tb.Primarys) sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
+					sb.Remove(sb.Length - 2, 2).Append(")");
+				}
+				sb.Append("\r\n) WITH (OIDS=FALSE);\r\n");
+				sb.Append("INSERT INTO ").Append(tmptablename).Append(" (");
+				foreach (var tbcol in tb.Columns.Values) {
+					if (tbstruct.ContainsKey(tbcol.Attribute.Name) ||
+						string.IsNullOrEmpty(tbcol.Attribute.OldName) == false && tbstruct.ContainsKey(tbcol.Attribute.OldName)) { //导入旧表存在的字段
+						sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
 					}
 				}
+				sb.Remove(sb.Length - 2, 2).Append(")\r\nSELECT ");
+				foreach (var tbcol in tb.Columns.Values) {
+					if (tbstruct.TryGetValue(tbcol.Attribute.Name, out var tbstructcol) ||
+						string.IsNullOrEmpty(tbcol.Attribute.OldName) == false && tbstruct.TryGetValue(tbcol.Attribute.OldName, out tbstructcol)) {
+						var insertvalue = _commonUtils.QuoteSqlName(tbstructcol.column);
+						if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.CurrentCultureIgnoreCase) == false) {
+							var tbcoldbtype = tbcol.Attribute.DbType.Split(' ').First();
+							insertvalue = $"cast({insertvalue} as {tbcoldbtype})";
+						}
+						if (tbcol.Attribute.IsNullable != tbstructcol.is_nullable) {
+							insertvalue = $"ifnull({insertvalue},{_commonUtils.FormatSql("{0}", tbcol.Attribute.DbDefautValue).Replace("'", "''")})";
+						}
+						sb.Append(insertvalue).Append(", ");
+					}
+				}
+				sb.Remove(sb.Length - 2, 2).Append(" FROM ").Append(tablename).Append(";\r\n");
+				sb.Append("DROP TABLE ").Append(tablename).Append(";\r\n");
+				sb.Append("ALTER TABLE ").Append(tmptablename).Append(" RENAME TO ").Append(_commonUtils.QuoteSqlName(tbname[1])).Append(";\r\n");
 			}
-			foreach(var seqcol in seqcols) {
+			foreach (var seqcol in seqcols) {
 				var tbname = seqcol.Item2;
 				var seqname = Utils.GetCsName($"{tbname[0]}.{tbname[1]}_{seqcol.Item1.Attribute.Name}_sequence_name");
 				var tbname2 = _commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}");
 				var colname2 = _commonUtils.QuoteSqlName(seqcol.Item1.Attribute.Name);
-				sb.Append("ALTER TABLE ").Append(tbname2).Append(" ALTER COLUMN ").Append(colname2).Append(" SET DEFAULT null;");
-				sb.Append("DROP SEQUENCE IF EXISTS ").Append(seqname).Append(";");
+				sb.Append("ALTER TABLE ").Append(tbname2).Append(" ALTER COLUMN ").Append(colname2).Append(" SET DEFAULT null;\r\n");
+				sb.Append("DROP SEQUENCE IF EXISTS ").Append(seqname).Append(";\r\n");
 				if (seqcol.Item3) {
-					sb.Append("CREATE SEQUENCE ").Append(seqname).Append(" START WITH (select coalesce(max(").Append(colname2).Append("),1) from ").Append(tbname2).Append(");");
-					sb.Append("ALTER TABLE ").Append(tbname2).Append(" ALTER COLUMN ").Append(colname2).Append(" SET DEFAULT nextval('").Append(seqname).Append("'::regclass);");
+					sb.Append("CREATE SEQUENCE ").Append(seqname).Append(";\r\n");
+					sb.Append("ALTER TABLE ").Append(tbname2).Append(" ALTER COLUMN ").Append(colname2).Append(" SET DEFAULT nextval('").Append(seqname).Append("'::regclass);\r\n");
+					sb.Append("SELECT case when max(").Append(colname2).Append(") is null then 0 else setval('").Append(seqname).Append("', max(").Append(colname2).Append(")) end FROM ").Append(tbname2).Append(";\r\n");
 				}
 			}
 			return sb.Length == 0 ? null : sb.ToString();

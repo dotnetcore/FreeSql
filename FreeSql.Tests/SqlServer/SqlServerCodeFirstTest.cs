@@ -15,6 +15,7 @@ namespace FreeSql.Tests.SqlServer {
 			var id = g.sqlserver.Insert<TopicAddField>().AppendData(new TopicAddField { }).ExecuteIdentity();
 		}
 
+		[Table(Name = "dbo2.TopicAddField", OldName = "tedb1.dbo.TopicAddField")]
 		public class TopicAddField {
 			[Column(IsIdentity = true)]
 			public int Id { get; set; }

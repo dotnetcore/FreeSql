@@ -15,11 +15,12 @@ namespace FreeSql.Tests.MySql {
 			var id = g.mysql.Insert<TopicAddField>().AppendData(new TopicAddField { }).ExecuteIdentity();
 		}
 
+		[Table(Name = "TopicAddField", OldName = "xxxtb.TopicAddField")]
 		public class TopicAddField {
 			[Column(IsIdentity = true)]
 			public int? Id { get; set; }
 
-			public int name { get; set; }
+			public string name { get; set; }
 
 			[Column(DbType = "varchar(200) not null", OldName = "title")]
 			public string title222 { get; set; } = "10";

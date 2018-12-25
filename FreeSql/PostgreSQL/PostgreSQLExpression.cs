@@ -195,9 +195,8 @@ namespace FreeSql.PostgreSQL {
 					case "ToUInt32":
 					case "ToUInt64": return $"cast({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)} as unsigned)";
 				}
-				throw new Exception($"MySqlExpression 未现实函数表达式 {exp} 解析");
 			}
-			throw new Exception($"MySqlExpression 未现实函数表达式 {exp} 解析");
+			throw new Exception($"PostgreSQLExpression 未现实函数表达式 {exp} 解析");
 		}
 	}
 }

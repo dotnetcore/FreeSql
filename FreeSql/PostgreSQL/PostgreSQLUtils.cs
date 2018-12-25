@@ -8,10 +8,10 @@ using System.Linq;
 
 namespace FreeSql.PostgreSQL {
 
-	class MySqlUtils : CommonUtils {
+	class PostgreSQLUtils : CommonUtils {
 		IFreeSql _orm;
-		public MySqlUtils(IFreeSql mysql) {
-			_orm = mysql;
+		public PostgreSQLUtils(IFreeSql orm) {
+			_orm = orm;
 		}
 
 		internal override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, object value) {
@@ -24,12 +24,12 @@ namespace FreeSql.PostgreSQL {
 					ParameterName = parameterName,
 					Value = value
 				};
-				if (value.GetType().IsEnum || value.GetType().GenericTypeArguments.FirstOrDefault()?.IsEnum == true) {
-					ret.DataTypeName = "";
-				} else {
+				//if (value.GetType().IsEnum || value.GetType().GenericTypeArguments.FirstOrDefault()?.IsEnum == true) {
+				//	ret.DataTypeName = "";
+				//} else {
 					var tp = _orm.CodeFirst.GetDbInfo(type)?.type;
 					if (tp != null) ret.NpgsqlDbType = (NpgsqlDbType)tp.Value;
-				}
+				//}
 			}
 			_params?.Add(ret);
 			return ret;
@@ -41,16 +41,16 @@ namespace FreeSql.PostgreSQL {
 					ParameterName = name,
 					Value = value ?? DBNull.Value
 				};
-				if (value.GetType().IsEnum || value.GetType().GenericTypeArguments.FirstOrDefault()?.IsEnum == true) {
-					ret.DataTypeName = "";
-				} else {
+				//if (value.GetType().IsEnum || value.GetType().GenericTypeArguments.FirstOrDefault()?.IsEnum == true) {
+				//	ret.DataTypeName = "";
+				//} else {
 					var tp = _orm.CodeFirst.GetDbInfo(type)?.type;
 					if (tp != null) ret.NpgsqlDbType = (NpgsqlDbType)tp.Value;
-				}
+				//}
 				return ret;
 			});
 
-		internal override string FormatSql(string sql, params object[] args) => sql?.FormatMySql(args);
+		internal override string FormatSql(string sql, params object[] args) => sql?.FormatPostgreSQL(args);
 		internal override string QuoteSqlName(string name) => $"\"{name.Trim('"').Replace(".", "\".\"")}\"";
 		internal override string QuoteParamterName(string name) => $"@{name}";
 		internal override string IsNull(string sql, object value) => $"coalesce({sql}, {value})";

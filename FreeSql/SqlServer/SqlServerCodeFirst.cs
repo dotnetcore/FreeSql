@@ -72,43 +72,76 @@ namespace FreeSql.SqlServer {
 
 		public string GetComparisonDDLStatements<TEntity>() => this.GetComparisonDDLStatements(typeof(TEntity));
 		public string GetComparisonDDLStatements(params Type[] entityTypes) {
-			var sb = new StringBuilder();
-			foreach (var entityType in entityTypes) {
-				if (sb.Length > 0) sb.Append("\r\n");
-				var tb = _commonUtils.GetTableByEntity(entityType);
-				var tboldname = tb.DbOldName?.Split(new[] { '.' }, 2); //旧表名
-				if (tboldname?.Length == 1) tboldname = new[] { "dbo", tboldname[0] };
-
-				var isRenameTable = false;
-				var tbname = tb.DbName.Split(new[] { '.' }, 2);
-				if (tbname.Length == 1) tbname = new[] { "dbo", tbname[0] };
-				if (_orm.Ado.ExecuteScalar(CommandType.Text, string.Format("select 1 from dbo.sysobjects where id = object_id(N'[{0}].[{1}]') and OBJECTPROPERTY(id, N'IsUserTable') = 1", tbname)) == null) { //表不存在
-
-					if (tboldname != null && _orm.Ado.ExecuteScalar(CommandType.Text, string.Format("select 1 from dbo.sysobjects where id = object_id(N'[{0}].[{1}]') and OBJECTPROPERTY(id, N'IsUserTable') = 1", tboldname)) != null) { //旧表存在
-																																																										   //修改表名
-						sb.Append(_commonUtils.FormatSql("EXEC sp_rename {0}, {1};\r\n", _commonUtils.QuoteSqlName($"{tboldname[0]}.{tboldname[1]}"), _commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")));
-						isRenameTable = true;
-
-					} else {
-						//创建表
-						sb.Append("CREATE TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" (");
-						foreach (var tbcol in tb.Columns.Values) {
-							sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ");
-							sb.Append(tbcol.Attribute.DbType);
-							if (tbcol.Attribute.IsIdentity && tbcol.Attribute.DbType.IndexOf("identity", StringComparison.CurrentCultureIgnoreCase) == -1) sb.Append(" identity(1,1)");
-							if (tbcol.Attribute.IsPrimary) sb.Append(" primary key");
-							sb.Append(",");
-						}
-						sb.Remove(sb.Length - 1, 1).Append("\r\n);\r\n");
-						continue;
+			var conn = _orm.Ado.MasterPool.Get(TimeSpan.FromSeconds(5));
+			var database = conn.Value.Database;
+			Func<string, string, object> ExecuteScalar = (db, sql) => {
+				if (string.Compare(database, db) != 0) try { conn.Value.ChangeDatabase(db); } catch { }
+				try {
+					using (var cmd = conn.Value.CreateCommand()) {
+						cmd.CommandText = sql;
+						cmd.CommandType = CommandType.Text;
+						return cmd.ExecuteScalar();
 					}
+				} finally {
+					if (string.Compare(database, db) != 0) conn.Value.ChangeDatabase(database);
 				}
-				//对比字段，只可以修改类型、增加字段、有限的修改字段名；保证安全不删除字段
-				var addcols = new Dictionary<string, ColumnInfo>(StringComparer.CurrentCultureIgnoreCase);
-				foreach (var tbcol in tb.Columns) addcols.Add(tbcol.Value.Attribute.Name, tbcol.Value);
-				var surplus = new Dictionary<string, bool>(StringComparer.CurrentCultureIgnoreCase);
-				var dbcols = new List<DbColumnInfo>();
-				var sql = string.Format(@"select
+			};
+			var sb = new StringBuilder();
+			try {
+				foreach (var entityType in entityTypes) {
+					if (sb.Length > 0) sb.Append("\r\n");
+					var tb = _commonUtils.GetTableByEntity(entityType);
+					var tbname = tb.DbName.Split(new[] { '.' }, 3);
+					if (tbname?.Length == 1) tbname = new[] { database, "dbo", tbname[0] };
+					if (tbname?.Length == 2) tbname = new[] { database, tbname[0], tbname[1] };
+
+					var tboldname = tb.DbOldName?.Split(new[] { '.' }, 3); //旧表名
+					if (tboldname?.Length == 1) tboldname = new[] { database, "dbo", tboldname[0] };
+					if (tboldname?.Length == 2) tboldname = new[] { database, tboldname[0], tboldname[1] };
+
+					if (string.Compare(tbname[0], database, true) != 0 && ExecuteScalar(database, $"select 1 from sys.databases where name='{tbname[0]}'") == null) //创建数据库
+						ExecuteScalar(database, $"if not exists(select 1 from sys.databases where name='{tbname[0]}')\r\n\tcreate database [{tbname[0]}];");
+					if (string.Compare(tbname[1], "dbo", true) != 0 && ExecuteScalar(tbname[0], $"select 1 from sys.schemas where name='{tbname[1]}'") == null) //创建模式
+						ExecuteScalar(tbname[0], $"create schema [{tbname[1]}] authorization [dbo]");
+
+					var sbalter = new StringBuilder();
+					var istmpatler = false; //创建临时表，导入数据，删除旧表，修改
+					if (ExecuteScalar(tbname[0], $"select 1 from dbo.sysobjects where id = object_id(N'[{tbname[1]}].[{tbname[2]}]') and OBJECTPROPERTY(id, N'IsUserTable') = 1") == null) { //表不存在
+						if (tboldname != null) {
+							if (string.Compare(tboldname[0], tbname[0], true) != 0 && ExecuteScalar(database, $"select 1 from sys.databases where name='{tboldname[0]}'") == null ||
+								string.Compare(tboldname[1], tbname[1], true) != 0 && ExecuteScalar(tboldname[0], $"select 1 from sys.schemas where name='{tboldname[1]}'") == null ||
+								ExecuteScalar(tboldname[0], $"select 1 from dbo.sysobjects where id = object_id(N'[{tboldname[1]}].[{tboldname[2]}]') and OBJECTPROPERTY(id, N'IsUserTable') = 1") == null)
+								//数据库或模式或表不存在
+								tboldname = null;
+						}
+						if (tboldname == null) {
+							//创建新表
+							sb.Append("use ").Append(_commonUtils.QuoteSqlName(tbname[0])).Append(";\r\nCREATE TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[1]}.{tbname[2]}")).Append(" (");
+							foreach (var tbcol in tb.Columns.Values) {
+								sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ");
+								sb.Append(tbcol.Attribute.DbType);
+								if (tbcol.Attribute.IsIdentity && tbcol.Attribute.DbType.IndexOf("identity", StringComparison.CurrentCultureIgnoreCase) == -1) sb.Append(" identity(1,1)");
+								if (tbcol.Attribute.IsPrimary) sb.Append(" primary key");
+								sb.Append(",");
+							}
+							sb.Remove(sb.Length - 1, 1).Append("\r\n);\r\n");
+							continue;
+						}
+						//如果新表，旧表在一个数据库和模式下，直接修改表名
+						if (string.Compare(tbname[0], tboldname[0], true) == 0 &&
+							string.Compare(tbname[1], tboldname[1], true) == 0)
+							sbalter.Append("use ").Append(_commonUtils.QuoteSqlName(tbname[0])).Append(_commonUtils.FormatSql(";\r\nEXEC sp_rename {0}, {1};\r\n", _commonUtils.QuoteSqlName($"{tboldname[0]}.{tboldname[1]}"), _commonUtils.QuoteSqlName(tbname[2])));
+						else {
+							//如果新表，旧表不在一起，创建新表，导入数据，删除旧表
+							istmpatler = true;
+						}
+					} else
+						tboldname = null; //如果新表已经存在，不走改表名逻辑
+
+					//对比字段，只可以修改类型、增加字段、有限的修改字段名；保证安全不删除字段
+					var sql = string.Format(@"
+use [{0}];
+select
 a.name 'Column'
 ,b.name + case 
  when b.name in ('Char', 'VarChar', 'NChar', 'NVarChar', 'Binary', 'VarBinary') then '(' + 
@@ -124,99 +157,110 @@ inner join sys.types b on b.user_type_id = a.user_type_id
 left join sys.extended_properties AS c ON c.major_id = a.object_id AND c.minor_id = a.column_id
 left join sys.tables d on d.object_id = a.object_id
 left join sys.schemas e on e.schema_id = d.schema_id
-where a.object_id in (object_id(N'[{0}].[{1}]'))", isRenameTable ? tboldname : tbname);
-				var ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
-				var tbstruct = ds.ToDictionary(a => string.Concat(a[0]), a => new {
-					column = string.Concat(a[0]),
-					sqlType = string.Concat(a[1]),
-					is_nullable = string.Concat(a[2]) == "1",
-					is_identity = string.Concat(a[3]) == "1"
-				}, StringComparer.CurrentCultureIgnoreCase);
-				var sbalter = new StringBuilder();
-				var istmpatler = false;
-				foreach (var tbcol in tb.Columns.Values) {
-					if (tbstruct.TryGetValue(tbcol.Attribute.Name, out var tbstructcol) || 
-						string.IsNullOrEmpty(tbcol.Attribute.OldName) == false && tbstruct.TryGetValue(tbcol.Attribute.OldName, out tbstructcol)) {
-						if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.CurrentCultureIgnoreCase) == false ||
-							tbcol.Attribute.IsNullable != tbstructcol.is_nullable ||
-							tbcol.Attribute.IsIdentity != tbstructcol.is_identity) {
-							istmpatler = true;
-							break;
+where a.object_id in (object_id(N'[{1}].[{2}]'));
+use " + database, tboldname ?? tbname);
+					var ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
+					var tbstruct = ds.ToDictionary(a => string.Concat(a[0]), a => new {
+						column = string.Concat(a[0]),
+						sqlType = string.Concat(a[1]),
+						is_nullable = string.Concat(a[2]) == "1",
+						is_identity = string.Concat(a[3]) == "1"
+					}, StringComparer.CurrentCultureIgnoreCase);
+
+					if (istmpatler == false) {
+						foreach (var tbcol in tb.Columns.Values) {
+							if (tbstruct.TryGetValue(tbcol.Attribute.Name, out var tbstructcol) ||
+								string.IsNullOrEmpty(tbcol.Attribute.OldName) == false && tbstruct.TryGetValue(tbcol.Attribute.OldName, out tbstructcol)) {
+								if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.CurrentCultureIgnoreCase) == false ||
+									tbcol.Attribute.IsNullable != tbstructcol.is_nullable ||
+									tbcol.Attribute.IsIdentity != tbstructcol.is_identity) {
+									istmpatler = true;
+									break;
+								}
+								if (tbstructcol.column == tbcol.Attribute.OldName) {
+									//修改列名
+									sbalter.Append(_commonUtils.FormatSql("EXEC sp_rename {0}, {1}, 'COLUMN';\r\n", $"{tbname[0]}.{tbname[1]}.{tbname[2]}.{tbcol.Attribute.OldName}", tbcol.Attribute.Name));
+								}
+								continue;
+							}
+							//添加列
+							sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}.{tbname[2]}")).Append(" ADD ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType);
+							if (tbcol.Attribute.IsIdentity && tbcol.Attribute.DbType.IndexOf("identity", StringComparison.CurrentCultureIgnoreCase) == -1) sbalter.Append(" identity(1,1)");
+							var addcoldbdefault = tb.Properties[tbcol.CsName].GetValue(Activator.CreateInstance(tb.Type));
+							if (tbcol.Attribute.IsNullable == false) addcoldbdefault = tbcol.Attribute.DbDefautValue;
+							if (addcoldbdefault != null) sbalter.Append(_commonUtils.FormatSql(" default({0})", addcoldbdefault));
+							sbalter.Append(";\r\n");
 						}
-						if (tbstructcol.column == tbcol.Attribute.OldName) {
-							//修改列名
-							sbalter.Append(_commonUtils.FormatSql("EXEC sp_rename {0}, {1}, 'COLUMN';\r\n", $"{tbname[0]}.{tbname[1]}.{tbcol.Attribute.OldName}", tbcol.Attribute.Name));
-						}
+					}
+					if (istmpatler == false) {
+						sb.Append(sbalter);
 						continue;
 					}
-					//添加列
-					sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ADD ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType);
-					if (tbcol.Attribute.IsIdentity && tbcol.Attribute.DbType.IndexOf("identity", StringComparison.CurrentCultureIgnoreCase) == -1) sbalter.Append(" identity(1,1)");
-					var addcoldbdefault = tb.Properties[tbcol.CsName].GetValue(Activator.CreateInstance(tb.Type));
-					if (tbcol.Attribute.IsNullable == false) addcoldbdefault = tbcol.Attribute.DbDefautValue;
-					if (addcoldbdefault != null) sbalter.Append(_commonUtils.FormatSql(" default({0})", addcoldbdefault));
-					sbalter.Append(";\r\n");
-				}
-				if (istmpatler == false) {
-					sb.Append(sbalter);
-					continue;
-				}
-				//创建临时表，数据导进临时表，然后删除原表，将临时表改名为原表名
-				bool idents = false;
-				var tablename = _commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}");
-				var tmptablename = _commonUtils.QuoteSqlName($"{tbname[0]}.TmpFreeSqlTmp_{tbname[1]}");
-				sb.Append("BEGIN TRANSACTION\r\n")
-					.Append("SET QUOTED_IDENTIFIER ON\r\n")
-					.Append("SET ARITHABORT ON\r\n")
-					.Append("SET NUMERIC_ROUNDABORT OFF\r\n")
-					.Append("SET CONCAT_NULL_YIELDS_NULL ON\r\n")
-					.Append("SET ANSI_NULLS ON\r\n")
-					.Append("SET ANSI_PADDING ON\r\n")
-					.Append("SET ANSI_WARNINGS ON\r\n")
-					.Append("COMMIT\r\n");
-				sb.Append("BEGIN TRANSACTION;\r\n");
-				//创建临时表
-				sb.Append("CREATE TABLE ").Append(tmptablename).Append(" (");
-				foreach (var tbcol in tb.Columns.Values) {
-					sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ");
-					sb.Append(tbcol.Attribute.DbType);
-					if (tbcol.Attribute.IsIdentity && tbcol.Attribute.DbType.IndexOf("identity", StringComparison.CurrentCultureIgnoreCase) == -1) sb.Append(" identity(1,1)");
-					if (tbcol.Attribute.IsPrimary) sb.Append(" primary key");
-					sb.Append(",");
-					idents = idents || tbcol.Attribute.IsIdentity;
-				}
-				sb.Remove(sb.Length - 1, 1).Append("\r\n);\r\n");
-				sb.Append("ALTER TABLE ").Append(tmptablename).Append(" SET (LOCK_ESCALATION = TABLE);\r\n");
-				if (idents) sb.Append("SET IDENTITY_INSERT ").Append(tmptablename).Append(" ON;\r\n");
-				sb.Append("IF EXISTS(SELECT 1 FROM ").Append(tablename).Append(")\r\n");
-				sb.Append("\tEXEC('INSERT INTO ").Append(tmptablename).Append(" (");
-				foreach (var tbcol in tb.Columns.Values) {
-					if (tbstruct.ContainsKey(tbcol.Attribute.Name) || tbstruct.ContainsKey(tbcol.Attribute.OldName)) { //导入旧表存在的字段
-						sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
+					//创建临时表，数据导进临时表，然后删除原表，将临时表改名为原表名
+					bool idents = false;
+					var tablename = tboldname == null ? _commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}.{tbname[2]}") : _commonUtils.QuoteSqlName($"{tboldname[0]}.{tboldname[1]}.{tboldname[2]}");
+					var tmptablename = _commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}.FreeSqlTmp_{tbname[2]}");
+					sb.Append("BEGIN TRANSACTION\r\n")
+						.Append("SET QUOTED_IDENTIFIER ON\r\n")
+						.Append("SET ARITHABORT ON\r\n")
+						.Append("SET NUMERIC_ROUNDABORT OFF\r\n")
+						.Append("SET CONCAT_NULL_YIELDS_NULL ON\r\n")
+						.Append("SET ANSI_NULLS ON\r\n")
+						.Append("SET ANSI_PADDING ON\r\n")
+						.Append("SET ANSI_WARNINGS ON\r\n")
+						.Append("COMMIT\r\n");
+					sb.Append("BEGIN TRANSACTION;\r\n");
+					//创建临时表
+					sb.Append("CREATE TABLE ").Append(tmptablename).Append(" (");
+					foreach (var tbcol in tb.Columns.Values) {
+						sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ");
+						sb.Append(tbcol.Attribute.DbType);
+						if (tbcol.Attribute.IsIdentity && tbcol.Attribute.DbType.IndexOf("identity", StringComparison.CurrentCultureIgnoreCase) == -1) sb.Append(" identity(1,1)");
+						if (tbcol.Attribute.IsPrimary) sb.Append(" primary key");
+						sb.Append(",");
+						idents = idents || tbcol.Attribute.IsIdentity;
 					}
-				}
-				sb.Remove(sb.Length - 2, 2).Append(")\r\n\t\tSELECT ");
-				foreach (var tbcol in tb.Columns.Values) {
-					if (tbstruct.TryGetValue(tbcol.Attribute.Name, out var tbstructcol) ||
-						string.IsNullOrEmpty(tbcol.Attribute.OldName) == false && tbstruct.TryGetValue(tbcol.Attribute.OldName, out tbstructcol)) {
-						var insertvalue = _commonUtils.QuoteSqlName(tbstructcol.column);
-						if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.CurrentCultureIgnoreCase) == false) {
-							var tbcoldbtype = tbcol.Attribute.DbType.Split(' ').First();
-							insertvalue = $"cast({insertvalue} as {tbcoldbtype})";
+					sb.Remove(sb.Length - 1, 1).Append("\r\n);\r\n");
+					sb.Append("ALTER TABLE ").Append(tmptablename).Append(" SET (LOCK_ESCALATION = TABLE);\r\n");
+					if (idents) sb.Append("SET IDENTITY_INSERT ").Append(tmptablename).Append(" ON;\r\n");
+					sb.Append("IF EXISTS(SELECT 1 FROM ").Append(tablename).Append(")\r\n");
+					sb.Append("\tEXEC('INSERT INTO ").Append(tmptablename).Append(" (");
+					foreach (var tbcol in tb.Columns.Values) {
+						if (tbstruct.ContainsKey(tbcol.Attribute.Name) ||
+							string.IsNullOrEmpty(tbcol.Attribute.OldName) == false && tbstruct.ContainsKey(tbcol.Attribute.OldName)) { //导入旧表存在的字段
+							sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
 						}
-						if (tbcol.Attribute.IsNullable != tbstructcol.is_nullable) {
-							insertvalue = $"isnull({insertvalue},{_commonUtils.FormatSql("{0}", tbcol.Attribute.DbDefautValue).Replace("'", "''")})";
-						}
-						sb.Append(insertvalue).Append(", ");
 					}
+					sb.Remove(sb.Length - 2, 2).Append(")\r\n\t\tSELECT ");
+					foreach (var tbcol in tb.Columns.Values) {
+						if (tbstruct.TryGetValue(tbcol.Attribute.Name, out var tbstructcol) ||
+							string.IsNullOrEmpty(tbcol.Attribute.OldName) == false && tbstruct.TryGetValue(tbcol.Attribute.OldName, out tbstructcol)) {
+							var insertvalue = _commonUtils.QuoteSqlName(tbstructcol.column);
+							if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.CurrentCultureIgnoreCase) == false) {
+								var tbcoldbtype = tbcol.Attribute.DbType.Split(' ').First();
+								insertvalue = $"cast({insertvalue} as {tbcoldbtype})";
+							}
+							if (tbcol.Attribute.IsNullable != tbstructcol.is_nullable) {
+								insertvalue = $"isnull({insertvalue},{_commonUtils.FormatSql("{0}", tbcol.Attribute.DbDefautValue).Replace("'", "''")})";
+							}
+							sb.Append(insertvalue).Append(", ");
+						}
+					}
+					sb.Remove(sb.Length - 2, 2).Append(" FROM ").Append(tablename).Append(" WITH (HOLDLOCK TABLOCKX)');\r\n");
+					if (idents) sb.Append("SET IDENTITY_INSERT ").Append(tmptablename).Append(" OFF;\r\n");
+					sb.Append("DROP TABLE ").Append(tablename).Append(";\r\n");
+					sb.Append("EXECUTE sp_rename N'").Append(tmptablename).Append("', N'").Append(tbname[2]).Append("', 'OBJECT' ;\r\n");
+					sb.Append("COMMIT;\r\n");
 				}
-				sb.Remove(sb.Length - 2, 2).Append(" FROM ").Append(tablename).Append(" WITH (HOLDLOCK TABLOCKX)');\r\n");
-				if (idents) sb.Append("SET IDENTITY_INSERT ").Append(tmptablename).Append(" OFF;\r\n");
-				sb.Append("DROP TABLE ").Append(tablename).Append(";\r\n");
-				sb.Append("EXECUTE sp_rename N'").Append(tmptablename).Append("', N'").Append(tbname[1]).Append("', 'OBJECT' ;\r\n");
-				sb.Append("COMMIT;\r\n");
+				return sb.Length == 0 ? null : sb.ToString();
+			} finally {
+				try {
+					conn.Value.ChangeDatabase(database);
+					_orm.Ado.MasterPool.Return(conn);
+				} catch {
+					_orm.Ado.MasterPool.Return(conn, true);
+				}
 			}
-			return sb.Length == 0 ? null : sb.ToString();
 		}
 
 		ConcurrentDictionary<string, bool> dicSyced = new ConcurrentDictionary<string, bool>();

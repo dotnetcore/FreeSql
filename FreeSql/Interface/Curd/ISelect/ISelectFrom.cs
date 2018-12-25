@@ -24,23 +24,6 @@ namespace FreeSql {
 		ISelectFromExpression<T1> WhereIf(bool condition, Expression<Func<T1, bool>> exp);
 
 		/// <summary>
-		/// 模糊查询，选择多个列 OR，WhereLike(a => new[] { a.Title, a.Content }, "%sql%")
-		/// </summary>
-		/// <param name="columns">lambda选择列</param>
-		/// <param name="pattern">查询内容</param>
-		/// <param name="notLike">not like</param>
-		/// <returns></returns>
-		ISelectFromExpression<T1> WhereLike(Expression<Func<T1, string[]>> columns, string pattern, bool notLike = false);
-		/// <summary>
-		/// 模糊查询，WhereLike(a => a.Title, "%sql")
-		/// </summary>
-		/// <param name="column">lambda选择列</param>
-		/// <param name="pattern">查询内容</param>
-		/// <param name="notLike">not like</param>
-		/// <returns></returns>
-		ISelectFromExpression<T1> WhereLike(Expression<Func<T1, string>> column, string pattern, bool notLike = false);
-
-		/// <summary>
 		/// 按选择的列分组，GroupBy(a => a.Name) | GroupBy(a => new{a.Name,a.Time}) | GroupBy(a => new[]{"name","time"})
 		/// </summary>
 		/// <param name="columns"></param>

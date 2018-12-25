@@ -29,13 +29,6 @@ namespace FreeSql.Internal.CommonProvider {
 							if (_commonExpression.ExpressionSelectColumn_MemberAccess(null, null, SelectTableInfoType.From, expCall.Arguments[0], false) == "1")
 								this.InternalWhere(expCall.Arguments[1]);
 							break;
-						case "WhereLike":
-							var whereLikeArg0 = (expCall.Arguments[0] as UnaryExpression).Operand as LambdaExpression;
-							var whereLikeArg1 = _commonExpression.ExpressionSelectColumn_MemberAccess(null, null, SelectTableInfoType.From, expCall.Arguments[1], false);
-							var whereLikeArg2 = _commonExpression.ExpressionSelectColumn_MemberAccess(null, null, SelectTableInfoType.From, expCall.Arguments[2], false) == "1";
-							if (whereLikeArg0.ReturnType == typeof(string)) this.InternalWhereLike(whereLikeArg0, whereLikeArg1, whereLikeArg2);
-							else this.InternalWhereLikeOr(whereLikeArg0, whereLikeArg1, whereLikeArg2);
-							break;
 						case "GroupBy": this.InternalGroupBy(expCall.Arguments[0]); break;
 						case "OrderBy": this.InternalOrderBy(expCall.Arguments[0]); break;
 						case "OrderByDescending": this.InternalOrderByDescending(expCall.Arguments[0]); break;
@@ -80,7 +73,7 @@ namespace FreeSql.Internal.CommonProvider {
 
 		public abstract ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> From<T2, T3, T4, T5, T6, T7, T8, T9, T10>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, T9, T10, ISelectFromExpression<T1>>> exp) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class;// { this.InternalFrom(exp?.Body); var ret = new Select10Provider<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(_orm, _commonUtils, _commonExpression, null); Select0Provider<ISelect<T1>, T1>.CopyData(this, ret); return ret; }
 
-		public ISelect<T1> GroupBy(Expression<Func<T1, object>> columns) => this.InternalGroupBy(columns?.Body);
+		public ISelect<T1> GroupBy<TReturn>(Expression<Func<T1, TReturn>> columns) => this.InternalGroupBy(columns?.Body);
 
 		public TMember Max<TMember>(Expression<Func<T1, TMember>> column) => this.InternalMax<TMember>(column?.Body);
 
@@ -105,9 +98,5 @@ namespace FreeSql.Internal.CommonProvider {
 		public ISelect<T1> Where<T2, T3, T4, T5>(Expression<Func<T1, T2, T3, T4, T5, bool>> exp) where T2 : class where T3 : class where T4 : class where T5 : class => this.InternalWhere(exp?.Body);
 
 		public ISelect<T1> WhereIf(bool condition, Expression<Func<T1, bool>> exp) => condition ? this.InternalWhere(exp?.Body) : this;
-
-		public ISelect<T1> WhereLike(Expression<Func<T1, string[]>> columns, string pattern, bool notLike) => this.InternalWhereLikeOr(columns?.Body, pattern, notLike);
-
-		public ISelect<T1> WhereLike(Expression<Func<T1, string>> column, string pattern, bool notLike) => this.InternalWhereLike(column?.Body, pattern, notLike);
 	}
 }

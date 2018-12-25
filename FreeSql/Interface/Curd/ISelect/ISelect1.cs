@@ -190,28 +190,11 @@ namespace FreeSql {
 		ISelect<T1> Where<T2, T3, T4, T5>(Expression<Func<T1, T2, T3, T4, T5, bool>> exp) where T2 : class where T3 : class where T4 : class where T5 : class;
 
 		/// <summary>
-		/// 模糊查询，选择多个列 OR，WhereLike(a => new[] { a.Title, a.Content }, "%sql%")
-		/// </summary>
-		/// <param name="columns">lambda选择列</param>
-		/// <param name="pattern">查询内容</param>
-		/// <param name="notLike">not like</param>
-		/// <returns></returns>
-		ISelect<T1> WhereLike(Expression<Func<T1, string[]>> columns, string pattern, bool notLike = false);
-		/// <summary>
-		/// 模糊查询，WhereLike(a => a.Title, "%sql")
-		/// </summary>
-		/// <param name="column">lambda选择列</param>
-		/// <param name="pattern">查询内容</param>
-		/// <param name="notLike">not like</param>
-		/// <returns></returns>
-		ISelect<T1> WhereLike(Expression<Func<T1, string>> column, string pattern, bool notLike = false);
-
-		/// <summary>
 		/// 按选择的列分组，GroupBy(a => a.Name) | GroupBy(a => new{a.Name,a.Time}) | GroupBy(a => new[]{"name","time"})
 		/// </summary>
 		/// <param name="columns"></param>
 		/// <returns></returns>
-		ISelect<T1> GroupBy(Expression<Func<T1, object>> columns);
+		ISelect<T1> GroupBy<TKey>(Expression<Func<T1, TKey>> columns);
 
 		/// <summary>
 		/// 按列排序，OrderBy(a => a.Time)

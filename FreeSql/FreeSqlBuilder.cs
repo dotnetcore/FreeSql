@@ -56,7 +56,7 @@ namespace FreeSql {
 			switch(_dataType) {
 				case DataType.MySql: return new MySql.MySqlProvider(_cache, null, _masterConnectionString, _slaveConnectionString, _logger);
 				case DataType.SqlServer: return new SqlServer.SqlServerProvider(_cache, null, _masterConnectionString, _slaveConnectionString, _logger);
-				case DataType.PostgreSQL: return new MySql.MySqlProvider(_cache, null, _masterConnectionString, _slaveConnectionString, _logger);
+				case DataType.PostgreSQL: return new PostgreSQL.PostgreSQLProvider(_cache, null, _masterConnectionString, _slaveConnectionString, _logger);
 			}
 			return null;
 		}

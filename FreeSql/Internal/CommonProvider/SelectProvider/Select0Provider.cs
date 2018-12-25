@@ -16,7 +16,7 @@ namespace FreeSql.Internal.CommonProvider {
 		protected string _select = "SELECT ", _orderby, _groupby, _having;
 		protected StringBuilder _where = new StringBuilder();
 		protected List<DbParameter> _params = new List<DbParameter>();
-		protected List<SelectTableInfo> _tables = new List<SelectTableInfo>();
+		internal List<SelectTableInfo> _tables = new List<SelectTableInfo>();
 		protected StringBuilder _join = new StringBuilder();
 		protected (int seconds, string key) _cache = (0, null);
 		protected IFreeSql _orm;
@@ -227,7 +227,9 @@ namespace FreeSql.Internal.CommonProvider {
 		protected TMember InternalMin<TMember>(Expression exp) => this.ToList<TMember>($"min({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true)})").FirstOrDefault();
 		protected TMember InternalSum<TMember>(Expression exp) => this.ToList<TMember>($"sum({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true)})").FirstOrDefault();
 
-		protected TSelect InternalGroupBy(Expression columns) => this.GroupBy(string.Join(", ", _commonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(_tables, columns, true)));
+		protected TSelect InternalGroupBy(Expression columns) {
+			return this.GroupBy(string.Join(", ", _commonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(_tables, columns, true)));
+		}
 		protected TSelect InternalJoin(Expression exp, SelectTableInfoType joinType) {
 			_commonExpression.ExpressionJoinLambda(_tables, joinType, exp);
 			return this as TSelect;
@@ -245,24 +247,6 @@ namespace FreeSql.Internal.CommonProvider {
 		protected List<TReturn> InternalToList<TReturn>(Expression select) => this.ToList<TReturn>(this.GetNewExpressionField(select as NewExpression));
 
 		protected TSelect InternalWhere(Expression exp) => this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp));
-		protected TSelect InternalWhereLikeOr(Expression columns, string pattern, bool notLike) {
-			if (string.IsNullOrEmpty(pattern)) return this as TSelect;
-			var cols = _commonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(_tables, columns, true);
-			if (cols.Any() == false) return this as TSelect;
-			var filter = "";
-			foreach (var col in cols) {
-				if (string.IsNullOrEmpty(col)) continue;
-				filter += string.Concat(" OR ", _commonUtils.FormatSql($"{col} {(notLike ? "NOT LIKE" : "LIKE")} {{0}}", pattern));
-			}
-			if (string.IsNullOrEmpty(filter)) return this as TSelect;
-			return this.Where(filter.Substring(4));
-		}
-		protected TSelect InternalWhereLike(Expression column, string pattern, bool notLike) {
-			if (string.IsNullOrEmpty(pattern)) return this as TSelect;
-			string col = _commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, column, true);
-			if (string.IsNullOrEmpty(col)) return this as TSelect;
-			return this.Where(_commonUtils.FormatSql($"{col} {(notLike ? "NOT LIKE" : "LIKE")} {{0}}", pattern));
-		}
 
 		protected TSelect InternalJoin(Expression exp) {
 			return this as TSelect;
