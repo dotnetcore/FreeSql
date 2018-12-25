@@ -14,6 +14,7 @@ namespace FreeSql.MySql {
 
 		internal override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, object value) {
 			if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
+			else if (_orm.CodeFirst.IsSyncStructureToLower) parameterName = parameterName.ToLower();
 			MySqlParameter ret = null;
 			if (value == null) ret = new MySqlParameter { ParameterName = $"{parameterName}", Value = DBNull.Value };
 			else {
@@ -42,7 +43,7 @@ namespace FreeSql.MySql {
 
 		internal override string FormatSql(string sql, params object[] args) => sql?.FormatMySql(args);
 		internal override string QuoteSqlName(string name) => $"`{name.Trim('`').Replace(".", "`.`")}`";
-		internal override string QuoteParamterName(string name) => $"?{name}";
+		internal override string QuoteParamterName(string name) => $"?{(_orm.CodeFirst.IsSyncStructureToLower ? name.ToLower() : name)}";
 		internal override string IsNull(string sql, object value) => $"ifnull({sql}, {value})";
 		internal override string StringConcat(string left, string right, Type leftType, Type rightType) => $"concat({left}, {right})";
 	}

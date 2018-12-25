@@ -173,7 +173,7 @@ namespace FreeSql.MySql {
 
 					case "IsLeapYear":
 						var isLeapYearArgs1 = ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName);
-						return $"(({isLeapYearArgs1})%4=0 AND ({isLeapYearArgs1})%100 <> 0 OR ({isLeapYearArgs1})%400 = 0)";
+						return $"(({isLeapYearArgs1})%4=0 AND ({isLeapYearArgs1})%100<>0 OR ({isLeapYearArgs1})%400=0)";
 
 					case "Parse": return $"cast({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, tbtype, isQuoteName)} as datetime)";
 					case "ParseExact":

@@ -13,6 +13,7 @@ using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace FreeSql.PostgreSQL {
 
@@ -27,89 +28,91 @@ namespace FreeSql.PostgreSQL {
 		}
 
 		public bool IsAutoSyncStructure { get; set; } = true;
+		public bool IsSyncStructureToLower { get; set; } = false;
 
 		static object _dicCsToDbLock = new object();
-		static Dictionary<string, (NpgsqlDbType type, string dbtype, string dbtypeFull, bool? isUnsigned, bool? isnullable)> _dicCsToDb = new Dictionary<string, (NpgsqlDbType type, string dbtype, string dbtypeFull, bool? isUnsigned, bool? isnullable)>() {
+		static Dictionary<string, (NpgsqlDbType type, string dbtype, string dbtypeFull, bool? isUnsigned, bool? isnullable, object defaultValue)> _dicCsToDb = new Dictionary<string, (NpgsqlDbType type, string dbtype, string dbtypeFull, bool? isUnsigned, bool? isnullable, object defaultValue)>() {
 
-				{ typeof(sbyte).FullName,  (NpgsqlDbType.Smallint, "int2","int2 NOT NULL", false, false) },{ typeof(sbyte?).FullName,  (NpgsqlDbType.Smallint, "int2", "int2", false, true) },
-				{ typeof(short).FullName,  (NpgsqlDbType.Smallint, "int2","int2 NOT NULL", false, false) },{ typeof(short?).FullName,  (NpgsqlDbType.Smallint, "int2", "int2", false, true) },
-				{ typeof(int).FullName,  (NpgsqlDbType.Integer, "int4","int4 NOT NULL", false, false) },{ typeof(int?).FullName,  (NpgsqlDbType.Integer, "int4", "int4", false, true) },
-				{ typeof(long).FullName,  (NpgsqlDbType.Bigint, "int8","int8 NOT NULL", false, false) },{ typeof(long?).FullName,  (NpgsqlDbType.Bigint, "int8", "int8", false, true) },
+				{ typeof(sbyte).FullName,  (NpgsqlDbType.Smallint, "int2","int2 NOT NULL", false, false, 0) },{ typeof(sbyte?).FullName,  (NpgsqlDbType.Smallint, "int2", "int2", false, true, null) },
+				{ typeof(short).FullName,  (NpgsqlDbType.Smallint, "int2","int2 NOT NULL", false, false, 0) },{ typeof(short?).FullName,  (NpgsqlDbType.Smallint, "int2", "int2", false, true, null) },
+				{ typeof(int).FullName,  (NpgsqlDbType.Integer, "int4","int4 NOT NULL", false, false, 0) },{ typeof(int?).FullName,  (NpgsqlDbType.Integer, "int4", "int4", false, true, null) },
+				{ typeof(long).FullName,  (NpgsqlDbType.Bigint, "int8","int8 NOT NULL", false, false, 0) },{ typeof(long?).FullName,  (NpgsqlDbType.Bigint, "int8", "int8", false, true, null) },
 
-				{ typeof(byte).FullName,  (NpgsqlDbType.Smallint, "int2","int2 NOT NULL", false, false) },{ typeof(byte?).FullName,  (NpgsqlDbType.Smallint, "int2", "int2", false, true) },
-				{ typeof(ushort).FullName,  (NpgsqlDbType.Smallint, "int2","int2 NOT NULL", false, false) },{ typeof(ushort?).FullName,  (NpgsqlDbType.Smallint, "int2", "int2", false, true) },
-				{ typeof(uint).FullName,  (NpgsqlDbType.Integer, "int4","int4 NOT NULL", false, false) },{ typeof(uint?).FullName,  (NpgsqlDbType.Integer, "int4", "int4", false, true) },
-				{ typeof(ulong).FullName,  (NpgsqlDbType.Bigint, "int8","int8 NOT NULL", false, false) },{ typeof(ulong?).FullName,  (NpgsqlDbType.Bigint, "int8", "int8", false, true) },
+				{ typeof(byte).FullName,  (NpgsqlDbType.Smallint, "int2","int2 NOT NULL", false, false, 0) },{ typeof(byte?).FullName,  (NpgsqlDbType.Smallint, "int2", "int2", false, true, null) },
+				{ typeof(ushort).FullName,  (NpgsqlDbType.Smallint, "int2","int2 NOT NULL", false, false, 0) },{ typeof(ushort?).FullName,  (NpgsqlDbType.Smallint, "int2", "int2", false, true, null) },
+				{ typeof(uint).FullName,  (NpgsqlDbType.Integer, "int4","int4 NOT NULL", false, false, 0) },{ typeof(uint?).FullName,  (NpgsqlDbType.Integer, "int4", "int4", false, true, null) },
+				{ typeof(ulong).FullName,  (NpgsqlDbType.Bigint, "int8","int8 NOT NULL", false, false, 0) },{ typeof(ulong?).FullName,  (NpgsqlDbType.Bigint, "int8", "int8", false, true, null) },
 
-				{ typeof(float).FullName,  (NpgsqlDbType.Real, "float4","float4 NOT NULL", false, false) },{ typeof(float?).FullName,  (NpgsqlDbType.Real, "float4", "float4", false, true) },
-				{ typeof(double).FullName,  (NpgsqlDbType.Double, "float8","float8 NOT NULL", false, false) },{ typeof(double?).FullName,  (NpgsqlDbType.Double, "float8", "float8", false, true) },
-				{ typeof(decimal).FullName,  (NpgsqlDbType.Numeric, "numeric", "numeric(10,2) NOT NULL", false, false) },{ typeof(decimal?).FullName,  (NpgsqlDbType.Numeric, "numeric", "numeric(10,2)", false, true) },
+				{ typeof(float).FullName,  (NpgsqlDbType.Real, "float4","float4 NOT NULL", false, false, 0) },{ typeof(float?).FullName,  (NpgsqlDbType.Real, "float4", "float4", false, true, null) },
+				{ typeof(double).FullName,  (NpgsqlDbType.Double, "float8","float8 NOT NULL", false, false, 0) },{ typeof(double?).FullName,  (NpgsqlDbType.Double, "float8", "float8", false, true, null) },
+				{ typeof(decimal).FullName,  (NpgsqlDbType.Numeric, "numeric", "numeric(10,2) NOT NULL", false, false, 0) },{ typeof(decimal?).FullName,  (NpgsqlDbType.Numeric, "numeric", "numeric(10,2)", false, true, null) },
 
-				{ typeof(string).FullName,  (NpgsqlDbType.Varchar, "varchar", "varchar(255)", false, null) },
+				{ typeof(string).FullName,  (NpgsqlDbType.Varchar, "varchar", "varchar(255)", false, null, "") },
 
-				{ typeof(TimeSpan).FullName,  (NpgsqlDbType.Time, "time","time NOT NULL", false, false) },{ typeof(TimeSpan?).FullName,  (NpgsqlDbType.Time, "time", "time",false, true) },
-				{ typeof(DateTime).FullName,  (NpgsqlDbType.Timestamp, "timestamp", "timestamp NOT NULL", false, false) },{ typeof(DateTime?).FullName,  (NpgsqlDbType.Timestamp, "timestamp", "timestamp", false, true) },
+				{ typeof(TimeSpan).FullName,  (NpgsqlDbType.Time, "time","time NOT NULL", false, false, 0) },{ typeof(TimeSpan?).FullName,  (NpgsqlDbType.Time, "time", "time",false, true, null) },
+				{ typeof(DateTime).FullName,  (NpgsqlDbType.Timestamp, "timestamp", "timestamp NOT NULL", false, false, new DateTime(1970,1,1)) },{ typeof(DateTime?).FullName,  (NpgsqlDbType.Timestamp, "timestamp", "timestamp", false, true, null) },
 
-				{ typeof(bool).FullName,  (NpgsqlDbType.Boolean, "bool","bool NOT NULL", null, false) },{ typeof(bool?).FullName,  (NpgsqlDbType.Bit, "bool","bool", null, true) },
-				{ typeof(Byte[]).FullName,  (NpgsqlDbType.Bytea, "bytea", "bytea", false, null) },
-				{ typeof(BitArray).FullName,  (NpgsqlDbType.Varbit, "varbit", "varbit(64)", false, null) },
+				{ typeof(bool).FullName,  (NpgsqlDbType.Boolean, "bool","bool NOT NULL", null, false, false) },{ typeof(bool?).FullName,  (NpgsqlDbType.Bit, "bool","bool", null, true, null) },
+				{ typeof(Byte[]).FullName,  (NpgsqlDbType.Bytea, "bytea", "bytea", false, null, new byte[0]) },
+				{ typeof(BitArray).FullName,  (NpgsqlDbType.Varbit, "varbit", "varbit(64)", false, null, new BitArray(new byte[64])) },
 
-				{ typeof(NpgsqlPoint).FullName,  (NpgsqlDbType.Point, "point", "point NOT NULL", false, false) },{ typeof(NpgsqlPoint?).FullName,  (NpgsqlDbType.Point, "point", "point", false, true) },
-				{ typeof(NpgsqlLine).FullName,  (NpgsqlDbType.Line, "line", "line NOT NULL", false, false) },{ typeof(NpgsqlLine?).FullName,  (NpgsqlDbType.Line, "line", "line", false, true) },
-				{ typeof(NpgsqlLSeg).FullName,  (NpgsqlDbType.LSeg, "lseg", "lseg NOT NULL", false, false) },{ typeof(NpgsqlLSeg?).FullName,  (NpgsqlDbType.LSeg, "lseg", "lseg", false, true) },
-				{ typeof(NpgsqlBox).FullName,  (NpgsqlDbType.Box, "box", "box NOT NULL", false, false) },{ typeof(NpgsqlBox?).FullName,  (NpgsqlDbType.Box, "box", "box", false, true) },
-				{ typeof(NpgsqlPath).FullName,  (NpgsqlDbType.Path, "path", "path NOT NULL", false, false) },{ typeof(NpgsqlPath?).FullName,  (NpgsqlDbType.Path, "path", "path", false, true) },
-				{ typeof(NpgsqlPolygon).FullName,  (NpgsqlDbType.Polygon, "polygon", "polygon NOT NULL", false, false) },{ typeof(NpgsqlPolygon?).FullName,  (NpgsqlDbType.Polygon, "polygon", "polygon", false, true) },
-				{ typeof(NpgsqlCircle).FullName,  (NpgsqlDbType.Circle, "circle", "circle NOT NULL", false, false) },{ typeof(NpgsqlCircle?).FullName,  (NpgsqlDbType.Circle, "circle", "circle", false, true) },
+				{ typeof(NpgsqlPoint).FullName,  (NpgsqlDbType.Point, "point", "point NOT NULL", false, false, new NpgsqlPoint()) },{ typeof(NpgsqlPoint?).FullName,  (NpgsqlDbType.Point, "point", "point", false, true, null) },
+				{ typeof(NpgsqlLine).FullName,  (NpgsqlDbType.Line, "line", "line NOT NULL", false, false, new NpgsqlLine()) },{ typeof(NpgsqlLine?).FullName,  (NpgsqlDbType.Line, "line", "line", false, true, null) },
+				{ typeof(NpgsqlLSeg).FullName,  (NpgsqlDbType.LSeg, "lseg", "lseg NOT NULL", false, false, new NpgsqlLSeg()) },{ typeof(NpgsqlLSeg?).FullName,  (NpgsqlDbType.LSeg, "lseg", "lseg", false, true, null) },
+				{ typeof(NpgsqlBox).FullName,  (NpgsqlDbType.Box, "box", "box NOT NULL", false, false, new NpgsqlBox()) },{ typeof(NpgsqlBox?).FullName,  (NpgsqlDbType.Box, "box", "box", false, true, null) },
+				{ typeof(NpgsqlPath).FullName,  (NpgsqlDbType.Path, "path", "path NOT NULL", false, false, new NpgsqlPath()) },{ typeof(NpgsqlPath?).FullName,  (NpgsqlDbType.Path, "path", "path", false, true, null) },
+				{ typeof(NpgsqlPolygon).FullName,  (NpgsqlDbType.Polygon, "polygon", "polygon NOT NULL", false, false, new NpgsqlPolygon()) },{ typeof(NpgsqlPolygon?).FullName,  (NpgsqlDbType.Polygon, "polygon", "polygon", false, true, null) },
+				{ typeof(NpgsqlCircle).FullName,  (NpgsqlDbType.Circle, "circle", "circle NOT NULL", false, false, new NpgsqlCircle()) },{ typeof(NpgsqlCircle?).FullName,  (NpgsqlDbType.Circle, "circle", "circle", false, true, null) },
 
-				{ typeof((IPAddress Address, int Subnet)).FullName,  (NpgsqlDbType.Cidr, "cidr", "cidr NOT NULL", false, false) },{ typeof((IPAddress Address, int Subnet)?).FullName,  (NpgsqlDbType.Cidr, "cidr", "cidr", false, true) },
-				{ typeof(IPAddress).FullName,  (NpgsqlDbType.Inet, "inet", "inet", false, null) },
-				{ typeof(PhysicalAddress).FullName,  (NpgsqlDbType.MacAddr, "macaddr", "macaddr", false, null) },
+				{ typeof((IPAddress Address, int Subnet)).FullName,  (NpgsqlDbType.Cidr, "cidr", "cidr NOT NULL", false, false, (IPAddress.None, 0)) },{ typeof((IPAddress Address, int Subnet)?).FullName,  (NpgsqlDbType.Cidr, "cidr", "cidr", false, true, null) },
+				{ typeof(IPAddress).FullName,  (NpgsqlDbType.Inet, "inet", "inet", false, null, IPAddress.None) },
+				{ typeof(PhysicalAddress).FullName,  (NpgsqlDbType.MacAddr, "macaddr", "macaddr", false, null, PhysicalAddress.None) },
 
-				{ typeof(JToken).FullName,  (NpgsqlDbType.Jsonb, "jsonb", "jsonb", false, null) },
-				{ typeof(JObject).FullName,  (NpgsqlDbType.Jsonb, "jsonb", "jsonb", false, null) },
-				{ typeof(JArray).FullName,  (NpgsqlDbType.Jsonb, "jsonb", "jsonb", false, null) },
-				{ typeof(Guid).FullName,  (NpgsqlDbType.Uuid, "uuid", "uuid NOT NULL", false, false) },{ typeof(Guid?).FullName,  (NpgsqlDbType.Uuid, "uuid", "uuid", false, true) },
+				{ typeof(JToken).FullName,  (NpgsqlDbType.Jsonb, "jsonb", "jsonb", false, null, JToken.Parse("{}")) },
+				{ typeof(JObject).FullName,  (NpgsqlDbType.Jsonb, "jsonb", "jsonb", false, null, JObject.Parse("{}")) },
+				{ typeof(JArray).FullName,  (NpgsqlDbType.Jsonb, "jsonb", "jsonb", false, null, JArray.Parse("[]")) },
+				{ typeof(Guid).FullName,  (NpgsqlDbType.Uuid, "uuid", "uuid NOT NULL", false, false, Guid.Empty) },{ typeof(Guid?).FullName,  (NpgsqlDbType.Uuid, "uuid", "uuid", false, true, null) },
 
-				{ typeof(NpgsqlRange<int>).FullName,  (NpgsqlDbType.Range | NpgsqlDbType.Integer, "int4range", "int4range NOT NULL", false, false) },{ typeof(NpgsqlRange<int>?).FullName,  (NpgsqlDbType.Range | NpgsqlDbType.Integer, "int4range", "int4range", false, true) },
-				{ typeof(NpgsqlRange<long>).FullName,  (NpgsqlDbType.Range | NpgsqlDbType.Bigint, "int8range", "int8range NOT NULL", false, false) },{ typeof(NpgsqlRange<long>?).FullName,  (NpgsqlDbType.Range | NpgsqlDbType.Bigint, "int8range", "int8range", false, true) },
-				{ typeof(NpgsqlRange<decimal>).FullName,  (NpgsqlDbType.Range | NpgsqlDbType.Numeric, "numrange", "numrange NOT NULL", false, false) },{ typeof(NpgsqlRange<decimal>?).FullName,  (NpgsqlDbType.Range | NpgsqlDbType.Numeric, "numrange", "numrange", false, true) },
-				{ typeof(NpgsqlRange<DateTime>).FullName,  (NpgsqlDbType.Range | NpgsqlDbType.Timestamp, "tsrange", "tsrange NOT NULL", false, false) },{ typeof(NpgsqlRange<DateTime>?).FullName,  (NpgsqlDbType.Range | NpgsqlDbType.Timestamp, "tsrange", "tsrange", false, true) },
+				{ typeof(NpgsqlRange<int>).FullName,  (NpgsqlDbType.Range | NpgsqlDbType.Integer, "int4range", "int4range NOT NULL", false, false, NpgsqlRange<int>.Empty) },{ typeof(NpgsqlRange<int>?).FullName,  (NpgsqlDbType.Range | NpgsqlDbType.Integer, "int4range", "int4range", false, true, null) },
+				{ typeof(NpgsqlRange<long>).FullName,  (NpgsqlDbType.Range | NpgsqlDbType.Bigint, "int8range", "int8range NOT NULL", false, false, NpgsqlRange<long>.Empty) },{ typeof(NpgsqlRange<long>?).FullName,  (NpgsqlDbType.Range | NpgsqlDbType.Bigint, "int8range", "int8range", false, true, null) },
+				{ typeof(NpgsqlRange<decimal>).FullName,  (NpgsqlDbType.Range | NpgsqlDbType.Numeric, "numrange", "numrange NOT NULL", false, false, NpgsqlRange<decimal>.Empty) },{ typeof(NpgsqlRange<decimal>?).FullName,  (NpgsqlDbType.Range | NpgsqlDbType.Numeric, "numrange", "numrange", false, true, null) },
+				{ typeof(NpgsqlRange<DateTime>).FullName,  (NpgsqlDbType.Range | NpgsqlDbType.Timestamp, "tsrange", "tsrange NOT NULL", false, false, NpgsqlRange<DateTime>.Empty) },{ typeof(NpgsqlRange<DateTime>?).FullName,  (NpgsqlDbType.Range | NpgsqlDbType.Timestamp, "tsrange", "tsrange", false, true, null) },
 
-				{ typeof(Dictionary<string, string>).FullName,  (NpgsqlDbType.Hstore, "hstore", "hstore", false, null) },
-				{ typeof(PostgisPoint).FullName,  (NpgsqlDbType.Geometry, "geometry", "geometry", false, null) },
-				{ typeof(PostgisLineString).FullName,  (NpgsqlDbType.Geometry, "geometry", "geometry", false, null) },
-				{ typeof(PostgisPolygon).FullName,  (NpgsqlDbType.Geometry, "geometry", "geometry", false, null) },
-				{ typeof(PostgisMultiPoint).FullName,  (NpgsqlDbType.Geometry, "geometry", "geometry", false, null) },
-				{ typeof(PostgisMultiLineString).FullName,  (NpgsqlDbType.Geometry, "geometry", "geometry", false, null) },
-				{ typeof(PostgisMultiPolygon).FullName,  (NpgsqlDbType.Geometry, "geometry", "geometry", false, null) },
-				{ typeof(PostgisGeometry).FullName,  (NpgsqlDbType.Geometry, "geometry", "geometry", false, null) },
-				{ typeof(PostgisGeometryCollection).FullName,  (NpgsqlDbType.Geometry, "geometry", "geometry", false, null) },
+				{ typeof(Dictionary<string, string>).FullName,  (NpgsqlDbType.Hstore, "hstore", "hstore", false, null, new Dictionary<string, string>()) },
+				{ typeof(PostgisPoint).FullName,  (NpgsqlDbType.Geometry, "geometry", "geometry", false, null, new PostgisPoint(0, 0)) },
+				{ typeof(PostgisLineString).FullName,  (NpgsqlDbType.Geometry, "geometry", "geometry", false, null, new PostgisLineString(new []{new Coordinate2D(0, 0),new Coordinate2D(0, 0) })) },
+				{ typeof(PostgisPolygon).FullName,  (NpgsqlDbType.Geometry, "geometry", "geometry", false, null, new PostgisPolygon(new []{new []{new Coordinate2D(0, 0),new Coordinate2D(0, 0) }, new []{new Coordinate2D(0, 0),new Coordinate2D(0, 0) } })) },
+				{ typeof(PostgisMultiPoint).FullName,  (NpgsqlDbType.Geometry, "geometry", "geometry", false, null, new PostgisMultiPoint(new []{new Coordinate2D(0, 0),new Coordinate2D(0, 0) })) },
+				{ typeof(PostgisMultiLineString).FullName,  (NpgsqlDbType.Geometry, "geometry", "geometry", false, null, new PostgisMultiLineString(new[]{new PostgisLineString(new []{new Coordinate2D(0, 0),new Coordinate2D(0, 0) }),new PostgisLineString(new []{new Coordinate2D(0, 0),new Coordinate2D(0, 0) }) })) },
+				{ typeof(PostgisMultiPolygon).FullName,  (NpgsqlDbType.Geometry, "geometry", "geometry", false, null, new PostgisMultiPolygon(new[]{new PostgisPolygon(new []{new []{new Coordinate2D(0, 0),new Coordinate2D(0, 0) }, new []{new Coordinate2D(0, 0),new Coordinate2D(0, 0) } }),new PostgisPolygon(new []{new []{new Coordinate2D(0, 0),new Coordinate2D(0, 0) }, new []{new Coordinate2D(0, 0),new Coordinate2D(0, 0) } }) })) },
+				{ typeof(PostgisGeometry).FullName,  (NpgsqlDbType.Geometry, "geometry", "geometry", false, null, new PostgisPoint(0, 0)) },
+				{ typeof(PostgisGeometryCollection).FullName,  (NpgsqlDbType.Geometry, "geometry", "geometry", false, null, new PostgisGeometryCollection(new[]{new PostgisPoint(0, 0),new PostgisPoint(0, 0) })) },
 			};
 
-		public (int type, string dbtype, string dbtypeFull, bool? isnullable)? GetDbInfo(Type type) {
-			var elementType = type.IsArray ? type.GetElementType() : type;
+		public (int type, string dbtype, string dbtypeFull, bool? isnullable, object defaultValue)? GetDbInfo(Type type) {
+			var isarray = type.FullName != "System.Byte[]" && type.IsArray;
+			var elementType = isarray ? type.GetElementType() : type;
 			var info = GetDbInfoNoneArray(elementType);
 			if (info == null) return null;
-			if (type.IsArray == false) return ((int)info.Value.type, info.Value.dbtype, info.Value.dbtypeFull, info.Value.isnullable);
-			var dbype = $"{info.Value.dbtype}[]";
-			return ((int)(info.Value.type | NpgsqlDbType.Array), dbype, info.Value.dbtypeFull.Replace(info.Value.dbtype, dbype), info.Value.isnullable);
+			if (isarray == false) return ((int)info.Value.type, info.Value.dbtype, info.Value.dbtypeFull, info.Value.isnullable, info.Value.defaultValue);
+			var dbtypefull = Regex.Replace(info.Value.dbtypeFull, $@"{info.Value.dbtype}(\s*\([^\)]+\))?", "$0[]");
+			return ((int)(info.Value.type | NpgsqlDbType.Array), $"{info.Value.dbtype}[]", dbtypefull, info.Value.isnullable, Array.CreateInstance(elementType, 0));
 		}
-		(NpgsqlDbType type, string dbtype, string dbtypeFull, bool? isnullable)? GetDbInfoNoneArray(Type type) {
-			if (_dicCsToDb.TryGetValue(type.FullName, out var trydc)) return new (NpgsqlDbType, string, string, bool?)?((trydc.type, trydc.dbtype, trydc.dbtypeFull, trydc.isnullable));
+		(NpgsqlDbType type, string dbtype, string dbtypeFull, bool? isnullable, object defaultValue)? GetDbInfoNoneArray(Type type) {
+			if (_dicCsToDb.TryGetValue(type.FullName, out var trydc)) return new (NpgsqlDbType, string, string, bool?, object)?((trydc.type, trydc.dbtype, trydc.dbtypeFull, trydc.isnullable, trydc.defaultValue));
 			var enumType = type.IsEnum ? type : null;
 			if (enumType == null && type.FullName.StartsWith("System.Nullable`1[") && type.GenericTypeArguments.Length == 1 && type.GenericTypeArguments.First().IsEnum) enumType = type.GenericTypeArguments.First();
 			if (enumType != null) {
 				var newItem = enumType.GetCustomAttributes(typeof(FlagsAttribute), false).Any() ?
-					(NpgsqlDbType.Bigint, "int8", $"int8{(type.IsEnum ? " NOT NULL" : "")}", false, type.IsEnum ? false : true) :
-					(NpgsqlDbType.Integer, "int4", $"int4{(type.IsEnum ? " NOT NULL" : "")}", false, type.IsEnum ? false : true);
+					(NpgsqlDbType.Bigint, "int8", $"int8{(type.IsEnum ? " NOT NULL" : "")}", false, type.IsEnum ? false : true, Enum.GetValues(enumType).GetValue(0)) :
+					(NpgsqlDbType.Integer, "int4", $"int4{(type.IsEnum ? " NOT NULL" : "")}", false, type.IsEnum ? false : true, Enum.GetValues(enumType).GetValue(0));
 				if (_dicCsToDb.ContainsKey(type.FullName) == false) {
 					lock (_dicCsToDbLock) {
 						if (_dicCsToDb.ContainsKey(type.FullName) == false)
 							_dicCsToDb.Add(type.FullName, newItem);
 					}
 				}
-				return (newItem.Item1, newItem.Item2, newItem.Item3, newItem.Item5);
+				return (newItem.Item1, newItem.Item2, newItem.Item3, newItem.Item5, newItem.Item6);
 			}
 			return null;
 		}
@@ -143,7 +146,7 @@ namespace FreeSql.PostgreSQL {
 						//创建表
 						sb.Append("CREATE TABLE IF NOT EXISTS ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" (");
 						foreach (var tbcol in tb.Columns.Values) {
-							sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType.ToUpper()).Append(",");
+							sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType).Append(",");
 							if (tbcol.Attribute.IsIdentity) seqcols.Add((tbcol, tbname, true));
 						}
 						if (tb.Primarys.Any() == false)
@@ -171,7 +174,7 @@ namespace FreeSql.PostgreSQL {
 a.attname,
 t.typname,
 case when a.atttypmod > 0 and a.atttypmod < 32767 then a.atttypmod - 4 else a.attlen end len,
-case when t.typelem = 0 then t.typname else t2.typname end,
+case when t.typelem > 0 and t.typinput::varchar = 'array_in' then t2.typname else t.typname end,
 case when a.attnotnull then '0' else '1' end as is_nullable,
 e.adsrc,
 a.attndims
@@ -185,34 +188,51 @@ inner join pg_namespace ns on ns.oid = c.relnamespace
 inner join pg_namespace ns2 on ns2.oid = t.typnamespace
 where ns.nspname = {0} and c.relname = {1}".FormatPostgreSQL(tboldname ?? tbname);
 				var ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
-				var tbstruct = ds.ToDictionary(a => string.Concat(a[0]), a => new {
-					column = string.Concat(a[0]),
-					sqlType = string.Concat(a[3], long.Parse(string.Concat(a[6])) > 0 ? "[]" : ""),
-					max_length = long.Parse(string.Concat(a[2])),
-					is_nullable = string.Concat(a[4]) == "1",
-					is_identity = string.Concat(a[5]).StartsWith(@"nextval('") && string.Concat(a[5]).EndsWith(@"'::regclass)"),
-					attndims = long.Parse(string.Concat(a[6]))
-				}, StringComparer.CurrentCultureIgnoreCase);
+				var tbstruct = ds.ToDictionary(a => string.Concat(a[0]), a => {
+					var attndims = int.Parse(string.Concat(a[6]));
+					var type = string.Concat(a[1]);
+					var sqlType = string.Concat(a[3]);
+					var max_length = long.Parse(string.Concat(a[2]));
+					switch (sqlType) {
+						case "bool": case "name": case "bit": case "varbit": case "bpchar": case "varchar": case "bytea": case "text": case "uuid": break;
+						default: max_length *= 8; break;
+					}
+					if (type.StartsWith("_")) {
+						type = type.Substring(1);
+						if (attndims == 0) attndims++;
+					}
+					if (sqlType.StartsWith("_")) sqlType = sqlType.Substring(1);
+					return new {
+						column = string.Concat(a[0]),
+						sqlType = string.Concat(sqlType),
+						max_length = long.Parse(string.Concat(a[2])),
+						is_nullable = string.Concat(a[4]) == "1",
+						is_identity = string.Concat(a[5]).StartsWith(@"nextval('") && string.Concat(a[5]).EndsWith(@"'::regclass)"),
+						attndims
+					};
+					}, StringComparer.CurrentCultureIgnoreCase);
 
 				if (istmpatler == false) {
 					foreach (var tbcol in tb.Columns.Values) {
 						if (tbstruct.TryGetValue(tbcol.Attribute.Name, out var tbstructcol) ||
 							string.IsNullOrEmpty(tbcol.Attribute.OldName) == false && tbstruct.TryGetValue(tbcol.Attribute.OldName, out tbstructcol)) {
 							if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.CurrentCultureIgnoreCase) == false ||
-								tbcol.Attribute.IsNullable != tbstructcol.is_nullable) {
-								sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ALTER COLUMN ").Append(_commonUtils.QuoteSqlName(tbstructcol.column)).Append(" TYPE ").Append(tbcol.Attribute.DbType.ToUpper()).Append(";\r\n");
-								break;
-							}
-							if (tbcol.Attribute.IsIdentity != tbstructcol.is_identity) seqcols.Add((tbcol, tbname, tbcol.Attribute.IsIdentity));
-							if (tbstructcol.column == tbcol.Attribute.OldName) {
+								tbcol.Attribute.DbType.Contains("[]") != (tbstructcol.attndims > 0))
+								sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ALTER COLUMN ").Append(_commonUtils.QuoteSqlName(tbstructcol.column)).Append(" TYPE ").Append(tbcol.Attribute.DbType.Split(' ').First()).Append(";\r\n");
+							if (tbcol.Attribute.IsNullable != tbstructcol.is_nullable)
+								sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ALTER COLUMN ").Append(_commonUtils.QuoteSqlName(tbstructcol.column)).Append(" ").Append(tbcol.Attribute.IsNullable ? "DROP" : "SET").Append(" NOT NULL;\r\n");
+							if (tbcol.Attribute.IsIdentity != tbstructcol.is_identity)
+								seqcols.Add((tbcol, tbname, tbcol.Attribute.IsIdentity));
+							if (tbstructcol.column == tbcol.Attribute.OldName)
 								//修改列名
 								sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" RENAME COLUMN ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.OldName)).Append(" TO ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(";\r\n");
-							}
 							continue;
 						}
 						//添加列
-						sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ADD COLUMN ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType.ToUpper()).Append(";\r\n");
-						if (tbcol.Attribute.IsIdentity != tbstructcol.is_identity) seqcols.Add((tbcol, tbname, tbcol.Attribute.IsIdentity));
+						sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ADD COLUMN ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType.Split(' ').First()).Append(";\r\n");
+						sbalter.Append("UPDATE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" SET ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(_commonUtils.FormatSql(" = {0};\r\n", tbcol.Attribute.DbDefautValue));
+						if (tbcol.Attribute.IsNullable == false) sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ALTER COLUMN ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" SET NOT NULL;\r\n");
+						if (tbcol.Attribute.IsIdentity) seqcols.Add((tbcol, tbname, tbcol.Attribute.IsIdentity));
 					}
 				}
 				if (istmpatler == false) {
@@ -225,7 +245,7 @@ where ns.nspname = {0} and c.relname = {1}".FormatPostgreSQL(tboldname ?? tbname
 				//创建临时表
 				sb.Append("CREATE TABLE IF NOT EXISTS ").Append(tmptablename).Append(" (");
 				foreach (var tbcol in tb.Columns.Values) {
-					sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType.ToUpper()).Append(",");
+					sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType).Append(",");
 					if (tbcol.Attribute.IsIdentity) seqcols.Add((tbcol, tbname, true));
 				}
 				if (tb.Primarys.Any() == false)
@@ -237,26 +257,21 @@ where ns.nspname = {0} and c.relname = {1}".FormatPostgreSQL(tboldname ?? tbname
 				}
 				sb.Append("\r\n) WITH (OIDS=FALSE);\r\n");
 				sb.Append("INSERT INTO ").Append(tmptablename).Append(" (");
-				foreach (var tbcol in tb.Columns.Values) {
-					if (tbstruct.ContainsKey(tbcol.Attribute.Name) ||
-						string.IsNullOrEmpty(tbcol.Attribute.OldName) == false && tbstruct.ContainsKey(tbcol.Attribute.OldName)) { //导入旧表存在的字段
-						sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
-					}
-				}
+				foreach (var tbcol in tb.Columns.Values)
+					sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
 				sb.Remove(sb.Length - 2, 2).Append(")\r\nSELECT ");
 				foreach (var tbcol in tb.Columns.Values) {
+					var insertvalue = "NULL";
 					if (tbstruct.TryGetValue(tbcol.Attribute.Name, out var tbstructcol) ||
 						string.IsNullOrEmpty(tbcol.Attribute.OldName) == false && tbstruct.TryGetValue(tbcol.Attribute.OldName, out tbstructcol)) {
-						var insertvalue = _commonUtils.QuoteSqlName(tbstructcol.column);
-						if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.CurrentCultureIgnoreCase) == false) {
-							var tbcoldbtype = tbcol.Attribute.DbType.Split(' ').First();
-							insertvalue = $"cast({insertvalue} as {tbcoldbtype})";
-						}
-						if (tbcol.Attribute.IsNullable != tbstructcol.is_nullable) {
-							insertvalue = $"ifnull({insertvalue},{_commonUtils.FormatSql("{0}", tbcol.Attribute.DbDefautValue).Replace("'", "''")})";
-						}
-						sb.Append(insertvalue).Append(", ");
-					}
+						insertvalue = _commonUtils.QuoteSqlName(tbstructcol.column);
+						if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.CurrentCultureIgnoreCase) == false)
+							insertvalue = $"cast({insertvalue} as {tbcol.Attribute.DbType.Split(' ').First()})";
+						if (tbcol.Attribute.IsNullable != tbstructcol.is_nullable)
+							insertvalue = $"coalesce({insertvalue},{_commonUtils.FormatSql("{0}", tbcol.Attribute.DbDefautValue).Replace("'", "''")})";
+					} else if (tbcol.Attribute.IsNullable == false)
+						insertvalue = _commonUtils.FormatSql("{0}", tbcol.Attribute.DbDefautValue).Replace("'", "''");
+					sb.Append(insertvalue).Append(", ");
 				}
 				sb.Remove(sb.Length - 2, 2).Append(" FROM ").Append(tablename).Append(";\r\n");
 				sb.Append("DROP TABLE ").Append(tablename).Append(";\r\n");

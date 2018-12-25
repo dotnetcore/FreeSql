@@ -11,6 +11,8 @@ namespace FreeSql {
 		DataType _dataType;
 		string _masterConnectionString;
 		string[] _slaveConnectionString;
+		bool _isAutoSyncStructure = false;
+		bool _isSyncStructureToLower = false;
 
 		/// <summary>
 		/// 使用缓存，不指定默认使用内存
@@ -51,14 +53,35 @@ namespace FreeSql {
 			_slaveConnectionString = slaveConnectionString;
 			return this;
 		}
+		/// <summary>
+		/// 【开发环境必备】自动同步实体结构到数据库，程序运行中检查实体表是否存在，然后创建或修改
+		/// </summary>
+		/// <returns></returns>
+		public FreeSqlBuilder UseAutoSyncStructure() {
+			_isAutoSyncStructure = true;
+			return this;
+		}
+		/// <summary>
+		/// 转小写同步结构
+		/// </summary>
+		/// <returns></returns>
+		public FreeSqlBuilder UseSyncStructureToLower() {
+			_isSyncStructureToLower = true;
+			return this;
+		}
 
 		public IFreeSql Build() {
+			IFreeSql ret = null;
 			switch(_dataType) {
-				case DataType.MySql: return new MySql.MySqlProvider(_cache, null, _masterConnectionString, _slaveConnectionString, _logger);
-				case DataType.SqlServer: return new SqlServer.SqlServerProvider(_cache, null, _masterConnectionString, _slaveConnectionString, _logger);
-				case DataType.PostgreSQL: return new PostgreSQL.PostgreSQLProvider(_cache, null, _masterConnectionString, _slaveConnectionString, _logger);
+				case DataType.MySql: ret = new MySql.MySqlProvider(_cache, null, _masterConnectionString, _slaveConnectionString, _logger); break;
+				case DataType.SqlServer: ret = new SqlServer.SqlServerProvider(_cache, null, _masterConnectionString, _slaveConnectionString, _logger); break;
+				case DataType.PostgreSQL: ret = new PostgreSQL.PostgreSQLProvider(_cache, null, _masterConnectionString, _slaveConnectionString, _logger); break;
 			}
-			return null;
+			if (ret != null) {
+				ret.CodeFirst.IsAutoSyncStructure = _isAutoSyncStructure;
+				ret.CodeFirst.IsSyncStructureToLower = _isSyncStructureToLower;
+			}
+			return ret;
 		}
 	}
 

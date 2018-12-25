@@ -26,7 +26,8 @@ namespace FreeSql.Internal.CommonProvider {
 					switch (expCall.Method.Name) {
 						case "Where": this.InternalWhere(expCall.Arguments[0]); break;
 						case "WhereIf":
-							if (_commonExpression.ExpressionSelectColumn_MemberAccess(null, null, SelectTableInfoType.From, expCall.Arguments[0], false) == "1")
+							var whereIfCond = _commonExpression.ExpressionSelectColumn_MemberAccess(null, null, SelectTableInfoType.From, expCall.Arguments[0], false);
+							if (whereIfCond == "1" || whereIfCond == "'t'")
 								this.InternalWhere(expCall.Arguments[1]);
 							break;
 						case "GroupBy": this.InternalGroupBy(expCall.Arguments[0]); break;

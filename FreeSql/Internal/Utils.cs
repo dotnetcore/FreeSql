@@ -22,8 +22,12 @@ namespace FreeSql.Internal {
 			trytb.Type = entity;
 			trytb.Properties = entity.GetProperties().ToDictionary(a => a.Name, a => a, StringComparer.CurrentCultureIgnoreCase);
 			trytb.CsName = entity.Name;
-			trytb.DbName = tbattr?.Name ?? entity.Name;
+			trytb.DbName = (tbattr?.Name ?? entity.Name);
 			trytb.DbOldName = tbattr?.OldName;
+			if (common.CodeFirst.IsSyncStructureToLower) {
+				trytb.DbName = trytb.DbName.ToLower();
+				trytb.DbOldName = trytb.DbOldName?.ToLower();
+			}
 			trytb.SelectFilter = tbattr?.SelectFilter;
 			foreach (var p in trytb.Properties.Values) {
 				var tp = common.CodeFirst.GetDbInfo(p.PropertyType);
@@ -38,22 +42,23 @@ namespace FreeSql.Internal {
 						IsNullable = tp.Value.isnullable ?? true,
 						IsPrimary = false,
 					};
-				if (string.IsNullOrEmpty(colattr.DbType) == false) colattr.DbType = colattr.DbType.ToUpper();
-				if (tp != null && tp.Value.isnullable == null) colattr.IsNullable = tp.Value.dbtypeFull.Contains("NOT NULL") == false;
-				if (string.IsNullOrEmpty(colattr.DbType) == false) colattr.IsNullable = colattr.DbType.Contains("NOT NULL") == false;
-				if (string.IsNullOrEmpty(colattr.Name)) colattr.Name = p.Name;
 				if (string.IsNullOrEmpty(colattr.DbType)) colattr.DbType = tp?.dbtypeFull ?? "varchar(255)";
+				colattr.DbType = colattr.DbType.ToUpper();
+
+				if (tp != null && tp.Value.isnullable == null) colattr.IsNullable = tp.Value.dbtypeFull.Contains("NOT NULL") == false;
+				if (colattr.DbType?.Contains("NOT NULL") == true) colattr.IsNullable = false;
+				if (string.IsNullOrEmpty(colattr.Name)) colattr.Name = p.Name;
+				if (common.CodeFirst.IsSyncStructureToLower) colattr.Name = colattr.Name.ToLower();
+				
 				if ((colattr.IsNullable == false || colattr.IsIdentity || colattr.IsPrimary) && colattr.DbType.Contains("NOT NULL") == false) colattr.DbType += " NOT NULL";
 				if (colattr.IsNullable == true && colattr.DbType.Contains("NOT NULL")) colattr.DbType = colattr.DbType.Replace("NOT NULL", "");
 				colattr.DbType = Regex.Replace(colattr.DbType, @"\([^\)]+\)", m => Regex.Replace(m.Groups[0].Value, @"\s", ""));
 				colattr.DbDefautValue = trytb.Properties[p.Name].GetValue(Activator.CreateInstance(trytb.Type));
-				if (colattr.DbDefautValue == null && p.PropertyType.FullName == "System.String") colattr.DbDefautValue = string.Empty;
-				if (colattr.DbDefautValue == null) {
+				if (colattr.DbDefautValue == null) colattr.DbDefautValue = tp?.defaultValue;
+				if (colattr.IsNullable == false && colattr.DbDefautValue == null) {
 					var consturctorType = p.PropertyType.GenericTypeArguments.FirstOrDefault() ?? p.PropertyType;
-					if (consturctorType.GetConstructor(new Type[0]) != null) colattr.DbDefautValue = Activator.CreateInstance(consturctorType);
+					colattr.DbDefautValue = Activator.CreateInstance(consturctorType);
 				}
-				if (colattr.DbDefautValue == null) colattr.DbDefautValue = "";
-				if (colattr.DbDefautValue.GetType().FullName == "System.DateTime") colattr.DbDefautValue = new DateTime(1970, 1, 1);
 
 				var col = new ColumnInfo {
 					Table = trytb,

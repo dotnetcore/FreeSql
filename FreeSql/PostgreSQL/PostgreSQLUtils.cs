@@ -16,6 +16,7 @@ namespace FreeSql.PostgreSQL {
 
 		internal override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, object value) {
 			if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
+			else if (_orm.CodeFirst.IsSyncStructureToLower) parameterName = parameterName.ToLower();
 			NpgsqlParameter ret = null;
 			if (value == null) ret = new NpgsqlParameter { ParameterName = $"{parameterName}", Value = DBNull.Value };
 			else {
@@ -52,7 +53,7 @@ namespace FreeSql.PostgreSQL {
 
 		internal override string FormatSql(string sql, params object[] args) => sql?.FormatPostgreSQL(args);
 		internal override string QuoteSqlName(string name) => $"\"{name.Trim('"').Replace(".", "\".\"")}\"";
-		internal override string QuoteParamterName(string name) => $"@{name}";
+		internal override string QuoteParamterName(string name) => $"@{(_orm.CodeFirst.IsSyncStructureToLower ? name.ToLower() : name)}";
 		internal override string IsNull(string sql, object value) => $"coalesce({sql}, {value})";
 		internal override string StringConcat(string left, string right, Type leftType, Type rightType) => $"{left} || {right}";
 	}

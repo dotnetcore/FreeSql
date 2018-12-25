@@ -9,6 +9,11 @@ namespace FreeSql {
 		bool IsAutoSyncStructure { get; set; }
 
 		/// <summary>
+		/// 转小写同步结构
+		/// </summary>
+		bool IsSyncStructureToLower { get; set; }
+
+		/// <summary>
 		/// 将实体类型与数据库对比，返回DDL语句
 		/// </summary>
 		/// <typeparam name="TEntity"></typeparam>
@@ -38,6 +43,6 @@ namespace FreeSql {
 		/// </summary>
 		/// <param name="type"></param>
 		/// <returns></returns>
-		(int type, string dbtype, string dbtypeFull, bool? isnullable)? GetDbInfo(Type type);
+		(int type, string dbtype, string dbtypeFull, bool? isnullable, object defaultValue)? GetDbInfo(Type type);
 	}
 }

@@ -66,7 +66,7 @@ namespace FreeSql.Internal.CommonProvider {
 			if (cols.Any() == false) return this;
 			foreach (var col in cols) {
 				if (col.Column.Attribute.IsNullable) {
-					var replval = col.Column.Attribute.DbDefautValue;
+					var replval = _orm.CodeFirst.GetDbInfo(col.Column.CsType.GenericTypeArguments.FirstOrDefault())?.defaultValue;
 					if (replval == null) continue;
 					var replname = _commonUtils.QuoteSqlName(col.Column.Attribute.Name);
 					expt = expt.Replace(replname, _commonUtils.IsNull(replname, _commonUtils.FormatSql("{0}", replval)));
