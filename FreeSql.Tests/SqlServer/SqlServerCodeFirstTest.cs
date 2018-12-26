@@ -90,9 +90,8 @@ namespace FreeSql.Tests.SqlServer {
 				testFieldUShort = ushort.MaxValue,
 				testFieldUShortNullable = ushort.MinValue,
 				testFielLongNullable = long.MinValue
-
 			};
-			item2.Id = (int)insert.AppendData(item2).ExecuteIdentity();
+			var item3 = insert.AppendData(item2).ExecuteInserted();
 			var newitem2 = select.Where(a => a.Id == item2.Id).ToOne();
 
 			var items = select.ToList();

@@ -1,11 +1,16 @@
 ﻿using FreeSql.DataAnnotations;
 using FreeSql.Internal.Model;
 using Newtonsoft.Json.Linq;
+using Npgsql.LegacyPostgis;
+using NpgsqlTypes;
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
+using System.Net.NetworkInformation;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -92,7 +97,66 @@ namespace FreeSql.Internal {
 			return ret.ToArray();
 		}
 
+		static Dictionary<string, bool> dicExecuteArrayRowReadClassOrTuple = new Dictionary<string, bool> {
+			{ typeof(bool ).FullName, true },
+			{ typeof(sbyte).FullName, true },
+			{ typeof(short).FullName, true },
+			{ typeof(int).FullName, true },
+			{ typeof(long).FullName, true },
+			{ typeof(byte).FullName, true },
+			{ typeof(ushort).FullName, true },
+			{ typeof(uint).FullName, true },
+			{ typeof(ulong).FullName, true },
+			{ typeof(double).FullName, true },
+			{ typeof(float).FullName, true },
+			{ typeof(decimal).FullName, true },
+			{ typeof(TimeSpan).FullName, true },
+			{ typeof(DateTime).FullName, true },
+			{ typeof(DateTimeOffset).FullName, true },
+			{ typeof(byte[]).FullName, true },
+			{ typeof(string).FullName, true },
+			{ typeof(Guid).FullName, true },
+			{ typeof(MygisPoint).FullName, true },
+			{ typeof(MygisLineString).FullName, true },
+			{ typeof(MygisPolygon).FullName, true },
+			{ typeof(MygisMultiPoint).FullName, true },
+			{ typeof(MygisMultiLineString).FullName, true },
+			{ typeof(MygisMultiPolygon).FullName, true },
+			{ typeof(BitArray).FullName, true },
+			{ typeof(NpgsqlPoint).FullName, true },
+			{ typeof(NpgsqlLine).FullName, true },
+			{ typeof(NpgsqlLSeg).FullName, true },
+			{ typeof(NpgsqlBox).FullName, true },
+			{ typeof(NpgsqlPath).FullName, true },
+			{ typeof(NpgsqlPolygon).FullName, true },
+			{ typeof(NpgsqlCircle).FullName, true },
+			{ typeof((IPAddress Address, int Subnet)).FullName, true },
+			{ typeof(IPAddress).FullName, true },
+			{ typeof(PhysicalAddress).FullName, true },
+			{ typeof(NpgsqlRange<int>).FullName, true },
+			{ typeof(NpgsqlRange<long>).FullName, true },
+			{ typeof(NpgsqlRange<decimal>).FullName, true },
+			{ typeof(NpgsqlRange<DateTime>).FullName, true },
+			{ typeof(PostgisPoint).FullName, true },
+			{ typeof(PostgisLineString).FullName, true },
+			{ typeof(PostgisPolygon).FullName, true },
+			{ typeof(PostgisMultiPoint).FullName, true },
+			{ typeof(PostgisMultiLineString).FullName, true },
+			{ typeof(PostgisMultiPolygon).FullName, true },
+			{ typeof(PostgisGeometry).FullName, true },
+			{ typeof(PostgisGeometryCollection).FullName, true },
+			{ typeof(Dictionary<string, string>).FullName, true },
+			{ typeof(JToken).FullName, true },
+			{ typeof(JObject).FullName, true },
+			{ typeof(JArray).FullName, true },
+		};
 		internal static (object value, int dataIndex) ExecuteArrayRowReadClassOrTuple(Type type, Dictionary<string, int> names, object[] row, int dataIndex = 0) {
+			if (type.IsArray) return (GetDataReaderValue(type, row[dataIndex]), dataIndex + 1);
+			var typeGeneric = type;
+			if (typeGeneric.FullName.StartsWith("System.Nullable`1[")) typeGeneric = type.GenericTypeArguments.First();
+			if (typeGeneric.IsEnum ||
+				dicExecuteArrayRowReadClassOrTuple.ContainsKey(typeGeneric.FullName))
+				return (GetDataReaderValue(type, row[dataIndex]), dataIndex + 1);
 			if (type.Namespace == "System" && (type.FullName == "System.String" || type.IsValueType)) { //值类型，或者元组
 				bool isTuple = type.Name.StartsWith("ValueTuple`");
 				if (isTuple) {
@@ -108,7 +172,7 @@ namespace FreeSql.Internal {
 					var constructor = type.GetConstructor(types);
 					return (constructor?.Invoke(parms), dataIndex);
 				}
-				return (dataIndex >= row.Length || row[dataIndex] == DBNull.Value ? null : Convert.ChangeType(row[dataIndex], type), dataIndex + 1);
+				return (dataIndex >= row.Length || (row[dataIndex] ?? DBNull.Value) == DBNull.Value ? null : GetDataReaderValue(type, row[dataIndex]), dataIndex + 1);
 			}
 			if (type == typeof(object) && names != null) {
 				dynamic expando = new System.Dynamic.ExpandoObject(); //动态类型字段 可读可写
@@ -118,8 +182,7 @@ namespace FreeSql.Internal {
 				return (expando, names.Count);
 			}
 			//类注入属性
-			var consturct = type.GetConstructor(new Type[0]);
-			var value = consturct.Invoke(new object[0]);
+			var value = type.GetConstructor(new Type[0]).Invoke(new object[0]);
 			var ps = type.GetProperties();
 			foreach(var p in ps) {
 				var tryidx = dataIndex;
@@ -150,6 +213,7 @@ namespace FreeSql.Internal {
 			if (type.IsArray) {
 				var elementType = type.GetElementType();
 				var valueArr = value as Array;
+				if (elementType == valueArr.GetType().GetElementType()) return value;
 				var len = valueArr.GetLength(0);
 				var ret = Array.CreateInstance(elementType, len);
 				for (var a = 0; a < len; a++) {

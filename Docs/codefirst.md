@@ -41,10 +41,10 @@
 | (IPAddress Address, int Subnet) \| (IPAddress Address, int Subnet)? | - | - | cidr |
 | IPAddress | - | - | inet |
 | PhysicalAddress | - | - | macaddr |
-| NpgsqlRange<int> \| NpgsqlRange<int>? | - | - | int4range |
-| NpgsqlRange<long> \| NpgsqlRange<long>? | - | - | int8range |
-| NpgsqlRange<decimal> \| NpgsqlRange<decimal>? | - | - | numrange |
-| NpgsqlRange<DateTime> \| NpgsqlRange<DateTime>? | - | - | tsrange |
+| NpgsqlRange\<int\> \| NpgsqlRange\<int\>? | - | - | int4range |
+| NpgsqlRange\<long\> \| NpgsqlRange\<long\>? | - | - | int8range |
+| NpgsqlRange\<decimal\> \| NpgsqlRange\<decimal\>? | - | - | numrange |
+| NpgsqlRange\<DateTime\> \| NpgsqlRange\<DateTime\>? | - | - | tsrange |
 | PostgisPoint | - | - | geometry |
 | PostgisLineString | - | - | geometry |
 | PostgisPolygon | - | - | geometry |
@@ -52,6 +52,7 @@
 | PostgisMultiLineString | - | - | geometry |
 | PostgisMultiPolygon | - | - | geometry |
 | PostgisGeometry | - | - | geometry |
+| PostgisGeometryCollection | - | - | geometry |
 | Dictionary<string, string> | - | - | hstore |
 | JToken | - | - | jsonb |
 | JObject | - | - | jsonb |
