@@ -1,6 +1,6 @@
 # CodeFirst
 
-## 映射映射
+## 类型映射
 
 | csharp | MySql | SqlServer | PostgreSQL |
 | - | - | - | - |
