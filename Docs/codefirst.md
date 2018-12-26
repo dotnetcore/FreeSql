@@ -56,6 +56,7 @@
 | JToken | - | - | jsonb |
 | JObject | - | - | jsonb |
 | JArray | - | - | jsonb |
+| 数组 | - | - | 以上所有类型都支持 |
 
 > 以上类型和长度是默认值，可手工设置，如 string 属性可指定 [Column(DbType = "varchar(max)")]
 
