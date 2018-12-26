@@ -1,10 +1,63 @@
 # CodeFirst
 
-| 数据库 | 支持的类型类型 |
-| - | - |
-| MySql | bool, sbyte, short, int, long, byte, ushort, uint, ulong, double, float, decimal, Guid, TimeSpan, DateTime<br>bool?, sbyte?, short?, int?, long?, byte?, ushort?, uint?, ulong?, double?, float?, decimal?, Guid?, TimeSpan?, DateTime?<br>byte[], string, Enum & FlagsEnum<br>MygisPoint, MygisLineString, MygisPolygon, MygisMultiPoint, MygisMultiLineString, MygisMultiPolygon |
-| SqlServer | bool, sbyte, short, int, long, byte, ushort, uint, ulong, double, float, decimal, Guid, TimeSpan, DateTime, DateTimeOffset<br>bool?, sbyte?, short?, int?, long?, byte?, ushort?, uint?, ulong?, double?, float?, decimal?, Guid?, TimeSpan?, DateTime?, DateTimeOffset?<br>byte[], string, Enum & FlagsEnum |
+## 映射映射
 
+| csharp | MySql | SqlServer | PostgreSQL |
+| - | - | - | - |
+| bool \| bool? | bit(1) | bit | bool |
+| sbyte \| sbyte? | tinyint(3) | smallint | int2 |
+| short \| short? | smallint(6) | smallint | int2 |
+| int \| int? | int(11) | int | int4 |
+| long \| long? | bigint(20) | bigint | int8 |
+| byte \| byte? | tinyint(3) unsigned | tinyint | int2 |
+| ushort \| ushort? | smallint(5) unsigned | int | int4 |
+| uint \| uint? | int(10) unsigned | bigint | int8 |
+| ulong \| ulong? | bigint(20) unsigned | decimal(20,0) | numeric(20,0) |
+| double \| double? | double | float | float8 |
+| float \| float? | float | real | float4 |
+| decimal \| decimal? | decimal(10,2) | decimal(10,2) | numeric(10,2) |
+| Guid \| Guid? | char(36) | uniqueidentifier | uuid |
+| TimeSpan \| TimeSpan? | time | time | time |
+| DateTime \| DateTime? | datetime | datetime | timestamp |
+| DateTimeOffset \| DateTimeOffset? | - | - | datetimeoffset |
+| Enum \| Enum? | enum | int | int4 |
+| FlagsEnum \| FlagsEnum? | set | bigint | int8 |
+| byte[] | varbinary(255) | varbinary(255) | bytea |
+| string | varchar(255) | nvarchar(255) | varchar(255) |
+| MygisPoint | point | - | - |
+| MygisLineString | linestring | - | - |
+| MygisPolygon | polygon | - | - |
+| MygisMultiPoint | multipoint | - | - |
+| MygisMultiLineString | multilinestring | - | - |
+| MygisMultiPolygon | multipolygon | - | - |
+| BitArray | - | - | varbit(64) |
+| NpgsqlPoint \| NpgsqlPoint? | - | - | point |
+| NpgsqlLine \| NpgsqlLine? | - | - | line |
+| NpgsqlLSeg \| NpgsqlLSeg? | - | - | lseg |
+| NpgsqlBox \| NpgsqlBox? | - | - | box |
+| NpgsqlPath \| NpgsqlPath? | - | - | path |
+| NpgsqlPolygon \| NpgsqlPolygon? | - | - | polygon |
+| NpgsqlCircle \| NpgsqlCircle? | - | - | circle |
+| (IPAddress Address, int Subnet) \| (IPAddress Address, int Subnet)? | - | - | cidr |
+| IPAddress | - | - | inet |
+| PhysicalAddress | - | - | macaddr |
+| NpgsqlRange<int> \| NpgsqlRange<int>? | - | - | int4range |
+| NpgsqlRange<long> \| NpgsqlRange<long>? | - | - | int8range |
+| NpgsqlRange<decimal> \| NpgsqlRange<decimal>? | - | - | numrange |
+| NpgsqlRange<DateTime> \| NpgsqlRange<DateTime>? | - | - | tsrange |
+| PostgisPoint | - | - | geometry |
+| PostgisLineString | - | - | geometry |
+| PostgisPolygon | - | - | geometry |
+| PostgisMultiPoint | - | - | geometry |
+| PostgisMultiLineString | - | - | geometry |
+| PostgisMultiPolygon | - | - | geometry |
+| PostgisGeometry | - | - | geometry |
+| Dictionary<string, string> | - | - | hstore |
+| JToken | - | - | jsonb |
+| JObject | - | - | jsonb |
+| JArray | - | - | jsonb |
+
+> 以上类型和长度是默认值，可手工设置，如 string 属性可指定 [Column(DbType = "varchar(max)")]
 
 ```csharp
 IFreeSql fsql = new FreeSql.FreeSqlBuilder()

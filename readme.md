@@ -1,23 +1,23 @@
 # FreeSql
 
-打造 .NETCore 最方便的orm，dbfirst codefirst混合使用，codefirst模式下的开发阶段，建好实体不用执行任何，就能创建表和修改字段，dbfirst模式下提供api+模板，自定义生成代码，
-https://github.com/2881099/FreeSql/blob/master/Docs/generator.md 默认提供了3种模板。
+打造 .NETCore 最方便的orm，dbfirst codefirst混合使用，codefirst模式下的开发阶段，建好实体不用执行任何，就能创建表和修改字段，dbfirst模式下提供api+模板，自定义生成代码，作者提供了3种模板。
 
-* [Insert 插入数据](Docs/insert.md)
-* [Update 更新数据](Docs/update.md)
-* [Delete 删除数据](Docs/delete.md)
-* [Select 查询数据](Docs/select.md)
+* [Insert 插入数据](Docs/insert.md)、[Update 更新数据](Docs/update.md)、[Delete 删除数据](Docs/delete.md)、 [Select 查询数据](Docs/select.md)
 
 * [Expression 表达式函数](Docs/expression.md)
-* [CodeFirst 快速开发](Docs/codefirst.md)
-* [DbFirst 快速开发](Docs/dbfirst.md)
-* [DbFirst 生成器](Docs/generator.md)
+
+* [CodeFirst 快速开发](Docs/codefirst.md)、 [DbFirst 快速开发](Docs/dbfirst.md)、 [DbFirst 生成器](Docs/generator.md)
 
 # 查询数据
 
 ```csharp
 IFreeSql fsql = new FreeSql.FreeSqlBuilder()
     .UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=10")
+    .UseSlave("connectionString1", "connectionString2") //使用从数据库，支持多个
+    .UseLogger(null) //使用日志，不指定默认输出控制台 ILogger
+    .UseCache(null) //使用缓存，不指定默认使用内存 IDistributedCache
+    .UseAutoSyncStructure(true) //自动同步实体结构到数据库
+	.UseSyncStructureToLower(true) //转小写同步结构
     .Build();
 ISelect<Topic> select => fsql.Select<Topic>();
 
@@ -40,8 +40,6 @@ class TestTypeInfo {
 class TestTypeParentInfo {
     public int Id { get; set; }
     public string Name { get; set; }
-
-    public List<TestTypeInfo> Types { get; set; }
 }
 ```
 
