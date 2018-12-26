@@ -187,7 +187,7 @@ namespace FreeSql.Internal.CommonProvider {
 				if (tb.Table.ColumnsByCs.TryGetValue(p.Name, out var col)) { //普通字段
 					if (index > 0) field.Append(", ");
 					var quoteName = _commonUtils.QuoteSqlName(col.Attribute.Name);
-					field.Append(tb.Alias).Append(".").Append(quoteName);
+					field.Append(_commonUtils.QuoteReadColumn(col.CsType, $"{tb.Alias}.{quoteName}"));
 					++index;
 					if (dicfield.ContainsKey(quoteName)) field.Append(" as").Append(index);
 					else dicfield.Add(quoteName, true);
@@ -200,7 +200,7 @@ namespace FreeSql.Internal.CommonProvider {
 					foreach (var col2 in tb2.Table.Columns.Values) {
 						if (index > 0) field.Append(", ");
 						var quoteName = _commonUtils.QuoteSqlName(col2.Attribute.Name);
-						field.Append(tb2.Alias).Append(".").Append(quoteName);
+						field.Append(_commonUtils.QuoteReadColumn(col.CsType, $"{tb2.Alias}.{quoteName}"));
 						++index;
 						if (dicfield.ContainsKey(quoteName)) field.Append(" as").Append(index);
 						else dicfield.Add(quoteName, true);

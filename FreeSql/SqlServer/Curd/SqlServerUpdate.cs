@@ -23,7 +23,7 @@ namespace FreeSql.SqlServer.Curd {
 			var colidx = 0;
 			foreach (var col in _table.Columns.Values) {
 				if (colidx > 0) sb.Append(", ");
-				sb.Append("INSERTED.").Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
+				sb.Append(_commonUtils.QuoteReadColumn(col.CsType, $"INSERTED.{_commonUtils.QuoteSqlName(col.Attribute.Name)}")).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
 				++colidx;
 			}
 
@@ -37,14 +37,14 @@ namespace FreeSql.SqlServer.Curd {
 
 		protected override void ToSqlCase(StringBuilder caseWhen, ColumnInfo[] primarys) {
 			if (_table.Primarys.Length == 1) {
-				caseWhen.Append(_commonUtils.QuoteSqlName(_table.Primarys.First().Attribute.Name));
+				caseWhen.Append(_commonUtils.QuoteReadColumn(_table.Primarys.First().CsType, _commonUtils.QuoteSqlName(_table.Primarys.First().Attribute.Name)));
 				return;
 			}
 			caseWhen.Append("(");
 			var pkidx = 0;
 			foreach (var pk in _table.Primarys) {
 				if (pkidx > 0) caseWhen.Append(", ");
-				caseWhen.Append("cast(").Append(_commonUtils.QuoteSqlName(pk.Attribute.Name)).Append(" as varchar)");
+				caseWhen.Append("cast(").Append(_commonUtils.QuoteReadColumn(_table.Primarys.First().CsType, _commonUtils.QuoteSqlName(pk.Attribute.Name))).Append(" as varchar)");
 				++pkidx;
 			}
 			caseWhen.Append(")");

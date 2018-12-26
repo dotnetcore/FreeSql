@@ -20,7 +20,7 @@ namespace FreeSql.MySql.Curd {
 			var colidx = 0;
 			foreach (var col in _table.Columns.Values) {
 				if (colidx > 0) sb.Append(", ");
-				sb.Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
+				sb.Append(_commonUtils.QuoteReadColumn(col.CsType, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
 				++colidx;
 			}
 			return _orm.Ado.Query<T1>(CommandType.Text, sb.ToString(), _params.Concat(_paramsSource).ToArray());
@@ -28,14 +28,14 @@ namespace FreeSql.MySql.Curd {
 
 		protected override void ToSqlCase(StringBuilder caseWhen, ColumnInfo[] primarys) {
 			if (_table.Primarys.Length == 1) {
-				caseWhen.Append(_commonUtils.QuoteSqlName(_table.Primarys.First().Attribute.Name));
+				caseWhen.Append(_commonUtils.QuoteReadColumn(_table.Primarys.First().CsType, _commonUtils.QuoteSqlName(_table.Primarys.First().Attribute.Name)));
 				return;
 			}
 			caseWhen.Append("CONCAT(");
 			var pkidx = 0;
 			foreach (var pk in _table.Primarys) {
 				if (pkidx > 0) caseWhen.Append(", ");
-				caseWhen.Append(_commonUtils.QuoteSqlName(pk.Attribute.Name));
+				caseWhen.Append(_commonUtils.QuoteReadColumn(pk.CsType, _commonUtils.QuoteSqlName(pk.Attribute.Name)));
 				++pkidx;
 			}
 			caseWhen.Append(")");

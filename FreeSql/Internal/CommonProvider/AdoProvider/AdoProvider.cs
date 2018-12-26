@@ -38,7 +38,7 @@ namespace FreeSql.Internal.CommonProvider {
 			if (e == null) return;
 			string log = $"{pool.Policy.Name}数据库出错（执行SQL）〓〓〓〓〓〓〓〓〓〓〓〓〓〓〓\r\n{cmd.CommandText}\r\n";
 			foreach (DbParameter parm in cmd.Parameters)
-				log += parm.ParameterName.PadRight(20, ' ') + " = " + (parm.Value ?? "NULL") + "\r\n";
+				log += parm.ParameterName.PadRight(20, ' ') + " = " + ((parm.Value ?? DBNull.Value) == DBNull.Value ? "NULL" : parm.Value) + "\r\n";
 
 			log += e.Message;
 			_log.LogError(log);

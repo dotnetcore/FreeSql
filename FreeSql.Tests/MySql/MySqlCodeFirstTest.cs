@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Xunit;
 
 namespace FreeSql.Tests.MySql {
@@ -81,6 +82,82 @@ namespace FreeSql.Tests.MySql {
 			}
 
 			sql = g.mysql.CodeFirst.GetComparisonDDLStatements<Tb_alltype>();
+		}
+
+		IInsert<TableAllType> insert => g.mysql.Insert<TableAllType>();
+		ISelect<TableAllType> select => g.mysql.Select<TableAllType>();
+
+		[Fact]
+		public void CurdAllField() {
+			var item = new TableAllType { };
+			item.Id = (int)insert.AppendData(item).ExecuteIdentity();
+
+			var newitem = select.Where(a => a.Id == item.Id).ToOne();
+
+			var item2 = new TableAllType {
+				testFieldBool = true,
+				testFieldBoolNullable = true,
+				testFieldByte = 255,
+				testFieldByteNullable = 127,
+				testFieldBytes = Encoding.UTF8.GetBytes("我是中国人"),
+				testFieldDateTime = DateTime.Now,
+				testFieldDateTimeNullable = DateTime.Now.AddHours(-1),
+				testFieldDecimal = 99.99M,
+				testFieldDecimalNullable = 99.98M,
+				testFieldDouble = 999.99,
+				testFieldDoubleNullable = 999.98,
+				testFieldEnum1 = TableAllTypeEnumType1.e5,
+				testFieldEnum1Nullable = TableAllTypeEnumType1.e3,
+				testFieldEnum2 = TableAllTypeEnumType2.f2,
+				testFieldEnum2Nullable = TableAllTypeEnumType2.f3,
+				testFieldFloat = 19.99F,
+				testFieldFloatNullable = 19.98F,
+				testFieldGuid = Guid.NewGuid(),
+				testFieldGuidNullable = Guid.NewGuid(),
+				testFieldInt = int.MaxValue,
+				testFieldIntNullable = int.MinValue,
+				testFieldLineString = new MygisLineString(new[] { new MygisCoordinate2D(10, 10), new MygisCoordinate2D(50, 10) }),
+				testFieldLong = long.MaxValue,
+				testFieldMultiLineString = new MygisMultiLineString(new[] {
+					new[] { new MygisCoordinate2D(10, 10), new MygisCoordinate2D(50, 10) },
+					new[] { new MygisCoordinate2D(50, 10), new MygisCoordinate2D(10, 100) } }),
+				testFieldMultiPoint = new MygisMultiPoint(new[] { new MygisCoordinate2D(11, 11), new MygisCoordinate2D(51, 11) }),
+				testFieldMultiPolygon = new MygisMultiPolygon(new[] {
+					new MygisPolygon(new[] {
+						new[] { new MygisCoordinate2D(10, 10), new MygisCoordinate2D(50, 10), new MygisCoordinate2D(10, 50), new MygisCoordinate2D(10, 10) },
+						new[] { new MygisCoordinate2D(10, 10), new MygisCoordinate2D(50, 10), new MygisCoordinate2D(10, 50), new MygisCoordinate2D(10, 10) },
+						new[] { new MygisCoordinate2D(10, 10), new MygisCoordinate2D(50, 10), new MygisCoordinate2D(10, 50), new MygisCoordinate2D(10, 10) },
+						new[] { new MygisCoordinate2D(10, 10), new MygisCoordinate2D(50, 10), new MygisCoordinate2D(10, 50), new MygisCoordinate2D(10, 10) } }),
+					new MygisPolygon(new[] {
+						new[] { new MygisCoordinate2D(10, 10), new MygisCoordinate2D(50, 10), new MygisCoordinate2D(10, 50), new MygisCoordinate2D(10, 10) },
+						new[] { new MygisCoordinate2D(10, 10), new MygisCoordinate2D(50, 10), new MygisCoordinate2D(10, 50), new MygisCoordinate2D(10, 10) },
+						new[] { new MygisCoordinate2D(10, 10), new MygisCoordinate2D(50, 10), new MygisCoordinate2D(10, 50), new MygisCoordinate2D(10, 10) },
+						new[] { new MygisCoordinate2D(10, 10), new MygisCoordinate2D(50, 10), new MygisCoordinate2D(10, 50), new MygisCoordinate2D(10, 10) } }) }),
+				testFieldPoint = new MygisPoint(99, 99),
+				testFieldPolygon = new MygisPolygon(new[] {
+					new[] { new MygisCoordinate2D(10, 10), new MygisCoordinate2D(50, 10), new MygisCoordinate2D(10, 50), new MygisCoordinate2D(10, 10) },
+						new[] { new MygisCoordinate2D(10, 10), new MygisCoordinate2D(50, 10), new MygisCoordinate2D(10, 50), new MygisCoordinate2D(10, 10) },
+						new[] { new MygisCoordinate2D(10, 10), new MygisCoordinate2D(50, 10), new MygisCoordinate2D(10, 50), new MygisCoordinate2D(10, 10) },
+						new[] { new MygisCoordinate2D(10, 10), new MygisCoordinate2D(50, 10), new MygisCoordinate2D(10, 50), new MygisCoordinate2D(10, 10) } }),
+				testFieldSByte = 100,
+				testFieldSByteNullable = 99,
+				testFieldShort = short.MaxValue,
+				testFieldShortNullable = short.MinValue,
+				testFieldString = "我是中国人string",
+				testFieldTimeSpan = TimeSpan.FromSeconds(999),
+				testFieldTimeSpanNullable = TimeSpan.FromSeconds(60),
+				testFieldUInt = uint.MaxValue,
+				testFieldUIntNullable = uint.MinValue,
+				testFieldULong = ulong.MaxValue,
+				testFieldULongNullable = ulong.MinValue,
+				testFieldUShort = ushort.MaxValue,
+				testFieldUShortNullable = ushort.MinValue,
+				testFielLongNullable = long.MinValue
+			};
+			item2.Id = (int)insert.AppendData(item2).ExecuteIdentity();
+			var newitem2 = select.Where(a => a.Id == item2.Id).ToOne();
+
+			var items = select.ToList();
 		}
 
 

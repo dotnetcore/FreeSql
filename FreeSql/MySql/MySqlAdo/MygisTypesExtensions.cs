@@ -39,7 +39,7 @@ public static partial class MygisTypesExtensions {
 		string value = dr.GetString(index);
 		Type t = typeof(T);
 		foreach (var f in t.GetFields())
-			if (f.GetCustomAttribute<DescriptionAttribute>()?.Description == value || f.Name == value) return Enum.Parse(t, f.Name);
+			if (f.GetCustomAttribute<DescriptionAttribute>()?.Description == value || f.Name == value) return Enum.Parse(t, f.Name, true);
 		return null;
 	}
 
@@ -57,7 +57,7 @@ public static partial class MygisTypesExtensions {
 		Type t = typeof(T);
 		foreach (FieldInfo f in t.GetFields()) {
 			if (f.FieldType != t) continue;
-			object o = Enum.Parse(t, f.Name);
+			object o = Enum.Parse(t, f.Name, true);
 			long v = (long)o;
 			if ((value & v) == v) ret.Add((T)o);
 		}

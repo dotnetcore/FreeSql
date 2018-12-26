@@ -56,17 +56,19 @@ namespace FreeSql {
 		/// <summary>
 		/// 【开发环境必备】自动同步实体结构到数据库，程序运行中检查实体表是否存在，然后创建或修改
 		/// </summary>
+		/// <param name="value">true:运行时检查自动同步结构, false:不同步结构</param>
 		/// <returns></returns>
-		public FreeSqlBuilder UseAutoSyncStructure() {
-			_isAutoSyncStructure = true;
+		public FreeSqlBuilder UseAutoSyncStructure(bool value) {
+			_isAutoSyncStructure = value;
 			return this;
 		}
 		/// <summary>
 		/// 转小写同步结构
 		/// </summary>
+		/// <param name="value">true:转小写, false:不转</param>
 		/// <returns></returns>
-		public FreeSqlBuilder UseSyncStructureToLower() {
-			_isSyncStructureToLower = true;
+		public FreeSqlBuilder UseSyncStructureToLower(bool value) {
+			_isSyncStructureToLower = value;
 			return this;
 		}
 

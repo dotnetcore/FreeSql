@@ -39,9 +39,9 @@ namespace FreeSql.PostgreSQL {
 				{ typeof(long).FullName,  (NpgsqlDbType.Bigint, "int8","int8 NOT NULL", false, false, 0) },{ typeof(long?).FullName,  (NpgsqlDbType.Bigint, "int8", "int8", false, true, null) },
 
 				{ typeof(byte).FullName,  (NpgsqlDbType.Smallint, "int2","int2 NOT NULL", false, false, 0) },{ typeof(byte?).FullName,  (NpgsqlDbType.Smallint, "int2", "int2", false, true, null) },
-				{ typeof(ushort).FullName,  (NpgsqlDbType.Smallint, "int2","int2 NOT NULL", false, false, 0) },{ typeof(ushort?).FullName,  (NpgsqlDbType.Smallint, "int2", "int2", false, true, null) },
-				{ typeof(uint).FullName,  (NpgsqlDbType.Integer, "int4","int4 NOT NULL", false, false, 0) },{ typeof(uint?).FullName,  (NpgsqlDbType.Integer, "int4", "int4", false, true, null) },
-				{ typeof(ulong).FullName,  (NpgsqlDbType.Bigint, "int8","int8 NOT NULL", false, false, 0) },{ typeof(ulong?).FullName,  (NpgsqlDbType.Bigint, "int8", "int8", false, true, null) },
+				{ typeof(ushort).FullName,  (NpgsqlDbType.Integer, "int4","int4 NOT NULL", false, false, 0) },{ typeof(ushort?).FullName,  (NpgsqlDbType.Integer, "int4", "int4", false, true, null) },
+				{ typeof(uint).FullName,  (NpgsqlDbType.Bigint, "int8","int8 NOT NULL", false, false, 0) },{ typeof(uint?).FullName,  (NpgsqlDbType.Bigint, "int8", "int8", false, true, null) },
+				{ typeof(ulong).FullName,  (NpgsqlDbType.Numeric, "numeric","numeric(20,0) NOT NULL", false, false, 0) },{ typeof(ulong?).FullName,  (NpgsqlDbType.Numeric, "numeric", "numeric(20,0)", false, true, null) },
 
 				{ typeof(float).FullName,  (NpgsqlDbType.Real, "float4","float4 NOT NULL", false, false, 0) },{ typeof(float?).FullName,  (NpgsqlDbType.Real, "float4", "float4", false, true, null) },
 				{ typeof(double).FullName,  (NpgsqlDbType.Double, "float8","float8 NOT NULL", false, false, 0) },{ typeof(double?).FullName,  (NpgsqlDbType.Double, "float8", "float8", false, true, null) },
@@ -52,20 +52,20 @@ namespace FreeSql.PostgreSQL {
 				{ typeof(TimeSpan).FullName,  (NpgsqlDbType.Time, "time","time NOT NULL", false, false, 0) },{ typeof(TimeSpan?).FullName,  (NpgsqlDbType.Time, "time", "time",false, true, null) },
 				{ typeof(DateTime).FullName,  (NpgsqlDbType.Timestamp, "timestamp", "timestamp NOT NULL", false, false, new DateTime(1970,1,1)) },{ typeof(DateTime?).FullName,  (NpgsqlDbType.Timestamp, "timestamp", "timestamp", false, true, null) },
 
-				{ typeof(bool).FullName,  (NpgsqlDbType.Boolean, "bool","bool NOT NULL", null, false, false) },{ typeof(bool?).FullName,  (NpgsqlDbType.Bit, "bool","bool", null, true, null) },
+				{ typeof(bool).FullName,  (NpgsqlDbType.Boolean, "bool","bool NOT NULL", null, false, false) },{ typeof(bool?).FullName,  (NpgsqlDbType.Boolean, "bool","bool", null, true, null) },
 				{ typeof(Byte[]).FullName,  (NpgsqlDbType.Bytea, "bytea", "bytea", false, null, new byte[0]) },
 				{ typeof(BitArray).FullName,  (NpgsqlDbType.Varbit, "varbit", "varbit(64)", false, null, new BitArray(new byte[64])) },
 
-				{ typeof(NpgsqlPoint).FullName,  (NpgsqlDbType.Point, "point", "point NOT NULL", false, false, new NpgsqlPoint()) },{ typeof(NpgsqlPoint?).FullName,  (NpgsqlDbType.Point, "point", "point", false, true, null) },
-				{ typeof(NpgsqlLine).FullName,  (NpgsqlDbType.Line, "line", "line NOT NULL", false, false, new NpgsqlLine()) },{ typeof(NpgsqlLine?).FullName,  (NpgsqlDbType.Line, "line", "line", false, true, null) },
-				{ typeof(NpgsqlLSeg).FullName,  (NpgsqlDbType.LSeg, "lseg", "lseg NOT NULL", false, false, new NpgsqlLSeg()) },{ typeof(NpgsqlLSeg?).FullName,  (NpgsqlDbType.LSeg, "lseg", "lseg", false, true, null) },
-				{ typeof(NpgsqlBox).FullName,  (NpgsqlDbType.Box, "box", "box NOT NULL", false, false, new NpgsqlBox()) },{ typeof(NpgsqlBox?).FullName,  (NpgsqlDbType.Box, "box", "box", false, true, null) },
-				{ typeof(NpgsqlPath).FullName,  (NpgsqlDbType.Path, "path", "path NOT NULL", false, false, new NpgsqlPath()) },{ typeof(NpgsqlPath?).FullName,  (NpgsqlDbType.Path, "path", "path", false, true, null) },
-				{ typeof(NpgsqlPolygon).FullName,  (NpgsqlDbType.Polygon, "polygon", "polygon NOT NULL", false, false, new NpgsqlPolygon()) },{ typeof(NpgsqlPolygon?).FullName,  (NpgsqlDbType.Polygon, "polygon", "polygon", false, true, null) },
-				{ typeof(NpgsqlCircle).FullName,  (NpgsqlDbType.Circle, "circle", "circle NOT NULL", false, false, new NpgsqlCircle()) },{ typeof(NpgsqlCircle?).FullName,  (NpgsqlDbType.Circle, "circle", "circle", false, true, null) },
+				{ typeof(NpgsqlPoint).FullName,  (NpgsqlDbType.Point, "point", "point NOT NULL", false, false, new NpgsqlPoint(0, 0)) },{ typeof(NpgsqlPoint?).FullName,  (NpgsqlDbType.Point, "point", "point", false, true, null) },
+				{ typeof(NpgsqlLine).FullName,  (NpgsqlDbType.Line, "line", "line NOT NULL", false, false, new NpgsqlLine(0, 0, 1)) },{ typeof(NpgsqlLine?).FullName,  (NpgsqlDbType.Line, "line", "line", false, true, null) },
+				{ typeof(NpgsqlLSeg).FullName,  (NpgsqlDbType.LSeg, "lseg", "lseg NOT NULL", false, false, new NpgsqlLSeg(0, 0, 0, 0)) },{ typeof(NpgsqlLSeg?).FullName,  (NpgsqlDbType.LSeg, "lseg", "lseg", false, true, null) },
+				{ typeof(NpgsqlBox).FullName,  (NpgsqlDbType.Box, "box", "box NOT NULL", false, false, new NpgsqlBox(0, 0, 0, 0)) },{ typeof(NpgsqlBox?).FullName,  (NpgsqlDbType.Box, "box", "box", false, true, null) },
+				{ typeof(NpgsqlPath).FullName,  (NpgsqlDbType.Path, "path", "path NOT NULL", false, false, new NpgsqlPath(new NpgsqlPoint(0, 0))) },{ typeof(NpgsqlPath?).FullName,  (NpgsqlDbType.Path, "path", "path", false, true, null) },
+				{ typeof(NpgsqlPolygon).FullName,  (NpgsqlDbType.Polygon, "polygon", "polygon NOT NULL", false, false, new NpgsqlPolygon(new NpgsqlPoint(0, 0), new NpgsqlPoint(0, 0))) },{ typeof(NpgsqlPolygon?).FullName,  (NpgsqlDbType.Polygon, "polygon", "polygon", false, true, null) },
+				{ typeof(NpgsqlCircle).FullName,  (NpgsqlDbType.Circle, "circle", "circle NOT NULL", false, false, new NpgsqlCircle(0, 0, 0)) },{ typeof(NpgsqlCircle?).FullName,  (NpgsqlDbType.Circle, "circle", "circle", false, true, null) },
 
-				{ typeof((IPAddress Address, int Subnet)).FullName,  (NpgsqlDbType.Cidr, "cidr", "cidr NOT NULL", false, false, (IPAddress.None, 0)) },{ typeof((IPAddress Address, int Subnet)?).FullName,  (NpgsqlDbType.Cidr, "cidr", "cidr", false, true, null) },
-				{ typeof(IPAddress).FullName,  (NpgsqlDbType.Inet, "inet", "inet", false, null, IPAddress.None) },
+				{ typeof((IPAddress Address, int Subnet)).FullName,  (NpgsqlDbType.Cidr, "cidr", "cidr NOT NULL", false, false, (IPAddress.Any, 0)) },{ typeof((IPAddress Address, int Subnet)?).FullName,  (NpgsqlDbType.Cidr, "cidr", "cidr", false, true, null) },
+				{ typeof(IPAddress).FullName,  (NpgsqlDbType.Inet, "inet", "inet", false, null, IPAddress.Any) },
 				{ typeof(PhysicalAddress).FullName,  (NpgsqlDbType.MacAddr, "macaddr", "macaddr", false, null, PhysicalAddress.None) },
 
 				{ typeof(JToken).FullName,  (NpgsqlDbType.Jsonb, "jsonb", "jsonb", false, null, JToken.Parse("{}")) },
@@ -95,11 +95,12 @@ namespace FreeSql.PostgreSQL {
 			var info = GetDbInfoNoneArray(elementType);
 			if (info == null) return null;
 			if (isarray == false) return ((int)info.Value.type, info.Value.dbtype, info.Value.dbtypeFull, info.Value.isnullable, info.Value.defaultValue);
-			var dbtypefull = Regex.Replace(info.Value.dbtypeFull, $@"{info.Value.dbtype}(\s*\([^\)]+\))?", "$0[]");
-			return ((int)(info.Value.type | NpgsqlDbType.Array), $"{info.Value.dbtype}[]", dbtypefull, info.Value.isnullable, Array.CreateInstance(elementType, 0));
+			var dbtypefull = Regex.Replace(info.Value.dbtypeFull, $@"{info.Value.dbtype}(\s*\([^\)]+\))?", "$0[]").Replace(" NOT NULL", "");
+			return ((int)(info.Value.type | NpgsqlDbType.Array), $"{info.Value.dbtype}[]", dbtypefull, null, Array.CreateInstance(elementType, 0));
 		}
 		(NpgsqlDbType type, string dbtype, string dbtypeFull, bool? isnullable, object defaultValue)? GetDbInfoNoneArray(Type type) {
 			if (_dicCsToDb.TryGetValue(type.FullName, out var trydc)) return new (NpgsqlDbType, string, string, bool?, object)?((trydc.type, trydc.dbtype, trydc.dbtypeFull, trydc.isnullable, trydc.defaultValue));
+			if (type.IsArray) return null;
 			var enumType = type.IsEnum ? type : null;
 			if (enumType == null && type.FullName.StartsWith("System.Nullable`1[") && type.GenericTypeArguments.Length == 1 && type.GenericTypeArguments.First().IsEnum) enumType = type.GenericTypeArguments.First();
 			if (enumType != null) {

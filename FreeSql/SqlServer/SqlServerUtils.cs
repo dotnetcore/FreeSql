@@ -13,33 +13,24 @@ namespace FreeSql.SqlServer {
 			_orm = mysql;
 		}
 
-		internal override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, object value) {
+		internal override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, Type type, object value) {
 			if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
 			else if (_orm.CodeFirst.IsSyncStructureToLower) parameterName = parameterName.ToLower();
-			SqlParameter ret = null;
-			if (value == null) ret = new SqlParameter { ParameterName = $"{parameterName}", Value = DBNull.Value };
-			else {
-				var type = value.GetType();
-				ret = new SqlParameter {
-					ParameterName = parameterName,
-					Value = value
-				};
-				var tp = _orm.CodeFirst.GetDbInfo(type)?.type;
-				if (tp != null) ret.SqlDbType = (SqlDbType)tp.Value;
-			}
+			if (value?.Equals(DateTime.MinValue) == true) value = new DateTime(1970, 1, 1);
+			var ret = new SqlParameter { ParameterName = $"@{parameterName}", Value = value };
+			var tp = _orm.CodeFirst.GetDbInfo(type)?.type;
+			if (tp != null) ret.SqlDbType = (SqlDbType)tp.Value;
 			_params?.Add(ret);
 			return ret;
 		}
 
 		internal override DbParameter[] GetDbParamtersByObject(string sql, object obj) =>
 			Utils.GetDbParamtersByObject<SqlParameter>(sql, obj, "@", (name, type, value) => {
-				var cp = new SqlParameter {
-					ParameterName = name,
-					Value = value ?? DBNull.Value
-				};
+				if (value?.Equals(DateTime.MinValue) == true) value = new DateTime(1970, 1, 1);
+				var ret = new SqlParameter { ParameterName = $"@{name}", Value = value };
 				var tp = _orm.CodeFirst.GetDbInfo(type)?.type;
-				if (tp != null) cp.SqlDbType = (SqlDbType)tp.Value;
-				return cp;
+				if (tp != null) ret.SqlDbType = (SqlDbType)tp.Value;
+				return ret;
 			});
 
 		internal override string FormatSql(string sql, params object[] args) => sql?.FormatSqlServer(args);
@@ -47,5 +38,8 @@ namespace FreeSql.SqlServer {
 		internal override string QuoteParamterName(string name) => $"@{(_orm.CodeFirst.IsSyncStructureToLower ? name.ToLower() : name)}";
 		internal override string IsNull(string sql, object value) => $"isnull({sql}, {value})";
 		internal override string StringConcat(string left, string right, Type leftType, Type rightType) => $"{(leftType.FullName == "System.String" ? left : $"cast({left} as nvarchar)")} + {(rightType.FullName == "System.String" ? right : $"cast({right} as nvarchar)")}";
+
+		internal override string QuoteWriteParamter(Type type, string paramterName) => paramterName;
+		internal override string QuoteReadColumn(Type type, string columnName) => columnName;
 	}
 }

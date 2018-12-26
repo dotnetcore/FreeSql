@@ -52,10 +52,12 @@ namespace FreeSql.Internal.CommonProvider {
 		}
 
 		public IUpdate<T1> Set<TMember>(Expression<Func<T1, TMember>> column, TMember value) {
-			var col = _commonExpression.ExpressionSelectColumn_MemberAccess(null, null, SelectTableInfoType.From, column?.Body, true);
-			if (string.IsNullOrEmpty(col)) return this;
-			_set.Append(", ").Append(col).Append(" = ").Append(_commonUtils.QuoteParamterName("p_")).Append(_params.Count);
-			_commonUtils.AppendParamter(_params, null, value);
+			var cols = new List<SelectColumnInfo>();
+			_commonExpression.ExpressionSelectColumn_MemberAccess(null, cols, SelectTableInfoType.From, column?.Body, true);
+			if (cols.Count != 1) return this;
+			var col = cols.First();
+			_set.Append(", ").Append(_commonUtils.QuoteSqlName(col.Column.Attribute.Name)).Append(" = ").Append(_commonUtils.QuoteWriteParamter(col.Column.CsType, $"{_commonUtils.QuoteParamterName("p_")}{_params.Count}"));
+			_commonUtils.AppendParamter(_params, null, col.Column.CsType, value);
 			//foreach (var t in _source) Utils.FillPropertyValue(t, tryf.CsName, value);
 			return this;
 		}
@@ -111,8 +113,8 @@ namespace FreeSql.Internal.CommonProvider {
 				foreach (var col in _table.Columns.Values) {
 					if (col.Attribute.IsIdentity == false && _ignore.ContainsKey(col.CsName) == false) {
 						if (colidx > 0) sb.Append(", ");
-						sb.Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ").Append(_commonUtils.QuoteParamterName($"p_{_paramsSource.Count}"));
-						_commonUtils.AppendParamter(_paramsSource, null, _table.Properties.TryGetValue(col.CsName, out var tryp) ? tryp.GetValue(_source.First()) : DBNull.Value);
+						sb.Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ").Append(_commonUtils.QuoteWriteParamter(col.CsType, _commonUtils.QuoteParamterName($"p_{_paramsSource.Count}")));
+						_commonUtils.AppendParamter(_paramsSource, null, col.CsType, _table.Properties.TryGetValue(col.CsName, out var tryp) ? tryp.GetValue(_source.First()) : null);
 						++colidx;
 					}
 				}
@@ -151,8 +153,8 @@ namespace FreeSql.Internal.CommonProvider {
 							//	++pkidx;
 							//}
 							//if (_table.Primarys.Length > 1) sb.Append(")");
-							sb.Append(" THEN ").Append(_commonUtils.QuoteParamterName($"p_{_paramsSource.Count}"));
-							_commonUtils.AppendParamter(_paramsSource, null, _table.Properties.TryGetValue(col.CsName, out var tryp) ? tryp.GetValue(d) : DBNull.Value);
+							sb.Append(" THEN ").Append(_commonUtils.QuoteWriteParamter(col.CsType, _commonUtils.QuoteParamterName($"p_{_paramsSource.Count}")));
+							_commonUtils.AppendParamter(_paramsSource, null, col.CsType, _table.Properties.TryGetValue(col.CsName, out var tryp) ? tryp.GetValue(d) : DBNull.Value);
 						}
 						sb.Append(" END");
 						++colidx;

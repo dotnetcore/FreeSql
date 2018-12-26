@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Xunit;
 
 namespace FreeSql.Tests.SqlServer {
@@ -38,6 +39,63 @@ namespace FreeSql.Tests.SqlServer {
 			var sql = g.sqlserver.CodeFirst.GetComparisonDDLStatements<TableAllType>();
 
 			sql = g.sqlserver.CodeFirst.GetComparisonDDLStatements<Tb_alltype>();
+		}
+
+		IInsert<TableAllType> insert => g.sqlserver.Insert<TableAllType>();
+		ISelect<TableAllType> select => g.sqlserver.Select<TableAllType>();
+
+		[Fact]
+		public void CurdAllField() {
+			var item = new TableAllType { };
+			item.Id = (int)insert.AppendData(item).ExecuteIdentity();
+
+			var newitem = select.Where(a => a.Id == item.Id).ToOne();
+
+			var item2 = new TableAllType {
+				testFieldBool = true,
+				testFieldBoolNullable = true,
+				testFieldByte = byte.MaxValue,
+				testFieldByteNullable = byte.MinValue,
+				testFieldBytes = Encoding.UTF8.GetBytes("我是中国人"),
+				testFieldDateTime = DateTime.Now,
+				testFieldDateTimeNullable = DateTime.Now.AddHours(1),
+				testFieldDateTimeNullableOffset = new DateTimeOffset(DateTime.Now.AddHours(1), TimeSpan.FromHours(8)),
+				testFieldDateTimeOffset = new DateTimeOffset(DateTime.Now, TimeSpan.FromHours(8)),
+				testFieldDecimal = 998.99M,
+				testFieldDecimalNullable = 999.12M,
+				testFieldDouble = 99.199,
+				testFieldDoubleNullable = 99.211,
+				testFieldEnum1 = TableAllTypeEnumType1.e2,
+				testFieldEnum1Nullable = TableAllTypeEnumType1.e3,
+				testFieldEnum2 = TableAllTypeEnumType2.f3,
+				testFieldEnum2Nullable = TableAllTypeEnumType2.f2,
+				testFieldFloat = 0.99F,
+				testFieldFloatNullable = 0.11F,
+				testFieldGuid = Guid.NewGuid(),
+				testFieldGuidNullable = Guid.NewGuid(),
+				testFieldInt = int.MaxValue,
+				testFieldIntNullable = int.MinValue,
+				testFieldLong = long.MaxValue,
+				testFieldSByte = sbyte.MaxValue,
+				testFieldSByteNullable = sbyte.MinValue,
+				testFieldShort = short.MaxValue,
+				testFieldShortNullable = short.MinValue,
+				testFieldString = "我是中国人string",
+				testFieldTimeSpan = TimeSpan.FromSeconds(999),
+				testFieldTimeSpanNullable = TimeSpan.FromSeconds(30),
+				testFieldUInt = uint.MaxValue,
+				testFieldUIntNullable = uint.MinValue,
+				testFieldULong = ulong.MaxValue,
+				testFieldULongNullable = ulong.MinValue,
+				testFieldUShort = ushort.MaxValue,
+				testFieldUShortNullable = ushort.MinValue,
+				testFielLongNullable = long.MinValue
+
+			};
+			item2.Id = (int)insert.AppendData(item2).ExecuteIdentity();
+			var newitem2 = select.Where(a => a.Id == item2.Id).ToOne();
+
+			var items = select.ToList();
 		}
 
 		[JsonObject(MemberSerialization.OptIn), Table(Name = "dbo.tb_alltype")]
@@ -199,7 +257,7 @@ namespace FreeSql.Tests.SqlServer {
 			public long? TestFielLongNullable { get; set; }
 		}
 
-			[Table(Name = "tb_alltype")]
+		[Table(Name = "tb_alltype")]
 		class TableAllType {
 			[Column(IsIdentity = true, IsPrimary = true)]
 			public int Id { get; set; }

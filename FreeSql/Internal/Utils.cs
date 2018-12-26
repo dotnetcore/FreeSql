@@ -1,5 +1,6 @@
 ﻿using FreeSql.DataAnnotations;
 using FreeSql.Internal.Model;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -14,7 +15,7 @@ namespace FreeSql.Internal {
 
 		static ConcurrentDictionary<string, TableInfo> _cacheGetTableByEntity = new ConcurrentDictionary<string, TableInfo>();
 		internal static TableInfo GetTableByEntity(Type entity, CommonUtils common) {
-			if (_cacheGetTableByEntity.TryGetValue(entity.FullName, out var trytb)) return trytb;
+			if (_cacheGetTableByEntity.TryGetValue($"{common.QuoteSqlName("db")}{entity.FullName}", out var trytb)) return trytb; //区分数据库类型缓存
 			if (common.CodeFirst.GetDbInfo(entity) != null) return null;
 
 			var tbattr = entity.GetCustomAttributes(typeof(TableAttribute), false).LastOrDefault() as TableAttribute;
@@ -145,8 +146,35 @@ namespace FreeSql.Internal {
 		}
 		internal static object GetDataReaderValue(Type type, object value) {
 			if (value == null || value == DBNull.Value) return null;
+			if (type.FullName == "System.Byte[]") return value;
+			if (type.IsArray) {
+				var elementType = type.GetElementType();
+				var valueArr = value as Array;
+				var len = valueArr.GetLength(0);
+				var ret = Array.CreateInstance(elementType, len);
+				for (var a = 0; a < len; a++) {
+					var item = valueArr.GetValue(a);
+					ret.SetValue(GetDataReaderValue(elementType, item), a);
+				}
+				return ret;
+			}
 			if (type.FullName.StartsWith("System.Nullable`1[")) type = type.GenericTypeArguments.First();
-			if (type.IsEnum) return Enum.Parse(type, string.Concat(value));
+			if (type.IsEnum) return Enum.Parse(type, string.Concat(value), true);
+			switch(type.FullName) {
+				case "System.Guid":
+					if (value.GetType() != type) return Guid.TryParse(string.Concat(value), out var tryguid) ? tryguid : Guid.Empty;
+					return value;
+				case "MygisPoint": return MygisPoint.Parse(string.Concat(value)) as MygisPoint;
+				case "MygisLineString": return MygisLineString.Parse(string.Concat(value)) as MygisLineString;
+				case "MygisPolygon": return MygisPolygon.Parse(string.Concat(value)) as MygisPolygon;
+				case "MygisMultiPoint": return MygisMultiPoint.Parse(string.Concat(value)) as MygisMultiPoint;
+				case "MygisMultiLineString": return MygisMultiLineString.Parse(string.Concat(value)) as MygisMultiLineString;
+				case "MygisMultiPolygon": return MygisMultiPolygon.Parse(string.Concat(value)) as MygisMultiPolygon;
+				case "Newtonsoft.Json.Linq.JToken": return JToken.Parse(string.Concat(value));
+				case "Newtonsoft.Json.Linq.JObject": return JObject.Parse(string.Concat(value));
+				case "Newtonsoft.Json.Linq.JArray": return JArray.Parse(string.Concat(value));
+				case "Npgsql.LegacyPostgis.PostgisGeometry": return value;
+			}
 			if (type != value.GetType()) return Convert.ChangeType(value, type);
 			return value;
 		}

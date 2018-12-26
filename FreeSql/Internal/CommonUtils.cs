@@ -11,12 +11,14 @@ namespace FreeSql.Internal {
 	internal abstract class CommonUtils {
 
 		internal abstract DbParameter[] GetDbParamtersByObject(string sql, object obj);
-		internal abstract DbParameter AppendParamter(List<DbParameter> _params, string parameterName, object value);
+		internal abstract DbParameter AppendParamter(List<DbParameter> _params, string parameterName, Type type, object value);
 		internal abstract string FormatSql(string sql, params object[] args);
 		internal abstract string QuoteSqlName(string name);
 		internal abstract string QuoteParamterName(string name);
 		internal abstract string IsNull(string sql, object value);
 		internal abstract string StringConcat(string left, string right, Type leftType, Type rightType);
+		internal abstract string QuoteWriteParamter(Type type, string paramterName);
+		internal abstract string QuoteReadColumn(Type type, string columnName);
 
 		internal ICodeFirst CodeFirst { get; set; }
 		internal TableInfo GetTableByEntity(Type entity) => Utils.GetTableByEntity(entity, this);

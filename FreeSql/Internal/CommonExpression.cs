@@ -40,7 +40,7 @@ namespace FreeSql.Internal {
 						parent.ConsturctorType = ReadAnonymousTypeInfoConsturctorType.Properties;
 						for (var idx = 0; idx < map.Count; idx++) {
 							var child = new ReadAnonymousTypeInfo { CsName = map[idx].Column.CsName, DbField = $"{map[idx].Table.Alias}.{_common.QuoteSqlName(map[idx].Column.Attribute.Name)}" };
-							field.Append(", ").Append(child.DbField).Append(" as").Append(++index);
+							field.Append(", ").Append(_common.QuoteReadColumn(map[idx].Column.CsType, child.DbField)).Append(" as").Append(++index);
 							parent.Childs.Add(child);
 						}
 					} else {
@@ -192,7 +192,7 @@ namespace FreeSql.Internal {
 					throw new Exception($"MySqlExpression 未现实函数表达式 {exp3} 解析");
 				case ExpressionType.MemberAccess:
 					var exp4 = exp as MemberExpression;
-					if (exp4.Expression != null && exp4.Expression.Type.FullName.StartsWith("System.Nullable`1[")) return ExpressionLambdaToSql(exp4.Expression, _tables, _selectColumnMap, tbtype, isQuoteName);
+					if (exp4.Expression != null && exp4.Expression.Type.IsArray == false && exp4.Expression.Type.FullName.StartsWith("System.Nullable`1[")) return ExpressionLambdaToSql(exp4.Expression, _tables, _selectColumnMap, tbtype, isQuoteName);
 					var extRet = "";
 					switch (exp4.Expression?.Type.FullName ?? exp4.Type.FullName) {
 						case "System.String": extRet = ExpressionLambdaToSqlMemberAccessString(exp4, _tables, _selectColumnMap, tbtype, isQuoteName); break;

@@ -42,6 +42,8 @@ namespace FreeSql.MySql {
 				return ((TimeSpan)param).Ticks / 10;
 			else if (param is TimeSpan?)
 				return (param as TimeSpan?).Value.Ticks / 10;
+			else if (param is MygisGeometry)
+				return (param as MygisGeometry).AsText();
 			else if (param is IEnumerable) {
 				var sb = new StringBuilder();
 				var ie = param as IEnumerable;

@@ -28,15 +28,15 @@ namespace FreeSql.SqlServer {
 		static Dictionary<string, (SqlDbType type, string dbtype, string dbtypeFull, bool? isUnsigned, bool? isnullable, object defaultValue)> _dicCsToDb = new Dictionary<string, (SqlDbType type, string dbtype, string dbtypeFull, bool? isUnsigned, bool? isnullable, object defaultValue)>() {
 				{ typeof(bool).FullName,  (SqlDbType.Bit, "bit","bit NOT NULL", null, false, false) },{ typeof(bool?).FullName,  (SqlDbType.Bit, "bit","bit", null, true, null) },
 
-				{ typeof(sbyte).FullName,  (SqlDbType.TinyInt, "tinyint", "tinyint NOT NULL", false, false, 0) },{ typeof(sbyte?).FullName,  (SqlDbType.TinyInt, "tinyint", "tinyint", false, true, null) },
+				{ typeof(sbyte).FullName,  (SqlDbType.SmallInt, "smallint", "smallint NOT NULL", false, false, 0) },{ typeof(sbyte?).FullName,  (SqlDbType.SmallInt, "smallint", "smallint", false, true, null) },
 				{ typeof(short).FullName,  (SqlDbType.SmallInt, "smallint","smallint NOT NULL", false, false, 0) },{ typeof(short?).FullName,  (SqlDbType.SmallInt, "smallint", "smallint", false, true, null) },
 				{ typeof(int).FullName,  (SqlDbType.Int, "int", "int NOT NULL", false, false, 0) },{ typeof(int?).FullName,  (SqlDbType.Int, "int", "int", false, true, null) },
 				{ typeof(long).FullName,  (SqlDbType.BigInt, "bigint","bigint NOT NULL", false, false, 0) },{ typeof(long?).FullName,  (SqlDbType.BigInt, "bigint","bigint", false, true, null) },
 
 				{ typeof(byte).FullName,  (SqlDbType.TinyInt, "tinyint","tinyint NOT NULL", true, false, 0) },{ typeof(byte?).FullName,  (SqlDbType.TinyInt, "tinyint","tinyint", true, true, null) },
-				{ typeof(ushort).FullName,  (SqlDbType.SmallInt, "smallint","smallint NOT NULL", true, false, 0) },{ typeof(ushort?).FullName,  (SqlDbType.SmallInt, "smallint", "smallint", true, true, null) },
-				{ typeof(uint).FullName,  (SqlDbType.Int, "int", "int NOT NULL", true, false, 0) },{ typeof(uint?).FullName,  (SqlDbType.Int, "int", "int", true, true, null) },
-				{ typeof(ulong).FullName,  (SqlDbType.BigInt, "bigint", "bigint NOT NULL", true, false, 0) },{ typeof(ulong?).FullName,  (SqlDbType.BigInt, "bigint", "bigint", true, true, null) },
+				{ typeof(ushort).FullName,  (SqlDbType.Int, "int","int NOT NULL", true, false, 0) },{ typeof(ushort?).FullName,  (SqlDbType.Int, "int", "int", true, true, null) },
+				{ typeof(uint).FullName,  (SqlDbType.BigInt, "bigint", "bigint NOT NULL", true, false, 0) },{ typeof(uint?).FullName,  (SqlDbType.BigInt, "bigint", "bigint", true, true, null) },
+				{ typeof(ulong).FullName,  (SqlDbType.Decimal, "decimal", "decimal(20,0) NOT NULL", true, false, 0) },{ typeof(ulong?).FullName,  (SqlDbType.Decimal, "decimal", "decimal(20,0)", true, true, null) },
 
 				{ typeof(double).FullName,  (SqlDbType.Float, "float", "float NOT NULL", false, false, 0) },{ typeof(double?).FullName,  (SqlDbType.Float, "float", "float", false, true, null) },
 				{ typeof(float).FullName,  (SqlDbType.Real, "real","real NOT NULL", false, false, 0) },{ typeof(float?).FullName,  (SqlDbType.Real, "real","real", false, true, null) },
@@ -54,6 +54,7 @@ namespace FreeSql.SqlServer {
 
 		public (int type, string dbtype, string dbtypeFull, bool? isnullable, object defaultValue)? GetDbInfo(Type type) {
 			if (_dicCsToDb.TryGetValue(type.FullName, out var trydc)) return new (int, string, string, bool?, object)?(((int)trydc.type, trydc.dbtype, trydc.dbtypeFull, trydc.isnullable, trydc.defaultValue));
+			if (type.IsArray) return null;
 			var enumType = type.IsEnum ? type : null;
 			if (enumType == null && type.FullName.StartsWith("System.Nullable`1[") && type.GenericTypeArguments.Length == 1 && type.GenericTypeArguments.First().IsEnum) enumType = type.GenericTypeArguments.First();
 			if (enumType != null) {
