@@ -12,7 +12,7 @@ namespace FreeSql.Tests.MySql {
 
 			var sql = g.mysql.CodeFirst.GetComparisonDDLStatements<TableAllType>();
 			if (string.IsNullOrEmpty(sql) == false) {
-				Assert.Equal(@"CREATE TABLE IF NOT EXISTS `cccddd`.`tb_alltype` ( 
+				Assert.Equal(@"CREATE TABLE IF NOT EXISTS `freesqltest`.`tb_alltype` ( 
   `Id` INT(11) NOT NULL AUTO_INCREMENT, 
   `testFieldBool` BIT(1) NOT NULL, 
   `testFieldSByte` TINYINT(3) NOT NULL, 
