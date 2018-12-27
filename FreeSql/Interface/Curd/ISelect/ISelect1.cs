@@ -12,6 +12,13 @@ namespace FreeSql {
 		/// <param name="select">选择列</param>
 		/// <returns></returns>
 		List<TReturn> ToList<TReturn>(Expression<Func<T1, TReturn>> select);
+		/// <summary>
+		/// 返回即将执行的SQL语句
+		/// </summary>
+		/// <typeparam name="TReturn">返回类型</typeparam>
+		/// <param name="select">选择列</param>
+		/// <returns></returns>
+		string ToSql<TReturn>(Expression<Func<T1, TReturn>> select);
 
 		/// <summary>
 		/// 求和
@@ -190,11 +197,11 @@ namespace FreeSql {
 		ISelect<T1> Where<T2, T3, T4, T5>(Expression<Func<T1, T2, T3, T4, T5, bool>> exp) where T2 : class where T3 : class where T4 : class where T5 : class;
 
 		/// <summary>
-		/// 按选择的列分组，GroupBy(a => a.Name) | GroupBy(a => new{a.Name,a.Time}) | GroupBy(a => new[]{"name","time"})
+		/// 按选择的列分组，GroupBy(a => a.Name) | GroupBy(a => new{a.Name,a.Time})
 		/// </summary>
-		/// <param name="columns"></param>
+		/// <param name="key"></param>
 		/// <returns></returns>
-		ISelect<T1> GroupBy<TKey>(Expression<Func<T1, TKey>> columns);
+		ISelectGrouping<TKey> GroupBy<TKey>(Expression<Func<T1, TKey>> exp);
 
 		/// <summary>
 		/// 按列排序，OrderBy(a => a.Time)

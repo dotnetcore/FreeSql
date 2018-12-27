@@ -45,28 +45,28 @@ StartsWith, EndsWith, Contains, ToLower, ToUpper, Substring, Length, IndexOf, Pa
 ### 单表
 ```csharp
 var sql = select.Where(a => a.Id == 10).ToSql();
-///SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5 FROM `tb_topic` a WHERE (a.`Id` = 10)
+///SELECT a.`Id`, a.`Clicks`, a.`TestTypeInfoGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a WHERE (a.`Id` = 10)
 
 sql = select.Where(a => a.Id == 10 && a.Id > 10 || a.Clicks > 100).ToSql();
-///SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5 FROM `tb_topic` a WHERE (a.`Id` = 10 AND a.`Id` > 10 OR a.`Clicks` > 100)
+///SELECT a.`Id`, a.`Clicks`, a.`TestTypeInfoGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a WHERE (a.`Id` = 10 AND a.`Id` > 10 OR a.`Clicks` > 100)
 ```
 
 ### 多表，使用导航属性
 ```csharp
 sql = select.Where(a => a.Type.Name == "typeTitle" && a.Type.Guid == a.TestTypeInfoGuid).ToSql();
-///SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a__Type.`Guid` as4, a__Type.`ParentId` as5, a__Type.`Name` as6, a.`Title` as7, a.`CreateTime` as8 FROM `tb_topic` a, `TestTypeInfo` a__Type WHERE (a__Type.`Name` = 'typeTitle' AND a__Type.`Guid` = a.`TestTypeInfoGuid`)
+///SELECT a.`Id`, a.`Clicks`, a.`TestTypeInfoGuid`, a__Type.`Guid`, a__Type.`ParentId`, a__Type.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topic` a, `TestTypeInfo` a__Type WHERE (a__Type.`Name` = 'typeTitle' AND a__Type.`Guid` = a.`TestTypeInfoGuid`)
 
 sql = select.Where(a => a.Type.Parent.Name == "tparent").ToSql();
-//SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a__Type.`Guid` as4, a__Type.`ParentId` as5, a__Type.`Name` as6, a.`Title` as7, a.`CreateTime` as8 FROM `tb_topic` a, `TestTypeInfo` a__Type, `TestTypeParentInfo` a__Type__Parent WHERE (a__Type__Parent.`Name` = 'tparent')
+//SELECT a.`Id`, a.`Clicks`, a.`TestTypeInfoGuid`, a__Type.`Guid`, a__Type.`ParentId`, a__Type.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topic` a, `TestTypeInfo` a__Type, `TestTypeParentInfo` a__Type__Parent WHERE (a__Type__Parent.`Name` = 'tparent')
 ```
 
 ### 多表，没有导航属性
 ```csharp
 sql = select.Where<TestTypeInfo>((a, b) => b.Guid == a.TestTypeInfoGuid && b.Name == "typeTitle").ToSql();
-//SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, b.`Guid` as4, b.`ParentId` as5, b.`Name` as6, a.`Title` as7, a.`CreateTime` as8 FROM `tb_topic` a, `TestTypeInfo` b WHERE (b.`Guid` = a.`TestTypeInfoGuid` AND b.`Name` = 'typeTitle')
+//SELECT a.`Id`, a.`Clicks`, a.`TestTypeInfoGuid`, b.`Guid`, b.`ParentId`, b.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topic` a, `TestTypeInfo` b WHERE (b.`Guid` = a.`TestTypeInfoGuid` AND b.`Name` = 'typeTitle')
 
 sql = select.Where<TestTypeInfo, TestTypeParentInfo>((a, b, c) => c.Name == "tparent").ToSql();
-//SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5 FROM `tb_topic` a, `TestTypeParentInfo` c WHERE (c.`Name` = 'tparent')
+//SELECT a.`Id`, a.`Clicks`, a.`TestTypeInfoGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a, `TestTypeParentInfo` c WHERE (c.`Name` = 'tparent')
 ```
 
 ### 多表，任意查
@@ -74,13 +74,13 @@ sql = select.Where<TestTypeInfo, TestTypeParentInfo>((a, b, c) => c.Name == "tpa
 sql = select.From<TestTypeInfo, TestTypeParentInfo>((s, b, c) => s
     .Where(a => a.Id == 10 && c.Name == "xxx")
     .Where(a => b.ParentId == 20)).ToSql();
-//SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, b.`Guid` as4, b.`ParentId` as5, b.`Name` as6, a.`Title` as7, a.`CreateTime` as8 FROM `tb_topic` a, `TestTypeParentInfo` c, `TestTypeInfo` b WHERE (a.`Id` = 10 AND c.`Name` = 'xxx') AND (b.`ParentId` = 20)
+//SELECT a.`Id`, a.`Clicks`, a.`TestTypeInfoGuid`, b.`Guid`, b.`ParentId`, b.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topic` a, `TestTypeParentInfo` c, `TestTypeInfo` b WHERE (a.`Id` = 10 AND c.`Name` = 'xxx') AND (b.`ParentId` = 20)
 ```
 
 ### 原生SQL
 ```csharp
 sql = select.Where("a.clicks > 100 && a.id = ?id", new { id = 10 }).ToSql();
-//SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5 FROM `tb_topic` a WHERE (a.clicks > 100 && a.id = ?id)
+//SELECT a.`Id`, a.`Clicks`, a.`TestTypeInfoGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a WHERE (a.clicks > 100 && a.id = ?id)
 ```
 
 > 以上条件查询，支持 WhereIf
@@ -90,23 +90,23 @@ sql = select.Where("a.clicks > 100 && a.id = ?id", new { id = 10 }).ToSql();
 ### 使用导航属性联表
 ```csharp
 sql = select.LeftJoin(a => a.Type.Guid == a.TestTypeInfoGuid).ToSql();
-//SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a__Type.`Guid` as4, a__Type.`ParentId` as5, a__Type.`Name` as6, a.`Title` as7, a.`CreateTime` as8 FROM `tb_topic` a LEFT JOIN `TestTypeInfo` a__Type ON a__Type.`Guid` = a.`TestTypeInfoGuid`
+//SELECT a.`Id`, a.`Clicks`, a.`TestTypeInfoGuid`, a__Type.`Guid`, a__Type.`ParentId`, a__Type.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topic` a LEFT JOIN `TestTypeInfo` a__Type ON a__Type.`Guid` = a.`TestTypeInfoGuid`
 
 sql = select
     .LeftJoin(a => a.Type.Guid == a.TestTypeInfoGuid)
     .LeftJoin(a => a.Type.Parent.Id == a.Type.ParentId).ToSql();
-//SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a__Type.`Guid` as4, a__Type.`ParentId` as5, a__Type.`Name` as6, a.`Title` as7, a.`CreateTime` as8 FROM `tb_topic` a LEFT JOIN `TestTypeInfo` a__Type ON a__Type.`Guid` = a.`TestTypeInfoGuid` LEFT JOIN `TestTypeParentInfo` a__Type__Parent ON a__Type__Parent.`Id` = a__Type.`ParentId`
+//SELECT a.`Id`, a.`Clicks`, a.`TestTypeInfoGuid`, a__Type.`Guid`, a__Type.`ParentId`, a__Type.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topic` a LEFT JOIN `TestTypeInfo` a__Type ON a__Type.`Guid` = a.`TestTypeInfoGuid` LEFT JOIN `TestTypeParentInfo` a__Type__Parent ON a__Type__Parent.`Id` = a__Type.`ParentId`
 ```
 
 ### 没有导航属性联表
 ```csharp
 sql = select.LeftJoin<TestTypeInfo>((a, b) => b.Guid == a.TestTypeInfoGuid).ToSql();
-//SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, b.`Guid` as4, b.`ParentId` as5, b.`Name` as6, a.`Title` as7, a.`CreateTime` as8 FROM `tb_topic` a LEFT JOIN `TestTypeInfo` b ON b.`Guid` = a.`TestTypeInfoGuid`
+//SELECT a.`Id`, a.`Clicks`, a.`TestTypeInfoGuid`, b.`Guid`, b.`ParentId`, b.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topic` a LEFT JOIN `TestTypeInfo` b ON b.`Guid` = a.`TestTypeInfoGuid`
 
 sql = select
     .LeftJoin<TestTypeInfo>((a, b) => b.Guid == a.TestTypeInfoGuid)
     .LeftJoin<TestTypeParentInfo>((a, c) => c.Id == a.Type.ParentId).ToSql();
-//SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, b.`Guid` as4, b.`ParentId` as5, b.`Name` as6, a.`Title` as7, a.`CreateTime` as8 FROM `tb_topic` a LEFT JOIN `TestTypeInfo` b ON b.`Guid` = a.`TestTypeInfoGuid` LEFT JOIN `TestTypeParentInfo` c ON c.`Id` = b.`ParentId`
+//SELECT a.`Id`, a.`Clicks`, a.`TestTypeInfoGuid`, b.`Guid`, b.`ParentId`, b.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topic` a LEFT JOIN `TestTypeInfo` b ON b.`Guid` = a.`TestTypeInfoGuid` LEFT JOIN `TestTypeParentInfo` c ON c.`Id` = b.`ParentId`
 ```
 
 ### 联表任意查
@@ -114,13 +114,13 @@ sql = select
 sql = select.From<TestTypeInfo, TestTypeParentInfo>((s, b, c) => s
     .LeftJoin(a => a.TestTypeInfoGuid == b.Guid)
     .LeftJoin(a => b.ParentId == c.Id)).ToSql();
-//SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, b.`Guid` as4, b.`ParentId` as5, b.`Name` as6, a.`Title` as7, a.`CreateTime` as8 FROM `tb_topic` a LEFT JOIN `TestTypeInfo` b ON a.`TestTypeInfoGuid` = b.`Guid` LEFT JOIN `TestTypeParentInfo` c ON b.`ParentId` = c.`Id`
+//SELECT a.`Id`, a.`Clicks`, a.`TestTypeInfoGuid`, b.`Guid`, b.`ParentId`, b.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topic` a LEFT JOIN `TestTypeInfo` b ON a.`TestTypeInfoGuid` = b.`Guid` LEFT JOIN `TestTypeParentInfo` c ON b.`ParentId` = c.`Id`
 ```
 
 ### 原生SQL联表
 ```csharp
 sql = select.LeftJoin("TestTypeInfo b on b.Guid = a.TestTypeInfoGuid and b.Name = ?bname", new { bname = "xxx" }).ToSql();
-//SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5 FROM `tb_topic` a LEFT JOIN TestTypeInfo b on b.Guid = a.TestTypeInfoGuid and b.Name = ?bname
+//SELECT a.`Id`, a.`Clicks`, a.`TestTypeInfoGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a LEFT JOIN TestTypeInfo b on b.Guid = a.TestTypeInfoGuid and b.Name = ?bname
 ```
 
 # 查询数据

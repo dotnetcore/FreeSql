@@ -24,13 +24,6 @@ namespace FreeSql {
 		ISelectFromExpression<T1> WhereIf(bool condition, Expression<Func<T1, bool>> exp);
 
 		/// <summary>
-		/// 按选择的列分组，GroupBy(a => a.Name) | GroupBy(a => new{a.Name,a.Time}) | GroupBy(a => new[]{"name","time"})
-		/// </summary>
-		/// <param name="columns"></param>
-		/// <returns></returns>
-		ISelectFromExpression<T1> GroupBy(Expression<Func<T1, object>> columns);
-
-		/// <summary>
 		/// 按列排序，OrderBy(a => a.Time)
 		/// </summary>
 		/// <typeparam name="TMember"></typeparam>

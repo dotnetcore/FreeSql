@@ -51,7 +51,6 @@ class TopicTypeClass {
 ```
 
 # Part1: 查询
-
 ```csharp
 List<Topic> t1 = fsql.Select<Topic>().Where(a => a.Id > 0).ToList();
 
@@ -103,6 +102,34 @@ sql = fsql.Select<Topic>()
     .LeftJoin("TopicType b on b.Id = a.TypeId and b.Name = ?bname", new { bname = "xxx" })
     .ToSql();
 ```
+### 分组聚合
+```csharp
+var groupby = fsql.Select<Topic>()
+    .GroupBy(a => new { tt2 = a.Title.Substring(0, 2), mod4 = a.Id % 4 })
+    .Having(a => a.Count() > 0 && a.Avg(a.Key.mod4) > 0 && a.Max(a.Key.mod4) > 0)
+    .Having(a => a.Count() < 300 || a.Avg(a.Key.mod4) < 100)
+    .OrderBy(a => a.Key.tt2)
+    .OrderByDescending(a => a.Count())
+    .ToList(a => new { a.Key.tt2, cou1 = a.Count(), arg1 = a.Avg(a.Key.mod4) });
+//SELECT substr(a.`Title`, 1, 2) as1, count(1) as2, avg((a.`Id` % 4)) as3 
+//FROM `xxx` a 
+//GROUP BY substr(a.`Title`, 1, 2), (a.`Id` % 4) 
+//HAVING (count(1) > 0 AND avg((a.`Id` % 4)) > 0 AND max((a.`Id` % 4)) > 0) AND (count(1) < 300 OR avg((a.`Id` % 4)) < 100) 
+//ORDER BY substr(a.`Title`, 1, 2), count(1) DESC
+```
+### 执行SQL返回数据
+```csharp
+class xxx {
+    public int Id { get; set; }
+    public string Path { get; set; }
+    public string Title2 { get; set; }
+}
+
+List<xxx> t6 = fsql.Ado.Query<xxx>("select * from song");
+List<(int, string ,string)> t7 = fsql.Ado.Query<(int, string, string)>("select * from song");
+List<dynamic> t8 = fsql.Ado.Query<dynamic>("select * from song");
+```
+> 更多资料：[《Select查询数据》](Docs/select.md)
 
 # Part2: 添加
 ```csharp
@@ -135,6 +162,7 @@ var t6 = fsql.Insert<Topic>().AppendData(items)
 | ExecuteAffrows | long | 执行SQL语句，返回影响的行数 |
 | ExecuteIdentity | long | 执行SQL语句，返回自增值 |
 | ExecuteInserted | List\<Topic\> | 执行SQL语句，返回插入后的记录 |
+> 更多资料：[《Insert添加数据》](Docs/select.md)
 
 # Part3: 修改
 ```csharp
@@ -211,6 +239,7 @@ var t10 = fsql.Update<Topic>().SetRaw("Title = {0}", "新标题").Where("Id = {0
 | - | - | - | - |
 | ExecuteAffrows | long | | 执行SQL语句，返回影响的行数 |
 | ExecuteUpdated | List\<T1\> | | 执行SQL语句，返回更新后的记录 |
+> 更多资料：[《Update更新数据》](Docs/select.md)
 
 # Part4: 删除
 详情查看：[《Delete 删除数据》](Docs/delete.md)

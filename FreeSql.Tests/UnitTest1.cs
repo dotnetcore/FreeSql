@@ -12,13 +12,16 @@ namespace FreeSql.Tests {
 		[Fact]
 		public void Test1() {
 
-			//g.mysql.Select<TestInfo>().Where(a => a.Id == 1)
-			//	.GroupBy(a => new { tt2 = a.Title.Substring(0, 2), mod4 = a.Id % 4 })
-			//	.Having(a => a.Count() > 2 && a.Avg(a.Key.mod4) > 0 && a.Key.mod4 > 0)
-			//	.OrderBy(a => a.Key.tt2)
-			//	.OrderByDescending(a => a.Count())
-			//	.ToList(a => new { a.Key.tt2, cou1 = a.Count(), arg1 = a.Avg(a.Key.mod4) });
-			
+			var groupby = g.mysql.Select<TestInfo>().From<TestTypeInfo, TestTypeParentInfo>((s, b, c) => s
+				.Where(a => a.Id == 1)
+			)
+			.GroupBy((a, b, c) => new { tt2 = a.Title.Substring(0, 2), mod4 = a.Id % 4 })
+			.Having(a => a.Count() > 0 && a.Avg(a.Key.mod4) > 0 && a.Max(a.Key.mod4) > 0)
+			.Having(a => a.Count() < 300 || a.Avg(a.Key.mod4) < 100)
+			.OrderBy(a => a.Key.tt2)
+			.OrderByDescending(a => a.Count())
+			.ToSql(a => new { a.Key.tt2, cou1 = a.Count(), arg1 = a.Avg(a.Key.mod4) });
+
 
 			var sss = new[] { 1, 2, 3 };
 			sss.Count();

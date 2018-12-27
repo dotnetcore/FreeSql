@@ -38,7 +38,7 @@ namespace FreeSql.Internal.CommonProvider {
 		public abstract List<T1> ExecuteUpdated();
 
 		public IUpdate<T1> IgnoreColumns(Expression<Func<T1, object>> columns) {
-			var cols = _commonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(null, columns?.Body, false).Distinct();
+			var cols = _commonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(null, columns?.Body, false, null).Distinct();
 			_ignore.Clear();
 			foreach (var col in cols) _ignore.Add(col, true);
 			return this;
@@ -53,7 +53,7 @@ namespace FreeSql.Internal.CommonProvider {
 
 		public IUpdate<T1> Set<TMember>(Expression<Func<T1, TMember>> column, TMember value) {
 			var cols = new List<SelectColumnInfo>();
-			_commonExpression.ExpressionSelectColumn_MemberAccess(null, cols, SelectTableInfoType.From, column?.Body, true);
+			_commonExpression.ExpressionSelectColumn_MemberAccess(null, cols, SelectTableInfoType.From, column?.Body, true, null);
 			if (cols.Count != 1) return this;
 			var col = cols.First();
 			_set.Append(", ").Append(_commonUtils.QuoteSqlName(col.Column.Attribute.Name)).Append(" = ").Append(_commonUtils.QuoteWriteParamter(col.Column.CsType, $"{_commonUtils.QuoteParamterName("p_")}{_params.Count}"));
@@ -64,7 +64,7 @@ namespace FreeSql.Internal.CommonProvider {
 		public IUpdate<T1> Set<TMember>(Expression<Func<T1, TMember>> binaryExpression) {
 			if (binaryExpression?.Body is BinaryExpression == false) return this;
 			var cols = new List<SelectColumnInfo>();
-			var expt = _commonExpression.ExpressionWhereLambdaNoneForeignObject(null, cols, binaryExpression);
+			var expt = _commonExpression.ExpressionWhereLambdaNoneForeignObject(null, cols, binaryExpression, null);
 			if (cols.Any() == false) return this;
 			foreach (var col in cols) {
 				if (col.Column.Attribute.IsNullable) {
@@ -84,7 +84,7 @@ namespace FreeSql.Internal.CommonProvider {
 			return this;
 		}
 
-		public IUpdate<T1> Where(Expression<Func<T1, bool>> expression) => this.Where(_commonExpression.ExpressionWhereLambdaNoneForeignObject(null, null, expression?.Body));
+		public IUpdate<T1> Where(Expression<Func<T1, bool>> expression) => this.Where(_commonExpression.ExpressionWhereLambdaNoneForeignObject(null, null, expression?.Body, null));
 		public IUpdate<T1> Where(string sql, object parms = null) {
 			if (string.IsNullOrEmpty(sql)) return this;
 			_where.Append(" AND (").Append(sql).Append(")");

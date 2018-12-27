@@ -40,13 +40,13 @@ namespace FreeSql.Internal.CommonProvider {
 		public abstract List<T1> ExecuteInserted();
 
 		public IInsert<T1> IgnoreColumns(Expression<Func<T1, object>> columns) {
-			var cols = _commonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(null, columns?.Body, false).Distinct();
+			var cols = _commonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(null, columns?.Body, false, null).Distinct();
 			_ignore.Clear();
 			foreach (var col in cols) _ignore.Add(col, true);
 			return this;
 		}
 		public IInsert<T1> InsertColumns(Expression<Func<T1, object>> columns) {
-			var cols = _commonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(null, columns?.Body, false).ToDictionary(a => a, a => true);
+			var cols = _commonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(null, columns?.Body, false, null).ToDictionary(a => a, a => true);
 			_ignore.Clear();
 			foreach (var col in _table.Columns.Values)
 				if (cols.ContainsKey(col.Attribute.Name) == false)

@@ -33,6 +33,14 @@ namespace FreeSql {
 		/// <param name="select">选择列</param>
 		/// <returns></returns>
 		List<TReturn> ToList<TReturn>(Expression<Func<ISelectGroupingAggregate<T1>, TReturn>> select);
+
+		/// <summary>
+		/// 返回即将执行的SQL语句
+		/// </summary>
+		/// <typeparam name="TReturn">返回类型</typeparam>
+		/// <param name="select">选择列</param>
+		/// <returns></returns>
+		string ToSql<TReturn>(Expression<Func<ISelectGroupingAggregate<T1>, TReturn>> select);
 	}
 
 	public interface ISelectGroupingAggregate<T1> {

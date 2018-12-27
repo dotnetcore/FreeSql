@@ -20,6 +20,7 @@ namespace FreeSql.Internal {
 
 		static ConcurrentDictionary<string, TableInfo> _cacheGetTableByEntity = new ConcurrentDictionary<string, TableInfo>();
 		internal static TableInfo GetTableByEntity(Type entity, CommonUtils common) {
+			if (entity.FullName.StartsWith("<>f__AnonymousType")) return null;
 			if (_cacheGetTableByEntity.TryGetValue($"{common.QuoteSqlName("db")}{entity.FullName}", out var trytb)) return trytb; //区分数据库类型缓存
 			if (common.CodeFirst.GetDbInfo(entity) != null) return null;
 

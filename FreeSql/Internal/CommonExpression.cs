@@ -13,39 +13,44 @@ namespace FreeSql.Internal {
 			_common = common;
 		}
 
-		internal bool ReadAnonymousField(List<SelectTableInfo> _tables, StringBuilder field, ReadAnonymousTypeInfo parent, ref int index, Expression exp) {
+		internal bool ReadAnonymousField(List<SelectTableInfo> _tables, StringBuilder field, ReadAnonymousTypeInfo parent, ref int index, Expression exp, Func<Expression[], string> getSelectGroupingMapString) {
 			switch (exp.NodeType) {
-				case ExpressionType.Quote: return ReadAnonymousField(_tables, field, parent, ref index, (exp as UnaryExpression)?.Operand);
-				case ExpressionType.Lambda: return ReadAnonymousField(_tables, field, parent, ref index, (exp as LambdaExpression)?.Body);
+				case ExpressionType.Quote: return ReadAnonymousField(_tables, field, parent, ref index, (exp as UnaryExpression)?.Operand, getSelectGroupingMapString);
+				case ExpressionType.Lambda: return ReadAnonymousField(_tables, field, parent, ref index, (exp as LambdaExpression)?.Body, getSelectGroupingMapString);
 				case ExpressionType.Negate:
 				case ExpressionType.NegateChecked:
-					parent.DbField = $"-{ExpressionLambdaToSql(exp, _tables, null, SelectTableInfoType.From, true)}";
-					field.Append(", ").Append(parent.DbField).Append(" as").Append(++index);
+					parent.DbField = $"-({ExpressionLambdaToSql(exp, _tables, null, getSelectGroupingMapString, SelectTableInfoType.From, true)})";
+					field.Append(", ").Append(parent.DbField);
+					if (index >= 0) field.Append(" as").Append(++index);
 					return false;
-				case ExpressionType.Convert: return ReadAnonymousField(_tables, field, parent, ref index, (exp as UnaryExpression)?.Operand);
+				case ExpressionType.Convert: return ReadAnonymousField(_tables, field, parent, ref index, (exp as UnaryExpression)?.Operand, getSelectGroupingMapString);
 				case ExpressionType.Constant:
 					var constExp = exp as ConstantExpression;
 					parent.DbField = _common.FormatSql("{0}", constExp?.Value);
-					field.Append(", ").Append(parent.DbField).Append(" as").Append(++index);
+					field.Append(", ").Append(parent.DbField);
+					if (index >= 0) field.Append(" as").Append(++index);
 					return false;
 				case ExpressionType.Call:
-					parent.DbField = ExpressionLambdaToSql(exp, _tables, null, SelectTableInfoType.From, true);
-					field.Append(", ").Append(parent.DbField).Append(" as").Append(++index);
+					parent.DbField = ExpressionLambdaToSql(exp, _tables, null, getSelectGroupingMapString, SelectTableInfoType.From, true);
+					field.Append(", ").Append(parent.DbField);
+					if (index >= 0) field.Append(" as").Append(++index);
 					return false;
 				case ExpressionType.MemberAccess:
 					if (_common.GetTableByEntity(exp.Type) != null) { //加载表所有字段
 						var map = new List<SelectColumnInfo>();
-						ExpressionSelectColumn_MemberAccess(_tables, map, SelectTableInfoType.From, exp, true);
+						ExpressionSelectColumn_MemberAccess(_tables, map, SelectTableInfoType.From, exp, true, getSelectGroupingMapString);
 						parent.Consturctor = map.First().Table.Table.Type.GetConstructor(new Type[0]);
 						parent.ConsturctorType = ReadAnonymousTypeInfoConsturctorType.Properties;
 						for (var idx = 0; idx < map.Count; idx++) {
 							var child = new ReadAnonymousTypeInfo { CsName = map[idx].Column.CsName, DbField = $"{map[idx].Table.Alias}.{_common.QuoteSqlName(map[idx].Column.Attribute.Name)}" };
-							field.Append(", ").Append(_common.QuoteReadColumn(map[idx].Column.CsType, child.DbField)).Append(" as").Append(++index);
+							field.Append(", ").Append(_common.QuoteReadColumn(map[idx].Column.CsType, child.DbField));
+							if (index >= 0) field.Append(" as").Append(++index);
 							parent.Childs.Add(child);
 						}
 					} else {
-						parent.DbField = ExpressionLambdaToSql(exp, _tables, null, SelectTableInfoType.From, true);
-						field.Append(", ").Append(parent.DbField).Append(" as").Append(++index);
+						parent.DbField = ExpressionLambdaToSql(exp, _tables, null, getSelectGroupingMapString, SelectTableInfoType.From, true);
+						field.Append(", ").Append(parent.DbField);
+						if (index >= 0) field.Append(" as").Append(++index);
 						return false;
 					}
 					return false;
@@ -56,10 +61,13 @@ namespace FreeSql.Internal {
 					for (var a = 0; a < newExp.Members.Count; a++) {
 						var child = new ReadAnonymousTypeInfo { CsName = newExp.Members[a].Name, CsType = newExp.Arguments[a].Type };
 						parent.Childs.Add(child);
-						ReadAnonymousField(_tables, field, child, ref index, newExp.Arguments[a]);
+						ReadAnonymousField(_tables, field, child, ref index, newExp.Arguments[a], getSelectGroupingMapString);
 					}
 					return true;
 			}
+			parent.DbField = $"({ExpressionLambdaToSql(exp, _tables, null, getSelectGroupingMapString, SelectTableInfoType.From, true)})";
+			field.Append(", ").Append(parent.DbField);
+			if (index >= 0) field.Append(" as").Append(++index);
 			return false;
 		}
 		internal object ReadAnonymous(ReadAnonymousTypeInfo parent, object[] dr, ref int index) {
@@ -83,28 +91,28 @@ namespace FreeSql.Internal {
 
 		internal string ExpressionConstant(ConstantExpression exp) => _common.FormatSql("{0}", exp?.Value);
 
-		internal string ExpressionSelectColumn_MemberAccess(List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, SelectTableInfoType tbtype, Expression exp, bool isQuoteName) {
-			return ExpressionLambdaToSql(exp, _tables, _selectColumnMap, tbtype, isQuoteName);
+		internal string ExpressionSelectColumn_MemberAccess(List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, SelectTableInfoType tbtype, Expression exp, bool isQuoteName, Func<Expression[], string> getSelectGroupingMapString) {
+			return ExpressionLambdaToSql(exp, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
 		}
 
-		internal string[] ExpressionSelectColumns_MemberAccess_New_NewArrayInit(List<SelectTableInfo> _tables, Expression exp, bool isQuoteName) {
+		internal string[] ExpressionSelectColumns_MemberAccess_New_NewArrayInit(List<SelectTableInfo> _tables, Expression exp, bool isQuoteName, Func<Expression[], string> getSelectGroupingMapString) {
 			switch (exp?.NodeType) {
-				case ExpressionType.Quote: return ExpressionSelectColumns_MemberAccess_New_NewArrayInit(_tables, (exp as UnaryExpression)?.Operand, isQuoteName);
-				case ExpressionType.Lambda: return ExpressionSelectColumns_MemberAccess_New_NewArrayInit(_tables, (exp as LambdaExpression)?.Body, isQuoteName);
-				case ExpressionType.Convert: return ExpressionSelectColumns_MemberAccess_New_NewArrayInit(_tables, (exp as UnaryExpression)?.Operand, isQuoteName);
-				case ExpressionType.Constant: return new[] { ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, isQuoteName) };
-				case ExpressionType.MemberAccess: return new[] { ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, isQuoteName) };
+				case ExpressionType.Quote: return ExpressionSelectColumns_MemberAccess_New_NewArrayInit(_tables, (exp as UnaryExpression)?.Operand, isQuoteName, getSelectGroupingMapString);
+				case ExpressionType.Lambda: return ExpressionSelectColumns_MemberAccess_New_NewArrayInit(_tables, (exp as LambdaExpression)?.Body, isQuoteName, getSelectGroupingMapString);
+				case ExpressionType.Convert: return ExpressionSelectColumns_MemberAccess_New_NewArrayInit(_tables, (exp as UnaryExpression)?.Operand, isQuoteName, getSelectGroupingMapString);
+				case ExpressionType.Constant: return new[] { ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, isQuoteName, getSelectGroupingMapString) };
+				case ExpressionType.MemberAccess: return new[] { ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, isQuoteName, getSelectGroupingMapString) };
 				case ExpressionType.New:
 					var newExp = exp as NewExpression;
 					if (newExp == null) break;
 					var newExpMembers = new string[newExp.Members.Count];
-					for (var a = 0; a < newExpMembers.Length; a++) newExpMembers[a] = ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, newExp.Arguments[a], isQuoteName);
+					for (var a = 0; a < newExpMembers.Length; a++) newExpMembers[a] = ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, newExp.Arguments[a], isQuoteName, getSelectGroupingMapString);
 					return newExpMembers;
 				case ExpressionType.NewArrayInit:
 					var newArr = exp as NewArrayExpression;
 					if (newArr == null) break;
 					var newArrMembers = new List<string>();
-					foreach (var newArrExp in newArr.Expressions) newArrMembers.AddRange(ExpressionSelectColumns_MemberAccess_New_NewArrayInit(_tables, newArrExp, isQuoteName));
+					foreach (var newArrExp in newArr.Expressions) newArrMembers.AddRange(ExpressionSelectColumns_MemberAccess_New_NewArrayInit(_tables, newArrExp, isQuoteName, getSelectGroupingMapString));
 					return newArrMembers.ToArray();
 			}
 			return new string[0];
@@ -127,8 +135,8 @@ namespace FreeSql.Internal {
 			{ ExpressionType.Modulo, "%" },
 			{ ExpressionType.Equal, "=" },
 		};
-		internal string ExpressionWhereLambdaNoneForeignObject(List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Expression exp) {
-			var sql = ExpressionLambdaToSql(exp, _tables, _selectColumnMap, SelectTableInfoType.From, true);
+		internal string ExpressionWhereLambdaNoneForeignObject(List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Expression exp, Func<Expression[], string> getSelectGroupingMapString) {
+			var sql = ExpressionLambdaToSql(exp, _tables, _selectColumnMap, getSelectGroupingMapString, SelectTableInfoType.From, true);
 			switch(sql) {
 				case "1":
 				case "'t'": return "1=1";
@@ -138,8 +146,8 @@ namespace FreeSql.Internal {
 			}
 		}
 
-		internal string ExpressionWhereLambda(List<SelectTableInfo> _tables, Expression exp) {
-			var sql = ExpressionLambdaToSql(exp, _tables, null, SelectTableInfoType.From, true);
+		internal string ExpressionWhereLambda(List<SelectTableInfo> _tables, Expression exp, Func<Expression[], string> getSelectGroupingMapString) {
+			var sql = ExpressionLambdaToSql(exp, _tables, null, getSelectGroupingMapString, SelectTableInfoType.From, true);
 			switch (sql) {
 				case "1":
 				case "'t'": return "1=1";
@@ -148,9 +156,9 @@ namespace FreeSql.Internal {
 				default: return sql;
 			}
 		}
-		internal void ExpressionJoinLambda(List<SelectTableInfo> _tables, SelectTableInfoType tbtype, Expression exp) {
+		internal void ExpressionJoinLambda(List<SelectTableInfo> _tables, SelectTableInfoType tbtype, Expression exp, Func<Expression[], string> getSelectGroupingMapString) {
 			var tbidx = _tables.Count;
-			var filter = ExpressionLambdaToSql(exp, _tables, null, tbtype, true);
+			var filter = ExpressionLambdaToSql(exp, _tables, null, getSelectGroupingMapString, tbtype, true);
 			switch (filter) {
 				case "1":
 				case "'t'": filter = "1=1"; break;
@@ -169,35 +177,46 @@ namespace FreeSql.Internal {
 			}
 		}
 
-		internal string ExpressionLambdaToSql(Expression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, SelectTableInfoType tbtype, bool isQuoteName) {
+		internal string ExpressionLambdaToSql(Expression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName) {
 			switch (exp.NodeType) {
-				case ExpressionType.Quote: return ExpressionLambdaToSql((exp as UnaryExpression)?.Operand, _tables, _selectColumnMap, tbtype, isQuoteName);
-				case ExpressionType.Lambda: return ExpressionLambdaToSql((exp as LambdaExpression)?.Body, _tables, _selectColumnMap, tbtype, isQuoteName);
-				case ExpressionType.Convert: return ExpressionLambdaToSql((exp as UnaryExpression)?.Operand, _tables, _selectColumnMap, tbtype, isQuoteName);
+				case ExpressionType.Quote: return ExpressionLambdaToSql((exp as UnaryExpression)?.Operand, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+				case ExpressionType.Lambda: return ExpressionLambdaToSql((exp as LambdaExpression)?.Body, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+				case ExpressionType.Convert: return ExpressionLambdaToSql((exp as UnaryExpression)?.Operand, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
 				case ExpressionType.Negate:
-				case ExpressionType.NegateChecked: return "-" + ExpressionLambdaToSql((exp as UnaryExpression)?.Operand, _tables, _selectColumnMap, tbtype, isQuoteName);
+				case ExpressionType.NegateChecked: return "-" + ExpressionLambdaToSql((exp as UnaryExpression)?.Operand, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
 				case ExpressionType.Constant: return _common.FormatSql("{0}", (exp as ConstantExpression)?.Value);
 				case ExpressionType.Conditional:
 					var condExp = exp as ConditionalExpression;
-					return $"case when {ExpressionLambdaToSql(condExp.Test, _tables, _selectColumnMap, tbtype, isQuoteName)} then {ExpressionLambdaToSql(condExp.IfTrue, _tables, _selectColumnMap, tbtype, isQuoteName)} else {ExpressionLambdaToSql(condExp.IfFalse, _tables, _selectColumnMap, tbtype, isQuoteName)} end";
+					return $"case when {ExpressionLambdaToSql(condExp.Test, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)} then {ExpressionLambdaToSql(condExp.IfTrue, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)} else {ExpressionLambdaToSql(condExp.IfFalse, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)} end";
 				case ExpressionType.Call:
 					var exp3 = exp as MethodCallExpression;
-					switch (exp3.Object?.Type.FullName ?? exp3.Method.DeclaringType.FullName) {
-						case "System.String": return ExpressionLambdaToSqlCallString(exp3, _tables, _selectColumnMap, tbtype, isQuoteName);
-						case "System.Math": return ExpressionLambdaToSqlCallMath(exp3, _tables, _selectColumnMap, tbtype, isQuoteName);
-						case "System.DateTime": return ExpressionLambdaToSqlCallDateTime(exp3, _tables, _selectColumnMap, tbtype, isQuoteName);
-						case "System.TimeSpan": return ExpressionLambdaToSqlCallTimeSpan(exp3, _tables, _selectColumnMap, tbtype, isQuoteName);
-						case "System.Convert": return ExpressionLambdaToSqlCallConvert(exp3, _tables, _selectColumnMap, tbtype, isQuoteName);
+					var callType = exp3.Object?.Type ?? exp3.Method.DeclaringType;
+					switch (callType.FullName) {
+						case "System.String": return ExpressionLambdaToSqlCallString(exp3, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+						case "System.Math": return ExpressionLambdaToSqlCallMath(exp3, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+						case "System.DateTime": return ExpressionLambdaToSqlCallDateTime(exp3, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+						case "System.TimeSpan": return ExpressionLambdaToSqlCallTimeSpan(exp3, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+						case "System.Convert": return ExpressionLambdaToSqlCallConvert(exp3, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
 					}
-					throw new Exception($"MySqlExpression 未现实函数表达式 {exp3} 解析");
+					if (callType.FullName.StartsWith("FreeSql.ISelectGroupingAggregate`")) {
+						switch (exp3.Method.Name) {
+							case "Count": return "count(1)";
+							case "Sum": return $"sum({ExpressionLambdaToSql(exp3.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
+							case "Avg": return $"avg({ExpressionLambdaToSql(exp3.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
+							case "Max": return $"max({ExpressionLambdaToSql(exp3.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
+							case "Min": return $"min({ExpressionLambdaToSql(exp3.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
+						}
+					}
+					throw new Exception($"未现实函数表达式 {exp3} 解析");
 				case ExpressionType.MemberAccess:
 					var exp4 = exp as MemberExpression;
-					if (exp4.Expression != null && exp4.Expression.Type.IsArray == false && exp4.Expression.Type.FullName.StartsWith("System.Nullable`1[")) return ExpressionLambdaToSql(exp4.Expression, _tables, _selectColumnMap, tbtype, isQuoteName);
+					if (exp4.Expression != null && exp4.Expression.Type.IsArray == false && exp4.Expression.Type.FullName.StartsWith("System.Nullable`1[")) return ExpressionLambdaToSql(exp4.Expression, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
 					var extRet = "";
-					switch (exp4.Expression?.Type.FullName ?? exp4.Type.FullName) {
-						case "System.String": extRet = ExpressionLambdaToSqlMemberAccessString(exp4, _tables, _selectColumnMap, tbtype, isQuoteName); break;
-						case "System.DateTime": extRet = ExpressionLambdaToSqlMemberAccessDateTime(exp4, _tables, _selectColumnMap, tbtype, isQuoteName); break;
-						case "System.TimeSpan": extRet = ExpressionLambdaToSqlMemberAccessTimeSpan(exp4, _tables, _selectColumnMap, tbtype, isQuoteName); break;
+					var memberType = exp4.Expression?.Type ?? exp4.Type;
+					switch (memberType.FullName) {
+						case "System.String": extRet = ExpressionLambdaToSqlMemberAccessString(exp4, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName); break;
+						case "System.DateTime": extRet = ExpressionLambdaToSqlMemberAccessDateTime(exp4, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName); break;
+						case "System.TimeSpan": extRet = ExpressionLambdaToSqlMemberAccessTimeSpan(exp4, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName); break;
 					}
 					if (string.IsNullOrEmpty(extRet) == false) return extRet;
 
@@ -228,7 +247,18 @@ namespace FreeSql.Internal {
 						break;
 					}
 					if (expStack.First().NodeType != ExpressionType.Parameter) return _common.FormatSql("{0}", Expression.Lambda(exp).Compile().DynamicInvoke());
-					if (callExp != null) return ExpressionLambdaToSql(callExp, _tables, _selectColumnMap, tbtype, isQuoteName);
+					if (callExp != null) return ExpressionLambdaToSql(callExp, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+					if (getSelectGroupingMapString != null && expStack.First().Type.FullName.StartsWith("FreeSql.ISelectGroupingAggregate`")) {
+						var expText = getSelectGroupingMapString(expStack.Where((a, b) => b >= 2).ToArray());
+						if (string.IsNullOrEmpty(expText) == false) return expText;
+					}
+					//if (exp4.Expression != null && exp4.Expression.NodeType == ExpressionType.MemberAccess) {
+					//	var keyExp = exp4.Expression as MemberExpression;
+					//	if (keyExp.Member.Name == "Key" && keyExp.Expression.Type.FullName.StartsWith("FreeSql.ISelectGroupingAggregate`")) {
+					//		var expText = getSelectGroupingMapString(exp4)
+					//	}
+					//}
+
 					if (_tables == null) {
 						var pp = expStack.Pop() as ParameterExpression;
 						var memberExp = expStack.Pop() as MemberExpression;
@@ -300,12 +330,12 @@ namespace FreeSql.Internal {
 			if (expBinary == null) return "";
 			if (expBinary.NodeType == ExpressionType.Coalesce) {
 				return _common.IsNull(
-					ExpressionLambdaToSql(expBinary.Left, _tables, _selectColumnMap, tbtype, isQuoteName),
-					ExpressionLambdaToSql(expBinary.Right, _tables, _selectColumnMap, tbtype, isQuoteName));
+					ExpressionLambdaToSql(expBinary.Left, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName),
+					ExpressionLambdaToSql(expBinary.Right, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName));
 			}
 			if (dicExpressionOperator.TryGetValue(expBinary.NodeType, out var tryoper) == false) return "";
-			var left = ExpressionLambdaToSql(expBinary.Left, _tables, _selectColumnMap, tbtype, isQuoteName);
-			var right = ExpressionLambdaToSql(expBinary.Right, _tables, _selectColumnMap, tbtype, isQuoteName);
+			var left = ExpressionLambdaToSql(expBinary.Left, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+			var right = ExpressionLambdaToSql(expBinary.Right, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
 			if (left == "NULL") {
 				var tmp = right;
 				right = left;
@@ -316,13 +346,13 @@ namespace FreeSql.Internal {
 			return $"{left} {tryoper} {right}";
 		}
 
-		internal abstract string ExpressionLambdaToSqlMemberAccessString(MemberExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, SelectTableInfoType tbtype, bool isQuoteName);
-		internal abstract string ExpressionLambdaToSqlMemberAccessDateTime(MemberExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, SelectTableInfoType tbtype, bool isQuoteName);
-		internal abstract string ExpressionLambdaToSqlMemberAccessTimeSpan(MemberExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, SelectTableInfoType tbtype, bool isQuoteName);
-		internal abstract string ExpressionLambdaToSqlCallString(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, SelectTableInfoType tbtype, bool isQuoteName);
-		internal abstract string ExpressionLambdaToSqlCallMath(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, SelectTableInfoType tbtype, bool isQuoteName);
-		internal abstract string ExpressionLambdaToSqlCallDateTime(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, SelectTableInfoType tbtype, bool isQuoteName);
-		internal abstract string ExpressionLambdaToSqlCallTimeSpan(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, SelectTableInfoType tbtype, bool isQuoteName);
-		internal abstract string ExpressionLambdaToSqlCallConvert(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, SelectTableInfoType tbtype, bool isQuoteName);
+		internal abstract string ExpressionLambdaToSqlMemberAccessString(MemberExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName);
+		internal abstract string ExpressionLambdaToSqlMemberAccessDateTime(MemberExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName);
+		internal abstract string ExpressionLambdaToSqlMemberAccessTimeSpan(MemberExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName);
+		internal abstract string ExpressionLambdaToSqlCallString(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName);
+		internal abstract string ExpressionLambdaToSqlCallMath(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName);
+		internal abstract string ExpressionLambdaToSqlCallDateTime(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName);
+		internal abstract string ExpressionLambdaToSqlCallTimeSpan(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName);
+		internal abstract string ExpressionLambdaToSqlCallConvert(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName);
 	}
 }

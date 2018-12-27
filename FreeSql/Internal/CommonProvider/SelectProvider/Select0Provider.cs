@@ -108,7 +108,8 @@ namespace FreeSql.Internal.CommonProvider {
 
 		public TSelect OrderBy(string sql, object parms = null) {
 			if (string.IsNullOrEmpty(sql)) _orderby = null;
-			_orderby = string.Concat(string.IsNullOrEmpty(_orderby) ? " \r\nORDER BY " : "", _orderby, sql);
+			var isnull = string.IsNullOrEmpty(_orderby);
+			_orderby = string.Concat(isnull ? " \r\nORDER BY " : "", _orderby, isnull ? "" : ", ", sql);
 			if (parms != null) _params.AddRange(_commonUtils.GetDbParamtersByObject(sql, parms));
 			return this as TSelect;
 		}
@@ -146,14 +147,14 @@ namespace FreeSql.Internal.CommonProvider {
 			});
 		}
 		public List<T1> ToList() {
-			return this.ToList<T1>(this.GetAllField());
+			return this.ToListMapReader<T1>(this.GetAllField());
 		}
 		public T1 ToOne() {
 			this.Limit(1);
 			return ToList().FirstOrDefault();
 		}
 
-		protected List<TReturn> ToList<TReturn>((ReadAnonymousTypeInfo map, string field) af) {
+		protected List<TReturn> ToListMapReader<TReturn>((ReadAnonymousTypeInfo map, string field) af) {
 			var sql = this.ToSql(af.field);
 			if (_cache.seconds > 0 && string.IsNullOrEmpty(_cache.key)) _cache.key = $"{sql}{string.Join("|", _params.Select(a => a.Value))}";
 
@@ -171,7 +172,7 @@ namespace FreeSql.Internal.CommonProvider {
 			var field = new StringBuilder();
 			var index = 0;
 
-			_commonExpression.ReadAnonymousField(_tables, field, map, ref index, newexp);
+			_commonExpression.ReadAnonymousField(_tables, field, map, ref index, newexp, null);
 			return (map, map.Childs.Count > 0 ? field.Remove(0, 2).ToString() : null);
 		}
 		protected (ReadAnonymousTypeInfo map, string field) GetAllField() {
@@ -222,31 +223,38 @@ namespace FreeSql.Internal.CommonProvider {
 		}
 		#region common
 
-		protected TMember InternalAvg<TMember>(Expression exp) => this.ToList<TMember>($"avg({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true)})").FirstOrDefault();
-		protected TMember InternalMax<TMember>(Expression exp) => this.ToList<TMember>($"max({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true)})").FirstOrDefault();
-		protected TMember InternalMin<TMember>(Expression exp) => this.ToList<TMember>($"min({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true)})").FirstOrDefault();
-		protected TMember InternalSum<TMember>(Expression exp) => this.ToList<TMember>($"sum({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true)})").FirstOrDefault();
+		protected TMember InternalAvg<TMember>(Expression exp) => this.ToList<TMember>($"avg({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)})").FirstOrDefault();
+		protected TMember InternalMax<TMember>(Expression exp) => this.ToList<TMember>($"max({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)})").FirstOrDefault();
+		protected TMember InternalMin<TMember>(Expression exp) => this.ToList<TMember>($"min({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)})").FirstOrDefault();
+		protected TMember InternalSum<TMember>(Expression exp) => this.ToList<TMember>($"sum({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)})").FirstOrDefault();
 
-		protected TSelect InternalGroupBy(Expression columns) {
-			return this.GroupBy(string.Join(", ", _commonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(_tables, columns, true)));
+		protected ISelectGrouping<TKey> InternalGroupBy<TKey>(Expression columns) {
+			var map = new ReadAnonymousTypeInfo();
+			var field = new StringBuilder();
+			var index = -10000; //临时规则，不返回 as1
+
+			_commonExpression.ReadAnonymousField(_tables, field, map, ref index, columns, null);
+			this.GroupBy(map.Childs.Count > 0 ? field.Remove(0, 2).ToString() : null);
+			return new SelectGroupingProvider<TKey>(this, map, _commonExpression);
 		}
 		protected TSelect InternalJoin(Expression exp, SelectTableInfoType joinType) {
-			_commonExpression.ExpressionJoinLambda(_tables, joinType, exp);
+			_commonExpression.ExpressionJoinLambda(_tables, joinType, exp, null);
 			return this as TSelect;
 		}
 		protected TSelect InternalJoin<T2>(Expression exp, SelectTableInfoType joinType) {
 			var tb = _commonUtils.GetTableByEntity(typeof(T2));
 			if (tb == null) throw new ArgumentException("T2 类型错误");
 			_tables.Add(new SelectTableInfo { Table = tb, Alias = $"IJ{_tables.Count}", On = null, Type = joinType });
-			_commonExpression.ExpressionJoinLambda(_tables, joinType, exp);
+			_commonExpression.ExpressionJoinLambda(_tables, joinType, exp, null);
 			return this as TSelect;
 		}
-		protected TSelect InternalOrderBy(Expression column) => this.OrderBy(_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, column, true));
-		protected TSelect InternalOrderByDescending(Expression column) => this.OrderBy($"{_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, column, true)} DESC");
+		protected TSelect InternalOrderBy(Expression column) => this.OrderBy(_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, column, true, null));
+		protected TSelect InternalOrderByDescending(Expression column) => this.OrderBy($"{_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, column, true, null)} DESC");
 
-		protected List<TReturn> InternalToList<TReturn>(Expression select) => this.ToList<TReturn>(this.GetNewExpressionField(select as NewExpression));
+		protected List<TReturn> InternalToList<TReturn>(Expression select) => this.ToListMapReader<TReturn>(this.GetNewExpressionField(select as NewExpression));
+		protected string InternalToSql<TReturn>(Expression select) => this.ToSql(this.GetNewExpressionField(select as NewExpression).field);
 
-		protected TSelect InternalWhere(Expression exp) => this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp));
+		protected TSelect InternalWhere(Expression exp) => this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp, null));
 
 		protected TSelect InternalJoin(Expression exp) {
 			return this as TSelect;

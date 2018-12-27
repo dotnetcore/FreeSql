@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Text;
 
 namespace FreeSql.Internal.CommonProvider {
 
@@ -26,11 +27,10 @@ namespace FreeSql.Internal.CommonProvider {
 					switch (expCall.Method.Name) {
 						case "Where": this.InternalWhere(expCall.Arguments[0]); break;
 						case "WhereIf":
-							var whereIfCond = _commonExpression.ExpressionSelectColumn_MemberAccess(null, null, SelectTableInfoType.From, expCall.Arguments[0], false);
+							var whereIfCond = _commonExpression.ExpressionSelectColumn_MemberAccess(null, null, SelectTableInfoType.From, expCall.Arguments[0], false, null);
 							if (whereIfCond == "1" || whereIfCond == "'t'")
 								this.InternalWhere(expCall.Arguments[1]);
 							break;
-						case "GroupBy": this.InternalGroupBy(expCall.Arguments[0]); break;
 						case "OrderBy": this.InternalOrderBy(expCall.Arguments[0]); break;
 						case "OrderByDescending": this.InternalOrderByDescending(expCall.Arguments[0]); break;
 
@@ -74,7 +74,7 @@ namespace FreeSql.Internal.CommonProvider {
 
 		public abstract ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> From<T2, T3, T4, T5, T6, T7, T8, T9, T10>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, T9, T10, ISelectFromExpression<T1>>> exp) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class;// { this.InternalFrom(exp?.Body); var ret = new Select10Provider<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(_orm, _commonUtils, _commonExpression, null); Select0Provider<ISelect<T1>, T1>.CopyData(this, ret); return ret; }
 
-		public ISelect<T1> GroupBy<TReturn>(Expression<Func<T1, TReturn>> columns) => this.InternalGroupBy(columns?.Body);
+		public ISelectGrouping<TKey> GroupBy<TKey>(Expression<Func<T1, TKey>> columns) => this.InternalGroupBy<TKey>(columns);
 
 		public TMember Max<TMember>(Expression<Func<T1, TMember>> column) => this.InternalMax<TMember>(column?.Body);
 
@@ -87,6 +87,7 @@ namespace FreeSql.Internal.CommonProvider {
 		public TMember Sum<TMember>(Expression<Func<T1, TMember>> column) => this.InternalSum<TMember>(column?.Body);
 
 		public List<TReturn> ToList<TReturn>(Expression<Func<T1, TReturn>> select) => this.InternalToList<TReturn>(select?.Body);
+		public string ToSql<TReturn>(Expression<Func<T1, TReturn>> select) => this.InternalToSql<TReturn>(select?.Body);
 
 		public ISelect<T1> Where(Expression<Func<T1, bool>> exp) => this.InternalWhere(exp?.Body);
 

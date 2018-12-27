@@ -35,7 +35,7 @@ namespace FreeSql.Internal.CommonProvider {
 		}
 		public abstract List<T1> ExecuteDeleted();
 
-		public IDelete<T1> Where(Expression<Func<T1, bool>> exp) => this.Where(_commonExpression.ExpressionWhereLambdaNoneForeignObject(null, null, exp?.Body));
+		public IDelete<T1> Where(Expression<Func<T1, bool>> exp) => this.Where(_commonExpression.ExpressionWhereLambdaNoneForeignObject(null, null, exp?.Body, null));
 		public IDelete<T1> Where(string sql, object parms = null) {
 			if (string.IsNullOrEmpty(sql)) return this;
 			if (++_whereTimes > 1) _where.Append(" AND ");
