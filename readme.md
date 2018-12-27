@@ -53,29 +53,19 @@ class TopicTypeClass {
 # Part1: 查询
 
 ```csharp
-List<Topic> t1 = fsql.Select<Topic>()
-    .Where(a => a.Id > 0)
-    .ToList();
+List<Topic> t1 = fsql.Select<Topic>().Where(a => a.Id > 0).ToList();
 
 //返回普通字段 + 导航对象 Type 的数据
-List<Topic> t2 = fsql.Select<Topic>()
-    .LeftJoin(a => a.Type.Id == a.TypeId)
-    .ToList();
+List<Topic> t2 = fsql.Select<Topic>().LeftJoin(a => a.Type.Id == a.TypeId).ToList();
 
 //返回一个字段
-List<int> t3 = fsql.Select<Topic>()
-    .Where(a => a.Id > 0)
-    .ToList(a => a.Id);
+List<int> t3 = fsql.Select<Topic>().Where(a => a.Id > 0).ToList(a => a.Id);
 
 //返回匿名类型
-List<匿名类型> t4 = fsql.Select<Topic>()
-    .Where(a => a.Id > 0)
-    .ToList(a => new { a.Id, a.Title });
+List<匿名类型> t4 = fsql.Select<Topic>().Where(a => a.Id > 0).ToList(a => new { a.Id, a.Title });
 
 //返回元组
-List<(int, string)> t5 = fsql.Select<Topic>()
-    .Where(a => a.Id > 0)
-    .ToList<(int, string)>("id, title");
+List<(int, string)> t5 = fsql.Select<Topic>().Where(a => a.Id > 0).ToList<(int, string)>("id, title");
 ```
 ### 联表之一：使用导航属性
 ```csharp
@@ -117,31 +107,27 @@ sql = fsql.Select<Topic>()
 # Part2: 添加
 ```csharp
 var items = new List<Topic>();
-for (var a = 0; a < 10; a++) items.Add(new Topic { Title = $"newtitle{a}", Clicks = a * 100 });
+for (var a = 0; a < 10; a++)
+    items.Add(new Topic { Title = $"newtitle{a}", Clicks = a * 100 });
 
 var t1 = fsql.Insert<Topic>().AppendData(items.First()).ToSql();
-//INSERT INTO `tb_topic`(`Clicks`, `Title`, `CreateTime`) VALUES(?Clicks0, ?Title0, ?CreateTime0)
-```
-### 批量插入
-```csharp
+
+//批量插入
 var t2 = fsql.Insert<Topic>().AppendData(items).ToSql();
-//INSERT INTO `tb_topic`(`Clicks`, `Title`, `CreateTime`) VALUES(?Clicks0, ?Title0, ?CreateTime0), (?Clicks1, ?Title1, ?CreateTime1), (?Clicks2, ?Title2, ?CreateTime2), (?Clicks3, ?Title3, ?CreateTime3), (?Clicks4, ?Title4, ?CreateTime4), (?Clicks5, ?Title5, ?CreateTime5), (?Clicks6, ?Title6, ?CreateTime6), (?Clicks7, ?Title7, ?CreateTime7), (?Clicks8, ?Title8, ?CreateTime8), (?Clicks9, ?Title9, ?CreateTime9)
-```
-### 插入指定的列
-```csharp
-var t3 = fsql.Insert<Topic>().AppendData(items).InsertColumns(a => a.Title).ToSql();
-//INSERT INTO `tb_topic`(`Title`) VALUES(?Title0), (?Title1), (?Title2), (?Title3), (?Title4), (?Title5), (?Title6), (?Title7), (?Title8), (?Title9)
 
-var t4 = fsql.Insert<Topic>().AppendData(items).InsertColumns(a => new { a.Title, a.Clicks }).ToSql();
-//INSERT INTO `tb_topic`(`Clicks`, `Title`) VALUES(?Clicks0, ?Title0), (?Clicks1, ?Title1), (?Clicks2, ?Title2), (?Clicks3, ?Title3), (?Clicks4, ?Title4), (?Clicks5, ?Title5), (?Clicks6, ?Title6), (?Clicks7, ?Title7), (?Clicks8, ?Title8), (?Clicks9, ?Title9)
-```
-### 忽略列
-```csharp
-var t5 = fsql.Insert<Topic>().AppendData(items).IgnoreColumns(a => a.CreateTime).ToSql();
-//INSERT INTO `tb_topic`(`Clicks`, `Title`) VALUES(?Clicks0, ?Title0), (?Clicks1, ?Title1), (?Clicks2, ?Title2), (?Clicks3, ?Title3), (?Clicks4, ?Title4), (?Clicks5, ?Title5), (?Clicks6, ?Title6), (?Clicks7, ?Title7), (?Clicks8, ?Title8), (?Clicks9, ?Title9)
+//插入指定的列
+var t3 = fsql.Insert<Topic>().AppendData(items)
+    .InsertColumns(a => a.Title).ToSql();
 
-var t6 = fsql.Insert<Topic>().AppendData(items).IgnoreColumns(a => new { a.Title, a.CreateTime }).ToSql();
-///INSERT INTO `tb_topic`(`Clicks`) VALUES(?Clicks0), (?Clicks1), (?Clicks2), (?Clicks3), (?Clicks4), (?Clicks5), (?Clicks6), (?Clicks7), (?Clicks8), (?Clicks9)
+var t4 = fsql.Insert<Topic>().AppendData(items)
+    .InsertColumns(a => new { a.Title, a.Clicks }).ToSql();
+
+//忽略列
+var t5 = fsql.Insert<Topic>().AppendData(items)
+    .IgnoreColumns(a => a.CreateTime).ToSql();
+
+var t6 = fsql.Insert<Topic>().AppendData(items)
+    .IgnoreColumns(a => new { a.Title, a.CreateTime }).ToSql();
 ```
 ### 执行命令
 | 方法 | 返回值 | 描述 |
@@ -151,24 +137,20 @@ var t6 = fsql.Insert<Topic>().AppendData(items).IgnoreColumns(a => new { a.Title
 | ExecuteInserted | List\<Topic\> | 执行SQL语句，返回插入后的记录 |
 
 # Part3: 修改
-### 更新指定列
 ```csharp
 var t1 = fsql.Update<Topic>(1).Set(a => a.CreateTime, DateTime.Now).ToSql();
 //UPDATE `tb_topic` SET `CreateTime` = '2018-12-08 00:04:59' WHERE (`Id` = 1)
-```
-### 更新指定列，累加
-```csharp
+
+//更新指定列，累加
 var t2 = fsql.Update<Topic>(1).Set(a => a.Clicks + 1).ToSql();
 //UPDATE `tb_topic` SET `Clicks` = ifnull(`Clicks`,0) + 1 WHERE (`Id` = 1)
-```
-### 保存实体
-```csharp
+
+//保存实体
 var item = new Topic { Id = 1, Title = "newtitle" };
 var t3 = fsql.Update<Topic>().SetSource(item).ToSql();
 //UPDATE `tb_topic` SET `Clicks` = ?p_0, `Title` = ?p_1, `CreateTime` = ?p_2 WHERE (`Id` = 1)
-```
-### 保存实体，忽略一些列
-```csharp
+
+//忽略列
 var t4 = fsql.Update<Topic>().SetSource(item)
     .IgnoreColumns(a => a.Clicks).ToSql();
 //UPDATE `tb_topic` SET `Title` = ?p_0, `CreateTime` = ?p_1 WHERE (`Id` = 1)
@@ -176,24 +158,31 @@ var t4 = fsql.Update<Topic>().SetSource(item)
 var t5 = fsql.Update<Topic>().SetSource(item)
     .IgnoreColumns(a => new { a.Clicks, a.CreateTime }).ToSql();
 //UPDATE `tb_topic` SET `Title` = ?p_0 WHERE (`Id` = 1)
-```
-### 批量保存
+
+//批量保存
 ```csharp
 var items = new List<Topic>();
 for (var a = 0; a < 10; a++)
     items.Add(new Topic { Id = a + 1, Title = $"newtitle{a}", Clicks = a * 100 });
 
 var t6 = fsql.Update<Topic>().SetSource(items).ToSql();
-//UPDATE `tb_topic` SET `Clicks` = CASE `Id` WHEN 1 THEN ?p_0 WHEN 2 THEN ?p_1 WHEN 3 THEN ?p_2 WHEN 4 THEN ?p_3 WHEN 5 THEN ?p_4 WHEN 6 THEN ?p_5 WHEN 7 THEN ?p_6 WHEN 8 THEN ?p_7 WHEN 9 THEN ?p_8 WHEN 10 THEN ?p_9 END, `Title` = CASE `Id` WHEN 1 THEN ?p_10 WHEN 2 THEN ?p_11 WHEN 3 THEN ?p_12 WHEN 4 THEN ?p_13 WHEN 5 THEN ?p_14 WHEN 6 THEN ?p_15 WHEN 7 THEN ?p_16 WHEN 8 THEN ?p_17 WHEN 9 THEN ?p_18 WHEN 10 THEN ?p_19 END, `CreateTime` = CASE `Id` WHEN 1 THEN ?p_20 WHEN 2 THEN ?p_21 WHEN 3 THEN ?p_22 WHEN 4 THEN ?p_23 WHEN 5 THEN ?p_24 WHEN 6 THEN ?p_25 WHEN 7 THEN ?p_26 WHEN 8 THEN ?p_27 WHEN 9 THEN ?p_28 WHEN 10 THEN ?p_29 END WHERE (`Id` IN (1,2,3,4,5,6,7,8,9,10))
-```
-### 批量保存，忽略一些列
-```csharp
+//UPDATE `tb_topic` SET `Clicks` = CASE `Id` WHEN 1 THEN ?p_0 WHEN 2 THEN ?p_1 
+//WHEN 3 THEN ?p_2 WHEN 4 THEN ?p_3 WHEN 5 THEN ?p_4 WHEN 6 THEN ?p_5 WHEN 7 THEN ?p_6 
+//WHEN 8 THEN ?p_7 WHEN 9 THEN ?p_8 WHEN 10 THEN ?p_9 END, `Title` = CASE `Id` 
+//WHEN 1 THEN ?p_10 WHEN 2 THEN ?p_11 WHEN 3 THEN ?p_12 WHEN 4 THEN ?p_13 WHEN 5 THEN ?p_14 
+//WHEN 6 THEN ?p_15 WHEN 7 THEN ?p_16 WHEN 8 THEN ?p_17 WHEN 9 THEN ?p_18 WHEN 10 THEN ?p_19 END, 
+//`CreateTime` = CASE `Id` WHEN 1 THEN ?p_20 WHEN 2 THEN ?p_21 WHEN 3 THEN ?p_22 WHEN 4 THEN ?p_23 
+//WHEN 5 THEN ?p_24 WHEN 6 THEN ?p_25 WHEN 7 THEN ?p_26 WHEN 8 THEN ?p_27 WHEN 9 THEN ?p_28 
+//WHEN 10 THEN ?p_29 END WHERE (`Id` IN (1,2,3,4,5,6,7,8,9,10))
+
+//批量保存的时候，也可以忽略一些列
 var t7 = fsql.Update<Topic>().SetSource(items)
     .IgnoreColumns(a => new { a.Clicks, a.CreateTime }).ToSql();
-//UPDATE `tb_topic` SET `Title` = CASE `Id` WHEN 1 THEN ?p_0 WHEN 2 THEN ?p_1 WHEN 3 THEN ?p_2 WHEN 4 THEN ?p_3 WHEN 5 THEN ?p_4 WHEN 6 THEN ?p_5 WHEN 7 THEN ?p_6 WHEN 8 THEN ?p_7 WHEN 9 THEN ?p_8 WHEN 10 THEN ?p_9 END WHERE (`Id` IN (1,2,3,4,5,6,7,8,9,10))
-```
-### 批量更新指定列
-```csharp
+//UPDATE `tb_topic` SET `Title` = CASE `Id` WHEN 1 THEN ?p_0 WHEN 2 THEN ?p_1 WHEN 3 THEN ?p_2 
+//WHEN 4 THEN ?p_3 WHEN 5 THEN ?p_4 WHEN 6 THEN ?p_5 WHEN 7 THEN ?p_6 WHEN 8 THEN ?p_7 WHEN 9 
+//THEN ?p_8 WHEN 10 THEN ?p_9 END WHERE (`Id` IN (1,2,3,4,5,6,7,8,9,10))
+
+//批量更新指定列
 var t8 = fsql.Update<Topic>().SetSource(items).Set(a => a.CreateTime, DateTime.Now).ToSql();
 //UPDATE `tb_topic` SET `CreateTime` = ?p_0 WHERE (`Id` IN (1,2,3,4,5,6,7,8,9,10))
 ```
