@@ -98,7 +98,7 @@ namespace FreeSql.Internal {
 		}
 
 		static Dictionary<string, bool> dicExecuteArrayRowReadClassOrTuple = new Dictionary<string, bool> {
-			{ typeof(bool ).FullName, true },
+			{ typeof(bool).FullName, true },
 			{ typeof(sbyte).FullName, true },
 			{ typeof(short).FullName, true },
 			{ typeof(int).FullName, true },
