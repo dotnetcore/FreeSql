@@ -21,6 +21,14 @@ namespace FreeSql {
 		string ToSql<TReturn>(Expression<Func<T1, TReturn>> select);
 
 		/// <summary>
+		/// 执行SQL查询，返回指定字段的聚合结果
+		/// </summary>
+		/// <typeparam name="TReturn"></typeparam>
+		/// <param name="select"></param>
+		/// <returns></returns>
+		TReturn ToAggregate<TReturn>(Expression<Func<ISelectGroupingAggregate<T1>, TReturn>> select);
+
+		/// <summary>
 		/// 求和
 		/// </summary>
 		/// <typeparam name="TMember">返回类型</typeparam>

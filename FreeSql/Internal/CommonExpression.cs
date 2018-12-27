@@ -249,15 +249,11 @@ namespace FreeSql.Internal {
 					if (expStack.First().NodeType != ExpressionType.Parameter) return _common.FormatSql("{0}", Expression.Lambda(exp).Compile().DynamicInvoke());
 					if (callExp != null) return ExpressionLambdaToSql(callExp, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
 					if (getSelectGroupingMapString != null && expStack.First().Type.FullName.StartsWith("FreeSql.ISelectGroupingAggregate`")) {
-						var expText = getSelectGroupingMapString(expStack.Where((a, b) => b >= 2).ToArray());
-						if (string.IsNullOrEmpty(expText) == false) return expText;
+						if (getSelectGroupingMapString != null) {
+							var expText = getSelectGroupingMapString(expStack.Where((a, b) => b >= 2).ToArray());
+							if (string.IsNullOrEmpty(expText) == false) return expText;
+						}
 					}
-					//if (exp4.Expression != null && exp4.Expression.NodeType == ExpressionType.MemberAccess) {
-					//	var keyExp = exp4.Expression as MemberExpression;
-					//	if (keyExp.Member.Name == "Key" && keyExp.Expression.Type.FullName.StartsWith("FreeSql.ISelectGroupingAggregate`")) {
-					//		var expText = getSelectGroupingMapString(exp4)
-					//	}
-					//}
 
 					if (_tables == null) {
 						var pp = expStack.Pop() as ParameterExpression;
@@ -282,8 +278,11 @@ namespace FreeSql.Internal {
 								throw new NotImplementedException("未现实 MemberAccess 下的 Constant");
 							case ExpressionType.Parameter:
 							case ExpressionType.MemberAccess:
-								var tb2tmp = _common.GetTableByEntity(exp2.Type);
+								var exp2Type = exp2.Type;
+								if (exp2Type.FullName.StartsWith("FreeSql.ISelectGroupingAggregate`")) exp2Type = exp2Type.GenericTypeArguments.FirstOrDefault() ?? exp2.Type;
+								var tb2tmp = _common.GetTableByEntity(exp2Type);
 								var mp2 = exp2 as MemberExpression;
+								if (mp2?.Member.Name == "Key" && mp2.Expression.Type.FullName.StartsWith("FreeSql.ISelectGroupingAggregate`")) continue;
 								if (tb2tmp != null) {
 									if (exp2.NodeType == ExpressionType.Parameter) alias2 = (exp2 as ParameterExpression).Name;
 									else alias2 = $"{alias2}__{mp2.Member.Name}";

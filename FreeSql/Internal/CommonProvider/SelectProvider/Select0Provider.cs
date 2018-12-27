@@ -254,6 +254,15 @@ namespace FreeSql.Internal.CommonProvider {
 		protected List<TReturn> InternalToList<TReturn>(Expression select) => this.ToListMapReader<TReturn>(this.GetNewExpressionField(select as NewExpression));
 		protected string InternalToSql<TReturn>(Expression select) => this.ToSql(this.GetNewExpressionField(select as NewExpression).field);
 
+		protected TReturn InternalToAggregate<TReturn>(Expression select) {
+			var map = new ReadAnonymousTypeInfo();
+			var field = new StringBuilder();
+			var index = 0;
+
+			_commonExpression.ReadAnonymousField(_tables, field, map, ref index, select, null);
+			return this.ToListMapReader<TReturn>((map, map.Childs.Count > 0 ? field.Remove(0, 2).ToString() : null)).FirstOrDefault();
+		}
+
 		protected TSelect InternalWhere(Expression exp) => this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp, null));
 
 		protected TSelect InternalJoin(Expression exp) {

@@ -44,11 +44,41 @@ namespace FreeSql {
 	}
 
 	public interface ISelectGroupingAggregate<T1> {
+		/// <summary>
+		/// 分组的数据
+		/// </summary>
 		T1 Key { get; set; }
+		/// <summary>
+		/// 记录总数
+		/// </summary>
+		/// <returns></returns>
 		int Count();
+		/// <summary>
+		/// 求和
+		/// </summary>
+		/// <typeparam name="T3"></typeparam>
+		/// <param name="column"></param>
+		/// <returns></returns>
 		T3 Sum<T3>(T3 column);
+		/// <summary>
+		/// 平均值
+		/// </summary>
+		/// <typeparam name="T3"></typeparam>
+		/// <param name="column"></param>
+		/// <returns></returns>
 		T3 Avg<T3>(T3 column);
+		/// <summary>
+		/// 最大值
+		/// </summary>
+		/// <typeparam name="T3"></typeparam>
+		/// <param name="column"></param>
+		/// <returns></returns>
 		T3 Max<T3>(T3 column);
+		/// <summary>
+		/// 最小值
+		/// </summary>
+		/// <param name="column"></param>
+		/// <returns></returns>
 		T3 Min<T3>(T3 column);
 	}
 }

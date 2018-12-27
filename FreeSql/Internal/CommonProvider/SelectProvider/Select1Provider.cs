@@ -87,7 +87,10 @@ namespace FreeSql.Internal.CommonProvider {
 		public TMember Sum<TMember>(Expression<Func<T1, TMember>> column) => this.InternalSum<TMember>(column?.Body);
 
 		public List<TReturn> ToList<TReturn>(Expression<Func<T1, TReturn>> select) => this.InternalToList<TReturn>(select?.Body);
+
 		public string ToSql<TReturn>(Expression<Func<T1, TReturn>> select) => this.InternalToSql<TReturn>(select?.Body);
+
+		public TReturn ToAggregate<TReturn>(Expression<Func<ISelectGroupingAggregate<T1>, TReturn>> select) => this.InternalToAggregate<TReturn>(select?.Body);
 
 		public ISelect<T1> Where(Expression<Func<T1, bool>> exp) => this.InternalWhere(exp?.Body);
 

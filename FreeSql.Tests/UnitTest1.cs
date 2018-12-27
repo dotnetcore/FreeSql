@@ -8,6 +8,11 @@ using System.Linq;
 namespace FreeSql.Tests {
 	public class UnitTest1 {
 
+		class NullAggreTestTable {
+			[Column(IsIdentity = true)]
+			public int Id { get; set; }
+		}
+
 		ISelect<TestInfo> select => g.mysql.Select<TestInfo>();
 		[Fact]
 		public void Test1() {
@@ -26,6 +31,9 @@ namespace FreeSql.Tests {
 			var sss = new[] { 1, 2, 3 };
 			sss.Count();
 
+			var arrg = g.mysql.Select<TestInfo>().ToAggregate(a => new { sum = a.Sum(a.Key.Id + 11.11), avg = a.Avg(a.Key.Id), count = a.Count(), max = a.Max(a.Key.Id), min = a.Min(a.Key.Id) });
+
+			var arrg222 = g.mysql.Select<NullAggreTestTable>().ToAggregate(a => new { sum = a.Sum(a.Key.Id + 11.11), avg = a.Avg(a.Key.Id), count = a.Count(), max = a.Max(a.Key.Id), min = a.Min(a.Key.Id) });
 
 			var t1 = g.mysql.Select<TestInfo>().Where("").Where(a => a.Id > 0).Skip(100).Limit(200).ToSql();
 			var t2 = g.mysql.Select<TestInfo>().As("b").Where("").Where(a => a.Id > 0).Skip(100).Limit(200).ToSql();
