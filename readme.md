@@ -1,6 +1,6 @@
 # FreeSql
 
-打造 .NETCore 最方便的orm，dbfirst codefirst混合使用，codefirst模式下的开发阶段，建好实体不用执行任何，就能创建表和修改字段，dbfirst模式下提供api+模板，自定义生成代码，作者提供了3种模板。
+打造 .NETCore 最方便的orm，dbfirst codefirst混合使用，codefirst模式下的开发阶段，建好实体不用执行任何，就能创建表和修改字段，dbfirst模式下提供api+模板，自定义生成代码，作者提供了3种模板。目前仍然在开发中，可以持续关注或者参与，给出宝贵意见，QQ群：4336577
 
 * [《CodeFirst 快速开发文档》](Docs/codefirst.md)
 
