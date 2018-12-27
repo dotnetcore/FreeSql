@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace FreeSql {
 	public interface ISelectGrouping<T1> {
@@ -33,6 +34,7 @@ namespace FreeSql {
 		/// <param name="select">选择列</param>
 		/// <returns></returns>
 		List<TReturn> ToList<TReturn>(Expression<Func<ISelectGroupingAggregate<T1>, TReturn>> select);
+		Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<ISelectGroupingAggregate<T1>, TReturn>> select);
 
 		/// <summary>
 		/// 返回即将执行的SQL语句

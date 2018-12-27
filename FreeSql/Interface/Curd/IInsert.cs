@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 namespace FreeSql {
 	public interface IInsert<T1> where T1 : class {
@@ -40,16 +41,19 @@ namespace FreeSql {
 		/// 执行SQL语句，返回影响的行数
 		/// </summary>
 		/// <returns></returns>
-		long ExecuteAffrows();
+		int ExecuteAffrows();
+		Task<int> ExecuteAffrowsAsync();
 		/// <summary>
 		/// 执行SQL语句，返回自增值
 		/// </summary>
 		/// <returns></returns>
 		long ExecuteIdentity();
+		Task<long> ExecuteIdentityAsync();
 		/// <summary>
 		/// 执行SQL语句，返回插入后的记录
 		/// </summary>
 		/// <returns></returns>
 		List<T1> ExecuteInserted();
+		Task<List<T1>> ExecuteInsertedAsync();
 	}
 }

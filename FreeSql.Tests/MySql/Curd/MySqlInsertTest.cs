@@ -79,7 +79,7 @@ namespace FreeSql.Tests.MySql {
 			var items = new List<Topic>();
 			for (var a = 0; a < 10; a++) items.Add(new Topic { Id = a + 1, Title = $"newtitle{a}", Clicks = a * 100 });
 
-			Assert.Throws<NotImplementedException>(() => insert.AppendData(items.First()).ExecuteInserted());
+			insert.AppendData(items.First()).ExecuteInserted();
 		}
 	}
 }

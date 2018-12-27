@@ -5,6 +5,7 @@ using System.Data;
 using System.Data.Common;
 using System.Linq.Expressions;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace FreeSql.Internal.CommonProvider {
 
@@ -28,12 +29,18 @@ namespace FreeSql.Internal.CommonProvider {
 			if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure<T1>();
 		}
 
-		public long ExecuteAffrows() {
+		public int ExecuteAffrows() {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return 0;
 			return _orm.Ado.ExecuteNonQuery(CommandType.Text, sql, _params.ToArray());
 		}
+		async public Task<int> ExecuteAffrowsAsync() {
+			var sql = this.ToSql();
+			if (string.IsNullOrEmpty(sql)) return 0;
+			return await _orm.Ado.ExecuteNonQueryAsync(CommandType.Text, sql, _params.ToArray());
+		}
 		public abstract List<T1> ExecuteDeleted();
+		public abstract Task<List<T1>> ExecuteDeletedAsync();
 
 		public IDelete<T1> Where(Expression<Func<T1, bool>> exp) => this.Where(_commonExpression.ExpressionWhereLambdaNoneForeignObject(null, null, exp?.Body, null));
 		public IDelete<T1> Where(string sql, object parms = null) {

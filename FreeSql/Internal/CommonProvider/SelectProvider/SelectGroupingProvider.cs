@@ -5,6 +5,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace FreeSql.Internal.CommonProvider {
 	class SelectGroupingProvider<T1> : ISelectGrouping<T1> {
@@ -58,6 +59,16 @@ namespace FreeSql.Internal.CommonProvider {
 			method = method.MakeGenericMethod(typeof(TReturn));
 			return method.Invoke(_select, new object[] { (map, map.Childs.Count > 0 ? field.Remove(0, 2).ToString() : null) }) as List<TReturn>;
 		}
+		public Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<ISelectGroupingAggregate<T1>, TReturn>> select) {
+			var map = new ReadAnonymousTypeInfo();
+			var field = new StringBuilder();
+			var index = 0;
+
+			_comonExp.ReadAnonymousField(null, field, map, ref index, select, getSelectGroupingMapString);
+			var method = _select.GetType().GetMethod("ToListMapReaderAsync", BindingFlags.Instance | BindingFlags.NonPublic);
+			method = method.MakeGenericMethod(typeof(TReturn));
+			return method.Invoke(_select, new object[] { (map, map.Childs.Count > 0 ? field.Remove(0, 2).ToString() : null) }) as Task<List<TReturn>>;
+		}
 
 		public string ToSql<TReturn>(Expression<Func<ISelectGroupingAggregate<T1>, TReturn>> select) {
 			var map = new ReadAnonymousTypeInfo();
@@ -68,5 +79,7 @@ namespace FreeSql.Internal.CommonProvider {
 			var method = _select.GetType().GetMethod("ToSql", new[] { typeof(string) });
 			return method.Invoke(_select, new object[] { map.Childs.Count > 0 ? field.Remove(0, 2).ToString() : null }) as string;
 		}
+
+		
 	}
 }

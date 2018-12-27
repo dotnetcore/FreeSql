@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace FreeSql {
 	public interface ISelect0<TSelect, T1> {
@@ -11,6 +12,7 @@ namespace FreeSql {
 		/// </summary>
 		/// <returns></returns>
 		List<T1> ToList();
+		Task<List<T1>> ToListAsync();
 		/// <summary>
 		/// 执行SQL查询，返回 field 指定字段的记录，并以元组或基础类型(int,string,long)接收，记录不存在时返回 Count 为 0 的列表
 		/// </summary>
@@ -18,11 +20,13 @@ namespace FreeSql {
 		/// <param name="field"></param>
 		/// <returns></returns>
 		List<TTuple> ToList<TTuple>(string field);
+		Task<List<TTuple>> ToListAsync<TTuple>(string field);
 		/// <summary>
 		/// 执行SQL查询，返回 T1 实体所有字段的第一条记录，记录不存在时返回 null
 		/// </summary>
 		/// <returns></returns>
 		T1 ToOne();
+		Task<T1> ToOneAsync();
 
 		/// <summary>
 		/// 返回即将执行的SQL语句
@@ -35,12 +39,14 @@ namespace FreeSql {
 		/// </summary>
 		/// <returns></returns>
 		bool Any();
+		Task<bool> AnyAsync();
 
 		/// <summary>
 		/// 查询的记录数量
 		/// </summary>
 		/// <returns></returns>
 		long Count();
+		Task<long> CountAsync();
 		/// <summary>
 		/// 查询的记录数量，以参数out形式返回
 		/// </summary>

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 namespace FreeSql {
 	public interface ISelect<T1> : ISelect0<ISelect<T1>, T1> where T1 : class {
@@ -12,6 +13,7 @@ namespace FreeSql {
 		/// <param name="select">选择列</param>
 		/// <returns></returns>
 		List<TReturn> ToList<TReturn>(Expression<Func<T1, TReturn>> select);
+		Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<T1, TReturn>> select);
 		/// <summary>
 		/// 返回即将执行的SQL语句
 		/// </summary>
@@ -27,6 +29,7 @@ namespace FreeSql {
 		/// <param name="select"></param>
 		/// <returns></returns>
 		TReturn ToAggregate<TReturn>(Expression<Func<ISelectGroupingAggregate<T1>, TReturn>> select);
+		Task<TReturn> ToAggregateAsync<TReturn>(Expression<Func<ISelectGroupingAggregate<T1>, TReturn>> select);
 
 		/// <summary>
 		/// 求和
@@ -35,6 +38,7 @@ namespace FreeSql {
 		/// <param name="column">列</param>
 		/// <returns></returns>
 		TMember Sum<TMember>(Expression<Func<T1, TMember>> column);
+		Task<TMember> SumAsync<TMember>(Expression<Func<T1, TMember>> column);
 		/// <summary>
 		/// 最小值
 		/// </summary>
@@ -42,6 +46,7 @@ namespace FreeSql {
 		/// <param name="column">列</param>
 		/// <returns></returns>
 		TMember Min<TMember>(Expression<Func<T1, TMember>> column);
+		Task<TMember> MinAsync<TMember>(Expression<Func<T1, TMember>> column);
 		/// <summary>
 		/// 最大值
 		/// </summary>
@@ -49,6 +54,7 @@ namespace FreeSql {
 		/// <param name="column">列</param>
 		/// <returns></returns>
 		TMember Max<TMember>(Expression<Func<T1, TMember>> column);
+		Task<TMember> MaxAsync<TMember>(Expression<Func<T1, TMember>> column);
 		/// <summary>
 		/// 平均值
 		/// </summary>
@@ -56,6 +62,7 @@ namespace FreeSql {
 		/// <param name="column">列</param>
 		/// <returns></returns>
 		TMember Avg<TMember>(Expression<Func<T1, TMember>> column);
+		Task<TMember> AvgAsync<TMember>(Expression<Func<T1, TMember>> column);
 
 		/// <summary>
 		/// 指定别名

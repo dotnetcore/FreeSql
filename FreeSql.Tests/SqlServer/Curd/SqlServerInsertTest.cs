@@ -13,7 +13,7 @@ namespace FreeSql.Tests.SqlServer {
 		class Topic {
 			[Column(IsIdentity = true, IsPrimary = true)]
 			public int Id { get; set; }
-			public int Clicks { get; set; }
+			public int? Clicks { get; set; }
 			public TestTypeInfo Type { get; set; }
 			public string Title { get; set; }
 			public DateTime CreateTime { get; set; }

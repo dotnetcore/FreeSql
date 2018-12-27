@@ -6,6 +6,7 @@ using System.Data.Common;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace FreeSql.Internal.CommonProvider {
 
@@ -35,9 +36,12 @@ namespace FreeSql.Internal.CommonProvider {
 			return this;
 		}
 
-		public long ExecuteAffrows() => _orm.Ado.ExecuteNonQuery(CommandType.Text, this.ToSql(), _params);
+		public int ExecuteAffrows() => _orm.Ado.ExecuteNonQuery(CommandType.Text, this.ToSql(), _params);
+		public Task<int> ExecuteAffrowsAsync() => _orm.Ado.ExecuteNonQueryAsync(CommandType.Text, this.ToSql(), _params);
 		public abstract long ExecuteIdentity();
+		public abstract Task<long> ExecuteIdentityAsync();
 		public abstract List<T1> ExecuteInserted();
+		public abstract Task<List<T1>> ExecuteInsertedAsync();
 
 		public IInsert<T1> IgnoreColumns(Expression<Func<T1, object>> columns) {
 			var cols = _commonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(null, columns?.Body, false, null).Distinct();

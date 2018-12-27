@@ -6,6 +6,7 @@ using System.Data.Common;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace FreeSql.Internal.CommonProvider {
 
@@ -30,12 +31,18 @@ namespace FreeSql.Internal.CommonProvider {
 			if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure<T1>();
 		}
 
-		public long ExecuteAffrows() {
+		public int ExecuteAffrows() {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return 0;
 			return _orm.Ado.ExecuteNonQuery(CommandType.Text, sql, _params.Concat(_paramsSource).ToArray());
 		}
+		async public Task<int> ExecuteAffrowsAsync() {
+			var sql = this.ToSql();
+			if (string.IsNullOrEmpty(sql)) return 0;
+			return await _orm.Ado.ExecuteNonQueryAsync(CommandType.Text, sql, _params.Concat(_paramsSource).ToArray());
+		}
 		public abstract List<T1> ExecuteUpdated();
+		public abstract Task<List<T1>> ExecuteUpdatedAsync();
 
 		public IUpdate<T1> IgnoreColumns(Expression<Func<T1, object>> columns) {
 			var cols = _commonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(null, columns?.Body, false, null).Distinct();

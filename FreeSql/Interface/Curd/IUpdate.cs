@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 namespace FreeSql {
 	public interface IUpdate<T1> where T1 : class {
@@ -90,11 +91,13 @@ namespace FreeSql {
 		/// 执行SQL语句，返回影响的行数
 		/// </summary>
 		/// <returns></returns>
-		long ExecuteAffrows();
+		int ExecuteAffrows();
+		Task<int> ExecuteAffrowsAsync();
 		/// <summary>
 		/// 执行SQL语句，返回更新后的记录
 		/// </summary>
 		/// <returns></returns>
 		List<T1> ExecuteUpdated();
+		Task<List<T1>> ExecuteUpdatedAsync();
 	}
 }

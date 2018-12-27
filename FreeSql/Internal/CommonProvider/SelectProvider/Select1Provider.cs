@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace FreeSql.Internal.CommonProvider {
 
@@ -58,6 +59,8 @@ namespace FreeSql.Internal.CommonProvider {
 
 		public TMember Avg<TMember>(Expression<Func<T1, TMember>> column) => this.InternalAvg<TMember>(column?.Body);
 
+		public Task<TMember> AvgAsync<TMember>(Expression<Func<T1, TMember>> column) => this.InternalAvgAsync<TMember>(column?.Body);
+
 		public abstract ISelect<T1, T2, T3> From<T2, T3>(Expression<Func<ISelectFromExpression<T1>, T2, T3, ISelectFromExpression<T1>>> exp) where T2 : class where T3 : class;// { this.InternalFrom(exp?.Body); var ret = new Select3Provider<T1, T2, T3>(_orm, _commonUtils, _commonExpression, null); Select0Provider<ISelect<T1>, T1>.CopyData(this, ret); return ret; }
 
 		public abstract ISelect<T1, T2, T3, T4> From<T2, T3, T4>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, ISelectFromExpression<T1>>> exp) where T2 : class where T3 : class where T4 : class;// { this.InternalFrom(exp?.Body); var ret = new Select4Provider<T1, T2, T3, T4>(_orm, _commonUtils, _commonExpression, null); Select0Provider<ISelect<T1>, T1>.CopyData(this, ret); return ret; }
@@ -78,7 +81,11 @@ namespace FreeSql.Internal.CommonProvider {
 
 		public TMember Max<TMember>(Expression<Func<T1, TMember>> column) => this.InternalMax<TMember>(column?.Body);
 
+		public Task<TMember> MaxAsync<TMember>(Expression<Func<T1, TMember>> column) => this.InternalMaxAsync<TMember>(column?.Body);
+
 		public TMember Min<TMember>(Expression<Func<T1, TMember>> column) => this.InternalMin<TMember>(column?.Body);
+
+		public Task<TMember> MinAsync<TMember>(Expression<Func<T1, TMember>> column) => this.InternalMinAsync<TMember>(column?.Body);
 
 		public ISelect<T1> OrderBy<TMember>(Expression<Func<T1, TMember>> column) => this.InternalOrderBy(column?.Body);
 
@@ -86,11 +93,17 @@ namespace FreeSql.Internal.CommonProvider {
 
 		public TMember Sum<TMember>(Expression<Func<T1, TMember>> column) => this.InternalSum<TMember>(column?.Body);
 
+		public Task<TMember> SumAsync<TMember>(Expression<Func<T1, TMember>> column) => this.InternalSumAsync<TMember>(column?.Body);
+
 		public List<TReturn> ToList<TReturn>(Expression<Func<T1, TReturn>> select) => this.InternalToList<TReturn>(select?.Body);
+
+		public Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<T1, TReturn>> select) => this.InternalToListAsync<TReturn>(select?.Body);
 
 		public string ToSql<TReturn>(Expression<Func<T1, TReturn>> select) => this.InternalToSql<TReturn>(select?.Body);
 
 		public TReturn ToAggregate<TReturn>(Expression<Func<ISelectGroupingAggregate<T1>, TReturn>> select) => this.InternalToAggregate<TReturn>(select?.Body);
+
+		public Task<TReturn> ToAggregateAsync<TReturn>(Expression<Func<ISelectGroupingAggregate<T1>, TReturn>> select) => this.InternalToAggregateAsync<TReturn>(select?.Body);
 
 		public ISelect<T1> Where(Expression<Func<T1, bool>> exp) => this.InternalWhere(exp?.Body);
 
@@ -103,5 +116,7 @@ namespace FreeSql.Internal.CommonProvider {
 		public ISelect<T1> Where<T2, T3, T4, T5>(Expression<Func<T1, T2, T3, T4, T5, bool>> exp) where T2 : class where T3 : class where T4 : class where T5 : class => this.InternalWhere(exp?.Body);
 
 		public ISelect<T1> WhereIf(bool condition, Expression<Func<T1, bool>> exp) => condition ? this.InternalWhere(exp?.Body) : this;
+
+		
 	}
 }

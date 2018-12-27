@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace FreeSql.MySql.Curd {
 
@@ -14,8 +15,11 @@ namespace FreeSql.MySql.Curd {
 		}
 
 		public override List<T1> ExecuteUpdated() {
+			var sql = this.ToSql();
+			if (string.IsNullOrEmpty(sql)) return new List<T1>();
+
 			var sb = new StringBuilder();
-			sb.Append(this.ToSql()).Append(" RETURNING ");
+			sb.Append(sql).Append(" RETURNING ");
 
 			var colidx = 0;
 			foreach (var col in _table.Columns.Values) {
@@ -24,6 +28,21 @@ namespace FreeSql.MySql.Curd {
 				++colidx;
 			}
 			return _orm.Ado.Query<T1>(CommandType.Text, sb.ToString(), _params.Concat(_paramsSource).ToArray());
+		}
+		async public override Task<List<T1>> ExecuteUpdatedAsync() {
+			var sql = this.ToSql();
+			if (string.IsNullOrEmpty(sql)) return new List<T1>();
+
+			var sb = new StringBuilder();
+			sb.Append(sql).Append(" RETURNING ");
+
+			var colidx = 0;
+			foreach (var col in _table.Columns.Values) {
+				if (colidx > 0) sb.Append(", ");
+				sb.Append(_commonUtils.QuoteReadColumn(col.CsType, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
+				++colidx;
+			}
+			return await _orm.Ado.QueryAsync<T1>(CommandType.Text, sb.ToString(), _params.Concat(_paramsSource).ToArray());
 		}
 
 		protected override void ToSqlCase(StringBuilder caseWhen, ColumnInfo[] primarys) {
