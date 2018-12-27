@@ -12,7 +12,7 @@ namespace FreeSql.Site.UI.Areas.Doc.Controllers
     public class DocumentsController : BaseController
     {
         // GET: Documents
-        public ActionResult Index()
+        public IActionResult Index()
         {
             return View();
         }

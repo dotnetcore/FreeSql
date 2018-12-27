@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json.Serialization;
 
 namespace FreeSql.Site.UI
 {
@@ -31,6 +32,21 @@ namespace FreeSql.Site.UI
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
+
+            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
+                //设置返回内容得大小写格式
+                .AddJsonOptions(options => { options.SerializerSettings.ContractResolver = new DefaultContractResolver(); });
+
+            //Session服务
+            services.AddSession();
+
+            //添加跨域访问
+            services.AddCors(options => options.AddPolicy("AllowAnyOrigin",
+                builder => builder.WithOrigins("*")
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .AllowAnyOrigin()
+                .AllowCredentials()));
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
         }

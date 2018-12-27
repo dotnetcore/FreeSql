@@ -18,4 +18,13 @@
     <Folder Include="Areas\Doc\Models\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Update="Areas\BBS\_ViewStart.cshtml">
+      <Pack>$(IncludeRazorContentInPack)</Pack>
+    </Content>
+    <Content Update="Areas\Doc\_ViewStart.cshtml">
+      <Pack>$(IncludeRazorContentInPack)</Pack>
+    </Content>
+  </ItemGroup>
+
 </Project>
