@@ -25,7 +25,10 @@ namespace FreeSql.Tests {
 			.Having(a => a.Count() < 300 || a.Avg(a.Key.mod4) < 100)
 			.OrderBy(a => a.Key.tt2)
 			.OrderByDescending(a => a.Count())
-			.ToSql(a => new { a.Key.tt2, cou1 = a.Count(), arg1 = a.Avg(a.Key.mod4) });
+			.ToSql(a => new { a.Key.tt2, cou1 = a.Count(), arg1 = a.Avg(a.Key.mod4),
+				ccc2 = a.Key.tt2 ?? "now()",
+				ccc = Convert.ToDateTime("now()"), partby = Convert.ToDecimal("sum(num) over(PARTITION BY server_id,os,rid,chn order by id desc)")
+			});
 
 
 			var sss = new[] { 1, 2, 3 };

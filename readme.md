@@ -1,6 +1,14 @@
 # FreeSql
 
-打造 .NETCore 最方便的orm，dbfirst codefirst混合使用，codefirst模式下的开发阶段，建好实体不用执行任何，就能创建表和修改字段，dbfirst模式下提供api+模板，自定义生成代码，作者提供了3种模板。目前仍然在开发中，可以持续关注或者参与，给出宝贵意见，QQ群：4336577
+FreeSql 是轻量化、可扩展和跨平台版的 .NETStandard 数据访问技术实现。
+
+FreeSql 可用作对象关系映射程序 (O/RM)，以便于开发人员能够使用 .NETStandard 对象来处理数据库，不必经常编写大部分数据访问代码。
+
+FreeSql 支持 MySql/SqlServer/PostgreSQL 数据库技术实现。
+
+FreeSql 打造 .NETCore 最方便的 ORM，dbfirst codefirst混合使用，codefirst模式下的开发阶段，建好实体不用执行任何操作，就能创建表和修改字段，dbfirst模式下提供api+模板，自定义生成代码，作者提供了3种模板。
+
+FreeSql 目前仍处在测试阶段，您可以持续关注或者参与给出宝贵意见，QQ群：4336577
 
 * [《CodeFirst 快速开发文档》](Docs/codefirst.md)
 
@@ -24,6 +32,13 @@ IFreeSql fsql = new FreeSql.FreeSqlBuilder()
 ```
 
 # 实体
+
+FreeSql 使用模型执行数据访问，模型由实体类表示数据库表或视图，用于查询和保存数据。 有关详细信息，请参阅创建模型。
+
+可从现有数据库生成实体模型，提供 IDbFirst 生成实体模型。
+
+或者手动创建模型，基于模型创建或修改数据库，提供 ICodeFirst 同步结构的 API（甚至可以做到开发阶段自动同步）。
+
 ```csharp
 [Table(Name = "tb_topic")]
 class Topic {
@@ -65,6 +80,15 @@ List<匿名类型> t4 = fsql.Select<Topic>().Where(a => a.Id > 0).ToList(a => ne
 
 //返回元组
 List<(int, string)> t5 = fsql.Select<Topic>().Where(a => a.Id > 0).ToList<(int, string)>("id, title");
+
+//返回SQL字段
+List<匿名类> t4 = select.Where(a => a.Id > 0).Skip(100).Limit(200)
+    .ToList(a => new {
+        a.Id, a.Title,
+        cstitle = "substr(a.title, 0, 2)", //将 substr(a.title, 0, 2) 作为查询字段
+        csnow = Convert.ToDateTime("now()"), //将 now() 作为查询字段
+        //奇思妙想：怎么查询开窗函数的结果
+    });
 ```
 ### 联表之一：使用导航属性
 ```csharp

@@ -78,10 +78,6 @@ namespace FreeSql.MySql.Curd {
 		public override ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> From<T2, T3, T4, T5, T6, T7, T8, T9, T10>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, T9, T10, ISelectFromExpression<T1>>> exp) { this.InternalFrom(exp?.Body); var ret = new MySqlSelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(_orm, _commonUtils, _commonExpression, null); MySqlSelect<T1>.CopyData(this, ret); return ret; }
 		public override string ToSql(string field = null) => ToSqlStatic(_commonUtils, _select, field ?? this.GetAllField().field, _join, _where, _groupby, _having, _orderby, _skip, _limit, _tables, _orm);
 	}
-	//class MySqlSelect<T1, T2> : FreeSql.Internal.CommonProvider.Select2Provider<T1, T2> where T1 : class where T2 : class {
-	//	public MySqlSelect(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere) : base(orm, commonUtils, commonExpression, dywhere) { }
-	//	public override string ToSql(string field = null) => MySqlSelect<T1>.ToSqlStatic(_commonUtils, _select, field ?? this.GetAllField().field, _join, _where, _groupby, _having, _orderby, _skip, _limit, _tables, _orm);
-	//}
 	class MySqlSelect<T1, T2, T3> : FreeSql.Internal.CommonProvider.Select3Provider<T1, T2, T3> where T1 : class where T2 : class where T3 : class {
 		public MySqlSelect(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere) : base(orm, commonUtils, commonExpression, dywhere) { }
 		public override string ToSql(string field = null) => MySqlSelect<T1>.ToSqlStatic(_commonUtils, _select, field ?? this.GetAllField().field, _join, _where, _groupby, _having, _orderby, _skip, _limit, _tables, _orm);

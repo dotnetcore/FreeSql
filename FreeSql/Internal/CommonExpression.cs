@@ -26,12 +26,27 @@ namespace FreeSql.Internal {
 				case ExpressionType.Convert: return ReadAnonymousField(_tables, field, parent, ref index, (exp as UnaryExpression)?.Operand, getSelectGroupingMapString);
 				case ExpressionType.Constant:
 					var constExp = exp as ConstantExpression;
-					parent.DbField = _common.FormatSql("{0}", constExp?.Value);
+					//处理自定义SQL语句，如： ToList(new { 
+					//	ccc = "now()", 
+					//	partby = "sum(num) over(PARTITION BY server_id,os,rid,chn order by id desc)"
+					//})，有缺点即 ccc partby 接受类型都是 string，可配合 Convert.ToXxx 类型转换，请看下面的兼容
+					parent.DbField = constExp.Type.FullName == "System.String" ? (constExp.Value?.ToString() ?? "NULL") : _common.FormatSql("{0}", constExp?.Value);
 					field.Append(", ").Append(parent.DbField);
 					if (index >= 0) field.Append(" as").Append(++index);
 					return false;
 				case ExpressionType.Call:
-					parent.DbField = ExpressionLambdaToSql(exp, _tables, null, getSelectGroupingMapString, SelectTableInfoType.From, true);
+					var callExp = exp as MethodCallExpression;
+					//处理自定义SQL语句，如： ToList(new { 
+					//	ccc = Convert.ToDateTime("now()"), 
+					//	partby = Convert.ToDecimal("sum(num) over(PARTITION BY server_id,os,rid,chn order by id desc)")
+					//})
+					if (callExp.Method?.DeclaringType.FullName == "System.Convert" &&
+						callExp.Method.Name.StartsWith("To") &&
+						callExp.Arguments[0].NodeType == ExpressionType.Constant &&
+						callExp.Arguments[0].Type.FullName == "System.String")
+						parent.DbField = (callExp.Arguments[0] as ConstantExpression).Value?.ToString() ?? "NULL";
+					else
+						parent.DbField = ExpressionLambdaToSql(exp, _tables, null, getSelectGroupingMapString, SelectTableInfoType.From, true);
 					field.Append(", ").Append(parent.DbField);
 					if (index >= 0) field.Append(" as").Append(++index);
 					return false;

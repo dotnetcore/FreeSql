@@ -146,6 +146,16 @@ List<匿名类> t4 = select.Where(a => a.Id > 0).Skip(100).Limit(200).ToList(a =
 
 //返回元组
 List<(int, string)> t5 = select.Where(a => a.Id > 0).Skip(100).Limit(200).ToList<(int, string)>("id, title");
+
+//返回SQL字段
+List<匿名类> t4 = select.Where(a => a.Id > 0).Skip(100).Limit(200)
+    .ToList(a => new {
+        a.Id,
+        a.Title,
+        cstitle = "substr(a.title, 0, 2)", //将 substr(a.title, 0, 2) 作为查询字段
+        csnow = Convert.ToDateTime("now()"), //将 now() 作为查询字段
+        //奇思妙想：怎么查询开窗函数的结果
+    });
 ```
 
 ### 执行SQL返回数据
