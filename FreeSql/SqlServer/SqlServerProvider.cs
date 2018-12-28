@@ -25,8 +25,7 @@ namespace FreeSql.SqlServer {
 		public ICache Cache { get; }
 		public ICodeFirst CodeFirst { get; }
 		public IDbFirst DbFirst { get; }
-		public SqlServerProvider(IDistributedCache cache, IConfiguration cacheStrategy, string masterConnectionString, string[] slaveConnectionString, ILogger log) {
-			CacheStrategy = cacheStrategy;
+		public SqlServerProvider(IDistributedCache cache, ILogger log, string masterConnectionString, string[] slaveConnectionString) {
 			if (log == null) log = new LoggerFactory(new[] { new Microsoft.Extensions.Logging.Debug.DebugLoggerProvider() }).CreateLogger("FreeSql.SqlServer");
 
 			this.InternalCommonUtils = new SqlServerUtils(this);
@@ -41,7 +40,6 @@ namespace FreeSql.SqlServer {
 
 		internal CommonUtils InternalCommonUtils { get; }
 		internal CommonExpression InternalCommonExpression { get; }
-		internal IConfiguration CacheStrategy { get; private set; }
 
 		public void Transaction(Action handler) => Ado.Transaction(handler);
 

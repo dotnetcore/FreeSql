@@ -1,9 +1,11 @@
 ﻿using FreeSql.Internal;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
 using Npgsql;
 using SafeObjectPool;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Data.Common;
 using System.Text;
 using System.Threading;
@@ -25,6 +27,7 @@ namespace FreeSql.PostgreSQL {
 		}
 		static DateTime dt1970 = new DateTime(1970, 1, 1);
 		public override object AddslashesProcessParam(object param) {
+			bool isdic = false;
 			if (param == null) return "NULL";
 			if (param is bool || param is bool?)
 				return (bool)param ? "'t'" : "'f'";
@@ -40,12 +43,25 @@ namespace FreeSql.PostgreSQL {
 				return ((TimeSpan)param).Ticks / 10;
 			else if (param is TimeSpan?)
 				return (param as TimeSpan?).Value.Ticks / 10;
-			else if (param is IEnumerable) {
+			else if (param is JToken || param is JObject || param is JArray)
+				return string.Concat("'", param.ToString().Replace("'", "''"), "'::jsonb");
+			else if ((isdic = param is Dictionary<string, string>) ||
+				param is IEnumerable<KeyValuePair<string, string>>) {
+				var pgdics = isdic ? param as Dictionary<string, string> :
+					param as IEnumerable<KeyValuePair<string, string>>;
+				if (pgdics == null) return string.Concat("''::hstore");
+				var pghstore = new StringBuilder();
+				pghstore.Append("'");
+				foreach (var dic in pgdics)
+					pghstore.Append("\"").Append(dic.Key.Replace("'", "''")).Append("\"=>")
+						.Append(dic.Key.Replace("'", "''")).Append(",");
+				return pghstore.Append("'::hstore");
+			} else if (param is IEnumerable) {
 				var sb = new StringBuilder();
 				var ie = param as IEnumerable;
 				foreach (var z in ie) sb.Append(",").Append(AddslashesProcessParam(z));
 				return sb.Length == 0 ? "(NULL)" : sb.Remove(0, 1).Insert(0, "(").Append(")").ToString();
-			} else {
+			}else {
 				return string.Concat("'", param.ToString().Replace("'", "''"), "'");
 				//if (param is string) return string.Concat('N', nparms[a]);
 			}

@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Text;
 
 namespace FreeSql {
@@ -13,6 +14,8 @@ namespace FreeSql {
 		string[] _slaveConnectionString;
 		bool _isAutoSyncStructure = false;
 		bool _isSyncStructureToLower = false;
+		Action<DbCommand> _aopCommandExecuting = null;
+		Action<DbCommand, string> _aopCommandExecuted = null;
 
 		/// <summary>
 		/// 使用缓存，不指定默认使用内存
@@ -71,17 +74,31 @@ namespace FreeSql {
 			_isSyncStructureToLower = value;
 			return this;
 		}
+		/// <summary>
+		/// 监视数据库命令对象
+		/// </summary>
+		/// <param name="executing">执行前</param>
+		/// <param name="executed">执行后</param>
+		/// <returns></returns>
+		public FreeSqlBuilder UseMonitorCommand(Action<DbCommand> executing, Action<DbCommand, string> executed = null) {
+			_aopCommandExecuting = executing;
+			_aopCommandExecuted = executed;
+			return this;
+		}
 
 		public IFreeSql Build() {
 			IFreeSql ret = null;
 			switch(_dataType) {
-				case DataType.MySql: ret = new MySql.MySqlProvider(_cache, null, _masterConnectionString, _slaveConnectionString, _logger); break;
-				case DataType.SqlServer: ret = new SqlServer.SqlServerProvider(_cache, null, _masterConnectionString, _slaveConnectionString, _logger); break;
-				case DataType.PostgreSQL: ret = new PostgreSQL.PostgreSQLProvider(_cache, null, _masterConnectionString, _slaveConnectionString, _logger); break;
+				case DataType.MySql: ret = new MySql.MySqlProvider(_cache, _logger, _masterConnectionString, _slaveConnectionString); break;
+				case DataType.SqlServer: ret = new SqlServer.SqlServerProvider(_cache, _logger, _masterConnectionString, _slaveConnectionString); break;
+				case DataType.PostgreSQL: ret = new PostgreSQL.PostgreSQLProvider(_cache, _logger, _masterConnectionString, _slaveConnectionString); break;
 			}
 			if (ret != null) {
 				ret.CodeFirst.IsAutoSyncStructure = _isAutoSyncStructure;
 				ret.CodeFirst.IsSyncStructureToLower = _isSyncStructureToLower;
+				var ado = ret.Ado as Internal.CommonProvider.AdoProvider;
+				ado.AopCommandExecuting += _aopCommandExecuting;
+				ado.AopCommandExecuted += _aopCommandExecuted;
 			}
 			return ret;
 		}

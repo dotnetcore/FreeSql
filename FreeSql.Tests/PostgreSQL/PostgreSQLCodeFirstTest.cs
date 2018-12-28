@@ -58,6 +58,9 @@ namespace FreeSql.Tests.PostgreSQL {
 		public void CurdAllField() {
 			NpgsqlConnection.GlobalTypeMapper.UseLegacyPostgis();
 
+			var sql1 = select.Where(a => a.testFieldIntArray.Contains(1)).ToSql();
+			var sql2 = select.Where(a => a.testFieldIntArray.Contains(1)).ToSql();
+
 			var item = new TableAllType { };
 			item.Id = (int)insert.AppendData(item).ExecuteIdentity();
 

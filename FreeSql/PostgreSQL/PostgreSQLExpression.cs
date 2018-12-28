@@ -1,14 +1,135 @@
 ﻿using FreeSql.Internal;
 using FreeSql.Internal.Model;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Text;
 
 namespace FreeSql.PostgreSQL {
 	class PostgreSQLExpression : CommonExpression {
 
 		public PostgreSQLExpression(CommonUtils common) : base(common) { }
+
+		internal override string ExpressionLambdaToSqlOther(Expression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName) {
+			switch (exp.NodeType) {
+				case ExpressionType.ArrayLength:
+					var arrOperExp = ExpressionLambdaToSql((exp as UnaryExpression).Operand, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+					if (arrOperExp.StartsWith("(") || arrOperExp.EndsWith(")")) return $"array_length(array[{arrOperExp.TrimStart('(').TrimEnd(')')}])";
+					return $"case when {arrOperExp} is null then 0 else array_length({arrOperExp},1) end";
+				case ExpressionType.Call:
+					var callExp = exp as MethodCallExpression;
+					var objExp = callExp.Object;
+					var objType = objExp?.Type;
+					if (objType?.FullName == "System.Byte[]") return null;
+
+					var argIndex = 0;
+					if (objType == null && callExp.Method.DeclaringType.FullName == typeof(Enumerable).FullName) {
+						objExp = callExp.Arguments.FirstOrDefault();
+						objType = objExp?.Type;
+						argIndex++;
+					}
+					if (objType == null) objType = callExp.Method.DeclaringType;
+					if (objType != null) {
+						var left = objExp == null ? null : ExpressionLambdaToSql(objExp, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+						if (objType.IsArray == true) {
+							if (left.StartsWith("(") || left.EndsWith(")")) left = $"array[{left.TrimStart('(').TrimEnd(')')}]";
+							switch (callExp.Method.Name) {
+								case "Any": return $"(case when {left} is null then 0 else array_length({left},1) end > 0)";
+								case "Contains": return $"({left} @> array[{ExpressionLambdaToSql(callExp.Arguments[argIndex], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)}])";
+								case "Concat":
+									var right2 = ExpressionLambdaToSql(callExp.Arguments[argIndex], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+									if (right2.StartsWith("(") || right2.EndsWith(")")) right2 = $"array[{right2.TrimStart('(').TrimEnd(')')}]";
+									return $"({left} || {right2})";
+								case "GetLength":
+								case "GetLongLength":
+								case "Length":
+								case "Count": return $"case when {left} is null then 0 else array_length({left},1) end";
+							}
+						}
+						switch (objType.FullName) {
+							case "Newtonsoft.Json.Linq.JToken":
+							case "Newtonsoft.Json.Linq.JObject":
+							case "Newtonsoft.Json.Linq.JArray":
+								switch (callExp.Method.Name) {
+									case "Any": return $"(jsonb_array_length(coalesce({left},'[]')) > 0)";
+									case "Contains":
+										var json = ExpressionLambdaToSql(callExp.Arguments[argIndex], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+										if (json.StartsWith("'") && json.EndsWith("'")) return $"(coalesce({left},'{{}}') @> {_common.FormatSql("{0}", JToken.Parse(json.Trim('\'')))})";
+										return $"(coalesce({left},'{{}}') @> ({json})::jsonb)";
+									case "ContainsKey": return $"(coalesce({left},'{{}}') ? {ExpressionLambdaToSql(callExp.Arguments[argIndex], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
+									case "Concat":
+										var right2 = ExpressionLambdaToSql(callExp.Arguments[argIndex], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+										return $"(coalesce({left},'{{}}') || {right2})";
+									case "LongCount":
+									case "Count": return $"jsonb_array_length(coalesce({left},'[]'))";
+									case "Parse":
+										var json2 = ExpressionLambdaToSql(callExp.Arguments[argIndex], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+										if (json2.StartsWith("'") && json2.EndsWith("'")) return _common.FormatSql("{0}", JToken.Parse(json2.Trim('\'')));
+										return $"({json2})::jsonb";
+								}
+								break;
+						}
+						if (objType.FullName == typeof(Dictionary<string, string>).FullName) {
+							switch (callExp.Method.Name) {
+								case "Contains":
+									var right = ExpressionLambdaToSql(callExp.Arguments[argIndex], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+									return $"({left} @> ({right}))";
+								case "ContainsKey": return $"({left} ? {ExpressionLambdaToSql(callExp.Arguments[argIndex], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
+								case "Concat": return $"({left} || {ExpressionLambdaToSql(callExp.Arguments[argIndex], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
+								case "GetLength":
+								case "GetLongLength":
+								case "Count": return $"case when {left} is null then 0 else array_length(akeys({left}),1) end";
+								case "Keys": return $"akeys({left})";
+								case "Values": return $"avals({left})";
+							}
+						}
+					}
+					break;
+				case ExpressionType.MemberAccess:
+					var memExp = exp as MemberExpression;
+					var memParentExp = memExp.Expression?.Type;
+					if (memParentExp?.FullName == "System.Byte[]") return null;
+					if (memParentExp != null) {
+						var left = ExpressionLambdaToSql(memExp.Expression, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+						if (memParentExp.IsArray == true) {
+							if (left.StartsWith("(") || left.EndsWith(")")) left = $"array[{left.TrimStart('(').TrimEnd(')')}]";
+							switch (memExp.Member.Name) {
+								case "Length":
+								case "Count": return $"case when {left} is null then 0 else array_length({left},1) end";
+							}
+						}
+						switch (memParentExp.FullName) {
+							case "Newtonsoft.Json.Linq.JToken":
+							case "Newtonsoft.Json.Linq.JObject":
+							case "Newtonsoft.Json.Linq.JArray":
+								switch (memExp.Member.Name) {
+									case "Count": return $"jsonb_array_length(coalesce({left},'[]'))";
+								}
+								break;
+						}
+						if (memParentExp.FullName == typeof(Dictionary<string, string>).FullName) {
+							switch (memExp.Member.Name) {
+								case "Count": return $"case when {left} is null then 0 else array_length(akeys({left}),1) end";
+								case "Keys": return $"akeys({left})";
+								case "Values": return $"avals({left})";
+							}
+						}
+					}
+					break;
+				case ExpressionType.NewArrayInit:
+					var arrExp = exp as NewArrayExpression;
+					var arrSb = new StringBuilder();
+					arrSb.Append("array[");
+					for (var a = 0; a < arrExp.Expressions.Count; a++) {
+						if (a > 0) arrSb.Append(",");
+						arrSb.Append(ExpressionLambdaToSql(arrExp.Expressions[a], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName));
+					}
+					return arrSb.Append("]").ToString();
+			}
+			return null;
+		}
 
 		internal override string ExpressionLambdaToSqlMemberAccessString(MemberExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName) {
 			if (exp.Expression == null) {

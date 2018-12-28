@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 
 namespace FreeSql.PostgreSQL {
 
@@ -25,8 +26,7 @@ namespace FreeSql.PostgreSQL {
 		public ICache Cache { get; }
 		public ICodeFirst CodeFirst { get; }
 		public IDbFirst DbFirst { get; }
-		public PostgreSQLProvider(IDistributedCache cache, IConfiguration cacheStrategy, string masterConnectionString, string[] slaveConnectionString, ILogger log) {
-			CacheStrategy = cacheStrategy;
+		public PostgreSQLProvider(IDistributedCache cache, ILogger log, string masterConnectionString, string[] slaveConnectionString) {
 			if (log == null) log = new LoggerFactory(new[] { new Microsoft.Extensions.Logging.Debug.DebugLoggerProvider() }).CreateLogger("FreeSql.PostgreSQL");
 
 			this.InternalCommonUtils = new PostgreSQLUtils(this);
@@ -41,7 +41,6 @@ namespace FreeSql.PostgreSQL {
 
 		internal CommonUtils InternalCommonUtils { get; }
 		internal CommonExpression InternalCommonExpression { get; }
-		internal IConfiguration CacheStrategy { get; private set; }
 
 		public void Transaction(Action handler) => Ado.Transaction(handler);
 

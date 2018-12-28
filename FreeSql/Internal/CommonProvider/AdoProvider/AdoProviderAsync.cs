@@ -209,6 +209,7 @@ namespace FreeSql.Internal.CommonProvider {
 
 			if (IsTracePerformance) logtxt += $"	PrepareCommand_tran==null: {DateTime.Now.Subtract(dt).TotalMilliseconds}ms cmdParms: {cmd.Parameters.Count}\r\n";
 
+			AopCommandExecuting?.Invoke(cmd);
 			return cmd;
 		}
 	}

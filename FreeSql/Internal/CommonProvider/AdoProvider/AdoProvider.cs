@@ -12,6 +12,8 @@ namespace FreeSql.Internal.CommonProvider {
 		protected abstract void ReturnConnection(ObjectPool<DbConnection> pool, Object<DbConnection> conn, Exception ex);
 		protected abstract DbCommand CreateCommand();
 		protected abstract DbParameter[] GetDbParamtersByObject(string sql, object obj);
+		internal Action<DbCommand> AopCommandExecuting = null;
+		internal Action<DbCommand, string> AopCommandExecuted = null;
 
 		public bool IsTracePerformance { get; set; } = string.Compare(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"), "Development", true) == 0;
 		
@@ -32,10 +34,14 @@ namespace FreeSql.Internal.CommonProvider {
 			if (IsTracePerformance) {
 				TimeSpan ts = DateTime.Now.Subtract(dt);
 				if (e == null && ts.TotalMilliseconds > 100)
-					_log.LogWarning($"{pool.Policy.Name}执行SQL语句耗时过长{ts.TotalMilliseconds}ms\r\n{cmd.CommandText}\r\n{logtxt}");
+					_log.LogWarning(logtxt = $"{pool.Policy.Name}执行SQL语句耗时过长{ts.TotalMilliseconds}ms\r\n{cmd.CommandText}\r\n{logtxt}");
 			}
 
-			if (e == null) return;
+			if (e == null) {
+				AopCommandExecuted?.Invoke(cmd, logtxt);
+				return;
+			}
+
 			string log = $"{pool.Policy.Name}数据库出错（执行SQL）〓〓〓〓〓〓〓〓〓〓〓〓〓〓〓\r\n{cmd.CommandText}\r\n";
 			foreach (DbParameter parm in cmd.Parameters)
 				log += parm.ParameterName.PadRight(20, ' ') + " = " + ((parm.Value ?? DBNull.Value) == DBNull.Value ? "NULL" : parm.Value) + "\r\n";
@@ -44,6 +50,9 @@ namespace FreeSql.Internal.CommonProvider {
 			_log.LogError(log);
 
 			RollbackTransaction();
+
+			AopCommandExecuted?.Invoke(cmd, log);
+
 			cmd.Parameters.Clear();
 			if (isThrowException) throw e;
 		}
@@ -261,6 +270,7 @@ namespace FreeSql.Internal.CommonProvider {
 			AutoCommitTransaction();
 			if (IsTracePerformance) logtxt += $"	AutoCommitTransaction: {DateTime.Now.Subtract(dt).TotalMilliseconds}ms\r\n";
 
+			AopCommandExecuting?.Invoke(cmd);
 			return (tran, cmd);
 		}
 	}

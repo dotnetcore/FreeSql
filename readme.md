@@ -23,6 +23,10 @@ IFreeSql fsql = new FreeSql.FreeSqlBuilder()
     .UseConnectionString(FreeSql.DataType.MySql, connstr)
     .UseSlave("connectionString1", "connectionString2") //使用从数据库，支持多个
 
+    .UseMonitorCommand(
+        cmd => Console.WriteLine(cmd.CommandText), //监听SQL命令对象，在执行前
+        (cmd, traceLog) => Console.WriteLine(traceLog)) //监听SQL命令对象，在执行后
+
     .UseLogger(null) //使用日志，不指定默认输出控制台 ILogger
     .UseCache(null) //使用缓存，不指定默认使用内存 IDistributedCache
 

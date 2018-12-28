@@ -10,6 +10,10 @@ namespace FreeSql.SqlServer {
 
 		public SqlServerExpression(CommonUtils common) : base(common) { }
 
+		internal override string ExpressionLambdaToSqlOther(Expression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName) {
+			return null;
+		}
+
 		internal override string ExpressionLambdaToSqlMemberAccessString(MemberExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName) {
 			if (exp.Expression == null) {
 				switch (exp.Member.Name) {

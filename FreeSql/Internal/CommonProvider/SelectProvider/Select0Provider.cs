@@ -210,13 +210,13 @@ namespace FreeSql.Internal.CommonProvider {
 			}
 			return ret;
 		}
-		protected (ReadAnonymousTypeInfo map, string field) GetNewExpressionField(NewExpression newexp) {
+		protected (ReadAnonymousTypeInfo map, string field) GetExpressionField(Expression newexp) {
 			var map = new ReadAnonymousTypeInfo();
 			var field = new StringBuilder();
 			var index = 0;
 
 			_commonExpression.ReadAnonymousField(_tables, field, map, ref index, newexp, null);
-			return (map, map.Childs.Count > 0 ? field.Remove(0, 2).ToString() : null);
+			return (map, field.Length > 0 ? field.Remove(0, 2).ToString() : null);
 		}
 		protected (ReadAnonymousTypeInfo map, string field) GetAllField() {
 			var type = typeof(T1);
@@ -281,7 +281,7 @@ namespace FreeSql.Internal.CommonProvider {
 			var index = -10000; //临时规则，不返回 as1
 
 			_commonExpression.ReadAnonymousField(_tables, field, map, ref index, columns, null);
-			this.GroupBy(map.Childs.Count > 0 ? field.Remove(0, 2).ToString() : null);
+			this.GroupBy(field.Length > 0 ? field.Remove(0, 2).ToString() : null);
 			return new SelectGroupingProvider<TKey>(this, map, _commonExpression);
 		}
 		protected TSelect InternalJoin(Expression exp, SelectTableInfoType joinType) {
@@ -298,9 +298,12 @@ namespace FreeSql.Internal.CommonProvider {
 		protected TSelect InternalOrderBy(Expression column) => this.OrderBy(_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, column, true, null));
 		protected TSelect InternalOrderByDescending(Expression column) => this.OrderBy($"{_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, column, true, null)} DESC");
 
-		protected List<TReturn> InternalToList<TReturn>(Expression select) => this.ToListMapReader<TReturn>(this.GetNewExpressionField(select as NewExpression));
-		protected Task<List<TReturn>> InternalToListAsync<TReturn>(Expression select) => this.ToListMapReaderAsync<TReturn>(this.GetNewExpressionField(select as NewExpression));
-		protected string InternalToSql<TReturn>(Expression select) => this.ToSql(this.GetNewExpressionField(select as NewExpression).field);
+		protected List<TReturn> InternalToList<TReturn>(Expression select) => this.ToListMapReader<TReturn>(this.GetExpressionField(select));
+		protected Task<List<TReturn>> InternalToListAsync<TReturn>(Expression select) => this.ToListMapReaderAsync<TReturn>(this.GetExpressionField(select));
+		protected string InternalToSql<TReturn>(Expression select) {
+			var af = this.GetExpressionField(select);
+			return this.ToSql(af.field);
+		}
 
 		protected TReturn InternalToAggregate<TReturn>(Expression select) {
 			var map = new ReadAnonymousTypeInfo();
@@ -308,7 +311,7 @@ namespace FreeSql.Internal.CommonProvider {
 			var index = 0;
 
 			_commonExpression.ReadAnonymousField(_tables, field, map, ref index, select, null);
-			return this.ToListMapReader<TReturn>((map, map.Childs.Count > 0 ? field.Remove(0, 2).ToString() : null)).FirstOrDefault();
+			return this.ToListMapReader<TReturn>((map, field.Length > 0 ? field.Remove(0, 2).ToString() : null)).FirstOrDefault();
 		}
 		async protected Task<TReturn> InternalToAggregateAsync<TReturn>(Expression select) {
 			var map = new ReadAnonymousTypeInfo();
@@ -316,7 +319,7 @@ namespace FreeSql.Internal.CommonProvider {
 			var index = 0;
 
 			_commonExpression.ReadAnonymousField(_tables, field, map, ref index, select, null);
-			return (await this.ToListMapReaderAsync<TReturn>((map, map.Childs.Count > 0 ? field.Remove(0, 2).ToString() : null))).FirstOrDefault();
+			return (await this.ToListMapReaderAsync<TReturn>((map, field.Length > 0 ? field.Remove(0, 2).ToString() : null))).FirstOrDefault();
 		}
 
 		protected TSelect InternalWhere(Expression exp) => this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp, null));
