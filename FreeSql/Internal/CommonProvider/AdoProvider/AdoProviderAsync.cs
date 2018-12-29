@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace FreeSql.Internal.CommonProvider {
@@ -28,11 +29,11 @@ namespace FreeSql.Internal.CommonProvider {
 		}
 		public Task ExecuteReaderAsync(Func<DbDataReader, Task> readerHander, string sql, object parms = null) => ExecuteReaderAsync(readerHander, CommandType.Text, sql, GetDbParamtersByObject(sql, parms));
 		async public Task ExecuteReaderAsync(Func<DbDataReader, Task> readerHander, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
-			DateTime dt = DateTime.Now;
-			string logtxt = "";
-			DateTime logtxt_dt = DateTime.Now;
+			var dt = DateTime.Now;
+			var logtxt = new StringBuilder();
+			var logtxt_dt = DateTime.Now;
 			var pool = this.MasterPool;
-			bool isSlave = false;
+			var isSlave = false;
 
 			//读写分离规则
 			if (this.SlavePools.Any() && cmdText.StartsWith("SELECT ", StringComparison.CurrentCultureIgnoreCase)) {
@@ -50,8 +51,8 @@ namespace FreeSql.Internal.CommonProvider {
 			}
 
 			Object<DbConnection> conn = null;
-			var cmd = PrepareCommandAsync(cmdType, cmdText, cmdParms, ref logtxt);
-			if (IsTracePerformance) logtxt += $"PrepareCommand: {DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds}ms Total: {DateTime.Now.Subtract(dt).TotalMilliseconds}ms\r\n";
+			var cmd = PrepareCommandAsync(cmdType, cmdText, cmdParms, logtxt);
+			if (IsTracePerformance) logtxt.Append("PrepareCommandAsync: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms\r\n");
 			Exception ex = null;
 			try {
 				if (IsTracePerformance) logtxt_dt = DateTime.Now;
@@ -68,7 +69,7 @@ namespace FreeSql.Internal.CommonProvider {
 						if (conn != null) {
 							if (IsTracePerformance) logtxt_dt = DateTime.Now;
 							ReturnConnection(pool, conn, ex); //pool.Return(conn, ex);
-							if (IsTracePerformance) logtxt += $"ReleaseConnection: {DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds}ms Total: {DateTime.Now.Subtract(dt).TotalMilliseconds}ms";
+							if (IsTracePerformance) logtxt.Append("ReleaseConnection: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms");
 						}
 						LoggerException(pool, cmd, new Exception($"连接失败，准备切换其他可用服务器"), dt, logtxt, false);
 						cmd.Parameters.Clear();
@@ -80,15 +81,15 @@ namespace FreeSql.Internal.CommonProvider {
 					if (cmd.Connection == null) cmd.Connection = (conn = await pool.GetAsync()).Value;
 				}
 				if (IsTracePerformance) {
-					logtxt += $"Open: {DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds}ms Total: {DateTime.Now.Subtract(dt).TotalMilliseconds}ms\r\n";
+					logtxt.Append("OpenAsync: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms\r\n");
 					logtxt_dt = DateTime.Now;
 				}
 				using (var dr = await cmd.ExecuteReaderAsync()) {
-					if (IsTracePerformance) logtxt += $"ExecuteReader: {DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds}ms Total: {DateTime.Now.Subtract(dt).TotalMilliseconds}ms\r\n";
+					if (IsTracePerformance) logtxt.Append("ExecuteReaderAsync: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms\r\n");
 					while (true) {
 						if (IsTracePerformance) logtxt_dt = DateTime.Now;
 						bool isread = await dr.ReadAsync();
-						if (IsTracePerformance) logtxt += $"	dr.Read: {DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds}ms Total: {DateTime.Now.Subtract(dt).TotalMilliseconds}ms\r\n";
+						if (IsTracePerformance) logtxt.Append("	dr.ReadAsync: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms\r\n");
 						if (isread == false) break;
 
 						if (readerHander != null) {
@@ -97,17 +98,17 @@ namespace FreeSql.Internal.CommonProvider {
 								logtxt_dt = DateTime.Now;
 								values = new object[dr.FieldCount];
 								for (int a = 0; a < values.Length; a++) if (!await dr.IsDBNullAsync(a)) values[a] = await dr.GetFieldValueAsync<object>(a);
-								logtxt += $"	dr.GetValues: {DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds}ms Total: {DateTime.Now.Subtract(dt).TotalMilliseconds}ms\r\n";
+								logtxt.Append("	dr.GetValues: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms\r\n");
 								logtxt_dt = DateTime.Now;
 							}
 							await readerHander(dr);
-							if (IsTracePerformance) logtxt += $"	readerHander: {DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds}ms Total: {DateTime.Now.Subtract(dt).TotalMilliseconds}ms ({string.Join(",", values)})\r\n";
+							if (IsTracePerformance) logtxt.Append("	readerHanderAsync: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms (").Append(string.Join(", ", values)).Append(")\r\n");
 						}
 					}
 					if (IsTracePerformance) logtxt_dt = DateTime.Now;
 					dr.Close();
 				}
-				if (IsTracePerformance) logtxt += $"ExecuteReader_dispose: {DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds}ms Total: {DateTime.Now.Subtract(dt).TotalMilliseconds}ms\r\n";
+				if (IsTracePerformance) logtxt.Append("ExecuteReaderAsync_dispose: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms\r\n");
 			} catch (Exception ex2) {
 				ex = ex2;
 			}
@@ -115,7 +116,7 @@ namespace FreeSql.Internal.CommonProvider {
 			if (conn != null) {
 				if (IsTracePerformance) logtxt_dt = DateTime.Now;
 				ReturnConnection(pool, conn, ex); //pool.Return(conn, ex);
-				if (IsTracePerformance) logtxt += $"ReleaseConnection: {DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds}ms Total: {DateTime.Now.Subtract(dt).TotalMilliseconds}ms";
+				if (IsTracePerformance) logtxt.Append("ReleaseConnection: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms");
 			}
 			LoggerException(pool, cmd, ex, dt, logtxt);
 			cmd.Parameters.Clear();
@@ -144,11 +145,11 @@ namespace FreeSql.Internal.CommonProvider {
 		}
 		public Task<int> ExecuteNonQueryAsync(string sql, object parms = null) => ExecuteNonQueryAsync(CommandType.Text, sql, GetDbParamtersByObject(sql, parms));
 		async public Task<int> ExecuteNonQueryAsync(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
-			DateTime dt = DateTime.Now;
-			string logtxt = "";
-			Object<DbConnection> conn = null;
-			var cmd = PrepareCommandAsync(cmdType, cmdText, cmdParms, ref logtxt);
+			var dt = DateTime.Now;
+			var logtxt = new StringBuilder();
 			var logtxt_dt = DateTime.Now;
+			Object<DbConnection> conn = null;
+			var cmd = PrepareCommandAsync(cmdType, cmdText, cmdParms, logtxt);
 			int val = 0;
 			Exception ex = null;
 			try {
@@ -161,7 +162,7 @@ namespace FreeSql.Internal.CommonProvider {
 			if (conn != null) {
 				if (IsTracePerformance) logtxt_dt = DateTime.Now;
 				ReturnConnection(MasterPool, conn, ex); //this.MasterPool.Return(conn, ex);
-				if (IsTracePerformance) logtxt += $"ReleaseConnection: {DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds}ms Total: {DateTime.Now.Subtract(dt).TotalMilliseconds}ms";
+				if (IsTracePerformance) logtxt.Append("ReleaseConnection: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms");
 			}
 			LoggerException(this.MasterPool, cmd, ex, dt, logtxt);
 			cmd.Parameters.Clear();
@@ -170,10 +171,10 @@ namespace FreeSql.Internal.CommonProvider {
 		public Task<object> ExecuteScalarAsync(string sql, object parms = null) => ExecuteScalarAsync(CommandType.Text, sql, GetDbParamtersByObject(sql, parms));
 		async public Task<object> ExecuteScalarAsync(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
 			var dt = DateTime.Now;
-			var logtxt = "";
-			Object<DbConnection> conn = null;
-			var cmd = PrepareCommandAsync(cmdType, cmdText, cmdParms, ref logtxt);
+			var logtxt = new StringBuilder();
 			var logtxt_dt = DateTime.Now;
+			Object<DbConnection> conn = null;
+			var cmd = PrepareCommandAsync(cmdType, cmdText, cmdParms, logtxt);
 			object val = null;
 			Exception ex = null;
 			try {
@@ -186,14 +187,14 @@ namespace FreeSql.Internal.CommonProvider {
 			if (conn != null) {
 				if (IsTracePerformance) logtxt_dt = DateTime.Now;
 				ReturnConnection(MasterPool, conn, ex); //this.MasterPool.Return(conn, ex);
-				if (IsTracePerformance) logtxt += $"ReleaseConnection: {DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds}ms Total: {DateTime.Now.Subtract(dt).TotalMilliseconds}ms";
+				if (IsTracePerformance) logtxt.Append("ReleaseConnection: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms");
 			}
 			LoggerException(this.MasterPool, cmd, ex, dt, logtxt);
 			cmd.Parameters.Clear();
 			return val;
 		}
 
-		private DbCommand PrepareCommandAsync(CommandType cmdType, string cmdText, DbParameter[] cmdParms, ref string logtxt) {
+		private DbCommand PrepareCommandAsync(CommandType cmdType, string cmdText, DbParameter[] cmdParms, StringBuilder logtxt) {
 			DateTime dt = DateTime.Now;
 			DbCommand cmd = CreateCommand();
 			cmd.CommandType = cmdType;
@@ -207,7 +208,7 @@ namespace FreeSql.Internal.CommonProvider {
 				}
 			}
 
-			if (IsTracePerformance) logtxt += $"	PrepareCommand_tran==null: {DateTime.Now.Subtract(dt).TotalMilliseconds}ms cmdParms: {cmd.Parameters.Count}\r\n";
+			if (IsTracePerformance) logtxt.Append("	PrepareCommand_tran==null: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms cmdParms: ").Append(cmd.Parameters.Count).Append("\r\n");
 
 			AopCommandExecuting?.Invoke(cmd);
 			return cmd;

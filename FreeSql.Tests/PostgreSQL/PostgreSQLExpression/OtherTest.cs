@@ -27,6 +27,16 @@ namespace FreeSql.Tests.PostgreSQLExpression {
 			var sql1 = select.Where(a => a.testFieldIntArray.Contains(1)).ToList();
 			var sql2 = select.Where(a => a.testFieldIntArray.Contains(1) == false).ToList();
 
+			//in not in
+			var sql111 = select.Where(a => new[] { 1, 2, 3 }.Contains(a.testFieldInt)).ToList();
+			var sql112 = select.Where(a => new[] { 1, 2, 3 }.Contains(a.testFieldInt) == false).ToList();
+			var sql113 = select.Where(a => !new[] { 1, 2, 3 }.Contains(a.testFieldInt)).ToList();
+
+			var inarray = new[] { 1, 2, 3 };
+			var sql1111 = select.Where(a => inarray.Contains(a.testFieldInt)).ToSql();
+			var sql1122 = select.Where(a => inarray.Contains(a.testFieldInt) == false).ToSql();
+			var sql1133 = select.Where(a => !inarray.Contains(a.testFieldInt)).ToSql();
+
 			var sql3 = select.Where(a => a.testFieldIntArray.Any()).ToList();
 			var sql4 = select.Where(a => a.testFieldIntArray.Any() == false).ToList();
 

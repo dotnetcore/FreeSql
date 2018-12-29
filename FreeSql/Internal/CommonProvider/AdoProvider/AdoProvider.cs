@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
+using System.Text;
 
 namespace FreeSql.Internal.CommonProvider {
 	abstract partial class AdoProvider : IAdo {
@@ -30,28 +31,31 @@ namespace FreeSql.Internal.CommonProvider {
 			this._log = log;
 		}
 
-		void LoggerException(ObjectPool<DbConnection> pool, DbCommand cmd, Exception e, DateTime dt, string logtxt, bool isThrowException = true) {
+		void LoggerException(ObjectPool<DbConnection> pool, DbCommand cmd, Exception e, DateTime dt, StringBuilder logtxt, bool isThrowException = true) {
 			if (IsTracePerformance) {
 				TimeSpan ts = DateTime.Now.Subtract(dt);
 				if (e == null && ts.TotalMilliseconds > 100)
-					_log.LogWarning(logtxt = $"{pool.Policy.Name}执行SQL语句耗时过长{ts.TotalMilliseconds}ms\r\n{cmd.CommandText}\r\n{logtxt}");
+					_log.LogWarning(logtxt.Insert(0, $"{pool.Policy.Name}（执行SQL）语句耗时过长{ts.TotalMilliseconds}ms\r\n{cmd.CommandText}\r\n").ToString());
+				else
+					logtxt.Insert(0, $"{pool.Policy.Name}（执行SQL）耗时{ts.TotalMilliseconds}ms\r\n{cmd.CommandText}\r\n").ToString();
 			}
 
 			if (e == null) {
-				AopCommandExecuted?.Invoke(cmd, logtxt);
+				AopCommandExecuted?.Invoke(cmd, logtxt.ToString());
 				return;
 			}
 
-			string log = $"{pool.Policy.Name}数据库出错（执行SQL）〓〓〓〓〓〓〓〓〓〓〓〓〓〓〓\r\n{cmd.CommandText}\r\n";
+			StringBuilder log = new StringBuilder();
+			log.Append(pool.Policy.Name).Append("数据库出错（执行SQL）〓〓〓〓〓〓〓〓〓〓〓〓〓〓〓\r\n").Append(cmd.CommandText).Append("\r\n");
 			foreach (DbParameter parm in cmd.Parameters)
-				log += parm.ParameterName.PadRight(20, ' ') + " = " + ((parm.Value ?? DBNull.Value) == DBNull.Value ? "NULL" : parm.Value) + "\r\n";
+				log.Append(parm.ParameterName.PadRight(20, ' ')).Append(" = ").Append((parm.Value ?? DBNull.Value) == DBNull.Value ? "NULL" : parm.Value).Append("\r\n");
 
-			log += e.Message;
-			_log.LogError(log);
+			log.Append(e.Message);
+			_log.LogError(log.ToString());
 
 			RollbackTransaction();
 
-			AopCommandExecuted?.Invoke(cmd, log);
+			AopCommandExecuted?.Invoke(cmd, log.ToString());
 
 			cmd.Parameters.Clear();
 			if (isThrowException) throw e;
@@ -77,11 +81,11 @@ namespace FreeSql.Internal.CommonProvider {
 		}
 		public void ExecuteReader(Action<DbDataReader> readerHander, string sql, object parms = null) => ExecuteReader(readerHander, CommandType.Text, sql, GetDbParamtersByObject(sql, parms));
 		public void ExecuteReader(Action<DbDataReader> readerHander, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
-			DateTime dt = DateTime.Now;
-			string logtxt = "";
-			DateTime logtxt_dt = DateTime.Now;
+			var dt = DateTime.Now;
+			var logtxt = new StringBuilder();
+			var logtxt_dt = DateTime.Now;
 			var pool = this.MasterPool;
-			bool isSlave = false;
+			var isSlave = false;
 
 			//读写分离规则
 			if (this.SlavePools.Any() && cmdText.StartsWith("SELECT ", StringComparison.CurrentCultureIgnoreCase)) {
@@ -99,8 +103,8 @@ namespace FreeSql.Internal.CommonProvider {
 			}
 
 			Object<DbConnection> conn = null;
-			var pc = PrepareCommand(cmdType, cmdText, cmdParms, ref logtxt);
-			if (IsTracePerformance) logtxt += $"PrepareCommand: {DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds}ms Total: {DateTime.Now.Subtract(dt).TotalMilliseconds}ms\r\n";
+			var pc = PrepareCommand(cmdType, cmdText, cmdParms, logtxt);
+			if (IsTracePerformance) logtxt.Append("PrepareCommand: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms\r\n");
 			Exception ex = null;
 			try {
 				if (IsTracePerformance) logtxt_dt = DateTime.Now;
@@ -117,7 +121,7 @@ namespace FreeSql.Internal.CommonProvider {
 						if (conn != null) {
 							if (IsTracePerformance) logtxt_dt = DateTime.Now;
 							ReturnConnection(pool, conn, ex); //pool.Return(conn, ex);
-							if (IsTracePerformance) logtxt += $"ReleaseConnection: {DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds}ms Total: {DateTime.Now.Subtract(dt).TotalMilliseconds}ms";
+							if (IsTracePerformance) logtxt.Append("ReleaseConnection: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms");
 						}
 						LoggerException(pool, pc.cmd, new Exception($"连接失败，准备切换其他可用服务器"), dt, logtxt, false);
 						pc.cmd.Parameters.Clear();
@@ -129,15 +133,15 @@ namespace FreeSql.Internal.CommonProvider {
 					if (pc.cmd.Connection == null) pc.cmd.Connection = (conn = pool.Get()).Value;
 				}
 				if (IsTracePerformance) {
-					logtxt += $"Open: {DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds}ms Total: {DateTime.Now.Subtract(dt).TotalMilliseconds}ms\r\n";
+					logtxt.Append("Open: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms\r\n");
 					logtxt_dt = DateTime.Now;
 				}
 				using (var dr = pc.cmd.ExecuteReader()) {
-					if (IsTracePerformance) logtxt += $"ExecuteReader: {DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds}ms Total: {DateTime.Now.Subtract(dt).TotalMilliseconds}ms\r\n";
+					if (IsTracePerformance) logtxt.Append("ExecuteReader: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms\r\n");
 					while (true) {
 						if (IsTracePerformance) logtxt_dt = DateTime.Now;
 						bool isread = dr.Read();
-						if (IsTracePerformance) logtxt += $"	dr.Read: {DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds}ms Total: {DateTime.Now.Subtract(dt).TotalMilliseconds}ms\r\n";
+						if (IsTracePerformance) logtxt.Append("	dr.Read: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms\r\n");
 						if (isread == false) break;
 
 						if (readerHander != null) {
@@ -146,17 +150,17 @@ namespace FreeSql.Internal.CommonProvider {
 								logtxt_dt = DateTime.Now;
 								values = new object[dr.FieldCount];
 								dr.GetValues(values);
-								logtxt += $"	dr.GetValues: {DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds}ms Total: {DateTime.Now.Subtract(dt).TotalMilliseconds}ms\r\n";
+								logtxt.Append("	dr.GetValues: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms\r\n");
 								logtxt_dt = DateTime.Now;
 							}
 							readerHander(dr);
-							if (IsTracePerformance) logtxt += $"	readerHander: {DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds}ms Total: {DateTime.Now.Subtract(dt).TotalMilliseconds}ms ({string.Join(",", values)})\r\n";
+							if (IsTracePerformance) logtxt.Append("	readerHander: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms (").Append(string.Join(", ", values)).Append(")\r\n");
 						}
 					}
 					if (IsTracePerformance) logtxt_dt = DateTime.Now;
 					dr.Close();
 				}
-				if (IsTracePerformance) logtxt += $"ExecuteReader_dispose: {DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds}ms Total: {DateTime.Now.Subtract(dt).TotalMilliseconds}ms\r\n";
+				if (IsTracePerformance) logtxt.Append("ExecuteReader_dispose: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms\r\n");
 			} catch (Exception ex2) {
 				ex = ex2;
 			}
@@ -164,7 +168,7 @@ namespace FreeSql.Internal.CommonProvider {
 			if (conn != null) {
 				if (IsTracePerformance) logtxt_dt = DateTime.Now;
 				ReturnConnection(pool, conn, ex); //pool.Return(conn, ex);
-				if (IsTracePerformance) logtxt += $"ReleaseConnection: {DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds}ms Total: {DateTime.Now.Subtract(dt).TotalMilliseconds}ms";
+				if (IsTracePerformance) logtxt.Append("ReleaseConnection: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms");
 			}
 			LoggerException(pool, pc.cmd, ex, dt, logtxt);
 			pc.cmd.Parameters.Clear();
@@ -193,11 +197,11 @@ namespace FreeSql.Internal.CommonProvider {
 		}
 		public int ExecuteNonQuery(string sql, object parms = null) => ExecuteNonQuery(CommandType.Text, sql, GetDbParamtersByObject(sql, parms));
 		public int ExecuteNonQuery(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
-			DateTime dt = DateTime.Now;
-			string logtxt = "";
-			DateTime logtxt_dt = DateTime.Now;
+			var dt = DateTime.Now;
+			var logtxt = new StringBuilder();
+			var logtxt_dt = DateTime.Now;
 			Object<DbConnection> conn = null;
-			var pc = PrepareCommand(cmdType, cmdText, cmdParms, ref logtxt);
+			var pc = PrepareCommand(cmdType, cmdText, cmdParms, logtxt);
 			int val = 0;
 			Exception ex = null;
 			try {
@@ -210,7 +214,7 @@ namespace FreeSql.Internal.CommonProvider {
 			if (conn != null) {
 				if (IsTracePerformance) logtxt_dt = DateTime.Now;
 				ReturnConnection(MasterPool, conn, ex); //this.MasterPool.Return(conn, ex);
-				if (IsTracePerformance) logtxt += $"ReleaseConnection: {DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds}ms Total: {DateTime.Now.Subtract(dt).TotalMilliseconds}ms";
+				if (IsTracePerformance) logtxt.Append("ReleaseConnection: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms");
 			}
 			LoggerException(this.MasterPool, pc.cmd, ex, dt, logtxt);
 			pc.cmd.Parameters.Clear();
@@ -218,11 +222,11 @@ namespace FreeSql.Internal.CommonProvider {
 		}
 		public object ExecuteScalar(string sql, object parms = null) => ExecuteScalar(CommandType.Text, sql, GetDbParamtersByObject(sql, parms));
 		public object ExecuteScalar(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
-			DateTime dt = DateTime.Now;
-			string logtxt = "";
-			DateTime logtxt_dt = DateTime.Now;
+			var dt = DateTime.Now;
+			var logtxt = new StringBuilder();
+			var logtxt_dt = DateTime.Now;
 			Object<DbConnection> conn = null;
-			var pc = PrepareCommand(cmdType, cmdText, cmdParms, ref logtxt);
+			var pc = PrepareCommand(cmdType, cmdText, cmdParms, logtxt);
 			object val = null;
 			Exception ex = null;
 			try {
@@ -235,14 +239,14 @@ namespace FreeSql.Internal.CommonProvider {
 			if (conn != null) {
 				if (IsTracePerformance) logtxt_dt = DateTime.Now;
 				ReturnConnection(MasterPool, conn, ex); //this.MasterPool.Return(conn, ex);
-				if (IsTracePerformance) logtxt += $"ReleaseConnection: {DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds}ms Total: {DateTime.Now.Subtract(dt).TotalMilliseconds}ms";
+				if (IsTracePerformance) logtxt.Append("ReleaseConnection: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms");
 			}
 			LoggerException(this.MasterPool, pc.cmd, ex, dt, logtxt);
 			pc.cmd.Parameters.Clear();
 			return val;
 		}
 
-		private (DbTransaction tran, DbCommand cmd) PrepareCommand(CommandType cmdType, string cmdText, DbParameter[] cmdParms, ref string logtxt) {
+		private (DbTransaction tran, DbCommand cmd) PrepareCommand(CommandType cmdType, string cmdText, DbParameter[] cmdParms, StringBuilder logtxt) {
 			var dt = DateTime.Now;
 			DbCommand cmd = CreateCommand();
 			cmd.CommandType = cmdType;
@@ -257,18 +261,18 @@ namespace FreeSql.Internal.CommonProvider {
 			}
 
 			var tran = TransactionCurrentThread;
-			if (IsTracePerformance) logtxt += $"	PrepareCommand_part1: {DateTime.Now.Subtract(dt).TotalMilliseconds}ms cmdParms: {cmd.Parameters.Count}\r\n";
+			if (IsTracePerformance) logtxt.Append("	PrepareCommand_part1: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms cmdParms: ").Append(cmd.Parameters.Count).Append("\r\n");
 
 			if (tran != null) {
 				if (IsTracePerformance) dt = DateTime.Now;
 				cmd.Connection = tran.Connection;
 				cmd.Transaction = tran;
-				if (IsTracePerformance) logtxt += $"	PrepareCommand_tran!=null: {DateTime.Now.Subtract(dt).TotalMilliseconds}ms\r\n";
+				if (IsTracePerformance) logtxt.Append("	PrepareCommand_tran!=null: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms\r\n");
 			}
 
 			if (IsTracePerformance) dt = DateTime.Now;
 			AutoCommitTransaction();
-			if (IsTracePerformance) logtxt += $"	AutoCommitTransaction: {DateTime.Now.Subtract(dt).TotalMilliseconds}ms\r\n";
+			if (IsTracePerformance) logtxt.Append("   AutoCommitTransaction: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms\r\n");
 
 			AopCommandExecuting?.Invoke(cmd);
 			return (tran, cmd);

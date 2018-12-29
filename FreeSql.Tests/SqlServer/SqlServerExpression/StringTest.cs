@@ -227,11 +227,19 @@ namespace FreeSql.Tests.SqlServerExpression {
 			//data.Add(select.Where(a => a.Title.CompareTo(a.Title) > 0).ToList());
 			//data.Add(select.Where(a => a.Title.CompareTo(a.Title + 1) == 0).ToList());
 			//data.Add(select.Where(a => a.Title.CompareTo(a.Title + a.Type.Name) == 0).ToList());
-			
+
 			//data.Add(select.Where(a => (a.Title + "aaa").CompareTo("aaa") == 0).ToList());
 			//data.Add(select.Where(a => (a.Title + "aaa").CompareTo(a.Title) > 0).ToList());
 			//data.Add(select.Where(a => (a.Title + "aaa").CompareTo(a.Title + 1) == 0).ToList());
 			//data.Add(select.Where(a => (a.Title + "aaa").CompareTo(a.Type.Name) == 0).ToList());
+		}
+
+		[Fact]
+		public void string_IsNullOrEmpty() {
+			var data = new List<object>();
+			data.Add(select.Where(a => string.IsNullOrEmpty(a.Title)).ToList());
+			//data.Add(select.Where(a => string.IsNullOrEmpty(a.Title) == false).ToList());
+			data.Add(select.Where(a => !string.IsNullOrEmpty(a.Title)).ToList());
 		}
 	}
 }

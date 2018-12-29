@@ -671,5 +671,13 @@ namespace FreeSql.Tests.MySqlExpression {
 			//FROM `tb_topic` a, `TestTypeInfo` a__Type 
 			//WHERE (strcmp(concat(a.`Title`, 'aaa'), a__Type.`Name`) = 0)
 		}
+
+		[Fact]
+		public void string_IsNullOrEmpty() {
+			var data = new List<object>();
+			data.Add(select.Where(a => string.IsNullOrEmpty(a.Title)).ToList());
+			data.Add(select.Where(a => string.IsNullOrEmpty(a.Title) == false).ToList());
+			data.Add(select.Where(a => !string.IsNullOrEmpty(a.Title)).ToList());
+		}
 	}
 }

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Text;
 
 namespace FreeSql.SqlServer {
 	class SqlServerExpression : CommonExpression {
@@ -11,6 +12,41 @@ namespace FreeSql.SqlServer {
 		public SqlServerExpression(CommonUtils common) : base(common) { }
 
 		internal override string ExpressionLambdaToSqlOther(Expression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName) {
+			switch (exp.NodeType) {
+				case ExpressionType.Call:
+					var callExp = exp as MethodCallExpression;
+					var objExp = callExp.Object;
+					var objType = objExp?.Type;
+					if (objType?.FullName == "System.Byte[]") return null;
+
+					var argIndex = 0;
+					if (objType == null && callExp.Method.DeclaringType.FullName == typeof(Enumerable).FullName) {
+						objExp = callExp.Arguments.FirstOrDefault();
+						objType = objExp?.Type;
+						argIndex++;
+					}
+					if (objType == null) objType = callExp.Method.DeclaringType;
+					if (objType != null) {
+						var left = objExp == null ? null : ExpressionLambdaToSql(objExp, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+						if (objType.IsArray == true) {
+							switch (callExp.Method.Name) {
+								case "Contains":
+									//判断 in
+									return $"({ExpressionLambdaToSql(callExp.Arguments[argIndex], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)}) in {left}";
+							}
+						}
+					}
+					break;
+				case ExpressionType.NewArrayInit:
+					var arrExp = exp as NewArrayExpression;
+					var arrSb = new StringBuilder();
+					arrSb.Append("(");
+					for (var a = 0; a < arrExp.Expressions.Count; a++) {
+						if (a > 0) arrSb.Append(",");
+						arrSb.Append(ExpressionLambdaToSql(arrExp.Expressions[a], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName));
+					}
+					return arrSb.Append(")").ToString();
+			}
 			return null;
 		}
 
@@ -82,46 +118,54 @@ namespace FreeSql.SqlServer {
 		}
 
 		internal override string ExpressionLambdaToSqlCallString(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName) {
-			var left = ExpressionLambdaToSql(exp.Object, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
-			switch (exp.Method.Name) {
-				case "StartsWith":
-				case "EndsWith":
-				case "Contains":
-					var args0Value = ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
-					if (args0Value == "NULL") return $"({left}) IS NULL";
-					if (exp.Method.Name == "StartsWith") return $"({left}) LIKE {(args0Value.EndsWith("'") ? args0Value.Insert(args0Value.Length - 1, "%") : $"(cast({args0Value} as nvarchar)+'%')")}";
-					if (exp.Method.Name == "EndsWith") return $"({left}) LIKE {(args0Value.StartsWith("'") ? args0Value.Insert(1, "%") : $"('%'+cast({args0Value} as nvarchar))")}";
-					if (args0Value.StartsWith("'") && args0Value.EndsWith("'")) return $"({left}) LIKE {args0Value.Insert(1, "%").Insert(args0Value.Length, "%")}";
-					return $"({left}) LIKE ('%'+cast({args0Value} as nvarchar)+'%')";
-				case "ToLower": return $"lower({left})";
-				case "ToUpper": return $"upper({left})";
-				case "Substring":
-					var substrArgs1 = ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
-					if (long.TryParse(substrArgs1, out var testtrylng1)) substrArgs1 = (testtrylng1 + 1).ToString();
-					else substrArgs1 += "+1";
-					if (exp.Arguments.Count == 1) return $"left({left}, {substrArgs1})";
-					return $"substring({left}, {substrArgs1}, {ExpressionLambdaToSql(exp.Arguments[1], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
-				case "IndexOf":
-					var indexOfFindStr = ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
-					if (exp.Arguments.Count > 1 && exp.Arguments[1].Type.FullName == "System.Int32") {
-						var locateArgs1 = ExpressionLambdaToSql(exp.Arguments[1], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
-						if (long.TryParse(locateArgs1, out var testtrylng2)) locateArgs1 = (testtrylng2 + 1).ToString();
-						else locateArgs1 += "+1";
-						return $"(charindex({left}, {indexOfFindStr}, {locateArgs1})-1)";
-					}
-					return $"(charindex({left}, {indexOfFindStr})-1)";
-				case "PadLeft":
-					if (exp.Arguments.Count == 1) return $"lpad({left}, {ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
-					return $"lpad({left}, {ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)}, {ExpressionLambdaToSql(exp.Arguments[1], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
-				case "PadRight":
-					if (exp.Arguments.Count == 1) return $"rpad({left}, {ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
-					return $"rpad({left}, {ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)}, {ExpressionLambdaToSql(exp.Arguments[1], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
-				case "Trim": return $"ltrim(rtrim({left}))";
-				case "TrimStart": return $"ltrim({left})";
-				case "TrimEnd": return $"rtrim({left})";
-				case "Replace": return $"replace({left}, {ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)}, {ExpressionLambdaToSql(exp.Arguments[1], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
-				case "CompareTo": return $"({left} - {ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
-				case "Equals": return $"({left} = {ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
+			if (exp.Object == null) {
+				switch (exp.Method.Name) {
+					case "IsNullOrEmpty":
+						var arg1 = ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+						return $"({arg1} is null or {arg1} = '')";
+				}
+			} else {
+				var left = ExpressionLambdaToSql(exp.Object, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+				switch (exp.Method.Name) {
+					case "StartsWith":
+					case "EndsWith":
+					case "Contains":
+						var args0Value = ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+						if (args0Value == "NULL") return $"({left}) IS NULL";
+						if (exp.Method.Name == "StartsWith") return $"({left}) LIKE {(args0Value.EndsWith("'") ? args0Value.Insert(args0Value.Length - 1, "%") : $"(cast({args0Value} as nvarchar)+'%')")}";
+						if (exp.Method.Name == "EndsWith") return $"({left}) LIKE {(args0Value.StartsWith("'") ? args0Value.Insert(1, "%") : $"('%'+cast({args0Value} as nvarchar))")}";
+						if (args0Value.StartsWith("'") && args0Value.EndsWith("'")) return $"({left}) LIKE {args0Value.Insert(1, "%").Insert(args0Value.Length, "%")}";
+						return $"({left}) LIKE ('%'+cast({args0Value} as nvarchar)+'%')";
+					case "ToLower": return $"lower({left})";
+					case "ToUpper": return $"upper({left})";
+					case "Substring":
+						var substrArgs1 = ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+						if (long.TryParse(substrArgs1, out var testtrylng1)) substrArgs1 = (testtrylng1 + 1).ToString();
+						else substrArgs1 += "+1";
+						if (exp.Arguments.Count == 1) return $"left({left}, {substrArgs1})";
+						return $"substring({left}, {substrArgs1}, {ExpressionLambdaToSql(exp.Arguments[1], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
+					case "IndexOf":
+						var indexOfFindStr = ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+						if (exp.Arguments.Count > 1 && exp.Arguments[1].Type.FullName == "System.Int32") {
+							var locateArgs1 = ExpressionLambdaToSql(exp.Arguments[1], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+							if (long.TryParse(locateArgs1, out var testtrylng2)) locateArgs1 = (testtrylng2 + 1).ToString();
+							else locateArgs1 += "+1";
+							return $"(charindex({left}, {indexOfFindStr}, {locateArgs1})-1)";
+						}
+						return $"(charindex({left}, {indexOfFindStr})-1)";
+					case "PadLeft":
+						if (exp.Arguments.Count == 1) return $"lpad({left}, {ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
+						return $"lpad({left}, {ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)}, {ExpressionLambdaToSql(exp.Arguments[1], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
+					case "PadRight":
+						if (exp.Arguments.Count == 1) return $"rpad({left}, {ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
+						return $"rpad({left}, {ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)}, {ExpressionLambdaToSql(exp.Arguments[1], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
+					case "Trim": return $"ltrim(rtrim({left}))";
+					case "TrimStart": return $"ltrim({left})";
+					case "TrimEnd": return $"rtrim({left})";
+					case "Replace": return $"replace({left}, {ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)}, {ExpressionLambdaToSql(exp.Arguments[1], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
+					case "CompareTo": return $"({left} - {ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
+					case "Equals": return $"({left} = {ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
+				}
 			}
 			throw new Exception($"SqlServerExpression 未现实函数表达式 {exp} 解析");
 		}

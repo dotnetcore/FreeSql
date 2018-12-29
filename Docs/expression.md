@@ -1,21 +1,54 @@
 # 表达式函数
 | 表达式 | MySql | SqlServer | PostgreSQL | 功能说明 |
 | - | - | - | - | - |
-| a ? b : c | case when a then b else c end | case when a then b else c end | - | a成立时取b值，否则取c值 |
+| a ? b : c | case when athen b else c end | case when athen b else c end | case when athen b else c end | a成立时取b值，否则取c值 |
 | a ?? b | ifnull(a, b) | isnull(a, b) | coalesce(a, b) | 当a为null时，取b值 |
 | 数字 + 数字 | a + b | a + b | a + b | 数字相加 |
-| 数字 + 字符串 | concat(a, b) | cast(a as varchar) + cast(b as varchar) | case(a as varchar) \|\| b | 字符串相加，a或b任意一个为字符串时 |
+| 数字 + 字符串 | concat(a, b) | cast(a as varchar) + cast(b as varchar) | case(a as varchar)\|\| b | 字符串相加，a或b任意一个为字符串时 |
 | a - b | a - b | a - b | a - b | 减
 | a * b | a * b | a * b | a * b | 乘
 | a / b | a / b | a / b | a / b | 乘
-| a % b | a mod b | a mod b | a mod b | 模
+| a % b | a % b | a % b | a % b | 模
 
 > 等等...
+
+### 数组
+| 表达式 | MySql | SqlServer | PostgreSQL | 功能说明 |
+| - | - | - | - | - |
+| a.Length | - | - | case when a is null then 0 else array_length(a,1) end | 数组长度 |
+| 常量数组.Length | - | - | array_length(array[常量数组元素逗号分割],1) | 数组长度 |
+| a.Any() | - | - | case when a is null then 0 else array_length(a,1) end > 0 | 数组是否为空 |
+| 常量数组.Contains(b) | b in (常量数组元素逗号分割) | b in (常量数组元素逗号分割) | b in (常量数组元素逗号分割) | IN查询 |
+| a.Contains(b) | - | - | a @> array[b] | a数组是否包含b元素 |
+| a.Concat(b) | - | - | a \|\| b | 数组相连 |
+| a.Count() | - | - | 同 Length | 数组长度 |
+
+### 字典 Dictionary<string, string>
+| 表达式 | MySql | SqlServer | PostgreSQL | 功能说明 |
+| - | - | - | - | - |
+| a.Count | - | - | case when a is null then 0 else array_length(akeys(a),1) end | 字典长度 |
+| a.Keys | - | - | akeys(a) | 返回字典所有key数组 |
+| a.Values | - | - | avals(a) | 返回字典所有value数组 |
+| a.Contains(b) | - | - | a @> b | 字典是否包含b
+| a.ContainsKey(b) | - | - | a? b | 字典是否包含key
+| a.Concat(b) | - | - | a \|\| b | 字典相连 |
+| a.Count() | - | - | 同 Count | 字典长度 |
+
+### JSON JToken/JObject/JArray
+| 表达式 | MySql | SqlServer | PostgreSQL | 功能说明 |
+| - | - | - | - | - |
+| a.Count | - | - | jsonb_array_length(coalesce(a, '[])) | json数组类型的长度 |
+| a.Any() | - | - | jsonb_array_length(coalesce(a, '[])) > 0 | json数组类型，是否为空 |
+| a.Contains(b) | - | - | coalesce(a, '{}') @> b::jsonb | json中是否包含b |
+| a.ContainsKey(b) | - | - | coalesce(a, '{}') ? b | json中是否包含键b |
+| a.Concat(b) | - | - | coalesce(a, '{}') || b::jsonb | 连接两个json |
+| Parse(a) | - | - | a::jsonb | 转化字符串为json类型 |
 
 ### 字符串对象
 | 表达式 | MySql | SqlServer | PostgreSQL | 功能说明 |
 | - | - | - | - | - |
 | string.Empty | '' | '' | '' | 空字符串表示 |
+| string.IsNullOrEmpty(a) | (a is null or a = '') | (a is null or a = '') | (a is null or a = '') | 空字符串表示 |
 | a.CompareTo(b) | strcmp(a, b) | - | - | 比较a和b大小 |
 | a.Contains('b') | a like '%b%' | a like '%b%' | - | a是否包含b |
 | a.EndsWith('b') | a like '%b' | a like '%b' | - | a尾部是否包含b |
