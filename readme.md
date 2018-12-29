@@ -14,6 +14,8 @@ FreeSql 目前仍处在测试阶段，您可以持续关注或者参与给出宝
 
 * [《DbFirst 快速开发文档》](Docs/dbfirst.md)
 
+* [《Expression 表达式函数文档》](Docs/expression.md)
+
 # 快速开始
 ```csharp
 var connstr = "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;" + 
