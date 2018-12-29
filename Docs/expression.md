@@ -136,7 +136,7 @@
 
 ### 数学函数
 | 表达式 | MySql | SqlServer | PostgreSQL |
-| - | - | - | - | - |
+| - | - | - | - |
 | Math.Abs(a) | abs(a) | abs(a) | abs(a) |
 | Math.Acos(a) | acos(a) | acos(a) | acos(a) |
 | Math.Asin(a) | asin(a) | asin(a) | asin(a) |
@@ -159,7 +159,7 @@
 
 ### 类型转换
 | 表达式 | MySql | SqlServer | PostgreSQL |
-| - | - | - | - | - |
+| - | - | - | - |
 | Convert.ToBoolean(a) | a not in ('0','false') | a not in ('0','false') | a::varchar not in ('0','false','f','no') |
 | Convert.ToByte(a) | cast(a as unsigned) | cast(a as tinyint) | a::int2 |
 | Convert.ToChar(a) | substr(cast(a as char),1,1) | substring(cast(a as nvarchar),1,1) | substr(a::char,1,1) |
