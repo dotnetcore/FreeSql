@@ -13,9 +13,10 @@ namespace FreeSql.PostgreSQL {
 		public PostgreSQLExpression(CommonUtils common) : base(common) { }
 
 		internal override string ExpressionLambdaToSqlOther(Expression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName) {
+			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
 			switch (exp.NodeType) {
 				case ExpressionType.ArrayLength:
-					var arrOperExp = ExpressionLambdaToSql((exp as UnaryExpression).Operand, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+					var arrOperExp = getExp((exp as UnaryExpression));
 					if (arrOperExp.StartsWith("(") || arrOperExp.EndsWith(")")) return $"array_length(array[{arrOperExp.TrimStart('(').TrimEnd(')')}],1)";
 					return $"case when {arrOperExp} is null then 0 else array_length({arrOperExp},1) end";
 				case ExpressionType.Call:
@@ -32,7 +33,7 @@ namespace FreeSql.PostgreSQL {
 					}
 					if (objType == null) objType = callExp.Method.DeclaringType;
 					if (objType != null) {
-						var left = objExp == null ? null : ExpressionLambdaToSql(objExp, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+						var left = objExp == null ? null : getExp(objExp);
 						if (objType.IsArray == true) {
 							switch (callExp.Method.Name) {
 								case "Any":
@@ -40,7 +41,7 @@ namespace FreeSql.PostgreSQL {
 									return $"(case when {left} is null then 0 else array_length({left},1) end > 0)";
 								case "Contains":
 									//判断 in 或 array @> array
-									var right1 = ExpressionLambdaToSql(callExp.Arguments[argIndex], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+									var right1 = getExp(callExp.Arguments[argIndex]);
 									if (left.StartsWith("array[") || left.EndsWith("]"))
 										return $"{right1} in ({left.Substring(6, left.Length - 7)})";
 									if (left.StartsWith("(") || left.EndsWith(")"))
@@ -49,7 +50,7 @@ namespace FreeSql.PostgreSQL {
 									return $"({left} @> array[{right1}])";
 								case "Concat":
 									if (left.StartsWith("(") || left.EndsWith(")")) left = $"array[{left.TrimStart('(').TrimEnd(')')}]";
-									var right2 = ExpressionLambdaToSql(callExp.Arguments[argIndex], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+									var right2 = getExp(callExp.Arguments[argIndex]);
 									if (right2.StartsWith("(") || right2.EndsWith(")")) right2 = $"array[{right2.TrimStart('(').TrimEnd(')')}]";
 									return $"({left} || {right2})";
 								case "GetLength":
@@ -67,17 +68,17 @@ namespace FreeSql.PostgreSQL {
 								switch (callExp.Method.Name) {
 									case "Any": return $"(jsonb_array_length(coalesce({left},'[]')) > 0)";
 									case "Contains":
-										var json = ExpressionLambdaToSql(callExp.Arguments[argIndex], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+										var json = getExp(callExp.Arguments[argIndex]);
 										if (json.StartsWith("'") && json.EndsWith("'")) return $"(coalesce({left},'{{}}') @> {_common.FormatSql("{0}", JToken.Parse(json.Trim('\'')))})";
 										return $"(coalesce({left},'{{}}') @> ({json})::jsonb)";
-									case "ContainsKey": return $"(coalesce({left},'{{}}') ? {ExpressionLambdaToSql(callExp.Arguments[argIndex], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
+									case "ContainsKey": return $"(coalesce({left},'{{}}') ? {getExp(callExp.Arguments[argIndex])})";
 									case "Concat":
-										var right2 = ExpressionLambdaToSql(callExp.Arguments[argIndex], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+										var right2 = getExp(callExp.Arguments[argIndex]);
 										return $"(coalesce({left},'{{}}') || {right2})";
 									case "LongCount":
 									case "Count": return $"jsonb_array_length(coalesce({left},'[]'))";
 									case "Parse":
-										var json2 = ExpressionLambdaToSql(callExp.Arguments[argIndex], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+										var json2 = getExp(callExp.Arguments[argIndex]);
 										if (json2.StartsWith("'") && json2.EndsWith("'")) return _common.FormatSql("{0}", JToken.Parse(json2.Trim('\'')));
 										return $"({json2})::jsonb";
 								}
@@ -86,10 +87,10 @@ namespace FreeSql.PostgreSQL {
 						if (objType.FullName == typeof(Dictionary<string, string>).FullName) {
 							switch (callExp.Method.Name) {
 								case "Contains":
-									var right = ExpressionLambdaToSql(callExp.Arguments[argIndex], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+									var right = getExp(callExp.Arguments[argIndex]);
 									return $"({left} @> ({right}))";
-								case "ContainsKey": return $"({left} ? {ExpressionLambdaToSql(callExp.Arguments[argIndex], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
-								case "Concat": return $"({left} || {ExpressionLambdaToSql(callExp.Arguments[argIndex], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
+								case "ContainsKey": return $"({left} ? {getExp(callExp.Arguments[argIndex])})";
+								case "Concat": return $"({left} || {getExp(callExp.Arguments[argIndex])})";
 								case "GetLength":
 								case "GetLongLength":
 								case "Count": return $"case when {left} is null then 0 else array_length(akeys({left}),1) end";
@@ -105,7 +106,7 @@ namespace FreeSql.PostgreSQL {
 					if (memParentExp?.FullName == "System.Byte[]") return null;
 					if (memParentExp != null) {
 						if (memParentExp.IsArray == true) {
-							var left = ExpressionLambdaToSql(memExp.Expression, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+							var left = getExp(memExp.Expression);
 							if (left.StartsWith("(") || left.EndsWith(")")) left = $"array[{left.TrimStart('(').TrimEnd(')')}]";
 							switch (memExp.Member.Name) {
 								case "Length":
@@ -116,14 +117,14 @@ namespace FreeSql.PostgreSQL {
 							case "Newtonsoft.Json.Linq.JToken":
 							case "Newtonsoft.Json.Linq.JObject":
 							case "Newtonsoft.Json.Linq.JArray":
-								var left = ExpressionLambdaToSql(memExp.Expression, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+								var left = getExp(memExp.Expression);
 								switch (memExp.Member.Name) {
 									case "Count": return $"jsonb_array_length(coalesce({left},'[]'))";
 								}
 								break;
 						}
 						if (memParentExp.FullName == typeof(Dictionary<string, string>).FullName) {
-							var left = ExpressionLambdaToSql(memExp.Expression, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+							var left = getExp(memExp.Expression);
 							switch (memExp.Member.Name) {
 								case "Count": return $"case when {left} is null then 0 else array_length(akeys({left}),1) end";
 								case "Keys": return $"akeys({left})";
@@ -138,7 +139,7 @@ namespace FreeSql.PostgreSQL {
 					arrSb.Append("array[");
 					for (var a = 0; a < arrExp.Expressions.Count; a++) {
 						if (a > 0) arrSb.Append(",");
-						arrSb.Append(ExpressionLambdaToSql(arrExp.Expressions[a], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName));
+						arrSb.Append(getExp(arrExp.Expressions[a]));
 					}
 					return arrSb.Append("]").ToString();
 			}
@@ -213,24 +214,25 @@ namespace FreeSql.PostgreSQL {
 		}
 
 		internal override string ExpressionLambdaToSqlCallString(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName) {
+			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
 			if (exp.Object == null) {
 				switch (exp.Method.Name) {
 					case "IsNullOrEmpty":
-						var arg1 = ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+						var arg1 = getExp(exp.Arguments[0]);
 						return $"({arg1} is null or {arg1} = '')";
 				}
 			} else {
-				var left = ExpressionLambdaToSql(exp.Object, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+				var left = getExp(exp.Object);
 				switch (exp.Method.Name) {
 					case "StartsWith":
 					case "EndsWith":
 					case "Contains":
-						var args0Value = ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+						var args0Value = getExp(exp.Arguments[0]);
 						if (args0Value == "NULL") return $"({left}) IS NULL";
 						var likeOpt = "LIKE";
 						if (exp.Arguments.Count > 1) {
 							if (exp.Arguments[1].Type == typeof(bool) ||
-								exp.Arguments[1].Type == typeof(StringComparison) && ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName).Contains("IgnoreCase")) likeOpt = "ILIKE";
+								exp.Arguments[1].Type == typeof(StringComparison) && getExp(exp.Arguments[0]).Contains("IgnoreCase")) likeOpt = "ILIKE";
 						}
 						if (exp.Method.Name == "StartsWith") return $"({left}) {likeOpt} {(args0Value.EndsWith("'") ? args0Value.Insert(args0Value.Length - 1, "%") : $"(({args0Value})::varchar || '%')")}";
 						if (exp.Method.Name == "EndsWith") return $"({left}) {likeOpt} {(args0Value.StartsWith("'") ? args0Value.Insert(1, "%") : $"('%' || ({args0Value})::varchar)")}";
@@ -239,18 +241,18 @@ namespace FreeSql.PostgreSQL {
 					case "ToLower": return $"lower({left})";
 					case "ToUpper": return $"upper({left})";
 					case "Substring":
-						var substrArgs1 = ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+						var substrArgs1 = getExp(exp.Arguments[0]);
 						if (long.TryParse(substrArgs1, out var testtrylng1)) substrArgs1 = (testtrylng1 + 1).ToString();
 						else substrArgs1 += "+1";
 						if (exp.Arguments.Count == 1) return $"substr({left}, {substrArgs1})";
-						return $"substr({left}, {substrArgs1}, {ExpressionLambdaToSql(exp.Arguments[1], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
-					case "IndexOf": return $"(strpos({left}, {ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})-1)";
+						return $"substr({left}, {substrArgs1}, {getExp(exp.Arguments[1])})";
+					case "IndexOf": return $"(strpos({left}, {getExp(exp.Arguments[0])})-1)";
 					case "PadLeft":
-						if (exp.Arguments.Count == 1) return $"lpad({left}, {ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
-						return $"lpad({left}, {ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)}, {ExpressionLambdaToSql(exp.Arguments[1], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
+						if (exp.Arguments.Count == 1) return $"lpad({left}, {getExp(exp.Arguments[0])})";
+						return $"lpad({left}, {getExp(exp.Arguments[0])}, {getExp(exp.Arguments[1])})";
 					case "PadRight":
-						if (exp.Arguments.Count == 1) return $"rpad({left}, {ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
-						return $"rpad({left}, {ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)}, {ExpressionLambdaToSql(exp.Arguments[1], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
+						if (exp.Arguments.Count == 1) return $"rpad({left}, {getExp(exp.Arguments[0])})";
+						return $"rpad({left}, {getExp(exp.Arguments[0])}, {getExp(exp.Arguments[1])})";
 					case "Trim":
 					case "TrimStart":
 					case "TrimEnd":
@@ -268,7 +270,7 @@ namespace FreeSql.PostgreSQL {
 								argsTrim01s = arritem.Expressions.ToArray();
 							}
 							foreach (var argsTrim01 in argsTrim01s) {
-								var trimChr = ExpressionLambdaToSql(argsTrim01, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName).Trim('\'');
+								var trimChr = getExp(argsTrim01).Trim('\'');
 								if (trimChr.Length == 1) trimArg1 += trimChr;
 								else trimArg2 += $" || ({trimChr})";
 							}
@@ -277,57 +279,59 @@ namespace FreeSql.PostgreSQL {
 						if (exp.Method.Name == "TrimStart") left = $"ltrim({left}, {_common.FormatSql("{0}", trimArg1)}{trimArg2})";
 						if (exp.Method.Name == "TrimEnd") left = $"rtrim({left}, {_common.FormatSql("{0}", trimArg1)}{trimArg2})";
 						return left;
-					case "Replace": return $"replace({left}, {ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)}, {ExpressionLambdaToSql(exp.Arguments[1], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
-					case "CompareTo": return $"case when {left} = {ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)} then 0 when {left} > {ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)} then 1 else -1 end";
-					case "Equals": return $"({left} = ({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})::varchar)";
+					case "Replace": return $"replace({left}, {getExp(exp.Arguments[0])}, {getExp(exp.Arguments[1])})";
+					case "CompareTo": return $"case when {left} = {getExp(exp.Arguments[0])} then 0 when {left} > {getExp(exp.Arguments[0])} then 1 else -1 end";
+					case "Equals": return $"({left} = ({getExp(exp.Arguments[0])})::varchar)";
 				}
 			}
 			throw new Exception($"PostgreSQLExpression 未现实函数表达式 {exp} 解析");
 		}
 		internal override string ExpressionLambdaToSqlCallMath(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName) {
+			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
 			switch (exp.Method.Name) {
-				case "Abs": return $"abs({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
-				case "Sign": return $"sign({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
-				case "Floor": return $"floor({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
-				case "Ceiling": return $"ceiling({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
+				case "Abs": return $"abs({getExp(exp.Arguments[0])})";
+				case "Sign": return $"sign({getExp(exp.Arguments[0])})";
+				case "Floor": return $"floor({getExp(exp.Arguments[0])})";
+				case "Ceiling": return $"ceiling({getExp(exp.Arguments[0])})";
 				case "Round":
-					if (exp.Arguments.Count > 1 && exp.Arguments[1].Type.FullName == "System.Int32") return $"round({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)}, {ExpressionLambdaToSql(exp.Arguments[1], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
-					return $"round({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
-				case "Exp": return $"exp({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
-				case "Log": return $"log({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
-				case "Log10": return $"log10({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
-				case "Pow": return $"pow({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)}, {ExpressionLambdaToSql(exp.Arguments[1], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
-				case "Sqrt": return $"sqrt({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
-				case "Cos": return $"cos({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
-				case "Sin": return $"sin({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
-				case "Tan": return $"tan({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
-				case "Acos": return $"acos({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
-				case "Asin": return $"asin({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
-				case "Atan": return $"atan({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
-				case "Atan2": return $"atan2({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)}, {ExpressionLambdaToSql(exp.Arguments[1], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
-				case "Truncate": return $"trunc({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)}, 0)";
+					if (exp.Arguments.Count > 1 && exp.Arguments[1].Type.FullName == "System.Int32") return $"round({getExp(exp.Arguments[0])}, {getExp(exp.Arguments[1])})";
+					return $"round({getExp(exp.Arguments[0])})";
+				case "Exp": return $"exp({getExp(exp.Arguments[0])})";
+				case "Log": return $"log({getExp(exp.Arguments[0])})";
+				case "Log10": return $"log10({getExp(exp.Arguments[0])})";
+				case "Pow": return $"pow({getExp(exp.Arguments[0])}, {getExp(exp.Arguments[1])})";
+				case "Sqrt": return $"sqrt({getExp(exp.Arguments[0])})";
+				case "Cos": return $"cos({getExp(exp.Arguments[0])})";
+				case "Sin": return $"sin({getExp(exp.Arguments[0])})";
+				case "Tan": return $"tan({getExp(exp.Arguments[0])})";
+				case "Acos": return $"acos({getExp(exp.Arguments[0])})";
+				case "Asin": return $"asin({getExp(exp.Arguments[0])})";
+				case "Atan": return $"atan({getExp(exp.Arguments[0])})";
+				case "Atan2": return $"atan2({getExp(exp.Arguments[0])}, {getExp(exp.Arguments[1])})";
+				case "Truncate": return $"trunc({getExp(exp.Arguments[0])}, 0)";
 			}
 			throw new Exception($"PostgreSQLExpression 未现实函数表达式 {exp} 解析");
 		}
 		internal override string ExpressionLambdaToSqlCallDateTime(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName) {
+			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
 			if (exp.Object == null) {
 				switch (exp.Method.Name) {
-					case "Compare": return $"extract(epoch from ({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})::timestamp-({ExpressionLambdaToSql(exp.Arguments[1], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})::timestamp)";
-					case "DaysInMonth": return $"extract(day from ({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)} || '-' || {ExpressionLambdaToSql(exp.Arguments[1], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)} || '-01')::timestamp+'1 month'::interval-'1 day'::interval)";
-					case "Equals": return $"(({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})::timestamp = ({ExpressionLambdaToSql(exp.Arguments[1], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})::timestamp)";
+					case "Compare": return $"extract(epoch from ({getExp(exp.Arguments[0])})::timestamp-({getExp(exp.Arguments[1])})::timestamp)";
+					case "DaysInMonth": return $"extract(day from ({getExp(exp.Arguments[0])} || '-' || {getExp(exp.Arguments[1])} || '-01')::timestamp+'1 month'::interval-'1 day'::interval)";
+					case "Equals": return $"(({getExp(exp.Arguments[0])})::timestamp = ({getExp(exp.Arguments[1])})::timestamp)";
 
 					case "IsLeapYear":
-						var isLeapYearArgs1 = ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+						var isLeapYearArgs1 = getExp(exp.Arguments[0]);
 						return $"(({isLeapYearArgs1})::int8%4=0 AND ({isLeapYearArgs1})::int8%100<>0 OR ({isLeapYearArgs1})::int8%400=0)";
 
-					case "Parse": return $"({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})::timestamp";
+					case "Parse": return $"({getExp(exp.Arguments[0])})::timestamp";
 					case "ParseExact":
 					case "TryParse":
-					case "TryParseExact": return $"({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})::timestamp";
+					case "TryParseExact": return $"({getExp(exp.Arguments[0])})::timestamp";
 				}
 			} else {
-				var left = ExpressionLambdaToSql(exp.Object, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
-				var args1 = exp.Arguments.Count == 0 ? null : ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+				var left = getExp(exp.Object);
+				var args1 = exp.Arguments.Count == 0 ? null : getExp(exp.Arguments[0]);
 				switch (exp.Method.Name) {
 					case "Add": return $"(({left})::timestamp+(({args1})||' microseconds')::interval)";
 					case "AddDays": return $"(({left})::timestamp+(({args1})||' day')::interval)";
@@ -344,60 +348,62 @@ namespace FreeSql.PostgreSQL {
 						if (exp.Arguments[0].Type.FullName == "System.TimeSpan" || exp.Arguments[0].Type.GenericTypeArguments.FirstOrDefault()?.FullName == "System.TimeSpan")
 							return $"(({left})::timestamp-(({args1})||' microseconds')::interval)";
 						break;
-					case "Equals": return $"({left} = ({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})::timestamp)";
-					case "CompareTo": return $"extract(epoch from ({left})::timestamp-({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})::timestamp)";
+					case "Equals": return $"({left} = ({getExp(exp.Arguments[0])})::timestamp)";
+					case "CompareTo": return $"extract(epoch from ({left})::timestamp-({getExp(exp.Arguments[0])})::timestamp)";
 					case "ToString": return $"to_char({left}, 'YYYY-MM-DD HH24:MI:SS.US')";
 				}
 			}
 			throw new Exception($"PostgreSQLExpression 未现实函数表达式 {exp} 解析");
 		}
 		internal override string ExpressionLambdaToSqlCallTimeSpan(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName) {
+			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
 			if (exp.Object == null) {
 				switch (exp.Method.Name) {
-					case "Compare": return $"({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)}-({ExpressionLambdaToSql(exp.Arguments[1], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)}))";
-					case "Equals": return $"({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)} = {ExpressionLambdaToSql(exp.Arguments[1], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
-					case "FromDays": return $"(({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})*{(long)1000000 * 60 * 60 * 24})";
-					case "FromHours": return $"(({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})*{(long)1000000 * 60 * 60})";
-					case "FromMilliseconds": return $"(({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})*1000)";
-					case "FromMinutes": return $"(({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})*{(long)1000000 * 60})";
-					case "FromSeconds": return $"(({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})*1000000)";
-					case "FromTicks": return $"(({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})/10)";
-					case "Parse": return $"({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})::int8";
+					case "Compare": return $"({getExp(exp.Arguments[0])}-({getExp(exp.Arguments[1])}))";
+					case "Equals": return $"({getExp(exp.Arguments[0])} = {getExp(exp.Arguments[1])})";
+					case "FromDays": return $"(({getExp(exp.Arguments[0])})*{(long)1000000 * 60 * 60 * 24})";
+					case "FromHours": return $"(({getExp(exp.Arguments[0])})*{(long)1000000 * 60 * 60})";
+					case "FromMilliseconds": return $"(({getExp(exp.Arguments[0])})*1000)";
+					case "FromMinutes": return $"(({getExp(exp.Arguments[0])})*{(long)1000000 * 60})";
+					case "FromSeconds": return $"(({getExp(exp.Arguments[0])})*1000000)";
+					case "FromTicks": return $"(({getExp(exp.Arguments[0])})/10)";
+					case "Parse": return $"({getExp(exp.Arguments[0])})::int8";
 					case "ParseExact":
 					case "TryParse":
-					case "TryParseExact": return $"({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})::int8";
+					case "TryParseExact": return $"({getExp(exp.Arguments[0])})::int8";
 				}
 			} else {
-				var left = ExpressionLambdaToSql(exp.Object, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
-				var args1 = exp.Arguments.Count == 0 ? null : ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+				var left = getExp(exp.Object);
+				var args1 = exp.Arguments.Count == 0 ? null : getExp(exp.Arguments[0]);
 				switch (exp.Method.Name) {
 					case "Add": return $"({left}+{args1})";
 					case "Subtract": return $"({left}-({args1}))";
-					case "Equals": return $"({left} = {ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
-					case "CompareTo": return $"({left}-({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)}))";
+					case "Equals": return $"({left} = {getExp(exp.Arguments[0])})";
+					case "CompareTo": return $"({left}-({getExp(exp.Arguments[0])}))";
 					case "ToString": return $"({left})::varchar";
 				}
 			}
 			throw new Exception($"PostgreSQLExpression 未现实函数表达式 {exp} 解析");
 		}
 		internal override string ExpressionLambdaToSqlCallConvert(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName) {
+			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
 			if (exp.Object == null) {
 				switch (exp.Method.Name) {
-					case "ToBoolean": return $"(({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})::varchar not in ('0','false','f','no'))";
-					case "ToByte": return $"({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})::int2";
-					case "ToChar": return $"substr(({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})::char, 1, 1)";
-					case "ToDateTime": return $"({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})::timestamp";
-					case "ToDecimal": return $"({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})::numeric";
-					case "ToDouble": return $"({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})::float8";
-					case "ToInt16": return $"({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})::int2";
-					case "ToInt32": return $"({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})::int4";
-					case "ToInt64": return $"({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})::int8";
-					case "ToSByte": return $"({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})::int2";
-					case "ToSingle": return $"({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})::float4";
-					case "ToString": return $"({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})::varchar";
-					case "ToUInt16": return $"({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})::int2";
-					case "ToUInt32": return $"({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})::int4";
-					case "ToUInt64": return $"({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})::int8";
+					case "ToBoolean": return $"(({getExp(exp.Arguments[0])})::varchar not in ('0','false','f','no'))";
+					case "ToByte": return $"({getExp(exp.Arguments[0])})::int2";
+					case "ToChar": return $"substr(({getExp(exp.Arguments[0])})::char, 1, 1)";
+					case "ToDateTime": return $"({getExp(exp.Arguments[0])})::timestamp";
+					case "ToDecimal": return $"({getExp(exp.Arguments[0])})::numeric";
+					case "ToDouble": return $"({getExp(exp.Arguments[0])})::float8";
+					case "ToInt16": return $"({getExp(exp.Arguments[0])})::int2";
+					case "ToInt32": return $"({getExp(exp.Arguments[0])})::int4";
+					case "ToInt64": return $"({getExp(exp.Arguments[0])})::int8";
+					case "ToSByte": return $"({getExp(exp.Arguments[0])})::int2";
+					case "ToSingle": return $"({getExp(exp.Arguments[0])})::float4";
+					case "ToString": return $"({getExp(exp.Arguments[0])})::varchar";
+					case "ToUInt16": return $"({getExp(exp.Arguments[0])})::int2";
+					case "ToUInt32": return $"({getExp(exp.Arguments[0])})::int4";
+					case "ToUInt64": return $"({getExp(exp.Arguments[0])})::int8";
 				}
 			}
 			throw new Exception($"PostgreSQLExpression 未现实函数表达式 {exp} 解析");

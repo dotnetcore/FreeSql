@@ -5,5 +5,5 @@
 		public string On { get; set; }
 		public SelectTableInfoType Type { get; set; }
 	}
-	enum SelectTableInfoType { From, LeftJoin, InnerJoin, RightJoin }
+	enum SelectTableInfoType { From, LeftJoin, InnerJoin, RightJoin, Parent }
 }

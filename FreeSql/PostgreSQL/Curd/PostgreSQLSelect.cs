@@ -29,6 +29,7 @@ namespace FreeSql.PostgreSQL.Curd {
 				if (a < tbsfrom.Length - 1) sb.Append(", ");
 			}
 			foreach (var tb in tbsjoin) {
+				if (tb.Type == SelectTableInfoType.Parent) continue;
 				switch (tb.Type) {
 					case SelectTableInfoType.LeftJoin:
 						sb.Append(" \r\nLEFT JOIN ");
@@ -46,6 +47,7 @@ namespace FreeSql.PostgreSQL.Curd {
 
 			var sbqf = new StringBuilder();
 			foreach (var tb in _tables) {
+				if (tb.Type == SelectTableInfoType.Parent) continue;
 				if (string.IsNullOrEmpty(tb.Table.SelectFilter) == false)
 					sbqf.Append(" AND (").Append(tb.Table.SelectFilter.Replace("a.", $"{tb.Alias}.")).Append(")");
 			}

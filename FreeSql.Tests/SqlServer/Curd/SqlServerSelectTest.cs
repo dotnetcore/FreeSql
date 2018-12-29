@@ -443,10 +443,39 @@ namespace FreeSql.Tests.SqlServer {
 			query.ToList();
 		}
 		[Fact]
-		public void GroupBy() {
+		public void WhereExists() {
+			var sql2222 = select.Where(a => select.Where(b => b.Id == a.Id).Any()).ToList();
+
+			sql2222 = select.Where(a =>
+				select.Where(b => b.Id == a.Id && select.Where(c => c.Id == b.Id).Where(d => d.Id == a.Id).Where(e => e.Id == b.Id)
+
+				.Offset(a.Id)
+
+				.Any()
+				).Any()
+			).ToList();
 		}
 		[Fact]
-		public void Having() {
+		public void GroupBy() {
+			var groupby = select.From<TestTypeInfo, TestTypeParentInfo>((s, b, c) => s
+				.Where(a => a.Id == 1)
+			)
+			.GroupBy((a, b, c) => new { tt2 = a.Title.Substring(0, 2), mod4 = a.Id % 4 })
+			.Having(a => a.Count() > 0 && a.Avg(a.Key.mod4) > 0 && a.Max(a.Key.mod4) > 0)
+			.Having(a => a.Count() < 300 || a.Avg(a.Key.mod4) < 100)
+			.OrderBy(a => a.Key.tt2)
+			.OrderByDescending(a => a.Count())
+			.ToList(a => new {
+				a.Key.tt2,
+				cou1 = a.Count(),
+				arg1 = a.Avg(a.Key.mod4),
+				ccc2 = a.Key.tt2 ?? "now()",
+				//ccc = Convert.ToDateTime("now()"), partby = Convert.ToDecimal("sum(num) over(PARTITION BY server_id,os,rid,chn order by id desc)")
+			});
+		}
+		[Fact]
+		public void ToAggregate() {
+			var sql = select.ToAggregate(a => new { sum = a.Sum(a.Key.Id + 11.11), avg = a.Avg(a.Key.Id), count = a.Count(), max = a.Max(a.Key.Id), min = a.Min(a.Key.Id) });
 		}
 		[Fact]
 		public void OrderBy() {

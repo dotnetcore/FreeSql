@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 
 namespace FreeSql.Internal {
@@ -223,6 +224,67 @@ namespace FreeSql.Internal {
 							case "Min": return $"min({ExpressionLambdaToSql(exp3.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
 						}
 					}
+					if (callType.FullName.StartsWith("FreeSql.ISelect`")) { //子表查询
+						if (exp3.Method.Name == "Any") { //exists
+							var exp3Stack = new Stack<Expression>();
+							var exp3tmp = exp3.Object;
+							while (exp3tmp != null) {
+								exp3Stack.Push(exp3tmp);
+								switch (exp3tmp.NodeType) {
+									case ExpressionType.Call: exp3tmp = (exp3tmp as MethodCallExpression).Object; continue;
+									case ExpressionType.MemberAccess: exp3tmp = (exp3tmp as MemberExpression).Expression; continue;
+								}
+								break;
+							}
+							object fsql = null;
+							List<SelectTableInfo> fsqltables = null;
+							var fsqltable1SetAlias = false;
+							Type fsqlType = null;
+							while (exp3Stack.Any()) {
+								exp3tmp = exp3Stack.Pop();
+								if (exp3tmp.Type.FullName.StartsWith("FreeSql.ISelect`") && fsql == null) {
+									fsql = Expression.Lambda(exp3tmp).Compile().DynamicInvoke();
+									fsqlType = fsql?.GetType();
+									if (fsqlType == null) break;
+									fsqlType.GetField("_limit", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(fsql, 1);
+									fsqltables = fsqlType.GetField("_tables", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(fsql) as List<SelectTableInfo>;
+									//fsqltables[0].Alias = $"{_tables[0].Alias}_{fsqltables[0].Alias}";
+									fsqltables.AddRange(_tables.Select(a => new SelectTableInfo {
+										Alias = a.Type == SelectTableInfoType.Parent ? a.Alias : $"__parent_{a.Alias}_parent__",
+										On = "1=1",
+										Table = a.Table,
+										Type = SelectTableInfoType.Parent
+									}));
+								} else if (fsqlType != null) {
+									var call3Exp = exp3tmp as MethodCallExpression;
+									var method = fsqlType.GetMethod(call3Exp.Method.Name, call3Exp.Arguments.Select(a => a.Type).ToArray());
+									if (call3Exp.Method.ContainsGenericParameters) method.MakeGenericMethod(call3Exp.Method.GetGenericArguments());
+									var parms = method.GetParameters();
+									var args = new object[call3Exp.Arguments.Count];
+									for (var a = 0; a < args.Length; a++) {
+										var argExp = (call3Exp.Arguments[a] as UnaryExpression)?.Operand;
+										if (argExp != null && argExp.NodeType == ExpressionType.Lambda) {
+											if (fsqltable1SetAlias == false) {
+												fsqltables[0].Alias = (argExp as LambdaExpression).Parameters.First().Name;
+												fsqltable1SetAlias = true;
+											}
+										}
+										args[a] = argExp;
+										//if (args[a] == null) ExpressionLambdaToSql(call3Exp.Arguments[a], fsqltables, null, null, SelectTableInfoType.From, true);
+									}
+									method.Invoke(fsql, args);
+								}
+							}
+							if (fsql != null) {
+								var sql = fsqlType.GetMethod("ToSql", new Type[] { typeof(string) })?.Invoke(fsql, new object[] { "1" })?.ToString();
+								if (string.IsNullOrEmpty(sql) == false) {
+									foreach (var tb in _tables)
+										sql = sql.Replace($"__parent_{tb.Alias}_parent__", tb.Alias);
+									return $"exists({sql})";
+								}
+							}
+						}
+					}
 					var other3Exp = ExpressionLambdaToSqlOther(exp3, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
 					if (string.IsNullOrEmpty(other3Exp) == false) return other3Exp;
 					throw new Exception($"未现实函数表达式 {exp3} 解析");
@@ -287,6 +349,19 @@ namespace FreeSql.Internal {
 						if (isQuoteName) name = _common.QuoteSqlName(name);
 						return name;
 					}
+					Func<TableInfo, string, SelectTableInfo> getOrAddTable = (tbtmp, alias) => {
+						var finds = _tables.Where((a2, c2) => a2.Table.CsName == tbtmp.CsName).ToArray(); //外部表，内部表一起查
+						if (finds.Length > 1) {
+							finds = _tables.Where((a2, c2) => a2.Table.CsName == tbtmp.CsName && a2.Type == SelectTableInfoType.Parent && a2.Alias == $"__parent_{alias}_parent__").ToArray(); //查询外部表
+							if (finds.Any() == false) {
+								finds = _tables.Where((a2, c2) => a2.Table.CsName == tbtmp.CsName && a2.Type != SelectTableInfoType.Parent).ToArray(); //查询内部表
+								if (finds.Length > 1) finds = _tables.Where((a2, c2) => a2.Table.CsName == tbtmp.CsName && a2.Type != SelectTableInfoType.Parent && a2.Alias == alias).ToArray();
+							}
+						}
+						var find = finds.FirstOrDefault();
+						if (find == null) _tables.Add(find = new SelectTableInfo { Table = tbtmp, Alias = alias, On = null, Type = tbtype });
+						return find;
+					};
 
 					TableInfo tb2 = null;
 					string alias2 = "", name2 = "";
@@ -298,6 +373,7 @@ namespace FreeSql.Internal {
 								throw new NotImplementedException("未现实 MemberAccess 下的 Constant");
 							case ExpressionType.Parameter:
 							case ExpressionType.MemberAccess:
+								
 								var exp2Type = exp2.Type;
 								if (exp2Type.FullName.StartsWith("FreeSql.ISelectGroupingAggregate`")) exp2Type = exp2Type.GenericTypeArguments.FirstOrDefault() ?? exp2.Type;
 								var tb2tmp = _common.GetTableByEntity(exp2Type);
@@ -306,10 +382,7 @@ namespace FreeSql.Internal {
 								if (tb2tmp != null) {
 									if (exp2.NodeType == ExpressionType.Parameter) alias2 = (exp2 as ParameterExpression).Name;
 									else alias2 = $"{alias2}__{mp2.Member.Name}";
-									var find2s = _tables.Where((a2, c2) => a2.Table.CsName == tb2tmp.CsName).ToArray();
-									if (find2s.Length > 1) find2s = _tables.Where((a2, c2) => a2.Table.CsName == tb2tmp.CsName && a2.Alias == alias2).ToArray();
-									find2 = find2s.FirstOrDefault();
-									if (find2 == null) _tables.Add(find2 = new SelectTableInfo { Table = tb2tmp, Alias = alias2, On = null, Type = tbtype });
+									find2 = getOrAddTable(tb2tmp, alias2);
 									alias2 = find2.Alias;
 									tb2 = tb2tmp;
 								}
@@ -318,12 +391,7 @@ namespace FreeSql.Internal {
 									if (_selectColumnMap != null) {
 										var tb3 = _common.GetTableByEntity(mp2.Type);
 										if (tb3 != null) {
-											var alias3 = $"{alias2}__{mp2.Member.Name}";
-											var find3s = _tables.Where((a3, c3) => a3.Table.CsName == tb3.CsName).ToArray();
-											if (find3s.Length > 1) find3s = _tables.Where((a3, c3) => a3.Table.CsName == tb3.CsName && a3.Alias == alias3).ToArray();
-											var find3 = find3s.FirstOrDefault();
-											if (find3 == null) _tables.Add(find3 = new SelectTableInfo { Table = tb3, Alias = alias3, On = null, Type = tbtype });
-											alias3 = find3.Alias;
+											var find3 = getOrAddTable(tb2tmp, $"{alias2}__{mp2.Member.Name}");
 
 											foreach (var tb3c in tb3.Columns.Values)
 												_selectColumnMap.Add(new SelectColumnInfo { Table = find3, Column = tb3c });

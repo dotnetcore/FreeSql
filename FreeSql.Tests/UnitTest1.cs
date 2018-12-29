@@ -20,6 +20,16 @@ namespace FreeSql.Tests {
 		[Fact]
 		public void Test1() {
 
+			var sql2222 = select.Where(a => 
+				select.Where(b => b.Id == a.Id && select.Where(c => c.Id == b.Id).Where(d => d.Id == a.Id).Where(e => e.Id == b.Id)
+
+				.Offset(a.Id)
+				
+				.Any()
+				).Any()
+			).ToSql();
+
+
 			var groupby = g.mysql.Select<TestInfo>().From<TestTypeInfo, TestTypeParentInfo>((s, b, c) => s
 				.Where(a => a.Id == 1)
 			)
@@ -28,7 +38,7 @@ namespace FreeSql.Tests {
 			.Having(a => a.Count() < 300 || a.Avg(a.Key.mod4) < 100)
 			.OrderBy(a => a.Key.tt2)
 			.OrderByDescending(a => a.Count())
-			.ToList(a => new { a.Key.tt2, cou1 = a.Count(), arg1 = a.Avg(a.Key.mod4),
+			.ToSql(a => new { a.Key.tt2, cou1 = a.Count(), arg1 = a.Avg(a.Key.mod4),
 				ccc2 = a.Key.tt2 ?? "now()",
 				//ccc = Convert.ToDateTime("now()"), partby = Convert.ToDecimal("sum(num) over(PARTITION BY server_id,os,rid,chn order by id desc)")
 			});
