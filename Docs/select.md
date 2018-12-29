@@ -34,14 +34,6 @@ class TestTypeParentInfo {
 
 # Where
 
-### 表达式函数支持
-
-#### String 对象方法
-StartsWith, EndsWith, Contains, ToLower, ToUpper, Substring, Length, IndexOf, PadLeft, PadRight, Trim, TrimStart, TrimEnd, Replace, CompareTo
-
-#### Math 方法
-...
-
 ### 单表
 ```csharp
 var sql = select.Where(a => a.Id == 10).ToSql();
@@ -49,7 +41,11 @@ var sql = select.Where(a => a.Id == 10).ToSql();
 
 sql = select.Where(a => a.Id == 10 && a.Id > 10 || a.Clicks > 100).ToSql();
 ///SELECT a.`Id`, a.`Clicks`, a.`TestTypeInfoGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a WHERE (a.`Id` = 10 AND a.`Id` > 10 OR a.`Clicks` > 100)
+
+sql = select.Where(a => new []{1,2,3}.Contains(a.Id)).ToSql();
+//SELECT a.`Id`, a.`Clicks`, a.`TestTypeInfoGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a WHERE (a.`Id` in (1,2,3))
 ```
+> [《Expression 表达式函数文档》](Docs/expression.md)
 
 ### 多表，使用导航属性
 ```csharp
@@ -75,6 +71,33 @@ sql = select.From<TestTypeInfo, TestTypeParentInfo>((s, b, c) => s
     .Where(a => a.Id == 10 && c.Name == "xxx")
     .Where(a => b.ParentId == 20)).ToSql();
 //SELECT a.`Id`, a.`Clicks`, a.`TestTypeInfoGuid`, b.`Guid`, b.`ParentId`, b.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topic` a, `TestTypeParentInfo` c, `TestTypeInfo` b WHERE (a.`Id` = 10 AND c.`Name` = 'xxx') AND (b.`ParentId` = 20)
+```
+
+### 子表 Exists 查询
+```csharp
+var sql2222 = select.Where(a => select.Where(b => b.Id == a.Id).Any()).ToList();
+// SELECT a.`Id`, a.`TypeGuid`, a.`Title`, a.`CreateTime` 
+// FROM `xxx` a 
+// WHERE (exists(SELECT 1 
+// FROM `xxx` b 
+// WHERE (b.`Id` = a.`Id`)))
+
+//两级相同的子表查询
+sql2222 = select.Where(a =>
+    select.Where(b => b.Id == a.Id && select.Where(c => c.Id == b.Id).Where(d => d.Id == a.Id).Where(e => e.Id == b.Id)
+    .Offset(a.Id)
+    .Any()
+    ).Any()
+).ToList();
+// SELECT a.`Id`, a.`TypeGuid`, a.`Title`, a.`CreateTime` 
+// FROM `xxx` a 
+// WHERE (exists(SELECT 1 
+// FROM `xxx` b 
+// WHERE (b.`Id` = a.`Id` AND exists(SELECT 1 
+// FROM `xxx` c 
+// WHERE (c.`Id` = b.`Id`) AND (c.`Id` = a.`Id`) AND (c.`Id` = b.`Id`)
+// limit 0,1))
+// limit 0,1))
 ```
 
 ### 原生SQL
@@ -171,6 +194,22 @@ List<(int, string ,string)> t7 = fsql.Ado.Query<(int, string, string)>("select *
 List<dynamic> t8 = fsql.Ado.Query<dynamic>("select * from song");
 ```
 
+### 分组聚合
+```csharp
+var groupby = fsql.Select<Topic>()
+    .GroupBy(a => new { tt2 = a.Title.Substring(0, 2), mod4 = a.Id % 4 })
+    .Having(a => a.Count() > 0 && a.Avg(a.Key.mod4) > 0 && a.Max(a.Key.mod4) > 0)
+    .Having(a => a.Count() < 300 || a.Avg(a.Key.mod4) < 100)
+    .OrderBy(a => a.Key.tt2)
+    .OrderByDescending(a => a.Count())
+    .ToList(a => new { a.Key.tt2, cou1 = a.Count(), arg1 = a.Avg(a.Key.mod4) });
+//SELECT substr(a.`Title`, 1, 2) as1, count(1) as2, avg((a.`Id` % 4)) as3 
+//FROM `xxx` a 
+//GROUP BY substr(a.`Title`, 1, 2), (a.`Id` % 4) 
+//HAVING (count(1) > 0 AND avg((a.`Id` % 4)) > 0 AND max((a.`Id` % 4)) > 0) AND (count(1) < 300 OR avg((a.`Id` % 4)) < 100) 
+//ORDER BY substr(a.`Title`, 1, 2), count(1) DESC
+```
+
 # 更多文档整理中。。。
 
 | 方法 | 返回值 | 参数 | 描述 |
@@ -199,7 +238,7 @@ List<dynamic> t8 = fsql.Ado.Query<dynamic>("select * from song");
 | Where | \<this\> | string, parms | 原生sql语法条件，Where("id = ?id", new { id = 1 }) |
 | WhereIf | \<this\> | bool, string, parms | 原生sql语法条件，WhereIf(true, "id = ?id", new { id = 1 }) |
 | 【分组】 |
-| GroupBy | \<this\> | Lambda | 按选择的列分组，GroupBy(a => a.Name) | GroupBy(a => new{a.Name,a.Time}) | GroupBy(a => new[]{"name","time"}) |
+| GroupBy | \<this\> | Lambda | 按选择的列分组，GroupBy(a => a.Name) | GroupBy(a => new{a.Name,a.Time}) |
 | GroupBy | \<this\> | string, parms | 按原生sql语法分组，GroupBy("concat(name, ?cc)", new { cc = 1 }) |
 | Having | \<this\> | string, parms | 按原生sql语法聚合条件过滤，Having("count(name) = ?cc", new { cc = 1 }) |
 | 【排序】 |

@@ -6,15 +6,12 @@ FreeSql 可用作对象关系映射程序 (O/RM)，以便于开发人员能够�
 
 FreeSql 支持 MySql/SqlServer/PostgreSQL 数据库技术实现。
 
-FreeSql 打造 .NETCore 最方便的 ORM，dbfirst codefirst混合使用，codefirst模式下的开发阶段，建好实体不用执行任何操作，就能创建表和修改字段，dbfirst模式下提供api+模板，自定义生成代码，作者提供了3种模板。
+FreeSql 打造 .NETCore 最方便的 ORM，dbfirst codefirst混合使用，codefirst模式下的开发阶段，建好实体不用执行任何操作即能创建表和修改字段，dbfirst模式下提供api+模板自定义生成代码，作者提供了3种模板,您可以持续关注或者参与给出宝贵意见，QQ群：4336577。
 
-FreeSql 目前仍处在测试阶段，您可以持续关注或者参与给出宝贵意见，QQ群：4336577
 
-* [《CodeFirst 快速开发文档》](Docs/codefirst.md)
+[《Select查询数据文档》](Docs/select.md) | [《Update更新数据文档》](Docs/update.md) | [《Insert插入数据文档》](Docs/insert.md) | [《delete删除数据文档》](Docs/insert.md)
 
-* [《DbFirst 快速开发文档》](Docs/dbfirst.md)
-
-* [《Expression 表达式函数文档》](Docs/expression.md)
+[《Expression 表达式函数文档》](Docs/expression.md) | [《CodeFirst 快速开发文档》](Docs/codefirst.md) | [《DbFirst 快速开发文档》](Docs/dbfirst.md)
 
 # 快速开始
 ```csharp
@@ -71,7 +68,7 @@ class TopicTypeClass {
 }
 ```
 
-# Part1: 查询
+# Part1 查询
 ```csharp
 List<Topic> t1 = fsql.Select<Topic>().Where(a => a.Id > 0).ToList();
 
@@ -161,7 +158,7 @@ List<dynamic> t8 = fsql.Ado.Query<dynamic>("select * from song");
 ```
 > 更多资料：[《Select查询数据》](Docs/select.md)
 
-# Part2: 添加
+# Part2 添加
 ```csharp
 var items = new List<Topic>();
 for (var a = 0; a < 10; a++)
@@ -194,7 +191,7 @@ var t6 = fsql.Insert<Topic>().AppendData(items)
 | ExecuteInserted | List\<Topic\> | 执行SQL语句，返回插入后的记录 |
 > 更多资料：[《Insert添加数据》](Docs/select.md)
 
-# Part3: 修改
+# Part3 修改
 ```csharp
 var t1 = fsql.Update<Topic>(1).Set(a => a.CreateTime, DateTime.Now).ToSql();
 //UPDATE `tb_topic` SET `CreateTime` = '2018-12-08 00:04:59' WHERE (`Id` = 1)
@@ -271,10 +268,10 @@ var t10 = fsql.Update<Topic>().SetRaw("Title = {0}", "新标题").Where("Id = {0
 | ExecuteUpdated | List\<T1\> | | 执行SQL语句，返回更新后的记录 |
 > 更多资料：[《Update更新数据》](Docs/select.md)
 
-# Part4: 删除
+# Part4 删除
 详情查看：[《Delete 删除数据》](Docs/delete.md)
 
-# Part5: 表达式函数
+# Part5 表达式函数
 详情查看：[《Expression 表达式函数》](Docs/expression.md)
 
 ## 贡献者名单
