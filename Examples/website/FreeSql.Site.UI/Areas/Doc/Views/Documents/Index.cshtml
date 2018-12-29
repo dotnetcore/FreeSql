@@ -1,8 +1,80 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@using Microsoft.AspNetCore.Routing;
-@using Microsoft.AspNetCore.Mvc;
-
-
-文档首页
+﻿@{
+    //ViewBag.Title = Model.ResultInfo.CurrentType.TypeName + "-" + Model.ResultInfo.Master.MasterName + PubConst.SitePrefix;
+}
+<div class="layui-main site-inline">
+    <div class="site-tree">
+        <ul class="layui-tree">
+            <li><h2>基础说明</h2></li>
+            <li class="site-tree-noicon">
+                <a href="#1"><cite>开始方法</cite></a>
+            </li>
+            <li class="site-tree-noicon">
+                <a href="#2"><cite>开始方法</cite></a>
+            </li>
+            <li class="site-tree-noicon">
+                <a href="#3"><cite>开始方法</cite></a>
+            </li>
+            <li class="site-tree-noicon">
+                <a href="#"><cite>开始方法</cite></a>
+            </li>
+            <li><h2>复杂应用</h2></li>
+            <li class="site-tree-noicon">
+                <a href="#"><cite>开始方法</cite></a>
+            </li>
+            <li class="site-tree-noicon">
+                <a href="#"><cite>开始方法</cite></a>
+            </li>
+            <li class="site-tree-noicon">
+                <a href="#"><cite>开始方法</cite></a>
+            </li>
+            <li class="site-tree-noicon">
+                <a href="#"><cite>开始方法</cite></a>
+            </li>
+        </ul>
+    </div>
+    <div class="site-content">
+        <h1 class="site-h1">开始使用 - 入门指南</h1>
+        <div>
+            <blockquote class="layui-elem-quote">
+                lFreeSql 是轻量化、可扩展和跨平台版的 .NETStandard 数据访问技术实现。<br />
+                FreeSql 可用作对象关系映射程序 (O/RM)，以便于开发人员能够使用 .NETStandard 对象来处理数据库，不必经常编写大部分数据访问代码。<br />
+                FreeSql 支持 MySql/SqlServer/PostgreSQL 数据库技术实现。<br />
+                FreeSql 打造 .NETCore 最方便的 ORM，dbfirst codefirst混合使用，codefirst模式下的开发阶段，建好实体不用执行任何操作，就能创建表和修改字段，dbfirst模式下提供api+模板，自定义生成代码，作者提供了3种模板。<br />
+                FreeSql 目前仍处在测试阶段，您可以持续关注或者参与给出宝贵意见，QQ群：4336577
+            </blockquote>
+            <fieldset class="layui-elem-field layui-field-title site-title">
+                <legend><a name="compatibility">兼容性和面向场景</a></legend>
+            </fieldset>
+            <div class="site-text">
+                <p>1. 官网首页下载</p>
+                <blockquote class="layui-elem-quote layui-quote-nm">
+                    您可以通过 <a href="#">Github</a> 下载到FreeSql的最新版：
+                </blockquote>
+                <pre class="layui-code layui-box layui-code-view"><h3 class="layui-code-h3">code<a href="#" target="_blank">FreeSql</a></h3><ol class="layui-code-ol"><li>  ├─css //css目录</li><li>  │  │─modules //模块css目录（一般如果模块相对较大，我们会单独提取，比如下面三个：）</li><li>  │  │  ├─laydate</li><li>  │  │  ├─layer</li><li>  │  │  └─layim</li><li>  │  └─layui.css //核心样式文件</li><li>  ├─font  //字体图标目录</li><li>  ├─images //图片资源目录（目前只有layim和编辑器用到的GIF表情）</li><li>  │─lay //模块核心目录</li><li>  │  └─modules //各模块组件</li><li>  │─layui.js //基础核心库</li><li>  └─layui.all.js //包含layui.js和所有模块的合并文件</li><li>     </li></ol></pre>
+                <p>2. Git 仓库下载</p>
+                <blockquote class="layui-elem-quote layui-quote-nm">
+                    你也可以通过 <a href="https://github.com/2881099/FreeSql/" target="_blank">GitHub</a> 或 <a href="https://gitee.com/sentsin/layui" target="_blank">码云</a> 得到 FreeSql 的完整开发包，以便于你进行二次开发，或者 Fork FreeSql 为我们贡献方案
+                    <br><br>
+                    <iframe src="//ghbtns.com/github-btn.html?user=2881099&amp;repo=FreeSql&amp;type=watch&amp;count=true&amp;size=large" allowtransparency="true" frameborder="0" scrolling="0" width="156px" height="30px"></iframe>
+                    <iframe src="//ghbtns.com/github-btn.html?user=2881099&amp;repo=FreeSql&amp;type=fork&amp;count=true&amp;size=large" allowtransparency="true" frameborder="0" scrolling="0" width="156px" height="30px"></iframe>
+                </blockquote>
+                <p>3. npm 安装</p>
+                <pre class="layui-code layui-box layui-code-view layui-code-notepad" lay-skin="notepad"><h3 class="layui-code-h3">code<a href="#" target="_blank">FreeSql</a></h3><ol class="layui-code-ol"><li> </li><li>Install-Package FreeSql    </li><li>      </li></ol></pre>
+                <p>一般用于 WebPack 管理</p>
+            </div>
+            <fieldset class="layui-elem-field layui-field-title site-title">
+                <legend><a name="quickstart">快速上手</a></legend>
+            </fieldset>
+            <div class="site-text">
+                <p>1. 官网首页下载</p>
+                <blockquote class="layui-elem-quote layui-quote-nm">
+                    你可以在我们的 <a href="http://www.layui.com/">官网首页</a> 下载到 layui 的最新版，它经过了自动化构建，更适合用于生产环境。目录结构如下：
+                </blockquote>
+                <pre class="layui-code layui-box layui-code-view"><h3 class="layui-code-h3">code<a href="#" target="_blank">FreeSql</a></h3><ol class="layui-code-ol"><li>  ├─css //css目录</li><li>  │  │─modules //模块css目录（一般如果模块相对较大，我们会单独提取，比如下面三个：）</li><li>  │  │  ├─laydate</li><li>  │  │  ├─layer</li><li>  │  │  └─layim</li><li>  │  └─layui.css //核心样式文件</li><li>  ├─font  //字体图标目录</li><li>  ├─images //图片资源目录（目前只有layim和编辑器用到的GIF表情）</li><li>  │─lay //模块核心目录</li><li>  │  └─modules //各模块组件</li><li>  │─layui.js //基础核心库</li><li>  └─layui.all.js //包含layui.js和所有模块的合并文件</li><li>     </li></ol></pre>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="site-tree-mobile layui-hide">
+    <i class="layui-icon"></i>
+</div>

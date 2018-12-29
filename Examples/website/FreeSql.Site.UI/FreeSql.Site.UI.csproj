@@ -10,12 +10,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Areas\BBS\Controllers\" />
     <Folder Include="Areas\BBS\Data\" />
-    <Folder Include="Areas\BBS\Models\" />
-    <Folder Include="Areas\BBS\Views\" />
     <Folder Include="Areas\Doc\Data\" />
     <Folder Include="Areas\Doc\Models\" />
+    <Folder Include="Areas\Example\Data\" />
+    <Folder Include="Areas\Example\Models\" />
   </ItemGroup>
 
   <ItemGroup>
@@ -25,6 +24,11 @@
     <Content Update="Areas\Doc\_ViewStart.cshtml">
       <Pack>$(IncludeRazorContentInPack)</Pack>
     </Content>
+    <Content Update="Areas\Example\_ViewStart.cshtml">
+      <Pack>$(IncludeRazorContentInPack)</Pack>
+    </Content>
   </ItemGroup>
+
+  <ProjectExtensions><VisualStudio><UserProperties appsettings_1json__JSONSchema="" /></VisualStudio></ProjectExtensions>
 
 </Project>
