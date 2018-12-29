@@ -270,7 +270,7 @@ namespace FreeSql.SqlServer {
 				switch (exp.Method.Name) {
 					case "ToBoolean": return $"({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)} not in ('0','false'))";
 					case "ToByte": return $"cast({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)} as tinyint)";
-					case "ToChar": return $"substring(cast({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)} as nvarchar), 1, 1)";
+					case "ToChar": return $"substring(cast({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)} as nvarchar),1,1)";
 					case "ToDateTime": return $"cast({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)} as datetime)";
 					case "ToDecimal": return $"cast({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)} as decimal(36,18))";
 					case "ToDouble": return $"cast({ExpressionLambdaToSql(exp.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)} as decimal(32,16))";

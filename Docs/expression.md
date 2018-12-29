@@ -49,63 +49,63 @@
 | - | - | - | - | - |
 | string.Empty | '' | '' | '' | 空字符串表示 |
 | string.IsNullOrEmpty(a) | (a is null or a = '') | (a is null or a = '') | (a is null or a = '') | 空字符串表示 |
-| a.CompareTo(b) | strcmp(a, b) | - | - | 比较a和b大小 |
-| a.Contains('b') | a like '%b%' | a like '%b%' | - | a是否包含b |
-| a.EndsWith('b') | a like '%b' | a like '%b' | - | a尾部是否包含b |
-| a.IndexOf(b) | locate(a, b) - 1 | locate(a, b) - 1 | - | 查找a中出现b的位置 |
-| a.Length | char_length(a) | len(a) | - | 返回a的字符串长度 |
-| a.PadLeft(b, c) | lpad(a, b, c) | - | - | 在a的左侧充字符c，直到字符串长度大于b |
-| a.PadRight(b, c) | rpad(a, b, c) | - | - | 在a的右侧充字符c，直到字符串长度大于b |
-| a.Replace(b, c) | replace(a, b, c) | replace(a, b, c) | - | 将a中字符串b，替换成c |
-| a.StartsWith('b') | a like 'b%' | a like 'b%' | - | a头部是否包含b |
-| a.Substring(b, c) | substr(a, b, c) | substring(a, b, c) | - | 截取a中位置b到c的内容 |
-| a.ToLower | lower(a) | lower(a) | - | 转小写 |
-| a.ToUpper | upper(a) | upper(a) | - | 转大写 |
-| a.Trim | trim(a) | trim(a) | - | 移除两边字符 |
-| a.TrimEnd | rtrim(a) | rtrim(a) | - | 移除左侧指定字符 |
-| a.TrimStart | ltrim(a) | ltrim(a) | - | 移除右侧指定字符 |
+| a.CompareTo(b) | strcmp(a, b) | - | case when a = b then 0 when a > b then 1 else -1 end | 比较a和b大小 |
+| a.Contains('b') | a like '%b%' | a like '%b%' | a ilike'%b%' | a是否包含b |
+| a.EndsWith('b') | a like '%b' | a like '%b' | a ilike'%b' | a尾部是否包含b |
+| a.IndexOf(b) | locate(a, b) - 1 | locate(a, b) - 1 | strpos(a, b) - 1 | 查找a中出现b的位置 |
+| a.Length | char_length(a) | len(a) | char_length(a) | 返回a的字符串长度 |
+| a.PadLeft(b, c) | lpad(a, b, c) | - | lpad(a, b, c) | 在a的左侧充字符c，直到字符串长度大于b |
+| a.PadRight(b, c) | rpad(a, b, c) | - | rpad(a, b, c) | 在a的右侧充字符c，直到字符串长度大于b |
+| a.Replace(b, c) | replace(a, b, c) | replace(a, b, c) | replace(a, b, c) | 将a中字符串b，替换成c |
+| a.StartsWith('b') | a like 'b%' | a like 'b%' | a ilike'b%' | a头部是否包含b |
+| a.Substring(b, c) | substr(a, b, c + 1) | substring(a, b, c + 1) | substr(a, b, c + 1) | 截取a中位置b到c的内容 |
+| a.ToLower | lower(a) | lower(a) | lower(a) | 转小写 |
+| a.ToUpper | upper(a) | upper(a) | upper(a) | 转大写 |
+| a.Trim | trim(a) | trim(a) | trim(a) | 移除两边字符 |
+| a.TrimEnd | rtrim(a) | rtrim(a) | rtrim(a) | 移除左侧指定字符 |
+| a.TrimStart | ltrim(a) | ltrim(a) | ltrim(a) | 移除右侧指定字符 |
 
 ### 日期对象
 | 表达式 | MySql | SqlServer | PostgreSQL | 功能说明 |
 | - | - | - | - | - |
-| DateTime.Now | now() | getdate() | - | 取本地时间 |
-| DateTime.UtcNow | utc_timestamp() | getutcdate() | - | 取UTC时间 |
-| DateTime.Today | curdate | convert(char(10),getdate(),120) | - | 取本地时间，日期部分 |
-| DateTime.MaxValue | cast('9999/12/31 23:59:59' as datetime) | '1753/1/1 0:00:00' | - | 最大时间 |
-| DateTime.MinValue | cast('0001/1/1 0:00:00' as datetime) | '9999/12/31 23:59:59' | - | 最小时间 |
-| DateTime.Compare(a, b) | a - b | a - b | - | 比较a和b的大小 |
-| DateTime.DaysInMonth(a, b) | dayofmonth(last_day(concat(a, '-', b, '-1'))) | datepart(day, dateadd(day, -1, dateadd(month, 1, cast(a as varchar) + '-' + cast(b as varchar) + '-1'))) | - | 取指定年月份的总天数 |
-| DateTime.Equals(a, b) | a = b | a = b | - | 比较a和b相等 |
-| DateTime.IsLeapYear(a) | a%4=0 and a%100<>0 or a%400=0 | a%4=0 and a%100<>0 or a%400=0 | - | 判断闰年 |
-| DateTime.Parse(a) | cast(a as datetime) | cast(a as datetime) | - | 转换日期类型 |
-| a.Add(b) | date_add(a, interval b microsecond) | dateadd(millisecond, b / 1000, a) | - | 增加TimeSpan值 |
-| a.AddDays(b) | date_add(a, interval b day) | dateadd(day, b, a) | - | 增加天数 |
-| a.AddHours(b) | date_add(a, interval b hour) | dateadd(hour, b, a) | - | 增加小时 |
-| a.AddMilliseconds(b) | date_add(a, interval b*1000 microsecond) | dateadd(millisecond, b, a) | - | 增加毫秒 |
-| a.AddMinutes(b) | date_add(a, interval b minute) | dateadd(minute, b, a) | - | 增加分钟 |
-| a.AddMonths(b) | date_add(a, interval b month) | dateadd(month, b, a) | - | 增加月 |
-| a.AddSeconds(b) | date_add(a, interval b second) | dateadd(second, b, a) | - | 增加秒 |
-| a.AddTicks(b) | date_add(a, interval b/10 microsecond) | dateadd(millisecond, b / 10000, a) | - | 增加刻度，微秒的1/10 |
-| a.AddYears(b) | date_add(a, interval b year) | dateadd(year, b, a) | - | 增加年 |
-| a.Date | cast(date_format(a, '%Y-%m-%d') as datetime) | convert(char(10),a,120) | - | 获取a的日期部分 |
-| a.Day | dayofmonth(a) | datepart(day, a) | - | 获取a在月的第几天 |
-| a.DayOfWeek | dayofweek(a) | datepart(weekday, a) - 1 | - | 获取a在周的第几天 |
-| a.DayOfYear | dayofyear(a) | datepart(dayofyear, a) | - | 获取a在年的第几天 |
-| a.Hour | hour(a) | datepart(hour, a) | - | 小时 |
-| a.Millisecond | floor(microsecond(a) / 1000) | datepart(millisecond, a) | - | 毫秒 |
-| a.Minute | minute(a) | datepart(minute, a) | - | 分钟 |
-| a.Month | month(a) | datepart(month, a) | - | 月 |
-| a.Second | second(a) | datepart(second, a) | - | 秒 |
-| a.Subtract(b) | timestampdiff(microsecond, b, a) | datediff(millisecond, b, a) * 1000 | - | 将a的值和b相减 |
-| a.Ticks | timestampdiff(microsecond, '0001-1-1', a) * 10 | datediff(millisecond, '1970-1-1', a) * 10000 + 621355968000000000 | - | 刻度总数 |
-| a.TimeOfDay | timestampdiff(microsecond, date_format(a, '%Y-%m-%d'), a) | '1970-1-1 ' + convert(varchar, a, 14) | - | 获取a的时间部分 |
-| a.Year | year(a) | datepart(year, a) | - | 年 |
-| a.Equals(b) | a = b | a = b | - | 比较a和b相等 |
-| a.CompareTo(b) | a - b | a - b | - | 比较a和b大小 |
-| a.ToString() | date_format(a, '%Y-%m-%d %H:%i:%s.%f') | convert(varchar, a, 121) | - | 转换字符串 |
+| DateTime.Now | now() | getdate() | current_timestamp | 取本地时间 |
+| DateTime.UtcNow | utc_timestamp() | getutcdate() | (current_timestamp at time zone 'UTC') | 取UTC时间 |
+| DateTime.Today | curdate | convert(char(10),getdate(),120) | current_date | 取本地时间，日期部分 |
+| DateTime.MaxValue | cast('9999/12/31 23:59:59' as datetime) | '1753/1/1 0:00:00' | '0001/1/1 0:00:00'::timestamp | 最大时间 |
+| DateTime.MinValue | cast('0001/1/1 0:00:00' as datetime) | '9999/12/31 23:59:59' | '9999/12/31 23:59:59'::timestamp | 最小时间 |
+| DateTime.Compare(a, b) | a - b | a - b | extract(epoch from a::timestamp-b::timestamp) | 比较a和b的大小 |
+| DateTime.DaysInMonth(a, b) | dayofmonth(last_day(concat(a, '-', b, '-1'))) | datepart(day, dateadd(day, -1, dateadd(month, 1, cast(a as varchar) + '-' + cast(b as varchar) + '-1'))) | extract(day from (a || '-' || b || '-01')::timestamp+'1 month'::interval-'1 day'::interval) | 取指定年月份的总天数 |
+| DateTime.Equals(a, b) | a = b | a = b | a = b | 比较a和b相等 |
+| DateTime.IsLeapYear(a) | a%4=0 and a%100<>0 or a%400=0 | a%4=0 and a%100<>0 or a%400=0 | a%4=0 and a%100<>0 or a%400=0 | 判断闰年 |
+| DateTime.Parse(a) | cast(a as datetime) | cast(a as datetime) | a::timestamp | 转换日期类型 |
+| a.Add(b) | date_add(a, interval b microsecond) | dateadd(millisecond, b / 1000, a) | a::timestamp+(b||' microseconds')::interval | 增加TimeSpan值 |
+| a.AddDays(b) | date_add(a, interval b day) | dateadd(day, b, a) | a::timestamp+(b||' day')::interval | 增加天数 |
+| a.AddHours(b) | date_add(a, interval b hour) | dateadd(hour, b, a) | a::timestamp+(b||' hour')::interval | 增加小时 |
+| a.AddMilliseconds(b) | date_add(a, interval b*1000 microsecond) | dateadd(millisecond, b, a) | a::timestamp+(b||' milliseconds')::interval | 增加毫秒 |
+| a.AddMinutes(b) | date_add(a, interval b minute) | dateadd(minute, b, a) | a::timestamp+(b||' minute')::interval | 增加分钟 |
+| a.AddMonths(b) | date_add(a, interval b month) | dateadd(month, b, a) | a::timestamp+(b||' month')::interval | 增加月 |
+| a.AddSeconds(b) | date_add(a, interval b second) | dateadd(second, b, a) | a::timestamp+(b||' second')::interval | 增加秒 |
+| a.AddTicks(b) | date_add(a, interval b/10 microsecond) | dateadd(millisecond, b / 10000, a) | a::timestamp+(b||' microseconds')::interval | 增加刻度，微秒的1/10 |
+| a.AddYears(b) | date_add(a, interval b year) | dateadd(year, b, a) | a::timestamp+(b||' year')::interval | 增加年 |
+| a.Date | cast(date_format(a, '%Y-%m-%d') as datetime) | convert(char(10),a,120) | a::date | 获取a的日期部分 |
+| a.Day | dayofmonth(a) | datepart(day, a) | extract(day from a::timestamp) | 获取a在月的第几天 |
+| a.DayOfWeek | dayofweek(a) | datepart(weekday, a) - 1 | extract(dow from a::timestamp) | 获取a在周的第几天 |
+| a.DayOfYear | dayofyear(a) | datepart(dayofyear, a) | extract(doy from a::timestamp) | 获取a在年的第几天 |
+| a.Hour | hour(a) | datepart(hour, a) | extract(hour from a::timestamp) | 小时 |
+| a.Millisecond | floor(microsecond(a) / 1000) | datepart(millisecond, a) | extract(milliseconds from a::timestamp)-extract(second from a::timestamp)*1000 | 毫秒 |
+| a.Minute | minute(a) | datepart(minute, a) | extract(minute from a::timestamp) | 分钟 |
+| a.Month | month(a) | datepart(month, a) | extract(month from a::timestamp) | 月 |
+| a.Second | second(a) | datepart(second, a) | extract(second from a::timestamp) | 秒 |
+| a.Subtract(b) | timestampdiff(microsecond, b, a) | datediff(millisecond, b, a) * 1000 | (extract(epoch from a::timestamp-b::timestamp)*1000000) | 将a的值和b相减 |
+| a.Ticks | timestampdiff(microsecond, '0001-1-1', a) * 10 | datediff(millisecond, '1970-1-1', a) * 10000 + 621355968000000000 | extract(epoch from a::timestamp)*10000000+621355968000000000 | 刻度总数 |
+| a.TimeOfDay | timestampdiff(microsecond, date_format(a, '%Y-%m-%d'), a) | '1970-1-1 ' + convert(varchar, a, 14) | extract(epoch from a::time)*1000000 | 获取a的时间部分 |
+| a.Year | year(a) | datepart(year, a) | extract(year from a::timestamp) | 年 |
+| a.Equals(b) | a = b | a = b | a = b | 比较a和b相等 |
+| a.CompareTo(b) | a - b | a - b | a - b | 比较a和b大小 |
+| a.ToString() | date_format(a, '%Y-%m-%d %H:%i:%s.%f') | convert(varchar, a, 121) | to_char(a, 'YYYY-MM-DD HH24:MI:SS.US') | 转换字符串 |
 
 ### 时间对象
-| 表达式 | MySql(微秒) | SqlServer(秒) | PostgreSQL | 功能说明 |
+| 表达式 | MySql(微秒) | SqlServer(秒) | PostgreSQL(微秒) | 功能说明 |
 | - | - | - | - | - |
 | TimeSpan.Zero | 0 | 0 | - | 0微秒 |
 | TimeSpan.MaxValue | 922337203685477580 | 922337203685477580 | - | 最大微秒时间 |
@@ -135,43 +135,43 @@
 | a.ToString() | cast(a as varchar) | cast(a as varchar) | - | 转换字符串 |
 
 ### 数学函数
-| 表达式 | MySql | SqlServer | PostgreSQL | 功能说明 |
+| 表达式 | MySql | SqlServer | PostgreSQL |
 | - | - | - | - | - |
-| Math.Abs(a) | abs(a) | abs(a) | - | - |
-| Math.Acos(a) | acos(a) | acos(a) | - | - |
-| Math.Asin(a) | asin(a) | asin(a) | - | - |
-| Math.Atan(a) | atan(a) | atan(a) | - | - |
-| Math.Atan2(a, b) | atan2(a, b) | atan2(a, b) | - | - |
-| Math.Ceiling(a) | ceiling(a) | ceiling(a) | - | - |
-| Math.Cos(a) | cos(a) | cos(a) | - | - |
-| Math.Exp(a) | exp(a) | exp(a) | - | - |
-| Math.Floor(a) | floor(a) | floor(a) | - | - |
-| Math.Log(a) | log(a) | log(a) | - | - |
-| Math.Log10(a) | log10(a) | log10(a) | - | - |
-| Math.PI(a) | 3.1415926535897931 | 3.1415926535897931 | - | - |
-| Math.Pow(a, b) | pow(a, b) | power(a, b) | - | - |
-| Math.Round(a, b) | round(a, b) | round(a, b) | - | - |
-| Math.Sign(a) | sign(a) | sign(a) | - | - |
-| Math.Sin(a) | sin(a) | sin(a) | - | - |
-| Math.Sqrt(a) | sqrt(a) | sqrt(a) | - | - |
-| Math.Tan(a) | tan(a) | tan(a) | - | - |
-| Math.Truncate(a) | truncate(a, 0) | floor(a) | - | - |
+| Math.Abs(a) | abs(a) | abs(a) | abs(a) |
+| Math.Acos(a) | acos(a) | acos(a) | acos(a) |
+| Math.Asin(a) | asin(a) | asin(a) | asin(a) |
+| Math.Atan(a) | atan(a) | atan(a) | (atan(a)) |
+| Math.Atan2(a, b) | atan2(a, b) | atan2(a, b) | atan2(a, b) |
+| Math.Ceiling(a) | ceiling(a) | ceiling(a) | ceiling(a) |
+| Math.Cos(a) | cos(a) | cos(a) | cos(a) |
+| Math.Exp(a) | exp(a) | exp(a) | exp(a) |
+| Math.Floor(a) | floor(a) | floor(a) | floor(a) |
+| Math.Log(a) | log(a) | log(a) | log(a) |
+| Math.Log10(a) | log10(a) | log10(a) | log10(a) |
+| Math.PI(a) | 3.1415926535897931 | 3.1415926535897931 | 3.1415926535897931 |
+| Math.Pow(a, b) | pow(a, b) | power(a, b) | pow(a, b) |
+| Math.Round(a, b) | round(a, b) | round(a, b) | round(a, b) |
+| Math.Sign(a) | sign(a) | sign(a) | sign(a) |
+| Math.Sin(a) | sin(a) | sin(a) | sin(a) |
+| Math.Sqrt(a) | sqrt(a) | sqrt(a) | sqrt(a) |
+| Math.Tan(a) | tan(a) | tan(a) | tan(a) |
+| Math.Truncate(a) | truncate(a, 0) | floor(a) | trunc(a, 0) |
 
 ### 类型转换
-| 表达式 | MySql | SqlServer | PostgreSQL | 功能说明 |
+| 表达式 | MySql | SqlServer | PostgreSQL |
 | - | - | - | - | - |
-| Convert.ToBoolean(a) | (a not in ('0','false)) | - | - | - |
-| Convert.ToByte | cast(a as unsigned) | - | - | - |
-| Convert.ToChar | substr(cast(a as char),1,1) | - | - | - |
-| Convert.ToDateTime | cast(a as datetime) | - | - | - |
-| Convert.ToDecimal | cast(a as decimal(36,18)) | - | - | - |
-| Convert.ToDouble | cast(a as decimal(32,16)) | - | - | - |
-| Convert.ToInt16 | cast(a as signed) | - | - | - |
-| Convert.ToInt32 | cast(a as signed) | - | - | - |
-| Convert.ToInt64 | cast(a as signed) | - | - | - |
-| Convert.ToSByte | cast(a as signed) | - | - | - |
-| Convert.ToSingle | cast(a as char) | - | - | - |
-| Convert.ToString | cast(a as decimal(14,7)) | - | - | - |
-| Convert.ToUInt16 | cast(a as unsigned) | - | - | - |
-| Convert.ToUInt32 | cast(a as unsigned) | - | - | - |
-| Convert.ToUInt64 | cast(a as unsigned) | - | - | - |
+| Convert.ToBoolean(a) | a not in ('0','false') | a not in ('0','false') | a::varchar not in ('0','false','f','no') |
+| Convert.ToByte(a) | cast(a as unsigned) | cast(a as tinyint) | a::int2 |
+| Convert.ToChar(a) | substr(cast(a as char),1,1) | substring(cast(a as nvarchar),1,1) | substr(a::char,1,1) |
+| Convert.ToDateTime(a) | cast(a as datetime) | cast(a as datetime) | a::timestamp |
+| Convert.ToDecimal(a) | cast(a as decimal(36,18)) | cast(a as decimal(36,19)) | a::numeric |
+| Convert.ToDouble(a) | cast(a as decimal(32,16)) | cast(a as decimal(32,16)) | a::float8 |
+| Convert.ToInt16(a) | cast(a as signed) | cast(a as smallint) | a::int2 |
+| Convert.ToInt32(a) | cast(a as signed) | cast(a as int) | a::int4 |
+| Convert.ToInt64(a) | cast(a as signed) | cast(a as bigint) | a::int8 |
+| Convert.ToSByte(a) | cast(a as signed) | cast(a as tinyint) | a::int2 |
+| Convert.ToString(a) | cast(a as decimal(14,7)) | cast(a as decimal(14,7)) | a::float4 |
+| Convert.ToSingle(a) | cast(a as char) | cast(a as nvarchar) | a::varchar |
+| Convert.ToUInt16(a) | cast(a as unsigned) | cast(a as smallint) | a::int2 |
+| Convert.ToUInt32(a) | cast(a as unsigned) | cast(a as int) | a::int4 |
+| Convert.ToUInt64(a) | cast(a as unsigned) | cast(a as bigint) | a::int8 |
