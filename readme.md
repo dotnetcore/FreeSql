@@ -9,7 +9,7 @@ FreeSql 支持 MySql/SqlServer/PostgreSQL 数据库技术实现。
 FreeSql 打造 .NETCore 最方便的 ORM，dbfirst codefirst混合使用，codefirst模式下的开发阶段，建好实体不用执行任何操作即能创建表和修改字段，dbfirst模式下提供api+模板自定义生成代码，作者提供了3种模板,您可以持续关注或者参与给出宝贵意见，QQ群：4336577。
 
 
-[《Select查询数据文档》](Docs/select.md) | [《Update更新数据文档》](Docs/update.md) | [《Insert插入数据文档》](Docs/insert.md) | [《delete删除数据文档》](Docs/insert.md)
+[《Select查询数据文档》](Docs/select.md) | [《Update更新数据文档》](Docs/update.md) | [《Insert插入数据文档》](Docs/insert.md) | [《Delete删除数据文档》](Docs/delete.md)
 
 [《Expression 表达式函数文档》](Docs/expression.md) | [《CodeFirst 快速开发文档》](Docs/codefirst.md) | [《DbFirst 快速开发文档》](Docs/dbfirst.md)
 
