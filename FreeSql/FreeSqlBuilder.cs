@@ -92,6 +92,7 @@ namespace FreeSql {
 				case DataType.MySql: ret = new MySql.MySqlProvider(_cache, _logger, _masterConnectionString, _slaveConnectionString); break;
 				case DataType.SqlServer: ret = new SqlServer.SqlServerProvider(_cache, _logger, _masterConnectionString, _slaveConnectionString); break;
 				case DataType.PostgreSQL: ret = new PostgreSQL.PostgreSQLProvider(_cache, _logger, _masterConnectionString, _slaveConnectionString); break;
+				//case DataType.Oracle: ret = new Oracle.OracleProvider(_cache, _logger, _masterConnectionString, _slaveConnectionString); break;
 			}
 			if (ret != null) {
 				ret.CodeFirst.IsAutoSyncStructure = _isAutoSyncStructure;
@@ -104,5 +105,5 @@ namespace FreeSql {
 		}
 	}
 
-	public enum DataType { MySql, SqlServer, PostgreSQL }
+	public enum DataType { MySql, SqlServer, PostgreSQL, /*Oracle*/ }
 }

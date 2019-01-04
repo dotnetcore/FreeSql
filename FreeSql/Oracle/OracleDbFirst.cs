@@ -7,12 +7,12 @@ using System.Data;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace FreeSql.MySql {
-	class MySqlDbFirst : IDbFirst {
+namespace FreeSql.Oracle {
+	class OracleDbFirst : IDbFirst {
 		IFreeSql _orm;
 		protected CommonUtils _commonUtils;
 		protected CommonExpression _commonExpression;
-		public MySqlDbFirst(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression) {
+		public OracleDbFirst(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression) {
 			_orm = orm;
 			_commonUtils = commonUtils;
 			_commonExpression = commonExpression;
@@ -116,8 +116,8 @@ namespace FreeSql.MySql {
 				{ (int)MySqlDbType.VarString, ("", "{0}.Replace(StringifySplit, \"|\")", "{0}.Replace(\"|\", StringifySplit)", "string", typeof(string), typeof(string), "{0}", "GetString") },
 				{ (int)MySqlDbType.VarChar, ("", "{0}.Replace(StringifySplit, \"|\")", "{0}.Replace(\"|\", StringifySplit)", "string", typeof(string), typeof(string), "{0}", "GetString") },
 
-				{ (int)MySqlDbType.Set, ("(long?)", "long.Parse({0})", "{0}.ToInt64().ToString()", "Set", typeof(Enum), typeof(Enum), "{0}", "GetInt64") },
-				{ (int)MySqlDbType.Enum, ("(long?)", "long.Parse({0})", "{0}.ToInt64().ToString()", "Enum", typeof(Enum), typeof(Enum), "{0}", "GetInt64") },
+				{ (int)MySqlDbType.Set, ("(long?)", "long.Parse({0})", "{0}.ToInt64().ToString()", "Set", typeof(bool), typeof(Enum), "{0}", "GetInt64") },
+				{ (int)MySqlDbType.Enum, ("(long?)", "long.Parse({0})", "{0}.ToInt64().ToString()", "Enum", typeof(bool), typeof(Enum), "{0}", "GetInt64") },
 
 				{ (int)MySqlDbType.Geometry, ("(MygisGeometry)", "MygisGeometry.Parse({0}.Replace(StringifySplit, \"|\"))", "{0}.AsText().Replace(\"|\", StringifySplit)", "MygisGeometry", typeof(MygisGeometry), typeof(MygisGeometry), "{0}", "GetString") },
 			};
@@ -131,7 +131,7 @@ namespace FreeSql.MySql {
 		public string GetDataReaderMethod(DbColumnInfo column) => _dicDbToCs.TryGetValue(column.DbType, out var trydc) ? trydc.dataReaderMethod : null;
 
 		public List<string> GetDatabases() {
-			var sql = @" select schema_name from information_schema.schemata where schema_name not in ('information_schema', 'mysql', 'performance_schema')";
+			var sql = @" select username from sys.dba_users";
 			var ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
 			return ds.Select(a => a.FirstOrDefault()?.ToString()).ToList();
 		}

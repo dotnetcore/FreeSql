@@ -85,7 +85,7 @@ namespace FreeSql.MySql {
 			var conn = _orm.Ado.MasterPool.Get(TimeSpan.FromSeconds(5));
 			var database = conn.Value.Database;
 			Func<string, string, object> ExecuteScalar = (db, sql) => {
-				if (string.Compare(database, db) != 0) try { conn.Value.ChangeDatabase(db); } catch { }
+				if (string.Compare(database, db) != 0) conn.Value.ChangeDatabase(db);
 				try {
 					using (var cmd = conn.Value.CreateCommand()) {
 						cmd.CommandText = sql;
@@ -107,16 +107,16 @@ namespace FreeSql.MySql {
 					var tboldname = tb.DbOldName?.Split(new[] { '.' }, 2); //旧表名
 					if (tboldname?.Length == 1) tboldname = new[] { database, tboldname[0] };
 
-					if (string.Compare(tbname[0], database, true) != 0 && ExecuteScalar(database, $"select 1 from pg_database where datname='{tbname[0]}'") == null) //创建数据库
+					if (string.Compare(tbname[0], database, true) != 0 && ExecuteScalar(database, " select 1 from pg_database where datname={0}".FormatMySql(tbname[0])) == null) //创建数据库
 						sb.Append($"CREATE DATABASE IF NOT EXISTS ").Append(_commonUtils.QuoteSqlName(tbname[0])).Append(" default charset utf8 COLLATE utf8_general_ci;\r\n");
 
 					var sbalter = new StringBuilder();
 					var istmpatler = false; //创建临时表，导入数据，删除旧表，修改
-					if (ExecuteScalar(tbname[0], "SELECT 1 FROM information_schema.TABLES WHERE table_schema={0} and table_name={1}".FormatMySql(tbname)) == null) { //表不存在
+					if (ExecuteScalar(tbname[0], " SELECT 1 FROM information_schema.TABLES WHERE table_schema={0} and table_name={1}".FormatMySql(tbname)) == null) { //表不存在
 						if (tboldname != null) {
-							if (string.Compare(tboldname[0], tbname[0], true) != 0 && ExecuteScalar(database, $"select 1 from information_schema.schemata where schema_name='{tboldname[0]}'") == null ||
-								ExecuteScalar(tboldname[0], "SELECT 1 FROM information_schema.TABLES WHERE table_schema={0} and table_name={1}".FormatMySql(tboldname)) == null)
-								//数据库或模式或表不存在
+							if (string.Compare(tboldname[0], tbname[0], true) != 0 && ExecuteScalar(database, " select 1 from information_schema.schemata where schema_name={0}".FormatMySql(tboldname[0])) == null ||
+								ExecuteScalar(tboldname[0], " SELECT 1 FROM information_schema.TABLES WHERE table_schema={0} and table_name={1}".FormatMySql(tboldname)) == null)
+								//数据库或表不存在
 								tboldname = null;
 						}
 						if (tboldname == null) {
@@ -149,11 +149,8 @@ namespace FreeSql.MySql {
 						tboldname = null; //如果新表已经存在，不走改表名逻辑
 
 					//对比字段，只可以修改类型、增加字段、有限的修改字段名；保证安全不删除字段
-					var addcols = new Dictionary<string, ColumnInfo>(StringComparer.CurrentCultureIgnoreCase);
-					foreach (var tbcol in tb.Columns) addcols.Add(tbcol.Value.Attribute.Name, tbcol.Value);
-					var surplus = new Dictionary<string, bool>(StringComparer.CurrentCultureIgnoreCase);
-					var dbcols = new List<DbColumnInfo>();
-					var sql = @"select
+					var sql = @"
+select
 a.column_name,
 a.column_type,
 case when a.is_nullable = 'YES' then 1 else 0 end 'is_nullable',

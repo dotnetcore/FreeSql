@@ -9,8 +9,8 @@ namespace FreeSql.SqlServer {
 
 	class SqlServerUtils : CommonUtils {
 		IFreeSql _orm;
-		public SqlServerUtils(IFreeSql mysql) {
-			_orm = mysql;
+		public SqlServerUtils(IFreeSql orm) {
+			_orm = orm;
 		}
 
 		internal override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, Type type, object value) {

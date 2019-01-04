@@ -132,14 +132,14 @@ namespace FreeSql.PostgreSQL {
 				var tboldname = tb.DbOldName?.Split(new[] { '.' }, 2); //旧表名
 				if (tboldname?.Length == 1) tboldname = new[] { "public", tboldname[0] };
 
-				if (string.Compare(tbname[0], "public", true) != 0 && _orm.Ado.ExecuteScalar(CommandType.Text, $"select 1 from pg_namespace where nspname='{tbname[0]}'") == null) //创建模式
+				if (string.Compare(tbname[0], "public", true) != 0 && _orm.Ado.ExecuteScalar(CommandType.Text, " select 1 from pg_namespace where nspname={0}".FormatPostgreSQL(tbname[0])) == null) //创建模式
 					sb.Append("CREATE SCHEMA IF NOT EXISTS ").Append(tbname[0]).Append(";\r\n");
 
 				var sbalter = new StringBuilder();
 				var istmpatler = false; //创建临时表，导入数据，删除旧表，修改
-				if (_orm.Ado.ExecuteScalar(CommandType.Text, string.Format("select 1 from pg_tables a inner join pg_namespace b on b.nspname = a.schemaname where b.nspname || '.' || a.tablename = '{0}.{1}'", tbname)) == null) { //表不存在
+				if (_orm.Ado.ExecuteScalar(CommandType.Text, string.Format(" select 1 from pg_tables a inner join pg_namespace b on b.nspname = a.schemaname where b.nspname || '.' || a.tablename = '{0}.{1}'", tbname)) == null) { //表不存在
 					if (tboldname != null) {
-						if (_orm.Ado.ExecuteScalar(CommandType.Text, string.Format("select 1 from pg_tables a inner join pg_namespace b on b.nspname = a.schemaname where b.nspname || '.' || a.tablename = '{0}.{1}'", tboldname)) == null)
+						if (_orm.Ado.ExecuteScalar(CommandType.Text, string.Format(" select 1 from pg_tables a inner join pg_namespace b on b.nspname = a.schemaname where b.nspname || '.' || a.tablename = '{0}.{1}'", tboldname)) == null)
 							//旧表不存在
 							tboldname = null;
 					}
@@ -171,7 +171,8 @@ namespace FreeSql.PostgreSQL {
 					tboldname = null; //如果新表已经存在，不走改表名逻辑
 
 				//对比字段，只可以修改类型、增加字段、有限的修改字段名；保证安全不删除字段
-				var sql = @"select
+				var sql = @"
+select
 a.attname,
 t.typname,
 case when a.atttypmod > 0 and a.atttypmod < 32767 then a.atttypmod - 4 else a.attlen end len,
@@ -194,7 +195,7 @@ where ns.nspname = {0} and c.relname = {1}".FormatPostgreSQL(tboldname ?? tbname
 					var type = string.Concat(a[1]);
 					var sqlType = string.Concat(a[3]);
 					var max_length = long.Parse(string.Concat(a[2]));
-					switch (sqlType) {
+					switch (sqlType.ToLower()) {
 						case "bool": case "name": case "bit": case "varbit": case "bpchar": case "varchar": case "bytea": case "text": case "uuid": break;
 						default: max_length *= 8; break;
 					}
@@ -288,7 +289,7 @@ where ns.nspname = {0} and c.relname = {1}".FormatPostgreSQL(tboldname ?? tbname
 				if (seqcol.Item3) {
 					sb.Append("CREATE SEQUENCE ").Append(seqname).Append(";\r\n");
 					sb.Append("ALTER TABLE ").Append(tbname2).Append(" ALTER COLUMN ").Append(colname2).Append(" SET DEFAULT nextval('").Append(seqname).Append("'::regclass);\r\n");
-					sb.Append("SELECT case when max(").Append(colname2).Append(") is null then 0 else setval('").Append(seqname).Append("', max(").Append(colname2).Append(")) end FROM ").Append(tbname2).Append(";\r\n");
+					sb.Append(" SELECT case when max(").Append(colname2).Append(") is null then 0 else setval('").Append(seqname).Append("', max(").Append(colname2).Append(")) end FROM ").Append(tbname2).Append(";\r\n");
 				}
 			}
 			return sb.Length == 0 ? null : sb.ToString();

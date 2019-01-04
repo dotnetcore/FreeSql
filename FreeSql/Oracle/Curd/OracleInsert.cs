@@ -1,15 +1,51 @@
 ﻿using FreeSql.Internal;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FreeSql.PostgreSQL.Curd {
+namespace FreeSql.Oracle.Curd {
 
-	class PostgreSQLInsert<T1> : Internal.CommonProvider.InsertProvider<T1> where T1 : class {
-		public PostgreSQLInsert(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression)
+	class OracleInsert<T1> : Internal.CommonProvider.InsertProvider<T1> where T1 : class {
+		public OracleInsert(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression)
 			: base(orm, commonUtils, commonExpression) {
+		}
+
+		public override string ToSql() {
+			if (_source == null || _source.Any() == false) return null;
+			var sb = new StringBuilder();
+			sb.Append("INSERT INTO ").Append(_commonUtils.QuoteSqlName(_table.DbName)).Append("(");
+			var colidx = 0;
+			foreach (var col in _table.Columns.Values)
+				if (_ignore.ContainsKey(col.Attribute.Name) == false) {
+					if (colidx > 0) sb.Append(", ");
+					sb.Append(_commonUtils.QuoteSqlName(col.Attribute.Name));
+					++colidx;
+				}
+			sb.Append(") VALUES");
+			_params = new DbParameter[colidx * _source.Count];
+			var didx = 0;
+			foreach (var d in _source) {
+				if (didx > 0) sb.Append(", ");
+				sb.Append("(");
+				var colidx2 = 0;
+				foreach (var col in _table.Columns.Values)
+					if (_ignore.ContainsKey(col.Attribute.Name) == false) {
+						if (colidx2 > 0) sb.Append(", ");
+						if (col.Attribute.IsIdentity) {
+							sb.Append(_commonUtils.QuoteSqlName($"{Utils.GetCsName(_table.DbName)}_seq_{col.Attribute.Name}")).Append(".nextval");
+						} else {
+							sb.Append(_commonUtils.QuoteWriteParamter(col.CsType, $"{_commonUtils.QuoteParamterName(col.CsName)}{didx}"));
+							_params[didx * colidx + colidx2] = _commonUtils.AppendParamter(null, $"{col.CsName}{didx}", col.CsType, _table.Properties.TryGetValue(col.CsName, out var tryp) ? tryp.GetValue(d) : null);
+						}
+						++colidx2;
+					}
+				sb.Append(")");
+				++didx;
+			}
+			return sb.ToString();
 		}
 
 		public override long ExecuteIdentity() {

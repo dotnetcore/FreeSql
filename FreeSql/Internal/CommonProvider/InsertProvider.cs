@@ -58,7 +58,7 @@ namespace FreeSql.Internal.CommonProvider {
 			return this;
 		}
 
-		public string ToSql() {
+		public virtual string ToSql() {
 			if (_source == null || _source.Any() == false) return null;
 			var sb = new StringBuilder();
 			sb.Append("INSERT INTO ").Append(_commonUtils.QuoteSqlName(_table.DbName)).Append("(");

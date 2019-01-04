@@ -1,4 +1,4 @@
-﻿using Npgsql;
+﻿using Oracle.ManagedDataAccess.Client;
 using SafeObjectPool;
 using System;
 using System.Collections.Generic;
@@ -8,15 +8,15 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace FreeSql.PostgreSQL {
+namespace FreeSql.Oracle {
 
-	public class PostgreSQLConnectionPool : ObjectPool<DbConnection> {
+	public class OracleConnectionPool : ObjectPool<DbConnection> {
 
 		internal Action availableHandler;
 		internal Action unavailableHandler;
 
-		public PostgreSQLConnectionPool(string name, string connectionString, Action availableHandler, Action unavailableHandler) : base(null) {
-			var policy = new PostgreSQLConnectionPoolPolicy {
+		public OracleConnectionPool(string name, string connectionString, Action availableHandler, Action unavailableHandler) : base(null) {
+			var policy = new OracleConnectionPoolPolicy {
 				_pool = this,
 				Name = name
 			};
@@ -28,7 +28,7 @@ namespace FreeSql.PostgreSQL {
 		}
 
 		public void Return(Object<DbConnection> obj, Exception exception, bool isRecreate = false) {
-			if (exception != null && exception is NpgsqlException) {
+			if (exception != null && exception is OracleException) {
 
 				if (exception is System.IO.IOException) {
 
@@ -43,10 +43,10 @@ namespace FreeSql.PostgreSQL {
 		}
 	}
 
-	public class PostgreSQLConnectionPoolPolicy : IPolicy<DbConnection> {
+	public class OracleConnectionPoolPolicy : IPolicy<DbConnection> {
 
-		internal PostgreSQLConnectionPool _pool;
-		public string Name { get; set; } = "PostgreSQL NpgsqlConnection 对象池";
+		internal OracleConnectionPool _pool;
+		public string Name { get; set; } = "Oracle Connection 对象池";
 		public int PoolSize { get; set; } = 100;
 		public TimeSpan SyncGetTimeout { get; set; } = TimeSpan.FromSeconds(10);
 		public int AsyncGetCapacity { get; set; } = 10000;
@@ -58,7 +58,7 @@ namespace FreeSql.PostgreSQL {
 			get => _connectionString;
 			set {
 				_connectionString = value ?? "";
-				Match m = Regex.Match(_connectionString, @"Maximum\s*pool\s*size\s*=\s*(\d+)", RegexOptions.IgnoreCase);
+				Match m = Regex.Match(_connectionString, @"Max\s*pool\s*size\s*=\s*(\d+)", RegexOptions.IgnoreCase);
 				if (m.Success == false || int.TryParse(m.Groups[1].Value, out var poolsize) == false || poolsize <= 0) poolsize = 100;
 				PoolSize = poolsize;
 
@@ -78,7 +78,7 @@ namespace FreeSql.PostgreSQL {
 		}
 
 		public DbConnection OnCreate() {
-			var conn = new NpgsqlConnection(_connectionString);
+			var conn = new OracleConnection(_connectionString);
 			return conn;
 		}
 

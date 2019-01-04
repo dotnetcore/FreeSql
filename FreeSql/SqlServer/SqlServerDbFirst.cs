@@ -97,7 +97,7 @@ namespace FreeSql.SqlServer {
 		public string GetDataReaderMethod(DbColumnInfo column) => _dicDbToCs.TryGetValue(column.DbType, out var trydc) ? trydc.dataReaderMethod : null;
 
 		public List<string> GetDatabases() {
-			var sql = @"select name from sys.databases where name not in ('master','tempdb','model','msdb')";
+			var sql = @" select name from sys.databases where name not in ('master','tempdb','model','msdb')";
 			var ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
 			return ds.Select(a => a.FirstOrDefault()?.ToString()).ToList();
 		}
@@ -306,6 +306,7 @@ use {olddatabase};
 				}
 
 				sql = $@"
+use {db};
 select 
  b.object_id 'Object_id'
 ,c.name 'Column'
