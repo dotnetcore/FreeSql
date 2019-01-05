@@ -49,7 +49,7 @@ namespace FreeSql.MySql {
 				{ typeof(byte[]).FullName,  (MySqlDbType.VarBinary, "varbinary", "varbinary(255)", false, null, new byte[0]) },
 				{ typeof(string).FullName,  (MySqlDbType.VarChar, "varchar", "varchar(255)", false, null, "") },
 
-				{ typeof(Guid).FullName,  (MySqlDbType.VarChar, "char", "char(36)", false, false, Guid.Empty) },{ typeof(Guid?).FullName,  (MySqlDbType.VarChar, "char", "char(36)", false, true, null) },
+				{ typeof(Guid).FullName,  (MySqlDbType.VarChar, "char", "char(36) NOT NULL", false, false, Guid.Empty) },{ typeof(Guid?).FullName,  (MySqlDbType.VarChar, "char", "char(36)", false, true, null) },
 
 				{ typeof(MygisPoint).FullName,  (MySqlDbType.Geometry, "point", "point", false, null, new MygisPoint(0, 0)) },
 				{ typeof(MygisLineString).FullName,  (MySqlDbType.Geometry, "linestring", "linestring", false, null, new MygisLineString(new[]{new MygisCoordinate2D(),new MygisCoordinate2D()})) },
@@ -229,9 +229,9 @@ where a.table_schema in ({0}) and a.table_name in ({1})".FormatMySql(tboldname ?
 								//insertvalue = $"cast({insertvalue} as {tbcol.Attribute.DbType.Split(' ').First()})";
 							}
 							if (tbcol.Attribute.IsNullable != tbstructcol.is_nullable)
-								insertvalue = $"ifnull({insertvalue},{_commonUtils.FormatSql("{0}", tbcol.Attribute.DbDefautValue).Replace("'", "''")})";
+								insertvalue = $"ifnull({insertvalue},{_commonUtils.FormatSql("{0}", tbcol.Attribute.DbDefautValue)})";
 						} else if (tbcol.Attribute.IsNullable == false)
-							insertvalue = _commonUtils.FormatSql("{0}", tbcol.Attribute.DbDefautValue).Replace("'", "''");
+							insertvalue = _commonUtils.FormatSql("{0}", tbcol.Attribute.DbDefautValue);
 						sb.Append(insertvalue).Append(", ");
 					}
 					sb.Remove(sb.Length - 2, 2).Append(" FROM ").Append(tablename).Append(";\r\n");

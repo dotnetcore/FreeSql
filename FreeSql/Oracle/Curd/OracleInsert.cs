@@ -1,4 +1,7 @@
 ﻿using FreeSql.Internal;
+using FreeSql.Internal.Model;
+using Oracle.ManagedDataAccess.Client;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -18,29 +21,35 @@ namespace FreeSql.Oracle.Curd {
 			var sb = new StringBuilder();
 			sb.Append("INSERT INTO ").Append(_commonUtils.QuoteSqlName(_table.DbName)).Append("(");
 			var colidx = 0;
+			var colidxAndIdent = 0;
 			foreach (var col in _table.Columns.Values)
 				if (_ignore.ContainsKey(col.Attribute.Name) == false) {
-					if (colidx > 0) sb.Append(", ");
+					if (colidxAndIdent > 0) sb.Append(", ");
 					sb.Append(_commonUtils.QuoteSqlName(col.Attribute.Name));
-					++colidx;
+					if (col.Attribute.IsIdentity == false) ++colidx;
+					++colidxAndIdent;
 				}
 			sb.Append(") VALUES");
+			_identCol = null;
 			_params = new DbParameter[colidx * _source.Count];
 			var didx = 0;
 			foreach (var d in _source) {
 				if (didx > 0) sb.Append(", ");
 				sb.Append("(");
 				var colidx2 = 0;
+				var colidx2AndIdent = 0;
 				foreach (var col in _table.Columns.Values)
 					if (_ignore.ContainsKey(col.Attribute.Name) == false) {
-						if (colidx2 > 0) sb.Append(", ");
+						if (colidx2AndIdent > 0) sb.Append(", ");
 						if (col.Attribute.IsIdentity) {
 							sb.Append(_commonUtils.QuoteSqlName($"{Utils.GetCsName(_table.DbName)}_seq_{col.Attribute.Name}")).Append(".nextval");
+							_identCol = col;
 						} else {
 							sb.Append(_commonUtils.QuoteWriteParamter(col.CsType, $"{_commonUtils.QuoteParamterName(col.CsName)}{didx}"));
 							_params[didx * colidx + colidx2] = _commonUtils.AppendParamter(null, $"{col.CsName}{didx}", col.CsType, _table.Properties.TryGetValue(col.CsName, out var tryp) ? tryp.GetValue(d) : null);
+							++colidx2;
 						}
-						++colidx2;
+						++colidx2AndIdent;
 					}
 				sb.Append(")");
 				++didx;
@@ -48,58 +57,83 @@ namespace FreeSql.Oracle.Curd {
 			return sb.ToString();
 		}
 
+		ColumnInfo _identCol;
 		public override long ExecuteIdentity() {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return 0;
 
-			var identCols = _table.Columns.Where(a => a.Value.Attribute.IsIdentity);
-			if (identCols.Any() == false) {
+			if (_identCol == null) {
 				_orm.Ado.ExecuteNonQuery(CommandType.Text, sql, _params);
 				return 0;
 			}
-			return long.TryParse(string.Concat(_orm.Ado.ExecuteScalar(CommandType.Text, string.Concat(sql, " RETURNING ", _commonUtils.QuoteSqlName(identCols.First().Value.Attribute.Name)), _params)), out var trylng) ? trylng : 0;
+			var identColName = _commonUtils.QuoteSqlName(_identCol.Attribute.Name);
+			var identParam = _commonUtils.AppendParamter(null, $"{_identCol.CsName}99", _identCol.CsType, 0) as OracleParameter;
+			identParam.Direction = ParameterDirection.Output;
+			_orm.Ado.ExecuteNonQuery(CommandType.Text, $"{sql} RETURNING {identColName} INTO {identParam.ParameterName}", _params.Concat(new[] { identParam }).ToArray());
+			return long.TryParse(string.Concat(identParam.Value), out var trylng) ? trylng : 0;
 		}
 		async public override Task<long> ExecuteIdentityAsync() {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return 0;
 
-			var identCols = _table.Columns.Where(a => a.Value.Attribute.IsIdentity);
-			if (identCols.Any() == false) {
+			if (_identCol == null) {
 				await _orm.Ado.ExecuteNonQueryAsync(CommandType.Text, sql, _params);
 				return 0;
 			}
-			return long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync(CommandType.Text, string.Concat(sql, " RETURNING ", _commonUtils.QuoteSqlName(identCols.First().Value.Attribute.Name)), _params)), out var trylng) ? trylng : 0;
+			var identColName = _commonUtils.QuoteSqlName(_identCol.Attribute.Name);
+			var identParam = _commonUtils.AppendParamter(null, $"{_identCol.CsName}99", _identCol.CsType, 0) as OracleParameter;
+			identParam.Direction = ParameterDirection.Output;
+			await _orm.Ado.ExecuteNonQueryAsync(CommandType.Text, $"{sql} RETURNING {identColName} INTO {identParam.ParameterName}", _params.Concat(new[] { identParam }).ToArray());
+			return long.TryParse(string.Concat(identParam.Value), out var trylng) ? trylng : 0;
 		}
 
 		public override List<T1> ExecuteInserted() {
+			throw new NotImplementedException();
+
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return new List<T1>();
 
 			var sb = new StringBuilder();
-			sb.Append(sql).Append(" RETURNING ");
+			sb.Append(@"declare
+type v_tp_rec is record(");
 
 			var colidx = 0;
 			foreach (var col in _table.Columns.Values) {
 				if (colidx > 0) sb.Append(", ");
-				sb.Append(_commonUtils.QuoteReadColumn(col.CsType, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
+				sb.Append(_commonUtils.QuoteSqlName(col.CsName)).Append(" ").Append(_commonUtils.QuoteSqlName(_table.DbName)).Append(".").Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append("%type");
 				++colidx;
 			}
+			sb.Append(@");
+type v_tp_tab is table of v_tp_rec;
+v_tab v_tp_tab;
+begin
+");
+
+			sb.Append(sql).Append(" RETURNING ");
+			colidx = 0;
+			foreach (var col in _table.Columns.Values) {
+				if (colidx > 0) sb.Append(", ");
+				sb.Append(_commonUtils.QuoteReadColumn(col.CsType, _commonUtils.QuoteSqlName(col.Attribute.Name)));
+				++colidx;
+			}
+			sb.Append(@"bulk collect into v_tab;
+for i in 1..v_tab.count loop
+	dbms_output.put_line(");
+			//v_tab(i).empno||'-'||v_tab(i).ename
+			colidx = 0;
+			foreach (var col in _table.Columns.Values) {
+				if (colidx > 0) sb.Append("||'-'||");
+				sb.Append("v_tab(i).").Append(_commonUtils.QuoteSqlName(col.CsName));
+				++colidx;
+			}
+			sb.Append(@");
+end loop;
+end;
+");
 			return _orm.Ado.Query<T1>(CommandType.Text, sb.ToString(), _params);
 		}
-		async public override Task<List<T1>> ExecuteInsertedAsync() {
-			var sql = this.ToSql();
-			if (string.IsNullOrEmpty(sql)) return new List<T1>();
-
-			var sb = new StringBuilder();
-			sb.Append(sql).Append(" RETURNING ");
-
-			var colidx = 0;
-			foreach (var col in _table.Columns.Values) {
-				if (colidx > 0) sb.Append(", ");
-				sb.Append(_commonUtils.QuoteReadColumn(col.CsType, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
-				++colidx;
-			}
-			return await _orm.Ado.QueryAsync<T1>(CommandType.Text, sb.ToString(), _params);
+		public override Task<List<T1>> ExecuteInsertedAsync() {
+			throw new NotImplementedException();
 		}
 	}
 }

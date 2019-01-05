@@ -241,6 +241,14 @@ where ns.nspname = {0} and c.relname = {1}".FormatPostgreSQL(tboldname ?? tbname
 					sb.Append(sbalter);
 					continue;
 				}
+				var oldpk = _orm.Ado.ExecuteScalar(CommandType.Text, @"select pg_constraint.conname as pk_name from pg_constraint
+inner join pg_class on pg_constraint.conrelid = pg_class.oid
+inner join pg_namespace on pg_namespace.oid = pg_class.relnamespace
+where pg_namespace.nspname={0} and pg_class.relname={1} and pg_constraint.contype='p'
+".FormatPostgreSQL(tbname))?.ToString();
+				if (string.IsNullOrEmpty(oldpk) == false)
+					sb.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" DROP CONSTRAINT ").Append(oldpk).Append(";\r\n");
+
 				//创建临时表，数据导进临时表，然后删除原表，将临时表改名为原表名
 				var tablename = tboldname == null ? _commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}") : _commonUtils.QuoteSqlName($"{tboldname[0]}.{tboldname[1]}");
 				var tmptablename = _commonUtils.QuoteSqlName($"{tbname[0]}.FreeSqlTmp_{tbname[1]}");
@@ -270,9 +278,9 @@ where ns.nspname = {0} and c.relname = {1}".FormatPostgreSQL(tboldname ?? tbname
 						if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.CurrentCultureIgnoreCase) == false)
 							insertvalue = $"cast({insertvalue} as {tbcol.Attribute.DbType.Split(' ').First()})";
 						if (tbcol.Attribute.IsNullable != tbstructcol.is_nullable)
-							insertvalue = $"coalesce({insertvalue},{_commonUtils.FormatSql("{0}", tbcol.Attribute.DbDefautValue).Replace("'", "''")})";
+							insertvalue = $"coalesce({insertvalue},{_commonUtils.FormatSql("{0}", tbcol.Attribute.DbDefautValue)})";
 					} else if (tbcol.Attribute.IsNullable == false)
-						insertvalue = _commonUtils.FormatSql("{0}", tbcol.Attribute.DbDefautValue).Replace("'", "''");
+						insertvalue = _commonUtils.FormatSql("{0}", tbcol.Attribute.DbDefautValue);
 					sb.Append(insertvalue).Append(", ");
 				}
 				sb.Remove(sb.Length - 2, 2).Append(" FROM ").Append(tablename).Append(";\r\n");

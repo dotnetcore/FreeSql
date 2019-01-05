@@ -28,4 +28,9 @@ public class g {
 		.UseAutoSyncStructure(true)
 		.UseSyncStructureToLower(true)
 		.Build();
+
+	public static IFreeSql oracle = new FreeSql.FreeSqlBuilder()
+		.UseConnectionString(FreeSql.DataType.Oracle, "user id=user1;password=123456;data source=//127.0.0.1:1521/XE;Pooling=true;Max Pool Size=10")
+		.UseAutoSyncStructure(true)
+		.Build();
 }

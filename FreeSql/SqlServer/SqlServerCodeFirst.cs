@@ -239,9 +239,9 @@ use " + database, tboldname ?? tbname);
 							if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.CurrentCultureIgnoreCase) == false)
 								insertvalue = $"cast({insertvalue} as {tbcol.Attribute.DbType.Split(' ').First()})";
 							if (tbcol.Attribute.IsNullable != tbstructcol.is_nullable)
-								insertvalue = $"isnull({insertvalue},{_commonUtils.FormatSql("{0}", tbcol.Attribute.DbDefautValue).Replace("'", "''")})";
+								insertvalue = $"isnull({insertvalue},{_commonUtils.FormatSql("{0}", tbcol.Attribute.DbDefautValue)})";
 						} else if (tbcol.Attribute.IsNullable == false)
-							insertvalue = _commonUtils.FormatSql("{0}", tbcol.Attribute.DbDefautValue).Replace("'", "''");
+							insertvalue = _commonUtils.FormatSql("{0}", tbcol.Attribute.DbDefautValue);
 						sb.Append(insertvalue).Append(", ");
 					}
 					sb.Remove(sb.Length - 2, 2).Append(" FROM ").Append(tablename).Append(" WITH (HOLDLOCK TABLOCKX)');\r\n");

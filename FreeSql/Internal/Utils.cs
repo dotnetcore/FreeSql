@@ -56,10 +56,18 @@ namespace FreeSql.Internal {
 				if (colattr.DbType?.Contains("NOT NULL") == true) colattr.IsNullable = false;
 				if (string.IsNullOrEmpty(colattr.Name)) colattr.Name = p.Name;
 				if (common.CodeFirst.IsSyncStructureToLower) colattr.Name = colattr.Name.ToLower();
-				
-				if ((colattr.IsNullable == false || colattr.IsIdentity || colattr.IsPrimary) && colattr.DbType.Contains("NOT NULL") == false) colattr.DbType += " NOT NULL";
+
+				if ((colattr.IsNullable == false || colattr.IsIdentity || colattr.IsPrimary) && colattr.DbType.Contains("NOT NULL") == false) {
+					colattr.IsNullable = false;
+					colattr.DbType += " NOT NULL";
+				}
 				if (colattr.IsNullable == true && colattr.DbType.Contains("NOT NULL")) colattr.DbType = colattr.DbType.Replace("NOT NULL", "");
-				colattr.DbType = Regex.Replace(colattr.DbType, @"\([^\)]+\)", m => Regex.Replace(m.Groups[0].Value, @"\s", ""));
+				colattr.DbType = Regex.Replace(colattr.DbType, @"\([^\)]+\)", m => {
+					var tmpLt = Regex.Replace(m.Groups[0].Value, @"\s", "");
+					if (tmpLt.Contains("CHAR")) tmpLt = tmpLt.Replace("CHAR", " CHAR");
+					if (tmpLt.Contains("BYTE")) tmpLt = tmpLt.Replace("BYTE", " BYTE");
+					return tmpLt;
+				});
 				colattr.DbDefautValue = trytb.Properties[p.Name].GetValue(Activator.CreateInstance(trytb.Type));
 				if (colattr.DbDefautValue == null) colattr.DbDefautValue = tp?.defaultValue;
 				if (colattr.IsNullable == false && colattr.DbDefautValue == null) {
@@ -77,7 +85,11 @@ namespace FreeSql.Internal {
 				trytb.ColumnsByCs.Add(p.Name, col);
 			}
 			trytb.Primarys = trytb.Columns.Values.Where(a => a.Attribute.IsPrimary).ToArray();
-			if (trytb.Primarys.Any() == false) trytb.Primarys = trytb.Columns.Values.Where(a => a.Attribute.IsIdentity).ToArray();
+			if (trytb.Primarys.Any() == false) {
+				trytb.Primarys = trytb.Columns.Values.Where(a => a.Attribute.IsIdentity).ToArray();
+				foreach(var col in trytb.Primarys)
+					col.Attribute.IsPrimary = true;
+			}
 			_cacheGetTableByEntity.TryAdd(entity.FullName, trytb);
 			return trytb;
 		}

@@ -14,8 +14,13 @@ namespace FreeSql.Oracle {
 
 		internal Action availableHandler;
 		internal Action unavailableHandler;
+		internal string UserId { get; set; }
 
 		public OracleConnectionPool(string name, string connectionString, Action availableHandler, Action unavailableHandler) : base(null) {
+			var userIdMatch = Regex.Match(connectionString, @"User\s+Id\s*=\s*([^;]+)", RegexOptions.IgnoreCase);
+			if (userIdMatch.Success == false) throw new Exception(@"从 ConnectionString 中无法匹配 User\s+Id\s+=([^;]+)");
+			this.UserId = userIdMatch.Groups[1].Value.Trim().ToUpper();
+
 			var policy = new OracleConnectionPoolPolicy {
 				_pool = this,
 				Name = name
