@@ -135,7 +135,7 @@
 | a.ToString() | cast(a as varchar) | cast(a as varchar) | - | to_char(a) |
 
 ### 数学函数
-| 表达式 | MySql | SqlServer | PostgreSQL |
+| 表达式 | MySql | SqlServer | PostgreSQL | Oracle |
 | - | - | - | - | - |
 | Math.Abs(a) | abs(a) | abs(a) | abs(a) |
 | Math.Acos(a) | acos(a) | acos(a) | acos(a) | acos(a) |
