@@ -3,7 +3,7 @@
 ## 类型映射
 
 | csharp | MySql | SqlServer | PostgreSQL | oracle |
-| - | - | - | - |
+| - | - | - | - | - |
 | bool \| bool? | bit(1) | bit | bool | number(1) |
 | sbyte \| sbyte? | tinyint(3) | smallint | int2 | number(4) |
 | short \| short? | smallint(6) | smallint | int2 | number(6) |

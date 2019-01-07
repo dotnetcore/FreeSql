@@ -1,6 +1,6 @@
 # 表达式函数
 | 表达式 | MySql | SqlServer | PostgreSQL | Oracle | 功能说明 |
-| - | - | - | - | - |
+| - | - | - | - | - | - |
 | a ? b : c | case when a then b else c end | case when a then b else c end | case when a then b else c end | case when a then b else c end | a成立时取b值，否则取c值 |
 | a ?? b | ifnull(a, b) | isnull(a, b) | coalesce(a, b) | nvl(a, b) | 当a为null时，取b值 |
 | 数字 + 数字 | a + b | a + b | a + b | a + b | 数字相加 |
@@ -14,7 +14,7 @@
 
 ### 数组
 | 表达式 | MySql | SqlServer | PostgreSQL | Oracle | 功能说明 |
-| - | - | - | - | - |
+| - | - | - | - | - | - |
 | a.Length | - | - | case when a is null then 0 else array_length(a,1) end | - | 数组长度 |
 | 常量数组.Length | - | - | array_length(array[常量数组元素逗号分割],1) | - | 数组长度 |
 | a.Any() | - | - | case when a is null then 0 else array_length(a,1) end > 0 | - | 数组是否为空 |
@@ -25,7 +25,7 @@
 
 ### 字典 Dictionary<string, string>
 | 表达式 | MySql | SqlServer | PostgreSQL | Oracle | 功能说明 |
-| - | - | - | - | - |
+| - | - | - | - | - | - |
 | a.Count | - | - | case when a is null then 0 else array_length(akeys(a),1) end | - | 字典长度 |
 | a.Keys | - | - | akeys(a) | - | 返回字典所有key数组 |
 | a.Values | - | - | avals(a) | - | 返回字典所有value数组 |
@@ -36,7 +36,7 @@
 
 ### JSON JToken/JObject/JArray
 | 表达式 | MySql | SqlServer | PostgreSQL | Oracle | 功能说明 |
-| - | - | - | - | - |
+| - | - | - | - | - | - |
 | a.Count | - | - | jsonb_array_length(coalesce(a, '[])) | - | json数组类型的长度 |
 | a.Any() | - | - | jsonb_array_length(coalesce(a, '[])) > 0 | - | json数组类型，是否为空 |
 | a.Contains(b) | - | - | coalesce(a, '{}') @> b::jsonb | - | json中是否包含b |
@@ -46,7 +46,7 @@
 
 ### 字符串对象
 | 表达式 | MySql | SqlServer | PostgreSQL | Oracle | 功能说明 |
-| - | - | - | - | - |
+| - | - | - | - | - | - |
 | string.Empty | '' | '' | '' | 空字符串表示 |
 | string.IsNullOrEmpty(a) | (a is null or a = '') | (a is null or a = '') | (a is null or a = '') | (a is null or a = '') | 空字符串表示 |
 | a.CompareTo(b) | strcmp(a, b) | - | case when a = b then 0 when a > b then 1 else -1 end | case when a = b then 0 when a > b then 1 else -1 end | 比较a和b大小 |
@@ -67,7 +67,7 @@
 
 ### 日期对象
 | 表达式 | MySql | SqlServer | PostgreSQL | Oracle |
-| - | - | - | - |
+| - | - | - | - | - |
 | DateTime.Now | now() | getdate() | current_timestamp | systimestamp |
 | DateTime.UtcNow | utc_timestamp() | getutcdate() | (current_timestamp at time zone 'UTC') | sys_extract_utc(systimestamp) |
 | DateTime.Today | curdate | convert(char(10),getdate(),120) | current_date | trunc(systimestamp) |
@@ -106,7 +106,7 @@
 
 ### 时间对象
 | 表达式 | MySql(微秒) | SqlServer(秒) | PostgreSQL(微秒) | Oracle(Interval day(9) to second(7)) |
-| - | - | - | - |
+| - | - | - | - | - |
 | TimeSpan.Zero | 0 | 0 | - | 0微秒 | numtodsinterval(0,'second') |
 | TimeSpan.MaxValue | 922337203685477580 | 922337203685477580 | - | numtodsinterval(233720368.5477580,'second') |
 | TimeSpan.MinValue | -922337203685477580 | -922337203685477580 | - | numtodsinterval(-233720368.5477580,'second') |
@@ -136,7 +136,7 @@
 
 ### 数学函数
 | 表达式 | MySql | SqlServer | PostgreSQL |
-| - | - | - | - |
+| - | - | - | - | - |
 | Math.Abs(a) | abs(a) | abs(a) | abs(a) |
 | Math.Acos(a) | acos(a) | acos(a) | acos(a) | acos(a) |
 | Math.Asin(a) | asin(a) | asin(a) | asin(a) | asin(a) |
@@ -159,7 +159,7 @@
 
 ### 类型转换
 | 表达式 | MySql | SqlServer | PostgreSQL | Oracle |
-| - | - | - | - |
+| - | - | - | - | - |
 | Convert.ToBoolean(a) | a not in ('0','false') | a not in ('0','false') | a::varchar not in ('0','false','f','no') | - |
 | Convert.ToByte(a) | cast(a as unsigned) | cast(a as tinyint) | a::int2 | cast(a as number) |
 | Convert.ToChar(a) | substr(cast(a as char),1,1) | substring(cast(a as nvarchar),1,1) | substr(a::char,1,1) | substr(to_char(a),1,1) |
