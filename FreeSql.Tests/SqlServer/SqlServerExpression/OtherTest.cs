@@ -1,14 +1,6 @@
 using FreeSql.DataAnnotations;
-using Newtonsoft.Json.Linq;
-using Npgsql;
-using Npgsql.LegacyPostgis;
-using NpgsqlTypes;
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Net.NetworkInformation;
 using Xunit;
 
 namespace FreeSql.Tests.SqlServerExpression {
@@ -17,7 +9,6 @@ namespace FreeSql.Tests.SqlServerExpression {
 		ISelect<TableAllType> select => g.sqlserver.Select<TableAllType>();
 
 		public OtherTest() {
-			NpgsqlConnection.GlobalTypeMapper.UseLegacyPostgis();
 		}
 
 

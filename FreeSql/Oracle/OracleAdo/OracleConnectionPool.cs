@@ -146,7 +146,7 @@ namespace FreeSql.Oracle {
 		public static bool Ping(this DbConnection that) {
 			try {
 				var cmd = that.CreateCommand();
-				cmd.CommandText = "select 1";
+				cmd.CommandText = "select 1 from dual";
 				cmd.ExecuteNonQuery();
 				return true;
 			} catch {

@@ -434,6 +434,7 @@ namespace FreeSql.Internal {
 			}
 			if (right == "NULL") tryoper = tryoper == "=" ? " IS " : " IS NOT ";
 			if (tryoper == "+" && (expBinary.Left.Type.FullName == "System.String" || expBinary.Right.Type.FullName == "System.String")) return _common.StringConcat(left, right, expBinary.Left.Type, expBinary.Right.Type);
+			if (tryoper == "%") return _common.Mod(left, right, expBinary.Left.Type, expBinary.Right.Type);
 			return $"{left} {tryoper} {right}";
 		}
 

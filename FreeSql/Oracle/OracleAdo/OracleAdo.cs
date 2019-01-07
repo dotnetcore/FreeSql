@@ -35,13 +35,13 @@ namespace FreeSql.Oracle {
 			else if (decimal.TryParse(string.Concat(param), out var trydec))
 				return param;
 			else if (param is DateTime)
-				return string.Concat("'", ((DateTime)param).ToString("yyyy-MM-dd HH:mm:ss"), "'");
+				return string.Concat("to_timestamp('", ((DateTime)param).ToString("yyyy-MM-dd HH:mm:ss.ffffff"), "','YYYY-MM-DD HH24:MI:SS.FF6)");
 			else if (param is DateTime?)
-				return string.Concat("'", (param as DateTime?).Value.ToString("yyyy-MM-dd HH:mm:ss"), "'");
+				return string.Concat("to_timestamp('", (param as DateTime?).Value.ToString("yyyy-MM-dd HH:mm:ss.ffffff"), "','YYYY-MM-DD HH24:MI:SS.FF6)");
 			else if (param is TimeSpan)
-				return ((TimeSpan)param).Ticks / 10;
+				return $"numtodsinterval({((TimeSpan)param).Ticks * 1.0 / 10000000},'second')";
 			else if (param is TimeSpan?)
-				return (param as TimeSpan?).Value.Ticks / 10;
+				return $"numtodsinterval({(param as TimeSpan?).Value.Ticks * 1.0 / 10000000},'second')";
 			else if (param is IEnumerable) {
 				var sb = new StringBuilder();
 				var ie = param as IEnumerable;

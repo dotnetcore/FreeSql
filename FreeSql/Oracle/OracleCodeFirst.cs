@@ -29,17 +29,17 @@ namespace FreeSql.Oracle {
 		static Dictionary<string, (OracleDbType type, string dbtype, string dbtypeFull, bool? isUnsigned, bool? isnullable, object defaultValue)> _dicCsToDb = new Dictionary<string, (OracleDbType type, string dbtype, string dbtypeFull, bool? isUnsigned, bool? isnullable, object defaultValue)>() {
 				{ typeof(bool).FullName,  (OracleDbType.Boolean, "number","number(1) NOT NULL", null, false, false) },{ typeof(bool?).FullName,  (OracleDbType.Boolean, "number","number(1) NULL", null, true, null) },
 
-				{ typeof(sbyte).FullName,  (OracleDbType.Byte, "number", "number(4) NOT NULL", false, false, 0) },{ typeof(sbyte?).FullName,  (OracleDbType.Byte, "number", "number(4) NULL", false, true, null) },
-				{ typeof(short).FullName,  (OracleDbType.Int16, "number","number(4) NOT NULL", false, false, 0) },{ typeof(short?).FullName,  (OracleDbType.Int16, "number", "number(4) NULL", false, true, null) },
-				{ typeof(int).FullName,  (OracleDbType.Int32, "number", "number(8) NOT NULL", false, false, 0) },{ typeof(int?).FullName,  (OracleDbType.Int32, "number", "number(8) NULL", false, true, null) },
-				{ typeof(long).FullName,  (OracleDbType.Int64, "number","number(16) NOT NULL", false, false, 0) },{ typeof(long?).FullName,  (OracleDbType.Int64, "bigint","bigint(16) NULL", false, true, null) },
+				{ typeof(sbyte).FullName,  (OracleDbType.Decimal, "number", "number(4) NOT NULL", false, false, 0) },{ typeof(sbyte?).FullName,  (OracleDbType.Decimal, "number", "number(4) NULL", false, true, null) },
+				{ typeof(short).FullName,  (OracleDbType.Int16, "number","number(6) NOT NULL", false, false, 0) },{ typeof(short?).FullName,  (OracleDbType.Int16, "number", "number(6) NULL", false, true, null) },
+				{ typeof(int).FullName,  (OracleDbType.Int32, "number", "number(11) NOT NULL", false, false, 0) },{ typeof(int?).FullName,  (OracleDbType.Int32, "number", "number(11) NULL", false, true, null) },
+				{ typeof(long).FullName,  (OracleDbType.Int64, "number","number(21) NOT NULL", false, false, 0) },{ typeof(long?).FullName,  (OracleDbType.Int64, "number","number(21) NULL", false, true, null) },
 
-				{ typeof(byte).FullName,  (OracleDbType.Byte, "number","number(2) NOT NULL", true, false, 0) },{ typeof(byte?).FullName,  (OracleDbType.Byte, "number","number(2) NULL", true, true, null) },
-				{ typeof(ushort).FullName,  (OracleDbType.Int16, "number","number(8) NOT NULL", true, false, 0) },{ typeof(ushort?).FullName,  (OracleDbType.Int16, "number", "number(8) NULL", true, true, null) },
-				{ typeof(uint).FullName,  (OracleDbType.Int32, "number", "number(16) NOT NULL", true, false, 0) },{ typeof(uint?).FullName,  (OracleDbType.Int32, "number", "number(16) NULL", true, true, null) },
-				{ typeof(ulong).FullName,  (OracleDbType.Int64, "number", "number(32) NOT NULL", true, false, 0) },{ typeof(ulong?).FullName,  (OracleDbType.Int64, "number", "number(32) NULL", true, true, null) },
+				{ typeof(byte).FullName,  (OracleDbType.Byte, "number","number(3) NOT NULL", true, false, 0) },{ typeof(byte?).FullName,  (OracleDbType.Byte, "number","number(3) NULL", true, true, null) },
+				{ typeof(ushort).FullName,  (OracleDbType.Decimal, "number","number(5) NOT NULL", true, false, 0) },{ typeof(ushort?).FullName,  (OracleDbType.Decimal, "number", "number(5) NULL", true, true, null) },
+				{ typeof(uint).FullName,  (OracleDbType.Decimal, "number", "number(10) NOT NULL", true, false, 0) },{ typeof(uint?).FullName,  (OracleDbType.Decimal, "number", "number(10) NULL", true, true, null) },
+				{ typeof(ulong).FullName,  (OracleDbType.Decimal, "number", "number(20) NOT NULL", true, false, 0) },{ typeof(ulong?).FullName,  (OracleDbType.Decimal, "number", "number(20) NULL", true, true, null) },
 
-				{ typeof(double).FullName,  (OracleDbType.Double, "double", "double(126) NOT NULL", false, false, 0) },{ typeof(double?).FullName,  (OracleDbType.Double, "double", "double(126) NULL", false, true, null) },
+				{ typeof(double).FullName,  (OracleDbType.Double, "float", "float(126) NOT NULL", false, false, 0) },{ typeof(double?).FullName,  (OracleDbType.Double, "float", "float(126) NULL", false, true, null) },
 				{ typeof(float).FullName,  (OracleDbType.Single, "float","float(63) NOT NULL", false, false, 0) },{ typeof(float?).FullName,  (OracleDbType.Single, "float","float(63) NULL", false, true, null) },
 				{ typeof(decimal).FullName,  (OracleDbType.Decimal, "number", "number(10,2) NOT NULL", false, false, 0) },{ typeof(decimal?).FullName,  (OracleDbType.Decimal, "number", "number(10,2) NULL", false, true, null) },
 
@@ -47,10 +47,10 @@ namespace FreeSql.Oracle {
 				{ typeof(DateTime).FullName,  (OracleDbType.TimeStamp, "timestamp", "timestamp(6) NOT NULL", false, false, new DateTime(1970,1,1)) },{ typeof(DateTime?).FullName,  (OracleDbType.TimeStamp, "timestamp", "timestamp(6) NULL", false, true, null) },
 				{ typeof(DateTimeOffset).FullName,  (OracleDbType.TimeStampLTZ, "timestamp with local time zone", "timestamp(6) with local time zone NOT NULL", false, false, new DateTime(1970,1,1)) },{ typeof(DateTimeOffset?).FullName,  (OracleDbType.TimeStampLTZ, "timestamp with local time zone", "timestamp(6) with local time zone NULL", false, true, null) },
 
-				{ typeof(byte[]).FullName,  (OracleDbType.Blob, "blog", "blog(4000) NULL", false, null, new byte[0]) },
+				{ typeof(byte[]).FullName,  (OracleDbType.Blob, "blob", "blob NULL", false, null, new byte[0]) },
 				{ typeof(string).FullName,  (OracleDbType.NVarchar2, "nvarchar2", "nvarchar2(255) NULL", false, null, "") },
 
-				{ typeof(Guid).FullName,  (OracleDbType.Char, "char", "char(36 BYTE) NOT NULL", false, false, Guid.Empty) },{ typeof(Guid?).FullName,  (OracleDbType.Char, "char", "char(36 BYTE) NULL", false, true, null) },
+				{ typeof(Guid).FullName,  (OracleDbType.Char, "char", "char(36 CHAR) NOT NULL", false, false, Guid.Empty) },{ typeof(Guid?).FullName,  (OracleDbType.Char, "char", "char(36 CHAR) NULL", false, true, null) },
 			};
 
 		public (int type, string dbtype, string dbtypeFull, bool? isnullable, object defaultValue)? GetDbInfo(Type type) {
@@ -142,17 +142,15 @@ from all_tab_columns
 where owner={{0}} and table_name={{1}}".FormatOracleSQL(tboldname ?? tbname);
 				var ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
 				var tbstruct = ds.ToDictionary(a => string.Concat(a[0]), a => {
-					var sqlType = string.Concat(a[1]);
+					var sqlType = string.Concat(a[1]).ToUpper();
 					var data_length = long.Parse(string.Concat(a[2]));
 					long.TryParse(string.Concat(a[3]), out var data_precision);
 					long.TryParse(string.Concat(a[4]), out var data_scale);
 					var char_used = string.Concat(a[5]);
-					switch(sqlType.ToUpper()) {
-						case "CHAR": data_length /= char_used.ToLower() == "c" ? 4 : 2; break;
-					}
 					if (Regex.IsMatch(sqlType, @"INTERVAL DAY\(\d+\) TO SECOND\(\d+\)", RegexOptions.IgnoreCase)) {
 					} else if (Regex.IsMatch(sqlType, @"INTERVAL YEAR\(\d+\) TO MONTH", RegexOptions.IgnoreCase)) {
 					} else if (sqlType.StartsWith("TIMESTAMP", StringComparison.CurrentCultureIgnoreCase)) {
+					} else if (sqlType.StartsWith("BLOB")) {
 					} else if (char_used.ToLower() == "c")
 						sqlType += sqlType.StartsWith("N") ? $"({data_length / 2})" : $"({data_length / 4} CHAR)";
 					else if (char_used.ToLower() == "b")
@@ -196,7 +194,7 @@ where owner={{0}} and table_name={{1}}".FormatOracleSQL(tboldname ?? tbname);
 						//添加列
 						sbalter.Append("execute immediate 'ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ADD (").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(dbtypeNoneNotNull).Append(")';\r\n");
 						if (tbcol.Attribute.IsNullable == false) {
-							sbalter.Append("execute immediate 'UPDATE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" SET ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(_commonUtils.FormatSql(" = {0}';\r\n", tbcol.Attribute.DbDefautValue).Replace("'", "''"));
+							sbalter.Append("execute immediate 'UPDATE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" SET ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(_commonUtils.FormatSql(" = {0}", tbcol.Attribute.DbDefautValue).Replace("'", "''")).Append("';\r\n");
 							sbalter.Append("execute immediate 'ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" MODIFY ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" NOT NULL';\r\n");
 						}
 						if (tbcol.Attribute.IsIdentity) seqcols.Add((tbcol, tbname, tbcol.Attribute.IsIdentity));
@@ -250,22 +248,43 @@ where owner={{0}} and table_name={{1}}".FormatOracleSQL(tboldname ?? tbname);
 				sb.Append("execute immediate 'DROP TABLE ").Append(tablename).Append("';\r\n");
 				sb.Append("execute immediate 'ALTER TABLE ").Append(tmptablename).Append(" RENAME TO ").Append(_commonUtils.QuoteSqlName($"{tbname[1]}")).Append("';\r\n");
 			}
+			Dictionary<string, bool> dicDeclare = new Dictionary<string, bool>();
 			foreach (var seqcol in seqcols) {
 				var tbname = seqcol.Item2;
 				var seqname = Utils.GetCsName($"{tbname[1]}_seq_{seqcol.Item1.Attribute.Name}");
+				var tiggerName = seqname + "TI";
 				var tbname2 = _commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}");
 				var colname2 = _commonUtils.QuoteSqlName(seqcol.Item1.Attribute.Name);
-				sbDeclare.Append("declare ").Append(seqname).Append("_exists NUMBER; \r\n");
+				if (dicDeclare.ContainsKey(seqname) == false) {
+					sbDeclare.Append("\r\n").Append(seqname).Append("_exists NUMBER; \r\n");
+					dicDeclare.Add(seqname, true);
+				}
 				sb.Append(seqname).Append("_exists := 0; \r\n")
 					.Append(" select count(1) into ").Append(seqname).Append("_exists from user_sequences where sequence_name={0}; \r\n".FormatOracleSQL(seqname))
 					.Append("if ").Append(seqname).Append("_exists > 0 then \r\n")
 					.Append("  execute immediate 'DROP SEQUENCE ").Append(_commonUtils.QuoteSqlName(seqname)).Append("';\r\n")
 					.Append("end if; \r\n");
 				if (seqcol.Item3) {
-					var startWith = _orm.Ado.ExecuteScalar(CommandType.Text, $" select nvl(max({colname2})+1,1) from {tbname2}");
+					var startWith = _orm.Ado.ExecuteScalar(CommandType.Text, " select 1 from all_tab_comments where owner={0} and table_name={1}".FormatOracleSQL(tbname)) == null ? 1 :
+						_orm.Ado.ExecuteScalar(CommandType.Text, $" select nvl(max({colname2})+1,1) from {tbname2}");
 					sb.Append("execute immediate 'CREATE SEQUENCE ").Append(_commonUtils.QuoteSqlName(seqname)).Append(" start with ").Append(startWith).Append("';\r\n");
+					sb.Append("execute immediate 'CREATE OR REPLACE TRIGGER ").Append(_commonUtils.QuoteSqlName(tiggerName))
+						.Append(" \r\nbefore insert on ").Append(tbname2)
+						.Append(" \r\nfor each row \r\nbegin\r\nselect ").Append(_commonUtils.QuoteSqlName(seqname))
+						.Append(".nextval into :new.").Append(colname2).Append(" from dual;\r\nend;';\r\n");
+				} else {
+					if (dicDeclare.ContainsKey(tiggerName) == false) {
+						sbDeclare.Append("\r\n").Append(tiggerName).Append("_exists NUMBER; \r\n");
+						dicDeclare.Add(tiggerName, true);
+					}
+					sb.Append(tiggerName).Append("_exists := 0; \r\n")
+					.Append(" select count(1) into ").Append(tiggerName).Append("_exists from user_triggers where trigger_name={0}; \r\n".FormatOracleSQL(tiggerName))
+					.Append("if ").Append(tiggerName).Append("_exists > 0 then \r\n")
+					.Append("  execute immediate 'DROP TRIGGER ").Append(_commonUtils.QuoteSqlName(tiggerName)).Append("';\r\n")
+					.Append("end if; \r\n");
 				}
 			}
+			if (sbDeclare.Length > 0) sbDeclare.Insert(0, "declare ");
 			return sb.Length == 0 ? null : sb.Insert(0, "BEGIN \r\n").Insert(0, sbDeclare.ToString()).Append("END;").ToString();
 		}
 

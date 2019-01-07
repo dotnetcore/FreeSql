@@ -17,6 +17,7 @@ namespace FreeSql.Internal {
 		internal abstract string QuoteParamterName(string name);
 		internal abstract string IsNull(string sql, object value);
 		internal abstract string StringConcat(string left, string right, Type leftType, Type rightType);
+		internal abstract string Mod(string left, string right, Type leftType, Type rightType);
 		internal abstract string QuoteWriteParamter(Type type, string paramterName);
 		internal abstract string QuoteReadColumn(Type type, string columnName);
 

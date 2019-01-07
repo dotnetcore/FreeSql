@@ -100,6 +100,7 @@ namespace FreeSql.PostgreSQL {
 		internal override string QuoteParamterName(string name) => $"@{(_orm.CodeFirst.IsSyncStructureToLower ? name.ToLower() : name)}";
 		internal override string IsNull(string sql, object value) => $"coalesce({sql}, {value})";
 		internal override string StringConcat(string left, string right, Type leftType, Type rightType) => $"{left} || {right}";
+		internal override string Mod(string left, string right, Type leftType, Type rightType) => $"{left} % {right}";
 
 		internal override string QuoteWriteParamter(Type type, string paramterName) => paramterName;
 		internal override string QuoteReadColumn(Type type, string columnName) => columnName;

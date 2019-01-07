@@ -19,41 +19,47 @@ namespace FreeSql.Oracle.Curd {
 		public override string ToSql() {
 			if (_source == null || _source.Any() == false) return null;
 			var sb = new StringBuilder();
-			sb.Append("INSERT INTO ").Append(_commonUtils.QuoteSqlName(_table.DbName)).Append("(");
-			var colidx = 0;
-			var colidxAndIdent = 0;
-			foreach (var col in _table.Columns.Values)
-				if (_ignore.ContainsKey(col.Attribute.Name) == false) {
-					if (colidxAndIdent > 0) sb.Append(", ");
-					sb.Append(_commonUtils.QuoteSqlName(col.Attribute.Name));
-					if (col.Attribute.IsIdentity == false) ++colidx;
-					++colidxAndIdent;
-				}
-			sb.Append(") VALUES");
+			sb.Append("INSERT ");
+			if (_source.Count > 1) sb.Append("ALL");
+
 			_identCol = null;
+			var sbtb = new StringBuilder();
+			sbtb.Append("INTO ");
+			sbtb.Append(_commonUtils.QuoteSqlName(_table.DbName)).Append("(");
+			var colidx = 0;
+			foreach (var col in _table.Columns.Values) {
+				if (col.Attribute.IsIdentity) {
+					_identCol = col;
+					continue;
+				}
+				if (col.Attribute.IsIdentity == false && _ignore.ContainsKey(col.Attribute.Name) == false) {
+					if (colidx > 0) sbtb.Append(", ");
+					sbtb.Append(_commonUtils.QuoteSqlName(col.Attribute.Name));
+					++colidx;
+				}
+			}
+			sbtb.Append(") ");
+
 			_params = new DbParameter[colidx * _source.Count];
 			var didx = 0;
 			foreach (var d in _source) {
-				if (didx > 0) sb.Append(", ");
+				if (_source.Count > 1) sb.Append("\r\n");
+				sb.Append(sbtb);
+				sb.Append("VALUES");
 				sb.Append("(");
 				var colidx2 = 0;
-				var colidx2AndIdent = 0;
-				foreach (var col in _table.Columns.Values)
-					if (_ignore.ContainsKey(col.Attribute.Name) == false) {
-						if (colidx2AndIdent > 0) sb.Append(", ");
-						if (col.Attribute.IsIdentity) {
-							sb.Append(_commonUtils.QuoteSqlName($"{Utils.GetCsName(_table.DbName)}_seq_{col.Attribute.Name}")).Append(".nextval");
-							_identCol = col;
-						} else {
-							sb.Append(_commonUtils.QuoteWriteParamter(col.CsType, $"{_commonUtils.QuoteParamterName(col.CsName)}{didx}"));
-							_params[didx * colidx + colidx2] = _commonUtils.AppendParamter(null, $"{col.CsName}{didx}", col.CsType, _table.Properties.TryGetValue(col.CsName, out var tryp) ? tryp.GetValue(d) : null);
-							++colidx2;
-						}
-						++colidx2AndIdent;
+				foreach (var col in _table.Columns.Values) {
+					if (col.Attribute.IsIdentity == false && _ignore.ContainsKey(col.Attribute.Name) == false) {
+						if (colidx2 > 0) sb.Append(", ");
+						sb.Append(_commonUtils.QuoteWriteParamter(col.CsType, $"{_commonUtils.QuoteParamterName(col.CsName)}{didx}"));
+						_params[didx * colidx + colidx2] = _commonUtils.AppendParamter(null, $"{col.CsName}{didx}", col.CsType, _table.Properties.TryGetValue(col.CsName, out var tryp) ? tryp.GetValue(d) : null);
+						++colidx2;
 					}
+				}
 				sb.Append(")");
 				++didx;
 			}
+			if (_source.Count > 1) sb.Append("\r\n SELECT 1 FROM DUAL");
 			return sb.ToString();
 		}
 
@@ -62,7 +68,7 @@ namespace FreeSql.Oracle.Curd {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return 0;
 
-			if (_identCol == null) {
+			if (_identCol == null || _source.Count > 1) {
 				_orm.Ado.ExecuteNonQuery(CommandType.Text, sql, _params);
 				return 0;
 			}
@@ -76,7 +82,7 @@ namespace FreeSql.Oracle.Curd {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return 0;
 
-			if (_identCol == null) {
+			if (_identCol == null || _source.Count > 1) {
 				await _orm.Ado.ExecuteNonQueryAsync(CommandType.Text, sql, _params);
 				return 0;
 			}
