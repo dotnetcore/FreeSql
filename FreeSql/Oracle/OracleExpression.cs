@@ -183,7 +183,7 @@ namespace FreeSql.Oracle {
 						}
 						return left;
 					case "Replace": return $"replace({left}, {getExp(exp.Arguments[0])}, {getExp(exp.Arguments[1])})";
-					//case "CompareTo": return $"strcmp({left}, {getExp(exp.Arguments[0])})";
+					case "CompareTo": return $"case when {left} = {getExp(exp.Arguments[0])} then 0 when {left} > {getExp(exp.Arguments[0])} then 1 else -1 end";
 					case "Equals": return $"({left} = {getExp(exp.Arguments[0])})";
 				}
 			}
@@ -245,7 +245,7 @@ namespace FreeSql.Oracle {
 					case "AddMonths": return $"add_months({left},{args1})";
 					case "AddSeconds": return $"({left}+({args1})/86400)";
 					case "AddTicks": return $"({left}+({args1})/864000000000)";
-					case "AddYears": return $"add_months({left},12)";
+					case "AddYears": return $"add_months({left},({args1})*12)";
 					case "Subtract":
 						if (exp.Arguments[0].Type.FullName == "System.DateTime" || exp.Arguments[0].Type.GenericTypeArguments.FirstOrDefault()?.FullName == "System.DateTime")
 							return $"({args1}-{left})";

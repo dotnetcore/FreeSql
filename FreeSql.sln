@@ -9,9 +9,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Tests", "FreeSql.Te
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{C6A74E2A-6660-473D-8852-B1D8348DB4E9}"
 	ProjectSection(SolutionItems) = preProject
+		Docs\1. quickstart.md = Docs\1. quickstart.md
+		Docs\2 入门.md = Docs\2 入门.md
+		Docs\2.1 安装FreeSql = Docs\2.1 安装FreeSql
 		Docs\codefirst.md = Docs\codefirst.md
 		Docs\dbfirst.md = Docs\dbfirst.md
 		Docs\delete.md = Docs\delete.md
+		Docs\expression.md = Docs\expression.md
 		Docs\generator.md = Docs\generator.md
 		Docs\insert.md = Docs\insert.md
 		readme.md = readme.md

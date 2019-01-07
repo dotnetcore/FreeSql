@@ -2,68 +2,77 @@
 
 ## 类型映射
 
-| csharp | MySql | SqlServer | PostgreSQL |
+| csharp | MySql | SqlServer | PostgreSQL | oracle |
 | - | - | - | - |
-| bool \| bool? | bit(1) | bit | bool |
-| sbyte \| sbyte? | tinyint(3) | smallint | int2 |
-| short \| short? | smallint(6) | smallint | int2 |
-| int \| int? | int(11) | int | int4 |
-| long \| long? | bigint(20) | bigint | int8 |
-| byte \| byte? | tinyint(3) unsigned | tinyint | int2 |
-| ushort \| ushort? | smallint(5) unsigned | int | int4 |
-| uint \| uint? | int(10) unsigned | bigint | int8 |
-| ulong \| ulong? | bigint(20) unsigned | decimal(20,0) | numeric(20,0) |
-| double \| double? | double | float | float8 |
-| float \| float? | float | real | float4 |
-| decimal \| decimal? | decimal(10,2) | decimal(10,2) | numeric(10,2) |
-| Guid \| Guid? | char(36) | uniqueidentifier | uuid |
-| TimeSpan \| TimeSpan? | time | time | time |
-| DateTime \| DateTime? | datetime | datetime | timestamp |
-| DateTimeOffset \| DateTimeOffset? | - | - | datetimeoffset |
-| Enum \| Enum? | enum | int | int4 |
-| FlagsEnum \| FlagsEnum? | set | bigint | int8 |
-| byte[] | varbinary(255) | varbinary(255) | bytea |
-| string | varchar(255) | nvarchar(255) | varchar(255) |
-| MygisPoint | point | - | - |
-| MygisLineString | linestring | - | - |
-| MygisPolygon | polygon | - | - |
-| MygisMultiPoint | multipoint | - | - |
-| MygisMultiLineString | multilinestring | - | - |
-| MygisMultiPolygon | multipolygon | - | - |
-| BitArray | - | - | varbit(64) |
-| NpgsqlPoint \| NpgsqlPoint? | - | - | point |
-| NpgsqlLine \| NpgsqlLine? | - | - | line |
-| NpgsqlLSeg \| NpgsqlLSeg? | - | - | lseg |
-| NpgsqlBox \| NpgsqlBox? | - | - | box |
-| NpgsqlPath \| NpgsqlPath? | - | - | path |
-| NpgsqlPolygon \| NpgsqlPolygon? | - | - | polygon |
-| NpgsqlCircle \| NpgsqlCircle? | - | - | circle |
-| (IPAddress Address, int Subnet) \| (IPAddress Address, int Subnet)? | - | - | cidr |
-| IPAddress | - | - | inet |
-| PhysicalAddress | - | - | macaddr |
-| NpgsqlRange\<int\> \| NpgsqlRange\<int\>? | - | - | int4range |
-| NpgsqlRange\<long\> \| NpgsqlRange\<long\>? | - | - | int8range |
-| NpgsqlRange\<decimal\> \| NpgsqlRange\<decimal\>? | - | - | numrange |
-| NpgsqlRange\<DateTime\> \| NpgsqlRange\<DateTime\>? | - | - | tsrange |
-| PostgisPoint | - | - | geometry |
-| PostgisLineString | - | - | geometry |
-| PostgisPolygon | - | - | geometry |
-| PostgisMultiPoint | - | - | geometry |
-| PostgisMultiLineString | - | - | geometry |
-| PostgisMultiPolygon | - | - | geometry |
-| PostgisGeometry | - | - | geometry |
-| PostgisGeometryCollection | - | - | geometry |
-| Dictionary<string, string> | - | - | hstore |
-| JToken | - | - | jsonb |
-| JObject | - | - | jsonb |
-| JArray | - | - | jsonb |
-| 数组 | - | - | 以上所有类型都支持 |
+| bool \| bool? | bit(1) | bit | bool | number(1) |
+| sbyte \| sbyte? | tinyint(3) | smallint | int2 | number(4) |
+| short \| short? | smallint(6) | smallint | int2 | number(6) |
+| int \| int? | int(11) | int | int4 | number(11) |
+| long \| long? | bigint(20) | bigint | int8 | number(21) |
+| byte \| byte? | tinyint(3) unsigned | tinyint | int2 | number(3) |
+| ushort \| ushort? | smallint(5) unsigned | int | int4 | number(5) |
+| uint \| uint? | int(10) unsigned | bigint | int8 | number(10) |
+| ulong \| ulong? | bigint(20) unsigned | decimal(20,0) | numeric(20,0) | number(20) |
+| double \| double? | double | float | float8 | float(126) |
+| float \| float? | float | real | float4 | float(63) |
+| decimal \| decimal? | decimal(10,2) | decimal(10,2) | numeric(10,2) | number(10,2) |
+| Guid \| Guid? | char(36) | uniqueidentifier | uuid | char(36 CHAR) |
+| TimeSpan \| TimeSpan? | time | time | time | interval day(2) to second(6) |
+| DateTime \| DateTime? | datetime | datetime | timestamp | timestamp(6) |
+| DateTimeOffset \| DateTimeOffset? | - | - | datetimeoffset | timestamp(6) with local time zone |
+| Enum \| Enum? | enum | int | int4 | number(16) |
+| FlagsEnum \| FlagsEnum? | set | bigint | int8 | number(32) |
+| byte[] | varbinary(255) | varbinary(255) | bytea | blob |
+| string | varchar(255) | nvarchar(255) | varchar(255) | nvarchar2(255) |
+| MygisPoint | point | - | - | - |
+| MygisLineString | linestring | - | - | - |
+| MygisPolygon | polygon | - | - | - |
+| MygisMultiPoint | multipoint | - | - | - |
+| MygisMultiLineString | multilinestring | - | - | - |
+| MygisMultiPolygon | multipolygon | - | - | - |
+| BitArray | - | - | varbit(64) | - |
+| NpgsqlPoint \| NpgsqlPoint? | - | - | point | - |
+| NpgsqlLine \| NpgsqlLine? | - | - | line | - |
+| NpgsqlLSeg \| NpgsqlLSeg? | - | - | lseg | - |
+| NpgsqlBox \| NpgsqlBox? | - | - | box | - |
+| NpgsqlPath \| NpgsqlPath? | - | - | path | - |
+| NpgsqlPolygon \| NpgsqlPolygon? | - | - | polygon | - |
+| NpgsqlCircle \| NpgsqlCircle? | - | - | circle | - |
+| (IPAddress Address, int Subnet) \| (IPAddress Address, int Subnet)? | - | - | cidr | - |
+| IPAddress | - | - | inet | - |
+| PhysicalAddress | - | - | macaddr | - |
+| NpgsqlRange\<int\> \| NpgsqlRange\<int\>? | - | - | int4range | - |
+| NpgsqlRange\<long\> \| NpgsqlRange\<long\>? | - | - | int8range | - |
+| NpgsqlRange\<decimal\> \| NpgsqlRange\<decimal\>? | - | - | numrange | - |
+| NpgsqlRange\<DateTime\> \| NpgsqlRange\<DateTime\>? | - | - | tsrange | - |
+| PostgisPoint | - | - | geometry | - |
+| PostgisLineString | - | - | geometry | - |
+| PostgisPolygon | - | - | geometry | - |
+| PostgisMultiPoint | - | - | geometry | - |
+| PostgisMultiLineString | - | - | geometry | - |
+| PostgisMultiPolygon | - | - | geometry | - |
+| PostgisGeometry | - | - | geometry | - |
+| PostgisGeometryCollection | - | - | geometry | - |
+| Dictionary<string, string> | - | - | hstore | - |
+| JToken | - | - | jsonb | - |
+| JObject | - | - | jsonb | - |
+| JArray | - | - | jsonb | - |
+| 数组 | - | - | 以上所有类型都支持 | - |
 
 > 以上类型和长度是默认值，可手工设置，如 string 属性可指定 [Column(DbType = "varchar(max)")]
 
 ```csharp
 IFreeSql fsql = new FreeSql.FreeSqlBuilder()
     .UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=10")
+    .UseAutoSyncStructure(true)
+
+    .UseMonitorCommand(
+        cmd => {
+            Console.WriteLine(cmd.CommandText);
+        }, //监听SQL命令对象，在执行前
+        (cmd, traceLog) => {
+            Console.WriteLine(traceLog);
+        }) //监听SQL命令对象，在执行后
     .Build();
 ```
 

@@ -4,7 +4,7 @@ FreeSql 是轻量化、可扩展和跨平台版的 .NETStandard 数据访问技�
 
 FreeSql 可用作对象关系映射程序 (O/RM)，以便于开发人员能够使用 .NETStandard 对象来处理数据库，不必经常编写大部分数据访问代码。
 
-FreeSql 支持 MySql/SqlServer/PostgreSQL 数据库技术实现。
+FreeSql 支持 MySql/SqlServer/PostgreSQL/Oracle 数据库技术实现。
 
 FreeSql 打造 .NETCore 最方便的 ORM，dbfirst codefirst混合使用，codefirst模式下的开发阶段，建好实体不用执行任何操作即能创建表和修改字段，dbfirst模式下提供api+模板自定义生成代码，作者提供了3种模板,您可以持续关注或者参与给出宝贵意见，QQ群：4336577。
 

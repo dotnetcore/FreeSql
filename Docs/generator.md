@@ -14,8 +14,17 @@
 
 ```csharp
 //定义 mysql FreeSql
-var mysql = new FreeSql.FreeSqlBuilder()
+IFreeSql fsql = new FreeSql.FreeSqlBuilder()
     .UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=10")
+    .UseAutoSyncStructure(true)
+
+    .UseMonitorCommand(
+        cmd => {
+            Console.WriteLine(cmd.CommandText);
+        }, //监听SQL命令对象，在执行前
+        (cmd, traceLog) => {
+            Console.WriteLine(traceLog);
+        }) //监听SQL命令对象，在执行后
     .Build();
 
 //创建模板生成类现实

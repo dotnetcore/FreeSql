@@ -631,45 +631,45 @@ namespace FreeSql.Tests.OracleExpression {
 		}
 		[Fact]
 		public void CompareTo() {
-			//var data = new List<object>();
-			//data.Add(select.Where(a => a.Title.CompareTo(a.Title) == 0).ToList());
-			//data.Add(select.Where(a => a.Title.CompareTo(a.Title) > 0).ToList());
-			//data.Add(select.Where(a => a.Title.CompareTo(a.Title + 1) == 0).ToList());
-			//data.Add(select.Where(a => a.Title.CompareTo(a.Title + a.Type.Name) == 0).ToList());
-			////SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5 
-			////FROM `tb_topic` a 
-			////WHERE (strcmp(a.`Title`, a.`Title`) = 0);
+			var data = new List<object>();
+			data.Add(select.Where(a => a.Title.CompareTo(a.Title) == 0).ToList());
+			data.Add(select.Where(a => a.Title.CompareTo(a.Title) > 0).ToList());
+			data.Add(select.Where(a => a.Title.CompareTo(a.Title + 1) == 0).ToList());
+			data.Add(select.Where(a => a.Title.CompareTo(a.Title + a.Type.Name) == 0).ToList());
+			//SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5 
+			//FROM `tb_topic` a 
+			//WHERE (strcmp(a.`Title`, a.`Title`) = 0);
 
-			////SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5 
-			////FROM `tb_topic` a 
-			////WHERE (strcmp(a.`Title`, a.`Title`) > 0);
+			//SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5 
+			//FROM `tb_topic` a 
+			//WHERE (strcmp(a.`Title`, a.`Title`) > 0);
 
-			////SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5 
-			////FROM `tb_topic` a 
-			////WHERE (strcmp(a.`Title`, concat(a.`Title`, 1)) = 0);
+			//SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5 
+			//FROM `tb_topic` a 
+			//WHERE (strcmp(a.`Title`, concat(a.`Title`, 1)) = 0);
 
-			////SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a__Type.`Guid` as4, a__Type.`ParentId` as5, a__Type.`Name` as6, a.`Title` as7, a.`CreateTime` as8 
-			////FROM `tb_topic` a, `TestTypeInfo` a__Type 
-			////WHERE (strcmp(a.`Title`, concat(a.`Title`, a__Type.`Name`)) = 0);
-			//data.Add(select.Where(a => (a.Title + "aaa").CompareTo("aaa") == 0).ToList());
-			//data.Add(select.Where(a => (a.Title + "aaa").CompareTo(a.Title) > 0).ToList());
-			//data.Add(select.Where(a => (a.Title + "aaa").CompareTo(a.Title + 1) == 0).ToList());
-			//data.Add(select.Where(a => (a.Title + "aaa").CompareTo(a.Type.Name) == 0).ToList());
-			////SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5 
-			////FROM `tb_topic` a 
-			////WHERE (strcmp(concat(a.`Title`, 'aaa'), 'aaa') = 0);
+			//SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a__Type.`Guid` as4, a__Type.`ParentId` as5, a__Type.`Name` as6, a.`Title` as7, a.`CreateTime` as8 
+			//FROM `tb_topic` a, `TestTypeInfo` a__Type 
+			//WHERE (strcmp(a.`Title`, concat(a.`Title`, a__Type.`Name`)) = 0);
+			data.Add(select.Where(a => (a.Title + "aaa").CompareTo("aaa") == 0).ToList());
+			data.Add(select.Where(a => (a.Title + "aaa").CompareTo(a.Title) > 0).ToList());
+			data.Add(select.Where(a => (a.Title + "aaa").CompareTo(a.Title + 1) == 0).ToList());
+			data.Add(select.Where(a => (a.Title + "aaa").CompareTo(a.Type.Name) == 0).ToList());
+			//SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5 
+			//FROM `tb_topic` a 
+			//WHERE (strcmp(concat(a.`Title`, 'aaa'), 'aaa') = 0);
 
-			////SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5 
-			////FROM `tb_topic` a 
-			////WHERE (strcmp(concat(a.`Title`, 'aaa'), a.`Title`) > 0);
+			//SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5 
+			//FROM `tb_topic` a 
+			//WHERE (strcmp(concat(a.`Title`, 'aaa'), a.`Title`) > 0);
 
-			////SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5 
-			////FROM `tb_topic` a 
-			////WHERE (strcmp(concat(a.`Title`, 'aaa'), concat(a.`Title`, 1)) = 0);
+			//SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5 
+			//FROM `tb_topic` a 
+			//WHERE (strcmp(concat(a.`Title`, 'aaa'), concat(a.`Title`, 1)) = 0);
 
-			////SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a__Type.`Guid` as4, a__Type.`ParentId` as5, a__Type.`Name` as6, a.`Title` as7, a.`CreateTime` as8 
-			////FROM `tb_topic` a, `TestTypeInfo` a__Type 
-			////WHERE (strcmp(concat(a.`Title`, 'aaa'), a__Type.`Name`) = 0)
+			//SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a__Type.`Guid` as4, a__Type.`ParentId` as5, a__Type.`Name` as6, a.`Title` as7, a.`CreateTime` as8 
+			//FROM `tb_topic` a, `TestTypeInfo` a__Type 
+			//WHERE (strcmp(concat(a.`Title`, 'aaa'), a__Type.`Name`) = 0)
 		}
 
 		[Fact]
