@@ -252,7 +252,10 @@ namespace FreeSql.Internal {
 				case "Newtonsoft.Json.Linq.JArray": return JArray.Parse(string.Concat(value));
 				case "Npgsql.LegacyPostgis.PostgisGeometry": return value;
 			}
-			if (type != value.GetType()) return Convert.ChangeType(value, type);
+			if (type != value.GetType()) {
+				if (type.FullName == "System.TimeSpan") return TimeSpan.FromMilliseconds(double.Parse(value.ToString()));
+				return Convert.ChangeType(value, type);
+			}
 			return value;
 		}
 		internal static string GetCsName(string name) {

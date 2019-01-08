@@ -541,7 +541,7 @@ return rTn;");
 		#region Complie
 		private static ITemplateOutput Complie(string cscode, string typename) {
 			var assemly = _compiler.Value.CompileCode(cscode);
-			return assemly.CreateObject(typename) as ITemplateOutput;
+			return assemly.CreateInstance(typename) as ITemplateOutput;
 		}
 		static ConcurrentDictionary<string, (DateTime, object)> _compiler_objs = new ConcurrentDictionary<string, (DateTime, object)>();
 		static Lazy<CSScriptLib.RoslynEvaluator> _compiler = new Lazy<CSScriptLib.RoslynEvaluator>(() => {

@@ -33,4 +33,9 @@ public class g {
 		.UseConnectionString(FreeSql.DataType.Oracle, "user id=user1;password=123456;data source=//127.0.0.1:1521/XE;Pooling=true;Max Pool Size=10")
 		.UseAutoSyncStructure(true)
 		.Build();
+
+	public static IFreeSql sqlite3 = new FreeSql.FreeSqlBuilder()
+		.UseConnectionString(FreeSql.DataType.Sqlite3, @"Data Source=|DataDirectory|\document.db;Attachs=xxxtb.db;Pooling=true;Max Pool Size=10")
+		.UseAutoSyncStructure(true)
+		.Build();
 }

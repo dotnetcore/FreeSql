@@ -96,47 +96,47 @@ namespace FreeSql.Oracle.Curd {
 		public override List<T1> ExecuteInserted() {
 			throw new NotImplementedException();
 
-			var sql = this.ToSql();
-			if (string.IsNullOrEmpty(sql)) return new List<T1>();
+//			var sql = this.ToSql();
+//			if (string.IsNullOrEmpty(sql)) return new List<T1>();
 
-			var sb = new StringBuilder();
-			sb.Append(@"declare
-type v_tp_rec is record(");
+//			var sb = new StringBuilder();
+//			sb.Append(@"declare
+//type v_tp_rec is record(");
 
-			var colidx = 0;
-			foreach (var col in _table.Columns.Values) {
-				if (colidx > 0) sb.Append(", ");
-				sb.Append(_commonUtils.QuoteSqlName(col.CsName)).Append(" ").Append(_commonUtils.QuoteSqlName(_table.DbName)).Append(".").Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append("%type");
-				++colidx;
-			}
-			sb.Append(@");
-type v_tp_tab is table of v_tp_rec;
-v_tab v_tp_tab;
-begin
-");
+//			var colidx = 0;
+//			foreach (var col in _table.Columns.Values) {
+//				if (colidx > 0) sb.Append(", ");
+//				sb.Append(_commonUtils.QuoteSqlName(col.CsName)).Append(" ").Append(_commonUtils.QuoteSqlName(_table.DbName)).Append(".").Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append("%type");
+//				++colidx;
+//			}
+//			sb.Append(@");
+//type v_tp_tab is table of v_tp_rec;
+//v_tab v_tp_tab;
+//begin
+//");
 
-			sb.Append(sql).Append(" RETURNING ");
-			colidx = 0;
-			foreach (var col in _table.Columns.Values) {
-				if (colidx > 0) sb.Append(", ");
-				sb.Append(_commonUtils.QuoteReadColumn(col.CsType, _commonUtils.QuoteSqlName(col.Attribute.Name)));
-				++colidx;
-			}
-			sb.Append(@"bulk collect into v_tab;
-for i in 1..v_tab.count loop
-	dbms_output.put_line(");
-			//v_tab(i).empno||'-'||v_tab(i).ename
-			colidx = 0;
-			foreach (var col in _table.Columns.Values) {
-				if (colidx > 0) sb.Append("||'-'||");
-				sb.Append("v_tab(i).").Append(_commonUtils.QuoteSqlName(col.CsName));
-				++colidx;
-			}
-			sb.Append(@");
-end loop;
-end;
-");
-			return _orm.Ado.Query<T1>(CommandType.Text, sb.ToString(), _params);
+//			sb.Append(sql).Append(" RETURNING ");
+//			colidx = 0;
+//			foreach (var col in _table.Columns.Values) {
+//				if (colidx > 0) sb.Append(", ");
+//				sb.Append(_commonUtils.QuoteReadColumn(col.CsType, _commonUtils.QuoteSqlName(col.Attribute.Name)));
+//				++colidx;
+//			}
+//			sb.Append(@"bulk collect into v_tab;
+//for i in 1..v_tab.count loop
+//	dbms_output.put_line(");
+//			//v_tab(i).empno||'-'||v_tab(i).ename
+//			colidx = 0;
+//			foreach (var col in _table.Columns.Values) {
+//				if (colidx > 0) sb.Append("||'-'||");
+//				sb.Append("v_tab(i).").Append(_commonUtils.QuoteSqlName(col.CsName));
+//				++colidx;
+//			}
+//			sb.Append(@");
+//end loop;
+//end;
+//");
+//			return _orm.Ado.Query<T1>(CommandType.Text, sb.ToString(), _params);
 		}
 		public override Task<List<T1>> ExecuteInsertedAsync() {
 			throw new NotImplementedException();
