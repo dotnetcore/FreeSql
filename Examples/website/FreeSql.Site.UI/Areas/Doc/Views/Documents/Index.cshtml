@@ -5,31 +5,12 @@
     <div class="site-tree">
         <ul class="layui-tree">
             <li><h2>基础说明</h2></li>
-            <li class="site-tree-noicon">
-                <a href="#1"><cite>开始方法</cite></a>
-            </li>
-            <li class="site-tree-noicon">
-                <a href="#2"><cite>开始方法</cite></a>
-            </li>
-            <li class="site-tree-noicon">
-                <a href="#3"><cite>开始方法</cite></a>
-            </li>
-            <li class="site-tree-noicon">
-                <a href="#"><cite>开始方法</cite></a>
-            </li>
-            <li><h2>复杂应用</h2></li>
-            <li class="site-tree-noicon">
-                <a href="#"><cite>开始方法</cite></a>
-            </li>
-            <li class="site-tree-noicon">
-                <a href="#"><cite>开始方法</cite></a>
-            </li>
-            <li class="site-tree-noicon">
-                <a href="#"><cite>开始方法</cite></a>
-            </li>
-            <li class="site-tree-noicon">
-                <a href="#"><cite>开始方法</cite></a>
-            </li>
+            @foreach (var item in (List<FreeSql.Site.Entity.DocumentType>)ViewBag.DocumentList)
+            {
+                <li class="site-tree-noicon">
+                    <a href="#1"><cite>@item.TypeName</cite></a>
+                </li>
+            }
         </ul>
     </div>
     <div class="site-content">

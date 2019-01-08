@@ -1,4 +1,5 @@
-﻿using FreeSql.DataAnnotations;
+﻿//using FreeSql.DataAnnotations;
+using FreeSql.DataAnnotations;
 using System;
 
 namespace FreeSql.Site.Entity

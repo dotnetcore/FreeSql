@@ -14,6 +14,7 @@ namespace FreeSql.Site.UI.Areas.Doc.Controllers
         // GET: Documents
         public IActionResult Index()
         {
+           ViewBag.DocumentList = new FreeSql.Site.DAL.DocumentTypeDAL().Query(d => d.ID != 0);
             return View();
         }
 
