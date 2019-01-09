@@ -270,6 +270,7 @@ and b.nspname || '.' || a.relname not in ('public.geography_columns','public.geo
 				sql = $@"
 select
 ns.nspname || '.' || c.relname as id, 
+a.attname,
 t.typname,
 case when a.atttypmod > 0 and a.atttypmod < 32767 then a.atttypmod - 4 else a.attlen end len,
 case when t.typelem = 0 then t.typname else t2.typname end,
@@ -289,7 +290,7 @@ left join pg_description d on d.objoid = a.attrelid and d.objsubid = a.attnum
 left join pg_attrdef e on e.adrelid = a.attrelid and e.adnum = a.attnum
 inner join pg_namespace ns on ns.oid = c.relnamespace
 inner join pg_namespace ns2 on ns2.oid = t.typnamespace
-where ns.nspname || '.' || c.relname in ({loc88})";
+where ns.nspname || '.' || c.relname in ({loc8})";
 				ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
 				if (ds == null) return loc1;
 

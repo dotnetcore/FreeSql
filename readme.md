@@ -274,5 +274,17 @@ var t10 = fsql.Update<Topic>().SetRaw("Title = {0}", "新标题").Where("Id = {0
 # Part5 表达式函数
 详情查看：[《Expression 表达式函数》](Docs/expression.md)
 
+# Part6 事务
+
+```csharp
+fsql.Transaction(() => {
+     //code
+});
+```
+
+没异常就提交，有异常会回滚。
+
+代码体内只可以使用同步方法，因为事务对象挂靠在线程关联上，使用异步方法会切换线程。
+
 ## 贡献者名单
 

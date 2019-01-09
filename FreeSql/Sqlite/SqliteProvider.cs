@@ -25,7 +25,7 @@ namespace FreeSql.Sqlite {
 		public IAdo Ado { get; }
 		public ICache Cache { get; }
 		public ICodeFirst CodeFirst { get; }
-		public IDbFirst DbFirst { get; }
+		public IDbFirst DbFirst { get { throw new NotImplementedException(); } }
 		public SqliteProvider(IDistributedCache cache, ILogger log, string masterConnectionString, string[] slaveConnectionString) {
 			if (log == null) log = new LoggerFactory(new[] { new Microsoft.Extensions.Logging.Debug.DebugLoggerProvider() }).CreateLogger("FreeSql.Sqlite");
 
@@ -35,7 +35,6 @@ namespace FreeSql.Sqlite {
 			this.Cache = new CacheProvider(cache, log);
 			this.Ado = new SqliteAdo(this.InternalCommonUtils, this.Cache, log, masterConnectionString, slaveConnectionString);
 
-			this.DbFirst = new SqliteDbFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
 			this.InternalCommonUtils.CodeFirst = this.CodeFirst = new SqliteCodeFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
 		}
 
