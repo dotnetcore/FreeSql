@@ -137,7 +137,8 @@ data_precision,
 data_scale,
 char_used,
 case when nullable = 'Y' then 1 else 0 end,
-nvl((select 1 from user_sequences where sequence_name='{Utils.GetCsName((tboldname ?? tbname).Last())}_seq_'||all_tab_columns.column_name), 0)
+nvl((select 1 from user_sequences where sequence_name='{Utils.GetCsName((tboldname ?? tbname).Last())}_seq_'||all_tab_columns.column_name), 0),
+nvl((select 1 from user_triggers where trigger_name='{Utils.GetCsName((tboldname ?? tbname).Last())}_seq_'||all_tab_columns.column_name||'TI'), 0)
 from all_tab_columns
 where owner={{0}} and table_name={{1}}".FormatOracleSQL(tboldname ?? tbname);
 				var ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
@@ -167,7 +168,7 @@ where owner={{0}} and table_name={{1}}".FormatOracleSQL(tboldname ?? tbname);
 						column = string.Concat(a[0]),
 						sqlType,
 						is_nullable = string.Concat(a[6]) == "1",
-						is_identity = string.Concat(a[7]) == "1"
+						is_identity = string.Concat(a[7]) == "1" && string.Concat(a[8]) == "1"
 					};
 				}, StringComparer.CurrentCultureIgnoreCase);
 

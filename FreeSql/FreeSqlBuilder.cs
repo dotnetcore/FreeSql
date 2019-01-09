@@ -93,7 +93,7 @@ namespace FreeSql {
 				case DataType.SqlServer: ret = new SqlServer.SqlServerProvider(_cache, _logger, _masterConnectionString, _slaveConnectionString); break;
 				case DataType.PostgreSQL: ret = new PostgreSQL.PostgreSQLProvider(_cache, _logger, _masterConnectionString, _slaveConnectionString); break;
 				case DataType.Oracle: ret = new Oracle.OracleProvider(_cache, _logger, _masterConnectionString, _slaveConnectionString); break;
-				case DataType.Sqlite3: ret = new Sqlite3.SqliteProvider(_cache, _logger, _masterConnectionString, _slaveConnectionString); break;
+				case DataType.Sqlite: ret = new Sqlite.SqliteProvider(_cache, _logger, _masterConnectionString, _slaveConnectionString); break;
 			}
 			if (ret != null) {
 				ret.CodeFirst.IsAutoSyncStructure = _isAutoSyncStructure;
@@ -106,5 +106,5 @@ namespace FreeSql {
 		}
 	}
 
-	public enum DataType { MySql, SqlServer, PostgreSQL, Oracle, Sqlite3 }
+	public enum DataType { MySql, SqlServer, PostgreSQL, Oracle, Sqlite }
 }

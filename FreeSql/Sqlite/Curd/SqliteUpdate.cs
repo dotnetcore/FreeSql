@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FreeSql.Sqlite3.Curd {
+namespace FreeSql.Sqlite.Curd {
 
 	class SqliteUpdate<T1> : Internal.CommonProvider.UpdateProvider<T1> where T1 : class {
 

@@ -4,10 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
-namespace FreeSql.Tests.Sqlite3Expression {
+namespace FreeSql.Tests.SqliteExpression {
 	public class StringTest {
 
-		ISelect<Topic> select => g.sqlite3.Select<Topic>();
+		ISelect<Topic> select => g.sqlite.Select<Topic>();
 
 		[Table(Name = "tb_topic")]
 		class Topic {
@@ -379,87 +379,87 @@ namespace FreeSql.Tests.Sqlite3Expression {
 		}
 		[Fact]
 		public void PadLeft() {
-			var data = new List<object>();
-			data.Add(select.Where(a => a.Title.PadLeft(10, 'a') == "aaa").ToList());
-			data.Add(select.Where(a => a.Title.PadLeft(10, 'a') == a.Title).ToList());
-			data.Add(select.Where(a => a.Title.PadLeft(10, 'a') == (a.Title + 1)).ToList());
-			data.Add(select.Where(a => a.Title.PadLeft(10, 'a') == a.Type.Name).ToList());
-			//SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5 
-			//FROM `tb_topic` a 
-			//WHERE (lpad(a.`Title`, 10, 'a') = 'aaa');
+			//var data = new List<object>();
+			//data.Add(select.Where(a => a.Title.PadLeft(10, 'a') == "aaa").ToList());
+			//data.Add(select.Where(a => a.Title.PadLeft(10, 'a') == a.Title).ToList());
+			//data.Add(select.Where(a => a.Title.PadLeft(10, 'a') == (a.Title + 1)).ToList());
+			//data.Add(select.Where(a => a.Title.PadLeft(10, 'a') == a.Type.Name).ToList());
+			////SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5 
+			////FROM `tb_topic` a 
+			////WHERE (lpad(a.`Title`, 10, 'a') = 'aaa');
 
-			//SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5 
-			//FROM `tb_topic` a 
-			//WHERE (lpad(a.`Title`, 10, 'a') = a.`Title`);
+			////SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5 
+			////FROM `tb_topic` a 
+			////WHERE (lpad(a.`Title`, 10, 'a') = a.`Title`);
 
-			//SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5 
-			//FROM `tb_topic` a 
-			//WHERE (lpad(a.`Title`, 10, 'a') = concat(a.`Title`, 1));
+			////SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5 
+			////FROM `tb_topic` a 
+			////WHERE (lpad(a.`Title`, 10, 'a') = concat(a.`Title`, 1));
 
-			//SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a__Type.`Guid` as4, a__Type.`ParentId` as5, a__Type.`Name` as6, a.`Title` as7, a.`CreateTime` as8 
-			//FROM `tb_topic` a, `TestTypeInfo` a__Type 
-			//WHERE (lpad(a.`Title`, 10, 'a') = a__Type.`Name`);
-			data.Add(select.Where(a => (a.Title.PadLeft(10, 'a') + "aaa").PadLeft(20, 'b') == "aaa").ToList());
-			data.Add(select.Where(a => (a.Title.PadLeft(10, 'a') + "aaa").PadLeft(20, 'b') == a.Title).ToList());
-			data.Add(select.Where(a => (a.Title.PadLeft(10, 'a') + "aaa").PadLeft(20, 'b') == (a.Title + 1)).ToList());
-			data.Add(select.Where(a => (a.Title.PadLeft(10, 'a') + "aaa").PadLeft(20, 'b') == a.Type.Name).ToList());
-			//SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5 
-			//FROM `tb_topic` a 
-			//WHERE (lpad(concat(lpad(a.`Title`, 10, 'a'), 'aaa'), 20, 'b') = 'aaa');
+			////SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a__Type.`Guid` as4, a__Type.`ParentId` as5, a__Type.`Name` as6, a.`Title` as7, a.`CreateTime` as8 
+			////FROM `tb_topic` a, `TestTypeInfo` a__Type 
+			////WHERE (lpad(a.`Title`, 10, 'a') = a__Type.`Name`);
+			//data.Add(select.Where(a => (a.Title.PadLeft(10, 'a') + "aaa").PadLeft(20, 'b') == "aaa").ToList());
+			//data.Add(select.Where(a => (a.Title.PadLeft(10, 'a') + "aaa").PadLeft(20, 'b') == a.Title).ToList());
+			//data.Add(select.Where(a => (a.Title.PadLeft(10, 'a') + "aaa").PadLeft(20, 'b') == (a.Title + 1)).ToList());
+			//data.Add(select.Where(a => (a.Title.PadLeft(10, 'a') + "aaa").PadLeft(20, 'b') == a.Type.Name).ToList());
+			////SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5 
+			////FROM `tb_topic` a 
+			////WHERE (lpad(concat(lpad(a.`Title`, 10, 'a'), 'aaa'), 20, 'b') = 'aaa');
 
-			//SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5 
-			//FROM `tb_topic` a 
-			//WHERE (lpad(concat(lpad(a.`Title`, 10, 'a'), 'aaa'), 20, 'b') = a.`Title`);
+			////SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5 
+			////FROM `tb_topic` a 
+			////WHERE (lpad(concat(lpad(a.`Title`, 10, 'a'), 'aaa'), 20, 'b') = a.`Title`);
 
-			//SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5 
-			//FROM `tb_topic` a 
-			//WHERE (lpad(concat(lpad(a.`Title`, 10, 'a'), 'aaa'), 20, 'b') = concat(a.`Title`, 1));
+			////SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5 
+			////FROM `tb_topic` a 
+			////WHERE (lpad(concat(lpad(a.`Title`, 10, 'a'), 'aaa'), 20, 'b') = concat(a.`Title`, 1));
 
-			//SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a__Type.`Guid` as4, a__Type.`ParentId` as5, a__Type.`Name` as6, a.`Title` as7, a.`CreateTime` as8 
-			//FROM `tb_topic` a, `TestTypeInfo` a__Type 
-			//WHERE (lpad(concat(lpad(a.`Title`, 10, 'a'), 'aaa'), 20, 'b') = a__Type.`Name`)
+			////SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a__Type.`Guid` as4, a__Type.`ParentId` as5, a__Type.`Name` as6, a.`Title` as7, a.`CreateTime` as8 
+			////FROM `tb_topic` a, `TestTypeInfo` a__Type 
+			////WHERE (lpad(concat(lpad(a.`Title`, 10, 'a'), 'aaa'), 20, 'b') = a__Type.`Name`)
 		}
 		[Fact]
 		public void PadRight() {
-			var data = new List<object>();
-			data.Add(select.Where(a => a.Title.PadRight(10, 'a') == "aaa").ToList());
-			data.Add(select.Where(a => a.Title.PadRight(10, 'a') == a.Title).ToList());
-			data.Add(select.Where(a => a.Title.PadRight(10, 'a') == (a.Title + 1)).ToList());
-			data.Add(select.Where(a => a.Title.PadRight(10, 'a') == a.Type.Name).ToList());
-			//SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5 
-			//FROM `tb_topic` a 
-			//WHERE (rpad(a.`Title`, 10, 'a') = 'aaa');
+			//var data = new List<object>();
+			//data.Add(select.Where(a => a.Title.PadRight(10, 'a') == "aaa").ToList());
+			//data.Add(select.Where(a => a.Title.PadRight(10, 'a') == a.Title).ToList());
+			//data.Add(select.Where(a => a.Title.PadRight(10, 'a') == (a.Title + 1)).ToList());
+			//data.Add(select.Where(a => a.Title.PadRight(10, 'a') == a.Type.Name).ToList());
+			////SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5 
+			////FROM `tb_topic` a 
+			////WHERE (rpad(a.`Title`, 10, 'a') = 'aaa');
 
-			//SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5 
-			//FROM `tb_topic` a 
-			//WHERE (rpad(a.`Title`, 10, 'a') = a.`Title`);
+			////SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5 
+			////FROM `tb_topic` a 
+			////WHERE (rpad(a.`Title`, 10, 'a') = a.`Title`);
 
-			//SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5 
-			//FROM `tb_topic` a 
-			//WHERE (rpad(a.`Title`, 10, 'a') = concat(a.`Title`, 1));
+			////SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5 
+			////FROM `tb_topic` a 
+			////WHERE (rpad(a.`Title`, 10, 'a') = concat(a.`Title`, 1));
 
-			//SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a__Type.`Guid` as4, a__Type.`ParentId` as5, a__Type.`Name` as6, a.`Title` as7, a.`CreateTime` as8 
-			//FROM `tb_topic` a, `TestTypeInfo` a__Type 
-			//WHERE (rpad(a.`Title`, 10, 'a') = a__Type.`Name`);
-			data.Add(select.Where(a => (a.Title.PadRight(10, 'a') + "aaa").PadRight(20, 'b') == "aaa").ToList());
-			data.Add(select.Where(a => (a.Title.PadRight(10, 'a') + "aaa").PadRight(20, 'b') == a.Title).ToList());
-			data.Add(select.Where(a => (a.Title.PadRight(10, 'a') + "aaa").PadRight(20, 'b') == (a.Title + 1)).ToList());
-			data.Add(select.Where(a => (a.Title.PadRight(10, 'a') + "aaa").PadRight(20, 'b') == a.Type.Name).ToList());
-			//SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5 
-			//FROM `tb_topic` a 
-			//WHERE (rpad(concat(rpad(a.`Title`, 10, 'a'), 'aaa'), 20, 'b') = 'aaa');
+			////SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a__Type.`Guid` as4, a__Type.`ParentId` as5, a__Type.`Name` as6, a.`Title` as7, a.`CreateTime` as8 
+			////FROM `tb_topic` a, `TestTypeInfo` a__Type 
+			////WHERE (rpad(a.`Title`, 10, 'a') = a__Type.`Name`);
+			//data.Add(select.Where(a => (a.Title.PadRight(10, 'a') + "aaa").PadRight(20, 'b') == "aaa").ToList());
+			//data.Add(select.Where(a => (a.Title.PadRight(10, 'a') + "aaa").PadRight(20, 'b') == a.Title).ToList());
+			//data.Add(select.Where(a => (a.Title.PadRight(10, 'a') + "aaa").PadRight(20, 'b') == (a.Title + 1)).ToList());
+			//data.Add(select.Where(a => (a.Title.PadRight(10, 'a') + "aaa").PadRight(20, 'b') == a.Type.Name).ToList());
+			////SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5 
+			////FROM `tb_topic` a 
+			////WHERE (rpad(concat(rpad(a.`Title`, 10, 'a'), 'aaa'), 20, 'b') = 'aaa');
 
-			//SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5 
-			//FROM `tb_topic` a 
-			//WHERE (rpad(concat(rpad(a.`Title`, 10, 'a'), 'aaa'), 20, 'b') = a.`Title`);
+			////SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5 
+			////FROM `tb_topic` a 
+			////WHERE (rpad(concat(rpad(a.`Title`, 10, 'a'), 'aaa'), 20, 'b') = a.`Title`);
 
-			//SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5 
-			//FROM `tb_topic` a 
-			//WHERE (rpad(concat(rpad(a.`Title`, 10, 'a'), 'aaa'), 20, 'b') = concat(a.`Title`, 1));
+			////SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a.`Title` as4, a.`CreateTime` as5 
+			////FROM `tb_topic` a 
+			////WHERE (rpad(concat(rpad(a.`Title`, 10, 'a'), 'aaa'), 20, 'b') = concat(a.`Title`, 1));
 
-			//SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a__Type.`Guid` as4, a__Type.`ParentId` as5, a__Type.`Name` as6, a.`Title` as7, a.`CreateTime` as8 
-			//FROM `tb_topic` a, `TestTypeInfo` a__Type 
-			//WHERE (rpad(concat(rpad(a.`Title`, 10, 'a'), 'aaa'), 20, 'b') = a__Type.`Name`)
+			////SELECT a.`Id` as1, a.`Clicks` as2, a.`TestTypeInfoGuid` as3, a__Type.`Guid` as4, a__Type.`ParentId` as5, a__Type.`Name` as6, a.`Title` as7, a.`CreateTime` as8 
+			////FROM `tb_topic` a, `TestTypeInfo` a__Type 
+			////WHERE (rpad(concat(rpad(a.`Title`, 10, 'a'), 'aaa'), 20, 'b') = a__Type.`Name`)
 		}
 		[Fact]
 		public void Trim() {

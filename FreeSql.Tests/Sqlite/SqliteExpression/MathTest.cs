@@ -4,10 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
-namespace FreeSql.Tests.Sqlite3Expression {
+namespace FreeSql.Tests.SqliteExpression {
 	public class MathTest {
 
-		ISelect<Topic> select => g.sqlite3.Select<Topic>();
+		ISelect<Topic> select => g.sqlite.Select<Topic>();
 
 		[Table(Name = "tb_topic")]
 		class Topic {
@@ -126,7 +126,7 @@ namespace FreeSql.Tests.Sqlite3Expression {
 		[Fact]
 		public void Truncate() {
 			var data = new List<object>();
-			data.Add(select.Where(a => Math.Truncate(a.Clicks * 1.0 / 3) == a.Clicks + 1).ToList());
+			//data.Add(select.Where(a => Math.Truncate(a.Clicks * 1.0 / 3) == a.Clicks + 1).ToList());
 		}
 	}
 }

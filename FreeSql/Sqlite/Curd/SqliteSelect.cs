@@ -6,7 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 
-namespace FreeSql.Sqlite3.Curd {
+namespace FreeSql.Sqlite.Curd {
 
 	class SqliteSelect<T1> : FreeSql.Internal.CommonProvider.Select1Provider<T1> where T1 : class {
 

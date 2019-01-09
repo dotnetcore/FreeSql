@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace FreeSql.Sqlite3 {
+namespace FreeSql.Sqlite {
 
 	class SqliteCodeFirst : ICodeFirst {
 		IFreeSql _orm;
@@ -127,11 +127,11 @@ namespace FreeSql.Sqlite3 {
 
 				//对比字段，只可以修改类型、增加字段、有限的修改字段名；保证安全不删除字段
 				var tbtmp = tboldname ?? tbname;
-				var dsql = _orm.Ado.ExecuteScalar(CommandType.Text, $" select 1 from {tbtmp[0]}.sqlite_master where type='table' and name='{tbtmp[1]}'")?.ToString();
+				var dsql = _orm.Ado.ExecuteScalar(CommandType.Text, $" select sql from {tbtmp[0]}.sqlite_master where type='table' and name='{tbtmp[1]}'")?.ToString();
 				var ds = _orm.Ado.ExecuteArray(CommandType.Text, $"PRAGMA {_commonUtils.QuoteSqlName(tbtmp[0])}.table_info({_commonUtils.QuoteSqlName(tbtmp[1])})");
 				var tbstruct = ds.ToDictionary(a => string.Concat(a[1]), a => {
 					var is_identity = false;
-					var dsqlIdx = dsql?.IndexOf($"\"{a[0]}\" ");
+					var dsqlIdx = dsql?.IndexOf($"\"{a[1]}\" ");
 					if (dsqlIdx > 0) {
 						var dsqlLastIdx = dsql.IndexOf('\n', dsqlIdx.Value);
 						if (dsqlLastIdx > 0) is_identity = dsql.Substring(dsqlIdx.Value, dsqlLastIdx - dsqlIdx.Value).Contains("AUTOINCREMENT");

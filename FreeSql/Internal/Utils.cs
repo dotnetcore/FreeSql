@@ -253,7 +253,7 @@ namespace FreeSql.Internal {
 				case "Npgsql.LegacyPostgis.PostgisGeometry": return value;
 			}
 			if (type != value.GetType()) {
-				if (type.FullName == "System.TimeSpan") return TimeSpan.FromMilliseconds(double.Parse(value.ToString()));
+				if (type.FullName == "System.TimeSpan") return TimeSpan.FromSeconds(double.Parse(value.ToString()));
 				return Convert.ChangeType(value, type);
 			}
 			return value;

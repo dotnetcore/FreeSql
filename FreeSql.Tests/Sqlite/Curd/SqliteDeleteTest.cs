@@ -4,10 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
-namespace FreeSql.Tests.Sqlite3 {
+namespace FreeSql.Tests.Sqlite {
 	public class SqliteDeleteTest {
 
-		IDelete<Topic> delete => g.sqlite3.Delete<Topic>(); //��������
+		IDelete<Topic> delete => g.sqlite.Delete<Topic>(); //��������
 
 		[Table(Name = "tb_topic22211")]
 		class Topic {
@@ -21,17 +21,17 @@ namespace FreeSql.Tests.Sqlite3 {
 
 		[Fact]
 		public void Dywhere() {
-			Assert.Null(g.sqlite3.Delete<Topic>().ToSql());
-			var sql = g.sqlite3.Delete<Topic>(new[] { 1, 2 }).ToSql();
+			Assert.Null(g.sqlite.Delete<Topic>().ToSql());
+			var sql = g.sqlite.Delete<Topic>(new[] { 1, 2 }).ToSql();
 			Assert.Equal("DELETE FROM \"tb_topic22211\" WHERE (\"Id\" = 1 OR \"Id\" = 2)", sql);
 
-			sql = g.sqlite3.Delete<Topic>(new Topic { Id = 1, Title = "test" }).ToSql();
+			sql = g.sqlite.Delete<Topic>(new Topic { Id = 1, Title = "test" }).ToSql();
 			Assert.Equal("DELETE FROM \"tb_topic22211\" WHERE (\"Id\" = 1)", sql);
 
-			sql = g.sqlite3.Delete<Topic>(new[] { new Topic { Id = 1, Title = "test" }, new Topic { Id = 2, Title = "test" } }).ToSql();
+			sql = g.sqlite.Delete<Topic>(new[] { new Topic { Id = 1, Title = "test" }, new Topic { Id = 2, Title = "test" } }).ToSql();
 			Assert.Equal("DELETE FROM \"tb_topic22211\" WHERE (\"Id\" = 1 OR \"Id\" = 2)", sql);
 
-			sql = g.sqlite3.Delete<Topic>(new { id = 1 }).ToSql();
+			sql = g.sqlite.Delete<Topic>(new { id = 1 }).ToSql();
 			Assert.Equal("DELETE FROM \"tb_topic22211\" WHERE (\"Id\" = 1)", sql);
 		}
 
@@ -60,13 +60,13 @@ namespace FreeSql.Tests.Sqlite3 {
 		[Fact]
 		public void ExecuteAffrows() {
 
-			var id = g.sqlite3.Insert<Topic>(new Topic { Title = "xxxx", CreateTime = DateTime.Now }).ExecuteIdentity();
+			var id = g.sqlite.Insert<Topic>(new Topic { Title = "xxxx", CreateTime = DateTime.Now }).ExecuteIdentity();
 			Assert.Equal(1, delete.Where(a => a.Id == id).ExecuteAffrows());
 		}
 		[Fact]
 		public void ExecuteDeleted() {
 
-			//var item = g.sqlite3.Insert<Topic>(new Topic { Title = "xxxx", CreateTime = DateTime.Now }).ExecuteInserted();
+			//var item = g.Sqlite.Insert<Topic>(new Topic { Title = "xxxx", CreateTime = DateTime.Now }).ExecuteInserted();
 			//Assert.Equal(item[0].Id, delete.Where(a => a.Id == item[0].Id).ExecuteDeleted()[0].Id);
 		}
 	}

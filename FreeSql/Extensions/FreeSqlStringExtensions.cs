@@ -39,7 +39,7 @@
 	/// <param name="args"></param>
 	/// <returns></returns>
 	public static string FormatSqlite (this string that, params object[] args) => _sqliteAdo.Addslashes(that, args);
-	static FreeSql.Sqlite3.SqliteAdo _sqliteAdo = new FreeSql.Sqlite3.SqliteAdo();
+	static FreeSql.Sqlite.SqliteAdo _sqliteAdo = new FreeSql.Sqlite.SqliteAdo();
 }
 
 namespace System.Runtime.CompilerServices {

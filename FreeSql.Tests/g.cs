@@ -34,8 +34,8 @@ public class g {
 		.UseAutoSyncStructure(true)
 		.Build();
 
-	public static IFreeSql sqlite3 = new FreeSql.FreeSqlBuilder()
-		.UseConnectionString(FreeSql.DataType.Sqlite3, @"Data Source=|DataDirectory|\document.db;Attachs=xxxtb.db;Pooling=true;Max Pool Size=10")
+	public static IFreeSql sqlite = new FreeSql.FreeSqlBuilder()
+		.UseConnectionString(FreeSql.DataType.Sqlite, @"Data Source=|DataDirectory|\document.db;Attachs=xxxtb.db;Pooling=true;Max Pool Size=10")
 		.UseAutoSyncStructure(true)
 		.Build();
 }

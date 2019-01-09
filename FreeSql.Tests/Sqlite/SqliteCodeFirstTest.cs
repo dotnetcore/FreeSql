@@ -6,16 +6,16 @@ using System.Linq;
 using System.Text;
 using Xunit;
 
-namespace FreeSql.Tests.Sqlite3 {
+namespace FreeSql.Tests.Sqlite {
 	public class SqliteCodeFirstTest {
 
 		[Fact]
 		public void AddField() {
-			var sql = g.sqlite3.CodeFirst.GetComparisonDDLStatements<TopicAddField>();
+			var sql = g.sqlite.CodeFirst.GetComparisonDDLStatements<TopicAddField>();
 
-			var id = g.sqlite3.Insert<TopicAddField>().AppendData(new TopicAddField { }).ExecuteIdentity();
+			var id = g.sqlite.Insert<TopicAddField>().AppendData(new TopicAddField { }).ExecuteIdentity();
 
-			//var inserted = g.sqlite3.Insert<TopicAddField>().AppendData(new TopicAddField { }).ExecuteInserted();
+			//var inserted = g.Sqlite.Insert<TopicAddField>().AppendData(new TopicAddField { }).ExecuteInserted();
 		}
 
 		[Table(Name = "xxxtb.TopicAddField", OldName = "TopicAddField")]
@@ -32,62 +32,58 @@ namespace FreeSql.Tests.Sqlite3 {
 		[Fact]
 		public void GetComparisonDDLStatements() {
 
-			var sql = g.sqlite3.CodeFirst.GetComparisonDDLStatements<TableAllType>();
+			var sql = g.sqlite.CodeFirst.GetComparisonDDLStatements<TableAllType>();
 			if (string.IsNullOrEmpty(sql) == false) {
-				Assert.Equal(@"CREATE TABLE IF NOT EXISTS `cccddd`.`tb_alltype` ( 
-  `Id` INT(11) NOT NULL AUTO_INCREMENT, 
-  `Bool` BIT(1) NOT NULL, 
-  `SByte` TINYINT(3) NOT NULL, 
-  `Short` SMALLINT(6) NOT NULL, 
-  `Int` INT(11) NOT NULL, 
-  `Long` BIGINT(20) NOT NULL, 
-  `Byte` TINYINT(3) UNSIGNED NOT NULL, 
-  `UShort` SMALLINT(5) UNSIGNED NOT NULL, 
-  `UInt` INT(10) UNSIGNED NOT NULL, 
-  `ULong` BIGINT(20) UNSIGNED NOT NULL, 
-  `Double` DOUBLE NOT NULL, 
-  `Float` FLOAT NOT NULL, 
-  `Decimal` DECIMAL(10,2) NOT NULL, 
-  `TimeSpan` TIME NOT NULL, 
-  `DateTime` DATETIME NOT NULL, 
-  `Bytes` VARBINARY(255), 
-  `String` VARCHAR(255), 
-  `Guid` VARCHAR(36), 
-  `BoolNullable` BIT(1), 
-  `SByteNullable` TINYINT(3), 
-  `ShortNullable` SMALLINT(6), 
-  `IntNullable` INT(11), 
-  `testFielLongNullable` BIGINT(20), 
-  `ByteNullable` TINYINT(3) UNSIGNED, 
-  `UShortNullable` SMALLINT(5) UNSIGNED, 
-  `UIntNullable` INT(10) UNSIGNED, 
-  `ULongNullable` BIGINT(20) UNSIGNED, 
-  `DoubleNullable` DOUBLE, 
-  `FloatNullable` FLOAT, 
-  `DecimalNullable` DECIMAL(10,2), 
-  `TimeSpanNullable` TIME, 
-  `DateTimeNullable` DATETIME, 
-  `GuidNullable` VARCHAR(36), 
-  `Point` POINT, 
-  `LineString` LINESTRING, 
-  `Polygon` POLYGON, 
-  `MultiPoint` MULTIPOINT, 
-  `MultiLineString` MULTILINESTRING, 
-  `MultiPolygon` MULTIPOLYGON, 
-  `Enum1` ENUM('E1','E2','E3') NOT NULL, 
-  `Enum1Nullable` ENUM('E1','E2','E3'), 
-  `Enum2` SET('F1','F2','F3') NOT NULL, 
-  `Enum2Nullable` SET('F1','F2','F3'), 
-  PRIMARY KEY (`Id`)
-) Engine=InnoDB CHARACTER SET utf8;
+				Assert.Equal(@"CREATE TABLE IF NOT EXISTS ""main"".""tb_alltype"" ( 
+  ""Id"" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, 
+  ""Bool"" BOOLEAN NOT NULL, 
+  ""SByte"" SMALLINT NOT NULL, 
+  ""Short"" SMALLINT NOT NULL, 
+  ""Int"" INTEGER NOT NULL, 
+  ""Long"" INTEGER NOT NULL, 
+  ""Byte"" INT2 NOT NULL, 
+  ""UShort"" UNSIGNED NOT NULL, 
+  ""UInt"" DECIMAL(10,0) NOT NULL, 
+  ""ULong"" DECIMAL(21,0) NOT NULL, 
+  ""Double"" DOUBLE NOT NULL, 
+  ""Float"" FLOAT NOT NULL, 
+  ""Decimal"" DECIMAL(10,2) NOT NULL, 
+  ""TimeSpan"" BIGINT NOT NULL, 
+  ""DateTime"" DATETIME NOT NULL, 
+  ""DateTimeOffSet"" DATETIME NOT NULL, 
+  ""Bytes"" BLOB, 
+  ""String"" NVARCHAR(255), 
+  ""Guid"" CHARACTER(36) NOT NULL, 
+  ""BoolNullable"" BOOLEAN, 
+  ""SByteNullable"" SMALLINT, 
+  ""ShortNullable"" SMALLINT, 
+  ""IntNullable"" INTEGER, 
+  ""testFielLongNullable"" INTEGER, 
+  ""ByteNullable"" INT2, 
+  ""UShortNullable"" UNSIGNED, 
+  ""UIntNullable"" DECIMAL(10,0), 
+  ""ULongNullable"" DECIMAL(21,0), 
+  ""DoubleNullable"" DOUBLE, 
+  ""FloatNullable"" FLOAT, 
+  ""DecimalNullable"" DECIMAL(10,2), 
+  ""TimeSpanNullable"" BIGINT, 
+  ""DateTimeNullable"" DATETIME, 
+  ""DateTimeOffSetNullable"" DATETIME, 
+  ""GuidNullable"" CHARACTER(36), 
+  ""Enum1"" MEDIUMINT NOT NULL, 
+  ""Enum1Nullable"" MEDIUMINT, 
+  ""Enum2"" BIGINT NOT NULL, 
+  ""Enum2Nullable"" BIGINT
+) 
+;
 ", sql);
 			}
 
-			//sql = g.sqlite3.CodeFirst.GetComparisonDDLStatements<Tb_alltype>();
+			//sql = g.Sqlite.CodeFirst.GetComparisonDDLStatements<Tb_alltype>();
 		}
 
-		IInsert<TableAllType> insert => g.sqlite3.Insert<TableAllType>();
-		ISelect<TableAllType> select => g.sqlite3.Select<TableAllType>();
+		IInsert<TableAllType> insert => g.sqlite.Insert<TableAllType>();
+		ISelect<TableAllType> select => g.sqlite.Select<TableAllType>();
 
 		[Fact]
 		public void CurdAllField() {

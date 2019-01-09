@@ -6,7 +6,7 @@ using System.Data;
 using System.Data.Common;
 using System.Data.SQLite;
 
-namespace FreeSql.Sqlite3 {
+namespace FreeSql.Sqlite {
 
 	class SqliteUtils : CommonUtils {
 		IFreeSql _orm;
@@ -18,10 +18,17 @@ namespace FreeSql.Sqlite3 {
 			if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
 			else if (_orm.CodeFirst.IsSyncStructureToLower) parameterName = parameterName.ToLower();
 			var dbtype = (DbType)_orm.CodeFirst.GetDbInfo(type)?.type;
-			if (dbtype == DbType.Time) {
-				if (value == null) value = null;
-				else value = ((TimeSpan)value).Ticks / 10000;
-				dbtype = DbType.Int64;
+			switch (dbtype) {
+				case DbType.Guid:
+					if (value == null) value = null;
+					else value = ((Guid)value).ToString();
+					dbtype = DbType.String;
+					break;
+				case DbType.Time:
+					if (value == null) value = null;
+					else value = ((TimeSpan)value).Ticks / 10000;
+					dbtype = DbType.Int64;
+					break;
 			}
 			var ret = new SQLiteParameter { ParameterName = $"@{parameterName}", DbType = dbtype, Value = value };
 			_params?.Add(ret);
@@ -31,10 +38,17 @@ namespace FreeSql.Sqlite3 {
 		internal override DbParameter[] GetDbParamtersByObject(string sql, object obj) =>
 			Utils.GetDbParamtersByObject<SQLiteParameter>(sql, obj, "@", (name, type, value) => {
 				var dbtype = (DbType)_orm.CodeFirst.GetDbInfo(type)?.type;
-				if (dbtype == DbType.Time) {
-					if (value == null) value = null;
-					else value = ((TimeSpan)value).Ticks / 10000;
-					dbtype = DbType.Int64;
+				switch (dbtype) {
+					case DbType.Guid:
+						if (value == null) value = null;
+						else value = ((Guid)value).ToString();
+						dbtype = DbType.String;
+						break;
+					case DbType.Time:
+						if (value == null) value = null;
+						else value = ((TimeSpan)value).Ticks / 10000;
+						dbtype = DbType.Int64;
+						break;
 				}
 				var ret = new SQLiteParameter { ParameterName = $"@{name}", DbType = dbtype, Value = value };
 				return ret;

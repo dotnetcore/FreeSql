@@ -5,7 +5,7 @@ using System.Data;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FreeSql.Sqlite3.Curd {
+namespace FreeSql.Sqlite.Curd {
 
 	class SqliteDelete<T1> : Internal.CommonProvider.DeleteProvider<T1> where T1 : class {
 		public SqliteDelete(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere)

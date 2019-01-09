@@ -1,6 +1,6 @@
 ﻿using FreeSql.Internal;
 using FreeSql.Internal.CommonProvider;
-using FreeSql.Sqlite3.Curd;
+using FreeSql.Sqlite.Curd;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -8,7 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Common;
 
-namespace FreeSql.Sqlite3 {
+namespace FreeSql.Sqlite {
 
 	class SqliteProvider : IFreeSql {
 

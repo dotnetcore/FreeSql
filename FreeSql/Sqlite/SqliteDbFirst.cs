@@ -7,7 +7,7 @@ using System.Data;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace FreeSql.Sqlite3 {
+namespace FreeSql.Sqlite {
 	class SqliteDbFirst : IDbFirst {
 		IFreeSql _orm;
 		protected CommonUtils _commonUtils;

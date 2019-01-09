@@ -3,10 +3,10 @@ using System;
 using System.Linq;
 using Xunit;
 
-namespace FreeSql.Tests.Sqlite3Expression {
+namespace FreeSql.Tests.SqliteExpression {
 	public class OtherTest {
 
-		ISelect<TableAllType> select => g.sqlite3.Select<TableAllType>();
+		ISelect<TableAllType> select => g.sqlite.Select<TableAllType>();
 
 		public OtherTest() {
 		}

@@ -8,7 +8,7 @@ using System.Data.SQLite;
 using System.Text;
 using System.Threading;
 
-namespace FreeSql.Sqlite3 {
+namespace FreeSql.Sqlite {
 	class SqliteAdo : FreeSql.Internal.CommonProvider.AdoProvider {
 		CommonUtils _util;
 

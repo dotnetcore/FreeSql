@@ -9,7 +9,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace FreeSql.Sqlite3 {
+namespace FreeSql.Sqlite {
 
 	class SqliteConnectionPool : ObjectPool<DbConnection> {
 
