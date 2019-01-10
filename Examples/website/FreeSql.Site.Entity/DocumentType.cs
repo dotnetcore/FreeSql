@@ -13,6 +13,11 @@ namespace FreeSql.Site.Entity
 
         public int? UpID { get; set; }
 
+        /// <summary>
+        /// 状态
+        /// </summary>
+        public int Status { get; set; }
+
         public DateTime? CreateDt { get; set; }
 
         public string CreateBy { get; set; }

@@ -2,7 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using FreeSql.Site.DAL;
+using FreeSql.Site.Entity;
 using FreeSql.Site.UI.Controllers;
+using FreeSql.Site.UI.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,17 +14,49 @@ namespace FreeSql.Site.UI.Areas.Doc.Controllers
     [Area("Doc")]
     public class DocumentsController : BaseController
     {
-        // GET: Documents
-        public IActionResult Index()
+        public DocumentTypeDAL DocumentTypeDAL { get; set; }
+
+        public DocumentContentDAL DocumentContentDAL { get; set; }
+
+        public DocumentsController()
         {
-           ViewBag.DocumentList = new FreeSql.Site.DAL.DocumentTypeDAL().Query(d => d.ID != 0);
+            this.DocumentTypeDAL = new DocumentTypeDAL();
+            this.DocumentContentDAL = new DocumentContentDAL();
+        }
+
+        // GET: Documents
+        public IActionResult Index(int id = 1)
+        {
+            var typeList = DocumentTypeDAL.Query(d => d.ID != 0);
+            var contentlist = DocumentContentDAL.Query(d => d.Status == 1);
+
+            //适应两层结构即可
+            var query = (from p in typeList
+                         where p.UpID == null || p.UpID == 0
+                         select new TreeData(p, typeList).AddChildrens(GetContentTreeData(p.ID, contentlist), (tid) => GetContentTreeData(tid, contentlist))).ToList();
+
+            ViewBag.DocumentList = query;
+            ViewBag.DocID = id;
             return View();
+        }
+
+        private List<TreeData> GetContentTreeData(int id, List<DocumentContent> contentlist)
+        {
+            return contentlist.Where(w => w.TypeID == id).Select(s => new TreeData
+            {
+                id = s.ID,
+                text = s.DocTitle,
+                datatype = 1
+            }).ToList();
         }
 
         // GET: Documents/Details/5
         public ActionResult Details(int id)
         {
-            return View();
+            ViewBag.DocumentID = id;
+            var doc = this.DocumentContentDAL.GetByOne(w => w.ID == id);
+            ViewBag.DocumentInfo = doc;
+            return this.PartialView();
         }
 
         // GET: Documents/Create
