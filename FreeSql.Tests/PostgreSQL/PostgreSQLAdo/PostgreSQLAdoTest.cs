@@ -15,11 +15,6 @@ namespace FreeSql.Tests.PostgreSQL {
 		}
 
 		[Fact]
-		public void IsTracePerformance() {
-			Assert.True(g.pgsql.Ado.IsTracePerformance);
-		}
-
-		[Fact]
 		public void ExecuteReader() {
 			
 		}

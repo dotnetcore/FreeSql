@@ -78,7 +78,7 @@ namespace FreeSql {
 		/// 监视数据库命令对象
 		/// </summary>
 		/// <param name="executing">执行前</param>
-		/// <param name="executed">执行后</param>
+		/// <param name="executed">执行后，可监视执行性能</param>
 		/// <returns></returns>
 		public FreeSqlBuilder UseMonitorCommand(Action<DbCommand> executing, Action<DbCommand, string> executed = null) {
 			_aopCommandExecuting = executing;

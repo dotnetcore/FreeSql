@@ -15,11 +15,6 @@ namespace FreeSql.Tests.MySql {
 		}
 
 		[Fact]
-		public void IsTracePerformance() {
-			Assert.True(g.mysql.Ado.IsTracePerformance);
-		}
-
-		[Fact]
 		public void ExecuteReader() {
 			
 		}

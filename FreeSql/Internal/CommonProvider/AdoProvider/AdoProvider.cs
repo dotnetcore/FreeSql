@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
@@ -13,10 +14,10 @@ namespace FreeSql.Internal.CommonProvider {
 		protected abstract void ReturnConnection(ObjectPool<DbConnection> pool, Object<DbConnection> conn, Exception ex);
 		protected abstract DbCommand CreateCommand();
 		protected abstract DbParameter[] GetDbParamtersByObject(string sql, object obj);
-		internal Action<DbCommand> AopCommandExecuting = null;
-		internal Action<DbCommand, string> AopCommandExecuted = null;
+		public Action<DbCommand> AopCommandExecuting { get; set; }
+		public Action<DbCommand, string> AopCommandExecuted { get; set; }
 
-		public bool IsTracePerformance { get; set; } = string.Compare(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"), "Development", true) == 0;
+		protected bool IsTracePerformance => AopCommandExecuted != null;
 		
 		public ObjectPool<DbConnection> MasterPool { get; protected set; }
 		public List<ObjectPool<DbConnection>> SlavePools { get; } = new List<ObjectPool<DbConnection>>();
@@ -64,19 +65,15 @@ namespace FreeSql.Internal.CommonProvider {
 		public List<T> Query<T>(string sql, object parms = null) => Query<T>(CommandType.Text, sql, GetDbParamtersByObject(sql, parms));
 		public List<T> Query<T>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
 			var names = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
-			var ds = new List<object[]>();
+			var ret = new List<T>();
 			ExecuteReader(dr => {
 				if (names.Any() == false)
 					for (var a = 0; a < dr.FieldCount; a++) names.Add(dr.GetName(a), a);
 				object[] values = new object[dr.FieldCount];
 				dr.GetValues(values);
-				ds.Add(values);
+				var read = Utils.ExecuteArrayRowReadClassOrTuple(typeof(T), names, values, 0);
+				ret.Add(read.value == null ? default(T) : (T)read.value);
 			}, cmdType, cmdText, cmdParms);
-			var ret = new List<T>();
-			foreach (var row in ds) {
-				var read = Utils.ExecuteArrayRowReadClassOrTuple(typeof(T), names, row);
-				ret.Add(read.value == null ? default(T) : (T) read.value);
-			}
 			return ret;
 		}
 		public void ExecuteReader(Action<DbDataReader> readerHander, string sql, object parms = null) => ExecuteReader(readerHander, CommandType.Text, sql, GetDbParamtersByObject(sql, parms));

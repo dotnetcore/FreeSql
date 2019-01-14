@@ -15,11 +15,6 @@ namespace FreeSql.Tests.SqlServer {
 		}
 
 		[Fact]
-		public void IsTracePerformance() {
-			Assert.True(g.sqlserver.Ado.IsTracePerformance);
-		}
-
-		[Fact]
 		public void ExecuteReader() {
 			
 		}

@@ -158,6 +158,33 @@ List<dynamic> t8 = fsql.Ado.Query<dynamic>("select * from song");
 ```
 > 更多资料：[《Select查询数据》](Docs/select.md)
 
+## 性能测试
+
+### FreeSql ToList & Dapper Query
+
+Elapsed: 00:00:00.9666720; Query Entity Counts: 131072; ORM: Dapper
+
+Elapsed: 00:00:01.4215325; ToList Entity Counts: 131072; ORM: FreeSql*
+
+### FreeSql Query & Dapper Query
+
+Elapsed: 00:00:00.9728656; Query Entity Counts: 131072; ORM: Dapper
+
+Elapsed: 00:00:00.4484073; Query Tuple Counts: 131072; ORM: Dapper
+
+Elapsed: 00:00:00.6580620; Query Dynamic Counts: 131072; ORM: Dapper
+
+Elapsed: 00:00:02.6804199; Query Entity Counts: 131072; ORM: FreeSql*
+
+Elapsed: 00:00:01.4161527; Query Tuple Counts: 131072; ORM: FreeSql*
+
+Elapsed: 00:00:00.9965082; Query Dynamic Counts: 131072; ORM: FreeSql*
+
+[查看测试代码](/2881099/FreeSql/tree/master/FreeSql.Tests.PerformanceTests/MySqlAdoTest.cs)
+
+FreeSql 目前使用的反射+缓存，比不过 Dapper Emit 性能。
+
+
 # Part2 添加
 ```csharp
 var items = new List<Topic>();

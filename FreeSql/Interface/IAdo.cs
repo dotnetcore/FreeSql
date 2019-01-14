@@ -18,9 +18,13 @@ namespace FreeSql {
 		/// </summary>
 		List<ObjectPool<DbConnection>> SlavePools { get; }
 		/// <summary>
-		/// 是否跟踪记录SQL执行性能日志
+		/// 监视数据库命令对象(执行前，调试)
 		/// </summary>
-		bool IsTracePerformance { get; set; }
+		Action<DbCommand> AopCommandExecuting { get; set; }
+		/// <summary>
+		/// 监视数据库命令对象(执行后，用于监视执行性能)
+		/// </summary>
+		Action<DbCommand, string> AopCommandExecuted { get; set; }
 
 		#region 事务
 		/// <summary>

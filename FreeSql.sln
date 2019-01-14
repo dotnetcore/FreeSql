@@ -25,6 +25,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{C6A74E2A-6
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "xxx", "..\..\新建文件夹 (9)\xxx.csproj", "{6DC39740-0B26-4029-AB75-D436A7F666A2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreeSql.Tests.PerformanceTests", "FreeSql.Tests.PerformanceTests\FreeSql.Tests.PerformanceTests.csproj", "{446D9CBE-BFE4-4FB3-ADFD-4C1C5EA1B6EE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -71,6 +73,18 @@ Global
 		{6DC39740-0B26-4029-AB75-D436A7F666A2}.Release|x64.Build.0 = Release|Any CPU
 		{6DC39740-0B26-4029-AB75-D436A7F666A2}.Release|x86.ActiveCfg = Release|Any CPU
 		{6DC39740-0B26-4029-AB75-D436A7F666A2}.Release|x86.Build.0 = Release|Any CPU
+		{446D9CBE-BFE4-4FB3-ADFD-4C1C5EA1B6EE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{446D9CBE-BFE4-4FB3-ADFD-4C1C5EA1B6EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{446D9CBE-BFE4-4FB3-ADFD-4C1C5EA1B6EE}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{446D9CBE-BFE4-4FB3-ADFD-4C1C5EA1B6EE}.Debug|x64.Build.0 = Debug|Any CPU
+		{446D9CBE-BFE4-4FB3-ADFD-4C1C5EA1B6EE}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{446D9CBE-BFE4-4FB3-ADFD-4C1C5EA1B6EE}.Debug|x86.Build.0 = Debug|Any CPU
+		{446D9CBE-BFE4-4FB3-ADFD-4C1C5EA1B6EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{446D9CBE-BFE4-4FB3-ADFD-4C1C5EA1B6EE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{446D9CBE-BFE4-4FB3-ADFD-4C1C5EA1B6EE}.Release|x64.ActiveCfg = Release|Any CPU
+		{446D9CBE-BFE4-4FB3-ADFD-4C1C5EA1B6EE}.Release|x64.Build.0 = Release|Any CPU
+		{446D9CBE-BFE4-4FB3-ADFD-4C1C5EA1B6EE}.Release|x86.ActiveCfg = Release|Any CPU
+		{446D9CBE-BFE4-4FB3-ADFD-4C1C5EA1B6EE}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

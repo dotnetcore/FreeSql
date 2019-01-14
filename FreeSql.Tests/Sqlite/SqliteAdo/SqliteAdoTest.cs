@@ -13,12 +13,6 @@ namespace FreeSql.Tests.Sqlite {
 		public void SlavePools() {
 			var t2 = g.sqlite.Ado.SlavePools.Count;
 		}
-
-		[Fact]
-		public void IsTracePerformance() {
-			Assert.True(g.sqlite.Ado.IsTracePerformance);
-		}
-
 		[Fact]
 		public void ExecuteReader() {
 			

@@ -191,7 +191,7 @@ namespace FreeSql.Internal {
 				dynamic expando = new System.Dynamic.ExpandoObject(); //动态类型字段 可读可写
 				var expandodic = (IDictionary<string, object>)expando;
 				foreach (var name in names)
-					expandodic[Utils.GetCsName(name.Key)] = row[name.Value];
+					expandodic.Add(name.Key, row[name.Value]);
 				return (expando, names.Count);
 			}
 			//类注入属性

@@ -15,11 +15,6 @@ namespace FreeSql.Tests.Oracle {
 		}
 
 		[Fact]
-		public void IsTracePerformance() {
-			Assert.True(g.oracle.Ado.IsTracePerformance);
-		}
-
-		[Fact]
 		public void ExecuteReader() {
 			
 		}
