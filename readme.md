@@ -180,7 +180,7 @@ Elapsed: 00:00:01.4161527; Query Tuple Counts: 131072; ORM: FreeSql*
 
 Elapsed: 00:00:00.9965082; Query Dynamic Counts: 131072; ORM: FreeSql*
 
-[查看测试代码](/2881099/FreeSql/tree/master/FreeSql.Tests.PerformanceTests/MySqlAdoTest.cs)
+[查看测试代码](FreeSql.Tests.PerformanceTests/MySqlAdoTest.cs)
 
 FreeSql 目前使用的反射+缓存，比不过 Dapper Emit 性能。
 
