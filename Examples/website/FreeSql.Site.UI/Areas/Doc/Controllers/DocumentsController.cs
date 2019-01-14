@@ -28,7 +28,7 @@ namespace FreeSql.Site.UI.Areas.Doc.Controllers
         public IActionResult Index(int id = 1)
         {
             var typeList = DocumentTypeDAL.Query(d => d.ID != 0);
-            var contentlist = DocumentContentDAL.Query(d => d.Status == 1);
+            var contentlist = DocumentContentDAL.Query(d => d.Status == 1).list;
 
             //适应两层结构即可
             var query = (from p in typeList

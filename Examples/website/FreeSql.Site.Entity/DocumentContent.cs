@@ -4,6 +4,9 @@ using System;
 
 namespace FreeSql.Site.Entity
 {
+    /// <summary>
+    /// 数据库实体
+    /// </summary>
     public class DocumentContent
     {
         [Column(IsIdentity = true, IsPrimary = true)]
@@ -63,5 +66,13 @@ namespace FreeSql.Site.Entity
         /// 修改人
         /// </summary>
         public string UpdateBy { get; set; }
+    }
+
+    /// <summary>
+    /// 返回实体内容
+    /// </summary>
+    public class DocumentContentView : DocumentContent
+    {
+
     }
 }

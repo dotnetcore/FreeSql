@@ -1,0 +1,197 @@
+﻿
+@{
+    ViewBag.Title = ".NET文档园 .NET开源ORM - 首页";
+}
+@using FreeSql.Site.UI.Areas.BBS.Models;
+
+<table class="layui-hide" id="test" lay-filter="test"></table>
+
+<script type="text/html" id="docContentEdit">
+    <form class="layui-form" action="">
+        <div class="layui-form-item">
+            <label class="layui-form-label">输入框</label>
+            <div class="layui-input-block">
+                <input type="text" name="username" lay-verify="title" autocomplete="off" placeholder="请输入标题" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">密码框</label>
+            <div class="layui-input-block">
+                <input type="password" name="password" placeholder="请输入密码" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">选择框</label>
+            <div class="layui-input-block">
+                <select name="interest" lay-filter="aihao">
+                    <option value=""></option>
+                    <option value="0">写作</option>
+                    <option value="1">阅读</option>
+                    <option value="2">游戏</option>
+                    <option value="3">音乐</option>
+                    <option value="4">旅行</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">复选框</label>
+            <div class="layui-input-block">
+                <input type="checkbox" name="like[write]" title="写作">
+                <input type="checkbox" name="like[read]" title="阅读">
+                <input type="checkbox" name="like[daze]" title="发呆">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">开关</label>
+            <div class="layui-input-block">
+                <input type="checkbox" name="close" lay-skin="switch" lay-text="ON|OFF">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">单选框</label>
+            <div class="layui-input-block">
+                <input type="radio" name="sex" value="男" title="男" checked="">
+                <input type="radio" name="sex" value="女" title="女">
+            </div>
+        </div>
+        <div class="layui-form-item layui-form-text">
+            <label class="layui-form-label">文本域</label>
+            <div class="layui-input-block">
+                <textarea placeholder="请输入内容" class="layui-textarea" name="desc"></textarea>
+            </div>
+        </div>
+
+        @*<div class="layui-form-item">
+                <div class="layui-input-block">
+                    <button class="layui-btn" id="btnSubmit">立即提交</button>
+                </div>
+            </div>*@
+    </form>
+</script>
+<script type="text/html" id="toolbarDemo">
+    <div class="layui-btn-container">
+        <button class="layui-btn layui-btn-sm" lay-event="getCheckData">获取选中行数据</button>
+        <button class="layui-btn layui-btn-sm" lay-event="getCheckLength">获取选中数目</button>
+        <button class="layui-btn layui-btn-sm" lay-event="isAll">验证是否全选</button>
+    </div>
+</script>
+
+<script type="text/html" id="barDemo">
+    <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+<script>
+    layui.use(['form', 'layedit', 'laydate', 'table'], function () {
+        var table = layui.table;
+        var form = layui.form
+            , layer = layui.layer
+            , layedit = layui.layedit
+            , laydate = layui.laydate;
+
+        //日期
+        laydate.render({
+            elem: '#date'
+        });
+        laydate.render({
+            elem: '#date1'
+        });
+
+
+        table.render({
+            elem: '#test'
+            , url: '/Admin/Document/DocContentList'
+            , where: { searchContent: '', seniorQueryJson: "" }
+            , toolbar: '#toolbarDemo'
+            , title: '文档列表'
+            , cols: [[
+                { type: 'checkbox', fixed: 'left' }
+                , { field: 'ID', title: 'ID', width: 80, fixed: 'left', unresize: true, sort: true }
+                , { field: 'DocTitle', title: '标题', width: 150, edit: 'text' }
+                , { field: 'Status', title: '状态', width: 80, edit: 'text', sort: true }
+                , { field: 'WatchCount', title: '阅读量市', width: 100 }
+                , { field: 'StarCount', title: '获赞数' }
+                , { field: 'CreateDt', title: '创建时间', width: 80, sort: true }
+                , { field: 'UpdateDt', title: '修改时间', width: 120 }
+                , { fixed: 'right', title: '操作', toolbar: '#barDemo', width: 150 }
+            ]]
+            , page: true
+        });
+
+        //头工具栏事件
+        table.on('toolbar(test)', function (obj) {
+            var checkStatus = table.checkStatus(obj.config.id);
+            switch (obj.event) {
+                case 'getCheckData':
+                    var data = checkStatus.data;
+                    layer.alert(JSON.stringify(data));
+                    break;
+                case 'getCheckLength':
+                    var data = checkStatus.data;
+                    layer.msg('选中了：' + data.length + ' 个');
+                    break;
+                case 'isAll':
+                    layer.msg(checkStatus.isAll ? '全选' : '未全选');
+                    break;
+            };
+        });
+
+        //监听行工具事件
+        table.on('tool(test)', function (obj) {
+            var data = obj.data;
+            //console.log(obj)
+            if (obj.event === 'del') {
+                layer.confirm('确定要删除吗？', function (index) {
+                    //调用删除
+                    $.ajax({
+                        type: "POST",
+                        url: "/Admin/Document/DocContentDelete",
+                        data: { id: docid },
+                        dataType: "html",
+                        success: function (data) {
+                            obj.del();
+                            layer.close(index);
+                        },
+                        error: function () {
+                            layer.close(index);
+                            layer.alert("删除失败！");
+                        }
+                    });
+                });
+            } else if (obj.event === 'edit') {
+                layer.open({
+                    type: 1,
+                    maxmin: true,
+                    title: "编辑",
+                    area: ['600px', '360px'],
+                    shadeClose: true, //点击遮罩关闭
+                    content: $("#docContentEdit").html(),
+                    btn: ['保存', '修改状态', '取消'],
+                    yes: function () {
+                        alert('提交');
+                    },
+                    success: function (layero, index) {
+                        form.render();
+                    }
+                });
+                //form.render();
+                //layer.prompt({
+                //    formType: 2
+                //    , value: data.email
+                //}, function (value, index) {
+                //    obj.update({
+                //        email: value
+                //    });
+                //    layer.close(index);
+                //});
+            }
+        });
+
+        $(document).on('click', '#btnSubmit', function () {
+            layer.msg('响应点击事件');
+        });
+    });
+</script>

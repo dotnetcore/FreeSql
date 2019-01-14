@@ -1,0 +1,91 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - FreeSql.Site.UI</title>
+
+    <environment include="Development">
+        <link href="~/layui/css/layui.css" rel="stylesheet" />
+        <link rel="stylesheet" href="https://cdn.bootcss.com/highlight.js/9.11.0/styles/github.min.css" />
+        <script src="~/lib/jquery/dist/jquery.js"></script>
+        <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+        <script src="https://cdn.bootcss.com/highlight.js/9.13.1/highlight.min.js"></script>
+        <script src="~/layui/layui.js"></script>
+    </environment>
+    <environment exclude="Development">
+        <link rel="stylesheet" href="https://ajax.aspnetcdn.com/ajax/bootstrap/3.3.7/css/bootstrap.min.css"
+              asp-fallback-href="~/lib/bootstrap/dist/css/bootstrap.min.css"
+              asp-fallback-test-class="sr-only" asp-fallback-test-property="position" asp-fallback-test-value="absolute" />
+    </environment>
+</head>
+<body class="layui-layout-body" id="LAY_home" style="background-color: #fff;" data-date="12-27">
+    <div class="layui-layout layui-layout-admin">
+        <div class="layui-header">
+            <div class="layui-logo"><span style="font-size:25px; letter-spacing:1px; color:#fff;">FreeSql</span></div>
+            <!-- 头部区域（可配合layui已有的水平导航） -->
+            <ul class="layui-nav layui-layout-left">
+                <li class="layui-nav-item active"><a href="/Admin/Document" target="_self">文档管理</a></li>
+                <li class="layui-nav-item"><a href="/Admin/BBS" target="_self">论坛管理</a></li>
+                <li class="layui-nav-item"><a href="/Admin/Template" target="_self">模板管理</a></li>
+            </ul>
+            <ul class="layui-nav layui-layout-right">
+                <li class="layui-nav-item">
+                    <a href="javascript:;">
+                        <img src="#" class="layui-nav-img">
+                        FreeSql
+                    </a>
+                    <dl class="layui-nav-child">
+                        <dd><a href="">基本资料</a></dd>
+                        <dd><a href="">安全设置</a></dd>
+                    </dl>
+                </li>
+                <li class="layui-nav-item"><a href="">退出</a></li>
+            </ul>
+        </div>
+
+        <partial name="_CookieConsentPartial" />
+        @RenderBody()
+
+        <div class="layui-footer">
+            <!-- 底部固定区域 -->
+            © FreeSql.com - 底部固定区域
+        </div>
+
+    </div>
+    <environment include="Development">
+        @*<script src="~/js/site.js" asp-append-version="true"></script>*@
+        <script>
+            layui.config({
+                base: '/layui/lay/modules/'
+                , version: '31111'
+            }).use('global');
+
+            window.global = {
+                preview: function () {
+                    var preview = document.getElementById('LAY_preview');
+                    return preview ? preview.innerHTML : '';
+                }()
+            };
+        </script>
+    </environment>
+    <environment exclude="Development">
+        <script src="https://ajax.aspnetcdn.com/ajax/jquery/jquery-3.3.1.min.js"
+                asp-fallback-src="~/lib/jquery/dist/jquery.min.js"
+                asp-fallback-test="window.jQuery"
+                crossorigin="anonymous"
+                integrity="sha384-tsQFqpEReu7ZLhBV2VZlAu7zcOV+rXbYlF2cqB8txI/8aZajjp4Bqd+V6D5IgvKT">
+        </script>
+        <script src="https://ajax.aspnetcdn.com/ajax/bootstrap/3.3.7/bootstrap.min.js"
+                asp-fallback-src="~/lib/bootstrap/dist/js/bootstrap.min.js"
+                asp-fallback-test="window.jQuery && window.jQuery.fn && window.jQuery.fn.modal"
+                crossorigin="anonymous"
+                integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa">
+        </script>
+        <script src="~/js/site.min.js" asp-append-version="true"></script>
+    </environment>
+
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

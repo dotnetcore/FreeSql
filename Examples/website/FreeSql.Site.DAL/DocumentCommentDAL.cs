@@ -7,16 +7,16 @@ using System.Text;
 
 namespace FreeSql.Site.DAL
 {
-    public class DocumentTypeDAL
+    public class DocumentCommentDAL
     {
         /// <summary>
         /// 新增方法
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public long Insert(DocumentType model)
+        public long Insert(DocumentComment model)
         {
-            return DataBaseType.MySql.DB().Insert<DocumentType>(model).ExecuteIdentity();
+            return DataBaseType.MySql.DB().Insert<DocumentComment>(model).ExecuteIdentity();
         }
 
         /// <summary>
@@ -24,9 +24,9 @@ namespace FreeSql.Site.DAL
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public bool Update(DocumentType model)
+        public bool Update(DocumentComment model)
         {
-            return DataBaseType.MySql.DB().Update<DocumentType>(model.ID).ExecuteUpdated().Count > 0;
+            return DataBaseType.MySql.DB().Update<DocumentComment>(model.ID).ExecuteUpdated().Count > 0;
         }
 
         /// <summary>
@@ -36,7 +36,7 @@ namespace FreeSql.Site.DAL
         /// <returns></returns>
         public bool Delete(long id)
         {
-            return DataBaseType.MySql.DB().Delete<DocumentType>(id).ExecuteDeleted().Count > 0;
+            return DataBaseType.MySql.DB().Delete<DocumentComment>(id).ExecuteDeleted().Count > 0;
         }
 
         /// <summary>
@@ -44,9 +44,9 @@ namespace FreeSql.Site.DAL
         /// </summary>
         /// <param name="where"></param>
         /// <returns></returns>
-        public DocumentType GetByOne(Expression<Func<DocumentType, bool>> where)
+        public DocumentComment GetByOne(Expression<Func<DocumentComment, bool>> where)
         {
-            return DataBaseType.MySql.DB().Select<DocumentType>()
+            return DataBaseType.MySql.DB().Select<DocumentComment>()
                  .Where(where).ToOne();
         }
 
@@ -56,10 +56,10 @@ namespace FreeSql.Site.DAL
         /// <param name="where"></param>
         /// <param name="orderby"></param>
         /// <returns></returns>
-        public List<DocumentType> Query(Expression<Func<DocumentType, bool>> where,
-            Expression<Func<DocumentType, DocumentType>> orderby = null)
+        public List<DocumentComment> Query(Expression<Func<DocumentComment, bool>> where,
+            Expression<Func<DocumentComment, DocumentComment>> orderby = null)
         {
-            var list = DataBaseType.MySql.DB().Select<DocumentType>()
+            var list = DataBaseType.MySql.DB().Select<DocumentComment>()
                 .Where(where);
             if (orderby != null) list = list.OrderBy(b => b.CreateDt);
             return list.ToList();

@@ -24,6 +24,11 @@ namespace FreeSql.Site.Entity
         public string TempateName { get; set; }
 
         /// <summary>
+        /// 描述
+        /// </summary>
+        public string Describe { get; set; }
+
+        /// <summary>
         /// 模板路径
         /// </summary>
         public string TemplatePath { get; set; }
