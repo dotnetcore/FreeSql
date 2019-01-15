@@ -20,6 +20,7 @@ namespace FreeSql.Internal {
 		internal abstract string Mod(string left, string right, Type leftType, Type rightType);
 		internal abstract string QuoteWriteParamter(Type type, string paramterName);
 		internal abstract string QuoteReadColumn(Type type, string columnName);
+		internal abstract string DbName { get; }
 
 		internal ICodeFirst CodeFirst { get; set; }
 		internal TableInfo GetTableByEntity(Type entity) => Utils.GetTableByEntity(entity, this);

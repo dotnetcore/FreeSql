@@ -1,5 +1,6 @@
 ﻿using FreeSql.Internal.Model;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -220,14 +221,18 @@ namespace FreeSql.Internal.CommonProvider {
 		}
 		protected (ReadAnonymousTypeInfo map, string field) GetAllField() {
 			var type = typeof(T1);
-			var map = new ReadAnonymousTypeInfo { Consturctor = type.GetConstructor(new Type[0]), ConsturctorType = ReadAnonymousTypeInfoConsturctorType.Properties };
+			if (Utils._dicClassConstructor.TryGetValue(type, out var classInfo) == false) {
+				classInfo = new Utils._dicClassConstructorInfo { Constructor = type.GetConstructor(new Type[0]), Properties = type.GetProperties() };
+				Utils._dicClassConstructor.TryAdd(type, classInfo);
+			}
+			var map = new ReadAnonymousTypeInfo { Consturctor = classInfo.Constructor, ConsturctorType = ReadAnonymousTypeInfoConsturctorType.Properties };
 			var field = new StringBuilder();
 			var dicfield = new Dictionary<string, bool>();
 			var tb = _tables.First();
 			var index = 0;
-			var ps = typeof(T1).GetProperties();
+			var ps = classInfo.Properties;
 			foreach (var p in ps) {
-				var child = new ReadAnonymousTypeInfo { CsName = p.Name };
+				var child = new ReadAnonymousTypeInfo { Property = p, CsName = p.Name };
 				if (tb.Table.ColumnsByCs.TryGetValue(p.Name, out var col)) { //普通字段
 					if (index > 0) field.Append(", ");
 					var quoteName = _commonUtils.QuoteSqlName(col.Attribute.Name);
@@ -248,7 +253,9 @@ namespace FreeSql.Internal.CommonProvider {
 						++index;
 						if (dicfield.ContainsKey(quoteName)) field.Append(" as").Append(index);
 						else dicfield.Add(quoteName, true);
-						child.Childs.Add(new ReadAnonymousTypeInfo { CsName = col2.CsName });
+						child.Childs.Add(new ReadAnonymousTypeInfo {
+							Property = tb2.Table.Type.GetProperty(col2.CsName, BindingFlags.Public | BindingFlags.IgnoreCase | BindingFlags.Instance),
+							CsName = col2.CsName });
 					}
 				}
 				map.Childs.Add(child);

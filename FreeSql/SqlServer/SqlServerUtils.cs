@@ -42,5 +42,6 @@ namespace FreeSql.SqlServer {
 
 		internal override string QuoteWriteParamter(Type type, string paramterName) => paramterName;
 		internal override string QuoteReadColumn(Type type, string columnName) => columnName;
+		internal override string DbName => "SqlServer";
 	}
 }

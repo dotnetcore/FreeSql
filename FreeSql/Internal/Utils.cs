@@ -21,7 +21,7 @@ namespace FreeSql.Internal {
 		static ConcurrentDictionary<string, TableInfo> _cacheGetTableByEntity = new ConcurrentDictionary<string, TableInfo>();
 		internal static TableInfo GetTableByEntity(Type entity, CommonUtils common) {
 			if (entity.FullName.StartsWith("<>f__AnonymousType")) return null;
-			if (_cacheGetTableByEntity.TryGetValue($"{common.QuoteSqlName("db")}{entity.FullName}", out var trytb)) return trytb; //区分数据库类型缓存
+			if (_cacheGetTableByEntity.TryGetValue($"{common.DbName}-{entity.FullName}", out var trytb)) return trytb; //区分数据库类型缓存
 			if (common.CodeFirst.GetDbInfo(entity) != null) return null;
 
 			var tbattr = entity.GetCustomAttributes(typeof(TableAttribute), false).LastOrDefault() as TableAttribute;
@@ -163,6 +163,16 @@ namespace FreeSql.Internal {
 			{ typeof(JObject).FullName, true },
 			{ typeof(JArray).FullName, true },
 		};
+		internal static ConcurrentDictionary<Type, _dicClassConstructorInfo> _dicClassConstructor = new ConcurrentDictionary<Type, _dicClassConstructorInfo>();
+		internal static ConcurrentDictionary<Type, _dicTupleConstructorInfo> _dicTupleConstructor = new ConcurrentDictionary<Type, _dicTupleConstructorInfo>();
+		internal class _dicClassConstructorInfo {
+			public ConstructorInfo Constructor { get; set; }
+			public PropertyInfo[] Properties { get; set; }
+		}
+		internal class _dicTupleConstructorInfo {
+			public ConstructorInfo Constructor { get; set; }
+			public Type[] Types { get; set; }
+		}
 		internal static (object value, int dataIndex) ExecuteArrayRowReadClassOrTuple(Type type, Dictionary<string, int> names, object[] row, int dataIndex = 0) {
 			if (type.IsArray) return (GetDataReaderValue(type, row[dataIndex]), dataIndex + 1);
 			var typeGeneric = type;
@@ -173,17 +183,18 @@ namespace FreeSql.Internal {
 			if (type.Namespace == "System" && (type.FullName == "System.String" || type.IsValueType)) { //值类型，或者元组
 				bool isTuple = type.Name.StartsWith("ValueTuple`");
 				if (isTuple) {
-					var fs = type.GetFields();
-					var types = new Type[fs.Length];
-					var parms = new object[fs.Length];
-					for (int a = 0; a < fs.Length; a++) {
-						types[a] = fs[a].FieldType;
-						var read = ExecuteArrayRowReadClassOrTuple(types[a], names, row, dataIndex);
+					if (_dicTupleConstructor.TryGetValue(type, out var tupleInfo) == false) {
+						var types = type.GetFields().Select(a => a.FieldType).ToArray();
+						tupleInfo = new _dicTupleConstructorInfo { Constructor = type.GetConstructor(types), Types = types };
+						_dicTupleConstructor.AddOrUpdate(type, tupleInfo, (t2, c2) => tupleInfo);
+					}
+					var parms = new object[tupleInfo.Types.Length];
+					for (int a = 0; a < parms.Length; a++) {
+						var read = ExecuteArrayRowReadClassOrTuple(tupleInfo.Types[a], names, row, dataIndex);
 						if (read.dataIndex > dataIndex) dataIndex = read.dataIndex;
 						parms[a] = read.value;
 					}
-					var constructor = type.GetConstructor(types);
-					return (constructor?.Invoke(parms), dataIndex);
+					return (tupleInfo.Constructor?.Invoke(parms), dataIndex);
 				}
 				return (dataIndex >= row.Length || (row[dataIndex] ?? DBNull.Value) == DBNull.Value ? null : GetDataReaderValue(type, row[dataIndex]), dataIndex + 1);
 			}
@@ -195,14 +206,18 @@ namespace FreeSql.Internal {
 				return (expando, names.Count);
 			}
 			//类注入属性
-			var value = type.GetConstructor(new Type[0]).Invoke(new object[0]);
-			var ps = type.GetProperties();
-			foreach(var p in ps) {
+			if (_dicClassConstructor.TryGetValue(type, out var classInfo)== false) {
+				classInfo = new _dicClassConstructorInfo { Constructor = type.GetConstructor(new Type[0]), Properties = type.GetProperties() };
+				_dicClassConstructor.TryAdd(type, classInfo);
+			}
+			var value = classInfo.Constructor.Invoke(new object[0]);
+			foreach(var prop in classInfo.Properties) {
 				var tryidx = dataIndex;
-				if (names != null && names.TryGetValue(p.Name, out tryidx) == false) continue;
-				var read = ExecuteArrayRowReadClassOrTuple(p.PropertyType, names, row, tryidx);
+				if (names != null && names.TryGetValue(prop.Name, out tryidx) == false) continue;
+				var read = ExecuteArrayRowReadClassOrTuple(prop.PropertyType, names, row, tryidx);
 				if (read.dataIndex > dataIndex) dataIndex = read.dataIndex;
-				FillPropertyValue(value, p.Name, read.value);
+				prop.SetValue(value, GetDataReaderValue(prop.PropertyType, read.value), null);
+				//FillPropertyValue(value, p.Name, read.value);
 				//p.SetValue(value, read.value);
 			}
 			return (value, dataIndex);

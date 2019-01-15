@@ -34,6 +34,9 @@ namespace FreeSql.Tests.MySql {
 
 		[Fact]
 		public void ToList() {
+			var t0 = select.Limit(50).ToList();
+
+
 			var t1 = g.mysql.Select<TestInfo>().Where("").Where(a => a.Id > 0).Skip(100).Limit(200).ToSql();
 			var t2 = g.mysql.Select<TestInfo>().As("b").Where("").Where(a => a.Id > 0).Skip(100).Limit(200).ToSql();
 

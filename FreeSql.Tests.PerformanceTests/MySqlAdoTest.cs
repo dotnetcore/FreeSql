@@ -6,6 +6,8 @@ using Xunit;
 using Dapper;
 using System.Linq;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace FreeSql.Tests.PerformanceTest {
 	public class MySqlAdoTest {
@@ -141,6 +143,41 @@ namespace FreeSql.Tests.PerformanceTest {
 			var t3 = g.mysql.Select<xxx>().ToList();
 			time.Stop();
 			sb.AppendLine($"Elapsed: {time.Elapsed}; ToList Entity Counts: {t3.Count}; ORM: FreeSql*");
+		}
+
+		[Fact]
+		public void ToListLimit10() {
+			var sb = new StringBuilder();
+			var time = new Stopwatch();
+
+			time.Restart();
+			var dplist1Count = 0;
+			var p1 = Parallel.For(1, 50, b => {
+				List<xxx> dplist1 = new List<xxx>();
+				for (var a = 0; a < 1000; a++) {
+					using (var conn = g.mysql.Ado.MasterPool.Get()) {
+						dplist1.AddRange(Dapper.SqlMapper.Query<xxx>(conn.Value, "select * from song limit 50").ToList());
+					}
+				}
+				Interlocked.Exchange(ref dplist1Count, dplist1.Count);
+			});
+			while (p1.IsCompleted == false) ;
+			time.Stop();
+			sb.AppendLine($"Elapsed: {time.Elapsed}; Query Entity Counts: {dplist1Count}; ORM: Dapper");
+
+
+			time.Restart();
+			var t3Count = 0;
+			var p3 = Parallel.For(1, 50, b => {
+				List<xxx> t3 = new List<xxx>();
+				for (var a = 0; a < 1000; a++) {
+					t3.AddRange(g.mysql.Select<xxx>().Limit(50).ToList());
+				}
+				Interlocked.Exchange(ref t3Count, t3.Count);
+			});
+			while (p3.IsCompleted == false) ;
+			time.Stop();
+			sb.AppendLine($"Elapsed: {time.Elapsed}; ToList Entity Counts: {t3Count}; ORM: FreeSql*");
 		}
 
 		[Table(Name = "song")]

@@ -9,6 +9,7 @@ namespace FreeSql.MySql {
 
 	class MySqlUtils : CommonUtils {
 		IFreeSql _orm;
+
 		public MySqlUtils(IFreeSql orm) {
 			_orm = orm;
 		}
@@ -72,5 +73,6 @@ namespace FreeSql.MySql {
 			}
 			return columnName;
 		}
+		internal override string DbName => "MySql";
 	}
 }

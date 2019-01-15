@@ -5,6 +5,7 @@ using System.Text;
 
 namespace FreeSql.Internal.Model {
 	class ReadAnonymousTypeInfo {
+		public PropertyInfo Property { get; set; }
 		public string CsName { get; set; }
 		public Type CsType { get; set; }
 		public string DbField { get; set; }

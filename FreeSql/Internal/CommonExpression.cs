@@ -58,7 +58,9 @@ namespace FreeSql.Internal {
 						parent.Consturctor = map.First().Table.Table.Type.GetConstructor(new Type[0]);
 						parent.ConsturctorType = ReadAnonymousTypeInfoConsturctorType.Properties;
 						for (var idx = 0; idx < map.Count; idx++) {
-							var child = new ReadAnonymousTypeInfo { CsName = map[idx].Column.CsName, DbField = $"{map[idx].Table.Alias}.{_common.QuoteSqlName(map[idx].Column.Attribute.Name)}" };
+							var child = new ReadAnonymousTypeInfo {
+								Property = map.First().Table.Table.Type.GetProperty(map[idx].Column.CsName, BindingFlags.Public | BindingFlags.IgnoreCase | BindingFlags.Instance),
+								CsName = map[idx].Column.CsName, DbField = $"{map[idx].Table.Alias}.{_common.QuoteSqlName(map[idx].Column.Attribute.Name)}" };
 							field.Append(", ").Append(_common.QuoteReadColumn(map[idx].Column.CsType, child.DbField));
 							if (index >= 0) field.Append(" as").Append(++index);
 							parent.Childs.Add(child);
@@ -75,7 +77,9 @@ namespace FreeSql.Internal {
 					parent.Consturctor = newExp.Type.GetConstructors()[0];
 					parent.ConsturctorType = ReadAnonymousTypeInfoConsturctorType.Arguments;
 					for (var a = 0; a < newExp.Members.Count; a++) {
-						var child = new ReadAnonymousTypeInfo { CsName = newExp.Members[a].Name, CsType = newExp.Arguments[a].Type };
+						var child = new ReadAnonymousTypeInfo {
+							Property = newExp.Type.GetProperty(newExp.Members[a].Name, BindingFlags.Public | BindingFlags.IgnoreCase | BindingFlags.Instance),
+							CsName = newExp.Members[a].Name, CsType = newExp.Arguments[a].Type };
 						parent.Childs.Add(child);
 						ReadAnonymousField(_tables, field, child, ref index, newExp.Arguments[a], getSelectGroupingMapString);
 					}
@@ -98,7 +102,8 @@ namespace FreeSql.Internal {
 				case ReadAnonymousTypeInfoConsturctorType.Properties:
 					var ret = parent.Consturctor.Invoke(null);
 					for (var b = 0; b < parent.Childs.Count; b++) {
-						Utils.FillPropertyValue(ret, parent.Childs[b].CsName, ReadAnonymous(parent.Childs[b], dr, ref index));
+						var prop = parent.Childs[b].Property;
+						prop.SetValue(ret, Utils.GetDataReaderValue(prop.PropertyType, ReadAnonymous(parent.Childs[b], dr, ref index)), null);
 					}
 					return ret;
 			}
