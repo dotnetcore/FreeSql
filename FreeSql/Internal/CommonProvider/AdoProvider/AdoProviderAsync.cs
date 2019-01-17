@@ -23,7 +23,7 @@ namespace FreeSql.Internal.CommonProvider {
 			var ret = new List<T>();
 			foreach (var row in ds) {
 				var read = Utils.ExecuteArrayRowReadClassOrTuple(typeof(T), names, row);
-				ret.Add(read.value == null ? default(T) : (T) read.value);
+				ret.Add(read.Value == null ? default(T) : (T) read.Value);
 			}
 			return ret;
 		}

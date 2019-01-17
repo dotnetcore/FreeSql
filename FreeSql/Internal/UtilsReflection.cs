@@ -16,7 +16,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 
 namespace FreeSql.Internal {
-	class Utils {
+	class UtilsReflection {
 
 		static ConcurrentDictionary<string, TableInfo> _cacheGetTableByEntity = new ConcurrentDictionary<string, TableInfo>();
 		internal static TableInfo GetTableByEntity(Type entity, CommonUtils common) {
@@ -110,59 +110,60 @@ namespace FreeSql.Internal {
 			return ret.ToArray();
 		}
 
-		static Dictionary<string, bool> dicExecuteArrayRowReadClassOrTuple = new Dictionary<string, bool> {
-			{ typeof(bool).FullName, true },
-			{ typeof(sbyte).FullName, true },
-			{ typeof(short).FullName, true },
-			{ typeof(int).FullName, true },
-			{ typeof(long).FullName, true },
-			{ typeof(byte).FullName, true },
-			{ typeof(ushort).FullName, true },
-			{ typeof(uint).FullName, true },
-			{ typeof(ulong).FullName, true },
-			{ typeof(double).FullName, true },
-			{ typeof(float).FullName, true },
-			{ typeof(decimal).FullName, true },
-			{ typeof(TimeSpan).FullName, true },
-			{ typeof(DateTime).FullName, true },
-			{ typeof(DateTimeOffset).FullName, true },
-			{ typeof(byte[]).FullName, true },
-			{ typeof(string).FullName, true },
-			{ typeof(Guid).FullName, true },
-			{ typeof(MygisPoint).FullName, true },
-			{ typeof(MygisLineString).FullName, true },
-			{ typeof(MygisPolygon).FullName, true },
-			{ typeof(MygisMultiPoint).FullName, true },
-			{ typeof(MygisMultiLineString).FullName, true },
-			{ typeof(MygisMultiPolygon).FullName, true },
-			{ typeof(BitArray).FullName, true },
-			{ typeof(NpgsqlPoint).FullName, true },
-			{ typeof(NpgsqlLine).FullName, true },
-			{ typeof(NpgsqlLSeg).FullName, true },
-			{ typeof(NpgsqlBox).FullName, true },
-			{ typeof(NpgsqlPath).FullName, true },
-			{ typeof(NpgsqlPolygon).FullName, true },
-			{ typeof(NpgsqlCircle).FullName, true },
-			{ typeof((IPAddress Address, int Subnet)).FullName, true },
-			{ typeof(IPAddress).FullName, true },
-			{ typeof(PhysicalAddress).FullName, true },
-			{ typeof(NpgsqlRange<int>).FullName, true },
-			{ typeof(NpgsqlRange<long>).FullName, true },
-			{ typeof(NpgsqlRange<decimal>).FullName, true },
-			{ typeof(NpgsqlRange<DateTime>).FullName, true },
-			{ typeof(PostgisPoint).FullName, true },
-			{ typeof(PostgisLineString).FullName, true },
-			{ typeof(PostgisPolygon).FullName, true },
-			{ typeof(PostgisMultiPoint).FullName, true },
-			{ typeof(PostgisMultiLineString).FullName, true },
-			{ typeof(PostgisMultiPolygon).FullName, true },
-			{ typeof(PostgisGeometry).FullName, true },
-			{ typeof(PostgisGeometryCollection).FullName, true },
-			{ typeof(Dictionary<string, string>).FullName, true },
-			{ typeof(JToken).FullName, true },
-			{ typeof(JObject).FullName, true },
-			{ typeof(JArray).FullName, true },
+		static Dictionary<Type, bool> dicExecuteArrayRowReadClassOrTuple = new Dictionary<Type, bool> {
+			[typeof(bool)] = true,
+			[typeof(sbyte)] = true,
+			[typeof(short)] = true,
+			[typeof(int)] = true,
+			[typeof(long)] = true,
+			[typeof(byte)] = true,
+			[typeof(ushort)] = true,
+			[typeof(uint)] = true,
+			[typeof(ulong)] = true,
+			[typeof(double)] = true,
+			[typeof(float)] = true,
+			[typeof(decimal)] = true,
+			[typeof(TimeSpan)] = true,
+			[typeof(DateTime)] = true,
+			[typeof(DateTimeOffset)] = true,
+			[typeof(byte[])] = true,
+			[typeof(string)] = true,
+			[typeof(Guid)] = true,
+			[typeof(MygisPoint)] = true,
+			[typeof(MygisLineString)] = true,
+			[typeof(MygisPolygon)] = true,
+			[typeof(MygisMultiPoint)] = true,
+			[typeof(MygisMultiLineString)] = true,
+			[typeof(MygisMultiPolygon)] = true,
+			[typeof(BitArray)] = true,
+			[typeof(NpgsqlPoint)] = true,
+			[typeof(NpgsqlLine)] = true,
+			[typeof(NpgsqlLSeg)] = true,
+			[typeof(NpgsqlBox)] = true,
+			[typeof(NpgsqlPath)] = true,
+			[typeof(NpgsqlPolygon)] = true,
+			[typeof(NpgsqlCircle)] = true,
+			[typeof((IPAddress Address, int Subnet))] = true,
+			[typeof(IPAddress)] = true,
+			[typeof(PhysicalAddress)] = true,
+			[typeof(NpgsqlRange<int>)] = true,
+			[typeof(NpgsqlRange<long>)] = true,
+			[typeof(NpgsqlRange<decimal>)] = true,
+			[typeof(NpgsqlRange<DateTime>)] = true,
+			[typeof(PostgisPoint)] = true,
+			[typeof(PostgisLineString)] = true,
+			[typeof(PostgisPolygon)] = true,
+			[typeof(PostgisMultiPoint)] = true,
+			[typeof(PostgisMultiLineString)] = true,
+			[typeof(PostgisMultiPolygon)] = true,
+			[typeof(PostgisGeometry)] = true,
+			[typeof(PostgisGeometryCollection)] = true,
+			[typeof(Dictionary<string, string>)] = true,
+			[typeof(JToken)] = true,
+			[typeof(JObject)] = true,
+			[typeof(JArray)] = true,
 		};
+
 		internal static ConcurrentDictionary<Type, _dicClassConstructorInfo> _dicClassConstructor = new ConcurrentDictionary<Type, _dicClassConstructorInfo>();
 		internal static ConcurrentDictionary<Type, _dicTupleConstructorInfo> _dicTupleConstructor = new ConcurrentDictionary<Type, _dicTupleConstructorInfo>();
 		internal class _dicClassConstructorInfo {
@@ -178,7 +179,7 @@ namespace FreeSql.Internal {
 			var typeGeneric = type;
 			if (typeGeneric.FullName.StartsWith("System.Nullable`1[")) typeGeneric = type.GenericTypeArguments.First();
 			if (typeGeneric.IsEnum ||
-				dicExecuteArrayRowReadClassOrTuple.ContainsKey(typeGeneric.FullName))
+				dicExecuteArrayRowReadClassOrTuple.ContainsKey(typeGeneric))
 				return (GetDataReaderValue(type, row[dataIndex]), dataIndex + 1);
 			if (type.Namespace == "System" && (type.FullName == "System.String" || type.IsValueType)) { //值类型，或者元组
 				bool isTuple = type.Name.StartsWith("ValueTuple`");
@@ -216,7 +217,7 @@ namespace FreeSql.Internal {
 				if (names != null && names.TryGetValue(prop.Name, out tryidx) == false) continue;
 				var read = ExecuteArrayRowReadClassOrTuple(prop.PropertyType, names, row, tryidx);
 				if (read.dataIndex > dataIndex) dataIndex = read.dataIndex;
-				prop.SetValue(value, GetDataReaderValue(prop.PropertyType, read.value), null);
+				prop.SetValue(value, read.value, null);
 				//FillPropertyValue(value, p.Name, read.value);
 				//p.SetValue(value, read.value);
 			}

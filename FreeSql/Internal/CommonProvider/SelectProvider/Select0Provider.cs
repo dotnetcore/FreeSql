@@ -150,7 +150,7 @@ namespace FreeSql.Internal.CommonProvider {
 				var ds = _orm.Ado.ExecuteArray(CommandType.Text, sql, _params.ToArray());
 				foreach (var dr in ds) {
 					var read = Utils.ExecuteArrayRowReadClassOrTuple(type, null, dr);
-					ret.Add(read.value == null ? default(TTuple) : (TTuple)read.value);
+					ret.Add(read.Value == null ? default(TTuple) : (TTuple)read.Value);
 				}
 				return ret;
 			});
@@ -165,7 +165,7 @@ namespace FreeSql.Internal.CommonProvider {
 				var ds = await _orm.Ado.ExecuteArrayAsync(CommandType.Text, sql, _params.ToArray());
 				foreach (var dr in ds) {
 					var read = Utils.ExecuteArrayRowReadClassOrTuple(type, null, dr);
-					ret.Add(read.value == null ? default(TTuple) : (TTuple)read.value);
+					ret.Add(read.Value == null ? default(TTuple) : (TTuple)read.Value);
 				}
 				return ret;
 			});
@@ -221,16 +221,12 @@ namespace FreeSql.Internal.CommonProvider {
 		}
 		protected (ReadAnonymousTypeInfo map, string field) GetAllField() {
 			var type = typeof(T1);
-			if (Utils._dicClassConstructor.TryGetValue(type, out var classInfo) == false) {
-				classInfo = new Utils._dicClassConstructorInfo { Constructor = type.GetConstructor(new Type[0]), Properties = type.GetProperties() };
-				Utils._dicClassConstructor.TryAdd(type, classInfo);
-			}
-			var map = new ReadAnonymousTypeInfo { Consturctor = classInfo.Constructor, ConsturctorType = ReadAnonymousTypeInfoConsturctorType.Properties };
+			var map = new ReadAnonymousTypeInfo { Consturctor = type.GetConstructor(new Type[0]), ConsturctorType = ReadAnonymousTypeInfoConsturctorType.Properties };
 			var field = new StringBuilder();
 			var dicfield = new Dictionary<string, bool>();
 			var tb = _tables.First();
 			var index = 0;
-			var ps = classInfo.Properties;
+			var ps = type.GetProperties();
 			foreach (var p in ps) {
 				var child = new ReadAnonymousTypeInfo { Property = p, CsName = p.Name };
 				if (tb.Table.ColumnsByCs.TryGetValue(p.Name, out var col)) { //普通字段

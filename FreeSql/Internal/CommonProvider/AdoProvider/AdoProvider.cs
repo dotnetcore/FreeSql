@@ -66,13 +66,15 @@ namespace FreeSql.Internal.CommonProvider {
 		public List<T> Query<T>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
 			var names = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
 			var ret = new List<T>();
+			var type = typeof(T);
+			var defaultValue = default(T);
 			ExecuteReader(dr => {
 				if (names.Any() == false)
 					for (var a = 0; a < dr.FieldCount; a++) names.Add(dr.GetName(a), a);
-				object[] values = new object[dr.FieldCount];
+				object[] values = new object[names.Count];
 				dr.GetValues(values);
-				var read = Utils.ExecuteArrayRowReadClassOrTuple(typeof(T), names, values, 0);
-				ret.Add(read.value == null ? default(T) : (T)read.value);
+				var read = Utils.ExecuteArrayRowReadClassOrTuple(type, names, values, 0);
+				ret.Add(read.Value == null ? defaultValue : (T)read.Value);
 			}, cmdType, cmdText, cmdParms);
 			return ret;
 		}
