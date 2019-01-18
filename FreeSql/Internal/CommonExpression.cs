@@ -1,6 +1,7 @@
 ﻿using FreeSql.Internal.Model;
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -90,8 +91,8 @@ namespace FreeSql.Internal {
 			if (index >= 0) field.Append(" as").Append(++index);
 			return false;
 		}
-		internal object ReadAnonymous(ReadAnonymousTypeInfo parent, object[] dr, ref int index) {
-			if (parent.Childs.Any() == false) return dr[++index];
+		internal object ReadAnonymous(ReadAnonymousTypeInfo parent, DbDataReader dr, ref int index) {
+			if (parent.Childs.Any() == false) return dr.GetValue(++index);
 			switch (parent.ConsturctorType) {
 				case ReadAnonymousTypeInfoConsturctorType.Arguments:
 					var args = new object[parent.Childs.Count];

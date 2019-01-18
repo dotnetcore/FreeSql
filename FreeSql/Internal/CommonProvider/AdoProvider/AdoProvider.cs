@@ -62,23 +62,19 @@ namespace FreeSql.Internal.CommonProvider {
 			if (isThrowException) throw e;
 		}
 
-		public List<T> Query<T>(string sql, object parms = null) => Query<T>(CommandType.Text, sql, GetDbParamtersByObject(sql, parms));
+		public List<T> Query<T>(string cmdText, object parms = null) => Query<T>(CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
 		public List<T> Query<T>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
 			var names = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
 			var ret = new List<T>();
 			var type = typeof(T);
-			var defaultValue = default(T);
 			ExecuteReader(dr => {
 				if (names.Any() == false)
 					for (var a = 0; a < dr.FieldCount; a++) names.Add(dr.GetName(a), a);
-				object[] values = new object[names.Count];
-				dr.GetValues(values);
-				var read = Utils.ExecuteArrayRowReadClassOrTuple(type, names, values, 0);
-				ret.Add(read.Value == null ? defaultValue : (T)read.Value);
+				ret.Add((T)Utils.ExecuteArrayRowReadClassOrTuple(type, names, dr, 0).Value);
 			}, cmdType, cmdText, cmdParms);
 			return ret;
 		}
-		public void ExecuteReader(Action<DbDataReader> readerHander, string sql, object parms = null) => ExecuteReader(readerHander, CommandType.Text, sql, GetDbParamtersByObject(sql, parms));
+		public void ExecuteReader(Action<DbDataReader> readerHander, string cmdText, object parms = null) => ExecuteReader(readerHander, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
 		public void ExecuteReader(Action<DbDataReader> readerHander, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
 			var dt = DateTime.Now;
 			var logtxt = new StringBuilder();
@@ -172,7 +168,7 @@ namespace FreeSql.Internal.CommonProvider {
 			LoggerException(pool, pc.cmd, ex, dt, logtxt);
 			pc.cmd.Parameters.Clear();
 		}
-		public object[][] ExecuteArray(string sql, object parms = null) => ExecuteArray(CommandType.Text, sql, GetDbParamtersByObject(sql, parms));
+		public object[][] ExecuteArray(string cmdText, object parms = null) => ExecuteArray(CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
 		public object[][] ExecuteArray(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
 			List<object[]> ret = new List<object[]>();
 			ExecuteReader(dr => {
@@ -182,7 +178,7 @@ namespace FreeSql.Internal.CommonProvider {
 			}, cmdType, cmdText, cmdParms);
 			return ret.ToArray();
 		}
-		public DataTable ExecuteDataTable(string sql, object parms = null) => ExecuteDataTable(CommandType.Text, sql, GetDbParamtersByObject(sql, parms));
+		public DataTable ExecuteDataTable(string cmdText, object parms = null) => ExecuteDataTable(CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
 		public DataTable ExecuteDataTable(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
 			var ret = new DataTable();
 			ExecuteReader(dr => {
@@ -194,7 +190,7 @@ namespace FreeSql.Internal.CommonProvider {
 			}, cmdType, cmdText, cmdParms);
 			return ret;
 		}
-		public int ExecuteNonQuery(string sql, object parms = null) => ExecuteNonQuery(CommandType.Text, sql, GetDbParamtersByObject(sql, parms));
+		public int ExecuteNonQuery(string cmdText, object parms = null) => ExecuteNonQuery(CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
 		public int ExecuteNonQuery(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
 			var dt = DateTime.Now;
 			var logtxt = new StringBuilder();
@@ -219,7 +215,7 @@ namespace FreeSql.Internal.CommonProvider {
 			pc.cmd.Parameters.Clear();
 			return val;
 		}
-		public object ExecuteScalar(string sql, object parms = null) => ExecuteScalar(CommandType.Text, sql, GetDbParamtersByObject(sql, parms));
+		public object ExecuteScalar(string cmdText, object parms = null) => ExecuteScalar(CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
 		public object ExecuteScalar(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
 			var dt = DateTime.Now;
 			var logtxt = new StringBuilder();

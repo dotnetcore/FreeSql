@@ -147,11 +147,10 @@ namespace FreeSql.Internal.CommonProvider {
 			return _orm.Cache.Shell(_cache.key, _cache.seconds, () => {
 				List<TTuple> ret = new List<TTuple>();
 				Type type = typeof(TTuple);
-				var ds = _orm.Ado.ExecuteArray(CommandType.Text, sql, _params.ToArray());
-				foreach (var dr in ds) {
+				_orm.Ado.ExecuteReader(dr => {
 					var read = Utils.ExecuteArrayRowReadClassOrTuple(type, null, dr);
-					ret.Add(read.Value == null ? default(TTuple) : (TTuple)read.Value);
-				}
+					ret.Add((TTuple)read.Value);
+				}, CommandType.Text, sql, _params.ToArray());
 				return ret;
 			});
 		}
@@ -162,19 +161,40 @@ namespace FreeSql.Internal.CommonProvider {
 			return _orm.Cache.ShellAsync(_cache.key, _cache.seconds, async () => {
 				List<TTuple> ret = new List<TTuple>();
 				Type type = typeof(TTuple);
-				var ds = await _orm.Ado.ExecuteArrayAsync(CommandType.Text, sql, _params.ToArray());
-				foreach (var dr in ds) {
+				await _orm.Ado.ExecuteReaderAsync(dr => {
 					var read = Utils.ExecuteArrayRowReadClassOrTuple(type, null, dr);
-					ret.Add(read.Value == null ? default(TTuple) : (TTuple)read.Value);
-				}
+					ret.Add((TTuple)read.Value);
+					return Task.CompletedTask;
+				}, CommandType.Text, sql, _params.ToArray());
 				return ret;
 			});
 		}
 		public List<T1> ToList() {
-			return this.ToListMapReader<T1>(this.GetAllField());
+			var af = this.GetAllFieldExpressionTree();
+			var sql = this.ToSql(af.Field);
+			if (_cache.seconds > 0 && string.IsNullOrEmpty(_cache.key)) _cache.key = $"{sql}{string.Join("|", _params.Select(a => a.Value))}";
+
+			return _orm.Cache.Shell(_cache.key, _cache.seconds, () => {
+				List<T1> ret = new List<T1>();
+				_orm.Ado.ExecuteReader(dr => {
+					ret.Add(af.Read(dr));
+				}, CommandType.Text, sql, _params.ToArray());
+				return ret;
+			});
 		}
-		public Task<List<T1>> ToListAsync() {
-			return this.ToListMapReaderAsync<T1>(this.GetAllField());
+		async public Task<List<T1>> ToListAsync() {
+			var af = this.GetAllFieldExpressionTree();
+			var sql = this.ToSql(af.Field);
+			if (_cache.seconds > 0 && string.IsNullOrEmpty(_cache.key)) _cache.key = $"{sql}{string.Join("|", _params.Select(a => a.Value))}";
+
+			return await _orm.Cache.ShellAsync(_cache.key, _cache.seconds, async () => {
+				List<T1> ret = new List<T1>();
+				await _orm.Ado.ExecuteReaderAsync(dr => {
+					ret.Add(af.Read(dr));
+					return Task.CompletedTask;
+				}, CommandType.Text, sql, _params.ToArray());
+				return ret;
+			});
 		}
 		public T1 ToOne() {
 			this.Limit(1);
@@ -189,27 +209,30 @@ namespace FreeSql.Internal.CommonProvider {
 			var sql = this.ToSql(af.field);
 			if (_cache.seconds > 0 && string.IsNullOrEmpty(_cache.key)) _cache.key = $"{sql}{string.Join("|", _params.Select(a => a.Value))}";
 
-			var drarr = _orm.Cache.Shell(_cache.key, _cache.seconds, () => _orm.Ado.ExecuteArray(CommandType.Text, sql, _params.ToArray()));
-			var ret = new List<TReturn>();
-			for (var a = 0; a < drarr.Length; a++) {
-				var dr = drarr[a];
-				var index = -1;
-				ret.Add((TReturn)_commonExpression.ReadAnonymous(af.map, dr, ref index));
-			}
-			return ret;
+			return _orm.Cache.Shell(_cache.key, _cache.seconds, () => {
+				List<TReturn> ret = new List<TReturn>();
+				Type type = typeof(TReturn);
+				_orm.Ado.ExecuteReader(dr => {
+					var index = -1;
+					ret.Add((TReturn)_commonExpression.ReadAnonymous(af.map, dr, ref index));
+				}, CommandType.Text, sql, _params.ToArray());
+				return ret;
+			});
 		}
 		async protected Task<List<TReturn>> ToListMapReaderAsync<TReturn>((ReadAnonymousTypeInfo map, string field) af) {
 			var sql = this.ToSql(af.field);
 			if (_cache.seconds > 0 && string.IsNullOrEmpty(_cache.key)) _cache.key = $"{sql}{string.Join("|", _params.Select(a => a.Value))}";
 
-			var drarr = await _orm.Cache.ShellAsync(_cache.key, _cache.seconds, () => _orm.Ado.ExecuteArrayAsync(CommandType.Text, sql, _params.ToArray()));
-			var ret = new List<TReturn>();
-			for (var a = 0; a < drarr.Length; a++) {
-				var dr = drarr[a];
-				var index = -1;
-				ret.Add((TReturn)_commonExpression.ReadAnonymous(af.map, dr, ref index));
-			}
-			return ret;
+			return await _orm.Cache.ShellAsync(_cache.key, _cache.seconds, async () => {
+				List<TReturn> ret = new List<TReturn>();
+				Type type = typeof(TReturn);
+				await _orm.Ado.ExecuteReaderAsync(dr => {
+					var index = -1;
+					ret.Add((TReturn)_commonExpression.ReadAnonymous(af.map, dr, ref index));
+					return Task.CompletedTask;
+				}, CommandType.Text, sql, _params.ToArray());
+				return ret;
+			});
 		}
 		protected (ReadAnonymousTypeInfo map, string field) GetExpressionField(Expression newexp) {
 			var map = new ReadAnonymousTypeInfo();
@@ -219,15 +242,113 @@ namespace FreeSql.Internal.CommonProvider {
 			_commonExpression.ReadAnonymousField(_tables, field, map, ref index, newexp, null);
 			return (map, field.Length > 0 ? field.Remove(0, 2).ToString() : null);
 		}
-		protected (ReadAnonymousTypeInfo map, string field) GetAllField() {
-			var type = typeof(T1);
-			var map = new ReadAnonymousTypeInfo { Consturctor = type.GetConstructor(new Type[0]), ConsturctorType = ReadAnonymousTypeInfoConsturctorType.Properties };
+		static ConcurrentDictionary<Type, ConstructorInfo> _dicConstructor = new ConcurrentDictionary<Type, ConstructorInfo>();
+		static ConcurrentDictionary<string, GetAllFieldExpressionTreeInfo> _dicGetAllFieldExpressionTree = new ConcurrentDictionary<string, GetAllFieldExpressionTreeInfo>();
+		public class GetAllFieldExpressionTreeInfo {
+			public string Field { get; set; }
+			public Func<DbDataReader, T1> Read { get; set; }
+		}
+		protected GetAllFieldExpressionTreeInfo GetAllFieldExpressionTree() {
+			var key = string.Join("+", _tables.Select(a => $"{a.Table.DbName}-{a.Alias}"));
+			return _dicGetAllFieldExpressionTree.GetOrAdd(key, s => {
+				var type = _tables.First().Table.Type;
+
+				var rowExp = Expression.Parameter(typeof(DbDataReader), "row");
+				var returnTarget = Expression.Label(type);
+				var retExp = Expression.Variable(type, "ret");
+				var dataIndexExp = Expression.Variable(typeof(int), "dataIndex");
+				var readExp = Expression.Variable(typeof(Utils.RowInfo), "read");
+				var readExpValue = Expression.MakeMemberAccess(readExp, Utils.RowInfo.PropertyValue);
+				var readExpDataIndex = Expression.MakeMemberAccess(readExp, Utils.RowInfo.PropertyDataIndex);
+				var blockExp = new List<Expression>();
+				var ctor = type.GetConstructor(new Type[0]) ?? type.GetConstructors().First();
+				blockExp.AddRange(new Expression[] {
+					Expression.Assign(retExp, Expression.New(ctor, ctor.GetParameters().Select(a => Expression.Default(a.ParameterType)))),
+					Expression.Assign(dataIndexExp, Expression.Constant(0))
+				});
+
+				var field = new StringBuilder();
+				var dicfield = new Dictionary<string, bool>();
+				var tb = _tables.First();
+				var index = 0;
+				var ps = _tables.First().Table.Properties;
+				foreach (var prop in ps.Values) {
+					if (tb.Table.ColumnsByCs.TryGetValue(prop.Name, out var col)) { //普通字段
+						if (index > 0) field.Append(", ");
+						var quoteName = _commonUtils.QuoteSqlName(col.Attribute.Name);
+						field.Append(_commonUtils.QuoteReadColumn(col.CsType, $"{tb.Alias}.{quoteName}"));
+						++index;
+						if (dicfield.ContainsKey(quoteName)) field.Append(" as").Append(index);
+						else dicfield.Add(quoteName, true);
+					} else {
+						var tb2 = _tables.Where(a => a.Table.Type == prop.PropertyType && a.Alias.Contains(prop.Name)).FirstOrDefault();
+						if (tb2 == null && ps.Where(pw => pw.Value.PropertyType == prop.PropertyType).Count() == 1) tb2 = _tables.Where(a => a.Table.Type == prop.PropertyType).FirstOrDefault();
+						if (tb2 == null) continue;
+						foreach (var col2 in tb2.Table.Columns.Values) {
+							if (index > 0) field.Append(", ");
+							var quoteName = _commonUtils.QuoteSqlName(col2.Attribute.Name);
+							field.Append(_commonUtils.QuoteReadColumn(col2.CsType, $"{tb2.Alias}.{quoteName}"));
+							++index;
+							if (dicfield.ContainsKey(quoteName)) field.Append(" as").Append(index);
+							else dicfield.Add(quoteName, true);
+						}
+					}
+					//只读到二级属性
+					var propGetSetMethod = prop.GetSetMethod();
+					Expression readExpAssign = null; //加速缓存
+					if (prop.PropertyType.IsArray) readExpAssign = Expression.New(Utils.RowInfo.Constructor,
+						Expression.Call(Utils.MethodGetDataReaderValue, new Expression[] { Expression.Constant(prop.PropertyType), Expression.Call(rowExp, Utils.MethodDataReaderGetValue, dataIndexExp) }),
+						Expression.Add(dataIndexExp, Expression.Constant(1))
+					);
+					else {
+						var proptypeGeneric = prop.PropertyType;
+						if (proptypeGeneric.FullName.StartsWith("System.Nullable`1[")) proptypeGeneric = proptypeGeneric.GenericTypeArguments.First();
+						if (proptypeGeneric.IsEnum ||
+							Utils.dicExecuteArrayRowReadClassOrTuple.ContainsKey(proptypeGeneric)) readExpAssign = Expression.New(Utils.RowInfo.Constructor,
+							Expression.Call(Utils.MethodGetDataReaderValue, new Expression[] { Expression.Constant(prop.PropertyType), Expression.Call(rowExp, Utils.MethodDataReaderGetValue, dataIndexExp) }),
+							Expression.Add(dataIndexExp, Expression.Constant(1))
+						);
+						else {
+							readExpAssign = Expression.Call(Utils.MethodExecuteArrayRowReadClassOrTuple, new Expression[] { Expression.Constant(prop.PropertyType), Expression.Constant(null, typeof(Dictionary<string, int>)), rowExp, dataIndexExp });
+						}
+					}
+					blockExp.AddRange(new Expression[] {
+						//以下注释部分为【严格读取】，会损失一点性能
+						//Expression.IfThen(Expression.Not(Expression.And(
+						//	Expression.NotEqual(namesExp, Expression.Constant(null)),
+						//	Expression.Not(Expression.Call(namesExp, namesExp.Type.GetMethod("TryGetValue"), Expression.Constant(prop.Name), tryidxExp)))),
+						//	Expression.Block(
+								Expression.Assign(readExp, readExpAssign),
+								Expression.IfThen(Expression.GreaterThan(readExpDataIndex, dataIndexExp),
+									Expression.Assign(dataIndexExp, readExpDataIndex)),
+								Expression.IfThenElse(Expression.Equal(readExpValue, Expression.Constant(null)),
+									Expression.Call(retExp, propGetSetMethod, Expression.Default(prop.PropertyType)),
+									Expression.Call(retExp, propGetSetMethod, Expression.Convert(readExpValue, prop.PropertyType)))
+						//	)
+						//)
+					});
+				}
+				blockExp.AddRange(new Expression[] {
+					Expression.Return(returnTarget, retExp),
+					Expression.Label(returnTarget, Expression.Default(type))
+				});
+				return new GetAllFieldExpressionTreeInfo {
+					Field = field.ToString(),
+					Read = Expression.Lambda<Func<DbDataReader, T1>>(Expression.Block(new[] { retExp, dataIndexExp, readExp }, blockExp), new[] { rowExp }).Compile()
+				};
+			});
+		}
+		protected (ReadAnonymousTypeInfo map, string field) GetAllFieldReflection() {
+			var type = _tables.First().Table.Type;
+			var constructor = _dicConstructor.GetOrAdd(type, s => type.GetConstructor(new Type[0]));
+			var map = new ReadAnonymousTypeInfo { Consturctor = constructor, ConsturctorType = ReadAnonymousTypeInfoConsturctorType.Properties };
+
 			var field = new StringBuilder();
 			var dicfield = new Dictionary<string, bool>();
 			var tb = _tables.First();
 			var index = 0;
-			var ps = type.GetProperties();
-			foreach (var p in ps) {
+			var ps = _tables.First().Table.Properties;
+			foreach (var p in ps.Values) {
 				var child = new ReadAnonymousTypeInfo { Property = p, CsName = p.Name };
 				if (tb.Table.ColumnsByCs.TryGetValue(p.Name, out var col)) { //普通字段
 					if (index > 0) field.Append(", ");
@@ -238,7 +359,7 @@ namespace FreeSql.Internal.CommonProvider {
 					else dicfield.Add(quoteName, true);
 				} else {
 					var tb2 = _tables.Where(a => a.Table.Type == p.PropertyType && a.Alias.Contains(p.Name)).FirstOrDefault();
-					if (tb2 == null && ps.Where(pw => pw.PropertyType == p.PropertyType).Count() == 1) tb2 = _tables.Where(a => a.Table.Type == p.PropertyType).FirstOrDefault();
+					if (tb2 == null && ps.Where(pw => pw.Value.PropertyType == p.PropertyType).Count() == 1) tb2 = _tables.Where(a => a.Table.Type == p.PropertyType).FirstOrDefault();
 					if (tb2 == null) continue;
 					child.Consturctor = tb2.Table.Type.GetConstructor(new Type[0]);
 					child.ConsturctorType = ReadAnonymousTypeInfoConsturctorType.Properties;

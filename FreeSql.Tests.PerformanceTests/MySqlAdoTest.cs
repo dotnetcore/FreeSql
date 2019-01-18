@@ -57,6 +57,11 @@ namespace FreeSql.Tests.PerformanceTest {
 			sb.AppendLine($"Elapsed: {time.Elapsed}; Query Tuple Counts: {t4.Count}; ORM: FreeSql*");
 
 			time.Restart();
+			var t41 = g.mysql.Select<xxx>().ToList<(int, string, string)>("id,title,url");
+			time.Stop();
+			sb.AppendLine($"Elapsed: {time.Elapsed}; Query ToList<Tuple> Counts: {t41.Count}; ORM: FreeSql*");
+
+			time.Restart();
 			var t5 = g.mysql.Ado.Query<dynamic>("select * from song");
 			time.Stop();
 			sb.AppendLine($"Elapsed: {time.Elapsed}; Query Dynamic Counts: {t3.Count}; ORM: FreeSql*");

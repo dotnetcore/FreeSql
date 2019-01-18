@@ -27,7 +27,7 @@ namespace FreeSql.Tests {
 				
 				.Any()
 				).Any()
-			).ToSql();
+			).ToList();
 
 
 			var groupby = g.mysql.Select<TestInfo>().From<TestTypeInfo, TestTypeParentInfo>((s, b, c) => s
@@ -38,7 +38,7 @@ namespace FreeSql.Tests {
 			.Having(a => a.Count() < 300 || a.Avg(a.Key.mod4) < 100)
 			.OrderBy(a => a.Key.tt2)
 			.OrderByDescending(a => a.Count())
-			.ToSql(a => new { a.Key.tt2, cou1 = a.Count(), arg1 = a.Avg(a.Key.mod4),
+			.ToList(a => new { a.Key.tt2, cou1 = a.Count(), arg1 = a.Avg(a.Key.mod4),
 				ccc2 = a.Key.tt2 ?? "now()",
 				//ccc = Convert.ToDateTime("now()"), partby = Convert.ToDecimal("sum(num) over(PARTITION BY server_id,os,rid,chn order by id desc)")
 			});
@@ -47,13 +47,13 @@ namespace FreeSql.Tests {
 
 			var arrg222 = g.mysql.Select<NullAggreTestTable>().ToAggregate(a => new { sum = a.Sum(a.Key.Id + 11.11), avg = a.Avg(a.Key.Id), count = a.Count(), max = a.Max(a.Key.Id), min = a.Min(a.Key.Id) });
 
-			var t1 = g.mysql.Select<TestInfo>().Where("").Where(a => a.Id > 0).Skip(100).Limit(200).ToSql();
-			var t2 = g.mysql.Select<TestInfo>().As("b").Where("").Where(a => a.Id > 0).Skip(100).Limit(200).ToSql();
+			var t1 = g.mysql.Select<TestInfo>().Where("").Where(a => a.Id > 0).Skip(100).Limit(200).ToList();
+			var t2 = g.mysql.Select<TestInfo>().As("b").Where("").Where(a => a.Id > 0).Skip(100).Limit(200).ToList();
 
 
-			var sql1 = select.LeftJoin(a => a.Type.Guid == a.TypeGuid).ToSql();
-			var sql2 = select.LeftJoin<TestTypeInfo>((a, b) => a.TypeGuid == b.Guid && b.Name == "111").ToSql();
-			var sql3 = select.LeftJoin("TestTypeInfo b on b.Guid = a.TypeGuid").ToSql();
+			var sql1 = select.LeftJoin(a => a.Type.Guid == a.TypeGuid).ToList();
+			var sql2 = select.LeftJoin<TestTypeInfo>((a, b) => a.TypeGuid == b.Guid && b.Name == "111").ToList();
+			var sql3 = select.LeftJoin("TestTypeInfo b on b.Guid = a.TypeGuid").ToList();
 
 			//g.mysql.Select<TestInfo, TestTypeInfo, TestTypeParentInfo>().Join((a, b, c) => new Model.JoinResult3(
 			//   Model.JoinType.LeftJoin, a.TypeGuid == b.Guid,
@@ -69,7 +69,7 @@ namespace FreeSql.Tests {
 			var sql4 = select.From<TestTypeInfo, TestTypeParentInfo>((s, b, c) => s
 				.InnerJoin(a => a.TypeGuid == b.Guid)
 				.LeftJoin(a => c.Id == b.ParentId)
-				.Where(a => b.Name == "xxx")).ToSql();
+				.Where(a => b.Name == "xxx")).ToList();
 			//.Where(a => a.Id == 1).ToSql();
 
 			
@@ -94,12 +94,12 @@ namespace FreeSql.Tests {
 					}
 				});
 
-			var ttt122 = g.mysql.Select<TestTypeParentInfo>().Where(a => a.Id > 0).ToSql();
+			var ttt122 = g.mysql.Select<TestTypeParentInfo>().Where(a => a.Id > 0).ToList();
 
 
 
 
-			var sql5 = g.mysql.Select<TestInfo>().From<TestTypeInfo, TestTypeParentInfo>((s, b, c) => s).Where((a, b, c) => a.Id == b.ParentId).ToSql();
+			var sql5 = g.mysql.Select<TestInfo>().From<TestTypeInfo, TestTypeParentInfo>((s, b, c) => s).Where((a, b, c) => a.Id == b.ParentId).ToList();
 
 
 

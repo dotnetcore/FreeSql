@@ -9,25 +9,20 @@ using System.Threading.Tasks;
 
 namespace FreeSql.Internal.CommonProvider {
 	partial class AdoProvider {
-		public Task<List<T>> QueryAsync<T>(string sql, object parms = null) => QueryAsync<T>(CommandType.Text, sql, GetDbParamtersByObject(sql, parms));
+		public Task<List<T>> QueryAsync<T>(string cmdText, object parms = null) => QueryAsync<T>(CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
 		async public Task<List<T>> QueryAsync<T>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
 			var names = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
-			var ds = new List<object[]>();
-			await ExecuteReaderAsync(async dr => {
+			var ret = new List<T>();
+			var type = typeof(T);
+			await ExecuteReaderAsync(dr => {
 				if (names.Any() == false)
 					for (var a = 0; a < dr.FieldCount; a++) names.Add(dr.GetName(a), a);
-				object[] values = new object[dr.FieldCount];
-				for (int a = 0; a < values.Length; a++) if (!await dr.IsDBNullAsync(a)) values[a] = await dr.GetFieldValueAsync<object>(a);
-				ds.Add(values);
+				ret.Add((T)Utils.ExecuteArrayRowReadClassOrTuple(type, names, dr, 0).Value);
+				return Task.CompletedTask;
 			}, cmdType, cmdText, cmdParms);
-			var ret = new List<T>();
-			foreach (var row in ds) {
-				var read = Utils.ExecuteArrayRowReadClassOrTuple(typeof(T), names, row);
-				ret.Add(read.Value == null ? default(T) : (T) read.Value);
-			}
 			return ret;
 		}
-		public Task ExecuteReaderAsync(Func<DbDataReader, Task> readerHander, string sql, object parms = null) => ExecuteReaderAsync(readerHander, CommandType.Text, sql, GetDbParamtersByObject(sql, parms));
+		public Task ExecuteReaderAsync(Func<DbDataReader, Task> readerHander, string cmdText, object parms = null) => ExecuteReaderAsync(readerHander, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
 		async public Task ExecuteReaderAsync(Func<DbDataReader, Task> readerHander, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
 			var dt = DateTime.Now;
 			var logtxt = new StringBuilder();
@@ -121,7 +116,7 @@ namespace FreeSql.Internal.CommonProvider {
 			LoggerException(pool, cmd, ex, dt, logtxt);
 			cmd.Parameters.Clear();
 		}
-		public Task ExecuteArrayAsync(string sql, object parms = null) => ExecuteArrayAsync(CommandType.Text, sql, GetDbParamtersByObject(sql, parms));
+		public Task<object[][]> ExecuteArrayAsync(string cmdText, object parms = null) => ExecuteArrayAsync(CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
 		async public Task<object[][]> ExecuteArrayAsync(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
 			List<object[]> ret = new List<object[]>();
 			await ExecuteReaderAsync(async dr => {
@@ -131,7 +126,7 @@ namespace FreeSql.Internal.CommonProvider {
 			}, cmdType, cmdText, cmdParms);
 			return ret.ToArray();
 		}
-		public Task<DataTable> ExecuteDataTableAsync(string sql, object parms = null) => ExecuteDataTableAsync(CommandType.Text, sql, GetDbParamtersByObject(sql, parms));
+		public Task<DataTable> ExecuteDataTableAsync(string cmdText, object parms = null) => ExecuteDataTableAsync(CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
 		async public Task<DataTable> ExecuteDataTableAsync(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
 			var ret = new DataTable();
 			await ExecuteReaderAsync(async dr => {
@@ -143,7 +138,7 @@ namespace FreeSql.Internal.CommonProvider {
 			}, cmdType, cmdText, cmdParms);
 			return ret;
 		}
-		public Task<int> ExecuteNonQueryAsync(string sql, object parms = null) => ExecuteNonQueryAsync(CommandType.Text, sql, GetDbParamtersByObject(sql, parms));
+		public Task<int> ExecuteNonQueryAsync(string cmdText, object parms = null) => ExecuteNonQueryAsync(CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
 		async public Task<int> ExecuteNonQueryAsync(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
 			var dt = DateTime.Now;
 			var logtxt = new StringBuilder();
@@ -168,7 +163,7 @@ namespace FreeSql.Internal.CommonProvider {
 			cmd.Parameters.Clear();
 			return val;
 		}
-		public Task<object> ExecuteScalarAsync(string sql, object parms = null) => ExecuteScalarAsync(CommandType.Text, sql, GetDbParamtersByObject(sql, parms));
+		public Task<object> ExecuteScalarAsync(string cmdText, object parms = null) => ExecuteScalarAsync(CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
 		async public Task<object> ExecuteScalarAsync(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
 			var dt = DateTime.Now;
 			var logtxt = new StringBuilder();
