@@ -107,7 +107,7 @@ namespace FreeSql.Internal {
 
 				if (common.CodeFirst.IsLazyLoading && virtualProps.Any()) {
 					//virtual 属性延时加载，生态产生新的重写类
-					if (trytb.Type.IsNotPublic) throw new Exception("【延时加载】功能发生错误，实体类必须声明为 public");
+					if (trytb.Type.IsNestedPublic == false) throw new Exception("【延时加载】功能发生错误，实体类必须声明为 public");
 
 					var overrieds = 0;
 					var cscode = new StringBuilder();
