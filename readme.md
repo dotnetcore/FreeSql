@@ -31,6 +31,8 @@ IFreeSql fsql = new FreeSql.FreeSqlBuilder()
 
     .UseAutoSyncStructure(true) //自动同步实体结构到数据库
     .UseSyncStructureToLower(true) //转小写同步结构
+
+	.UseLazyLoading(true) //延时加载导航属性对象，导航属性需要声明 virtual
     .Build();
 ```
 

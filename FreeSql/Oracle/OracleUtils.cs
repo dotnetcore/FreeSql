@@ -8,9 +8,7 @@ using System.Data.Common;
 namespace FreeSql.Oracle {
 
 	class OracleUtils : CommonUtils {
-		IFreeSql _orm;
-		public OracleUtils(IFreeSql orm) {
-			_orm = orm;
+		public OracleUtils(IFreeSql orm) : base(orm) {
 		}
 
 		internal override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, Type type, object value) {

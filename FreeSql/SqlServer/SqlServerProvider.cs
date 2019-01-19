@@ -35,7 +35,7 @@ namespace FreeSql.SqlServer {
 			this.Ado = new SqlServerAdo(this.InternalCommonUtils, this.Cache, log, masterConnectionString, slaveConnectionString);
 
 			this.DbFirst = new SqlServerDbFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
-			this.InternalCommonUtils.CodeFirst = this.CodeFirst = new SqlServerCodeFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
+			this.CodeFirst = new SqlServerCodeFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
 		}
 
 		internal CommonUtils InternalCommonUtils { get; }

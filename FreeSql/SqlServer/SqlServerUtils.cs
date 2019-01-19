@@ -8,9 +8,7 @@ using System.Data.SqlClient;
 namespace FreeSql.SqlServer {
 
 	class SqlServerUtils : CommonUtils {
-		IFreeSql _orm;
-		public SqlServerUtils(IFreeSql orm) {
-			_orm = orm;
+		public SqlServerUtils(IFreeSql orm) : base(orm) {
 		}
 
 		internal override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, Type type, object value) {

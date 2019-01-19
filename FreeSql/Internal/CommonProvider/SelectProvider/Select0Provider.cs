@@ -249,9 +249,10 @@ namespace FreeSql.Internal.CommonProvider {
 			public Func<DbDataReader, T1> Read { get; set; }
 		}
 		protected GetAllFieldExpressionTreeInfo GetAllFieldExpressionTree() {
-			var key = string.Join("+", _tables.Select(a => $"{a.Table.DbName}-{a.Alias}"));
-			return _dicGetAllFieldExpressionTree.GetOrAdd(key, s => {
-				var type = _tables.First().Table.Type;
+			return _dicGetAllFieldExpressionTree.GetOrAdd(string.Join("+", _tables.Select(a => $"{a.Table.DbName}-{a.Alias}")), s => {
+				var tb1 = _tables.First().Table;
+				var type = tb1.TypeLazy ?? tb1.Type;
+				var props = tb1.Properties;
 
 				var rowExp = Expression.Parameter(typeof(DbDataReader), "row");
 				var returnTarget = Expression.Label(type);
@@ -266,14 +267,14 @@ namespace FreeSql.Internal.CommonProvider {
 					Expression.Assign(retExp, Expression.New(ctor, ctor.GetParameters().Select(a => Expression.Default(a.ParameterType)))),
 					Expression.Assign(dataIndexExp, Expression.Constant(0))
 				});
+				//typeof(Topic).GetMethod("get_Type").IsVirtual
 
 				var field = new StringBuilder();
 				var dicfield = new Dictionary<string, bool>();
 				var tb = _tables.First();
 				var index = 0;
 				var otherindex = 0;
-				var ps = _tables.First().Table.Properties;
-				foreach (var prop in ps.Values) {
+				foreach (var prop in props.Values) {
 					if (tb.Table.ColumnsByCs.TryGetValue(prop.Name, out var col)) { //普通字段
 						if (index > 0) field.Append(", ");
 						var quoteName = _commonUtils.QuoteSqlName(col.Attribute.Name);
@@ -283,7 +284,7 @@ namespace FreeSql.Internal.CommonProvider {
 						else dicfield.Add(quoteName, true);
 					} else {
 						var tb2 = _tables.Where(a => a.Table.Type == prop.PropertyType && a.Alias.Contains(prop.Name)).FirstOrDefault();
-						if (tb2 == null && ps.Where(pw => pw.Value.PropertyType == prop.PropertyType).Count() == 1) tb2 = _tables.Where(a => a.Table.Type == prop.PropertyType).FirstOrDefault();
+						if (tb2 == null && props.Where(pw => pw.Value.PropertyType == prop.PropertyType).Count() == 1) tb2 = _tables.Where(a => a.Table.Type == prop.PropertyType).FirstOrDefault();
 						if (tb2 == null) continue;
 						foreach (var col2 in tb2.Table.Columns.Values) {
 							if (index > 0) field.Append(", ");
@@ -333,6 +334,7 @@ namespace FreeSql.Internal.CommonProvider {
 						Expression.Assign(retExp, Expression.Convert(readExpValue, type))
 					});
 				}
+				if (tb1.TypeLazy != null) blockExp.Add(Expression.Call(retExp, tb1.TypeLazySetOrm, Expression.Constant(_orm))); //将 orm 传递给 lazy
 				blockExp.AddRange(new Expression[] {
 					Expression.Return(returnTarget, retExp),
 					Expression.Label(returnTarget, Expression.Default(type))
@@ -344,7 +346,8 @@ namespace FreeSql.Internal.CommonProvider {
 			});
 		}
 		protected (ReadAnonymousTypeInfo map, string field) GetAllFieldReflection() {
-			var type = _tables.First().Table.Type;
+			var tb1 = _tables.First().Table;
+			var type = tb1.Type;
 			var constructor = _dicConstructor.GetOrAdd(type, s => type.GetConstructor(new Type[0]));
 			var map = new ReadAnonymousTypeInfo { Consturctor = constructor, ConsturctorType = ReadAnonymousTypeInfoConsturctorType.Properties };
 
@@ -352,7 +355,7 @@ namespace FreeSql.Internal.CommonProvider {
 			var dicfield = new Dictionary<string, bool>();
 			var tb = _tables.First();
 			var index = 0;
-			var ps = _tables.First().Table.Properties;
+			var ps = tb1.Properties;
 			foreach (var p in ps.Values) {
 				var child = new ReadAnonymousTypeInfo { Property = p, CsName = p.Name };
 				if (tb.Table.ColumnsByCs.TryGetValue(p.Name, out var col)) { //普通字段

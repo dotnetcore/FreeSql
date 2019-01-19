@@ -14,6 +14,7 @@ namespace FreeSql {
 		string[] _slaveConnectionString;
 		bool _isAutoSyncStructure = false;
 		bool _isSyncStructureToLower = false;
+		bool _isLazyLoading = false;
 		Action<DbCommand> _aopCommandExecuting = null;
 		Action<DbCommand, string> _aopCommandExecuted = null;
 
@@ -75,6 +76,15 @@ namespace FreeSql {
 			return this;
 		}
 		/// <summary>
+		/// 延时加载导航属性对象，导航属性需要声明 virtual
+		/// </summary>
+		/// <param name="value"></param>
+		/// <returns></returns>
+		public FreeSqlBuilder UseLazyLoading(bool value) {
+			_isLazyLoading = value;
+			return this;
+		}
+		/// <summary>
 		/// 监视数据库命令对象
 		/// </summary>
 		/// <param name="executing">执行前</param>
@@ -98,6 +108,7 @@ namespace FreeSql {
 			if (ret != null) {
 				ret.CodeFirst.IsAutoSyncStructure = _isAutoSyncStructure;
 				ret.CodeFirst.IsSyncStructureToLower = _isSyncStructureToLower;
+				ret.CodeFirst.IsLazyLoading = _isLazyLoading;
 				var ado = ret.Ado as Internal.CommonProvider.AdoProvider;
 				ado.AopCommandExecuting += _aopCommandExecuting;
 				ado.AopCommandExecuted += _aopCommandExecuted;

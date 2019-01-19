@@ -36,7 +36,7 @@ namespace FreeSql.PostgreSQL {
 			this.Ado = new PostgreSQLAdo(this.InternalCommonUtils, this.Cache, log, masterConnectionString, slaveConnectionString);
 
 			this.DbFirst = new PostgreSQLDbFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
-			this.InternalCommonUtils.CodeFirst = this.CodeFirst = new PostgreSQLCodeFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
+			this.CodeFirst = new PostgreSQLCodeFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
 		}
 
 		internal CommonUtils InternalCommonUtils { get; }

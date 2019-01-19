@@ -36,7 +36,7 @@ namespace FreeSql.MySql {
 			this.Ado = new MySqlAdo(this.InternalCommonUtils, this.Cache, log, masterConnectionString, slaveConnectionString);
 
 			this.DbFirst = new MySqlDbFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
-			this.InternalCommonUtils.CodeFirst = this.CodeFirst = new MySqlCodeFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
+			this.CodeFirst = new MySqlCodeFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
 		}
 
 		internal CommonUtils InternalCommonUtils { get; }

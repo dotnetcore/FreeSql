@@ -22,8 +22,13 @@ namespace FreeSql.Internal {
 		internal abstract string QuoteReadColumn(Type type, string columnName);
 		internal abstract string DbName { get; }
 
-		internal ICodeFirst CodeFirst { get; set; }
+		internal IFreeSql _orm { get; set; }
+		internal ICodeFirst CodeFirst => _orm.CodeFirst;
 		internal TableInfo GetTableByEntity(Type entity) => Utils.GetTableByEntity(entity, this);
+
+		public CommonUtils(IFreeSql orm) {
+			_orm = orm;
+		}
 
 		internal string WhereObject(TableInfo table, string aliasAndDot, object dywhere) {
 			if (dywhere == null) return "";

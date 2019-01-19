@@ -11,9 +11,7 @@ using System.Net;
 namespace FreeSql.PostgreSQL {
 
 	class PostgreSQLUtils : CommonUtils {
-		IFreeSql _orm;
-		public PostgreSQLUtils(IFreeSql orm) {
-			_orm = orm;
+		public PostgreSQLUtils(IFreeSql orm) : base(orm) {
 		}
 
 		static Array getParamterArrayValue(Type arrayType, object value, object defaultValue) {

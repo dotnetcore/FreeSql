@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 
 
@@ -11,7 +12,7 @@ public class g {
 
 		.UseMonitorCommand(
 			cmd => {
-				Console.WriteLine(cmd.CommandText);
+				Trace.WriteLine(cmd.CommandText);
 			}, //监听SQL命令对象，在执行前
 			(cmd, traceLog) => {
 				Console.WriteLine(traceLog);

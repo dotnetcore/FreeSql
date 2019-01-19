@@ -35,7 +35,7 @@ namespace FreeSql.Sqlite {
 			this.Cache = new CacheProvider(cache, log);
 			this.Ado = new SqliteAdo(this.InternalCommonUtils, this.Cache, log, masterConnectionString, slaveConnectionString);
 
-			this.InternalCommonUtils.CodeFirst = this.CodeFirst = new SqliteCodeFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
+			this.CodeFirst = new SqliteCodeFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
 		}
 
 		internal CommonUtils InternalCommonUtils { get; }

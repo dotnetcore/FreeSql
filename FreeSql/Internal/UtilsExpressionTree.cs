@@ -10,23 +10,25 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Reflection;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 
 namespace FreeSql.Internal {
 	class Utils {
 
-		static ConcurrentDictionary<string, TableInfo> _cacheGetTableByEntity = new ConcurrentDictionary<string, TableInfo>();
+		static ConcurrentDictionary<string, ConcurrentDictionary<Type, TableInfo>> _cacheGetTableByEntity = new ConcurrentDictionary<string, ConcurrentDictionary<Type, TableInfo>>();
 		internal static TableInfo GetTableByEntity(Type entity, CommonUtils common) {
 			if (entity.FullName.StartsWith("<>f__AnonymousType")) return null;
-			return _cacheGetTableByEntity.GetOrAdd($"{common.DbName}-{entity.FullName}", key => { //区分数据库类型缓存
+			return _cacheGetTableByEntity.GetOrAdd(common.DbName, k1 => new ConcurrentDictionary<Type, TableInfo>()).GetOrAdd(entity, k2 => { //区分数据库类型缓存
 				if (common.CodeFirst.GetDbInfo(entity) != null) return null;
-
+				
 				var tbattr = entity.GetCustomAttributes(typeof(TableAttribute), false).LastOrDefault() as TableAttribute;
 				var trytb = new TableInfo();
 				trytb.Type = entity;
@@ -39,11 +41,20 @@ namespace FreeSql.Internal {
 					trytb.DbOldName = trytb.DbOldName?.ToLower();
 				}
 				trytb.SelectFilter = tbattr?.SelectFilter;
+				var virtualProps = new List<(PropertyInfo, bool, bool)>();
 				foreach (var p in trytb.Properties.Values) {
 					var tp = common.CodeFirst.GetDbInfo(p.PropertyType);
 					//if (tp == null) continue;
 					var colattr = p.GetCustomAttributes(typeof(ColumnAttribute), false).LastOrDefault() as ColumnAttribute;
-					if (tp == null && colattr == null) continue;
+					if (tp == null && colattr == null) {
+						if (common.CodeFirst.IsLazyLoading) {
+							var getIsVirtual = trytb.Type.GetMethod($"get_{p.Name}")?.IsVirtual;
+							var setIsVirtual = trytb.Type.GetMethod($"set_{p.Name}")?.IsVirtual;
+							if (getIsVirtual == true || setIsVirtual == true)
+								virtualProps.Add((p, getIsVirtual == true, setIsVirtual == true));
+						}
+						continue;
+					}
 					if (colattr == null)
 						colattr = new ColumnAttribute {
 							Name = p.Name,
@@ -93,7 +104,66 @@ namespace FreeSql.Internal {
 					foreach (var col in trytb.Primarys)
 						col.Attribute.IsPrimary = true;
 				}
-				_cacheGetTableByEntity.TryAdd(entity.FullName, trytb);
+
+				if (common.CodeFirst.IsLazyLoading && virtualProps.Any()) {
+					//virtual 属性延时加载，生态产生新的重写类
+					if (trytb.Type.IsNotPublic) throw new Exception("【延时加载】功能发生错误，实体类必须声明为 public");
+
+					var overrieds = 0;
+					var cscode = new StringBuilder();
+					cscode.AppendLine("using System;")
+						.AppendLine("using FreeSql.DataAnnotations;")
+						.AppendLine("using System.Collections.Generic;")
+						.AppendLine("using System.Linq;")
+						.AppendLine("")
+						.Append("public class FreeSqlOverrideLazyEntity").Append(trytb.Type.Name).Append(" : ").Append(trytb.Type.FullName.Replace("+", ".")).AppendLine(" {")
+						.AppendLine("	public IFreeSql __fsql_orm__ { get; set; }\r\n");
+					foreach(var vp in virtualProps) {
+						TableInfo pktb = null;
+						if (vp.Item1.PropertyType == trytb.Type) pktb = trytb;
+						else pktb = GetTableByEntity(vp.Item1.PropertyType, common);
+						if (pktb == null || pktb.Primarys.Any() == false) {
+							//continue;
+							throw new Exception($"【延时加载】功能发生错误，导航属性 {trytb.Type.FullName}.{vp.Item1.Name} 类型不正确，或者实体类型 {vp.Item1.PropertyType.FullName} 缺少主键标识");
+						}
+
+						var lmbdWhere = new StringBuilder();
+						var vpcols = new ColumnInfo[pktb.Primarys.Length];
+						for (var a = 0; a < pktb.Primarys.Length; a++) {
+							if (trytb.ColumnsByCs.TryGetValue($"{vp.Item1.Name}{pktb.Primarys[a].CsName}", out var trycol) == false && //骆峰命名
+								trytb.ColumnsByCs.TryGetValue($"{vp.Item1.Name}_{pktb.Primarys[a].CsName}", out trycol) == false //下划线命名
+								) {
+								pktb = null;
+								throw new Exception($"【延时加载】功能发生错误，导航属性 {trytb.Type.FullName}.{vp.Item1.Name} 没有找到对应的字段 {vp.Item1.Name}{pktb.Primarys[a].CsName} 或 {vp.Item1.Name}_{pktb.Primarys[a].CsName}");
+								//break;
+							}
+							if (a > 0) lmbdWhere.Append(" && ");
+							lmbdWhere.Append("a.").Append(pktb.Primarys[a].CsName).Append(" == this.").Append(trycol.CsName);
+						}
+						if (pktb == null) continue;
+
+						cscode.Append("	public override ").Append(vp.Item1.PropertyType.FullName.Replace("+", ".")).Append(" ").Append(vp.Item1.Name).AppendLine(" {");
+						if (vp.Item2) { //get 重写
+							cscode.Append("		get => base.").Append(vp.Item1.Name)
+								.Append(" ?? (base.").Append(vp.Item1.Name)
+								.Append(" = __fsql_orm__.Select<").Append(vp.Item1.PropertyType.FullName.Replace("+", ".")).Append(">().Where(a => ")
+								.Append(lmbdWhere.ToString())
+								.Append(").ToOne()").AppendLine(");");
+						}
+						if (vp.Item3) { //set 重写
+							cscode.Append("		set => base.").Append(vp.Item1.Name).AppendLine(" = value;");
+						}
+						cscode.AppendLine("	}");
+						++overrieds;
+					}
+					if (overrieds > 0) {
+						cscode.AppendLine("}");
+						var assemly = Generator.TemplateEngin._compiler.Value.CompileCode(cscode.ToString());
+						var type = assemly.DefinedTypes.Where(a => a.FullName.EndsWith($"FreeSqlOverrideLazyEntity{trytb.Type.Name}")).FirstOrDefault();
+						trytb.TypeLazy = type;
+						trytb.TypeLazySetOrm = type.GetProperty("__fsql_orm__").GetSetMethod();
+					}
+				}
 				return trytb;
 			});
 		}

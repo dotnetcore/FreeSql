@@ -9,9 +9,7 @@ using System.Data.SQLite;
 namespace FreeSql.Sqlite {
 
 	class SqliteUtils : CommonUtils {
-		IFreeSql _orm;
-		public SqliteUtils(IFreeSql orm) {
-			_orm = orm;
+		public SqliteUtils(IFreeSql orm) : base(orm) {
 		}
 
 		internal override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, Type type, object value) {

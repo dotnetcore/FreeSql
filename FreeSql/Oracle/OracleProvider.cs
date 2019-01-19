@@ -35,7 +35,7 @@ namespace FreeSql.Oracle {
 			this.Cache = new CacheProvider(cache, log);
 			this.Ado = new OracleAdo(this.InternalCommonUtils, this.Cache, log, masterConnectionString, slaveConnectionString);
 
-			this.InternalCommonUtils.CodeFirst = this.CodeFirst = new OracleCodeFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
+			this.CodeFirst = new OracleCodeFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
 		}
 
 		internal CommonUtils InternalCommonUtils { get; }

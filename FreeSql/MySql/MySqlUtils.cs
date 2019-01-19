@@ -8,10 +8,7 @@ using System.Data.Common;
 namespace FreeSql.MySql {
 
 	class MySqlUtils : CommonUtils {
-		IFreeSql _orm;
-
-		public MySqlUtils(IFreeSql orm) {
-			_orm = orm;
+		public MySqlUtils(IFreeSql orm) : base(orm) {
 		}
 
 		internal override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, Type type, object value) {

@@ -12,6 +12,10 @@ namespace FreeSql {
 		/// 转小写同步结构
 		/// </summary>
 		bool IsSyncStructureToLower { get; set; }
+		/// <summary>
+		/// 延时加载导航属性对象，导航属性需要声明 virtual
+		/// </summary>
+		bool IsLazyLoading { get; set; }
 
 		/// <summary>
 		/// 将实体类型与数据库对比，返回DDL语句

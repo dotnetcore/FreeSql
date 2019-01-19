@@ -10,26 +10,37 @@ namespace FreeSql.Tests.MySql {
 		ISelect<Topic> select => g.mysql.Select<Topic>();
 
 		[Table(Name = "tb_topic")]
-		class Topic {
+		public class Topic {
 			[Column(IsIdentity = true, IsPrimary = true)]
 			public int Id { get; set; }
 			public int Clicks { get; set; }
 			public int TestTypeInfoGuid { get; set; }
-			public TestTypeInfo Type { get; set; }
+
+			public int TypeGuid { get; set; }
+			public virtual TestTypeInfo Type { get; set; }
 			public string Title { get; set; }
 			public DateTime CreateTime { get; set; }
 		}
-		class TestTypeInfo {
+		public class TestTypeInfo {
+			[Column(IsIdentity = true)]
 			public int Guid { get; set; }
 			public int ParentId { get; set; }
 			public TestTypeParentInfo Parent { get; set; }
 			public string Name { get; set; }
 		}
-		class TestTypeParentInfo {
+		public class TestTypeParentInfo {
+			[Column(IsIdentity = true)]
 			public int Id { get; set; }
 			public string Name { get; set; }
 
 			public List<TestTypeInfo> Types { get; set; }
+		}
+
+		[Fact]
+		public void Lazy() {
+			Topic t = g.mysql.Select<Topic>(2).ToOne();
+			Topic tz = g.mysql.Select<Topic>(2).ToOne();
+			var tzType = tz.Type;
 		}
 
 		[Fact]

@@ -544,8 +544,7 @@ return rTn;");
 			var type = assemly.DefinedTypes.Where(a => a.FullName.EndsWith(typename)).FirstOrDefault();
 			return Activator.CreateInstance(type) as ITemplateOutput;
 		}
-		static ConcurrentDictionary<string, (DateTime, object)> _compiler_objs = new ConcurrentDictionary<string, (DateTime, object)>();
-		static Lazy<CSScriptLib.RoslynEvaluator> _compiler = new Lazy<CSScriptLib.RoslynEvaluator>(() => {
+		internal static Lazy<CSScriptLib.RoslynEvaluator> _compiler = new Lazy<CSScriptLib.RoslynEvaluator>(() => {
 			var dlls = Directory.GetFiles(Directory.GetParent(Type.GetType("IFreeSql, FreeSql").Assembly.Location).FullName, "*.dll");
 			var compiler = new CSScriptLib.RoslynEvaluator();
 			compiler.DisableReferencingFromCode = false;

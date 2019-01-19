@@ -24,6 +24,7 @@ namespace FreeSql.MySql {
 
 		public bool IsAutoSyncStructure { get; set; } = true;
 		public bool IsSyncStructureToLower { get; set; } = false;
+		public bool IsLazyLoading { get; set; } = false;
 
 		static object _dicCsToDbLock = new object();
 		static Dictionary<string, (MySqlDbType type, string dbtype, string dbtypeFull, bool? isUnsigned, bool? isnullable, object defaultValue)> _dicCsToDb = new Dictionary<string, (MySqlDbType type, string dbtype, string dbtypeFull, bool? isUnsigned, bool? isnullable, object defaultValue)>() {
