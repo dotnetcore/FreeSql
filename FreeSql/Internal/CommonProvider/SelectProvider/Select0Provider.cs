@@ -271,6 +271,7 @@ namespace FreeSql.Internal.CommonProvider {
 				var dicfield = new Dictionary<string, bool>();
 				var tb = _tables.First();
 				var index = 0;
+				var otherindex = 0;
 				var ps = _tables.First().Table.Properties;
 				foreach (var prop in ps.Values) {
 					if (tb.Table.ColumnsByCs.TryGetValue(prop.Name, out var col)) { //普通字段
@@ -289,6 +290,7 @@ namespace FreeSql.Internal.CommonProvider {
 							var quoteName = _commonUtils.QuoteSqlName(col2.Attribute.Name);
 							field.Append(_commonUtils.QuoteReadColumn(col2.CsType, $"{tb2.Alias}.{quoteName}"));
 							++index;
+							++otherindex;
 							if (dicfield.ContainsKey(quoteName)) field.Append(" as").Append(index);
 							else dicfield.Add(quoteName, true);
 						}
@@ -297,7 +299,8 @@ namespace FreeSql.Internal.CommonProvider {
 					var propGetSetMethod = prop.GetSetMethod();
 					Expression readExpAssign = null; //加速缓存
 					if (prop.PropertyType.IsArray) readExpAssign = Expression.New(Utils.RowInfo.Constructor,
-						Expression.Call(Utils.MethodGetDataReaderValue, new Expression[] { Expression.Constant(prop.PropertyType), Expression.Call(rowExp, Utils.MethodDataReaderGetValue, dataIndexExp) }),
+						Utils.GetDataReaderValueBlockExpression(prop.PropertyType, Expression.Call(rowExp, Utils.MethodDataReaderGetValue, dataIndexExp)),
+						//Expression.Call(Utils.MethodGetDataReaderValue, new Expression[] { Expression.Constant(prop.PropertyType), Expression.Call(rowExp, Utils.MethodDataReaderGetValue, dataIndexExp) }),
 						Expression.Add(dataIndexExp, Expression.Constant(1))
 					);
 					else {
@@ -305,27 +308,29 @@ namespace FreeSql.Internal.CommonProvider {
 						if (proptypeGeneric.FullName.StartsWith("System.Nullable`1[")) proptypeGeneric = proptypeGeneric.GenericTypeArguments.First();
 						if (proptypeGeneric.IsEnum ||
 							Utils.dicExecuteArrayRowReadClassOrTuple.ContainsKey(proptypeGeneric)) readExpAssign = Expression.New(Utils.RowInfo.Constructor,
-							Expression.Call(Utils.MethodGetDataReaderValue, new Expression[] { Expression.Constant(prop.PropertyType), Expression.Call(rowExp, Utils.MethodDataReaderGetValue, dataIndexExp) }),
-							Expression.Add(dataIndexExp, Expression.Constant(1))
+								Utils.GetDataReaderValueBlockExpression(prop.PropertyType, Expression.Call(rowExp, Utils.MethodDataReaderGetValue, dataIndexExp)),
+								//Expression.Call(Utils.MethodGetDataReaderValue, new Expression[] { Expression.Constant(prop.PropertyType), Expression.Call(rowExp, Utils.MethodDataReaderGetValue, dataIndexExp) }),
+								Expression.Add(dataIndexExp, Expression.Constant(1))
 						);
 						else {
-							readExpAssign = Expression.Call(Utils.MethodExecuteArrayRowReadClassOrTuple, new Expression[] { Expression.Constant(prop.PropertyType), Expression.Constant(null, typeof(Dictionary<string, int>)), rowExp, dataIndexExp });
+							readExpAssign = Expression.Call(Utils.MethodExecuteArrayRowReadClassOrTuple, new Expression[] { Expression.Constant(prop.PropertyType), Expression.Constant(null, typeof(int[])), rowExp, dataIndexExp });
 						}
 					}
 					blockExp.AddRange(new Expression[] {
-						//以下注释部分为【严格读取】，会损失一点性能
-						//Expression.IfThen(Expression.Not(Expression.And(
-						//	Expression.NotEqual(namesExp, Expression.Constant(null)),
-						//	Expression.Not(Expression.Call(namesExp, namesExp.Type.GetMethod("TryGetValue"), Expression.Constant(prop.Name), tryidxExp)))),
-						//	Expression.Block(
-								Expression.Assign(readExp, readExpAssign),
-								Expression.IfThen(Expression.GreaterThan(readExpDataIndex, dataIndexExp),
-									Expression.Assign(dataIndexExp, readExpDataIndex)),
-								Expression.IfThenElse(Expression.Equal(readExpValue, Expression.Constant(null)),
-									Expression.Call(retExp, propGetSetMethod, Expression.Default(prop.PropertyType)),
-									Expression.Call(retExp, propGetSetMethod, Expression.Convert(readExpValue, prop.PropertyType)))
-						//	)
-						//)
+						Expression.Assign(readExp, readExpAssign),
+						Expression.IfThen(Expression.GreaterThan(readExpDataIndex, dataIndexExp),
+							Expression.Assign(dataIndexExp, readExpDataIndex)),
+						Expression.IfThenElse(Expression.Equal(readExpValue, Expression.Constant(null)),
+							Expression.Call(retExp, propGetSetMethod, Expression.Default(prop.PropertyType)),
+							Expression.Call(retExp, propGetSetMethod, Expression.Convert(readExpValue, prop.PropertyType)))
+					});
+				}
+				if (otherindex == 0) { //不读导航属性，优化单表读取性能
+					blockExp.Clear();
+					blockExp.AddRange(new Expression[] {
+						Expression.Assign(dataIndexExp, Expression.Constant(0)),
+						Expression.Assign(readExp, Expression.Call(Utils.MethodExecuteArrayRowReadClassOrTuple, new Expression[] { Expression.Constant(type), Expression.Constant(null, typeof(int[])), rowExp, dataIndexExp })),
+						Expression.Assign(retExp, Expression.Convert(readExpValue, type))
 					});
 				}
 				blockExp.AddRange(new Expression[] {

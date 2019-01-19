@@ -16,7 +16,7 @@ namespace FreeSql.PostgreSQL {
 			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
 			switch (exp.NodeType) {
 				case ExpressionType.ArrayLength:
-					var arrOperExp = getExp((exp as UnaryExpression));
+					var arrOperExp = getExp((exp as UnaryExpression).Operand);
 					if (arrOperExp.StartsWith("(") || arrOperExp.EndsWith(")")) return $"array_length(array[{arrOperExp.TrimStart('(').TrimEnd(')')}],1)";
 					return $"case when {arrOperExp} is null then 0 else array_length({arrOperExp},1) end";
 				case ExpressionType.Call:

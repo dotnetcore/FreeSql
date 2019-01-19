@@ -11,13 +11,18 @@ namespace FreeSql.Internal.CommonProvider {
 	partial class AdoProvider {
 		public Task<List<T>> QueryAsync<T>(string cmdText, object parms = null) => QueryAsync<T>(CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
 		async public Task<List<T>> QueryAsync<T>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
-			var names = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
 			var ret = new List<T>();
 			var type = typeof(T);
+			int[] indexes = null;
+			var props = dicQueryTypeGetProperties.GetOrAdd(type, k => type.GetProperties().ToDictionary(a => a.Name, a => a, StringComparer.CurrentCultureIgnoreCase));
 			await ExecuteReaderAsync(dr => {
-				if (names.Any() == false)
-					for (var a = 0; a < dr.FieldCount; a++) names.Add(dr.GetName(a), a);
-				ret.Add((T)Utils.ExecuteArrayRowReadClassOrTuple(type, names, dr, 0).Value);
+				if (indexes == null) {
+					var idxs = new List<int>();
+					for (var a = 0; a < dr.FieldCount; a++)
+						if (props.ContainsKey(dr.GetName(a))) idxs.Add(a);
+					indexes = idxs.ToArray();
+				}
+				ret.Add((T)Utils.ExecuteArrayRowReadClassOrTuple(type, indexes, dr, 0).Value);
 				return Task.CompletedTask;
 			}, cmdType, cmdText, cmdParms);
 			return ret;
