@@ -26,146 +26,263 @@ namespace FreeSql.Internal {
 		static ConcurrentDictionary<string, ConcurrentDictionary<Type, TableInfo>> _cacheGetTableByEntity = new ConcurrentDictionary<string, ConcurrentDictionary<Type, TableInfo>>();
 		internal static TableInfo GetTableByEntity(Type entity, CommonUtils common) {
 			if (entity.FullName.StartsWith("<>f__AnonymousType")) return null;
-			return _cacheGetTableByEntity.GetOrAdd(common.DbName, k1 => new ConcurrentDictionary<Type, TableInfo>()).GetOrAdd(entity, k2 => { //区分数据库类型缓存
-				if (common.CodeFirst.GetDbInfo(entity) != null) return null;
-				
-				var tbattr = entity.GetCustomAttributes(typeof(TableAttribute), false).LastOrDefault() as TableAttribute;
-				var trytb = new TableInfo();
-				trytb.Type = entity;
-				trytb.Properties = entity.GetProperties().ToDictionary(a => a.Name, a => a, StringComparer.CurrentCultureIgnoreCase);
-				trytb.CsName = entity.Name;
-				trytb.DbName = (tbattr?.Name ?? entity.Name);
-				trytb.DbOldName = tbattr?.OldName;
-				if (common.CodeFirst.IsSyncStructureToLower) {
-					trytb.DbName = trytb.DbName.ToLower();
-					trytb.DbOldName = trytb.DbOldName?.ToLower();
+			var tbc = _cacheGetTableByEntity.GetOrAdd(common.DbName, k1 => new ConcurrentDictionary<Type, TableInfo>()); //区分数据库类型缓存
+			if (tbc.TryGetValue(entity, out var trytb)) return trytb;
+			if (common.CodeFirst.GetDbInfo(entity) != null) return null;
+
+			var tbattr = entity.GetCustomAttributes(typeof(TableAttribute), false).LastOrDefault() as TableAttribute;
+			trytb = new TableInfo();
+			trytb.Type = entity;
+			trytb.Properties = entity.GetProperties().ToDictionary(a => a.Name, a => a, StringComparer.CurrentCultureIgnoreCase);
+			trytb.CsName = entity.Name;
+			trytb.DbName = (tbattr?.Name ?? entity.Name);
+			trytb.DbOldName = tbattr?.OldName;
+			if (common.CodeFirst.IsSyncStructureToLower) {
+				trytb.DbName = trytb.DbName.ToLower();
+				trytb.DbOldName = trytb.DbOldName?.ToLower();
+			}
+			trytb.SelectFilter = tbattr?.SelectFilter;
+			var propsLazy = new List<(PropertyInfo, bool, bool)>();
+			foreach (var p in trytb.Properties.Values) {
+				var tp = common.CodeFirst.GetDbInfo(p.PropertyType);
+				//if (tp == null) continue;
+				var colattr = p.GetCustomAttributes(typeof(ColumnAttribute), false).LastOrDefault() as ColumnAttribute;
+				if (tp == null && colattr == null) {
+					if (common.CodeFirst.IsLazyLoading) {
+						var getIsVirtual = trytb.Type.GetMethod($"get_{p.Name}")?.IsVirtual;
+						var setIsVirtual = trytb.Type.GetMethod($"set_{p.Name}")?.IsVirtual;
+						if (getIsVirtual == true || setIsVirtual == true)
+							propsLazy.Add((p, getIsVirtual == true, setIsVirtual == true));
+					}
+					continue;
 				}
-				trytb.SelectFilter = tbattr?.SelectFilter;
-				var virtualProps = new List<(PropertyInfo, bool, bool)>();
-				foreach (var p in trytb.Properties.Values) {
-					var tp = common.CodeFirst.GetDbInfo(p.PropertyType);
-					//if (tp == null) continue;
-					var colattr = p.GetCustomAttributes(typeof(ColumnAttribute), false).LastOrDefault() as ColumnAttribute;
-					if (tp == null && colattr == null) {
-						if (common.CodeFirst.IsLazyLoading) {
-							var getIsVirtual = trytb.Type.GetMethod($"get_{p.Name}")?.IsVirtual;
-							var setIsVirtual = trytb.Type.GetMethod($"set_{p.Name}")?.IsVirtual;
-							if (getIsVirtual == true || setIsVirtual == true)
-								virtualProps.Add((p, getIsVirtual == true, setIsVirtual == true));
-						}
-						continue;
-					}
-					if (colattr == null)
-						colattr = new ColumnAttribute {
-							Name = p.Name,
-							DbType = tp.Value.dbtypeFull,
-							IsIdentity = false,
-							IsNullable = tp.Value.isnullable ?? true,
-							IsPrimary = false,
-						};
-					if (string.IsNullOrEmpty(colattr.DbType)) colattr.DbType = tp?.dbtypeFull ?? "varchar(255)";
-					colattr.DbType = colattr.DbType.ToUpper();
-
-					if (tp != null && tp.Value.isnullable == null) colattr.IsNullable = tp.Value.dbtypeFull.Contains("NOT NULL") == false;
-					if (colattr.DbType?.Contains("NOT NULL") == true) colattr.IsNullable = false;
-					if (string.IsNullOrEmpty(colattr.Name)) colattr.Name = p.Name;
-					if (common.CodeFirst.IsSyncStructureToLower) colattr.Name = colattr.Name.ToLower();
-
-					if ((colattr.IsNullable == false || colattr.IsIdentity || colattr.IsPrimary) && colattr.DbType.Contains("NOT NULL") == false) {
-						colattr.IsNullable = false;
-						colattr.DbType += " NOT NULL";
-					}
-					if (colattr.IsNullable == true && colattr.DbType.Contains("NOT NULL")) colattr.DbType = colattr.DbType.Replace("NOT NULL", "");
-					colattr.DbType = Regex.Replace(colattr.DbType, @"\([^\)]+\)", m => {
-						var tmpLt = Regex.Replace(m.Groups[0].Value, @"\s", "");
-						if (tmpLt.Contains("CHAR")) tmpLt = tmpLt.Replace("CHAR", " CHAR");
-						if (tmpLt.Contains("BYTE")) tmpLt = tmpLt.Replace("BYTE", " BYTE");
-						return tmpLt;
-					});
-					colattr.DbDefautValue = trytb.Properties[p.Name].GetValue(Activator.CreateInstance(trytb.Type));
-					if (colattr.DbDefautValue == null) colattr.DbDefautValue = tp?.defaultValue;
-					if (colattr.IsNullable == false && colattr.DbDefautValue == null) {
-						var consturctorType = p.PropertyType.GenericTypeArguments.FirstOrDefault() ?? p.PropertyType;
-						colattr.DbDefautValue = Activator.CreateInstance(consturctorType);
-					}
-
-					var col = new ColumnInfo {
-						Table = trytb,
-						CsName = p.Name,
-						CsType = p.PropertyType,
-						Attribute = colattr
+				if (colattr == null)
+					colattr = new ColumnAttribute {
+						Name = p.Name,
+						DbType = tp.Value.dbtypeFull,
+						IsIdentity = false,
+						IsNullable = tp.Value.isnullable ?? true,
+						IsPrimary = false,
 					};
-					trytb.Columns.Add(colattr.Name, col);
-					trytb.ColumnsByCs.Add(p.Name, col);
-				}
-				trytb.Primarys = trytb.Columns.Values.Where(a => a.Attribute.IsPrimary).ToArray();
-				if (trytb.Primarys.Any() == false) {
-					trytb.Primarys = trytb.Columns.Values.Where(a => a.Attribute.IsIdentity).ToArray();
-					foreach (var col in trytb.Primarys)
-						col.Attribute.IsPrimary = true;
-				}
+				if (string.IsNullOrEmpty(colattr.DbType)) colattr.DbType = tp?.dbtypeFull ?? "varchar(255)";
+				colattr.DbType = colattr.DbType.ToUpper();
 
-				if (common.CodeFirst.IsLazyLoading && virtualProps.Any()) {
-					//virtual 属性延时加载，生态产生新的重写类
-					if (trytb.Type.IsNestedPublic == false) throw new Exception("【延时加载】功能发生错误，实体类必须声明为 public");
+				if (tp != null && tp.Value.isnullable == null) colattr.IsNullable = tp.Value.dbtypeFull.Contains("NOT NULL") == false;
+				if (colattr.DbType?.Contains("NOT NULL") == true) colattr.IsNullable = false;
+				if (string.IsNullOrEmpty(colattr.Name)) colattr.Name = p.Name;
+				if (common.CodeFirst.IsSyncStructureToLower) colattr.Name = colattr.Name.ToLower();
 
-					var overrieds = 0;
-					var cscode = new StringBuilder();
-					cscode.AppendLine("using System;")
-						.AppendLine("using FreeSql.DataAnnotations;")
-						.AppendLine("using System.Collections.Generic;")
-						.AppendLine("using System.Linq;")
-						.AppendLine("")
-						.Append("public class FreeSqlOverrideLazyEntity").Append(trytb.Type.Name).Append(" : ").Append(trytb.Type.FullName.Replace("+", ".")).AppendLine(" {")
-						.AppendLine("	public IFreeSql __fsql_orm__ { get; set; }\r\n");
-					foreach(var vp in virtualProps) {
-						TableInfo pktb = null;
-						if (vp.Item1.PropertyType == trytb.Type) pktb = trytb;
-						else pktb = GetTableByEntity(vp.Item1.PropertyType, common);
-						if (pktb == null || pktb.Primarys.Any() == false) {
+				if ((colattr.IsNullable == false || colattr.IsIdentity || colattr.IsPrimary) && colattr.DbType.Contains("NOT NULL") == false) {
+					colattr.IsNullable = false;
+					colattr.DbType += " NOT NULL";
+				}
+				if (colattr.IsNullable == true && colattr.DbType.Contains("NOT NULL")) colattr.DbType = colattr.DbType.Replace("NOT NULL", "");
+				colattr.DbType = Regex.Replace(colattr.DbType, @"\([^\)]+\)", m => {
+					var tmpLt = Regex.Replace(m.Groups[0].Value, @"\s", "");
+					if (tmpLt.Contains("CHAR")) tmpLt = tmpLt.Replace("CHAR", " CHAR");
+					if (tmpLt.Contains("BYTE")) tmpLt = tmpLt.Replace("BYTE", " BYTE");
+					return tmpLt;
+				});
+				colattr.DbDefautValue = trytb.Properties[p.Name].GetValue(Activator.CreateInstance(trytb.Type));
+				if (colattr.DbDefautValue == null) colattr.DbDefautValue = tp?.defaultValue;
+				if (colattr.IsNullable == false && colattr.DbDefautValue == null) {
+					var consturctorType = p.PropertyType.GenericTypeArguments.FirstOrDefault() ?? p.PropertyType;
+					colattr.DbDefautValue = Activator.CreateInstance(consturctorType);
+				}
+				if (colattr.IsIdentity && new[] {
+					typeof(sbyte), typeof(short), typeof(int), typeof(long),
+					typeof(byte), typeof(ushort), typeof(uint), typeof(ulong),
+					typeof(double), typeof(float), typeof(decimal) }.Contains(p.PropertyType.GenericTypeArguments.FirstOrDefault() ?? p.PropertyType) == false)
+					colattr.IsIdentity = false;
+
+				var col = new ColumnInfo {
+					Table = trytb,
+					CsName = p.Name,
+					CsType = p.PropertyType,
+					Attribute = colattr
+				};
+				trytb.Columns.Add(colattr.Name, col);
+				trytb.ColumnsByCs.Add(p.Name, col);
+			}
+			trytb.Primarys = trytb.Columns.Values.Where(a => a.Attribute.IsPrimary).ToArray();
+			if (trytb.Primarys.Any() == false) {
+				trytb.Primarys = trytb.Columns.Values.Where(a => a.Attribute.IsIdentity).ToArray();
+				foreach (var col in trytb.Primarys)
+					col.Attribute.IsPrimary = true;
+			}
+			tbc.TryAdd(entity, trytb);
+
+			//virtual 属性延时加载，动态产生新的重写类
+			if (common.CodeFirst.IsLazyLoading && propsLazy.Any()) {
+				var trytbTypeName = trytb.Type.IsNested ? $"{trytb.Type.DeclaringType.Namespace}.{trytb.Type.DeclaringType.Name}.{trytb.Type.Name}" : $"{trytb.Type.Namespace}.{trytb.Type.Name}";
+				if (trytb.Type.IsPublic == false && trytb.Type.IsNestedPublic == false) throw new Exception($"【延时加载】实体类型 {trytbTypeName} 必须声明为 public");
+
+				var trytbTypeLazyName = $"FreeSqlLazyEntity__{Regex.Replace(trytbTypeName, @"[^\w\d]", "_")}";
+				var overrieds = 0;
+				var cscode = new StringBuilder();
+				cscode.AppendLine("using System;")
+					.AppendLine("using FreeSql.DataAnnotations;")
+					.AppendLine("using System.Collections.Generic;")
+					.AppendLine("using System.Linq;")
+					.AppendLine("")
+					.Append("public class ").Append(trytbTypeLazyName).Append(" : ").Append(trytbTypeName).AppendLine(" {")
+					.AppendLine("	public IFreeSql __fsql_orm__ { get; set; }\r\n");
+
+				foreach (var vp in propsLazy) {
+					var propTypeName = vp.Item1.PropertyType.IsGenericType ? 
+						$"{vp.Item1.PropertyType.Namespace}.{vp.Item1.PropertyType.Name.Remove(vp.Item1.PropertyType.Name.IndexOf('`'))}<{string.Join(", ", vp.Item1.PropertyType.GenericTypeArguments.Select(a => a.IsNested ? $"{a.DeclaringType.Namespace}.{a.DeclaringType.Name}.{a.Name}" : $"{a.Namespace}.{a.Name}"))}>" :
+						(vp.Item1.PropertyType.IsNested ? $"{vp.Item1.PropertyType.DeclaringType.Namespace}.{vp.Item1.PropertyType.DeclaringType.Name}.{vp.Item1.PropertyType.Name}" : $"{vp.Item1.PropertyType.Namespace}.{vp.Item1.PropertyType.Name}");
+					//List 或 ICollection，一对多、多对多
+					var propElementType = vp.Item1.PropertyType.GenericTypeArguments.FirstOrDefault() ?? vp.Item1.PropertyType.GetElementType();
+					if (propElementType != null) {
+						if (Activator.CreateInstance(vp.Item1.PropertyType) is ICollection == false) continue;
+
+						if (trytb.Primarys.Any() == false) {
 							//continue;
-							throw new Exception($"【延时加载】功能发生错误，导航属性 {trytb.Type.FullName}.{vp.Item1.Name} 类型不正确，或者实体类型 {vp.Item1.PropertyType.FullName} 缺少主键标识");
+							throw new Exception($"【延时加载】导航属性 {vp.Item1.Name} 解析错误，实体类型 {trytbTypeName} 缺少主键标识，[Column(IsPrimary = true)]");
 						}
+						var tbref = propElementType == trytb.Type ? trytb : GetTableByEntity(propElementType, common); //可能是父子关系
+						if (tbref == null) continue;
 
+						var isManyToMany = propElementType != trytb.Type &&
+							tbref.Properties.Where(z => (z.Value.PropertyType.GenericTypeArguments.FirstOrDefault() == trytb.Type || z.Value.PropertyType.GetElementType() == trytb.Type) &&
+								vp.Item1.Name.EndsWith($"{z.Key}s", StringComparison.CurrentCultureIgnoreCase) &&
+								z.Key.EndsWith($"{trytb.CsName}s", StringComparison.CurrentCultureIgnoreCase) && 
+								Activator.CreateInstance(z.Value.PropertyType) is ICollection).Any();
+						//中间表怎么查询
+						if (isManyToMany) continue;
+
+						var refcols = tbref.Properties.Where(z => z.Value.PropertyType == trytb.Type);
+						var refprop = refcols.Count() == 1 ? refcols.First().Value : null;
 						var lmbdWhere = new StringBuilder();
-						var vpcols = new ColumnInfo[pktb.Primarys.Length];
-						for (var a = 0; a < pktb.Primarys.Length; a++) {
-							if (trytb.ColumnsByCs.TryGetValue($"{vp.Item1.Name}{pktb.Primarys[a].CsName}", out var trycol) == false && //骆峰命名
-								trytb.ColumnsByCs.TryGetValue($"{vp.Item1.Name}_{pktb.Primarys[a].CsName}", out trycol) == false //下划线命名
+						var vpcols = new ColumnInfo[trytb.Primarys.Length];
+						for (var a = 0; a < trytb.Primarys.Length; a++) {
+							var findtrytbPkCsName = trytb.Primarys[a].CsName.TrimStart('_');
+							if (findtrytbPkCsName.StartsWith(trytb.Type.Name, StringComparison.CurrentCultureIgnoreCase)) findtrytbPkCsName = findtrytbPkCsName.Substring(trytb.Type.Name.Length).TrimStart('_');
+							var findtrytb = vp.Item1.Name;
+							if (findtrytb.EndsWith(tbref.CsName + "s")) findtrytb = findtrytb.Substring(0, findtrytb.Length - tbref.CsName.Length - 1);
+							findtrytb += trytb.CsName;
+							if (tbref.ColumnsByCs.TryGetValue($"{findtrytb}{findtrytbPkCsName}", out var trycol) == false && //骆峰命名
+								tbref.ColumnsByCs.TryGetValue($"{findtrytb}_{findtrytbPkCsName}", out trycol) == false //下划线命名
 								) {
-								pktb = null;
-								throw new Exception($"【延时加载】功能发生错误，导航属性 {trytb.Type.FullName}.{vp.Item1.Name} 没有找到对应的字段 {vp.Item1.Name}{pktb.Primarys[a].CsName} 或 {vp.Item1.Name}_{pktb.Primarys[a].CsName}");
-								//break;
+								if (refprop != null &&
+									tbref.ColumnsByCs.TryGetValue($"{refprop.Name}{findtrytbPkCsName}", out trycol) == false && //骆峰命名
+									tbref.ColumnsByCs.TryGetValue($"{refprop.Name}_{findtrytbPkCsName}", out trycol) == false) //下划线命名
+									{
+
+								}
+								if (trycol != null && trycol.CsType != tbref.Primarys[a].CsType)
+									throw new Exception($"【延时加载】导航属性 {trytbTypeName}.{vp.Item1.Name} 解析错误，{trytb.CsName}.{trytb.Primarys[a].CsName} 和 {tbref.CsName}.{trycol.CsName} 类型不一致");
+								if (trycol == null)
+									throw new Exception($"【延时加载】导航属性 {trytbTypeName}.{vp.Item1.Name} 在 {tbref.CsName} 中没有找到对应的字段，如：{findtrytb}{findtrytbPkCsName}、{findtrytb}_{findtrytbPkCsName}、{refprop.Name}{findtrytbPkCsName}、{refprop.Name}_{findtrytbPkCsName}");
 							}
 							if (a > 0) lmbdWhere.Append(" && ");
-							lmbdWhere.Append("a.").Append(pktb.Primarys[a].CsName).Append(" == this.").Append(trycol.CsName);
-						}
-						if (pktb == null) continue;
+							lmbdWhere.Append("a.").Append(trycol.CsName).Append(" == this.").Append(trytb.Primarys[a].CsName);
 
-						cscode.Append("	public override ").Append(vp.Item1.PropertyType.FullName.Replace("+", ".")).Append(" ").Append(vp.Item1.Name).AppendLine(" {");
+							if (refprop == null) {
+								var findtrytbName = trycol.CsName;
+								if (findtrytbName.EndsWith(trytb.Primarys.First().CsName)) {
+									findtrytbName = findtrytbName.Remove(findtrytbName.Length - trytb.Primarys.First().CsName.Length).TrimEnd('_');
+									if (tbref.Properties.TryGetValue(findtrytbName, out refprop) && refprop.PropertyType != trytb.Type)
+										refprop = null;
+								}
+							}
+						}
+
+						cscode.Append("	private bool __lazy__").Append(vp.Item1.Name).AppendLine(" = false;")
+							.Append("	public override ").Append(propTypeName).Append(" ").Append(vp.Item1.Name).AppendLine(" {");
 						if (vp.Item2) { //get 重写
-							cscode.Append("		get => base.").Append(vp.Item1.Name)
-								.Append(" ?? (base.").Append(vp.Item1.Name)
-								.Append(" = __fsql_orm__.Select<").Append(vp.Item1.PropertyType.FullName.Replace("+", ".")).Append(">().Where(a => ")
-								.Append(lmbdWhere.ToString())
-								.Append(").ToOne()").AppendLine(");");
+							cscode.Append("		get {\r\n")
+								.Append("			if (base.").Append(vp.Item1.Name).Append(" == null && __lazy__").Append(vp.Item1.Name).AppendLine(" == false) {")
+								.Append("				base.").Append(vp.Item1.Name).Append(" = __fsql_orm__.Select<").Append(propElementType.IsNested ? $"{propElementType.DeclaringType.Namespace}.{propElementType.DeclaringType.Name}.{propElementType.Name}" : $"{propElementType.Namespace}.{propElementType.Name}").Append(">().Where(a => ").Append(lmbdWhere.ToString()).AppendLine(").ToList();");
+							if (refprop != null) {
+								cscode.Append("				foreach (var loc1 in base.").Append(vp.Item1.Name).AppendLine(")")
+									.Append("					loc1.").Append(refprop.Name).AppendLine(" = this;");
+							}
+							cscode.Append("				__lazy__").Append(vp.Item1.Name).AppendLine(" = true;")
+								.Append("			}\r\n")
+								.Append("			return base.").Append(vp.Item1.Name).AppendLine(";")
+								.Append("		}\r\n");
 						}
 						if (vp.Item3) { //set 重写
 							cscode.Append("		set => base.").Append(vp.Item1.Name).AppendLine(" = value;");
 						}
 						cscode.AppendLine("	}");
-						++overrieds;
+
+					} else { //一对一、多对一
+						var tbref = vp.Item1.PropertyType == trytb.Type ? trytb : GetTableByEntity(vp.Item1.PropertyType, common); //可能是父子关系
+						if (tbref == null) continue;
+						if (tbref.Primarys.Any() == false) {
+							//continue;
+							throw new Exception($"【延时加载】导航属性 {trytbTypeName}.{vp.Item1.Name} 解析错误，实体类型 {propTypeName} 缺少主键标识，[Column(IsPrimary = true)]");
+						}
+						var isOnoToOne = vp.Item1.PropertyType != trytb.Type && 
+							tbref.Properties.Where(z => z.Value.PropertyType == trytb.Type).Any() &&
+							tbref.Primarys.Length == trytb.Primarys.Length  && 
+							string.Join(",", tbref.Primarys.Select(a => a.CsType.FullName)) == string.Join(",", trytb.Primarys.Select(a => a.CsType.FullName));
+						var lmbdWhere = new StringBuilder();
+						var vpcols = new ColumnInfo[tbref.Primarys.Length];
+						for (var a = 0; a < tbref.Primarys.Length; a++) {
+							var findtbrefPkCsName = tbref.Primarys[a].CsName.TrimStart('_');
+							if (findtbrefPkCsName.StartsWith(tbref.Type.Name, StringComparison.CurrentCultureIgnoreCase)) findtbrefPkCsName = findtbrefPkCsName.Substring(tbref.Type.Name.Length).TrimStart('_');
+							if (trytb.ColumnsByCs.TryGetValue($"{vp.Item1.Name}{findtbrefPkCsName}", out var trycol) == false && //骆峰命名
+								trytb.ColumnsByCs.TryGetValue($"{vp.Item1.Name}_{findtbrefPkCsName}", out trycol) == false //下划线命名
+								) {
+								//一对一，主键与主键查找
+								if (isOnoToOne) {
+									var trytbpks = trytb.Primarys.Where(z => z.CsType == tbref.Primarys[a].CsType); //一对一，按类型
+									if (trytbpks.Count() == 1) trycol = trytbpks.First();
+									else {
+										trytbpks = trytb.Primarys.Where(z => string.Compare(z.CsName, tbref.Primarys[a].CsName, true) == 0); //一对一，按主键名相同
+										if (trytbpks.Count() == 1) trycol = trytbpks.First();
+										else {
+											trytbpks = trytb.Primarys.Where(z => string.Compare(z.CsName, $"{tbref.CsName}{tbref.Primarys[a].CsName}", true) == 0); //一对一，主键名 = 表+主键名
+											if (trytbpks.Count() == 1) trycol = trytbpks.First();
+											else {
+												trytbpks = trytb.Primarys.Where(z => string.Compare(z.CsName, $"{tbref.CsName}_{tbref.Primarys[a].CsName}", true) == 0); //一对一，主键名 = 表+_主键名
+												if (trytbpks.Count() == 1) trycol = trytbpks.First();
+											}
+										}
+									}
+								}
+								if (trycol != null &&  trycol.CsType != tbref.Primarys[a].CsType)
+									throw new Exception($"【延时加载】导航属性 {trytbTypeName}.{vp.Item1.Name} 解析错误，{trytb.CsName}.{trycol.CsName} 和 {tbref.CsName}.{tbref.Primarys[a].CsName} 类型不一致");
+								if (trycol == null)
+									throw new Exception($"【延时加载】导航属性 {trytbTypeName}.{vp.Item1.Name} 没有找到对应的字段，如：{vp.Item1.Name}{findtbrefPkCsName}、{vp.Item1.Name}_{findtbrefPkCsName}");
+							}
+							if (a > 0) lmbdWhere.Append(" && ");
+							lmbdWhere.Append("a.").Append(tbref.Primarys[a].CsName).Append(" == this.").Append(trycol.CsName);
+						}
+
+						cscode.Append("	private bool __lazy__").Append(vp.Item1.Name).AppendLine(" = false;")
+							.Append("	public override ").Append(propTypeName).Append(" ").Append(vp.Item1.Name).AppendLine(" {");
+						if (vp.Item2) { //get 重写
+							cscode.Append("		get {\r\n")
+								.Append("			if (base.").Append(vp.Item1.Name).Append(" == null && __lazy__").Append(vp.Item1.Name).AppendLine(" == false) {")
+								.Append("				base.").Append(vp.Item1.Name).Append(" = __fsql_orm__.Select<").Append(propTypeName).Append(">().Where(a => ").Append(lmbdWhere.ToString()).AppendLine(").ToOne();")
+								.Append("				__lazy__").Append(vp.Item1.Name).AppendLine(" = true;")
+								.Append("			}\r\n")
+								.Append("			return base.").Append(vp.Item1.Name).AppendLine(";")
+								.Append("		}\r\n");
+						}
+						if (vp.Item3) { //set 重写
+							cscode.Append("		set => base.").Append(vp.Item1.Name).AppendLine(" = value;");
+						}
+						cscode.AppendLine("	}");
+
 					}
-					if (overrieds > 0) {
-						cscode.AppendLine("}");
-						var assemly = Generator.TemplateEngin._compiler.Value.CompileCode(cscode.ToString());
-						var type = assemly.DefinedTypes.Where(a => a.FullName.EndsWith($"FreeSqlOverrideLazyEntity{trytb.Type.Name}")).FirstOrDefault();
-						trytb.TypeLazy = type;
-						trytb.TypeLazySetOrm = type.GetProperty("__fsql_orm__").GetSetMethod();
-					}
+					++overrieds;
 				}
-				return trytb;
-			});
+				if (overrieds > 0) {
+					cscode.AppendLine("}");
+					var assemly = Generator.TemplateEngin._compiler.Value.CompileCode(cscode.ToString());
+					var type = assemly.DefinedTypes.Where(a => a.FullName.EndsWith(trytbTypeLazyName)).FirstOrDefault();
+					trytb.TypeLazy = type;
+					trytb.TypeLazySetOrm = type.GetProperty("__fsql_orm__").GetSetMethod();
+				}
+			}
+
+			return tbc.TryGetValue(entity, out var trytb2) ? trytb2 : trytb;
 		}
 
 		internal static T[] GetDbParamtersByObject<T>(string sql, object obj, string paramPrefix, Func<string, Type, object, T> constructorParamter) {

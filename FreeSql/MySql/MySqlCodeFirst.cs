@@ -168,7 +168,9 @@ where a.table_schema in ({0}) and a.table_name in ({1})".FormatMySql(tboldname ?
 					}, StringComparer.CurrentCultureIgnoreCase);
 
 					if (istmpatler == false) {
+						var existsPrimary = ExecuteScalar(tbname[0], "select 1 from INFORMATION_SCHEMA.KEY_COLUMN_USAGE where table_schema={0} and table_name={1} limit 1".FormatMySql(tbname));
 						foreach (var tbcol in tb.Columns.Values) {
+							var isIdentityChanged = tbcol.Attribute.IsIdentity && tbcol.Attribute.DbType.IndexOf("AUTO_INCREMENT", StringComparison.CurrentCultureIgnoreCase) == -1;
 							if (tbstruct.TryGetValue(tbcol.Attribute.Name, out var tbstructcol) ||
 								string.IsNullOrEmpty(tbcol.Attribute.OldName) == false && tbstruct.TryGetValue(tbcol.Attribute.OldName, out tbstructcol)) {
 								if ((tbcol.Attribute.DbType.IndexOf(" unsigned", StringComparison.CurrentCultureIgnoreCase) != -1) != tbstructcol.is_unsigned ||
@@ -176,20 +178,20 @@ where a.table_schema in ({0}) and a.table_name in ({1})".FormatMySql(tboldname ?
 								tbcol.Attribute.IsNullable != tbstructcol.is_nullable ||
 								tbcol.Attribute.IsIdentity != tbstructcol.is_identity) {
 									sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" MODIFY ").Append(_commonUtils.QuoteSqlName(tbstructcol.column)).Append(" ").Append(tbcol.Attribute.DbType);
-									if (tbcol.Attribute.IsIdentity && tbcol.Attribute.DbType.IndexOf("AUTO_INCREMENT", StringComparison.CurrentCultureIgnoreCase) == -1) sbalter.Append(" AUTO_INCREMENT");
+									if (isIdentityChanged) sbalter.Append(" AUTO_INCREMENT").Append(existsPrimary == null ? "" : ", DROP PRIMARY KEY").Append(", ADD PRIMARY KEY(").Append(_commonUtils.QuoteSqlName(tbstructcol.column)).Append(")");
 									sbalter.Append(";\r\n");
 								}
 								if (tbstructcol.column == tbcol.Attribute.OldName) {
 									//修改列名
 									sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" CHANGE COLUMN ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.OldName)).Append(" ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType);
-									if (tbcol.Attribute.IsIdentity && tbcol.Attribute.DbType.IndexOf("AUTO_INCREMENT", StringComparison.CurrentCultureIgnoreCase) == -1) sb.Append(" AUTO_INCREMENT");
+									if (isIdentityChanged) sb.Append(" AUTO_INCREMENT").Append(existsPrimary == null ? "" : ", DROP PRIMARY KEY").Append(", ADD PRIMARY KEY(").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(")");
 									sbalter.Append(";\r\n");
 								}
 								continue;
 							}
 							//添加列
 							sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ADD ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType);
-							if (tbcol.Attribute.IsIdentity && tbcol.Attribute.DbType.IndexOf("AUTO_INCREMENT", StringComparison.CurrentCultureIgnoreCase) == -1) sbalter.Append(" AUTO_INCREMENT");
+							if (isIdentityChanged) sbalter.Append(" AUTO_INCREMENT").Append(existsPrimary == null ? "" : ", DROP PRIMARY KEY").Append(", ADD PRIMARY KEY(").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(")");
 							sbalter.Append(";\r\n");
 						}
 					}

@@ -5,6 +5,7 @@ using System.Linq;
 using Xunit;
 
 namespace FreeSql.Tests.MySql {
+	
 	public class MySqlSelectTest {
 
 		ISelect<Topic> select => g.mysql.Select<Topic>();
@@ -15,18 +16,33 @@ namespace FreeSql.Tests.MySql {
 			public int Id { get; set; }
 			public int Clicks { get; set; }
 			public int TestTypeInfoGuid { get; set; }
+			public virtual TestTypeInfo TestTypeInfo { get; set; }
 
 			public int TypeGuid { get; set; }
 			public virtual TestTypeInfo Type { get; set; }
 			public string Title { get; set; }
 			public DateTime CreateTime { get; set; }
+
+			public virtual TopicFields Fields { get; set; }
+		}
+		public class TopicFields {
+			[Column(IsPrimary = true)]
+			public int TopicId { get; set; }
+			public virtual Topic Topic { get; set; }
 		}
 		public class TestTypeInfo {
 			[Column(IsIdentity = true)]
 			public int Guid { get; set; }
+
 			public int ParentId { get; set; }
-			public TestTypeParentInfo Parent { get; set; }
+			public virtual TestTypeParentInfo Parent { get; set; }
+
+			public int SelfGuid { get; set; }
+			public virtual TestTypeInfo Self { get; set; }
+
 			public string Name { get; set; }
+
+			public virtual ICollection<Topic> Topics { get; set; }
 		}
 		public class TestTypeParentInfo {
 			[Column(IsIdentity = true)]
@@ -38,6 +54,9 @@ namespace FreeSql.Tests.MySql {
 
 		[Fact]
 		public void Lazy() {
+			var ts = g.mysql.Select<TestTypeInfo>(1).ToOne();
+
+
 			Topic t = g.mysql.Select<Topic>(2).ToOne();
 			Topic tz = g.mysql.Select<Topic>(2).ToOne();
 			var tzType = tz.Type;
