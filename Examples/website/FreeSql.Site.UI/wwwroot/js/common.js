@@ -112,9 +112,9 @@
                         });
                     }
                 }
-            }
+            });
+        }
     };
 
     window.freejs = new base();
-
 })(window);

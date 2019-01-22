@@ -12,6 +12,7 @@ using FreeSql.Site.UI.Common;
 using FreeSql.Site.UI.Controllers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace FreeSql.Site.UI.Areas.Admin.Controllers
 {
@@ -78,6 +79,17 @@ namespace FreeSql.Site.UI.Areas.Admin.Controllers
                 count = contents.count,
                 data = contents.list
             });
+        }
+
+        public ActionResult DocContentEditModule(string id)
+        {
+            ViewBag.DocumentTypeList = DocumentTypeDAL.Query(w => w.Status == 1).Select(s => new SelectListItem { Text = s.TypeName, Value = s.ID.ToString() }).ToList();
+            DocumentContent model = new DocumentContent();
+            if (!string.IsNullOrEmpty(id))
+            {
+                model = DocumentContentDAL.GetByOne(w => w.ID == 1);
+            }
+            return View(model);
         }
 
         // POST: Documents/Create

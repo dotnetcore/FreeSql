@@ -6,68 +6,10 @@
 <script>
     var dialog_Paramters = { height: 660, width: 1100 };
 </script>
-<table class="layui-hide" id="test" lay-filter="test"></table>
+
+<table class="layui-table" id="test" lay-filter="test"></table>
 
 <script type="text/html" id="docContentEdit">
-    <form class="layui-form" action="" id="frm_DocContentEdit">
-        <div class="form-module-content">
-            <div class="layui-form-item">
-                <label class="layui-form-label">文章分类</label>
-                <div class="layui-input-block">
-                    <select name="interest" lay-filter="aihao">
-                        <option value=""></option>
-                        <option value="0">使用</option>
-                        <option value="1">新增</option>
-                        <option value="2">修改</option>
-                        <option value="3">删除</option>
-                        <option value="4">查询</option>
-                        <option value="5">高级应用</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="layui-form-item">
-                <label class="layui-form-label">文章标题</label>
-                <div class="layui-input-block">
-                    <input type="text" name="DocTitle" lay-verify="title" autocomplete="off" placeholder="请输入标题" class="layui-input">
-                </div>
-            </div>
-            <div class="layui-form-item">
-                <label class="layui-form-label">摘要</label>
-                <div class="layui-input-block">
-                    <input type="text" name="DocAbstract" lay-verify="title" autocomplete="off" placeholder="请输入标题" class="layui-input">
-                </div>
-            </div>
-
-            @*<div class="layui-form-item">
-                    <label class="layui-form-label">文章分类</label>
-                    <div class="layui-input-block">
-                        <input type="checkbox" name="like[write]" title="写作">
-                        <input type="checkbox" name="like[read]" title="阅读">
-                        <input type="checkbox" name="like[daze]" title="发呆">
-                    </div>
-                </div>*@
-
-            <div class="layui-form-item">
-                <label class="layui-form-label">状态</label>
-                <div class="layui-input-block">
-                    <input type="radio" name="status" value="1" title="启用" checked="">
-                    <input type="radio" name="status" value="0" title="关闭">
-                </div>
-            </div>
-            <div class="layui-form-item layui-form-text">
-                <label class="layui-form-label">文本域</label>
-                <div class="layui-input-block" id="md_DocContent">
-                    <textarea style="display:none;" placeholder="请输入内容" name="DocContent"></textarea>
-                </div>
-            </div>
-
-        </div>
-        <div class="form-module-footer">
-            <button class="layui-btn" lay-submit lay-filter="formDemo">立即提交</button>
-            <button type="reset" class="layui-btn layui-btn-primary">重置</button>
-        </div>
-    </form>
 </script>
 
 <script type="text/html" id="toolbarDemo">
@@ -81,10 +23,12 @@
         </div>
     </div>
 </script>
+
 <script type="text/html" id="barDemo">
     <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
     <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
 </script>
+
 <script>
     var testEditor;
     layui.use(['form', 'layedit', 'laydate', 'table'], function () {
@@ -131,13 +75,12 @@
                     dialogWindow.open({
                         type: 1,
                         maxmin: true,
-                        title: "编辑[文档]",
+                        title: "新增文档",
                         area: ['1100px', '660px'],
                         shadeClose: false, //点击遮罩关闭
                         content: $("#docContentEdit").html(),
                         submit: {
                             url: "/Admin/Document/DocContentCreate",
-                            data: JSON.stringify(data.field),
                         }
                     }, form);
                     break;
@@ -153,8 +96,6 @@
         //监听行工具事件
         table.on('tool(test)', function (obj) {
             var data = obj.data;
-            debugger
-            //console.log(obj)
             if (obj.event === 'del') {
                 layer.confirm('确定要删除吗？', function (index) {
                     //调用删除
@@ -174,18 +115,27 @@
                     });
                 });
             } else if (obj.event === 'edit') {
-                dialogWindow.open({
-                    type: 1,
-                    maxmin: true,
-                    title: "编辑[文档]",
-                    area: ['1100px', '660px'],
-                    shadeClose: false, //点击遮罩关闭
-                    content: $("#docContentEdit").html(),
-                    submit: {
-                        url: "/Admin/Document/DocContentCreate",
-                        data: JSON.stringify(data.field),
+                $("#docContentEdit").load("/Admin/Document/DocContentEditModule", { id: data.ID }, function (responseText, textStatus, jqXHR) {
+                    switch (textStatus) {
+                        case "success":
+                            dialogWindow.open({
+                                type: 1,
+                                maxmin: true,
+                                title: "编辑文档",
+                                area: ['1100px', '660px'],
+                                shadeClose: false, //点击遮罩关闭
+                                content: responseText,
+                                submit: {
+                                    url: "/Admin/Document/DocContentCreate",
+                                }
+                            }, form);
+                            break;
+                        case "error":
+                            freejs.showMessage({ title: "提示", msg: "页面加载失败", type: 2 });
+                            break;
                     }
-                }, form);
+                });
+
                 //form.render();
                 //layer.prompt({
                 //    formType: 2
