@@ -1,4 +1,5 @@
-﻿using FreeSql.DatabaseModel;
+﻿using FreeSql.DataAnnotations;
+using FreeSql.DatabaseModel;
 using FreeSql.Internal;
 using FreeSql.Internal.Model;
 using System;
@@ -100,7 +101,7 @@ namespace FreeSql.Sqlite {
 						foreach (var tbcol in tb.Columns.Values) {
 							sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ");
 							sb.Append(tbcol.Attribute.DbType);
-							if (tbcol.Attribute.IsIdentity && tbcol.Attribute.DbType.IndexOf("AUTOINCREMENT", StringComparison.CurrentCultureIgnoreCase) == -1) {
+							if (tbcol.Attribute.IsIdentity == true && tbcol.Attribute.DbType.IndexOf("AUTOINCREMENT", StringComparison.CurrentCultureIgnoreCase) == -1) {
 								isIndent = true;
 								sb.Append(" PRIMARY KEY AUTOINCREMENT");
 							}
@@ -180,7 +181,7 @@ namespace FreeSql.Sqlite {
 				foreach (var tbcol in tb.Columns.Values) {
 					sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ");
 					sb.Append(tbcol.Attribute.DbType);
-					if (tbcol.Attribute.IsIdentity && tbcol.Attribute.DbType.IndexOf("AUTOINCREMENT", StringComparison.CurrentCultureIgnoreCase) == -1) {
+					if (tbcol.Attribute.IsIdentity == true && tbcol.Attribute.DbType.IndexOf("AUTOINCREMENT", StringComparison.CurrentCultureIgnoreCase) == -1) {
 						isIndent = true;
 						sb.Append(" PRIMARY KEY AUTOINCREMENT");
 					}
@@ -235,6 +236,6 @@ namespace FreeSql.Sqlite {
 			foreach (var syncType in syncTypes) dicSyced.TryAdd(syncType.FullName, true);
 			return affrows > 0;
 		}
-
+		public ICodeFirst ConfigEntity<T>(Action<TableFluent<T>> entity) => _commonUtils.ConfigEntity(entity);
 	}
 }

@@ -85,8 +85,7 @@ namespace FreeSql.Tests.MySql {
 
 		[Fact]
 		public void Lazy() {
-			//Type.GetType();
-			var sql = g.mysql.Select<Tag>().Where(a => g.mysql.Select<Song_tag>().Where(b => b.Tag_id == a.Id && b.Song_id == 1).Any());
+			var tags = g.mysql.Select<Tag>().Where(a => a.Parent.Name == "xxx").LeftJoin(a => a.Parent_id == a.Parent.Id).ToList();
 
 			var songs = g.mysql.Select<Song>().Limit(10).ToList();
 

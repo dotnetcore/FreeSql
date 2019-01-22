@@ -1,4 +1,5 @@
-﻿using FreeSql.DatabaseModel;
+﻿using FreeSql.DataAnnotations;
+using FreeSql.DatabaseModel;
 using FreeSql.Internal;
 using FreeSql.Internal.Model;
 using Newtonsoft.Json.Linq;
@@ -149,7 +150,7 @@ namespace FreeSql.PostgreSQL {
 						sb.Append("CREATE TABLE IF NOT EXISTS ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" (");
 						foreach (var tbcol in tb.Columns.Values) {
 							sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType).Append(",");
-							if (tbcol.Attribute.IsIdentity) seqcols.Add((tbcol, tbname, true));
+							if (tbcol.Attribute.IsIdentity == true) seqcols.Add((tbcol, tbname, true));
 						}
 						if (tb.Primarys.Any() == false)
 							sb.Remove(sb.Length - 1, 1);
@@ -223,9 +224,9 @@ where ns.nspname = {0} and c.relname = {1}".FormatPostgreSQL(tboldname ?? tbname
 								tbcol.Attribute.DbType.Contains("[]") != (tbstructcol.attndims > 0))
 								sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ALTER COLUMN ").Append(_commonUtils.QuoteSqlName(tbstructcol.column)).Append(" TYPE ").Append(tbcol.Attribute.DbType.Split(' ').First()).Append(";\r\n");
 							if (tbcol.Attribute.IsNullable != tbstructcol.is_nullable)
-								sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ALTER COLUMN ").Append(_commonUtils.QuoteSqlName(tbstructcol.column)).Append(" ").Append(tbcol.Attribute.IsNullable ? "DROP" : "SET").Append(" NOT NULL;\r\n");
+								sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ALTER COLUMN ").Append(_commonUtils.QuoteSqlName(tbstructcol.column)).Append(" ").Append(tbcol.Attribute.IsNullable == true ? "DROP" : "SET").Append(" NOT NULL;\r\n");
 							if (tbcol.Attribute.IsIdentity != tbstructcol.is_identity)
-								seqcols.Add((tbcol, tbname, tbcol.Attribute.IsIdentity));
+								seqcols.Add((tbcol, tbname, tbcol.Attribute.IsIdentity == true));
 							if (tbstructcol.column == tbcol.Attribute.OldName)
 								//修改列名
 								sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" RENAME COLUMN ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.OldName)).Append(" TO ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(";\r\n");
@@ -235,7 +236,7 @@ where ns.nspname = {0} and c.relname = {1}".FormatPostgreSQL(tboldname ?? tbname
 						sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ADD COLUMN ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType.Split(' ').First()).Append(";\r\n");
 						sbalter.Append("UPDATE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" SET ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(_commonUtils.FormatSql(" = {0};\r\n", tbcol.Attribute.DbDefautValue));
 						if (tbcol.Attribute.IsNullable == false) sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ALTER COLUMN ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" SET NOT NULL;\r\n");
-						if (tbcol.Attribute.IsIdentity) seqcols.Add((tbcol, tbname, tbcol.Attribute.IsIdentity));
+						if (tbcol.Attribute.IsIdentity == true) seqcols.Add((tbcol, tbname, tbcol.Attribute.IsIdentity == true));
 					}
 				}
 				if (istmpatler == false) {
@@ -257,7 +258,7 @@ where pg_namespace.nspname={0} and pg_class.relname={1} and pg_constraint.contyp
 				sb.Append("CREATE TABLE IF NOT EXISTS ").Append(tmptablename).Append(" (");
 				foreach (var tbcol in tb.Columns.Values) {
 					sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType).Append(",");
-					if (tbcol.Attribute.IsIdentity) seqcols.Add((tbcol, tbname, true));
+					if (tbcol.Attribute.IsIdentity == true) seqcols.Add((tbcol, tbname, true));
 				}
 				if (tb.Primarys.Any() == false)
 					sb.Remove(sb.Length - 1, 1);
@@ -319,6 +320,6 @@ where pg_namespace.nspname={0} and pg_class.relname={1} and pg_constraint.contyp
 			foreach (var syncType in syncTypes) dicSyced.TryAdd(syncType.FullName, true);
 			return affrows > 0;
 		}
-
+		public ICodeFirst ConfigEntity<T>(Action<TableFluent<T>> entity) => _commonUtils.ConfigEntity(entity);
 	}
 }

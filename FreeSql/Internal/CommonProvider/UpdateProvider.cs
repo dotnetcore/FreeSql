@@ -74,7 +74,7 @@ namespace FreeSql.Internal.CommonProvider {
 			var expt = _commonExpression.ExpressionWhereLambdaNoneForeignObject(null, cols, binaryExpression, null);
 			if (cols.Any() == false) return this;
 			foreach (var col in cols) {
-				if (col.Column.Attribute.IsNullable) {
+				if (col.Column.Attribute.IsNullable == true) {
 					var replval = _orm.CodeFirst.GetDbInfo(col.Column.CsType.GenericTypeArguments.FirstOrDefault())?.defaultValue;
 					if (replval == null) continue;
 					var replname = _commonUtils.QuoteSqlName(col.Column.Attribute.Name);

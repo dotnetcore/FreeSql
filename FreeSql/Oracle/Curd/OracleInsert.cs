@@ -28,7 +28,7 @@ namespace FreeSql.Oracle.Curd {
 			sbtb.Append(_commonUtils.QuoteSqlName(_table.DbName)).Append("(");
 			var colidx = 0;
 			foreach (var col in _table.Columns.Values) {
-				if (col.Attribute.IsIdentity) {
+				if (col.Attribute.IsIdentity == true) {
 					_identCol = col;
 					continue;
 				}

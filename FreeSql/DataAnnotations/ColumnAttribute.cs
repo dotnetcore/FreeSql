@@ -16,18 +16,19 @@ namespace FreeSql.DataAnnotations {
 		/// </summary>
 		public string DbType { get; set; }
 
+		internal bool? _IsPrimary, _IsIdentity, _IsNullable;
 		/// <summary>
 		/// 主键
 		/// </summary>
-		public bool IsPrimary { get; set; }
+		public bool IsPrimary { get => _IsPrimary ?? false; set => _IsPrimary = value; }
 		/// <summary>
 		/// 自增标识
 		/// </summary>
-		public bool IsIdentity { get; set; }
+		public bool IsIdentity { get => _IsIdentity ?? false; set => _IsIdentity = value; }
 		/// <summary>
 		/// 是否可DBNull
 		/// </summary>
-		public bool IsNullable { get; set; }
+		public bool IsNullable { get => _IsNullable ?? false; set => _IsNullable = value; }
 
 		/// <summary>
 		/// 数据库默认值

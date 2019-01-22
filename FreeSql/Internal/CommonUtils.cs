@@ -1,6 +1,8 @@
-﻿using FreeSql.Internal.Model;
+﻿using FreeSql.DataAnnotations;
+using FreeSql.Internal.Model;
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
@@ -30,11 +32,45 @@ namespace FreeSql.Internal {
 			_orm = orm;
 		}
 
+		ConcurrentDictionary<Type, TableAttribute> dicConfigEntity = new ConcurrentDictionary<Type, TableAttribute>();
+		internal ICodeFirst ConfigEntity<T>(Action<TableFluent<T>> entity) {
+			var type = typeof(T);
+			var table = dicConfigEntity.GetOrAdd(type, new TableAttribute());
+			var fluent = new TableFluent<T>(table);
+			entity?.Invoke(fluent);
+			return _orm.CodeFirst;
+		}
+		internal TableAttribute GetEntityTableAttribute(Type entityType) {
+			var attr = entityType.GetCustomAttributes(typeof(TableAttribute), false).LastOrDefault() as TableAttribute;
+			if (dicConfigEntity.TryGetValue(entityType, out var trytb) == false) return attr;
+			if (attr == null) attr = new TableAttribute();
+
+			if (string.IsNullOrEmpty(attr.Name)) attr.Name = trytb.Name;
+			if (string.IsNullOrEmpty(attr.OldName)) attr.OldName = trytb.OldName;
+			if (string.IsNullOrEmpty(attr.SelectFilter)) attr.SelectFilter = trytb.SelectFilter;
+			return attr;
+		}
+		internal ColumnAttribute GetEntityColumnAttribute(Type entityType, PropertyInfo proto) {
+			var attr = proto.GetCustomAttributes(typeof(ColumnAttribute), false).LastOrDefault() as ColumnAttribute;
+			if (dicConfigEntity.TryGetValue(entityType, out var trytb) == false) return attr;
+			if (trytb._columns.TryGetValue(proto.Name, out var trycol) == false) return attr;
+			if (attr == null) attr = new ColumnAttribute();
+
+			if (string.IsNullOrEmpty(attr.Name)) attr.Name = trycol.Name;
+			if (string.IsNullOrEmpty(attr.OldName)) attr.OldName = trycol.OldName;
+			if (string.IsNullOrEmpty(attr.DbType)) attr.DbType = trycol.DbType;
+			if (attr._IsPrimary == null) attr._IsPrimary = trycol.IsPrimary;
+			if (attr._IsIdentity == null) attr._IsIdentity = trycol.IsIdentity;
+			if (attr._IsNullable == null) attr._IsNullable = trycol.IsNullable;
+			if (attr.DbDefautValue == null) attr.DbDefautValue = trycol.DbDefautValue;
+			return attr;
+		}
+
 		internal string WhereObject(TableInfo table, string aliasAndDot, object dywhere) {
 			if (dywhere == null) return "";
 			var type = dywhere.GetType();
-			var primarys = table.Columns.Values.Where(a => a.Attribute.IsPrimary).ToArray();
-			if (primarys.Length == 1 && type == primarys.First().CsType) {
+			var primarys = table.Columns.Values.Where(a => a.Attribute.IsPrimary == true).ToArray();
+			if (primarys.Length == 1 && (type == primarys.First().CsType || type.IsNumberType() && primarys.First().CsType.IsNumberType())) {
 				return $"{aliasAndDot}{this.QuoteSqlName(primarys.First().Attribute.Name)} = {this.FormatSql("{0}", dywhere)}";
 			} else if (primarys.Length > 0 && type.FullName == table.Type.FullName) {
 				var sb = new StringBuilder();

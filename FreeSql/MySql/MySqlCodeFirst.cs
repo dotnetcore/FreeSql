@@ -1,4 +1,5 @@
-﻿using FreeSql.DatabaseModel;
+﻿using FreeSql.DataAnnotations;
+using FreeSql.DatabaseModel;
 using FreeSql.Internal;
 using FreeSql.Internal.Model;
 using MySql.Data.MySqlClient;
@@ -126,7 +127,7 @@ namespace FreeSql.MySql {
 							foreach (var tbcol in tb.Columns.Values) {
 								sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ");
 								sb.Append(tbcol.Attribute.DbType);
-								if (tbcol.Attribute.IsIdentity && tbcol.Attribute.DbType.IndexOf("AUTO_INCREMENT", StringComparison.CurrentCultureIgnoreCase) == -1) sb.Append(" AUTO_INCREMENT");
+								if (tbcol.Attribute.IsIdentity == true && tbcol.Attribute.DbType.IndexOf("AUTO_INCREMENT", StringComparison.CurrentCultureIgnoreCase) == -1) sb.Append(" AUTO_INCREMENT");
 								sb.Append(",");
 							}
 							if (tb.Primarys.Any() == false)
@@ -170,7 +171,7 @@ where a.table_schema in ({0}) and a.table_name in ({1})".FormatMySql(tboldname ?
 					if (istmpatler == false) {
 						var existsPrimary = ExecuteScalar(tbname[0], "select 1 from INFORMATION_SCHEMA.KEY_COLUMN_USAGE where table_schema={0} and table_name={1} limit 1".FormatMySql(tbname));
 						foreach (var tbcol in tb.Columns.Values) {
-							var isIdentityChanged = tbcol.Attribute.IsIdentity && tbcol.Attribute.DbType.IndexOf("AUTO_INCREMENT", StringComparison.CurrentCultureIgnoreCase) == -1;
+							var isIdentityChanged = tbcol.Attribute.IsIdentity == true && tbcol.Attribute.DbType.IndexOf("AUTO_INCREMENT", StringComparison.CurrentCultureIgnoreCase) == -1;
 							if (tbstruct.TryGetValue(tbcol.Attribute.Name, out var tbstructcol) ||
 								string.IsNullOrEmpty(tbcol.Attribute.OldName) == false && tbstruct.TryGetValue(tbcol.Attribute.OldName, out tbstructcol)) {
 								if ((tbcol.Attribute.DbType.IndexOf(" unsigned", StringComparison.CurrentCultureIgnoreCase) != -1) != tbstructcol.is_unsigned ||
@@ -208,7 +209,7 @@ where a.table_schema in ({0}) and a.table_name in ({1})".FormatMySql(tboldname ?
 					foreach (var tbcol in tb.Columns.Values) {
 						sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ");
 						sb.Append(tbcol.Attribute.DbType);
-						if (tbcol.Attribute.IsIdentity && tbcol.Attribute.DbType.IndexOf("AUTO_INCREMENT", StringComparison.CurrentCultureIgnoreCase) == -1) sb.Append(" AUTO_INCREMENT");
+						if (tbcol.Attribute.IsIdentity == true && tbcol.Attribute.DbType.IndexOf("AUTO_INCREMENT", StringComparison.CurrentCultureIgnoreCase) == -1) sb.Append(" AUTO_INCREMENT");
 						sb.Append(",");
 					}
 					if (tb.Primarys.Any() == false)
@@ -267,6 +268,6 @@ where a.table_schema in ({0}) and a.table_name in ({1})".FormatMySql(tboldname ?
 			foreach (var syncType in syncTypes) dicSyced.TryAdd(syncType.FullName, true);
 			return affrows > 0;
 		}
-
+		public ICodeFirst ConfigEntity<T>(Action<TableFluent<T>> entity) => _commonUtils.ConfigEntity(entity);
 	}
 }

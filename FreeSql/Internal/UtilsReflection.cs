@@ -57,7 +57,7 @@ namespace FreeSql.Internal {
 				if (string.IsNullOrEmpty(colattr.Name)) colattr.Name = p.Name;
 				if (common.CodeFirst.IsSyncStructureToLower) colattr.Name = colattr.Name.ToLower();
 
-				if ((colattr.IsNullable == false || colattr.IsIdentity || colattr.IsPrimary) && colattr.DbType.Contains("NOT NULL") == false) {
+				if ((colattr.IsNullable != true || colattr.IsIdentity == true || colattr.IsPrimary == true) && colattr.DbType.Contains("NOT NULL") == false) {
 					colattr.IsNullable = false;
 					colattr.DbType += " NOT NULL";
 				}
@@ -84,9 +84,9 @@ namespace FreeSql.Internal {
 				trytb.Columns.Add(colattr.Name, col);
 				trytb.ColumnsByCs.Add(p.Name, col);
 			}
-			trytb.Primarys = trytb.Columns.Values.Where(a => a.Attribute.IsPrimary).ToArray();
+			trytb.Primarys = trytb.Columns.Values.Where(a => a.Attribute.IsPrimary == true).ToArray();
 			if (trytb.Primarys.Any() == false) {
-				trytb.Primarys = trytb.Columns.Values.Where(a => a.Attribute.IsIdentity).ToArray();
+				trytb.Primarys = trytb.Columns.Values.Where(a => a.Attribute.IsIdentity == true).ToArray();
 				foreach(var col in trytb.Primarys)
 					col.Attribute.IsPrimary = true;
 			}

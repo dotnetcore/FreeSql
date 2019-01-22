@@ -194,8 +194,11 @@ namespace FreeSql.Internal {
 				for (var a = tbidx + 1; a < _tables.Count; a++)
 					_tables[a].Type = SelectTableInfoType.From;
 			} else {
-				var find = _tables.Where((a, c) => c > 0 && a.Type == tbtype && string.IsNullOrEmpty(a.On)).LastOrDefault();
-				if (find != null) find.On = filter;
+				var find = _tables.Where((a, c) => c > 0 && (a.Type == tbtype || a.Type == SelectTableInfoType.From) && string.IsNullOrEmpty(a.On)).LastOrDefault();
+				if (find != null) {
+					find.Type = tbtype;
+					find.On = filter;
+				}
 			}
 		}
 
@@ -355,13 +358,13 @@ namespace FreeSql.Internal {
 						if (isQuoteName) name = _common.QuoteSqlName(name);
 						return name;
 					}
-					Func<TableInfo, string, SelectTableInfo> getOrAddTable = (tbtmp, alias) => {
-						var finds = _tables.Where((a2, c2) => a2.Table.CsName == tbtmp.CsName).ToArray(); //外部表，内部表一起查
+					Func<TableInfo, string, bool, SelectTableInfo> getOrAddTable = (tbtmp, alias, isa) => {
+						var finds = _tables.Where((a2, c2) => (isa || c2 > 0) && a2.Table.CsName == tbtmp.CsName).ToArray(); //外部表，内部表一起查
 						if (finds.Length > 1) {
 							finds = _tables.Where((a2, c2) => a2.Table.CsName == tbtmp.CsName && a2.Type == SelectTableInfoType.Parent && a2.Alias == $"__parent_{alias}_parent__").ToArray(); //查询外部表
 							if (finds.Any() == false) {
-								finds = _tables.Where((a2, c2) => a2.Table.CsName == tbtmp.CsName && a2.Type != SelectTableInfoType.Parent).ToArray(); //查询内部表
-								if (finds.Length > 1) finds = _tables.Where((a2, c2) => a2.Table.CsName == tbtmp.CsName && a2.Type != SelectTableInfoType.Parent && a2.Alias == alias).ToArray();
+								finds = _tables.Where((a2, c2) => (isa || c2 > 0) && a2.Table.CsName == tbtmp.CsName && a2.Type != SelectTableInfoType.Parent).ToArray(); //查询内部表
+								if (finds.Length > 1) finds = _tables.Where((a2, c2) => (isa || c2 > 0) && a2.Table.CsName == tbtmp.CsName && a2.Type != SelectTableInfoType.Parent && a2.Alias == alias).ToArray();
 							}
 						}
 						var find = finds.FirstOrDefault();
@@ -388,7 +391,7 @@ namespace FreeSql.Internal {
 								if (tb2tmp != null) {
 									if (exp2.NodeType == ExpressionType.Parameter) alias2 = (exp2 as ParameterExpression).Name;
 									else alias2 = $"{alias2}__{mp2.Member.Name}";
-									find2 = getOrAddTable(tb2tmp, alias2);
+									find2 = getOrAddTable(tb2tmp, alias2, exp2.NodeType == ExpressionType.Parameter);
 									alias2 = find2.Alias;
 									tb2 = tb2tmp;
 								}
@@ -397,7 +400,7 @@ namespace FreeSql.Internal {
 									if (_selectColumnMap != null) {
 										var tb3 = _common.GetTableByEntity(mp2.Type);
 										if (tb3 != null) {
-											var find3 = getOrAddTable(tb2tmp, $"{alias2}__{mp2.Member.Name}");
+											var find3 = getOrAddTable(tb2tmp, $"{alias2}__{mp2.Member.Name}", exp2.NodeType == ExpressionType.Parameter);
 
 											foreach (var tb3c in tb3.Columns.Values)
 												_selectColumnMap.Add(new SelectColumnInfo { Table = find3, Column = tb3c });

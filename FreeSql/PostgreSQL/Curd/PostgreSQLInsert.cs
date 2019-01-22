@@ -16,7 +16,7 @@ namespace FreeSql.PostgreSQL.Curd {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return 0;
 
-			var identCols = _table.Columns.Where(a => a.Value.Attribute.IsIdentity);
+			var identCols = _table.Columns.Where(a => a.Value.Attribute.IsIdentity == true);
 			if (identCols.Any() == false) {
 				_orm.Ado.ExecuteNonQuery(CommandType.Text, sql, _params);
 				return 0;
@@ -27,7 +27,7 @@ namespace FreeSql.PostgreSQL.Curd {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return 0;
 
-			var identCols = _table.Columns.Where(a => a.Value.Attribute.IsIdentity);
+			var identCols = _table.Columns.Where(a => a.Value.Attribute.IsIdentity == true);
 			if (identCols.Any() == false) {
 				await _orm.Ado.ExecuteNonQueryAsync(CommandType.Text, sql, _params);
 				return 0;

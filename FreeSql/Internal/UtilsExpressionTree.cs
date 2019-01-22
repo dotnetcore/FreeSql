@@ -30,7 +30,7 @@ namespace FreeSql.Internal {
 			if (tbc.TryGetValue(entity, out var trytb)) return trytb;
 			if (common.CodeFirst.GetDbInfo(entity) != null) return null;
 
-			var tbattr = entity.GetCustomAttributes(typeof(TableAttribute), false).LastOrDefault() as TableAttribute;
+			var tbattr = common.GetEntityTableAttribute(entity);
 			trytb = new TableInfo();
 			trytb.Type = entity;
 			trytb.Properties = entity.GetProperties().ToDictionary(a => a.Name, a => a, StringComparer.CurrentCultureIgnoreCase);
@@ -46,7 +46,7 @@ namespace FreeSql.Internal {
 			foreach (var p in trytb.Properties.Values) {
 				var tp = common.CodeFirst.GetDbInfo(p.PropertyType);
 				//if (tp == null) continue;
-				var colattr = p.GetCustomAttributes(typeof(ColumnAttribute), false).LastOrDefault() as ColumnAttribute;
+				var colattr = common.GetEntityColumnAttribute(entity, p);
 				if (tp == null && colattr == null) {
 					if (common.CodeFirst.IsLazyLoading) {
 						var getIsVirtual = trytb.Type.GetMethod($"get_{p.Name}")?.IsVirtual;
@@ -72,7 +72,7 @@ namespace FreeSql.Internal {
 				if (string.IsNullOrEmpty(colattr.Name)) colattr.Name = p.Name;
 				if (common.CodeFirst.IsSyncStructureToLower) colattr.Name = colattr.Name.ToLower();
 
-				if ((colattr.IsNullable == false || colattr.IsIdentity || colattr.IsPrimary) && colattr.DbType.Contains("NOT NULL") == false) {
+				if ((colattr.IsNullable != true || colattr.IsIdentity == true || colattr.IsPrimary == true) && colattr.DbType.Contains("NOT NULL") == false) {
 					colattr.IsNullable = false;
 					colattr.DbType += " NOT NULL";
 				}
@@ -89,10 +89,7 @@ namespace FreeSql.Internal {
 					var consturctorType = p.PropertyType.GenericTypeArguments.FirstOrDefault() ?? p.PropertyType;
 					colattr.DbDefautValue = Activator.CreateInstance(consturctorType);
 				}
-				if (colattr.IsIdentity && new[] {
-					typeof(sbyte), typeof(short), typeof(int), typeof(long),
-					typeof(byte), typeof(ushort), typeof(uint), typeof(ulong),
-					typeof(double), typeof(float), typeof(decimal) }.Contains(p.PropertyType.GenericTypeArguments.FirstOrDefault() ?? p.PropertyType) == false)
+				if (colattr.IsIdentity == true && (p.PropertyType.GenericTypeArguments.FirstOrDefault() ?? p.PropertyType)?.IsNumberType() == false)
 					colattr.IsIdentity = false;
 
 				var col = new ColumnInfo {
@@ -104,9 +101,9 @@ namespace FreeSql.Internal {
 				trytb.Columns.Add(colattr.Name, col);
 				trytb.ColumnsByCs.Add(p.Name, col);
 			}
-			trytb.Primarys = trytb.Columns.Values.Where(a => a.Attribute.IsPrimary).ToArray();
+			trytb.Primarys = trytb.Columns.Values.Where(a => a.Attribute.IsPrimary == true).ToArray();
 			if (trytb.Primarys.Any() == false) {
-				trytb.Primarys = trytb.Columns.Values.Where(a => a.Attribute.IsIdentity).ToArray();
+				trytb.Primarys = trytb.Columns.Values.Where(a => a.Attribute.IsIdentity == true).ToArray();
 				foreach (var col in trytb.Primarys)
 					col.Attribute.IsPrimary = true;
 			}

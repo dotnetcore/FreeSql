@@ -283,8 +283,8 @@ namespace FreeSql.Internal.CommonProvider {
 						if (dicfield.ContainsKey(quoteName)) field.Append(" as").Append(index);
 						else dicfield.Add(quoteName, true);
 					} else {
-						var tb2 = _tables.Where(a => a.Table.Type == prop.PropertyType && a.Alias.Contains(prop.Name)).FirstOrDefault();
-						if (tb2 == null && props.Where(pw => pw.Value.PropertyType == prop.PropertyType).Count() == 1) tb2 = _tables.Where(a => a.Table.Type == prop.PropertyType).FirstOrDefault();
+						var tb2 = _tables.Where((a, b) => b > 0 && a.Table.Type == prop.PropertyType && a.Alias.Contains(prop.Name)).FirstOrDefault(); //判断 b > 0 防止 parent 递归关系
+						if (tb2 == null && props.Where(pw => pw.Value.PropertyType == prop.PropertyType).Count() == 1) tb2 = _tables.Where((a, b) => b > 0 && a.Table.Type == prop.PropertyType).FirstOrDefault();
 						if (tb2 == null) continue;
 						foreach (var col2 in tb2.Table.Columns.Values) {
 							if (index > 0) field.Append(", ");

@@ -5,9 +5,25 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.Linq;
 using System.Reflection;
 
 public static class FreeSqlGlobalExtensions {
+
+	static Lazy<Dictionary<Type, bool>> dicIsNumberType = new Lazy<Dictionary<Type, bool>>(() => new Dictionary<Type, bool> {
+		[typeof(sbyte)] = true,
+		[typeof(short)] = true,
+		[typeof(int)] = true,
+		[typeof(long)] = true,
+		[typeof(byte)] = true,
+		[typeof(ushort)] = true,
+		[typeof(uint)] = true,
+		[typeof(ulong)] = true,
+		[typeof(double)] = true,
+		[typeof(float)] = true,
+		[typeof(decimal)] = true
+	});
+	public static bool IsNumberType(this Type that) => that == null ? false : dicIsNumberType.Value.ContainsKey(that.GenericTypeArguments.FirstOrDefault() ?? that);
 
 	/// <summary>
 	/// 测量两个经纬度的距离，返回单位：米

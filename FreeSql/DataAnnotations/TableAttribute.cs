@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 
 namespace FreeSql.DataAnnotations {
 	public class TableAttribute : Attribute {
@@ -15,5 +16,7 @@ namespace FreeSql.DataAnnotations {
 		/// 查询过滤SQL，实现类似 a.IsDeleted = 1 功能
 		/// </summary>
 		public string SelectFilter { get; set; }
+
+		internal ConcurrentDictionary<string, ColumnAttribute> _columns = new ConcurrentDictionary<string, ColumnAttribute>(StringComparer.CurrentCultureIgnoreCase);
 	}
 }

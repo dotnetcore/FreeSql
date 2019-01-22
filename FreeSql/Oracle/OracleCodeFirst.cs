@@ -1,4 +1,5 @@
-﻿using FreeSql.DatabaseModel;
+﻿using FreeSql.DataAnnotations;
+using FreeSql.DatabaseModel;
 using FreeSql.Internal;
 using FreeSql.Internal.Model;
 using Oracle.ManagedDataAccess.Client;
@@ -106,7 +107,7 @@ namespace FreeSql.Oracle {
 						sb.Append("execute immediate 'CREATE TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" (");
 						foreach (var tbcol in tb.Columns.Values) {
 							sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType).Append(",");
-							if (tbcol.Attribute.IsIdentity) seqcols.Add((tbcol, tbname, true));
+							if (tbcol.Attribute.IsIdentity == true) seqcols.Add((tbcol, tbname, true));
 						}
 						if (tb.Primarys.Any() == false)
 							sb.Remove(sb.Length - 1, 1);
@@ -184,10 +185,10 @@ where owner={{0}} and table_name={{1}}".FormatOracleSQL(tboldname ?? tbname);
 							if (tbcol.Attribute.IsNullable != tbstructcol.is_nullable) {
 								if (tbcol.Attribute.IsNullable == false)
 									sbalter.Append("execute immediate 'UPDATE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" SET ").Append(_commonUtils.QuoteSqlName(tbstructcol.column)).Append(_commonUtils.FormatSql(" = {0}", tbcol.Attribute.DbDefautValue).Replace("'", "''")).Append(" WHERE ").Append(_commonUtils.QuoteSqlName(tbstructcol.column)).Append(" IS NULL';\r\n");
-								sbalter.Append("execute immediate 'ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" MODIFY ").Append(_commonUtils.QuoteSqlName(tbstructcol.column)).Append(" ").Append(tbcol.Attribute.IsNullable ? "" : "NOT").Append(" NULL';\r\n");
+								sbalter.Append("execute immediate 'ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" MODIFY ").Append(_commonUtils.QuoteSqlName(tbstructcol.column)).Append(" ").Append(tbcol.Attribute.IsNullable == true ? "" : "NOT").Append(" NULL';\r\n");
 							}
 							if (tbcol.Attribute.IsIdentity != tbstructcol.is_identity)
-								seqcols.Add((tbcol, tbname, tbcol.Attribute.IsIdentity));
+								seqcols.Add((tbcol, tbname, tbcol.Attribute.IsIdentity == true));
 							if (tbstructcol.column == tbcol.Attribute.OldName)
 								//修改列名
 								sbalter.Append("execute immediate 'ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" RENAME ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.OldName)).Append(" TO ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append("';\r\n");
@@ -199,7 +200,7 @@ where owner={{0}} and table_name={{1}}".FormatOracleSQL(tboldname ?? tbname);
 							sbalter.Append("execute immediate 'UPDATE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" SET ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(_commonUtils.FormatSql(" = {0}", tbcol.Attribute.DbDefautValue).Replace("'", "''")).Append("';\r\n");
 							sbalter.Append("execute immediate 'ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" MODIFY ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" NOT NULL';\r\n");
 						}
-						if (tbcol.Attribute.IsIdentity) seqcols.Add((tbcol, tbname, tbcol.Attribute.IsIdentity));
+						if (tbcol.Attribute.IsIdentity == true) seqcols.Add((tbcol, tbname, tbcol.Attribute.IsIdentity == true));
 					}
 				}
 				if (istmpatler == false) {
@@ -217,7 +218,7 @@ where owner={{0}} and table_name={{1}}".FormatOracleSQL(tboldname ?? tbname);
 				sb.Append("execute immediate 'CREATE TABLE ").Append(tmptablename).Append(" (");
 				foreach (var tbcol in tb.Columns.Values) {
 					sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType).Append(",");
-					if (tbcol.Attribute.IsIdentity) seqcols.Add((tbcol, tbname, true));
+					if (tbcol.Attribute.IsIdentity == true) seqcols.Add((tbcol, tbname, true));
 				}
 				if (tb.Primarys.Any() == false)
 					sb.Remove(sb.Length - 1, 1);
@@ -305,6 +306,6 @@ where owner={{0}} and table_name={{1}}".FormatOracleSQL(tboldname ?? tbname);
 			foreach (var syncType in syncTypes) dicSyced.TryAdd(syncType.FullName, true);
 			return affrows > 0;
 		}
-
+		public ICodeFirst ConfigEntity<T>(Action<TableFluent<T>> entity) => _commonUtils.ConfigEntity(entity);
 	}
 }

@@ -8,6 +8,7 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using FreeSql.DataAnnotations;
 
 namespace FreeSql.SqlServer {
 
@@ -123,8 +124,8 @@ namespace FreeSql.SqlServer {
 							foreach (var tbcol in tb.Columns.Values) {
 								sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ");
 								sb.Append(tbcol.Attribute.DbType);
-								if (tbcol.Attribute.IsIdentity && tbcol.Attribute.DbType.IndexOf("identity", StringComparison.CurrentCultureIgnoreCase) == -1) sb.Append(" identity(1,1)");
-								if (tbcol.Attribute.IsPrimary) sb.Append(" primary key");
+								if (tbcol.Attribute.IsIdentity == true && tbcol.Attribute.DbType.IndexOf("identity", StringComparison.CurrentCultureIgnoreCase) == -1) sb.Append(" identity(1,1)");
+								if (tbcol.Attribute.IsPrimary == true) sb.Append(" primary key");
 								sb.Append(",");
 							}
 							sb.Remove(sb.Length - 1, 1).Append("\r\n);\r\n");
@@ -188,7 +189,7 @@ use " + database, tboldname ?? tbname);
 							}
 							//添加列
 							sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}.{tbname[2]}")).Append(" ADD ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType);
-							if (tbcol.Attribute.IsIdentity && tbcol.Attribute.DbType.IndexOf("identity", StringComparison.CurrentCultureIgnoreCase) == -1) sbalter.Append(" identity(1,1)");
+							if (tbcol.Attribute.IsIdentity == true && tbcol.Attribute.DbType.IndexOf("identity", StringComparison.CurrentCultureIgnoreCase) == -1) sbalter.Append(" identity(1,1)");
 							if (tbcol.Attribute.IsNullable == false) {
 								var addcoldbdefault = tbcol.Attribute.DbDefautValue;
 								if (addcoldbdefault != null) sbalter.Append(_commonUtils.FormatSql(" default({0})", addcoldbdefault));
@@ -219,10 +220,10 @@ use " + database, tboldname ?? tbname);
 					foreach (var tbcol in tb.Columns.Values) {
 						sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ");
 						sb.Append(tbcol.Attribute.DbType);
-						if (tbcol.Attribute.IsIdentity && tbcol.Attribute.DbType.IndexOf("identity", StringComparison.CurrentCultureIgnoreCase) == -1) sb.Append(" identity(1,1)");
-						if (tbcol.Attribute.IsPrimary) sb.Append(" primary key");
+						if (tbcol.Attribute.IsIdentity == true && tbcol.Attribute.DbType.IndexOf("identity", StringComparison.CurrentCultureIgnoreCase) == -1) sb.Append(" identity(1,1)");
+						if (tbcol.Attribute.IsPrimary == true) sb.Append(" primary key");
 						sb.Append(",");
-						idents = idents || tbcol.Attribute.IsIdentity;
+						idents = idents || tbcol.Attribute.IsIdentity == true;
 					}
 					sb.Remove(sb.Length - 1, 1).Append("\r\n);\r\n");
 					sb.Append("ALTER TABLE ").Append(tmptablename).Append(" SET (LOCK_ESCALATION = TABLE);\r\n");
@@ -277,6 +278,6 @@ use " + database, tboldname ?? tbname);
 			foreach (var syncType in syncTypes) dicSyced.TryAdd(syncType.FullName, true);
 			return affrows > 0;
 		}
-
+		public ICodeFirst ConfigEntity<T>(Action<TableFluent<T>> entity) => _commonUtils.ConfigEntity(entity);
 	}
 }

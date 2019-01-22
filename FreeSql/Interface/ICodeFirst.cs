@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FreeSql.DataAnnotations;
+using System;
 
 namespace FreeSql {
 	public interface ICodeFirst {
@@ -48,5 +49,6 @@ namespace FreeSql {
 		/// <param name="type"></param>
 		/// <returns></returns>
 		(int type, string dbtype, string dbtypeFull, bool? isnullable, object defaultValue)? GetDbInfo(Type type);
+		ICodeFirst ConfigEntity<T>(Action<TableFluent<T>> entity);
 	}
 }
