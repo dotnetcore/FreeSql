@@ -80,36 +80,34 @@ namespace FreeSql.Site.UI.Areas.Admin.Controllers
             });
         }
 
-        // GET: Documents/Create
-        public ActionResult DocContentCreate()
-        {
-
-            return View();
-        }
-
         // POST: Documents/Create
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult DocContentCreate(IFormCollection collection)
+        //[ValidateAntiForgeryToken]
+        public ActionResult DocContentCreate([FromBody]DocumentContent model)
         {
-            try
+            var resdata = AutoException.Excute<long>((result) =>
             {
-                // TODO: Add insert logic here
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
+                result.Data = DocumentContentDAL.Insert(model);
+                if (result.Data == 0)
+                {
+                    throw new Exception("数据新增异常，JSON:" + Newtonsoft.Json.JsonConvert.SerializeObject(model));
+                }
+            }, false);
+            return Json(resdata);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult DocContentDelete(int id, IFormCollection collection)
         {
-            bool flag = false;
-            flag = DocumentContentDAL.Delete(id);
-            return Json(flag);
+            var resdata = AutoException.Excute<long>((result) =>
+            {
+                if (!DocumentContentDAL.Delete(id))
+                {
+                    throw new Exception("数据删除异常，ID:" + id);
+                }
+            }, false);
+            return Json(resdata);
         }
 
         #endregion 

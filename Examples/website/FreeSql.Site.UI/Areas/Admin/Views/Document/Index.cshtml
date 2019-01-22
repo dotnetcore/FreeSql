@@ -9,8 +9,8 @@
             <li class="layui-nav-item layui-nav-itemed">
                 <a class="" href="javascript:;">文档管理</a>
                 <dl class="layui-nav-child menu-item">
-                    <dd><a href="javascript:void(0);" datajson="{}" path="/Admin/Document/DocContent">文档分类</a></dd>
-                    <dd><a href="javascript:void(0);" datajson="{}" path="/Admin/Document/DocType">文档内容</a></dd>
+                    <dd><a href="javascript:void(0);" datajson="{}" path="/Admin/Document/DocContent">文档内容</a></dd>
+                    <dd><a href="javascript:void(0);" datajson="{}" path="/Admin/Document/DocType">文档分类</a></dd>
                     <dd><a href="/Doc/Documents/Index" target="_blank">查看文档</a></dd>
                 </dl>
             </li>
@@ -26,30 +26,14 @@
 </div>
 
 <script>
-    //Demo
-    
-    var showLoading = function (obj) {
-
-        var index = layer.msg(obj.msg, {
-            icon: 16,
-            shade: 0.1,
-            shadeClose: false,
-        });
-        return index;
-    };
-
-    var closeLoading = function (index) {
-        layer.close(index);
-    };
-
     $(".menu-item>dd>a").click(function () {
         var path_item = $(this).attr("path");
         var path_json = $(this).attr("datajson");
 
-        var index = showLoading({ msg: "数据加载中......" });
+        var index = freejs.showLoading({ msg: "数据加载中......" });
         $("#page_content").load(path_item, $.parseJSON(path_json), function () {
             //初始化绑定页面的时间，例如时间控件
-            closeLoading(index);
+            freejs.closeLoading(index);
             index = -1;
             layui.use('form', function () {
                 var form = layui.form;
@@ -59,7 +43,7 @@
 
         //如果出现长时间未关闭，定时关闭loading
         setTimeout(function () {
-            if (index >= 0) closeLoading(index);
+            if (index >= 0) freejs.closeLoading(index);
         }, 5000);
     });
 

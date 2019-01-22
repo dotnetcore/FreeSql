@@ -3,77 +3,125 @@
 
     //Layout = "~/Areas/Admin/Shared/_Layout.cshtml";
 }
-<form class="layui-form" action="">
-    <div class="layui-form-item">
-        <label class="layui-form-label">输入框</label>
-        <div class="layui-input-block">
-            <input type="text" name="title" required lay-verify="required" placeholder="请输入标题" autocomplete="off" class="layui-input">
-        </div>
-    </div>
-    <div class="layui-form-item">
-        <label class="layui-form-label">密码框</label>
-        <div class="layui-input-inline">
-            <input type="password" name="password" required lay-verify="required" placeholder="请输入密码" autocomplete="off" class="layui-input">
-        </div>
-        <div class="layui-form-mid layui-word-aux">辅助文字</div>
-    </div>
-    <div class="layui-form-item">
-        <label class="layui-form-label">选择框</label>
-        <div class="layui-input-block">
-            <select name="city" lay-verify="required">
-                <option value=""></option>
-                <option value="0">北京</option>
-                <option value="1">上海</option>
-                <option value="2">广州</option>
-                <option value="3">深圳</option>
-                <option value="4">杭州</option>
-            </select>
-        </div>
-    </div>
-    <div class="layui-form-item">
-        <label class="layui-form-label">复选框</label>
-        <div class="layui-input-block">
-            <input type="checkbox" name="like[write]" title="写作">
-            <input type="checkbox" name="like[read]" title="阅读" checked>
-            <input type="checkbox" name="like[dai]" title="发呆">
-        </div>
-    </div>
-    <div class="layui-form-item">
-        <label class="layui-form-label">开关</label>
-        <div class="layui-input-block">
-            <input type="checkbox" name="switch" lay-skin="switch">
-        </div>
-    </div>
-    <div class="layui-form-item">
-        <label class="layui-form-label">单选框</label>
-        <div class="layui-input-block">
-            <input type="radio" name="sex" value="男" title="男">
-            <input type="radio" name="sex" value="女" title="女" checked>
-        </div>
-    </div>
-    <div class="layui-form-item layui-form-text">
-        <label class="layui-form-label">文本域</label>
-        <div class="layui-input-block">
-            <textarea name="desc" placeholder="请输入内容" class="layui-textarea"></textarea>
-        </div>
-    </div>
-    <div class="layui-form-item">
-        <div class="layui-input-block">
-            <button class="layui-btn" lay-submit lay-filter="formDemo">立即提交</button>
-            <button type="reset" class="layui-btn layui-btn-primary">重置</button>
-        </div>
-    </div>
-</form>
 
-<script>
-    //Demo
-    layui.use('form', function () {
-        var form = layui.form;
-        form.render();
-        //监听提交
-        form.on('submit(formDemo)', function (data) {
-            layer.msg(JSON.stringify(data.field));
-            return false;
+<div id="myeditor" style="display: none">
+    <!-- 富文本编辑器 -->
+    <div id="test-editormd"></div>
+</div>
+
+<div id="markdownToHTML" style="margin-left: 100px">
+    <textarea id="content" style="display:none;" placeholder="markdown语言"></textarea>
+</div>
+
+<div class="layui-btn-container" style="margin: 10px">
+    <button id="showEditor" class="layui-btn">显示编辑器</button>
+    <button id="getMarkdownContent" class="layui-btn">获取Markdown源码</button>
+    <button id="getHtmlContent" class="layui-btn">获取Html源码</button>
+    <button id="showHTML" class="layui-btn">Markdown解析成HTML</button>
+</div>
+
+
+<script type="text/javascript">
+    layui.use(['layer', 'jquery'], function () {
+        var layer = layui.layer
+            , $ = layui.jquery;
+
+        var testEditor;
+        $('#showEditor').on('click', function () {
+            // 弹出框
+            layer.open({
+                type: 1
+                , content: $('#myeditor')
+                , btn: '关闭全部'
+                , btnAlign: 'c' //按钮居中
+                , shade: 0 //不显示遮罩
+                , area: ['800px', '600px']
+                , yes: function () {
+                    layer.closeAll();
+                },
+                success: function () {
+                    testEditor = editormd("test-editormd", {
+                        width: "90%",
+                        height: 740,
+                        path: "../../lib/editormd/lib/",
+                        theme: "default",
+                        previewTheme: "default",
+                        editorTheme: "default",
+                        //markdown : md,             // 初始化编辑区的内容
+                        codeFold: true,
+                        //syncScrolling : false,
+                        saveHTMLToTextarea: true,    // 保存 HTML 到 Textarea
+                        searchReplace: true,
+                        //watch : false,                // 关闭实时预览
+                        htmlDecode: "style,script,iframe|on*",            // 开启 HTML 标签解析，为了安全性，默认不开启
+                        //toolbar  : false,             //关闭工具栏
+                        //previewCodeHighlight : false, // 关闭预览 HTML 的代码块高亮，默认开启
+                        emoji: true,
+                        taskList: true,
+                        tocm: true,         // Using [TOCM]
+                        tex: true,                   // 开启科学公式TeX语言支持，默认关闭
+                        flowChart: true,             // 开启流程图支持，默认关闭
+                        sequenceDiagram: true,       // 开启时序/序列图支持，默认关闭,
+                        //dialogLockScreen : false,   // 设置弹出层对话框不锁屏，全局通用，默认为true
+                        //dialogShowMask : false,     // 设置弹出层对话框显示透明遮罩层，全局通用，默认为true
+                        //dialogDraggable : false,    // 设置弹出层对话框不可拖动，全局通用，默认为true
+                        //dialogMaskOpacity : 0.4,    // 设置透明遮罩层的透明度，全局通用，默认值为0.1
+                        //dialogMaskBgColor : "#000", // 设置透明遮罩层的背景颜色，全局通用，默认为#fff
+                        imageUpload: true,
+                        imageFormats: ["jpg", "jpeg", "gif", "png", "bmp", "webp"],
+                        imageUploadURL: "./php/upload.php", // 文件上传路径，返回值为图片加载的路径
+                        onload: function () {
+                            // 加载后富文本编辑器成功后的回调
+                            console.log('onload', this);
+                            //this.fullscreen();
+                            //this.unwatch();
+                            //this.watch().fullscreen();
+
+                            //this.setMarkdown("#PHP");
+                            //this.width("100%");
+                            //this.height(480);
+                            //this.resize("100%", 640);
+
+                            // 异步请求md文件，用于编辑时的数据回显
+                            $.get('test.md', function (md) {
+                                testEditor.setMarkdown(md);
+                            });
+                        }
+                    });
+                }
+            });
+        });
+
+        // 获取markdown源码
+        $('#getMarkdownContent').on('click', function () {
+            var mdContent = $('.editormd-markdown-textarea').val();
+            console.log(mdContent);
+            var content = testEditor.getMarkdown();
+            console.log(content);
+        });
+        // 获取解析后的html
+        $('#getHtmlContent').on('click', function () {
+            var content = testEditor.getHTML();
+
+            console.log(content);
+        });
+
+        // 页面解析markdown为html进行显示
+        $('#showHTML').on('click', function () {
+            // 模拟从数据库中取内容
+            $.get('test.md', function (md) {
+                // 给textarea赋值
+                $('#content').val(md);
+                // 解析
+                editormd.markdownToHTML("markdownToHTML", {
+                    htmlDecode: "style,script,iframe",
+                    emoji: true,  // 解析表情
+                    taskList: true,  // 解析列表
+                    tex: true,  // 默认不解析
+                    flowChart: true,  // 默认不解析
+                    sequenceDiagram: true  // 默认不解析
+                });
+            });
         });
     });
 </script>

@@ -3,88 +3,90 @@
     ViewBag.Title = ".NET文档园 .NET开源ORM - 首页";
 }
 @using FreeSql.Site.UI.Areas.BBS.Models;
-
+<script>
+    var dialog_Paramters = { height: 660, width: 1100 };
+</script>
 <table class="layui-hide" id="test" lay-filter="test"></table>
 
 <script type="text/html" id="docContentEdit">
-    <form class="layui-form" action="">
-        <div class="layui-form-item">
-            <label class="layui-form-label">输入框</label>
-            <div class="layui-input-block">
-                <input type="text" name="username" lay-verify="title" autocomplete="off" placeholder="请输入标题" class="layui-input">
-            </div>
-        </div>
-        <div class="layui-form-item">
-            <label class="layui-form-label">密码框</label>
-            <div class="layui-input-block">
-                <input type="password" name="password" placeholder="请输入密码" autocomplete="off" class="layui-input">
-            </div>
-        </div>
-
-        <div class="layui-form-item">
-            <label class="layui-form-label">选择框</label>
-            <div class="layui-input-block">
-                <select name="interest" lay-filter="aihao">
-                    <option value=""></option>
-                    <option value="0">写作</option>
-                    <option value="1">阅读</option>
-                    <option value="2">游戏</option>
-                    <option value="3">音乐</option>
-                    <option value="4">旅行</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="layui-form-item">
-            <label class="layui-form-label">复选框</label>
-            <div class="layui-input-block">
-                <input type="checkbox" name="like[write]" title="写作">
-                <input type="checkbox" name="like[read]" title="阅读">
-                <input type="checkbox" name="like[daze]" title="发呆">
-            </div>
-        </div>
-
-        <div class="layui-form-item">
-            <label class="layui-form-label">开关</label>
-            <div class="layui-input-block">
-                <input type="checkbox" name="close" lay-skin="switch" lay-text="ON|OFF">
-            </div>
-        </div>
-
-        <div class="layui-form-item">
-            <label class="layui-form-label">单选框</label>
-            <div class="layui-input-block">
-                <input type="radio" name="sex" value="男" title="男" checked="">
-                <input type="radio" name="sex" value="女" title="女">
-            </div>
-        </div>
-        <div class="layui-form-item layui-form-text">
-            <label class="layui-form-label">文本域</label>
-            <div class="layui-input-block">
-                <textarea placeholder="请输入内容" class="layui-textarea" name="desc"></textarea>
-            </div>
-        </div>
-
-        @*<div class="layui-form-item">
+    <form class="layui-form" action="" id="frm_DocContentEdit">
+        <div class="form-module-content">
+            <div class="layui-form-item">
+                <label class="layui-form-label">文章分类</label>
                 <div class="layui-input-block">
-                    <button class="layui-btn" id="btnSubmit">立即提交</button>
+                    <select name="interest" lay-filter="aihao">
+                        <option value=""></option>
+                        <option value="0">使用</option>
+                        <option value="1">新增</option>
+                        <option value="2">修改</option>
+                        <option value="3">删除</option>
+                        <option value="4">查询</option>
+                        <option value="5">高级应用</option>
+                    </select>
                 </div>
-            </div>*@
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">文章标题</label>
+                <div class="layui-input-block">
+                    <input type="text" name="DocTitle" lay-verify="title" autocomplete="off" placeholder="请输入标题" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">摘要</label>
+                <div class="layui-input-block">
+                    <input type="text" name="DocAbstract" lay-verify="title" autocomplete="off" placeholder="请输入标题" class="layui-input">
+                </div>
+            </div>
+
+            @*<div class="layui-form-item">
+                    <label class="layui-form-label">文章分类</label>
+                    <div class="layui-input-block">
+                        <input type="checkbox" name="like[write]" title="写作">
+                        <input type="checkbox" name="like[read]" title="阅读">
+                        <input type="checkbox" name="like[daze]" title="发呆">
+                    </div>
+                </div>*@
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">状态</label>
+                <div class="layui-input-block">
+                    <input type="radio" name="status" value="1" title="启用" checked="">
+                    <input type="radio" name="status" value="0" title="关闭">
+                </div>
+            </div>
+            <div class="layui-form-item layui-form-text">
+                <label class="layui-form-label">文本域</label>
+                <div class="layui-input-block" id="md_DocContent">
+                    <textarea style="display:none;" placeholder="请输入内容" name="DocContent"></textarea>
+                </div>
+            </div>
+
+        </div>
+        <div class="form-module-footer">
+            <button class="layui-btn" lay-submit lay-filter="formDemo">立即提交</button>
+            <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+        </div>
     </form>
 </script>
+
 <script type="text/html" id="toolbarDemo">
     <div class="layui-btn-container">
-        <button class="layui-btn layui-btn-sm" lay-event="getCheckData">获取选中行数据</button>
-        <button class="layui-btn layui-btn-sm" lay-event="getCheckLength">获取选中数目</button>
-        <button class="layui-btn layui-btn-sm" lay-event="isAll">验证是否全选</button>
+        <button class="layui-btn layui-btn-sm" lay-event="add">添加</button>
+        <button class="layui-btn layui-btn-sm" lay-event="delete">删除</button>
+        <button class="layui-btn layui-btn-sm" lay-event="update">编辑</button>
+        <div style="float:right;border:0px solid red;">
+            <input type="text" name="search_txt" lay-verify="title" autocomplete="off" placeholder="标题" class="layui-input" style="height: 30px;width:160px;float:left;">
+            <a href="#" style="line-height:30px;margin-left:8px;">高级查询</a>
+        </div>
     </div>
 </script>
-
 <script type="text/html" id="barDemo">
     <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
     <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
 </script>
 <script>
+    var testEditor;
     layui.use(['form', 'layedit', 'laydate', 'table'], function () {
         var table = layui.table;
         var form = layui.form
@@ -110,31 +112,40 @@
             , cols: [[
                 { type: 'checkbox', fixed: 'left' }
                 , { field: 'ID', title: 'ID', width: 80, fixed: 'left', unresize: true, sort: true }
-                , { field: 'DocTitle', title: '标题', width: 150, edit: 'text' }
+                , { field: 'DocTitle', title: '标题', edit: 'text' }
                 , { field: 'Status', title: '状态', width: 80, edit: 'text', sort: true }
                 , { field: 'WatchCount', title: '阅读量市', width: 100 }
-                , { field: 'StarCount', title: '获赞数' }
-                , { field: 'CreateDt', title: '创建时间', width: 80, sort: true }
-                , { field: 'UpdateDt', title: '修改时间', width: 120 }
+                , { field: 'StarCount', title: '获赞数', width: 100 }
+                , { field: 'CreateDt', title: '创建时间', width: 160, sort: true }
+                , { field: 'UpdateDt', title: '修改时间', width: 160 }
                 , { fixed: 'right', title: '操作', toolbar: '#barDemo', width: 150 }
             ]]
             , page: true
         });
 
-        //头工具栏事件
+        //监听事件
         table.on('toolbar(test)', function (obj) {
             var checkStatus = table.checkStatus(obj.config.id);
             switch (obj.event) {
-                case 'getCheckData':
-                    var data = checkStatus.data;
-                    layer.alert(JSON.stringify(data));
+                case 'add':
+                    dialogWindow.open({
+                        type: 1,
+                        maxmin: true,
+                        title: "编辑[文档]",
+                        area: ['1100px', '660px'],
+                        shadeClose: false, //点击遮罩关闭
+                        content: $("#docContentEdit").html(),
+                        submit: {
+                            url: "/Admin/Document/DocContentCreate",
+                            data: JSON.stringify(data.field),
+                        }
+                    }, form);
                     break;
-                case 'getCheckLength':
-                    var data = checkStatus.data;
-                    layer.msg('选中了：' + data.length + ' 个');
+                case 'delete':
+                    layer.msg('删除');
                     break;
-                case 'isAll':
-                    layer.msg(checkStatus.isAll ? '全选' : '未全选');
+                case 'update':
+                    layer.msg('编辑');
                     break;
             };
         });
@@ -142,6 +153,7 @@
         //监听行工具事件
         table.on('tool(test)', function (obj) {
             var data = obj.data;
+            debugger
             //console.log(obj)
             if (obj.event === 'del') {
                 layer.confirm('确定要删除吗？', function (index) {
@@ -162,21 +174,18 @@
                     });
                 });
             } else if (obj.event === 'edit') {
-                layer.open({
+                dialogWindow.open({
                     type: 1,
                     maxmin: true,
-                    title: "编辑",
-                    area: ['600px', '360px'],
-                    shadeClose: true, //点击遮罩关闭
+                    title: "编辑[文档]",
+                    area: ['1100px', '660px'],
+                    shadeClose: false, //点击遮罩关闭
                     content: $("#docContentEdit").html(),
-                    btn: ['保存', '修改状态', '取消'],
-                    yes: function () {
-                        alert('提交');
-                    },
-                    success: function (layero, index) {
-                        form.render();
+                    submit: {
+                        url: "/Admin/Document/DocContentCreate",
+                        data: JSON.stringify(data.field),
                     }
-                });
+                }, form);
                 //form.render();
                 //layer.prompt({
                 //    formType: 2
@@ -189,6 +198,49 @@
                 //});
             }
         });
+
+        //先简单封装下
+        var dialogWindow = {
+            open: function (options, form) {
+                var base_options = {
+                    type: 1,
+                    maxmin: true,
+                    title: "编辑",
+                    area: ['1100px', '660px'],
+                    shadeClose: false //点击遮罩关闭
+                };
+                var new_options = $.extend(base_options, options);
+                new_options.success = function (layero, index) {
+                    form.render();
+                    $(".form-module-content").height(dialog_Paramters.height - 110);
+                    testEditor = editormd("md_DocContent", {
+                        width: "96%",
+                        height: 640,
+                        syncScrolling: "single",
+                        path: "../../lib/editormd/lib/"
+                    });
+                    //监听提交
+                    form.on('submit(formDemo)', function (data) {
+                        debugger
+                        $.ajax({
+                            type: 'POST',
+                            url: options.submit.url,//"/Admin/Document/DocContentCreate",
+                            data: JSON.stringify(data.field),
+                            contentType: "application/json; charset=utf-8",
+                            dataType: "json",
+                            success: function (e) {
+                                alert(JSON.stringify(e));
+                            }
+                        });
+                        return false;
+                    });
+                }
+                layer.open(new_options);
+            },
+            close: function () {
+
+            }
+        };
 
         $(document).on('click', '#btnSubmit', function () {
             layer.msg('响应点击事件');
