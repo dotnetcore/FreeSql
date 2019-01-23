@@ -15,8 +15,8 @@
 <script type="text/html" id="toolbarDemo">
     <div class="layui-btn-container">
         <button class="layui-btn layui-btn-sm" lay-event="add">添加</button>
-        <button class="layui-btn layui-btn-sm" lay-event="delete">删除</button>
-        <button class="layui-btn layui-btn-sm" lay-event="update">编辑</button>
+        @*<button class="layui-btn layui-btn-sm" lay-event="delete">删除</button>
+        <button class="layui-btn layui-btn-sm" lay-event="update">编辑</button>*@
         <div style="float:right;border:0px solid red;">
             <input type="text" name="search_txt" lay-verify="title" autocomplete="off" placeholder="标题" class="layui-input" style="height: 30px;width:160px;float:left;">
             <a href="#" style="line-height:30px;margin-left:8px;">高级查询</a>
@@ -65,24 +65,33 @@
                 , { fixed: 'right', title: '操作', toolbar: '#barDemo', width: 150 }
             ]]
             , page: true
+            , id : 'docContentTable'
         });
+
+        var reloadTable = function () {
+            //执行重载
+            table.reload('docContentTable', {
+                page: {
+                    curr: 1 //重新从第 1 页开始
+                }, where: { searchContent: $("input[type=search_txt]").val(), seniorQueryJson: "" }
+            });
+        };
 
         //监听事件
         table.on('toolbar(test)', function (obj) {
             var checkStatus = table.checkStatus(obj.config.id);
             switch (obj.event) {
                 case 'add':
-                    dialogWindow.open({
-                        type: 1,
-                        maxmin: true,
+                    var options = {
+                        url: "/Admin/Document/DocContentEditModule", paramters: { id: "" },
                         title: "新增文档",
                         area: ['1100px', '660px'],
-                        shadeClose: false, //点击遮罩关闭
-                        content: $("#docContentEdit").html(),
                         submit: {
                             url: "/Admin/Document/DocContentCreate",
-                        }
-                    }, form);
+                        },
+                        callback: reloadTable
+                    };
+                    dialogWindow.create(options);
                     break;
                 case 'delete':
                     layer.msg('删除');
@@ -102,7 +111,7 @@
                     $.ajax({
                         type: "POST",
                         url: "/Admin/Document/DocContentDelete",
-                        data: { id: docid },
+                        data: { id: data.ID },
                         dataType: "html",
                         success: function (data) {
                             obj.del();
@@ -115,26 +124,16 @@
                     });
                 });
             } else if (obj.event === 'edit') {
-                $("#docContentEdit").load("/Admin/Document/DocContentEditModule", { id: data.ID }, function (responseText, textStatus, jqXHR) {
-                    switch (textStatus) {
-                        case "success":
-                            dialogWindow.open({
-                                type: 1,
-                                maxmin: true,
-                                title: "编辑文档",
-                                area: ['1100px', '660px'],
-                                shadeClose: false, //点击遮罩关闭
-                                content: responseText,
-                                submit: {
-                                    url: "/Admin/Document/DocContentCreate",
-                                }
-                            }, form);
-                            break;
-                        case "error":
-                            freejs.showMessage({ title: "提示", msg: "页面加载失败", type: 2 });
-                            break;
-                    }
-                });
+                var options = {
+                    url: "/Admin/Document/DocContentEditModule", paramters: { id: data.ID },
+                    title: "编辑文档",
+                    area: ['1100px', '660px'],
+                    submit: {
+                        url: "/Admin/Document/DocContentUpdate",
+                    },
+                    callback: reloadTable
+                };
+                dialogWindow.create(options);
 
                 //form.render();
                 //layer.prompt({
@@ -151,6 +150,28 @@
 
         //先简单封装下
         var dialogWindow = {
+            create: function (options, formpage) {
+                $("#docContentEdit").load(options.url, options.paramters, function (responseText, textStatus, jqXHR) {
+                    switch (textStatus) {
+                        case "success":
+                            dialogWindow.open($.extend({
+                                type: 1,
+                                maxmin: true,
+                                title: "编辑",
+                                area: ['1100px', '660px'],
+                                shadeClose: false, //点击遮罩关闭
+                                content: responseText,
+                                submit: {
+                                    url: "/Admin/Document/DocContentCreate",
+                                }
+                            }, options), form);
+                            break;
+                        case "error":
+                            freejs.showMessage({ title: "提示", msg: "页面加载失败", type: 2 });
+                            break;
+                    }
+                });
+            },
             open: function (options, form) {
                 var base_options = {
                     type: 1,
@@ -171,7 +192,6 @@
                     });
                     //监听提交
                     form.on('submit(formDemo)', function (data) {
-                        debugger
                         $.ajax({
                             type: 'POST',
                             url: options.submit.url,//"/Admin/Document/DocContentCreate",
@@ -179,7 +199,14 @@
                             contentType: "application/json; charset=utf-8",
                             dataType: "json",
                             success: function (e) {
-                                alert(JSON.stringify(e));
+                                if (e.Status == 1) {
+                                    freejs.showMessage({ title: "提示", msg: e.Msg || "保存成功", type: 1 });
+                                    if ($.isFunction(new_options.callback)) new_options.callback();
+                                    layer.close(index);
+                                }
+                                else {
+                                    freejs.showMessage({ title: "提示", msg: e.Msg, type: 2 });
+                                }
                             }
                         });
                         return false;

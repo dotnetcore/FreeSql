@@ -25,7 +25,8 @@ namespace FreeSql.Site.DAL
         /// <returns></returns>
         public bool Update(DocumentContent model)
         {
-            return DataBaseType.MySql.DB().Update<DocumentContent>(model.ID).ExecuteUpdated().Count > 0;
+            var runsql = DataBaseType.MySql.DB().Update<DocumentContent>().SetSource(model);
+            return runsql.ExecuteAffrows() > 0;
         }
 
         /// <summary>

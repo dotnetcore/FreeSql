@@ -30,6 +30,7 @@ namespace FreeSql.Site.Entity
         /// <summary>
         /// 文档内容
         /// </summary>
+        [Column(DbType = "text")]
         public string DocContent { get; set; }
 
         /// <summary>

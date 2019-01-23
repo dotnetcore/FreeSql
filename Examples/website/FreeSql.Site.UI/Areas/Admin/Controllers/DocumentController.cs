@@ -29,7 +29,6 @@ namespace FreeSql.Site.UI.Areas.Admin.Controllers
             this.DocumentContentDAL = new DocumentContentDAL();
         }
 
-
         public IActionResult Index()
         {
             DocumentContent model = new DocumentContent();
@@ -87,7 +86,8 @@ namespace FreeSql.Site.UI.Areas.Admin.Controllers
             DocumentContent model = new DocumentContent();
             if (!string.IsNullOrEmpty(id))
             {
-                model = DocumentContentDAL.GetByOne(w => w.ID == 1);
+                int _id = Convert.ToInt32(id);
+                model = DocumentContentDAL.GetByOne(w => w.ID == _id);
             }
             return View(model);
         }
@@ -101,6 +101,24 @@ namespace FreeSql.Site.UI.Areas.Admin.Controllers
             {
                 result.Data = DocumentContentDAL.Insert(model);
                 if (result.Data == 0)
+                {
+                    throw new Exception("数据新增异常，JSON:" + Newtonsoft.Json.JsonConvert.SerializeObject(model));
+                }
+            }, false);
+            return Json(resdata);
+        }
+
+        // POST: Documents/Create
+        [HttpPost]
+        //[ValidateAntiForgeryToken]
+        public ActionResult DocContentUpdate([FromBody]DocumentContent model)
+        {
+            var resdata = AutoException.Excute<bool>((result) =>
+            {
+                model.UpdateBy = "admin";
+                model.UpdateDt = DateTime.Now;
+                result.Data = DocumentContentDAL.Update(model);
+                if (result.Data == false)
                 {
                     throw new Exception("数据新增异常，JSON:" + Newtonsoft.Json.JsonConvert.SerializeObject(model));
                 }

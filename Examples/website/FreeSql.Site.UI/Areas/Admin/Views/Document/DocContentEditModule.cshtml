@@ -2,18 +2,23 @@
 @model FreeSql.Site.Entity.DocumentContent
 
 <form class="layui-form" action="" id="frm_DocContentEdit">
+    @Html.HiddenFor(m => m.ID)
+    @Html.HiddenFor(m => m.CreateBy)
+    @Html.HiddenFor(m => m.CreateDt)
+    @Html.HiddenFor(m => m.WatchCount)
+    @Html.HiddenFor(m => m.StarCount)
     <div class="form-module-content">
         <div class="layui-form-item">
             <label class="layui-form-label">文章分类</label>
             <div class="layui-input-block">
-                @*@Html.DropDownList("TypeID", ViewBag.DocumentTypeList as List<SelectListItem>, "", new Dictionary<string, object> { { "class", "plate_text" } })*@
-                <select name="interest" lay-filter="aihao">
-                    <option value=""></option>
+                @Html.DropDownList("TypeID", ViewBag.DocumentTypeList as List<SelectListItem>, "", new Dictionary<string, object> { { "class", "plate_text" } })
+                @*<select name="TypeID" lay-filter="aihao">
+                    <option value="0" selected="selected">--请选择--</option>
                     @foreach (var item in (List<SelectListItem>)ViewBag.DocumentTypeList)
-                        {
-                    <option value="@item.Value">@item.Text</option>
-                        }
-                </select>
+                    {
+                        <option value="@item.Value">@item.Text</option>
+                    }
+                </select>*@
             </div>
         </div>
 
@@ -49,13 +54,13 @@
         <div class="layui-form-item layui-form-text">
             <label class="layui-form-label">文本域</label>
             <div class="layui-input-block" id="md_DocContent">
-                <textarea style="display:none;" placeholder="请输入内容" name="DocContent"></textarea>
+                @Html.TextAreaFor(m => m.DocContent, new Dictionary<string, object> { { "autocomplete", "off" }, { "placeholder", "请输入内容" } })
+                @*<textarea style="display:none;" placeholder="请输入内容" name="DocContent"></textarea>*@
             </div>
         </div>
 
     </div>
     <div class="form-module-footer">
         <button class="layui-btn" lay-submit lay-filter="formDemo">立即提交</button>
-        <button type="reset" class="layui-btn layui-btn-primary">重置</button>
     </div>
 </form>
