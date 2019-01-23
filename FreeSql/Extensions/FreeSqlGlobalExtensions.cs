@@ -10,6 +10,8 @@ using System.Reflection;
 
 public static class FreeSqlGlobalExtensions {
 
+	public static FreeSql.ISelect<T> Queryable<T>(this IFreeSql freesql) where T : class => freesql.Select<T>();
+
 	static Lazy<Dictionary<Type, bool>> dicIsNumberType = new Lazy<Dictionary<Type, bool>>(() => new Dictionary<Type, bool> {
 		[typeof(sbyte)] = true,
 		[typeof(short)] = true,

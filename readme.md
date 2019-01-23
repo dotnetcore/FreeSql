@@ -1,19 +1,24 @@
 # FreeSql
 
-FreeSql 是轻量化、可扩展和跨平台版的 .NETStandard 数据访问技术实现。
+FreeSql是一个功能强大的NETStandard库，用于对象关系映射程序(O/RM)，以便于开发人员能够使用 .NETStandard 对象来处理数据库，不必经常编写大部分数据访问代码。
 
-FreeSql 可用作对象关系映射程序 (O/RM)，以便于开发人员能够使用 .NETStandard 对象来处理数据库，不必经常编写大部分数据访问代码。
+## 特性
 
-FreeSql 支持 MySql/SqlServer/PostgreSQL/Oracle/Sqlite 数据库技术实现。
+- [x] CodeFirst 迁移。
+- [x] DbFirst 从数据库导入实体类，支持三种模板生成器。
+- [x] 采用 ExpressionTree 高性能读取数据。
+- [x] 类型映射深入支持，比如pgsql的数组类型，堪称匠心制作。
+- [x] 支持丰富的表达式函数。
+- [x] 支持导航属性查询，和延时加载。
+- [x] 支持同步/异步数据库操作方法，丰富多彩的链式查询方法。
+- [x] 支持事务。
+- [x] 支持多种数据库，MySql/SqlServer/PostgreSQL/Oracle/Sqlite。
 
-FreeSql 打造 .NETCore 最方便的 ORM，dbfirst codefirst混合使用，codefirst模式下的开发阶段，建好实体不用执行任何操作即能创建表和修改字段，dbfirst模式下提供api+模板自定义生成代码，作者提供了3种模板,您可以持续关注或者参与给出宝贵意见，QQ群：4336577。
+[《Select查询数据文档》](https://github.com/2881099/FreeSql/wiki/%e6%9f%a5%e8%af%a2) | [《Update更新数据文档》](https://github.com/2881099/FreeSql/wiki/%e4%bf%ae%e6%94%b9) | [《Insert插入数据文档》](https://github.com/2881099/FreeSql/wiki/%e6%b7%bb%e5%8a%a0) | [《Delete删除数据文档》](https://github.com/2881099/FreeSql/wiki/%e5%88%a0%e9%99%a4)
 
+[《Expression 表达式函数文档》](https://github.com/2881099/FreeSql/wiki/%e8%a1%a8%e8%be%be%e5%bc%8f%e5%87%bd%e6%95%b0) | [《CodeFirst 快速开发文档》](https://github.com/2881099/FreeSql/wiki/CodeFirst) | [《DbFirst 快速开发文档》](https://github.com/2881099/FreeSql/wiki/DbFirst)
 
-[《Select查询数据文档》](Docs/select.md) | [《Update更新数据文档》](Docs/update.md) | [《Insert插入数据文档》](Docs/insert.md) | [《Delete删除数据文档》](Docs/delete.md)
-
-[《Expression 表达式函数文档》](Docs/expression.md) | [《CodeFirst 快速开发文档》](Docs/codefirst.md) | [《DbFirst 快速开发文档》](Docs/dbfirst.md)
-
-# 快速开始
+## 快速开始
 ```csharp
 var connstr = "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;" + 
     "Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=10";
@@ -158,7 +163,7 @@ List<xxx> t6 = fsql.Ado.Query<xxx>("select * from song");
 List<(int, string ,string)> t7 = fsql.Ado.Query<(int, string, string)>("select * from song");
 List<dynamic> t8 = fsql.Ado.Query<dynamic>("select * from song");
 ```
-> 更多资料：[《Select查询数据》](Docs/select.md)
+> 更多资料：[《Select查询数据》](https://github.com/2881099/FreeSql/wiki/%e6%9f%a5%e8%af%a2)
 
 ## 性能测试
 
@@ -221,7 +226,7 @@ var t6 = fsql.Insert<Topic>().AppendData(items)
 | ExecuteAffrows | long | 执行SQL语句，返回影响的行数 |
 | ExecuteIdentity | long | 执行SQL语句，返回自增值 |
 | ExecuteInserted | List\<Topic\> | 执行SQL语句，返回插入后的记录 |
-> 更多资料：[《Insert添加数据》](Docs/select.md)
+> 更多资料：[《Insert添加数据》](https://github.com/2881099/FreeSql/wiki/%e6%b7%bb%e5%8a%a0)
 
 # Part3 修改
 ```csharp
@@ -298,13 +303,13 @@ var t10 = fsql.Update<Topic>().SetRaw("Title = {0}", "新标题").Where("Id = {0
 | - | - | - | - |
 | ExecuteAffrows | long | | 执行SQL语句，返回影响的行数 |
 | ExecuteUpdated | List\<T1\> | | 执行SQL语句，返回更新后的记录 |
-> 更多资料：[《Update更新数据》](Docs/select.md)
+> 更多资料：[《Update更新数据》](https://github.com/2881099/FreeSql/wiki/%e4%bf%ae%e6%94%b9)
 
 # Part4 删除
-详情查看：[《Delete 删除数据》](Docs/delete.md)
+详情查看：[《Delete 删除数据》](https://github.com/2881099/FreeSql/wiki/%e5%88%a0%e9%99%a4)
 
 # Part5 表达式函数
-详情查看：[《Expression 表达式函数》](Docs/expression.md)
+详情查看：[《Expression 表达式函数》](https://github.com/2881099/FreeSql/wiki/%e8%a1%a8%e8%be%be%e5%bc%8f%e5%87%bd%e6%95%b0)
 
 # Part6 事务
 

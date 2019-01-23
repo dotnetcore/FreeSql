@@ -11,6 +11,22 @@ using Npgsql.LegacyPostgis;
 namespace FreeSql.Tests {
 	public class UnitTest1 {
 
+		public class Order {
+			[Column(IsPrimary = true)]
+			public int OrderID { get; set; }
+			public string OrderTitle { get; set; }
+			public string CustomerName { get; set; }
+			public DateTime TransactionDate { get; set; }
+			public virtual List<OrderDetail> OrderDetails { get; set; }
+		}
+		public class OrderDetail {
+			[Column(IsPrimary = true)]
+			public int DetailId { get; set; }
+
+			public int OrderId { get; set; }
+			public virtual Order Order { get; set; }
+		}
+
 		class NullAggreTestTable {
 			[Column(IsIdentity = true)]
 			public int Id { get; set; }
@@ -20,6 +36,14 @@ namespace FreeSql.Tests {
 		[Fact]
 		public void Test1() {
 
+			var order = g.mysql.Select<Order>().Where(a => a.OrderID == 1).ToOne(); //查询订单表
+			var orderDetail1 = order.OrderDetails; //第一次访问，查询数据库
+			var orderDetail2 = order.OrderDetails; //第二次访问，不查
+			var order1 = orderDetail1.FirstOrDefault(); //访问导航属性，此时不查数据库，因为 OrderDetails 查询出来的时候已填充了该属性
+
+
+			var queryable = g.mysql.Queryable<TestInfo>().Where(a => a.Id == 1).ToList();
+			
 			var sql2222 = select.Where(a => 
 				select.Where(b => b.Id == a.Id && select.Where(c => c.Id == b.Id).Where(d => d.Id == a.Id).Where(e => e.Id == b.Id)
 
