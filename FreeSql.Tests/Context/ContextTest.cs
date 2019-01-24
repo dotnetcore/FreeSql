@@ -14,8 +14,8 @@ namespace FreeSql.Tests.Context
             var connstr = "Data Source=D:\\db\\_Cache.db;Pooling=true;FailIfMissing=false";
             var factory = new FreeSqlDbContextFactory();
 
-            factory.Add<UserContext>(
-                new FreeSql.FreeSqlBuilder()
+            var context = factory.GetOrAdd<UserContext>(
+                new FreeSqlBuilderConfiguration()
                     .UseConnectionString(FreeSql.DataType.Sqlite, connstr)
                     //.UseSlave("connectionString1", "connectionString2") //使用从数据库，支持多个
 
@@ -31,8 +31,6 @@ namespace FreeSql.Tests.Context
 
                     .UseLazyLoading(true) //延时加载导航属性对象，导航属性需要声明 virtual
             );
-
-            var userContext = factory.Get<UserContext>();
         }
     }
 
@@ -54,7 +52,7 @@ namespace FreeSql.Tests.Context
         public FreeSqlDbSet<UserModel> Users { get; set; }
         public FreeSqlDbSet<LogModel> Logs { get; set; }
 
-        public UserContext(FreeSqlBuilder build) : base(build)
+        public UserContext(IFreeSql context) : base(context)
         {
         }
     }
