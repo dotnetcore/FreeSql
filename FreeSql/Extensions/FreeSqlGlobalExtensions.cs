@@ -13,19 +13,19 @@ public static class FreeSqlGlobalExtensions {
 	public static FreeSql.ISelect<T> Queryable<T>(this IFreeSql freesql) where T : class => freesql.Select<T>();
 
 	static Lazy<Dictionary<Type, bool>> dicIsNumberType = new Lazy<Dictionary<Type, bool>>(() => new Dictionary<Type, bool> {
-		[typeof(sbyte)] = true,
-		[typeof(short)] = true,
-		[typeof(int)] = true,
-		[typeof(long)] = true,
-		[typeof(byte)] = true,
-		[typeof(ushort)] = true,
-		[typeof(uint)] = true,
-		[typeof(ulong)] = true,
-		[typeof(double)] = true,
-		[typeof(float)] = true,
-		[typeof(decimal)] = true
+		[typeof(sbyte)] = true, [typeof(sbyte?)] = true,
+		[typeof(short)] = true, [typeof(short?)] = true,
+		[typeof(int)] = true, [typeof(int?)] = true,
+		[typeof(long)] = true, [typeof(long?)] = true,
+		[typeof(byte)] = true, [typeof(byte?)] = true,
+		[typeof(ushort)] = true, [typeof(ushort?)] = true,
+		[typeof(uint)] = true, [typeof(uint?)] = true,
+		[typeof(ulong)] = true, [typeof(ulong?)] = true,
+		[typeof(double)] = true, [typeof(double?)] = true,
+		[typeof(float)] = true, [typeof(float?)] = true,
+		[typeof(decimal)] = true, [typeof(decimal?)] = true
 	});
-	public static bool IsNumberType(this Type that) => that == null ? false : dicIsNumberType.Value.ContainsKey(that.GenericTypeArguments.FirstOrDefault() ?? that);
+	public static bool IsNumberType(this Type that) => that == null ? false : dicIsNumberType.Value.ContainsKey(that);
 
 	/// <summary>
 	/// 测量两个经纬度的距离，返回单位：米

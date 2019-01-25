@@ -305,20 +305,23 @@ where pg_namespace.nspname={0} and pg_class.relname={1} and pg_constraint.contyp
 			return sb.Length == 0 ? null : sb.ToString();
 		}
 
+		static object syncStructureLock = new object();
 		ConcurrentDictionary<string, bool> dicSyced = new ConcurrentDictionary<string, bool>();
 		public bool SyncStructure<TEntity>() => this.SyncStructure(typeof(TEntity));
 		public bool SyncStructure(params Type[] entityTypes) {
 			if (entityTypes == null) return true;
 			var syncTypes = entityTypes.Where(a => dicSyced.ContainsKey(a.FullName) == false).ToArray();
 			if (syncTypes.Any() == false) return true;
-			var ddl = this.GetComparisonDDLStatements(syncTypes);
-			if (string.IsNullOrEmpty(ddl)) {
+			lock (syncStructureLock) {
+				var ddl = this.GetComparisonDDLStatements(syncTypes);
+				if (string.IsNullOrEmpty(ddl)) {
+					foreach (var syncType in syncTypes) dicSyced.TryAdd(syncType.FullName, true);
+					return true;
+				}
+				var affrows = _orm.Ado.ExecuteNonQuery(CommandType.Text, ddl);
 				foreach (var syncType in syncTypes) dicSyced.TryAdd(syncType.FullName, true);
-				return true;
+				return affrows > 0;
 			}
-			var affrows = _orm.Ado.ExecuteNonQuery(CommandType.Text, ddl);
-			foreach (var syncType in syncTypes) dicSyced.TryAdd(syncType.FullName, true);
-			return affrows > 0;
 		}
 		public ICodeFirst ConfigEntity<T>(Action<TableFluent<T>> entity) => _commonUtils.ConfigEntity(entity);
 	}

@@ -382,28 +382,28 @@ namespace FreeSql.Tests.PostgreSQL {
 
 			query = select.Where(a => a.Type.Name == "typeTitle");
 			sql = query.ToSql().Replace("\r\n", "");
-			Assert.Equal("SELECT a.\"id\", a.\"clicks\", a.\"testtypeinfoguid\", a__Type.\"guid\", a__Type.\"parentid\", a__Type.\"name\", a.\"title\", a.\"createtime\" FROM \"tb_topic\" a, \"testtypeinfo\" a__Type WHERE (a__Type.\"name\" = 'typeTitle')", sql);
+			Assert.Equal("SELECT a.\"id\", a.\"clicks\", a.\"testtypeinfoguid\", a.\"title\", a.\"createtime\" FROM \"tb_topic\" a, \"testtypeinfo\" a__Type WHERE (a__Type.\"name\" = 'typeTitle')", sql);
 			query.ToList();
 
 			query = select.Where(a => a.Type.Name == "typeTitle" && a.Type.Guid == a.TestTypeInfoGuid);
 			sql = query.ToSql().Replace("\r\n", "");
-			Assert.Equal("SELECT a.\"id\", a.\"clicks\", a.\"testtypeinfoguid\", a__Type.\"guid\", a__Type.\"parentid\", a__Type.\"name\", a.\"title\", a.\"createtime\" FROM \"tb_topic\" a, \"testtypeinfo\" a__Type WHERE (a__Type.\"name\" = 'typeTitle' AND a__Type.\"guid\" = a.\"testtypeinfoguid\")", sql);
+			Assert.Equal("SELECT a.\"id\", a.\"clicks\", a.\"testtypeinfoguid\", a.\"title\", a.\"createtime\" FROM \"tb_topic\" a, \"testtypeinfo\" a__Type WHERE (a__Type.\"name\" = 'typeTitle' AND a__Type.\"guid\" = a.\"testtypeinfoguid\")", sql);
 			query.ToList();
 
 			query = select.Where(a => a.Type.Parent.Name == "tparent");
 			sql = query.ToSql().Replace("\r\n", "");
-			Assert.Equal("SELECT a.\"id\", a.\"clicks\", a.\"testtypeinfoguid\", a__Type.\"guid\", a__Type.\"parentid\", a__Type.\"name\", a.\"title\", a.\"createtime\" FROM \"tb_topic\" a, \"testtypeinfo\" a__Type, \"testtypeparentinfo\" a__Type__Parent WHERE (a__Type__Parent.\"name\" = 'tparent')", sql);
+			Assert.Equal("SELECT a.\"id\", a.\"clicks\", a.\"testtypeinfoguid\", a.\"title\", a.\"createtime\" FROM \"tb_topic\" a, \"testtypeinfo\" a__Type, \"testtypeparentinfo\" a__Type__Parent WHERE (a__Type__Parent.\"name\" = 'tparent')", sql);
 			query.ToList();
 			
 			//���û�е������ԣ��򵥶������
 			query = select.Where<TestTypeInfo>((a, b) => b.Guid == a.TestTypeInfoGuid && b.Name == "typeTitle");
 			sql = query.ToSql().Replace("\r\n", "");
-			Assert.Equal("SELECT a.\"id\", a.\"clicks\", a.\"testtypeinfoguid\", b.\"guid\", b.\"parentid\", b.\"name\", a.\"title\", a.\"createtime\" FROM \"tb_topic\" a, \"testtypeinfo\" b WHERE (b.\"guid\" = a.\"testtypeinfoguid\" AND b.\"name\" = 'typeTitle')", sql);
+			Assert.Equal("SELECT a.\"id\", a.\"clicks\", a.\"testtypeinfoguid\", a.\"title\", a.\"createtime\" FROM \"tb_topic\" a, \"testtypeinfo\" b WHERE (b.\"guid\" = a.\"testtypeinfoguid\" AND b.\"name\" = 'typeTitle')", sql);
 			query.ToList();
 
 			query = select.Where<TestTypeInfo>((a, b) => b.Name == "typeTitle" && b.Guid == a.TestTypeInfoGuid);
 			sql = query.ToSql().Replace("\r\n", "");
-			Assert.Equal("SELECT a.\"id\", a.\"clicks\", a.\"testtypeinfoguid\", b.\"guid\", b.\"parentid\", b.\"name\", a.\"title\", a.\"createtime\" FROM \"tb_topic\" a, \"testtypeinfo\" b WHERE (b.\"name\" = 'typeTitle' AND b.\"guid\" = a.\"testtypeinfoguid\")", sql);
+			Assert.Equal("SELECT a.\"id\", a.\"clicks\", a.\"testtypeinfoguid\", a.\"title\", a.\"createtime\" FROM \"tb_topic\" a, \"testtypeinfo\" b WHERE (b.\"name\" = 'typeTitle' AND b.\"guid\" = a.\"testtypeinfoguid\")", sql);
 			query.ToList();
 
 			query = select.Where<TestTypeInfo, TestTypeParentInfo>((a, b, c) => c.Name == "tparent");
@@ -416,7 +416,7 @@ namespace FreeSql.Tests.PostgreSQL {
 				.Where(a => a.Id == 10 && c.Name == "xxx")
 				.Where(a => b.ParentId == 20));
 			sql = query2.ToSql().Replace("\r\n", "");
-			Assert.Equal("SELECT a.\"id\", a.\"clicks\", a.\"testtypeinfoguid\", b.\"guid\", b.\"parentid\", b.\"name\", a.\"title\", a.\"createtime\" FROM \"tb_topic\" a, \"testtypeparentinfo\" c, \"testtypeinfo\" b WHERE (a.\"id\" = 10 AND c.\"name\" = 'xxx') AND (b.\"parentid\" = 20)", sql);
+			Assert.Equal("SELECT a.\"id\", a.\"clicks\", a.\"testtypeinfoguid\", a.\"title\", a.\"createtime\" FROM \"tb_topic\" a, \"testtypeparentinfo\" c, \"testtypeinfo\" b WHERE (a.\"id\" = 10 AND c.\"name\" = 'xxx') AND (b.\"parentid\" = 20)", sql);
 			query2.ToList();
 
 			//������϶����㲻��
@@ -445,17 +445,17 @@ namespace FreeSql.Tests.PostgreSQL {
 
 			query = select.WhereIf(true, a => a.Type.Name == "typeTitle");
 			sql = query.ToSql().Replace("\r\n", "");
-			Assert.Equal("SELECT a.\"id\", a.\"clicks\", a.\"testtypeinfoguid\", a__Type.\"guid\", a__Type.\"parentid\", a__Type.\"name\", a.\"title\", a.\"createtime\" FROM \"tb_topic\" a, \"testtypeinfo\" a__Type WHERE (a__Type.\"name\" = 'typeTitle')", sql);
+			Assert.Equal("SELECT a.\"id\", a.\"clicks\", a.\"testtypeinfoguid\", a.\"title\", a.\"createtime\" FROM \"tb_topic\" a, \"testtypeinfo\" a__Type WHERE (a__Type.\"name\" = 'typeTitle')", sql);
 			query.ToList();
 
 			query = select.WhereIf(true, a => a.Type.Name == "typeTitle" && a.Type.Guid == a.TestTypeInfoGuid);
 			sql = query.ToSql().Replace("\r\n", "");
-			Assert.Equal("SELECT a.\"id\", a.\"clicks\", a.\"testtypeinfoguid\", a__Type.\"guid\", a__Type.\"parentid\", a__Type.\"name\", a.\"title\", a.\"createtime\" FROM \"tb_topic\" a, \"testtypeinfo\" a__Type WHERE (a__Type.\"name\" = 'typeTitle' AND a__Type.\"guid\" = a.\"testtypeinfoguid\")", sql);
+			Assert.Equal("SELECT a.\"id\", a.\"clicks\", a.\"testtypeinfoguid\", a.\"title\", a.\"createtime\" FROM \"tb_topic\" a, \"testtypeinfo\" a__Type WHERE (a__Type.\"name\" = 'typeTitle' AND a__Type.\"guid\" = a.\"testtypeinfoguid\")", sql);
 			query.ToList();
 
 			query = select.WhereIf(true, a => a.Type.Parent.Name == "tparent");
 			sql = query.ToSql().Replace("\r\n", "");
-			Assert.Equal("SELECT a.\"id\", a.\"clicks\", a.\"testtypeinfoguid\", a__Type.\"guid\", a__Type.\"parentid\", a__Type.\"name\", a.\"title\", a.\"createtime\" FROM \"tb_topic\" a, \"testtypeinfo\" a__Type, \"testtypeparentinfo\" a__Type__Parent WHERE (a__Type__Parent.\"name\" = 'tparent')", sql);
+			Assert.Equal("SELECT a.\"id\", a.\"clicks\", a.\"testtypeinfoguid\", a.\"title\", a.\"createtime\" FROM \"tb_topic\" a, \"testtypeinfo\" a__Type, \"testtypeparentinfo\" a__Type__Parent WHERE (a__Type__Parent.\"name\" = 'tparent')", sql);
 			query.ToList();
 
 			//����һ�� From ��Ķ������
@@ -463,7 +463,7 @@ namespace FreeSql.Tests.PostgreSQL {
 				.WhereIf(true, a => a.Id == 10 && c.Name == "xxx")
 				.WhereIf(true, a => b.ParentId == 20));
 			sql = query2.ToSql().Replace("\r\n", "");
-			Assert.Equal("SELECT a.\"id\", a.\"clicks\", a.\"testtypeinfoguid\", b.\"guid\", b.\"parentid\", b.\"name\", a.\"title\", a.\"createtime\" FROM \"tb_topic\" a, \"testtypeparentinfo\" c, \"testtypeinfo\" b WHERE (a.\"id\" = 10 AND c.\"name\" = 'xxx') AND (b.\"parentid\" = 20)", sql);
+			Assert.Equal("SELECT a.\"id\", a.\"clicks\", a.\"testtypeinfoguid\", a.\"title\", a.\"createtime\" FROM \"tb_topic\" a, \"testtypeparentinfo\" c, \"testtypeinfo\" b WHERE (a.\"id\" = 10 AND c.\"name\" = 'xxx') AND (b.\"parentid\" = 20)", sql);
 			query2.ToList();
 
 			//������϶����㲻��

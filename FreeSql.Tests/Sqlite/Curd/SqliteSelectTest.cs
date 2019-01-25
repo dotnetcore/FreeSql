@@ -305,28 +305,28 @@ namespace FreeSql.Tests.Sqlite {
 
 			query = select.Where(a => a.Type.Name == "typeTitle");
 			sql = query.ToSql().Replace("\r\n", "");
-			Assert.Equal("SELECT a.\"Id\", a.\"Clicks\", a.\"TestTypeInfoGuid\", a__Type.\"Guid\", a__Type.\"ParentId\", a__Type.\"Name\", a.\"Title\", a.\"CreateTime\" FROM \"tb_topic22\" a, \"TestTypeInfo\" a__Type WHERE (a__Type.\"Name\" = 'typeTitle')", sql);
+			Assert.Equal("SELECT a.\"Id\", a.\"Clicks\", a.\"TestTypeInfoGuid\", a.\"Title\", a.\"CreateTime\" FROM \"tb_topic22\" a, \"TestTypeInfo\" a__Type WHERE (a__Type.\"Name\" = 'typeTitle')", sql);
 			query.ToList();
 
 			query = select.Where(a => a.Type.Name == "typeTitle" && a.Type.Guid == a.TestTypeInfoGuid);
 			sql = query.ToSql().Replace("\r\n", "");
-			Assert.Equal("SELECT a.\"Id\", a.\"Clicks\", a.\"TestTypeInfoGuid\", a__Type.\"Guid\", a__Type.\"ParentId\", a__Type.\"Name\", a.\"Title\", a.\"CreateTime\" FROM \"tb_topic22\" a, \"TestTypeInfo\" a__Type WHERE (a__Type.\"Name\" = 'typeTitle' AND a__Type.\"Guid\" = a.\"TestTypeInfoGuid\")", sql);
+			Assert.Equal("SELECT a.\"Id\", a.\"Clicks\", a.\"TestTypeInfoGuid\", a.\"Title\", a.\"CreateTime\" FROM \"tb_topic22\" a, \"TestTypeInfo\" a__Type WHERE (a__Type.\"Name\" = 'typeTitle' AND a__Type.\"Guid\" = a.\"TestTypeInfoGuid\")", sql);
 			query.ToList();
 
 			query = select.Where(a => a.Type.Parent.Name == "tparent");
 			sql = query.ToSql().Replace("\r\n", "");
-			Assert.Equal("SELECT a.\"Id\", a.\"Clicks\", a.\"TestTypeInfoGuid\", a__Type.\"Guid\", a__Type.\"ParentId\", a__Type.\"Name\", a.\"Title\", a.\"CreateTime\" FROM \"tb_topic22\" a, \"TestTypeInfo\" a__Type, \"TestTypeParentInfo\" a__Type__Parent WHERE (a__Type__Parent.\"Name\" = 'tparent')", sql);
+			Assert.Equal("SELECT a.\"Id\", a.\"Clicks\", a.\"TestTypeInfoGuid\", a.\"Title\", a.\"CreateTime\" FROM \"tb_topic22\" a, \"TestTypeInfo\" a__Type, \"TestTypeParentInfo\" a__Type__Parent WHERE (a__Type__Parent.\"Name\" = 'tparent')", sql);
 			query.ToList();
 			
 			//���û�е������ԣ��򵥶������
 			query = select.Where<TestTypeInfo>((a, b) => b.Guid == a.TestTypeInfoGuid && b.Name == "typeTitle");
 			sql = query.ToSql().Replace("\r\n", "");
-			Assert.Equal("SELECT a.\"Id\", a.\"Clicks\", a.\"TestTypeInfoGuid\", b.\"Guid\", b.\"ParentId\", b.\"Name\", a.\"Title\", a.\"CreateTime\" FROM \"tb_topic22\" a, \"TestTypeInfo\" b WHERE (b.\"Guid\" = a.\"TestTypeInfoGuid\" AND b.\"Name\" = 'typeTitle')", sql);
+			Assert.Equal("SELECT a.\"Id\", a.\"Clicks\", a.\"TestTypeInfoGuid\", a.\"Title\", a.\"CreateTime\" FROM \"tb_topic22\" a, \"TestTypeInfo\" b WHERE (b.\"Guid\" = a.\"TestTypeInfoGuid\" AND b.\"Name\" = 'typeTitle')", sql);
 			query.ToList();
 
 			query = select.Where<TestTypeInfo>((a, b) => b.Name == "typeTitle" && b.Guid == a.TestTypeInfoGuid);
 			sql = query.ToSql().Replace("\r\n", "");
-			Assert.Equal("SELECT a.\"Id\", a.\"Clicks\", a.\"TestTypeInfoGuid\", b.\"Guid\", b.\"ParentId\", b.\"Name\", a.\"Title\", a.\"CreateTime\" FROM \"tb_topic22\" a, \"TestTypeInfo\" b WHERE (b.\"Name\" = 'typeTitle' AND b.\"Guid\" = a.\"TestTypeInfoGuid\")", sql);
+			Assert.Equal("SELECT a.\"Id\", a.\"Clicks\", a.\"TestTypeInfoGuid\", a.\"Title\", a.\"CreateTime\" FROM \"tb_topic22\" a, \"TestTypeInfo\" b WHERE (b.\"Name\" = 'typeTitle' AND b.\"Guid\" = a.\"TestTypeInfoGuid\")", sql);
 			query.ToList();
 
 			query = select.Where<TestTypeInfo, TestTypeParentInfo>((a, b, c) => c.Name == "tparent");
@@ -339,7 +339,7 @@ namespace FreeSql.Tests.Sqlite {
 				.Where(a => a.Id == 10 && c.Name == "xxx")
 				.Where(a => b.ParentId == 20));
 			sql = query2.ToSql().Replace("\r\n", "");
-			Assert.Equal("SELECT a.\"Id\", a.\"Clicks\", a.\"TestTypeInfoGuid\", b.\"Guid\", b.\"ParentId\", b.\"Name\", a.\"Title\", a.\"CreateTime\" FROM \"tb_topic22\" a, \"TestTypeParentInfo\" c, \"TestTypeInfo\" b WHERE (a.\"Id\" = 10 AND c.\"Name\" = 'xxx') AND (b.\"ParentId\" = 20)", sql);
+			Assert.Equal("SELECT a.\"Id\", a.\"Clicks\", a.\"TestTypeInfoGuid\", a.\"Title\", a.\"CreateTime\" FROM \"tb_topic22\" a, \"TestTypeParentInfo\" c, \"TestTypeInfo\" b WHERE (a.\"Id\" = 10 AND c.\"Name\" = 'xxx') AND (b.\"ParentId\" = 20)", sql);
 			query2.ToList();
 
 			//������϶����㲻��
@@ -368,17 +368,17 @@ namespace FreeSql.Tests.Sqlite {
 
 			query = select.WhereIf(true, a => a.Type.Name == "typeTitle");
 			sql = query.ToSql().Replace("\r\n", "");
-			Assert.Equal("SELECT a.\"Id\", a.\"Clicks\", a.\"TestTypeInfoGuid\", a__Type.\"Guid\", a__Type.\"ParentId\", a__Type.\"Name\", a.\"Title\", a.\"CreateTime\" FROM \"tb_topic22\" a, \"TestTypeInfo\" a__Type WHERE (a__Type.\"Name\" = 'typeTitle')", sql);
+			Assert.Equal("SELECT a.\"Id\", a.\"Clicks\", a.\"TestTypeInfoGuid\", a.\"Title\", a.\"CreateTime\" FROM \"tb_topic22\" a, \"TestTypeInfo\" a__Type WHERE (a__Type.\"Name\" = 'typeTitle')", sql);
 			query.ToList();
 
 			query = select.WhereIf(true, a => a.Type.Name == "typeTitle" && a.Type.Guid == a.TestTypeInfoGuid);
 			sql = query.ToSql().Replace("\r\n", "");
-			Assert.Equal("SELECT a.\"Id\", a.\"Clicks\", a.\"TestTypeInfoGuid\", a__Type.\"Guid\", a__Type.\"ParentId\", a__Type.\"Name\", a.\"Title\", a.\"CreateTime\" FROM \"tb_topic22\" a, \"TestTypeInfo\" a__Type WHERE (a__Type.\"Name\" = 'typeTitle' AND a__Type.\"Guid\" = a.\"TestTypeInfoGuid\")", sql);
+			Assert.Equal("SELECT a.\"Id\", a.\"Clicks\", a.\"TestTypeInfoGuid\", a.\"Title\", a.\"CreateTime\" FROM \"tb_topic22\" a, \"TestTypeInfo\" a__Type WHERE (a__Type.\"Name\" = 'typeTitle' AND a__Type.\"Guid\" = a.\"TestTypeInfoGuid\")", sql);
 			query.ToList();
 
 			query = select.WhereIf(true, a => a.Type.Parent.Name == "tparent");
 			sql = query.ToSql().Replace("\r\n", "");
-			Assert.Equal("SELECT a.\"Id\", a.\"Clicks\", a.\"TestTypeInfoGuid\", a__Type.\"Guid\", a__Type.\"ParentId\", a__Type.\"Name\", a.\"Title\", a.\"CreateTime\" FROM \"tb_topic22\" a, \"TestTypeInfo\" a__Type, \"TestTypeParentInfo\" a__Type__Parent WHERE (a__Type__Parent.\"Name\" = 'tparent')", sql);
+			Assert.Equal("SELECT a.\"Id\", a.\"Clicks\", a.\"TestTypeInfoGuid\", a.\"Title\", a.\"CreateTime\" FROM \"tb_topic22\" a, \"TestTypeInfo\" a__Type, \"TestTypeParentInfo\" a__Type__Parent WHERE (a__Type__Parent.\"Name\" = 'tparent')", sql);
 			query.ToList();
 
 			//����һ�� From ��Ķ������
@@ -386,7 +386,7 @@ namespace FreeSql.Tests.Sqlite {
 				.WhereIf(true, a => a.Id == 10 && c.Name == "xxx")
 				.WhereIf(true, a => b.ParentId == 20));
 			sql = query2.ToSql().Replace("\r\n", "");
-			Assert.Equal("SELECT a.\"Id\", a.\"Clicks\", a.\"TestTypeInfoGuid\", b.\"Guid\", b.\"ParentId\", b.\"Name\", a.\"Title\", a.\"CreateTime\" FROM \"tb_topic22\" a, \"TestTypeParentInfo\" c, \"TestTypeInfo\" b WHERE (a.\"Id\" = 10 AND c.\"Name\" = 'xxx') AND (b.\"ParentId\" = 20)", sql);
+			Assert.Equal("SELECT a.\"Id\", a.\"Clicks\", a.\"TestTypeInfoGuid\", a.\"Title\", a.\"CreateTime\" FROM \"tb_topic22\" a, \"TestTypeParentInfo\" c, \"TestTypeInfo\" b WHERE (a.\"Id\" = 10 AND c.\"Name\" = 'xxx') AND (b.\"ParentId\" = 20)", sql);
 			query2.ToList();
 
 			//������϶����㲻��

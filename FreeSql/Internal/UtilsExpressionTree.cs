@@ -121,9 +121,10 @@ namespace FreeSql.Internal {
 					.AppendLine("using FreeSql.DataAnnotations;")
 					.AppendLine("using System.Collections.Generic;")
 					.AppendLine("using System.Linq;")
-					.AppendLine("")
+					.AppendLine("using Newtonsoft.Json;")
+					.AppendLine()
 					.Append("public class ").Append(trytbTypeLazyName).Append(" : ").Append(trytbTypeName).AppendLine(" {")
-					.AppendLine("	public IFreeSql __fsql_orm__ { get; set; }\r\n");
+					.AppendLine("	[JsonIgnore] public IFreeSql __fsql_orm__ { get; set; }\r\n");
 
 				foreach (var vp in propsLazy) {
 					var propTypeName = vp.Item1.PropertyType.IsGenericType ? 
@@ -708,6 +709,7 @@ namespace FreeSql.Internal {
 									Expression.Add(tryidxExp, Expression.Constant(1))
 							);
 							else {
+								++propIndex;
 								continue;
 								//readExpAssign = Expression.Call(MethodExecuteArrayRowReadClassOrTuple, new Expression[] { Expression.Constant(prop.PropertyType), indexesExp, rowExp, tryidxExp });
 							}
@@ -719,12 +721,18 @@ namespace FreeSql.Internal {
 								Expression.Assign(tryidxExp, Expression.ArrayAccess(indexesExp, Expression.Constant(propIndex))),
 								Expression.Assign(tryidxExp, dataIndexExp)
 							),
-							Expression.Assign(readExp, readExpAssign),
-							Expression.IfThen(Expression.GreaterThan(readExpDataIndex, dataIndexExp),
-								Expression.Assign(dataIndexExp, readExpDataIndex)),
-							Expression.IfThenElse(Expression.Equal(readExpValue, Expression.Constant(null)),
-								Expression.Call(retExp, propGetSetMethod, Expression.Default(prop.PropertyType)),
-								Expression.Call(retExp, propGetSetMethod, Expression.Convert(readExpValue, prop.PropertyType)))
+							Expression.IfThen(
+								Expression.GreaterThanOrEqual(tryidxExp, Expression.Constant(0)),
+								Expression.Block(
+									Expression.Assign(readExp, readExpAssign),
+									Expression.IfThen(Expression.GreaterThan(readExpDataIndex, dataIndexExp),
+										Expression.Assign(dataIndexExp, readExpDataIndex)),
+									Expression.IfThenElse(
+										Expression.Equal(readExpValue, Expression.Constant(null)),
+										Expression.Call(retExp, propGetSetMethod, Expression.Default(prop.PropertyType)),
+										Expression.Call(retExp, propGetSetMethod, Expression.Convert(readExpValue, prop.PropertyType)))
+								)
+							)
 						});
 						++propIndex;
 					}

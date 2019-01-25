@@ -191,7 +191,7 @@ namespace FreeSql.Tests.PerformanceTest {
 		class xxx {
 			public int Id { get; set; }
 			public string Title { get; set; }
-			public string Url { get; set; }
+			//public string Url { get; set; }
 			public DateTime Create_time { get; set; }
 			public bool Is_deleted { get; set; }
 		}
