@@ -228,10 +228,10 @@ namespace FreeSql.SqlServer {
 					case "AddTicks": return $"dateadd(second, ({args1})/10000000, {left})";
 					case "AddYears": return $"dateadd(year, {args1}, {left})";
 					case "Subtract":
-						if (exp.Arguments[0].Type.FullName == "System.DateTime" || exp.Arguments[0].Type.GenericTypeArguments.FirstOrDefault()?.FullName == "System.DateTime")
-							return $"datediff(second, {args1}, {left})";
-						if (exp.Arguments[0].Type.FullName == "System.TimeSpan" || exp.Arguments[0].Type.GenericTypeArguments.FirstOrDefault()?.FullName == "System.TimeSpan")
-							return $"dateadd(second, {args1}*-1, {left})";
+						switch ((exp.Arguments[0].Type.IsNullableType() ? exp.Arguments[0].Type.GenericTypeArguments.FirstOrDefault() : exp.Arguments[0].Type).FullName) {
+							case "System.DateTime": return $"datediff(second, {args1}, {left})";
+							case "System.TimeSpan": return $"dateadd(second, {args1}*-1, {left})";
+						}
 						break;
 					case "Equals": return $"({left} = {getExp(exp.Arguments[0])})";
 					case "CompareTo": return $"(({left}) - ({getExp(exp.Arguments[0])}))";

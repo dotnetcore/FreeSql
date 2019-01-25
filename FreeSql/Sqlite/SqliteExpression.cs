@@ -251,10 +251,10 @@ namespace FreeSql.Sqlite {
 					case "AddTicks": return $"datetime({left},(({args1})/10000000)||' seconds')";
 					case "AddYears": return $"datetime({left},({args1})||' years')";
 					case "Subtract":
-						if (exp.Arguments[0].Type.FullName == "System.DateTime" || exp.Arguments[0].Type.GenericTypeArguments.FirstOrDefault()?.FullName == "System.DateTime")
-							return $"(strftime('%s',{left})-strftime('%s',{args1}))";
-						if (exp.Arguments[0].Type.FullName == "System.TimeSpan" || exp.Arguments[0].Type.GenericTypeArguments.FirstOrDefault()?.FullName == "System.TimeSpan")
-							return $"datetime({left},(-{args1})||' seconds')";
+						switch ((exp.Arguments[0].Type.IsNullableType() ? exp.Arguments[0].Type.GenericTypeArguments.FirstOrDefault() : exp.Arguments[0].Type).FullName) {
+							case "System.DateTime": return $"(strftime('%s',{left})-strftime('%s',{args1}))";
+							case "System.TimeSpan": return $"datetime({left},(-{args1})||' seconds')";
+						}
 						break;
 					case "Equals": return $"({left} = {getExp(exp.Arguments[0])})";
 					case "CompareTo": return $"(strftime('%s',{left})-strftime('%s',{args1}))";

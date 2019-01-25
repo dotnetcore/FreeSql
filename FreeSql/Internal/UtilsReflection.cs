@@ -70,10 +70,8 @@ namespace FreeSql.Internal {
 				});
 				colattr.DbDefautValue = trytb.Properties[p.Name].GetValue(Activator.CreateInstance(trytb.Type));
 				if (colattr.DbDefautValue == null) colattr.DbDefautValue = tp?.defaultValue;
-				if (colattr.IsNullable == false && colattr.DbDefautValue == null) {
-					var consturctorType = p.PropertyType.GenericTypeArguments.FirstOrDefault() ?? p.PropertyType;
-					colattr.DbDefautValue = Activator.CreateInstance(consturctorType);
-				}
+				if (colattr.IsNullable == false && colattr.DbDefautValue == null)
+					colattr.DbDefautValue = Activator.CreateInstance(p.PropertyType.IsNullableType() ? p.PropertyType.GenericTypeArguments.FirstOrDefault() : p.PropertyType);
 
 				var col = new ColumnInfo {
 					Table = trytb,
@@ -177,7 +175,7 @@ namespace FreeSql.Internal {
 		internal static (object value, int dataIndex) ExecuteArrayRowReadClassOrTuple(Type type, Dictionary<string, int> names, object[] row, int dataIndex = 0) {
 			if (type.IsArray) return (GetDataReaderValue(type, row[dataIndex]), dataIndex + 1);
 			var typeGeneric = type;
-			if (typeGeneric.FullName.StartsWith("System.Nullable`1[")) typeGeneric = type.GenericTypeArguments.First();
+			if (typeGeneric.IsNullableType()) typeGeneric = type.GenericTypeArguments.First();
 			if (typeGeneric.IsEnum ||
 				dicExecuteArrayRowReadClassOrTuple.ContainsKey(typeGeneric))
 				return (GetDataReaderValue(type, row[dataIndex]), dataIndex + 1);
@@ -251,7 +249,7 @@ namespace FreeSql.Internal {
 				}
 				return ret;
 			}
-			if (type.FullName.StartsWith("System.Nullable`1[")) type = type.GenericTypeArguments.First();
+			if (type.IsNullableType()) type = type.GenericTypeArguments.First();
 			if (type.IsEnum) return Enum.Parse(type, string.Concat(value), true);
 			switch(type.FullName) {
 				case "System.Guid":

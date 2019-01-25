@@ -299,7 +299,7 @@ namespace FreeSql.Internal {
 					throw new Exception($"未现实函数表达式 {exp3} 解析");
 				case ExpressionType.MemberAccess:
 					var exp4 = exp as MemberExpression;
-					if (exp4.Expression != null && exp4.Expression.Type.IsArray == false && exp4.Expression.Type.FullName.StartsWith("System.Nullable`1[")) return ExpressionLambdaToSql(exp4.Expression, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+					if (exp4.Expression != null && exp4.Expression.Type.IsArray == false && exp4.Expression.Type.IsNullableType()) return ExpressionLambdaToSql(exp4.Expression, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
 					var extRet = "";
 					var memberType = exp4.Expression?.Type ?? exp4.Type;
 					switch (memberType.FullName) {

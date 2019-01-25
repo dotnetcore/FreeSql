@@ -246,10 +246,10 @@ namespace FreeSql.MySql {
 					case "AddTicks": return $"date_add({left}, interval ({args1})/10 microsecond)";
 					case "AddYears": return $"date_add({left}, interval ({args1}) year)";
 					case "Subtract":
-						if (exp.Arguments[0].Type.FullName == "System.DateTime" || exp.Arguments[0].Type.GenericTypeArguments.FirstOrDefault()?.FullName == "System.DateTime")
-							return $"timestampdiff(microsecond, {args1}, {left})";
-						if (exp.Arguments[0].Type.FullName == "System.TimeSpan" || exp.Arguments[0].Type.GenericTypeArguments.FirstOrDefault()?.FullName == "System.TimeSpan")
-							return $"date_sub({left}, interval ({args1}) microsecond)";
+						switch((exp.Arguments[0].Type.IsNullableType() ? exp.Arguments[0].Type.GenericTypeArguments.FirstOrDefault() : exp.Arguments[0].Type).FullName) {
+							case "System.DateTime": return $"timestampdiff(microsecond, {args1}, {left})";
+							case "System.TimeSpan": return $"date_sub({left}, interval ({args1}) microsecond)";
+						}
 						break;
 					case "Equals": return $"({left} = {getExp(exp.Arguments[0])})";
 					case "CompareTo": return $"(({left}) - ({getExp(exp.Arguments[0])}))";

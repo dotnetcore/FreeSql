@@ -343,10 +343,10 @@ namespace FreeSql.PostgreSQL {
 					case "AddTicks": return $"(({left})::timestamp+(({args1})/10||' microseconds')::interval)";
 					case "AddYears": return $"(({left})::timestamp+(({args1})||' year')::interval)";
 					case "Subtract":
-						if (exp.Arguments[0].Type.FullName == "System.DateTime" || exp.Arguments[0].Type.GenericTypeArguments.FirstOrDefault()?.FullName == "System.DateTime")
-							return $"(extract(epoch from ({left})::timestamp-({args1})::timestamp)*1000000)";
-						if (exp.Arguments[0].Type.FullName == "System.TimeSpan" || exp.Arguments[0].Type.GenericTypeArguments.FirstOrDefault()?.FullName == "System.TimeSpan")
-							return $"(({left})::timestamp-(({args1})||' microseconds')::interval)";
+						switch ((exp.Arguments[0].Type.IsNullableType() ? exp.Arguments[0].Type.GenericTypeArguments.FirstOrDefault() : exp.Arguments[0].Type).FullName) {
+							case "System.DateTime": return $"(extract(epoch from ({left})::timestamp-({args1})::timestamp)*1000000)";
+							case "System.TimeSpan": return $"(({left})::timestamp-(({args1})||' microseconds')::interval)";
+						}
 						break;
 					case "Equals": return $"({left} = ({getExp(exp.Arguments[0])})::timestamp)";
 					case "CompareTo": return $"extract(epoch from ({left})::timestamp-({getExp(exp.Arguments[0])})::timestamp)";

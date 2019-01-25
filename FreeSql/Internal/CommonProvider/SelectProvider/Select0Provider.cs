@@ -249,7 +249,7 @@ namespace FreeSql.Internal.CommonProvider {
 			public Func<DbDataReader, T1> Read { get; set; }
 		}
 		protected GetAllFieldExpressionTreeInfo GetAllFieldExpressionTree() {
-			return _dicGetAllFieldExpressionTree.GetOrAdd(string.Join("+", _tables.Select(a => $"{a.Table.DbName}-{a.Alias}-{a.Type}")), s => {
+			return _dicGetAllFieldExpressionTree.GetOrAdd(string.Join("+", _tables.Select(a => $"{_commonUtils.DbName}-{a.Table.DbName}-{a.Alias}-{a.Type}")), s => {
 				var tb1 = _tables.First().Table;
 				var type = tb1.TypeLazy ?? tb1.Type;
 				var props = tb1.Properties;
@@ -313,7 +313,7 @@ namespace FreeSql.Internal.CommonProvider {
 					);
 					else {
 						var proptypeGeneric = prop.PropertyType;
-						if (proptypeGeneric.FullName.StartsWith("System.Nullable`1[")) proptypeGeneric = proptypeGeneric.GenericTypeArguments.First();
+						if (proptypeGeneric.IsNullableType()) proptypeGeneric = proptypeGeneric.GenericTypeArguments.First();
 						if (proptypeGeneric.IsEnum ||
 							Utils.dicExecuteArrayRowReadClassOrTuple.ContainsKey(proptypeGeneric)) readExpAssign = Expression.New(Utils.RowInfo.Constructor,
 								Utils.GetDataReaderValueBlockExpression(prop.PropertyType, Expression.Call(rowExp, Utils.MethodDataReaderGetValue, dataIndexExp)),

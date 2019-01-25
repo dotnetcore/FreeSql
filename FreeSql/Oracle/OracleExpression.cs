@@ -247,10 +247,10 @@ namespace FreeSql.Oracle {
 					case "AddTicks": return $"({left}+({args1})/864000000000)";
 					case "AddYears": return $"add_months({left},({args1})*12)";
 					case "Subtract":
-						if (exp.Arguments[0].Type.FullName == "System.DateTime" || exp.Arguments[0].Type.GenericTypeArguments.FirstOrDefault()?.FullName == "System.DateTime")
-							return $"({args1}-{left})";
-						if (exp.Arguments[0].Type.FullName == "System.TimeSpan" || exp.Arguments[0].Type.GenericTypeArguments.FirstOrDefault()?.FullName == "System.TimeSpan")
-							return $"({left}-{args1})";
+						switch ((exp.Arguments[0].Type.IsNullableType() ? exp.Arguments[0].Type.GenericTypeArguments.FirstOrDefault() : exp.Arguments[0].Type).FullName) {
+							case "System.DateTime": return $"({args1}-{left})";
+							case "System.TimeSpan": return $"({left}-{args1})";
+						}
 						break;
 					case "Equals": return $"({left} = {getExp(exp.Arguments[0])})";
 					case "CompareTo": return $"extract(day from ({left}-({getExp(exp.Arguments[0])})))";

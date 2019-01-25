@@ -85,11 +85,9 @@ namespace FreeSql.Internal {
 				});
 				colattr.DbDefautValue = trytb.Properties[p.Name].GetValue(Activator.CreateInstance(trytb.Type));
 				if (colattr.DbDefautValue == null) colattr.DbDefautValue = tp?.defaultValue;
-				if (colattr.IsNullable == false && colattr.DbDefautValue == null) {
-					var consturctorType = p.PropertyType.GenericTypeArguments.FirstOrDefault() ?? p.PropertyType;
-					colattr.DbDefautValue = Activator.CreateInstance(consturctorType);
-				}
-				if (colattr.IsIdentity == true && (p.PropertyType.GenericTypeArguments.FirstOrDefault() ?? p.PropertyType)?.IsNumberType() == false)
+				if (colattr.IsNullable == false && colattr.DbDefautValue == null)
+					colattr.DbDefautValue = Activator.CreateInstance(p.PropertyType.IsNullableType() ? p.PropertyType.GenericTypeArguments.FirstOrDefault() : p.PropertyType);
+				if (colattr.IsIdentity == true && p.PropertyType.IsNumberType() == false)
 					colattr.IsIdentity = false;
 
 				var col = new ColumnInfo {
@@ -538,7 +536,7 @@ namespace FreeSql.Internal {
 					), new[] { typeExp, indexesExp, rowExp, dataIndexExp }).Compile();
 
 				var typeGeneric = type;
-				if (typeGeneric.FullName.StartsWith("System.Nullable`1[")) typeGeneric = type.GenericTypeArguments.First();
+				if (typeGeneric.IsNullableType()) typeGeneric = type.GenericTypeArguments.First();
 				if (typeGeneric.IsEnum ||
 					dicExecuteArrayRowReadClassOrTuple.ContainsKey(typeGeneric))
 					return Expression.Lambda<Func<Type, int[], DbDataReader, int, RowInfo>>(
@@ -567,7 +565,7 @@ namespace FreeSql.Internal {
 							);
 							else {
 								var fieldtypeGeneric = field.FieldType;
-								if (fieldtypeGeneric.FullName.StartsWith("System.Nullable`1[")) fieldtypeGeneric = fieldtypeGeneric.GenericTypeArguments.First();
+								if (fieldtypeGeneric.IsNullableType()) fieldtypeGeneric = fieldtypeGeneric.GenericTypeArguments.First();
 								if (fieldtypeGeneric.IsEnum ||
 									dicExecuteArrayRowReadClassOrTuple.ContainsKey(fieldtypeGeneric)) read2ExpAssign = Expression.New(RowInfo.Constructor,
 										GetDataReaderValueBlockExpression(field.FieldType, Expression.Call(rowExp, MethodDataReaderGetValue, dataIndexExp)),
@@ -653,7 +651,7 @@ namespace FreeSql.Internal {
 						);
 						else {
 							var proptypeGeneric = ctorParm.ParameterType;
-							if (proptypeGeneric.FullName.StartsWith("System.Nullable`1[")) proptypeGeneric = proptypeGeneric.GenericTypeArguments.First();
+							if (proptypeGeneric.IsNullableType()) proptypeGeneric = proptypeGeneric.GenericTypeArguments.First();
 							if (proptypeGeneric.IsEnum ||
 								dicExecuteArrayRowReadClassOrTuple.ContainsKey(proptypeGeneric)) readExpAssign = Expression.New(RowInfo.Constructor,
 									GetDataReaderValueBlockExpression(ctorParm.ParameterType, Expression.Call(rowExp, MethodDataReaderGetValue, dataIndexExp)),
@@ -701,7 +699,7 @@ namespace FreeSql.Internal {
 						);
 						else {
 							var proptypeGeneric = prop.PropertyType;
-							if (proptypeGeneric.FullName.StartsWith("System.Nullable`1[")) proptypeGeneric = proptypeGeneric.GenericTypeArguments.First();
+							if (proptypeGeneric.IsNullableType()) proptypeGeneric = proptypeGeneric.GenericTypeArguments.First();
 							if (proptypeGeneric.IsEnum ||
 								dicExecuteArrayRowReadClassOrTuple.ContainsKey(proptypeGeneric)) readExpAssign = Expression.New(RowInfo.Constructor,
 									GetDataReaderValueBlockExpression(prop.PropertyType, Expression.Call(rowExp, MethodDataReaderGetValue, tryidxExp)),
@@ -825,7 +823,7 @@ namespace FreeSql.Internal {
 						)
 					);
 				}
-				if (type.FullName.StartsWith("System.Nullable`1[")) type = type.GenericTypeArguments.First();
+				if (type.IsNullableType()) type = type.GenericTypeArguments.First();
 				if (type.IsEnum) return Expression.Return(returnTarget, Expression.Call(MethodEnumParse, Expression.Constant(type, typeof(Type)), Expression.Call(MethodToString, valueExp), Expression.Constant(true, typeof(bool))));
 				switch(type.FullName) {
 					case "System.Guid": return Expression.IfThenElse(
@@ -927,7 +925,7 @@ namespace FreeSql.Internal {
 			//			), parmExp).Compile();
 			//	}
 
-			//	if (type.FullName.StartsWith("System.Nullable`1[")) type = type.GenericTypeArguments.First();
+			//	if (type.IsNullableType()) type = type.GenericTypeArguments.First();
 			//	if (type.IsEnum) return Expression.Lambda<Func<object, object>>(
 			//		Expression.Call(
 			//			MethodEnumParse,
@@ -1020,7 +1018,7 @@ namespace FreeSql.Internal {
 				}
 				return ret;
 			}
-			if (type.FullName.StartsWith("System.Nullable`1[")) type = type.GenericTypeArguments.First();
+			if (type.IsNullableType()) type = type.GenericTypeArguments.First();
 			if (type.IsEnum) return Enum.Parse(type, string.Concat(value), true);
 			switch (type.FullName) {
 				case "System.Guid":
