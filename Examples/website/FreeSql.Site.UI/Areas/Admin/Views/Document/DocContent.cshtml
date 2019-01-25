@@ -6,7 +6,11 @@
 <script>
     var dialog_Paramters = { height: 660, width: 1100 };
 </script>
-
+<style>
+    .layui-table, .layui-table-view {
+        margin: 0; 
+    }
+</style>
 <table class="layui-table" id="test" lay-filter="test"></table>
 
 <script type="text/html" id="docContentEdit">
@@ -99,9 +103,10 @@
                         submit: {
                             url: "/Admin/Document/DocContentCreate",
                         },
+                        elmid: "docContentEdit",
                         callback: reloadTable
                     };
-                    freejs.dialogWindow.create(options);
+                    freejs.dialogWindow.create(options, form);
                     break;
                 case 'delete':
                     var data = checkStatus.data;
@@ -143,9 +148,10 @@
                     submit: {
                         url: "/Admin/Document/DocContentUpdate",
                     },
+                    elmid: "docContentEdit",
                     callback: reloadTable
                 };
-                freejs.dialogWindow.create(options);
+                freejs.dialogWindow.create(options, form);
             }
         });
 

@@ -118,7 +118,7 @@ namespace FreeSql.Site.UI.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        //[ValidateAntiForgeryToken]
         public ActionResult DocContentDelete(int id, IFormCollection collection)
         {
             var resdata = AutoException.Excute<long>((result) =>
@@ -175,13 +175,25 @@ namespace FreeSql.Site.UI.Areas.Admin.Controllers
             });
         }
 
-        public ActionResult DocTypeEditModule(string id)
+        public ActionResult DocTypeEditModule(string id, bool ischildren)
         {
+            ViewBag.DocumentTypeList = DocumentTypeDAL.Query(w => w.Status == 1).list.Select(s => new SelectListItem { Text = s.TypeName, Value = s.ID.ToString() }).ToList();
+
             DocumentType model = new DocumentType();
-            if (!string.IsNullOrEmpty(id))
+            if (ischildren)
             {
-                int _id = Convert.ToInt32(id);
-                model = DocumentTypeDAL.GetByOne(w => w.ID == _id);
+                if (!string.IsNullOrEmpty(id))
+                {
+                    model.UpID = Convert.ToInt32(id);
+                }
+            }
+            else
+            {
+                if (!string.IsNullOrEmpty(id))
+                {
+                    int _id = Convert.ToInt32(id);
+                    model = DocumentTypeDAL.GetByOne(w => w.ID == _id);
+                }
             }
             return View(model);
         }
@@ -189,11 +201,13 @@ namespace FreeSql.Site.UI.Areas.Admin.Controllers
         // POST: Documents/Create
         [HttpPost]
         //[ValidateAntiForgeryToken]
-        public ActionResult DocTypeCreate([FromBody]DocumentContent model)
+        public ActionResult DocTypeCreate([FromBody]DocumentType model)
         {
             var resdata = AutoException.Excute<long>((result) =>
             {
-                result.Data = DocumentContentDAL.Insert(model);
+                model.CreateBy = "admin";
+                model.CreateDt = DateTime.Now;
+                result.Data = DocumentTypeDAL.Insert(model);
                 if (result.Data == 0)
                 {
                     throw new Exception("数据新增异常，JSON:" + Newtonsoft.Json.JsonConvert.SerializeObject(model));
@@ -205,13 +219,13 @@ namespace FreeSql.Site.UI.Areas.Admin.Controllers
         // POST: Documents/Create
         [HttpPost]
         //[ValidateAntiForgeryToken]
-        public ActionResult DocTypeUpdate([FromBody]DocumentContent model)
+        public ActionResult DocTypeUpdate([FromBody]DocumentType model)
         {
             var resdata = AutoException.Excute<bool>((result) =>
             {
                 model.UpdateBy = "admin";
                 model.UpdateDt = DateTime.Now;
-                result.Data = DocumentContentDAL.Update(model);
+                result.Data = DocumentTypeDAL.Update(model);
                 if (result.Data == false)
                 {
                     throw new Exception("数据新增异常，JSON:" + Newtonsoft.Json.JsonConvert.SerializeObject(model));
@@ -220,13 +234,13 @@ namespace FreeSql.Site.UI.Areas.Admin.Controllers
             return Json(resdata);
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        [HttpPost]        
+        //[ValidateAntiForgeryToken]
         public ActionResult DocTypeDelete(int id, IFormCollection collection)
         {
             var resdata = AutoException.Excute<long>((result) =>
             {
-                if (!DocumentContentDAL.Delete(id))
+                if (!DocumentTypeDAL.Delete(id))
                 {
                     throw new Exception("数据删除异常，ID:" + id);
                 }

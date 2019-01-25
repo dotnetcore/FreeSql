@@ -27,7 +27,8 @@ namespace FreeSql.Site.DAL
         /// <returns></returns>
         public virtual bool Update(T model)
         {
-            return DataBaseType.MySql.DB().Update<T>(model.ID).ExecuteUpdated().Count > 0;
+            var runsql = DataBaseType.MySql.DB().Update<T>().SetSource(model);
+            return runsql.ExecuteAffrows() > 0;
         }
 
         /// <summary>

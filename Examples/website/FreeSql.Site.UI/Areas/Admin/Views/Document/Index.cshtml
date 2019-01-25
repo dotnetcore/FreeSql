@@ -31,30 +31,10 @@
         var path_json = $(this).attr("datajson");
 
         var index = freejs.showLoading({ msg: "数据加载中......" });
-        $("#page_content").load(path_item, $.parseJSON(path_json), function (responseText, textStatus, jqXHR) {
-            freejs.closeLoading(index);
-            switch (textStatus) {
-                case "success":
-                    //初始化绑定页面的时间，例如时间控件
-                    index = -1;
-                    layui.use('form', function () {
-                        var form = layui.form;
-
-                    });
-                    break;
-                //case "notmodified":
-                //case "error":
-                //case "timeout":
-                //case "parsererror":
-                //spf.loadHtml(mcid, "/Service/Error/", function (jElement, responseText) {
-                //    loadResultShow(jElement, responseText, spTitle, spHead);
-                //});
-                //break;
-                case "error":
-                    $("#page_content").html(responseText);
-                    break;
-            }
-        });
+        var options = {
+            url: path_item, paramters: $.parseJSON(path_json), loadIndex: index
+        };
+        freejs.loadHtml(options);
 
         //如果出现长时间未关闭，定时关闭loading
         setTimeout(function () {

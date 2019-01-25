@@ -4,7 +4,7 @@
 }
 
 .layui-form-label {
-    width: 110px;
+    width: 80px;
     font-weight:bold;
 }
 
@@ -24,7 +24,7 @@
 
 .form-module-footer {
     border: 0px solid red;
-    height: 60px;
+    height: 55px;
     width: 100%;
     position: absolute;
     border-top: 5px solid #e8e8e8;
@@ -33,6 +33,11 @@
     bottom: 0px;
     width: 100%;
     text-align: right;
-    z-index:100;
-    padding:6px;
+    z-index: 100;
+    padding: 0px;
 }
+
+    .form-module-footer button {
+        margin-right: 10px;
+        margin-top: 10px;
+    }

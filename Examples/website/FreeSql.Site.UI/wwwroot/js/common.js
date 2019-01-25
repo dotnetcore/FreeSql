@@ -136,7 +136,8 @@
             callback: reloadTable                          //执行完成回调函数
              */
             create: function (options, formpage) {
-                $("#docContentEdit").load(options.url, options.paramters, function (responseText, textStatus, jqXHR) {
+                //docContentEdit
+                $("#" + options.elmid).load(options.url, options.paramters, function (responseText, textStatus, jqXHR) {
                     switch (textStatus) {
                         case "success":
                             freejs.dialogWindow.open($.extend({
@@ -149,7 +150,7 @@
                                 submit: {
                                     url: "/Admin/Document/DocContentCreate",
                                 }
-                            }, options), form);
+                            }, options), formpage);
                             break;
                         case "error":
                             freejs.showMessage({ title: "提示", msg: "页面加载失败", type: 2 });
@@ -214,6 +215,39 @@
             },
             close: function () {
             }
+        },
+        loadHtml: function (options) {
+            //options = {
+            //    url: "/Admin/Document/DocType", paramters: {},loadIndex:1
+            //};
+            $("#page_content").load(options.url, options.paramters, function (responseText, textStatus, jqXHR) {
+                freejs.closeLoading(options.loadIndex);
+                switch (textStatus) {
+                    case "success":
+                        //初始化绑定页面的时间，例如时间控件
+                        index = -1;
+                        layui.use('form', function () {
+                            var form = layui.form;
+
+                        });
+                        break;
+                    //case "notmodified":
+                    //case "error":
+                    //case "timeout":
+                    //case "parsererror":
+                    //spf.loadHtml(mcid, "/Service/Error/", function (jElement, responseText) {
+                    //    loadResultShow(jElement, responseText, spTitle, spHead);
+                    //});
+                    //break;
+                    case "error":
+                        $("#page_content").html(responseText);
+                        break;
+                }
+            });
+            //如果出现长时间未关闭，定时关闭loading
+            setTimeout(function () {
+                if (options.loadIndex >= 0) freejs.closeLoading(options.loadIndex);
+            }, 5000);
         }
     };
     window.freejs = new base();
