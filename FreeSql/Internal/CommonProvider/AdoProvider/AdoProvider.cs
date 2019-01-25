@@ -64,19 +64,19 @@ namespace FreeSql.Internal.CommonProvider {
 			if (isThrowException) throw e;
 		}
 
-		internal static ConcurrentDictionary<Type, PropertyInfo[]> dicQueryTypeGetProperties = new ConcurrentDictionary<Type, PropertyInfo[]>();
+		internal static ConcurrentDictionary<Type, Dictionary<string, PropertyInfo>> dicQueryTypeGetProperties = new ConcurrentDictionary<Type, Dictionary<string, PropertyInfo>>();
 		public List<T> Query<T>(string cmdText, object parms = null) => Query<T>(CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
 		public List<T> Query<T>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
 			var ret = new List<T>();
 			var type = typeof(T);
 			int[] indexes = null;
-			var props = dicQueryTypeGetProperties.GetOrAdd(type, k => type.GetProperties());
+			var props = dicQueryTypeGetProperties.GetOrAdd(type, k => type.GetProperties().ToDictionary(a => a.Name, a => a, StringComparer.CurrentCultureIgnoreCase));
 			ExecuteReader(dr => {
 				if (indexes == null) {
-					var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
+					var idxs = new List<int>();
 					for (var a = 0; a < dr.FieldCount; a++)
-						dic.Add(dr.GetName(a), a);
-					indexes = props.Select(a => dic.TryGetValue(a.Name, out var tryint) ? tryint : -1).ToArray();
+						if (props.ContainsKey(dr.GetName(a))) idxs.Add(a);
+					indexes = idxs.ToArray();
 				}
 				ret.Add((T)Utils.ExecuteArrayRowReadClassOrTuple(type, indexes, dr, 0).Value);
 			}, cmdType, cmdText, cmdParms);

@@ -714,19 +714,17 @@ namespace FreeSql.Internal {
 						}
 						blockExp.AddRange(new Expression[] {
 							//以下注释部分为【严格读取】，会损失一点性能，使用 select * from xxx 与属性映射赋值
-							Expression.Assign(tryidxExp, Expression.ArrayAccess(indexesExp, Expression.Constant(propIndex))),
-							Expression.IfThen(
-								Expression.GreaterThanOrEqual(tryidxExp, Expression.Constant(0)),
-								Expression.Block(
-									Expression.Assign(readExp, readExpAssign),
-									Expression.IfThen(Expression.GreaterThan(readExpDataIndex, dataIndexExp),
-										Expression.Assign(dataIndexExp, readExpDataIndex)),
-									Expression.IfThenElse(
-										Expression.Equal(readExpValue, Expression.Constant(null)),
-										Expression.Call(retExp, propGetSetMethod, Expression.Default(prop.PropertyType)),
-										Expression.Call(retExp, propGetSetMethod, Expression.Convert(readExpValue, prop.PropertyType)))
-								)
-							)
+							Expression.IfThenElse(
+								Expression.LessThan(Expression.Constant(propIndex), indexesLengthExp),
+								Expression.Assign(tryidxExp, Expression.ArrayAccess(indexesExp, Expression.Constant(propIndex))),
+								Expression.Assign(tryidxExp, dataIndexExp)
+							),
+							Expression.Assign(readExp, readExpAssign),
+							Expression.IfThen(Expression.GreaterThan(readExpDataIndex, dataIndexExp),
+								Expression.Assign(dataIndexExp, readExpDataIndex)),
+							Expression.IfThenElse(Expression.Equal(readExpValue, Expression.Constant(null)),
+								Expression.Call(retExp, propGetSetMethod, Expression.Default(prop.PropertyType)),
+								Expression.Call(retExp, propGetSetMethod, Expression.Convert(readExpValue, prop.PropertyType)))
 						});
 						++propIndex;
 					}
