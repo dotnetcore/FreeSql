@@ -1,16 +1,20 @@
 ﻿//using FreeSql.DataAnnotations;
 using FreeSql.DataAnnotations;
+using FreeSql.Site.Entity.Common;
 using System;
 
 namespace FreeSql.Site.Entity
 {
-    public class DocumentType
+    public class DocumentType : BaseEntity
     {
-        [Column(IsIdentity = true, IsPrimary = true)]
-        public int ID { get; set; }
-
+        /// <summary>
+        /// 类型名称
+        /// </summary>
         public string TypeName { get; set; }
 
+        /// <summary>
+        /// 上级类型名称
+        /// </summary>
         public int? UpID { get; set; }
 
         /// <summary>
@@ -18,17 +22,24 @@ namespace FreeSql.Site.Entity
         /// </summary>
         public string Tag { get; set; }
 
-        /// <summary>
-        /// 状态
-        /// </summary>
-        public int Status { get; set; }
-
-        public DateTime? CreateDt { get; set; }
-
-        public string CreateBy { get; set; }
-
         public DateTime? UpdateDt { get; set; }
 
         public string UpdateBy { get; set; }
+    }
+
+    /// <summary>
+    /// 类型树形结构
+    /// </summary>
+    public class DocumentTypeTreeNode : TreeNode
+    {
+        /// <summary>
+        /// 标签
+        /// </summary>
+        public string tag { get; set; }
+
+        /// <summary>
+        /// 创建时间
+        /// </summary>
+        public DateTime? createdt { get; set; }
     }
 }

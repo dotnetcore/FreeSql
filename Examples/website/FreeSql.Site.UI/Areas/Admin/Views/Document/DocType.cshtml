@@ -3,125 +3,108 @@
 
     //Layout = "~/Areas/Admin/Shared/_Layout.cshtml";
 }
+<style>
+    body {
+        padding: 10px 30px;
+    }
 
-<div id="myeditor" style="display: none">
-    <!-- 富文本编辑器 -->
-    <div id="test-editormd"></div>
-</div>
+    .hide {
+        display: none
+    }
+</style>
+<button class="layui-btn layui-btn-primary down-up-all">全部收起/展开</button>
+<button class="layui-btn layui-btn-primary get-checked">获取选中</button>
 
-<div id="markdownToHTML" style="margin-left: 100px">
-    <textarea id="content" style="display:none;" placeholder="markdown语言"></textarea>
-</div>
-
-<div class="layui-btn-container" style="margin: 10px">
-    <button id="showEditor" class="layui-btn">显示编辑器</button>
-    <button id="getMarkdownContent" class="layui-btn">获取Markdown源码</button>
-    <button id="getHtmlContent" class="layui-btn">获取Html源码</button>
-    <button id="showHTML" class="layui-btn">Markdown解析成HTML</button>
-</div>
-
+<table class="layui-table layui-form" id="doctype-tree-table"></table>
 
 <script type="text/javascript">
-    layui.use(['layer', 'jquery'], function () {
-        var layer = layui.layer
-            , $ = layui.jquery;
+    layui.use(['treetable', 'form'], function () {
+        var data = @Html.Raw(Html.ToJson(ViewBag.TypeList as List<DocumentTypeTreeNode>));
 
-        var testEditor;
-        $('#showEditor').on('click', function () {
-            // 弹出框
-            layer.open({
-                type: 1
-                , content: $('#myeditor')
-                , btn: '关闭全部'
-                , btnAlign: 'c' //按钮居中
-                , shade: 0 //不显示遮罩
-                , area: ['800px', '600px']
-                , yes: function () {
-                    layer.closeAll();
-                },
-                success: function () {
-                    testEditor = editormd("test-editormd", {
-                        width: "90%",
-                        height: 740,
-                        path: "../../lib/editormd/lib/",
-                        theme: "default",
-                        previewTheme: "default",
-                        editorTheme: "default",
-                        //markdown : md,             // 初始化编辑区的内容
-                        codeFold: true,
-                        //syncScrolling : false,
-                        saveHTMLToTextarea: true,    // 保存 HTML 到 Textarea
-                        searchReplace: true,
-                        //watch : false,                // 关闭实时预览
-                        htmlDecode: "style,script,iframe|on*",            // 开启 HTML 标签解析，为了安全性，默认不开启
-                        //toolbar  : false,             //关闭工具栏
-                        //previewCodeHighlight : false, // 关闭预览 HTML 的代码块高亮，默认开启
-                        emoji: true,
-                        taskList: true,
-                        tocm: true,         // Using [TOCM]
-                        tex: true,                   // 开启科学公式TeX语言支持，默认关闭
-                        flowChart: true,             // 开启流程图支持，默认关闭
-                        sequenceDiagram: true,       // 开启时序/序列图支持，默认关闭,
-                        //dialogLockScreen : false,   // 设置弹出层对话框不锁屏，全局通用，默认为true
-                        //dialogShowMask : false,     // 设置弹出层对话框显示透明遮罩层，全局通用，默认为true
-                        //dialogDraggable : false,    // 设置弹出层对话框不可拖动，全局通用，默认为true
-                        //dialogMaskOpacity : 0.4,    // 设置透明遮罩层的透明度，全局通用，默认值为0.1
-                        //dialogMaskBgColor : "#000", // 设置透明遮罩层的背景颜色，全局通用，默认为#fff
-                        imageUpload: true,
-                        imageFormats: ["jpg", "jpeg", "gif", "png", "bmp", "webp"],
-                        imageUploadURL: "./php/upload.php", // 文件上传路径，返回值为图片加载的路径
-                        onload: function () {
-                            // 加载后富文本编辑器成功后的回调
-                            console.log('onload', this);
-                            //this.fullscreen();
-                            //this.unwatch();
-                            //this.watch().fullscreen();
-
-                            //this.setMarkdown("#PHP");
-                            //this.width("100%");
-                            //this.height(480);
-                            //this.resize("100%", 640);
-
-                            // 异步请求md文件，用于编辑时的数据回显
-                            $.get('test.md', function (md) {
-                                testEditor.setMarkdown(md);
-                            });
+        var o = layui.$, treetable = layui.treetable;
+        var form = layui.form, layer = layui.layer;
+        treetable.render({
+            elem: '#doctype-tree-table',
+            data: data,
+            field: 'title',
+            is_checkbox: true,
+            checked: [1, 2, 3, 4],
+            /*icon_val: {
+                open: "&#xe619;",
+                close: "&#xe61a;"
+            },
+            space: 4,*/
+            cols: [
+                {
+                    field: 'title',
+                    title: '标题',
+                    width: '40%',
+                    template: function (item) {
+                        if (item.level == 1) {
+                            return '<span style="color:red;">' + item.title + '</span>';
                         }
-                    });
-                }
-            });
+                        if (item.level == 2) {
+                            return '<span style="color:green;">' + item.title + '</span>';
+                        }
+                        return item.title;
+                    }
+                },
+                {
+                    field: 'id',
+                    title: '编号',
+                    width: '10%'
+                },
+                {
+                    title: '标签',
+                    width: '10%',
+                    template: function (item) {
+                        return item.tag||"";//'<input type="checkbox" lay-skin="switch" lay-filter="status" lay-text="开启|关闭">';
+                    }
+                },
+                {
+                    title: '创建时间',
+                    width: '20%',
+                    template: function (item) {
+                        return item.createdt.replace('T',' ') || "";//'<input type="checkbox" lay-skin="switch" lay-filter="status" lay-text="开启|关闭">';
+                    }
+                },
+                {
+                    field: 'actions',
+                    title: '操作',
+                    width: '20%',
+                    template: function (item) {
+                        var tem = [];
+                        tem.push('<button class="layui-btn layui-btn-xs layui-btn-normal">添加子级</button>');
+                        tem.push('<button class="layui-btn layui-btn-xs">编辑</button>');
+                        return tem.join(' ')
+                    },
+                },
+            ]
         });
 
-        // 获取markdown源码
-        $('#getMarkdownContent').on('click', function () {
-            var mdContent = $('.editormd-markdown-textarea').val();
-            console.log(mdContent);
-            var content = testEditor.getMarkdown();
-            console.log(content);
-        });
-        // 获取解析后的html
-        $('#getHtmlContent').on('click', function () {
-            var content = testEditor.getHTML();
+        treetable.on('treetable(add)', function (data) {
+            layer.msg('添加操作');
+            console.log(data);
+        })
 
-            console.log(content);
-        });
+        treetable.on('treetable(edit)', function (data) {
+            layer.msg('编辑操作');
+            console.log(data);
+        })
 
-        // 页面解析markdown为html进行显示
-        $('#showHTML').on('click', function () {
-            // 模拟从数据库中取内容
-            $.get('test.md', function (md) {
-                // 给textarea赋值
-                $('#content').val(md);
-                // 解析
-                editormd.markdownToHTML("markdownToHTML", {
-                    htmlDecode: "style,script,iframe",
-                    emoji: true,  // 解析表情
-                    taskList: true,  // 解析列表
-                    tex: true,  // 默认不解析
-                    flowChart: true,  // 默认不解析
-                    sequenceDiagram: true  // 默认不解析
-                });
-            });
-        });
+        o('.down-up-all').click(function () {
+            var expandStatus = o(this).attr("expandStatus");
+            expandStatus == "down" ? treetable.all('up') : treetable.all('down');
+            expandStatus == "down" ? o(this).attr('expandStatus', 'up') : o(this).attr('expandStatus', 'down');
+        })
+
+        o('.get-checked').click(function () {
+            console.log(treetable.all('checked'));
+        })
+
+        form.on('switch(status)', function (data) {
+            layer.msg('监听状态操作');
+            console.log(data);
+        })
     });
 </script>

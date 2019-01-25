@@ -7,11 +7,8 @@ namespace FreeSql.Site.Entity
     /// <summary>
     /// 数据库实体
     /// </summary>
-    public class DocumentContent
+    public class DocumentContent : BaseEntity
     {
-        [Column(IsIdentity = true, IsPrimary = true)]
-        public int ID { get; set; }
-
         /// <summary>
         /// 类型编号
         /// </summary>
@@ -34,11 +31,6 @@ namespace FreeSql.Site.Entity
         public string DocContent { get; set; }
 
         /// <summary>
-        /// 状态
-        /// </summary>
-        public int Status { get; set; }
-
-        /// <summary>
         /// 查看次数
         /// </summary>
         public int WatchCount { get; set; }
@@ -48,15 +40,6 @@ namespace FreeSql.Site.Entity
         /// </summary>
         public int StarCount { get; set; }
 
-        /// <summary>
-        /// 创建时间
-        /// </summary>
-        public DateTime? CreateDt { get; set; }
-
-        /// <summary>
-        /// 创建人
-        /// </summary>
-        public string CreateBy { get; set; }
 
         /// <summary>
         /// 修改时间

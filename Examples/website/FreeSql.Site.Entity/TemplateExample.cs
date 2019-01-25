@@ -8,10 +8,8 @@ namespace FreeSql.Site.Entity
     /// <summary>
     /// 模板示例
     /// </summary>
-    public class TemplateExample
+    public class TemplateExample : BaseEntity
     {
-        [Column(IsIdentity = true, IsPrimary = true)]
-        public int ID { get; set; }
 
         /// <summary>
         /// 模板图片
@@ -49,16 +47,13 @@ namespace FreeSql.Site.Entity
         public int StarCount { get; set; }
 
         /// <summary>
-        /// 状态
+        /// 修改时间
         /// </summary>
-        public int Status { get; set; }
-
-        public DateTime? CreateDt { get; set; }
-
-        public string CreateBy { get; set; }
-
         public DateTime? UpdateDt { get; set; }
 
+        /// <summary>
+        /// 修改人
+        /// </summary>
         public string UpdateBy { get; set; }
     }
 }

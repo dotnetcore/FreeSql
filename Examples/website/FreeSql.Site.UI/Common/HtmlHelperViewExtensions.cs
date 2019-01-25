@@ -13,6 +13,15 @@ namespace FreeSql.Site.UI.Common
 {
     public static class HtmlHelperViewExtensions
     {
+        public static string ToJson(this IHtmlHelper htmlHeler, object val)
+        {
+            if (val != null)
+            {
+                return Newtonsoft.Json.JsonConvert.SerializeObject(val);
+            }
+            return "";
+        }
+
         public static IHtmlContent Action(this IHtmlHelper helper, string action, object parameters = null)
         {
             var controller = (string)helper.ViewContext.RouteData.Values["controller"];

@@ -4,11 +4,8 @@ using System;
 
 namespace FreeSql.Site.Entity
 {
-    public class DocumentComment
+    public class DocumentComment:BaseEntity
     {
-        [Column(IsIdentity = true, IsPrimary = true)]
-        public int ID { get; set; }
-
         /// <summary>
         /// 功能类型（文章、模板、示例等）
         /// </summary>
@@ -43,16 +40,5 @@ namespace FreeSql.Site.Entity
         /// 评论内容
         /// </summary>
         public string CommentContent { get; set; }
-
-        /// <summary>
-        /// 创建时间
-        /// </summary>
-        public DateTime? CreateDt { get; set; }
-
-        /// <summary>
-        /// 创建人
-        /// </summary>
-        public string CreateBy { get; set; }
-
     }
 }
