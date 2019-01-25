@@ -167,31 +167,31 @@ List<dynamic> t8 = fsql.Ado.Query<dynamic>("select * from song");
 
 ### FreeSql Query & Dapper Query
 
-Elapsed: 00:00:00.6807349; Query Entity Counts: 131072; ORM: Dapper
+Elapsed: 00:00:00.6733199; Query Entity Counts: 131072; ORM: Dapper
 
-Elapsed: 00:00:00.4527258; Query Tuple Counts: 131072; ORM: Dapper
+Elapsed: 00:00:00.4554230; Query Tuple Counts: 131072; ORM: Dapper
 
-Elapsed: 00:00:00.6895447; Query Dynamic Counts: 131072; ORM: Dapper
+Elapsed: 00:00:00.6846146; Query Dynamic Counts: 131072; ORM: Dapper
 
-Elapsed: 00:00:00.8253683; Query Entity Counts: 131072; ORM: FreeSql*
+Elapsed: 00:00:00.6818111; Query Entity Counts: 131072; ORM: FreeSql*
 
-Elapsed: 00:00:00.6503870; Query Tuple Counts: 131072; ORM: FreeSql*
+Elapsed: 00:00:00.6060042; Query Tuple Counts: 131072; ORM: FreeSql*
 
-Elapsed: 00:00:00.4987399; Query ToList<Tuple> Counts: 131072; ORM: FreeSql*
+Elapsed: 00:00:00.4211323; Query ToList<Tuple> Counts: 131072; ORM: FreeSql*
 
-Elapsed: 00:00:00.9402494; Query Dynamic Counts: 131072; ORM: FreeSql*
+Elapsed: 00:00:01.0236285; Query Dynamic Counts: 131072; ORM: FreeSql*
 
 ### FreeSql ToList & Dapper Query
 
-Elapsed: 00:00:00.7840409; ToList Entity Counts: 131072; ORM: FreeSql*
+Elapsed: 00:00:00.6707125; ToList Entity Counts: 131072; ORM: FreeSql*
 
-Elapsed: 00:00:00.6414674; Query Entity Counts: 131072; ORM: Dapper
+Elapsed: 00:00:00.6495301; Query Entity Counts: 131072; ORM: Dapper
 
 [查看测试代码](FreeSql.Tests.PerformanceTests/MySqlAdoTest.cs)
 
-> 以上测试结果运行了两次，为第二次性能报告，避免了首个运行慢不公平的情况
+> 测试方法：运行两次，以第二次性能报告，避免了首个运行慢不公平的情况。
 
-FreeSql 目前使用的ExpressionTree+缓存，因为支持更为复杂的数据类型，所以比 Dapper Emit 慢少许，真实项目使用其实相差无几。
+FreeSql 目前使用的ExpressionTree+缓存，因为支持更为复杂的数据类型，所以比 Dapper Emit 慢少许。
 
 # Part2 添加
 ```csharp
