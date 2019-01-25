@@ -14,7 +14,7 @@ FreeSql是一个功能强大的NETStandard库，用于对象关系映射程序(O
 
 [《Select查询数据文档》](https://github.com/2881099/FreeSql/wiki/%e6%9f%a5%e8%af%a2) | [《Update更新数据文档》](https://github.com/2881099/FreeSql/wiki/%e4%bf%ae%e6%94%b9) | [《Insert插入数据文档》](https://github.com/2881099/FreeSql/wiki/%e6%b7%bb%e5%8a%a0) | [《Delete删除数据文档》](https://github.com/2881099/FreeSql/wiki/%e5%88%a0%e9%99%a4)
 
-[《Expression 表达式函数文档》](https://github.com/2881099/FreeSql/wiki/%e8%a1%a8%e8%be%be%e5%bc%8f%e5%87%bd%e6%95%b0) | [《CodeFirst 快速开发文档》](https://github.com/2881099/FreeSql/wiki/CodeFirst) | [《DbFirst 快速开发文档》](https://github.com/2881099/FreeSql/wiki/DbFirst)
+[《Expression 表达式函数文档》](https://github.com/2881099/FreeSql/wiki/%e8%a1%a8%e8%be%be%e5%bc%8f%e5%87%bd%e6%95%b0) | [《CodeFirst 快速开发文档》](https://github.com/2881099/FreeSql/wiki/CodeFirst) | [《DbFirst 快速开发文档》](https://github.com/2881099/FreeSql/wiki/DbFirst) | [更新日志](https://github.com/2881099/FreeSql/wiki/%e6%9b%b4%e6%96%b0%e6%97%a5%e5%bf%97)
 
 ## 快速开始
 ```csharp
