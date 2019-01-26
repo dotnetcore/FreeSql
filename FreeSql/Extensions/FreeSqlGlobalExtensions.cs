@@ -27,6 +27,7 @@ public static class FreeSqlGlobalExtensions {
 	});
 	public static bool IsNumberType(this Type that) => that == null ? false : dicIsNumberType.Value.ContainsKey(that);
 	public static bool IsNullableType(this Type that) => that?.FullName.StartsWith("System.Nullable`1[") == true;
+	internal static Type NullableTypeOrThis(this Type that) => that?.IsNullableType() == true ? that.GenericTypeArguments.First() : that;
 
 	/// <summary>
 	/// 测量两个经纬度的距离，返回单位：米

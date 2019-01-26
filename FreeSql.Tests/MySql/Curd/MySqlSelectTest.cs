@@ -74,6 +74,7 @@ namespace FreeSql.Tests.MySql {
 			public string Name { get; set; }
 
 			public virtual ICollection<Song> Songs { get; set; }
+			public virtual ICollection<Tag> Tags { get; set; }
 		}
 
 

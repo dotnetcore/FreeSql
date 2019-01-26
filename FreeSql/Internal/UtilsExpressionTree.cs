@@ -260,7 +260,7 @@ namespace FreeSql.Internal {
 									) {
 
 								}
-								if (trycol != null && trycol.CsType != trytb.Primarys[a].CsType)
+								if (trycol != null && trycol.CsType.NullableTypeOrThis() != trytb.Primarys[a].CsType)
 									throw new Exception($"【延时加载ManyToMany】导航属性 {trytbTypeName}.{vp.Item1.Name} 解析错误，{tbmid.CsName}.{trycol.CsName} 和 {trytb.CsName}.{trytb.Primarys[a].CsName} 类型不一致");
 								if (trycol == null)
 									throw new Exception($"【延时加载ManyToMany】导航属性 {trytbTypeName}.{vp.Item1.Name} 在 {tbmid.CsName} 中没有找到对应的字段，如：{midTypePropsTrytb.Name}{findtrytbPkCsName}、{midTypePropsTrytb.Name}_{findtrytbPkCsName}");
@@ -278,7 +278,7 @@ namespace FreeSql.Internal {
 									) {
 
 								}
-								if (trycol != null && trycol.CsType != tbref.Primarys[a].CsType)
+								if (trycol != null && trycol.CsType.NullableTypeOrThis() != tbref.Primarys[a].CsType)
 									throw new Exception($"【延时加载ManyToMany】导航属性 {tbrefTypeName}.{vp.Item1.Name} 解析错误，{tbmid.CsName}.{trycol.CsName} 和 {tbref.CsName}.{tbref.Primarys[a].CsName} 类型不一致");
 								if (trycol == null)
 									throw new Exception($"【延时加载ManyToMany】导航属性 {tbrefTypeName}.{vp.Item1.Name} 在 {tbmid.CsName} 中没有找到对应的字段，如：{midTypePropsTbref.Name}{findtbrefPkCsName}、{midTypePropsTbref.Name}_{findtbrefPkCsName}");
@@ -323,7 +323,7 @@ namespace FreeSql.Internal {
 										{
 
 									}
-									if (trycol != null && trycol.CsType != trytb.Primarys[a].CsType)
+									if (trycol != null && trycol.CsType.NullableTypeOrThis() != trytb.Primarys[a].CsType)
 										throw new Exception($"【延时加载OneToMany】导航属性 {trytbTypeName}.{vp.Item1.Name} 解析错误，{trytb.CsName}.{trytb.Primarys[a].CsName} 和 {tbref.CsName}.{trycol.CsName} 类型不一致");
 									if (trycol == null)
 										throw new Exception($"【延时加载OneToMany】导航属性 {trytbTypeName}.{vp.Item1.Name} 在 {tbref.CsName} 中没有找到对应的字段，如：{findtrytb}{findtrytbPkCsName}、{findtrytb}_{findtrytbPkCsName}" + (refprop == null ? "" : $"、{refprop.Name}{findtrytbPkCsName}、{refprop.Name}_{findtrytbPkCsName}"));
@@ -397,7 +397,7 @@ namespace FreeSql.Internal {
 										}
 									}
 								}
-								if (trycol != null &&  trycol.CsType != tbref.Primarys[a].CsType)
+								if (trycol != null &&  trycol.CsType.NullableTypeOrThis() != tbref.Primarys[a].CsType)
 									throw new Exception($"【延时加载】导航属性 {trytbTypeName}.{vp.Item1.Name} 解析错误，{trytb.CsName}.{trycol.CsName} 和 {tbref.CsName}.{tbref.Primarys[a].CsName} 类型不一致");
 								if (trycol == null)
 									throw new Exception($"【延时加载】导航属性 {trytbTypeName}.{vp.Item1.Name} 没有找到对应的字段，如：{vp.Item1.Name}{findtbrefPkCsName}、{vp.Item1.Name}_{findtbrefPkCsName}");
