@@ -25,6 +25,21 @@ namespace FreeSql.Site.Entity
         public string DocAbstract { get; set; }
 
         /// <summary>
+        /// 内容来源类型（0 当前记录 1=Url地址
+        /// </summary>
+        public int OriginType { get; set; }
+
+        /// <summary>
+        /// 来源地址
+        /// </summary>
+        public string OriginUrl { get; set; }
+
+        /// <summary>
+        /// 编辑器模式 （=0 Markdown =1 HTML编辑器 ）
+        /// </summary>
+        public int EditorMode { get; set; }
+
+        /// <summary>
         /// 文档内容
         /// </summary>
         [Column(DbType = "text")]

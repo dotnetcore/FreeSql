@@ -35,10 +35,22 @@
 
 <script>
     var contentEdit;
-    layui.use(['form', 'table'], function () {
+    layui.use(['layer', 'laymd', 'form', 'table'], function () {
         var table = layui.table;
         var form = layui.form
-            , layer = layui.layer;
+            , layer = layui.layer, laymd = layui.laymd;
+
+        var loadMarkDown = function () {
+            //实例化编辑器,可以多个实例
+            var md = laymd.init('DocContent', {});
+            //内容改变事件
+            md.on('change', function () {
+                //这里借用marked.js解析效率比HyperDown快,用户可自行找解析器
+                this.setPreview(marked(this.getText()));
+            });
+            //初始化数据预览
+            md.do('change');
+        };
 
 
         table.render({
@@ -97,14 +109,39 @@
             switch (obj.event) {
                 case 'add':
                     var options = {
-                        url: "/Admin/Document/DocContentEditModule", paramters: { id: "" },
+                        url: "/Admin/Document/DocContentEditModule", paramters: { id: "0" },
                         title: "新增文档",
                         area: ['1100px', '660px'],
                         submit: {
                             url: "/Admin/Document/DocContentCreate",
                         },
                         elmid: "docContentEdit",
-                        callback: reloadTable
+                        callback: reloadTable,
+                        loadBefore: function () {
+                            //监听指定开关
+                            form.on('switch(switchTest)', function (data) {
+                                if (this.checked) {
+                                    $("#OriginUrlArea").hide();
+                                    $("#DocContentArea").show();
+                                }
+                                else {
+                                    $("#OriginUrlArea").show();
+                                    $("#DocContentArea").hide();
+
+                                }
+                            });
+                            //contentEdit = editormd("md_DocContent", {
+                            //    width: "96%",
+                            //    height: 640,
+                            //    syncScrolling: "single",
+                            //    path: "../../lib/editormd/lib/"
+                            //});
+                            loadMarkDown();
+                        },
+                        submitBefore: function (data) {
+                            data.field.OriginType = data.field.OriginType == "on" ? 1 : 0;
+                            return data;
+                        }
                     };
                     freejs.dialogWindow.create(options, form);
                     break;
@@ -149,7 +186,33 @@
                         url: "/Admin/Document/DocContentUpdate",
                     },
                     elmid: "docContentEdit",
-                    callback: reloadTable
+                    callback: reloadTable,
+                    loadBefore: function () {
+                        //监听指定开关
+                        form.on('switch(switchTest)', function (data) {
+                            if (this.checked) {
+                                $("#OriginUrlArea").hide();
+                                $("#DocContentArea").show();
+                            }
+                            else {
+                                $("#OriginUrlArea").show();
+                                $("#DocContentArea").hide();
+
+                            }
+                        });
+                        //contentEdit = editormd("md_DocContent", {
+                        //    width: "96%",
+                        //    height: 640,
+                        //    syncScrolling: "single",
+                        //    path: "../../lib/editormd/lib/"
+                        //});
+                        loadMarkDown();
+                    },
+                    submitBefore: function (data) {
+                        var _origintype = $(".layui-tab-title").find('.layui-this').attr("origintype");
+                        data.field.OriginType = _origintype;
+                        return data;
+                    }
                 };
                 freejs.dialogWindow.create(options, form);
             }

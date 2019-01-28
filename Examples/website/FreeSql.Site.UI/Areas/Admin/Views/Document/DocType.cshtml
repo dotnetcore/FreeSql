@@ -11,8 +11,8 @@
 <script>
     var dialog_Paramters = { height: 460, width: 600 };
 </script>
-<button class="layui-btn layui-btn-primary layui-btn-xs down-up-all">全部收起/展开</button>
-<button class="layui-btn layui-btn-primary layui-btn-xs get-checked">获取选中</button>
+<button class="layui-btn layui-btn-sm down-up-all" expandStatus="down">全部收起/展开</button>
+<button class="layui-btn layui-btn-sm get-checked">获取选中</button>
 
 <table class="layui-table layui-form" id="doctype-tree-table"></table>
 
@@ -42,7 +42,7 @@
                     {
                         field: 'title',
                         title: '标题',
-                        width: '40%',
+                        width: '45%',
                         template: function (item) {
                             if (item.level == 1) {
                                 return '<span style="color:red;">' + item.title + '</span>';
@@ -52,11 +52,6 @@
                             }
                             return item.title;
                         }
-                    },
-                    {
-                        field: 'id',
-                        title: '编号',
-                        width: '10%'
                     },
                     {
                         title: '标签',

@@ -16,7 +16,9 @@
     <Folder Include="Areas\Doc\Models\" />
     <Folder Include="Areas\Example\Data\" />
     <Folder Include="Areas\Example\Models\" />
+    <Folder Include="wwwroot\laymd\" />
     <Folder Include="wwwroot\layui\ext\treetable\js\" />
+    <Folder Include="wwwroot\file\" />
   </ItemGroup>
 
   <ItemGroup>

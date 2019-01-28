@@ -17,7 +17,8 @@ namespace FreeSql.Site.DAL
         /// <returns></returns>
         public virtual long Insert(T model)
         {
-            return DataBaseType.MySql.DB().Insert<T>(model).ExecuteIdentity();
+            var runsql = DataBaseType.MySql.DB().Insert<T>(model);
+            return runsql.ExecuteIdentity();
         }
 
         /// <summary>
@@ -72,7 +73,7 @@ namespace FreeSql.Site.DAL
             var count = list.Count();
             //设置分页操作
             if (pageInfo != null && pageInfo.IsPaging)
-                list.Skip(pageInfo.PageIndex * pageInfo.PageSize).Limit(pageInfo.PageSize);
+                list.Skip((pageInfo.PageIndex - 1) * pageInfo.PageSize).Limit(pageInfo.PageSize);
 
             //执行查询
             return (list.ToList(), count);

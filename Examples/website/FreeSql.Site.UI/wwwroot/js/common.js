@@ -172,64 +172,100 @@
             }
              */
             open: function (options, form) {
+                var currentOpenID = 0;
                 var base_options = {
                     type: 1,
                     maxmin: true,
                     title: "编辑",
                     area: ['1100px', '660px'],
+                    btn: ['立即提交', '关闭'],
+                    yes: function (index, layero) {
+                        form.on('submit(saveSubmit)', function (data) {
+                            if ($.isFunction(options.submitBefore)) data = options.submitBefore(data);
+                            $.ajax({
+                                type: 'POST',
+                                url: options.submit.url,//"/Admin/Document/DocContentCreate",
+                                data: JSON.stringify(data.field),
+                                contentType: "application/json; charset=utf-8",
+                                dataType: "json",
+                                success: function (e) {
+                                    if (e.Status == 1) {
+                                        freejs.showMessage({ title: "提示", msg: e.Msg || "保存成功", type: 1 });
+                                        if ($.isFunction(new_options.callback)) new_options.callback();
+                                        layer.close(index);
+                                    }
+                                    else {
+                                        freejs.showMessage({ title: "提示", msg: e.Msg, type: 2 });
+                                    }
+                                }
+                            });
+                            return false;
+                        });
+                    },
+                    btn2: function (index, layero) {
+                        layer.confirm('确定要关闭么？', {
+                            btn: ['确定', '取消'] //按钮
+                        }, function (index, layero) {
+                            layer.close(index);
+                            layer.close(currentOpenID);
+                        }, function () {
+                        });
+                        return false;
+                    },
+                    //右上角关闭回调
+                    cancel: function (index, layero) {
+                        layer.confirm('确定要关闭么？', {
+                            btn: ['确定', '取消'] //按钮
+                        }, function (index, layero) {
+                            layer.close(index);
+                            layer.close(currentOpenID);
+                        }, function () {
+                        });
+                        return false;
+                    },
                     shadeClose: false //点击遮罩关闭
                 };
                 var new_options = $.extend(base_options, options);
                 new_options.success = function (layero, index) {
-                    form.render();
+                    if ($.isFunction(options.loadBefore)) options.loadBefore(form);
                     $(".form-module-content").height(dialog_Paramters.height - 110);
-                    contentEdit = editormd("md_DocContent", {
-                        width: "96%",
-                        height: 640,
-                        syncScrolling: "single",
-                        path: "../../lib/editormd/lib/"
+
+                    // 解决按enter键重复弹窗问题
+                    $(':focus').blur();
+                    // 添加form标识
+                    layero.addClass('layui-form');
+                    // 将保存按钮改变成提交按钮
+                    layero.find('.layui-layer-btn0').attr({
+                        'lay-filter': 'saveSubmit',
+                        'lay-submit': ''
                     });
-                    //监听提交
-                    form.on('submit(formDemo)', function (data) {
-                        $.ajax({
-                            type: 'POST',
-                            url: options.submit.url,//"/Admin/Document/DocContentCreate",
-                            data: JSON.stringify(data.field),
-                            contentType: "application/json; charset=utf-8",
-                            dataType: "json",
-                            success: function (e) {
-                                if (e.Status == 1) {
-                                    freejs.showMessage({ title: "提示", msg: e.Msg || "保存成功", type: 1 });
-                                    if ($.isFunction(new_options.callback)) new_options.callback();
-                                    layer.close(index);
-                                }
-                                else {
-                                    freejs.showMessage({ title: "提示", msg: e.Msg, type: 2 });
-                                }
-                            }
-                        });
-                        return false;
-                    });
+                    form.render();
                 }
-                layer.open(new_options);
+                currentOpenID = layer.open(new_options);
             },
             close: function () {
             }
         },
         loadHtml: function (options) {
             //options = {
-            //    url: "/Admin/Document/DocType", paramters: {},loadIndex:1
+            //    elm:"page_content",url: "/Admin/Document/DocType", paramters: {},loadIndex:1,isform:false
             //};
-            $("#page_content").load(options.url, options.paramters, function (responseText, textStatus, jqXHR) {
+            var _container = options.elm || "page_content";
+            $("#" + _container).load(options.url, options.paramters, function (responseText, textStatus, jqXHR) {
                 freejs.closeLoading(options.loadIndex);
+                alert(textStatus);
                 switch (textStatus) {
                     case "success":
+                        debugger
+                        if ($.isFunction(options.successCallBack)) options.successCallBack();
                         //初始化绑定页面的时间，例如时间控件
                         index = -1;
-                        layui.use('form', function () {
-                            var form = layui.form;
+                        //if (options.isform) {
+                        //    layui.use('form', function () {
+                        //        var form = layui.form;
 
-                        });
+                        //    });
+                        //}
                         break;
                     //case "notmodified":
                     //case "error":
@@ -240,6 +276,7 @@
                     //});
                     //break;
                     case "error":
+                        if ($.isFunction(options.errorCallBack)) options.errorCallBack(form);
                         $("#page_content").html(responseText);
                         break;
                 }

@@ -316,11 +316,6 @@ layui.define(['code', 'element', 'table', 'util'], function (exports) {
         }
     });
 
-    //代码修饰
-    layui.code({
-        elem: 'pre'
-    });
-
     //目录
     var siteDir = $('.site-dir');
     if (siteDir[0] && $(window).width() > 750) {

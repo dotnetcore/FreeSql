@@ -60,7 +60,8 @@ namespace FreeSql.Site.UI.Areas.Admin.Controllers
                 if (!string.IsNullOrEmpty(model.DocTitle))
                     searchPredicate = searchPredicate.And(u => u.DocTitle.IndexOf(model.DocTitle) != -1);
             }
-            var contents = DocumentContentDAL.Query(searchPredicate);
+            PageInfo pageinfo = new PageInfo() { IsPaging = true, PageIndex = page, PageSize = limit };
+            var contents = DocumentContentDAL.Query(searchPredicate, null, pageinfo);
 
             return Json(new DataPage<DocumentContent>
             {
@@ -74,8 +75,8 @@ namespace FreeSql.Site.UI.Areas.Admin.Controllers
         public ActionResult DocContentEditModule(string id)
         {
             ViewBag.DocumentTypeList = DocumentTypeDAL.Query(w => w.Status == 1).list.Select(s => new SelectListItem { Text = s.TypeName, Value = s.ID.ToString() }).ToList();
-            DocumentContent model = new DocumentContent();
-            if (!string.IsNullOrEmpty(id))
+            DocumentContent model = new DocumentContent() { OriginType = 0};
+            if (!string.IsNullOrEmpty(id) && id != "0")
             {
                 int _id = Convert.ToInt32(id);
                 model = DocumentContentDAL.GetByOne(w => w.ID == _id);
@@ -234,7 +235,7 @@ namespace FreeSql.Site.UI.Areas.Admin.Controllers
             return Json(resdata);
         }
 
-        [HttpPost]        
+        [HttpPost]
         //[ValidateAntiForgeryToken]
         public ActionResult DocTypeDelete(int id, IFormCollection collection)
         {

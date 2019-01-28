@@ -3,17 +3,19 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - FreeSql.Site.UI</title>
+    <title>@ViewData["Title"]</title>
 
     <environment include="Development">
         <link href="~/layui/css/layui.css" rel="stylesheet" />
+        <link href="~/layui/lay/modules/preview.css" rel="stylesheet" />
         <link rel="stylesheet" href="~/css/site.css" />
-        <link rel="stylesheet" href="https://cdn.bootcss.com/highlight.js/9.11.0/styles/github.min.css" />
         <script src="~/lib/jquery/dist/jquery.js"></script>
         <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
         <script src="https://cdn.bootcss.com/highlight.js/9.13.1/highlight.min.js"></script>
-
+        <script src="~/layui/layui.js"></script>
+        <script src="~/layui/lay/modules/layer.js"></script>
+        <script src="~/js/common.js"></script>
     </environment>
     <environment exclude="Development">
         <link rel="stylesheet" href="https://ajax.aspnetcdn.com/ajax/bootstrap/3.3.7/css/bootstrap.min.css"
@@ -141,7 +143,7 @@
             </ul>
         </div>
     </div>
-
+    
     <partial name="_CookieConsentPartial" />
 
     <div class="container body-content">

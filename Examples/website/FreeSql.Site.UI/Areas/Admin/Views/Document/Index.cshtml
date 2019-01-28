@@ -1,5 +1,5 @@
 ﻿@{
-    ViewBag.Title = "";
+    ViewData["Title"] = ".NETCore最方便的ORM";
     Layout = "~/Areas/Admin/Shared/_Layout.cshtml";
 }
 <div class="layui-side layui-bg-black">
@@ -21,7 +21,7 @@
 <div class="layui-body">
     <!-- 内容主体区域 -->
     <div style="padding: 15px;" id="page_content">
-
+        文档主页引导
     </div>
 </div>
 
@@ -32,7 +32,7 @@
 
         var index = freejs.showLoading({ msg: "数据加载中......" });
         var options = {
-            url: path_item, paramters: $.parseJSON(path_json), loadIndex: index
+            url: path_item, paramters: $.parseJSON(path_json), loadIndex: index, elm: "page_content"
         };
         freejs.loadHtml(options);
 

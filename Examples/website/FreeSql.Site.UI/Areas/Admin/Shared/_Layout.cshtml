@@ -3,30 +3,19 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - FreeSql.Site.UI</title>
+    <title>@ViewData["Title"]</title>
 
     <environment include="Development">
         <link href="~/layui/css/layui.css" rel="stylesheet" />
-        <link href="~/lib/editormd/css/editormd.min.css" rel="stylesheet" />
-        <link href="~/lib/editormd/css/editormd.preview.min.css" rel="stylesheet" />
-
+        <link href="~/layui/lay/modules/preview.css" rel="stylesheet" />
         <link href="~/css/admin.css" rel="stylesheet" />
         <script src="~/lib/jquery/dist/jquery.js"></script>
         <script src="~/js/common.js"></script>
-        @*<script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>*@
-        <script src="~/lib/editormd/src/editormd.js"></script>
 
         <!-- 页面markdown解析成HTML需要的js -->
-        <script src="~/lib/editormd/lib/marked.min.js"></script>
-        <script src="~/lib/editormd/lib/prettify.min.js"></script>
-        <script src="~/lib/editormd/lib/raphael.min.js"></script>
-        <script src="~/lib/editormd/lib/underscore.min.js"></script>
-        <script src="~/lib/editormd/lib/sequence-diagram.min.js"></script>
-        <script src="~/lib/editormd/lib/flowchart.min.js"></script>
-        <script src="~/lib/editormd/lib/jquery.flowchart.min.js"></script>
-
         <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
         <script src="https://cdn.bootcss.com/highlight.js/9.13.1/highlight.min.js"></script>
+        <script src="~/layui/lay/modules/layer.js"></script>
         <script src="~/layui/layui.js"></script>
     </environment>
     <environment exclude="Development">
