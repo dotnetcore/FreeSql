@@ -10,7 +10,7 @@ using System.Threading;
 public static class FreeUtil {
 
 	private static DateTime dt1970 = new DateTime(1970, 1, 1);
-	private static ThreadLocal<Random> rnd = new ThreadLocal<Random>();
+	private static ThreadLocal<Random> rnd = new ThreadLocal<Random>(() => new Random());
 	private static readonly int __staticMachine = ((0x00ffffff & Environment.MachineName.GetHashCode()) +
 #if NETSTANDARD1_5 || NETSTANDARD1_6
 			1
