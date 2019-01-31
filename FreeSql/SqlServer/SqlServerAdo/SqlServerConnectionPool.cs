@@ -51,10 +51,14 @@ namespace FreeSql.SqlServer {
 		public string ConnectionString {
 			get => _connectionString;
 			set {
-				_connectionString = value ?? "";
-				Match m = Regex.Match(_connectionString, @"Max\s*pool\s*size\s*=\s*(\d+)", RegexOptions.IgnoreCase);
+				var connStr = value ?? "";
+				var poolsizePatern = @"Max\s*pool\s*size\s*=\s*(\d+)";
+				Match m = Regex.Match(connStr, poolsizePatern, RegexOptions.IgnoreCase);
 				if (m.Success == false || int.TryParse(m.Groups[1].Value, out var poolsize) == false || poolsize <= 0) poolsize = 100;
-				PoolSize = poolsize;
+				PoolSize = poolsize + 1;
+				_connectionString = m.Success ?
+					Regex.Replace(connStr, poolsizePatern, $"Max pool size={PoolSize}", RegexOptions.IgnoreCase) :
+					$"{connStr};Max pool size={PoolSize}";
 
 				var initConns = new Object<DbConnection>[poolsize];
 				for (var a = 0; a < poolsize; a++) try { initConns[a] = _pool.Get(); } catch { }
