@@ -122,7 +122,7 @@ namespace FreeSql.Internal {
 					.AppendLine("using Newtonsoft.Json;")
 					.AppendLine()
 					.Append("public class ").Append(trytbTypeLazyName).Append(" : ").Append(trytbTypeName).AppendLine(" {")
-					.AppendLine("	[JsonIgnore] public IFreeSql __fsql_orm__ { get; set; }\r\n");
+					.AppendLine("	[JsonIgnore] private IFreeSql __fsql_orm__ { get; set; }\r\n");
 
 				foreach (var vp in propsLazy) {
 					var propTypeName = vp.Item1.PropertyType.IsGenericType ? 
@@ -430,7 +430,7 @@ namespace FreeSql.Internal {
 					var assemly = Generator.TemplateEngin._compiler.Value.CompileCode(cscode.ToString());
 					var type = assemly.DefinedTypes.Where(a => a.FullName.EndsWith(trytbTypeLazyName)).FirstOrDefault();
 					trytb.TypeLazy = type;
-					trytb.TypeLazySetOrm = type.GetProperty("__fsql_orm__").GetSetMethod();
+					trytb.TypeLazySetOrm = type.GetProperty("__fsql_orm__", BindingFlags.Instance | BindingFlags.NonPublic).GetSetMethod(true);
 				}
 			}
 			#endregion
