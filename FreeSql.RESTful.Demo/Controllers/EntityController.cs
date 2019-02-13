@@ -1,0 +1,71 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Collections;
+using System.Linq;
+using System.IO;
+using System.Net;
+using System.Net.NetworkInformation;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json.Linq;
+using NpgsqlTypes;
+using Npgsql.LegacyPostgis;
+using FreeSql.RESTful.Demo.Entity;
+
+namespace FreeSql.RESTful.Demo.Controllers {
+
+
+	[Route("restapi/[controller]")]
+	public class SongsController : Controller {
+
+		IFreeSql _fsql;
+
+		public SongsController(IFreeSql fsql) {
+			_fsql = fsql;
+		}
+
+		[HttpGet]
+		public Task<List<Song>> GetItems([FromQuery] string key, [FromQuery] int page = 1, [FromQuery] int limit = 20) {
+			return _fsql.Select<Song>().WhereIf(!string.IsNullOrEmpty(key), a => a.Title.Contains(key)).Page(page, limit).ToListAsync();
+		}
+
+		[HttpGet("{id}")]
+		public Task<Song> GetItem([FromRoute] int id) {
+			return _fsql.Select<Song>().Where(a => a.Id == id).ToOneAsync();
+		}
+
+		public class ModelSong {
+			public string title { get; set; }
+		}
+
+		[HttpPost, ProducesResponseType(201)]
+		async public Task<Song> Create([FromBody] ModelSong model) {
+			var ret = await _fsql.Insert<Song>().AppendData(new Song { Title = model.title }).ExecuteInsertedAsync();
+			return ret.FirstOrDefault();
+		}
+
+		[HttpPut("{id}")]
+		async public Task<Song> Update([FromRoute] int id, [FromBody] ModelSong model) {
+			var ret = await _fsql.Update<Song>().SetSource(new Song { Id = id, Title = model.title }).ExecuteUpdatedAsync();
+			return ret.FirstOrDefault();
+		}
+
+		[HttpPatch("{id}")]
+		async public Task<Song> UpdateDiy([FromRoute] int id, [FromForm] string title) {
+			var up = _fsql.Update<Song>().Where(a => a.Id == id);
+			if (!string.IsNullOrEmpty(title)) up.Set(a => a.Title, title);
+			var ret = await up.ExecuteUpdatedAsync();
+			return ret.FirstOrDefault();
+		}
+
+		[HttpDelete("{id}"), ProducesResponseType(204)]
+		async public Task<Song> Delete([FromRoute] int id) {
+			var ret = await _fsql.Delete<Song>().Where(a => a.Id == id).ExecuteDeletedAsync();
+			return ret.FirstOrDefault();
+		}
+	}
+}
