@@ -40,9 +40,15 @@ namespace FreeSql.Internal {
 			entity?.Invoke(fluent);
 			return _orm.CodeFirst;
 		}
-		internal TableAttribute GetEntityTableAttribute(Type entityType) {
-			var attr = entityType.GetCustomAttributes(typeof(TableAttribute), false).LastOrDefault() as TableAttribute;
-			if (dicConfigEntity.TryGetValue(entityType, out var trytb) == false) return attr;
+		internal ICodeFirst ConfigEntity(Type type, Action<TableFluent> entity) {
+			var table = dicConfigEntity.GetOrAdd(type, new TableAttribute());
+			var fluent = new TableFluent(type, table);
+			entity?.Invoke(fluent);
+			return _orm.CodeFirst;
+		}
+		internal TableAttribute GetEntityTableAttribute(Type type) {
+			var attr = type.GetCustomAttributes(typeof(TableAttribute), false).LastOrDefault() as TableAttribute;
+			if (dicConfigEntity.TryGetValue(type, out var trytb) == false) return attr;
 			if (attr == null) attr = new TableAttribute();
 
 			if (string.IsNullOrEmpty(attr.Name)) attr.Name = trytb.Name;
@@ -50,9 +56,9 @@ namespace FreeSql.Internal {
 			if (string.IsNullOrEmpty(attr.SelectFilter)) attr.SelectFilter = trytb.SelectFilter;
 			return attr;
 		}
-		internal ColumnAttribute GetEntityColumnAttribute(Type entityType, PropertyInfo proto) {
+		internal ColumnAttribute GetEntityColumnAttribute(Type type, PropertyInfo proto) {
 			var attr = proto.GetCustomAttributes(typeof(ColumnAttribute), false).LastOrDefault() as ColumnAttribute;
-			if (dicConfigEntity.TryGetValue(entityType, out var trytb) == false) return attr;
+			if (dicConfigEntity.TryGetValue(type, out var trytb) == false) return attr;
 			if (trytb._columns.TryGetValue(proto.Name, out var trycol) == false) return attr;
 			if (attr == null) attr = new ColumnAttribute();
 

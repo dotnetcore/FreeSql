@@ -6,16 +6,24 @@ namespace FreeSql.Tests.DataAnnotations {
 		[Fact]
 		public void Fluent() {
 			g.mysql.CodeFirst
-				.ConfigEntity<TestFluenttb1>(a => {
-					a.Name("xxdkdkdk1").SelectFilter("a.Id22 > 0");
-					a.Property(b => b.Id).Name("Id22").IsIdentity(true);
-					a.Property(b => b.name).DbType("varchar(100)").IsNullable(true);
+				//.ConfigEntity<TestFluenttb1>(a => {
+				//	a.Name("xxdkdkdk1").SelectFilter("a.Id22 > 0");
+				//	a.Property(b => b.Id).Name("Id22").IsIdentity(true);
+				//	a.Property(b => b.name).DbType("varchar(100)").IsNullable(true);
+				//})
+
+				.ConfigEntity(typeof(TestFluenttb1), a => {
+					a.Name("xxdkdkdk1222").SelectFilter("a.Id22 > 1");
+					a.Property("Id").Name("Id22dd").IsIdentity(true);
+					a.Property("Name").DbType("varchar(101)").IsNullable(true);
 				})
+
 				.ConfigEntity<TestFluenttb2>(a => {
 					a.Name("xxdkdkdk2").SelectFilter("a.Idx > 0");
 					a.Property(b => b.Id).Name("Id22").IsIdentity(true);
 					a.Property(b => b.name).DbType("varchar(100)").IsNullable(true);
-				});
+				})
+				;
 
 			var ddl1 = g.mysql.CodeFirst.GetComparisonDDLStatements<TestFluenttb1>();
 			var ddl2 = g.mysql.CodeFirst.GetComparisonDDLStatements<TestFluenttb2>();

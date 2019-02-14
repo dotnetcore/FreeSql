@@ -282,5 +282,6 @@ use " + database, tboldname ?? tbname);
 			}
 		}
 		public ICodeFirst ConfigEntity<T>(Action<TableFluent<T>> entity) => _commonUtils.ConfigEntity(entity);
+		public ICodeFirst ConfigEntity(Type type, Action<TableFluent> entity) => _commonUtils.ConfigEntity(type, entity);
 	}
 }

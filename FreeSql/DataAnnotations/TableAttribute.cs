@@ -17,6 +17,6 @@ namespace FreeSql.DataAnnotations {
 		/// </summary>
 		public string SelectFilter { get; set; }
 
-		internal ConcurrentDictionary<string, ColumnAttribute> _columns => new ConcurrentDictionary<string, ColumnAttribute>(StringComparer.CurrentCultureIgnoreCase);
+		internal ConcurrentDictionary<string, ColumnAttribute> _columns { get; } = new ConcurrentDictionary<string, ColumnAttribute>(StringComparer.CurrentCultureIgnoreCase);
 	}
 }

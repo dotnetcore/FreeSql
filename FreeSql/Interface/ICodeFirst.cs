@@ -50,5 +50,6 @@ namespace FreeSql {
 		/// <returns></returns>
 		(int type, string dbtype, string dbtypeFull, bool? isnullable, object defaultValue)? GetDbInfo(Type type);
 		ICodeFirst ConfigEntity<T>(Action<TableFluent<T>> entity);
+		ICodeFirst ConfigEntity(Type type, Action<TableFluent> entity);
 	}
 }

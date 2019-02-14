@@ -272,5 +272,6 @@ where a.table_schema in ({0}) and a.table_name in ({1})".FormatMySql(tboldname ?
 			}
 		}
 		public ICodeFirst ConfigEntity<T>(Action<TableFluent<T>> entity) => _commonUtils.ConfigEntity(entity);
+		public ICodeFirst ConfigEntity(Type type, Action<TableFluent> entity) => _commonUtils.ConfigEntity(type, entity);
 	}
 }

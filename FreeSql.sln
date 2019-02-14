@@ -18,6 +18,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Tests.PerformanceTe
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.RESTful.Demo", "FreeSql.RESTful.Demo\FreeSql.RESTful.Demo.csproj", "{A749092B-4C21-4087-B33D-0FBD4DA51C24}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreeSql.Extensions.EFCoreModelBuilder", "FreeSql.Extensions.EFCoreModelBuilder\FreeSql.Extensions.EFCoreModelBuilder.csproj", "{490CC8AF-C47C-4139-AED7-4FB6502F622B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -88,6 +90,18 @@ Global
 		{A749092B-4C21-4087-B33D-0FBD4DA51C24}.Release|x64.Build.0 = Release|Any CPU
 		{A749092B-4C21-4087-B33D-0FBD4DA51C24}.Release|x86.ActiveCfg = Release|Any CPU
 		{A749092B-4C21-4087-B33D-0FBD4DA51C24}.Release|x86.Build.0 = Release|Any CPU
+		{490CC8AF-C47C-4139-AED7-4FB6502F622B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{490CC8AF-C47C-4139-AED7-4FB6502F622B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{490CC8AF-C47C-4139-AED7-4FB6502F622B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{490CC8AF-C47C-4139-AED7-4FB6502F622B}.Debug|x64.Build.0 = Debug|Any CPU
+		{490CC8AF-C47C-4139-AED7-4FB6502F622B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{490CC8AF-C47C-4139-AED7-4FB6502F622B}.Debug|x86.Build.0 = Debug|Any CPU
+		{490CC8AF-C47C-4139-AED7-4FB6502F622B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{490CC8AF-C47C-4139-AED7-4FB6502F622B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{490CC8AF-C47C-4139-AED7-4FB6502F622B}.Release|x64.ActiveCfg = Release|Any CPU
+		{490CC8AF-C47C-4139-AED7-4FB6502F622B}.Release|x64.Build.0 = Release|Any CPU
+		{490CC8AF-C47C-4139-AED7-4FB6502F622B}.Release|x86.ActiveCfg = Release|Any CPU
+		{490CC8AF-C47C-4139-AED7-4FB6502F622B}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
