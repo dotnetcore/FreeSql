@@ -1,5 +1,6 @@
 ﻿using SafeObjectPool;
 using System;
+using System.Collections.Concurrent;
 using System.Data;
 using System.Data.Common;
 using System.Data.SqlClient;
@@ -47,6 +48,7 @@ namespace FreeSql.SqlServer {
 		public bool IsThrowGetTimeoutException { get; set; } = true;
 		public int CheckAvailableInterval { get; set; } = 5;
 
+		static ConcurrentDictionary<string, int> dicConnStrIncr = new ConcurrentDictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
 		private string _connectionString;
 		public string ConnectionString {
 			get => _connectionString;
@@ -55,7 +57,8 @@ namespace FreeSql.SqlServer {
 				var poolsizePatern = @"Max\s*pool\s*size\s*=\s*(\d+)";
 				Match m = Regex.Match(connStr, poolsizePatern, RegexOptions.IgnoreCase);
 				if (m.Success == false || int.TryParse(m.Groups[1].Value, out var poolsize) == false || poolsize <= 0) poolsize = 100;
-				PoolSize = poolsize + 1;
+				var connStrIncr = dicConnStrIncr.AddOrUpdate(connStr, 1, (oldkey, oldval) => oldval + 1);
+				PoolSize = poolsize + connStrIncr;
 				_connectionString = m.Success ?
 					Regex.Replace(connStr, poolsizePatern, $"Max pool size={PoolSize}", RegexOptions.IgnoreCase) :
 					$"{connStr};Max pool size={PoolSize}";
@@ -65,7 +68,6 @@ namespace FreeSql.SqlServer {
 				foreach (var conn in initConns) _pool.Return(conn);
 			}
 		}
-
 
 		public bool OnCheckAvailable(Object<DbConnection> obj) {
 			if (obj.Value.State == ConnectionState.Closed) obj.Value.Open();
