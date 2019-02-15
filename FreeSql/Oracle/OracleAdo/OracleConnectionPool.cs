@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace FreeSql.Oracle {
 
-	public class OracleConnectionPool : ObjectPool<DbConnection> {
+	class OracleConnectionPool : ObjectPool<DbConnection> {
 
 		internal Action availableHandler;
 		internal Action unavailableHandler;
@@ -49,7 +49,7 @@ namespace FreeSql.Oracle {
 		}
 	}
 
-	public class OracleConnectionPoolPolicy : IPolicy<DbConnection> {
+	class OracleConnectionPoolPolicy : IPolicy<DbConnection> {
 
 		internal OracleConnectionPool _pool;
 		public string Name { get; set; } = "Oracle Connection 对象池";

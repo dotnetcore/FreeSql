@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace FreeSql.PostgreSQL {
 
-	public class PostgreSQLConnectionPool : ObjectPool<DbConnection> {
+	class PostgreSQLConnectionPool : ObjectPool<DbConnection> {
 
 		internal Action availableHandler;
 		internal Action unavailableHandler;
@@ -44,7 +44,7 @@ namespace FreeSql.PostgreSQL {
 		}
 	}
 
-	public class PostgreSQLConnectionPoolPolicy : IPolicy<DbConnection> {
+	class PostgreSQLConnectionPoolPolicy : IPolicy<DbConnection> {
 
 		internal PostgreSQLConnectionPool _pool;
 		public string Name { get; set; } = "PostgreSQL NpgsqlConnection 对象池";

@@ -34,16 +34,20 @@ namespace FreeSql.Internal {
 
 		ConcurrentDictionary<Type, TableAttribute> dicConfigEntity = new ConcurrentDictionary<Type, TableAttribute>();
 		internal ICodeFirst ConfigEntity<T>(Action<TableFluent<T>> entity) {
+			if (entity == null) return _orm.CodeFirst;
 			var type = typeof(T);
 			var table = dicConfigEntity.GetOrAdd(type, new TableAttribute());
 			var fluent = new TableFluent<T>(table);
-			entity?.Invoke(fluent);
+			entity.Invoke(fluent);
+			Utils.GetTableByEntity(type, this, true); //update cache
 			return _orm.CodeFirst;
 		}
 		internal ICodeFirst ConfigEntity(Type type, Action<TableFluent> entity) {
+			if (entity == null) return _orm.CodeFirst;
 			var table = dicConfigEntity.GetOrAdd(type, new TableAttribute());
 			var fluent = new TableFluent(type, table);
-			entity?.Invoke(fluent);
+			entity.Invoke(fluent);
+			Utils.GetTableByEntity(type, this, true); //update cache
 			return _orm.CodeFirst;
 		}
 		internal TableAttribute GetEntityTableAttribute(Type type) {

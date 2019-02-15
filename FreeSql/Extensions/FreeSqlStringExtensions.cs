@@ -41,7 +41,3 @@
 	public static string FormatSqlite (this string that, params object[] args) => _sqliteAdo.Addslashes(that, args);
 	static FreeSql.Sqlite.SqliteAdo _sqliteAdo = new FreeSql.Sqlite.SqliteAdo();
 }
-
-namespace System.Runtime.CompilerServices {
-	public class ExtensionAttribute : Attribute { }
-}
