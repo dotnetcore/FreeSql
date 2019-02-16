@@ -1,6 +1,6 @@
 ﻿using FreeSql.DataAnnotations;
 
-namespace FreeSql.RESTful.Demo.Entity {
+namespace restful.Entitys {
 	public class Song {
 
 		[Column(IsIdentity = true)]

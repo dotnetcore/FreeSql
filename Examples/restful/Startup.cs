@@ -7,7 +7,7 @@ using Swashbuckle.AspNetCore.Swagger;
 using System;
 using System.Text;
 
-namespace FreeSql.RESTful.Demo {
+namespace restful {
 	public class Startup
     {
         public Startup(IConfiguration configuration, ILoggerFactory loggerFactory)
