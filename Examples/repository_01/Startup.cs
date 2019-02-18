@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using FreeSql;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -7,13 +8,13 @@ using Swashbuckle.AspNetCore.Swagger;
 using System;
 using System.Text;
 
-namespace restful {
+namespace repository_01 {
 	public class Startup {
 		public Startup(IConfiguration configuration, ILoggerFactory loggerFactory) {
 			Configuration = configuration;
 
 			Fsql = new FreeSql.FreeSqlBuilder()
-				.UseConnectionString(FreeSql.DataType.Sqlite, @"Data Source=|DataDirectory|\document.db;Attachs=xxxtb.db;Pooling=true;Max Pool Size=10")
+				.UseConnectionString(FreeSql.DataType.Sqlite, @"Data Source=|DataDirectory|\document.db;Pooling=true;Max Pool Size=10")
 				.UseLogger(loggerFactory.CreateLogger<IFreeSql>())
 				.UseAutoSyncStructure(true)
 				.Build();
