@@ -1,0 +1,39 @@
+﻿@using FreeSql.Site.Entity;
+@model FreeSql.Site.Entity.DocumentType
+
+<form class="layui-form" action="" id="frm_DocTypeEdit">
+    @Html.HiddenFor(m => m.ID)
+    @Html.HiddenFor(m => m.CreateBy)
+    @Html.HiddenFor(m => m.CreateDt)
+    <div class="form-module-content">
+        <div class="layui-form-item">
+            <label class="layui-form-label">上级分类</label>
+            <div class="layui-input-block">
+                @Html.DropDownList("UpID", ViewBag.DocumentTypeList as List<SelectListItem>, "", new Dictionary<string, object> { { "class", "plate_text" } })
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">分类名称</label>
+            <div class="layui-input-block">
+                @Html.TextBoxFor(m => m.TypeName, "", new Dictionary<string, object> { { "autocomplete", "off" }, { "class", "layui-input  " }, { "lay-verify", "title" }, { "placeholder", "请输入标题" } })
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">标签</label>
+            <div class="layui-input-block">
+                @Html.TextBoxFor(m => m.Tag, "", new Dictionary<string, object> { { "autocomplete", "off" }, { "class", "layui-input  " }, { "lay-verify", "title" }, { "placeholder", "请输入摘要" } })
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">状态</label>
+            <div class="layui-input-block">
+                <input type="radio" name="status" value="1" title="启用" checked="">
+                <input type="radio" name="status" value="0" title="关闭">
+            </div>
+        </div>
+    </div>
+    @*<div class="form-module-footer">
+        <button class="layui-btn" lay-submit lay-filter="formDemo">立即提交</button>
+    </div>*@
+</form>

@@ -1,0 +1,225 @@
+﻿
+@{
+    ViewBag.Title = ".NET文档园 .NET开源ORM - 首页";
+}
+@using FreeSql.Site.UI.Areas.BBS.Models;
+<script>
+    var dialog_Paramters = { height: 660, width: 1100 };
+</script>
+<style>
+    .layui-table, .layui-table-view {
+        margin: 0; 
+    }
+</style>
+<table class="layui-table" id="test" lay-filter="test"></table>
+
+<script type="text/html" id="docContentEdit">
+</script>
+
+<script type="text/html" id="toolbarDemo">
+    <div class="layui-btn-container">
+        <button class="layui-btn layui-btn-sm" lay-event="add">添加</button>
+        @*<button class="layui-btn layui-btn-sm" lay-event="delete">删除</button>
+            <button class="layui-btn layui-btn-sm" lay-event="update">编辑</button>*@
+        <div style="float:right;border:0px solid red;">
+            <input type="text" name="search_txt" lay-verify="title" autocomplete="off" placeholder="标题" class="layui-input" style="height: 30px;width:160px;float:left;">
+            <a href="#" style="line-height:30px;margin-left:8px;">高级查询</a>
+        </div>
+    </div>
+</script>
+
+<script type="text/html" id="barDemo">
+    <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+
+<script>
+    var contentEdit;
+    layui.use(['layer', 'laymd', 'form', 'table'], function () {
+        var table = layui.table;
+        var form = layui.form
+            , layer = layui.layer, laymd = layui.laymd;
+
+        var loadMarkDown = function () {
+            //实例化编辑器,可以多个实例
+            var md = laymd.init('DocContent', {});
+            //内容改变事件
+            md.on('change', function () {
+                //这里借用marked.js解析效率比HyperDown快,用户可自行找解析器
+                this.setPreview(marked(this.getText()));
+            });
+            //初始化数据预览
+            md.do('change');
+        };
+
+
+        table.render({
+            elem: '#test'
+            , url: '/Admin/Document/DocContentList'
+            , where: { searchContent: '', seniorQueryJson: "" }
+            , toolbar: '#toolbarDemo'
+            , title: '文档列表'
+            , cols: [[
+                { type: 'checkbox', fixed: 'left' }
+                , { field: 'ID', title: 'ID', width: 80, fixed: 'left', unresize: true, sort: true }
+                , { field: 'DocTitle', title: '标题', edit: 'text' }
+                , { field: 'Status', title: '状态', width: 80, edit: 'text', sort: true }
+                , { field: 'WatchCount', title: '阅读量市', width: 100 }
+                , { field: 'StarCount', title: '获赞数', width: 100 }
+                , { field: 'CreateDt', title: '创建时间', width: 160, sort: true }
+                , { field: 'UpdateDt', title: '修改时间', width: 160 }
+                , { fixed: 'right', title: '操作', toolbar: '#barDemo', width: 150 }
+            ]]
+            , page: true
+            , id: 'docContentTable'
+        });
+
+        var reloadTable = function () {
+            //执行重载
+            table.reload('docContentTable', {
+                page: {
+                    curr: 1 //重新从第 1 页开始
+                }, where: { searchContent: $("input[type=search_txt]").val(), seniorQueryJson: "" }
+            });
+        };
+
+        var deleteObj = function (removeRowDatas) {
+            layer.confirm('确定要删除吗？', function (index) {
+                //调用删除
+                $.ajax({
+                    type: "POST",
+                    url: "/Admin/Document/DocContentDelete",
+                    data: { id: rowid },
+                    dataType: "html",
+                    success: function (data) {
+                        obj.del();
+                        layer.close(index);
+                    },
+                    error: function () {
+                        layer.close(index);
+                        layer.alert("删除失败！");
+                    }
+                });
+            });
+        }
+
+        //监听事件
+        table.on('toolbar(test)', function (obj) {
+            var checkStatus = table.checkStatus(obj.config.id);
+            switch (obj.event) {
+                case 'add':
+                    var options = {
+                        url: "/Admin/Document/DocContentEditModule", paramters: { id: "0" },
+                        title: "新增文档",
+                        area: ['1100px', '660px'],
+                        submit: {
+                            url: "/Admin/Document/DocContentCreate",
+                        },
+                        elmid: "docContentEdit",
+                        callback: reloadTable,
+                        loadBefore: function () {
+                            //监听指定开关
+                            form.on('switch(switchTest)', function (data) {
+                                if (this.checked) {
+                                    $("#OriginUrlArea").hide();
+                                    $("#DocContentArea").show();
+                                }
+                                else {
+                                    $("#OriginUrlArea").show();
+                                    $("#DocContentArea").hide();
+
+                                }
+                            });
+                            //contentEdit = editormd("md_DocContent", {
+                            //    width: "96%",
+                            //    height: 640,
+                            //    syncScrolling: "single",
+                            //    path: "../../lib/editormd/lib/"
+                            //});
+                            loadMarkDown();
+                        },
+                        submitBefore: function (data) {
+                            data.field.OriginType = data.field.OriginType == "on" ? 1 : 0;
+                            return data;
+                        }
+                    };
+                    freejs.dialogWindow.create(options, form);
+                    break;
+                case 'delete':
+                    var data = checkStatus.data;
+                    deleteObj(data);
+                    break;
+                case 'update':
+                    layer.msg('编辑');
+                    break;
+            };
+        });
+
+        //监听行工具事件
+        table.on('tool(test)', function (obj) {
+            var data = obj.data;
+            if (obj.event === 'del') {
+                deleteObj(obj.data);
+                layer.confirm('确定要删除吗？', function (index) {
+                    //调用删除
+                    $.ajax({
+                        type: "POST",
+                        url: "/Admin/Document/DocContentDelete",
+                        data: { id: data.ID },
+                        dataType: "html",
+                        success: function (data) {
+                            obj.del();
+                            layer.close(index);
+                        },
+                        error: function () {
+                            layer.close(index);
+                            layer.alert("删除失败！");
+                        }
+                    });
+                });
+            } else if (obj.event === 'edit') {
+                var options = {
+                    url: "/Admin/Document/DocContentEditModule", paramters: { id: data.ID },
+                    title: "编辑文档",
+                    area: ['1100px', '660px'],
+                    submit: {
+                        url: "/Admin/Document/DocContentUpdate",
+                    },
+                    elmid: "docContentEdit",
+                    callback: reloadTable,
+                    loadBefore: function () {
+                        //监听指定开关
+                        form.on('switch(switchTest)', function (data) {
+                            if (this.checked) {
+                                $("#OriginUrlArea").hide();
+                                $("#DocContentArea").show();
+                            }
+                            else {
+                                $("#OriginUrlArea").show();
+                                $("#DocContentArea").hide();
+
+                            }
+                        });
+                        //contentEdit = editormd("md_DocContent", {
+                        //    width: "96%",
+                        //    height: 640,
+                        //    syncScrolling: "single",
+                        //    path: "../../lib/editormd/lib/"
+                        //});
+                        loadMarkDown();
+                    },
+                    submitBefore: function (data) {
+                        var _origintype = $(".layui-tab-title").find('.layui-this').attr("origintype");
+                        data.field.OriginType = _origintype;
+                        return data;
+                    }
+                };
+                freejs.dialogWindow.create(options, form);
+            }
+        });
+
+        $(document).on('click', '#btnSubmit', function () {
+            layer.msg('响应点击事件');
+        });
+    });
+</script>

@@ -1,0 +1,163 @@
+﻿@{
+    ViewBag.Title = "";
+
+    //Layout = "~/Areas/Admin/Shared/_Layout.cshtml";
+}
+<style>
+    .hide {
+        display: none
+    }
+</style>
+<script>
+    var dialog_Paramters = { height: 460, width: 600 };
+</script>
+<button class="layui-btn layui-btn-sm down-up-all" expandStatus="down">全部收起/展开</button>
+<button class="layui-btn layui-btn-sm get-checked">获取选中</button>
+
+<table class="layui-table layui-form" id="doctype-tree-table"></table>
+
+<script type="text/html" id="docTypeEdit">
+</script>
+
+
+<script type="text/javascript">
+    layui.use(['treetable', 'form'], function () {
+        var data = @Html.Raw(Html.ToJson(ViewBag.TypeList as List<DocumentTypeTreeNode>));
+
+        var o = layui.$, treetable = layui.treetable;
+        var form = layui.form, layer = layui.layer;
+        var loadTreeTable = function () {
+            treetable.render({
+                elem: '#doctype-tree-table',
+                data: data,
+                field: 'title',
+                is_checkbox: true,
+                checked: [1, 2, 3, 4],
+                /*icon_val: {
+                    open: "&#xe619;",
+                    close: "&#xe61a;"
+                },
+                space: 4,*/
+                cols: [
+                    {
+                        field: 'title',
+                        title: '标题',
+                        width: '45%',
+                        template: function (item) {
+                            if (item.level == 1) {
+                                return '<span style="color:red;">' + item.title + '</span>';
+                            }
+                            if (item.level == 2) {
+                                return '<span style="color:green;">' + item.title + '</span>';
+                            }
+                            return item.title;
+                        }
+                    },
+                    {
+                        title: '标签',
+                        width: '10%',
+                        template: function (item) {
+                            return item.tag || "";//'<input type="checkbox" lay-skin="switch" lay-filter="status" lay-text="开启|关闭">';
+                        }
+                    },
+                    {
+                        title: '创建时间',
+                        width: '20%',
+                        template: function (item) {
+                            return (item.createdt || "").replace('T', ' ') || "";//'<input type="checkbox" lay-skin="switch" lay-filter="status" lay-text="开启|关闭">';
+                        }
+                    },
+                    {
+                        field: 'actions',
+                        title: '操作',
+                        width: '20%',
+                        template: function (item) {
+                            var tem = [];
+                            tem.push('<button class="layui-btn layui-btn-xs layui-btn-normal" lay-filter="add">添加子级</button>');
+                            tem.push('<button class="layui-btn layui-btn-xs" lay-filter="edit">编辑</button>');
+                            tem.push('<button class="layui-btn layui-btn-xs" lay-filter="delete">删除</button>');
+                            return tem.join(' ')
+                        },
+                    },
+                ]
+            });
+        };
+
+        loadTreeTable();
+
+        var reloadTable = function () {
+            //执行重载
+            //loadTreeTable();
+            //layer.msg('树的刷新功能暂未实现');
+            var options = {
+                url: "/Admin/Document/DocType", paramters: {}
+            };
+            freejs.loadHtml(options);
+        };
+
+        treetable.on('treetable(add)', function (data) {
+            var options = {
+                url: "/Admin/Document/DocTypeEditModule", paramters: { id: data.item.id, ischildren: true },
+                title: "新增分类",
+                area: ['600px', '460px'],
+                submit: {
+                    url: "/Admin/Document/DocTypeCreate",
+                },
+                elmid:"docTypeEdit",
+                callback: reloadTable
+            };
+            freejs.dialogWindow.create(options, form);
+            console.log(data);
+        })
+
+        treetable.on('treetable(edit)', function (data) {
+            layer.msg('编辑操作');
+            var options = {
+                url: "/Admin/Document/DocTypeEditModule", paramters: { id: data.item.id, ischildren: false },
+                title: "编辑分类",
+                area: ['600px', '460px'],
+                submit: {
+                    url: "/Admin/Document/DocTypeUpdate",
+                },
+                elmid: "docTypeEdit",
+                callback: reloadTable
+            };
+            freejs.dialogWindow.create(options, form);
+        });
+
+
+        treetable.on('treetable(delete)', function (data) {
+            layer.confirm('确定要删除吗？', function (index) {
+                //调用删除
+                $.ajax({
+                    type: "POST",
+                    url: "/Admin/Document/DocTypeDelete",
+                    data: { id: data.item.id },
+                    dataType: "html",
+                    success: function (data) {
+                        layer.close(index);
+                    },
+                    error: function () {
+                        layer.close(index);
+                        layer.alert("删除失败！");
+                    }
+                });
+            });
+        })
+
+        o('.down-up-all').click(function () {
+            var expandStatus = o(this).attr("expandStatus");
+            expandStatus == "down" ? treetable.all('up') : treetable.all('down');
+            expandStatus == "down" ? o(this).attr('expandStatus', 'up') : o(this).attr('expandStatus', 'down');
+        })
+
+        o('.get-checked').click(function () {
+            layer.alert(JSON.stringify(treetable.all('checked')));
+        })
+
+        form.on('switch(status)', function (data) {
+            layer.msg('监听状态操作');
+            console.log(data);
+        })
+    });
+</script>

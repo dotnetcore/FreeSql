@@ -1,0 +1,62 @@
+﻿@{
+
+}
+<div class="layui-main site-inline">
+    <div class="site-tree">
+        <ul class="layui-tree">
+            @foreach (var item in (List<FreeSql.Site.UI.Models.TreeData>)ViewBag.DocumentList)
+            {
+                <li><h2>@item.text</h2></li>
+                foreach (var children in item.children)
+                {
+                    if (children.datatype == 1)
+                    {
+                        <li class="site-tree-noicon">
+                            <a href="?id=@(children.id)"><cite>@children.text</cite></a>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="site-tree-noicon">
+                            <a href="#@(children.id)"><cite>&gt;&nbsp;@children.text</cite></a>
+                        </li>
+                        foreach (var children2 in children.children)
+                        {
+                            <li class="site-tree-noicon">
+                                <a href="?id=@(children2.id)"><cite>&nbsp;&nbsp;&nbsp;&nbsp;@children2.text</cite></a>
+                            </li>
+                        }
+                    }
+                }
+            }
+        </ul>
+    </div>
+    <div class="site-content">
+        @Html.Action("Details", new RouteValueDictionary { { "id", ViewBag.DocID } })
+    </div>
+</div>
+<div class="site-tree-mobile layui-hide">
+    <i class="layui-icon"></i>
+</div>
+
+<script>
+        //window.onhashchange = function () {
+        //    var hash = location.hash;
+        //    if (hash.search(/^#C\d+$/g) == 0) {
+        //        var docid = hash.replace('C', '');
+
+        //        $(".site-content").load("/Doc/Documents/Details", { id: docid }, function () {
+        //            alert(1);
+        //        });
+        //        //$.ajax({
+        //        //    type: "GET",
+        //        //    url: "/Doc/Documents/Details",
+        //        //    data: { id: docid },
+        //        //    dataType: "html",
+        //        //    success: function (data) {
+        //        //        $(".site-content").html(data);
+        //        //    }
+        //        //});
+        //    }
+        //}
+</script>
