@@ -27,6 +27,9 @@ namespace FreeSql.Tests.Oracle {
 
 			[Column(DbType = "varchar2(200 char) not null", OldName = "title")]
 			public string title2 { get; set; } = "10";
+
+			[Column(IsIgnore = true)]
+			public DateTime ct { get; set; } = DateTime.Now;
 		}
 
 		[Fact]

@@ -50,5 +50,12 @@ namespace FreeSql.DataAnnotations {
 			_column.IsNullable = value;
 			return this;
 		}
+		/// <summary>
+		/// 忽略此列，不迁移、不插入
+		/// </summary>
+		public ColumnFluent IsIgnore(bool value) {
+			_column.IsIgnore = value;
+			return this;
+		}
 	}
 }

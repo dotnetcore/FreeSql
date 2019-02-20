@@ -31,6 +31,9 @@ namespace FreeSql.Tests.SqlServer {
 
 			[Column(DbType = "varchar(100) not null", OldName = "title122333aaa")]
 			public string titleaaa { get; set; } = "fsdf";
+
+			[Column(IsIgnore = true)]
+			public DateTime ct { get; set; } = DateTime.Now;
 		}
 
 		[Fact]

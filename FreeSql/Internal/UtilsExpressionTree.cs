@@ -63,7 +63,9 @@ namespace FreeSql.Internal {
 						IsIdentity = false,
 						IsNullable = tp.Value.isnullable ?? true,
 						IsPrimary = false,
+						IsIgnore = false
 					};
+				if (colattr.IsIgnore) continue;
 				if (string.IsNullOrEmpty(colattr.DbType)) colattr.DbType = tp?.dbtypeFull ?? "varchar(255)";
 				colattr.DbType = colattr.DbType.ToUpper();
 
@@ -101,7 +103,17 @@ namespace FreeSql.Internal {
 			}
 			trytb.Primarys = trytb.Columns.Values.Where(a => a.Attribute.IsPrimary == true).ToArray();
 			if (trytb.Primarys.Any() == false) {
-				trytb.Primarys = trytb.Columns.Values.Where(a => a.Attribute.IsIdentity == true).ToArray();
+				trytb.Primarys = trytb.Columns.Values.Where(a => string.Compare(a.Attribute.Name, "id", true) == 0).ToArray();
+				if (trytb.Primarys.Any() == false) {
+					trytb.Primarys = trytb.Columns.Values.Where(a => string.Compare(a.Attribute.Name, $"{trytb.DbName}id", true) == 0).ToArray();
+					if (trytb.Primarys.Any() == false) {
+						trytb.Primarys = trytb.Columns.Values.Where(a => string.Compare(a.Attribute.Name, $"{trytb.DbName}_id", true) == 0).ToArray();
+						if (trytb.Primarys.Any() == false) {
+							var identcols = trytb.Columns.Values.Where(a => a.Attribute.IsIdentity == true).FirstOrDefault();
+							if (identcols != null) trytb.Primarys = new[] { identcols };
+						}
+					}
+				}
 				foreach (var col in trytb.Primarys)
 					col.Attribute.IsPrimary = true;
 			}

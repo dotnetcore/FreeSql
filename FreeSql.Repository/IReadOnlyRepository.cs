@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace FreeSql {
 	public interface IReadOnlyRepository<TEntity> : IRepository

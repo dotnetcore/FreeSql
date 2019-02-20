@@ -16,7 +16,7 @@ namespace FreeSql.DataAnnotations {
 		/// </summary>
 		public string DbType { get; set; }
 
-		internal bool? _IsPrimary, _IsIdentity, _IsNullable;
+		internal bool? _IsPrimary, _IsIdentity, _IsNullable, _IsIgnore;
 		/// <summary>
 		/// 主键
 		/// </summary>
@@ -29,6 +29,10 @@ namespace FreeSql.DataAnnotations {
 		/// 是否可DBNull
 		/// </summary>
 		public bool IsNullable { get => _IsNullable ?? false; set => _IsNullable = value; }
+		/// <summary>
+		/// 忽略此列，不迁移、不插入
+		/// </summary>
+		public bool IsIgnore { get => _IsIgnore ?? false; set => _IsIgnore = value; }
 
 		/// <summary>
 		/// 数据库默认值

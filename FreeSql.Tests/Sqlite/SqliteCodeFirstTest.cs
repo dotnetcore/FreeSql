@@ -27,6 +27,9 @@ namespace FreeSql.Tests.Sqlite {
 
 			[Column(DbType = "varchar(200) not null", OldName = "title2")]
 			public string title3223 { get; set; } = "10";
+
+			[Column(IsIgnore = true)]
+			public DateTime ct { get; set; } = DateTime.Now;
 		}
 
 		[Fact]

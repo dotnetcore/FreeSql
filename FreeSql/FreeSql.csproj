@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>0.0.14</Version>
+    <Version>0.1.0</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>YeXiangQin</Authors>
     <Description>打造 .NETCore 最方便的 ORM，DbFirst 与 CodeFirst 混合使用，提供从实体同步数据库，或者从数据库生成实体代码，支持 MySql/SqlServer/PostgreSQL/Oracle/Sqlite 数据库。</Description>

@@ -72,6 +72,7 @@ namespace FreeSql.Internal {
 			if (attr._IsPrimary == null) attr._IsPrimary = trycol.IsPrimary;
 			if (attr._IsIdentity == null) attr._IsIdentity = trycol.IsIdentity;
 			if (attr._IsNullable == null) attr._IsNullable = trycol.IsNullable;
+			if (attr._IsIgnore == null) attr._IsIgnore = trycol.IsIgnore;
 			if (attr.DbDefautValue == null) attr.DbDefautValue = trycol.DbDefautValue;
 			return attr;
 		}

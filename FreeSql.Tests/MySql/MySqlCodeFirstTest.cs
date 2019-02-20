@@ -25,6 +25,9 @@ namespace FreeSql.Tests.MySql {
 
 			[Column(DbType = "varchar(200) not null", OldName = "title")]
 			public string title222 { get; set; } = "10";
+
+			[Column(IsIgnore = true)]
+			public DateTime ct { get; set; } = DateTime.Now;
 		}
 
 		[Fact]
