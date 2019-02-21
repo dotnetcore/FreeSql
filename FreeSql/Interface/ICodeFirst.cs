@@ -10,6 +10,10 @@ namespace FreeSql {
 		bool IsAutoSyncStructure { get; set; }
 
 		/// <summary>
+		/// 数据库名称使用 [] 或 `` 或 "" 包含起来，取决于数据库类别
+		/// </summary>
+		bool IsQuoteSqlName { get; set; }
+		/// <summary>
 		/// 转小写同步结构
 		/// </summary>
 		bool IsSyncStructureToLower { get; set; }

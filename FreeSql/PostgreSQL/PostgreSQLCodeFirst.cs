@@ -29,6 +29,7 @@ namespace FreeSql.PostgreSQL {
 		}
 
 		public bool IsAutoSyncStructure { get; set; } = true;
+		public bool IsQuoteSqlName { get; set; } = true;
 		public bool IsSyncStructureToLower { get; set; } = false;
 		public bool IsLazyLoading { get; set; } = false;
 

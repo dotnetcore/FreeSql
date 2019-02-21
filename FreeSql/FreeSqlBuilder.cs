@@ -13,6 +13,7 @@ namespace FreeSql {
 		string _masterConnectionString;
 		string[] _slaveConnectionString;
 		bool _isAutoSyncStructure = false;
+		bool _isQuoteSqlName = true;
 		bool _isSyncStructureToLower = false;
 		bool _isLazyLoading = false;
 		Action<DbCommand> _aopCommandExecuting = null;
@@ -67,6 +68,15 @@ namespace FreeSql {
 			return this;
 		}
 		/// <summary>
+		/// 数据库名称使用 [] 或 `` 或 "" 包含起来，取决于数据库类别
+		/// </summary>
+		/// <param name="value">true:转小写, false:不转</param>
+		/// <returns></returns>
+		public FreeSqlBuilder UseQuoteSqlName(bool value) {
+			_isQuoteSqlName = value;
+			return this;
+		}
+		/// <summary>
 		/// 转小写同步结构
 		/// </summary>
 		/// <param name="value">true:转小写, false:不转</param>
@@ -107,6 +117,7 @@ namespace FreeSql {
 			}
 			if (ret != null) {
 				ret.CodeFirst.IsAutoSyncStructure = _isAutoSyncStructure;
+				ret.CodeFirst.IsQuoteSqlName = _isQuoteSqlName;
 				ret.CodeFirst.IsSyncStructureToLower = _isSyncStructureToLower;
 				ret.CodeFirst.IsLazyLoading = _isLazyLoading;
 				var ado = ret.Ado as Internal.CommonProvider.AdoProvider;
