@@ -50,6 +50,9 @@ namespace FreeSql.Internal {
 			Utils.GetTableByEntity(type, this, true); //update cache
 			return _orm.CodeFirst;
 		}
+		internal TableAttribute GetConfigEntity(Type type) {
+			return dicConfigEntity.TryGetValue(type, out var trytb) ? trytb : null;
+		}
 		internal TableAttribute GetEntityTableAttribute(Type type) {
 			var attr = type.GetCustomAttributes(typeof(TableAttribute), false).LastOrDefault() as TableAttribute;
 			if (dicConfigEntity.TryGetValue(type, out var trytb) == false) return attr;
