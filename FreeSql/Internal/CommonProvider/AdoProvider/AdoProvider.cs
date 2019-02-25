@@ -23,15 +23,17 @@ namespace FreeSql.Internal.CommonProvider {
 		
 		public ObjectPool<DbConnection> MasterPool { get; protected set; }
 		public List<ObjectPool<DbConnection>> SlavePools { get; } = new List<ObjectPool<DbConnection>>();
+		public DataType DataType { get; }
 		protected ICache _cache { get; set; }
 		protected ILogger _log { get; set; }
 		protected int slaveUnavailables = 0;
 		private object slaveLock = new object();
 		private Random slaveRandom = new Random();
 
-		public AdoProvider(ICache cache, ILogger log) {
+		public AdoProvider(ICache cache, ILogger log, DataType dataType) {
 			this._cache = cache;
 			this._log = log;
+			this.DataType = dataType;
 		}
 
 		void LoggerException(ObjectPool<DbConnection> pool, DbCommand cmd, Exception e, DateTime dt, StringBuilder logtxt, bool isThrowException = true) {

@@ -14,8 +14,8 @@ namespace FreeSql.PostgreSQL {
 	class PostgreSQLAdo : FreeSql.Internal.CommonProvider.AdoProvider {
 		CommonUtils _util;
 
-		public PostgreSQLAdo() : base(null, null) { }
-		public PostgreSQLAdo(CommonUtils util, ICache cache, ILogger log, string masterConnectionString, string[] slaveConnectionStrings) : base(cache, log) {
+		public PostgreSQLAdo() : base(null, null, DataType.PostgreSQL) { }
+		public PostgreSQLAdo(CommonUtils util, ICache cache, ILogger log, string masterConnectionString, string[] slaveConnectionStrings) : base(cache, log, DataType.PostgreSQL) {
 			this._util = util;
 			MasterPool = new PostgreSQLConnectionPool("主库", masterConnectionString, null, null);
 			if (slaveConnectionStrings != null) {

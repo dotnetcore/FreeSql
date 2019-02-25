@@ -25,6 +25,10 @@ namespace FreeSql {
 		/// 监视数据库命令对象(执行后，用于监视执行性能)
 		/// </summary>
 		Action<DbCommand, string> AopCommandExecuted { get; set; }
+		/// <summary>
+		/// 数据库类型
+		/// </summary>
+		DataType DataType { get; }
 
 		#region 事务
 		/// <summary>
