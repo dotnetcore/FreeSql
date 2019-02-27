@@ -36,6 +36,13 @@ namespace FreeSql.SqlServer {
 
 			this.DbFirst = new SqlServerDbFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
 			this.CodeFirst = new SqlServerCodeFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
+
+			using (var conn = this.Ado.MasterPool.Get()) {
+				try {
+					(this.InternalCommonUtils as SqlServerUtils).IsSelectRowNumber = int.Parse(conn.Value.ServerVersion.Split('.')[0]) <= 10;
+				} catch {
+				}
+			}
 		}
 
 		internal CommonUtils InternalCommonUtils { get; }

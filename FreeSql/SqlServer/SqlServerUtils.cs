@@ -11,6 +11,8 @@ namespace FreeSql.SqlServer {
 		public SqlServerUtils(IFreeSql orm) : base(orm) {
 		}
 
+		internal bool IsSelectRowNumber = true;
+
 		internal override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, Type type, object value) {
 			if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
 			else if (_orm.CodeFirst.IsSyncStructureToLower) parameterName = parameterName.ToLower();

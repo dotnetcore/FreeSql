@@ -11,7 +11,9 @@ namespace FreeSql.SqlServer.Curd {
 	class SqlServerSelect<T1> : FreeSql.Internal.CommonProvider.Select1Provider<T1> where T1 : class {
 
 		internal static string ToSqlStatic(CommonUtils _commonUtils, string _select, string field, StringBuilder _join, StringBuilder _where, string _groupby, string _having, string _orderby, int _skip, int _limit, List<SelectTableInfo> _tables, IFreeSql _orm)
-			=> ToSqlStaticRowNumber(_commonUtils, _select, field, _join, _where, _groupby, _having, _orderby, _skip, _limit, _tables, _orm);
+			=> (_commonUtils as SqlServerUtils).IsSelectRowNumber ?
+			ToSqlStaticRowNumber(_commonUtils, _select, field, _join, _where, _groupby, _having, _orderby, _skip, _limit, _tables, _orm) :
+			ToSqlStaticOffsetFetchNext(_commonUtils, _select, field, _join, _where, _groupby, _having, _orderby, _skip, _limit, _tables, _orm);
 
 		#region SqlServer 2005 row_number
 		internal static string ToSqlStaticRowNumber(CommonUtils _commonUtils, string _select, string field, StringBuilder _join, StringBuilder _where, string _groupby, string _having, string _orderby, int _skip, int _limit, List<SelectTableInfo> _tables, IFreeSql _orm) {

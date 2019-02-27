@@ -50,7 +50,11 @@ namespace FreeSql.Tests.SqlServer {
 			//	.LeftJoin<xxx>((a, b) => b.Id == a.Id)
 			//	.ToList(a => new { a.Id, a.Title });
 
-			var tn = g.sqlserver.Select<xxx>().Where(a => a.Id > 0).Where(b => b.Title != null).ToList(a => a.Id);
+			var tnsql1 = g.sqlserver.Select<xxx>().Where(a => a.Id > 0).Where(b => b.Title != null).Page(1, 3).ToSql(a => a.Id);
+			var tnsql2 = g.sqlserver.Select<xxx>().Where(a => a.Id > 0).Where(b => b.Title != null).Page(2, 3).ToSql(a => a.Id);
+
+			var tn1 = g.sqlserver.Select<xxx>().Where(a => a.Id > 0).Where(b => b.Title != null).Page(1, 3).ToList(a => a.Id);
+			var tn2 = g.sqlserver.Select<xxx>().Where(a => a.Id > 0).Where(b => b.Title != null).Page(2, 3).ToList(a => a.Id);
 
 			var t3 = g.sqlserver.Ado.Query<xxx>("select * from song");
 
