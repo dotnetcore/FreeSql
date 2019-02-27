@@ -242,10 +242,10 @@ use " + database, tboldname ?? tbname);
 							if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.CurrentCultureIgnoreCase) == false)
 								insertvalue = $"cast({insertvalue} as {tbcol.Attribute.DbType.Split(' ').First()})";
 							if (tbcol.Attribute.IsNullable != tbstructcol.is_nullable)
-								insertvalue = $"isnull({insertvalue},{_commonUtils.FormatSql("{0}", tbcol.Attribute.DbDefautValue)})";
+								insertvalue = $"isnull({insertvalue},{_commonUtils.FormatSql("{0}", GetTransferDbDefaultValue(tbcol))})";
 						} else if (tbcol.Attribute.IsNullable == false)
-							insertvalue = _commonUtils.FormatSql("{0}", tbcol.Attribute.DbDefautValue);
-						sb.Append(insertvalue).Append(", ");
+							insertvalue = _commonUtils.FormatSql("{0}", GetTransferDbDefaultValue(tbcol));
+						sb.Append(insertvalue.Replace("'", "''")).Append(", ");
 					}
 					sb.Remove(sb.Length - 2, 2).Append(" FROM ").Append(tablename).Append(" WITH (HOLDLOCK TABLOCKX)');\r\n");
 					if (idents) sb.Append("SET IDENTITY_INSERT ").Append(tmptablename).Append(" OFF;\r\n");
@@ -263,6 +263,18 @@ use " + database, tboldname ?? tbname);
 				}
 			}
 		}
+		object GetTransferDbDefaultValue(ColumnInfo col) {
+			var ddv = col.Attribute.DbDefautValue;
+			if (ddv == null) return ddv;
+			if (ddv is DateTime || ddv is DateTime?) {
+				var dt = (DateTime)ddv;
+				if (col.Attribute.DbType.Contains("SMALLDATETIME") && dt < new DateTime(1900, 1, 1)) ddv = new DateTime(1900, 1, 1);
+				else if (col.Attribute.DbType.Contains("DATETIME") && dt < new DateTime(1753, 1, 1)) ddv = new DateTime(1753, 1, 1);
+				else if (col.Attribute.DbType.Contains("DATE") && dt < new DateTime(0001, 1, 1)) ddv = new DateTime(0001, 1, 1);
+			}
+			return ddv;
+		}
+
 
 		static object syncStructureLock = new object();
 		ConcurrentDictionary<string, bool> dicSyced = new ConcurrentDictionary<string, bool>();

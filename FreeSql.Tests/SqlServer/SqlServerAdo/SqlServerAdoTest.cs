@@ -33,15 +33,37 @@ namespace FreeSql.Tests.SqlServer {
 
 		[Fact]
 		public void Query() {
+
+			//var tt1 = g.sqlserver.Select<xxx>()
+			//	.LeftJoin(a => a.ParentId == a.Parent.Id)
+			//	.ToSql(a => new { a.Id, a.Title });
+
+			//var tt2result = g.sqlserver.Select<xxx>()
+			//	.LeftJoin(a => a.ParentId == a.Parent.Id)
+			//	.ToList(a => new { a.Id, a.Title });
+
+			//var tt = g.sqlserver.Select<xxx>()
+			//	.LeftJoin<xxx>((a, b) => b.Id == a.Id)
+			//	.ToSql(a => new { a.Id, a.Title });
+
+			//var ttresult = g.sqlserver.Select<xxx>()
+			//	.LeftJoin<xxx>((a, b) => b.Id == a.Id)
+			//	.ToList(a => new { a.Id, a.Title });
+
+			var tn = g.sqlserver.Select<xxx>().Where(a => a.Id > 0).Where(b => b.Title != null).ToList(a => a.Id);
+
 			var t3 = g.sqlserver.Ado.Query<xxx>("select * from song");
 
 			var t4 = g.sqlserver.Ado.Query<(int, string, string, DateTime)>("select * from song");
 
-			var t5 = g.sqlserver.Ado.Query<dynamic>("select * from song");
+			var t5 = g.sqlserver.Ado.Query<dynamic>(System.Data.CommandType.Text, "select * from song where Id = @Id", 
+				new System.Data.SqlClient.SqlParameter("Id", 1));
 		}
 
 		class xxx {
 			public int Id { get; set; }
+			public int ParentId { get; set; }
+			public xxx Parent { get; set; }
 			public string Title { get; set; }
 			public string Url { get; set; }
 			public DateTime Create_time { get; set; }
