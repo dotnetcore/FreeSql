@@ -23,35 +23,35 @@ namespace FreeSql.Tests.Oracle {
 		public void Dywhere() {
 			Assert.Null(g.oracle.Delete<Topic>().ToSql());
 			var sql = g.oracle.Delete<Topic>(new[] { 1, 2 }).ToSql();
-			Assert.Equal("DELETE FROM \"tb_topic22211\" WHERE (\"Id\" = 1 OR \"Id\" = 2)", sql);
+			Assert.Equal("DELETE FROM \"TB_TOPIC22211\" WHERE (\"ID\" = 1 OR \"ID\" = 2)", sql);
 
 			sql = g.oracle.Delete<Topic>(new Topic { Id = 1, Title = "test" }).ToSql();
-			Assert.Equal("DELETE FROM \"tb_topic22211\" WHERE (\"Id\" = 1)", sql);
+			Assert.Equal("DELETE FROM \"TB_TOPIC22211\" WHERE (\"ID\" = 1)", sql);
 
 			sql = g.oracle.Delete<Topic>(new[] { new Topic { Id = 1, Title = "test" }, new Topic { Id = 2, Title = "test" } }).ToSql();
-			Assert.Equal("DELETE FROM \"tb_topic22211\" WHERE (\"Id\" = 1 OR \"Id\" = 2)", sql);
+			Assert.Equal("DELETE FROM \"TB_TOPIC22211\" WHERE (\"ID\" = 1 OR \"ID\" = 2)", sql);
 
 			sql = g.oracle.Delete<Topic>(new { id = 1 }).ToSql();
-			Assert.Equal("DELETE FROM \"tb_topic22211\" WHERE (\"Id\" = 1)", sql);
+			Assert.Equal("DELETE FROM \"TB_TOPIC22211\" WHERE (\"ID\" = 1)", sql);
 		}
 
 		[Fact]
 		public void Where() {
 			var sql = delete.Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
-			Assert.Equal("DELETE FROM \"tb_topic22211\" WHERE (\"Id\" = 1)", sql);
+			Assert.Equal("DELETE FROM \"TB_TOPIC22211\" WHERE (\"ID\" = 1)", sql);
 
 			sql = delete.Where("id = ?id", new { id = 1 }).ToSql().Replace("\r\n", "");
-			Assert.Equal("DELETE FROM \"tb_topic22211\" WHERE (id = ?id)", sql);
+			Assert.Equal("DELETE FROM \"TB_TOPIC22211\" WHERE (id = ?id)", sql);
 
 			var item = new Topic { Id = 1, Title = "newtitle" };
 			sql = delete.Where(item).ToSql().Replace("\r\n", "");
-			Assert.Equal("DELETE FROM \"tb_topic22211\" WHERE (\"Id\" = 1)", sql);
+			Assert.Equal("DELETE FROM \"TB_TOPIC22211\" WHERE (\"ID\" = 1)", sql);
 
 			var items = new List<Topic>();
 			for (var a = 0; a < 10; a++) items.Add(new Topic { Id = a + 1, Title = $"newtitle{a}", Clicks = a * 100 });
 
 			sql = delete.Where(items).ToSql().Replace("\r\n", "");
-			Assert.Equal("DELETE FROM \"tb_topic22211\" WHERE (\"Id\" IN (1,2,3,4,5,6,7,8,9,10))", sql);
+			Assert.Equal("DELETE FROM \"TB_TOPIC22211\" WHERE (\"ID\" IN (1,2,3,4,5,6,7,8,9,10))", sql);
 		}
 		[Fact]
 		public void WhereExists() {

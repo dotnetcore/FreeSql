@@ -38,7 +38,7 @@ namespace FreeSql.Oracle {
 			});
 
 		internal override string FormatSql(string sql, params object[] args) => sql?.FormatOracleSQL(args);
-		internal override string QuoteSqlName(string name) => _orm.CodeFirst.IsQuoteSqlName ? $"\"{name.Trim('"').Replace(".", "\".\"")}\"" : name;
+		internal override string QuoteSqlName(string name) => $"\"{name.Trim('"').Replace(".", "\".\"")}\"";
 		internal override string QuoteParamterName(string name) => $":{(_orm.CodeFirst.IsSyncStructureToLower ? name.ToLower() : name)}";
 		internal override string IsNull(string sql, object value) => $"nvl({sql}, {value})";
 		internal override string StringConcat(string left, string right, Type leftType, Type rightType) => $"{left} || {right}";

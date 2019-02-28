@@ -41,6 +41,10 @@ namespace FreeSql.Internal {
 				trytb.DbName = trytb.DbName.ToLower();
 				trytb.DbOldName = trytb.DbOldName?.ToLower();
 			}
+			if (common.CodeFirst.IsSyncStructureToUpper) {
+				trytb.DbName = trytb.DbName.ToUpper();
+				trytb.DbOldName = trytb.DbOldName?.ToUpper();
+			}
 			trytb.SelectFilter = tbattr?.SelectFilter;
 			var propsLazy = new List<(PropertyInfo, bool, bool)>();
 			foreach (var p in trytb.Properties.Values) {
@@ -73,6 +77,7 @@ namespace FreeSql.Internal {
 				if (colattr.DbType?.Contains("NOT NULL") == true) colattr.IsNullable = false;
 				if (string.IsNullOrEmpty(colattr.Name)) colattr.Name = p.Name;
 				if (common.CodeFirst.IsSyncStructureToLower) colattr.Name = colattr.Name.ToLower();
+				if (common.CodeFirst.IsSyncStructureToUpper) colattr.Name = colattr.Name.ToUpper();
 
 				if ((colattr.IsNullable != true || colattr.IsIdentity == true || colattr.IsPrimary == true) && colattr.DbType.Contains("NOT NULL") == false) {
 					colattr.IsNullable = false;

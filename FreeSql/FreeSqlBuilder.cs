@@ -13,8 +13,8 @@ namespace FreeSql {
 		string _masterConnectionString;
 		string[] _slaveConnectionString;
 		bool _isAutoSyncStructure = false;
-		bool _isQuoteSqlName = true;
 		bool _isSyncStructureToLower = false;
+		bool _isSyncStructureToUpper = false;
 		bool _isLazyLoading = false;
 		Action<DbCommand> _aopCommandExecuting = null;
 		Action<DbCommand, string> _aopCommandExecuted = null;
@@ -68,21 +68,21 @@ namespace FreeSql {
 			return this;
 		}
 		/// <summary>
-		/// 数据库名称使用 [] 或 `` 或 "" 包含起来，取决于数据库类别
-		/// </summary>
-		/// <param name="value">true:转小写, false:不转</param>
-		/// <returns></returns>
-		public FreeSqlBuilder UseQuoteSqlName(bool value) {
-			_isQuoteSqlName = value;
-			return this;
-		}
-		/// <summary>
 		/// 转小写同步结构
 		/// </summary>
 		/// <param name="value">true:转小写, false:不转</param>
 		/// <returns></returns>
 		public FreeSqlBuilder UseSyncStructureToLower(bool value) {
 			_isSyncStructureToLower = value;
+			return this;
+		}
+		/// <summary>
+		/// 转大写同步结构
+		/// </summary>
+		/// <param name="value">true:转大写, false:不转</param>
+		/// <returns></returns>
+		public FreeSqlBuilder UseSyncStructureToUpper(bool value) {
+			_isSyncStructureToUpper = value;
 			return this;
 		}
 		/// <summary>
@@ -117,8 +117,9 @@ namespace FreeSql {
 			}
 			if (ret != null) {
 				ret.CodeFirst.IsAutoSyncStructure = _isAutoSyncStructure;
-				ret.CodeFirst.IsQuoteSqlName = _isQuoteSqlName;
+				
 				ret.CodeFirst.IsSyncStructureToLower = _isSyncStructureToLower;
+				ret.CodeFirst.IsSyncStructureToUpper = _isSyncStructureToUpper;
 				ret.CodeFirst.IsLazyLoading = _isLazyLoading;
 				var ado = ret.Ado as Internal.CommonProvider.AdoProvider;
 				ado.AopCommandExecuting += _aopCommandExecuting;

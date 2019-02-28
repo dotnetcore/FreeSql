@@ -10,13 +10,13 @@ namespace FreeSql {
 		bool IsAutoSyncStructure { get; set; }
 
 		/// <summary>
-		/// 数据库名称使用 [] 或 `` 或 "" 包含起来，取决于数据库类别
-		/// </summary>
-		bool IsQuoteSqlName { get; set; }
-		/// <summary>
 		/// 转小写同步结构
 		/// </summary>
 		bool IsSyncStructureToLower { get; set; }
+		/// <summary>
+		/// 转大写同步结构
+		/// </summary>
+		bool IsSyncStructureToUpper { get; set; }
 		/// <summary>
 		/// 延时加载导航属性对象，导航属性需要声明 virtual
 		/// </summary>
