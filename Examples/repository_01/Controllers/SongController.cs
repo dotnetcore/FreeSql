@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using repository_01.Repositorys;
 using restful.Entitys;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -15,6 +16,12 @@ namespace restful.Controllers {
 
 		public SongsController(IFreeSql fsql) {
 			_songRepository = new SongRepository(fsql);
+
+			//test code
+			var curd1 = fsql.GetRepository<Song, int>();
+			var curd2 = fsql.GetRepository<Song, string>();
+			var curd3 = fsql.GetRepository<Song, Guid>();
+			var curd4 = fsql.GetGuidRepository<Song>();
 		}
 
 		[HttpGet]

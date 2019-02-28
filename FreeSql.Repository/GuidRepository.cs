@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -11,14 +12,14 @@ namespace FreeSql {
 		public GuidRepository(IFreeSql fsql) : base(fsql) {
 		}
 
-		public override List<TEntity> Insert(List<TEntity> entity) {
+		public override List<TEntity> Insert(IEnumerable<TEntity> entity) {
 			_fsql.Insert<TEntity>().AppendData(entity).ExecuteAffrows();
-			return entity;
+			return entity.ToList();
 		}
 
-		async public override Task<List<TEntity>> InsertAsync(List<TEntity> entity) {
+		async public override Task<List<TEntity>> InsertAsync(IEnumerable<TEntity> entity) {
 			await _fsql.Insert<TEntity>().AppendData(entity).ExecuteAffrowsAsync();
-			return entity;
+			return entity.ToList();
 		}
 
 		public override TEntity Insert(TEntity entity) {

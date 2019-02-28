@@ -6,11 +6,11 @@ namespace FreeSql {
 		where TEntity : class {
 		TEntity Insert(TEntity entity);
 
-		List<TEntity> Insert(List<TEntity> entity);
+		List<TEntity> Insert(IEnumerable<TEntity> entity);
 
 		Task<TEntity> InsertAsync(TEntity entity);
 
-		Task<List<TEntity>> InsertAsync(List<TEntity> entity);
+		Task<List<TEntity>> InsertAsync(IEnumerable<TEntity> entity);
 
 		int Update(TEntity entity);
 

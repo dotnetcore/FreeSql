@@ -40,7 +40,7 @@ namespace FreeSql {
 			}
 		}
 
-		public virtual List<TEntity> Insert(List<TEntity> entity) {
+		public virtual List<TEntity> Insert(IEnumerable<TEntity> entity) {
 			switch (_fsql.Ado.DataType) {
 				case DataType.SqlServer:
 				case DataType.PostgreSQL:
@@ -66,7 +66,7 @@ namespace FreeSql {
 			}
 		}
 
-		public virtual Task<List<TEntity>> InsertAsync(List<TEntity> entity) {
+		public virtual Task<List<TEntity>> InsertAsync(IEnumerable<TEntity> entity) {
 			switch (_fsql.Ado.DataType) {
 				case DataType.SqlServer:
 				case DataType.PostgreSQL:

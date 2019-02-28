@@ -9,8 +9,55 @@ using Xunit;
 namespace FreeSql.Tests.Sqlite {
 	public class SqliteCodeFirstTest {
 
+
+		class Topic {
+			public Guid Id { get; set; }
+			public string Title { get; set; }
+			public string Content { get; set; }
+			public DateTime CreateTime { get; set; }
+		}
+		[Table(Name = "xxxtb.Comment")]
+		class Comment {
+			public Guid Id { get; set; }
+			public Guid TopicId { get; set; }
+			public Topic Topic { get; set; }
+			public string Nickname { get; set; }
+			public string Content { get; set; }
+			public DateTime CreateTime { get; set; }
+		}
+
+
 		[Fact]
 		public void AddField() {
+
+			//秀一波 FreeSql.Repository 扩展包，dotnet add package FreeSql.Repository
+			var topicRepository = g.sqlite.GetGuidRepository<Topic>();
+			var commentRepository = g.sqlite.GetGuidRepository<Comment>();
+
+			//添加测试文章
+			var topicId = FreeUtil.NewMongodbId();
+			topicRepository.Insert(new Topic {
+				Id = FreeUtil.NewMongodbId(),
+				Title = "文章标题1",
+				Content = "文章内容1",
+				CreateTime = DateTime.Now
+			});
+
+			//添加10条测试评论
+			var comments = Enumerable.Range(0, 10).Select(a => new Comment {
+				Id = FreeUtil.NewMongodbId(),
+				TopicId = topicId,
+				Nickname = $"昵称{a}",
+				Content = $"评论内容{a}",
+				CreateTime = DateTime.Now
+			});
+			var affrows = commentRepository.Insert(comments);
+
+			var find = commentRepository.Select.Where(a => a.Topic.Title == "文章标题1").ToList();
+
+
+
+
 			var sql = g.sqlite.CodeFirst.GetComparisonDDLStatements<TopicAddField>();
 
 			var id = g.sqlite.Insert<TopicAddField>().AppendData(new TopicAddField { }).ExecuteIdentity();
