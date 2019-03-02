@@ -24,10 +24,15 @@ namespace FreeSql.Internal {
 	class Utils {
 
 		static ConcurrentDictionary<string, ConcurrentDictionary<Type, TableInfo>> _cacheGetTableByEntity = new ConcurrentDictionary<string, ConcurrentDictionary<Type, TableInfo>>();
-		internal static TableInfo GetTableByEntity(Type entity, CommonUtils common, bool isReCache = false) {
+		internal static void RemoveTableByEntity(Type entity, CommonUtils common) {
+			if (entity.FullName.StartsWith("<>f__AnonymousType")) return;
+			var tbc = _cacheGetTableByEntity.GetOrAdd(common.DbName, k1 => new ConcurrentDictionary<Type, TableInfo>()); //区分数据库类型缓存
+			tbc.TryRemove(entity, out var trytb);
+		}
+		internal static TableInfo GetTableByEntity(Type entity, CommonUtils common) {
 			if (entity.FullName.StartsWith("<>f__AnonymousType")) return null;
 			var tbc = _cacheGetTableByEntity.GetOrAdd(common.DbName, k1 => new ConcurrentDictionary<Type, TableInfo>()); //区分数据库类型缓存
-			if (isReCache == false && tbc.TryGetValue(entity, out var trytb)) return trytb;
+			if (tbc.TryGetValue(entity, out var trytb)) return trytb;
 			if (common.CodeFirst.GetDbInfo(entity) != null) return null;
 
 			var tbattr = common.GetEntityTableAttribute(entity);

@@ -39,7 +39,7 @@ namespace FreeSql.Internal {
 			var table = dicConfigEntity.GetOrAdd(type, new TableAttribute());
 			var fluent = new TableFluent<T>(table);
 			entity.Invoke(fluent);
-			Utils.GetTableByEntity(type, this, true); //update cache
+			Utils.RemoveTableByEntity(type, this); //remove cache
 			return _orm.CodeFirst;
 		}
 		internal ICodeFirst ConfigEntity(Type type, Action<TableFluent> entity) {
@@ -47,7 +47,7 @@ namespace FreeSql.Internal {
 			var table = dicConfigEntity.GetOrAdd(type, new TableAttribute());
 			var fluent = new TableFluent(type, table);
 			entity.Invoke(fluent);
-			Utils.GetTableByEntity(type, this, true); //update cache
+			Utils.RemoveTableByEntity(type, this); //remove cache
 			return _orm.CodeFirst;
 		}
 		internal TableAttribute GetConfigEntity(Type type) {
