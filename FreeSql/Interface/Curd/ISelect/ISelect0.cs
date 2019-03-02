@@ -29,6 +29,13 @@ namespace FreeSql {
 		Task<T1> ToOneAsync();
 
 		/// <summary>
+		/// 执行SQL查询，返回 T1 实体所有字段的第一条记录，记录不存在时返回 null
+		/// </summary>
+		/// <returns></returns>
+		T1 First();
+		Task<T1> FirstAsync();
+
+		/// <summary>
 		/// 返回即将执行的SQL语句
 		/// </summary>
 		/// <param name="field">指定字段</param>

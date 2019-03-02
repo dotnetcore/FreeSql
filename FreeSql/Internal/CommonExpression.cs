@@ -203,6 +203,7 @@ namespace FreeSql.Internal {
 		}
 
 		internal string ExpressionLambdaToSql(Expression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName) {
+			if (exp == null) return "";
 			switch (exp.NodeType) {
 				case ExpressionType.Not: return $"not({ExpressionLambdaToSql((exp as UnaryExpression)?.Operand, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
 				case ExpressionType.Quote: return ExpressionLambdaToSql((exp as UnaryExpression)?.Operand, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);

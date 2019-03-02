@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -8,7 +9,7 @@ namespace FreeSql {
 		BaseRepository<TEntity, TKey>
 		where TEntity : class {
 
-		public DefaultRepository(IFreeSql fsql) : base(fsql) {
+		public DefaultRepository(IFreeSql fsql, Expression<Func<TEntity, bool>> filter) : base(fsql, filter) {
 		}
 	}
 }

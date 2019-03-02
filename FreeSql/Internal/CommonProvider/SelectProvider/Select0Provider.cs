@@ -205,6 +205,9 @@ namespace FreeSql.Internal.CommonProvider {
 			return (await this.ToListAsync()).FirstOrDefault();
 		}
 
+		public T1 First() => this.ToOne();
+		public Task<T1> FirstAsync() => this.ToOneAsync();
+
 		protected List<TReturn> ToListMapReader<TReturn>((ReadAnonymousTypeInfo map, string field) af) {
 			var sql = this.ToSql(af.field);
 			if (_cache.seconds > 0 && string.IsNullOrEmpty(_cache.key)) _cache.key = $"{sql}{string.Join("|", _params.Select(a => a.Value))}";
@@ -461,7 +464,7 @@ namespace FreeSql.Internal.CommonProvider {
 			return (await this.ToListMapReaderAsync<TReturn>((map, field.Length > 0 ? field.Remove(0, 2).ToString() : null))).FirstOrDefault();
 		}
 
-		protected TSelect InternalWhere(Expression exp) => this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp, null));
+		protected TSelect InternalWhere(Expression exp) => exp == null ? this as TSelect : this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp, null));
 
 		protected TSelect InternalJoin(Expression exp) {
 			return this as TSelect;
