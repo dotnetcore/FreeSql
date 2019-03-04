@@ -16,14 +16,14 @@
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="2.1.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="2.1.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="2.1.0" />
-    <PackageReference Include="MySql.Data" Version="8.0.14" />
+    <PackageReference Include="MySql.Data" Version="8.0.15" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
-    <PackageReference Include="Npgsql" Version="4.0.4" />
-    <PackageReference Include="Npgsql.LegacyPostgis" Version="4.0.4" />
+    <PackageReference Include="Npgsql" Version="4.0.5" />
+    <PackageReference Include="Npgsql.LegacyPostgis" Version="4.0.5" />
     <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="2.18.3" />
-    <PackageReference Include="SafeObjectPool" Version="1.0.12" />
+    <PackageReference Include="SafeObjectPool" Version="1.0.13" />
     <PackageReference Include="System.Data.SqlClient" Version="4.6.0" />
-    <PackageReference Include="System.Data.SQLite.Core" Version="1.0.109.2" />
+    <PackageReference Include="System.Data.SQLite.Core" Version="1.0.110" />
     <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.3.0" />
   </ItemGroup>
 
