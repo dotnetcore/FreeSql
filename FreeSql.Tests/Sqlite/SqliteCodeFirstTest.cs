@@ -35,9 +35,7 @@ namespace FreeSql.Tests.Sqlite {
 			var commentRepository = g.sqlite.GetGuidRepository<Comment>();
 
 			//添加测试文章
-			var topicId = FreeUtil.NewMongodbId();
-			topicRepository.Insert(new Topic {
-				Id = FreeUtil.NewMongodbId(),
+			var  topic = topicRepository.Insert(new Topic {
 				Title = "文章标题1",
 				Content = "文章内容1",
 				CreateTime = DateTime.Now
@@ -45,12 +43,11 @@ namespace FreeSql.Tests.Sqlite {
 
 			//添加10条测试评论
 			var comments = Enumerable.Range(0, 10).Select(a => new Comment {
-				Id = FreeUtil.NewMongodbId(),
-				TopicId = topicId,
+				TopicId = topic.Id,
 				Nickname = $"昵称{a}",
 				Content = $"评论内容{a}",
 				CreateTime = DateTime.Now
-			});
+			}).ToArray();
 			var affrows = commentRepository.Insert(comments);
 
 			var find = commentRepository.Select.Where(a => a.Topic.Title == "文章标题1").ToList();
