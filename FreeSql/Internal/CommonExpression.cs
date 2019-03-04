@@ -297,7 +297,7 @@ namespace FreeSql.Internal {
 					}
 					var other3Exp = ExpressionLambdaToSqlOther(exp3, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
 					if (string.IsNullOrEmpty(other3Exp) == false) return other3Exp;
-					throw new Exception($"未现实函数表达式 {exp3} 解析");
+					throw new Exception($"未实现函数表达式 {exp3} 解析");
 				case ExpressionType.MemberAccess:
 					var exp4 = exp as MemberExpression;
 					if (exp4.Expression != null && exp4.Expression.Type.IsArray == false && exp4.Expression.Type.IsNullableType()) return ExpressionLambdaToSql(exp4.Expression, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
@@ -380,7 +380,7 @@ namespace FreeSql.Internal {
 						exp2 = expStack.Pop();
 						switch (exp2.NodeType) {
 							case ExpressionType.Constant:
-								throw new NotImplementedException("未现实 MemberAccess 下的 Constant");
+								throw new NotImplementedException("未实现 MemberAccess 下的 Constant");
 							case ExpressionType.Parameter:
 							case ExpressionType.MemberAccess:
 								

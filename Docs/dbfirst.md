@@ -33,7 +33,7 @@ var t2 = fsql.DbFirst.GetTablesByDatabase(fsql.DbFirst.GetDatabases()[0]);
 > 更多模板逐步开发中。。。
 
 ```csharp
-//创建模板生成类现实
+//创建模板生成类实现
 var gen = new FreeSql.Generator.TemplateGenerator();
 gen.Build(fsql.DbFirst, 
     @"C:\Users\28810\Desktop\github\FreeSql\Templates\MySql\simple-entity",  //模板目录（事先下载）

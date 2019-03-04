@@ -61,7 +61,7 @@ public abstract class MygisGeometry {
 		else if (wkt.StartsWith("multipoint", StringComparison.CurrentCultureIgnoreCase)) return new MygisMultiPoint(ParseLineString(wkt.Substring(10).Trim('(', ')')));
 		else if (wkt.StartsWith("multilinestring", StringComparison.CurrentCultureIgnoreCase)) return new MygisMultiLineString(ParseMultiLineString(wkt.Substring(15).Trim('(', ')')));
 		else if (wkt.StartsWith("multipolygon", StringComparison.CurrentCultureIgnoreCase)) return new MygisMultiPolygon(ParseMultiPolygon(wkt.Substring(12).Trim('(', ')')));
-		throw new NotImplementedException($"MygisGeometry.Parse 未现实 \"{wkt}\"");
+		throw new NotImplementedException($"MygisGeometry.Parse 未实现 \"{wkt}\"");
 	}
 	static MygisPoint ParsePoint(string str) {
 		var m = regexMygisPoint.Match(str);

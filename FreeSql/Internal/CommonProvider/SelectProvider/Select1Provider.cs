@@ -39,7 +39,7 @@ namespace FreeSql.Internal.CommonProvider {
 						case "InnerJoin": this.InternalJoin(expCall.Arguments[0], SelectTableInfoType.InnerJoin); break;
 						case "RightJoin": this.InternalJoin(expCall.Arguments[0], SelectTableInfoType.RightJoin); break;
 
-						default: throw new NotImplementedException($"未现实 {expCall.Method.Name}");
+						default: throw new NotImplementedException($"未实现 {expCall.Method.Name}");
 					}
 				}
 			}

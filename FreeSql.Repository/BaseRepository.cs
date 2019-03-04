@@ -46,7 +46,7 @@ namespace FreeSql {
 				case DataType.Oracle:
 				case DataType.Sqlite:
 				default:
-					throw new NotImplementedException($"{_fsql.Ado.DataType}不支持类似returning或output类型的特性，请参考FreeSql插入数据的方法重新现实。");
+					throw new NotImplementedException($"{_fsql.Ado.DataType}不支持类似returning或output类型的特性，请参考FreeSql插入数据的方法重新实现。");
 			}
 		}
 
@@ -60,7 +60,7 @@ namespace FreeSql {
 				case DataType.Oracle:
 				case DataType.Sqlite:
 				default:
-					throw new NotImplementedException($"{_fsql.Ado.DataType}不支持类似returning或output类型的特性，请参考FreeSql插入数据的方法重新现实。");
+					throw new NotImplementedException($"{_fsql.Ado.DataType}不支持类似returning或output类型的特性，请参考FreeSql插入数据的方法重新实现。");
 			}
 		}
 
@@ -74,7 +74,7 @@ namespace FreeSql {
 				case DataType.Oracle:
 				case DataType.Sqlite:
 				default:
-					throw new NotImplementedException($"{_fsql.Ado.DataType}不支持类似returning或output类型的特性，请参考FreeSql插入数据的方法重新现实。");
+					throw new NotImplementedException($"{_fsql.Ado.DataType}不支持类似returning或output类型的特性，请参考FreeSql插入数据的方法重新实现。");
 			}
 		}
 
@@ -88,7 +88,7 @@ namespace FreeSql {
 				case DataType.Oracle:
 				case DataType.Sqlite:
 				default:
-					throw new NotImplementedException($"{_fsql.Ado.DataType}不支持类似returning或output类型的特性，请参考FreeSql插入数据的方法重新现实。");
+					throw new NotImplementedException($"{_fsql.Ado.DataType}不支持类似returning或output类型的特性，请参考FreeSql插入数据的方法重新实现。");
 			}
 		}
 

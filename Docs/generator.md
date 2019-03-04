@@ -27,7 +27,7 @@ IFreeSql fsql = new FreeSql.FreeSqlBuilder()
         }) //监听SQL命令对象，在执行后
     .Build();
 
-//创建模板生成类现实
+//创建模板生成类实现
 var gen = new FreeSql.Generator.TemplateGenerator();
 gen.Build(mysql.DbFirst, 
     @"C:\Users\28810\Desktop\github\FreeSql\Templates\MySql\simple-entity",  //模板目录（事先下载）

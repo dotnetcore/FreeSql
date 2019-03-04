@@ -284,7 +284,7 @@ namespace FreeSql.PostgreSQL {
 					case "Equals": return $"({left} = ({getExp(exp.Arguments[0])})::varchar)";
 				}
 			}
-			throw new Exception($"PostgreSQLExpression 未现实函数表达式 {exp} 解析");
+			throw new Exception($"PostgreSQLExpression 未实现函数表达式 {exp} 解析");
 		}
 		internal override string ExpressionLambdaToSqlCallMath(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName) {
 			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
@@ -310,7 +310,7 @@ namespace FreeSql.PostgreSQL {
 				case "Atan2": return $"atan2({getExp(exp.Arguments[0])}, {getExp(exp.Arguments[1])})";
 				case "Truncate": return $"trunc({getExp(exp.Arguments[0])}, 0)";
 			}
-			throw new Exception($"PostgreSQLExpression 未现实函数表达式 {exp} 解析");
+			throw new Exception($"PostgreSQLExpression 未实现函数表达式 {exp} 解析");
 		}
 		internal override string ExpressionLambdaToSqlCallDateTime(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName) {
 			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
@@ -353,7 +353,7 @@ namespace FreeSql.PostgreSQL {
 					case "ToString": return $"to_char({left}, 'YYYY-MM-DD HH24:MI:SS.US')";
 				}
 			}
-			throw new Exception($"PostgreSQLExpression 未现实函数表达式 {exp} 解析");
+			throw new Exception($"PostgreSQLExpression 未实现函数表达式 {exp} 解析");
 		}
 		internal override string ExpressionLambdaToSqlCallTimeSpan(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName) {
 			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
@@ -383,7 +383,7 @@ namespace FreeSql.PostgreSQL {
 					case "ToString": return $"({left})::varchar";
 				}
 			}
-			throw new Exception($"PostgreSQLExpression 未现实函数表达式 {exp} 解析");
+			throw new Exception($"PostgreSQLExpression 未实现函数表达式 {exp} 解析");
 		}
 		internal override string ExpressionLambdaToSqlCallConvert(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName) {
 			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
@@ -406,7 +406,7 @@ namespace FreeSql.PostgreSQL {
 					case "ToUInt64": return $"({getExp(exp.Arguments[0])})::int8";
 				}
 			}
-			throw new Exception($"PostgreSQLExpression 未现实函数表达式 {exp} 解析");
+			throw new Exception($"PostgreSQLExpression 未实现函数表达式 {exp} 解析");
 		}
 	}
 }

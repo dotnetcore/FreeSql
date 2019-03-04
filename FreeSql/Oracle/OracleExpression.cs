@@ -187,7 +187,7 @@ namespace FreeSql.Oracle {
 					case "Equals": return $"({left} = {getExp(exp.Arguments[0])})";
 				}
 			}
-			throw new Exception($"OracleExpression 未现实函数表达式 {exp} 解析");
+			throw new Exception($"OracleExpression 未实现函数表达式 {exp} 解析");
 		}
 		internal override string ExpressionLambdaToSqlCallMath(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName) {
 			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
@@ -214,7 +214,7 @@ namespace FreeSql.Oracle {
 				//case "Atan2": return $"atan2({getExp(exp.Arguments[0])}, {getExp(exp.Arguments[1])})";
 				case "Truncate": return $"trunc({getExp(exp.Arguments[0])}, 0)";
 			}
-			throw new Exception($"OracleExpression 未现实函数表达式 {exp} 解析");
+			throw new Exception($"OracleExpression 未实现函数表达式 {exp} 解析");
 		}
 		internal override string ExpressionLambdaToSqlCallDateTime(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName) {
 			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
@@ -257,7 +257,7 @@ namespace FreeSql.Oracle {
 					case "ToString": return $"to_char({left},'YYYY-MM-DD HH24:MI:SS.FF6')";
 				}
 			}
-			throw new Exception($"OracleExpression 未现实函数表达式 {exp} 解析");
+			throw new Exception($"OracleExpression 未实现函数表达式 {exp} 解析");
 		}
 		internal override string ExpressionLambdaToSqlCallTimeSpan(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName) {
 			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
@@ -287,7 +287,7 @@ namespace FreeSql.Oracle {
 					case "ToString": return $"to_char({left})";
 				}
 			}
-			throw new Exception($"OracleExpression 未现实函数表达式 {exp} 解析");
+			throw new Exception($"OracleExpression 未实现函数表达式 {exp} 解析");
 		}
 		internal override string ExpressionLambdaToSqlCallConvert(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName) {
 			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
@@ -310,7 +310,7 @@ namespace FreeSql.Oracle {
 					case "ToUInt64": return $"cast({getExp(exp.Arguments[0])} as number)";
 				}
 			}
-			throw new Exception($"OracleExpression 未现实函数表达式 {exp} 解析");
+			throw new Exception($"OracleExpression 未实现函数表达式 {exp} 解析");
 		}
 	}
 }

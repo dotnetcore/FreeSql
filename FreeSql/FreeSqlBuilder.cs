@@ -22,7 +22,7 @@ namespace FreeSql {
 		/// <summary>
 		/// 使用缓存，不指定默认使用内存
 		/// </summary>
-		/// <param name="cache">缓存现实</param>
+		/// <param name="cache">缓存实现</param>
 		/// <returns></returns>
 		public FreeSqlBuilder UseCache(IDistributedCache cache) {
 			_cache = cache;

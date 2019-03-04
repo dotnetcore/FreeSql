@@ -5,7 +5,7 @@
     <Version>0.0.12</Version>
     <Authors>FreeSql</Authors>
     <Product>FreeSql</Product>
-    <Description>FreeSql ICodeFirst 扩展库，现实从 EFCore FluentAPI/Attribute 读取，从而做到无缝接入已使用 EFCore 项目开发。</Description>
+    <Description>FreeSql ICodeFirst 扩展库，实现从 EFCore FluentAPI/Attribute 读取，从而做到无缝接入已使用 EFCore 项目开发。</Description>
     <PackageProjectUrl>https://github.com/2881099/FreeSql</PackageProjectUrl>
     <RepositoryUrl>https://github.com/2881099/FreeSql</RepositoryUrl>
   </PropertyGroup>

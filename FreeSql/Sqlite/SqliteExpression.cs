@@ -192,7 +192,7 @@ namespace FreeSql.Sqlite {
 					case "Equals": return $"({left} = {getExp(exp.Arguments[0])})";
 				}
 			}
-			throw new Exception($"SqliteExpression 未现实函数表达式 {exp} 解析");
+			throw new Exception($"SqliteExpression 未实现函数表达式 {exp} 解析");
 		}
 		internal override string ExpressionLambdaToSqlCallMath(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName) {
 			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
@@ -218,7 +218,7 @@ namespace FreeSql.Sqlite {
 				case "Atan2": return $"atan2({getExp(exp.Arguments[0])}, {getExp(exp.Arguments[1])})";
 				//case "Truncate": return $"truncate({getExp(exp.Arguments[0])}, 0)";
 			}
-			throw new Exception($"SqliteExpression 未现实函数表达式 {exp} 解析");
+			throw new Exception($"SqliteExpression 未实现函数表达式 {exp} 解析");
 		}
 		internal override string ExpressionLambdaToSqlCallDateTime(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName) {
 			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
@@ -261,7 +261,7 @@ namespace FreeSql.Sqlite {
 					case "ToString": return $"strftime('%Y-%m-%d %H:%M.%f',{left})";
 				}
 			}
-			throw new Exception($"SqliteExpression 未现实函数表达式 {exp} 解析");
+			throw new Exception($"SqliteExpression 未实现函数表达式 {exp} 解析");
 		}
 		internal override string ExpressionLambdaToSqlCallTimeSpan(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName) {
 			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
@@ -291,7 +291,7 @@ namespace FreeSql.Sqlite {
 					case "ToString": return $"cast({left} as character)";
 				}
 			}
-			throw new Exception($"SqliteExpression 未现实函数表达式 {exp} 解析");
+			throw new Exception($"SqliteExpression 未实现函数表达式 {exp} 解析");
 		}
 		internal override string ExpressionLambdaToSqlCallConvert(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName) {
 			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
@@ -314,7 +314,7 @@ namespace FreeSql.Sqlite {
 					case "ToUInt64": return $"cast({getExp(exp.Arguments[0])} as decimal(21,0))";
 				}
 			}
-			throw new Exception($"SqliteExpression 未现实函数表达式 {exp} 解析");
+			throw new Exception($"SqliteExpression 未实现函数表达式 {exp} 解析");
 		}
 	}
 }

@@ -169,7 +169,7 @@ namespace FreeSql.SqlServer {
 					case "Equals": return $"({left} = {getExp(exp.Arguments[0])})";
 				}
 			}
-			throw new Exception($"SqlServerExpression 未现实函数表达式 {exp} 解析");
+			throw new Exception($"SqlServerExpression 未实现函数表达式 {exp} 解析");
 		}
 		internal override string ExpressionLambdaToSqlCallMath(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName) {
 			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
@@ -195,7 +195,7 @@ namespace FreeSql.SqlServer {
 				case "Atan2": return $"atan2({getExp(exp.Arguments[0])}, {getExp(exp.Arguments[1])})";
 				case "Truncate": return $"floor({getExp(exp.Arguments[0])})";
 			}
-			throw new Exception($"SqlServerExpression 未现实函数表达式 {exp} 解析");
+			throw new Exception($"SqlServerExpression 未实现函数表达式 {exp} 解析");
 		}
 		internal override string ExpressionLambdaToSqlCallDateTime(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName) {
 			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
@@ -238,7 +238,7 @@ namespace FreeSql.SqlServer {
 					case "ToString": return $"convert(varchar, {left}, 121)";
 				}
 			}
-			throw new Exception($"SqlServerExpression 未现实函数表达式 {exp} 解析");
+			throw new Exception($"SqlServerExpression 未实现函数表达式 {exp} 解析");
 		}
 		internal override string ExpressionLambdaToSqlCallTimeSpan(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName) {
 			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
@@ -268,7 +268,7 @@ namespace FreeSql.SqlServer {
 					case "ToString": return $"cast({left} as varchar)";
 				}
 			}
-			throw new Exception($"SqlServerExpression 未现实函数表达式 {exp} 解析");
+			throw new Exception($"SqlServerExpression 未实现函数表达式 {exp} 解析");
 		}
 		internal override string ExpressionLambdaToSqlCallConvert(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName) {
 			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
@@ -291,7 +291,7 @@ namespace FreeSql.SqlServer {
 					case "ToUInt64": return $"cast({getExp(exp.Arguments[0])} as bigint)";
 				}
 			}
-			throw new Exception($"SqlServerExpression 未现实函数表达式 {exp} 解析");
+			throw new Exception($"SqlServerExpression 未实现函数表达式 {exp} 解析");
 		}
 	}
 }

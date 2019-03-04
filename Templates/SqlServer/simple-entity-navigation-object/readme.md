@@ -18,7 +18,7 @@ var mysql = new FreeSql.FreeSqlBuilder()
     .UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=10")
     .Build();
 
-//创建模板生成类现实
+//创建模板生成类实现
 var gen = new FreeSql.Generator.TemplateGenerator();
 gen.Build(mysql.DbFirst, 
     @"C:\Users\28810\Desktop\github\FreeSql\Templates\MySql\simple-entity",  //模板目录（事先下载）
