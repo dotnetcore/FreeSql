@@ -1,5 +1,10 @@
 FreeSql是一个功能强大的NETStandard库，用于对象关系映射程序(O/RM)，以便于开发人员能够使用 .NETStandard 对象来处理数据库，不必经常编写大部分数据访问代码。
 
+| Package Name |  NuGet | Downloads | |
+|--------------|  ------- |  ---- | -- |
+| FreeSql | [![nuget](https://img.shields.io/nuget/v/FreeSql.svg?style=flat-square)](https://www.nuget.org/packages/FreeSql) | [![stats](https://img.shields.io/nuget/dt/FreeSql.svg?style=flat-square)](https://www.nuget.org/stats/packages/FreeSql?groupby=Version) |
+| FreeSql.Repository | [![nuget](https://img.shields.io/nuget/v/FreeSql.Repository.svg?style=flat-square)](https://www.nuget.org/packages/FreeSql.Repository) | [![stats](https://img.shields.io/nuget/dt/FreeSql.Repository.svg?style=flat-square)](https://www.nuget.org/stats/packages/FreeSql.Repository?groupby=Version) | [Wiki](https://github.com/2881099/FreeSql/wiki/Repository) |
+
 ## 特性
 
 - [x] CodeFirst 迁移。
