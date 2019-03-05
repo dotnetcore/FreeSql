@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace repository_01.Repositorys {
 	public class SongRepository : BaseRepository<Song, int> {
-		public SongRepository(IFreeSql fsql) : base(fsql) {
+		public SongRepository(IFreeSql fsql) : base(fsql, null) {
 		}
 	}
 }
