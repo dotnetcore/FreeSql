@@ -7,15 +7,15 @@ FreeSql是一个功能强大的NETStandard库，用于对象关系映射程序(O
 
 ## 特性
 
-- [x] CodeFirst 迁移。
-- [x] DbFirst 从数据库导入实体类，支持三种模板生成器。
-- [x] 采用 ExpressionTree 高性能读取数据。
-- [x] 类型映射深入支持，比如pgsql的数组类型，堪称匠心制作。
-- [x] 支持丰富的表达式函数。
-- [x] 支持导航属性查询，和延时加载。
-- [x] 支持同步/异步数据库操作方法，丰富多彩的链式查询方法。
-- [x] 支持事务。
-- [x] 支持多种数据库，MySql/SqlServer/PostgreSQL/Oracle/Sqlite。
+- [x] 支持 CodeFirst 迁移；
+- [x] 支持 DbFirst 从数据库导入实体类，支持三种模板生成器；
+- [x] 采用 ExpressionTree 高性能读取数据；
+- [x] 支持深入的类型映射，比如pgsql的数组类型，堪称匠心制作；
+- [x] 支持丰富的表达式函数；
+- [x] 支持导航属性查询，和延时加载；
+- [x] 支持同步/异步数据库操作方法，丰富多彩的链式查询方法；
+- [x] 支持读写分离、分表分库；
+- [x] 支持多种数据库，MySql/SqlServer/PostgreSQL/Oracle/Sqlite；
 
 [《Select查询数据文档》](https://github.com/2881099/FreeSql/wiki/%e6%9f%a5%e8%af%a2) | [《Update更新数据文档》](https://github.com/2881099/FreeSql/wiki/%e4%bf%ae%e6%94%b9) | [《Insert插入数据文档》](https://github.com/2881099/FreeSql/wiki/%e6%b7%bb%e5%8a%a0) | [《Delete删除数据文档》](https://github.com/2881099/FreeSql/wiki/%e5%88%a0%e9%99%a4)
 

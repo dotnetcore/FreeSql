@@ -33,12 +33,13 @@ public static class IFreeSqlExtenssions {
 	/// <typeparam name="TEntity"></typeparam>
 	/// <param name="that"></param>
 	/// <param name="filter">数据过滤 + 验证</param>
+	/// <param name="asTable">分表规则，参数：旧表名；返回：新表名 https://github.com/2881099/FreeSql/wiki/Repository</param>
 	/// <returns></returns>
-	public static GuidRepository<TEntity> GetGuidRepository<TEntity>(this IFreeSql that, Expression<Func<TEntity, bool>> filter = null) where TEntity : class {
+	public static GuidRepository<TEntity> GetGuidRepository<TEntity>(this IFreeSql that, Expression<Func<TEntity, bool>> filter = null, Func<string, string> asTable = null) where TEntity : class {
 
-		if (filter != null) return new GuidRepository<TEntity>(that, filter);
+		if (filter != null || asTable != null) return new GuidRepository<TEntity>(that, filter, asTable);
 		return dicGetGuidRepository
-			.GetOrAdd(typeof(TEntity), key1 => new GuidRepository<TEntity>(that, filter)) as GuidRepository<TEntity>;
+			.GetOrAdd(typeof(TEntity), key1 => new GuidRepository<TEntity>(that, null, null)) as GuidRepository<TEntity>;
 	}
 	static ConcurrentDictionary<Type, IRepository> dicGetGuidRepository = new ConcurrentDictionary<Type, IRepository>();
 }

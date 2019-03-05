@@ -9,7 +9,7 @@ namespace FreeSql {
 		BaseRepository<TEntity, TKey>
 		where TEntity : class {
 
-		public DefaultRepository(IFreeSql fsql, Expression<Func<TEntity, bool>> filter) : base(fsql, filter) {
+		public DefaultRepository(IFreeSql fsql, Expression<Func<TEntity, bool>> filter) : base(fsql, filter, null) {
 		}
 	}
 }

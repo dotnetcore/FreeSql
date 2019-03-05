@@ -19,7 +19,7 @@ namespace FreeSql.Internal.CommonProvider {
 		protected StringBuilder _where = new StringBuilder();
 		protected List<DbParameter> _params = new List<DbParameter>();
 		internal List<SelectTableInfo> _tables = new List<SelectTableInfo>();
-		protected Func<Type, string, string> _tableRule;
+		protected List<Func<Type, string, string>> _tableRules = new List<Func<Type, string, string>>();
 		protected StringBuilder _join = new StringBuilder();
 		protected (int seconds, string key) _cache = (0, null);
 		protected IFreeSql _orm;
@@ -38,7 +38,7 @@ namespace FreeSql.Internal.CommonProvider {
 			toType.GetField("_where", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, new StringBuilder().Append(from._where.ToString()));
 			toType.GetField("_params", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, new List<DbParameter>(from._params.ToArray()));
 			toType.GetField("_tables", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, new List<SelectTableInfo>(from._tables.ToArray()));
-			toType.GetField("_tableRule", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._tableRule);
+			toType.GetField("_tableRules", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._tableRules);
 			toType.GetField("_join", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, new StringBuilder().Append(from._join.ToString()));
 			toType.GetField("_cache", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._cache);
 			//toType.GetField("_orm", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._orm);
@@ -403,8 +403,16 @@ namespace FreeSql.Internal.CommonProvider {
 			return (map, field.ToString());
 		}
 
+		protected string TableRuleInvoke(Type type, string oldname) {
+			for (var a = _tableRules.Count - 1; a >= 0; a--) {
+				var newname = _tableRules[a]?.Invoke(type, oldname);
+				if (!string.IsNullOrEmpty(newname)) return newname;
+			}
+			return oldname;
+		}
+
 		public TSelect AsTable(Func<Type, string, string> tableRule) {
-			_tableRule = tableRule;
+			if (tableRule != null) _tableRules.Add(tableRule);
 			return this as TSelect;
 		}
 		public abstract string ToSql(string field = null);
