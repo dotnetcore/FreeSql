@@ -17,6 +17,7 @@ namespace FreeSql.Internal.CommonProvider {
 		protected List<T1> _source = new List<T1>();
 		protected Dictionary<string, bool> _ignore = new Dictionary<string, bool>(StringComparer.CurrentCultureIgnoreCase);
 		protected TableInfo _table;
+		protected Func<string, string> _tableRule;
 		protected DbParameter[] _params;
 
 		public InsertProvider(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression) {
@@ -58,10 +59,14 @@ namespace FreeSql.Internal.CommonProvider {
 			return this;
 		}
 
+		public IInsert<T1> AsTable(Func<string, string> tableRule) {
+			_tableRule = tableRule;
+			return this;
+		}
 		public virtual string ToSql() {
 			if (_source == null || _source.Any() == false) return null;
 			var sb = new StringBuilder();
-			sb.Append("INSERT INTO ").Append(_commonUtils.QuoteSqlName(_table.DbName)).Append("(");
+			sb.Append("INSERT INTO ").Append(_commonUtils.QuoteSqlName(_tableRule?.Invoke(_table.DbName) ?? _table.DbName)).Append("(");
 			var colidx = 0;
 			foreach (var col in _table.Columns.Values)
 				if (col.Attribute.IsIdentity == false && _ignore.ContainsKey(col.Attribute.Name) == false) {

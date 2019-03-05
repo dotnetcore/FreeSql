@@ -103,5 +103,14 @@ namespace FreeSql.Tests.Oracle {
 		public void ExecuteUpdated() {
 
 		}
+
+		[Fact]
+		public void AsTable() {
+			Assert.Null(g.oracle.Update<Topic>().ToSql());
+			Assert.Equal("UPDATE \"tb_topicAsTable\" SET title='test' \r\nWHERE (\"ID\" = 1 OR \"ID\" = 2)", g.oracle.Update<Topic>(new[] { 1, 2 }).SetRaw("title='test'").AsTable(a => "tb_topicAsTable").ToSql());
+			Assert.Equal("UPDATE \"tb_topicAsTable\" SET title='test1' \r\nWHERE (\"ID\" = 1)", g.oracle.Update<Topic>(new Topic { Id = 1, Title = "test" }).SetRaw("title='test1'").AsTable(a => "tb_topicAsTable").ToSql());
+			Assert.Equal("UPDATE \"tb_topicAsTable\" SET title='test1' \r\nWHERE (\"ID\" = 1 OR \"ID\" = 2)", g.oracle.Update<Topic>(new[] { new Topic { Id = 1, Title = "test" }, new Topic { Id = 2, Title = "test" } }).SetRaw("title='test1'").AsTable(a => "tb_topicAsTable").ToSql());
+			Assert.Equal("UPDATE \"tb_topicAsTable\" SET title='test1' \r\nWHERE (\"ID\" = 1)", g.oracle.Update<Topic>(new { id = 1 }).SetRaw("title='test1'").AsTable(a => "tb_topicAsTable").ToSql());
+		}
 	}
 }

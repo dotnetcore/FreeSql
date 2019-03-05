@@ -17,6 +17,7 @@ namespace FreeSql.Internal.CommonProvider {
 		protected List<T1> _source = new List<T1>();
 		protected Dictionary<string, bool> _ignore = new Dictionary<string, bool>(StringComparer.CurrentCultureIgnoreCase);
 		protected TableInfo _table;
+		protected Func<string, string> _tableRule;
 		protected StringBuilder _where = new StringBuilder();
 		protected StringBuilder _set = new StringBuilder();
 		protected List<DbParameter> _params = new List<DbParameter>();
@@ -105,11 +106,15 @@ namespace FreeSql.Internal.CommonProvider {
 		protected abstract void ToSqlCase(StringBuilder caseWhen, ColumnInfo[] primarys);
 		protected abstract void ToSqlWhen(StringBuilder sb, ColumnInfo[] primarys, object d);
 
+		public IUpdate<T1> AsTable(Func<string, string> tableRule) {
+			_tableRule = tableRule;
+			return this;
+		}
 		public string ToSql() {
 			if (_where.Length == 0) return null;
 
 			var sb = new StringBuilder();
-			sb.Append("UPDATE ").Append(_commonUtils.QuoteSqlName(_table.DbName)).Append(" SET ");
+			sb.Append("UPDATE ").Append(_commonUtils.QuoteSqlName(_tableRule?.Invoke(_table.DbName) ?? _table.DbName)).Append(" SET ");
 
 			if (_set.Length > 0) { //指定 set 更新
 				sb.Append(_set.ToString().Substring(2));

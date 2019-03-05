@@ -25,7 +25,7 @@ namespace FreeSql.Oracle.Curd {
 			_identCol = null;
 			var sbtb = new StringBuilder();
 			sbtb.Append("INTO ");
-			sbtb.Append(_commonUtils.QuoteSqlName(_table.DbName)).Append("(");
+			sbtb.Append(_commonUtils.QuoteSqlName(_tableRule?.Invoke(_table.DbName) ?? _table.DbName)).Append("(");
 			var colidx = 0;
 			foreach (var col in _table.Columns.Values) {
 				if (col.Attribute.IsIdentity == true) {
@@ -112,7 +112,7 @@ namespace FreeSql.Oracle.Curd {
 //			var colidx = 0;
 //			foreach (var col in _table.Columns.Values) {
 //				if (colidx > 0) sb.Append(", ");
-//				sb.Append(_commonUtils.QuoteSqlName(col.CsName)).Append(" ").Append(_commonUtils.QuoteSqlName(_table.DbName)).Append(".").Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append("%type");
+//				sb.Append(_commonUtils.QuoteSqlName(col.CsName)).Append(" ").Append(_commonUtils.QuoteSqlName(_tableRule?.Invoke(_table.DbName) ?? _table.DbName))).Append(".").Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append("%type");
 //				++colidx;
 //			}
 //			sb.Append(@");

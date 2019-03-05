@@ -69,5 +69,21 @@ namespace FreeSql.Tests.SqlServer {
 			var item = g.sqlserver.Insert<Topic>(new Topic { Title = "xxxx", CreateTime = DateTime.Now }).ExecuteInserted();
 			Assert.Equal(item[0].Id, delete.Where(a => a.Id == item[0].Id).ExecuteDeleted()[0].Id);
 		}
+
+		[Fact]
+		public void AsTable() {
+			Assert.Null(g.sqlserver.Delete<Topic>().ToSql());
+			var sql = g.sqlserver.Delete<Topic>(new[] { 1, 2 }).AsTable(a => "tb_topic22211AsTable").ToSql();
+			Assert.Equal("DELETE FROM [tb_topic22211AsTable] WHERE ([Id] = 1 OR [Id] = 2)", sql);
+
+			sql = g.sqlserver.Delete<Topic>(new Topic { Id = 1, Title = "test" }).AsTable(a => "tb_topic22211AsTable").ToSql();
+			Assert.Equal("DELETE FROM [tb_topic22211AsTable] WHERE ([Id] = 1)", sql);
+
+			sql = g.sqlserver.Delete<Topic>(new[] { new Topic { Id = 1, Title = "test" }, new Topic { Id = 2, Title = "test" } }).AsTable(a => "tb_topic22211AsTable").ToSql();
+			Assert.Equal("DELETE FROM [tb_topic22211AsTable] WHERE ([Id] = 1 OR [Id] = 2)", sql);
+
+			sql = g.sqlserver.Delete<Topic>(new { id = 1 }).AsTable(a => "tb_topic22211AsTable").ToSql();
+			Assert.Equal("DELETE FROM [tb_topic22211AsTable] WHERE ([Id] = 1)", sql);
+		}
 	}
 }

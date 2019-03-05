@@ -27,7 +27,7 @@ namespace FreeSql.Tests.OracleExpression {
 			public string Name { get; set; }
 			public DateTime Time { get; set; }
 		}
-		[Table(Name = "TestTypeParentInfo23123")]
+		[Table(Name = "TestTypeParentInf1")]
 		class TestTypeParentInfo {
 			public int Id { get; set; }
 			public string Name { get; set; }

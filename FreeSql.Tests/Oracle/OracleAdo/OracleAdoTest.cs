@@ -33,11 +33,12 @@ namespace FreeSql.Tests.Oracle {
 
 		[Fact]
 		public void Query() {
-			var t3 = g.oracle.Ado.Query<xxx>("select * from \"song\"");
 
-			var t4 = g.oracle.Ado.Query<(int, string, string)>("select * from \"song\"");
+			var t3 = g.oracle.Ado.Query<xxx>("select * from \"TB_TOPIC\"");
 
-			var t5 = g.oracle.Ado.Query<dynamic>("select * from \"song\"");
+			var t4 = g.oracle.Ado.Query<(int, string, string)>("select * from \"TB_TOPIC\"");
+
+			var t5 = g.oracle.Ado.Query<dynamic>("select * from \"TB_TOPIC\"");
 		}
 
 		class xxx {

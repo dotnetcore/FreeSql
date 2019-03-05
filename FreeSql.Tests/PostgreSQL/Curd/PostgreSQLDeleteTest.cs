@@ -68,5 +68,21 @@ namespace FreeSql.Tests.PostgreSQL {
 
 			delete.Where(a => a.Id > 0).ExecuteDeleted();
 		}
+
+		[Fact]
+		public void AsTable() {
+			Assert.Null(g.pgsql.Delete<Topic>().ToSql());
+			var sql = g.pgsql.Delete<Topic>(new[] { 1, 2 }).AsTable(a => "TopicAsTable").ToSql();
+			Assert.Equal("DELETE FROM \"TopicAsTable\" WHERE (\"id\" = 1 OR \"id\" = 2)", sql);
+
+			sql = g.pgsql.Delete<Topic>(new Topic { Id = 1, Title = "test" }).AsTable(a => "TopicAsTable").ToSql();
+			Assert.Equal("DELETE FROM \"TopicAsTable\" WHERE (\"id\" = 1)", sql);
+
+			sql = g.pgsql.Delete<Topic>(new[] { new Topic { Id = 1, Title = "test" }, new Topic { Id = 2, Title = "test" } }).AsTable(a => "TopicAsTable").ToSql();
+			Assert.Equal("DELETE FROM \"TopicAsTable\" WHERE (\"id\" = 1 OR \"id\" = 2)", sql);
+
+			sql = g.pgsql.Delete<Topic>(new { id = 1 }).AsTable(a => "TopicAsTable").ToSql();
+			Assert.Equal("DELETE FROM \"TopicAsTable\" WHERE (\"id\" = 1)", sql);
+		}
 	}
 }

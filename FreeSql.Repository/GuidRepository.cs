@@ -32,5 +32,9 @@ namespace FreeSql {
 			await _fsql.Insert<TEntity>().AppendData(entity).ExecuteAffrowsAsync();
 			return entity;
 		}
+
+		public virtual string ToDataTable(TEntity entity) {
+			return null;
+		}
 	}
 }

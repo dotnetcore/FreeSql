@@ -13,7 +13,7 @@ namespace FreeSql.Tests.DataAnnotations {
 				//})
 
 				.ConfigEntity(typeof(TestFluenttb1), a => {
-					a.Name("xxdkdkdk1222").SelectFilter("a.Id22 > 1");
+					a.Name("xxdkdkdk1222").SelectFilter("a.Id22dd > 1");
 					a.Property("Id").Name("Id22dd").IsIdentity(true);
 					a.Property("Name").DbType("varchar(101)").IsNullable(true);
 				})

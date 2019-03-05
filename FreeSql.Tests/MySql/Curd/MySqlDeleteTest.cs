@@ -68,5 +68,21 @@ namespace FreeSql.Tests.MySql {
 
 			//delete.Where(a => a.Id > 0).ExecuteDeleted();
 		}
+
+		[Fact]
+		public void AsTable() {
+			Assert.Null(g.mysql.Delete<Topic>().ToSql());
+			var sql = g.mysql.Delete<Topic>(new[] { 1, 2 }).AsTable(a => "TopicAsTable").ToSql();
+			Assert.Equal("DELETE FROM `TopicAsTable` WHERE (`Id` = 1 OR `Id` = 2)", sql);
+
+			sql = g.mysql.Delete<Topic>(new Topic { Id = 1, Title = "test" }).AsTable(a => "TopicAsTable").ToSql();
+			Assert.Equal("DELETE FROM `TopicAsTable` WHERE (`Id` = 1)", sql);
+
+			sql = g.mysql.Delete<Topic>(new[] { new Topic { Id = 1, Title = "test" }, new Topic { Id = 2, Title = "test" } }).AsTable(a => "TopicAsTable").ToSql();
+			Assert.Equal("DELETE FROM `TopicAsTable` WHERE (`Id` = 1 OR `Id` = 2)", sql);
+
+			sql = g.mysql.Delete<Topic>(new { id = 1 }).AsTable(a => "TopicAsTable").ToSql();
+			Assert.Equal("DELETE FROM `TopicAsTable` WHERE (`Id` = 1)", sql);
+		}
 	}
 }

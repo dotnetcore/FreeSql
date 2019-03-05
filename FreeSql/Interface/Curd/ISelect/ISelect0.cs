@@ -36,6 +36,12 @@ namespace FreeSql {
 		Task<T1> FirstAsync();
 
 		/// <summary>
+		/// 设置表名规则，可用于分库/分表，参数1：实体类型；参数2：默认表名；返回值：新表名；
+		/// </summary>
+		/// <param name="dataTable"></param>
+		/// <returns></returns>
+		TSelect AsTable(Func<Type, string, string> tableRule);
+		/// <summary>
 		/// 返回即将执行的SQL语句
 		/// </summary>
 		/// <param name="field">指定字段</param>

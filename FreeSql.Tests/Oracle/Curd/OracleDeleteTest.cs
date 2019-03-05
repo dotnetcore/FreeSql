@@ -69,5 +69,21 @@ namespace FreeSql.Tests.Oracle {
 			//var item = g.oracle.Insert<Topic>(new Topic { Title = "xxxx", CreateTime = DateTime.Now }).ExecuteInserted();
 			//Assert.Equal(item[0].Id, delete.Where(a => a.Id == item[0].Id).ExecuteDeleted()[0].Id);
 		}
+
+		[Fact]
+		public void AsTable() {
+			Assert.Null(g.oracle.Delete<Topic>().ToSql());
+			var sql = g.oracle.Delete<Topic>(new[] { 1, 2 }).AsTable(a => "TopicAsTable").ToSql();
+			Assert.Equal("DELETE FROM \"TopicAsTable\" WHERE (\"ID\" = 1 OR \"ID\" = 2)", sql);
+
+			sql = g.oracle.Delete<Topic>(new Topic { Id = 1, Title = "test" }).AsTable(a => "TopicAsTable").ToSql();
+			Assert.Equal("DELETE FROM \"TopicAsTable\" WHERE (\"ID\" = 1)", sql);
+
+			sql = g.oracle.Delete<Topic>(new[] { new Topic { Id = 1, Title = "test" }, new Topic { Id = 2, Title = "test" } }).AsTable(a => "TopicAsTable").ToSql();
+			Assert.Equal("DELETE FROM \"TopicAsTable\" WHERE (\"ID\" = 1 OR \"ID\" = 2)", sql);
+
+			sql = g.oracle.Delete<Topic>(new { id = 1 }).AsTable(a => "TopicAsTable").ToSql();
+			Assert.Equal("DELETE FROM \"TopicAsTable\" WHERE (\"ID\" = 1)", sql);
+		}
 	}
 }

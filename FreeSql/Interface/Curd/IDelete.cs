@@ -40,6 +40,12 @@ namespace FreeSql {
 		IDelete<T1> WhereExists<TEntity2>(ISelect<TEntity2> select, bool notExists = false) where TEntity2 : class;
 
 		/// <summary>
+		/// 设置表名规则，可用于分库/分表，参数1：默认表名；返回值：新表名；
+		/// </summary>
+		/// <param name="dataTable"></param>
+		/// <returns></returns>
+		IDelete<T1> AsTable(Func<string, string> tableRule);
+		/// <summary>
 		/// 返回即将执行的SQL语句
 		/// </summary>
 		/// <returns></returns>

@@ -19,6 +19,7 @@ namespace FreeSql.Internal.CommonProvider {
 		protected StringBuilder _where = new StringBuilder();
 		protected List<DbParameter> _params = new List<DbParameter>();
 		internal List<SelectTableInfo> _tables = new List<SelectTableInfo>();
+		protected Func<Type, string, string> _tableRule;
 		protected StringBuilder _join = new StringBuilder();
 		protected (int seconds, string key) _cache = (0, null);
 		protected IFreeSql _orm;
@@ -31,9 +32,13 @@ namespace FreeSql.Internal.CommonProvider {
 			toType.GetField("_limit", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._limit);
 			toType.GetField("_skip", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._skip);
 			toType.GetField("_select", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._select);
+			toType.GetField("_orderby", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._orderby);
+			toType.GetField("_groupby", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._groupby);
+			toType.GetField("_having", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._having);
 			toType.GetField("_where", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, new StringBuilder().Append(from._where.ToString()));
 			toType.GetField("_params", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, new List<DbParameter>(from._params.ToArray()));
 			toType.GetField("_tables", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, new List<SelectTableInfo>(from._tables.ToArray()));
+			toType.GetField("_tableRule", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._tableRule);
 			toType.GetField("_join", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, new StringBuilder().Append(from._join.ToString()));
 			toType.GetField("_cache", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._cache);
 			//toType.GetField("_orm", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._orm);
@@ -396,6 +401,11 @@ namespace FreeSql.Internal.CommonProvider {
 				map.Childs.Add(child);
 			}
 			return (map, field.ToString());
+		}
+
+		public TSelect AsTable(Func<Type, string, string> tableRule) {
+			_tableRule = tableRule;
+			return this as TSelect;
 		}
 		public abstract string ToSql(string field = null);
 

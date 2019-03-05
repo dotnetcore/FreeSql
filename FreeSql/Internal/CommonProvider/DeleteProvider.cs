@@ -15,6 +15,7 @@ namespace FreeSql.Internal.CommonProvider {
 		protected CommonExpression _commonExpression;
 		protected List<T1> _source = new List<T1>();
 		protected TableInfo _table;
+		protected Func<string, string> _tableRule;
 		protected StringBuilder _where = new StringBuilder();
 		protected int _whereTimes = 0;
 		protected List<DbParameter> _params = new List<DbParameter>();
@@ -24,7 +25,6 @@ namespace FreeSql.Internal.CommonProvider {
 			_commonUtils = commonUtils;
 			_commonExpression = commonExpression;
 			_table = _commonUtils.GetTableByEntity(typeof(T1));
-			_where.Append("DELETE FROM ").Append(_commonUtils.QuoteSqlName(_table.DbName)).Append(" WHERE ");
 			this.Where(_commonUtils.WhereObject(_table, "", dywhere));
 			if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure<T1>();
 		}
@@ -54,6 +54,10 @@ namespace FreeSql.Internal.CommonProvider {
 		public IDelete<T1> Where(IEnumerable<T1> items) => this.Where(_commonUtils.WhereItems(_table, "", items));
 		public IDelete<T1> WhereExists<TEntity2>(ISelect<TEntity2> select, bool notExists = false) where TEntity2 : class => this.Where($"{(notExists ? "NOT " : "")}EXISTS({select.ToSql("1")})");
 
-		public string ToSql() => _whereTimes <= 0 ? null : _where.ToString();
+		public IDelete<T1> AsTable(Func<string, string> tableRule) {
+			_tableRule = tableRule;
+			return this;
+		}
+		public string ToSql() => _whereTimes <= 0 ? null : new StringBuilder().Append("DELETE FROM ").Append(_commonUtils.QuoteSqlName(_tableRule?.Invoke(_table.DbName) ?? _table.DbName)).Append(" WHERE ").Append(_where).ToString();
 	}
 }

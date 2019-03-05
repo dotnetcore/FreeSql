@@ -642,5 +642,69 @@ namespace FreeSql.Tests.MySql {
 		[Fact]
 		public void As() {
 		}
+
+		[Fact]
+		public void AsTable() {
+			Func<Type, string, string> tableRule = (type, oldname) => {
+				if (type == typeof(Topic)) return oldname + "AsTable1";
+				else if (type == typeof(TestTypeInfo)) return oldname + "AsTable2";
+				return oldname + "AsTable";
+			};
+
+			//����е�������a.Type��a.Type.Parent ���ǵ�������
+			var query = select.LeftJoin(a => a.Type.Guid == a.TestTypeInfoGuid).AsTable(tableRule);
+			var sql = query.ToSql().Replace("\r\n", "");
+			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TestTypeInfoGuid`, a__Type.`Guid`, a__Type.`ParentId`, a__Type.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topicAsTable1` a LEFT JOIN `TestTypeInfoAsTable2` a__Type ON a__Type.`Guid` = a.`TestTypeInfoGuid`", sql);
+
+			query = select.LeftJoin(a => a.Type.Guid == a.TestTypeInfoGuid && a.Type.Name == "xxx").AsTable(tableRule);
+			sql = query.ToSql().Replace("\r\n", "");
+			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TestTypeInfoGuid`, a__Type.`Guid`, a__Type.`ParentId`, a__Type.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topicAsTable1` a LEFT JOIN `TestTypeInfoAsTable2` a__Type ON a__Type.`Guid` = a.`TestTypeInfoGuid` AND a__Type.`Name` = 'xxx'", sql);
+
+			query = select.LeftJoin(a => a.Type.Guid == a.TestTypeInfoGuid && a.Type.Name == "xxx").Where(a => a.Type.Parent.Id == 10).AsTable(tableRule);
+			sql = query.ToSql().Replace("\r\n", "");
+			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TestTypeInfoGuid`, a__Type.`Guid`, a__Type.`ParentId`, a__Type.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topicAsTable1` a LEFT JOIN `TestTypeParentInfoAsTable` a__Type__Parent ON 1 = 1 LEFT JOIN `TestTypeInfoAsTable2` a__Type ON a__Type.`Guid` = a.`TestTypeInfoGuid` AND a__Type.`Name` = 'xxx' WHERE (a__Type__Parent.`Id` = 10)", sql);
+
+			//���û�е�������
+			query = select.LeftJoin<TestTypeInfo>((a, b) => b.Guid == a.TestTypeInfoGuid).AsTable(tableRule);
+			sql = query.ToSql().Replace("\r\n", "");
+			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TestTypeInfoGuid`, b.`Guid`, b.`ParentId`, b.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topicAsTable1` a LEFT JOIN `TestTypeInfoAsTable2` b ON b.`Guid` = a.`TestTypeInfoGuid`", sql);
+
+			query = select.LeftJoin<TestTypeInfo>((a, b) => b.Guid == a.TestTypeInfoGuid && b.Name == "xxx").AsTable(tableRule);
+			sql = query.ToSql().Replace("\r\n", "");
+			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TestTypeInfoGuid`, b.`Guid`, b.`ParentId`, b.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topicAsTable1` a LEFT JOIN `TestTypeInfoAsTable2` b ON b.`Guid` = a.`TestTypeInfoGuid` AND b.`Name` = 'xxx'", sql);
+
+			query = select.LeftJoin<TestTypeInfo>((a, b) => b.Guid == a.TestTypeInfoGuid && b.Name == "xxx").Where(a => a.Type.Parent.Id == 10).AsTable(tableRule);
+			sql = query.ToSql().Replace("\r\n", "");
+			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TestTypeInfoGuid`, b.`Guid`, b.`ParentId`, b.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topicAsTable1` a LEFT JOIN `TestTypeParentInfoAsTable` b__Parent ON 1 = 1 LEFT JOIN `TestTypeInfoAsTable2` b ON b.`Guid` = a.`TestTypeInfoGuid` AND b.`Name` = 'xxx' WHERE (b__Parent.`Id` = 10)", sql);
+
+			//�������
+			query = select
+				.LeftJoin(a => a.Type.Guid == a.TestTypeInfoGuid)
+				.LeftJoin(a => a.Type.Parent.Id == a.Type.ParentId).AsTable(tableRule);
+			sql = query.ToSql().Replace("\r\n", "");
+			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TestTypeInfoGuid`, a__Type.`Guid`, a__Type.`ParentId`, a__Type.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topicAsTable1` a LEFT JOIN `TestTypeInfoAsTable2` a__Type ON a__Type.`Guid` = a.`TestTypeInfoGuid` LEFT JOIN `TestTypeParentInfoAsTable` a__Type__Parent ON a__Type__Parent.`Id` = a__Type.`ParentId`", sql);
+
+			query = select
+				.LeftJoin<TestTypeInfo>((a, b) => b.Guid == a.TestTypeInfoGuid)
+				.LeftJoin<TestTypeParentInfo>((a, c) => c.Id == a.Type.ParentId).AsTable(tableRule);
+			sql = query.ToSql().Replace("\r\n", "");
+			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TestTypeInfoGuid`, b.`Guid`, b.`ParentId`, b.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topicAsTable1` a LEFT JOIN `TestTypeInfoAsTable2` b ON b.`Guid` = a.`TestTypeInfoGuid` LEFT JOIN `TestTypeParentInfoAsTable` c ON c.`Id` = b.`ParentId`", sql);
+
+			//���û�е�������b��c������ϵ
+			var query2 = select.From<TestTypeInfo, TestTypeParentInfo>((s, b, c) => s
+				 .LeftJoin(a => a.TestTypeInfoGuid == b.Guid)
+				 .LeftJoin(a => b.ParentId == c.Id)).AsTable(tableRule);
+			sql = query2.ToSql().Replace("\r\n", "");
+			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TestTypeInfoGuid`, b.`Guid`, b.`ParentId`, b.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topicAsTable1` a LEFT JOIN `TestTypeInfoAsTable2` b ON a.`TestTypeInfoGuid` = b.`Guid` LEFT JOIN `TestTypeParentInfoAsTable` c ON b.`ParentId` = c.`Id`", sql);
+
+			//������϶����㲻��
+			query = select.LeftJoin("TestTypeInfo b on b.Guid = a.TestTypeInfoGuid").AsTable(tableRule);
+			sql = query.ToSql().Replace("\r\n", "");
+			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TestTypeInfoGuid`, a.`Title`, a.`CreateTime` FROM `tb_topicAsTable1` a LEFT JOIN TestTypeInfo b on b.Guid = a.TestTypeInfoGuid", sql);
+
+			query = select.LeftJoin("TestTypeInfo b on b.Guid = a.TestTypeInfoGuid and b.Name = ?bname", new { bname = "xxx" }).AsTable(tableRule);
+			sql = query.ToSql().Replace("\r\n", "");
+			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TestTypeInfoGuid`, a.`Title`, a.`CreateTime` FROM `tb_topicAsTable1` a LEFT JOIN TestTypeInfo b on b.Guid = a.TestTypeInfoGuid and b.Name = ?bname", sql);
+		}
 	}
 }

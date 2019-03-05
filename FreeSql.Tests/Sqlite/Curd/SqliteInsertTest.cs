@@ -77,5 +77,35 @@ namespace FreeSql.Tests.Sqlite {
 		[Fact]
 		public void ExecuteInserted() {
 		}
+
+		[Fact]
+		public void AsTable() {
+			var items = new List<Topic>();
+			for (var a = 0; a < 10; a++) items.Add(new Topic { Id = a + 1, Title = $"newTitle{a}", Clicks = a * 100 });
+
+			var sql = insert.AppendData(items.First()).AsTable(a => "Topic_InsertAsTable").ToSql();
+			Assert.Equal("INSERT INTO \"Topic_InsertAsTable\"(\"Clicks\", \"Title\", \"CreateTime\") VALUES(@Clicks0, @Title0, @CreateTime0)", sql);
+
+			sql = insert.AppendData(items).AsTable(a => "Topic_InsertAsTable").ToSql();
+			Assert.Equal("INSERT INTO \"Topic_InsertAsTable\"(\"Clicks\", \"Title\", \"CreateTime\") VALUES(@Clicks0, @Title0, @CreateTime0), (@Clicks1, @Title1, @CreateTime1), (@Clicks2, @Title2, @CreateTime2), (@Clicks3, @Title3, @CreateTime3), (@Clicks4, @Title4, @CreateTime4), (@Clicks5, @Title5, @CreateTime5), (@Clicks6, @Title6, @CreateTime6), (@Clicks7, @Title7, @CreateTime7), (@Clicks8, @Title8, @CreateTime8), (@Clicks9, @Title9, @CreateTime9)", sql);
+
+			sql = insert.AppendData(items).InsertColumns(a => a.Title).AsTable(a => "Topic_InsertAsTable").ToSql();
+			Assert.Equal("INSERT INTO \"Topic_InsertAsTable\"(\"Title\") VALUES(@Title0), (@Title1), (@Title2), (@Title3), (@Title4), (@Title5), (@Title6), (@Title7), (@Title8), (@Title9)", sql);
+
+			sql = insert.AppendData(items).IgnoreColumns(a => a.CreateTime).AsTable(a => "Topic_InsertAsTable").ToSql();
+			Assert.Equal("INSERT INTO \"Topic_InsertAsTable\"(\"Clicks\", \"Title\") VALUES(@Clicks0, @Title0), (@Clicks1, @Title1), (@Clicks2, @Title2), (@Clicks3, @Title3), (@Clicks4, @Title4), (@Clicks5, @Title5), (@Clicks6, @Title6), (@Clicks7, @Title7), (@Clicks8, @Title8), (@Clicks9, @Title9)", sql);
+
+			sql = insert.AppendData(items).InsertColumns(a => a.Title).AsTable(a => "Topic_InsertAsTable").ToSql();
+			Assert.Equal("INSERT INTO \"Topic_InsertAsTable\"(\"Title\") VALUES(@Title0), (@Title1), (@Title2), (@Title3), (@Title4), (@Title5), (@Title6), (@Title7), (@Title8), (@Title9)", sql);
+
+			sql = insert.AppendData(items).InsertColumns(a => new { a.Title, a.Clicks }).AsTable(a => "Topic_InsertAsTable").ToSql();
+			Assert.Equal("INSERT INTO \"Topic_InsertAsTable\"(\"Clicks\", \"Title\") VALUES(@Clicks0, @Title0), (@Clicks1, @Title1), (@Clicks2, @Title2), (@Clicks3, @Title3), (@Clicks4, @Title4), (@Clicks5, @Title5), (@Clicks6, @Title6), (@Clicks7, @Title7), (@Clicks8, @Title8), (@Clicks9, @Title9)", sql);
+
+			sql = insert.AppendData(items).IgnoreColumns(a => a.CreateTime).AsTable(a => "Topic_InsertAsTable").ToSql();
+			Assert.Equal("INSERT INTO \"Topic_InsertAsTable\"(\"Clicks\", \"Title\") VALUES(@Clicks0, @Title0), (@Clicks1, @Title1), (@Clicks2, @Title2), (@Clicks3, @Title3), (@Clicks4, @Title4), (@Clicks5, @Title5), (@Clicks6, @Title6), (@Clicks7, @Title7), (@Clicks8, @Title8), (@Clicks9, @Title9)", sql);
+
+			sql = insert.AppendData(items).IgnoreColumns(a => new { a.Title, a.CreateTime }).AsTable(a => "Topic_InsertAsTable").ToSql();
+			Assert.Equal("INSERT INTO \"Topic_InsertAsTable\"(\"Clicks\") VALUES(@Clicks0), (@Clicks1), (@Clicks2), (@Clicks3), (@Clicks4), (@Clicks5), (@Clicks6), (@Clicks7), (@Clicks8), (@Clicks9)", sql);
+		}
 	}
 }
