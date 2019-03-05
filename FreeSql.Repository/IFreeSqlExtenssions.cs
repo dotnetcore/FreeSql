@@ -17,15 +17,15 @@ public static class IFreeSqlExtenssions {
 	/// <returns></returns>
 	public static DefaultRepository<TEntity, TKey> GetRepository<TEntity, TKey>(this IFreeSql that, Expression<Func<TEntity, bool>> filter = null) where TEntity : class {
 
+		if (filter != null) return new DefaultRepository<TEntity, TKey>(that, filter);
 		return dicGetRepository
-			.GetOrAdd(typeof(TEntity), key1 => new ConcurrentDictionary<Type, ConcurrentDictionary<string, IRepository>>())
-			.GetOrAdd(typeof(TKey), key2 => new ConcurrentDictionary<string, IRepository>())
-			.GetOrAdd(string.Concat(filter), key3 => new DefaultRepository<TEntity, TKey>(that, filter)) as DefaultRepository<TEntity, TKey>;
+			.GetOrAdd(typeof(TEntity), key1 => new ConcurrentDictionary<Type, IRepository>())
+			.GetOrAdd(typeof(TKey), key2 => new DefaultRepository<TEntity, TKey>(that, null)) as DefaultRepository<TEntity, TKey>;
 	}
 	static ConcurrentDictionary<Type,
 		ConcurrentDictionary<Type,
-			ConcurrentDictionary<string, IRepository>>
-		> dicGetRepository = new ConcurrentDictionary<Type, ConcurrentDictionary<Type, ConcurrentDictionary<string, IRepository>>>();
+			IRepository>
+		> dicGetRepository = new ConcurrentDictionary<Type, ConcurrentDictionary<Type, IRepository>>();
 
 	/// <summary>
 	/// 返回仓库类，适用 Insert 方法无须返回插入的数据
@@ -36,10 +36,9 @@ public static class IFreeSqlExtenssions {
 	/// <returns></returns>
 	public static GuidRepository<TEntity> GetGuidRepository<TEntity>(this IFreeSql that, Expression<Func<TEntity, bool>> filter = null) where TEntity : class {
 
+		if (filter != null) return new GuidRepository<TEntity>(that, filter);
 		return dicGetGuidRepository
-			.GetOrAdd(typeof(TEntity), key1 => new ConcurrentDictionary<string, IRepository>())
-			.GetOrAdd(string.Concat(filter), key2 => new GuidRepository<TEntity>(that, filter)) as GuidRepository<TEntity>;
+			.GetOrAdd(typeof(TEntity), key1 => new GuidRepository<TEntity>(that, filter)) as GuidRepository<TEntity>;
 	}
-	static ConcurrentDictionary<Type,
-		ConcurrentDictionary<string, IRepository>> dicGetGuidRepository = new ConcurrentDictionary<Type, ConcurrentDictionary<string, IRepository>>();
+	static ConcurrentDictionary<Type, IRepository> dicGetGuidRepository = new ConcurrentDictionary<Type, IRepository>();
 }
