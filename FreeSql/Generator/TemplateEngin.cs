@@ -548,7 +548,7 @@ return rTn;");
 			//var dlls = Directory.GetFiles(Directory.GetParent(Type.GetType("IFreeSql, FreeSql").Assembly.Location).FullName, "*.dll");
 			var compiler = new CSScriptLib.RoslynEvaluator();
 			compiler.DisableReferencingFromCode = false;
-			compiler.DebugBuild = true;
+			//compiler.DebugBuild = true;
 			//foreach (var dll in dlls) {
 			//	Console.WriteLine(dll);
 			//	var ass = Assembly.LoadFile(dll);
