@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 namespace FreeSql {
 	public interface ISelect<T1, T2, T3, T4, T5, T6> : ISelect0<ISelect<T1, T2, T3, T4, T5, T6>, T1> where T1 : class where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class {
 
+		bool Any(Expression<Func<T1, T2, T3, T4, T5, T6, bool>> exp);
+		Task<bool> AnyAsync(Expression<Func<T1, T2, T3, T4, T5, T6, bool>> exp);
+
 		List<TReturn> ToList<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, TReturn>> select);
 		Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, TReturn>> select);
 		string ToSql<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, TReturn>> select);

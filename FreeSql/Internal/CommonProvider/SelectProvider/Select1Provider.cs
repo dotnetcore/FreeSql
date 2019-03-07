@@ -117,6 +117,8 @@ namespace FreeSql.Internal.CommonProvider {
 
 		public ISelect<T1> WhereIf(bool condition, Expression<Func<T1, bool>> exp) => condition ? this.InternalWhere(exp?.Body) : this;
 
-		
+		public bool Any(Expression<Func<T1, bool>> exp) => this.Where(exp).Any();
+
+		public Task<bool> AnyAsync(Expression<Func<T1, bool>> exp) => this.Where(exp).AnyAsync();
 	}
 }

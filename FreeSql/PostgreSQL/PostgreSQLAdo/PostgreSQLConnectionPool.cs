@@ -48,7 +48,7 @@ namespace FreeSql.PostgreSQL {
 
 		internal PostgreSQLConnectionPool _pool;
 		public string Name { get; set; } = "PostgreSQL NpgsqlConnection 对象池";
-		public int PoolSize { get; set; } = 100;
+		public int PoolSize { get; set; } = 50;
 		public TimeSpan SyncGetTimeout { get; set; } = TimeSpan.FromSeconds(10);
 		public int AsyncGetCapacity { get; set; } = 10000;
 		public bool IsThrowGetTimeoutException { get; set; } = true;

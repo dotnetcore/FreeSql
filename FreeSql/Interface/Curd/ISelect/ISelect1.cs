@@ -7,6 +7,14 @@ namespace FreeSql {
 	public interface ISelect<T1> : ISelect0<ISelect<T1>, T1> where T1 : class {
 
 		/// <summary>
+		/// 执行SQL查询，是否有记录
+		/// </summary>
+		/// <param name="exp">lambda表达式</param>
+		/// <returns></returns>
+		bool Any(Expression<Func<T1, bool>> exp);
+		Task<bool> AnyAsync(Expression<Func<T1, bool>> exp);
+
+		/// <summary>
 		/// 执行SQL查询，返回指定字段的记录，记录不存在时返回 Count 为 0 的列表
 		/// </summary>
 		/// <typeparam name="TReturn">返回类型</typeparam>
