@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>0.1.11</Version>
+    <Version>0.1.12</Version>
     <Authors>YeXiangQin</Authors>
     <Description>FreeSql 通用仓库层实现，支持 MySql/SqlServer/PostgreSQL/Oracle/Sqlite，读写分离、分表分库。</Description>
     <PackageProjectUrl>https://github.com/2881099/FreeSql</PackageProjectUrl>
