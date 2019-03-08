@@ -74,8 +74,15 @@ namespace FreeSql.Oracle {
 					Regex.Replace(connStr, poolsizePatern, $"Max pool size={PoolSize}", RegexOptions.IgnoreCase) :
 					$"{connStr};Max pool size={PoolSize}";
 
-				var initConns = new Object<DbConnection>[poolsize];
-				for (var a = 0; a < poolsize; a++) try { initConns[a] = _pool.Get(); } catch { }
+				var initConns = new List<Object<DbConnection>>();
+				for (var a = 0; a < PoolSize; a++)
+					try {
+						var conn = _pool.Get();
+						initConns.Add(conn);
+						conn.Value.Ping(true);
+					} catch {
+						break; //预热失败一次就退出
+					}
 				foreach (var conn in initConns) _pool.Return(conn);
 			}
 		}
