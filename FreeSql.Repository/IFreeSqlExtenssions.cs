@@ -42,4 +42,16 @@ public static class IFreeSqlExtenssions {
 			.GetOrAdd(typeof(TEntity), key1 => new GuidRepository<TEntity>(that, null, null)) as GuidRepository<TEntity>;
 	}
 	static ConcurrentDictionary<Type, IRepository> dicGetGuidRepository = new ConcurrentDictionary<Type, IRepository>();
+
+	/// <summary>
+	/// 合并两个仓储的设置，以便查询
+	/// </summary>
+	/// <typeparam name="TEntity"></typeparam>
+	/// <typeparam name="T2"></typeparam>
+	/// <param name="that"></param>
+	/// <param name="repos"></param>
+	/// <returns></returns>
+	public static ISelect<TEntity> FromRepository<TEntity, T2>(this ISelect<TEntity> that, BaseRepository<T2> repos) where TEntity : class where T2 : class {
+		return that.AsTable(repos.AsTableSelectInternal).Where<T2>(repos.FilterInternal);
+	}
 }

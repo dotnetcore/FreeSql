@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using repository_01.Repositorys;
+﻿using FreeSql;
+using Microsoft.AspNetCore.Mvc;
 using restful.Entitys;
 using System;
 using System.Collections.Generic;
@@ -8,14 +8,27 @@ using System.Threading.Tasks;
 
 namespace restful.Controllers {
 
-
 	[Route("restapi/[controller]")]
 	public class SongsController : Controller {
 
-		SongRepository _songRepository;
+		BaseRepository<Song, int> _songRepository;
 
-		public SongsController(IFreeSql fsql) {
-			_songRepository = new SongRepository(fsql);
+		public class xxxx {
+			public int Id { get; set; }
+		}
+
+		public SongsController(IFreeSql fsql,
+			GuidRepository<Song> repos1, 
+			GuidRepository<xxxx> repos2,
+
+			DefaultRepository<Song, int> repos11,
+			DefaultRepository<xxxx, int> repos21,
+
+			BaseRepository<Song> repos3, BaseRepository<Song, int> repos4,
+			IBasicRepository<Song> repos31, IBasicRepository<Song, int> repos41,
+			IReadOnlyRepository<Song> repos311, IReadOnlyRepository<Song, int> repos411
+			) {
+			_songRepository = repos4;
 
 			//test code
 			var curd1 = fsql.GetRepository<Song, int>();

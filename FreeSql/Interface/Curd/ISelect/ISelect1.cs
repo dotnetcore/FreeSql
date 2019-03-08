@@ -196,6 +196,13 @@ namespace FreeSql {
 		/// 多表条件查询
 		/// </summary>
 		/// <typeparam name="T2"></typeparam>
+		/// <param name="exp">lambda表达式</param>
+		/// <returns></returns>
+		ISelect<T1> Where<T2>(Expression<Func<T2, bool>> exp) where T2 : class;
+		/// <summary>
+		/// 多表条件查询
+		/// </summary>
+		/// <typeparam name="T2"></typeparam>
 		/// <typeparam name="T3"></typeparam>
 		/// <param name="exp">lambda表达式</param>
 		/// <returns></returns>

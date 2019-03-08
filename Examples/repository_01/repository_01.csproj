@@ -16,8 +16,4 @@
 		<ProjectReference Include="..\..\FreeSql.Repository\FreeSql.Repository.csproj" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <Folder Include="Properties\" />
-	</ItemGroup>
-
 </Project>

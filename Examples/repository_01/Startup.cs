@@ -1,9 +1,11 @@
-﻿using FreeSql;
+﻿using Autofac;
+using Autofac.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using restful.Entitys;
 using Swashbuckle.AspNetCore.Swagger;
 using System;
 using System.Text;
@@ -23,8 +25,10 @@ namespace repository_01 {
 		public IConfiguration Configuration { get; }
 		public IFreeSql Fsql { get; }
 
-		public void ConfigureServices(IServiceCollection services) {
+		public IServiceProvider ConfigureServices(IServiceCollection services) {
+
 			services.AddSingleton<IFreeSql>(Fsql);
+			//services.AddTransient(s => s.)
 
 			services.AddMvc();
 			services.AddSwaggerGen(options => {
@@ -34,6 +38,16 @@ namespace repository_01 {
 				});
 				//options.IncludeXmlComments(xmlPath);
 			});
+
+			var builder = new ContainerBuilder();
+
+			builder.RegisterFreeRepository<Song>(a => a.Id == 1);
+			builder.RegisterFreeGuidRepository<Song>(a => a.Id == 1, oldname => $"{oldname}_{DateTime.Now.Year}");
+
+			builder.Populate(services);
+			var container = builder.Build();
+
+			return new AutofacServiceProvider(container);
 		}
 
 		public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory) {

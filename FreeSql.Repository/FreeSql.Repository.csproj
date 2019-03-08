@@ -2,13 +2,17 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>0.1.12</Version>
+    <Version>0.1.13</Version>
     <Authors>YeXiangQin</Authors>
     <Description>FreeSql 通用仓库层实现，支持 MySql/SqlServer/PostgreSQL/Oracle/Sqlite，读写分离、分表分库。</Description>
     <PackageProjectUrl>https://github.com/2881099/FreeSql</PackageProjectUrl>
     <PackageTags>FreeSql ORM Repository</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="4.4.0" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\FreeSql\FreeSql.csproj" />

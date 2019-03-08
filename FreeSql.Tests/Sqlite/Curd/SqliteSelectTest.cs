@@ -548,6 +548,24 @@ namespace FreeSql.Tests.Sqlite {
 
 		[Fact]
 		public void AsTable() {
+
+			var tenantId = 1;
+			var reposTopic = g.sqlite.GetGuidRepository<Topic>(null, oldname => $"{oldname}_{tenantId}");
+			var reposType = g.sqlite.GetGuidRepository<TestTypeInfo>(null, oldname => $"{oldname}_{tenantId}");
+
+			//reposTopic.Delete(Guid.Empty);
+			//reposTopic.Find(Guid.Empty);
+			//reposTopic.Update(new Topic { TestTypeInfoGuid = 1 });
+			var sql11 = reposTopic.Select
+
+				.FromRepository(reposType)
+				.From<TestTypeInfo, TestTypeParentInfo>((s,b,c) => s)
+
+				.LeftJoin(a => a.TestTypeInfoGuid == a.Type.Guid)
+				.ToSql();
+
+
+
 			Func<Type, string, string> tableRule = (type, oldname) => {
 				if (type == typeof(Topic)) return oldname + "AsTable1";
 				else if (type == typeof(TestTypeInfo)) return oldname + "AsTable2";

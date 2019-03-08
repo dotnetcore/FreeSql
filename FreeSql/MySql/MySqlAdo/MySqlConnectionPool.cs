@@ -141,7 +141,7 @@ namespace FreeSql.MySql {
 
 		static DbCommand PingCommand(DbConnection conn) {
 			var cmd = conn.CreateCommand();
-			cmd.CommandTimeout = 1;
+			cmd.CommandTimeout = 5;
 			cmd.CommandText = "select 1";
 			return cmd;
 		}

@@ -9,35 +9,54 @@ namespace FreeSql {
 		where TEntity : class {
 
 		protected IFreeSql _fsql;
-		protected Expression<Func<TEntity, bool>> _filter;
-		protected Func<TEntity, bool> _filterCompile;
-		protected Func<string, string> _asTable;
-		protected Func<Type, string, string> _asTableSelect => _asTable == null ? null : new Func<Type, string, string>((a, b) => a == _entityType ? _asTable(b) : null);
-		protected Type _entityType = typeof(TEntity);
+
+		Expression<Func<TEntity, bool>> _filterVal;
+		protected Expression<Func<TEntity, bool>> Filter {
+			get => _filterVal;
+			set {
+				_filterVal = value;
+				FilterCompile = value?.Compile();
+			}
+		}
+		internal Expression<Func<TEntity, bool>> FilterInternal => Filter;
+		protected Func<TEntity, bool> FilterCompile { get; private set; }
+		internal Func<TEntity, bool> FilterCompileInternal => FilterCompile;
+
+		Func<string, string> _asTableVal;
+		protected Func<string, string> AsTable {
+			get => _asTableVal;
+			set {
+				_asTableVal = value;
+				AsTableSelect = value == null ? null : new Func<Type, string, string>((a, b) => a == EntityType ? value(b) : null);
+			}
+		}
+		protected Func<Type, string, string> AsTableSelect { get; private set; }
+		internal Func<Type, string, string> AsTableSelectInternal => AsTableSelect;
+
+		protected Type EntityType { get; } = typeof(TEntity);
 
 		protected BaseRepository(IFreeSql fsql, Expression<Func<TEntity, bool>> filter, Func<string, string> asTable = null) : base() {
 			_fsql = fsql ?? throw new NullReferenceException("fsql 参数不可为空");
-			_filter = filter;
-			_filterCompile = filter?.Compile();
-			_asTable = asTable;
+			Filter = filter;
+			AsTable = asTable;
 		}
 
-		public ISelect<TEntity> Select => _fsql.Select<TEntity>().Where(_filter).AsTable(_asTableSelect);
+		public ISelect<TEntity> Select => _fsql.Select<TEntity>().Where(Filter).AsTable(AsTableSelect);
 
-		public IUpdate<TEntity> UpdateDiy => _fsql.Update<TEntity>().Where(_filter).AsTable(_asTable);
+		public IUpdate<TEntity> UpdateDiy => _fsql.Update<TEntity>().Where(Filter).AsTable(AsTable);
 
-		public int Delete(Expression<Func<TEntity, bool>> predicate) => _fsql.Delete<TEntity>().Where(_filter).Where(predicate).AsTable(_asTable).ExecuteAffrows();
+		public int Delete(Expression<Func<TEntity, bool>> predicate) => _fsql.Delete<TEntity>().Where(Filter).Where(predicate).AsTable(AsTable).ExecuteAffrows();
 
 		public int Delete(TEntity entity) {
 			ValidatorEntityAndThrow(entity);
-			return _fsql.Delete<TEntity>(entity).Where(_filter).AsTable(_asTable).ExecuteAffrows();
+			return _fsql.Delete<TEntity>(entity).Where(Filter).AsTable(AsTable).ExecuteAffrows();
 		}
 
-		public Task<int> DeleteAsync(Expression<Func<TEntity, bool>> predicate) => _fsql.Delete<TEntity>().Where(_filter).Where(predicate).AsTable(_asTable).ExecuteAffrowsAsync();
+		public Task<int> DeleteAsync(Expression<Func<TEntity, bool>> predicate) => _fsql.Delete<TEntity>().Where(Filter).Where(predicate).AsTable(AsTable).ExecuteAffrowsAsync();
 
 		public Task<int> DeleteAsync(TEntity entity) {
 			ValidatorEntityAndThrow(entity);
-			return _fsql.Delete<TEntity>(entity).Where(_filter).AsTable(_asTable).ExecuteAffrowsAsync();
+			return _fsql.Delete<TEntity>(entity).Where(Filter).AsTable(AsTable).ExecuteAffrowsAsync();
 		}
 
 		public virtual TEntity Insert(TEntity entity) {
@@ -45,7 +64,7 @@ namespace FreeSql {
 			switch (_fsql.Ado.DataType) {
 				case DataType.SqlServer:
 				case DataType.PostgreSQL:
-					return _fsql.Insert<TEntity>().AppendData(entity).AsTable(_asTable).ExecuteInserted().FirstOrDefault();
+					return _fsql.Insert<TEntity>().AppendData(entity).AsTable(AsTable).ExecuteInserted().FirstOrDefault();
 				case DataType.MySql:
 				case DataType.Oracle:
 				case DataType.Sqlite:
@@ -59,7 +78,7 @@ namespace FreeSql {
 			switch (_fsql.Ado.DataType) {
 				case DataType.SqlServer:
 				case DataType.PostgreSQL:
-					return _fsql.Insert<TEntity>().AppendData(entitys).AsTable(_asTable).ExecuteInserted();
+					return _fsql.Insert<TEntity>().AppendData(entitys).AsTable(AsTable).ExecuteInserted();
 				case DataType.MySql:
 				case DataType.Oracle:
 				case DataType.Sqlite:
@@ -73,7 +92,7 @@ namespace FreeSql {
 			switch (_fsql.Ado.DataType) {
 				case DataType.SqlServer:
 				case DataType.PostgreSQL:
-					return (await _fsql.Insert<TEntity>().AppendData(entity).AsTable(_asTable).ExecuteInsertedAsync()).FirstOrDefault();
+					return (await _fsql.Insert<TEntity>().AppendData(entity).AsTable(AsTable).ExecuteInsertedAsync()).FirstOrDefault();
 				case DataType.MySql:
 				case DataType.Oracle:
 				case DataType.Sqlite:
@@ -87,7 +106,7 @@ namespace FreeSql {
 			switch (_fsql.Ado.DataType) {
 				case DataType.SqlServer:
 				case DataType.PostgreSQL:
-					return _fsql.Insert<TEntity>().AppendData(entitys).AsTable(_asTable).ExecuteInsertedAsync();
+					return _fsql.Insert<TEntity>().AppendData(entitys).AsTable(AsTable).ExecuteInsertedAsync();
 				case DataType.MySql:
 				case DataType.Oracle:
 				case DataType.Sqlite:
@@ -98,18 +117,18 @@ namespace FreeSql {
 
 		public int Update(TEntity entity) {
 			ValidatorEntityAndThrow(entity);
-			return _fsql.Update<TEntity>().SetSource(entity).Where(_filter).AsTable(_asTable).ExecuteAffrows();
+			return _fsql.Update<TEntity>().SetSource(entity).Where(Filter).AsTable(AsTable).ExecuteAffrows();
 		}
 
 		public Task<int> UpdateAsync(TEntity entity) {
 			ValidatorEntityAndThrow(entity);
-			return _fsql.Update<TEntity>().SetSource(entity).Where(_filter).AsTable(_asTable).ExecuteAffrowsAsync();
+			return _fsql.Update<TEntity>().SetSource(entity).Where(Filter).AsTable(AsTable).ExecuteAffrowsAsync();
 		}
 
 		protected void ValidatorEntityAndThrow(TEntity entity) => ValidatorEntityAndThrow(new[] { entity });
 		protected virtual void ValidatorEntityAndThrow(IEnumerable<TEntity> entitys) {
 			foreach (var entity in entitys) {
-				if (_filterCompile?.Invoke(entity) == false) throw new Exception($"FreeSql.Repository Insert 失败，因为设置了 {_filter}，插入的数据不符合");
+				if (FilterCompile?.Invoke(entity) == false) throw new Exception($"FreeSql.Repository Insert 失败，因为设置了 {Filter}，插入的数据不符合");
 			}
 		}
 	}
@@ -120,13 +139,13 @@ namespace FreeSql {
 		public BaseRepository(IFreeSql fsql, Expression<Func<TEntity, bool>> filter, Func<string, string> asTable = null) : base(fsql, filter, asTable) {
 		}
 
-		public int Delete(TKey id) => _fsql.Delete<TEntity>(id).Where(_filter).AsTable(_asTable).ExecuteAffrows();
+		public int Delete(TKey id) => _fsql.Delete<TEntity>(id).Where(Filter).AsTable(AsTable).ExecuteAffrows();
 
-		public Task<int> DeleteAsync(TKey id) => _fsql.Delete<TEntity>(id).Where(_filter).AsTable(_asTable).ExecuteAffrowsAsync();
+		public Task<int> DeleteAsync(TKey id) => _fsql.Delete<TEntity>(id).Where(Filter).AsTable(AsTable).ExecuteAffrowsAsync();
 
-		public TEntity Find(TKey id) => _fsql.Select<TEntity>(id).Where(_filter).AsTable(_asTableSelect).ToOne();
+		public TEntity Find(TKey id) => _fsql.Select<TEntity>(id).Where(Filter).AsTable(AsTableSelect).ToOne();
 
-		public Task<TEntity> FindAsync(TKey id) => _fsql.Select<TEntity>(id).Where(_filter).AsTable(_asTableSelect).ToOneAsync();
+		public Task<TEntity> FindAsync(TKey id) => _fsql.Select<TEntity>(id).Where(Filter).AsTable(AsTableSelect).ToOneAsync();
 
 		public TEntity Get(TKey id) => Find(id);
 

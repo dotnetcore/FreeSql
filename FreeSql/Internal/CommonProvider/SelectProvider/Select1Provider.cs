@@ -108,6 +108,7 @@ namespace FreeSql.Internal.CommonProvider {
 		public ISelect<T1> Where(Expression<Func<T1, bool>> exp) => this.InternalWhere(exp?.Body);
 
 		public ISelect<T1> Where<T2>(Expression<Func<T1, T2, bool>> exp) where T2 : class => this.InternalWhere(exp?.Body);
+		public ISelect<T1> Where<T2>(Expression<Func<T2, bool>> exp) where T2 : class => this.InternalWhere(exp?.Body);
 
 		public ISelect<T1> Where<T2, T3>(Expression<Func<T1, T2, T3, bool>> exp) where T2 : class where T3 : class => this.InternalWhere(exp?.Body);
 
