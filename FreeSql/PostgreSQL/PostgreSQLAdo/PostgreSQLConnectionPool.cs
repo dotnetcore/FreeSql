@@ -77,10 +77,7 @@ namespace FreeSql.PostgreSQL {
 
 		public bool OnCheckAvailable(Object<DbConnection> obj) {
 			if (obj.Value.State == ConnectionState.Closed) obj.Value.Open();
-			var cmd = obj.Value.CreateCommand();
-			cmd.CommandText = "select 1";
-			cmd.ExecuteNonQuery();
-			return true;
+			return obj.Value.Ping(true);
 		}
 
 		public DbConnection OnCreate() {
@@ -113,7 +110,7 @@ namespace FreeSql.PostgreSQL {
 
 			if (_pool.IsAvailable) {
 
-				if (obj.Value.State != ConnectionState.Open || DateTime.Now.Subtract(obj.LastReturnTime).TotalSeconds > 60 && obj.Value.Ping() == false) {
+				if (obj.Value.State != ConnectionState.Open || DateTime.Now.Subtract(obj.LastReturnTime).TotalSeconds > 60 && (await obj.Value.PingAsync()) == false) {
 
 					try {
 						await obj.Value.OpenAsync();
@@ -144,14 +141,29 @@ namespace FreeSql.PostgreSQL {
 
 	static class DbConnectionExtensions {
 
-		public static bool Ping(this DbConnection that) {
+		static DbCommand PingCommand(DbConnection conn) {
+			var cmd = conn.CreateCommand();
+			cmd.CommandTimeout = 1;
+			cmd.CommandText = "select 1";
+			return cmd;
+		}
+		public static bool Ping(this DbConnection that, bool isThrow = false) {
 			try {
-				var cmd = that.CreateCommand();
-				cmd.CommandText = "select 1";
-				cmd.ExecuteNonQuery();
+				PingCommand(that).ExecuteNonQuery();
 				return true;
 			} catch {
-				try { that.Close(); } catch { }
+				if (that.State != ConnectionState.Closed) try { that.Close(); } catch { }
+				if (isThrow) throw;
+				return false;
+			}
+		}
+		async public static Task<bool> PingAsync(this DbConnection that, bool isThrow = false) {
+			try {
+				await PingCommand(that).ExecuteNonQueryAsync();
+				return true;
+			} catch {
+				if (that.State != ConnectionState.Closed) try { that.Close(); } catch { }
+				if (isThrow) throw;
 				return false;
 			}
 		}

@@ -28,7 +28,7 @@ namespace FreeSql.MySql {
 
 		public void Return(Object<DbConnection> obj, Exception exception, bool isRecreate = false) {
 			if (exception != null && exception is MySqlException) {
-				try { if ((obj.Value as MySqlConnection).Ping() == false) obj.Value.Open(); } catch { base.SetUnavailable(exception); }
+				try { if (obj.Value.Ping() == false) obj.Value.Open(); } catch { base.SetUnavailable(exception); }
 			}
 			base.Return(obj, isRecreate);
 		}
@@ -66,8 +66,8 @@ namespace FreeSql.MySql {
 		}
 
 		public bool OnCheckAvailable(Object<DbConnection> obj) {
-			if ((obj.Value as MySqlConnection).Ping() == false) obj.Value.Open();
-			return (obj.Value as MySqlConnection).Ping();
+			if (obj.Value.State == ConnectionState.Closed) obj.Value.Open();
+			return obj.Value.Ping(true);
 		}
 
 		public DbConnection OnCreate() {
@@ -84,7 +84,7 @@ namespace FreeSql.MySql {
 
 			if (_pool.IsAvailable) {
 
-				if (obj.Value.State != ConnectionState.Open || DateTime.Now.Subtract(obj.LastReturnTime).TotalSeconds > 60 && (obj.Value as MySqlConnection).Ping() == false) {
+				if (obj.Value.State != ConnectionState.Open || DateTime.Now.Subtract(obj.LastReturnTime).TotalSeconds > 60 && obj.Value.Ping() == false) {
 
 					try {
 						obj.Value.Open();
@@ -100,7 +100,7 @@ namespace FreeSql.MySql {
 
 			if (_pool.IsAvailable) {
 
-				if (obj.Value.State != ConnectionState.Open || DateTime.Now.Subtract(obj.LastReturnTime).TotalSeconds > 60 && (obj.Value as MySqlConnection).Ping() == false) {
+				if (obj.Value.State != ConnectionState.Open || DateTime.Now.Subtract(obj.LastReturnTime).TotalSeconds > 60 && (await obj.Value.PingAsync()) == false) {
 
 					try {
 						await obj.Value.OpenAsync();
@@ -126,6 +126,36 @@ namespace FreeSql.MySql {
 
 		public void OnUnavailable() {
 			_pool.unavailableHandler?.Invoke();
+		}
+	}
+
+	static class DbConnectionExtensions {
+
+		static DbCommand PingCommand(DbConnection conn) {
+			var cmd = conn.CreateCommand();
+			cmd.CommandTimeout = 1;
+			cmd.CommandText = "select 1";
+			return cmd;
+		}
+		public static bool Ping(this DbConnection that, bool isThrow = false) {
+			try {
+				PingCommand(that).ExecuteNonQuery();
+				return true;
+			} catch {
+				if (that.State != ConnectionState.Closed) try { that.Close(); } catch { }
+				if (isThrow) throw;
+				return false;
+			}
+		}
+		async public static Task<bool> PingAsync(this DbConnection that, bool isThrow = false) {
+			try {
+				await PingCommand(that).ExecuteNonQueryAsync();
+				return true;
+			} catch {
+				if (that.State != ConnectionState.Closed) try { that.Close(); } catch { }
+				if (isThrow) throw;
+				return false;
+			}
 		}
 	}
 }

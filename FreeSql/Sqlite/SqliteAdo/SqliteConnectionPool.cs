@@ -31,7 +31,7 @@ namespace FreeSql.Sqlite {
 
 		public void Return(Object<DbConnection> obj, Exception exception, bool isRecreate = false) {
 			if (exception != null && exception is SQLiteException) {
-				try { if ((obj.Value as SQLiteConnection).Ping() == false) obj.Value.OpenAndAttach(policy.Attaches); } catch { base.SetUnavailable(exception); }
+				try { if (obj.Value.Ping() == false) obj.Value.OpenAndAttach(policy.Attaches); } catch { base.SetUnavailable(exception); }
 			}
 			base.Return(obj, isRecreate);
 		}
@@ -78,8 +78,8 @@ namespace FreeSql.Sqlite {
 		}
 
 		public bool OnCheckAvailable(Object<DbConnection> obj) {
-			if ((obj.Value as SQLiteConnection).Ping() == false) obj.Value.OpenAndAttach(Attaches);
-			return (obj.Value as SQLiteConnection).Ping();
+			if (obj.Value.State == ConnectionState.Closed) obj.Value.OpenAndAttach(Attaches);
+			return obj.Value.Ping(true);
 		}
 
 		public DbConnection OnCreate() {
@@ -96,7 +96,7 @@ namespace FreeSql.Sqlite {
 
 			if (_pool.IsAvailable) {
 
-				if (obj.Value.State != ConnectionState.Open || DateTime.Now.Subtract(obj.LastReturnTime).TotalSeconds > 60 && (obj.Value as SQLiteConnection).Ping() == false) {
+				if (obj.Value.State != ConnectionState.Open || DateTime.Now.Subtract(obj.LastReturnTime).TotalSeconds > 60 && obj.Value.Ping() == false) {
 
 					try {
 						obj.Value.OpenAndAttach(Attaches);
@@ -112,7 +112,7 @@ namespace FreeSql.Sqlite {
 
 			if (_pool.IsAvailable) {
 
-				if (obj.Value.State != ConnectionState.Open || DateTime.Now.Subtract(obj.LastReturnTime).TotalSeconds > 60 && (obj.Value as SQLiteConnection).Ping() == false) {
+				if (obj.Value.State != ConnectionState.Open || DateTime.Now.Subtract(obj.LastReturnTime).TotalSeconds > 60 && (await obj.Value.PingAsync()) == false) {
 
 					try {
 						await obj.Value.OpenAndAttachAsync(Attaches);
@@ -140,16 +140,31 @@ namespace FreeSql.Sqlite {
 			_pool.unavailableHandler?.Invoke();
 		}
 	}
-	static class SqliteConnectionExtensions {
+	static class DbConnectionExtensions {
 
-		public static bool Ping(this DbConnection that) {
+		static DbCommand PingCommand(DbConnection conn) {
+			var cmd = conn.CreateCommand();
+			cmd.CommandTimeout = 1;
+			cmd.CommandText = "select 1";
+			return cmd;
+		}
+		public static bool Ping(this DbConnection that, bool isThrow = false) {
 			try {
-				var cmd = that.CreateCommand();
-				cmd.CommandText = "select 1";
-				cmd.ExecuteNonQuery();
+				PingCommand(that).ExecuteNonQuery();
 				return true;
 			} catch {
 				if (that.State != ConnectionState.Closed) try { that.Close(); } catch { }
+				if (isThrow) throw;
+				return false;
+			}
+		}
+		async public static Task<bool> PingAsync(this DbConnection that, bool isThrow = false) {
+			try {
+				await PingCommand(that).ExecuteNonQueryAsync();
+				return true;
+			} catch {
+				if (that.State != ConnectionState.Closed) try { that.Close(); } catch { }
+				if (isThrow) throw;
 				return false;
 			}
 		}
