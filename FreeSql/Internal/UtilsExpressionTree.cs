@@ -449,8 +449,13 @@ namespace FreeSql.Internal {
 				}
 				if (overrieds > 0) {
 					cscode.AppendLine("}");
-					var assemly = Generator.TemplateEngin._compiler.Value.CompileCode(cscode.ToString());
-					var type = assemly.DefinedTypes.Where(a => a.FullName.EndsWith(trytbTypeLazyName)).FirstOrDefault();
+					Assembly assembly = null;
+					try {
+						assembly = Generator.TemplateEngin._compiler.Value.CompileCode(cscode.ToString());
+					} catch (Exception ex) {
+						throw new Exception($"【延时加载】{trytbTypeName} 编译错误：{ex.Message}\r\n\r\n{cscode}");
+					}
+					var type = assembly.DefinedTypes.Where(a => a.FullName.EndsWith(trytbTypeLazyName)).FirstOrDefault();
 					trytb.TypeLazy = type;
 					trytb.TypeLazySetOrm = type.GetProperty("__fsql_orm__", BindingFlags.Instance | BindingFlags.NonPublic).GetSetMethod(true);
 				}

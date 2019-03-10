@@ -45,6 +45,7 @@ namespace FreeSql.Sqlite {
 		public string Name { get; set; } = "Sqlite SQLiteConnection 对象池";
 		public int PoolSize { get; set; } = 100;
 		public TimeSpan SyncGetTimeout { get; set; } = TimeSpan.FromSeconds(10);
+		public TimeSpan IdleTimeout { get; set; } = TimeSpan.Zero;
 		public int AsyncGetCapacity { get; set; } = 10000;
 		public bool IsThrowGetTimeoutException { get; set; } = true;
 		public int CheckAvailableInterval { get; set; } = 5;
@@ -55,15 +56,23 @@ namespace FreeSql.Sqlite {
 		public string ConnectionString {
 			get => _connectionString;
 			set {
-				var connStr = value ?? "";
-				var poolsizePatern = @"Max\s*pool\s*size\s*=\s*(\d+)";
-				Match m = Regex.Match(connStr, poolsizePatern, RegexOptions.IgnoreCase);
+				_connectionString = value ?? "";
+
+				var pattern = @"Max\s*pool\s*size\s*=\s*(\d+)";
+				Match m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase);
 				if (m.Success == false || int.TryParse(m.Groups[1].Value, out var poolsize) == false || poolsize <= 0) poolsize = 100;
-				var connStrIncr = dicConnStrIncr.AddOrUpdate(connStr, 1, (oldkey, oldval) => oldval + 1);
+				var connStrIncr = dicConnStrIncr.AddOrUpdate(_connectionString, 1, (oldkey, oldval) => oldval + 1);
 				PoolSize = poolsize + connStrIncr;
 				_connectionString = m.Success ?
-					Regex.Replace(connStr, poolsizePatern, $"Max pool size={PoolSize}", RegexOptions.IgnoreCase) :
-					$"{connStr};Max pool size={PoolSize}";
+					Regex.Replace(_connectionString, pattern, $"Max pool size={PoolSize}", RegexOptions.IgnoreCase) :
+					$"{_connectionString};Max pool size={PoolSize}";
+
+				pattern = @"Connection\s*LifeTime\s*=\s*(\d+)";
+				m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase);
+				if (m.Success) {
+					IdleTimeout = TimeSpan.FromSeconds(int.Parse(m.Groups[1].Value));
+					_connectionString = Regex.Replace(_connectionString, pattern, "", RegexOptions.IgnoreCase);
+				}
 
 				var att = Regex.Split(_connectionString, @"Attachs\s*=\s*", RegexOptions.IgnoreCase);
 				if (att.Length == 2) {
