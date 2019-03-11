@@ -5,7 +5,7 @@ using System.Collections.Concurrent;
 using System.Text;
 using System.Linq.Expressions;
 
-public static class IFreeSqlExtenssions {
+public static class FreeSqlRepositoryIFreeSqlExtenssions {
 
 	/// <summary>
 	/// 返回默认仓库类

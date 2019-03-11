@@ -16,13 +16,13 @@ namespace FreeSql.SqlServer.Curd {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return 0;
 
-			return long.TryParse(string.Concat(_orm.Ado.ExecuteScalar(CommandType.Text, string.Concat(sql, "; SELECT SCOPE_IDENTITY();"), _params)), out var trylng) ? trylng : 0;
+			return long.TryParse(string.Concat(_orm.Ado.ExecuteScalar(_transaction, CommandType.Text, string.Concat(sql, "; SELECT SCOPE_IDENTITY();"), _params)), out var trylng) ? trylng : 0;
 		}
 		async public override Task<long> ExecuteIdentityAsync() {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return 0;
 
-			return long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync(CommandType.Text, string.Concat(sql, "; SELECT SCOPE_IDENTITY();"), _params)), out var trylng) ? trylng : 0;
+			return long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync(_transaction, CommandType.Text, string.Concat(sql, "; SELECT SCOPE_IDENTITY();"), _params)), out var trylng) ? trylng : 0;
 		}
 
 		public override List<T1> ExecuteInserted() {
@@ -43,7 +43,7 @@ namespace FreeSql.SqlServer.Curd {
 			sb.Insert(0, sql.Substring(0, validx + 1));
 			sb.Append(sql.Substring(validx + 1));
 
-			return _orm.Ado.Query<T1>(CommandType.Text, sb.ToString(), _params);
+			return _orm.Ado.Query<T1>(_transaction, CommandType.Text, sb.ToString(), _params);
 		}
 		async public override Task<List<T1>> ExecuteInsertedAsync() {
 			var sql = this.ToSql();
@@ -63,7 +63,7 @@ namespace FreeSql.SqlServer.Curd {
 			sb.Insert(0, sql.Substring(0, validx + 1));
 			sb.Append(sql.Substring(validx + 1));
 
-			return await _orm.Ado.QueryAsync<T1>(CommandType.Text, sb.ToString(), _params);
+			return await _orm.Ado.QueryAsync<T1>(_transaction, CommandType.Text, sb.ToString(), _params);
 		}
 	}
 }

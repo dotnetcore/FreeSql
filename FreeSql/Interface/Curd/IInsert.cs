@@ -1,10 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 namespace FreeSql {
 	public interface IInsert<T1> where T1 : class {
+
+		/// <summary>
+		/// 指定事务对象
+		/// </summary>
+		/// <param name="transaction"></param>
+		/// <returns></returns>
+		IInsert<T1> WithTransaction(DbTransaction transaction);
 
 		/// <summary>
 		/// 追加准备插入的实体

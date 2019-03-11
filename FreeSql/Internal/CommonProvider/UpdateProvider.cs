@@ -22,6 +22,7 @@ namespace FreeSql.Internal.CommonProvider {
 		protected StringBuilder _set = new StringBuilder();
 		protected List<DbParameter> _params = new List<DbParameter>();
 		protected List<DbParameter> _paramsSource = new List<DbParameter>();
+		protected DbTransaction _transaction;
 
 		public UpdateProvider(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere) {
 			_orm = orm;
@@ -32,15 +33,20 @@ namespace FreeSql.Internal.CommonProvider {
 			if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure<T1>();
 		}
 
+		public IUpdate<T1> WithTransaction(DbTransaction transaction) {
+			_transaction = transaction;
+			return this;
+		}
+
 		public int ExecuteAffrows() {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return 0;
-			return _orm.Ado.ExecuteNonQuery(CommandType.Text, sql, _params.Concat(_paramsSource).ToArray());
+			return _orm.Ado.ExecuteNonQuery(_transaction, CommandType.Text, sql, _params.Concat(_paramsSource).ToArray());
 		}
 		async public Task<int> ExecuteAffrowsAsync() {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return 0;
-			return await _orm.Ado.ExecuteNonQueryAsync(CommandType.Text, sql, _params.Concat(_paramsSource).ToArray());
+			return await _orm.Ado.ExecuteNonQueryAsync(_transaction, CommandType.Text, sql, _params.Concat(_paramsSource).ToArray());
 		}
 		public abstract List<T1> ExecuteUpdated();
 		public abstract Task<List<T1>> ExecuteUpdatedAsync();

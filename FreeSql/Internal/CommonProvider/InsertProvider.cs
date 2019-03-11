@@ -19,6 +19,7 @@ namespace FreeSql.Internal.CommonProvider {
 		protected TableInfo _table;
 		protected Func<string, string> _tableRule;
 		protected DbParameter[] _params;
+		protected DbTransaction _transaction;
 
 		public InsertProvider(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression) {
 			_orm = orm;
@@ -26,6 +27,11 @@ namespace FreeSql.Internal.CommonProvider {
 			_commonExpression = commonExpression;
 			_table = _commonUtils.GetTableByEntity(typeof(T1));
 			if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure<T1>();
+		}
+
+		public IInsert<T1> WithTransaction(DbTransaction transaction) {
+			_transaction = transaction;
+			return this;
 		}
 
 		public IInsert<T1> AppendData(T1 source) {
@@ -37,8 +43,8 @@ namespace FreeSql.Internal.CommonProvider {
 			return this;
 		}
 
-		public int ExecuteAffrows() => _orm.Ado.ExecuteNonQuery(CommandType.Text, this.ToSql(), _params);
-		public Task<int> ExecuteAffrowsAsync() => _orm.Ado.ExecuteNonQueryAsync(CommandType.Text, this.ToSql(), _params);
+		public int ExecuteAffrows() => _orm.Ado.ExecuteNonQuery(_transaction, CommandType.Text, this.ToSql(), _params);
+		public Task<int> ExecuteAffrowsAsync() => _orm.Ado.ExecuteNonQueryAsync(_transaction, CommandType.Text, this.ToSql(), _params);
 		public abstract long ExecuteIdentity();
 		public abstract Task<long> ExecuteIdentityAsync();
 		public abstract List<T1> ExecuteInserted();

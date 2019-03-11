@@ -25,6 +25,7 @@ namespace FreeSql.Internal.CommonProvider {
 		protected IFreeSql _orm;
 		protected CommonUtils _commonUtils;
 		protected CommonExpression _commonExpression;
+		protected DbTransaction _transaction;
 
 		internal static void CopyData(Select0Provider<TSelect, T1> from, object to) {
 			var toType = to?.GetType();
@@ -44,6 +45,7 @@ namespace FreeSql.Internal.CommonProvider {
 			//toType.GetField("_orm", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._orm);
 			//toType.GetField("_commonUtils", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._commonUtils);
 			//toType.GetField("_commonExpression", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._commonExpression);
+			toType.GetField("_transaction", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._transaction);
 		}
 
 		public Select0Provider(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere) {
@@ -53,6 +55,11 @@ namespace FreeSql.Internal.CommonProvider {
 			_tables.Add(new SelectTableInfo { Table = _commonUtils.GetTableByEntity(typeof(T1)), Alias = "a", On = null, Type = SelectTableInfoType.From });
 			this.Where(_commonUtils.WhereObject(_tables.First().Table, "a.", dywhere));
 			if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure<T1>();
+		}
+
+		public TSelect WithTransaction(DbTransaction transaction) {
+			_transaction = transaction;
+			return this as TSelect;
 		}
 
 		public bool Any() {
@@ -152,7 +159,7 @@ namespace FreeSql.Internal.CommonProvider {
 			return _orm.Cache.Shell(_cache.key, _cache.seconds, () => {
 				List<TTuple> ret = new List<TTuple>();
 				Type type = typeof(TTuple);
-				_orm.Ado.ExecuteReader(dr => {
+				_orm.Ado.ExecuteReader(_transaction, dr => {
 					var read = Utils.ExecuteArrayRowReadClassOrTuple(type, null, dr);
 					ret.Add((TTuple)read.Value);
 				}, CommandType.Text, sql, _params.ToArray());
@@ -166,7 +173,7 @@ namespace FreeSql.Internal.CommonProvider {
 			return _orm.Cache.ShellAsync(_cache.key, _cache.seconds, async () => {
 				List<TTuple> ret = new List<TTuple>();
 				Type type = typeof(TTuple);
-				await _orm.Ado.ExecuteReaderAsync(dr => {
+				await _orm.Ado.ExecuteReaderAsync(_transaction, dr => {
 					var read = Utils.ExecuteArrayRowReadClassOrTuple(type, null, dr);
 					ret.Add((TTuple)read.Value);
 					return Task.CompletedTask;
@@ -181,7 +188,7 @@ namespace FreeSql.Internal.CommonProvider {
 
 			return _orm.Cache.Shell(_cache.key, _cache.seconds, () => {
 				List<T1> ret = new List<T1>();
-				_orm.Ado.ExecuteReader(dr => {
+				_orm.Ado.ExecuteReader(_transaction, dr => {
 					ret.Add(af.Read(dr));
 				}, CommandType.Text, sql, _params.ToArray());
 				return ret;
@@ -194,7 +201,7 @@ namespace FreeSql.Internal.CommonProvider {
 
 			return await _orm.Cache.ShellAsync(_cache.key, _cache.seconds, async () => {
 				List<T1> ret = new List<T1>();
-				await _orm.Ado.ExecuteReaderAsync(dr => {
+				await _orm.Ado.ExecuteReaderAsync(_transaction, dr => {
 					ret.Add(af.Read(dr));
 					return Task.CompletedTask;
 				}, CommandType.Text, sql, _params.ToArray());
@@ -220,7 +227,7 @@ namespace FreeSql.Internal.CommonProvider {
 			return _orm.Cache.Shell(_cache.key, _cache.seconds, () => {
 				List<TReturn> ret = new List<TReturn>();
 				Type type = typeof(TReturn);
-				_orm.Ado.ExecuteReader(dr => {
+				_orm.Ado.ExecuteReader(_transaction, dr => {
 					var index = -1;
 					ret.Add((TReturn)_commonExpression.ReadAnonymous(af.map, dr, ref index));
 				}, CommandType.Text, sql, _params.ToArray());
@@ -234,7 +241,7 @@ namespace FreeSql.Internal.CommonProvider {
 			return await _orm.Cache.ShellAsync(_cache.key, _cache.seconds, async () => {
 				List<TReturn> ret = new List<TReturn>();
 				Type type = typeof(TReturn);
-				await _orm.Ado.ExecuteReaderAsync(dr => {
+				await _orm.Ado.ExecuteReaderAsync(_transaction, dr => {
 					var index = -1;
 					ret.Add((TReturn)_commonExpression.ReadAnonymous(af.map, dr, ref index));
 					return Task.CompletedTask;

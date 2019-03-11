@@ -1,10 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 namespace FreeSql {
 	public interface IUpdate<T1> where T1 : class {
+
+		/// <summary>
+		/// 指定事务对象
+		/// </summary>
+		/// <param name="transaction"></param>
+		/// <returns></returns>
+		IUpdate<T1> WithTransaction(DbTransaction transaction);
 
 		/// <summary>
 		/// 更新数据，设置更新的实体

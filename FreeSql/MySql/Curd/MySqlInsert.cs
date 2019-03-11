@@ -15,13 +15,13 @@ namespace FreeSql.MySql.Curd {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return 0;
 
-			return long.TryParse(string.Concat(_orm.Ado.ExecuteScalar(CommandType.Text, string.Concat(sql, "; SELECT LAST_INSERT_ID();"), _params)), out var trylng) ? trylng : 0;
+			return long.TryParse(string.Concat(_orm.Ado.ExecuteScalar(_transaction, CommandType.Text, string.Concat(sql, "; SELECT LAST_INSERT_ID();"), _params)), out var trylng) ? trylng : 0;
 		}
 		async public override Task<long> ExecuteIdentityAsync() {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return 0;
 
-			return long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync(CommandType.Text, string.Concat(sql, "; SELECT LAST_INSERT_ID();"), _params)), out var trylng) ? trylng : 0;
+			return long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync(_transaction, CommandType.Text, string.Concat(sql, "; SELECT LAST_INSERT_ID();"), _params)), out var trylng) ? trylng : 0;
 		}
 
 		public override List<T1> ExecuteInserted() {
@@ -37,7 +37,7 @@ namespace FreeSql.MySql.Curd {
 				sb.Append(_commonUtils.QuoteReadColumn(col.CsType, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
 				++colidx;
 			}
-			return _orm.Ado.Query<T1>(CommandType.Text, sb.ToString(), _params);
+			return _orm.Ado.Query<T1>(_transaction, CommandType.Text, sb.ToString(), _params);
 		}
 		async public override Task<List<T1>> ExecuteInsertedAsync() {
 			var sql = this.ToSql();
@@ -52,7 +52,7 @@ namespace FreeSql.MySql.Curd {
 				sb.Append(_commonUtils.QuoteReadColumn(col.CsType, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
 				++colidx;
 			}
-			return await _orm.Ado.QueryAsync<T1>(CommandType.Text, sb.ToString(), _params);
+			return await _orm.Ado.QueryAsync<T1>(_transaction, CommandType.Text, sb.ToString(), _params);
 		}
 	}
 }

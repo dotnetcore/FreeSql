@@ -6,10 +6,10 @@ using System.Collections.Concurrent;
 using System.Linq.Expressions;
 using System.Reflection;
 
-public static class FreeSqlRepositoryAutofacDependencyInjection {
+public static class FreeSqlRepositoryAutofacExtenssions {
 
 	public static void RegisterFreeRepository(this ContainerBuilder builder) => RegisterFreeRepositoryPrivate<bool>(builder, null, null);
-	public static void RegisterFreeRepositoryAddFilter<TEntity>(this ContainerBuilder builder, Func<Expression<Func<TEntity, bool>>> filterHandler) => RegisterFreeRepositoryPrivate<TEntity>(builder, filterHandler, null);
+	public static void RegisterFreeRepositoryAndFilter<TEntity>(this ContainerBuilder builder, Func<Expression<Func<TEntity, bool>>> filterHandler) => RegisterFreeRepositoryPrivate<TEntity>(builder, filterHandler, null);
 
 	static ConcurrentDictionary<Type, Delegate> _dicRegisterFreeRepositorySetFilterFunc = new ConcurrentDictionary<Type, Delegate>();
 	static ConcurrentDictionary<Type, Delegate> _dicRegisterFreeRepositorySetAsTableFunc = new ConcurrentDictionary<Type, Delegate>();

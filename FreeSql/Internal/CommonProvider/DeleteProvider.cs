@@ -19,6 +19,7 @@ namespace FreeSql.Internal.CommonProvider {
 		protected StringBuilder _where = new StringBuilder();
 		protected int _whereTimes = 0;
 		protected List<DbParameter> _params = new List<DbParameter>();
+		protected DbTransaction _transaction;
 
 		public DeleteProvider(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere) {
 			_orm = orm;
@@ -29,15 +30,20 @@ namespace FreeSql.Internal.CommonProvider {
 			if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure<T1>();
 		}
 
+		public IDelete<T1> WithTransaction(DbTransaction transaction) {
+			_transaction = transaction;
+			return this;
+		}
+
 		public int ExecuteAffrows() {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return 0;
-			return _orm.Ado.ExecuteNonQuery(CommandType.Text, sql, _params.ToArray());
+			return _orm.Ado.ExecuteNonQuery(_transaction, CommandType.Text, sql, _params.ToArray());
 		}
 		async public Task<int> ExecuteAffrowsAsync() {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return 0;
-			return await _orm.Ado.ExecuteNonQueryAsync(CommandType.Text, sql, _params.ToArray());
+			return await _orm.Ado.ExecuteNonQueryAsync(_transaction, CommandType.Text, sql, _params.ToArray());
 		}
 		public abstract List<T1> ExecuteDeleted();
 		public abstract Task<List<T1>> ExecuteDeletedAsync();

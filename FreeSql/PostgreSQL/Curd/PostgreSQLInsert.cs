@@ -18,10 +18,10 @@ namespace FreeSql.PostgreSQL.Curd {
 
 			var identCols = _table.Columns.Where(a => a.Value.Attribute.IsIdentity == true);
 			if (identCols.Any() == false) {
-				_orm.Ado.ExecuteNonQuery(CommandType.Text, sql, _params);
+				_orm.Ado.ExecuteNonQuery(_transaction, CommandType.Text, sql, _params);
 				return 0;
 			}
-			return long.TryParse(string.Concat(_orm.Ado.ExecuteScalar(CommandType.Text, string.Concat(sql, " RETURNING ", _commonUtils.QuoteSqlName(identCols.First().Value.Attribute.Name)), _params)), out var trylng) ? trylng : 0;
+			return long.TryParse(string.Concat(_orm.Ado.ExecuteScalar(_transaction, CommandType.Text, string.Concat(sql, " RETURNING ", _commonUtils.QuoteSqlName(identCols.First().Value.Attribute.Name)), _params)), out var trylng) ? trylng : 0;
 		}
 		async public override Task<long> ExecuteIdentityAsync() {
 			var sql = this.ToSql();
@@ -29,10 +29,10 @@ namespace FreeSql.PostgreSQL.Curd {
 
 			var identCols = _table.Columns.Where(a => a.Value.Attribute.IsIdentity == true);
 			if (identCols.Any() == false) {
-				await _orm.Ado.ExecuteNonQueryAsync(CommandType.Text, sql, _params);
+				await _orm.Ado.ExecuteNonQueryAsync(_transaction, CommandType.Text, sql, _params);
 				return 0;
 			}
-			return long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync(CommandType.Text, string.Concat(sql, " RETURNING ", _commonUtils.QuoteSqlName(identCols.First().Value.Attribute.Name)), _params)), out var trylng) ? trylng : 0;
+			return long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync(_transaction, CommandType.Text, string.Concat(sql, " RETURNING ", _commonUtils.QuoteSqlName(identCols.First().Value.Attribute.Name)), _params)), out var trylng) ? trylng : 0;
 		}
 
 		public override List<T1> ExecuteInserted() {
@@ -48,7 +48,7 @@ namespace FreeSql.PostgreSQL.Curd {
 				sb.Append(_commonUtils.QuoteReadColumn(col.CsType, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
 				++colidx;
 			}
-			return _orm.Ado.Query<T1>(CommandType.Text, sb.ToString(), _params);
+			return _orm.Ado.Query<T1>(_transaction, CommandType.Text, sb.ToString(), _params);
 		}
 		async public override Task<List<T1>> ExecuteInsertedAsync() {
 			var sql = this.ToSql();
@@ -63,7 +63,7 @@ namespace FreeSql.PostgreSQL.Curd {
 				sb.Append(_commonUtils.QuoteReadColumn(col.CsType, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
 				++colidx;
 			}
-			return await _orm.Ado.QueryAsync<T1>(CommandType.Text, sb.ToString(), _params);
+			return await _orm.Ado.QueryAsync<T1>(_transaction, CommandType.Text, sb.ToString(), _params);
 		}
 	}
 }

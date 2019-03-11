@@ -24,7 +24,7 @@ namespace FreeSql.MySql.Curd {
 				sb.Append(_commonUtils.QuoteReadColumn(col.CsType, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
 				++colidx;
 			}
-			return _orm.Ado.Query<T1>(CommandType.Text, sb.ToString(), _params.ToArray());
+			return _orm.Ado.Query<T1>(_transaction, CommandType.Text, sb.ToString(), _params.ToArray());
 		}
 		async public override Task<List<T1>> ExecuteDeletedAsync() {
 			var sql = this.ToSql();
@@ -39,7 +39,7 @@ namespace FreeSql.MySql.Curd {
 				sb.Append(_commonUtils.QuoteReadColumn(col.CsType, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
 				++colidx;
 			}
-			return await _orm.Ado.QueryAsync<T1>(CommandType.Text, sb.ToString(), _params.ToArray());
+			return await _orm.Ado.QueryAsync<T1>(_transaction, CommandType.Text, sb.ToString(), _params.ToArray());
 		}
 	}
 }

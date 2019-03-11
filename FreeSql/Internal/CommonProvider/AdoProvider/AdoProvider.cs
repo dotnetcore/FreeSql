@@ -58,7 +58,13 @@ namespace FreeSql.Internal.CommonProvider {
 			log.Append(e.Message);
 			_log.LogError(log.ToString());
 
-			RollbackTransaction();
+			if (cmd.Transaction != null) {
+				var curTran = TransactionCurrentThread;
+				if (cmd.Transaction != TransactionCurrentThread) {
+					//cmd.Transaction.Rollback();
+				} else
+					RollbackTransaction();
+			}
 
 			AopCommandExecuted?.Invoke(cmd, log.ToString());
 
@@ -67,13 +73,15 @@ namespace FreeSql.Internal.CommonProvider {
 		}
 
 		internal static ConcurrentDictionary<Type, PropertyInfo[]> dicQueryTypeGetProperties = new ConcurrentDictionary<Type, PropertyInfo[]>();
-		public List<T> Query<T>(string cmdText, object parms = null) => Query<T>(CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-		public List<T> Query<T>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
+		public List<T> Query<T>(string cmdText, object parms = null) => Query<T>(null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+		public List<T> Query<T>(DbTransaction transaction, string cmdText, object parms = null) => Query<T>(transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+		public List<T> Query<T>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => Query<T>(null, cmdType, cmdText, cmdParms);
+		public List<T> Query<T>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
 			var ret = new List<T>();
 			var type = typeof(T);
 			int[] indexes = null;
 			var props = dicQueryTypeGetProperties.GetOrAdd(type, k => type.GetProperties());
-			ExecuteReader(dr => {
+			ExecuteReader(transaction, dr => {
 				if (indexes == null) {
 					var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
 					for (var a = 0; a < dr.FieldCount; a++)
@@ -84,8 +92,10 @@ namespace FreeSql.Internal.CommonProvider {
 			}, cmdType, cmdText, cmdParms);
 			return ret;
 		}
-		public void ExecuteReader(Action<DbDataReader> readerHander, string cmdText, object parms = null) => ExecuteReader(readerHander, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-		public void ExecuteReader(Action<DbDataReader> readerHander, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
+		public void ExecuteReader(Action<DbDataReader> readerHander, string cmdText, object parms = null) => ExecuteReader(null, readerHander, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+		public void ExecuteReader(DbTransaction transaction, Action<DbDataReader> readerHander, string cmdText, object parms = null) => ExecuteReader(transaction, readerHander, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+		public void ExecuteReader(Action<DbDataReader> readerHander, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteReader(null, readerHander, cmdType, cmdText, cmdParms);
+		public void ExecuteReader(DbTransaction transaction, Action<DbDataReader> readerHander, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
 			var dt = DateTime.Now;
 			var logtxt = new StringBuilder();
 			var logtxt_dt = DateTime.Now;
@@ -108,7 +118,7 @@ namespace FreeSql.Internal.CommonProvider {
 			}
 
 			Object<DbConnection> conn = null;
-			var pc = PrepareCommand(cmdType, cmdText, cmdParms, logtxt);
+			var pc = PrepareCommand(transaction, cmdType, cmdText, cmdParms, logtxt);
 			if (IsTracePerformance) logtxt.Append("PrepareCommand: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms\r\n");
 			Exception ex = null;
 			try {
@@ -178,20 +188,24 @@ namespace FreeSql.Internal.CommonProvider {
 			LoggerException(pool, pc.cmd, ex, dt, logtxt);
 			pc.cmd.Parameters.Clear();
 		}
-		public object[][] ExecuteArray(string cmdText, object parms = null) => ExecuteArray(CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-		public object[][] ExecuteArray(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
+		public object[][] ExecuteArray(string cmdText, object parms = null) => ExecuteArray(null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+		public object[][] ExecuteArray(DbTransaction transaction, string cmdText, object parms = null) => ExecuteArray(transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+		public object[][] ExecuteArray(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteArray(null, cmdType, cmdText, cmdParms);
+		public object[][] ExecuteArray(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
 			List<object[]> ret = new List<object[]>();
-			ExecuteReader(dr => {
+			ExecuteReader(transaction, dr => {
 				object[] values = new object[dr.FieldCount];
 				dr.GetValues(values);
 				ret.Add(values);
 			}, cmdType, cmdText, cmdParms);
 			return ret.ToArray();
 		}
-		public DataTable ExecuteDataTable(string cmdText, object parms = null) => ExecuteDataTable(CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-		public DataTable ExecuteDataTable(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
+		public DataTable ExecuteDataTable(string cmdText, object parms = null) => ExecuteDataTable(null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+		public DataTable ExecuteDataTable(DbTransaction transaction, string cmdText, object parms = null) => ExecuteDataTable(transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+		public DataTable ExecuteDataTable(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteDataTable(null, cmdType, cmdText, cmdParms);
+		public DataTable ExecuteDataTable(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
 			var ret = new DataTable();
-			ExecuteReader(dr => {
+			ExecuteReader(transaction, dr => {
 				if (ret.Columns.Count == 0)
 					for (var a = 0; a < dr.FieldCount; a++) ret.Columns.Add(dr.GetName(a));
 				object[] values = new object[ret.Columns.Count];
@@ -200,13 +214,15 @@ namespace FreeSql.Internal.CommonProvider {
 			}, cmdType, cmdText, cmdParms);
 			return ret;
 		}
-		public int ExecuteNonQuery(string cmdText, object parms = null) => ExecuteNonQuery(CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-		public int ExecuteNonQuery(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
+		public int ExecuteNonQuery(string cmdText, object parms = null) => ExecuteNonQuery(null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+		public int ExecuteNonQuery(DbTransaction transaction, string cmdText, object parms = null) => ExecuteNonQuery(transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+		public int ExecuteNonQuery(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteNonQuery(null, cmdType, cmdText, cmdParms);
+		public int ExecuteNonQuery(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
 			var dt = DateTime.Now;
 			var logtxt = new StringBuilder();
 			var logtxt_dt = DateTime.Now;
 			Object<DbConnection> conn = null;
-			var pc = PrepareCommand(cmdType, cmdText, cmdParms, logtxt);
+			var pc = PrepareCommand(transaction, cmdType, cmdText, cmdParms, logtxt);
 			int val = 0;
 			Exception ex = null;
 			try {
@@ -225,13 +241,15 @@ namespace FreeSql.Internal.CommonProvider {
 			pc.cmd.Parameters.Clear();
 			return val;
 		}
-		public object ExecuteScalar(string cmdText, object parms = null) => ExecuteScalar(CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-		public object ExecuteScalar(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
+		public object ExecuteScalar(string cmdText, object parms = null) => ExecuteScalar(null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+		public object ExecuteScalar(DbTransaction transaction, string cmdText, object parms = null) => ExecuteScalar(transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+		public object ExecuteScalar(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteScalar(null, cmdType, cmdText, cmdParms);
+		public object ExecuteScalar(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
 			var dt = DateTime.Now;
 			var logtxt = new StringBuilder();
 			var logtxt_dt = DateTime.Now;
 			Object<DbConnection> conn = null;
-			var pc = PrepareCommand(cmdType, cmdText, cmdParms, logtxt);
+			var pc = PrepareCommand(transaction, cmdType, cmdText, cmdParms, logtxt);
 			object val = null;
 			Exception ex = null;
 			try {
@@ -251,7 +269,7 @@ namespace FreeSql.Internal.CommonProvider {
 			return val;
 		}
 
-		private (DbTransaction tran, DbCommand cmd) PrepareCommand(CommandType cmdType, string cmdText, DbParameter[] cmdParms, StringBuilder logtxt) {
+		private (DbTransaction tran, DbCommand cmd) PrepareCommand(DbTransaction transaction, CommandType cmdType, string cmdText, DbParameter[] cmdParms, StringBuilder logtxt) {
 			var dt = DateTime.Now;
 			DbCommand cmd = CreateCommand();
 			cmd.CommandType = cmdType;
@@ -265,7 +283,7 @@ namespace FreeSql.Internal.CommonProvider {
 				}
 			}
 
-			var tran = TransactionCurrentThread;
+			var tran = transaction ?? TransactionCurrentThread;
 			if (IsTracePerformance) logtxt.Append("	PrepareCommand_part1: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms cmdParms: ").Append(cmd.Parameters.Count).Append("\r\n");
 
 			if (tran != null) {

@@ -47,9 +47,6 @@ namespace FreeSql.Internal.CommonProvider {
 		}
 		public void TransactionPreRemoveCache(params string[] key) => PreRemove(key);
 
-		/// <summary>
-		/// 启动事务
-		/// </summary>
 		public void BeginTransaction(TimeSpan timeout) {
 			int tid = Thread.CurrentThread.ManagedThreadId;
 			Transaction2 tran = null;
@@ -60,6 +57,7 @@ namespace FreeSql.Internal.CommonProvider {
 				tran = new Transaction2(conn, conn.Value.BeginTransaction(), timeout);
 			} catch(Exception ex) {
 				_log.LogError($"数据库出错（开启事务）{ex.Message} \r\n{ex.StackTrace}");
+				MasterPool.Return(conn);
 				throw ex;
 			}
 			if (_trans.ContainsKey(tid)) CommitTransaction();
@@ -68,9 +66,6 @@ namespace FreeSql.Internal.CommonProvider {
 				_trans.Add(tid, tran);
 		}
 
-		/// <summary>
-		/// 自动提交事务
-		/// </summary>
 		private void AutoCommitTransaction() {
 			if (_trans.Count > 0) {
 				Transaction2[] trans = null;
@@ -110,13 +105,7 @@ namespace FreeSql.Internal.CommonProvider {
 		private void CommitTransaction(bool isCommit) {
 			if (_trans.TryGetValue(Thread.CurrentThread.ManagedThreadId, out var tran)) CommitTransaction(isCommit, tran);
 		}
-		/// <summary>
-		/// 提交事务
-		/// </summary>
 		public void CommitTransaction() => CommitTransaction(true);
-		/// <summary>
-		/// 回滚事务
-		/// </summary>
 		public void RollbackTransaction() => CommitTransaction(false);
 
 		public void Dispose() {
@@ -126,18 +115,9 @@ namespace FreeSql.Internal.CommonProvider {
 			foreach (Transaction2 tran in trans) CommitTransaction(false, tran);
 		}
 
-		/// <summary>
-		/// 开启事务（不支持异步），60秒未执行完将自动提交
-		/// </summary>
-		/// <param name="handler">事务体 () => {}</param>
 		public void Transaction(Action handler) {
 			Transaction(handler, TimeSpan.FromSeconds(60));
 		}
-		/// <summary>
-		/// 开启事务（不支持异步）
-		/// </summary>
-		/// <param name="handler">事务体 () => {}</param>
-		/// <param name="timeout">超时，未执行完将自动提交</param>
 		public void Transaction(Action handler, TimeSpan timeout) {
 			try {
 				BeginTransaction(timeout);
