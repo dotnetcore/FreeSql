@@ -113,8 +113,8 @@ namespace FreeSql.Internal {
 			}
 			trytb.Primarys = trytb.Columns.Values.Where(a => a.Attribute.IsPrimary == true).ToArray();
 			if (trytb.Primarys.Any() == false) {
-				var identcols = trytb.Columns.Values.Where(a => a.Attribute.IsIdentity == true).FirstOrDefault();
-				if (identcols != null) trytb.Primarys = new[] { identcols };
+				var identcol = trytb.Columns.Values.Where(a => a.Attribute.IsIdentity == true).FirstOrDefault();
+				if (identcol != null) trytb.Primarys = new[] { identcol };
 				if (trytb.Primarys.Any() == false) {
 					trytb.Primarys = trytb.Columns.Values.Where(a => string.Compare(a.Attribute.Name, "id", true) == 0).ToArray();
 					if (trytb.Primarys.Any() == false) {
@@ -126,6 +126,34 @@ namespace FreeSql.Internal {
 				}
 				foreach (var col in trytb.Primarys)
 					col.Attribute.IsPrimary = true;
+			}
+			//从数据库查找主键、自增
+			if (common.CodeFirst.IsConfigEntityFromDbFirst) {
+				try {
+					if (common._orm.DbFirst != null) {
+						if (common.dbTables == null)
+							lock (common.dbTablesLock)
+								if (common.dbTables == null)
+									common.dbTables = common._orm.DbFirst.GetTablesByDatabase();
+
+						var finddbtbs = common.dbTables.Where(a => string.Compare(a.Name, trytb.CsName, true) == 0 || string.Compare(a.Name, trytb.DbName, true) == 0);
+						foreach (var dbtb in finddbtbs) {
+							foreach (var dbident in dbtb.Identitys) {
+								if (trytb.Columns.TryGetValue(dbident.Name, out var trycol) && trycol.CsType == dbident.CsType ||
+									trytb.ColumnsByCs.TryGetValue(dbident.Name, out trycol) && trycol.CsType == dbident.CsType) {
+									trycol.Attribute.IsIdentity = true;
+								}
+							}
+							foreach (var dbpk in dbtb.Primarys) {
+								if (trytb.Columns.TryGetValue(dbpk.Name, out var trycol) && trycol.CsType == dbpk.CsType ||
+									trytb.ColumnsByCs.TryGetValue(dbpk.Name, out trycol) && trycol.CsType == dbpk.CsType) {
+									trycol.Attribute.IsPrimary = true;
+								}
+							}
+						}
+					}
+				} catch { }
+				trytb.Primarys = trytb.Columns.Values.Where(a => a.Attribute.IsPrimary == true).ToArray();
 			}
 			tbc.AddOrUpdate(entity, trytb, (oldkey, oldval) => trytb);
 

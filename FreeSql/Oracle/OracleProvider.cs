@@ -25,7 +25,7 @@ namespace FreeSql.Oracle {
 		public IAdo Ado { get; }
 		public ICache Cache { get; }
 		public ICodeFirst CodeFirst { get; }
-		public IDbFirst DbFirst { get { throw new NotImplementedException(); } }
+		public IDbFirst DbFirst => null;
 		public OracleProvider(IDistributedCache cache, ILogger log, string masterConnectionString, string[] slaveConnectionString) {
 			if (log == null) log = new LoggerFactory(new[] { new Microsoft.Extensions.Logging.Debug.DebugLoggerProvider() }).CreateLogger("FreeSql.Oracle");
 

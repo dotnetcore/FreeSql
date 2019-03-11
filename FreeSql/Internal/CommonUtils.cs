@@ -1,4 +1,5 @@
 ﻿using FreeSql.DataAnnotations;
+using FreeSql.DatabaseModel;
 using FreeSql.Internal.Model;
 using System;
 using System.Collections;
@@ -27,6 +28,8 @@ namespace FreeSql.Internal {
 		internal IFreeSql _orm { get; set; }
 		internal ICodeFirst CodeFirst => _orm.CodeFirst;
 		internal TableInfo GetTableByEntity(Type entity) => Utils.GetTableByEntity(entity, this);
+		internal List<DbTableInfo> dbTables { get; set; }
+		internal object dbTablesLock = new object();
 
 		public CommonUtils(IFreeSql orm) {
 			_orm = orm;

@@ -18,6 +18,10 @@ namespace FreeSql {
 		/// </summary>
 		bool IsSyncStructureToUpper { get; set; }
 		/// <summary>
+		/// 使用数据库的主键和自增，适用 DbFirst 模式，无须在实体类型上设置 [Column(IsPrimary)] 或者 ConfigEntity。此功能目前可用于 mysql/sqlserver/postgresql。
+		/// </summary>
+		bool IsConfigEntityFromDbFirst { get; set; }
+		/// <summary>
 		/// 延时加载导航属性对象，导航属性需要声明 virtual
 		/// </summary>
 		bool IsLazyLoading { get; set; }

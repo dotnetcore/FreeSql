@@ -11,12 +11,14 @@ namespace net46_console_01 {
 
 			var orm = new FreeSql.FreeSqlBuilder()
 				.UseConnectionString(FreeSql.DataType.Sqlite, @"Data Source=|DataDirectory|\document.db;Pooling=true;Max Pool Size=10")
+				//.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=10")
 				.UseAutoSyncStructure(true)
+				.UseConfigEntityFromDbFirst(true)
 				.Build();
 
-			var repos = orm.GetGuidRepository<Song>();
+			var repos = orm.GetGuidRepository<Song22>();
 
-			var item = repos.Insert(new Song());
+			var item = repos.Insert(new Song22());
 			Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(item));
 
 			item.Title = "xxx";
@@ -31,7 +33,7 @@ namespace net46_console_01 {
 		}
 	}
 
-	public class Song {
+	public class Song22 {
 
 		public Guid Id { get; set; }
 		public string Title { get; set; }

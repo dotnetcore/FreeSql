@@ -136,12 +136,18 @@ namespace FreeSql.MySql {
 			return ds.Select(a => a.FirstOrDefault()?.ToString()).ToList();
 		}
 
-		public List<DbTableInfo> GetTablesByDatabase(params string[] database) {
+		public List<DbTableInfo> GetTablesByDatabase(params string[] database2) {
 			var loc1 = new List<DbTableInfo>();
 			var loc2 = new Dictionary<string, DbTableInfo>();
 			var loc3 = new Dictionary<string, Dictionary<string, DbColumnInfo>>();
+			var database = database2?.ToArray();
 
-			if (database == null || database.Any() == false) return loc1;
+			if (database == null || database.Any() == false) {
+				using (var conn = _orm.Ado.MasterPool.Get()) {
+					if (string.IsNullOrEmpty(conn.Value.Database)) return loc1;
+					database = new[] { conn.Value.Database };
+				}
+			}
 			var databaseIn = string.Join(",", database.Select(a => "{0}".FormatMySql(a)));
 			var sql = string.Format(@"
 select 

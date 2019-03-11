@@ -15,6 +15,7 @@ namespace FreeSql {
 		bool _isAutoSyncStructure = false;
 		bool _isSyncStructureToLower = false;
 		bool _isSyncStructureToUpper = false;
+		bool _isConfigEntityFromDbFirst = false;
 		bool _isLazyLoading = false;
 		Action<DbCommand> _aopCommandExecuting = null;
 		Action<DbCommand, string> _aopCommandExecuted = null;
@@ -86,6 +87,15 @@ namespace FreeSql {
 			return this;
 		}
 		/// <summary>
+		/// 使用数据库的主键和自增，适用 DbFirst 模式，无须在实体类型上设置 [Column(IsPrimary)] 或者 ConfigEntity。此功能目前可用于 mysql/sqlserver/postgresql。
+		/// </summary>
+		/// <param name="value"></param>
+		/// <returns></returns>
+		public FreeSqlBuilder UseConfigEntityFromDbFirst(bool value) {
+			_isConfigEntityFromDbFirst = value;
+			return this;
+		}
+		/// <summary>
 		/// 延时加载导航属性对象，导航属性需要声明 virtual
 		/// </summary>
 		/// <param name="value"></param>
@@ -120,6 +130,7 @@ namespace FreeSql {
 				
 				ret.CodeFirst.IsSyncStructureToLower = _isSyncStructureToLower;
 				ret.CodeFirst.IsSyncStructureToUpper = _isSyncStructureToUpper;
+				ret.CodeFirst.IsConfigEntityFromDbFirst = _isConfigEntityFromDbFirst;
 				ret.CodeFirst.IsLazyLoading = _isLazyLoading;
 				var ado = ret.Ado as Internal.CommonProvider.AdoProvider;
 				ado.AopCommandExecuting += _aopCommandExecuting;
