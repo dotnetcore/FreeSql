@@ -10,11 +10,29 @@ namespace FreeSql {
 
 		IDataFilter<TEntity> Apply(string filterName, Expression<Func<TEntity, bool>> filterAndValidateExp);
 
-		IDataFilter<TEntity> Enable(params string[] filterName);
-		IDataFilter<TEntity> EnableAll();
+		/// <summary>
+		/// 开启过滤器，若使用 using 则使用完后，恢复为原有状态
+		/// </summary>
+		/// <param name="filterName">过滤器名称</param>
+		/// <returns></returns>
+		IDisposable Enable(params string[] filterName);
+		/// <summary>
+		/// 开启所有过滤器，若使用 using 则使用完后，恢复为原有状态
+		/// </summary>
+		/// <returns></returns>
+		IDisposable EnableAll();
 
-		IDataFilter<TEntity> Disable(params string[] filterName);
-		IDataFilter<TEntity> DisableAll();
+		/// <summary>
+		/// 禁用过滤器，若使用 using 则使用完后，恢复为原有状态
+		/// </summary>
+		/// <param name="filterName"></param>
+		/// <returns></returns>
+		IDisposable Disable(params string[] filterName);
+		/// <summary>
+		/// 禁用所有过滤器，若使用 using 则使用完后，恢复为原有状态
+		/// </summary>
+		/// <returns></returns>
+		IDisposable DisableAll();
 
 		bool IsEnabled(string filterName);
 	}
@@ -40,34 +58,63 @@ namespace FreeSql {
 			return this;
 		}
 
-		public IDataFilter<TEntity> Disable(params string[] filterName) {
-			if (filterName == null || filterName.Any() == false) return this;
+		public IDisposable Disable(params string[] filterName) {
+			if (filterName == null || filterName.Any() == false) return new UsingAny(() => { });
 
+			List<string> restore = new List<string>();
 			foreach (var name in filterName) {
-				if (_filters.TryGetValue(name, out var tryfi))
-					tryfi.IsEnabled = false;
+				if (_filters.TryGetValue(name, out var tryfi)) {
+					if (tryfi.IsEnabled) {
+						restore.Add(name);
+						tryfi.IsEnabled = false;
+					}
+				}
 			}
-			return this;
+			return new UsingAny(() => this.Enable(restore.ToArray()));
 		}
-		public IDataFilter<TEntity> DisableAll() {
-			foreach (var val in _filters.Values.ToArray())
-				val.IsEnabled = false;
-			return this;
+		public IDisposable DisableAll() {
+			List<string> restore = new List<string>();
+			foreach (var val in _filters) {
+				if (val.Value.IsEnabled) {
+					restore.Add(val.Key);
+					val.Value.IsEnabled = false;
+				}
+			}
+			return new UsingAny(() => this.Enable(restore.ToArray()));
+		}
+		class UsingAny : IDisposable {
+			Action _ondis;
+			public UsingAny(Action ondis) {
+				_ondis = ondis;
+			}
+			public void Dispose() {
+				_ondis?.Invoke();
+			}
 		}
 
-		public IDataFilter<TEntity> Enable(params string[] filterName) {
-			if (filterName == null || filterName.Any() == false) return this;
+		public IDisposable Enable(params string[] filterName) {
+			if (filterName == null || filterName.Any() == false) return new UsingAny(() => { });
 
+			List<string> restore = new List<string>();
 			foreach (var name in filterName) {
-				if (_filters.TryGetValue(name, out var tryfi))
-					tryfi.IsEnabled = true;
+				if (_filters.TryGetValue(name, out var tryfi)) {
+					if (tryfi.IsEnabled == false) {
+						restore.Add(name);
+						tryfi.IsEnabled = true;
+					}
+				}
 			}
-			return this;
+			return new UsingAny(() => this.Disable(restore.ToArray()));
 		}
-		public IDataFilter<TEntity> EnableAll() {
-			foreach (var val in _filters.Values.ToArray())
-				val.IsEnabled = true;
-			return this;
+		public IDisposable EnableAll() {
+			List<string> restore = new List<string>();
+			foreach (var val in _filters) {
+				if (val.Value.IsEnabled == false) {
+					restore.Add(val.Key);
+					val.Value.IsEnabled = true;
+				}
+			}
+			return new UsingAny(() => this.Disable(restore.ToArray()));
 		}
 
 		public bool IsEnabled(string filterName) {
