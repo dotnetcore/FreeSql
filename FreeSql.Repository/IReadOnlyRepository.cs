@@ -4,6 +4,8 @@ namespace FreeSql {
 	public interface IReadOnlyRepository<TEntity> : IRepository
 		where TEntity : class {
 
+		IDataFilter<TEntity> DataFilter { get; }
+
 		ISelect<TEntity> Select { get; }
 	}
 

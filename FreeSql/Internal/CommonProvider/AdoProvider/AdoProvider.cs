@@ -78,6 +78,7 @@ namespace FreeSql.Internal.CommonProvider {
 		public List<T> Query<T>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => Query<T>(null, cmdType, cmdText, cmdParms);
 		public List<T> Query<T>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
 			var ret = new List<T>();
+			if (string.IsNullOrEmpty(cmdText)) return ret;
 			var type = typeof(T);
 			int[] indexes = null;
 			var props = dicQueryTypeGetProperties.GetOrAdd(type, k => type.GetProperties());
@@ -96,6 +97,7 @@ namespace FreeSql.Internal.CommonProvider {
 		public void ExecuteReader(DbTransaction transaction, Action<DbDataReader> readerHander, string cmdText, object parms = null) => ExecuteReader(transaction, readerHander, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
 		public void ExecuteReader(Action<DbDataReader> readerHander, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteReader(null, readerHander, cmdType, cmdText, cmdParms);
 		public void ExecuteReader(DbTransaction transaction, Action<DbDataReader> readerHander, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
+			if (string.IsNullOrEmpty(cmdText)) return;
 			var dt = DateTime.Now;
 			var logtxt = new StringBuilder();
 			var logtxt_dt = DateTime.Now;
@@ -218,6 +220,7 @@ namespace FreeSql.Internal.CommonProvider {
 		public int ExecuteNonQuery(DbTransaction transaction, string cmdText, object parms = null) => ExecuteNonQuery(transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
 		public int ExecuteNonQuery(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteNonQuery(null, cmdType, cmdText, cmdParms);
 		public int ExecuteNonQuery(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
+			if (string.IsNullOrEmpty(cmdText)) return 0;
 			var dt = DateTime.Now;
 			var logtxt = new StringBuilder();
 			var logtxt_dt = DateTime.Now;
@@ -245,6 +248,7 @@ namespace FreeSql.Internal.CommonProvider {
 		public object ExecuteScalar(DbTransaction transaction, string cmdText, object parms = null) => ExecuteScalar(transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
 		public object ExecuteScalar(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteScalar(null, cmdType, cmdText, cmdParms);
 		public object ExecuteScalar(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
+			if (string.IsNullOrEmpty(cmdText)) return null;
 			var dt = DateTime.Now;
 			var logtxt = new StringBuilder();
 			var logtxt_dt = DateTime.Now;

@@ -9,18 +9,7 @@ namespace FreeSql {
 		where TEntity : class {
 
 		protected IFreeSql _fsql;
-
-		Expression<Func<TEntity, bool>> _filterVal;
-		protected Expression<Func<TEntity, bool>> Filter {
-			get => _filterVal;
-			set {
-				_filterVal = value;
-				FilterCompile = value?.Compile();
-			}
-		}
-		internal Expression<Func<TEntity, bool>> FilterInternal => Filter;
-		protected Func<TEntity, bool> FilterCompile { get; private set; }
-		internal Func<TEntity, bool> FilterCompileInternal => FilterCompile;
+		public IDataFilter<TEntity> DataFilter { get; } = new DataFilter<TEntity>();
 
 		Func<string, string> _asTableVal;
 		protected Func<string, string> AsTable {
@@ -36,35 +25,24 @@ namespace FreeSql {
 		protected Type EntityType { get; } = typeof(TEntity);
 
 		protected BaseRepository(IFreeSql fsql, Expression<Func<TEntity, bool>> filter, Func<string, string> asTable = null) : base() {
-			_fsql = fsql ?? throw new NullReferenceException("fsql 参数不可为空");
-			Filter = filter;
+			_fsql = fsql ?? throw new NullReferenceException(nameof(fsql));
+			DataFilter.Apply("", filter);
 			AsTable = asTable;
 		}
 
-		public ISelect<TEntity> Select => _fsql.Select<TEntity>().Where(Filter).AsTable(AsTableSelect);
+		public ISelect<TEntity> Select => OrmSelect(null);
+		public IUpdate<TEntity> UpdateDiy => OrmUpdate(null);
 
-		public IUpdate<TEntity> UpdateDiy => _fsql.Update<TEntity>().Where(Filter).AsTable(AsTable);
-
-		public int Delete(Expression<Func<TEntity, bool>> predicate) => _fsql.Delete<TEntity>().Where(Filter).Where(predicate).AsTable(AsTable).ExecuteAffrows();
-
-		public int Delete(TEntity entity) {
-			ValidatorEntityAndThrow(entity);
-			return _fsql.Delete<TEntity>(entity).Where(Filter).AsTable(AsTable).ExecuteAffrows();
-		}
-
-		public Task<int> DeleteAsync(Expression<Func<TEntity, bool>> predicate) => _fsql.Delete<TEntity>().Where(Filter).Where(predicate).AsTable(AsTable).ExecuteAffrowsAsync();
-
-		public Task<int> DeleteAsync(TEntity entity) {
-			ValidatorEntityAndThrow(entity);
-			return _fsql.Delete<TEntity>(entity).Where(Filter).AsTable(AsTable).ExecuteAffrowsAsync();
-		}
+		public int Delete(Expression<Func<TEntity, bool>> predicate) => OrmDelete(null).Where(predicate).ExecuteAffrows();
+		public int Delete(TEntity entity) => OrmDelete(entity).ExecuteAffrows();
+		public Task<int> DeleteAsync(Expression<Func<TEntity, bool>> predicate) => OrmDelete(null).Where(predicate).ExecuteAffrowsAsync();
+		public Task<int> DeleteAsync(TEntity entity) => OrmDelete(entity).ExecuteAffrowsAsync();
 
 		public virtual TEntity Insert(TEntity entity) {
-			ValidatorEntityAndThrow(entity);
 			switch (_fsql.Ado.DataType) {
 				case DataType.SqlServer:
 				case DataType.PostgreSQL:
-					return _fsql.Insert<TEntity>().AppendData(entity).AsTable(AsTable).ExecuteInserted().FirstOrDefault();
+					return OrmInsert(entity).ExecuteInserted().FirstOrDefault();
 				case DataType.MySql:
 				case DataType.Oracle:
 				case DataType.Sqlite:
@@ -72,13 +50,11 @@ namespace FreeSql {
 					throw new NotImplementedException($"{_fsql.Ado.DataType}不支持类似returning或output类型的特性，请参考FreeSql插入数据的方法重新实现。");
 			}
 		}
-
 		public virtual List<TEntity> Insert(IEnumerable<TEntity> entitys) {
-			ValidatorEntityAndThrow(entitys);
 			switch (_fsql.Ado.DataType) {
 				case DataType.SqlServer:
 				case DataType.PostgreSQL:
-					return _fsql.Insert<TEntity>().AppendData(entitys).AsTable(AsTable).ExecuteInserted();
+					return OrmInsert(entitys).ExecuteInserted();
 				case DataType.MySql:
 				case DataType.Oracle:
 				case DataType.Sqlite:
@@ -86,13 +62,11 @@ namespace FreeSql {
 					throw new NotImplementedException($"{_fsql.Ado.DataType}不支持类似returning或output类型的特性，请参考FreeSql插入数据的方法重新实现。");
 			}
 		}
-
 		async public virtual Task<TEntity> InsertAsync(TEntity entity) {
-			ValidatorEntityAndThrow(entity);
 			switch (_fsql.Ado.DataType) {
 				case DataType.SqlServer:
 				case DataType.PostgreSQL:
-					return (await _fsql.Insert<TEntity>().AppendData(entity).AsTable(AsTable).ExecuteInsertedAsync()).FirstOrDefault();
+					return (await OrmInsert(entity).ExecuteInsertedAsync()).FirstOrDefault();
 				case DataType.MySql:
 				case DataType.Oracle:
 				case DataType.Sqlite:
@@ -100,13 +74,11 @@ namespace FreeSql {
 					throw new NotImplementedException($"{_fsql.Ado.DataType}不支持类似returning或output类型的特性，请参考FreeSql插入数据的方法重新实现。");
 			}
 		}
-
 		public virtual Task<List<TEntity>> InsertAsync(IEnumerable<TEntity> entitys) {
-			ValidatorEntityAndThrow(entitys);
 			switch (_fsql.Ado.DataType) {
 				case DataType.SqlServer:
 				case DataType.PostgreSQL:
-					return _fsql.Insert<TEntity>().AppendData(entitys).AsTable(AsTable).ExecuteInsertedAsync();
+					return OrmInsert(entitys).ExecuteInsertedAsync();
 				case DataType.MySql:
 				case DataType.Oracle:
 				case DataType.Sqlite:
@@ -115,22 +87,45 @@ namespace FreeSql {
 			}
 		}
 
-		public int Update(TEntity entity) {
-			ValidatorEntityAndThrow(entity);
-			return _fsql.Update<TEntity>().SetSource(entity).Where(Filter).AsTable(AsTable).ExecuteAffrows();
-		}
+		public int Update(TEntity entity) => OrmUpdate(entity).ExecuteAffrows();
+		public Task<int> UpdateAsync(TEntity entity) => OrmUpdate(entity).ExecuteAffrowsAsync();
 
-		public Task<int> UpdateAsync(TEntity entity) {
-			ValidatorEntityAndThrow(entity);
-			return _fsql.Update<TEntity>().SetSource(entity).Where(Filter).AsTable(AsTable).ExecuteAffrowsAsync();
+		protected ISelect<TEntity> OrmSelect(object dywhere) {
+			var select = _fsql.Select<TEntity>(dywhere);
+			var filters = (DataFilter as DataFilter<TEntity>)._filters.Where(a => a.Value.IsEnabled == true);
+			foreach (var filter in filters) select.Where(filter.Value.Expression);
+			return select.AsTable(AsTableSelect);
 		}
-
-		protected void ValidatorEntityAndThrow(TEntity entity) => ValidatorEntityAndThrow(new[] { entity });
-		protected virtual void ValidatorEntityAndThrow(IEnumerable<TEntity> entitys) {
-			foreach (var entity in entitys) {
-				if (FilterCompile?.Invoke(entity) == false) throw new Exception($"FreeSql.Repository Insert 失败，因为设置了 {Filter}，插入的数据不符合");
+		protected IUpdate<TEntity> OrmUpdate(object dywhere) {
+			var entityObj = dywhere as TEntity;
+			var update = _fsql.Update<TEntity>(dywhere);
+			var filters = (DataFilter as DataFilter<TEntity>)._filters.Where(a => a.Value.IsEnabled == true);
+			foreach (var filter in filters) {
+				if (entityObj != null && filter.Value.ExpressionDelegate?.Invoke(entityObj) == false)
+					throw new Exception($"FreeSql.Repository Update 失败，因为设置了 {filter.Key}: {filter.Value.Expression}，更新的数据不符合");
+				update.Where(filter.Value.Expression);
 			}
+			return update.AsTable(AsTable);
 		}
+		protected IDelete<TEntity> OrmDelete(object dywhere) {
+			var delete = _fsql.Delete<TEntity>(dywhere);
+			var filters = (DataFilter as DataFilter<TEntity>)._filters.Where(a => a.Value.IsEnabled == true);
+			foreach (var filter in filters) delete.Where(filter.Value.Expression);
+			return delete.AsTable(AsTable);
+		}
+		protected IInsert<TEntity> OrmInsert(TEntity entity) => OrmInsert(new[] { entity });
+		protected IInsert<TEntity> OrmInsert(IEnumerable<TEntity> entitys) {
+			var insert = _fsql.Insert<TEntity>(entitys);
+			var filters = (DataFilter as DataFilter<TEntity>)._filters.Where(a => a.Value.IsEnabled == true);
+			foreach (var filter in filters) {
+				foreach (var entity in entitys)
+					if (entity != null && filter.Value.ExpressionDelegate?.Invoke(entity) == false)
+						throw new Exception($"FreeSql.Repository Insert 失败，因为设置了 {filter.Key}: {filter.Value.Expression}，插入的数据不符合");
+			}
+			return insert.AsTable(AsTable);
+		}
+
+		protected void ApplyDataFilter(string name, Expression<Func<TEntity, bool>> exp) => DataFilter.Apply(name, exp);
 	}
 
 	public abstract class BaseRepository<TEntity, TKey> : BaseRepository<TEntity>, IRepository<TEntity, TKey>
@@ -139,16 +134,13 @@ namespace FreeSql {
 		public BaseRepository(IFreeSql fsql, Expression<Func<TEntity, bool>> filter, Func<string, string> asTable = null) : base(fsql, filter, asTable) {
 		}
 
-		public int Delete(TKey id) => _fsql.Delete<TEntity>(id).Where(Filter).AsTable(AsTable).ExecuteAffrows();
+		public int Delete(TKey id) => OrmDelete(id).ExecuteAffrows();
+		public Task<int> DeleteAsync(TKey id) => OrmDelete(id).ExecuteAffrowsAsync();
 
-		public Task<int> DeleteAsync(TKey id) => _fsql.Delete<TEntity>(id).Where(Filter).AsTable(AsTable).ExecuteAffrowsAsync();
-
-		public TEntity Find(TKey id) => _fsql.Select<TEntity>(id).Where(Filter).AsTable(AsTableSelect).ToOne();
-
-		public Task<TEntity> FindAsync(TKey id) => _fsql.Select<TEntity>(id).Where(Filter).AsTable(AsTableSelect).ToOneAsync();
+		public TEntity Find(TKey id) => OrmSelect(id).ToOne();
+		public Task<TEntity> FindAsync(TKey id) => OrmSelect(id).ToOneAsync();
 
 		public TEntity Get(TKey id) => Find(id);
-
 		public Task<TEntity> GetAsync(TKey id) => FindAsync(id);
 	}
 }

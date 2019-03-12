@@ -17,26 +17,20 @@ namespace FreeSql {
 		}
 
 		public override List<TEntity> Insert(IEnumerable<TEntity> entity) {
-			base.ValidatorEntityAndThrow(entity);
-			_fsql.Insert<TEntity>().AppendData(entity).AsTable(AsTable).ExecuteAffrows();
+			OrmInsert(entity).ExecuteAffrows();
 			return entity.ToList();
 		}
-
 		async public override Task<List<TEntity>> InsertAsync(IEnumerable<TEntity> entity) {
-			base.ValidatorEntityAndThrow(entity);
-			await _fsql.Insert<TEntity>().AppendData(entity).AsTable(AsTable).ExecuteAffrowsAsync();
+			await OrmInsert(entity).ExecuteAffrowsAsync();
 			return entity.ToList();
 		}
 
 		public override TEntity Insert(TEntity entity) {
-			base.ValidatorEntityAndThrow(entity);
-			_fsql.Insert<TEntity>().AppendData(entity).AsTable(AsTable).ExecuteAffrows();
+			OrmInsert(entity).ExecuteAffrows();
 			return entity;
 		}
-
 		async public override Task<TEntity> InsertAsync(TEntity entity) {
-			base.ValidatorEntityAndThrow(entity);
-			await _fsql.Insert<TEntity>().AppendData(entity).AsTable(AsTable).ExecuteAffrowsAsync();
+			await OrmInsert(entity).ExecuteAffrowsAsync();
 			return entity;
 		}
 	}

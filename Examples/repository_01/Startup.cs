@@ -67,8 +67,9 @@ namespace repository_01 {
 
 			var builder = new ContainerBuilder();
 
-			builder.RegisterFreeRepositoryAndFilter<Song>(() => a => a.Title == DateTime.Now.ToString() + System.Threading.Thread.CurrentThread.ManagedThreadId);
-			//builder.RegisterFreeGuidRepository<Song>(a => a.Id == 1, oldname => $"{oldname}_{DateTime.Now.Year}");
+			builder.RegisterFreeRepository(filter => 
+				filter.Apply<Song>("test", a => a.Title == DateTime.Now.ToString() + System.Threading.Thread.CurrentThread.ManagedThreadId)
+			);
 
 			builder.Populate(services);
 			var container = builder.Build();

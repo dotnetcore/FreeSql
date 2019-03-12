@@ -25,7 +25,7 @@ namespace FreeSql.Internal.CommonProvider {
 			try { Cache.Remove($"{key1}|{key2}"); } catch { } // redis-cluster 不允许执行 multi keys 命令
 			CacheSupportMultiRemove = Cache.Get(key1) == null && cache.Get(key2) == null;
 			if (CacheSupportMultiRemove == false) {
-				log.LogWarning("FreeSql Warning: 低性能, IDistributedCache 没实现批量删除缓存 Cache.Remove(\"key1|key2\").");
+				//log.LogWarning("FreeSql Warning: 低性能, IDistributedCache 没实现批量删除缓存 Cache.Remove(\"key1|key2\").");
 				Remove(key1, key2);
 			}
 		}

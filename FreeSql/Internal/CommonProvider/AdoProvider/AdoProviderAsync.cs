@@ -14,6 +14,7 @@ namespace FreeSql.Internal.CommonProvider {
 		public Task<List<T>> QueryAsync<T>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => QueryAsync<T>(null, cmdType, cmdText, cmdParms);
 		async public Task<List<T>> QueryAsync<T>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
 			var ret = new List<T>();
+			if (string.IsNullOrEmpty(cmdText)) return ret;
 			var type = typeof(T);
 			int[] indexes = null;
 			var props = dicQueryTypeGetProperties.GetOrAdd(type, k => type.GetProperties());
@@ -33,6 +34,7 @@ namespace FreeSql.Internal.CommonProvider {
 		public Task ExecuteReaderAsync(DbTransaction transaction, Func<DbDataReader, Task> readerHander, string cmdText, object parms = null) => ExecuteReaderAsync(transaction, readerHander, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
 		public Task ExecuteReaderAsync(Func<DbDataReader, Task> readerHander, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteReaderAsync(null, readerHander, cmdType, cmdText, cmdParms);
 		async public Task ExecuteReaderAsync(DbTransaction transaction, Func<DbDataReader, Task> readerHander, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
+			if (string.IsNullOrEmpty(cmdText)) return;
 			var dt = DateTime.Now;
 			var logtxt = new StringBuilder();
 			var logtxt_dt = DateTime.Now;
@@ -155,6 +157,7 @@ namespace FreeSql.Internal.CommonProvider {
 		public Task<int> ExecuteNonQueryAsync(DbTransaction transaction, string cmdText, object parms = null) => ExecuteNonQueryAsync(transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
 		public Task<int> ExecuteNonQueryAsync(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteNonQueryAsync(null, cmdType, cmdText, cmdParms);
 		async public Task<int> ExecuteNonQueryAsync(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
+			if (string.IsNullOrEmpty(cmdText)) return 0;
 			var dt = DateTime.Now;
 			var logtxt = new StringBuilder();
 			var logtxt_dt = DateTime.Now;
@@ -182,6 +185,7 @@ namespace FreeSql.Internal.CommonProvider {
 		public Task<object> ExecuteScalarAsync(DbTransaction transaction, string cmdText, object parms = null) => ExecuteScalarAsync(transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
 		public Task<object> ExecuteScalarAsync(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteScalarAsync(null, cmdType, cmdText, cmdParms);
 		async public Task<object> ExecuteScalarAsync(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
+			if (string.IsNullOrEmpty(cmdText)) return null;
 			var dt = DateTime.Now;
 			var logtxt = new StringBuilder();
 			var logtxt_dt = DateTime.Now;
