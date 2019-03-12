@@ -66,6 +66,9 @@ namespace FreeSql.Tests.SqlServer {
 
 			Assert.Equal(1, insert.AppendData(items.First()).ExecuteAffrows());
 			Assert.Equal(10, insert.AppendData(items).ExecuteAffrows());
+
+			items = Enumerable.Range(0, 9989).Select(a => new Topic { Title = "newtitle" + a, CreateTime = DateTime.Now }).ToList();
+			Assert.Equal(9989, g.sqlserver.Insert<Topic>(items).ExecuteAffrows());
 		}
 		[Fact]
 		public void ExecuteIdentity() {
@@ -73,6 +76,11 @@ namespace FreeSql.Tests.SqlServer {
 			for (var a = 0; a < 10; a++) items.Add(new Topic { Id = a + 1, Title = $"newtitle{a}", Clicks = a * 100, CreateTime = DateTime.Now });
 
 			Assert.NotEqual(0, insert.AppendData(items.First()).ExecuteIdentity());
+
+
+			items = Enumerable.Range(0, 9999).Select(a => new Topic { Title = "newtitle" + a, CreateTime = DateTime.Now }).ToList();
+			var lastId = g.sqlite.Select<Topic>().Max(a => a.Id);
+			Assert.NotEqual(lastId, g.sqlserver.Insert<Topic>(items).ExecuteIdentity());
 		}
 		[Fact]
 		public void ExecuteInserted() {
@@ -80,6 +88,11 @@ namespace FreeSql.Tests.SqlServer {
 			for (var a = 0; a < 10; a++) items.Add(new Topic { Id = a + 1, Title = $"newtitle{a}", Clicks = a * 100, CreateTime = DateTime.Now });
 
 			var items2 = insert.AppendData(items).ExecuteInserted();
+
+			items = Enumerable.Range(0, 9990).Select(a => new Topic { Title = "newtitle" + a, CreateTime = DateTime.Now }).ToList();
+			var itemsInserted = g.sqlserver.Insert<Topic>(items).ExecuteInserted();
+			Assert.Equal(items.First().Title, itemsInserted.First().Title);
+			Assert.Equal(items.Last().Title, itemsInserted.Last().Title);
 		}
 
 		[Fact]

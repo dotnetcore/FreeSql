@@ -43,8 +43,8 @@ namespace FreeSql.Internal.CommonProvider {
 			return this;
 		}
 
-		public int ExecuteAffrows() => _orm.Ado.ExecuteNonQuery(_transaction, CommandType.Text, this.ToSql(), _params);
-		public Task<int> ExecuteAffrowsAsync() => _orm.Ado.ExecuteNonQueryAsync(_transaction, CommandType.Text, this.ToSql(), _params);
+		public virtual int ExecuteAffrows() => _orm.Ado.ExecuteNonQuery(_transaction, CommandType.Text, this.ToSql(), _params);
+		public virtual Task<int> ExecuteAffrowsAsync() => _orm.Ado.ExecuteNonQueryAsync(_transaction, CommandType.Text, this.ToSql(), _params);
 		public abstract long ExecuteIdentity();
 		public abstract Task<long> ExecuteIdentityAsync();
 		public abstract List<T1> ExecuteInserted();

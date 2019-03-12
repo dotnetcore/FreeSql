@@ -66,7 +66,7 @@ namespace FreeSql.Tests.Sqlite {
 		[Fact]
 		public void ExecuteDeleted() {
 
-			//var item = g.Sqlite.Insert<Topic>(new Topic { Title = "xxxx", CreateTime = DateTime.Now }).ExecuteInserted();
+			//var item = g.Sqlite.Delete<Topic>(new Topic { Title = "xxxx", CreateTime = DateTime.Now }).ExecuteInserted();
 			//Assert.Equal(item[0].Id, delete.Where(a => a.Id == item[0].Id).ExecuteDeleted()[0].Id);
 		}
 
