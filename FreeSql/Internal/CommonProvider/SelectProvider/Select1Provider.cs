@@ -1,6 +1,7 @@
 ﻿using FreeSql.Internal.Model;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
@@ -98,6 +99,10 @@ namespace FreeSql.Internal.CommonProvider {
 		public List<TReturn> ToList<TReturn>(Expression<Func<T1, TReturn>> select) => this.InternalToList<TReturn>(select?.Body);
 
 		public Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<T1, TReturn>> select) => this.InternalToListAsync<TReturn>(select?.Body);
+
+		public DataTable ToDataTable<TReturn>(Expression<Func<T1, TReturn>> select) => this.InternalToDataTable(select?.Body);
+
+		public Task<DataTable> ToDataTableAsync<TReturn>(Expression<Func<T1, TReturn>> select) => this.InternalToDataTableAsync(select?.Body);
 
 		public string ToSql<TReturn>(Expression<Func<T1, TReturn>> select) => this.InternalToSql<TReturn>(select?.Body);
 

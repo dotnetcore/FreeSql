@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Data.SQLite;
+using System.Text;
 
 namespace FreeSql.Sqlite {
 
@@ -61,6 +62,13 @@ namespace FreeSql.Sqlite {
 
 		internal override string QuoteWriteParamter(Type type, string paramterName) => paramterName;
 		internal override string QuoteReadColumn(Type type, string columnName) => columnName;
+
+		internal override string GetNoneParamaterSqlValue(Type type, object value) {
+			if (value == null) return "NULL";
+			if (type == typeof(byte[])) value = Encoding.UTF8.GetString(value as byte[]);
+			return FormatSql("{0}", value, 1);
+		}
+
 		internal override string DbName => "Sqlite";
 	}
 }

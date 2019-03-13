@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
 using System.Linq.Expressions;
 using System.Text;
@@ -14,6 +15,13 @@ namespace FreeSql {
 		/// <param name="transaction"></param>
 		/// <returns></returns>
 		TSelect WithTransaction(DbTransaction transaction);
+
+		/// <summary>
+		/// 执行SQL查询，返回 DataTable
+		/// </summary>
+		/// <returns></returns>
+		DataTable ToDataTable(string field = null);
+		Task<DataTable> ToDataTableAsync(string field = null);
 
 		/// <summary>
 		/// 执行SQL查询，返回 T1 实体所有字段的记录，记录不存在时返回 Count 为 0 的列表

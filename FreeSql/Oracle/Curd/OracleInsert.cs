@@ -40,7 +40,9 @@ namespace FreeSql.Oracle.Curd {
 			}
 			sbtb.Append(") ");
 
-			_params = new DbParameter[colidx * _source.Count];
+			//_params = new DbParameter[colidx * _source.Count];
+			_params = new DbParameter[0];
+			//_params = new DbParameter[colidx * 5]; //批量添加第5行起，不使用参数化
 			var didx = 0;
 			foreach (var d in _source) {
 				if (_source.Count > 1) sb.Append("\r\n");
@@ -51,21 +53,25 @@ namespace FreeSql.Oracle.Curd {
 				foreach (var col in _table.Columns.Values) {
 					if (col.Attribute.IsIdentity == false && _ignore.ContainsKey(col.Attribute.Name) == false) {
 						if (colidx2 > 0) sb.Append(", ");
-						sb.Append(_commonUtils.QuoteWriteParamter(col.CsType, $"{_commonUtils.QuoteParamterName(col.CsName)}{didx}"));
 						object val = null;
 						if (_table.Properties.TryGetValue(col.CsName, out var tryp)) {
 							val = tryp.GetValue(d);
 							if (col.Attribute.IsPrimary && (col.CsType == typeof(Guid) || col.CsType == typeof(Guid?))
 								&& (val == null || (Guid)val == Guid.Empty)) tryp.SetValue(d, val = FreeUtil.NewMongodbId());
 						}
-						_params[didx * colidx + colidx2] = _commonUtils.AppendParamter(null, $"{col.CsName}{didx}", col.CsType, val);
+						//if (didx >= 5)
+							sb.Append(_commonUtils.GetNoneParamaterSqlValue(col.CsType, val));
+						//else {
+						//	sb.Append(_commonUtils.QuoteWriteParamter(col.CsType, $"{_commonUtils.QuoteParamterName(col.CsName)}{didx}"));
+						//	_params[didx * colidx + colidx2] = _commonUtils.AppendParamter(null, $"{col.CsName}{didx}", col.CsType, val);
+						//}
 						++colidx2;
 					}
 				}
 				sb.Append(")");
 				++didx;
 			}
-			if (_source.Count > 1) sb.Append("\r\n SELECT 1 FROM DUAL");
+			//if (_source.Count > 1) sb.Append("\r\n SELECT 1 FROM DUAL");
 			return sb.ToString();
 		}
 

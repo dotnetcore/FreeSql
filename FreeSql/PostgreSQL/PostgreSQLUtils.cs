@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
 using System.Net;
+using System.Text;
 
 namespace FreeSql.PostgreSQL {
 
@@ -102,6 +103,26 @@ namespace FreeSql.PostgreSQL {
 
 		internal override string QuoteWriteParamter(Type type, string paramterName) => paramterName;
 		internal override string QuoteReadColumn(Type type, string columnName) => columnName;
+
+		internal override string GetNoneParamaterSqlValue(Type type, object value) {
+			if (value == null) return "NULL";
+			value = getParamterValue(type, value);
+			var type2 = value.GetType();
+			if (type2 == typeof(byte[])) {
+				var bytes = value as byte[];
+				var sb = new StringBuilder().Append("E'\\x");
+				foreach (var vc in bytes) {
+					if (vc < 10) sb.Append("0");
+					sb.Append(vc.ToString("X"));
+				}
+				return sb.Append("'").ToString(); //val = Encoding.UTF8.GetString(val as byte[]);
+			} else if (type2 == typeof(TimeSpan) || type2 == typeof(TimeSpan?)) {
+				var ts = (TimeSpan)value;
+				value = $"{ts.Hours}:{ts.Minutes}:{ts.Seconds}";
+			}
+			return FormatSql("{0}", value, 1);
+		}
+
 		internal override string DbName => "PostgreSQL";
 	}
 }

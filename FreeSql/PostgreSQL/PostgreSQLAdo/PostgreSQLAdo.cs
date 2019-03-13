@@ -36,14 +36,10 @@ namespace FreeSql.PostgreSQL {
 				return string.Concat("'", param.ToString().Replace("'", "''"), "'");
 			else if (decimal.TryParse(string.Concat(param), out var trydec))
 				return param;
-			else if (param is DateTime)
+			else if (param is DateTime || param is DateTime?)
 				return string.Concat("'", ((DateTime)param).ToString("yyyy-MM-dd HH:mm:ss.ffffff"), "'");
-			else if (param is DateTime?)
-				return string.Concat("'", (param as DateTime?).Value.ToString("yyyy-MM-dd HH:mm:ss.ffffff"), "'");
-			else if (param is TimeSpan)
+			else if (param is TimeSpan || param is TimeSpan?)
 				return ((TimeSpan)param).Ticks / 10;
-			else if (param is TimeSpan?)
-				return (param as TimeSpan?).Value.Ticks / 10;
 			else if (param is JToken || param is JObject || param is JArray)
 				return string.Concat("'", param.ToString().Replace("'", "''"), "'::jsonb");
 			else if ((isdic = param is Dictionary<string, string>) ||

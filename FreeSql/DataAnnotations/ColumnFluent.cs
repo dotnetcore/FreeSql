@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace FreeSql.DataAnnotations {
+﻿namespace FreeSql.DataAnnotations {
 	public class ColumnFluent {
 
 		public ColumnFluent(ColumnAttribute column) {

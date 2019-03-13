@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Text;
 using System.Linq.Expressions;
 using System.Linq;
+using System.Data;
 
 public static class FreeSqlRepositoryIFreeSqlExtenssions {
 

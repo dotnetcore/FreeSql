@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Data.SqlClient;
+using System.Linq;
+using System.Text;
 
 namespace FreeSql.SqlServer {
 
@@ -42,6 +44,24 @@ namespace FreeSql.SqlServer {
 
 		internal override string QuoteWriteParamter(Type type, string paramterName) => paramterName;
 		internal override string QuoteReadColumn(Type type, string columnName) => columnName;
+
+		internal override string GetNoneParamaterSqlValue(Type type, object value) {
+			if (value == null) return "NULL";
+			if (type == typeof(byte[])) {
+				var bytes = value as byte[];
+				var sb = new StringBuilder().Append("0x");
+				foreach (var vc in bytes) {
+					if (vc < 10) sb.Append("0");
+					sb.Append(vc.ToString("X"));
+				}
+				return sb.ToString();
+			} else if (type == typeof(TimeSpan) || type == typeof(TimeSpan?)) {
+				var ts = (TimeSpan)value;
+				value = $"{ts.Hours}:{ts.Minutes}:{ts.Seconds}.{ts.Milliseconds}";
+			}
+			return FormatSql("{0}", value, 1);
+		}
+
 		internal override string DbName => "SqlServer";
 	}
 }

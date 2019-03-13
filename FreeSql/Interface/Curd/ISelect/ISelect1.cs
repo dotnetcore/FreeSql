@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
@@ -13,6 +14,13 @@ namespace FreeSql {
 		/// <returns></returns>
 		bool Any(Expression<Func<T1, bool>> exp);
 		Task<bool> AnyAsync(Expression<Func<T1, bool>> exp);
+
+		/// <summary>
+		/// 执行SQL查询，返回 DataTable
+		/// </summary>
+		/// <returns></returns>
+		DataTable ToDataTable<TReturn>(Expression<Func<T1, TReturn>> select);
+		Task<DataTable> ToDataTableAsync<TReturn>(Expression<Func<T1, TReturn>> select);
 
 		/// <summary>
 		/// 执行SQL查询，返回指定字段的记录，记录不存在时返回 Count 为 0 的列表

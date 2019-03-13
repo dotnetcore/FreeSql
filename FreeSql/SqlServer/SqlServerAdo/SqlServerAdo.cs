@@ -28,18 +28,21 @@ namespace FreeSql.SqlServer {
 			if (param == null) return "NULL";
 			if (param is bool || param is bool?)
 				return (bool)param ? 1 : 0;
-			else if (param is string || param is Enum)
+			else if (param is string)
 				return string.Concat("'", param.ToString().Replace("'", "''"), "'");
+			else if (param is Enum)
+				return ((Enum)param).ToInt64();
 			else if (decimal.TryParse(string.Concat(param), out var trydec))
 				return param;
-			else if (param is DateTime)
+			else if (param is DateTime || param is DateTime?) {
+				if (param.Equals(DateTime.MinValue) == true) param = new DateTime(1970, 1, 1);
 				return string.Concat("'", ((DateTime)param).ToString("yyyy-MM-dd HH:mm:ss.fff"), "'");
-			else if (param is DateTime?)
-				return string.Concat("'", (param as DateTime?).Value.ToString("yyyy-MM-dd HH:mm:ss.fff"), "'");
-			else if (param is TimeSpan)
+			} else if (param is DateTimeOffset || param is DateTimeOffset?) {
+				if (param.Equals(DateTimeOffset.MinValue) == true) param = new DateTimeOffset(new DateTime(1970, 1, 1), TimeSpan.Zero);
+				return string.Concat("'", ((DateTimeOffset)param).ToString("yyyy-MM-dd HH:mm:ss.fff zzzz"), "'");
+			}
+			else if (param is TimeSpan || param is TimeSpan?)
 				return ((TimeSpan)param).TotalSeconds;
-			else if (param is TimeSpan?)
-				return (param as TimeSpan?).Value.TotalSeconds;
 			else if (param is IEnumerable) {
 				var sb = new StringBuilder();
 				var ie = param as IEnumerable;

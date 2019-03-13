@@ -33,6 +33,21 @@ namespace FreeSql.Tests.SqlServer {
 		}
 
 		[Fact]
+		public void ToDataTable() {
+			var items = new List<Topic>();
+			for (var a = 0; a < 10; a++) items.Add(new Topic { Id = a + 1, Title = $"newtitle{a}", Clicks = a * 100, CreateTime = DateTime.Now });
+
+			Assert.Single(g.sqlserver.Insert<Topic>().AppendData(items.First()).ExecuteInserted());
+			Assert.Equal(10, g.sqlserver.Insert<Topic>().AppendData(items).ExecuteInserted().Count);
+
+			//items = Enumerable.Range(0, 9989).Select(a => new Topic { Title = "newtitle" + a, CreateTime = DateTime.Now }).ToList();
+			//Assert.Equal(9989, g.sqlserver.Insert<Topic>(items).ExecuteAffrows());
+
+			var dt1 = select.Limit(10).ToDataTable();
+			var dt2 = select.Limit(10).ToDataTable("id, getdate()");
+			var dt3 = select.Limit(10).ToDataTable(a => new { a.Id, a.Type.Name, now = DateTime.Now });
+		}
+		[Fact]
 		public void ToList() {
 		}
 		[Fact]

@@ -31,19 +31,15 @@ namespace FreeSql.MySql {
 			else if (param is string)
 				return string.Concat("'", param.ToString().Replace("'", "''"), "'");
 			else if (param is Enum)
-				return ((Enum)param).ToInt64();
+				return string.Concat("'", param.ToString().Replace("'", "''"), "'"); //((Enum)param).ToInt64();
 			else if (decimal.TryParse(string.Concat(param), out var trydec))
 				return param;
-			else if (param is DateTime)
+			else if (param is DateTime || param is DateTime?)
 				return string.Concat("'", ((DateTime)param).ToString("yyyy-MM-dd HH:mm:ss"), "'");
-			else if (param is DateTime?)
-				return string.Concat("'", (param as DateTime?).Value.ToString("yyyy-MM-dd HH:mm:ss"), "'");
-			else if (param is TimeSpan)
+			else if (param is TimeSpan || param is TimeSpan?)
 				return ((TimeSpan)param).Ticks / 10;
-			else if (param is TimeSpan?)
-				return (param as TimeSpan?).Value.Ticks / 10;
 			else if (param is MygisGeometry)
-				return (param as MygisGeometry).AsText();
+				return string.Concat("ST_GeomFromText('", (param as MygisGeometry).AsText().Replace("'", "''"), "')");
 			else if (param is IEnumerable) {
 				var sb = new StringBuilder();
 				var ie = param as IEnumerable;

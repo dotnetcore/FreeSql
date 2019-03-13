@@ -4,6 +4,7 @@ using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
+using System.Text;
 
 namespace FreeSql.MySql {
 
@@ -70,6 +71,24 @@ namespace FreeSql.MySql {
 			}
 			return columnName;
 		}
+
+		internal override string GetNoneParamaterSqlValue(Type type, object value) {
+			if (value == null) return "NULL";
+			if (type == typeof(byte[])) {
+				var bytes = value as byte[];
+				var sb = new StringBuilder().Append("0x");
+				foreach (var vc in bytes) {
+					if (vc < 10) sb.Append("0");
+					sb.Append(vc.ToString("X"));
+				}
+				return sb.ToString(); //val = Encoding.UTF8.GetString(val as byte[]);
+			} else if (type == typeof(TimeSpan) || type == typeof(TimeSpan?)) {
+				var ts = (TimeSpan)value;
+				value = $"{Math.Floor(ts.TotalHours)}:{ts.Minutes}:{ts.Seconds}";
+			}
+			return FormatSql("{0}", value, 1);
+		}
+
 		internal override string DbName => "MySql";
 	}
 }

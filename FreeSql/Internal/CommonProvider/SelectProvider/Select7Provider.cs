@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
@@ -47,6 +48,10 @@ namespace FreeSql.Internal.CommonProvider {
 		List<TReturn> ISelect<T1, T2, T3, T4, T5, T6, T7>.ToList<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, TReturn>> select) => this.InternalToList<TReturn>(select?.Body);
 
 		Task<List<TReturn>> ISelect<T1, T2, T3, T4, T5, T6, T7>.ToListAsync<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, TReturn>> select) => this.InternalToListAsync<TReturn>(select?.Body);
+
+		DataTable ISelect<T1, T2, T3, T4, T5, T6, T7>.ToDataTable<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, TReturn>> select) => this.InternalToDataTable(select?.Body);
+
+		Task<DataTable> ISelect<T1, T2, T3, T4, T5, T6, T7>.ToDataTableAsync<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, TReturn>> select) => this.InternalToDataTableAsync(select?.Body);
 
 		string ISelect<T1, T2, T3, T4, T5, T6, T7>.ToSql<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, TReturn>> select) => this.InternalToSql<TReturn>(select?.Body);
 

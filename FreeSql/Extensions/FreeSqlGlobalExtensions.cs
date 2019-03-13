@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
@@ -43,10 +44,12 @@ public static class FreeSqlGlobalExtensions {
 		return 2 * Math.Asin(Math.Sqrt(Math.Pow(Math.Sin((radLat1 - radLat2) / 2), 2) + Math.Cos(radLat1) * Math.Cos(radLat2) * Math.Pow(Math.Sin((radLng1 - radLng2) / 2), 2))) * 6378137;
 	}
 
+	static ConcurrentDictionary<Type, FieldInfo[]> _dicGetFields = new ConcurrentDictionary<Type, FieldInfo[]>();
 	public static object GetEnum<T>(this IDataReader dr, int index) {
-		string value = dr.GetString(index);
-		Type t = typeof(T);
-		foreach (var f in t.GetFields())
+		var value = dr.GetString(index);
+		var t = typeof(T);
+		var fs = _dicGetFields.GetOrAdd(t, t2 => t2.GetFields());
+		foreach (var f in fs)
 			if (f.GetCustomAttribute<DescriptionAttribute>()?.Description == value || f.Name == value) return Enum.Parse(t, f.Name, true);
 		return null;
 	}
@@ -60,10 +63,11 @@ public static class FreeSqlGlobalExtensions {
 		return Convert.ToInt64(item);
 	}
 	public static IEnumerable<T> ToSet<T>(this long value) {
-		List<T> ret = new List<T>();
+		var ret = new List<T>();
 		if (value == 0) return ret;
-		Type t = typeof(T);
-		foreach (FieldInfo f in t.GetFields()) {
+		var t = typeof(T);
+		var fs = _dicGetFields.GetOrAdd(t, t2 => t2.GetFields());
+		foreach (var f in fs) {
 			if (f.FieldType != t) continue;
 			object o = Enum.Parse(t, f.Name, true);
 			long v = (long)o;

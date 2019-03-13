@@ -59,7 +59,7 @@ namespace FreeSql.Tests.SqlServer {
 				testFieldBoolNullable = true,
 				testFieldByte = byte.MaxValue,
 				testFieldByteNullable = byte.MinValue,
-				testFieldBytes = Encoding.UTF8.GetBytes("我是中国人"),
+				testFieldBytes = Encoding.GetEncoding("gb2312").GetBytes("我是中国人"),
 				testFieldDateTime = DateTime.Now,
 				testFieldDateTimeNullable = DateTime.Now.AddHours(1),
 				testFieldDateTimeNullableOffset = new DateTimeOffset(DateTime.Now.AddHours(1), TimeSpan.FromHours(8)),

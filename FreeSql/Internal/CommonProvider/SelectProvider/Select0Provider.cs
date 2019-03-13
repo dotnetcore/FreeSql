@@ -152,6 +152,21 @@ namespace FreeSql.Internal.CommonProvider {
 		}
 		public TSelect Take(int limit) => this.Limit(limit) as TSelect;
 
+		public DataTable ToDataTable(string field = null) {
+			var sql = this.ToSql(field);
+			if (_cache.seconds > 0 && string.IsNullOrEmpty(_cache.key)) _cache.key = sql;
+
+			return _orm.Cache.Shell(_cache.key, _cache.seconds, () =>
+				_orm.Ado.ExecuteDataTable(_transaction, CommandType.Text, sql, _params.ToArray()));
+		}
+		public Task<DataTable> ToDataTableAsync(string field = null) {
+			var sql = this.ToSql(field);
+			if (_cache.seconds > 0 && string.IsNullOrEmpty(_cache.key)) _cache.key = sql;
+
+			return _orm.Cache.ShellAsync(_cache.key, _cache.seconds, () =>
+				_orm.Ado.ExecuteDataTableAsync(_transaction, CommandType.Text, sql, _params.ToArray()));
+		}
+
 		public List<TTuple> ToList<TTuple>(string field) {
 			var sql = this.ToSql(field);
 			if (_cache.seconds > 0 && string.IsNullOrEmpty(_cache.key)) _cache.key = sql;
@@ -471,6 +486,9 @@ namespace FreeSql.Internal.CommonProvider {
 			var af = this.GetExpressionField(select);
 			return this.ToSql(af.field);
 		}
+
+		protected DataTable InternalToDataTable(Expression select) => _orm.Ado.ExecuteDataTable(_transaction, CommandType.Text, this.InternalToSql<int>(select), _params.ToArray());
+		protected Task<DataTable> InternalToDataTableAsync(Expression select) => _orm.Ado.ExecuteDataTableAsync(_transaction, CommandType.Text, this.InternalToSql<int>(select), _params.ToArray());
 
 		protected TReturn InternalToAggregate<TReturn>(Expression select) {
 			var map = new ReadAnonymousTypeInfo();

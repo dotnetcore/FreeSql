@@ -13,6 +13,7 @@ using System.Text;
 namespace FreeSql.Internal {
 	internal abstract class CommonUtils {
 
+		internal abstract string GetNoneParamaterSqlValue(Type type, object value);
 		internal abstract DbParameter[] GetDbParamtersByObject(string sql, object obj);
 		internal abstract DbParameter AppendParamter(List<DbParameter> _params, string parameterName, Type type, object value);
 		internal abstract string FormatSql(string sql, params object[] args);

@@ -33,6 +33,21 @@ namespace FreeSql.Tests.Oracle {
 		}
 
 		[Fact]
+		public void ToDataTable() {
+			var items = new List<Topic>();
+			for (var a = 0; a < 10; a++) items.Add(new Topic { Id = a + 1, Title = $"newtitle{a}", Clicks = a * 100, CreateTime = DateTime.Now });
+
+			Assert.Equal(1, g.oracle.Insert<Topic>().AppendData(items.First()).ExecuteAffrows());
+			Assert.Equal(10, g.oracle.Insert<Topic>().AppendData(items).ExecuteAffrows());
+
+			items = Enumerable.Range(0, 9989).Select(a => new Topic { Title = "newtitle" + a, CreateTime = DateTime.Now }).ToList();
+			Assert.Equal(9989, g.oracle.Insert<Topic>(items).ExecuteAffrows());
+
+			var dt1 = select.Limit(10).ToDataTable();
+			var dt2 = select.Limit(10).ToDataTable("id, 111222");
+			var dt3 = select.Limit(10).ToDataTable(a => new { a.Id, a.Type.Name, now = DateTime.Now });
+		}
+		[Fact]
 		public void ToList() {
 		}
 		[Fact]

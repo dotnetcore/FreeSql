@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
@@ -8,6 +9,9 @@ namespace FreeSql {
 
 		bool Any(Expression<Func<T1, T2, T3, T4, bool>> exp);
 		Task<bool> AnyAsync(Expression<Func<T1, T2, T3, T4, bool>> exp);
+
+		DataTable ToDataTable<TReturn>(Expression<Func<T1, T2, T3, T4, TReturn>> select);
+		Task<DataTable> ToDataTableAsync<TReturn>(Expression<Func<T1, T2, T3, T4, TReturn>> select);
 
 		List<TReturn> ToList<TReturn>(Expression<Func<T1, T2, T3, T4, TReturn>> select);
 		Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<T1, T2, T3, T4, TReturn>> select);

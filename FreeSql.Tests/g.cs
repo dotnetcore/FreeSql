@@ -6,10 +6,9 @@ using System.Text;
 
 public class g {
 
-	public static IFreeSql mysql = new FreeSql.FreeSqlBuilder()
+	static Lazy<IFreeSql> mysqlLazy = new Lazy<IFreeSql>(() => new FreeSql.FreeSqlBuilder()
 		.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=10")
 		.UseAutoSyncStructure(true)
-
 		.UseMonitorCommand(
 			cmd => {
 				Trace.WriteLine(cmd.CommandText);
@@ -18,31 +17,36 @@ public class g {
 				Console.WriteLine(traceLog);
 			}) //监听SQL命令对象，在执行后
 		.UseLazyLoading(true)
-		.Build();
+		.Build());
+	public static IFreeSql mysql => mysqlLazy.Value;
 
-	public static IFreeSql sqlserver = new FreeSql.FreeSqlBuilder()
+	static Lazy<IFreeSql> sqlserverLazy = new Lazy<IFreeSql>(() => new FreeSql.FreeSqlBuilder()
 		.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=cms;Pooling=true;Max Pool Size=10")
 		.UseAutoSyncStructure(true)
 		.UseLazyLoading(true)
-		.Build();
+		.Build());
+	public static IFreeSql sqlserver => sqlserverLazy.Value;
 
-	public static IFreeSql pgsql = new FreeSql.FreeSqlBuilder()
+	static Lazy<IFreeSql> pgsqlLazy = new Lazy<IFreeSql>(() => new FreeSql.FreeSqlBuilder()
 		.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=10")
 		.UseAutoSyncStructure(true)
 		.UseSyncStructureToLower(true)
 		.UseLazyLoading(true)
-		.Build();
+		.Build());
+	public static IFreeSql pgsql => pgsqlLazy.Value;
 
-	public static IFreeSql oracle = new FreeSql.FreeSqlBuilder()
+	static Lazy<IFreeSql> oracleLazy = new Lazy<IFreeSql>(() => new FreeSql.FreeSqlBuilder()
 		.UseConnectionString(FreeSql.DataType.Oracle, "user id=user1;password=123456;data source=//127.0.0.1:1521/XE;Pooling=true;Max Pool Size=10")
 		.UseAutoSyncStructure(true)
 		.UseLazyLoading(true)
 		.UseSyncStructureToUpper(true)
-		.Build();
+		.Build());
+	public static IFreeSql oracle = oracleLazy.Value;
 
-	public static IFreeSql sqlite = new FreeSql.FreeSqlBuilder()
+	static Lazy<IFreeSql> sqliteLazy = new Lazy<IFreeSql>(() => new FreeSql.FreeSqlBuilder()
 		.UseConnectionString(FreeSql.DataType.Sqlite, @"Data Source=|DataDirectory|\document.db;Attachs=xxxtb.db;Pooling=true;Max Pool Size=10")
 		.UseAutoSyncStructure(true)
 		.UseLazyLoading(true)
-		.Build();
+		.Build());
+	public static IFreeSql sqlite = sqliteLazy.Value;
 }
