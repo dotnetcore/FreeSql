@@ -23,32 +23,44 @@ FreeSql 是一个功能强大的 .NETStandard 库，用于对象关系映射程�
 
 ## 快速开始
 ```csharp
-var connstr = "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;" + 
+var connstr = "Data Source=127.0.0.1;User ID=root;Password=root;" + 
     "Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=10";
 
 IFreeSql fsql = new FreeSql.FreeSqlBuilder()
     .UseConnectionString(FreeSql.DataType.MySql, connstr)
-    .UseSlave("connectionString1", "connectionString2") //使用从数据库，支持多个
+    .UseSlave("connectionString1", "connectionString2")
+    //读写分离，使用从数据库，支持多个
 
     .UseMonitorCommand(
-        cmd => Console.WriteLine(cmd.CommandText), //监听SQL命令对象，在执行前
-        (cmd, traceLog) => Console.WriteLine(traceLog)) //监听SQL命令对象，在执行后
+        cmd => Console.WriteLine(cmd.CommandText),
+        //监听SQL命令对象，在执行前
+        (cmd, traceLog) => Console.WriteLine(traceLog))
+        //监听SQL命令对象，在执行后
 
-    .UseLogger(null) //使用日志，不指定默认输出控制台 ILogger
-    .UseCache(null) //使用缓存，不指定默认使用内存 IDistributedCache
+    .UseLogger(null)
+    //使用日志，不指定默认输出控制台 ILogger
+    .UseCache(null)
+    //使用缓存，不指定默认使用内存 IDistributedCache
 
-    .UseAutoSyncStructure(true) //自动同步实体结构到数据库
-    .UseSyncStructureToLower(true) //转小写同步结构
-    .UseSyncStructureToUpper(true) //转大写同步结构
-	.UseConfigEntityFromDbFirst(true) //若无配置实体类主键、自增，可从数据库导入
+    .UseAutoSyncStructure(true)
+    //自动同步实体结构到数据库
+    .UseSyncStructureToLower(true)
+    //转小写同步结构
+    .UseSyncStructureToUpper(true)
+    //转大写同步结构
+    .UseConfigEntityFromDbFirst(true)
+    //若无配置实体类主键、自增，可从数据库导入
+    .UseNoneCommandParameter(true)
+    //不使用命令参数化执行，针对 Insert/Update，也可临时使用 IInsert/IUpdate.NoneParameter() 
 
-    .UseLazyLoading(true) //延时加载导航属性对象，导航属性需要声明 virtual
+    .UseLazyLoading(true)
+    //延时加载导航属性对象，导航属性需要声明 virtual
     .Build();
 ```
 
 # 实体
 
-FreeSql 使用模型执行数据访问，模型由实体类表示数据库表或视图，用于查询和保存数据。 有关详细信息，请参阅创建模型。
+FreeSql 使用模型执行数据访问，模型由实体类表示数据库表或视图，用于查询和保存数据。
 
 可从现有数据库生成实体模型，提供 IDbFirst 生成实体模型。
 
