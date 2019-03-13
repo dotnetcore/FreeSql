@@ -1,9 +1,12 @@
 ﻿using FreeSql.Internal;
 using Newtonsoft.Json.Linq;
 using Npgsql;
+using Npgsql.LegacyPostgis;
 using NpgsqlTypes;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Data.Common;
 using System.Linq;
 using System.Net;
@@ -68,9 +71,8 @@ namespace FreeSql.PostgreSQL {
 
 		internal override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, Type type, object value) {
 			if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
-			else if (_orm.CodeFirst.IsSyncStructureToLower) parameterName = parameterName.ToLower();
 			if (value != null) value = getParamterValue(type, value);
-			var ret = new NpgsqlParameter { ParameterName = $"@{parameterName}", Value = value };
+			var ret = new NpgsqlParameter { ParameterName = QuoteParamterName(parameterName), Value = value };
 			//if (value.GetType().IsEnum || value.GetType().GenericTypeArguments.FirstOrDefault()?.IsEnum == true) {
 			//	ret.DataTypeName = "";
 			//} else {
@@ -104,13 +106,18 @@ namespace FreeSql.PostgreSQL {
 		internal override string QuoteWriteParamter(Type type, string paramterName) => paramterName;
 		internal override string QuoteReadColumn(Type type, string columnName) => columnName;
 
-		internal override string GetNoneParamaterSqlValue(Type type, object value) {
+		static ConcurrentDictionary<Type, bool> _dicIsAssignableFromPostgisGeometry = new ConcurrentDictionary<Type, bool>();
+		internal override string GetNoneParamaterSqlValue(List<DbParameter> specialParams, Type type, object value) {
 			if (value == null) return "NULL";
+			if (_dicIsAssignableFromPostgisGeometry.GetOrAdd(type, t2 => typeof(PostgisGeometry).IsAssignableFrom(type.IsArray ? type.GetElementType() : type))) {
+				var pam = AppendParamter(specialParams, null, type, value);
+				return pam.ParameterName;
+			}
 			value = getParamterValue(type, value);
 			var type2 = value.GetType();
 			if (type2 == typeof(byte[])) {
 				var bytes = value as byte[];
-				var sb = new StringBuilder().Append("E'\\x");
+				var sb = new StringBuilder().Append("'\\x");
 				foreach (var vc in bytes) {
 					if (vc < 10) sb.Append("0");
 					sb.Append(vc.ToString("X"));
@@ -118,11 +125,33 @@ namespace FreeSql.PostgreSQL {
 				return sb.Append("'").ToString(); //val = Encoding.UTF8.GetString(val as byte[]);
 			} else if (type2 == typeof(TimeSpan) || type2 == typeof(TimeSpan?)) {
 				var ts = (TimeSpan)value;
-				value = $"{ts.Hours}:{ts.Minutes}:{ts.Seconds}";
+				return $"'{Math.Min(24, (int)Math.Floor(ts.TotalHours))}:{ts.Minutes}:{ts.Seconds}'";
+			} else if (value is Array) {
+				var valueArr = value as Array;
+				var eleType = type2.GetElementType();
+				var len = valueArr.GetLength(0);
+				var sb = new StringBuilder().Append("ARRAY[");
+				for (var a = 0; a < len; a++) {
+					var item = valueArr.GetValue(a);
+					if (a > 0) sb.Append(",");
+					sb.Append(GetNoneParamaterSqlValue(specialParams, eleType, item));
+				}
+				sb.Append("]");
+				var dbinfo = _orm.CodeFirst.GetDbInfo(type);
+				if (dbinfo.HasValue) sb.Append("::").Append(dbinfo.Value.dbtype);
+				return sb.ToString();
+			} else if (type2 == typeof(BitArray)) {
+				return $"'{(value as BitArray).To1010()}'";
+			} else if (type2 == typeof(NpgsqlLine) || type2 == typeof(NpgsqlLine?)) {
+				var line = value.ToString();
+				return line == "{0,0,0}" ? "'{0,-1,-1}'" : $"'{line}'";
+			} else if (type2 == typeof((IPAddress Address, int Subnet)) || type2 == typeof((IPAddress Address, int Subnet)?)) {
+				var cidr = ((IPAddress Address, int Subnet))value;
+				return $"'{cidr.Address}/{cidr.Subnet}'";
+			} else if (dicGetParamterValue.ContainsKey(type2.FullName)) {
+				value = string.Concat(value);
 			}
 			return FormatSql("{0}", value, 1);
 		}
-
-		internal override string DbName => "PostgreSQL";
 	}
 }

@@ -4,13 +4,49 @@ using FreeSql.PostgreSQL.Curd;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
+using Npgsql.LegacyPostgis;
+using NpgsqlTypes;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data.Common;
+using System.Net;
+using System.Net.NetworkInformation;
 
 namespace FreeSql.PostgreSQL {
 
 	class PostgreSQLProvider : IFreeSql {
+
+		static PostgreSQLProvider() {
+			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(BitArray), true);
+			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(NpgsqlPoint), true);
+			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(NpgsqlLine), true);
+			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(NpgsqlLSeg), true);
+			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(NpgsqlBox), true);
+			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(NpgsqlPath), true);
+			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(NpgsqlPolygon), true);
+			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(NpgsqlCircle), true);
+			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof((IPAddress Address, int Subnet)), true);
+			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(IPAddress), true);
+			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(PhysicalAddress), true);
+			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(NpgsqlRange<int>), true);
+			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(NpgsqlRange<long>), true);
+			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(NpgsqlRange<decimal>), true);
+			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(NpgsqlRange<DateTime>), true);
+			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(PostgisPoint), true);
+			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(PostgisLineString), true);
+			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(PostgisPolygon), true);
+			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(PostgisMultiPoint), true);
+			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(PostgisMultiLineString), true);
+			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(PostgisMultiPolygon), true);
+			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(PostgisGeometry), true);
+			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(PostgisGeometryCollection), true);
+			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(Dictionary<string, string>), true);
+			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(JToken), true);
+			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(JObject), true);
+			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(JArray), true);
+		}
 
 		public ISelect<T1> Select<T1>() where T1 : class => new PostgreSQLSelect<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, null);
 		public ISelect<T1> Select<T1>(object dywhere) where T1 : class => new PostgreSQLSelect<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, dywhere);

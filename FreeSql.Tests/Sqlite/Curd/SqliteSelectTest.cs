@@ -81,8 +81,8 @@ namespace FreeSql.Tests.Sqlite {
 			Assert.Equal(1, g.sqlite.Insert<Topic>().AppendData(items.First()).ExecuteAffrows());
 			Assert.Equal(10, g.sqlite.Insert<Topic>().AppendData(items).ExecuteAffrows());
 
-			items = Enumerable.Range(0, 9989).Select(a => new Topic { Title = "newtitle" + a, CreateTime = DateTime.Now }).ToList();
-			Assert.Equal(9989, g.sqlite.Insert<Topic>(items).ExecuteAffrows());
+			//items = Enumerable.Range(0, 9989).Select(a => new Topic { Title = "newtitle" + a, CreateTime = DateTime.Now }).ToList();
+			//Assert.Equal(9989, g.sqlite.Insert<Topic>(items).ExecuteAffrows());
 
 			var dt1 = select.Limit(10).ToDataTable();
 			var dt2 = select.Limit(10).ToDataTable("id, 111222");

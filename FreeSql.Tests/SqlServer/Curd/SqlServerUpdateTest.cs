@@ -12,6 +12,7 @@ namespace FreeSql.Tests.SqlServer {
 			[Column(IsIdentity = true, IsPrimary = true)]
 			public int Id { get; set; }
 			public int? Clicks { get; set; }
+			public int TestTypeInfoGuid { get; set; }
 			public TestTypeInfo Type { get; set; }
 			public string Title { get; set; }
 			public DateTime CreateTime { get; set; }
@@ -28,24 +29,24 @@ namespace FreeSql.Tests.SqlServer {
 
 		[Fact]
 		public void SetSource() {
-			var sql = update.SetSource(new Topic { Id = 1, Title = "newtitle" }).ToSql().Replace("\r\n", "");
+			var sql = update.SetSource(new Topic { Id = 1, Title = "newtitle" }).IgnoreColumns(a => a.TestTypeInfoGuid).ToSql().Replace("\r\n", "");
 			Assert.Equal("UPDATE [tb_topic] SET [Clicks] = @p_0, [Title] = @p_1, [CreateTime] = @p_2 WHERE ([Id] = 1)", sql);
 
 			var items = new List<Topic>();
 			for (var a = 0; a < 10; a++) items.Add(new Topic { Id = a + 1, Title = $"newtitle{a}", Clicks = a * 100 });
 
-			sql = update.SetSource(items).ToSql().Replace("\r\n", "");
+			sql = update.SetSource(items).IgnoreColumns(a => a.TestTypeInfoGuid).ToSql().Replace("\r\n", "");
 			Assert.Equal("UPDATE [tb_topic] SET [Clicks] = CASE [Id] WHEN 1 THEN @p_0 WHEN 2 THEN @p_1 WHEN 3 THEN @p_2 WHEN 4 THEN @p_3 WHEN 5 THEN @p_4 WHEN 6 THEN @p_5 WHEN 7 THEN @p_6 WHEN 8 THEN @p_7 WHEN 9 THEN @p_8 WHEN 10 THEN @p_9 END, [Title] = CASE [Id] WHEN 1 THEN @p_10 WHEN 2 THEN @p_11 WHEN 3 THEN @p_12 WHEN 4 THEN @p_13 WHEN 5 THEN @p_14 WHEN 6 THEN @p_15 WHEN 7 THEN @p_16 WHEN 8 THEN @p_17 WHEN 9 THEN @p_18 WHEN 10 THEN @p_19 END, [CreateTime] = CASE [Id] WHEN 1 THEN @p_20 WHEN 2 THEN @p_21 WHEN 3 THEN @p_22 WHEN 4 THEN @p_23 WHEN 5 THEN @p_24 WHEN 6 THEN @p_25 WHEN 7 THEN @p_26 WHEN 8 THEN @p_27 WHEN 9 THEN @p_28 WHEN 10 THEN @p_29 END WHERE ([Id] IN (1,2,3,4,5,6,7,8,9,10))", sql);
 
-			sql = update.SetSource(items).IgnoreColumns(a => new { a.Clicks, a.CreateTime }).ToSql().Replace("\r\n", "");
+			sql = update.SetSource(items).IgnoreColumns(a => new { a.Clicks, a.CreateTime, a.TestTypeInfoGuid }).ToSql().Replace("\r\n", "");
 			Assert.Equal("UPDATE [tb_topic] SET [Title] = CASE [Id] WHEN 1 THEN @p_0 WHEN 2 THEN @p_1 WHEN 3 THEN @p_2 WHEN 4 THEN @p_3 WHEN 5 THEN @p_4 WHEN 6 THEN @p_5 WHEN 7 THEN @p_6 WHEN 8 THEN @p_7 WHEN 9 THEN @p_8 WHEN 10 THEN @p_9 END WHERE ([Id] IN (1,2,3,4,5,6,7,8,9,10))", sql);
 
-			sql = update.SetSource(items).Set(a => a.CreateTime, new DateTime(2020,1,1)).ToSql().Replace("\r\n", "");
+			sql = update.SetSource(items).IgnoreColumns(a => a.TestTypeInfoGuid).Set(a => a.CreateTime, new DateTime(2020,1,1)).ToSql().Replace("\r\n", "");
 			Assert.Equal("UPDATE [tb_topic] SET [CreateTime] = @p_0 WHERE ([Id] IN (1,2,3,4,5,6,7,8,9,10))", sql);
 		}
 		[Fact]
 		public void IgnoreColumns() {
-			var sql = update.SetSource(new Topic { Id = 1, Title = "newtitle" }).IgnoreColumns(a => new { a.Clicks, a.CreateTime }).ToSql().Replace("\r\n", "");
+			var sql = update.SetSource(new Topic { Id = 1, Title = "newtitle" }).IgnoreColumns(a => new { a.Clicks, a.CreateTime, a.TestTypeInfoGuid }).ToSql().Replace("\r\n", "");
 			Assert.Equal("UPDATE [tb_topic] SET [Title] = @p_0 WHERE ([Id] = 1)", sql);
 		}
 		[Fact]

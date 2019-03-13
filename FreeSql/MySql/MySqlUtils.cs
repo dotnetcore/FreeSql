@@ -14,8 +14,7 @@ namespace FreeSql.MySql {
 
 		internal override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, Type type, object value) {
 			if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
-			else if (_orm.CodeFirst.IsSyncStructureToLower) parameterName = parameterName.ToLower();
-			var ret = new MySqlParameter { ParameterName = $"?{parameterName}", Value = value };
+			var ret = new MySqlParameter { ParameterName = QuoteParamterName(parameterName), Value = value };
 			var tp = _orm.CodeFirst.GetDbInfo(type)?.type;
 			if (tp != null) {
 				if ((MySqlDbType)tp.Value == MySqlDbType.Geometry) {
@@ -72,7 +71,7 @@ namespace FreeSql.MySql {
 			return columnName;
 		}
 
-		internal override string GetNoneParamaterSqlValue(Type type, object value) {
+		internal override string GetNoneParamaterSqlValue(List<DbParameter> specialParams, Type type, object value) {
 			if (value == null) return "NULL";
 			if (type == typeof(byte[])) {
 				var bytes = value as byte[];
@@ -88,7 +87,5 @@ namespace FreeSql.MySql {
 			}
 			return FormatSql("{0}", value, 1);
 		}
-
-		internal override string DbName => "MySql";
 	}
 }

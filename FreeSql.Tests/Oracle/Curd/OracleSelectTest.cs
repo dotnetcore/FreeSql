@@ -32,16 +32,25 @@ namespace FreeSql.Tests.Oracle {
 			public List<TestTypeInfo> Types { get; set; }
 		}
 
+		class TopicInserts {
+			public Guid Id { get; set; }
+			public int Clicks { get; set; }
+			public int TestTypeInfoGuid { get; set; }
+			public TestTypeInfo Type { get; set; }
+			public string Title { get; set; }
+			public DateTime CreateTime { get; set; }
+		}
+
 		[Fact]
 		public void ToDataTable() {
-			var items = new List<Topic>();
-			for (var a = 0; a < 10; a++) items.Add(new Topic { Id = a + 1, Title = $"newtitle{a}", Clicks = a * 100, CreateTime = DateTime.Now });
+			var items = new List<TopicInserts>();
+			for (var a = 0; a < 11; a++) items.Add(new TopicInserts { Title = $"newtitle{a}", Clicks = a * 100, CreateTime = DateTime.Now });
 
-			Assert.Equal(1, g.oracle.Insert<Topic>().AppendData(items.First()).ExecuteAffrows());
-			Assert.Equal(10, g.oracle.Insert<Topic>().AppendData(items).ExecuteAffrows());
+			//Assert.Equal(1, g.oracle.Insert<TopicInserts>().AppendData(items.First()).ExecuteAffrows());
+			Assert.Equal(11, g.oracle.Insert<TopicInserts>().AppendData(items).ExecuteAffrows());
 
-			items = Enumerable.Range(0, 9989).Select(a => new Topic { Title = "newtitle" + a, CreateTime = DateTime.Now }).ToList();
-			Assert.Equal(9989, g.oracle.Insert<Topic>(items).ExecuteAffrows());
+			//items = Enumerable.Range(0, 9989).Select(a => new TopicInserts { Title = "newtitle" + a, CreateTime = DateTime.Now }).ToList();
+			//Assert.Equal(9989, g.oracle.Insert<TopicInserts>(items).ExecuteAffrows());
 
 			var dt1 = select.Limit(10).ToDataTable();
 			var dt2 = select.Limit(10).ToDataTable("id, 111222");

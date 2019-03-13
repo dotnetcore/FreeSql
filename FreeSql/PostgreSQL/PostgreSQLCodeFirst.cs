@@ -28,10 +28,11 @@ namespace FreeSql.PostgreSQL {
 			_commonExpression = commonExpression;
 		}
 
-		public bool IsAutoSyncStructure { get; set; } = true;
+		public bool IsAutoSyncStructure { get; set; } = false;
 		public bool IsSyncStructureToLower { get; set; } = false;
 		public bool IsSyncStructureToUpper { get; set; } = false;
 		public bool IsConfigEntityFromDbFirst { get; set; } = false;
+		public bool IsNoneCommandParameter { get; set; } = false;
 		public bool IsLazyLoading { get; set; } = false;
 
 		static object _dicCsToDbLock = new object();

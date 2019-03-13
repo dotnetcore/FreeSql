@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -12,24 +13,39 @@ namespace FreeSql.Sqlite.Curd {
 			: base(orm, commonUtils, commonExpression) {
 		}
 
-		public override long ExecuteIdentity() {
+		public override int ExecuteAffrows() => base.SplitExecuteAffrows(5000, 999);
+		public override Task<int> ExecuteAffrowsAsync() => base.SplitExecuteAffrowsAsync(5000, 999);
+		public override long ExecuteIdentity() => base.SplitExecuteIdentity(5000, 999);
+		public override Task<long> ExecuteIdentityAsync() => base.SplitExecuteIdentityAsync(5000, 999);
+		public override List<T1> ExecuteInserted() => base.SplitExecuteInserted(5000, 999);
+		public override Task<List<T1>> ExecuteInsertedAsync() => base.SplitExecuteInsertedAsync(5000, 999);
+
+
+		internal override long RawExecuteIdentity() {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return 0;
 
 			return long.TryParse(string.Concat(_orm.Ado.ExecuteScalar(_transaction, CommandType.Text, string.Concat(sql, "; SELECT last_insert_rowid();"), _params)), out var trylng) ? trylng : 0;
 		}
-		async public override Task<long> ExecuteIdentityAsync() {
+		async internal override Task<long> RawExecuteIdentityAsync() {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return 0;
 
 			return long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync(_transaction, CommandType.Text, string.Concat(sql, "; SELECT last_insert_rowid();"), _params)), out var trylng) ? trylng : 0;
 		}
+		internal override List<T1> RawExecuteInserted() {
+			var sql = this.ToSql();
+			if (string.IsNullOrEmpty(sql)) return new List<T1>();
 
-		public override List<T1> ExecuteInserted() {
-			throw new NotImplementedException();
+			this.ExecuteAffrows();
+			return _source;
 		}
-		public override Task<List<T1>> ExecuteInsertedAsync() {
-			throw new NotImplementedException();
+		async internal override Task<List<T1>> RawExecuteInsertedAsync() {
+			var sql = this.ToSql();
+			if (string.IsNullOrEmpty(sql)) return new List<T1>();
+
+			await this.ExecuteAffrowsAsync();
+			return _source;
 		}
 	}
 }

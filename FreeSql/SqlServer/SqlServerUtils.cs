@@ -17,9 +17,8 @@ namespace FreeSql.SqlServer {
 
 		internal override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, Type type, object value) {
 			if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
-			else if (_orm.CodeFirst.IsSyncStructureToLower) parameterName = parameterName.ToLower();
 			if (value?.Equals(DateTime.MinValue) == true) value = new DateTime(1970, 1, 1);
-			var ret = new SqlParameter { ParameterName = $"@{parameterName}", Value = value };
+			var ret = new SqlParameter { ParameterName = QuoteParamterName(parameterName), Value = value };
 			var tp = _orm.CodeFirst.GetDbInfo(type)?.type;
 			if (tp != null) ret.SqlDbType = (SqlDbType)tp.Value;
 			_params?.Add(ret);
@@ -45,7 +44,7 @@ namespace FreeSql.SqlServer {
 		internal override string QuoteWriteParamter(Type type, string paramterName) => paramterName;
 		internal override string QuoteReadColumn(Type type, string columnName) => columnName;
 
-		internal override string GetNoneParamaterSqlValue(Type type, object value) {
+		internal override string GetNoneParamaterSqlValue(List<DbParameter> specialParams, Type type, object value) {
 			if (value == null) return "NULL";
 			if (type == typeof(byte[])) {
 				var bytes = value as byte[];
@@ -61,7 +60,5 @@ namespace FreeSql.SqlServer {
 			}
 			return FormatSql("{0}", value, 1);
 		}
-
-		internal override string DbName => "SqlServer";
 	}
 }

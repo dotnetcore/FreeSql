@@ -15,7 +15,6 @@ namespace FreeSql.Sqlite {
 
 		internal override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, Type type, object value) {
 			if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
-			else if (_orm.CodeFirst.IsSyncStructureToLower) parameterName = parameterName.ToLower();
 			var dbtype = (DbType)_orm.CodeFirst.GetDbInfo(type)?.type;
 			switch (dbtype) {
 				case DbType.Guid:
@@ -29,7 +28,7 @@ namespace FreeSql.Sqlite {
 					dbtype = DbType.Int64;
 					break;
 			}
-			var ret = new SQLiteParameter { ParameterName = $"@{parameterName}", DbType = dbtype, Value = value };
+			var ret = new SQLiteParameter { ParameterName = QuoteParamterName(parameterName), DbType = dbtype, Value = value };
 			_params?.Add(ret);
 			return ret;
 		}
@@ -63,12 +62,10 @@ namespace FreeSql.Sqlite {
 		internal override string QuoteWriteParamter(Type type, string paramterName) => paramterName;
 		internal override string QuoteReadColumn(Type type, string columnName) => columnName;
 
-		internal override string GetNoneParamaterSqlValue(Type type, object value) {
+		internal override string GetNoneParamaterSqlValue(List<DbParameter> specialParams, Type type, object value) {
 			if (value == null) return "NULL";
 			if (type == typeof(byte[])) value = Encoding.UTF8.GetString(value as byte[]);
 			return FormatSql("{0}", value, 1);
 		}
-
-		internal override string DbName => "Sqlite";
 	}
 }

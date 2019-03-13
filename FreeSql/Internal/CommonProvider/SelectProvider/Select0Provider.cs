@@ -279,7 +279,7 @@ namespace FreeSql.Internal.CommonProvider {
 			public Func<DbDataReader, T1> Read { get; set; }
 		}
 		protected GetAllFieldExpressionTreeInfo GetAllFieldExpressionTree() {
-			return _dicGetAllFieldExpressionTree.GetOrAdd(string.Join("+", _tables.Select(a => $"{_commonUtils.DbName}-{a.Table.DbName}-{a.Alias}-{a.Type}")), s => {
+			return _dicGetAllFieldExpressionTree.GetOrAdd(string.Join("+", _tables.Select(a => $"{_orm.Ado.DataType}-{a.Table.DbName}-{a.Alias}-{a.Type}")), s => {
 				var tb1 = _tables.First().Table;
 				var type = tb1.TypeLazy ?? tb1.Type;
 				var props = tb1.Properties;

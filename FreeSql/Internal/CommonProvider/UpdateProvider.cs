@@ -22,6 +22,7 @@ namespace FreeSql.Internal.CommonProvider {
 		protected StringBuilder _set = new StringBuilder();
 		protected List<DbParameter> _params = new List<DbParameter>();
 		protected List<DbParameter> _paramsSource = new List<DbParameter>();
+		protected bool _noneParameter;
 		protected DbTransaction _transaction;
 
 		public UpdateProvider(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere) {
@@ -29,12 +30,17 @@ namespace FreeSql.Internal.CommonProvider {
 			_commonUtils = commonUtils;
 			_commonExpression = commonExpression;
 			_table = _commonUtils.GetTableByEntity(typeof(T1));
+			_noneParameter = _orm.CodeFirst.IsNoneCommandParameter;
 			this.Where(_commonUtils.WhereObject(_table, "", dywhere));
 			if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure<T1>();
 		}
 
 		public IUpdate<T1> WithTransaction(DbTransaction transaction) {
 			_transaction = transaction;
+			return this;
+		}
+		public IUpdate<T1> NoneParameter() {
+			_noneParameter = false;
 			return this;
 		}
 
@@ -70,8 +76,13 @@ namespace FreeSql.Internal.CommonProvider {
 			_commonExpression.ExpressionSelectColumn_MemberAccess(null, cols, SelectTableInfoType.From, column?.Body, true, null);
 			if (cols.Count != 1) return this;
 			var col = cols.First();
-			_set.Append(", ").Append(_commonUtils.QuoteSqlName(col.Column.Attribute.Name)).Append(" = ").Append(_commonUtils.QuoteWriteParamter(col.Column.CsType, $"{_commonUtils.QuoteParamterName("p_")}{_params.Count}"));
-			_commonUtils.AppendParamter(_params, null, col.Column.CsType, value);
+			_set.Append(", ").Append(_commonUtils.QuoteSqlName(col.Column.Attribute.Name)).Append(" = ");
+			if (_noneParameter) {
+				_set.Append(_commonUtils.GetNoneParamaterSqlValue(_params, col.Column.CsType, value));
+			} else {
+				_set.Append(_commonUtils.QuoteWriteParamter(col.Column.CsType, $"{_commonUtils.QuoteParamterName("p_")}{_params.Count}"));
+				_commonUtils.AppendParamter(_params, null, col.Column.CsType, value);
+			}
 			//foreach (var t in _source) Utils.FillPropertyValue(t, tryf.CsName, value);
 			return this;
 		}
@@ -131,8 +142,14 @@ namespace FreeSql.Internal.CommonProvider {
 				foreach (var col in _table.Columns.Values) {
 					if (col.Attribute.IsIdentity == false && _ignore.ContainsKey(col.CsName) == false) {
 						if (colidx > 0) sb.Append(", ");
-						sb.Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ").Append(_commonUtils.QuoteWriteParamter(col.CsType, _commonUtils.QuoteParamterName($"p_{_paramsSource.Count}")));
-						_commonUtils.AppendParamter(_paramsSource, null, col.CsType, _table.Properties.TryGetValue(col.CsName, out var tryp) ? tryp.GetValue(_source.First()) : null);
+						sb.Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ");
+						var value = _table.Properties.TryGetValue(col.CsName, out var tryp) ? tryp.GetValue(_source.First()) : null;
+						if (_noneParameter) {
+							sb.Append(_commonUtils.GetNoneParamaterSqlValue(_paramsSource, col.CsType, value));
+						} else {
+							sb.Append(_commonUtils.QuoteWriteParamter(col.CsType, _commonUtils.QuoteParamterName($"p_{_paramsSource.Count}")));
+							_commonUtils.AppendParamter(_paramsSource, null, col.CsType, value);
+						}
 						++colidx;
 					}
 				}
@@ -171,8 +188,14 @@ namespace FreeSql.Internal.CommonProvider {
 							//	++pkidx;
 							//}
 							//if (_table.Primarys.Length > 1) sb.Append(")");
-							sb.Append(" THEN ").Append(_commonUtils.QuoteWriteParamter(col.CsType, _commonUtils.QuoteParamterName($"p_{_paramsSource.Count}")));
-							_commonUtils.AppendParamter(_paramsSource, null, col.CsType, _table.Properties.TryGetValue(col.CsName, out var tryp) ? tryp.GetValue(d) : DBNull.Value);
+							sb.Append(" THEN ");
+							var value = _table.Properties.TryGetValue(col.CsName, out var tryp) ? tryp.GetValue(d) : DBNull.Value;
+							if (_noneParameter) {
+								sb.Append(_commonUtils.GetNoneParamaterSqlValue(_paramsSource, col.CsType, value));
+							} else {
+								sb.Append(_commonUtils.QuoteWriteParamter(col.CsType, _commonUtils.QuoteParamterName($"p_{_paramsSource.Count}")));
+								_commonUtils.AppendParamter(_paramsSource, null, col.CsType, value);
+							}
 						}
 						sb.Append(" END");
 						++colidx;

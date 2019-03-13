@@ -14,46 +14,28 @@ namespace FreeSql.SqlServer.Curd {
 			: base(orm, commonUtils, commonExpression) {
 		}
 
-		public override long ExecuteIdentity() {
-			//if (_source?.Count > 999) {
-			//	List<IInsert<T1>> inserts = new List<IInsert<T1>>();
-			//	var idx = 0;
-			//	while (idx < _source.Count) {
-			//		var count = Math.Min(_source.Count, idx + 999) - idx;
-			//		var insert = _orm.Insert<T1>().AppendData(_source.GetRange(idx, count));
-			//		_
-			//		inserts.Add(insert);
-			//		idx += 999;
-			//	}
-			//	Object<DbConnection> conn = null;
-			//	var trans = _transaction;
-			//	if (_transaction == null) {
-			//		conn = _orm.Ado.MasterPool.Get();
-			//		trans = conn.Value.BeginTransaction();
-			//	}
-			//	try {
-			//		for (var a = 0; a < inserts.Count; a++) {
-			//			inserts[a].WithTransaction(trans)
-			//		}
-			//		if (_transaction == null) trans.Commit();
-			//	} catch {
-			//		if (_transaction == null) trans.Rollback();
-			//		throw;
-			//	}
-			//}
+		public override int ExecuteAffrows() => base.SplitExecuteAffrows(1000, 2100);
+		public override Task<int> ExecuteAffrowsAsync() => base.SplitExecuteAffrowsAsync(1000, 2100);
+		public override long ExecuteIdentity() => base.SplitExecuteIdentity(1000, 2100);
+		public override Task<long> ExecuteIdentityAsync() => base.SplitExecuteIdentityAsync(1000, 2100);
+		public override List<T1> ExecuteInserted() => base.SplitExecuteInserted(1000, 2100);
+		public override Task<List<T1>> ExecuteInsertedAsync() => base.SplitExecuteInsertedAsync(1000, 2100);
+
+
+		internal override long RawExecuteIdentity() {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return 0;
 
 			return long.TryParse(string.Concat(_orm.Ado.ExecuteScalar(_transaction, CommandType.Text, string.Concat(sql, "; SELECT SCOPE_IDENTITY();"), _params)), out var trylng) ? trylng : 0;
 		}
-		async public override Task<long> ExecuteIdentityAsync() {
+		async internal override Task<long> RawExecuteIdentityAsync() {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return 0;
 
 			return long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync(_transaction, CommandType.Text, string.Concat(sql, "; SELECT SCOPE_IDENTITY();"), _params)), out var trylng) ? trylng : 0;
 		}
 
-		public override List<T1> ExecuteInserted() {
+		internal override List<T1> RawExecuteInserted() {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return new List<T1>();
 
@@ -73,7 +55,7 @@ namespace FreeSql.SqlServer.Curd {
 
 			return _orm.Ado.Query<T1>(_transaction, CommandType.Text, sb.ToString(), _params);
 		}
-		async public override Task<List<T1>> ExecuteInsertedAsync() {
+		async internal override Task<List<T1>> RawExecuteInsertedAsync() {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return new List<T1>();
 

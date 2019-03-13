@@ -33,6 +33,21 @@ namespace FreeSql.Tests.PostgreSQL {
 		}
 
 		[Fact]
+		public void ToDataTable() {
+			var items = new List<Topic>();
+			for (var a = 0; a < 10; a++) items.Add(new Topic { Id = a + 1, Title = $"newtitle{a}", Clicks = a * 100, CreateTime = DateTime.Now });
+
+			Assert.Single(g.pgsql.Insert<Topic>().AppendData(items.First()).ExecuteInserted());
+			Assert.Equal(10, g.pgsql.Insert<Topic>().AppendData(items).ExecuteInserted().Count);
+
+			//items = Enumerable.Range(0, 9989).Select(a => new Topic { Title = "newtitle" + a, CreateTime = DateTime.Now }).ToList();
+			//Assert.Equal(9989, g.pgsql.Insert<Topic>(items).ExecuteAffrows());
+
+			var dt1 = select.Limit(10).ToDataTable();
+			var dt2 = select.Limit(10).ToDataTable("id, 222");
+			var dt3 = select.Limit(10).ToDataTable(a => new { a.Id, a.Type.Name, now = DateTime.Now });
+		}
+		[Fact]
 		public void ToList() {
 			var t1 = g.pgsql.Select<TestInfo>().Where("").Where(a => a.Id > 0).Skip(100).Limit(200).ToSql();
 			var t2 = g.pgsql.Select<TestInfo>().As("b").Where("").Where(a => a.Id > 0).Skip(100).Limit(200).ToSql();

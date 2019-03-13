@@ -16,6 +16,14 @@ namespace FreeSql.Oracle.Curd {
 			: base(orm, commonUtils, commonExpression) {
 		}
 
+		public override int ExecuteAffrows() => base.SplitExecuteAffrows(500, 999);
+		public override Task<int> ExecuteAffrowsAsync() => base.SplitExecuteAffrowsAsync(500, 999);
+		public override long ExecuteIdentity() => base.SplitExecuteIdentity(500, 999);
+		public override Task<long> ExecuteIdentityAsync() => base.SplitExecuteIdentityAsync(500, 999);
+		public override List<T1> ExecuteInserted() => base.SplitExecuteInserted(500, 999);
+		public override Task<List<T1>> ExecuteInsertedAsync() => base.SplitExecuteInsertedAsync(500, 999);
+
+
 		public override string ToSql() {
 			if (_source == null || _source.Any() == false) return null;
 			var sb = new StringBuilder();
@@ -40,9 +48,8 @@ namespace FreeSql.Oracle.Curd {
 			}
 			sbtb.Append(") ");
 
-			//_params = new DbParameter[colidx * _source.Count];
-			_params = new DbParameter[0];
-			//_params = new DbParameter[colidx * 5]; //批量添加第5行起，不使用参数化
+			_params = _noneParameter ? new DbParameter[0] : new DbParameter[colidx * _source.Count];
+			var specialParams = new List<DbParameter>();
 			var didx = 0;
 			foreach (var d in _source) {
 				if (_source.Count > 1) sb.Append("\r\n");
@@ -59,24 +66,24 @@ namespace FreeSql.Oracle.Curd {
 							if (col.Attribute.IsPrimary && (col.CsType == typeof(Guid) || col.CsType == typeof(Guid?))
 								&& (val == null || (Guid)val == Guid.Empty)) tryp.SetValue(d, val = FreeUtil.NewMongodbId());
 						}
-						//if (didx >= 5)
-							sb.Append(_commonUtils.GetNoneParamaterSqlValue(col.CsType, val));
-						//else {
-						//	sb.Append(_commonUtils.QuoteWriteParamter(col.CsType, $"{_commonUtils.QuoteParamterName(col.CsName)}{didx}"));
-						//	_params[didx * colidx + colidx2] = _commonUtils.AppendParamter(null, $"{col.CsName}{didx}", col.CsType, val);
-						//}
+						if (_noneParameter)
+							sb.Append(_commonUtils.GetNoneParamaterSqlValue(specialParams, col.CsType, val));
+						else {
+							sb.Append(_commonUtils.QuoteWriteParamter(col.CsType, _commonUtils.QuoteParamterName($"{col.CsName}{didx}")));
+							_params[didx * colidx + colidx2] = _commonUtils.AppendParamter(null, $"{col.CsName}{didx}", col.CsType, val);
+						}
 						++colidx2;
 					}
 				}
 				sb.Append(")");
 				++didx;
 			}
-			//if (_source.Count > 1) sb.Append("\r\n SELECT 1 FROM DUAL");
+			if (_source.Count > 1) sb.Append("\r\n SELECT 1 FROM DUAL");
 			return sb.ToString();
 		}
 
 		ColumnInfo _identCol;
-		public override long ExecuteIdentity() {
+		internal override long RawExecuteIdentity() {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return 0;
 
@@ -90,7 +97,7 @@ namespace FreeSql.Oracle.Curd {
 			_orm.Ado.ExecuteNonQuery(_transaction, CommandType.Text, $"{sql} RETURNING {identColName} INTO {identParam.ParameterName}", _params.Concat(new[] { identParam }).ToArray());
 			return long.TryParse(string.Concat(identParam.Value), out var trylng) ? trylng : 0;
 		}
-		async public override Task<long> ExecuteIdentityAsync() {
+		async internal override Task<long> RawExecuteIdentityAsync() {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return 0;
 
@@ -105,53 +112,19 @@ namespace FreeSql.Oracle.Curd {
 			return long.TryParse(string.Concat(identParam.Value), out var trylng) ? trylng : 0;
 		}
 
-		public override List<T1> ExecuteInserted() {
-			throw new NotImplementedException();
+		internal override List<T1> RawExecuteInserted() {
+			var sql = this.ToSql();
+			if (string.IsNullOrEmpty(sql)) return new List<T1>();
 
-//			var sql = this.ToSql();
-//			if (string.IsNullOrEmpty(sql)) return new List<T1>();
-
-//			var sb = new StringBuilder();
-//			sb.Append(@"declare
-//type v_tp_rec is record(");
-
-//			var colidx = 0;
-//			foreach (var col in _table.Columns.Values) {
-//				if (colidx > 0) sb.Append(", ");
-//				sb.Append(_commonUtils.QuoteSqlName(col.CsName)).Append(" ").Append(_commonUtils.QuoteSqlName(_tableRule?.Invoke(_table.DbName) ?? _table.DbName))).Append(".").Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append("%type");
-//				++colidx;
-//			}
-//			sb.Append(@");
-//type v_tp_tab is table of v_tp_rec;
-//v_tab v_tp_tab;
-//begin
-//");
-
-//			sb.Append(sql).Append(" RETURNING ");
-//			colidx = 0;
-//			foreach (var col in _table.Columns.Values) {
-//				if (colidx > 0) sb.Append(", ");
-//				sb.Append(_commonUtils.QuoteReadColumn(col.CsType, _commonUtils.QuoteSqlName(col.Attribute.Name)));
-//				++colidx;
-//			}
-//			sb.Append(@"bulk collect into v_tab;
-//for i in 1..v_tab.count loop
-//	dbms_output.put_line(");
-//			//v_tab(i).empno||'-'||v_tab(i).ename
-//			colidx = 0;
-//			foreach (var col in _table.Columns.Values) {
-//				if (colidx > 0) sb.Append("||'-'||");
-//				sb.Append("v_tab(i).").Append(_commonUtils.QuoteSqlName(col.CsName));
-//				++colidx;
-//			}
-//			sb.Append(@");
-//end loop;
-//end;
-//");
-//			return _orm.Ado.Query<T1>(_transaction, CommandType.Text, sb.ToString(), _params);
+			this.ExecuteAffrows();
+			return _source;
 		}
-		public override Task<List<T1>> ExecuteInsertedAsync() {
-			throw new NotImplementedException();
+		async internal override Task<List<T1>> RawExecuteInsertedAsync() {
+			var sql = this.ToSql();
+			if (string.IsNullOrEmpty(sql)) return new List<T1>();
+
+			await this.ExecuteAffrowsAsync();
+			return _source;
 		}
 	}
 }

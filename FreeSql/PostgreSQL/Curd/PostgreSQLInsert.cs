@@ -12,7 +12,15 @@ namespace FreeSql.PostgreSQL.Curd {
 			: base(orm, commonUtils, commonExpression) {
 		}
 
-		public override long ExecuteIdentity() {
+		public override int ExecuteAffrows() => base.SplitExecuteAffrows(5000, 3000);
+		public override Task<int> ExecuteAffrowsAsync() => base.SplitExecuteAffrowsAsync(5000, 3000);
+		public override long ExecuteIdentity() => base.SplitExecuteIdentity(5000, 3000);
+		public override Task<long> ExecuteIdentityAsync() => base.SplitExecuteIdentityAsync(5000, 3000);
+		public override List<T1> ExecuteInserted() => base.SplitExecuteInserted(5000, 3000);
+		public override Task<List<T1>> ExecuteInsertedAsync() => base.SplitExecuteInsertedAsync(5000, 3000);
+
+
+		internal override long RawExecuteIdentity() {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return 0;
 
@@ -23,7 +31,7 @@ namespace FreeSql.PostgreSQL.Curd {
 			}
 			return long.TryParse(string.Concat(_orm.Ado.ExecuteScalar(_transaction, CommandType.Text, string.Concat(sql, " RETURNING ", _commonUtils.QuoteSqlName(identCols.First().Value.Attribute.Name)), _params)), out var trylng) ? trylng : 0;
 		}
-		async public override Task<long> ExecuteIdentityAsync() {
+		async internal override Task<long> RawExecuteIdentityAsync() {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return 0;
 
@@ -35,7 +43,7 @@ namespace FreeSql.PostgreSQL.Curd {
 			return long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync(_transaction, CommandType.Text, string.Concat(sql, " RETURNING ", _commonUtils.QuoteSqlName(identCols.First().Value.Attribute.Name)), _params)), out var trylng) ? trylng : 0;
 		}
 
-		public override List<T1> ExecuteInserted() {
+		internal override List<T1> RawExecuteInserted() {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return new List<T1>();
 
@@ -50,7 +58,7 @@ namespace FreeSql.PostgreSQL.Curd {
 			}
 			return _orm.Ado.Query<T1>(_transaction, CommandType.Text, sb.ToString(), _params);
 		}
-		async public override Task<List<T1>> ExecuteInsertedAsync() {
+		async internal override Task<List<T1>> RawExecuteInsertedAsync() {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return new List<T1>();
 

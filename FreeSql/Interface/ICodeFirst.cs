@@ -22,6 +22,10 @@ namespace FreeSql {
 		/// </summary>
 		bool IsConfigEntityFromDbFirst { get; set; }
 		/// <summary>
+		/// 不使用命令参数化执行，针对 Insert/Update
+		/// </summary>
+		bool IsNoneCommandParameter { get; set; }
+		/// <summary>
 		/// 延时加载导航属性对象，导航属性需要声明 virtual
 		/// </summary>
 		bool IsLazyLoading { get; set; }

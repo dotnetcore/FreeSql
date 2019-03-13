@@ -1,9 +1,7 @@
 ﻿using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.Data.Common;
-using System.Text;
 
 namespace FreeSql {
 	public class FreeSqlBuilder {
@@ -16,6 +14,7 @@ namespace FreeSql {
 		bool _isSyncStructureToLower = false;
 		bool _isSyncStructureToUpper = false;
 		bool _isConfigEntityFromDbFirst = false;
+		bool _isNoneCommandParameter = false;
 		bool _isLazyLoading = false;
 		Action<DbCommand> _aopCommandExecuting = null;
 		Action<DbCommand, string> _aopCommandExecuted = null;
@@ -96,6 +95,15 @@ namespace FreeSql {
 			return this;
 		}
 		/// <summary>
+		/// 不使用命令参数化执行，针对 Insert/Update，也可临时使用 IInsert/IUpdate.NoneParameter() 
+		/// </summary>
+		/// <param name="value"></param>
+		/// <returns></returns>
+		public FreeSqlBuilder UseNoneCommandParameter(bool value) {
+			_isNoneCommandParameter = value;
+			return this;
+		}
+		/// <summary>
 		/// 延时加载导航属性对象，导航属性需要声明 virtual
 		/// </summary>
 		/// <param name="value"></param>
@@ -131,6 +139,7 @@ namespace FreeSql {
 				ret.CodeFirst.IsSyncStructureToLower = _isSyncStructureToLower;
 				ret.CodeFirst.IsSyncStructureToUpper = _isSyncStructureToUpper;
 				ret.CodeFirst.IsConfigEntityFromDbFirst = _isConfigEntityFromDbFirst;
+				ret.CodeFirst.IsNoneCommandParameter = _isNoneCommandParameter;
 				ret.CodeFirst.IsLazyLoading = _isLazyLoading;
 				var ado = ret.Ado as Internal.CommonProvider.AdoProvider;
 				ado.AopCommandExecuting += _aopCommandExecuting;
@@ -139,6 +148,4 @@ namespace FreeSql {
 			return ret;
 		}
 	}
-
-	public enum DataType { MySql, SqlServer, PostgreSQL, Oracle, Sqlite }
 }

@@ -13,7 +13,7 @@ namespace FreeSql.Tests.SqlServer {
 		class Topic {
 			[Column(IsIdentity = true, IsPrimary = true)]
 			public int Id { get; set; }
-			public int Clicks { get; set; }
+			public int? Clicks { get; set; }
 			public int TestTypeInfoGuid { get; set; }
 			public TestTypeInfo Type { get; set; }
 			public string Title { get; set; }
@@ -490,7 +490,7 @@ namespace FreeSql.Tests.SqlServer {
 		}
 		[Fact]
 		public void ToAggregate() {
-			var sql = select.ToAggregate(a => new { sum = a.Sum(a.Key.Id + 11.11), avg = a.Avg(a.Key.Id), count = a.Count(), max = a.Max(a.Key.Id), min = a.Min(a.Key.Id) });
+			var sql = select.ToAggregate(a => new { sum = a.Sum(a.Key.Id + 11.11), avg = a.Avg(Convert.ToInt64(a.Key.Id)), count = a.Count(), max = a.Max(a.Key.Id), min = a.Min(a.Key.Id) });
 		}
 		[Fact]
 		public void OrderBy() {

@@ -1,37 +1,28 @@
 ﻿using FreeSql.DataAnnotations;
 using FreeSql.Internal.Model;
 using Newtonsoft.Json.Linq;
-using Npgsql.LegacyPostgis;
-using NpgsqlTypes;
 using System;
-using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Data;
 using System.Data.Common;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Net;
-using System.Net.NetworkInformation;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
 
 namespace FreeSql.Internal {
 	class Utils {
 
-		static ConcurrentDictionary<string, ConcurrentDictionary<Type, TableInfo>> _cacheGetTableByEntity = new ConcurrentDictionary<string, ConcurrentDictionary<Type, TableInfo>>();
+		static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, TableInfo>> _cacheGetTableByEntity = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, TableInfo>>();
 		internal static void RemoveTableByEntity(Type entity, CommonUtils common) {
 			if (entity.FullName.StartsWith("<>f__AnonymousType")) return;
-			var tbc = _cacheGetTableByEntity.GetOrAdd(common.DbName, k1 => new ConcurrentDictionary<Type, TableInfo>()); //区分数据库类型缓存
+			var tbc = _cacheGetTableByEntity.GetOrAdd(common._orm.Ado.DataType, k1 => new ConcurrentDictionary<Type, TableInfo>()); //区分数据库类型缓存
 			tbc.TryRemove(entity, out var trytb);
 		}
 		internal static TableInfo GetTableByEntity(Type entity, CommonUtils common) {
 			if (entity.FullName.StartsWith("<>f__AnonymousType")) return null;
-			var tbc = _cacheGetTableByEntity.GetOrAdd(common.DbName, k1 => new ConcurrentDictionary<Type, TableInfo>()); //区分数据库类型缓存
+			var tbc = _cacheGetTableByEntity.GetOrAdd(common._orm.Ado.DataType, k1 => new ConcurrentDictionary<Type, TableInfo>()); //区分数据库类型缓存
 			if (tbc.TryGetValue(entity, out var trytb)) return trytb;
 			if (common.CodeFirst.GetDbInfo(entity) != null) return null;
 
@@ -528,39 +519,39 @@ namespace FreeSql.Internal {
 			[typeof(byte[])] = true,
 			[typeof(string)] = true,
 			[typeof(Guid)] = true,
-			[typeof(MygisPoint)] = true,
-			[typeof(MygisLineString)] = true,
-			[typeof(MygisPolygon)] = true,
-			[typeof(MygisMultiPoint)] = true,
-			[typeof(MygisMultiLineString)] = true,
-			[typeof(MygisMultiPolygon)] = true,
-			[typeof(BitArray)] = true,
-			[typeof(NpgsqlPoint)] = true,
-			[typeof(NpgsqlLine)] = true,
-			[typeof(NpgsqlLSeg)] = true,
-			[typeof(NpgsqlBox)] = true,
-			[typeof(NpgsqlPath)] = true,
-			[typeof(NpgsqlPolygon)] = true,
-			[typeof(NpgsqlCircle)] = true,
-			[typeof((IPAddress Address, int Subnet))] = true,
-			[typeof(IPAddress)] = true,
-			[typeof(PhysicalAddress)] = true,
-			[typeof(NpgsqlRange<int>)] = true,
-			[typeof(NpgsqlRange<long>)] = true,
-			[typeof(NpgsqlRange<decimal>)] = true,
-			[typeof(NpgsqlRange<DateTime>)] = true,
-			[typeof(PostgisPoint)] = true,
-			[typeof(PostgisLineString)] = true,
-			[typeof(PostgisPolygon)] = true,
-			[typeof(PostgisMultiPoint)] = true,
-			[typeof(PostgisMultiLineString)] = true,
-			[typeof(PostgisMultiPolygon)] = true,
-			[typeof(PostgisGeometry)] = true,
-			[typeof(PostgisGeometryCollection)] = true,
-			[typeof(Dictionary<string, string>)] = true,
-			[typeof(JToken)] = true,
-			[typeof(JObject)] = true,
-			[typeof(JArray)] = true,
+			//[typeof(MygisPoint)] = true,
+			//[typeof(MygisLineString)] = true,
+			//[typeof(MygisPolygon)] = true,
+			//[typeof(MygisMultiPoint)] = true,
+			//[typeof(MygisMultiLineString)] = true,
+			//[typeof(MygisMultiPolygon)] = true,
+			//[typeof(BitArray)] = true,
+			//[typeof(NpgsqlPoint)] = true,
+			//[typeof(NpgsqlLine)] = true,
+			//[typeof(NpgsqlLSeg)] = true,
+			//[typeof(NpgsqlBox)] = true,
+			//[typeof(NpgsqlPath)] = true,
+			//[typeof(NpgsqlPolygon)] = true,
+			//[typeof(NpgsqlCircle)] = true,
+			//[typeof((IPAddress Address, int Subnet))] = true,
+			//[typeof(IPAddress)] = true,
+			//[typeof(PhysicalAddress)] = true,
+			//[typeof(NpgsqlRange<int>)] = true,
+			//[typeof(NpgsqlRange<long>)] = true,
+			//[typeof(NpgsqlRange<decimal>)] = true,
+			//[typeof(NpgsqlRange<DateTime>)] = true,
+			//[typeof(PostgisPoint)] = true,
+			//[typeof(PostgisLineString)] = true,
+			//[typeof(PostgisPolygon)] = true,
+			//[typeof(PostgisMultiPoint)] = true,
+			//[typeof(PostgisMultiLineString)] = true,
+			//[typeof(PostgisMultiPolygon)] = true,
+			//[typeof(PostgisGeometry)] = true,
+			//[typeof(PostgisGeometryCollection)] = true,
+			//[typeof(Dictionary<string, string>)] = true,
+			//[typeof(JToken)] = true,
+			//[typeof(JObject)] = true,
+			//[typeof(JArray)] = true,
 		};
 		internal static ConcurrentDictionary<Type, Func<Type, int[], DbDataReader, int, RowInfo>> _dicExecuteArrayRowReadClassOrTuple = new ConcurrentDictionary<Type, Func<Type, int[], DbDataReader, int, RowInfo>>();
 		internal class RowInfo {

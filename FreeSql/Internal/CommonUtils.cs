@@ -13,9 +13,9 @@ using System.Text;
 namespace FreeSql.Internal {
 	internal abstract class CommonUtils {
 
-		internal abstract string GetNoneParamaterSqlValue(Type type, object value);
-		internal abstract DbParameter[] GetDbParamtersByObject(string sql, object obj);
+		internal abstract string GetNoneParamaterSqlValue(List<DbParameter> specialParams, Type type, object value);
 		internal abstract DbParameter AppendParamter(List<DbParameter> _params, string parameterName, Type type, object value);
+		internal abstract DbParameter[] GetDbParamtersByObject(string sql, object obj);
 		internal abstract string FormatSql(string sql, params object[] args);
 		internal abstract string QuoteSqlName(string name);
 		internal abstract string QuoteParamterName(string name);
@@ -24,7 +24,6 @@ namespace FreeSql.Internal {
 		internal abstract string Mod(string left, string right, Type leftType, Type rightType);
 		internal abstract string QuoteWriteParamter(Type type, string paramterName);
 		internal abstract string QuoteReadColumn(Type type, string columnName);
-		internal abstract string DbName { get; }
 
 		internal IFreeSql _orm { get; set; }
 		internal ICodeFirst CodeFirst => _orm.CodeFirst;

@@ -15,6 +15,12 @@ namespace FreeSql {
 		IUpdate<T1> WithTransaction(DbTransaction transaction);
 
 		/// <summary>
+		/// 不使用参数化，可通过 IFreeSql.CodeFirst.IsNotCommandParameter 全局性设置
+		/// </summary>
+		/// <returns></returns>
+		IUpdate<T1> NoneParameter();
+
+		/// <summary>
 		/// 更新数据，设置更新的实体
 		/// </summary>
 		/// <param name="source">实体</param>
