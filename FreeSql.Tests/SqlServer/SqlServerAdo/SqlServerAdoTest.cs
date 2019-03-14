@@ -1,17 +1,27 @@
 using FreeSql.DataAnnotations;
+using FreeSql.Tests.DataContext.SqlServer;
 using System;
 using Xunit;
 
 namespace FreeSql.Tests.SqlServer {
-	public class SqlServerAdoTest {
+	[Collection("SqlServerCollection")]
+	public class SqlServerAdoTest
+	{
+		SqlServerFixture _sqlserverFixture;
+
+		public SqlServerAdoTest(SqlServerFixture sqlserverFixture)
+		{
+			_sqlserverFixture = sqlserverFixture;
+		}
+
 		[Fact]
 		public void Pool() {
-			var t1 = g.sqlserver.Ado.MasterPool.StatisticsFullily;
+			var t1 = _sqlserverFixture.SqlServer.Ado.MasterPool.StatisticsFullily;
 		}
 
 		[Fact]
 		public void SlavePools() {
-			var t2 = g.sqlserver.Ado.SlavePools.Count;
+			var t2 = _sqlserverFixture.SqlServer.Ado.SlavePools.Count;
 		}
 
 		[Fact]
@@ -34,33 +44,33 @@ namespace FreeSql.Tests.SqlServer {
 		[Fact]
 		public void Query() {
 
-			//var tt1 = g.sqlserver.Select<xxx>()
+			//var tt1 = _sqlserverFixture.SqlServer.Select<xxx>()
 			//	.LeftJoin(a => a.ParentId == a.Parent.Id)
 			//	.ToSql(a => new { a.Id, a.Title });
 
-			//var tt2result = g.sqlserver.Select<xxx>()
+			//var tt2result = _sqlserverFixture.SqlServer.Select<xxx>()
 			//	.LeftJoin(a => a.ParentId == a.Parent.Id)
 			//	.ToList(a => new { a.Id, a.Title });
 
-			//var tt = g.sqlserver.Select<xxx>()
+			//var tt = _sqlserverFixture.SqlServer.Select<xxx>()
 			//	.LeftJoin<xxx>((a, b) => b.Id == a.Id)
 			//	.ToSql(a => new { a.Id, a.Title });
 
-			//var ttresult = g.sqlserver.Select<xxx>()
+			//var ttresult = _sqlserverFixture.SqlServer.Select<xxx>()
 			//	.LeftJoin<xxx>((a, b) => b.Id == a.Id)
 			//	.ToList(a => new { a.Id, a.Title });
 
-			var tnsql1 = g.sqlserver.Select<xxx>().Where(a => a.Id > 0).Where(b => b.Title != null).Page(1, 3).ToSql(a => a.Id);
-			var tnsql2 = g.sqlserver.Select<xxx>().Where(a => a.Id > 0).Where(b => b.Title != null).Page(2, 3).ToSql(a => a.Id);
+			var tnsql1 = _sqlserverFixture.SqlServer.Select<xxx>().Where(a => a.Id > 0).Where(b => b.Title != null).Page(1, 3).ToSql(a => a.Id);
+			var tnsql2 = _sqlserverFixture.SqlServer.Select<xxx>().Where(a => a.Id > 0).Where(b => b.Title != null).Page(2, 3).ToSql(a => a.Id);
 
-			var tn1 = g.sqlserver.Select<xxx>().Where(a => a.Id > 0).Where(b => b.Title != null).Page(1, 3).ToList(a => a.Id);
-			var tn2 = g.sqlserver.Select<xxx>().Where(a => a.Id > 0).Where(b => b.Title != null).Page(2, 3).ToList(a => a.Id);
+			var tn1 = _sqlserverFixture.SqlServer.Select<xxx>().Where(a => a.Id > 0).Where(b => b.Title != null).Page(1, 3).ToList(a => a.Id);
+			var tn2 = _sqlserverFixture.SqlServer.Select<xxx>().Where(a => a.Id > 0).Where(b => b.Title != null).Page(2, 3).ToList(a => a.Id);
 
-			var t3 = g.sqlserver.Ado.Query<xxx>("select * from song");
+			var t3 = _sqlserverFixture.SqlServer.Ado.Query<xxx>("select * from song");
 
-			var t4 = g.sqlserver.Ado.Query<(int, string, string, DateTime)>("select * from song");
+			var t4 = _sqlserverFixture.SqlServer.Ado.Query<(int, string, string, DateTime)>("select * from song");
 
-			var t5 = g.sqlserver.Ado.Query<dynamic>(System.Data.CommandType.Text, "select * from song where Id = @Id", 
+			var t5 = _sqlserverFixture.SqlServer.Ado.Query<dynamic>(System.Data.CommandType.Text, "select * from song where Id = @Id", 
 				new System.Data.SqlClient.SqlParameter("Id", 1));
 		}
 

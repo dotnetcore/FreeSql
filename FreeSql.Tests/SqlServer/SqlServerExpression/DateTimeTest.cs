@@ -1,13 +1,22 @@
 using FreeSql.DataAnnotations;
+using FreeSql.Tests.DataContext.SqlServer;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
 namespace FreeSql.Tests.SqlServerExpression {
-	public class DateTimeTest {
+	[Collection("SqlServerCollection")]
+	public class DateTimeTest
+	{
+		SqlServerFixture _sqlserverFixture;
 
-		ISelect<Topic> select => g.sqlserver.Select<Topic>();
+		public DateTimeTest(SqlServerFixture sqlserverFixture)
+		{
+			_sqlserverFixture = sqlserverFixture;
+		}
+
+		ISelect<Topic> select => _sqlserverFixture.SqlServer.Select<Topic>();
 
 		[Table(Name = "tb_topic111333")]
 		class Topic {
