@@ -208,7 +208,7 @@ namespace FreeSql.PostgreSQL {
 			using (var conn = _orm.Ado.MasterPool.Get(TimeSpan.FromSeconds(5))) {
 				olddatabase = conn.Value.Database;
 			}
-			var dbs = database?.ToArray() ?? new[] { olddatabase };
+			var dbs = database == null || database.Any() == false ? new[] { olddatabase } : database;
 			var tables = new List<DbTableInfo>();
 
 			foreach (var db in dbs) {
@@ -301,7 +301,7 @@ where ns.nspname || '.' || c.relname in ({loc8})";
 					var max_length = int.Parse(string.Concat(row[3]));
 					var sqlType = string.Concat(row[4]);
 					var is_nullable = string.Concat(row[5]) == "1";
-					var is_identity = string.Concat(row[6]).StartsWith(@"nextval('") && string.Concat(row[6]).EndsWith(@"_seq'::regclass)");
+					var is_identity = string.Concat(row[6]).StartsWith(@"nextval('") && string.Concat(row[6]).EndsWith(@"'::regclass)");
 					var comment = string.Concat(row[7]);
 					int attndims = int.Parse(string.Concat(row[8]));
 					string typtype = string.Concat(row[9]);

@@ -6,7 +6,7 @@ using System.Text;
 using System.Linq;
 
 namespace FreeSql {
-	public interface IDataFilter<TEntity> where TEntity : class {
+	public interface IDataFilter<TEntity> : IDisposable where TEntity : class {
 
 		IDataFilter<TEntity> Apply(string filterName, Expression<Func<TEntity, bool>> filterAndValidateExp);
 
@@ -121,19 +121,33 @@ namespace FreeSql {
 			if (filterName == null) return false;
 			return _filters.TryGetValue(filterName, out var tryfi) ? tryfi.IsEnabled : false;
 		}
+
+		~DataFilter() {
+			this.Dispose();
+		}
+		public void Dispose() {
+			_filters.Clear();
+		}
 	}
 
-	public class GlobalDataFilter {
+	public class FluentDataFilter : IDisposable {
 
 		internal List<(Type type, string name, LambdaExpression exp)> _filters = new List<(Type type, string name, LambdaExpression exp)>();
 
-		public GlobalDataFilter Apply<TEntity>(string filterName, Expression<Func<TEntity, bool>> filterAndValidateExp) where TEntity : class {
+		public FluentDataFilter Apply<TEntity>(string filterName, Expression<Func<TEntity, bool>> filterAndValidateExp) where TEntity : class {
 			if (filterName == null)
 				throw new ArgumentNullException(nameof(filterName));
 			if (filterAndValidateExp == null) return this;
 
 			_filters.Add((typeof(TEntity), filterName, filterAndValidateExp));
 			return this;
+		}
+
+		~FluentDataFilter() {
+			this.Dispose();
+		}
+		public void Dispose() {
+			_filters.Clear();
 		}
 	}
 }

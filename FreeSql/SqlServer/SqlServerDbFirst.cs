@@ -107,7 +107,7 @@ namespace FreeSql.SqlServer {
 			using (var conn = _orm.Ado.MasterPool.Get(TimeSpan.FromSeconds(5))) {
 				olddatabase = conn.Value.Database;
 			}
-			var dbs = database?.ToArray() ?? new[] { olddatabase };
+			var dbs = database == null || database.Any() == false ? new[] { olddatabase } : database;
 			var tables = new List<DbTableInfo>();
 
 			foreach (var db in dbs) {

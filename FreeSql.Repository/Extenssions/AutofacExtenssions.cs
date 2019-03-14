@@ -9,60 +9,18 @@ using System.Linq;
 
 public static class FreeSqlRepositoryAutofacExtenssions {
 
-	public static void RegisterFreeRepository(this ContainerBuilder builder, Action<GlobalDataFilter> globalDataFilter) => RegisterFreeRepositoryPrivate(builder, globalDataFilter);
+	/// <summary>
+	/// 注册 FreeSql.Repository 包括 泛型、继承实现的仓储
+	/// </summary>
+	/// <param name="builder"></param>
+	/// <param name="globalDataFilter">全局过滤设置</param>
+	/// <param name="assemblies">继承实现的仓储，所在的程序集</param>
+	public static void RegisterFreeRepository(this ContainerBuilder builder, Action<FluentDataFilter> globalDataFilter = null, params Assembly[] assemblies) => 
+		RegisterFreeRepositoryPrivate(builder, globalDataFilter, assemblies);
 
-	static ConcurrentDictionary<Type, Delegate> _dicRegisterFreeRepositoryPrivateSetFilterFunc = new ConcurrentDictionary<Type, Delegate>();
-	static ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>> _dicRegisterFreeRepositoryPrivateConvertFilterNotExists = new ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>>();
-	static void RegisterFreeRepositoryPrivate(ContainerBuilder builder, Action<GlobalDataFilter> globalDataFilter) {
+	static void RegisterFreeRepositoryPrivate(ContainerBuilder builder, Action<FluentDataFilter> globalDataFilter, params Assembly[] assemblies) {
 
-		Action<object> funcSetDataFilter = instance => {
-			if (globalDataFilter == null) return;
-			var globalFilter = new GlobalDataFilter();
-			globalDataFilter(globalFilter);
-
-			var type = instance.GetType();
-			var entityType = type.GenericTypeArguments[0];
-
-			var notExists = _dicRegisterFreeRepositoryPrivateConvertFilterNotExists.GetOrAdd(type, t => new ConcurrentDictionary<string, bool>());
-			var newFilter = new Dictionary<string, LambdaExpression>();
-			foreach (var gf in globalFilter._filters) {
-				if (notExists.ContainsKey(gf.name)) continue;
-
-				LambdaExpression newExp = null;
-				var filterParameter1 = Expression.Parameter(entityType, gf.exp.Parameters[0].Name);
-				try {
-					newExp = Expression.Lambda(
-						typeof(Func<,>).MakeGenericType(entityType, typeof(bool)),
-						new ReplaceVisitor().Modify(gf.exp.Body, filterParameter1),
-						filterParameter1
-					);
-				} catch {
-					notExists.TryAdd(gf.name, true); //防止第二次错误
-					continue;
-				}
-				newFilter.Add(gf.name, gf.exp);
-			}
-			if (newFilter.Any() == false) return;
-
-			var del = _dicRegisterFreeRepositoryPrivateSetFilterFunc.GetOrAdd(type, t => {
-				var reposParameter = Expression.Parameter(type);
-				var nameParameter = Expression.Parameter(typeof(string));
-				var expressionParameter = Expression.Parameter(
-					typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(entityType, typeof(bool)))
-				);
-				return Expression.Lambda(
-					Expression.Block(
-						Expression.Call(reposParameter, type.GetMethod("ApplyDataFilter", BindingFlags.Instance | BindingFlags.NonPublic), nameParameter, expressionParameter)
-					),
-					new[] {
-						reposParameter, nameParameter, expressionParameter
-					}
-				).Compile();
-			});
-			foreach (var nf in newFilter) {
-				del.DynamicInvoke(instance, nf.Key, nf.Value);
-			}
-		};
+		Utils._globalDataFilter = globalDataFilter;
 
 		builder.RegisterGeneric(typeof(GuidRepository<>)).As(
 			typeof(GuidRepository<>),
@@ -70,31 +28,21 @@ public static class FreeSqlRepositoryAutofacExtenssions {
 			typeof(IBasicRepository<>),
 			typeof(IReadOnlyRepository<>)
 		).OnActivating(a => {
-			funcSetDataFilter(a.Instance);
+			//Utils.SetRepositoryDataFilter(a.Instance);
 		}).InstancePerDependency();
-
+		
 		builder.RegisterGeneric(typeof(DefaultRepository<,>)).As(
 			typeof(DefaultRepository<,>),
 			typeof(BaseRepository<,>),
 			typeof(IBasicRepository<,>),
 			typeof(IReadOnlyRepository<,>)
 		).OnActivating(a => {
-			funcSetDataFilter(a.Instance);
+			//Utils.SetRepositoryDataFilter(a.Instance);
 		}).InstancePerDependency();
-	}
 
-	class ReplaceVisitor : ExpressionVisitor {
-		private ParameterExpression parameter;
+		builder.RegisterAssemblyTypes(assemblies).Where(a => {
+			return typeof(IRepository).IsAssignableFrom(a);
+		}).InstancePerDependency();
 
-		public Expression Modify(Expression expression, ParameterExpression parameter) {
-			this.parameter = parameter;
-			return Visit(expression);
-		}
-
-		protected override Expression VisitMember(MemberExpression node) {
-			if (node.Expression?.NodeType == ExpressionType.Parameter)
-				return Expression.Property(parameter, node.Member.Name);
-			return base.VisitMember(node);
-		}
 	}
 }

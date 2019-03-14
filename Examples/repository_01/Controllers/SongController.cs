@@ -8,6 +8,11 @@ using System.Threading.Tasks;
 
 namespace restful.Controllers {
 
+	public class SongRepository : GuidRepository<Song> {
+		public SongRepository(IFreeSql fsql) : base(fsql) {
+		}
+	}
+
 	[Route("restapi/[controller]")]
 	public class SongsController : Controller {
 
@@ -17,8 +22,10 @@ namespace restful.Controllers {
 			public int Id { get; set; }
 		}
 
+		
+
 		public SongsController(IFreeSql fsql,
-			GuidRepository<Song> repos1, 
+			GuidRepository<Song> repos1,
 			GuidRepository<xxxx> repos2,
 
 			DefaultRepository<Song, int> repos11,
@@ -26,7 +33,9 @@ namespace restful.Controllers {
 
 			BaseRepository<Song> repos3, BaseRepository<Song, int> repos4,
 			IBasicRepository<Song> repos31, IBasicRepository<Song, int> repos41,
-			IReadOnlyRepository<Song> repos311, IReadOnlyRepository<Song, int> repos411
+			IReadOnlyRepository<Song> repos311, IReadOnlyRepository<Song, int> repos411,
+
+			SongRepository reposSong
 			) {
 			_songRepository = repos4;
 
@@ -35,6 +44,16 @@ namespace restful.Controllers {
 			var curd2 = fsql.GetRepository<Song, string>();
 			var curd3 = fsql.GetRepository<Song, Guid>();
 			var curd4 = fsql.GetGuidRepository<Song>();
+
+			Console.WriteLine(repos1.Select.ToSql());
+			Console.WriteLine(reposSong.Select.ToSql());
+
+			Console.WriteLine(repos2.Select.ToSql());
+			Console.WriteLine(repos21.Select.ToSql());
+
+			using (reposSong.DataFilter.DisableAll()) {
+				Console.WriteLine(reposSong.Select.ToSql());
+			}
 		}
 
 		[HttpGet]

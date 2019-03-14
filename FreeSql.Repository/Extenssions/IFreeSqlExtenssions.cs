@@ -18,16 +18,8 @@ public static class FreeSqlRepositoryIFreeSqlExtenssions {
 	/// <param name="filter">数据过滤 + 验证</param>
 	/// <returns></returns>
 	public static DefaultRepository<TEntity, TKey> GetRepository<TEntity, TKey>(this IFreeSql that, Expression<Func<TEntity, bool>> filter = null) where TEntity : class {
-
-		if (filter != null) return new DefaultRepository<TEntity, TKey>(that, filter);
-		return dicGetRepository
-			.GetOrAdd(typeof(TEntity), key1 => new ConcurrentDictionary<Type, IRepository>())
-			.GetOrAdd(typeof(TKey), key2 => new DefaultRepository<TEntity, TKey>(that, null)) as DefaultRepository<TEntity, TKey>;
+		return new DefaultRepository<TEntity, TKey>(that, filter);
 	}
-	static ConcurrentDictionary<Type,
-		ConcurrentDictionary<Type,
-			IRepository>
-		> dicGetRepository = new ConcurrentDictionary<Type, ConcurrentDictionary<Type, IRepository>>();
 
 	/// <summary>
 	/// 返回仓库类，适用 Insert 方法无须返回插入的数据
@@ -38,12 +30,8 @@ public static class FreeSqlRepositoryIFreeSqlExtenssions {
 	/// <param name="asTable">分表规则，参数：旧表名；返回：新表名 https://github.com/2881099/FreeSql/wiki/Repository</param>
 	/// <returns></returns>
 	public static GuidRepository<TEntity> GetGuidRepository<TEntity>(this IFreeSql that, Expression<Func<TEntity, bool>> filter = null, Func<string, string> asTable = null) where TEntity : class {
-
-		if (filter != null || asTable != null) return new GuidRepository<TEntity>(that, filter, asTable);
-		return dicGetGuidRepository
-			.GetOrAdd(typeof(TEntity), key1 => new GuidRepository<TEntity>(that, null, null)) as GuidRepository<TEntity>;
+		return new GuidRepository<TEntity>(that, filter, asTable);
 	}
-	static ConcurrentDictionary<Type, IRepository> dicGetGuidRepository = new ConcurrentDictionary<Type, IRepository>();
 
 	/// <summary>
 	/// 合并两个仓储的设置（过滤+分表），以便查询
@@ -57,5 +45,14 @@ public static class FreeSqlRepositoryIFreeSqlExtenssions {
 		var filters = (repos.DataFilter as DataFilter<T2>)._filters.Where(a => a.Value.IsEnabled == true);
 		foreach (var filter in filters) that.Where<T2>(filter.Value.Expression);
 		return that.AsTable(repos.AsTableSelectInternal);
+	}
+
+	/// <summary>
+	/// 创建一个新的工作单元，务必使用 using 包含使用
+	/// </summary>
+	/// <param name="that"></param>
+	/// <returns></returns>
+	public static IUnitOfWork CreateUnitOfWork(this IFreeSql that) {
+		return new UnitOfWork(that);
 	}
 }

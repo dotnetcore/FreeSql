@@ -37,7 +37,7 @@ namespace FreeSql.Internal.CommonProvider {
 			return this;
 		}
 		public IInsert<T1> NoneParameter() {
-			_noneParameter = false;
+			_noneParameter = true;
 			return this;
 		}
 

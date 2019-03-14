@@ -40,7 +40,7 @@ namespace FreeSql.Internal.CommonProvider {
 			return this;
 		}
 		public IUpdate<T1> NoneParameter() {
-			_noneParameter = false;
+			_noneParameter = true;
 			return this;
 		}
 

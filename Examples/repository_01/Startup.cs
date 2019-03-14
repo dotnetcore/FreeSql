@@ -1,5 +1,6 @@
 ﻿using Autofac;
 using Autofac.Extensions.DependencyInjection;
+using FreeSql;
 using FreeSql.DataAnnotations;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -67,8 +68,9 @@ namespace repository_01 {
 
 			var builder = new ContainerBuilder();
 
-			builder.RegisterFreeRepository(filter => 
-				filter.Apply<Song>("test", a => a.Title == DateTime.Now.ToString() + System.Threading.Thread.CurrentThread.ManagedThreadId)
+			builder.RegisterFreeRepository(
+				filter => filter.Apply<Song>("test", a => a.Title == DateTime.Now.ToString() + System.Threading.Thread.CurrentThread.ManagedThreadId), 
+				this.GetType().Assembly
 			);
 
 			builder.Populate(services);

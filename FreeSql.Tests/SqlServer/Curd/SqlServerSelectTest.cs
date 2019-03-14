@@ -41,7 +41,8 @@ namespace FreeSql.Tests.SqlServer {
 			Assert.Equal(10, g.sqlserver.Insert<Topic>().AppendData(items).ExecuteInserted().Count);
 
 			//items = Enumerable.Range(0, 9989).Select(a => new Topic { Title = "newtitle" + a, CreateTime = DateTime.Now }).ToList();
-			//Assert.Equal(9989, g.sqlserver.Insert<Topic>(items).ExecuteAffrows());
+			//;
+			//Assert.Equal(9989, g.sqlserver.Insert<Topic>(items).NoneParameter().ExecuteAffrows());
 
 			var dt1 = select.Limit(10).ToDataTable();
 			var dt2 = select.Limit(10).ToDataTable("id, getdate()");

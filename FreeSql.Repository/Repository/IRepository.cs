@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace FreeSql {
 
 	public interface IRepository {
-
+		Type EntityType { get; }
 	}
 
 	public interface IRepository<TEntity> : IReadOnlyRepository<TEntity>, IBasicRepository<TEntity>
