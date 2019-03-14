@@ -10,7 +10,7 @@ namespace FreeSql {
 		where TEntity : class {
 
 		protected IFreeSql _fsql;
-		internal DbTransaction _tran;
+		internal UnitOfWork _unitOfWork;
 		public IDataFilter<TEntity> DataFilter { get; } = new DataFilter<TEntity>();
 
 		Func<string, string> _asTableVal;
@@ -94,14 +94,14 @@ namespace FreeSql {
 		public Task<int> UpdateAsync(TEntity entity) => OrmUpdate(entity).ExecuteAffrowsAsync();
 
 		protected ISelect<TEntity> OrmSelect(object dywhere) {
-			var select = _fsql.Select<TEntity>(dywhere).WithTransaction(_tran);
+			var select = _fsql.Select<TEntity>(dywhere).WithTransaction(_unitOfWork?.GetOrBeginTransaction());
 			var filters = (DataFilter as DataFilter<TEntity>)._filters.Where(a => a.Value.IsEnabled == true);
 			foreach (var filter in filters) select.Where(filter.Value.Expression);
 			return select.AsTable(AsTableSelect);
 		}
 		protected IUpdate<TEntity> OrmUpdate(object dywhere) {
 			var entityObj = dywhere as TEntity;
-			var update = _fsql.Update<TEntity>(dywhere).WithTransaction(_tran);
+			var update = _fsql.Update<TEntity>(dywhere).WithTransaction(_unitOfWork?.GetOrBeginTransaction());
 			var filters = (DataFilter as DataFilter<TEntity>)._filters.Where(a => a.Value.IsEnabled == true);
 			foreach (var filter in filters) {
 				if (entityObj != null && filter.Value.ExpressionDelegate?.Invoke(entityObj) == false)
@@ -111,14 +111,14 @@ namespace FreeSql {
 			return update.AsTable(AsTable);
 		}
 		protected IDelete<TEntity> OrmDelete(object dywhere) {
-			var delete = _fsql.Delete<TEntity>(dywhere).WithTransaction(_tran);
+			var delete = _fsql.Delete<TEntity>(dywhere).WithTransaction(_unitOfWork?.GetOrBeginTransaction());
 			var filters = (DataFilter as DataFilter<TEntity>)._filters.Where(a => a.Value.IsEnabled == true);
 			foreach (var filter in filters) delete.Where(filter.Value.Expression);
 			return delete.AsTable(AsTable);
 		}
 		protected IInsert<TEntity> OrmInsert(TEntity entity) => OrmInsert(new[] { entity });
 		protected IInsert<TEntity> OrmInsert(IEnumerable<TEntity> entitys) {
-			var insert = _fsql.Insert<TEntity>(entitys).WithTransaction(_tran);
+			var insert = _fsql.Insert<TEntity>(entitys).WithTransaction(_unitOfWork?.GetOrBeginTransaction());
 			var filters = (DataFilter as DataFilter<TEntity>)._filters.Where(a => a.Value.IsEnabled == true);
 			foreach (var filter in filters) {
 				foreach (var entity in entitys)

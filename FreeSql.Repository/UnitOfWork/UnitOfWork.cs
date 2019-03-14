@@ -18,35 +18,45 @@ namespace FreeSql {
 			_fsql = fsql;
 		}
 
-		DbTransaction BeginTransaction() {
+		void ReturnObject() {
+			_fsql.Ado.MasterPool.Return(_conn);
+			_tran = null;
+			_conn = null;
+		}
+		internal DbTransaction GetOrBeginTransaction() {
+			_isCommitOrRoolback = false;
+
+			if (_tran != null) return _tran;
+			if (_conn != null) _fsql.Ado.MasterPool.Return(_conn);
+
 			_conn = _fsql.Ado.MasterPool.Get();
 			try {
 				_tran = _conn.Value.BeginTransaction();
 			} catch {
-				_fsql.Ado.MasterPool.Return(_conn);
-				_conn = null;
+				ReturnObject();
 				throw;
 			}
 			return _tran;
 		}
 
 		public void Commit() {
-			_isCommitOrRoolback = true;
-			if (_conn != null) {
+			if (_tran != null) {
 				try {
 					_tran.Commit();
+					_isCommitOrRoolback = true;
 				} finally {
-					_fsql.Ado.MasterPool.Return(_conn);
+					ReturnObject();
 				}
 			}
 		}
 		public void Rollback() {
 			_isCommitOrRoolback = true;
-			if (_conn != null) {
+			if (_tran != null) {
 				try {
 					_tran.Rollback();
+					_isCommitOrRoolback = true;
 				} finally {
-					_fsql.Ado.MasterPool.Return(_conn);
+					ReturnObject();
 				}
 			}
 		}
@@ -58,12 +68,12 @@ namespace FreeSql {
 
 		public DefaultRepository<TEntity, TKey> GetRepository<TEntity, TKey>(Expression<Func<TEntity, bool>> filter = null) where TEntity : class {
 			var repos = new DefaultRepository<TEntity, TKey>(_fsql, filter);
-			repos._tran = BeginTransaction();
+			repos._unitOfWork = this;
 			return repos;
 		}
 		public GuidRepository<TEntity> GetGuidRepository<TEntity>(Expression<Func<TEntity, bool>> filter = null, Func<string, string> asTable = null) where TEntity : class {
 			var repos = new GuidRepository<TEntity>(_fsql, filter, asTable);
-			repos._tran = BeginTransaction();
+			repos._unitOfWork = this;
 			return repos;
 		}
 	}
