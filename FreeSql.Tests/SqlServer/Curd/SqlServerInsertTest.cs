@@ -1,13 +1,22 @@
 using FreeSql.DataAnnotations;
+using FreeSql.Tests.DataContext.SqlServer;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
 namespace FreeSql.Tests.SqlServer {
-	public class SqlServerInsertTest {
+	[Collection("SqlServerCollection")]
+	public class SqlServerInsertTest
+	{
+		SqlServerFixture _sqlserverFixture;
 
-		IInsert<Topic> insert => g.sqlserver.Insert<Topic>(); //��������
+		public SqlServerInsertTest(SqlServerFixture sqlserverFixture)
+		{
+			_sqlserverFixture = sqlserverFixture;
+		}
+
+		IInsert<Topic> insert => _sqlserverFixture.SqlServer.Insert<Topic>(); //��������
 
 		[Table(Name = "tb_topic")]
 		class Topic {
@@ -69,7 +78,7 @@ namespace FreeSql.Tests.SqlServer {
 			Assert.Equal(10, insert.AppendData(items).ExecuteAffrows());
 
 			//items = Enumerable.Range(0, 9989).Select(a => new Topic { Title = "newtitle" + a, CreateTime = DateTime.Now }).ToList();
-			//Assert.Equal(9989, g.sqlserver.Insert<Topic>(items).ExecuteAffrows());
+			//Assert.Equal(9989, _sqlserverFixture.SqlServer.Insert<Topic>(items).ExecuteAffrows());
 		}
 		[Fact]
 		public void ExecuteIdentity() {
@@ -81,7 +90,7 @@ namespace FreeSql.Tests.SqlServer {
 
 			//items = Enumerable.Range(0, 9999).Select(a => new Topic { Title = "newtitle" + a, CreateTime = DateTime.Now }).ToList();
 			//var lastId = g.sqlite.Select<Topic>().Max(a => a.Id);
-			//Assert.NotEqual(lastId, g.sqlserver.Insert<Topic>(items).ExecuteIdentity());
+			//Assert.NotEqual(lastId, _sqlserverFixture.SqlServer.Insert<Topic>(items).ExecuteIdentity());
 		}
 		[Fact]
 		public void ExecuteInserted() {
@@ -91,7 +100,7 @@ namespace FreeSql.Tests.SqlServer {
 			var items2 = insert.AppendData(items).ExecuteInserted();
 
 			items = Enumerable.Range(0, 90).Select(a => new Topic { Title = "newtitle" + a, CreateTime = DateTime.Now }).ToList();
-			var itemsInserted = g.sqlserver.Insert<Topic>(items).ExecuteInserted();
+			var itemsInserted = _sqlserverFixture.SqlServer.Insert<Topic>(items).ExecuteInserted();
 			Assert.Equal(items.First().Title, itemsInserted.First().Title);
 			Assert.Equal(items.Last().Title, itemsInserted.Last().Title);
 		}

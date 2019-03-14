@@ -1,13 +1,22 @@
 using FreeSql.DataAnnotations;
+using FreeSql.Tests.DataContext.SqlServer;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
 namespace FreeSql.Tests.SqlServer {
+	[Collection("SqlServerCollection")]
 	public class SqlServerSelectTest {
 
-		ISelect<Topic> select => g.sqlserver.Select<Topic>();
+		SqlServerFixture _sqlserverFixture;
+
+		public SqlServerSelectTest(SqlServerFixture sqlserverFixture)
+		{
+			_sqlserverFixture = sqlserverFixture;
+		}
+
+		ISelect<Topic> select => _sqlserverFixture.SqlServer.Select<Topic>();
 
 		[Table(Name = "tb_topic22")]
 		class Topic {
@@ -37,12 +46,12 @@ namespace FreeSql.Tests.SqlServer {
 			var items = new List<Topic>();
 			for (var a = 0; a < 10; a++) items.Add(new Topic { Id = a + 1, Title = $"newtitle{a}", Clicks = a * 100, CreateTime = DateTime.Now });
 
-			Assert.Single(g.sqlserver.Insert<Topic>().AppendData(items.First()).ExecuteInserted());
-			Assert.Equal(10, g.sqlserver.Insert<Topic>().AppendData(items).ExecuteInserted().Count);
+			Assert.Single(_sqlserverFixture.SqlServer.Insert<Topic>().AppendData(items.First()).ExecuteInserted());
+			Assert.Equal(10, _sqlserverFixture.SqlServer.Insert<Topic>().AppendData(items).ExecuteInserted().Count);
 
 			//items = Enumerable.Range(0, 9989).Select(a => new Topic { Title = "newtitle" + a, CreateTime = DateTime.Now }).ToList();
 			//;
-			//Assert.Equal(9989, g.sqlserver.Insert<Topic>(items).NoneParameter().ExecuteAffrows());
+			//Assert.Equal(9989, _sqlserverFixture.SqlServer.Insert<Topic>(items).NoneParameter().ExecuteAffrows());
 
 			var dt1 = select.Limit(10).ToDataTable();
 			var dt2 = select.Limit(10).ToDataTable("id, getdate()");
@@ -77,10 +86,10 @@ namespace FreeSql.Tests.SqlServer {
 		[Fact]
 		public void Caching() {
 			var result1 = select.Where(a => 1 == 1).Caching(20, "testcaching").ToList();
-			var testcaching1 = g.sqlserver.Cache.Get("testcaching");
+			var testcaching1 = _sqlserverFixture.SqlServer.Cache.Get("testcaching");
 			Assert.NotNull(testcaching1);
 			var result2 = select.Where(a => 1 == 1).Caching(20, "testcaching").ToList();
-			var testcaching2 = g.sqlserver.Cache.Get("testcaching");
+			var testcaching2 = _sqlserverFixture.SqlServer.Cache.Get("testcaching");
 			Assert.NotNull(testcaching2);
 			Assert.Equal(result1.Count, result1.Count);
 		}

@@ -1,16 +1,21 @@
 using FreeSql.DataAnnotations;
+using FreeSql.Tests.DataContext.SqlServer;
 using System;
 using System.Linq;
 using Xunit;
 
 namespace FreeSql.Tests.SqlServerExpression {
+	[Collection("SqlServerCollection")]
 	public class OtherTest {
 
-		ISelect<TableAllType> select => g.sqlserver.Select<TableAllType>();
+		SqlServerFixture _sqlserverFixture;
 
-		public OtherTest() {
+		public OtherTest(SqlServerFixture sqlserverFixture)
+		{
+			_sqlserverFixture = sqlserverFixture;
 		}
 
+		ISelect<TableAllType> select => _sqlserverFixture.SqlServer.Select<TableAllType>();
 
 		[Fact]
 		public void Array() {

@@ -1,4 +1,5 @@
 using FreeSql.DataAnnotations;
+using FreeSql.Tests.DataContext.SqlServer;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -7,13 +8,22 @@ using System.Text;
 using Xunit;
 
 namespace FreeSql.Tests.SqlServer {
+
+	[Collection("SqlServerCollection")]
 	public class SqlServerCodeFirstTest {
+
+		SqlServerFixture _sqlserverFixture;
+
+		public SqlServerCodeFirstTest(SqlServerFixture sqlserverFixture)
+		{
+			_sqlserverFixture = sqlserverFixture;
+		}
 
 		[Fact]
 		public void AddField() {
-			var sql = g.sqlserver.CodeFirst.GetComparisonDDLStatements<TopicAddField>();
+			var sql = _sqlserverFixture.SqlServer.CodeFirst.GetComparisonDDLStatements<TopicAddField>();
 
-			var id = g.sqlserver.Insert<TopicAddField>().AppendData(new TopicAddField { }).ExecuteIdentity();
+			var id = _sqlserverFixture.SqlServer.Insert<TopicAddField>().AppendData(new TopicAddField { }).ExecuteIdentity();
 		}
 
 		[Table(Name = "dbo2.TopicAddField", OldName = "tedb1.dbo.TopicAddField")]
@@ -39,13 +49,13 @@ namespace FreeSql.Tests.SqlServer {
 		[Fact]
 		public void GetComparisonDDLStatements() {
 
-			var sql = g.sqlserver.CodeFirst.GetComparisonDDLStatements<TableAllType>();
+			var sql = _sqlserverFixture.SqlServer.CodeFirst.GetComparisonDDLStatements<TableAllType>();
 
-			sql = g.sqlserver.CodeFirst.GetComparisonDDLStatements<Tb_alltype>();
+			sql = _sqlserverFixture.SqlServer.CodeFirst.GetComparisonDDLStatements<Tb_alltype>();
 		}
 
-		IInsert<TableAllType> insert => g.sqlserver.Insert<TableAllType>();
-		ISelect<TableAllType> select => g.sqlserver.Select<TableAllType>();
+		IInsert<TableAllType> insert => _sqlserverFixture.SqlServer.Insert<TableAllType>();
+		ISelect<TableAllType> select => _sqlserverFixture.SqlServer.Select<TableAllType>();
 
 		[Fact]
 		public void CurdAllField() {

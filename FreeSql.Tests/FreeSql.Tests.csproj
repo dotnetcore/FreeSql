@@ -16,5 +16,9 @@
     <ProjectReference Include="..\FreeSql.Repository\FreeSql.Repository.csproj" />
     <ProjectReference Include="..\FreeSql\FreeSql.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="DataContext\MySql\" />
+  </ItemGroup>
 	
 </Project>

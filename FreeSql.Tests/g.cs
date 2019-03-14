@@ -20,13 +20,6 @@ public class g {
 		.Build());
 	public static IFreeSql mysql => mysqlLazy.Value;
 
-	static Lazy<IFreeSql> sqlserverLazy = new Lazy<IFreeSql>(() => new FreeSql.FreeSqlBuilder()
-		.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=cms;Pooling=true;Max Pool Size=10")
-		.UseAutoSyncStructure(true)
-		.UseLazyLoading(true)
-		.Build());
-	public static IFreeSql sqlserver => sqlserverLazy.Value;
-
 	static Lazy<IFreeSql> pgsqlLazy = new Lazy<IFreeSql>(() => new FreeSql.FreeSqlBuilder()
 		.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=10")
 		.UseAutoSyncStructure(true)
