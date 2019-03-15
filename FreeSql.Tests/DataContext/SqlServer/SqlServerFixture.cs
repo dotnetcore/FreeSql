@@ -11,7 +11,7 @@ namespace FreeSql.Tests.DataContext.SqlServer
 		{
 			sqlServerLazy = new Lazy<IFreeSql>(() => new FreeSql.FreeSqlBuilder()
 			  //.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=10")
-			  .UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=(localdb)\\mssqllocaldb;Integrated Security=True;Initial Catalog=cms;Pooling=true;Max Pool Size=10")
+			  .UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=(localdb)\\mssqllocaldb;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=10")
 			  .UseAutoSyncStructure(true)
 			  .UseLazyLoading(true)
 			  .Build());
@@ -22,7 +22,17 @@ namespace FreeSql.Tests.DataContext.SqlServer
 		public void Dispose()
 		{
 			// ... clean up test data from the database ...
-			var dataTables = SqlServer.DbFirst.GetTablesByDatabase(SqlServer.DbFirst.GetDatabases()[0]);
+			ClearDataBase();
+		}
+
+		private void ClearDataBase()
+		{
+			var operateDataBase = "freesqlTest";
+			var dataBases = SqlServer.DbFirst.GetDatabases();
+			if (!dataBases.Any(t => t == operateDataBase))
+				return;
+
+			var dataTables = SqlServer.DbFirst.GetTablesByDatabase(dataBases.First(t => t == operateDataBase));
 			if (dataTables.Any(item => item.Name == "TopicAddField" && item.Schema == "dbo2"))
 			{
 				SqlServer.Ado.ExecuteNonQuery("TRUNCATE TABLE dbo2.TopicAddField ");
