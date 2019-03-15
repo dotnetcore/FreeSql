@@ -11,6 +11,7 @@ using restful.Entitys;
 using Swashbuckle.AspNetCore.Swagger;
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 
 namespace repository_01 {
@@ -54,7 +55,6 @@ namespace repository_01 {
 
 		public IServiceProvider ConfigureServices(IServiceCollection services) {
 
-			services.AddSingleton<IFreeSql>(Fsql);
 			//services.AddTransient(s => s.)
 
 			services.AddMvc();
@@ -66,10 +66,34 @@ namespace repository_01 {
 				//options.IncludeXmlComments(xmlPath);
 			});
 
+			services.AddSingleton<IFreeSql>(Fsql);
+			//var baseType = typeof(IRepository);
+			//var freeTypes = baseType.Assembly.GetTypes().Where(t => baseType.IsAssignableFrom(t));
+			//foreach (var type in freeTypes) {
+			//	if ((type.IsInterface || type.IsAbstract) && type.IsGenericType) {
+			//		if (type.GenericTypeArguments.Length == 1)
+			//			services.AddScoped(type, sp => {
+			//				return Activator.CreateInstance(typeof(GuidRepository<>).MakeGenericType(type.GenericTypeArguments[0]), sp.GetService<IFreeSql>());
+			//			});
+			//		else
+			//			services.AddScoped(type, sp => {
+			//				return Activator.CreateInstance(typeof(DefaultRepository<,>).MakeGenericType(type.GenericTypeArguments[0], type.GenericTypeArguments[1]), sp.GetService<IFreeSql>());
+			//			});
+			//		continue;
+			//	}
+			//	services.AddScoped(type);
+			//}
+
+			//var types = GetType().Assembly.GetTypes().Where(t => baseType.IsAssignableFrom(t) && !t.IsAbstract);
+			//foreach (var type in types) {
+			//	services.AddScoped(type);
+			//}
+
+
 			var builder = new ContainerBuilder();
 
 			builder.RegisterFreeRepository(
-				filter => filter.Apply<Song>("test", a => a.Title == DateTime.Now.ToString() + System.Threading.Thread.CurrentThread.ManagedThreadId), 
+				filter => filter.Apply<Song>("test", a => a.Title == DateTime.Now.ToString() + System.Threading.Thread.CurrentThread.ManagedThreadId),
 				this.GetType().Assembly
 			);
 
