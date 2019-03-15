@@ -27,12 +27,7 @@ namespace FreeSql.Tests.DataContext.SqlServer
 
 		private void ClearDataBase()
 		{
-			var operateDataBase = "freesqlTest";
-			var dataBases = SqlServer.DbFirst.GetDatabases();
-			if (!dataBases.Any(t => t == operateDataBase))
-				return;
-
-			var dataTables = SqlServer.DbFirst.GetTablesByDatabase(dataBases.First(t => t == operateDataBase));
+			var dataTables = SqlServer.DbFirst.GetTablesByDatabase();
 			if (dataTables.Any(item => item.Name == "TopicAddField" && item.Schema == "dbo2"))
 			{
 				SqlServer.Ado.ExecuteNonQuery("TRUNCATE TABLE dbo2.TopicAddField ");
