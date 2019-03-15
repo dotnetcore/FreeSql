@@ -45,11 +45,10 @@ namespace FreeSql.Tests {
 			var queryable = g.mysql.Queryable<TestInfo>().Where(a => a.Id == 1).ToList();
 			
 			var sql2222 = select.Where(a => 
-				select.Where(b => b.Id == a.Id && select.Where(c => c.Id == b.Id).Where(d => d.Id == a.Id).Where(e => e.Id == b.Id)
-
-				.Offset(a.Id)
-				
-				.Any()
+				select.Where(b => b.Id == a.Id && 
+					select.Where(c => c.Id == b.Id).Where(d => d.Id == a.Id).Where(e => e.Id == b.Id)
+					.Offset(a.Id)
+					.Any()
 				).Any()
 			).ToList();
 

@@ -274,7 +274,7 @@ namespace FreeSql.SqlServer {
 			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
 			if (exp.Object == null) {
 				switch (exp.Method.Name) {
-					case "ToBoolean": return $"({getExp(exp.Arguments[0])} not in ('0','false'))";
+					case "ToBoolean": return $"(cast({getExp(exp.Arguments[0])} as varchar) not in ('0','false'))";
 					case "ToByte": return $"cast({getExp(exp.Arguments[0])} as tinyint)";
 					case "ToChar": return $"substring(cast({getExp(exp.Arguments[0])} as nvarchar),1,1)";
 					case "ToDateTime": return $"cast({getExp(exp.Arguments[0])} as datetime)";

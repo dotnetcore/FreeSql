@@ -44,12 +44,12 @@ namespace FreeSql.Tests.SqlServerExpression {
 		[Fact]
 		public void ToBoolean() {
 			var data = new List<object>();
-			data.Add(select.Where(a => (Convert.ToBoolean(a.Clicks) ? 1 : 2) > 0).ToList());
+			data.Add(select.Where(a => (Convert.ToBoolean(a.Clicks) ? 1 : 0) > 0).ToList());
 		}
 		[Fact]
 		public void ToByte() {
 			var data = new List<object>();
-			data.Add(select.Where(a => Convert.ToByte(a.Clicks) > 0).ToList());
+			data.Add(select.Where(a => Convert.ToByte(a.Clicks % 255) > 0).ToList());
 		}
 		[Fact]
 		public void ToChar() {
@@ -89,7 +89,7 @@ namespace FreeSql.Tests.SqlServerExpression {
 		[Fact]
 		public void ToSByte() {
 			var data = new List<object>();
-			data.Add(select.Where(a => Convert.ToSByte(a.Clicks) > 0).ToList());
+			data.Add(select.Where(a => Convert.ToSByte(a.Clicks % 128) > 0).ToList());
 		}
 		[Fact]
 		public void ToSingle() {

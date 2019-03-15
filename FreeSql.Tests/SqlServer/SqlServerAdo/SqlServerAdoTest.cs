@@ -66,11 +66,11 @@ namespace FreeSql.Tests.SqlServer {
 			var tn1 = _sqlserverFixture.SqlServer.Select<xxx>().Where(a => a.Id > 0).Where(b => b.Title != null).Page(1, 3).ToList(a => a.Id);
 			var tn2 = _sqlserverFixture.SqlServer.Select<xxx>().Where(a => a.Id > 0).Where(b => b.Title != null).Page(2, 3).ToList(a => a.Id);
 
-			var t3 = _sqlserverFixture.SqlServer.Ado.Query<xxx>("select * from song");
+			var t3 = _sqlserverFixture.SqlServer.Ado.Query<xxx>("select * from xxx");
 
-			var t4 = _sqlserverFixture.SqlServer.Ado.Query<(int, string, string, DateTime)>("select * from song");
+			var t4 = _sqlserverFixture.SqlServer.Ado.Query<(int, int, string, string DateTime)>("select * from xxx");
 
-			var t5 = _sqlserverFixture.SqlServer.Ado.Query<dynamic>(System.Data.CommandType.Text, "select * from song where Id = @Id", 
+			var t5 = _sqlserverFixture.SqlServer.Ado.Query<dynamic>(System.Data.CommandType.Text, "select * from xxx where Id = @Id", 
 				new System.Data.SqlClient.SqlParameter("Id", 1));
 		}
 
