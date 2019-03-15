@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FreeSql;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -72,5 +73,18 @@ public static class FreeSqlGlobalExtensions {
 			if ((value & v) == v) ret.Add((T)o);
 		}
 		return ret;
+	}
+
+	/// <summary>
+	/// 将 IEnumable<T> 转成 ISelect<T>，以便使用 FreeSql 的查询功能。此方法用于 Lambad 表达式中，快速进行集合导航的查询。
+	/// </summary>
+	/// <typeparam name="TEntity"></typeparam>
+	/// <param name="that"></param>
+	/// <returns></returns>
+	public static ISelect<TEntity> AsSelect<TEntity>(this IEnumerable<TEntity> that) where TEntity : class {
+		throw new NotImplementedException();
+	}
+	public static ISelect<TEntity> AsSelect<TEntity>(this IEnumerable<TEntity> that, IFreeSql orm = null) where TEntity : class {
+		return orm?.Select<TEntity>();
 	}
 }

@@ -27,14 +27,21 @@ namespace FreeSql.Tests {
 			public virtual Order Order { get; set; }
 		}
 
-		class NullAggreTestTable {
-			[Column(IsIdentity = true)]
-			public int Id { get; set; }
-		}
-
 		ISelect<TestInfo> select => g.mysql.Select<TestInfo>();
 		[Fact]
 		public void Test1() {
+
+			var collSelect1 = g.mysql.Select<Order>().Where(a =>
+				a.OrderDetails.AsSelect().Where(b => b.OrderId == a.OrderID).Any()
+			);
+
+			var collectionSelect = select.Where(a => 
+				a.Type.Guid == a.TypeGuid &&
+				a.Type.Parent.Id == a.Type.ParentId &&
+				a.Type.Parent.Types.AsSelect().Where(b => b.Name == a.Title).Any(b => b.ParentId == a.Type.Parent.Id)
+			);
+
+
 
 			var order = g.mysql.Select<Order>().Where(a => a.OrderID == 1).ToOne(); //查询订单表
 			var orderDetail1 = order.OrderDetails; //第一次访问，查询数据库
@@ -182,6 +189,11 @@ namespace FreeSql.Tests {
 
 		}
 	}
+	class NullAggreTestTable {
+		[Column(IsIdentity = true)]
+		public int Id { get; set; }
+	}
+
 
 	[Table(Name = "xxx", SelectFilter = " a.id > 0")]
 	class TestInfo {

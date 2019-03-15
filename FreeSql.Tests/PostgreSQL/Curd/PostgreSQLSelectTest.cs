@@ -138,6 +138,22 @@ namespace FreeSql.Tests.PostgreSQL {
 			var count = select.Where(a => 1 == 1).Count();
 			Assert.False(select.Where(a => 1 == 2).Any());
 			Assert.Equal(count > 0, select.Where(a => 1 == 1).Any());
+
+			var sql2222 = select.Where(a =>
+				select.Where(b => b.Id == a.Id &&
+					select.Where(c => c.Id == b.Id).Where(d => d.Id == a.Id).Where(e => e.Id == b.Id)
+					.Offset(a.Id)
+					.Any()
+				).Any(c => c.Id == a.Id + 10)
+			);
+			var sql2222Tolist = sql2222.ToList();
+
+			var collectionSelect = select.Where(a =>
+				a.Type.Guid == a.TestTypeInfoGuid &&
+				a.Type.Parent.Id == a.Type.ParentId &&
+				a.Type.Parent.Types.AsSelect().Where(b => b.Name == a.Title).Any(b => b.ParentId == a.Type.Parent.Id)
+			);
+			collectionSelect.ToList();
 		}
 		[Fact]
 		public void Count() {

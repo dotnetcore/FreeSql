@@ -1,5 +1,6 @@
 ﻿using FreeSql.Internal.Model;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
@@ -236,12 +237,18 @@ namespace FreeSql.Internal {
 					}
 					if (callType.FullName.StartsWith("FreeSql.ISelect`")) { //子表查询
 						if (exp3.Method.Name == "Any") { //exists
+							var anyArgs = exp3.Arguments;
 							var exp3Stack = new Stack<Expression>();
 							var exp3tmp = exp3.Object;
+							if (exp3tmp != null && anyArgs.Any())
+								exp3Stack.Push(Expression.Call(exp3tmp, callType.GetMethod("Where", anyArgs.Select(a => a.Type).ToArray()), anyArgs.ToArray()));
 							while (exp3tmp != null) {
 								exp3Stack.Push(exp3tmp);
 								switch (exp3tmp.NodeType) {
-									case ExpressionType.Call: exp3tmp = (exp3tmp as MethodCallExpression).Object; continue;
+									case ExpressionType.Call:
+										var exp3tmpCall = (exp3tmp as MethodCallExpression);
+										exp3tmp = exp3tmpCall.Object == null ? exp3tmpCall.Arguments.FirstOrDefault() : exp3tmpCall.Object;
+										continue;
 									case ExpressionType.MemberAccess: exp3tmp = (exp3tmp as MemberExpression).Expression; continue;
 								}
 								break;
@@ -253,7 +260,19 @@ namespace FreeSql.Internal {
 							while (exp3Stack.Any()) {
 								exp3tmp = exp3Stack.Pop();
 								if (exp3tmp.Type.FullName.StartsWith("FreeSql.ISelect`") && fsql == null) {
-									fsql = Expression.Lambda(exp3tmp).Compile().DynamicInvoke();
+									if (exp3tmp.NodeType == ExpressionType.Call) {
+										var exp3tmpCall = (exp3tmp as MethodCallExpression);
+										if (exp3tmpCall.Method.Name == "AsSelect" && exp3tmpCall.Object == null) {
+											var exp3tmpArg1Type = exp3tmpCall.Arguments.FirstOrDefault()?.Type;
+											if (exp3tmpArg1Type != null) {
+												var exp3tmpEleType = exp3tmpArg1Type.GetElementType() ?? exp3tmpArg1Type.GenericTypeArguments.FirstOrDefault();
+												if (exp3tmpEleType != null) {
+													fsql = typeof(IFreeSql).GetMethod("Select", new Type[0]).MakeGenericMethod(exp3tmpEleType).Invoke(_common._orm, null);
+												}
+											}
+										}
+									}
+									if (fsql == null) fsql = Expression.Lambda(exp3tmp).Compile().DynamicInvoke();
 									fsqlType = fsql?.GetType();
 									if (fsqlType == null) break;
 									fsqlType.GetField("_limit", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(fsql, 1);
@@ -293,6 +312,12 @@ namespace FreeSql.Internal {
 									return $"exists({sql})";
 								}
 							}
+						}
+					}
+					var eleType = callType.GetElementType() ?? callType.GenericTypeArguments.FirstOrDefault();
+					if (eleType != null && typeof(IEnumerable<>).MakeGenericType(eleType).IsAssignableFrom(callType)) { //集合导航属性子查询
+						if (exp3.Method.Name == "Any") { //exists
+							
 						}
 					}
 					var other3Exp = ExpressionLambdaToSqlOther(exp3, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
