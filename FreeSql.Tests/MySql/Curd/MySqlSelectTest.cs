@@ -6,7 +6,7 @@ using System.Linq;
 using Xunit;
 
 namespace FreeSql.Tests.MySql {
-	
+
 	public class MySqlSelectTest {
 
 		ISelect<Topic> select => g.mysql.Select<Topic>();
@@ -80,6 +80,39 @@ namespace FreeSql.Tests.MySql {
 
 
 		[Fact]
+		public void AsSelect() {
+			//OneToOne、ManyToOne
+			var t0 = g.mysql.Select<Tag>().Where(a => a.Parent.Parent.Name == "粤语").ToSql();
+			//SELECT a.`Id`, a.`Parent_id`, a__Parent.`Id` as3, a__Parent.`Parent_id` as4, a__Parent.`Ddd`, a__Parent.`Name`, a.`Ddd` as7, a.`Name` as8 
+			//FROM `Tag` a 
+			//LEFT JOIN `Tag` a__Parent ON a__Parent.`Id` = a.`Parent_id` 
+			//LEFT JOIN `Tag` a__Parent__Parent ON a__Parent__Parent.`Id` = a__Parent.`Parent_id` 
+			//WHERE (a__Parent__Parent.`Name` = '粤语')
+
+			//OneToMany
+			var t1 = g.mysql.Select<Tag>().Where(a => a.Tags.AsSelect().Any(t => t.Parent.Id == 10)).ToSql();
+			//SELECT a.`Id`, a.`Parent_id`, a.`Ddd`, a.`Name` 
+			//FROM `Tag` a 
+			//WHERE (exists(SELECT 1 
+			//	FROM `Tag` t 
+			//	LEFT JOIN `Tag` t__Parent ON t__Parent.`Id` = t.`Parent_id` 
+			//	WHERE (t__Parent.`Id` = 10) AND (t.`Parent_id` = a.`Id`) 
+			//	limit 0,1))
+
+			//ManyToMany
+			var t2 = g.mysql.Select<Song>().Where(s => s.Tags.AsSelect().Any(t => t.Name == "国语")).ToSql();
+			//SELECT a.`Id`, a.`Create_time`, a.`Is_deleted`, a.`Title`, a.`Url` 
+			//FROM `Song` a
+			//WHERE(exists(SELECT 1
+			//	FROM `Song_tag` Mt_Ms
+			//	WHERE(Mt_Ms.`Song_id` = a.`Id`) AND(exists(SELECT 1
+			//		FROM `Tag` t
+			//		WHERE(t.`Name` = '国语') AND(t.`Id` = Mt_Ms.`Tag_id`)
+			//		limit 0, 1))
+			//	limit 0, 1))
+		}
+
+		[Fact]
 		public void Lazy() {
 			var tags = g.mysql.Select<Tag>().Where(a => a.Parent.Name == "xxx")
 				.LeftJoin(a => a.Parent_id == a.Parent.Id)
@@ -140,22 +173,22 @@ namespace FreeSql.Tests.MySql {
 				.Where(a => b.Name != "xxx"));
 			var list111sql = list111.ToSql();
 			var list111data = list111.ToList((a, b, c) => new {
+				a.Id,
+				title_substring = a.Title.Substring(0, 1),
+				a.Type,
+				ccc = new { a.Id, a.Title },
+				tp = a.Type,
+				tp2 = new {
 					a.Id,
-					title_substring = a.Title.Substring(0, 1),
-					a.Type,
-					ccc = new { a.Id, a.Title },
-					tp = a.Type,
-					tp2 = new {
-						a.Id,
-						tp2 = a.Type.Name
-					},
-					tp3 = new {
-						a.Id,
-						tp33 = new {
-							a.Id
-						}
+					tp2 = a.Type.Name
+				},
+				tp3 = new {
+					a.Id,
+					tp33 = new {
+						a.Id
 					}
-				});
+				}
+			});
 
 			var ttt122 = g.mysql.Select<TestTypeParentInfo>().Where(a => a.Id > 0).ToSql();
 			var sql5 = g.mysql.Select<TestInfo>().From<TestTypeInfo, TestTypeParentInfo>((s, b, c) => s).Where((a, b, c) => a.Id == b.ParentId).ToSql();
@@ -491,7 +524,7 @@ namespace FreeSql.Tests.MySql {
 			sql = query.ToSql().Replace("\r\n", "");
 			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a, `TestTypeInfo` a__Type, `TestTypeParentInfo` a__Type__Parent WHERE (a__Type__Parent.`Name` = 'tparent')", sql);
 			query.ToList();
-			
+
 			//���û�е������ԣ��򵥶������
 			query = select.Where<TestTypeInfo>((a, b) => b.Guid == a.TypeGuid && b.Name == "typeTitle");
 			sql = query.ToSql().Replace("\r\n", "");
