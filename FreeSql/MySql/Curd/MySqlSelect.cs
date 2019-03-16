@@ -48,9 +48,8 @@ namespace FreeSql.MySql.Curd {
 						sb.Append(" \r\nRIGHT JOIN ");
 						break;
 				}
-				sb.Append(_commonUtils.QuoteSqlName(tableRuleInvoke(tb.Table.Type, tb.Table.DbName))).Append(" ").Append(tb.Alias).Append(" ON ").Append(tb.On);
-				if (!string.IsNullOrEmpty(tb.NavigateCondition)) sbnav.Append(" AND (").Append(tb.NavigateCondition).Append(")");
-				if (!string.IsNullOrEmpty(tb.On)) sbnav.Append(" AND (").Append(tb.On).Append(")");
+				sb.Append(_commonUtils.QuoteSqlName(tableRuleInvoke(tb.Table.Type, tb.Table.DbName))).Append(" ").Append(tb.Alias).Append(" ON ").Append(tb.On ?? tb.NavigateCondition);
+				if (!string.IsNullOrEmpty(tb.On) && !string.IsNullOrEmpty(tb.NavigateCondition)) sbnav.Append(" AND (").Append(tb.NavigateCondition).Append(")");
 			}
 			if (_join.Length > 0) sb.Append(_join);
 
