@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
@@ -27,7 +28,7 @@ namespace FreeSql.Internal.CommonProvider {
 		protected CommonExpression _commonExpression;
 		protected DbTransaction _transaction;
 
-		internal static void CopyData(Select0Provider<TSelect, T1> from, object to) {
+		internal static void CopyData(Select0Provider<TSelect, T1> from, object to, ReadOnlyCollection<ParameterExpression> lambParms) {
 			var toType = to?.GetType();
 			if (toType == null) return;
 			toType.GetField("_limit", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._limit);
@@ -38,7 +39,19 @@ namespace FreeSql.Internal.CommonProvider {
 			toType.GetField("_having", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._having);
 			toType.GetField("_where", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, new StringBuilder().Append(from._where.ToString()));
 			toType.GetField("_params", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, new List<DbParameter>(from._params.ToArray()));
-			toType.GetField("_tables", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, new List<SelectTableInfo>(from._tables.ToArray()));
+			//toType.GetField("_tables", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, new List<SelectTableInfo>(from._tables.ToArray()));
+			var _multiTables = toType.GetField("_tables", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(to) as List<SelectTableInfo>;
+			_multiTables[0] = from._tables[0];
+			for (var a = 1;a < lambParms.Count; a++) {
+				var tb = from._tables.Where(b => b.Alias == lambParms[a].Name && b.Table.Type == lambParms[a].Type).FirstOrDefault();
+				if (tb != null) _multiTables[a] = tb;
+				else {
+					_multiTables[a].Alias = lambParms[a].Name;
+					_multiTables[a].Parameter = lambParms[a];
+				}
+			}
+			if (_multiTables.Count < from._tables.Count)
+				_multiTables.AddRange(from._tables.GetRange(_multiTables.Count, from._tables.Count - _multiTables.Count));
 			toType.GetField("_tableRules", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._tableRules);
 			toType.GetField("_join", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, new StringBuilder().Append(from._join.ToString()));
 			toType.GetField("_cache", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._cache);
@@ -97,12 +110,35 @@ namespace FreeSql.Internal.CommonProvider {
 			return this as TSelect;
 		}
 
-		public TSelect LeftJoin(Expression<Func<T1, bool>> exp) => this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
-		public TSelect InnerJoin(Expression<Func<T1, bool>> exp) => this.InternalJoin(exp?.Body, SelectTableInfoType.InnerJoin);
-		public TSelect RightJoin(Expression<Func<T1, bool>> exp) => this.InternalJoin(exp?.Body, SelectTableInfoType.RightJoin);
-		public TSelect LeftJoin<T2>(Expression<Func<T1, T2, bool>> exp) => this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
-		public TSelect InnerJoin<T2>(Expression<Func<T1, T2, bool>> exp) => this.InternalJoin(exp?.Body, SelectTableInfoType.InnerJoin);
-		public TSelect RightJoin<T2>(Expression<Func<T1, T2, bool>> exp) => this.InternalJoin(exp?.Body, SelectTableInfoType.RightJoin);
+		public TSelect LeftJoin(Expression<Func<T1, bool>> exp) {
+			if (exp == null) return this as TSelect;
+			_tables[0].Parameter = exp.Parameters[0];
+			return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
+		}
+		public TSelect InnerJoin(Expression<Func<T1, bool>> exp) {
+			if (exp == null) return this as TSelect;
+			_tables[0].Parameter = exp.Parameters[0];
+			return this.InternalJoin(exp?.Body, SelectTableInfoType.InnerJoin);
+		}
+		public TSelect RightJoin(Expression<Func<T1, bool>> exp) {
+			if (exp == null) return this as TSelect; _tables[0].Parameter = exp.Parameters[0];
+			return this.InternalJoin(exp?.Body, SelectTableInfoType.RightJoin);
+		}
+		public TSelect LeftJoin<T2>(Expression<Func<T1, T2, bool>> exp) {
+			if (exp == null) return this as TSelect;
+			_tables[0].Parameter = exp.Parameters[0];
+			return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
+		}
+		public TSelect InnerJoin<T2>(Expression<Func<T1, T2, bool>> exp) {
+			if (exp == null) return this as TSelect;
+			_tables[0].Parameter = exp.Parameters[0];
+			return this.InternalJoin(exp?.Body, SelectTableInfoType.InnerJoin);
+		}
+		public TSelect RightJoin<T2>(Expression<Func<T1, T2, bool>> exp) {
+			if (exp == null) return this as TSelect;
+			_tables[0].Parameter = exp.Parameters[0];
+			return this.InternalJoin(exp?.Body, SelectTableInfoType.RightJoin);
+		}
 
 		public TSelect InnerJoin(string sql, object parms = null) {
 			if (string.IsNullOrEmpty(sql)) return this as TSelect;

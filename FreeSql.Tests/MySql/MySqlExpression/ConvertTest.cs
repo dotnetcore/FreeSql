@@ -14,7 +14,7 @@ namespace FreeSql.Tests.MySqlExpression {
 			[Column(IsIdentity = true, IsPrimary = true)]
 			public int Id { get; set; }
 			public int Clicks { get; set; }
-			public int TestTypeInfoGuid { get; set; }
+			public int TypeGuid { get; set; }
 			public TestTypeInfo Type { get; set; }
 			public string Title { get; set; }
 			public DateTime CreateTime { get; set; }
@@ -36,7 +36,7 @@ namespace FreeSql.Tests.MySqlExpression {
 		public void ToBoolean() {
 			var data = new List<object>();
 			data.Add(select.Where(a => (Convert.ToBoolean(a.Clicks) ? 1 : 2) > 0).ToList());
-			//SELECT a.`Id`, a.`Clicks`, a.`TestTypeInfoGuid`, a.`Title`, a.`CreateTime` 
+			//SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` 
 			//FROM `tb_topic` a 
 			//WHERE ((a.`Clicks` not in ('0','false')))
 		}
