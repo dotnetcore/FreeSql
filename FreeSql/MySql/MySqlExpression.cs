@@ -1,6 +1,7 @@
 ﻿using FreeSql.Internal;
 using FreeSql.Internal.Model;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -21,7 +22,7 @@ namespace FreeSql.MySql {
 					if (objType?.FullName == "System.Byte[]") return null;
 
 					var argIndex = 0;
-					if (objType == null && callExp.Method.DeclaringType.FullName == typeof(Enumerable).FullName) {
+					if (objType == null && callExp.Method.DeclaringType == typeof(Enumerable)) {
 						objExp = callExp.Arguments.FirstOrDefault();
 						objType = objExp?.Type;
 						argIndex++;
@@ -29,7 +30,7 @@ namespace FreeSql.MySql {
 					if (objType == null) objType = callExp.Method.DeclaringType;
 					if (objType != null) {
 						var left = objExp == null ? null : getExp(objExp);
-						if (objType.IsArray == true) {
+						if (objType.IsArray || typeof(IList).IsAssignableFrom(callExp.Method.DeclaringType)) {
 							switch (callExp.Method.Name) {
 								case "Contains":
 									//判断 in
@@ -46,7 +47,27 @@ namespace FreeSql.MySql {
 						if (a > 0) arrSb.Append(",");
 						arrSb.Append(getExp(arrExp.Expressions[a]));
 					}
+					if (arrSb.Length == 1) arrSb.Append("NULL");
 					return arrSb.Append(")").ToString();
+				case ExpressionType.ListInit:
+					var listExp = exp as ListInitExpression;
+					var listSb = new StringBuilder();
+					listSb.Append("(");
+					for (var a = 0; a < listExp.Initializers.Count; a++) {
+						if (listExp.Initializers[a].Arguments.Any() == false) continue;
+						if (a > 0) listSb.Append(",");
+						listSb.Append(getExp(listExp.Initializers[a].Arguments.FirstOrDefault()));
+					}
+					if (listSb.Length == 1) listSb.Append("NULL");
+					return listSb.Append(")").ToString();
+				case ExpressionType.New:
+					var newExp = exp as NewExpression;
+					if (typeof(IList).IsAssignableFrom(newExp.Type)) {
+						if (newExp.Arguments.Count == 0) return "(NULL)";
+						if (typeof(IEnumerable).IsAssignableFrom(newExp.Arguments[0].Type) == false) return "(NULL)";
+						return getExp(newExp.Arguments[0]);
+					}
+					return null;
 			}
 			return null;
 		}

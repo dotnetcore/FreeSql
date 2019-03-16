@@ -1,6 +1,7 @@
 using FreeSql.DataAnnotations;
 using FreeSql.Tests.DataContext.SqlServer;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
@@ -28,6 +29,20 @@ namespace FreeSql.Tests.SqlServerExpression {
 			var sql1111 = select.Where(a => inarray.Contains(a.testFieldInt)).ToList();
 			//var sql1122 = select.Where(a => inarray.Contains(a.testFieldInt) == false).ToList();
 			var sql1133 = select.Where(a => !inarray.Contains(a.testFieldInt)).ToList();
+
+			//in not in
+			var sql11111 = select.Where(a => new List<int>() { 1, 2, 3 }.Contains(a.testFieldInt)).ToList();
+			//var sql11222 = select.Where(a => new List<int>() { 1, 2, 3 }.Contains(a.testFieldInt) == false).ToList();
+			var sql11333 = select.Where(a => !new List<int>() { 1, 2, 3 }.Contains(a.testFieldInt)).ToList();
+
+			var sql11111a = select.Where(a => new List<int>(new[] { 1, 2, 3 }).Contains(a.testFieldInt)).ToList();
+			//var sql11222b = select.Where(a => new List<int>(new[] { 1, 2, 3 }).Contains(a.testFieldInt) == false).ToList();
+			var sql11333c = select.Where(a => !new List<int>(new[] { 1, 2, 3 }).Contains(a.testFieldInt)).ToList();
+
+			var inarray2 = new List<int>() { 1, 2, 3 };
+			var sql111111 = select.Where(a => inarray.Contains(a.testFieldInt)).ToList();
+			//var sql112222 = select.Where(a => inarray.Contains(a.testFieldInt) == false).ToList();
+			var sql113333 = select.Where(a => !inarray.Contains(a.testFieldInt)).ToList();
 		}
 
 		[Table(Name = "tb_alltype")]
