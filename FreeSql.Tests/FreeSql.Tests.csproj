@@ -18,6 +18,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="DataAnnotations\MySql\" />
+    <Folder Include="DataAnnotations\SqlServer\" />
     <Folder Include="DataContext\MySql\" />
   </ItemGroup>
 	

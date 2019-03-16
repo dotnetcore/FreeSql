@@ -2,7 +2,7 @@ using FreeSql.DataAnnotations;
 using Xunit;
 
 namespace FreeSql.Tests.DataAnnotations {
-	public class FluentTest {
+	public class MySqlFluentTest {
 		[Fact]
 		public void Fluent() {
 			g.mysql.CodeFirst
@@ -35,19 +35,21 @@ namespace FreeSql.Tests.DataAnnotations {
 			var t2affrows = g.mysql.Insert<TestFluenttb2>().AppendData(new TestFluenttb2 { Id = t2lastId + 1 }).ExecuteAffrows();
 			var t2 = g.mysql.Select<TestFluenttb2>(t2lastId + 1).ToOne();
 		}
-	}
 
-	class TestFluenttb1 {
-		public int Id { get; set; }
+		class TestFluenttb1
+		{
+			public int Id { get; set; }
 
-		public string name { get; set; } = "defaultValue";
-	}
+			public string name { get; set; } = "defaultValue";
+		}
 
-	[Table(Name = "cccccdddwww")]
-	class TestFluenttb2 {
-		[Column(Name = "Idx", IsPrimary = true, IsIdentity = false)]
-		public int Id { get; set; }
+		[Table(Name = "cccccdddwww")]
+		class TestFluenttb2
+		{
+			[Column(Name = "Idx", IsPrimary = true, IsIdentity = false)]
+			public int Id { get; set; }
 
-		public string name { get; set; } = "defaultValue";
+			public string name { get; set; } = "defaultValue";
+		}
 	}
 }
