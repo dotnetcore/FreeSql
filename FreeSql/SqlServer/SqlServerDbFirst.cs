@@ -118,7 +118,7 @@ namespace FreeSql.SqlServer {
 				var loc3 = new Dictionary<int, Dictionary<string, DbColumnInfo>>();
 
 				var sql = $@"
-use {db};
+use [{db}];
 select 
  a.Object_id
 ,b.name 'Owner'
@@ -146,7 +146,7 @@ inner join sys.schemas b on b.schema_id = a.schema_id
 where a.type = 'P' and charindex('$NPSP', a.name) = 0 and charindex('diagram', a.name) = 0
 order by type desc, b.name, a.name
 ;
-use {olddatabase};
+use [{olddatabase}];
 ";
 				var ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
 				if (ds == null) return loc1;
@@ -213,7 +213,7 @@ from sys.columns", loc8);
 ,a.is_output 'IsIdentity'
 from sys.parameters", loc88);
 				}
-				sql = $"use {db};{sql};use {olddatabase}; ";
+				sql = $"use [{db}];{sql};use [{olddatabase}]; ";
 				ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
 				if (ds == null) return loc1;
 
@@ -245,7 +245,7 @@ from sys.parameters", loc88);
 				}
 
 				sql = $@"
-use {db};
+use [{db}];
 select 
  a.object_id 'Object_id'
 ,c.name 'Column'
@@ -259,7 +259,7 @@ inner join sys.indexes b on b.object_id = a.object_id and b.index_id = a.index_i
 left join sys.columns c on c.object_id = a.object_id and c.column_id = a.column_id
 where a.object_id in ({loc8})
 ;
-use {olddatabase};
+use [{olddatabase}];
 ";
 				ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
 				if (ds == null) return loc1;
@@ -306,7 +306,7 @@ use {olddatabase};
 				}
 
 				sql = $@"
-use {db};
+use [{db}];
 select 
  b.object_id 'Object_id'
 ,c.name 'Column'
@@ -322,7 +322,7 @@ inner join sys.columns c on c.object_id = a.parent_object_id and c.column_id = a
 inner join sys.columns d on d.object_id = a.referenced_object_id and d.column_id = a.referenced_column_id
 where b.object_id in ({loc8})
 ;
-use {olddatabase};
+use [{olddatabase}];
 ";
 				ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
 				if (ds == null) return loc1;
