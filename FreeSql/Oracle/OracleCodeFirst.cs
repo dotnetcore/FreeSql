@@ -187,7 +187,7 @@ where owner={{0}} and table_name={{1}}".FormatOracleSQL(tboldname ?? tbname);
 								//sbalter.Append("execute immediate 'ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" MODIFY (").Append(_commonUtils.QuoteSqlName(tbstructcol.column)).Append(" ").Append(dbtypeNoneNotNull).Append(")';\r\n");
 							if (tbcol.Attribute.IsNullable != tbstructcol.is_nullable) {
 								if (tbcol.Attribute.IsNullable == false)
-									sbalter.Append("execute immediate 'UPDATE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" SET ").Append(_commonUtils.QuoteSqlName(tbstructcol.column)).Append(_commonUtils.FormatSql(" = {0}", tbcol.Attribute.DbDefautValue).Replace("'", "''")).Append(" WHERE ").Append(_commonUtils.QuoteSqlName(tbstructcol.column)).Append(" IS NULL';\r\n");
+									sbalter.Append("execute immediate 'UPDATE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" SET ").Append(_commonUtils.QuoteSqlName(tbstructcol.column)).Append(" = ").Append(_commonUtils.FormatSql("{0}", tbcol.Attribute.DbDefautValue).Replace("'", "''")).Append(" WHERE ").Append(_commonUtils.QuoteSqlName(tbstructcol.column)).Append(" IS NULL';\r\n");
 								sbalter.Append("execute immediate 'ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" MODIFY ").Append(_commonUtils.QuoteSqlName(tbstructcol.column)).Append(" ").Append(tbcol.Attribute.IsNullable == true ? "" : "NOT").Append(" NULL';\r\n");
 							}
 							if (tbcol.Attribute.IsIdentity != tbstructcol.is_identity)
@@ -200,7 +200,7 @@ where owner={{0}} and table_name={{1}}".FormatOracleSQL(tboldname ?? tbname);
 						//添加列
 						sbalter.Append("execute immediate 'ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ADD (").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(dbtypeNoneNotNull).Append(")';\r\n");
 						if (tbcol.Attribute.IsNullable == false) {
-							sbalter.Append("execute immediate 'UPDATE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" SET ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(_commonUtils.FormatSql(" = {0}", tbcol.Attribute.DbDefautValue).Replace("'", "''")).Append("';\r\n");
+							sbalter.Append("execute immediate 'UPDATE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" SET ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" = ").Append(_commonUtils.FormatSql("{0}", tbcol.Attribute.DbDefautValue).Replace("'", "''")).Append("';\r\n");
 							sbalter.Append("execute immediate 'ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" MODIFY ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" NOT NULL';\r\n");
 						}
 						if (tbcol.Attribute.IsIdentity == true) seqcols.Add((tbcol, tbname, tbcol.Attribute.IsIdentity == true));
@@ -262,12 +262,12 @@ where owner={{0}} and table_name={{1}}".FormatOracleSQL(tboldname ?? tbname);
 				var tbname2 = _commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}");
 				var colname2 = _commonUtils.QuoteSqlName(seqcol.Item1.Attribute.Name);
 				if (dicDeclare.ContainsKey(seqname) == false) {
-					sbDeclare.Append("\r\n").Append(seqname).Append("_exists NUMBER; \r\n");
+					sbDeclare.Append("\r\n").Append(seqname).Append("IS NUMBER; \r\n");
 					dicDeclare.Add(seqname, true);
 				}
-				sb.Append(seqname).Append("_exists := 0; \r\n")
-					.Append(" select count(1) into ").Append(seqname).Append("_exists from user_sequences where sequence_name={0}; \r\n".FormatOracleSQL(seqname))
-					.Append("if ").Append(seqname).Append("_exists > 0 then \r\n")
+				sb.Append(seqname).Append("IS := 0; \r\n")
+					.Append(" select count(1) into ").Append(seqname).Append("IS from user_sequences where sequence_name={0}; \r\n".FormatOracleSQL(seqname))
+					.Append("if ").Append(seqname).Append("IS > 0 then \r\n")
 					.Append("  execute immediate 'DROP SEQUENCE ").Append(_commonUtils.QuoteSqlName(seqname)).Append("';\r\n")
 					.Append("end if; \r\n");
 				if (seqcol.Item3) {
@@ -280,12 +280,12 @@ where owner={{0}} and table_name={{1}}".FormatOracleSQL(tboldname ?? tbname);
 						.Append(".nextval into :new.").Append(colname2).Append(" from dual;\r\nend;';\r\n");
 				} else {
 					if (dicDeclare.ContainsKey(tiggerName) == false) {
-						sbDeclare.Append("\r\n").Append(tiggerName).Append("_exists NUMBER; \r\n");
+						sbDeclare.Append("\r\n").Append(tiggerName).Append("IS NUMBER; \r\n");
 						dicDeclare.Add(tiggerName, true);
 					}
-					sb.Append(tiggerName).Append("_exists := 0; \r\n")
-					.Append(" select count(1) into ").Append(tiggerName).Append("_exists from user_triggers where trigger_name={0}; \r\n".FormatOracleSQL(tiggerName))
-					.Append("if ").Append(tiggerName).Append("_exists > 0 then \r\n")
+					sb.Append(tiggerName).Append("IS := 0; \r\n")
+					.Append(" select count(1) into ").Append(tiggerName).Append("IS from user_triggers where trigger_name={0}; \r\n".FormatOracleSQL(tiggerName))
+					.Append("if ").Append(tiggerName).Append("IS > 0 then \r\n")
 					.Append("  execute immediate 'DROP TRIGGER ").Append(_commonUtils.QuoteSqlName(tiggerName)).Append("';\r\n")
 					.Append("end if; \r\n");
 				}

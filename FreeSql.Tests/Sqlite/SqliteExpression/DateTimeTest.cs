@@ -21,6 +21,7 @@ namespace FreeSql.Tests.SqliteExpression {
 		}
 		[Table(Name = "TestTypeInfo333")]
 		class TestTypeInfo {
+			[Column(IsIdentity = true)]
 			public int Guid { get; set; }
 			public int ParentId { get; set; }
 			public TestTypeParentInfo Parent { get; set; }

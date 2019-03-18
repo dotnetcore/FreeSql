@@ -11,7 +11,7 @@ namespace FreeSql.SqlServer.Curd {
 	class SqlServerSelect<T1> : FreeSql.Internal.CommonProvider.Select1Provider<T1> where T1 : class {
 
 		internal static string ToSqlStatic(CommonUtils _commonUtils, string _select, string field, StringBuilder _join, StringBuilder _where, string _groupby, string _having, string _orderby, int _skip, int _limit, List<SelectTableInfo> _tables, Func<Type, string, string> tableRuleInvoke, IFreeSql _orm)
-			=> (_commonUtils as SqlServerUtils).IsSelectRowNumber ?
+			=> !(_commonUtils as SqlServerUtils).IsSelectRowNumber ?
 			ToSqlStaticRowNumber(_commonUtils, _select, field, _join, _where, _groupby, _having, _orderby, _skip, _limit, _tables, tableRuleInvoke, _orm) :
 			ToSqlStaticOffsetFetchNext(_commonUtils, _select, field, _join, _where, _groupby, _having, _orderby, _skip, _limit, _tables, tableRuleInvoke, _orm);
 
@@ -21,6 +21,7 @@ namespace FreeSql.SqlServer.Curd {
 				_orm.CodeFirst.SyncStructure(_tables.Select(a => a.Table.Type).ToArray());
 
 			var sb = new StringBuilder();
+			var sbnav = new StringBuilder();
 			sb.Append(_select);
 			if (_limit > 0) sb.Append("TOP ").Append(_skip + _limit).Append(" ");
 			sb.Append(field);
@@ -39,9 +40,15 @@ namespace FreeSql.SqlServer.Curd {
 				sb.Append(_commonUtils.QuoteSqlName(tableRuleInvoke(tbsfrom[a].Table.Type, tbsfrom[a].Table.DbName))).Append(" ").Append(tbsfrom[a].Alias);
 				if (tbsjoin.Length > 0) {
 					//如果存在 join 查询，则处理 from t1, t2 改为 from t1 inner join t2 on 1 = 1
-					for (var b = 1; b < tbsfrom.Length; b++)
-						sb.Append(" \r\nLEFT JOIN ").Append(_commonUtils.QuoteSqlName(tableRuleInvoke(tbsfrom[b].Table.Type, tbsfrom[b].Table.DbName))).Append(" ").Append(tbsfrom[b].Alias).Append(" ON 1 = 1");
+					for (var b = 1; b < tbsfrom.Length; b++) {
+						sb.Append(" \r\nLEFT JOIN ").Append(_commonUtils.QuoteSqlName(tableRuleInvoke(tbsfrom[b].Table.Type, tbsfrom[b].Table.DbName))).Append(" ").Append(tbsfrom[b].Alias);
+						if (string.IsNullOrEmpty(tbsfrom[b].NavigateCondition) && string.IsNullOrEmpty(tbsfrom[b].On)) sb.Append(" ON 1 = 1");
+						else sb.Append(" ON ").Append(tbsfrom[b].NavigateCondition ?? tbsfrom[b].On);
+					}
 					break;
+				} else {
+					if (!string.IsNullOrEmpty(tbsfrom[a].NavigateCondition)) sbnav.Append(" AND (").Append(tbsfrom[a].NavigateCondition).Append(")");
+					if (!string.IsNullOrEmpty(tbsfrom[a].On)) sbnav.Append(" AND (").Append(tbsfrom[a].On).Append(")");
 				}
 				if (a < tbsfrom.Length - 1) sb.Append(", ");
 			}
@@ -58,21 +65,19 @@ namespace FreeSql.SqlServer.Curd {
 						sb.Append(" \r\nRIGHT JOIN ");
 						break;
 				}
-				sb.Append(_commonUtils.QuoteSqlName(tableRuleInvoke(tb.Table.Type, tb.Table.DbName))).Append(" ").Append(tb.Alias).Append(" ON ").Append(tb.On);
+				sb.Append(_commonUtils.QuoteSqlName(tableRuleInvoke(tb.Table.Type, tb.Table.DbName))).Append(" ").Append(tb.Alias).Append(" ON ").Append(tb.On ?? tb.NavigateCondition);
+				if (!string.IsNullOrEmpty(tb.On) && !string.IsNullOrEmpty(tb.NavigateCondition)) sbnav.Append(" AND (").Append(tb.NavigateCondition).Append(")");
 			}
 			if (_join.Length > 0) sb.Append(_join);
 
-			var sbqf = new StringBuilder();
+			sbnav.Append(_where);
 			foreach (var tb in _tables) {
 				if (tb.Type == SelectTableInfoType.Parent) continue;
 				if (string.IsNullOrEmpty(tb.Table.SelectFilter) == false)
-					sbqf.Append(" AND (").Append(tb.Table.SelectFilter.Replace("a.", $"{tb.Alias}.")).Append(")");
+					sbnav.Append(" AND (").Append(tb.Table.SelectFilter.Replace("a.", $"{tb.Alias}.")).Append(")");
 			}
-			if (_where.Length > 0) {
-				sb.Append(" \r\nWHERE ").Append(_where.ToString().Substring(5));
-				if (sbqf.Length > 0) sb.Append(sbqf.ToString());
-			} else {
-				if (sbqf.Length > 0) sb.Append(" \r\nWHERE ").Append(sbqf.Remove(0, 5));
+			if (sbnav.Length > 0) {
+				sb.Append(" \r\nWHERE ").Append(sbnav.Remove(0, 5));
 			}
 			if (string.IsNullOrEmpty(_groupby) == false) {
 				sb.Append(_groupby);
@@ -84,6 +89,7 @@ namespace FreeSql.SqlServer.Curd {
 			else
 				sb.Insert(0, "WITH t AS ( ").Append(" ) SELECT t.* FROM t where __rownum__ > ").Append(_skip);
 
+			sbnav.Clear();
 			return sb.ToString();
 		}
 		#endregion
@@ -94,6 +100,7 @@ namespace FreeSql.SqlServer.Curd {
 				_orm.CodeFirst.SyncStructure(_tables.Select(a => a.Table.Type).ToArray());
 
 			var sb = new StringBuilder();
+			var sbnav = new StringBuilder();
 			sb.Append(_select);
 			if (_skip <= 0 && _limit > 0) sb.Append("TOP ").Append(_limit).Append(" ");
 			sb.Append(field);
@@ -104,9 +111,15 @@ namespace FreeSql.SqlServer.Curd {
 				sb.Append(_commonUtils.QuoteSqlName(tableRuleInvoke(tbsfrom[a].Table.Type, tbsfrom[a].Table.DbName))).Append(" ").Append(tbsfrom[a].Alias);
 				if (tbsjoin.Length > 0) {
 					//如果存在 join 查询，则处理 from t1, t2 改为 from t1 inner join t2 on 1 = 1
-					for (var b = 1; b < tbsfrom.Length; b++)
-						sb.Append(" \r\nLEFT JOIN ").Append(_commonUtils.QuoteSqlName(tableRuleInvoke(tbsfrom[b].Table.Type, tbsfrom[b].Table.DbName))).Append(" ").Append(tbsfrom[b].Alias).Append(" ON 1 = 1");
+					for (var b = 1; b < tbsfrom.Length; b++) {
+						sb.Append(" \r\nLEFT JOIN ").Append(_commonUtils.QuoteSqlName(tableRuleInvoke(tbsfrom[b].Table.Type, tbsfrom[b].Table.DbName))).Append(" ").Append(tbsfrom[b].Alias);
+						if (string.IsNullOrEmpty(tbsfrom[b].NavigateCondition) && string.IsNullOrEmpty(tbsfrom[b].On)) sb.Append(" ON 1 = 1");
+						else sb.Append(" ON ").Append(tbsfrom[b].NavigateCondition ?? tbsfrom[b].On);
+					}
 					break;
+				} else {
+					if (!string.IsNullOrEmpty(tbsfrom[a].NavigateCondition)) sbnav.Append(" AND (").Append(tbsfrom[a].NavigateCondition).Append(")");
+					if (!string.IsNullOrEmpty(tbsfrom[a].On)) sbnav.Append(" AND (").Append(tbsfrom[a].On).Append(")");
 				}
 				if (a < tbsfrom.Length - 1) sb.Append(", ");
 			}
@@ -123,21 +136,19 @@ namespace FreeSql.SqlServer.Curd {
 						sb.Append(" \r\nRIGHT JOIN ");
 						break;
 				}
-				sb.Append(_commonUtils.QuoteSqlName(tableRuleInvoke(tb.Table.Type, tb.Table.DbName))).Append(" ").Append(tb.Alias).Append(" ON ").Append(tb.On);
+				sb.Append(_commonUtils.QuoteSqlName(tableRuleInvoke(tb.Table.Type, tb.Table.DbName))).Append(" ").Append(tb.Alias).Append(" ON ").Append(tb.On ?? tb.NavigateCondition);
+				if (!string.IsNullOrEmpty(tb.On) && !string.IsNullOrEmpty(tb.NavigateCondition)) sbnav.Append(" AND (").Append(tb.NavigateCondition).Append(")");
 			}
 			if (_join.Length > 0) sb.Append(_join);
 
-			var sbqf = new StringBuilder();
+			sbnav.Append(_where);
 			foreach (var tb in _tables) {
 				if (tb.Type == SelectTableInfoType.Parent) continue;
 				if (string.IsNullOrEmpty(tb.Table.SelectFilter) == false)
-					sbqf.Append(" AND (").Append(tb.Table.SelectFilter.Replace("a.", $"{tb.Alias}.")).Append(")");
+					sbnav.Append(" AND (").Append(tb.Table.SelectFilter.Replace("a.", $"{tb.Alias}.")).Append(")");
 			}
-			if (_where.Length > 0) {
-				sb.Append(" \r\nWHERE ").Append(_where.ToString().Substring(5));
-				if (sbqf.Length > 0) sb.Append(sbqf.ToString());
-			} else {
-				if (sbqf.Length > 0) sb.Append(" \r\nWHERE ").Append(sbqf.Remove(0, 5));
+			if (sbnav.Length > 0) {
+				sb.Append(" \r\nWHERE ").Append(sbnav.Remove(0, 5));
 			}
 			if (string.IsNullOrEmpty(_groupby) == false) {
 				sb.Append(_groupby);
@@ -156,6 +167,7 @@ namespace FreeSql.SqlServer.Curd {
 				sb.Append(_orderby);
 			}
 
+			sbnav.Clear();
 			return sb.ToString();
 		}
 		#endregion

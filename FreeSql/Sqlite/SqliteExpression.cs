@@ -17,23 +17,26 @@ namespace FreeSql.Sqlite {
 			switch (exp.NodeType) {
 				case ExpressionType.Convert:
 					var operandExp = (exp as UnaryExpression)?.Operand;
-					switch (exp.Type.NullableTypeOrThis().ToString()) {
-						case "System.Boolean": return $"({getExp(operandExp)} not in ('0','false'))";
-						case "System.Byte": return $"cast({getExp(operandExp)} as int2)";
-						case "System.Char": return $"substr(cast({getExp(operandExp)} as character), 1, 1)";
-						case "System.DateTime": return $"datetime({getExp(operandExp)})";
-						case "System.Decimal": return $"cast({getExp(operandExp)} as decimal(36,18))";
-						case "System.Double": return $"cast({getExp(operandExp)} as double)";
-						case "System.Int16":
-						case "System.Int32":
-						case "System.Int64":
-						case "System.SByte": return $"cast({getExp(operandExp)} as smallint)";
-						case "System.Single": return $"cast({getExp(operandExp)} as float)";
-						case "System.String": return $"cast({getExp(operandExp)} as character)";
-						case "System.UInt16": return $"cast({getExp(operandExp)} as unsigned)";
-						case "System.UInt32": return $"cast({getExp(operandExp)} as decimal(10,0))";
-						case "System.UInt64": return $"cast({getExp(operandExp)} as decimal(21,0))";
-						case "System.Guid": return $"substr(cast({getExp(operandExp)} as character), 1, 36)";
+					var gentype = exp.Type.NullableTypeOrThis();
+					if (gentype != exp.Type.NullableTypeOrThis()) {
+						switch (exp.Type.NullableTypeOrThis().ToString()) {
+							case "System.Boolean": return $"({getExp(operandExp)} not in ('0','false'))";
+							case "System.Byte": return $"cast({getExp(operandExp)} as int2)";
+							case "System.Char": return $"substr(cast({getExp(operandExp)} as character), 1, 1)";
+							case "System.DateTime": return $"datetime({getExp(operandExp)})";
+							case "System.Decimal": return $"cast({getExp(operandExp)} as decimal(36,18))";
+							case "System.Double": return $"cast({getExp(operandExp)} as double)";
+							case "System.Int16":
+							case "System.Int32":
+							case "System.Int64":
+							case "System.SByte": return $"cast({getExp(operandExp)} as smallint)";
+							case "System.Single": return $"cast({getExp(operandExp)} as float)";
+							case "System.String": return $"cast({getExp(operandExp)} as character)";
+							case "System.UInt16": return $"cast({getExp(operandExp)} as unsigned)";
+							case "System.UInt32": return $"cast({getExp(operandExp)} as decimal(10,0))";
+							case "System.UInt64": return $"cast({getExp(operandExp)} as decimal(21,0))";
+							case "System.Guid": return $"substr(cast({getExp(operandExp)} as character), 1, 36)";
+						}
 					}
 					break;
 				case ExpressionType.Call:

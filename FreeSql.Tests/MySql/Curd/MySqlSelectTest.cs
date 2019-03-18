@@ -680,15 +680,25 @@ namespace FreeSql.Tests.MySql {
 
 		[Fact]
 		public void OrderBy() {
+			var sql = select.OrderBy(a => new Random().NextDouble()).ToList();
 		}
 		[Fact]
 		public void Skip_Offset() {
+			var sql = select.Offset(10).Limit(10).ToList();
 		}
 		[Fact]
 		public void Take_Limit() {
+			var sql = select.Limit(10).ToList();
 		}
 		[Fact]
 		public void Page() {
+			var sql1 = select.Page(1, 10).ToList();
+			var sql2 = select.Page(2, 10).ToList();
+			var sql3 = select.Page(3, 10).ToList();
+
+			var sql11 = select.OrderBy(a => new Random().NextDouble()).Page(1, 10).ToList();
+			var sql22 = select.OrderBy(a => new Random().NextDouble()).Page(2, 10).ToList();
+			var sql33 = select.OrderBy(a => new Random().NextDouble()).Page(3, 10).ToList();
 		}
 		[Fact]
 		public void Sum() {

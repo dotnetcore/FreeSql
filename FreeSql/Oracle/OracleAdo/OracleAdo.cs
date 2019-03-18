@@ -28,7 +28,7 @@ namespace FreeSql.Oracle {
 			if (param == null) return "NULL";
 			if (param is bool || param is bool?)
 				return (bool)param ? 1 : 0;
-			else if (param is string)
+			else if (param is string || param is char)
 				return string.Concat("'", param.ToString().Replace("'", "''"), "'");
 			else if (param is Enum)
 				return ((Enum)param).ToInt64();

@@ -17,23 +17,26 @@ namespace FreeSql.SqlServer {
 			switch (exp.NodeType) {
 				case ExpressionType.Convert:
 					var operandExp = (exp as UnaryExpression)?.Operand;
-					switch (exp.Type.NullableTypeOrThis().ToString()) {
-						case "System.Boolean": return $"(cast({getExp(operandExp)} as varchar) not in ('0','false'))";
-						case "System.Byte": return $"cast({getExp(operandExp)} as tinyint)";
-						case "System.Char": return $"substring(cast({getExp(operandExp)} as nvarchar),1,1)";
-						case "System.DateTime": return $"cast({getExp(operandExp)} as datetime)";
-						case "System.Decimal": return $"cast({getExp(operandExp)} as decimal(36,18))";
-						case "System.Double": return $"cast({getExp(operandExp)} as decimal(32,16))";
-						case "System.Int16": return $"cast({getExp(operandExp)} as smallint)";
-						case "System.Int32": return $"cast({getExp(operandExp)} as int)";
-						case "System.Int64": return $"cast({getExp(operandExp)} as bigint)";
-						case "System.SByte": return $"cast({getExp(operandExp)} as tinyint)";
-						case "System.Single": return $"cast({getExp(operandExp)} as decimal(14,7))";
-						case "System.String": return operandExp.Type.NullableTypeOrThis() == typeof(Guid) ? $"cast({getExp(operandExp)} as varchar(36))" : $"cast({getExp(operandExp)} as nvarchar)";
-						case "System.UInt16": return $"cast({getExp(operandExp)} as smallint)";
-						case "System.UInt32": return $"cast({getExp(operandExp)} as int)";
-						case "System.UInt64": return $"cast({getExp(operandExp)} as bigint)";
-						case "System.Guid": return $"cast({getExp(operandExp)} as uniqueidentifier)";
+					var gentype = exp.Type.NullableTypeOrThis();
+					if (gentype != exp.Type.NullableTypeOrThis()) {
+						switch (gentype.ToString()) {
+							case "System.Boolean": return $"(cast({getExp(operandExp)} as varchar) not in ('0','false'))";
+							case "System.Byte": return $"cast({getExp(operandExp)} as tinyint)";
+							case "System.Char": return $"substring(cast({getExp(operandExp)} as nvarchar),1,1)";
+							case "System.DateTime": return $"cast({getExp(operandExp)} as datetime)";
+							case "System.Decimal": return $"cast({getExp(operandExp)} as decimal(36,18))";
+							case "System.Double": return $"cast({getExp(operandExp)} as decimal(32,16))";
+							case "System.Int16": return $"cast({getExp(operandExp)} as smallint)";
+							case "System.Int32": return $"cast({getExp(operandExp)} as int)";
+							case "System.Int64": return $"cast({getExp(operandExp)} as bigint)";
+							case "System.SByte": return $"cast({getExp(operandExp)} as tinyint)";
+							case "System.Single": return $"cast({getExp(operandExp)} as decimal(14,7))";
+							case "System.String": return operandExp.Type.NullableTypeOrThis() == typeof(Guid) ? $"cast({getExp(operandExp)} as varchar(36))" : $"cast({getExp(operandExp)} as nvarchar)";
+							case "System.UInt16": return $"cast({getExp(operandExp)} as smallint)";
+							case "System.UInt32": return $"cast({getExp(operandExp)} as int)";
+							case "System.UInt64": return $"cast({getExp(operandExp)} as bigint)";
+							case "System.Guid": return $"cast({getExp(operandExp)} as uniqueidentifier)";
+						}
 					}
 					break;
 				case ExpressionType.Call:

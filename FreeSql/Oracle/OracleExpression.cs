@@ -17,23 +17,26 @@ namespace FreeSql.Oracle {
 			switch (exp.NodeType) {
 				case ExpressionType.Convert:
 					var operandExp = (exp as UnaryExpression)?.Operand;
-					switch (exp.Type.NullableTypeOrThis().ToString()) {
-						//case "System.Boolean": return $"({getExp(operandExp)} not in ('0','false'))";
-						case "System.Byte": return $"cast({getExp(operandExp)} as number)";
-						case "System.Char": return $"substr(to_char({getExp(operandExp)}), 1, 1)";
-						case "System.DateTime": return $"to_timestamp({getExp(operandExp)},'YYYY-MM-DD HH24:MI:SS.FF6')";
-						case "System.Decimal": return $"cast({getExp(operandExp)} as number)";
-						case "System.Double": return $"cast({getExp(operandExp)} as number)";
-						case "System.Int16":
-						case "System.Int32":
-						case "System.Int64":
-						case "System.SByte": return $"cast({getExp(operandExp)} as number)";
-						case "System.Single": return $"cast({getExp(operandExp)} as number)";
-						case "System.String": return $"to_char({getExp(operandExp)})";
-						case "System.UInt16":
-						case "System.UInt32":
-						case "System.UInt64": return $"cast({getExp(operandExp)} as number)";
-						case "System.Guid": return $"substr(to_char({getExp(operandExp)}), 1, 36)";
+					var gentype = exp.Type.NullableTypeOrThis();
+					if (gentype != exp.Type.NullableTypeOrThis()) {
+						switch (exp.Type.NullableTypeOrThis().ToString()) {
+							//case "System.Boolean": return $"({getExp(operandExp)} not in ('0','false'))";
+							case "System.Byte": return $"cast({getExp(operandExp)} as number)";
+							case "System.Char": return $"substr(to_char({getExp(operandExp)}), 1, 1)";
+							case "System.DateTime": return $"to_timestamp({getExp(operandExp)},'YYYY-MM-DD HH24:MI:SS.FF6')";
+							case "System.Decimal": return $"cast({getExp(operandExp)} as number)";
+							case "System.Double": return $"cast({getExp(operandExp)} as number)";
+							case "System.Int16":
+							case "System.Int32":
+							case "System.Int64":
+							case "System.SByte": return $"cast({getExp(operandExp)} as number)";
+							case "System.Single": return $"cast({getExp(operandExp)} as number)";
+							case "System.String": return $"to_char({getExp(operandExp)})";
+							case "System.UInt16":
+							case "System.UInt32":
+							case "System.UInt64": return $"cast({getExp(operandExp)} as number)";
+							case "System.Guid": return $"substr(to_char({getExp(operandExp)}), 1, 36)";
+						}
 					}
 					break;
 				case ExpressionType.Call:

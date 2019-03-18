@@ -216,8 +216,8 @@ namespace FreeSql.Internal {
 				case ExpressionType.Quote: return ExpressionLambdaToSql((exp as UnaryExpression)?.Operand, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
 				case ExpressionType.Lambda: return ExpressionLambdaToSql((exp as LambdaExpression)?.Body, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
 				case ExpressionType.Convert:
-					var othercExp = ExpressionLambdaToSqlOther(exp, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
-					if (string.IsNullOrEmpty(othercExp) == false) return othercExp;
+					//var othercExp = ExpressionLambdaToSqlOther(exp, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+					//if (string.IsNullOrEmpty(othercExp) == false) return othercExp;
 					return ExpressionLambdaToSql((exp as UnaryExpression)?.Operand, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
 				case ExpressionType.Negate:
 				case ExpressionType.NegateChecked: return "-" + ExpressionLambdaToSql((exp as UnaryExpression)?.Operand, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
