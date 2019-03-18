@@ -5,7 +5,7 @@ FreeSql 是一个功能强大的 .NETStandard 库，用于对象关系映射程�
 | FreeSql | [![nuget](https://img.shields.io/nuget/v/FreeSql.svg?style=flat-square)](https://www.nuget.org/packages/FreeSql) | [![stats](https://img.shields.io/nuget/dt/FreeSql.svg?style=flat-square)](https://www.nuget.org/stats/packages/FreeSql?groupby=Version) |
 | [FreeSql.Repository](https://github.com/2881099/FreeSql/wiki/Repository) | [![nuget](https://img.shields.io/nuget/v/FreeSql.Repository.svg?style=flat-square)](https://www.nuget.org/packages/FreeSql.Repository) | [![stats](https://img.shields.io/nuget/dt/FreeSql.Repository.svg?style=flat-square)](https://www.nuget.org/stats/packages/FreeSql.Repository?groupby=Version) |
 
-## 特性
+# 特性
 
 - [x] 支持 CodeFirst 迁移；
 - [x] 支持 DbFirst 从数据库导入实体类，支持三种模板生成器；
@@ -17,11 +17,14 @@ FreeSql 是一个功能强大的 .NETStandard 库，用于对象关系映射程�
 - [x] 支持读写分离、分表分库，租户设计；
 - [x] 支持多种数据库，MySql/SqlServer/PostgreSQL/Oracle/Sqlite；
 
-[《Select查询数据文档》](https://github.com/2881099/FreeSql/wiki/%e6%9f%a5%e8%af%a2) | [《Update更新数据文档》](https://github.com/2881099/FreeSql/wiki/%e4%bf%ae%e6%94%b9) | [《Insert插入数据文档》](https://github.com/2881099/FreeSql/wiki/%e6%b7%bb%e5%8a%a0) | [《Delete删除数据文档》](https://github.com/2881099/FreeSql/wiki/%e5%88%a0%e9%99%a4)
+| | |
+| - | - |
+| 入门 | [《Select》](https://github.com/2881099/FreeSql/wiki/%e6%9f%a5%e8%af%a2) \| [《Update》](https://github.com/2881099/FreeSql/wiki/%e4%bf%ae%e6%94%b9) \| [《Insert》](https://github.com/2881099/FreeSql/wiki/%e6%b7%bb%e5%8a%a0) \| [《Delete》](https://github.com/2881099/FreeSql/wiki/%e5%88%a0%e9%99%a4) |
+| 新手 | [《表达式函数》](https://github.com/2881099/FreeSql/wiki/%e8%a1%a8%e8%be%be%e5%bc%8f%e5%87%bd%e6%95%b0) \| [《CodeFirst》](https://github.com/2881099/FreeSql/wiki/CodeFirst) \| [《DbFirst》](https://github.com/2881099/FreeSql/wiki/DbFirst) |
+| 高手 | [《Repository》](https://github.com/2881099/FreeSql/wiki/Repository) \| [《UnitOfWork》](https://github.com/2881099/FreeSql/wiki/%e5%b7%a5%e4%bd%9c%e5%8d%95%e5%85%83) \| [《过滤器》](https://github.com/2881099/FreeSql/wiki/%e8%bf%87%e6%bb%a4%e5%99%a8) |
+| 不朽 | [《读写分离》](https://github.com/2881099/FreeSql/wiki/%e8%af%bb%e5%86%99%e5%88%86%e7%a6%bb) \| [《分区分表》](https://github.com/2881099/FreeSql/wiki/%e5%88%86%e5%8c%ba%e5%88%86%e8%a1%a8) \| [《租户》](https://github.com/2881099/FreeSql/wiki/%e7%a7%9f%e6%88%b7) \| [更新日志](https://github.com/2881099/FreeSql/wiki/%e6%9b%b4%e6%96%b0%e6%97%a5%e5%bf%97) |
 
-[《Expression 表达式函数文档》](https://github.com/2881099/FreeSql/wiki/%e8%a1%a8%e8%be%be%e5%bc%8f%e5%87%bd%e6%95%b0) | [《CodeFirst 快速开发文档》](https://github.com/2881099/FreeSql/wiki/CodeFirst) | [《DbFirst 快速开发文档》](https://github.com/2881099/FreeSql/wiki/DbFirst) | [更新日志](https://github.com/2881099/FreeSql/wiki/%e6%9b%b4%e6%96%b0%e6%97%a5%e5%bf%97)
-
-## 快速开始
+# 快速开始
 ```csharp
 var connstr = "Data Source=127.0.0.1;User ID=root;Password=root;" + 
     "Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=10";
@@ -67,46 +70,114 @@ FreeSql 使用模型执行数据访问，模型由实体类表示数据库表或
 或者手动创建模型，基于模型创建或修改数据库，提供 ICodeFirst 同步结构的 API（甚至可以做到开发阶段自动同步）。
 
 ```csharp
-[Table(Name = "tb_topic")]
-class Topic {
+class Song {
     [Column(IsIdentity = true)]
     public int Id { get; set; }
-    public int Clicks { get; set; }
+    public DateTime? Create_time { get; set; }
+    public bool? Is_deleted { get; set; }
     public string Title { get; set; }
-    public DateTime CreateTime { get; set; }
+    public string Url { get; set; }
 
-    public int TypeId { get; set; }
-    public TopicType Type { get; set; } //导航属性
+    public virtual ICollection<Tag> Tags { get; set; }
 }
-class TopicType {
+class Song_tag {
+    public int Song_id { get; set; }
+    public virtual Song Song { get; set; }
+
+    public int Tag_id { get; set; }
+    public virtual Tag Tag { get; set; }
+}
+class Tag {
     [Column(IsIdentity = true)]
     public int Id { get; set; }
+    public int? Parent_id { get; set; }
+    public virtual Tag Parent { get; set; }
+
+    public decimal? Ddd { get; set; }
     public string Name { get; set; }
 
-    public int ClassId { get; set; }
-    public TopicTypeClass Class { get; set; } //导航属性
-}
-class TopicTypeClass {
-    public int Id { get; set; }
-    public string Name { get; set; }
+    public virtual ICollection<Song> Songs { get; set; }
+    public virtual ICollection<Tag> Tags { get; set; }
 }
 ```
 
-# Part1 查询
+# 查询
+
 ```csharp
-List<Topic> t1 = fsql.Select<Topic>().Where(a => a.Id > 0).ToList();
+//OneToOne、ManyToOne
+var t0 = fsql.Select<Tag>().Where(a => a.Parent.Parent.Name == "粤语").ToSql();
+//SELECT a.`Id`, a.`Parent_id`, a__Parent.`Id` as3, a__Parent.`Parent_id` as4, a__Parent.`Ddd`, a__Parent.`Name`, a.`Ddd` as7, a.`Name` as8 
+//FROM `Tag` a 
+//LEFT JOIN `Tag` a__Parent ON a__Parent.`Id` = a.`Parent_id` 
+//LEFT JOIN `Tag` a__Parent__Parent ON a__Parent__Parent.`Id` = a__Parent.`Parent_id` 
+//WHERE (a__Parent__Parent.`Name` = '粤语')
+
+//OneToMany
+var t1 = fsql.Select<Tag>().Where(a => a.Tags.AsSelect().Any(t => t.Parent.Id == 10)).ToSql();
+//SELECT a.`Id`, a.`Parent_id`, a.`Ddd`, a.`Name` 
+//FROM `Tag` a 
+//WHERE (exists(SELECT 1 
+//	FROM `Tag` t 
+//	LEFT JOIN `Tag` t__Parent ON t__Parent.`Id` = t.`Parent_id` 
+//	WHERE (t__Parent.`Id` = 10) AND (t.`Parent_id` = a.`Id`) 
+//	limit 0,1))
+
+//ManyToMany
+var t2 = fsql.Select<Song>().Where(s => s.Tags.AsSelect().Any(t => t.Name == "国语")).ToSql();
+//SELECT a.`Id`, a.`Create_time`, a.`Is_deleted`, a.`Title`, a.`Url` 
+//FROM `Song` a
+//WHERE(exists(SELECT 1
+//	FROM `Song_tag` Mt_Ms
+//	WHERE(Mt_Ms.`Song_id` = a.`Id`) AND(exists(SELECT 1
+//		FROM `Tag` t
+//		WHERE(t.`Name` = '国语') AND(t.`Id` = Mt_Ms.`Tag_id`)
+//		limit 0, 1))
+//	limit 0, 1))
+```
+更多前往wiki：[《Select查询数据文档》](https://github.com/2881099/FreeSql/wiki/%e6%9f%a5%e8%af%a2)
+
+# 表达式函数
+
+```csharp
+var t1 = select.Where(a => new[] { 1, 2, 3 }.Contains(a.testFieldInt)).ToSql();
+//SELECT a.`Id`, a.`Clicks`, a.`TestTypeInfoGuid`, a.`Title`, a.`CreateTime` 
+//FROM `Song` a 
+//WHERE (a.`Id` in (1,2,3))
+```
+
+查找今天创建的数据
+
+```csharp
+var t2 = select.Where(a => a.CreateTime.Date == DateTime.Now.Date).ToSql();
+```
+
+SqlServer 下随机获取记录
+
+```csharp
+var t3 = select.OrderBy(a => Guid.NewGuid()).Limit(1).ToSql();
+//SELECT top 1 ...
+//FROM [Song] a 
+//ORDER BY newid()
+```
+
+更多前往wiki：[《Expression 表达式函数文档》](https://github.com/2881099/FreeSql/wiki/%e8%a1%a8%e8%be%be%e5%bc%8f%e5%87%bd%e6%95%b0) 
+
+# 返回数据
+
+```csharp
+List<Song> t1 = fsql.Select<Song>().Where(a => a.Id > 0).ToList();
 
 //返回普通字段 + 导航对象 Type 的数据
-List<Topic> t2 = fsql.Select<Topic>().LeftJoin(a => a.Type.Id == a.TypeId).ToList();
+List<Song> t2 = fsql.Select<Song>().LeftJoin(a => a.Type.Id == a.TypeId).ToList();
 
 //返回一个字段
-List<int> t3 = fsql.Select<Topic>().Where(a => a.Id > 0).ToList(a => a.Id);
+List<int> t3 = fsql.Select<Song>().Where(a => a.Id > 0).ToList(a => a.Id);
 
 //返回匿名类型
-List<匿名类型> t4 = fsql.Select<Topic>().Where(a => a.Id > 0).ToList(a => new { a.Id, a.Title });
+List<匿名类型> t4 = fsql.Select<Song>().Where(a => a.Id > 0).ToList(a => new { a.Id, a.Title });
 
 //返回元组
-List<(int, string)> t5 = fsql.Select<Topic>().Where(a => a.Id > 0).ToList<(int, string)>("id, title");
+List<(int, string)> t5 = fsql.Select<Song>().Where(a => a.Id > 0).ToList<(int, string)>("id, title");
 
 //返回SQL字段
 List<匿名类> t4 = select.Where(a => a.Id > 0).Skip(100).Limit(200)
@@ -117,75 +188,18 @@ List<匿名类> t4 = select.Where(a => a.Id > 0).Skip(100).Limit(200)
         //奇思妙想：怎么查询开窗函数的结果
     });
 ```
-### 联表之一：使用导航属性
+执行SQL返回数据
 ```csharp
-sql = fsql.Select<Topic>()
-    .LeftJoin(a => a.Type.Id == a.TypeId)
-    .ToSql();
-
-sql = fsql.Select<Topic>()
-    .LeftJoin(a => a.Type.Id == a.TypeId)
-    .LeftJoin(a => a.Type.Class.Id == a.Type.ClassId)
-    .ToSql();
-```
-### 联表之二：无导航属性
-```csharp
-sql = fsql.Select<Topic>()
-    .LeftJoin<TopicType>((a, b) => b.Id == a.TypeId)
-    .ToSql();
-
-sql = fsql.Select<Topic>()
-    .LeftJoin<TopicType>((a, b) => b.Id == a.TypeId)
-    .LeftJoin<TopicTypeClass>((a, c) => c.Id == a.Type.ClassId)
-    .ToSql();
-```
-### 联表之三：b, c 条件怎么设？试试这种！
-```csharp
-sql = fsql.Select<Topic>()
-    .From<TopicType, TopicTypeClass>((s, b, c) => s
-    .LeftJoin(a => a.TypeId == b.Id)
-    .LeftJoin(a => b.ClassId == c.Id))
-    .ToSql();
-```
-### 联表之四：原生SQL联表
-```csharp
-sql = fsql.Select<Topic>()
-    .LeftJoin("TopicType b on b.Id = a.TypeId and b.Name = ?bname", new { bname = "xxx" })
-    .ToSql();
-```
-### 分组聚合
-```csharp
-var groupby = fsql.Select<Topic>()
-    .GroupBy(a => new { tt2 = a.Title.Substring(0, 2), mod4 = a.Id % 4 })
-    .Having(a => a.Count() > 0 && a.Avg(a.Key.mod4) > 0 && a.Max(a.Key.mod4) > 0)
-    .Having(a => a.Count() < 300 || a.Avg(a.Key.mod4) < 100)
-    .OrderBy(a => a.Key.tt2)
-    .OrderByDescending(a => a.Count())
-    .ToList(a => new { a.Key.tt2, cou1 = a.Count(), arg1 = a.Avg(a.Key.mod4) });
-//SELECT substr(a.`Title`, 1, 2) as1, count(1) as2, avg((a.`Id` % 4)) as3 
-//FROM `xxx` a 
-//GROUP BY substr(a.`Title`, 1, 2), (a.`Id` % 4) 
-//HAVING (count(1) > 0 AND avg((a.`Id` % 4)) > 0 AND max((a.`Id` % 4)) > 0) AND (count(1) < 300 OR avg((a.`Id` % 4)) < 100) 
-//ORDER BY substr(a.`Title`, 1, 2), count(1) DESC
-```
-### 执行SQL返回数据
-```csharp
-class xxx {
-    public int Id { get; set; }
-    public string Path { get; set; }
-    public string Title2 { get; set; }
-}
-
-List<xxx> t6 = fsql.Ado.Query<xxx>("select * from song");
-List<(int, string ,string)> t7 = fsql.Ado.Query<(int, string, string)>("select * from song");
+List<Song> t6 = fsql.Ado.Query<Song>("select * from song");
+List<(int, string ,string)> t7 = fsql.Ado.Query<(int, string, string)>("select id,title,url from song");
 List<dynamic> t8 = fsql.Ado.Query<dynamic>("select * from song");
 ```
-> 更多资料：[《Select查询数据》](https://github.com/2881099/FreeSql/wiki/%e6%9f%a5%e8%af%a2)
+更多前往wiki：[《Select查询数据》](https://github.com/2881099/FreeSql/wiki/%e6%9f%a5%e8%af%a2)
 
-## 性能测试
+# 性能测试
 
-### FreeSql Query & Dapper Query
-
+FreeSql Query & Dapper Query
+```shell
 Elapsed: 00:00:00.6733199; Query Entity Counts: 131072; ORM: Dapper
 
 Elapsed: 00:00:00.4554230; Query Tuple Counts: 131072; ORM: Dapper
@@ -199,148 +213,20 @@ Elapsed: 00:00:00.6060042; Query Tuple Counts: 131072; ORM: FreeSql*
 Elapsed: 00:00:00.4211323; Query ToList<Tuple> Counts: 131072; ORM: FreeSql*
 
 Elapsed: 00:00:01.0236285; Query Dynamic Counts: 131072; ORM: FreeSql*
+```
 
-### FreeSql ToList & Dapper Query
-
+FreeSql ToList & Dapper Query
+```shell
 Elapsed: 00:00:00.6707125; ToList Entity Counts: 131072; ORM: FreeSql*
 
 Elapsed: 00:00:00.6495301; Query Entity Counts: 131072; ORM: Dapper
+```
 
-[查看测试代码](FreeSql.Tests.PerformanceTests/MySqlAdoTest.cs)
-
-> 测试方法：运行两次，以第二次性能报告，避免了首个运行慢不公平的情况。
+测试方法：运行两次，以第二次性能报告，避免了首个运行慢不公平的情况。[查看测试代码](FreeSql.Tests.PerformanceTests/MySqlAdoTest.cs)
 
 FreeSql 目前使用的ExpressionTree+缓存，因为支持更为复杂的数据类型，所以比 Dapper Emit 慢少许。
 
-# Part2 添加
-```csharp
-var items = new List<Topic>();
-for (var a = 0; a < 10; a++)
-    items.Add(new Topic { Title = $"newtitle{a}", Clicks = a * 100 });
-
-var t1 = fsql.Insert<Topic>().AppendData(items.First()).ToSql();
-
-//批量插入
-var t2 = fsql.Insert<Topic>().AppendData(items).ToSql();
-
-//插入指定的列
-var t3 = fsql.Insert<Topic>().AppendData(items)
-    .InsertColumns(a => a.Title).ToSql();
-
-var t4 = fsql.Insert<Topic>().AppendData(items)
-    .InsertColumns(a => new { a.Title, a.Clicks }).ToSql();
-
-//忽略列
-var t5 = fsql.Insert<Topic>().AppendData(items)
-    .IgnoreColumns(a => a.CreateTime).ToSql();
-
-var t6 = fsql.Insert<Topic>().AppendData(items)
-    .IgnoreColumns(a => new { a.Title, a.CreateTime }).ToSql();
-```
-### 执行命令
-| 方法 | 返回值 | 描述 |
-| - | - | - |
-| ExecuteAffrows | long | 执行SQL语句，返回影响的行数 |
-| ExecuteIdentity | long | 执行SQL语句，返回自增值 |
-| ExecuteInserted | List\<Topic\> | 执行SQL语句，返回插入后的记录 |
-> 更多资料：[《Insert添加数据》](https://github.com/2881099/FreeSql/wiki/%e6%b7%bb%e5%8a%a0)
-
-# Part3 修改
-```csharp
-var t1 = fsql.Update<Topic>(1).Set(a => a.CreateTime, DateTime.Now).ToSql();
-//UPDATE `tb_topic` SET `CreateTime` = '2018-12-08 00:04:59' WHERE (`Id` = 1)
-
-//更新指定列，累加
-var t2 = fsql.Update<Topic>(1).Set(a => a.Clicks + 1).ToSql();
-//UPDATE `tb_topic` SET `Clicks` = ifnull(`Clicks`,0) + 1 WHERE (`Id` = 1)
-
-//保存实体
-var item = new Topic { Id = 1, Title = "newtitle" };
-var t3 = fsql.Update<Topic>().SetSource(item).ToSql();
-//UPDATE `tb_topic` SET `Clicks` = ?p_0, `Title` = ?p_1, `CreateTime` = ?p_2 WHERE (`Id` = 1)
-
-//忽略列
-var t4 = fsql.Update<Topic>().SetSource(item)
-    .IgnoreColumns(a => a.Clicks).ToSql();
-//UPDATE `tb_topic` SET `Title` = ?p_0, `CreateTime` = ?p_1 WHERE (`Id` = 1)
-
-var t5 = fsql.Update<Topic>().SetSource(item)
-    .IgnoreColumns(a => new { a.Clicks, a.CreateTime }).ToSql();
-//UPDATE `tb_topic` SET `Title` = ?p_0 WHERE (`Id` = 1)
-
-//批量保存
-```csharp
-var items = new List<Topic>();
-for (var a = 0; a < 10; a++)
-    items.Add(new Topic { Id = a + 1, Title = $"newtitle{a}", Clicks = a * 100 });
-
-var t6 = fsql.Update<Topic>().SetSource(items).ToSql();
-//UPDATE `tb_topic` SET `Clicks` = CASE `Id` WHEN 1 THEN ?p_0 WHEN 2 THEN ?p_1 
-//WHEN 3 THEN ?p_2 WHEN 4 THEN ?p_3 WHEN 5 THEN ?p_4 WHEN 6 THEN ?p_5 WHEN 7 THEN ?p_6 
-//WHEN 8 THEN ?p_7 WHEN 9 THEN ?p_8 WHEN 10 THEN ?p_9 END, `Title` = CASE `Id` 
-//WHEN 1 THEN ?p_10 WHEN 2 THEN ?p_11 WHEN 3 THEN ?p_12 WHEN 4 THEN ?p_13 WHEN 5 THEN ?p_14 
-//WHEN 6 THEN ?p_15 WHEN 7 THEN ?p_16 WHEN 8 THEN ?p_17 WHEN 9 THEN ?p_18 WHEN 10 THEN ?p_19 END, 
-//`CreateTime` = CASE `Id` WHEN 1 THEN ?p_20 WHEN 2 THEN ?p_21 WHEN 3 THEN ?p_22 WHEN 4 THEN ?p_23 
-//WHEN 5 THEN ?p_24 WHEN 6 THEN ?p_25 WHEN 7 THEN ?p_26 WHEN 8 THEN ?p_27 WHEN 9 THEN ?p_28 
-//WHEN 10 THEN ?p_29 END WHERE (`Id` IN (1,2,3,4,5,6,7,8,9,10))
-
-//批量保存的时候，也可以忽略一些列
-var t7 = fsql.Update<Topic>().SetSource(items)
-    .IgnoreColumns(a => new { a.Clicks, a.CreateTime }).ToSql();
-//UPDATE `tb_topic` SET `Title` = CASE `Id` WHEN 1 THEN ?p_0 WHEN 2 THEN ?p_1 WHEN 3 THEN ?p_2 
-//WHEN 4 THEN ?p_3 WHEN 5 THEN ?p_4 WHEN 6 THEN ?p_5 WHEN 7 THEN ?p_6 WHEN 8 THEN ?p_7 WHEN 9 
-//THEN ?p_8 WHEN 10 THEN ?p_9 END WHERE (`Id` IN (1,2,3,4,5,6,7,8,9,10))
-
-//批量更新指定列
-var t8 = fsql.Update<Topic>().SetSource(items).Set(a => a.CreateTime, DateTime.Now).ToSql();
-//UPDATE `tb_topic` SET `CreateTime` = ?p_0 WHERE (`Id` IN (1,2,3,4,5,6,7,8,9,10))
-```
-### 更新条件
-```csharp
-fsql.Update<Topic>(object dywhere)
-```
-dywhere 支持
-* 主键值
-* new[] { 主键值1, 主键值2 }
-* Topic对象
-* new[] { Topic对象1, Topic对象2 }
-* new { id = 1 }
-```csharp
-var t9 = fsql.Update<Topic>().Set(a => a.Title, "新标题").Where(a => a.Id == 1).ToSql();
-//UPDATE `tb_topic` SET `Title` = '新标题' WHERE (Id = 1)
-```
-### 自定义SQL
-```csharp
-var t10 = fsql.Update<Topic>().SetRaw("Title = {0}", "新标题").Where("Id = {0}", 1).ToSql();
-//UPDATE `tb_topic` SET Title = '新标题' WHERE (Id = 1)
-//sql语法条件，参数使用 {0}，与 string.Format 保持一致，无须加单引号，错误的用法：'{0}'
-```
-### 执行命令
-| 方法 | 返回值 | 参数 | 描述 |
-| - | - | - | - |
-| ExecuteAffrows | long | | 执行SQL语句，返回影响的行数 |
-| ExecuteUpdated | List\<T1\> | | 执行SQL语句，返回更新后的记录 |
-> 更多资料：[《Update更新数据》](https://github.com/2881099/FreeSql/wiki/%e4%bf%ae%e6%94%b9)
-
-# Part4 删除
-详情查看：[《Delete 删除数据》](https://github.com/2881099/FreeSql/wiki/%e5%88%a0%e9%99%a4)
-
-# Part5 表达式函数
-详情查看：[《Expression 表达式函数》](https://github.com/2881099/FreeSql/wiki/%e8%a1%a8%e8%be%be%e5%bc%8f%e5%87%bd%e6%95%b0)
-
-# Part6 事务
-
-```csharp
-fsql.Transaction(() => {
-     //code
-});
-```
-
-没异常就提交，有异常会回滚。
-
-代码体内只可以使用同步方法，因为事务对象挂靠在线程关联上，使用异步方法会切换线程。
-
-## 贡献者名单
+# 贡献者名单
 
 [systemhejiyong](https://github.com/systemhejiyong)
 [LambertW](https://github.com/LambertW)

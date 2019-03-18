@@ -13,7 +13,7 @@ namespace FreeSql.Tests {
 
 		public class Order {
 			[Column(IsPrimary = true)]
-			public int OrderID { get; set; }
+			public int Id { get; set; }
 			public string OrderTitle { get; set; }
 			public string CustomerName { get; set; }
 			public DateTime TransactionDate { get; set; }
@@ -21,7 +21,7 @@ namespace FreeSql.Tests {
 		}
 		public class OrderDetail {
 			[Column(IsPrimary = true)]
-			public int DetailId { get; set; }
+			public int Id { get; set; }
 
 			public int OrderId { get; set; }
 			public virtual Order Order { get; set; }
@@ -31,19 +31,44 @@ namespace FreeSql.Tests {
 		[Fact]
 		public void Test1() {
 
+			var parentSelect1 = select.Where(a => a.Type.Parent.Parent.Parent.Parent.Name == "").Where(b => b.Type.Name == "").ToSql();
+
+
 			var collSelect1 = g.mysql.Select<Order>().Where(a =>
-				a.OrderDetails.AsSelect().Where(b => b.OrderId == a.OrderID).Any()
+				a.OrderDetails.AsSelect().Any(b => b.Id > 100)
 			);
 
 			var collectionSelect = select.Where(a => 
-				a.Type.Guid == a.TypeGuid &&
-				a.Type.Parent.Id == a.Type.ParentId &&
-				a.Type.Parent.Types.AsSelect().Where(b => b.Name == a.Title).Any(b => b.ParentId == a.Type.Parent.Id)
+				//a.Type.Guid == a.TypeGuid &&
+				//a.Type.Parent.Id == a.Type.ParentId &&
+				a.Type.Parent.Types.AsSelect().Where(b => b.Name == a.Title).Any(
+					//b => b.ParentId == a.Type.Parent.Id
+				)
+			);
+
+			var collectionSelect2 = select.Where(a =>
+				a.Type.Parent.Types.AsSelect().Where(b => b.Name == a.Title).Any(
+					b => b.Parent.Name == "xxx" && b.Parent.Parent.Name == "ccc"
+					&& b.Parent.Parent.Parent.Types.AsSelect().Any(cb => cb.Name == "yyy")
+				)
+			);
+
+			var collectionSelect3 = select.Where(a =>
+				a.Type.Parent.Types.AsSelect().Where(b => b.Name == a.Title).Any(
+					bbb => bbb.Parent.Types.AsSelect().Where(lv2 => lv2.Name == bbb.Name + "111").Any(
+					)
+				)
 			);
 
 
 
-			var order = g.mysql.Select<Order>().Where(a => a.OrderID == 1).ToOne(); //查询订单表
+			var order = g.mysql.Select<Order>().Where(a => a.Id == 1).ToOne(); //查询订单表
+			if (order == null) {
+				var orderId = g.mysql.Insert(new Order { }).ExecuteIdentity();
+				order = g.mysql.Select<Order>(orderId).ToOne();
+			}
+			
+
 			var orderDetail1 = order.OrderDetails; //第一次访问，查询数据库
 			var orderDetail2 = order.OrderDetails; //第二次访问，不查
 			var order1 = orderDetail1.FirstOrDefault(); //访问导航属性，此时不查数据库，因为 OrderDetails 查询出来的时候已填充了该属性
@@ -206,6 +231,7 @@ namespace FreeSql.Tests {
 	}
 
 	class TestTypeInfo {
+		[Column(IsIdentity = true)]
 		public int Guid { get; set; }
 		public int ParentId { get; set; }
 		public TestTypeParentInfo Parent { get; set; }
@@ -215,6 +241,9 @@ namespace FreeSql.Tests {
 	class TestTypeParentInfo {
 		public int Id { get; set; }
 		public string Name { get; set; }
+
+		public int ParentId { get; set; }
+		public TestTypeParentInfo Parent { get; set; }
 
 		public List<TestTypeInfo> Types { get; set; }
 	}

@@ -2,6 +2,7 @@
 using FreeSql.Internal.Model;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -15,18 +16,80 @@ namespace FreeSql.PostgreSQL {
 		internal override string ExpressionLambdaToSqlOther(Expression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName) {
 			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
 			switch (exp.NodeType) {
+				case ExpressionType.Convert:
+					var operandExp = (exp as UnaryExpression)?.Operand;
+					var gentype = exp.Type.NullableTypeOrThis();
+					if (gentype != exp.Type.NullableTypeOrThis()) {
+						switch (exp.Type.NullableTypeOrThis().ToString()) {
+							case "System.Boolean": return $"(({getExp(operandExp)})::varchar not in ('0','false','f','no'))";
+							case "System.Byte": return $"({getExp(operandExp)})::int2";
+							case "System.Char": return $"substr(({getExp(operandExp)})::char, 1, 1)";
+							case "System.DateTime": return $"({getExp(operandExp)})::timestamp";
+							case "System.Decimal": return $"({getExp(operandExp)})::numeric";
+							case "System.Double": return $"({getExp(operandExp)})::float8";
+							case "System.Int16": return $"({getExp(operandExp)})::int2";
+							case "System.Int32": return $"({getExp(operandExp)})::int4";
+							case "System.Int64": return $"({getExp(operandExp)})::int8";
+							case "System.SByte": return $"({getExp(operandExp)})::int2";
+							case "System.Single": return $"({getExp(operandExp)})::float4";
+							case "System.String": return $"({getExp(operandExp)})::varchar";
+							case "System.UInt16": return $"({getExp(operandExp)})::int2";
+							case "System.UInt32": return $"({getExp(operandExp)})::int4";
+							case "System.UInt64": return $"({getExp(operandExp)})::int8";
+							case "System.Guid": return $"({getExp(operandExp)})::uuid";
+						}
+					}
+					break;
 				case ExpressionType.ArrayLength:
 					var arrOperExp = getExp((exp as UnaryExpression).Operand);
 					if (arrOperExp.StartsWith("(") || arrOperExp.EndsWith(")")) return $"array_length(array[{arrOperExp.TrimStart('(').TrimEnd(')')}],1)";
 					return $"case when {arrOperExp} is null then 0 else array_length({arrOperExp},1) end";
 				case ExpressionType.Call:
 					var callExp = exp as MethodCallExpression;
+
+					switch (callExp.Method.Name) {
+						case "Parse":
+						case "TryParse":
+							switch (callExp.Method.DeclaringType.NullableTypeOrThis().ToString()) {
+								case "System.Boolean": return $"(({getExp(callExp.Arguments[0])})::varchar not in ('0','false','f','no'))";
+								case "System.Byte": return $"({getExp(callExp.Arguments[0])})::int2";
+								case "System.Char": return $"substr(({getExp(callExp.Arguments[0])})::char, 1, 1)";
+								case "System.DateTime": return $"({getExp(callExp.Arguments[0])})::timestamp";
+								case "System.Decimal": return $"({getExp(callExp.Arguments[0])})::numeric";
+								case "System.Double": return $"({getExp(callExp.Arguments[0])})::float8";
+								case "System.Int16": return $"({getExp(callExp.Arguments[0])})::int2";
+								case "System.Int32": return $"({getExp(callExp.Arguments[0])})::int4";
+								case "System.Int64": return $"({getExp(callExp.Arguments[0])})::int8";
+								case "System.SByte": return $"({getExp(callExp.Arguments[0])})::int2";
+								case "System.Single": return $"({getExp(callExp.Arguments[0])})::float4";
+								case "System.UInt16": return $"({getExp(callExp.Arguments[0])})::int2";
+								case "System.UInt32": return $"({getExp(callExp.Arguments[0])})::int4";
+								case "System.UInt64": return $"({getExp(callExp.Arguments[0])})::int8";
+								case "System.Guid": return $"({getExp(callExp.Arguments[0])})::uuid";
+							}
+							break;
+						case "NewGuid":
+							break;
+						case "Next":
+							if (callExp.Object?.Type == typeof(Random)) return "(random()*1000000000)::int4";
+							break;
+						case "NextDouble":
+							if (callExp.Object?.Type == typeof(Random)) return "random()";
+							break;
+						case "Random":
+							if (callExp.Method.DeclaringType.IsNumberType()) return "random()";
+							break;
+						case "ToString":
+							if (callExp.Object != null) return $"({getExp(callExp.Object)})::varchar";
+							break;
+					}
+
 					var objExp = callExp.Object;
 					var objType = objExp?.Type;
 					if (objType?.FullName == "System.Byte[]") return null;
 
 					var argIndex = 0;
-					if (objType == null && callExp.Method.DeclaringType.FullName == typeof(Enumerable).FullName) {
+					if (objType == null && callExp.Method.DeclaringType == typeof(Enumerable)) {
 						objExp = callExp.Arguments.FirstOrDefault();
 						objType = objExp?.Type;
 						argIndex++;
@@ -34,33 +97,6 @@ namespace FreeSql.PostgreSQL {
 					if (objType == null) objType = callExp.Method.DeclaringType;
 					if (objType != null) {
 						var left = objExp == null ? null : getExp(objExp);
-						if (objType.IsArray == true) {
-							switch (callExp.Method.Name) {
-								case "Any":
-									if (left.StartsWith("(") || left.EndsWith(")")) left = $"array[{left.TrimStart('(').TrimEnd(')')}]";
-									return $"(case when {left} is null then 0 else array_length({left},1) end > 0)";
-								case "Contains":
-									//判断 in 或 array @> array
-									var right1 = getExp(callExp.Arguments[argIndex]);
-									if (left.StartsWith("array[") || left.EndsWith("]"))
-										return $"{right1} in ({left.Substring(6, left.Length - 7)})";
-									if (left.StartsWith("(") || left.EndsWith(")"))
-										return $"{right1} in {left}";
-									if (right1.StartsWith("(") || right1.EndsWith(")")) right1 = $"array[{right1.TrimStart('(').TrimEnd(')')}]";
-									return $"({left} @> array[{right1}])";
-								case "Concat":
-									if (left.StartsWith("(") || left.EndsWith(")")) left = $"array[{left.TrimStart('(').TrimEnd(')')}]";
-									var right2 = getExp(callExp.Arguments[argIndex]);
-									if (right2.StartsWith("(") || right2.EndsWith(")")) right2 = $"array[{right2.TrimStart('(').TrimEnd(')')}]";
-									return $"({left} || {right2})";
-								case "GetLength":
-								case "GetLongLength":
-								case "Length":
-								case "Count":
-									if (left.StartsWith("(") || left.EndsWith(")")) left = $"array[{left.TrimStart('(').TrimEnd(')')}]";
-									return $"case when {left} is null then 0 else array_length({left},1) end";
-							}
-						}
 						switch (objType.FullName) {
 							case "Newtonsoft.Json.Linq.JToken":
 							case "Newtonsoft.Json.Linq.JObject":
@@ -96,6 +132,33 @@ namespace FreeSql.PostgreSQL {
 								case "Count": return $"case when {left} is null then 0 else array_length(akeys({left}),1) end";
 								case "Keys": return $"akeys({left})";
 								case "Values": return $"avals({left})";
+							}
+						}
+						if (objType.IsArray || typeof(IList).IsAssignableFrom(callExp.Method.DeclaringType)) {
+							switch (callExp.Method.Name) {
+								case "Any":
+									if (left.StartsWith("(") || left.EndsWith(")")) left = $"array[{left.TrimStart('(').TrimEnd(')')}]";
+									return $"(case when {left} is null then 0 else array_length({left},1) end > 0)";
+								case "Contains":
+									//判断 in 或 array @> array
+									var right1 = getExp(callExp.Arguments[argIndex]);
+									if (left.StartsWith("array[") || left.EndsWith("]"))
+										return $"{right1} in ({left.Substring(6, left.Length - 7)})";
+									if (left.StartsWith("(") || left.EndsWith(")"))
+										return $"{right1} in {left}";
+									if (right1.StartsWith("(") || right1.EndsWith(")")) right1 = $"array[{right1.TrimStart('(').TrimEnd(')')}]";
+									return $"({left} @> array[{right1}])";
+								case "Concat":
+									if (left.StartsWith("(") || left.EndsWith(")")) left = $"array[{left.TrimStart('(').TrimEnd(')')}]";
+									var right2 = getExp(callExp.Arguments[argIndex]);
+									if (right2.StartsWith("(") || right2.EndsWith(")")) right2 = $"array[{right2.TrimStart('(').TrimEnd(')')}]";
+									return $"({left} || {right2})";
+								case "GetLength":
+								case "GetLongLength":
+								case "Length":
+								case "Count":
+									if (left.StartsWith("(") || left.EndsWith(")")) left = $"array[{left.TrimStart('(').TrimEnd(')')}]";
+									return $"case when {left} is null then 0 else array_length({left},1) end";
 							}
 						}
 					}
@@ -141,7 +204,27 @@ namespace FreeSql.PostgreSQL {
 						if (a > 0) arrSb.Append(",");
 						arrSb.Append(getExp(arrExp.Expressions[a]));
 					}
+					if (arrSb.Length == 1) arrSb.Append("NULL");
 					return arrSb.Append("]").ToString();
+				case ExpressionType.ListInit:
+					var listExp = exp as ListInitExpression;
+					var listSb = new StringBuilder();
+					listSb.Append("(");
+					for (var a = 0; a < listExp.Initializers.Count; a++) {
+						if (listExp.Initializers[a].Arguments.Any() == false) continue;
+						if (a > 0) listSb.Append(",");
+						listSb.Append(getExp(listExp.Initializers[a].Arguments.FirstOrDefault()));
+					}
+					if (listSb.Length == 1) listSb.Append("NULL");
+					return listSb.Append(")").ToString();
+				case ExpressionType.New:
+					var newExp = exp as NewExpression;
+					if (typeof(IList).IsAssignableFrom(newExp.Type)) {
+						if (newExp.Arguments.Count == 0) return "(NULL)";
+						if (typeof(IEnumerable).IsAssignableFrom(newExp.Arguments[0].Type) == false) return "(NULL)";
+						return getExp(newExp.Arguments[0]);
+					}
+					return null;
 			}
 			return null;
 		}

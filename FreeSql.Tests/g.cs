@@ -25,6 +25,13 @@ public class g {
 		.UseAutoSyncStructure(true)
 		.UseSyncStructureToLower(true)
 		.UseLazyLoading(true)
+		.UseMonitorCommand(
+			cmd => {
+				Trace.WriteLine(cmd.CommandText);
+			}, //监听SQL命令对象，在执行前
+			(cmd, traceLog) => {
+				Console.WriteLine(traceLog);
+			}) //监听SQL命令对象，在执行后
 		.Build());
 	public static IFreeSql pgsql => pgsqlLazy.Value;
 
@@ -33,6 +40,15 @@ public class g {
 		.UseAutoSyncStructure(true)
 		.UseLazyLoading(true)
 		.UseSyncStructureToUpper(true)
+		//.UseNoneCommandParameter(true)
+
+		.UseMonitorCommand(
+			cmd => {
+				Trace.WriteLine(cmd.CommandText);
+			}, //监听SQL命令对象，在执行前
+			(cmd, traceLog) => {
+				Console.WriteLine(traceLog);
+			}) //监听SQL命令对象，在执行后
 		.Build());
 	public static IFreeSql oracle = oracleLazy.Value;
 
@@ -40,6 +56,13 @@ public class g {
 		.UseConnectionString(FreeSql.DataType.Sqlite, @"Data Source=|DataDirectory|\document.db;Attachs=xxxtb.db;Pooling=true;Max Pool Size=10")
 		.UseAutoSyncStructure(true)
 		.UseLazyLoading(true)
+		.UseMonitorCommand(
+			cmd => {
+				Trace.WriteLine(cmd.CommandText);
+			}, //监听SQL命令对象，在执行前
+			(cmd, traceLog) => {
+				Console.WriteLine(traceLog);
+			}) //监听SQL命令对象，在执行后
 		.Build());
 	public static IFreeSql sqlite = sqliteLazy.Value;
 }
