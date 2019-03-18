@@ -15,8 +15,67 @@ namespace FreeSql.Oracle {
 		internal override string ExpressionLambdaToSqlOther(Expression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName) {
 			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
 			switch (exp.NodeType) {
+				case ExpressionType.Convert:
+					var operandExp = (exp as UnaryExpression)?.Operand;
+					switch (exp.Type.NullableTypeOrThis().ToString()) {
+						//case "System.Boolean": return $"({getExp(operandExp)} not in ('0','false'))";
+						case "System.Byte": return $"cast({getExp(operandExp)} as number)";
+						case "System.Char": return $"substr(to_char({getExp(operandExp)}), 1, 1)";
+						case "System.DateTime": return $"to_timestamp({getExp(operandExp)},'YYYY-MM-DD HH24:MI:SS.FF6')";
+						case "System.Decimal": return $"cast({getExp(operandExp)} as number)";
+						case "System.Double": return $"cast({getExp(operandExp)} as number)";
+						case "System.Int16":
+						case "System.Int32":
+						case "System.Int64":
+						case "System.SByte": return $"cast({getExp(operandExp)} as number)";
+						case "System.Single": return $"cast({getExp(operandExp)} as number)";
+						case "System.String": return $"to_char({getExp(operandExp)})";
+						case "System.UInt16":
+						case "System.UInt32":
+						case "System.UInt64": return $"cast({getExp(operandExp)} as number)";
+						case "System.Guid": return $"substr(to_char({getExp(operandExp)}), 1, 36)";
+					}
+					break;
 				case ExpressionType.Call:
 					var callExp = exp as MethodCallExpression;
+
+					switch (callExp.Method.Name) {
+						case "Parse":
+						case "TryParse":
+							switch (callExp.Method.DeclaringType.NullableTypeOrThis().ToString()) {
+								//case "System.Boolean": return $"({getExp(callExp.Arguments[0])} not in ('0','false'))";
+								case "System.Byte": return $"cast({getExp(callExp.Arguments[0])} as number)";
+								case "System.Char": return $"substr(to_char({getExp(callExp.Arguments[0])}), 1, 1)";
+								case "System.DateTime": return $"to_timestamp({getExp(callExp.Arguments[0])},'YYYY-MM-DD HH24:MI:SS.FF6')";
+								case "System.Decimal": return $"cast({getExp(callExp.Arguments[0])} as number)";
+								case "System.Double": return $"cast({getExp(callExp.Arguments[0])} as number)";
+								case "System.Int16":
+								case "System.Int32":
+								case "System.Int64":
+								case "System.SByte": return $"cast({getExp(callExp.Arguments[0])} as number)";
+								case "System.Single": return $"cast({getExp(callExp.Arguments[0])} as number)";
+								case "System.UInt16":
+								case "System.UInt32":
+								case "System.UInt64": return $"cast({getExp(callExp.Arguments[0])} as number)";
+								case "System.Guid": return $"substr(to_char({getExp(callExp.Arguments[0])}), 1, 36)";
+							}
+							break;
+						case "NewGuid":
+							break;
+						case "Next":
+							if (callExp.Object?.Type == typeof(Random)) return "cast(dbms_random.value*1000000000 as smallint)";
+							break;
+						case "NextDouble":
+							if (callExp.Object?.Type == typeof(Random)) return "dbms_random.value";
+							break;
+						case "Random":
+							if (callExp.Method.DeclaringType.IsNumberType()) return "dbms_random.value";
+							break;
+						case "ToString":
+							if (callExp.Object != null) return $"to_char({getExp(callExp.Object)})";
+							break;
+					}
+
 					var objExp = callExp.Object;
 					var objType = objExp?.Type;
 					if (objType?.FullName == "System.Byte[]") return null;

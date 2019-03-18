@@ -284,8 +284,7 @@ namespace FreeSql.Tests.MySql {
 			//����е�������a.Type��a.Type.Parent ���ǵ�������
 			var query = select.LeftJoin(a => a.Type.Guid == a.TypeGuid);
 			var sql = query.ToSql().Replace("\r\n", "");
-			//Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a__Type.`Guid`, a__Type.`ParentId`, a__Type.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topic` a LEFT JOIN `TestTypeInfo` a__Type ON a__Type.`Guid` = a.`TypeGuid`", sql);
-			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a__Type.`Guid`, a__Type.`ParentId`, a__Type.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topic` a LEFT JOIN `TestTypeInfo` a__Type ON a__Type.`Guid` = a.`TypeGuid` WHERE (a__Type.`Guid` = a.`TypeGuid`)", sql);
+			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a__Type.`Guid`, a__Type.`ParentId`, a__Type.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topic` a LEFT JOIN `TestTypeInfo` a__Type ON a__Type.`Guid` = a.`TypeGuid`", sql);
 			query.ToList();
 
 			query = select.LeftJoin(a => a.Type.Guid == a.TypeGuid && a.Type.Name == "xxx");
@@ -295,7 +294,6 @@ namespace FreeSql.Tests.MySql {
 
 			query = select.LeftJoin(a => a.Type.Guid == a.TypeGuid && a.Type.Name == "xxx").Where(a => a.Type.Parent.Id == 10);
 			sql = query.ToSql().Replace("\r\n", "");
-			//Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a__Type.`Guid`, a__Type.`ParentId`, a__Type.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topic` a LEFT JOIN `TestTypeParentInfo` a__Type__Parent ON 1 = 1 LEFT JOIN `TestTypeInfo` a__Type ON a__Type.`Guid` = a.`TypeGuid` AND a__Type.`Name` = 'xxx' WHERE (a__Type__Parent.`Id` = 10)", sql);
 			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a__Type.`Guid`, a__Type.`ParentId`, a__Type.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topic` a LEFT JOIN `TestTypeInfo` a__Type ON a__Type.`Guid` = a.`TypeGuid` AND a__Type.`Name` = 'xxx' LEFT JOIN `TestTypeParentInfo` a__Type__Parent ON a__Type__Parent.`Id` = a__Type.`ParentId` WHERE (a__Type__Parent.`Id` = 10)", sql);
 			query.ToList();
 
@@ -312,7 +310,6 @@ namespace FreeSql.Tests.MySql {
 
 			query = select.LeftJoin<TestTypeInfo>((a, b) => b.Guid == a.TypeGuid && b.Name == "xxx").Where(a => a.Type.Parent.Id == 10);
 			sql = query.ToSql().Replace("\r\n", "");
-			//Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, b.`Guid`, b.`ParentId`, b.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topic` a LEFT JOIN `TestTypeParentInfo` b__Parent ON 1 = 1 LEFT JOIN `TestTypeInfo` b ON b.`Guid` = a.`TypeGuid` AND b.`Name` = 'xxx' WHERE (b__Parent.`Id` = 10)", sql);
 			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a__Type.`Guid`, a__Type.`ParentId`, a__Type.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topic` a LEFT JOIN `TestTypeInfo` b ON b.`Guid` = a.`TypeGuid` AND b.`Name` = 'xxx' LEFT JOIN `TestTypeInfo` a__Type ON a__Type.`Guid` = a.`TypeGuid` LEFT JOIN `TestTypeParentInfo` a__Type__Parent ON a__Type__Parent.`Id` = a__Type.`ParentId` WHERE (a__Type__Parent.`Id` = 10)", sql);
 			query.ToList();
 
@@ -325,11 +322,10 @@ namespace FreeSql.Tests.MySql {
 			query.ToList();
 
 			query = select
-				.LeftJoin<TestTypeInfo>((a, b) => b.Guid == a.TypeGuid)
+				.LeftJoin<TestTypeInfo>((a, a__Type) => a__Type.Guid == a.TypeGuid)
 				.LeftJoin<TestTypeParentInfo>((a, c) => c.Id == a.Type.ParentId);
 			sql = query.ToSql().Replace("\r\n", "");
-			//Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, b.`Guid`, b.`ParentId`, b.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topic` a LEFT JOIN `TestTypeInfo` b ON b.`Guid` = a.`TypeGuid` LEFT JOIN `TestTypeParentInfo` c ON c.`Id` = b.`ParentId`", sql);
-			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, b.`Guid`, b.`ParentId`, b.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topic` a LEFT JOIN `TestTypeInfo` a__Type ON 1 = 1 LEFT JOIN `TestTypeInfo` b ON b.`Guid` = a.`TypeGuid` LEFT JOIN `TestTypeParentInfo` c ON c.`Id` = a__Type.`ParentId`", sql);
+			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a__Type.`Guid`, a__Type.`ParentId`, a__Type.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topic` a LEFT JOIN `TestTypeInfo` a__Type ON a__Type.`Guid` = a.`TypeGuid` LEFT JOIN `TestTypeParentInfo` c ON c.`Id` = a__Type.`ParentId`", sql);
 			query.ToList();
 
 			//���û�е�������b��c������ϵ
@@ -366,7 +362,6 @@ namespace FreeSql.Tests.MySql {
 
 			query = select.InnerJoin(a => a.Type.Guid == a.TypeGuid && a.Type.Name == "xxx").Where(a => a.Type.Parent.Id == 10);
 			sql = query.ToSql().Replace("\r\n", "");
-			//Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a__Type.`Guid`, a__Type.`ParentId`, a__Type.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topic` a LEFT JOIN `TestTypeParentInfo` a__Type__Parent ON 1 = 1 INNER JOIN `TestTypeInfo` a__Type ON a__Type.`Guid` = a.`TypeGuid` AND a__Type.`Name` = 'xxx' WHERE (a__Type__Parent.`Id` = 10)", sql);
 			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a__Type.`Guid`, a__Type.`ParentId`, a__Type.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topic` a INNER JOIN `TestTypeInfo` a__Type ON a__Type.`Guid` = a.`TypeGuid` AND a__Type.`Name` = 'xxx' LEFT JOIN `TestTypeParentInfo` a__Type__Parent ON a__Type__Parent.`Id` = a__Type.`ParentId` WHERE (a__Type__Parent.`Id` = 10)", sql);
 			query.ToList();
 
@@ -383,7 +378,6 @@ namespace FreeSql.Tests.MySql {
 
 			query = select.InnerJoin<TestTypeInfo>((a, b) => b.Guid == a.TypeGuid && b.Name == "xxx").Where(a => a.Type.Parent.Id == 10);
 			sql = query.ToSql().Replace("\r\n", "");
-			//Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, b.`Guid`, b.`ParentId`, b.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topic` a LEFT JOIN `TestTypeParentInfo` b__Parent ON 1 = 1 INNER JOIN `TestTypeInfo` b ON b.`Guid` = a.`TypeGuid` AND b.`Name` = 'xxx' WHERE (b__Parent.`Id` = 10)", sql);
 			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a__Type.`Guid`, a__Type.`ParentId`, a__Type.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topic` a INNER JOIN `TestTypeInfo` b ON b.`Guid` = a.`TypeGuid` AND b.`Name` = 'xxx' LEFT JOIN `TestTypeInfo` a__Type ON a__Type.`Guid` = a.`TypeGuid` LEFT JOIN `TestTypeParentInfo` a__Type__Parent ON a__Type__Parent.`Id` = a__Type.`ParentId` WHERE (a__Type__Parent.`Id` = 10)", sql);
 			query.ToList();
 
@@ -396,11 +390,10 @@ namespace FreeSql.Tests.MySql {
 			query.ToList();
 
 			query = select
-				.InnerJoin<TestTypeInfo>((a, b) => b.Guid == a.TypeGuid)
+				.InnerJoin<TestTypeInfo>((a, a__Type) => a__Type.Guid == a.TypeGuid)
 				.InnerJoin<TestTypeParentInfo>((a, c) => c.Id == a.Type.ParentId);
 			sql = query.ToSql().Replace("\r\n", "");
-			//Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, b.`Guid`, b.`ParentId`, b.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topic` a INNER JOIN `TestTypeInfo` b ON b.`Guid` = a.`TypeGuid` INNER JOIN `TestTypeParentInfo` c ON c.`Id` = b.`ParentId`", sql);
-			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, b.`Guid`, b.`ParentId`, b.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topic` a INNER JOIN `TestTypeInfo` a__Type ON 1 = 1 INNER JOIN `TestTypeInfo` b ON b.`Guid` = a.`TypeGuid` LEFT JOIN `TestTypeParentInfo` c ON c.`Id` = a__Type.`ParentId`", sql);
+			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a__Type.`Guid`, a__Type.`ParentId`, a__Type.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topic` a INNER JOIN `TestTypeInfo` a__Type ON a__Type.`Guid` = a.`TypeGuid` INNER JOIN `TestTypeParentInfo` c ON c.`Id` = a__Type.`ParentId`", sql);
 			query.ToList();
 
 			//���û�е�������b��c������ϵ
@@ -438,7 +431,7 @@ namespace FreeSql.Tests.MySql {
 
 			query = select.RightJoin(a => a.Type.Guid == a.TypeGuid && a.Type.Name == "xxx").Where(a => a.Type.Parent.Id == 10);
 			sql = query.ToSql().Replace("\r\n", "");
-			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a__Type.`Guid`, a__Type.`ParentId`, a__Type.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topic` a LEFT JOIN `TestTypeParentInfo` a__Type__Parent ON 1 = 1 RIGHT JOIN `TestTypeInfo` a__Type ON a__Type.`Guid` = a.`TypeGuid` AND a__Type.`Name` = 'xxx' WHERE (a__Type__Parent.`Id` = 10)", sql);
+			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a__Type.`Guid`, a__Type.`ParentId`, a__Type.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topic` a RIGHT JOIN `TestTypeInfo` a__Type ON a__Type.`Guid` = a.`TypeGuid` AND a__Type.`Name` = 'xxx' LEFT JOIN `TestTypeParentInfo` a__Type__Parent ON a__Type__Parent.`Id` = a__Type.`ParentId` WHERE (a__Type__Parent.`Id` = 10)", sql);
 			query.ToList();
 
 			//���û�е�������
@@ -454,7 +447,7 @@ namespace FreeSql.Tests.MySql {
 
 			query = select.RightJoin<TestTypeInfo>((a, b) => b.Guid == a.TypeGuid && b.Name == "xxx").Where(a => a.Type.Parent.Id == 10);
 			sql = query.ToSql().Replace("\r\n", "");
-			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, b.`Guid`, b.`ParentId`, b.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topic` a LEFT JOIN `TestTypeParentInfo` b__Parent ON 1 = 1 RIGHT JOIN `TestTypeInfo` b ON b.`Guid` = a.`TypeGuid` AND b.`Name` = 'xxx' WHERE (b__Parent.`Id` = 10)", sql);
+			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a__Type.`Guid`, a__Type.`ParentId`, a__Type.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topic` a RIGHT JOIN `TestTypeInfo` b ON b.`Guid` = a.`TypeGuid` AND b.`Name` = 'xxx' LEFT JOIN `TestTypeInfo` a__Type ON a__Type.`Guid` = a.`TypeGuid` LEFT JOIN `TestTypeParentInfo` a__Type__Parent ON a__Type__Parent.`Id` = a__Type.`ParentId` WHERE (a__Type__Parent.`Id` = 10)", sql);
 			query.ToList();
 
 			//�������
@@ -466,10 +459,10 @@ namespace FreeSql.Tests.MySql {
 			query.ToList();
 
 			query = select
-				.RightJoin<TestTypeInfo>((a, b) => b.Guid == a.TypeGuid)
+				.RightJoin<TestTypeInfo>((a, a__Type) => a__Type.Guid == a.TypeGuid)
 				.RightJoin<TestTypeParentInfo>((a, c) => c.Id == a.Type.ParentId);
 			sql = query.ToSql().Replace("\r\n", "");
-			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, b.`Guid`, b.`ParentId`, b.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topic` a RIGHT JOIN `TestTypeInfo` b ON b.`Guid` = a.`TypeGuid` RIGHT JOIN `TestTypeParentInfo` c ON c.`Id` = b.`ParentId`", sql);
+			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a__Type.`Guid`, a__Type.`ParentId`, a__Type.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topic` a RIGHT JOIN `TestTypeInfo` a__Type ON a__Type.`Guid` = a.`TypeGuid` RIGHT JOIN `TestTypeParentInfo` c ON c.`Id` = a__Type.`ParentId`", sql);
 			query.ToList();
 
 			//���û�е�������b��c������ϵ
@@ -512,17 +505,17 @@ namespace FreeSql.Tests.MySql {
 
 			query = select.Where(a => a.Type.Name == "typeTitle");
 			sql = query.ToSql().Replace("\r\n", "");
-			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a, `TestTypeInfo` a__Type WHERE (a__Type.`Name` = 'typeTitle')", sql);
+			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a__Type.`Guid`, a__Type.`ParentId`, a__Type.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topic` a LEFT JOIN `TestTypeInfo` a__Type ON a__Type.`Guid` = a.`TypeGuid` WHERE (a__Type.`Name` = 'typeTitle')", sql);
 			query.ToList();
 
 			query = select.Where(a => a.Type.Name == "typeTitle" && a.Type.Guid == a.TypeGuid);
 			sql = query.ToSql().Replace("\r\n", "");
-			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a, `TestTypeInfo` a__Type WHERE (a__Type.`Name` = 'typeTitle' AND a__Type.`Guid` = a.`TypeGuid`)", sql);
+			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a__Type.`Guid`, a__Type.`ParentId`, a__Type.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topic` a LEFT JOIN `TestTypeInfo` a__Type ON a__Type.`Guid` = a.`TypeGuid` WHERE (a__Type.`Name` = 'typeTitle' AND a__Type.`Guid` = a.`TypeGuid`)", sql);
 			query.ToList();
 
 			query = select.Where(a => a.Type.Parent.Name == "tparent");
 			sql = query.ToSql().Replace("\r\n", "");
-			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a, `TestTypeInfo` a__Type, `TestTypeParentInfo` a__Type__Parent WHERE (a__Type__Parent.`Name` = 'tparent')", sql);
+			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a__Type.`Guid`, a__Type.`ParentId`, a__Type.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topic` a LEFT JOIN `TestTypeInfo` a__Type ON a__Type.`Guid` = a.`TypeGuid` LEFT JOIN `TestTypeParentInfo` a__Type__Parent ON a__Type__Parent.`Id` = a__Type.`ParentId` WHERE (a__Type__Parent.`Name` = 'tparent')", sql);
 			query.ToList();
 
 			//���û�е������ԣ��򵥶������
@@ -546,7 +539,7 @@ namespace FreeSql.Tests.MySql {
 				.Where(a => a.Id == 10 && c.Name == "xxx")
 				.Where(a => b.ParentId == 20));
 			sql = query2.ToSql().Replace("\r\n", "");
-			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a, `TestTypeParentInfo` c, `TestTypeInfo` b WHERE (a.`Id` = 10 AND c.`Name` = 'xxx') AND (b.`ParentId` = 20)", sql);
+			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a, `TestTypeInfo` b, `TestTypeParentInfo` c WHERE (a.`Id` = 10 AND c.`Name` = 'xxx') AND (b.`ParentId` = 20)", sql);
 			query2.ToList();
 
 			//������϶����㲻��
@@ -575,17 +568,17 @@ namespace FreeSql.Tests.MySql {
 
 			query = select.WhereIf(true, a => a.Type.Name == "typeTitle");
 			sql = query.ToSql().Replace("\r\n", "");
-			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a, `TestTypeInfo` a__Type WHERE (a__Type.`Name` = 'typeTitle')", sql);
+			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a__Type.`Guid`, a__Type.`ParentId`, a__Type.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topic` a LEFT JOIN `TestTypeInfo` a__Type ON a__Type.`Guid` = a.`TypeGuid` WHERE (a__Type.`Name` = 'typeTitle')", sql);
 			query.ToList();
 
 			query = select.WhereIf(true, a => a.Type.Name == "typeTitle" && a.Type.Guid == a.TypeGuid);
 			sql = query.ToSql().Replace("\r\n", "");
-			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a, `TestTypeInfo` a__Type WHERE (a__Type.`Name` = 'typeTitle' AND a__Type.`Guid` = a.`TypeGuid`)", sql);
+			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a__Type.`Guid`, a__Type.`ParentId`, a__Type.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topic` a LEFT JOIN `TestTypeInfo` a__Type ON a__Type.`Guid` = a.`TypeGuid` WHERE (a__Type.`Name` = 'typeTitle' AND a__Type.`Guid` = a.`TypeGuid`)", sql);
 			query.ToList();
 
 			query = select.WhereIf(true, a => a.Type.Parent.Name == "tparent");
 			sql = query.ToSql().Replace("\r\n", "");
-			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a, `TestTypeInfo` a__Type, `TestTypeParentInfo` a__Type__Parent WHERE (a__Type__Parent.`Name` = 'tparent')", sql);
+			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a__Type.`Guid`, a__Type.`ParentId`, a__Type.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topic` a LEFT JOIN `TestTypeInfo` a__Type ON a__Type.`Guid` = a.`TypeGuid` LEFT JOIN `TestTypeParentInfo` a__Type__Parent ON a__Type__Parent.`Id` = a__Type.`ParentId` WHERE (a__Type__Parent.`Name` = 'tparent')", sql);
 			query.ToList();
 
 			//����һ�� From ��Ķ������
@@ -593,7 +586,7 @@ namespace FreeSql.Tests.MySql {
 				.WhereIf(true, a => a.Id == 10 && c.Name == "xxx")
 				.WhereIf(true, a => b.ParentId == 20));
 			sql = query2.ToSql().Replace("\r\n", "");
-			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a, `TestTypeParentInfo` c, `TestTypeInfo` b WHERE (a.`Id` = 10 AND c.`Name` = 'xxx') AND (b.`ParentId` = 20)", sql);
+			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a, `TestTypeInfo` b, `TestTypeParentInfo` c WHERE (a.`Id` = 10 AND c.`Name` = 'xxx') AND (b.`ParentId` = 20)", sql);
 			query2.ToList();
 
 			//������϶����㲻��
@@ -640,7 +633,7 @@ namespace FreeSql.Tests.MySql {
 				.WhereIf(false, a => a.Id == 10 && c.Name == "xxx")
 				.WhereIf(false, a => b.ParentId == 20));
 			sql = query2.ToSql().Replace("\r\n", "");
-			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a", sql);
+			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a, `TestTypeInfo` b, `TestTypeParentInfo` c", sql);
 			query2.ToList();
 
 			//������϶����㲻��
@@ -732,7 +725,7 @@ namespace FreeSql.Tests.MySql {
 
 			query = select.LeftJoin(a => a.Type.Guid == a.TypeGuid && a.Type.Name == "xxx").Where(a => a.Type.Parent.Id == 10).AsTable(tableRule);
 			sql = query.ToSql().Replace("\r\n", "");
-			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a__Type.`Guid`, a__Type.`ParentId`, a__Type.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topicAsTable1` a LEFT JOIN `TestTypeParentInfoAsTable` a__Type__Parent ON 1 = 1 LEFT JOIN `TestTypeInfoAsTable2` a__Type ON a__Type.`Guid` = a.`TypeGuid` AND a__Type.`Name` = 'xxx' WHERE (a__Type__Parent.`Id` = 10)", sql);
+			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a__Type.`Guid`, a__Type.`ParentId`, a__Type.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topicAsTable1` a LEFT JOIN `TestTypeInfoAsTable2` a__Type ON a__Type.`Guid` = a.`TypeGuid` AND a__Type.`Name` = 'xxx' LEFT JOIN `TestTypeParentInfoAsTable` a__Type__Parent ON a__Type__Parent.`Id` = a__Type.`ParentId` WHERE (a__Type__Parent.`Id` = 10)", sql);
 
 			//���û�е�������
 			query = select.LeftJoin<TestTypeInfo>((a, b) => b.Guid == a.TypeGuid).AsTable(tableRule);
@@ -745,7 +738,7 @@ namespace FreeSql.Tests.MySql {
 
 			query = select.LeftJoin<TestTypeInfo>((a, b) => b.Guid == a.TypeGuid && b.Name == "xxx").Where(a => a.Type.Parent.Id == 10).AsTable(tableRule);
 			sql = query.ToSql().Replace("\r\n", "");
-			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, b.`Guid`, b.`ParentId`, b.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topicAsTable1` a LEFT JOIN `TestTypeParentInfoAsTable` b__Parent ON 1 = 1 LEFT JOIN `TestTypeInfoAsTable2` b ON b.`Guid` = a.`TypeGuid` AND b.`Name` = 'xxx' WHERE (b__Parent.`Id` = 10)", sql);
+			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a__Type.`Guid`, a__Type.`ParentId`, a__Type.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topicAsTable1` a LEFT JOIN `TestTypeInfoAsTable2` b ON b.`Guid` = a.`TypeGuid` AND b.`Name` = 'xxx' LEFT JOIN `TestTypeInfoAsTable2` a__Type ON a__Type.`Guid` = a.`TypeGuid` LEFT JOIN `TestTypeParentInfoAsTable` a__Type__Parent ON a__Type__Parent.`Id` = a__Type.`ParentId` WHERE (a__Type__Parent.`Id` = 10)", sql);
 
 			//�������
 			query = select
@@ -758,7 +751,7 @@ namespace FreeSql.Tests.MySql {
 				.LeftJoin<TestTypeInfo>((a, b) => b.Guid == a.TypeGuid)
 				.LeftJoin<TestTypeParentInfo>((a, c) => c.Id == a.Type.ParentId).AsTable(tableRule);
 			sql = query.ToSql().Replace("\r\n", "");
-			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, b.`Guid`, b.`ParentId`, b.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topicAsTable1` a LEFT JOIN `TestTypeInfoAsTable2` b ON b.`Guid` = a.`TypeGuid` LEFT JOIN `TestTypeParentInfoAsTable` c ON c.`Id` = b.`ParentId`", sql);
+			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, b.`Guid`, b.`ParentId`, b.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topicAsTable1` a LEFT JOIN `TestTypeInfoAsTable2` a__Type ON a__Type.`Guid` = a.`TypeGuid` LEFT JOIN `TestTypeInfoAsTable2` b ON b.`Guid` = a.`TypeGuid` LEFT JOIN `TestTypeParentInfoAsTable` c ON c.`Id` = a__Type.`ParentId`", sql);
 
 			//���û�е�������b��c������ϵ
 			var query2 = select.From<TestTypeInfo, TestTypeParentInfo>((s, b, c) => s

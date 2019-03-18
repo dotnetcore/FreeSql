@@ -15,8 +15,70 @@ namespace FreeSql.SqlServer {
 		internal override string ExpressionLambdaToSqlOther(Expression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName) {
 			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
 			switch (exp.NodeType) {
+				case ExpressionType.Convert:
+					var operandExp = (exp as UnaryExpression)?.Operand;
+					switch (exp.Type.NullableTypeOrThis().ToString()) {
+						case "System.Boolean": return $"(cast({getExp(operandExp)} as varchar) not in ('0','false'))";
+						case "System.Byte": return $"cast({getExp(operandExp)} as tinyint)";
+						case "System.Char": return $"substring(cast({getExp(operandExp)} as nvarchar),1,1)";
+						case "System.DateTime": return $"cast({getExp(operandExp)} as datetime)";
+						case "System.Decimal": return $"cast({getExp(operandExp)} as decimal(36,18))";
+						case "System.Double": return $"cast({getExp(operandExp)} as decimal(32,16))";
+						case "System.Int16": return $"cast({getExp(operandExp)} as smallint)";
+						case "System.Int32": return $"cast({getExp(operandExp)} as int)";
+						case "System.Int64": return $"cast({getExp(operandExp)} as bigint)";
+						case "System.SByte": return $"cast({getExp(operandExp)} as tinyint)";
+						case "System.Single": return $"cast({getExp(operandExp)} as decimal(14,7))";
+						case "System.String": return operandExp.Type.NullableTypeOrThis() == typeof(Guid) ? $"cast({getExp(operandExp)} as varchar(36))" : $"cast({getExp(operandExp)} as nvarchar)";
+						case "System.UInt16": return $"cast({getExp(operandExp)} as smallint)";
+						case "System.UInt32": return $"cast({getExp(operandExp)} as int)";
+						case "System.UInt64": return $"cast({getExp(operandExp)} as bigint)";
+						case "System.Guid": return $"cast({getExp(operandExp)} as uniqueidentifier)";
+					}
+					break;
 				case ExpressionType.Call:
 					var callExp = exp as MethodCallExpression;
+
+					switch(callExp.Method.Name) {
+						case "Parse":
+						case "TryParse":
+							switch (callExp.Method.DeclaringType.NullableTypeOrThis().ToString()) {
+								case "System.Boolean": return $"(cast({getExp(callExp.Arguments[0])} as varchar) not in ('0','false'))";
+								case "System.Byte": return $"cast({getExp(callExp.Arguments[0])} as tinyint)";
+								case "System.Char": return $"substring(cast({getExp(callExp.Arguments[0])} as nvarchar),1,1)";
+								case "System.DateTime": return $"cast({getExp(callExp.Arguments[0])} as datetime)";
+								case "System.Decimal": return $"cast({getExp(callExp.Arguments[0])} as decimal(36,18))";
+								case "System.Double": return $"cast({getExp(callExp.Arguments[0])} as decimal(32,16))";
+								case "System.Int16": return $"cast({getExp(callExp.Arguments[0])} as smallint)";
+								case "System.Int32": return $"cast({getExp(callExp.Arguments[0])} as int)";
+								case "System.Int64": return $"cast({getExp(callExp.Arguments[0])} as bigint)";
+								case "System.SByte": return $"cast({getExp(callExp.Arguments[0])} as tinyint)";
+								case "System.Single": return $"cast({getExp(callExp.Arguments[0])} as decimal(14,7))";
+								case "System.UInt16": return $"cast({getExp(callExp.Arguments[0])} as smallint)";
+								case "System.UInt32": return $"cast({getExp(callExp.Arguments[0])} as int)";
+								case "System.UInt64": return $"cast({getExp(callExp.Arguments[0])} as bigint)";
+								case "System.Guid": return $"cast({getExp(callExp.Arguments[0])} as uniqueidentifier)";
+							}
+							break;
+						case "NewGuid":
+							switch (callExp.Method.DeclaringType.NullableTypeOrThis().ToString()) {
+								case "System.Guid": return $"newid()";
+							}
+							break;
+						case "Next":
+							if (callExp.Object?.Type == typeof(Random)) return "cast(rand()*1000000000 as int)";
+							break;
+						case "NextDouble":
+							if (callExp.Object?.Type == typeof(Random)) return "rand()";
+							break;
+						case "Random":
+							if (callExp.Method.DeclaringType.IsNumberType()) return "rand()";
+							break;
+						case "ToString":
+							if (callExp.Object != null) return callExp.Object.Type.NullableTypeOrThis() == typeof(Guid) ? $"cast({getExp(callExp.Object)} as varchar(36))" : $"cast({getExp(callExp.Object)} as nvarchar)";
+							break;
+					}
+
 					var objExp = callExp.Object;
 					var objType = objExp?.Type;
 					if (objType?.FullName == "System.Byte[]") return null;
@@ -306,7 +368,7 @@ namespace FreeSql.SqlServer {
 					case "ToInt64": return $"cast({getExp(exp.Arguments[0])} as bigint)";
 					case "ToSByte": return $"cast({getExp(exp.Arguments[0])} as tinyint)";
 					case "ToSingle": return $"cast({getExp(exp.Arguments[0])} as decimal(14,7))";
-					case "ToString": return $"cast({getExp(exp.Arguments[0])} as nvarchar)";
+					case "ToString": return exp.Arguments[0].Type.NullableTypeOrThis() == typeof(Guid) ? $"cast({getExp(exp.Arguments[0])} as varchar(36))" : $"cast({getExp(exp.Arguments[0])} as nvarchar)";
 					case "ToUInt16": return $"cast({getExp(exp.Arguments[0])} as smallint)";
 					case "ToUInt32": return $"cast({getExp(exp.Arguments[0])} as int)";
 					case "ToUInt64": return $"cast({getExp(exp.Arguments[0])} as bigint)";

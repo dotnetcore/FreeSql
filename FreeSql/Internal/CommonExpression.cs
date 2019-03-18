@@ -215,7 +215,10 @@ namespace FreeSql.Internal {
 				case ExpressionType.Not: return $"not({ExpressionLambdaToSql((exp as UnaryExpression)?.Operand, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName)})";
 				case ExpressionType.Quote: return ExpressionLambdaToSql((exp as UnaryExpression)?.Operand, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
 				case ExpressionType.Lambda: return ExpressionLambdaToSql((exp as LambdaExpression)?.Body, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
-				case ExpressionType.Convert: return ExpressionLambdaToSql((exp as UnaryExpression)?.Operand, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+				case ExpressionType.Convert:
+					var othercExp = ExpressionLambdaToSqlOther(exp, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+					if (string.IsNullOrEmpty(othercExp) == false) return othercExp;
+					return ExpressionLambdaToSql((exp as UnaryExpression)?.Operand, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
 				case ExpressionType.Negate:
 				case ExpressionType.NegateChecked: return "-" + ExpressionLambdaToSql((exp as UnaryExpression)?.Operand, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
 				case ExpressionType.Constant: return _common.FormatSql("{0}", (exp as ConstantExpression)?.Value);
@@ -461,7 +464,7 @@ namespace FreeSql.Internal {
 					MethodCallExpression callExp = null;
 					var exp2 = exp4.Expression;
 					while (true) {
-						switch(exp2.NodeType) {
+						switch(exp2?.NodeType) {
 							case ExpressionType.Constant:
 								expStack.Push(exp2);
 								break;
@@ -514,6 +517,10 @@ namespace FreeSql.Internal {
 								finds = _tables.Where(a2 => (isa && a2.Parameter != null || !isa && a2.Parameter == null) &&
 									a2.Table.Type == tbtmp.Type && a2.Alias == alias && a2.Alias.StartsWith($"{navdot[0].Alias}__") &&
 									(isthis && a2.Type != SelectTableInfoType.Parent || !isthis && a2.Type == SelectTableInfoType.Parent)).ToArray();
+								if (finds.Length == 0)
+									finds = _tables.Where(a2 => 
+										 a2.Table.Type == tbtmp.Type && a2.Alias == alias && a2.Alias.StartsWith($"{navdot[0].Alias}__") &&
+										 (isthis && a2.Type != SelectTableInfoType.Parent || !isthis && a2.Type == SelectTableInfoType.Parent)).ToArray();
 							} else {
 								finds = _tables.Where(a2 => (isa && a2.Parameter != null || isa && a2.Parameter == null) &&
 									a2.Table.Type == tbtmp.Type && a2.Alias == alias).ToArray();

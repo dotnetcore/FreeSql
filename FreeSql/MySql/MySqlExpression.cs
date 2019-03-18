@@ -15,8 +15,67 @@ namespace FreeSql.MySql {
 		internal override string ExpressionLambdaToSqlOther(Expression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName) {
 			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
 			switch (exp.NodeType) {
+				case ExpressionType.Convert:
+					var operandExp = (exp as UnaryExpression)?.Operand;
+					switch (exp.Type.NullableTypeOrThis().ToString()) {
+						case "System.Boolean": return $"({getExp(operandExp)} not in ('0','false'))";
+						case "System.Byte": return $"cast({getExp(operandExp)} as unsigned)";
+						case "System.Char": return $"substr(cast({getExp(operandExp)} as char), 1, 1)";
+						case "System.DateTime": return $"cast({getExp(operandExp)} as datetime)";
+						case "System.Decimal": return $"cast({getExp(operandExp)} as decimal(36,18))";
+						case "System.Double": return $"cast({getExp(operandExp)} as decimal(32,16))";
+						case "System.Int16":
+						case "System.Int32":
+						case "System.Int64":
+						case "System.SByte": return $"cast({getExp(operandExp)} as signed)";
+						case "System.Single": return $"cast({getExp(operandExp)} as decimal(14,7))";
+						case "System.String": return $"cast({getExp(operandExp)} as char)";
+						case "System.UInt16":
+						case "System.UInt32":
+						case "System.UInt64": return $"cast({getExp(operandExp)} as unsigned)";
+						case "System.Guid": return $"substr(cast({getExp(operandExp)} as char), 1, 36)";
+					}
+					break;
 				case ExpressionType.Call:
 					var callExp = exp as MethodCallExpression;
+
+					switch (callExp.Method.Name) {
+						case "Parse":
+						case "TryParse":
+							switch (callExp.Method.DeclaringType.NullableTypeOrThis().ToString()) {
+								case "System.Boolean": return $"({getExp(callExp.Arguments[0])} not in ('0','false'))";
+								case "System.Byte": return $"cast({getExp(callExp.Arguments[0])} as unsigned)";
+								case "System.Char": return $"substr(cast({getExp(callExp.Arguments[0])} as char), 1, 1)";
+								case "System.DateTime": return $"cast({getExp(callExp.Arguments[0])} as datetime)";
+								case "System.Decimal": return $"cast({getExp(callExp.Arguments[0])} as decimal(36,18))";
+								case "System.Double": return $"cast({getExp(callExp.Arguments[0])} as decimal(32,16))";
+								case "System.Int16":
+								case "System.Int32":
+								case "System.Int64":
+								case "System.SByte": return $"cast({getExp(callExp.Arguments[0])} as signed)";
+								case "System.Single": return $"cast({getExp(callExp.Arguments[0])} as decimal(14,7))";
+								case "System.UInt16":
+								case "System.UInt32":
+								case "System.UInt64": return $"cast({getExp(callExp.Arguments[0])} as unsigned)";
+								case "System.Guid": return $"substr(cast({getExp(callExp.Arguments[0])} as char), 1, 36)";
+							}
+							break;
+						case "NewGuid":
+							break;
+						case "Next":
+							if (callExp.Object?.Type == typeof(Random)) return "cast(rand()*1000000000 as signed)";
+							break;
+						case "NextDouble":
+							if (callExp.Object?.Type == typeof(Random)) return "rand()";
+							break;
+						case "Random":
+							if (callExp.Method.DeclaringType.IsNumberType()) return "rand()";
+							break;
+						case "ToString":
+							if (callExp.Object != null) return $"cast({getExp(callExp.Object)} as char)";
+							break;
+					}
+
 					var objExp = callExp.Object;
 					var objType = objExp?.Type;
 					if (objType?.FullName == "System.Byte[]") return null;

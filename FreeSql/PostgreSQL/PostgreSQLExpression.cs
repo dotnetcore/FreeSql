@@ -16,12 +16,71 @@ namespace FreeSql.PostgreSQL {
 		internal override string ExpressionLambdaToSqlOther(Expression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName) {
 			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
 			switch (exp.NodeType) {
+				case ExpressionType.Convert:
+					var operandExp = (exp as UnaryExpression)?.Operand;
+					switch (exp.Type.NullableTypeOrThis().ToString()) {
+						case "System.Boolean": return $"(({getExp(operandExp)})::varchar not in ('0','false','f','no'))";
+						case "System.Byte": return $"({getExp(operandExp)})::int2";
+						case "System.Char": return $"substr(({getExp(operandExp)})::char, 1, 1)";
+						case "System.DateTime": return $"({getExp(operandExp)})::timestamp";
+						case "System.Decimal": return $"({getExp(operandExp)})::numeric";
+						case "System.Double": return $"({getExp(operandExp)})::float8";
+						case "System.Int16": return $"({getExp(operandExp)})::int2";
+						case "System.Int32": return $"({getExp(operandExp)})::int4";
+						case "System.Int64": return $"({getExp(operandExp)})::int8";
+						case "System.SByte": return $"({getExp(operandExp)})::int2";
+						case "System.Single": return $"({getExp(operandExp)})::float4";
+						case "System.String": return $"({getExp(operandExp)})::varchar";
+						case "System.UInt16": return $"({getExp(operandExp)})::int2";
+						case "System.UInt32": return $"({getExp(operandExp)})::int4";
+						case "System.UInt64": return $"({getExp(operandExp)})::int8";
+						case "System.Guid": return $"({getExp(operandExp)})::uuid";
+					}
+					break;
 				case ExpressionType.ArrayLength:
 					var arrOperExp = getExp((exp as UnaryExpression).Operand);
 					if (arrOperExp.StartsWith("(") || arrOperExp.EndsWith(")")) return $"array_length(array[{arrOperExp.TrimStart('(').TrimEnd(')')}],1)";
 					return $"case when {arrOperExp} is null then 0 else array_length({arrOperExp},1) end";
 				case ExpressionType.Call:
 					var callExp = exp as MethodCallExpression;
+
+					switch (callExp.Method.Name) {
+						case "Parse":
+						case "TryParse":
+							switch (callExp.Method.DeclaringType.NullableTypeOrThis().ToString()) {
+								case "System.Boolean": return $"(({getExp(callExp.Arguments[0])})::varchar not in ('0','false','f','no'))";
+								case "System.Byte": return $"({getExp(callExp.Arguments[0])})::int2";
+								case "System.Char": return $"substr(({getExp(callExp.Arguments[0])})::char, 1, 1)";
+								case "System.DateTime": return $"({getExp(callExp.Arguments[0])})::timestamp";
+								case "System.Decimal": return $"({getExp(callExp.Arguments[0])})::numeric";
+								case "System.Double": return $"({getExp(callExp.Arguments[0])})::float8";
+								case "System.Int16": return $"({getExp(callExp.Arguments[0])})::int2";
+								case "System.Int32": return $"({getExp(callExp.Arguments[0])})::int4";
+								case "System.Int64": return $"({getExp(callExp.Arguments[0])})::int8";
+								case "System.SByte": return $"({getExp(callExp.Arguments[0])})::int2";
+								case "System.Single": return $"({getExp(callExp.Arguments[0])})::float4";
+								case "System.UInt16": return $"({getExp(callExp.Arguments[0])})::int2";
+								case "System.UInt32": return $"({getExp(callExp.Arguments[0])})::int4";
+								case "System.UInt64": return $"({getExp(callExp.Arguments[0])})::int8";
+								case "System.Guid": return $"({getExp(callExp.Arguments[0])})::uuid";
+							}
+							break;
+						case "NewGuid":
+							break;
+						case "Next":
+							if (callExp.Object?.Type == typeof(Random)) return "(random()*1000000000)::int4";
+							break;
+						case "NextDouble":
+							if (callExp.Object?.Type == typeof(Random)) return "random()";
+							break;
+						case "Random":
+							if (callExp.Method.DeclaringType.IsNumberType()) return "random()";
+							break;
+						case "ToString":
+							if (callExp.Object != null) return $"({getExp(callExp.Object)})::varchar";
+							break;
+					}
+
 					var objExp = callExp.Object;
 					var objType = objExp?.Type;
 					if (objType?.FullName == "System.Byte[]") return null;
