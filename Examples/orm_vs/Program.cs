@@ -7,14 +7,16 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace orm_vs
 {
     class Program
     {
 		static IFreeSql fsql = new FreeSql.FreeSqlBuilder()
-				//.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=20")
-				.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=20")
+				.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=20")
+				//.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=20")
 				.UseAutoSyncStructure(false)
 				.UseNoneCommandParameter(true)
 				//.UseConfigEntityFromDbFirst(true)
@@ -23,10 +25,10 @@ namespace orm_vs
 		static SqlSugarClient sugar {
 			get => new SqlSugarClient(new ConnectionConfig() {
 				//不欺负，让连接池100个最小
-				//ConnectionString = "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Min Pool Size=20;Max Pool Size=20",
-				//DbType = DbType.SqlServer,
-				ConnectionString = "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Min Pool Size=20;Max Pool Size=20",
-				DbType = DbType.MySql,
+				ConnectionString = "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Min Pool Size=20;Max Pool Size=20",
+				DbType = DbType.SqlServer,
+				//ConnectionString = "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Min Pool Size=20;Max Pool Size=20",
+				//DbType = DbType.MySql,
 				IsAutoCloseConnection = true,
 				InitKeyType = InitKeyType.Attribute
 			});
@@ -35,12 +37,10 @@ namespace orm_vs
 		class SongContext : DbContext {
 			public DbSet<Song> Songs { get; set; }
 			protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
-				//optionsBuilder.UseSqlServer(@"Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Min Pool Size=21;Max Pool Size=21");
-				optionsBuilder.UseMySql("Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Min Pool Size=21;Max Pool Size=21");
+				optionsBuilder.UseSqlServer(@"Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Min Pool Size=21;Max Pool Size=21");
+				//optionsBuilder.UseMySql("Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Min Pool Size=21;Max Pool Size=21");
 			}
 		}
-
-		static StringBuilder sb = new StringBuilder();
 
 		static void Main(string[] args) {
 
@@ -53,53 +53,55 @@ namespace orm_vs
 			sugar.Deleteable<Song>().Where(a => a.Id > 0).ExecuteCommand();
 			fsql.Ado.ExecuteNonQuery("delete from efcore_song");
 
+			var sb = new StringBuilder();
 			Console.WriteLine("插入性能：");
-			Insert(1000, 1);
+			Insert(sb, 1000, 1);
 			Console.Write(sb.ToString());
 			sb.Clear();
-			Insert(1000, 10);
+			Insert(sb, 1000, 10);
 			Console.Write(sb.ToString());
 			sb.Clear();
 
-			Insert(1, 1000);
+			Insert(sb, 1, 1000);
 			Console.Write(sb.ToString());
 			sb.Clear();
-			Insert(1, 10000);
+			Insert(sb, 1, 10000);
 			Console.Write(sb.ToString());
 			sb.Clear();
-			Insert(1, 50000);
+			Insert(sb, 1, 50000);
+			Console.Write(sb.ToString());
+			sb.Clear();
+			Insert(sb, 1, 100000);
 			Console.Write(sb.ToString());
 			sb.Clear();
 
 			Console.WriteLine("查询性能：");
-			Select(1000, 1);
+			Select(sb, 1000, 1);
 			Console.Write(sb.ToString());
 			sb.Clear();
-			Select(1000, 10);
-			Console.Write(sb.ToString());
-			sb.Clear();
-
-			Select(1, 1000);
-			Console.Write(sb.ToString());
-			sb.Clear();
-			Select(1, 10000);
-			Console.Write(sb.ToString());
-			sb.Clear();
-			Select(1, 50000);
-			Console.Write(sb.ToString());
-			sb.Clear();
-			Select(1, 100000);
+			Select(sb, 1000, 10);
 			Console.Write(sb.ToString());
 			sb.Clear();
 
+			Select(sb, 1, 1000);
 			Console.Write(sb.ToString());
+			sb.Clear();
+			Select(sb, 1, 10000);
+			Console.Write(sb.ToString());
+			sb.Clear();
+			Select(sb, 1, 50000);
+			Console.Write(sb.ToString());
+			sb.Clear();
+			Select(sb, 1, 100000);
+			Console.Write(sb.ToString());
+			sb.Clear();
+
 			Console.WriteLine("测试结束，按任意键退出...");
 			Console.ReadKey();
 		}
 
-		static void Select(int forTime, int size) {
+		static void Select(StringBuilder sb, int forTime, int size) {
 			Stopwatch sw = new Stopwatch();
-
 			sw.Restart();
 			for (var a = 0; a < forTime; a++)
 				fsql.Select<Song>().Limit(size).ToList();
@@ -115,14 +117,14 @@ namespace orm_vs
 			sw.Restart();
 			for (var a = 0; a < forTime; a++) {
 				using (var db = new SongContext()) {
-					db.Songs.Take(size).ToList();
+					db.Songs.Take(size).AsNoTracking().ToList();
 				}
 			}
 			sw.Stop();
 			sb.AppendLine($"EFCore Select {size}条数据，循环{forTime}次，耗时{sw.ElapsedMilliseconds}ms\r\n");
 		}
 
-		static void Insert(int forTime, int size) {
+		static void Insert(StringBuilder sb, int forTime, int size) {
 			var songs = Enumerable.Range(0, size).Select(a => new Song {
 				Create_time = DateTime.Now,
 				Is_deleted = false,
@@ -133,6 +135,11 @@ namespace orm_vs
 			//预热
 			fsql.Insert(songs.First()).ExecuteAffrows();
 			sugar.Insertable(songs.First()).ExecuteCommand();
+			using (var db = new SongContext()) {
+				//db.Configuration.AutoDetectChangesEnabled = false;
+				db.Songs.AddRange(songs.First());
+				db.SaveChanges();
+			}
 			Stopwatch sw = new Stopwatch();
 
 			sw.Restart();
@@ -156,6 +163,7 @@ namespace orm_vs
 			for (var a = 0; a < forTime; a++) {
 
 				using (var db = new SongContext()) {
+					//db.Configuration.AutoDetectChangesEnabled = false;
 					db.Songs.AddRange(songs.ToArray());
 					db.SaveChanges();
 				}
