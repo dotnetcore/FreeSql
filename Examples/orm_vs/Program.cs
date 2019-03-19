@@ -1,7 +1,9 @@
-﻿using FreeSql.DataAnnotations;
+﻿using Microsoft.EntityFrameworkCore;
 using SqlSugar;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -11,8 +13,8 @@ namespace orm_vs
     class Program
     {
 		static IFreeSql fsql = new FreeSql.FreeSqlBuilder()
-				.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=20")
-				//.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=20")
+				//.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=20")
+				.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=20")
 				.UseAutoSyncStructure(false)
 				.UseNoneCommandParameter(true)
 				//.UseConfigEntityFromDbFirst(true)
@@ -21,26 +23,35 @@ namespace orm_vs
 		static SqlSugarClient sugar {
 			get => new SqlSugarClient(new ConnectionConfig() {
 				//不欺负，让连接池100个最小
-				ConnectionString = "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Min Pool Size=20;Max Pool Size=20",
-				DbType = DbType.SqlServer,
-				//ConnectionString = "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Min Pool Size=20;Max Pool Size=20",
-				//DbType = DbType.MySql,
+				//ConnectionString = "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Min Pool Size=20;Max Pool Size=20",
+				//DbType = DbType.SqlServer,
+				ConnectionString = "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Min Pool Size=20;Max Pool Size=20",
+				DbType = DbType.MySql,
 				IsAutoCloseConnection = true,
 				InitKeyType = InitKeyType.Attribute
 			});
+		}
+
+		class SongContext : DbContext {
+			public DbSet<Song> Songs { get; set; }
+			protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
+				//optionsBuilder.UseSqlServer(@"Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Min Pool Size=21;Max Pool Size=21");
+				optionsBuilder.UseMySql("Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Min Pool Size=21;Max Pool Size=21");
+			}
 		}
 
 		static StringBuilder sb = new StringBuilder();
 
 		static void Main(string[] args) {
 
-			//fsql.CodeFirst.SyncStructure(typeof(Song), typeof(Song_tag), typeof(Tag));
+			fsql.CodeFirst.SyncStructure(typeof(Song), typeof(Song_tag), typeof(Tag));
 			//sugar.CodeFirst.InitTables(typeof(Song), typeof(Song_tag), typeof(Tag));
 			//sugar创建表失败：SqlSugar.SqlSugarException: Sequence contains no elements
 
 			//测试前清空数据
 			fsql.Delete<Song>().Where(a => a.Id > 0).ExecuteAffrows();
 			sugar.Deleteable<Song>().Where(a => a.Id > 0).ExecuteCommand();
+			fsql.Ado.ExecuteNonQuery("delete from efcore_song");
 
 			Console.WriteLine("插入性能：");
 			Insert(1000, 1);
@@ -99,7 +110,16 @@ namespace orm_vs
 			for (var a = 0; a < forTime; a++)
 				sugar.Queryable<Song>().Take(size).ToList();
 			sw.Stop();
-			sb.AppendLine($"SqlSugar Select {size}条数据，循环{forTime}次，耗时{sw.ElapsedMilliseconds}ms\r\n");
+			sb.AppendLine($"SqlSugar Select {size}条数据，循环{forTime}次，耗时{sw.ElapsedMilliseconds}ms");
+
+			sw.Restart();
+			for (var a = 0; a < forTime; a++) {
+				using (var db = new SongContext()) {
+					db.Songs.Take(size).ToList();
+				}
+			}
+			sw.Stop();
+			sb.AppendLine($"EFCore Select {size}条数据，循环{forTime}次，耗时{sw.ElapsedMilliseconds}ms\r\n");
 		}
 
 		static void Insert(int forTime, int size) {
@@ -108,7 +128,7 @@ namespace orm_vs
 				Is_deleted = false,
 				Title = $"Insert_{a}",
 				Url = $"Url_{a}"
-			}).ToArray();
+			});
 
 			//预热
 			fsql.Insert(songs.First()).ExecuteAffrows();
@@ -122,19 +142,37 @@ namespace orm_vs
 			sb.AppendLine($"FreeSql Insert {size}条数据，循环{forTime}次，耗时{sw.ElapsedMilliseconds}ms");
 
 			sw.Restart();
-			for (var a = 0; a < forTime; a++)
-				sugar.Insertable(songs).ExecuteCommand();
+			Exception sugarEx = null;
+			try {
+				for (var a = 0; a < forTime; a++)
+					sugar.Insertable(songs.ToArray()).ExecuteCommand();
+			} catch (Exception ex) {
+				sugarEx = ex;
+			}
 			sw.Stop();
+			sb.AppendLine($"SqlSugar Insert {size}条数据，循环{forTime}次，耗时{sw.ElapsedMilliseconds}ms" + (sugarEx != null ? $"成绩无效，错误：{sugarEx.Message}" : ""));
 
-			sb.AppendLine($"SqlSugar Insert {size}条数据，循环{forTime}次，耗时{sw.ElapsedMilliseconds}ms\r\n");
+			sw.Restart();
+			for (var a = 0; a < forTime; a++) {
+
+				using (var db = new SongContext()) {
+					db.Songs.AddRange(songs.ToArray());
+					db.SaveChanges();
+				}
+			}
+			sw.Stop();
+			sb.AppendLine($"EFCore Insert {size}条数据，循环{forTime}次，耗时{sw.ElapsedMilliseconds}ms\r\n");
 		}
     }
 
-	[Table(Name = "freesql_song")]
+	[FreeSql.DataAnnotations.Table(Name = "freesql_song")]
 	[SugarTable("sugar_song")]
+	[Table("efcore_song")]
 	public class Song {
-		[Column(IsIdentity = true)]
+		[FreeSql.DataAnnotations.Column(IsIdentity = true)]
 		[SugarColumn(IsPrimaryKey = true, IsIdentity = true)]
+		[Key]
+		[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
 		public int Id { get; set; }
 		public DateTime? Create_time { get; set; }
 		public bool? Is_deleted { get; set; }
@@ -142,35 +180,45 @@ namespace orm_vs
 		public string Url { get; set; }
 
 		[SugarColumn(IsIgnore = true)]
+		[NotMapped]
 		public virtual ICollection<Tag> Tags { get; set; }
 	}
-	[Table(Name = "freesql_song_tag")]
+	[FreeSql.DataAnnotations.Table(Name = "freesql_song_tag")]
 	[SugarTable("sugar_song_tag")]
+	[Table("efcore_song_tag")]
 	public class Song_tag {
 		public int Song_id { get; set; }
 		[SugarColumn(IsIgnore = true)]
+		[NotMapped]
 		public virtual Song Song { get; set; }
 
 		public int Tag_id { get; set; }
 		[SugarColumn(IsIgnore = true)]
+		[NotMapped]
 		public virtual Tag Tag { get; set; }
 	}
-	[Table(Name = "freesql_tag")]
+	[FreeSql.DataAnnotations.Table(Name = "freesql_tag")]
 	[SugarTable("sugar_tag")]
+	[Table("efcore_tag")]
 	public class Tag {
-		[Column(IsIdentity = true)]
+		[FreeSql.DataAnnotations.Column(IsIdentity = true)]
 		[SugarColumn(IsPrimaryKey = true, IsIdentity = true)]
+		[Key]
+		[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
 		public int Id { get; set; }
 		public int? Parent_id { get; set; }
 		[SugarColumn(IsIgnore = true)]
+		[NotMapped]
 		public virtual Tag Parent { get; set; }
 
 		public decimal? Ddd { get; set; }
 		public string Name { get; set; }
 
 		[SugarColumn(IsIgnore = true)]
+		[NotMapped]
 		public virtual ICollection<Song> Songs { get; set; }
 		[SugarColumn(IsIgnore = true)]
+		[NotMapped]
 		public virtual ICollection<Tag> Tags { get; set; }
 	}
 }
