@@ -19,6 +19,13 @@ public interface IFreeSql {
 	/// <returns></returns>
 	IInsert<T1> Insert<T1>(T1 source) where T1 : class;
 	/// <summary>
+	/// 插入数据，传入实体数组
+	/// </summary>
+	/// <typeparam name="T1"></typeparam>
+	/// <param name="source"></param>
+	/// <returns></returns>
+	IInsert<T1> Insert<T1>(T1[] source) where T1 : class;
+	/// <summary>
 	/// 插入数据，传入实体集合
 	/// </summary>
 	/// <typeparam name="T1"></typeparam>

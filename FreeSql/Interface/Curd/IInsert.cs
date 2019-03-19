@@ -21,6 +21,12 @@ namespace FreeSql {
 		/// <returns></returns>
 		IInsert<T1> AppendData(T1 source);
 		/// <summary>
+		/// 追加准备插入的实体
+		/// </summary>
+		/// <param name="source">实体</param>
+		/// <returns></returns>
+		IInsert<T1> AppendData(T1[] source);
+		/// <summary>
 		/// 追加准备插入的实体集合
 		/// </summary>
 		/// <param name="source">实体集合</param>

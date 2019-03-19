@@ -45,6 +45,10 @@ namespace FreeSql.Internal.CommonProvider {
 			if (source != null) _source.Add(source);
 			return this;
 		}
+		public IInsert<T1> AppendData(T1[] source) {
+			if (source != null) _source.AddRange(source);
+			return this;
+		}
 		public IInsert<T1> AppendData(IEnumerable<T1> source) {
 			if (source != null) _source.AddRange(source.Where(a => a != null));
 			return this;
