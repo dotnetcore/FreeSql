@@ -12,8 +12,6 @@ namespace FreeSql {
 		Object<DbConnection> _conn;
 		DbTransaction _tran;
 
-		bool _isCommitOrRoolback = false;
-
 		public UnitOfWork(IFreeSql fsql) {
 			_fsql = fsql;
 		}
@@ -23,10 +21,10 @@ namespace FreeSql {
 			_tran = null;
 			_conn = null;
 		}
-		internal DbTransaction GetOrBeginTransaction() {
-			_isCommitOrRoolback = false;
+		internal DbTransaction GetOrBeginTransaction(bool isCreate = true) {
 
 			if (_tran != null) return _tran;
+			if (isCreate == false) return null;
 			if (_conn != null) _fsql.Ado.MasterPool.Return(_conn);
 
 			_conn = _fsql.Ado.MasterPool.Get();
@@ -43,27 +41,22 @@ namespace FreeSql {
 			if (_tran != null) {
 				try {
 					_tran.Commit();
-					_isCommitOrRoolback = true;
 				} finally {
 					ReturnObject();
 				}
 			}
 		}
 		public void Rollback() {
-			_isCommitOrRoolback = true;
 			if (_tran != null) {
 				try {
 					_tran.Rollback();
-					_isCommitOrRoolback = true;
 				} finally {
 					ReturnObject();
 				}
 			}
 		}
 		public void Dispose() {
-			if (_isCommitOrRoolback == false) {
-				this.Commit();
-			}
+			this.Rollback();
 		}
 
 		public DefaultRepository<TEntity, TKey> GetRepository<TEntity, TKey>(Expression<Func<TEntity, bool>> filter = null) where TEntity : class {

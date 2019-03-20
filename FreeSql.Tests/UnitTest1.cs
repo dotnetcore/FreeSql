@@ -28,10 +28,27 @@ namespace FreeSql.Tests {
 		}
 
 		ISelect<TestInfo> select => g.mysql.Select<TestInfo>();
+
+
+		class OrderContext : DbContext {
+
+			public DbSet<Order> Orders { get; set; }
+			public DbSet<OrderDetail> OrderDetails { get; set; }
+		}
+
 		[Fact]
 		public void Test1() {
 
-			var parentSelect1 = select.Where(a => a.Type.Parent.Parent.Parent.Parent.Name == "").Where(b => b.Type.Name == "").ToSql();
+			using (var ctx = new OrderContext()) {
+				ctx.Orders.Insert(new Order { }).ExecuteAffrows();
+				ctx.Orders.Delete.Where(a => a.Id > 0).ExecuteAffrows();
+
+				ctx.OrderDetails.Select.Where(dt => dt.Order.Id == 10).ToList();
+
+				ctx.SaveChanges();
+			}
+
+				var parentSelect1 = select.Where(a => a.Type.Parent.Parent.Parent.Parent.Name == "").Where(b => b.Type.Name == "").ToSql();
 
 
 			var collSelect1 = g.mysql.Select<Order>().Where(a =>

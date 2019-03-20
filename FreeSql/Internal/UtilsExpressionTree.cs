@@ -27,6 +27,7 @@ namespace FreeSql.Internal {
 			if (tbc.TryGetValue(entity, out var trytb)) return trytb;
 			if (common.CodeFirst.GetDbInfo(entity) != null) return null;
 			if (typeof(IEnumerable).IsAssignableFrom(entity)) return null;
+			if (entity.IsArray) return null;
 
 			var tbattr = common.GetEntityTableAttribute(entity);
 			trytb = new TableInfo();

@@ -51,7 +51,7 @@ namespace repository_01 {
 		}
 
 		public IConfiguration Configuration { get; }
-		public IFreeSql Fsql { get; }
+		public static IFreeSql Fsql { get; private set; }
 
 		public IServiceProvider ConfigureServices(IServiceCollection services) {
 

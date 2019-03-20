@@ -94,7 +94,7 @@ namespace FreeSql {
 		public Task<int> UpdateAsync(TEntity entity) => OrmUpdate(entity).ExecuteAffrowsAsync();
 
 		protected ISelect<TEntity> OrmSelect(object dywhere) {
-			var select = _fsql.Select<TEntity>(dywhere).WithTransaction(_unitOfWork?.GetOrBeginTransaction());
+			var select = _fsql.Select<TEntity>(dywhere).WithTransaction(_unitOfWork?.GetOrBeginTransaction(false));
 			var filters = (DataFilter as DataFilter<TEntity>)._filters.Where(a => a.Value.IsEnabled == true);
 			foreach (var filter in filters) select.Where(filter.Value.Expression);
 			return select.AsTable(AsTableSelect);
