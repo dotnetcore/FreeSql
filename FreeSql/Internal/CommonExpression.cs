@@ -54,16 +54,19 @@ namespace FreeSql.Internal {
 					field.Append(", ").Append(parent.DbField);
 					if (index >= 0) field.Append(" as").Append(++index);
 					return false;
+				case ExpressionType.Parameter:
 				case ExpressionType.MemberAccess:
 					if (_common.GetTableByEntity(exp.Type) != null) { //加载表所有字段
 						var map = new List<SelectColumnInfo>();
 						ExpressionSelectColumn_MemberAccess(_tables, map, SelectTableInfoType.From, exp, true, getSelectGroupingMapString);
-						parent.Consturctor = map.First().Table.Table.Type.GetConstructor(new Type[0]);
+						var tb = parent.Table = map.First().Table.Table;
+						parent.Consturctor = tb.Type.GetConstructor(new Type[0]);
 						parent.ConsturctorType = ReadAnonymousTypeInfoConsturctorType.Properties;
 						for (var idx = 0; idx < map.Count; idx++) {
 							var child = new ReadAnonymousTypeInfo {
-								Property = map.First().Table.Table.Type.GetProperty(map[idx].Column.CsName, BindingFlags.Public | BindingFlags.IgnoreCase | BindingFlags.Instance),
-								CsName = map[idx].Column.CsName, DbField = $"{map[idx].Table.Alias}.{_common.QuoteSqlName(map[idx].Column.Attribute.Name)}" };
+								Property = tb.Properties.TryGetValue(map[idx].Column.CsName, out var tryprop) ? tryprop : tb.Type.GetProperty(map[idx].Column.CsName, BindingFlags.Public | BindingFlags.IgnoreCase | BindingFlags.Instance),
+								CsName = map[idx].Column.CsName, DbField = $"{map[idx].Table.Alias}.{_common.QuoteSqlName(map[idx].Column.Attribute.Name)}"
+							};
 							field.Append(", ").Append(_common.QuoteReadColumn(map[idx].Column.CsType, child.DbField));
 							if (index >= 0) field.Append(" as").Append(++index);
 							parent.Childs.Add(child);
@@ -82,7 +85,8 @@ namespace FreeSql.Internal {
 					for (var a = 0; a < newExp.Members.Count; a++) {
 						var child = new ReadAnonymousTypeInfo {
 							Property = newExp.Type.GetProperty(newExp.Members[a].Name, BindingFlags.Public | BindingFlags.IgnoreCase | BindingFlags.Instance),
-							CsName = newExp.Members[a].Name, CsType = newExp.Arguments[a].Type };
+							CsName = newExp.Members[a].Name, CsType = newExp.Arguments[a].Type
+						};
 						parent.Childs.Add(child);
 						ReadAnonymousField(_tables, field, child, ref index, newExp.Arguments[a], getSelectGroupingMapString);
 					}
@@ -93,22 +97,36 @@ namespace FreeSql.Internal {
 			if (index >= 0) field.Append(" as").Append(++index);
 			return false;
 		}
-		internal object ReadAnonymous(ReadAnonymousTypeInfo parent, DbDataReader dr, ref int index) {
-			if (parent.Childs.Any() == false) return dr.GetValue(++index);
+		internal object ReadAnonymous(ReadAnonymousTypeInfo parent, DbDataReader dr, ref int index, bool notRead) {
+			if (parent.Childs.Any() == false) {
+				if (notRead) {
+					++index;
+					return null;
+				}
+				return dr.GetValue(++index);
+			}
 			switch (parent.ConsturctorType) {
 				case ReadAnonymousTypeInfoConsturctorType.Arguments:
 					var args = new object[parent.Childs.Count];
 					for (var a = 0; a < parent.Childs.Count; a++) {
-						args[a] = Utils.GetDataReaderValue(parent.Childs[a].CsType, ReadAnonymous(parent.Childs[a], dr, ref index));
+						var objval = ReadAnonymous(parent.Childs[a], dr, ref index, notRead);
+						if (notRead == false)
+							args[a] = Utils.GetDataReaderValue(parent.Childs[a].CsType, objval);
 					}
 					return parent.Consturctor.Invoke(args);
 				case ReadAnonymousTypeInfoConsturctorType.Properties:
 					var ret = parent.Consturctor.Invoke(null);
+					var isnull = notRead;
 					for (var b = 0; b < parent.Childs.Count; b++) {
 						var prop = parent.Childs[b].Property;
-						prop.SetValue(ret, Utils.GetDataReaderValue(prop.PropertyType, ReadAnonymous(parent.Childs[b], dr, ref index)), null);
+						var objval = ReadAnonymous(parent.Childs[b], dr, ref index, notRead);
+						var safeval = Utils.GetDataReaderValue(prop.PropertyType, objval);
+						if (isnull == false && safeval == null && parent.Table.ColumnsByCs.TryGetValue(parent.Childs[b].CsName, out var trycol) && trycol.Attribute.IsPrimary)
+							isnull = true;
+						if (isnull == false)
+							prop.SetValue(ret, safeval, null);
 					}
-					return ret;
+					return isnull ? null : ret;
 			}
 			return null;
 		}
@@ -445,24 +463,26 @@ namespace FreeSql.Internal {
 					var other3Exp = ExpressionLambdaToSqlOther(exp3, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
 					if (string.IsNullOrEmpty(other3Exp) == false) return other3Exp;
 					throw new Exception($"未实现函数表达式 {exp3} 解析");
+				case ExpressionType.Parameter:
 				case ExpressionType.MemberAccess:
 					var exp4 = exp as MemberExpression;
-					if (exp4.Expression != null && exp4.Expression.Type.IsArray == false && exp4.Expression.Type.IsNullableType()) return ExpressionLambdaToSql(exp4.Expression, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
-					var extRet = "";
-					var memberType = exp4.Expression?.Type ?? exp4.Type;
-					switch (memberType.FullName) {
-						case "System.String": extRet = ExpressionLambdaToSqlMemberAccessString(exp4, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName); break;
-						case "System.DateTime": extRet = ExpressionLambdaToSqlMemberAccessDateTime(exp4, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName); break;
-						case "System.TimeSpan": extRet = ExpressionLambdaToSqlMemberAccessTimeSpan(exp4, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName); break;
+					if (exp4 != null) {
+						if (exp4.Expression != null && exp4.Expression.Type.IsArray == false && exp4.Expression.Type.IsNullableType()) return ExpressionLambdaToSql(exp4.Expression, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+						var extRet = "";
+						var memberType = exp4.Expression?.Type ?? exp4.Type;
+						switch (memberType.FullName) {
+							case "System.String": extRet = ExpressionLambdaToSqlMemberAccessString(exp4, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName); break;
+							case "System.DateTime": extRet = ExpressionLambdaToSqlMemberAccessDateTime(exp4, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName); break;
+							case "System.TimeSpan": extRet = ExpressionLambdaToSqlMemberAccessTimeSpan(exp4, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName); break;
+						}
+						if (string.IsNullOrEmpty(extRet) == false) return extRet;
+						var other4Exp = ExpressionLambdaToSqlOther(exp4, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+						if (string.IsNullOrEmpty(other4Exp) == false) return other4Exp;
 					}
-					if (string.IsNullOrEmpty(extRet) == false) return extRet;
-					var other4Exp = ExpressionLambdaToSqlOther(exp4, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
-					if (string.IsNullOrEmpty(other4Exp) == false) return other4Exp;
-
 					var expStack = new Stack<Expression>();
 					expStack.Push(exp);
 					MethodCallExpression callExp = null;
-					var exp2 = exp4.Expression;
+					var exp2 = exp4?.Expression;
 					while (true) {
 						switch(exp2?.NodeType) {
 							case ExpressionType.Constant:
@@ -508,7 +528,11 @@ namespace FreeSql.Internal {
 					}
 					Func<TableInfo, string, bool, ParameterExpression, MemberExpression, SelectTableInfo> getOrAddTable = (tbtmp, alias, isa, parmExp, mp) => {
 						var finds = new SelectTableInfo[0];
-						if (isa && parmExp != null)
+						if (_selectColumnMap != null) {
+							finds = _tables.Where(a => a.Table.Type == tbtmp.Type).ToArray();
+							if (finds.Any()) finds = new[] { finds.First() };
+						}
+						if (finds.Length != 1 && isa && parmExp != null)
 							finds = _tables.Where(a => a.Parameter == parmExp).ToArray();
 						if (finds.Length != 1) {
 							var navdot = string.IsNullOrEmpty(alias) ? new SelectTableInfo[0] : _tables.Where(a2 => a2.Parameter != null && alias.StartsWith($"{a2.Alias}__")).ToArray();
@@ -604,6 +628,13 @@ namespace FreeSql.Internal {
 									find2 = getOrAddTable(tb2tmp, alias2, exp2.NodeType == ExpressionType.Parameter, parmExp2, mp2);
 									alias2 = find2.Alias;
 									tb2 = tb2tmp;
+								}
+								if (exp2.NodeType == ExpressionType.Parameter && expStack.Any() == false) { //附加选择的参数所有列
+									if (_selectColumnMap != null) {
+										foreach (var tb2c in tb2.Columns.Values)
+											_selectColumnMap.Add(new SelectColumnInfo { Table = find2, Column = tb2c });
+										if (tb2.Columns.Any()) return "";
+									}
 								}
 								if (mp2 == null || expStack.Any()) continue;
 								if (tb2.ColumnsByCs.ContainsKey(mp2.Member.Name) == false) { //如果选的是对象，附加所有列

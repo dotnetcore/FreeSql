@@ -12,7 +12,7 @@ namespace FreeSql.Tests {
 	public class UnitTest1 {
 
 		public class Order {
-			[Column(IsPrimary = true)]
+			[Column(IsIdentity = true)]
 			public int Id { get; set; }
 			public string OrderTitle { get; set; }
 			public string CustomerName { get; set; }
@@ -20,7 +20,7 @@ namespace FreeSql.Tests {
 			public virtual List<OrderDetail> OrderDetails { get; set; }
 		}
 		public class OrderDetail {
-			[Column(IsPrimary = true)]
+			[Column(IsIdentity = true)]
 			public int Id { get; set; }
 
 			public int OrderId { get; set; }
@@ -34,6 +34,10 @@ namespace FreeSql.Tests {
 
 			public DbSet<Order> Orders { get; set; }
 			public DbSet<OrderDetail> OrderDetails { get; set; }
+
+			protected override void OnConfiguring(DbContextOptionsBuilder builder) {
+				builder.UseFreeSql(g.mysql);
+			}
 		}
 
 		[Fact]

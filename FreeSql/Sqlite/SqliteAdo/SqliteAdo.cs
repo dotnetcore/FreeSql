@@ -10,11 +10,9 @@ using System.Threading;
 
 namespace FreeSql.Sqlite {
 	class SqliteAdo : FreeSql.Internal.CommonProvider.AdoProvider {
-		CommonUtils _util;
-
 		public SqliteAdo() : base(null, null, DataType.Sqlite) { }
 		public SqliteAdo(CommonUtils util, ICache cache, ILogger log, string masterConnectionString, string[] slaveConnectionStrings) : base(cache, log, DataType.Sqlite) {
-			this._util = util;
+			base._util = util;
 			MasterPool = new SqliteConnectionPool("主库", masterConnectionString, null, null);
 			if (slaveConnectionStrings != null) {
 				foreach (var slaveConnectionString in slaveConnectionStrings) {

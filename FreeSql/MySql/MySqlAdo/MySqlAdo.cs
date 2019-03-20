@@ -10,11 +10,10 @@ using System.Threading;
 
 namespace FreeSql.MySql {
 	class MySqlAdo : FreeSql.Internal.CommonProvider.AdoProvider {
-		CommonUtils _util;
 
 		public MySqlAdo() : base(null, null, DataType.MySql) { }
 		public MySqlAdo(CommonUtils util, ICache cache, ILogger log, string masterConnectionString, string[] slaveConnectionStrings) : base(cache, log, DataType.MySql) {
-			this._util = util;
+			base._util = util;
 			MasterPool = new MySqlConnectionPool("主库", masterConnectionString, null, null);
 			if (slaveConnectionStrings != null) {
 				foreach (var slaveConnectionString in slaveConnectionStrings) {

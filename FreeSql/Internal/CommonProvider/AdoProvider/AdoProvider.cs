@@ -26,6 +26,7 @@ namespace FreeSql.Internal.CommonProvider {
 		public DataType DataType { get; }
 		protected ICache _cache { get; set; }
 		protected ILogger _log { get; set; }
+		protected CommonUtils _util { get; set; }
 		protected int slaveUnavailables = 0;
 		private object slaveLock = new object();
 		private Random slaveRandom = new Random();
@@ -89,7 +90,7 @@ namespace FreeSql.Internal.CommonProvider {
 						dic.Add(dr.GetName(a), a);
 					indexes = props.Select(a => dic.TryGetValue(a.Name, out var tryint) ? tryint : -1).ToArray();
 				}
-				ret.Add((T)Utils.ExecuteArrayRowReadClassOrTuple(type, indexes, dr, 0).Value);
+				ret.Add((T)Utils.ExecuteArrayRowReadClassOrTuple(type, indexes, dr, 0, _util).Value);
 			}, cmdType, cmdText, cmdParms);
 			return ret;
 		}

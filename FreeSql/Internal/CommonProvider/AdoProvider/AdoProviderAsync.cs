@@ -25,7 +25,7 @@ namespace FreeSql.Internal.CommonProvider {
 						dic.Add(dr.GetName(a), a);
 					indexes = props.Select(a => dic.TryGetValue(a.Name, out var tryint) ? tryint : -1).ToArray();
 				}
-				ret.Add((T)Utils.ExecuteArrayRowReadClassOrTuple(type, indexes, dr, 0).Value);
+				ret.Add((T)Utils.ExecuteArrayRowReadClassOrTuple(type, indexes, dr, 0, _util).Value);
 				return Task.CompletedTask;
 			}, cmdType, cmdText, cmdParms);
 			return ret;

@@ -10,11 +10,9 @@ using System.Threading;
 
 namespace FreeSql.Oracle {
 	class OracleAdo : FreeSql.Internal.CommonProvider.AdoProvider {
-		CommonUtils _util;
-
 		public OracleAdo() : base(null, null, DataType.Oracle) { }
 		public OracleAdo(CommonUtils util, ICache cache, ILogger log, string masterConnectionString, string[] slaveConnectionStrings) : base(cache, log, DataType.Oracle) {
-			this._util = util;
+			base._util = util;
 			MasterPool = new OracleConnectionPool("主库", masterConnectionString, null, null);
 			if (slaveConnectionStrings != null) {
 				foreach (var slaveConnectionString in slaveConnectionStrings) {

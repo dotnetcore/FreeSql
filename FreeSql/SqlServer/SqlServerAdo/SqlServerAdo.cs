@@ -10,11 +10,9 @@ using System.Threading;
 
 namespace FreeSql.SqlServer {
 	class SqlServerAdo : FreeSql.Internal.CommonProvider.AdoProvider {
-		CommonUtils _util;
-
 		public SqlServerAdo() : base(null, null, DataType.SqlServer) { }
 		public SqlServerAdo(CommonUtils util, ICache cache, ILogger log, string masterConnectionString, string[] slaveConnectionStrings) : base(cache, log, DataType.SqlServer) {
-			this._util = util;
+			base._util = util;
 			MasterPool = new SqlServerConnectionPool("主库", masterConnectionString, null, null);
 			if (slaveConnectionStrings != null) {
 				foreach (var slaveConnectionString in slaveConnectionStrings) {

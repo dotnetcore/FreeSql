@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data;
 using System.Data.Common;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -211,7 +212,7 @@ namespace FreeSql.Internal.CommonProvider {
 				List<TTuple> ret = new List<TTuple>();
 				Type type = typeof(TTuple);
 				_orm.Ado.ExecuteReader(_transaction, dr => {
-					var read = Utils.ExecuteArrayRowReadClassOrTuple(type, null, dr);
+					var read = Utils.ExecuteArrayRowReadClassOrTuple(type, null, dr, 0, _commonUtils);
 					ret.Add((TTuple)read.Value);
 				}, CommandType.Text, sql, _params.ToArray());
 				return ret;
@@ -225,7 +226,7 @@ namespace FreeSql.Internal.CommonProvider {
 				List<TTuple> ret = new List<TTuple>();
 				Type type = typeof(TTuple);
 				await _orm.Ado.ExecuteReaderAsync(_transaction, dr => {
-					var read = Utils.ExecuteArrayRowReadClassOrTuple(type, null, dr);
+					var read = Utils.ExecuteArrayRowReadClassOrTuple(type, null, dr, 0, _commonUtils);
 					ret.Add((TTuple)read.Value);
 					return Task.CompletedTask;
 				}, CommandType.Text, sql, _params.ToArray());
@@ -280,7 +281,7 @@ namespace FreeSql.Internal.CommonProvider {
 				Type type = typeof(TReturn);
 				_orm.Ado.ExecuteReader(_transaction, dr => {
 					var index = -1;
-					ret.Add((TReturn)_commonExpression.ReadAnonymous(af.map, dr, ref index));
+					ret.Add((TReturn)_commonExpression.ReadAnonymous(af.map, dr, ref index, false));
 				}, CommandType.Text, sql, _params.ToArray());
 				return ret;
 			});
@@ -294,7 +295,7 @@ namespace FreeSql.Internal.CommonProvider {
 				Type type = typeof(TReturn);
 				await _orm.Ado.ExecuteReaderAsync(_transaction, dr => {
 					var index = -1;
-					ret.Add((TReturn)_commonExpression.ReadAnonymous(af.map, dr, ref index));
+					ret.Add((TReturn)_commonExpression.ReadAnonymous(af.map, dr, ref index, false));
 					return Task.CompletedTask;
 				}, CommandType.Text, sql, _params.ToArray());
 				return ret;
@@ -387,15 +388,16 @@ namespace FreeSql.Internal.CommonProvider {
 								Expression.Add(dataIndexExp, Expression.Constant(1))
 						);
 						else {
-							readExpAssign = Expression.Call(Utils.MethodExecuteArrayRowReadClassOrTuple, new Expression[] { Expression.Constant(prop.PropertyType), Expression.Constant(null, typeof(int[])), rowExp, dataIndexExp });
+							readExpAssign = Expression.Call(Utils.MethodExecuteArrayRowReadClassOrTuple, new Expression[] { Expression.Constant(prop.PropertyType), Expression.Constant(null, typeof(int[])), rowExp, dataIndexExp, Expression.Constant(_commonUtils) });
 						}
 					}
 					blockExp.AddRange(new Expression[] {
 						Expression.Assign(readExp, readExpAssign),
 						Expression.IfThen(Expression.GreaterThan(readExpDataIndex, dataIndexExp),
 							Expression.Assign(dataIndexExp, readExpDataIndex)),
-						Expression.IfThenElse(Expression.Equal(readExpValue, Expression.Constant(null)),
-							Expression.Call(retExp, propGetSetMethod, Expression.Default(prop.PropertyType)),
+						Expression.Call(typeof(Trace).GetMethod("WriteLine", new Type[]{typeof(string)}), Expression.Call(typeof(string).GetMethod("Concat", new Type[]{typeof(object) }), readExpValue)),
+						Expression.IfThen(Expression.NotEqual(readExpValue, Expression.Constant(null)),
+							//Expression.Call(retExp, propGetSetMethod, Expression.Default(prop.PropertyType)),
 							Expression.Call(retExp, propGetSetMethod, Expression.Convert(readExpValue, prop.PropertyType)))
 					});
 				}
@@ -403,7 +405,7 @@ namespace FreeSql.Internal.CommonProvider {
 					blockExp.Clear();
 					blockExp.AddRange(new Expression[] {
 						Expression.Assign(dataIndexExp, Expression.Constant(0)),
-						Expression.Assign(readExp, Expression.Call(Utils.MethodExecuteArrayRowReadClassOrTuple, new Expression[] { Expression.Constant(type), Expression.Constant(null, typeof(int[])), rowExp, dataIndexExp })),
+						Expression.Assign(readExp, Expression.Call(Utils.MethodExecuteArrayRowReadClassOrTuple, new Expression[] { Expression.Constant(type), Expression.Constant(null, typeof(int[])), rowExp, dataIndexExp, Expression.Constant(_commonUtils) })),
 						Expression.Assign(retExp, Expression.Convert(readExpValue, type))
 					});
 				}
