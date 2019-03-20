@@ -395,7 +395,7 @@ namespace FreeSql.Internal.CommonProvider {
 						Expression.Assign(readExp, readExpAssign),
 						Expression.IfThen(Expression.GreaterThan(readExpDataIndex, dataIndexExp),
 							Expression.Assign(dataIndexExp, readExpDataIndex)),
-						Expression.Call(typeof(Trace).GetMethod("WriteLine", new Type[]{typeof(string)}), Expression.Call(typeof(string).GetMethod("Concat", new Type[]{typeof(object) }), readExpValue)),
+						//Expression.Call(typeof(Trace).GetMethod("WriteLine", new Type[]{typeof(string)}), Expression.Call(typeof(string).GetMethod("Concat", new Type[]{typeof(object) }), readExpValue)),
 						Expression.IfThen(Expression.NotEqual(readExpValue, Expression.Constant(null)),
 							//Expression.Call(retExp, propGetSetMethod, Expression.Default(prop.PropertyType)),
 							Expression.Call(retExp, propGetSetMethod, Expression.Convert(readExpValue, prop.PropertyType)))

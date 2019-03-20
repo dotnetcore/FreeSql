@@ -28,19 +28,70 @@ namespace dbcontext_01.Controllers
 			try {
 				using (var ctx = new SongContext()) {
 
-					id = await ctx.Songs.Insert(new Song { }).ExecuteIdentityAsync();
+					var song = new Song { };
+					ctx.Songs.Add(song);
+					id = song.Id;
 
-					var item = await ctx.Songs.Select.Where(a => a.Id == id).FirstAsync();
+					var adds = Enumerable.Range(0, 100)
+						.Select(a => new Song { Create_time = DateTime.Now, Is_deleted = false, Title = "xxxx" + a, Url = "url222" })
+						.ToList();
+					ctx.Songs.AddRange(adds);
 
-					throw new Exception("回滚");
+					for (var a = 0; a < adds.Count; a++)
+						adds[a].Title = "dkdkdkdk" + a;
 
+					ctx.Songs.UpdateRange(adds);
+
+					ctx.Songs.RemoveRange(adds.Skip(10).Take(20).ToList());
+
+					//ctx.Songs.Update(adds.First());
+
+					adds.Last().Url = "skldfjlksdjglkjjcccc";
+					ctx.Songs.Update(adds.Last());
+
+					//throw new Exception("回滚");
+
+					ctx.SaveChanges();
+				}
+
+				using (var ctx = new SongContext()) {
+
+					var song = new Song { };
+					await ctx.Songs.AddAsync(song);
+					id = song.Id;
+
+					var adds = Enumerable.Range(0, 100)
+						.Select(a => new Song { Create_time = DateTime.Now, Is_deleted = false, Title = "xxxx" + a, Url = "url222" })
+						.ToList();
+					await ctx.Songs.AddRangeAsync(adds);
+
+					for (var a = 0; a < adds.Count; a++)
+						adds[a].Title = "dkdkdkdk" + a;
+
+					ctx.Songs.UpdateRange(adds);
+
+					ctx.Songs.RemoveRange(adds.Skip(10).Take(20).ToList());
+
+					//ctx.Songs.Update(adds.First());
+
+					adds.Last().Url = "skldfjlksdjglkjjcccc";
+					ctx.Songs.Update(adds.Last());
+
+					//throw new Exception("回滚");
+
+					await ctx.SaveChangesAsync();
 				}
 			} catch {
 				var item = await _orm.Select<Song>().Where(a => a.Id == id).FirstAsync();
 
 				throw;
 			}
-        }
+
+			var item22 = await _orm.Select<Song>().Where(a => a.Id == id).FirstAsync();
+			var item33 = await _orm.Select<Song>().Where(a => a.Id > id).ToListAsync();
+
+			return item22.Title;
+		}
 
         // GET api/values/5
         [HttpGet("{id}")]

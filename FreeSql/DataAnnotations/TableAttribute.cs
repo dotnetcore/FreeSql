@@ -16,6 +16,12 @@ namespace FreeSql.DataAnnotations {
 		/// 查询过滤SQL，实现类似 a.IsDeleted = 1 功能
 		/// </summary>
 		public string SelectFilter { get; set; }
+		
+		internal bool? _RowVersion;
+		/// <summary>
+		/// 修改/删除时，启用行版本检查
+		/// </summary>
+		public bool RowVersion { get => _RowVersion ?? false; set => _RowVersion = value; }
 
 		internal ConcurrentDictionary<string, ColumnAttribute> _columns { get; } = new ConcurrentDictionary<string, ColumnAttribute>(StringComparer.CurrentCultureIgnoreCase);
 	}

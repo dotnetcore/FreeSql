@@ -44,10 +44,10 @@ namespace FreeSql.Tests {
 		public void Test1() {
 
 			using (var ctx = new OrderContext()) {
-				ctx.Orders.Insert(new Order { }).ExecuteAffrows();
-				ctx.Orders.Delete.Where(a => a.Id > 0).ExecuteAffrows();
+				//ctx.Orders.OrmInsert(new Order { }).ExecuteAffrows();
+				//ctx.Orders.OrmDelete.Where(a => a.Id > 0).ExecuteAffrows();
 
-				ctx.OrderDetails.Select.Where(dt => dt.Order.Id == 10).ToList();
+				//ctx.OrderDetails.OrmSelect.Where(dt => dt.Order.Id == 10).ToList();
 
 				ctx.SaveChanges();
 			}

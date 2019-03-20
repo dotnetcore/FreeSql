@@ -41,6 +41,12 @@ namespace orm_vs
 				//optionsBuilder.UseMySql("Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Min Pool Size=21;Max Pool Size=21");
 			}
 		}
+		class FreeSongContext: FreeSql.DbContext {
+			public FreeSql.DbSet<Song> Songs { get; set; }
+			protected override void OnConfiguring(FreeSql.DbContextOptionsBuilder builder) {
+				builder.UseFreeSql(fsql);
+			}
+		}
 
 		static void Main(string[] args) {
 
@@ -143,8 +149,14 @@ namespace orm_vs
 			Stopwatch sw = new Stopwatch();
 
 			sw.Restart();
-			for (var a = 0; a < forTime; a++)
-				fsql.Insert(songs).ExecuteAffrows();
+			for (var a = 0; a < forTime; a++) {
+				//fsql.Insert(songs).ExecuteAffrows();
+				using (var db = new FreeSongContext()) {
+					//db.Configuration.AutoDetectChangesEnabled = false;
+					db.Songs.AddRange(songs.ToArray());
+					db.SaveChanges();
+				}
+			}
 			sw.Stop();
 			sb.AppendLine($"FreeSql Insert {size}条数据，循环{forTime}次，耗时{sw.ElapsedMilliseconds}ms");
 

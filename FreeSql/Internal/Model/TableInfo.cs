@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Reflection;
 
 namespace FreeSql.Internal.Model {
-	class TableInfo {
+	public class TableInfo {
 		public Type Type { get; set; }
 		public Type TypeLazy { get; set; }
 		public MethodInfo TypeLazySetOrm { get; set; }

@@ -1,4 +1,5 @@
 ﻿using FreeSql.DataAnnotations;
+using FreeSql.Internal.Model;
 using System;
 
 namespace FreeSql {
@@ -81,5 +82,11 @@ namespace FreeSql {
 		/// <param name="type"></param>
 		/// <returns>未使用ConfigEntity配置时，返回null</returns>
 		TableAttribute GetConfigEntity(Type type);
+		/// <summary>
+		/// 获取实体类核心配置
+		/// </summary>
+		/// <param name="type"></param>
+		/// <returns></returns>
+		TableInfo GetTableByEntity(Type type);
 	}
 }

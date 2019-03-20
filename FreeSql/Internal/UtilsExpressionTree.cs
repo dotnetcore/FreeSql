@@ -13,7 +13,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 
 namespace FreeSql.Internal {
-	class Utils {
+	public class Utils {
 
 		static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, TableInfo>> _cacheGetTableByEntity = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, TableInfo>>();
 		internal static void RemoveTableByEntity(Type entity, CommonUtils common) {
@@ -997,7 +997,7 @@ namespace FreeSql.Internal {
 		static MethodInfo MethodJTokenParse = typeof(JToken).GetMethod("Parse", new[] { typeof(string) });
 		static MethodInfo MethodJObjectParse = typeof(JObject).GetMethod("Parse", new[] { typeof(string) });
 		static MethodInfo MethodJArrayParse = typeof(JArray).GetMethod("Parse", new[] { typeof(string) });
-		internal static Expression GetDataReaderValueBlockExpression(Type type, Expression value) {
+		public static Expression GetDataReaderValueBlockExpression(Type type, Expression value) {
 			var returnTarget = Expression.Label(typeof(object));
 			var valueExp = Expression.Variable(typeof(object), "locvalue");
 			Func<Expression> funcGetExpression = () => {
@@ -1084,7 +1084,7 @@ namespace FreeSql.Internal {
 				Expression.Label(returnTarget, Expression.Default(typeof(object)))
 			);
 		}
-		internal static object GetDataReaderValue(Type type, object value) {
+		public static object GetDataReaderValue(Type type, object value) {
 			if (value == null || value == DBNull.Value) return null;
 			var func = _dicGetDataReaderValue.GetOrAdd(type, k1 => new ConcurrentDictionary<Type, Func<object, object>>()).GetOrAdd(value.GetType(), valueType => {
 				var parmExp = Expression.Parameter(typeof(object), "value");

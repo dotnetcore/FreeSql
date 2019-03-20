@@ -63,6 +63,11 @@ namespace FreeSql.Internal.CommonProvider {
 			foreach (var col in cols) _ignore.Add(col, true);
 			return this;
 		}
+		public IUpdate<T1> IgnoreColumns(string[] columns) {
+			_ignore.Clear();
+			foreach (var col in columns) _ignore.Add(col, true);
+			return this;
+		}
 
 		public IUpdate<T1> SetSource(T1 source) => this.SetSource(new[] { source });
 		public IUpdate<T1> SetSource(IEnumerable<T1> source) {

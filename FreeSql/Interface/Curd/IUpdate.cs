@@ -38,6 +38,12 @@ namespace FreeSql {
 		/// <param name="columns">lambda选择列</param>
 		/// <returns></returns>
 		IUpdate<T1> IgnoreColumns(Expression<Func<T1, object>> columns);
+		/// <summary>
+		/// 忽略的列
+		/// </summary>
+		/// <param name="columns"></param>
+		/// <returns></returns>
+		IUpdate<T1> IgnoreColumns(string[] columns);
 
 		/// <summary>
 		/// 设置列的新值，Set(a => a.Name, "newvalue")

@@ -2,7 +2,7 @@
 using System;
 
 namespace FreeSql.Internal.Model {
-	class ColumnInfo {
+	public class ColumnInfo {
 		public TableInfo Table { get; set; }
 		public string CsName { get; set; }
 		public Type CsType { get; set; }

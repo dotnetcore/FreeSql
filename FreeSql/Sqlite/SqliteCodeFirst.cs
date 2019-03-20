@@ -245,5 +245,6 @@ namespace FreeSql.Sqlite {
 		public ICodeFirst ConfigEntity<T>(Action<TableFluent<T>> entity) => _commonUtils.ConfigEntity(entity);
 		public ICodeFirst ConfigEntity(Type type, Action<TableFluent> entity) => _commonUtils.ConfigEntity(type, entity);
 		public TableAttribute GetConfigEntity(Type type) => _commonUtils.GetConfigEntity(type);
+		public TableInfo GetTableByEntity(Type type) => _commonUtils.GetTableByEntity(type);
 	}
 }
