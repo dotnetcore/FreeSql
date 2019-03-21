@@ -75,15 +75,12 @@ var t2 = fsql.Select<Song>().Where(s => s.Tags.AsSelect().Any(t => t.Name == "�
 ```
 更多前往Wiki：[《Select 查询数据文档》](https://github.com/2881099/FreeSql/wiki/%e6%9f%a5%e8%af%a2)
 
-# Lambda
 ```csharp
 var t3 = f.Select<Song>.Where(a => new[] { 1, 2, 3 }.Contains(a.Id)).ToList();
 ```
-
 ```csharp
 var t4 = select.Where(a => a.CreateTime.Date == DateTime.Now.Date).ToList();
 ```
-
 ```csharp
 var t5 = select.OrderBy(a => Guid.NewGuid()).Limit(1).ToList();
 ```
@@ -119,11 +116,10 @@ public class SongContext : DbContext {
     }
 }
 
-long id = 0;
 using (var ctx = new SongContext()) {
     var song = new Song { };
     await ctx.Songs.AddAsync(song);
-    id = song.Id;
+    var id = song.Id;
 
     var adds = Enumerable.Range(0, 100).Select(a => new Song { Title = "xxxx" + a, Url = "url222" }).ToList();
     await ctx.Songs.AddRangeAsync(adds);
