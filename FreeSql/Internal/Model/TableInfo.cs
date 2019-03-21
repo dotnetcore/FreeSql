@@ -23,9 +23,12 @@ namespace FreeSql.Internal.Model {
 		internal void AddOrUpdateTableRef(string propertyName, TableRef tbref) {
 			_refs.AddOrUpdate(propertyName, tbref, (ok, ov) => tbref);
 		}
-		internal TableRef GetTableRef(string propertyName) {
+		internal TableRef GetTableRef(string propertyName, bool isThrowException) {
 			if (_refs.TryGetValue(propertyName, out var tryref) == false) return null;
-			if (tryref.Exception != null) throw tryref.Exception;
+			if (tryref.Exception != null) {
+				if (isThrowException) throw tryref.Exception;
+				return null;
+			}
 			return tryref;
 		}
 	}

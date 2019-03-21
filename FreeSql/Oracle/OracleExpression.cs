@@ -12,8 +12,8 @@ namespace FreeSql.Oracle {
 
 		public OracleExpression(CommonUtils common) : base(common) { }
 
-		internal override string ExpressionLambdaToSqlOther(Expression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName) {
-			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+		internal override string ExpressionLambdaToSqlOther(Expression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName, bool isDisableDiyParse, ExpressionStyle style) {
+			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName, isDisableDiyParse, style);
 			switch (exp.NodeType) {
 				case ExpressionType.Convert:
 					var operandExp = (exp as UnaryExpression)?.Operand;
@@ -134,20 +134,20 @@ namespace FreeSql.Oracle {
 			return null;
 		}
 
-		internal override string ExpressionLambdaToSqlMemberAccessString(MemberExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName) {
+		internal override string ExpressionLambdaToSqlMemberAccessString(MemberExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName, bool isDisableDiyParse, ExpressionStyle style) {
 			if (exp.Expression == null) {
 				switch (exp.Member.Name) {
 					case "Empty": return "''";
 				}
 				return null;
 			}
-			var left = ExpressionLambdaToSql(exp.Expression, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+			var left = ExpressionLambdaToSql(exp.Expression, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName, isDisableDiyParse, style);
 			switch (exp.Member.Name) {
 				case "Length": return $"length({left})";
 			}
 			return null;
 		}
-		internal override string ExpressionLambdaToSqlMemberAccessDateTime(MemberExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName) {
+		internal override string ExpressionLambdaToSqlMemberAccessDateTime(MemberExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName, bool isDisableDiyParse, ExpressionStyle style) {
 			if (exp.Expression == null) {
 				switch (exp.Member.Name) {
 					case "Now": return "systimestamp";
@@ -158,7 +158,7 @@ namespace FreeSql.Oracle {
 				}
 				return null;
 			}
-			var left = ExpressionLambdaToSql(exp.Expression, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+			var left = ExpressionLambdaToSql(exp.Expression, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName, isDisableDiyParse, style);
 			switch (exp.Member.Name) {
 				case "Date": return $"trunc({left})";
 				case "TimeOfDay": return $"({left}-trunc({left}))";
@@ -175,7 +175,7 @@ namespace FreeSql.Oracle {
 			}
 			return null;
 		}
-		internal override string ExpressionLambdaToSqlMemberAccessTimeSpan(MemberExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName) {
+		internal override string ExpressionLambdaToSqlMemberAccessTimeSpan(MemberExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName, bool isDisableDiyParse, ExpressionStyle style) {
 			if (exp.Expression == null) {
 				switch (exp.Member.Name) {
 					case "Zero": return "numtodsinterval(0,'second')";
@@ -184,7 +184,7 @@ namespace FreeSql.Oracle {
 				}
 				return null;
 			}
-			var left = ExpressionLambdaToSql(exp.Expression, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+			var left = ExpressionLambdaToSql(exp.Expression, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName, isDisableDiyParse, style);
 			switch (exp.Member.Name) {
 				case "Days": return $"extract(day from {left})";
 				case "Hours": return $"extract(hour from {left})";
@@ -201,8 +201,8 @@ namespace FreeSql.Oracle {
 			return null;
 		}
 
-		internal override string ExpressionLambdaToSqlCallString(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName) {
-			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+		internal override string ExpressionLambdaToSqlCallString(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName, bool isDisableDiyParse, ExpressionStyle style) {
+			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName, isDisableDiyParse, style);
 			if (exp.Object == null) {
 				switch (exp.Method.Name) {
 					case "IsNullOrEmpty":
@@ -272,8 +272,8 @@ namespace FreeSql.Oracle {
 			}
 			throw new Exception($"OracleExpression 未实现函数表达式 {exp} 解析");
 		}
-		internal override string ExpressionLambdaToSqlCallMath(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName) {
-			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+		internal override string ExpressionLambdaToSqlCallMath(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName, bool isDisableDiyParse, ExpressionStyle style) {
+			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName, isDisableDiyParse, style);
 			switch (exp.Method.Name) {
 				case "Abs": return $"abs({getExp(exp.Arguments[0])})";
 				case "Sign": return $"sign({getExp(exp.Arguments[0])})";
@@ -299,8 +299,8 @@ namespace FreeSql.Oracle {
 			}
 			throw new Exception($"OracleExpression 未实现函数表达式 {exp} 解析");
 		}
-		internal override string ExpressionLambdaToSqlCallDateTime(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName) {
-			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+		internal override string ExpressionLambdaToSqlCallDateTime(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName, bool isDisableDiyParse, ExpressionStyle style) {
+			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName, isDisableDiyParse, style);
 			if (exp.Object == null) {
 				switch (exp.Method.Name) {
 					case "Compare": return $"extract(day from ({getExp(exp.Arguments[0])}-({getExp(exp.Arguments[1])})))";
@@ -342,8 +342,8 @@ namespace FreeSql.Oracle {
 			}
 			throw new Exception($"OracleExpression 未实现函数表达式 {exp} 解析");
 		}
-		internal override string ExpressionLambdaToSqlCallTimeSpan(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName) {
-			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+		internal override string ExpressionLambdaToSqlCallTimeSpan(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName, bool isDisableDiyParse, ExpressionStyle style) {
+			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName, isDisableDiyParse, style);
 			if (exp.Object == null) {
 				switch (exp.Method.Name) {
 					case "Compare": return $"extract(day from ({getExp(exp.Arguments[0])}-({getExp(exp.Arguments[1])})))";
@@ -372,8 +372,8 @@ namespace FreeSql.Oracle {
 			}
 			throw new Exception($"OracleExpression 未实现函数表达式 {exp} 解析");
 		}
-		internal override string ExpressionLambdaToSqlCallConvert(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName) {
-			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName);
+		internal override string ExpressionLambdaToSqlCallConvert(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName, bool isDisableDiyParse, ExpressionStyle style) {
+			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName, isDisableDiyParse, style);
 			if (exp.Object == null) {
 				switch (exp.Method.Name) {
 					//case "ToBoolean": return $"({getExp(exp.Arguments[0])} not in ('0','false'))";

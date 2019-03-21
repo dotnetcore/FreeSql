@@ -425,10 +425,19 @@ namespace FreeSql.Internal.CommonProvider {
 					blockExp.AddRange(new Expression[] {
 						Expression.Assign(dataIndexExp, Expression.Constant(0)),
 						Expression.Assign(readExp, Expression.Call(Utils.MethodExecuteArrayRowReadClassOrTuple, new Expression[] { Expression.Constant(type), Expression.Constant(null, typeof(int[])), rowExp, dataIndexExp, Expression.Constant(_commonUtils) })),
-						Expression.Assign(retExp, Expression.Convert(readExpValue, type))
+						Expression.IfThen(
+							Expression.NotEqual(readExpValue, Expression.Constant(null)),
+							Expression.Assign(retExp, Expression.Convert(readExpValue, type))
+						)
 					});
 				}
-				if (tb1.TypeLazy != null) blockExp.Add(Expression.Call(retExp, tb1.TypeLazySetOrm, Expression.Constant(_orm))); //将 orm 传递给 lazy
+				if (tb1.TypeLazy != null)
+					blockExp.Add(
+						Expression.IfThen(
+							Expression.NotEqual(readExpValue, Expression.Constant(null)),
+							Expression.Call(retExp, tb1.TypeLazySetOrm, Expression.Constant(_orm))
+						)
+					); //将 orm 传递给 lazy
 				blockExp.AddRange(new Expression[] {
 					Expression.Return(returnTarget, retExp),
 					Expression.Label(returnTarget, Expression.Default(type))

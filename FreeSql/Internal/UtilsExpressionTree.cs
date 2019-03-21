@@ -796,10 +796,11 @@ namespace FreeSql.Internal {
 					});
 					foreach (var ctorParm in ctorParms) {
 						var ispkExp = new List<Expression>();
+						Expression readVal = Expression.Assign(readpkvalExp, Expression.Call(rowExp, MethodDataReaderGetValue, dataIndexExp));
 						Expression readExpAssign = null; //加速缓存
 						if (ctorParm.ParameterType.IsArray) readExpAssign = Expression.New(RowInfo.Constructor,
-							GetDataReaderValueBlockExpression(ctorParm.ParameterType, Expression.Call(rowExp, MethodDataReaderGetValue, dataIndexExp)),
-							//Expression.Call(MethodGetDataReaderValue, new Expression[] { Expression.Constant(ctorParm.ParameterType), Expression.Call(rowExp, MethodDataReaderGetValue, dataIndexExp) }),
+							GetDataReaderValueBlockExpression(ctorParm.ParameterType, readpkvalExp),
+							//Expression.Call(MethodGetDataReaderValue, new Expression[] { Expression.Constant(ctorParm.ParameterType), readpkvalExp }),
 							Expression.Add(dataIndexExp, Expression.Constant(1))
 						);
 						else {
@@ -809,7 +810,7 @@ namespace FreeSql.Internal {
 								dicExecuteArrayRowReadClassOrTuple.ContainsKey(proptypeGeneric)) {
 
 								//判断主键为空，则整个对象不读取
-								blockExp.Add(Expression.Assign(readpkvalExp, Expression.Call(rowExp, MethodDataReaderGetValue, dataIndexExp)));
+								//blockExp.Add(Expression.Assign(readpkvalExp, Expression.Call(rowExp, MethodDataReaderGetValue, dataIndexExp)));
 								if (typetb.ColumnsByCs.TryGetValue(ctorParm.Name, out var trycol) && trycol.Attribute.IsPrimary) {
 									ispkExp.Add(
 										Expression.IfThen(
@@ -827,7 +828,7 @@ namespace FreeSql.Internal {
 
 								readExpAssign = Expression.New(RowInfo.Constructor,
 									GetDataReaderValueBlockExpression(ctorParm.ParameterType, readpkvalExp),
-									//Expression.Call(MethodGetDataReaderValue, new Expression[] { Expression.Constant(ctorParm.ParameterType), Expression.Call(rowExp, MethodDataReaderGetValue, dataIndexExp) }),
+									//Expression.Call(MethodGetDataReaderValue, new Expression[] { Expression.Constant(ctorParm.ParameterType), readpkvalExp }),
 									Expression.Add(dataIndexExp, Expression.Constant(1))
 								);
 							} else {
@@ -851,6 +852,7 @@ namespace FreeSql.Internal {
 						);
 						blockExp.AddRange(new Expression[] {
 							Expression.Assign(tryidxExp, dataIndexExp),
+							readVal,
 							Expression.Assign(readExp, readExpAssign),
 							Expression.IfThen(Expression.GreaterThan(readExpDataIndex, dataIndexExp),
 								Expression.Assign(dataIndexExp, readExpDataIndex)
@@ -880,10 +882,11 @@ namespace FreeSql.Internal {
 					foreach (var prop in props) {
 						var ispkExp = new List<Expression>();
 						var propGetSetMethod = prop.GetSetMethod();
+						Expression readVal = Expression.Assign(readpkvalExp, Expression.Call(rowExp, MethodDataReaderGetValue, tryidxExp));
 						Expression readExpAssign = null; //加速缓存
 						if (prop.PropertyType.IsArray) readExpAssign = Expression.New(RowInfo.Constructor,
-							GetDataReaderValueBlockExpression(prop.PropertyType, Expression.Call(rowExp, MethodDataReaderGetValue, tryidxExp)),
-							//Expression.Call(MethodGetDataReaderValue, new Expression[] { Expression.Constant(prop.PropertyType), Expression.Call(rowExp, MethodDataReaderGetValue, tryidxExp) }),
+							GetDataReaderValueBlockExpression(prop.PropertyType, readpkvalExp),
+							//Expression.Call(MethodGetDataReaderValue, new Expression[] { Expression.Constant(prop.PropertyType), readpkvalExp }),
 							Expression.Add(tryidxExp, Expression.Constant(1))
 						);
 						else {
@@ -893,7 +896,7 @@ namespace FreeSql.Internal {
 								dicExecuteArrayRowReadClassOrTuple.ContainsKey(proptypeGeneric)) {
 
 								//判断主键为空，则整个对象不读取
-								blockExp.Add(Expression.Assign(readpkvalExp, Expression.Call(rowExp, MethodDataReaderGetValue, dataIndexExp)));
+								//blockExp.Add(Expression.Assign(readpkvalExp, Expression.Call(rowExp, MethodDataReaderGetValue, dataIndexExp)));
 								if (typetb.ColumnsByCs.TryGetValue(prop.Name, out var trycol) && trycol.Attribute.IsPrimary) {
 									ispkExp.Add(
 										Expression.IfThen(
@@ -913,8 +916,8 @@ namespace FreeSql.Internal {
 								}
 
 								readExpAssign = Expression.New(RowInfo.Constructor,
-									GetDataReaderValueBlockExpression(prop.PropertyType, Expression.Call(rowExp, MethodDataReaderGetValue, tryidxExp)),
-									//Expression.Call(MethodGetDataReaderValue, new Expression[] { Expression.Constant(prop.PropertyType), Expression.Call(rowExp, MethodDataReaderGetValue, tryidxExp) }),
+									GetDataReaderValueBlockExpression(prop.PropertyType, readpkvalExp),
+									//Expression.Call(MethodGetDataReaderValue, new Expression[] { Expression.Constant(prop.PropertyType), readpkvalExp }),
 									Expression.Add(tryidxExp, Expression.Constant(1))
 								);
 							} else {
@@ -944,6 +947,7 @@ namespace FreeSql.Internal {
 							Expression.IfThen(
 								Expression.GreaterThanOrEqual(tryidxExp, Expression.Constant(0)),
 								Expression.Block(
+									readVal,
 									Expression.Assign(readExp, readExpAssign),
 									Expression.IfThen(Expression.GreaterThan(readExpDataIndex, dataIndexExp),
 										Expression.Assign(dataIndexExp, readExpDataIndex)),

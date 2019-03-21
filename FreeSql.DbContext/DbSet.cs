@@ -18,7 +18,10 @@ namespace FreeSql {
 		protected DbContext _ctx;
 		IFreeSql _fsql => _ctx._fsql;
 
-		protected ISelect<TEntity> OrmSelect(object dywhere) => _fsql.Select<TEntity>(dywhere).WithTransaction(_ctx.GetOrBeginTransaction(false)).TrackToList(TrackToList);
+		protected ISelect<TEntity> OrmSelect(object dywhere) {
+			_ctx.ExecCommand(); //查询前先提交，否则会出脏读
+			return _fsql.Select<TEntity>(dywhere).WithTransaction(_ctx.GetOrBeginTransaction(false)).TrackToList(TrackToList);
+		}
 
 		protected IInsert<TEntity> OrmInsert() => _fsql.Insert<TEntity>().WithTransaction(_ctx.GetOrBeginTransaction());
 		protected IInsert<TEntity> OrmInsert(TEntity source) => _fsql.Insert<TEntity>(source).WithTransaction(_ctx.GetOrBeginTransaction());

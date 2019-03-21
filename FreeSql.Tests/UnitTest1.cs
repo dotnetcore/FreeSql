@@ -40,8 +40,24 @@ namespace FreeSql.Tests {
 			}
 		}
 
+		class TestUser {
+			[Column(IsIdentity = true)]
+			public int stringid { get; set; }
+			public string accname { get; set; }
+			public LogUserOn LogOn { get; set; }
+
+		}
+		class LogUserOn {
+			public int id { get; set; }
+			public int userstrId { get; set; }
+		}
+
 		[Fact]
 		public void Test1() {
+
+			var tuser = g.sqlite.Select<TestUser>().Where(u => u.accname == "admin")
+				.InnerJoin(a => a.LogOn.id == a.stringid).ToSql();
+
 
 			using (var ctx = new OrderContext()) {
 				//ctx.Orders.OrmInsert(new Order { }).ExecuteAffrows();
