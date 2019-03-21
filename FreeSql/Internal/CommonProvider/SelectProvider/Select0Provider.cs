@@ -28,6 +28,7 @@ namespace FreeSql.Internal.CommonProvider {
 		protected CommonUtils _commonUtils;
 		protected CommonExpression _commonExpression;
 		protected DbTransaction _transaction;
+		protected Action<object> _trackToList;
 
 		internal static void CopyData(Select0Provider<TSelect, T1> from, object to, ReadOnlyCollection<ParameterExpression> lambParms) {
 			var toType = to?.GetType();
@@ -60,6 +61,7 @@ namespace FreeSql.Internal.CommonProvider {
 			//toType.GetField("_commonUtils", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._commonUtils);
 			//toType.GetField("_commonExpression", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._commonExpression);
 			toType.GetField("_transaction", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._transaction);
+			toType.GetField("_trackToList", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._trackToList);
 		}
 
 		public Select0Provider(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere) {
@@ -69,6 +71,11 @@ namespace FreeSql.Internal.CommonProvider {
 			_tables.Add(new SelectTableInfo { Table = _commonUtils.GetTableByEntity(typeof(T1)), Alias = "a", On = null, Type = SelectTableInfoType.From });
 			this.Where(_commonUtils.WhereObject(_tables.First().Table, "a.", dywhere));
 			if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure<T1>();
+		}
+
+		public TSelect TrackToList(Action<object> track) {
+			_trackToList = track;
+			return this as TSelect;
 		}
 
 		public TSelect WithTransaction(DbTransaction transaction) {
@@ -215,6 +222,8 @@ namespace FreeSql.Internal.CommonProvider {
 					var read = Utils.ExecuteArrayRowReadClassOrTuple(type, null, dr, 0, _commonUtils);
 					ret.Add((TTuple)read.Value);
 				}, CommandType.Text, sql, _params.ToArray());
+				_orm.Aop.ToList?.Invoke(this, new AopToListEventArgs(ret));
+				_trackToList?.Invoke(ret);
 				return ret;
 			});
 		}
@@ -230,6 +239,8 @@ namespace FreeSql.Internal.CommonProvider {
 					ret.Add((TTuple)read.Value);
 					return Task.CompletedTask;
 				}, CommandType.Text, sql, _params.ToArray());
+				_orm.Aop.ToList?.Invoke(this, new AopToListEventArgs(ret));
+				_trackToList?.Invoke(ret);
 				return ret;
 			});
 		}
@@ -243,6 +254,8 @@ namespace FreeSql.Internal.CommonProvider {
 				_orm.Ado.ExecuteReader(_transaction, dr => {
 					ret.Add(af.Read(dr));
 				}, CommandType.Text, sql, _params.ToArray());
+				_orm.Aop.ToList?.Invoke(this, new AopToListEventArgs(ret));
+				_trackToList?.Invoke(ret);
 				return ret;
 			});
 		}
@@ -257,6 +270,8 @@ namespace FreeSql.Internal.CommonProvider {
 					ret.Add(af.Read(dr));
 					return Task.CompletedTask;
 				}, CommandType.Text, sql, _params.ToArray());
+				_orm.Aop.ToList?.Invoke(this, new AopToListEventArgs(ret));
+				_trackToList?.Invoke(ret);
 				return ret;
 			});
 		}
@@ -283,6 +298,8 @@ namespace FreeSql.Internal.CommonProvider {
 					var index = -1;
 					ret.Add((TReturn)_commonExpression.ReadAnonymous(af.map, dr, ref index, false));
 				}, CommandType.Text, sql, _params.ToArray());
+				_orm.Aop.ToList?.Invoke(this, new AopToListEventArgs(ret));
+				_trackToList?.Invoke(ret);
 				return ret;
 			});
 		}
@@ -298,6 +315,8 @@ namespace FreeSql.Internal.CommonProvider {
 					ret.Add((TReturn)_commonExpression.ReadAnonymous(af.map, dr, ref index, false));
 					return Task.CompletedTask;
 				}, CommandType.Text, sql, _params.ToArray());
+				_orm.Aop.ToList?.Invoke(this, new AopToListEventArgs(ret));
+				_trackToList?.Invoke(ret);
 				return ret;
 			});
 		}
@@ -480,6 +499,10 @@ namespace FreeSql.Internal.CommonProvider {
 		public TSelect Where(string sql, object parms = null) => this.WhereIf(true, sql, parms);
 		public TSelect WhereIf(bool condition, string sql, object parms = null) {
 			if (condition == false || string.IsNullOrEmpty(sql)) return this as TSelect;
+			var args = new AopWhereEventArgs(sql, parms);
+			_orm.Aop.Where?.Invoke(this, new AopWhereEventArgs(sql, parms));
+			if (args.IsCancel == true) return this as TSelect;
+
 			_where.Append(" AND (").Append(sql).Append(")");
 			if (parms != null) _params.AddRange(_commonUtils.GetDbParamtersByObject(sql, parms));
 			return this as TSelect;

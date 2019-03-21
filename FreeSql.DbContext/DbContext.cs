@@ -32,8 +32,10 @@ namespace FreeSql {
 				var set = this.Set(prop.PropertyType.GenericTypeArguments[0]);
 
 				prop.SetValue(this, set);
-				AllSets.Add(prop, set);
+				AllSets.Add(prop.Name, set);
 			}
+
+			//_fsql.Aop.ToList += AopToList;
 		}
 
 		protected virtual void OnConfiguring(DbContextOptionsBuilder builder) {
@@ -43,7 +45,7 @@ namespace FreeSql {
 		public DbSet<TEntity> Set<TEntity>() where TEntity : class => this.Set(typeof(TEntity)) as DbSet<TEntity>;
 		public object Set(Type entityType) => Activator.CreateInstance(typeof(BaseDbSet<>).MakeGenericType(entityType), this);
 
-		protected Dictionary<PropertyInfo, object> AllSets => new Dictionary<PropertyInfo, object>();
+		protected Dictionary<string, object> AllSets { get; } = new Dictionary<string, object>();
 
 		public long SaveChanges() {
 			ExecCommand();
@@ -53,91 +55,61 @@ namespace FreeSql {
 
 		internal class ExecCommandInfo {
 			public ExecCommandInfoType actionType { get; set; }
-			public Type entityType { get; set; }
 			public object dbSet { get; set; }
+			public Type stateType { get; set; }
 			public object state { get; set; }
 		}
 		internal enum ExecCommandInfoType { Insert, Update, Delete }
 		Queue<ExecCommandInfo> _actions = new Queue<ExecCommandInfo>();
 		internal long _affrows = 0;
 
-		internal void EnqueueAction(ExecCommandInfoType actionType, Type entityType, object dbSet, object state) {
-			_actions.Enqueue(new ExecCommandInfo { actionType = actionType, entityType = entityType, dbSet = dbSet, state = state });
+		internal void EnqueueAction(ExecCommandInfoType actionType, object dbSet, Type stateType, object state) {
+			_actions.Enqueue(new ExecCommandInfo { actionType = actionType, dbSet = dbSet, stateType = stateType, state = state });
 		}
 
-		static ConcurrentDictionary<Type, Func<object, object[], int>> _dicExecCommandInsert = new ConcurrentDictionary<Type, Func<object, object[], int>>();
-		static ConcurrentDictionary<Type, Func<object, object[], int>> _dicExecCommandDelete = new ConcurrentDictionary<Type, Func<object, object[], int>>();
-		static ConcurrentDictionary<Type, Func<object, object[], bool, int>> _dicExecCommandUpdate = new ConcurrentDictionary<Type, Func<object, object[], bool, int>>();
+		static Dictionary<Type, Dictionary<string, Func<object, object[], int>>> _dicExecCommandDbContextBetch = new Dictionary<Type, Dictionary<string, Func<object, object[], int>>>();
 		internal void ExecCommand() {
 			ExecCommandInfo oldinfo = null;
 			var states = new List<object>();
 
-			Action funcInsert = () => {
-				var insertFunc = _dicExecCommandInsert.GetOrAdd(oldinfo.entityType, t => {
-					var arrType = t.MakeArrayType();
-					var dbsetType = typeof(DbSet<>).MakeGenericType(t);
-					var dbsetTypeInsert = dbsetType.GetMethod("OrmInsert", BindingFlags.NonPublic | BindingFlags.Instance, null, new[] { arrType }, null);
-					var insertBuilder = typeof(IInsert<>).MakeGenericType(t);
-					var insertExecuteAffrows = insertBuilder.GetMethod("ExecuteAffrows", new Type[0]);
+			Func<string, int> dbContextBetch = methodName => {
+				if (_dicExecCommandDbContextBetch.TryGetValue(oldinfo.stateType, out var trydic) == false)
+					trydic = new Dictionary<string, Func<object, object[], int>>();
+				if (trydic.TryGetValue(methodName, out var tryfunc) == false) {
+					var arrType = oldinfo.stateType.MakeArrayType();
+					var dbsetType = oldinfo.dbSet.GetType().BaseType;
+					var dbsetTypeMethod = dbsetType.GetMethod(methodName, BindingFlags.NonPublic | BindingFlags.Instance, null, new[] { arrType }, null);
 
 					var returnTarget = Expression.Label(typeof(int));
 					var parm1DbSet = Expression.Parameter(typeof(object));
 					var parm2Vals = Expression.Parameter(typeof(object[]));
 					var var1Vals = Expression.Variable(arrType);
-					return Expression.Lambda<Func<object, object[], int>>(Expression.Block(
+					tryfunc = Expression.Lambda<Func<object, object[], int>>(Expression.Block(
 						new[] { var1Vals },
 						Expression.Assign(var1Vals, Expression.Convert(FreeSql.Internal.Utils.GetDataReaderValueBlockExpression(arrType, parm2Vals), arrType)),
-						Expression.Return(returnTarget,
-							Expression.Call(
-								Expression.Call(Expression.Convert(parm1DbSet, dbsetType), dbsetTypeInsert, var1Vals),
-								insertExecuteAffrows
-							)
-						),
+						Expression.Return(returnTarget, Expression.Call(Expression.Convert(parm1DbSet, dbsetType), dbsetTypeMethod, var1Vals)),
 						Expression.Label(returnTarget, Expression.Default(typeof(int)))
 					), new[] { parm1DbSet, parm2Vals }).Compile();
-				});
-				_affrows += insertFunc(oldinfo.dbSet, states.ToArray());
-				states.Clear();
+					trydic.Add(methodName, tryfunc);
+				}
+				return tryfunc(oldinfo.dbSet, states.ToArray());
 			};
 			Action funcDelete = () => {
-				var deleteFunc = _dicExecCommandDelete.GetOrAdd(oldinfo.entityType, t => {
-					var arrType = t.MakeArrayType();
-					var dbsetType = typeof(DbSet<>).MakeGenericType(t);
-					var dbsetTypeDelete = dbsetType.GetMethod("DbContextBetchRemove", BindingFlags.NonPublic | BindingFlags.Instance, null, new[] { arrType }, null);
-
-					var returnTarget = Expression.Label(typeof(int));
-					var parm1DbSet = Expression.Parameter(typeof(object));
-					var parm2Vals = Expression.Parameter(typeof(object[]));
-					var var1Vals = Expression.Variable(arrType);
-					return Expression.Lambda<Func<object, object[], int>>(Expression.Block(
-						new[] { var1Vals },
-						Expression.Assign(var1Vals, Expression.Convert(FreeSql.Internal.Utils.GetDataReaderValueBlockExpression(arrType, parm2Vals), arrType)),
-						Expression.Return(returnTarget, Expression.Call(Expression.Convert(parm1DbSet, dbsetType), dbsetTypeDelete, var1Vals)),
-						Expression.Label(returnTarget, Expression.Default(typeof(int)))
-					), new[] { parm1DbSet, parm2Vals }).Compile();
-				});
-				_affrows += deleteFunc(oldinfo.dbSet, states.ToArray());
+				_affrows += dbContextBetch("DbContextBetchRemove");
+				states.Clear();
+			};
+			Action funcInsert = () => {
+				_affrows += dbContextBetch("DbContextBetchAdd");
 				states.Clear();
 			};
 			Action<bool> funcUpdate = isLiveUpdate => {
-				var updateFunc = _dicExecCommandUpdate.GetOrAdd(oldinfo.entityType, t => {
-					var arrType = t.MakeArrayType();
-					var dbsetType = typeof(DbSet<>).MakeGenericType(t);
-					var dbsetTypeUpdate = dbsetType.GetMethod("DbContextBetchUpdate", BindingFlags.NonPublic | BindingFlags.Instance, null, new[] { arrType, typeof(bool) }, null);
-
-					var returnTarget = Expression.Label(typeof(int));
-					var parm1DbSet = Expression.Parameter(typeof(object));
-					var parm2Vals = Expression.Parameter(typeof(object[]));
-					var parm3IsLiveUpdate = Expression.Parameter(typeof(bool));
-					var var1Vals = Expression.Variable(arrType);
-					return Expression.Lambda<Func<object, object[], bool, int>>(Expression.Block(
-						new[] { var1Vals },
-						Expression.Assign(var1Vals, Expression.Convert(FreeSql.Internal.Utils.GetDataReaderValueBlockExpression(arrType, parm2Vals), arrType)),
-						Expression.Return(returnTarget, Expression.Call(Expression.Convert(parm1DbSet, dbsetType), dbsetTypeUpdate, var1Vals, parm3IsLiveUpdate)),
-						Expression.Label(returnTarget, Expression.Default(typeof(int)))
-					), new[] { parm1DbSet, parm2Vals, parm3IsLiveUpdate }).Compile();
-				});
-				var affrows = updateFunc(oldinfo.dbSet, states.ToArray(), isLiveUpdate);
+				var affrows = 0;
+				if (isLiveUpdate) affrows = dbContextBetch("DbContextBetchUpdateNow");
+				else affrows = dbContextBetch("DbContextBetchUpdate");
+				if (affrows == -999) { //最后一个元素已被删除
+					states.RemoveAt(states.Count - 1);
+					return;
+				}
 				if (affrows > 0) {
 					_affrows += affrows;
 					var islastNotUpdated = states.Count != affrows;
@@ -146,16 +118,16 @@ namespace FreeSql {
 				}
 			};
 
-			while(_actions.Any() || states.Any()) {
+			while (_actions.Any() || states.Any()) {
 				var info = _actions.Any() ? _actions.Dequeue() : null;
 				if (oldinfo == null) oldinfo = info;
 				var isLiveUpdate = false;
 
 				if (_actions.Any() == false && states.Any() ||
 					info != null && oldinfo.actionType != info.actionType ||
-					info != null && oldinfo.entityType != info.entityType) {
+					info != null && oldinfo.stateType != info.stateType) {
 
-					if (info != null && oldinfo.actionType == info.actionType && oldinfo.entityType == info.entityType) {
+					if (info != null && oldinfo.actionType == info.actionType && oldinfo.stateType == info.stateType) {
 						//最后一个，合起来发送
 						states.Add(info.state);
 						info = null;
@@ -224,6 +196,7 @@ namespace FreeSql {
 			}
 		}
 		public void Dispose() {
+			//_fsql.Aop.ToList -= AopToList;
 			this.Rollback();
 		}
 	}

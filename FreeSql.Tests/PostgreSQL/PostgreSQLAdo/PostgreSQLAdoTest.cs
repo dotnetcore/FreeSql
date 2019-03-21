@@ -33,11 +33,13 @@ namespace FreeSql.Tests.PostgreSQL {
 
 		[Fact]
 		public void Query() {
-			var t3 = g.pgsql.Ado.Query<xxx>("select * from song");
 
-			var t4 = g.pgsql.Ado.Query<(int, string, string)>("select * from song");
+			g.pgsql.CodeFirst.SyncStructure<xxx>();
+			var t3 = g.pgsql.Ado.Query<xxx>("select * from xxx");
 
-			var t5 = g.pgsql.Ado.Query<dynamic>("select * from song");
+			var t4 = g.pgsql.Ado.Query<(int, string, string)>("select * from xxx");
+
+			var t5 = g.pgsql.Ado.Query<dynamic>("select * from xxx");
 		}
 
 		class xxx {

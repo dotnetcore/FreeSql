@@ -17,6 +17,13 @@ namespace FreeSql {
 		TSelect WithTransaction(DbTransaction transaction);
 
 		/// <summary>
+		/// 审核或跟踪 ToList 即将返回的数据
+		/// </summary>
+		/// <param name="list"></param>
+		/// <returns></returns>
+		TSelect TrackToList(Action<object> action);
+
+		/// <summary>
 		/// 执行SQL查询，返回 DataTable
 		/// </summary>
 		/// <returns></returns>

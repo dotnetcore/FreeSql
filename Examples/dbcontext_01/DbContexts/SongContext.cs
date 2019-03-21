@@ -8,7 +8,7 @@ namespace dbcontext_01 {
 	public class SongContext : DbContext {
 
 		public DbSet<Song> Songs { get; set; }
-		public DbSet<Song> Tags { get; set; }
+		public DbSet<Tag> Tags { get; set; }
 
 		protected override void OnConfiguring(DbContextOptionsBuilder builder) {
 			builder.UseFreeSql(dbcontext_01.Startup.Fsql);

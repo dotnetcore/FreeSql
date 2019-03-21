@@ -33,6 +33,7 @@ namespace FreeSql.MySql {
 		public IDelete<T1> Delete<T1>(object dywhere) where T1 : class => new MySqlDelete<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, dywhere);
 
 		public IAdo Ado { get; }
+		public IAop Aop { get; }
 		public ICache Cache { get; }
 		public ICodeFirst CodeFirst { get; }
 		public IDbFirst DbFirst { get; }
@@ -44,6 +45,7 @@ namespace FreeSql.MySql {
 
 			this.Cache = new CacheProvider(cache, log);
 			this.Ado = new MySqlAdo(this.InternalCommonUtils, this.Cache, log, masterConnectionString, slaveConnectionString);
+			this.Aop = new AopProvider();
 
 			this.DbFirst = new MySqlDbFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
 			this.CodeFirst = new MySqlCodeFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);

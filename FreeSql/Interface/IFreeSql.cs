@@ -95,6 +95,10 @@ public interface IFreeSql {
 	/// 数据库访问对象
 	/// </summary>
 	IAdo Ado { get; }
+	/// <summary>
+	/// 所有拦截方法都在这里
+	/// </summary>
+	IAop Aop { get; }
 
 	/// <summary>
 	/// CodeFirst 模式开发相关方法

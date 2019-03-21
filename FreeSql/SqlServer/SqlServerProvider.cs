@@ -23,6 +23,7 @@ namespace FreeSql.SqlServer {
 		public IDelete<T1> Delete<T1>(object dywhere) where T1 : class => new SqlServerDelete<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, dywhere);
 
 		public IAdo Ado { get; }
+		public IAop Aop { get; }
 		public ICache Cache { get; }
 		public ICodeFirst CodeFirst { get; }
 		public IDbFirst DbFirst { get; }
@@ -34,6 +35,7 @@ namespace FreeSql.SqlServer {
 
 			this.Cache = new CacheProvider(cache, log);
 			this.Ado = new SqlServerAdo(this.InternalCommonUtils, this.Cache, log, masterConnectionString, slaveConnectionString);
+			this.Aop = new AopProvider();
 
 			this.DbFirst = new SqlServerDbFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
 			this.CodeFirst = new SqlServerCodeFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);

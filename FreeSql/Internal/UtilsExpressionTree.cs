@@ -494,7 +494,10 @@ namespace FreeSql.Internal {
 						var findtbrefPkCsName = tbref.Primarys[a].CsName.TrimStart('_');
 						if (findtbrefPkCsName.StartsWith(tbref.Type.Name, StringComparison.CurrentCultureIgnoreCase)) findtbrefPkCsName = findtbrefPkCsName.Substring(tbref.Type.Name.Length).TrimStart('_');
 						if (trytb.ColumnsByCs.TryGetValue($"{pnv.Name}{findtbrefPkCsName}", out var trycol) == false && //骆峰命名
-							trytb.ColumnsByCs.TryGetValue($"{pnv.Name}_{findtbrefPkCsName}", out trycol) == false //下划线命名
+							trytb.ColumnsByCs.TryGetValue($"{pnv.Name}_{findtbrefPkCsName}", out trycol) == false && //下划线命名
+							tbref.Primarys.Length == 1 &&
+							trytb.ColumnsByCs.TryGetValue($"{pnv.Name}_Id", out trycol) == false &&
+							trytb.ColumnsByCs.TryGetValue($"{pnv.Name}Id", out trycol) == false
 							) {
 							//一对一，主键与主键查找
 							if (isOnoToOne) {

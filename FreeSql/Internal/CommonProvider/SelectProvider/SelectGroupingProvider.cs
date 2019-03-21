@@ -79,7 +79,5 @@ namespace FreeSql.Internal.CommonProvider {
 			var method = _select.GetType().GetMethod("ToSql", new[] { typeof(string) });
 			return method.Invoke(_select, new object[] { field.Length > 0 ? field.Remove(0, 2).ToString() : null }) as string;
 		}
-
-		
 	}
 }

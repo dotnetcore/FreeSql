@@ -10,57 +10,62 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using System.Reflection;
+using FreeSql.Extensions;
 
 namespace FreeSql {
-	partial class DbSet<TEntity> {
+	abstract partial class DbSet<TEntity> {
 
+		async Task<int> DbContextBetcAddAsync(EntityState[] dels) {
+			if (dels.Any() == false) return 0;
+			var affrows = await this.OrmInsert(dels.Select(a => a.Value)).ExecuteAffrowsAsync();
+			return affrows;
+		}
 		async public Task AddAsync(TEntity source) {
 			if (source == null) throw new ArgumentNullException(nameof(source));
-			var key = GetEntityKeyString(source);
-			TEntity newval = null;
+			var key = _fsql.GetEntityKeyString(source);
+			EntityState state = new EntityState();
 			if (string.IsNullOrEmpty(key)) {
-				var ids = _table.Primarys.Where(a => a.Attribute.IsIdentity).ToArray();
-
-				switch (_ctx._orm.Ado.DataType) {
+				switch (_fsql.Ado.DataType) {
 					case DataType.SqlServer:
 					case DataType.PostgreSQL:
-						if (ids.Length == 1 && _table.Primarys.Length == 1) {
-							await _ctx.ExecCommandAsync();
+						if (_tableIdentitys.Length == 1 && _table.Primarys.Length == 1) {
+							_ctx.ExecCommand();
 							var idtval = await this.OrmInsert(source).ExecuteIdentityAsync();
 							_ctx._affrows++;
-							SetEntityIdentityValue(source, idtval);
+							_fsql.SetEntityIdentityValue(source, idtval);
 						} else {
-							await _ctx.ExecCommandAsync();
-							newval = (await this.OrmInsert(source).ExecuteInsertedAsync()).First();
+							_ctx.ExecCommand();
+							state.Value = (await this.OrmInsert(source).ExecuteInsertedAsync()).First();
 							_ctx._affrows++;
-							CopyNewValueToEntity(source, newval);
+							_fsql.CopyEntityValue(source, state.Value);
 						}
 						break;
 					case DataType.MySql:
 					case DataType.Oracle:
 					case DataType.Sqlite:
-						if (ids.Length == 1 && _table.Primarys.Length == 1) {
-							await _ctx.ExecCommandAsync();
+						if (_tableIdentitys.Length == 1 && _table.Primarys.Length == 1) {
+							_ctx.ExecCommand();
 							var idtval = await this.OrmInsert(source).ExecuteIdentityAsync();
 							_ctx._affrows++;
-							SetEntityIdentityValue(source, idtval);
+							_fsql.SetEntityIdentityValue(source, idtval);
 						} else {
-							throw new Exception("DbSet.Add 失败，由于实体没有主键值，或者没有配置自增，或者自增列数不为1。");
+							throw new Exception($"DbSet.Add 失败，未设置主键的值，或者没有配置自增，或者自增列数不为1：{_fsql.GetEntityString(source)}");
 						}
 						break;
 				}
 
-				key = GetEntityKeyString(source);
+				state.Key = key = _fsql.GetEntityKeyString(source);
+				state.Time = DateTime.Now;
 			} else {
 				if (_vals.ContainsKey(key))
-					throw new Exception("DbSet.Add 失败，实体数据已存在，请勿重复添加。");
-				_ctx.EnqueueAction(DbContext.ExecCommandInfoType.Insert, _entityType, this, source);
+					throw new Exception($"DbSet.Add 失败，实体数据已存在，请勿重复添加：{_fsql.GetEntityString(source)}");
+				_ctx.EnqueueAction(DbContext.ExecCommandInfoType.Insert, this, typeof(EntityState), state);
 			}
-			if (newval == null) {
-				newval = Activator.CreateInstance<TEntity>();
-				CopyNewValueToEntity(newval, source);
+			if (state.Value == null) {
+				state.Value = Activator.CreateInstance<TEntity>();
+				_fsql.CopyEntityValue(state.Value, source); //copy, 记录旧值版本
 			}
-			_vals.Add(key, newval);
+			_vals.Add(key, state);
 		}
 		async public Task AddRangeAsync(TEntity[] source) {
 			if (source == null) throw new ArgumentNullException(nameof(source));
@@ -73,56 +78,47 @@ namespace FreeSql {
 				await AddAsync(item);
 		}
 
-		async Task<int> DbContextBetchUpdateAsync(TEntity[] ups, bool isLiveUpdate) {
+		Task<int> DbContextBetchUpdateAsync(EntityState[] ups) => DbContextBetchUpdatePrivAsync(ups, false);
+		Task<int> DbContextBetchUpdateNowAsync(EntityState[] ups) => DbContextBetchUpdatePrivAsync(ups, true);
+		async Task<int> DbContextBetchUpdatePrivAsync(EntityState[] ups, bool isLiveUpdate) {
 			if (ups.Any() == false) return 0;
 			var uplst1 = ups[ups.Length - 1];
 			var uplst2 = ups.Length > 1 ? ups[ups.Length - 2] : null;
 
-			var lstkey1 = GetEntityKeyString(uplst1);
-			if (_vals.TryGetValue(lstkey1, out var lstval1) == false) throw new Exception("DbSet.Update 失败，实体应该先查询再修改。");
-			TEntity lstval2 = default(TEntity);
-			if (uplst2 != null) {
-				var lstkey2 = GetEntityKeyString(uplst2);
-				if (_vals.TryGetValue(lstkey2, out lstval2) == false) throw new Exception("DbSet.Update 失败，实体应该先查询再修改。");
-			}
+			if (_vals.TryGetValue(uplst1.Key, out var lstval1) == false) return -999;
+			var lstval2 = default(EntityState);
+			if (uplst2 != null && _vals.TryGetValue(uplst2.Key, out lstval2) == false) throw new Exception($"DbSet.Update 失败，实体应该先查询再修改：{_fsql.GetEntityString(uplst2.Value)}");
 
-			var cuig1 = CompareUpdateIngoreColumns(uplst1, lstval1);
-			var cuig2 = uplst2 != null ? CompareUpdateIngoreColumns(uplst2, lstval2) : null;
-			if (uplst2 != null && string.Compare(cuig1, cuig2, true) != 0) {
+			var cuig1 = _fsql.CompareEntityValueReturnColumns(uplst1.Value, lstval1.Value, true);
+			var cuig2 = uplst2 != null ? _fsql.CompareEntityValueReturnColumns(uplst2.Value, lstval2.Value, true) : null;
+			if (uplst2 != null && string.Compare(string.Join(",", cuig1), string.Join(",", cuig2)) != 0) {
 				//最后一个不保存
-				var ignores = cuig2.Split(new[] { ", " }, StringSplitOptions.None);
 				var source = ups.ToList();
 				source.RemoveAt(ups.Length - 1);
-				var affrows = await this.OrmUpdate(null).SetSource(source).IgnoreColumns(ignores).ExecuteAffrowsAsync();
+				var affrows = await this.OrmUpdate(null).SetSource(source.Select(a => a.Value)).IgnoreColumns(cuig2).ExecuteAffrowsAsync();
 				foreach (var newval in source) {
-					var newkey = GetEntityKeyString(newval);
-					if (_vals.TryGetValue(newkey, out var tryold))
-						CopyNewValueToEntity(tryold, newval);
+					if (_vals.TryGetValue(newval.Key, out var tryold))
+						_fsql.CopyEntityValue(tryold.Value, newval.Value);
 				}
 				return affrows;
 			} else if (isLiveUpdate) {
 				//立即保存
-				var ignores = cuig1.Split(new[] { ", " }, StringSplitOptions.None);
-				var affrows = await this.OrmUpdate(null).SetSource(ups).IgnoreColumns(ignores).ExecuteAffrowsAsync();
-				foreach (var newval in ups) {
-					var newkey = GetEntityKeyString(newval);
-					if (_vals.TryGetValue(newkey, out var tryold))
-						CopyNewValueToEntity(tryold, newval);
+				var source = ups;
+				var affrows = await this.OrmUpdate(null).SetSource(source.Select(a => a.Value)).IgnoreColumns(cuig1).ExecuteAffrowsAsync();
+				foreach (var newval in source) {
+					if (_vals.TryGetValue(newval.Key, out var tryold))
+						_fsql.CopyEntityValue(tryold.Value, newval.Value);
 				}
 				return Math.Min(ups.Length, affrows);
 			}
 			//等待下次对比再保存
 			return 0;
 		}
-
-		async Task<int> DbContextBetchRemoveAsync(TEntity[] dels) {
+		async Task<int> DbContextBetchRemoveAsync(EntityState[] dels) {
 			if (dels.Any() == false) return 0;
-
-			var affrows = await this.OrmDelete(dels).ExecuteAffrowsAsync();
-			foreach (var del in dels) {
-				var key = GetEntityKeyString(del);
-				_vals.Remove(key);
-			}
+			var affrows = await this.OrmDelete(dels.Select(a => a.Value)).ExecuteAffrowsAsync();
+			//foreach (var del in dels)
+			//	_vals.Remove(del.Key);
 			return affrows;
 		}
 	}

@@ -17,79 +17,49 @@ namespace FreeSql {
 			return _affrows;
 		}
 
-		static ConcurrentDictionary<Type, Func<object, object[], Task<int>>> _dicExecCommandAsyncInsert = new ConcurrentDictionary<Type, Func<object, object[], Task<int>>>();
-		static ConcurrentDictionary<Type, Func<object, object[], Task<int>>> _dicExecCommandAsyncDelete = new ConcurrentDictionary<Type, Func<object, object[], Task<int>>>();
-		static ConcurrentDictionary<Type, Func<object, object[], bool, Task<int>>> _dicExecCommandAsyncUpdate = new ConcurrentDictionary<Type, Func<object, object[], bool, Task<int>>>();
+		static Dictionary<Type, Dictionary<string, Func<object, object[], Task<int>>>> _dicExecCommandAsyncDbContextBetch = new Dictionary<Type, Dictionary<string, Func<object, object[], Task<int>>>>();
 		async internal Task ExecCommandAsync() {
 			ExecCommandInfo oldinfo = null;
 			var states = new List<object>();
 
-			Func<Task> funcInsert = async () => {
-				var insertFunc = _dicExecCommandAsyncInsert.GetOrAdd(oldinfo.entityType, t => {
-					var arrType = t.MakeArrayType();
-					var dbsetType = typeof(DbSet<>).MakeGenericType(t);
-					var dbsetTypeInsert = dbsetType.GetMethod("OrmInsert", BindingFlags.NonPublic | BindingFlags.Instance, null, new[] { arrType }, null);
-					var insertBuilder = typeof(IInsert<>).MakeGenericType(t);
-					var insertExecuteAffrows = insertBuilder.GetMethod("ExecuteAffrowsAsync", new Type[0]);
+			Func<string, Task<int>> dbContextBetch = methodName => {
+				if (_dicExecCommandAsyncDbContextBetch.TryGetValue(oldinfo.stateType, out var trydic) == false)
+					trydic = new Dictionary<string, Func<object, object[], Task<int>>>();
+				if (trydic.TryGetValue(methodName, out var tryfunc) == false) {
+					var arrType = oldinfo.stateType.MakeArrayType();
+					var dbsetType = oldinfo.dbSet.GetType().BaseType;
+					var dbsetTypeMethod = dbsetType.GetMethod(methodName, BindingFlags.NonPublic | BindingFlags.Instance, null, new[] { arrType }, null);
 
 					var returnTarget = Expression.Label(typeof(Task<int>));
 					var parm1DbSet = Expression.Parameter(typeof(object));
 					var parm2Vals = Expression.Parameter(typeof(object[]));
 					var var1Vals = Expression.Variable(arrType);
-					return Expression.Lambda<Func<object, object[], Task<int>>>(Expression.Block(
+					tryfunc = Expression.Lambda<Func<object, object[], Task<int>>>(Expression.Block(
 						new[] { var1Vals },
 						Expression.Assign(var1Vals, Expression.Convert(FreeSql.Internal.Utils.GetDataReaderValueBlockExpression(arrType, parm2Vals), arrType)),
-						Expression.Return(returnTarget,
-							Expression.Call(
-								Expression.Call(Expression.Convert(parm1DbSet, dbsetType), dbsetTypeInsert, var1Vals),
-								insertExecuteAffrows
-							)
-						),
+						Expression.Return(returnTarget, Expression.Call(Expression.Convert(parm1DbSet, dbsetType), dbsetTypeMethod, var1Vals)),
 						Expression.Label(returnTarget, Expression.Default(typeof(Task<int>)))
 					), new[] { parm1DbSet, parm2Vals }).Compile();
-				});
-				_affrows += await insertFunc(oldinfo.dbSet, states.ToArray());
-				states.Clear();
+					trydic.Add(methodName, tryfunc);
+				}
+				return tryfunc(oldinfo.dbSet, states.ToArray());
 			};
 			Func<Task> funcDelete = async () => {
-				var deleteFunc = _dicExecCommandAsyncDelete.GetOrAdd(oldinfo.entityType, t => {
-					var arrType = t.MakeArrayType();
-					var dbsetType = typeof(DbSet<>).MakeGenericType(t);
-					var dbsetTypeDelete = dbsetType.GetMethod("DbContextBetchRemoveAsync", BindingFlags.NonPublic | BindingFlags.Instance, null, new[] { arrType }, null);
-
-					var returnTarget = Expression.Label(typeof(Task<int>));
-					var parm1DbSet = Expression.Parameter(typeof(object));
-					var parm2Vals = Expression.Parameter(typeof(object[]));
-					var var1Vals = Expression.Variable(arrType);
-					return Expression.Lambda<Func<object, object[], Task<int>>>(Expression.Block(
-						new[] { var1Vals },
-						Expression.Assign(var1Vals, Expression.Convert(FreeSql.Internal.Utils.GetDataReaderValueBlockExpression(arrType, parm2Vals), arrType)),
-						Expression.Return(returnTarget, Expression.Call(Expression.Convert(parm1DbSet, dbsetType), dbsetTypeDelete, var1Vals)),
-						Expression.Label(returnTarget, Expression.Default(typeof(Task<int>)))
-					), new[] { parm1DbSet, parm2Vals }).Compile();
-				});
-				_affrows += await deleteFunc(oldinfo.dbSet, states.ToArray());
+				_affrows += await dbContextBetch("DbContextBetchRemoveAsync");
 				states.Clear();
 			};
-			Func<bool, Task> funcUpdate = async (isLiveUpdate) => {
-				var updateFunc = _dicExecCommandAsyncUpdate.GetOrAdd(oldinfo.entityType, t => {
-					var arrType = t.MakeArrayType();
-					var dbsetType = typeof(DbSet<>).MakeGenericType(t);
-					var dbsetTypeUpdate = dbsetType.GetMethod("DbContextBetchUpdateAsync", BindingFlags.NonPublic | BindingFlags.Instance, null, new[] { arrType, typeof(bool) }, null);
-
-					var returnTarget = Expression.Label(typeof(Task<int>));
-					var parm1DbSet = Expression.Parameter(typeof(object));
-					var parm2Vals = Expression.Parameter(typeof(object[]));
-					var parm3IsLiveUpdate = Expression.Parameter(typeof(bool));
-					var var1Vals = Expression.Variable(arrType);
-					return Expression.Lambda<Func<object, object[], bool, Task<int>>>(Expression.Block(
-						new[] { var1Vals },
-						Expression.Assign(var1Vals, Expression.Convert(FreeSql.Internal.Utils.GetDataReaderValueBlockExpression(arrType, parm2Vals), arrType)),
-						Expression.Return(returnTarget, Expression.Call(Expression.Convert(parm1DbSet, dbsetType), dbsetTypeUpdate, var1Vals, parm3IsLiveUpdate)),
-						Expression.Label(returnTarget, Expression.Default(typeof(Task<int>)))
-					), new[] { parm1DbSet, parm2Vals, parm3IsLiveUpdate }).Compile();
-				});
-				var affrows = await updateFunc(oldinfo.dbSet, states.ToArray(), isLiveUpdate);
+			Func<Task> funcInsert = async () => {
+				_affrows += await dbContextBetch("DbContextBetchAddAsync");
+				states.Clear();
+			};
+			Func<bool, Task> funcUpdate = async isLiveUpdate => {
+				var affrows = 0;
+				if (isLiveUpdate) affrows = await dbContextBetch("DbContextBetchUpdateNowAsync");
+				else affrows = await dbContextBetch("DbContextBetchUpdateAsync");
+				if (affrows == -999) { //最后一个元素已被删除
+					states.RemoveAt(states.Count - 1);
+					return;
+				}
 				if (affrows > 0) {
 					_affrows += affrows;
 					var islastNotUpdated = states.Count != affrows;
@@ -98,16 +68,16 @@ namespace FreeSql {
 				}
 			};
 
-			while(_actions.Any() || states.Any()) {
+			while (_actions.Any() || states.Any()) {
 				var info = _actions.Any() ? _actions.Dequeue() : null;
 				if (oldinfo == null) oldinfo = info;
 				var isLiveUpdate = false;
 
 				if (_actions.Any() == false && states.Any() ||
 					info != null && oldinfo.actionType != info.actionType ||
-					info != null && oldinfo.entityType != info.entityType) {
+					info != null && oldinfo.stateType != info.stateType) {
 
-					if (info != null && oldinfo.actionType == info.actionType && oldinfo.entityType == info.entityType) {
+					if (info != null && oldinfo.actionType == info.actionType && oldinfo.stateType == info.stateType) {
 						//最后一个，合起来发送
 						states.Add(info.state);
 						info = null;

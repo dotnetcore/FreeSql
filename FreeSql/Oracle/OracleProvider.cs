@@ -24,6 +24,7 @@ namespace FreeSql.Oracle {
 		public IDelete<T1> Delete<T1>(object dywhere) where T1 : class => new OracleDelete<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, dywhere);
 
 		public IAdo Ado { get; }
+		public IAop Aop { get; }
 		public ICache Cache { get; }
 		public ICodeFirst CodeFirst { get; }
 		public IDbFirst DbFirst => null;
@@ -35,6 +36,7 @@ namespace FreeSql.Oracle {
 
 			this.Cache = new CacheProvider(cache, log);
 			this.Ado = new OracleAdo(this.InternalCommonUtils, this.Cache, log, masterConnectionString, slaveConnectionString);
+			this.Aop = new AopProvider();
 
 			this.CodeFirst = new OracleCodeFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
 		}

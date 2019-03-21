@@ -10,172 +10,92 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using System.Reflection;
+using FreeSql.Extensions;
 
 namespace FreeSql {
 	public abstract partial class DbSet<TEntity> where TEntity : class {
 
 		protected DbContext _ctx;
+		IFreeSql _fsql => _ctx._fsql;
 
-		protected ISelect<TEntity> OrmSelect(object dywhere) => _ctx._fsql.Select<TEntity>(dywhere).WithTransaction(_ctx.GetOrBeginTransaction(false));
+		protected ISelect<TEntity> OrmSelect(object dywhere) => _fsql.Select<TEntity>(dywhere).WithTransaction(_ctx.GetOrBeginTransaction(false)).TrackToList(TrackToList);
 
-		protected IInsert<TEntity> OrmInsert() => _ctx._fsql.Insert<TEntity>().WithTransaction(_ctx.GetOrBeginTransaction());
-		protected IInsert<TEntity> OrmInsert(TEntity source) => _ctx._fsql.Insert<TEntity>(source).WithTransaction(_ctx.GetOrBeginTransaction());
-		protected IInsert<TEntity> OrmInsert(TEntity[] source) => _ctx._fsql.Insert<TEntity>(source).WithTransaction(_ctx.GetOrBeginTransaction());
-		protected IInsert<TEntity> OrmInsert(IEnumerable<TEntity> source) => _ctx._fsql.Insert<TEntity>(source).WithTransaction(_ctx.GetOrBeginTransaction());
+		protected IInsert<TEntity> OrmInsert() => _fsql.Insert<TEntity>().WithTransaction(_ctx.GetOrBeginTransaction());
+		protected IInsert<TEntity> OrmInsert(TEntity source) => _fsql.Insert<TEntity>(source).WithTransaction(_ctx.GetOrBeginTransaction());
+		protected IInsert<TEntity> OrmInsert(TEntity[] source) => _fsql.Insert<TEntity>(source).WithTransaction(_ctx.GetOrBeginTransaction());
+		protected IInsert<TEntity> OrmInsert(IEnumerable<TEntity> source) => _fsql.Insert<TEntity>(source).WithTransaction(_ctx.GetOrBeginTransaction());
 
-		protected IUpdate<TEntity> OrmUpdate(object dywhere) => _ctx._fsql.Update<TEntity>(dywhere).WithTransaction(_ctx.GetOrBeginTransaction());
-		protected IDelete<TEntity> OrmDelete(object dywhere) => _ctx._fsql.Delete<TEntity>(dywhere).WithTransaction(_ctx.GetOrBeginTransaction());
+		protected IUpdate<TEntity> OrmUpdate(object dywhere) => _fsql.Update<TEntity>(dywhere).WithTransaction(_ctx.GetOrBeginTransaction());
+		protected IDelete<TEntity> OrmDelete(object dywhere) => _fsql.Delete<TEntity>(dywhere).WithTransaction(_ctx.GetOrBeginTransaction());
 
 		public ISelect<TEntity> Select => this.OrmSelect(null);
 		public ISelect<TEntity> Where(Expression<Func<TEntity, bool>> exp) => this.OrmSelect(null).Where(exp);
 		public ISelect<TEntity> WhereIf(bool condition, Expression<Func<TEntity, bool>> exp) => this.OrmSelect(null).WhereIf(condition, exp);
 
-		protected Dictionary<string, TEntity> _vals = new Dictionary<string, TEntity>();
+		protected Dictionary<string, EntityState> _vals = new Dictionary<string, EntityState>();
 		TableInfo _tablePriv;
-		protected TableInfo _table => _tablePriv ?? (_tablePriv = _ctx._orm.CodeFirst.GetTableByEntity(_entityType));
+		protected TableInfo _table => _tablePriv ?? (_tablePriv = _fsql.CodeFirst.GetTableByEntity(_entityType));
+		ColumnInfo[] _tableIdentitysPriv;
+		protected ColumnInfo[] _tableIdentitys => _tableIdentitysPriv ?? (_tableIdentitysPriv = _table.Primarys.Where(a => a.Attribute.IsIdentity).ToArray()); 
 		protected Type _entityType = typeof(TEntity);
 
-		static ConcurrentDictionary<Type, Func<TEntity, string>> _dicGetEntityKeyString = new ConcurrentDictionary<Type, Func<TEntity, string>>();
-		static MethodInfo MethodStringBuilderAppend = typeof(StringBuilder).GetMethod("Append", new Type[] { typeof(object) });
-		static MethodInfo MethodStringBuilderToString = typeof(StringBuilder).GetMethod("ToString", new Type[0]);
-		static PropertyInfo MethodStringBuilderLength = typeof(StringBuilder).GetProperty("Length");
-		static MethodInfo MethodStringConcat = typeof(string).GetMethod("Concat", new Type[]{ typeof(object) });
-		string GetEntityKeyString(TEntity item) {
-			var func = _dicGetEntityKeyString.GetOrAdd(_entityType, t => {
-				var pks = _table.Primarys;
-				var returnTarget = Expression.Label(typeof(string));
-				var parm1 = Expression.Parameter(_entityType);
-				var var1Sb = Expression.Variable(typeof(StringBuilder));
-				var var3IsNull = Expression.Variable(typeof(bool));
-				var exps = new List<Expression>();
-
-				exps.AddRange(new Expression[] {
-					Expression.Assign(var1Sb, Expression.New(typeof(StringBuilder))),
-					Expression.Assign(var3IsNull, Expression.Constant(false))
-				});
-				for (var a = 0; a < pks.Length; a++) {
-					exps.Add(
-						Expression.IfThen(
-							Expression.Equal(var3IsNull, Expression.Constant(false)),
-							Expression.IfThenElse(
-								Expression.Equal(Expression.MakeMemberAccess(parm1, _table.Properties[pks[a].CsName]), Expression.Default(pks[a].CsType)),
-								Expression.Assign(var3IsNull, Expression.Constant(true)),
-								Expression.Block(
-									new Expression[]{
-										a > 0 ? Expression.Call(var1Sb, MethodStringBuilderAppend, Expression.Constant("*|_,,_|*" )) : null,
-										Expression.Call(var1Sb, MethodStringBuilderAppend,
-											Expression.Convert(Expression.MakeMemberAccess(parm1, _table.Properties[pks[a].CsName]), typeof(object))
-										)
-									}.Where(c => c != null).ToArray()
-								)
-							)
-						)
-					);
-				}
-				exps.Add(
-					Expression.IfThen(
-						Expression.Equal(var3IsNull, Expression.Constant(false)),
-						Expression.Return(returnTarget, Expression.Call(var1Sb, MethodStringBuilderToString))
-					)
-				);
-				exps.Add(Expression.Label(returnTarget, Expression.Default(typeof(string))));
-				return Expression.Lambda<Func<TEntity, string>>(Expression.Block(new[] { var1Sb, var3IsNull }, exps), new[] { parm1 }).Compile();
-			});
-			return func(item);
+		public class EntityState {
+			public TEntity Value { get; set; }
+			public string Key { get; set; }
+			public DateTime Time { get; set; }
 		}
 
-		static ConcurrentDictionary<Type, Action<TEntity, TEntity>> _dicCopyNewValueToEntity = new ConcurrentDictionary<Type, Action<TEntity, TEntity>>();
-		void CopyNewValueToEntity(TEntity old, TEntity newvalue) {
-			var func = _dicCopyNewValueToEntity.GetOrAdd(_entityType, t => {
-				var parm1 = Expression.Parameter(_entityType);
-				var parm2 = Expression.Parameter(_entityType);
-				var exps = new List<Expression>();
-				foreach (var prop in _table.Properties.Values) {
-					if (_table.ColumnsByCs.ContainsKey(prop.Name)) {
-						exps.Add(
-							Expression.Assign(
-								Expression.MakeMemberAccess(parm1, prop),
-								Expression.MakeMemberAccess(parm2, prop)
-							)
-						);
-					} else {
-						exps.Add(
-							Expression.Assign(
-								Expression.MakeMemberAccess(parm1, prop),
-								Expression.Default(prop.PropertyType)
-							)
-						);
-					}
-				}
-				return Expression.Lambda<Action<TEntity, TEntity>>(Expression.Block(exps), new[] { parm1, parm2 }).Compile();
-			});
-			func(old, newvalue);
+		int DbContextBetcAdd(EntityState[] dels) {
+			if (dels.Any() == false) return 0;
+			var affrows = this.OrmInsert(dels.Select(a => a.Value)).ExecuteAffrows();
+			return affrows;
 		}
-
-		static ConcurrentDictionary<Type, Action<TEntity, long>> _dicSetEntityIdentityValue = new ConcurrentDictionary<Type, Action<TEntity, long>>();
-		void SetEntityIdentityValue(TEntity old, long idtval) {
-			var func = _dicSetEntityIdentityValue.GetOrAdd(_entityType, t => {
-				var parm1 = Expression.Parameter(_entityType);
-				var parm2 = Expression.Parameter(typeof(long));
-				var exps = new List<Expression>();
-				exps.Add(
-					Expression.Assign(
-						Expression.MakeMemberAccess(parm1, _table.Properties[_table.Primarys[0].CsName]),
-						Expression.Convert(FreeSql.Internal.Utils.GetDataReaderValueBlockExpression(_table.Primarys[0].CsType, Expression.Convert(parm2, typeof(object))), _table.Primarys[0].CsType)
-					)
-				);
-				return Expression.Lambda<Action<TEntity, long>>(Expression.Block(exps), new[] { parm1, parm2 }).Compile();
-			});
-			func(old, idtval);
-		}
-
 		public void Add(TEntity source) {
 			if (source == null) throw new ArgumentNullException(nameof(source));
-			var key = GetEntityKeyString(source);
-			TEntity newval = null;
+			var key = _fsql.GetEntityKeyString(source);
+			EntityState state = new EntityState();
 			if (string.IsNullOrEmpty(key)) {
-				var ids = _table.Primarys.Where(a => a.Attribute.IsIdentity).ToArray();
-
-				switch(_ctx._orm.Ado.DataType) {
+				switch(_fsql.Ado.DataType) {
 					case DataType.SqlServer:
 					case DataType.PostgreSQL:
-						if (ids.Length == 1 && _table.Primarys.Length == 1) {
+						if (_tableIdentitys.Length == 1 && _table.Primarys.Length == 1) {
 							_ctx.ExecCommand();
 							var idtval = this.OrmInsert(source).ExecuteIdentity();
 							_ctx._affrows++;
-							SetEntityIdentityValue(source, idtval);
+							_fsql.SetEntityIdentityValue(source, idtval);
 						} else {
 							_ctx.ExecCommand();
-							newval = this.OrmInsert(source).ExecuteInserted().First();
+							state.Value = this.OrmInsert(source).ExecuteInserted().First();
 							_ctx._affrows++;
-							CopyNewValueToEntity(source, newval);
+							_fsql.CopyEntityValue(source, state.Value);
 						}
 						break;
 					case DataType.MySql:
 					case DataType.Oracle:
 					case DataType.Sqlite:
-						if (ids.Length == 1 && _table.Primarys.Length == 1) {
+						if (_tableIdentitys.Length == 1 && _table.Primarys.Length == 1) {
 							_ctx.ExecCommand();
 							var idtval = this.OrmInsert(source).ExecuteIdentity();
 							_ctx._affrows++;
-							SetEntityIdentityValue(source, idtval);
+							_fsql.SetEntityIdentityValue(source, idtval);
 						} else {
-							throw new Exception("DbSet.Add 失败，由于实体没有主键值，或者没有配置自增，或者自增列数不为1。");
+							throw new Exception($"DbSet.Add 失败，未设置主键的值，或者没有配置自增，或者自增列数不为1：{_fsql.GetEntityString(source)}");
 						}
 						break;
 				}
 
-				key = GetEntityKeyString(source);
+				state.Key = key = _fsql.GetEntityKeyString(source);
+				state.Time = DateTime.Now;
 			} else {
 				if (_vals.ContainsKey(key))
-					throw new Exception("DbSet.Add 失败，实体数据已存在，请勿重复添加。");
-				_ctx.EnqueueAction(DbContext.ExecCommandInfoType.Insert, _entityType, this, source);
+					throw new Exception($"DbSet.Add 失败，实体数据已存在，请勿重复添加：{_fsql.GetEntityString(source)}");
+				_ctx.EnqueueAction(DbContext.ExecCommandInfoType.Insert, this, typeof(EntityState), state);
 			}
-			if (newval == null) {
-				newval = Activator.CreateInstance<TEntity>();
-				CopyNewValueToEntity(newval, source);
+			if (state.Value == null) {
+				state.Value = Activator.CreateInstance<TEntity>();
+				_fsql.CopyEntityValue(state.Value, source); //copy, 记录旧值版本
 			}
-			_vals.Add(key, newval);
+			_vals.Add(key, state);
 		}
 		public void AddRange(TEntity[] source) {
 			if (source == null) throw new ArgumentNullException(nameof(source));
@@ -188,96 +108,52 @@ namespace FreeSql {
 				Add(item);
 		}
 
-		static ConcurrentDictionary<Type, Func<TEntity, TEntity, string>> _dicCompareUpdateIngoreColumns = new ConcurrentDictionary<Type, Func<TEntity, TEntity, string>>();
-		string CompareUpdateIngoreColumns(TEntity up, TEntity oldval) {
-			var func = _dicCompareUpdateIngoreColumns.GetOrAdd(_entityType, t => {
-				var returnTarget = Expression.Label(typeof(string));
-				var parm1 = Expression.Parameter(_entityType);
-				var parm2 = Expression.Parameter(_entityType);
-				var var1Sb = Expression.Variable(typeof(StringBuilder));
-				var exps = new List<Expression>();
-
-				exps.AddRange(new Expression[] {
-					Expression.Assign(var1Sb, Expression.New(typeof(StringBuilder)))
-				});
-				var a = 0;
-				foreach (var prop in _table.Properties.Values) {
-					if (_table.ColumnsByCs.TryGetValue(prop.Name, out var trycol) == false) continue;
-					exps.Add(
-						Expression.IfThen(
-							Expression.Equal(
-								Expression.MakeMemberAccess(parm1, prop),
-								Expression.MakeMemberAccess(parm2, prop)
-							),
-							Expression.Block(
-								new Expression[]{
-									a > 0 ? Expression.Call(var1Sb, MethodStringBuilderAppend, Expression.Constant(", " )) : null,
-									Expression.Call(var1Sb, MethodStringBuilderAppend, Expression.Constant(trycol.Attribute.Name))
-								}.Where(c => c != null).ToArray()
-							)
-						)
-					);
-					a++;
-				}
-				exps.Add(Expression.Return(returnTarget, Expression.Call(var1Sb, MethodStringBuilderToString)));
-				exps.Add(Expression.Label(returnTarget, Expression.Default(typeof(string))));
-				return Expression.Lambda<Func<TEntity, TEntity, string>>(Expression.Block(new[] { var1Sb }, exps), new[] { parm1, parm2 }).Compile();
-			});
-			return func(up, oldval);
-		}
-		int DbContextBetchUpdate(TEntity[] ups, bool isLiveUpdate) {
+		int DbContextBetchUpdate(EntityState[] ups) => DbContextBetchUpdatePriv(ups, false);
+		int DbContextBetchUpdateNow(EntityState[] ups) => DbContextBetchUpdatePriv(ups, true);
+		int DbContextBetchUpdatePriv(EntityState[] ups, bool isLiveUpdate) {
 			if (ups.Any() == false) return 0;
 			var uplst1 = ups[ups.Length - 1];
 			var uplst2 = ups.Length > 1 ? ups[ups.Length - 2] : null;
 
-			var lstkey1 = GetEntityKeyString(uplst1);
-			if (_vals.TryGetValue(lstkey1, out var lstval1) == false) throw new Exception("DbSet.Update 失败，实体应该先查询再修改。");
-			TEntity lstval2 = default(TEntity);
-			if (uplst2 != null) {
-				var lstkey2 = GetEntityKeyString(uplst2);
-				if (_vals.TryGetValue(lstkey2, out lstval2) == false) throw new Exception("DbSet.Update 失败，实体应该先查询再修改。");
-			}
+			if (_vals.TryGetValue(uplst1.Key, out var lstval1) == false) return -999;
+			var lstval2 = default(EntityState);
+			if (uplst2 != null && _vals.TryGetValue(uplst2.Key, out lstval2) == false) throw new Exception($"DbSet.Update 失败，实体应该先查询再修改：{_fsql.GetEntityString(uplst2.Value)}");
 
-			var cuig1 = CompareUpdateIngoreColumns(uplst1, lstval1);
-			var cuig2 = uplst2 != null ? CompareUpdateIngoreColumns(uplst2, lstval2) : null;
-			if (uplst2 != null && string.Compare(cuig1, cuig2, true) != 0) {
+			var cuig1 = _fsql.CompareEntityValueReturnColumns(uplst1.Value, lstval1.Value, true);
+			var cuig2 = uplst2 != null ? _fsql.CompareEntityValueReturnColumns(uplst2.Value, lstval2.Value, true) : null;
+			if (uplst2 != null && string.Compare(string.Join(",", cuig1), string.Join(",", cuig2)) != 0) {
 				//最后一个不保存
-				var ignores = cuig2.Split(new[] { ", " }, StringSplitOptions.None);
 				var source = ups.ToList();
 				source.RemoveAt(ups.Length - 1);
-				var affrows = this.OrmUpdate(null).SetSource(source).IgnoreColumns(ignores).ExecuteAffrows();
-				foreach(var newval in source) {
-					var newkey = GetEntityKeyString(newval);
-					if (_vals.TryGetValue(newkey, out var tryold))
-						CopyNewValueToEntity(tryold, newval);
+				var affrows = this.OrmUpdate(null).SetSource(source.Select(a => a.Value)).IgnoreColumns(cuig2).ExecuteAffrows();
+				foreach (var newval in source) {
+					if (_vals.TryGetValue(newval.Key, out var tryold))
+						_fsql.CopyEntityValue(tryold.Value, newval.Value);
 				}
 				return affrows;
 			} else if (isLiveUpdate) {
 				//立即保存
-				var ignores = cuig1.Split(new[] { ", " }, StringSplitOptions.None);
-				var affrows = this.OrmUpdate(null).SetSource(ups).IgnoreColumns(ignores).ExecuteAffrows();
-				foreach (var newval in ups) {
-					var newkey = GetEntityKeyString(newval);
-					if (_vals.TryGetValue(newkey, out var tryold))
-						CopyNewValueToEntity(tryold, newval);
+				var source = ups;
+				var affrows = this.OrmUpdate(null).SetSource(source.Select(a => a.Value)).IgnoreColumns(cuig1).ExecuteAffrows();
+				foreach (var newval in source) {
+					if (_vals.TryGetValue(newval.Key, out var tryold))
+						_fsql.CopyEntityValue(tryold.Value, newval.Value);
 				}
 				return Math.Min(ups.Length, affrows);
 			}
 			//等待下次对比再保存
 			return 0;
 		}
-
 		public void Update(TEntity source) {
 			if (source == null) throw new ArgumentNullException(nameof(source));
-			if (_table.Primarys.Any() == false) throw new Exception("DbSet.Update 失败，实体没有主键。");
-			var key = GetEntityKeyString(source);
-			if (string.IsNullOrEmpty(key)) throw new Exception("DbSet.Update 失败，实体没有设置主键值。");
+			if (_table.Primarys.Any() == false) throw new Exception($"DbSet.Update 失败，实体没有主键：{_fsql.GetEntityString(source)}");
+			var key = _fsql.GetEntityKeyString(source);
+			if (string.IsNullOrEmpty(key)) throw new Exception($"DbSet.Update 失败，未设置主键的值：{_fsql.GetEntityString(source)}");
+			if (_vals.TryGetValue(key, out var tryval) == false) throw new Exception($"DbSet.Update 失败，实体未被跟踪，更新前应该先做查询：{_fsql.GetEntityString(source)}");
 
 			var snap = Activator.CreateInstance<TEntity>();
-			CopyNewValueToEntity(snap, source);
-			if (_vals.TryGetValue(key, out var val) == false) _vals.Add(key, snap);
-
-			_ctx.EnqueueAction(DbContext.ExecCommandInfoType.Update, _entityType, this, snap);
+			_fsql.CopyEntityValue(snap, source); //copy，避免SaveChanges前对象再次被修改
+			_ctx.EnqueueAction(DbContext.ExecCommandInfoType.Update, this, typeof(EntityState), new EntityState { Value = snap, Key = key, Time = DateTime.Now });
 		}
 		public void UpdateRange(TEntity[] source) {
 			if (source == null) throw new ArgumentNullException(nameof(source));
@@ -290,28 +166,26 @@ namespace FreeSql {
 				Update(item);
 		}
 
-		int DbContextBetchRemove(TEntity[] dels) {
+		int DbContextBetchRemove(EntityState[] dels) {
 			if (dels.Any() == false) return 0;
-
-			var affrows = this.OrmDelete(dels).ExecuteAffrows();
-			foreach(var del in dels) {
-				var key = GetEntityKeyString(del);
-				_vals.Remove(key);
-			}
+			var affrows = this.OrmDelete(dels.Select(a => a.Value)).ExecuteAffrows();
+			//foreach (var del in dels)
+			//	_vals.Remove(del.Key);
 			return affrows;
 		}
-
 		public void Remove(TEntity source) {
 			if (source == null) throw new ArgumentNullException(nameof(source));
-			if (_table.Primarys.Any() == false) throw new Exception("DbSet.Remove 失败，实体没有主键。");
-			var key = GetEntityKeyString(source);
-			if (string.IsNullOrEmpty(key)) throw new Exception("DbSet.Remove 失败，实体没有设置主键值。");
+			if (_table.Primarys.Any() == false) throw new Exception($"DbSet.Remove 失败，实体没有主键：{_fsql.GetEntityString(source)}");
+			var key = _fsql.GetEntityKeyString(source);
+			if (string.IsNullOrEmpty(key)) throw new Exception($"DbSet.Remove 失败，未设置主键的值：{_fsql.GetEntityString(source)}");
+			if (_vals.TryGetValue(key, out var tryval) == false) throw new Exception($"DbSet.Remove 失败，实体未被跟踪，删除前应该先做查询：{_fsql.GetEntityString(source)}");
 
 			var snap = Activator.CreateInstance<TEntity>();
-			CopyNewValueToEntity(snap, source);
-			if (_vals.TryGetValue(key, out var val) == false) _vals.Add(key, snap);
+			_fsql.CopyEntityValue(snap, source); //copy，避免SaveChanges前对象再次被修改
+			_ctx.EnqueueAction(DbContext.ExecCommandInfoType.Delete, this, typeof(EntityState), new EntityState { Value = snap, Key = key, Time = DateTime.Now });
 
-			_ctx.EnqueueAction(DbContext.ExecCommandInfoType.Delete, _entityType, this, snap);
+			_vals.Remove(key);
+			_fsql.ClearEntityPrimaryValueWithIdentityAndGuid(source);
 		}
 		public void RemoveRange(TEntity[] source) {
 			if (source == null) throw new ArgumentNullException(nameof(source));
@@ -322,6 +196,23 @@ namespace FreeSql {
 			if (source == null) throw new ArgumentNullException(nameof(source));
 			foreach (var item in source)
 				Remove(item);
+		}
+
+		void TrackToList(object list) {
+			if (list == null) return;
+			var ls = list as IList<TEntity>;
+
+			foreach (var item in ls) {
+				var key = _fsql.GetEntityKeyString(item);
+				if (_vals.ContainsKey(key)) {
+					_fsql.CopyEntityValue(_vals[key].Value, item);
+					_vals[key].Time = DateTime.Now;
+				} else {
+					var snap = Activator.CreateInstance<TEntity>();
+					_fsql.CopyEntityValue(snap, item);
+					_vals.Add(key, new EntityState { Value = snap, Key = key, Time = DateTime.Now });
+				}
+			}
 		}
 	}
 

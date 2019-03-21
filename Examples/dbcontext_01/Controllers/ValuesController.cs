@@ -28,6 +28,8 @@ namespace dbcontext_01.Controllers
 			try {
 				using (var ctx = new SongContext()) {
 
+					ctx.Songs.Select.Where(a => a.Id > 10).ToList();
+
 					var song = new Song { };
 					ctx.Songs.Add(song);
 					id = song.Id;
@@ -90,7 +92,7 @@ namespace dbcontext_01.Controllers
 			var item22 = await _orm.Select<Song>().Where(a => a.Id == id).FirstAsync();
 			var item33 = await _orm.Select<Song>().Where(a => a.Id > id).ToListAsync();
 
-			return item22.Title;
+			return item22.Id.ToString();
 		}
 
         // GET api/values/5
