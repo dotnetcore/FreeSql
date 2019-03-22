@@ -31,7 +31,8 @@ FreeSql 是一个功能强大的 .NETStandard 库，用于对象关系映射程�
 
 ```csharp
 IFreeSql fsql = new FreeSql.FreeSqlBuilder()
-    .UseConnectionString(FreeSql.DataType.Sqlite, @"Data Source=|DataDirectory|\document.db;Pooling=true;Max Pool Size=10")
+    .UseConnectionString(FreeSql.DataType.Sqlite, 
+        @"Data Source=|DataDirectory|\document.db;Pooling=true;Max Pool Size=10")
     .UseAutoSyncStructure(true) //自动同步实体结构到数据库
     .Build();
 
