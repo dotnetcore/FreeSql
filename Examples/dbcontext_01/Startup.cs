@@ -20,8 +20,8 @@ namespace dbcontext_01
             Configuration = configuration;
 
 			Fsql = new FreeSql.FreeSqlBuilder()
-				//.UseConnectionString(FreeSql.DataType.Sqlite, @"Data Source=|DataDirectory|\document.db;Pooling=true;Max Pool Size=10")
-				.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=10")
+				.UseConnectionString(FreeSql.DataType.Sqlite, @"Data Source=|DataDirectory|\document.db;Pooling=true;Max Pool Size=10")
+				//.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=10")
 				.UseLogger(loggerFactory.CreateLogger<IFreeSql>())
 				.UseAutoSyncStructure(true)
 				.UseLazyLoading(true)
@@ -30,11 +30,27 @@ namespace dbcontext_01
 					(cmd, log) => Trace.WriteLine(log)
 				)
 				.Build();
+
+			Fsql2 = new FreeSql.FreeSqlBuilder()
+				.UseConnectionString(FreeSql.DataType.Sqlite, @"Data Source=|DataDirectory|\document222.db;Pooling=true;Max Pool Size=10")
+				//.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=10")
+				.UseLogger(loggerFactory.CreateLogger<IFreeSql>())
+				.UseAutoSyncStructure(true)
+				.UseLazyLoading(true)
+
+				.UseMonitorCommand(cmd => Trace.WriteLine(cmd.CommandText),
+					(cmd, log) => Trace.WriteLine(log)
+				)
+				.Build<long>();
 		}
 
-        public IConfiguration Configuration { get; }
+		enum MySql { }
+		enum PgSql { }
+
+		public IConfiguration Configuration { get; }
 		public static IFreeSql Fsql { get; private set; }
-		
+		public static IFreeSql<long> Fsql2 { get; private set; }
+
 		public void ConfigureServices(IServiceCollection services)
         {
 			services.AddMvc();
@@ -46,7 +62,10 @@ namespace dbcontext_01
 				//options.IncludeXmlComments(xmlPath);
 			});
 
+
+
 			services.AddSingleton<IFreeSql>(Fsql);
+			services.AddSingleton<IFreeSql<long>>(Fsql2);
 			services.AddFreeDbContext<SongContext>(options => options.UseFreeSql(Fsql));
 		}
 

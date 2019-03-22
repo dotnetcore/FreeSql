@@ -20,6 +20,8 @@ namespace restful.Controllers {
 
 		public class xxxx {
 			public int Id { get; set; }
+
+			public bool IsDeleted { get; set; }
 		}
 
 		

@@ -10,7 +10,7 @@ using System.Data.Common;
 
 namespace FreeSql.Oracle {
 
-	class OracleProvider : IFreeSql {
+	class OracleProvider<TMark> : IFreeSql<TMark> {
 
 		public ISelect<T1> Select<T1>() where T1 : class => new OracleSelect<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, null);
 		public ISelect<T1> Select<T1>(object dywhere) where T1 : class => new OracleSelect<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, dywhere);

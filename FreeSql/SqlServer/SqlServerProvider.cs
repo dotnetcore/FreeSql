@@ -9,7 +9,7 @@ using System.Collections.Generic;
 
 namespace FreeSql.SqlServer {
 
-	class SqlServerProvider : IFreeSql {
+	class SqlServerProvider<TMark> : IFreeSql<TMark> {
 
 		public ISelect<T1> Select<T1>() where T1 : class => new SqlServerSelect<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, null);
 		public ISelect<T1> Select<T1>(object dywhere) where T1 : class => new SqlServerSelect<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, dywhere);

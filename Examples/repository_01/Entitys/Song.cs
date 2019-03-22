@@ -1,4 +1,5 @@
 ﻿using FreeSql.DataAnnotations;
+using repository_01;
 
 namespace restful.Entitys {
 	public class Song {

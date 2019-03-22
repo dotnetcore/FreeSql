@@ -19,15 +19,15 @@ namespace repository_01 {
 	/// <summary>
 	/// 用户密码信息
 	/// </summary>
-	public class SysUserLogOn {
+	public class Sys1UserLogOn {
 		[Column(IsPrimary = true, Name = "Id")]
 		public Guid UserLogOnId { get; set; }
-		public virtual SysUser User { get; set; }
+		public virtual Sys1User User { get; set; }
 	}
-	public class SysUser {
+	public class Sys1User {
 		[Column(IsPrimary = true, Name = "Id")]
 		public Guid UserId { get; set; }
-		public virtual SysUserLogOn UserLogOn { get; set; }
+		public virtual Sys1UserLogOn UserLogOn { get; set; }
 	}
 	
 	public class Startup {
@@ -43,11 +43,11 @@ namespace repository_01 {
 				.UseMonitorCommand(cmd => Trace.WriteLine(cmd.CommandText))
 				.Build();
 
-			var sysu = new SysUser { };
-			Fsql.Insert<SysUser>().AppendData(sysu).ExecuteAffrows();
-			Fsql.Insert<SysUserLogOn>().AppendData(new SysUserLogOn { UserLogOnId = sysu.UserId }).ExecuteAffrows();
-			var a = Fsql.Select<SysUserLogOn>().ToList();
-			var b = Fsql.Select<SysUserLogOn>().Any();
+			var sysu = new Sys1User { };
+			Fsql.Insert<Sys1User>().AppendData(sysu).ExecuteAffrows();
+			Fsql.Insert<Sys1UserLogOn>().AppendData(new Sys1UserLogOn { UserLogOnId = sysu.UserId }).ExecuteAffrows();
+			var a = Fsql.Select<Sys1UserLogOn>().ToList();
+			var b = Fsql.Select<Sys1UserLogOn>().Any();
 		}
 
 		public IConfiguration Configuration { get; }
@@ -92,8 +92,10 @@ namespace repository_01 {
 
 			var builder = new ContainerBuilder();
 
-			builder.RegisterFreeRepository(
-				filter => filter.Apply<Song>("test", a => a.Title == DateTime.Now.ToString() + System.Threading.Thread.CurrentThread.ManagedThreadId),
+			builder.RegisterFreeRepository(filter => filter
+				.Apply<Song>("test", a => a.Title == DateTime.Now.ToString() + System.Threading.Thread.CurrentThread.ManagedThreadId)
+				.Apply<ISoftDelete>("softdelete", a => a.IsDeleted == false)
+				,
 				this.GetType().Assembly
 			);
 
@@ -120,5 +122,9 @@ namespace repository_01 {
 				c.SwaggerEndpoint("/swagger/v1/swagger.json", "FreeSql.RESTful API V1");
 			});
 		}
+	}
+
+	public interface ISoftDelete {
+		bool IsDeleted { get; set; }
 	}
 }

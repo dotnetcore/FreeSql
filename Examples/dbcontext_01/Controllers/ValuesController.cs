@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using FreeSql;
 using Microsoft.AspNetCore.Mvc;
 
 namespace dbcontext_01.Controllers
@@ -12,9 +13,12 @@ namespace dbcontext_01.Controllers
     {
 
 		IFreeSql _orm;
-		public ValuesController(SongContext songContext, IFreeSql orm) {
+		public ValuesController(SongContext songContext, 
+			IFreeSql orm1, IFreeSql orm2, 
+			IFreeSql<long> orm3
+			) {
 
-			_orm = orm;
+			_orm = orm1;
 			
 		}
 

@@ -46,7 +46,7 @@ namespace FreeSql {
 						notExists.TryAdd(gf.name, true); //防止第二次错误
 						continue;
 					}
-					newFilter.Add(gf.name, gf.exp);
+					newFilter.Add(gf.name, newExp);
 				}
 				if (newFilter.Any() == false) return;
 

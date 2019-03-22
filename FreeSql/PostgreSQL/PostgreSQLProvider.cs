@@ -16,7 +16,7 @@ using System.Net.NetworkInformation;
 
 namespace FreeSql.PostgreSQL {
 
-	class PostgreSQLProvider : IFreeSql {
+	class PostgreSQLProvider<TMark> : IFreeSql<TMark> {
 
 		static PostgreSQLProvider() {
 			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(BitArray), true);

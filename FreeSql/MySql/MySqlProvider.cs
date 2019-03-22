@@ -10,7 +10,7 @@ using System.Data.Common;
 
 namespace FreeSql.MySql {
 
-	class MySqlProvider : IFreeSql {
+	class MySqlProvider<TMark> : IFreeSql<TMark> {
 
 		static MySqlProvider() {
 			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(MygisPoint), true);

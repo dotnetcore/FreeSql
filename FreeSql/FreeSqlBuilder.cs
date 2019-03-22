@@ -124,14 +124,15 @@ namespace FreeSql {
 			return this;
 		}
 
-		public IFreeSql Build() {
-			IFreeSql ret = null;
+		public IFreeSql Build() => Build<IFreeSql>();
+		public IFreeSql<TMark> Build<TMark>() {
+			IFreeSql<TMark> ret = null;
 			switch(_dataType) {
-				case DataType.MySql: ret = new MySql.MySqlProvider(_cache, _logger, _masterConnectionString, _slaveConnectionString); break;
-				case DataType.SqlServer: ret = new SqlServer.SqlServerProvider(_cache, _logger, _masterConnectionString, _slaveConnectionString); break;
-				case DataType.PostgreSQL: ret = new PostgreSQL.PostgreSQLProvider(_cache, _logger, _masterConnectionString, _slaveConnectionString); break;
-				case DataType.Oracle: ret = new Oracle.OracleProvider(_cache, _logger, _masterConnectionString, _slaveConnectionString); break;
-				case DataType.Sqlite: ret = new Sqlite.SqliteProvider(_cache, _logger, _masterConnectionString, _slaveConnectionString); break;
+				case DataType.MySql: ret = new MySql.MySqlProvider<TMark>(_cache, _logger, _masterConnectionString, _slaveConnectionString); break;
+				case DataType.SqlServer: ret = new SqlServer.SqlServerProvider<TMark>(_cache, _logger, _masterConnectionString, _slaveConnectionString); break;
+				case DataType.PostgreSQL: ret = new PostgreSQL.PostgreSQLProvider<TMark>(_cache, _logger, _masterConnectionString, _slaveConnectionString); break;
+				case DataType.Oracle: ret = new Oracle.OracleProvider<TMark>(_cache, _logger, _masterConnectionString, _slaveConnectionString); break;
+				case DataType.Sqlite: ret = new Sqlite.SqliteProvider<TMark>(_cache, _logger, _masterConnectionString, _slaveConnectionString); break;
 			}
 			if (ret != null) {
 				ret.CodeFirst.IsAutoSyncStructure = _isAutoSyncStructure;

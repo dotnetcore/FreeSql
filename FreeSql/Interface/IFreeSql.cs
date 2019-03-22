@@ -1,8 +1,8 @@
 ﻿using FreeSql;
 using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Text;
+
+public interface IFreeSql<TMark> : IFreeSql { }
 
 public interface IFreeSql {
 	/// <summary>
