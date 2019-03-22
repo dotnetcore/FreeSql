@@ -69,8 +69,8 @@ namespace FreeSql.Oracle.Curd {
 						if (_noneParameter)
 							sb.Append(_commonUtils.GetNoneParamaterSqlValue(specialParams, col.CsType, val));
 						else {
-							sb.Append(_commonUtils.QuoteWriteParamter(col.CsType, _commonUtils.QuoteParamterName($"{col.CsName}{didx}")));
-							_params[didx * colidx + colidx2] = _commonUtils.AppendParamter(null, $"{col.CsName}{didx}", col.CsType, val);
+							sb.Append(_commonUtils.QuoteWriteParamter(col.CsType, _commonUtils.QuoteParamterName($"{col.CsName}_{didx}")));
+							_params[didx * colidx + colidx2] = _commonUtils.AppendParamter(null, $"{col.CsName}_{didx}", col.CsType, val);
 						}
 						++colidx2;
 					}
@@ -95,7 +95,9 @@ namespace FreeSql.Oracle.Curd {
 			var identParam = _commonUtils.AppendParamter(null, $"{_identCol.CsName}99", _identCol.CsType, 0) as OracleParameter;
 			identParam.Direction = ParameterDirection.Output;
 			_orm.Ado.ExecuteNonQuery(_transaction, CommandType.Text, $"{sql} RETURNING {identColName} INTO {identParam.ParameterName}", _params.Concat(new[] { identParam }).ToArray());
-			return long.TryParse(string.Concat(identParam.Value), out var trylng) ? trylng : 0;
+			var id = long.TryParse(string.Concat(identParam.Value), out var trylng) ? trylng : 0;
+			this.ClearData();
+			return id;
 		}
 		async internal override Task<long> RawExecuteIdentityAsync() {
 			var sql = this.ToSql();
@@ -109,7 +111,9 @@ namespace FreeSql.Oracle.Curd {
 			var identParam = _commonUtils.AppendParamter(null, $"{_identCol.CsName}99", _identCol.CsType, 0) as OracleParameter;
 			identParam.Direction = ParameterDirection.Output;
 			await _orm.Ado.ExecuteNonQueryAsync(_transaction, CommandType.Text, $"{sql} RETURNING {identColName} INTO {identParam.ParameterName}", _params.Concat(new[] { identParam }).ToArray());
-			return long.TryParse(string.Concat(identParam.Value), out var trylng) ? trylng : 0;
+			var id = long.TryParse(string.Concat(identParam.Value), out var trylng) ? trylng : 0;
+			this.ClearData();
+			return id;
 		}
 
 		internal override List<T1> RawExecuteInserted() {
@@ -117,6 +121,7 @@ namespace FreeSql.Oracle.Curd {
 			if (string.IsNullOrEmpty(sql)) return new List<T1>();
 
 			this.ExecuteAffrows();
+			this.ClearData();
 			return _source;
 		}
 		async internal override Task<List<T1>> RawExecuteInsertedAsync() {
@@ -124,6 +129,7 @@ namespace FreeSql.Oracle.Curd {
 			if (string.IsNullOrEmpty(sql)) return new List<T1>();
 
 			await this.ExecuteAffrowsAsync();
+			this.ClearData();
 			return _source;
 		}
 	}

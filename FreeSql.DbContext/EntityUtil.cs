@@ -1,5 +1,4 @@
-﻿using FreeSql.Internal.Model;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,7 +16,7 @@ namespace FreeSql.Extensions {
 
 		static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Func<object, string>>> _dicGetEntityKeyString = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Func<object, string>>>();
 		/// <summary>
-		/// 获取实体的主键值，以 "*|_,[,_|*" 分割
+		/// 获取实体的主键值，以 "*|_,[,_|*" 分割，当任意一个主键属性无值，返回 null
 		/// </summary>
 		/// <typeparam name="TEntity"></typeparam>
 		/// <param name="_table"></param>
@@ -40,7 +39,7 @@ namespace FreeSql.Extensions {
 				for (var a = 0; a < pks.Length; a++) {
 					exps.Add(
 						Expression.IfThen(
-							Expression.Equal(var3IsNull, Expression.Constant(false)),
+							Expression.IsFalse(var3IsNull),
 							Expression.IfThenElse(
 								Expression.Equal(Expression.MakeMemberAccess(var1Parm, _table.Properties[pks[a].CsName]), Expression.Default(pks[a].CsType)),
 								Expression.Assign(var3IsNull, Expression.Constant(true)),
@@ -58,7 +57,7 @@ namespace FreeSql.Extensions {
 				}
 				exps.Add(
 					Expression.IfThen(
-						Expression.Equal(var3IsNull, Expression.Constant(false)),
+						Expression.IsFalse(var3IsNull),
 						Expression.Return(returnTarget, Expression.Call(var2Sb, MethodStringBuilderToString))
 					)
 				);
@@ -83,43 +82,31 @@ namespace FreeSql.Extensions {
 				var parm1 = Expression.Parameter(typeof(object));
 				var var1Parm = Expression.Variable(t);
 				var var2Sb = Expression.Variable(typeof(StringBuilder));
-				var var3IsNull = Expression.Variable(typeof(bool));
 				var exps = new List<Expression>(new Expression[] {
 					Expression.Assign(var1Parm, Expression.TypeAs(parm1, t)),
 					Expression.Assign(var2Sb, Expression.New(typeof(StringBuilder))),
-					Expression.Assign(var3IsNull, Expression.Constant(false)),
 					Expression.Call(var2Sb, MethodStringBuilderAppend, Expression.Constant("(" ))
 				});
 				var a = 0;
 				foreach (var col in cols.Values) {
 					exps.Add(
-						Expression.IfThen(
-							Expression.Equal(var3IsNull, Expression.Constant(false)),
-							Expression.IfThenElse(
-								Expression.Equal(Expression.MakeMemberAccess(var1Parm, _table.Properties[col.CsName]), Expression.Default(col.CsType)),
-								Expression.Assign(var3IsNull, Expression.Constant(true)),
-								Expression.Block(
-									new Expression[]{
-										a > 0 ? Expression.Call(var2Sb, MethodStringBuilderAppend, Expression.Constant(", " )) : null,
-										Expression.Call(var2Sb, MethodStringBuilderAppend,
-											Expression.Convert(Expression.MakeMemberAccess(var1Parm, _table.Properties[col.CsName]), typeof(object))
-										)
-									}.Where(c => c != null).ToArray()
+						Expression.Block(
+							new Expression[]{
+								a > 0 ? Expression.Call(var2Sb, MethodStringBuilderAppend, Expression.Constant(", " )) : null,
+								Expression.Call(var2Sb, MethodStringBuilderAppend,
+									Expression.Convert(Expression.MakeMemberAccess(var1Parm, _table.Properties[col.CsName]), typeof(object))
 								)
-							)
+							}.Where(c => c != null).ToArray()
 						)
 					);
 					a++;
 				}
 				exps.AddRange(new Expression[] {
 					Expression.Call(var2Sb, MethodStringBuilderAppend, Expression.Constant(")" )),
-					Expression.IfThen(
-						Expression.Equal(var3IsNull, Expression.Constant(false)),
-						Expression.Return(returnTarget, Expression.Call(var2Sb, MethodStringBuilderToString))
-					)
+					Expression.Return(returnTarget, Expression.Call(var2Sb, MethodStringBuilderToString)),
+					Expression.Label(returnTarget, Expression.Default(typeof(string)))
 				});
-				exps.Add(Expression.Label(returnTarget, Expression.Default(typeof(string))));
-				return Expression.Lambda<Func<object, string>>(Expression.Block(new[] { var1Parm, var2Sb, var3IsNull }, exps), new[] { parm1 }).Compile();
+				return Expression.Lambda<Func<object, string>>(Expression.Block(new[] { var1Parm, var2Sb }, exps), new[] { parm1 }).Compile();
 			});
 			return func(item);
 		}
@@ -128,7 +115,7 @@ namespace FreeSql.Extensions {
 		/// 使用新实体的值，复盖旧实体的值
 		/// </summary>
 		static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object, object>>> _dicCopyNewValueToEntity = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object, object>>>();
-		public static void CopyEntityValue<TEntity>(this IFreeSql orm, TEntity oldValue, TEntity newValue) {
+		public static void MapEntityValue<TEntity>(this IFreeSql orm, TEntity from, TEntity to) {
 			var func = _dicCopyNewValueToEntity.GetOrAdd(orm.Ado.DataType, dt => new ConcurrentDictionary<Type, Action<object, object>>()).GetOrAdd(typeof(TEntity), t => {
 				var _table = orm.CodeFirst.GetTableByEntity(t);
 				var parm1 = Expression.Parameter(typeof(object));
@@ -143,14 +130,14 @@ namespace FreeSql.Extensions {
 					if (_table.ColumnsByCs.ContainsKey(prop.Name)) {
 						exps.Add(
 							Expression.Assign(
-								Expression.MakeMemberAccess(var1Parm, prop),
-								Expression.MakeMemberAccess(var2Parm, prop)
+								Expression.MakeMemberAccess(var2Parm, prop),
+								Expression.MakeMemberAccess(var1Parm, prop)
 							)
 						);
 					} else {
 						exps.Add(
 							Expression.Assign(
-								Expression.MakeMemberAccess(var1Parm, prop),
+								Expression.MakeMemberAccess(var2Parm, prop),
 								Expression.Default(prop.PropertyType)
 							)
 						);
@@ -158,19 +145,19 @@ namespace FreeSql.Extensions {
 				}
 				return Expression.Lambda<Action<object, object>>(Expression.Block(new[] { var1Parm, var2Parm }, exps), new[] { parm1, parm2 }).Compile();
 			});
-			func(oldValue, newValue);
+			func(from, to);
 		}
 
-		static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object, long>>> _dicSetEntityIdentityValue = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object, long>>>();
+		static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object, long>>> _dicSetEntityIdentityValueWithPrimary = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object, long>>>();
 		/// <summary>
-		/// 设置实体的自增字段值（若存在）
+		/// 设置实体中主键内的自增字段值（若存在）
 		/// </summary>
 		/// <typeparam name="TEntity"></typeparam>
 		/// <param name="orm"></param>
 		/// <param name="item"></param>
 		/// <param name="idtval"></param>
-		public static void SetEntityIdentityValue<TEntity>(this IFreeSql orm, TEntity item, long idtval) {
-			var func = _dicSetEntityIdentityValue.GetOrAdd(orm.Ado.DataType, dt => new ConcurrentDictionary<Type, Action<object, long>>()).GetOrAdd(typeof(TEntity), t => {
+		public static void SetEntityIdentityValueWithPrimary<TEntity>(this IFreeSql orm, TEntity item, long idtval) {
+			var func = _dicSetEntityIdentityValueWithPrimary.GetOrAdd(orm.Ado.DataType, dt => new ConcurrentDictionary<Type, Action<object, long>>()).GetOrAdd(typeof(TEntity), t => {
 				var _table = orm.CodeFirst.GetTableByEntity(t);
 				var identitys = _table.Primarys.Where(a => a.Attribute.IsIdentity);
 				var parm1 = Expression.Parameter(typeof(object));
@@ -179,11 +166,12 @@ namespace FreeSql.Extensions {
 				var exps = new List<Expression>(new Expression[] {
 					Expression.Assign(var1Parm, Expression.TypeAs(parm1, t))
 				});
-				foreach (var pk in identitys) {
+				if (identitys.Any()) {
+					var idts0 = identitys.First();
 					exps.Add(
 						Expression.Assign(
-							Expression.MakeMemberAccess(var1Parm, _table.Properties[pk.CsName]),
-							Expression.Convert(FreeSql.Internal.Utils.GetDataReaderValueBlockExpression(pk.CsType, Expression.Convert(parm2, typeof(object))), pk.CsType)
+							Expression.MakeMemberAccess(var1Parm, _table.Properties[idts0.CsName]),
+							Expression.Convert(FreeSql.Internal.Utils.GetDataReaderValueBlockExpression(idts0.CsType, Expression.Convert(parm2, typeof(object))), idts0.CsType)
 						)
 					);
 				}
@@ -191,6 +179,49 @@ namespace FreeSql.Extensions {
 			});
 			func(item, idtval);
 		}
+		static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Func<object, long>>> _dicGetEntityIdentityValueWithPrimary = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Func<object, long>>>();
+		/// <summary>
+		/// 获取实体中主键内的自增字段值（若存在）
+		/// </summary>
+		/// <typeparam name="TEntity"></typeparam>
+		/// <param name="orm"></param>
+		/// <param name="item"></param>
+		public static long GetEntityIdentityValueWithPrimary<TEntity>(this IFreeSql orm, TEntity item) {
+			var func = _dicGetEntityIdentityValueWithPrimary.GetOrAdd(orm.Ado.DataType, dt => new ConcurrentDictionary<Type, Func<object, long>>()).GetOrAdd(typeof(TEntity), t => {
+				var _table = orm.CodeFirst.GetTableByEntity(t);
+				var identitys = _table.Primarys.Where(a => a.Attribute.IsIdentity);
+
+
+				var returnTarget = Expression.Label(typeof(long));
+				var parm1 = Expression.Parameter(typeof(object));
+				var var1Parm = Expression.Variable(t);
+				var exps = new List<Expression>(new Expression[] {
+					Expression.Assign(var1Parm, Expression.TypeAs(parm1, t))
+				});
+				if (identitys.Any()) {
+					var idts0 = identitys.First();
+					exps.Add(
+						Expression.IfThen(
+							Expression.NotEqual(
+								Expression.MakeMemberAccess(var1Parm, _table.Properties[idts0.CsName]),
+								Expression.Default(idts0.CsType)
+							),
+							Expression.Return(
+								returnTarget, 
+								FreeSql.Internal.Utils.GetDataReaderValueBlockExpression(
+									typeof(long), 
+									Expression.Convert(Expression.MakeMemberAccess(var1Parm, _table.Properties[idts0.CsName]), typeof(object))
+								)
+							)
+						)
+					);
+				}
+				exps.Add(Expression.Label(returnTarget, Expression.Default(typeof(long))));
+				return Expression.Lambda<Func<object, long>>(Expression.Block(new[] { var1Parm }, exps), new[] { parm1 }).Compile();
+			});
+			return func(item);
+		}
+
 		static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object>>> _dicClearEntityPrimaryValueWithIdentityAndGuid = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object>>>();
 		/// <summary>
 		/// 清除实体的主键值，将自增、Guid类型的主键值清除

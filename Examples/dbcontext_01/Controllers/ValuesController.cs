@@ -29,60 +29,74 @@ namespace dbcontext_01.Controllers
 				using (var ctx = new SongContext()) {
 
 					ctx.Songs.Select.Where(a => a.Id > 10).ToList();
+					//查询结果，进入 states
 
 					var song = new Song { };
+					//可插入的 song
+
 					ctx.Songs.Add(song);
 					id = song.Id;
+					//因有自增类型，立即开启事务执行SQL，返回自增值
 
 					var adds = Enumerable.Range(0, 100)
 						.Select(a => new Song { Create_time = DateTime.Now, Is_deleted = false, Title = "xxxx" + a, Url = "url222" })
 						.ToList();
+					//创建一堆无主键值
+
 					ctx.Songs.AddRange(adds);
+					//立即执行，将自增值赋给 adds 所有元素，因为有自增类型，如果其他类型，指定传入主键值，不会立即执行
 
 					for (var a = 0; a < adds.Count; a++)
 						adds[a].Title = "dkdkdkdk" + a;
 
 					ctx.Songs.UpdateRange(adds);
+					//批量修改，进入队列
 
 					ctx.Songs.RemoveRange(adds.Skip(10).Take(20).ToList());
+					//批量删除，进入队列，完成时 10-20 元素的主键值会被清除
 
 					//ctx.Songs.Update(adds.First());
 
 					adds.Last().Url = "skldfjlksdjglkjjcccc";
 					ctx.Songs.Update(adds.Last());
+					//单条修改 urls 的值，进入队列
 
 					//throw new Exception("回滚");
+
+					//ctx.Songs.Select.First();
+					//这里做一个查询，会立即打包【执行队列】，避免没有提交的数据，影响查询结果
 
 					ctx.SaveChanges();
+					//打包【执行队列】，提交事务
 				}
 
-				using (var ctx = new SongContext()) {
+				//using (var ctx = new SongContext()) {
 
-					var song = new Song { };
-					await ctx.Songs.AddAsync(song);
-					id = song.Id;
+				//	var song = new Song { };
+				//	await ctx.Songs.AddAsync(song);
+				//	id = song.Id;
 
-					var adds = Enumerable.Range(0, 100)
-						.Select(a => new Song { Create_time = DateTime.Now, Is_deleted = false, Title = "xxxx" + a, Url = "url222" })
-						.ToList();
-					await ctx.Songs.AddRangeAsync(adds);
+				//	var adds = Enumerable.Range(0, 100)
+				//		.Select(a => new Song { Create_time = DateTime.Now, Is_deleted = false, Title = "xxxx" + a, Url = "url222" })
+				//		.ToList();
+				//	await ctx.Songs.AddRangeAsync(adds);
 
-					for (var a = 0; a < adds.Count; a++)
-						adds[a].Title = "dkdkdkdk" + a;
+				//	for (var a = 0; a < adds.Count; a++)
+				//		adds[a].Title = "dkdkdkdk" + a;
 
-					ctx.Songs.UpdateRange(adds);
+				//	ctx.Songs.UpdateRange(adds);
 
-					ctx.Songs.RemoveRange(adds.Skip(10).Take(20).ToList());
+				//	ctx.Songs.RemoveRange(adds.Skip(10).Take(20).ToList());
 
-					//ctx.Songs.Update(adds.First());
+				//	//ctx.Songs.Update(adds.First());
 
-					adds.Last().Url = "skldfjlksdjglkjjcccc";
-					ctx.Songs.Update(adds.Last());
+				//	adds.Last().Url = "skldfjlksdjglkjjcccc";
+				//	ctx.Songs.Update(adds.Last());
 
-					//throw new Exception("回滚");
+				//	//throw new Exception("回滚");
 
-					await ctx.SaveChangesAsync();
-				}
+				//	await ctx.SaveChangesAsync();
+				//}
 			} catch {
 				var item = await _orm.Select<Song>().Where(a => a.Id == id).FirstAsync();
 

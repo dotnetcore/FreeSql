@@ -25,19 +25,24 @@ namespace FreeSql.Sqlite.Curd {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return 0;
 
-			return long.TryParse(string.Concat(_orm.Ado.ExecuteScalar(_transaction, CommandType.Text, string.Concat(sql, "; SELECT last_insert_rowid();"), _params)), out var trylng) ? trylng : 0;
+			var id = long.TryParse(string.Concat(_orm.Ado.ExecuteScalar(_transaction, CommandType.Text, string.Concat(sql, "; SELECT last_insert_rowid();"), _params)), out var trylng) ? trylng : 0;
+			this.ClearData();
+			return id;
 		}
 		async internal override Task<long> RawExecuteIdentityAsync() {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return 0;
 
-			return long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync(_transaction, CommandType.Text, string.Concat(sql, "; SELECT last_insert_rowid();"), _params)), out var trylng) ? trylng : 0;
+			var id = long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync(_transaction, CommandType.Text, string.Concat(sql, "; SELECT last_insert_rowid();"), _params)), out var trylng) ? trylng : 0;
+			this.ClearData();
+			return id;
 		}
 		internal override List<T1> RawExecuteInserted() {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return new List<T1>();
 
 			this.ExecuteAffrows();
+			this.ClearData();
 			return _source;
 		}
 		async internal override Task<List<T1>> RawExecuteInsertedAsync() {
@@ -45,6 +50,7 @@ namespace FreeSql.Sqlite.Curd {
 			if (string.IsNullOrEmpty(sql)) return new List<T1>();
 
 			await this.ExecuteAffrowsAsync();
+			this.ClearData();
 			return _source;
 		}
 	}

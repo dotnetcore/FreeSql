@@ -79,5 +79,25 @@ namespace FreeSql.Internal.CommonProvider {
 			var method = _select.GetType().GetMethod("ToSql", new[] { typeof(string) });
 			return method.Invoke(_select, new object[] { field.Length > 0 ? field.Remove(0, 2).ToString() : null }) as string;
 		}
+
+		public ISelectGrouping<T1> Skip(int offset) {
+			var method = _select.GetType().GetMethod("Skip", new[] { typeof(int) });
+			method.Invoke(_select, new object[] { offset });
+			return this;
+		}
+		public ISelectGrouping<T1> Offset(int offset) => this.Skip(offset);
+
+		public ISelectGrouping<T1> Limit(int limit) {
+			var method = _select.GetType().GetMethod("Limit", new[] { typeof(int) });
+			method.Invoke(_select, new object[] { limit });
+			return this;
+		}
+		public ISelectGrouping<T1> Take(int limit) => this.Limit(limit);
+
+		public ISelectGrouping<T1> Page(int pageIndex, int pageSize) {
+			var method = _select.GetType().GetMethod("Page", new[] { typeof(int), typeof(int) });
+			method.Invoke(_select, new object[] { pageIndex, pageSize });
+			return this;
+		}
 	}
 }

@@ -30,6 +30,14 @@ namespace FreeSql.Internal.CommonProvider {
 			if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure<T1>();
 		}
 
+		protected void ClearData() {
+			_source.Clear();
+			_where.Clear();
+			_whereTimes = 0;
+			_params.Clear();
+		}
+
+
 		public IDelete<T1> WithTransaction(DbTransaction transaction) {
 			_transaction = transaction;
 			return this;
@@ -38,12 +46,16 @@ namespace FreeSql.Internal.CommonProvider {
 		public int ExecuteAffrows() {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return 0;
-			return _orm.Ado.ExecuteNonQuery(_transaction, CommandType.Text, sql, _params.ToArray());
+			var affrows = _orm.Ado.ExecuteNonQuery(_transaction, CommandType.Text, sql, _params.ToArray());
+			this.ClearData();
+			return affrows;
 		}
 		async public Task<int> ExecuteAffrowsAsync() {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return 0;
-			return await _orm.Ado.ExecuteNonQueryAsync(_transaction, CommandType.Text, sql, _params.ToArray());
+			var affrows = await _orm.Ado.ExecuteNonQueryAsync(_transaction, CommandType.Text, sql, _params.ToArray());
+			this.ClearData();
+			return affrows;
 		}
 		public abstract List<T1> ExecuteDeleted();
 		public abstract Task<List<T1>> ExecuteDeletedAsync();

@@ -506,6 +506,8 @@ namespace FreeSql.Tests.Sqlite {
 			.Having(a => a.Count() < 300 || a.Avg(a.Key.mod4) < 100)
 			.OrderBy(a => a.Key.tt2)
 			.OrderByDescending(a => a.Count())
+			.Offset(10)
+			.Limit(2)
 			.ToList(a => new {
 				a.Key.tt2,
 				cou1 = a.Count(),

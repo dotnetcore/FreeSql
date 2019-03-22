@@ -33,7 +33,9 @@ namespace FreeSql.SqlServer.Curd {
 			sb.Insert(0, sql.Substring(0, validx));
 			sb.Append(sql.Substring(validx));
 
-			return _orm.Ado.Query<T1>(_transaction, CommandType.Text, sb.ToString(), _params.Concat(_paramsSource).ToArray());
+			var ret = _orm.Ado.Query<T1>(_transaction, CommandType.Text, sb.ToString(), _params.Concat(_paramsSource).ToArray());
+			this.ClearData();
+			return ret;
 		}
 		async public override Task<List<T1>> ExecuteUpdatedAsync() {
 			var sql = this.ToSql();
@@ -53,7 +55,9 @@ namespace FreeSql.SqlServer.Curd {
 			sb.Insert(0, sql.Substring(0, validx));
 			sb.Append(sql.Substring(validx));
 
-			return await _orm.Ado.QueryAsync<T1>(_transaction, CommandType.Text, sb.ToString(), _params.Concat(_paramsSource).ToArray());
+			var ret = await _orm.Ado.QueryAsync<T1>(_transaction, CommandType.Text, sb.ToString(), _params.Concat(_paramsSource).ToArray());
+			this.ClearData();
+			return ret;
 		}
 
 		protected override void ToSqlCase(StringBuilder caseWhen, ColumnInfo[] primarys) {

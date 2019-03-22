@@ -32,6 +32,12 @@ namespace FreeSql.Internal.CommonProvider {
 			if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure<T1>();
 		}
 
+		protected void ClearData() {
+			_source.Clear();
+			_ignore.Clear();
+			_params = null;
+		}
+
 		public IInsert<T1> WithTransaction(DbTransaction transaction) {
 			_transaction = transaction;
 			return this;
@@ -267,8 +273,16 @@ namespace FreeSql.Internal.CommonProvider {
 		}
 		#endregion
 
-		internal int RawExecuteAffrows() => _orm.Ado.ExecuteNonQuery(_transaction, CommandType.Text, ToSql(), _params);
-		internal Task<int> RawExecuteAffrowsAsync() => _orm.Ado.ExecuteNonQueryAsync(_transaction, CommandType.Text, ToSql(), _params);
+		internal int RawExecuteAffrows() {
+			var affrows = _orm.Ado.ExecuteNonQuery(_transaction, CommandType.Text, ToSql(), _params);
+			this.ClearData();
+			return affrows;
+		}
+		async internal Task<int> RawExecuteAffrowsAsync() {
+			var affrows = await _orm.Ado.ExecuteNonQueryAsync(_transaction, CommandType.Text, ToSql(), _params);
+			this.ClearData();
+			return affrows;
+		}
 		internal abstract long RawExecuteIdentity();
 		internal abstract Task<long> RawExecuteIdentityAsync();
 		internal abstract List<T1> RawExecuteInserted();
@@ -331,8 +345,8 @@ namespace FreeSql.Internal.CommonProvider {
 						if (_noneParameter)
 							sb.Append(_commonUtils.GetNoneParamaterSqlValue(specialParams, col.CsType, val));
 						else {
-							sb.Append(_commonUtils.QuoteWriteParamter(col.CsType, _commonUtils.QuoteParamterName($"{col.CsName}{didx}")));
-							_params[didx * colidx + colidx2] = _commonUtils.AppendParamter(null, $"{col.CsName}{didx}", col.CsType, val);
+							sb.Append(_commonUtils.QuoteWriteParamter(col.CsType, _commonUtils.QuoteParamterName($"{col.CsName}_{didx}")));
+							_params[didx * colidx + colidx2] = _commonUtils.AppendParamter(null, $"{col.CsName}_{didx}", col.CsType, val);
 						}
 						++colidx2;
 					}

@@ -20,12 +20,15 @@ namespace dbcontext_01
             Configuration = configuration;
 
 			Fsql = new FreeSql.FreeSqlBuilder()
-				.UseConnectionString(FreeSql.DataType.Sqlite, @"Data Source=|DataDirectory|\document.db;Pooling=true;Max Pool Size=10")
+				//.UseConnectionString(FreeSql.DataType.Sqlite, @"Data Source=|DataDirectory|\document.db;Pooling=true;Max Pool Size=10")
+				.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=10")
 				.UseLogger(loggerFactory.CreateLogger<IFreeSql>())
 				.UseAutoSyncStructure(true)
 				.UseLazyLoading(true)
 
-				.UseMonitorCommand(cmd => Trace.WriteLine(cmd.CommandText))
+				.UseMonitorCommand(cmd => Trace.WriteLine(cmd.CommandText),
+					(cmd, log) => Trace.WriteLine(log)
+				)
 				.Build();
 		}
 

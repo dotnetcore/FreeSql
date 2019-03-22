@@ -43,6 +43,40 @@ namespace FreeSql {
 		/// <param name="select">选择列</param>
 		/// <returns></returns>
 		string ToSql<TReturn>(Expression<Func<ISelectGroupingAggregate<T1>, TReturn>> select);
+
+
+		/// <summary>
+		/// 查询向后偏移行数
+		/// </summary>
+		/// <param name="offset"></param>
+		/// <returns></returns>
+		ISelectGrouping<T1> Skip(int offset);
+		/// <summary>
+		/// 查询向后偏移行数
+		/// </summary>
+		/// <param name="offset">行数</param>
+		/// <returns></returns>
+		ISelectGrouping<T1> Offset(int offset);
+		/// <summary>
+		/// 查询多少条数据
+		/// </summary>
+		/// <param name="limit"></param>
+		/// <returns></returns>
+		ISelectGrouping<T1> Limit(int limit);
+		/// <summary>
+		/// 查询多少条数据
+		/// </summary>
+		/// <param name="limit"></param>
+		/// <returns></returns>
+		ISelectGrouping<T1> Take(int limit);
+
+		/// <summary>
+		/// 分页
+		/// </summary>
+		/// <param name="pageIndex">第几页</param>
+		/// <param name="pageSize">每页多少</param>
+		/// <returns></returns>
+		ISelectGrouping<T1> Page(int pageIndex, int pageSize);
 	}
 
 	public interface ISelectGroupingAggregate<T1> {

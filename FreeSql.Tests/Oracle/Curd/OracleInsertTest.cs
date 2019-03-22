@@ -26,51 +26,51 @@ namespace FreeSql.Tests.Oracle {
 
 			var data = new List<object>();
 			var sql = insert.AppendData(items.First()).ToSql();
-			Assert.Equal("INSERT INTO \"TB_TOPIC_INSERT\"(\"CLICKS\", \"TITLE\", \"CREATETIME\") VALUES(:Clicks0, :Title0, :CreateTime0)", sql);
+			Assert.Equal("INSERT INTO \"TB_TOPIC_INSERT\"(\"CLICKS\", \"TITLE\", \"CREATETIME\") VALUES(:Clicks_0, :Title_0, :CreateTime_0)", sql);
 			data.Add(insert.AppendData(items.First()).ExecuteIdentity());
 
 			sql = insert.AppendData(items).ToSql();
 			Assert.Equal(@"INSERT ALL
-INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"", ""CREATETIME"") VALUES(:Clicks0, :Title0, :CreateTime0)
-INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"", ""CREATETIME"") VALUES(:Clicks1, :Title1, :CreateTime1)
-INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"", ""CREATETIME"") VALUES(:Clicks2, :Title2, :CreateTime2)
-INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"", ""CREATETIME"") VALUES(:Clicks3, :Title3, :CreateTime3)
-INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"", ""CREATETIME"") VALUES(:Clicks4, :Title4, :CreateTime4)
-INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"", ""CREATETIME"") VALUES(:Clicks5, :Title5, :CreateTime5)
-INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"", ""CREATETIME"") VALUES(:Clicks6, :Title6, :CreateTime6)
-INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"", ""CREATETIME"") VALUES(:Clicks7, :Title7, :CreateTime7)
-INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"", ""CREATETIME"") VALUES(:Clicks8, :Title8, :CreateTime8)
-INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"", ""CREATETIME"") VALUES(:Clicks9, :Title9, :CreateTime9)
+INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"", ""CREATETIME"") VALUES(:Clicks_0, :Title_0, :CreateTime_0)
+INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"", ""CREATETIME"") VALUES(:Clicks_1, :Title_1, :CreateTime_1)
+INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"", ""CREATETIME"") VALUES(:Clicks_2, :Title_2, :CreateTime_2)
+INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"", ""CREATETIME"") VALUES(:Clicks_3, :Title_3, :CreateTime_3)
+INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"", ""CREATETIME"") VALUES(:Clicks_4, :Title_4, :CreateTime_4)
+INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"", ""CREATETIME"") VALUES(:Clicks_5, :Title_5, :CreateTime_5)
+INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"", ""CREATETIME"") VALUES(:Clicks_6, :Title_6, :CreateTime_6)
+INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"", ""CREATETIME"") VALUES(:Clicks_7, :Title_7, :CreateTime_7)
+INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"", ""CREATETIME"") VALUES(:Clicks_8, :Title_8, :CreateTime_8)
+INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"", ""CREATETIME"") VALUES(:Clicks_9, :Title_9, :CreateTime_9)
  SELECT 1 FROM DUAL", sql);
 			data.Add(insert.AppendData(items.First()).ExecuteIdentity());
 
 			sql = insert.AppendData(items).InsertColumns(a => a.Title).ToSql();
 			Assert.Equal(@"INSERT ALL
-INTO ""TB_TOPIC_INSERT""(""TITLE"") VALUES(:Title0)
-INTO ""TB_TOPIC_INSERT""(""TITLE"") VALUES(:Title1)
-INTO ""TB_TOPIC_INSERT""(""TITLE"") VALUES(:Title2)
-INTO ""TB_TOPIC_INSERT""(""TITLE"") VALUES(:Title3)
-INTO ""TB_TOPIC_INSERT""(""TITLE"") VALUES(:Title4)
-INTO ""TB_TOPIC_INSERT""(""TITLE"") VALUES(:Title5)
-INTO ""TB_TOPIC_INSERT""(""TITLE"") VALUES(:Title6)
-INTO ""TB_TOPIC_INSERT""(""TITLE"") VALUES(:Title7)
-INTO ""TB_TOPIC_INSERT""(""TITLE"") VALUES(:Title8)
-INTO ""TB_TOPIC_INSERT""(""TITLE"") VALUES(:Title9)
+INTO ""TB_TOPIC_INSERT""(""TITLE"") VALUES(:Title_0)
+INTO ""TB_TOPIC_INSERT""(""TITLE"") VALUES(:Title_1)
+INTO ""TB_TOPIC_INSERT""(""TITLE"") VALUES(:Title_2)
+INTO ""TB_TOPIC_INSERT""(""TITLE"") VALUES(:Title_3)
+INTO ""TB_TOPIC_INSERT""(""TITLE"") VALUES(:Title_4)
+INTO ""TB_TOPIC_INSERT""(""TITLE"") VALUES(:Title_5)
+INTO ""TB_TOPIC_INSERT""(""TITLE"") VALUES(:Title_6)
+INTO ""TB_TOPIC_INSERT""(""TITLE"") VALUES(:Title_7)
+INTO ""TB_TOPIC_INSERT""(""TITLE"") VALUES(:Title_8)
+INTO ""TB_TOPIC_INSERT""(""TITLE"") VALUES(:Title_9)
  SELECT 1 FROM DUAL", sql);
 			data.Add(insert.AppendData(items.First()).ExecuteIdentity());
 
 			sql = insert.AppendData(items).IgnoreColumns(a => a.CreateTime).ToSql();
 			Assert.Equal(@"INSERT ALL
-INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks0, :Title0)
-INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks1, :Title1)
-INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks2, :Title2)
-INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks3, :Title3)
-INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks4, :Title4)
-INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks5, :Title5)
-INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks6, :Title6)
-INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks7, :Title7)
-INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks8, :Title8)
-INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks9, :Title9)
+INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks_0, :Title_0)
+INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks_1, :Title_1)
+INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks_2, :Title_2)
+INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks_3, :Title_3)
+INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks_4, :Title_4)
+INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks_5, :Title_5)
+INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks_6, :Title_6)
+INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks_7, :Title_7)
+INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks_8, :Title_8)
+INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks_9, :Title_9)
  SELECT 1 FROM DUAL", sql);
 			data.Add(insert.AppendData(items.First()).ExecuteIdentity());
 		}
@@ -83,31 +83,31 @@ INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks9, :Title9)
 			var data = new List<object>();
 			var sql = insert.AppendData(items).InsertColumns(a => a.Title).ToSql();
 			Assert.Equal(@"INSERT ALL
-INTO ""TB_TOPIC_INSERT""(""TITLE"") VALUES(:Title0)
-INTO ""TB_TOPIC_INSERT""(""TITLE"") VALUES(:Title1)
-INTO ""TB_TOPIC_INSERT""(""TITLE"") VALUES(:Title2)
-INTO ""TB_TOPIC_INSERT""(""TITLE"") VALUES(:Title3)
-INTO ""TB_TOPIC_INSERT""(""TITLE"") VALUES(:Title4)
-INTO ""TB_TOPIC_INSERT""(""TITLE"") VALUES(:Title5)
-INTO ""TB_TOPIC_INSERT""(""TITLE"") VALUES(:Title6)
-INTO ""TB_TOPIC_INSERT""(""TITLE"") VALUES(:Title7)
-INTO ""TB_TOPIC_INSERT""(""TITLE"") VALUES(:Title8)
-INTO ""TB_TOPIC_INSERT""(""TITLE"") VALUES(:Title9)
+INTO ""TB_TOPIC_INSERT""(""TITLE"") VALUES(:Title_0)
+INTO ""TB_TOPIC_INSERT""(""TITLE"") VALUES(:Title_1)
+INTO ""TB_TOPIC_INSERT""(""TITLE"") VALUES(:Title_2)
+INTO ""TB_TOPIC_INSERT""(""TITLE"") VALUES(:Title_3)
+INTO ""TB_TOPIC_INSERT""(""TITLE"") VALUES(:Title_4)
+INTO ""TB_TOPIC_INSERT""(""TITLE"") VALUES(:Title_5)
+INTO ""TB_TOPIC_INSERT""(""TITLE"") VALUES(:Title_6)
+INTO ""TB_TOPIC_INSERT""(""TITLE"") VALUES(:Title_7)
+INTO ""TB_TOPIC_INSERT""(""TITLE"") VALUES(:Title_8)
+INTO ""TB_TOPIC_INSERT""(""TITLE"") VALUES(:Title_9)
  SELECT 1 FROM DUAL", sql);
 			data.Add(insert.AppendData(items.First()).ExecuteIdentity());
 
 			sql = insert.AppendData(items).InsertColumns(a =>new { a.Title, a.Clicks }).ToSql();
 			Assert.Equal(@"INSERT ALL
-INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks0, :Title0)
-INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks1, :Title1)
-INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks2, :Title2)
-INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks3, :Title3)
-INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks4, :Title4)
-INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks5, :Title5)
-INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks6, :Title6)
-INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks7, :Title7)
-INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks8, :Title8)
-INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks9, :Title9)
+INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks_0, :Title_0)
+INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks_1, :Title_1)
+INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks_2, :Title_2)
+INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks_3, :Title_3)
+INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks_4, :Title_4)
+INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks_5, :Title_5)
+INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks_6, :Title_6)
+INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks_7, :Title_7)
+INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks_8, :Title_8)
+INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks_9, :Title_9)
  SELECT 1 FROM DUAL", sql);
 			data.Add(insert.AppendData(items.First()).ExecuteIdentity());
 		}
@@ -119,31 +119,31 @@ INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks9, :Title9)
 			var data = new List<object>();
 			var sql = insert.AppendData(items).IgnoreColumns(a => a.CreateTime).ToSql();
 			Assert.Equal(@"INSERT ALL
-INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks0, :Title0)
-INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks1, :Title1)
-INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks2, :Title2)
-INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks3, :Title3)
-INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks4, :Title4)
-INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks5, :Title5)
-INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks6, :Title6)
-INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks7, :Title7)
-INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks8, :Title8)
-INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks9, :Title9)
+INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks_0, :Title_0)
+INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks_1, :Title_1)
+INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks_2, :Title_2)
+INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks_3, :Title_3)
+INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks_4, :Title_4)
+INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks_5, :Title_5)
+INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks_6, :Title_6)
+INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks_7, :Title_7)
+INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks_8, :Title_8)
+INTO ""TB_TOPIC_INSERT""(""CLICKS"", ""TITLE"") VALUES(:Clicks_9, :Title_9)
  SELECT 1 FROM DUAL", sql);
 			data.Add(insert.AppendData(items.First()).ExecuteIdentity());
 
 			sql = insert.AppendData(items).IgnoreColumns(a => new { a.Title, a.CreateTime }).ToSql();
 			Assert.Equal(@"INSERT ALL
-INTO ""TB_TOPIC_INSERT""(""CLICKS"") VALUES(:Clicks0)
-INTO ""TB_TOPIC_INSERT""(""CLICKS"") VALUES(:Clicks1)
-INTO ""TB_TOPIC_INSERT""(""CLICKS"") VALUES(:Clicks2)
-INTO ""TB_TOPIC_INSERT""(""CLICKS"") VALUES(:Clicks3)
-INTO ""TB_TOPIC_INSERT""(""CLICKS"") VALUES(:Clicks4)
-INTO ""TB_TOPIC_INSERT""(""CLICKS"") VALUES(:Clicks5)
-INTO ""TB_TOPIC_INSERT""(""CLICKS"") VALUES(:Clicks6)
-INTO ""TB_TOPIC_INSERT""(""CLICKS"") VALUES(:Clicks7)
-INTO ""TB_TOPIC_INSERT""(""CLICKS"") VALUES(:Clicks8)
-INTO ""TB_TOPIC_INSERT""(""CLICKS"") VALUES(:Clicks9)
+INTO ""TB_TOPIC_INSERT""(""CLICKS"") VALUES(:Clicks_0)
+INTO ""TB_TOPIC_INSERT""(""CLICKS"") VALUES(:Clicks_1)
+INTO ""TB_TOPIC_INSERT""(""CLICKS"") VALUES(:Clicks_2)
+INTO ""TB_TOPIC_INSERT""(""CLICKS"") VALUES(:Clicks_3)
+INTO ""TB_TOPIC_INSERT""(""CLICKS"") VALUES(:Clicks_4)
+INTO ""TB_TOPIC_INSERT""(""CLICKS"") VALUES(:Clicks_5)
+INTO ""TB_TOPIC_INSERT""(""CLICKS"") VALUES(:Clicks_6)
+INTO ""TB_TOPIC_INSERT""(""CLICKS"") VALUES(:Clicks_7)
+INTO ""TB_TOPIC_INSERT""(""CLICKS"") VALUES(:Clicks_8)
+INTO ""TB_TOPIC_INSERT""(""CLICKS"") VALUES(:Clicks_9)
  SELECT 1 FROM DUAL", sql);
 			data.Add(insert.AppendData(items.First()).ExecuteIdentity());
 		}
@@ -176,104 +176,104 @@ INTO ""TB_TOPIC_INSERT""(""CLICKS"") VALUES(:Clicks9)
 			for (var a = 0; a < 10; a++) items.Add(new Topic { Id = a + 1, Title = $"newTitle{a}", Clicks = a * 100 });
 
 			var sql = insert.AppendData(items.First()).AsTable(a => "Topic_InsertAsTable").ToSql();
-			Assert.Equal("INSERT INTO \"Topic_InsertAsTable\"(\"CLICKS\", \"TITLE\", \"CREATETIME\") VALUES(:Clicks0, :Title0, :CreateTime0)", sql);
+			Assert.Equal("INSERT INTO \"Topic_InsertAsTable\"(\"CLICKS\", \"TITLE\", \"CREATETIME\") VALUES(:Clicks_0, :Title_0, :CreateTime_0)", sql);
 
 			sql = insert.AppendData(items).AsTable(a => "Topic_InsertAsTable").ToSql();
 			Assert.Equal(@"INSERT ALL
-INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"", ""CREATETIME"") VALUES(:Clicks0, :Title0, :CreateTime0)
-INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"", ""CREATETIME"") VALUES(:Clicks1, :Title1, :CreateTime1)
-INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"", ""CREATETIME"") VALUES(:Clicks2, :Title2, :CreateTime2)
-INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"", ""CREATETIME"") VALUES(:Clicks3, :Title3, :CreateTime3)
-INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"", ""CREATETIME"") VALUES(:Clicks4, :Title4, :CreateTime4)
-INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"", ""CREATETIME"") VALUES(:Clicks5, :Title5, :CreateTime5)
-INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"", ""CREATETIME"") VALUES(:Clicks6, :Title6, :CreateTime6)
-INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"", ""CREATETIME"") VALUES(:Clicks7, :Title7, :CreateTime7)
-INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"", ""CREATETIME"") VALUES(:Clicks8, :Title8, :CreateTime8)
-INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"", ""CREATETIME"") VALUES(:Clicks9, :Title9, :CreateTime9)
+INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"", ""CREATETIME"") VALUES(:Clicks_0, :Title_0, :CreateTime_0)
+INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"", ""CREATETIME"") VALUES(:Clicks_1, :Title_1, :CreateTime_1)
+INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"", ""CREATETIME"") VALUES(:Clicks_2, :Title_2, :CreateTime_2)
+INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"", ""CREATETIME"") VALUES(:Clicks_3, :Title_3, :CreateTime_3)
+INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"", ""CREATETIME"") VALUES(:Clicks_4, :Title_4, :CreateTime_4)
+INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"", ""CREATETIME"") VALUES(:Clicks_5, :Title_5, :CreateTime_5)
+INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"", ""CREATETIME"") VALUES(:Clicks_6, :Title_6, :CreateTime_6)
+INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"", ""CREATETIME"") VALUES(:Clicks_7, :Title_7, :CreateTime_7)
+INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"", ""CREATETIME"") VALUES(:Clicks_8, :Title_8, :CreateTime_8)
+INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"", ""CREATETIME"") VALUES(:Clicks_9, :Title_9, :CreateTime_9)
  SELECT 1 FROM DUAL", sql);
 
 			sql = insert.AppendData(items).InsertColumns(a => a.Title).AsTable(a => "Topic_InsertAsTable").ToSql();
 			Assert.Equal(@"INSERT ALL
-INTO ""Topic_InsertAsTable""(""TITLE"") VALUES(:Title0)
-INTO ""Topic_InsertAsTable""(""TITLE"") VALUES(:Title1)
-INTO ""Topic_InsertAsTable""(""TITLE"") VALUES(:Title2)
-INTO ""Topic_InsertAsTable""(""TITLE"") VALUES(:Title3)
-INTO ""Topic_InsertAsTable""(""TITLE"") VALUES(:Title4)
-INTO ""Topic_InsertAsTable""(""TITLE"") VALUES(:Title5)
-INTO ""Topic_InsertAsTable""(""TITLE"") VALUES(:Title6)
-INTO ""Topic_InsertAsTable""(""TITLE"") VALUES(:Title7)
-INTO ""Topic_InsertAsTable""(""TITLE"") VALUES(:Title8)
-INTO ""Topic_InsertAsTable""(""TITLE"") VALUES(:Title9)
+INTO ""Topic_InsertAsTable""(""TITLE"") VALUES(:Title_0)
+INTO ""Topic_InsertAsTable""(""TITLE"") VALUES(:Title_1)
+INTO ""Topic_InsertAsTable""(""TITLE"") VALUES(:Title_2)
+INTO ""Topic_InsertAsTable""(""TITLE"") VALUES(:Title_3)
+INTO ""Topic_InsertAsTable""(""TITLE"") VALUES(:Title_4)
+INTO ""Topic_InsertAsTable""(""TITLE"") VALUES(:Title_5)
+INTO ""Topic_InsertAsTable""(""TITLE"") VALUES(:Title_6)
+INTO ""Topic_InsertAsTable""(""TITLE"") VALUES(:Title_7)
+INTO ""Topic_InsertAsTable""(""TITLE"") VALUES(:Title_8)
+INTO ""Topic_InsertAsTable""(""TITLE"") VALUES(:Title_9)
  SELECT 1 FROM DUAL", sql);
 
 			sql = insert.AppendData(items).IgnoreColumns(a => a.CreateTime).AsTable(a => "Topic_InsertAsTable").ToSql();
 			Assert.Equal(@"INSERT ALL
-INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks0, :Title0)
-INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks1, :Title1)
-INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks2, :Title2)
-INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks3, :Title3)
-INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks4, :Title4)
-INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks5, :Title5)
-INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks6, :Title6)
-INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks7, :Title7)
-INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks8, :Title8)
-INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks9, :Title9)
+INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks_0, :Title_0)
+INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks_1, :Title_1)
+INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks_2, :Title_2)
+INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks_3, :Title_3)
+INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks_4, :Title_4)
+INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks_5, :Title_5)
+INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks_6, :Title_6)
+INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks_7, :Title_7)
+INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks_8, :Title_8)
+INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks_9, :Title_9)
  SELECT 1 FROM DUAL", sql);
 
 			sql = insert.AppendData(items).InsertColumns(a => a.Title).AsTable(a => "Topic_InsertAsTable").ToSql();
 			Assert.Equal(@"INSERT ALL
-INTO ""Topic_InsertAsTable""(""TITLE"") VALUES(:Title0)
-INTO ""Topic_InsertAsTable""(""TITLE"") VALUES(:Title1)
-INTO ""Topic_InsertAsTable""(""TITLE"") VALUES(:Title2)
-INTO ""Topic_InsertAsTable""(""TITLE"") VALUES(:Title3)
-INTO ""Topic_InsertAsTable""(""TITLE"") VALUES(:Title4)
-INTO ""Topic_InsertAsTable""(""TITLE"") VALUES(:Title5)
-INTO ""Topic_InsertAsTable""(""TITLE"") VALUES(:Title6)
-INTO ""Topic_InsertAsTable""(""TITLE"") VALUES(:Title7)
-INTO ""Topic_InsertAsTable""(""TITLE"") VALUES(:Title8)
-INTO ""Topic_InsertAsTable""(""TITLE"") VALUES(:Title9)
+INTO ""Topic_InsertAsTable""(""TITLE"") VALUES(:Title_0)
+INTO ""Topic_InsertAsTable""(""TITLE"") VALUES(:Title_1)
+INTO ""Topic_InsertAsTable""(""TITLE"") VALUES(:Title_2)
+INTO ""Topic_InsertAsTable""(""TITLE"") VALUES(:Title_3)
+INTO ""Topic_InsertAsTable""(""TITLE"") VALUES(:Title_4)
+INTO ""Topic_InsertAsTable""(""TITLE"") VALUES(:Title_5)
+INTO ""Topic_InsertAsTable""(""TITLE"") VALUES(:Title_6)
+INTO ""Topic_InsertAsTable""(""TITLE"") VALUES(:Title_7)
+INTO ""Topic_InsertAsTable""(""TITLE"") VALUES(:Title_8)
+INTO ""Topic_InsertAsTable""(""TITLE"") VALUES(:Title_9)
  SELECT 1 FROM DUAL", sql);
 
 			sql = insert.AppendData(items).InsertColumns(a => new { a.Title, a.Clicks }).AsTable(a => "Topic_InsertAsTable").ToSql();
 			Assert.Equal(@"INSERT ALL
-INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks0, :Title0)
-INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks1, :Title1)
-INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks2, :Title2)
-INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks3, :Title3)
-INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks4, :Title4)
-INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks5, :Title5)
-INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks6, :Title6)
-INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks7, :Title7)
-INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks8, :Title8)
-INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks9, :Title9)
+INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks_0, :Title_0)
+INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks_1, :Title_1)
+INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks_2, :Title_2)
+INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks_3, :Title_3)
+INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks_4, :Title_4)
+INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks_5, :Title_5)
+INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks_6, :Title_6)
+INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks_7, :Title_7)
+INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks_8, :Title_8)
+INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks_9, :Title_9)
  SELECT 1 FROM DUAL", sql);
 
 			sql = insert.AppendData(items).IgnoreColumns(a => a.CreateTime).AsTable(a => "Topic_InsertAsTable").ToSql();
 			Assert.Equal(@"INSERT ALL
-INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks0, :Title0)
-INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks1, :Title1)
-INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks2, :Title2)
-INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks3, :Title3)
-INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks4, :Title4)
-INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks5, :Title5)
-INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks6, :Title6)
-INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks7, :Title7)
-INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks8, :Title8)
-INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks9, :Title9)
+INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks_0, :Title_0)
+INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks_1, :Title_1)
+INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks_2, :Title_2)
+INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks_3, :Title_3)
+INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks_4, :Title_4)
+INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks_5, :Title_5)
+INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks_6, :Title_6)
+INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks_7, :Title_7)
+INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks_8, :Title_8)
+INTO ""Topic_InsertAsTable""(""CLICKS"", ""TITLE"") VALUES(:Clicks_9, :Title_9)
  SELECT 1 FROM DUAL", sql);
 
 			sql = insert.AppendData(items).IgnoreColumns(a => new { a.Title, a.CreateTime }).AsTable(a => "Topic_InsertAsTable").ToSql();
 			Assert.Equal(@"INSERT ALL
-INTO ""Topic_InsertAsTable""(""CLICKS"") VALUES(:Clicks0)
-INTO ""Topic_InsertAsTable""(""CLICKS"") VALUES(:Clicks1)
-INTO ""Topic_InsertAsTable""(""CLICKS"") VALUES(:Clicks2)
-INTO ""Topic_InsertAsTable""(""CLICKS"") VALUES(:Clicks3)
-INTO ""Topic_InsertAsTable""(""CLICKS"") VALUES(:Clicks4)
-INTO ""Topic_InsertAsTable""(""CLICKS"") VALUES(:Clicks5)
-INTO ""Topic_InsertAsTable""(""CLICKS"") VALUES(:Clicks6)
-INTO ""Topic_InsertAsTable""(""CLICKS"") VALUES(:Clicks7)
-INTO ""Topic_InsertAsTable""(""CLICKS"") VALUES(:Clicks8)
-INTO ""Topic_InsertAsTable""(""CLICKS"") VALUES(:Clicks9)
+INTO ""Topic_InsertAsTable""(""CLICKS"") VALUES(:Clicks_0)
+INTO ""Topic_InsertAsTable""(""CLICKS"") VALUES(:Clicks_1)
+INTO ""Topic_InsertAsTable""(""CLICKS"") VALUES(:Clicks_2)
+INTO ""Topic_InsertAsTable""(""CLICKS"") VALUES(:Clicks_3)
+INTO ""Topic_InsertAsTable""(""CLICKS"") VALUES(:Clicks_4)
+INTO ""Topic_InsertAsTable""(""CLICKS"") VALUES(:Clicks_5)
+INTO ""Topic_InsertAsTable""(""CLICKS"") VALUES(:Clicks_6)
+INTO ""Topic_InsertAsTable""(""CLICKS"") VALUES(:Clicks_7)
+INTO ""Topic_InsertAsTable""(""CLICKS"") VALUES(:Clicks_8)
+INTO ""Topic_InsertAsTable""(""CLICKS"") VALUES(:Clicks_9)
  SELECT 1 FROM DUAL", sql);
 		}
 	}
