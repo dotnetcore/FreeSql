@@ -190,8 +190,6 @@ namespace FreeSql.Extensions {
 			var func = _dicGetEntityIdentityValueWithPrimary.GetOrAdd(orm.Ado.DataType, dt => new ConcurrentDictionary<Type, Func<object, long>>()).GetOrAdd(typeof(TEntity), t => {
 				var _table = orm.CodeFirst.GetTableByEntity(t);
 				var identitys = _table.Primarys.Where(a => a.Attribute.IsIdentity);
-
-
 				var returnTarget = Expression.Label(typeof(long));
 				var parm1 = Expression.Parameter(typeof(object));
 				var var1Parm = Expression.Variable(t);
