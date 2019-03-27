@@ -1,8 +1,16 @@
 using FreeSql.DataAnnotations;
+using FreeSql.Tests.DataContext.SqlServer;
 using Xunit;
 
 namespace FreeSql.Tests.DataAnnotations {
 	public class MySqlFluentTest {
+
+		SqlServerFixture _sqlserverFixture;
+
+		public MySqlFluentTest(SqlServerFixture sqlserverFixture) {
+			_sqlserverFixture = sqlserverFixture;
+		}
+
 		[Fact]
 		public void Fluent() {
 			g.mysql.CodeFirst
@@ -36,6 +44,15 @@ namespace FreeSql.Tests.DataAnnotations {
 			var t2 = g.mysql.Select<TestFluenttb2>(t2lastId + 1).ToOne();
 		}
 
+		[Fact]
+		public void GroupPrimaryKey() {
+			_sqlserverFixture.SqlServer.CodeFirst.SyncStructure<TestgroupkeyTb>();
+			g.mysql.CodeFirst.SyncStructure<TestgroupkeyTb>();
+			g.pgsql.CodeFirst.SyncStructure<TestgroupkeyTb>();
+			g.sqlite.CodeFirst.SyncStructure<TestgroupkeyTb>();
+			g.oracle.CodeFirst.SyncStructure<TestgroupkeyTb>();
+		}
+
 		class TestFluenttb1
 		{
 			public int Id { get; set; }
@@ -48,6 +65,17 @@ namespace FreeSql.Tests.DataAnnotations {
 		{
 			[Column(Name = "Idx", IsPrimary = true, IsIdentity = false)]
 			public int Id { get; set; }
+
+			public string name { get; set; } = "defaultValue";
+		}
+
+		[Table(Name = "test_groupkey")]
+		class TestgroupkeyTb {
+			[Column(IsPrimary = true)]
+			public int Id { get; set; }
+			[Column(IsPrimary = true)]
+			public int id2 { get; set; }
+
 
 			public string name { get; set; } = "defaultValue";
 		}
