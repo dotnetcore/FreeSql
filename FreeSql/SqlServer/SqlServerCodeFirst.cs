@@ -124,11 +124,19 @@ namespace FreeSql.SqlServer {
 						if (tboldname == null) {
 							//创建新表
 							sb.Append("use ").Append(_commonUtils.QuoteSqlName(tbname[0])).Append(";\r\nCREATE TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[1]}.{tbname[2]}")).Append(" (");
+							var pkidx = 0;
 							foreach (var tbcol in tb.Columns.Values) {
 								sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ");
 								sb.Append(tbcol.Attribute.DbType);
 								if (tbcol.Attribute.IsIdentity == true && tbcol.Attribute.DbType.IndexOf("identity", StringComparison.CurrentCultureIgnoreCase) == -1) sb.Append(" identity(1,1)");
-								if (tbcol.Attribute.IsPrimary == true) sb.Append(" primary key");
+								if (tbcol.Attribute.IsPrimary == true) {
+									if (tb.Primarys.Length > 1) {
+										if (pkidx == tb.Primarys.Length - 1)
+											sb.Append(" primary key (").Append(string.Join(", ", tb.Primarys.Select(a => _commonUtils.QuoteSqlName(a.Attribute.Name)))).Append(")");
+									} else
+										sb.Append(" primary key");
+									pkidx++;
+								}
 								sb.Append(",");
 							}
 							sb.Remove(sb.Length - 1, 1).Append("\r\n);\r\n");
@@ -220,11 +228,19 @@ use " + database, tboldname ?? tbname);
 					sb.Append("BEGIN TRANSACTION;\r\n");
 					//创建临时表
 					sb.Append("CREATE TABLE ").Append(tmptablename).Append(" (");
+					var pkidx2 = 0;
 					foreach (var tbcol in tb.Columns.Values) {
 						sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ");
 						sb.Append(tbcol.Attribute.DbType);
 						if (tbcol.Attribute.IsIdentity == true && tbcol.Attribute.DbType.IndexOf("identity", StringComparison.CurrentCultureIgnoreCase) == -1) sb.Append(" identity(1,1)");
-						if (tbcol.Attribute.IsPrimary == true) sb.Append(" primary key");
+						if (tbcol.Attribute.IsPrimary == true) {
+							if (tb.Primarys.Length > 1) {
+								if (pkidx2 == tb.Primarys.Length - 1)
+									sb.Append(" primary key (").Append(string.Join(", ", tb.Primarys.Select(a => _commonUtils.QuoteSqlName(a.Attribute.Name)))).Append(")");
+							} else
+								sb.Append(" primary key");
+							pkidx2++;
+						}
 						sb.Append(",");
 						idents = idents || tbcol.Attribute.IsIdentity == true;
 					}
