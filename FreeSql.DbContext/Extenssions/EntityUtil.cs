@@ -303,5 +303,63 @@ namespace FreeSql.Extensions {
 			});
 			return func(up, oldval, isEqual);
 		}
+
+		static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object, string, int>>> _dicSetEntityIncrByWithPropertyName = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object, string, int>>>();
+		/// <summary>
+		/// 设置实体中某属性的数值增加指定的值
+		/// </summary>
+		/// <typeparam name="TEntity"></typeparam>
+		/// <param name="orm"></param>
+		/// <param name="item"></param>
+		/// <param name="idtval"></param>
+		public static void SetEntityIncrByWithPropertyName<TEntity>(this IFreeSql orm, TEntity item, string propertyName, int incrBy) {
+			var func = _dicSetEntityIncrByWithPropertyName.GetOrAdd(orm.Ado.DataType, dt => new ConcurrentDictionary<Type, Action<object, string, int>>()).GetOrAdd(typeof(TEntity), t => {
+				var _table = orm.CodeFirst.GetTableByEntity(t);
+				var parm1 = Expression.Parameter(typeof(object));
+				var parm2 = Expression.Parameter(typeof(string));
+				var parm3 = Expression.Parameter(typeof(int));
+				var var1Parm = Expression.Variable(t);
+				var exps = new List<Expression>(new Expression[] {
+					Expression.Assign(var1Parm, Expression.TypeAs(parm1, t))
+				});
+				if (_table.Properties.ContainsKey(propertyName)) {
+					var prop = _table.Properties[propertyName];
+					exps.Add(
+						Expression.Assign(
+							Expression.MakeMemberAccess(var1Parm, prop),
+							Expression.Add(
+								Expression.MakeMemberAccess(var1Parm, prop),
+								Expression.Convert(
+									FreeSql.Internal.Utils.GetDataReaderValueBlockExpression(prop.PropertyType, Expression.Convert(parm3, typeof(object))),
+									prop.PropertyType
+								)
+							)
+						)
+					);
+				}
+				return Expression.Lambda<Action<object, string, int>>(Expression.Block(new[] { var1Parm }, exps), new[] { parm1, parm2, parm3 }).Compile();
+			});
+			func(item, propertyName, incrBy);
+		}
+
+		static ConcurrentDictionary<Type, MethodInfo[]> _dicAppendEntityUpdateSetWithColumnMethods = new ConcurrentDictionary<Type, MethodInfo[]>();
+		static ConcurrentDictionary<Type, ConcurrentDictionary<Type, MethodInfo>> _dicAppendEntityUpdateSetWithColumnMethod = new ConcurrentDictionary<Type, ConcurrentDictionary<Type, MethodInfo>>();
+		/// <summary>
+		/// 缓存执行 IUpdate.Set
+		/// </summary>
+		/// <typeparam name="TEntity"></typeparam>
+		/// <param name="update"></param>
+		/// <param name="columnType"></param>
+		/// <param name="setExp"></param>
+		public static void AppendEntityUpdateSetWithColumn<TEntity>(this IUpdate<TEntity> update, Type columnType, LambdaExpression setExp) where TEntity : class {
+
+			var setMethod = _dicAppendEntityUpdateSetWithColumnMethod.GetOrAdd(typeof(IUpdate<TEntity>), uptp => new ConcurrentDictionary<Type, MethodInfo>()).GetOrAdd(columnType, coltp => {
+				var allMethods = _dicAppendEntityUpdateSetWithColumnMethods.GetOrAdd(typeof(IUpdate<TEntity>), uptp => uptp.GetMethods());
+				return allMethods.Where(a => a.Name == "Set" && a.IsGenericMethod && a.GetParameters().Length == 1 && a.GetGenericArguments().First().Name == "TMember").FirstOrDefault()
+					.MakeGenericMethod(columnType);
+			});
+
+			setMethod.Invoke(update, new object[] { setExp });
+		}
 	}
 }

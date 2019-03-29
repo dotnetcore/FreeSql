@@ -148,26 +148,68 @@ namespace FreeSql {
 
 			var cuig1 = _fsql.CompareEntityValueReturnColumns(uplst1.Value, lstval1.Value, true);
 			var cuig2 = uplst2 != null ? _fsql.CompareEntityValueReturnColumns(uplst2.Value, lstval2.Value, true) : null;
+
+			List<EntityState> data = null;
+			string[] cuig = null;
 			if (uplst2 != null && string.Compare(string.Join(",", cuig1), string.Join(",", cuig2)) != 0) {
 				//最后一个不保存
-				var data = ups.ToList();
+				data = ups.ToList();
 				data.RemoveAt(ups.Length - 1);
-				var affrows = this.OrmUpdate(null).SetSource(data.Select(a => a.Value)).IgnoreColumns(cuig2).ExecuteAffrows();
+				cuig = cuig2;
+			} else if (isLiveUpdate) {
+				//立即保存
+				data = ups.ToList();
+				cuig = cuig1;
+			}
+
+			if (data?.Count > 0) {
+
+				if (cuig.Length == _table.Columns.Count)
+					return data.Count;
+
+				var updateSource = data.Select(a => a.Value).ToArray();
+				var update = this.OrmUpdate(null).SetSource(updateSource);
+
+				var isWhereVersion = false;
+				if (_versionColumn != null) {
+					if (cuig.Contains(_versionColumn.CsName)) {
+						var parm1Exp = Expression.Parameter(_entityType, "a");
+						var lambdExp = Expression.Lambda(
+							typeof(Func<,>).MakeGenericType(_entityType, _versionColumn.CsType),
+							Expression.Add(
+								Expression.MakeMemberAccess(parm1Exp, _table.Properties[_versionColumn.CsName]),
+								Expression.Convert(Expression.Constant(1), _versionColumn.CsType)
+							),
+							parm1Exp
+						);
+						update.AppendEntityUpdateSetWithColumn(_versionColumn.CsType, lambdExp);
+						isWhereVersion = true;
+					}
+				}
+				update.IgnoreColumns(cuig);
+
+				if (isWhereVersion)
+					update.WhereCaseSource(_versionColumn.CsName, sqlval => sqlval);
+
+				var affrows = update.ExecuteAffrows();
+
+				if (affrows != updateSource.Length) {
+					if (_versionColumn != null)
+						throw new Exception("数据未更新，其中的记录可能不存在，或者【行级乐观锁】版本过旧");
+					throw new Exception("数据未更新，其中的记录可能不存在");
+				}
+
 				foreach (var newval in data) {
+
+					if (isWhereVersion)
+						_fsql.SetEntityIncrByWithPropertyName(newval.Value, _versionColumn.CsName, 1);
+
 					if (_states.TryGetValue(newval.Key, out var tryold))
 						_fsql.MapEntityValue(newval.Value, tryold.Value);
 				}
 				return affrows;
-			} else if (isLiveUpdate) {
-				//立即保存
-				var data = ups;
-				var affrows = this.OrmUpdate(null).SetSource(data.Select(a => a.Value)).IgnoreColumns(cuig1).ExecuteAffrows();
-				foreach (var newval in data) {
-					if (_states.TryGetValue(newval.Key, out var tryold))
-						_fsql.MapEntityValue(newval.Value, tryold.Value);
-				}
-				return Math.Min(ups.Length, affrows);
 			}
+
 			//等待下次对比再保存
 			return 0;
 		}

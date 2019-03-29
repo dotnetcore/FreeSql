@@ -15,32 +15,50 @@ using FreeSql.Extensions;
 namespace FreeSql {
 	public abstract partial class DbSet<TEntity> where TEntity : class {
 
-		protected DbContext _ctx;
+		internal DbContext _ctx;
 		IFreeSql _fsql => _ctx._fsql;
 
-		protected ISelect<TEntity> OrmSelect(object dywhere) {
+		ISelect<TEntity> OrmSelect(object dywhere) {
 			_ctx.ExecCommand(); //查询前先提交，否则会出脏读
 			return _fsql.Select<TEntity>(dywhere).WithTransaction(_ctx.GetOrBeginTransaction(false)).TrackToList(TrackToList);
 		}
 
-		protected IInsert<TEntity> OrmInsert() => _fsql.Insert<TEntity>().WithTransaction(_ctx.GetOrBeginTransaction());
-		protected IInsert<TEntity> OrmInsert(TEntity data) => _fsql.Insert<TEntity>(data).WithTransaction(_ctx.GetOrBeginTransaction());
-		protected IInsert<TEntity> OrmInsert(TEntity[] data) => _fsql.Insert<TEntity>(data).WithTransaction(_ctx.GetOrBeginTransaction());
-		protected IInsert<TEntity> OrmInsert(IEnumerable<TEntity> data) => _fsql.Insert<TEntity>(data).WithTransaction(_ctx.GetOrBeginTransaction());
+		IInsert<TEntity> OrmInsert() => _fsql.Insert<TEntity>().WithTransaction(_ctx.GetOrBeginTransaction());
+		IInsert<TEntity> OrmInsert(TEntity data) => _fsql.Insert<TEntity>(data).WithTransaction(_ctx.GetOrBeginTransaction());
+		IInsert<TEntity> OrmInsert(TEntity[] data) => _fsql.Insert<TEntity>(data).WithTransaction(_ctx.GetOrBeginTransaction());
+		IInsert<TEntity> OrmInsert(IEnumerable<TEntity> data) => _fsql.Insert<TEntity>(data).WithTransaction(_ctx.GetOrBeginTransaction());
 
-		protected IUpdate<TEntity> OrmUpdate(object dywhere) => _fsql.Update<TEntity>(dywhere).WithTransaction(_ctx.GetOrBeginTransaction());
-		protected IDelete<TEntity> OrmDelete(object dywhere) => _fsql.Delete<TEntity>(dywhere).WithTransaction(_ctx.GetOrBeginTransaction());
+		IUpdate<TEntity> OrmUpdate(object dywhere) => _fsql.Update<TEntity>(dywhere).WithTransaction(_ctx.GetOrBeginTransaction());
+		IDelete<TEntity> OrmDelete(object dywhere) => _fsql.Delete<TEntity>(dywhere).WithTransaction(_ctx.GetOrBeginTransaction());
 
 		public ISelect<TEntity> Select => this.OrmSelect(null);
 		public ISelect<TEntity> Where(Expression<Func<TEntity, bool>> exp) => this.OrmSelect(null).Where(exp);
 		public ISelect<TEntity> WhereIf(bool condition, Expression<Func<TEntity, bool>> exp) => this.OrmSelect(null).WhereIf(condition, exp);
 
-		protected Dictionary<string, EntityState> _states = new Dictionary<string, EntityState>();
+		Dictionary<string, EntityState> _states = new Dictionary<string, EntityState>();
 		TableInfo _tablePriv;
-		protected TableInfo _table => _tablePriv ?? (_tablePriv = _fsql.CodeFirst.GetTableByEntity(_entityType));
+		TableInfo _table => _tablePriv ?? (_tablePriv = _fsql.CodeFirst.GetTableByEntity(_entityType));
 		ColumnInfo[] _tableIdentitysPriv;
-		protected ColumnInfo[] _tableIdentitys => _tableIdentitysPriv ?? (_tableIdentitysPriv = _table.Primarys.Where(a => a.Attribute.IsIdentity).ToArray()); 
-		protected Type _entityType = typeof(TEntity);
+		ColumnInfo[] _tableIdentitys => _tableIdentitysPriv ?? (_tableIdentitysPriv = _table.Primarys.Where(a => a.Attribute.IsIdentity).ToArray()); 
+		Type _entityType = typeof(TEntity);
+
+		bool _versionColumnPrivPrivIsInit = false;
+		ColumnInfo _versionColumnPriv;
+		ColumnInfo _versionColumn {
+			get {
+				if (_versionColumnPrivPrivIsInit == false) {
+					var vc = _table.Properties.Where(a => _table.ColumnsByCs.ContainsKey(a.Key) && a.Value.GetCustomAttributes(typeof(VersionAttribute), false).Any());
+					if (vc.Any()) {
+						var col = _table.ColumnsByCs[vc.Last().Key];
+						if (col.CsType.IsNullableType() || col.CsType.IsNumberType() == false)
+							throw new Exception($"属性{col.CsName} 被标注为行级锁(Version)，但其必须为数字类型，并且不可为 Nullable");
+						_versionColumnPriv = col;
+					}
+					_versionColumnPrivPrivIsInit = true;
+				}
+				return _versionColumnPriv;
+			}
+		}
 
 		public class EntityState {
 			public EntityState(TEntity value, string key) {
@@ -54,20 +72,20 @@ namespace FreeSql {
 		}
 
 		#region Utils
-		protected EntityState CreateEntityState(TEntity data) {
+		EntityState CreateEntityState(TEntity data) {
 			if (data == null) throw new ArgumentNullException(nameof(data));
 			var key = _fsql.GetEntityKeyString(data);
 			var state = new EntityState(Activator.CreateInstance<TEntity>(), key);
 			_fsql.MapEntityValue(data, state.Value);
 			return state;
 		}
-		protected bool ExistsInStates(TEntity data) {
+		bool ExistsInStates(TEntity data) {
 			if (data == null) throw new ArgumentNullException(nameof(data));
 			var key = _fsql.GetEntityKeyString(data);
 			if (string.IsNullOrEmpty(key)) return false;
 			return _states.ContainsKey(key);
 		}
-		protected bool CanAdd(TEntity[] data, bool isThrow) {
+		bool CanAdd(TEntity[] data, bool isThrow) {
 			if (data == null) {
 				if (isThrow) throw new ArgumentNullException(nameof(data));
 				return false;
@@ -75,7 +93,7 @@ namespace FreeSql {
 			foreach (var s in data) if (CanAdd(s, isThrow) == false) return false;
 			return true;
 		}
-		protected bool CanAdd(IEnumerable<TEntity> data, bool isThrow) {
+		bool CanAdd(IEnumerable<TEntity> data, bool isThrow) {
 			if (data == null) {
 				if (isThrow) throw new ArgumentNullException(nameof(data));
 				return false;
@@ -83,7 +101,7 @@ namespace FreeSql {
 			foreach (var s in data) if (CanAdd(s, isThrow) == false) return false;
 			return true;
 		}
-		protected bool CanAdd(TEntity data, bool isThrow) {
+		bool CanAdd(TEntity data, bool isThrow) {
 			if (data == null) {
 				if (isThrow) throw new ArgumentNullException(nameof(data));
 				return false;
@@ -117,7 +135,7 @@ namespace FreeSql {
 			return true;
 		}
 
-		protected bool CanUpdate(TEntity[] data, bool isThrow) {
+		bool CanUpdate(TEntity[] data, bool isThrow) {
 			if (data == null) {
 				if (isThrow) throw new ArgumentNullException(nameof(data));
 				return false;
@@ -125,7 +143,7 @@ namespace FreeSql {
 			foreach (var s in data) if (CanUpdate(s, isThrow) == false) return false;
 			return true;
 		}
-		protected bool CanUpdate(IEnumerable<TEntity> data, bool isThrow) {
+		bool CanUpdate(IEnumerable<TEntity> data, bool isThrow) {
 			if (data == null) {
 				if (isThrow) throw new ArgumentNullException(nameof(data));
 				return false;
@@ -133,7 +151,7 @@ namespace FreeSql {
 			foreach (var s in data) if (CanUpdate(s, isThrow) == false) return false;
 			return true;
 		}
-		protected bool CanUpdate(TEntity data, bool isThrow) {
+		bool CanUpdate(TEntity data, bool isThrow) {
 			if (data == null) {
 				if (isThrow) throw new ArgumentNullException(nameof(data));
 				return false;
@@ -154,7 +172,7 @@ namespace FreeSql {
 			return true;
 		}
 
-		protected bool CanRemove(TEntity[] data, bool isThrow) {
+		bool CanRemove(TEntity[] data, bool isThrow) {
 			if (data == null) {
 				if (isThrow) throw new ArgumentNullException(nameof(data));
 				return false;
@@ -162,7 +180,7 @@ namespace FreeSql {
 			foreach (var s in data) if (CanRemove(s, isThrow) == false) return false;
 			return true;
 		}
-		protected bool CanRemove(IEnumerable<TEntity> data, bool isThrow) {
+		bool CanRemove(IEnumerable<TEntity> data, bool isThrow) {
 			if (data == null) {
 				if (isThrow) throw new ArgumentNullException(nameof(data));
 				return false;
@@ -170,7 +188,7 @@ namespace FreeSql {
 			foreach (var s in data) if (CanRemove(s, isThrow) == false) return false;
 			return true;
 		}
-		protected bool CanRemove(TEntity data, bool isThrow) {
+		bool CanRemove(TEntity data, bool isThrow) {
 			if (data == null) {
 				if (isThrow) throw new ArgumentNullException(nameof(data));
 				return false;

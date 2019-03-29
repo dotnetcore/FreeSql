@@ -25,6 +25,7 @@ namespace dbcontext_01
 				.UseLogger(loggerFactory.CreateLogger<IFreeSql>())
 				.UseAutoSyncStructure(true)
 				.UseLazyLoading(true)
+				.UseNoneCommandParameter(true)
 
 				.UseMonitorCommand(cmd => Trace.WriteLine(cmd.CommandText),
 					(cmd, log) => Trace.WriteLine(log)

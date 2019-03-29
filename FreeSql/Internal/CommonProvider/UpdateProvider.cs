@@ -20,6 +20,7 @@ namespace FreeSql.Internal.CommonProvider {
 		protected Func<string, string> _tableRule;
 		protected StringBuilder _where = new StringBuilder();
 		protected StringBuilder _set = new StringBuilder();
+		protected StringBuilder _setIncr = new StringBuilder();
 		protected List<DbParameter> _params = new List<DbParameter>();
 		protected List<DbParameter> _paramsSource = new List<DbParameter>();
 		protected bool _noneParameter;
@@ -40,6 +41,7 @@ namespace FreeSql.Internal.CommonProvider {
 			_ignore.Clear();
 			_where.Clear();
 			_set.Clear();
+			_setIncr.Clear();
 			_params.Clear();
 			_paramsSource.Clear();
 		}
@@ -117,7 +119,7 @@ namespace FreeSql.Internal.CommonProvider {
 					expt = expt.Replace(replname, _commonUtils.IsNull(replname, _commonUtils.FormatSql("{0}", replval)));
 				}
 			}
-			_set.Append(", ").Append(_commonUtils.QuoteSqlName(cols.First().Column.Attribute.Name)).Append(" = ").Append(expt);
+			_setIncr.Append(", ").Append(_commonUtils.QuoteSqlName(cols.First().Column.Attribute.Name)).Append(" = ").Append(expt);
 			return this;
 		}
 		public IUpdate<T1> SetRaw(string sql, object parms = null) {
@@ -141,6 +143,45 @@ namespace FreeSql.Internal.CommonProvider {
 		public IUpdate<T1> Where(T1 item) => this.Where(new[] { item });
 		public IUpdate<T1> Where(IEnumerable<T1> items) => this.Where(_commonUtils.WhereItems(_table, "", items));
 		public IUpdate<T1> WhereExists<TEntity2>(ISelect<TEntity2> select, bool notExists = false) where TEntity2 : class => this.Where($"{(notExists ? "NOT " : "")}EXISTS({select.ToSql("1")})");
+
+		public IUpdate<T1> WhereCaseSource(string CsName, Func<string, string> thenValue) {
+			if (_source.Any() == false) return this;
+			if (_table.ColumnsByCs.ContainsKey(CsName) == false) throw new Exception($"找不到 {CsName} 对应的列");
+			if (thenValue == null) throw new ArgumentNullException("thenValue 参数不可为 null");
+
+			if (_source.Count == 0) return this;
+			if (_source.Count == 1) {
+
+				var col = _table.ColumnsByCs[CsName];
+				var sb = new StringBuilder();
+
+				sb.Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ");
+				var value = _table.Properties.TryGetValue(col.CsName, out var tryp) ? tryp.GetValue(_source.First()) : DBNull.Value;
+				sb.Append(thenValue(_commonUtils.GetNoneParamaterSqlValue(_paramsSource, col.CsType, value)));
+
+				return this.Where(sb.ToString());
+
+			} else {
+				var caseWhen = new StringBuilder();
+				caseWhen.Append("CASE ");
+				ToSqlCase(caseWhen, _table.Primarys);
+				var cw = caseWhen.ToString();
+
+				var col = _table.ColumnsByCs[CsName];
+				var sb = new StringBuilder();
+				sb.Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ").Append(cw);
+				foreach (var d in _source) {
+					sb.Append(" \r\nWHEN ");
+					ToSqlWhen(sb, _table.Primarys, d);
+					sb.Append(" THEN ");
+					var value = _table.Properties.TryGetValue(col.CsName, out var tryp) ? tryp.GetValue(d) : DBNull.Value;
+					sb.Append(thenValue(_commonUtils.GetNoneParamaterSqlValue(_paramsSource, col.CsType, value)));
+				}
+				sb.Append(" END");
+
+				return this.Where(sb.ToString());
+			}
+		}
 
 		protected abstract void ToSqlCase(StringBuilder caseWhen, ColumnInfo[] primarys);
 		protected abstract void ToSqlWhen(StringBuilder sb, ColumnInfo[] primarys, object d);
@@ -227,6 +268,7 @@ namespace FreeSql.Internal.CommonProvider {
 			} else
 				return null;
 
+			sb.Append(_setIncr.ToString());
 			sb.Append(" \r\nWHERE ").Append(_where.ToString().Substring(5));
 			return sb.ToString();
 		}

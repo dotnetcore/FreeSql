@@ -50,7 +50,7 @@ namespace dbcontext_01.Controllers
 					ctx.Songs.AddRange(adds);
 					//立即执行，将自增值赋给 adds 所有元素，因为有自增类型，如果其他类型，指定传入主键值，不会立即执行
 
-					for (var a = 0; a < adds.Count; a++)
+					for (var a = 0; a < 10; a++)
 						adds[a].Title = "dkdkdkdk" + a;
 
 					ctx.Songs.UpdateRange(adds);
@@ -63,6 +63,7 @@ namespace dbcontext_01.Controllers
 
 					adds.Last().Url = "skldfjlksdjglkjjcccc";
 					ctx.Songs.Update(adds.Last());
+					
 					//单条修改 urls 的值，进入队列
 
 					//throw new Exception("回滚");

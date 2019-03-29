@@ -25,6 +25,9 @@ namespace dbcontext_01 {
 		public string Url { get; set; }
 
 		public virtual ICollection<Tag> Tags { get; set; }
+
+		[Version]
+		public long versionRow { get; set; }
 	}
 	public class Song_tag {
 		public int Song_id { get; set; }
