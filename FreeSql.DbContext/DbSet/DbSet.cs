@@ -76,6 +76,7 @@ namespace FreeSql {
 				this.Key = key;
 				this.Time = DateTime.Now;
 			}
+			public TEntity OldValue { get; set; }
 			public TEntity Value { get; set; }
 			public string Key { get; set; }
 			public DateTime Time { get; set; }

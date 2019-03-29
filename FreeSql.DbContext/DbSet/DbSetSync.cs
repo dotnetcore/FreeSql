@@ -156,7 +156,7 @@ namespace FreeSql {
 			if (data?.Count > 0) {
 
 				if (cuig.Length == _table.Columns.Count)
-					return data.Count;
+					return ups.Length == data.Count ? -998 : -997;
 
 				var updateSource = data.Select(a => a.Value).ToArray();
 				var update = this.OrmUpdate(null).SetSource(updateSource).IgnoreColumns(cuig);
@@ -166,6 +166,8 @@ namespace FreeSql {
 				foreach (var newval in data) {
 					if (_states.TryGetValue(newval.Key, out var tryold))
 						_fsql.MapEntityValue(newval.Value, tryold.Value);
+					if (newval.OldValue != null)
+						_fsql.MapEntityValue(newval.Value, newval.OldValue);
 				}
 				return affrows;
 			}
@@ -176,7 +178,9 @@ namespace FreeSql {
 
 		void UpdatePriv(TEntity data, bool isCheck) {
 			if (isCheck && CanUpdate(data, true) == false) return;
-			EnqueueAction(DbContext.ExecCommandInfoType.Update, this, typeof(EntityState), CreateEntityState(data));
+			var state = CreateEntityState(data);
+			state.OldValue = data;
+			EnqueueAction(DbContext.ExecCommandInfoType.Update, this, typeof(EntityState), state);
 		}
 		public void Update(TEntity data) => UpdatePriv(data, true);
 		public void UpdateRange(TEntity[] data) {

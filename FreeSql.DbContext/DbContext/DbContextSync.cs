@@ -59,11 +59,17 @@ namespace FreeSql {
 					states.RemoveAt(states.Count - 1);
 					return;
 				}
+				if (affrows == -998 || affrows == -997) { //没有执行更新
+					var laststate = states[states.Count - 1];
+					states.Clear();
+					if (affrows == -997) states.Add(laststate); //保留最后一个
+				}
 				if (affrows > 0) {
 					_affrows += affrows;
 					var islastNotUpdated = states.Count != affrows;
+					var laststate = states[states.Count - 1];
 					states.Clear();
-					if (islastNotUpdated) states.Add(oldinfo.state);
+					if (islastNotUpdated) states.Add(laststate); //保留最后一个
 				}
 			};
 
