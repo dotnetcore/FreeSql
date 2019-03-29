@@ -17,6 +17,7 @@ namespace FreeSql.Internal.Model {
 		public string DbOldName { get; set; }
 		public string SelectFilter { get; set; }
 
+		public ColumnInfo VersionColumn { get; set; }
 
 		ConcurrentDictionary<string, TableRef> _refs { get; } = new ConcurrentDictionary<string, TableRef>(StringComparer.CurrentCultureIgnoreCase);
 

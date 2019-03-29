@@ -7,7 +7,7 @@ using System.Linq.Expressions;
 using System.Linq;
 using System.Data;
 
-public static class FreeSqlRepositoryIFreeSqlExtenssions {
+public static class FreeSqlRepositoryExtenssions {
 
 	/// <summary>
 	/// 返回默认仓库类

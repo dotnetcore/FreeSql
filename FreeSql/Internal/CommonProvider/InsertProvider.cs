@@ -95,10 +95,16 @@ namespace FreeSql.Internal.CommonProvider {
 		}
 		internal int SplitExecuteAffrows(int valuesLimit, int parameterLimit) {
 			var ss = SplitSource(valuesLimit, parameterLimit);
-			if (ss.Any() == false) return 0;
-			if (ss.Length == 1) return this.RawExecuteAffrows();
-
 			var ret = 0;
+			if (ss.Any() == false) {
+				ClearData();
+				return ret;
+			}
+			if (ss.Length == 1) {
+				ret = this.RawExecuteAffrows();
+				ClearData();
+				return ret;
+			}
 			if (_transaction != null) {
 				for (var a = 0; a < ss.Length; a++) {
 					_source = ss[a];
@@ -120,14 +126,21 @@ namespace FreeSql.Internal.CommonProvider {
 					_transaction = null;
 				}
 			}
+			ClearData();
 			return ret;
 		}
 		async internal Task<int> SplitExecuteAffrowsAsync(int valuesLimit, int parameterLimit) {
 			var ss = SplitSource(valuesLimit, parameterLimit);
-			if (ss.Any() == false) return 0;
-			if (ss.Length == 1) return await this.RawExecuteAffrowsAsync();
-
 			var ret = 0;
+			if (ss.Any() == false) {
+				ClearData();
+				return ret;
+			}
+			if (ss.Length == 1) {
+				ret = await this.RawExecuteAffrowsAsync();
+				ClearData();
+				return ret;
+			}
 			if (_transaction != null) {
 				for (var a = 0; a < ss.Length; a++) {
 					_source = ss[a];
@@ -149,14 +162,21 @@ namespace FreeSql.Internal.CommonProvider {
 					_transaction = null;
 				}
 			}
+			ClearData();
 			return ret;
 		}
 		internal long SplitExecuteIdentity(int valuesLimit, int parameterLimit) {
 			var ss = SplitSource(valuesLimit, parameterLimit);
-			if (ss.Any() == false) return 0;
-			if (ss.Length == 1) return this.RawExecuteIdentity();
-
 			long ret = 0;
+			if (ss.Any() == false) {
+				ClearData();
+				return ret;
+			}
+			if (ss.Length == 1) {
+				ret = this.RawExecuteIdentity();
+				ClearData();
+				return ret;
+			}
 			if (_transaction != null) {
 				for (var a = 0; a < ss.Length; a++) {
 					_source = ss[a];
@@ -180,14 +200,21 @@ namespace FreeSql.Internal.CommonProvider {
 					_transaction = null;
 				}
 			}
+			ClearData();
 			return ret;
 		}
 		async internal Task<long> SplitExecuteIdentityAsync(int valuesLimit, int parameterLimit) {
 			var ss = SplitSource(valuesLimit, parameterLimit);
-			if (ss.Any() == false) return 0;
-			if (ss.Length == 1) return await this.RawExecuteIdentityAsync();
-
 			long ret = 0;
+			if (ss.Any() == false) {
+				ClearData();
+				return ret;
+			}
+			if (ss.Length == 1) {
+				ret = await this.RawExecuteIdentityAsync();
+				ClearData();
+				return ret;
+			}
 			if (_transaction != null) {
 				for (var a = 0; a < ss.Length; a++) {
 					_source = ss[a];
@@ -211,14 +238,21 @@ namespace FreeSql.Internal.CommonProvider {
 					_transaction = null;
 				}
 			}
+			ClearData();
 			return ret;
 		}
 		internal List<T1> SplitExecuteInserted(int valuesLimit, int parameterLimit) {
 			var ss = SplitSource(valuesLimit, parameterLimit);
-			if (ss.Any() == false) return new List<T1>();
-			if (ss.Length == 1) return this.RawExecuteInserted();
-
 			var ret = new List<T1>();
+			if (ss.Any() == false) {
+				ClearData();
+				return ret;
+			}
+			if (ss.Length == 1) {
+				ret = this.RawExecuteInserted();
+				ClearData();
+				return ret;
+			}
 			if (_transaction != null) {
 				for (var a = 0; a < ss.Length; a++) {
 					_source = ss[a];
@@ -240,14 +274,21 @@ namespace FreeSql.Internal.CommonProvider {
 					_transaction = null;
 				}
 			}
+			ClearData();
 			return ret;
 		}
 		async internal Task<List<T1>> SplitExecuteInsertedAsync(int valuesLimit, int parameterLimit) {
 			var ss = SplitSource(valuesLimit, parameterLimit);
-			if (ss.Any() == false) return new List<T1>();
-			if (ss.Length == 1) return await this.RawExecuteInsertedAsync();
-
 			var ret = new List<T1>();
+			if (ss.Any() == false) {
+				ClearData();
+				return ret;
+			}
+			if (ss.Length == 1) {
+				ret = await this.RawExecuteInsertedAsync();
+				ClearData();
+				return ret;
+			}
 			if (_transaction != null) {
 				for (var a = 0; a < ss.Length; a++) {
 					_source = ss[a];
@@ -269,27 +310,20 @@ namespace FreeSql.Internal.CommonProvider {
 					_transaction = null;
 				}
 			}
+			ClearData();
 			return ret;
 		}
 		#endregion
 
-		internal int RawExecuteAffrows() {
-			var affrows = _orm.Ado.ExecuteNonQuery(_transaction, CommandType.Text, ToSql(), _params);
-			this.ClearData();
-			return affrows;
-		}
-		async internal Task<int> RawExecuteAffrowsAsync() {
-			var affrows = await _orm.Ado.ExecuteNonQueryAsync(_transaction, CommandType.Text, ToSql(), _params);
-			this.ClearData();
-			return affrows;
-		}
+		internal int RawExecuteAffrows() => _orm.Ado.ExecuteNonQuery(_transaction, CommandType.Text, ToSql(), _params);
+		internal Task<int> RawExecuteAffrowsAsync() => _orm.Ado.ExecuteNonQueryAsync(_transaction, CommandType.Text, ToSql(), _params);
 		internal abstract long RawExecuteIdentity();
 		internal abstract Task<long> RawExecuteIdentityAsync();
 		internal abstract List<T1> RawExecuteInserted();
 		internal abstract Task<List<T1>> RawExecuteInsertedAsync();
 
-		public virtual int ExecuteAffrows() => RawExecuteAffrows();
-		public virtual Task<int> ExecuteAffrowsAsync() => RawExecuteAffrowsAsync();
+		public abstract int ExecuteAffrows();
+		public abstract Task<int> ExecuteAffrowsAsync();
 		public abstract long ExecuteIdentity();
 		public abstract Task<long> ExecuteIdentityAsync();
 		public abstract List<T1> ExecuteInserted();

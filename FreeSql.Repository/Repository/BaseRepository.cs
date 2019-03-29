@@ -1,6 +1,7 @@
-﻿using System;
+﻿using FreeSql.Extensions.EntityUtil;
+using FreeSql.Internal.Model;
+using System;
 using System.Collections.Generic;
-using System.Data.Common;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
@@ -28,7 +29,7 @@ namespace FreeSql {
 
 		protected BaseRepository(IFreeSql fsql, Expression<Func<TEntity, bool>> filter, Func<string, string> asTable = null) : base() {
 			_fsql = fsql ?? throw new NullReferenceException(nameof(fsql));
-			Utils.SetRepositoryDataFilter(this, null);
+			DataFilterUtil.SetRepositoryDataFilter(this, null);
 			DataFilter.Apply("", filter);
 			AsTable = asTable;
 		}
@@ -42,52 +43,20 @@ namespace FreeSql {
 		public Task<int> DeleteAsync(TEntity entity) => OrmDelete(entity).ExecuteAffrowsAsync();
 
 		public virtual TEntity Insert(TEntity entity) {
-			switch (_fsql.Ado.DataType) {
-				case DataType.SqlServer:
-				case DataType.PostgreSQL:
-					return OrmInsert(entity).ExecuteInserted().FirstOrDefault();
-				case DataType.MySql:
-				case DataType.Oracle:
-				case DataType.Sqlite:
-				default:
-					throw new NotImplementedException($"{_fsql.Ado.DataType}不支持类似returning或output类型的特性，请参考FreeSql插入数据的方法重新实现。");
-			}
+			Add(entity);
+			return entity;
 		}
 		public virtual List<TEntity> Insert(IEnumerable<TEntity> entitys) {
-			switch (_fsql.Ado.DataType) {
-				case DataType.SqlServer:
-				case DataType.PostgreSQL:
-					return OrmInsert(entitys).ExecuteInserted();
-				case DataType.MySql:
-				case DataType.Oracle:
-				case DataType.Sqlite:
-				default:
-					throw new NotImplementedException($"{_fsql.Ado.DataType}不支持类似returning或output类型的特性，请参考FreeSql插入数据的方法重新实现。");
-			}
+			AddRange(entitys);
+			return entitys.ToList();
 		}
 		async public virtual Task<TEntity> InsertAsync(TEntity entity) {
-			switch (_fsql.Ado.DataType) {
-				case DataType.SqlServer:
-				case DataType.PostgreSQL:
-					return (await OrmInsert(entity).ExecuteInsertedAsync()).FirstOrDefault();
-				case DataType.MySql:
-				case DataType.Oracle:
-				case DataType.Sqlite:
-				default:
-					throw new NotImplementedException($"{_fsql.Ado.DataType}不支持类似returning或output类型的特性，请参考FreeSql插入数据的方法重新实现。");
-			}
+			await AddAsync(entity);
+			return entity;
 		}
-		public virtual Task<List<TEntity>> InsertAsync(IEnumerable<TEntity> entitys) {
-			switch (_fsql.Ado.DataType) {
-				case DataType.SqlServer:
-				case DataType.PostgreSQL:
-					return OrmInsert(entitys).ExecuteInsertedAsync();
-				case DataType.MySql:
-				case DataType.Oracle:
-				case DataType.Sqlite:
-				default:
-					throw new NotImplementedException($"{_fsql.Ado.DataType}不支持类似returning或output类型的特性，请参考FreeSql插入数据的方法重新实现。");
-			}
+		async public virtual Task<List<TEntity>> InsertAsync(IEnumerable<TEntity> entitys) {
+			await AddRangeAsync(entitys);
+			return entitys.ToList();
 		}
 
 		public int Update(TEntity entity) => OrmUpdate(entity).ExecuteAffrows();
@@ -129,6 +98,178 @@ namespace FreeSql {
 		}
 
 		protected void ApplyDataFilter(string name, Expression<Func<TEntity, bool>> exp) => DataFilter.Apply(name, exp);
+
+		#region 参考 FreeSql.DbContext/dbset
+
+		TableInfo _tablePriv;
+		TableInfo _table => _tablePriv ?? (_tablePriv = _fsql.CodeFirst.GetTableByEntity(EntityType));
+		ColumnInfo[] _tableIdentitysPriv;
+		ColumnInfo[] _tableIdentitys => _tableIdentitysPriv ?? (_tableIdentitysPriv = _table.Primarys.Where(a => a.Attribute.IsIdentity).ToArray());
+
+		bool CanAdd(TEntity[] data, bool isThrow) {
+			if (data == null) {
+				if (isThrow) throw new ArgumentNullException(nameof(data));
+				return false;
+			}
+			foreach (var s in data) if (CanAdd(s, isThrow) == false) return false;
+			return true;
+		}
+		bool CanAdd(IEnumerable<TEntity> data, bool isThrow) {
+			if (data == null) {
+				if (isThrow) throw new ArgumentNullException(nameof(data));
+				return false;
+			}
+			foreach (var s in data) if (CanAdd(s, isThrow) == false) return false;
+			return true;
+		}
+		bool CanAdd(TEntity data, bool isThrow) {
+			if (data == null) {
+				if (isThrow) throw new ArgumentNullException(nameof(data));
+				return false;
+			}
+			var key = _fsql.GetEntityKeyString(data);
+			if (string.IsNullOrEmpty(key)) {
+				switch (_fsql.Ado.DataType) {
+					case DataType.SqlServer:
+					case DataType.PostgreSQL:
+						return true;
+					case DataType.MySql:
+					case DataType.Oracle:
+					case DataType.Sqlite:
+						if (_tableIdentitys.Length == 1 && _table.Primarys.Length == 1) {
+							return true;
+						}
+						if (isThrow) throw new Exception($"不可添加，未设置主键的值：{_fsql.GetEntityString(data)}");
+						return false;
+				}
+			} else {
+				var idval = _fsql.GetEntityIdentityValueWithPrimary(data);
+				if (idval > 0) {
+					if (isThrow) throw new Exception($"不可添加，自增属性有值：{_fsql.GetEntityString(data)}");
+					return false;
+				}
+			}
+			return true;
+		}
+
+		void AddPriv(TEntity data, bool isCheck) {
+			if (isCheck && CanAdd(data, true) == false) return;
+			if (_tableIdentitys.Length > 0) {
+				//有自增，马上执行
+				switch (_fsql.Ado.DataType) {
+					case DataType.SqlServer:
+					case DataType.PostgreSQL:
+						if (_tableIdentitys.Length == 1 && _table.Primarys.Length == 1) {
+							var idtval = this.OrmInsert(data).ExecuteIdentity();
+							_fsql.SetEntityIdentityValueWithPrimary(data, idtval);
+						} else {
+							var newval = this.OrmInsert(data).ExecuteInserted().First();
+							_fsql.MapEntityValue(newval, data);
+						}
+						return;
+					case DataType.MySql:
+					case DataType.Oracle:
+					case DataType.Sqlite:
+						if (_tableIdentitys.Length == 1 && _table.Primarys.Length == 1) {
+							var idtval = this.OrmInsert(data).ExecuteIdentity();
+							_fsql.SetEntityIdentityValueWithPrimary(data, idtval);
+						}
+						return;
+				}
+			} else {
+				this.OrmInsert(data).ExecuteAffrows();
+			}
+		}
+		public void Add(TEntity source) => AddPriv(source, true);
+		public void AddRange(TEntity[] data) => AddRange(data.ToList());
+		public void AddRange(IEnumerable<TEntity> data) {
+			if (CanAdd(data, true) == false) return;
+			if (data.ElementAtOrDefault(1) == default(TEntity)) {
+				Add(data.First());
+				return;
+			}
+			if (_tableIdentitys.Length > 0) {
+				//有自增，马上执行
+				switch (_fsql.Ado.DataType) {
+					case DataType.SqlServer:
+					case DataType.PostgreSQL:
+						var rets = this.OrmInsert(data).ExecuteInserted();
+						if (rets.Count != data.Count()) throw new Exception($"特别错误：批量添加失败，{_fsql.Ado.DataType} 的返回数据，与添加的数目不匹配");
+						var idx = 0;
+						foreach (var s in data)
+							_fsql.MapEntityValue(rets[idx++], s);
+						return;
+					case DataType.MySql:
+					case DataType.Oracle:
+					case DataType.Sqlite:
+						foreach (var s in data)
+							AddPriv(s, false);
+						return;
+				}
+			} else {
+				this.OrmInsert(data).ExecuteAffrows();
+			}
+		}
+
+		async Task AddPrivAsync(TEntity data, bool isCheck) {
+			if (isCheck && CanAdd(data, true) == false) return;
+			if (_tableIdentitys.Length > 0) {
+				//有自增，马上执行
+				switch (_fsql.Ado.DataType) {
+					case DataType.SqlServer:
+					case DataType.PostgreSQL:
+						if (_tableIdentitys.Length == 1 && _table.Primarys.Length == 1) {
+							var idtval = await this.OrmInsert(data).ExecuteIdentityAsync();
+							_fsql.SetEntityIdentityValueWithPrimary(data, idtval);
+						} else {
+							var newval = (await this.OrmInsert(data).ExecuteInsertedAsync()).First();
+							_fsql.MapEntityValue(newval, data);
+						}
+						return;
+					case DataType.MySql:
+					case DataType.Oracle:
+					case DataType.Sqlite:
+						if (_tableIdentitys.Length == 1 && _table.Primarys.Length == 1) {
+							var idtval = await this.OrmInsert(data).ExecuteIdentityAsync();
+							_fsql.SetEntityIdentityValueWithPrimary(data, idtval);
+						}
+						return;
+				}
+			} else {
+				await this.OrmInsert(data).ExecuteAffrowsAsync();
+			}
+		}
+		public Task AddAsync(TEntity source) => AddPrivAsync(source, true);
+		public Task AddRangeAsync(TEntity[] data) => AddRangeAsync(data.ToList());
+		async public Task AddRangeAsync(IEnumerable<TEntity> data) {
+			if (CanAdd(data, true) == false) return;
+			if (data.ElementAtOrDefault(1) == default(TEntity)) {
+				Add(data.First());
+				return;
+			}
+			if (_tableIdentitys.Length > 0) {
+				//有自增，马上执行
+				switch (_fsql.Ado.DataType) {
+					case DataType.SqlServer:
+					case DataType.PostgreSQL:
+						var rets = await this.OrmInsert(data).ExecuteInsertedAsync();
+						if (rets.Count != data.Count()) throw new Exception($"特别错误：批量添加失败，{_fsql.Ado.DataType} 的返回数据，与添加的数目不匹配");
+						var idx = 0;
+						foreach (var s in data)
+							_fsql.MapEntityValue(rets[idx++], s);
+						return;
+					case DataType.MySql:
+					case DataType.Oracle:
+					case DataType.Sqlite:
+						foreach (var s in data)
+							await AddPrivAsync(s, false);
+						return;
+				}
+			} else {
+				await this.OrmInsert(data).ExecuteAffrowsAsync();
+			}
+		}
+		#endregion
 	}
 
 	public abstract class BaseRepository<TEntity, TKey> : BaseRepository<TEntity>, IRepository<TEntity, TKey>

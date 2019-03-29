@@ -102,6 +102,27 @@ namespace orm_vs
 			Console.Write(sb.ToString());
 			sb.Clear();
 
+			Console.WriteLine("更新：");
+			Update(sb, 1000, 1);
+			Console.Write(sb.ToString());
+			sb.Clear();
+			Update(sb, 1000, 10);
+			Console.Write(sb.ToString());
+			sb.Clear();
+
+			Update(sb, 1, 1000);
+			Console.Write(sb.ToString());
+			sb.Clear();
+			Update(sb, 1, 10000);
+			Console.Write(sb.ToString());
+			sb.Clear();
+			Update(sb, 1, 50000);
+			Console.Write(sb.ToString());
+			sb.Clear();
+			Update(sb, 1, 100000);
+			Console.Write(sb.ToString());
+			sb.Clear();
+
 			Console.WriteLine("测试结束，按任意键退出...");
 			Console.ReadKey();
 		}
@@ -150,12 +171,12 @@ namespace orm_vs
 
 			sw.Restart();
 			for (var a = 0; a < forTime; a++) {
-				//fsql.Insert(songs).ExecuteAffrows();
-				using (var db = new FreeSongContext()) {
-					//db.Configuration.AutoDetectChangesEnabled = false;
-					db.Songs.AddRange(songs.ToArray());
-					db.SaveChanges();
-				}
+				fsql.Insert(songs).ExecuteAffrows();
+				//using (var db = new FreeSongContext()) {
+				//	//db.Configuration.AutoDetectChangesEnabled = false;
+				//	db.Songs.AddRange(songs.ToArray());
+				//	db.SaveChanges();
+				//}
 			}
 			sw.Stop();
 			sb.AppendLine($"FreeSql Insert {size}条数据，循环{forTime}次，耗时{sw.ElapsedMilliseconds}ms");
@@ -183,7 +204,46 @@ namespace orm_vs
 			sw.Stop();
 			sb.AppendLine($"EFCore Insert {size}条数据，循环{forTime}次，耗时{sw.ElapsedMilliseconds}ms\r\n");
 		}
-    }
+
+		static void Update(StringBuilder sb, int forTime, int size) {
+			Stopwatch sw = new Stopwatch();
+
+			var songs = fsql.Select<Song>().Limit(size).ToList();
+			sw.Restart();
+			for (var a = 0; a < forTime; a++) {
+				fsql.Update<Song>().SetSource(songs).ExecuteAffrows();
+			}
+			sw.Stop();
+			sb.AppendLine($"FreeSql Update {size}条数据，循环{forTime}次，耗时{sw.ElapsedMilliseconds}ms");
+
+			songs = sugar.Queryable<Song>().Take(size).ToList();
+			sw.Restart();
+			Exception sugarEx = null;
+			try {
+				for (var a = 0; a < forTime; a++)
+					sugar.Updateable(songs).ExecuteCommand();
+			} catch (Exception ex) {
+				sugarEx = ex;
+			}
+			sw.Stop();
+			sb.AppendLine($"SqlSugar Update {size}条数据，循环{forTime}次，耗时{sw.ElapsedMilliseconds}ms" + (sugarEx != null ? $"成绩无效，错误：{sugarEx.Message}" : ""));
+
+			using (var db = new SongContext()) {
+				songs = db.Songs.Take(size).AsNoTracking().ToList();
+			}
+			sw.Restart();
+			for (var a = 0; a < forTime; a++) {
+
+				using (var db = new SongContext()) {
+					//db.Configuration.AutoDetectChangesEnabled = false;
+					db.Songs.UpdateRange(songs.ToArray());
+					db.SaveChanges();
+				}
+			}
+			sw.Stop();
+			sb.AppendLine($"EFCore Update {size}条数据，循环{forTime}次，耗时{sw.ElapsedMilliseconds}ms\r\n");
+		}
+	}
 
 	[FreeSql.DataAnnotations.Table(Name = "freesql_song")]
 	[SugarTable("sugar_song")]

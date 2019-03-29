@@ -8,7 +8,7 @@ using System.Text;
 
 namespace FreeSql {
 
-	internal class Utils {
+	internal class DataFilterUtil {
 
 		internal static Action<FluentDataFilter> _globalDataFilter;
 

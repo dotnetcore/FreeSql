@@ -6,8 +6,8 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 
-namespace FreeSql.Extensions {
-	public static class EntityUtilFreeSqlExtensions {
+namespace FreeSql.Extensions.EntityUtil {
+	public static class EntityUtilExtensions {
 
 		static MethodInfo MethodStringBuilderAppend = typeof(StringBuilder).GetMethod("Append", new Type[] { typeof(object) });
 		static MethodInfo MethodStringBuilderToString = typeof(StringBuilder).GetMethod("ToString", new Type[0]);
@@ -63,6 +63,42 @@ namespace FreeSql.Extensions {
 				);
 				exps.Add(Expression.Label(returnTarget, Expression.Default(typeof(string))));
 				return Expression.Lambda<Func<object, string>>(Expression.Block(new[] { var1Parm, var2Sb, var3IsNull }, exps), new[] { parm1 }).Compile();
+			});
+			return func(item);
+		}
+		static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Func<object, object[]>>> _dicGetEntityKeyValues = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Func<object, object[]>>>();
+		/// <summary>
+		/// 获取实体的主键值，多个主键返回数组
+		/// </summary>
+		/// <typeparam name="TEntity"></typeparam>
+		/// <param name="_table"></param>
+		/// <param name="item"></param>
+		/// <returns></returns>
+		public static object[] GetEntityKeyValues<TEntity>(this IFreeSql orm, TEntity item) {
+			var func = _dicGetEntityKeyValues.GetOrAdd(orm.Ado.DataType, dt => new ConcurrentDictionary<Type, Func<object, object[]>>()).GetOrAdd(typeof(TEntity), t => {
+				var _table = orm.CodeFirst.GetTableByEntity(t);
+				var pks = _table.Primarys;
+				var returnTarget = Expression.Label(typeof(object[]));
+				var parm1 = Expression.Parameter(typeof(object));
+				var var1Parm = Expression.Variable(t);
+				var var2Ret = Expression.Variable(typeof(object[]));
+				var exps = new List<Expression>(new Expression[] {
+					Expression.Assign(var1Parm, Expression.TypeAs(parm1, t)),
+					Expression.Assign(var2Ret, Expression.NewArrayBounds(typeof(object), Expression.Constant(pks.Length))),
+				});
+				for (var a = 0; a < pks.Length; a++) {
+					exps.Add(
+						Expression.Assign(
+							Expression.ArrayAccess(var2Ret, Expression.Constant(a)),
+							Expression.Convert(Expression.MakeMemberAccess(var1Parm, _table.Properties[pks[a].CsName]), typeof(object))
+						)
+					);
+				}
+				exps.AddRange(new Expression[] {
+					Expression.Return(returnTarget, var2Ret),
+					Expression.Label(returnTarget, Expression.Default(typeof(object[])))
+				});
+				return Expression.Lambda<Func<object, object[]>>(Expression.Block(new[] { var1Parm, var2Ret }, exps), new[] { parm1 }).Compile();
 			});
 			return func(item);
 		}
@@ -205,9 +241,9 @@ namespace FreeSql.Extensions {
 								Expression.Default(idts0.CsType)
 							),
 							Expression.Return(
-								returnTarget, 
+								returnTarget,
 								FreeSql.Internal.Utils.GetDataReaderValueBlockExpression(
-									typeof(long), 
+									typeof(long),
 									Expression.Convert(Expression.MakeMemberAccess(var1Parm, _table.Properties[idts0.CsName]), typeof(object))
 								)
 							)
@@ -262,7 +298,7 @@ namespace FreeSql.Extensions {
 		/// <param name="oldval"></param>
 		/// <returns></returns>
 		public static string[] CompareEntityValueReturnColumns<TEntity>(this IFreeSql orm, TEntity up, TEntity oldval, bool isEqual) {
-			var func = _dicCompareEntityValueReturnColumns.GetOrAdd(orm.Ado.DataType, dt => new  ConcurrentDictionary<Type, Func<object, object, bool, string[]>>()).GetOrAdd(typeof(TEntity), t => {
+			var func = _dicCompareEntityValueReturnColumns.GetOrAdd(orm.Ado.DataType, dt => new ConcurrentDictionary<Type, Func<object, object, bool, string[]>>()).GetOrAdd(typeof(TEntity), t => {
 				var _table = orm.CodeFirst.GetTableByEntity(t);
 				var returnTarget = Expression.Label(typeof(string[]));
 				var parm1 = Expression.Parameter(typeof(object));

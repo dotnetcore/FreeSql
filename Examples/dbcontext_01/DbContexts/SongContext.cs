@@ -26,7 +26,7 @@ namespace dbcontext_01 {
 
 		public virtual ICollection<Tag> Tags { get; set; }
 
-		[Version]
+		[Column(IsVersion = true)]
 		public long versionRow { get; set; }
 	}
 	public class Song_tag {

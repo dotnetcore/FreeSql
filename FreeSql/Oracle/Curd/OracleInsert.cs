@@ -95,9 +95,7 @@ namespace FreeSql.Oracle.Curd {
 			var identParam = _commonUtils.AppendParamter(null, $"{_identCol.CsName}99", _identCol.CsType, 0) as OracleParameter;
 			identParam.Direction = ParameterDirection.Output;
 			_orm.Ado.ExecuteNonQuery(_transaction, CommandType.Text, $"{sql} RETURNING {identColName} INTO {identParam.ParameterName}", _params.Concat(new[] { identParam }).ToArray());
-			var id = long.TryParse(string.Concat(identParam.Value), out var trylng) ? trylng : 0;
-			this.ClearData();
-			return id;
+			return long.TryParse(string.Concat(identParam.Value), out var trylng) ? trylng : 0;
 		}
 		async internal override Task<long> RawExecuteIdentityAsync() {
 			var sql = this.ToSql();
@@ -111,25 +109,21 @@ namespace FreeSql.Oracle.Curd {
 			var identParam = _commonUtils.AppendParamter(null, $"{_identCol.CsName}99", _identCol.CsType, 0) as OracleParameter;
 			identParam.Direction = ParameterDirection.Output;
 			await _orm.Ado.ExecuteNonQueryAsync(_transaction, CommandType.Text, $"{sql} RETURNING {identColName} INTO {identParam.ParameterName}", _params.Concat(new[] { identParam }).ToArray());
-			var id = long.TryParse(string.Concat(identParam.Value), out var trylng) ? trylng : 0;
-			this.ClearData();
-			return id;
+			return long.TryParse(string.Concat(identParam.Value), out var trylng) ? trylng : 0;
 		}
 
 		internal override List<T1> RawExecuteInserted() {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return new List<T1>();
 
-			this.ExecuteAffrows();
-			this.ClearData();
+			this.RawExecuteAffrows();
 			return _source;
 		}
 		async internal override Task<List<T1>> RawExecuteInsertedAsync() {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return new List<T1>();
 
-			await this.ExecuteAffrowsAsync();
-			this.ClearData();
+			await this.RawExecuteAffrowsAsync();
 			return _source;
 		}
 	}

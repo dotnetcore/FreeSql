@@ -14,7 +14,13 @@ namespace FreeSql.MySql.Curd {
 			: base(orm, commonUtils, commonExpression, dywhere) {
 		}
 
-		public override List<T1> ExecuteUpdated() {
+		public override int ExecuteAffrows() => base.SplitExecuteAffrows(500, 3000);
+		public override Task<int> ExecuteAffrowsAsync() => base.SplitExecuteAffrowsAsync(500, 3000);
+		public override List<T1> ExecuteUpdated() => base.SplitExecuteUpdated(500, 3000);
+		public override Task<List<T1>> ExecuteUpdatedAsync() => base.SplitExecuteUpdatedAsync(500, 3000);
+
+
+		internal override List<T1> RawExecuteUpdated() {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return new List<T1>();
 
@@ -28,10 +34,10 @@ namespace FreeSql.MySql.Curd {
 				++colidx;
 			}
 			var ret = _orm.Ado.Query<T1>(_transaction, CommandType.Text, sb.ToString(), _params.Concat(_paramsSource).ToArray());
-			this.ClearData();
+			ValidateVersionAndThrow(ret.Count);
 			return ret;
 		}
-		async public override Task<List<T1>> ExecuteUpdatedAsync() {
+		async internal override Task<List<T1>> RawExecuteUpdatedAsync() {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return new List<T1>();
 
@@ -45,7 +51,7 @@ namespace FreeSql.MySql.Curd {
 				++colidx;
 			}
 			var ret = await _orm.Ado.QueryAsync<T1>(_transaction, CommandType.Text, sb.ToString(), _params.Concat(_paramsSource).ToArray());
-			this.ClearData();
+			ValidateVersionAndThrow(ret.Count);
 			return ret;
 		}
 

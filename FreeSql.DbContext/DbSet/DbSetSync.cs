@@ -1,16 +1,7 @@
-﻿using FreeSql.Internal.Model;
+﻿using FreeSql.Extensions.EntityUtil;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Concurrent;
-using System.Data;
-using System.Data.Common;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
-using System.Reflection;
-using FreeSql.Extensions;
 
 namespace FreeSql {
 	partial class DbSet<TEntity> {
@@ -22,25 +13,25 @@ namespace FreeSql {
 		}
 
 		#region Add
-		void AddPriv(TEntity source, bool isCheck) {
-			if (isCheck && CanAdd(source, true) == false) return;
+		void AddPriv(TEntity data, bool isCheck) {
+			if (isCheck && CanAdd(data, true) == false) return;
 			if (_tableIdentitys.Length > 0) {
 				//有自增，马上执行
 				switch (_fsql.Ado.DataType) {
 					case DataType.SqlServer:
 					case DataType.PostgreSQL:
 						if (_tableIdentitys.Length == 1 && _table.Primarys.Length == 1) {
-							_ctx.ExecCommand();
-							var idtval = this.OrmInsert(source).ExecuteIdentity();
-							_ctx._affrows++;
-							_fsql.SetEntityIdentityValueWithPrimary(source, idtval);
-							var state = CreateEntityState(source);
+							ExecuteCommand();
+							var idtval = this.OrmInsert(data).ExecuteIdentity();
+							IncrAffrows(1);
+							_fsql.SetEntityIdentityValueWithPrimary(data, idtval);
+							var state = CreateEntityState(data);
 							_states.Add(state.Key, state);
 						} else {
-							_ctx.ExecCommand();
-							var newval = this.OrmInsert(source).ExecuteInserted().First();
-							_ctx._affrows++;
-							_fsql.MapEntityValue(newval, source);
+							ExecuteCommand();
+							var newval = this.OrmInsert(data).ExecuteInserted().First();
+							IncrAffrows(1);
+							_fsql.MapEntityValue(newval, data);
 							var state = CreateEntityState(newval);
 							_states.Add(state.Key, state);
 						}
@@ -49,21 +40,21 @@ namespace FreeSql {
 					case DataType.Oracle:
 					case DataType.Sqlite:
 						if (_tableIdentitys.Length == 1 && _table.Primarys.Length == 1) {
-							_ctx.ExecCommand();
-							var idtval = this.OrmInsert(source).ExecuteIdentity();
-							_ctx._affrows++;
-							_fsql.SetEntityIdentityValueWithPrimary(source, idtval);
-							var state = CreateEntityState(source);
+							ExecuteCommand();
+							var idtval = this.OrmInsert(data).ExecuteIdentity();
+							IncrAffrows(1);
+							_fsql.SetEntityIdentityValueWithPrimary(data, idtval);
+							var state = CreateEntityState(data);
 							_states.Add(state.Key, state);
 						}
 						return;
 				}
 			} else {
 				//进入队列，等待 SaveChanges 时执行
-				_ctx.EnqueueAction(DbContext.ExecCommandInfoType.Insert, this, typeof(EntityState), CreateEntityState(source));
+				EnqueueAction(DbContext.ExecCommandInfoType.Insert, this, typeof(EntityState), CreateEntityState(data));
 			}
 		}
-		public void Add(TEntity source) => AddPriv(source, true);
+		public void Add(TEntity data) => AddPriv(data, true);
 		#endregion
 
 		#region AddRange
@@ -78,13 +69,13 @@ namespace FreeSql {
 				switch (_fsql.Ado.DataType) {
 					case DataType.SqlServer:
 					case DataType.PostgreSQL:
-						_ctx.ExecCommand();
+						ExecuteCommand();
 						var rets = this.OrmInsert(data).ExecuteInserted();
 						if (rets.Count != data.Count()) throw new Exception($"特别错误：批量添加失败，{_fsql.Ado.DataType} 的返回数据，与添加的数目不匹配");
 						var idx = 0;
 						foreach (var s in data)
 							_fsql.MapEntityValue(rets[idx++], s);
-						_ctx._affrows += rets.Count;
+						IncrAffrows(rets.Count);
 						TrackToList(rets);
 						return;
 					case DataType.MySql:
@@ -97,7 +88,7 @@ namespace FreeSql {
 			} else {
 				//进入队列，等待 SaveChanges 时执行
 				foreach (var s in data)
-					_ctx.EnqueueAction(DbContext.ExecCommandInfoType.Insert, this, typeof(EntityState), CreateEntityState(s));
+					EnqueueAction(DbContext.ExecCommandInfoType.Insert, this, typeof(EntityState), CreateEntityState(s));
 			}
 		}
 		public void AddRange(IEnumerable<TEntity> data) {
@@ -111,13 +102,13 @@ namespace FreeSql {
 				switch (_fsql.Ado.DataType) {
 					case DataType.SqlServer:
 					case DataType.PostgreSQL:
-						_ctx.ExecCommand();
+						ExecuteCommand();
 						var rets = this.OrmInsert(data).ExecuteInserted();
 						if (rets.Count != data.Count()) throw new Exception($"特别错误：批量添加失败，{_fsql.Ado.DataType} 的返回数据，与添加的数目不匹配");
 						var idx = 0;
 						foreach(var s in data)
 							_fsql.MapEntityValue(rets[idx++], s);
-						_ctx._affrows += rets.Count;
+						IncrAffrows(rets.Count);
 						TrackToList(rets);
 						return;
 					case DataType.MySql:
@@ -130,7 +121,7 @@ namespace FreeSql {
 			} else {
 				//进入队列，等待 SaveChanges 时执行
 				foreach (var s in data) 
-					_ctx.EnqueueAction(DbContext.ExecCommandInfoType.Insert, this, typeof(EntityState), CreateEntityState(s));
+					EnqueueAction(DbContext.ExecCommandInfoType.Insert, this, typeof(EntityState), CreateEntityState(s));
 			}
 		}
 		#endregion
@@ -168,42 +159,11 @@ namespace FreeSql {
 					return data.Count;
 
 				var updateSource = data.Select(a => a.Value).ToArray();
-				var update = this.OrmUpdate(null).SetSource(updateSource);
-
-				var isWhereVersion = false;
-				if (_versionColumn != null) {
-					if (cuig.Contains(_versionColumn.CsName)) {
-						var parm1Exp = Expression.Parameter(_entityType, "a");
-						var lambdExp = Expression.Lambda(
-							typeof(Func<,>).MakeGenericType(_entityType, _versionColumn.CsType),
-							Expression.Add(
-								Expression.MakeMemberAccess(parm1Exp, _table.Properties[_versionColumn.CsName]),
-								Expression.Convert(Expression.Constant(1), _versionColumn.CsType)
-							),
-							parm1Exp
-						);
-						update.AppendEntityUpdateSetWithColumn(_versionColumn.CsType, lambdExp);
-						isWhereVersion = true;
-					}
-				}
-				update.IgnoreColumns(cuig);
-
-				if (isWhereVersion)
-					update.WhereCaseSource(_versionColumn.CsName, sqlval => sqlval);
+				var update = this.OrmUpdate(null).SetSource(updateSource).IgnoreColumns(cuig);
 
 				var affrows = update.ExecuteAffrows();
 
-				if (affrows != updateSource.Length) {
-					if (_versionColumn != null)
-						throw new Exception("数据未更新，其中的记录可能不存在，或者【行级乐观锁】版本过旧");
-					throw new Exception("数据未更新，其中的记录可能不存在");
-				}
-
 				foreach (var newval in data) {
-
-					if (isWhereVersion)
-						_fsql.SetEntityIncrByWithPropertyName(newval.Value, _versionColumn.CsName, 1);
-
 					if (_states.TryGetValue(newval.Key, out var tryold))
 						_fsql.MapEntityValue(newval.Value, tryold.Value);
 				}
@@ -216,7 +176,7 @@ namespace FreeSql {
 
 		void UpdatePriv(TEntity data, bool isCheck) {
 			if (isCheck && CanUpdate(data, true) == false) return;
-			_ctx.EnqueueAction(DbContext.ExecCommandInfoType.Update, this, typeof(EntityState), CreateEntityState(data));
+			EnqueueAction(DbContext.ExecCommandInfoType.Update, this, typeof(EntityState), CreateEntityState(data));
 		}
 		public void Update(TEntity data) => UpdatePriv(data, true);
 		public void UpdateRange(TEntity[] data) {
@@ -233,14 +193,14 @@ namespace FreeSql {
 		int DbContextBetchRemove(EntityState[] dels) {
 			if (dels.Any() == false) return 0;
 			var affrows = this.OrmDelete(dels.Select(a => a.Value)).ExecuteAffrows();
-			return affrows;
+			return Math.Max(dels.Length, affrows);
 		}
 		void RemovePriv(TEntity data, bool isCheck) {
 			if (isCheck && CanRemove(data, true) == false) return;
 			var state = CreateEntityState(data);
-			_ctx.EnqueueAction(DbContext.ExecCommandInfoType.Delete, this, typeof(EntityState), state);
+			EnqueueAction(DbContext.ExecCommandInfoType.Delete, this, typeof(EntityState), state);
 
-			_states.Remove(state.Key);
+			if (_states.ContainsKey(state.Key)) _states.Remove(state.Key);
 			_fsql.ClearEntityPrimaryValueWithIdentityAndGuid(data);
 		}
 		public void Remove(TEntity data) => RemovePriv(data, true);

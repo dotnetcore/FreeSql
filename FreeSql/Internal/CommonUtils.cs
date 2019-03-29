@@ -1,5 +1,6 @@
 ﻿using FreeSql.DataAnnotations;
 using FreeSql.DatabaseModel;
+using FreeSql.Extensions.EntityUtil;
 using FreeSql.Internal.Model;
 using System;
 using System.Collections;
@@ -79,6 +80,7 @@ namespace FreeSql.Internal {
 			if (attr._IsIdentity == null) attr._IsIdentity = trycol.IsIdentity;
 			if (attr._IsNullable == null) attr._IsNullable = trycol.IsNullable;
 			if (attr._IsIgnore == null) attr._IsIgnore = trycol.IsIgnore;
+			if (attr._IsVersion == null) attr._IsVersion = trycol.IsVersion;
 			if (attr.DbDefautValue == null) attr.DbDefautValue = trycol.DbDefautValue;
 			return attr;
 		}
@@ -136,7 +138,8 @@ namespace FreeSql.Internal {
 			if (table.Primarys.Length == 1) {
 				var sbin = new StringBuilder();
 				sbin.Append(aliasAndDot).Append(this.QuoteSqlName(table.Primarys.First().Attribute.Name));
-				var indt = its.Select(a => table.Properties.TryGetValue(table.Primarys.First().CsName, out var trycol) ? this.FormatSql("{0}", trycol.GetValue(a)) : null).Where(a => a != null).ToArray();
+				var indt = its.Select(a => /*this.FormatSql("{0}", _orm.GetEntityKeyValues(a))*/
+					table.Properties.TryGetValue(table.Primarys.First().CsName, out var trycol) ? this.FormatSql("{0}", trycol.GetValue(a)) : null).Where(a => a != null).ToArray();
 				if (indt.Any() == false) return null;
 				if (indt.Length == 1) sbin.Append(" = ").Append(indt.First());
 				else sbin.Append(" IN (").Append(string.Join(",", indt)).Append(")");

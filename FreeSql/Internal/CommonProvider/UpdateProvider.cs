@@ -1,4 +1,5 @@
-﻿using FreeSql.Internal.Model;
+﻿using FreeSql.Extensions.EntityUtil;
+using FreeSql.Internal.Model;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -55,20 +56,197 @@ namespace FreeSql.Internal.CommonProvider {
 			return this;
 		}
 
-		public int ExecuteAffrows() {
+		protected void ValidateVersionAndThrow(int affrows) {
+			if (_table.VersionColumn != null && _source.Count > 0) {
+				if (affrows != _source.Count)
+					throw new Exception($"记录可能不存在，或者【行级乐观锁】版本过旧，更新数量{_source.Count}，影响的行数{affrows}。");
+				foreach (var d in _source)
+					_orm.SetEntityIncrByWithPropertyName(d, _table.VersionColumn.CsName, 1);
+			}
+		}
+
+		#region 参数化数据限制，或values数量限制
+		internal List<T1>[] SplitSource(int valuesLimit, int parameterLimit) {
+			valuesLimit = valuesLimit - 1;
+			parameterLimit = parameterLimit - 1;
+			if (_source == null || _source.Any() == false) return new List<T1>[0];
+			if (_source.Count == 1) return new[] { _source };
+			if (_noneParameter) {
+				if (_source.Count < valuesLimit) return new[] { _source };
+
+				var execCount = (int)Math.Ceiling(1.0 * _source.Count / valuesLimit);
+				var ret = new List<T1>[execCount];
+				for (var a = 0; a < execCount; a++) {
+					var subSource = new List<T1>();
+					subSource = _source.GetRange(a * valuesLimit, Math.Min(valuesLimit, _source.Count - a * valuesLimit));
+					ret[a] = subSource;
+				}
+				return ret;
+			} else {
+				var colSum = _table.Columns.Count - _ignore.Count;
+				var takeMax = parameterLimit / colSum;
+				var pamTotal = colSum * _source.Count;
+				if (pamTotal < parameterLimit) return new[] { _source };
+
+				var execCount = (int)Math.Ceiling(1.0 * pamTotal / parameterLimit);
+				var ret = new List<T1>[execCount];
+				for (var a = 0; a < execCount; a++) {
+					var subSource = new List<T1>();
+					subSource = _source.GetRange(a * takeMax, Math.Min(takeMax, _source.Count - a * takeMax));
+					ret[a] = subSource;
+				}
+				return ret;
+			}
+		}
+		internal int SplitExecuteAffrows(int valuesLimit, int parameterLimit) {
+			var ss = SplitSource(valuesLimit, parameterLimit);
+			var ret = 0;
+			if (ss.Length <= 1) {
+				ret = this.RawExecuteAffrows();
+				ClearData();
+				return ret;
+			}
+			if (_transaction != null) {
+				for (var a = 0; a < ss.Length; a++) {
+					_source = ss[a];
+					ret += this.RawExecuteAffrows();
+				}
+			} else {
+				using (var conn = _orm.Ado.MasterPool.Get()) {
+					_transaction = conn.Value.BeginTransaction();
+					try {
+						for (var a = 0; a < ss.Length; a++) {
+							_source = ss[a];
+							ret += this.RawExecuteAffrows();
+						}
+						_transaction.Commit();
+					} catch {
+						_transaction.Rollback();
+						throw;
+					}
+					_transaction = null;
+				}
+			}
+			ClearData();
+			return ret;
+		}
+		async internal Task<int> SplitExecuteAffrowsAsync(int valuesLimit, int parameterLimit) {
+			var ss = SplitSource(valuesLimit, parameterLimit);
+			var ret = 0;
+			if (ss.Length <= 1) {
+				ret = await this.RawExecuteAffrowsAsync();
+				ClearData();
+				return ret;
+			}
+			if (_transaction != null) {
+				for (var a = 0; a < ss.Length; a++) {
+					_source = ss[a];
+					ret += await this.RawExecuteAffrowsAsync();
+				}
+			} else {
+				using (var conn = await _orm.Ado.MasterPool.GetAsync()) {
+					_transaction = conn.Value.BeginTransaction();
+					try {
+						for (var a = 0; a < ss.Length; a++) {
+							_source = ss[a];
+							ret += await this.RawExecuteAffrowsAsync();
+						}
+						_transaction.Commit();
+					} catch {
+						_transaction.Rollback();
+						throw;
+					}
+					_transaction = null;
+				}
+			}
+			ClearData();
+			return ret;
+		}
+		internal List<T1> SplitExecuteUpdated(int valuesLimit, int parameterLimit) {
+			var ss = SplitSource(valuesLimit, parameterLimit);
+			var ret = new List<T1>();
+			if (ss.Length <= 1) {
+				ret = this.RawExecuteUpdated();
+				ClearData();
+				return ret;
+			}
+			if (_transaction != null) {
+				for (var a = 0; a < ss.Length; a++) {
+					_source = ss[a];
+					ret.AddRange(this.RawExecuteUpdated());
+				}
+			} else {
+				using (var conn = _orm.Ado.MasterPool.Get()) {
+					_transaction = conn.Value.BeginTransaction();
+					try {
+						for (var a = 0; a < ss.Length; a++) {
+							_source = ss[a];
+							ret.AddRange(this.RawExecuteUpdated());
+						}
+						_transaction.Commit();
+					} catch {
+						_transaction.Rollback();
+						throw;
+					}
+					_transaction = null;
+				}
+			}
+			ClearData();
+			return ret;
+		}
+		async internal Task<List<T1>> SplitExecuteUpdatedAsync(int valuesLimit, int parameterLimit) {
+			var ss = SplitSource(valuesLimit, parameterLimit);
+			var ret = new List<T1>();
+			if (ss.Length <= 1) {
+				ret = await this.RawExecuteUpdatedAsync();
+				ClearData();
+				return ret;
+			}
+			if (_transaction != null) {
+				for (var a = 0; a < ss.Length; a++) {
+					_source = ss[a];
+					ret.AddRange(await this.RawExecuteUpdatedAsync());
+				}
+			} else {
+				using (var conn = await _orm.Ado.MasterPool.GetAsync()) {
+					_transaction = conn.Value.BeginTransaction();
+					try {
+						for (var a = 0; a < ss.Length; a++) {
+							_source = ss[a];
+							ret.AddRange(await this.RawExecuteUpdatedAsync());
+						}
+						_transaction.Commit();
+					} catch {
+						_transaction.Rollback();
+						throw;
+					}
+					_transaction = null;
+				}
+			}
+			ClearData();
+			return ret;
+		}
+		#endregion
+
+		internal int RawExecuteAffrows() {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return 0;
 			var affrows = _orm.Ado.ExecuteNonQuery(_transaction, CommandType.Text, sql, _params.Concat(_paramsSource).ToArray());
-			this.ClearData();
+			ValidateVersionAndThrow(affrows);
 			return affrows;
 		}
-		async public Task<int> ExecuteAffrowsAsync() {
+		async internal Task<int> RawExecuteAffrowsAsync() {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return 0;
 			var affrows = await _orm.Ado.ExecuteNonQueryAsync(_transaction, CommandType.Text, sql, _params.Concat(_paramsSource).ToArray());
-			this.ClearData();
+			ValidateVersionAndThrow(affrows);
 			return affrows;
 		}
+		internal abstract List<T1> RawExecuteUpdated();
+		internal abstract Task<List<T1>> RawExecuteUpdatedAsync();
+
+		public abstract int ExecuteAffrows();
+		public abstract Task<int> ExecuteAffrowsAsync();
 		public abstract List<T1> ExecuteUpdated();
 		public abstract Task<List<T1>> ExecuteUpdatedAsync();
 
@@ -88,7 +266,7 @@ namespace FreeSql.Internal.CommonProvider {
 		public IUpdate<T1> SetSource(IEnumerable<T1> source) {
 			if (source == null || source.Any() == false) return this;
 			_source.AddRange(source.Where(a => a != null));
-			return this.Where(_source);
+			return this;
 		}
 
 		public IUpdate<T1> Set<TMember>(Expression<Func<T1, TMember>> column, TMember value) {
@@ -144,12 +322,12 @@ namespace FreeSql.Internal.CommonProvider {
 		public IUpdate<T1> Where(IEnumerable<T1> items) => this.Where(_commonUtils.WhereItems(_table, "", items));
 		public IUpdate<T1> WhereExists<TEntity2>(ISelect<TEntity2> select, bool notExists = false) where TEntity2 : class => this.Where($"{(notExists ? "NOT " : "")}EXISTS({select.ToSql("1")})");
 
-		public IUpdate<T1> WhereCaseSource(string CsName, Func<string, string> thenValue) {
-			if (_source.Any() == false) return this;
+		protected string WhereCaseSource(string CsName, Func<string, string> thenValue) {
+			if (_source.Any() == false) return null;
 			if (_table.ColumnsByCs.ContainsKey(CsName) == false) throw new Exception($"找不到 {CsName} 对应的列");
 			if (thenValue == null) throw new ArgumentNullException("thenValue 参数不可为 null");
 
-			if (_source.Count == 0) return this;
+			if (_source.Count == 0) return null;
 			if (_source.Count == 1) {
 
 				var col = _table.ColumnsByCs[CsName];
@@ -159,7 +337,7 @@ namespace FreeSql.Internal.CommonProvider {
 				var value = _table.Properties.TryGetValue(col.CsName, out var tryp) ? tryp.GetValue(_source.First()) : DBNull.Value;
 				sb.Append(thenValue(_commonUtils.GetNoneParamaterSqlValue(_paramsSource, col.CsType, value)));
 
-				return this.Where(sb.ToString());
+				return sb.ToString();
 
 			} else {
 				var caseWhen = new StringBuilder();
@@ -169,17 +347,24 @@ namespace FreeSql.Internal.CommonProvider {
 
 				var col = _table.ColumnsByCs[CsName];
 				var sb = new StringBuilder();
-				sb.Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ").Append(cw);
-				foreach (var d in _source) {
-					sb.Append(" \r\nWHEN ");
-					ToSqlWhen(sb, _table.Primarys, d);
-					sb.Append(" THEN ");
-					var value = _table.Properties.TryGetValue(col.CsName, out var tryp) ? tryp.GetValue(d) : DBNull.Value;
-					sb.Append(thenValue(_commonUtils.GetNoneParamaterSqlValue(_paramsSource, col.CsType, value)));
-				}
-				sb.Append(" END");
+				sb.Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ");
 
-				return this.Where(sb.ToString());
+				var isnull = false;
+				var cwsb = new StringBuilder().Append(cw);
+				foreach (var d in _source) {
+					cwsb.Append(" \r\nWHEN ");
+					ToSqlWhen(cwsb, _table.Primarys, d);
+					cwsb.Append(" THEN ");
+					var value = _table.Properties.TryGetValue(col.CsName, out var tryp) ? tryp.GetValue(d) : DBNull.Value;
+					cwsb.Append(thenValue(_commonUtils.GetNoneParamaterSqlValue(_paramsSource, col.CsType, value)));
+					if (isnull == false) isnull = value == null || value == DBNull.Value;
+				}
+				cwsb.Append(" END");
+				if (isnull == false) sb.Append(cwsb.ToString());
+				else sb.Append("NULL");
+				cwsb.Clear();
+
+				return sb.ToString();
 			}
 		}
 
@@ -191,7 +376,7 @@ namespace FreeSql.Internal.CommonProvider {
 			return this;
 		}
 		public string ToSql() {
-			if (_where.Length == 0) return null;
+			if (_where.Length == 0 && _source.Any() == false) return null;
 
 			var sb = new StringBuilder();
 			sb.Append("UPDATE ").Append(_commonUtils.QuoteSqlName(_tableRule?.Invoke(_table.DbName) ?? _table.DbName)).Append(" SET ");
@@ -224,14 +409,6 @@ namespace FreeSql.Internal.CommonProvider {
 				var caseWhen = new StringBuilder();
 				caseWhen.Append("CASE ");
 				ToSqlCase(caseWhen, _table.Primarys);
-				//if (_table.Primarys.Length > 1) caseWhen.Append("CONCAT(");
-				//var pkidx = 0;
-				//foreach (var pk in _table.Primarys) {
-				//	if (pkidx > 0) caseWhen.Append(", ");
-				//	caseWhen.Append(_commonUtils.QuoteSqlName(pk.Attribute.Name));
-				//	++pkidx;
-				//}
-				//if (_table.Primarys.Length > 1) caseWhen.Append(")");
 				var cw = caseWhen.ToString();
 
 				_paramsSource.Clear();
@@ -239,37 +416,56 @@ namespace FreeSql.Internal.CommonProvider {
 				foreach (var col in _table.Columns.Values) {
 					if (col.Attribute.IsIdentity == false && _ignore.ContainsKey(col.CsName) == false) {
 						if (colidx > 0) sb.Append(", ");
-						sb.Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ").Append(cw);
+						sb.Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ");
+
+						var isnull = false;
+						var cwsb = new StringBuilder().Append(cw);
 						foreach (var d in _source) {
-							sb.Append(" \r\nWHEN ");
-							ToSqlWhen(sb, _table.Primarys, d);
-							//if (_table.Primarys.Length > 1) sb.Append("CONCAT(");
-							//pkidx = 0;
-							//foreach (var pk in _table.Primarys) {
-							//	if (pkidx > 0) sb.Append(", ");
-							//	sb.Append(_commonUtils.FormatSql("{0}", _table.Properties.TryGetValue(pk.CsName, out var tryp2) ? tryp2.GetValue(d) : null));
-							//	++pkidx;
-							//}
-							//if (_table.Primarys.Length > 1) sb.Append(")");
-							sb.Append(" THEN ");
+							cwsb.Append(" \r\nWHEN ");
+							ToSqlWhen(cwsb, _table.Primarys, d);
+							cwsb.Append(" THEN ");
 							var value = _table.Properties.TryGetValue(col.CsName, out var tryp) ? tryp.GetValue(d) : DBNull.Value;
 							if (_noneParameter) {
-								sb.Append(_commonUtils.GetNoneParamaterSqlValue(_paramsSource, col.CsType, value));
+								cwsb.Append(_commonUtils.GetNoneParamaterSqlValue(_paramsSource, col.CsType, value));
 							} else {
-								sb.Append(_commonUtils.QuoteWriteParamter(col.CsType, _commonUtils.QuoteParamterName($"p_{_paramsSource.Count}")));
+								cwsb.Append(_commonUtils.QuoteWriteParamter(col.CsType, _commonUtils.QuoteParamterName($"p_{_paramsSource.Count}")));
 								_commonUtils.AppendParamter(_paramsSource, null, col.CsType, value);
 							}
+							if (isnull == false) isnull = value == null || value == DBNull.Value;
 						}
-						sb.Append(" END");
+						cwsb.Append(" END");
+						if (isnull == false) sb.Append(cwsb.ToString());
+						else sb.Append("NULL");
+						cwsb.Clear();
+
 						++colidx;
 					}
 				}
 				if (colidx == 0) return null;
-			} else
+			} else if (_setIncr.Length == 0)
 				return null;
 
-			sb.Append(_setIncr.ToString());
-			sb.Append(" \r\nWHERE ").Append(_where.ToString().Substring(5));
+			if (_setIncr.Length > 0)
+				sb.Append(_set.Length > 0 ? _setIncr.ToString() : _setIncr.ToString().Substring(2));
+
+			if (_table.VersionColumn != null) {
+				var vcname = _commonUtils.QuoteSqlName(_table.VersionColumn.Attribute.Name);
+				sb.Append(", ").Append(vcname).Append(" = ").Append(vcname).Append(" + 1");
+			}
+
+			sb.Append(" \r\nWHERE ");
+			if (_source.Any())
+				sb.Append("(").Append(_commonUtils.WhereItems(_table, "", _source)).Append(")");
+
+			if (_where.Length > 0)
+				sb.Append(_source.Any() ? _where.ToString() : _where.ToString().Substring(5));
+
+			if (_table.VersionColumn != null) {
+				var versionCondi = WhereCaseSource(_table.VersionColumn.CsName, sqlval => sqlval);
+				if (string.IsNullOrEmpty(versionCondi) == false)
+					sb.Append(" AND ").Append(versionCondi);
+			}
+
 			return sb.ToString();
 		}
 	}

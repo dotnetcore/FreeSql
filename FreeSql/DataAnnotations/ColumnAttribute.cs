@@ -16,7 +16,7 @@ namespace FreeSql.DataAnnotations {
 		/// </summary>
 		public string DbType { get; set; }
 
-		internal bool? _IsPrimary, _IsIdentity, _IsNullable, _IsIgnore;
+		internal bool? _IsPrimary, _IsIdentity, _IsNullable, _IsIgnore, _IsVersion;
 		/// <summary>
 		/// 主键
 		/// </summary>
@@ -33,6 +33,10 @@ namespace FreeSql.DataAnnotations {
 		/// 忽略此列，不迁移、不插入
 		/// </summary>
 		public bool IsIgnore { get => _IsIgnore ?? false; set => _IsIgnore = value; }
+		/// <summary>
+		/// 设置行锁（乐观锁）版本号，每次更新累加版本号，若更新整个实体时会附带当前的版本号判断（修改失败时抛出异常）
+		/// </summary>
+		public bool IsVersion { get => _IsVersion ?? false; set => _IsVersion = value; }
 
 		/// <summary>
 		/// 数据库默认值

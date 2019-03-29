@@ -107,6 +107,11 @@ namespace FreeSql.Internal {
 				trytb.Columns.Add(colattr.Name, col);
 				trytb.ColumnsByCs.Add(p.Name, col);
 			}
+			trytb.VersionColumn = trytb.Columns.Values.Where(a => a.Attribute.IsVersion == true).LastOrDefault();
+			if (trytb.VersionColumn != null) {
+				if (trytb.VersionColumn.CsType.IsNullableType() || trytb.VersionColumn.CsType.IsNumberType() == false)
+					throw new Exception($"属性{trytb.VersionColumn.CsName} 被标注为行锁（乐观锁）(IsVersion)，但其必须为数字类型，并且不可为 Nullable");
+			}
 			trytb.Primarys = trytb.Columns.Values.Where(a => a.Attribute.IsPrimary == true).ToArray();
 			if (trytb.Primarys.Any() == false) {
 				var identcol = trytb.Columns.Values.Where(a => a.Attribute.IsIdentity == true).FirstOrDefault();

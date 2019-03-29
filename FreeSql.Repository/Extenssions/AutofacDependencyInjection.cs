@@ -20,7 +20,7 @@ public static class FreeSqlRepositoryAutofacExtenssions {
 
 	static void RegisterFreeRepositoryPrivate(ContainerBuilder builder, Action<FluentDataFilter> globalDataFilter, params Assembly[] assemblies) {
 
-		Utils._globalDataFilter = globalDataFilter;
+		DataFilterUtil._globalDataFilter = globalDataFilter;
 
 		builder.RegisterGeneric(typeof(GuidRepository<>)).As(
 			typeof(GuidRepository<>),

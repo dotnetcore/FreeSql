@@ -53,7 +53,7 @@ namespace repository_01 {
 		public IConfiguration Configuration { get; }
 		public static IFreeSql Fsql { get; private set; }
 
-		public IServiceProvider ConfigureServices(IServiceCollection services) {
+		public void ConfigureServices(IServiceCollection services) {
 
 			//services.AddTransient(s => s.)
 
@@ -67,42 +67,28 @@ namespace repository_01 {
 			});
 
 			services.AddSingleton<IFreeSql>(Fsql);
-			//var baseType = typeof(IRepository);
-			//var freeTypes = baseType.Assembly.GetTypes().Where(t => baseType.IsAssignableFrom(t));
-			//foreach (var type in freeTypes) {
-			//	if ((type.IsInterface || type.IsAbstract) && type.IsGenericType) {
-			//		if (type.GenericTypeArguments.Length == 1)
-			//			services.AddScoped(type, sp => {
-			//				return Activator.CreateInstance(typeof(GuidRepository<>).MakeGenericType(type.GenericTypeArguments[0]), sp.GetService<IFreeSql>());
-			//			});
-			//		else
-			//			services.AddScoped(type, sp => {
-			//				return Activator.CreateInstance(typeof(DefaultRepository<,>).MakeGenericType(type.GenericTypeArguments[0], type.GenericTypeArguments[1]), sp.GetService<IFreeSql>());
-			//			});
-			//		continue;
-			//	}
-			//	services.AddScoped(type);
-			//}
 
-			//var types = GetType().Assembly.GetTypes().Where(t => baseType.IsAssignableFrom(t) && !t.IsAbstract);
-			//foreach (var type in types) {
-			//	services.AddScoped(type);
-			//}
-
-
-			var builder = new ContainerBuilder();
-
-			builder.RegisterFreeRepository(filter => filter
-				.Apply<Song>("test", a => a.Title == DateTime.Now.ToString() + System.Threading.Thread.CurrentThread.ManagedThreadId)
+			services.AddFreeRepository(filter => filter
+				//.Apply<Song>("test", a => a.Title == DateTime.Now.ToString() + System.Threading.Thread.CurrentThread.ManagedThreadId)
 				.Apply<ISoftDelete>("softdelete", a => a.IsDeleted == false)
 				,
 				this.GetType().Assembly
 			);
 
-			builder.Populate(services);
-			var container = builder.Build();
 
-			return new AutofacServiceProvider(container);
+			//var builder = new ContainerBuilder();
+
+			//builder.RegisterFreeRepository(filter => filter
+			//	//.Apply<Song>("test", a => a.Title == DateTime.Now.ToString() + System.Threading.Thread.CurrentThread.ManagedThreadId)
+			//	.Apply<ISoftDelete>("softdelete", a => a.IsDeleted == false)
+			//	,
+			//	this.GetType().Assembly
+			//);
+
+			//builder.Populate(services);
+			//var container = builder.Build();
+
+			//return new AutofacServiceProvider(container);
 		}
 
 		public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory) {

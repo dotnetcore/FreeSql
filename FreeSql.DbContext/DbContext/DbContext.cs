@@ -42,8 +42,15 @@ namespace FreeSql {
 			
 		}
 
+
+		Dictionary<Type, object> _dicSet = new Dictionary<Type, object>();
 		public DbSet<TEntity> Set<TEntity>() where TEntity : class => this.Set(typeof(TEntity)) as DbSet<TEntity>;
-		public object Set(Type entityType) => Activator.CreateInstance(typeof(BaseDbSet<>).MakeGenericType(entityType), this);
+		public object Set(Type entityType) {
+			if (_dicSet.ContainsKey(entityType)) return _dicSet[entityType];
+			var sd = Activator.CreateInstance(typeof(BaseDbSet<>).MakeGenericType(entityType), this);
+			_dicSet.Add(entityType, sd);
+			return sd;
+		}
 
 		protected Dictionary<string, object> AllSets { get; } = new Dictionary<string, object>();
 
@@ -92,6 +99,7 @@ namespace FreeSql {
 			}
 		}
 		void Rollback() {
+			_actions.Clear();
 			if (_tran != null) {
 				try {
 					_tran.Rollback();

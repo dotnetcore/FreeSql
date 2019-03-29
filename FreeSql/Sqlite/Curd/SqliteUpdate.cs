@@ -15,10 +15,16 @@ namespace FreeSql.Sqlite.Curd {
 			: base(orm, commonUtils, commonExpression, dywhere) {
 		}
 
-		public override List<T1> ExecuteUpdated() {
+		public override int ExecuteAffrows() => base.SplitExecuteAffrows(200, 999);
+		public override Task<int> ExecuteAffrowsAsync() => base.SplitExecuteAffrowsAsync(200, 999);
+		public override List<T1> ExecuteUpdated() => base.SplitExecuteUpdated(200, 999);
+		public override Task<List<T1>> ExecuteUpdatedAsync() => base.SplitExecuteUpdatedAsync(200, 999);
+
+
+		internal override List<T1> RawExecuteUpdated() {
 			throw new NotImplementedException();
 		}
-		public override Task<List<T1>> ExecuteUpdatedAsync() {
+		internal override Task<List<T1>> RawExecuteUpdatedAsync() {
 			throw new NotImplementedException();
 		}
 

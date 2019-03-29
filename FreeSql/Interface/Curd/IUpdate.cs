@@ -101,13 +101,6 @@ namespace FreeSql {
 		/// <param name="notExists">不存在</param>
 		/// <returns></returns>
 		IUpdate<T1> WhereExists<TEntity2>(ISelect<TEntity2> select, bool notExists = false) where TEntity2 : class;
-		/// <summary>
-		/// 用于批量修改时，生成 where dbName = case when id = 1 then v1 end 的条件
-		/// </summary>
-		/// <param name="CsName">属性名</param>
-		/// <param name="thenValue"></param>
-		/// <returns></returns>
-		IUpdate<T1> WhereCaseSource(string CsName, Func<string, string> thenValue);
 
 		/// <summary>
 		/// 设置表名规则，可用于分库/分表，参数1：默认表名；返回值：新表名；
