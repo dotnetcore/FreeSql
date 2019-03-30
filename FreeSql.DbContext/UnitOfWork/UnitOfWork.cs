@@ -21,7 +21,7 @@ namespace FreeSql {
 			_tran = null;
 			_conn = null;
 		}
-		internal DbTransaction GetOrBeginTransaction(bool isCreate = true) {
+		public DbTransaction GetOrBeginTransaction(bool isCreate = true) {
 
 			if (_tran != null) return _tran;
 			if (isCreate == false) return null;

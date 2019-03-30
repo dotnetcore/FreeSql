@@ -4,8 +4,9 @@ using System.Threading.Tasks;
 
 namespace FreeSql {
 
-	public interface IRepository {
+	public interface IRepository : IDisposable {
 		Type EntityType { get; }
+		IUnitOfWork UnitOfWork { get; set; }
 	}
 
 	public interface IRepository<TEntity> : IReadOnlyRepository<TEntity>, IBasicRepository<TEntity>

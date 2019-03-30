@@ -7,27 +7,39 @@ using System.Linq.Expressions;
 
 namespace FreeSql {
 
-	internal class BaseDbSet<TEntity> : DbSet<TEntity> where TEntity : class {
+	internal class DbContextDbSet<TEntity> : DbSet<TEntity> where TEntity : class {
 
-		public BaseDbSet(DbContext ctx) {
-			if (ctx != null) {
-				_ctx = ctx;
-				_uow = ctx._uow;
-				_fsql = ctx._fsql;
-			}
+		public DbContextDbSet(DbContext ctx) {
+			_ctx = ctx;
+			_uow = ctx._uow;
+			_fsql = ctx._fsql;
 		}
 	}
 
-	public abstract partial class DbSet<TEntity> where TEntity : class {
+	public abstract partial class DbSet<TEntity> : IDisposable where TEntity : class {
 
 		internal DbContext _ctx;
-		internal UnitOfWork _uow;
+		internal IUnitOfWork _uow;
 		internal IFreeSql _fsql;
-		bool IsNoneDbContext => _ctx == null;
 
 		protected virtual ISelect<TEntity> OrmSelect(object dywhere) {
 			DbContextExecCommand(); //查询前先提交，否则会出脏读
 			return _fsql.Select<TEntity>(dywhere).WithTransaction(_uow?.GetOrBeginTransaction(false)).TrackToList(TrackToList);
+		}
+
+		~DbSet() {
+			this.Dispose();
+		}
+		bool _isdisposed = false;
+		public void Dispose() {
+			if (_isdisposed) return;
+			try {
+				this._dicUpdateTimes.Clear();
+				this._states.Clear();
+			} finally {
+				_isdisposed = true;
+				GC.SuppressFinalize(this);
+			}
 		}
 
 		protected virtual IInsert<TEntity> OrmInsert() => _fsql.Insert<TEntity>().WithTransaction(_uow?.GetOrBeginTransaction());
@@ -38,12 +50,10 @@ namespace FreeSql {
 		protected virtual IDelete<TEntity> OrmDelete(object dywhere) => _fsql.Delete<TEntity>(dywhere).WithTransaction(_uow?.GetOrBeginTransaction());
 
 		internal void EnqueueToDbContext(DbContext.ExecCommandInfoType actionType, EntityState state) {
-			if (IsNoneDbContext == false)
-				_ctx.EnqueueAction(actionType, this, typeof(EntityState), state);
+			_ctx.EnqueueAction(actionType, this, typeof(EntityState), state);
 		}
-		internal void IncrAffrows(long affrows) {
-			if (IsNoneDbContext == false)
-				_ctx._affrows += affrows;
+		internal void IncrAffrows(int affrows) {
+			_ctx._affrows += affrows;
 		}
 		internal void TrackToList(object list) {
 			if (list == null) return;

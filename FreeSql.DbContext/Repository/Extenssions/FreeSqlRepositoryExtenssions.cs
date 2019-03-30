@@ -22,7 +22,7 @@ public static class FreeSqlRepositoryExtenssions {
 	}
 
 	/// <summary>
-	/// 返回仓库类，适用 Insert 方法无须返回插入的数据
+	/// 返回仓库类
 	/// </summary>
 	/// <typeparam name="TEntity"></typeparam>
 	/// <param name="that"></param>

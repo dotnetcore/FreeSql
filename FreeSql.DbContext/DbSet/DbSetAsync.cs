@@ -8,11 +8,8 @@ namespace FreeSql {
 	partial class DbSet<TEntity> {
 
 		Task DbContextExecCommandAsync() {
-			if (IsNoneDbContext == false) {
-				_dicUpdateTimes.Clear();
-				return _ctx.ExecCommandAsync();
-			}
-			return Task.CompletedTask;
+			_dicUpdateTimes.Clear();
+			return _ctx.ExecCommandAsync();
 		}
 
 		async Task<int> DbContextBetchAddAsync(EntityState[] adds) {
@@ -59,10 +56,7 @@ namespace FreeSql {
 						return;
 				}
 			} else {
-				if (IsNoneDbContext)
-					IncrAffrows(await OrmInsert(data).ExecuteAffrowsAsync());
-				else
-					EnqueueToDbContext(DbContext.ExecCommandInfoType.Insert, CreateEntityState(data));
+				EnqueueToDbContext(DbContext.ExecCommandInfoType.Insert, CreateEntityState(data));
 			}
 		}
 		public Task AddAsync(TEntity data) => AddPrivAsync(data, true);
@@ -94,12 +88,9 @@ namespace FreeSql {
 						return;
 				}
 			} else {
-				if (IsNoneDbContext)
-					IncrAffrows(await OrmInsert(data).ExecuteAffrowsAsync());
-				else
-					//进入队列，等待 SaveChanges 时执行
-					foreach (var s in data)
-						EnqueueToDbContext(DbContext.ExecCommandInfoType.Insert, CreateEntityState(s));
+				//进入队列，等待 SaveChanges 时执行
+				foreach (var s in data)
+					EnqueueToDbContext(DbContext.ExecCommandInfoType.Insert, CreateEntityState(s));
 			}
 		}
 		#endregion
@@ -154,56 +145,6 @@ namespace FreeSql {
 			//等待下次对比再保存
 			return 0;
 		}
-
-		internal Task<int> UpdateAffrowsAsync(TEntity data) => UpdateRangeAffrowsAsync(new[] { data });
-		async internal Task<int> UpdateRangeAffrowsAsync(IEnumerable<TEntity> data) {
-			if (CanUpdate(data, true) == false) return 0;
-			if (IsNoneDbContext) {
-				var dataarray = data.ToArray();
-				var ups = new List<EntityState>();
-				var totalAffrows = 0;
-				for (var a = 0; a < dataarray.Length + 1; a++) {
-					var item = a < dataarray.Length ? dataarray[a] : null;
-					if (item != null) {
-						var state = CreateEntityState(item);
-						state.Value = item;
-						ups.Add(state);
-					}
-
-					var affrows = await DbContextBetchUpdatePrivAsync(ups.ToArray(), item == null);
-					if (affrows == -999) { //最后一个元素已被删除
-						ups.RemoveAt(ups.Count - 1);
-						continue;
-					}
-					if (affrows == -998 || affrows == -997) { //没有执行更新
-						var laststate = ups[ups.Count - 1];
-						ups.Clear();
-						if (affrows == -997) ups.Add(laststate); //保留最后一个
-					}
-					if (affrows > 0) {
-						totalAffrows += affrows;
-						var islastNotUpdated = ups.Count != affrows;
-						var laststate = ups[ups.Count - 1];
-						ups.Clear();
-						if (islastNotUpdated) ups.Add(laststate); //保留最后一个
-					}
-				}
-				IncrAffrows(totalAffrows);
-				return totalAffrows;
-			}
-			foreach (var item in data) {
-				if (_dicUpdateTimes.ContainsKey(item))
-					await DbContextExecCommandAsync();
-				_dicUpdateTimes.Add(item, 1);
-
-				var state = CreateEntityState(item);
-				state.OldValue = item;
-				EnqueueToDbContext(DbContext.ExecCommandInfoType.Update, state);
-			}
-			return 0;
-		}
-		internal Task UpdateAsync(TEntity data) => UpdateAffrowsAsync(data);
-		internal Task UpdateRangeAsync(IEnumerable<TEntity> data) => UpdateRangeAffrowsAsync(data);
 		#endregion
 
 		#region RemoveAsync
@@ -212,28 +153,6 @@ namespace FreeSql {
 			var affrows = await this.OrmDelete(dels.Select(a => a.Value)).ExecuteAffrowsAsync();
 			return Math.Max(dels.Length, affrows);
 		}
-
-		internal Task<int> RemoveAffrowsAsync(TEntity data) => RemoveRangeAffrowsAsync(new[] { data });
-		async internal Task<int> RemoveRangeAffrowsAsync(IEnumerable<TEntity> data) {
-			if (CanRemove(data, true) == false) return 0;
-			var dels = new List<EntityState>();
-			foreach (var item in data) {
-				var state = CreateEntityState(item);
-				if (_states.ContainsKey(state.Key)) _states.Remove(state.Key);
-				_fsql.ClearEntityPrimaryValueWithIdentityAndGuid(item);
-
-				if (IsNoneDbContext) dels.Add(state);
-				EnqueueToDbContext(DbContext.ExecCommandInfoType.Delete, state);
-			}
-			if (IsNoneDbContext) {
-				var affrows = await DbContextBetchRemoveAsync(dels.ToArray());
-				IncrAffrows(affrows);
-				return affrows;
-			}
-			return 0;
-		}
-		internal Task RemoveAsync(TEntity data) => RemoveAffrowsAsync(data);
-		internal Task RemoveRangeAsync(IEnumerable<TEntity> data) => RemoveRangeAffrowsAsync(data);
 		#endregion
 	}
 }

@@ -13,8 +13,9 @@ namespace FreeSql {
 		internal IFreeSql _orm;
 		internal IFreeSql _fsql => _orm ?? throw new ArgumentNullException("请在 OnConfiguring 或 AddFreeDbContext 中配置 UseFreeSql");
 
-		UnitOfWork _uowPriv;
-		internal UnitOfWork _uow => _uowPriv ?? (_uowPriv = new UnitOfWork(_fsql));
+		IUnitOfWork _uowPriv;
+		internal IUnitOfWork _uow => _isUseUnitOfWork ? (_uowPriv ?? (_uowPriv = new UnitOfWork(_fsql))) : null;
+		internal bool _isUseUnitOfWork = true; //不使用工作单元事务
 
 		static ConcurrentDictionary<Type, PropertyInfo[]> _dicGetDbSetProps = new ConcurrentDictionary<Type, PropertyInfo[]>();
 		protected DbContext() {
@@ -41,15 +42,14 @@ namespace FreeSql {
 		}
 
 
-		Dictionary<Type, object> _dicSet = new Dictionary<Type, object>();
+		protected Dictionary<Type, object> _dicSet = new Dictionary<Type, object>();
 		public DbSet<TEntity> Set<TEntity>() where TEntity : class => this.Set(typeof(TEntity)) as DbSet<TEntity>;
-		public object Set(Type entityType) {
+		public virtual object Set(Type entityType) {
 			if (_dicSet.ContainsKey(entityType)) return _dicSet[entityType];
-			var sd = Activator.CreateInstance(typeof(BaseDbSet<>).MakeGenericType(entityType), this);
+			var sd = Activator.CreateInstance(typeof(DbContextDbSet<>).MakeGenericType(entityType), this);
 			_dicSet.Add(entityType, sd);
 			return sd;
 		}
-
 		protected Dictionary<string, object> AllSets { get; } = new Dictionary<string, object>();
 
 		internal class ExecCommandInfo {
@@ -60,7 +60,7 @@ namespace FreeSql {
 		}
 		internal enum ExecCommandInfoType { Insert, Update, Delete }
 		Queue<ExecCommandInfo> _actions = new Queue<ExecCommandInfo>();
-		internal long _affrows = 0;
+		internal int _affrows = 0;
 
 		internal void EnqueueAction(ExecCommandInfoType actionType, object dbSet, Type stateType, object state) {
 			_actions.Enqueue(new ExecCommandInfo { actionType = actionType, dbSet = dbSet, stateType = stateType, state = state });
@@ -73,7 +73,11 @@ namespace FreeSql {
 		public void Dispose() {
 			if (_isdisposed) return;
 			try {
-				_uow.Rollback();
+				_actions.Clear();
+				_dicSet.Clear();
+				AllSets.Clear();
+				
+				_uow?.Rollback();
 			} finally {
 				_isdisposed = true;
 				GC.SuppressFinalize(this);

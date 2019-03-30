@@ -7,10 +7,8 @@ namespace FreeSql {
 	partial class DbSet<TEntity> {
 
 		void DbContextExecCommand() {
-			if (IsNoneDbContext == false) {
-				_dicUpdateTimes.Clear();
-				_ctx.ExecCommand();
-			}
+			_dicUpdateTimes.Clear();
+			_ctx.ExecCommand();
 		}
 
 		int DbContextBetchAdd(EntityState[] adds) {
@@ -56,12 +54,8 @@ namespace FreeSql {
 						}
 						return;
 				}
-			} else {
-				if (IsNoneDbContext)
-					IncrAffrows(OrmInsert(data).ExecuteAffrows());
-				else
-					EnqueueToDbContext(DbContext.ExecCommandInfoType.Insert, CreateEntityState(data));
-			}
+			} else
+				EnqueueToDbContext(DbContext.ExecCommandInfoType.Insert, CreateEntityState(data));
 		}
 		public void Add(TEntity data) => AddPriv(data, true);
 		public void AddRange(IEnumerable<TEntity> data) {
@@ -92,12 +86,9 @@ namespace FreeSql {
 						return;
 				}
 			} else {
-				if (IsNoneDbContext)
-					IncrAffrows(OrmInsert(data).ExecuteAffrows());
-				else
-					//进入队列，等待 SaveChanges 时执行
-					foreach (var s in data)
-						EnqueueToDbContext(DbContext.ExecCommandInfoType.Insert, CreateEntityState(s));
+				//进入队列，等待 SaveChanges 时执行
+				foreach (var s in data)
+					EnqueueToDbContext(DbContext.ExecCommandInfoType.Insert, CreateEntityState(s));
 			}
 		}
 		#endregion
@@ -154,42 +145,9 @@ namespace FreeSql {
 		}
 
 		Dictionary<TEntity, byte> _dicUpdateTimes = new Dictionary<TEntity, byte>();
-		internal int UpdateAffrows(TEntity data) => UpdateRangeAffrows(new[] { data });
-		internal int UpdateRangeAffrows(IEnumerable<TEntity> data) {
-			if (CanUpdate(data, true) == false) return 0;
-			if (IsNoneDbContext) {
-				var dataarray = data.ToArray();
-				var ups = new List<EntityState>();
-				var totalAffrows = 0;
-				for (var a = 0; a < dataarray.Length + 1; a++) {
-					var item = a < dataarray.Length ? dataarray[a] : null;
-					if (item != null) {
-						var state = CreateEntityState(item);
-						state.Value = item;
-						ups.Add(state);
-					}
-
-					var affrows = DbContextBetchUpdatePriv(ups.ToArray(), item == null);
-					if (affrows == -999) { //最后一个元素已被删除
-						ups.RemoveAt(ups.Count - 1);
-						continue;
-					}
-					if (affrows == -998 || affrows == -997) { //没有执行更新
-						var laststate = ups[ups.Count - 1];
-						ups.Clear();
-						if (affrows == -997) ups.Add(laststate); //保留最后一个
-					}
-					if (affrows > 0) {
-						totalAffrows += affrows;
-						var islastNotUpdated = ups.Count != affrows;
-						var laststate = ups[ups.Count - 1];
-						ups.Clear();
-						if (islastNotUpdated) ups.Add(laststate); //保留最后一个
-					}
-				}
-				IncrAffrows(totalAffrows);
-				return totalAffrows;
-			}
+		public void Update(TEntity data) => UpdateRange(new[] { data });
+		public void UpdateRange(IEnumerable<TEntity> data) {
+			if (CanUpdate(data, true) == false) return;
 			foreach (var item in data) {
 				if (_dicUpdateTimes.ContainsKey(item))
 					DbContextExecCommand();
@@ -199,10 +157,7 @@ namespace FreeSql {
 				state.OldValue = item;
 				EnqueueToDbContext(DbContext.ExecCommandInfoType.Update, state);
 			}
-			return 0;
 		}
-		public void Update(TEntity data) => UpdateAffrows(data);
-		public void UpdateRange(IEnumerable<TEntity> data) => UpdateRangeAffrows(data);
 		#endregion
 
 		#region Remove
@@ -212,27 +167,17 @@ namespace FreeSql {
 			return Math.Max(dels.Length, affrows);
 		}
 
-		internal int RemoveAffrows(TEntity data) => RemoveRangeAffrows(new[] { data });
-		internal int RemoveRangeAffrows(IEnumerable<TEntity> data) {
-			if (CanRemove(data, true) == false) return 0;
-			var dels = new List<EntityState>();
+		public void Remove(TEntity data) => RemoveRange(new[] { data });
+		public void RemoveRange(IEnumerable<TEntity> data) {
+			if (CanRemove(data, true) == false) return;
 			foreach (var item in data) {
 				var state = CreateEntityState(item);
 				if (_states.ContainsKey(state.Key)) _states.Remove(state.Key);
 				_fsql.ClearEntityPrimaryValueWithIdentityAndGuid(item);
 
-				if (IsNoneDbContext) dels.Add(state);
 				EnqueueToDbContext(DbContext.ExecCommandInfoType.Delete, state);
 			}
-			if (IsNoneDbContext) {
-				var affrows = DbContextBetchRemove(dels.ToArray());
-				IncrAffrows(affrows);
-				return affrows;
-			}
-			return 0;
 		}
-		public void Remove(TEntity data) => RemoveAffrows(data);
-		public void RemoveRange(IEnumerable<TEntity> data) => RemoveRangeAffrows(data);
 		#endregion
 	}
 }

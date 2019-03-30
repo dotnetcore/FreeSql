@@ -10,14 +10,17 @@ using System.Linq.Expressions;
 namespace FreeSql {
 	partial class DbContext {
 
-		public long SaveChanges() {
+		public int SaveChanges() {
 			ExecCommand();
-			_uow.Commit();
-			return _affrows;
+			_uow?.Commit();
+			var ret = _affrows;
+			_affrows = 0;
+			return ret;
 		}
 
 		static Dictionary<Type, Dictionary<string, Func<object, object[], int>>> _dicExecCommandDbContextBetch = new Dictionary<Type, Dictionary<string, Func<object, object[], int>>>();
 		internal void ExecCommand() {
+			if (_actions.Any() == false) return;
 			ExecCommandInfo oldinfo = null;
 			var states = new List<object>();
 

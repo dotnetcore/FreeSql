@@ -11,14 +11,17 @@ using System.Threading.Tasks;
 namespace FreeSql {
 	partial class DbContext {
 
-		async public Task<long> SaveChangesAsync() {
+		async public Task<int> SaveChangesAsync() {
 			await ExecCommandAsync();
-			_uow.Commit();
-			return _affrows;
+			_uow?.Commit();
+			var ret = _affrows;
+			_affrows = 0;
+			return ret;
 		}
 
 		static Dictionary<Type, Dictionary<string, Func<object, object[], Task<int>>>> _dicExecCommandDbContextBetchAsync = new Dictionary<Type, Dictionary<string, Func<object, object[], Task<int>>>>();
 		async internal Task ExecCommandAsync() {
+			if (_actions.Any() == false) return;
 			ExecCommandInfo oldinfo = null;
 			var states = new List<object>();
 
