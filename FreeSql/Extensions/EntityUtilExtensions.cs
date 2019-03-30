@@ -13,10 +13,11 @@ namespace FreeSql.Extensions.EntityUtil {
 		static MethodInfo MethodStringBuilderToString = typeof(StringBuilder).GetMethod("ToString", new Type[0]);
 		static PropertyInfo MethodStringBuilderLength = typeof(StringBuilder).GetProperty("Length");
 		static MethodInfo MethodStringConcat = typeof(string).GetMethod("Concat", new Type[] { typeof(object) });
+		static MethodInfo MethodFreeUtilNewMongodbId = typeof(FreeUtil).GetMethod("NewMongodbId");
 
 		static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Func<object, string>>> _dicGetEntityKeyString = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Func<object, string>>>();
 		/// <summary>
-		/// 获取实体的主键值，以 "*|_,[,_|*" 分割，当任意一个主键属性无值，返回 null
+		/// 获取实体的主键值，以 "*|_,[,_|*" 分割，当任意一个主键属性无值时（当Guid无值时，会生成有序的新值），返回 null
 		/// </summary>
 		/// <typeparam name="TEntity"></typeparam>
 		/// <param name="_table"></param>
@@ -37,12 +38,27 @@ namespace FreeSql.Extensions.EntityUtil {
 					Expression.Assign(var3IsNull, Expression.Constant(false))
 				});
 				for (var a = 0; a < pks.Length; a++) {
+					var isguid = pks[a].CsType.NullableTypeOrThis() == typeof(Guid);
+					Expression expthen = null;
+					if (isguid == false)
+						expthen = Expression.Assign(var3IsNull, Expression.Constant(true));
+					else {
+						expthen = Expression.Block(
+							new Expression[]{
+								Expression.Assign(Expression.MakeMemberAccess(var1Parm, _table.Properties[pks[a].CsName]), Expression.Call(MethodFreeUtilNewMongodbId)),
+								a > 0 ? Expression.Call(var2Sb, MethodStringBuilderAppend, Expression.Constant(splitString)) : null,
+								Expression.Call(var2Sb, MethodStringBuilderAppend,
+									Expression.Convert(Expression.MakeMemberAccess(var1Parm, _table.Properties[pks[a].CsName]), typeof(object))
+								)
+							}.Where(c => c != null).ToArray()
+						);
+					}
 					exps.Add(
 						Expression.IfThen(
 							Expression.IsFalse(var3IsNull),
 							Expression.IfThenElse(
 								Expression.Equal(Expression.MakeMemberAccess(var1Parm, _table.Properties[pks[a].CsName]), Expression.Default(pks[a].CsType)),
-								Expression.Assign(var3IsNull, Expression.Constant(true)),
+								expthen,
 								Expression.Block(
 									new Expression[]{
 										a > 0 ? Expression.Call(var2Sb, MethodStringBuilderAppend, Expression.Constant(splitString)) : null,

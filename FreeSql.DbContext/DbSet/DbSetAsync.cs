@@ -89,8 +89,8 @@ namespace FreeSql {
 				}
 			} else {
 				//进入队列，等待 SaveChanges 时执行
-				foreach (var s in data)
-					EnqueueToDbContext(DbContext.ExecCommandInfoType.Insert, CreateEntityState(s));
+				foreach (var item in data)
+					EnqueueToDbContext(DbContext.ExecCommandInfoType.Insert, CreateEntityState(item));
 			}
 		}
 		#endregion
