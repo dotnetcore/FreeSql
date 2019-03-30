@@ -30,19 +30,51 @@ namespace dbcontext_01.Controllers
 			long id = 0;
 
 			try {
-				using (var ctx = new SongContext()) {
 
+				var repos2Song = _orm.GetRepository<Song, int>();
+				repos2Song.Where(a => a.Id > 10).ToList();
+				//查询结果，进入 states
+
+				var song = new Song { };
+				repos2Song.Insert(song);
+				id = song.Id;
+
+				var adds = Enumerable.Range(0, 100)
+					.Select(a => new Song { Create_time = DateTime.Now, Is_deleted = false, Title = "xxxx" + a, Url = "url222" })
+					.ToList();
+				//创建一堆无主键值
+
+				repos2Song.Insert(adds);
+
+				for (var a = 0; a < 10; a++)
+					adds[a].Title = "dkdkdkdk" + a;
+
+				repos2Song.Update(adds);
+				//批量修改
+
+				repos2Song.Delete(adds.Skip(10).Take(20).ToList());
+				//批量删除，10-20 元素的主键值会被清除
+
+				adds.Last().Url = "skldfjlksdjglkjjcccc";
+				repos2Song.Update(adds.Last());
+
+				adds.First().Url = "skldfjlksdjglkjjcccc";
+				repos2Song.Update(adds.First());
+
+
+				using (var ctx = new SongContext()) {
+					
 					ctx.Songs.Select.Where(a => a.Id > 10).ToList();
 					//查询结果，进入 states
 
-					var song = new Song { };
+					song = new Song { };
 					//可插入的 song
 
 					ctx.Songs.Add(song);
 					id = song.Id;
 					//因有自增类型，立即开启事务执行SQL，返回自增值
 
-					var adds = Enumerable.Range(0, 100)
+					adds = Enumerable.Range(0, 100)
 						.Select(a => new Song { Create_time = DateTime.Now, Is_deleted = false, Title = "xxxx" + a, Url = "url222" })
 						.ToList();
 					//创建一堆无主键值
@@ -63,7 +95,10 @@ namespace dbcontext_01.Controllers
 
 					adds.Last().Url = "skldfjlksdjglkjjcccc";
 					ctx.Songs.Update(adds.Last());
-					
+
+					adds.First().Url = "skldfjlksdjglkjjcccc";
+					ctx.Songs.Update(adds.First());
+
 					//单条修改 urls 的值，进入队列
 
 					//throw new Exception("回滚");
@@ -74,6 +109,43 @@ namespace dbcontext_01.Controllers
 					ctx.SaveChanges();
 					//打包【执行队列】，提交事务
 				}
+
+				using (var uow = _orm.CreateUnitOfWork()) {
+
+					var reposSong = uow.GetRepository<Song, int>();
+					reposSong.Where(a => a.Id > 10).ToList();
+					//查询结果，进入 states
+
+					song = new Song { };
+					reposSong.Insert(song);
+					id = song.Id;
+
+					adds = Enumerable.Range(0, 100)
+						.Select(a => new Song { Create_time = DateTime.Now, Is_deleted = false, Title = "xxxx" + a, Url = "url222" })
+						.ToList();
+					//创建一堆无主键值
+
+					reposSong.Insert(adds);
+
+					for (var a = 0; a < 10; a++)
+						adds[a].Title = "dkdkdkdk" + a;
+
+					reposSong.Update(adds);
+					//批量修改
+
+					reposSong.Delete(adds.Skip(10).Take(20).ToList());
+					//批量删除，10-20 元素的主键值会被清除
+
+					adds.Last().Url = "skldfjlksdjglkjjcccc";
+					reposSong.Update(adds.Last());
+
+					adds.First().Url = "skldfjlksdjglkjjcccc";
+					reposSong.Update(adds.First());
+
+					uow.Commit();
+				}
+
+				
 
 				//using (var ctx = new SongContext()) {
 

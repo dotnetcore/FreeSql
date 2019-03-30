@@ -12,7 +12,7 @@ namespace FreeSql {
 
 		public long SaveChanges() {
 			ExecCommand();
-			Commit();
+			_uow.Commit();
 			return _affrows;
 		}
 

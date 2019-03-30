@@ -10,37 +10,39 @@ namespace FreeSql {
 	internal class BaseDbSet<TEntity> : DbSet<TEntity> where TEntity : class {
 
 		public BaseDbSet(DbContext ctx) {
-			_ctx = ctx;
-			_fsql = ctx._fsql;
+			if (ctx != null) {
+				_ctx = ctx;
+				_uow = ctx._uow;
+				_fsql = ctx._fsql;
+			}
 		}
 	}
 
 	public abstract partial class DbSet<TEntity> where TEntity : class {
 
 		internal DbContext _ctx;
+		internal UnitOfWork _uow;
 		internal IFreeSql _fsql;
+		bool IsNoneDbContext => _ctx == null;
 
-		internal ISelect<TEntity> OrmSelect(object dywhere) {
-			ExecuteCommand(); //查询前先提交，否则会出脏读
-			return _fsql.Select<TEntity>(dywhere).WithTransaction(_ctx?.GetOrBeginTransaction(false)).TrackToList(TrackToList);
+		protected virtual ISelect<TEntity> OrmSelect(object dywhere) {
+			DbContextExecCommand(); //查询前先提交，否则会出脏读
+			return _fsql.Select<TEntity>(dywhere).WithTransaction(_uow?.GetOrBeginTransaction(false)).TrackToList(TrackToList);
 		}
 
-		internal virtual IInsert<TEntity> OrmInsert() => _fsql.Insert<TEntity>().WithTransaction(_ctx?.GetOrBeginTransaction());
-		internal virtual IInsert<TEntity> OrmInsert(TEntity data) => _fsql.Insert<TEntity>(data).WithTransaction(_ctx?.GetOrBeginTransaction());
-		internal virtual IInsert<TEntity> OrmInsert(TEntity[] data) => _fsql.Insert<TEntity>(data).WithTransaction(_ctx?.GetOrBeginTransaction());
-		internal virtual IInsert<TEntity> OrmInsert(IEnumerable<TEntity> data) => _fsql.Insert<TEntity>(data).WithTransaction(_ctx?.GetOrBeginTransaction());
+		protected virtual IInsert<TEntity> OrmInsert() => _fsql.Insert<TEntity>().WithTransaction(_uow?.GetOrBeginTransaction());
+		protected virtual IInsert<TEntity> OrmInsert(TEntity data) => _fsql.Insert<TEntity>(data).WithTransaction(_uow?.GetOrBeginTransaction());
+		protected virtual IInsert<TEntity> OrmInsert(IEnumerable<TEntity> data) => _fsql.Insert<TEntity>(data).WithTransaction(_uow?.GetOrBeginTransaction());
 
-		internal virtual IUpdate<TEntity> OrmUpdate(object dywhere) => _fsql.Update<TEntity>(dywhere).WithTransaction(_ctx?.GetOrBeginTransaction());
-		internal virtual IDelete<TEntity> OrmDelete(object dywhere) => _fsql.Delete<TEntity>(dywhere).WithTransaction(_ctx?.GetOrBeginTransaction());
+		protected virtual IUpdate<TEntity> OrmUpdate(IEnumerable<TEntity> entitys) => _fsql.Update<TEntity>().SetSource(entitys).WithTransaction(_uow?.GetOrBeginTransaction());
+		protected virtual IDelete<TEntity> OrmDelete(object dywhere) => _fsql.Delete<TEntity>(dywhere).WithTransaction(_uow?.GetOrBeginTransaction());
 
-		internal void EnqueueAction(DbContext.ExecCommandInfoType actionType, object dbSet, Type stateType, object state) {
-			_ctx?.EnqueueAction(actionType, dbSet, stateType, state);
-		}
-		internal void ExecuteCommand() {
-			_ctx?.ExecCommand();
+		internal void EnqueueToDbContext(DbContext.ExecCommandInfoType actionType, EntityState state) {
+			if (IsNoneDbContext == false)
+				_ctx.EnqueueAction(actionType, this, typeof(EntityState), state);
 		}
 		internal void IncrAffrows(long affrows) {
-			if (_ctx != null)
+			if (IsNoneDbContext == false)
 				_ctx._affrows += affrows;
 		}
 		internal void TrackToList(object list) {
@@ -63,12 +65,14 @@ namespace FreeSql {
 		public ISelect<TEntity> Where(Expression<Func<TEntity, bool>> exp) => this.OrmSelect(null).Where(exp);
 		public ISelect<TEntity> WhereIf(bool condition, Expression<Func<TEntity, bool>> exp) => this.OrmSelect(null).WhereIf(condition, exp);
 
-		Dictionary<string, EntityState> _states = new Dictionary<string, EntityState>();
+		protected Dictionary<string, EntityState> _states = new Dictionary<string, EntityState>();
+		internal Dictionary<string, EntityState> _statesInternal => _states;
 		TableInfo _tablePriv;
-		TableInfo _table => _tablePriv ?? (_tablePriv = _fsql.CodeFirst.GetTableByEntity(_entityType));
+		protected TableInfo _table => _tablePriv ?? (_tablePriv = _fsql.CodeFirst.GetTableByEntity(_entityType));
 		ColumnInfo[] _tableIdentitysPriv;
-		ColumnInfo[] _tableIdentitys => _tableIdentitysPriv ?? (_tableIdentitysPriv = _table.Primarys.Where(a => a.Attribute.IsIdentity).ToArray()); 
-		Type _entityType = typeof(TEntity);
+		protected ColumnInfo[] _tableIdentitys => _tableIdentitysPriv ?? (_tableIdentitysPriv = _table.Primarys.Where(a => a.Attribute.IsIdentity).ToArray());
+		protected Type _entityType = typeof(TEntity);
+		internal Type _entityTypeInternal => _entityType;
 
 		public class EntityState {
 			public EntityState(TEntity value, string key) {
@@ -96,14 +100,7 @@ namespace FreeSql {
 			if (string.IsNullOrEmpty(key)) return false;
 			return _states.ContainsKey(key);
 		}
-		bool CanAdd(TEntity[] data, bool isThrow) {
-			if (data == null) {
-				if (isThrow) throw new ArgumentNullException(nameof(data));
-				return false;
-			}
-			foreach (var s in data) if (CanAdd(s, isThrow) == false) return false;
-			return true;
-		}
+
 		bool CanAdd(IEnumerable<TEntity> data, bool isThrow) {
 			if (data == null) {
 				if (isThrow) throw new ArgumentNullException(nameof(data));
@@ -146,14 +143,6 @@ namespace FreeSql {
 			return true;
 		}
 
-		bool CanUpdate(TEntity[] data, bool isThrow) {
-			if (data == null) {
-				if (isThrow) throw new ArgumentNullException(nameof(data));
-				return false;
-			}
-			foreach (var s in data) if (CanUpdate(s, isThrow) == false) return false;
-			return true;
-		}
 		bool CanUpdate(IEnumerable<TEntity> data, bool isThrow) {
 			if (data == null) {
 				if (isThrow) throw new ArgumentNullException(nameof(data));
@@ -183,14 +172,6 @@ namespace FreeSql {
 			return true;
 		}
 
-		bool CanRemove(TEntity[] data, bool isThrow) {
-			if (data == null) {
-				if (isThrow) throw new ArgumentNullException(nameof(data));
-				return false;
-			}
-			foreach (var s in data) if (CanRemove(s, isThrow) == false) return false;
-			return true;
-		}
 		bool CanRemove(IEnumerable<TEntity> data, bool isThrow) {
 			if (data == null) {
 				if (isThrow) throw new ArgumentNullException(nameof(data));

@@ -14,7 +14,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\FreeSql.DbContext\FreeSql.DbContext.csproj" />
-    <ProjectReference Include="..\FreeSql.Repository\FreeSql.Repository.csproj" />
     <ProjectReference Include="..\FreeSql\FreeSql.csproj" />
   </ItemGroup>
 
