@@ -545,7 +545,7 @@ namespace FreeSql.Internal {
 					}
 					if (nvref.Columns.Count > 0 && nvref.RefColumns.Count > 0) {
 						nvref.RefEntityType = tbref.Type;
-						nvref.RefType = isOnoToOne ? TableRefType.OneToOne : TableRefType.OneToMany;
+						nvref.RefType = isOnoToOne ? TableRefType.OneToOne : TableRefType.ManyToOne;
 						trytb.AddOrUpdateTableRef(pnv.Name, nvref);
 					}
 

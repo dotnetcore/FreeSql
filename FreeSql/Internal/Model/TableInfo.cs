@@ -24,7 +24,7 @@ namespace FreeSql.Internal.Model {
 		internal void AddOrUpdateTableRef(string propertyName, TableRef tbref) {
 			_refs.AddOrUpdate(propertyName, tbref, (ok, ov) => tbref);
 		}
-		internal TableRef GetTableRef(string propertyName, bool isThrowException) {
+		public TableRef GetTableRef(string propertyName, bool isThrowException) {
 			if (_refs.TryGetValue(propertyName, out var tryref) == false) return null;
 			if (tryref.Exception != null) {
 				if (isThrowException) throw tryref.Exception;
@@ -34,7 +34,7 @@ namespace FreeSql.Internal.Model {
 		}
 	}
 
-	internal class TableRef {
+	public class TableRef {
 		public PropertyInfo Property { get; set; }
 
 		public TableRefType RefType { get; set; }
@@ -51,7 +51,7 @@ namespace FreeSql.Internal.Model {
 
 		public Exception Exception { get; set; }
 	}
-	internal enum TableRefType {
+	public enum TableRefType {
 		OneToOne, ManyToOne, OneToMany, ManyToMany
 	}
 }
