@@ -41,12 +41,6 @@ namespace orm_vs
 				//optionsBuilder.UseMySql("Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Min Pool Size=21;Max Pool Size=21");
 			}
 		}
-		class FreeSongContext: FreeSql.DbContext {
-			public FreeSql.DbSet<Song> Songs { get; set; }
-			protected override void OnConfiguring(FreeSql.DbContextOptionsBuilder builder) {
-				builder.UseFreeSql(fsql);
-			}
-		}
 
 		static void Main(string[] args) {
 

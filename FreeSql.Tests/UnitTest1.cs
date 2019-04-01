@@ -29,17 +29,6 @@ namespace FreeSql.Tests {
 
 		ISelect<TestInfo> select => g.mysql.Select<TestInfo>();
 
-
-		class OrderContext : DbContext {
-
-			public DbSet<Order> Orders { get; set; }
-			public DbSet<OrderDetail> OrderDetails { get; set; }
-
-			protected override void OnConfiguring(DbContextOptionsBuilder builder) {
-				builder.UseFreeSql(g.mysql);
-			}
-		}
-
 		class TestUser {
 			[Column(IsIdentity = true)]
 			public int stringid { get; set; }
@@ -59,16 +48,7 @@ namespace FreeSql.Tests {
 				.InnerJoin(a => a.LogOn.id == a.stringid).ToSql();
 
 
-			using (var ctx = new OrderContext()) {
-				//ctx.Orders.OrmInsert(new Order { }).ExecuteAffrows();
-				//ctx.Orders.OrmDelete.Where(a => a.Id > 0).ExecuteAffrows();
-
-				//ctx.OrderDetails.OrmSelect.Where(dt => dt.Order.Id == 10).ToList();
-
-				ctx.SaveChanges();
-			}
-
-				var parentSelect1 = select.Where(a => a.Type.Parent.Parent.Parent.Parent.Name == "").Where(b => b.Type.Name == "").ToSql();
+			var parentSelect1 = select.Where(a => a.Type.Parent.Parent.Parent.Parent.Name == "").Where(b => b.Type.Name == "").ToSql();
 
 
 			var collSelect1 = g.mysql.Select<Order>().Where(a =>
