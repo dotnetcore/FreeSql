@@ -388,7 +388,7 @@ namespace FreeSql.Internal.CommonProvider {
 				_paramsSource.Clear();
 				var colidx = 0;
 				foreach (var col in _table.Columns.Values) {
-					if (col.Attribute.IsIdentity == false && _ignore.ContainsKey(col.CsName) == false) {
+					if (col.Attribute.IsIdentity == false && col.Attribute.IsVersion == false && _ignore.ContainsKey(col.CsName) == false) {
 						if (colidx > 0) sb.Append(", ");
 						sb.Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ");
 						var value = _table.Properties.TryGetValue(col.CsName, out var tryp) ? tryp.GetValue(_source.First()) : null;
@@ -414,7 +414,7 @@ namespace FreeSql.Internal.CommonProvider {
 				_paramsSource.Clear();
 				var colidx = 0;
 				foreach (var col in _table.Columns.Values) {
-					if (col.Attribute.IsIdentity == false && _ignore.ContainsKey(col.CsName) == false) {
+					if (col.Attribute.IsIdentity == false && col.Attribute.IsVersion == false && _ignore.ContainsKey(col.CsName) == false) {
 						if (colidx > 0) sb.Append(", ");
 						sb.Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ");
 

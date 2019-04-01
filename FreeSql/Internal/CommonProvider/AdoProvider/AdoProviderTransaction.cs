@@ -48,6 +48,8 @@ namespace FreeSql.Internal.CommonProvider {
 		public void TransactionPreRemoveCache(params string[] key) => PreRemove(key);
 
 		public void BeginTransaction(TimeSpan timeout) {
+			if (TransactionCurrentThread != null) return;
+
 			int tid = Thread.CurrentThread.ManagedThreadId;
 			Transaction2 tran = null;
 			Object<DbConnection> conn = null;
