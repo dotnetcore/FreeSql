@@ -55,5 +55,12 @@
 			_column.IsIgnore = value;
 			return this;
 		}
+		/// <summary>
+		/// 乐观锁
+		/// </summary>
+		public ColumnFluent IsVersion(bool value) {
+			_column.IsVersion = value;
+			return this;
+		}
 	}
 }

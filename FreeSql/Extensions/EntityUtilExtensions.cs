@@ -53,12 +53,28 @@ namespace FreeSql.Extensions.EntityUtil {
 							}.Where(c => c != null).ToArray()
 						);
 					}
-					exps.Add(
-						Expression.IfThen(
-							Expression.IsFalse(var3IsNull),
-							Expression.IfThenElse(
-								Expression.Equal(Expression.MakeMemberAccess(var1Parm, _table.Properties[pks[a].CsName]), Expression.Default(pks[a].CsType)),
-								expthen,
+					if (pks[a].Attribute.IsIdentity || isguid || pks[a].CsType == typeof(string) || pks[a].CsType.IsNullableType()) {
+						exps.Add(
+							Expression.IfThen(
+								Expression.IsFalse(var3IsNull),
+								Expression.IfThenElse(
+									Expression.Equal(Expression.MakeMemberAccess(var1Parm, _table.Properties[pks[a].CsName]), Expression.Default(pks[a].CsType)),
+									expthen,
+									Expression.Block(
+										new Expression[]{
+											a > 0 ? Expression.Call(var2Sb, MethodStringBuilderAppend, Expression.Constant(splitString)) : null,
+											Expression.Call(var2Sb, MethodStringBuilderAppend,
+												Expression.Convert(Expression.MakeMemberAccess(var1Parm, _table.Properties[pks[a].CsName]), typeof(object))
+											)
+										}.Where(c => c != null).ToArray()
+									)
+								)
+							)
+						);
+					} else {
+						exps.Add(
+							Expression.IfThen(
+								Expression.IsFalse(var3IsNull),
 								Expression.Block(
 									new Expression[]{
 										a > 0 ? Expression.Call(var2Sb, MethodStringBuilderAppend, Expression.Constant(splitString)) : null,
@@ -68,8 +84,8 @@ namespace FreeSql.Extensions.EntityUtil {
 									}.Where(c => c != null).ToArray()
 								)
 							)
-						)
-					);
+						);
+					}
 				}
 				exps.Add(
 					Expression.IfThen(
