@@ -1,4 +1,4 @@
-FreeSql 是一个功能强大的 .NETStandard 库，用于对象关系映射程序(O/RM)，便于开发人员能够使用 .NETStandard 对象来处理数据库，不必经常编写大部分数据访问代码。支持 .NETCore 2.1+ 或 .NETFramework 4.6.1+。
+FreeSql 是一个功能强大的 .NETStandard 库，用于对象关系映射程序(O/RM)，支持 .NETCore 2.1+ 或 .NETFramework 4.6.1+（QQ群：4336577）。
 
 | Package Name |  NuGet | Downloads |
 |--------------|  ------- |  ---- |
@@ -9,13 +9,13 @@ FreeSql 是一个功能强大的 .NETStandard 库，用于对象关系映射程�
 # 特性
 
 - [x] 支持 CodeFirst 迁移；
-- [x] 支持 DbFirst 从数据库导入实体类，支持三种模板生成器；
-- [x] 采用 ExpressionTree 高性能读取数据；
+- [x] 支持 DbFirst 从数据库导入实体类，提供失血、贫血、充血三种生成模板；
+- [x] 大量采用 ExpressionTree 技术提升性能；
 - [x] 支持深入的类型映射，比如pgsql的数组类型，堪称匠心制作；
 - [x] 支持丰富的表达式函数；
 - [x] 支持导航属性查询，和延时加载；
-- [x] 支持同步/异步数据库操作方法，丰富多彩的链式查询方法；
-- [x] 支持读写分离、分表分库，租户设计；
+- [x] 支持同步/异步数据库操作方法，链式查询方法；
+- [x] 支持读写分离、分表分库，租户设计，过滤器，乐观锁；
 - [x] 支持多种数据库，MySql/SqlServer/PostgreSQL/Oracle/Sqlite；
 
 | | |
@@ -79,13 +79,13 @@ var t2 = fsql.Select<Song>().Where(s => s.Tags.AsSelect().Any(t => t.Name == "�
 更多前往Wiki：[《Select 查询数据文档》](https://github.com/2881099/FreeSql/wiki/%e6%9f%a5%e8%af%a2)
 
 ```csharp
-var t3 = f.Select<Song>.Where(a => new[] { 1, 2, 3 }.Contains(a.Id)).ToList();
+var t3 = fsql.Select<Song>.Where(a => new[] { 1, 2, 3 }.Contains(a.Id)).ToList();
 ```
 ```csharp
-var t4 = select.Where(a => a.CreateTime.Date == DateTime.Now.Date).ToList();
+var t4 = fsql.Select<Song>s.Where(a => a.CreateTime.Date == DateTime.Now.Date).ToList();
 ```
 ```csharp
-var t5 = select.OrderBy(a => Guid.NewGuid()).Limit(1).ToList();
+var t5 = fsql.Select<Song>s.OrderBy(a => Guid.NewGuid()).Limit(1).ToList();
 ```
 更多前往Wiki：[《表达式函数》](https://github.com/2881099/FreeSql/wiki/%e8%a1%a8%e8%be%be%e5%bc%8f%e5%87%bd%e6%95%b0) 
 
