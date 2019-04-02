@@ -15,6 +15,10 @@ namespace FreeSql.DatabaseModel {
 		/// </summary>
 		public string Name { get; internal set; }
 		/// <summary>
+		/// 表备注，SqlServer下是扩展属性 MS_Description
+		/// </summary>
+		public string Comment { get; internal set; }
+		/// <summary>
 		/// 表/视图
 		/// </summary>
 		public DbTableType Type { get; set; }

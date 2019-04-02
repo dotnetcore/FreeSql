@@ -223,9 +223,12 @@ select
 b.nspname || '.' || a.tablename,
 a.schemaname,
 a.tablename ,
+d.description,
 'TABLE'
 from pg_tables a
 inner join pg_namespace b on b.nspname = a.schemaname
+inner join pg_class c on c.relnamespace = b.oid and c.relname = a.tablename
+left join pg_description d on d.objoid = c.oid and objsubid = 0
 where a.schemaname not in ('pg_catalog', 'information_schema', 'topology')
 and b.nspname || '.' || a.tablename not in ('public.spatial_ref_sys')
 
@@ -235,9 +238,11 @@ select
 b.nspname || '.' || a.relname,
 b.nspname,
 a.relname,
+d.description,
 'VIEW'
 from pg_class a
 inner join pg_namespace b on b.oid = a.relnamespace
+left join pg_description d on d.objoid = a.oid and objsubid = 0
 where b.nspname not in ('pg_catalog', 'information_schema') and a.relkind in ('m','v') 
 and b.nspname || '.' || a.relname not in ('public.geography_columns','public.geometry_columns','public.raster_columns','public.raster_overviews')
 ";
@@ -250,8 +255,9 @@ and b.nspname || '.' || a.relname not in ('public.geography_columns','public.geo
 					var object_id = string.Concat(row[0]);
 					var owner = string.Concat(row[1]);
 					var table = string.Concat(row[2]);
-					Enum.TryParse<DbTableType>(string.Concat(row[3]), out var type);
-					loc2.Add(object_id, new DbTableInfo { Id = object_id.ToString(), Schema = owner, Name = table, Type = type });
+					var comment = string.Concat(row[3]);
+					Enum.TryParse<DbTableType>(string.Concat(row[4]), out var type);
+					loc2.Add(object_id, new DbTableInfo { Id = object_id.ToString(), Schema = owner, Name = table, Comment = comment, Type = type });
 					loc3.Add(object_id, new Dictionary<string, DbColumnInfo>());
 					switch (type) {
 						case DbTableType.VIEW:

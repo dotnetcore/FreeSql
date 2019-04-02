@@ -123,27 +123,33 @@ select
  a.Object_id
 ,b.name 'Owner'
 ,a.name 'Name'
+,c.value
 ,'TABLE' type
 from sys.tables a
 inner join sys.schemas b on b.schema_id = a.schema_id
+left join sys.extended_properties AS c ON c.major_id = a.object_id AND c.minor_id = 0 AND c.name = 'MS_Description'
 where not(b.name = 'dbo' and a.name = 'sysdiagrams')
 union all
 select
  a.Object_id
 ,b.name 'Owner'
 ,a.name 'Name'
+,c.value
 ,'VIEW' type
 from sys.views a
 inner join sys.schemas b on b.schema_id = a.schema_id
+left join sys.extended_properties AS c ON c.major_id = a.object_id AND c.minor_id = 0 AND c.name = 'MS_Description'
 union all
 select 
  a.Object_id
 ,b.name 'Owner'
 ,a.name 'Name'
+,c.value
 ,'StoreProcedure' type
 from sys.procedures a
 inner join sys.schemas b on b.schema_id = a.schema_id
-where a.type = 'P' and charindex('$NPSP', a.name) = 0 and charindex('diagram', a.name) = 0
+left join sys.extended_properties AS c ON c.major_id = a.object_id AND c.minor_id = 0 AND c.name = 'MS_Description'
+where a.type = 'P' and charindex('diagram', a.name) = 0
 order by type desc, b.name, a.name
 ;
 use [{olddatabase}];
@@ -157,8 +163,9 @@ use [{olddatabase}];
 					int object_id = int.Parse(string.Concat(row[0]));
 					var owner = string.Concat(row[1]);
 					var table = string.Concat(row[2]);
-					Enum.TryParse<DbTableType>(string.Concat(row[3]), out var type);
-					loc2.Add(object_id, new DbTableInfo { Id = object_id.ToString(), Schema = owner, Name = table, Type = type });
+					var comment = string.Concat(row[3]);
+					Enum.TryParse<DbTableType>(string.Concat(row[4]), out var type);
+					loc2.Add(object_id, new DbTableInfo { Id = object_id.ToString(), Schema = owner, Name = table, Comment = comment, Type = type });
 					loc3.Add(object_id, new Dictionary<string, DbColumnInfo>());
 					switch (type) {
 						case DbTableType.VIEW:

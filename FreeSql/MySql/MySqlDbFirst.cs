@@ -154,6 +154,7 @@ select
 concat(a.table_schema, '.', a.table_name) 'id',
 a.table_schema 'schema',
 a.table_name 'table',
+a.table_comment,
 a.table_type 'type'
 from information_schema.tables a
 where a.table_schema in ({0})", databaseIn);
@@ -166,12 +167,13 @@ where a.table_schema in ({0})", databaseIn);
 				var table_id = string.Concat(row[0]);
 				var schema = string.Concat(row[1]);
 				var table = string.Concat(row[2]);
-				var type = string.Concat(row[3]) == "VIEW" ? DbTableType.VIEW : DbTableType.TABLE;
+				var comment = string.Concat(row[3]);
+				var type = string.Concat(row[4]) == "VIEW" ? DbTableType.VIEW : DbTableType.TABLE;
 				if (database.Length == 1) {
 					table_id = table_id.Substring(table_id.IndexOf('.') + 1);
 					schema = "";
 				}
-				loc2.Add(table_id, new DbTableInfo { Id = table_id, Schema = schema, Name = table, Type = type });
+				loc2.Add(table_id, new DbTableInfo { Id = table_id, Schema = schema, Name = table, Comment = comment, Type = type });
 				loc3.Add(table_id, new Dictionary<string, DbColumnInfo>());
 				switch (type) {
 					case DbTableType.TABLE:
