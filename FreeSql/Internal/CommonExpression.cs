@@ -17,6 +17,7 @@ namespace FreeSql.Internal {
 			_common = common;
 		}
 
+		static ConcurrentDictionary<Type, PropertyInfo[]> _dicReadAnonymousFieldDtoPropertys = new ConcurrentDictionary<Type, PropertyInfo[]>();
 		internal bool ReadAnonymousField(List<SelectTableInfo> _tables, StringBuilder field, ReadAnonymousTypeInfo parent, ref int index, Expression exp, Func<Expression[], string> getSelectGroupingMapString) {
 			switch (exp.NodeType) {
 				case ExpressionType.Quote: return ReadAnonymousField(_tables, field, parent, ref index, (exp as UnaryExpression)?.Operand, getSelectGroupingMapString);
@@ -78,17 +79,72 @@ namespace FreeSql.Internal {
 						return false;
 					}
 					return false;
+				case ExpressionType.MemberInit:
+					var initExp = exp as MemberInitExpression;
+					parent.Consturctor = initExp.NewExpression.Type.GetConstructors()[0];
+					parent.ConsturctorType = ReadAnonymousTypeInfoConsturctorType.Properties;
+					if (initExp.Bindings?.Count > 0) {
+						//指定 dto映射
+						for (var a = 0; a < initExp.Bindings.Count; a++) {
+							var initAssignExp = (initExp.Bindings[a] as MemberAssignment);
+							if (initAssignExp == null) continue;
+							var child = new ReadAnonymousTypeInfo {
+								Property = initExp.Type.GetProperty(initExp.Bindings[a].Member.Name, BindingFlags.Public | BindingFlags.IgnoreCase | BindingFlags.Instance),
+								CsName = initExp.Bindings[a].Member.Name,
+								CsType = initAssignExp.Expression.Type
+							};
+							parent.Childs.Add(child);
+							ReadAnonymousField(_tables, field, child, ref index, initAssignExp.Expression, getSelectGroupingMapString);
+						}
+					} else {
+						//dto 映射
+						var dtoProps = _dicReadAnonymousFieldDtoPropertys.GetOrAdd(initExp.NewExpression.Type, dtoType => dtoType.GetProperties());
+						var dtoTb0 = _tables.First();
+						foreach (var dtoProp in dtoProps) {
+							if (dtoTb0.Table.Columns.TryGetValue(dtoProp.Name, out var trydtocol)) {
+								var child = new ReadAnonymousTypeInfo {
+									Property = dtoProp,
+									CsName = dtoProp.Name,
+									CsType = dtoProp.PropertyType
+								};
+								parent.Childs.Add(child);
+								ReadAnonymousField(_tables, field, child, ref index, Expression.Property(dtoTb0.Parameter, dtoTb0.Table.Properties[trydtocol.CsName]), getSelectGroupingMapString);
+							}
+						}
+						if (parent.Childs.Any() == false) throw new Exception($"映射异常：{initExp.NewExpression.Type.Name} 没有一个属性名和 {dtoTb0.Table.Type.Name} 相同");
+					}
+					return true;
 				case ExpressionType.New:
 					var newExp = exp as NewExpression;
 					parent.Consturctor = newExp.Type.GetConstructors()[0];
 					parent.ConsturctorType = ReadAnonymousTypeInfoConsturctorType.Arguments;
-					for (var a = 0; a < newExp.Members.Count; a++) {
-						var child = new ReadAnonymousTypeInfo {
-							Property = newExp.Type.GetProperty(newExp.Members[a].Name, BindingFlags.Public | BindingFlags.IgnoreCase | BindingFlags.Instance),
-							CsName = newExp.Members[a].Name, CsType = newExp.Arguments[a].Type
-						};
-						parent.Childs.Add(child);
-						ReadAnonymousField(_tables, field, child, ref index, newExp.Arguments[a], getSelectGroupingMapString);
+					if (newExp.Members?.Count > 0) {
+						for (var a = 0; a < newExp.Members.Count; a++) {
+							var child = new ReadAnonymousTypeInfo {
+								Property = newExp.Type.GetProperty(newExp.Members[a].Name, BindingFlags.Public | BindingFlags.IgnoreCase | BindingFlags.Instance),
+								CsName = newExp.Members[a].Name,
+								CsType = newExp.Arguments[a].Type
+							};
+							parent.Childs.Add(child);
+							ReadAnonymousField(_tables, field, child, ref index, newExp.Arguments[a], getSelectGroupingMapString);
+						}
+					} else {
+						//dto 映射
+						parent.ConsturctorType = ReadAnonymousTypeInfoConsturctorType.Properties;
+						var dtoProps = _dicReadAnonymousFieldDtoPropertys.GetOrAdd(newExp.Type, dtoType => dtoType.GetProperties());
+						var dtoTb0 = _tables.First();
+						foreach (var dtoProp in dtoProps) {
+							if (dtoTb0.Table.Columns.TryGetValue(dtoProp.Name, out var trydtocol)) {
+								var child = new ReadAnonymousTypeInfo {
+									Property = dtoProp,
+									CsName = dtoProp.Name,
+									CsType = dtoProp.PropertyType
+								};
+								parent.Childs.Add(child);
+								ReadAnonymousField(_tables, field, child, ref index, Expression.Property(dtoTb0.Parameter, dtoTb0.Table.Properties[trydtocol.CsName]), getSelectGroupingMapString);
+							}
+						}
+						if (parent.Childs.Any() == false) throw new Exception($"映射异常：{newExp.Type.Name} 没有一个属性名和 {dtoTb0.Table.Type.Name} 相同");
 					}
 					return true;
 			}
@@ -121,7 +177,7 @@ namespace FreeSql.Internal {
 						var prop = parent.Childs[b].Property;
 						var objval = ReadAnonymous(parent.Childs[b], dr, ref index, notRead);
 						var safeval = Utils.GetDataReaderValue(prop.PropertyType, objval);
-						if (isnull == false && safeval == null && parent.Table.ColumnsByCs.TryGetValue(parent.Childs[b].CsName, out var trycol) && trycol.Attribute.IsPrimary)
+						if (isnull == false && safeval == null && parent.Table != null && parent.Table.ColumnsByCs.TryGetValue(parent.Childs[b].CsName, out var trycol) && trycol.Attribute.IsPrimary)
 							isnull = true;
 						if (isnull == false)
 							prop.SetValue(ret, safeval, null);

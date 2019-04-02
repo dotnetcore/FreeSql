@@ -122,8 +122,17 @@ namespace FreeSql.Tests.Sqlite {
 			var dt2 = select.Limit(10).ToDataTable("id, 111222");
 			var dt3 = select.Limit(10).ToDataTable(a => new { a.Id, a.Type.Name, now = DateTime.Now });
 		}
+		class TestDto {
+			public int id { get; set; }
+			public string name { get; set; }
+		}
 		[Fact]
 		public void ToList() {
+
+			var testDto1 = select.Limit(10).ToList(a => new TestDto { id = a.Id, name = a.Title });
+			var testDto2 = select.Limit(10).ToList(a => new TestDto());
+			var testDto3 = select.Limit(10).ToList(a => new TestDto { });
+			var testDto4 = select.Limit(10).ToList(a => new TestDto() { });
 		}
 		[Fact]
 		public void ToOne() {
