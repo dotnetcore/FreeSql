@@ -285,12 +285,13 @@ namespace FreeSql.Internal.CommonProvider {
 			return this;
 		}
 		public IUpdate<T1> Set<TMember>(Expression<Func<T1, TMember>> binaryExpression) {
-			if (binaryExpression?.Body is BinaryExpression == false) return this;
+			if (binaryExpression?.Body is BinaryExpression == false &&
+				binaryExpression?.Body.NodeType != ExpressionType.Call) return this;
 			var cols = new List<SelectColumnInfo>();
 			var expt = _commonExpression.ExpressionWhereLambdaNoneForeignObject(null, cols, binaryExpression, null);
 			if (cols.Any() == false) return this;
 			foreach (var col in cols) {
-				if (col.Column.Attribute.IsNullable == true) {
+				if (col.Column.Attribute.IsNullable == true && col.Column.CsType.IsNullableType()) {
 					var replval = _orm.CodeFirst.GetDbInfo(col.Column.CsType.GenericTypeArguments.FirstOrDefault())?.defaultValue;
 					if (replval == null) continue;
 					var replname = _commonUtils.QuoteSqlName(col.Column.Attribute.Name);
