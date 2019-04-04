@@ -30,8 +30,10 @@ namespace FreeSql.PostgreSQL {
 			if (param == null) return "NULL";
 			if (param is bool || param is bool?)
 				return (bool)param ? "'t'" : "'f'";
-			else if (param is string || param is char || param is Enum)
+			else if (param is string || param is char)
 				return string.Concat("'", param.ToString().Replace("'", "''"), "'");
+			else if (param is Enum)
+				return ((Enum)param).ToInt64();
 			else if (decimal.TryParse(string.Concat(param), out var trydec))
 				return param;
 			else if (param is DateTime || param is DateTime?)

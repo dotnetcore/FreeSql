@@ -148,7 +148,8 @@ namespace FreeSql.Tests {
 			var list111 = select.From<TestTypeInfo, TestTypeParentInfo>((s, b, c) => s
 				.InnerJoin(a => a.TypeGuid == b.Guid)
 				.LeftJoin(a => c.Id == b.ParentId)
-				.Where(a => b.Name != "xxx")).ToList((a, b, c) => new {
+				.Where(a => b.Name != "xxx"))
+				.ToList((a, b, c) => new {
 					a.Id,
 					a.Title,
 					a.Type,

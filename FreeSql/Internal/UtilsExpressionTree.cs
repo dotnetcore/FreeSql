@@ -385,7 +385,7 @@ namespace FreeSql.Internal {
 						}
 
 						if (isLazy) {
-							cscode.Append("	private bool __lazy__").Append(pnv.Name).AppendLine(" = false;")
+							cscode.Append("	public bool __lazy__").Append(pnv.Name).AppendLine(" = false;")
 									.Append("	public override ").Append(propTypeName).Append(" ").Append(pnv.Name).AppendLine(" {");
 							if (vp.Item2) { //get 重写
 								cscode.Append("		get {\r\n")
@@ -460,7 +460,7 @@ namespace FreeSql.Internal {
 						}
 
 						if (isLazy) {
-							cscode.Append("	private bool __lazy__").Append(pnv.Name).AppendLine(" = false;")
+							cscode.Append("	public bool __lazy__").Append(pnv.Name).AppendLine(" = false;")
 								.Append("	public override ").Append(propTypeName).Append(" ").Append(pnv.Name).AppendLine(" {");
 							if (vp.Item2) { //get 重写
 								cscode.Append("		get {\r\n")
@@ -550,7 +550,7 @@ namespace FreeSql.Internal {
 					}
 
 					if (isLazy) {
-						cscode.Append("	private bool __lazy__").Append(pnv.Name).AppendLine(" = false;")
+						cscode.Append("	public bool __lazy__").Append(pnv.Name).AppendLine(" = false;")
 							.Append("	public override ").Append(propTypeName).Append(" ").Append(pnv.Name).AppendLine(" {");
 						if (vp.Item2) { //get 重写
 							cscode.Append("		get {\r\n")
