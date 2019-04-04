@@ -50,7 +50,7 @@ public class g {
 				Console.WriteLine(traceLog);
 			}) //监听SQL命令对象，在执行后
 		.Build());
-	public static IFreeSql oracle = oracleLazy.Value;
+	public static IFreeSql oracle => oracleLazy.Value;
 
 	static Lazy<IFreeSql> sqliteLazy = new Lazy<IFreeSql>(() => new FreeSql.FreeSqlBuilder()
 		.UseConnectionString(FreeSql.DataType.Sqlite, @"Data Source=|DataDirectory|\document.db;Attachs=xxxtb.db;Pooling=true;Max Pool Size=10")
@@ -64,5 +64,5 @@ public class g {
 				Console.WriteLine(traceLog);
 			}) //监听SQL命令对象，在执行后
 		.Build());
-	public static IFreeSql sqlite = sqliteLazy.Value;
+	public static IFreeSql sqlite => sqliteLazy.Value;
 }

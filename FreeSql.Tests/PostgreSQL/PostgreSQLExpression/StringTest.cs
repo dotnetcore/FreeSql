@@ -32,6 +32,17 @@ namespace FreeSql.Tests.PostgreSQLExpression {
 
 			public List<TestTypeInfo> Types { get; set; }
 		}
+		class TestEqualsGuid {
+			public Guid id { get; set; }
+		}
+
+		[Fact]
+		public void Equals__() {
+			var list = new List<object>();
+			list.Add(select.Where(a => a.Title.Equals("aaa")).ToList());
+			list.Add(g.pgsql.Select<TestEqualsGuid>().Where(a => a.id.Equals(Guid.Empty)).ToList());
+		}
+
 
 		[Fact]
 		public void Empty() {

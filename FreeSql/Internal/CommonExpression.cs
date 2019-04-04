@@ -306,6 +306,18 @@ namespace FreeSql.Internal {
 					return $"case when {ExpressionLambdaToSql(condExp.Test, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName, isDisableDiyParse, style)} then {ExpressionLambdaToSql(condExp.IfTrue, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName, isDisableDiyParse, style)} else {ExpressionLambdaToSql(condExp.IfFalse, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName, isDisableDiyParse, style)} end";
 				case ExpressionType.Call:
 					var exp3 = exp as MethodCallExpression;
+					if (exp3.Method.Name == "Equals" && exp3.Object != null && exp3.Arguments.Count > 0) {
+						var tmptryoper = "=";
+						var tmpleft = ExpressionLambdaToSql(exp3.Object, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName, isDisableDiyParse, style);
+						var tmpright = ExpressionLambdaToSql(exp3.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName, isDisableDiyParse, style);
+						if (tmpleft == "NULL") {
+							var tmp33 = tmpright;
+							tmpright = tmpleft;
+							tmpleft = tmp33;
+						}
+						if (tmpright == "NULL") tmptryoper = " IS ";
+						return $"{tmpleft}{tmptryoper}{tmpright}";
+					}
 					var callType = exp3.Object?.Type ?? exp3.Method.DeclaringType;
 					switch (callType.FullName) {
 						case "System.String": return ExpressionLambdaToSqlCallString(exp3, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName, isDisableDiyParse, style);
