@@ -252,7 +252,7 @@ namespace FreeSql.Internal.CommonProvider {
 			return _orm.Cache.Shell(_cache.key, _cache.seconds, () => {
 				List<T1> ret = new List<T1>();
 				_orm.Ado.ExecuteReader(_transaction, dr => {
-					ret.Add(af.Read(dr));
+					ret.Add(af.Read(_orm, dr));
 				}, CommandType.Text, sql, _params.ToArray());
 				_orm.Aop.ToList?.Invoke(this, new AopToListEventArgs(ret));
 				_trackToList?.Invoke(ret);
@@ -267,7 +267,7 @@ namespace FreeSql.Internal.CommonProvider {
 			return await _orm.Cache.ShellAsync(_cache.key, _cache.seconds, async () => {
 				List<T1> ret = new List<T1>();
 				await _orm.Ado.ExecuteReaderAsync(_transaction, dr => {
-					ret.Add(af.Read(dr));
+					ret.Add(af.Read(_orm, dr));
 					return Task.CompletedTask;
 				}, CommandType.Text, sql, _params.ToArray());
 				_orm.Aop.ToList?.Invoke(this, new AopToListEventArgs(ret));
@@ -332,7 +332,7 @@ namespace FreeSql.Internal.CommonProvider {
 		static ConcurrentDictionary<string, GetAllFieldExpressionTreeInfo> _dicGetAllFieldExpressionTree = new ConcurrentDictionary<string, GetAllFieldExpressionTreeInfo>();
 		public class GetAllFieldExpressionTreeInfo {
 			public string Field { get; set; }
-			public Func<DbDataReader, T1> Read { get; set; }
+			public Func<IFreeSql, DbDataReader, T1> Read { get; set; }
 		}
 		protected GetAllFieldExpressionTreeInfo GetAllFieldExpressionTree() {
 			return _dicGetAllFieldExpressionTree.GetOrAdd(string.Join("+", _tables.Select(a => $"{_orm.Ado.DataType}-{a.Table.DbName}-{a.Alias}-{a.Type}")), s => {
@@ -340,6 +340,7 @@ namespace FreeSql.Internal.CommonProvider {
 				var type = tb1.TypeLazy ?? tb1.Type;
 				var props = tb1.Properties;
 
+				var ormExp = Expression.Parameter(typeof(IFreeSql), "orm");
 				var rowExp = Expression.Parameter(typeof(DbDataReader), "row");
 				var returnTarget = Expression.Label(type);
 				var retExp = Expression.Variable(type, "ret");
@@ -435,7 +436,7 @@ namespace FreeSql.Internal.CommonProvider {
 					blockExp.Add(
 						Expression.IfThen(
 							Expression.NotEqual(readExpValue, Expression.Constant(null)),
-							Expression.Call(retExp, tb1.TypeLazySetOrm, Expression.Constant(_orm))
+							Expression.Call(retExp, tb1.TypeLazySetOrm, ormExp)
 						)
 					); //将 orm 传递给 lazy
 				blockExp.AddRange(new Expression[] {
@@ -444,7 +445,7 @@ namespace FreeSql.Internal.CommonProvider {
 				});
 				return new GetAllFieldExpressionTreeInfo {
 					Field = field.ToString(),
-					Read = Expression.Lambda<Func<DbDataReader, T1>>(Expression.Block(new[] { retExp, dataIndexExp, readExp }, blockExp), new[] { rowExp }).Compile()
+					Read = Expression.Lambda<Func<IFreeSql, DbDataReader, T1>>(Expression.Block(new[] { retExp, dataIndexExp, readExp }, blockExp), new[] { ormExp, rowExp }).Compile()
 				};
 			});
 		}
