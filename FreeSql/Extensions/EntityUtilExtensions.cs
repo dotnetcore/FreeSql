@@ -274,9 +274,12 @@ namespace FreeSql.Extensions.EntityUtil {
 							),
 							Expression.Return(
 								returnTarget,
-								FreeSql.Internal.Utils.GetDataReaderValueBlockExpression(
-									typeof(long),
-									Expression.Convert(Expression.MakeMemberAccess(var1Parm, _table.Properties[idts0.CsName]), typeof(object))
+								Expression.Convert(
+									FreeSql.Internal.Utils.GetDataReaderValueBlockExpression(
+										typeof(long),
+										Expression.Convert(Expression.MakeMemberAccess(var1Parm, _table.Properties[idts0.CsName]), typeof(object))
+									),
+									typeof(long)
 								)
 							)
 						)
