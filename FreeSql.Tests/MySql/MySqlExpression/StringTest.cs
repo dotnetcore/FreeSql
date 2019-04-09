@@ -34,6 +34,7 @@ namespace FreeSql.Tests.MySqlExpression {
 		}
 		class TestEqualsGuid {
 			public Guid id { get; set; }
+			public bool IsDeleted { get; set; }
 		}
 
 		[Fact]
@@ -41,6 +42,7 @@ namespace FreeSql.Tests.MySqlExpression {
 			var list = new List<object>();
 			list.Add(select.Where(a => a.Title.Equals("aaa")).ToList());
 			list.Add(g.sqlite.Select<TestEqualsGuid>().Where(a => a.id.Equals(Guid.Empty)).ToList());
+			list.Add(g.sqlite.Select<TestEqualsGuid>().Where(a => a.IsDeleted.Equals(false)).ToList());
 		}
 
 		[Fact]

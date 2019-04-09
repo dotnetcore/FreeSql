@@ -306,6 +306,14 @@ namespace FreeSql.Internal {
 					return $"case when {ExpressionLambdaToSql(condExp.Test, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName, isDisableDiyParse, style)} then {ExpressionLambdaToSql(condExp.IfTrue, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName, isDisableDiyParse, style)} else {ExpressionLambdaToSql(condExp.IfFalse, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName, isDisableDiyParse, style)} end";
 				case ExpressionType.Call:
 					var exp3 = exp as MethodCallExpression;
+					var callType = exp3.Object?.Type ?? exp3.Method.DeclaringType;
+					switch (callType.FullName) {
+						case "System.String": return ExpressionLambdaToSqlCallString(exp3, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName, isDisableDiyParse, style);
+						case "System.Math": return ExpressionLambdaToSqlCallMath(exp3, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName, isDisableDiyParse, style);
+						case "System.DateTime": return ExpressionLambdaToSqlCallDateTime(exp3, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName, isDisableDiyParse, style);
+						case "System.TimeSpan": return ExpressionLambdaToSqlCallTimeSpan(exp3, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName, isDisableDiyParse, style);
+						case "System.Convert": return ExpressionLambdaToSqlCallConvert(exp3, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName, isDisableDiyParse, style);
+					}
 					if (exp3.Method.Name == "Equals" && exp3.Object != null && exp3.Arguments.Count > 0) {
 						var tmptryoper = "=";
 						var tmpleft = ExpressionLambdaToSql(exp3.Object, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName, isDisableDiyParse, style);
@@ -317,14 +325,6 @@ namespace FreeSql.Internal {
 						}
 						if (tmpright == "NULL") tmptryoper = " IS ";
 						return $"{tmpleft}{tmptryoper}{tmpright}";
-					}
-					var callType = exp3.Object?.Type ?? exp3.Method.DeclaringType;
-					switch (callType.FullName) {
-						case "System.String": return ExpressionLambdaToSqlCallString(exp3, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName, isDisableDiyParse, style);
-						case "System.Math": return ExpressionLambdaToSqlCallMath(exp3, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName, isDisableDiyParse, style);
-						case "System.DateTime": return ExpressionLambdaToSqlCallDateTime(exp3, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName, isDisableDiyParse, style);
-						case "System.TimeSpan": return ExpressionLambdaToSqlCallTimeSpan(exp3, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName, isDisableDiyParse, style);
-						case "System.Convert": return ExpressionLambdaToSqlCallConvert(exp3, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName, isDisableDiyParse, style);
 					}
 					if (callType.FullName.StartsWith("FreeSql.ISelectGroupingAggregate`")) {
 						switch (exp3.Method.Name) {
