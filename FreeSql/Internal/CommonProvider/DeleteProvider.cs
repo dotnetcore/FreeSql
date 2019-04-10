@@ -20,6 +20,7 @@ namespace FreeSql.Internal.CommonProvider {
 		protected int _whereTimes = 0;
 		protected List<DbParameter> _params = new List<DbParameter>();
 		protected DbTransaction _transaction;
+		protected DbConnection _connection;
 
 		public DeleteProvider(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere) {
 			_orm = orm;
@@ -40,6 +41,10 @@ namespace FreeSql.Internal.CommonProvider {
 
 		public IDelete<T1> WithTransaction(DbTransaction transaction) {
 			_transaction = transaction;
+			return this;
+		}
+		public IDelete<T1> WithConnection(DbConnection coinnection) {
+			_connection = coinnection;
 			return this;
 		}
 

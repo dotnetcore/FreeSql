@@ -15,6 +15,12 @@ namespace FreeSql {
 		/// <param name="transaction"></param>
 		/// <returns></returns>
 		TSelect WithTransaction(DbTransaction transaction);
+		/// <summary>
+		/// 指定连接对象
+		/// </summary>
+		/// <param name="connection"></param>
+		/// <returns></returns>
+		TSelect WithConnection(DbConnection connection);
 
 		/// <summary>
 		/// 审核或跟踪 ToList 即将返回的数据

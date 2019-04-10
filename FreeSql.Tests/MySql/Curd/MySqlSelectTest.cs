@@ -236,7 +236,20 @@ namespace FreeSql.Tests.MySql {
 		}
 		[Fact]
 		public void ToSql() {
+			g.mysql.Insert<testenumWhere>().AppendData(new testenumWhere { type = testenumWhereType.Blaaa }).ExecuteAffrows();
+
+			var sql1 = g.mysql.Select<testenumWhere>().Where(a => a.type == testenumWhereType.Blaaa).ToSql();
+			var sql2 = g.mysql.Select<testenumWhere>().Where(a => testenumWhereType.Blaaa == a.type).ToSql();
+
+			var sql3 = g.mysql.Select<testenumWhere>().Where(a => a.type.Equals(testenumWhereType.Blaaa)).ToSql();
+			var tolist = g.mysql.Select<testenumWhere>().Where(a => a.type == testenumWhereType.Blaaa).ToList();
 		}
+		class testenumWhere {
+			public Guid id { get; set; }
+			public testenumWhereType type { get; set; }
+		}
+		public enum testenumWhereType { Menu, Class, Blaaa }
+
 		[Fact]
 		public void Any() {
 			var count = select.Where(a => 1 == 1).Count();

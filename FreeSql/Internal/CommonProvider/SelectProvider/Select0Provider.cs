@@ -28,6 +28,7 @@ namespace FreeSql.Internal.CommonProvider {
 		protected CommonUtils _commonUtils;
 		protected CommonExpression _commonExpression;
 		protected DbTransaction _transaction;
+		protected DbConnection _connection;
 		protected Action<object> _trackToList;
 
 		internal static void CopyData(Select0Provider<TSelect, T1> from, object to, ReadOnlyCollection<ParameterExpression> lambParms) {
@@ -61,6 +62,7 @@ namespace FreeSql.Internal.CommonProvider {
 			//toType.GetField("_commonUtils", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._commonUtils);
 			//toType.GetField("_commonExpression", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._commonExpression);
 			toType.GetField("_transaction", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._transaction);
+			toType.GetField("_connection", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._connection);
 			toType.GetField("_trackToList", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._trackToList);
 		}
 
@@ -80,6 +82,10 @@ namespace FreeSql.Internal.CommonProvider {
 
 		public TSelect WithTransaction(DbTransaction transaction) {
 			_transaction = transaction;
+			return this as TSelect;
+		}
+		public TSelect WithConnection(DbConnection coinnection) {
+			_connection = coinnection;
 			return this as TSelect;
 		}
 
@@ -201,14 +207,14 @@ namespace FreeSql.Internal.CommonProvider {
 			if (_cache.seconds > 0 && string.IsNullOrEmpty(_cache.key)) _cache.key = sql;
 
 			return _orm.Cache.Shell(_cache.key, _cache.seconds, () =>
-				_orm.Ado.ExecuteDataTable(_transaction, CommandType.Text, sql, _params.ToArray()));
+				_orm.Ado.ExecuteDataTable(_transaction?.Connection ?? _connection, CommandType.Text, sql, _params.ToArray()));
 		}
 		public Task<DataTable> ToDataTableAsync(string field = null) {
 			var sql = this.ToSql(field);
 			if (_cache.seconds > 0 && string.IsNullOrEmpty(_cache.key)) _cache.key = sql;
 
 			return _orm.Cache.ShellAsync(_cache.key, _cache.seconds, () =>
-				_orm.Ado.ExecuteDataTableAsync(_transaction, CommandType.Text, sql, _params.ToArray()));
+				_orm.Ado.ExecuteDataTableAsync(_transaction?.Connection ?? _connection, CommandType.Text, sql, _params.ToArray()));
 		}
 
 		public List<TTuple> ToList<TTuple>(string field) {
@@ -218,7 +224,7 @@ namespace FreeSql.Internal.CommonProvider {
 			return _orm.Cache.Shell(_cache.key, _cache.seconds, () => {
 				List<TTuple> ret = new List<TTuple>();
 				Type type = typeof(TTuple);
-				_orm.Ado.ExecuteReader(_transaction, dr => {
+				_orm.Ado.ExecuteReader(_transaction?.Connection ?? _connection, dr => {
 					var read = Utils.ExecuteArrayRowReadClassOrTuple(type, null, dr, 0, _commonUtils);
 					ret.Add((TTuple)read.Value);
 				}, CommandType.Text, sql, _params.ToArray());

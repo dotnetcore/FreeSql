@@ -13,6 +13,12 @@ namespace FreeSql {
 		/// <param name="transaction"></param>
 		/// <returns></returns>
 		IUpdate<T1> WithTransaction(DbTransaction transaction);
+		/// <summary>
+		/// 指定事务对象
+		/// </summary>
+		/// <param name="transaction"></param>
+		/// <returns></returns>
+		IUpdate<T1> WithConnection(DbConnection connection);
 
 		/// <summary>
 		/// 不使用参数化，可通过 IFreeSql.CodeFirst.IsNotCommandParameter 全局性设置

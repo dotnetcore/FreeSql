@@ -324,7 +324,7 @@ namespace FreeSql.Internal {
 							tmpleft = tmp33;
 						}
 						if (tmpright == "NULL") tmptryoper = " IS ";
-						return $"{tmpleft}{tmptryoper}{tmpright}";
+						return $"{tmpleft} {tmptryoper} {tmpright}";
 					}
 					if (callType.FullName.StartsWith("FreeSql.ISelectGroupingAggregate`")) {
 						switch (exp3.Method.Name) {
@@ -760,6 +760,22 @@ namespace FreeSql.Internal {
 			if (right == "NULL") tryoper = tryoper == "=" ? " IS " : " IS NOT ";
 			if (tryoper == "+" && (expBinary.Left.Type.FullName == "System.String" || expBinary.Right.Type.FullName == "System.String")) return _common.StringConcat(left, right, expBinary.Left.Type, expBinary.Right.Type);
 			if (tryoper == "%") return _common.Mod(left, right, expBinary.Left.Type, expBinary.Right.Type);
+			if (_common._orm.Ado.DataType == DataType.MySql) {
+				//处理c#变态enum convert， a.EnumType1 == Xxx.Xxx，被转成了 Convert(a.EnumType1, Int32) == 1
+				if (expBinary.Left.NodeType == ExpressionType.Convert && expBinary.Right.NodeType == ExpressionType.Constant) {
+					if (long.TryParse(right, out var tryenumLong)) {
+						var enumType = (expBinary.Left as UnaryExpression)?.Operand.Type;
+						if (enumType?.IsEnum == true)
+							right = _common.FormatSql("{0}", Enum.Parse(enumType, right));
+					}
+				} else if (expBinary.Left.NodeType == ExpressionType.Constant && expBinary.Right.NodeType == ExpressionType.Convert) {
+					if (long.TryParse(left, out var tryenumLong)) {
+						var enumType = (expBinary.Right as UnaryExpression)?.Operand.Type;
+						if (enumType?.IsEnum == true)
+							left = _common.FormatSql("{0}", Enum.Parse(enumType, left));
+					}
+				}
+			}
 			return $"{left} {tryoper} {right}";
 		}
 

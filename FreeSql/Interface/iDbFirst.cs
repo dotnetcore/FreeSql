@@ -11,7 +11,7 @@ namespace FreeSql {
 		/// <returns></returns>
 		List<string> GetDatabases();
 		/// <summary>
-		/// 获取指定数据库的表信息，包括表、列详情、主键、唯一键、索引、外键
+		/// 获取指定数据库的表信息，包括表、列详情、主键、唯一键、索引、外键、备注
 		/// </summary>
 		/// <param name="database"></param>
 		/// <returns></returns>

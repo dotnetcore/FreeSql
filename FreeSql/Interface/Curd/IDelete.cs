@@ -13,6 +13,12 @@ namespace FreeSql {
 		/// <param name="transaction"></param>
 		/// <returns></returns>
 		IDelete<T1> WithTransaction(DbTransaction transaction);
+		/// <summary>
+		/// 指定事务对象
+		/// </summary>
+		/// <param name="transaction"></param>
+		/// <returns></returns>
+		IDelete<T1> WithConnection(DbConnection connection);
 
 		/// <summary>
 		/// lambda表达式条件，仅支持实体基础成员（不包含导航对象）

@@ -14,11 +14,13 @@ namespace FreeSql.MySql {
 		public MySqlAdo() : base(null, null, DataType.MySql) { }
 		public MySqlAdo(CommonUtils util, ICache cache, ILogger log, string masterConnectionString, string[] slaveConnectionStrings) : base(cache, log, DataType.MySql) {
 			base._util = util;
-			MasterPool = new MySqlConnectionPool("主库", masterConnectionString, null, null);
-			if (slaveConnectionStrings != null) {
-				foreach (var slaveConnectionString in slaveConnectionStrings) {
-					var slavePool = new MySqlConnectionPool($"从库{SlavePools.Count + 1}", slaveConnectionString, () => Interlocked.Decrement(ref slaveUnavailables), () => Interlocked.Increment(ref slaveUnavailables));
-					SlavePools.Add(slavePool);
+			if (!string.IsNullOrEmpty(masterConnectionString)) {
+				MasterPool = new MySqlConnectionPool("主库", masterConnectionString, null, null);
+				if (slaveConnectionStrings != null) {
+					foreach (var slaveConnectionString in slaveConnectionStrings) {
+						var slavePool = new MySqlConnectionPool($"从库{SlavePools.Count + 1}", slaveConnectionString, () => Interlocked.Decrement(ref slaveUnavailables), () => Interlocked.Increment(ref slaveUnavailables));
+						SlavePools.Add(slavePool);
+					}
 				}
 			}
 		}

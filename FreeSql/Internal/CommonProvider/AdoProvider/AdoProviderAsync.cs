@@ -9,16 +9,19 @@ using System.Threading.Tasks;
 
 namespace FreeSql.Internal.CommonProvider {
 	partial class AdoProvider {
-		public Task<List<T>> QueryAsync<T>(string cmdText, object parms = null) => QueryAsync<T>(null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-		public Task<List<T>> QueryAsync<T>(DbTransaction transaction, string cmdText, object parms = null) => QueryAsync<T>(transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-		public Task<List<T>> QueryAsync<T>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => QueryAsync<T>(null, cmdType, cmdText, cmdParms);
-		async public Task<List<T>> QueryAsync<T>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
+		public Task<List<T>> QueryAsync<T>(string cmdText, object parms = null) => QueryAsync<T>(null, null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+		public Task<List<T>> QueryAsync<T>(DbTransaction transaction, string cmdText, object parms = null) => QueryAsync<T>(transaction, null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+		public Task<List<T>> QueryAsync<T>(DbConnection connection, string cmdText, object parms = null) => QueryAsync<T>(null, connection, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+		public Task<List<T>> QueryAsync<T>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => QueryAsync<T>(null, null, cmdType, cmdText, cmdParms);
+		public Task<List<T>> QueryAsync<T>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => QueryAsync<T>(transaction, null, cmdType, cmdText, cmdParms);
+		public Task<List<T>> QueryAsync<T>(DbConnection connection, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => QueryAsync<T>(null, connection, cmdType, cmdText, cmdParms);
+		async Task<List<T>> QueryAsync<T>(DbTransaction transaction, DbConnection connection, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
 			var ret = new List<T>();
 			if (string.IsNullOrEmpty(cmdText)) return ret;
 			var type = typeof(T);
 			int[] indexes = null;
 			var props = dicQueryTypeGetProperties.GetOrAdd(type, k => type.GetProperties());
-			await ExecuteReaderAsync(transaction, dr => {
+			await ExecuteReaderAsync(transaction, connection, dr => {
 				if (indexes == null) {
 					var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
 					for (var a = 0; a < dr.FieldCount; a++)
@@ -30,10 +33,13 @@ namespace FreeSql.Internal.CommonProvider {
 			}, cmdType, cmdText, cmdParms);
 			return ret;
 		}
-		public Task ExecuteReaderAsync(Func<DbDataReader, Task> readerHander, string cmdText, object parms = null) => ExecuteReaderAsync(null, readerHander, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-		public Task ExecuteReaderAsync(DbTransaction transaction, Func<DbDataReader, Task> readerHander, string cmdText, object parms = null) => ExecuteReaderAsync(transaction, readerHander, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-		public Task ExecuteReaderAsync(Func<DbDataReader, Task> readerHander, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteReaderAsync(null, readerHander, cmdType, cmdText, cmdParms);
-		async public Task ExecuteReaderAsync(DbTransaction transaction, Func<DbDataReader, Task> readerHander, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
+		public Task ExecuteReaderAsync(Func<DbDataReader, Task> readerHander, string cmdText, object parms = null) => ExecuteReaderAsync(null, null, readerHander, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+		public Task ExecuteReaderAsync(DbTransaction transaction, Func<DbDataReader, Task> readerHander, string cmdText, object parms = null) => ExecuteReaderAsync(transaction, null, readerHander, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+		public Task ExecuteReaderAsync(DbConnection connection, Func<DbDataReader, Task> readerHander, string cmdText, object parms = null) => ExecuteReaderAsync(null, connection, readerHander, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+		public Task ExecuteReaderAsync(Func<DbDataReader, Task> readerHander, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteReaderAsync(null, null, readerHander, cmdType, cmdText, cmdParms);
+		public Task ExecuteReaderAsync(DbTransaction transaction, Func<DbDataReader, Task> readerHander, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteReaderAsync(transaction, null, readerHander, cmdType, cmdText, cmdParms);
+		public Task ExecuteReaderAsync(DbConnection connection, Func<DbDataReader, Task> readerHander, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteReaderAsync(null, connection, readerHander, cmdType, cmdText, cmdParms);
+		async Task ExecuteReaderAsync(DbTransaction transaction, DbConnection connection, Func<DbDataReader, Task> readerHander, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
 			if (string.IsNullOrEmpty(cmdText)) return;
 			var dt = DateTime.Now;
 			var logtxt = new StringBuilder();
@@ -41,23 +47,25 @@ namespace FreeSql.Internal.CommonProvider {
 			var pool = this.MasterPool;
 			var isSlave = false;
 
-			//读写分离规则
-			if (this.SlavePools.Any() && cmdText.StartsWith("SELECT ", StringComparison.CurrentCultureIgnoreCase)) {
-				var availables = slaveUnavailables == 0 ?
-					//查从库
-					this.SlavePools : (
-					//查主库
-					slaveUnavailables == this.SlavePools.Count ? new List<ObjectPool<DbConnection>>() :
-					//查从库可用
-					this.SlavePools.Where(sp => sp.IsAvailable).ToList());
-				if (availables.Any()) {
-					isSlave = true;
-					pool = availables.Count == 1 ? this.SlavePools[0] : availables[slaveRandom.Next(availables.Count)];
+			if (transaction == null && connection == null) {
+				//读写分离规则
+				if (this.SlavePools.Any() && cmdText.StartsWith("SELECT ", StringComparison.CurrentCultureIgnoreCase)) {
+					var availables = slaveUnavailables == 0 ?
+						//查从库
+						this.SlavePools : (
+						//查主库
+						slaveUnavailables == this.SlavePools.Count ? new List<ObjectPool<DbConnection>>() :
+						//查从库可用
+						this.SlavePools.Where(sp => sp.IsAvailable).ToList());
+					if (availables.Any()) {
+						isSlave = true;
+						pool = availables.Count == 1 ? this.SlavePools[0] : availables[slaveRandom.Next(availables.Count)];
+					}
 				}
 			}
 
 			Object<DbConnection> conn = null;
-			var cmd = PrepareCommandAsync(transaction, cmdType, cmdText, cmdParms, logtxt);
+			var cmd = PrepareCommandAsync(transaction, connection, cmdType, cmdText, cmdParms, logtxt);
 			if (IsTracePerformance) logtxt.Append("PrepareCommandAsync: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms\r\n");
 			Exception ex = null;
 			try {
@@ -127,24 +135,30 @@ namespace FreeSql.Internal.CommonProvider {
 			LoggerException(pool, cmd, ex, dt, logtxt);
 			cmd.Parameters.Clear();
 		}
-		public Task<object[][]> ExecuteArrayAsync(string cmdText, object parms = null) => ExecuteArrayAsync(null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-		public Task<object[][]> ExecuteArrayAsync(DbTransaction transaction, string cmdText, object parms = null) => ExecuteArrayAsync(transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-		public Task<object[][]> ExecuteArrayAsync(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteArrayAsync(null, cmdType, cmdText, cmdParms);
-		async public Task<object[][]> ExecuteArrayAsync(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
+		public Task<object[][]> ExecuteArrayAsync(string cmdText, object parms = null) => ExecuteArrayAsync(null, null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+		public Task<object[][]> ExecuteArrayAsync(DbTransaction transaction, string cmdText, object parms = null) => ExecuteArrayAsync(transaction, null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+		public Task<object[][]> ExecuteArrayAsync(DbConnection connection, string cmdText, object parms = null) => ExecuteArrayAsync(null, connection, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+		public Task<object[][]> ExecuteArrayAsync(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteArrayAsync(null, null, cmdType, cmdText, cmdParms);
+		public Task<object[][]> ExecuteArrayAsync(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteArrayAsync(transaction, null, cmdType, cmdText, cmdParms);
+		public Task<object[][]> ExecuteArrayAsync(DbConnection connection, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteArrayAsync(null, connection, cmdType, cmdText, cmdParms);
+		async Task<object[][]> ExecuteArrayAsync(DbTransaction transaction, DbConnection connection, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
 			List<object[]> ret = new List<object[]>();
-			await ExecuteReaderAsync(transaction, async dr => {
+			await ExecuteReaderAsync(transaction, connection, async dr => {
 				object[] values = new object[dr.FieldCount];
 				for (int a = 0; a < values.Length; a++) if (!await dr.IsDBNullAsync(a)) values[a] = await dr.GetFieldValueAsync<object>(a);
 				ret.Add(values);
 			}, cmdType, cmdText, cmdParms);
 			return ret.ToArray();
 		}
-		public Task<DataTable> ExecuteDataTableAsync(string cmdText, object parms = null) => ExecuteDataTableAsync(null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-		public Task<DataTable> ExecuteDataTableAsync(DbTransaction transaction, string cmdText, object parms = null) => ExecuteDataTableAsync(transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-		public Task<DataTable> ExecuteDataTableAsync(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteDataTableAsync(null, cmdType, cmdText, cmdParms);
-		async public Task<DataTable> ExecuteDataTableAsync(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
+		public Task<DataTable> ExecuteDataTableAsync(string cmdText, object parms = null) => ExecuteDataTableAsync(null, null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+		public Task<DataTable> ExecuteDataTableAsync(DbTransaction transaction, string cmdText, object parms = null) => ExecuteDataTableAsync(transaction, null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+		public Task<DataTable> ExecuteDataTableAsync(DbConnection connection, string cmdText, object parms = null) => ExecuteDataTableAsync(null, connection, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+		public Task<DataTable> ExecuteDataTableAsync(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteDataTableAsync(null, null, cmdType, cmdText, cmdParms);
+		public Task<DataTable> ExecuteDataTableAsync(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteDataTableAsync(transaction, null, cmdType, cmdText, cmdParms);
+		public Task<DataTable> ExecuteDataTableAsync(DbConnection connection, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteDataTableAsync(null, connection, cmdType, cmdText, cmdParms);
+		async Task<DataTable> ExecuteDataTableAsync(DbTransaction transaction, DbConnection connection, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
 			var ret = new DataTable();
-			await ExecuteReaderAsync(transaction, async dr => {
+			await ExecuteReaderAsync(transaction, connection, async dr => {
 				if (ret.Columns.Count == 0)
 					for (var a = 0; a < dr.FieldCount; a++) ret.Columns.Add(dr.GetName(a));
 				object[] values = new object[ret.Columns.Count];
@@ -153,16 +167,19 @@ namespace FreeSql.Internal.CommonProvider {
 			}, cmdType, cmdText, cmdParms);
 			return ret;
 		}
-		public Task<int> ExecuteNonQueryAsync(string cmdText, object parms = null) => ExecuteNonQueryAsync(null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-		public Task<int> ExecuteNonQueryAsync(DbTransaction transaction, string cmdText, object parms = null) => ExecuteNonQueryAsync(transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-		public Task<int> ExecuteNonQueryAsync(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteNonQueryAsync(null, cmdType, cmdText, cmdParms);
-		async public Task<int> ExecuteNonQueryAsync(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
+		public Task<int> ExecuteNonQueryAsync(string cmdText, object parms = null) => ExecuteNonQueryAsync(null, null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+		public Task<int> ExecuteNonQueryAsync(DbTransaction transaction, string cmdText, object parms = null) => ExecuteNonQueryAsync(transaction, null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+		public Task<int> ExecuteNonQueryAsync(DbConnection connection, string cmdText, object parms = null) => ExecuteNonQueryAsync(null, connection, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+		public Task<int> ExecuteNonQueryAsync(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteNonQueryAsync(null, null, cmdType, cmdText, cmdParms);
+		public Task<int> ExecuteNonQueryAsync(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteNonQueryAsync(transaction, null, cmdType, cmdText, cmdParms);
+		public Task<int> ExecuteNonQueryAsync(DbConnection connection, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteNonQueryAsync(null, connection, cmdType, cmdText, cmdParms);
+		async Task<int> ExecuteNonQueryAsync(DbTransaction transaction, DbConnection connection, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
 			if (string.IsNullOrEmpty(cmdText)) return 0;
 			var dt = DateTime.Now;
 			var logtxt = new StringBuilder();
 			var logtxt_dt = DateTime.Now;
 			Object<DbConnection> conn = null;
-			var cmd = PrepareCommandAsync(transaction, cmdType, cmdText, cmdParms, logtxt);
+			var cmd = PrepareCommandAsync(transaction, connection, cmdType, cmdText, cmdParms, logtxt);
 			int val = 0;
 			Exception ex = null;
 			try {
@@ -181,16 +198,19 @@ namespace FreeSql.Internal.CommonProvider {
 			cmd.Parameters.Clear();
 			return val;
 		}
-		public Task<object> ExecuteScalarAsync(string cmdText, object parms = null) => ExecuteScalarAsync(null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-		public Task<object> ExecuteScalarAsync(DbTransaction transaction, string cmdText, object parms = null) => ExecuteScalarAsync(transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-		public Task<object> ExecuteScalarAsync(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteScalarAsync(null, cmdType, cmdText, cmdParms);
-		async public Task<object> ExecuteScalarAsync(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
+		public Task<object> ExecuteScalarAsync(string cmdText, object parms = null) => ExecuteScalarAsync(null, null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+		public Task<object> ExecuteScalarAsync(DbTransaction transaction, string cmdText, object parms = null) => ExecuteScalarAsync(transaction, null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+		public Task<object> ExecuteScalarAsync(DbConnection connection, string cmdText, object parms = null) => ExecuteScalarAsync(null, connection, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+		public Task<object> ExecuteScalarAsync(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteScalarAsync(null, null, cmdType, cmdText, cmdParms);
+		public Task<object> ExecuteScalarAsync(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteScalarAsync(transaction, null, cmdType, cmdText, cmdParms);
+		public Task<object> ExecuteScalarAsync(DbConnection connection, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteScalarAsync(null, connection, cmdType, cmdText, cmdParms);
+		async Task<object> ExecuteScalarAsync(DbTransaction transaction, DbConnection connection, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
 			if (string.IsNullOrEmpty(cmdText)) return null;
 			var dt = DateTime.Now;
 			var logtxt = new StringBuilder();
 			var logtxt_dt = DateTime.Now;
 			Object<DbConnection> conn = null;
-			var cmd = PrepareCommandAsync(transaction, cmdType, cmdText, cmdParms, logtxt);
+			var cmd = PrepareCommandAsync(transaction, connection, cmdType, cmdText, cmdParms, logtxt);
 			object val = null;
 			Exception ex = null;
 			try {
@@ -210,7 +230,7 @@ namespace FreeSql.Internal.CommonProvider {
 			return val;
 		}
 
-		private DbCommand PrepareCommandAsync(DbTransaction transaction, CommandType cmdType, string cmdText, DbParameter[] cmdParms, StringBuilder logtxt) {
+		private DbCommand PrepareCommandAsync(DbTransaction transaction, DbConnection connection, CommandType cmdType, string cmdText, DbParameter[] cmdParms, StringBuilder logtxt) {
 			DateTime dt = DateTime.Now;
 			DbCommand cmd = CreateCommand();
 			cmd.CommandType = cmdType;
@@ -231,7 +251,8 @@ namespace FreeSql.Internal.CommonProvider {
 				cmd.Connection = tran.Connection;
 				cmd.Transaction = tran;
 				if (IsTracePerformance) logtxt.Append("	PrepareCommandAsync_tran!=null: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms\r\n");
-			}
+			} else
+				cmd.Connection = connection;
 
 			if (IsTracePerformance) logtxt.Append("	PrepareCommandAsync ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms cmdParms: ").Append(cmd.Parameters.Count).Append("\r\n");
 

@@ -13,6 +13,12 @@ namespace FreeSql {
 		/// <param name="transaction"></param>
 		/// <returns></returns>
 		IInsert<T1> WithTransaction(DbTransaction transaction);
+		/// <summary>
+		/// 指定事务对象
+		/// </summary>
+		/// <param name="transaction"></param>
+		/// <returns></returns>
+		IInsert<T1> WithConnection(DbConnection connection);
 
 		/// <summary>
 		/// 追加准备插入的实体

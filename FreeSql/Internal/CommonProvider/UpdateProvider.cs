@@ -26,6 +26,7 @@ namespace FreeSql.Internal.CommonProvider {
 		protected List<DbParameter> _paramsSource = new List<DbParameter>();
 		protected bool _noneParameter;
 		protected DbTransaction _transaction;
+		protected DbConnection _connection;
 
 		public UpdateProvider(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere) {
 			_orm = orm;
@@ -51,6 +52,11 @@ namespace FreeSql.Internal.CommonProvider {
 			_transaction = transaction;
 			return this;
 		}
+		public IUpdate<T1> WithConnection(DbConnection coinnection) {
+			_connection = coinnection;
+			return this;
+		}
+
 		public IUpdate<T1> NoneParameter() {
 			_noneParameter = true;
 			return this;

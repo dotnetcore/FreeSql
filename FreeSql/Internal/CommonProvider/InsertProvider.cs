@@ -22,6 +22,7 @@ namespace FreeSql.Internal.CommonProvider {
 		protected bool _noneParameter;
 		protected DbParameter[] _params;
 		protected DbTransaction _transaction;
+		protected DbConnection _connection;
 
 		public InsertProvider(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression) {
 			_orm = orm;
@@ -42,6 +43,11 @@ namespace FreeSql.Internal.CommonProvider {
 			_transaction = transaction;
 			return this;
 		}
+		public IInsert<T1> WithConnection(DbConnection coinnection) {
+			_connection = coinnection;
+			return this;
+		}
+
 		public IInsert<T1> NoneParameter() {
 			_noneParameter = true;
 			return this;
