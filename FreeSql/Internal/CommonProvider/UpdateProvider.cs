@@ -50,10 +50,12 @@ namespace FreeSql.Internal.CommonProvider {
 
 		public IUpdate<T1> WithTransaction(DbTransaction transaction) {
 			_transaction = transaction;
+			_connection = _transaction?.Connection;
 			return this;
 		}
-		public IUpdate<T1> WithConnection(DbConnection coinnection) {
-			_connection = coinnection;
+		public IUpdate<T1> WithConnection(DbConnection connection) {
+			if (_transaction?.Connection != connection) _transaction = null;
+			_connection = connection;
 			return this;
 		}
 
@@ -237,14 +239,14 @@ namespace FreeSql.Internal.CommonProvider {
 		internal int RawExecuteAffrows() {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return 0;
-			var affrows = _orm.Ado.ExecuteNonQuery(_transaction, CommandType.Text, sql, _params.Concat(_paramsSource).ToArray());
+			var affrows = _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, _params.Concat(_paramsSource).ToArray());
 			ValidateVersionAndThrow(affrows);
 			return affrows;
 		}
 		async internal Task<int> RawExecuteAffrowsAsync() {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return 0;
-			var affrows = await _orm.Ado.ExecuteNonQueryAsync(_transaction, CommandType.Text, sql, _params.Concat(_paramsSource).ToArray());
+			var affrows = await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, _params.Concat(_paramsSource).ToArray());
 			ValidateVersionAndThrow(affrows);
 			return affrows;
 		}

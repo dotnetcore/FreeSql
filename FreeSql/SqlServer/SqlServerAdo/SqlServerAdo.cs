@@ -13,7 +13,8 @@ namespace FreeSql.SqlServer {
 		public SqlServerAdo() : base(null, null, DataType.SqlServer) { }
 		public SqlServerAdo(CommonUtils util, ICache cache, ILogger log, string masterConnectionString, string[] slaveConnectionStrings) : base(cache, log, DataType.SqlServer) {
 			base._util = util;
-			MasterPool = new SqlServerConnectionPool("主库", masterConnectionString, null, null);
+			if (!string.IsNullOrEmpty(masterConnectionString))
+				MasterPool = new SqlServerConnectionPool("主库", masterConnectionString, null, null);
 			if (slaveConnectionStrings != null) {
 				foreach (var slaveConnectionString in slaveConnectionStrings) {
 					var slavePool = new SqlServerConnectionPool($"从库{SlavePools.Count + 1}", slaveConnectionString, () => Interlocked.Decrement(ref slaveUnavailables), () => Interlocked.Increment(ref slaveUnavailables));

@@ -82,10 +82,12 @@ namespace FreeSql.Internal.CommonProvider {
 
 		public TSelect WithTransaction(DbTransaction transaction) {
 			_transaction = transaction;
+			_connection = _transaction?.Connection;
 			return this as TSelect;
 		}
-		public TSelect WithConnection(DbConnection coinnection) {
-			_connection = coinnection;
+		public TSelect WithConnection(DbConnection connection) {
+			if (_transaction?.Connection != connection) _transaction = null;
+			_connection = connection;
 			return this as TSelect;
 		}
 
@@ -207,14 +209,14 @@ namespace FreeSql.Internal.CommonProvider {
 			if (_cache.seconds > 0 && string.IsNullOrEmpty(_cache.key)) _cache.key = sql;
 
 			return _orm.Cache.Shell(_cache.key, _cache.seconds, () =>
-				_orm.Ado.ExecuteDataTable(_transaction?.Connection ?? _connection, CommandType.Text, sql, _params.ToArray()));
+				_orm.Ado.ExecuteDataTable(_connection, _transaction, CommandType.Text, sql, _params.ToArray()));
 		}
 		public Task<DataTable> ToDataTableAsync(string field = null) {
 			var sql = this.ToSql(field);
 			if (_cache.seconds > 0 && string.IsNullOrEmpty(_cache.key)) _cache.key = sql;
 
 			return _orm.Cache.ShellAsync(_cache.key, _cache.seconds, () =>
-				_orm.Ado.ExecuteDataTableAsync(_transaction?.Connection ?? _connection, CommandType.Text, sql, _params.ToArray()));
+				_orm.Ado.ExecuteDataTableAsync(_connection, _transaction, CommandType.Text, sql, _params.ToArray()));
 		}
 
 		public List<TTuple> ToList<TTuple>(string field) {
@@ -224,7 +226,7 @@ namespace FreeSql.Internal.CommonProvider {
 			return _orm.Cache.Shell(_cache.key, _cache.seconds, () => {
 				List<TTuple> ret = new List<TTuple>();
 				Type type = typeof(TTuple);
-				_orm.Ado.ExecuteReader(_transaction?.Connection ?? _connection, dr => {
+				_orm.Ado.ExecuteReader(_connection, _transaction, dr => {
 					var read = Utils.ExecuteArrayRowReadClassOrTuple(type, null, dr, 0, _commonUtils);
 					ret.Add((TTuple)read.Value);
 				}, CommandType.Text, sql, _params.ToArray());
@@ -240,7 +242,7 @@ namespace FreeSql.Internal.CommonProvider {
 			return _orm.Cache.ShellAsync(_cache.key, _cache.seconds, async () => {
 				List<TTuple> ret = new List<TTuple>();
 				Type type = typeof(TTuple);
-				await _orm.Ado.ExecuteReaderAsync(_transaction, dr => {
+				await _orm.Ado.ExecuteReaderAsync(_connection, _transaction, dr => {
 					var read = Utils.ExecuteArrayRowReadClassOrTuple(type, null, dr, 0, _commonUtils);
 					ret.Add((TTuple)read.Value);
 					return Task.CompletedTask;
@@ -257,7 +259,7 @@ namespace FreeSql.Internal.CommonProvider {
 
 			return _orm.Cache.Shell(_cache.key, _cache.seconds, () => {
 				List<T1> ret = new List<T1>();
-				_orm.Ado.ExecuteReader(_transaction, dr => {
+				_orm.Ado.ExecuteReader(_connection, _transaction, dr => {
 					ret.Add(af.Read(_orm, dr));
 				}, CommandType.Text, sql, _params.ToArray());
 				_orm.Aop.ToList?.Invoke(this, new AopToListEventArgs(ret));
@@ -272,7 +274,7 @@ namespace FreeSql.Internal.CommonProvider {
 
 			return await _orm.Cache.ShellAsync(_cache.key, _cache.seconds, async () => {
 				List<T1> ret = new List<T1>();
-				await _orm.Ado.ExecuteReaderAsync(_transaction, dr => {
+				await _orm.Ado.ExecuteReaderAsync(_connection, _transaction, dr => {
 					ret.Add(af.Read(_orm, dr));
 					return Task.CompletedTask;
 				}, CommandType.Text, sql, _params.ToArray());
@@ -300,7 +302,7 @@ namespace FreeSql.Internal.CommonProvider {
 			return _orm.Cache.Shell(_cache.key, _cache.seconds, () => {
 				List<TReturn> ret = new List<TReturn>();
 				Type type = typeof(TReturn);
-				_orm.Ado.ExecuteReader(_transaction, dr => {
+				_orm.Ado.ExecuteReader(_connection, _transaction, dr => {
 					var index = -1;
 					ret.Add((TReturn)_commonExpression.ReadAnonymous(af.map, dr, ref index, false));
 				}, CommandType.Text, sql, _params.ToArray());
@@ -316,7 +318,7 @@ namespace FreeSql.Internal.CommonProvider {
 			return await _orm.Cache.ShellAsync(_cache.key, _cache.seconds, async () => {
 				List<TReturn> ret = new List<TReturn>();
 				Type type = typeof(TReturn);
-				await _orm.Ado.ExecuteReaderAsync(_transaction, dr => {
+				await _orm.Ado.ExecuteReaderAsync(_connection, _transaction, dr => {
 					var index = -1;
 					ret.Add((TReturn)_commonExpression.ReadAnonymous(af.map, dr, ref index, false));
 					return Task.CompletedTask;
@@ -564,8 +566,8 @@ namespace FreeSql.Internal.CommonProvider {
 			return this.ToSql(af.field);
 		}
 
-		protected DataTable InternalToDataTable(Expression select) => _orm.Ado.ExecuteDataTable(_transaction, CommandType.Text, this.InternalToSql<int>(select), _params.ToArray());
-		protected Task<DataTable> InternalToDataTableAsync(Expression select) => _orm.Ado.ExecuteDataTableAsync(_transaction, CommandType.Text, this.InternalToSql<int>(select), _params.ToArray());
+		protected DataTable InternalToDataTable(Expression select) => _orm.Ado.ExecuteDataTable(_connection, _transaction, CommandType.Text, this.InternalToSql<int>(select), _params.ToArray());
+		protected Task<DataTable> InternalToDataTableAsync(Expression select) => _orm.Ado.ExecuteDataTableAsync(_connection, _transaction, CommandType.Text, this.InternalToSql<int>(select), _params.ToArray());
 
 		protected TReturn InternalToAggregate<TReturn>(Expression select) {
 			var map = new ReadAnonymousTypeInfo();

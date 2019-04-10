@@ -13,12 +13,12 @@ namespace FreeSql.MySql {
 	class MySqlProvider<TMark> : IFreeSql<TMark> {
 
 		static MySqlProvider() {
-			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(MygisPoint), true);
-			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(MygisLineString), true);
-			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(MygisPolygon), true);
-			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(MygisMultiPoint), true);
-			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(MygisMultiLineString), true);
-			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(MygisMultiPolygon), true);
+			Utils.dicExecuteArrayRowReadClassOrTuple[typeof(MygisPoint)] = true;
+			Utils.dicExecuteArrayRowReadClassOrTuple[typeof(MygisLineString)] = true;
+			Utils.dicExecuteArrayRowReadClassOrTuple[typeof(MygisPolygon)] = true;
+			Utils.dicExecuteArrayRowReadClassOrTuple[typeof(MygisMultiPoint)] = true;
+			Utils.dicExecuteArrayRowReadClassOrTuple[typeof(MygisMultiLineString)] = true;
+			Utils.dicExecuteArrayRowReadClassOrTuple[typeof(MygisMultiPolygon)] = true;
 		}
 
 		public ISelect<T1> Select<T1>() where T1 : class => new MySqlSelect<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, null);

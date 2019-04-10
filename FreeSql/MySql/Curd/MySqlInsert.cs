@@ -23,13 +23,13 @@ namespace FreeSql.MySql.Curd {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return 0;
 
-			return long.TryParse(string.Concat(_orm.Ado.ExecuteScalar(_transaction, CommandType.Text, string.Concat(sql, "; SELECT LAST_INSERT_ID();"), _params)), out var trylng) ? trylng : 0;
+			return long.TryParse(string.Concat(_orm.Ado.ExecuteScalar(_connection, _transaction, CommandType.Text, string.Concat(sql, "; SELECT LAST_INSERT_ID();"), _params)), out var trylng) ? trylng : 0;
 		}
 		async internal override Task<long> RawExecuteIdentityAsync() {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return 0;
 
-			return long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync(_transaction, CommandType.Text, string.Concat(sql, "; SELECT LAST_INSERT_ID();"), _params)), out var trylng) ? trylng : 0;
+			return long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync(_connection, _transaction, CommandType.Text, string.Concat(sql, "; SELECT LAST_INSERT_ID();"), _params)), out var trylng) ? trylng : 0;
 		}
 		internal override List<T1> RawExecuteInserted() {
 			var sql = this.ToSql();
@@ -44,7 +44,7 @@ namespace FreeSql.MySql.Curd {
 				sb.Append(_commonUtils.QuoteReadColumn(col.CsType, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
 				++colidx;
 			}
-			return _orm.Ado.Query<T1>(_transaction, CommandType.Text, sb.ToString(), _params);
+			return _orm.Ado.Query<T1>(_connection, _transaction, CommandType.Text, sb.ToString(), _params);
 		}
 		async internal override Task<List<T1>> RawExecuteInsertedAsync() {
 			var sql = this.ToSql();
@@ -59,7 +59,7 @@ namespace FreeSql.MySql.Curd {
 				sb.Append(_commonUtils.QuoteReadColumn(col.CsType, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
 				++colidx;
 			}
-			return await _orm.Ado.QueryAsync<T1>(_transaction, CommandType.Text, sb.ToString(), _params);
+			return await _orm.Ado.QueryAsync<T1>(_connection, _transaction, CommandType.Text, sb.ToString(), _params);
 		}
 	}
 }

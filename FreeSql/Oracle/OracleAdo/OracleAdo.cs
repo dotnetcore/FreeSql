@@ -13,7 +13,8 @@ namespace FreeSql.Oracle {
 		public OracleAdo() : base(null, null, DataType.Oracle) { }
 		public OracleAdo(CommonUtils util, ICache cache, ILogger log, string masterConnectionString, string[] slaveConnectionStrings) : base(cache, log, DataType.Oracle) {
 			base._util = util;
-			MasterPool = new OracleConnectionPool("主库", masterConnectionString, null, null);
+			if (!string.IsNullOrEmpty(masterConnectionString))
+				MasterPool = new OracleConnectionPool("主库", masterConnectionString, null, null);
 			if (slaveConnectionStrings != null) {
 				foreach (var slaveConnectionString in slaveConnectionStrings) {
 					var slavePool = new OracleConnectionPool($"从库{SlavePools.Count + 1}", slaveConnectionString, () => Interlocked.Decrement(ref slaveUnavailables), () => Interlocked.Increment(ref slaveUnavailables));

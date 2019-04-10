@@ -39,7 +39,7 @@ namespace FreeSql.SqlServer.Curd {
 			sb.Insert(0, sql.Substring(0, validx));
 			sb.Append(sql.Substring(validx));
 
-			var ret = _orm.Ado.Query<T1>(_transaction, CommandType.Text, sb.ToString(), _params.Concat(_paramsSource).ToArray());
+			var ret = _orm.Ado.Query<T1>(_connection, _transaction, CommandType.Text, sb.ToString(), _params.Concat(_paramsSource).ToArray());
 			ValidateVersionAndThrow(ret.Count);
 			return ret;
 		}
@@ -61,7 +61,7 @@ namespace FreeSql.SqlServer.Curd {
 			sb.Insert(0, sql.Substring(0, validx));
 			sb.Append(sql.Substring(validx));
 
-			var ret = await _orm.Ado.QueryAsync<T1>(_transaction, CommandType.Text, sb.ToString(), _params.Concat(_paramsSource).ToArray());
+			var ret = await _orm.Ado.QueryAsync<T1>(_connection, _transaction, CommandType.Text, sb.ToString(), _params.Concat(_paramsSource).ToArray());
 			ValidateVersionAndThrow(ret.Count);
 			return ret;
 		}

@@ -41,10 +41,12 @@ namespace FreeSql.Internal.CommonProvider {
 
 		public IInsert<T1> WithTransaction(DbTransaction transaction) {
 			_transaction = transaction;
+			_connection = _transaction?.Connection;
 			return this;
 		}
-		public IInsert<T1> WithConnection(DbConnection coinnection) {
-			_connection = coinnection;
+		public IInsert<T1> WithConnection(DbConnection connection) {
+			if (_transaction?.Connection != connection) _transaction = null;
+			_connection = connection;
 			return this;
 		}
 
@@ -321,8 +323,8 @@ namespace FreeSql.Internal.CommonProvider {
 		}
 		#endregion
 
-		internal int RawExecuteAffrows() => _orm.Ado.ExecuteNonQuery(_transaction, CommandType.Text, ToSql(), _params);
-		internal Task<int> RawExecuteAffrowsAsync() => _orm.Ado.ExecuteNonQueryAsync(_transaction, CommandType.Text, ToSql(), _params);
+		internal int RawExecuteAffrows() => _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, ToSql(), _params);
+		internal Task<int> RawExecuteAffrowsAsync() => _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, ToSql(), _params);
 		internal abstract long RawExecuteIdentity();
 		internal abstract Task<long> RawExecuteIdentityAsync();
 		internal abstract List<T1> RawExecuteInserted();

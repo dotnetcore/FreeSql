@@ -88,13 +88,13 @@ namespace FreeSql.Oracle.Curd {
 			if (string.IsNullOrEmpty(sql)) return 0;
 
 			if (_identCol == null || _source.Count > 1) {
-				_orm.Ado.ExecuteNonQuery(_transaction, CommandType.Text, sql, _params);
+				_orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, _params);
 				return 0;
 			}
 			var identColName = _commonUtils.QuoteSqlName(_identCol.Attribute.Name);
 			var identParam = _commonUtils.AppendParamter(null, $"{_identCol.CsName}99", _identCol.CsType, 0) as OracleParameter;
 			identParam.Direction = ParameterDirection.Output;
-			_orm.Ado.ExecuteNonQuery(_transaction, CommandType.Text, $"{sql} RETURNING {identColName} INTO {identParam.ParameterName}", _params.Concat(new[] { identParam }).ToArray());
+			_orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, $"{sql} RETURNING {identColName} INTO {identParam.ParameterName}", _params.Concat(new[] { identParam }).ToArray());
 			return long.TryParse(string.Concat(identParam.Value), out var trylng) ? trylng : 0;
 		}
 		async internal override Task<long> RawExecuteIdentityAsync() {
@@ -102,13 +102,13 @@ namespace FreeSql.Oracle.Curd {
 			if (string.IsNullOrEmpty(sql)) return 0;
 
 			if (_identCol == null || _source.Count > 1) {
-				await _orm.Ado.ExecuteNonQueryAsync(_transaction, CommandType.Text, sql, _params);
+				await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, _params);
 				return 0;
 			}
 			var identColName = _commonUtils.QuoteSqlName(_identCol.Attribute.Name);
 			var identParam = _commonUtils.AppendParamter(null, $"{_identCol.CsName}99", _identCol.CsType, 0) as OracleParameter;
 			identParam.Direction = ParameterDirection.Output;
-			await _orm.Ado.ExecuteNonQueryAsync(_transaction, CommandType.Text, $"{sql} RETURNING {identColName} INTO {identParam.ParameterName}", _params.Concat(new[] { identParam }).ToArray());
+			await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, $"{sql} RETURNING {identColName} INTO {identParam.ParameterName}", _params.Concat(new[] { identParam }).ToArray());
 			return long.TryParse(string.Concat(identParam.Value), out var trylng) ? trylng : 0;
 		}
 

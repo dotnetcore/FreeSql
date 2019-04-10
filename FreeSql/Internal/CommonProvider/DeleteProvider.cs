@@ -38,27 +38,28 @@ namespace FreeSql.Internal.CommonProvider {
 			_params.Clear();
 		}
 
-
 		public IDelete<T1> WithTransaction(DbTransaction transaction) {
 			_transaction = transaction;
+			_connection = _transaction?.Connection;
 			return this;
 		}
-		public IDelete<T1> WithConnection(DbConnection coinnection) {
-			_connection = coinnection;
+		public IDelete<T1> WithConnection(DbConnection connection) {
+			if (_transaction?.Connection != connection) _transaction = null;
+			_connection = connection;
 			return this;
 		}
 
 		public int ExecuteAffrows() {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return 0;
-			var affrows = _orm.Ado.ExecuteNonQuery(_transaction, CommandType.Text, sql, _params.ToArray());
+			var affrows = _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, _params.ToArray());
 			this.ClearData();
 			return affrows;
 		}
 		async public Task<int> ExecuteAffrowsAsync() {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return 0;
-			var affrows = await _orm.Ado.ExecuteNonQueryAsync(_transaction, CommandType.Text, sql, _params.ToArray());
+			var affrows = await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, _params.ToArray());
 			this.ClearData();
 			return affrows;
 		}

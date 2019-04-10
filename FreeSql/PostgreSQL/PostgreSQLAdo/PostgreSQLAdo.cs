@@ -15,7 +15,8 @@ namespace FreeSql.PostgreSQL {
 		public PostgreSQLAdo() : base(null, null, DataType.PostgreSQL) { }
 		public PostgreSQLAdo(CommonUtils util, ICache cache, ILogger log, string masterConnectionString, string[] slaveConnectionStrings) : base(cache, log, DataType.PostgreSQL) {
 			base._util = util;
-			MasterPool = new PostgreSQLConnectionPool("主库", masterConnectionString, null, null);
+			if (!string.IsNullOrEmpty(masterConnectionString))
+				MasterPool = new PostgreSQLConnectionPool("主库", masterConnectionString, null, null);
 			if (slaveConnectionStrings != null) {
 				foreach (var slaveConnectionString in slaveConnectionStrings) {
 					var slavePool = new PostgreSQLConnectionPool($"从库{SlavePools.Count + 1}", slaveConnectionString, () => Interlocked.Decrement(ref slaveUnavailables), () => Interlocked.Increment(ref slaveUnavailables));

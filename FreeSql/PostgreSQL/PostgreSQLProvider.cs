@@ -19,33 +19,33 @@ namespace FreeSql.PostgreSQL {
 	class PostgreSQLProvider<TMark> : IFreeSql<TMark> {
 
 		static PostgreSQLProvider() {
-			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(BitArray), true);
-			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(NpgsqlPoint), true);
-			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(NpgsqlLine), true);
-			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(NpgsqlLSeg), true);
-			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(NpgsqlBox), true);
-			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(NpgsqlPath), true);
-			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(NpgsqlPolygon), true);
-			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(NpgsqlCircle), true);
-			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof((IPAddress Address, int Subnet)), true);
-			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(IPAddress), true);
-			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(PhysicalAddress), true);
-			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(NpgsqlRange<int>), true);
-			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(NpgsqlRange<long>), true);
-			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(NpgsqlRange<decimal>), true);
-			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(NpgsqlRange<DateTime>), true);
-			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(PostgisPoint), true);
-			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(PostgisLineString), true);
-			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(PostgisPolygon), true);
-			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(PostgisMultiPoint), true);
-			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(PostgisMultiLineString), true);
-			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(PostgisMultiPolygon), true);
-			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(PostgisGeometry), true);
-			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(PostgisGeometryCollection), true);
-			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(Dictionary<string, string>), true);
-			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(JToken), true);
-			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(JObject), true);
-			Utils.dicExecuteArrayRowReadClassOrTuple.Add(typeof(JArray), true);
+			Utils.dicExecuteArrayRowReadClassOrTuple[typeof(BitArray)] = true;
+			Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NpgsqlPoint)] = true;
+			Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NpgsqlLine)] = true;
+			Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NpgsqlLSeg)] = true;
+			Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NpgsqlBox)] = true;
+			Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NpgsqlPath)] = true;
+			Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NpgsqlPolygon)] = true;
+			Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NpgsqlCircle)] = true;
+			Utils.dicExecuteArrayRowReadClassOrTuple[typeof((IPAddress Address, int Subnet))] = true;
+			Utils.dicExecuteArrayRowReadClassOrTuple[typeof(IPAddress)] = true;
+			Utils.dicExecuteArrayRowReadClassOrTuple[typeof(PhysicalAddress)] = true;
+			Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NpgsqlRange<int>)] = true;
+			Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NpgsqlRange<long>)] = true;
+			Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NpgsqlRange<decimal>)] = true;
+			Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NpgsqlRange<DateTime>)] = true;
+			Utils.dicExecuteArrayRowReadClassOrTuple[typeof(PostgisPoint)] = true;
+			Utils.dicExecuteArrayRowReadClassOrTuple[typeof(PostgisLineString)] = true;
+			Utils.dicExecuteArrayRowReadClassOrTuple[typeof(PostgisPolygon)] = true;
+			Utils.dicExecuteArrayRowReadClassOrTuple[typeof(PostgisMultiPoint)] = true;
+			Utils.dicExecuteArrayRowReadClassOrTuple[typeof(PostgisMultiLineString)] = true;
+			Utils.dicExecuteArrayRowReadClassOrTuple[typeof(PostgisMultiPolygon)] = true;
+			Utils.dicExecuteArrayRowReadClassOrTuple[typeof(PostgisGeometry)] = true;
+			Utils.dicExecuteArrayRowReadClassOrTuple[typeof(PostgisGeometryCollection)] = true;
+			Utils.dicExecuteArrayRowReadClassOrTuple[typeof(Dictionary<string, string>)] = true;
+			Utils.dicExecuteArrayRowReadClassOrTuple[typeof(JToken)] = true;
+			Utils.dicExecuteArrayRowReadClassOrTuple[typeof(JObject)] = true;
+			Utils.dicExecuteArrayRowReadClassOrTuple[typeof(JArray)] = true;
 		}
 
 		public ISelect<T1> Select<T1>() where T1 : class => new PostgreSQLSelect<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, null);

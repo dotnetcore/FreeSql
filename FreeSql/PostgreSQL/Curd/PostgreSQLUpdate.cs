@@ -33,7 +33,7 @@ namespace FreeSql.PostgreSQL.Curd {
 				sb.Append(_commonUtils.QuoteReadColumn(col.CsType, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
 				++colidx;
 			}
-			var ret = _orm.Ado.Query<T1>(_transaction, CommandType.Text, sb.ToString(), _params.Concat(_paramsSource).ToArray());
+			var ret = _orm.Ado.Query<T1>(_connection, _transaction, CommandType.Text, sb.ToString(), _params.Concat(_paramsSource).ToArray());
 			ValidateVersionAndThrow(ret.Count);
 			return ret;
 		}
@@ -50,7 +50,7 @@ namespace FreeSql.PostgreSQL.Curd {
 				sb.Append(_commonUtils.QuoteReadColumn(col.CsType, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
 				++colidx;
 			}
-			var ret = await _orm.Ado.QueryAsync<T1>(_transaction, CommandType.Text, sb.ToString(), _params.Concat(_paramsSource).ToArray());
+			var ret = await _orm.Ado.QueryAsync<T1>(_connection, _transaction, CommandType.Text, sb.ToString(), _params.Concat(_paramsSource).ToArray());
 			ValidateVersionAndThrow(ret.Count);
 			return ret;
 		}

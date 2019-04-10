@@ -62,7 +62,7 @@ namespace FreeSql {
 		/// <param name="cmdParms"></param>
 		void ExecuteReader(Action<DbDataReader> readerHander, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
 		void ExecuteReader(DbTransaction transaction, Action<DbDataReader> readerHander, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-		void ExecuteReader(DbConnection connection, Action<DbDataReader> readerHander, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		void ExecuteReader(DbConnection connection, DbTransaction transaction, Action<DbDataReader> readerHander, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
 		/// <summary>
 		/// 查询，ExecuteReader(dr => {}, "select * from user where age > @age", new { age = 25 })
 		/// </summary>
@@ -70,7 +70,7 @@ namespace FreeSql {
 		/// <param name="parms"></param>
 		void ExecuteReader(Action<DbDataReader> readerHander, string cmdText, object parms = null);
 		void ExecuteReader(DbTransaction transaction, Action<DbDataReader> readerHander, string cmdText, object parms = null);
-		void ExecuteReader(DbConnection connection, Action<DbDataReader> readerHander, string cmdText, object parms = null);
+		void ExecuteReader(DbConnection connection, DbTransaction transaction, Action<DbDataReader> readerHander, string cmdText, object parms = null);
 		/// <summary>
 		/// 查询
 		/// </summary>
@@ -78,7 +78,7 @@ namespace FreeSql {
 		/// <param name="cmdParms"></param>
 		object[][] ExecuteArray(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
 		object[][] ExecuteArray(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-		object[][] ExecuteArray(DbConnection connection, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		object[][] ExecuteArray(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
 		/// <summary>
 		/// 查询，ExecuteArray("select * from user where age > @age", new { age = 25 })
 		/// </summary>
@@ -87,7 +87,7 @@ namespace FreeSql {
 		/// <returns></returns>
 		object[][] ExecuteArray(string cmdText, object parms = null);
 		object[][] ExecuteArray(DbTransaction transaction, string cmdText, object parms = null);
-		object[][] ExecuteArray(DbConnection connection, string cmdText, object parms = null);
+		object[][] ExecuteArray(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null);
 		/// <summary>
 		/// 查询
 		/// </summary>
@@ -95,7 +95,7 @@ namespace FreeSql {
 		/// <param name="cmdParms"></param>
 		DataTable ExecuteDataTable(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
 		DataTable ExecuteDataTable(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-		DataTable ExecuteDataTable(DbConnection connection, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		DataTable ExecuteDataTable(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
 		/// <summary>
 		/// 查询，ExecuteDataTable("select * from user where age > @age", new { age = 25 })
 		/// </summary>
@@ -104,7 +104,7 @@ namespace FreeSql {
 		/// <returns></returns>
 		DataTable ExecuteDataTable(string cmdText, object parms = null);
 		DataTable ExecuteDataTable(DbTransaction transaction, string cmdText, object parms = null);
-		DataTable ExecuteDataTable(DbConnection connection, string cmdText, object parms = null);
+		DataTable ExecuteDataTable(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null);
 		/// <summary>
 		/// 在【主库】执行
 		/// </summary>
@@ -113,7 +113,7 @@ namespace FreeSql {
 		/// <param name="cmdParms"></param>
 		int ExecuteNonQuery(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
 		int ExecuteNonQuery(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-		int ExecuteNonQuery(DbConnection connection, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		int ExecuteNonQuery(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
 		/// <summary>
 		/// 在【主库】执行，ExecuteNonQuery("delete from user where age > @age", new { age = 25 })
 		/// </summary>
@@ -122,7 +122,7 @@ namespace FreeSql {
 		/// <returns></returns>
 		int ExecuteNonQuery(string cmdText, object parms = null);
 		int ExecuteNonQuery(DbTransaction transaction, string cmdText, object parms = null);
-		int ExecuteNonQuery(DbConnection connection, string cmdText, object parms = null);
+		int ExecuteNonQuery(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null);
 		/// <summary>
 		/// 在【主库】执行
 		/// </summary>
@@ -131,7 +131,7 @@ namespace FreeSql {
 		/// <param name="cmdParms"></param>
 		object ExecuteScalar(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
 		object ExecuteScalar(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-		object ExecuteScalar(DbConnection connection, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		object ExecuteScalar(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
 		/// <summary>
 		/// 在【主库】执行，ExecuteScalar("select 1 from user where age > @age", new { age = 25 })
 		/// </summary>
@@ -140,7 +140,7 @@ namespace FreeSql {
 		/// <returns></returns>
 		object ExecuteScalar(string cmdText, object parms = null);
 		object ExecuteScalar(DbTransaction transaction, string cmdText, object parms = null);
-		object ExecuteScalar(DbConnection connection, string cmdText, object parms = null);
+		object ExecuteScalar(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null);
 
 		/// <summary>
 		/// 执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > @age", new SqlParameter { ParameterName = "age", Value = 25 })
@@ -152,7 +152,7 @@ namespace FreeSql {
 		/// <returns></returns>
 		List<T> Query<T>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
 		List<T> Query<T>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-		List<T> Query<T>(DbConnection connection, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		List<T> Query<T>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
 		/// <summary>
 		/// 执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > @age", new { age = 25 })
 		/// </summary>
@@ -162,7 +162,7 @@ namespace FreeSql {
 		/// <returns></returns>
 		List<T> Query<T>(string cmdText, object parms = null);
 		List<T> Query<T>(DbTransaction transaction, string cmdText, object parms = null);
-		List<T> Query<T>(DbConnection connection, string cmdText, object parms = null);
+		List<T> Query<T>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null);
 
 		#region async
 		/// <summary>
@@ -174,7 +174,7 @@ namespace FreeSql {
 		/// <param name="cmdParms"></param>
 		Task ExecuteReaderAsync(Func<DbDataReader, Task> readerHander, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
 		Task ExecuteReaderAsync(DbTransaction transaction, Func<DbDataReader, Task> readerHander, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-		Task ExecuteReaderAsync(DbConnection connection, Func<DbDataReader, Task> readerHander, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		Task ExecuteReaderAsync(DbConnection connection, DbTransaction transaction, Func<DbDataReader, Task> readerHander, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
 		/// <summary>
 		/// 查询，ExecuteReaderAsync(dr => {}, "select * from user where age > @age", new { age = 25 })
 		/// </summary>
@@ -182,7 +182,7 @@ namespace FreeSql {
 		/// <param name="parms"></param>
 		Task ExecuteReaderAsync(Func<DbDataReader, Task> readerHander, string cmdText, object parms = null);
 		Task ExecuteReaderAsync(DbTransaction transaction, Func<DbDataReader, Task> readerHander, string cmdText, object parms = null);
-		Task ExecuteReaderAsync(DbConnection connection, Func<DbDataReader, Task> readerHander, string cmdText, object parms = null);
+		Task ExecuteReaderAsync(DbConnection connection, DbTransaction transaction, Func<DbDataReader, Task> readerHander, string cmdText, object parms = null);
 		/// <summary>
 		/// 查询
 		/// </summary>
@@ -190,7 +190,7 @@ namespace FreeSql {
 		/// <param name="cmdParms"></param>
 		Task<object[][]> ExecuteArrayAsync(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
 		Task<object[][]> ExecuteArrayAsync(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-		Task<object[][]> ExecuteArrayAsync(DbConnection connection, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		Task<object[][]> ExecuteArrayAsync(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
 		/// <summary>
 		/// 查询，ExecuteArrayAsync("select * from user where age > @age", new { age = 25 })
 		/// </summary>
@@ -199,7 +199,7 @@ namespace FreeSql {
 		/// <returns></returns>
 		Task<object[][]> ExecuteArrayAsync(string cmdText, object parms = null);
 		Task<object[][]> ExecuteArrayAsync(DbTransaction transaction, string cmdText, object parms = null);
-		Task<object[][]> ExecuteArrayAsync(DbConnection connection, string cmdText, object parms = null);
+		Task<object[][]> ExecuteArrayAsync(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null);
 		/// <summary>
 		/// 查询
 		/// </summary>
@@ -207,7 +207,7 @@ namespace FreeSql {
 		/// <param name="cmdParms"></param>
 		Task<DataTable> ExecuteDataTableAsync(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
 		Task<DataTable> ExecuteDataTableAsync(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-		Task<DataTable> ExecuteDataTableAsync(DbConnection connection, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		Task<DataTable> ExecuteDataTableAsync(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
 		/// <summary>
 		/// 查询，ExecuteDataTableAsync("select * from user where age > @age", new { age = 25 })
 		/// </summary>
@@ -216,7 +216,7 @@ namespace FreeSql {
 		/// <returns></returns>
 		Task<DataTable> ExecuteDataTableAsync(string cmdText, object parms = null);
 		Task<DataTable> ExecuteDataTableAsync(DbTransaction transaction, string cmdText, object parms = null);
-		Task<DataTable> ExecuteDataTableAsync(DbConnection connection, string cmdText, object parms = null);
+		Task<DataTable> ExecuteDataTableAsync(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null);
 		/// <summary>
 		/// 在【主库】执行
 		/// </summary>
@@ -225,7 +225,7 @@ namespace FreeSql {
 		/// <param name="cmdParms"></param>
 		Task<int> ExecuteNonQueryAsync(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
 		Task<int> ExecuteNonQueryAsync(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-		Task<int> ExecuteNonQueryAsync(DbConnection connection, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		Task<int> ExecuteNonQueryAsync(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
 		/// <summary>
 		/// 在【主库】执行，ExecuteNonQueryAsync("delete from user where age > @age", new { age = 25 })
 		/// </summary>
@@ -234,7 +234,7 @@ namespace FreeSql {
 		/// <returns></returns>
 		Task<int> ExecuteNonQueryAsync(string cmdText, object parms = null);
 		Task<int> ExecuteNonQueryAsync(DbTransaction transaction, string cmdText, object parms = null);
-		Task<int> ExecuteNonQueryAsync(DbConnection connection, string cmdText, object parms = null);
+		Task<int> ExecuteNonQueryAsync(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null);
 		/// <summary>
 		/// 在【主库】执行
 		/// </summary>
@@ -243,7 +243,7 @@ namespace FreeSql {
 		/// <param name="cmdParms"></param>
 		Task<object> ExecuteScalarAsync(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
 		Task<object> ExecuteScalarAsync(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-		Task<object> ExecuteScalarAsync(DbConnection connection, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		Task<object> ExecuteScalarAsync(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
 		/// <summary>
 		/// 在【主库】执行，ExecuteScalarAsync("select 1 from user where age > @age", new { age = 25 })
 		/// </summary>
@@ -252,7 +252,7 @@ namespace FreeSql {
 		/// <returns></returns>
 		Task<object> ExecuteScalarAsync(string cmdText, object parms = null);
 		Task<object> ExecuteScalarAsync(DbTransaction transaction, string cmdText, object parms = null);
-		Task<object> ExecuteScalarAsync(DbConnection connection, string cmdText, object parms = null);
+		Task<object> ExecuteScalarAsync(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null);
 
 		/// <summary>
 		/// 执行SQL返回对象集合，QueryAsync&lt;User&gt;("select * from user where age > @age", new SqlParameter { ParameterName = "age", Value = 25 })
@@ -264,7 +264,7 @@ namespace FreeSql {
 		/// <returns></returns>
 		Task<List<T>> QueryAsync<T>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
 		Task<List<T>> QueryAsync<T>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-		Task<List<T>> QueryAsync<T>(DbConnection connection, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		Task<List<T>> QueryAsync<T>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
 		/// <summary>
 		/// 执行SQL返回对象集合，QueryAsync&lt;User&gt;("select * from user where age > @age", new { age = 25 })
 		/// </summary>
@@ -274,7 +274,7 @@ namespace FreeSql {
 		/// <returns></returns>
 		Task<List<T>> QueryAsync<T>(string cmdText, object parms = null);
 		Task<List<T>> QueryAsync<T>(DbTransaction transaction, string cmdText, object parms = null);
-		Task<List<T>> QueryAsync<T>(DbConnection connection, string cmdText, object parms = null);
+		Task<List<T>> QueryAsync<T>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null);
 		#endregion
 	}
 }
