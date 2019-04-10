@@ -73,16 +73,7 @@ namespace FreeSql.SqlServer {
 					_connectionString = Regex.Replace(_connectionString, pattern, "", RegexOptions.IgnoreCase);
 				}
 
-				var initConns = new List<Object<DbConnection>>();
-				for (var a = 0; a < PoolSize; a++)
-					try {
-						var conn = _pool.Get();
-						initConns.Add(conn);
-						conn.Value.Ping(true);
-					} catch {
-						break; //预热失败一次就退出
-					}
-				foreach (var conn in initConns) _pool.Return(conn);
+				FreeUtil.PrevReheatConnectionPool(_pool);
 			}
 		}
 
