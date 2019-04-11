@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
-		<Version>0.4.10</Version>
+		<Version>0.4.11</Version>
 		<Authors>YeXiangQin</Authors>
 		<Description>FreeSql Implementation of General Repository, Support MySql/SqlServer/PostgreSQL/Oracle/Sqlite, and read/write separation、and split table.</Description>
 		<PackageProjectUrl>https://github.com/2881099/FreeSql/wiki/Repository</PackageProjectUrl>
@@ -11,11 +11,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Autofac.Extensions.DependencyInjection" Version="4.4.0" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <ProjectReference Include="..\FreeSql\FreeSql.csproj" />
+		<PackageReference Include="FreeSql.DbContext" Version="0.4.10" />
 	</ItemGroup>
 
 </Project>

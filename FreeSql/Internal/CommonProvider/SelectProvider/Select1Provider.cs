@@ -228,5 +228,13 @@ namespace FreeSql.Internal.CommonProvider {
 		public bool Any(Expression<Func<T1, bool>> exp) => this.Where(exp).Any();
 
 		public Task<bool> AnyAsync(Expression<Func<T1, bool>> exp) => this.Where(exp).AnyAsync();
+
+		public TReturn ToOne<TReturn>(Expression<Func<T1, TReturn>> select) => this.Limit(1).ToList(select).FirstOrDefault();
+
+		async public Task<TReturn> ToOneAsync<TReturn>(Expression<Func<T1, TReturn>> select) => (await this.Limit(1).ToListAsync(select)).FirstOrDefault();
+
+		public TReturn First<TReturn>(Expression<Func<T1, TReturn>> select) => this.ToOne(select);
+
+		public Task<TReturn> FirstAsync<TReturn>(Expression<Func<T1, TReturn>> select) => this.ToOneAsync(select);
 	}
 }

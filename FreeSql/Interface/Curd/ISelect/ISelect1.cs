@@ -30,6 +30,25 @@ namespace FreeSql {
 		/// <returns></returns>
 		List<TReturn> ToList<TReturn>(Expression<Func<T1, TReturn>> select);
 		Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<T1, TReturn>> select);
+
+		/// <summary>
+		/// 执行SQL查询，返回指定字段的记录的第一条记录，记录不存在时返回 TReturn 默认值
+		/// </summary>
+		/// <typeparam name="TReturn">返回类型</typeparam>
+		/// <param name="select">选择列</param>
+		/// <returns></returns>
+		TReturn ToOne<TReturn>(Expression<Func<T1, TReturn>> select);
+		Task<TReturn> ToOneAsync<TReturn>(Expression<Func<T1, TReturn>> select);
+
+		/// <summary>
+		/// 执行SQL查询，返回指定字段的记录的第一条记录，记录不存在时返回 TReturn 默认值
+		/// </summary>
+		/// <typeparam name="TReturn">返回类型</typeparam>
+		/// <param name="select">选择列</param>
+		/// <returns></returns>
+		TReturn First<TReturn>(Expression<Func<T1, TReturn>> select);
+		Task<TReturn> FirstAsync<TReturn>(Expression<Func<T1, TReturn>> select);
+
 		/// <summary>
 		/// 返回即将执行的SQL语句
 		/// </summary>
