@@ -141,6 +141,14 @@ namespace FreeSql.Tests.SqlServer {
 			var testDto2 = select.Limit(10).ToList(a => new TestDto());
 			var testDto3 = select.Limit(10).ToList(a => new TestDto { });
 			var testDto4 = select.Limit(10).ToList(a => new TestDto() { });
+
+			_sqlserverFixture.SqlServer.Insert<TestGuidIdToList>().AppendData(new TestGuidIdToList()).ExecuteAffrows();
+			var testGuidId5 = _sqlserverFixture.SqlServer.Select<TestGuidIdToList>().ToList();
+			var testGuidId6 = _sqlserverFixture.SqlServer.Select<TestGuidIdToList>().ToList(a => a.id);
+		}
+		class TestGuidIdToList {
+			public Guid id { get; set; }
+			public string title { get; set; } = Guid.NewGuid().ToString();
 		}
 		[Fact]
 		public void ToOne() {

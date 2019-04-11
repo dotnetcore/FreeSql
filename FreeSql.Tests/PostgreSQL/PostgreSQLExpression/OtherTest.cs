@@ -51,6 +51,9 @@ namespace FreeSql.Tests.PostgreSQLExpression {
 			var sql112222 = select.Where(a => inarray.Contains(a.testFieldInt) == false).ToList();
 			var sql113333 = select.Where(a => !inarray.Contains(a.testFieldInt)).ToList();
 
+			var sql1111112 = select.ToList(a => inarray);
+			var sql1111113 = select.ToList(a => a.testFieldIntArray);
+
 
 			var sql3 = select.Where(a => a.testFieldIntArray.Any()).ToList();
 			var sql4 = select.Where(a => a.testFieldIntArray.Any() == false).ToList();

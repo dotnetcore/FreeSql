@@ -66,13 +66,15 @@ namespace FreeSql.Internal {
 						for (var idx = 0; idx < map.Count; idx++) {
 							var child = new ReadAnonymousTypeInfo {
 								Property = tb.Properties.TryGetValue(map[idx].Column.CsName, out var tryprop) ? tryprop : tb.Type.GetProperty(map[idx].Column.CsName, BindingFlags.Public | BindingFlags.IgnoreCase | BindingFlags.Instance),
-								CsName = map[idx].Column.CsName, DbField = $"{map[idx].Table.Alias}.{_common.QuoteSqlName(map[idx].Column.Attribute.Name)}"
+								CsName = map[idx].Column.CsName, DbField = $"{map[idx].Table.Alias}.{_common.QuoteSqlName(map[idx].Column.Attribute.Name)}",
+								CsType = map[idx].Column.CsType
 							};
 							field.Append(", ").Append(_common.QuoteReadColumn(map[idx].Column.CsType, child.DbField));
 							if (index >= 0) field.Append(" as").Append(++index);
 							parent.Childs.Add(child);
 						}
 					} else {
+						parent.CsType = exp.Type;
 						parent.DbField = ExpressionLambdaToSql(exp, _tables, null, getSelectGroupingMapString, SelectTableInfoType.From, true, false, ExpressionStyle.Where);
 						field.Append(", ").Append(parent.DbField);
 						if (index >= 0) field.Append(" as").Append(++index);
@@ -157,9 +159,9 @@ namespace FreeSql.Internal {
 			if (parent.Childs.Any() == false) {
 				if (notRead) {
 					++index;
-					return null;
+					return Utils.GetDataReaderValue(parent.CsType, null);
 				}
-				return dr.GetValue(++index);
+				return Utils.GetDataReaderValue(parent.CsType, dr.GetValue(++index));
 			}
 			switch (parent.ConsturctorType) {
 				case ReadAnonymousTypeInfoConsturctorType.Arguments:
@@ -167,7 +169,7 @@ namespace FreeSql.Internal {
 					for (var a = 0; a < parent.Childs.Count; a++) {
 						var objval = ReadAnonymous(parent.Childs[a], dr, ref index, notRead);
 						if (notRead == false)
-							args[a] = Utils.GetDataReaderValue(parent.Childs[a].CsType, objval);
+							args[a] = objval;
 					}
 					return parent.Consturctor.Invoke(args);
 				case ReadAnonymousTypeInfoConsturctorType.Properties:
@@ -176,11 +178,10 @@ namespace FreeSql.Internal {
 					for (var b = 0; b < parent.Childs.Count; b++) {
 						var prop = parent.Childs[b].Property;
 						var objval = ReadAnonymous(parent.Childs[b], dr, ref index, notRead);
-						var safeval = Utils.GetDataReaderValue(prop.PropertyType, objval);
-						if (isnull == false && safeval == null && parent.Table != null && parent.Table.ColumnsByCs.TryGetValue(parent.Childs[b].CsName, out var trycol) && trycol.Attribute.IsPrimary)
+						if (isnull == false && objval == null && parent.Table != null && parent.Table.ColumnsByCs.TryGetValue(parent.Childs[b].CsName, out var trycol) && trycol.Attribute.IsPrimary)
 							isnull = true;
 						if (isnull == false)
-							prop.SetValue(ret, safeval, null);
+							prop.SetValue(ret, objval, null);
 					}
 					return isnull ? null : ret;
 			}

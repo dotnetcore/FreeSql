@@ -230,6 +230,14 @@ namespace FreeSql.Tests.MySql {
 			var t1111 = g.mysql.Select<TestInfo>().ToList(a => new { a.Id, a.Title, a.Type });
 
 			var t2222 = g.mysql.Select<TestInfo>().ToList(a => new { a.Id, a.Title, a.Type.Name });
+
+			g.mysql.Insert<TestGuidIdToList>().AppendData(new TestGuidIdToList()).ExecuteAffrows();
+			var testGuidId5 = g.mysql.Select<TestGuidIdToList>().ToList();
+			var testGuidId6 = g.mysql.Select<TestGuidIdToList>().ToList(a => a.id);
+		}
+		class TestGuidIdToList {
+			public Guid id { get; set; }
+			public string title { get; set; } = Guid.NewGuid().ToString();
 		}
 		[Fact]
 		public void ToOne() {

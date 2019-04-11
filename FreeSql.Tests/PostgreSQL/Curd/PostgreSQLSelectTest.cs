@@ -209,6 +209,14 @@ namespace FreeSql.Tests.PostgreSQL {
 			var t1111 = g.pgsql.Select<TestInfo>().ToList(a => new { a.Id, a.Title, a.Type });
 
 			var t2222 = g.pgsql.Select<TestInfo>().ToList(a => new { a.Id, a.Title, a.Type.Name });
+
+			g.pgsql.Insert<TestGuidIdToList>().AppendData(new TestGuidIdToList()).ExecuteAffrows();
+			var testGuidId5 = g.pgsql.Select<TestGuidIdToList>().ToList();
+			var testGuidId6 = g.pgsql.Select<TestGuidIdToList>().ToList(a => a.id);
+		}
+		class TestGuidIdToList {
+			public Guid id { get; set; }
+			public string title { get; set; } = Guid.NewGuid().ToString();
 		}
 		[Fact]
 		public void ToOne() {

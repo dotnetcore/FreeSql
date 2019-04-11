@@ -1098,6 +1098,7 @@ namespace FreeSql.Internal {
 		}
 		public static object GetDataReaderValue(Type type, object value) {
 			if (value == null || value == DBNull.Value) return null;
+			if (type == null) return value;
 			var func = _dicGetDataReaderValue.GetOrAdd(type, k1 => new ConcurrentDictionary<Type, Func<object, object>>()).GetOrAdd(value.GetType(), valueType => {
 				var parmExp = Expression.Parameter(typeof(object), "value");
 				var exp = GetDataReaderValueBlockExpression(type, parmExp);

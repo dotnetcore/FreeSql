@@ -133,6 +133,14 @@ namespace FreeSql.Tests.Sqlite {
 			var testDto2 = select.Limit(10).ToList(a => new TestDto());
 			var testDto3 = select.Limit(10).ToList(a => new TestDto { });
 			var testDto4 = select.Limit(10).ToList(a => new TestDto() { });
+
+			g.sqlite.Insert<TestGuidIdToList>().AppendData(new TestGuidIdToList()).ExecuteAffrows();
+			var testGuidId5 = g.sqlite.Select<TestGuidIdToList>().ToList();
+			var testGuidId6 = g.sqlite.Select<TestGuidIdToList>().ToList(a => a.id);
+		}
+		class TestGuidIdToList {
+			public Guid id { get; set; }
+			public string title { get; set; } = Guid.NewGuid().ToString();
 		}
 		[Fact]
 		public void ToOne() {
