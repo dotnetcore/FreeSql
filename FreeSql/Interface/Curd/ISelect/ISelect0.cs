@@ -242,5 +242,11 @@ namespace FreeSql {
 		/// <param name="pageSize">每页多少</param>
 		/// <returns></returns>
 		TSelect Page(int pageIndex, int pageSize);
+
+		/// <summary>
+		/// 查询数据前，去重
+		/// </summary>
+		/// <returns></returns>
+		TSelect Distinct();
 	}
 }

@@ -35,7 +35,7 @@ namespace FreeSql.MySql {
 			else if (decimal.TryParse(string.Concat(param), out var trydec))
 				return param;
 			else if (param is DateTime || param is DateTime?)
-				return string.Concat("'", ((DateTime)param).ToString("yyyy-MM-dd HH:mm:ss"), "'");
+				return string.Concat("'", ((DateTime)param).ToString("yyyy-MM-dd HH:mm:ss.fff"), "'");
 			else if (param is TimeSpan || param is TimeSpan?)
 				return ((TimeSpan)param).Ticks / 10;
 			else if (param is MygisGeometry)

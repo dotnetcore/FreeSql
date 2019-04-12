@@ -27,7 +27,7 @@ namespace FreeSql.Oracle {
 		public IAop Aop { get; }
 		public ICache Cache { get; }
 		public ICodeFirst CodeFirst { get; }
-		public IDbFirst DbFirst => null;
+		public IDbFirst DbFirst { get; }
 		public OracleProvider(IDistributedCache cache, ILogger log, string masterConnectionString, string[] slaveConnectionString) {
 			if (log == null) log = new LoggerFactory(new[] { new Microsoft.Extensions.Logging.Debug.DebugLoggerProvider() }).CreateLogger("FreeSql.Oracle");
 
@@ -38,6 +38,7 @@ namespace FreeSql.Oracle {
 			this.Ado = new OracleAdo(this.InternalCommonUtils, this.Cache, log, masterConnectionString, slaveConnectionString);
 			this.Aop = new AopProvider();
 
+			//this.DbFirst = new OracleDbFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
 			this.CodeFirst = new OracleCodeFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
 		}
 

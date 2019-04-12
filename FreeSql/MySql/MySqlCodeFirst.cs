@@ -49,7 +49,7 @@ namespace FreeSql.MySql {
 				{ typeof(decimal).FullName,  (MySqlDbType.Decimal, "decimal", "decimal(10,2) NOT NULL", false, false, 0) },{ typeof(decimal?).FullName,  (MySqlDbType.Decimal, "decimal", "decimal(10,2)", false, true, null) },
 
 				{ typeof(TimeSpan).FullName,  (MySqlDbType.Time, "time","time NOT NULL", false, false, 0) },{ typeof(TimeSpan?).FullName,  (MySqlDbType.Time, "time", "time",false, true, null) },
-				{ typeof(DateTime).FullName,  (MySqlDbType.DateTime, "datetime", "datetime NOT NULL", false, false, new DateTime(1970,1,1)) },{ typeof(DateTime?).FullName,  (MySqlDbType.DateTime, "datetime", "datetime", false, true, null) },
+				{ typeof(DateTime).FullName,  (MySqlDbType.DateTime, "datetime(3)", "datetime(3) NOT NULL", false, false, new DateTime(1970,1,1)) },{ typeof(DateTime?).FullName,  (MySqlDbType.DateTime, "datetime(3)", "datetime(3)", false, true, null) },
 
 				{ typeof(byte[]).FullName,  (MySqlDbType.VarBinary, "varbinary", "varbinary(255)", false, null, new byte[0]) },
 				{ typeof(string).FullName,  (MySqlDbType.VarChar, "varchar", "varchar(255)", false, null, "") },
@@ -163,12 +163,16 @@ case when locate('auto_increment', a.extra) > 0 then 1 else 0 end 'is_identity'
 from information_schema.columns a
 where a.table_schema in ({0}) and a.table_name in ({1})".FormatMySql(tboldname ?? tbname);
 					var ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
-					var tbstruct = ds.ToDictionary(a => string.Concat(a[0]), a => new {
-						column = string.Concat(a[0]),
-						sqlType = string.Concat(a[1]),
-						is_nullable = string.Concat(a[2]) == "1",
-						is_identity = string.Concat(a[3]) == "1",
-						is_unsigned = string.Concat(a[1]).EndsWith(" unsigned")
+					var tbstruct = ds.ToDictionary(a => string.Concat(a[0]), a => {
+						var a1 = string.Concat(a[1]);
+						if (a1 == "datetime") a1 = string.Concat(a1, "(0)");
+						return new {
+							column = string.Concat(a[0]),
+							sqlType = a1,
+							is_nullable = string.Concat(a[2]) == "1",
+							is_identity = string.Concat(a[3]) == "1",
+							is_unsigned = string.Concat(a[1]).EndsWith(" unsigned")
+						};
 					}, StringComparer.CurrentCultureIgnoreCase);
 
 					if (istmpatler == false) {

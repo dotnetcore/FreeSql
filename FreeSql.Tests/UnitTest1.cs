@@ -44,6 +44,8 @@ namespace FreeSql.Tests {
 		[Fact]
 		public void Test1() {
 
+			var xxx = g.sqlite.Select<TestUser>().GroupBy(a => new { a.stringid }).ToList(a => a.Key.stringid);
+
 			var tuser = g.sqlite.Select<TestUser>().Where(u => u.accname == "admin")
 				.InnerJoin(a => a.LogOn.id == a.stringid).ToSql();
 
@@ -88,7 +90,7 @@ namespace FreeSql.Tests {
 
 			var orderDetail1 = order.OrderDetails; //第一次访问，查询数据库
 			var orderDetail2 = order.OrderDetails; //第二次访问，不查
-			var order1 = orderDetail1.FirstOrDefault(); //访问导航属性，此时不查数据库，因为 OrderDetails 查询出来的时候已填充了该属性
+			var order1 = orderDetail1.FirstOrDefault().Order; //访问导航属性，此时不查数据库，因为 OrderDetails 查询出来的时候已填充了该属性
 
 
 			var queryable = g.mysql.Queryable<TestInfo>().Where(a => a.Id == 1).ToList();

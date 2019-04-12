@@ -633,6 +633,12 @@ namespace FreeSql.Tests.SqlServer {
 			var sql33 = select.OrderBy(a => new Random().NextDouble()).Page(3, 10).ToList();
 		}
 		[Fact]
+		public void Distinct() {
+			var t1 = select.Distinct().ToList(a => a.Title);
+			var t2 = select.Distinct().Limit(10).ToList(a => a.Title);
+		}
+
+		[Fact]
 		public void Sum() {
 		}
 		[Fact]

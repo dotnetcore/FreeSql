@@ -69,6 +69,9 @@ namespace FreeSql.Tests.Sqlite {
 
 			sql = update.Set(a => a.Id - incrv).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
 			Assert.Equal("UPDATE \"tb_topic\" SET \"Id\" = \"Id\" - 10 WHERE (\"Id\" = 1)", sql);
+
+			sql = update.Set(a => a.CreateTime.AddYears(1)).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
+			Assert.Equal("UPDATE \"tb_topic\" SET \"CreateTime\" = datetime(\"CreateTime\",(1)||' years') WHERE (\"Id\" = 1)", sql);
 		}
 		[Fact]
 		public void SetRaw() {

@@ -62,13 +62,13 @@ namespace FreeSql.Tests.MySql {
 			Assert.Equal(TestEnumUpdateTbType.biggit, g.mysql.Select<TestEnumUpdateTb>().Where(a => a.id == id).First()?.type);
 
 			sql = g.mysql.Insert<TestEnumUpdateTb>().NoneParameter().AppendData(new TestEnumUpdateTb { type = TestEnumUpdateTbType.sum211 }).ToSql().Replace("\r\n", "");
-			Assert.Equal("INSERT INTO `TestEnumUpdateTb`(`type`, `time`) VALUES('sum211', '0001-01-01 00:00:00')", sql);
+			Assert.Equal("INSERT INTO `TestEnumUpdateTb`(`type`, `time`) VALUES('sum211', '0001-01-01 00:00:00.000')", sql);
 			id = g.mysql.Insert<TestEnumUpdateTb>().NoneParameter().AppendData(new TestEnumUpdateTb { type = TestEnumUpdateTbType.sum211 }).ExecuteIdentity();
 			Assert.True(id > 0);
 			Assert.Equal(TestEnumUpdateTbType.sum211, g.mysql.Select<TestEnumUpdateTb>().Where(a => a.id == id).First()?.type);
 
 			sql = g.mysql.Update<TestEnumUpdateTb>().NoneParameter().SetSource(new TestEnumUpdateTb { type = TestEnumUpdateTbType.sum211 }).ToSql().Replace("\r\n", "");
-			Assert.Equal("UPDATE `TestEnumUpdateTb` SET `type` = 'sum211', `time` = '0001-01-01 00:00:00' WHERE (`id` = 0)", sql);
+			Assert.Equal("UPDATE `TestEnumUpdateTb` SET `type` = 'sum211', `time` = '0001-01-01 00:00:00.000' WHERE (`id` = 0)", sql);
 			g.mysql.Update<TestEnumUpdateTb>().NoneParameter().SetSource(new TestEnumUpdateTb { id = (int)id, type = TestEnumUpdateTbType.biggit }).ExecuteAffrows();
 			Assert.Equal(TestEnumUpdateTbType.biggit, g.mysql.Select<TestEnumUpdateTb>().Where(a => a.id == id).First()?.type);
 		}

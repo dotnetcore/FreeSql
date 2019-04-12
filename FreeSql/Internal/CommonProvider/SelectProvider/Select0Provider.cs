@@ -30,6 +30,7 @@ namespace FreeSql.Internal.CommonProvider {
 		protected DbTransaction _transaction;
 		protected DbConnection _connection;
 		protected Action<object> _trackToList;
+		protected bool _distinct;
 
 		internal static void CopyData(Select0Provider<TSelect, T1> from, object to, ReadOnlyCollection<ParameterExpression> lambParms) {
 			var toType = to?.GetType();
@@ -64,6 +65,7 @@ namespace FreeSql.Internal.CommonProvider {
 			toType.GetField("_transaction", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._transaction);
 			toType.GetField("_connection", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._connection);
 			toType.GetField("_trackToList", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._trackToList);
+			toType.GetField("_distinct", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._distinct);
 		}
 
 		public Select0Provider(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere) {
@@ -203,6 +205,11 @@ namespace FreeSql.Internal.CommonProvider {
 			return this as TSelect;
 		}
 		public TSelect Take(int limit) => this.Limit(limit) as TSelect;
+
+		public TSelect Distinct() {
+			_distinct = true;
+			return this as TSelect;
+		}
 
 		public DataTable ToDataTable(string field = null) {
 			var sql = this.ToSql(field);

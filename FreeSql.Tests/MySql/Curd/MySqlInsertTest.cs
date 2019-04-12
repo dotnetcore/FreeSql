@@ -43,11 +43,11 @@ namespace FreeSql.Tests.MySql {
 			sql = insert.AppendData(items).IgnoreColumns(a => a.CreateTime).ToSql();
 			Assert.Equal("INSERT INTO `tb_topic`(`Clicks`, `Title`) VALUES(?Clicks_0, ?Title_0), (?Clicks_1, ?Title_1), (?Clicks_2, ?Title_2), (?Clicks_3, ?Title_3), (?Clicks_4, ?Title_4), (?Clicks_5, ?Title_5), (?Clicks_6, ?Title_6), (?Clicks_7, ?Title_7), (?Clicks_8, ?Title_8), (?Clicks_9, ?Title_9)", sql);
 
-			sql = g.mysql.Insert<TestEnumInsertTb>().AppendData(new TestEnumInsertTb { type = TestEnumInserTbType.sum211 }).ToSql();
+			sql = g.mysql.Insert<TestEnumInsertTb>().AppendData(new TestEnumInsertTb { type = TestEnumInserTbType.sum211, time = DateTime.Now }).ToSql();
 			Assert.Equal("INSERT INTO `TestEnumInsertTb`(`type`, `time`) VALUES(?type_0, ?time_0)", sql);
 
 			sql = g.mysql.Insert<TestEnumInsertTb>().AppendData(new TestEnumInsertTb { type = TestEnumInserTbType.sum211 }).NoneParameter().ToSql();
-			Assert.Equal("INSERT INTO `TestEnumInsertTb`(`type`, `time`) VALUES('sum211', '0001-01-01 00:00:00')", sql);
+			Assert.Equal("INSERT INTO `TestEnumInsertTb`(`type`, `time`) VALUES('sum211', '0001-01-01 00:00:00.000')", sql);
 		}
 
 		[Fact]
@@ -75,7 +75,7 @@ namespace FreeSql.Tests.MySql {
 		[Fact]
 		public void ExecuteAffrows() {
 			var items = new List<Topic>();
-			for (var a = 0; a < 10; a++) items.Add(new Topic { Id = a + 1, Title = $"newtitle{a}", Clicks = a * 100 });
+			for (var a = 0; a < 10; a++) items.Add(new Topic { Id = a + 1, Title = $"newtitle{a}", Clicks = a * 100, CreateTime = DateTime.Now });
 
 			Assert.Equal(1, insert.AppendData(items.First()).ExecuteAffrows());
 			Assert.Equal(10, insert.AppendData(items).ExecuteAffrows());
