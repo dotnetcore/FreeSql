@@ -44,6 +44,9 @@ namespace FreeSql.Tests {
 		[Fact]
 		public void Test1() {
 
+			var sql111 = g.sqlite.Select<TestUser>().AsTable((a, b) => "(select * from TestUser where stringid > 10)").Page(1, 10).ToSql();
+			
+
 			var xxx = g.sqlite.Select<TestUser>().GroupBy(a => new { a.stringid }).ToList(a => a.Key.stringid);
 
 			var tuser = g.sqlite.Select<TestUser>().Where(u => u.accname == "admin")

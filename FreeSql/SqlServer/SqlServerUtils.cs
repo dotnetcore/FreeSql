@@ -35,7 +35,12 @@ namespace FreeSql.SqlServer {
 			});
 
 		internal override string FormatSql(string sql, params object[] args) => sql?.FormatSqlServer(args);
-		internal override string QuoteSqlName(string name) => $"[{name.TrimStart('[').TrimEnd(']').Replace(".", "].[")}]";
+		internal override string QuoteSqlName(string name) {
+			var nametrim = name.Trim();
+			if (nametrim.StartsWith("(") && nametrim.EndsWith(")"))
+				return nametrim; //原生SQL
+			return $"[{nametrim.TrimStart('[').TrimEnd(']').Replace(".", "].[")}]";
+		}
 		internal override string QuoteParamterName(string name) => $"@{(_orm.CodeFirst.IsSyncStructureToLower ? name.ToLower() : name)}";
 		internal override string IsNull(string sql, object value) => $"isnull({sql}, {value})";
 		internal override string StringConcat(string left, string right, Type leftType, Type rightType) => $"{(leftType.FullName == "System.String" ? left : $"cast({left} as nvarchar)")} + {(rightType.FullName == "System.String" ? right : $"cast({right} as nvarchar)")}";
