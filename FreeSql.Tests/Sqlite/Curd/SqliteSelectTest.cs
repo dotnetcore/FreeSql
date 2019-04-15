@@ -584,6 +584,8 @@ namespace FreeSql.Tests.Sqlite {
 		[Fact]
 		public void AsTable() {
 
+			var listt = select.AsTable((a, b) => "(select * from tb_topic where clicks > 10)").Page(1, 10).ToList();
+
 			var tenantId = 1;
 			var reposTopic = g.sqlite.GetGuidRepository<Topic>(null, oldname => $"{oldname}_{tenantId}");
 			var reposType = g.sqlite.GetGuidRepository<TestTypeInfo>(null, oldname => $"{oldname}_{tenantId}");

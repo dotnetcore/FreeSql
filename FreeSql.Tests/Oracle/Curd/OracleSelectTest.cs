@@ -654,6 +654,9 @@ namespace FreeSql.Tests.Oracle {
 
 		[Fact]
 		public void AsTable() {
+
+			var listt = select.AsTable((a, b) => "(select * from tb_topic where clicks > 10)").Page(1, 10).ToList();
+
 			Func<Type, string, string> tableRule = (type, oldname) => {
 				if (type == typeof(Topic)) return oldname + "AsTable1";
 				else if (type == typeof(TestTypeInfo)) return oldname + "AsTable2";
