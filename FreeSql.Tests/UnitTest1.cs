@@ -1,4 +1,4 @@
-using FreeSql.DataAnnotations;
+﻿using FreeSql.DataAnnotations;
 using FreeSql;
 using System;
 using System.Collections.Generic;
@@ -41,8 +41,44 @@ namespace FreeSql.Tests {
 			public int userstrId { get; set; }
 		}
 
+		class ServiceRequestNew {
+			public Guid id { get; set; }
+			public string acptStaffDeptId { get; set; }
+			public DateTime acptTime { get; set; }
+			public int crtWrkfmFlag { get; set; }
+			[Column(DbType = "nvarchar2(1500)")]
+			public string srvReqstCntt { get; set; }
+		}
+
 		[Fact]
 		public void Test1() {
+
+			var testjson = @"[
+{
+""acptNumBelgCityName"":""泰州"",
+""concPrsnName"":""常**"",
+""srvReqstTypeName"":""家庭业务→网络质量→家庭宽带→自有宽带→功能使用→游戏过程中频繁掉线→全局流转"",
+""srvReqstCntt"":""客户来电表示宽带使用（ 所有）出现（频繁掉线不稳定） ，客户所在地址为（安装地址泰州地区靖江靖城街道工农路科技小区科技3区176号2栋2单元502），联系方式（具体联系方式），烦请协调处理。"",
+""acptTime"":""2019-04-15 15:17:05"",
+""acptStaffDeptId"":""0003002101010001000600020023""
+},
+{
+""acptNumBelgCityName"":""苏州"",
+""concPrsnName"":""龚**"",
+""srvReqstTypeName"":""移动业务→基础服务→账/详单→全局流转→功能使用→账/详单信息不准确→全局流转"",
+""srvReqstCntt"":""用户参与 2018年苏州任我用关怀活动 送的分钟数500分钟，说自己只使用了116分钟，但是我处查询到本月已经使用了306分钟\r\n，烦请处理"",
+""acptTime"":""2019-04-15 15:12:05"",
+""acptStaffDeptId"":""0003002101010001000600020023""
+}
+]";
+			//var dic = Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(testjson);
+			var reqs = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ServiceRequestNew>>(testjson);
+			reqs.ForEach(t => {
+					g.oracle.Insert(t).ExecuteAffrows();
+				
+			});
+
+
 
 			var sql111 = g.sqlite.Select<TestUser>().AsTable((a, b) => "(select * from TestUser where stringid > 10)").Page(1, 10).ToSql();
 			
@@ -84,16 +120,16 @@ namespace FreeSql.Tests {
 
 
 
-			var order = g.mysql.Select<Order>().Where(a => a.Id == 1).ToOne(); //��ѯ������
+			var order = g.mysql.Select<Order>().Where(a => a.Id == 1).ToOne(); //查询订单表
 			if (order == null) {
 				var orderId = g.mysql.Insert(new Order { }).ExecuteIdentity();
 				order = g.mysql.Select<Order>(orderId).ToOne();
 			}
 			
 
-			var orderDetail1 = order.OrderDetails; //��һ�η��ʣ���ѯ���ݿ�
-			var orderDetail2 = order.OrderDetails; //�ڶ��η��ʣ�����
-			var order1 = orderDetail1.FirstOrDefault().Order; //���ʵ������ԣ���ʱ�������ݿ⣬��Ϊ OrderDetails ��ѯ������ʱ��������˸�����
+			var orderDetail1 = order.OrderDetails; //第一次访问，查询数据库
+			var orderDetail2 = order.OrderDetails; //第二次访问，不查
+			var order1 = orderDetail1.FirstOrDefault().Order; //访问导航属性，此时不查数据库，因为 OrderDetails 查询出来的时候已填充了该属性
 
 
 			var queryable = g.mysql.Queryable<TestInfo>().Where(a => a.Id == 1).ToList();

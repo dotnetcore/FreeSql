@@ -196,7 +196,7 @@ where owner={{0}} and table_name={{1}}".FormatOracleSQL(tboldname ?? tbname);
 
 				//创建临时表，数据导进临时表，然后删除原表，将临时表改名为原表名
 				var tablename = tboldname == null ? _commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}") : _commonUtils.QuoteSqlName($"{tboldname[0]}.{tboldname[1]}");
-				var tmptablename = _commonUtils.QuoteSqlName($"{tbname[0]}.FreeSqlTmp_{tbname[1]}");
+				var tmptablename = _commonUtils.QuoteSqlName($"{tbname[0]}.FTmp_{tbname[1]}");
 				//创建临时表
 				sb.Append("execute immediate 'CREATE TABLE ").Append(tmptablename).Append(" (");
 				foreach (var tbcol in tb.Columns.Values) {
