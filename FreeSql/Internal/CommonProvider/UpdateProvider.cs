@@ -264,9 +264,26 @@ namespace FreeSql.Internal.CommonProvider {
 			foreach (var col in cols) _ignore.Add(col, true);
 			return this;
 		}
+		public IUpdate<T1> UpdateColumns(Expression<Func<T1, object>> columns) {
+			var cols = _commonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(null, columns?.Body, false, null).ToDictionary(a => a, a => true);
+			_ignore.Clear();
+			foreach (var col in _table.Columns.Values)
+				if (cols.ContainsKey(col.Attribute.Name) == false)
+					_ignore.Add(col.Attribute.Name, true);
+			return this;
+		}
+
 		public IUpdate<T1> IgnoreColumns(string[] columns) {
 			_ignore.Clear();
 			foreach (var col in columns) _ignore.Add(col, true);
+			return this;
+		}
+		public IUpdate<T1> UpdateColumns(string[] columns) {
+			var cols = columns.ToDictionary(a => a);
+			_ignore.Clear();
+			foreach (var col in _table.Columns.Values)
+				if (cols.ContainsKey(col.Attribute.Name) == false)
+					_ignore.Add(col.Attribute.Name, true);
 			return this;
 		}
 

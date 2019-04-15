@@ -49,6 +49,11 @@ namespace FreeSql.Tests.PostgreSQL {
 			Assert.Equal("UPDATE \"tb_topic\" SET \"title\" = @p_0 WHERE (\"id\" = 1)", sql);
 		}
 		[Fact]
+		public void UpdateColumns() {
+			var sql = update.SetSource(new Topic { Id = 1, Title = "newtitle" }).UpdateColumns(a => a.Title).ToSql().Replace("\r\n", "");
+			Assert.Equal("UPDATE \"tb_topic\" SET \"title\" = @p_0 WHERE (\"id\" = 1)", sql);
+		}
+		[Fact]
 		public void Set() {
 			var sql = update.Where(a => a.Id == 1).Set(a => a.Title, "newtitle").ToSql().Replace("\r\n", "");
 			Assert.Equal("UPDATE \"tb_topic\" SET \"title\" = @p_0 WHERE (\"id\" = 1)", sql);

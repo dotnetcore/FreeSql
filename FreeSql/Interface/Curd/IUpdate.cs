@@ -52,6 +52,19 @@ namespace FreeSql {
 		IUpdate<T1> IgnoreColumns(string[] columns);
 
 		/// <summary>
+		/// 指定的列，UpdateColumns(a => a.Name) | UpdateColumns(a => new{a.Name,a.Time}) | UpdateColumns(a => new[]{"name","time"})
+		/// </summary>
+		/// <param name="columns">lambda选择列</param>
+		/// <returns></returns>
+		IUpdate<T1> UpdateColumns(Expression<Func<T1, object>> columns);
+		/// <summary>
+		/// 指定的列
+		/// </summary>
+		/// <param name="columns"></param>
+		/// <returns></returns>
+		IUpdate<T1> UpdateColumns(string[] columns);
+
+		/// <summary>
 		/// 设置列的新值，Set(a => a.Name, "newvalue")
 		/// </summary>
 		/// <typeparam name="TMember"></typeparam>

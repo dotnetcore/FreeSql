@@ -84,6 +84,17 @@ namespace FreeSql.Tests.MySql {
 			Assert.Equal("UPDATE `TestEnumUpdateTb` SET `type` = 'sum211' WHERE (`id` = 0)", sql);
 		}
 		[Fact]
+		public void UpdateColumns() {
+			var sql = update.SetSource(new Topic { Id = 1, Title = "newtitle" }).UpdateColumns(a => a.Title).ToSql().Replace("\r\n", "");
+			Assert.Equal("UPDATE `tb_topic` SET `Title` = ?p_0 WHERE (`Id` = 1)", sql);
+
+			sql = g.mysql.Update<TestEnumUpdateTb>().SetSource(new TestEnumUpdateTb { type = TestEnumUpdateTbType.sum211 }).UpdateColumns(a => a.type).ToSql().Replace("\r\n", "");
+			Assert.Equal("UPDATE `TestEnumUpdateTb` SET `type` = ?p_0 WHERE (`id` = 0)", sql);
+
+			sql = g.mysql.Update<TestEnumUpdateTb>().NoneParameter().SetSource(new TestEnumUpdateTb { type = TestEnumUpdateTbType.sum211 }).UpdateColumns(a => a.type).ToSql().Replace("\r\n", "");
+			Assert.Equal("UPDATE `TestEnumUpdateTb` SET `type` = 'sum211' WHERE (`id` = 0)", sql);
+		}
+		[Fact]
 		public void Set() {
 			var sql = update.Where(a => a.Id == 1).Set(a => a.Title, "newtitle").ToSql().Replace("\r\n", "");
 			Assert.Equal("UPDATE `tb_topic` SET `Title` = ?p_0 WHERE (`Id` = 1)", sql);
