@@ -148,27 +148,7 @@ from all_tab_columns
 where owner={{0}} and table_name={{1}}".FormatOracleSQL(tboldname ?? tbname);
 				var ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
 				var tbstruct = ds.ToDictionary(a => string.Concat(a[0]), a => {
-					var sqlType = string.Concat(a[1]).ToUpper();
-					var data_length = long.Parse(string.Concat(a[2]));
-					long.TryParse(string.Concat(a[3]), out var data_precision);
-					long.TryParse(string.Concat(a[4]), out var data_scale);
-					var char_used = string.Concat(a[5]);
-					if (Regex.IsMatch(sqlType, @"INTERVAL DAY\(\d+\) TO SECOND\(\d+\)", RegexOptions.IgnoreCase)) {
-					} else if (Regex.IsMatch(sqlType, @"INTERVAL YEAR\(\d+\) TO MONTH", RegexOptions.IgnoreCase)) {
-					} else if (sqlType.StartsWith("TIMESTAMP", StringComparison.CurrentCultureIgnoreCase)) {
-					} else if (sqlType.StartsWith("BLOB")) {
-					} else if (char_used.ToLower() == "c")
-						sqlType += sqlType.StartsWith("N") ? $"({data_length / 2})" : $"({data_length / 4} CHAR)";
-					else if (char_used.ToLower() == "b")
-						sqlType += $"({data_length} BYTE)";
-					else if (sqlType.ToLower() == "float")
-						sqlType += $"({data_precision})";
-					else if (data_precision > 0 && data_scale > 0)
-						sqlType += $"({data_precision},{data_scale})";
-					else if (data_precision > 0)
-						sqlType += $"({data_precision})";
-					else
-						sqlType += $"({data_length})";
+					var sqlType = GetOracleSqlTypeFullName(a);
 					return new {
 						column = string.Concat(a[0]),
 						sqlType,
@@ -292,6 +272,32 @@ where owner={{0}} and table_name={{1}}".FormatOracleSQL(tboldname ?? tbname);
 			}
 			if (sbDeclare.Length > 0) sbDeclare.Insert(0, "declare ");
 			return sb.Length == 0 ? null : sb.Insert(0, "BEGIN \r\n").Insert(0, sbDeclare.ToString()).Append("END;").ToString();
+		}
+
+		internal static string GetOracleSqlTypeFullName(object[] row) {
+			var a = row;
+			var sqlType = string.Concat(a[1]).ToUpper();
+			var data_length = long.Parse(string.Concat(a[2]));
+			long.TryParse(string.Concat(a[3]), out var data_precision);
+			long.TryParse(string.Concat(a[4]), out var data_scale);
+			var char_used = string.Concat(a[5]);
+			if (Regex.IsMatch(sqlType, @"INTERVAL DAY\(\d+\) TO SECOND\(\d+\)", RegexOptions.IgnoreCase)) {
+			} else if (Regex.IsMatch(sqlType, @"INTERVAL YEAR\(\d+\) TO MONTH", RegexOptions.IgnoreCase)) {
+			} else if (sqlType.StartsWith("TIMESTAMP", StringComparison.CurrentCultureIgnoreCase)) {
+			} else if (sqlType.StartsWith("BLOB")) {
+			} else if (char_used.ToLower() == "c")
+				sqlType += sqlType.StartsWith("N") ? $"({data_length / 2})" : $"({data_length / 4} CHAR)";
+			else if (char_used.ToLower() == "b")
+				sqlType += $"({data_length} BYTE)";
+			else if (sqlType.ToLower() == "float")
+				sqlType += $"({data_precision})";
+			else if (data_precision > 0 && data_scale > 0)
+				sqlType += $"({data_precision},{data_scale})";
+			else if (data_precision > 0)
+				sqlType += $"({data_precision})";
+			else
+				sqlType += $"({data_length})";
+			return sqlType;
 		}
 
 		static object syncStructureLock = new object();

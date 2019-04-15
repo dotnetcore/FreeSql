@@ -38,7 +38,7 @@ namespace FreeSql.Oracle {
 			this.Ado = new OracleAdo(this.InternalCommonUtils, this.Cache, log, masterConnectionString, slaveConnectionString);
 			this.Aop = new AopProvider();
 
-			//this.DbFirst = new OracleDbFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
+			this.DbFirst = new OracleDbFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
 			this.CodeFirst = new OracleCodeFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
 		}
 
