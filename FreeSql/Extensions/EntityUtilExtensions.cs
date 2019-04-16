@@ -23,8 +23,7 @@ namespace FreeSql.Extensions.EntityUtil {
 		/// <param name="_table"></param>
 		/// <param name="entity"></param>
 		/// <returns></returns>
-		public static string GetEntityKeyString<TEntity>(this IFreeSql orm, TEntity entity, string splitString = "*|_,[,_|*") =>
-			GetEntityKeyString(orm, typeof(TEntity), entity, splitString);
+		//public static string GetEntityKeyString<TEntity>(this IFreeSql orm, TEntity entity, string splitString = "*|_,[,_|*") => GetEntityKeyString(orm, typeof(TEntity), entity, splitString);
 		public static string GetEntityKeyString(this IFreeSql orm, Type entityType, object entity, string splitString = "*|_,[,_|*") {
 			if (entity == null) return null;
 			if (entityType == null) entityType = entity.GetType();
@@ -110,8 +109,7 @@ namespace FreeSql.Extensions.EntityUtil {
 		/// <param name="_table"></param>
 		/// <param name="entity"></param>
 		/// <returns></returns>
-		public static object[] GetEntityKeyValues<TEntity>(this IFreeSql orm, TEntity entity) =>
-			GetEntityKeyValues(orm, typeof(TEntity), entity);
+		//public static object[] GetEntityKeyValues<TEntity>(this IFreeSql orm, TEntity entity) => GetEntityKeyValues(orm, typeof(TEntity), entity);
 		public static object[] GetEntityKeyValues(this IFreeSql orm, Type entityType, object entity) {
 			if (entity == null) return null;
 			if (entityType == null) entityType = entity.GetType();
@@ -150,8 +148,7 @@ namespace FreeSql.Extensions.EntityUtil {
 		/// <param name="_table"></param>
 		/// <param name="entity"></param>
 		/// <returns></returns>
-		public static string GetEntityString<TEntity>(this IFreeSql orm, TEntity entity) =>
-			GetEntityString(orm, typeof(TEntity), entity);
+		//public static string GetEntityString<TEntity>(this IFreeSql orm, TEntity entity) => GetEntityString(orm, typeof(TEntity), entity);
 		public static string GetEntityString(this IFreeSql orm, Type entityType, object entity) {
 			if (entity == null) return null;
 			if (entityType == null) entityType = entity.GetType();
@@ -195,8 +192,7 @@ namespace FreeSql.Extensions.EntityUtil {
 		/// 使用新实体的值，复盖旧实体的值
 		/// </summary>
 		static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object, object>>> _dicMapEntityValue = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object, object>>>();
-		public static void MapEntityValue<TEntity>(this IFreeSql orm, TEntity entityFrom, TEntity entityTo) =>
-			MapEntityValue(orm, typeof(TEntity), entityFrom, entityTo);
+		//public static void MapEntityValue<TEntity>(this IFreeSql orm, TEntity entityFrom, TEntity entityTo) => MapEntityValue(orm, typeof(TEntity), entityFrom, entityTo);
 		public static void MapEntityValue(this IFreeSql orm, Type entityType, object entityFrom, object entityTo) {
 			if (entityType == null) entityType = entityFrom?.GetType() ?? entityTo?.GetType();
 			var func = _dicMapEntityValue.GetOrAdd(orm.Ado.DataType, dt => new ConcurrentDictionary<Type, Action<object, object>>()).GetOrAdd(entityType, t => {
@@ -235,8 +231,7 @@ namespace FreeSql.Extensions.EntityUtil {
 		/// <summary>
 		/// 使用新实体的主键值，复盖旧实体的主键值
 		/// </summary>
-		public static void MapEntityKeyValue<TEntity>(this IFreeSql orm, TEntity entityFrom, TEntity entityTo) =>
-			MapEntityKeyValue(orm, typeof(TEntity), entityFrom, entityTo);
+		//public static void MapEntityKeyValue<TEntity>(this IFreeSql orm, TEntity entityFrom, TEntity entityTo) => MapEntityKeyValue(orm, typeof(TEntity), entityFrom, entityTo);
 		public static void MapEntityKeyValue(this IFreeSql orm, Type entityType, object entityFrom, object entityTo) {
 			if (entityType == null) entityType = entityFrom?.GetType() ?? entityTo?.GetType();
 			var func = _dicMapEntityKeyValue.GetOrAdd(orm.Ado.DataType, dt => new ConcurrentDictionary<Type, Action<object, object>>()).GetOrAdd(entityType, t => {
@@ -271,8 +266,7 @@ namespace FreeSql.Extensions.EntityUtil {
 		/// <param name="orm"></param>
 		/// <param name="entity"></param>
 		/// <param name="idtval"></param>
-		public static void SetEntityIdentityValueWithPrimary<TEntity>(this IFreeSql orm, TEntity entity, long idtval) =>
-			SetEntityIdentityValueWithPrimary(orm, typeof(TEntity), entity, idtval);
+		//public static void SetEntityIdentityValueWithPrimary<TEntity>(this IFreeSql orm, TEntity entity, long idtval) => SetEntityIdentityValueWithPrimary(orm, typeof(TEntity), entity, idtval);
 		public static void SetEntityIdentityValueWithPrimary(this IFreeSql orm, Type entityType, object entity, long idtval) {
 			if (entity == null) return;
 			if (entityType == null) entityType = entity.GetType();
@@ -305,8 +299,7 @@ namespace FreeSql.Extensions.EntityUtil {
 		/// <typeparam name="TEntity"></typeparam>
 		/// <param name="orm"></param>
 		/// <param name="entity"></param>
-		public static long GetEntityIdentityValueWithPrimary<TEntity>(this IFreeSql orm, TEntity entity) =>
-			GetEntityIdentityValueWithPrimary(orm, typeof(TEntity), entity);
+		//public static long GetEntityIdentityValueWithPrimary<TEntity>(this IFreeSql orm, TEntity entity) => GetEntityIdentityValueWithPrimary(orm, typeof(TEntity), entity);
 		public static long GetEntityIdentityValueWithPrimary(this IFreeSql orm, Type entityType, object entity) {
 			if (entity == null) return 0;
 			if (entityType == null) entityType = entity.GetType();
@@ -353,8 +346,7 @@ namespace FreeSql.Extensions.EntityUtil {
 		/// <typeparam name="TEntity"></typeparam>
 		/// <param name="orm"></param>
 		/// <param name="entity"></param>
-		public static void ClearEntityPrimaryValueWithIdentityAndGuid<TEntity>(this IFreeSql orm, TEntity entity) =>
-			ClearEntityPrimaryValueWithIdentityAndGuid(orm, typeof(TEntity), entity);
+		//public static void ClearEntityPrimaryValueWithIdentityAndGuid<TEntity>(this IFreeSql orm, TEntity entity) => ClearEntityPrimaryValueWithIdentityAndGuid(orm, typeof(TEntity), entity);
 		public static void ClearEntityPrimaryValueWithIdentityAndGuid(this IFreeSql orm, Type entityType, object entity) {
 			if (entity == null) return;
 			if (entityType == null) entityType = entity.GetType();
@@ -389,8 +381,7 @@ namespace FreeSql.Extensions.EntityUtil {
 		/// <typeparam name="TEntity"></typeparam>
 		/// <param name="orm"></param>
 		/// <param name="entity"></param>
-		public static void ClearEntityPrimaryValueWithIdentity<TEntity>(this IFreeSql orm, TEntity entity) =>
-			ClearEntityPrimaryValueWithIdentity(orm, typeof(TEntity), entity);
+		//public static void ClearEntityPrimaryValueWithIdentity<TEntity>(this IFreeSql orm, TEntity entity) => ClearEntityPrimaryValueWithIdentity(orm, typeof(TEntity), entity);
 		public static void ClearEntityPrimaryValueWithIdentity(this IFreeSql orm, Type entityType, object entity) {
 			if (entity == null) return;
 			if (entityType == null) entityType = entity.GetType();
@@ -426,8 +417,7 @@ namespace FreeSql.Extensions.EntityUtil {
 		/// <param name="entity1"></param>
 		/// <param name="entity2"></param>
 		/// <returns></returns>
-		public static string[] CompareEntityValueReturnColumns<TEntity>(this IFreeSql orm, TEntity entity1, TEntity entity2, bool isEqual) =>
-			CompareEntityValueReturnColumns(orm, typeof(TEntity), entity1, entity2, isEqual);
+		//public static string[] CompareEntityValueReturnColumns<TEntity>(this IFreeSql orm, TEntity entity1, TEntity entity2, bool isEqual) => CompareEntityValueReturnColumns(orm, typeof(TEntity), entity1, entity2, isEqual);
 		public static string[] CompareEntityValueReturnColumns(this IFreeSql orm, Type entityType, object entity1, object entity2, bool isEqual) {
 			if (entityType == null) entityType = entity1?.GetType() ?? entity2?.GetType();
 			var func = _dicCompareEntityValueReturnColumns.GetOrAdd(orm.Ado.DataType, dt => new ConcurrentDictionary<Type, Func<object, object, bool, string[]>>()).GetOrAdd(entityType, t => {
@@ -481,8 +471,7 @@ namespace FreeSql.Extensions.EntityUtil {
 		/// <param name="entity"></param>
 		/// <param name="propertyName"></param>
 		/// <param name="value"></param>
-		public static void SetEntityIncrByWithPropertyName<TEntity>(this IFreeSql orm, TEntity entity, string propertyName, int incrBy) =>
-			SetEntityIncrByWithPropertyName(orm, typeof(TEntity), entity, propertyName, incrBy);
+		//public static void SetEntityIncrByWithPropertyName<TEntity>(this IFreeSql orm, TEntity entity, string propertyName, int incrBy) => SetEntityIncrByWithPropertyName(orm, typeof(TEntity), entity, propertyName, incrBy);
 		public static void SetEntityIncrByWithPropertyName(this IFreeSql orm, Type entityType, object entity, string propertyName, int incrBy) {
 			if (entity == null) return;
 			if (entityType == null) entityType = entity.GetType();
@@ -524,8 +513,7 @@ namespace FreeSql.Extensions.EntityUtil {
 		/// <param name="entity"></param>
 		/// <param name="propertyName"></param>
 		/// <param name="value"></param>
-		public static void SetEntityValueWithPropertyName<TEntity>(this IFreeSql orm, TEntity entity, string propertyName, object value) =>
-			SetEntityValueWithPropertyName(orm, typeof(TEntity), entity, propertyName, value);
+		//public static void SetEntityValueWithPropertyName<TEntity>(this IFreeSql orm, TEntity entity, string propertyName, object value) => SetEntityValueWithPropertyName(orm, typeof(TEntity), entity, propertyName, value);
 		public static void SetEntityValueWithPropertyName(this IFreeSql orm, Type entityType, object entity, string propertyName, object value) {
 			if (entity == null) return;
 			if (entityType == null) entityType = entity.GetType();
@@ -546,12 +534,9 @@ namespace FreeSql.Extensions.EntityUtil {
 						exps.Add(
 							Expression.Assign(
 								Expression.MakeMemberAccess(var1Parm, prop),
-								Expression.Add(
-									Expression.MakeMemberAccess(var1Parm, prop),
-									Expression.Convert(
-										FreeSql.Internal.Utils.GetDataReaderValueBlockExpression(prop.PropertyType, parm3),
-										prop.PropertyType
-									)
+								Expression.Convert(
+									FreeSql.Internal.Utils.GetDataReaderValueBlockExpression(prop.PropertyType, parm3),
+									prop.PropertyType
 								)
 							)
 						);

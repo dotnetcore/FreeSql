@@ -523,8 +523,7 @@ namespace FreeSql.Internal.CommonProvider {
 			if (entityType == typeof(object)) throw new Exception("ISelect.AsType 参数不支持指定为 object");
 			if (entityType == _tables[0].Table.Type) return this as TSelect;
 			var newtb = _commonUtils.GetTableByEntity(entityType);
-			if (newtb == null) throw new Exception("ISelect.AsType 参数错误，请传入正确的实体类型");
-			_tables[0].Table = newtb;
+			_tables[0].Table = newtb ?? throw new Exception("ISelect.AsType 参数错误，请传入正确的实体类型");
 			if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(entityType);
 			return this as TSelect;
 		}

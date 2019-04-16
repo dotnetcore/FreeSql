@@ -28,7 +28,7 @@ namespace FreeSql.Internal.CommonProvider {
 			_commonExpression = commonExpression;
 			_table = _commonUtils.GetTableByEntity(typeof(T1));
 			this.Where(_commonUtils.WhereObject(_table, "", dywhere));
-			if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure<T1>();
+			if (_orm.CodeFirst.IsAutoSyncStructure && typeof(T1) != typeof(object)) _orm.CodeFirst.SyncStructure<T1>();
 		}
 
 		protected void ClearData() {
@@ -81,11 +81,21 @@ namespace FreeSql.Internal.CommonProvider {
 		public IDelete<T1> Where(T1 item) => this.Where(new[] { item });
 		public IDelete<T1> Where(IEnumerable<T1> items) => this.Where(_commonUtils.WhereItems(_table, "", items));
 		public IDelete<T1> WhereExists<TEntity2>(ISelect<TEntity2> select, bool notExists = false) where TEntity2 : class => this.Where($"{(notExists ? "NOT " : "")}EXISTS({select.ToSql("1")})");
+		public IDelete<T1> WhereDynamic(object dywhere) => this.Where(_commonUtils.WhereObject(_table, "", dywhere));
 
 		public IDelete<T1> AsTable(Func<string, string> tableRule) {
 			_tableRule = tableRule;
 			return this;
 		}
+		public IDelete<T1> AsType(Type entityType) {
+			if (entityType == typeof(object)) throw new Exception("IDelete.AsType 参数不支持指定为 object");
+			if (entityType == _table.Type) return this;
+			var newtb = _commonUtils.GetTableByEntity(entityType);
+			_table = newtb ?? throw new Exception("IDelete.AsType 参数错误，请传入正确的实体类型");
+			if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(entityType);
+			return this;
+		}
+
 		public string ToSql() => _whereTimes <= 0 ? null : new StringBuilder().Append("DELETE FROM ").Append(_commonUtils.QuoteSqlName(_tableRule?.Invoke(_table.DbName) ?? _table.DbName)).Append(" WHERE ").Append(_where).ToString();
 	}
 }

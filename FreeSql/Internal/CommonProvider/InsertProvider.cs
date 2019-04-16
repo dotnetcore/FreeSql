@@ -30,7 +30,7 @@ namespace FreeSql.Internal.CommonProvider {
 			_commonExpression = commonExpression;
 			_table = _commonUtils.GetTableByEntity(typeof(T1));
 			_noneParameter = _orm.CodeFirst.IsNoneCommandParameter;
-			if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure<T1>();
+			if (_orm.CodeFirst.IsAutoSyncStructure && typeof(T1) != typeof(object)) _orm.CodeFirst.SyncStructure<T1>();
 		}
 
 		protected void ClearData() {
@@ -356,6 +356,15 @@ namespace FreeSql.Internal.CommonProvider {
 			_tableRule = tableRule;
 			return this;
 		}
+		public IInsert<T1> AsType(Type entityType) {
+			if (entityType == typeof(object)) throw new Exception("IInsert.AsType 参数不支持指定为 object");
+			if (entityType == _table.Type) return this;
+			var newtb = _commonUtils.GetTableByEntity(entityType);
+			_table = newtb ?? throw new Exception("IInsert.AsType 参数错误，请传入正确的实体类型");
+			if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(entityType);
+			return this;
+		}
+
 		public virtual string ToSql() {
 			if (_source == null || _source.Any() == false) return null;
 			var sb = new StringBuilder();

@@ -35,7 +35,7 @@ namespace FreeSql.Internal.CommonProvider {
 			_table = _commonUtils.GetTableByEntity(typeof(T1));
 			_noneParameter = _orm.CodeFirst.IsNoneCommandParameter;
 			this.Where(_commonUtils.WhereObject(_table, "", dywhere));
-			if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure<T1>();
+			if (_orm.CodeFirst.IsAutoSyncStructure && typeof(T1) != typeof(object)) _orm.CodeFirst.SyncStructure<T1>();
 		}
 
 		protected void ClearData() {
@@ -69,7 +69,7 @@ namespace FreeSql.Internal.CommonProvider {
 				if (affrows != _source.Count)
 					throw new Exception($"记录可能不存在，或者【行级乐观锁】版本过旧，更新数量{_source.Count}，影响的行数{affrows}。");
 				foreach (var d in _source)
-					_orm.SetEntityIncrByWithPropertyName(d, _table.VersionColumn.CsName, 1);
+					_orm.SetEntityIncrByWithPropertyName(_table.Type, d, _table.VersionColumn.CsName, 1);
 			}
 		}
 
@@ -347,6 +347,7 @@ namespace FreeSql.Internal.CommonProvider {
 		public IUpdate<T1> Where(T1 item) => this.Where(new[] { item });
 		public IUpdate<T1> Where(IEnumerable<T1> items) => this.Where(_commonUtils.WhereItems(_table, "", items));
 		public IUpdate<T1> WhereExists<TEntity2>(ISelect<TEntity2> select, bool notExists = false) where TEntity2 : class => this.Where($"{(notExists ? "NOT " : "")}EXISTS({select.ToSql("1")})");
+		public IUpdate<T1> WhereDynamic(object dywhere) => this.Where(_commonUtils.WhereObject(_table, "", dywhere));
 
 		protected string WhereCaseSource(string CsName, Func<string, string> thenValue) {
 			if (_source.Any() == false) return null;
@@ -401,6 +402,15 @@ namespace FreeSql.Internal.CommonProvider {
 			_tableRule = tableRule;
 			return this;
 		}
+		public IUpdate<T1> AsType(Type entityType) {
+			if (entityType == typeof(object)) throw new Exception("IUpdate.AsType 参数不支持指定为 object");
+			if (entityType == _table.Type) return this;
+			var newtb = _commonUtils.GetTableByEntity(entityType);
+			_table = newtb ?? throw new Exception("IUpdate.AsType 参数错误，请传入正确的实体类型");
+			if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(entityType);
+			return this;
+		}
+
 		public string ToSql() {
 			if (_where.Length == 0 && _source.Any() == false) return null;
 

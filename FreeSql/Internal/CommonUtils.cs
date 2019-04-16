@@ -91,7 +91,7 @@ namespace FreeSql.Internal {
 			var primarys = table.Columns.Values.Where(a => a.Attribute.IsPrimary == true).ToArray();
 			if (primarys.Length == 1 && (type == primarys.First().CsType || type.IsNumberType() && primarys.First().CsType.IsNumberType())) {
 				return $"{aliasAndDot}{this.QuoteSqlName(primarys.First().Attribute.Name)} = {this.FormatSql("{0}", dywhere)}";
-			} else if (primarys.Length > 0 && type.FullName == table.Type.FullName) {
+			} else if (primarys.Length > 0 && (type == table.Type || type.BaseType == table.Type)) {
 				var sb = new StringBuilder();
 				var pkidx = 0;
 				foreach (var pk in primarys) {

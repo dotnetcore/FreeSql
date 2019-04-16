@@ -259,6 +259,12 @@ namespace FreeSql {
 		/// <param name="exp">lambda表达式</param>
 		/// <returns></returns>
 		ISelect<T1> Where<T2, T3, T4, T5>(Expression<Func<T1, T2, T3, T4, T5, bool>> exp) where T2 : class where T3 : class where T4 : class where T5 : class;
+		/// <summary>
+		/// 传入动态对象如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
+		/// </summary>
+		/// <param name="dywhere">主键值、主键值集合、实体、实体集合、匿名对象、匿名对象集合</param>
+		/// <returns></returns>
+		ISelect<T1> WhereDynamic(object dywhere);
 
 		/// <summary>
 		/// 按选择的列分组，GroupBy(a => a.Name) | GroupBy(a => new{a.Name,a.Time})

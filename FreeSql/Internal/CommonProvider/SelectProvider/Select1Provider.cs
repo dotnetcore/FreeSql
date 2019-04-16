@@ -218,6 +218,7 @@ namespace FreeSql.Internal.CommonProvider {
 			_tables[0].Parameter = exp.Parameters[0];
 			return this.InternalWhere(exp?.Body);
 		}
+		public ISelect<T1> WhereDynamic(object dywhere) => this.Where(_commonUtils.WhereObject(_tables.First().Table, $"{_tables.First().Alias}.", dywhere));
 
 		public ISelect<T1> WhereIf(bool condition, Expression<Func<T1, bool>> exp) {
 			if (condition == false) return this;
