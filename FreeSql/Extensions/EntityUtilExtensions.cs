@@ -23,7 +23,7 @@ namespace FreeSql.Extensions.EntityUtil {
 		/// <param name="_table"></param>
 		/// <param name="entity"></param>
 		/// <returns></returns>
-		public static void GetEntityKeyString<TEntity>(this IFreeSql orm, TEntity entity, string splitString = "*|_,[,_|*") =>
+		public static string GetEntityKeyString<TEntity>(this IFreeSql orm, TEntity entity, string splitString = "*|_,[,_|*") =>
 			GetEntityKeyString(orm, typeof(TEntity), entity, splitString);
 		public static string GetEntityKeyString(this IFreeSql orm, Type entityType, object entity, string splitString = "*|_,[,_|*") {
 			if (entity == null) return null;
@@ -110,7 +110,7 @@ namespace FreeSql.Extensions.EntityUtil {
 		/// <param name="_table"></param>
 		/// <param name="entity"></param>
 		/// <returns></returns>
-		public static void GetEntityKeyValues<TEntity>(this IFreeSql orm, TEntity entity) =>
+		public static object[] GetEntityKeyValues<TEntity>(this IFreeSql orm, TEntity entity) =>
 			GetEntityKeyValues(orm, typeof(TEntity), entity);
 		public static object[] GetEntityKeyValues(this IFreeSql orm, Type entityType, object entity) {
 			if (entity == null) return null;
@@ -150,7 +150,7 @@ namespace FreeSql.Extensions.EntityUtil {
 		/// <param name="_table"></param>
 		/// <param name="entity"></param>
 		/// <returns></returns>
-		public static void GetEntityString<TEntity>(this IFreeSql orm, TEntity entity) =>
+		public static string GetEntityString<TEntity>(this IFreeSql orm, TEntity entity) =>
 			GetEntityString(orm, typeof(TEntity), entity);
 		public static string GetEntityString(this IFreeSql orm, Type entityType, object entity) {
 			if (entity == null) return null;
@@ -305,7 +305,7 @@ namespace FreeSql.Extensions.EntityUtil {
 		/// <typeparam name="TEntity"></typeparam>
 		/// <param name="orm"></param>
 		/// <param name="entity"></param>
-		public static void GetEntityIdentityValueWithPrimary<TEntity>(this IFreeSql orm, TEntity entity) =>
+		public static long GetEntityIdentityValueWithPrimary<TEntity>(this IFreeSql orm, TEntity entity) =>
 			GetEntityIdentityValueWithPrimary(orm, typeof(TEntity), entity);
 		public static long GetEntityIdentityValueWithPrimary(this IFreeSql orm, Type entityType, object entity) {
 			if (entity == null) return 0;
@@ -426,7 +426,7 @@ namespace FreeSql.Extensions.EntityUtil {
 		/// <param name="entity1"></param>
 		/// <param name="entity2"></param>
 		/// <returns></returns>
-		public static void CompareEntityValueReturnColumns<TEntity>(this IFreeSql orm, TEntity entity1, TEntity entity2, bool isEqual) =>
+		public static string[] CompareEntityValueReturnColumns<TEntity>(this IFreeSql orm, TEntity entity1, TEntity entity2, bool isEqual) =>
 			CompareEntityValueReturnColumns(orm, typeof(TEntity), entity1, entity2, isEqual);
 		public static string[] CompareEntityValueReturnColumns(this IFreeSql orm, Type entityType, object entity1, object entity2, bool isEqual) {
 			if (entityType == null) entityType = entity1?.GetType() ?? entity2?.GetType();
