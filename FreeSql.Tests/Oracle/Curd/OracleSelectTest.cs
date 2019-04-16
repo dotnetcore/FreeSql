@@ -130,7 +130,8 @@ namespace FreeSql.Tests.Oracle {
 		}
 		class TestDto {
 			public int id { get; set; }
-			public string name { get; set; }
+			public string name { get; set; } //这是join表的属性
+			public int ParentId { get; set; } //这是join表的属性
 		}
 		[Fact]
 		public void ToList() {
@@ -139,6 +140,11 @@ namespace FreeSql.Tests.Oracle {
 			var testDto2 = select.Limit(10).ToList(a => new TestDto());
 			var testDto3 = select.Limit(10).ToList(a => new TestDto { });
 			var testDto4 = select.Limit(10).ToList(a => new TestDto() { });
+
+			var testDto11 = select.LeftJoin(a => a.Type.Guid == a.TypeGuid).Limit(10).ToList(a => new TestDto { id = a.Id, name = a.Title });
+			var testDto22 = select.LeftJoin(a => a.Type.Guid == a.TypeGuid).Limit(10).ToList(a => new TestDto());
+			var testDto33 = select.LeftJoin(a => a.Type.Guid == a.TypeGuid).Limit(10).ToList(a => new TestDto { });
+			var testDto44 = select.LeftJoin(a => a.Type.Guid == a.TypeGuid).Limit(10).ToList(a => new TestDto() { });
 
 			g.oracle.Insert<TestGuidIdToList>().AppendData(new TestGuidIdToList()).ExecuteAffrows();
 			var testGuidId5 = g.oracle.Select<TestGuidIdToList>().ToList();
@@ -199,14 +205,20 @@ namespace FreeSql.Tests.Oracle {
 		}
 		[Fact]
 		public void From() {
-			//�������
-			var query2 = select.From<TestTypeInfo, TestTypeParentInfo>((s, b, c) => s
+			var query2 = select.From<TestTypeInfo>((s, b) => s
+				 .LeftJoin(a => a.TypeGuid == b.Guid)
+				);
+			var sql2 = query2.ToSql().Replace("\r\n", "");
+			Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", b.\"GUID\", b.\"PARENTID\", b.\"NAME\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a LEFT JOIN \"TESTTYPEINFO\" b ON a.\"TYPEGUID\" = b.\"GUID\"", sql2);
+			query2.ToList();
+
+			var query3 = select.From<TestTypeInfo, TestTypeParentInfo>((s, b, c) => s
 				 .LeftJoin(a => a.TypeGuid == b.Guid)
 				 .LeftJoin(a => b.ParentId == c.Id)
 				);
-			var sql = query2.ToSql().Replace("\r\n", "");
-			Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", b.\"GUID\", b.\"PARENTID\", b.\"NAME\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a LEFT JOIN \"TESTTYPEINFO\" b ON a.\"TYPEGUID\" = b.\"GUID\" LEFT JOIN \"TESTTYPEPARENTINFO\" c ON b.\"PARENTID\" = c.\"ID\"", sql);
-			query2.ToList();
+			var sql3 = query3.ToSql().Replace("\r\n", "");
+			Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", b.\"GUID\", b.\"PARENTID\", b.\"NAME\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a LEFT JOIN \"TESTTYPEINFO\" b ON a.\"TYPEGUID\" = b.\"GUID\" LEFT JOIN \"TESTTYPEPARENTINFO\" c ON b.\"PARENTID\" = c.\"ID\"", sql3);
+			query3.ToList();
 		}
 		[Fact]
 		public void LeftJoin() {

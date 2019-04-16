@@ -21,10 +21,14 @@ namespace FreeSql.Extensions.EntityUtil {
 		/// </summary>
 		/// <typeparam name="TEntity"></typeparam>
 		/// <param name="_table"></param>
-		/// <param name="item"></param>
+		/// <param name="entity"></param>
 		/// <returns></returns>
-		public static string GetEntityKeyString<TEntity>(this IFreeSql orm, TEntity item, string splitString = "*|_,[,_|*") {
-			var func = _dicGetEntityKeyString.GetOrAdd(orm.Ado.DataType, dt => new ConcurrentDictionary<Type, Func<object, string>>()).GetOrAdd(typeof(TEntity), t => {
+		public static void GetEntityKeyString<TEntity>(this IFreeSql orm, TEntity entity, string splitString = "*|_,[,_|*") =>
+			GetEntityKeyString(orm, typeof(TEntity), entity, splitString);
+		public static string GetEntityKeyString(this IFreeSql orm, Type entityType, object entity, string splitString = "*|_,[,_|*") {
+			if (entity == null) return null;
+			if (entityType == null) entityType = entity.GetType();
+			var func = _dicGetEntityKeyString.GetOrAdd(orm.Ado.DataType, dt => new ConcurrentDictionary<Type, Func<object, string>>()).GetOrAdd(entityType, t => {
 				var _table = orm.CodeFirst.GetTableByEntity(t);
 				var pks = _table.Primarys;
 				var returnTarget = Expression.Label(typeof(string));
@@ -96,7 +100,7 @@ namespace FreeSql.Extensions.EntityUtil {
 				exps.Add(Expression.Label(returnTarget, Expression.Default(typeof(string))));
 				return Expression.Lambda<Func<object, string>>(Expression.Block(new[] { var1Parm, var2Sb, var3IsNull }, exps), new[] { parm1 }).Compile();
 			});
-			return func(item);
+			return func(entity);
 		}
 		static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Func<object, object[]>>> _dicGetEntityKeyValues = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Func<object, object[]>>>();
 		/// <summary>
@@ -104,10 +108,14 @@ namespace FreeSql.Extensions.EntityUtil {
 		/// </summary>
 		/// <typeparam name="TEntity"></typeparam>
 		/// <param name="_table"></param>
-		/// <param name="item"></param>
+		/// <param name="entity"></param>
 		/// <returns></returns>
-		public static object[] GetEntityKeyValues<TEntity>(this IFreeSql orm, TEntity item) {
-			var func = _dicGetEntityKeyValues.GetOrAdd(orm.Ado.DataType, dt => new ConcurrentDictionary<Type, Func<object, object[]>>()).GetOrAdd(typeof(TEntity), t => {
+		public static void GetEntityKeyValues<TEntity>(this IFreeSql orm, TEntity entity) =>
+			GetEntityKeyValues(orm, typeof(TEntity), entity);
+		public static object[] GetEntityKeyValues(this IFreeSql orm, Type entityType, object entity) {
+			if (entity == null) return null;
+			if (entityType == null) entityType = entity.GetType();
+			var func = _dicGetEntityKeyValues.GetOrAdd(orm.Ado.DataType, dt => new ConcurrentDictionary<Type, Func<object, object[]>>()).GetOrAdd(entityType, t => {
 				var _table = orm.CodeFirst.GetTableByEntity(t);
 				var pks = _table.Primarys;
 				var returnTarget = Expression.Label(typeof(object[]));
@@ -132,7 +140,7 @@ namespace FreeSql.Extensions.EntityUtil {
 				});
 				return Expression.Lambda<Func<object, object[]>>(Expression.Block(new[] { var1Parm, var2Ret }, exps), new[] { parm1 }).Compile();
 			});
-			return func(item);
+			return func(entity);
 		}
 		static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Func<object, string>>> _dicGetEntityString = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Func<object, string>>>();
 		/// <summary>
@@ -140,10 +148,14 @@ namespace FreeSql.Extensions.EntityUtil {
 		/// </summary>
 		/// <typeparam name="TEntity"></typeparam>
 		/// <param name="_table"></param>
-		/// <param name="item"></param>
+		/// <param name="entity"></param>
 		/// <returns></returns>
-		public static string GetEntityString<TEntity>(this IFreeSql orm, TEntity item) {
-			var func = _dicGetEntityString.GetOrAdd(orm.Ado.DataType, dt => new ConcurrentDictionary<Type, Func<object, string>>()).GetOrAdd(typeof(TEntity), t => {
+		public static void GetEntityString<TEntity>(this IFreeSql orm, TEntity entity) =>
+			GetEntityString(orm, typeof(TEntity), entity);
+		public static string GetEntityString(this IFreeSql orm, Type entityType, object entity) {
+			if (entity == null) return null;
+			if (entityType == null) entityType = entity.GetType();
+			var func = _dicGetEntityString.GetOrAdd(orm.Ado.DataType, dt => new ConcurrentDictionary<Type, Func<object, string>>()).GetOrAdd(entityType, t => {
 				var _table = orm.CodeFirst.GetTableByEntity(t);
 				var cols = _table.Columns;
 				var returnTarget = Expression.Label(typeof(string));
@@ -176,15 +188,18 @@ namespace FreeSql.Extensions.EntityUtil {
 				});
 				return Expression.Lambda<Func<object, string>>(Expression.Block(new[] { var1Parm, var2Sb }, exps), new[] { parm1 }).Compile();
 			});
-			return func(item);
+			return func(entity);
 		}
 
 		/// <summary>
 		/// 使用新实体的值，复盖旧实体的值
 		/// </summary>
 		static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object, object>>> _dicMapEntityValue = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object, object>>>();
-		public static void MapEntityValue<TEntity>(this IFreeSql orm, TEntity from, TEntity to) {
-			var func = _dicMapEntityValue.GetOrAdd(orm.Ado.DataType, dt => new ConcurrentDictionary<Type, Action<object, object>>()).GetOrAdd(typeof(TEntity), t => {
+		public static void MapEntityValue<TEntity>(this IFreeSql orm, TEntity entityFrom, TEntity entityTo) =>
+			MapEntityValue(orm, typeof(TEntity), entityFrom, entityTo);
+		public static void MapEntityValue(this IFreeSql orm, Type entityType, object entityFrom, object entityTo) {
+			if (entityType == null) entityType = entityFrom?.GetType() ?? entityTo?.GetType();
+			var func = _dicMapEntityValue.GetOrAdd(orm.Ado.DataType, dt => new ConcurrentDictionary<Type, Action<object, object>>()).GetOrAdd(entityType, t => {
 				var _table = orm.CodeFirst.GetTableByEntity(t);
 				var parm1 = Expression.Parameter(typeof(object));
 				var parm2 = Expression.Parameter(typeof(object));
@@ -213,15 +228,18 @@ namespace FreeSql.Extensions.EntityUtil {
 				}
 				return Expression.Lambda<Action<object, object>>(Expression.Block(new[] { var1Parm, var2Parm }, exps), new[] { parm1, parm2 }).Compile();
 			});
-			func(from, to);
+			func(entityFrom, entityTo);
 		}
 
 		static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object, object>>> _dicMapEntityKeyValue = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object, object>>>();
 		/// <summary>
 		/// 使用新实体的主键值，复盖旧实体的主键值
 		/// </summary>
-		public static void MapEntityKeyValue<TEntity>(this IFreeSql orm, TEntity from, TEntity to) {
-			var func = _dicMapEntityKeyValue.GetOrAdd(orm.Ado.DataType, dt => new ConcurrentDictionary<Type, Action<object, object>>()).GetOrAdd(typeof(TEntity), t => {
+		public static void MapEntityKeyValue<TEntity>(this IFreeSql orm, TEntity entityFrom, TEntity entityTo) =>
+			MapEntityKeyValue(orm, typeof(TEntity), entityFrom, entityTo);
+		public static void MapEntityKeyValue(this IFreeSql orm, Type entityType, object entityFrom, object entityTo) {
+			if (entityType == null) entityType = entityFrom?.GetType() ?? entityTo?.GetType();
+			var func = _dicMapEntityKeyValue.GetOrAdd(orm.Ado.DataType, dt => new ConcurrentDictionary<Type, Action<object, object>>()).GetOrAdd(entityType, t => {
 				var _table = orm.CodeFirst.GetTableByEntity(t);
 				var pks = _table.Primarys;
 				var parm1 = Expression.Parameter(typeof(object));
@@ -242,7 +260,7 @@ namespace FreeSql.Extensions.EntityUtil {
 				}
 				return Expression.Lambda<Action<object, object>>(Expression.Block(new[] { var1Parm, var2Parm }, exps), new[] { parm1, parm2 }).Compile();
 			});
-			func(from, to);
+			func(entityFrom, entityTo);
 		}
 
 		static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object, long>>> _dicSetEntityIdentityValueWithPrimary = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object, long>>>();
@@ -251,10 +269,14 @@ namespace FreeSql.Extensions.EntityUtil {
 		/// </summary>
 		/// <typeparam name="TEntity"></typeparam>
 		/// <param name="orm"></param>
-		/// <param name="item"></param>
+		/// <param name="entity"></param>
 		/// <param name="idtval"></param>
-		public static void SetEntityIdentityValueWithPrimary<TEntity>(this IFreeSql orm, TEntity item, long idtval) {
-			var func = _dicSetEntityIdentityValueWithPrimary.GetOrAdd(orm.Ado.DataType, dt => new ConcurrentDictionary<Type, Action<object, long>>()).GetOrAdd(typeof(TEntity), t => {
+		public static void SetEntityIdentityValueWithPrimary<TEntity>(this IFreeSql orm, TEntity entity, long idtval) =>
+			SetEntityIdentityValueWithPrimary(orm, typeof(TEntity), entity, idtval);
+		public static void SetEntityIdentityValueWithPrimary(this IFreeSql orm, Type entityType, object entity, long idtval) {
+			if (entity == null) return;
+			if (entityType == null) entityType = entity.GetType();
+			var func = _dicSetEntityIdentityValueWithPrimary.GetOrAdd(orm.Ado.DataType, dt => new ConcurrentDictionary<Type, Action<object, long>>()).GetOrAdd(entityType, t => {
 				var _table = orm.CodeFirst.GetTableByEntity(t);
 				var identitys = _table.Primarys.Where(a => a.Attribute.IsIdentity);
 				var parm1 = Expression.Parameter(typeof(object));
@@ -274,7 +296,7 @@ namespace FreeSql.Extensions.EntityUtil {
 				}
 				return Expression.Lambda<Action<object, long>>(Expression.Block(new[] { var1Parm }, exps), new[] { parm1, parm2 }).Compile();
 			});
-			func(item, idtval);
+			func(entity, idtval);
 		}
 		static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Func<object, long>>> _dicGetEntityIdentityValueWithPrimary = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Func<object, long>>>();
 		/// <summary>
@@ -282,9 +304,13 @@ namespace FreeSql.Extensions.EntityUtil {
 		/// </summary>
 		/// <typeparam name="TEntity"></typeparam>
 		/// <param name="orm"></param>
-		/// <param name="item"></param>
-		public static long GetEntityIdentityValueWithPrimary<TEntity>(this IFreeSql orm, TEntity item) {
-			var func = _dicGetEntityIdentityValueWithPrimary.GetOrAdd(orm.Ado.DataType, dt => new ConcurrentDictionary<Type, Func<object, long>>()).GetOrAdd(typeof(TEntity), t => {
+		/// <param name="entity"></param>
+		public static void GetEntityIdentityValueWithPrimary<TEntity>(this IFreeSql orm, TEntity entity) =>
+			GetEntityIdentityValueWithPrimary(orm, typeof(TEntity), entity);
+		public static long GetEntityIdentityValueWithPrimary(this IFreeSql orm, Type entityType, object entity) {
+			if (entity == null) return 0;
+			if (entityType == null) entityType = entity.GetType();
+			var func = _dicGetEntityIdentityValueWithPrimary.GetOrAdd(orm.Ado.DataType, dt => new ConcurrentDictionary<Type, Func<object, long>>()).GetOrAdd(entityType, t => {
 				var _table = orm.CodeFirst.GetTableByEntity(t);
 				var identitys = _table.Primarys.Where(a => a.Attribute.IsIdentity);
 				var returnTarget = Expression.Label(typeof(long));
@@ -317,7 +343,7 @@ namespace FreeSql.Extensions.EntityUtil {
 				exps.Add(Expression.Label(returnTarget, Expression.Default(typeof(long))));
 				return Expression.Lambda<Func<object, long>>(Expression.Block(new[] { var1Parm }, exps), new[] { parm1 }).Compile();
 			});
-			return func(item);
+			return func(entity);
 		}
 
 		static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object>>> _dicClearEntityPrimaryValueWithIdentityAndGuid = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object>>>();
@@ -326,9 +352,13 @@ namespace FreeSql.Extensions.EntityUtil {
 		/// </summary>
 		/// <typeparam name="TEntity"></typeparam>
 		/// <param name="orm"></param>
-		/// <param name="item"></param>
-		public static void ClearEntityPrimaryValueWithIdentityAndGuid<TEntity>(this IFreeSql orm, TEntity item) {
-			var func = _dicClearEntityPrimaryValueWithIdentityAndGuid.GetOrAdd(orm.Ado.DataType, dt => new ConcurrentDictionary<Type, Action<object>>()).GetOrAdd(typeof(TEntity), t => {
+		/// <param name="entity"></param>
+		public static void ClearEntityPrimaryValueWithIdentityAndGuid<TEntity>(this IFreeSql orm, TEntity entity) =>
+			ClearEntityPrimaryValueWithIdentityAndGuid(orm, typeof(TEntity), entity);
+		public static void ClearEntityPrimaryValueWithIdentityAndGuid(this IFreeSql orm, Type entityType, object entity) {
+			if (entity == null) return;
+			if (entityType == null) entityType = entity.GetType();
+			var func = _dicClearEntityPrimaryValueWithIdentityAndGuid.GetOrAdd(orm.Ado.DataType, dt => new ConcurrentDictionary<Type, Action<object>>()).GetOrAdd(entityType, t => {
 				var _table = orm.CodeFirst.GetTableByEntity(t);
 				var identitys = _table.Primarys.Where(a => a.Attribute.IsIdentity);
 				var parm1 = Expression.Parameter(typeof(object));
@@ -349,7 +379,7 @@ namespace FreeSql.Extensions.EntityUtil {
 				}
 				return Expression.Lambda<Action<object>>(Expression.Block(new[] { var1Parm }, exps), new[] { parm1 }).Compile();
 			});
-			func(item);
+			func(entity);
 		}
 
 		static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object>>> _dicClearEntityPrimaryValueWithIdentity = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object>>>();
@@ -358,9 +388,13 @@ namespace FreeSql.Extensions.EntityUtil {
 		/// </summary>
 		/// <typeparam name="TEntity"></typeparam>
 		/// <param name="orm"></param>
-		/// <param name="item"></param>
-		public static void ClearEntityPrimaryValueWithIdentity<TEntity>(this IFreeSql orm, TEntity item) {
-			var func = _dicClearEntityPrimaryValueWithIdentity.GetOrAdd(orm.Ado.DataType, dt => new ConcurrentDictionary<Type, Action<object>>()).GetOrAdd(typeof(TEntity), t => {
+		/// <param name="entity"></param>
+		public static void ClearEntityPrimaryValueWithIdentity<TEntity>(this IFreeSql orm, TEntity entity) =>
+			ClearEntityPrimaryValueWithIdentity(orm, typeof(TEntity), entity);
+		public static void ClearEntityPrimaryValueWithIdentity(this IFreeSql orm, Type entityType, object entity) {
+			if (entity == null) return;
+			if (entityType == null) entityType = entity.GetType();
+			var func = _dicClearEntityPrimaryValueWithIdentity.GetOrAdd(orm.Ado.DataType, dt => new ConcurrentDictionary<Type, Action<object>>()).GetOrAdd(entityType, t => {
 				var _table = orm.CodeFirst.GetTableByEntity(t);
 				var identitys = _table.Primarys.Where(a => a.Attribute.IsIdentity);
 				var parm1 = Expression.Parameter(typeof(object));
@@ -380,7 +414,7 @@ namespace FreeSql.Extensions.EntityUtil {
 				}
 				return Expression.Lambda<Action<object>>(Expression.Block(new[] { var1Parm }, exps), new[] { parm1 }).Compile();
 			});
-			func(item);
+			func(entity);
 		}
 
 		static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Func<object, object, bool, string[]>>> _dicCompareEntityValueReturnColumns = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Func<object, object, bool, string[]>>>();
@@ -389,11 +423,14 @@ namespace FreeSql.Extensions.EntityUtil {
 		/// </summary>
 		/// <typeparam name="TEntity"></typeparam>
 		/// <param name="orm"></param>
-		/// <param name="up"></param>
-		/// <param name="oldval"></param>
+		/// <param name="entity1"></param>
+		/// <param name="entity2"></param>
 		/// <returns></returns>
-		public static string[] CompareEntityValueReturnColumns<TEntity>(this IFreeSql orm, TEntity up, TEntity oldval, bool isEqual) {
-			var func = _dicCompareEntityValueReturnColumns.GetOrAdd(orm.Ado.DataType, dt => new ConcurrentDictionary<Type, Func<object, object, bool, string[]>>()).GetOrAdd(typeof(TEntity), t => {
+		public static void CompareEntityValueReturnColumns<TEntity>(this IFreeSql orm, TEntity entity1, TEntity entity2, bool isEqual) =>
+			CompareEntityValueReturnColumns(orm, typeof(TEntity), entity1, entity2, isEqual);
+		public static string[] CompareEntityValueReturnColumns(this IFreeSql orm, Type entityType, object entity1, object entity2, bool isEqual) {
+			if (entityType == null) entityType = entity1?.GetType() ?? entity2?.GetType();
+			var func = _dicCompareEntityValueReturnColumns.GetOrAdd(orm.Ado.DataType, dt => new ConcurrentDictionary<Type, Func<object, object, bool, string[]>>()).GetOrAdd(entityType, t => {
 				var _table = orm.CodeFirst.GetTableByEntity(t);
 				var returnTarget = Expression.Label(typeof(string[]));
 				var parm1 = Expression.Parameter(typeof(object));
@@ -432,7 +469,7 @@ namespace FreeSql.Extensions.EntityUtil {
 				exps.Add(Expression.Label(returnTarget, Expression.Constant(new string[0])));
 				return Expression.Lambda<Func<object, object, bool, string[]>>(Expression.Block(new[] { var1Ret, var1Parm, var2Parm }, exps), new[] { parm1, parm2, parm3 }).Compile();
 			});
-			return func(up, oldval, isEqual);
+			return func(entity1, entity2, isEqual);
 		}
 
 		static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object, string, int>>> _dicSetEntityIncrByWithPropertyName = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object, string, int>>>();
@@ -441,10 +478,15 @@ namespace FreeSql.Extensions.EntityUtil {
 		/// </summary>
 		/// <typeparam name="TEntity"></typeparam>
 		/// <param name="orm"></param>
-		/// <param name="item"></param>
-		/// <param name="idtval"></param>
-		public static void SetEntityIncrByWithPropertyName<TEntity>(this IFreeSql orm, TEntity item, string propertyName, int incrBy) {
-			var func = _dicSetEntityIncrByWithPropertyName.GetOrAdd(orm.Ado.DataType, dt => new ConcurrentDictionary<Type, Action<object, string, int>>()).GetOrAdd(typeof(TEntity), t => {
+		/// <param name="entity"></param>
+		/// <param name="propertyName"></param>
+		/// <param name="value"></param>
+		public static void SetEntityIncrByWithPropertyName<TEntity>(this IFreeSql orm, TEntity entity, string propertyName, int incrBy) =>
+			SetEntityIncrByWithPropertyName(orm, typeof(TEntity), entity, propertyName, incrBy);
+		public static void SetEntityIncrByWithPropertyName(this IFreeSql orm, Type entityType, object entity, string propertyName, int incrBy) {
+			if (entity == null) return;
+			if (entityType == null) entityType = entity.GetType();
+			var func = _dicSetEntityIncrByWithPropertyName.GetOrAdd(orm.Ado.DataType, dt => new ConcurrentDictionary<Type, Action<object, string, int>>()).GetOrAdd(entityType, t => {
 				var _table = orm.CodeFirst.GetTableByEntity(t);
 				var parm1 = Expression.Parameter(typeof(object));
 				var parm2 = Expression.Parameter(typeof(string));
@@ -470,7 +512,53 @@ namespace FreeSql.Extensions.EntityUtil {
 				}
 				return Expression.Lambda<Action<object, string, int>>(Expression.Block(new[] { var1Parm }, exps), new[] { parm1, parm2, parm3 }).Compile();
 			});
-			func(item, propertyName, incrBy);
+			func(entity, propertyName, incrBy);
+		}
+
+		static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, ConcurrentDictionary<string, Action<object, string, object>>>> _dicSetEntityValueWithPropertyName = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, ConcurrentDictionary<string, Action<object, string, object>>>>();
+		/// <summary>
+		/// 设置实体中某属性的值
+		/// </summary>
+		/// <typeparam name="TEntity"></typeparam>
+		/// <param name="orm"></param>
+		/// <param name="entity"></param>
+		/// <param name="propertyName"></param>
+		/// <param name="value"></param>
+		public static void SetEntityValueWithPropertyName<TEntity>(this IFreeSql orm, TEntity entity, string propertyName, object value) =>
+			SetEntityValueWithPropertyName(orm, typeof(TEntity), entity, propertyName, value);
+		public static void SetEntityValueWithPropertyName(this IFreeSql orm, Type entityType, object entity, string propertyName, object value) {
+			if (entity == null) return;
+			if (entityType == null) entityType = entity.GetType();
+			var func = _dicSetEntityValueWithPropertyName.GetOrAdd(orm.Ado.DataType, dt => new ConcurrentDictionary<Type, ConcurrentDictionary<string, Action<object, string, object>>>())
+				.GetOrAdd(entityType, et => new ConcurrentDictionary<string, Action<object, string, object>>())
+				.GetOrAdd(propertyName, pn => {
+					var t = entityType;
+					var _table = orm.CodeFirst.GetTableByEntity(t);
+					var parm1 = Expression.Parameter(typeof(object));
+					var parm2 = Expression.Parameter(typeof(string));
+					var parm3 = Expression.Parameter(typeof(object));
+					var var1Parm = Expression.Variable(t);
+					var exps = new List<Expression>(new Expression[] {
+						Expression.Assign(var1Parm, Expression.TypeAs(parm1, t))
+					});
+					if (_table.Properties.ContainsKey(pn)) {
+						var prop = _table.Properties[pn];
+						exps.Add(
+							Expression.Assign(
+								Expression.MakeMemberAccess(var1Parm, prop),
+								Expression.Add(
+									Expression.MakeMemberAccess(var1Parm, prop),
+									Expression.Convert(
+										FreeSql.Internal.Utils.GetDataReaderValueBlockExpression(prop.PropertyType, parm3),
+										prop.PropertyType
+									)
+								)
+							)
+						);
+					}
+					return Expression.Lambda<Action<object, string, object>>(Expression.Block(new[] { var1Parm }, exps), new[] { parm1, parm2, parm3 }).Compile();
+				});
+			func(entity, propertyName, value);
 		}
 
 		static ConcurrentDictionary<Type, MethodInfo[]> _dicAppendEntityUpdateSetWithColumnMethods = new ConcurrentDictionary<Type, MethodInfo[]>();

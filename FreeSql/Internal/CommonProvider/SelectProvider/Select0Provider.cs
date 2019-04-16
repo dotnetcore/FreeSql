@@ -74,7 +74,7 @@ namespace FreeSql.Internal.CommonProvider {
 			_commonExpression = commonExpression;
 			_tables.Add(new SelectTableInfo { Table = _commonUtils.GetTableByEntity(typeof(T1)), Alias = "a", On = null, Type = SelectTableInfoType.From });
 			this.Where(_commonUtils.WhereObject(_tables.First().Table, "a.", dywhere));
-			if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure<T1>();
+			if (_orm.CodeFirst.IsAutoSyncStructure && typeof(T1) != typeof(object)) _orm.CodeFirst.SyncStructure<T1>();
 		}
 
 		public TSelect TrackToList(Action<object> track) {
@@ -517,6 +517,15 @@ namespace FreeSql.Internal.CommonProvider {
 
 		public TSelect AsTable(Func<Type, string, string> tableRule) {
 			if (tableRule != null) _tableRules.Add(tableRule);
+			return this as TSelect;
+		}
+		public TSelect AsType(Type entityType) {
+			if (entityType == typeof(object)) throw new Exception("ISelect.AsType 参数不支持指定为 object");
+			if (entityType == _tables[0].Table.Type) return this as TSelect;
+			var newtb = _commonUtils.GetTableByEntity(entityType);
+			if (newtb == null) throw new Exception("ISelect.AsType 参数错误，请传入正确的实体类型");
+			_tables[0].Table = newtb;
+			if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(entityType);
 			return this as TSelect;
 		}
 		public abstract string ToSql(string field = null);

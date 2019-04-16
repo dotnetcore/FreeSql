@@ -71,6 +71,12 @@ namespace FreeSql {
 		/// <returns></returns>
 		TSelect AsTable(Func<Type, string, string> tableRule);
 		/// <summary>
+		/// 动态Type，在使用 Select&lt;object&gt; 后使用本方法，指定实体类型
+		/// </summary>
+		/// <param name="entityType"></param>
+		/// <returns></returns>
+		TSelect AsType(Type entityType);
+		/// <summary>
 		/// 返回即将执行的SQL语句
 		/// </summary>
 		/// <param name="field">指定字段</param>

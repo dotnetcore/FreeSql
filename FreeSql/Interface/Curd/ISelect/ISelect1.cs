@@ -110,6 +110,13 @@ namespace FreeSql {
 		/// 多表查询
 		/// </summary>
 		/// <typeparam name="T2"></typeparam>
+		/// <param name="exp"></param>
+		/// <returns></returns>
+		ISelect<T1, T2> From<T2>(Expression<Func<ISelectFromExpression<T1>, T2, ISelectFromExpression<T1>>> exp) where T2 : class;
+		/// <summary>
+		/// 多表查询
+		/// </summary>
+		/// <typeparam name="T2"></typeparam>
 		/// <typeparam name="T3"></typeparam>
 		/// <param name="exp"></param>
 		/// <returns></returns>

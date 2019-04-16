@@ -74,7 +74,7 @@ namespace FreeSql.Tests {
 			//var dic = Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(testjson);
 			var reqs = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ServiceRequestNew>>(testjson);
 			reqs.ForEach(t => {
-					g.oracle.Insert(t).ExecuteAffrows();
+				g.oracle.Insert<ServiceRequestNew>(t).ExecuteAffrows();
 				
 			});
 

@@ -385,7 +385,7 @@ namespace FreeSql.Internal {
 						}
 
 						if (isLazy) {
-							cscode.Append("	public bool __lazy__").Append(pnv.Name).AppendLine(" = false;")
+							cscode.Append("	private bool __lazy__").Append(pnv.Name).AppendLine(" = false;")
 									.Append("	public override ").Append(propTypeName).Append(" ").Append(pnv.Name).AppendLine(" {");
 							if (vp.Item2) { //get 重写
 								cscode.Append("		get {\r\n")
@@ -460,7 +460,7 @@ namespace FreeSql.Internal {
 						}
 
 						if (isLazy) {
-							cscode.Append("	public bool __lazy__").Append(pnv.Name).AppendLine(" = false;")
+							cscode.Append("	private bool __lazy__").Append(pnv.Name).AppendLine(" = false;")
 								.Append("	public override ").Append(propTypeName).Append(" ").Append(pnv.Name).AppendLine(" {");
 							if (vp.Item2) { //get 重写
 								cscode.Append("		get {\r\n")
@@ -550,7 +550,7 @@ namespace FreeSql.Internal {
 					}
 
 					if (isLazy) {
-						cscode.Append("	public bool __lazy__").Append(pnv.Name).AppendLine(" = false;")
+						cscode.Append("	private bool __lazy__").Append(pnv.Name).AppendLine(" = false;")
 							.Append("	public override ").Append(propTypeName).Append(" ").Append(pnv.Name).AppendLine(" {");
 						if (vp.Item2) { //get 重写
 							cscode.Append("		get {\r\n")
@@ -1009,6 +1009,17 @@ namespace FreeSql.Internal {
 		static MethodInfo MethodJTokenParse = typeof(JToken).GetMethod("Parse", new[] { typeof(string) });
 		static MethodInfo MethodJObjectParse = typeof(JObject).GetMethod("Parse", new[] { typeof(string) });
 		static MethodInfo MethodJArrayParse = typeof(JArray).GetMethod("Parse", new[] { typeof(string) });
+		static MethodInfo MethodSByteTryParse = typeof(sbyte).GetMethod("TryParse", new[] { typeof(string), typeof(sbyte).MakeByRefType() });
+		static MethodInfo MethodShortTryParse = typeof(short).GetMethod("TryParse", new[] { typeof(string), typeof(short).MakeByRefType() });
+		static MethodInfo MethodIntTryParse = typeof(int).GetMethod("TryParse", new[] { typeof(string), typeof(int).MakeByRefType() });
+		static MethodInfo MethodLongTryParse = typeof(long).GetMethod("TryParse", new[] { typeof(string), typeof(long).MakeByRefType() });
+		static MethodInfo MethodByteTryParse = typeof(byte).GetMethod("TryParse", new[] { typeof(string), typeof(byte).MakeByRefType() });
+		static MethodInfo MethodUShortTryParse = typeof(ushort).GetMethod("TryParse", new[] { typeof(string), typeof(ushort).MakeByRefType() });
+		static MethodInfo MethodUIntTryParse = typeof(uint).GetMethod("TryParse", new[] { typeof(string), typeof(uint).MakeByRefType() });
+		static MethodInfo MethodULongTryParse = typeof(ulong).GetMethod("TryParse", new[] { typeof(string), typeof(ulong).MakeByRefType() });
+		static MethodInfo MethodDoubleTryParse = typeof(double).GetMethod("TryParse", new[] { typeof(string), typeof(double).MakeByRefType() });
+		static MethodInfo MethodFloatTryParse = typeof(float).GetMethod("TryParse", new[] { typeof(string), typeof(float).MakeByRefType() });
+		static MethodInfo MethodDecimalTryParse = typeof(decimal).GetMethod("TryParse", new[] { typeof(string), typeof(decimal).MakeByRefType() });
 		public static Expression GetDataReaderValueBlockExpression(Type type, Expression value) {
 			var returnTarget = Expression.Label(typeof(object));
 			var valueExp = Expression.Variable(typeof(object), "locvalue");
@@ -1024,7 +1035,7 @@ namespace FreeSql.Internal {
 					var label = Expression.Label(typeof(int));
 					return Expression.IfThenElse(
 						Expression.TypeEqual(valueExp, type),
-						Expression.Return(returnTarget, valueExp), 
+						Expression.Return(returnTarget, valueExp),
 						Expression.Block(
 							new[] { arrNewExp, arrExp, arrLenExp, arrXExp, arrReadValExp },
 							Expression.Assign(arrExp, Expression.TypeAs(valueExp, typeof(Array))),
@@ -1051,10 +1062,15 @@ namespace FreeSql.Internal {
 						)
 					);
 				}
+				var typeOrg = type;
 				if (type.IsNullableType()) type = type.GenericTypeArguments.First();
 				if (type.IsEnum) return Expression.Return(returnTarget, Expression.Call(MethodEnumParse, Expression.Constant(type, typeof(Type)), Expression.Call(MethodToString, valueExp), Expression.Constant(true, typeof(bool))));
-				switch(type.FullName) {
-					case "System.Guid": return Expression.IfThenElse(
+				Expression tryparseExp = null;
+				Expression tryparseBooleanExp = null;
+				ParameterExpression tryparseVarExp = null;
+				switch (type.FullName) {
+					case "System.Guid":
+						return Expression.IfThenElse(
 							Expression.TypeEqual(valueExp, type),
 							Expression.Return(returnTarget, valueExp),
 							Expression.Return(returnTarget, Expression.Convert(Expression.Call(MethodGuidParse, Expression.Convert(valueExp, typeof(string))), typeof(object)))
@@ -1069,22 +1085,190 @@ namespace FreeSql.Internal {
 					case "Newtonsoft.Json.Linq.JObject": return Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodJObjectParse, Expression.Convert(valueExp, typeof(string))), typeof(JObject)));
 					case "Newtonsoft.Json.Linq.JArray": return Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodJArrayParse, Expression.Convert(valueExp, typeof(string))), typeof(JArray)));
 					case "Npgsql.LegacyPostgis.PostgisGeometry": return Expression.Return(returnTarget, valueExp);
-					case "System.TimeSpan": return Expression.IfThenElse(
+					case "System.TimeSpan":
+						return Expression.IfThenElse(
 							Expression.TypeEqual(valueExp, type),
 							Expression.Return(returnTarget, valueExp),
 							Expression.Return(returnTarget, Expression.Convert(Expression.Call(MethodTimeSpanFromSeconds, Expression.Call(MethodDoubleParse, Expression.Call(MethodToString, valueExp))), typeof(object)))
 						);
+					case "System.SByte":
+						tryparseExp = Expression.Block(
+						   new[] { tryparseVarExp = Expression.Variable(typeof(sbyte)) },
+						   new Expression[] {
+								Expression.IfThenElse(
+									Expression.IsTrue(Expression.Call(MethodSByteTryParse, Expression.Convert(valueExp, typeof(string)), tryparseVarExp)),
+									Expression.Return(returnTarget, Expression.Convert(tryparseVarExp, typeof(object))),
+									Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
+								)
+							   }
+						   );
+						break;
+					case "System.Int16":
+						tryparseExp = Expression.Block(
+							  new[] { tryparseVarExp = Expression.Variable(typeof(short)) },
+							   new Expression[] {
+								Expression.IfThenElse(
+									Expression.IsTrue(Expression.Call(MethodShortTryParse, Expression.Convert(valueExp, typeof(string)), tryparseVarExp)),
+									Expression.Return(returnTarget, Expression.Convert(tryparseVarExp, typeof(object))),
+									Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
+								)
+							   }
+						   );
+						break;
+					case "System.Int32":
+						tryparseExp = Expression.Block(
+							  new[] { tryparseVarExp = Expression.Variable(typeof(int)) },
+							   new Expression[] {
+								Expression.IfThenElse(
+									Expression.IsTrue(Expression.Call(MethodIntTryParse, Expression.Convert(valueExp, typeof(string)), tryparseVarExp)),
+									Expression.Return(returnTarget, Expression.Convert(tryparseVarExp, typeof(object))),
+									Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
+								)
+							   }
+						   );
+						break;
+					case "System.Int64":
+						tryparseExp = Expression.Block(
+							  new[] { tryparseVarExp = Expression.Variable(typeof(long)) },
+							   new Expression[] {
+								Expression.IfThenElse(
+									Expression.IsTrue(Expression.Call(MethodLongTryParse, Expression.Convert(valueExp, typeof(string)), tryparseVarExp)),
+									Expression.Return(returnTarget, Expression.Convert(tryparseVarExp, typeof(object))),
+									Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
+								)
+							   }
+						   );
+						break;
+					case "System.Byte":
+						tryparseExp = Expression.Block(
+							  new[] { tryparseVarExp = Expression.Variable(typeof(byte)) },
+							   new Expression[] {
+								Expression.IfThenElse(
+									Expression.IsTrue(Expression.Call(MethodByteTryParse, Expression.Convert(valueExp, typeof(string)), tryparseVarExp)),
+									Expression.Return(returnTarget, Expression.Convert(tryparseVarExp, typeof(object))),
+									Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
+								)
+							   }
+						   );
+						break;
+					case "System.UInt16":
+						tryparseExp = Expression.Block(
+							   new[] { tryparseVarExp = Expression.Variable(typeof(ushort)) },
+							   new Expression[] {
+								Expression.IfThenElse(
+									Expression.IsTrue(Expression.Call(MethodUShortTryParse, Expression.Convert(valueExp, typeof(string)), tryparseVarExp)),
+									Expression.Return(returnTarget, Expression.Convert(tryparseVarExp, typeof(object))),
+									Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
+								)
+							   }
+						   );
+						break;
+					case "System.UInt32":
+						tryparseExp = Expression.Block(
+							   new[] { tryparseVarExp = Expression.Variable(typeof(uint)) },
+							   new Expression[] {
+								Expression.IfThenElse(
+									Expression.IsTrue(Expression.Call(MethodUIntTryParse, Expression.Convert(valueExp, typeof(string)), tryparseVarExp)),
+									Expression.Return(returnTarget, Expression.Convert(tryparseVarExp, typeof(object))),
+									Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
+								)
+							   }
+						   );
+						break;
+					case "System.UInt64":
+						tryparseExp = Expression.Block(
+							  new[] { tryparseVarExp = Expression.Variable(typeof(ulong)) },
+							   new Expression[] {
+								Expression.IfThenElse(
+									Expression.IsTrue(Expression.Call(MethodULongTryParse, Expression.Convert(valueExp, typeof(string)), tryparseVarExp)),
+									Expression.Return(returnTarget, Expression.Convert(tryparseVarExp, typeof(object))),
+									Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
+								)
+							   }
+						   );
+						break;
+					case "System.Single":
+						tryparseExp = Expression.Block(
+							  new[] { tryparseVarExp = Expression.Variable(typeof(float)) },
+							   new Expression[] {
+								Expression.IfThenElse(
+									Expression.IsTrue(Expression.Call(MethodFloatTryParse, Expression.Convert(valueExp, typeof(string)), tryparseVarExp)),
+									Expression.Return(returnTarget, Expression.Convert(tryparseVarExp, typeof(object))),
+									Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
+								)
+							   }
+						   );
+						break;
+					case "System.Double":
+						tryparseExp = Expression.Block(
+							   new[] { tryparseVarExp = Expression.Variable(typeof(double)) },
+							   new Expression[] {
+								Expression.IfThenElse(
+									Expression.IsTrue(Expression.Call(MethodDoubleTryParse, Expression.Convert(valueExp, typeof(string)), tryparseVarExp)),
+									Expression.Return(returnTarget, Expression.Convert(tryparseVarExp, typeof(object))),
+									Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
+								)
+							   }
+						   );
+						break;
+					case "System.Decimal":
+						tryparseExp = Expression.Block(
+							  new[] { tryparseVarExp = Expression.Variable(typeof(decimal)) },
+							   new Expression[] {
+								Expression.IfThenElse(
+									Expression.IsTrue(Expression.Call(MethodDecimalTryParse, Expression.Convert(valueExp, typeof(string)), tryparseVarExp)),
+									Expression.Return(returnTarget, Expression.Convert(tryparseVarExp, typeof(object))),
+									Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
+								)
+							   }
+						   );
+						break;
+					case "System.Boolean":
+						tryparseBooleanExp = Expression.Return(returnTarget,
+								Expression.Convert(
+									Expression.Not(
+										Expression.Or(
+											Expression.Equal(Expression.Convert(valueExp, typeof(string)), Expression.Constant("False")),
+										Expression.Or(
+											Expression.Equal(Expression.Convert(valueExp, typeof(string)), Expression.Constant("false")),
+											Expression.Equal(Expression.Convert(valueExp, typeof(string)), Expression.Constant("0"))))),
+							typeof(object))
+						);
+						break;
 				}
+				Expression switchExp = null;
+				if (tryparseExp != null)
+					switchExp = Expression.Switch(
+						Expression.Constant(type),
+						Expression.SwitchCase(tryparseExp,
+							Expression.Constant(typeof(sbyte)), Expression.Constant(typeof(short)), Expression.Constant(typeof(int)), Expression.Constant(typeof(long)),
+							Expression.Constant(typeof(byte)), Expression.Constant(typeof(ushort)), Expression.Constant(typeof(uint)), Expression.Constant(typeof(ulong)),
+							Expression.Constant(typeof(double)), Expression.Constant(typeof(float)), Expression.Constant(typeof(decimal))),
+						Expression.SwitchCase(Expression.Return(returnTarget, Expression.Call(MethodConvertChangeType, valueExp, Expression.Constant(type, typeof(Type)))), Expression.Constant(type))
+					);
+				else if (tryparseBooleanExp != null)
+					switchExp = Expression.Switch(
+						Expression.Constant(type),
+						Expression.SwitchCase(tryparseBooleanExp, Expression.Constant(typeof(bool))),
+						Expression.SwitchCase(Expression.Return(returnTarget, Expression.Call(MethodConvertChangeType, valueExp, Expression.Constant(type, typeof(Type)))), Expression.Constant(type))
+					);
+				else
+					switchExp = Expression.Return(returnTarget, Expression.Call(MethodConvertChangeType, valueExp, Expression.Constant(type, typeof(Type))));
+
 				return Expression.IfThenElse(
 					Expression.TypeEqual(valueExp, type),
 					Expression.Return(returnTarget, valueExp),
-					Expression.Return(returnTarget, Expression.Call(MethodConvertChangeType, valueExp, Expression.Constant(type, typeof(Type))))
+					Expression.IfThenElse(
+						Expression.TypeEqual(valueExp, typeof(string)),
+						switchExp,
+						Expression.Return(returnTarget, Expression.Call(MethodConvertChangeType, valueExp, Expression.Constant(type, typeof(Type))))
+					)
 				);
 			};
 
 			return Expression.Block(
 				new[] { valueExp },
-				Expression.Assign(valueExp, value),
+				Expression.Assign(valueExp, Expression.Convert(value, typeof(object))),
 				Expression.IfThenElse(
 					Expression.Or(
 						Expression.Equal(valueExp, Expression.Constant(null)),
@@ -1097,9 +1281,9 @@ namespace FreeSql.Internal {
 			);
 		}
 		public static object GetDataReaderValue(Type type, object value) {
-			if (value == null || value == DBNull.Value) return null;
+			//if (value == null || value == DBNull.Value) return Activator.CreateInstance(type);
 			if (type == null) return value;
-			var func = _dicGetDataReaderValue.GetOrAdd(type, k1 => new ConcurrentDictionary<Type, Func<object, object>>()).GetOrAdd(value.GetType(), valueType => {
+			var func = _dicGetDataReaderValue.GetOrAdd(type, k1 => new ConcurrentDictionary<Type, Func<object, object>>()).GetOrAdd(value?.GetType() ?? type, valueType => {
 				var parmExp = Expression.Parameter(typeof(object), "value");
 				var exp = GetDataReaderValueBlockExpression(type, parmExp);
 				return Expression.Lambda<Func<object, object>>(exp, parmExp).Compile();
@@ -1233,7 +1417,7 @@ namespace FreeSql.Internal {
 			#endregion
 		}
 		internal static object GetDataReaderValue22(Type type, object value) {
-			if (value == null || value == DBNull.Value) return null;
+			if (value == null || value == DBNull.Value) return Activator.CreateInstance(type);
 			if (type.FullName == "System.Byte[]") return value;
 			if (type.IsArray) {
 				var elementType = type.GetElementType();

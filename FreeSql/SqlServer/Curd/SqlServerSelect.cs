@@ -175,6 +175,7 @@ namespace FreeSql.SqlServer.Curd {
 		#endregion
 
 		public SqlServerSelect(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere) : base(orm, commonUtils, commonExpression, dywhere) { }
+		public override ISelect<T1, T2> From<T2>(Expression<Func<ISelectFromExpression<T1>, T2, ISelectFromExpression<T1>>> exp) { this.InternalFrom(exp?.Body); var ret = new SqlServerSelect<T1, T2>(_orm, _commonUtils, _commonExpression, null); SqlServerSelect<T1>.CopyData(this, ret, exp?.Parameters); return ret; }
 		public override ISelect<T1, T2, T3> From<T2, T3>(Expression<Func<ISelectFromExpression<T1>, T2, T3, ISelectFromExpression<T1>>> exp) { this.InternalFrom(exp?.Body); var ret = new SqlServerSelect<T1, T2, T3>(_orm, _commonUtils, _commonExpression, null); SqlServerSelect<T1>.CopyData(this, ret, exp?.Parameters); return ret; }
 		public override ISelect<T1, T2, T3, T4> From<T2, T3, T4>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, ISelectFromExpression<T1>>> exp) { this.InternalFrom(exp?.Body); var ret = new SqlServerSelect<T1, T2, T3, T4>(_orm, _commonUtils, _commonExpression, null); SqlServerSelect<T1>.CopyData(this, ret, exp?.Parameters); return ret; }
 		public override ISelect<T1, T2, T3, T4, T5> From<T2, T3, T4, T5>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, ISelectFromExpression<T1>>> exp) { this.InternalFrom(exp?.Body); var ret = new SqlServerSelect<T1, T2, T3, T4, T5>(_orm, _commonUtils, _commonExpression, null); SqlServerSelect<T1>.CopyData(this, ret, exp?.Parameters); return ret; }
@@ -185,10 +186,10 @@ namespace FreeSql.SqlServer.Curd {
 		public override ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> From<T2, T3, T4, T5, T6, T7, T8, T9, T10>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, T9, T10, ISelectFromExpression<T1>>> exp) { this.InternalFrom(exp?.Body); var ret = new SqlServerSelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(_orm, _commonUtils, _commonExpression, null); SqlServerSelect<T1>.CopyData(this, ret, exp?.Parameters); return ret; }
 		public override string ToSql(string field = null) => ToSqlStatic(_commonUtils, _select, _distinct, field ?? this.GetAllFieldExpressionTree().Field, _join, _where, _groupby, _having, _orderby, _skip, _limit, _tables, TableRuleInvoke, _orm);
 	}
-	//class SqlServerSelect<T1, T2> : FreeSql.Internal.CommonProvider.Select2Provider<T1, T2> where T1 : class where T2 : class {
-	//	public SqlServerSelect(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere) : base(orm, commonUtils, commonExpression, dywhere) { }
-	//	public override string ToSql(string field = null) => SqlServerSelect<T1>.ToSqlStatic(_commonUtils, _select, _distinct, field ?? this.GetAllField().field, _join, _where, _groupby, _having, _orderby, _skip, _limit, _tables, TableRulesInvoke, _orm);
-	//}
+	class SqlServerSelect<T1, T2> : FreeSql.Internal.CommonProvider.Select2Provider<T1, T2> where T1 : class where T2 : class {
+		public SqlServerSelect(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere) : base(orm, commonUtils, commonExpression, dywhere) { }
+		public override string ToSql(string field = null) => SqlServerSelect<T1>.ToSqlStatic(_commonUtils, _select, _distinct, field ?? this.GetAllFieldExpressionTree().Field, _join, _where, _groupby, _having, _orderby, _skip, _limit, _tables, TableRuleInvoke, _orm);
+	}
 	class SqlServerSelect<T1, T2, T3> : FreeSql.Internal.CommonProvider.Select3Provider<T1, T2, T3> where T1 : class where T2 : class where T3 : class {
 		public SqlServerSelect(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere) : base(orm, commonUtils, commonExpression, dywhere) { }
 		public override string ToSql(string field = null) => SqlServerSelect<T1>.ToSqlStatic(_commonUtils, _select, _distinct, field ?? this.GetAllFieldExpressionTree().Field, _join, _where, _groupby, _having, _orderby, _skip, _limit, _tables, TableRuleInvoke, _orm);
