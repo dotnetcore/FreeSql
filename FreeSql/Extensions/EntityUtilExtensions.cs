@@ -140,6 +140,43 @@ namespace FreeSql.Extensions.EntityUtil {
 			});
 			return func(entity);
 		}
+		static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, ConcurrentDictionary<string, Func<object, object>>>> _dicGetEntityValueWithPropertyName = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, ConcurrentDictionary<string, Func<object, object>>>>();
+		/// <summary>
+		/// 获取实体的属性值
+		/// </summary>
+		/// <typeparam name="TEntity"></typeparam>
+		/// <param name="_table"></param>
+		/// <param name="entity"></param>
+		/// <returns></returns>
+		//public static object GetEntityValueWithPropertyName<TEntity>(this IFreeSql orm, TEntity entity, string propertyName) => GetEntityKeyValues(orm, typeof(TEntity), entity, propertyName);
+		public static object GetEntityValueWithPropertyName(this IFreeSql orm, Type entityType, object entity, string propertyName) {
+			if (entity == null) return null;
+			if (entityType == null) entityType = entity.GetType();
+			var func = _dicGetEntityValueWithPropertyName
+				.GetOrAdd(orm.Ado.DataType, dt => new ConcurrentDictionary<Type, ConcurrentDictionary<string, Func<object, object>>>())
+				.GetOrAdd(entityType, et => new ConcurrentDictionary<string, Func<object, object>>())
+				.GetOrAdd(propertyName, pn => {
+				var _table = orm.CodeFirst.GetTableByEntity(entityType);
+				var pks = _table.Primarys;
+				var returnTarget = Expression.Label(typeof(object));
+				var parm1 = Expression.Parameter(typeof(object));
+				var var1Parm = Expression.Variable(entityType);
+				var var2Ret = Expression.Variable(typeof(object));
+				var exps = new List<Expression>(new Expression[] {
+					Expression.Assign(var1Parm, Expression.TypeAs(parm1, entityType)),
+					Expression.Assign(
+						var2Ret,
+						Expression.Convert(Expression.MakeMemberAccess(var1Parm, _table.Properties[pn]), typeof(object))
+					)
+				});
+				exps.AddRange(new Expression[] {
+					Expression.Return(returnTarget, var2Ret),
+					Expression.Label(returnTarget, Expression.Default(typeof(object)))
+				});
+				return Expression.Lambda<Func<object, object>>(Expression.Block(new[] { var1Parm, var2Ret }, exps), new[] { parm1 }).Compile();
+			});
+			return func(entity);
+		}
 		static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Func<object, string>>> _dicGetEntityString = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Func<object, string>>>();
 		/// <summary>
 		/// 获取实体的所有数据，以 (1, 2, xxx) 的形式

@@ -311,6 +311,7 @@ namespace FreeSql.Internal {
 				case ExpressionType.Not: return $"not({ExpressionLambdaToSql((exp as UnaryExpression)?.Operand, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName, isDisableDiyParse, style)})";
 				case ExpressionType.Quote: return ExpressionLambdaToSql((exp as UnaryExpression)?.Operand, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName, isDisableDiyParse, style);
 				case ExpressionType.Lambda: return ExpressionLambdaToSql((exp as LambdaExpression)?.Body, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName, isDisableDiyParse, style);
+				case ExpressionType.TypeAs:
 				case ExpressionType.Convert:
 					//var othercExp = ExpressionLambdaToSqlOther(exp, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName, isDisableDiyParse, style);
 					//if (string.IsNullOrEmpty(othercExp) == false) return othercExp;
@@ -487,7 +488,7 @@ namespace FreeSql.Internal {
 											}
 											var tmpExp = Expression.Equal(pexp1, pexp2);
 											if (mn == 0) manySubSelectWhereExp = tmpExp;
-											else manySubSelectWhereExp = Expression.And(manySubSelectWhereExp, tmpExp);
+											else manySubSelectWhereExp = Expression.AndAlso(manySubSelectWhereExp, tmpExp);
 										}
 										var manySubSelectExpBoy = Expression.Call(
 											manySubSelectAsSelectExp,
@@ -509,7 +510,7 @@ namespace FreeSql.Internal {
 											}
 											var tmpExp = Expression.Equal(pexp1, pexp2);
 											if (mn == 0) fsqlManyWhereExp = tmpExp;
-											else fsqlManyWhereExp = Expression.And(fsqlManyWhereExp, tmpExp);
+											else fsqlManyWhereExp = Expression.AndAlso(fsqlManyWhereExp, tmpExp);
 										}
 										fsqltables.Add(new SelectTableInfo { Alias = manySubSelectWhereParam.Name, Parameter = manySubSelectWhereParam, Table = manyTb, Type = SelectTableInfoType.Parent });
 										fsqlWhere.Invoke(fsql, new object[] { Expression.Lambda(fsqlManyWhereExp, fsqlWhereParam) });
@@ -532,7 +533,7 @@ namespace FreeSql.Internal {
 										}
 										var tmpExp = Expression.Equal(pexp1, pexp2);
 										if (mn == 0) fsqlWhereExp = tmpExp;
-										else fsqlWhereExp = Expression.And(fsqlWhereExp, tmpExp);
+										else fsqlWhereExp = Expression.AndAlso(fsqlWhereExp, tmpExp);
 									}
 									fsqlWhere.Invoke(fsql, new object[] { Expression.Lambda(fsqlWhereExp, fsqlWhereParam) });
 								}
@@ -592,6 +593,15 @@ namespace FreeSql.Internal {
 								exp2 = callExp.Object;
 								if (exp2 == null) break;
 								continue;
+							case ExpressionType.TypeAs:
+							case ExpressionType.Convert:
+								var oper2 = (exp2 as UnaryExpression).Operand;
+								if (oper2.NodeType == ExpressionType.Parameter) {
+									var oper2Parm = oper2 as ParameterExpression;
+									expStack.Push(Expression.Parameter(exp2.Type, oper2Parm.Name));
+								} else
+									expStack.Push(oper2);
+								break;
 						}
 						break;
 					}
@@ -681,7 +691,7 @@ namespace FreeSql.Internal {
 										}
 										var tmpExp = Expression.Equal(pexp1, pexp2);
 										if (mn == 0) navCondExp = tmpExp;
-										else navCondExp = Expression.And(navCondExp, tmpExp);
+										else navCondExp = Expression.AndAlso(navCondExp, tmpExp);
 									}
 									if (find.Type == SelectTableInfoType.InnerJoin ||
 										find.Type == SelectTableInfoType.LeftJoin ||

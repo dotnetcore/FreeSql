@@ -343,6 +343,8 @@ namespace FreeSql.Internal {
 
 							nvref.Columns.Add(trytb.Primarys[a]);
 							nvref.MiddleColumns.Add(trycol);
+							if (tbmid.Primarys.Any() == false)
+								trycol.Attribute.IsPrimary = true;
 
 							if (isLazy) {
 								if (a > 0) lmbdWhere.Append(" && ");
@@ -374,6 +376,8 @@ namespace FreeSql.Internal {
 
 							nvref.RefColumns.Add(tbref.Primarys[a]);
 							nvref.MiddleColumns.Add(trycol);
+							if (tbmid.Primarys.Any() == false)
+								trycol.Attribute.IsPrimary = true;
 
 							if (isLazy) lmbdWhere.Append(" && b.").Append(trycol.CsName).Append(" == a.").Append(tbref.Primarys[a].CsName);
 						}
@@ -382,6 +386,9 @@ namespace FreeSql.Internal {
 							nvref.RefEntityType = tbref.Type;
 							nvref.RefType = TableRefType.ManyToMany;
 							trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+
+							if (tbmid.Primarys.Any() == false)
+								tbmid.Primarys = tbmid.Columns.Values.Where(a => a.Attribute.IsPrimary == true).ToArray();
 						}
 
 						if (isLazy) {
@@ -819,7 +826,7 @@ namespace FreeSql.Internal {
 								if (typetb.ColumnsByCs.TryGetValue(ctorParm.Name, out var trycol) && trycol.Attribute.IsPrimary) {
 									ispkExp.Add(
 										Expression.IfThen(
-											Expression.And(
+											Expression.AndAlso(
 												Expression.IsFalse(readpknullExp),
 												Expression.Or(
 													Expression.Equal(readpkvalExp, Expression.Constant(DBNull.Value)),
@@ -905,7 +912,7 @@ namespace FreeSql.Internal {
 								if (typetb.ColumnsByCs.TryGetValue(prop.Name, out var trycol) && trycol.Attribute.IsPrimary) {
 									ispkExp.Add(
 										Expression.IfThen(
-											Expression.And(
+											Expression.AndAlso(
 												Expression.IsFalse(readpknullExp),
 												Expression.Or(
 													Expression.Equal(readpkvalExp, Expression.Constant(DBNull.Value)),
@@ -1000,7 +1007,7 @@ namespace FreeSql.Internal {
 		static MethodInfo MethodArrayGetValue = typeof(Array).GetMethod("GetValue", new[] { typeof(int) });
 		static MethodInfo MethodArrayGetLength = typeof(Array).GetMethod("GetLength", new[] { typeof(int) });
 		static MethodInfo MethodMygisGeometryParse = typeof(MygisGeometry).GetMethod("Parse", new[] { typeof(string) });
-		static MethodInfo MethodGuidParse = typeof(Guid).GetMethod("Parse", new[] { typeof(string) });
+		static MethodInfo MethodGuidTryParse = typeof(Guid).GetMethod("TryParse", new[] { typeof(string), typeof(Guid).MakeByRefType() });
 		static MethodInfo MethodEnumParse = typeof(Enum).GetMethod("Parse", new[] { typeof(Type), typeof(string), typeof(bool) });
 		static MethodInfo MethodToString = typeof(string).GetMethod("Concat", new[] { typeof(object) });
 		static MethodInfo MethodConvertChangeType = typeof(Convert).GetMethod("ChangeType", new[] { typeof(object), typeof(Type) });
@@ -1020,6 +1027,8 @@ namespace FreeSql.Internal {
 		static MethodInfo MethodDoubleTryParse = typeof(double).GetMethod("TryParse", new[] { typeof(string), typeof(double).MakeByRefType() });
 		static MethodInfo MethodFloatTryParse = typeof(float).GetMethod("TryParse", new[] { typeof(string), typeof(float).MakeByRefType() });
 		static MethodInfo MethodDecimalTryParse = typeof(decimal).GetMethod("TryParse", new[] { typeof(string), typeof(decimal).MakeByRefType() });
+		static MethodInfo MethodDateTimeTryParse = typeof(DateTime).GetMethod("TryParse", new[] { typeof(string), typeof(DateTime).MakeByRefType() });
+		static MethodInfo MethodDateTimeOffsetTryParse = typeof(DateTimeOffset).GetMethod("TryParse", new[] { typeof(string), typeof(DateTimeOffset).MakeByRefType() });
 		public static Expression GetDataReaderValueBlockExpression(Type type, Expression value) {
 			var returnTarget = Expression.Label(typeof(object));
 			var valueExp = Expression.Variable(typeof(object), "locvalue");
@@ -1070,11 +1079,22 @@ namespace FreeSql.Internal {
 				ParameterExpression tryparseVarExp = null;
 				switch (type.FullName) {
 					case "System.Guid":
-						return Expression.IfThenElse(
-							Expression.TypeEqual(valueExp, type),
-							Expression.Return(returnTarget, valueExp),
-							Expression.Return(returnTarget, Expression.Convert(Expression.Call(MethodGuidParse, Expression.Convert(valueExp, typeof(string))), typeof(object)))
-						);
+						//return Expression.IfThenElse(
+						//	Expression.TypeEqual(valueExp, type),
+						//	Expression.Return(returnTarget, valueExp),
+						//	Expression.Return(returnTarget, Expression.Convert(Expression.Call(MethodGuidParse, Expression.Convert(valueExp, typeof(string))), typeof(object)))
+						//);
+						tryparseExp = Expression.Block(
+						   new[] { tryparseVarExp = Expression.Variable(typeof(Guid)) },
+						   new Expression[] {
+								Expression.IfThenElse(
+									Expression.IsTrue(Expression.Call(MethodGuidTryParse, Expression.Convert(valueExp, typeof(string)), tryparseVarExp)),
+									Expression.Return(returnTarget, Expression.Convert(tryparseVarExp, typeof(object))),
+									Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
+								)
+							   }
+						   );
+						break;
 					case "MygisPoint": return Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodMygisGeometryParse, Expression.Convert(valueExp, typeof(string))), typeof(MygisPoint)));
 					case "MygisLineString": return Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodMygisGeometryParse, Expression.Convert(valueExp, typeof(string))), typeof(MygisLineString)));
 					case "MygisPolygon": return Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodMygisGeometryParse, Expression.Convert(valueExp, typeof(string))), typeof(MygisPolygon)));
@@ -1223,6 +1243,30 @@ namespace FreeSql.Internal {
 							   }
 						   );
 						break;
+					case "System.DateTime":
+						tryparseExp = Expression.Block(
+							  new[] { tryparseVarExp = Expression.Variable(typeof(DateTime)) },
+							   new Expression[] {
+								Expression.IfThenElse(
+									Expression.IsTrue(Expression.Call(MethodDateTimeTryParse, Expression.Convert(valueExp, typeof(string)), tryparseVarExp)),
+									Expression.Return(returnTarget, Expression.Convert(tryparseVarExp, typeof(object))),
+									Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
+								)
+							   }
+						   );
+						break;
+					case "System.DateTimeOffset":
+						tryparseExp = Expression.Block(
+							  new[] { tryparseVarExp = Expression.Variable(typeof(DateTimeOffset)) },
+							   new Expression[] {
+								Expression.IfThenElse(
+									Expression.IsTrue(Expression.Call(MethodDateTimeOffsetTryParse, Expression.Convert(valueExp, typeof(string)), tryparseVarExp)),
+									Expression.Return(returnTarget, Expression.Convert(tryparseVarExp, typeof(object))),
+									Expression.Return(returnTarget, Expression.Convert(Expression.Default(typeOrg), typeof(object)))
+								)
+							   }
+						   );
+						break;
 					case "System.Boolean":
 						tryparseBooleanExp = Expression.Return(returnTarget,
 								Expression.Convert(
@@ -1241,9 +1285,12 @@ namespace FreeSql.Internal {
 					switchExp = Expression.Switch(
 						Expression.Constant(type),
 						Expression.SwitchCase(tryparseExp,
+							Expression.Constant(typeof(Guid)),
 							Expression.Constant(typeof(sbyte)), Expression.Constant(typeof(short)), Expression.Constant(typeof(int)), Expression.Constant(typeof(long)),
 							Expression.Constant(typeof(byte)), Expression.Constant(typeof(ushort)), Expression.Constant(typeof(uint)), Expression.Constant(typeof(ulong)),
-							Expression.Constant(typeof(double)), Expression.Constant(typeof(float)), Expression.Constant(typeof(decimal))),
+							Expression.Constant(typeof(double)), Expression.Constant(typeof(float)), Expression.Constant(typeof(decimal)),
+							Expression.Constant(typeof(DateTime)), Expression.Constant(typeof(DateTimeOffset))
+						),
 						Expression.SwitchCase(Expression.Return(returnTarget, Expression.Call(MethodConvertChangeType, valueExp, Expression.Constant(type, typeof(Type)))), Expression.Constant(type))
 					);
 				else if (tryparseBooleanExp != null)

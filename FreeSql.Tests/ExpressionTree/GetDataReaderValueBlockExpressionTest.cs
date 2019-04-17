@@ -14,6 +14,38 @@ namespace FreeSql.ExpressionTree {
 	public class GetDataReaderValueBlockExpressionTest {
 
 		[Fact]
+		public void Guid2() {
+			var exp1 = Utils.GetDataReaderValueBlockExpression(typeof(Guid), Expression.Constant(Guid.Empty));
+			Assert.Equal(Guid.Empty, Utils.GetDataReaderValue(typeof(Guid), Guid.Empty));
+			var exp2 = Utils.GetDataReaderValueBlockExpression(typeof(Guid), Expression.Constant(Guid.NewGuid()));
+			var newguid = Guid.NewGuid();
+			Assert.Equal(newguid, Utils.GetDataReaderValue(typeof(Guid), newguid));
+			var exp3 = Utils.GetDataReaderValueBlockExpression(typeof(Guid), Expression.Constant(null));
+			Assert.Equal(Guid.Empty, Utils.GetDataReaderValue(typeof(Guid), null));
+
+			var exp11 = Utils.GetDataReaderValueBlockExpression(typeof(Guid?), Expression.Constant(Guid.Empty));
+			Assert.Equal(Guid.Empty, Utils.GetDataReaderValue(typeof(Guid?), Guid.Empty));
+			var exp22 = Utils.GetDataReaderValueBlockExpression(typeof(Guid?), Expression.Constant(newguid));
+			Assert.Equal(newguid, Utils.GetDataReaderValue(typeof(Guid?), newguid));
+			var exp33 = Utils.GetDataReaderValueBlockExpression(typeof(Guid?), Expression.Constant(null));
+			Assert.Null(Utils.GetDataReaderValue(typeof(Guid?), null));
+
+			var exp111 = Utils.GetDataReaderValueBlockExpression(typeof(Guid), Expression.Constant(Guid.Empty.ToString()));
+			Assert.Equal(Guid.Empty, Utils.GetDataReaderValue(typeof(Guid), Guid.Empty.ToString()));
+			var exp222 = Utils.GetDataReaderValueBlockExpression(typeof(Guid), Expression.Constant(newguid.ToString()));
+			Assert.Equal(newguid, Utils.GetDataReaderValue(typeof(Guid), newguid.ToString()));
+			var exp333 = Utils.GetDataReaderValueBlockExpression(typeof(Guid), Expression.Constant("-1"));
+			Assert.Equal(Guid.Empty, Utils.GetDataReaderValue(typeof(Guid), "-1"));
+
+			var exp1111 = Utils.GetDataReaderValueBlockExpression(typeof(Guid?), Expression.Constant(Guid.Empty.ToString()));
+			Assert.Equal(Guid.Empty, Utils.GetDataReaderValue(typeof(Guid?), Guid.Empty.ToString()));
+			var exp2222 = Utils.GetDataReaderValueBlockExpression(typeof(Guid?), Expression.Constant(newguid.ToString()));
+			Assert.Equal(newguid, Utils.GetDataReaderValue(typeof(Guid?), newguid.ToString()));
+			var exp3333 = Utils.GetDataReaderValueBlockExpression(typeof(Guid?), Expression.Constant("-1"));
+			Assert.Null(Utils.GetDataReaderValue(typeof(Guid?), "-1"));
+		}
+
+		[Fact]
 		public void Boolean() {
 			var exp1 = Utils.GetDataReaderValueBlockExpression(typeof(bool), Expression.Constant(true));
 			Assert.Equal(true, Utils.GetDataReaderValue(typeof(bool), true));
@@ -341,6 +373,60 @@ namespace FreeSql.ExpressionTree {
 			Assert.Null(Utils.GetDataReaderValue(typeof(decimal?), null));
 			var exp2222 = Utils.GetDataReaderValueBlockExpression(typeof(decimal?), Expression.Constant("aaa"));
 			Assert.Null(Utils.GetDataReaderValue(typeof(decimal?), "aaa"));
+		}
+
+		[Fact]
+		public void DateTime2() {
+			var exp1 = Utils.GetDataReaderValueBlockExpression(typeof(DateTime), Expression.Constant(DateTime.MinValue));
+			Assert.Equal(DateTime.MinValue, Utils.GetDataReaderValue(typeof(DateTime), DateTime.MinValue));
+			var exp2 = Utils.GetDataReaderValueBlockExpression(typeof(DateTime), Expression.Constant(DateTime.MaxValue));
+			Assert.Equal(DateTime.MaxValue, Utils.GetDataReaderValue(typeof(DateTime), DateTime.MaxValue));
+			var exp3 = Utils.GetDataReaderValueBlockExpression(typeof(DateTime), Expression.Constant("2000-1-1"));
+			Assert.Equal(DateTime.Parse("2000-1-1"), Utils.GetDataReaderValue(typeof(DateTime), "2000-1-1"));
+
+			var exp11 = Utils.GetDataReaderValueBlockExpression(typeof(DateTime?), Expression.Constant(DateTime.MinValue));
+			Assert.Equal(DateTime.MinValue, Utils.GetDataReaderValue(typeof(DateTime?), DateTime.MinValue));
+			var exp22 = Utils.GetDataReaderValueBlockExpression(typeof(DateTime?), Expression.Constant(DateTime.MaxValue));
+			Assert.Equal(DateTime.MaxValue, Utils.GetDataReaderValue(typeof(DateTime?), DateTime.MaxValue));
+			var exp33 = Utils.GetDataReaderValueBlockExpression(typeof(DateTime?), Expression.Constant("2000-1-1"));
+			Assert.Equal(DateTime.Parse("2000-1-1"), Utils.GetDataReaderValue(typeof(DateTime?), "2000-1-1"));
+
+			var exp111 = Utils.GetDataReaderValueBlockExpression(typeof(DateTime), Expression.Constant(null));
+			Assert.Equal(default(DateTime), Utils.GetDataReaderValue(typeof(DateTime), null));
+			var exp222 = Utils.GetDataReaderValueBlockExpression(typeof(DateTime), Expression.Constant("aaa"));
+			Assert.Equal(default(DateTime), Utils.GetDataReaderValue(typeof(DateTime), "aaa"));
+
+			var exp1111 = Utils.GetDataReaderValueBlockExpression(typeof(DateTime?), Expression.Constant(null));
+			Assert.Null(Utils.GetDataReaderValue(typeof(DateTime?), null));
+			var exp2222 = Utils.GetDataReaderValueBlockExpression(typeof(DateTime?), Expression.Constant("aaa"));
+			Assert.Null(Utils.GetDataReaderValue(typeof(DateTime?), "aaa"));
+		}
+
+		[Fact]
+		public void DateTimeOffset2() {
+			var exp1 = Utils.GetDataReaderValueBlockExpression(typeof(DateTimeOffset), Expression.Constant(DateTimeOffset.MinValue));
+			Assert.Equal(DateTimeOffset.MinValue, Utils.GetDataReaderValue(typeof(DateTimeOffset), DateTimeOffset.MinValue));
+			var exp2 = Utils.GetDataReaderValueBlockExpression(typeof(DateTimeOffset), Expression.Constant(DateTimeOffset.MaxValue));
+			Assert.Equal(DateTimeOffset.MaxValue, Utils.GetDataReaderValue(typeof(DateTimeOffset), DateTimeOffset.MaxValue));
+			var exp3 = Utils.GetDataReaderValueBlockExpression(typeof(DateTimeOffset), Expression.Constant("2000-1-1"));
+			Assert.Equal(DateTimeOffset.Parse("2000-1-1"), Utils.GetDataReaderValue(typeof(DateTimeOffset), "2000-1-1"));
+
+			var exp11 = Utils.GetDataReaderValueBlockExpression(typeof(DateTimeOffset?), Expression.Constant(DateTimeOffset.MinValue));
+			Assert.Equal(DateTimeOffset.MinValue, Utils.GetDataReaderValue(typeof(DateTimeOffset?), DateTimeOffset.MinValue));
+			var exp22 = Utils.GetDataReaderValueBlockExpression(typeof(DateTimeOffset?), Expression.Constant(DateTimeOffset.MaxValue));
+			Assert.Equal(DateTimeOffset.MaxValue, Utils.GetDataReaderValue(typeof(DateTimeOffset?), DateTimeOffset.MaxValue));
+			var exp33 = Utils.GetDataReaderValueBlockExpression(typeof(DateTimeOffset?), Expression.Constant("2000-1-1"));
+			Assert.Equal(DateTimeOffset.Parse("2000-1-1"), Utils.GetDataReaderValue(typeof(DateTimeOffset?), "2000-1-1"));
+
+			var exp111 = Utils.GetDataReaderValueBlockExpression(typeof(DateTimeOffset), Expression.Constant(null));
+			Assert.Equal(default(DateTimeOffset), Utils.GetDataReaderValue(typeof(DateTimeOffset), null));
+			var exp222 = Utils.GetDataReaderValueBlockExpression(typeof(DateTimeOffset), Expression.Constant("aaa"));
+			Assert.Equal(default(DateTimeOffset), Utils.GetDataReaderValue(typeof(DateTimeOffset), "aaa"));
+
+			var exp1111 = Utils.GetDataReaderValueBlockExpression(typeof(DateTimeOffset?), Expression.Constant(null));
+			Assert.Null(Utils.GetDataReaderValue(typeof(DateTimeOffset?), null));
+			var exp2222 = Utils.GetDataReaderValueBlockExpression(typeof(DateTimeOffset?), Expression.Constant("aaa"));
+			Assert.Null(Utils.GetDataReaderValue(typeof(DateTimeOffset?), "aaa"));
 		}
 	}
 }

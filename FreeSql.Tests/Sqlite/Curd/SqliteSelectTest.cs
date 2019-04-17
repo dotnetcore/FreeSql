@@ -126,19 +126,36 @@ namespace FreeSql.Tests.Sqlite {
 			public int id { get; set; }
 			public string name { get; set; } //这是join表的属性
 			public int ParentId { get; set; } //这是join表的属性
+
+			public bool? testBool1 { get; set; }
+			public bool? testBool2 { get; set; }
+		}
+		class TestDtoLeftJoin {
+			[Column(IsPrimary = true)]
+			public int Guid { get; set; }
+			public bool? testBool1 { get; set; }
+			public bool? testBool2 { get; set; }
 		}
 		[Fact]
 		public void ToList() {
+
+			g.sqlite.Delete<TestDtoLeftJoin>().Where("1=1").ExecuteAffrows();
+			var testlist = select.Limit(10).ToList();
+			foreach(var testitem in testlist) {
+				var testdtolj = new TestDtoLeftJoin { Guid = testitem.TypeGuid, testBool1 = true };
+				if (g.sqlite.Select<TestDtoLeftJoin>().Where(a => a.Guid == testitem.TypeGuid).Any() == false)
+					g.sqlite.Insert<TestDtoLeftJoin>(testdtolj).ExecuteAffrows();
+			}
 
 			var testDto1 = select.Limit(10).ToList(a => new TestDto { id = a.Id, name = a.Title });
 			var testDto2 = select.Limit(10).ToList(a => new TestDto());
 			var testDto3 = select.Limit(10).ToList(a => new TestDto { });
 			var testDto4 = select.Limit(10).ToList(a => new TestDto() { });
 
-			var testDto11 = select.LeftJoin(a => a.Type.Guid == a.TypeGuid).Limit(10).ToList(a => new TestDto { id = a.Id, name = a.Title });
-			var testDto22 = select.LeftJoin(a => a.Type.Guid == a.TypeGuid).Limit(10).ToList(a => new TestDto());
-			var testDto33 = select.LeftJoin(a => a.Type.Guid == a.TypeGuid).Limit(10).ToList(a => new TestDto { });
-			var testDto44 = select.LeftJoin(a => a.Type.Guid == a.TypeGuid).Limit(10).ToList(a => new TestDto() { });
+			var testDto11 = select.LeftJoin<TestDtoLeftJoin>((a,b) => b.Guid == a.TypeGuid).Limit(10).ToList(a => new TestDto { id = a.Id, name = a.Title });
+			var testDto22 = select.LeftJoin<TestDtoLeftJoin>((a, b) => b.Guid == a.TypeGuid).Limit(10).ToList(a => new TestDto());
+			var testDto33 = select.LeftJoin<TestDtoLeftJoin>((a, b) => b.Guid == a.TypeGuid).Limit(10).ToList(a => new TestDto { });
+			var testDto44 = select.LeftJoin<TestDtoLeftJoin>((a, b) => b.Guid == a.TypeGuid).Limit(10).ToList(a => new TestDto() { });
 
 			g.sqlite.Insert<TestGuidIdToList>().AppendData(new TestGuidIdToList()).ExecuteAffrows();
 			var testGuidId5 = g.sqlite.Select<TestGuidIdToList>().ToList();
