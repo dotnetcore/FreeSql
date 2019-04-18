@@ -135,10 +135,9 @@ namespace FreeSql.Internal.CommonProvider {
 		}
 
 		ISelect<T1, T2, T3, T4> ISelect<T1, T2, T3, T4>.WhereIf(bool condition, Expression<Func<T1, T2, T3, T4, bool>> exp) {
-			if (condition) return this.Where(null);
-			if (exp == null) return this.Where(null);
+			if (condition == false || exp == null) return this;
 			for (var a = 0; a < exp.Parameters.Count; a++) _tables[a].Parameter = exp.Parameters[a];
-			return condition ? this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp?.Body, null)) : this;
+			return this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp?.Body, null));
 		}
 
 		bool ISelect<T1, T2, T3, T4>.Any(Expression<Func<T1, T2, T3, T4, bool>> exp) {
