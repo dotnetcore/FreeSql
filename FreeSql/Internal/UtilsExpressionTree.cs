@@ -70,7 +70,6 @@ namespace FreeSql.Internal {
 						IsPrimary = false,
 						IsIgnore = false
 					};
-				if (colattr.IsIgnore) continue;
 				if (string.IsNullOrEmpty(colattr.DbType)) colattr.DbType = tp?.dbtypeFull ?? "varchar(255)";
 				colattr.DbType = colattr.DbType.ToUpper();
 
@@ -104,6 +103,10 @@ namespace FreeSql.Internal {
 					CsType = p.PropertyType,
 					Attribute = colattr
 				};
+				if (colattr.IsIgnore) {
+					trytb.ColumnsByCsIgnore.Add(p.Name, col);
+					continue;
+				}
 				trytb.Columns.Add(colattr.Name, col);
 				trytb.ColumnsByCs.Add(p.Name, col);
 			}
@@ -807,6 +810,8 @@ namespace FreeSql.Internal {
 						Expression.Assign(readpknullExp, Expression.Constant(false))
 					});
 					foreach (var ctorParm in ctorParms) {
+						if (typetb.ColumnsByCsIgnore.ContainsKey(ctorParm.Name)) continue;
+
 						var ispkExp = new List<Expression>();
 						Expression readVal = Expression.Assign(readpkvalExp, Expression.Call(rowExp, MethodDataReaderGetValue, dataIndexExp));
 						Expression readExpAssign = null; //加速缓存
@@ -823,7 +828,7 @@ namespace FreeSql.Internal {
 
 								//判断主键为空，则整个对象不读取
 								//blockExp.Add(Expression.Assign(readpkvalExp, Expression.Call(rowExp, MethodDataReaderGetValue, dataIndexExp)));
-								if (typetb.ColumnsByCs.TryGetValue(ctorParm.Name, out var trycol) && trycol.Attribute.IsPrimary) {
+								if (typetb.ColumnsByCs.TryGetValue(ctorParm.Name, out var trycol) && trycol.Attribute.IsPrimary == true) {
 									ispkExp.Add(
 										Expression.IfThen(
 											Expression.AndAlso(
@@ -892,6 +897,8 @@ namespace FreeSql.Internal {
 					var props = type.GetProperties();//.ToDictionary(a => a.Name, a => a, StringComparer.CurrentCultureIgnoreCase);
 					var propIndex = 0;
 					foreach (var prop in props) {
+						if (typetb.ColumnsByCsIgnore.ContainsKey(prop.Name)) continue;
+
 						var ispkExp = new List<Expression>();
 						var propGetSetMethod = prop.GetSetMethod();
 						Expression readVal = Expression.Assign(readpkvalExp, Expression.Call(rowExp, MethodDataReaderGetValue, tryidxExp));
@@ -909,7 +916,7 @@ namespace FreeSql.Internal {
 
 								//判断主键为空，则整个对象不读取
 								//blockExp.Add(Expression.Assign(readpkvalExp, Expression.Call(rowExp, MethodDataReaderGetValue, dataIndexExp)));
-								if (typetb.ColumnsByCs.TryGetValue(prop.Name, out var trycol) && trycol.Attribute.IsPrimary) {
+								if (typetb.ColumnsByCs.TryGetValue(prop.Name, out var trycol) && trycol.Attribute.IsPrimary == true) {
 									ispkExp.Add(
 										Expression.IfThen(
 											Expression.AndAlso(

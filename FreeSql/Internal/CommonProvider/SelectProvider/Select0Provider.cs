@@ -377,6 +377,8 @@ namespace FreeSql.Internal.CommonProvider {
 				var index = 0;
 				var otherindex = 0;
 				foreach (var prop in props.Values) {
+					if (tb.Table.ColumnsByCsIgnore.ContainsKey(prop.Name)) continue;
+
 					if (tb.Table.ColumnsByCs.TryGetValue(prop.Name, out var col)) { //普通字段
 						if (index > 0) field.Append(", ");
 						var quoteName = _commonUtils.QuoteSqlName(col.Attribute.Name);

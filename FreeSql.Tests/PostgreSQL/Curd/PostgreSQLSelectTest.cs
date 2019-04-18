@@ -226,6 +226,8 @@ namespace FreeSql.Tests.PostgreSQL {
 		}
 		[Fact]
 		public void ToOne() {
+			var testnotfind = select.Where("1=2").First(a => a.CreateTime);
+			Assert.Equal(default(DateTime), testnotfind);
 		}
 		[Fact]
 		public void ToSql() {

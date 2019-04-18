@@ -1,5 +1,6 @@
 using FreeSql.DataAnnotations;
 using FreeSql.Tests.DataContext.SqlServer;
+using System;
 using Xunit;
 
 namespace FreeSql.Tests.DataAnnotations {
@@ -80,6 +81,23 @@ namespace FreeSql.Tests.DataAnnotations {
 
 
 			public string name { get; set; } = "defaultValue";
+		}
+
+		[Fact]
+		public void IsIgnore() {
+			var item = new TestIsIgnore { };
+			Assert.Equal(1, _sqlserverFixture.SqlServer.Insert<TestIsIgnore>().AppendData(item).ExecuteAffrows());
+
+			var find = _sqlserverFixture.SqlServer.Select<TestIsIgnore>().Where(a => a.id == item.id).First();
+			Assert.NotNull(find);
+			Assert.Equal(item.id, find.id);
+		}
+
+		class TestIsIgnore {
+			public Guid id { get; set; }
+
+			[Column(IsIgnore = true)]
+			public bool isignore { get; set; }
 		}
 	}
 
