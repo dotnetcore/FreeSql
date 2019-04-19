@@ -10,17 +10,17 @@ namespace FreeSql.Tests.Sqlite {
 	public class SqliteCodeFirstTest {
 
 
-		class Topic {
+		public class Topic {
 			public Guid Id { get; set; }
 			public string Title { get; set; }
 			public string Content { get; set; }
 			public DateTime CreateTime { get; set; }
 		}
 		[Table(Name = "xxxtb.Comment")]
-		class Comment {
+		public class Comment {
 			public Guid Id { get; set; }
 			public Guid TopicId { get; set; }
-			public Topic Topic { get; set; }
+			public virtual Topic Topic { get; set; }
 			public string Nickname { get; set; }
 			public string Content { get; set; }
 			public DateTime CreateTime { get; set; }

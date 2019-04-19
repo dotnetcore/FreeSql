@@ -46,7 +46,7 @@ namespace FreeSql.Internal.CommonProvider {
 			//toType.GetField("_tables", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, new List<SelectTableInfo>(from._tables.ToArray()));
 			var _multiTables = toType.GetField("_tables", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(to) as List<SelectTableInfo>;
 			_multiTables[0] = from._tables[0];
-			for (var a = 1;a < lambParms.Count; a++) {
+			for (var a = 1; a < lambParms.Count; a++) {
 				var tb = from._tables.Where(b => b.Alias == lambParms[a].Name && b.Table.Type == lambParms[a].Type).FirstOrDefault();
 				if (tb != null) _multiTables[a] = tb;
 				else {
@@ -108,7 +108,7 @@ namespace FreeSql.Internal.CommonProvider {
 		}
 		public long Count() => this.ToList<int>("count(1)").FirstOrDefault();
 		async public Task<long> CountAsync() => (await this.ToListAsync<int>("count(1)")).FirstOrDefault();
-		
+
 		public TSelect Count(out long count) {
 			count = this.Count();
 			return this as TSelect;
@@ -235,7 +235,7 @@ namespace FreeSql.Internal.CommonProvider {
 				Type type = typeof(TTuple);
 				_orm.Ado.ExecuteReader(_connection, _transaction, dr => {
 					var read = Utils.ExecuteArrayRowReadClassOrTuple(type, null, dr, 0, _commonUtils);
-					ret.Add((TTuple)read.Value);
+					ret.Add((TTuple) read.Value);
 				}, CommandType.Text, sql, _params.ToArray());
 				_orm.Aop.ToList?.Invoke(this, new AopToListEventArgs(ret));
 				_trackToList?.Invoke(ret);
@@ -251,7 +251,7 @@ namespace FreeSql.Internal.CommonProvider {
 				Type type = typeof(TTuple);
 				await _orm.Ado.ExecuteReaderAsync(_connection, _transaction, dr => {
 					var read = Utils.ExecuteArrayRowReadClassOrTuple(type, null, dr, 0, _commonUtils);
-					ret.Add((TTuple)read.Value);
+					ret.Add((TTuple) read.Value);
 					return Task.CompletedTask;
 				}, CommandType.Text, sql, _params.ToArray());
 				_orm.Aop.ToList?.Invoke(this, new AopToListEventArgs(ret));
@@ -311,7 +311,7 @@ namespace FreeSql.Internal.CommonProvider {
 				Type type = typeof(TReturn);
 				_orm.Ado.ExecuteReader(_connection, _transaction, dr => {
 					var index = -1;
-					ret.Add((TReturn)_commonExpression.ReadAnonymous(af.map, dr, ref index, false));
+					ret.Add((TReturn) _commonExpression.ReadAnonymous(af.map, dr, ref index, false));
 				}, CommandType.Text, sql, _params.ToArray());
 				_orm.Aop.ToList?.Invoke(this, new AopToListEventArgs(ret));
 				_trackToList?.Invoke(ret);
@@ -327,7 +327,7 @@ namespace FreeSql.Internal.CommonProvider {
 				Type type = typeof(TReturn);
 				await _orm.Ado.ExecuteReaderAsync(_connection, _transaction, dr => {
 					var index = -1;
-					ret.Add((TReturn)_commonExpression.ReadAnonymous(af.map, dr, ref index, false));
+					ret.Add((TReturn) _commonExpression.ReadAnonymous(af.map, dr, ref index, false));
 					return Task.CompletedTask;
 				}, CommandType.Text, sql, _params.ToArray());
 				_orm.Aop.ToList?.Invoke(this, new AopToListEventArgs(ret));
@@ -350,6 +350,126 @@ namespace FreeSql.Internal.CommonProvider {
 			public Func<IFreeSql, DbDataReader, T1> Read { get; set; }
 		}
 		protected GetAllFieldExpressionTreeInfo GetAllFieldExpressionTree() {
+			return _dicGetAllFieldExpressionTree.GetOrAdd(string.Join("+", _tables.Select(a => $"{_orm.Ado.DataType}-{a.Table.DbName}-{a.Alias}-{a.Type}")), s => {
+				var type = _tables.First().Table.TypeLazy ?? _tables.First().Table.Type;
+				var ormExp = Expression.Parameter(typeof(IFreeSql), "orm");
+				var rowExp = Expression.Parameter(typeof(DbDataReader), "row");
+				var returnTarget = Expression.Label(type);
+				var retExp = Expression.Variable(type, "ret");
+				var dataIndexExp = Expression.Variable(typeof(int), "dataIndex");
+				var readExp = Expression.Variable(typeof(Utils.RowInfo), "read");
+				var readExpValue = Expression.MakeMemberAccess(readExp, Utils.RowInfo.PropertyValue);
+				var readExpDataIndex = Expression.MakeMemberAccess(readExp, Utils.RowInfo.PropertyDataIndex);
+				var blockExp = new List<Expression>();
+				var ctor = type.GetConstructor(new Type[0]) ?? type.GetConstructors().First();
+				blockExp.AddRange(new Expression[] {
+					Expression.Assign(retExp, Expression.New(ctor, ctor.GetParameters().Select(a => Expression.Default(a.ParameterType)))),
+					Expression.Assign(dataIndexExp, Expression.Constant(0))
+				});
+				//typeof(Topic).GetMethod("get_Type").IsVirtual
+
+				var field = new StringBuilder();
+				var dicfield = new Dictionary<string, bool>();
+				var tb = _tables.First();
+				var index = 0;
+
+				var tbiindex = 0;
+				foreach (var tbi in _tables.ToArray().OrderBy(a => a.Alias)) {
+					if (tbiindex > 0 && tbi.Type == SelectTableInfoType.From) continue;
+					if (tbiindex > 0 && tbi.Alias.StartsWith($"{tb.Alias}__") == false) continue;
+
+					var typei = tbi.Table.TypeLazy ?? tbi.Table.Type;
+					if (tbiindex == 0)
+						blockExp.AddRange(new Expression[] {
+							Expression.Assign(readExp, Expression.Call(Utils.MethodExecuteArrayRowReadClassOrTuple, new Expression[] { Expression.Constant(typei), Expression.Constant(null, typeof(int[])), rowExp, dataIndexExp, Expression.Constant(_commonUtils) })),
+							Expression.IfThen(
+								Expression.GreaterThan(readExpDataIndex, dataIndexExp),
+								Expression.Assign(dataIndexExp, readExpDataIndex)
+							),
+							Expression.IfThen(
+								Expression.NotEqual(readExpValue, Expression.Constant(null)),
+								Expression.Assign(retExp, Expression.Convert(readExpValue, typei))
+							)
+						});
+					else {
+						Expression curExpIfNotNull = Expression.IsTrue(Expression.Constant(true));
+						Expression curExp = retExp;
+						var curTb = tb;
+						var parentNameSplits = tbi.Alias.Split(new[] { "__" }, StringSplitOptions.None);
+						var iscontinue = false;
+						for (var k = 1; k < parentNameSplits.Length; k++) {
+							var curPropName = parentNameSplits[k];
+							if (curTb.Table.Properties.TryGetValue(parentNameSplits[k], out var tryprop) == false) {
+								k++;
+								curPropName = $"{curPropName}__{parentNameSplits[k]}";
+								if (curTb.Table.Properties.TryGetValue(parentNameSplits[k], out tryprop) == false) {
+									iscontinue = true;
+									break;
+								}
+							}
+							curExp = Expression.MakeMemberAccess(curExp, tryprop);
+							if (k + 1 < parentNameSplits.Length)
+								curExpIfNotNull = Expression.AndAlso(curExpIfNotNull, Expression.NotEqual(curExp, Expression.Default(tryprop.PropertyType)));
+							curTb = _tables.Where(a => a.Alias == $"{curTb.Alias}__{curPropName}" && a.Table.Type == tryprop.PropertyType).FirstOrDefault();
+							if (curTb == null) {
+								iscontinue = true;
+								break;
+							}
+						}
+						if (iscontinue) continue;
+
+						blockExp.Add(
+							Expression.IfThen(
+								curExpIfNotNull,
+								Expression.Block(new Expression[] {
+									Expression.Assign(readExp, Expression.Call(Utils.MethodExecuteArrayRowReadClassOrTuple, new Expression[] { Expression.Constant(typei), Expression.Constant(null, typeof(int[])), rowExp, dataIndexExp, Expression.Constant(_commonUtils) })),
+									Expression.IfThen(
+										Expression.GreaterThan(readExpDataIndex, dataIndexExp),
+										Expression.Assign(dataIndexExp, readExpDataIndex)
+									),
+									Expression.IfThen(
+										Expression.NotEqual(readExpValue, Expression.Constant(null)),
+										Expression.Assign(curExp, Expression.Convert(readExpValue, typei))
+									)
+								})
+							)
+						);
+					}
+					if (tbi.Table.TypeLazy != null)
+						blockExp.Add(
+							Expression.IfThen(
+								Expression.NotEqual(readExpValue, Expression.Constant(null)),
+								Expression.Call(retExp, tbi.Table.TypeLazySetOrm, ormExp)
+							)
+						); //将 orm 传递给 lazy
+
+					var colidx = 0;
+					foreach (var col in tbi.Table.Columns.Values) {
+						if (index > 0) {
+							field.Append(", ");
+							if (tbiindex > 0 && colidx == 0) field.Append("\r\n");
+						}
+						var quoteName = _commonUtils.QuoteSqlName(col.Attribute.Name);
+						field.Append(_commonUtils.QuoteReadColumn(col.CsType, $"{tbi.Alias}.{quoteName}"));
+						++index;
+						if (dicfield.ContainsKey(quoteName)) field.Append(" as").Append(index);
+						else dicfield.Add(quoteName, true);
+						++colidx;
+					}
+					tbiindex++;
+				}
+
+				blockExp.AddRange(new Expression[] {
+					Expression.Return(returnTarget, retExp),
+					Expression.Label(returnTarget, Expression.Default(type))
+				});
+				return new GetAllFieldExpressionTreeInfo {
+					Field = field.ToString(),
+					Read = Expression.Lambda<Func<IFreeSql, DbDataReader, T1>>(Expression.Block(new[] { retExp, dataIndexExp, readExp }, blockExp), new[] { ormExp, rowExp }).Compile()
+				};
+			});
+		}
+		protected GetAllFieldExpressionTreeInfo GetAllFieldExpressionTreeLevel2() {
 			return _dicGetAllFieldExpressionTree.GetOrAdd(string.Join("+", _tables.Select(a => $"{_orm.Ado.DataType}-{a.Table.DbName}-{a.Alias}-{a.Type}")), s => {
 				var tb1 = _tables.First().Table;
 				var type = tb1.TypeLazy ?? tb1.Type;
@@ -387,12 +507,14 @@ namespace FreeSql.Internal.CommonProvider {
 						if (dicfield.ContainsKey(quoteName)) field.Append(" as").Append(index);
 						else dicfield.Add(quoteName, true);
 					} else {
-						var tb2 = _tables.Where((a, b) => b > 0 && 
-							(a.Type == SelectTableInfoType.InnerJoin || a.Type == SelectTableInfoType.LeftJoin || a.Type == SelectTableInfoType.RightJoin) && 
+						var tb2 = _tables.Where((a, b) => b > 0 &&
+							(a.Type == SelectTableInfoType.InnerJoin || a.Type == SelectTableInfoType.LeftJoin || a.Type == SelectTableInfoType.RightJoin) &&
 							string.IsNullOrEmpty(a.On) == false &&
-							a.Alias.Contains(prop.Name)).FirstOrDefault(); //判断 b > 0 防止 parent 递归关系
+							a.Alias.StartsWith($"{tb.Alias}__") && //开头结尾完全匹配
+							a.Alias.EndsWith($"__{prop.Name}") //不清楚会不会有其他情况 求大佬优化
+							).FirstOrDefault(); //判断 b > 0 防止 parent 递归关系
 						if (tb2 == null && props.Where(pw => pw.Value.PropertyType == prop.PropertyType).Count() == 1)
-							tb2 = _tables.Where((a, b) => b > 0 && 
+							tb2 = _tables.Where((a, b) => b > 0 &&
 								(a.Type == SelectTableInfoType.InnerJoin || a.Type == SelectTableInfoType.LeftJoin || a.Type == SelectTableInfoType.RightJoin) &&
 								string.IsNullOrEmpty(a.On) == false &&
 								a.Table.Type == prop.PropertyType).FirstOrDefault();
@@ -501,7 +623,8 @@ namespace FreeSql.Internal.CommonProvider {
 						else dicfield.Add(quoteName, true);
 						child.Childs.Add(new ReadAnonymousTypeInfo {
 							Property = tb2.Table.Type.GetProperty(col2.CsName, BindingFlags.Public | BindingFlags.IgnoreCase | BindingFlags.Instance),
-							CsName = col2.CsName });
+							CsName = col2.CsName
+						});
 					}
 				}
 				map.Childs.Add(child);

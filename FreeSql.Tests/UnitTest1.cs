@@ -54,6 +54,10 @@ namespace FreeSql.Tests {
 		[Fact]
 		public void Test1() {
 
+			var sql = g.sqlite.Select<TestTypeParentInfo>().Where(a => a.Parent.Parent.Parent.Name == "11").ToSql();
+			var sql222 = g.sqlite.Select<TestTypeParentInfo>().Where(a => a.Parent.Parent.Parent.Name == "11").ToList();
+
+
 			Expression<Func<TestInfo, object>> orderBy = null;
 			orderBy = a => a.CreateTime;
 			var testsql1 = select.OrderBy(orderBy).ToSql();
