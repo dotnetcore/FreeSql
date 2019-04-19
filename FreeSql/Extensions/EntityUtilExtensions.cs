@@ -43,9 +43,7 @@ namespace FreeSql.Extensions.EntityUtil {
 				for (var a = 0; a < pks.Length; a++) {
 					var isguid = pks[a].CsType.NullableTypeOrThis() == typeof(Guid);
 					Expression expthen = null;
-					if (isguid == false)
-						expthen = Expression.Assign(var3IsNull, Expression.Constant(true));
-					else {
+					if (isguid) {
 						expthen = Expression.Block(
 							new Expression[]{
 								Expression.Assign(Expression.MakeMemberAccess(var1Parm, _table.Properties[pks[a].CsName]), Expression.Call(MethodFreeUtilNewMongodbId)),
@@ -55,6 +53,17 @@ namespace FreeSql.Extensions.EntityUtil {
 								)
 							}.Where(c => c != null).ToArray()
 						);
+					} else if (pks.Length > 1 && pks[a].Attribute.IsIdentity) {
+						expthen = Expression.Block(
+								new Expression[]{
+									a > 0 ? Expression.Call(var2Sb, MethodStringBuilderAppend, Expression.Constant(splitString)) : null,
+									Expression.Call(var2Sb, MethodStringBuilderAppend,
+										Expression.Convert(Expression.MakeMemberAccess(var1Parm, _table.Properties[pks[a].CsName]), typeof(object))
+									)
+								}.Where(c => c != null).ToArray()
+							);
+					} else {
+						expthen = Expression.Assign(var3IsNull, Expression.Constant(true));
 					}
 					if (pks[a].Attribute.IsIdentity || isguid || pks[a].CsType == typeof(string) || pks[a].CsType.IsNullableType()) {
 						exps.Add(

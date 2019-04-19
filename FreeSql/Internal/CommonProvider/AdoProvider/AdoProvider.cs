@@ -323,6 +323,8 @@ namespace FreeSql.Internal.CommonProvider {
 					isclose = true;
 				}
 				cmd.Connection = connection;
+				if (transaction.Connection == connection)
+					cmd.Transaction = transaction;
 			}
 
 			if (IsTracePerformance) dt = DateTime.Now;
