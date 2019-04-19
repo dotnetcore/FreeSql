@@ -95,7 +95,7 @@ var t5 = fsql.Select<Song>s.OrderBy(a => Guid.NewGuid()).Limit(1).ToList();
 > dotnet add package FreeSql.Repository
 
 ```csharp
-using (var unitOfWork = fsql.CreateUnitOfWork()) {
+using (var uow = fsql.CreateUnitOfWork()) {
 
     var songRepository = uow.GetRepository<Song, int>();
     var tagRepository = uow.GetRepository<Tag, int>();

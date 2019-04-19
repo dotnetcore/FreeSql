@@ -7,6 +7,7 @@ using System.Linq;
 using Newtonsoft.Json.Linq;
 using NpgsqlTypes;
 using Npgsql.LegacyPostgis;
+using System.Linq.Expressions;
 
 namespace FreeSql.Tests {
 	public class UnitTest1 {
@@ -52,6 +53,15 @@ namespace FreeSql.Tests {
 
 		[Fact]
 		public void Test1() {
+
+			Expression<Func<TestInfo, object>> orderBy = null;
+			orderBy = a => a.CreateTime;
+			var testsql1 = select.OrderBy(orderBy).ToSql();
+
+			orderBy = a => a.Title;
+
+			var testsql2 = select.OrderBy(orderBy).ToSql();
+
 
 			var testjson = @"[
 {
