@@ -54,8 +54,28 @@ namespace FreeSql.Tests {
 		[Fact]
 		public void Test1() {
 
-			var sql = g.sqlite.Select<TestTypeParentInfo>().Where(a => a.Parent.Parent.Parent.Name == "11").ToSql();
-			var sql222 = g.sqlite.Select<TestTypeParentInfo>().Where(a => a.Parent.Parent.Parent.Name == "11").ToList();
+			var sqlrepos = g.sqlite.GetRepository<TestTypeParentInfo, int>();
+			sqlrepos.Insert(new TestTypeParentInfo {
+				Name = "testroot",
+				Childs = new[] {
+					new TestTypeParentInfo {
+						Name = "testpath2",
+						Childs = new[] {
+							new TestTypeParentInfo {
+								Name = "testpath3",
+								Childs = new[] {
+									new TestTypeParentInfo {
+										Name = "11"
+									}
+								}
+							}
+						}
+					}
+				}
+			});
+
+			var sql = g.sqlite.Select<TestTypeParentInfo>().Where(a => a.Parent.Parent.Parent.Name == "testroot").ToSql();
+			var sql222 = g.sqlite.Select<TestTypeParentInfo>().Where(a => a.Parent.Parent.Parent.Name == "testroot").ToList();
 
 
 			Expression<Func<TestInfo, object>> orderBy = null;
@@ -336,11 +356,13 @@ namespace FreeSql.Tests {
 	}
 
 	class TestTypeParentInfo {
+		[Column(IsIdentity = true)]
 		public int Id { get; set; }
 		public string Name { get; set; }
 
 		public int ParentId { get; set; }
 		public TestTypeParentInfo Parent { get; set; }
+		public ICollection<TestTypeParentInfo> Childs { get; set; }
 
 		public List<TestTypeInfo> Types { get; set; }
 	}

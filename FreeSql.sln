@@ -24,6 +24,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "efcore_to_freesql", "Exampl
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "orm_vs", "Examples\orm_vs\orm_vs.csproj", "{1A5EC2EB-8C2B-4547-8AC6-EB5C0DE0CA81}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.DbContext", "..\FreeSql.DbContext\FreeSql.DbContext\FreeSql.DbContext.csproj", "{56488C60-FF2C-47ED-B6DD-A38D3CFB84FB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -118,6 +120,18 @@ Global
 		{1A5EC2EB-8C2B-4547-8AC6-EB5C0DE0CA81}.Release|x64.Build.0 = Release|Any CPU
 		{1A5EC2EB-8C2B-4547-8AC6-EB5C0DE0CA81}.Release|x86.ActiveCfg = Release|Any CPU
 		{1A5EC2EB-8C2B-4547-8AC6-EB5C0DE0CA81}.Release|x86.Build.0 = Release|Any CPU
+		{56488C60-FF2C-47ED-B6DD-A38D3CFB84FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{56488C60-FF2C-47ED-B6DD-A38D3CFB84FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{56488C60-FF2C-47ED-B6DD-A38D3CFB84FB}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{56488C60-FF2C-47ED-B6DD-A38D3CFB84FB}.Debug|x64.Build.0 = Debug|Any CPU
+		{56488C60-FF2C-47ED-B6DD-A38D3CFB84FB}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{56488C60-FF2C-47ED-B6DD-A38D3CFB84FB}.Debug|x86.Build.0 = Debug|Any CPU
+		{56488C60-FF2C-47ED-B6DD-A38D3CFB84FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{56488C60-FF2C-47ED-B6DD-A38D3CFB84FB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{56488C60-FF2C-47ED-B6DD-A38D3CFB84FB}.Release|x64.ActiveCfg = Release|Any CPU
+		{56488C60-FF2C-47ED-B6DD-A38D3CFB84FB}.Release|x64.Build.0 = Release|Any CPU
+		{56488C60-FF2C-47ED-B6DD-A38D3CFB84FB}.Release|x86.ActiveCfg = Release|Any CPU
+		{56488C60-FF2C-47ED-B6DD-A38D3CFB84FB}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
