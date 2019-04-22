@@ -98,12 +98,263 @@ namespace FreeSql.Internal.CommonProvider {
 			}, cmdType, cmdText, cmdParms);
 			return ret;
 		}
+		#region query multi
+		public (List<T1>, List<T2>) Query<T1, T2>(string cmdText, object parms = null) => Query<T1, T2>(null, null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+		public (List<T1>, List<T2>) Query<T1, T2>(DbTransaction transaction, string cmdText, object parms = null) => Query<T1, T2>(null, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+		public (List<T1>, List<T2>) Query<T1, T2>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null) => Query<T1, T2>(connection, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+		public (List<T1>, List<T2>) Query<T1, T2>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => Query<T1, T2>(null, null, cmdType, cmdText, cmdParms);
+		public (List<T1>, List<T2>) Query<T1, T2>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => Query<T1, T2>(null, transaction, cmdType, cmdText, cmdParms);
+		public (List<T1>, List<T2>) Query<T1, T2>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
+			if (string.IsNullOrEmpty(cmdText)) return (new List<T1>(), new List<T2>());
+			var ret1 = new List<T1>();
+			var type1 = typeof(T1);
+			int[] indexes1 = null;
+			var props1 = dicQueryTypeGetProperties.GetOrAdd(type1, k => type1.GetProperties());
+
+			var ret2 = new List<T2>();
+			var type2 = typeof(T2);
+			int[] indexes2 = null;
+			var props2 = dicQueryTypeGetProperties.GetOrAdd(type2, k => type1.GetProperties());
+			ExecuteReaderMultiple(2, connection, transaction, (dr, result) => {
+				switch(result) {
+					case 0:
+						if (indexes1 == null) {
+							var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
+							for (var a = 0; a < dr.FieldCount; a++)
+								dic.Add(dr.GetName(a), a);
+							indexes1 = props1.Select(a => dic.TryGetValue(a.Name, out var tryint) ? tryint : -1).ToArray();
+						}
+						ret1.Add((T1)Utils.ExecuteArrayRowReadClassOrTuple(type1, indexes1, dr, 0, _util).Value);
+						break;
+					case 1:
+						if (indexes2 == null) {
+							var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
+							for (var a = 0; a < dr.FieldCount; a++)
+								dic.Add(dr.GetName(a), a);
+							indexes2 = props2.Select(a => dic.TryGetValue(a.Name, out var tryint) ? tryint : -1).ToArray();
+						}
+						ret2.Add((T2)Utils.ExecuteArrayRowReadClassOrTuple(type2, indexes2, dr, 0, _util).Value);
+						break;
+				}
+			}, cmdType, cmdText, cmdParms);
+			return (ret1, ret2);
+		}
+
+		public (List<T1>, List<T2>, List<T3>) Query<T1, T2, T3>(string cmdText, object parms = null) => Query<T1, T2, T3>(null, null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+		public (List<T1>, List<T2>, List<T3>) Query<T1, T2, T3>(DbTransaction transaction, string cmdText, object parms = null) => Query<T1, T2, T3>(null, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+		public (List<T1>, List<T2>, List<T3>) Query<T1, T2, T3>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null) => Query<T1, T2, T3>(connection, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+		public (List<T1>, List<T2>, List<T3>) Query<T1, T2, T3>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => Query<T1, T2, T3>(null, null, cmdType, cmdText, cmdParms);
+		public (List<T1>, List<T2>, List<T3>) Query<T1, T2, T3>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => Query<T1, T2, T3>(null, transaction, cmdType, cmdText, cmdParms);
+		public (List<T1>, List<T2>, List<T3>) Query<T1, T2, T3>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
+			if (string.IsNullOrEmpty(cmdText)) return (new List<T1>(), new List<T2>(), new List<T3>());
+			var ret1 = new List<T1>();
+			var type1 = typeof(T1);
+			int[] indexes1 = null;
+			var props1 = dicQueryTypeGetProperties.GetOrAdd(type1, k => type1.GetProperties());
+
+			var ret2 = new List<T2>();
+			var type2 = typeof(T2);
+			int[] indexes2 = null;
+			var props2 = dicQueryTypeGetProperties.GetOrAdd(type2, k => type1.GetProperties());
+
+			var ret3 = new List<T3>();
+			var type3 = typeof(T3);
+			int[] indexes3 = null;
+			var props3 = dicQueryTypeGetProperties.GetOrAdd(type3, k => type1.GetProperties());
+			ExecuteReaderMultiple(3, connection, transaction, (dr, result) => {
+				switch (result) {
+					case 0:
+						if (indexes1 == null) {
+							var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
+							for (var a = 0; a < dr.FieldCount; a++)
+								dic.Add(dr.GetName(a), a);
+							indexes1 = props1.Select(a => dic.TryGetValue(a.Name, out var tryint) ? tryint : -1).ToArray();
+						}
+						ret1.Add((T1)Utils.ExecuteArrayRowReadClassOrTuple(type1, indexes1, dr, 0, _util).Value);
+						break;
+					case 1:
+						if (indexes2 == null) {
+							var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
+							for (var a = 0; a < dr.FieldCount; a++)
+								dic.Add(dr.GetName(a), a);
+							indexes2 = props2.Select(a => dic.TryGetValue(a.Name, out var tryint) ? tryint : -1).ToArray();
+						}
+						ret2.Add((T2)Utils.ExecuteArrayRowReadClassOrTuple(type2, indexes2, dr, 0, _util).Value);
+						break;
+					case 2:
+						if (indexes3 == null) {
+							var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
+							for (var a = 0; a < dr.FieldCount; a++)
+								dic.Add(dr.GetName(a), a);
+							indexes3 = props3.Select(a => dic.TryGetValue(a.Name, out var tryint) ? tryint : -1).ToArray();
+						}
+						ret3.Add((T3)Utils.ExecuteArrayRowReadClassOrTuple(type3, indexes3, dr, 0, _util).Value);
+						break;
+				}
+			}, cmdType, cmdText, cmdParms);
+			return (ret1, ret2, ret3);
+		}
+
+		public (List<T1>, List<T2>, List<T3>, List<T4>) Query<T1, T2, T3, T4>(string cmdText, object parms = null) => Query<T1, T2, T3, T4>(null, null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+		public (List<T1>, List<T2>, List<T3>, List<T4>) Query<T1, T2, T3, T4>(DbTransaction transaction, string cmdText, object parms = null) => Query<T1, T2, T3, T4>(null, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+		public (List<T1>, List<T2>, List<T3>, List<T4>) Query<T1, T2, T3, T4>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null) => Query<T1, T2, T3, T4>(connection, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+		public (List<T1>, List<T2>, List<T3>, List<T4>) Query<T1, T2, T3, T4>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => Query<T1, T2, T3, T4>(null, null, cmdType, cmdText, cmdParms);
+		public (List<T1>, List<T2>, List<T3>, List<T4>) Query<T1, T2, T3, T4>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => Query<T1, T2, T3, T4>(null, transaction, cmdType, cmdText, cmdParms);
+		public (List<T1>, List<T2>, List<T3>, List<T4>) Query<T1, T2, T3, T4>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
+			if (string.IsNullOrEmpty(cmdText)) return (new List<T1>(), new List<T2>(), new List<T3>(), new List<T4>());
+			var ret1 = new List<T1>();
+			var type1 = typeof(T1);
+			int[] indexes1 = null;
+			var props1 = dicQueryTypeGetProperties.GetOrAdd(type1, k => type1.GetProperties());
+
+			var ret2 = new List<T2>();
+			var type2 = typeof(T2);
+			int[] indexes2 = null;
+			var props2 = dicQueryTypeGetProperties.GetOrAdd(type2, k => type1.GetProperties());
+
+			var ret3 = new List<T3>();
+			var type3 = typeof(T3);
+			int[] indexes3 = null;
+			var props3 = dicQueryTypeGetProperties.GetOrAdd(type3, k => type1.GetProperties());
+
+			var ret4 = new List<T4>();
+			var type4 = typeof(T4);
+			int[] indexes4 = null;
+			var props4 = dicQueryTypeGetProperties.GetOrAdd(type4, k => type1.GetProperties());
+			ExecuteReaderMultiple(4, connection, transaction, (dr, result) => {
+				switch (result) {
+					case 0:
+						if (indexes1 == null) {
+							var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
+							for (var a = 0; a < dr.FieldCount; a++)
+								dic.Add(dr.GetName(a), a);
+							indexes1 = props1.Select(a => dic.TryGetValue(a.Name, out var tryint) ? tryint : -1).ToArray();
+						}
+						ret1.Add((T1)Utils.ExecuteArrayRowReadClassOrTuple(type1, indexes1, dr, 0, _util).Value);
+						break;
+					case 1:
+						if (indexes2 == null) {
+							var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
+							for (var a = 0; a < dr.FieldCount; a++)
+								dic.Add(dr.GetName(a), a);
+							indexes2 = props2.Select(a => dic.TryGetValue(a.Name, out var tryint) ? tryint : -1).ToArray();
+						}
+						ret2.Add((T2)Utils.ExecuteArrayRowReadClassOrTuple(type2, indexes2, dr, 0, _util).Value);
+						break;
+					case 2:
+						if (indexes3 == null) {
+							var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
+							for (var a = 0; a < dr.FieldCount; a++)
+								dic.Add(dr.GetName(a), a);
+							indexes3 = props3.Select(a => dic.TryGetValue(a.Name, out var tryint) ? tryint : -1).ToArray();
+						}
+						ret3.Add((T3)Utils.ExecuteArrayRowReadClassOrTuple(type3, indexes3, dr, 0, _util).Value);
+						break;
+					case 3:
+						if (indexes4 == null) {
+							var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
+							for (var a = 0; a < dr.FieldCount; a++)
+								dic.Add(dr.GetName(a), a);
+							indexes4 = props4.Select(a => dic.TryGetValue(a.Name, out var tryint) ? tryint : -1).ToArray();
+						}
+						ret4.Add((T4)Utils.ExecuteArrayRowReadClassOrTuple(type4, indexes4, dr, 0, _util).Value);
+						break;
+				}
+			}, cmdType, cmdText, cmdParms);
+			return (ret1, ret2, ret3, ret4);
+		}
+
+		public (List<T1>, List<T2>, List<T3>, List<T4>, List<T5>) Query<T1, T2, T3, T4, T5>(string cmdText, object parms = null) => Query<T1, T2, T3, T4, T5>(null, null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+		public (List<T1>, List<T2>, List<T3>, List<T4>, List<T5>) Query<T1, T2, T3, T4, T5>(DbTransaction transaction, string cmdText, object parms = null) => Query<T1, T2, T3, T4, T5>(null, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+		public (List<T1>, List<T2>, List<T3>, List<T4>, List<T5>) Query<T1, T2, T3, T4, T5>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null) => Query<T1, T2, T3, T4, T5>(connection, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+		public (List<T1>, List<T2>, List<T3>, List<T4>, List<T5>) Query<T1, T2, T3, T4, T5>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => Query<T1, T2, T3, T4, T5>(null, null, cmdType, cmdText, cmdParms);
+		public (List<T1>, List<T2>, List<T3>, List<T4>, List<T5>) Query<T1, T2, T3, T4, T5>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => Query<T1, T2, T3, T4, T5>(null, transaction, cmdType, cmdText, cmdParms);
+		public (List<T1>, List<T2>, List<T3>, List<T4>, List<T5>) Query<T1, T2, T3, T4, T5>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
+			if (string.IsNullOrEmpty(cmdText)) return (new List<T1>(), new List<T2>(), new List<T3>(), new List<T4>(), new List<T5>());
+			var ret1 = new List<T1>();
+			var type1 = typeof(T1);
+			int[] indexes1 = null;
+			var props1 = dicQueryTypeGetProperties.GetOrAdd(type1, k => type1.GetProperties());
+
+			var ret2 = new List<T2>();
+			var type2 = typeof(T2);
+			int[] indexes2 = null;
+			var props2 = dicQueryTypeGetProperties.GetOrAdd(type2, k => type1.GetProperties());
+
+			var ret3 = new List<T3>();
+			var type3 = typeof(T3);
+			int[] indexes3 = null;
+			var props3 = dicQueryTypeGetProperties.GetOrAdd(type3, k => type1.GetProperties());
+
+			var ret4 = new List<T4>();
+			var type4 = typeof(T4);
+			int[] indexes4 = null;
+			var props4 = dicQueryTypeGetProperties.GetOrAdd(type4, k => type1.GetProperties());
+
+			var ret5 = new List<T5>();
+			var type5 = typeof(T5);
+			int[] indexes5 = null;
+			var props5 = dicQueryTypeGetProperties.GetOrAdd(type5, k => type1.GetProperties());
+			ExecuteReaderMultiple(5, connection, transaction, (dr, result) => {
+				switch (result) {
+					case 0:
+						if (indexes1 == null) {
+							var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
+							for (var a = 0; a < dr.FieldCount; a++)
+								dic.Add(dr.GetName(a), a);
+							indexes1 = props1.Select(a => dic.TryGetValue(a.Name, out var tryint) ? tryint : -1).ToArray();
+						}
+						ret1.Add((T1)Utils.ExecuteArrayRowReadClassOrTuple(type1, indexes1, dr, 0, _util).Value);
+						break;
+					case 1:
+						if (indexes2 == null) {
+							var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
+							for (var a = 0; a < dr.FieldCount; a++)
+								dic.Add(dr.GetName(a), a);
+							indexes2 = props2.Select(a => dic.TryGetValue(a.Name, out var tryint) ? tryint : -1).ToArray();
+						}
+						ret2.Add((T2)Utils.ExecuteArrayRowReadClassOrTuple(type2, indexes2, dr, 0, _util).Value);
+						break;
+					case 2:
+						if (indexes3 == null) {
+							var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
+							for (var a = 0; a < dr.FieldCount; a++)
+								dic.Add(dr.GetName(a), a);
+							indexes3 = props3.Select(a => dic.TryGetValue(a.Name, out var tryint) ? tryint : -1).ToArray();
+						}
+						ret3.Add((T3)Utils.ExecuteArrayRowReadClassOrTuple(type3, indexes3, dr, 0, _util).Value);
+						break;
+					case 3:
+						if (indexes4 == null) {
+							var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
+							for (var a = 0; a < dr.FieldCount; a++)
+								dic.Add(dr.GetName(a), a);
+							indexes4 = props4.Select(a => dic.TryGetValue(a.Name, out var tryint) ? tryint : -1).ToArray();
+						}
+						ret4.Add((T4)Utils.ExecuteArrayRowReadClassOrTuple(type4, indexes4, dr, 0, _util).Value);
+						break;
+					case 4:
+						if (indexes5 == null) {
+							var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
+							for (var a = 0; a < dr.FieldCount; a++)
+								dic.Add(dr.GetName(a), a);
+							indexes5 = props5.Select(a => dic.TryGetValue(a.Name, out var tryint) ? tryint : -1).ToArray();
+						}
+						ret5.Add((T5)Utils.ExecuteArrayRowReadClassOrTuple(type5, indexes5, dr, 0, _util).Value);
+						break;
+				}
+			}, cmdType, cmdText, cmdParms);
+			return (ret1, ret2, ret3, ret4, ret5);
+		}
+		#endregion
+
 		public void ExecuteReader(Action<DbDataReader> readerHander, string cmdText, object parms = null) => ExecuteReader(null, null, readerHander, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
 		public void ExecuteReader(DbTransaction transaction, Action<DbDataReader> readerHander, string cmdText, object parms = null) => ExecuteReader(null, transaction, readerHander, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
 		public void ExecuteReader(DbConnection connection, DbTransaction transaction, Action<DbDataReader> readerHander, string cmdText, object parms = null) => ExecuteReader(connection, transaction, readerHander, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
 		public void ExecuteReader(Action<DbDataReader> readerHander, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteReader(null, null, readerHander, cmdType, cmdText, cmdParms);
 		public void ExecuteReader(DbTransaction transaction, Action<DbDataReader> readerHander, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteReader(null, transaction, readerHander, cmdType, cmdText, cmdParms);
-		public void ExecuteReader(DbConnection connection, DbTransaction transaction,  Action<DbDataReader> readerHander, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
+		public void ExecuteReader(DbConnection connection, DbTransaction transaction, Action<DbDataReader> readerHander, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteReaderMultiple(1, connection, transaction, (dr, result) => readerHander(dr), cmdType, cmdText, cmdParms);
+		void ExecuteReaderMultiple(int multipleResult, DbConnection connection, DbTransaction transaction, Action<DbDataReader, int> readerHander, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
 			if (string.IsNullOrEmpty(cmdText)) return;
 			var dt = DateTime.Now;
 			var logtxt = new StringBuilder();
@@ -151,7 +402,7 @@ namespace FreeSql.Internal.CommonProvider {
 						}
 						LoggerException(pool, pc, new Exception($"连接失败，准备切换其他可用服务器"), dt, logtxt, false);
 						pc.cmd.Parameters.Clear();
-						ExecuteReader(readerHander, cmdType, cmdText, cmdParms);
+						ExecuteReaderMultiple(multipleResult, connection, transaction, readerHander, cmdType, cmdText, cmdParms);
 						return;
 					}
 				} else {
@@ -164,24 +415,28 @@ namespace FreeSql.Internal.CommonProvider {
 				}
 				using (var dr = pc.cmd.ExecuteReader()) {
 					if (IsTracePerformance) logtxt.Append("ExecuteReader: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms\r\n");
+					int resultIndex = 0;
 					while (true) {
-						if (IsTracePerformance) logtxt_dt = DateTime.Now;
-						bool isread = dr.Read();
-						if (IsTracePerformance) logtxt.Append("	dr.Read: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms\r\n");
-						if (isread == false) break;
+						while (true) {
+							if (IsTracePerformance) logtxt_dt = DateTime.Now;
+							bool isread = dr.Read();
+							if (IsTracePerformance) logtxt.Append("	dr.Read: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms\r\n");
+							if (isread == false) break;
 
-						if (readerHander != null) {
-							object[] values = null;
-							if (IsTracePerformance) {
-								logtxt_dt = DateTime.Now;
-								values = new object[dr.FieldCount];
-								dr.GetValues(values);
-								logtxt.Append("	dr.GetValues: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms\r\n");
-								logtxt_dt = DateTime.Now;
+							if (readerHander != null) {
+								object[] values = null;
+								if (IsTracePerformance) {
+									logtxt_dt = DateTime.Now;
+									values = new object[dr.FieldCount];
+									dr.GetValues(values);
+									logtxt.Append("	dr.GetValues: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms\r\n");
+									logtxt_dt = DateTime.Now;
+								}
+								readerHander(dr, resultIndex);
+								if (IsTracePerformance) logtxt.Append("	readerHander: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms (").Append(string.Join(", ", values)).Append(")\r\n");
 							}
-							readerHander(dr);
-							if (IsTracePerformance) logtxt.Append("	readerHander: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms (").Append(string.Join(", ", values)).Append(")\r\n");
 						}
+						if (++resultIndex >= multipleResult || dr.NextResult() == false) break;
 					}
 					if (IsTracePerformance) logtxt_dt = DateTime.Now;
 					dr.Close();
@@ -212,6 +467,25 @@ namespace FreeSql.Internal.CommonProvider {
 				ret.Add(values);
 			}, cmdType, cmdText, cmdParms);
 			return ret.ToArray();
+		}
+		public DataSet ExecuteDataSet(string cmdText, object parms = null) => ExecuteDataSet(null, null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+		public DataSet ExecuteDataSet(DbTransaction transaction, string cmdText, object parms = null) => ExecuteDataSet(null, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+		public DataSet ExecuteDataSet(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null) => ExecuteDataSet(connection, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+		public DataSet ExecuteDataSet(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteDataSet(null, null, cmdType, cmdText, cmdParms);
+		public DataSet ExecuteDataSet(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteDataSet(null, transaction, cmdType, cmdText, cmdParms);
+		public DataSet ExecuteDataSet(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) {
+			var ret = new DataSet();
+			DataTable dt = null;
+			ExecuteReaderMultiple(16, connection, transaction, (dr, result) => {
+				if (ret.Tables.Count <= result) {
+					dt = ret.Tables.Add();
+					for (var a = 0; a < dr.FieldCount; a++) dt.Columns.Add(dr.GetName(a));
+				}
+				object[] values = new object[dt.Columns.Count];
+				dr.GetValues(values);
+				dt.Rows.Add(values);
+			}, cmdType, cmdText, cmdParms);
+			return ret;
 		}
 		public DataTable ExecuteDataTable(string cmdText, object parms = null) => ExecuteDataTable(null, null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
 		public DataTable ExecuteDataTable(DbTransaction transaction, string cmdText, object parms = null) => ExecuteDataTable(null, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
@@ -323,7 +597,7 @@ namespace FreeSql.Internal.CommonProvider {
 					isclose = true;
 				}
 				cmd.Connection = connection;
-				if (transaction.Connection == connection)
+				if (transaction?.Connection == connection)
 					cmd.Transaction = transaction;
 			}
 

@@ -93,6 +93,23 @@ namespace FreeSql {
 		/// </summary>
 		/// <param name="cmdText"></param>
 		/// <param name="cmdParms"></param>
+		DataSet ExecuteDataSet(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		DataSet ExecuteDataSet(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		DataSet ExecuteDataSet(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		/// <summary>
+		/// 查询，ExecuteDataSet("select * from user where age > @age; select 2", new { age = 25 })
+		/// </summary>
+		/// <param name="cmdText"></param>
+		/// <param name="parms"></param>
+		/// <returns></returns>
+		DataSet ExecuteDataSet(string cmdText, object parms = null);
+		DataSet ExecuteDataSet(DbTransaction transaction, string cmdText, object parms = null);
+		DataSet ExecuteDataSet(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null);
+		/// <summary>
+		/// 查询
+		/// </summary>
+		/// <param name="cmdText"></param>
+		/// <param name="cmdParms"></param>
 		DataTable ExecuteDataTable(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
 		DataTable ExecuteDataTable(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
 		DataTable ExecuteDataTable(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
@@ -145,7 +162,7 @@ namespace FreeSql {
 		/// <summary>
 		/// 执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > @age", new SqlParameter { ParameterName = "age", Value = 25 })
 		/// </summary>
-		/// <typeparam name="T"></typeparam>
+		/// <typeparam name="T1"></typeparam>
 		/// <param name="cmdType"></param>
 		/// <param name="cmdText"></param>
 		/// <param name="cmdParms"></param>
@@ -156,13 +173,54 @@ namespace FreeSql {
 		/// <summary>
 		/// 执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > @age", new { age = 25 })
 		/// </summary>
-		/// <typeparam name="T"></typeparam>
+		/// <typeparam name="T1"></typeparam>
 		/// <param name="cmdText"></param>
 		/// <param name="parms"></param>
 		/// <returns></returns>
 		List<T> Query<T>(string cmdText, object parms = null);
 		List<T> Query<T>(DbTransaction transaction, string cmdText, object parms = null);
 		List<T> Query<T>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null);
+
+		/// <summary>
+		/// 执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > @age; select * from address", new SqlParameter { ParameterName = "age", Value = 25 })
+		/// </summary>
+		/// <typeparam name="T1"></typeparam>
+		/// <param name="cmdType"></param>
+		/// <param name="cmdText"></param>
+		/// <param name="cmdParms"></param>
+		/// <returns></returns>
+		(List<T1>, List<T2>) Query<T1, T2>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		(List<T1>, List<T2>) Query<T1, T2>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		(List<T1>, List<T2>) Query<T1, T2>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		/// <summary>
+		/// 执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > @age; select * from address", new { age = 25 })
+		/// </summary>
+		/// <typeparam name="T1"></typeparam>
+		/// <param name="cmdText"></param>
+		/// <param name="parms"></param>
+		/// <returns></returns>
+		(List<T1>, List<T2>) Query<T1, T2>(string cmdText, object parms = null);
+		(List<T1>, List<T2>) Query<T1, T2>(DbTransaction transaction, string cmdText, object parms = null);
+		(List<T1>, List<T2>) Query<T1, T2>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null);
+
+		(List<T1>, List<T2>, List<T3>) Query<T1, T2, T3>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		(List<T1>, List<T2>, List<T3>) Query<T1, T2, T3>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		(List<T1>, List<T2>, List<T3>) Query<T1, T2, T3>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		(List<T1>, List<T2>, List<T3>) Query<T1, T2, T3>(string cmdText, object parms = null);
+		(List<T1>, List<T2>, List<T3>) Query<T1, T2, T3>(DbTransaction transaction, string cmdText, object parms = null);
+		(List<T1>, List<T2>, List<T3>) Query<T1, T2, T3>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null);
+		(List<T1>, List<T2>, List<T3>, List<T4>) Query<T1, T2, T3, T4>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		(List<T1>, List<T2>, List<T3>, List<T4>) Query<T1, T2, T3, T4>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		(List<T1>, List<T2>, List<T3>, List<T4>) Query<T1, T2, T3, T4>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		(List<T1>, List<T2>, List<T3>, List<T4>) Query<T1, T2, T3, T4>(string cmdText, object parms = null);
+		(List<T1>, List<T2>, List<T3>, List<T4>) Query<T1, T2, T3, T4>(DbTransaction transaction, string cmdText, object parms = null);
+		(List<T1>, List<T2>, List<T3>, List<T4>) Query<T1, T2, T3, T4>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null);
+		(List<T1>, List<T2>, List<T3>, List<T4>, List<T5>) Query<T1, T2, T3, T4, T5>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		(List<T1>, List<T2>, List<T3>, List<T4>, List<T5>) Query<T1, T2, T3, T4, T5>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		(List<T1>, List<T2>, List<T3>, List<T4>, List<T5>) Query<T1, T2, T3, T4, T5>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		(List<T1>, List<T2>, List<T3>, List<T4>, List<T5>) Query<T1, T2, T3, T4, T5>(string cmdText, object parms = null);
+		(List<T1>, List<T2>, List<T3>, List<T4>, List<T5>) Query<T1, T2, T3, T4, T5>(DbTransaction transaction, string cmdText, object parms = null);
+		(List<T1>, List<T2>, List<T3>, List<T4>, List<T5>) Query<T1, T2, T3, T4, T5>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null);
 
 		#region async
 		/// <summary>
@@ -200,6 +258,23 @@ namespace FreeSql {
 		Task<object[][]> ExecuteArrayAsync(string cmdText, object parms = null);
 		Task<object[][]> ExecuteArrayAsync(DbTransaction transaction, string cmdText, object parms = null);
 		Task<object[][]> ExecuteArrayAsync(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null);
+		/// <summary>
+		/// 查询
+		/// </summary>
+		/// <param name="cmdText"></param>
+		/// <param name="cmdParms"></param>
+		Task<DataSet> ExecuteDataSetAsync(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		Task<DataSet> ExecuteDataSetAsync(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		Task<DataSet> ExecuteDataSetAsync(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		/// <summary>
+		/// 查询，ExecuteDataSetAsync("select * from user where age > @age; select 2", new { age = 25 })
+		/// </summary>
+		/// <param name="cmdText"></param>
+		/// <param name="parms"></param>
+		/// <returns></returns>
+		Task<DataSet> ExecuteDataSetAsync(string cmdText, object parms = null);
+		Task<DataSet> ExecuteDataSetAsync(DbTransaction transaction, string cmdText, object parms = null);
+		Task<DataSet> ExecuteDataSetAsync(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null);
 		/// <summary>
 		/// 查询
 		/// </summary>
@@ -275,6 +350,47 @@ namespace FreeSql {
 		Task<List<T>> QueryAsync<T>(string cmdText, object parms = null);
 		Task<List<T>> QueryAsync<T>(DbTransaction transaction, string cmdText, object parms = null);
 		Task<List<T>> QueryAsync<T>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null);
+
+		/// <summary>
+		/// 执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > @age; select * from address", new SqlParameter { ParameterName = "age", Value = 25 })
+		/// </summary>
+		/// <typeparam name="T1"></typeparam>
+		/// <param name="cmdType"></param>
+		/// <param name="cmdText"></param>
+		/// <param name="cmdParms"></param>
+		/// <returns></returns>
+		Task<(List<T1>, List<T2>)> QueryAsync<T1, T2>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		Task<(List<T1>, List<T2>)> QueryAsync<T1, T2>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		Task<(List<T1>, List<T2>)> QueryAsync<T1, T2>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		/// <summary>
+		/// 执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > @age; select * from address", new { age = 25 })
+		/// </summary>
+		/// <typeparam name="T1"></typeparam>
+		/// <param name="cmdText"></param>
+		/// <param name="parms"></param>
+		/// <returns></returns>
+		Task<(List<T1>, List<T2>)> QueryAsync<T1, T2>(string cmdText, object parms = null);
+		Task<(List<T1>, List<T2>)> QueryAsync<T1, T2>(DbTransaction transaction, string cmdText, object parms = null);
+		Task<(List<T1>, List<T2>)> QueryAsync<T1, T2>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null);
+
+		Task<(List<T1>, List<T2>, List<T3>)> QueryAsync<T1, T2, T3>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		Task<(List<T1>, List<T2>, List<T3>)> QueryAsync<T1, T2, T3>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		Task<(List<T1>, List<T2>, List<T3>)> QueryAsync<T1, T2, T3>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		Task<(List<T1>, List<T2>, List<T3>)> QueryAsync<T1, T2, T3>(string cmdText, object parms = null);
+		Task<(List<T1>, List<T2>, List<T3>)> QueryAsync<T1, T2, T3>(DbTransaction transaction, string cmdText, object parms = null);
+		Task<(List<T1>, List<T2>, List<T3>)> QueryAsync<T1, T2, T3>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null);
+		Task<(List<T1>, List<T2>, List<T3>, List<T4>)> QueryAsync<T1, T2, T3, T4>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		Task<(List<T1>, List<T2>, List<T3>, List<T4>)> QueryAsync<T1, T2, T3, T4>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		Task<(List<T1>, List<T2>, List<T3>, List<T4>)> QueryAsync<T1, T2, T3, T4>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		Task<(List<T1>, List<T2>, List<T3>, List<T4>)> QueryAsync<T1, T2, T3, T4>(string cmdText, object parms = null);
+		Task<(List<T1>, List<T2>, List<T3>, List<T4>)> QueryAsync<T1, T2, T3, T4>(DbTransaction transaction, string cmdText, object parms = null);
+		Task<(List<T1>, List<T2>, List<T3>, List<T4>)> QueryAsync<T1, T2, T3, T4>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null);
+		Task<(List<T1>, List<T2>, List<T3>, List<T4>, List<T5>)> QueryAsync<T1, T2, T3, T4, T5>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		Task<(List<T1>, List<T2>, List<T3>, List<T4>, List<T5>)> QueryAsync<T1, T2, T3, T4, T5>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		Task<(List<T1>, List<T2>, List<T3>, List<T4>, List<T5>)> QueryAsync<T1, T2, T3, T4, T5>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+		Task<(List<T1>, List<T2>, List<T3>, List<T4>, List<T5>)> QueryAsync<T1, T2, T3, T4, T5>(string cmdText, object parms = null);
+		Task<(List<T1>, List<T2>, List<T3>, List<T4>, List<T5>)> QueryAsync<T1, T2, T3, T4, T5>(DbTransaction transaction, string cmdText, object parms = null);
+		Task<(List<T1>, List<T2>, List<T3>, List<T4>, List<T5>)> QueryAsync<T1, T2, T3, T4, T5>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null);
 		#endregion
 	}
 }
