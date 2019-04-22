@@ -151,6 +151,9 @@ namespace FreeSql.Tests.SqlServer {
 			_sqlserverFixture.SqlServer.Insert<TestGuidIdToList>().AppendData(new TestGuidIdToList()).ExecuteAffrows();
 			var testGuidId5 = _sqlserverFixture.SqlServer.Select<TestGuidIdToList>().ToList();
 			var testGuidId6 = _sqlserverFixture.SqlServer.Select<TestGuidIdToList>().ToList(a => a.id);
+
+			var t11 = select.Where(a => a.Type.Name.Length > 0).ToList(true);
+			var t21 = select.Where(a => a.Type.Parent.Name.Length > 0).ToList(true);
 		}
 		class TestGuidIdToList {
 			public Guid id { get; set; }

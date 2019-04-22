@@ -42,6 +42,12 @@ namespace FreeSql.Tests.PostgreSQL {
 			var t5 = g.pgsql.Ado.Query<dynamic>("select * from xxx");
 		}
 
+		[Fact]
+		public void QueryMultipline() {
+			g.pgsql.CodeFirst.SyncStructure<xxx>();
+			var t3 = g.pgsql.Ado.Query<xxx, (int, string, string), dynamic>("select * from xxx; select * from xxx; select * from xxx");
+		}
+
 		class xxx {
 			public int Id { get; set; }
 			public string Path { get; set; }

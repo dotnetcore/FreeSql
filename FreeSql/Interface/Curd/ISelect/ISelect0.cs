@@ -39,9 +39,10 @@ namespace FreeSql {
 		/// <summary>
 		/// 执行SQL查询，返回 T1 实体所有字段的记录，记录不存在时返回 Count 为 0 的列表
 		/// </summary>
+		/// <param name="includeNestedMembers">false: 返回 2级 LeftJoin/InnerJoin/RightJoin 对象；true: 返回所有 LeftJoin/InnerJoin/RightJoin 的导航数据</param>
 		/// <returns></returns>
-		List<T1> ToList();
-		Task<List<T1>> ToListAsync();
+		List<T1> ToList(bool includeNestedMembers = false);
+		Task<List<T1>> ToListAsync(bool includeNestedMembers = false);
 		/// <summary>
 		/// 执行SQL查询，返回 field 指定字段的记录，并以元组或基础类型(int,string,long)接收，记录不存在时返回 Count 为 0 的列表
 		/// </summary>

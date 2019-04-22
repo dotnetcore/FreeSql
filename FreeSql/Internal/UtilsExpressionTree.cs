@@ -48,13 +48,14 @@ namespace FreeSql.Internal {
 			var propsLazy = new List<(PropertyInfo, bool, bool)>();
 			var propsNavObjs = new List<PropertyInfo>();
 			foreach (var p in trytb.Properties.Values) {
+				var setMethod = trytb.Type.GetMethod($"set_{p.Name}");
 				var tp = common.CodeFirst.GetDbInfo(p.PropertyType);
 				//if (tp == null) continue;
 				var colattr = common.GetEntityColumnAttribute(entity, p);
 				if (tp == null && colattr == null) {
 					if (common.CodeFirst.IsLazyLoading) {
 						var getIsVirtual = trytb.Type.GetMethod($"get_{p.Name}")?.IsVirtual;
-						var setIsVirtual = trytb.Type.GetMethod($"set_{p.Name}")?.IsVirtual;
+						var setIsVirtual = setMethod?.IsVirtual;
 						if (getIsVirtual == true || setIsVirtual == true)
 							propsLazy.Add((p, getIsVirtual == true, setIsVirtual == true));
 					}
@@ -96,6 +97,7 @@ namespace FreeSql.Internal {
 					colattr.DbDefautValue = Activator.CreateInstance(p.PropertyType.IsNullableType() ? p.PropertyType.GenericTypeArguments.FirstOrDefault() : p.PropertyType);
 				if (colattr.IsIdentity == true && p.PropertyType.IsNumberType() == false)
 					colattr.IsIdentity = false;
+				if (setMethod == null) colattr.IsIgnore = true;
 
 				var col = new ColumnInfo {
 					Table = trytb,

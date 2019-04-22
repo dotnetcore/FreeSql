@@ -41,6 +41,11 @@ namespace FreeSql.Tests.Oracle {
 			var t5 = g.oracle.Ado.Query<dynamic>("select * from \"TB_TOPIC\"");
 		}
 
+		[Fact]
+		public void QueryMultipline() {
+			//var t3 = g.oracle.Ado.Query<xxx, (int, string, string), dynamic>("select * from \"TB_TOPIC\"; select * from \"TB_TOPIC\"; select * from \"TB_TOPIC\"");
+		}
+
 		class xxx {
 			public int Id { get; set; }
 			public string Path { get; set; }

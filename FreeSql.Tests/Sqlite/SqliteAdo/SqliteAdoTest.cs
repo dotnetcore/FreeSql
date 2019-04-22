@@ -39,6 +39,11 @@ namespace FreeSql.Tests.Sqlite {
 			var t5 = g.sqlite.Ado.Query<dynamic>("select * from \"song\"");
 		}
 
+		[Fact]
+		public void QueryMultipline() {
+			var t3 = g.sqlite.Ado.Query<xxx, (int, string, string), dynamic>("select * from song; select * from song; select * from song");
+		}
+
 		class xxx {
 			public int Id { get; set; }
 			public string Path { get; set; }

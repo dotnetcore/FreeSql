@@ -149,6 +149,9 @@ namespace FreeSql.Tests.Oracle {
 			g.oracle.Insert<TestGuidIdToList>().AppendData(new TestGuidIdToList()).ExecuteAffrows();
 			var testGuidId5 = g.oracle.Select<TestGuidIdToList>().ToList();
 			var testGuidId6 = g.oracle.Select<TestGuidIdToList>().ToList(a => a.id);
+
+			var t11 = select.Where(a => a.Type.Name.Length > 0).ToList(true);
+			var t21 = select.Where(a => a.Type.Parent.Name.Length > 0).ToList(true);
 		}
 		class TestGuidIdToList {
 			public Guid id { get; set; }

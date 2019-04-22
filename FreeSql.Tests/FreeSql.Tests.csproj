@@ -1,26 +1,26 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+	<PropertyGroup>
+		<TargetFramework>netcoreapp2.1</TargetFramework>
 
-    <IsPackable>false</IsPackable>
-  </PropertyGroup>
+		<IsPackable>false</IsPackable>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0" />
-    <PackageReference Include="xunit" Version="2.4.0" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0" />
+		<PackageReference Include="xunit" Version="2.4.0" />
+		<PackageReference Include="xunit.runner.visualstudio" Version="2.4.0" />
+		<PackageReference Include="FreeSql.DbContext" Version="0.5.3" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\FreeSql.DbContext\FreeSql.DbContext\FreeSql.DbContext.csproj" />
-    <ProjectReference Include="..\FreeSql\FreeSql.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\FreeSql\FreeSql.csproj" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="DataAnnotations\MySql\" />
-    <Folder Include="DataAnnotations\SqlServer\" />
-    <Folder Include="DataContext\MySql\" />
-  </ItemGroup>
-	
+	<ItemGroup>
+		<Folder Include="DataAnnotations\MySql\" />
+		<Folder Include="DataAnnotations\SqlServer\" />
+		<Folder Include="DataContext\MySql\" />
+	</ItemGroup>
+
 </Project>

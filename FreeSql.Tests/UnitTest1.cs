@@ -329,6 +329,9 @@ namespace FreeSql.Tests {
 			var t23 =  g.mysql.Update<TestInfo>().SetSource(new[] { new TestInfo { Id = 1, Title = "111" }, new TestInfo { Id = 2, Title = "222" } }).Set(a => a.TypeGuid + 222111).ToSql();
 			var t24 = g.mysql.Update<TestInfo>().SetSource(new[] { new TestInfo { Id = 1, Title = "111" }, new TestInfo { Id = 2, Title = "222" } }).Set(a => a.TypeGuid + 222111).Where(a => a.Title == "111").ToSql();
 
+
+			var t1000 = g.sqlite.Select<ExamPaper>().ToSql();
+			var t1001 = g.sqlite.Insert<ExamPaper>().AppendData(new ExamPaper()).ToSql();
 		}
 	}
 	class NullAggreTestTable {
@@ -366,4 +369,42 @@ namespace FreeSql.Tests {
 
 		public List<TestTypeInfo> Types { get; set; }
 	}
+
+
+	/// <summary>
+	/// 试卷表
+	/// </summary>
+	[Table(Name = "exam_paper")]
+	public class ExamPaper {
+
+		public long id { get; set; }
+
+		/// <summary>
+		/// 考核计划ID
+		/// </summary>
+		public long AssessmentPlanId { get; set; }
+		/// <summary>
+		/// 总分
+		/// </summary>
+		public int TotalScore { get; set; }
+
+		public DateTime BeginTime { get; set; }
+
+		public DateTime? EndTime { get; set; }
+
+		//[Column(IsIgnore = true)]
+		//public ExamStatus Status { get; set; }
+		public ExamStatus Status {
+			get {
+				if (DateTime.Now <= BeginTime)
+					return ExamStatus.Wait;
+				if (BeginTime <= DateTime.Now && (!EndTime.HasValue || DateTime.Now < EndTime))
+					return ExamStatus.Started;
+				if (BeginTime <= DateTime.Now && (EndTime.HasValue && EndTime <= DateTime.Now))
+					return ExamStatus.End;
+				return ExamStatus.Wait;
+			}
+		}
+	}
+	public enum ExamStatus { Wait, Started, End }
 }

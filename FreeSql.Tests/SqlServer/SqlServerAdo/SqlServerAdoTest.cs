@@ -74,6 +74,13 @@ namespace FreeSql.Tests.SqlServer {
 				new System.Data.SqlClient.SqlParameter("Id", 1));
 		}
 
+		[Fact]
+		public void QueryMultipline() {
+			var tnsql1 = _sqlserverFixture.SqlServer.Select<xxx>().Where(a => a.Id > 0).Where(b => b.Title != null).Page(1, 3).ToSql(a => a.Id);
+
+			var t3 = _sqlserverFixture.SqlServer.Ado.Query<xxx, (int, string, string), dynamic>("select * from xxx; select * from xxx; select * from xxx");
+		}
+
 		class xxx {
 			public int Id { get; set; }
 			public int ParentId { get; set; }

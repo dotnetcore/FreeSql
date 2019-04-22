@@ -133,6 +133,7 @@ namespace FreeSql {
 				case DataType.PostgreSQL: ret = new PostgreSQL.PostgreSQLProvider<TMark>(_cache, _logger, _masterConnectionString, _slaveConnectionString); break;
 				case DataType.Oracle: ret = new Oracle.OracleProvider<TMark>(_cache, _logger, _masterConnectionString, _slaveConnectionString); break;
 				case DataType.Sqlite: ret = new Sqlite.SqliteProvider<TMark>(_cache, _logger, _masterConnectionString, _slaveConnectionString); break;
+				default: throw new Exception("未指定 UseConnectionString");
 			}
 			if (ret != null) {
 				ret.CodeFirst.IsAutoSyncStructure = _isAutoSyncStructure;

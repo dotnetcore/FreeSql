@@ -40,6 +40,11 @@ namespace FreeSql.Tests.MySql {
 			var t5 = g.mysql.Ado.Query<dynamic>("select * from song");
 		}
 
+		[Fact]
+		public void QueryMultipline() {
+			var t3 = g.mysql.Ado.Query<xxx, (int, string, string), dynamic>("select * from song; select * from song; select * from song");
+		}
+
 		class xxx {
 			public int Id { get; set; }
 			public string Path { get; set; }

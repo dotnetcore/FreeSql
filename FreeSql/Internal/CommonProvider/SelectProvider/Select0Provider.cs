@@ -259,8 +259,7 @@ namespace FreeSql.Internal.CommonProvider {
 				return ret;
 			});
 		}
-		public List<T1> ToList() {
-			var af = this.GetAllFieldExpressionTree();
+		List<T1> ToListPrivate(GetAllFieldExpressionTreeInfo af) {
 			var sql = this.ToSql(af.Field);
 			if (_cache.seconds > 0 && string.IsNullOrEmpty(_cache.key)) _cache.key = $"{sql}{string.Join("|", _params.Select(a => a.Value))}";
 
@@ -274,8 +273,7 @@ namespace FreeSql.Internal.CommonProvider {
 				return ret;
 			});
 		}
-		async public Task<List<T1>> ToListAsync() {
-			var af = this.GetAllFieldExpressionTree();
+		async Task<List<T1>> ToListPrivateAsync(GetAllFieldExpressionTreeInfo af) {
 			var sql = this.ToSql(af.Field);
 			if (_cache.seconds > 0 && string.IsNullOrEmpty(_cache.key)) _cache.key = $"{sql}{string.Join("|", _params.Select(a => a.Value))}";
 
@@ -290,6 +288,8 @@ namespace FreeSql.Internal.CommonProvider {
 				return ret;
 			});
 		}
+		public List<T1> ToList(bool includeNestedMembers = false) => this.ToListPrivate(includeNestedMembers == false ? this.GetAllFieldExpressionTreeLevel2() : this.GetAllFieldExpressionTreeLevel2());
+		public Task<List<T1>> ToListAsync(bool includeNestedMembers = false) => this.ToListPrivateAsync(includeNestedMembers == false ? this.GetAllFieldExpressionTreeLevel2() : this.GetAllFieldExpressionTreeLevel2());
 		public T1 ToOne() {
 			this.Limit(1);
 			return this.ToList().FirstOrDefault();
@@ -349,7 +349,7 @@ namespace FreeSql.Internal.CommonProvider {
 			public string Field { get; set; }
 			public Func<IFreeSql, DbDataReader, T1> Read { get; set; }
 		}
-		protected GetAllFieldExpressionTreeInfo GetAllFieldExpressionTree() {
+		protected GetAllFieldExpressionTreeInfo GetAllFieldExpressionTreeLevelAll() {
 			return _dicGetAllFieldExpressionTree.GetOrAdd(string.Join("+", _tables.Select(a => $"{_orm.Ado.DataType}-{a.Table.DbName}-{a.Alias}-{a.Type}")), s => {
 				var type = _tables.First().Table.TypeLazy ?? _tables.First().Table.Type;
 				var ormExp = Expression.Parameter(typeof(IFreeSql), "orm");
@@ -379,6 +379,7 @@ namespace FreeSql.Internal.CommonProvider {
 					if (tbiindex > 0 && tbi.Alias.StartsWith($"{tb.Alias}__") == false) continue;
 
 					var typei = tbi.Table.TypeLazy ?? tbi.Table.Type;
+					Expression curExp = retExp;
 					if (tbiindex == 0)
 						blockExp.AddRange(new Expression[] {
 							Expression.Assign(readExp, Expression.Call(Utils.MethodExecuteArrayRowReadClassOrTuple, new Expression[] { Expression.Constant(typei), Expression.Constant(null, typeof(int[])), rowExp, dataIndexExp, Expression.Constant(_commonUtils) })),
@@ -393,7 +394,6 @@ namespace FreeSql.Internal.CommonProvider {
 						});
 					else {
 						Expression curExpIfNotNull = Expression.IsTrue(Expression.Constant(true));
-						Expression curExp = retExp;
 						var curTb = tb;
 						var parentNameSplits = tbi.Alias.Split(new[] { "__" }, StringSplitOptions.None);
 						var iscontinue = false;
@@ -435,11 +435,12 @@ namespace FreeSql.Internal.CommonProvider {
 							)
 						);
 					}
+
 					if (tbi.Table.TypeLazy != null)
 						blockExp.Add(
 							Expression.IfThen(
 								Expression.NotEqual(readExpValue, Expression.Constant(null)),
-								Expression.Call(retExp, tbi.Table.TypeLazySetOrm, ormExp)
+								Expression.Call(Expression.TypeAs(readExpValue, typei), tbi.Table.TypeLazySetOrm, ormExp)
 							)
 						); //将 orm 传递给 lazy
 
