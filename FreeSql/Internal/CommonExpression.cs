@@ -771,10 +771,11 @@ namespace FreeSql.Internal {
 				if (string.IsNullOrEmpty(other99Exp) == false) return other99Exp;
 				return "";
 			}
-			if (expBinary.NodeType == ExpressionType.Coalesce) {
-				return _common.IsNull(
-					ExpressionLambdaToSql(expBinary.Left, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName, isDisableDiyParse, style),
-					ExpressionLambdaToSql(expBinary.Right, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName, isDisableDiyParse, style));
+			switch (expBinary.NodeType) {
+				case ExpressionType.Coalesce:
+					return _common.IsNull(ExpressionLambdaToSql(expBinary.Left, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName, isDisableDiyParse, style), ExpressionLambdaToSql(expBinary.Right, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName, isDisableDiyParse, style));
+				case ExpressionType.OrElse:
+					return $"({ExpressionLambdaToSql(expBinary.Left, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName, isDisableDiyParse, style)} OR {ExpressionLambdaToSql(expBinary.Right, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName, isDisableDiyParse, style)})";
 			}
 			if (dicExpressionOperator.TryGetValue(expBinary.NodeType, out var tryoper) == false) return "";
 			var left = ExpressionLambdaToSql(expBinary.Left, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName, isDisableDiyParse, style);

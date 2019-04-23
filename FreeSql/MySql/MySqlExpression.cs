@@ -335,7 +335,7 @@ namespace FreeSql.MySql {
 						}
 						break;
 					case "Equals": return $"({left} = {getExp(exp.Arguments[0])})";
-					case "CompareTo": return $"(({left}) - ({getExp(exp.Arguments[0])}))";
+					case "CompareTo": return $"timestampdiff(microsecond,{getExp(exp.Arguments[0])},{left})";
 					case "ToString": return $"date_format({left}, '%Y-%m-%d %H:%i:%s.%f')";
 				}
 			}

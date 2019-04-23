@@ -320,7 +320,7 @@ namespace FreeSql.SqlServer {
 						}
 						break;
 					case "Equals": return $"({left} = {getExp(exp.Arguments[0])})";
-					case "CompareTo": return $"(({left}) - ({getExp(exp.Arguments[0])}))";
+					case "CompareTo": return $"datediff(second,{getExp(exp.Arguments[0])},{left})";
 					case "ToString": return $"convert(varchar, {left}, 121)";
 				}
 			}
