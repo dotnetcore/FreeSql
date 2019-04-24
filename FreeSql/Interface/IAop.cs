@@ -1,7 +1,9 @@
-﻿using FreeSql.DatabaseModel;
+﻿using FreeSql.DataAnnotations;
+using FreeSql.DatabaseModel;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace FreeSql {
 	public interface IAop {
@@ -20,6 +22,15 @@ namespace FreeSql {
 		/// 可自定义解析表达式
 		/// </summary>
 		EventHandler<AopParseExpressionEventArgs> ParseExpression { get; set; }
+
+		/// <summary>
+		/// 自定义实体的配置，方便和多个 ORM 共同使用
+		/// </summary>
+		EventHandler<AopConfigEntityEventArgs> ConfigEntity { get; set; }
+		/// <summary>
+		/// 自定义实体的属性配置，方便和多个 ORM 共同使用
+		/// </summary>
+		EventHandler<AopConfigEntityPropertyEventArgs> ConfigEntityProperty { get; set; }
 	}
 
 	public class AopToListEventArgs : EventArgs {
@@ -60,5 +71,40 @@ namespace FreeSql {
 		/// 解析后的内容
 		/// </summary>
 		public string Result { get; set; }
+	}
+	public class AopConfigEntityEventArgs : EventArgs {
+		public AopConfigEntityEventArgs(Type entityType) {
+			this.EntityType = entityType;
+			this.ModifyResult = new TableAttribute();
+		}
+
+		/// <summary>
+		/// 实体类型
+		/// </summary>
+		public Type EntityType { get; }
+		/// <summary>
+		/// 实体配置
+		/// </summary>
+		public TableAttribute ModifyResult { get; }
+	}
+	public class AopConfigEntityPropertyEventArgs : EventArgs {
+		public AopConfigEntityPropertyEventArgs(Type entityType, PropertyInfo property) {
+			this.EntityType = entityType;
+			this.Property = property;
+			this.ModifyResult = new ColumnAttribute();
+		}
+
+		/// <summary>
+		/// 实体类型
+		/// </summary>
+		public Type EntityType { get; }
+		/// <summary>
+		/// 实体的属性
+		/// </summary>
+		public PropertyInfo Property { get; }
+		/// <summary>
+		/// 实体的属性配置
+		/// </summary>
+		public ColumnAttribute ModifyResult { get; }
 	}
 }

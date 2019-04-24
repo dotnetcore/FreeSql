@@ -153,8 +153,23 @@ namespace FreeSql.Tests {
 			);
 
 
+			var neworder = new Order {
+				CustomerName = "testCustomer",
+				OrderTitle = "xxx#cccksksk",
+				TransactionDate = DateTime.Now,
+				OrderDetails = new List<OrderDetail>(new[] {
+					new OrderDetail {
 
-			var order = g.mysql.Select<Order>().Where(a => a.Id == 1).ToOne(); //查询订单表
+					},
+					new OrderDetail {
+
+					}
+				})
+			};
+
+			g.mysql.GetRepository<Order>().Insert(neworder);
+
+			var order = g.mysql.Select<Order>().Where(a => a.Id == neworder.Id).ToOne(); //查询订单表
 			if (order == null) {
 				var orderId = g.mysql.Insert(new Order { }).ExecuteIdentity();
 				order = g.mysql.Select<Order>(orderId).ToOne();

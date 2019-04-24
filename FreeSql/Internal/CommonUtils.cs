@@ -58,31 +58,74 @@ namespace FreeSql.Internal {
 			return dicConfigEntity.TryGetValue(type, out var trytb) ? trytb : null;
 		}
 		internal TableAttribute GetEntityTableAttribute(Type type) {
-			var attr = type.GetCustomAttributes(typeof(TableAttribute), false).LastOrDefault() as TableAttribute;
-			if (dicConfigEntity.TryGetValue(type, out var trytb) == false) return attr;
+			TableAttribute attr = null;
+			if (_orm.Aop.ConfigEntity != null) {
+				var aope = new AopConfigEntityEventArgs(type);
+				_orm.Aop.ConfigEntity(_orm, aope);
+				attr = aope.ModifyResult;
+			}
 			if (attr == null) attr = new TableAttribute();
-
-			if (string.IsNullOrEmpty(attr.Name)) attr.Name = trytb.Name;
-			if (string.IsNullOrEmpty(attr.OldName)) attr.OldName = trytb.OldName;
-			if (string.IsNullOrEmpty(attr.SelectFilter)) attr.SelectFilter = trytb.SelectFilter;
-			return attr;
+			if (dicConfigEntity.TryGetValue(type, out var trytb)) {
+				if (!string.IsNullOrEmpty(trytb.Name)) attr.Name = trytb.Name;
+				if (!string.IsNullOrEmpty(trytb.OldName)) attr.OldName = trytb.OldName;
+				if (!string.IsNullOrEmpty(trytb.SelectFilter)) attr.SelectFilter = trytb.SelectFilter;
+			}
+			var attrs = type.GetCustomAttributes(typeof(TableAttribute), false);
+			foreach (var tryattrobj in attrs) {
+				var tryattr = tryattrobj as TableAttribute;
+				if (tryattr == null) continue;
+				if (!string.IsNullOrEmpty(tryattr.Name)) attr.Name = tryattr.Name;
+				if (!string.IsNullOrEmpty(tryattr.OldName)) attr.OldName = tryattr.OldName;
+				if (!string.IsNullOrEmpty(tryattr.SelectFilter)) attr.SelectFilter = tryattr.SelectFilter;
+			}
+			if (!string.IsNullOrEmpty(attr.Name)) return attr;
+			if (!string.IsNullOrEmpty(attr.OldName)) return attr;
+			if (!string.IsNullOrEmpty(attr.SelectFilter)) return attr;
+			return null;
 		}
 		internal ColumnAttribute GetEntityColumnAttribute(Type type, PropertyInfo proto) {
-			var attr = proto.GetCustomAttributes(typeof(ColumnAttribute), false).LastOrDefault() as ColumnAttribute;
-			if (dicConfigEntity.TryGetValue(type, out var trytb) == false) return attr;
-			if (trytb._columns.TryGetValue(proto.Name, out var trycol) == false) return attr;
+			ColumnAttribute attr = null;
+			if (_orm.Aop.ConfigEntityProperty != null) {
+				var aope = new AopConfigEntityPropertyEventArgs(type, proto);
+				_orm.Aop.ConfigEntityProperty(_orm, aope);
+				attr = aope.ModifyResult;
+			}
 			if (attr == null) attr = new ColumnAttribute();
-
-			if (string.IsNullOrEmpty(attr.Name)) attr.Name = trycol.Name;
-			if (string.IsNullOrEmpty(attr.OldName)) attr.OldName = trycol.OldName;
-			if (string.IsNullOrEmpty(attr.DbType)) attr.DbType = trycol.DbType;
-			if (attr._IsPrimary == null) attr._IsPrimary = trycol.IsPrimary;
-			if (attr._IsIdentity == null) attr._IsIdentity = trycol.IsIdentity;
-			if (attr._IsNullable == null) attr._IsNullable = trycol.IsNullable;
-			if (attr._IsIgnore == null) attr._IsIgnore = trycol.IsIgnore;
-			if (attr._IsVersion == null) attr._IsVersion = trycol.IsVersion;
-			if (attr.DbDefautValue == null) attr.DbDefautValue = trycol.DbDefautValue;
-			return attr;
+			if (dicConfigEntity.TryGetValue(type, out var trytb) && trytb._columns.TryGetValue(proto.Name, out var trycol)) {
+				if (!string.IsNullOrEmpty(trycol.Name)) attr.Name = trycol.Name;
+				if (!string.IsNullOrEmpty(trycol.OldName)) attr.OldName = trycol.OldName;
+				if (!string.IsNullOrEmpty(trycol.DbType)) attr.DbType = trycol.DbType;
+				if (trycol._IsPrimary != null) attr._IsPrimary = trycol.IsPrimary;
+				if (trycol._IsIdentity != null) attr._IsIdentity = trycol.IsIdentity;
+				if (trycol._IsNullable != null) attr._IsNullable = trycol.IsNullable;
+				if (trycol._IsIgnore != null) attr._IsIgnore = trycol.IsIgnore;
+				if (trycol._IsVersion != null) attr._IsVersion = trycol.IsVersion;
+				if (trycol.DbDefautValue != null) attr.DbDefautValue = trycol.DbDefautValue;
+			}
+			var attrs = proto.GetCustomAttributes(typeof(ColumnAttribute), false);
+			foreach (var tryattrobj in attrs) {
+				var tryattr = tryattrobj as ColumnAttribute;
+				if (tryattr == null) continue;
+				if (!string.IsNullOrEmpty(tryattr.Name)) attr.Name = tryattr.Name;
+				if (!string.IsNullOrEmpty(tryattr.OldName)) attr.OldName = tryattr.OldName;
+				if (!string.IsNullOrEmpty(tryattr.DbType)) attr.DbType = tryattr.DbType;
+				if (tryattr._IsPrimary != null) attr._IsPrimary = tryattr.IsPrimary;
+				if (tryattr._IsIdentity != null) attr._IsIdentity = tryattr.IsIdentity;
+				if (tryattr._IsNullable != null) attr._IsNullable = tryattr.IsNullable;
+				if (tryattr._IsIgnore != null) attr._IsIgnore = tryattr.IsIgnore;
+				if (tryattr._IsVersion != null) attr._IsVersion = tryattr.IsVersion;
+				if (tryattr.DbDefautValue != null) attr.DbDefautValue = tryattr.DbDefautValue;
+			}
+			if (!string.IsNullOrEmpty(attr.Name)) return attr;
+			if (!string.IsNullOrEmpty(attr.OldName)) return attr;
+			if (!string.IsNullOrEmpty(attr.DbType)) return attr;
+			if (attr._IsPrimary != null) return attr;
+			if (attr._IsIdentity != null) return attr;
+			if (attr._IsNullable != null) return attr;
+			if (attr._IsIgnore != null) return attr;
+			if (attr._IsVersion != null) return attr;
+			if (attr.DbDefautValue != null) return attr;
+			return null;
 		}
 
 		internal string WhereObject(TableInfo table, string aliasAndDot, object dywhere) {

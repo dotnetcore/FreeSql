@@ -288,8 +288,10 @@ namespace FreeSql.Internal.CommonProvider {
 				return ret;
 			});
 		}
-		public List<T1> ToList(bool includeNestedMembers = false) => this.ToListPrivate(includeNestedMembers == false ? this.GetAllFieldExpressionTreeLevel2() : this.GetAllFieldExpressionTreeLevel2());
-		public Task<List<T1>> ToListAsync(bool includeNestedMembers = false) => this.ToListPrivateAsync(includeNestedMembers == false ? this.GetAllFieldExpressionTreeLevel2() : this.GetAllFieldExpressionTreeLevel2());
+		public List<T1> ToList(bool includeNestedMembers = false) => 
+			this.ToListPrivate(includeNestedMembers == false ? this.GetAllFieldExpressionTreeLevel2() : this.GetAllFieldExpressionTreeLevelAll());
+		public Task<List<T1>> ToListAsync(bool includeNestedMembers = false) => 
+			this.ToListPrivateAsync(includeNestedMembers == false ? this.GetAllFieldExpressionTreeLevel2() : this.GetAllFieldExpressionTreeLevelAll());
 		public T1 ToOne() {
 			this.Limit(1);
 			return this.ToList().FirstOrDefault();
@@ -350,7 +352,7 @@ namespace FreeSql.Internal.CommonProvider {
 			public Func<IFreeSql, DbDataReader, T1> Read { get; set; }
 		}
 		protected GetAllFieldExpressionTreeInfo GetAllFieldExpressionTreeLevelAll() {
-			return _dicGetAllFieldExpressionTree.GetOrAdd(string.Join("+", _tables.Select(a => $"{_orm.Ado.DataType}-{a.Table.DbName}-{a.Alias}-{a.Type}")), s => {
+			return _dicGetAllFieldExpressionTree.GetOrAdd($"*{string.Join("+", _tables.Select(a => $"{_orm.Ado.DataType}-{a.Table.DbName}-{a.Alias}-{a.Type}"))}", s => {
 				var type = _tables.First().Table.TypeLazy ?? _tables.First().Table.Type;
 				var ormExp = Expression.Parameter(typeof(IFreeSql), "orm");
 				var rowExp = Expression.Parameter(typeof(DbDataReader), "row");

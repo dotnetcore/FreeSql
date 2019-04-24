@@ -1,12 +1,37 @@
 using FreeSql.DataAnnotations;
-using FreeSql.Tests.DataContext.SqlServer;
 using System;
+using System.Linq;
 using Xunit;
 
 namespace FreeSql.Tests.DataAnnotations {
 	public class MySqlFluentTest {
 
 		public MySqlFluentTest() {
+		}
+
+		[Fact]
+		public void AopConfigEntity() {
+			g.mysql.CodeFirst.ConfigEntity<ModelAopConfigEntity>(a => a.Property(b => b.pkid).IsPrimary(true));
+
+			g.mysql.Aop.ConfigEntity = (s, e) => {
+				var attr = e.EntityType.GetCustomAttributes(typeof(System.ComponentModel.DataAnnotations.Schema.TableAttribute), false).FirstOrDefault() as System.ComponentModel.DataAnnotations.Schema.TableAttribute;
+				if (attr != null) {
+					e.ModifyResult.Name = attr.Name;
+				}
+			};
+			g.mysql.Aop.ConfigEntityProperty = (s, e) => {
+				if (e.Property.GetCustomAttributes(typeof(System.ComponentModel.DataAnnotations.KeyAttribute), false).Any()) {
+					e.ModifyResult.IsPrimary = true;
+				}
+			};
+
+			var tsql1 = g.mysql.Select<ModelAopConfigEntity>().WhereDynamic(1).ToSql();
+		}
+		[System.ComponentModel.DataAnnotations.Schema.Table("xxx")]
+		class ModelAopConfigEntity {
+			[System.ComponentModel.DataAnnotations.Key]
+			[Column(IsPrimary = false)]
+			public int pkid { get; set; }
 		}
 
 		[Fact]

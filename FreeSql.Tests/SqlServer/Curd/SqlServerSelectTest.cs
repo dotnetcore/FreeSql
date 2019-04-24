@@ -677,7 +677,7 @@ namespace FreeSql.Tests.SqlServer {
 		[Fact]
 		public void AsTable() {
 
-			var listt = select.AsTable((a, b) => "(select * from tb_topic where clicks > 10)").Page(1, 10).ToList();
+			var listt = select.AsTable((a, b) => "(select * from tb_topic22 where clicks > 10)").Page(1, 10).ToList();
 
 			Func<Type, string, string> tableRule = (type, oldname) => {
 				if (type == typeof(Topic)) return oldname + "AsTable1";

@@ -9,5 +9,7 @@ namespace FreeSql.Internal.CommonProvider {
 		public EventHandler<AopToListEventArgs> ToList { get; set; }
 		public EventHandler<AopWhereEventArgs> Where { get; set; }
 		public EventHandler<AopParseExpressionEventArgs> ParseExpression { get; set; }
+		public EventHandler<AopConfigEntityEventArgs> ConfigEntity { get; set; }
+		public EventHandler<AopConfigEntityPropertyEventArgs> ConfigEntityProperty { get; set; }
 	}
 }
