@@ -201,7 +201,7 @@ namespace FreeSql.Tests {
 			.Having(a => a.Count() > 0 && a.Avg(a.Key.mod4) > 0 && a.Max(a.Key.mod4) > 0)
 			.Having(a => a.Count() < 300 || a.Avg(a.Key.mod4) < 100)
 			.OrderBy(a => a.Key.tt2)
-			.OrderByDescending(a => a.Count()).ToSql(a => new { a.Key.mod4, a.Key.tt2 });
+			.OrderByDescending(a => a.Count()).ToSql(a => new { a.Key.mod4, a.Key.tt2, max = a.Max("a.id"), max2 = Convert.ToInt64("max(a.id)") });
 
 			var groupbysql2 = g.mysql.Select<TestInfo>().From<TestTypeInfo, TestTypeParentInfo>((s, b, c) => s
 				.Where(a => a.Id == 1)

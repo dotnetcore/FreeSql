@@ -345,6 +345,14 @@ namespace FreeSql.Internal {
 						return $"{tmpleft} {tmptryoper} {tmpright}";
 					}
 					if (callType.FullName.StartsWith("FreeSql.ISelectGroupingAggregate`")) {
+						//if (exp3.Type == typeof(string) && exp3.Arguments.Any() && exp3.Arguments[0].NodeType == ExpressionType.Constant) {
+						//	switch (exp3.Method.Name) {
+						//		case "Sum": return $"sum({(exp3.Arguments[0] as ConstantExpression)?.Value})";
+						//		case "Avg": return $"avg({(exp3.Arguments[0] as ConstantExpression)?.Value})";
+						//		case "Max": return $"max({(exp3.Arguments[0] as ConstantExpression)?.Value})";
+						//		case "Min": return $"min({(exp3.Arguments[0] as ConstantExpression)?.Value})";
+						//	}
+						//}
 						switch (exp3.Method.Name) {
 							case "Count": return "count(1)";
 							case "Sum": return $"sum({ExpressionLambdaToSql(exp3.Arguments[0], _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName, isDisableDiyParse, style)})";

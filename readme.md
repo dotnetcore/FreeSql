@@ -114,7 +114,7 @@ using (var uow = fsql.CreateUnitOfWork()) {
 public class SongContext : DbContext {
 
     public DbSet<Song> Songs { get; set; }
-    public DbSet<Song> Tags { get; set; }
+    public DbSet<Tag> Tags { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder builder) {
         builder.UseFreeSql(fsql);
