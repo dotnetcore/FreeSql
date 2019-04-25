@@ -95,7 +95,7 @@ namespace FreeSql.PostgreSQL {
 						argIndex++;
 					}
 					if (objType == null) objType = callExp.Method.DeclaringType;
-					if (objType != null) {
+					if (objType != null || objType.IsArray || typeof(IList).IsAssignableFrom(callExp.Method.DeclaringType)) {
 						var left = objExp == null ? null : getExp(objExp);
 						switch (objType.FullName) {
 							case "Newtonsoft.Json.Linq.JToken":
@@ -134,32 +134,30 @@ namespace FreeSql.PostgreSQL {
 								case "Values": return $"avals({left})";
 							}
 						}
-						if (objType.IsArray || typeof(IList).IsAssignableFrom(callExp.Method.DeclaringType)) {
-							switch (callExp.Method.Name) {
-								case "Any":
-									if (left.StartsWith("(") || left.EndsWith(")")) left = $"array[{left.TrimStart('(').TrimEnd(')')}]";
-									return $"(case when {left} is null then 0 else array_length({left},1) end > 0)";
-								case "Contains":
-									//判断 in 或 array @> array
-									var right1 = getExp(callExp.Arguments[argIndex]);
-									if (left.StartsWith("array[") || left.EndsWith("]"))
-										return $"{right1} in ({left.Substring(6, left.Length - 7)})";
-									if (left.StartsWith("(") || left.EndsWith(")"))
-										return $"{right1} in {left}";
-									if (right1.StartsWith("(") || right1.EndsWith(")")) right1 = $"array[{right1.TrimStart('(').TrimEnd(')')}]";
-									return $"({left} @> array[{right1}])";
-								case "Concat":
-									if (left.StartsWith("(") || left.EndsWith(")")) left = $"array[{left.TrimStart('(').TrimEnd(')')}]";
-									var right2 = getExp(callExp.Arguments[argIndex]);
-									if (right2.StartsWith("(") || right2.EndsWith(")")) right2 = $"array[{right2.TrimStart('(').TrimEnd(')')}]";
-									return $"({left} || {right2})";
-								case "GetLength":
-								case "GetLongLength":
-								case "Length":
-								case "Count":
-									if (left.StartsWith("(") || left.EndsWith(")")) left = $"array[{left.TrimStart('(').TrimEnd(')')}]";
-									return $"case when {left} is null then 0 else array_length({left},1) end";
-							}
+						switch (callExp.Method.Name) {
+							case "Any":
+								if (left.StartsWith("(") || left.EndsWith(")")) left = $"array[{left.TrimStart('(').TrimEnd(')')}]";
+								return $"(case when {left} is null then 0 else array_length({left},1) end > 0)";
+							case "Contains":
+								//判断 in 或 array @> array
+								var right1 = getExp(callExp.Arguments[argIndex]);
+								if (left.StartsWith("array[") || left.EndsWith("]"))
+									return $"{right1} in ({left.Substring(6, left.Length - 7)})";
+								if (left.StartsWith("(") || left.EndsWith(")"))
+									return $"{right1} in {left}";
+								if (right1.StartsWith("(") || right1.EndsWith(")")) right1 = $"array[{right1.TrimStart('(').TrimEnd(')')}]";
+								return $"({left} @> array[{right1}])";
+							case "Concat":
+								if (left.StartsWith("(") || left.EndsWith(")")) left = $"array[{left.TrimStart('(').TrimEnd(')')}]";
+								var right2 = getExp(callExp.Arguments[argIndex]);
+								if (right2.StartsWith("(") || right2.EndsWith(")")) right2 = $"array[{right2.TrimStart('(').TrimEnd(')')}]";
+								return $"({left} || {right2})";
+							case "GetLength":
+							case "GetLongLength":
+							case "Length":
+							case "Count":
+								if (left.StartsWith("(") || left.EndsWith(")")) left = $"array[{left.TrimStart('(').TrimEnd(')')}]";
+								return $"case when {left} is null then 0 else array_length({left},1) end";
 						}
 					}
 					break;
