@@ -42,5 +42,10 @@ namespace FreeSql.DataAnnotations {
 		/// 数据库默认值
 		/// </summary>
 		internal object DbDefautValue { get; set; }
+
+		/// <summary>
+		/// 类型映射，比如：可将 enum 属性映射成 typeof(string)
+		/// </summary>
+		public Type Mapping { get; set; }
 	}
 }
