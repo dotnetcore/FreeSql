@@ -1,4 +1,5 @@
 using FreeSql.DataAnnotations;
+using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,6 +17,10 @@ namespace FreeSql.Tests.MySqlExpression {
 
 		[Fact]
 		public void Array() {
+			int[] nullarr = null;
+			Assert.Throws<MySqlException>(() => { select.Where(a => nullarr.Contains(a.testFieldInt)).ToList(); });
+			Assert.Throws<MySqlException>(() => { select.Where(a => new int[0].Contains(a.testFieldInt)).ToList(); });
+
 			//in not in
 			var sql111 = select.Where(a => new[] { 1, 2, 3 }.Contains(a.testFieldInt)).ToList();
 			var sql112 = select.Where(a => new[] { 1, 2, 3 }.Contains(a.testFieldInt) == false).ToList();

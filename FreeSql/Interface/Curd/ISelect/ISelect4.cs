@@ -32,7 +32,7 @@ namespace FreeSql {
 		ISelect<T1, T2, T3, T4> Where(Expression<Func<T1, T2, T3, T4, bool>> exp);
 		ISelect<T1, T2, T3, T4> WhereIf(bool condition, Expression<Func<T1, T2, T3, T4, bool>> exp);
 
-		ISelectGrouping<TKey> GroupBy<TKey>(Expression<Func<T1, T2, T3, T4, TKey>> exp);
+		ISelectGrouping<TKey, (T1, T2, T3, T4)> GroupBy<TKey>(Expression<Func<T1, T2, T3, T4, TKey>> exp);
 
 		ISelect<T1, T2, T3, T4> OrderBy<TMember>(Expression<Func<T1, T2, T3, T4, TMember>> column);
 		ISelect<T1, T2, T3, T4> OrderByDescending<TMember>(Expression<Func<T1, T2, T3, T4, TMember>> column);

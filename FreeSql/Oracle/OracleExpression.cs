@@ -208,6 +208,8 @@ namespace FreeSql.Oracle {
 					case "IsNullOrEmpty":
 						var arg1 = getExp(exp.Arguments[0]);
 						return $"({arg1} is null or {arg1} = '')";
+					case "Concat":
+						return _common.StringConcat(exp.Arguments.Select(a => getExp(a)).ToArray(), null);
 				}
 			} else {
 				var left = getExp(exp.Object);

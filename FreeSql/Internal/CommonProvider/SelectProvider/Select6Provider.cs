@@ -36,10 +36,10 @@ namespace FreeSql.Internal.CommonProvider {
 			return this.InternalAvgAsync<TMember>(column?.Body);
 		}
 
-		ISelectGrouping<TKey> ISelect<T1, T2, T3, T4, T5, T6>.GroupBy<TKey>(Expression<Func<T1, T2, T3, T4, T5, T6, TKey>> exp) {
-			if (exp == null) return this.InternalGroupBy<TKey>(exp?.Body);
+		ISelectGrouping<TKey, (T1, T2, T3, T4, T5, T6)> ISelect<T1, T2, T3, T4, T5, T6>.GroupBy<TKey>(Expression<Func<T1, T2, T3, T4, T5, T6, TKey>> exp) {
+			if (exp == null) return this.InternalGroupBy<TKey, (T1, T2, T3, T4, T5, T6)>(exp?.Body);
 			for (var a = 0; a < exp.Parameters.Count; a++) _tables[a].Parameter = exp.Parameters[a];
-			return this.InternalGroupBy<TKey>(exp?.Body);
+			return this.InternalGroupBy<TKey, (T1, T2, T3, T4, T5, T6)>(exp?.Body);
 		}
 
 		TMember ISelect<T1, T2, T3, T4, T5, T6>.Max<TMember>(Expression<Func<T1, T2, T3, T4, T5, T6, TMember>> column) {

@@ -679,14 +679,14 @@ namespace FreeSql.Internal.CommonProvider {
 		protected TMember InternalSum<TMember>(Expression exp) => this.ToList<TMember>($"sum({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)})").FirstOrDefault();
 		async protected Task<TMember> InternalSumAsync<TMember>(Expression exp) => (await this.ToListAsync<TMember>($"sum({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)})")).FirstOrDefault();
 
-		protected ISelectGrouping<TKey> InternalGroupBy<TKey>(Expression columns) {
+		protected ISelectGrouping<TKey, TValue> InternalGroupBy<TKey, TValue>(Expression columns) {
 			var map = new ReadAnonymousTypeInfo();
 			var field = new StringBuilder();
 			var index = -10000; //临时规则，不返回 as1
 
 			_commonExpression.ReadAnonymousField(_tables, field, map, ref index, columns, null);
 			this.GroupBy(field.Length > 0 ? field.Remove(0, 2).ToString() : null);
-			return new SelectGroupingProvider<TKey>(this, map, _commonExpression);
+			return new SelectGroupingProvider<TKey, TValue>(this, map, _commonExpression, _tables);
 		}
 		protected TSelect InternalJoin(Expression exp, SelectTableInfoType joinType) {
 			_commonExpression.ExpressionJoinLambda(_tables, joinType, exp, null);

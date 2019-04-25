@@ -271,7 +271,7 @@ namespace FreeSql {
 		/// </summary>
 		/// <param name="key"></param>
 		/// <returns></returns>
-		ISelectGrouping<TKey> GroupBy<TKey>(Expression<Func<T1, TKey>> exp);
+		ISelectGrouping<TKey, T1> GroupBy<TKey>(Expression<Func<T1, TKey>> exp);
 
 		/// <summary>
 		/// 按列排序，OrderBy(a => a.Time)

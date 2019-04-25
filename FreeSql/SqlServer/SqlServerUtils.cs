@@ -43,7 +43,13 @@ namespace FreeSql.SqlServer {
 		}
 		internal override string QuoteParamterName(string name) => $"@{(_orm.CodeFirst.IsSyncStructureToLower ? name.ToLower() : name)}";
 		internal override string IsNull(string sql, object value) => $"isnull({sql}, {value})";
-		internal override string StringConcat(string left, string right, Type leftType, Type rightType) => $"{(leftType.FullName == "System.String" ? left : $"cast({left} as nvarchar)")} + {(rightType.FullName == "System.String" ? right : $"cast({right} as nvarchar)")}";
+		internal override string StringConcat(string[] objs, Type[] types) {
+			var sb = new StringBuilder();
+			var news = new string[objs.Length];
+			for (var a = 0; a < objs.Length; a++)
+				news[a] = types[a] == typeof(string) ? objs[a] : $"cast({objs[a]} as nvarchar)";
+			return string.Join(" + ", news);
+		}
 		internal override string Mod(string left, string right, Type leftType, Type rightType) => $"{left} % {right}";
 
 		internal override string QuoteWriteParamter(Type type, string paramterName) => paramterName;

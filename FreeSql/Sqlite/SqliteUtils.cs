@@ -61,7 +61,7 @@ namespace FreeSql.Sqlite {
 		}
 		internal override string QuoteParamterName(string name) => $"@{(_orm.CodeFirst.IsSyncStructureToLower ? name.ToLower() : name)}";
 		internal override string IsNull(string sql, object value) => $"ifnull({sql}, {value})";
-		internal override string StringConcat(string left, string right, Type leftType, Type rightType) => $"{left} || {right}";
+		internal override string StringConcat(string[] objs, Type[] types) => $"{string.Join(" || ", objs)}";
 		internal override string Mod(string left, string right, Type leftType, Type rightType) => $"{left} % {right}";
 
 		internal override string QuoteWriteParamter(Type type, string paramterName) => paramterName;

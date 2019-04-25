@@ -726,7 +726,59 @@ namespace FreeSql.Tests.MySql {
 				arg1 = a.Avg(a.Key.mod4),
 				ccc2 = a.Key.tt2 ?? "now()",
 				//ccc = Convert.ToDateTime("now()"), partby = Convert.ToDecimal("sum(num) over(PARTITION BY server_id,os,rid,chn order by id desc)")
+				ccc3 = a.Max(a.Value.Item3.Id)
 			});
+
+			var testpid1 = g.mysql.Insert<TestTypeInfo>().AppendData(new TestTypeInfo { Name = "Name" + DateTime.Now.ToString("yyyyMMddHHmmss") }).ExecuteIdentity();
+			g.mysql.Insert<TestInfo>().AppendData(new TestInfo { Title = "Title" + DateTime.Now.ToString("yyyyMMddHHmmss"), CreateTime = DateTime.Now, TypeGuid = (int)testpid1 }).ExecuteAffrows();
+
+			var aggsql1 = select
+				.GroupBy(a => a.Title)
+				.ToSql(b => new {
+					b.Key,
+					cou = b.Count(),
+					sum = b.Sum(b.Key),
+					sum2 = b.Sum(b.Value.TypeGuid)
+				});
+			var aggtolist1 = select
+				.GroupBy(a => a.Title)
+				.ToList(b => new {
+					b.Key,
+					cou = b.Count(),
+					sum = b.Sum(b.Key),
+					sum2 = b.Sum(b.Value.TypeGuid)
+				});
+
+			var aggsql2 = select
+				.GroupBy(a => new { a.Title, yyyy = string.Concat(a.CreateTime.Year, '-', a.CreateTime.Month) })
+				.ToSql(b => new {
+					b.Key.Title,
+					b.Key.yyyy,
+
+					cou = b.Count(),
+					sum = b.Sum(b.Key.yyyy),
+					sum2 = b.Sum(b.Value.TypeGuid)
+				});
+			var aggtolist2 = select
+				.GroupBy(a => new { a.Title, yyyy = string.Concat(a.CreateTime.Year, '-', a.CreateTime.Month) })
+				.ToList(b => new {
+					b.Key.Title,
+					b.Key.yyyy,
+
+					cou = b.Count(),
+					sum = b.Sum(b.Key.yyyy),
+					sum2 = b.Sum(b.Value.TypeGuid)
+				});
+
+			var aggsql3 = select
+				.GroupBy(a => a.Title)
+				.ToSql(b => new {
+					b.Key,
+					cou = b.Count(),
+					sum = b.Sum(b.Key),
+					sum2 = b.Sum(b.Value.TypeGuid),
+					sum3 = b.Sum(b.Value.Type.Parent.Id)
+				});
 		}
 		[Fact]
 		public void ToAggregate() {

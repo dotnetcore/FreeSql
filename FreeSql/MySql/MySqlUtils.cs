@@ -4,6 +4,7 @@ using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
+using System.Linq;
 using System.Text;
 
 namespace FreeSql.MySql {
@@ -50,7 +51,7 @@ namespace FreeSql.MySql {
 		}
 		internal override string QuoteParamterName(string name) => $"?{(_orm.CodeFirst.IsSyncStructureToLower ? name.ToLower() : name)}";
 		internal override string IsNull(string sql, object value) => $"ifnull({sql}, {value})";
-		internal override string StringConcat(string left, string right, Type leftType, Type rightType) => $"concat({left}, {right})";
+		internal override string StringConcat(string[] objs, Type[] types) => $"concat({string.Join(", ", objs)})";
 		internal override string Mod(string left, string right, Type leftType, Type rightType) => $"{left} % {right}";
 		internal override string QuoteWriteParamter(Type type, string paramterName) {
 			switch (type.FullName) {

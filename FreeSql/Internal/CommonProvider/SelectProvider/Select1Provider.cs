@@ -87,10 +87,10 @@ namespace FreeSql.Internal.CommonProvider {
 
 		public abstract ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> From<T2, T3, T4, T5, T6, T7, T8, T9, T10>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, T9, T10, ISelectFromExpression<T1>>> exp) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class;// { this.InternalFrom(exp?.Body); var ret = new Select10Provider<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(_orm, _commonUtils, _commonExpression, null); Select0Provider<ISelect<T1>, T1>.CopyData(this, ret, exp?.Parameters); return ret; }
 
-		public ISelectGrouping<TKey> GroupBy<TKey>(Expression<Func<T1, TKey>> columns) {
-			if (columns == null) return this.InternalGroupBy<TKey>(columns);
+		public ISelectGrouping<TKey, T1> GroupBy<TKey>(Expression<Func<T1, TKey>> columns) {
+			if (columns == null) return this.InternalGroupBy<TKey, T1>(columns);
 			_tables[0].Parameter = columns.Parameters[0];
-			return this.InternalGroupBy<TKey>(columns);
+			return this.InternalGroupBy<TKey, T1>(columns);
 		}
 
 		public TMember Max<TMember>(Expression<Func<T1, TMember>> column) {

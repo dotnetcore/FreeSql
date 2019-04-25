@@ -53,6 +53,56 @@ namespace FreeSql.Tests {
 
 		[Fact]
 		public void Test1() {
+			var testpid1 = g.mysql.Insert<TestTypeInfo>().AppendData(new TestTypeInfo { Name = "Name" + DateTime.Now.ToString("yyyyMMddHHmmss") }).ExecuteIdentity();
+			g.mysql.Insert<TestInfo>().AppendData(new TestInfo { Title = "Title" + DateTime.Now.ToString("yyyyMMddHHmmss"), CreateTime = DateTime.Now, TypeGuid = (int)testpid1 }).ExecuteAffrows();
+
+			var aggsql1 = select
+				.GroupBy(a => a.Title)
+				.ToSql(b => new {
+					b.Key,
+					cou = b.Count(),
+					sum = b.Sum(b.Key),
+					sum2 = b.Sum(b.Value.TypeGuid)
+				});
+			var aggtolist1 = select
+				.GroupBy(a => a.Title)
+				.ToList(b => new {
+					b.Key,
+					cou = b.Count(),
+					sum = b.Sum(b.Key),
+					sum2 = b.Sum(b.Value.TypeGuid)
+				});
+
+			var aggsql2 = select
+				.GroupBy(a => new { a.Title, yyyy = string.Concat(a.CreateTime.Year, '-', a.CreateTime.Month) })
+				.ToSql(b => new {
+					b.Key.Title,
+					b.Key.yyyy,
+
+					cou = b.Count(),
+					sum = b.Sum(b.Key.yyyy),
+					sum2 = b.Sum(b.Value.TypeGuid)
+				});
+			var aggtolist2 = select
+				.GroupBy(a => new { a.Title, yyyy = string.Concat(a.CreateTime.Year, '-', a.CreateTime.Month) })
+				.ToList(b => new {
+					b.Key.Title,
+					b.Key.yyyy,
+
+					cou = b.Count(),
+					sum = b.Sum(b.Key.yyyy),
+					sum2 = b.Sum(b.Value.TypeGuid)
+				});
+
+			var aggsql3 = select
+				.GroupBy(a => a.Title)
+				.ToSql(b => new {
+					b.Key,
+					cou = b.Count(),
+					sum = b.Sum(b.Key),
+					sum2 = b.Sum(b.Value.TypeGuid),
+					sum3 = b.Sum(b.Value.Type.Parent.Parent.Id)
+				});
 
 			var sqlrepos = g.sqlite.GetRepository<TestTypeParentInfo, int>();
 			sqlrepos.Insert(new TestTypeParentInfo {
@@ -201,7 +251,9 @@ namespace FreeSql.Tests {
 			.Having(a => a.Count() > 0 && a.Avg(a.Key.mod4) > 0 && a.Max(a.Key.mod4) > 0)
 			.Having(a => a.Count() < 300 || a.Avg(a.Key.mod4) < 100)
 			.OrderBy(a => a.Key.tt2)
-			.OrderByDescending(a => a.Count()).ToSql(a => new { a.Key.mod4, a.Key.tt2, max = a.Max("a.id"), max2 = Convert.ToInt64("max(a.id)") });
+			.OrderByDescending(a => a.Count()).ToSql(a => new {
+				cou = a.Sum(a.Value.Item1.Id),
+				a.Key.mod4, a.Key.tt2, max = a.Max("a.id"), max2 = Convert.ToInt64("max(a.id)") });
 
 			var groupbysql2 = g.mysql.Select<TestInfo>().From<TestTypeInfo, TestTypeParentInfo>((s, b, c) => s
 				.Where(a => a.Id == 1)

@@ -208,6 +208,8 @@ namespace FreeSql.MySql {
 					case "IsNullOrEmpty":
 						var arg1 = getExp(exp.Arguments[0]);
 						return $"({arg1} is null or {arg1} = '')";
+					case "Concat":
+						return _common.StringConcat(exp.Arguments.Select(a => getExp(a)).ToArray(), null);
 				}
 			} else {
 				var left = getExp(exp.Object);
@@ -335,7 +337,7 @@ namespace FreeSql.MySql {
 						}
 						break;
 					case "Equals": return $"({left} = {getExp(exp.Arguments[0])})";
-					case "CompareTo": return $"timestampdiff(microsecond,{getExp(exp.Arguments[0])},{left})";
+					case "CompareTo": return $"timestampdiff(microsecond,{args1},{left})";
 					case "ToString": return $"date_format({left}, '%Y-%m-%d %H:%i:%s.%f')";
 				}
 			}

@@ -726,7 +726,7 @@ namespace FreeSql.Internal {
 							case ExpressionType.MemberAccess:
 								
 								var exp2Type = exp2.Type;
-								if (exp2Type.FullName.StartsWith("FreeSql.ISelectGroupingAggregate`")) exp2Type = exp2Type.GenericTypeArguments.FirstOrDefault() ?? exp2.Type;
+								if (exp2Type.FullName.StartsWith("FreeSql.ISelectGroupingAggregate`")) exp2Type = exp2Type.GenericTypeArguments.LastOrDefault() ?? exp2.Type;
 								var tb2tmp = _common.GetTableByEntity(exp2Type);
 								var mp2 = exp2 as MemberExpression;
 								if (mp2?.Member.Name == "Key" && mp2.Expression.Type.FullName.StartsWith("FreeSql.ISelectGroupingAggregate`")) continue;
@@ -794,7 +794,7 @@ namespace FreeSql.Internal {
 				left = tmp;
 			}
 			if (right == "NULL") tryoper = tryoper == "=" ? " IS " : " IS NOT ";
-			if (tryoper == "+" && (expBinary.Left.Type.FullName == "System.String" || expBinary.Right.Type.FullName == "System.String")) return _common.StringConcat(left, right, expBinary.Left.Type, expBinary.Right.Type);
+			if (tryoper == "+" && (expBinary.Left.Type.FullName == "System.String" || expBinary.Right.Type.FullName == "System.String")) return _common.StringConcat(new[] { left, right }, new[] { expBinary.Left.Type, expBinary.Right.Type });
 			if (tryoper == "%") return _common.Mod(left, right, expBinary.Left.Type, expBinary.Right.Type);
 			if (_common._orm.Ado.DataType == DataType.MySql) {
 				//处理c#变态enum convert， a.EnumType1 == Xxx.Xxx，被转成了 Convert(a.EnumType1, Int32) == 1

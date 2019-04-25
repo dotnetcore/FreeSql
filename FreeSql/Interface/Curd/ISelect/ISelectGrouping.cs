@@ -5,13 +5,13 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace FreeSql {
-	public interface ISelectGrouping<T1> {
+	public interface ISelectGrouping<TKey, TValue> {
 		/// <summary>
 		/// 按聚合条件过滤，Where(a => a.Count() > 10)
 		/// </summary>
 		/// <param name="exp">lambda表达式</param>
 		/// <returns></returns>
-		ISelectGrouping<T1> Having(Expression<Func<ISelectGroupingAggregate<T1>, bool>> exp);
+		ISelectGrouping<TKey, TValue> Having(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, bool>> exp);
 
 		/// <summary>
 		/// 按列排序，OrderBy(a => a.Time)
@@ -19,13 +19,13 @@ namespace FreeSql {
 		/// <typeparam name="TMember"></typeparam>
 		/// <param name="column"></param>
 		/// <returns></returns>
-		ISelectGrouping<T1> OrderBy<TMember>(Expression<Func<ISelectGroupingAggregate<T1>, TMember>> column);
+		ISelectGrouping<TKey, TValue> OrderBy<TMember>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TMember>> column);
 		/// <summary>
 		/// 按列倒向排序，OrderByDescending(a => a.Time)
 		/// </summary>
 		/// <param name="column">列</param>
 		/// <returns></returns>
-		ISelectGrouping<T1> OrderByDescending<TMember>(Expression<Func<ISelectGroupingAggregate<T1>, TMember>> column);
+		ISelectGrouping<TKey, TValue> OrderByDescending<TMember>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TMember>> column);
 
 		/// <summary>
 		/// 执行SQL查询，返回指定字段的记录，记录不存在时返回 Count 为 0 的列表
@@ -33,8 +33,8 @@ namespace FreeSql {
 		/// <typeparam name="TReturn">返回类型</typeparam>
 		/// <param name="select">选择列</param>
 		/// <returns></returns>
-		List<TReturn> ToList<TReturn>(Expression<Func<ISelectGroupingAggregate<T1>, TReturn>> select);
-		Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<ISelectGroupingAggregate<T1>, TReturn>> select);
+		List<TReturn> ToList<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select);
+		Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select);
 
 		/// <summary>
 		/// 返回即将执行的SQL语句
@@ -42,7 +42,7 @@ namespace FreeSql {
 		/// <typeparam name="TReturn">返回类型</typeparam>
 		/// <param name="select">选择列</param>
 		/// <returns></returns>
-		string ToSql<TReturn>(Expression<Func<ISelectGroupingAggregate<T1>, TReturn>> select);
+		string ToSql<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select);
 
 
 		/// <summary>
@@ -50,25 +50,25 @@ namespace FreeSql {
 		/// </summary>
 		/// <param name="offset"></param>
 		/// <returns></returns>
-		ISelectGrouping<T1> Skip(int offset);
+		ISelectGrouping<TKey, TValue> Skip(int offset);
 		/// <summary>
 		/// 查询向后偏移行数
 		/// </summary>
 		/// <param name="offset">行数</param>
 		/// <returns></returns>
-		ISelectGrouping<T1> Offset(int offset);
+		ISelectGrouping<TKey, TValue> Offset(int offset);
 		/// <summary>
 		/// 查询多少条数据
 		/// </summary>
 		/// <param name="limit"></param>
 		/// <returns></returns>
-		ISelectGrouping<T1> Limit(int limit);
+		ISelectGrouping<TKey, TValue> Limit(int limit);
 		/// <summary>
 		/// 查询多少条数据
 		/// </summary>
 		/// <param name="limit"></param>
 		/// <returns></returns>
-		ISelectGrouping<T1> Take(int limit);
+		ISelectGrouping<TKey, TValue> Take(int limit);
 
 		/// <summary>
 		/// 分页
@@ -76,14 +76,14 @@ namespace FreeSql {
 		/// <param name="pageIndex">第几页</param>
 		/// <param name="pageSize">每页多少</param>
 		/// <returns></returns>
-		ISelectGrouping<T1> Page(int pageIndex, int pageSize);
+		ISelectGrouping<TKey, TValue> Page(int pageIndex, int pageSize);
 	}
 
-	public interface ISelectGroupingAggregate<T1> {
+	public interface ISelectGroupingAggregate<TKey> {
 		/// <summary>
 		/// 分组的数据
 		/// </summary>
-		T1 Key { get; set; }
+		TKey Key { get; set; }
 		/// <summary>
 		/// 记录总数
 		/// </summary>
@@ -116,5 +116,11 @@ namespace FreeSql {
 		/// <param name="column"></param>
 		/// <returns></returns>
 		T3 Min<T3>(T3 column);
+	}
+	public interface ISelectGroupingAggregate<TKey, TValue> : ISelectGroupingAggregate<TKey> {
+		/// <summary>
+		/// 所有元素
+		/// </summary>
+		TValue Value { get; set; }
 	}
 }
