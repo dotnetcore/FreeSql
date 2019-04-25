@@ -30,7 +30,7 @@ namespace FreeSql.PostgreSQL.Curd {
 			var colidx = 0;
 			foreach (var col in _table.Columns.Values) {
 				if (colidx > 0) sb.Append(", ");
-				sb.Append(_commonUtils.QuoteReadColumn(col.CsType, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
+				sb.Append(_commonUtils.QuoteReadColumn(col.Attribute.MapType, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
 				++colidx;
 			}
 			var ret = _orm.Ado.Query<T1>(_connection, _transaction, CommandType.Text, sb.ToString(), _params.Concat(_paramsSource).ToArray());
@@ -47,7 +47,7 @@ namespace FreeSql.PostgreSQL.Curd {
 			var colidx = 0;
 			foreach (var col in _table.Columns.Values) {
 				if (colidx > 0) sb.Append(", ");
-				sb.Append(_commonUtils.QuoteReadColumn(col.CsType, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
+				sb.Append(_commonUtils.QuoteReadColumn(col.Attribute.MapType, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
 				++colidx;
 			}
 			var ret = await _orm.Ado.QueryAsync<T1>(_connection, _transaction, CommandType.Text, sb.ToString(), _params.Concat(_paramsSource).ToArray());
@@ -57,14 +57,14 @@ namespace FreeSql.PostgreSQL.Curd {
 
 		protected override void ToSqlCase(StringBuilder caseWhen, ColumnInfo[] primarys) {
 			if (_table.Primarys.Length == 1) {
-				caseWhen.Append(_commonUtils.QuoteReadColumn(_table.Primarys.First().CsType, _commonUtils.QuoteSqlName(_table.Primarys.First().Attribute.Name)));
+				caseWhen.Append(_commonUtils.QuoteReadColumn(_table.Primarys.First().Attribute.MapType, _commonUtils.QuoteSqlName(_table.Primarys.First().Attribute.Name)));
 				return;
 			}
 			caseWhen.Append("(");
 			var pkidx = 0;
 			foreach (var pk in _table.Primarys) {
 				if (pkidx > 0) caseWhen.Append(" || ");
-				caseWhen.Append(_commonUtils.QuoteReadColumn(_table.Primarys.First().CsType, _commonUtils.QuoteSqlName(pk.Attribute.Name))).Append("::varchar");
+				caseWhen.Append(_commonUtils.QuoteReadColumn(pk.Attribute.MapType, _commonUtils.QuoteSqlName(pk.Attribute.Name))).Append("::varchar");
 				++pkidx;
 			}
 			caseWhen.Append(")");
@@ -72,14 +72,14 @@ namespace FreeSql.PostgreSQL.Curd {
 
 		protected override void ToSqlWhen(StringBuilder sb, ColumnInfo[] primarys, object d) {
 			if (_table.Primarys.Length == 1) {
-				sb.Append(_commonUtils.FormatSql("{0}", _table.Properties.TryGetValue(_table.Primarys.First().CsName, out var tryp2) ? tryp2.GetValue(d) : null));
+				sb.Append(_commonUtils.FormatSql("{0}", _table.Primarys.First().GetMapValue(d)));
 				return;
 			}
 			sb.Append("(");
 			var pkidx = 0;
 			foreach (var pk in _table.Primarys) {
 				if (pkidx > 0) sb.Append(" || ");
-				sb.Append(_commonUtils.FormatSql("{0}", _table.Properties.TryGetValue(pk.CsName, out var tryp2) ? tryp2.GetValue(d) : null)).Append("::varchar");
+				sb.Append(_commonUtils.FormatSql("{0}", pk.GetMapValue(d))).Append("::varchar");
 				++pkidx;
 			}
 			sb.Append(")");

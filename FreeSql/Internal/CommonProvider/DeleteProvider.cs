@@ -66,7 +66,7 @@ namespace FreeSql.Internal.CommonProvider {
 		public abstract List<T1> ExecuteDeleted();
 		public abstract Task<List<T1>> ExecuteDeletedAsync();
 
-		public IDelete<T1> Where(Expression<Func<T1, bool>> exp) => this.Where(_commonExpression.ExpressionWhereLambdaNoneForeignObject(null, null, exp?.Body, null));
+		public IDelete<T1> Where(Expression<Func<T1, bool>> exp) => this.Where(_commonExpression.ExpressionWhereLambdaNoneForeignObject(null, _table, null, exp?.Body, null));
 		public IDelete<T1> Where(string sql, object parms = null) {
 			if (string.IsNullOrEmpty(sql)) return this;
 			var args = new AopWhereEventArgs(sql, parms);

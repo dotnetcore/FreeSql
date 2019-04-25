@@ -19,6 +19,7 @@ namespace FreeSql.Internal {
 		internal abstract DbParameter[] GetDbParamtersByObject(string sql, object obj);
 		internal abstract string FormatSql(string sql, params object[] args);
 		internal abstract string QuoteSqlName(string name);
+		internal abstract string TrimQuoteSqlName(string name);
 		internal abstract string QuoteParamterName(string name);
 		internal abstract string IsNull(string sql, object value);
 		internal abstract string StringConcat(string[] objs, Type[] types);
@@ -100,6 +101,7 @@ namespace FreeSql.Internal {
 				if (trycol._IsNullable != null) attr._IsNullable = trycol.IsNullable;
 				if (trycol._IsIgnore != null) attr._IsIgnore = trycol.IsIgnore;
 				if (trycol._IsVersion != null) attr._IsVersion = trycol.IsVersion;
+				if (trycol.MapType != null) attr.MapType = trycol.MapType;
 				if (trycol.DbDefautValue != null) attr.DbDefautValue = trycol.DbDefautValue;
 			}
 			var attrs = proto.GetCustomAttributes(typeof(ColumnAttribute), false);
@@ -114,34 +116,38 @@ namespace FreeSql.Internal {
 				if (tryattr._IsNullable != null) attr._IsNullable = tryattr.IsNullable;
 				if (tryattr._IsIgnore != null) attr._IsIgnore = tryattr.IsIgnore;
 				if (tryattr._IsVersion != null) attr._IsVersion = tryattr.IsVersion;
+				if (tryattr.MapType != null) attr.MapType = tryattr.MapType;
 				if (tryattr.DbDefautValue != null) attr.DbDefautValue = tryattr.DbDefautValue;
 			}
-			if (!string.IsNullOrEmpty(attr.Name)) return attr;
-			if (!string.IsNullOrEmpty(attr.OldName)) return attr;
-			if (!string.IsNullOrEmpty(attr.DbType)) return attr;
-			if (attr._IsPrimary != null) return attr;
-			if (attr._IsIdentity != null) return attr;
-			if (attr._IsNullable != null) return attr;
-			if (attr._IsIgnore != null) return attr;
-			if (attr._IsVersion != null) return attr;
-			if (attr.DbDefautValue != null) return attr;
-			return null;
+			ColumnAttribute ret = null;
+			if (!string.IsNullOrEmpty(attr.Name)) ret = attr;
+			if (!string.IsNullOrEmpty(attr.OldName)) ret = attr;
+			if (!string.IsNullOrEmpty(attr.DbType)) ret = attr;
+			if (attr._IsPrimary != null) ret = attr;
+			if (attr._IsIdentity != null) ret = attr;
+			if (attr._IsNullable != null) ret = attr;
+			if (attr._IsIgnore != null) ret = attr;
+			if (attr._IsVersion != null) ret = attr;
+			if (attr.MapType != null) ret = attr;
+			if (attr.DbDefautValue != null) ret = attr;
+			if (ret != null && ret.MapType == null) ret.MapType = proto.PropertyType;
+			return ret;
 		}
 
 		internal string WhereObject(TableInfo table, string aliasAndDot, object dywhere) {
 			if (dywhere == null) return "";
 			var type = dywhere.GetType();
-			var primarys = table.Columns.Values.Where(a => a.Attribute.IsPrimary == true).ToArray();
-			if (primarys.Length == 1 && (type == primarys.First().CsType || type.IsNumberType() && primarys.First().CsType.IsNumberType())) {
-				return $"{aliasAndDot}{this.QuoteSqlName(primarys.First().Attribute.Name)} = {this.FormatSql("{0}", dywhere)}";
+			var primarys = table.Primarys;
+			var pk1 = primarys.FirstOrDefault();
+			if (primarys.Length == 1 && (type == pk1.CsType || type.IsNumberType() && pk1.CsType.IsNumberType())) {
+				return $"{aliasAndDot}{this.QuoteSqlName(pk1.Attribute.Name)} = {this.FormatSql("{0}", Utils.GetDataReaderValue(pk1.Attribute.MapType, dywhere))}";
 			} else if (primarys.Length > 0 && (type == table.Type || type.BaseType == table.Type)) {
 				var sb = new StringBuilder();
 				var pkidx = 0;
 				foreach (var pk in primarys) {
-					var prop = type.GetProperty(pk.CsName, BindingFlags.Public | BindingFlags.IgnoreCase | BindingFlags.Instance);
 					if (pkidx > 0) sb.Append(" AND ");
 					sb.Append(aliasAndDot).Append(this.QuoteSqlName(pk.Attribute.Name));
-					sb.Append(this.FormatSql(" = {0}", prop.GetValue(dywhere)));
+					sb.Append(this.FormatSql(" = {0}", pk.GetMapValue(dywhere)));
 					++pkidx;
 				}
 				return sb.ToString();
@@ -165,7 +171,7 @@ namespace FreeSql.Internal {
 					if (table.Columns.TryGetValue(p.Name, out var trycol) == false) continue;
 					if (psidx > 0) sb.Append(" AND ");
 					sb.Append(aliasAndDot).Append(this.QuoteSqlName(trycol.Attribute.Name));
-					sb.Append(this.FormatSql(" = {0}", p.GetValue(dywhere)));
+					sb.Append(this.FormatSql(" = {0}", Utils.GetDataReaderValue(trycol.Attribute.MapType, p.GetValue(dywhere))));
 					++psidx;
 				}
 				if (psidx == 0) return "";
@@ -178,14 +184,14 @@ namespace FreeSql.Internal {
 			if (table.Primarys.Any() == false) return null;
 			var its = items.Where(a => a != null).ToArray();
 
+			var pk1 = table.Primarys.FirstOrDefault();
 			if (table.Primarys.Length == 1) {
 				var sbin = new StringBuilder();
-				sbin.Append(aliasAndDot).Append(this.QuoteSqlName(table.Primarys.First().Attribute.Name));
-				var indt = its.Select(a => /*this.FormatSql("{0}", _orm.GetEntityKeyValues(a))*/
-					table.Properties.TryGetValue(table.Primarys.First().CsName, out var trycol) ? this.FormatSql("{0}", trycol.GetValue(a)) : null).Where(a => a != null).ToArray();
+				sbin.Append(aliasAndDot).Append(this.QuoteSqlName(pk1.Attribute.Name));
+				var indt = its.Select(a => pk1.GetMapValue(a)).Where(a => a != null).ToArray();
 				if (indt.Any() == false) return null;
-				if (indt.Length == 1) sbin.Append(" = ").Append(indt.First());
-				else sbin.Append(" IN (").Append(string.Join(",", indt)).Append(")");
+				if (indt.Length == 1) sbin.Append(" = ").Append(this.FormatSql("{0}", indt.First()));
+				else sbin.Append(" IN (").Append(string.Join(",", indt.Select(a => this.FormatSql("{0}", a)))).Append(")");
 				return sbin.ToString();
 			}
 			var dicpk = its.Length > 5 ? new Dictionary<string, bool>() : null;
@@ -193,10 +199,8 @@ namespace FreeSql.Internal {
 			var iidx = 0;
 			foreach (var item in its) {
 				var filter = "";
-				for (var a = 0; a < table.Primarys.Length; a++) {
-					if (table.Properties.TryGetValue(table.Primarys[a].CsName, out var trycol) == false) continue;
-					filter += $" AND {aliasAndDot}{this.QuoteSqlName(table.Primarys[a].Attribute.Name)} = {this.FormatSql("{0}", trycol.GetValue(item))}";
-				}
+				foreach (var pk in table.Primarys)
+					filter += $" AND {aliasAndDot}{this.QuoteSqlName(pk.Attribute.Name)} = {this.FormatSql("{0}", pk.GetMapValue(item))}";
 				if (string.IsNullOrEmpty(filter)) continue;
 				if (sb != null) {
 					sb.Append(" OR (");

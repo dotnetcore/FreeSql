@@ -103,6 +103,12 @@ namespace FreeSql.PostgreSQL {
 				return nametrim; //原生SQL
 			return $"\"{nametrim.Trim('"').Replace(".", "\".\"")}\"";
 		}
+		internal override string TrimQuoteSqlName(string name) {
+			var nametrim = name.Trim();
+			if (nametrim.StartsWith("(") && nametrim.EndsWith(")"))
+				return nametrim; //原生SQL
+			return $"{nametrim.Trim('"').Replace("\".\"", ".").Replace(".\"", ".")}";
+		}
 		internal override string QuoteParamterName(string name) => $"@{(_orm.CodeFirst.IsSyncStructureToLower ? name.ToLower() : name)}";
 		internal override string IsNull(string sql, object value) => $"coalesce({sql}, {value})";
 		internal override string StringConcat(string[] objs, Type[] types) => $"{string.Join(" || ", objs)}";

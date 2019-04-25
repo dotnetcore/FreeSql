@@ -13,8 +13,8 @@ namespace FreeSql.PostgreSQL {
 
 		public PostgreSQLExpression(CommonUtils common) : base(common) { }
 
-		internal override string ExpressionLambdaToSqlOther(Expression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName, bool isDisableDiyParse, ExpressionStyle style) {
-			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName, isDisableDiyParse, style);
+		internal override string ExpressionLambdaToSqlOther(Expression exp, ExpTSC tsc) {
+			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, tsc);
 			switch (exp.NodeType) {
 				case ExpressionType.Convert:
 					var operandExp = (exp as UnaryExpression)?.Operand;
@@ -227,20 +227,20 @@ namespace FreeSql.PostgreSQL {
 			return null;
 		}
 
-		internal override string ExpressionLambdaToSqlMemberAccessString(MemberExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName, bool isDisableDiyParse, ExpressionStyle style) {
+		internal override string ExpressionLambdaToSqlMemberAccessString(MemberExpression exp, ExpTSC tsc) {
 			if (exp.Expression == null) {
 				switch (exp.Member.Name) {
 					case "Empty": return "''";
 				}
 				return null;
 			}
-			var left = ExpressionLambdaToSql(exp.Expression, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName, isDisableDiyParse, style);
+			var left = ExpressionLambdaToSql(exp.Expression, tsc);
 			switch (exp.Member.Name) {
 				case "Length": return $"char_length({left})";
 			}
 			return null;
 		}
-		internal override string ExpressionLambdaToSqlMemberAccessDateTime(MemberExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName, bool isDisableDiyParse, ExpressionStyle style) {
+		internal override string ExpressionLambdaToSqlMemberAccessDateTime(MemberExpression exp, ExpTSC tsc) {
 			if (exp.Expression == null) {
 				switch (exp.Member.Name) {
 					case "Now": return "current_timestamp";
@@ -251,7 +251,7 @@ namespace FreeSql.PostgreSQL {
 				}
 				return null;
 			}
-			var left = ExpressionLambdaToSql(exp.Expression, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName, isDisableDiyParse, style);
+			var left = ExpressionLambdaToSql(exp.Expression, tsc);
 			switch (exp.Member.Name) {
 				case "Date": return $"({left})::date";
 				case "TimeOfDay": return $"(extract(epoch from ({left})::time)*1000000)";
@@ -268,7 +268,7 @@ namespace FreeSql.PostgreSQL {
 			}
 			return null;
 		}
-		internal override string ExpressionLambdaToSqlMemberAccessTimeSpan(MemberExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName, bool isDisableDiyParse, ExpressionStyle style) {
+		internal override string ExpressionLambdaToSqlMemberAccessTimeSpan(MemberExpression exp, ExpTSC tsc) {
 			if (exp.Expression == null) {
 				switch (exp.Member.Name) {
 					case "Zero": return "0";
@@ -277,7 +277,7 @@ namespace FreeSql.PostgreSQL {
 				}
 				return null;
 			}
-			var left = ExpressionLambdaToSql(exp.Expression, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName, isDisableDiyParse, style);
+			var left = ExpressionLambdaToSql(exp.Expression, tsc);
 			switch (exp.Member.Name) {
 				case "Days": return $"floor(({left})/{(long)1000000 * 60 * 60 * 24})";
 				case "Hours": return $"floor(({left})/{(long)1000000 * 60 * 60}%24)";
@@ -294,8 +294,8 @@ namespace FreeSql.PostgreSQL {
 			return null;
 		}
 
-		internal override string ExpressionLambdaToSqlCallString(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName, bool isDisableDiyParse, ExpressionStyle style) {
-			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName, isDisableDiyParse, style);
+		internal override string ExpressionLambdaToSqlCallString(MethodCallExpression exp, ExpTSC tsc) {
+			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, tsc);
 			if (exp.Object == null) {
 				switch (exp.Method.Name) {
 					case "IsNullOrEmpty":
@@ -369,8 +369,8 @@ namespace FreeSql.PostgreSQL {
 			}
 			throw new Exception($"PostgreSQLExpression 未实现函数表达式 {exp} 解析");
 		}
-		internal override string ExpressionLambdaToSqlCallMath(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName, bool isDisableDiyParse, ExpressionStyle style) {
-			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName, isDisableDiyParse, style);
+		internal override string ExpressionLambdaToSqlCallMath(MethodCallExpression exp, ExpTSC tsc) {
+			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, tsc);
 			switch (exp.Method.Name) {
 				case "Abs": return $"abs({getExp(exp.Arguments[0])})";
 				case "Sign": return $"sign({getExp(exp.Arguments[0])})";
@@ -395,8 +395,8 @@ namespace FreeSql.PostgreSQL {
 			}
 			throw new Exception($"PostgreSQLExpression 未实现函数表达式 {exp} 解析");
 		}
-		internal override string ExpressionLambdaToSqlCallDateTime(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName, bool isDisableDiyParse, ExpressionStyle style) {
-			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName, isDisableDiyParse, style);
+		internal override string ExpressionLambdaToSqlCallDateTime(MethodCallExpression exp, ExpTSC tsc) {
+			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, tsc);
 			if (exp.Object == null) {
 				switch (exp.Method.Name) {
 					case "Compare": return $"extract(epoch from ({getExp(exp.Arguments[0])})::timestamp-({getExp(exp.Arguments[1])})::timestamp)";
@@ -438,8 +438,8 @@ namespace FreeSql.PostgreSQL {
 			}
 			throw new Exception($"PostgreSQLExpression 未实现函数表达式 {exp} 解析");
 		}
-		internal override string ExpressionLambdaToSqlCallTimeSpan(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName, bool isDisableDiyParse, ExpressionStyle style) {
-			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName, isDisableDiyParse, style);
+		internal override string ExpressionLambdaToSqlCallTimeSpan(MethodCallExpression exp, ExpTSC tsc) {
+			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, tsc);
 			if (exp.Object == null) {
 				switch (exp.Method.Name) {
 					case "Compare": return $"({getExp(exp.Arguments[0])}-({getExp(exp.Arguments[1])}))";
@@ -468,8 +468,8 @@ namespace FreeSql.PostgreSQL {
 			}
 			throw new Exception($"PostgreSQLExpression 未实现函数表达式 {exp} 解析");
 		}
-		internal override string ExpressionLambdaToSqlCallConvert(MethodCallExpression exp, List<SelectTableInfo> _tables, List<SelectColumnInfo> _selectColumnMap, Func<Expression[], string> getSelectGroupingMapString, SelectTableInfoType tbtype, bool isQuoteName, bool isDisableDiyParse, ExpressionStyle style) {
-			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, _tables, _selectColumnMap, getSelectGroupingMapString, tbtype, isQuoteName, isDisableDiyParse, style);
+		internal override string ExpressionLambdaToSqlCallConvert(MethodCallExpression exp, ExpTSC tsc) {
+			Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, tsc);
 			if (exp.Object == null) {
 				switch (exp.Method.Name) {
 					case "ToBoolean": return $"(({getExp(exp.Arguments[0])})::varchar not in ('0','false','f','no'))";

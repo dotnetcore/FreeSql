@@ -301,10 +301,10 @@ namespace FreeSql.Internal.CommonProvider {
 			var col = cols.First();
 			_set.Append(", ").Append(_commonUtils.QuoteSqlName(col.Column.Attribute.Name)).Append(" = ");
 			if (_noneParameter) {
-				_set.Append(_commonUtils.GetNoneParamaterSqlValue(_params, col.Column.CsType, value));
+				_set.Append(_commonUtils.GetNoneParamaterSqlValue(_params, col.Column.Attribute.MapType, value));
 			} else {
-				_set.Append(_commonUtils.QuoteWriteParamter(col.Column.CsType, $"{_commonUtils.QuoteParamterName("p_")}{_params.Count}"));
-				_commonUtils.AppendParamter(_params, null, col.Column.CsType, value);
+				_set.Append(_commonUtils.QuoteWriteParamter(col.Column.Attribute.MapType, $"{_commonUtils.QuoteParamterName("p_")}{_params.Count}"));
+				_commonUtils.AppendParamter(_params, null, col.Column.Attribute.MapType, value);
 			}
 			//foreach (var t in _source) Utils.FillPropertyValue(t, tryf.CsName, value);
 			return this;
@@ -313,11 +313,11 @@ namespace FreeSql.Internal.CommonProvider {
 			if (binaryExpression?.Body is BinaryExpression == false &&
 				binaryExpression?.Body.NodeType != ExpressionType.Call) return this;
 			var cols = new List<SelectColumnInfo>();
-			var expt = _commonExpression.ExpressionWhereLambdaNoneForeignObject(null, cols, binaryExpression, null);
+			var expt = _commonExpression.ExpressionWhereLambdaNoneForeignObject(null, _table, cols, binaryExpression, null);
 			if (cols.Any() == false) return this;
 			foreach (var col in cols) {
-				if (col.Column.Attribute.IsNullable == true && col.Column.CsType.IsNullableType()) {
-					var replval = _orm.CodeFirst.GetDbInfo(col.Column.CsType.GenericTypeArguments.FirstOrDefault())?.defaultValue;
+				if (col.Column.Attribute.IsNullable == true && col.Column.Attribute.MapType.IsNullableType()) {
+					var replval = _orm.CodeFirst.GetDbInfo(col.Column.Attribute.MapType.GenericTypeArguments.FirstOrDefault())?.defaultValue;
 					if (replval == null) continue;
 					var replname = _commonUtils.QuoteSqlName(col.Column.Attribute.Name);
 					expt = expt.Replace(replname, _commonUtils.IsNull(replname, _commonUtils.FormatSql("{0}", replval)));
@@ -333,7 +333,7 @@ namespace FreeSql.Internal.CommonProvider {
 			return this;
 		}
 
-		public IUpdate<T1> Where(Expression<Func<T1, bool>> expression) => this.Where(_commonExpression.ExpressionWhereLambdaNoneForeignObject(null, null, expression?.Body, null));
+		public IUpdate<T1> Where(Expression<Func<T1, bool>> expression) => this.Where(_commonExpression.ExpressionWhereLambdaNoneForeignObject(null, _table, null, expression?.Body, null));
 		public IUpdate<T1> Where(string sql, object parms = null) {
 			if (string.IsNullOrEmpty(sql)) return this;
 			var args = new AopWhereEventArgs(sql, parms);
@@ -361,8 +361,7 @@ namespace FreeSql.Internal.CommonProvider {
 				var sb = new StringBuilder();
 
 				sb.Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ");
-				var value = _table.Properties.TryGetValue(col.CsName, out var tryp) ? tryp.GetValue(_source.First()) : DBNull.Value;
-				sb.Append(thenValue(_commonUtils.GetNoneParamaterSqlValue(_paramsSource, col.CsType, value)));
+				sb.Append(thenValue(_commonUtils.GetNoneParamaterSqlValue(_paramsSource, col.Attribute.MapType, col.GetMapValue(_source.First()))));
 
 				return sb.ToString();
 
@@ -382,8 +381,8 @@ namespace FreeSql.Internal.CommonProvider {
 					cwsb.Append(" \r\nWHEN ");
 					ToSqlWhen(cwsb, _table.Primarys, d);
 					cwsb.Append(" THEN ");
-					var value = _table.Properties.TryGetValue(col.CsName, out var tryp) ? tryp.GetValue(d) : DBNull.Value;
-					cwsb.Append(thenValue(_commonUtils.GetNoneParamaterSqlValue(_paramsSource, col.CsType, value)));
+					var value = col.GetMapValue(d);
+					cwsb.Append(thenValue(_commonUtils.GetNoneParamaterSqlValue(_paramsSource, col.Attribute.MapType, value)));
 					if (isnull == false) isnull = value == null || value == DBNull.Value;
 				}
 				cwsb.Append(" END");
@@ -427,12 +426,12 @@ namespace FreeSql.Internal.CommonProvider {
 					if (col.Attribute.IsIdentity == false && col.Attribute.IsVersion == false && _ignore.ContainsKey(col.CsName) == false) {
 						if (colidx > 0) sb.Append(", ");
 						sb.Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ");
-						var value = _table.Properties.TryGetValue(col.CsName, out var tryp) ? tryp.GetValue(_source.First()) : null;
+						var value = col.GetMapValue(_source.First());
 						if (_noneParameter) {
-							sb.Append(_commonUtils.GetNoneParamaterSqlValue(_paramsSource, col.CsType, value));
+							sb.Append(_commonUtils.GetNoneParamaterSqlValue(_paramsSource, col.Attribute.MapType, value));
 						} else {
-							sb.Append(_commonUtils.QuoteWriteParamter(col.CsType, _commonUtils.QuoteParamterName($"p_{_paramsSource.Count}")));
-							_commonUtils.AppendParamter(_paramsSource, null, col.CsType, value);
+							sb.Append(_commonUtils.QuoteWriteParamter(col.Attribute.MapType, _commonUtils.QuoteParamterName($"p_{_paramsSource.Count}")));
+							_commonUtils.AppendParamter(_paramsSource, null, col.Attribute.MapType, value);
 						}
 						++colidx;
 					}
@@ -460,12 +459,12 @@ namespace FreeSql.Internal.CommonProvider {
 							cwsb.Append(" \r\nWHEN ");
 							ToSqlWhen(cwsb, _table.Primarys, d);
 							cwsb.Append(" THEN ");
-							var value = _table.Properties.TryGetValue(col.CsName, out var tryp) ? tryp.GetValue(d) : DBNull.Value;
+							var value = col.GetMapValue(d);
 							if (_noneParameter) {
-								cwsb.Append(_commonUtils.GetNoneParamaterSqlValue(_paramsSource, col.CsType, value));
+								cwsb.Append(_commonUtils.GetNoneParamaterSqlValue(_paramsSource, col.Attribute.MapType, value));
 							} else {
-								cwsb.Append(_commonUtils.QuoteWriteParamter(col.CsType, _commonUtils.QuoteParamterName($"p_{_paramsSource.Count}")));
-								_commonUtils.AppendParamter(_paramsSource, null, col.CsType, value);
+								cwsb.Append(_commonUtils.QuoteWriteParamter(col.Attribute.MapType, _commonUtils.QuoteParamterName($"p_{_paramsSource.Count}")));
+								_commonUtils.AppendParamter(_paramsSource, null, col.Attribute.MapType, value);
 							}
 							if (isnull == false) isnull = value == null || value == DBNull.Value;
 						}
