@@ -1,28 +1,39 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-	<PropertyGroup>
-		<TargetFramework>netstandard2.0</TargetFramework>
-		<Version>0.5.4</Version>
-		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-		<Authors>YeXiangQin</Authors>
-		<Description>FreeSql is the most convenient ORM in dotnet. It supports Mysql, Postgresql, SqlServer, Oracle and Sqlite.</Description>
-		<PackageProjectUrl>https://github.com/2881099/FreeSql</PackageProjectUrl>
-		<PackageTags>FreeSql ORM</PackageTags>
-	</PropertyGroup>
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Version>0.5.4</Version>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Authors>YeXiangQin</Authors>
+    <Description>FreeSql is the most convenient ORM in dotnet. It supports Mysql, Postgresql, SqlServer, Oracle and Sqlite.</Description>
+    <PackageProjectUrl>https://github.com/2881099/FreeSql</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/2881099/FreeSql</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>FreeSql;ORM</PackageTags>
+    <PackageId>$(AssemblyName)</PackageId>
+    <Title>$(AssemblyName)</Title>
+    <PackageReleaseNotes>...</PackageReleaseNotes>
+    <IsPackable>true</IsPackable>
+    <MinClientVersion>2.8.6</MinClientVersion>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <Copyright>Copyright</Copyright>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+  </PropertyGroup>
 
-	<ItemGroup>
-		<PackageReference Include="CS-Script.Core" Version="1.0.6" />
-		<PackageReference Include="Microsoft.CSharp" Version="4.5.0" />
-		<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="2.1.0" />
-		<PackageReference Include="Microsoft.Extensions.Logging" Version="2.1.0" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="2.1.0" />
-		<PackageReference Include="MySql.Data" Version="8.0.15" />
-		<PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
-		<PackageReference Include="Npgsql.LegacyPostgis" Version="4.0.5" />
-		<PackageReference Include="Oracle.ManagedDataAccess.Core" Version="2.18.5" />
-		<PackageReference Include="SafeObjectPool" Version="2.0.1" />
-		<PackageReference Include="System.Data.SqlClient" Version="4.6.0" />
-		<PackageReference Include="System.Data.SQLite.Core" Version="1.0.110" />
-	</ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="CS-Script.Core" Version="1.0.6" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.5.0" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="2.1.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="2.1.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="2.1.0" />
+    <PackageReference Include="MySql.Data" Version="8.0.15" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
+    <PackageReference Include="Npgsql.LegacyPostgis" Version="4.0.5" />
+    <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="2.18.5" />
+    <PackageReference Include="SafeObjectPool" Version="2.0.1" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.6.0" />
+    <PackageReference Include="System.Data.SQLite.Core" Version="1.0.110" />
+  </ItemGroup>
 
 </Project>
