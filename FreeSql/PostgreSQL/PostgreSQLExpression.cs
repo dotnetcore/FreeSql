@@ -105,7 +105,10 @@ namespace FreeSql.PostgreSQL {
 									case "Any": return $"(jsonb_array_length(coalesce({left},'[]')) > 0)";
 									case "Contains":
 										var json = getExp(callExp.Arguments[argIndex]);
-										if (json.StartsWith("'") && json.EndsWith("'")) return $"(coalesce({left},'{{}}') @> {_common.FormatSql("{0}", JToken.Parse(json.Trim('\'')))})";
+										if (objType == typeof(JArray))
+											return $"(coalesce({left},'[]') ? ({json})::varchar)";
+										if (json.StartsWith("'") && json.EndsWith("'"))
+											return $"(coalesce({left},'{{}}') @> {_common.FormatSql("{0}", JToken.Parse(json.Trim('\'')))})";
 										return $"(coalesce({left},'{{}}') @> ({json})::jsonb)";
 									case "ContainsKey": return $"(coalesce({left},'{{}}') ? {getExp(callExp.Arguments[argIndex])})";
 									case "Concat":

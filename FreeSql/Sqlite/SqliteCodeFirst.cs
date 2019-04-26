@@ -213,7 +213,7 @@ namespace FreeSql.Sqlite {
 				if (isIndent == false && tb.Primarys.Any()) {
 					sb.Append(" \r\n  PRIMARY KEY (");
 					foreach (var tbcol in tb.Primarys) sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
-					sb.Remove(sb.Length - 2, 2).Append(")");
+					sb.Remove(sb.Length - 2, 2).Append("),");
 				}
 				foreach (var uk in tb.Uniques) {
 					sb.Append(" \r\n  CONSTRAINT ").Append(_commonUtils.QuoteSqlName(uk.Key)).Append(" UNIQUE(");

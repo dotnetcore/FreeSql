@@ -1,10 +1,19 @@
 using FreeSql.DataAnnotations;
+using FreeSql.Tests.DataContext.SqlServer;
 using System;
 using System.Numerics;
 using Xunit;
 
-namespace FreeSql.Tests.MySqlMapType {
+namespace FreeSql.Tests.SqlServerMapType {
+	[Collection("SqlServerCollection")]
 	public class EnumTest {
+
+		SqlServerFixture _sqlserverFixture;
+
+		public EnumTest(SqlServerFixture sqlserverFixture) {
+			_sqlserverFixture = sqlserverFixture;
+		}
+
 		class EnumTestMap {
 			public Guid id { get; set; }
 
@@ -22,7 +31,7 @@ namespace FreeSql.Tests.MySqlMapType {
 		[Fact]
 		public void EnumToString() {
 			//insert
-			var orm = g.mysql;
+			var orm = _sqlserverFixture.SqlServer;
 			var item = new EnumTestMap { };
 			Assert.Equal(1, orm.Insert<EnumTestMap>().AppendData(item).ExecuteAffrows());
 			var find = orm.Select<EnumTestMap>().Where(a => a.id == item.id && a.enum_to_string == ToStringMapEnum.中国人).First();
@@ -78,7 +87,7 @@ namespace FreeSql.Tests.MySqlMapType {
 		[Fact]
 		public void EnumNullableToString() {
 			//insert
-			var orm = g.mysql;
+			var orm = _sqlserverFixture.SqlServer;
 			var item = new EnumTestMap { };
 			Assert.Equal(1, orm.Insert<EnumTestMap>().AppendData(item).ExecuteAffrows());
 			var find = orm.Select<EnumTestMap>().Where(a => a.id == item.id && a.enumnullable_to_string == null).First();
@@ -138,7 +147,7 @@ namespace FreeSql.Tests.MySqlMapType {
 		[Fact]
 		public void EnumToInt() {
 			//insert
-			var orm = g.mysql;
+			var orm = _sqlserverFixture.SqlServer;
 			var item = new EnumTestMap { };
 			Assert.Equal(1, orm.Insert<EnumTestMap>().AppendData(item).ExecuteAffrows());
 			var find = orm.Select<EnumTestMap>().Where(a => a.id == item.id && a.enum_to_int == ToStringMapEnum.中国人).First();
@@ -194,7 +203,7 @@ namespace FreeSql.Tests.MySqlMapType {
 		[Fact]
 		public void EnumNullableToInt() {
 			//insert
-			var orm = g.mysql;
+			var orm = _sqlserverFixture.SqlServer;
 			var item = new EnumTestMap { };
 			Assert.Equal(1, orm.Insert<EnumTestMap>().AppendData(item).ExecuteAffrows());
 			var find = orm.Select<EnumTestMap>().Where(a => a.id == item.id && a.enumnullable_to_int == null).First();

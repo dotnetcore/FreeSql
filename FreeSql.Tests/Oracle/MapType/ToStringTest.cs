@@ -3,7 +3,7 @@ using System;
 using System.Numerics;
 using Xunit;
 
-namespace FreeSql.Tests.MySqlMapType {
+namespace FreeSql.Tests.OracleMapType {
 	public class ToStringTest {
 		class ToStringMap {
 			public Guid id { get; set; }
@@ -37,7 +37,7 @@ namespace FreeSql.Tests.MySqlMapType {
 		[Fact]
 		public void Enum1() {
 			//insert
-			var orm = g.mysql;
+			var orm = g.oracle;
 			var item = new ToStringMap { };
 			Assert.Equal(1, orm.Insert<ToStringMap>().AppendData(item).ExecuteAffrows());
 			var find = orm.Select<ToStringMap>().Where(a => a.id == item.id && a.enum_to_string == ToStringMapEnum.ÖÐ¹úÈË).First();
@@ -93,7 +93,7 @@ namespace FreeSql.Tests.MySqlMapType {
 		[Fact]
 		public void EnumNullable() {
 			//insert
-			var orm = g.mysql;
+			var orm = g.oracle;
 			var item = new ToStringMap { };
 			Assert.Equal(1, orm.Insert<ToStringMap>().AppendData(item).ExecuteAffrows());
 			var find = orm.Select<ToStringMap>().Where(a => a.id == item.id && a.enumnullable_to_string == null).First();
@@ -152,7 +152,7 @@ namespace FreeSql.Tests.MySqlMapType {
 		[Fact]
 		public void BigInteger1() {
 			//insert
-			var orm = g.mysql;
+			var orm = g.oracle;
 			var item = new ToStringMap { };
 			Assert.Equal(1, orm.Insert<ToStringMap>().AppendData(item).ExecuteAffrows());
 			var find = orm.Select<ToStringMap>().Where(a => a.id == item.id && a.biginteger_to_string == 0).First();
@@ -208,7 +208,7 @@ namespace FreeSql.Tests.MySqlMapType {
 		[Fact]
 		public void BigIntegerNullable() {
 			//insert
-			var orm = g.mysql;
+			var orm = g.oracle;
 			var item = new ToStringMap { };
 			Assert.Equal(1, orm.Insert<ToStringMap>().AppendData(item).ExecuteAffrows());
 			var find = orm.Select<ToStringMap>().Where(a => a.id == item.id && a.bigintegernullable_to_string == null).First();
@@ -267,7 +267,7 @@ namespace FreeSql.Tests.MySqlMapType {
 		[Fact]
 		public void TimeSpan1() {
 			//insert
-			var orm = g.mysql;
+			var orm = g.oracle;
 			var item = new ToStringMap { };
 			Assert.Equal(1, orm.Insert<ToStringMap>().AppendData(item).ExecuteAffrows());
 			var find = orm.Select<ToStringMap>().Where(a => a.id == item.id).First();
@@ -307,7 +307,7 @@ namespace FreeSql.Tests.MySqlMapType {
 		[Fact]
 		public void TimeSpanNullable() {
 			//insert
-			var orm = g.mysql;
+			var orm = g.oracle;
 			var item = new ToStringMap { };
 			Assert.Equal(1, orm.Insert<ToStringMap>().AppendData(item).ExecuteAffrows());
 			var find = orm.Select<ToStringMap>().Where(a => a.id == item.id).First();
@@ -361,7 +361,7 @@ namespace FreeSql.Tests.MySqlMapType {
 		[Fact]
 		public void DateTime1() {
 			//insert
-			var orm = g.mysql;
+			var orm = g.oracle;
 			var item = new ToStringMap { };
 			Assert.Equal(1, orm.Insert<ToStringMap>().AppendData(item).ExecuteAffrows());
 			var find = orm.Select<ToStringMap>().Where(a => a.id == item.id).First();
@@ -401,7 +401,7 @@ namespace FreeSql.Tests.MySqlMapType {
 		[Fact]
 		public void DateTimeNullable() {
 			//insert
-			var orm = g.mysql;
+			var orm = g.oracle;
 			var item = new ToStringMap { };
 			Assert.Equal(1, orm.Insert<ToStringMap>().AppendData(item).ExecuteAffrows());
 			var find = orm.Select<ToStringMap>().Where(a => a.id == item.id).First();
@@ -456,7 +456,7 @@ namespace FreeSql.Tests.MySqlMapType {
 		[Fact]
 		public void Guid1() {
 			//insert
-			var orm = g.mysql;
+			var orm = g.oracle;
 			var item = new ToStringMap { };
 			Assert.Equal(1, orm.Insert<ToStringMap>().AppendData(item).ExecuteAffrows());
 			var find = orm.Select<ToStringMap>().Where(a => a.id == item.id && a.guid_to_string == Guid.Empty).First();
@@ -499,7 +499,7 @@ namespace FreeSql.Tests.MySqlMapType {
 		[Fact]
 		public void GuidNullable() {
 			//insert
-			var orm = g.mysql;
+			var orm = g.oracle;
 			var item = new ToStringMap { };
 			Assert.Equal(1, orm.Insert<ToStringMap>().AppendData(item).ExecuteAffrows());
 			var find = orm.Select<ToStringMap>().Where(a => a.id == item.id && a.guidnullable_to_string == null).First();

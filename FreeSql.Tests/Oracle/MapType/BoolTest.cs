@@ -2,7 +2,7 @@ using FreeSql.DataAnnotations;
 using System;
 using Xunit;
 
-namespace FreeSql.Tests.MySqlMapType {
+namespace FreeSql.Tests.OracleMapType {
 	public class BoolTest {
 
 		class BoolMap {
@@ -61,7 +61,7 @@ namespace FreeSql.Tests.MySqlMapType {
 		[Fact]
 		public void BoolNullable() {
 			//insert
-			var orm = g.mysql;
+			var orm = g.oracle;
 			var item = new BoolMap { };
 			Assert.Equal(1, orm.Insert<BoolMap>().AppendData(item).ExecuteAffrows());
 			var find = orm.Select<BoolMap>().Where(a => a.id == item.id && a.toboolnullable == true).First();
@@ -116,7 +116,7 @@ namespace FreeSql.Tests.MySqlMapType {
 		[Fact]
 		public void SByte() {
 			//insert
-			var orm = g.mysql;
+			var orm = g.oracle;
 			var item = new BoolMap { };
 			Assert.Equal(1, orm.Insert<BoolMap>().AppendData(item).ExecuteAffrows());
 			var find = orm.Select<BoolMap>().Where(a => a.id == item.id && a.tosbyte == true).First();
@@ -171,7 +171,7 @@ namespace FreeSql.Tests.MySqlMapType {
 		[Fact]
 		public void SByteNullable() {
 			//insert
-			var orm = g.mysql;
+			var orm = g.oracle;
 			var item = new BoolMap { };
 			Assert.Equal(1, orm.Insert<BoolMap>().AppendData(item).ExecuteAffrows());
 			var find = orm.Select<BoolMap>().Where(a => a.id == item.id && a.tosbytenullable == true).First();
@@ -226,7 +226,7 @@ namespace FreeSql.Tests.MySqlMapType {
 		[Fact]
 		public void Short() {
 			//insert
-			var orm = g.mysql;
+			var orm = g.oracle;
 			var item = new BoolMap { };
 			Assert.Equal(1, orm.Insert<BoolMap>().AppendData(item).ExecuteAffrows());
 			var find = orm.Select<BoolMap>().Where(a => a.id == item.id && a.toshort == true).First();
@@ -281,7 +281,7 @@ namespace FreeSql.Tests.MySqlMapType {
 		[Fact]
 		public void ShortNullable() {
 			//insert
-			var orm = g.mysql;
+			var orm = g.oracle;
 			var item = new BoolMap { };
 			Assert.Equal(1, orm.Insert<BoolMap>().AppendData(item).ExecuteAffrows());
 			var find = orm.Select<BoolMap>().Where(a => a.id == item.id && a.toshortnullable == true).First();
@@ -336,7 +336,7 @@ namespace FreeSql.Tests.MySqlMapType {
 		[Fact]
 		public void Int() {
 			//insert
-			var orm = g.mysql;
+			var orm = g.oracle;
 			var item = new BoolMap { };
 			Assert.Equal(1, orm.Insert<BoolMap>().AppendData(item).ExecuteAffrows());
 			var find = orm.Select<BoolMap>().Where(a => a.id == item.id && a.toint == true).First();
@@ -391,7 +391,7 @@ namespace FreeSql.Tests.MySqlMapType {
 		[Fact]
 		public void IntNullable() {
 			//insert
-			var orm = g.mysql;
+			var orm = g.oracle;
 			var item = new BoolMap { };
 			Assert.Equal(1, orm.Insert<BoolMap>().AppendData(item).ExecuteAffrows());
 			var find = orm.Select<BoolMap>().Where(a => a.id == item.id && a.tointnullable == true).First();
@@ -446,7 +446,7 @@ namespace FreeSql.Tests.MySqlMapType {
 		[Fact]
 		public void Long() {
 			//insert
-			var orm = g.mysql;
+			var orm = g.oracle;
 			var item = new BoolMap { };
 			Assert.Equal(1, orm.Insert<BoolMap>().AppendData(item).ExecuteAffrows());
 			var find = orm.Select<BoolMap>().Where(a => a.id == item.id && a.tolong == true).First();
@@ -501,7 +501,7 @@ namespace FreeSql.Tests.MySqlMapType {
 		[Fact]
 		public void LongNullable() {
 			//insert
-			var orm = g.mysql;
+			var orm = g.oracle;
 			var item = new BoolMap { };
 			Assert.Equal(1, orm.Insert<BoolMap>().AppendData(item).ExecuteAffrows());
 			var find = orm.Select<BoolMap>().Where(a => a.id == item.id && a.tolongnullable == true).First();
@@ -557,7 +557,7 @@ namespace FreeSql.Tests.MySqlMapType {
 		[Fact]
 		public void Byte() {
 			//insert
-			var orm = g.mysql;
+			var orm = g.oracle;
 			var item = new BoolMap { };
 			Assert.Equal(1, orm.Insert<BoolMap>().AppendData(item).ExecuteAffrows());
 			var find = orm.Select<BoolMap>().Where(a => a.id == item.id && a.tobyte == true).First();
@@ -612,7 +612,7 @@ namespace FreeSql.Tests.MySqlMapType {
 		[Fact]
 		public void ByteNullable() {
 			//insert
-			var orm = g.mysql;
+			var orm = g.oracle;
 			var item = new BoolMap { };
 			Assert.Equal(1, orm.Insert<BoolMap>().AppendData(item).ExecuteAffrows());
 			var find = orm.Select<BoolMap>().Where(a => a.id == item.id && a.tobytenullable == true).First();
@@ -667,7 +667,7 @@ namespace FreeSql.Tests.MySqlMapType {
 		[Fact]
 		public void UShort() {
 			//insert
-			var orm = g.mysql;
+			var orm = g.oracle;
 			var item = new BoolMap { };
 			Assert.Equal(1, orm.Insert<BoolMap>().AppendData(item).ExecuteAffrows());
 			var find = orm.Select<BoolMap>().Where(a => a.id == item.id && a.toushort == true).First();
@@ -722,7 +722,7 @@ namespace FreeSql.Tests.MySqlMapType {
 		[Fact]
 		public void UShortNullable() {
 			//insert
-			var orm = g.mysql;
+			var orm = g.oracle;
 			var item = new BoolMap { };
 			Assert.Equal(1, orm.Insert<BoolMap>().AppendData(item).ExecuteAffrows());
 			var find = orm.Select<BoolMap>().Where(a => a.id == item.id && a.toushortnullable == true).First();
@@ -777,7 +777,7 @@ namespace FreeSql.Tests.MySqlMapType {
 		[Fact]
 		public void UInt() {
 			//insert
-			var orm = g.mysql;
+			var orm = g.oracle;
 			var item = new BoolMap { };
 			Assert.Equal(1, orm.Insert<BoolMap>().AppendData(item).ExecuteAffrows());
 			var find = orm.Select<BoolMap>().Where(a => a.id == item.id && a.touint == true).First();
@@ -832,7 +832,7 @@ namespace FreeSql.Tests.MySqlMapType {
 		[Fact]
 		public void UIntNullable() {
 			//insert
-			var orm = g.mysql;
+			var orm = g.oracle;
 			var item = new BoolMap { };
 			Assert.Equal(1, orm.Insert<BoolMap>().AppendData(item).ExecuteAffrows());
 			var find = orm.Select<BoolMap>().Where(a => a.id == item.id && a.touintnullable == true).First();
@@ -887,7 +887,7 @@ namespace FreeSql.Tests.MySqlMapType {
 		[Fact]
 		public void ULong() {
 			//insert
-			var orm = g.mysql;
+			var orm = g.oracle;
 			var item = new BoolMap { };
 			Assert.Equal(1, orm.Insert<BoolMap>().AppendData(item).ExecuteAffrows());
 			var find = orm.Select<BoolMap>().Where(a => a.id == item.id && a.toulong == true).First();
@@ -942,7 +942,7 @@ namespace FreeSql.Tests.MySqlMapType {
 		[Fact]
 		public void ULongNullable() {
 			//insert
-			var orm = g.mysql;
+			var orm = g.oracle;
 			var item = new BoolMap { };
 			Assert.Equal(1, orm.Insert<BoolMap>().AppendData(item).ExecuteAffrows());
 			var find = orm.Select<BoolMap>().Where(a => a.id == item.id && a.toulongnullable == true).First();
@@ -1014,7 +1014,7 @@ namespace FreeSql.Tests.MySqlMapType {
 		[Fact]
 		public void String() {
 			//insert
-			var orm = g.mysql;
+			var orm = g.oracle;
 			var item = new BoolMap { };
 			Assert.Equal(1, orm.Insert<BoolMap>().AppendData(item).ExecuteAffrows());
 			var find = orm.Select<BoolMap>().Where(a => a.id == item.id && a.tostring == true).First();

@@ -299,12 +299,15 @@ namespace FreeSql.Internal.CommonProvider {
 			_commonExpression.ExpressionSelectColumn_MemberAccess(null, cols, SelectTableInfoType.From, column?.Body, true, null);
 			if (cols.Count != 1) return this;
 			var col = cols.First();
+			object paramVal = null;
+			if (col.Column.Attribute.MapType == typeof(TMember)) paramVal = value;
+			else paramVal = Utils.GetDataReaderValue(col.Column.Attribute.MapType, value);
 			_set.Append(", ").Append(_commonUtils.QuoteSqlName(col.Column.Attribute.Name)).Append(" = ");
 			if (_noneParameter) {
-				_set.Append(_commonUtils.GetNoneParamaterSqlValue(_params, col.Column.Attribute.MapType, value));
+				_set.Append(_commonUtils.GetNoneParamaterSqlValue(_params, col.Column.Attribute.MapType, paramVal));
 			} else {
 				_set.Append(_commonUtils.QuoteWriteParamter(col.Column.Attribute.MapType, $"{_commonUtils.QuoteParamterName("p_")}{_params.Count}"));
-				_commonUtils.AppendParamter(_params, null, col.Column.Attribute.MapType, value);
+				_commonUtils.AppendParamter(_params, null, col.Column.Attribute.MapType, paramVal);
 			}
 			//foreach (var t in _source) Utils.FillPropertyValue(t, tryf.CsName, value);
 			return this;
