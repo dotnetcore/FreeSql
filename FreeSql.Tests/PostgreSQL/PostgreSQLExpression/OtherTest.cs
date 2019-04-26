@@ -23,6 +23,8 @@ namespace FreeSql.Tests.PostgreSQLExpression {
 
 		[Fact]
 		public void Array() {
+			IEnumerable<int> testlinqlist = new List<int>(new[] { 1, 2, 3 });
+			var testlinq = select.Where(a => testlinqlist.Contains(a.testFieldInt)).ToList();
 
 			var sql1 = select.Where(a => a.testFieldIntArray.Contains(1)).ToList();
 			var sql2 = select.Where(a => a.testFieldIntArray.Contains(1) == false).ToList();

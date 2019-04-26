@@ -90,14 +90,12 @@ namespace FreeSql.Oracle {
 						argIndex++;
 					}
 					if (objType == null) objType = callExp.Method.DeclaringType;
-					if (objType != null) {
+					if (objType != null || objType.IsArray || typeof(IList).IsAssignableFrom(callExp.Method.DeclaringType)) {
 						var left = objExp == null ? null : getExp(objExp);
-						if (objType.IsArray || typeof(IList).IsAssignableFrom(callExp.Method.DeclaringType)) {
-							switch (callExp.Method.Name) {
-								case "Contains":
-									//判断 in
-									return $"({getExp(callExp.Arguments[argIndex])}) in {left}";
-							}
+						switch (callExp.Method.Name) {
+							case "Contains":
+								//判断 in
+								return $"({getExp(callExp.Arguments[argIndex])}) in {left}";
 						}
 					}
 					break;

@@ -20,6 +20,9 @@ namespace FreeSql.Tests.SqlServerExpression {
 
 		[Fact]
 		public void Array() {
+			IEnumerable<int> testlinqlist = new List<int>(new[] { 1, 2, 3 });
+			var testlinq = select.Where(a => testlinqlist.Contains(a.testFieldInt)).ToList();
+
 			//in not in
 			var sql111 = select.Where(a => new[] { 1, 2, 3 }.Contains(a.testFieldInt)).ToList();
 			//var sql112 = select.Where(a => new[] { 1, 2, 3 }.Contains(a.testFieldInt) == false).ToList();
