@@ -111,11 +111,11 @@ var t5 = fsql.Select<Song>()
 
 ```csharp
 using (var uow = fsql.CreateUnitOfWork()) {
-    var songRepository = uow.GetRepository<Song, int>();
-    var tagRepository = uow.GetRepository<Tag, int>();
+    var repo1 = uow.GetRepository<Song, int>();
+    var repo2 = uow.GetRepository<Tag, int>();
 
-    await songRepository.InsertAsync(new Song());
-    await tagRepository.InsertAsync(new Tag());
+    await repo1.InsertAsync(new Song());
+    await repo2.InsertAsync(new Tag());
     uow.Commit();
 }
 ```
@@ -168,9 +168,9 @@ public void ConfigureServices(IServiceCollection services) {
 
 Temporary disable:
 ```csharp
-var songRepository = fsql.GetRepository<Song, int>();
+var repoq = fsql.GetRepository<Song, int>();
 
-using (songRepository.DataFilter.Disable("Tenant")) {
+using (repo1.DataFilter.Disable("Tenant")) {
     //Tenant Invalid
 }
 //Tenant restore
