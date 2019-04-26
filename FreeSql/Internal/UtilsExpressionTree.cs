@@ -18,7 +18,11 @@ namespace FreeSql.Internal {
 
 		static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, TableInfo>> _cacheGetTableByEntity = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, TableInfo>>();
 		internal static void RemoveTableByEntity(Type entity, CommonUtils common) {
-			if (entity.FullName.StartsWith("<>f__AnonymousType")) return;
+			if (entity.FullName.StartsWith("<>f__AnonymousType") ||
+				entity.IsValueType ||
+				entity.IsNullableType() ||
+				entity.NullableTypeOrThis() == typeof(BigInteger)
+				) return;
 			var tbc = _cacheGetTableByEntity.GetOrAdd(common._orm.Ado.DataType, k1 => new ConcurrentDictionary<Type, TableInfo>()); //区分数据库类型缓存
 			if (tbc.TryRemove(entity, out var trytb) && trytb?.TypeLazy != null) tbc.TryRemove(trytb.TypeLazy, out var trylz);
 		}
@@ -75,6 +79,7 @@ namespace FreeSql.Internal {
 						IsNullable = tp.Value.isnullable ?? true,
 						IsPrimary = false,
 						IsIgnore = false,
+						Unique = null,
 						MapType = p.PropertyType
 					};
 				if (colattr._IsNullable == null) colattr._IsNullable = tp?.isnullable;
@@ -84,8 +89,14 @@ namespace FreeSql.Internal {
 				if (tp != null && tp.Value.isnullable == null) colattr.IsNullable = tp.Value.dbtypeFull.Contains("NOT NULL") == false;
 				if (colattr.DbType?.Contains("NOT NULL") == true) colattr.IsNullable = false;
 				if (string.IsNullOrEmpty(colattr.Name)) colattr.Name = p.Name;
-				if (common.CodeFirst.IsSyncStructureToLower) colattr.Name = colattr.Name.ToLower();
-				if (common.CodeFirst.IsSyncStructureToUpper) colattr.Name = colattr.Name.ToUpper();
+				if (common.CodeFirst.IsSyncStructureToLower) {
+					colattr.Name = colattr.Name.ToLower();
+					if (!string.IsNullOrEmpty(colattr.Unique)) colattr.Unique = colattr.Unique.ToLower();
+				}
+				if (common.CodeFirst.IsSyncStructureToUpper) {
+					colattr.Name = colattr.Name.ToUpper();
+					if (!string.IsNullOrEmpty(colattr.Unique)) colattr.Unique = colattr.Unique.ToUpper();
+				}
 
 				if ((colattr.IsNullable != true || colattr.IsIdentity == true || colattr.IsPrimary == true) && colattr.DbType.Contains("NOT NULL") == false) {
 					colattr.IsNullable = false;
@@ -177,8 +188,8 @@ namespace FreeSql.Internal {
 				} catch { }
 				trytb.Primarys = trytb.Columns.Values.Where(a => a.Attribute.IsPrimary == true).ToArray();
 			}
-			trytb.Uniques = trytb.Columns.Values.Where(a => !string.IsNullOrEmpty(a.Attribute.Unique))
-				.ToDictionary(a => a.Attribute.Unique, a => trytb.Columns.Values.Where(b => b.Attribute.Unique == a.Attribute.Unique).ToList());
+			trytb.Uniques = trytb.Columns.Values.Where(a => !string.IsNullOrEmpty(a.Attribute.Unique)).Select(a => a.Attribute.Unique).Distinct()
+				.ToDictionary(a => a, a => trytb.Columns.Values.Where(b => b.Attribute.Unique == a).ToList());
 			tbc.AddOrUpdate(entity, trytb, (oldkey, oldval) => trytb);
 
 			#region 查找导航属性的关系、virtual 属性延时加载，动态产生新的重写类

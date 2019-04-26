@@ -110,13 +110,17 @@ namespace FreeSql.Sqlite {
 							}
 							sb.Append(",");
 						}
-						if (isIndent || tb.Primarys.Any() == false)
-							sb.Remove(sb.Length - 1, 1);
-						else {
+						if (isIndent == false && tb.Primarys.Any()) {
 							sb.Append(" \r\n  PRIMARY KEY (");
 							foreach (var tbcol in tb.Primarys) sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
-							sb.Remove(sb.Length - 2, 2).Append(")");
+							sb.Remove(sb.Length - 2, 2).Append("),");
 						}
+						foreach (var uk in tb.Uniques) {
+							sb.Append(" \r\n  CONSTRAINT ").Append(_commonUtils.QuoteSqlName(uk.Key)).Append(" UNIQUE(");
+							foreach (var tbcol in uk.Value) sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
+							sb.Remove(sb.Length - 2, 2).Append("),");
+						}
+						sb.Remove(sb.Length - 1, 1);
 						sb.Append("\r\n) \r\n;\r\n");
 						continue;
 					}
@@ -168,6 +172,22 @@ namespace FreeSql.Sqlite {
 						//添加列
 						istmpatler = true;
 					}
+					var dsukMatches = _regexUK.Matches(dsql);
+					var dsuk = new List<string[]>();
+					foreach (Match dsukm in dsukMatches) {
+						var dbsukmg2 = dsukm.Groups[2].Value.Split(',');
+						if (dbsukmg2.Any() == false) continue;
+						foreach (var dbfield in dbsukmg2) {
+							dsuk.Add(new[] { Regex.Match(dbfield, @"""([^""]+)""").Groups[1].Value, dsukm.Groups[1].Value });
+						}
+					}
+					foreach (var uk in tb.Uniques) {
+						if (string.IsNullOrEmpty(uk.Key) || uk.Value.Any() == false) continue;
+						var dsukfind1 = dsuk.Where(a => string.Compare(a[1], uk.Key, true) == 0).ToArray();
+						if (dsukfind1.Any() == false || dsukfind1.Length != uk.Value.Count || dsukfind1.Where(a => uk.Value.Where(b => string.Compare(b.Attribute.Name, a[0], true) == 0).Any()).Count() != uk.Value.Count) {
+							istmpatler = true;
+						}
+					}
 				}
 				if (istmpatler == false) {
 					sb.Append(sbalter);
@@ -190,13 +210,17 @@ namespace FreeSql.Sqlite {
 					}
 					sb.Append(",");
 				}
-				if (isIndent || tb.Primarys.Any() == false)
-					sb.Remove(sb.Length - 1, 1);
-				else {
+				if (isIndent == false && tb.Primarys.Any()) {
 					sb.Append(" \r\n  PRIMARY KEY (");
 					foreach (var tbcol in tb.Primarys) sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
 					sb.Remove(sb.Length - 2, 2).Append(")");
 				}
+				foreach (var uk in tb.Uniques) {
+					sb.Append(" \r\n  CONSTRAINT ").Append(_commonUtils.QuoteSqlName(uk.Key)).Append(" UNIQUE(");
+					foreach (var tbcol in uk.Value) sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
+					sb.Remove(sb.Length - 2, 2).Append("),");
+				}
+				sb.Remove(sb.Length - 1, 1);
 				sb.Append("\r\n) \r\n;\r\n");
 				sb.Append("INSERT INTO ").Append(tmptablename).Append(" (");
 				foreach (var tbcol in tb.Columns.Values)
@@ -223,6 +247,7 @@ namespace FreeSql.Sqlite {
 			}
 			return sb.Length == 0 ? null : sb.ToString();
 		}
+		static Regex _regexUK = new Regex(@"CONSTRAINT\s*""([^""]+)""\s*UNIQUE\s*\(([^\)]+)\)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
 		static object syncStructureLock = new object();
 		ConcurrentDictionary<string, bool> dicSyced = new ConcurrentDictionary<string, bool>();

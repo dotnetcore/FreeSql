@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Text.RegularExpressions;
 
 namespace FreeSql.Internal.CommonProvider {
@@ -10,10 +11,12 @@ namespace FreeSql.Internal.CommonProvider {
 			var nparms = new object[parms.Length];
 			for (int a = 0; a < parms.Length; a++) {
 				if (parms[a] == null)
-					filter = Regex.Replace(filter, @"\s*(=|IN)\s*\{" + a + @"\}", " IS {" + a + "}", RegexOptions.IgnoreCase);
+					filter = _dicAddslashesReplaceIsNull.GetOrAdd(a, b => new Regex(@"\s*(=|IN)\s*\{" + b + @"\}", RegexOptions.IgnoreCase | RegexOptions.Compiled))
+						.Replace(filter, $" IS {{{a}}}");
 				nparms[a] = AddslashesProcessParam(parms[a], null);
 			}
 			try { string ret = string.Format(filter, nparms); return ret; } catch { return filter; }
 		}
+		static ConcurrentDictionary<int, Regex> _dicAddslashesReplaceIsNull = new ConcurrentDictionary<int, Regex>();
 	}
 }

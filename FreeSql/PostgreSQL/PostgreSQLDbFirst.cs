@@ -390,7 +390,7 @@ where ns.nspname || '.' || d.relname in ({loc8})
 					if (!loc10.TryGetValue(index_id, out loc11))
 						loc10.Add(index_id, loc11 = new List<DbColumnInfo>());
 					loc11.Add(loc9);
-					if (is_unique) {
+					if (is_unique && !is_primary_key) {
 						if (!uniqueColumns.TryGetValue(object_id, out loc10))
 							uniqueColumns.Add(object_id, loc10 = new Dictionary<string, List<DbColumnInfo>>());
 						if (!loc10.TryGetValue(index_id, out loc11))

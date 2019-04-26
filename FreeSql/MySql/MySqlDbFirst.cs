@@ -274,7 +274,7 @@ where a.constraint_schema in ({1}) and a.table_name in ({0}) and isnull(position
 				if (!loc10.TryGetValue(index_id, out loc11))
 					loc10.Add(index_id, loc11 = new List<DbColumnInfo>());
 				loc11.Add(loc9);
-				if (is_unique) {
+				if (is_unique && !is_primary_key) {
 					if (!uniqueColumns.TryGetValue(table_id, out loc10))
 						uniqueColumns.Add(table_id, loc10 = new Dictionary<string, List<DbColumnInfo>>());
 					if (!loc10.TryGetValue(index_id, out loc11))
