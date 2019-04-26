@@ -37,15 +37,19 @@ namespace FreeSql.DatabaseModel {
 		/// <summary>
 		/// 唯一键/组合
 		/// </summary>
-		public List<List<DbColumnInfo>> Uniques { get; internal set; } = new List<List<DbColumnInfo>>();
+		public Dictionary<string, List<DbColumnInfo>> UniquesDict { get; internal set; } = new Dictionary<string, List<DbColumnInfo>>();
 		/// <summary>
 		/// 索引/组合
 		/// </summary>
-		public List<List<DbColumnInfo>> Indexes { get; internal set; } = new List<List<DbColumnInfo>>();
+		public Dictionary<string, List<DbColumnInfo>> IndexesDict { get; internal set; } = new Dictionary<string, List<DbColumnInfo>>();
 		/// <summary>
 		/// 外键
 		/// </summary>
-		public List<DbForeignInfo> Foreigns { get; internal set; } = new List<DbForeignInfo>();
+		public Dictionary<string, DbForeignInfo> ForeignsDict { get; internal set; } = new Dictionary<string, DbForeignInfo>();
+
+		public IEnumerable<List<DbColumnInfo>> Uniques => UniquesDict.Values;
+		public IEnumerable<List<DbColumnInfo>> Indexes => IndexesDict.Values;
+		public IEnumerable<DbForeignInfo> Foreigns => ForeignsDict.Values;
 	}
 
 	public enum DbTableType {

@@ -155,13 +155,17 @@ namespace FreeSql.PostgreSQL {
 							sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType).Append(",");
 							if (tbcol.Attribute.IsIdentity == true) seqcols.Add((tbcol, tbname, true));
 						}
-						if (tb.Primarys.Any() == false)
-							sb.Remove(sb.Length - 1, 1);
-						else {
+						if (tb.Primarys.Any()) {
 							sb.Append(" \r\n  CONSTRAINT ").Append(tbname[0]).Append("_").Append(tbname[1]).Append("_pkey PRIMARY KEY (");
 							foreach (var tbcol in tb.Primarys) sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
-							sb.Remove(sb.Length - 2, 2).Append(")");
+							sb.Remove(sb.Length - 2, 2).Append("),");
 						}
+						foreach (var uk in tb.Uniques) {
+							sb.Append(" \r\n  CONSTRAINT ").Append(_commonUtils.QuoteSqlName(uk.Key)).Append(" UNIQUE(");
+							foreach (var tbcol in uk.Value) sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
+							sb.Remove(sb.Length - 2, 2).Append("),");
+						}
+						sb.Remove(sb.Length - 1, 1);
 						sb.Append("\r\n) WITH (OIDS=FALSE);\r\n");
 						continue;
 					}
@@ -241,6 +245,27 @@ where ns.nspname = {0} and c.relname = {1}".FormatPostgreSQL(tboldname ?? tbname
 						if (tbcol.Attribute.IsNullable == false) sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ALTER COLUMN ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" SET NOT NULL;\r\n");
 						if (tbcol.Attribute.IsIdentity == true) seqcols.Add((tbcol, tbname, tbcol.Attribute.IsIdentity == true));
 					}
+					var dsuksql = @"
+select
+c.attname,
+b.relname
+from pg_index a
+inner join pg_class b on b.oid = a.indexrelid
+inner join pg_attribute c on c.attnum > 0 and c.attrelid = b.oid
+inner join pg_namespace ns on ns.oid = b.relnamespace
+inner join pg_class d on d.oid = a.indrelid
+where ns.nspname in ({0}) and d.relname in ({1}) and a.indisunique = 't'".FormatMySql(tboldname ?? tbname);
+					var dsuk = _orm.Ado.ExecuteArray(CommandType.Text, dsuksql).Select(a => new[] { string.Concat(a[0]), string.Concat(a[1]) });
+					foreach (var uk in tb.Uniques) {
+						if (string.IsNullOrEmpty(uk.Key) || uk.Value.Any() == false) continue;
+						var dsukfind1 = dsuk.Where(a => string.Compare(a[1], uk.Key, true) == 0).ToArray();
+						if (dsukfind1.Any() == false || dsukfind1.Length != uk.Value.Count || dsukfind1.Where(a => uk.Value.Where(b => string.Compare(b.Attribute.Name, a[0], true) == 0).Any()).Count() != uk.Value.Count) {
+							if (dsukfind1.Any()) sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" DROP CONSTRAINT ").Append(_commonUtils.QuoteSqlName(uk.Key)).Append(";\r\n");
+							sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ADD CONSTRAINT ").Append(_commonUtils.QuoteSqlName(uk.Key)).Append(" UNIQUE(");
+							foreach (var tbcol in uk.Value) sbalter.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
+							sbalter.Remove(sbalter.Length - 2, 2).Append(");\r\n");
+						}
+					}
 				}
 				if (istmpatler == false) {
 					sb.Append(sbalter);
@@ -263,13 +288,17 @@ where pg_namespace.nspname={0} and pg_class.relname={1} and pg_constraint.contyp
 					sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType).Append(",");
 					if (tbcol.Attribute.IsIdentity == true) seqcols.Add((tbcol, tbname, true));
 				}
-				if (tb.Primarys.Any() == false)
-					sb.Remove(sb.Length - 1, 1);
-				else {
+				if (tb.Primarys.Any()) {
 					sb.Append(" \r\n  CONSTRAINT ").Append(tbname[0]).Append("_").Append(tbname[1]).Append("_pkey PRIMARY KEY (");
 					foreach (var tbcol in tb.Primarys) sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
-					sb.Remove(sb.Length - 2, 2).Append(")");
+					sb.Remove(sb.Length - 2, 2).Append("),");
 				}
+				foreach (var uk in tb.Uniques) {
+					sb.Append(" \r\n  CONSTRAINT ").Append(_commonUtils.QuoteSqlName(uk.Key)).Append(" UNIQUE(");
+					foreach (var tbcol in uk.Value) sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
+					sb.Remove(sb.Length - 2, 2).Append("),");
+				}
+				sb.Remove(sb.Length - 1, 1);
 				sb.Append("\r\n) WITH (OIDS=FALSE);\r\n");
 				sb.Append("INSERT INTO ").Append(tmptablename).Append(" (");
 				foreach (var tbcol in tb.Columns.Values)

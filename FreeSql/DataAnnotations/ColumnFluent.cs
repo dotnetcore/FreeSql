@@ -1,4 +1,6 @@
-﻿namespace FreeSql.DataAnnotations {
+﻿using System;
+
+namespace FreeSql.DataAnnotations {
 	public class ColumnFluent {
 
 		public ColumnFluent(ColumnAttribute column) {
@@ -60,6 +62,24 @@
 		/// </summary>
 		public ColumnFluent IsVersion(bool value) {
 			_column.IsVersion = value;
+			return this;
+		}
+		/// <summary>
+		/// 唯一键，多个属性指定相同的标识，代表联合键
+		/// </summary>
+		/// <param name="value">标识</param>
+		/// <returns></returns>
+		public ColumnFluent Unique(string value) {
+			_column.Unique = value;
+			return this;
+		}
+		/// <summary>
+		/// 类型映射，比如：可将 enum 属性映射成 typeof(string)
+		/// </summary>
+		/// <param name="type"></param>
+		/// <returns></returns>
+		public ColumnFluent MapType(Type type) {
+			_column.MapType = type;
 			return this;
 		}
 	}

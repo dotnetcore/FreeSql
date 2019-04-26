@@ -24,14 +24,16 @@ namespace FreeSql.MySql {
 			}
 		}
 		static DateTime dt1970 = new DateTime(1970, 1, 1);
-		public override object AddslashesProcessParam(object param) {
+		public override object AddslashesProcessParam(object param, Type mapType) {
 			if (param == null) return "NULL";
+			if (mapType != null && mapType != param.GetType())
+				param = Utils.GetDataReaderValue(mapType, param);
 			if (param is bool || param is bool?)
 				return (bool)param ? 1 : 0;
 			else if (param is string || param is char)
 				return string.Concat("'", param.ToString().Replace("'", "''"), "'");
 			else if (param is Enum)
-				return string.Concat("'", param.ToString().Replace("'", "''"), "'"); //((Enum)param).ToInt64();
+				return string.Concat("'", param.ToString().Replace("'", "''"), "'"); //((Enum)val).ToInt64();
 			else if (decimal.TryParse(string.Concat(param), out var trydec))
 				return param;
 			else if (param is DateTime || param is DateTime?)
@@ -43,11 +45,10 @@ namespace FreeSql.MySql {
 			else if (param is IEnumerable) {
 				var sb = new StringBuilder();
 				var ie = param as IEnumerable;
-				foreach (var z in ie) sb.Append(",").Append(AddslashesProcessParam(z));
+				foreach (var z in ie) sb.Append(",").Append(AddslashesProcessParam(z, mapType));
 				return sb.Length == 0 ? "(NULL)" : sb.Remove(0, 1).Insert(0, "(").Append(")").ToString();
 			}
 			return string.Concat("'", param.ToString().Replace("'", "''"), "'");
-			//if (param is string) return string.Concat('N', nparms[a]);
 		}
 
 		protected override DbCommand CreateCommand() {

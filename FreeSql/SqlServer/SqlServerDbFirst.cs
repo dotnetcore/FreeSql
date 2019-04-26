@@ -256,7 +256,7 @@ use [{db}];
 select 
  a.object_id 'Object_id'
 ,c.name 'Column'
-,b.index_id 'Index_id'
+,d.name 'Index_id'
 ,b.is_unique 'IsUnique'
 ,b.is_primary_key 'IsPrimaryKey'
 ,cast(case when b.type_desc = 'CLUSTERED' then 1 else 0 end as bit) 'IsClustered'
@@ -264,6 +264,7 @@ select
 from sys.index_columns a
 inner join sys.indexes b on b.object_id = a.object_id and b.index_id = a.index_id
 left join sys.columns c on c.object_id = a.object_id and c.column_id = a.column_id
+left join sys.key_constraints d on d.parent_object_id = b.object_id and d.unique_index_id = b.index_id
 where a.object_id in ({loc8})
 ;
 use [{olddatabase}];
@@ -271,12 +272,12 @@ use [{olddatabase}];
 				ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
 				if (ds == null) return loc1;
 
-				var indexColumns = new Dictionary<int, Dictionary<int, List<DbColumnInfo>>>();
-				var uniqueColumns = new Dictionary<int, Dictionary<int, List<DbColumnInfo>>>();
+				var indexColumns = new Dictionary<int, Dictionary<string, List<DbColumnInfo>>>();
+				var uniqueColumns = new Dictionary<int, Dictionary<string, List<DbColumnInfo>>>();
 				foreach (object[] row in ds) {
 					int object_id = int.Parse(string.Concat(row[0]));
 					string column = string.Concat(row[1]);
-					int index_id = int.Parse(string.Concat(row[2]));
+					string index_id = string.Concat(row[2]);
 					bool is_unique = bool.Parse(string.Concat(row[3]));
 					bool is_primary_key = bool.Parse(string.Concat(row[4]));
 					bool is_clustered = bool.Parse(string.Concat(row[5]));
@@ -286,29 +287,29 @@ use [{olddatabase}];
 					DbColumnInfo loc9 = loc3[object_id][column];
 					if (loc9.IsPrimary == false && is_primary_key) loc9.IsPrimary = is_primary_key;
 
-					Dictionary<int, List<DbColumnInfo>> loc10 = null;
+					Dictionary<string, List<DbColumnInfo>> loc10 = null;
 					List<DbColumnInfo> loc11 = null;
 					if (!indexColumns.TryGetValue(object_id, out loc10))
-						indexColumns.Add(object_id, loc10 = new Dictionary<int, List<DbColumnInfo>>());
+						indexColumns.Add(object_id, loc10 = new Dictionary<string, List<DbColumnInfo>>());
 					if (!loc10.TryGetValue(index_id, out loc11))
 						loc10.Add(index_id, loc11 = new List<DbColumnInfo>());
 					loc11.Add(loc9);
-					if (is_unique) {
+					if (is_unique && !is_primary_key) {
 						if (!uniqueColumns.TryGetValue(object_id, out loc10))
-							uniqueColumns.Add(object_id, loc10 = new Dictionary<int, List<DbColumnInfo>>());
+							uniqueColumns.Add(object_id, loc10 = new Dictionary<string, List<DbColumnInfo>>());
 						if (!loc10.TryGetValue(index_id, out loc11))
 							loc10.Add(index_id, loc11 = new List<DbColumnInfo>());
 						loc11.Add(loc9);
 					}
 				}
 				foreach (var object_id in indexColumns.Keys) {
-					foreach (List<DbColumnInfo> columns in indexColumns[object_id].Values)
-						loc2[object_id].Indexes.Add(columns);
+					foreach (var column in indexColumns[object_id])
+						loc2[object_id].IndexesDict.Add(column.Key, column.Value);
 				}
 				foreach (var object_id in uniqueColumns.Keys) {
-					foreach (var columns in uniqueColumns[object_id].Values) {
-						columns.Sort((c1, c2) => c1.Name.CompareTo(c2.Name));
-						loc2[object_id].Uniques.Add(columns);
+					foreach (var column in uniqueColumns[object_id]) {
+						column.Value.Sort((c1, c2) => c1.Name.CompareTo(c2.Name));
+						loc2[object_id].UniquesDict.Add(column.Key, column.Value);
 					}
 				}
 
@@ -317,8 +318,8 @@ use [{db}];
 select 
  b.object_id 'Object_id'
 ,c.name 'Column'
-,a.constraint_object_id 'FKId'
-,referenced_object_id
+,e.name 'FKId'
+,a.referenced_object_id
 ,cast(1 as bit) 'IsForeignKey'
 ,d.name 'Referenced_Column'
 ,null 'Referenced_Sln'
@@ -327,6 +328,7 @@ from sys.foreign_key_columns a
 inner join sys.tables b on b.object_id = a.parent_object_id
 inner join sys.columns c on c.object_id = a.parent_object_id and c.column_id = a.parent_column_id
 inner join sys.columns d on d.object_id = a.referenced_object_id and d.column_id = a.referenced_column_id
+left join sys.foreign_keys e on e.object_id = a.constraint_object_id
 where b.object_id in ({loc8})
 ;
 use [{olddatabase}];
@@ -334,12 +336,12 @@ use [{olddatabase}];
 				ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
 				if (ds == null) return loc1;
 
-				var fkColumns = new Dictionary<int, Dictionary<int, DbForeignInfo>>();
+				var fkColumns = new Dictionary<int, Dictionary<string, DbForeignInfo>>();
 				foreach (object[] row in ds) {
-					int object_id, fk_id, referenced_object_id;
+					int object_id, referenced_object_id;
 					int.TryParse(string.Concat(row[0]), out object_id);
 					var column = string.Concat(row[1]);
-					int.TryParse(string.Concat(row[2]), out fk_id);
+					string fk_id = string.Concat(row[2]);
 					int.TryParse(string.Concat(row[3]), out referenced_object_id);
 					var is_foreign_key = bool.Parse(string.Concat(row[4]));
 					var referenced_column = string.Concat(row[5]);
@@ -356,18 +358,18 @@ use [{olddatabase}];
 					} else {
 
 					}
-					Dictionary<int, DbForeignInfo> loc12 = null;
+					Dictionary<string, DbForeignInfo> loc12 = null;
 					DbForeignInfo loc13 = null;
 					if (!fkColumns.TryGetValue(object_id, out loc12))
-						fkColumns.Add(object_id, loc12 = new Dictionary<int, DbForeignInfo>());
+						fkColumns.Add(object_id, loc12 = new Dictionary<string, DbForeignInfo>());
 					if (!loc12.TryGetValue(fk_id, out loc13))
 						loc12.Add(fk_id, loc13 = new DbForeignInfo { Table = loc2[object_id], ReferencedTable = loc10 });
 					loc13.Columns.Add(loc9);
 					loc13.ReferencedColumns.Add(loc11);
 				}
 				foreach (var table_id in fkColumns.Keys)
-					foreach (var fk in fkColumns[table_id].Values)
-						loc2[table_id].Foreigns.Add(fk);
+					foreach (var fk in fkColumns[table_id])
+						loc2[table_id].ForeignsDict.Add(fk.Key, fk.Value);
 
 				foreach (var table_id in loc3.Keys) {
 					foreach (var loc5 in loc3[table_id].Values) {
@@ -377,8 +379,8 @@ use [{olddatabase}];
 					}
 				}
 				foreach (var loc4 in loc2.Values) {
-					if (loc4.Primarys.Count == 0 && loc4.Uniques.Count > 0) {
-						foreach (var loc5 in loc4.Uniques[0]) {
+					if (loc4.Primarys.Count == 0 && loc4.UniquesDict.Count > 0) {
+						foreach (var loc5 in loc4.UniquesDict.First().Value) {
 							loc5.IsPrimary = true;
 							loc4.Primarys.Add(loc5);
 						}
@@ -387,8 +389,8 @@ use [{olddatabase}];
 					loc4.Columns.Sort((c1, c2) => {
 						int compare = c2.IsPrimary.CompareTo(c1.IsPrimary);
 						if (compare == 0) {
-							bool b1 = loc4.Foreigns.Find(fk => fk.Columns.Find(c3 => c3.Name == c1.Name) != null) != null;
-							bool b2 = loc4.Foreigns.Find(fk => fk.Columns.Find(c3 => c3.Name == c2.Name) != null) != null;
+							bool b1 = loc4.ForeignsDict.Values.Where(fk => fk.Columns.Where(c3 => c3.Name == c1.Name).Any()).Any();
+							bool b2 = loc4.ForeignsDict.Values.Where(fk => fk.Columns.Where(c3 => c3.Name == c2.Name).Any()).Any();
 							compare = b2.CompareTo(b1);
 						}
 						if (compare == 0) compare = c1.Name.CompareTo(c2.Name);
@@ -401,16 +403,6 @@ use [{olddatabase}];
 					if (ret == 0) ret = t1.Name.CompareTo(t2.Name);
 					return ret;
 				});
-				foreach (var loc4 in loc1) {
-					var dicUniques = new Dictionary<string, List<DbColumnInfo>>();
-					if (loc4.Primarys.Count > 0) dicUniques.Add(string.Join(",", loc4.Primarys.Select(a => a.Name)), loc4.Primarys);
-					foreach (var loc5 in loc4.Uniques) {
-						var dickey = string.Join(",", loc5.Select(a => a.Name));
-						if (dicUniques.ContainsKey(dickey)) continue;
-						dicUniques.Add(dickey, loc5);
-					}
-					loc4.Uniques = dicUniques.Values.ToList();
-				}
 
 				loc2.Clear();
 				loc3.Clear();

@@ -10,6 +10,25 @@ namespace FreeSql.Tests.Sqlite {
 	public class SqliteCodeFirstTest {
 
 
+		[Fact]
+		public void AddUniques() {
+			var sql = g.sqlite.CodeFirst.GetComparisonDDLStatements<AddUniquesInfo>();
+			g.sqlite.CodeFirst.SyncStructure<AddUniquesInfo>();
+		}
+		[Table(Name = "AddUniquesInfo2", OldName = "AddUniquesInfo")]
+		class AddUniquesInfo {
+			public Guid id { get; set; }
+			[Column(Unique = "uk_phone")]
+			public string phone { get; set; }
+
+			[Column(Unique = "uk_group_index")]
+			public string group { get; set; }
+			[Column(Unique = "uk_group_index111")]
+			public int index { get; set; }
+			[Column(Unique = "uk_group_index222")]
+			public string index22 { get; set; }
+		}
+
 		public class Topic {
 			public Guid Id { get; set; }
 			public string Title { get; set; }

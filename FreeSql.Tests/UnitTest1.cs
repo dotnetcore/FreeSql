@@ -8,6 +8,7 @@ using Newtonsoft.Json.Linq;
 using NpgsqlTypes;
 using Npgsql.LegacyPostgis;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 namespace FreeSql.Tests {
 	public class UnitTest1 {
@@ -51,8 +52,51 @@ namespace FreeSql.Tests {
 			public string srvReqstCntt { get; set; }
 		}
 
+		public class TestEntity : EntityBase<int> {
+			public int Test { get; set; }
+			public string Title { get; set; }
+			public override Task Persistent(IRepositoryUnitOfWork uof) {
+				uof.GetGuidRepository<TestEntity>().Insert(this);
+				return Task.CompletedTask;
+			}
+			public override Task Persistent() {
+				var res = FreeSqlDb.Insert(this);
+				res.ExecuteInserted();
+				return Task.CompletedTask;
+			}
+		}
+		public abstract class EntityBase<TKey> : DomainInfrastructure {
+			[Column(IsPrimary = true, IsIdentity = true)]
+			public TKey Id { get; set; }
+			public Guid CompanyId { get; set; }
+			[Column(IsVersion = true)]
+			public int Version { get; set; }
+		}
+
+		public abstract class DomainInfrastructure {
+			[Column(IsIgnore = true)]
+			public IFreeSql FreeSqlDb {
+				get {
+					return g.sqlite;
+				}
+			}
+
+
+			public abstract Task Persistent(IRepositoryUnitOfWork uof);
+			public abstract Task Persistent();
+		}
+
 		[Fact]
 		public void Test1() {
+
+			var testddd = new TestEntity {
+				Test = 22,
+				Title = "xxx"
+			};
+			//testddd.Persistent().Wait();
+			g.sqlite.GetRepository<TestEntity, int>().Insert(testddd);
+
+
 			var testpid1 = g.mysql.Insert<TestTypeInfo>().AppendData(new TestTypeInfo { Name = "Name" + DateTime.Now.ToString("yyyyMMddHHmmss") }).ExecuteIdentity();
 			g.mysql.Insert<TestInfo>().AppendData(new TestInfo { Title = "Title" + DateTime.Now.ToString("yyyyMMddHHmmss"), CreateTime = DateTime.Now, TypeGuid = (int)testpid1 }).ExecuteAffrows();
 

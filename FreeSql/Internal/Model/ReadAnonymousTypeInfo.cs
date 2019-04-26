@@ -8,6 +8,7 @@ namespace FreeSql.Internal.Model {
 		public PropertyInfo Property { get; set; }
 		public string CsName { get; set; }
 		public Type CsType { get; set; }
+		public Type MapType { get; set; }
 		public string DbField { get; set; }
 		public ConstructorInfo Consturctor { get; set; }
 		public ReadAnonymousTypeInfoConsturctorType ConsturctorType { get; set; }

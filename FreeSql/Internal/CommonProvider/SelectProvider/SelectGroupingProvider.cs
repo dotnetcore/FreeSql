@@ -24,7 +24,7 @@ namespace FreeSql.Internal.CommonProvider {
 		string getSelectGroupingMapString(Expression[] members) {
 			if (members.Any() == false) return _map.DbField;
 			var parentName = ((members.FirstOrDefault() as MemberExpression)?.Expression as MemberExpression)?.Member.Name;
-			switch(parentName) {
+			switch (parentName) {
 				case "Key":
 					var read = _map;
 					for (var a = 0; a < members.Length; a++) {
@@ -53,7 +53,7 @@ namespace FreeSql.Internal.CommonProvider {
 					var parmExp = Expression.Parameter(tb.Table.Type, tb.Alias);
 					Expression retExp = parmExp;
 					for (var a = foridx; a < members.Length; a++) {
-						switch(members[a].NodeType) {
+						switch (members[a].NodeType) {
 							case ExpressionType.Call:
 								retExp = Expression.Call(retExp, (members[a] as MethodCallExpression).Method);
 								break;
@@ -64,7 +64,7 @@ namespace FreeSql.Internal.CommonProvider {
 								return null;
 						}
 					}
-					return _comonExp.ExpressionLambdaToSql(retExp, _tables, null, null, SelectTableInfoType.From, true, true, CommonExpression.ExpressionStyle.Where);
+					return _comonExp.ExpressionLambdaToSql(retExp, new CommonExpression.ExpTSC { _tables = _tables, tbtype = SelectTableInfoType.From, isQuoteName = true, isDisableDiyParse = true, style = CommonExpression.ExpressionStyle.Where });
 			}
 			return null;
 		}

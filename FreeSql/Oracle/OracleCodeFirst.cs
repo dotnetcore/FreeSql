@@ -112,13 +112,17 @@ namespace FreeSql.Oracle {
 							sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType).Append(",");
 							if (tbcol.Attribute.IsIdentity == true) seqcols.Add((tbcol, tbname, true));
 						}
-						if (tb.Primarys.Any() == false)
-							sb.Remove(sb.Length - 1, 1);
-						else {
+						if (tb.Primarys.Any()) {
 							sb.Append(" \r\n  CONSTRAINT ").Append(tbname[0]).Append("_").Append(tbname[1]).Append("_pk1 PRIMARY KEY (");
 							foreach (var tbcol in tb.Primarys) sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
-							sb.Remove(sb.Length - 2, 2).Append(")");
+							sb.Remove(sb.Length - 2, 2).Append("),");
 						}
+						foreach (var uk in tb.Uniques) {
+							sb.Append(" \r\n  CONSTRAINT ").Append(_commonUtils.QuoteSqlName(uk.Key)).Append(" UNIQUE (");
+							foreach (var tbcol in uk.Value) sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
+							sb.Remove(sb.Length - 2, 2).Append("),");
+						}
+						sb.Remove(sb.Length - 1, 1);
 						sb.Append("\r\n) \r\nLOGGING \r\nNOCOMPRESS \r\nNOCACHE\r\n';\r\n");
 						continue;
 					}
@@ -185,6 +189,30 @@ where owner={{0}} and table_name={{1}}".FormatOracleSQL(tboldname ?? tbname);
 						}
 						if (tbcol.Attribute.IsIdentity == true) seqcols.Add((tbcol, tbname, tbcol.Attribute.IsIdentity == true));
 					}
+					var dsuksql = @"
+select
+c.column_name,
+c.constraint_name
+from
+all_constraints a,
+all_cons_columns c
+where
+a.constraint_name = c.constraint_name
+and a.owner = c.owner
+and a.table_name = c.table_name
+and a.constraint_type in ('U')
+and a.owner in ({0}) and a.table_name in ({1})".FormatMySql(tboldname ?? tbname);
+					var dsuk = _orm.Ado.ExecuteArray(CommandType.Text, dsuksql).Select(a => new[] { string.Concat(a[0]), string.Concat(a[1]) });
+					foreach (var uk in tb.Uniques) {
+						if (string.IsNullOrEmpty(uk.Key) || uk.Value.Any() == false) continue;
+						var dsukfind1 = dsuk.Where(a => string.Compare(a[1], uk.Key, true) == 0).ToArray();
+						if (dsukfind1.Any() == false || dsukfind1.Length != uk.Value.Count || dsukfind1.Where(a => uk.Value.Where(b => string.Compare(b.Attribute.Name, a[0], true) == 0).Any()).Count() != uk.Value.Count) {
+							if (dsukfind1.Any()) sbalter.Append("execute immediate 'ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" DROP CONSTRAINT ").Append(_commonUtils.QuoteSqlName(uk.Key)).Append("';\r\n");
+							sbalter.Append("execute immediate 'ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ADD CONSTRAINT ").Append(_commonUtils.QuoteSqlName(uk.Key)).Append(" UNIQUE(");
+							foreach (var tbcol in uk.Value) sbalter.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
+							sbalter.Remove(sbalter.Length - 2, 2).Append(")';\r\n");
+						}
+					}
 				}
 				if (istmpatler == false) {
 					sb.Append(sbalter);
@@ -203,13 +231,17 @@ where owner={{0}} and table_name={{1}}".FormatOracleSQL(tboldname ?? tbname);
 					sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType).Append(",");
 					if (tbcol.Attribute.IsIdentity == true) seqcols.Add((tbcol, tbname, true));
 				}
-				if (tb.Primarys.Any() == false)
-					sb.Remove(sb.Length - 1, 1);
-				else {
+				if (tb.Primarys.Any()) {
 					sb.Append(" \r\n  CONSTRAINT ").Append(tbname[0]).Append("_").Append(tbname[1]).Append("_pk2 PRIMARY KEY (");
 					foreach (var tbcol in tb.Primarys) sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
-					sb.Remove(sb.Length - 2, 2).Append(")");
+					sb.Remove(sb.Length - 2, 2).Append("),");
 				}
+				foreach (var uk in tb.Uniques) {
+					sb.Append(" \r\n  CONSTRAINT ").Append(_commonUtils.QuoteSqlName(uk.Key)).Append(" UNIQUE (");
+					foreach (var tbcol in uk.Value) sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
+					sb.Remove(sb.Length - 2, 2).Append("),");
+				}
+				sb.Remove(sb.Length - 1, 1);
 				sb.Append("\r\n) LOGGING \r\nNOCOMPRESS \r\nNOCACHE\r\n';\r\n");
 				sb.Append("execute immediate 'INSERT INTO ").Append(tmptablename).Append(" (");
 				foreach (var tbcol in tb.Columns.Values)

@@ -17,6 +17,25 @@ namespace FreeSql.Tests.PostgreSQL {
 	public class PostgreSQLCodeFirstTest {
 
 		[Fact]
+		public void AddUniques() {
+			var sql = g.pgsql.CodeFirst.GetComparisonDDLStatements<AddUniquesInfo>();
+			g.pgsql.CodeFirst.SyncStructure<AddUniquesInfo>();
+		}
+		[Table(Name = "AddUniquesInfo", OldName = "AddUniquesInfo2")]
+		class AddUniquesInfo {
+			public Guid id { get; set; }
+			[Column(Unique = "uk_phone")]
+			public string phone { get; set; }
+
+			[Column(Unique = "uk_group_index")]
+			public string group { get; set; }
+			[Column(Unique = "uk_group_index11")]
+			public int index { get; set; }
+			[Column(Unique = "uk_group_index222")]
+			public string index22 { get; set; }
+		}
+
+		[Fact]
 		public void AddField() {
 			var sql = g.pgsql.CodeFirst.GetComparisonDDLStatements<TopicAddField>();
 			g.pgsql.Select<TopicAddField>();

@@ -133,13 +133,17 @@ namespace FreeSql.MySql {
 								if (tbcol.Attribute.IsIdentity == true && tbcol.Attribute.DbType.IndexOf("AUTO_INCREMENT", StringComparison.CurrentCultureIgnoreCase) == -1) sb.Append(" AUTO_INCREMENT");
 								sb.Append(",");
 							}
-							if (tb.Primarys.Any() == false)
-								sb.Remove(sb.Length - 1, 1);
-							else {
+							if (tb.Primarys.Any()) {
 								sb.Append(" \r\n  PRIMARY KEY (");
 								foreach (var tbcol in tb.Primarys) sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
-								sb.Remove(sb.Length - 2, 2).Append(")");
+								sb.Remove(sb.Length - 2, 2).Append("),");
 							}
+							foreach (var uk in tb.Uniques) {
+								sb.Append(" \r\n  UNIQUE KEY ").Append(_commonUtils.QuoteSqlName(uk.Key)).Append("(");
+								foreach (var tbcol in uk.Value) sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
+								sb.Remove(sb.Length - 2, 2).Append("),");
+							}
+							sb.Remove(sb.Length - 1, 1);
 							sb.Append("\r\n) Engine=InnoDB CHARACTER SET utf8;\r\n");
 							continue;
 						}
@@ -176,7 +180,7 @@ where a.table_schema in ({0}) and a.table_name in ({1})".FormatMySql(tboldname ?
 					}, StringComparer.CurrentCultureIgnoreCase);
 
 					if (istmpatler == false) {
-						var existsPrimary = ExecuteScalar(tbname[0], "select 1 from INFORMATION_SCHEMA.KEY_COLUMN_USAGE where table_schema={0} and table_name={1} limit 1".FormatMySql(tbname));
+						var existsPrimary = ExecuteScalar(tbname[0], "select 1 from information_schema.key_column_usage where table_schema={0} and table_name={1} and constraint_name = 'PRIMARY' limit 1".FormatMySql(tbname));
 						foreach (var tbcol in tb.Columns.Values) {
 							var isIdentityChanged = tbcol.Attribute.IsIdentity == true && tbcol.Attribute.DbType.IndexOf("AUTO_INCREMENT", StringComparison.CurrentCultureIgnoreCase) == -1;
 							if (tbstruct.TryGetValue(tbcol.Attribute.Name, out var tbstructcol) ||
@@ -202,6 +206,23 @@ where a.table_schema in ({0}) and a.table_name in ({1})".FormatMySql(tboldname ?
 							if (isIdentityChanged) sbalter.Append(" AUTO_INCREMENT").Append(existsPrimary == null ? "" : ", DROP PRIMARY KEY").Append(", ADD PRIMARY KEY(").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(")");
 							sbalter.Append(";\r\n");
 						}
+						var dsuksql = @"
+select 
+a.column_name,
+a.constraint_name 'index_id'
+from information_schema.key_column_usage a
+where a.constraint_schema IN ({0}) and a.table_name IN ({1})".FormatMySql(tboldname ?? tbname);
+						var dsuk = _orm.Ado.ExecuteArray(CommandType.Text, dsuksql).Select(a => new[] { string.Concat(a[0]), string.Concat(a[1]) });
+						foreach (var uk in tb.Uniques) {
+							if (uk.Key == "PRIMARY" || string.IsNullOrEmpty(uk.Key) || uk.Value.Any() == false) continue;
+							var dsukfind1 = dsuk.Where(a => string.Compare(a[1], uk.Key, true) == 0).ToArray();
+							if (dsukfind1.Any() == false || dsukfind1.Length != uk.Value.Count || dsukfind1.Where(a => uk.Value.Where(b => string.Compare(b.Attribute.Name, a[0], true) == 0).Any()).Count() != uk.Value.Count) {
+								if (dsukfind1.Any()) sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" DROP INDEX ").Append(_commonUtils.QuoteSqlName(uk.Key)).Append(";\r\n");
+								sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ADD CONSTRAINT ").Append(_commonUtils.QuoteSqlName(uk.Key)).Append(" UNIQUE(");
+								foreach (var tbcol in uk.Value) sbalter.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
+								sbalter.Remove(sbalter.Length - 2, 2).Append(");\r\n");
+							}
+						}
 					}
 					if (istmpatler == false) {
 						sb.Append(sbalter);
@@ -219,13 +240,17 @@ where a.table_schema in ({0}) and a.table_name in ({1})".FormatMySql(tboldname ?
 						if (tbcol.Attribute.IsIdentity == true && tbcol.Attribute.DbType.IndexOf("AUTO_INCREMENT", StringComparison.CurrentCultureIgnoreCase) == -1) sb.Append(" AUTO_INCREMENT");
 						sb.Append(",");
 					}
-					if (tb.Primarys.Any() == false)
-						sb.Remove(sb.Length - 1, 1);
-					else {
+					if (tb.Primarys.Any()) {
 						sb.Append(" \r\n  PRIMARY KEY (");
 						foreach (var tbcol in tb.Primarys) sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
-						sb.Remove(sb.Length - 2, 2).Append(")");
+						sb.Remove(sb.Length - 2, 2).Append("),");
 					}
+					foreach (var uk in tb.Uniques) {
+						sb.Append(" \r\n  UNIQUE KEY ").Append(_commonUtils.QuoteSqlName(uk.Key)).Append("(");
+						foreach (var tbcol in uk.Value) sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
+						sb.Remove(sb.Length - 2, 2).Append("),");
+					}
+					sb.Remove(sb.Length - 1, 1);
 					sb.Append("\r\n) Engine=InnoDB CHARACTER SET utf8;\r\n");
 					sb.Append("INSERT INTO ").Append(tmptablename).Append(" (");
 					foreach (var tbcol in tb.Columns.Values)

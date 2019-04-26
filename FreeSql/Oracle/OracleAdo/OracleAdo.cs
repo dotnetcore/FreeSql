@@ -23,8 +23,10 @@ namespace FreeSql.Oracle {
 			}
 		}
 		static DateTime dt1970 = new DateTime(1970, 1, 1);
-		public override object AddslashesProcessParam(object param) {
+		public override object AddslashesProcessParam(object param, Type mapType) {
 			if (param == null) return "NULL";
+			if (mapType != null && mapType != param.GetType())
+				param = Utils.GetDataReaderValue(mapType, param);
 			if (param is bool || param is bool?)
 				return (bool)param ? 1 : 0;
 			else if (param is string || param is char)
@@ -40,7 +42,7 @@ namespace FreeSql.Oracle {
 			else if (param is IEnumerable) {
 				var sb = new StringBuilder();
 				var ie = param as IEnumerable;
-				foreach (var z in ie) sb.Append(",").Append(AddslashesProcessParam(z));
+				foreach (var z in ie) sb.Append(",").Append(AddslashesProcessParam(z, mapType));
 				return sb.Length == 0 ? "(NULL)" : sb.Remove(0, 1).Insert(0, "(").Append(")").ToString();
 			}
 			return string.Concat("'", param.ToString().Replace("'", "''"), "'");

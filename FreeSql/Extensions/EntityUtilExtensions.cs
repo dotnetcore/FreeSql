@@ -41,18 +41,30 @@ namespace FreeSql.Extensions.EntityUtil {
 					Expression.Assign(var3IsNull, Expression.Constant(false))
 				});
 				for (var a = 0; a < pks.Length; a++) {
-					var isguid = pks[a].CsType.NullableTypeOrThis() == typeof(Guid);
+					var isguid = pks[a].Attribute.MapType.NullableTypeOrThis() == typeof(Guid) || pks[a].CsType.NullableTypeOrThis() == typeof(Guid);
 					Expression expthen = null;
 					if (isguid) {
-						expthen = Expression.Block(
-							new Expression[]{
-								Expression.Assign(Expression.MakeMemberAccess(var1Parm, _table.Properties[pks[a].CsName]), Expression.Call(MethodFreeUtilNewMongodbId)),
-								a > 0 ? Expression.Call(var2Sb, MethodStringBuilderAppend, Expression.Constant(splitString)) : null,
-								Expression.Call(var2Sb, MethodStringBuilderAppend,
-									Expression.Convert(Expression.MakeMemberAccess(var1Parm, _table.Properties[pks[a].CsName]), typeof(object))
-								)
-							}.Where(c => c != null).ToArray()
-						);
+						if (pks[a].Attribute.MapType == pks[a].CsType) {
+							expthen = Expression.Block(
+								new Expression[]{
+									Expression.Assign(Expression.MakeMemberAccess(var1Parm, _table.Properties[pks[a].CsName]), Expression.Call(MethodFreeUtilNewMongodbId)),
+									a > 0 ? Expression.Call(var2Sb, MethodStringBuilderAppend, Expression.Constant(splitString)) : null,
+									Expression.Call(var2Sb, MethodStringBuilderAppend,
+										Expression.Convert(Expression.MakeMemberAccess(var1Parm, _table.Properties[pks[a].CsName]), typeof(object))
+									)
+								}.Where(c => c != null).ToArray()
+							);
+						} else {
+							expthen = Expression.Block(
+								new Expression[]{
+									Expression.Assign(Expression.MakeMemberAccess(var1Parm, _table.Properties[pks[a].CsName]), FreeSql.Internal.Utils.GetDataReaderValueBlockExpression(pks[a].CsType, Expression.Call(MethodFreeUtilNewMongodbId))),
+									a > 0 ? Expression.Call(var2Sb, MethodStringBuilderAppend, Expression.Constant(splitString)) : null,
+									Expression.Call(var2Sb, MethodStringBuilderAppend,
+										Expression.Convert(Expression.MakeMemberAccess(var1Parm, _table.Properties[pks[a].CsName]), typeof(object))
+									)
+								}.Where(c => c != null).ToArray()
+							);
+						}
 					} else if (pks.Length > 1 && pks[a].Attribute.IsIdentity) {
 						expthen = Expression.Block(
 								new Expression[]{
@@ -252,6 +264,7 @@ namespace FreeSql.Extensions.EntityUtil {
 					Expression.Assign(var2Parm, Expression.TypeAs(parm2, t))
 				});
 				foreach (var prop in _table.Properties.Values) {
+					if (_table.ColumnsByCsIgnore.ContainsKey(prop.Name)) continue;
 					if (_table.ColumnsByCs.ContainsKey(prop.Name)) {
 						exps.Add(
 							Expression.Assign(
@@ -259,7 +272,7 @@ namespace FreeSql.Extensions.EntityUtil {
 								Expression.MakeMemberAccess(var1Parm, prop)
 							)
 						);
-					} else {
+					} else if (prop.GetSetMethod() != null) {
 						exps.Add(
 							Expression.Assign(
 								Expression.MakeMemberAccess(var2Parm, prop),
@@ -405,14 +418,23 @@ namespace FreeSql.Extensions.EntityUtil {
 					Expression.Assign(var1Parm, Expression.TypeAs(parm1, t))
 				});
 				foreach (var pk in _table.Primarys) {
-					if (pk.CsType == typeof(Guid) || pk.CsType == typeof(Guid?) ||
-						pk.Attribute.IsIdentity) {
+					if (pk.Attribute.IsIdentity || pk.Attribute.MapType == pk.CsType && pk.Attribute.MapType.NullableTypeOrThis() == typeof(Guid)) {
 						exps.Add(
 							Expression.Assign(
 								Expression.MakeMemberAccess(var1Parm, _table.Properties[pk.CsName]),
 								Expression.Default(pk.CsType)
 							)
 						);
+						continue;
+					}
+					if (pk.Attribute.MapType != pk.CsType && (pk.Attribute.MapType.NullableTypeOrThis() == typeof(Guid) || pk.CsType.NullableTypeOrThis() == typeof(Guid))) {
+						exps.Add(
+							Expression.Assign(
+								Expression.MakeMemberAccess(var1Parm, _table.Properties[pk.CsName]),
+								FreeSql.Internal.Utils.GetDataReaderValueBlockExpression(pk.CsType, Expression.Default(pk.Attribute.MapType))
+							)
+						);
+						continue;
 					}
 				}
 				return Expression.Lambda<Action<object>>(Expression.Block(new[] { var1Parm }, exps), new[] { parm1 }).Compile();

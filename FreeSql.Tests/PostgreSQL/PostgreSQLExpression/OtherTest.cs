@@ -79,10 +79,10 @@ namespace FreeSql.Tests.PostgreSQLExpression {
 			var sql3 = select.Where(a => a.testFieldJObject.ContainsKey("a")).ToList();
 			var sql4 = select.Where(a => a.testFieldJObject.ContainsKey("a") == false).ToList();
 
-			var sql5 = select.Where(a => a.testFieldJArray.Contains(JToken.Parse("{a:1}"))).ToList();
-			var sql6 = select.Where(a => a.testFieldJArray.Contains(JToken.Parse("{a:1}")) == false).ToList();
-			var sql555 = select.Where(a => a.testFieldJArray.Contains("{a:1}")).ToList();
-			var sql666 = select.Where(a => a.testFieldJArray.Contains("{a:1}") == false).ToList();
+			var sql5 = select.Where(a => a.testFieldJArray.Contains(1)).ToList();
+			var sql6 = select.Where(a => a.testFieldJArray.Contains(1) == false).ToList();
+			var sql555 = select.Where(a => a.testFieldJArray.Contains(1)).ToList();
+			var sql666 = select.Where(a => a.testFieldJArray.Contains(1) == false).ToList();
 
 			//var sql7 = select.Where(a => a.testFieldJToken.Any()).ToList();
 			//var sql8 = select.Where(a => a.testFieldJToken.Any() == false).ToList();

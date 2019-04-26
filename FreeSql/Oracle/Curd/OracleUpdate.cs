@@ -30,14 +30,14 @@ namespace FreeSql.Oracle.Curd {
 
 		protected override void ToSqlCase(StringBuilder caseWhen, ColumnInfo[] primarys) {
 			if (_table.Primarys.Length == 1) {
-				caseWhen.Append(_commonUtils.QuoteReadColumn(_table.Primarys.First().CsType, _commonUtils.QuoteSqlName(_table.Primarys.First().Attribute.Name)));
+				caseWhen.Append(_commonUtils.QuoteReadColumn(_table.Primarys.First().Attribute.MapType, _commonUtils.QuoteSqlName(_table.Primarys.First().Attribute.Name)));
 				return;
 			}
 			caseWhen.Append("(");
 			var pkidx = 0;
 			foreach (var pk in _table.Primarys) {
 				if (pkidx > 0) caseWhen.Append(" || ");
-				caseWhen.Append(_commonUtils.QuoteReadColumn(pk.CsType, _commonUtils.QuoteSqlName(pk.Attribute.Name)));
+				caseWhen.Append(_commonUtils.QuoteReadColumn(pk.Attribute.MapType, _commonUtils.QuoteSqlName(pk.Attribute.Name)));
 				++pkidx;
 			}
 			caseWhen.Append(")");
@@ -45,14 +45,14 @@ namespace FreeSql.Oracle.Curd {
 
 		protected override void ToSqlWhen(StringBuilder sb, ColumnInfo[] primarys, object d) {
 			if (_table.Primarys.Length == 1) {
-				sb.Append(_commonUtils.FormatSql("{0}", _table.Properties.TryGetValue(_table.Primarys.First().CsName, out var tryp2) ? tryp2.GetValue(d) : null));
+				sb.Append(_commonUtils.FormatSql("{0}", _table.Primarys.First().GetMapValue(d)));
 				return;
 			}
 			sb.Append("(");
 			var pkidx = 0;
 			foreach (var pk in _table.Primarys) {
 				if (pkidx > 0) sb.Append(" || ");
-				sb.Append(_commonUtils.FormatSql("{0}", _table.Properties.TryGetValue(pk.CsName, out var tryp2) ? tryp2.GetValue(d) : null));
+				sb.Append(_commonUtils.FormatSql("{0}", pk.GetMapValue(d)));
 				++pkidx;
 			}
 			sb.Append(")");

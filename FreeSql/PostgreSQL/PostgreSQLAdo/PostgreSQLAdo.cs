@@ -26,9 +26,11 @@ namespace FreeSql.PostgreSQL {
 		}
 
 		static DateTime dt1970 = new DateTime(1970, 1, 1);
-		public override object AddslashesProcessParam(object param) {
-			bool isdic = false;
+		public override object AddslashesProcessParam(object param, Type mapType) {
 			if (param == null) return "NULL";
+			if (mapType != null && mapType != param.GetType())
+				param = Utils.GetDataReaderValue(mapType, param);
+			bool isdic = false;
 			if (param is bool || param is bool?)
 				return (bool)param ? "'t'" : "'f'";
 			else if (param is string || param is char)
@@ -57,12 +59,10 @@ namespace FreeSql.PostgreSQL {
 			} else if (param is IEnumerable) {
 				var sb = new StringBuilder();
 				var ie = param as IEnumerable;
-				foreach (var z in ie) sb.Append(",").Append(AddslashesProcessParam(z));
+				foreach (var z in ie) sb.Append(",").Append(AddslashesProcessParam(z, mapType));
 				return sb.Length == 0 ? "(NULL)" : sb.Remove(0, 1).Insert(0, "(").Append(")").ToString();
-			}else {
-				return string.Concat("'", param.ToString().Replace("'", "''"), "'");
-				//if (param is string) return string.Concat('N', nparms[a]);
 			}
+			return string.Concat("'", param.ToString().Replace("'", "''"), "'");
 		}
 
 		protected override DbCommand CreateCommand() {

@@ -60,17 +60,14 @@ namespace FreeSql.Oracle.Curd {
 				foreach (var col in _table.Columns.Values) {
 					if (col.Attribute.IsIdentity == false && _ignore.ContainsKey(col.Attribute.Name) == false) {
 						if (colidx2 > 0) sb.Append(", ");
-						object val = null;
-						if (_table.Properties.TryGetValue(col.CsName, out var tryp)) {
-							val = tryp.GetValue(d);
-							if (col.Attribute.IsPrimary && (col.CsType == typeof(Guid) || col.CsType == typeof(Guid?))
-								&& (val == null || (Guid)val == Guid.Empty)) tryp.SetValue(d, val = FreeUtil.NewMongodbId());
-						}
+						object val = col.GetMapValue(d);
+						if (col.Attribute.IsPrimary && col.Attribute.MapType.NullableTypeOrThis() == typeof(Guid) && (val == null || (Guid)val == Guid.Empty))
+							col.SetMapValue(d, val = FreeUtil.NewMongodbId());
 						if (_noneParameter)
-							sb.Append(_commonUtils.GetNoneParamaterSqlValue(specialParams, col.CsType, val));
+							sb.Append(_commonUtils.GetNoneParamaterSqlValue(specialParams, col.Attribute.MapType, val));
 						else {
-							sb.Append(_commonUtils.QuoteWriteParamter(col.CsType, _commonUtils.QuoteParamterName($"{col.CsName}_{didx}")));
-							_params[didx * colidx + colidx2] = _commonUtils.AppendParamter(null, $"{col.CsName}_{didx}", col.CsType, val);
+							sb.Append(_commonUtils.QuoteWriteParamter(col.Attribute.MapType, _commonUtils.QuoteParamterName($"{col.CsName}_{didx}")));
+							_params[didx * colidx + colidx2] = _commonUtils.AppendParamter(null, $"{col.CsName}_{didx}", col.Attribute.MapType, val);
 						}
 						++colidx2;
 					}
@@ -92,7 +89,7 @@ namespace FreeSql.Oracle.Curd {
 				return 0;
 			}
 			var identColName = _commonUtils.QuoteSqlName(_identCol.Attribute.Name);
-			var identParam = _commonUtils.AppendParamter(null, $"{_identCol.CsName}99", _identCol.CsType, 0) as OracleParameter;
+			var identParam = _commonUtils.AppendParamter(null, $"{_identCol.CsName}99", _identCol.Attribute.MapType, 0) as OracleParameter;
 			identParam.Direction = ParameterDirection.Output;
 			_orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, $"{sql} RETURNING {identColName} INTO {identParam.ParameterName}", _params.Concat(new[] { identParam }).ToArray());
 			return long.TryParse(string.Concat(identParam.Value), out var trylng) ? trylng : 0;
@@ -106,7 +103,7 @@ namespace FreeSql.Oracle.Curd {
 				return 0;
 			}
 			var identColName = _commonUtils.QuoteSqlName(_identCol.Attribute.Name);
-			var identParam = _commonUtils.AppendParamter(null, $"{_identCol.CsName}99", _identCol.CsType, 0) as OracleParameter;
+			var identParam = _commonUtils.AppendParamter(null, $"{_identCol.CsName}99", _identCol.Attribute.MapType, 0) as OracleParameter;
 			identParam.Direction = ParameterDirection.Output;
 			await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, $"{sql} RETURNING {identColName} INTO {identParam.ParameterName}", _params.Concat(new[] { identParam }).ToArray());
 			return long.TryParse(string.Concat(identParam.Value), out var trylng) ? trylng : 0;

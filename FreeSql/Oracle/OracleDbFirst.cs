@@ -251,7 +251,7 @@ where a.owner in ({1}) and a.table_name in ({0})
 select
 a.owner || '.' || a.table_name,
 c.column_name,
-a.owner || '/' || a.table_name || '/' || c.constraint_name,
+c.constraint_name,
 case when a.constraint_type = 'U' then 1 else 0 end,
 case when a.constraint_type = 'P' then 1 else 0 end,
 0,
@@ -293,7 +293,7 @@ and a.owner in ({1}) and a.table_name in ({0})
 				if (!loc10.TryGetValue(index_id, out loc11))
 					loc10.Add(index_id, loc11 = new List<DbColumnInfo>());
 				loc11.Add(loc9);
-				if (is_unique) {
+				if (is_unique && !is_primary_key) {
 					if (!uniqueColumns.TryGetValue(table_id, out loc10))
 						uniqueColumns.Add(table_id, loc10 = new Dictionary<string, List<DbColumnInfo>>());
 					if (!loc10.TryGetValue(index_id, out loc11))
@@ -302,13 +302,13 @@ and a.owner in ({1}) and a.table_name in ({0})
 				}
 			}
 			foreach (string table_id in indexColumns.Keys) {
-				foreach (var columns in indexColumns[table_id].Values)
-					loc2[table_id].Indexes.Add(columns);
+				foreach (var column in indexColumns[table_id])
+					loc2[table_id].IndexesDict.Add(column.Key, column.Value);
 			}
 			foreach (string table_id in uniqueColumns.Keys) {
-				foreach (var columns in uniqueColumns[table_id].Values) {
-					columns.Sort((c1, c2) => c1.Name.CompareTo(c2.Name));
-					loc2[table_id].Uniques.Add(columns);
+				foreach (var column in uniqueColumns[table_id]) {
+					column.Value.Sort((c1, c2) => c1.Name.CompareTo(c2.Name));
+					loc2[table_id].UniquesDict.Add(column.Key, column.Value);
 				}
 			}
 
@@ -316,7 +316,7 @@ and a.owner in ({1}) and a.table_name in ({0})
 select
 a.owner || '.' || a.table_name,
 c.column_name,
-a.owner || '/' || a.table_name || '/' || c.constraint_name,
+c.constraint_name,
 b.owner || '.' || b.table_name,
 1,
 d.column_name
@@ -379,8 +379,8 @@ and a.owner in ({1}) and a.table_name in ({0})
 				loc13.ReferencedColumns.Add(loc11);
 			}
 			foreach (var table_id in fkColumns.Keys)
-				foreach (var fk in fkColumns[table_id].Values)
-					loc2[table_id].Foreigns.Add(fk);
+				foreach (var fk in fkColumns[table_id])
+					loc2[table_id].ForeignsDict.Add(fk.Key, fk.Value);
 
 			foreach (var table_id in loc3.Keys) {
 				foreach (var loc5 in loc3[table_id].Values) {
@@ -390,8 +390,8 @@ and a.owner in ({1}) and a.table_name in ({0})
 				}
 			}
 			foreach (var loc4 in loc2.Values) {
-				if (loc4.Primarys.Count == 0 && loc4.Uniques.Count > 0) {
-					foreach (var loc5 in loc4.Uniques[0]) {
+				if (loc4.Primarys.Count == 0 && loc4.UniquesDict.Count > 0) {
+					foreach (var loc5 in loc4.UniquesDict.First().Value) {
 						loc5.IsPrimary = true;
 						loc4.Primarys.Add(loc5);
 					}
@@ -400,8 +400,8 @@ and a.owner in ({1}) and a.table_name in ({0})
 				loc4.Columns.Sort((c1, c2) => {
 					int compare = c2.IsPrimary.CompareTo(c1.IsPrimary);
 					if (compare == 0) {
-						bool b1 = loc4.Foreigns.Find(fk => fk.Columns.Find(c3 => c3.Name == c1.Name) != null) != null;
-						bool b2 = loc4.Foreigns.Find(fk => fk.Columns.Find(c3 => c3.Name == c2.Name) != null) != null;
+						bool b1 = loc4.ForeignsDict.Values.Where(fk => fk.Columns.Where(c3 => c3.Name == c1.Name).Any()).Any();
+						bool b2 = loc4.ForeignsDict.Values.Where(fk => fk.Columns.Where(c3 => c3.Name == c2.Name).Any()).Any();
 						compare = b2.CompareTo(b1);
 					}
 					if (compare == 0) compare = c1.Name.CompareTo(c2.Name);
@@ -414,16 +414,6 @@ and a.owner in ({1}) and a.table_name in ({0})
 				if (ret == 0) ret = t1.Name.CompareTo(t2.Name);
 				return ret;
 			});
-			foreach (var loc4 in loc1) {
-				var dicUniques = new Dictionary<string, List<DbColumnInfo>>();
-				if (loc4.Primarys.Count > 0) dicUniques.Add(string.Join(",", loc4.Primarys.Select(a => a.Name)), loc4.Primarys);
-				foreach (var loc5 in loc4.Uniques) {
-					var dickey = string.Join(",", loc5.Select(a => a.Name));
-					if (dicUniques.ContainsKey(dickey)) continue;
-					dicUniques.Add(dickey, loc5);
-				}
-				loc4.Uniques = dicUniques.Values.ToList();
-			}
 
 			loc2.Clear();
 			loc3.Clear();
