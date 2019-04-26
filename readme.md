@@ -136,6 +136,21 @@ using (var ctx = new SongContext()) {
     ctx.Songs.RemoveRange(adds.Skip(10).Take(20).ToList());
     ctx.Songs.Update(adds.Last());
 
+	var tag = new Tag {
+		Name = "testaddsublist",
+		Tags = new[] {
+				new Tag { Name = "sub1" },
+				new Tag { Name = "sub2" },
+				new Tag {
+					Name = "sub3",
+					Tags = new[] {
+						new Tag { Name = "sub3_01" }
+					}
+				}
+			}
+	};
+	ctx.Tags.Add(tag);
+
     await ctx.SaveChangesAsync();
 }
 ```
