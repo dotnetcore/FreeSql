@@ -122,35 +122,20 @@ public class SongContext : DbContext {
 }
 
 using (var ctx = new SongContext()) {
-    var song = new Song { };
-    await ctx.Songs.AddAsync(song);
-    var id = song.Id;
-
-    var adds = Enumerable.Range(0, 100).Select(a => new Song { Title = "xxxx" + a, Url = "url222" }).ToList();
-    await ctx.Songs.AddRangeAsync(adds);
-
-    for (var a = 0; a < adds.Count; a++)
-        adds[a].Title = "dkdkdkdk" + a;
-
-    ctx.Songs.UpdateRange(adds);
-    ctx.Songs.RemoveRange(adds.Skip(10).Take(20).ToList());
-    ctx.Songs.Update(adds.Last());
-
     var tag = new Tag {
         Name = "testaddsublist",
         Tags = new[] {
-                new Tag { Name = "sub1" },
-                new Tag { Name = "sub2" },
-                new Tag {
-                    Name = "sub3",
-                    Tags = new[] {
-                        new Tag { Name = "sub3_01" }
-                    }
+            new Tag { Name = "sub1" },
+            new Tag { Name = "sub2" },
+            new Tag {
+                Name = "sub3",
+                Tags = new[] {
+                    new Tag { Name = "sub3_01" }
                 }
             }
+        }
     };
     ctx.Tags.Add(tag);
-
     await ctx.SaveChangesAsync();
 }
 ```
@@ -158,20 +143,15 @@ using (var ctx = new SongContext()) {
 # DataFilter & Tenant
 
 ```csharp
-public IServiceProvider ConfigureServices(IServiceCollection services) {
-    services.AddSingleton<IFreeSql>(fsql);
-    services.AddMvc();
-
-    var builder = new ContainerBuilder();
-
-    builder.RegisterFreeRepository(filter => filter
+public void ConfigureServices(IServiceCollection services) {
+    
+    services.AddSingleton<IFreeSql>(Fsql);
+    services.AddFreeRepository(filter => filter
         .Apply<ISoftDelete>("SoftDelete", a => a.IsDeleted == false)
         .Apply<ITenant>("Tenant", a => a.TenantId == 1)
+        ,
+        this.GetType().Assembly
     );
-
-    builder.Populate(services);
-    var container = builder.Build();
-    return new AutofacServiceProvider(container);
 }
 ```
 
