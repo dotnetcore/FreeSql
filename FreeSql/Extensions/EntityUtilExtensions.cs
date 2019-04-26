@@ -264,6 +264,7 @@ namespace FreeSql.Extensions.EntityUtil {
 					Expression.Assign(var2Parm, Expression.TypeAs(parm2, t))
 				});
 				foreach (var prop in _table.Properties.Values) {
+					if (_table.ColumnsByCsIgnore.ContainsKey(prop.Name)) continue;
 					if (_table.ColumnsByCs.ContainsKey(prop.Name)) {
 						exps.Add(
 							Expression.Assign(
@@ -271,7 +272,7 @@ namespace FreeSql.Extensions.EntityUtil {
 								Expression.MakeMemberAccess(var1Parm, prop)
 							)
 						);
-					} else {
+					} else if (prop.GetSetMethod() != null) {
 						exps.Add(
 							Expression.Assign(
 								Expression.MakeMemberAccess(var2Parm, prop),

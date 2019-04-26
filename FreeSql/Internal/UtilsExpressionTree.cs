@@ -77,7 +77,7 @@ namespace FreeSql.Internal {
 						IsIgnore = false,
 						MapType = p.PropertyType
 					};
-				if (colattr._IsNullable == null) colattr._IsNullable = tp.Value.isnullable;
+				if (colattr._IsNullable == null) colattr._IsNullable = tp?.isnullable;
 				if (string.IsNullOrEmpty(colattr.DbType)) colattr.DbType = tp?.dbtypeFull ?? "varchar(255)";
 				colattr.DbType = colattr.DbType.ToUpper();
 
@@ -164,11 +164,21 @@ namespace FreeSql.Internal {
 									trycol.Attribute.IsPrimary = true;
 								}
 							}
+							foreach(var dbuk in dbtb.UniquesDict) {
+								foreach (var dbcol in dbuk.Value) {
+									if (trytb.Columns.TryGetValue(dbcol.Name, out var trycol) && trycol.Attribute.MapType == dbcol.CsType ||
+									trytb.ColumnsByCs.TryGetValue(dbcol.Name, out trycol) && trycol.Attribute.MapType == dbcol.CsType) {
+										trycol.Attribute.Unique = dbuk.Key;
+									}
+								}
+							}
 						}
 					}
 				} catch { }
 				trytb.Primarys = trytb.Columns.Values.Where(a => a.Attribute.IsPrimary == true).ToArray();
 			}
+			trytb.Uniques = trytb.Columns.Values.Where(a => !string.IsNullOrEmpty(a.Attribute.Unique))
+				.ToDictionary(a => a.Attribute.Unique, a => trytb.Columns.Values.Where(b => b.Attribute.Unique == a.Attribute.Unique).ToList());
 			tbc.AddOrUpdate(entity, trytb, (oldkey, oldval) => trytb);
 
 			#region 查找导航属性的关系、virtual 属性延时加载，动态产生新的重写类

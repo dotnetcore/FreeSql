@@ -343,7 +343,7 @@ where ns.nspname || '.' || c.relname in ({loc8})";
 select
 ns.nspname || '.' || d.relname as table_id, 
 c.attname,
-ns.nspname || '/' || d.relname || '/' || b.relname as index_id,
+b.relname as index_id,
 case when a.indisunique then 1 else 0 end IsUnique,
 case when a.indisprimary then 1 else 0 end IsPrimary,
 case when a.indisclustered then 0 else 1 end IsClustered,
@@ -399,13 +399,13 @@ where ns.nspname || '.' || d.relname in ({loc8})
 					}
 				}
 				foreach (var object_id in indexColumns.Keys) {
-					foreach (List<DbColumnInfo> columns in indexColumns[object_id].Values)
-						loc2[object_id].Indexes.Add(columns);
+					foreach (var column in indexColumns[object_id])
+						loc2[object_id].IndexesDict.Add(column.Key, column.Value);
 				}
 				foreach (var object_id in uniqueColumns.Keys) {
-					foreach (var columns in uniqueColumns[object_id].Values) {
-						columns.Sort((c1, c2) => c1.Name.CompareTo(c2.Name));
-						loc2[object_id].Uniques.Add(columns);
+					foreach (var column in uniqueColumns[object_id]) {
+						column.Value.Sort((c1, c2) => c1.Name.CompareTo(c2.Name));
+						loc2[object_id].UniquesDict.Add(column.Key, column.Value);
 					}
 				}
 
@@ -413,7 +413,7 @@ where ns.nspname || '.' || d.relname in ({loc8})
 select
 ns.nspname || '.' || b.relname as table_id, 
 array(select attname from pg_attribute where attrelid = a.conrelid and attnum = any(a.conkey)) as column_name,
-a.connamespace || '/' || a.conname as FKId,
+a.conname as FKId,
 ns2.nspname || '.' || c.relname as ref_table_id, 
 1 as IsForeignKey,
 array(select attname from pg_attribute where attrelid = a.confrelid and attnum = any(a.confkey)) as ref_column,
@@ -455,8 +455,8 @@ where ns.nspname || '.' || b.relname in ({loc8})
 					}
 				}
 				foreach (var table_id in fkColumns.Keys)
-					foreach (var fk in fkColumns[table_id].Values)
-						loc2[table_id].Foreigns.Add(fk);
+					foreach (var fk in fkColumns[table_id])
+						loc2[table_id].ForeignsDict.Add(fk.Key, fk.Value);
 
 				foreach (var table_id in loc3.Keys) {
 					foreach (var loc5 in loc3[table_id].Values) {
@@ -466,8 +466,8 @@ where ns.nspname || '.' || b.relname in ({loc8})
 					}
 				}
 				foreach (var loc4 in loc2.Values) {
-					if (loc4.Primarys.Count == 0 && loc4.Uniques.Count > 0) {
-						foreach (var loc5 in loc4.Uniques[0]) {
+					if (loc4.Primarys.Count == 0 && loc4.UniquesDict.Count > 0) {
+						foreach (var loc5 in loc4.UniquesDict.First().Value) {
 							loc5.IsPrimary = true;
 							loc4.Primarys.Add(loc5);
 						}
@@ -476,8 +476,8 @@ where ns.nspname || '.' || b.relname in ({loc8})
 					loc4.Columns.Sort((c1, c2) => {
 						int compare = c2.IsPrimary.CompareTo(c1.IsPrimary);
 						if (compare == 0) {
-							bool b1 = loc4.Foreigns.Find(fk => fk.Columns.Find(c3 => c3.Name == c1.Name) != null) != null;
-							bool b2 = loc4.Foreigns.Find(fk => fk.Columns.Find(c3 => c3.Name == c2.Name) != null) != null;
+							bool b1 = loc4.ForeignsDict.Values.Where(fk => fk.Columns.Where(c3 => c3.Name == c1.Name).Any()).Any();
+							bool b2 = loc4.ForeignsDict.Values.Where(fk => fk.Columns.Where(c3 => c3.Name == c2.Name).Any()).Any();
 							compare = b2.CompareTo(b1);
 						}
 						if (compare == 0) compare = c1.Name.CompareTo(c2.Name);
@@ -490,16 +490,6 @@ where ns.nspname || '.' || b.relname in ({loc8})
 					if (ret == 0) ret = t1.Name.CompareTo(t2.Name);
 					return ret;
 				});
-				foreach (var loc4 in loc1) {
-					var dicUniques = new Dictionary<string, List<DbColumnInfo>>();
-					if (loc4.Primarys.Count > 0) dicUniques.Add(string.Join(",", loc4.Primarys.Select(a => a.Name)), loc4.Primarys);
-					foreach (var loc5 in loc4.Uniques) {
-						var dickey = string.Join(",", loc5.Select(a => a.Name));
-						if (dicUniques.ContainsKey(dickey)) continue;
-						dicUniques.Add(dickey, loc5);
-					}
-					loc4.Uniques = dicUniques.Values.ToList();
-				}
 
 				loc2.Clear();
 				loc3.Clear();

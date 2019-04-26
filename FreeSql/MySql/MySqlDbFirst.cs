@@ -239,9 +239,9 @@ where a.table_schema in ({1}) and a.table_name in ({0})
 select 
 concat(a.constraint_schema, '.', a.table_name) 'table_id',
 a.column_name,
-concat(a.constraint_schema, '/', a.table_name, '/', a.constraint_name) 'index_id',
+a.constraint_name 'index_id',
 1 'IsUnique',
-case when constraint_name = 'PRIMARY' then 1 else 0 end 'IsPrimaryKey',
+case when a.constraint_name = 'PRIMARY' then 1 else 0 end 'IsPrimaryKey',
 0 'IsClustered',
 0 'IsDesc'
 from information_schema.key_column_usage a
@@ -283,13 +283,13 @@ where a.constraint_schema in ({1}) and a.table_name in ({0}) and isnull(position
 				}
 			}
 			foreach (string table_id in indexColumns.Keys) {
-				foreach (var columns in indexColumns[table_id].Values)
-					loc2[table_id].Indexes.Add(columns);
+				foreach (var column in indexColumns[table_id])
+					loc2[table_id].IndexesDict.Add(column.Key, column.Value);
 			}
 			foreach (string table_id in uniqueColumns.Keys) {
-				foreach (var columns in uniqueColumns[table_id].Values) {
-					columns.Sort((c1, c2) => c1.Name.CompareTo(c2.Name));
-					loc2[table_id].Uniques.Add(columns);
+				foreach (var column in uniqueColumns[table_id]) {
+					column.Value.Sort((c1, c2) => c1.Name.CompareTo(c2.Name));
+					loc2[table_id].UniquesDict.Add(column.Key, column.Value);
 				}
 			}
 
@@ -297,7 +297,7 @@ where a.constraint_schema in ({1}) and a.table_name in ({0}) and isnull(position
 select 
 concat(a.constraint_schema, '.', a.table_name) 'table_id',
 a.column_name,
-concat(a.constraint_schema, '/', a.constraint_name) 'FKId',
+a.constraint_name 'FKId',
 concat(a.referenced_table_schema, '.', a.referenced_table_name) 'ref_table_id',
 1 'IsForeignKey',
 a.referenced_column_name 'ref_column'
@@ -335,8 +335,8 @@ where a.constraint_schema in ({1}) and a.table_name in ({0}) and not isnull(posi
 				loc13.ReferencedColumns.Add(loc11);
 			}
 			foreach (var table_id in fkColumns.Keys)
-				foreach (var fk in fkColumns[table_id].Values)
-					loc2[table_id].Foreigns.Add(fk);
+				foreach (var fk in fkColumns[table_id])
+					loc2[table_id].ForeignsDict.Add(fk.Key, fk.Value);
 
 			foreach (var table_id in loc3.Keys) {
 				foreach (var loc5 in loc3[table_id].Values) {
@@ -346,8 +346,8 @@ where a.constraint_schema in ({1}) and a.table_name in ({0}) and not isnull(posi
 				}
 			}
 			foreach (var loc4 in loc2.Values) {
-				if (loc4.Primarys.Count == 0 && loc4.Uniques.Count > 0) {
-					foreach (var loc5 in loc4.Uniques[0]) {
+				if (loc4.Primarys.Count == 0 && loc4.UniquesDict.Count > 0) {
+					foreach (var loc5 in loc4.UniquesDict.First().Value) {
 						loc5.IsPrimary = true;
 						loc4.Primarys.Add(loc5);
 					}
@@ -356,8 +356,8 @@ where a.constraint_schema in ({1}) and a.table_name in ({0}) and not isnull(posi
 				loc4.Columns.Sort((c1, c2) => {
 					int compare = c2.IsPrimary.CompareTo(c1.IsPrimary);
 					if (compare == 0) {
-						bool b1 = loc4.Foreigns.Find(fk => fk.Columns.Find(c3 => c3.Name == c1.Name) != null) != null;
-						bool b2 = loc4.Foreigns.Find(fk => fk.Columns.Find(c3 => c3.Name == c2.Name) != null) != null;
+						bool b1 = loc4.ForeignsDict.Values.Where(fk => fk.Columns.Where(c3 => c3.Name == c1.Name).Any()).Any();
+						bool b2 = loc4.ForeignsDict.Values.Where(fk => fk.Columns.Where(c3 => c3.Name == c2.Name).Any()).Any();
 						compare = b2.CompareTo(b1);
 					}
 					if (compare == 0) compare = c1.Name.CompareTo(c2.Name);
@@ -370,16 +370,6 @@ where a.constraint_schema in ({1}) and a.table_name in ({0}) and not isnull(posi
 				if (ret == 0) ret = t1.Name.CompareTo(t2.Name);
 				return ret;
 			});
-			foreach(var loc4 in loc1) {
-				var dicUniques = new Dictionary<string, List<DbColumnInfo>>();
-				if (loc4.Primarys.Count > 0) dicUniques.Add(string.Join(",", loc4.Primarys.Select(a => a.Name)), loc4.Primarys);
-				foreach(var loc5 in loc4.Uniques) {
-					var dickey = string.Join(",", loc5.Select(a => a.Name));
-					if (dicUniques.ContainsKey(dickey)) continue;
-					dicUniques.Add(dickey, loc5);
-				}
-				loc4.Uniques = dicUniques.Values.ToList();
-			}
 
 			loc2.Clear();
 			loc3.Clear();

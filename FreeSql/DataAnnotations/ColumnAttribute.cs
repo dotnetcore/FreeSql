@@ -39,6 +39,10 @@ namespace FreeSql.DataAnnotations {
 		public bool IsVersion { get => _IsVersion ?? false; set => _IsVersion = value; }
 
 		/// <summary>
+		/// 唯一键，多个属性指定相同的标识，代表联合键
+		/// </summary>
+		public string Unique { get; set; }
+		/// <summary>
 		/// 数据库默认值
 		/// </summary>
 		internal object DbDefautValue { get; set; }
