@@ -70,24 +70,39 @@ class Tag {
 # Query
 ```csharp
 //OneToOne、ManyToOne
-var t0 = fsql.Select<Tag>().Where(a => a.Parent.Parent.Name == "粤语").ToList();
+var t0 = fsql.Select<Tag>()
+    .Where(a => a.Parent.Parent.Name == "粤语")
+    .ToList();
 
 //OneToMany
-var t1 = fsql.Select<Tag>().Where(a => a.Tags.AsSelect().Any(t => t.Parent.Id == 10)).ToList();
+var t1 = fsql.Select<Tag>()
+    .Where(a => a.Tags.AsSelect()
+        .Any(t => t.Parent.Id == 10))
+    .ToList();
 
 //ManyToMany
-var t2 = fsql.Select<Song>().Where(s => s.Tags.AsSelect().Any(t => t.Name == "国语")).ToList();
+var t2 = fsql.Select<Song>()
+    .Where(s => s.Tags.AsSelect()
+        .Any(t => t.Name == "国语"))
+    .ToList();
 ```
 更多前往Wiki：[《Select 查询数据文档》](https://github.com/2881099/FreeSql/wiki/%e6%9f%a5%e8%af%a2)
 
 ```csharp
-var t3 = fsql.Select<Song>.Where(a => new[] { 1, 2, 3 }.Contains(a.Id)).ToList();
+var t3 = fsql.Select<Song>()
+    .Where(a => new[] { 1, 2, 3 }.Contains(a.Id))
+    .ToList();
 ```
 ```csharp
-var t4 = fsql.Select<Song>s.Where(a => a.CreateTime.Date == DateTime.Now.Date).ToList();
+var t4 = fsql.Select<Song>()
+    .Where(a => a.CreateTime.Date == DateTime.Now.Date)
+    .ToList();
 ```
 ```csharp
-var t5 = fsql.Select<Song>s.OrderBy(a => Guid.NewGuid()).Limit(1).ToList();
+var t5 = fsql.Select<Song>()
+    .OrderBy(a => Guid.NewGuid())
+    .Limit(1)
+    .ToList();
 ```
 更多前往Wiki：[《表达式函数》](https://github.com/2881099/FreeSql/wiki/%e8%a1%a8%e8%be%be%e5%bc%8f%e5%87%bd%e6%95%b0) 
 
@@ -96,13 +111,11 @@ var t5 = fsql.Select<Song>s.OrderBy(a => Guid.NewGuid()).Limit(1).ToList();
 
 ```csharp
 using (var uow = fsql.CreateUnitOfWork()) {
-
     var songRepository = uow.GetRepository<Song, int>();
     var tagRepository = uow.GetRepository<Tag, int>();
 
     await songRepository.InsertAsync(new Song());
     await tagRepository.InsertAsync(new Tag());
-
     uow.Commit();
 }
 ```
@@ -112,7 +125,6 @@ using (var uow = fsql.CreateUnitOfWork()) {
 
 ```csharp
 public class SongContext : DbContext {
-
     public DbSet<Song> Songs { get; set; }
     public DbSet<Tag> Tags { get; set; }
 
@@ -144,7 +156,6 @@ using (var ctx = new SongContext()) {
 
 ```csharp
 public void ConfigureServices(IServiceCollection services) {
-    
     services.AddSingleton<IFreeSql>(Fsql);
     services.AddFreeRepository(filter => filter
         .Apply<ISoftDelete>("SoftDelete", a => a.IsDeleted == false)
