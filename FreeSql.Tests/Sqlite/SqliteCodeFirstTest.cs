@@ -9,6 +9,30 @@ using Xunit;
 namespace FreeSql.Tests.Sqlite {
 	public class SqliteCodeFirstTest {
 
+		[Fact]
+		public void 中文表_字段() {
+			var sql = g.sqlite.CodeFirst.GetComparisonDDLStatements<测试中文表>();
+			g.sqlite.CodeFirst.SyncStructure<测试中文表>();
+
+			var item = new 测试中文表 {
+				标题 = "测试标题",
+				创建时间 = DateTime.Now
+			};
+			Assert.Equal(1, g.sqlite.Insert<测试中文表>().AppendData(item).ExecuteAffrows());
+			Assert.NotEqual(Guid.Empty, item.编号);
+			var item2 = g.sqlite.Select<测试中文表>().Where(a => a.编号 == item.编号).First();
+			Assert.NotNull(item2);
+			Assert.Equal(item.编号, item2.编号);
+			Assert.Equal(item.标题, item2.标题);
+		}
+		class 测试中文表 {
+			[Column(IsPrimary = true)]
+			public Guid 编号 { get; set; }
+
+			public string 标题 { get; set; }
+
+			public DateTime 创建时间 { get; set; }
+		}
 
 		[Fact]
 		public void AddUniques() {

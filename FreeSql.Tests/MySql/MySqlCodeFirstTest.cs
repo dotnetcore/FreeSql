@@ -10,6 +10,31 @@ namespace FreeSql.Tests.MySql {
 	public class MySqlCodeFirstTest {
 
 		[Fact]
+		public void 中文表_字段() {
+			var sql = g.mysql.CodeFirst.GetComparisonDDLStatements<测试中文表>();
+			g.mysql.CodeFirst.SyncStructure<测试中文表>();
+
+			var item = new 测试中文表 {
+				标题 = "测试标题",
+				创建时间 = DateTime.Now
+			};
+			Assert.Equal(1, g.mysql.Insert<测试中文表>().AppendData(item).ExecuteAffrows());
+			Assert.NotEqual(Guid.Empty, item.编号);
+			var item2 = g.mysql.Select<测试中文表>().Where(a => a.编号 == item.编号).First();
+			Assert.NotNull(item2);
+			Assert.Equal(item.编号, item2.编号);
+			Assert.Equal(item.标题, item2.标题);
+		}
+		class 测试中文表 {
+			[Column(IsPrimary = true)]
+			public Guid 编号 { get; set; }
+
+			public string 标题 { get; set; }
+
+			public DateTime 创建时间 { get; set; }
+		}
+
+		[Fact]
 		public void AddUniques() {
 			var sql = g.mysql.CodeFirst.GetComparisonDDLStatements<AddUniquesInfo>();
 			g.mysql.CodeFirst.SyncStructure<AddUniquesInfo>();
