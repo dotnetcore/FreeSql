@@ -14,6 +14,20 @@ namespace FreeSql.Tests.MySqlExpression {
 			
 		}
 
+		[Fact]
+		public void Boolean() {
+			var t1 = select.Where(a => a.testFieldBool == true).ToList();
+			var t2 = select.Where(a => a.testFieldBool != true).ToList();
+			var t3 = select.Where(a => a.testFieldBool == false).ToList();
+			var t4 = select.Where(a => !a.testFieldBool).ToList();
+			var t5 = select.Where(a => a.testFieldBool).ToList();
+
+			var t11 = select.Where(a => a.testFieldBoolNullable == true).ToList();
+			var t22 = select.Where(a => a.testFieldBoolNullable != true).ToList();
+			var t33 = select.Where(a => a.testFieldBoolNullable == false).ToList();
+			var t44 = select.Where(a => !a.testFieldBoolNullable.Value).ToList();
+			var t55 = select.Where(a => a.testFieldBoolNullable.Value).ToList();
+		}
 
 		[Fact]
 		public void Array() {

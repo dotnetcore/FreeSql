@@ -12,6 +12,20 @@ namespace FreeSql.Tests.SqliteExpression {
 		public OtherTest() {
 		}
 
+		[Fact]
+		public void Boolean() {
+			var t1 = select.Where(a => a.Bool == true).ToList();
+			var t2 = select.Where(a => a.Bool != true).ToList();
+			var t3 = select.Where(a => a.Bool == false).ToList();
+			var t4 = select.Where(a => !a.Bool).ToList();
+			var t5 = select.Where(a => a.Bool).ToList();
+
+			var t11 = select.Where(a => a.BoolNullable == true).ToList();
+			var t22 = select.Where(a => a.BoolNullable != true).ToList();
+			var t33 = select.Where(a => a.BoolNullable == false).ToList();
+			var t44 = select.Where(a => !a.BoolNullable.Value).ToList();
+			var t55 = select.Where(a => a.BoolNullable.Value).ToList();
+		}
 
 		[Fact]
 		public void Array() {
@@ -20,26 +34,26 @@ namespace FreeSql.Tests.SqliteExpression {
 
 			//in not in
 			var sql111 = select.Where(a => new[] { 1, 2, 3 }.Contains(a.Int)).ToList();
-			//var sql112 = select.Where(a => new[] { 1, 2, 3 }.Contains(a.Int) == false).ToList();
+			var sql112 = select.Where(a => new[] { 1, 2, 3 }.Contains(a.Int) == false).ToList();
 			var sql113 = select.Where(a => !new[] { 1, 2, 3 }.Contains(a.Int)).ToList();
 
 			var inarray = new[] { 1, 2, 3 };
 			var sql1111 = select.Where(a => inarray.Contains(a.Int)).ToList();
-			//var sql1122 = select.Where(a => inarray.Contains(a.Int) == false).ToList();
+			var sql1122 = select.Where(a => inarray.Contains(a.Int) == false).ToList();
 			var sql1133 = select.Where(a => !inarray.Contains(a.Int)).ToList();
 
 			//in not in
 			var sql11111 = select.Where(a => new List<int>() { 1, 2, 3 }.Contains(a.Int)).ToList();
-			//var sql11222 = select.Where(a => new List<int>() { 1, 2, 3 }.Contains(a.Int) == false).ToList();
+			var sql11222 = select.Where(a => new List<int>() { 1, 2, 3 }.Contains(a.Int) == false).ToList();
 			var sql11333 = select.Where(a => !new List<int>() { 1, 2, 3 }.Contains(a.Int)).ToList();
 
 			var sql11111a = select.Where(a => new List<int>(new[] { 1, 2, 3 }).Contains(a.Int)).ToList();
-			//var sql11222b = select.Where(a => new List<int>(new[] { 1, 2, 3 }).Contains(a.Int) == false).ToList();
+			var sql11222b = select.Where(a => new List<int>(new[] { 1, 2, 3 }).Contains(a.Int) == false).ToList();
 			var sql11333c = select.Where(a => !new List<int>(new[] { 1, 2, 3 }).Contains(a.Int)).ToList();
 
 			var inarray2 = new List<int>() { 1, 2, 3 };
 			var sql111111 = select.Where(a => inarray.Contains(a.Int)).ToList();
-			//var sql112222 = select.Where(a => inarray.Contains(a.Int) == false).ToList();
+			var sql112222 = select.Where(a => inarray.Contains(a.Int) == false).ToList();
 			var sql113333 = select.Where(a => !inarray.Contains(a.Int)).ToList();
 		}
 

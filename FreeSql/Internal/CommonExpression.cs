@@ -278,6 +278,8 @@ namespace FreeSql.Internal {
 		};
 		internal string ExpressionWhereLambdaNoneForeignObject(List<SelectTableInfo> _tables, TableInfo table, List<SelectColumnInfo> _selectColumnMap, Expression exp, Func<Expression[], string> getSelectGroupingMapString) {
 			var sql = ExpressionLambdaToSql(exp, new ExpTSC { _tables = _tables, _selectColumnMap = _selectColumnMap, getSelectGroupingMapString = getSelectGroupingMapString, tbtype = SelectTableInfoType.From, isQuoteName = true, isDisableDiyParse = false, style = ExpressionStyle.Where, currentTable = table });
+			if (exp.NodeType == ExpressionType.MemberAccess && exp.Type == typeof(bool))
+				return $"{sql} = {formatSql(true, null)}";
 			switch (sql) {
 				case "1":
 				case "'t'": return "1=1";
@@ -289,6 +291,8 @@ namespace FreeSql.Internal {
 
 		internal string ExpressionWhereLambda(List<SelectTableInfo> _tables, Expression exp, Func<Expression[], string> getSelectGroupingMapString) {
 			var sql = ExpressionLambdaToSql(exp, new ExpTSC { _tables = _tables, getSelectGroupingMapString = getSelectGroupingMapString, tbtype = SelectTableInfoType.From, isQuoteName = true, isDisableDiyParse = false, style = ExpressionStyle.Where });
+			if (exp.NodeType == ExpressionType.MemberAccess && exp.Type == typeof(bool))
+				return $"{sql} = {formatSql(true, null)}";
 			switch (sql) {
 				case "1":
 				case "'t'": return "1=1";
@@ -300,6 +304,8 @@ namespace FreeSql.Internal {
 		internal void ExpressionJoinLambda(List<SelectTableInfo> _tables, SelectTableInfoType tbtype, Expression exp, Func<Expression[], string> getSelectGroupingMapString) {
 			var tbidx = _tables.Count;
 			var filter = ExpressionLambdaToSql(exp, new ExpTSC { _tables = _tables, getSelectGroupingMapString = getSelectGroupingMapString, tbtype = tbtype, isQuoteName = true, isDisableDiyParse = false, style = ExpressionStyle.Where });
+			if (exp.NodeType == ExpressionType.MemberAccess && exp.Type == typeof(bool))
+				filter = $"{filter} = {formatSql(true, null)}";
 			switch (filter) {
 				case "1":
 				case "'t'": filter = "1=1"; break;
@@ -354,6 +360,23 @@ namespace FreeSql.Internal {
 					}
 				}
 			}
+			if (leftExp.Type.NullableTypeOrThis() == typeof(bool) && (leftExp.NodeType != ExpressionType.MemberAccess && rightExp.NodeType != ExpressionType.MemberAccess)) {
+				if (oper == "=") {
+					var trueVal = formatSql(true, null);
+					var falseVal = formatSql(false, null);
+					if (left == trueVal) return right;
+					else if (left == falseVal) return $"not({right})";
+					else if (right == trueVal) return left;
+					else if (right == falseVal) return $"not({left})";
+				} else if (oper == "<>") {
+					var trueVal = formatSql(true, null);
+					var falseVal = formatSql(false, null);
+					if (left == trueVal) return $"not({right})";
+					else if (left == falseVal) return right;
+					else if (right == trueVal) return $"not({left})";
+					else if (right == falseVal) return left;
+				}
+			}
 
 			if (left == "NULL") {
 				var tmp = right;
@@ -374,7 +397,10 @@ namespace FreeSql.Internal {
 				if (string.IsNullOrEmpty(args.Result) == false) return args.Result;
 			}
 			switch (exp.NodeType) {
-				case ExpressionType.Not: return $"not({ExpressionLambdaToSql((exp as UnaryExpression)?.Operand, tsc)})";
+				case ExpressionType.Not:
+					var notExp = (exp as UnaryExpression)?.Operand;
+					if (notExp.NodeType == ExpressionType.MemberAccess) return $"{ExpressionLambdaToSql(notExp, tsc)} = {formatSql(false, null)}";
+					return $"not({ExpressionLambdaToSql(notExp, tsc)})";
 				case ExpressionType.Quote: return ExpressionLambdaToSql((exp as UnaryExpression)?.Operand, tsc);
 				case ExpressionType.Lambda: return ExpressionLambdaToSql((exp as LambdaExpression)?.Body, tsc);
 				case ExpressionType.TypeAs:

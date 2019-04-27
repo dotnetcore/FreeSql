@@ -12,6 +12,20 @@ namespace FreeSql.Tests.OracleExpression {
 		public OtherTest() {
 		}
 
+		[Fact]
+		public void Boolean() {
+			var t1 = select.Where(a => a.Bool == true).ToList();
+			var t2 = select.Where(a => a.Bool != true).ToList();
+			var t3 = select.Where(a => a.Bool == false).ToList();
+			var t4 = select.Where(a => !a.Bool).ToList();
+			var t5 = select.Where(a => a.Bool).ToList();
+
+			var t11 = select.Where(a => a.BoolNullable == true).ToList();
+			var t22 = select.Where(a => a.BoolNullable != true).ToList();
+			var t33 = select.Where(a => a.BoolNullable == false).ToList();
+			var t44 = select.Where(a => !a.BoolNullable.Value).ToList();
+			var t55 = select.Where(a => a.BoolNullable.Value).ToList();
+		}
 
 		[Fact]
 		public void Array() {
