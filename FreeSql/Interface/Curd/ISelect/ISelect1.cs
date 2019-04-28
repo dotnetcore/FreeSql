@@ -269,7 +269,7 @@ namespace FreeSql {
 		/// <summary>
 		/// 按选择的列分组，GroupBy(a => a.Name) | GroupBy(a => new{a.Name,a.Time})
 		/// </summary>
-		/// <param name="key"></param>
+		/// <param name="exp"></param>
 		/// <returns></returns>
 		ISelectGrouping<TKey, T1> GroupBy<TKey>(Expression<Func<T1, TKey>> exp);
 

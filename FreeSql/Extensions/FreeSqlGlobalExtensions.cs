@@ -76,7 +76,7 @@ public static class FreeSqlGlobalExtensions {
 	}
 
 	/// <summary>
-	/// 将 IEnumable<T> 转成 ISelect<T>，以便使用 FreeSql 的查询功能。此方法用于 Lambad 表达式中，快速进行集合导航的查询。
+	/// 将 IEnumable&lt;T&gt; 转成 ISelect&lt;T&gt;，以便使用 FreeSql 的查询功能。此方法用于 Lambad 表达式中，快速进行集合导航的查询。
 	/// </summary>
 	/// <typeparam name="TEntity"></typeparam>
 	/// <param name="that"></param>

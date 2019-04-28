@@ -96,7 +96,6 @@ namespace FreeSql.Tests {
 			//testddd.Persistent().Wait();
 			g.sqlite.GetRepository<TestEntity, int>().Insert(testddd);
 
-
 			var testpid1 = g.mysql.Insert<TestTypeInfo>().AppendData(new TestTypeInfo { Name = "Name" + DateTime.Now.ToString("yyyyMMddHHmmss") }).ExecuteIdentity();
 			g.mysql.Insert<TestInfo>().AppendData(new TestInfo { Title = "Title" + DateTime.Now.ToString("yyyyMMddHHmmss"), CreateTime = DateTime.Now, TypeGuid = (int)testpid1 }).ExecuteAffrows();
 

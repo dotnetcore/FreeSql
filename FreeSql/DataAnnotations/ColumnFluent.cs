@@ -37,6 +37,7 @@ namespace FreeSql.DataAnnotations {
 			_column.IsPrimary = value;
 			return this;
 		}
+		/// <summary>
 		/// 自增标识
 		/// </summary>
 		public ColumnFluent IsIdentity(bool value) {

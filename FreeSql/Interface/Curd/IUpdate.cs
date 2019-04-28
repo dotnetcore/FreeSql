@@ -16,7 +16,7 @@ namespace FreeSql {
 		/// <summary>
 		/// 指定事务对象
 		/// </summary>
-		/// <param name="transaction"></param>
+		/// <param name="connection"></param>
 		/// <returns></returns>
 		IUpdate<T1> WithConnection(DbConnection connection);
 
@@ -76,7 +76,7 @@ namespace FreeSql {
 		/// 设置列的的新值为基础上增加，格式：Set(a => a.Clicks + 1) 相当于 clicks=clicks+1
 		/// </summary>
 		/// <typeparam name="TMember"></typeparam>
-		/// <param name="column"></param>
+		/// <param name="binaryExpression"></param>
 		/// <returns></returns>
 		IUpdate<T1> Set<TMember>(Expression<Func<T1, TMember>> binaryExpression);
 		/// <summary>
@@ -130,7 +130,7 @@ namespace FreeSql {
 		/// <summary>
 		/// 设置表名规则，可用于分库/分表，参数1：默认表名；返回值：新表名；
 		/// </summary>
-		/// <param name="dataTable"></param>
+		/// <param name="tableRule"></param>
 		/// <returns></returns>
 		IUpdate<T1> AsTable(Func<string, string> tableRule);
 		/// <summary>

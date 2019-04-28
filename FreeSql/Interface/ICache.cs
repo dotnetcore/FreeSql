@@ -31,7 +31,6 @@ namespace FreeSql {
 		/// <summary>
 		/// 循环或批量获取缓存数据
 		/// </summary>
-		/// <typeparam name="T"></typeparam>
 		/// <param name="key"></param>
 		/// <returns></returns>
 		string Get(string key);
@@ -47,8 +46,6 @@ namespace FreeSql {
 		/// <param name="key">缓存键</param>
 		/// <param name="timeoutSeconds">缓存秒数</param>
 		/// <param name="getData">获取源数据的函数</param>
-		/// <param name="serialize">序列化函数</param>
-		/// <param name="deserialize">反序列化函数</param>
 		/// <returns></returns>
 		T Shell<T>(string key, int timeoutSeconds, Func<T> getData);
 		/// <summary>
@@ -59,8 +56,6 @@ namespace FreeSql {
 		/// <param name="field">字段</param>
 		/// <param name="timeoutSeconds">缓存秒数</param>
 		/// <param name="getData">获取源数据的函数</param>
-		/// <param name="serialize">序列化函数</param>
-		/// <param name="deserialize">反序列化函数</param>
 		/// <returns></returns>
 		T Shell<T>(string key, string field, int timeoutSeconds, Func<T> getData);
 
@@ -82,7 +77,6 @@ namespace FreeSql {
 		/// <summary>
 		/// 循环或批量获取缓存数据
 		/// </summary>
-		/// <typeparam name="T"></typeparam>
 		/// <param name="key"></param>
 		/// <returns></returns>
 		Task<string> GetAsync(string key);
@@ -97,9 +91,7 @@ namespace FreeSql {
 		/// <typeparam name="T">缓存类型</typeparam>
 		/// <param name="key">缓存键</param>
 		/// <param name="timeoutSeconds">缓存秒数</param>
-		/// <param name="getData">获取源数据的函数</param>
-		/// <param name="serialize">序列化函数</param>
-		/// <param name="deserialize">反序列化函数</param>
+		/// <param name="getDataAsync">获取源数据的函数</param>
 		/// <returns></returns>
 		Task<T> ShellAsync<T>(string key, int timeoutSeconds, Func<Task<T>> getDataAsync);
 		/// <summary>
@@ -109,9 +101,7 @@ namespace FreeSql {
 		/// <param name="key">缓存键</param>
 		/// <param name="field">字段</param>
 		/// <param name="timeoutSeconds">缓存秒数</param>
-		/// <param name="getData">获取源数据的函数</param>
-		/// <param name="serialize">序列化函数</param>
-		/// <param name="deserialize">反序列化函数</param>
+		/// <param name="getDataAsync">获取源数据的函数</param>
 		/// <returns></returns>
 		Task<T> ShellAsync<T>(string key, string field, int timeoutSeconds, Func<Task<T>> getDataAsync);
 	}

@@ -16,7 +16,7 @@ namespace FreeSql {
 		/// <summary>
 		/// 指定事务对象
 		/// </summary>
-		/// <param name="transaction"></param>
+		/// <param name="connection"></param>
 		/// <returns></returns>
 		IInsert<T1> WithConnection(DbConnection connection);
 
@@ -61,7 +61,7 @@ namespace FreeSql {
 		/// <summary>
 		/// 设置表名规则，可用于分库/分表，参数1：默认表名；返回值：新表名；
 		/// </summary>
-		/// <param name="dataTable"></param>
+		/// <param name="tableRule"></param>
 		/// <returns></returns>
 		IInsert<T1> AsTable(Func<string, string> tableRule);
 		/// <summary>

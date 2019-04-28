@@ -9,19 +9,20 @@ using System.Text;
 namespace FreeSql.Extensions.EntityUtil {
 	public static class EntityUtilExtensions {
 
-		static MethodInfo MethodStringBuilderAppend = typeof(StringBuilder).GetMethod("Append", new Type[] { typeof(object) });
-		static MethodInfo MethodStringBuilderToString = typeof(StringBuilder).GetMethod("ToString", new Type[0]);
-		static PropertyInfo MethodStringBuilderLength = typeof(StringBuilder).GetProperty("Length");
-		static MethodInfo MethodStringConcat = typeof(string).GetMethod("Concat", new Type[] { typeof(object) });
-		static MethodInfo MethodFreeUtilNewMongodbId = typeof(FreeUtil).GetMethod("NewMongodbId");
+		static readonly MethodInfo MethodStringBuilderAppend = typeof(StringBuilder).GetMethod("Append", new Type[] { typeof(object) });
+		static readonly MethodInfo MethodStringBuilderToString = typeof(StringBuilder).GetMethod("ToString", new Type[0]);
+		static readonly PropertyInfo MethodStringBuilderLength = typeof(StringBuilder).GetProperty("Length");
+		static readonly MethodInfo MethodStringConcat = typeof(string).GetMethod("Concat", new Type[] { typeof(object) });
+		static readonly MethodInfo MethodFreeUtilNewMongodbId = typeof(FreeUtil).GetMethod("NewMongodbId");
 
 		static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Func<object, string>>> _dicGetEntityKeyString = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Func<object, string>>>();
 		/// <summary>
 		/// 获取实体的主键值，以 "*|_,[,_|*" 分割，当任意一个主键属性无值时（当Guid无值时，会生成有序的新值），返回 null
 		/// </summary>
-		/// <typeparam name="TEntity"></typeparam>
-		/// <param name="_table"></param>
+		/// <param name="orm"></param>
+		/// <param name="entityType"></param>
 		/// <param name="entity"></param>
+		/// <param name="splitString"></param>
 		/// <returns></returns>
 		//public static string GetEntityKeyString<TEntity>(this IFreeSql orm, TEntity entity, string splitString = "*|_,[,_|*") => GetEntityKeyString(orm, typeof(TEntity), entity, splitString);
 		public static string GetEntityKeyString(this IFreeSql orm, Type entityType, object entity, string splitString = "*|_,[,_|*") {
@@ -126,8 +127,8 @@ namespace FreeSql.Extensions.EntityUtil {
 		/// <summary>
 		/// 获取实体的主键值，多个主键返回数组
 		/// </summary>
-		/// <typeparam name="TEntity"></typeparam>
-		/// <param name="_table"></param>
+		/// <param name="orm"></param>
+		/// <param name="entityType"></param>
 		/// <param name="entity"></param>
 		/// <returns></returns>
 		//public static object[] GetEntityKeyValues<TEntity>(this IFreeSql orm, TEntity entity) => GetEntityKeyValues(orm, typeof(TEntity), entity);
@@ -165,9 +166,10 @@ namespace FreeSql.Extensions.EntityUtil {
 		/// <summary>
 		/// 获取实体的属性值
 		/// </summary>
-		/// <typeparam name="TEntity"></typeparam>
-		/// <param name="_table"></param>
+		/// <param name="orm"></param>
+		/// <param name="entityType"></param>
 		/// <param name="entity"></param>
+		/// <param name="propertyName"></param>
 		/// <returns></returns>
 		//public static object GetEntityValueWithPropertyName<TEntity>(this IFreeSql orm, TEntity entity, string propertyName) => GetEntityKeyValues(orm, typeof(TEntity), entity, propertyName);
 		public static object GetEntityValueWithPropertyName(this IFreeSql orm, Type entityType, object entity, string propertyName) {
@@ -202,8 +204,8 @@ namespace FreeSql.Extensions.EntityUtil {
 		/// <summary>
 		/// 获取实体的所有数据，以 (1, 2, xxx) 的形式
 		/// </summary>
-		/// <typeparam name="TEntity"></typeparam>
-		/// <param name="_table"></param>
+		/// <param name="orm"></param>
+		/// <param name="entityType"></param>
 		/// <param name="entity"></param>
 		/// <returns></returns>
 		//public static string GetEntityString<TEntity>(this IFreeSql orm, TEntity entity) => GetEntityString(orm, typeof(TEntity), entity);
@@ -321,8 +323,8 @@ namespace FreeSql.Extensions.EntityUtil {
 		/// <summary>
 		/// 设置实体中主键内的自增字段值（若存在）
 		/// </summary>
-		/// <typeparam name="TEntity"></typeparam>
 		/// <param name="orm"></param>
+		/// <param name="entityType"></param>
 		/// <param name="entity"></param>
 		/// <param name="idtval"></param>
 		//public static void SetEntityIdentityValueWithPrimary<TEntity>(this IFreeSql orm, TEntity entity, long idtval) => SetEntityIdentityValueWithPrimary(orm, typeof(TEntity), entity, idtval);
@@ -355,8 +357,8 @@ namespace FreeSql.Extensions.EntityUtil {
 		/// <summary>
 		/// 获取实体中主键内的自增字段值（若存在）
 		/// </summary>
-		/// <typeparam name="TEntity"></typeparam>
 		/// <param name="orm"></param>
+		/// <param name="entityType"></param>
 		/// <param name="entity"></param>
 		//public static long GetEntityIdentityValueWithPrimary<TEntity>(this IFreeSql orm, TEntity entity) => GetEntityIdentityValueWithPrimary(orm, typeof(TEntity), entity);
 		public static long GetEntityIdentityValueWithPrimary(this IFreeSql orm, Type entityType, object entity) {
@@ -402,8 +404,8 @@ namespace FreeSql.Extensions.EntityUtil {
 		/// <summary>
 		/// 清除实体的主键值，将自增、Guid类型的主键值清除
 		/// </summary>
-		/// <typeparam name="TEntity"></typeparam>
 		/// <param name="orm"></param>
+		/// <param name="entityType"></param>
 		/// <param name="entity"></param>
 		//public static void ClearEntityPrimaryValueWithIdentityAndGuid<TEntity>(this IFreeSql orm, TEntity entity) => ClearEntityPrimaryValueWithIdentityAndGuid(orm, typeof(TEntity), entity);
 		public static void ClearEntityPrimaryValueWithIdentityAndGuid(this IFreeSql orm, Type entityType, object entity) {
@@ -446,8 +448,8 @@ namespace FreeSql.Extensions.EntityUtil {
 		/// <summary>
 		/// 清除实体的主键值，将自增、Guid类型的主键值清除
 		/// </summary>
-		/// <typeparam name="TEntity"></typeparam>
 		/// <param name="orm"></param>
+		/// <param name="entityType"></param>
 		/// <param name="entity"></param>
 		//public static void ClearEntityPrimaryValueWithIdentity<TEntity>(this IFreeSql orm, TEntity entity) => ClearEntityPrimaryValueWithIdentity(orm, typeof(TEntity), entity);
 		public static void ClearEntityPrimaryValueWithIdentity(this IFreeSql orm, Type entityType, object entity) {
@@ -480,10 +482,11 @@ namespace FreeSql.Extensions.EntityUtil {
 		/// <summary>
 		/// 对比两个实体值，返回相同/或不相同的列名
 		/// </summary>
-		/// <typeparam name="TEntity"></typeparam>
 		/// <param name="orm"></param>
+		/// <param name="entityType"></param>
 		/// <param name="entity1"></param>
 		/// <param name="entity2"></param>
+		/// <param name="isEqual"></param>
 		/// <returns></returns>
 		//public static string[] CompareEntityValueReturnColumns<TEntity>(this IFreeSql orm, TEntity entity1, TEntity entity2, bool isEqual) => CompareEntityValueReturnColumns(orm, typeof(TEntity), entity1, entity2, isEqual);
 		public static string[] CompareEntityValueReturnColumns(this IFreeSql orm, Type entityType, object entity1, object entity2, bool isEqual) {
@@ -534,11 +537,11 @@ namespace FreeSql.Extensions.EntityUtil {
 		/// <summary>
 		/// 设置实体中某属性的数值增加指定的值
 		/// </summary>
-		/// <typeparam name="TEntity"></typeparam>
 		/// <param name="orm"></param>
+		/// <param name="entityType"></param>
 		/// <param name="entity"></param>
 		/// <param name="propertyName"></param>
-		/// <param name="value"></param>
+		/// <param name="incrBy"></param>
 		//public static void SetEntityIncrByWithPropertyName<TEntity>(this IFreeSql orm, TEntity entity, string propertyName, int incrBy) => SetEntityIncrByWithPropertyName(orm, typeof(TEntity), entity, propertyName, incrBy);
 		public static void SetEntityIncrByWithPropertyName(this IFreeSql orm, Type entityType, object entity, string propertyName, int incrBy) {
 			if (entity == null) return;
@@ -576,8 +579,8 @@ namespace FreeSql.Extensions.EntityUtil {
 		/// <summary>
 		/// 设置实体中某属性的值
 		/// </summary>
-		/// <typeparam name="TEntity"></typeparam>
 		/// <param name="orm"></param>
+		/// <param name="entityType"></param>
 		/// <param name="entity"></param>
 		/// <param name="propertyName"></param>
 		/// <param name="value"></param>

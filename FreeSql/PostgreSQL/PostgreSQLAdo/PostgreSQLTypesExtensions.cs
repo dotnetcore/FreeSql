@@ -41,7 +41,7 @@ public static partial class PostgreSQLTypesExtensions {
 	/// <summary>
 	/// 将 1010101010 这样的二进制字符串转换成 BitArray
 	/// </summary>
-	/// <param name="_1010">1010101010</param>
+	/// <param name="_1010Str">1010101010</param>
 	/// <returns></returns>
 	public static BitArray ToBitArray(this string _1010Str) {
 		if (_1010Str == null) return null;
