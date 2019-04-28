@@ -66,7 +66,7 @@ namespace FreeSql.DataAnnotations {
 			return this;
 		}
 		/// <summary>
-		/// 唯一键，多个属性指定相同的标识，代表联合键
+		/// 唯一键，在多个属性指定相同的标识，代表联合键；可使用逗号分割多个 UniqueKey 名。
 		/// </summary>
 		/// <param name="value">标识</param>
 		/// <returns></returns>

@@ -101,7 +101,7 @@ namespace FreeSql.Internal {
 				if (trycol._IsNullable != null) attr._IsNullable = trycol.IsNullable;
 				if (trycol._IsIgnore != null) attr._IsIgnore = trycol.IsIgnore;
 				if (trycol._IsVersion != null) attr._IsVersion = trycol.IsVersion;
-				if (!string.IsNullOrEmpty(trycol.Unique)) attr.Unique = trycol.Unique;
+				if (trycol._Uniques != null) attr._Uniques = trycol._Uniques;
 				if (trycol.MapType != null) attr.MapType = trycol.MapType;
 				if (trycol.DbDefautValue != null) attr.DbDefautValue = trycol.DbDefautValue;
 			}
@@ -117,7 +117,7 @@ namespace FreeSql.Internal {
 				if (tryattr._IsNullable != null) attr._IsNullable = tryattr.IsNullable;
 				if (tryattr._IsIgnore != null) attr._IsIgnore = tryattr.IsIgnore;
 				if (tryattr._IsVersion != null) attr._IsVersion = tryattr.IsVersion;
-				if (!string.IsNullOrEmpty(tryattr.Unique)) attr.Unique = tryattr.Unique;
+				if (tryattr._Uniques != null) attr._Uniques = tryattr._Uniques;
 				if (tryattr.MapType != null) attr.MapType = tryattr.MapType;
 				if (tryattr.DbDefautValue != null) attr.DbDefautValue = tryattr.DbDefautValue;
 			}
@@ -130,7 +130,7 @@ namespace FreeSql.Internal {
 			if (attr._IsNullable != null) ret = attr;
 			if (attr._IsIgnore != null) ret = attr;
 			if (attr._IsVersion != null) ret = attr;
-			if (!string.IsNullOrEmpty(attr.Unique)) ret = attr;
+			if (attr._Uniques != null) ret = attr;
 			if (attr.MapType != null) ret = attr;
 			if (attr.DbDefautValue != null) ret = attr;
 			if (ret != null && ret.MapType == null) ret.MapType = proto.PropertyType;

@@ -56,11 +56,11 @@ namespace FreeSql.Tests.SqlServer {
 			[Column(Unique = "uk_phone")]
 			public string phone { get; set; }
 
-			[Column(Unique = "uk_group_index")]
+			[Column(Unique = "uk_group_index, uk_group_index22")]
 			public string group { get; set; }
-			[Column(Unique = "uk_group_index11")]
+			[Column(Unique = "uk_group_index")]
 			public int index { get; set; }
-			[Column(Unique = "uk_group_index222")]
+			[Column(Unique = "uk_group_index22")]
 			public string index22 { get; set; }
 		}
 

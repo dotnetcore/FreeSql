@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 namespace FreeSql.DataAnnotations {
 	public class ColumnAttribute : Attribute {
@@ -38,10 +39,30 @@ namespace FreeSql.DataAnnotations {
 		/// </summary>
 		public bool IsVersion { get => _IsVersion ?? false; set => _IsVersion = value; }
 
+		internal string[] _Uniques;
 		/// <summary>
-		/// 唯一键，多个属性指定相同的标识，代表联合键
+		/// 唯一键，在多个属性指定相同的标识，代表联合键；可使用逗号分割多个 UniqueKey 名。
 		/// </summary>
-		public string Unique { get; set; }
+		public string Unique {
+			get => _Uniques == null ? null : string.Join(", ", _Uniques);
+			set {
+				if (string.IsNullOrEmpty(value)) {
+					_Uniques = null;
+					return;
+				}
+				var val = value?.Trim(' ', '\t', ',');
+				if (string.IsNullOrEmpty(val)) {
+					_Uniques = null;
+					return;
+				}
+				var arr = val.Split(',').Select(a => a.Trim(' ', '\t').Trim()).Where(a => !string.IsNullOrEmpty(a)).ToArray();
+				if (arr.Any() == false) {
+					_Uniques = null;
+					return;
+				}
+				_Uniques = arr;
+			}
+		}
 		/// <summary>
 		/// 数据库默认值
 		/// </summary>

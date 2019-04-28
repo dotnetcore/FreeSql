@@ -91,11 +91,11 @@ namespace FreeSql.Internal {
 				if (string.IsNullOrEmpty(colattr.Name)) colattr.Name = p.Name;
 				if (common.CodeFirst.IsSyncStructureToLower) {
 					colattr.Name = colattr.Name.ToLower();
-					if (!string.IsNullOrEmpty(colattr.Unique)) colattr.Unique = colattr.Unique.ToLower();
+					colattr.Unique = colattr.Unique?.ToLower();
 				}
 				if (common.CodeFirst.IsSyncStructureToUpper) {
 					colattr.Name = colattr.Name.ToUpper();
-					if (!string.IsNullOrEmpty(colattr.Unique)) colattr.Unique = colattr.Unique.ToUpper();
+					colattr.Unique = colattr.Unique?.ToUpper();
 				}
 
 				if ((colattr.IsNullable != true || colattr.IsIdentity == true || colattr.IsPrimary == true) && colattr.DbType.Contains("NOT NULL") == false) {
@@ -179,7 +179,8 @@ namespace FreeSql.Internal {
 								foreach (var dbcol in dbuk.Value) {
 									if (trytb.Columns.TryGetValue(dbcol.Name, out var trycol) && trycol.Attribute.MapType == dbcol.CsType ||
 									trytb.ColumnsByCs.TryGetValue(dbcol.Name, out trycol) && trycol.Attribute.MapType == dbcol.CsType) {
-										trycol.Attribute.Unique = dbuk.Key;
+										if (trycol.Attribute._Uniques?.Contains(dbuk.Key) != true)
+											trycol.Attribute.Unique += $"," + dbuk.Key;
 									}
 								}
 							}
@@ -188,8 +189,8 @@ namespace FreeSql.Internal {
 				} catch { }
 				trytb.Primarys = trytb.Columns.Values.Where(a => a.Attribute.IsPrimary == true).ToArray();
 			}
-			trytb.Uniques = trytb.Columns.Values.Where(a => !string.IsNullOrEmpty(a.Attribute.Unique)).Select(a => a.Attribute.Unique).Distinct()
-				.ToDictionary(a => a, a => trytb.Columns.Values.Where(b => b.Attribute.Unique == a).ToList());
+			var allunique = trytb.Columns.Values.Where(a => a.Attribute._Uniques != null).SelectMany(a => a.Attribute._Uniques).Distinct();
+			trytb.Uniques = allunique.ToDictionary(a => a, a => trytb.Columns.Values.Where(b => b.Attribute._Uniques != null && b.Attribute._Uniques.Contains(a)).ToList());
 			tbc.AddOrUpdate(entity, trytb, (oldkey, oldval) => trytb);
 
 			#region 查找导航属性的关系、virtual 属性延时加载，动态产生新的重写类
