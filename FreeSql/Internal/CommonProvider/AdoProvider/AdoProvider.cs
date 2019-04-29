@@ -11,7 +11,7 @@ using System.Text;
 using System.Reflection;
 
 namespace FreeSql.Internal.CommonProvider {
-	abstract partial class AdoProvider : IAdo {
+	abstract partial class AdoProvider : IAdo, IDisposable {
 
 		protected abstract void ReturnConnection(ObjectPool<DbConnection> pool, Object<DbConnection> conn, Exception ex);
 		protected abstract DbCommand CreateCommand();

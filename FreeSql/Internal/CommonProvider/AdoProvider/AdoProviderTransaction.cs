@@ -110,13 +110,6 @@ namespace FreeSql.Internal.CommonProvider {
 		public void CommitTransaction() => CommitTransaction(true);
 		public void RollbackTransaction() => CommitTransaction(false);
 
-		public void Dispose() {
-			Transaction2[] trans = null;
-			lock (_trans_lock)
-				trans = _trans.Values.ToArray();
-			foreach (Transaction2 tran in trans) CommitTransaction(false, tran);
-		}
-
 		public void Transaction(Action handler) {
 			Transaction(handler, TimeSpan.FromSeconds(60));
 		}
@@ -129,6 +122,36 @@ namespace FreeSql.Internal.CommonProvider {
 				RollbackTransaction();
 				throw ex;
 			}
+		}
+
+		~AdoProvider() {
+			this.Dispose();
+		}
+		bool _isdisposed = false;
+		public void Dispose() {
+			if (_isdisposed) return;
+			try {
+				Transaction2[] trans = null;
+				lock (_trans_lock)
+					trans = _trans.Values.ToArray();
+				foreach (Transaction2 tran in trans) CommitTransaction(false, tran);
+			} catch { }
+
+			ObjectPool<DbConnection>[] pools = null;
+			for (var a = 0; a < 10; a++) {
+				try {
+					pools = SlavePools.ToArray();
+					SlavePools.Clear();
+					break;
+				} catch {
+				}
+			}
+			if (pools != null) {
+				foreach (var pool in pools) {
+					try { pool.Dispose(); } catch { }
+				}
+			}
+			try { MasterPool.Dispose(); } catch { }
 		}
 	}
 }

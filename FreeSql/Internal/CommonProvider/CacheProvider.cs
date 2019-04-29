@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace FreeSql.Internal.CommonProvider {
-	class CacheProvider : ICache {
+	class CacheProvider : ICache, IDisposable {
 
 		public IDistributedCache Cache { get; private set; }
 		private bool CacheSupportMultiRemove = false;
@@ -28,6 +28,16 @@ namespace FreeSql.Internal.CommonProvider {
 				//log.LogWarning("FreeSql Warning: 低性能, IDistributedCache 没实现批量删除缓存 Cache.Remove(\"key1|key2\").");
 				Remove(key1, key2);
 			}
+		}
+
+		~CacheProvider() {
+			this.Dispose();
+		}
+		bool _isdisposed = false;
+		public void Dispose() {
+			if (_isdisposed) return;
+
+			Cache = null;
 		}
 
 		public Func<object, string> Serialize { get; set; }

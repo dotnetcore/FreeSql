@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 public interface IFreeSql<TMark> : IFreeSql { }
 
-public interface IFreeSql {
+public interface IFreeSql : IDisposable {
 	/// <summary>
 	/// 插入数据
 	/// </summary>

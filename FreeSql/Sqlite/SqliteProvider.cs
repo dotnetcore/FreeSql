@@ -47,5 +47,15 @@ namespace FreeSql.Sqlite {
 		public void Transaction(Action handler) => Ado.Transaction(handler);
 
 		public void Transaction(Action handler, TimeSpan timeout) => Ado.Transaction(handler, timeout);
+
+		~SqliteProvider() {
+			this.Dispose();
+		}
+		bool _isdisposed = false;
+		public void Dispose() {
+			if (_isdisposed) return;
+			(this.Ado as AdoProvider).Dispose();
+			(this.Cache as CacheProvider)?.Dispose();
+		}
 	}
 }

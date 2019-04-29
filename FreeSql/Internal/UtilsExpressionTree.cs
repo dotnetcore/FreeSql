@@ -542,7 +542,7 @@ namespace FreeSql.Internal {
 						if (findtbrefPkCsName.StartsWith(tbref.Type.Name, StringComparison.CurrentCultureIgnoreCase)) findtbrefPkCsName = findtbrefPkCsName.Substring(tbref.Type.Name.Length).TrimStart('_');
 						if (trytb.ColumnsByCs.TryGetValue($"{pnv.Name}{findtbrefPkCsName}", out var trycol) == false && //骆峰命名
 							trytb.ColumnsByCs.TryGetValue($"{pnv.Name}_{findtbrefPkCsName}", out trycol) == false && //下划线命名
-							tbref.Primarys.Length == 1 &&
+							//tbref.Primarys.Length == 1 &&
 							trytb.ColumnsByCs.TryGetValue($"{pnv.Name}_Id", out trycol) == false &&
 							trytb.ColumnsByCs.TryGetValue($"{pnv.Name}Id", out trycol) == false
 							) {
@@ -569,12 +569,13 @@ namespace FreeSql.Internal {
 								if (isLazy) throw nvref.Exception;
 								continue;
 							}
-							if (trycol == null) {
-								nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 没有找到对应的字段，如：{pnv.Name}{findtbrefPkCsName}、{pnv.Name}_{findtbrefPkCsName}");
-								trytb.AddOrUpdateTableRef(pnv.Name, nvref);
-								if (isLazy) throw nvref.Exception;
-								continue;
-							}
+						}
+
+						if (trycol == null) {
+							nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 没有找到对应的字段，如：{pnv.Name}{findtbrefPkCsName}、{pnv.Name}_{findtbrefPkCsName}");
+							trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+							if (isLazy) throw nvref.Exception;
+							continue;
 						}
 
 						nvref.Columns.Add(trycol);
