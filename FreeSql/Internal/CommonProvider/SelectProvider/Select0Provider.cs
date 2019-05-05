@@ -215,15 +215,23 @@ namespace FreeSql.Internal.CommonProvider {
 			var sql = this.ToSql(field);
 			if (_cache.seconds > 0 && string.IsNullOrEmpty(_cache.key)) _cache.key = sql;
 
-			return _orm.Cache.Shell(_cache.key, _cache.seconds, () =>
-				_orm.Ado.ExecuteDataTable(_connection, _transaction, CommandType.Text, sql, _params.ToArray()));
+			return _orm.Cache.Shell(_cache.key, _cache.seconds, () => {
+				var dbParms = _params.ToArray();
+				var ret = _orm.Ado.ExecuteDataTable(_connection, _transaction, CommandType.Text, sql, dbParms);
+				_orm.Aop.OnSelected?.Invoke(this, new AopOnSelectedEventArgs(_tables[0].Table.Type, sql, dbParms, ret));
+				return ret;
+			});
 		}
 		public Task<DataTable> ToDataTableAsync(string field = null) {
 			var sql = this.ToSql(field);
 			if (_cache.seconds > 0 && string.IsNullOrEmpty(_cache.key)) _cache.key = sql;
 
-			return _orm.Cache.ShellAsync(_cache.key, _cache.seconds, () =>
-				_orm.Ado.ExecuteDataTableAsync(_connection, _transaction, CommandType.Text, sql, _params.ToArray()));
+			return _orm.Cache.ShellAsync(_cache.key, _cache.seconds, async () => {
+				var dbParms = _params.ToArray();
+				var ret = await _orm.Ado.ExecuteDataTableAsync(_connection, _transaction, CommandType.Text, sql, dbParms);
+				_orm.Aop.OnSelected?.Invoke(this, new AopOnSelectedEventArgs(_tables[0].Table.Type, sql, dbParms, ret));
+				return ret;
+			});
 		}
 
 		public List<TTuple> ToList<TTuple>(string field) {
@@ -231,12 +239,14 @@ namespace FreeSql.Internal.CommonProvider {
 			if (_cache.seconds > 0 && string.IsNullOrEmpty(_cache.key)) _cache.key = sql;
 
 			return _orm.Cache.Shell(_cache.key, _cache.seconds, () => {
-				List<TTuple> ret = new List<TTuple>();
-				Type type = typeof(TTuple);
+				var ret = new List<TTuple>();
+				var type = typeof(TTuple);
+				var dbParms = _params.ToArray();
 				_orm.Ado.ExecuteReader(_connection, _transaction, dr => {
 					var read = Utils.ExecuteArrayRowReadClassOrTuple(type, null, dr, 0, _commonUtils);
 					ret.Add((TTuple) read.Value);
-				}, CommandType.Text, sql, _params.ToArray());
+				}, CommandType.Text, sql, dbParms);
+				_orm.Aop.OnSelected?.Invoke(this, new AopOnSelectedEventArgs(_tables[0].Table.Type, sql, dbParms, ret));
 				_orm.Aop.ToList?.Invoke(this, new AopToListEventArgs(ret));
 				_trackToList?.Invoke(ret);
 				return ret;
@@ -247,13 +257,15 @@ namespace FreeSql.Internal.CommonProvider {
 			if (_cache.seconds > 0 && string.IsNullOrEmpty(_cache.key)) _cache.key = sql;
 
 			return _orm.Cache.ShellAsync(_cache.key, _cache.seconds, async () => {
-				List<TTuple> ret = new List<TTuple>();
-				Type type = typeof(TTuple);
+				var ret = new List<TTuple>();
+				var type = typeof(TTuple);
+				var dbParms = _params.ToArray();
 				await _orm.Ado.ExecuteReaderAsync(_connection, _transaction, dr => {
 					var read = Utils.ExecuteArrayRowReadClassOrTuple(type, null, dr, 0, _commonUtils);
 					ret.Add((TTuple) read.Value);
 					return Task.CompletedTask;
-				}, CommandType.Text, sql, _params.ToArray());
+				}, CommandType.Text, sql, dbParms);
+				_orm.Aop.OnSelected?.Invoke(this, new AopOnSelectedEventArgs(_tables[0].Table.Type, sql, dbParms, ret));
 				_orm.Aop.ToList?.Invoke(this, new AopToListEventArgs(ret));
 				_trackToList?.Invoke(ret);
 				return ret;
@@ -264,10 +276,12 @@ namespace FreeSql.Internal.CommonProvider {
 			if (_cache.seconds > 0 && string.IsNullOrEmpty(_cache.key)) _cache.key = $"{sql}{string.Join("|", _params.Select(a => a.Value))}";
 
 			return _orm.Cache.Shell(_cache.key, _cache.seconds, () => {
-				List<T1> ret = new List<T1>();
+				var ret = new List<T1>();
+				var dbParms = _params.ToArray();
 				_orm.Ado.ExecuteReader(_connection, _transaction, dr => {
 					ret.Add(af.Read(_orm, dr));
-				}, CommandType.Text, sql, _params.ToArray());
+				}, CommandType.Text, sql, dbParms);
+				_orm.Aop.OnSelected?.Invoke(this, new AopOnSelectedEventArgs(_tables[0].Table.Type, sql, dbParms, ret));
 				_orm.Aop.ToList?.Invoke(this, new AopToListEventArgs(ret));
 				_trackToList?.Invoke(ret);
 				return ret;
@@ -278,11 +292,13 @@ namespace FreeSql.Internal.CommonProvider {
 			if (_cache.seconds > 0 && string.IsNullOrEmpty(_cache.key)) _cache.key = $"{sql}{string.Join("|", _params.Select(a => a.Value))}";
 
 			return await _orm.Cache.ShellAsync(_cache.key, _cache.seconds, async () => {
-				List<T1> ret = new List<T1>();
+				var ret = new List<T1>();
+				var dbParms = _params.ToArray();
 				await _orm.Ado.ExecuteReaderAsync(_connection, _transaction, dr => {
 					ret.Add(af.Read(_orm, dr));
 					return Task.CompletedTask;
-				}, CommandType.Text, sql, _params.ToArray());
+				}, CommandType.Text, sql, dbParms);
+				_orm.Aop.OnSelected?.Invoke(this, new AopOnSelectedEventArgs(_tables[0].Table.Type, sql, dbParms, ret));
 				_orm.Aop.ToList?.Invoke(this, new AopToListEventArgs(ret));
 				_trackToList?.Invoke(ret);
 				return ret;
@@ -309,12 +325,14 @@ namespace FreeSql.Internal.CommonProvider {
 			if (_cache.seconds > 0 && string.IsNullOrEmpty(_cache.key)) _cache.key = $"{sql}{string.Join("|", _params.Select(a => a.Value))}";
 
 			return _orm.Cache.Shell(_cache.key, _cache.seconds, () => {
-				List<TReturn> ret = new List<TReturn>();
-				Type type = typeof(TReturn);
+				var ret = new List<TReturn>();
+				var type = typeof(TReturn);
+				var dbParms = _params.ToArray();
 				_orm.Ado.ExecuteReader(_connection, _transaction, dr => {
 					var index = -1;
 					ret.Add((TReturn) _commonExpression.ReadAnonymous(af.map, dr, ref index, false));
-				}, CommandType.Text, sql, _params.ToArray());
+				}, CommandType.Text, sql, dbParms);
+				_orm.Aop.OnSelected?.Invoke(this, new AopOnSelectedEventArgs(_tables[0].Table.Type, sql, dbParms, ret));
 				_orm.Aop.ToList?.Invoke(this, new AopToListEventArgs(ret));
 				_trackToList?.Invoke(ret);
 				return ret;
@@ -325,13 +343,15 @@ namespace FreeSql.Internal.CommonProvider {
 			if (_cache.seconds > 0 && string.IsNullOrEmpty(_cache.key)) _cache.key = $"{sql}{string.Join("|", _params.Select(a => a.Value))}";
 
 			return await _orm.Cache.ShellAsync(_cache.key, _cache.seconds, async () => {
-				List<TReturn> ret = new List<TReturn>();
-				Type type = typeof(TReturn);
+				var ret = new List<TReturn>();
+				var type = typeof(TReturn);
+				var dbParms = _params.ToArray();
 				await _orm.Ado.ExecuteReaderAsync(_connection, _transaction, dr => {
 					var index = -1;
 					ret.Add((TReturn) _commonExpression.ReadAnonymous(af.map, dr, ref index, false));
 					return Task.CompletedTask;
-				}, CommandType.Text, sql, _params.ToArray());
+				}, CommandType.Text, sql, dbParms);
+				_orm.Aop.OnSelected?.Invoke(this, new AopOnSelectedEventArgs(_tables[0].Table.Type, sql, dbParms, ret));
 				_orm.Aop.ToList?.Invoke(this, new AopToListEventArgs(ret));
 				_trackToList?.Invoke(ret);
 				return ret;
@@ -709,8 +729,20 @@ namespace FreeSql.Internal.CommonProvider {
 			return this.ToSql(af.field);
 		}
 
-		protected DataTable InternalToDataTable(Expression select) => _orm.Ado.ExecuteDataTable(_connection, _transaction, CommandType.Text, this.InternalToSql<int>(select), _params.ToArray());
-		protected Task<DataTable> InternalToDataTableAsync(Expression select) => _orm.Ado.ExecuteDataTableAsync(_connection, _transaction, CommandType.Text, this.InternalToSql<int>(select), _params.ToArray());
+		protected DataTable InternalToDataTable(Expression select) {
+			var sql = this.InternalToSql<int>(select);
+			var dbParms = _params.ToArray();
+			var ret = _orm.Ado.ExecuteDataTable(_connection, _transaction, CommandType.Text, sql, dbParms);
+			_orm.Aop.OnSelected?.Invoke(this, new AopOnSelectedEventArgs(_tables[0].Table.Type, sql, dbParms, ret));
+			return ret;
+		}
+		async protected Task<DataTable> InternalToDataTableAsync(Expression select) {
+			var sql = this.InternalToSql<int>(select);
+			var dbParms = _params.ToArray();
+			var ret = await _orm.Ado.ExecuteDataTableAsync(_connection, _transaction, CommandType.Text, sql, dbParms);
+			_orm.Aop.OnSelected?.Invoke(this, new AopOnSelectedEventArgs(_tables[0].Table.Type, sql, dbParms, ret));
+			return ret;
+		}
 
 		protected TReturn InternalToAggregate<TReturn>(Expression select) {
 			var map = new ReadAnonymousTypeInfo();

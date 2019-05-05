@@ -13,7 +13,6 @@ namespace FreeSql.Internal.CommonProvider {
 		protected IFreeSql _orm;
 		protected CommonUtils _commonUtils;
 		protected CommonExpression _commonExpression;
-		protected List<T1> _source = new List<T1>();
 		protected TableInfo _table;
 		protected Func<string, string> _tableRule;
 		protected StringBuilder _where = new StringBuilder();
@@ -32,7 +31,6 @@ namespace FreeSql.Internal.CommonProvider {
 		}
 
 		protected void ClearData() {
-			_source.Clear();
 			_where.Clear();
 			_whereTimes = 0;
 			_params.Clear();
@@ -52,14 +50,18 @@ namespace FreeSql.Internal.CommonProvider {
 		public int ExecuteAffrows() {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return 0;
-			var affrows = _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, _params.ToArray());
+			var dbParms = _params.ToArray();
+			var affrows = _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, dbParms);
+			_orm.Aop.OnDeleted?.Invoke(this, new AopOnDeletedEventArgs(_table.Type, sql, dbParms, affrows, null));
 			this.ClearData();
 			return affrows;
 		}
 		async public Task<int> ExecuteAffrowsAsync() {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return 0;
-			var affrows = await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, _params.ToArray());
+			var dbParms = _params.ToArray();
+			var affrows = await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, dbParms);
+			_orm.Aop.OnDeleted?.Invoke(this, new AopOnDeletedEventArgs(_table.Type, sql, dbParms, affrows, null));
 			this.ClearData();
 			return affrows;
 		}

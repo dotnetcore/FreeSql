@@ -39,7 +39,10 @@ namespace FreeSql.SqlServer.Curd {
 			sb.Insert(0, sql.Substring(0, validx));
 			sb.Append(sql.Substring(validx));
 
-			var ret = _orm.Ado.Query<T1>(_connection, _transaction, CommandType.Text, sb.ToString(), _params.Concat(_paramsSource).ToArray());
+			sql = sb.ToString();
+			var dbParms = _params.Concat(_paramsSource).ToArray();
+			var ret = _orm.Ado.Query<T1>(_connection, _transaction, CommandType.Text, sql, dbParms);
+			_orm.Aop.OnUpdated?.Invoke(this, new AopOnUpdatedEventArgs(_table.Type, _source, sql, dbParms, 0, ret));
 			ValidateVersionAndThrow(ret.Count);
 			return ret;
 		}
@@ -61,7 +64,10 @@ namespace FreeSql.SqlServer.Curd {
 			sb.Insert(0, sql.Substring(0, validx));
 			sb.Append(sql.Substring(validx));
 
-			var ret = await _orm.Ado.QueryAsync<T1>(_connection, _transaction, CommandType.Text, sb.ToString(), _params.Concat(_paramsSource).ToArray());
+			sql = sb.ToString();
+			var dbParms = _params.Concat(_paramsSource).ToArray();
+			var ret = await _orm.Ado.QueryAsync<T1>(_connection, _transaction, CommandType.Text, sql, dbParms);
+			_orm.Aop.OnUpdated?.Invoke(this, new AopOnUpdatedEventArgs(_table.Type, _source, sql, dbParms, 0, ret));
 			ValidateVersionAndThrow(ret.Count);
 			return ret;
 		}

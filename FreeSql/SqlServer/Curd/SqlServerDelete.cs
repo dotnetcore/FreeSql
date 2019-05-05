@@ -30,7 +30,10 @@ namespace FreeSql.SqlServer.Curd {
 			sb.Insert(0, sql.Substring(0, validx));
 			sb.Append(sql.Substring(validx));
 
-			var ret = _orm.Ado.Query<T1>(_connection, _transaction, CommandType.Text, sb.ToString(), _params.ToArray());
+			sql = sb.ToString();
+			var dbParms = _params.ToArray();
+			var ret = _orm.Ado.Query<T1>(_connection, _transaction, CommandType.Text, sql, dbParms);
+			_orm.Aop.OnDeleted?.Invoke(this, new AopOnDeletedEventArgs(_table.Type, sql, dbParms, 0, ret));
 			this.ClearData();
 			return ret;
 		}
@@ -52,7 +55,10 @@ namespace FreeSql.SqlServer.Curd {
 			sb.Insert(0, sql.Substring(0, validx));
 			sb.Append(sql.Substring(validx));
 
-			var ret = await _orm.Ado.QueryAsync<T1>(_connection, _transaction, CommandType.Text, sb.ToString(), _params.ToArray());
+			sql = sb.ToString();
+			var dbParms = _params.ToArray();
+			var ret = await _orm.Ado.QueryAsync<T1>(_connection, _transaction, CommandType.Text, sql, dbParms);
+			_orm.Aop.OnDeleted?.Invoke(this, new AopOnDeletedEventArgs(_table.Type, sql, dbParms, 0, ret));
 			this.ClearData();
 			return ret;
 		}

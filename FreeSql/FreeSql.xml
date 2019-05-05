@@ -1882,6 +1882,26 @@
             自定义实体的属性配置，方便和多个 ORM 共同使用
             </summary>
         </member>
+        <member name="P:FreeSql.IAop.OnUpdated">
+            <summary>
+            IUpdate 执行成功后触发
+            </summary>
+        </member>
+        <member name="P:FreeSql.IAop.OnInserted">
+            <summary>
+            IInsert 执行成功后触发
+            </summary>
+        </member>
+        <member name="P:FreeSql.IAop.OnDeleted">
+            <summary>
+            IDeleted 执行成功后触发
+            </summary>
+        </member>
+        <member name="P:FreeSql.IAop.OnSelected">
+            <summary>
+            ISelect 执行成功后触发
+            </summary>
+        </member>
         <member name="P:FreeSql.AopToListEventArgs.List">
             <summary>
             可重新装饰的引用数据
@@ -1930,6 +1950,61 @@
         <member name="P:FreeSql.AopConfigEntityPropertyEventArgs.ModifyResult">
             <summary>
             实体的属性配置
+            </summary>
+        </member>
+        <member name="P:FreeSql.AopOnUpdatedEventArgs.Source">
+            <summary>
+            更新的实体
+            </summary>
+        </member>
+        <member name="P:FreeSql.AopOnInsertedEventArgs.Identity">
+            <summary>
+            执行 ExecuteIdentity 方法时有效
+            </summary>
+        </member>
+        <member name="P:FreeSql.AopOnDeletedEventArgs.EntityType">
+            <summary>
+            实体类型
+            </summary>
+        </member>
+        <member name="P:FreeSql.AopOnDeletedEventArgs.Sql">
+            <summary>
+            执行的 SQL
+            </summary>
+        </member>
+        <member name="P:FreeSql.AopOnDeletedEventArgs.DbParms">
+            <summary>
+            参数化命令
+            </summary>
+        </member>
+        <member name="P:FreeSql.AopOnDeletedEventArgs.Affrows">
+            <summary>
+            执行 ExecuteAffrows 方法时有效
+            </summary>
+        </member>
+        <member name="P:FreeSql.AopOnDeletedEventArgs.Returning">
+            <summary>
+            执行 ExecuteDeleted 方法时有效
+            </summary>
+        </member>
+        <member name="P:FreeSql.AopOnSelectedEventArgs.EntityType">
+            <summary>
+            实体类型
+            </summary>
+        </member>
+        <member name="P:FreeSql.AopOnSelectedEventArgs.Sql">
+            <summary>
+            执行的 SQL
+            </summary>
+        </member>
+        <member name="P:FreeSql.AopOnSelectedEventArgs.DbParms">
+            <summary>
+            参数化命令
+            </summary>
+        </member>
+        <member name="P:FreeSql.AopOnSelectedEventArgs.ReturnData">
+            <summary>
+            查询返回的对象
             </summary>
         </member>
         <member name="P:FreeSql.ICache.Serialize">

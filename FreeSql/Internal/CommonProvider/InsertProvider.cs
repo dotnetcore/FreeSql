@@ -323,8 +323,18 @@ namespace FreeSql.Internal.CommonProvider {
 		}
 		#endregion
 
-		internal int RawExecuteAffrows() => _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, ToSql(), _params);
-		internal Task<int> RawExecuteAffrowsAsync() => _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, ToSql(), _params);
+		internal int RawExecuteAffrows() {
+			var sql = ToSql();
+			var affrows = _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, _params);
+			_orm.Aop.OnInserted?.Invoke(this, new AopOnInsertedEventArgs(_table.Type, _source, sql, _params, affrows, 0, null));
+			return affrows;
+		}
+		async internal Task<int> RawExecuteAffrowsAsync() {
+			var sql = ToSql();
+			var affrows = await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, _params);
+			_orm.Aop.OnInserted?.Invoke(this, new AopOnInsertedEventArgs(_table.Type, _source, sql, _params, affrows, 0, null));
+			return affrows;
+		}
 		internal abstract long RawExecuteIdentity();
 		internal abstract Task<long> RawExecuteIdentityAsync();
 		internal abstract List<T1> RawExecuteInserted();

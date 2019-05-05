@@ -11,5 +11,9 @@ namespace FreeSql.Internal.CommonProvider {
 		public EventHandler<AopParseExpressionEventArgs> ParseExpression { get; set; }
 		public EventHandler<AopConfigEntityEventArgs> ConfigEntity { get; set; }
 		public EventHandler<AopConfigEntityPropertyEventArgs> ConfigEntityProperty { get; set; }
+		public EventHandler<AopOnUpdatedEventArgs> OnUpdated { get; set; }
+		public EventHandler<AopOnInsertedEventArgs> OnInserted { get; set; }
+		public EventHandler<AopOnDeletedEventArgs> OnDeleted { get; set; }
+		public EventHandler<AopOnSelectedEventArgs> OnSelected { get; set; }
 	}
 }

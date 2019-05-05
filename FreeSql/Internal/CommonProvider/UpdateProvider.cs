@@ -239,14 +239,18 @@ namespace FreeSql.Internal.CommonProvider {
 		internal int RawExecuteAffrows() {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return 0;
-			var affrows = _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, _params.Concat(_paramsSource).ToArray());
+			var dbParms = _params.Concat(_paramsSource).ToArray();
+			var affrows = _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, dbParms);
+			_orm.Aop.OnUpdated?.Invoke(this, new AopOnInsertedEventArgs(_table.Type, null, sql, dbParms, affrows, 0, null));
 			ValidateVersionAndThrow(affrows);
 			return affrows;
 		}
 		async internal Task<int> RawExecuteAffrowsAsync() {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return 0;
-			var affrows = await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, _params.Concat(_paramsSource).ToArray());
+			var dbParms = _params.Concat(_paramsSource).ToArray();
+			var affrows = await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, dbParms);
+			_orm.Aop.OnUpdated?.Invoke(this, new AopOnInsertedEventArgs(_table.Type, null, sql, dbParms, affrows, 0, null));
 			ValidateVersionAndThrow(affrows);
 			return affrows;
 		}

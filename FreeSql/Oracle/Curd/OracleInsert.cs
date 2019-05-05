@@ -86,13 +86,18 @@ namespace FreeSql.Oracle.Curd {
 
 			if (_identCol == null || _source.Count > 1) {
 				_orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, _params);
+				_orm.Aop.OnInserted?.Invoke(this, new AopOnInsertedEventArgs(_table.Type, _source, sql, _params, 0, 0, null));
 				return 0;
 			}
 			var identColName = _commonUtils.QuoteSqlName(_identCol.Attribute.Name);
 			var identParam = _commonUtils.AppendParamter(null, $"{_identCol.CsName}99", _identCol.Attribute.MapType, 0) as OracleParameter;
 			identParam.Direction = ParameterDirection.Output;
-			_orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, $"{sql} RETURNING {identColName} INTO {identParam.ParameterName}", _params.Concat(new[] { identParam }).ToArray());
-			return long.TryParse(string.Concat(identParam.Value), out var trylng) ? trylng : 0;
+			sql = $"{sql} RETURNING {identColName} INTO {identParam.ParameterName}";
+			var dbParms = _params.Concat(new[] { identParam }).ToArray();
+			_orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, dbParms);
+			long.TryParse(string.Concat(identParam.Value), out var trylng);
+			_orm.Aop.OnInserted?.Invoke(this, new AopOnInsertedEventArgs(_table.Type, _source, sql, dbParms, 0, trylng, null));
+			return trylng;
 		}
 		async internal override Task<long> RawExecuteIdentityAsync() {
 			var sql = this.ToSql();
@@ -100,13 +105,18 @@ namespace FreeSql.Oracle.Curd {
 
 			if (_identCol == null || _source.Count > 1) {
 				await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, _params);
+				_orm.Aop.OnInserted?.Invoke(this, new AopOnInsertedEventArgs(_table.Type, _source, sql, _params, 0, 0, null));
 				return 0;
 			}
 			var identColName = _commonUtils.QuoteSqlName(_identCol.Attribute.Name);
 			var identParam = _commonUtils.AppendParamter(null, $"{_identCol.CsName}99", _identCol.Attribute.MapType, 0) as OracleParameter;
 			identParam.Direction = ParameterDirection.Output;
-			await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, $"{sql} RETURNING {identColName} INTO {identParam.ParameterName}", _params.Concat(new[] { identParam }).ToArray());
-			return long.TryParse(string.Concat(identParam.Value), out var trylng) ? trylng : 0;
+			sql = $"{sql} RETURNING {identColName} INTO {identParam.ParameterName}";
+			var dbParms = _params.Concat(new[] { identParam }).ToArray();
+			await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, dbParms);
+			long.TryParse(string.Concat(identParam.Value), out var trylng);
+			_orm.Aop.OnInserted?.Invoke(this, new AopOnInsertedEventArgs(_table.Type, _source, sql, dbParms, 0, trylng, null));
+			return trylng;
 		}
 
 		internal override List<T1> RawExecuteInserted() {
