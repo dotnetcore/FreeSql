@@ -13,12 +13,9 @@
 		<PackageTags>FreeSql;ORM</PackageTags>
 		<PackageId>$(AssemblyName)</PackageId>
 		<Title>$(AssemblyName)</Title>
-		<PackageReleaseNotes>...</PackageReleaseNotes>
 		<IsPackable>true</IsPackable>
 		<MinClientVersion>2.8.6</MinClientVersion>
 		<GenerateAssemblyInfo>true</GenerateAssemblyInfo>
-		<Copyright>Copyright</Copyright>
-		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
