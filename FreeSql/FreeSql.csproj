@@ -14,7 +14,6 @@
 		<PackageId>$(AssemblyName)</PackageId>
 		<Title>$(AssemblyName)</Title>
 		<IsPackable>true</IsPackable>
-		<MinClientVersion>2.8.6</MinClientVersion>
 		<GenerateAssemblyInfo>true</GenerateAssemblyInfo>
 	</PropertyGroup>
 
