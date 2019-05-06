@@ -135,9 +135,9 @@ namespace FreeSql.Internal.CommonProvider {
 		}
 		public ISelectGrouping<TKey, TValue> Take(int limit) => this.Limit(limit);
 
-		public ISelectGrouping<TKey, TValue> Page(int pageIndex, int pageSize) {
+		public ISelectGrouping<TKey, TValue> Page(int pageNumber, int pageSize) {
 			var method = _select.GetType().GetMethod("Page", new[] { typeof(int), typeof(int) });
-			method.Invoke(_select, new object[] { pageIndex, pageSize });
+			method.Invoke(_select, new object[] { pageNumber, pageSize });
 			return this;
 		}
 	}

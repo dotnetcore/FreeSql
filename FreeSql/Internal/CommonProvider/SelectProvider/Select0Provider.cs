@@ -188,8 +188,8 @@ namespace FreeSql.Internal.CommonProvider {
 			if (parms != null) _params.AddRange(_commonUtils.GetDbParamtersByObject(sql, parms));
 			return this as TSelect;
 		}
-		public TSelect Page(int pageIndex, int pageSize) {
-			this.Skip(Math.Max(0, pageIndex - 1) * pageSize);
+		public TSelect Page(int pageNumber, int pageSize) {
+			this.Skip(Math.Max(0, pageNumber - 1) * pageSize);
 			return this.Limit(pageSize) as TSelect;
 		}
 

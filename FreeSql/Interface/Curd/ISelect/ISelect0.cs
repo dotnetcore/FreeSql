@@ -245,10 +245,10 @@ namespace FreeSql {
 		/// <summary>
 		/// 分页
 		/// </summary>
-		/// <param name="pageIndex">第几页</param>
+		/// <param name="pageNumber">第几页</param>
 		/// <param name="pageSize">每页多少</param>
 		/// <returns></returns>
-		TSelect Page(int pageIndex, int pageSize);
+		TSelect Page(int pageNumber, int pageSize);
 
 		/// <summary>
 		/// 查询数据前，去重

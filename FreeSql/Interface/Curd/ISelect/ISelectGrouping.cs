@@ -73,10 +73,10 @@ namespace FreeSql {
 		/// <summary>
 		/// 分页
 		/// </summary>
-		/// <param name="pageIndex">第几页</param>
+		/// <param name="pageNumber">第几页</param>
 		/// <param name="pageSize">每页多少</param>
 		/// <returns></returns>
-		ISelectGrouping<TKey, TValue> Page(int pageIndex, int pageSize);
+		ISelectGrouping<TKey, TValue> Page(int pageNumber, int pageSize);
 	}
 
 	public interface ISelectGroupingAggregate<TKey> {
