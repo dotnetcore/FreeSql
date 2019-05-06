@@ -61,7 +61,7 @@ namespace FreeSql.Internal {
 		internal TableAttribute GetEntityTableAttribute(Type type) {
 			TableAttribute attr = null;
 			if (_orm.Aop.ConfigEntity != null) {
-				var aope = new AopConfigEntityEventArgs(type);
+				var aope = new Aop.ConfigEntityEventArgs(type);
 				_orm.Aop.ConfigEntity(_orm, aope);
 				attr = aope.ModifyResult;
 			}
@@ -87,7 +87,7 @@ namespace FreeSql.Internal {
 		internal ColumnAttribute GetEntityColumnAttribute(Type type, PropertyInfo proto) {
 			ColumnAttribute attr = null;
 			if (_orm.Aop.ConfigEntityProperty != null) {
-				var aope = new AopConfigEntityPropertyEventArgs(type, proto);
+				var aope = new Aop.ConfigEntityPropertyEventArgs(type, proto);
 				_orm.Aop.ConfigEntityProperty(_orm, aope);
 				attr = aope.ModifyResult;
 			}

@@ -51,8 +51,19 @@ namespace FreeSql.Internal.CommonProvider {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return 0;
 			var dbParms = _params.ToArray();
-			var affrows = _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, dbParms);
-			_orm.Aop.OnDeleted?.Invoke(this, new AopOnDeletedEventArgs(_table.Type, sql, dbParms, affrows, null));
+			var before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Delete, sql, dbParms);
+			_orm.Aop.CurdBefore?.Invoke(this, before);
+			var affrows = 0;
+			Exception exception = null;
+			try {
+				affrows = _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, dbParms);
+			} catch (Exception ex) {
+				exception = ex;
+				throw ex;
+			} finally {
+				var after = new Aop.CurdAfterEventArgs(before, exception, affrows);
+				_orm.Aop.CurdAfter?.Invoke(this, after);
+			}
 			this.ClearData();
 			return affrows;
 		}
@@ -60,8 +71,19 @@ namespace FreeSql.Internal.CommonProvider {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return 0;
 			var dbParms = _params.ToArray();
-			var affrows = await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, dbParms);
-			_orm.Aop.OnDeleted?.Invoke(this, new AopOnDeletedEventArgs(_table.Type, sql, dbParms, affrows, null));
+			var before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Delete, sql, dbParms);
+			_orm.Aop.CurdBefore?.Invoke(this, before);
+			var affrows = 0;
+			Exception exception = null;
+			try {
+				affrows = await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, dbParms);
+			} catch (Exception ex) {
+				exception = ex;
+				throw ex;
+			} finally {
+				var after = new Aop.CurdAfterEventArgs(before, exception, affrows);
+				_orm.Aop.CurdAfter?.Invoke(this, after);
+			}
 			this.ClearData();
 			return affrows;
 		}
@@ -71,8 +93,8 @@ namespace FreeSql.Internal.CommonProvider {
 		public IDelete<T1> Where(Expression<Func<T1, bool>> exp) => this.Where(_commonExpression.ExpressionWhereLambdaNoneForeignObject(null, _table, null, exp?.Body, null));
 		public IDelete<T1> Where(string sql, object parms = null) {
 			if (string.IsNullOrEmpty(sql)) return this;
-			var args = new AopWhereEventArgs(sql, parms);
-			_orm.Aop.Where?.Invoke(this, new AopWhereEventArgs(sql, parms));
+			var args = new Aop.WhereEventArgs(sql, parms);
+			_orm.Aop.Where?.Invoke(this, new Aop.WhereEventArgs(sql, parms));
 			if (args.IsCancel == true) return this;
 
 			if (++_whereTimes > 1) _where.Append(" AND ");

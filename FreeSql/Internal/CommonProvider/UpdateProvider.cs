@@ -240,18 +240,42 @@ namespace FreeSql.Internal.CommonProvider {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return 0;
 			var dbParms = _params.Concat(_paramsSource).ToArray();
-			var affrows = _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, dbParms);
-			_orm.Aop.OnUpdated?.Invoke(this, new AopOnInsertedEventArgs(_table.Type, null, sql, dbParms, affrows, 0, null));
-			ValidateVersionAndThrow(affrows);
+			var before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Update, sql, dbParms);
+			_orm.Aop.CurdBefore?.Invoke(this, before);
+			var affrows = 0;
+			Exception exception = null;
+			try {
+				affrows = _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, dbParms);
+				ValidateVersionAndThrow(affrows);
+			} catch (Exception ex) {
+				exception = ex;
+				throw ex;
+			} finally {
+				var after = new Aop.CurdAfterEventArgs(before, exception, affrows);
+				_orm.Aop.CurdAfter?.Invoke(this, after);
+			}
+			this.ClearData();
 			return affrows;
 		}
 		async internal Task<int> RawExecuteAffrowsAsync() {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return 0;
 			var dbParms = _params.Concat(_paramsSource).ToArray();
-			var affrows = await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, dbParms);
-			_orm.Aop.OnUpdated?.Invoke(this, new AopOnInsertedEventArgs(_table.Type, null, sql, dbParms, affrows, 0, null));
-			ValidateVersionAndThrow(affrows);
+			var before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Update, sql, dbParms);
+			_orm.Aop.CurdBefore?.Invoke(this, before);
+			var affrows = 0;
+			Exception exception = null;
+			try {
+				affrows = await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, dbParms);
+				ValidateVersionAndThrow(affrows);
+			} catch (Exception ex) {
+				exception = ex;
+				throw ex;
+			} finally {
+				var after = new Aop.CurdAfterEventArgs(before, exception, affrows);
+				_orm.Aop.CurdAfter?.Invoke(this, after);
+			}
+			this.ClearData();
 			return affrows;
 		}
 		internal abstract List<T1> RawExecuteUpdated();
@@ -343,8 +367,8 @@ namespace FreeSql.Internal.CommonProvider {
 		public IUpdate<T1> Where(Expression<Func<T1, bool>> expression) => this.Where(_commonExpression.ExpressionWhereLambdaNoneForeignObject(null, _table, null, expression?.Body, null));
 		public IUpdate<T1> Where(string sql, object parms = null) {
 			if (string.IsNullOrEmpty(sql)) return this;
-			var args = new AopWhereEventArgs(sql, parms);
-			_orm.Aop.Where?.Invoke(this, new AopWhereEventArgs(sql, parms));
+			var args = new Aop.WhereEventArgs(sql, parms);
+			_orm.Aop.Where?.Invoke(this, new Aop.WhereEventArgs(sql, parms));
 			if (args.IsCancel == true) return this;
 
 			_where.Append(" AND (").Append(sql).Append(")");

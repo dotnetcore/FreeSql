@@ -32,8 +32,19 @@ namespace FreeSql.SqlServer.Curd {
 
 			sql = sb.ToString();
 			var dbParms = _params.ToArray();
-			var ret = _orm.Ado.Query<T1>(_connection, _transaction, CommandType.Text, sql, dbParms);
-			_orm.Aop.OnDeleted?.Invoke(this, new AopOnDeletedEventArgs(_table.Type, sql, dbParms, 0, ret));
+			var before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Delete, sql, dbParms);
+			_orm.Aop.CurdBefore?.Invoke(this, before);
+			var ret = new List<T1>();
+			Exception exception = null;
+			try {
+				ret = _orm.Ado.Query<T1>(_connection, _transaction, CommandType.Text, sql, dbParms);
+			} catch (Exception ex) {
+				exception = ex;
+				throw ex;
+			} finally {
+				var after = new Aop.CurdAfterEventArgs(before, exception, ret);
+				_orm.Aop.CurdAfter?.Invoke(this, after);
+			}
 			this.ClearData();
 			return ret;
 		}
@@ -57,8 +68,19 @@ namespace FreeSql.SqlServer.Curd {
 
 			sql = sb.ToString();
 			var dbParms = _params.ToArray();
-			var ret = await _orm.Ado.QueryAsync<T1>(_connection, _transaction, CommandType.Text, sql, dbParms);
-			_orm.Aop.OnDeleted?.Invoke(this, new AopOnDeletedEventArgs(_table.Type, sql, dbParms, 0, ret));
+			var before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Delete, sql, dbParms);
+			_orm.Aop.CurdBefore?.Invoke(this, before);
+			var ret = new List<T1>();
+			Exception exception = null;
+			try {
+				ret = await _orm.Ado.QueryAsync<T1>(_connection, _transaction, CommandType.Text, sql, dbParms);
+			} catch (Exception ex) {
+				exception = ex;
+				throw ex;
+			} finally {
+				var after = new Aop.CurdAfterEventArgs(before, exception, ret);
+				_orm.Aop.CurdAfter?.Invoke(this, after);
+			}
 			this.ClearData();
 			return ret;
 		}

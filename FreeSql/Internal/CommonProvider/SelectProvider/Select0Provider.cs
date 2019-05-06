@@ -217,8 +217,19 @@ namespace FreeSql.Internal.CommonProvider {
 
 			return _orm.Cache.Shell(_cache.key, _cache.seconds, () => {
 				var dbParms = _params.ToArray();
-				var ret = _orm.Ado.ExecuteDataTable(_connection, _transaction, CommandType.Text, sql, dbParms);
-				_orm.Aop.OnSelected?.Invoke(this, new AopOnSelectedEventArgs(_tables[0].Table.Type, sql, dbParms, ret));
+				var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, Aop.CurdType.Select, sql, dbParms);
+				_orm.Aop.CurdBefore?.Invoke(this, before);
+				DataTable ret = null;
+				Exception exception = null;
+				try {
+					ret = _orm.Ado.ExecuteDataTable(_connection, _transaction, CommandType.Text, sql, dbParms);
+				} catch (Exception ex) {
+					exception = ex;
+					throw ex;
+				} finally {
+					var after = new Aop.CurdAfterEventArgs(before, exception, ret);
+					_orm.Aop.CurdAfter?.Invoke(this, after);
+				}
 				return ret;
 			});
 		}
@@ -228,8 +239,19 @@ namespace FreeSql.Internal.CommonProvider {
 
 			return _orm.Cache.ShellAsync(_cache.key, _cache.seconds, async () => {
 				var dbParms = _params.ToArray();
-				var ret = await _orm.Ado.ExecuteDataTableAsync(_connection, _transaction, CommandType.Text, sql, dbParms);
-				_orm.Aop.OnSelected?.Invoke(this, new AopOnSelectedEventArgs(_tables[0].Table.Type, sql, dbParms, ret));
+				var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, Aop.CurdType.Select, sql, dbParms);
+				_orm.Aop.CurdBefore?.Invoke(this, before);
+				DataTable ret = null;
+				Exception exception = null;
+				try {
+					ret = await _orm.Ado.ExecuteDataTableAsync(_connection, _transaction, CommandType.Text, sql, dbParms);
+				} catch (Exception ex) {
+					exception = ex;
+					throw ex;
+				} finally {
+					var after = new Aop.CurdAfterEventArgs(before, exception, ret);
+					_orm.Aop.CurdAfter?.Invoke(this, after);
+				}
 				return ret;
 			});
 		}
@@ -239,15 +261,25 @@ namespace FreeSql.Internal.CommonProvider {
 			if (_cache.seconds > 0 && string.IsNullOrEmpty(_cache.key)) _cache.key = sql;
 
 			return _orm.Cache.Shell(_cache.key, _cache.seconds, () => {
-				var ret = new List<TTuple>();
 				var type = typeof(TTuple);
 				var dbParms = _params.ToArray();
-				_orm.Ado.ExecuteReader(_connection, _transaction, dr => {
-					var read = Utils.ExecuteArrayRowReadClassOrTuple(type, null, dr, 0, _commonUtils);
-					ret.Add((TTuple) read.Value);
-				}, CommandType.Text, sql, dbParms);
-				_orm.Aop.OnSelected?.Invoke(this, new AopOnSelectedEventArgs(_tables[0].Table.Type, sql, dbParms, ret));
-				_orm.Aop.ToList?.Invoke(this, new AopToListEventArgs(ret));
+				var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, Aop.CurdType.Select, sql, dbParms);
+				_orm.Aop.CurdBefore?.Invoke(this, before);
+				var ret = new List<TTuple>();
+				Exception exception = null;
+				try {
+					_orm.Ado.ExecuteReader(_connection, _transaction, dr => {
+						var read = Utils.ExecuteArrayRowReadClassOrTuple(type, null, dr, 0, _commonUtils);
+						ret.Add((TTuple)read.Value);
+					}, CommandType.Text, sql, dbParms);
+				} catch (Exception ex) {
+					exception = ex;
+					throw ex;
+				} finally {
+					var after = new Aop.CurdAfterEventArgs(before, exception, ret);
+					_orm.Aop.CurdAfter?.Invoke(this, after);
+				}
+				_orm.Aop.ToList?.Invoke(this, new Aop.ToListEventArgs(ret));
 				_trackToList?.Invoke(ret);
 				return ret;
 			});
@@ -257,16 +289,26 @@ namespace FreeSql.Internal.CommonProvider {
 			if (_cache.seconds > 0 && string.IsNullOrEmpty(_cache.key)) _cache.key = sql;
 
 			return _orm.Cache.ShellAsync(_cache.key, _cache.seconds, async () => {
-				var ret = new List<TTuple>();
 				var type = typeof(TTuple);
 				var dbParms = _params.ToArray();
-				await _orm.Ado.ExecuteReaderAsync(_connection, _transaction, dr => {
-					var read = Utils.ExecuteArrayRowReadClassOrTuple(type, null, dr, 0, _commonUtils);
-					ret.Add((TTuple) read.Value);
-					return Task.CompletedTask;
-				}, CommandType.Text, sql, dbParms);
-				_orm.Aop.OnSelected?.Invoke(this, new AopOnSelectedEventArgs(_tables[0].Table.Type, sql, dbParms, ret));
-				_orm.Aop.ToList?.Invoke(this, new AopToListEventArgs(ret));
+				var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, Aop.CurdType.Select, sql, dbParms);
+				_orm.Aop.CurdBefore?.Invoke(this, before);
+				var ret = new List<TTuple>();
+				Exception exception = null;
+				try {
+					await _orm.Ado.ExecuteReaderAsync(_connection, _transaction, dr => {
+						var read = Utils.ExecuteArrayRowReadClassOrTuple(type, null, dr, 0, _commonUtils);
+						ret.Add((TTuple)read.Value);
+						return Task.CompletedTask;
+					}, CommandType.Text, sql, dbParms);
+				} catch (Exception ex) {
+					exception = ex;
+					throw ex;
+				} finally {
+					var after = new Aop.CurdAfterEventArgs(before, exception, ret);
+					_orm.Aop.CurdAfter?.Invoke(this, after);
+				}
+				_orm.Aop.ToList?.Invoke(this, new Aop.ToListEventArgs(ret));
 				_trackToList?.Invoke(ret);
 				return ret;
 			});
@@ -276,13 +318,23 @@ namespace FreeSql.Internal.CommonProvider {
 			if (_cache.seconds > 0 && string.IsNullOrEmpty(_cache.key)) _cache.key = $"{sql}{string.Join("|", _params.Select(a => a.Value))}";
 
 			return _orm.Cache.Shell(_cache.key, _cache.seconds, () => {
-				var ret = new List<T1>();
 				var dbParms = _params.ToArray();
-				_orm.Ado.ExecuteReader(_connection, _transaction, dr => {
-					ret.Add(af.Read(_orm, dr));
-				}, CommandType.Text, sql, dbParms);
-				_orm.Aop.OnSelected?.Invoke(this, new AopOnSelectedEventArgs(_tables[0].Table.Type, sql, dbParms, ret));
-				_orm.Aop.ToList?.Invoke(this, new AopToListEventArgs(ret));
+				var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, Aop.CurdType.Select, sql, dbParms);
+				_orm.Aop.CurdBefore?.Invoke(this, before);
+				var ret = new List<T1>();
+				Exception exception = null;
+				try {
+					_orm.Ado.ExecuteReader(_connection, _transaction, dr => {
+						ret.Add(af.Read(_orm, dr));
+					}, CommandType.Text, sql, dbParms);
+				} catch (Exception ex) {
+					exception = ex;
+					throw ex;
+				} finally {
+					var after = new Aop.CurdAfterEventArgs(before, exception, ret);
+					_orm.Aop.CurdAfter?.Invoke(this, after);
+				}
+				_orm.Aop.ToList?.Invoke(this, new Aop.ToListEventArgs(ret));
 				_trackToList?.Invoke(ret);
 				return ret;
 			});
@@ -292,14 +344,24 @@ namespace FreeSql.Internal.CommonProvider {
 			if (_cache.seconds > 0 && string.IsNullOrEmpty(_cache.key)) _cache.key = $"{sql}{string.Join("|", _params.Select(a => a.Value))}";
 
 			return await _orm.Cache.ShellAsync(_cache.key, _cache.seconds, async () => {
-				var ret = new List<T1>();
 				var dbParms = _params.ToArray();
-				await _orm.Ado.ExecuteReaderAsync(_connection, _transaction, dr => {
-					ret.Add(af.Read(_orm, dr));
-					return Task.CompletedTask;
-				}, CommandType.Text, sql, dbParms);
-				_orm.Aop.OnSelected?.Invoke(this, new AopOnSelectedEventArgs(_tables[0].Table.Type, sql, dbParms, ret));
-				_orm.Aop.ToList?.Invoke(this, new AopToListEventArgs(ret));
+				var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, Aop.CurdType.Select, sql, dbParms);
+				_orm.Aop.CurdBefore?.Invoke(this, before);
+				var ret = new List<T1>();
+				Exception exception = null;
+				try {
+					await _orm.Ado.ExecuteReaderAsync(_connection, _transaction, dr => {
+						ret.Add(af.Read(_orm, dr));
+						return Task.CompletedTask;
+					}, CommandType.Text, sql, dbParms);
+				} catch (Exception ex) {
+					exception = ex;
+					throw ex;
+				} finally {
+					var after = new Aop.CurdAfterEventArgs(before, exception, ret);
+					_orm.Aop.CurdAfter?.Invoke(this, after);
+				}
+				_orm.Aop.ToList?.Invoke(this, new Aop.ToListEventArgs(ret));
 				_trackToList?.Invoke(ret);
 				return ret;
 			});
@@ -325,15 +387,25 @@ namespace FreeSql.Internal.CommonProvider {
 			if (_cache.seconds > 0 && string.IsNullOrEmpty(_cache.key)) _cache.key = $"{sql}{string.Join("|", _params.Select(a => a.Value))}";
 
 			return _orm.Cache.Shell(_cache.key, _cache.seconds, () => {
-				var ret = new List<TReturn>();
 				var type = typeof(TReturn);
 				var dbParms = _params.ToArray();
-				_orm.Ado.ExecuteReader(_connection, _transaction, dr => {
-					var index = -1;
-					ret.Add((TReturn) _commonExpression.ReadAnonymous(af.map, dr, ref index, false));
-				}, CommandType.Text, sql, dbParms);
-				_orm.Aop.OnSelected?.Invoke(this, new AopOnSelectedEventArgs(_tables[0].Table.Type, sql, dbParms, ret));
-				_orm.Aop.ToList?.Invoke(this, new AopToListEventArgs(ret));
+				var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, Aop.CurdType.Select, sql, dbParms);
+				_orm.Aop.CurdBefore?.Invoke(this, before);
+				var ret = new List<TReturn>();
+				Exception exception = null;
+				try {
+					_orm.Ado.ExecuteReader(_connection, _transaction, dr => {
+						var index = -1;
+						ret.Add((TReturn)_commonExpression.ReadAnonymous(af.map, dr, ref index, false));
+					}, CommandType.Text, sql, dbParms);
+				} catch (Exception ex) {
+					exception = ex;
+					throw ex;
+				} finally {
+					var after = new Aop.CurdAfterEventArgs(before, exception, ret);
+					_orm.Aop.CurdAfter?.Invoke(this, after);
+				}
+				_orm.Aop.ToList?.Invoke(this, new Aop.ToListEventArgs(ret));
 				_trackToList?.Invoke(ret);
 				return ret;
 			});
@@ -343,16 +415,26 @@ namespace FreeSql.Internal.CommonProvider {
 			if (_cache.seconds > 0 && string.IsNullOrEmpty(_cache.key)) _cache.key = $"{sql}{string.Join("|", _params.Select(a => a.Value))}";
 
 			return await _orm.Cache.ShellAsync(_cache.key, _cache.seconds, async () => {
-				var ret = new List<TReturn>();
 				var type = typeof(TReturn);
 				var dbParms = _params.ToArray();
-				await _orm.Ado.ExecuteReaderAsync(_connection, _transaction, dr => {
-					var index = -1;
-					ret.Add((TReturn) _commonExpression.ReadAnonymous(af.map, dr, ref index, false));
-					return Task.CompletedTask;
-				}, CommandType.Text, sql, dbParms);
-				_orm.Aop.OnSelected?.Invoke(this, new AopOnSelectedEventArgs(_tables[0].Table.Type, sql, dbParms, ret));
-				_orm.Aop.ToList?.Invoke(this, new AopToListEventArgs(ret));
+				var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, Aop.CurdType.Select, sql, dbParms);
+				_orm.Aop.CurdBefore?.Invoke(this, before);
+				var ret = new List<TReturn>();
+				Exception exception = null;
+				try {
+					await _orm.Ado.ExecuteReaderAsync(_connection, _transaction, dr => {
+						var index = -1;
+						ret.Add((TReturn)_commonExpression.ReadAnonymous(af.map, dr, ref index, false));
+						return Task.CompletedTask;
+					}, CommandType.Text, sql, dbParms);
+				} catch (Exception ex) {
+					exception = ex;
+					throw ex;
+				} finally {
+					var after = new Aop.CurdAfterEventArgs(before, exception, ret);
+					_orm.Aop.CurdAfter?.Invoke(this, after);
+				}
+				_orm.Aop.ToList?.Invoke(this, new Aop.ToListEventArgs(ret));
 				_trackToList?.Invoke(ret);
 				return ret;
 			});
@@ -680,8 +762,8 @@ namespace FreeSql.Internal.CommonProvider {
 		public TSelect Where(string sql, object parms = null) => this.WhereIf(true, sql, parms);
 		public TSelect WhereIf(bool condition, string sql, object parms = null) {
 			if (condition == false || string.IsNullOrEmpty(sql)) return this as TSelect;
-			var args = new AopWhereEventArgs(sql, parms);
-			_orm.Aop.Where?.Invoke(this, new AopWhereEventArgs(sql, parms));
+			var args = new Aop.WhereEventArgs(sql, parms);
+			_orm.Aop.Where?.Invoke(this, new Aop.WhereEventArgs(sql, parms));
 			if (args.IsCancel == true) return this as TSelect;
 
 			_where.Append(" AND (").Append(sql).Append(")");
@@ -732,15 +814,37 @@ namespace FreeSql.Internal.CommonProvider {
 		protected DataTable InternalToDataTable(Expression select) {
 			var sql = this.InternalToSql<int>(select);
 			var dbParms = _params.ToArray();
-			var ret = _orm.Ado.ExecuteDataTable(_connection, _transaction, CommandType.Text, sql, dbParms);
-			_orm.Aop.OnSelected?.Invoke(this, new AopOnSelectedEventArgs(_tables[0].Table.Type, sql, dbParms, ret));
+			var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, Aop.CurdType.Select, sql, dbParms);
+			_orm.Aop.CurdBefore?.Invoke(this, before);
+			DataTable ret = null;
+			Exception exception = null;
+			try {
+				ret = _orm.Ado.ExecuteDataTable(_connection, _transaction, CommandType.Text, sql, dbParms);
+			} catch (Exception ex) {
+				exception = ex;
+				throw ex;
+			} finally {
+				var after = new Aop.CurdAfterEventArgs(before, exception, ret);
+				_orm.Aop.CurdAfter?.Invoke(this, after);
+			}
 			return ret;
 		}
 		async protected Task<DataTable> InternalToDataTableAsync(Expression select) {
 			var sql = this.InternalToSql<int>(select);
 			var dbParms = _params.ToArray();
-			var ret = await _orm.Ado.ExecuteDataTableAsync(_connection, _transaction, CommandType.Text, sql, dbParms);
-			_orm.Aop.OnSelected?.Invoke(this, new AopOnSelectedEventArgs(_tables[0].Table.Type, sql, dbParms, ret));
+			var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, Aop.CurdType.Select, sql, dbParms);
+			_orm.Aop.CurdBefore?.Invoke(this, before);
+			DataTable ret = null;
+			Exception exception = null;
+			try {
+				ret = await _orm.Ado.ExecuteDataTableAsync(_connection, _transaction, CommandType.Text, sql, dbParms);
+			} catch (Exception ex) {
+				exception = ex;
+				throw ex;
+			} finally {
+				var after = new Aop.CurdAfterEventArgs(before, exception, ret);
+				_orm.Aop.CurdAfter?.Invoke(this, after);
+			}
 			return ret;
 		}
 

@@ -344,15 +344,27 @@ where pg_namespace.nspname={0} and pg_class.relname={1} and pg_constraint.contyp
 			if (entityTypes == null) return true;
 			var syncTypes = entityTypes.Where(a => dicSyced.ContainsKey(a.FullName) == false).ToArray();
 			if (syncTypes.Any() == false) return true;
-			lock (syncStructureLock) {
-				var ddl = this.GetComparisonDDLStatements(syncTypes);
-				if (string.IsNullOrEmpty(ddl)) {
+			var before = new Aop.SyncStructureBeforeEventArgs(entityTypes);
+			_orm.Aop.SyncStructureBefore?.Invoke(this, before);
+			Exception exception = null;
+			string ddl = null;
+			try {
+				lock (syncStructureLock) {
+					ddl = this.GetComparisonDDLStatements(syncTypes);
+					if (string.IsNullOrEmpty(ddl)) {
+						foreach (var syncType in syncTypes) dicSyced.TryAdd(syncType.FullName, true);
+						return true;
+					}
+					var affrows = _orm.Ado.ExecuteNonQuery(CommandType.Text, ddl);
 					foreach (var syncType in syncTypes) dicSyced.TryAdd(syncType.FullName, true);
-					return true;
+					return affrows > 0;
 				}
-				var affrows = _orm.Ado.ExecuteNonQuery(CommandType.Text, ddl);
-				foreach (var syncType in syncTypes) dicSyced.TryAdd(syncType.FullName, true);
-				return affrows > 0;
+			} catch (Exception ex) {
+				exception = ex;
+				throw ex;
+			} finally {
+				var after = new Aop.SyncStructureAfterEventArgs(before, ddl, exception);
+				_orm.Aop.SyncStructureAfter?.Invoke(this, after);
 			}
 		}
 		public ICodeFirst ConfigEntity<T>(Action<TableFluent<T>> entity) => _commonUtils.ConfigEntity(entity);

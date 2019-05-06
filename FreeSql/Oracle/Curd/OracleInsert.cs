@@ -84,9 +84,23 @@ namespace FreeSql.Oracle.Curd {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return 0;
 
+			long ret = 0;
+			Exception exception = null;
+			Aop.CurdBeforeEventArgs before = null;
+
 			if (_identCol == null || _source.Count > 1) {
-				_orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, _params);
-				_orm.Aop.OnInserted?.Invoke(this, new AopOnInsertedEventArgs(_table.Type, _source, sql, _params, 0, 0, null));
+				before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Insert, sql, _params);
+				_orm.Aop.CurdBefore?.Invoke(this, before);
+				try {
+					ret = _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, _params);
+				} catch (Exception ex) {
+					exception = ex;
+					throw ex;
+				} finally {
+					var after = new Aop.CurdAfterEventArgs(before, exception, ret);
+					_orm.Aop.CurdAfter?.Invoke(this, after);
+				}
+				this.ClearData();
 				return 0;
 			}
 			var identColName = _commonUtils.QuoteSqlName(_identCol.Attribute.Name);
@@ -94,18 +108,42 @@ namespace FreeSql.Oracle.Curd {
 			identParam.Direction = ParameterDirection.Output;
 			sql = $"{sql} RETURNING {identColName} INTO {identParam.ParameterName}";
 			var dbParms = _params.Concat(new[] { identParam }).ToArray();
-			_orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, dbParms);
-			long.TryParse(string.Concat(identParam.Value), out var trylng);
-			_orm.Aop.OnInserted?.Invoke(this, new AopOnInsertedEventArgs(_table.Type, _source, sql, dbParms, 0, trylng, null));
-			return trylng;
+			before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Insert, sql, dbParms);
+			_orm.Aop.CurdBefore?.Invoke(this, before);
+			try {
+				_orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, dbParms);
+				long.TryParse(string.Concat(identParam.Value), out ret);
+			} catch (Exception ex) {
+				exception = ex;
+				throw ex;
+			} finally {
+				var after = new Aop.CurdAfterEventArgs(before, exception, ret);
+				_orm.Aop.CurdAfter?.Invoke(this, after);
+			}
+			this.ClearData();
+			return ret;
 		}
 		async internal override Task<long> RawExecuteIdentityAsync() {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return 0;
 
+			long ret = 0;
+			Exception exception = null;
+			Aop.CurdBeforeEventArgs before = null;
+
 			if (_identCol == null || _source.Count > 1) {
-				await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, _params);
-				_orm.Aop.OnInserted?.Invoke(this, new AopOnInsertedEventArgs(_table.Type, _source, sql, _params, 0, 0, null));
+				before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Insert, sql, _params);
+				_orm.Aop.CurdBefore?.Invoke(this, before);
+				try {
+					ret = await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, _params);
+				} catch (Exception ex) {
+					exception = ex;
+					throw ex;
+				} finally {
+					var after = new Aop.CurdAfterEventArgs(before, exception, ret);
+					_orm.Aop.CurdAfter?.Invoke(this, after);
+				}
+				this.ClearData();
 				return 0;
 			}
 			var identColName = _commonUtils.QuoteSqlName(_identCol.Attribute.Name);
@@ -113,10 +151,20 @@ namespace FreeSql.Oracle.Curd {
 			identParam.Direction = ParameterDirection.Output;
 			sql = $"{sql} RETURNING {identColName} INTO {identParam.ParameterName}";
 			var dbParms = _params.Concat(new[] { identParam }).ToArray();
-			await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, dbParms);
-			long.TryParse(string.Concat(identParam.Value), out var trylng);
-			_orm.Aop.OnInserted?.Invoke(this, new AopOnInsertedEventArgs(_table.Type, _source, sql, dbParms, 0, trylng, null));
-			return trylng;
+			before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Insert, sql, dbParms);
+			_orm.Aop.CurdBefore?.Invoke(this, before);
+			try {
+				await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, dbParms);
+				long.TryParse(string.Concat(identParam.Value), out ret);
+			} catch (Exception ex) {
+				exception = ex;
+				throw ex;
+			} finally {
+				var after = new Aop.CurdAfterEventArgs(before, exception, ret);
+				_orm.Aop.CurdAfter?.Invoke(this, after);
+			}
+			this.ClearData();
+			return ret;
 		}
 
 		internal override List<T1> RawExecuteInserted() {

@@ -1,4 +1,5 @@
 ﻿using FreeSql.Internal;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -24,31 +25,79 @@ namespace FreeSql.PostgreSQL.Curd {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return 0;
 
+			long ret = 0;
+			Exception exception = null;
+			Aop.CurdBeforeEventArgs before = null;
+
 			var identCols = _table.Columns.Where(a => a.Value.Attribute.IsIdentity == true);
 			if (identCols.Any() == false) {
-				_orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, _params);
-				_orm.Aop.OnInserted?.Invoke(this, new AopOnInsertedEventArgs(_table.Type, _source, sql, _params, 0, 0, null));
+				before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Insert, sql, _params);
+				_orm.Aop.CurdBefore?.Invoke(this, before);
+				try {
+					ret = _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, _params);
+				} catch (Exception ex) {
+					exception = ex;
+					throw ex;
+				} finally {
+					var after = new Aop.CurdAfterEventArgs(before, exception, ret);
+					_orm.Aop.CurdAfter?.Invoke(this, after);
+				}
+				this.ClearData();
 				return 0;
 			}
 			sql = string.Concat(sql, " RETURNING ", _commonUtils.QuoteSqlName(identCols.First().Value.Attribute.Name));
-			long.TryParse(string.Concat(_orm.Ado.ExecuteScalar(_connection, _transaction, CommandType.Text, sql, _params)), out var trylng);
-			_orm.Aop.OnInserted?.Invoke(this, new AopOnInsertedEventArgs(_table.Type, _source, sql, _params, 0, trylng, null));
-			return trylng;
+			before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Insert, sql, _params);
+			_orm.Aop.CurdBefore?.Invoke(this, before);
+			try {
+				long.TryParse(string.Concat(_orm.Ado.ExecuteScalar(_connection, _transaction, CommandType.Text, sql, _params)), out ret);
+			} catch (Exception ex) {
+				exception = ex;
+				throw ex;
+			} finally {
+				var after = new Aop.CurdAfterEventArgs(before, exception, ret);
+				_orm.Aop.CurdAfter?.Invoke(this, after);
+			}
+			this.ClearData();
+			return ret;
 		}
 		async internal override Task<long> RawExecuteIdentityAsync() {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return 0;
 
+			long ret = 0;
+			Exception exception = null;
+			Aop.CurdBeforeEventArgs before = null;
+
 			var identCols = _table.Columns.Where(a => a.Value.Attribute.IsIdentity == true);
 			if (identCols.Any() == false) {
-				await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, _params);
-				_orm.Aop.OnInserted?.Invoke(this, new AopOnInsertedEventArgs(_table.Type, _source, sql, _params, 0, 0, null));
+				before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Insert, sql, _params);
+				_orm.Aop.CurdBefore?.Invoke(this, before);
+				try {
+					ret = await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, _params);
+				} catch (Exception ex) {
+					exception = ex;
+					throw ex;
+				} finally {
+					var after = new Aop.CurdAfterEventArgs(before, exception, ret);
+					_orm.Aop.CurdAfter?.Invoke(this, after);
+				}
+				this.ClearData();
 				return 0;
 			}
 			sql = string.Concat(sql, " RETURNING ", _commonUtils.QuoteSqlName(identCols.First().Value.Attribute.Name));
-			long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync(_connection, _transaction, CommandType.Text, sql, _params)), out var trylng);
-			_orm.Aop.OnInserted?.Invoke(this, new AopOnInsertedEventArgs(_table.Type, _source, sql, _params, 0, trylng, null));
-			return trylng;
+			before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Insert, sql, _params);
+			_orm.Aop.CurdBefore?.Invoke(this, before);
+			try {
+				long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync(_connection, _transaction, CommandType.Text, sql, _params)), out ret);
+			} catch (Exception ex) {
+				exception = ex;
+				throw ex;
+			} finally {
+				var after = new Aop.CurdAfterEventArgs(before, exception, ret);
+				_orm.Aop.CurdAfter?.Invoke(this, after);
+			}
+			this.ClearData();
+			return ret;
 		}
 
 		internal override List<T1> RawExecuteInserted() {
@@ -65,8 +114,20 @@ namespace FreeSql.PostgreSQL.Curd {
 				++colidx;
 			}
 			sql = sb.ToString();
-			var ret = _orm.Ado.Query<T1>(_connection, _transaction, CommandType.Text, sql, _params);
-			_orm.Aop.OnInserted?.Invoke(this, new AopOnInsertedEventArgs(_table.Type, _source, sql, _params, 0, 0, ret));
+			var before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Insert, sql, _params);
+			_orm.Aop.CurdBefore?.Invoke(this, before);
+			var ret = new List<T1>();
+			Exception exception = null;
+			try {
+				ret = _orm.Ado.Query<T1>(_connection, _transaction, CommandType.Text, sql, _params);
+			} catch (Exception ex) {
+				exception = ex;
+				throw ex;
+			} finally {
+				var after = new Aop.CurdAfterEventArgs(before, exception, ret);
+				_orm.Aop.CurdAfter?.Invoke(this, after);
+			}
+			this.ClearData();
 			return ret;
 		}
 		async internal override Task<List<T1>> RawExecuteInsertedAsync() {
@@ -83,8 +144,20 @@ namespace FreeSql.PostgreSQL.Curd {
 				++colidx;
 			}
 			sql = sb.ToString();
-			var ret = await _orm.Ado.QueryAsync<T1>(_connection, _transaction, CommandType.Text, sql, _params);
-			_orm.Aop.OnInserted?.Invoke(this, new AopOnInsertedEventArgs(_table.Type, _source, sql, _params, 0, 0, ret));
+			var before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Insert, sql, _params);
+			_orm.Aop.CurdBefore?.Invoke(this, before);
+			var ret = new List<T1>();
+			Exception exception = null;
+			try {
+				ret = await _orm.Ado.QueryAsync<T1>(_connection, _transaction, CommandType.Text, sql, _params);
+			} catch (Exception ex) {
+				exception = ex;
+				throw ex;
+			} finally {
+				var after = new Aop.CurdAfterEventArgs(before, exception, ret);
+				_orm.Aop.CurdAfter?.Invoke(this, after);
+			}
+			this.ClearData();
 			return ret;
 		}
 	}

@@ -1,4 +1,5 @@
 ﻿using FreeSql.Internal;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Text;
@@ -24,8 +25,20 @@ namespace FreeSql.MySql.Curd {
 			if (string.IsNullOrEmpty(sql)) return 0;
 
 			sql = string.Concat(sql, "; SELECT LAST_INSERT_ID();");
-			var ret = long.TryParse(string.Concat(_orm.Ado.ExecuteScalar(_connection, _transaction, CommandType.Text, sql, _params)), out var trylng) ? trylng : 0;
-			_orm.Aop.OnInserted?.Invoke(this, new AopOnInsertedEventArgs(_table.Type, _source, sql, _params, 0, ret, null));
+			var before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Insert, sql, _params);
+			_orm.Aop.CurdBefore?.Invoke(this, before);
+			long ret = 0;
+			Exception exception = null;
+			try {
+				ret = long.TryParse(string.Concat(_orm.Ado.ExecuteScalar(_connection, _transaction, CommandType.Text, sql, _params)), out var trylng) ? trylng : 0;
+			} catch (Exception ex) {
+				exception = ex;
+				throw ex;
+			} finally {
+				var after = new Aop.CurdAfterEventArgs(before, exception, ret);
+				_orm.Aop.CurdAfter?.Invoke(this, after);
+			}
+			this.ClearData();
 			return ret;
 		}
 		async internal override Task<long> RawExecuteIdentityAsync() {
@@ -33,8 +46,20 @@ namespace FreeSql.MySql.Curd {
 			if (string.IsNullOrEmpty(sql)) return 0;
 
 			sql = string.Concat(sql, "; SELECT LAST_INSERT_ID();");
-			var ret = long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync(_connection, _transaction, CommandType.Text, sql, _params)), out var trylng) ? trylng : 0;
-			_orm.Aop.OnInserted?.Invoke(this, new AopOnInsertedEventArgs(_table.Type, _source, sql, _params, 0, ret, null));
+			var before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Insert, sql, _params);
+			_orm.Aop.CurdBefore?.Invoke(this, before);
+			long ret = 0;
+			Exception exception = null;
+			try {
+				ret = long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync(_connection, _transaction, CommandType.Text, sql, _params)), out var trylng) ? trylng : 0;
+			} catch (Exception ex) {
+				exception = ex;
+				throw ex;
+			} finally {
+				var after = new Aop.CurdAfterEventArgs(before, exception, ret);
+				_orm.Aop.CurdAfter?.Invoke(this, after);
+			}
+			this.ClearData();
 			return ret;
 		}
 		internal override List<T1> RawExecuteInserted() {
@@ -51,8 +76,20 @@ namespace FreeSql.MySql.Curd {
 				++colidx;
 			}
 			sql = sb.ToString();
-			var ret = _orm.Ado.Query<T1>(_connection, _transaction, CommandType.Text, sql, _params);
-			_orm.Aop.OnInserted?.Invoke(this, new AopOnInsertedEventArgs(_table.Type, _source, sql, _params, 0, 0, ret));
+			var before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Insert, sql, _params);
+			_orm.Aop.CurdBefore?.Invoke(this, before);
+			var ret = new List<T1>();
+			Exception exception = null;
+			try {
+				ret = _orm.Ado.Query<T1>(_connection, _transaction, CommandType.Text, sql, _params);
+			} catch (Exception ex) {
+				exception = ex;
+				throw ex;
+			} finally {
+				var after = new Aop.CurdAfterEventArgs(before, exception, ret);
+				_orm.Aop.CurdAfter?.Invoke(this, after);
+			}
+			this.ClearData();
 			return ret;
 		}
 		async internal override Task<List<T1>> RawExecuteInsertedAsync() {
@@ -69,8 +106,20 @@ namespace FreeSql.MySql.Curd {
 				++colidx;
 			}
 			sql = sb.ToString();
-			var ret = await _orm.Ado.QueryAsync<T1>(_connection, _transaction, CommandType.Text, sql, _params);
-			_orm.Aop.OnInserted?.Invoke(this, new AopOnInsertedEventArgs(_table.Type, _source, sql, _params, 0, 0, ret));
+			var before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Insert, sql, _params);
+			_orm.Aop.CurdBefore?.Invoke(this, before);
+			var ret = new List<T1>();
+			Exception exception = null;
+			try {
+				ret = await _orm.Ado.QueryAsync<T1>(_connection, _transaction, CommandType.Text, sql, _params);
+			} catch (Exception ex) {
+				exception = ex;
+				throw ex;
+			} finally {
+				var after = new Aop.CurdAfterEventArgs(before, exception, ret);
+				_orm.Aop.CurdAfter?.Invoke(this, after);
+			}
+			this.ClearData();
 			return ret;
 		}
 	}

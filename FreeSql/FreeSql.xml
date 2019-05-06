@@ -1882,129 +1882,149 @@
             自定义实体的属性配置，方便和多个 ORM 共同使用
             </summary>
         </member>
-        <member name="P:FreeSql.IAop.OnUpdated">
+        <member name="P:FreeSql.IAop.CurdBefore">
             <summary>
-            IUpdate 执行成功后触发
+            增删查改，执行命令之前触发
             </summary>
         </member>
-        <member name="P:FreeSql.IAop.OnInserted">
+        <member name="P:FreeSql.IAop.CurdAfter">
             <summary>
-            IInsert 执行成功后触发
+            增删查改，执行命令完成后触发
             </summary>
         </member>
-        <member name="P:FreeSql.IAop.OnDeleted">
+        <member name="P:FreeSql.IAop.SyncStructureBefore">
             <summary>
-            IDeleted 执行成功后触发
+            CodeFirst迁移，执行之前触发
             </summary>
         </member>
-        <member name="P:FreeSql.IAop.OnSelected">
+        <member name="P:FreeSql.IAop.SyncStructureAfter">
             <summary>
-            ISelect 执行成功后触发
+            CodeFirst迁移，执行完成触发
             </summary>
         </member>
-        <member name="P:FreeSql.AopToListEventArgs.List">
+        <member name="P:FreeSql.Aop.ToListEventArgs.List">
             <summary>
             可重新装饰的引用数据
             </summary>
         </member>
-        <member name="P:FreeSql.AopWhereEventArgs.IsCancel">
+        <member name="P:FreeSql.Aop.WhereEventArgs.IsCancel">
             <summary>
             可使上层不被执行这个条件
             </summary>
         </member>
-        <member name="P:FreeSql.AopParseExpressionEventArgs.FreeParse">
+        <member name="P:FreeSql.Aop.ParseExpressionEventArgs.FreeParse">
             <summary>
             内置解析功能，可辅助您进行解析
             </summary>
         </member>
-        <member name="P:FreeSql.AopParseExpressionEventArgs.Expression">
+        <member name="P:FreeSql.Aop.ParseExpressionEventArgs.Expression">
             <summary>
             需要您解析的表达式
             </summary>
         </member>
-        <member name="P:FreeSql.AopParseExpressionEventArgs.Result">
+        <member name="P:FreeSql.Aop.ParseExpressionEventArgs.Result">
             <summary>
             解析后的内容
             </summary>
         </member>
-        <member name="P:FreeSql.AopConfigEntityEventArgs.EntityType">
+        <member name="P:FreeSql.Aop.ConfigEntityEventArgs.EntityType">
             <summary>
             实体类型
             </summary>
         </member>
-        <member name="P:FreeSql.AopConfigEntityEventArgs.ModifyResult">
+        <member name="P:FreeSql.Aop.ConfigEntityEventArgs.ModifyResult">
             <summary>
             实体配置
             </summary>
         </member>
-        <member name="P:FreeSql.AopConfigEntityPropertyEventArgs.EntityType">
+        <member name="P:FreeSql.Aop.ConfigEntityPropertyEventArgs.EntityType">
             <summary>
             实体类型
             </summary>
         </member>
-        <member name="P:FreeSql.AopConfigEntityPropertyEventArgs.Property">
+        <member name="P:FreeSql.Aop.ConfigEntityPropertyEventArgs.Property">
             <summary>
             实体的属性
             </summary>
         </member>
-        <member name="P:FreeSql.AopConfigEntityPropertyEventArgs.ModifyResult">
+        <member name="P:FreeSql.Aop.ConfigEntityPropertyEventArgs.ModifyResult">
             <summary>
             实体的属性配置
             </summary>
         </member>
-        <member name="P:FreeSql.AopOnUpdatedEventArgs.Source">
+        <member name="P:FreeSql.Aop.CurdBeforeEventArgs.Identifier">
             <summary>
-            更新的实体
+            标识符，可将 CurdBefore 与 CurdAfter 进行匹配
             </summary>
         </member>
-        <member name="P:FreeSql.AopOnInsertedEventArgs.Identity">
+        <member name="P:FreeSql.Aop.CurdBeforeEventArgs.CurdType">
             <summary>
-            执行 ExecuteIdentity 方法时有效
+            操作类型
             </summary>
         </member>
-        <member name="P:FreeSql.AopOnDeletedEventArgs.EntityType">
+        <member name="P:FreeSql.Aop.CurdBeforeEventArgs.EntityType">
             <summary>
             实体类型
             </summary>
         </member>
-        <member name="P:FreeSql.AopOnDeletedEventArgs.Sql">
+        <member name="P:FreeSql.Aop.CurdBeforeEventArgs.Sql">
             <summary>
             执行的 SQL
             </summary>
         </member>
-        <member name="P:FreeSql.AopOnDeletedEventArgs.DbParms">
+        <member name="P:FreeSql.Aop.CurdBeforeEventArgs.DbParms">
             <summary>
             参数化命令
             </summary>
         </member>
-        <member name="P:FreeSql.AopOnDeletedEventArgs.Affrows">
+        <member name="P:FreeSql.Aop.CurdAfterEventArgs.Exception">
             <summary>
-            执行 ExecuteAffrows 方法时有效
+            发生的错误
             </summary>
         </member>
-        <member name="P:FreeSql.AopOnDeletedEventArgs.Returning">
+        <member name="P:FreeSql.Aop.CurdAfterEventArgs.ExecuteResult">
             <summary>
-            执行 ExecuteDeleted 方法时有效
+            执行SQL命令，返回的结果
             </summary>
         </member>
-        <member name="P:FreeSql.AopOnSelectedEventArgs.EntityType">
+        <member name="P:FreeSql.Aop.CurdAfterEventArgs.ElapsedTicks">
+            <summary>
+            耗时（单位：Ticks）
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.CurdAfterEventArgs.ElapsedMilliseconds">
+            <summary>
+            耗时（单位：毫秒）
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.SyncStructureBeforeEventArgs.Identifier">
+            <summary>
+            标识符，可将 SyncStructureBeforeEventArgs 与 SyncStructureAfterEventArgs 进行匹配
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.SyncStructureBeforeEventArgs.EntityTypes">
             <summary>
             实体类型
             </summary>
         </member>
-        <member name="P:FreeSql.AopOnSelectedEventArgs.Sql">
+        <member name="P:FreeSql.Aop.SyncStructureAfterEventArgs.Sql">
             <summary>
             执行的 SQL
             </summary>
         </member>
-        <member name="P:FreeSql.AopOnSelectedEventArgs.DbParms">
+        <member name="P:FreeSql.Aop.SyncStructureAfterEventArgs.Exception">
             <summary>
-            参数化命令
+            发生的错误
             </summary>
         </member>
-        <member name="P:FreeSql.AopOnSelectedEventArgs.ReturnData">
+        <member name="P:FreeSql.Aop.SyncStructureAfterEventArgs.ElapsedTicks">
             <summary>
-            查询返回的对象
+            耗时（单位：Ticks）
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.SyncStructureAfterEventArgs.ElapsedMilliseconds">
+            <summary>
+            耗时（单位：毫秒）
             </summary>
         </member>
         <member name="P:FreeSql.ICache.Serialize">

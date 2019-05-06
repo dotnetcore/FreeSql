@@ -325,14 +325,38 @@ namespace FreeSql.Internal.CommonProvider {
 
 		internal int RawExecuteAffrows() {
 			var sql = ToSql();
-			var affrows = _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, _params);
-			_orm.Aop.OnInserted?.Invoke(this, new AopOnInsertedEventArgs(_table.Type, _source, sql, _params, affrows, 0, null));
+			var before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Insert, sql, _params);
+			_orm.Aop.CurdBefore?.Invoke(this, before);
+			var affrows = 0;
+			Exception exception = null;
+			try {
+				affrows = _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, _params);
+			} catch (Exception ex) {
+				exception = ex;
+				throw ex;
+			} finally {
+				var after = new Aop.CurdAfterEventArgs(before, exception, affrows);
+				_orm.Aop.CurdAfter?.Invoke(this, after);
+			}
+			this.ClearData();
 			return affrows;
 		}
 		async internal Task<int> RawExecuteAffrowsAsync() {
 			var sql = ToSql();
-			var affrows = await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, _params);
-			_orm.Aop.OnInserted?.Invoke(this, new AopOnInsertedEventArgs(_table.Type, _source, sql, _params, affrows, 0, null));
+			var before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Insert, sql, _params);
+			_orm.Aop.CurdBefore?.Invoke(this, before);
+			var affrows = 0;
+			Exception exception = null;
+			try {
+				affrows = await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, _params);
+			} catch (Exception ex) {
+				exception = ex;
+				throw ex;
+			} finally {
+				var after = new Aop.CurdAfterEventArgs(before, exception, affrows);
+				_orm.Aop.CurdAfter?.Invoke(this, after);
+			}
+			this.ClearData();
 			return affrows;
 		}
 		internal abstract long RawExecuteIdentity();

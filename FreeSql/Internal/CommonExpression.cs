@@ -392,7 +392,7 @@ namespace FreeSql.Internal {
 		internal string ExpressionLambdaToSql(Expression exp, ExpTSC tsc) {
 			if (exp == null) return "";
 			if (tsc.isDisableDiyParse == false && _common._orm.Aop.ParseExpression != null) {
-				var args = new AopParseExpressionEventArgs(exp, ukexp => ExpressionLambdaToSql(exp, tsc.CloneDisableDiyParse()));
+				var args = new Aop.ParseExpressionEventArgs(exp, ukexp => ExpressionLambdaToSql(exp, tsc.CloneDisableDiyParse()));
 				_common._orm.Aop.ParseExpression?.Invoke(this, args);
 				if (string.IsNullOrEmpty(args.Result) == false) return args.Result;
 			}

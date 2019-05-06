@@ -6,6 +6,7 @@ using NpgsqlTypes;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
@@ -37,6 +38,9 @@ namespace FreeSql.Tests.PostgreSQLExpression {
 
 		[Fact]
 		public void Array() {
+			//g.pgsql.Aop.CurdAfter = (s, e) => {
+			//	Trace.WriteLine(e.CurdType + ": " + e.ElapsedMilliseconds + "ms " + e.Sql.Replace("\n", ""));
+			//};
 			IEnumerable<int> testlinqlist = new List<int>(new[] { 1, 2, 3 });
 			var testlinq = select.Where(a => testlinqlist.Contains(a.testFieldInt)).ToList();
 

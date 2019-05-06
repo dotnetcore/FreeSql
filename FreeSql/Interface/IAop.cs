@@ -3,6 +3,7 @@ using FreeSql.DatabaseModel;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
+using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -12,47 +13,50 @@ namespace FreeSql {
 		/// <summary>
 		/// 监控 ToList 返回的的数据，用于拦截重新装饰
 		/// </summary>
-		EventHandler<AopToListEventArgs> ToList { get; set; }
+		EventHandler<Aop.ToListEventArgs> ToList { get; set; }
 
 		/// <summary>
 		/// 监视 Where，包括 select/update/delete，可控制使上层不被执行。
 		/// </summary>
-		EventHandler<AopWhereEventArgs> Where { get; set; }
+		EventHandler<Aop.WhereEventArgs> Where { get; set; }
 
 		/// <summary>
 		/// 可自定义解析表达式
 		/// </summary>
-		EventHandler<AopParseExpressionEventArgs> ParseExpression { get; set; }
+		EventHandler<Aop.ParseExpressionEventArgs> ParseExpression { get; set; }
 
 		/// <summary>
 		/// 自定义实体的配置，方便和多个 ORM 共同使用
 		/// </summary>
-		EventHandler<AopConfigEntityEventArgs> ConfigEntity { get; set; }
+		EventHandler<Aop.ConfigEntityEventArgs> ConfigEntity { get; set; }
 		/// <summary>
 		/// 自定义实体的属性配置，方便和多个 ORM 共同使用
 		/// </summary>
-		EventHandler<AopConfigEntityPropertyEventArgs> ConfigEntityProperty { get; set; }
+		EventHandler<Aop.ConfigEntityPropertyEventArgs> ConfigEntityProperty { get; set; }
 
 		/// <summary>
-		/// IUpdate 执行成功后触发
+		/// 增删查改，执行命令之前触发
 		/// </summary>
-		EventHandler<AopOnUpdatedEventArgs> OnUpdated { get; set; }
+		EventHandler<Aop.CurdBeforeEventArgs> CurdBefore { get; set; }
 		/// <summary>
-		/// IInsert 执行成功后触发
+		/// 增删查改，执行命令完成后触发
 		/// </summary>
-		EventHandler<AopOnInsertedEventArgs> OnInserted { get; set; }
+		EventHandler<Aop.CurdAfterEventArgs> CurdAfter { get; set; }
+
 		/// <summary>
-		/// IDeleted 执行成功后触发
+		/// CodeFirst迁移，执行之前触发
 		/// </summary>
-		EventHandler<AopOnDeletedEventArgs> OnDeleted { get; set; }
+		EventHandler<Aop.SyncStructureBeforeEventArgs> SyncStructureBefore { get; set; }
 		/// <summary>
-		/// ISelect 执行成功后触发
+		/// CodeFirst迁移，执行完成触发
 		/// </summary>
-		EventHandler<AopOnSelectedEventArgs> OnSelected { get; set; }
+		EventHandler<Aop.SyncStructureAfterEventArgs> SyncStructureAfter { get; set; }
 	}
+}
 
-	public class AopToListEventArgs : EventArgs {
-		public AopToListEventArgs(object list) {
+namespace FreeSql.Aop {
+	public class ToListEventArgs : EventArgs {
+		public ToListEventArgs(object list) {
 			this.List = list;
 		}
 		/// <summary>
@@ -60,8 +64,8 @@ namespace FreeSql {
 		/// </summary>
 		public object List { get; }
 	}
-	public class AopWhereEventArgs : EventArgs {
-		public AopWhereEventArgs(params object[] parameters) {
+	public class WhereEventArgs : EventArgs {
+		public WhereEventArgs(params object[] parameters) {
 			this.Parameters = parameters;
 		}
 		public object[] Parameters { get; }
@@ -70,8 +74,8 @@ namespace FreeSql {
 		/// </summary>
 		public bool IsCancel { get; set; }
 	}
-	public class AopParseExpressionEventArgs : EventArgs {
-		public AopParseExpressionEventArgs(Expression expression, Func<Expression, string> freeParse) {
+	public class ParseExpressionEventArgs : EventArgs {
+		public ParseExpressionEventArgs(Expression expression, Func<Expression, string> freeParse) {
 			this.Expression = expression;
 			this.FreeParse = freeParse;
 		}
@@ -90,8 +94,8 @@ namespace FreeSql {
 		/// </summary>
 		public string Result { get; set; }
 	}
-	public class AopConfigEntityEventArgs : EventArgs {
-		public AopConfigEntityEventArgs(Type entityType) {
+	public class ConfigEntityEventArgs : EventArgs {
+		public ConfigEntityEventArgs(Type entityType) {
 			this.EntityType = entityType;
 			this.ModifyResult = new TableAttribute();
 		}
@@ -105,8 +109,8 @@ namespace FreeSql {
 		/// </summary>
 		public TableAttribute ModifyResult { get; }
 	}
-	public class AopConfigEntityPropertyEventArgs : EventArgs {
-		public AopConfigEntityPropertyEventArgs(Type entityType, PropertyInfo property) {
+	public class ConfigEntityPropertyEventArgs : EventArgs {
+		public ConfigEntityPropertyEventArgs(Type entityType, PropertyInfo property) {
 			this.EntityType = entityType;
 			this.Property = property;
 			this.ModifyResult = new ColumnAttribute();
@@ -126,38 +130,30 @@ namespace FreeSql {
 		public ColumnAttribute ModifyResult { get; }
 	}
 
-	public class AopOnUpdatedEventArgs : AopOnDeletedEventArgs {
-		public AopOnUpdatedEventArgs(Type entityType, object source, string sql, DbParameter[] dbParms, int affrows, object returning)
-			: base(entityType, sql, dbParms, affrows, returning) {
-			this.Source = source;
+	public class CurdBeforeEventArgs : EventArgs {
+		public CurdBeforeEventArgs(Type entityType, CurdType curdType, string sql, DbParameter[] dbParms) :
+			this(Guid.NewGuid(), new Stopwatch(), entityType, curdType, sql, dbParms) {
+			this.Stopwatch.Start();
 		}
-
-		/// <summary>
-		/// 更新的实体
-		/// </summary>
-		public object Source { get; }
-	}
-	public class AopOnInsertedEventArgs : AopOnUpdatedEventArgs {
-		public AopOnInsertedEventArgs(Type entityType, object source, string sql, DbParameter[] dbParms, int affrows, long identity, object returning)
-			: base(entityType, source, sql, dbParms, affrows, returning) {
-			this.Identity = identity;
-		}
-
-		/// <summary>
-		/// 执行 ExecuteIdentity 方法时有效
-		/// </summary>
-		public long? Identity { get; set; }
-	}
-
-	public class AopOnDeletedEventArgs : EventArgs {
-		public AopOnDeletedEventArgs(Type entityType, string sql, DbParameter[] dbParms, int affrows, object returning) {
+		protected CurdBeforeEventArgs(Guid identifier, Stopwatch stopwatch, Type entityType, CurdType curdType, string sql, DbParameter[] dbParms) {
+			this.Identifier = identifier;
+			this.Stopwatch = stopwatch;
 			this.EntityType = entityType;
+			this.CurdType = curdType;
 			this.Sql = sql;
 			this.DbParms = dbParms;
-			this.Affrows = affrows;
-			this.Returning = returning;
 		}
 
+		/// <summary>
+		/// 标识符，可将 CurdBefore 与 CurdAfter 进行匹配
+		/// </summary>
+		public Guid Identifier { get; protected set; }
+		protected Stopwatch Stopwatch { get; }
+		internal Stopwatch StopwatchInternal => Stopwatch;
+		/// <summary>
+		/// 操作类型
+		/// </summary>
+		public CurdType CurdType { get; }
 		/// <summary>
 		/// 实体类型
 		/// </summary>
@@ -170,39 +166,79 @@ namespace FreeSql {
 		/// 参数化命令
 		/// </summary>
 		public DbParameter[] DbParms { get; }
-		/// <summary>
-		/// 执行 ExecuteAffrows 方法时有效
-		/// </summary>
-		public int Affrows { get; }
-		/// <summary>
-		/// 执行 ExecuteDeleted 方法时有效
-		/// </summary>
-		public object Returning { get; }
 	}
-
-	public class AopOnSelectedEventArgs : EventArgs {
-		public AopOnSelectedEventArgs(Type entityType, string sql, DbParameter[] dbParms, object returnData) {
-			this.EntityType = entityType;
-			this.Sql = sql;
-			this.DbParms = dbParms;
-			this.ReturnData = returnData;
+	public enum CurdType { Select, Delete, Update, Insert }
+	public class CurdAfterEventArgs : CurdBeforeEventArgs {
+		public CurdAfterEventArgs(CurdBeforeEventArgs before, Exception exception, object executeResult) : 
+			base(before.Identifier, before.StopwatchInternal, before.EntityType, before.CurdType, before.Sql, before.DbParms) {
+			this.Exception = exception;
+			this.ExecuteResult = executeResult;
+			this.Stopwatch.Stop();
 		}
 
 		/// <summary>
+		/// 发生的错误
+		/// </summary>
+		public Exception Exception { get; }
+		/// <summary>
+		/// 执行SQL命令，返回的结果
+		/// </summary>
+		public object ExecuteResult { get; set; }
+		/// <summary>
+		/// 耗时（单位：Ticks）
+		/// </summary>
+		public long ElapsedTicks => this.Stopwatch.ElapsedTicks;
+		/// <summary>
+		/// 耗时（单位：毫秒）
+		/// </summary>
+		public long ElapsedMilliseconds => this.Stopwatch.ElapsedMilliseconds;
+	}
+
+	public class SyncStructureBeforeEventArgs : EventArgs {
+		public SyncStructureBeforeEventArgs(Type[] entityTypes) :
+			this(Guid.NewGuid(), new Stopwatch(), entityTypes) {
+			this.Stopwatch.Start();
+		}
+		protected SyncStructureBeforeEventArgs(Guid identifier, Stopwatch stopwatch, Type[] entityTypes) {
+			this.Identifier = identifier;
+			this.Stopwatch = stopwatch;
+			this.EntityTypes = entityTypes;
+		}
+
+		/// <summary>
+		/// 标识符，可将 SyncStructureBeforeEventArgs 与 SyncStructureAfterEventArgs 进行匹配
+		/// </summary>
+		public Guid Identifier { get; protected set; }
+		protected Stopwatch Stopwatch { get; }
+		internal Stopwatch StopwatchInternal => Stopwatch;
+		/// <summary>
 		/// 实体类型
 		/// </summary>
-		public Type EntityType { get; }
+		public Type[] EntityTypes { get; }
+	}
+	public class SyncStructureAfterEventArgs : SyncStructureBeforeEventArgs {
+		public SyncStructureAfterEventArgs(SyncStructureBeforeEventArgs before, string sql, Exception exception) :
+			base(before.Identifier, before.StopwatchInternal, before.EntityTypes) {
+			this.Sql = sql;
+			this.Exception = exception;
+			this.Stopwatch.Stop();
+		}
+
 		/// <summary>
 		/// 执行的 SQL
 		/// </summary>
 		public string Sql { get; }
 		/// <summary>
-		/// 参数化命令
+		/// 发生的错误
 		/// </summary>
-		public DbParameter[] DbParms { get; }
+		public Exception Exception { get; }
 		/// <summary>
-		/// 查询返回的对象
+		/// 耗时（单位：Ticks）
 		/// </summary>
-		public object ReturnData { get; }
+		public long ElapsedTicks => this.Stopwatch.ElapsedTicks;
+		/// <summary>
+		/// 耗时（单位：毫秒）
+		/// </summary>
+		public long ElapsedMilliseconds => this.Stopwatch.ElapsedMilliseconds;
 	}
 }

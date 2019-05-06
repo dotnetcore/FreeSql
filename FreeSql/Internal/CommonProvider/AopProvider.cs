@@ -6,14 +6,14 @@ using System.Text;
 
 namespace FreeSql.Internal.CommonProvider {
 	class AopProvider : IAop {
-		public EventHandler<AopToListEventArgs> ToList { get; set; }
-		public EventHandler<AopWhereEventArgs> Where { get; set; }
-		public EventHandler<AopParseExpressionEventArgs> ParseExpression { get; set; }
-		public EventHandler<AopConfigEntityEventArgs> ConfigEntity { get; set; }
-		public EventHandler<AopConfigEntityPropertyEventArgs> ConfigEntityProperty { get; set; }
-		public EventHandler<AopOnUpdatedEventArgs> OnUpdated { get; set; }
-		public EventHandler<AopOnInsertedEventArgs> OnInserted { get; set; }
-		public EventHandler<AopOnDeletedEventArgs> OnDeleted { get; set; }
-		public EventHandler<AopOnSelectedEventArgs> OnSelected { get; set; }
+		public EventHandler<Aop.ToListEventArgs> ToList { get; set; }
+		public EventHandler<Aop.WhereEventArgs> Where { get; set; }
+		public EventHandler<Aop.ParseExpressionEventArgs> ParseExpression { get; set; }
+		public EventHandler<Aop.ConfigEntityEventArgs> ConfigEntity { get; set; }
+		public EventHandler<Aop.ConfigEntityPropertyEventArgs> ConfigEntityProperty { get; set; }
+		public EventHandler<Aop.CurdBeforeEventArgs> CurdBefore { get; set; }
+		public EventHandler<Aop.CurdAfterEventArgs> CurdAfter { get; set; }
+		public EventHandler<Aop.SyncStructureBeforeEventArgs> SyncStructureBefore { get; set; }
+		public EventHandler<Aop.SyncStructureAfterEventArgs> SyncStructureAfter { get; set; }
 	}
 }
