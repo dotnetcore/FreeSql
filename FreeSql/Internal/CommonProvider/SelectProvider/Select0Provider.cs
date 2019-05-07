@@ -31,6 +31,7 @@ namespace FreeSql.Internal.CommonProvider {
 		protected DbConnection _connection;
 		protected Action<object> _trackToList;
 		protected bool _distinct;
+		protected Expression _selectExpression;
 
 		internal static void CopyData(Select0Provider<TSelect, T1> from, object to, ReadOnlyCollection<ParameterExpression> lambParms) {
 			var toType = to?.GetType();
@@ -43,19 +44,22 @@ namespace FreeSql.Internal.CommonProvider {
 			toType.GetField("_having", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._having);
 			toType.GetField("_where", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, new StringBuilder().Append(from._where.ToString()));
 			toType.GetField("_params", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, new List<DbParameter>(from._params.ToArray()));
-			//toType.GetField("_tables", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, new List<SelectTableInfo>(from._tables.ToArray()));
-			var _multiTables = toType.GetField("_tables", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(to) as List<SelectTableInfo>;
-			_multiTables[0] = from._tables[0];
-			for (var a = 1; a < lambParms.Count; a++) {
-				var tb = from._tables.Where(b => b.Alias == lambParms[a].Name && b.Table.Type == lambParms[a].Type).FirstOrDefault();
-				if (tb != null) _multiTables[a] = tb;
-				else {
-					_multiTables[a].Alias = lambParms[a].Name;
-					_multiTables[a].Parameter = lambParms[a];
+			if (lambParms == null)
+				toType.GetField("_tables", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, new List<SelectTableInfo>(from._tables.ToArray()));
+			else {
+				var _multiTables = toType.GetField("_tables", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(to) as List<SelectTableInfo>;
+				_multiTables[0] = from._tables[0];
+				for (var a = 1; a < lambParms.Count; a++) {
+					var tb = from._tables.Where(b => b.Alias == lambParms[a].Name && b.Table.Type == lambParms[a].Type).FirstOrDefault();
+					if (tb != null) _multiTables[a] = tb;
+					else {
+						_multiTables[a].Alias = lambParms[a].Name;
+						_multiTables[a].Parameter = lambParms[a];
+					}
 				}
+				if (_multiTables.Count < from._tables.Count)
+					_multiTables.AddRange(from._tables.GetRange(_multiTables.Count, from._tables.Count - _multiTables.Count));
 			}
-			if (_multiTables.Count < from._tables.Count)
-				_multiTables.AddRange(from._tables.GetRange(_multiTables.Count, from._tables.Count - _multiTables.Count));
 			toType.GetField("_tableRules", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._tableRules);
 			toType.GetField("_join", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, new StringBuilder().Append(from._join.ToString()));
 			toType.GetField("_cache", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._cache);
@@ -66,6 +70,7 @@ namespace FreeSql.Internal.CommonProvider {
 			toType.GetField("_connection", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._connection);
 			toType.GetField("_trackToList", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._trackToList);
 			toType.GetField("_distinct", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._distinct);
+			toType.GetField("_selectExpression", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._selectExpression);
 		}
 
 		public Select0Provider(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere) {
@@ -366,10 +371,14 @@ namespace FreeSql.Internal.CommonProvider {
 				return ret;
 			});
 		}
-		public List<T1> ToList(bool includeNestedMembers = false) => 
-			this.ToListPrivate(includeNestedMembers == false ? this.GetAllFieldExpressionTreeLevel2() : this.GetAllFieldExpressionTreeLevelAll());
-		public Task<List<T1>> ToListAsync(bool includeNestedMembers = false) => 
-			this.ToListPrivateAsync(includeNestedMembers == false ? this.GetAllFieldExpressionTreeLevel2() : this.GetAllFieldExpressionTreeLevelAll());
+		public List<T1> ToList(bool includeNestedMembers = false) {
+			if (_selectExpression != null) return this.InternalToList<T1>(_selectExpression);
+			return this.ToListPrivate(includeNestedMembers == false ? this.GetAllFieldExpressionTreeLevel2() : this.GetAllFieldExpressionTreeLevelAll());
+		}
+		public Task<List<T1>> ToListAsync(bool includeNestedMembers = false) {
+			if (_selectExpression != null) return this.InternalToListAsync<T1>(_selectExpression);
+			return this.ToListPrivateAsync(includeNestedMembers == false ? this.GetAllFieldExpressionTreeLevel2() : this.GetAllFieldExpressionTreeLevelAll());
+		}
 		public T1 ToOne() {
 			this.Limit(1);
 			return this.ToList().FirstOrDefault();

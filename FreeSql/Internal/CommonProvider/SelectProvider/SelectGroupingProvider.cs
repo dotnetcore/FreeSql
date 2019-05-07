@@ -110,6 +110,7 @@ namespace FreeSql.Internal.CommonProvider {
 			method = method.MakeGenericMethod(typeof(TReturn));
 			return method.Invoke(_select, new object[] { (map, field.Length > 0 ? field.Remove(0, 2).ToString() : null) }) as Task<List<TReturn>>;
 		}
+		public List<TReturn> Select<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select) => ToList(select);
 
 		public string ToSql<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select) {
 			var map = new ReadAnonymousTypeInfo();

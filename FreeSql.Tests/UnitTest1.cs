@@ -88,6 +88,18 @@ namespace FreeSql.Tests {
 
 		[Fact]
 		public void Test1() {
+			var linqto1 = 
+				from p in g.sqlite.Select<Order>()
+				where p.Id >= 0
+				// && p.OrderDetails.AsSelect().Where(c => c.Id > 10).Any()
+				orderby p.Id descending
+				orderby p.CustomerName ascending
+				select new { Name = p.CustomerName, Length = p.Id };
+
+
+
+
+
 
 			var testddd = new TestEntity {
 				Test = 22,

@@ -770,7 +770,7 @@ namespace FreeSql.Internal {
 							if (mp?.Expression != null) { //导航条件，OneToOne、ManyToOne
 								var firstTb = tsc._tables.First().Table;
 								var parentTb = _common.GetTableByEntity(mp.Expression.Type);
-								var parentTbRef = parentTb.GetTableRef(mp.Member.Name, tsc.style == ExpressionStyle.AsSelect);
+								var parentTbRef = parentTb?.GetTableRef(mp.Member.Name, tsc.style == ExpressionStyle.AsSelect);
 								if (parentTbRef != null) {
 									Expression navCondExp = null;
 									for (var mn = 0; mn < parentTbRef.Columns.Count; mn++) {

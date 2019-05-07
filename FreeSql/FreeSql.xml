@@ -963,6 +963,31 @@
             <param name="select">选择列</param>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.ISelect`1.Select``1(System.Linq.Expressions.Expression{System.Func{`0,``0}})">
+            <summary>
+            【linq to sql】专用方法，不建议直接使用
+            </summary>
+        </member>
+        <member name="M:FreeSql.ISelect`1.Join``3(FreeSql.ISelect{``0},System.Linq.Expressions.Expression{System.Func{`0,``1}},System.Linq.Expressions.Expression{System.Func{``0,``1}},System.Linq.Expressions.Expression{System.Func{`0,``0,``2}})">
+            <summary>
+            【linq to sql】专用方法，不建议直接使用
+            </summary>
+        </member>
+        <member name="M:FreeSql.ISelect`1.GroupJoin``3(FreeSql.ISelect{``0},System.Linq.Expressions.Expression{System.Func{`0,``1}},System.Linq.Expressions.Expression{System.Func{``0,``1}},System.Linq.Expressions.Expression{System.Func{`0,FreeSql.ISelect{``0},``2}})">
+            <summary>
+            【linq to sql】专用方法，不建议直接使用
+            </summary>
+        </member>
+        <member name="M:FreeSql.ISelect`1.DefaultIfEmpty">
+            <summary>
+            【linq to sql】专用方法，不建议直接使用
+            </summary>
+        </member>
+        <member name="M:FreeSql.ISelect`1.SelectMany``2(System.Linq.Expressions.Expression{System.Func{`0,FreeSql.ISelect{``0}}},System.Linq.Expressions.Expression{System.Func{`0,``0,``1}})">
+            <summary>
+            【linq to sql】专用方法，不建议直接使用
+            </summary>
+        </member>
         <member name="M:FreeSql.ISelect`1.ToOne``1(System.Linq.Expressions.Expression{System.Func{`0,``0}})">
             <summary>
             执行SQL查询，返回指定字段的记录的第一条记录，记录不存在时返回 TReturn 默认值
@@ -1290,6 +1315,11 @@
             <typeparam name="TReturn">返回类型</typeparam>
             <param name="select">选择列</param>
             <returns></returns>
+        </member>
+        <member name="M:FreeSql.ISelectGrouping`2.Select``1(System.Linq.Expressions.Expression{System.Func{FreeSql.ISelectGroupingAggregate{`0,`1},``0}})">
+            <summary>
+            【linq to sql】专用方法，不建议直接使用
+            </summary>
         </member>
         <member name="M:FreeSql.ISelectGrouping`2.ToSql``1(System.Linq.Expressions.Expression{System.Func{FreeSql.ISelectGroupingAggregate{`0,`1},``0}})">
             <summary>

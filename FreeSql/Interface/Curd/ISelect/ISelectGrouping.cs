@@ -37,6 +37,11 @@ namespace FreeSql {
 		Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select);
 
 		/// <summary>
+		/// 【linq to sql】专用方法，不建议直接使用
+		/// </summary>
+		List<TReturn> Select<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select);
+
+		/// <summary>
 		/// 返回即将执行的SQL语句
 		/// </summary>
 		/// <typeparam name="TReturn">返回类型</typeparam>

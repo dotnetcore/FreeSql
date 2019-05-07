@@ -254,7 +254,7 @@ namespace FreeSql.Sqlite {
 		public bool SyncStructure<TEntity>() => this.SyncStructure(typeof(TEntity));
 		public bool SyncStructure(params Type[] entityTypes) {
 			if (entityTypes == null) return true;
-			var syncTypes = entityTypes.Where(a => dicSyced.ContainsKey(a.FullName) == false).ToArray();
+			var syncTypes = entityTypes.Where(a => a.IsAnonymousType() == false && dicSyced.ContainsKey(a.FullName) == false).ToArray();
 			if (syncTypes.Any() == false) return true;
 			var before = new Aop.SyncStructureBeforeEventArgs(entityTypes);
 			_orm.Aop.SyncStructureBefore?.Invoke(this, before);

@@ -5,6 +5,7 @@ using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace FreeSql.Internal.CommonProvider {
@@ -151,6 +152,70 @@ namespace FreeSql.Internal.CommonProvider {
 			if (select == null) return this.InternalToListAsync<TReturn>(select?.Body);
 			_tables[0].Parameter = select.Parameters[0];
 			return this.InternalToListAsync<TReturn>(select?.Body);
+		}
+
+		public ISelect<TReturn> Select<TReturn>(Expression<Func<T1, TReturn>> select) where TReturn : class {
+			if (typeof(TReturn) == typeof(T1)) return this as ISelect<TReturn>;
+			_tables[0].Parameter = select.Parameters[0];
+			_selectExpression = select.Body;
+			var ret = _orm.Select<TReturn>();
+			Select0Provider<ISelect<T1>, T1>.CopyData(this, ret, null);
+			return ret;
+		}
+		public ISelect<TResult> Join<TInner, TKey, TResult>(ISelect<TInner> inner, Expression<Func<T1, TKey>> outerKeySelector, Expression<Func<TInner, TKey>> innerKeySelector, Expression<Func<T1, TInner, TResult>> resultSelector) where TInner : class where TResult : class {
+			_tables[0].Parameter = resultSelector.Parameters[0];
+			_commonExpression.ExpressionLambdaToSql(outerKeySelector, new CommonExpression.ExpTSC { _tables = _tables });
+			this.InternalJoin(Expression.Lambda<Func<T1, TInner, bool>>(
+				Expression.Equal(outerKeySelector.Body, innerKeySelector.Body), 
+				new[] { outerKeySelector.Parameters[0], innerKeySelector.Parameters[0] }
+			), SelectTableInfoType.InnerJoin);
+			if (typeof(TResult) == typeof(T1)) return this as ISelect<TResult>;
+			_selectExpression = resultSelector.Body;
+			var ret = _orm.Select<TResult>() as Select1Provider<TResult>;
+			Select0Provider<ISelect<T1>, T1>.CopyData(this, ret, null);
+			return ret;
+		}
+		public ISelect<TResult> GroupJoin<TInner, TKey, TResult>(ISelect<TInner> inner, Expression<Func<T1, TKey>> outerKeySelector, Expression<Func<TInner, TKey>> innerKeySelector, Expression<Func<T1, ISelect<TInner>, TResult>> resultSelector) where TInner : class where TResult : class {
+			_tables[0].Parameter = resultSelector.Parameters[0];
+			_commonExpression.ExpressionLambdaToSql(outerKeySelector, new CommonExpression.ExpTSC { _tables = _tables });
+			this.InternalJoin(Expression.Lambda<Func<T1, TInner, bool>>(
+				Expression.Equal(outerKeySelector.Body, innerKeySelector.Body),
+				new[] { outerKeySelector.Parameters[0], innerKeySelector.Parameters[0] }
+			), SelectTableInfoType.InnerJoin);
+			if (typeof(TResult) == typeof(T1)) return this as ISelect<TResult>;
+			_selectExpression = resultSelector.Body;
+			var ret = _orm.Select<TResult>() as Select1Provider<TResult>;
+			Select0Provider<ISelect<T1>, T1>.CopyData(this, ret, null);
+			return ret;
+		}
+		public ISelect<TResult> SelectMany<TCollection, TResult>(Expression<Func<T1, ISelect<TCollection>>> collectionSelector, Expression<Func<T1, TCollection, TResult>> resultSelector) where TCollection : class where TResult : class {
+			SelectTableInfo find = null;
+			if (collectionSelector.Body.NodeType == ExpressionType.Call) {
+				var callExp = collectionSelector.Body as MethodCallExpression;
+				if (callExp.Method.Name == "DefaultIfEmpty" && callExp.Object.Type.GenericTypeArguments.Any()) {
+					find = _tables.Where((a, idx) => idx > 0 && a.Type == SelectTableInfoType.InnerJoin && a.Table.Type == callExp.Object.Type.GenericTypeArguments[0]).LastOrDefault();
+					if (find != null) {
+						if (!string.IsNullOrEmpty(find.On)) find.On = Regex.Replace(find.On, $@"\b{find.Alias}\.", $"{resultSelector.Parameters[1].Name}.");
+						if (!string.IsNullOrEmpty(find.NavigateCondition)) find.NavigateCondition = Regex.Replace(find.NavigateCondition, $@"\b{find.Alias}\.", $"{resultSelector.Parameters[1].Name}.");
+						find.Type = SelectTableInfoType.LeftJoin;
+						find.Alias = resultSelector.Parameters[1].Name;
+						find.Parameter = resultSelector.Parameters[1];
+					}
+				}
+			}
+			if (find == null) {
+				var tb = _commonUtils.GetTableByEntity(typeof(TCollection));
+				if (tb == null) throw new Exception($"SelectMany 错误的类型：{typeof(TCollection).FullName}");
+				_tables.Add(new SelectTableInfo { Alias = resultSelector.Parameters[1].Name, AliasInit = resultSelector.Parameters[1].Name, Parameter = resultSelector.Parameters[1], Table = tb, Type = SelectTableInfoType.From });
+			}
+			if (typeof(TResult) == typeof(T1)) return this as ISelect<TResult>;
+			_selectExpression = resultSelector.Body;
+			var ret = _orm.Select<TResult>() as Select1Provider<TResult>;
+			Select0Provider<ISelect<T1>, T1>.CopyData(this, ret, null);
+			return ret;
+		}
+		public ISelect<T1> DefaultIfEmpty() {
+			return this;
 		}
 
 		public DataTable ToDataTable<TReturn>(Expression<Func<T1, TReturn>> select) {

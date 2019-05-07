@@ -18,7 +18,7 @@ namespace FreeSql.Internal {
 
 		static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, TableInfo>> _cacheGetTableByEntity = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, TableInfo>>();
 		internal static void RemoveTableByEntity(Type entity, CommonUtils common) {
-			if (entity.FullName.StartsWith("<>f__AnonymousType") ||
+			if (entity.IsAnonymousType() ||
 				entity.IsValueType ||
 				entity.IsNullableType() ||
 				entity.NullableTypeOrThis() == typeof(BigInteger)
@@ -27,7 +27,7 @@ namespace FreeSql.Internal {
 			if (tbc.TryRemove(entity, out var trytb) && trytb?.TypeLazy != null) tbc.TryRemove(trytb.TypeLazy, out var trylz);
 		}
 		internal static TableInfo GetTableByEntity(Type entity, CommonUtils common) {
-			if (entity.FullName.StartsWith("<>f__AnonymousType") ||
+			if (entity.IsAnonymousType() ||
 				entity.IsValueType || 
 				entity.IsNullableType() || 
 				entity.NullableTypeOrThis() == typeof(BigInteger)
