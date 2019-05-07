@@ -95,14 +95,14 @@ namespace FreeSql.Oracle {
 				var tboldname = tb.DbOldName?.Split(new[] { '.' }, 2); //旧表名
 				if (tboldname?.Length == 1) tboldname = new[] { userId, tboldname[0] };
 
-				if (string.Compare(tbname[0], userId) != 0 && _orm.Ado.ExecuteScalar(CommandType.Text, " select 1 from sys.dba_users where username={0}".FormatOracleSQL(tbname[0])) == null) //创建数据库
+				if (string.Compare(tbname[0], userId) != 0 && _orm.Ado.ExecuteScalar(CommandType.Text, _commonUtils.FormatSql(" select 1 from sys.dba_users where username={0}", tbname[0])) == null) //创建数据库
 					throw new NotImplementedException($"Oracle CodeFirst 不支持代码创建 tablespace 与 schemas {tbname[0]}");
 
 				var sbalter = new StringBuilder();
 				var istmpatler = false; //创建临时表，导入数据，删除旧表，修改
-				if (_orm.Ado.ExecuteScalar(CommandType.Text, " select 1 from all_tab_comments where owner={0} and table_name={1}".FormatOracleSQL(tbname)) == null) { //表不存在
+				if (_orm.Ado.ExecuteScalar(CommandType.Text, _commonUtils.FormatSql(" select 1 from all_tab_comments where owner={0} and table_name={1}", tbname)) == null) { //表不存在
 					if (tboldname != null) {
-						if (_orm.Ado.ExecuteScalar(CommandType.Text, " select 1 from all_tab_comments where owner={0} and table_name={1}".FormatOracleSQL(tboldname)) == null)
+						if (_orm.Ado.ExecuteScalar(CommandType.Text, _commonUtils.FormatSql(" select 1 from all_tab_comments where owner={0} and table_name={1}", tboldname)) == null)
 							//模式或表不存在
 							tboldname = null;
 					}
@@ -138,7 +138,7 @@ namespace FreeSql.Oracle {
 					tboldname = null; //如果新表已经存在，不走改表名逻辑
 
 				//对比字段，只可以修改类型、增加字段、有限的修改字段名；保证安全不删除字段
-				var sql = $@"
+				var sql = _commonUtils.FormatSql($@"
 select 
 column_name,
 data_type,
@@ -150,7 +150,7 @@ case when nullable = 'Y' then 1 else 0 end,
 nvl((select 1 from user_sequences where sequence_name='{Utils.GetCsName((tboldname ?? tbname).Last())}_seq_'||all_tab_columns.column_name), 0),
 nvl((select 1 from user_triggers where trigger_name='{Utils.GetCsName((tboldname ?? tbname).Last())}_seq_'||all_tab_columns.column_name||'TI'), 0)
 from all_tab_columns
-where owner={{0}} and table_name={{1}}".FormatOracleSQL(tboldname ?? tbname);
+where owner={{0}} and table_name={{1}}", tboldname ?? tbname);
 				var ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
 				var tbstruct = ds.ToDictionary(a => string.Concat(a[0]), a => {
 					var sqlType = GetOracleSqlTypeFullName(a);
@@ -190,7 +190,7 @@ where owner={{0}} and table_name={{1}}".FormatOracleSQL(tboldname ?? tbname);
 						}
 						if (tbcol.Attribute.IsIdentity == true) seqcols.Add((tbcol, tbname, tbcol.Attribute.IsIdentity == true));
 					}
-					var dsuksql = @"
+					var dsuksql = _commonUtils.FormatSql(@"
 select
 c.column_name,
 c.constraint_name
@@ -202,7 +202,7 @@ a.constraint_name = c.constraint_name
 and a.owner = c.owner
 and a.table_name = c.table_name
 and a.constraint_type in ('U')
-and a.owner in ({0}) and a.table_name in ({1})".FormatMySql(tboldname ?? tbname);
+and a.owner in ({0}) and a.table_name in ({1})", tboldname ?? tbname);
 					var dsuk = _orm.Ado.ExecuteArray(CommandType.Text, dsuksql).Select(a => new[] { string.Concat(a[0]), string.Concat(a[1]) });
 					foreach (var uk in tb.Uniques) {
 						if (string.IsNullOrEmpty(uk.Key) || uk.Value.Any() == false) continue;
@@ -219,7 +219,7 @@ and a.owner in ({0}) and a.table_name in ({1})".FormatMySql(tboldname ?? tbname)
 					sb.Append(sbalter);
 					continue;
 				}
-				var oldpk = _orm.Ado.ExecuteScalar(CommandType.Text, @"select constraint_name from user_constraints where owner={0} and table_name={1} and constraint_type='P'".FormatPostgreSQL(tbname))?.ToString();
+				var oldpk = _orm.Ado.ExecuteScalar(CommandType.Text, _commonUtils.FormatSql(@"select constraint_name from user_constraints where owner={0} and table_name={1} and constraint_type='P'", tbname))?.ToString();
 				if (string.IsNullOrEmpty(oldpk) == false)
 					sb.Append("execute immediate 'ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" DROP CONSTRAINT ").Append(oldpk).Append("';\r\n");
 
@@ -279,12 +279,12 @@ and a.owner in ({0}) and a.table_name in ({1})".FormatMySql(tboldname ?? tbname)
 					dicDeclare.Add(seqname, true);
 				}
 				sb.Append(seqname).Append("IS := 0; \r\n")
-					.Append(" select count(1) into ").Append(seqname).Append("IS from user_sequences where sequence_name={0}; \r\n".FormatOracleSQL(seqname))
+					.Append(" select count(1) into ").Append(seqname).Append(_commonUtils.FormatSql("IS from user_sequences where sequence_name={0}; \r\n", seqname))
 					.Append("if ").Append(seqname).Append("IS > 0 then \r\n")
 					.Append("  execute immediate 'DROP SEQUENCE ").Append(_commonUtils.QuoteSqlName(seqname)).Append("';\r\n")
 					.Append("end if; \r\n");
 				if (seqcol.Item3) {
-					var startWith = _orm.Ado.ExecuteScalar(CommandType.Text, " select 1 from all_tab_comments where owner={0} and table_name={1}".FormatOracleSQL(tbname)) == null ? 1 :
+					var startWith = _orm.Ado.ExecuteScalar(CommandType.Text, _commonUtils.FormatSql(" select 1 from all_tab_comments where owner={0} and table_name={1}", tbname)) == null ? 1 :
 						_orm.Ado.ExecuteScalar(CommandType.Text, $" select nvl(max({colname2})+1,1) from {tbname2}");
 					sb.Append("execute immediate 'CREATE SEQUENCE ").Append(_commonUtils.QuoteSqlName(seqname)).Append(" start with ").Append(startWith).Append("';\r\n");
 					sb.Append("execute immediate 'CREATE OR REPLACE TRIGGER ").Append(_commonUtils.QuoteSqlName(tiggerName))
@@ -297,7 +297,7 @@ and a.owner in ({0}) and a.table_name in ({1})".FormatMySql(tboldname ?? tbname)
 						dicDeclare.Add(tiggerName, true);
 					}
 					sb.Append(tiggerName).Append("IS := 0; \r\n")
-					.Append(" select count(1) into ").Append(tiggerName).Append("IS from user_triggers where trigger_name={0}; \r\n".FormatOracleSQL(tiggerName))
+					.Append(" select count(1) into ").Append(tiggerName).Append(_commonUtils.FormatSql("IS from user_triggers where trigger_name={0}; \r\n", tiggerName))
 					.Append("if ").Append(tiggerName).Append("IS > 0 then \r\n")
 					.Append("  execute immediate 'DROP TRIGGER ").Append(_commonUtils.QuoteSqlName(tiggerName)).Append("';\r\n")
 					.Append("end if; \r\n");

@@ -501,14 +501,14 @@ where ns.nspname || '.' || b.relname in ({loc8})
 
 		public List<DbEnumInfo> GetEnumsByDatabase(params string[] database) {
 			if (database == null || database.Length == 0) return new List<DbEnumInfo>();
-			var drs = _orm.Ado.Query<(string name, string label)>(CommandType.Text, @"
+			var drs = _orm.Ado.Query<(string name, string label)>(CommandType.Text, _commonUtils.FormatSql(@"
 select
 ns.nspname || '.' || a.typname,
 b.enumlabel
 from pg_type a
 inner join pg_enum b on b.enumtypid = a.oid
 inner join pg_namespace ns on ns.oid = a.typnamespace
-where a.typtype = 'e' and ns.nspname in (SELECT ""schema_name"" FROM information_schema.schemata where catalog_name in {0})".FormatPostgreSQL(database));
+where a.typtype = 'e' and ns.nspname in (SELECT ""schema_name"" FROM information_schema.schemata where catalog_name in {0})", database));
 			var ret = new Dictionary<string, Dictionary<string, string>>();
 			foreach (var dr in drs) {
 				if (ret.TryGetValue(dr.name, out var labels) == false) ret.Add(dr.name, labels = new Dictionary<string, string>());

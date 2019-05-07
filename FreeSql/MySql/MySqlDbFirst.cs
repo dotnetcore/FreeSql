@@ -149,7 +149,7 @@ namespace FreeSql.MySql {
 					database = new[] { conn.Value.Database };
 				}
 			}
-			var databaseIn = string.Join(",", database.Select(a => "{0}".FormatMySql(a)));
+			var databaseIn = string.Join(",", database.Select(a => _commonUtils.FormatSql("{0}", a)));
 			var sql = string.Format(@"
 select 
 concat(a.table_schema, '.', a.table_name) 'id',

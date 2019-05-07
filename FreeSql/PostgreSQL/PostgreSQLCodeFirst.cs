@@ -138,7 +138,7 @@ namespace FreeSql.PostgreSQL {
 				var tboldname = tb.DbOldName?.Split(new[] { '.' }, 2); //旧表名
 				if (tboldname?.Length == 1) tboldname = new[] { "public", tboldname[0] };
 
-				if (string.Compare(tbname[0], "public", true) != 0 && _orm.Ado.ExecuteScalar(CommandType.Text, " select 1 from pg_namespace where nspname={0}".FormatPostgreSQL(tbname[0])) == null) //创建模式
+				if (string.Compare(tbname[0], "public", true) != 0 && _orm.Ado.ExecuteScalar(CommandType.Text, _commonUtils.FormatSql(" select 1 from pg_namespace where nspname={0}", tbname[0])) == null) //创建模式
 					sb.Append("CREATE SCHEMA IF NOT EXISTS ").Append(tbname[0]).Append(";\r\n");
 
 				var sbalter = new StringBuilder();
@@ -181,7 +181,7 @@ namespace FreeSql.PostgreSQL {
 					tboldname = null; //如果新表已经存在，不走改表名逻辑
 
 				//对比字段，只可以修改类型、增加字段、有限的修改字段名；保证安全不删除字段
-				var sql = @"
+				var sql = _commonUtils.FormatSql(@"
 select
 a.attname,
 t.typname,
@@ -198,7 +198,7 @@ left join pg_description d on d.objoid = a.attrelid and d.objsubid = a.attnum
 left join pg_attrdef e on e.adrelid = a.attrelid and e.adnum = a.attnum
 inner join pg_namespace ns on ns.oid = c.relnamespace
 inner join pg_namespace ns2 on ns2.oid = t.typnamespace
-where ns.nspname = {0} and c.relname = {1}".FormatPostgreSQL(tboldname ?? tbname);
+where ns.nspname = {0} and c.relname = {1}", tboldname ?? tbname);
 				var ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
 				var tbstruct = ds.ToDictionary(a => string.Concat(a[0]), a => {
 					var attndims = int.Parse(string.Concat(a[6]));
@@ -246,7 +246,7 @@ where ns.nspname = {0} and c.relname = {1}".FormatPostgreSQL(tboldname ?? tbname
 						if (tbcol.Attribute.IsNullable == false) sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ALTER COLUMN ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" SET NOT NULL;\r\n");
 						if (tbcol.Attribute.IsIdentity == true) seqcols.Add((tbcol, tbname, tbcol.Attribute.IsIdentity == true));
 					}
-					var dsuksql = @"
+					var dsuksql = _commonUtils.FormatSql(@"
 select
 c.attname,
 b.relname
@@ -255,7 +255,7 @@ inner join pg_class b on b.oid = a.indexrelid
 inner join pg_attribute c on c.attnum > 0 and c.attrelid = b.oid
 inner join pg_namespace ns on ns.oid = b.relnamespace
 inner join pg_class d on d.oid = a.indrelid
-where ns.nspname in ({0}) and d.relname in ({1}) and a.indisunique = 't'".FormatMySql(tboldname ?? tbname);
+where ns.nspname in ({0}) and d.relname in ({1}) and a.indisunique = 't'", tboldname ?? tbname);
 					var dsuk = _orm.Ado.ExecuteArray(CommandType.Text, dsuksql).Select(a => new[] { string.Concat(a[0]), string.Concat(a[1]) });
 					foreach (var uk in tb.Uniques) {
 						if (string.IsNullOrEmpty(uk.Key) || uk.Value.Any() == false) continue;
@@ -272,11 +272,11 @@ where ns.nspname in ({0}) and d.relname in ({1}) and a.indisunique = 't'".Format
 					sb.Append(sbalter);
 					continue;
 				}
-				var oldpk = _orm.Ado.ExecuteScalar(CommandType.Text, @"select pg_constraint.conname as pk_name from pg_constraint
+				var oldpk = _orm.Ado.ExecuteScalar(CommandType.Text, _commonUtils.FormatSql(@"select pg_constraint.conname as pk_name from pg_constraint
 inner join pg_class on pg_constraint.conrelid = pg_class.oid
 inner join pg_namespace on pg_namespace.oid = pg_class.relnamespace
 where pg_namespace.nspname={0} and pg_class.relname={1} and pg_constraint.contype='p'
-".FormatPostgreSQL(tbname))?.ToString();
+", tbname))?.ToString();
 				if (string.IsNullOrEmpty(oldpk) == false)
 					sb.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" DROP CONSTRAINT ").Append(oldpk).Append(";\r\n");
 

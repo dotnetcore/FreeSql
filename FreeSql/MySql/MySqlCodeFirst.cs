@@ -113,15 +113,15 @@ namespace FreeSql.MySql {
 					var tboldname = tb.DbOldName?.Split(new[] { '.' }, 2); //旧表名
 					if (tboldname?.Length == 1) tboldname = new[] { database, tboldname[0] };
 
-					if (string.Compare(tbname[0], database, true) != 0 && ExecuteScalar(database, " select 1 from pg_database where datname={0}".FormatMySql(tbname[0])) == null) //创建数据库
+					if (string.Compare(tbname[0], database, true) != 0 && ExecuteScalar(database, _commonUtils.FormatSql(" select 1 from pg_database where datname={0}", tbname[0])) == null) //创建数据库
 						sb.Append($"CREATE DATABASE IF NOT EXISTS ").Append(_commonUtils.QuoteSqlName(tbname[0])).Append(" default charset utf8 COLLATE utf8_general_ci;\r\n");
 
 					var sbalter = new StringBuilder();
 					var istmpatler = false; //创建临时表，导入数据，删除旧表，修改
-					if (ExecuteScalar(tbname[0], " SELECT 1 FROM information_schema.TABLES WHERE table_schema={0} and table_name={1}".FormatMySql(tbname)) == null) { //表不存在
+					if (ExecuteScalar(tbname[0], _commonUtils.FormatSql(" SELECT 1 FROM information_schema.TABLES WHERE table_schema={0} and table_name={1}", tbname)) == null) { //表不存在
 						if (tboldname != null) {
-							if (string.Compare(tboldname[0], tbname[0], true) != 0 && ExecuteScalar(database, " select 1 from information_schema.schemata where schema_name={0}".FormatMySql(tboldname[0])) == null ||
-								ExecuteScalar(tboldname[0], " SELECT 1 FROM information_schema.TABLES WHERE table_schema={0} and table_name={1}".FormatMySql(tboldname)) == null)
+							if (string.Compare(tboldname[0], tbname[0], true) != 0 && ExecuteScalar(database, _commonUtils.FormatSql(" select 1 from information_schema.schemata where schema_name={0}", tboldname[0])) == null ||
+								ExecuteScalar(tboldname[0], _commonUtils.FormatSql(" SELECT 1 FROM information_schema.TABLES WHERE table_schema={0} and table_name={1}", tboldname)) == null)
 								//数据库或表不存在
 								tboldname = null;
 						}
@@ -159,14 +159,14 @@ namespace FreeSql.MySql {
 						tboldname = null; //如果新表已经存在，不走改表名逻辑
 
 					//对比字段，只可以修改类型、增加字段、有限的修改字段名；保证安全不删除字段
-					var sql = @"
+					var sql = _commonUtils.FormatSql(@"
 select
 a.column_name,
 a.column_type,
 case when a.is_nullable = 'YES' then 1 else 0 end 'is_nullable',
 case when locate('auto_increment', a.extra) > 0 then 1 else 0 end 'is_identity'
 from information_schema.columns a
-where a.table_schema in ({0}) and a.table_name in ({1})".FormatMySql(tboldname ?? tbname);
+where a.table_schema in ({0}) and a.table_name in ({1})", tboldname ?? tbname);
 					var ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
 					var tbstruct = ds.ToDictionary(a => string.Concat(a[0]), a => {
 						var a1 = string.Concat(a[1]);
@@ -181,7 +181,7 @@ where a.table_schema in ({0}) and a.table_name in ({1})".FormatMySql(tboldname ?
 					}, StringComparer.CurrentCultureIgnoreCase);
 
 					if (istmpatler == false) {
-						var existsPrimary = ExecuteScalar(tbname[0], "select 1 from information_schema.key_column_usage where table_schema={0} and table_name={1} and constraint_name = 'PRIMARY' limit 1".FormatMySql(tbname));
+						var existsPrimary = ExecuteScalar(tbname[0], _commonUtils.FormatSql("select 1 from information_schema.key_column_usage where table_schema={0} and table_name={1} and constraint_name = 'PRIMARY' limit 1", tbname));
 						foreach (var tbcol in tb.Columns.Values) {
 							var isIdentityChanged = tbcol.Attribute.IsIdentity == true && tbcol.Attribute.DbType.IndexOf("AUTO_INCREMENT", StringComparison.CurrentCultureIgnoreCase) == -1;
 							if (tbstruct.TryGetValue(tbcol.Attribute.Name, out var tbstructcol) ||
@@ -207,12 +207,12 @@ where a.table_schema in ({0}) and a.table_name in ({1})".FormatMySql(tboldname ?
 							if (isIdentityChanged) sbalter.Append(" AUTO_INCREMENT").Append(existsPrimary == null ? "" : ", DROP PRIMARY KEY").Append(", ADD PRIMARY KEY(").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(")");
 							sbalter.Append(";\r\n");
 						}
-						var dsuksql = @"
+						var dsuksql = _commonUtils.FormatSql(@"
 select 
 a.column_name,
 a.constraint_name 'index_id'
 from information_schema.key_column_usage a
-where a.constraint_schema IN ({0}) and a.table_name IN ({1})".FormatMySql(tboldname ?? tbname);
+where a.constraint_schema IN ({0}) and a.table_name IN ({1})", tboldname ?? tbname);
 						var dsuk = _orm.Ado.ExecuteArray(CommandType.Text, dsuksql).Select(a => new[] { string.Concat(a[0]), string.Concat(a[1]) });
 						foreach (var uk in tb.Uniques) {
 							if (uk.Key == "PRIMARY" || string.IsNullOrEmpty(uk.Key) || uk.Value.Any() == false) continue;

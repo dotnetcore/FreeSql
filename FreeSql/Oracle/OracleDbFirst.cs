@@ -145,7 +145,7 @@ namespace FreeSql.Oracle {
 				if (string.IsNullOrEmpty(userUsers)) return loc1;
 				database = new[] { userUsers };
 			}
-			var databaseIn = string.Join(",", database.Select(a => "{0}".FormatOracleSQL(a)));
+			var databaseIn = string.Join(",", database.Select(a => _commonUtils.FormatSql("{0}", a)));
 			var sql = string.Format(@"
 select
 a.owner || '.' || a.table_name,
