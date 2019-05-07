@@ -1,5 +1,4 @@
 ﻿using FreeSql;
-using FreeSql.Interface;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using System;

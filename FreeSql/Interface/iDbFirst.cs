@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace FreeSql.Interface {
+namespace FreeSql {
 	public interface IDbFirst {
 
 		/// <summary>

@@ -1,5 +1,4 @@
-﻿using FreeSql.Interface;
-using FreeSql.Internal;
+﻿using FreeSql.Internal;
 using FreeSql.Internal.CommonProvider;
 using FreeSql.PostgreSQL.Curd;
 using Microsoft.Extensions.Caching.Distributed;

@@ -4,7 +4,7 @@ using System.Data;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
-namespace FreeSql.Interface {
+namespace FreeSql {
 	public interface ISelect<T1, T2, T3> : ISelect0<ISelect<T1, T2, T3>, T1> where T1 : class where T2 : class where T3 : class {
 
 		bool Any(Expression<Func<T1, T2, T3, bool>> exp);

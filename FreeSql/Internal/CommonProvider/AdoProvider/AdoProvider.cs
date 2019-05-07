@@ -9,7 +9,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Reflection;
-using FreeSql.Interface;
 
 namespace FreeSql.Internal.CommonProvider {
 	abstract partial class AdoProvider : IAdo, IDisposable {

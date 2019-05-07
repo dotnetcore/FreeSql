@@ -79,13 +79,13 @@ namespace FreeSql.Tests.SqlServerExpression {
 		}
 		[Fact]
 		public void Log() {
-			var data = new List<object>();
-			data.Add(select.Where(a => Math.Log(a.Clicks + 0.5) == a.Clicks + 1).ToList());
+			//var data = new List<object>();
+			//data.Add(select.Where(a => Math.Log(a.Clicks + 0.5) == a.Clicks + 1).ToList());
 		}
 		[Fact]
 		public void Log10() {
-			var data = new List<object>();
-			data.Add(select.Where(a => Math.Log10(a.Clicks + 0.5) == a.Clicks + 1).ToList());
+			//var data = new List<object>();
+			//data.Add(select.Where(a => Math.Log10(a.Clicks + 0.5) == a.Clicks + 1).ToList());
 		}
 		[Fact]
 		public void Pow() {

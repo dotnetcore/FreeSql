@@ -1,12 +1,11 @@
-﻿using FreeSql.Interface;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 namespace FreeSql {
-	public interface ISelect<T1> : ISelect0<ISelect<T1>, T1>, Interface.ILinqToSql<T1> where T1 : class {
+	public interface ISelect<T1> : ISelect0<ISelect<T1>, T1>, ILinqToSql<T1> where T1 : class {
 
 		/// <summary>
 		/// 执行SQL查询，是否有记录

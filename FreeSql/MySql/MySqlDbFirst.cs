@@ -1,5 +1,4 @@
 ﻿using FreeSql.DatabaseModel;
-using FreeSql.Interface;
 using FreeSql.Internal;
 using MySql.Data.MySqlClient;
 using System;

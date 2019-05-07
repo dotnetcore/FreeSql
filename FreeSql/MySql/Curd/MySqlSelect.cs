@@ -1,5 +1,4 @@
-﻿using FreeSql.Interface;
-using FreeSql.Internal;
+﻿using FreeSql.Internal;
 using FreeSql.Internal.Model;
 using System;
 using System.Collections.Generic;

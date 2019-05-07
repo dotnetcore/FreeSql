@@ -2,7 +2,7 @@
 using FreeSql.Internal.Model;
 using System;
 
-namespace FreeSql.Interface {
+namespace FreeSql {
 	public interface ICodeFirst {
 
 		/// <summary>

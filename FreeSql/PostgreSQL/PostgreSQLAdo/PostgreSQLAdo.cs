@@ -1,5 +1,4 @@
-﻿using FreeSql.Interface;
-using FreeSql.Internal;
+﻿using FreeSql.Internal;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using Npgsql;

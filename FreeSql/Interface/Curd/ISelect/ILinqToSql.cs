@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
 
-namespace FreeSql.Interface {
+namespace FreeSql {
 	public interface ILinqToSql<T1> where T1 : class {
 		/// <summary>
 		/// 【linq to sql】专用方法，不建议直接使用

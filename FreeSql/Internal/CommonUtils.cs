@@ -1,7 +1,6 @@
 ﻿using FreeSql.DataAnnotations;
 using FreeSql.DatabaseModel;
 using FreeSql.Extensions.EntityUtil;
-using FreeSql.Interface;
 using FreeSql.Internal.Model;
 using System;
 using System.Collections;

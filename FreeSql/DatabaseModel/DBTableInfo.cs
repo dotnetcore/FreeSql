@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace FreeSql.DatabaseModel {
 	public class DbTableInfo {
@@ -47,9 +48,9 @@ namespace FreeSql.DatabaseModel {
 		/// </summary>
 		public Dictionary<string, DbForeignInfo> ForeignsDict { get; internal set; } = new Dictionary<string, DbForeignInfo>();
 
-		public IEnumerable<List<DbColumnInfo>> Uniques => UniquesDict.Values;
-		public IEnumerable<List<DbColumnInfo>> Indexes => IndexesDict.Values;
-		public IEnumerable<DbForeignInfo> Foreigns => ForeignsDict.Values;
+		public List<List<DbColumnInfo>> Uniques => UniquesDict.Values.ToList();
+		public List<List<DbColumnInfo>> Indexes => IndexesDict.Values.ToList();
+		public List<DbForeignInfo> Foreigns => ForeignsDict.Values.ToList();
 	}
 
 	public enum DbTableType {
