@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Oracle.ManagedDataAccess.Client;
 using System.Data;
+using FreeSql.Interface;
 
 namespace FreeSql.Oracle {
 	class OracleDbFirst : IDbFirst {

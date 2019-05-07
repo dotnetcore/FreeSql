@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 
-namespace FreeSql {
+namespace FreeSql.Interface {
 	public interface ISelectFromExpression<T1> where T1 : class {
 
 		ISelectFromExpression<T1> LeftJoin(Expression<Func<T1, bool>> exp);

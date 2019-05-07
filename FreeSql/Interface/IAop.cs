@@ -7,7 +7,7 @@ using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace FreeSql {
+namespace FreeSql.Interface {
 	public interface IAop {
 
 		/// <summary>

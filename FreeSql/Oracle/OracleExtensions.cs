@@ -1,4 +1,4 @@
-﻿public static class FreeSqlOracleExtensions {
+﻿public static partial class FreeSqlGlobalExtensions {
 
 	/// <summary>
 	/// 特殊处理类似 string.Format 的使用方法，防止注入，以及 IS NULL 转换

@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using FreeSql.DataAnnotations;
+using FreeSql.Interface;
 
 namespace FreeSql.SqlServer {
 

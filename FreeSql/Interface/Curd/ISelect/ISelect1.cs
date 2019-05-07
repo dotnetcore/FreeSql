@@ -1,11 +1,12 @@
-﻿using System;
+﻿using FreeSql.Interface;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 namespace FreeSql {
-	public interface ISelect<T1> : ISelect0<ISelect<T1>, T1> where T1 : class {
+	public interface ISelect<T1> : ISelect0<ISelect<T1>, T1>, Interface.ILinqToSql<T1> where T1 : class {
 
 		/// <summary>
 		/// 执行SQL查询，是否有记录
@@ -31,27 +32,6 @@ namespace FreeSql {
 		List<TReturn> ToList<TReturn>(Expression<Func<T1, TReturn>> select);
 		Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<T1, TReturn>> select);
 
-		/// <summary>
-		/// 【linq to sql】专用方法，不建议直接使用
-		/// </summary>
-		ISelect<TReturn> Select<TReturn>(Expression<Func<T1, TReturn>> select) where TReturn : class;
-		/// <summary>
-		/// 【linq to sql】专用方法，不建议直接使用
-		/// </summary>
-		ISelect<TResult> Join<TInner, TKey, TResult>(ISelect<TInner> inner, Expression<Func<T1, TKey>> outerKeySelector, Expression<Func<TInner, TKey>> innerKeySelector, Expression<Func<T1, TInner, TResult>> resultSelector) where TInner : class where TResult : class;
-		/// <summary>
-		/// 【linq to sql】专用方法，不建议直接使用
-		/// </summary>
-		ISelect<TResult> GroupJoin<TInner, TKey, TResult>(ISelect<TInner> inner, Expression<Func<T1, TKey>> outerKeySelector, Expression<Func<TInner, TKey>> innerKeySelector, Expression<Func<T1, ISelect<TInner>, TResult>> resultSelector) where TInner : class where TResult : class;
-		/// <summary>
-		/// 【linq to sql】专用方法，不建议直接使用
-		/// </summary>
-		ISelect<T1> DefaultIfEmpty();
-		/// <summary>
-		/// 【linq to sql】专用方法，不建议直接使用
-		/// </summary>
-		ISelect<TResult> SelectMany<TCollection, TResult>(Expression<Func<T1, ISelect<TCollection>>> collectionSelector, Expression<Func<T1, TCollection, TResult>> resultSelector) where TCollection : class where TResult : class;
-		
 		/// <summary>
 		/// 执行SQL查询，返回指定字段的记录的第一条记录，记录不存在时返回 TReturn 默认值
 		/// </summary>

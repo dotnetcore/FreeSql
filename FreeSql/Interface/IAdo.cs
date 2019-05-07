@@ -7,7 +7,7 @@ using System.Data.Common;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FreeSql {
+namespace FreeSql.Interface {
 	public partial interface IAdo {
 		/// <summary>
 		/// 主库连接池

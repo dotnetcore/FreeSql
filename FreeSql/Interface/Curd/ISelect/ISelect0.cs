@@ -6,7 +6,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FreeSql {
+namespace FreeSql.Interface {
 	public interface ISelect0<TSelect, T1> {
 
 		/// <summary>

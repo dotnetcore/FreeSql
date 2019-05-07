@@ -1,4 +1,5 @@
-﻿using FreeSql.Internal;
+﻿using FreeSql.Interface;
+using FreeSql.Internal;
 using Microsoft.Extensions.Logging;
 using MySql.Data.MySqlClient;
 using SafeObjectPool;

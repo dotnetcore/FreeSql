@@ -8,7 +8,7 @@ using System.Drawing;
 using System.Linq;
 using System.Reflection;
 
-public static class FreeSqlGlobalExtensions {
+public static partial class FreeSqlGlobalExtensions {
 
 	public static FreeSql.ISelect<T> Queryable<T>(this IFreeSql freesql) where T : class => freesql.Select<T>();
 

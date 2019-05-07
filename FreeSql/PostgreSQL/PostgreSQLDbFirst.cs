@@ -1,4 +1,5 @@
 ﻿using FreeSql.DatabaseModel;
+using FreeSql.Interface;
 using FreeSql.Internal;
 using Newtonsoft.Json.Linq;
 using Npgsql.LegacyPostgis;

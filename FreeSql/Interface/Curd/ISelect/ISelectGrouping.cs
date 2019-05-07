@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FreeSql {
+namespace FreeSql.Interface {
 	public interface ISelectGrouping<TKey, TValue> {
 		/// <summary>
 		/// 按聚合条件过滤，Where(a => a.Count() > 10)

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace FreeSql {
+namespace FreeSql.Interface {
 	public interface ICache {
 
 		/// <summary>
