@@ -74,13 +74,21 @@ namespace FreeSql.Sqlite {
 					_connectionString = Regex.Replace(_connectionString, pattern, "", RegexOptions.IgnoreCase);
 				}
 
+				var minPoolSize = 0;
+				pattern = @"Min\s*pool\s*size\s*=\s*(\d+)";
+				m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase);
+				if (m.Success) {
+					minPoolSize = int.Parse(m.Groups[1].Value);
+					_connectionString = Regex.Replace(_connectionString, pattern, "", RegexOptions.IgnoreCase);
+				}
+
 				var att = Regex.Split(_connectionString, @"Attachs\s*=\s*", RegexOptions.IgnoreCase);
 				if (att.Length == 2) {
 					var idx = att[1].IndexOf(';');
 					Attaches = (idx == -1 ? att[1] : att[1].Substring(0, idx)).Split(',');
 				}
 
-				FreeUtil.PrevReheatConnectionPool(_pool);
+				FreeUtil.PrevReheatConnectionPool(_pool, minPoolSize);
 			}
 		}
 

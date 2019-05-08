@@ -73,7 +73,15 @@ namespace FreeSql.SqlServer {
 					_connectionString = Regex.Replace(_connectionString, pattern, "", RegexOptions.IgnoreCase);
 				}
 
-				FreeUtil.PrevReheatConnectionPool(_pool);
+				var minPoolSize = 0;
+				pattern = @"Min\s*pool\s*size\s*=\s*(\d+)";
+				m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase);
+				if (m.Success) {
+					minPoolSize = int.Parse(m.Groups[1].Value);
+					_connectionString = Regex.Replace(_connectionString, pattern, "", RegexOptions.IgnoreCase);
+				}
+
+				FreeUtil.PrevReheatConnectionPool(_pool, minPoolSize);
 			}
 		}
 

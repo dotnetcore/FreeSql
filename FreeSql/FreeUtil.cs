@@ -32,7 +32,9 @@ public static class FreeUtil {
 		return Guid.Parse(guid);
 	}
 
-	internal static void PrevReheatConnectionPool(ObjectPool<DbConnection> pool) {
+	internal static void PrevReheatConnectionPool(ObjectPool<DbConnection> pool, int minPoolSize) {
+		if (minPoolSize <= 0) minPoolSize = Math.Min(5, pool.Policy.PoolSize);
+		if (minPoolSize > pool.Policy.PoolSize) minPoolSize = pool.Policy.PoolSize;
 		var initTestOk = true;
 		var initStartTime = DateTime.Now;
 		var initConns = new ConcurrentBag<Object<DbConnection>>();
@@ -44,9 +46,9 @@ public static class FreeUtil {
 		} catch {
 			initTestOk = false; //预热一次失败，后面将不进行
 		}
-		for (var a = 1; initTestOk && a < pool.Policy.PoolSize; a += 10) {
+		for (var a = 1; initTestOk && a < minPoolSize; a += 10) {
 			if (initStartTime.Subtract(DateTime.Now).TotalSeconds > 3) break; //预热耗时超过3秒，退出
-			var b = Math.Min(pool.Policy.PoolSize - a, 10); //每10个预热
+			var b = Math.Min(minPoolSize - a, 10); //每10个预热
 			var initTasks = new Task[b];
 			for (var c = 0; c < b; c++) {
 				initTasks[c] = Task.Run(() => {

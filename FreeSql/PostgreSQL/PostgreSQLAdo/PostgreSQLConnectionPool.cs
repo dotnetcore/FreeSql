@@ -62,9 +62,9 @@ namespace FreeSql.PostgreSQL {
 			set {
 				_connectionString = value ?? "";
 
-				var pattern = @"Maximum\s*pool\s*size\s*=\s*(\d+)";
+				var pattern = @"Max(imum)?\s*pool\s*size\s*=\s*(\d+)";
 				Match m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase);
-				if (m.Success == false || int.TryParse(m.Groups[1].Value, out var poolsize) == false || poolsize <= 0) poolsize = 100;
+				if (m.Success == false || int.TryParse(m.Groups[2].Value, out var poolsize) == false || poolsize <= 0) poolsize = 50;
 				var connStrIncr = dicConnStrIncr.AddOrUpdate(_connectionString, 1, (oldkey, oldval) => oldval + 1);
 				PoolSize = poolsize + connStrIncr;
 				_connectionString = m.Success ?
@@ -78,7 +78,15 @@ namespace FreeSql.PostgreSQL {
 					_connectionString = Regex.Replace(_connectionString, pattern, "", RegexOptions.IgnoreCase);
 				}
 
-				FreeUtil.PrevReheatConnectionPool(_pool);
+				var minPoolSize = 0;
+				pattern = @"Min(imum)?\s*pool\s*size\s*=\s*(\d+)";
+				m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase);
+				if (m.Success) {
+					minPoolSize = int.Parse(m.Groups[2].Value);
+					_connectionString = Regex.Replace(_connectionString, pattern, "", RegexOptions.IgnoreCase);
+				}
+
+				FreeUtil.PrevReheatConnectionPool(_pool, minPoolSize);
 			}
 		}
 
