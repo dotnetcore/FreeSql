@@ -86,8 +86,35 @@ namespace FreeSql.Tests {
 			public abstract Task Persistent();
 		}
 
+		public class Model1 {
+			[Column(IsIdentity = true)]
+			public int id { get; set; }
+
+			public string title { get; set; }
+
+			public ICollection<Model2> Childs { get; set; }
+
+		}
+
+		public class Model2 {
+
+			[Column(IsIdentity = true)]
+			public int id { get; set; }
+			public string title { get; set; }
+
+			public Model1 Parent { get; set; }
+			public int parent_id { get; set; }
+
+		}
+
 		[Fact]
 		public void Test1() {
+
+			var ttt1 = g.sqlite.Select<Model1>().Where(a => a.Childs.AsSelect().Any(b => b.title == "111")).ToList();
+
+
+
+
 			var linqto1 = 
 				from p in g.sqlite.Select<Order>()
 				where p.Id >= 0

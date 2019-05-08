@@ -868,7 +868,7 @@ namespace FreeSql.Internal {
 				case ExpressionType.Coalesce:
 					return _common.IsNull(ExpressionLambdaToSql(expBinary.Left, tsc), ExpressionLambdaToSql(expBinary.Right, tsc));
 				case ExpressionType.OrElse:
-					return $"({ExpressionLambdaToSql(expBinary.Left, tsc)} OR {ExpressionLambdaToSql(expBinary.Right, tsc)})";
+					return $"(({ExpressionLambdaToSql(expBinary.Left, tsc)}) OR ({ExpressionLambdaToSql(expBinary.Right, tsc)}))";
 			}
 			if (dicExpressionOperator.TryGetValue(expBinary.NodeType, out var tryoper) == false) return "";
 
