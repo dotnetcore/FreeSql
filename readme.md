@@ -87,6 +87,17 @@ var t2 = fsql.Select<Song>()
     .Where(s => s.Tags.AsSelect()
         .Any(t => t.Name == "国语"))
     .ToList();
+
+//Other
+var t3 = fsql.Select<Xxx>()
+    .Where(a => a.IsDelete == 0)
+    .WhereIf(keyword != null, a => a.UserName.Contains(keyword))
+    .WhereIf(role_id > 0, a => a.RoleId == role_id)
+    .Where(a => a.Nodes.AsSelect().Any(t => t.Parent.Id == t.UserId))
+    .Count(out var total)
+    .Page(page, size)
+    .OrderByDescending(a => a.Id)
+    .ToList()
 ```
 更多前往Wiki：[《Select 查询数据文档》](https://github.com/2881099/FreeSql/wiki/%e6%9f%a5%e8%af%a2)
 
