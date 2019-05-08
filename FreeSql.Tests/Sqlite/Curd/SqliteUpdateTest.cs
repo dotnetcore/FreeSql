@@ -66,14 +66,14 @@ namespace FreeSql.Tests.Sqlite {
 			Assert.Equal("UPDATE \"tb_topic\" SET \"Clicks\" = ifnull(\"Clicks\", 0) * 10 / 1 WHERE (\"Id\" = 1)", sql);
 
 			sql = update.Set(a => a.Id - 10).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
-			Assert.Equal("UPDATE \"tb_topic\" SET \"Id\" = \"Id\" - 10 WHERE (\"Id\" = 1)", sql);
+			Assert.Equal("UPDATE \"tb_topic\" SET \"Id\" = (\"Id\" - 10) WHERE (\"Id\" = 1)", sql);
 
 			int incrv = 10;
 			sql = update.Set(a => a.Clicks * incrv / 1).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
 			Assert.Equal("UPDATE \"tb_topic\" SET \"Clicks\" = ifnull(\"Clicks\", 0) * 10 / 1 WHERE (\"Id\" = 1)", sql);
 
 			sql = update.Set(a => a.Id - incrv).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
-			Assert.Equal("UPDATE \"tb_topic\" SET \"Id\" = \"Id\" - 10 WHERE (\"Id\" = 1)", sql);
+			Assert.Equal("UPDATE \"tb_topic\" SET \"Id\" = (\"Id\" - 10) WHERE (\"Id\" = 1)", sql);
 
 			sql = update.Set(a => a.CreateTime.AddYears(1)).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
 			Assert.Equal("UPDATE \"tb_topic\" SET \"CreateTime\" = datetime(\"CreateTime\",(1)||' years') WHERE (\"Id\" = 1)", sql);

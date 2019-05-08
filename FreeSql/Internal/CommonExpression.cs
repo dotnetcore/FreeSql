@@ -334,6 +334,17 @@ namespace FreeSql.Internal {
 		static ConcurrentDictionary<Type, Expression> _dicFreeSqlGlobalExtensionsAsSelectExpression = new ConcurrentDictionary<Type, Expression>();
 
 		internal string ExpressionBinary(string oper, Expression leftExp, Expression rightExp, ExpTSC tsc) {
+			switch (oper) {
+				case "OR":
+				case "|":
+				case "&":
+				case "+":
+				case "-":
+					if (oper == "+" && (leftExp.Type == typeof(string) || rightExp.Type == typeof(string)))
+						return _common.StringConcat(new[] { ExpressionLambdaToSql(leftExp, tsc), ExpressionLambdaToSql(rightExp, tsc) }, new[] { leftExp.Type, rightExp.Type });
+					return $"({ExpressionLambdaToSql(leftExp, tsc)} {oper} {ExpressionLambdaToSql(rightExp, tsc)})";
+			}
+
 			var left = ExpressionLambdaToSql(leftExp, tsc);
 			var leftMapColumn = SearchColumnByField(tsc._tables, tsc.currentTable, left);
 			var isLeftMapType = leftMapColumn != null && (leftMapColumn.Attribute.MapType != rightExp.Type || leftMapColumn.CsType != rightExp.Type);
@@ -384,7 +395,6 @@ namespace FreeSql.Internal {
 				left = tmp;
 			}
 			if (right == "NULL") oper = oper == "=" ? " IS " : " IS NOT ";
-			if (oper == "+" && (leftExp.Type.FullName == "System.String" || rightExp.Type.FullName == "System.String")) return _common.StringConcat(new[] { left, right }, new[] { leftExp.Type, rightExp.Type });
 			if (oper == "%") return _common.Mod(left, right, leftExp.Type, rightExp.Type);
 			tsc.mapType = null;
 			return $"{left} {oper} {right}";
@@ -867,11 +877,8 @@ namespace FreeSql.Internal {
 			switch (expBinary.NodeType) {
 				case ExpressionType.Coalesce:
 					return _common.IsNull(ExpressionLambdaToSql(expBinary.Left, tsc), ExpressionLambdaToSql(expBinary.Right, tsc));
-				case ExpressionType.OrElse:
-					return $"(({ExpressionLambdaToSql(expBinary.Left, tsc)}) OR ({ExpressionLambdaToSql(expBinary.Right, tsc)}))";
 			}
 			if (dicExpressionOperator.TryGetValue(expBinary.NodeType, out var tryoper) == false) return "";
-
 			return ExpressionBinary(tryoper, expBinary.Left, expBinary.Right, tsc);
 		}
 

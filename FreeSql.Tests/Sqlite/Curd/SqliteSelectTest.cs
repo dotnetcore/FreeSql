@@ -383,6 +383,8 @@ namespace FreeSql.Tests.Sqlite {
 			var sqltmp2 = select.Where(a => a.Id.Equals(true) && (a.Title.Equals("x") || a.Title.Equals("y")) && a.Clicks.Equals(1)).ToSql();
 			var sqltmp3 = select.Where(a => a.Id == 0).Where(a => ((a.Title == "x" && a.Title == "z") || a.Title == "y")).ToSql();
 
+			var sqltmp4 = select.Where(a => (a.Id - 10) / 2 > 0).ToSql();
+
 			//����е�������a.Type��a.Type.Parent ���ǵ�������
 			var query = select.Where(a => a.Id == 10);
 			var sql = query.ToSql().Replace("\r\n", "");
@@ -391,7 +393,7 @@ namespace FreeSql.Tests.Sqlite {
 
 			query = select.Where(a => a.Id == 10 && a.Id > 10 || a.Clicks > 100);
 			sql = query.ToSql().Replace("\r\n", "");
-			Assert.Equal("SELECT a.\"Id\", a.\"Clicks\", a.\"TypeGuid\", a.\"Title\", a.\"CreateTime\" FROM \"tb_topic22\" a WHERE (((a.\"Id\" = 10 AND a.\"Id\" > 10) OR (a.\"Clicks\" > 100)))", sql);
+			Assert.Equal("SELECT a.\"Id\", a.\"Clicks\", a.\"TypeGuid\", a.\"Title\", a.\"CreateTime\" FROM \"tb_topic22\" a WHERE ((a.\"Id\" = 10 AND a.\"Id\" > 10 OR a.\"Clicks\" > 100))", sql);
 			query.ToList();
 
 			query = select.Where(a => a.Id == 10).Where(a => a.Clicks > 100);
@@ -454,7 +456,7 @@ namespace FreeSql.Tests.Sqlite {
 
 			query = select.WhereIf(true, a => a.Id == 10 && a.Id > 10 || a.Clicks > 100);
 			sql = query.ToSql().Replace("\r\n", "");
-			Assert.Equal("SELECT a.\"Id\", a.\"Clicks\", a.\"TypeGuid\", a.\"Title\", a.\"CreateTime\" FROM \"tb_topic22\" a WHERE (((a.\"Id\" = 10 AND a.\"Id\" > 10) OR (a.\"Clicks\" > 100)))", sql);
+			Assert.Equal("SELECT a.\"Id\", a.\"Clicks\", a.\"TypeGuid\", a.\"Title\", a.\"CreateTime\" FROM \"tb_topic22\" a WHERE ((a.\"Id\" = 10 AND a.\"Id\" > 10 OR a.\"Clicks\" > 100))", sql);
 			query.ToList();
 
 			query = select.WhereIf(true, a => a.Id == 10).WhereIf(true, a => a.Clicks > 100);

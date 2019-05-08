@@ -65,14 +65,14 @@ namespace FreeSql.Tests.Oracle {
 			Assert.Equal("UPDATE \"TB_TOPIC\" SET \"CLICKS\" = nvl(\"CLICKS\", 0) * 10 / 1 WHERE (\"ID\" = 1)", sql);
 
 			sql = update.Set(a => a.Id - 10).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
-			Assert.Equal("UPDATE \"TB_TOPIC\" SET \"ID\" = \"ID\" - 10 WHERE (\"ID\" = 1)", sql);
+			Assert.Equal("UPDATE \"TB_TOPIC\" SET \"ID\" = (\"ID\" - 10) WHERE (\"ID\" = 1)", sql);
 
 			int incrv = 10;
 			sql = update.Set(a => a.Clicks * incrv / 1).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
 			Assert.Equal("UPDATE \"TB_TOPIC\" SET \"CLICKS\" = nvl(\"CLICKS\", 0) * 10 / 1 WHERE (\"ID\" = 1)", sql);
 
 			sql = update.Set(a => a.Id - incrv).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
-			Assert.Equal("UPDATE \"TB_TOPIC\" SET \"ID\" = \"ID\" - 10 WHERE (\"ID\" = 1)", sql);
+			Assert.Equal("UPDATE \"TB_TOPIC\" SET \"ID\" = (\"ID\" - 10) WHERE (\"ID\" = 1)", sql);
 		}
 		[Fact]
 		public void SetRaw() {

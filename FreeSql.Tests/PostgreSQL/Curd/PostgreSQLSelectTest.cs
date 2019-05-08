@@ -508,6 +508,8 @@ namespace FreeSql.Tests.PostgreSQL {
 			var sqltmp2 = select.Where(a => a.Id.Equals(true) && (a.Title.Equals("x") || a.Title.Equals("y")) && a.Clicks.Equals(1)).ToSql();
 			var sqltmp3 = select.Where(a => a.Id == 0).Where(a => ((a.Title == "x" && a.Title == "z") || a.Title == "y")).ToSql();
 
+			var sqltmp4 = select.Where(a => (a.Id - 10) / 2 > 0).ToSql();
+
 			//����е�������a.Type��a.Type.Parent ���ǵ�������
 			var query = select.Where(a => a.Id == 10);
 			var sql = query.ToSql().Replace("\r\n", "");
@@ -516,7 +518,7 @@ namespace FreeSql.Tests.PostgreSQL {
 
 			query = select.Where(a => a.Id == 10 && a.Id > 10 || a.Clicks > 100);
 			sql = query.ToSql().Replace("\r\n", "");
-			Assert.Equal("SELECT a.\"id\", a.\"clicks\", a.\"typeguid\", a.\"title\", a.\"createtime\" FROM \"tb_topic\" a WHERE (((a.\"id\" = 10 AND a.\"id\" > 10) OR (a.\"clicks\" > 100)))", sql);
+			Assert.Equal("SELECT a.\"id\", a.\"clicks\", a.\"typeguid\", a.\"title\", a.\"createtime\" FROM \"tb_topic\" a WHERE ((a.\"id\" = 10 AND a.\"id\" > 10 OR a.\"clicks\" > 100))", sql);
 			query.ToList();
 
 			query = select.Where(a => a.Id == 10).Where(a => a.Clicks > 100);
@@ -579,7 +581,7 @@ namespace FreeSql.Tests.PostgreSQL {
 
 			query = select.WhereIf(true, a => a.Id == 10 && a.Id > 10 || a.Clicks > 100);
 			sql = query.ToSql().Replace("\r\n", "");
-			Assert.Equal("SELECT a.\"id\", a.\"clicks\", a.\"typeguid\", a.\"title\", a.\"createtime\" FROM \"tb_topic\" a WHERE (((a.\"id\" = 10 AND a.\"id\" > 10) OR (a.\"clicks\" > 100)))", sql);
+			Assert.Equal("SELECT a.\"id\", a.\"clicks\", a.\"typeguid\", a.\"title\", a.\"createtime\" FROM \"tb_topic\" a WHERE ((a.\"id\" = 10 AND a.\"id\" > 10 OR a.\"clicks\" > 100))", sql);
 			query.ToList();
 
 			query = select.WhereIf(true, a => a.Id == 10).WhereIf(true, a => a.Clicks > 100);

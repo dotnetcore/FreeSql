@@ -65,14 +65,14 @@ namespace FreeSql.Tests.PostgreSQL {
 			Assert.Equal("UPDATE \"tb_topic\" SET \"clicks\" = coalesce(\"clicks\", 0) * 10 / 1 WHERE (\"id\" = 1)", sql);
 
 			sql = update.Set(a => a.Id - 10).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
-			Assert.Equal("UPDATE \"tb_topic\" SET \"id\" = \"id\" - 10 WHERE (\"id\" = 1)", sql);
+			Assert.Equal("UPDATE \"tb_topic\" SET \"id\" = (\"id\" - 10) WHERE (\"id\" = 1)", sql);
 
 			int incrv = 10;
 			sql = update.Set(a => a.Clicks * incrv / 1).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
 			Assert.Equal("UPDATE \"tb_topic\" SET \"clicks\" = coalesce(\"clicks\", 0) * 10 / 1 WHERE (\"id\" = 1)", sql);
 
 			sql = update.Set(a => a.Id - incrv).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
-			Assert.Equal("UPDATE \"tb_topic\" SET \"id\" = \"id\" - 10 WHERE (\"id\" = 1)", sql);
+			Assert.Equal("UPDATE \"tb_topic\" SET \"id\" = (\"id\" - 10) WHERE (\"id\" = 1)", sql);
 		}
 		[Fact]
 		public void SetRaw() {
