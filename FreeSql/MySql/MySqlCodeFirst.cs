@@ -112,7 +112,7 @@ namespace FreeSql.MySql {
 					var tboldname = tb.DbOldName?.Split(new[] { '.' }, 2); //旧表名
 					if (tboldname?.Length == 1) tboldname = new[] { database, tboldname[0] };
 
-					if (string.Compare(tbname[0], database, true) != 0 && ExecuteScalar(database, _commonUtils.FormatSql(" select 1 from pg_database where datname={0}", tbname[0])) == null) //创建数据库
+					if (string.Compare(tbname[0], database, true) != 0 && ExecuteScalar(database, _commonUtils.FormatSql(" select 1 from information_schema.schemata where schema_name={0}", tbname[0])) == null) //创建数据库
 						sb.Append($"CREATE DATABASE IF NOT EXISTS ").Append(_commonUtils.QuoteSqlName(tbname[0])).Append(" default charset utf8 COLLATE utf8_general_ci;\r\n");
 
 					var sbalter = new StringBuilder();
@@ -144,7 +144,7 @@ namespace FreeSql.MySql {
 								sb.Remove(sb.Length - 2, 2).Append("),");
 							}
 							sb.Remove(sb.Length - 1, 1);
-							sb.Append("\r\n) Engine=InnoDB CHARACTER SET utf8;\r\n");
+							sb.Append("\r\n) Engine=InnoDB;\r\n");
 							continue;
 						}
 						//如果新表，旧表在一个数据库下，直接修改表名
@@ -251,7 +251,7 @@ where a.constraint_schema IN ({0}) and a.table_name IN ({1})", tboldname ?? tbna
 						sb.Remove(sb.Length - 2, 2).Append("),");
 					}
 					sb.Remove(sb.Length - 1, 1);
-					sb.Append("\r\n) Engine=InnoDB CHARACTER SET utf8;\r\n");
+					sb.Append("\r\n) Engine=InnoDB;\r\n");
 					sb.Append("INSERT INTO ").Append(tmptablename).Append(" (");
 					foreach (var tbcol in tb.Columns.Values)
 						sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");

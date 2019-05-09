@@ -125,7 +125,7 @@ namespace FreeSql.Tests.Oracle {
   `Enum2` SET('F1','F2','F3') NOT NULL, 
   `Enum2Nullable` SET('F1','F2','F3'), 
   PRIMARY KEY (`Id`)
-) Engine=InnoDB CHARACTER SET utf8;
+) Engine=InnoDB;
 ", sql);
 			}
 
