@@ -99,11 +99,18 @@ namespace FreeSql.Internal.CommonProvider {
 			for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
 			return this.InternalToList<TReturn>(select?.Body);
 		}
-
 		Task<List<TReturn>> ISelect<T1, T2>.ToListAsync<TReturn>(Expression<Func<T1, T2, TReturn>> select) {
 			if (select == null) return this.InternalToListAsync<TReturn>(select?.Body);
 			for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
 			return this.InternalToListAsync<TReturn>(select?.Body);
+		}
+		List<TDto> ISelect<T1, T2>.ToList<TDto>() => (this as ISelect<T1, T2>).ToList(GetToListDtoSelector<TDto>());
+		Task<List<TDto>> ISelect<T1, T2>.ToListAsync<TDto>() => (this as ISelect<T1, T2>).ToListAsync(GetToListDtoSelector<TDto>());
+		Expression<Func<T1, T2, TDto>> GetToListDtoSelector<TDto>() {
+			var ctor = typeof(TDto).GetConstructor(new Type[0]);
+			return Expression.Lambda<Func<T1, T2, TDto>>(Expression.New(ctor),
+				_tables[0].Parameter ?? Expression.Parameter(typeof(T1), "a"),
+				Expression.Parameter(typeof(T2), "b"));
 		}
 
 		DataTable ISelect<T1, T2>.ToDataTable<TReturn>(Expression<Func<T1, T2, TReturn>> select) {

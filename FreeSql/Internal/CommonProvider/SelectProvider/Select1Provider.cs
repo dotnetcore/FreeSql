@@ -147,13 +147,20 @@ namespace FreeSql.Internal.CommonProvider {
 			_tables[0].Parameter = select.Parameters[0];
 			return this.InternalToList<TReturn>(select?.Body);
 		}
-
 		public Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<T1, TReturn>> select) {
 			if (select == null) return this.InternalToListAsync<TReturn>(select?.Body);
 			_tables[0].Parameter = select.Parameters[0];
 			return this.InternalToListAsync<TReturn>(select?.Body);
 		}
+		List<TDto> ISelect<T1>.ToList<TDto>() => ToList(GetToListDtoSelector<TDto>());
+		Task<List<TDto>> ISelect<T1>.ToListAsync<TDto>() => ToListAsync(GetToListDtoSelector<TDto>());
+		Expression<Func<T1, TDto>> GetToListDtoSelector<TDto>() {
+			var ctor = typeof(TDto).GetConstructor(new Type[0]);
+			return Expression.Lambda<Func<T1, TDto>>(Expression.New(ctor),
+				_tables[0].Parameter ?? Expression.Parameter(typeof(T1), "a"));
+		}
 
+		#region linq to sql
 		public ISelect<TReturn> Select<TReturn>(Expression<Func<T1, TReturn>> select) where TReturn : class {
 			if (typeof(TReturn) == typeof(T1)) return this as ISelect<TReturn>;
 			_tables[0].Parameter = select.Parameters[0];
@@ -217,6 +224,7 @@ namespace FreeSql.Internal.CommonProvider {
 		public ISelect<T1> DefaultIfEmpty() {
 			return this;
 		}
+		#endregion
 
 		public DataTable ToDataTable<TReturn>(Expression<Func<T1, TReturn>> select) {
 			if (select == null) return this.InternalToDataTable(select?.Body);

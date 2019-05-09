@@ -115,11 +115,26 @@ namespace FreeSql.Internal.CommonProvider {
 			for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
 			return this.InternalToList<TReturn>(select?.Body);
 		}
-
 		Task<List<TReturn>> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>.ToListAsync<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TReturn>> select) {
 			if (select == null) return this.InternalToListAsync<TReturn>(select?.Body);
 			for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
 			return this.InternalToListAsync<TReturn>(select?.Body);
+		}
+		List<TDto> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>.ToList<TDto>() => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>).ToList(GetToListDtoSelector<TDto>());
+		Task<List<TDto>> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>.ToListAsync<TDto>() => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>).ToListAsync(GetToListDtoSelector<TDto>());
+		Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TDto>> GetToListDtoSelector<TDto>() {
+			var ctor = typeof(TDto).GetConstructor(new Type[0]);
+			return Expression.Lambda<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TDto>>(Expression.New(ctor),
+				_tables[0].Parameter ?? Expression.Parameter(typeof(T1), "a"),
+				Expression.Parameter(typeof(T2), "b"),
+				Expression.Parameter(typeof(T3), "c"),
+				Expression.Parameter(typeof(T4), "d"),
+				Expression.Parameter(typeof(T5), "e"),
+				Expression.Parameter(typeof(T6), "f"),
+				Expression.Parameter(typeof(T7), "g"),
+				Expression.Parameter(typeof(T8), "h"),
+				Expression.Parameter(typeof(T9), "i"),
+				Expression.Parameter(typeof(T10), "j"));
 		}
 
 		DataTable ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>.ToDataTable<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TReturn>> select) {

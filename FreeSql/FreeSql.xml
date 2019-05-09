@@ -988,6 +988,13 @@
             <param name="select">选择列</param>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.ISelect`1.ToList``1">
+            <summary>
+            执行SQL查询，返回 TDto 映射的字段，记录不存在时返回 Count 为 0 的列表
+            </summary>
+            <typeparam name="TDto"></typeparam>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.ISelect`1.ToOne``1(System.Linq.Expressions.Expression{System.Func{`0,``0}})">
             <summary>
             执行SQL查询，返回指定字段的记录的第一条记录，记录不存在时返回 TReturn 默认值

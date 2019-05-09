@@ -30,6 +30,13 @@ namespace FreeSql {
 		/// <returns></returns>
 		List<TReturn> ToList<TReturn>(Expression<Func<T1, TReturn>> select);
 		Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<T1, TReturn>> select);
+		/// <summary>
+		/// 执行SQL查询，返回 TDto 映射的字段，记录不存在时返回 Count 为 0 的列表
+		/// </summary>
+		/// <typeparam name="TDto"></typeparam>
+		/// <returns></returns>
+		List<TDto> ToList<TDto>();
+		Task<List<TDto>> ToListAsync<TDto>();
 
 		/// <summary>
 		/// 执行SQL查询，返回指定字段的记录的第一条记录，记录不存在时返回 TReturn 默认值

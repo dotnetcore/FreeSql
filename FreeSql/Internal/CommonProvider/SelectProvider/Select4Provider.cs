@@ -97,11 +97,20 @@ namespace FreeSql.Internal.CommonProvider {
 			for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
 			return this.InternalToAggregateAsync<TReturn>(select?.Body);
 		}
-
 		List<TReturn> ISelect<T1, T2, T3, T4>.ToList<TReturn>(Expression<Func<T1, T2, T3, T4, TReturn>> select) {
 			if (select == null) return this.InternalToList<TReturn>(select?.Body);
 			for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
 			return this.InternalToList<TReturn>(select?.Body);
+		}
+		List<TDto> ISelect<T1, T2, T3, T4>.ToList<TDto>() => (this as ISelect<T1, T2, T3, T4>).ToList(GetToListDtoSelector<TDto>());
+		Task<List<TDto>> ISelect<T1, T2, T3, T4>.ToListAsync<TDto>() => (this as ISelect<T1, T2, T3, T4>).ToListAsync(GetToListDtoSelector<TDto>());
+		Expression<Func<T1, T2, T3, T4, TDto>> GetToListDtoSelector<TDto>() {
+			var ctor = typeof(TDto).GetConstructor(new Type[0]);
+			return Expression.Lambda<Func<T1, T2, T3, T4, TDto>>(Expression.New(ctor),
+				_tables[0].Parameter ?? Expression.Parameter(typeof(T1), "a"),
+				Expression.Parameter(typeof(T2), "b"),
+				Expression.Parameter(typeof(T3), "c"),
+				Expression.Parameter(typeof(T4), "d"));
 		}
 
 		Task<List<TReturn>> ISelect<T1, T2, T3, T4>.ToListAsync<TReturn>(Expression<Func<T1, T2, T3, T4, TReturn>> select) {

@@ -15,6 +15,9 @@ namespace FreeSql {
 
 		List<TReturn> ToList<TReturn>(Expression<Func<T1, T2, TReturn>> select);
 		Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<T1, T2, TReturn>> select);
+		List<TDto> ToList<TDto>();
+		Task<List<TDto>> ToListAsync<TDto>();
+
 		string ToSql<TReturn>(Expression<Func<T1, T2, TReturn>> select);
 
 		TReturn ToAggregate<TReturn>(Expression<Func<ISelectGroupingAggregate<T1>, ISelectGroupingAggregate<T2>, TReturn>> select);
