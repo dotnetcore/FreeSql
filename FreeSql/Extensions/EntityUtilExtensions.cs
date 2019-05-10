@@ -602,15 +602,28 @@ namespace FreeSql.Extensions.EntityUtil {
 					});
 					if (_table.Properties.ContainsKey(pn)) {
 						var prop = _table.Properties[pn];
-						exps.Add(
-							Expression.Assign(
-								Expression.MakeMemberAccess(var1Parm, prop),
-								Expression.Convert(
-									FreeSql.Internal.Utils.GetDataReaderValueBlockExpression(prop.PropertyType, parm3),
-									prop.PropertyType
+
+						if (_table.ColumnsByCs.ContainsKey(pn)) {
+							exps.Add(
+								Expression.Assign(
+									Expression.MakeMemberAccess(var1Parm, prop),
+									Expression.Convert(
+										FreeSql.Internal.Utils.GetDataReaderValueBlockExpression(prop.PropertyType, parm3),
+										prop.PropertyType
+									)
 								)
-							)
-						);
+							);
+						} else {
+							exps.Add(
+								Expression.Assign(
+									Expression.MakeMemberAccess(var1Parm, prop),
+									Expression.Convert(
+										parm3,
+										prop.PropertyType
+									)
+								)
+							);
+						}
 					}
 					return Expression.Lambda<Action<object, string, object>>(Expression.Block(new[] { var1Parm }, exps), new[] { parm1, parm2, parm3 }).Compile();
 				});

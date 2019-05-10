@@ -330,7 +330,7 @@ namespace FreeSql.Internal {
 		static ConcurrentDictionary<Type, MethodInfo> _dicExpressionLambdaToSqlAsSelectWhereMethodInfo = new ConcurrentDictionary<Type, MethodInfo>();
 		static ConcurrentDictionary<Type, MethodInfo> _dicExpressionLambdaToSqlAsSelectWhereSqlMethodInfo = new ConcurrentDictionary<Type, MethodInfo>();
 		static ConcurrentDictionary<Type, MethodInfo> _dicExpressionLambdaToSqlAsSelectAnyMethodInfo = new ConcurrentDictionary<Type, MethodInfo>();
-		static ConcurrentDictionary<Type, PropertyInfo> _dicNullableValueProperty = new ConcurrentDictionary<Type, PropertyInfo>();
+		internal static ConcurrentDictionary<Type, PropertyInfo> _dicNullableValueProperty = new ConcurrentDictionary<Type, PropertyInfo>();
 		static ConcurrentDictionary<Type, Expression> _dicFreeSqlGlobalExtensionsAsSelectExpression = new ConcurrentDictionary<Type, Expression>();
 
 		internal string ExpressionBinary(string oper, Expression leftExp, Expression rightExp, ExpTSC tsc) {

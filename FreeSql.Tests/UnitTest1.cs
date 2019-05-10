@@ -94,6 +94,8 @@ namespace FreeSql.Tests {
 
 			public ICollection<Model2> Childs { get; set; }
 
+			public int M2Id { get; set; }
+
 		}
 
 		public class Model2 {
@@ -109,6 +111,32 @@ namespace FreeSql.Tests {
 
 		[Fact]
 		public void Test1() {
+
+			g.sqlite.GetRepository<Model1, int>().Insert(new Model1 {
+				title = "test_" + DateTime.Now.ToString("yyyyMMddHHmmss"),
+				M2Id = DateTime.Now.Second + DateTime.Now.Minute,
+				Childs = new[] {
+					new Model2 {
+						 title = "model2Test_title_" + DateTime.Now.ToString("yyyyMMddHHmmss") + "0001",
+					},
+					new Model2 {
+						 title = "model2Test_title_" + DateTime.Now.ToString("yyyyMMddHHmmss") + "0002",
+					},
+					new Model2 {
+						 title = "model2Test_title_" + DateTime.Now.ToString("yyyyMMddHHmmss") + "0003",
+					},
+					new Model2 {
+						 title = "model2Test_title_" + DateTime.Now.ToString("yyyyMMddHHmmss") + "0004",
+					}
+				}
+			});
+
+			var includet1 = g.sqlite.Select<Model1>()
+				.IncludeMany(a => a.Childs, s => s.Where(a => a.id > 0))
+				.Where(a => a.id > 10)
+				.ToList();
+
+
 
 			var ttt1 = g.sqlite.Select<Model1>().Where(a => a.Childs.AsSelect().Any(b => b.title == "111")).ToList();
 

@@ -293,5 +293,21 @@ namespace FreeSql {
 		/// <param name="column">列</param>
 		/// <returns></returns>
 		ISelect<T1> OrderByDescending<TMember>(Expression<Func<T1, TMember>> column);
+
+		/// <summary>
+		/// 贪婪加载导航属性，如果查询中已经使用了 a.Parent.Parent 类似表达式，则可以无需此操作
+		/// </summary>
+		/// <typeparam name="TNavigate"></typeparam>
+		/// <param name="navigateSelector">选择一个导航属性</param>
+		/// <returns></returns>
+		ISelect<T1> Include<TNavigate>(Expression<Func<T1, TNavigate>> navigateSelector) where TNavigate : class;
+		/// <summary>
+		/// 贪婪加载集合的导航属性，其实是分两次查询，ToList 后进行了数据重装
+		/// </summary>
+		/// <typeparam name="TNavigate"></typeparam>
+		/// <param name="navigateSelector">选择一个集合的导航属性</param>
+		/// <param name="then">即能 ThenInclude，还可以二次过滤（这个 EFCore 做不到？）</param>
+		/// <returns></returns>
+		ISelect<T1> IncludeMany<TNavigate>(Expression<Func<T1, ICollection<TNavigate>>> navigateSelector, Action<ISelect<TNavigate>> then = null) where TNavigate : class;
 	}
 }

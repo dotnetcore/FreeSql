@@ -756,5 +756,64 @@ namespace FreeSql.Tests.Sqlite {
 			sql = query.ToSql().Replace("\r\n", "");
 			Assert.Equal("SELECT a.\"Id\", a.\"Clicks\", a.\"TypeGuid\", a.\"Title\", a.\"CreateTime\" FROM \"tb_topic22AsTable1\" a LEFT JOIN \"TestTypeInfo\" b on b.\"Guid\" = a.\"TypeGuid\" and b.\"Name\" = @bname", sql);
 		}
+
+		[Fact]
+		public void Include_OneToMany() {
+
+		}
+		[Fact]
+		public void Include_OneToChilds() {
+
+		}
+
+		[Fact]
+		public void Include_ManyToMany() {
+
+			var tag1 = new Tag {
+				Ddd = DateTime.Now.Second,
+				Name = "test_manytoMany_01_中国"
+			};
+			tag1.Id = (int)g.sqlite.Insert(tag1).ExecuteIdentity();
+			var tag2 = new Tag {
+				Ddd = DateTime.Now.Second,
+				Name = "test_manytoMany_02_美国"
+			};
+			tag2.Id = (int)g.sqlite.Insert(tag2).ExecuteIdentity();
+			var tag3 = new Tag {
+				Ddd = DateTime.Now.Second,
+				Name = "test_manytoMany_03_日本"
+			};
+			tag3.Id = (int)g.sqlite.Insert(tag3).ExecuteIdentity();
+
+			var song1 = new Song {
+				Create_time = DateTime.Now,
+				Title = "test_manytoMany_01_我是中国人.mp3",
+				Url = "http://ww.baidu.com/"
+			};
+			song1.Id = (int)g.sqlite.Insert(song1).ExecuteIdentity();
+			var song2 = new Song {
+				Create_time = DateTime.Now,
+				Title = "test_manytoMany_02_爱你一万年.mp3",
+				Url = "http://ww.163.com/"
+			};
+			song2.Id = (int)g.sqlite.Insert(song2).ExecuteIdentity();
+			var song3 = new Song {
+				Create_time = DateTime.Now,
+				Title = "test_manytoMany_03_千年等一回.mp3",
+				Url = "http://ww.sina.com/"
+			};
+			song3.Id = (int)g.sqlite.Insert(song3).ExecuteIdentity();
+
+			g.sqlite.Insert(new Song_tag { Song_id = song1.Id, Tag_id = tag1.Id }).ExecuteAffrows();
+			g.sqlite.Insert(new Song_tag { Song_id = song2.Id, Tag_id = tag1.Id }).ExecuteAffrows();
+			g.sqlite.Insert(new Song_tag { Song_id = song3.Id, Tag_id = tag1.Id }).ExecuteAffrows();
+			g.sqlite.Insert(new Song_tag { Song_id = song1.Id, Tag_id = tag2.Id }).ExecuteAffrows();
+			g.sqlite.Insert(new Song_tag { Song_id = song3.Id, Tag_id = tag2.Id }).ExecuteAffrows();
+			g.sqlite.Insert(new Song_tag { Song_id = song3.Id, Tag_id = tag3.Id }).ExecuteAffrows();
+
+			var songs = g.sqlite.Select<Song>()
+				.IncludeMany(a => a.Tags)
+				.ToList();
+		}
 	}
 }

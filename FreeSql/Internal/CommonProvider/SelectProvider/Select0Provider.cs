@@ -30,6 +30,7 @@ namespace FreeSql.Internal.CommonProvider {
 		protected DbTransaction _transaction;
 		protected DbConnection _connection;
 		protected Action<object> _trackToList;
+		protected Queue<Action<object>> _includeToList = new Queue<Action<object>>();
 		protected bool _distinct;
 		protected Expression _selectExpression;
 
@@ -69,6 +70,7 @@ namespace FreeSql.Internal.CommonProvider {
 			toType.GetField("_transaction", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._transaction);
 			toType.GetField("_connection", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._connection);
 			toType.GetField("_trackToList", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._trackToList);
+			toType.GetField("_includeToList", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._includeToList);
 			toType.GetField("_distinct", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._distinct);
 			toType.GetField("_selectExpression", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._selectExpression);
 		}
@@ -318,7 +320,7 @@ namespace FreeSql.Internal.CommonProvider {
 				return ret;
 			});
 		}
-		List<T1> ToListPrivate(GetAllFieldExpressionTreeInfo af) {
+		internal List<T1> ToListPrivate(GetAllFieldExpressionTreeInfo af, (ReadAnonymousTypeInfo, List<object>)[] otherData) {
 			var sql = this.ToSql(af.Field);
 			if (_cache.seconds > 0 && string.IsNullOrEmpty(_cache.key)) _cache.key = $"{sql}{string.Join("|", _params.Select(a => a.Value))}";
 
@@ -331,6 +333,11 @@ namespace FreeSql.Internal.CommonProvider {
 				try {
 					_orm.Ado.ExecuteReader(_connection, _transaction, dr => {
 						ret.Add(af.Read(_orm, dr));
+						if (otherData != null) {
+							var idx = af.FieldCount - 1;
+							foreach (var other in otherData)
+								other.Item2.Add(_commonExpression.ReadAnonymous(other.Item1, dr, ref idx, false));
+						}
 					}, CommandType.Text, sql, dbParms);
 				} catch (Exception ex) {
 					exception = ex;
@@ -339,12 +346,13 @@ namespace FreeSql.Internal.CommonProvider {
 					var after = new Aop.CurdAfterEventArgs(before, exception, ret);
 					_orm.Aop.CurdAfter?.Invoke(this, after);
 				}
+				while (_includeToList.Any()) _includeToList.Dequeue()?.Invoke(ret);
 				_orm.Aop.ToList?.Invoke(this, new Aop.ToListEventArgs(ret));
 				_trackToList?.Invoke(ret);
 				return ret;
 			});
 		}
-		async Task<List<T1>> ToListPrivateAsync(GetAllFieldExpressionTreeInfo af) {
+		async internal Task<List<T1>> ToListPrivateAsync(GetAllFieldExpressionTreeInfo af, (ReadAnonymousTypeInfo, List<object>)[] otherData) {
 			var sql = this.ToSql(af.Field);
 			if (_cache.seconds > 0 && string.IsNullOrEmpty(_cache.key)) _cache.key = $"{sql}{string.Join("|", _params.Select(a => a.Value))}";
 
@@ -357,6 +365,11 @@ namespace FreeSql.Internal.CommonProvider {
 				try {
 					await _orm.Ado.ExecuteReaderAsync(_connection, _transaction, dr => {
 						ret.Add(af.Read(_orm, dr));
+						if (otherData != null) {
+							var idx = af.FieldCount - 1;
+							foreach (var other in otherData)
+								other.Item2.Add(_commonExpression.ReadAnonymous(other.Item1, dr, ref idx, false));
+						}
 						return Task.CompletedTask;
 					}, CommandType.Text, sql, dbParms);
 				} catch (Exception ex) {
@@ -366,6 +379,7 @@ namespace FreeSql.Internal.CommonProvider {
 					var after = new Aop.CurdAfterEventArgs(before, exception, ret);
 					_orm.Aop.CurdAfter?.Invoke(this, after);
 				}
+				while (_includeToList.Any()) _includeToList.Dequeue()?.Invoke(ret);
 				_orm.Aop.ToList?.Invoke(this, new Aop.ToListEventArgs(ret));
 				_trackToList?.Invoke(ret);
 				return ret;
@@ -373,11 +387,11 @@ namespace FreeSql.Internal.CommonProvider {
 		}
 		public List<T1> ToList(bool includeNestedMembers = false) {
 			if (_selectExpression != null) return this.InternalToList<T1>(_selectExpression);
-			return this.ToListPrivate(includeNestedMembers == false ? this.GetAllFieldExpressionTreeLevel2() : this.GetAllFieldExpressionTreeLevelAll());
+			return this.ToListPrivate(includeNestedMembers == false ? this.GetAllFieldExpressionTreeLevel2() : this.GetAllFieldExpressionTreeLevelAll(), null);
 		}
 		public Task<List<T1>> ToListAsync(bool includeNestedMembers = false) {
 			if (_selectExpression != null) return this.InternalToListAsync<T1>(_selectExpression);
-			return this.ToListPrivateAsync(includeNestedMembers == false ? this.GetAllFieldExpressionTreeLevel2() : this.GetAllFieldExpressionTreeLevelAll());
+			return this.ToListPrivateAsync(includeNestedMembers == false ? this.GetAllFieldExpressionTreeLevel2() : this.GetAllFieldExpressionTreeLevelAll(), null);
 		}
 		public T1 ToOne() {
 			this.Limit(1);
@@ -460,6 +474,7 @@ namespace FreeSql.Internal.CommonProvider {
 		static ConcurrentDictionary<string, GetAllFieldExpressionTreeInfo> _dicGetAllFieldExpressionTree = new ConcurrentDictionary<string, GetAllFieldExpressionTreeInfo>();
 		public class GetAllFieldExpressionTreeInfo {
 			public string Field { get; set; }
+			public int FieldCount { get; set; }
 			public Func<IFreeSql, DbDataReader, T1> Read { get; set; }
 		}
 		protected GetAllFieldExpressionTreeInfo GetAllFieldExpressionTreeLevelAll() {
@@ -579,6 +594,7 @@ namespace FreeSql.Internal.CommonProvider {
 				});
 				return new GetAllFieldExpressionTreeInfo {
 					Field = field.ToString(),
+					FieldCount = index,
 					Read = Expression.Lambda<Func<IFreeSql, DbDataReader, T1>>(Expression.Block(new[] { retExp, dataIndexExp, readExp }, blockExp), new[] { ormExp, rowExp }).Compile()
 				};
 			});

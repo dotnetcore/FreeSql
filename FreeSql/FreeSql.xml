@@ -1263,6 +1263,23 @@
             <param name="column">列</param>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.ISelect`1.Include``1(System.Linq.Expressions.Expression{System.Func{`0,``0}})">
+            <summary>
+            贪婪加载导航属性，如果查询中已经使用了 a.Parent.Parent 类似表达式，则可以无需此操作
+            </summary>
+            <typeparam name="TNavigate"></typeparam>
+            <param name="navigateSelector">选择一个导航属性</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.ISelect`1.IncludeMany``1(System.Linq.Expressions.Expression{System.Func{`0,System.Collections.Generic.ICollection{``0}}},System.Action{FreeSql.ISelect{``0}})">
+            <summary>
+            贪婪加载集合的导航属性，其实是分两次查询，ToList 后进行了数据重装
+            </summary>
+            <typeparam name="TNavigate"></typeparam>
+            <param name="navigateSelector">选择一个集合的导航属性</param>
+            <param name="then">即能 ThenInclude，还可以二次过滤（这个 EFCore 做不到？）</param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.ISelectFromExpression`1.Where(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
             <summary>
             查询条件，Where(a => a.Id > 10)，支持导航对象查询，Where(a => a.Author.Email == "2881099@qq.com")
