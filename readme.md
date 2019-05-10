@@ -74,7 +74,7 @@ class Tag {
 //OneToOne、ManyToOne
 var t0 = fsql.Select<Tag>()
     .Where(a => a.Parent.Parent.Name == "粤语")
-	.Include(a => a.Tags, then => then.Where(sub => sub.Name == "xxx"))
+    .Include(a => a.Tags, then => then.Where(sub => sub.Name == "xxx"))
     .ToList();
 
 //OneToMany
@@ -87,7 +87,7 @@ var t1 = fsql.Select<Tag>()
 var t2 = fsql.Select<Song>()
     .Where(s => s.Tags.AsSelect()
         .Any(t => t.Name == "国语"))
-	.Include(a => a.Tags, then => then.Where(sub => sub.Name == "xxx"))
+    .Include(a => a.Tags, then => then.Where(sub => sub.Name == "xxx"))
     .ToList();
 
 //Other
