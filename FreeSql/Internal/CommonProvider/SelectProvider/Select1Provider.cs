@@ -343,12 +343,14 @@ namespace FreeSql.Internal.CommonProvider {
 
 			if (collMem.Expression.NodeType != ExpressionType.Parameter)
 				_commonExpression.ExpressionWhereLambda(_tables, Expression.MakeMemberAccess(collMem.Expression, tb.Properties[tb.ColumnsByCs.First().Value.CsName]), null);
-			var tbref = tb.GetTableRef(collMem.Member.Name, true);
 
 			_includeToList.Enqueue(listObj => {
 				var list = listObj as List<T1>;
 				if (list == null) return;
 				if (list.Any() == false) return;
+
+				var tbref = tb.GetTableRef(collMem.Member.Name, true);
+				if (tbref.Columns.Any() == false) return;
 
 				var t1parm = Expression.Parameter(typeof(T1));
 				Expression membersExp = t1parm;
@@ -381,7 +383,7 @@ namespace FreeSql.Internal.CommonProvider {
 						if (true) {
 							var tbref2 = _commonUtils.GetTableByEntity(tbref.RefEntityType);
 							if (tbref.Columns.Count == 1) {
-								var arrExp = Expression.NewArrayInit(tbref.Columns[0].CsType, list.Select(a => Expression.Constant(Convert.ChangeType(getListValue(a, tbref.Columns[0].CsName), tbref.Columns[0].CsType))).ToArray());
+								var arrExp = Expression.NewArrayInit(tbref.Columns[0].CsType, list.Select(a => Expression.Constant(Convert.ChangeType(getListValue(a, tbref.Columns[0].CsName), tbref.Columns[0].CsType))).Distinct().ToArray());
 								var otmExpParm1 = Expression.Parameter(typeof(TNavigate), "a");
 								var containsMethod = _dicTypeMethod.GetOrAdd(tbref.Columns[0].CsType, et => new ConcurrentDictionary<string, MethodInfo>()).GetOrAdd("Contains", mn =>
 									typeof(Enumerable).GetMethods().Where(a => a.Name == mn).First()).MakeGenericMethod(tbref.Columns[0].CsType);
@@ -466,21 +468,34 @@ namespace FreeSql.Internal.CommonProvider {
 						if (true) {
 							var tbref2 = _commonUtils.GetTableByEntity(tbref.RefEntityType);
 							var tbrefMid = _commonUtils.GetTableByEntity(tbref.RefMiddleEntityType);
+							var sbJoin = new StringBuilder().Append($"{_commonUtils.QuoteSqlName(tbrefMid.DbName)} midtb ON");
+							for (var z = 0; z < tbref.RefColumns.Count; z++) {
+								if (z > 0) sbJoin.Append(" AND");
+								sbJoin.Append($" midtb.{_commonUtils.QuoteSqlName(tbref.MiddleColumns[tbref.Columns.Count + z].Attribute.Name)} = a.{_commonUtils.QuoteSqlName(tbref.RefColumns[z].Attribute.Name)}");
+							}
+							subSelect.InnerJoin(sbJoin.ToString());
+							sbJoin.Clear();
 							if (tbref.Columns.Count == 1) {
-								//var midParmExp = Expression.Parameter(tbref.RefMiddleEntityType, "midtb");
-								//(subSelect as Select1Provider<TNavigate>)._tables.Add(new SelectTableInfo {
-								//	Alias = "midtb",
-								//	AliasInit = "midtb",
-								//	On = $"{_commonUtils.QuoteSqlName(tbrefMid.DbName)} midtb ON midtb.{_commonUtils.QuoteSqlName(tbref.MiddleColumns[1].Attribute.Name)} = a.{_commonUtils.QuoteSqlName(tbref.RefColumns[0].Attribute.Name)}",
-								//	Parameter = midParmExp,
-								//	Table = tbrefMid,
-								//	Type = SelectTableInfoType.InnerJoin
-								//});
-								subSelect.InnerJoin($"{_commonUtils.QuoteSqlName(tbrefMid.DbName)} midtb ON midtb.{_commonUtils.QuoteSqlName(tbref.MiddleColumns[1].Attribute.Name)} = a.{_commonUtils.QuoteSqlName(tbref.RefColumns[0].Attribute.Name)}");
-								subSelect.Where(_commonUtils.FormatSql($"midtb.{_commonUtils.QuoteSqlName(tbref.MiddleColumns[0].Attribute.Name)} in {{0}}", list.Select(a => getListValue(a, tbref.Columns[0].CsName))));
-								
+								subSelect.Where(_commonUtils.FormatSql($"midtb.{_commonUtils.QuoteSqlName(tbref.MiddleColumns[0].Attribute.Name)} in {{0}}", list.Select(a => getListValue(a, tbref.Columns[0].CsName)).Distinct()));
 							} else {
-								
+								Dictionary<string, bool> sbDic = new Dictionary<string, bool>();
+								for (var y = 0; y < list.Count; y++) {
+									var sbWhereOne = new StringBuilder();
+									sbWhereOne.Append(" (");
+									for (var z = 0; z < tbref.Columns.Count; z++) {
+										if (z > 0) sbWhereOne.Append(" AND");
+										sbWhereOne.Append(_commonUtils.FormatSql($" midtb.{_commonUtils.QuoteSqlName(tbref.MiddleColumns[z].Attribute.Name)}={{0}}", getListValue(list[y], tbref.Columns[z].CsName)));
+									}
+									sbWhereOne.Append(")");
+									var whereOne = sbWhereOne.ToString();
+									sbWhereOne.Clear();
+									if (sbDic.ContainsKey(whereOne) == false) sbDic.Add(whereOne, true);
+								}
+								var sbWhere = new StringBuilder();
+								foreach (var sbd in sbDic)
+									sbWhere.Append(" OR").Append(sbd.Key);
+								subSelect.Where(sbWhere.Remove(0, 3).ToString());
+								sbWhere.Clear();
 							}
 							then?.Invoke(subSelect);
 
@@ -490,7 +505,7 @@ namespace FreeSql.Internal.CommonProvider {
 							var subSelectP1 = (subSelect as Select1Provider<TNavigate>);
 							var af = subSelectP1.GetAllFieldExpressionTreeLevelAll();
 							if (_selectExpression == null) {// return this.InternalToList<T1>(_selectExpression).Select(a => (a, ()).ToList();
-								var sb = new StringBuilder().Append(af.Field);
+								var field = new StringBuilder();
 								var read = new ReadAnonymousTypeInfo();
 								read.ConsturctorType = ReadAnonymousTypeInfoConsturctorType.Properties;
 								read.Consturctor = tbrefMid.TypeLazy.GetConstructor(new Type[0]);
@@ -505,10 +520,9 @@ namespace FreeSql.Internal.CommonProvider {
 										Property = tbrefMid.Properties[col.CsName]
 									};
 									read.Childs.Add(child);
-									sb.Append(", ").Append(_commonUtils.QuoteReadColumn(child.MapType, child.DbField));
+									field.Append(", ").Append(_commonUtils.QuoteReadColumn(child.MapType, child.DbField));
 								}
-								af.Field = sb.ToString();
-								subList = subSelectP1.ToListPrivate(af, new[] { (read, midList) });
+								subList = subSelectP1.ToListPrivate(af, new[] { (field.ToString(), read, midList) });
 							} else
 								subList = subSelectP1.ToListPrivate(af, null);
 
@@ -518,17 +532,25 @@ namespace FreeSql.Internal.CommonProvider {
 								return;
 							}
 
-							Dictionary<string, Tuple<T1, List<TNavigate>>> dicList = new Dictionary<string, Tuple<T1, List<TNavigate>>>();
+							Dictionary<string, List<Tuple<T1, List<TNavigate>>>> dicList = new Dictionary<string, List<Tuple<T1, List<TNavigate>>>>();
 							foreach (var item in list) {
 								if (tbref.Columns.Count == 1) {
-									dicList.Add(getListValue(item, tbref.Columns[0].CsName).ToString(), Tuple.Create(item, new List<TNavigate>()));
+									var dicListKey = getListValue(item, tbref.Columns[0].CsName).ToString();
+									var dicListVal = Tuple.Create(item, new List<TNavigate>());
+									if (dicList.TryGetValue(dicListKey, out var items) == false)
+										dicList.Add(dicListKey, items = new List<Tuple<T1, List<TNavigate>>>());
+									items.Add(dicListVal);
 								} else {
 									var sb = new StringBuilder();
 									for (var z = 0; z < tbref.Columns.Count; z++) {
 										if (z > 0) sb.Append("*$*");
 										sb.Append(getListValue(item, tbref.Columns[z].CsName));
 									}
-									dicList.Add(sb.Remove(0, 3).ToString(), Tuple.Create(item, new List<TNavigate>()));
+									var dicListKey = sb.Remove(0, 3).ToString();
+									var dicListVal = Tuple.Create(item, new List<TNavigate>());
+									if (dicList.TryGetValue(dicListKey, out var items) == false)
+										dicList.Add(dicListKey, items = new List<Tuple<T1, List<TNavigate>>>());
+									items.Add(dicListVal);
 									sb.Clear();
 								}
 							}
@@ -545,11 +567,13 @@ namespace FreeSql.Internal.CommonProvider {
 									key = sb.ToString();
 									sb.Clear();
 								}
-								if (dicList.TryGetValue(key, out var t1item) == false) return;
-								t1item.Item2.Add(subList[a]);
+								if (dicList.TryGetValue(key, out var t1items) == false) return;
+								foreach (var t1item in t1items)
+									t1item.Item2.Add(subList[a]);
 							}
-							foreach (var t1item in dicList.Values)
-								setListValue(t1item.Item1, t1item.Item2);
+							foreach (var t1items in dicList.Values)
+								foreach (var t1item in t1items)
+									setListValue(t1item.Item1, t1item.Item2);
 							dicList.Clear();
 						}
 						break;

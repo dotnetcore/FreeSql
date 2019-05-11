@@ -286,8 +286,6 @@ namespace FreeSql.Internal.CommonProvider {
 					var after = new Aop.CurdAfterEventArgs(before, exception, ret);
 					_orm.Aop.CurdAfter?.Invoke(this, after);
 				}
-				_orm.Aop.ToList?.Invoke(this, new Aop.ToListEventArgs(ret));
-				_trackToList?.Invoke(ret);
 				return ret;
 			});
 		}
@@ -315,13 +313,18 @@ namespace FreeSql.Internal.CommonProvider {
 					var after = new Aop.CurdAfterEventArgs(before, exception, ret);
 					_orm.Aop.CurdAfter?.Invoke(this, after);
 				}
-				_orm.Aop.ToList?.Invoke(this, new Aop.ToListEventArgs(ret));
-				_trackToList?.Invoke(ret);
 				return ret;
 			});
 		}
-		internal List<T1> ToListPrivate(GetAllFieldExpressionTreeInfo af, (ReadAnonymousTypeInfo, List<object>)[] otherData) {
-			var sql = this.ToSql(af.Field);
+		internal List<T1> ToListPrivate(GetAllFieldExpressionTreeInfo af, (string field, ReadAnonymousTypeInfo read, List<object> retlist)[] otherData) {
+			string sql = null;
+			if (otherData?.Length > 0) {
+				var sbField = new StringBuilder().Append(af.Field);
+				foreach (var other in otherData)
+					sbField.Append(other.field);
+				sql = this.ToSql(sbField.ToString());
+			} else
+				sql = this.ToSql(af.Field);
 			if (_cache.seconds > 0 && string.IsNullOrEmpty(_cache.key)) _cache.key = $"{sql}{string.Join("|", _params.Select(a => a.Value))}";
 
 			return _orm.Cache.Shell(_cache.key, _cache.seconds, () => {
@@ -336,7 +339,7 @@ namespace FreeSql.Internal.CommonProvider {
 						if (otherData != null) {
 							var idx = af.FieldCount - 1;
 							foreach (var other in otherData)
-								other.Item2.Add(_commonExpression.ReadAnonymous(other.Item1, dr, ref idx, false));
+								other.retlist.Add(_commonExpression.ReadAnonymous(other.read, dr, ref idx, false));
 						}
 					}, CommandType.Text, sql, dbParms);
 				} catch (Exception ex) {
@@ -352,8 +355,15 @@ namespace FreeSql.Internal.CommonProvider {
 				return ret;
 			});
 		}
-		async internal Task<List<T1>> ToListPrivateAsync(GetAllFieldExpressionTreeInfo af, (ReadAnonymousTypeInfo, List<object>)[] otherData) {
-			var sql = this.ToSql(af.Field);
+		async internal Task<List<T1>> ToListPrivateAsync(GetAllFieldExpressionTreeInfo af, (string field, ReadAnonymousTypeInfo read, List<object> retlist)[] otherData) {
+			string sql = null;
+			if (otherData?.Length > 0) {
+				var sbField = new StringBuilder().Append(af.Field);
+				foreach (var other in otherData)
+					sbField.Append(other.field);
+				sql = this.ToSql(sbField.ToString());
+			} else
+				sql = this.ToSql(af.Field);
 			if (_cache.seconds > 0 && string.IsNullOrEmpty(_cache.key)) _cache.key = $"{sql}{string.Join("|", _params.Select(a => a.Value))}";
 
 			return await _orm.Cache.ShellAsync(_cache.key, _cache.seconds, async () => {
@@ -368,7 +378,7 @@ namespace FreeSql.Internal.CommonProvider {
 						if (otherData != null) {
 							var idx = af.FieldCount - 1;
 							foreach (var other in otherData)
-								other.Item2.Add(_commonExpression.ReadAnonymous(other.Item1, dr, ref idx, false));
+								other.retlist.Add(_commonExpression.ReadAnonymous(other.read, dr, ref idx, false));
 						}
 						return Task.CompletedTask;
 					}, CommandType.Text, sql, dbParms);
@@ -501,13 +511,30 @@ namespace FreeSql.Internal.CommonProvider {
 				var tb = _tables.First();
 				var index = 0;
 
+				var tborder = new[] { tb }.Concat(_tables.ToArray().Where((a, b) => b > 0).OrderBy(a => a.Alias));
 				var tbiindex = 0;
-				foreach (var tbi in _tables.ToArray().OrderBy(a => a.Alias)) {
+				foreach (var tbi in tborder) {
 					if (tbiindex > 0 && tbi.Type == SelectTableInfoType.From) continue;
 					if (tbiindex > 0 && tbi.Alias.StartsWith($"{tb.Alias}__") == false) continue;
 
 					var typei = tbi.Table.TypeLazy ?? tbi.Table.Type;
 					Expression curExp = retExp;
+
+					var colidx = 0;
+					foreach (var col in tbi.Table.Columns.Values) {
+						if (index > 0) {
+							field.Append(", ");
+							if (tbiindex > 0 && colidx == 0) field.Append("\r\n");
+						}
+						var quoteName = _commonUtils.QuoteSqlName(col.Attribute.Name);
+						field.Append(_commonUtils.QuoteReadColumn(col.Attribute.MapType, $"{tbi.Alias}.{quoteName}"));
+						++index;
+						if (dicfield.ContainsKey(quoteName)) field.Append(" as").Append(index);
+						else dicfield.Add(quoteName, true);
+						++colidx;
+					}
+					tbiindex++;
+
 					if (tbiindex == 0)
 						blockExp.AddRange(new Expression[] {
 							Expression.Assign(readExp, Expression.Call(Utils.MethodExecuteArrayRowReadClassOrTuple, new Expression[] { Expression.Constant(typei), Expression.Constant(null, typeof(int[])), rowExp, dataIndexExp, Expression.Constant(_commonUtils) })),
@@ -547,7 +574,7 @@ namespace FreeSql.Internal.CommonProvider {
 						if (iscontinue) continue;
 
 						blockExp.Add(
-							Expression.IfThen(
+							Expression.IfThenElse(
 								curExpIfNotNull,
 								Expression.Block(new Expression[] {
 									Expression.Assign(readExp, Expression.Call(Utils.MethodExecuteArrayRowReadClassOrTuple, new Expression[] { Expression.Constant(typei), Expression.Constant(null, typeof(int[])), rowExp, dataIndexExp, Expression.Constant(_commonUtils) })),
@@ -555,11 +582,16 @@ namespace FreeSql.Internal.CommonProvider {
 										Expression.GreaterThan(readExpDataIndex, dataIndexExp),
 										Expression.Assign(dataIndexExp, readExpDataIndex)
 									),
-									Expression.IfThen(
+									Expression.IfThenElse(
 										Expression.NotEqual(readExpValue, Expression.Constant(null)),
-										Expression.Assign(curExp, Expression.Convert(readExpValue, typei))
+										Expression.Assign(curExp, Expression.Convert(readExpValue, typei)),
+										Expression.Assign(curExp, Expression.Constant(null, typei))
 									)
-								})
+								}),
+								Expression.Block(
+									Expression.Assign(readExpValue, Expression.Constant(null, typeof(object))),
+									Expression.Assign(dataIndexExp, Expression.Constant(index))
+								)
 							)
 						);
 					}
@@ -571,21 +603,6 @@ namespace FreeSql.Internal.CommonProvider {
 								Expression.Call(Expression.TypeAs(readExpValue, typei), tbi.Table.TypeLazySetOrm, ormExp)
 							)
 						); //将 orm 传递给 lazy
-
-					var colidx = 0;
-					foreach (var col in tbi.Table.Columns.Values) {
-						if (index > 0) {
-							field.Append(", ");
-							if (tbiindex > 0 && colidx == 0) field.Append("\r\n");
-						}
-						var quoteName = _commonUtils.QuoteSqlName(col.Attribute.Name);
-						field.Append(_commonUtils.QuoteReadColumn(col.Attribute.MapType, $"{tbi.Alias}.{quoteName}"));
-						++index;
-						if (dicfield.ContainsKey(quoteName)) field.Append(" as").Append(index);
-						else dicfield.Add(quoteName, true);
-						++colidx;
-					}
-					tbiindex++;
 				}
 
 				blockExp.AddRange(new Expression[] {
@@ -685,9 +702,17 @@ namespace FreeSql.Internal.CommonProvider {
 						Expression.IfThen(Expression.GreaterThan(readExpDataIndex, dataIndexExp),
 							Expression.Assign(dataIndexExp, readExpDataIndex)),
 						//Expression.Call(typeof(Trace).GetMethod("WriteLine", new Type[]{typeof(string)}), Expression.Call(typeof(string).GetMethod("Concat", new Type[]{typeof(object) }), readExpValue)),
-						Expression.IfThen(Expression.NotEqual(readExpValue, Expression.Constant(null)),
-							//Expression.Call(retExp, propGetSetMethod, Expression.Default(prop.PropertyType)),
-							Expression.Call(retExp, propGetSetMethod, Expression.Convert(readExpValue, prop.PropertyType)))
+
+						tb1.TypeLazy != null ?
+							Expression.IfThenElse(
+								Expression.NotEqual(readExpValue, Expression.Constant(null)),
+								Expression.Call(retExp, propGetSetMethod, Expression.Convert(readExpValue, prop.PropertyType)),
+								Expression.Call(retExp, propGetSetMethod, Expression.Convert(Utils.GetDataReaderValueBlockExpression(prop.PropertyType, Expression.Constant(null)), prop.PropertyType))
+							) :
+							Expression.IfThen(
+								Expression.NotEqual(readExpValue, Expression.Constant(null)),
+								Expression.Call(retExp, propGetSetMethod, Expression.Convert(readExpValue, prop.PropertyType))
+							)
 					});
 				}
 				if (otherindex == 0) { //不读导航属性，优化单表读取性能

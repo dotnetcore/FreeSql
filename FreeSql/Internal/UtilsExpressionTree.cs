@@ -605,7 +605,10 @@ namespace FreeSql.Internal {
 								.Append("		}\r\n");
 						}
 						if (vp.Item3) { //set 重写
-							cscode.Append("		set => base.").Append(pnv.Name).AppendLine(" = value;");
+							cscode.Append("		set {\r\n")
+								.Append("			base.").Append(pnv.Name).AppendLine(" = value;")
+								.Append("			__lazy__").Append(pnv.Name).AppendLine(" = true;")
+								.Append("		}\r\n");
 						}
 						cscode.AppendLine("	}");
 					}
