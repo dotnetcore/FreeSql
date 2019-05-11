@@ -35,7 +35,7 @@ namespace FreeSql.Tests.DataContext.SqlServer
 				SqlServer.Ado.ExecuteNonQuery("DROP SCHEMA dbo2");
 			}
 
-			var tempTables = new string[] { "cccccdddwww", "song", "tb_alltype", "tb_topic", "tb_topic22",
+			var tempTables = new string[] { "cccccdddwww", "song", "tag", "Song_tag", "tb_alltype", "tb_topic", "tb_topic22",
 				"tb_topic22211", "tb_topic111333", "TestTypeInfo", "TestTypeInfo333", "TestTypeParentInfo",
 				"TestTypeParentInfo23123", "xxdkdkdk1222", "xxx"};
 			foreach (var tempTable in tempTables)

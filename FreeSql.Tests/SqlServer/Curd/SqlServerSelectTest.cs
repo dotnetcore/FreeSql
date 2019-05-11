@@ -106,11 +106,11 @@ namespace FreeSql.Tests.SqlServer {
 
 		[Fact]
 		public void Lazy() {
-			var tags = g.sqlite.Select<Tag>().Where(a => a.Parent.Name == "xxx")
+			var tags = _sqlserverFixture.SqlServer.Select<Tag>().Where(a => a.Parent.Name == "xxx")
 				.LeftJoin(a => a.Parent_id == a.Parent.Id)
 				.ToSql();
 
-			var songs = g.sqlite.Select<Song>().Limit(10).ToList();
+			var songs = _sqlserverFixture.SqlServer.Select<Song>().Limit(10).ToList();
 
 
 		}
@@ -789,6 +789,142 @@ namespace FreeSql.Tests.SqlServer {
 			query = select.LeftJoin("TestTypeInfo b on b.Guid = a.TypeGuid and b.Name = @bname", new { bname = "xxx" }).AsTable(tableRule);
 			sql = query.ToSql().Replace("\r\n", "");
 			Assert.Equal("SELECT a.[Id], a.[Clicks], a.[TypeGuid], a.[Title], a.[CreateTime] FROM [tb_topic22AsTable1] a LEFT JOIN TestTypeInfo b on b.Guid = a.TypeGuid and b.Name = @bname", sql);
+		}
+
+		[Fact]
+		public void Include_OneToMany() {
+
+		}
+		[Fact]
+		public void Include_OneToChilds() {
+			var tag1 = new Tag {
+				Ddd = DateTime.Now.Second,
+				Name = "test_oneToChilds_01_中国"
+			};
+			tag1.Id = (int)_sqlserverFixture.SqlServer.Insert(tag1).ExecuteIdentity();
+			var tag1_1 = new Tag {
+				Parent_id = tag1.Id,
+				Ddd = DateTime.Now.Second,
+				Name = "test_oneToChilds_01_北京"
+			};
+			tag1_1.Id = (int)_sqlserverFixture.SqlServer.Insert(tag1_1).ExecuteIdentity();
+			var tag1_2 = new Tag {
+				Parent_id = tag1.Id,
+				Ddd = DateTime.Now.Second,
+				Name = "test_oneToChilds_01_上海"
+			};
+			tag1_2.Id = (int)_sqlserverFixture.SqlServer.Insert(tag1_2).ExecuteIdentity();
+
+			var tag2 = new Tag {
+				Ddd = DateTime.Now.Second,
+				Name = "test_oneToChilds_02_美国"
+			};
+			tag2.Id = (int)_sqlserverFixture.SqlServer.Insert(tag2).ExecuteIdentity();
+			var tag2_1 = new Tag {
+				Parent_id = tag2.Id,
+				Ddd = DateTime.Now.Second,
+				Name = "test_oneToChilds_02_纽约"
+			};
+			tag2_1.Id = (int)_sqlserverFixture.SqlServer.Insert(tag2_1).ExecuteIdentity();
+			var tag2_2 = new Tag {
+				Parent_id = tag2.Id,
+				Ddd = DateTime.Now.Second,
+				Name = "test_oneToChilds_02_华盛顿"
+			};
+			tag2_2.Id = (int)_sqlserverFixture.SqlServer.Insert(tag2_2).ExecuteIdentity();
+
+			var tags0 = _sqlserverFixture.SqlServer.Select<Tag>()
+				.Include(a => a.Parent)
+				.Where(a => a.Id == tag1.Id || a.Id == tag2.Id)
+				.ToList();
+
+			var tags = _sqlserverFixture.SqlServer.Select<Tag>()
+				.IncludeMany(a => a.Tags)
+				.Include(a => a.Parent)
+				.IncludeMany(a => a.Songs)
+				.Where(a => a.Id == tag1.Id || a.Id == tag2.Id)
+				.ToList();
+
+			var tags2 = _sqlserverFixture.SqlServer.Select<Tag>()
+				.IncludeMany(a => a.Tags,
+					then => then.Include(a => a.Parent).IncludeMany(a => a.Songs))
+				.Include(a => a.Parent)
+				.IncludeMany(a => a.Songs)
+				.Where(a => a.Id == tag1.Id || a.Id == tag2.Id)
+				.ToList();
+
+			var tags3 = _sqlserverFixture.SqlServer.Select<Tag>()
+				.IncludeMany(a => a.Tags,
+					then => then.Include(a => a.Parent).IncludeMany(a => a.Songs).IncludeMany(a => a.Tags))
+				.Include(a => a.Parent)
+				.IncludeMany(a => a.Songs)
+				.Where(a => a.Id == tag1.Id || a.Id == tag2.Id)
+				.ToList();
+		}
+
+		[Fact]
+		public void Include_ManyToMany() {
+
+			var tag1 = new Tag {
+				Ddd = DateTime.Now.Second,
+				Name = "test_manytoMany_01_中国"
+			};
+			tag1.Id = (int)_sqlserverFixture.SqlServer.Insert(tag1).ExecuteIdentity();
+			var tag2 = new Tag {
+				Ddd = DateTime.Now.Second,
+				Name = "test_manytoMany_02_美国"
+			};
+			tag2.Id = (int)_sqlserverFixture.SqlServer.Insert(tag2).ExecuteIdentity();
+			var tag3 = new Tag {
+				Ddd = DateTime.Now.Second,
+				Name = "test_manytoMany_03_日本"
+			};
+			tag3.Id = (int)_sqlserverFixture.SqlServer.Insert(tag3).ExecuteIdentity();
+
+			var song1 = new Song {
+				Create_time = DateTime.Now,
+				Title = "test_manytoMany_01_我是中国人.mp3",
+				Url = "http://ww.baidu.com/"
+			};
+			song1.Id = (int)_sqlserverFixture.SqlServer.Insert(song1).ExecuteIdentity();
+			var song2 = new Song {
+				Create_time = DateTime.Now,
+				Title = "test_manytoMany_02_爱你一万年.mp3",
+				Url = "http://ww.163.com/"
+			};
+			song2.Id = (int)_sqlserverFixture.SqlServer.Insert(song2).ExecuteIdentity();
+			var song3 = new Song {
+				Create_time = DateTime.Now,
+				Title = "test_manytoMany_03_千年等一回.mp3",
+				Url = "http://ww.sina.com/"
+			};
+			song3.Id = (int)_sqlserverFixture.SqlServer.Insert(song3).ExecuteIdentity();
+
+			_sqlserverFixture.SqlServer.Insert(new Song_tag { Song_id = song1.Id, Tag_id = tag1.Id }).ExecuteAffrows();
+			_sqlserverFixture.SqlServer.Insert(new Song_tag { Song_id = song2.Id, Tag_id = tag1.Id }).ExecuteAffrows();
+			_sqlserverFixture.SqlServer.Insert(new Song_tag { Song_id = song3.Id, Tag_id = tag1.Id }).ExecuteAffrows();
+			_sqlserverFixture.SqlServer.Insert(new Song_tag { Song_id = song1.Id, Tag_id = tag2.Id }).ExecuteAffrows();
+			_sqlserverFixture.SqlServer.Insert(new Song_tag { Song_id = song3.Id, Tag_id = tag2.Id }).ExecuteAffrows();
+			_sqlserverFixture.SqlServer.Insert(new Song_tag { Song_id = song3.Id, Tag_id = tag3.Id }).ExecuteAffrows();
+
+			var songs = _sqlserverFixture.SqlServer.Select<Song>()
+				.IncludeMany(a => a.Tags)
+				.Where(a => a.Id == song1.Id || a.Id == song2.Id || a.Id == song3.Id)
+				.ToList();
+			Assert.Equal(3, songs.Count);
+			Assert.Equal(2, songs[0].Tags.Count);
+			Assert.Equal(1, songs[1].Tags.Count);
+			Assert.Equal(3, songs[2].Tags.Count);
+
+			var songs2 = _sqlserverFixture.SqlServer.Select<Song>()
+				.IncludeMany(a => a.Tags,
+					then => then.IncludeMany(t => t.Songs))
+				.Where(a => a.Id == song1.Id || a.Id == song2.Id || a.Id == song3.Id)
+				.ToList();
+			Assert.Equal(3, songs2.Count);
+			Assert.Equal(2, songs2[0].Tags.Count);
+			Assert.Equal(1, songs2[1].Tags.Count);
+			Assert.Equal(3, songs2[2].Tags.Count);
 		}
 	}
 }

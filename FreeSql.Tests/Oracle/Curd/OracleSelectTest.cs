@@ -793,5 +793,141 @@ namespace FreeSql.Tests.Oracle {
 			sql = query.ToSql().Replace("\r\n", "");
 			Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22AsTable1\" a LEFT JOIN \"TESTTYPEINFO\" b on b.\"GUID\" = a.\"TYPEGUID\" and b.\"NAME\" = :bname", sql);
 		}
+
+		[Fact]
+		public void Include_OneToMany() {
+
+		}
+		[Fact]
+		public void Include_OneToChilds() {
+			var tag1 = new Tag {
+				Ddd = DateTime.Now.Second,
+				Name = "test_oneToChilds_01_中国"
+			};
+			tag1.Id = (int)g.oracle.Insert(tag1).ExecuteIdentity();
+			var tag1_1 = new Tag {
+				Parent_id = tag1.Id,
+				Ddd = DateTime.Now.Second,
+				Name = "test_oneToChilds_01_北京"
+			};
+			tag1_1.Id = (int)g.oracle.Insert(tag1_1).ExecuteIdentity();
+			var tag1_2 = new Tag {
+				Parent_id = tag1.Id,
+				Ddd = DateTime.Now.Second,
+				Name = "test_oneToChilds_01_上海"
+			};
+			tag1_2.Id = (int)g.oracle.Insert(tag1_2).ExecuteIdentity();
+
+			var tag2 = new Tag {
+				Ddd = DateTime.Now.Second,
+				Name = "test_oneToChilds_02_美国"
+			};
+			tag2.Id = (int)g.oracle.Insert(tag2).ExecuteIdentity();
+			var tag2_1 = new Tag {
+				Parent_id = tag2.Id,
+				Ddd = DateTime.Now.Second,
+				Name = "test_oneToChilds_02_纽约"
+			};
+			tag2_1.Id = (int)g.oracle.Insert(tag2_1).ExecuteIdentity();
+			var tag2_2 = new Tag {
+				Parent_id = tag2.Id,
+				Ddd = DateTime.Now.Second,
+				Name = "test_oneToChilds_02_华盛顿"
+			};
+			tag2_2.Id = (int)g.oracle.Insert(tag2_2).ExecuteIdentity();
+
+			var tags0 = g.oracle.Select<Tag>()
+				.Include(a => a.Parent)
+				.Where(a => a.Id == tag1.Id || a.Id == tag2.Id)
+				.ToList();
+
+			var tags = g.oracle.Select<Tag>()
+				.IncludeMany(a => a.Tags)
+				.Include(a => a.Parent)
+				.IncludeMany(a => a.Songs)
+				.Where(a => a.Id == tag1.Id || a.Id == tag2.Id)
+				.ToList();
+
+			var tags2 = g.oracle.Select<Tag>()
+				.IncludeMany(a => a.Tags,
+					then => then.Include(a => a.Parent).IncludeMany(a => a.Songs))
+				.Include(a => a.Parent)
+				.IncludeMany(a => a.Songs)
+				.Where(a => a.Id == tag1.Id || a.Id == tag2.Id)
+				.ToList();
+
+			var tags3 = g.oracle.Select<Tag>()
+				.IncludeMany(a => a.Tags,
+					then => then.Include(a => a.Parent).IncludeMany(a => a.Songs).IncludeMany(a => a.Tags))
+				.Include(a => a.Parent)
+				.IncludeMany(a => a.Songs)
+				.Where(a => a.Id == tag1.Id || a.Id == tag2.Id)
+				.ToList();
+		}
+
+		[Fact]
+		public void Include_ManyToMany() {
+
+			var tag1 = new Tag {
+				Ddd = DateTime.Now.Second,
+				Name = "test_manytoMany_01_中国"
+			};
+			tag1.Id = (int)g.oracle.Insert(tag1).ExecuteIdentity();
+			var tag2 = new Tag {
+				Ddd = DateTime.Now.Second,
+				Name = "test_manytoMany_02_美国"
+			};
+			tag2.Id = (int)g.oracle.Insert(tag2).ExecuteIdentity();
+			var tag3 = new Tag {
+				Ddd = DateTime.Now.Second,
+				Name = "test_manytoMany_03_日本"
+			};
+			tag3.Id = (int)g.oracle.Insert(tag3).ExecuteIdentity();
+
+			var song1 = new Song {
+				Create_time = DateTime.Now,
+				Title = "test_manytoMany_01_我是中国人.mp3",
+				Url = "http://ww.baidu.com/"
+			};
+			song1.Id = (int)g.oracle.Insert(song1).ExecuteIdentity();
+			var song2 = new Song {
+				Create_time = DateTime.Now,
+				Title = "test_manytoMany_02_爱你一万年.mp3",
+				Url = "http://ww.163.com/"
+			};
+			song2.Id = (int)g.oracle.Insert(song2).ExecuteIdentity();
+			var song3 = new Song {
+				Create_time = DateTime.Now,
+				Title = "test_manytoMany_03_千年等一回.mp3",
+				Url = "http://ww.sina.com/"
+			};
+			song3.Id = (int)g.oracle.Insert(song3).ExecuteIdentity();
+
+			g.oracle.Insert(new Song_tag { Song_id = song1.Id, Tag_id = tag1.Id }).ExecuteAffrows();
+			g.oracle.Insert(new Song_tag { Song_id = song2.Id, Tag_id = tag1.Id }).ExecuteAffrows();
+			g.oracle.Insert(new Song_tag { Song_id = song3.Id, Tag_id = tag1.Id }).ExecuteAffrows();
+			g.oracle.Insert(new Song_tag { Song_id = song1.Id, Tag_id = tag2.Id }).ExecuteAffrows();
+			g.oracle.Insert(new Song_tag { Song_id = song3.Id, Tag_id = tag2.Id }).ExecuteAffrows();
+			g.oracle.Insert(new Song_tag { Song_id = song3.Id, Tag_id = tag3.Id }).ExecuteAffrows();
+
+			var songs = g.oracle.Select<Song>()
+				.IncludeMany(a => a.Tags)
+				.Where(a => a.Id == song1.Id || a.Id == song2.Id || a.Id == song3.Id)
+				.ToList();
+			Assert.Equal(3, songs.Count);
+			Assert.Equal(2, songs[0].Tags.Count);
+			Assert.Equal(1, songs[1].Tags.Count);
+			Assert.Equal(3, songs[2].Tags.Count);
+
+			var songs2 = g.oracle.Select<Song>()
+				.IncludeMany(a => a.Tags,
+					then => then.IncludeMany(t => t.Songs))
+				.Where(a => a.Id == song1.Id || a.Id == song2.Id || a.Id == song3.Id)
+				.ToList();
+			Assert.Equal(3, songs2.Count);
+			Assert.Equal(2, songs2[0].Tags.Count);
+			Assert.Equal(1, songs2[1].Tags.Count);
+			Assert.Equal(3, songs2[2].Tags.Count);
+		}
 	}
 }

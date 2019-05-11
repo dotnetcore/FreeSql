@@ -517,7 +517,7 @@ namespace FreeSql.Tests {
 	}
 
 
-	[Table(Name = "xxx", SelectFilter = " a.id > 0")]
+	[Table(Name = "TestInfoT1", SelectFilter = " a.id > 0")]
 	class TestInfo {
 		[Column(IsIdentity = true, IsPrimary = true)]
 		public int Id { get; set; }
@@ -527,6 +527,7 @@ namespace FreeSql.Tests {
 		public DateTime CreateTime { get; set; }
 	}
 
+	[Table(Name = "TestTypeInfoT1")]
 	class TestTypeInfo {
 		[Column(IsIdentity = true)]
 		public int Guid { get; set; }
@@ -535,6 +536,7 @@ namespace FreeSql.Tests {
 		public string Name { get; set; }
 	}
 
+	[Table(Name = "TestTypeParentInfoT1")]
 	class TestTypeParentInfo {
 		[Column(IsIdentity = true)]
 		public int Id { get; set; }
