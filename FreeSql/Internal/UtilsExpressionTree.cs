@@ -703,7 +703,7 @@ namespace FreeSql.Internal {
 			//[typeof(JObject)] = true,
 			//[typeof(JArray)] = true,
 		};
-		internal static ConcurrentDictionary<Type, Func<Type, int[], DbDataReader, int, CommonUtils, RowInfo>> _dicExecuteArrayRowReadClassOrTuple = new ConcurrentDictionary<Type, Func<Type, int[], DbDataReader, int, CommonUtils, RowInfo>>();
+		internal static ConcurrentDictionary<string, ConcurrentDictionary<Type, Func<Type, int[], DbDataReader, int, CommonUtils, RowInfo>>> _dicExecuteArrayRowReadClassOrTuple = new ConcurrentDictionary<string, ConcurrentDictionary<Type, Func<Type, int[], DbDataReader, int, CommonUtils, RowInfo>>>();
 		internal class RowInfo {
 			public object Value { get; set; }
 			public int DataIndex { get; set; }
@@ -716,8 +716,11 @@ namespace FreeSql.Internal {
 			public static PropertyInfo PropertyDataIndex = typeof(RowInfo).GetProperty("DataIndex");
 		}
 		internal static MethodInfo MethodDataReaderGetValue = typeof(DbDataReader).GetMethod("GetValue");
-		internal static RowInfo ExecuteArrayRowReadClassOrTuple(Type typeOrg, int[] indexes, DbDataReader row, int dataIndex, CommonUtils _commonUtils) {
-			var func = _dicExecuteArrayRowReadClassOrTuple.GetOrAdd(typeOrg, type => {
+		internal static RowInfo ExecuteArrayRowReadClassOrTuple(string flagStr, Type typeOrg, int[] indexes, DbDataReader row, int dataIndex, CommonUtils _commonUtils) {
+			if (string.IsNullOrEmpty(flagStr)) flagStr = "all";
+			var func = _dicExecuteArrayRowReadClassOrTuple
+				.GetOrAdd(flagStr, flag => new ConcurrentDictionary<Type, Func<Type, int[], DbDataReader, int, CommonUtils, RowInfo>>())
+				.GetOrAdd(typeOrg, type => {
 				var returnTarget = Expression.Label(typeof(RowInfo));
 				var typeExp = Expression.Parameter(typeof(Type), "type");
 				var indexesExp = Expression.Parameter(typeof(int[]), "indexes");
@@ -770,7 +773,7 @@ namespace FreeSql.Internal {
 										Expression.Add(dataIndexExp, Expression.Constant(1))
 								);
 								else {
-									read2ExpAssign = Expression.Call(MethodExecuteArrayRowReadClassOrTuple, new Expression[] { Expression.Constant(field.FieldType), indexesExp, rowExp, dataIndexExp, commonUtilExp });
+									read2ExpAssign = Expression.Call(MethodExecuteArrayRowReadClassOrTuple, new Expression[] { Expression.Constant(flagStr), Expression.Constant(field.FieldType), indexesExp, rowExp, dataIndexExp, commonUtilExp });
 								}
 							}
 							block2Exp.AddRange(new Expression[] {
@@ -887,7 +890,7 @@ namespace FreeSql.Internal {
 								);
 							} else {
 								readExpAssign = Expression.New(RowInfo.Constructor,
-									Expression.MakeMemberAccess(Expression.Call(MethodExecuteArrayRowReadClassOrTuple, new Expression[] { Expression.Constant(readType), indexesExp, rowExp, dataIndexExp, commonUtilExp }), RowInfo.PropertyValue),
+									Expression.MakeMemberAccess(Expression.Call(MethodExecuteArrayRowReadClassOrTuple, new Expression[] { Expression.Constant(flagStr), Expression.Constant(readType), indexesExp, rowExp, dataIndexExp, commonUtilExp }), RowInfo.PropertyValue),
 									Expression.Add(dataIndexExp, Expression.Constant(1)));
 							}
 						}
@@ -984,7 +987,7 @@ namespace FreeSql.Internal {
 							} else {
 								++propIndex;
 								continue;
-								//readExpAssign = Expression.Call(MethodExecuteArrayRowReadClassOrTuple, new Expression[] { Expression.Constant(readType), indexesExp, rowExp, tryidxExp });
+								//readExpAssign = Expression.Call(MethodExecuteArrayRowReadClassOrTuple, new Expression[] { Expression.Constant(flagStr), Expression.Constant(readType), indexesExp, rowExp, tryidxExp });
 							}
 						}
 

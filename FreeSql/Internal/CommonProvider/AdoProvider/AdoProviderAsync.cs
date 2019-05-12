@@ -18,16 +18,22 @@ namespace FreeSql.Internal.CommonProvider {
 			var ret = new List<T>();
 			if (string.IsNullOrEmpty(cmdText)) return ret;
 			var type = typeof(T);
+			string flag = null;
 			int[] indexes = null;
 			var props = dicQueryTypeGetProperties.GetOrAdd(type, k => type.GetProperties());
 			await ExecuteReaderAsync(connection, transaction, dr => {
 				if (indexes == null) {
+					var sbflag = new StringBuilder().Append("query");
 					var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
-					for (var a = 0; a < dr.FieldCount; a++)
-						dic.Add(dr.GetName(a), a);
+					for (var a = 0; a < dr.FieldCount; a++) {
+						var name = dr.GetName(a);
+						sbflag.Append(name).Append(":").Append(a).Append(",");
+						dic.Add(name, a);
+					}
 					indexes = props.Select(a => dic.TryGetValue(a.Name, out var tryint) ? tryint : -1).ToArray();
+					flag = sbflag.ToString();
 				}
-				ret.Add((T)Utils.ExecuteArrayRowReadClassOrTuple(type, indexes, dr, 0, _util).Value);
+				ret.Add((T)Utils.ExecuteArrayRowReadClassOrTuple(flag, type, indexes, dr, 0, _util).Value);
 				return Task.CompletedTask;
 			}, cmdType, cmdText, cmdParms);
 			return ret;
@@ -42,32 +48,44 @@ namespace FreeSql.Internal.CommonProvider {
 			if (string.IsNullOrEmpty(cmdText)) return (new List<T1>(), new List<T2>());
 			var ret1 = new List<T1>();
 			var type1 = typeof(T1);
+			string flag1 = null;
 			int[] indexes1 = null;
 			var props1 = dicQueryTypeGetProperties.GetOrAdd(type1, k => type1.GetProperties());
 
 			var ret2 = new List<T2>();
 			var type2 = typeof(T2);
+			string flag2 = null;
 			int[] indexes2 = null;
 			var props2 = dicQueryTypeGetProperties.GetOrAdd(type2, k => type1.GetProperties());
 			await ExecuteReaderMultipleAsync(2, connection, transaction, (dr, result) => {
 				switch (result) {
 					case 0:
 						if (indexes1 == null) {
+							var sbflag = new StringBuilder().Append("QueryAsync");
 							var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
-							for (var a = 0; a < dr.FieldCount; a++)
-								dic.Add(dr.GetName(a), a);
+							for (var a = 0; a < dr.FieldCount; a++) {
+								var name = dr.GetName(a);
+								sbflag.Append(name).Append(":").Append(a).Append(",");
+								dic.Add(name, a);
+							}
 							indexes1 = props1.Select(a => dic.TryGetValue(a.Name, out var tryint) ? tryint : -1).ToArray();
+							flag1 = sbflag.ToString();
 						}
-						ret1.Add((T1)Utils.ExecuteArrayRowReadClassOrTuple(type1, indexes1, dr, 0, _util).Value);
+						ret1.Add((T1)Utils.ExecuteArrayRowReadClassOrTuple(flag1, type1, indexes1, dr, 0, _util).Value);
 						break;
 					case 1:
 						if (indexes2 == null) {
+							var sbflag = new StringBuilder().Append("QueryAsync");
 							var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
-							for (var a = 0; a < dr.FieldCount; a++)
-								dic.Add(dr.GetName(a), a);
+							for (var a = 0; a < dr.FieldCount; a++) {
+								var name = dr.GetName(a);
+								sbflag.Append(name).Append(":").Append(a).Append(",");
+								dic.Add(name, a);
+							}
 							indexes2 = props2.Select(a => dic.TryGetValue(a.Name, out var tryint) ? tryint : -1).ToArray();
+							flag2 = sbflag.ToString();
 						}
-						ret2.Add((T2)Utils.ExecuteArrayRowReadClassOrTuple(type2, indexes2, dr, 0, _util).Value);
+						ret2.Add((T2)Utils.ExecuteArrayRowReadClassOrTuple(flag2, type2, indexes2, dr, 0, _util).Value);
 						break;
 				}
 				return Task.CompletedTask;
@@ -84,46 +102,64 @@ namespace FreeSql.Internal.CommonProvider {
 			if (string.IsNullOrEmpty(cmdText)) return (new List<T1>(), new List<T2>(), new List<T3>());
 			var ret1 = new List<T1>();
 			var type1 = typeof(T1);
+			string flag1 = null;
 			int[] indexes1 = null;
 			var props1 = dicQueryTypeGetProperties.GetOrAdd(type1, k => type1.GetProperties());
 
 			var ret2 = new List<T2>();
 			var type2 = typeof(T2);
+			string flag2 = null;
 			int[] indexes2 = null;
 			var props2 = dicQueryTypeGetProperties.GetOrAdd(type2, k => type1.GetProperties());
 
 			var ret3 = new List<T3>();
 			var type3 = typeof(T3);
+			string flag3 = null;
 			int[] indexes3 = null;
 			var props3 = dicQueryTypeGetProperties.GetOrAdd(type3, k => type1.GetProperties());
 			await ExecuteReaderMultipleAsync(3, connection, transaction, (dr, result) => {
 				switch (result) {
 					case 0:
 						if (indexes1 == null) {
+							var sbflag = new StringBuilder().Append("QueryAsync");
 							var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
-							for (var a = 0; a < dr.FieldCount; a++)
-								dic.Add(dr.GetName(a), a);
+							for (var a = 0; a < dr.FieldCount; a++) {
+								var name = dr.GetName(a);
+								sbflag.Append(name).Append(":").Append(a).Append(",");
+								dic.Add(name, a);
+							}
 							indexes1 = props1.Select(a => dic.TryGetValue(a.Name, out var tryint) ? tryint : -1).ToArray();
+							flag1 = sbflag.ToString();
 						}
-						ret1.Add((T1)Utils.ExecuteArrayRowReadClassOrTuple(type1, indexes1, dr, 0, _util).Value);
+						ret1.Add((T1)Utils.ExecuteArrayRowReadClassOrTuple(flag1, type1, indexes1, dr, 0, _util).Value);
 						break;
 					case 1:
 						if (indexes2 == null) {
+							var sbflag = new StringBuilder().Append("QueryAsync");
 							var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
-							for (var a = 0; a < dr.FieldCount; a++)
-								dic.Add(dr.GetName(a), a);
+							for (var a = 0; a < dr.FieldCount; a++) {
+								var name = dr.GetName(a);
+								sbflag.Append(name).Append(":").Append(a).Append(",");
+								dic.Add(name, a);
+							}
 							indexes2 = props2.Select(a => dic.TryGetValue(a.Name, out var tryint) ? tryint : -1).ToArray();
+							flag2 = sbflag.ToString();
 						}
-						ret2.Add((T2)Utils.ExecuteArrayRowReadClassOrTuple(type2, indexes2, dr, 0, _util).Value);
+						ret2.Add((T2)Utils.ExecuteArrayRowReadClassOrTuple(flag2, type2, indexes2, dr, 0, _util).Value);
 						break;
 					case 2:
 						if (indexes3 == null) {
+							var sbflag = new StringBuilder().Append("QueryAsync");
 							var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
-							for (var a = 0; a < dr.FieldCount; a++)
-								dic.Add(dr.GetName(a), a);
+							for (var a = 0; a < dr.FieldCount; a++) {
+								var name = dr.GetName(a);
+								sbflag.Append(name).Append(":").Append(a).Append(",");
+								dic.Add(name, a);
+							}
 							indexes3 = props3.Select(a => dic.TryGetValue(a.Name, out var tryint) ? tryint : -1).ToArray();
+							flag3 = sbflag.ToString();
 						}
-						ret3.Add((T3)Utils.ExecuteArrayRowReadClassOrTuple(type3, indexes3, dr, 0, _util).Value);
+						ret3.Add((T3)Utils.ExecuteArrayRowReadClassOrTuple(flag3, type3, indexes3, dr, 0, _util).Value);
 						break;
 				}
 				return Task.CompletedTask;
@@ -140,60 +176,84 @@ namespace FreeSql.Internal.CommonProvider {
 			if (string.IsNullOrEmpty(cmdText)) return (new List<T1>(), new List<T2>(), new List<T3>(), new List<T4>());
 			var ret1 = new List<T1>();
 			var type1 = typeof(T1);
+			string flag1 = null;
 			int[] indexes1 = null;
 			var props1 = dicQueryTypeGetProperties.GetOrAdd(type1, k => type1.GetProperties());
 
 			var ret2 = new List<T2>();
 			var type2 = typeof(T2);
+			string flag2 = null;
 			int[] indexes2 = null;
 			var props2 = dicQueryTypeGetProperties.GetOrAdd(type2, k => type1.GetProperties());
 
 			var ret3 = new List<T3>();
 			var type3 = typeof(T3);
+			string flag3 = null;
 			int[] indexes3 = null;
 			var props3 = dicQueryTypeGetProperties.GetOrAdd(type3, k => type1.GetProperties());
 
 			var ret4 = new List<T4>();
 			var type4 = typeof(T4);
+			string flag4 = null;
 			int[] indexes4 = null;
 			var props4 = dicQueryTypeGetProperties.GetOrAdd(type4, k => type1.GetProperties());
 			await ExecuteReaderMultipleAsync(4, connection, transaction, (dr, result) => {
 				switch (result) {
 					case 0:
 						if (indexes1 == null) {
+							var sbflag = new StringBuilder().Append("QueryAsync");
 							var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
-							for (var a = 0; a < dr.FieldCount; a++)
-								dic.Add(dr.GetName(a), a);
+							for (var a = 0; a < dr.FieldCount; a++) {
+								var name = dr.GetName(a);
+								sbflag.Append(name).Append(":").Append(a).Append(",");
+								dic.Add(name, a);
+							}
 							indexes1 = props1.Select(a => dic.TryGetValue(a.Name, out var tryint) ? tryint : -1).ToArray();
+							flag1 = sbflag.ToString();
 						}
-						ret1.Add((T1)Utils.ExecuteArrayRowReadClassOrTuple(type1, indexes1, dr, 0, _util).Value);
+						ret1.Add((T1)Utils.ExecuteArrayRowReadClassOrTuple(flag1, type1, indexes1, dr, 0, _util).Value);
 						break;
 					case 1:
 						if (indexes2 == null) {
+							var sbflag = new StringBuilder().Append("QueryAsync");
 							var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
-							for (var a = 0; a < dr.FieldCount; a++)
-								dic.Add(dr.GetName(a), a);
+							for (var a = 0; a < dr.FieldCount; a++) {
+								var name = dr.GetName(a);
+								sbflag.Append(name).Append(":").Append(a).Append(",");
+								dic.Add(name, a);
+							}
 							indexes2 = props2.Select(a => dic.TryGetValue(a.Name, out var tryint) ? tryint : -1).ToArray();
+							flag2 = sbflag.ToString();
 						}
-						ret2.Add((T2)Utils.ExecuteArrayRowReadClassOrTuple(type2, indexes2, dr, 0, _util).Value);
+						ret2.Add((T2)Utils.ExecuteArrayRowReadClassOrTuple(flag2, type2, indexes2, dr, 0, _util).Value);
 						break;
 					case 2:
 						if (indexes3 == null) {
+							var sbflag = new StringBuilder().Append("QueryAsync");
 							var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
-							for (var a = 0; a < dr.FieldCount; a++)
-								dic.Add(dr.GetName(a), a);
+							for (var a = 0; a < dr.FieldCount; a++) {
+								var name = dr.GetName(a);
+								sbflag.Append(name).Append(":").Append(a).Append(",");
+								dic.Add(name, a);
+							}
 							indexes3 = props3.Select(a => dic.TryGetValue(a.Name, out var tryint) ? tryint : -1).ToArray();
+							flag3 = sbflag.ToString();
 						}
-						ret3.Add((T3)Utils.ExecuteArrayRowReadClassOrTuple(type3, indexes3, dr, 0, _util).Value);
+						ret3.Add((T3)Utils.ExecuteArrayRowReadClassOrTuple(flag3, type3, indexes3, dr, 0, _util).Value);
 						break;
 					case 3:
 						if (indexes4 == null) {
+							var sbflag = new StringBuilder().Append("QueryAsync");
 							var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
-							for (var a = 0; a < dr.FieldCount; a++)
-								dic.Add(dr.GetName(a), a);
+							for (var a = 0; a < dr.FieldCount; a++) {
+								var name = dr.GetName(a);
+								sbflag.Append(name).Append(":").Append(a).Append(",");
+								dic.Add(name, a);
+							}
 							indexes4 = props4.Select(a => dic.TryGetValue(a.Name, out var tryint) ? tryint : -1).ToArray();
+							flag4 = sbflag.ToString();
 						}
-						ret4.Add((T4)Utils.ExecuteArrayRowReadClassOrTuple(type4, indexes4, dr, 0, _util).Value);
+						ret4.Add((T4)Utils.ExecuteArrayRowReadClassOrTuple(flag4, type4, indexes4, dr, 0, _util).Value);
 						break;
 				}
 				return Task.CompletedTask;
@@ -210,74 +270,104 @@ namespace FreeSql.Internal.CommonProvider {
 			if (string.IsNullOrEmpty(cmdText)) return (new List<T1>(), new List<T2>(), new List<T3>(), new List<T4>(), new List<T5>());
 			var ret1 = new List<T1>();
 			var type1 = typeof(T1);
+			string flag1 = null;
 			int[] indexes1 = null;
 			var props1 = dicQueryTypeGetProperties.GetOrAdd(type1, k => type1.GetProperties());
 
 			var ret2 = new List<T2>();
 			var type2 = typeof(T2);
+			string flag2 = null;
 			int[] indexes2 = null;
 			var props2 = dicQueryTypeGetProperties.GetOrAdd(type2, k => type1.GetProperties());
 
 			var ret3 = new List<T3>();
 			var type3 = typeof(T3);
+			string flag3 = null;
 			int[] indexes3 = null;
 			var props3 = dicQueryTypeGetProperties.GetOrAdd(type3, k => type1.GetProperties());
 
 			var ret4 = new List<T4>();
 			var type4 = typeof(T4);
+			string flag4 = null;
 			int[] indexes4 = null;
 			var props4 = dicQueryTypeGetProperties.GetOrAdd(type4, k => type1.GetProperties());
 
 			var ret5 = new List<T5>();
 			var type5 = typeof(T5);
+			string flag5 = null;
 			int[] indexes5 = null;
 			var props5 = dicQueryTypeGetProperties.GetOrAdd(type5, k => type1.GetProperties());
 			await ExecuteReaderMultipleAsync(5, connection, transaction, (dr, result) => {
 				switch (result) {
 					case 0:
 						if (indexes1 == null) {
+							var sbflag = new StringBuilder().Append("QueryAsync");
 							var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
-							for (var a = 0; a < dr.FieldCount; a++)
-								dic.Add(dr.GetName(a), a);
+							for (var a = 0; a < dr.FieldCount; a++) {
+								var name = dr.GetName(a);
+								sbflag.Append(name).Append(":").Append(a).Append(",");
+								dic.Add(name, a);
+							}
 							indexes1 = props1.Select(a => dic.TryGetValue(a.Name, out var tryint) ? tryint : -1).ToArray();
+							flag1 = sbflag.ToString();
 						}
-						ret1.Add((T1)Utils.ExecuteArrayRowReadClassOrTuple(type1, indexes1, dr, 0, _util).Value);
+						ret1.Add((T1)Utils.ExecuteArrayRowReadClassOrTuple(flag1, type1, indexes1, dr, 0, _util).Value);
 						break;
 					case 1:
 						if (indexes2 == null) {
+							var sbflag = new StringBuilder().Append("QueryAsync");
 							var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
-							for (var a = 0; a < dr.FieldCount; a++)
-								dic.Add(dr.GetName(a), a);
+							for (var a = 0; a < dr.FieldCount; a++) {
+								var name = dr.GetName(a);
+								sbflag.Append(name).Append(":").Append(a).Append(",");
+								dic.Add(name, a);
+							}
 							indexes2 = props2.Select(a => dic.TryGetValue(a.Name, out var tryint) ? tryint : -1).ToArray();
+							flag2 = sbflag.ToString();
 						}
-						ret2.Add((T2)Utils.ExecuteArrayRowReadClassOrTuple(type2, indexes2, dr, 0, _util).Value);
+						ret2.Add((T2)Utils.ExecuteArrayRowReadClassOrTuple(flag2, type2, indexes2, dr, 0, _util).Value);
 						break;
 					case 2:
 						if (indexes3 == null) {
+							var sbflag = new StringBuilder().Append("QueryAsync");
 							var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
-							for (var a = 0; a < dr.FieldCount; a++)
-								dic.Add(dr.GetName(a), a);
+							for (var a = 0; a < dr.FieldCount; a++) {
+								var name = dr.GetName(a);
+								sbflag.Append(name).Append(":").Append(a).Append(",");
+								dic.Add(name, a);
+							}
 							indexes3 = props3.Select(a => dic.TryGetValue(a.Name, out var tryint) ? tryint : -1).ToArray();
+							flag3 = sbflag.ToString();
 						}
-						ret3.Add((T3)Utils.ExecuteArrayRowReadClassOrTuple(type3, indexes3, dr, 0, _util).Value);
+						ret3.Add((T3)Utils.ExecuteArrayRowReadClassOrTuple(flag3, type3, indexes3, dr, 0, _util).Value);
 						break;
 					case 3:
 						if (indexes4 == null) {
+							var sbflag = new StringBuilder().Append("QueryAsync");
 							var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
-							for (var a = 0; a < dr.FieldCount; a++)
-								dic.Add(dr.GetName(a), a);
+							for (var a = 0; a < dr.FieldCount; a++) {
+								var name = dr.GetName(a);
+								sbflag.Append(name).Append(":").Append(a).Append(",");
+								dic.Add(name, a);
+							}
 							indexes4 = props4.Select(a => dic.TryGetValue(a.Name, out var tryint) ? tryint : -1).ToArray();
+							flag4 = sbflag.ToString();
 						}
-						ret4.Add((T4)Utils.ExecuteArrayRowReadClassOrTuple(type4, indexes4, dr, 0, _util).Value);
+						ret4.Add((T4)Utils.ExecuteArrayRowReadClassOrTuple(flag4, type4, indexes4, dr, 0, _util).Value);
 						break;
 					case 4:
 						if (indexes5 == null) {
+							var sbflag = new StringBuilder().Append("QueryAsync");
 							var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
-							for (var a = 0; a < dr.FieldCount; a++)
-								dic.Add(dr.GetName(a), a);
+							for (var a = 0; a < dr.FieldCount; a++) {
+								var name = dr.GetName(a);
+								sbflag.Append(name).Append(":").Append(a).Append(",");
+								dic.Add(name, a);
+							}
 							indexes5 = props5.Select(a => dic.TryGetValue(a.Name, out var tryint) ? tryint : -1).ToArray();
+							flag5 = sbflag.ToString();
 						}
-						ret5.Add((T5)Utils.ExecuteArrayRowReadClassOrTuple(type5, indexes5, dr, 0, _util).Value);
+						ret5.Add((T5)Utils.ExecuteArrayRowReadClassOrTuple(flag5, type5, indexes5, dr, 0, _util).Value);
 						break;
 				}
 				return Task.CompletedTask;

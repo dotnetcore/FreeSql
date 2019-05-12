@@ -273,10 +273,11 @@ namespace FreeSql.Internal.CommonProvider {
 				var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, Aop.CurdType.Select, sql, dbParms);
 				_orm.Aop.CurdBefore?.Invoke(this, before);
 				var ret = new List<TTuple>();
+				var flagStr = $"ToListField:{field}";
 				Exception exception = null;
 				try {
 					_orm.Ado.ExecuteReader(_connection, _transaction, dr => {
-						var read = Utils.ExecuteArrayRowReadClassOrTuple(type, null, dr, 0, _commonUtils);
+						var read = Utils.ExecuteArrayRowReadClassOrTuple(flagStr, type, null, dr, 0, _commonUtils);
 						ret.Add((TTuple)read.Value);
 					}, CommandType.Text, sql, dbParms);
 				} catch (Exception ex) {
@@ -299,10 +300,11 @@ namespace FreeSql.Internal.CommonProvider {
 				var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, Aop.CurdType.Select, sql, dbParms);
 				_orm.Aop.CurdBefore?.Invoke(this, before);
 				var ret = new List<TTuple>();
+				var flagStr = $"ToListField:{field}";
 				Exception exception = null;
 				try {
 					await _orm.Ado.ExecuteReaderAsync(_connection, _transaction, dr => {
-						var read = Utils.ExecuteArrayRowReadClassOrTuple(type, null, dr, 0, _commonUtils);
+						var read = Utils.ExecuteArrayRowReadClassOrTuple(flagStr, type, null, dr, 0, _commonUtils);
 						ret.Add((TTuple)read.Value);
 						return Task.CompletedTask;
 					}, CommandType.Text, sql, dbParms);
@@ -537,7 +539,7 @@ namespace FreeSql.Internal.CommonProvider {
 
 					if (tbiindex == 0)
 						blockExp.AddRange(new Expression[] {
-							Expression.Assign(readExp, Expression.Call(Utils.MethodExecuteArrayRowReadClassOrTuple, new Expression[] { Expression.Constant(typei), Expression.Constant(null, typeof(int[])), rowExp, dataIndexExp, Expression.Constant(_commonUtils) })),
+							Expression.Assign(readExp, Expression.Call(Utils.MethodExecuteArrayRowReadClassOrTuple, new Expression[] { Expression.Constant(null, typeof(string)), Expression.Constant(typei), Expression.Constant(null, typeof(int[])), rowExp, dataIndexExp, Expression.Constant(_commonUtils) })),
 							Expression.IfThen(
 								Expression.GreaterThan(readExpDataIndex, dataIndexExp),
 								Expression.Assign(dataIndexExp, readExpDataIndex)
@@ -577,7 +579,7 @@ namespace FreeSql.Internal.CommonProvider {
 							Expression.IfThenElse(
 								curExpIfNotNull,
 								Expression.Block(new Expression[] {
-									Expression.Assign(readExp, Expression.Call(Utils.MethodExecuteArrayRowReadClassOrTuple, new Expression[] { Expression.Constant(typei), Expression.Constant(null, typeof(int[])), rowExp, dataIndexExp, Expression.Constant(_commonUtils) })),
+									Expression.Assign(readExp, Expression.Call(Utils.MethodExecuteArrayRowReadClassOrTuple, new Expression[] { Expression.Constant(null, typeof(string)), Expression.Constant(typei), Expression.Constant(null, typeof(int[])), rowExp, dataIndexExp, Expression.Constant(_commonUtils) })),
 									Expression.IfThen(
 										Expression.GreaterThan(readExpDataIndex, dataIndexExp),
 										Expression.Assign(dataIndexExp, readExpDataIndex)
@@ -694,7 +696,7 @@ namespace FreeSql.Internal.CommonProvider {
 								Expression.Add(dataIndexExp, Expression.Constant(1))
 						);
 						else {
-							readExpAssign = Expression.Call(Utils.MethodExecuteArrayRowReadClassOrTuple, new Expression[] { Expression.Constant(prop.PropertyType), Expression.Constant(null, typeof(int[])), rowExp, dataIndexExp, Expression.Constant(_commonUtils) });
+							readExpAssign = Expression.Call(Utils.MethodExecuteArrayRowReadClassOrTuple, new Expression[] { Expression.Constant(null, typeof(string)), Expression.Constant(prop.PropertyType), Expression.Constant(null, typeof(int[])), rowExp, dataIndexExp, Expression.Constant(_commonUtils) });
 						}
 					}
 					blockExp.AddRange(new Expression[] {
@@ -719,7 +721,7 @@ namespace FreeSql.Internal.CommonProvider {
 					blockExp.Clear();
 					blockExp.AddRange(new Expression[] {
 						Expression.Assign(dataIndexExp, Expression.Constant(0)),
-						Expression.Assign(readExp, Expression.Call(Utils.MethodExecuteArrayRowReadClassOrTuple, new Expression[] { Expression.Constant(type), Expression.Constant(null, typeof(int[])), rowExp, dataIndexExp, Expression.Constant(_commonUtils) })),
+						Expression.Assign(readExp, Expression.Call(Utils.MethodExecuteArrayRowReadClassOrTuple, new Expression[] { Expression.Constant(null, typeof(string)), Expression.Constant(type), Expression.Constant(null, typeof(int[])), rowExp, dataIndexExp, Expression.Constant(_commonUtils) })),
 						Expression.IfThen(
 							Expression.NotEqual(readExpValue, Expression.Constant(null)),
 							Expression.Assign(retExp, Expression.Convert(readExpValue, type))
