@@ -75,7 +75,12 @@ namespace FreeSql.Internal.CommonProvider {
 			if (isThrowException) throw e;
 		}
 
-		internal static ConcurrentDictionary<Type, PropertyInfo[]> dicQueryTypeGetProperties = new ConcurrentDictionary<Type, PropertyInfo[]>();
+		internal static ConcurrentDictionary<Type, Dictionary<string, PropertyInfo>> dicQueryTypeGetProperties = new ConcurrentDictionary<Type, Dictionary<string, PropertyInfo>>();
+		internal Dictionary<string, PropertyInfo> GetQueryTypeProperties(Type type) {
+			var tb = _util.GetTableByEntity(type);
+			var props = tb?.Properties ?? dicQueryTypeGetProperties.GetOrAdd(type, k => type.GetProperties().ToDictionary(a => a.Name, a => a, StringComparer.CurrentCultureIgnoreCase));
+			return props;
+		}
 		public List<T> Query<T>(string cmdText, object parms = null) => Query<T>(null, null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
 		public List<T> Query<T>(DbTransaction transaction, string cmdText, object parms = null) => Query<T>(null, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
 		public List<T> Query<T>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null) => Query<T>(connection, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
@@ -87,7 +92,7 @@ namespace FreeSql.Internal.CommonProvider {
 			var type = typeof(T);
 			string flag = null;
 			int[] indexes = null;
-			var props = dicQueryTypeGetProperties.GetOrAdd(type, k => type.GetProperties());
+			var props = GetQueryTypeProperties(type);
 			ExecuteReader(connection, transaction, dr => {
 				if (indexes == null) {
 					var sbflag = new StringBuilder().Append("query");
@@ -97,7 +102,7 @@ namespace FreeSql.Internal.CommonProvider {
 						sbflag.Append(name).Append(":").Append(a).Append(",");
 						dic.Add(name, a);
 					}
-					indexes = props.Select(a => dic.TryGetValue(a.Name, out var tryint) ? tryint : -1).ToArray();
+					indexes = props.Select(a => dic.TryGetValue(a.Key, out var tryint) ? tryint : -1).ToArray();
 					flag = sbflag.ToString();
 				}
 				ret.Add((T)Utils.ExecuteArrayRowReadClassOrTuple(flag, type, indexes, dr, 0, _util).Value);
@@ -116,13 +121,13 @@ namespace FreeSql.Internal.CommonProvider {
 			var type1 = typeof(T1);
 			string flag1 = null;
 			int[] indexes1 = null;
-			var props1 = dicQueryTypeGetProperties.GetOrAdd(type1, k => type1.GetProperties());
+			var props1 = GetQueryTypeProperties(type1);
 
 			var ret2 = new List<T2>();
 			var type2 = typeof(T2);
 			string flag2 = null;
 			int[] indexes2 = null;
-			var props2 = dicQueryTypeGetProperties.GetOrAdd(type2, k => type1.GetProperties());
+			var props2 = GetQueryTypeProperties(type2);
 			ExecuteReaderMultiple(2, connection, transaction, (dr, result) => {
 				switch(result) {
 					case 0:
@@ -134,7 +139,7 @@ namespace FreeSql.Internal.CommonProvider {
 								sbflag.Append(name).Append(":").Append(a).Append(",");
 								dic.Add(name, a);
 							}
-							indexes1 = props1.Select(a => dic.TryGetValue(a.Name, out var tryint) ? tryint : -1).ToArray();
+							indexes1 = props1.Select(a => dic.TryGetValue(a.Key, out var tryint) ? tryint : -1).ToArray();
 							flag1 = sbflag.ToString();
 						}
 						ret1.Add((T1)Utils.ExecuteArrayRowReadClassOrTuple(flag1, type1, indexes1, dr, 0, _util).Value);
@@ -148,7 +153,7 @@ namespace FreeSql.Internal.CommonProvider {
 								sbflag.Append(name).Append(":").Append(a).Append(",");
 								dic.Add(name, a);
 							}
-							indexes2 = props2.Select(a => dic.TryGetValue(a.Name, out var tryint) ? tryint : -1).ToArray();
+							indexes2 = props2.Select(a => dic.TryGetValue(a.Key, out var tryint) ? tryint : -1).ToArray();
 							flag2 = sbflag.ToString();
 						}
 						ret2.Add((T2)Utils.ExecuteArrayRowReadClassOrTuple(flag2, type2, indexes2, dr, 0, _util).Value);
@@ -169,19 +174,19 @@ namespace FreeSql.Internal.CommonProvider {
 			var type1 = typeof(T1);
 			string flag1 = null;
 			int[] indexes1 = null;
-			var props1 = dicQueryTypeGetProperties.GetOrAdd(type1, k => type1.GetProperties());
+			var props1 = GetQueryTypeProperties(type1);
 
 			var ret2 = new List<T2>();
 			var type2 = typeof(T2);
 			string flag2 = null;
 			int[] indexes2 = null;
-			var props2 = dicQueryTypeGetProperties.GetOrAdd(type2, k => type1.GetProperties());
+			var props2 = GetQueryTypeProperties(type2);
 
 			var ret3 = new List<T3>();
 			var type3 = typeof(T3);
 			string flag3 = null;
 			int[] indexes3 = null;
-			var props3 = dicQueryTypeGetProperties.GetOrAdd(type3, k => type1.GetProperties());
+			var props3 = GetQueryTypeProperties(type3);
 			ExecuteReaderMultiple(3, connection, transaction, (dr, result) => {
 				switch (result) {
 					case 0:
@@ -193,7 +198,7 @@ namespace FreeSql.Internal.CommonProvider {
 								sbflag.Append(name).Append(":").Append(a).Append(",");
 								dic.Add(name, a);
 							}
-							indexes1 = props1.Select(a => dic.TryGetValue(a.Name, out var tryint) ? tryint : -1).ToArray();
+							indexes1 = props1.Select(a => dic.TryGetValue(a.Key, out var tryint) ? tryint : -1).ToArray();
 							flag1 = sbflag.ToString();
 						}
 						ret1.Add((T1)Utils.ExecuteArrayRowReadClassOrTuple(flag1, type1, indexes1, dr, 0, _util).Value);
@@ -207,7 +212,7 @@ namespace FreeSql.Internal.CommonProvider {
 								sbflag.Append(name).Append(":").Append(a).Append(",");
 								dic.Add(name, a);
 							}
-							indexes2 = props2.Select(a => dic.TryGetValue(a.Name, out var tryint) ? tryint : -1).ToArray();
+							indexes2 = props2.Select(a => dic.TryGetValue(a.Key, out var tryint) ? tryint : -1).ToArray();
 							flag2 = sbflag.ToString();
 						}
 						ret2.Add((T2)Utils.ExecuteArrayRowReadClassOrTuple(flag2, type2, indexes2, dr, 0, _util).Value);
@@ -221,7 +226,7 @@ namespace FreeSql.Internal.CommonProvider {
 								sbflag.Append(name).Append(":").Append(a).Append(",");
 								dic.Add(name, a);
 							}
-							indexes3 = props3.Select(a => dic.TryGetValue(a.Name, out var tryint) ? tryint : -1).ToArray();
+							indexes3 = props3.Select(a => dic.TryGetValue(a.Key, out var tryint) ? tryint : -1).ToArray();
 							flag3 = sbflag.ToString();
 						}
 						ret3.Add((T3)Utils.ExecuteArrayRowReadClassOrTuple(flag3, type3, indexes3, dr, 0, _util).Value);
@@ -242,25 +247,25 @@ namespace FreeSql.Internal.CommonProvider {
 			var type1 = typeof(T1);
 			string flag1 = null;
 			int[] indexes1 = null;
-			var props1 = dicQueryTypeGetProperties.GetOrAdd(type1, k => type1.GetProperties());
+			var props1 = GetQueryTypeProperties(type1);
 
 			var ret2 = new List<T2>();
 			var type2 = typeof(T2);
 			string flag2 = null;
 			int[] indexes2 = null;
-			var props2 = dicQueryTypeGetProperties.GetOrAdd(type2, k => type1.GetProperties());
+			var props2 = GetQueryTypeProperties(type2);
 
 			var ret3 = new List<T3>();
 			var type3 = typeof(T3);
 			string flag3 = null;
 			int[] indexes3 = null;
-			var props3 = dicQueryTypeGetProperties.GetOrAdd(type3, k => type1.GetProperties());
+			var props3 = GetQueryTypeProperties(type3);
 
 			var ret4 = new List<T4>();
 			var type4 = typeof(T4);
 			string flag4 = null;
 			int[] indexes4 = null;
-			var props4 = dicQueryTypeGetProperties.GetOrAdd(type4, k => type1.GetProperties());
+			var props4 = GetQueryTypeProperties(type4);
 			ExecuteReaderMultiple(4, connection, transaction, (dr, result) => {
 				switch (result) {
 					case 0:
@@ -272,7 +277,7 @@ namespace FreeSql.Internal.CommonProvider {
 								sbflag.Append(name).Append(":").Append(a).Append(",");
 								dic.Add(name, a);
 							}
-							indexes1 = props1.Select(a => dic.TryGetValue(a.Name, out var tryint) ? tryint : -1).ToArray();
+							indexes1 = props1.Select(a => dic.TryGetValue(a.Key, out var tryint) ? tryint : -1).ToArray();
 							flag1 = sbflag.ToString();
 						}
 						ret1.Add((T1)Utils.ExecuteArrayRowReadClassOrTuple(flag1, type1, indexes1, dr, 0, _util).Value);
@@ -286,7 +291,7 @@ namespace FreeSql.Internal.CommonProvider {
 								sbflag.Append(name).Append(":").Append(a).Append(",");
 								dic.Add(name, a);
 							}
-							indexes2 = props2.Select(a => dic.TryGetValue(a.Name, out var tryint) ? tryint : -1).ToArray();
+							indexes2 = props2.Select(a => dic.TryGetValue(a.Key, out var tryint) ? tryint : -1).ToArray();
 							flag2 = sbflag.ToString();
 						}
 						ret2.Add((T2)Utils.ExecuteArrayRowReadClassOrTuple(flag2, type2, indexes2, dr, 0, _util).Value);
@@ -300,7 +305,7 @@ namespace FreeSql.Internal.CommonProvider {
 								sbflag.Append(name).Append(":").Append(a).Append(",");
 								dic.Add(name, a);
 							}
-							indexes3 = props3.Select(a => dic.TryGetValue(a.Name, out var tryint) ? tryint : -1).ToArray();
+							indexes3 = props3.Select(a => dic.TryGetValue(a.Key, out var tryint) ? tryint : -1).ToArray();
 							flag3 = sbflag.ToString();
 						}
 						ret3.Add((T3)Utils.ExecuteArrayRowReadClassOrTuple(flag3, type3, indexes3, dr, 0, _util).Value);
@@ -314,7 +319,7 @@ namespace FreeSql.Internal.CommonProvider {
 								sbflag.Append(name).Append(":").Append(a).Append(",");
 								dic.Add(name, a);
 							}
-							indexes4 = props4.Select(a => dic.TryGetValue(a.Name, out var tryint) ? tryint : -1).ToArray();
+							indexes4 = props4.Select(a => dic.TryGetValue(a.Key, out var tryint) ? tryint : -1).ToArray();
 							flag4 = sbflag.ToString();
 						}
 						ret4.Add((T4)Utils.ExecuteArrayRowReadClassOrTuple(flag4, type4, indexes4, dr, 0, _util).Value);
@@ -335,31 +340,31 @@ namespace FreeSql.Internal.CommonProvider {
 			var type1 = typeof(T1);
 			string flag1 = null;
 			int[] indexes1 = null;
-			var props1 = dicQueryTypeGetProperties.GetOrAdd(type1, k => type1.GetProperties());
+			var props1 = GetQueryTypeProperties(type1);
 
 			var ret2 = new List<T2>();
 			var type2 = typeof(T2);
 			string flag2 = null;
 			int[] indexes2 = null;
-			var props2 = dicQueryTypeGetProperties.GetOrAdd(type2, k => type1.GetProperties());
+			var props2 = GetQueryTypeProperties(type2);
 
 			var ret3 = new List<T3>();
 			var type3 = typeof(T3);
 			string flag3 = null;
 			int[] indexes3 = null;
-			var props3 = dicQueryTypeGetProperties.GetOrAdd(type3, k => type1.GetProperties());
+			var props3 = GetQueryTypeProperties(type3);
 
 			var ret4 = new List<T4>();
 			var type4 = typeof(T4);
 			string flag4 = null;
 			int[] indexes4 = null;
-			var props4 = dicQueryTypeGetProperties.GetOrAdd(type4, k => type1.GetProperties());
+			var props4 = GetQueryTypeProperties(type4);
 
 			var ret5 = new List<T5>();
 			var type5 = typeof(T5);
 			string flag5 = null;
 			int[] indexes5 = null;
-			var props5 = dicQueryTypeGetProperties.GetOrAdd(type5, k => type1.GetProperties());
+			var props5 = GetQueryTypeProperties(type5);
 			ExecuteReaderMultiple(5, connection, transaction, (dr, result) => {
 				switch (result) {
 					case 0:
@@ -371,7 +376,7 @@ namespace FreeSql.Internal.CommonProvider {
 								sbflag.Append(name).Append(":").Append(a).Append(",");
 								dic.Add(name, a);
 							}
-							indexes1 = props1.Select(a => dic.TryGetValue(a.Name, out var tryint) ? tryint : -1).ToArray();
+							indexes1 = props1.Select(a => dic.TryGetValue(a.Key, out var tryint) ? tryint : -1).ToArray();
 							flag1 = sbflag.ToString();
 						}
 						ret1.Add((T1)Utils.ExecuteArrayRowReadClassOrTuple(flag1, type1, indexes1, dr, 0, _util).Value);
@@ -385,7 +390,7 @@ namespace FreeSql.Internal.CommonProvider {
 								sbflag.Append(name).Append(":").Append(a).Append(",");
 								dic.Add(name, a);
 							}
-							indexes2 = props2.Select(a => dic.TryGetValue(a.Name, out var tryint) ? tryint : -1).ToArray();
+							indexes2 = props2.Select(a => dic.TryGetValue(a.Key, out var tryint) ? tryint : -1).ToArray();
 							flag2 = sbflag.ToString();
 						}
 						ret2.Add((T2)Utils.ExecuteArrayRowReadClassOrTuple(flag2, type2, indexes2, dr, 0, _util).Value);
@@ -399,7 +404,7 @@ namespace FreeSql.Internal.CommonProvider {
 								sbflag.Append(name).Append(":").Append(a).Append(",");
 								dic.Add(name, a);
 							}
-							indexes3 = props3.Select(a => dic.TryGetValue(a.Name, out var tryint) ? tryint : -1).ToArray();
+							indexes3 = props3.Select(a => dic.TryGetValue(a.Key, out var tryint) ? tryint : -1).ToArray();
 							flag3 = sbflag.ToString();
 						}
 						ret3.Add((T3)Utils.ExecuteArrayRowReadClassOrTuple(flag3, type3, indexes3, dr, 0, _util).Value);
@@ -413,7 +418,7 @@ namespace FreeSql.Internal.CommonProvider {
 								sbflag.Append(name).Append(":").Append(a).Append(",");
 								dic.Add(name, a);
 							}
-							indexes4 = props4.Select(a => dic.TryGetValue(a.Name, out var tryint) ? tryint : -1).ToArray();
+							indexes4 = props4.Select(a => dic.TryGetValue(a.Key, out var tryint) ? tryint : -1).ToArray();
 							flag4 = sbflag.ToString();
 						}
 						ret4.Add((T4)Utils.ExecuteArrayRowReadClassOrTuple(flag4, type4, indexes4, dr, 0, _util).Value);
@@ -427,7 +432,7 @@ namespace FreeSql.Internal.CommonProvider {
 								sbflag.Append(name).Append(":").Append(a).Append(",");
 								dic.Add(name, a);
 							}
-							indexes5 = props5.Select(a => dic.TryGetValue(a.Name, out var tryint) ? tryint : -1).ToArray();
+							indexes5 = props5.Select(a => dic.TryGetValue(a.Key, out var tryint) ? tryint : -1).ToArray();
 							flag5 = sbflag.ToString();
 						}
 						ret5.Add((T5)Utils.ExecuteArrayRowReadClassOrTuple(flag5, type5, indexes5, dr, 0, _util).Value);

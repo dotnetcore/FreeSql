@@ -941,7 +941,10 @@ namespace FreeSql.Internal {
 					var props = type.GetProperties();//.ToDictionary(a => a.Name, a => a, StringComparer.CurrentCultureIgnoreCase);
 					var propIndex = 0;
 					foreach (var prop in props) {
-						if (typetb.ColumnsByCsIgnore.ContainsKey(prop.Name)) continue;
+						if (typetb.ColumnsByCsIgnore.ContainsKey(prop.Name)) {
+							++propIndex;
+							continue;
+						}
 						var readType = typetb.ColumnsByCs.TryGetValue(prop.Name, out var trycol) ? trycol.Attribute.MapType : prop.PropertyType;
 
 						var ispkExp = new List<Expression>();

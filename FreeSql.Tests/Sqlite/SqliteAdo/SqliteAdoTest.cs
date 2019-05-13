@@ -32,6 +32,13 @@ namespace FreeSql.Tests.Sqlite {
 
 		[Fact]
 		public void Query() {
+
+			var t0 = g.sqlite.Ado.Query<testallDto>("select * from \"song\"");
+
+			var t1 = g.sqlite.Ado.Query<testallDto>("select id, url, create_time from \"song\"");
+
+			var t2 = g.sqlite.Ado.Query<testallDto>("select id, url, create_time test_time from \"song\"");
+
 			var t3 = g.sqlite.Ado.Query<xxx>("select * from \"song\"");
 
 			var t4 = g.sqlite.Ado.Query<(int, string, string)>("select * from \"song\"");
@@ -48,6 +55,15 @@ namespace FreeSql.Tests.Sqlite {
 			public int Id { get; set; }
 			public string Path { get; set; }
 			public string Title2 { get; set; }
+		}
+
+		class testallDto {
+			public int Id { get; set; }
+			public string Title { get; set; }
+			public string Url { get; set; }
+			public DateTime Test_time { get; set; }
+			public DateTime Create_time { get; set; }
+			public bool Is_deleted { get; set; }
 		}
 	}
 }
