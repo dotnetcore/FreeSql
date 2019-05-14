@@ -10,7 +10,7 @@ FreeSql 是一个功能强大的 .NETStandard 库，用于对象关系映射程�
 | [FreeSql.AdminLTE](https://github.com/2881099/FreeSql.AdminLTE) | [![nuget](https://img.shields.io/nuget/v/FreeSql.AdminLTE.svg?style=flat-square)](https://www.nuget.org/packages/FreeSql.AdminLTE) | [![stats](https://img.shields.io/nuget/dt/FreeSql.AdminLTE.svg?style=flat-square)](https://www.nuget.org/stats/packages/FreeSql.AdminLTE?groupby=Version) |
 | [FreeSql.Connection.Extensions](https://github.com/2881099/FreeSql.Connection.Extensions) | [![nuget](https://img.shields.io/nuget/v/FreeSql.Connection.Extensions.svg?style=flat-square)](https://www.nuget.org/packages/FreeSql.Connection.Extensions) | [![stats](https://img.shields.io/nuget/dt/FreeSql.Connection.Extensions.svg?style=flat-square)](https://www.nuget.org/stats/packages/FreeSql.Connection.Extensions?groupby=Version) |
 
-# 特性
+# Features
 
 - [x] 支持 CodeFirst 迁移；
 - [x] 支持 DbFirst 从数据库导入实体类，提供失血、贫血、充血三种生成模板；
@@ -74,20 +74,18 @@ class Tag {
 //OneToOne、ManyToOne
 var t0 = fsql.Select<Tag>()
     .Where(a => a.Parent.Parent.Name == "粤语")
-    .Include(a => a.Tags, then => then.Where(sub => sub.Name == "xxx"))
+    .IncludeMany(a => a.Tags, then => then.Where(sub => sub.Name == "xxx"))
     .ToList();
 
 //OneToMany
 var t1 = fsql.Select<Tag>()
-    .Where(a => a.Tags.AsSelect()
-        .Any(t => t.Parent.Id == 10))
+    .Where(a => a.Tags.AsSelect().Any(t => t.Parent.Id == 10))
     .ToList();
 
 //ManyToMany
 var t2 = fsql.Select<Song>()
-    .Where(s => s.Tags.AsSelect()
-        .Any(t => t.Name == "国语"))
-    .Include(a => a.Tags, then => then.Where(sub => sub.Name == "xxx"))
+    .Where(s => s.Tags.AsSelect().Any(t => t.Name == "国语"))
+    .IncludeMany(a => a.Tags, then => then.Where(sub => sub.Name == "xxx"))
     .ToList();
 
 //Other
@@ -139,16 +137,10 @@ using (var uow = fsql.CreateUnitOfWork()) {
 > dotnet add package FreeSql.DbContext
 
 ```csharp
-public class SongContext : DbContext {
-    public DbSet<Song> Songs { get; set; }
-    public DbSet<Tag> Tags { get; set; }
+using (var ctx = new fsql.CreateDbContext()) {
+    var songs = ctx.Set<Song>();
+    var tags = ctx.Set<Tag>();
 
-    protected override void OnConfiguring(DbContextOptionsBuilder builder) {
-        builder.UseFreeSql(fsql);
-    }
-}
-
-using (var ctx = new SongContext()) {
     var tag = new Tag {
         Name = "testaddsublist",
         Tags = new[] {
@@ -162,7 +154,8 @@ using (var ctx = new SongContext()) {
             }
         }
     };
-    ctx.Tags.Add(tag);
+    //tags.Add(tag);
+    ctx.Add(tag);
     await ctx.SaveChangesAsync();
 }
 ```
