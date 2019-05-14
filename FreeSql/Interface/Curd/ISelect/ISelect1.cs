@@ -305,9 +305,9 @@ namespace FreeSql {
 		/// 贪婪加载集合的导航属性，其实是分两次查询，ToList 后进行了数据重装
 		/// </summary>
 		/// <typeparam name="TNavigate"></typeparam>
-		/// <param name="navigateSelector">选择一个集合的导航属性</param>
+		/// <param name="navigateSelector">选择一个集合的导航属性，也可通过 .Where 设置临时的关系映射</param>
 		/// <param name="then">即能 ThenInclude，还可以二次过滤（这个 EFCore 做不到？）</param>
 		/// <returns></returns>
-		ISelect<T1> IncludeMany<TNavigate>(Expression<Func<T1, ICollection<TNavigate>>> navigateSelector, Action<ISelect<TNavigate>> then = null) where TNavigate : class;
+		ISelect<T1> IncludeMany<TNavigate>(Expression<Func<T1, IEnumerable<TNavigate>>> navigateSelector, Action<ISelect<TNavigate>> then = null) where TNavigate : class;
 	}
 }

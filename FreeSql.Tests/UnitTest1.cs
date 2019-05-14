@@ -96,6 +96,9 @@ namespace FreeSql.Tests {
 
 			public int M2Id { get; set; }
 
+			[Column(IsIgnore = true)]
+			public List<Model1> TestManys { get; set; }
+
 		}
 
 		public class Model2 {
@@ -133,8 +136,25 @@ namespace FreeSql.Tests {
 
 			var includet1 = g.sqlite.Select<Model1>()
 				.IncludeMany(a => a.Childs, s => s.Where(a => a.id > 0))
+				.IncludeMany(a => a.TestManys.Where(b => b.id == a.id))
 				.Where(a => a.id > 10)
 				.ToList();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

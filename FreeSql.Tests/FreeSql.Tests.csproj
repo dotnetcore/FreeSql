@@ -7,7 +7,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="FreeSql.DbContext" Version="0.5.12.1" />
+		<PackageReference Include="FreeSql.DbContext" Version="0.5.17" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.1.8" />
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0" />
 		<PackageReference Include="xunit" Version="2.4.0" />

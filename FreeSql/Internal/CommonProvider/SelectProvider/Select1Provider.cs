@@ -316,10 +316,20 @@ namespace FreeSql.Internal.CommonProvider {
 
 		static MethodInfo GetEntityValueWithPropertyNameMethod = typeof(EntityUtilExtensions).GetMethod("GetEntityValueWithPropertyName");
 		static ConcurrentDictionary<Type, ConcurrentDictionary<string, MethodInfo>> _dicTypeMethod = new ConcurrentDictionary<Type, ConcurrentDictionary<string, MethodInfo>>();
-		public ISelect<T1> IncludeMany<TNavigate>(Expression<Func<T1, ICollection<TNavigate>>> navigateSelector, Action<ISelect<TNavigate>> then = null) where TNavigate : class {
+		public ISelect<T1> IncludeMany<TNavigate>(Expression<Func<T1, IEnumerable<TNavigate>>> navigateSelector, Action<ISelect<TNavigate>> then = null) where TNavigate : class {
+			var throwNavigateSelector = new Exception("IncludeMany 参数1 类型错误，表达式类型应该为 MemberAccess");
+
 			var expBody = navigateSelector?.Body;
 			if (expBody == null) return this;
-			if (expBody.NodeType != ExpressionType.MemberAccess) throw new Exception("IncludeMany 参数1 类型错误，表达式类型应该为 MemberAccess");
+			MethodCallExpression whereExp = null;
+			if (expBody.NodeType == ExpressionType.Call) {
+				throwNavigateSelector = new Exception($"IncludeMany {nameof(navigateSelector)} 参数类型错误，表达式格式应该是 a.collection.Where(c => c.aid == a.id)");
+				whereExp = (expBody as MethodCallExpression);
+				if (whereExp.Method.Name != "Where") throw throwNavigateSelector;
+				expBody = whereExp.Object ?? whereExp.Arguments.FirstOrDefault();
+			}
+
+			if (expBody.NodeType != ExpressionType.MemberAccess) throw throwNavigateSelector;
 			var collMem = expBody as MemberExpression;
 			Expression tmpExp = collMem.Expression;
 			var members = new Stack<MemberInfo>();
@@ -335,11 +345,67 @@ namespace FreeSql.Internal.CommonProvider {
 						isbreak = true;
 						break;
 					default:
-						throw new Exception("IncludeMany 参数1 类型错误");
+						throw throwNavigateSelector;
 				}
 			}
 			var tb = _commonUtils.GetTableByEntity(collMem.Expression.Type);
-			if (tb == null) throw new Exception("IncludeMany 参数1 类型错误");
+			if (tb == null) throw throwNavigateSelector;
+			var tbNav = _commonUtils.GetTableByEntity(typeof(TNavigate));
+			if (tbNav == null) throw new Exception($"类型 {typeof(TNavigate).FullName} 错误，不能使用 IncludeMany");
+			TableRef tbref = null;
+
+			if (whereExp == null) {
+
+				tbref = tb.GetTableRef(collMem.Member.Name, true);
+
+			} else {
+				//处理临时关系映射
+				tbref = new TableRef {
+					RefType = TableRefType.OneToMany,
+					Property = tb.Properties[collMem.Member.Name],
+					RefEntityType = tbNav.Type
+				};
+				foreach (var whereExpArg in whereExp.Arguments) {
+					if (whereExpArg.NodeType != ExpressionType.Lambda) continue;
+					var whereExpArgLamb = whereExpArg as LambdaExpression;
+
+					Action<Expression> actWeiParse = null;
+					actWeiParse = expOrg => {
+						var binaryExp = expOrg as BinaryExpression;
+						if (binaryExp == null) throw throwNavigateSelector;
+
+						switch (binaryExp.NodeType) {
+							case ExpressionType.AndAlso:
+								actWeiParse(binaryExp.Left);
+								actWeiParse(binaryExp.Right);
+								break;
+							case ExpressionType.Equal:
+								var leftP1MemberExp = binaryExp.Left as MemberExpression;
+								var rightP1MemberExp = binaryExp.Right as MemberExpression;
+								if (leftP1MemberExp == null || rightP1MemberExp == null) throw throwNavigateSelector;
+								if (leftP1MemberExp.Expression != tmpExp && leftP1MemberExp.Expression != whereExpArgLamb.Parameters[0] ||
+									rightP1MemberExp.Expression != tmpExp && rightP1MemberExp.Expression != whereExpArgLamb.Parameters[0]) throw throwNavigateSelector;
+
+								if (leftP1MemberExp.Expression == tmpExp && rightP1MemberExp.Expression == whereExpArgLamb.Parameters[0]) {
+									tbref.Columns.Add(tb.ColumnsByCs[leftP1MemberExp.Member.Name]);
+									tbref.RefColumns.Add(tbNav.ColumnsByCs[rightP1MemberExp.Member.Name]);
+									return;
+								}
+								if (rightP1MemberExp.Expression == tmpExp && leftP1MemberExp.Expression == whereExpArgLamb.Parameters[0]) {
+									tbref.Columns.Add(tb.ColumnsByCs[rightP1MemberExp.Member.Name]);
+									tbref.RefColumns.Add(tbNav.ColumnsByCs[leftP1MemberExp.Member.Name]);
+									return;
+								}
+
+								throw throwNavigateSelector;
+							default: throw throwNavigateSelector;
+						}
+					};
+					actWeiParse(whereExpArgLamb.Body);
+					break;
+				}
+				if (tbref.Columns.Any() == false) throw throwNavigateSelector;
+			}
 
 			if (collMem.Expression.NodeType != ExpressionType.Parameter)
 				_commonExpression.ExpressionWhereLambda(_tables, Expression.MakeMemberAccess(collMem.Expression, tb.Properties[tb.ColumnsByCs.First().Value.CsName]), null);
@@ -349,7 +415,6 @@ namespace FreeSql.Internal.CommonProvider {
 				if (list == null) return;
 				if (list.Any() == false) return;
 
-				var tbref = tb.GetTableRef(collMem.Member.Name, true);
 				if (tbref.Columns.Any() == false) return;
 
 				var t1parm = Expression.Parameter(typeof(T1));
