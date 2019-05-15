@@ -813,6 +813,11 @@ namespace FreeSql.Tests.Sqlite {
 			};
 			Assert.Equal(5, g.sqlite.Insert(model4s).ExecuteAffrows());
 
+			var t0 = g.sqlite.Select<TestInclude_OneToManyModel2>()
+				.IncludeMany(a => a.childs.Where(m3 => m3.model2111Idaaa == a.model2id))
+				.Where(a => a.model2id <= model1.id)
+				.ToList();
+
 			var t1 = g.sqlite.Select<TestInclude_OneToManyModel1>()
 				.IncludeMany(a => a.model2.childs.Where(m3 => m3.model2111Idaaa == a.model2.model2id))
 				.Where(a => a.id <= model1.id)
