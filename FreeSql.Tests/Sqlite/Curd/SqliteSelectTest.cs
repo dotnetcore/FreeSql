@@ -824,6 +824,53 @@ namespace FreeSql.Tests.Sqlite {
 				.Where(a => a.id <= model1.id)
 				.ToList();
 		}
+
+		public class TestInclude_OneToManyModel11 {
+			[Column(IsIdentity = true)]
+			public int id { get; set; }
+			public int model2id { get; set; }
+			public string m3setting { get; set; }
+			public TestInclude_OneToManyModel22 model2 { get; set; }
+			public string m1name { get; set; }
+		}
+
+		public class TestInclude_OneToManyModel22 {
+			[Column(IsIdentity = true)]
+			public int id { get; set; }
+			public string m2setting { get; set; }
+			public List<TestInclude_OneToManyModel33> childs { get; set; }
+		}
+		public class TestInclude_OneToManyModel33 {
+			[Column(IsIdentity = true)]
+			public int id { get; set; }
+			public int model2Id { get; set; }
+			public string title { get; set; }
+			public string setting { get; set; }
+		}
+		[Fact]
+		public void Include_OneToMany2() {
+			string setting = "x";
+			var model2 = new TestInclude_OneToManyModel22 { m2setting = DateTime.Now.Second.ToString() };
+			model2.id = (int)g.sqlite.Insert(model2).ExecuteIdentity();
+
+			var model3s = new[]
+			{
+				new TestInclude_OneToManyModel33 {model2Id = model2.id, title = "testmodel3__111", setting = setting},
+				new TestInclude_OneToManyModel33 {model2Id = model2.id, title = "testmodel3__222", setting = setting},
+				new TestInclude_OneToManyModel33 {model2Id = model2.id, title = "testmodel3__333", setting = setting}
+			};
+			Assert.Equal(3, g.sqlite.Insert(model3s).ExecuteAffrows());
+
+			var model1 = new TestInclude_OneToManyModel11 { m1name = DateTime.Now.Second.ToString(), model2id = model2.id, m3setting = setting };
+			model1.id = (int)g.sqlite.Insert(model1).ExecuteIdentity();
+
+			var t1 = g.sqlite.Select<TestInclude_OneToManyModel11>()
+				.LeftJoin(a => a.model2id == a.model2.id)
+				.IncludeMany(a => a.model2.childs.Where(m3 => m3.model2Id == a.model2.id && m3.setting == a.m3setting))
+				.Where(a => a.id == model1.id)
+				.ToList(true);
+		}
+
 		[Fact]
 		public void Include_OneToChilds() {
 			var tag1 = new Tag {

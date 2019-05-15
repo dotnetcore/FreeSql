@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
@@ -314,6 +315,29 @@ namespace FreeSql.Internal.CommonProvider {
 			return this;
 		}
 
+		static (ParameterExpression param, List<MemberExpression> members) GetExpressionStack(Expression exp) {
+			Expression tmpExp = exp;
+			ParameterExpression param = null;
+			var members = new List<MemberExpression>();
+			var isbreak = false;
+			while (isbreak == false) {
+				switch (tmpExp.NodeType) {
+					case ExpressionType.MemberAccess:
+						var memExp = tmpExp as MemberExpression;
+						tmpExp = memExp.Expression;
+						members.Add(memExp);
+						continue;
+					case ExpressionType.Parameter:
+						param = tmpExp as ParameterExpression;
+						isbreak = true;
+						break;
+					default:
+						throw new Exception($"表达式错误，它不是连续的 MemberAccess 类型：{exp}");
+				}
+			}
+			if (param == null) throw new Exception($"表达式错误，它的顶级对象不是 ParameterExpression：{exp}");
+			return (param, members);
+		}
 		static MethodInfo GetEntityValueWithPropertyNameMethod = typeof(EntityUtilExtensions).GetMethod("GetEntityValueWithPropertyName");
 		static ConcurrentDictionary<Type, ConcurrentDictionary<string, MethodInfo>> _dicTypeMethod = new ConcurrentDictionary<Type, ConcurrentDictionary<string, MethodInfo>>();
 		public ISelect<T1> IncludeMany<TNavigate>(Expression<Func<T1, IEnumerable<TNavigate>>> navigateSelector, Action<ISelect<TNavigate>> then = null) where TNavigate : class {
@@ -331,23 +355,7 @@ namespace FreeSql.Internal.CommonProvider {
 
 			if (expBody.NodeType != ExpressionType.MemberAccess) throw throwNavigateSelector;
 			var collMem = expBody as MemberExpression;
-			Expression tmpExp = collMem.Expression;
-			var members = new Stack<MemberInfo>();
-			var isbreak = false;
-			while(isbreak == false) {
-				switch (tmpExp.NodeType) {
-					case ExpressionType.MemberAccess:
-						var memExp = tmpExp as MemberExpression;
-						tmpExp = memExp.Expression;
-						members.Push(memExp.Member);
-						continue;
-					case ExpressionType.Parameter:
-						isbreak = true;
-						break;
-					default:
-						throw throwNavigateSelector;
-				}
-			}
+			var (membersParam, members) = GetExpressionStack(collMem.Expression);
 			var tb = _commonUtils.GetTableByEntity(collMem.Expression.Type);
 			if (tb == null) throw throwNavigateSelector;
 			var tbNav = _commonUtils.GetTableByEntity(typeof(TNavigate));
@@ -357,6 +365,7 @@ namespace FreeSql.Internal.CommonProvider {
 				_commonExpression.ExpressionWhereLambda(_tables, Expression.MakeMemberAccess(collMem.Expression, tb.Properties[tb.ColumnsByCs.First().Value.CsName]), null);
 
 			TableRef tbref = null;
+			var tbrefOneToManyColumns = new List<List<MemberExpression>>(); //临时 OneToMany 三个表关联，第三个表需要前两个表确定
 			if (whereExp == null) {
 
 				tbref = tb.GetTableRef(collMem.Member.Name, true);
@@ -388,22 +397,48 @@ namespace FreeSql.Internal.CommonProvider {
 								if (leftP1MemberExp == null || rightP1MemberExp == null) throw throwNavigateSelector;
 
 								if (leftP1MemberExp.Expression == whereExpArgLamb.Parameters[0]) {
-									var rightParExp = rightP1MemberExp;
-									while (rightParExp.Expression != tmpExp) {
-										rightParExp = rightParExp.Expression as MemberExpression;
-										if (rightParExp == null) throw throwNavigateSelector;
+									var (rightMembersParam, rightMembers) = GetExpressionStack(rightP1MemberExp.Expression);
+									if (rightMembersParam != membersParam) throw throwNavigateSelector;
+									var isCollMemEquals = rightMembers.Count == members.Count;
+									if (isCollMemEquals) {
+										for (var l = 0; l < members.Count; l++)
+											if (members[l].Member != rightMembers[l].Member) {
+												isCollMemEquals = false;
+												break;
+											}
 									}
-									tbref.Columns.Add(tb.ColumnsByCs[rightP1MemberExp.Member.Name]);
+									if (isCollMemEquals) {
+										tbref.Columns.Add(tb.ColumnsByCs[rightP1MemberExp.Member.Name]);
+										tbrefOneToManyColumns.Add(null);
+									} else {
+										var tmpTb = _commonUtils.GetTableByEntity(rightP1MemberExp.Expression.Type);
+										if (tmpTb == null) throw throwNavigateSelector;
+										tbref.Columns.Add(tmpTb.ColumnsByCs[rightP1MemberExp.Member.Name]);
+										tbrefOneToManyColumns.Add(rightMembers);
+									}
 									tbref.RefColumns.Add(tbNav.ColumnsByCs[leftP1MemberExp.Member.Name]);
 									return;
 								}
 								if (rightP1MemberExp.Expression == whereExpArgLamb.Parameters[0]) {
-									var leftParExp = leftP1MemberExp;
-									while (leftParExp.Expression != tmpExp) {
-										leftParExp = leftParExp.Expression as MemberExpression;
-										if (leftParExp == null) throw throwNavigateSelector;
+									var (leftMembersParam, leftMembers) = GetExpressionStack(leftP1MemberExp.Expression);
+									if (leftMembersParam != membersParam) throw throwNavigateSelector;
+									var isCollMemEquals = leftMembers.Count == members.Count;
+									if (isCollMemEquals) {
+										for (var l = 0; l < members.Count; l++)
+											if (members[l].Member != leftMembers[l].Member) {
+												isCollMemEquals = false;
+												break;
+											}
 									}
-									tbref.Columns.Add(tb.ColumnsByCs[leftP1MemberExp.Member.Name]);
+									if (isCollMemEquals) {
+										tbref.Columns.Add(tb.ColumnsByCs[leftP1MemberExp.Member.Name]);
+										tbrefOneToManyColumns.Add(null);
+									} else {
+										var tmpTb = _commonUtils.GetTableByEntity(leftP1MemberExp.Expression.Type);
+										if (tmpTb == null) throw throwNavigateSelector;
+										tbref.Columns.Add(tmpTb.ColumnsByCs[leftP1MemberExp.Member.Name]);
+										tbrefOneToManyColumns.Add(leftMembers);
+									}
 									tbref.RefColumns.Add(tbNav.ColumnsByCs[rightP1MemberExp.Member.Name]);
 									return;
 								}
@@ -422,12 +457,12 @@ namespace FreeSql.Internal.CommonProvider {
 				var list = listObj as List<T1>;
 				if (list == null) return;
 				if (list.Any() == false) return;
-
 				if (tbref.Columns.Any() == false) return;
 
 				var t1parm = Expression.Parameter(typeof(T1));
 				Expression membersExp = t1parm;
-				while (members.Any()) membersExp = Expression.MakeMemberAccess(membersExp, members.Pop());
+				foreach(var mem in members) membersExp = Expression.MakeMemberAccess(membersExp, mem.Member);
+				members.Clear();
 
 				var listValueExp = Expression.Parameter(typeof(List<TNavigate>), "listValue");
 				var setListValue = Expression.Lambda<Action<T1, List<TNavigate>>>(
@@ -438,11 +473,32 @@ namespace FreeSql.Internal.CommonProvider {
 
 				var returnTarget = Expression.Label(typeof(object));
 				var propertyNameExp = Expression.Parameter(typeof(string), "propertyName");
-				var getListValue = Expression.Lambda<Func<T1, string, object>>(
+				var getListValue1 = Expression.Lambda<Func<T1, string, object>>(
 					Expression.Block(
 						Expression.Return(returnTarget, Expression.Call(null, GetEntityValueWithPropertyNameMethod, Expression.Constant(_orm), Expression.Constant(membersExp.Type), membersExp, propertyNameExp)),
 						Expression.Label(returnTarget, Expression.Default(typeof(object)))
 					), t1parm, propertyNameExp).Compile();
+
+				var getListValue2 = new List<Func<T1, string, object>>();
+				for (var j = 0; j < tbrefOneToManyColumns.Count; j++) {
+					if (tbrefOneToManyColumns[j] == null) {
+						getListValue2.Add(null);
+						continue;
+					}
+					Expression tbrefOneToManyColumnsMembers = t1parm;
+					foreach (var mem in tbrefOneToManyColumns[j]) tbrefOneToManyColumnsMembers = Expression.MakeMemberAccess(tbrefOneToManyColumnsMembers, mem.Member);
+					tbrefOneToManyColumns[j].Clear();
+					getListValue2.Add(Expression.Lambda<Func<T1, string, object>>(
+						Expression.Block(
+							Expression.Return(returnTarget, Expression.Call(null, GetEntityValueWithPropertyNameMethod, Expression.Constant(_orm), Expression.Constant(tbrefOneToManyColumnsMembers.Type), tbrefOneToManyColumnsMembers, propertyNameExp)),
+							Expression.Label(returnTarget, Expression.Default(typeof(object)))
+						), t1parm, propertyNameExp).Compile());
+				}
+				tbrefOneToManyColumns.Clear();
+				Func<T1, string, int, object> getListValue = (item, propName, colIndex) => {
+					if (getListValue2.Any() && getListValue2[colIndex] != null) return getListValue2[colIndex](item, propName);
+					return getListValue1(item, propName);
+				};
 
 				foreach (var item in list) {
 					setListValue(item, null);
@@ -457,7 +513,7 @@ namespace FreeSql.Internal.CommonProvider {
 							var tbref2 = _commonUtils.GetTableByEntity(tbref.RefEntityType);
 							if (tbref.Columns.Count == 1) {
 								var arrExp = Expression.NewArrayInit(tbref.Columns[0].CsType, 
-									list.Select(a => getListValue(a, tbref.Columns[0].CsName)).Distinct()
+									list.Select(a => getListValue(a, tbref.Columns[0].CsName, 0)).Distinct()
 										.Select(a => Expression.Constant(Convert.ChangeType(a, tbref.Columns[0].CsType))).ToArray());
 								var otmExpParm1 = Expression.Parameter(typeof(TNavigate), "a");
 								var containsMethod = _dicTypeMethod.GetOrAdd(tbref.Columns[0].CsType, et => new ConcurrentDictionary<string, MethodInfo>()).GetOrAdd("Contains", mn =>
@@ -474,7 +530,7 @@ namespace FreeSql.Internal.CommonProvider {
 									sbWhereOne.Append("(");
 									for (var z = 0; z < tbref.Columns.Count; z++) {
 										if (z > 0) sbWhereOne.Append(" AND ");
-										sbWhereOne.Append(_commonUtils.FormatSql($"{subSelectT1Alias}.{_commonUtils.QuoteSqlName(tbref.RefColumns[z].Attribute.Name)}={{0}}", getListValue(list[y], tbref.Columns[z].CsName)));
+										sbWhereOne.Append(_commonUtils.FormatSql($"{subSelectT1Alias}.{_commonUtils.QuoteSqlName(tbref.RefColumns[z].Attribute.Name)}={{0}}", getListValue(list[y], tbref.Columns[z].CsName, z)));
 									}
 									sbWhereOne.Append(")");
 									var whereOne = sbWhereOne.ToString();
@@ -512,14 +568,14 @@ namespace FreeSql.Internal.CommonProvider {
 							Dictionary<string, Tuple<T1, List<TNavigate>>> dicList = new Dictionary<string, Tuple<T1, List<TNavigate>>>();
 							foreach (var item in list) {
 								if (tbref.Columns.Count == 1) {
-									dicList.Add(getListValue(item, tbref.Columns[0].CsName).ToString(), Tuple.Create(item, new List<TNavigate>()));
+									dicList.Add(getListValue(item, tbref.Columns[0].CsName, 0).ToString(), Tuple.Create(item, new List<TNavigate>()));
 								} else {
 									var sb = new StringBuilder();
 									for (var z = 0; z < tbref.Columns.Count; z++) {
 										if (z > 0) sb.Append("*$*");
-										sb.Append(getListValue(item, tbref.Columns[z].CsName));
+										sb.Append(getListValue(item, tbref.Columns[z].CsName, z));
 									}
-									dicList.Add(sb.Remove(0, 3).ToString(), Tuple.Create(item, new List<TNavigate>()));
+									dicList.Add(sb.ToString(), Tuple.Create(item, new List<TNavigate>()));
 									sb.Clear();
 								}
 							}
@@ -570,7 +626,7 @@ namespace FreeSql.Internal.CommonProvider {
 							subSelect.InnerJoin(sbJoin.ToString());
 							sbJoin.Clear();
 							if (tbref.Columns.Count == 1) {
-								subSelect.Where(_commonUtils.FormatSql($"midtb.{_commonUtils.QuoteSqlName(tbref.MiddleColumns[0].Attribute.Name)} in {{0}}", list.Select(a => getListValue(a, tbref.Columns[0].CsName)).Distinct()));
+								subSelect.Where(_commonUtils.FormatSql($"midtb.{_commonUtils.QuoteSqlName(tbref.MiddleColumns[0].Attribute.Name)} in {{0}}", list.Select(a => getListValue1(a, tbref.Columns[0].CsName)).Distinct()));
 							} else {
 								Dictionary<string, bool> sbDic = new Dictionary<string, bool>();
 								for (var y = 0; y < list.Count; y++) {
@@ -578,7 +634,7 @@ namespace FreeSql.Internal.CommonProvider {
 									sbWhereOne.Append("(");
 									for (var z = 0; z < tbref.Columns.Count; z++) {
 										if (z > 0) sbWhereOne.Append(" AND ");
-										sbWhereOne.Append(_commonUtils.FormatSql($" midtb.{_commonUtils.QuoteSqlName(tbref.MiddleColumns[z].Attribute.Name)}={{0}}", getListValue(list[y], tbref.Columns[z].CsName)));
+										sbWhereOne.Append(_commonUtils.FormatSql($" midtb.{_commonUtils.QuoteSqlName(tbref.MiddleColumns[z].Attribute.Name)}={{0}}", getListValue1(list[y], tbref.Columns[z].CsName)));
 									}
 									sbWhereOne.Append(")");
 									var whereOne = sbWhereOne.ToString();
@@ -588,7 +644,7 @@ namespace FreeSql.Internal.CommonProvider {
 								var sbWhere = new StringBuilder();
 								foreach (var sbd in sbDic)
 									sbWhere.Append(" OR ").Append(sbd.Key);
-								subSelect.Where(sbWhere.Remove(0, 3).ToString());
+								subSelect.Where(sbWhere.Remove(0, 4).ToString());
 								sbWhere.Clear();
 							}
 							then?.Invoke(subSelect);
@@ -629,7 +685,7 @@ namespace FreeSql.Internal.CommonProvider {
 							Dictionary<string, List<Tuple<T1, List<TNavigate>>>> dicList = new Dictionary<string, List<Tuple<T1, List<TNavigate>>>>();
 							foreach (var item in list) {
 								if (tbref.Columns.Count == 1) {
-									var dicListKey = getListValue(item, tbref.Columns[0].CsName).ToString();
+									var dicListKey = getListValue1(item, tbref.Columns[0].CsName).ToString();
 									var dicListVal = Tuple.Create(item, new List<TNavigate>());
 									if (dicList.TryGetValue(dicListKey, out var items) == false)
 										dicList.Add(dicListKey, items = new List<Tuple<T1, List<TNavigate>>>());
@@ -638,9 +694,9 @@ namespace FreeSql.Internal.CommonProvider {
 									var sb = new StringBuilder();
 									for (var z = 0; z < tbref.Columns.Count; z++) {
 										if (z > 0) sb.Append("*$*");
-										sb.Append(getListValue(item, tbref.Columns[z].CsName));
+										sb.Append(getListValue1(item, tbref.Columns[z].CsName));
 									}
-									var dicListKey = sb.Remove(0, 3).ToString();
+									var dicListKey = sb.ToString();
 									var dicListVal = Tuple.Create(item, new List<TNavigate>());
 									if (dicList.TryGetValue(dicListKey, out var items) == false)
 										dicList.Add(dicListKey, items = new List<Tuple<T1, List<TNavigate>>>());
