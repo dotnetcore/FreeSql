@@ -352,8 +352,11 @@ namespace FreeSql.Internal.CommonProvider {
 			if (tb == null) throw throwNavigateSelector;
 			var tbNav = _commonUtils.GetTableByEntity(typeof(TNavigate));
 			if (tbNav == null) throw new Exception($"类型 {typeof(TNavigate).FullName} 错误，不能使用 IncludeMany");
-			TableRef tbref = null;
 
+			if (collMem.Expression.NodeType != ExpressionType.Parameter)
+				_commonExpression.ExpressionWhereLambda(_tables, Expression.MakeMemberAccess(collMem.Expression, tb.Properties[tb.ColumnsByCs.First().Value.CsName]), null);
+
+			TableRef tbref = null;
 			if (whereExp == null) {
 
 				tbref = tb.GetTableRef(collMem.Member.Name, true);
@@ -383,17 +386,25 @@ namespace FreeSql.Internal.CommonProvider {
 								var leftP1MemberExp = binaryExp.Left as MemberExpression;
 								var rightP1MemberExp = binaryExp.Right as MemberExpression;
 								if (leftP1MemberExp == null || rightP1MemberExp == null) throw throwNavigateSelector;
-								if (leftP1MemberExp.Expression != tmpExp && leftP1MemberExp.Expression != whereExpArgLamb.Parameters[0] ||
-									rightP1MemberExp.Expression != tmpExp && rightP1MemberExp.Expression != whereExpArgLamb.Parameters[0]) throw throwNavigateSelector;
 
-								if (leftP1MemberExp.Expression == tmpExp && rightP1MemberExp.Expression == whereExpArgLamb.Parameters[0]) {
-									tbref.Columns.Add(tb.ColumnsByCs[leftP1MemberExp.Member.Name]);
-									tbref.RefColumns.Add(tbNav.ColumnsByCs[rightP1MemberExp.Member.Name]);
-									return;
-								}
-								if (rightP1MemberExp.Expression == tmpExp && leftP1MemberExp.Expression == whereExpArgLamb.Parameters[0]) {
+								if (leftP1MemberExp.Expression == whereExpArgLamb.Parameters[0]) {
+									var rightParExp = rightP1MemberExp;
+									while (rightParExp.Expression != tmpExp) {
+										rightParExp = rightParExp.Expression as MemberExpression;
+										if (rightParExp == null) throw throwNavigateSelector;
+									}
 									tbref.Columns.Add(tb.ColumnsByCs[rightP1MemberExp.Member.Name]);
 									tbref.RefColumns.Add(tbNav.ColumnsByCs[leftP1MemberExp.Member.Name]);
+									return;
+								}
+								if (rightP1MemberExp.Expression == whereExpArgLamb.Parameters[0]) {
+									var leftParExp = leftP1MemberExp;
+									while (leftParExp.Expression != tmpExp) {
+										leftParExp = leftParExp.Expression as MemberExpression;
+										if (leftParExp == null) throw throwNavigateSelector;
+									}
+									tbref.Columns.Add(tb.ColumnsByCs[leftP1MemberExp.Member.Name]);
+									tbref.RefColumns.Add(tbNav.ColumnsByCs[rightP1MemberExp.Member.Name]);
 									return;
 								}
 
@@ -406,9 +417,6 @@ namespace FreeSql.Internal.CommonProvider {
 				}
 				if (tbref.Columns.Any() == false) throw throwNavigateSelector;
 			}
-
-			if (collMem.Expression.NodeType != ExpressionType.Parameter)
-				_commonExpression.ExpressionWhereLambda(_tables, Expression.MakeMemberAccess(collMem.Expression, tb.Properties[tb.ColumnsByCs.First().Value.CsName]), null);
 
 			_includeToList.Enqueue(listObj => {
 				var list = listObj as List<T1>;
@@ -448,7 +456,9 @@ namespace FreeSql.Internal.CommonProvider {
 						if (true) {
 							var tbref2 = _commonUtils.GetTableByEntity(tbref.RefEntityType);
 							if (tbref.Columns.Count == 1) {
-								var arrExp = Expression.NewArrayInit(tbref.Columns[0].CsType, list.Select(a => Expression.Constant(Convert.ChangeType(getListValue(a, tbref.Columns[0].CsName), tbref.Columns[0].CsType))).Distinct().ToArray());
+								var arrExp = Expression.NewArrayInit(tbref.Columns[0].CsType, 
+									list.Select(a => getListValue(a, tbref.Columns[0].CsName)).Distinct()
+										.Select(a => Expression.Constant(Convert.ChangeType(a, tbref.Columns[0].CsType))).ToArray());
 								var otmExpParm1 = Expression.Parameter(typeof(TNavigate), "a");
 								var containsMethod = _dicTypeMethod.GetOrAdd(tbref.Columns[0].CsType, et => new ConcurrentDictionary<string, MethodInfo>()).GetOrAdd("Contains", mn =>
 									typeof(Enumerable).GetMethods().Where(a => a.Name == mn).First()).MakeGenericMethod(tbref.Columns[0].CsType);

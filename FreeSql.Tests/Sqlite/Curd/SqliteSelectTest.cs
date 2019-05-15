@@ -757,9 +757,29 @@ namespace FreeSql.Tests.Sqlite {
 			Assert.Equal("SELECT a.\"Id\", a.\"Clicks\", a.\"TypeGuid\", a.\"Title\", a.\"CreateTime\" FROM \"tb_topic22AsTable1\" a LEFT JOIN \"TestTypeInfo\" b on b.\"Guid\" = a.\"TypeGuid\" and b.\"Name\" = @bname", sql);
 		}
 
+		class TestInclude_OneToManyModel1 {
+			[Column(IsIdentity = true)]
+			public int id { get; set; }
+			public virtual TestInclude_OneToManyModel2 model2 { get; set; }
+		}
+		class TestInclude_OneToManyModel2 {
+			[Column(IsPrimary = true)]
+			public int model2id { get; set; }
+			public virtual TestInclude_OneToManyModel2 model1 { get; set; }
+
+			public virtual List<TestInclude_OneToManyModel3> childs { get; set; }
+		}
+		class TestInclude_OneToManyModel3 {
+			[Column(IsIdentity = true)]
+			public int id { get; set; }
+
+			public string title { get; set; }
+		}
+
 		[Fact]
 		public void Include_OneToMany() {
-
+			var model1 = new TestInclude_OneToManyModel1 { };
+			model1.id = (int)g.sqlite.Insert(model1).ExecuteIdentity();
 		}
 		[Fact]
 		public void Include_OneToChilds() {
@@ -891,6 +911,12 @@ namespace FreeSql.Tests.Sqlite {
 			Assert.Equal(2, songs2[0].Tags.Count);
 			Assert.Equal(1, songs2[1].Tags.Count);
 			Assert.Equal(3, songs2[2].Tags.Count);
+
+			var tags3 = g.sqlite.Select<Song_tag>()
+				.Include(a => a.Tag.Parent)
+				.IncludeMany(a => a.Tag.Songs)
+				.Where(a => a.Tag.Id == tag1.Id || a.Tag.Id == tag2.Id)
+				.ToList(true);
 		}
 	}
 }
