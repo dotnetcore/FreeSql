@@ -813,6 +813,15 @@ namespace FreeSql.Tests.SqlServer {
 
 			public int model2111Idaaa { get; set; }
 			public string title { get; set; }
+
+			public List<TestInclude_OneToManyModel4> childs2 { get; set; }
+		}
+		public class TestInclude_OneToManyModel4 {
+			[Column(IsIdentity = true)]
+			public int id { get; set; }
+
+			public int model3333Id333 { get; set; }
+			public string title444 { get; set; }
 		}
 
 		[Fact]
@@ -822,15 +831,30 @@ namespace FreeSql.Tests.SqlServer {
 			var model2 = new TestInclude_OneToManyModel2 { model2id = model1.id, m2setting = DateTime.Now.Second.ToString() };
 			_sqlserverFixture.SqlServer.Insert(model2).ExecuteAffrows();
 
-			var model3s = new[] {
-				new TestInclude_OneToManyModel3{ model2111Idaaa = model1.id, title = "testmodel3__111" },
-				new TestInclude_OneToManyModel3{ model2111Idaaa = model1.id, title = "testmodel3__222" },
-				new TestInclude_OneToManyModel3{ model2111Idaaa = model1.id, title = "testmodel3__333" }
+			var model3_1 = new TestInclude_OneToManyModel3 { model2111Idaaa = model1.id, title = "testmodel3__111" };
+			model3_1.id = (int)_sqlserverFixture.SqlServer.Insert(model3_1).ExecuteIdentity();
+			var model3_2 = new TestInclude_OneToManyModel3 { model2111Idaaa = model1.id, title = "testmodel3__222" };
+			model3_2.id = (int)_sqlserverFixture.SqlServer.Insert(model3_2).ExecuteIdentity();
+			var model3_3 = new TestInclude_OneToManyModel3 { model2111Idaaa = model1.id, title = "testmodel3__333" };
+			model3_3.id = (int)_sqlserverFixture.SqlServer.Insert(model3_2).ExecuteIdentity();
+
+			var model4s = new[] {
+				new TestInclude_OneToManyModel4{ model3333Id333 = model3_1.id, title444 = "testmodel3_4__111" },
+				new TestInclude_OneToManyModel4{ model3333Id333 = model3_1.id, title444 = "testmodel3_4__222" },
+				new TestInclude_OneToManyModel4{ model3333Id333 = model3_2.id, title444 = "testmodel3_4__111" },
+				new TestInclude_OneToManyModel4{ model3333Id333 = model3_2.id, title444 = "testmodel3_4__222" },
+				new TestInclude_OneToManyModel4{ model3333Id333 = model3_2.id, title444 = "testmodel3_4__333" }
 			};
-			Assert.Equal(3, _sqlserverFixture.SqlServer.Insert(model3s).ExecuteAffrows());
+			Assert.Equal(5, _sqlserverFixture.SqlServer.Insert(model4s).ExecuteAffrows());
 
 			var t1 = _sqlserverFixture.SqlServer.Select<TestInclude_OneToManyModel1>()
 				.IncludeMany(a => a.model2.childs.Where(m3 => m3.model2111Idaaa == a.model2.model2id))
+				.Where(a => a.id <= model1.id)
+				.ToList();
+
+			var t2 = _sqlserverFixture.SqlServer.Select<TestInclude_OneToManyModel1>()
+				.IncludeMany(a => a.model2.childs.Where(m3 => m3.model2111Idaaa == a.model2.model2id),
+					then => then.IncludeMany(m3 => m3.childs2.Where(m4 => m4.model3333Id333 == m3.id)))
 				.Where(a => a.id <= model1.id)
 				.ToList();
 		}
