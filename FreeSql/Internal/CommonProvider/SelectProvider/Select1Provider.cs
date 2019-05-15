@@ -467,20 +467,39 @@ namespace FreeSql.Internal.CommonProvider {
 								subSelect.Where(Expression.Lambda<Func<TNavigate, bool>>(
 									Expression.Call(null, containsMethod, arrExp, refCol), otmExpParm1));
 							} else {
-								var otmExpParm1 = Expression.Parameter(typeof(TNavigate), "a");
-								Expression expOr = null;
-								foreach (var item in list) {
-									Expression expAnd = null;
+								var subSelectT1Alias = (subSelect as Select1Provider<TNavigate>)._tables[0].Alias;
+								Dictionary<string, bool> sbDic = new Dictionary<string, bool>();
+								for (var y = 0; y < list.Count; y++) {
+									var sbWhereOne = new StringBuilder();
+									sbWhereOne.Append("(");
 									for (var z = 0; z < tbref.Columns.Count; z++) {
-										var colVal = getListValue(item, tbref.Columns[z].CsName);
-										var expTmp = Expression.Equal(Expression.MakeMemberAccess(otmExpParm1, tbref2.Properties[tbref.RefColumns[0].CsName]), Expression.Constant(colVal));
-										if (z == 0) expAnd = expTmp;
-										else expAnd = Expression.AndAlso(expAnd, expTmp);
+										if (z > 0) sbWhereOne.Append(" AND ");
+										sbWhereOne.Append(_commonUtils.FormatSql($"{subSelectT1Alias}.{_commonUtils.QuoteSqlName(tbref.RefColumns[z].Attribute.Name)}={{0}}", getListValue(list[y], tbref.Columns[z].CsName)));
 									}
-									if (expOr == null) expOr = expAnd;
-									else expOr = Expression.OrElse(expOr, expAnd);
+									sbWhereOne.Append(")");
+									var whereOne = sbWhereOne.ToString();
+									sbWhereOne.Clear();
+									if (sbDic.ContainsKey(whereOne) == false) sbDic.Add(whereOne, true);
 								}
-								subSelect.Where(Expression.Lambda<Func<TNavigate, bool>>(expOr, otmExpParm1));
+								var sbWhere = new StringBuilder();
+								foreach (var sbd in sbDic)
+									sbWhere.Append(" OR ").Append(sbd.Key);
+								subSelect.Where(sbWhere.Remove(0, 4).ToString());
+								sbWhere.Clear();
+								//var otmExpParm1 = Expression.Parameter(typeof(TNavigate), "a");
+								//Expression expOr = null;
+								//foreach (var item in list) {
+								//	Expression expAnd = null;
+								//	for (var z = 0; z < tbref.Columns.Count; z++) {
+								//		var colVal = getListValue(item, tbref.Columns[z].CsName);
+								//		var expTmp = Expression.Equal(Expression.MakeMemberAccess(otmExpParm1, tbref2.Properties[tbref.RefColumns[z].CsName]), Expression.Constant(colVal));
+								//		if (z == 0) expAnd = expTmp;
+								//		else expAnd = Expression.AndAlso(expAnd, expTmp);
+								//	}
+								//	if (expOr == null) expOr = expAnd;
+								//	else expOr = Expression.OrElse(expOr, expAnd);
+								//}
+								//subSelect.Where(Expression.Lambda<Func<TNavigate, bool>>(expOr, otmExpParm1));
 							}
 							then?.Invoke(subSelect);
 							var subList = subSelect.ToList(true);
@@ -543,10 +562,10 @@ namespace FreeSql.Internal.CommonProvider {
 						if (true) {
 							var tbref2 = _commonUtils.GetTableByEntity(tbref.RefEntityType);
 							var tbrefMid = _commonUtils.GetTableByEntity(tbref.RefMiddleEntityType);
-							var sbJoin = new StringBuilder().Append($"{_commonUtils.QuoteSqlName(tbrefMid.DbName)} midtb ON");
+							var sbJoin = new StringBuilder().Append($"{_commonUtils.QuoteSqlName(tbrefMid.DbName)} midtb ON ");
 							for (var z = 0; z < tbref.RefColumns.Count; z++) {
-								if (z > 0) sbJoin.Append(" AND");
-								sbJoin.Append($" midtb.{_commonUtils.QuoteSqlName(tbref.MiddleColumns[tbref.Columns.Count + z].Attribute.Name)} = a.{_commonUtils.QuoteSqlName(tbref.RefColumns[z].Attribute.Name)}");
+								if (z > 0) sbJoin.Append(" AND ");
+								sbJoin.Append($"midtb.{_commonUtils.QuoteSqlName(tbref.MiddleColumns[tbref.Columns.Count + z].Attribute.Name)} = a.{_commonUtils.QuoteSqlName(tbref.RefColumns[z].Attribute.Name)}");
 							}
 							subSelect.InnerJoin(sbJoin.ToString());
 							sbJoin.Clear();
@@ -556,9 +575,9 @@ namespace FreeSql.Internal.CommonProvider {
 								Dictionary<string, bool> sbDic = new Dictionary<string, bool>();
 								for (var y = 0; y < list.Count; y++) {
 									var sbWhereOne = new StringBuilder();
-									sbWhereOne.Append(" (");
+									sbWhereOne.Append("(");
 									for (var z = 0; z < tbref.Columns.Count; z++) {
-										if (z > 0) sbWhereOne.Append(" AND");
+										if (z > 0) sbWhereOne.Append(" AND ");
 										sbWhereOne.Append(_commonUtils.FormatSql($" midtb.{_commonUtils.QuoteSqlName(tbref.MiddleColumns[z].Attribute.Name)}={{0}}", getListValue(list[y], tbref.Columns[z].CsName)));
 									}
 									sbWhereOne.Append(")");
@@ -568,7 +587,7 @@ namespace FreeSql.Internal.CommonProvider {
 								}
 								var sbWhere = new StringBuilder();
 								foreach (var sbd in sbDic)
-									sbWhere.Append(" OR").Append(sbd.Key);
+									sbWhere.Append(" OR ").Append(sbd.Key);
 								subSelect.Where(sbWhere.Remove(0, 3).ToString());
 								sbWhere.Clear();
 							}

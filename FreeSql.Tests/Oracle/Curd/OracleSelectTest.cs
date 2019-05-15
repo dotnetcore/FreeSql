@@ -794,9 +794,48 @@ namespace FreeSql.Tests.Oracle {
 			Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22AsTable1\" a LEFT JOIN \"TESTTYPEINFO\" b on b.\"GUID\" = a.\"TYPEGUID\" and b.\"NAME\" = :bname", sql);
 		}
 
+		public class TiOtmModel1 {
+			[Column(IsIdentity = true)]
+			public int id { get; set; }
+			public virtual TiOtmModel2 model2 { get; set; }
+
+			public string m1name { get; set; }
+		}
+		public class TiOtmModel2 {
+			[Column(IsPrimary = true)]
+			public int model2id { get; set; }
+			public virtual TiOtmModel1 model1 { get; set; }
+
+			public string m2setting { get; set; }
+
+			public List<TiOtmModel3> childs { get; set; }
+		}
+		public class TiOtmModel3 {
+			[Column(IsIdentity = true)]
+			public int id { get; set; }
+
+			public int model2111Idaaa { get; set; }
+			public string title { get; set; }
+		}
+
 		[Fact]
 		public void Include_OneToMany() {
+			var model1 = new TiOtmModel1 { m1name = DateTime.Now.Second.ToString() };
+			model1.id = (int)g.oracle.Insert(model1).ExecuteIdentity();
+			var model2 = new TiOtmModel2 { model2id = model1.id, m2setting = DateTime.Now.Second.ToString() };
+			g.oracle.Insert(model2).ExecuteAffrows();
 
+			var model3s = new[] {
+				new TiOtmModel3{ model2111Idaaa = model1.id, title = "testmodel3__111" },
+				new TiOtmModel3{ model2111Idaaa = model1.id, title = "testmodel3__222" },
+				new TiOtmModel3{ model2111Idaaa = model1.id, title = "testmodel3__333" }
+			};
+			Assert.Equal(3, g.oracle.Insert(model3s).ExecuteAffrows());
+
+			var t1 = g.oracle.Select<TiOtmModel1>()
+				.IncludeMany(a => a.model2.childs.Where(m3 => m3.model2111Idaaa == a.model2.model2id))
+				.Where(a => a.id <= model1.id)
+				.ToList();
 		}
 		[Fact]
 		public void Include_OneToChilds() {

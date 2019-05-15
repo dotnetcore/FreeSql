@@ -757,29 +757,48 @@ namespace FreeSql.Tests.Sqlite {
 			Assert.Equal("SELECT a.\"Id\", a.\"Clicks\", a.\"TypeGuid\", a.\"Title\", a.\"CreateTime\" FROM \"tb_topic22AsTable1\" a LEFT JOIN \"TestTypeInfo\" b on b.\"Guid\" = a.\"TypeGuid\" and b.\"Name\" = @bname", sql);
 		}
 
-		class TestInclude_OneToManyModel1 {
+		public class TestInclude_OneToManyModel1 {
 			[Column(IsIdentity = true)]
 			public int id { get; set; }
 			public virtual TestInclude_OneToManyModel2 model2 { get; set; }
+
+			public string m1name { get; set; }
 		}
-		class TestInclude_OneToManyModel2 {
+		public class TestInclude_OneToManyModel2 {
 			[Column(IsPrimary = true)]
 			public int model2id { get; set; }
-			public virtual TestInclude_OneToManyModel2 model1 { get; set; }
+			public virtual TestInclude_OneToManyModel1 model1 { get; set; }
 
-			public virtual List<TestInclude_OneToManyModel3> childs { get; set; }
+			public string m2setting { get; set; }
+
+			public List<TestInclude_OneToManyModel3> childs { get; set; }
 		}
-		class TestInclude_OneToManyModel3 {
+		public class TestInclude_OneToManyModel3 {
 			[Column(IsIdentity = true)]
 			public int id { get; set; }
 
+			public int model2111Idaaa { get; set; }
 			public string title { get; set; }
 		}
 
 		[Fact]
 		public void Include_OneToMany() {
-			var model1 = new TestInclude_OneToManyModel1 { };
+			var model1 = new TestInclude_OneToManyModel1 { m1name = DateTime.Now.Second.ToString() };
 			model1.id = (int)g.sqlite.Insert(model1).ExecuteIdentity();
+			var model2 = new TestInclude_OneToManyModel2 { model2id = model1.id, m2setting = DateTime.Now.Second.ToString() };
+			g.sqlite.Insert(model2).ExecuteAffrows();
+
+			var model3s = new [] {
+				new TestInclude_OneToManyModel3{ model2111Idaaa = model1.id, title = "testmodel3__111" },
+				new TestInclude_OneToManyModel3{ model2111Idaaa = model1.id, title = "testmodel3__222" },
+				new TestInclude_OneToManyModel3{ model2111Idaaa = model1.id, title = "testmodel3__333" }
+			};
+			Assert.Equal(3, g.sqlite.Insert(model3s).ExecuteAffrows());
+
+			var t1 = g.sqlite.Select<TestInclude_OneToManyModel1>()
+				.IncludeMany(a => a.model2.childs.Where(m3 => m3.model2111Idaaa == a.model2.model2id && m3.title == a.model2.m2setting))
+				.Where(a => a.id <= model1.id)
+				.ToList();
 		}
 		[Fact]
 		public void Include_OneToChilds() {
