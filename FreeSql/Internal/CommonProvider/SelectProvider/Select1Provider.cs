@@ -167,7 +167,7 @@ namespace FreeSql.Internal.CommonProvider {
 			_tables[0].Parameter = resultSelector.Parameters[0];
 			_commonExpression.ExpressionLambdaToSql(outerKeySelector, new CommonExpression.ExpTSC { _tables = _tables });
 			this.InternalJoin(Expression.Lambda<Func<T1, TInner, bool>>(
-				Expression.Equal(outerKeySelector.Body, innerKeySelector.Body), 
+				Expression.Equal(outerKeySelector.Body, innerKeySelector.Body),
 				new[] { outerKeySelector.Parameters[0], innerKeySelector.Parameters[0] }
 			), SelectTableInfoType.InnerJoin);
 			if (typeof(TResult) == typeof(T1)) return this as ISelect<TResult>;
@@ -346,11 +346,18 @@ namespace FreeSql.Internal.CommonProvider {
 			var expBody = navigateSelector?.Body;
 			if (expBody == null) return this;
 			MethodCallExpression whereExp = null;
-			if (expBody.NodeType == ExpressionType.Call) {
-				throwNavigateSelector = new Exception($"IncludeMany {nameof(navigateSelector)} 参数类型错误，表达式格式应该是 a.collection.Where(c => c.aid == a.id)");
-				whereExp = (expBody as MethodCallExpression);
-				if (whereExp.Method.Name != "Where") throw throwNavigateSelector;
-				expBody = whereExp.Object ?? whereExp.Arguments.FirstOrDefault();
+			int takeNumber = 0;
+			while (expBody.NodeType == ExpressionType.Call) {
+				throwNavigateSelector = new Exception($"IncludeMany {nameof(navigateSelector)} 参数类型错误，表达式格式应该是 a.collections.Take(1).Where(c => c.aid == a.id)");
+				var callExp = (expBody as MethodCallExpression);
+				switch (callExp.Method.Name) {
+					case "Where":
+						whereExp = callExp;
+						break;
+					case "Take": takeNumber = int.Parse((callExp.Arguments[1] as ConstantExpression)?.Value?.ToString() ?? "0"); break;
+					default: throw throwNavigateSelector;
+				}
+				expBody = callExp.Object ?? callExp.Arguments.FirstOrDefault();
 			}
 
 			if (expBody.NodeType != ExpressionType.MemberAccess) throw throwNavigateSelector;
@@ -461,7 +468,7 @@ namespace FreeSql.Internal.CommonProvider {
 
 				var t1parm = Expression.Parameter(typeof(T1));
 				Expression membersExp = t1parm;
-				foreach(var mem in members) membersExp = Expression.MakeMemberAccess(membersExp, mem.Member);
+				foreach (var mem in members) membersExp = Expression.MakeMemberAccess(membersExp, mem.Member);
 				members.Clear();
 
 				var listValueExp = Expression.Parameter(typeof(List<TNavigate>), "listValue");
@@ -500,31 +507,24 @@ namespace FreeSql.Internal.CommonProvider {
 					return getListValue1(item, propName);
 				};
 
-				foreach (var item in list) {
+				foreach (var item in list)
 					setListValue(item, null);
-				}
-				var subSelect = _orm.Select<TNavigate>().WithConnection(_connection).WithTransaction(_transaction).TrackToList(_trackToList);
+
+				var subSelect = _orm.Select<TNavigate>().WithConnection(_connection).WithTransaction(_transaction).TrackToList(_trackToList) as Select1Provider<TNavigate>;
 				if (_tableRules?.Any() == true)
 					foreach (var tr in _tableRules) subSelect.AsTable(tr);
+				then?.Invoke(subSelect);
+				var subSelectT1Alias = subSelect._tables[0].Alias;
+				var oldWhere = subSelect._where.ToString();
+				if (oldWhere.StartsWith(" AND ")) oldWhere = oldWhere.Remove(0, 5);
 
 				switch (tbref.RefType) {
 					case TableRefType.OneToMany:
 						if (true) {
+							var subList = new List<TNavigate>();
 							var tbref2 = _commonUtils.GetTableByEntity(tbref.RefEntityType);
-							if (tbref.Columns.Count == 1) {
-								var arrExp = Expression.NewArrayInit(tbref.Columns[0].CsType, 
-									list.Select(a => getListValue(a, tbref.Columns[0].CsName, 0)).Distinct()
-										.Select(a => Expression.Constant(Convert.ChangeType(a, tbref.Columns[0].CsType))).ToArray());
-								var otmExpParm1 = Expression.Parameter(typeof(TNavigate), "a");
-								var containsMethod = _dicTypeMethod.GetOrAdd(tbref.Columns[0].CsType, et => new ConcurrentDictionary<string, MethodInfo>()).GetOrAdd("Contains", mn =>
-									typeof(Enumerable).GetMethods().Where(a => a.Name == mn).First()).MakeGenericMethod(tbref.Columns[0].CsType);
-								var refCol = Expression.MakeMemberAccess(otmExpParm1, tbref2.Properties[tbref.RefColumns[0].CsName]);
-								if (refCol.Type.IsNullableType()) refCol = Expression.Property(refCol, CommonExpression._dicNullableValueProperty.GetOrAdd(refCol.Type, ct1 => ct1.GetProperty("Value")));
-								subSelect.Where(Expression.Lambda<Func<TNavigate, bool>>(
-									Expression.Call(null, containsMethod, arrExp, refCol), otmExpParm1));
-							} else {
-								var subSelectT1Alias = (subSelect as Select1Provider<TNavigate>)._tables[0].Alias;
-								Dictionary<string, bool> sbDic = new Dictionary<string, bool>();
+							Func<Dictionary<string, bool>> getWhereDic = () => {
+								var sbDic = new Dictionary<string, bool>();
 								for (var y = 0; y < list.Count; y++) {
 									var sbWhereOne = new StringBuilder();
 									sbWhereOne.Append("(");
@@ -537,28 +537,48 @@ namespace FreeSql.Internal.CommonProvider {
 									sbWhereOne.Clear();
 									if (sbDic.ContainsKey(whereOne) == false) sbDic.Add(whereOne, true);
 								}
-								var sbWhere = new StringBuilder();
-								foreach (var sbd in sbDic)
-									sbWhere.Append(" OR ").Append(sbd.Key);
-								subSelect.Where(sbWhere.Remove(0, 4).ToString());
-								sbWhere.Clear();
-								//var otmExpParm1 = Expression.Parameter(typeof(TNavigate), "a");
-								//Expression expOr = null;
-								//foreach (var item in list) {
-								//	Expression expAnd = null;
-								//	for (var z = 0; z < tbref.Columns.Count; z++) {
-								//		var colVal = getListValue(item, tbref.Columns[z].CsName);
-								//		var expTmp = Expression.Equal(Expression.MakeMemberAccess(otmExpParm1, tbref2.Properties[tbref.RefColumns[z].CsName]), Expression.Constant(colVal));
-								//		if (z == 0) expAnd = expTmp;
-								//		else expAnd = Expression.AndAlso(expAnd, expTmp);
-								//	}
-								//	if (expOr == null) expOr = expAnd;
-								//	else expOr = Expression.OrElse(expOr, expAnd);
-								//}
-								//subSelect.Where(Expression.Lambda<Func<TNavigate, bool>>(expOr, otmExpParm1));
+								return sbDic;
+							};
+							if (takeNumber > 0) {
+								var af = subSelect.GetAllFieldExpressionTreeLevelAll();
+								var sbSql = new StringBuilder();
+								var sbDic = getWhereDic();
+								foreach (var sbd in sbDic) {
+									subSelect._where.Clear();
+									subSelect.Where(sbd.Key).Where(oldWhere).Limit(takeNumber);
+									sbSql.Append("\r\nUNION ALL\r\nselect * from (").Append(subSelect.ToSql(af.Field)).Append(") ftb");
+								}
+								sbSql.Remove(0, 13);
+								if (sbDic.Count == 1) sbSql.Remove(0, 15).Remove(sbSql.Length - 5, 5);
+								sbDic.Clear();
+								subList = subSelect.ToListAfPrivate(sbSql.ToString(), af, null);
+								sbSql.Clear();
+							} else {
+								subSelect._where.Clear();
+								if (tbref.Columns.Count == 1) {
+									var arrExp = Expression.NewArrayInit(tbref.Columns[0].CsType,
+										list.Select(a => getListValue(a, tbref.Columns[0].CsName, 0)).Distinct()
+											.Select(a => Expression.Constant(Convert.ChangeType(a, tbref.Columns[0].CsType))).ToArray());
+									var otmExpParm1 = Expression.Parameter(typeof(TNavigate), "a");
+									var containsMethod = _dicTypeMethod.GetOrAdd(tbref.Columns[0].CsType, et => new ConcurrentDictionary<string, MethodInfo>()).GetOrAdd("Contains", mn =>
+										typeof(Enumerable).GetMethods().Where(a => a.Name == mn).First()).MakeGenericMethod(tbref.Columns[0].CsType);
+									var refCol = Expression.MakeMemberAccess(otmExpParm1, tbref2.Properties[tbref.RefColumns[0].CsName]);
+									if (refCol.Type.IsNullableType()) refCol = Expression.Property(refCol, CommonExpression._dicNullableValueProperty.GetOrAdd(refCol.Type, ct1 => ct1.GetProperty("Value")));
+									subSelect.Where(Expression.Lambda<Func<TNavigate, bool>>(
+										Expression.Call(null, containsMethod, arrExp, refCol), otmExpParm1));
+								} else {
+									var sbDic = getWhereDic();
+									var sbWhere = new StringBuilder();
+									foreach (var sbd in sbDic)
+										sbWhere.Append(" OR ").Append(sbd.Key);
+									subSelect.Where(sbWhere.Remove(0, 4).ToString());
+									sbWhere.Clear();
+									sbDic.Clear();
+								}
+								subSelect.Where(oldWhere);
+								subList = subSelect.ToList(true);
 							}
-							then?.Invoke(subSelect);
-							var subList = subSelect.ToList(true);
+
 							if (subList.Any() == false) {
 								foreach (var item in list)
 									setListValue(item, new List<TNavigate>());
@@ -616,6 +636,8 @@ namespace FreeSql.Internal.CommonProvider {
 						break;
 					case TableRefType.ManyToMany:
 						if (true) {
+							List<TNavigate> subList = null;
+							List<object> midList = new List<object>();
 							var tbref2 = _commonUtils.GetTableByEntity(tbref.RefEntityType);
 							var tbrefMid = _commonUtils.GetTableByEntity(tbref.RefMiddleEntityType);
 							var sbJoin = new StringBuilder().Append($"{_commonUtils.QuoteSqlName(tbrefMid.DbName)} midtb ON ");
@@ -625,35 +647,11 @@ namespace FreeSql.Internal.CommonProvider {
 							}
 							subSelect.InnerJoin(sbJoin.ToString());
 							sbJoin.Clear();
-							if (tbref.Columns.Count == 1) {
-								subSelect.Where(_commonUtils.FormatSql($"midtb.{_commonUtils.QuoteSqlName(tbref.MiddleColumns[0].Attribute.Name)} in {{0}}", list.Select(a => getListValue1(a, tbref.Columns[0].CsName)).Distinct()));
-							} else {
-								Dictionary<string, bool> sbDic = new Dictionary<string, bool>();
-								for (var y = 0; y < list.Count; y++) {
-									var sbWhereOne = new StringBuilder();
-									sbWhereOne.Append("(");
-									for (var z = 0; z < tbref.Columns.Count; z++) {
-										if (z > 0) sbWhereOne.Append(" AND ");
-										sbWhereOne.Append(_commonUtils.FormatSql($" midtb.{_commonUtils.QuoteSqlName(tbref.MiddleColumns[z].Attribute.Name)}={{0}}", getListValue1(list[y], tbref.Columns[z].CsName)));
-									}
-									sbWhereOne.Append(")");
-									var whereOne = sbWhereOne.ToString();
-									sbWhereOne.Clear();
-									if (sbDic.ContainsKey(whereOne) == false) sbDic.Add(whereOne, true);
-								}
-								var sbWhere = new StringBuilder();
-								foreach (var sbd in sbDic)
-									sbWhere.Append(" OR ").Append(sbd.Key);
-								subSelect.Where(sbWhere.Remove(0, 4).ToString());
-								sbWhere.Clear();
-							}
-							then?.Invoke(subSelect);
 
-							List<TNavigate> subList = null;
-							List<object> midList = new List<object>();
+							var af = subSelect.GetAllFieldExpressionTreeLevelAll();
+							(string field, ReadAnonymousTypeInfo read)? otherData = null;
+							var sbSql = new StringBuilder();
 
-							var subSelectP1 = (subSelect as Select1Provider<TNavigate>);
-							var af = subSelectP1.GetAllFieldExpressionTreeLevelAll();
 							if (_selectExpression == null) {// return this.InternalToList<T1>(_selectExpression).Select(a => (a, ()).ToList();
 								var field = new StringBuilder();
 								var read = new ReadAnonymousTypeInfo();
@@ -672,10 +670,53 @@ namespace FreeSql.Internal.CommonProvider {
 									read.Childs.Add(child);
 									field.Append(", ").Append(_commonUtils.QuoteReadColumn(child.MapType, child.DbField));
 								}
-								subList = subSelectP1.ToListPrivate(af, new[] { (field.ToString(), read, midList) });
-							} else
-								subList = subSelectP1.ToListPrivate(af, null);
+								otherData = (field.ToString(), read);
+							}
+							Func<Dictionary<string, bool>> getWhereDic = () => {
+								var sbDic = new Dictionary<string, bool>();
+								for (var y = 0; y < list.Count; y++) {
+									var sbWhereOne = new StringBuilder();
+									sbWhereOne.Append("(");
+									for (var z = 0; z < tbref.Columns.Count; z++) {
+										if (z > 0) sbWhereOne.Append(" AND ");
+										sbWhereOne.Append(_commonUtils.FormatSql($" midtb.{_commonUtils.QuoteSqlName(tbref.MiddleColumns[z].Attribute.Name)}={{0}}", getListValue1(list[y], tbref.Columns[z].CsName)));
+									}
+									sbWhereOne.Append(")");
+									var whereOne = sbWhereOne.ToString();
+									sbWhereOne.Clear();
+									if (sbDic.ContainsKey(whereOne) == false) sbDic.Add(whereOne, true);
+								}
+								return sbDic;
+							};
 
+							if (takeNumber > 0) {
+								var sbDic = getWhereDic();
+								foreach (var sbd in sbDic) {
+									subSelect._where.Clear();
+									subSelect.Where(sbd.Key).Where(oldWhere).Limit(takeNumber);
+									sbSql.Append("\r\nUNION ALL\r\nselect * from (").Append(subSelect.ToSql($"{af.Field}{otherData?.field}")).Append(") ftb");
+								}
+								sbSql.Remove(0, 13);
+								if (sbDic.Count == 1) sbSql.Remove(0, 15).Remove(sbSql.Length - 5, 5);
+								sbDic.Clear();
+							} else {
+								subSelect._where.Clear();
+								if (tbref.Columns.Count == 1) {
+									subSelect.Where(_commonUtils.FormatSql($"midtb.{_commonUtils.QuoteSqlName(tbref.MiddleColumns[0].Attribute.Name)} in {{0}}", list.Select(a => getListValue1(a, tbref.Columns[0].CsName)).Distinct()));
+								} else {
+									var sbDic = getWhereDic();
+									var sbWhere = new StringBuilder();
+									foreach (var sbd in sbDic)
+										sbWhere.Append(" OR ").Append(sbd.Key);
+									subSelect.Where(sbWhere.Remove(0, 4).ToString());
+									sbWhere.Clear();
+									sbDic.Clear();
+								}
+								subSelect.Where(oldWhere);
+								sbSql.Append(subSelect.ToSql($"{af.Field}{otherData?.field}"));
+							}
+
+							subList = subSelect.ToListAfPrivate(sbSql.ToString(), af, otherData == null ? null : new[] { (otherData.Value.field, otherData.Value.read, midList) });
 							if (subList.Any() == false) {
 								foreach (var item in list)
 									setListValue(item, new List<TNavigate>());

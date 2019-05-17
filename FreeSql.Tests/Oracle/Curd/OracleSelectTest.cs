@@ -850,6 +850,11 @@ namespace FreeSql.Tests.Oracle {
 			};
 			Assert.Equal(5, g.oracle.Insert(model4s).ExecuteAffrows());
 
+			var t0 = g.oracle.Select<TiOtmModel2>()
+				.IncludeMany(a => a.childs.Where(m3 => m3.model2111Idaaa == a.model2id))
+				.Where(a => a.model2id <= model1.id)
+				.ToList();
+
 			var t1 = g.oracle.Select<TiOtmModel1>()
 				.IncludeMany(a => a.model2.childs.Where(m3 => m3.model2111Idaaa == a.model2.model2id))
 				.Where(a => a.id <= model1.id)
@@ -860,7 +865,76 @@ namespace FreeSql.Tests.Oracle {
 					then => then.IncludeMany(m3 => m3.childs2.Where(m4 => m4.model3333Id333 == m3.id)))
 				.Where(a => a.id <= model1.id)
 				.ToList();
+
+			var t00 = g.oracle.Select<TiOtmModel2>()
+				.IncludeMany(a => a.childs.Take(1).Where(m3 => m3.model2111Idaaa == a.model2id))
+				.Where(a => a.model2id <= model1.id)
+				.ToList();
+
+			var t11 = g.oracle.Select<TiOtmModel1>()
+				.IncludeMany(a => a.model2.childs.Take(1).Where(m3 => m3.model2111Idaaa == a.model2.model2id))
+				.Where(a => a.id <= model1.id)
+				.ToList();
+
+			var t22 = g.oracle.Select<TiOtmModel1>()
+				.IncludeMany(a => a.model2.childs.Take(1).Where(m3 => m3.model2111Idaaa == a.model2.model2id),
+					then => then.IncludeMany(m3 => m3.childs2.Take(2).Where(m4 => m4.model3333Id333 == m3.id)))
+				.Where(a => a.id <= model1.id)
+				.ToList();
 		}
+
+		public class TiOtmModel11 {
+			[Column(IsIdentity = true)]
+			public int id { get; set; }
+			public int model2id { get; set; }
+			public string m3setting { get; set; }
+			public TiOtmModel22 model2 { get; set; }
+			public string m1name { get; set; }
+		}
+
+		public class TiOtmModel22 {
+			[Column(IsIdentity = true)]
+			public int id { get; set; }
+			public string m2setting { get; set; }
+			public List<TiOtmModel33> childs { get; set; }
+		}
+		public class TiOtmModel33 {
+			[Column(IsIdentity = true)]
+			public int id { get; set; }
+			public int model2Id { get; set; }
+			public string title { get; set; }
+			public string setting { get; set; }
+		}
+		[Fact]
+		public void Include_OneToMany2() {
+			string setting = "x";
+			var model2 = new TiOtmModel22 { m2setting = DateTime.Now.Second.ToString() };
+			model2.id = (int)g.oracle.Insert(model2).ExecuteIdentity();
+
+			var model3s = new[]
+			{
+				new TiOtmModel33 {model2Id = model2.id, title = "testmodel3__111", setting = setting},
+				new TiOtmModel33 {model2Id = model2.id, title = "testmodel3__222", setting = setting},
+				new TiOtmModel33 {model2Id = model2.id, title = "testmodel3__333", setting = setting}
+			};
+			Assert.Equal(3, g.oracle.Insert(model3s).ExecuteAffrows());
+
+			var model1 = new TiOtmModel11 { m1name = DateTime.Now.Second.ToString(), model2id = model2.id, m3setting = setting };
+			model1.id = (int)g.oracle.Insert(model1).ExecuteIdentity();
+
+			var t1 = g.oracle.Select<TiOtmModel11>()
+				.LeftJoin(a => a.model2id == a.model2.id)
+				.IncludeMany(a => a.model2.childs.Where(m3 => m3.model2Id == a.model2.id && m3.setting == a.m3setting))
+				.Where(a => a.id <= model1.id)
+				.ToList(true);
+
+			var t11 = g.oracle.Select<TiOtmModel11>()
+				.LeftJoin(a => a.model2id == a.model2.id)
+				.IncludeMany(a => a.model2.childs.Take(1).Where(m3 => m3.model2Id == a.model2.id && m3.setting == a.m3setting))
+				.Where(a => a.id <= model1.id)
+				.ToList(true);
+		}
+
 		[Fact]
 		public void Include_OneToChilds() {
 			var tag1 = new Tag {
@@ -904,7 +978,7 @@ namespace FreeSql.Tests.Oracle {
 				.Where(a => a.Id == tag1.Id || a.Id == tag2.Id)
 				.ToList();
 
-			var tags = g.oracle.Select<Tag>()
+			var tags1 = g.oracle.Select<Tag>()
 				.IncludeMany(a => a.Tags)
 				.Include(a => a.Parent)
 				.IncludeMany(a => a.Songs)
@@ -924,6 +998,29 @@ namespace FreeSql.Tests.Oracle {
 					then => then.Include(a => a.Parent).IncludeMany(a => a.Songs).IncludeMany(a => a.Tags))
 				.Include(a => a.Parent)
 				.IncludeMany(a => a.Songs)
+				.Where(a => a.Id == tag1.Id || a.Id == tag2.Id)
+				.ToList();
+
+			var tags11 = g.oracle.Select<Tag>()
+				.IncludeMany(a => a.Tags.Take(1))
+				.Include(a => a.Parent)
+				.IncludeMany(a => a.Songs.Take(1))
+				.Where(a => a.Id == tag1.Id || a.Id == tag2.Id)
+				.ToList();
+
+			var tags22 = g.oracle.Select<Tag>()
+				.IncludeMany(a => a.Tags.Take(1),
+					then => then.Include(a => a.Parent).IncludeMany(a => a.Songs.Take(1)))
+				.Include(a => a.Parent)
+				.IncludeMany(a => a.Songs.Take(1))
+				.Where(a => a.Id == tag1.Id || a.Id == tag2.Id)
+				.ToList();
+
+			var tags33 = g.oracle.Select<Tag>()
+				.IncludeMany(a => a.Tags.Take(1),
+					then => then.Include(a => a.Parent).IncludeMany(a => a.Songs.Take(1)).IncludeMany(a => a.Tags.Take(1)))
+				.Include(a => a.Parent)
+				.IncludeMany(a => a.Songs.Take(1))
 				.Where(a => a.Id == tag1.Id || a.Id == tag2.Id)
 				.ToList();
 		}
@@ -973,14 +1070,14 @@ namespace FreeSql.Tests.Oracle {
 			g.oracle.Insert(new Song_tag { Song_id = song3.Id, Tag_id = tag2.Id }).ExecuteAffrows();
 			g.oracle.Insert(new Song_tag { Song_id = song3.Id, Tag_id = tag3.Id }).ExecuteAffrows();
 
-			var songs = g.oracle.Select<Song>()
+			var songs1 = g.oracle.Select<Song>()
 				.IncludeMany(a => a.Tags)
 				.Where(a => a.Id == song1.Id || a.Id == song2.Id || a.Id == song3.Id)
 				.ToList();
-			Assert.Equal(3, songs.Count);
-			Assert.Equal(2, songs[0].Tags.Count);
-			Assert.Equal(1, songs[1].Tags.Count);
-			Assert.Equal(3, songs[2].Tags.Count);
+			Assert.Equal(3, songs1.Count);
+			Assert.Equal(2, songs1[0].Tags.Count);
+			Assert.Equal(1, songs1[1].Tags.Count);
+			Assert.Equal(3, songs1[2].Tags.Count);
 
 			var songs2 = g.oracle.Select<Song>()
 				.IncludeMany(a => a.Tags,
@@ -991,6 +1088,38 @@ namespace FreeSql.Tests.Oracle {
 			Assert.Equal(2, songs2[0].Tags.Count);
 			Assert.Equal(1, songs2[1].Tags.Count);
 			Assert.Equal(3, songs2[2].Tags.Count);
+
+			var tags3 = g.oracle.Select<Song_tag>()
+				.Include(a => a.Tag.Parent)
+				.IncludeMany(a => a.Tag.Songs)
+				.Where(a => a.Tag.Id == tag1.Id || a.Tag.Id == tag2.Id)
+				.ToList(true);
+
+
+			var songs11 = g.oracle.Select<Song>()
+				.IncludeMany(a => a.Tags.Take(1))
+				.Where(a => a.Id == song1.Id || a.Id == song2.Id || a.Id == song3.Id)
+				.ToList();
+			Assert.Equal(3, songs11.Count);
+			Assert.Equal(1, songs11[0].Tags.Count);
+			Assert.Equal(1, songs11[1].Tags.Count);
+			Assert.Equal(1, songs11[2].Tags.Count);
+
+			var songs22 = g.oracle.Select<Song>()
+				.IncludeMany(a => a.Tags.Take(1),
+					then => then.IncludeMany(t => t.Songs.Take(1)))
+				.Where(a => a.Id == song1.Id || a.Id == song2.Id || a.Id == song3.Id)
+				.ToList();
+			Assert.Equal(3, songs22.Count);
+			Assert.Equal(1, songs22[0].Tags.Count);
+			Assert.Equal(1, songs22[1].Tags.Count);
+			Assert.Equal(1, songs22[2].Tags.Count);
+
+			var tags33 = g.oracle.Select<Song_tag>()
+				.Include(a => a.Tag.Parent)
+				.IncludeMany(a => a.Tag.Songs.Take(1))
+				.Where(a => a.Tag.Id == tag1.Id || a.Tag.Id == tag2.Id)
+				.ToList(true);
 		}
 	}
 }

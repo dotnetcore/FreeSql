@@ -135,8 +135,8 @@ namespace FreeSql.Tests {
 			});
 
 			var includet1 = g.sqlite.Select<Model1>()
-				.IncludeMany(a => a.Childs, s => s.Where(a => a.id > 0))
-				.IncludeMany(a => a.TestManys.Where(b => b.id == a.id))
+				.IncludeMany(a => a.Childs.Take(2), s => s.Where(a => a.id > 0))
+				.IncludeMany(a => a.TestManys.Take(1).Where(b => b.id == a.id))
 				.Where(a => a.id > 10)
 				.ToList();
 

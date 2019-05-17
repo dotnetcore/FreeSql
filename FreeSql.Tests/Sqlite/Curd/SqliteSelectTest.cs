@@ -828,6 +828,22 @@ namespace FreeSql.Tests.Sqlite {
 					then => then.IncludeMany(m3 => m3.childs2.Where(m4 => m4.model3333Id333 == m3.id)))
 				.Where(a => a.id <= model1.id)
 				.ToList();
+
+			var t00 = g.sqlite.Select<TestInclude_OneToManyModel2>()
+				.IncludeMany(a => a.childs.Take(1).Where(m3 => m3.model2111Idaaa == a.model2id))
+				.Where(a => a.model2id <= model1.id)
+				.ToList();
+
+			var t11 = g.sqlite.Select<TestInclude_OneToManyModel1>()
+				.IncludeMany(a => a.model2.childs.Take(1).Where(m3 => m3.model2111Idaaa == a.model2.model2id))
+				.Where(a => a.id <= model1.id)
+				.ToList();
+
+			var t22 = g.sqlite.Select<TestInclude_OneToManyModel1>()
+				.IncludeMany(a => a.model2.childs.Take(1).Where(m3 => m3.model2111Idaaa == a.model2.model2id),
+					then => then.IncludeMany(m3 => m3.childs2.Take(2).Where(m4 => m4.model3333Id333 == m3.id)))
+				.Where(a => a.id <= model1.id)
+				.ToList();
 		}
 
 		public class TestInclude_OneToManyModel11 {
@@ -872,7 +888,13 @@ namespace FreeSql.Tests.Sqlite {
 			var t1 = g.sqlite.Select<TestInclude_OneToManyModel11>()
 				.LeftJoin(a => a.model2id == a.model2.id)
 				.IncludeMany(a => a.model2.childs.Where(m3 => m3.model2Id == a.model2.id && m3.setting == a.m3setting))
-				.Where(a => a.id == model1.id)
+				.Where(a => a.id <= model1.id)
+				.ToList(true);
+
+			var t11 = g.sqlite.Select<TestInclude_OneToManyModel11>()
+				.LeftJoin(a => a.model2id == a.model2.id)
+				.IncludeMany(a => a.model2.childs.Take(1).Where(m3 => m3.model2Id == a.model2.id && m3.setting == a.m3setting))
+				.Where(a => a.id <= model1.id)
 				.ToList(true);
 		}
 
@@ -919,7 +941,7 @@ namespace FreeSql.Tests.Sqlite {
 				.Where(a => a.Id == tag1.Id || a.Id == tag2.Id)
 				.ToList();
 
-			var tags = g.sqlite.Select<Tag>()
+			var tags1 = g.sqlite.Select<Tag>()
 				.IncludeMany(a => a.Tags)
 				.Include(a => a.Parent)
 				.IncludeMany(a => a.Songs)
@@ -939,6 +961,29 @@ namespace FreeSql.Tests.Sqlite {
 					then => then.Include(a => a.Parent).IncludeMany(a => a.Songs).IncludeMany(a => a.Tags))
 				.Include(a => a.Parent)
 				.IncludeMany(a => a.Songs)
+				.Where(a => a.Id == tag1.Id || a.Id == tag2.Id)
+				.ToList();
+
+			var tags11 = g.sqlite.Select<Tag>()
+				.IncludeMany(a => a.Tags.Take(1))
+				.Include(a => a.Parent)
+				.IncludeMany(a => a.Songs.Take(1))
+				.Where(a => a.Id == tag1.Id || a.Id == tag2.Id)
+				.ToList();
+
+			var tags22 = g.sqlite.Select<Tag>()
+				.IncludeMany(a => a.Tags.Take(1),
+					then => then.Include(a => a.Parent).IncludeMany(a => a.Songs.Take(1)))
+				.Include(a => a.Parent)
+				.IncludeMany(a => a.Songs.Take(1))
+				.Where(a => a.Id == tag1.Id || a.Id == tag2.Id)
+				.ToList();
+
+			var tags33 = g.sqlite.Select<Tag>()
+				.IncludeMany(a => a.Tags.Take(1),
+					then => then.Include(a => a.Parent).IncludeMany(a => a.Songs.Take(1)).IncludeMany(a => a.Tags.Take(1)))
+				.Include(a => a.Parent)
+				.IncludeMany(a => a.Songs.Take(1))
 				.Where(a => a.Id == tag1.Id || a.Id == tag2.Id)
 				.ToList();
 		}
@@ -988,14 +1033,14 @@ namespace FreeSql.Tests.Sqlite {
 			g.sqlite.Insert(new Song_tag { Song_id = song3.Id, Tag_id = tag2.Id }).ExecuteAffrows();
 			g.sqlite.Insert(new Song_tag { Song_id = song3.Id, Tag_id = tag3.Id }).ExecuteAffrows();
 
-			var songs = g.sqlite.Select<Song>()
+			var songs1 = g.sqlite.Select<Song>()
 				.IncludeMany(a => a.Tags)
 				.Where(a => a.Id == song1.Id || a.Id == song2.Id || a.Id == song3.Id)
 				.ToList();
-			Assert.Equal(3, songs.Count);
-			Assert.Equal(2, songs[0].Tags.Count);
-			Assert.Equal(1, songs[1].Tags.Count);
-			Assert.Equal(3, songs[2].Tags.Count);
+			Assert.Equal(3, songs1.Count);
+			Assert.Equal(2, songs1[0].Tags.Count);
+			Assert.Equal(1, songs1[1].Tags.Count);
+			Assert.Equal(3, songs1[2].Tags.Count);
 
 			var songs2 = g.sqlite.Select<Song>()
 				.IncludeMany(a => a.Tags, 
@@ -1010,6 +1055,32 @@ namespace FreeSql.Tests.Sqlite {
 			var tags3 = g.sqlite.Select<Song_tag>()
 				.Include(a => a.Tag.Parent)
 				.IncludeMany(a => a.Tag.Songs)
+				.Where(a => a.Tag.Id == tag1.Id || a.Tag.Id == tag2.Id)
+				.ToList(true);
+
+
+			var songs11 = g.sqlite.Select<Song>()
+				.IncludeMany(a => a.Tags.Take(1))
+				.Where(a => a.Id == song1.Id || a.Id == song2.Id || a.Id == song3.Id)
+				.ToList();
+			Assert.Equal(3, songs11.Count);
+			Assert.Equal(1, songs11[0].Tags.Count);
+			Assert.Equal(1, songs11[1].Tags.Count);
+			Assert.Equal(1, songs11[2].Tags.Count);
+
+			var songs22 = g.sqlite.Select<Song>()
+				.IncludeMany(a => a.Tags.Take(1),
+					then => then.IncludeMany(t => t.Songs.Take(1)))
+				.Where(a => a.Id == song1.Id || a.Id == song2.Id || a.Id == song3.Id)
+				.ToList();
+			Assert.Equal(3, songs22.Count);
+			Assert.Equal(1, songs22[0].Tags.Count);
+			Assert.Equal(1, songs22[1].Tags.Count);
+			Assert.Equal(1, songs22[2].Tags.Count);
+
+			var tags33 = g.sqlite.Select<Song_tag>()
+				.Include(a => a.Tag.Parent)
+				.IncludeMany(a => a.Tag.Songs.Take(1))
 				.Where(a => a.Tag.Id == tag1.Id || a.Tag.Id == tag2.Id)
 				.ToList(true);
 		}

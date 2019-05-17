@@ -318,15 +318,7 @@ namespace FreeSql.Internal.CommonProvider {
 				return ret;
 			});
 		}
-		internal List<T1> ToListPrivate(GetAllFieldExpressionTreeInfo af, (string field, ReadAnonymousTypeInfo read, List<object> retlist)[] otherData) {
-			string sql = null;
-			if (otherData?.Length > 0) {
-				var sbField = new StringBuilder().Append(af.Field);
-				foreach (var other in otherData)
-					sbField.Append(other.field);
-				sql = this.ToSql(sbField.ToString());
-			} else
-				sql = this.ToSql(af.Field);
+		internal List<T1> ToListAfPrivate(string sql, GetAllFieldExpressionTreeInfo af, (string field, ReadAnonymousTypeInfo read, List<object> retlist)[] otherData) {
 			if (_cache.seconds > 0 && string.IsNullOrEmpty(_cache.key)) _cache.key = $"{sql}{string.Join("|", _params.Select(a => a.Value))}";
 
 			return _orm.Cache.Shell(_cache.key, _cache.seconds, () => {
@@ -357,15 +349,7 @@ namespace FreeSql.Internal.CommonProvider {
 				return ret;
 			});
 		}
-		async internal Task<List<T1>> ToListPrivateAsync(GetAllFieldExpressionTreeInfo af, (string field, ReadAnonymousTypeInfo read, List<object> retlist)[] otherData) {
-			string sql = null;
-			if (otherData?.Length > 0) {
-				var sbField = new StringBuilder().Append(af.Field);
-				foreach (var other in otherData)
-					sbField.Append(other.field);
-				sql = this.ToSql(sbField.ToString());
-			} else
-				sql = this.ToSql(af.Field);
+		async internal Task<List<T1>> ToListAfPrivateAsync(string sql, GetAllFieldExpressionTreeInfo af, (string field, ReadAnonymousTypeInfo read, List<object> retlist)[] otherData) {
 			if (_cache.seconds > 0 && string.IsNullOrEmpty(_cache.key)) _cache.key = $"{sql}{string.Join("|", _params.Select(a => a.Value))}";
 
 			return await _orm.Cache.ShellAsync(_cache.key, _cache.seconds, async () => {
@@ -396,6 +380,30 @@ namespace FreeSql.Internal.CommonProvider {
 				_trackToList?.Invoke(ret);
 				return ret;
 			});
+		}
+		internal List<T1> ToListPrivate(GetAllFieldExpressionTreeInfo af, (string field, ReadAnonymousTypeInfo read, List<object> retlist)[] otherData) {
+			string sql = null;
+			if (otherData?.Length > 0) {
+				var sbField = new StringBuilder().Append(af.Field);
+				foreach (var other in otherData)
+					sbField.Append(other.field);
+				sql = this.ToSql(sbField.ToString());
+			} else
+				sql = this.ToSql(af.Field);
+
+			return ToListAfPrivate(sql, af, otherData);
+		}
+		internal Task<List<T1>> ToListPrivateAsync(GetAllFieldExpressionTreeInfo af, (string field, ReadAnonymousTypeInfo read, List<object> retlist)[] otherData) {
+			string sql = null;
+			if (otherData?.Length > 0) {
+				var sbField = new StringBuilder().Append(af.Field);
+				foreach (var other in otherData)
+					sbField.Append(other.field);
+				sql = this.ToSql(sbField.ToString());
+			} else
+				sql = this.ToSql(af.Field);
+
+			return ToListAfPrivateAsync(sql, af, otherData);
 		}
 		public List<T1> ToList(bool includeNestedMembers = false) {
 			if (_selectExpression != null) return this.InternalToList<T1>(_selectExpression);
