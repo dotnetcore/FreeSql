@@ -658,7 +658,7 @@ namespace FreeSql.Internal.CommonProvider {
 								var field = new StringBuilder();
 								var read = new ReadAnonymousTypeInfo();
 								read.ConsturctorType = ReadAnonymousTypeInfoConsturctorType.Properties;
-								read.Consturctor = tbrefMid.TypeLazy.GetConstructor(new Type[0]);
+								read.Consturctor = (tbrefMid.TypeLazy ?? tbrefMid.Type).GetConstructor(new Type[0]);
 								read.Table = tbrefMid;
 								foreach (var col in tbrefMid.Columns.Values) {
 									if (tbref.MiddleColumns.Where(a => a.CsName == col.CsName).Any() == false) continue;
