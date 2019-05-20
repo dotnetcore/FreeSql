@@ -274,14 +274,16 @@ namespace FreeSql.Extensions.EntityUtil {
 								Expression.MakeMemberAccess(var1Parm, prop)
 							)
 						);
-					} else if (prop.GetSetMethod() != null) {
-						exps.Add(
-							Expression.Assign(
-								Expression.MakeMemberAccess(var2Parm, prop),
-								Expression.Default(prop.PropertyType)
-							)
-						);
 					}
+					
+					//else if (prop.GetSetMethod() != null) {
+					//	exps.Add(
+					//		Expression.Assign(
+					//			Expression.MakeMemberAccess(var2Parm, prop),
+					//			Expression.Default(prop.PropertyType)
+					//		)
+					//	);
+					//}
 				}
 				return Expression.Lambda<Action<object, object>>(Expression.Block(new[] { var1Parm, var2Parm }, exps), new[] { parm1, parm2 }).Compile();
 			});
