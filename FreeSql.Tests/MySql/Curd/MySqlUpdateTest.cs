@@ -115,6 +115,12 @@ namespace FreeSql.Tests.MySql {
 			sql = update.Set(a => a.Id - incrv).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
 			Assert.Equal("UPDATE `tb_topic` SET `Id` = (`Id` - 10) WHERE (`Id` = 1)", sql);
 
+			sql = update.Set(a => a.Clicks == a.Clicks * 10 / 1).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
+			Assert.Equal("UPDATE `tb_topic` SET `Clicks` = `Clicks` * 10 / 1 WHERE (`Id` = 1)", sql);
+
+			sql = update.Set(a => a.Id == 10).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
+			Assert.Equal("UPDATE `tb_topic` SET `Id` = 10 WHERE (`Id` = 1)", sql);
+
 			var id = g.mysql.Insert<TestEnumUpdateTb>().AppendData(new TestEnumUpdateTb { type = TestEnumUpdateTbType.sum211 }).ExecuteIdentity();
 			Assert.True(id > 0);
 			sql = g.mysql.Update<TestEnumUpdateTb>().Where(a => a.id == id).Set(a => a.type, TestEnumUpdateTbType.biggit).ToSql().Replace("\r\n", "");

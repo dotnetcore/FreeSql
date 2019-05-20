@@ -341,6 +341,10 @@ namespace FreeSql.Internal.CommonProvider {
 			return this;
 		}
 		public IUpdate<T1> Set<TMember>(Expression<Func<T1, TMember>> binaryExpression) {
+			if (binaryExpression?.Body.NodeType == ExpressionType.Equal) {
+				_set.Append(", ").Append(_commonExpression.ExpressionWhereLambdaNoneForeignObject(null, _table, null, binaryExpression, null));
+				return this;
+			}
 			if (binaryExpression?.Body is BinaryExpression == false &&
 				binaryExpression?.Body.NodeType != ExpressionType.Call) return this;
 			var cols = new List<SelectColumnInfo>();

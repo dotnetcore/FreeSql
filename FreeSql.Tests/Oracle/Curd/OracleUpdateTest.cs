@@ -73,6 +73,12 @@ namespace FreeSql.Tests.Oracle {
 
 			sql = update.Set(a => a.Id - incrv).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
 			Assert.Equal("UPDATE \"TB_TOPIC\" SET \"ID\" = (\"ID\" - 10) WHERE (\"ID\" = 1)", sql);
+
+			sql = update.Set(a => a.Clicks == a.Clicks * 10 / 1).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
+			Assert.Equal("UPDATE \"TB_TOPIC\" SET \"CLICKS\" = \"CLICKS\" * 10 / 1 WHERE (\"ID\" = 1)", sql);
+
+			sql = update.Set(a => a.Id == 10).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
+			Assert.Equal("UPDATE \"TB_TOPIC\" SET \"ID\" = 10 WHERE (\"ID\" = 1)", sql);
 		}
 		[Fact]
 		public void SetRaw() {

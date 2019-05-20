@@ -84,6 +84,12 @@ namespace FreeSql.Tests.SqlServer {
 
 			sql = update.Set(a => a.Id - incrv).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
 			Assert.Equal("UPDATE [tb_topic] SET [Id] = ([Id] - 10) WHERE ([Id] = 1)", sql);
+
+			sql = update.Set(a => a.Clicks == a.Clicks * 10 / 1).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
+			Assert.Equal("UPDATE [tb_topic] SET [Clicks] = [Clicks] * 10 / 1 WHERE ([Id] = 1)", sql);
+
+			sql = update.Set(a => a.Id == 10).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
+			Assert.Equal("UPDATE [tb_topic] SET [Id] = 10 WHERE ([Id] = 1)", sql);
 		}
 		[Fact]
 		public void SetRaw() {
