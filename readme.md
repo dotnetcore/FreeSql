@@ -119,6 +119,11 @@ var t5 = fsql.Select<Song>()
 ```
 更多前往Wiki：[《表达式函数》](https://github.com/2881099/FreeSql/wiki/%e8%a1%a8%e8%be%be%e5%bc%8f%e5%87%bd%e6%95%b0) 
 
+- IFreeSql 是核心，提供原始用法；
+- FreeSql.DbContext 是扩展包，提供面向对象的用法（像EF）；
+- FreeSql.Repository 也是扩展包，提供仓储+工作单元用法（实际上和 DbContext 是一个扩展包）；
+- FreeSql.Connection.Extensions 也是扩展包，提供像 Dapper 一样的用法；
+
 # Repository & UnitOfWork
 > dotnet add package FreeSql.Repository
 
