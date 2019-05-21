@@ -98,6 +98,8 @@ namespace FreeSql.SqlServer {
 				foreach (var entityType in entityTypes) {
 					if (sb.Length > 0) sb.Append("\r\n");
 					var tb = _commonUtils.GetTableByEntity(entityType);
+					if (tb == null) throw new Exception($"类型 {entityType.FullName} 不可迁移");
+					if (tb.Columns.Any() == false) throw new Exception($"类型 {entityType.FullName} 不可迁移，可迁移属性0个");
 					var tbname = tb.DbName.Split(new[] { '.' }, 3);
 					if (tbname?.Length == 1) tbname = new[] { database, "dbo", tbname[0] };
 					if (tbname?.Length == 2) tbname = new[] { database, tbname[0], tbname[1] };
@@ -123,7 +125,7 @@ namespace FreeSql.SqlServer {
 						}
 						if (tboldname == null) {
 							//创建新表
-							sb.Append("use ").Append(_commonUtils.QuoteSqlName(tbname[0])).Append(";\r\nCREATE TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[1]}.{tbname[2]}")).Append(" (");
+							sb.Append("use ").Append(_commonUtils.QuoteSqlName(tbname[0])).Append(";\r\nCREATE TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[1]}.{tbname[2]}")).Append(" ( ");
 							var pkidx = 0;
 							foreach (var tbcol in tb.Columns.Values) {
 								sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ");
@@ -254,7 +256,7 @@ use " + database, tboldname ?? tbname);
 						.Append("COMMIT\r\n");
 					sb.Append("BEGIN TRANSACTION;\r\n");
 					//创建临时表
-					sb.Append("CREATE TABLE ").Append(tmptablename).Append(" (");
+					sb.Append("CREATE TABLE ").Append(tmptablename).Append(" ( ");
 					var pkidx2 = 0;
 					foreach (var tbcol in tb.Columns.Values) {
 						sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ");

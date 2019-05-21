@@ -9,6 +9,7 @@ using NpgsqlTypes;
 using Npgsql.LegacyPostgis;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using System.Collections;
 
 namespace FreeSql.Tests {
 	public class UnitTest1 {
@@ -112,8 +113,23 @@ namespace FreeSql.Tests {
 
 		}
 
+		public class TestEnumable : IEnumerable<TestEnumable> {
+			public IEnumerator<TestEnumable> GetEnumerator() {
+				throw new NotImplementedException();
+			}
+
+			IEnumerator IEnumerable.GetEnumerator() {
+				throw new NotImplementedException();
+			}
+		}
+
 		[Fact]
 		public void Test1() {
+
+			g.sqlite.CodeFirst.SyncStructure<TestEnumable>();
+
+			var TestEnumable = new TestEnumable();
+			
 
 			g.sqlite.GetRepository<Model1, int>().Insert(new Model1 {
 				title = "test_" + DateTime.Now.ToString("yyyyMMddHHmmss"),
