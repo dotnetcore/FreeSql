@@ -467,13 +467,13 @@ namespace FreeSql.Internal {
 								if (trycol != null && trycol.CsType.NullableTypeOrThis() != trytb.Primarys[a].CsType) {
 									nvref.Exception = new Exception($"【OneToMany】导航属性 {trytbTypeName}.{pnv.Name} 解析错误，{trytb.CsName}.{trytb.Primarys[a].CsName} 和 {tbref.CsName}.{trycol.CsName} 类型不一致");
 									trytb.AddOrUpdateTableRef(pnv.Name, nvref);
-									if (isLazy) throw nvref.Exception;
+									//if (isLazy) throw nvref.Exception;
 									continue;
 								}
 								if (trycol == null) {
 									nvref.Exception = new Exception($"【OneToMany】导航属性 {trytbTypeName}.{pnv.Name} 在 {tbref.CsName} 中没有找到对应的字段，如：{findtrytb}{findtrytbPkCsName}、{findtrytb}_{findtrytbPkCsName}" + (refprop == null ? "" : $"、{refprop.Name}{findtrytbPkCsName}、{refprop.Name}_{findtrytbPkCsName}"));
 									trytb.AddOrUpdateTableRef(pnv.Name, nvref);
-									if (isLazy) throw nvref.Exception;
+									//if (isLazy) throw nvref.Exception;
 									continue;
 								}
 							}
@@ -481,7 +481,7 @@ namespace FreeSql.Internal {
 							nvref.Columns.Add(trytb.Primarys[a]);
 							nvref.RefColumns.Add(trycol);
 
-							if (isLazy) {
+							if (isLazy && nvref.Exception == null) {
 								if (a > 0) lmbdWhere.Append(" && ");
 								lmbdWhere.Append("a.").Append(trycol.CsName).Append(" == this.").Append(trytb.Primarys[a].CsName);
 
@@ -506,13 +506,19 @@ namespace FreeSql.Internal {
 								.Append("	public override ").Append(propTypeName).Append(" ").Append(pnv.Name).AppendLine(" {");
 							if (vp.Item2) { //get 重写
 								cscode.Append("		get {\r\n")
-									.Append("			if (base.").Append(pnv.Name).Append(" == null && __lazy__").Append(pnv.Name).AppendLine(" == false) {")
-									.Append("				base.").Append(pnv.Name).Append(" = __fsql_orm__.Select<").Append(propElementType.IsNested ? $"{propElementType.DeclaringType.Namespace}.{propElementType.DeclaringType.Name}.{propElementType.Name}" : $"{propElementType.Namespace}.{propElementType.Name}").Append(">().Where(a => ").Append(lmbdWhere.ToString()).AppendLine(").ToList();");
-								if (refprop != null) {
-									cscode.Append("				foreach (var loc1 in base.").Append(pnv.Name).AppendLine(")")
-										.Append("					loc1.").Append(refprop.Name).AppendLine(" = this;");
-								}
-								cscode.Append("				__lazy__").Append(pnv.Name).AppendLine(" = true;")
+									.Append("			if (base.").Append(pnv.Name).Append(" == null && __lazy__").Append(pnv.Name).AppendLine(" == false) {");
+
+								if (nvref.Exception == null) {
+									cscode.Append("				base.").Append(pnv.Name).Append(" = __fsql_orm__.Select<").Append(propElementType.IsNested ? $"{propElementType.DeclaringType.Namespace}.{propElementType.DeclaringType.Name}.{propElementType.Name}" : $"{propElementType.Namespace}.{propElementType.Name}").Append(">().Where(a => ").Append(lmbdWhere.ToString()).AppendLine(").ToList();");
+									if (refprop != null) {
+										cscode.Append("				foreach (var loc1 in base.").Append(pnv.Name).AppendLine(")")
+											.Append("					loc1.").Append(refprop.Name).AppendLine(" = this;")
+											.Append("				__lazy__").Append(pnv.Name).AppendLine(" = true;");
+									}
+								} else
+									cscode.Append("				throw new Exception(\"").Append(nvref.Exception.Message.Replace("\r\n", "\\r\\n").Replace("\"", "\\\"")).AppendLine("\");");
+
+								cscode
 									.Append("			}\r\n")
 									.Append("			return base.").Append(pnv.Name).AppendLine(";")
 									.Append("		}\r\n");
@@ -574,14 +580,14 @@ namespace FreeSql.Internal {
 						if (trycol == null) {
 							nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 没有找到对应的字段，如：{pnv.Name}{findtbrefPkCsName}、{pnv.Name}_{findtbrefPkCsName}");
 							trytb.AddOrUpdateTableRef(pnv.Name, nvref);
-							if (isLazy) throw nvref.Exception;
+							//if (isLazy) throw nvref.Exception;
 							continue;
 						}
 
 						nvref.Columns.Add(trycol);
 						nvref.RefColumns.Add(tbref.Primarys[a]);
 
-						if (isLazy) {
+						if (isLazy && nvref.Exception == null) {
 							if (a > 0) lmbdWhere.Append(" && ");
 							lmbdWhere.Append("a.").Append(tbref.Primarys[a].CsName).Append(" == this.").Append(trycol.CsName);
 						}
@@ -597,9 +603,15 @@ namespace FreeSql.Internal {
 							.Append("	public override ").Append(propTypeName).Append(" ").Append(pnv.Name).AppendLine(" {");
 						if (vp.Item2) { //get 重写
 							cscode.Append("		get {\r\n")
-								.Append("			if (base.").Append(pnv.Name).Append(" == null && __lazy__").Append(pnv.Name).AppendLine(" == false) {")
-								.Append("				base.").Append(pnv.Name).Append(" = __fsql_orm__.Select<").Append(propTypeName).Append(">().Where(a => ").Append(lmbdWhere.ToString()).AppendLine(").ToOne();")
-								.Append("				__lazy__").Append(pnv.Name).AppendLine(" = true;")
+								.Append("			if (base.").Append(pnv.Name).Append(" == null && __lazy__").Append(pnv.Name).AppendLine(" == false) {");
+
+							if (nvref.Exception == null)
+								cscode.Append("				base.").Append(pnv.Name).Append(" = __fsql_orm__.Select<").Append(propTypeName).Append(">().Where(a => ").Append(lmbdWhere.ToString()).AppendLine(").ToOne();")
+									.Append("				__lazy__").Append(pnv.Name).AppendLine(" = true;");
+							else
+								cscode.Append("				throw new Exception(\"").Append(nvref.Exception.Message.Replace("\r\n", "\\r\\n").Replace("\"", "\\\"")).AppendLine("\");");
+									
+							cscode
 								.Append("			}\r\n")
 								.Append("			return base.").Append(pnv.Name).AppendLine(";")
 								.Append("		}\r\n");
