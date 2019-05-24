@@ -126,7 +126,7 @@ namespace FreeSql.Tests {
 		[Fact]
 		public void Test1() {
 
-			g.sqlite.CodeFirst.SyncStructure<TestEnumable>();
+			Assert.Throws<Exception>(() => g.sqlite.CodeFirst.SyncStructure<TestEnumable>());
 
 			var TestEnumable = new TestEnumable();
 			

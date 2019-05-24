@@ -17,6 +17,18 @@ namespace restful {
 				.UseLogger(loggerFactory.CreateLogger<IFreeSql>())
 				.UseAutoSyncStructure(true)
 				.Build();
+
+			Fsql.Aop.CurdAfter = (s, e) => {
+				if (e.ElapsedMilliseconds > 200) {
+					//记录日志
+					//发送短信给负责人
+				}
+			};
+
+			//Fsql.Aop.Where = (s, e) => {
+			//	if (e.Parameters[0]?.ToString() == "1")
+			//		e.IsCancel = true;
+			//};
 		}
 
 		public IConfiguration Configuration { get; }

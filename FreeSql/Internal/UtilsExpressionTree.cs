@@ -109,11 +109,6 @@ namespace FreeSql.Internal {
 					if (tmpLt.Contains("BYTE")) tmpLt = tmpLt.Replace("BYTE", " BYTE");
 					return tmpLt;
 				});
-				colattr.DbDefautValue = trytb.Properties[p.Name].GetValue(Activator.CreateInstance(trytb.Type));
-				if (colattr.DbDefautValue != null && p.PropertyType != colattr.MapType) colattr.DbDefautValue = Utils.GetDataReaderValue(colattr.MapType, colattr.DbDefautValue);
-				if (colattr.DbDefautValue == null) colattr.DbDefautValue = tp?.defaultValue;
-				if (colattr.IsNullable == false && colattr.DbDefautValue == null)
-					colattr.DbDefautValue = Activator.CreateInstance(colattr.MapType.IsNullableType() ? colattr.MapType.GenericTypeArguments.FirstOrDefault() : colattr.MapType);
 				if (colattr.IsIdentity == true && colattr.MapType.IsNumberType() == false)
 					colattr.IsIdentity = false;
 				if (setMethod == null) colattr.IsIgnore = true;
@@ -128,6 +123,17 @@ namespace FreeSql.Internal {
 					trytb.ColumnsByCsIgnore.Add(p.Name, col);
 					continue;
 				}
+				colattr.DbDefautValue = trytb.Properties[p.Name].GetValue(Activator.CreateInstance(trytb.Type));
+				if (colattr.DbDefautValue != null && p.PropertyType != colattr.MapType) colattr.DbDefautValue = Utils.GetDataReaderValue(colattr.MapType, colattr.DbDefautValue);
+				if (colattr.DbDefautValue == null) colattr.DbDefautValue = tp?.defaultValue;
+				if (colattr.IsNullable == false && colattr.DbDefautValue == null) {
+					var citype = colattr.MapType.IsNullableType() ? colattr.MapType.GenericTypeArguments.FirstOrDefault() : colattr.MapType;
+					if (citype.IsArray)
+						colattr.DbDefautValue = Array.CreateInstance(citype, 0);
+					else
+						colattr.DbDefautValue = Activator.CreateInstance(citype);
+				}
+
 				trytb.Columns.Add(colattr.Name, col);
 				trytb.ColumnsByCs.Add(p.Name, col);
 			}

@@ -19,7 +19,7 @@ namespace FreeSql.PostgreSQL {
 				case ExpressionType.Convert:
 					var operandExp = (exp as UnaryExpression)?.Operand;
 					var gentype = exp.Type.NullableTypeOrThis();
-					if (gentype != exp.Type.NullableTypeOrThis()) {
+					if (gentype != operandExp.Type.NullableTypeOrThis()) {
 						switch (exp.Type.NullableTypeOrThis().ToString()) {
 							case "System.Boolean": return $"(({getExp(operandExp)})::varchar not in ('0','false','f','no'))";
 							case "System.Byte": return $"({getExp(operandExp)})::int2";

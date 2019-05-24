@@ -18,8 +18,8 @@ namespace FreeSql.MySql {
 				case ExpressionType.Convert:
 					var operandExp = (exp as UnaryExpression)?.Operand;
 					var gentype = exp.Type.NullableTypeOrThis();
-					if (gentype != exp.Type.NullableTypeOrThis()) {
-						switch (exp.Type.NullableTypeOrThis().ToString()) {
+					if (gentype != operandExp.Type.NullableTypeOrThis()) {
+						switch (gentype.ToString()) {
 							case "System.Boolean": return $"({getExp(operandExp)} not in ('0','false'))";
 							case "System.Byte": return $"cast({getExp(operandExp)} as unsigned)";
 							case "System.Char": return $"substr(cast({getExp(operandExp)} as char), 1, 1)";

@@ -18,7 +18,7 @@ namespace FreeSql.Oracle {
 				case ExpressionType.Convert:
 					var operandExp = (exp as UnaryExpression)?.Operand;
 					var gentype = exp.Type.NullableTypeOrThis();
-					if (gentype != exp.Type.NullableTypeOrThis()) {
+					if (gentype != operandExp.Type.NullableTypeOrThis()) {
 						switch (exp.Type.NullableTypeOrThis().ToString()) {
 							//case "System.Boolean": return $"({getExp(operandExp)} not in ('0','false'))";
 							case "System.Byte": return $"cast({getExp(operandExp)} as number)";
