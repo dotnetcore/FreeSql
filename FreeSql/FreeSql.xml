@@ -409,20 +409,6 @@
             <param name="columnType"></param>
             <param name="setExp"></param>
         </member>
-        <member name="M:FreeSql.FreeSqlBuilder.UseCache(Microsoft.Extensions.Caching.Distributed.IDistributedCache)">
-            <summary>
-            使用缓存，不指定默认使用内存
-            </summary>
-            <param name="cache">缓存实现</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.FreeSqlBuilder.UseLogger(Microsoft.Extensions.Logging.ILogger)">
-            <summary>
-            使用日志，不指定默认输出控制台
-            </summary>
-            <param name="logger"></param>
-            <returns></returns>
-        </member>
         <member name="M:FreeSql.FreeSqlBuilder.UseConnectionString(FreeSql.DataType,System.String)">
             <summary>
             使用连接串
@@ -486,16 +472,6 @@
             </summary>
             <param name="executing">执行前</param>
             <param name="executed">执行后，可监视执行性能</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.Generator.TemplateEngin.ITemplateOutput.OuTpUt(System.Text.StringBuilder,System.Collections.IDictionary,System.String,FreeSql.Generator.TemplateEngin)">
-            <summary>
-            
-            </summary>
-            <param name="tOuTpUt">返回内容</param>
-            <param name="oPtIoNs">渲染对象</param>
-            <param name="rEfErErFiLeNaMe">当前文件路径</param>
-            <param name="tEmPlAtEsEnDeR"></param>
             <returns></returns>
         </member>
         <member name="M:FreeSql.IDelete`1.WithTransaction(System.Data.Common.DbTransaction)">
@@ -805,14 +781,6 @@
             <summary>
             指定从主库查询（默认查询从库）
             </summary>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.ISelect0`2.Caching(System.Int32,System.String)">
-            <summary>
-            缓存查询结果
-            </summary>
-            <param name="seconds">缓存秒数</param>
-            <param name="key">缓存key</param>
             <returns></returns>
         </member>
         <member name="M:FreeSql.ISelect0`2.LeftJoin(System.Linq.Expressions.Expression{System.Func{`1,System.Boolean}})">
@@ -1643,12 +1611,6 @@
             当前线程的事务
             </summary>
         </member>
-        <member name="M:FreeSql.IAdo.TransactionPreRemoveCache(System.String[])">
-            <summary>
-            事务完成前预删除缓存
-            </summary>
-            <param name="keys"></param>
-        </member>
         <member name="M:FreeSql.IAdo.ExecuteReader(System.Action{System.Data.Common.DbDataReader},System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
             <summary>
             查询，若使用读写分离，查询【从库】条件cmdText.StartsWith("SELECT ")，否则查询【主库】
@@ -2081,118 +2043,6 @@
             耗时（单位：毫秒）
             </summary>
         </member>
-        <member name="P:FreeSql.ICache.Serialize">
-            <summary>
-            缓存数据时序列化方法，若无设置则默认使用 Json.net
-            </summary>
-        </member>
-        <member name="P:FreeSql.ICache.Deserialize">
-            <summary>
-            获取缓存数据时反序列化方法，若无设置则默认使用 Json.net
-            </summary>
-        </member>
-        <member name="M:FreeSql.ICache.Set``1(System.String,``0,System.Int32)">
-            <summary>
-            缓存可序列化数据
-            </summary>
-            <typeparam name="T"></typeparam>
-            <param name="key">缓存键</param>
-            <param name="data">可序列化数据</param>
-            <param name="timeoutSeconds">缓存秒数，&lt;=0时永久缓存</param>
-        </member>
-        <member name="M:FreeSql.ICache.Get``1(System.String)">
-            <summary>
-            循环或批量获取缓存数据
-            </summary>
-            <typeparam name="T"></typeparam>
-            <param name="key"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.ICache.Get(System.String)">
-            <summary>
-            循环或批量获取缓存数据
-            </summary>
-            <param name="key"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.ICache.Remove(System.String[])">
-            <summary>
-            循环或批量删除缓存键
-            </summary>
-            <param name="keys">缓存键[数组]</param>
-        </member>
-        <member name="M:FreeSql.ICache.Shell``1(System.String,System.Int32,System.Func{``0})">
-            <summary>
-            缓存壳
-            </summary>
-            <typeparam name="T">缓存类型</typeparam>
-            <param name="key">缓存键</param>
-            <param name="timeoutSeconds">缓存秒数</param>
-            <param name="getData">获取源数据的函数</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.ICache.Shell``1(System.String,System.String,System.Int32,System.Func{``0})">
-            <summary>
-            缓存壳(哈希表)
-            </summary>
-            <typeparam name="T">缓存类型</typeparam>
-            <param name="key">缓存键</param>
-            <param name="field">字段</param>
-            <param name="timeoutSeconds">缓存秒数</param>
-            <param name="getData">获取源数据的函数</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.ICache.SetAsync``1(System.String,``0,System.Int32)">
-            <summary>
-            缓存可序列化数据
-            </summary>
-            <typeparam name="T"></typeparam>
-            <param name="key">缓存键</param>
-            <param name="data">可序列化数据</param>
-            <param name="timeoutSeconds">缓存秒数，&lt;=0时永久缓存</param>
-        </member>
-        <member name="M:FreeSql.ICache.GetAsync``1(System.String)">
-            <summary>
-            循环或批量获取缓存数据
-            </summary>
-            <typeparam name="T"></typeparam>
-            <param name="key"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.ICache.GetAsync(System.String)">
-            <summary>
-            循环或批量获取缓存数据
-            </summary>
-            <param name="key"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.ICache.RemoveAsync(System.String[])">
-            <summary>
-            循环或批量删除缓存键
-            </summary>
-            <param name="keys">缓存键[数组]</param>
-        </member>
-        <member name="M:FreeSql.ICache.ShellAsync``1(System.String,System.Int32,System.Func{System.Threading.Tasks.Task{``0}})">
-            <summary>
-            缓存壳
-            </summary>
-            <typeparam name="T">缓存类型</typeparam>
-            <param name="key">缓存键</param>
-            <param name="timeoutSeconds">缓存秒数</param>
-            <param name="getDataAsync">获取源数据的函数</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.ICache.ShellAsync``1(System.String,System.String,System.Int32,System.Func{System.Threading.Tasks.Task{``0}})">
-            <summary>
-            缓存壳(哈希表)
-            </summary>
-            <typeparam name="T">缓存类型</typeparam>
-            <param name="key">缓存键</param>
-            <param name="field">字段</param>
-            <param name="timeoutSeconds">缓存秒数</param>
-            <param name="getDataAsync">获取源数据的函数</param>
-            <returns></returns>
-        </member>
         <member name="P:FreeSql.ICodeFirst.IsAutoSyncStructure">
             <summary>
             【开发环境必备】自动同步实体结构到数据库，程序运行中检查实体表是否存在，然后创建或修改
@@ -2385,46 +2235,6 @@
             <param name="that"></param>
             <returns></returns>
         </member>
-        <member name="M:FreeSqlGlobalExtensions.FormatMySql(System.String,System.Object[])">
-            <summary>
-            特殊处理类似 string.Format 的使用方法，防止注入，以及 IS NULL 转换
-            </summary>
-            <param name="that"></param>
-            <param name="args"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSqlGlobalExtensions.FormatOracleSQL(System.String,System.Object[])">
-            <summary>
-            特殊处理类似 string.Format 的使用方法，防止注入，以及 IS NULL 转换
-            </summary>
-            <param name="that"></param>
-            <param name="args"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSqlGlobalExtensions.FormatPostgreSQL(System.String,System.Object[])">
-            <summary>
-            特殊处理类似 string.Format 的使用方法，防止注入，以及 IS NULL 转换
-            </summary>
-            <param name="that"></param>
-            <param name="args"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSqlGlobalExtensions.FormatSqlite(System.String,System.Object[])">
-            <summary>
-            特殊处理类似 string.Format 的使用方法，防止注入，以及 IS NULL 转换
-            </summary>
-            <param name="that"></param>
-            <param name="args"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSqlGlobalExtensions.FormatSqlServer(System.String,System.Object[])">
-            <summary>
-            特殊处理类似 string.Format 的使用方法，防止注入，以及 IS NULL 转换
-            </summary>
-            <param name="that"></param>
-            <param name="args"></param>
-            <returns></returns>
-        </member>
         <member name="M:FreeUtil.NewMongodbId">
             <summary>
             生成类似Mongodb的ObjectId有序、不重复Guid
@@ -2520,11 +2330,6 @@
             <param name="handler">事务体 () => {}</param>
             <param name="timeout">超时，未执行完将自动提交</param>
         </member>
-        <member name="P:IFreeSql.Cache">
-            <summary>
-            缓存
-            </summary>
-        </member>
         <member name="P:IFreeSql.Ado">
             <summary>
             数据库访问对象
@@ -2544,37 +2349,6 @@
             <summary>
             DbFirst 模式开发相关方法
             </summary>
-        </member>
-        <member name="M:MygisTypesExtensions.Distance(MygisPoint,MygisPoint)">
-            <summary>
-            测量两个经纬度的距离，返回单位：米
-            </summary>
-            <param name="that">经纬坐标1</param>
-            <param name="point">经纬坐标2</param>
-            <returns>返回距离（单位：米）</returns>
-        </member>
-        <member name="M:PostgreSQLTypesExtensions.Distance(NpgsqlTypes.NpgsqlPoint,NpgsqlTypes.NpgsqlPoint)">
-            <summary>
-            测量两个经纬度的距离，返回单位：米
-            </summary>
-            <param name="that">经纬坐标1</param>
-            <param name="point">经纬坐标2</param>
-            <returns>返回距离（单位：米）</returns>
-        </member>
-        <member name="M:PostgreSQLTypesExtensions.Distance(Npgsql.LegacyPostgis.PostgisPoint,Npgsql.LegacyPostgis.PostgisPoint)">
-            <summary>
-            测量两个经纬度的距离，返回单位：米
-            </summary>
-            <param name="that">经纬坐标1</param>
-            <param name="point">经纬坐标2</param>
-            <returns>返回距离（单位：米）</returns>
-        </member>
-        <member name="M:PostgreSQLTypesExtensions.ToBitArray(System.String)">
-            <summary>
-            将 1010101010 这样的二进制字符串转换成 BitArray
-            </summary>
-            <param name="_1010Str">1010101010</param>
-            <returns></returns>
         </member>
     </members>
 </doc>

@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 using System.Text;
 
 namespace FreeSql.Internal.CommonProvider {
-	class AopProvider : IAop {
+	public class AopProvider : IAop {
 		public EventHandler<Aop.ToListEventArgs> ToList { get; set; }
 		public EventHandler<Aop.WhereEventArgs> Where { get; set; }
 		public EventHandler<Aop.ParseExpressionEventArgs> ParseExpression { get; set; }

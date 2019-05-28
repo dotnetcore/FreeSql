@@ -385,25 +385,9 @@ namespace FreeSql.Tests.MySql {
 			internal static IFreeSql mysql => null;
 			public static FreeSql.ISelect<Tb_alltype> Select => mysql.Select<Tb_alltype>();
 
-			public static int ItemCacheTimeout = 180;
-			public static Tb_alltype GetItem(int Id) => Select.Where(a => a.Id == Id).Caching(ItemCacheTimeout, string.Concat("test:tb_alltype:", Id)).ToOne();
-
 			public static long Delete(int Id) {
 				var affrows = mysql.Delete<Tb_alltype>().Where(a => a.Id == Id).ExecuteAffrows();
-				if (ItemCacheTimeout > 0) RemoveCache(new Tb_alltype { Id = Id });
 				return affrows;
-			}
-
-			internal static void RemoveCache(Tb_alltype item) => RemoveCache(item == null ? null : new[] { item });
-			internal static void RemoveCache(IEnumerable<Tb_alltype> items) {
-				if (ItemCacheTimeout <= 0 || items == null || items.Any() == false) return;
-				var keys = new string[items.Count() * 1];
-				var keysIdx = 0;
-				foreach (var item in items) {
-					keys[keysIdx++] = string.Concat("test:tb_alltype:", item.Id);
-				}
-				if (mysql.Ado.TransactionCurrentThread != null) mysql.Ado.TransactionPreRemoveCache(keys);
-				else mysql.Cache.Remove(keys);
 			}
 
 			/// <summary>

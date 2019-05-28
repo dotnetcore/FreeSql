@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace FreeSql.Internal.CommonProvider {
-	class SelectGroupingProvider<TKey, TValue> : ISelectGrouping<TKey, TValue> {
+	public class SelectGroupingProvider<TKey, TValue> : ISelectGrouping<TKey, TValue> {
 
 		internal object _select;
 		internal ReadAnonymousTypeInfo _map;

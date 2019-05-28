@@ -4,7 +4,7 @@ using System.Reflection;
 using System.Text;
 
 namespace FreeSql.Internal.Model {
-	class ReadAnonymousTypeInfo {
+	public class ReadAnonymousTypeInfo {
 		public PropertyInfo Property { get; set; }
 		public string CsName { get; set; }
 		public Type CsType { get; set; }
@@ -15,5 +15,5 @@ namespace FreeSql.Internal.Model {
 		public List<ReadAnonymousTypeInfo> Childs = new List<ReadAnonymousTypeInfo>();
 		public TableInfo Table { get; set; }
 	}
-	enum ReadAnonymousTypeInfoConsturctorType { Arguments, Properties }
+	public enum ReadAnonymousTypeInfoConsturctorType { Arguments, Properties }
 }

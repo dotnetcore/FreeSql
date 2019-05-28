@@ -210,16 +210,6 @@ namespace FreeSql.Tests.Sqlite {
 			Assert.StartsWith(" SELECT", select.Master().Where(a => 1 == 1).ToSql());
 		}
 		[Fact]
-		public void Caching() {
-			var result1 = select.Where(a => 1 == 1).Caching(20, "testcaching").ToList();
-			var testcaching1 = g.sqlite.Cache.Get("testcaching");
-			Assert.NotNull(testcaching1);
-			var result2 = select.Where(a => 1 == 1).Caching(20, "testcaching").ToList();
-			var testcaching2 = g.sqlite.Cache.Get("testcaching");
-			Assert.NotNull(testcaching2);
-			Assert.Equal(result1.Count, result1.Count);
-		}
-		[Fact]
 		public void From() {
 			var query2 = select.From<TestTypeInfo>((s, b) => s
 				 .LeftJoin(a => a.TypeGuid == b.Guid)

@@ -1,6 +1,5 @@
 ﻿using FreeSql.DataAnnotations;
 using FreeSql.Internal.Model;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -637,8 +636,9 @@ namespace FreeSql.Internal {
 			if (overrieds > 0) {
 				cscode.AppendLine("}");
 				Assembly assembly = null;
+				if (MethodLazyLoadingComplier.Value == null) throw new Exception("【延时加载】功能需要安装 FreeSql.Extensions.LazyLoading.dll，可前往 nuget 下载");
 				try {
-					assembly = Generator.TemplateEngin._compiler.Value.CompileCode(cscode.ToString());
+					assembly = MethodLazyLoadingComplier.Value.Invoke(null, new object[] { cscode.ToString() }) as Assembly;
 				} catch (Exception ex) {
 					throw new Exception($"【延时加载】{trytbTypeName} 编译错误：{ex.Message}\r\n\r\n{cscode}");
 				}
@@ -651,8 +651,12 @@ namespace FreeSql.Internal {
 
 			return tbc.TryGetValue(entity, out var trytb2) ? trytb2 : trytb;
 		}
+		static Lazy<MethodInfo> MethodLazyLoadingComplier = new Lazy<MethodInfo>(() => {
+			var type = Type.GetType("FreeSql.Extensions.LazyLoading.LazyLoadingComplier,FreeSql.Extensions.LazyLoading");
+			return type.GetMethod("CompileCode");
+		});
 
-		internal static T[] GetDbParamtersByObject<T>(string sql, object obj, string paramPrefix, Func<string, Type, object, T> constructorParamter) {
+		public static T[] GetDbParamtersByObject<T>(string sql, object obj, string paramPrefix, Func<string, Type, object, T> constructorParamter) {
 			if (string.IsNullOrEmpty(sql) || obj == null) return new T[0];
 			var ttype = typeof(T);
 			var type = obj.GetType();
@@ -668,7 +672,7 @@ namespace FreeSql.Internal {
 			return ret.ToArray();
 		}
 
-		internal static Dictionary<Type, bool> dicExecuteArrayRowReadClassOrTuple = new Dictionary<Type, bool> {
+		public static Dictionary<Type, bool> dicExecuteArrayRowReadClassOrTuple = new Dictionary<Type, bool> {
 			[typeof(bool)] = true,
 			[typeof(sbyte)] = true,
 			[typeof(short)] = true,
@@ -837,12 +841,14 @@ namespace FreeSql.Internal {
 
 				if (type == typeof(object) && indexes != null) {
 					Func<Type, int[], DbDataReader, int, CommonUtils, RowInfo> dynamicFunc = (type2, indexes2, row2, dataindex2, commonUtils2) => {
-						dynamic expando = new System.Dynamic.ExpandoObject(); //动态类型字段 可读可写
-						var expandodic = (IDictionary<string, object>)expando;
+						//dynamic expando = new DynamicDictionary(); //动态类型字段 可读可写
+						var expandodic = new Dictionary<string, object>();// (IDictionary<string, object>)expando;
 						var fc = row2.FieldCount;
 						for (var a = 0; a < fc; a++)
+							//expando[row2.GetName(a)] = row2.GetValue(a);
 							expandodic.Add(row2.GetName(a), row2.GetValue(a));
-						return new RowInfo(expando, fc);
+						//expando = expandodic;
+						return new RowInfo(expandodic, fc);
 					};
 					return dynamicFunc;// Expression.Lambda<Func<Type, int[], DbDataReader, int, RowInfo>>(null);
 				}
@@ -1092,14 +1098,10 @@ namespace FreeSql.Internal {
 		static ConcurrentDictionary<Type, ConcurrentDictionary<Type, Func<object, object>>> _dicGetDataReaderValue = new ConcurrentDictionary<Type, ConcurrentDictionary<Type, Func<object, object>>>();
 		static MethodInfo MethodArrayGetValue = typeof(Array).GetMethod("GetValue", new[] { typeof(int) });
 		static MethodInfo MethodArrayGetLength = typeof(Array).GetMethod("GetLength", new[] { typeof(int) });
-		static MethodInfo MethodMygisGeometryParse = typeof(MygisGeometry).GetMethod("Parse", new[] { typeof(string) });
 		static MethodInfo MethodGuidTryParse = typeof(Guid).GetMethod("TryParse", new[] { typeof(string), typeof(Guid).MakeByRefType() });
 		static MethodInfo MethodEnumParse = typeof(Enum).GetMethod("Parse", new[] { typeof(Type), typeof(string), typeof(bool) });
 		static MethodInfo MethodConvertChangeType = typeof(Convert).GetMethod("ChangeType", new[] { typeof(object), typeof(Type) });
 		static MethodInfo MethodTimeSpanFromSeconds = typeof(TimeSpan).GetMethod("FromSeconds");
-		static MethodInfo MethodJTokenParse = typeof(JToken).GetMethod("Parse", new[] { typeof(string) });
-		static MethodInfo MethodJObjectParse = typeof(JObject).GetMethod("Parse", new[] { typeof(string) });
-		static MethodInfo MethodJArrayParse = typeof(JArray).GetMethod("Parse", new[] { typeof(string) });
 		static MethodInfo MethodSByteTryParse = typeof(sbyte).GetMethod("TryParse", new[] { typeof(string), typeof(sbyte).MakeByRefType() });
 		static MethodInfo MethodShortTryParse = typeof(short).GetMethod("TryParse", new[] { typeof(string), typeof(short).MakeByRefType() });
 		static MethodInfo MethodIntTryParse = typeof(int).GetMethod("TryParse", new[] { typeof(string), typeof(int).MakeByRefType() });
@@ -1116,6 +1118,8 @@ namespace FreeSql.Internal {
 		static MethodInfo MethodDateTimeOffsetTryParse = typeof(DateTimeOffset).GetMethod("TryParse", new[] { typeof(string), typeof(DateTimeOffset).MakeByRefType() });
 		static MethodInfo MethodToString = typeof(Utils).GetMethod("ToStringConcat", BindingFlags.NonPublic | BindingFlags.Static, null, new[] { typeof(object) }, null);
 		static MethodInfo MethodBigIntegerParse = typeof(Utils).GetMethod("ToBigInteger", BindingFlags.NonPublic | BindingFlags.Static, null, new[] { typeof(string) }, null);
+
+		public static ConcurrentBag<Func<LabelTarget, Expression, string, Expression>> GetDataReaderValueBlockExpressionSwitchTypeFullName = new ConcurrentBag<Func<LabelTarget, Expression, string, Expression>>();
 		public static Expression GetDataReaderValueBlockExpression(Type type, Expression value) {
 			var returnTarget = Expression.Label(typeof(object));
 			var valueExp = Expression.Variable(typeof(object), "locvalue");
@@ -1177,16 +1181,6 @@ namespace FreeSql.Internal {
 							   }
 						   );
 						break;
-					case "MygisPoint": return Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodMygisGeometryParse, Expression.Convert(valueExp, typeof(string))), typeof(MygisPoint)));
-					case "MygisLineString": return Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodMygisGeometryParse, Expression.Convert(valueExp, typeof(string))), typeof(MygisLineString)));
-					case "MygisPolygon": return Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodMygisGeometryParse, Expression.Convert(valueExp, typeof(string))), typeof(MygisPolygon)));
-					case "MygisMultiPoint": return Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodMygisGeometryParse, Expression.Convert(valueExp, typeof(string))), typeof(MygisMultiPoint)));
-					case "MygisMultiLineString": return Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodMygisGeometryParse, Expression.Convert(valueExp, typeof(string))), typeof(MygisMultiLineString)));
-					case "MygisMultiPolygon": return Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodMygisGeometryParse, Expression.Convert(valueExp, typeof(string))), typeof(MygisMultiPolygon)));
-					case "Newtonsoft.Json.Linq.JToken": return Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodJTokenParse, Expression.Convert(valueExp, typeof(string))), typeof(JToken)));
-					case "Newtonsoft.Json.Linq.JObject": return Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodJObjectParse, Expression.Convert(valueExp, typeof(string))), typeof(JObject)));
-					case "Newtonsoft.Json.Linq.JArray": return Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodJArrayParse, Expression.Convert(valueExp, typeof(string))), typeof(JArray)));
-					case "Npgsql.LegacyPostgis.PostgisGeometry": return Expression.Return(returnTarget, valueExp);
 					case "System.Numerics.BigInteger": return Expression.Return(returnTarget, Expression.Convert(Expression.Call(MethodBigIntegerParse, Expression.Call(MethodToString, valueExp)), typeof(object)));
 					case "System.TimeSpan":
 						ParameterExpression tryparseVarTsExp, valueStrExp;
@@ -1373,6 +1367,12 @@ namespace FreeSql.Internal {
 							typeof(object))
 						);
 						break;
+					default:
+						foreach (var switchFunc in GetDataReaderValueBlockExpressionSwitchTypeFullName) {
+							var switchFuncRet = switchFunc(returnTarget, valueExp, type.FullName);
+							if (switchFuncRet != null) return switchFuncRet;
+						}
+						break;
 				}
 				Expression switchExp = null;
 				if (tryparseExp != null)
@@ -1437,45 +1437,7 @@ namespace FreeSql.Internal {
 			});
 			return func(value);
 		}
-		internal static object GetDataReaderValue22(Type type, object value) {
-			if (value == null || value == DBNull.Value) return Activator.CreateInstance(type);
-			if (type.FullName == "System.Byte[]") return value;
-			if (type.IsArray) {
-				var elementType = type.GetElementType();
-				var valueArr = value as Array;
-				if (elementType == valueArr.GetType().GetElementType()) return value;
-				var len = valueArr.GetLength(0);
-				var ret = Array.CreateInstance(elementType, len);
-				for (var a = 0; a < len; a++) {
-					var item = valueArr.GetValue(a);
-					ret.SetValue(GetDataReaderValue22(elementType, item), a);
-				}
-				return ret;
-			}
-			if (type.IsNullableType()) type = type.GenericTypeArguments.First();
-			if (type.IsEnum) return Enum.Parse(type, string.Concat(value), true);
-			switch (type.FullName) {
-				case "System.Guid":
-					if (value.GetType() != type) return Guid.TryParse(string.Concat(value), out var tryguid) ? tryguid : Guid.Empty;
-					return value;
-				case "MygisPoint": return MygisPoint.Parse(string.Concat(value)) as MygisPoint;
-				case "MygisLineString": return MygisLineString.Parse(string.Concat(value)) as MygisLineString;
-				case "MygisPolygon": return MygisPolygon.Parse(string.Concat(value)) as MygisPolygon;
-				case "MygisMultiPoint": return MygisMultiPoint.Parse(string.Concat(value)) as MygisMultiPoint;
-				case "MygisMultiLineString": return MygisMultiLineString.Parse(string.Concat(value)) as MygisMultiLineString;
-				case "MygisMultiPolygon": return MygisMultiPolygon.Parse(string.Concat(value)) as MygisMultiPolygon;
-				case "Newtonsoft.Json.Linq.JToken": return JToken.Parse(string.Concat(value));
-				case "Newtonsoft.Json.Linq.JObject": return JObject.Parse(string.Concat(value));
-				case "Newtonsoft.Json.Linq.JArray": return JArray.Parse(string.Concat(value));
-				case "Npgsql.LegacyPostgis.PostgisGeometry": return value;
-			}
-			if (type != value.GetType()) {
-				if (type.FullName == "System.TimeSpan") return TimeSpan.FromSeconds(double.Parse(value.ToString()));
-				return Convert.ChangeType(value, type);
-			}
-			return value;
-		}
-		internal static string GetCsName(string name) {
+		public static string GetCsName(string name) {
 			name = Regex.Replace(name.TrimStart('@'), @"[^\w]", "_");
 			return char.IsLetter(name, 0) ? name : string.Concat("_", name);
 		}

@@ -14,7 +14,6 @@ namespace restful {
 
 			Fsql = new FreeSql.FreeSqlBuilder()
 				.UseConnectionString(FreeSql.DataType.Sqlite, @"Data Source=|DataDirectory|\document.db;Attachs=xxxtb.db;Pooling=true;Max Pool Size=10")
-				.UseLogger(loggerFactory.CreateLogger<IFreeSql>())
 				.UseAutoSyncStructure(true)
 				.Build();
 

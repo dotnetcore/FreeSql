@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace FreeSql.Internal.CommonProvider {
 
-	abstract class Select5Provider<T1, T2, T3, T4, T5> : Select0Provider<ISelect<T1, T2, T3, T4, T5>, T1>, ISelect<T1, T2, T3, T4, T5>
+	public abstract class Select5Provider<T1, T2, T3, T4, T5> : Select0Provider<ISelect<T1, T2, T3, T4, T5>, T1>, ISelect<T1, T2, T3, T4, T5>
 			where T1 : class
 			where T2 : class
 			where T3 : class

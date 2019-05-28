@@ -1,7 +1,7 @@
 ﻿using System.Linq.Expressions;
 
 namespace FreeSql.Internal.Model {
-	class SelectTableInfo {
+	public class SelectTableInfo {
 		public TableInfo Table { get; set; }
 
 		private string _alias;
@@ -18,5 +18,5 @@ namespace FreeSql.Internal.Model {
 		public ParameterExpression Parameter { get; set; }
 		public SelectTableInfoType Type { get; set; }
 	}
-	enum SelectTableInfoType { From, LeftJoin, InnerJoin, RightJoin, Parent }
+	public enum SelectTableInfoType { From, LeftJoin, InnerJoin, RightJoin, Parent }
 }

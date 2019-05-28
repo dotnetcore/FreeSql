@@ -46,11 +46,6 @@ namespace FreeSql {
 		/// 当前线程的事务
 		/// </summary>
 		DbTransaction TransactionCurrentThread { get; }
-		/// <summary>
-		/// 事务完成前预删除缓存
-		/// </summary>
-		/// <param name="keys"></param>
-		void TransactionPreRemoveCache(params string[] keys);
 		#endregion
 
 		/// <summary>

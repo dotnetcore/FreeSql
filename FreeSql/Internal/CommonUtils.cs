@@ -2,43 +2,46 @@
 using FreeSql.DatabaseModel;
 using FreeSql.Extensions.EntityUtil;
 using FreeSql.Internal.Model;
+using SafeObjectPool;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace FreeSql.Internal {
-	internal abstract class CommonUtils {
+	public abstract class CommonUtils {
 
-		internal abstract string GetNoneParamaterSqlValue(List<DbParameter> specialParams, Type type, object value);
-		internal abstract DbParameter AppendParamter(List<DbParameter> _params, string parameterName, Type type, object value);
-		internal abstract DbParameter[] GetDbParamtersByObject(string sql, object obj);
-		internal abstract string FormatSql(string sql, params object[] args);
-		internal abstract string QuoteSqlName(string name);
-		internal abstract string TrimQuoteSqlName(string name);
-		internal abstract string QuoteParamterName(string name);
-		internal abstract string IsNull(string sql, object value);
-		internal abstract string StringConcat(string[] objs, Type[] types);
-		internal abstract string Mod(string left, string right, Type leftType, Type rightType);
-		internal abstract string QuoteWriteParamter(Type type, string paramterName);
-		internal abstract string QuoteReadColumn(Type type, string columnName);
+		public abstract string GetNoneParamaterSqlValue(List<DbParameter> specialParams, Type type, object value);
+		public abstract DbParameter AppendParamter(List<DbParameter> _params, string parameterName, Type type, object value);
+		public abstract DbParameter[] GetDbParamtersByObject(string sql, object obj);
+		public abstract string FormatSql(string sql, params object[] args);
+		public abstract string QuoteSqlName(string name);
+		public abstract string TrimQuoteSqlName(string name);
+		public abstract string QuoteParamterName(string name);
+		public abstract string IsNull(string sql, object value);
+		public abstract string StringConcat(string[] objs, Type[] types);
+		public abstract string Mod(string left, string right, Type leftType, Type rightType);
+		public abstract string QuoteWriteParamter(Type type, string paramterName);
+		public abstract string QuoteReadColumn(Type type, string columnName);
 
-		internal IFreeSql _orm { get; set; }
-		internal ICodeFirst CodeFirst => _orm.CodeFirst;
-		internal TableInfo GetTableByEntity(Type entity) => Utils.GetTableByEntity(entity, this);
-		internal List<DbTableInfo> dbTables { get; set; }
-		internal object dbTablesLock = new object();
+		public IFreeSql _orm { get; set; }
+		public ICodeFirst CodeFirst => _orm.CodeFirst;
+		public TableInfo GetTableByEntity(Type entity) => Utils.GetTableByEntity(entity, this);
+		public List<DbTableInfo> dbTables { get; set; }
+		public object dbTablesLock = new object();
 
 		public CommonUtils(IFreeSql orm) {
 			_orm = orm;
 		}
 
 		ConcurrentDictionary<Type, TableAttribute> dicConfigEntity = new ConcurrentDictionary<Type, TableAttribute>();
-		internal ICodeFirst ConfigEntity<T>(Action<TableFluent<T>> entity) {
+		public ICodeFirst ConfigEntity<T>(Action<TableFluent<T>> entity) {
 			if (entity == null) return _orm.CodeFirst;
 			var type = typeof(T);
 			var table = dicConfigEntity.GetOrAdd(type, new TableAttribute());
@@ -47,7 +50,7 @@ namespace FreeSql.Internal {
 			Utils.RemoveTableByEntity(type, this); //remove cache
 			return _orm.CodeFirst;
 		}
-		internal ICodeFirst ConfigEntity(Type type, Action<TableFluent> entity) {
+		public ICodeFirst ConfigEntity(Type type, Action<TableFluent> entity) {
 			if (entity == null) return _orm.CodeFirst;
 			var table = dicConfigEntity.GetOrAdd(type, new TableAttribute());
 			var fluent = new TableFluent(type, table);
@@ -55,10 +58,10 @@ namespace FreeSql.Internal {
 			Utils.RemoveTableByEntity(type, this); //remove cache
 			return _orm.CodeFirst;
 		}
-		internal TableAttribute GetConfigEntity(Type type) {
+		public TableAttribute GetConfigEntity(Type type) {
 			return dicConfigEntity.TryGetValue(type, out var trytb) ? trytb : null;
 		}
-		internal TableAttribute GetEntityTableAttribute(Type type) {
+		public TableAttribute GetEntityTableAttribute(Type type) {
 			TableAttribute attr = null;
 			if (_orm.Aop.ConfigEntity != null) {
 				var aope = new Aop.ConfigEntityEventArgs(type);
@@ -84,7 +87,7 @@ namespace FreeSql.Internal {
 			if (!string.IsNullOrEmpty(attr.SelectFilter)) return attr;
 			return null;
 		}
-		internal ColumnAttribute GetEntityColumnAttribute(Type type, PropertyInfo proto) {
+		public ColumnAttribute GetEntityColumnAttribute(Type type, PropertyInfo proto) {
 			ColumnAttribute attr = null;
 			if (_orm.Aop.ConfigEntityProperty != null) {
 				var aope = new Aop.ConfigEntityPropertyEventArgs(type, proto);
@@ -137,7 +140,7 @@ namespace FreeSql.Internal {
 			return ret;
 		}
 
-		internal string WhereObject(TableInfo table, string aliasAndDot, object dywhere) {
+		public string WhereObject(TableInfo table, string aliasAndDot, object dywhere) {
 			if (dywhere == null) return "";
 			var type = dywhere.GetType();
 			var primarys = table.Primarys;
@@ -182,7 +185,7 @@ namespace FreeSql.Internal {
 			}
 		}
 
-		internal string WhereItems<TEntity>(TableInfo table, string aliasAndDot, IEnumerable<TEntity> items) {
+		public string WhereItems<TEntity>(TableInfo table, string aliasAndDot, IEnumerable<TEntity> items) {
 			if (items == null || items.Any() == false) return null;
 			if (table.Primarys.Any() == false) return null;
 			var its = items.Where(a => a != null).ToArray();
@@ -230,6 +233,40 @@ namespace FreeSql.Internal {
 				}
 			}
 			return iidx == 1 ? sb.Remove(0, 5).Remove(sb.Length - 1, 1).ToString() : sb.Remove(0, 4).ToString();
+		}
+
+		public static void PrevReheatConnectionPool(ObjectPool<DbConnection> pool, int minPoolSize) {
+			if (minPoolSize <= 0) minPoolSize = Math.Min(5, pool.Policy.PoolSize);
+			if (minPoolSize > pool.Policy.PoolSize) minPoolSize = pool.Policy.PoolSize;
+			var initTestOk = true;
+			var initStartTime = DateTime.Now;
+			var initConns = new ConcurrentBag<Object<DbConnection>>();
+
+			try {
+				var conn = pool.Get();
+				initConns.Add(conn);
+				pool.Policy.OnCheckAvailable(conn);
+			} catch {
+				initTestOk = false; //预热一次失败，后面将不进行
+			}
+			for (var a = 1; initTestOk && a < minPoolSize; a += 10) {
+				if (initStartTime.Subtract(DateTime.Now).TotalSeconds > 3) break; //预热耗时超过3秒，退出
+				var b = Math.Min(minPoolSize - a, 10); //每10个预热
+				var initTasks = new Task[b];
+				for (var c = 0; c < b; c++) {
+					initTasks[c] = Task.Run(() => {
+						try {
+							var conn = pool.Get();
+							initConns.Add(conn);
+							pool.Policy.OnCheckAvailable(conn);
+						} catch {
+							initTestOk = false;  //有失败，下一组退出预热
+						}
+					});
+				}
+				Task.WaitAll(initTasks);
+			}
+			while (initConns.TryTake(out var conn)) pool.Return(conn);
 		}
 	}
 }

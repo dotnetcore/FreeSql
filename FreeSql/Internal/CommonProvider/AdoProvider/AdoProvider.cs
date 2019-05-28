@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using SafeObjectPool;
+﻿using SafeObjectPool;
 using System;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
@@ -11,7 +10,7 @@ using System.Text;
 using System.Reflection;
 
 namespace FreeSql.Internal.CommonProvider {
-	abstract partial class AdoProvider : IAdo, IDisposable {
+	public abstract partial class AdoProvider : IAdo, IDisposable {
 
 		protected abstract void ReturnConnection(ObjectPool<DbConnection> pool, Object<DbConnection> conn, Exception ex);
 		protected abstract DbCommand CreateCommand();
@@ -24,16 +23,12 @@ namespace FreeSql.Internal.CommonProvider {
 		public ObjectPool<DbConnection> MasterPool { get; protected set; }
 		public List<ObjectPool<DbConnection>> SlavePools { get; } = new List<ObjectPool<DbConnection>>();
 		public DataType DataType { get; }
-		protected ICache _cache { get; set; }
-		protected ILogger _log { get; set; }
 		protected CommonUtils _util { get; set; }
 		protected int slaveUnavailables = 0;
 		private object slaveLock = new object();
 		private Random slaveRandom = new Random();
 
-		public AdoProvider(ICache cache, ILogger log, DataType dataType) {
-			this._cache = cache;
-			this._log = log;
+		public AdoProvider(DataType dataType) {
 			this.DataType = dataType;
 		}
 
@@ -43,7 +38,7 @@ namespace FreeSql.Internal.CommonProvider {
 			if (IsTracePerformance) {
 				TimeSpan ts = DateTime.Now.Subtract(dt);
 				if (e == null && ts.TotalMilliseconds > 100)
-					_log.LogWarning(logtxt.Insert(0, $"{pool?.Policy.Name}（执行SQL）语句耗时过长{ts.TotalMilliseconds}ms\r\n{cmd.CommandText}\r\n").ToString());
+					Trace.WriteLine(logtxt.Insert(0, $"{pool?.Policy.Name}（执行SQL）语句耗时过长{ts.TotalMilliseconds}ms\r\n{cmd.CommandText}\r\n").ToString());
 				else
 					logtxt.Insert(0, $"{pool?.Policy.Name}（执行SQL）耗时{ts.TotalMilliseconds}ms\r\n{cmd.CommandText}\r\n").ToString();
 			}
@@ -59,7 +54,7 @@ namespace FreeSql.Internal.CommonProvider {
 				log.Append(parm.ParameterName.PadRight(20, ' ')).Append(" = ").Append((parm.Value ?? DBNull.Value) == DBNull.Value ? "NULL" : parm.Value).Append("\r\n");
 
 			log.Append(e.Message);
-			_log.LogError(log.ToString());
+			Trace.WriteLine(log.ToString());
 
 			if (cmd.Transaction != null) {
 				var curTran = TransactionCurrentThread;

@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace FreeSql.Internal.CommonProvider {
 
-	abstract partial class DeleteProvider<T1> : IDelete<T1> where T1 : class {
+	public abstract partial class DeleteProvider<T1> : IDelete<T1> where T1 : class {
 		protected IFreeSql _orm;
 		protected CommonUtils _commonUtils;
 		protected CommonExpression _commonExpression;

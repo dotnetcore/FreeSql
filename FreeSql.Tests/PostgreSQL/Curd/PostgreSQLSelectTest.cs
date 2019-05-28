@@ -208,8 +208,8 @@ namespace FreeSql.Tests.PostgreSQL {
 
 			});
 
-			var t100 = g.pgsql.Select<TestInfo>().Where("").Where(a => a.Id > 0).Skip(100).Limit(200).Caching(50).ToList();
-			var t101 = g.pgsql.Select<TestInfo>().As("b").Where("").Where(a => a.Id > 0).Skip(100).Limit(200).Caching(50).ToList();
+			var t100 = g.pgsql.Select<TestInfo>().Where("").Where(a => a.Id > 0).Skip(100).Limit(200).ToList();
+			var t101 = g.pgsql.Select<TestInfo>().As("b").Where("").Where(a => a.Id > 0).Skip(100).Limit(200).ToList();
 
 
 			var t1111 = g.pgsql.Select<TestInfo>().ToList(a => new { a.Id, a.Title, a.Type });
@@ -268,16 +268,7 @@ namespace FreeSql.Tests.PostgreSQL {
 		public void Master() {
 			Assert.StartsWith(" SELECT", select.Master().Where(a => 1 == 1).ToSql());
 		}
-		[Fact]
-		public void Caching() {
-			var result1 = select.Where(a => 1 == 1).Caching(20, "testcaching").ToList();
-			var testcaching1 = g.pgsql.Cache.Get("testcaching");
-			Assert.NotNull(testcaching1);
-			var result2 = select.Where(a => 1 == 1).Caching(20, "testcaching").ToList();
-			var testcaching2 = g.pgsql.Cache.Get("testcaching");
-			Assert.NotNull(testcaching2);
-			Assert.Equal(result1.Count, result1.Count);
-		}
+
 		[Fact]
 		public void From() {
 

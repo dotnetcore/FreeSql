@@ -88,10 +88,6 @@ public interface IFreeSql : IDisposable {
 	void Transaction(Action handler, TimeSpan timeout);
 
 	/// <summary>
-	/// 缓存
-	/// </summary>
-	ICache Cache { get; }
-	/// <summary>
 	/// 数据库访问对象
 	/// </summary>
 	IAdo Ado { get; }

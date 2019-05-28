@@ -108,13 +108,6 @@ namespace FreeSql {
 		/// </summary>
 		/// <returns></returns>
 		TSelect Master();
-		/// <summary>
-		/// 缓存查询结果
-		/// </summary>
-		/// <param name="seconds">缓存秒数</param>
-		/// <param name="key">缓存key</param>
-		/// <returns></returns>
-		TSelect Caching(int seconds, string key = null);
 
 		/// <summary>
 		/// 左联查询，使用导航属性自动生成SQL

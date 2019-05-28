@@ -14,16 +14,15 @@ using System.Threading.Tasks;
 
 namespace FreeSql.Internal.CommonProvider {
 
-	abstract class Select0Provider<TSelect, T1> : ISelect0<TSelect, T1> where TSelect : class where T1 : class {
+	public abstract class Select0Provider<TSelect, T1> : ISelect0<TSelect, T1> where TSelect : class where T1 : class {
 
 		protected int _limit, _skip;
 		protected string _select = "SELECT ", _orderby, _groupby, _having;
 		protected StringBuilder _where = new StringBuilder();
 		protected List<DbParameter> _params = new List<DbParameter>();
-		internal List<SelectTableInfo> _tables = new List<SelectTableInfo>();
+		protected List<SelectTableInfo> _tables = new List<SelectTableInfo>();
 		protected List<Func<Type, string, string>> _tableRules = new List<Func<Type, string, string>>();
 		protected StringBuilder _join = new StringBuilder();
-		protected (int seconds, string key) _cache = (0, null);
 		protected IFreeSql _orm;
 		protected CommonUtils _commonUtils;
 		protected CommonExpression _commonExpression;
@@ -34,7 +33,7 @@ namespace FreeSql.Internal.CommonProvider {
 		protected bool _distinct;
 		protected Expression _selectExpression;
 
-		internal static void CopyData(Select0Provider<TSelect, T1> from, object to, ReadOnlyCollection<ParameterExpression> lambParms) {
+		public static void CopyData(Select0Provider<TSelect, T1> from, object to, ReadOnlyCollection<ParameterExpression> lambParms) {
 			var toType = to?.GetType();
 			if (toType == null) return;
 			toType.GetField("_limit", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._limit);
@@ -63,7 +62,6 @@ namespace FreeSql.Internal.CommonProvider {
 			}
 			toType.GetField("_tableRules", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._tableRules);
 			toType.GetField("_join", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, new StringBuilder().Append(from._join.ToString()));
-			toType.GetField("_cache", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._cache);
 			//toType.GetField("_orm", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._orm);
 			//toType.GetField("_commonUtils", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._commonUtils);
 			//toType.GetField("_commonExpression", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._commonExpression);
@@ -109,10 +107,6 @@ namespace FreeSql.Internal.CommonProvider {
 			return (await this.ToListAsync<int>("1")).FirstOrDefault() == 1;
 		}
 
-		public TSelect Caching(int seconds, string key = null) {
-			_cache = (seconds, key);
-			return this as TSelect;
-		}
 		public long Count() => this.ToList<int>("count(1)").FirstOrDefault();
 		async public Task<long> CountAsync() => (await this.ToListAsync<int>("count(1)")).FirstOrDefault();
 
@@ -220,166 +214,142 @@ namespace FreeSql.Internal.CommonProvider {
 
 		public DataTable ToDataTable(string field = null) {
 			var sql = this.ToSql(field);
-			if (_cache.seconds > 0 && string.IsNullOrEmpty(_cache.key)) _cache.key = sql;
-
-			return _orm.Cache.Shell(_cache.key, _cache.seconds, () => {
-				var dbParms = _params.ToArray();
-				var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, Aop.CurdType.Select, sql, dbParms);
-				_orm.Aop.CurdBefore?.Invoke(this, before);
-				DataTable ret = null;
-				Exception exception = null;
-				try {
-					ret = _orm.Ado.ExecuteDataTable(_connection, _transaction, CommandType.Text, sql, dbParms);
-				} catch (Exception ex) {
-					exception = ex;
-					throw ex;
-				} finally {
-					var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-					_orm.Aop.CurdAfter?.Invoke(this, after);
-				}
-				return ret;
-			});
+			var dbParms = _params.ToArray();
+			var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, Aop.CurdType.Select, sql, dbParms);
+			_orm.Aop.CurdBefore?.Invoke(this, before);
+			DataTable ret = null;
+			Exception exception = null;
+			try {
+				ret = _orm.Ado.ExecuteDataTable(_connection, _transaction, CommandType.Text, sql, dbParms);
+			} catch (Exception ex) {
+				exception = ex;
+				throw ex;
+			} finally {
+				var after = new Aop.CurdAfterEventArgs(before, exception, ret);
+				_orm.Aop.CurdAfter?.Invoke(this, after);
+			}
+			return ret;
 		}
-		public Task<DataTable> ToDataTableAsync(string field = null) {
+		async public Task<DataTable> ToDataTableAsync(string field = null) {
 			var sql = this.ToSql(field);
-			if (_cache.seconds > 0 && string.IsNullOrEmpty(_cache.key)) _cache.key = sql;
-
-			return _orm.Cache.ShellAsync(_cache.key, _cache.seconds, async () => {
-				var dbParms = _params.ToArray();
-				var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, Aop.CurdType.Select, sql, dbParms);
-				_orm.Aop.CurdBefore?.Invoke(this, before);
-				DataTable ret = null;
-				Exception exception = null;
-				try {
-					ret = await _orm.Ado.ExecuteDataTableAsync(_connection, _transaction, CommandType.Text, sql, dbParms);
-				} catch (Exception ex) {
-					exception = ex;
-					throw ex;
-				} finally {
-					var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-					_orm.Aop.CurdAfter?.Invoke(this, after);
-				}
-				return ret;
-			});
+			var dbParms = _params.ToArray();
+			var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, Aop.CurdType.Select, sql, dbParms);
+			_orm.Aop.CurdBefore?.Invoke(this, before);
+			DataTable ret = null;
+			Exception exception = null;
+			try {
+				ret = await _orm.Ado.ExecuteDataTableAsync(_connection, _transaction, CommandType.Text, sql, dbParms);
+			} catch (Exception ex) {
+				exception = ex;
+				throw ex;
+			} finally {
+				var after = new Aop.CurdAfterEventArgs(before, exception, ret);
+				_orm.Aop.CurdAfter?.Invoke(this, after);
+			}
+			return ret;
 		}
 
 		public List<TTuple> ToList<TTuple>(string field) {
 			var sql = this.ToSql(field);
-			if (_cache.seconds > 0 && string.IsNullOrEmpty(_cache.key)) _cache.key = sql;
-
-			return _orm.Cache.Shell(_cache.key, _cache.seconds, () => {
-				var type = typeof(TTuple);
-				var dbParms = _params.ToArray();
-				var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, Aop.CurdType.Select, sql, dbParms);
-				_orm.Aop.CurdBefore?.Invoke(this, before);
-				var ret = new List<TTuple>();
-				var flagStr = $"ToListField:{field}";
-				Exception exception = null;
-				try {
-					_orm.Ado.ExecuteReader(_connection, _transaction, dr => {
-						var read = Utils.ExecuteArrayRowReadClassOrTuple(flagStr, type, null, dr, 0, _commonUtils);
-						ret.Add((TTuple)read.Value);
-					}, CommandType.Text, sql, dbParms);
-				} catch (Exception ex) {
-					exception = ex;
-					throw ex;
-				} finally {
-					var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-					_orm.Aop.CurdAfter?.Invoke(this, after);
-				}
-				return ret;
-			});
+			var type = typeof(TTuple);
+			var dbParms = _params.ToArray();
+			var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, Aop.CurdType.Select, sql, dbParms);
+			_orm.Aop.CurdBefore?.Invoke(this, before);
+			var ret = new List<TTuple>();
+			var flagStr = $"ToListField:{field}";
+			Exception exception = null;
+			try {
+				_orm.Ado.ExecuteReader(_connection, _transaction, dr => {
+					var read = Utils.ExecuteArrayRowReadClassOrTuple(flagStr, type, null, dr, 0, _commonUtils);
+					ret.Add((TTuple)read.Value);
+				}, CommandType.Text, sql, dbParms);
+			} catch (Exception ex) {
+				exception = ex;
+				throw ex;
+			} finally {
+				var after = new Aop.CurdAfterEventArgs(before, exception, ret);
+				_orm.Aop.CurdAfter?.Invoke(this, after);
+			}
+			return ret;
 		}
-		public Task<List<TTuple>> ToListAsync<TTuple>(string field) {
+		async public Task<List<TTuple>> ToListAsync<TTuple>(string field) {
 			var sql = this.ToSql(field);
-			if (_cache.seconds > 0 && string.IsNullOrEmpty(_cache.key)) _cache.key = sql;
-
-			return _orm.Cache.ShellAsync(_cache.key, _cache.seconds, async () => {
-				var type = typeof(TTuple);
-				var dbParms = _params.ToArray();
-				var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, Aop.CurdType.Select, sql, dbParms);
-				_orm.Aop.CurdBefore?.Invoke(this, before);
-				var ret = new List<TTuple>();
-				var flagStr = $"ToListField:{field}";
-				Exception exception = null;
-				try {
-					await _orm.Ado.ExecuteReaderAsync(_connection, _transaction, dr => {
-						var read = Utils.ExecuteArrayRowReadClassOrTuple(flagStr, type, null, dr, 0, _commonUtils);
-						ret.Add((TTuple)read.Value);
-						return Task.CompletedTask;
-					}, CommandType.Text, sql, dbParms);
-				} catch (Exception ex) {
-					exception = ex;
-					throw ex;
-				} finally {
-					var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-					_orm.Aop.CurdAfter?.Invoke(this, after);
-				}
-				return ret;
-			});
+			var type = typeof(TTuple);
+			var dbParms = _params.ToArray();
+			var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, Aop.CurdType.Select, sql, dbParms);
+			_orm.Aop.CurdBefore?.Invoke(this, before);
+			var ret = new List<TTuple>();
+			var flagStr = $"ToListField:{field}";
+			Exception exception = null;
+			try {
+				await _orm.Ado.ExecuteReaderAsync(_connection, _transaction, dr => {
+					var read = Utils.ExecuteArrayRowReadClassOrTuple(flagStr, type, null, dr, 0, _commonUtils);
+					ret.Add((TTuple)read.Value);
+					return Task.CompletedTask;
+				}, CommandType.Text, sql, dbParms);
+			} catch (Exception ex) {
+				exception = ex;
+				throw ex;
+			} finally {
+				var after = new Aop.CurdAfterEventArgs(before, exception, ret);
+				_orm.Aop.CurdAfter?.Invoke(this, after);
+			}
+			return ret;
 		}
 		internal List<T1> ToListAfPrivate(string sql, GetAllFieldExpressionTreeInfo af, (string field, ReadAnonymousTypeInfo read, List<object> retlist)[] otherData) {
-			if (_cache.seconds > 0 && string.IsNullOrEmpty(_cache.key)) _cache.key = $"{sql}{string.Join("|", _params.Select(a => a.Value))}";
-
-			return _orm.Cache.Shell(_cache.key, _cache.seconds, () => {
-				var dbParms = _params.ToArray();
-				var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, Aop.CurdType.Select, sql, dbParms);
-				_orm.Aop.CurdBefore?.Invoke(this, before);
-				var ret = new List<T1>();
-				Exception exception = null;
-				try {
-					_orm.Ado.ExecuteReader(_connection, _transaction, dr => {
-						ret.Add(af.Read(_orm, dr));
-						if (otherData != null) {
-							var idx = af.FieldCount - 1;
-							foreach (var other in otherData)
-								other.retlist.Add(_commonExpression.ReadAnonymous(other.read, dr, ref idx, false));
-						}
-					}, CommandType.Text, sql, dbParms);
-				} catch (Exception ex) {
-					exception = ex;
-					throw ex;
-				} finally {
-					var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-					_orm.Aop.CurdAfter?.Invoke(this, after);
-				}
-				while (_includeToList.Any()) _includeToList.Dequeue()?.Invoke(ret);
-				_orm.Aop.ToList?.Invoke(this, new Aop.ToListEventArgs(ret));
-				_trackToList?.Invoke(ret);
-				return ret;
-			});
+			var dbParms = _params.ToArray();
+			var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, Aop.CurdType.Select, sql, dbParms);
+			_orm.Aop.CurdBefore?.Invoke(this, before);
+			var ret = new List<T1>();
+			Exception exception = null;
+			try {
+				_orm.Ado.ExecuteReader(_connection, _transaction, dr => {
+					ret.Add(af.Read(_orm, dr));
+					if (otherData != null) {
+						var idx = af.FieldCount - 1;
+						foreach (var other in otherData)
+							other.retlist.Add(_commonExpression.ReadAnonymous(other.read, dr, ref idx, false));
+					}
+				}, CommandType.Text, sql, dbParms);
+			} catch (Exception ex) {
+				exception = ex;
+				throw ex;
+			} finally {
+				var after = new Aop.CurdAfterEventArgs(before, exception, ret);
+				_orm.Aop.CurdAfter?.Invoke(this, after);
+			}
+			while (_includeToList.Any()) _includeToList.Dequeue()?.Invoke(ret);
+			_orm.Aop.ToList?.Invoke(this, new Aop.ToListEventArgs(ret));
+			_trackToList?.Invoke(ret);
+			return ret;
 		}
 		async internal Task<List<T1>> ToListAfPrivateAsync(string sql, GetAllFieldExpressionTreeInfo af, (string field, ReadAnonymousTypeInfo read, List<object> retlist)[] otherData) {
-			if (_cache.seconds > 0 && string.IsNullOrEmpty(_cache.key)) _cache.key = $"{sql}{string.Join("|", _params.Select(a => a.Value))}";
-
-			return await _orm.Cache.ShellAsync(_cache.key, _cache.seconds, async () => {
-				var dbParms = _params.ToArray();
-				var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, Aop.CurdType.Select, sql, dbParms);
-				_orm.Aop.CurdBefore?.Invoke(this, before);
-				var ret = new List<T1>();
-				Exception exception = null;
-				try {
-					await _orm.Ado.ExecuteReaderAsync(_connection, _transaction, dr => {
-						ret.Add(af.Read(_orm, dr));
-						if (otherData != null) {
-							var idx = af.FieldCount - 1;
-							foreach (var other in otherData)
-								other.retlist.Add(_commonExpression.ReadAnonymous(other.read, dr, ref idx, false));
-						}
-						return Task.CompletedTask;
-					}, CommandType.Text, sql, dbParms);
-				} catch (Exception ex) {
-					exception = ex;
-					throw ex;
-				} finally {
-					var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-					_orm.Aop.CurdAfter?.Invoke(this, after);
-				}
-				while (_includeToList.Any()) _includeToList.Dequeue()?.Invoke(ret);
-				_orm.Aop.ToList?.Invoke(this, new Aop.ToListEventArgs(ret));
-				_trackToList?.Invoke(ret);
-				return ret;
-			});
+			var dbParms = _params.ToArray();
+			var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, Aop.CurdType.Select, sql, dbParms);
+			_orm.Aop.CurdBefore?.Invoke(this, before);
+			var ret = new List<T1>();
+			Exception exception = null;
+			try {
+				await _orm.Ado.ExecuteReaderAsync(_connection, _transaction, dr => {
+					ret.Add(af.Read(_orm, dr));
+					if (otherData != null) {
+						var idx = af.FieldCount - 1;
+						foreach (var other in otherData)
+							other.retlist.Add(_commonExpression.ReadAnonymous(other.read, dr, ref idx, false));
+					}
+					return Task.CompletedTask;
+				}, CommandType.Text, sql, dbParms);
+			} catch (Exception ex) {
+				exception = ex;
+				throw ex;
+			} finally {
+				var after = new Aop.CurdAfterEventArgs(before, exception, ret);
+				_orm.Aop.CurdAfter?.Invoke(this, after);
+			}
+			while (_includeToList.Any()) _includeToList.Dequeue()?.Invoke(ret);
+			_orm.Aop.ToList?.Invoke(this, new Aop.ToListEventArgs(ret));
+			_trackToList?.Invoke(ret);
+			return ret;
 		}
 		internal List<T1> ToListPrivate(GetAllFieldExpressionTreeInfo af, (string field, ReadAnonymousTypeInfo read, List<object> retlist)[] otherData) {
 			string sql = null;
@@ -427,60 +397,52 @@ namespace FreeSql.Internal.CommonProvider {
 
 		protected List<TReturn> ToListMapReader<TReturn>((ReadAnonymousTypeInfo map, string field) af) {
 			var sql = this.ToSql(af.field);
-			if (_cache.seconds > 0 && string.IsNullOrEmpty(_cache.key)) _cache.key = $"{sql}{string.Join("|", _params.Select(a => a.Value))}";
-
-			return _orm.Cache.Shell(_cache.key, _cache.seconds, () => {
-				var type = typeof(TReturn);
-				var dbParms = _params.ToArray();
-				var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, Aop.CurdType.Select, sql, dbParms);
-				_orm.Aop.CurdBefore?.Invoke(this, before);
-				var ret = new List<TReturn>();
-				Exception exception = null;
-				try {
-					_orm.Ado.ExecuteReader(_connection, _transaction, dr => {
-						var index = -1;
-						ret.Add((TReturn)_commonExpression.ReadAnonymous(af.map, dr, ref index, false));
-					}, CommandType.Text, sql, dbParms);
-				} catch (Exception ex) {
-					exception = ex;
-					throw ex;
-				} finally {
-					var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-					_orm.Aop.CurdAfter?.Invoke(this, after);
-				}
-				_orm.Aop.ToList?.Invoke(this, new Aop.ToListEventArgs(ret));
-				_trackToList?.Invoke(ret);
-				return ret;
-			});
+			var type = typeof(TReturn);
+			var dbParms = _params.ToArray();
+			var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, Aop.CurdType.Select, sql, dbParms);
+			_orm.Aop.CurdBefore?.Invoke(this, before);
+			var ret = new List<TReturn>();
+			Exception exception = null;
+			try {
+				_orm.Ado.ExecuteReader(_connection, _transaction, dr => {
+					var index = -1;
+					ret.Add((TReturn)_commonExpression.ReadAnonymous(af.map, dr, ref index, false));
+				}, CommandType.Text, sql, dbParms);
+			} catch (Exception ex) {
+				exception = ex;
+				throw ex;
+			} finally {
+				var after = new Aop.CurdAfterEventArgs(before, exception, ret);
+				_orm.Aop.CurdAfter?.Invoke(this, after);
+			}
+			_orm.Aop.ToList?.Invoke(this, new Aop.ToListEventArgs(ret));
+			_trackToList?.Invoke(ret);
+			return ret;
 		}
 		async protected Task<List<TReturn>> ToListMapReaderAsync<TReturn>((ReadAnonymousTypeInfo map, string field) af) {
 			var sql = this.ToSql(af.field);
-			if (_cache.seconds > 0 && string.IsNullOrEmpty(_cache.key)) _cache.key = $"{sql}{string.Join("|", _params.Select(a => a.Value))}";
-
-			return await _orm.Cache.ShellAsync(_cache.key, _cache.seconds, async () => {
-				var type = typeof(TReturn);
-				var dbParms = _params.ToArray();
-				var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, Aop.CurdType.Select, sql, dbParms);
-				_orm.Aop.CurdBefore?.Invoke(this, before);
-				var ret = new List<TReturn>();
-				Exception exception = null;
-				try {
-					await _orm.Ado.ExecuteReaderAsync(_connection, _transaction, dr => {
-						var index = -1;
-						ret.Add((TReturn)_commonExpression.ReadAnonymous(af.map, dr, ref index, false));
-						return Task.CompletedTask;
-					}, CommandType.Text, sql, dbParms);
-				} catch (Exception ex) {
-					exception = ex;
-					throw ex;
-				} finally {
-					var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-					_orm.Aop.CurdAfter?.Invoke(this, after);
-				}
-				_orm.Aop.ToList?.Invoke(this, new Aop.ToListEventArgs(ret));
-				_trackToList?.Invoke(ret);
-				return ret;
-			});
+			var type = typeof(TReturn);
+			var dbParms = _params.ToArray();
+			var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, Aop.CurdType.Select, sql, dbParms);
+			_orm.Aop.CurdBefore?.Invoke(this, before);
+			var ret = new List<TReturn>();
+			Exception exception = null;
+			try {
+				await _orm.Ado.ExecuteReaderAsync(_connection, _transaction, dr => {
+					var index = -1;
+					ret.Add((TReturn)_commonExpression.ReadAnonymous(af.map, dr, ref index, false));
+					return Task.CompletedTask;
+				}, CommandType.Text, sql, dbParms);
+			} catch (Exception ex) {
+				exception = ex;
+				throw ex;
+			} finally {
+				var after = new Aop.CurdAfterEventArgs(before, exception, ret);
+				_orm.Aop.CurdAfter?.Invoke(this, after);
+			}
+			_orm.Aop.ToList?.Invoke(this, new Aop.ToListEventArgs(ret));
+			_trackToList?.Invoke(ret);
+			return ret;
 		}
 		protected (ReadAnonymousTypeInfo map, string field) GetExpressionField(Expression newexp) {
 			var map = new ReadAnonymousTypeInfo();

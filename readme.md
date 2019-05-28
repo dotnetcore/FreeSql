@@ -2,14 +2,6 @@ FreeSql 是一个功能强大的 .NETStandard 库，用于对象关系映射程�
 
 据了解，用户使用很少问问题，编码过程中，因业务阻塞，情有可原；因框架使用问题阻塞，得不偿失。我们的口号：做 .net 最方便的 ORM！愿每一位开发者嘴角上扬😏！
 
-| Package Name |  NuGet | Downloads |
-|--------------|  ------- |  ---- |
-| FreeSql | [![nuget](https://img.shields.io/nuget/v/FreeSql.svg?style=flat-square)](https://www.nuget.org/packages/FreeSql) | [![stats](https://img.shields.io/nuget/dt/FreeSql.svg?style=flat-square)](https://www.nuget.org/stats/packages/FreeSql?groupby=Version) |
-| [FreeSql.Repository](https://github.com/2881099/FreeSql/wiki/Repository) | [![nuget](https://img.shields.io/nuget/v/FreeSql.Repository.svg?style=flat-square)](https://www.nuget.org/packages/FreeSql.Repository) | [![stats](https://img.shields.io/nuget/dt/FreeSql.Repository.svg?style=flat-square)](https://www.nuget.org/stats/packages/FreeSql.Repository?groupby=Version) |
-| [FreeSql.DbContext](https://github.com/2881099/FreeSql.DbContext) | [![nuget](https://img.shields.io/nuget/v/FreeSql.DbContext.svg?style=flat-square)](https://www.nuget.org/packages/FreeSql.DbContext) | [![stats](https://img.shields.io/nuget/dt/FreeSql.DbContext.svg?style=flat-square)](https://www.nuget.org/stats/packages/FreeSql.DbContext?groupby=Version) |
-| [FreeSql.AdminLTE](https://github.com/2881099/FreeSql.AdminLTE) | [![nuget](https://img.shields.io/nuget/v/FreeSql.AdminLTE.svg?style=flat-square)](https://www.nuget.org/packages/FreeSql.AdminLTE) | [![stats](https://img.shields.io/nuget/dt/FreeSql.AdminLTE.svg?style=flat-square)](https://www.nuget.org/stats/packages/FreeSql.AdminLTE?groupby=Version) |
-| [FreeSql.Connection.Extensions](https://github.com/2881099/FreeSql.Connection.Extensions) | [![nuget](https://img.shields.io/nuget/v/FreeSql.Connection.Extensions.svg?style=flat-square)](https://www.nuget.org/packages/FreeSql.Connection.Extensions) | [![stats](https://img.shields.io/nuget/dt/FreeSql.Connection.Extensions.svg?style=flat-square)](https://www.nuget.org/stats/packages/FreeSql.Connection.Extensions?groupby=Version) |
-
 # Features
 
 - [x] 支持 CodeFirst 迁移；
@@ -29,9 +21,31 @@ FreeSql 是一个功能强大的 .NETStandard 库，用于对象关系映射程�
 | ![image](https://user-images.githubusercontent.com/16286519/55138263-06921480-516e-11e9-8da9-81f18a18b694.png) | [《Repository》](https://github.com/2881099/FreeSql/wiki/Repository) \| [《UnitOfWork》](https://github.com/2881099/FreeSql/wiki/%e5%b7%a5%e4%bd%9c%e5%8d%95%e5%85%83) \| [《过滤器》](https://github.com/2881099/FreeSql/wiki/%e8%bf%87%e6%bb%a4%e5%99%a8) \| [《乐观锁》](https://github.com/2881099/FreeSql/wiki/%e4%bf%ae%e6%94%b9) \| [《DbContext》](https://github.com/2881099/FreeSql/wiki/DbContext) |
 | ![image](https://user-images.githubusercontent.com/16286519/55138284-0eea4f80-516e-11e9-8764-29264807f402.png) | [《读写分离》](https://github.com/2881099/FreeSql/wiki/%e8%af%bb%e5%86%99%e5%88%86%e7%a6%bb) \| [《分区分表》](https://github.com/2881099/FreeSql/wiki/%e5%88%86%e5%8c%ba%e5%88%86%e8%a1%a8) \| [《租户》](https://github.com/2881099/FreeSql/wiki/%e7%a7%9f%e6%88%b7) \| [《AOP》](https://github.com/2881099/FreeSql/wiki/AOP) \| [*更新日志*](https://github.com/2881099/FreeSql/wiki/%e6%9b%b4%e6%96%b0%e6%97%a5%e5%bf%97) |
 
+# Packages
+
+| Package Name |  NuGet | Downloads |
+|--------------|  ------- |  ---- |
+| FreeSql | [![nuget](https://img.shields.io/nuget/v/FreeSql.svg?style=flat-square)](https://www.nuget.org/packages/FreeSql) | [![stats](https://img.shields.io/nuget/dt/FreeSql.svg?style=flat-square)](https://www.nuget.org/stats/packages/FreeSql?groupby=Version) |
+| [FreeSql.Repository](https://github.com/2881099/FreeSql/wiki/Repository) | [![nuget](https://img.shields.io/nuget/v/FreeSql.Repository.svg?style=flat-square)](https://www.nuget.org/packages/FreeSql.Repository) | [![stats](https://img.shields.io/nuget/dt/FreeSql.Repository.svg?style=flat-square)](https://www.nuget.org/stats/packages/FreeSql.Repository?groupby=Version) |
+| [FreeSql.DbContext](https://github.com/2881099/FreeSql.DbContext) | [![nuget](https://img.shields.io/nuget/v/FreeSql.DbContext.svg?style=flat-square)](https://www.nuget.org/packages/FreeSql.DbContext) | [![stats](https://img.shields.io/nuget/dt/FreeSql.DbContext.svg?style=flat-square)](https://www.nuget.org/stats/packages/FreeSql.DbContext?groupby=Version) |
+| [FreeSql.AdminLTE](https://github.com/2881099/FreeSql.AdminLTE) | [![nuget](https://img.shields.io/nuget/v/FreeSql.AdminLTE.svg?style=flat-square)](https://www.nuget.org/packages/FreeSql.AdminLTE) | [![stats](https://img.shields.io/nuget/dt/FreeSql.AdminLTE.svg?style=flat-square)](https://www.nuget.org/stats/packages/FreeSql.AdminLTE?groupby=Version) |
+| [FreeSql.Connection.Extensions](https://github.com/2881099/FreeSql.Connection.Extensions) | [![nuget](https://img.shields.io/nuget/v/FreeSql.Connection.Extensions.svg?style=flat-square)](https://www.nuget.org/packages/FreeSql.Connection.Extensions) | [![stats](https://img.shields.io/nuget/dt/FreeSql.Connection.Extensions.svg?style=flat-square)](https://www.nuget.org/stats/packages/FreeSql.Connection.Extensions?groupby=Version) |
+
+# Providers
+
+| Package Name |  NuGet | Downloads |
+|--------------|  ------- |  ---- |
+| FreeSql.Provider.MySql | [![nuget](https://img.shields.io/nuget/v/FreeSql.Provider.MySql.svg?style=flat-square)](https://www.nuget.org/packages/FreeSql.Provider.MySql) | [![stats](https://img.shields.io/nuget/dt/FreeSql.Provider.MySql.svg?style=flat-square)](https://www.nuget.org/stats/packages/FreeSql.Provider.MySql?groupby=Version) |
+| FreeSql.Provider.PostgreSQL | [![nuget](https://img.shields.io/nuget/v/FreeSql.Provider.PostgreSQL.svg?style=flat-square)](https://www.nuget.org/packages/FreeSql.Provider.PostgreSQL) | [![stats](https://img.shields.io/nuget/dt/FreeSql.Provider.PostgreSQL.svg?style=flat-square)](https://www.nuget.org/stats/packages/FreeSql.Provider.PostgreSQL?groupby=Version) |
+| FreeSql.Provider.SqlServer | [![nuget](https://img.shields.io/nuget/v/FreeSql.Provider.SqlServer.svg?style=flat-square)](https://www.nuget.org/packages/FreeSql.Provider.SqlServer) | [![stats](https://img.shields.io/nuget/dt/FreeSql.Provider.SqlServer.svg?style=flat-square)](https://www.nuget.org/stats/packages/FreeSql.Provider.SqlServer?groupby=Version) |
+| FreeSql.Provider.Sqlite | [![nuget](https://img.shields.io/nuget/v/FreeSql.Provider.Sqlite.svg?style=flat-square)](https://www.nuget.org/packages/FreeSql.Provider.Sqlite) | [![stats](https://img.shields.io/nuget/dt/FreeSql.Provider.MySqliteSql.svg?style=flat-square)](https://www.nuget.org/stats/packages/FreeSql.Provider.Sqlite?groupby=Version) |
+| FreeSql.Provider.Oracle | [![nuget](https://img.shields.io/nuget/v/FreeSql.Provider.Oracle.svg?style=flat-square)](https://www.nuget.org/packages/FreeSql.Provider.Oracle) | [![stats](https://img.shields.io/nuget/dt/FreeSql.Provider.Oracle.svg?style=flat-square)](https://www.nuget.org/stats/packages/FreeSql.Provider.Oracle?groupby=Version) |
+| FreeSql.Extensions.LazyLoading | [![nuget](https://img.shields.io/nuget/v/FreeSql.Extensions.LazyLoading.svg?style=flat-square)](https://www.nuget.org/packages/FreeSql.Extensions.LazyLoading) | [![stats](https://img.shields.io/nuget/dt/FreeSql.Extensions.LazyLoading.svg?style=flat-square)](https://www.nuget.org/stats/packages/FreeSql.Extensions.LazyLoading?groupby=Version) |
+
 # Quick start
 
 > dotnet add package FreeSql
+> dotnet add package FreeSql.Provider.Sqlite
 
 ```csharp
 IFreeSql fsql = new FreeSql.FreeSqlBuilder()

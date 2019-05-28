@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace FreeSql.Internal.CommonProvider {
 
-	abstract partial class InsertProvider<T1> : IInsert<T1> where T1 : class {
+	public abstract partial class InsertProvider<T1> : IInsert<T1> where T1 : class {
 		protected IFreeSql _orm;
 		protected CommonUtils _commonUtils;
 		protected CommonExpression _commonExpression;
@@ -69,7 +69,7 @@ namespace FreeSql.Internal.CommonProvider {
 		}
 
 		#region 参数化数据限制，或values数量限制
-		internal List<T1>[] SplitSource(int valuesLimit, int parameterLimit) {
+		protected List<T1>[] SplitSource(int valuesLimit, int parameterLimit) {
 			valuesLimit = valuesLimit - 1;
 			parameterLimit = parameterLimit - 1;
 			if (_source == null || _source.Any() == false) return new List<T1>[0];
@@ -101,7 +101,7 @@ namespace FreeSql.Internal.CommonProvider {
 				return ret;
 			}
 		}
-		internal int SplitExecuteAffrows(int valuesLimit, int parameterLimit) {
+		protected int SplitExecuteAffrows(int valuesLimit, int parameterLimit) {
 			var ss = SplitSource(valuesLimit, parameterLimit);
 			var ret = 0;
 			if (ss.Any() == false) {
@@ -137,7 +137,7 @@ namespace FreeSql.Internal.CommonProvider {
 			ClearData();
 			return ret;
 		}
-		async internal Task<int> SplitExecuteAffrowsAsync(int valuesLimit, int parameterLimit) {
+		async protected Task<int> SplitExecuteAffrowsAsync(int valuesLimit, int parameterLimit) {
 			var ss = SplitSource(valuesLimit, parameterLimit);
 			var ret = 0;
 			if (ss.Any() == false) {
@@ -173,7 +173,7 @@ namespace FreeSql.Internal.CommonProvider {
 			ClearData();
 			return ret;
 		}
-		internal long SplitExecuteIdentity(int valuesLimit, int parameterLimit) {
+		protected long SplitExecuteIdentity(int valuesLimit, int parameterLimit) {
 			var ss = SplitSource(valuesLimit, parameterLimit);
 			long ret = 0;
 			if (ss.Any() == false) {
@@ -211,7 +211,7 @@ namespace FreeSql.Internal.CommonProvider {
 			ClearData();
 			return ret;
 		}
-		async internal Task<long> SplitExecuteIdentityAsync(int valuesLimit, int parameterLimit) {
+		async protected Task<long> SplitExecuteIdentityAsync(int valuesLimit, int parameterLimit) {
 			var ss = SplitSource(valuesLimit, parameterLimit);
 			long ret = 0;
 			if (ss.Any() == false) {
@@ -249,7 +249,7 @@ namespace FreeSql.Internal.CommonProvider {
 			ClearData();
 			return ret;
 		}
-		internal List<T1> SplitExecuteInserted(int valuesLimit, int parameterLimit) {
+		protected List<T1> SplitExecuteInserted(int valuesLimit, int parameterLimit) {
 			var ss = SplitSource(valuesLimit, parameterLimit);
 			var ret = new List<T1>();
 			if (ss.Any() == false) {
@@ -285,7 +285,7 @@ namespace FreeSql.Internal.CommonProvider {
 			ClearData();
 			return ret;
 		}
-		async internal Task<List<T1>> SplitExecuteInsertedAsync(int valuesLimit, int parameterLimit) {
+		async protected Task<List<T1>> SplitExecuteInsertedAsync(int valuesLimit, int parameterLimit) {
 			var ss = SplitSource(valuesLimit, parameterLimit);
 			var ret = new List<T1>();
 			if (ss.Any() == false) {
@@ -323,7 +323,7 @@ namespace FreeSql.Internal.CommonProvider {
 		}
 		#endregion
 
-		internal int RawExecuteAffrows() {
+		protected int RawExecuteAffrows() {
 			var sql = ToSql();
 			var before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Insert, sql, _params);
 			_orm.Aop.CurdBefore?.Invoke(this, before);
@@ -341,7 +341,7 @@ namespace FreeSql.Internal.CommonProvider {
 			this.ClearData();
 			return affrows;
 		}
-		async internal Task<int> RawExecuteAffrowsAsync() {
+		async protected Task<int> RawExecuteAffrowsAsync() {
 			var sql = ToSql();
 			var before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Insert, sql, _params);
 			_orm.Aop.CurdBefore?.Invoke(this, before);
@@ -359,10 +359,10 @@ namespace FreeSql.Internal.CommonProvider {
 			this.ClearData();
 			return affrows;
 		}
-		internal abstract long RawExecuteIdentity();
-		internal abstract Task<long> RawExecuteIdentityAsync();
-		internal abstract List<T1> RawExecuteInserted();
-		internal abstract Task<List<T1>> RawExecuteInsertedAsync();
+		protected abstract long RawExecuteIdentity();
+		protected abstract Task<long> RawExecuteIdentityAsync();
+		protected abstract List<T1> RawExecuteInserted();
+		protected abstract Task<List<T1>> RawExecuteInsertedAsync();
 
 		public abstract int ExecuteAffrows();
 		public abstract Task<int> ExecuteAffrowsAsync();

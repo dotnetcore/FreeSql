@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace FreeSql.Internal.CommonProvider {
 
-	abstract partial class UpdateProvider<T1> : IUpdate<T1> where T1 : class {
+	public abstract partial class UpdateProvider<T1> : IUpdate<T1> where T1 : class {
 		protected IFreeSql _orm;
 		protected CommonUtils _commonUtils;
 		protected CommonExpression _commonExpression;
@@ -106,7 +106,7 @@ namespace FreeSql.Internal.CommonProvider {
 				return ret;
 			}
 		}
-		internal int SplitExecuteAffrows(int valuesLimit, int parameterLimit) {
+		protected int SplitExecuteAffrows(int valuesLimit, int parameterLimit) {
 			var ss = SplitSource(valuesLimit, parameterLimit);
 			var ret = 0;
 			if (ss.Length <= 1) {
@@ -138,7 +138,7 @@ namespace FreeSql.Internal.CommonProvider {
 			ClearData();
 			return ret;
 		}
-		async internal Task<int> SplitExecuteAffrowsAsync(int valuesLimit, int parameterLimit) {
+		async protected Task<int> SplitExecuteAffrowsAsync(int valuesLimit, int parameterLimit) {
 			var ss = SplitSource(valuesLimit, parameterLimit);
 			var ret = 0;
 			if (ss.Length <= 1) {
@@ -170,7 +170,7 @@ namespace FreeSql.Internal.CommonProvider {
 			ClearData();
 			return ret;
 		}
-		internal List<T1> SplitExecuteUpdated(int valuesLimit, int parameterLimit) {
+		protected List<T1> SplitExecuteUpdated(int valuesLimit, int parameterLimit) {
 			var ss = SplitSource(valuesLimit, parameterLimit);
 			var ret = new List<T1>();
 			if (ss.Length <= 1) {
@@ -202,7 +202,7 @@ namespace FreeSql.Internal.CommonProvider {
 			ClearData();
 			return ret;
 		}
-		async internal Task<List<T1>> SplitExecuteUpdatedAsync(int valuesLimit, int parameterLimit) {
+		async protected Task<List<T1>> SplitExecuteUpdatedAsync(int valuesLimit, int parameterLimit) {
 			var ss = SplitSource(valuesLimit, parameterLimit);
 			var ret = new List<T1>();
 			if (ss.Length <= 1) {
@@ -236,7 +236,7 @@ namespace FreeSql.Internal.CommonProvider {
 		}
 		#endregion
 
-		internal int RawExecuteAffrows() {
+		protected int RawExecuteAffrows() {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return 0;
 			var dbParms = _params.Concat(_paramsSource).ToArray();
@@ -257,7 +257,7 @@ namespace FreeSql.Internal.CommonProvider {
 			this.ClearData();
 			return affrows;
 		}
-		async internal Task<int> RawExecuteAffrowsAsync() {
+		async protected Task<int> RawExecuteAffrowsAsync() {
 			var sql = this.ToSql();
 			if (string.IsNullOrEmpty(sql)) return 0;
 			var dbParms = _params.Concat(_paramsSource).ToArray();
@@ -278,8 +278,8 @@ namespace FreeSql.Internal.CommonProvider {
 			this.ClearData();
 			return affrows;
 		}
-		internal abstract List<T1> RawExecuteUpdated();
-		internal abstract Task<List<T1>> RawExecuteUpdatedAsync();
+		protected abstract List<T1> RawExecuteUpdated();
+		protected abstract Task<List<T1>> RawExecuteUpdatedAsync();
 
 		public abstract int ExecuteAffrows();
 		public abstract Task<int> ExecuteAffrowsAsync();

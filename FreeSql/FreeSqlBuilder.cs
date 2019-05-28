@@ -1,12 +1,8 @@
-﻿using Microsoft.Extensions.Caching.Distributed;
-using Microsoft.Extensions.Logging;
-using System;
+﻿using System;
 using System.Data.Common;
 
 namespace FreeSql {
 	public class FreeSqlBuilder {
-		IDistributedCache _cache;
-		ILogger _logger;
 		DataType _dataType;
 		string _masterConnectionString;
 		string[] _slaveConnectionString;
@@ -19,25 +15,6 @@ namespace FreeSql {
 		Action<DbCommand> _aopCommandExecuting = null;
 		Action<DbCommand, string> _aopCommandExecuted = null;
 
-		/// <summary>
-		/// 使用缓存，不指定默认使用内存
-		/// </summary>
-		/// <param name="cache">缓存实现</param>
-		/// <returns></returns>
-		public FreeSqlBuilder UseCache(IDistributedCache cache) {
-			_cache = cache;
-			return this;
-		}
-
-		/// <summary>
-		/// 使用日志，不指定默认输出控制台
-		/// </summary>
-		/// <param name="logger"></param>
-		/// <returns></returns>
-		public FreeSqlBuilder UseLogger(ILogger logger) {
-			_logger = logger;
-			return this;
-		}
 		/// <summary>
 		/// 使用连接串
 		/// </summary>
@@ -127,14 +104,27 @@ namespace FreeSql {
 		public IFreeSql Build() => Build<IFreeSql>();
 		public IFreeSql<TMark> Build<TMark>() {
 			IFreeSql<TMark> ret = null;
+			Type type = null;
 			switch(_dataType) {
-				case DataType.MySql: ret = new MySql.MySqlProvider<TMark>(_cache, _logger, _masterConnectionString, _slaveConnectionString); break;
-				case DataType.SqlServer: ret = new SqlServer.SqlServerProvider<TMark>(_cache, _logger, _masterConnectionString, _slaveConnectionString); break;
-				case DataType.PostgreSQL: ret = new PostgreSQL.PostgreSQLProvider<TMark>(_cache, _logger, _masterConnectionString, _slaveConnectionString); break;
-				case DataType.Oracle: ret = new Oracle.OracleProvider<TMark>(_cache, _logger, _masterConnectionString, _slaveConnectionString); break;
-				case DataType.Sqlite: ret = new Sqlite.SqliteProvider<TMark>(_cache, _logger, _masterConnectionString, _slaveConnectionString); break;
+				case DataType.MySql:
+					type = Type.GetType("FreeSql.MySql.MySqlProvider`1,FreeSql.Provider.MySql")?.MakeGenericType(typeof(TMark));
+					if (type == null) throw new Exception("缺少 FreeSql 数据库实现包：FreeSql.Provider.MySql.dll，可前往 nuget 下载");
+					break;
+				case DataType.SqlServer: type = Type.GetType("FreeSql.SqlServer.SqlServerProvider`1,FreeSql.Provider.SqlServer")?.MakeGenericType(typeof(TMark));
+					if (type == null) throw new Exception("缺少 FreeSql 数据库实现包：FreeSql.Provider.SqlServer.dll，可前往 nuget 下载");
+					break;
+				case DataType.PostgreSQL: type = Type.GetType("FreeSql.PostgreSQL.PostgreSQLProvider`1,FreeSql.Provider.PostgreSQL")?.MakeGenericType(typeof(TMark));
+					if (type == null) throw new Exception("缺少 FreeSql 数据库实现包：FreeSql.Provider.PostgreSQL.dll，可前往 nuget 下载");
+					break;
+				case DataType.Oracle: type = Type.GetType("FreeSql.Oracle.OracleProvider`1,FreeSql.Provider.Oracle")?.MakeGenericType(typeof(TMark));
+					if (type == null) throw new Exception("缺少 FreeSql 数据库实现包：FreeSql.Provider.Oracle.dll，可前往 nuget 下载");
+					break;
+				case DataType.Sqlite: type = Type.GetType("FreeSql.Sqlite.SqliteProvider`1,FreeSql.Provider.Sqlite")?.MakeGenericType(typeof(TMark));
+					if (type == null) throw new Exception("缺少 FreeSql 数据库实现包：FreeSql.Provider.Sqlite.dll，可前往 nuget 下载");
+					break;
 				default: throw new Exception("未指定 UseConnectionString");
 			}
+			ret = Activator.CreateInstance(type, new object[] { _masterConnectionString, _slaveConnectionString }) as IFreeSql<TMark>;
 			if (ret != null) {
 				ret.CodeFirst.IsAutoSyncStructure = _isAutoSyncStructure;
 				
