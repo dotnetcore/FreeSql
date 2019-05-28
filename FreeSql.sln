@@ -40,10 +40,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Extensions", "Extensions", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreeSql.Extensions.LazyLoading", "Extensions\FreeSql.Extensions.LazyLoading\FreeSql.Extensions.LazyLoading.csproj", "{1FE00D5E-EC0F-4238-93EC-DABA26DBD1A9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.DbContext", "..\FreeSql.DbContext\FreeSql.DbContext\FreeSql.DbContext.csproj", "{84BA8C1A-A432-4D03-A2FA-127B8776C872}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Repository", "..\FreeSql.DbContext\FreeSql.Repository\FreeSql.Repository.csproj", "{8B92F97B-02FC-4FA0-8FA5-F494CAF15336}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -210,30 +206,6 @@ Global
 		{1FE00D5E-EC0F-4238-93EC-DABA26DBD1A9}.Release|x64.Build.0 = Release|Any CPU
 		{1FE00D5E-EC0F-4238-93EC-DABA26DBD1A9}.Release|x86.ActiveCfg = Release|Any CPU
 		{1FE00D5E-EC0F-4238-93EC-DABA26DBD1A9}.Release|x86.Build.0 = Release|Any CPU
-		{84BA8C1A-A432-4D03-A2FA-127B8776C872}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{84BA8C1A-A432-4D03-A2FA-127B8776C872}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{84BA8C1A-A432-4D03-A2FA-127B8776C872}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{84BA8C1A-A432-4D03-A2FA-127B8776C872}.Debug|x64.Build.0 = Debug|Any CPU
-		{84BA8C1A-A432-4D03-A2FA-127B8776C872}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{84BA8C1A-A432-4D03-A2FA-127B8776C872}.Debug|x86.Build.0 = Debug|Any CPU
-		{84BA8C1A-A432-4D03-A2FA-127B8776C872}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{84BA8C1A-A432-4D03-A2FA-127B8776C872}.Release|Any CPU.Build.0 = Release|Any CPU
-		{84BA8C1A-A432-4D03-A2FA-127B8776C872}.Release|x64.ActiveCfg = Release|Any CPU
-		{84BA8C1A-A432-4D03-A2FA-127B8776C872}.Release|x64.Build.0 = Release|Any CPU
-		{84BA8C1A-A432-4D03-A2FA-127B8776C872}.Release|x86.ActiveCfg = Release|Any CPU
-		{84BA8C1A-A432-4D03-A2FA-127B8776C872}.Release|x86.Build.0 = Release|Any CPU
-		{8B92F97B-02FC-4FA0-8FA5-F494CAF15336}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8B92F97B-02FC-4FA0-8FA5-F494CAF15336}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8B92F97B-02FC-4FA0-8FA5-F494CAF15336}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{8B92F97B-02FC-4FA0-8FA5-F494CAF15336}.Debug|x64.Build.0 = Debug|Any CPU
-		{8B92F97B-02FC-4FA0-8FA5-F494CAF15336}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{8B92F97B-02FC-4FA0-8FA5-F494CAF15336}.Debug|x86.Build.0 = Debug|Any CPU
-		{8B92F97B-02FC-4FA0-8FA5-F494CAF15336}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8B92F97B-02FC-4FA0-8FA5-F494CAF15336}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8B92F97B-02FC-4FA0-8FA5-F494CAF15336}.Release|x64.ActiveCfg = Release|Any CPU
-		{8B92F97B-02FC-4FA0-8FA5-F494CAF15336}.Release|x64.Build.0 = Release|Any CPU
-		{8B92F97B-02FC-4FA0-8FA5-F494CAF15336}.Release|x86.ActiveCfg = Release|Any CPU
-		{8B92F97B-02FC-4FA0-8FA5-F494CAF15336}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
