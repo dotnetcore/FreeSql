@@ -44,7 +44,6 @@ FreeSql 是一个功能强大的 .NETStandard 库，用于对象关系映射程�
 
 # Quick start
 
-> dotnet add package FreeSql
 > dotnet add package FreeSql.Provider.Sqlite
 
 ```csharp
