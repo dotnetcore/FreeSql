@@ -83,7 +83,12 @@ namespace FreeSql.Internal {
 					};
 				if (colattr._IsNullable == null) colattr._IsNullable = tp?.isnullable;
 				if (string.IsNullOrEmpty(colattr.DbType)) colattr.DbType = tp?.dbtypeFull ?? "varchar(255)";
-				colattr.DbType = colattr.DbType.ToUpper();
+				if (colattr.DbType.StartsWith("set(") || colattr.DbType.StartsWith("enum(")) {
+					var leftBt = colattr.DbType.IndexOf('(');
+					colattr.DbType = colattr.DbType.Substring(0, leftBt).ToUpper() + colattr.DbType.Substring(leftBt);
+				}
+				else
+					colattr.DbType = colattr.DbType.ToUpper();
 
 				if (tp != null && tp.Value.isnullable == null) colattr.IsNullable = tp.Value.dbtypeFull.Contains("NOT NULL") == false;
 				if (colattr.DbType?.Contains("NOT NULL") == true) colattr.IsNullable = false;
@@ -1164,7 +1169,14 @@ namespace FreeSql.Internal {
 				}
 				var typeOrg = type;
 				if (type.IsNullableType()) type = type.GenericTypeArguments.First();
-				if (type.IsEnum) return Expression.Return(returnTarget, Expression.Call(MethodEnumParse, Expression.Constant(type, typeof(Type)), Expression.Call(MethodToString, valueExp), Expression.Constant(true, typeof(bool))));
+				if (type.IsEnum)
+					return Expression.Block(
+						Expression.IfThenElse(
+							Expression.Equal(Expression.TypeAs(valueExp, typeof(string)), Expression.Constant(string.Empty)),
+							Expression.Return(returnTarget, Expression.Convert(Expression.Default(type), typeof(object))),
+							Expression.Return(returnTarget, Expression.Call(MethodEnumParse, Expression.Constant(type, typeof(Type)), Expression.Call(MethodToString, valueExp), Expression.Constant(true, typeof(bool))))
+						)
+					);
 				Expression tryparseExp = null;
 				Expression tryparseBooleanExp = null;
 				ParameterExpression tryparseVarExp = null;

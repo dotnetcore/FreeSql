@@ -285,7 +285,7 @@ namespace FreeSql.Internal.CommonProvider {
 				await _orm.Ado.ExecuteReaderAsync(_connection, _transaction, dr => {
 					var read = Utils.ExecuteArrayRowReadClassOrTuple(flagStr, type, null, dr, 0, _commonUtils);
 					ret.Add((TTuple)read.Value);
-					return Task.CompletedTask;
+					return Task.FromResult(false);
 				}, CommandType.Text, sql, dbParms);
 			} catch (Exception ex) {
 				exception = ex;
@@ -337,7 +337,7 @@ namespace FreeSql.Internal.CommonProvider {
 						foreach (var other in otherData)
 							other.retlist.Add(_commonExpression.ReadAnonymous(other.read, dr, ref idx, false));
 					}
-					return Task.CompletedTask;
+					return Task.FromResult(false);
 				}, CommandType.Text, sql, dbParms);
 			} catch (Exception ex) {
 				exception = ex;
@@ -431,7 +431,7 @@ namespace FreeSql.Internal.CommonProvider {
 				await _orm.Ado.ExecuteReaderAsync(_connection, _transaction, dr => {
 					var index = -1;
 					ret.Add((TReturn)_commonExpression.ReadAnonymous(af.map, dr, ref index, false));
-					return Task.CompletedTask;
+					return Task.FromResult(false);
 				}, CommandType.Text, sql, dbParms);
 			} catch (Exception ex) {
 				exception = ex;

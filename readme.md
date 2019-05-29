@@ -31,16 +31,21 @@ FreeSql 是一个功能强大的 .NETStandard 库，用于对象关系映射程�
 | [FreeSql.AdminLTE](https://github.com/2881099/FreeSql.AdminLTE) | [![nuget](https://img.shields.io/nuget/v/FreeSql.AdminLTE.svg?style=flat-square)](https://www.nuget.org/packages/FreeSql.AdminLTE) | [![stats](https://img.shields.io/nuget/dt/FreeSql.AdminLTE.svg?style=flat-square)](https://www.nuget.org/stats/packages/FreeSql.AdminLTE?groupby=Version) |
 | [FreeSql.Connection.Extensions](https://github.com/2881099/FreeSql.Connection.Extensions) | [![nuget](https://img.shields.io/nuget/v/FreeSql.Connection.Extensions.svg?style=flat-square)](https://www.nuget.org/packages/FreeSql.Connection.Extensions) | [![stats](https://img.shields.io/nuget/dt/FreeSql.Connection.Extensions.svg?style=flat-square)](https://www.nuget.org/stats/packages/FreeSql.Connection.Extensions?groupby=Version) |
 
+- FreeSql 是核心，提供原始用法；
+- FreeSql.DbContext 是扩展包，提供面向对象的用法（像EF）；
+- FreeSql.Repository 也是扩展包，提供仓储+工作单元用法；
+- FreeSql.Connection.Extensions 也是扩展包，提供像 Dapper 一样的用法；
+
 # Providers
 
-| Package Name |  NuGet | Downloads |
-|--------------|  ------- |  ---- |
-| FreeSql.Provider.MySql | [![nuget](https://img.shields.io/nuget/v/FreeSql.Provider.MySql.svg?style=flat-square)](https://www.nuget.org/packages/FreeSql.Provider.MySql) | [![stats](https://img.shields.io/nuget/dt/FreeSql.Provider.MySql.svg?style=flat-square)](https://www.nuget.org/stats/packages/FreeSql.Provider.MySql?groupby=Version) |
-| FreeSql.Provider.PostgreSQL | [![nuget](https://img.shields.io/nuget/v/FreeSql.Provider.PostgreSQL.svg?style=flat-square)](https://www.nuget.org/packages/FreeSql.Provider.PostgreSQL) | [![stats](https://img.shields.io/nuget/dt/FreeSql.Provider.PostgreSQL.svg?style=flat-square)](https://www.nuget.org/stats/packages/FreeSql.Provider.PostgreSQL?groupby=Version) |
-| FreeSql.Provider.SqlServer | [![nuget](https://img.shields.io/nuget/v/FreeSql.Provider.SqlServer.svg?style=flat-square)](https://www.nuget.org/packages/FreeSql.Provider.SqlServer) | [![stats](https://img.shields.io/nuget/dt/FreeSql.Provider.SqlServer.svg?style=flat-square)](https://www.nuget.org/stats/packages/FreeSql.Provider.SqlServer?groupby=Version) |
-| FreeSql.Provider.Sqlite | [![nuget](https://img.shields.io/nuget/v/FreeSql.Provider.Sqlite.svg?style=flat-square)](https://www.nuget.org/packages/FreeSql.Provider.Sqlite) | [![stats](https://img.shields.io/nuget/dt/FreeSql.Provider.MySqliteSql.svg?style=flat-square)](https://www.nuget.org/stats/packages/FreeSql.Provider.Sqlite?groupby=Version) |
-| FreeSql.Provider.Oracle | [![nuget](https://img.shields.io/nuget/v/FreeSql.Provider.Oracle.svg?style=flat-square)](https://www.nuget.org/packages/FreeSql.Provider.Oracle) | [![stats](https://img.shields.io/nuget/dt/FreeSql.Provider.Oracle.svg?style=flat-square)](https://www.nuget.org/stats/packages/FreeSql.Provider.Oracle?groupby=Version) |
-| FreeSql.Extensions.LazyLoading | [![nuget](https://img.shields.io/nuget/v/FreeSql.Extensions.LazyLoading.svg?style=flat-square)](https://www.nuget.org/packages/FreeSql.Extensions.LazyLoading) | [![stats](https://img.shields.io/nuget/dt/FreeSql.Extensions.LazyLoading.svg?style=flat-square)](https://www.nuget.org/stats/packages/FreeSql.Extensions.LazyLoading?groupby=Version) |
+| Package Name | Version |
+|--------------|  ------- |
+| FreeSql.Provider.MySql | NETStandard2.0、net452 |
+| FreeSql.Provider.PostgreSQL | NETStandard2.0、net45 |
+| FreeSql.Provider.SqlServer | NETStandard2.0、net451 |
+| FreeSql.Provider.Sqlite | NETStandard2.0、net45 |
+| FreeSql.Provider.Oracle | NETStandard2.0、net45 |
+| FreeSql.Extensions.LazyLoading | NETStandard2.0 |
 
 # Quick start
 
@@ -131,11 +136,6 @@ var t5 = fsql.Select<Song>()
     .ToList();
 ```
 更多前往Wiki：[《表达式函数》](https://github.com/2881099/FreeSql/wiki/%e8%a1%a8%e8%be%be%e5%bc%8f%e5%87%bd%e6%95%b0) 
-
-- IFreeSql 是核心，提供原始用法；
-- FreeSql.DbContext 是扩展包，提供面向对象的用法（像EF）；
-- FreeSql.Repository 也是扩展包，提供仓储+工作单元用法（实际上和 DbContext 是一个扩展包）；
-- FreeSql.Connection.Extensions 也是扩展包，提供像 Dapper 一样的用法；
 
 # Repository & UnitOfWork
 > dotnet add package FreeSql.Repository
