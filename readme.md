@@ -1,4 +1,4 @@
-FreeSql 是一个功能强大的 .NETStandard 库，用于对象关系映射程序(O/RM)，支持 .NETCore 2.1+ 或 .NETFramework 4.6.1+（QQ群：4336577）。
+FreeSql 是一个功能强大的 .NETStandard 库，用于对象关系映射程序(O/RM)，支持 .NETCore 2.1+ 或 .NETFramework 4.5+（QQ群：4336577）。
 
 据了解，用户使用很少问问题，编码过程中，因业务阻塞，情有可原；因框架使用问题阻塞，得不偿失。我们的口号：做 .net 最方便的 ORM！愿每一位开发者嘴角上扬😏！
 
