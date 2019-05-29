@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26124.0
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28922.388
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql", "FreeSql\FreeSql.csproj", "{AF9C50EC-6EB6-494B-9B3B-7EDBA6FD0EBB}"
 EndProject
@@ -30,15 +30,17 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Provider.MySql", "P
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Provider.Oracle", "Providers\FreeSql.Provider.Oracle\FreeSql.Provider.Oracle.csproj", "{3DE45286-B0DB-4D74-B322-F5467FB2EF53}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreeSql.Provider.Sqlite", "Providers\FreeSql.Provider.Sqlite\FreeSql.Provider.Sqlite.csproj", "{559B6369-1868-4A06-A590-F80BA7B80A1B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Provider.Sqlite", "Providers\FreeSql.Provider.Sqlite\FreeSql.Provider.Sqlite.csproj", "{559B6369-1868-4A06-A590-F80BA7B80A1B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreeSql.Provider.SqlServer", "Providers\FreeSql.Provider.SqlServer\FreeSql.Provider.SqlServer.csproj", "{B61AAC9E-59E9-4F47-BBE3-97AC24112EFE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Provider.SqlServer", "Providers\FreeSql.Provider.SqlServer\FreeSql.Provider.SqlServer.csproj", "{B61AAC9E-59E9-4F47-BBE3-97AC24112EFE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreeSql.Provider.PostgreSQL", "Providers\FreeSql.Provider.PostgreSQL\FreeSql.Provider.PostgreSQL.csproj", "{22C0B061-F7CC-4A7F-AEC7-D4DBBE6B23B2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Provider.PostgreSQL", "Providers\FreeSql.Provider.PostgreSQL\FreeSql.Provider.PostgreSQL.csproj", "{22C0B061-F7CC-4A7F-AEC7-D4DBBE6B23B2}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Extensions", "Extensions", "{4A92E8A6-9A6D-41A1-9CDA-DE10899648AA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreeSql.Extensions.LazyLoading", "Extensions\FreeSql.Extensions.LazyLoading\FreeSql.Extensions.LazyLoading.csproj", "{1FE00D5E-EC0F-4238-93EC-DABA26DBD1A9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Extensions.LazyLoading", "Extensions\FreeSql.Extensions.LazyLoading\FreeSql.Extensions.LazyLoading.csproj", "{1FE00D5E-EC0F-4238-93EC-DABA26DBD1A9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreeSql.Provider.MySqlConnector", "Providers\FreeSql.Provider.MySqlConnector\FreeSql.Provider.MySqlConnector.csproj", "{55F56C9E-C28C-4813-917A-2043CB103A40}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -206,6 +208,18 @@ Global
 		{1FE00D5E-EC0F-4238-93EC-DABA26DBD1A9}.Release|x64.Build.0 = Release|Any CPU
 		{1FE00D5E-EC0F-4238-93EC-DABA26DBD1A9}.Release|x86.ActiveCfg = Release|Any CPU
 		{1FE00D5E-EC0F-4238-93EC-DABA26DBD1A9}.Release|x86.Build.0 = Release|Any CPU
+		{55F56C9E-C28C-4813-917A-2043CB103A40}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{55F56C9E-C28C-4813-917A-2043CB103A40}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{55F56C9E-C28C-4813-917A-2043CB103A40}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{55F56C9E-C28C-4813-917A-2043CB103A40}.Debug|x64.Build.0 = Debug|Any CPU
+		{55F56C9E-C28C-4813-917A-2043CB103A40}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{55F56C9E-C28C-4813-917A-2043CB103A40}.Debug|x86.Build.0 = Debug|Any CPU
+		{55F56C9E-C28C-4813-917A-2043CB103A40}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{55F56C9E-C28C-4813-917A-2043CB103A40}.Release|Any CPU.Build.0 = Release|Any CPU
+		{55F56C9E-C28C-4813-917A-2043CB103A40}.Release|x64.ActiveCfg = Release|Any CPU
+		{55F56C9E-C28C-4813-917A-2043CB103A40}.Release|x64.Build.0 = Release|Any CPU
+		{55F56C9E-C28C-4813-917A-2043CB103A40}.Release|x86.ActiveCfg = Release|Any CPU
+		{55F56C9E-C28C-4813-917A-2043CB103A40}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -221,6 +235,7 @@ Global
 		{B61AAC9E-59E9-4F47-BBE3-97AC24112EFE} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
 		{22C0B061-F7CC-4A7F-AEC7-D4DBBE6B23B2} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
 		{1FE00D5E-EC0F-4238-93EC-DABA26DBD1A9} = {4A92E8A6-9A6D-41A1-9CDA-DE10899648AA}
+		{55F56C9E-C28C-4813-917A-2043CB103A40} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {089687FD-5D25-40AB-BA8A-A10D1E137F98}
