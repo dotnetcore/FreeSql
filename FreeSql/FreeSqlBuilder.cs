@@ -103,6 +103,7 @@ namespace FreeSql {
 
 		public IFreeSql Build() => Build<IFreeSql>();
 		public IFreeSql<TMark> Build<TMark>() {
+			if (string.IsNullOrEmpty(_masterConnectionString)) throw new Exception("参数 masterConnectionString 不可为空，请检查 UseConnectionString");
 			IFreeSql<TMark> ret = null;
 			Type type = null;
 			switch(_dataType) {

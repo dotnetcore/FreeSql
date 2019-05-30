@@ -123,8 +123,17 @@ namespace FreeSql.Tests {
 			}
 		}
 
+		public class TestEnum {
+			public Guid id { get; set; }
+			public Enum em { get; set; }
+		}
+
 		[Fact]
 		public void Test1() {
+
+			
+			g.sqlite.Insert(new TestEnum { }).ExecuteAffrows();
+			var telist = g.sqlite.Select<TestEnum>().ToList();
 
 			Assert.Throws<Exception>(() => g.sqlite.CodeFirst.SyncStructure<TestEnumable>());
 
