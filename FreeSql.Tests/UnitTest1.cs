@@ -106,11 +106,16 @@ namespace FreeSql.Tests {
 
 			[Column(IsIdentity = true)]
 			public int id { get; set; }
-			public string title { get; set; }
+			public string Title { get; set; }
 
 			public Model1 Parent { get; set; }
-			public int parent_id { get; set; }
+			public int Parent_id { get; set; }
 
+			public string Ccc { get; set; }
+			public DateTime Date { get; set; }
+
+			[Column(Name = "Waxxx2")]
+			public int Wa_xxx2 { get; set; }
 		}
 
 		public class TestEnumable : IEnumerable<TestEnumable> {
@@ -128,8 +133,107 @@ namespace FreeSql.Tests {
 			public Enum em { get; set; }
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
+		[Table(Name = "news_article")]
+		public class NewsArticle {
+			/// <summary>
+			/// 
+			/// </summary>		
+			[Column(Name = "article_id", IsIdentity = true, IsPrimary = true)]
+			public int ArticleId { get; set; }
+
+			/// <summary>
+			/// 
+			/// </summary>		
+			[Column(Name = "article_title")]
+			public string ArticleTitle { get; set; }
+
+			/// <summary>
+			/// 
+			/// </summary>		
+			[Column(Name = "category_id")]
+			public int CategoryId { get; set; }
+
+			/// <summary>
+			/// 
+			/// </summary>		
+			[Column(Name = "channel_id")]
+			public int ChannelId { get; set; }
+
+			/// <summary>
+			/// 类型
+			/// </summary>		
+			[Column(Name = "type_id")]
+			public int TypeId { get; set; }
+
+			/// <summary>
+			/// 内容简介
+			/// </summary>		
+			[Column(Name = "summary")]
+			public string Summary { get; set; }
+
+			/// <summary>
+			/// 缩略图
+			/// </summary>		
+			[Column(Name = "thumbnail")]
+			public string Thumbnail { get; set; }
+
+			/// <summary>
+			/// 点击量
+			/// </summary>		
+			[Column(Name = "hits")]
+			public int Hits { get; set; }
+
+			/// <summary>
+			/// 
+			/// </summary>		
+			[Column(Name = "is_display")]
+			public int IsDisplay { get; set; }
+
+			/// <summary>
+			/// 
+			/// </summary>		
+			[Column(Name = "status")]
+			public int Status { get; set; }
+
+			/// <summary>
+			/// 
+			/// </summary>		
+			[Column(Name = "create_time")]
+			public int CreateTime { get; set; }
+
+			/// <summary>
+			/// 
+			/// </summary>		
+			[Column(Name = "release_time")]
+			public int ReleaseTime { get; set; }
+
+		}
+
 		[Fact]
 		public void Test1() {
+
+			var entity = new NewsArticle {
+				ArticleId = 1,
+				ArticleTitle = "测试标题"
+			};
+			var where = new NewsArticle {
+				ArticleId = 1,
+				ChannelId = 1,
+			};
+			var sqldddkdk = g.mysql.Update<NewsArticle>(where)
+				.SetSource(entity)
+				.UpdateColumns(x => new { x.Status, x.CategoryId, x.ArticleTitle })
+				.ToSql();
+
+
+			var sql1111333 = g.mysql.Update<Model2>()
+				.SetSource(new Model2 { id = 1, Title = "xxx", Parent_id = 0 })
+				.UpdateColumns(x => new { x.Parent_id, x.Date, x.Wa_xxx2 })
+				.NoneParameter()
+				.ToSql();
 
 			
 			g.sqlite.Insert(new TestEnum { }).ExecuteAffrows();
@@ -145,16 +249,16 @@ namespace FreeSql.Tests {
 				M2Id = DateTime.Now.Second + DateTime.Now.Minute,
 				Childs = new[] {
 					new Model2 {
-						 title = "model2Test_title_" + DateTime.Now.ToString("yyyyMMddHHmmss") + "0001",
+						 Title = "model2Test_title_" + DateTime.Now.ToString("yyyyMMddHHmmss") + "0001",
 					},
 					new Model2 {
-						 title = "model2Test_title_" + DateTime.Now.ToString("yyyyMMddHHmmss") + "0002",
+						 Title = "model2Test_title_" + DateTime.Now.ToString("yyyyMMddHHmmss") + "0002",
 					},
 					new Model2 {
-						 title = "model2Test_title_" + DateTime.Now.ToString("yyyyMMddHHmmss") + "0003",
+						 Title = "model2Test_title_" + DateTime.Now.ToString("yyyyMMddHHmmss") + "0003",
 					},
 					new Model2 {
-						 title = "model2Test_title_" + DateTime.Now.ToString("yyyyMMddHHmmss") + "0004",
+						 Title = "model2Test_title_" + DateTime.Now.ToString("yyyyMMddHHmmss") + "0004",
 					}
 				}
 			});
@@ -183,7 +287,7 @@ namespace FreeSql.Tests {
 
 
 
-			var ttt1 = g.sqlite.Select<Model1>().Where(a => a.Childs.AsSelect().Any(b => b.title == "111")).ToList();
+			var ttt1 = g.sqlite.Select<Model1>().Where(a => a.Childs.AsSelect().Any(b => b.Title == "111")).ToList();
 
 
 
