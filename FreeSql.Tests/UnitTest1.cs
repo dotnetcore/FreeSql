@@ -260,6 +260,12 @@ namespace FreeSql.Tests {
 
 		[Fact]
 		public void Test1() {
+			var tsqlddd = g.sqlite.Select<NewsArticle>().Where(a =>
+				g.sqlite.Select<TaskBuild>().Where(b => b.NamespaceName == a.ArticleTitle)
+				.Where("@id=1", new { id = 1 }).Any()
+			).ToSql();
+
+
 			g.sqlite.SetDbContextOptions(opt => opt.EnableAddOrUpdateNavigateList = true);
 			var trepo = g.sqlite.GetGuidRepository<TaskBuild>();
 			trepo.Insert(new TaskBuild {

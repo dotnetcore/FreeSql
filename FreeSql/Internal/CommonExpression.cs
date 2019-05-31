@@ -543,7 +543,7 @@ namespace FreeSql.Internal {
 													fsqltable1SetAlias = true;
 												}
 											}
-											args[a] = argExp;
+											args[a] = argExp ?? Expression.Lambda(arg3Exp).Compile().DynamicInvoke();
 											//if (args[a] == null) ExpressionLambdaToSql(call3Exp.Arguments[a], fsqltables, null, null, SelectTableInfoType.From, true);
 										}
 									}

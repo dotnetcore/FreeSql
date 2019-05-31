@@ -513,7 +513,7 @@ namespace FreeSql.Internal {
 								break;
 							}
 							if (trycol == null) {
-								nvref.Exception = new Exception($"【OneToMany】导航属性 {trytbTypeName}.{pnv.Name} 在 {tbref.CsName} 中没有找到对应的字段，如：{findtrytb}{findtrytbPkCsName}、{findtrytb}_{findtrytbPkCsName}" + (refprop == null ? "" : $"、{refprop.Name}{findtrytbPkCsName}、{refprop.Name}_{findtrytbPkCsName}"));
+								nvref.Exception = new Exception($"【OneToMany】导航属性 {trytbTypeName}.{pnv.Name} 在 {tbref.CsName} 中没有找到对应的字段，如：{findtrytb}{findtrytbPkCsName}、{findtrytb}_{findtrytbPkCsName}" + (refprop == null ? "" : $"、{refprop.Name}{findtrytbPkCsName}、{refprop.Name}_{findtrytbPkCsName}。或者使用 [Navigate] 特性指定关系映射。"));
 								trytb.AddOrUpdateTableRef(pnv.Name, nvref);
 								//if (isLazy) throw nvref.Exception;
 								break;
@@ -640,7 +640,7 @@ namespace FreeSql.Internal {
 							break;
 						}
 						if (trycol == null) {
-							nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 没有找到对应的字段，如：{pnv.Name}{findtbrefPkCsName}、{pnv.Name}_{findtbrefPkCsName}");
+							nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 没有找到对应的字段，如：{pnv.Name}{findtbrefPkCsName}、{pnv.Name}_{findtbrefPkCsName}。或者使用 [Navigate] 特性指定关系映射。");
 							trytb.AddOrUpdateTableRef(pnv.Name, nvref);
 							//if (isLazy) throw nvref.Exception;
 							break;
