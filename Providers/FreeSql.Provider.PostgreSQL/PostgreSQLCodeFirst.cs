@@ -18,22 +18,9 @@ using System.Text.RegularExpressions;
 
 namespace FreeSql.PostgreSQL {
 
-	class PostgreSQLCodeFirst : ICodeFirst {
-		IFreeSql _orm;
-		protected CommonUtils _commonUtils;
-		protected CommonExpression _commonExpression;
-		public PostgreSQLCodeFirst(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression) {
-			_orm = orm;
-			_commonUtils = commonUtils;
-			_commonExpression = commonExpression;
-		}
+	class PostgreSQLCodeFirst : Internal.CommonProvider.CodeFirstProvider {
 
-		public bool IsAutoSyncStructure { get; set; } = false;
-		public bool IsSyncStructureToLower { get; set; } = false;
-		public bool IsSyncStructureToUpper { get; set; } = false;
-		public bool IsConfigEntityFromDbFirst { get; set; } = false;
-		public bool IsNoneCommandParameter { get; set; } = false;
-		public bool IsLazyLoading { get; set; } = false;
+		public PostgreSQLCodeFirst(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression) : base(orm, commonUtils, commonExpression) { }
 
 		static object _dicCsToDbLock = new object();
 		static Dictionary<string, (NpgsqlDbType type, string dbtype, string dbtypeFull, bool? isUnsigned, bool? isnullable, object defaultValue)> _dicCsToDb = new Dictionary<string, (NpgsqlDbType type, string dbtype, string dbtypeFull, bool? isUnsigned, bool? isnullable, object defaultValue)>() {
@@ -94,7 +81,7 @@ namespace FreeSql.PostgreSQL {
 				{ typeof(PostgisGeometryCollection).FullName,  (NpgsqlDbType.Geometry, "geometry", "geometry", false, null, new PostgisGeometryCollection(new[]{new PostgisPoint(0, 0),new PostgisPoint(0, 0) })) },
 			};
 
-		public (int type, string dbtype, string dbtypeFull, bool? isnullable, object defaultValue)? GetDbInfo(Type type) {
+		public override (int type, string dbtype, string dbtypeFull, bool? isnullable, object defaultValue)? GetDbInfo(Type type) {
 			var isarray = type.FullName != "System.Byte[]" && type.IsArray;
 			var elementType = isarray ? type.GetElementType() : type;
 			var info = GetDbInfoNoneArray(elementType);
@@ -122,9 +109,8 @@ namespace FreeSql.PostgreSQL {
 			}
 			return null;
 		}
-
-		public string GetComparisonDDLStatements<TEntity>() => this.GetComparisonDDLStatements(typeof(TEntity));
-		public string GetComparisonDDLStatements(params Type[] entityTypes) {
+		
+		public override string GetComparisonDDLStatements(params Type[] entityTypes) {
 			var sb = new StringBuilder();
 			var seqcols = new List<(ColumnInfo, string[], bool)>(); //序列
 
@@ -338,40 +324,5 @@ where pg_namespace.nspname={0} and pg_class.relname={1} and pg_constraint.contyp
 			}
 			return sb.Length == 0 ? null : sb.ToString();
 		}
-
-		static object syncStructureLock = new object();
-		ConcurrentDictionary<string, bool> dicSyced = new ConcurrentDictionary<string, bool>();
-		public bool SyncStructure<TEntity>() => this.SyncStructure(typeof(TEntity));
-		public bool SyncStructure(params Type[] entityTypes) {
-			if (entityTypes == null) return true;
-			var syncTypes = entityTypes.Where(a => dicSyced.ContainsKey(a.FullName) == false).ToArray();
-			if (syncTypes.Any() == false) return true;
-			var before = new Aop.SyncStructureBeforeEventArgs(entityTypes);
-			_orm.Aop.SyncStructureBefore?.Invoke(this, before);
-			Exception exception = null;
-			string ddl = null;
-			try {
-				lock (syncStructureLock) {
-					ddl = this.GetComparisonDDLStatements(syncTypes);
-					if (string.IsNullOrEmpty(ddl)) {
-						foreach (var syncType in syncTypes) dicSyced.TryAdd(syncType.FullName, true);
-						return true;
-					}
-					var affrows = _orm.Ado.ExecuteNonQuery(CommandType.Text, ddl);
-					foreach (var syncType in syncTypes) dicSyced.TryAdd(syncType.FullName, true);
-					return affrows > 0;
-				}
-			} catch (Exception ex) {
-				exception = ex;
-				throw ex;
-			} finally {
-				var after = new Aop.SyncStructureAfterEventArgs(before, ddl, exception);
-				_orm.Aop.SyncStructureAfter?.Invoke(this, after);
-			}
-		}
-		public ICodeFirst ConfigEntity<T>(Action<TableFluent<T>> entity) => _commonUtils.ConfigEntity(entity);
-		public ICodeFirst ConfigEntity(Type type, Action<TableFluent> entity) => _commonUtils.ConfigEntity(type, entity);
-		public TableAttribute GetConfigEntity(Type type) => _commonUtils.GetConfigEntity(type);
-		public TableInfo GetTableByEntity(Type type) => _commonUtils.GetTableByEntity(type);
 	}
 }

@@ -500,7 +500,7 @@ namespace FreeSql.Internal {
 															if (asSelectParentExp != null) {
 																var testExecuteExp = asSelectParentExp;
 																if (asSelectParentExp.NodeType == ExpressionType.Parameter) //执行leftjoin关联
-																	testExecuteExp = Expression.Property(testExecuteExp, _common.GetTableByEntity(asSelectParentExp.Type).Properties.First().Value);
+																	testExecuteExp = Expression.Property(testExecuteExp, _common.GetTableByEntity(asSelectParentExp.Type).ColumnsByCs.First().Key);
 																var tsc2 = tsc.CloneSetgetSelectGroupingMapStringAndgetSelectGroupingMapStringAndtbtype(new List<SelectColumnInfo>(), tsc.getSelectGroupingMapString, SelectTableInfoType.LeftJoin);
 																tsc2.isDisableDiyParse = true;
 																tsc2.style = ExpressionStyle.AsSelect;
@@ -553,6 +553,10 @@ namespace FreeSql.Internal {
 							}
 							if (fsql != null) {
 								if (asSelectParentExp != null) { //执行 asSelect() 的关联，OneToMany，ManyToMany
+									if (fsqltables[0].Parameter == null) {
+										fsqltables[0].Alias = $"tb_{fsqltables.Count}";
+										fsqltables[0].Parameter = Expression.Parameter(asSelectEntityType, fsqltables[0].Alias);
+									}
 									var fsqlWhere = _dicExpressionLambdaToSqlAsSelectWhereMethodInfo.GetOrAdd(asSelectEntityType, asSelectEntityType3 =>
 										typeof(ISelect<>).MakeGenericType(asSelectEntityType3).GetMethod("Where", new[] {
 											typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(asSelectEntityType3, typeof(bool)))

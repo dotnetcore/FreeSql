@@ -231,6 +231,7 @@ namespace FreeSql.Internal {
 					$"{pnv.PropertyType.Namespace}.{pnv.PropertyType.Name.Remove(pnv.PropertyType.Name.IndexOf('`'))}<{string.Join(", ", pnv.PropertyType.GenericTypeArguments.Select(a => a.IsNested ? $"{a.DeclaringType.Namespace}.{a.DeclaringType.Name}.{a.Name}" : $"{a.Namespace}.{a.Name}"))}>" :
 					(pnv.PropertyType.IsNested ? $"{pnv.PropertyType.DeclaringType.Namespace}.{pnv.PropertyType.DeclaringType.Name}.{pnv.PropertyType.Name}" : $"{pnv.PropertyType.Namespace}.{pnv.PropertyType.Name}");
 
+				var pnvBind = pnv.GetCustomAttribute<NavigateAttribute>()?.Bind.Split(',').Select(a => a.Trim()).Where(a => !string.IsNullOrEmpty(a)).ToArray();
 				var nvref = new TableRef();
 				nvref.Property = pnv;
 
@@ -241,7 +242,7 @@ namespace FreeSql.Internal {
 					if (trytb.Primarys.Any() == false) {
 						nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 解析错误，实体类型 {trytbTypeName} 缺少主键标识，[Column(IsPrimary = true)]");
 						trytb.AddOrUpdateTableRef(pnv.Name, nvref);
-						if (isLazy) throw nvref.Exception;
+						//if (isLazy) throw nvref.Exception;
 						continue;
 					}
 
@@ -259,7 +260,7 @@ namespace FreeSql.Internal {
 						if (tbref.Primarys.Any() == false) {
 							nvref.Exception = new Exception($"【ManyToMany】导航属性 {trytbTypeName}.{pnv.Name} 解析错误，实体类型 {tbrefTypeName} 缺少主键标识，[Column(IsPrimary = true)]");
 							trytb.AddOrUpdateTableRef(pnv.Name, nvref);
-							if (isLazy) throw nvref.Exception;
+							//if (isLazy) throw nvref.Exception;
 							continue;
 						}
 
@@ -376,14 +377,14 @@ namespace FreeSql.Internal {
 							if (trycol != null && trycol.CsType.NullableTypeOrThis() != trytb.Primarys[a].CsType) {
 								nvref.Exception = new Exception($"【ManyToMany】导航属性 {trytbTypeName}.{pnv.Name} 解析错误，{tbmid.CsName}.{trycol.CsName} 和 {trytb.CsName}.{trytb.Primarys[a].CsName} 类型不一致");
 								trytb.AddOrUpdateTableRef(pnv.Name, nvref);
-								if (isLazy) throw nvref.Exception;
-								continue;
+								//if (isLazy) throw nvref.Exception;
+								break;
 							}
 							if (trycol == null) {
 								nvref.Exception = new Exception($"【ManyToMany】导航属性 {trytbTypeName}.{pnv.Name} 在 {tbmid.CsName} 中没有找到对应的字段，如：{midTypePropsTrytb.Name}{findtrytbPkCsName}、{midTypePropsTrytb.Name}_{findtrytbPkCsName}");
 								trytb.AddOrUpdateTableRef(pnv.Name, nvref);
-								if (isLazy) throw nvref.Exception;
-								continue;
+								//if (isLazy) throw nvref.Exception;
+								break;
 							}
 
 							nvref.Columns.Add(trytb.Primarys[a]);
@@ -397,34 +398,36 @@ namespace FreeSql.Internal {
 							}
 						}
 
-						var midTypePropsTbref = tbmid.Properties.Where(a => a.Value.PropertyType == tbref.Type).FirstOrDefault().Value;
-						for (var a = 0; a < tbref.Primarys.Length; a++) {
-							var findtbrefPkCsName = tbref.Primarys[a].CsName.TrimStart('_');
-							if (findtbrefPkCsName.StartsWith(tbref.Type.Name, StringComparison.CurrentCultureIgnoreCase)) findtbrefPkCsName = findtbrefPkCsName.Substring(tbref.Type.Name.Length).TrimStart('_');
-							if (tbmid.ColumnsByCs.TryGetValue($"{midTypePropsTbref.Name}{findtbrefPkCsName}", out var trycol) == false && //骆峰命名
-								tbmid.ColumnsByCs.TryGetValue($"{midTypePropsTbref.Name}_{findtbrefPkCsName}", out trycol) == false //下划线命名
-								) {
+						if (nvref.Exception == null) {
+							var midTypePropsTbref = tbmid.Properties.Where(a => a.Value.PropertyType == tbref.Type).FirstOrDefault().Value;
+							for (var a = 0; a < tbref.Primarys.Length; a++) {
+								var findtbrefPkCsName = tbref.Primarys[a].CsName.TrimStart('_');
+								if (findtbrefPkCsName.StartsWith(tbref.Type.Name, StringComparison.CurrentCultureIgnoreCase)) findtbrefPkCsName = findtbrefPkCsName.Substring(tbref.Type.Name.Length).TrimStart('_');
+								if (tbmid.ColumnsByCs.TryGetValue($"{midTypePropsTbref.Name}{findtbrefPkCsName}", out var trycol) == false && //骆峰命名
+									tbmid.ColumnsByCs.TryGetValue($"{midTypePropsTbref.Name}_{findtbrefPkCsName}", out trycol) == false //下划线命名
+									) {
 
-							}
-							if (trycol != null && trycol.CsType.NullableTypeOrThis() != tbref.Primarys[a].CsType) {
-								nvref.Exception = new Exception($"【ManyToMany】导航属性 {tbrefTypeName}.{pnv.Name} 解析错误，{tbmid.CsName}.{trycol.CsName} 和 {tbref.CsName}.{tbref.Primarys[a].CsName} 类型不一致");
-								trytb.AddOrUpdateTableRef(pnv.Name, nvref);
-								if (isLazy) throw nvref.Exception;
-								continue;
-							}
-							if (trycol == null) {
-								nvref.Exception = new Exception($"【ManyToMany】导航属性 {tbrefTypeName}.{pnv.Name} 在 {tbmid.CsName} 中没有找到对应的字段，如：{midTypePropsTbref.Name}{findtbrefPkCsName}、{midTypePropsTbref.Name}_{findtbrefPkCsName}");
-								trytb.AddOrUpdateTableRef(pnv.Name, nvref);
-								if (isLazy) throw nvref.Exception;
-								continue;
-							}
+								}
+								if (trycol != null && trycol.CsType.NullableTypeOrThis() != tbref.Primarys[a].CsType) {
+									nvref.Exception = new Exception($"【ManyToMany】导航属性 {trytbTypeName}.{pnv.Name} 解析错误，{tbmid.CsName}.{trycol.CsName} 和 {tbref.CsName}.{tbref.Primarys[a].CsName} 类型不一致");
+									trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+									//if (isLazy) throw nvref.Exception;
+									break;
+								}
+								if (trycol == null) {
+									nvref.Exception = new Exception($"【ManyToMany】导航属性 {trytbTypeName}.{pnv.Name} 在 {tbmid.CsName} 中没有找到对应的字段，如：{midTypePropsTbref.Name}{findtbrefPkCsName}、{midTypePropsTbref.Name}_{findtbrefPkCsName}");
+									trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+									//if (isLazy) throw nvref.Exception;
+									break;
+								}
 
-							nvref.RefColumns.Add(tbref.Primarys[a]);
-							nvref.MiddleColumns.Add(trycol);
-							if (tbmid.Primarys.Any() == false)
-								trycol.Attribute.IsPrimary = true;
+								nvref.RefColumns.Add(tbref.Primarys[a]);
+								nvref.MiddleColumns.Add(trycol);
+								if (tbmid.Primarys.Any() == false)
+									trycol.Attribute.IsPrimary = true;
 
-							if (isLazy) lmbdWhere.Append(" && b.").Append(trycol.CsName).Append(" == a.").Append(tbref.Primarys[a].CsName);
+								if (isLazy) lmbdWhere.Append(" && b.").Append(trycol.CsName).Append(" == a.").Append(tbref.Primarys[a].CsName);
+							}
 						}
 						if (nvref.Columns.Count > 0 && nvref.RefColumns.Count > 0) {
 							nvref.RefMiddleEntityType = tbmid.Type;
@@ -441,12 +444,17 @@ namespace FreeSql.Internal {
 									.Append("	public override ").Append(propTypeName).Append(" ").Append(pnv.Name).AppendLine(" {");
 							if (vp.Item2) { //get 重写
 								cscode.Append("		get {\r\n")
-									.Append("			if (base.").Append(pnv.Name).Append(" == null && __lazy__").Append(pnv.Name).AppendLine(" == false) {")
-									.Append("				base.").Append(pnv.Name).Append(" = __fsql_orm__.Select<").Append(propElementType.IsNested ? $"{propElementType.DeclaringType.Namespace}.{propElementType.DeclaringType.Name}.{propElementType.Name}" : $"{propElementType.Namespace}.{propElementType.Name}")
-									.Append(">().Where(a => __fsql_orm__.Select<").Append(tbmid.Type.IsNested ? $"{tbmid.Type.DeclaringType.Namespace}.{tbmid.Type.DeclaringType.Name}.{tbmid.Type.Name}" : $"{tbmid.Type.Namespace}.{tbmid.Type.Name}")
-									.Append(">().Where(b => ").Append(lmbdWhere.ToString()).AppendLine(").Any()).ToList();");
-								cscode.Append("				__lazy__").Append(pnv.Name).AppendLine(" = true;")
-									.Append("			}\r\n")
+									.Append("			if (base.").Append(pnv.Name).Append(" == null && __lazy__").Append(pnv.Name).AppendLine(" == false) {");
+
+								if (nvref.Exception == null)
+									cscode.Append("				base.").Append(pnv.Name).Append(" = __fsql_orm__.Select<").Append(propElementType.IsNested ? $"{propElementType.DeclaringType.Namespace}.{propElementType.DeclaringType.Name}.{propElementType.Name}" : $"{propElementType.Namespace}.{propElementType.Name}")
+										.Append(">().Where(a => __fsql_orm__.Select<").Append(tbmid.Type.IsNested ? $"{tbmid.Type.DeclaringType.Namespace}.{tbmid.Type.DeclaringType.Name}.{tbmid.Type.Name}" : $"{tbmid.Type.Namespace}.{tbmid.Type.Name}")
+										.Append(">().Where(b => ").Append(lmbdWhere.ToString()).AppendLine(").Any()).ToList();")
+										.Append("				__lazy__").Append(pnv.Name).AppendLine(" = true;");
+								else
+									cscode.Append("				throw new Exception(\"").Append(nvref.Exception.Message.Replace("\r\n", "\\r\\n").Replace("\"", "\\\"")).AppendLine("\");");
+
+								cscode.Append("			}\r\n")
 									.Append("			return base.").Append(pnv.Name).AppendLine(";")
 									.Append("		}\r\n");
 							}
@@ -456,16 +464,39 @@ namespace FreeSql.Internal {
 							cscode.AppendLine("	}");
 						}
 					} else { //One To Many
+						List<ColumnInfo> bindColumns = new List<ColumnInfo>();
+						if (pnvBind != null) {
+							foreach(var bi in pnvBind) {
+								if (tbref.ColumnsByCs.TryGetValue(bi, out var trybindcol) == false) {
+									nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 特性 [Navigate] 解析错误，在 {tbrefTypeName} 未找到属性：{bi}");
+									trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+									//if (isLazy) throw nvref.Exception;
+									break;
+								}
+								bindColumns.Add(trybindcol);
+							}
+						}
+
+						PropertyInfo refprop = null;
 						var refcols = tbref.Properties.Where(z => z.Value.PropertyType == trytb.Type);
-						var refprop = refcols.Count() == 1 ? refcols.First().Value : null;
+						refprop = refcols.Count() == 1 ? refcols.First().Value : null;
 						var lmbdWhere = isLazy ? new StringBuilder() : null;
-						for (var a = 0; a < trytb.Primarys.Length; a++) {
+
+						if (nvref.Exception == null && bindColumns.Any() && bindColumns.Count != trytb.Primarys.Length) {
+							nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 特性 [Navigate] Bind 数目({bindColumns.Count}) 与 内部主键数目({trytb.Primarys.Length}) 不相同");
+							trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+							//if (isLazy) throw nvref.Exception;
+						}
+						for (var a = 0; nvref.Exception == null && a < trytb.Primarys.Length; a++) {
 							var findtrytbPkCsName = trytb.Primarys[a].CsName.TrimStart('_');
 							if (findtrytbPkCsName.StartsWith(trytb.Type.Name, StringComparison.CurrentCultureIgnoreCase)) findtrytbPkCsName = findtrytbPkCsName.Substring(trytb.Type.Name.Length).TrimStart('_');
 							var findtrytb = pnv.Name;
 							if (findtrytb.EndsWith(tbref.CsName + "s")) findtrytb = findtrytb.Substring(0, findtrytb.Length - tbref.CsName.Length - 1);
 							findtrytb += trytb.CsName;
-							if (tbref.ColumnsByCs.TryGetValue($"{findtrytb}{findtrytbPkCsName}", out var trycol) == false && //骆峰命名
+
+							var trycol = bindColumns.Any() ? bindColumns[a] : null;
+							if (trycol == null &&
+								tbref.ColumnsByCs.TryGetValue($"{findtrytb}{findtrytbPkCsName}", out trycol) == false && //骆峰命名
 								tbref.ColumnsByCs.TryGetValue($"{findtrytb}_{findtrytbPkCsName}", out trycol) == false //下划线命名
 								) {
 								if (refprop != null &&
@@ -474,18 +505,18 @@ namespace FreeSql.Internal {
 									{
 
 								}
-								if (trycol != null && trycol.CsType.NullableTypeOrThis() != trytb.Primarys[a].CsType) {
-									nvref.Exception = new Exception($"【OneToMany】导航属性 {trytbTypeName}.{pnv.Name} 解析错误，{trytb.CsName}.{trytb.Primarys[a].CsName} 和 {tbref.CsName}.{trycol.CsName} 类型不一致");
-									trytb.AddOrUpdateTableRef(pnv.Name, nvref);
-									//if (isLazy) throw nvref.Exception;
-									continue;
-								}
-								if (trycol == null) {
-									nvref.Exception = new Exception($"【OneToMany】导航属性 {trytbTypeName}.{pnv.Name} 在 {tbref.CsName} 中没有找到对应的字段，如：{findtrytb}{findtrytbPkCsName}、{findtrytb}_{findtrytbPkCsName}" + (refprop == null ? "" : $"、{refprop.Name}{findtrytbPkCsName}、{refprop.Name}_{findtrytbPkCsName}"));
-									trytb.AddOrUpdateTableRef(pnv.Name, nvref);
-									//if (isLazy) throw nvref.Exception;
-									continue;
-								}
+							}
+							if (trycol != null && trycol.CsType.NullableTypeOrThis() != trytb.Primarys[a].CsType) {
+								nvref.Exception = new Exception($"【OneToMany】导航属性 {trytbTypeName}.{pnv.Name} 解析错误，{trytb.CsName}.{trytb.Primarys[a].CsName} 和 {tbref.CsName}.{trycol.CsName} 类型不一致");
+								trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+								//if (isLazy) throw nvref.Exception;
+								break;
+							}
+							if (trycol == null) {
+								nvref.Exception = new Exception($"【OneToMany】导航属性 {trytbTypeName}.{pnv.Name} 在 {tbref.CsName} 中没有找到对应的字段，如：{findtrytb}{findtrytbPkCsName}、{findtrytb}_{findtrytbPkCsName}" + (refprop == null ? "" : $"、{refprop.Name}{findtrytbPkCsName}、{refprop.Name}_{findtrytbPkCsName}"));
+								trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+								//if (isLazy) throw nvref.Exception;
+								break;
 							}
 
 							nvref.Columns.Add(trytb.Primarys[a]);
@@ -545,20 +576,42 @@ namespace FreeSql.Internal {
 					if (tbref.Primarys.Any() == false) {
 						nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 解析错误，实体类型 {propTypeName} 缺少主键标识，[Column(IsPrimary = true)]");
 						trytb.AddOrUpdateTableRef(pnv.Name, nvref);
-						if (isLazy) throw nvref.Exception;
-						continue;
+						//if (isLazy) throw nvref.Exception;
 					}
+					var tbrefTypeName = tbref.Type.IsNested ? $"{tbref.Type.DeclaringType.Namespace}.{tbref.Type.DeclaringType.Name}.{tbref.Type.Name}" : $"{tbref.Type.Namespace}.{tbref.Type.Name}";
 					var isOnoToOne = pnv.PropertyType != trytb.Type &&
 						tbref.Properties.Where(z => z.Value.PropertyType == trytb.Type).Any() &&
 						tbref.Primarys.Length == trytb.Primarys.Length &&
 						string.Join(",", tbref.Primarys.Select(a => a.CsType.FullName).OrderBy(a => a)) == string.Join(",", trytb.Primarys.Select(a => a.CsType.FullName).OrderBy(a => a));
+
+					List<ColumnInfo> bindColumns = new List<ColumnInfo>();
+					if (pnvBind != null) {
+						foreach(var bi in pnvBind) {
+							if (trytb.ColumnsByCs.TryGetValue(bi, out var trybindcol) == false) {
+								nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 特性 [Navigate] 解析错误，在 {trytbTypeName} 未找到属性：{bi}");
+								trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+								//if (isLazy) throw nvref.Exception;
+								break;
+							}
+							bindColumns.Add(trybindcol);
+						}
+					}
 					var lmbdWhere = new StringBuilder();
-					for (var a = 0; a < tbref.Primarys.Length; a++) {
+
+					if (nvref.Exception == null && bindColumns.Any() && bindColumns.Count != tbref.Primarys.Length) {
+						nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 特性 [Navigate] Bind 数目({bindColumns.Count}) 与 外部主键数目({tbref.Primarys.Length}) 不相同");
+						trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+						//if (isLazy) throw nvref.Exception;
+					}
+					for (var a = 0; nvref.Exception == null && a < tbref.Primarys.Length; a++) {
 						var findtbrefPkCsName = tbref.Primarys[a].CsName.TrimStart('_');
 						if (findtbrefPkCsName.StartsWith(tbref.Type.Name, StringComparison.CurrentCultureIgnoreCase)) findtbrefPkCsName = findtbrefPkCsName.Substring(tbref.Type.Name.Length).TrimStart('_');
-						if (trytb.ColumnsByCs.TryGetValue($"{pnv.Name}{findtbrefPkCsName}", out var trycol) == false && //骆峰命名
+
+						var trycol = bindColumns.Any() ? bindColumns[a] : null;
+						if (trycol == null &&
+							trytb.ColumnsByCs.TryGetValue($"{pnv.Name}{findtbrefPkCsName}", out trycol) == false && //骆峰命名
 							trytb.ColumnsByCs.TryGetValue($"{pnv.Name}_{findtbrefPkCsName}", out trycol) == false && //下划线命名
-							//tbref.Primarys.Length == 1 &&
+																													 //tbref.Primarys.Length == 1 &&
 							trytb.ColumnsByCs.TryGetValue($"{pnv.Name}_Id", out trycol) == false &&
 							trytb.ColumnsByCs.TryGetValue($"{pnv.Name}Id", out trycol) == false
 							) {
@@ -579,19 +632,18 @@ namespace FreeSql.Internal {
 									}
 								}
 							}
-							if (trycol != null && trycol.CsType.NullableTypeOrThis() != tbref.Primarys[a].CsType) {
-								nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 解析错误，{trytb.CsName}.{trycol.CsName} 和 {tbref.CsName}.{tbref.Primarys[a].CsName} 类型不一致");
-								trytb.AddOrUpdateTableRef(pnv.Name, nvref);
-								if (isLazy) throw nvref.Exception;
-								continue;
-							}
 						}
-
+						if (trycol != null && trycol.CsType.NullableTypeOrThis() != tbref.Primarys[a].CsType) {
+							nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 解析错误，{trytb.CsName}.{trycol.CsName} 和 {tbref.CsName}.{tbref.Primarys[a].CsName} 类型不一致");
+							trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+							//if (isLazy) throw nvref.Exception;
+							break;
+						}
 						if (trycol == null) {
 							nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 没有找到对应的字段，如：{pnv.Name}{findtbrefPkCsName}、{pnv.Name}_{findtbrefPkCsName}");
 							trytb.AddOrUpdateTableRef(pnv.Name, nvref);
 							//if (isLazy) throw nvref.Exception;
-							continue;
+							break;
 						}
 
 						nvref.Columns.Add(trycol);
@@ -658,7 +710,7 @@ namespace FreeSql.Internal {
 		}
 		static Lazy<MethodInfo> MethodLazyLoadingComplier = new Lazy<MethodInfo>(() => {
 			var type = Type.GetType("FreeSql.Extensions.LazyLoading.LazyLoadingComplier,FreeSql.Extensions.LazyLoading");
-			return type.GetMethod("CompileCode");
+			return type?.GetMethod("CompileCode");
 		});
 
 		public static T[] GetDbParamtersByObject<T>(string sql, object obj, string paramPrefix, Func<string, Type, object, T> constructorParamter) {

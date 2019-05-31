@@ -210,10 +210,72 @@ namespace FreeSql.Tests {
 			[Column(Name = "release_time")]
 			public int ReleaseTime { get; set; }
 
+			public DateTime testaddtime { get; set; }
+			public DateTime? testaddtime2 { get; set; }
+		}
+
+		public class NewsArticleDto : NewsArticle {
+
+		}
+
+
+		public class TaskBuildInfo {
+			[FreeSql.DataAnnotations.Column(IsPrimary = true)]
+			public Guid Id { get; set; }
+			public Guid TbId { get; set; }
+			public Guid DataBaseConfigId { get; set; }
+			public string Name { get; set; }
+			public int Level { get; set; }
+
+			[Column(IsIgnore = true)]
+			public virtual TaskBuild TaskBuild { get; set; }
+		}
+		public class Templates {
+			[Column(IsPrimary = true)]
+			public Guid Id { get; set; }
+			public string Title { get; set; }
+			public DateTime AddTime { get; set; } = DateTime.Now;
+			public DateTime EditTime { get; set; }
+			[Column(DbType = "text")]
+			public string Code { get; set; }
+		}
+		public class TaskBuild {
+
+			[FreeSql.DataAnnotations.Column(IsPrimary = true)]
+			public Guid Id { get; set; }
+			public string TaskName { get; set; }
+			public Guid TemplatesId { get; set; }
+			public string GeneratePath { get; set; }
+			public string FileName { get; set; }
+			public string NamespaceName { get; set; }
+			public bool OptionsEntity01 { get; set; } = false;
+			public bool OptionsEntity02 { get; set; } = false;
+			public bool OptionsEntity03 { get; set; } = false;
+			public bool OptionsEntity04 { get; set; } = false;
+
+			[Navigate("TbId")]
+			public virtual ICollection<TaskBuildInfo> Builds { get; set; }
+			public Templates Templates { get; set; }
 		}
 
 		[Fact]
 		public void Test1() {
+			g.sqlite.SetDbContextOptions(opt => opt.EnableAddOrUpdateNavigateList = true);
+			var trepo = g.sqlite.GetGuidRepository<TaskBuild>();
+			trepo.Insert(new TaskBuild {
+				TaskName = "tt11",
+				Builds = new[] {
+					new TaskBuildInfo {
+						 Level = 1,
+						 Name = "t111_11"
+					}
+				}
+			});
+
+			var ttdkdkd = trepo.Select.Where(a => a.Builds.AsSelect().Any()).ToList();
+
+			var list1113233 = trepo.Select.ToList();
+
 
 			var entity = new NewsArticle {
 				ArticleId = 1,
@@ -223,10 +285,15 @@ namespace FreeSql.Tests {
 				ArticleId = 1,
 				ChannelId = 1,
 			};
+
+			g.mysql.Insert(new[] { entity }).ExecuteAffrows();
+
 			var sqldddkdk = g.mysql.Update<NewsArticle>(where)
 				.SetSource(entity)
 				.UpdateColumns(x => new { x.Status, x.CategoryId, x.ArticleTitle })
 				.ToSql();
+
+			var sqldddklist = g.mysql.Select<NewsArticle>().Select(a => new NewsArticleDto { }).ToList();
 
 
 			var sql1111333 = g.mysql.Update<Model2>()

@@ -13,22 +13,9 @@ using System.Text.RegularExpressions;
 
 namespace FreeSql.MySql {
 
-	class MySqlCodeFirst : ICodeFirst {
-		IFreeSql _orm;
-		protected CommonUtils _commonUtils;
-		protected CommonExpression _commonExpression;
-		public MySqlCodeFirst(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression) {
-			_orm = orm;
-			_commonUtils = commonUtils;
-			_commonExpression = commonExpression;
-		}
+	class MySqlCodeFirst : Internal.CommonProvider.CodeFirstProvider {
 
-		public bool IsAutoSyncStructure { get; set; } = false;
-		public bool IsSyncStructureToLower { get; set; } = false;
-		public bool IsSyncStructureToUpper { get; set; } = false;
-		public bool IsConfigEntityFromDbFirst { get; set; } = false;
-		public bool IsNoneCommandParameter { get; set; } = false;
-		public bool IsLazyLoading { get; set; } = false;
+		public MySqlCodeFirst(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression) : base(orm, commonUtils, commonExpression) { }
 
 		static object _dicCsToDbLock = new object();
 		static Dictionary<string, (MySqlDbType type, string dbtype, string dbtypeFull, bool? isUnsigned, bool? isnullable, object defaultValue)> _dicCsToDb = new Dictionary<string, (MySqlDbType type, string dbtype, string dbtypeFull, bool? isUnsigned, bool? isnullable, object defaultValue)>() {
@@ -64,7 +51,7 @@ namespace FreeSql.MySql {
 				{ typeof(MygisMultiPolygon).FullName,  (MySqlDbType.Geometry, "multipolygon", "multipolygon", false, null, new MygisMultiPolygon(new[]{new MygisPolygon(new[]{new[]{new MygisCoordinate2D(),new MygisCoordinate2D()},new[]{new MygisCoordinate2D(),new MygisCoordinate2D()}}),new MygisPolygon(new[]{new[]{new MygisCoordinate2D(),new MygisCoordinate2D()},new[]{new MygisCoordinate2D(),new MygisCoordinate2D()}})})) },
 			};
 
-		public (int type, string dbtype, string dbtypeFull, bool? isnullable, object defaultValue)? GetDbInfo(Type type) {
+		public override (int type, string dbtype, string dbtypeFull, bool? isnullable, object defaultValue)? GetDbInfo(Type type) {
 			if (_dicCsToDb.TryGetValue(type.FullName, out var trydc)) return new (int, string, string, bool?, object)?(((int)trydc.type, trydc.dbtype, trydc.dbtypeFull, trydc.isnullable, trydc.defaultValue));
 			if (type.IsArray) return null;
 			var enumType = type.IsEnum ? type : null;
@@ -85,8 +72,7 @@ namespace FreeSql.MySql {
 			return null;
 		}
 
-		public string GetComparisonDDLStatements<TEntity>() => this.GetComparisonDDLStatements(typeof(TEntity));
-		public string GetComparisonDDLStatements(params Type[] entityTypes) {
+		public override string GetComparisonDDLStatements(params Type[] entityTypes) {
 			var conn = _orm.Ado.MasterPool.Get(TimeSpan.FromSeconds(5));
 			var database = conn.Value.Database;
 			Func<string, string, object> ExecuteScalar = (db, sql) => {
@@ -205,6 +191,7 @@ where a.table_schema in ({0}) and a.table_name in ({1})", tboldname ?? tbname);
 							}
 							//添加列
 							sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ADD ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType);
+							if (tbcol.Attribute.IsNullable == false) sbalter.Append(" DEFAULT ").Append(_commonUtils.FormatSql("{0}", tbcol.Attribute.DbDefautValue));
 							if (isIdentityChanged) sbalter.Append(" AUTO_INCREMENT").Append(existsPrimary == null ? "" : ", DROP PRIMARY KEY").Append(", ADD PRIMARY KEY(").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(")");
 							sbalter.Append(";\r\n");
 						}
@@ -286,40 +273,5 @@ where a.constraint_schema IN ({0}) and a.table_name IN ({1})", tboldname ?? tbna
 				}
 			}
 		}
-
-		static object syncStructureLock = new object();
-		ConcurrentDictionary<string, bool> dicSyced = new ConcurrentDictionary<string, bool>();
-		public bool SyncStructure<TEntity>() => this.SyncStructure(typeof(TEntity));
-		public bool SyncStructure(params Type[] entityTypes) {
-			if (entityTypes == null) return true;
-			var syncTypes = entityTypes.Where(a => dicSyced.ContainsKey(a.FullName) == false).ToArray();
-			if (syncTypes.Any() == false) return true;
-			var before = new Aop.SyncStructureBeforeEventArgs(entityTypes);
-			_orm.Aop.SyncStructureBefore?.Invoke(this, before);
-			Exception exception = null;
-			string ddl = null;
-			try {
-				lock (syncStructureLock) {
-					ddl = this.GetComparisonDDLStatements(syncTypes);
-					if (string.IsNullOrEmpty(ddl)) {
-						foreach (var syncType in syncTypes) dicSyced.TryAdd(syncType.FullName, true);
-						return true;
-					}
-					var affrows = _orm.Ado.ExecuteNonQuery(CommandType.Text, ddl);
-					foreach (var syncType in syncTypes) dicSyced.TryAdd(syncType.FullName, true);
-					return affrows > 0;
-				}
-			} catch (Exception ex) {
-				exception = ex;
-				throw ex;
-			} finally {
-				var after = new Aop.SyncStructureAfterEventArgs(before, ddl, exception);
-				_orm.Aop.SyncStructureAfter?.Invoke(this, after);
-			}
-		}
-		public ICodeFirst ConfigEntity<T>(Action<TableFluent<T>> entity) => _commonUtils.ConfigEntity(entity);
-		public ICodeFirst ConfigEntity(Type type, Action<TableFluent> entity) => _commonUtils.ConfigEntity(type, entity);
-		public TableAttribute GetConfigEntity(Type type) => _commonUtils.GetConfigEntity(type);
-		public TableInfo GetTableByEntity(Type type) => _commonUtils.GetTableByEntity(type);
 	}
 }

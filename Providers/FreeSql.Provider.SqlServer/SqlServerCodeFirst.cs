@@ -12,22 +12,9 @@ using System.Text.RegularExpressions;
 
 namespace FreeSql.SqlServer {
 
-	class SqlServerCodeFirst : ICodeFirst {
-		IFreeSql _orm;
-		protected CommonUtils _commonUtils;
-		protected CommonExpression _commonExpression;
-		public SqlServerCodeFirst(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression) {
-			_orm = orm;
-			_commonUtils = commonUtils;
-			_commonExpression = commonExpression;
-		}
-
-		public bool IsAutoSyncStructure { get; set; } = false;
-		public bool IsSyncStructureToLower { get; set; } = false;
-		public bool IsSyncStructureToUpper { get; set; } = false;
-		public bool IsConfigEntityFromDbFirst { get; set; } = false;
-		public bool IsNoneCommandParameter { get; set; } = false;
-		public bool IsLazyLoading { get; set; } = false;
+	class SqlServerCodeFirst : Internal.CommonProvider.CodeFirstProvider {
+		
+		public SqlServerCodeFirst(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression) : base(orm, commonUtils, commonExpression) { }
 
 		static object _dicCsToDbLock = new object();
 		static Dictionary<string, (SqlDbType type, string dbtype, string dbtypeFull, bool? isUnsigned, bool? isnullable, object defaultValue)> _dicCsToDb = new Dictionary<string, (SqlDbType type, string dbtype, string dbtypeFull, bool? isUnsigned, bool? isnullable, object defaultValue)>() {
@@ -57,7 +44,7 @@ namespace FreeSql.SqlServer {
 				{ typeof(Guid).FullName,  (SqlDbType.UniqueIdentifier, "uniqueidentifier", "uniqueidentifier NOT NULL", false, false, Guid.Empty) },{ typeof(Guid?).FullName,  (SqlDbType.UniqueIdentifier, "uniqueidentifier", "uniqueidentifier", false, true, null) },
 			};
 
-		public (int type, string dbtype, string dbtypeFull, bool? isnullable, object defaultValue)? GetDbInfo(Type type) {
+		public override (int type, string dbtype, string dbtypeFull, bool? isnullable, object defaultValue)? GetDbInfo(Type type) {
 			if (_dicCsToDb.TryGetValue(type.FullName, out var trydc)) return new (int, string, string, bool?, object)?(((int)trydc.type, trydc.dbtype, trydc.dbtypeFull, trydc.isnullable, trydc.defaultValue));
 			if (type.IsArray) return null;
 			var enumType = type.IsEnum ? type : null;
@@ -76,9 +63,8 @@ namespace FreeSql.SqlServer {
 			}
 			return null;
 		}
-
-		public string GetComparisonDDLStatements<TEntity>() => this.GetComparisonDDLStatements(typeof(TEntity));
-		public string GetComparisonDDLStatements(params Type[] entityTypes) {
+		
+		public override string GetComparisonDDLStatements(params Type[] entityTypes) {
 			var conn = _orm.Ado.MasterPool.Get(TimeSpan.FromSeconds(5));
 			var database = conn.Value.Database;
 			Func<string, string, object> ExecuteScalar = (db, sql) => {
@@ -326,41 +312,5 @@ use " + database, tboldname ?? tbname);
 			}
 			return ddv;
 		}
-
-
-		static object syncStructureLock = new object();
-		ConcurrentDictionary<string, bool> dicSyced = new ConcurrentDictionary<string, bool>();
-		public bool SyncStructure<TEntity>() => this.SyncStructure(typeof(TEntity));
-		public bool SyncStructure(params Type[] entityTypes) {
-			if (entityTypes == null) return true;
-			var syncTypes = entityTypes.Where(a => dicSyced.ContainsKey(a.FullName) == false).ToArray();
-			if (syncTypes.Any() == false) return true;
-			var before = new Aop.SyncStructureBeforeEventArgs(entityTypes);
-			_orm.Aop.SyncStructureBefore?.Invoke(this, before);
-			Exception exception = null;
-			string ddl = null;
-			try {
-				lock (syncStructureLock) {
-					ddl = this.GetComparisonDDLStatements(syncTypes);
-					if (string.IsNullOrEmpty(ddl)) {
-						foreach (var syncType in syncTypes) dicSyced.TryAdd(syncType.FullName, true);
-						return true;
-					}
-					var affrows = _orm.Ado.ExecuteNonQuery(CommandType.Text, ddl);
-					foreach (var syncType in syncTypes) dicSyced.TryAdd(syncType.FullName, true);
-					return affrows > 0;
-				}
-			} catch (Exception ex) {
-				exception = ex;
-				throw ex;
-			} finally {
-				var after = new Aop.SyncStructureAfterEventArgs(before, ddl, exception);
-				_orm.Aop.SyncStructureAfter?.Invoke(this, after);
-			}
-		}
-		public ICodeFirst ConfigEntity<T>(Action<TableFluent<T>> entity) => _commonUtils.ConfigEntity(entity);
-		public ICodeFirst ConfigEntity(Type type, Action<TableFluent> entity) => _commonUtils.ConfigEntity(type, entity);
-		public TableAttribute GetConfigEntity(Type type) => _commonUtils.GetConfigEntity(type);
-		public TableInfo GetTableByEntity(Type type) => _commonUtils.GetTableByEntity(type);
 	}
 }

@@ -113,6 +113,11 @@
             <param name="type"></param>
             <returns></returns>
         </member>
+        <member name="P:FreeSql.DataAnnotations.NavigateAttribute.Bind">
+            <summary>
+            导航属性，手工绑定
+            </summary>
+        </member>
         <member name="P:FreeSql.DataAnnotations.TableAttribute.Name">
             <summary>
             数据库表名
@@ -288,13 +293,14 @@
             枚举项
             </summary>
         </member>
-        <member name="M:FreeSql.Extensions.EntityUtil.EntityUtilExtensions.GetEntityKeyString(IFreeSql,System.Type,System.Object,System.String)">
+        <member name="M:FreeSql.Extensions.EntityUtil.EntityUtilExtensions.GetEntityKeyString(IFreeSql,System.Type,System.Object,System.Boolean,System.String)">
             <summary>
-            获取实体的主键值，以 "*|_,[,_|*" 分割，当任意一个主键属性无值时（当Guid无值时，会生成有序的新值），返回 null
+            获取实体的主键值，以 "*|_,[,_|*" 分割，当任意一个主键属性无值时，返回 null
             </summary>
             <param name="orm"></param>
             <param name="entityType"></param>
             <param name="entity"></param>
+            <param name="genGuid">当Guid无值时，会生成有序的新值</param>
             <param name="splitString"></param>
             <returns></returns>
         </member>

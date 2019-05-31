@@ -15,24 +15,26 @@ namespace FreeSql.Extensions.EntityUtil {
 		static readonly MethodInfo MethodStringConcat = typeof(string).GetMethod("Concat", new Type[] { typeof(object) });
 		static readonly MethodInfo MethodFreeUtilNewMongodbId = typeof(FreeUtil).GetMethod("NewMongodbId");
 
-		static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Func<object, string>>> _dicGetEntityKeyString = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Func<object, string>>>();
+		static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Func<object, bool, string>>> _dicGetEntityKeyString = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Func<object, bool, string>>>();
 		/// <summary>
-		/// 获取实体的主键值，以 "*|_,[,_|*" 分割，当任意一个主键属性无值时（当Guid无值时，会生成有序的新值），返回 null
+		/// 获取实体的主键值，以 "*|_,[,_|*" 分割，当任意一个主键属性无值时，返回 null
 		/// </summary>
 		/// <param name="orm"></param>
 		/// <param name="entityType"></param>
 		/// <param name="entity"></param>
+		/// <param name="genGuid">当Guid无值时，会生成有序的新值</param>
 		/// <param name="splitString"></param>
 		/// <returns></returns>
 		//public static string GetEntityKeyString<TEntity>(this IFreeSql orm, TEntity entity, string splitString = "*|_,[,_|*") => GetEntityKeyString(orm, typeof(TEntity), entity, splitString);
-		public static string GetEntityKeyString(this IFreeSql orm, Type entityType, object entity, string splitString = "*|_,[,_|*") {
+		public static string GetEntityKeyString(this IFreeSql orm, Type entityType, object entity, bool genGuid, string splitString = "*|_,[,_|*") {
 			if (entity == null) return null;
 			if (entityType == null) entityType = entity.GetType();
-			var func = _dicGetEntityKeyString.GetOrAdd(orm.Ado.DataType, dt => new ConcurrentDictionary<Type, Func<object, string>>()).GetOrAdd(entityType, t => {
+			var func = _dicGetEntityKeyString.GetOrAdd(orm.Ado.DataType, dt => new ConcurrentDictionary<Type, Func<object, bool, string>>()).GetOrAdd(entityType, t => {
 				var _table = orm.CodeFirst.GetTableByEntity(t);
 				var pks = _table.Primarys;
 				var returnTarget = Expression.Label(typeof(string));
 				var parm1 = Expression.Parameter(typeof(object));
+				var parm2 = Expression.Parameter(typeof(bool));
 				var var1Parm = Expression.Variable(t);
 				var var2Sb = Expression.Variable(typeof(StringBuilder));
 				var var3IsNull = Expression.Variable(typeof(bool));
@@ -84,7 +86,10 @@ namespace FreeSql.Extensions.EntityUtil {
 								Expression.IsFalse(var3IsNull),
 								Expression.IfThenElse(
 									Expression.Equal(Expression.MakeMemberAccess(var1Parm, _table.Properties[pks[a].CsName]), Expression.Default(pks[a].CsType)),
-									expthen,
+									Expression.IfThen(
+										Expression.IsTrue(parm2),
+										expthen
+									),
 									Expression.Block(
 										new Expression[]{
 											a > 0 ? Expression.Call(var2Sb, MethodStringBuilderAppend, Expression.Constant(splitString)) : null,
@@ -119,9 +124,9 @@ namespace FreeSql.Extensions.EntityUtil {
 					)
 				);
 				exps.Add(Expression.Label(returnTarget, Expression.Default(typeof(string))));
-				return Expression.Lambda<Func<object, string>>(Expression.Block(new[] { var1Parm, var2Sb, var3IsNull }, exps), new[] { parm1 }).Compile();
+				return Expression.Lambda<Func<object, bool, string>>(Expression.Block(new[] { var1Parm, var2Sb, var3IsNull }, exps), new[] { parm1, parm2 }).Compile();
 			});
-			return func(entity);
+			return func(entity, genGuid);
 		}
 		static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Func<object, object[]>>> _dicGetEntityKeyValues = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Func<object, object[]>>>();
 		/// <summary>

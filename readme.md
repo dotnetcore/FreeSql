@@ -45,7 +45,7 @@ FreeSql 是一个功能强大的 .NETStandard 库，用于对象关系映射程�
 | FreeSql.Provider.SqlServer | NETStandard2.0、net451 |
 | FreeSql.Provider.Sqlite | NETStandard2.0、net45 |
 | FreeSql.Provider.Oracle | NETStandard2.0、net45 |
-| FreeSql.Extensions.LazyLoading | NETStandard2.0 |
+| FreeSql.Extensions.LazyLoading | NETStandard2.0、net45 |
 
 # Quick start
 

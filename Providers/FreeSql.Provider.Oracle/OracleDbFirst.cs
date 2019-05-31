@@ -58,6 +58,9 @@ namespace FreeSql.Oracle {
 				case "interval day to second":
 					_dicDbToCs.TryAdd(dbfull, _dicDbToCs["interval day(2) to second(6)"]);
 					return OracleDbType.IntervalDS;
+				case "date":
+					_dicDbToCs.TryAdd(dbfull, _dicDbToCs["date(7)"]);
+					return OracleDbType.IntervalDS;
 				case "timestamp":
 					_dicDbToCs.TryAdd(dbfull, _dicDbToCs["timestamp(6)"]);
 					return OracleDbType.TimeStamp;
@@ -106,6 +109,7 @@ namespace FreeSql.Oracle {
 				{ "number(10,2)", ("(decimal?)", "decimal.Parse({0})", "{0}.ToString()", "decimal?", typeof(decimal), typeof(decimal?), "{0}.Value", "GetDecimal") },
 
 				{ "interval day(2) to second(6)", ("(TimeSpan?)", "TimeSpan.Parse(double.Parse({0}))", "{0}.Ticks.ToString()", "TimeSpan?", typeof(TimeSpan), typeof(TimeSpan?), "{0}.Value", "GetValue") },
+				{ "date(7)", ("(DateTime?)", "new DateTime(long.Parse({0}))", "{0}.Ticks.ToString()", "DateTime?", typeof(DateTime), typeof(DateTime?), "{0}.Value", "GetValue") },
 				{ "timestamp(6)", ("(DateTime?)", "new DateTime(long.Parse({0}))", "{0}.Ticks.ToString()", "DateTime?", typeof(DateTime), typeof(DateTime?), "{0}.Value", "GetValue") },
 				{ "timestamp(6) with local time zone", ("(DateTime?)", "new DateTime(long.Parse({0}))", "{0}.Ticks.ToString()", "DateTime?", typeof(DateTime), typeof(DateTime?), "{0}.Value", "GetValue") },
 

@@ -159,6 +159,7 @@ namespace FreeSql.Internal.CommonProvider {
 			if (typeof(TReturn) == typeof(T1)) return this as ISelect<TReturn>;
 			_tables[0].Parameter = select.Parameters[0];
 			_selectExpression = select.Body;
+			(_orm.CodeFirst as CodeFirstProvider).dicSyced.TryAdd(typeof(TReturn).FullName, true);
 			var ret = _orm.Select<TReturn>();
 			Select0Provider<ISelect<T1>, T1>.CopyData(this, ret, null);
 			return ret;
@@ -172,6 +173,7 @@ namespace FreeSql.Internal.CommonProvider {
 			), SelectTableInfoType.InnerJoin);
 			if (typeof(TResult) == typeof(T1)) return this as ISelect<TResult>;
 			_selectExpression = resultSelector.Body;
+			(_orm.CodeFirst as CodeFirstProvider).dicSyced.TryAdd(typeof(TResult).FullName, true);
 			var ret = _orm.Select<TResult>() as Select1Provider<TResult>;
 			Select0Provider<ISelect<T1>, T1>.CopyData(this, ret, null);
 			return ret;
@@ -185,6 +187,7 @@ namespace FreeSql.Internal.CommonProvider {
 			), SelectTableInfoType.InnerJoin);
 			if (typeof(TResult) == typeof(T1)) return this as ISelect<TResult>;
 			_selectExpression = resultSelector.Body;
+			(_orm.CodeFirst as CodeFirstProvider).dicSyced.TryAdd(typeof(TResult).FullName, true);
 			var ret = _orm.Select<TResult>() as Select1Provider<TResult>;
 			Select0Provider<ISelect<T1>, T1>.CopyData(this, ret, null);
 			return ret;
@@ -211,6 +214,7 @@ namespace FreeSql.Internal.CommonProvider {
 			}
 			if (typeof(TResult) == typeof(T1)) return this as ISelect<TResult>;
 			_selectExpression = resultSelector.Body;
+			(_orm.CodeFirst as CodeFirstProvider).dicSyced.TryAdd(typeof(TResult).FullName, true);
 			var ret = _orm.Select<TResult>() as Select1Provider<TResult>;
 			Select0Provider<ISelect<T1>, T1>.CopyData(this, ret, null);
 			return ret;
