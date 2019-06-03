@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
-namespace FreeSql.Tests.MySql {
+namespace FreeSql.Tests.MySqlConnector {
 	public class MySqlDeleteTest {
 
 		IDelete<Topic> delete => g.mysql.Delete<Topic>(); //��������
@@ -14,7 +14,6 @@ namespace FreeSql.Tests.MySql {
 			[Column(IsIdentity = true, IsPrimary = true)]
 			public int Id { get; set; }
 			public int Clicks { get; set; }
-			public TestTypeInfo Type { get; set; }
 			public string Title { get; set; }
 			public DateTime CreateTime { get; set; }
 		}

@@ -185,7 +185,7 @@ namespace FreeSql.Tests.Sqlite {
 			var sql2222 = select.Where(a =>
 				select.Where(b => b.Id == a.Id &&
 					select.Where(c => c.Id == b.Id).Where(d => d.Id == a.Id).Where(e => e.Id == b.Id)
-					.Offset(a.Id)
+					//.Offset(a.Id)
 					.Any()
 				).Any(c => c.Id == a.Id + 10)
 			);
@@ -537,7 +537,7 @@ namespace FreeSql.Tests.Sqlite {
 			sql2222 = select.Where(a =>
 				select.Where(b => b.Id == a.Id && select.Where(c => c.Id == b.Id).Where(d => d.Id == a.Id).Where(e => e.Id == b.Id)
 
-				.Offset(a.Id)
+				//.Offset(a.Id)
 
 				.Any()
 				).Any()

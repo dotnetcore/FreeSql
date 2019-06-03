@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net45</TargetFrameworks>
-		<Version>0.6.5</Version>
+		<Version>0.6.6</Version>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>YeXiangQin</Authors>
 		<Description>FreeSql 数据库实现，基于 MySql 5.6</Description>
@@ -23,6 +23,11 @@
 
 	<ItemGroup>
 		<Compile Include="../FreeSql.Provider.MySql/**/*.cs" Exclude="../FreeSql.Provider.MySql/obj/**/*" />
+		<None Include="../FreeSql.Provider.MySql/MySqlUtils.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Compile Remove="..\FreeSql.Provider.MySql\MySqlUtils.cs" />
 	</ItemGroup>
 	
 	<ItemGroup>

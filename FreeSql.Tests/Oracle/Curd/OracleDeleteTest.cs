@@ -40,8 +40,8 @@ namespace FreeSql.Tests.Oracle {
 			var sql = delete.Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
 			Assert.Equal("DELETE FROM \"TB_TOPIC22211\" WHERE (\"ID\" = 1)", sql);
 
-			sql = delete.Where("id = ?id", new { id = 1 }).ToSql().Replace("\r\n", "");
-			Assert.Equal("DELETE FROM \"TB_TOPIC22211\" WHERE (id = ?id)", sql);
+			sql = delete.Where("id = :id", new { id = 1 }).ToSql().Replace("\r\n", "");
+			Assert.Equal("DELETE FROM \"TB_TOPIC22211\" WHERE (id = :id)", sql);
 
 			var item = new Topic { Id = 1, Title = "newtitle" };
 			sql = delete.Where(item).ToSql().Replace("\r\n", "");

@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
-namespace FreeSql.Tests.MySql {
+namespace FreeSql.Tests.MySqlConnector {
 
 	public class MySqlSelectTest {
 
@@ -78,6 +78,15 @@ namespace FreeSql.Tests.MySql {
 			public virtual ICollection<Tag> Tags { get; set; }
 		}
 
+		[Table(Name = "TestInfoT1", SelectFilter = " a.id > 0")]
+		class TestInfo {
+			[Column(IsIdentity = true, IsPrimary = true)]
+			public int Id { get; set; }
+			public int TypeGuid { get; set; }
+			public TestTypeInfo Type { get; set; }
+			public string Title { get; set; }
+			public DateTime CreateTime { get; set; }
+		}
 
 		[Fact]
 		public void AsSelect() {
@@ -383,9 +392,9 @@ namespace FreeSql.Tests.MySql {
 			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a LEFT JOIN TestTypeInfo b on b.Guid = a.TypeGuid", sql);
 			query.ToList();
 
-			query = select.LeftJoin("TestTypeInfo b on b.Guid = a.TypeGuid and b.Name = ?bname", new { bname = "xxx" });
+			query = select.LeftJoin("TestTypeInfo b on b.Guid = a.TypeGuid and b.Name = @bname", new { bname = "xxx" });
 			sql = query.ToSql().Replace("\r\n", "");
-			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a LEFT JOIN TestTypeInfo b on b.Guid = a.TypeGuid and b.Name = ?bname", sql);
+			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a LEFT JOIN TestTypeInfo b on b.Guid = a.TypeGuid and b.Name = @bname", sql);
 			query.ToList();
 		}
 		[Fact]
@@ -451,9 +460,9 @@ namespace FreeSql.Tests.MySql {
 			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a INNER JOIN TestTypeInfo b on b.Guid = a.TypeGuid", sql);
 			query.ToList();
 
-			query = select.InnerJoin("TestTypeInfo b on b.Guid = a.TypeGuid and b.Name = ?bname", new { bname = "xxx" });
+			query = select.InnerJoin("TestTypeInfo b on b.Guid = a.TypeGuid and b.Name = @bname", new { bname = "xxx" });
 			sql = query.ToSql().Replace("\r\n", "");
-			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a INNER JOIN TestTypeInfo b on b.Guid = a.TypeGuid and b.Name = ?bname", sql);
+			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a INNER JOIN TestTypeInfo b on b.Guid = a.TypeGuid and b.Name = @bname", sql);
 			query.ToList();
 
 		}
@@ -520,9 +529,9 @@ namespace FreeSql.Tests.MySql {
 			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a RIGHT JOIN TestTypeInfo b on b.Guid = a.TypeGuid", sql);
 			query.ToList();
 
-			query = select.RightJoin("TestTypeInfo b on b.Guid = a.TypeGuid and b.Name = ?bname", new { bname = "xxx" });
+			query = select.RightJoin("TestTypeInfo b on b.Guid = a.TypeGuid and b.Name = @bname", new { bname = "xxx" });
 			sql = query.ToSql().Replace("\r\n", "");
-			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a RIGHT JOIN TestTypeInfo b on b.Guid = a.TypeGuid and b.Name = ?bname", sql);
+			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a RIGHT JOIN TestTypeInfo b on b.Guid = a.TypeGuid and b.Name = @bname", sql);
 			query.ToList();
 
 		}
@@ -591,9 +600,9 @@ namespace FreeSql.Tests.MySql {
 			query2.ToList();
 
 			//������϶����㲻��
-			query = select.Where("a.clicks > 100 and a.id = ?id", new { id = 10 });
+			query = select.Where("a.clicks > 100 and a.id = @id", new { id = 10 });
 			sql = query.ToSql().Replace("\r\n", "");
-			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a WHERE (a.clicks > 100 and a.id = ?id)", sql);
+			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a WHERE (a.clicks > 100 and a.id = @id)", sql);
 			query.ToList();
 		}
 		[Fact]
@@ -638,9 +647,9 @@ namespace FreeSql.Tests.MySql {
 			query2.ToList();
 
 			//������϶����㲻��
-			query = select.WhereIf(true, "a.clicks > 100 and a.id = ?id", new { id = 10 });
+			query = select.WhereIf(true, "a.clicks > 100 and a.id = @id", new { id = 10 });
 			sql = query.ToSql().Replace("\r\n", "");
-			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a WHERE (a.clicks > 100 and a.id = ?id)", sql);
+			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a WHERE (a.clicks > 100 and a.id = @id)", sql);
 			query.ToList();
 
 			// ==========================================WhereIf(false)
@@ -685,7 +694,7 @@ namespace FreeSql.Tests.MySql {
 			query2.ToList();
 
 			//������϶����㲻��
-			query = select.WhereIf(false, "a.clicks > 100 and a.id = ?id", new { id = 10 });
+			query = select.WhereIf(false, "a.clicks > 100 and a.id = @id", new { id = 10 });
 			sql = query.ToSql().Replace("\r\n", "");
 			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a", sql);
 			query.ToList();
@@ -886,9 +895,9 @@ namespace FreeSql.Tests.MySql {
 			sql = query.ToSql().Replace("\r\n", "");
 			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topicAsTable1` a LEFT JOIN TestTypeInfo b on b.Guid = a.TypeGuid", sql);
 
-			query = select.LeftJoin("TestTypeInfo b on b.Guid = a.TypeGuid and b.Name = ?bname", new { bname = "xxx" }).AsTable(tableRule);
+			query = select.LeftJoin("TestTypeInfo b on b.Guid = a.TypeGuid and b.Name = @bname", new { bname = "xxx" }).AsTable(tableRule);
 			sql = query.ToSql().Replace("\r\n", "");
-			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topicAsTable1` a LEFT JOIN TestTypeInfo b on b.Guid = a.TypeGuid and b.Name = ?bname", sql);
+			Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topicAsTable1` a LEFT JOIN TestTypeInfo b on b.Guid = a.TypeGuid and b.Name = @bname", sql);
 		}
 
 		public class TestInclude_OneToManyModel1 {

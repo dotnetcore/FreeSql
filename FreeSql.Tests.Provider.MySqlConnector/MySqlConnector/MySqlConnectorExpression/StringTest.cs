@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
-namespace FreeSql.Tests.MySqlExpression {
+namespace FreeSql.Tests.MySqlConnectorExpression {
 	public class StringTest {
 
 		ISelect<Topic> select => g.mysql.Select<Topic>();
