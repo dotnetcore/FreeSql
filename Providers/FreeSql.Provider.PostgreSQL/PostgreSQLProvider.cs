@@ -98,7 +98,7 @@ namespace FreeSql.PostgreSQL {
 		bool _isdisposed = false;
 		public void Dispose() {
 			if (_isdisposed) return;
-			(this.Ado as AdoProvider).Dispose();
+			(this.Ado as AdoProvider)?.Dispose();
 		}
 	}
 }
