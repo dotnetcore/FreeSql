@@ -260,6 +260,9 @@ namespace FreeSql.Tests {
 
 		[Fact]
 		public void Test1() {
+
+			var ttdkdk = g.mysql.Select<NewsArticle>().Where<TaskBuild>(a => a.NamespaceName == "ddd").ToSql();
+
 			var tsqlddd = g.sqlite.Select<NewsArticle>().Where(a =>
 				g.sqlite.Select<TaskBuild>().Where(b => b.NamespaceName == a.ArticleTitle)
 				.Where("@id=1", new { id = 1 }).Any()
