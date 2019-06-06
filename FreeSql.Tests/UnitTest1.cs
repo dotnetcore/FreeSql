@@ -267,7 +267,7 @@ namespace FreeSql.Tests {
 		[Fact]
 		public void Test1() {
 
-g.sqlite.Aop.ParseExpression = (s, e) => {
+g.mysql.Aop.ParseExpression = (s, e) => {
 	if (e.Expression.NodeType ==  ExpressionType.Call) {
 		var callExp = e.Expression as MethodCallExpression;
 		if (callExp.Object.Type == typeof(DateTime) &&
