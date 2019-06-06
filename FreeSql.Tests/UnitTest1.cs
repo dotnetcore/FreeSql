@@ -270,7 +270,7 @@ namespace FreeSql.Tests {
 g.mysql.Aop.ParseExpression = (s, e) => {
 	if (e.Expression.NodeType ==  ExpressionType.Call) {
 		var callExp = e.Expression as MethodCallExpression;
-		if (callExp.Object.Type == typeof(DateTime) &&
+		if (callExp.Object?.Type == typeof(DateTime) &&
 			callExp.Method.Name == "ToString" &&
 			callExp.Arguments.Count == 1 &&
 			callExp.Arguments[0].Type == typeof(string) &&

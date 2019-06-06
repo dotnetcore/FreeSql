@@ -489,32 +489,32 @@ namespace FreeSql.Tests.Sqlite {
 			query = select.WhereIf(false, a => a.Id == 10);
 			sql = query.ToSql().Replace("\r\n", "");
 			Assert.Equal("SELECT a.\"Id\", a.\"Clicks\", a.\"TypeGuid\", a.\"Title\", a.\"CreateTime\" FROM \"tb_topic22\" a", sql);
-			query.ToList();
+			query.First();
 
 			query = select.WhereIf(false, a => a.Id == 10 && a.Id > 10 || a.Clicks > 100);
 			sql = query.ToSql().Replace("\r\n", "");
 			Assert.Equal("SELECT a.\"Id\", a.\"Clicks\", a.\"TypeGuid\", a.\"Title\", a.\"CreateTime\" FROM \"tb_topic22\" a", sql);
-			query.ToList();
+			query.First();
 
 			query = select.WhereIf(false, a => a.Id == 10).WhereIf(false, a => a.Clicks > 100);
 			sql = query.ToSql().Replace("\r\n", "");
 			Assert.Equal("SELECT a.\"Id\", a.\"Clicks\", a.\"TypeGuid\", a.\"Title\", a.\"CreateTime\" FROM \"tb_topic22\" a", sql);
-			query.ToList();
+			query.First();
 
 			query = select.WhereIf(false, a => a.Type.Name == "typeTitle");
 			sql = query.ToSql().Replace("\r\n", "");
 			Assert.Equal("SELECT a.\"Id\", a.\"Clicks\", a.\"TypeGuid\", a.\"Title\", a.\"CreateTime\" FROM \"tb_topic22\" a", sql);
-			query.ToList();
+			query.First();
 
 			query = select.WhereIf(false, a => a.Type.Name == "typeTitle" && a.Type.Guid == a.TypeGuid);
 			sql = query.ToSql().Replace("\r\n", "");
 			Assert.Equal("SELECT a.\"Id\", a.\"Clicks\", a.\"TypeGuid\", a.\"Title\", a.\"CreateTime\" FROM \"tb_topic22\" a", sql);
-			query.ToList();
+			query.First();
 
 			query = select.WhereIf(false, a => a.Type.Parent.Name == "tparent");
 			sql = query.ToSql().Replace("\r\n", "");
 			Assert.Equal("SELECT a.\"Id\", a.\"Clicks\", a.\"TypeGuid\", a.\"Title\", a.\"CreateTime\" FROM \"tb_topic22\" a", sql);
-			query.ToList();
+			query.First();
 
 			//����һ�� From ��Ķ������
 			query2 = select.From<TestTypeInfo, TestTypeParentInfo>((s, b, c) => s
@@ -522,13 +522,13 @@ namespace FreeSql.Tests.Sqlite {
 				.WhereIf(false, a => b.ParentId == 20));
 			sql = query2.ToSql().Replace("\r\n", "");
 			Assert.Equal("SELECT a.\"Id\", a.\"Clicks\", a.\"TypeGuid\", a.\"Title\", a.\"CreateTime\" FROM \"tb_topic22\" a, \"TestTypeInfo\" b, \"TestTypeParentInfo\" c", sql);
-			query2.ToList();
+			query2.First();
 
 			//������϶����㲻��
 			query = select.WhereIf(false, "a.\"Clicks\" > 100 and a.\"Id\" = @id", new { id = 10 });
 			sql = query.ToSql().Replace("\r\n", "");
 			Assert.Equal("SELECT a.\"Id\", a.\"Clicks\", a.\"TypeGuid\", a.\"Title\", a.\"CreateTime\" FROM \"tb_topic22\" a", sql);
-			query.ToList();
+			query.First();
 		}
 		[Fact]
 		public void WhereExists() {
