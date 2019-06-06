@@ -288,11 +288,26 @@ namespace FreeSql {
 		/// <returns></returns>
 		ISelect<T1> OrderBy<TMember>(Expression<Func<T1, TMember>> column);
 		/// <summary>
+		/// 按列排序，OrderBy(true, a => a.Time)
+		/// </summary>
+		/// <typeparam name="TMember"></typeparam>
+		/// <param name="condition">true 时生效</param>
+		/// <param name="column"></param>
+		/// <returns></returns>
+		ISelect<T1> OrderBy<TMember>(bool condition, Expression<Func<T1, TMember>> column);
+		/// <summary>
 		/// 按列倒向排序，OrderByDescending(a => a.Time)
 		/// </summary>
 		/// <param name="column">列</param>
 		/// <returns></returns>
 		ISelect<T1> OrderByDescending<TMember>(Expression<Func<T1, TMember>> column);
+		/// <summary>
+		/// 按列倒向排序，OrderByDescending(true, a => a.Time)
+		/// </summary>
+		/// <param name="condition">true 时生效</param>
+		/// <param name="column">列</param>
+		/// <returns></returns>
+		ISelect<T1> OrderByDescending<TMember>(bool condition, Expression<Func<T1, TMember>> column);
 
 		/// <summary>
 		/// 贪婪加载导航属性，如果查询中已经使用了 a.Parent.Parent 类似表达式，则可以无需此操作

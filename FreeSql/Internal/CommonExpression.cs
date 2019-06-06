@@ -929,7 +929,7 @@ namespace FreeSql.Internal {
 					getSelectGroupingMapString = this.getSelectGroupingMapString,
 					tbtype = this.tbtype,
 					isQuoteName = this.isQuoteName,
-					isDisableDiyParse = false,
+					isDisableDiyParse = true,
 					style = this.style,
 					currentTable = this.currentTable
 				};

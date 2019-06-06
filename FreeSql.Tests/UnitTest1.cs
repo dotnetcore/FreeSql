@@ -258,8 +258,42 @@ namespace FreeSql.Tests {
 			public Templates Templates { get; set; }
 		}
 
+		public class SqlFunc {
+			public static string FormatDateTime() {
+				return "";
+			}
+		}
+
 		[Fact]
 		public void Test1() {
+
+g.sqlite.Aop.ParseExpression = (s, e) => {
+	if (e.Expression.NodeType ==  ExpressionType.Call) {
+		var callExp = e.Expression as MethodCallExpression;
+		if (callExp.Object.Type == typeof(DateTime) &&
+			callExp.Method.Name == "ToString" &&
+			callExp.Arguments.Count == 1 &&
+			callExp.Arguments[0].Type == typeof(string) &&
+			callExp.Arguments[0].NodeType == ExpressionType.Constant) {
+			var format = (callExp.Arguments[0] as ConstantExpression)?.Value?.ToString();
+
+			if (string.IsNullOrEmpty(format) == false) {
+				var tmp = e.FreeParse(callExp.Object);
+
+				switch(format) {
+					case "yyyy-MM-dd HH:mm":
+						tmp =  $"date_format({tmp}, '%Y-%m-%d %H:%i')";
+						break;
+				}
+				e.Result = tmp;
+			}
+		}
+	}
+};
+
+			g.mysql.Select<NewsArticle>().ToList(a => new {
+				testaddtime = a.testaddtime.ToString("yyyy-MM-dd HH:mm")
+			});
 
 			var ttdkdk = g.mysql.Select<NewsArticle>().Where<TaskBuild>(a => a.NamespaceName == "ddd").ToSql();
 

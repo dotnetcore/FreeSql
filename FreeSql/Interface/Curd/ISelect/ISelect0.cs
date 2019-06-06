@@ -203,12 +203,20 @@ namespace FreeSql {
 		TSelect Having(string sql, object parms = null);
 
 		/// <summary>
-		/// 按原生sql语法排序，OrderBy("count(name) + ?cc", new { cc = 1 })
+		/// 按原生sql语法排序，OrderBy("count(name) + ?cc desc", new { cc = 1 })
 		/// </summary>
 		/// <param name="sql">sql语法</param>
 		/// <param name="parms">参数</param>
 		/// <returns></returns>
 		TSelect OrderBy(string sql, object parms = null);
+		/// <summary>
+		/// 按原生sql语法排序，OrderBy(true, "count(name) + ?cc desc", new { cc = 1 })
+		/// </summary>
+		/// <param name="condition">true 时生效</param>
+		/// <param name="sql">sql语法</param>
+		/// <param name="parms">参数</param>
+		/// <returns></returns>
+		TSelect OrderBy(bool condition, string sql, object parms = null);
 
 		/// <summary>
 		/// 查询向后偏移行数

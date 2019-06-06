@@ -40,8 +40,24 @@ namespace FreeSql.Internal.CommonProvider {
 							if (whereIfCond == "1" || whereIfCond == "'t'")
 								this.InternalWhere(expCall.Arguments[1]);
 							break;
-						case "OrderBy": this.InternalOrderBy(expCall.Arguments[0]); break;
-						case "OrderByDescending": this.InternalOrderByDescending(expCall.Arguments[0]); break;
+						case "OrderBy":
+							if (expCall.Arguments.Count == 2 && expCall.Arguments[0].Type == typeof(bool)) {
+								var ifcond = _commonExpression.ExpressionSelectColumn_MemberAccess(null, null, SelectTableInfoType.From, expCall.Arguments[0], false, null);
+								if (ifcond == "1" || ifcond == "'t'")
+									this.InternalOrderBy(expCall.Arguments.LastOrDefault());
+								break;
+							}
+							this.InternalOrderBy(expCall.Arguments.LastOrDefault());
+							break;
+						case "OrderByDescending":
+							if (expCall.Arguments.Count == 2 && expCall.Arguments[0].Type == typeof(bool)) {
+								var ifcond = _commonExpression.ExpressionSelectColumn_MemberAccess(null, null, SelectTableInfoType.From, expCall.Arguments[0], false, null);
+								if (ifcond == "1" || ifcond == "'t'")
+									this.InternalOrderByDescending(expCall.Arguments.LastOrDefault());
+								break;
+							}
+							this.InternalOrderByDescending(expCall.Arguments.LastOrDefault());
+							break;
 
 						case "LeftJoin": this.InternalJoin(expCall.Arguments[0], SelectTableInfoType.LeftJoin); break;
 						case "InnerJoin": this.InternalJoin(expCall.Arguments[0], SelectTableInfoType.InnerJoin); break;
@@ -113,14 +129,15 @@ namespace FreeSql.Internal.CommonProvider {
 			_tables[0].Parameter = column.Parameters[0];
 			return this.InternalMinAsync<TMember>(column?.Body);
 		}
-
-		public ISelect<T1> OrderBy<TMember>(Expression<Func<T1, TMember>> column) {
-			if (column == null) return this;
+		public ISelect<T1> OrderBy<TMember>(Expression<Func<T1, TMember>> column) => this.OrderBy(true, column);
+		public ISelect<T1> OrderBy<TMember>(bool condition, Expression<Func<T1, TMember>> column) {
+			if (condition == false || column == null) return this;
 			_tables[0].Parameter = column.Parameters[0];
 			return this.InternalOrderBy(column?.Body);
 		}
-		public ISelect<T1> OrderByDescending<TMember>(Expression<Func<T1, TMember>> column) {
-			if (column == null) return this;
+		public ISelect<T1> OrderByDescending<TMember>(Expression<Func<T1, TMember>> column) => this.OrderByDescending(true, column);
+		public ISelect<T1> OrderByDescending<TMember>(bool condition, Expression<Func<T1, TMember>> column) {
+			if (condition == false || column == null) return this;
 			_tables[0].Parameter = column.Parameters[0];
 			return this.InternalOrderByDescending(column?.Body);
 		}

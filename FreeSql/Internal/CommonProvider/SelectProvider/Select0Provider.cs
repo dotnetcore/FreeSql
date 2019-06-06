@@ -182,7 +182,9 @@ namespace FreeSql.Internal.CommonProvider {
 		}
 		public TSelect Offset(int offset) => this.Skip(offset) as TSelect;
 
-		public TSelect OrderBy(string sql, object parms = null) {
+		public TSelect OrderBy(string sql, object parms = null) => this.OrderBy(true, sql, parms);
+		public TSelect OrderBy(bool condition, string sql, object parms = null) {
+			if (condition == false) return this as TSelect;
 			if (string.IsNullOrEmpty(sql)) _orderby = null;
 			var isnull = string.IsNullOrEmpty(_orderby);
 			_orderby = string.Concat(isnull ? " \r\nORDER BY " : "", _orderby, isnull ? "" : ", ", sql);
