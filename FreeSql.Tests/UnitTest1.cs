@@ -267,6 +267,18 @@ namespace FreeSql.Tests {
 		[Fact]
 		public void Test1() {
 
+			var testaddlist = new List<NewsArticle>();
+			for(var a = 0; a < 133905; a++) {
+				testaddlist.Add(new NewsArticle {
+					ArticleTitle = "testaddlist_topic" + a,
+					Hits = a,
+				});
+			}
+			g.sqlite.Insert<NewsArticle>(testaddlist)
+				//.NoneParameter()
+				.ExecuteAffrows();
+
+
 g.mysql.Aop.ParseExpression = (s, e) => {
 	if (e.Expression.NodeType ==  ExpressionType.Call) {
 		var callExp = e.Expression as MethodCallExpression;

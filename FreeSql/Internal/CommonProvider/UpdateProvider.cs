@@ -96,7 +96,7 @@ namespace FreeSql.Internal.CommonProvider {
 				var pamTotal = colSum * _source.Count;
 				if (pamTotal < parameterLimit) return new[] { _source };
 
-				var execCount = (int)Math.Ceiling(1.0 * pamTotal / parameterLimit);
+				var execCount = (int)Math.Ceiling(1.0 * pamTotal / takeMax / colSum);
 				var ret = new List<T1>[execCount];
 				for (var a = 0; a < execCount; a++) {
 					var subSource = new List<T1>();
