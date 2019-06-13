@@ -17,6 +17,12 @@ namespace FreeSql.DataAnnotations {
 		/// </summary>
 		public string SelectFilter { get; set; }
 
+		internal bool? _DisableSyncStructure;
+		/// <summary>
+		/// 禁用 CodeFirst 同步结构迁移
+		/// </summary>
+		public bool DisableSyncStructure { get => _DisableSyncStructure ?? false; set => _DisableSyncStructure = value; }
+
 		internal ConcurrentDictionary<string, ColumnAttribute> _columns { get; } = new ConcurrentDictionary<string, ColumnAttribute>(StringComparer.CurrentCultureIgnoreCase);
 	}
 }

@@ -45,9 +45,9 @@ namespace FreeSql.Internal.CommonProvider {
 		internal ConcurrentDictionary<string, bool> dicSyced = new ConcurrentDictionary<string, bool>();
 		public bool SyncStructure<TEntity>() => this.SyncStructure(typeof(TEntity));
 		public bool SyncStructure(params Type[] entityTypes) {
-			if (entityTypes == null) return true;
-			var syncTypes = entityTypes.Where(a => dicSyced.ContainsKey(a.FullName) == false).ToArray();
-			if (syncTypes.Any() == false) return true;
+			if (entityTypes == null) return false;
+			var syncTypes = entityTypes.Where(a => dicSyced.ContainsKey(a.FullName) == false && GetTableByEntity(a)?.DisableSyncStructure == false).ToArray();
+			if (syncTypes.Any() == false) return false;
 			var before = new Aop.SyncStructureBeforeEventArgs(entityTypes);
 			_orm.Aop.SyncStructureBefore?.Invoke(this, before);
 			Exception exception = null;

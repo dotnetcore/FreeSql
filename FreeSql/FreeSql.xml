@@ -133,6 +133,11 @@
             查询过滤SQL，实现类似 a.IsDeleted = 1 功能
             </summary>
         </member>
+        <member name="P:FreeSql.DataAnnotations.TableAttribute.DisableSyncStructure">
+            <summary>
+            禁用 CodeFirst 同步结构迁移
+            </summary>
+        </member>
         <member name="M:FreeSql.DataAnnotations.TableFluent.Name(System.String)">
             <summary>
             数据库表名
@@ -148,6 +153,11 @@
             查询过滤SQL，实现类似 a.IsDeleted = 1 功能
             </summary>
         </member>
+        <member name="M:FreeSql.DataAnnotations.TableFluent.DisableSyncStructure(System.Boolean)">
+            <summary>
+            禁用 CodeFirst 同步结构迁移
+            </summary>
+        </member>
         <member name="M:FreeSql.DataAnnotations.TableFluent`1.Name(System.String)">
             <summary>
             数据库表名
@@ -161,6 +171,11 @@
         <member name="M:FreeSql.DataAnnotations.TableFluent`1.SelectFilter(System.String)">
             <summary>
             查询过滤SQL，实现类似 a.IsDeleted = 1 功能
+            </summary>
+        </member>
+        <member name="M:FreeSql.DataAnnotations.TableFluent`1.DisableSyncStructure(System.Boolean)">
+            <summary>
+            禁用 CodeFirst 同步结构迁移
             </summary>
         </member>
         <member name="P:FreeSql.DatabaseModel.DbColumnInfo.Table">
@@ -478,6 +493,15 @@
             </summary>
             <param name="executing">执行前</param>
             <param name="executed">执行后，可监视执行性能</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.FreeSqlBuilder.UseEntityPropertyNameConvert(FreeSql.Internal.StringConvertType)">
+            <summary>
+            自动转换实体属性名称 Entity Property -> Db Filed
+            <para></para>
+            *不会覆盖 [Column] 特性设置的Name
+            </summary>
+            <param name="convertType"></param>
             <returns></returns>
         </member>
         <member name="M:FreeSql.IDelete`1.WithTransaction(System.Data.Common.DbTransaction)">
@@ -2250,6 +2274,55 @@
             <summary>
             中间表，多对多
             </summary>
+        </member>
+        <member name="F:FreeSql.Internal.StringConvertType.None">
+            <summary>
+            不进行任何处理
+            </summary>
+        </member>
+        <member name="F:FreeSql.Internal.StringConvertType.PascalCaseToUnderscore">
+            <summary>
+            将帕斯卡命名字符串转换为下划线分隔字符串
+            <para></para>
+            BigApple -> Big_Apple
+            </summary>
+        </member>
+        <member name="F:FreeSql.Internal.StringConvertType.PascalCaseToUnderscoreWithUpper">
+            <summary>
+            将帕斯卡命名字符串转换为下划线分隔字符串，且转换为全大写
+            <para></para>
+            BigApple -> BIG_APPLE
+            </summary>
+        </member>
+        <member name="F:FreeSql.Internal.StringConvertType.PascalCaseToUnderscoreWithLower">
+            <summary>
+            将帕斯卡命名字符串转换为下划线分隔字符串，且转换为全小写
+            <para></para>
+            BigApple -> big_apple
+            </summary>
+        </member>
+        <member name="F:FreeSql.Internal.StringConvertType.Upper">
+            <summary>
+            将字符串转换为大写
+            <para></para>
+            BigApple -> BIGAPPLE
+            </summary>
+        </member>
+        <member name="F:FreeSql.Internal.StringConvertType.Lower">
+            <summary>
+            将字符串转换为小写
+            <para></para>
+            BigApple -> bigapple
+            </summary>
+        </member>
+        <member name="M:FreeSql.Internal.StringUtils.PascalCaseToUnderScore(System.String)">
+            <summary>
+            将帕斯卡命名字符串转换为下划线分隔字符串
+            <para></para>
+            BigApple -> Big_Apple
+            </summary>
+            <param name="str"></param>
+            <returns></returns>
         </member>
         <member name="M:FreeSqlGlobalExtensions.Distance(System.Drawing.Point,System.Drawing.Point)">
             <summary>

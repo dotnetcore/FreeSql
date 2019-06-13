@@ -1,4 +1,5 @@
 using FreeSql.DataAnnotations;
+using MySql.Data.MySqlClient;
 using System;
 using System.Linq;
 using Xunit;
@@ -7,6 +8,22 @@ namespace FreeSql.Tests.DataAnnotations {
 	public class MySqlFluentTest {
 
 		public MySqlFluentTest() {
+		}
+
+		[Fact]
+		public void DisableSyncStructure() {
+			Assert.Throws<MySqlException>(() => g.mysql.Select<ModelDisableSyncStructure>().ToList());
+
+			g.mysql.Select<ModelSyncStructure>().ToList();
+		}
+		[Table(DisableSyncStructure = true)]
+		class ModelDisableSyncStructure {
+			[Column(IsPrimary = false)]
+			public int pkid { get; set; }
+		}
+		class ModelSyncStructure {
+			[Column(IsPrimary = false)]
+			public int pkid { get; set; }
 		}
 
 		[Fact]

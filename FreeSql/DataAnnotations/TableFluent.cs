@@ -38,6 +38,14 @@ namespace FreeSql.DataAnnotations {
 			return this;
 		}
 
+		/// <summary>
+		/// 禁用 CodeFirst 同步结构迁移
+		/// </summary>
+		public TableFluent DisableSyncStructure(bool value) {
+			_table.DisableSyncStructure = value;
+			return this;
+		}
+
 		public ColumnFluent Property(string proto) {
 			if (_properties.ContainsKey(proto) == false) throw new KeyNotFoundException($"找不到属性名 {proto}");
 			var col = _table._columns.GetOrAdd(proto, name => new ColumnAttribute { Name = proto });
@@ -71,6 +79,14 @@ namespace FreeSql.DataAnnotations {
 		/// </summary>
 		public TableFluent<T> SelectFilter(string value) {
 			_table.SelectFilter = value;
+			return this;
+		}
+
+		/// <summary>
+		/// 禁用 CodeFirst 同步结构迁移
+		/// </summary>
+		public TableFluent<T> DisableSyncStructure(bool value) {
+			_table.DisableSyncStructure = value;
 			return this;
 		}
 

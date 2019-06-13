@@ -147,7 +147,7 @@ namespace FreeSql {
 			ret = Activator.CreateInstance(type, new object[] { _masterConnectionString, _slaveConnectionString }) as IFreeSql<TMark>;
 			if (ret != null) {
 				ret.CodeFirst.IsAutoSyncStructure = _isAutoSyncStructure;
-				
+
 				ret.CodeFirst.IsSyncStructureToLower = _isSyncStructureToLower;
 				ret.CodeFirst.IsSyncStructureToUpper = _isSyncStructureToUpper;
 				ret.CodeFirst.IsConfigEntityFromDbFirst = _isConfigEntityFromDbFirst;
@@ -157,73 +157,39 @@ namespace FreeSql {
 				ado.AopCommandExecuting += _aopCommandExecuting;
 				ado.AopCommandExecuted += _aopCommandExecuted;
 
-                //添加实体属性名全局AOP转换处理
-                if (_entityPropertyConvertType != StringConvertType.None)
-                {
-                    // 局部方法判断是否存在Column特性以及是否设置Name的值
-                    bool CheckEntityPropertyColumnAttribute(PropertyInfo propertyInfo)
-                    {
-                        var attr = propertyInfo.GetCustomAttribute<ColumnAttribute>();
-                        if (attr == null || string.IsNullOrEmpty(attr.Name))
-                        {
-                            return true;
-                        }
-
-                        return false;
-                    }
-
-                    switch (_entityPropertyConvertType)
-                    {
-                        case StringConvertType.Lower:
-                            ret.Aop.ConfigEntityProperty = (s, e) =>
-                            {
-                                if (CheckEntityPropertyColumnAttribute(e.Property))
-                                {
-                                    e.ModifyResult.Name = e.Property.Name.ToLower();
-                                }
-                            };
-                            break;
-                        case StringConvertType.Upper:
-                            ret.Aop.ConfigEntityProperty = (s, e) =>
-                            {
-                                if (CheckEntityPropertyColumnAttribute(e.Property))
-                                {
-                                    e.ModifyResult.Name = e.Property.Name.ToUpper();
-                                }
-                            };
-                            break;
-                        case StringConvertType.PascalCaseToUnderscore:
-                            ret.Aop.ConfigEntityProperty = (s, e) =>
-                            {
-                                if (CheckEntityPropertyColumnAttribute(e.Property))
-                                {
-                                    e.ModifyResult.Name = StringUtils.PascalCaseToUnderScore(e.Property.Name);
-                                }
-                            };
-                            break;
-                        case StringConvertType.PascalCaseToUnderscoreWithLower:
-                            ret.Aop.ConfigEntityProperty = (s, e) =>
-                            {
-                                if (CheckEntityPropertyColumnAttribute(e.Property))
-                                {
-                                    e.ModifyResult.Name = StringUtils.PascalCaseToUnderScore(e.Property.Name).ToLower();
-                                }
-                            };
-                            break;
-                        case StringConvertType.PascalCaseToUnderscoreWithUpper:
-                            ret.Aop.ConfigEntityProperty = (s, e) =>
-                            {
-                                if (CheckEntityPropertyColumnAttribute(e.Property))
-                                {
-                                    e.ModifyResult.Name = StringUtils.PascalCaseToUnderScore(e.Property.Name).ToUpper();
-                                }
-                            };
-                            break;
-                        default:
-                            break;
-                    }
-                }
-            }
+				//添加实体属性名全局AOP转换处理
+				if (_entityPropertyConvertType != StringConvertType.None) {
+					switch (_entityPropertyConvertType) {
+						case StringConvertType.Lower:
+							ret.Aop.ConfigEntityProperty = (s, e) => {
+								e.ModifyResult.Name = e.Property.Name.ToLower();
+							};
+							break;
+						case StringConvertType.Upper:
+							ret.Aop.ConfigEntityProperty = (s, e) => {
+								e.ModifyResult.Name = e.Property.Name.ToUpper();
+							};
+							break;
+						case StringConvertType.PascalCaseToUnderscore:
+							ret.Aop.ConfigEntityProperty = (s, e) => {
+								e.ModifyResult.Name = StringUtils.PascalCaseToUnderScore(e.Property.Name);
+							};
+							break;
+						case StringConvertType.PascalCaseToUnderscoreWithLower:
+							ret.Aop.ConfigEntityProperty = (s, e) => {
+								e.ModifyResult.Name = StringUtils.PascalCaseToUnderScore(e.Property.Name).ToLower();
+							};
+							break;
+						case StringConvertType.PascalCaseToUnderscoreWithUpper:
+							ret.Aop.ConfigEntityProperty = (s, e) => {
+								e.ModifyResult.Name = StringUtils.PascalCaseToUnderScore(e.Property.Name).ToUpper();
+							};
+							break;
+						default:
+							break;
+					}
+				}
+			}
 
 			return ret;
 		}

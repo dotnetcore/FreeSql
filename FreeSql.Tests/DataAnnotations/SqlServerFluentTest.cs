@@ -1,6 +1,7 @@
 using FreeSql.DataAnnotations;
 using FreeSql.Tests.DataContext.SqlServer;
 using System;
+using System.Data.SqlClient;
 using Xunit;
 
 namespace FreeSql.Tests.DataAnnotations {
@@ -12,6 +13,22 @@ namespace FreeSql.Tests.DataAnnotations {
 		public SqlServerFluentTest(SqlServerFixture sqlserverFixture)
 		{
 			_sqlserverFixture = sqlserverFixture;
+		}
+
+		[Fact]
+		public void DisableSyncStructure() {
+			Assert.Throws<SqlException>(() => _sqlserverFixture.SqlServer.Select<ModelDisableSyncStructure>().ToList());
+
+			_sqlserverFixture.SqlServer.Select<ModelSyncStructure>().ToList();
+		}
+		[Table(DisableSyncStructure = true)]
+		class ModelDisableSyncStructure {
+			[Column(IsPrimary = false)]
+			public int pkid { get; set; }
+		}
+		class ModelSyncStructure {
+			[Column(IsPrimary = false)]
+			public int pkid { get; set; }
 		}
 
 		[Fact]
