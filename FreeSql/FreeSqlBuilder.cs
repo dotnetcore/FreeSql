@@ -1,5 +1,9 @@
 ﻿using System;
 using System.Data.Common;
+using System.Linq;
+using System.Reflection;
+using FreeSql.DataAnnotations;
+using FreeSql.Internal;
 
 namespace FreeSql {
 	public class FreeSqlBuilder {
@@ -12,6 +16,7 @@ namespace FreeSql {
 		bool _isConfigEntityFromDbFirst = false;
 		bool _isNoneCommandParameter = false;
 		bool _isLazyLoading = false;
+        StringConvertType _entityPropertyConvertType = StringConvertType.None;
 		Action<DbCommand> _aopCommandExecuting = null;
 		Action<DbCommand, string> _aopCommandExecuted = null;
 
@@ -101,7 +106,20 @@ namespace FreeSql {
 			return this;
 		}
 
-		public IFreeSql Build() => Build<IFreeSql>();
+        /// <summary>
+        /// 自动转换实体属性名称 Entity Property -> Db Filed
+        /// <para></para>
+        /// *不会覆盖 [Column] 特性设置的Name
+        /// </summary>
+        /// <param name="convertType"></param>
+        /// <returns></returns>
+        public FreeSqlBuilder UseEntityPropertyNameConvert(StringConvertType convertType)
+        {
+            _entityPropertyConvertType = convertType;
+            return this;
+        }
+
+        public IFreeSql Build() => Build<IFreeSql>();
 		public IFreeSql<TMark> Build<TMark>() {
 			if (string.IsNullOrEmpty(_masterConnectionString)) throw new Exception("参数 masterConnectionString 不可为空，请检查 UseConnectionString");
 			IFreeSql<TMark> ret = null;
@@ -138,7 +156,75 @@ namespace FreeSql {
 				var ado = ret.Ado as Internal.CommonProvider.AdoProvider;
 				ado.AopCommandExecuting += _aopCommandExecuting;
 				ado.AopCommandExecuted += _aopCommandExecuted;
-			}
+
+                //添加实体属性名全局AOP转换处理
+                if (_entityPropertyConvertType != StringConvertType.None)
+                {
+                    // 局部方法判断是否存在Column特性以及是否设置Name的值
+                    bool CheckEntityPropertyColumnAttribute(PropertyInfo propertyInfo)
+                    {
+                        var attr = propertyInfo.GetCustomAttribute<ColumnAttribute>();
+                        if (attr == null || string.IsNullOrEmpty(attr.Name))
+                        {
+                            return true;
+                        }
+
+                        return false;
+                    }
+
+                    switch (_entityPropertyConvertType)
+                    {
+                        case StringConvertType.Lower:
+                            ret.Aop.ConfigEntityProperty = (s, e) =>
+                            {
+                                if (CheckEntityPropertyColumnAttribute(e.Property))
+                                {
+                                    e.ModifyResult.Name = e.Property.Name.ToLower();
+                                }
+                            };
+                            break;
+                        case StringConvertType.Upper:
+                            ret.Aop.ConfigEntityProperty = (s, e) =>
+                            {
+                                if (CheckEntityPropertyColumnAttribute(e.Property))
+                                {
+                                    e.ModifyResult.Name = e.Property.Name.ToUpper();
+                                }
+                            };
+                            break;
+                        case StringConvertType.PascalCaseToUnderscore:
+                            ret.Aop.ConfigEntityProperty = (s, e) =>
+                            {
+                                if (CheckEntityPropertyColumnAttribute(e.Property))
+                                {
+                                    e.ModifyResult.Name = StringUtils.PascalCaseToUnderScore(e.Property.Name);
+                                }
+                            };
+                            break;
+                        case StringConvertType.PascalCaseToUnderscoreWithLower:
+                            ret.Aop.ConfigEntityProperty = (s, e) =>
+                            {
+                                if (CheckEntityPropertyColumnAttribute(e.Property))
+                                {
+                                    e.ModifyResult.Name = StringUtils.PascalCaseToUnderScore(e.Property.Name).ToLower();
+                                }
+                            };
+                            break;
+                        case StringConvertType.PascalCaseToUnderscoreWithUpper:
+                            ret.Aop.ConfigEntityProperty = (s, e) =>
+                            {
+                                if (CheckEntityPropertyColumnAttribute(e.Property))
+                                {
+                                    e.ModifyResult.Name = StringUtils.PascalCaseToUnderScore(e.Property.Name).ToUpper();
+                                }
+                            };
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+
 			return ret;
 		}
 	}
