@@ -1,12 +1,12 @@
-﻿using Microsoft.Extensions.Caching.Distributed;
-using Microsoft.Extensions.Logging;
-using System;
+﻿using System;
 using System.Data.Common;
+using System.Linq;
+using System.Reflection;
+using FreeSql.DataAnnotations;
+using FreeSql.Internal;
 
 namespace FreeSql {
 	public class FreeSqlBuilder {
-		IDistributedCache _cache;
-		ILogger _logger;
 		DataType _dataType;
 		string _masterConnectionString;
 		string[] _slaveConnectionString;
@@ -16,28 +16,10 @@ namespace FreeSql {
 		bool _isConfigEntityFromDbFirst = false;
 		bool _isNoneCommandParameter = false;
 		bool _isLazyLoading = false;
+        StringConvertType _entityPropertyConvertType = StringConvertType.None;
 		Action<DbCommand> _aopCommandExecuting = null;
 		Action<DbCommand, string> _aopCommandExecuted = null;
 
-		/// <summary>
-		/// 使用缓存，不指定默认使用内存
-		/// </summary>
-		/// <param name="cache">缓存实现</param>
-		/// <returns></returns>
-		public FreeSqlBuilder UseCache(IDistributedCache cache) {
-			_cache = cache;
-			return this;
-		}
-
-		/// <summary>
-		/// 使用日志，不指定默认输出控制台
-		/// </summary>
-		/// <param name="logger"></param>
-		/// <returns></returns>
-		public FreeSqlBuilder UseLogger(ILogger logger) {
-			_logger = logger;
-			return this;
-		}
 		/// <summary>
 		/// 使用连接串
 		/// </summary>
@@ -124,17 +106,45 @@ namespace FreeSql {
 			return this;
 		}
 
-		public IFreeSql Build() => Build<IFreeSql>();
+        /// <summary>
+        /// 自动转换实体属性名称 Entity Property -> Db Filed
+        /// <para></para>
+        /// *不会覆盖 [Column] 特性设置的Name
+        /// </summary>
+        /// <param name="convertType"></param>
+        /// <returns></returns>
+        public FreeSqlBuilder UseEntityPropertyNameConvert(StringConvertType convertType)
+        {
+            _entityPropertyConvertType = convertType;
+            return this;
+        }
+
+        public IFreeSql Build() => Build<IFreeSql>();
 		public IFreeSql<TMark> Build<TMark>() {
+			if (string.IsNullOrEmpty(_masterConnectionString)) throw new Exception("参数 masterConnectionString 不可为空，请检查 UseConnectionString");
 			IFreeSql<TMark> ret = null;
+			Type type = null;
 			switch(_dataType) {
-				case DataType.MySql: ret = new MySql.MySqlProvider<TMark>(_cache, _logger, _masterConnectionString, _slaveConnectionString); break;
-				case DataType.SqlServer: ret = new SqlServer.SqlServerProvider<TMark>(_cache, _logger, _masterConnectionString, _slaveConnectionString); break;
-				case DataType.PostgreSQL: ret = new PostgreSQL.PostgreSQLProvider<TMark>(_cache, _logger, _masterConnectionString, _slaveConnectionString); break;
-				case DataType.Oracle: ret = new Oracle.OracleProvider<TMark>(_cache, _logger, _masterConnectionString, _slaveConnectionString); break;
-				case DataType.Sqlite: ret = new Sqlite.SqliteProvider<TMark>(_cache, _logger, _masterConnectionString, _slaveConnectionString); break;
+				case DataType.MySql:
+					type = Type.GetType("FreeSql.MySql.MySqlProvider`1,FreeSql.Provider.MySql")?.MakeGenericType(typeof(TMark));
+					if (type == null) type = Type.GetType("FreeSql.MySql.MySqlProvider`1,FreeSql.Provider.MySqlConnector")?.MakeGenericType(typeof(TMark));
+					if (type == null) throw new Exception("缺少 FreeSql 数据库实现包：FreeSql.Provider.MySql.dll，可前往 nuget 下载");
+					break;
+				case DataType.SqlServer: type = Type.GetType("FreeSql.SqlServer.SqlServerProvider`1,FreeSql.Provider.SqlServer")?.MakeGenericType(typeof(TMark));
+					if (type == null) throw new Exception("缺少 FreeSql 数据库实现包：FreeSql.Provider.SqlServer.dll，可前往 nuget 下载");
+					break;
+				case DataType.PostgreSQL: type = Type.GetType("FreeSql.PostgreSQL.PostgreSQLProvider`1,FreeSql.Provider.PostgreSQL")?.MakeGenericType(typeof(TMark));
+					if (type == null) throw new Exception("缺少 FreeSql 数据库实现包：FreeSql.Provider.PostgreSQL.dll，可前往 nuget 下载");
+					break;
+				case DataType.Oracle: type = Type.GetType("FreeSql.Oracle.OracleProvider`1,FreeSql.Provider.Oracle")?.MakeGenericType(typeof(TMark));
+					if (type == null) throw new Exception("缺少 FreeSql 数据库实现包：FreeSql.Provider.Oracle.dll，可前往 nuget 下载");
+					break;
+				case DataType.Sqlite: type = Type.GetType("FreeSql.Sqlite.SqliteProvider`1,FreeSql.Provider.Sqlite")?.MakeGenericType(typeof(TMark));
+					if (type == null) throw new Exception("缺少 FreeSql 数据库实现包：FreeSql.Provider.Sqlite.dll，可前往 nuget 下载");
+					break;
 				default: throw new Exception("未指定 UseConnectionString");
 			}
+			ret = Activator.CreateInstance(type, new object[] { _masterConnectionString, _slaveConnectionString }) as IFreeSql<TMark>;
 			if (ret != null) {
 				ret.CodeFirst.IsAutoSyncStructure = _isAutoSyncStructure;
 				
@@ -146,7 +156,75 @@ namespace FreeSql {
 				var ado = ret.Ado as Internal.CommonProvider.AdoProvider;
 				ado.AopCommandExecuting += _aopCommandExecuting;
 				ado.AopCommandExecuted += _aopCommandExecuted;
-			}
+
+                //添加实体属性名全局AOP转换处理
+                if (_entityPropertyConvertType != StringConvertType.None)
+                {
+                    // 局部方法判断是否存在Column特性以及是否设置Name的值
+                    bool CheckEntityPropertyColumnAttribute(PropertyInfo propertyInfo)
+                    {
+                        var attr = propertyInfo.GetCustomAttribute<ColumnAttribute>();
+                        if (attr == null || string.IsNullOrEmpty(attr.Name))
+                        {
+                            return true;
+                        }
+
+                        return false;
+                    }
+
+                    switch (_entityPropertyConvertType)
+                    {
+                        case StringConvertType.Lower:
+                            ret.Aop.ConfigEntityProperty = (s, e) =>
+                            {
+                                if (CheckEntityPropertyColumnAttribute(e.Property))
+                                {
+                                    e.ModifyResult.Name = e.Property.Name.ToLower();
+                                }
+                            };
+                            break;
+                        case StringConvertType.Upper:
+                            ret.Aop.ConfigEntityProperty = (s, e) =>
+                            {
+                                if (CheckEntityPropertyColumnAttribute(e.Property))
+                                {
+                                    e.ModifyResult.Name = e.Property.Name.ToUpper();
+                                }
+                            };
+                            break;
+                        case StringConvertType.PascalCaseToUnderscore:
+                            ret.Aop.ConfigEntityProperty = (s, e) =>
+                            {
+                                if (CheckEntityPropertyColumnAttribute(e.Property))
+                                {
+                                    e.ModifyResult.Name = StringUtils.PascalCaseToUnderScore(e.Property.Name);
+                                }
+                            };
+                            break;
+                        case StringConvertType.PascalCaseToUnderscoreWithLower:
+                            ret.Aop.ConfigEntityProperty = (s, e) =>
+                            {
+                                if (CheckEntityPropertyColumnAttribute(e.Property))
+                                {
+                                    e.ModifyResult.Name = StringUtils.PascalCaseToUnderScore(e.Property.Name).ToLower();
+                                }
+                            };
+                            break;
+                        case StringConvertType.PascalCaseToUnderscoreWithUpper:
+                            ret.Aop.ConfigEntityProperty = (s, e) =>
+                            {
+                                if (CheckEntityPropertyColumnAttribute(e.Property))
+                                {
+                                    e.ModifyResult.Name = StringUtils.PascalCaseToUnderScore(e.Property.Name).ToUpper();
+                                }
+                            };
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+
 			return ret;
 		}
 	}
