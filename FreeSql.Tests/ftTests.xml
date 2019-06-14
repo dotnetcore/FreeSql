@@ -1,0 +1,198 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>FreeSql.Tests</name>
+    </assembly>
+    <members>
+        <member name="M:FreeSql.Tests.MySql.MySqlCodeFirstTest.Tb_alltype.Save">
+            <summary>
+            保存或添加，如果主键有值则尝试 Update，如果影响的行为 0 则尝试 Insert
+            </summary>
+        </member>
+        <member name="T:FreeSql.Tests.UnitTest1.NewsArticle">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest1.NewsArticle.ArticleId">
+            <summary>
+            
+            </summary>		
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest1.NewsArticle.ArticleTitle">
+            <summary>
+            
+            </summary>		
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest1.NewsArticle.CategoryId">
+            <summary>
+            
+            </summary>		
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest1.NewsArticle.ChannelId">
+            <summary>
+            
+            </summary>		
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest1.NewsArticle.TypeId">
+            <summary>
+            类型
+            </summary>		
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest1.NewsArticle.Summary">
+            <summary>
+            内容简介
+            </summary>		
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest1.NewsArticle.Thumbnail">
+            <summary>
+            缩略图
+            </summary>		
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest1.NewsArticle.Hits">
+            <summary>
+            点击量
+            </summary>		
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest1.NewsArticle.IsDisplay">
+            <summary>
+            
+            </summary>		
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest1.NewsArticle.Status">
+            <summary>
+            
+            </summary>		
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest1.NewsArticle.CreateTime">
+            <summary>
+            
+            </summary>		
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest1.NewsArticle.ReleaseTime">
+            <summary>
+            
+            </summary>		
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest1.Templates.Id">
+            <summary>
+            主键，ID
+            </summary>
+        </member>
+        <member name="T:FreeSql.Tests.ExamPaper">
+            <summary>
+            试卷表
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.ExamPaper.AssessmentPlanId">
+            <summary>
+            考核计划ID
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.ExamPaper.TotalScore">
+            <summary>
+            总分
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModulePermission.SysModulePermissionId">
+            <summary>
+            菜单权限ID
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModulePermission.SysModuleId">
+            <summary>
+            菜单主键ID
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModulePermission.SysModuleButtonId">
+            <summary>
+            按钮主键ID
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModulePermission.Status">
+            <summary>
+            菜单权限
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModule.SysModuleId">
+            <summary>
+            主键
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModule.ParentId">
+            <summary>
+            父级ID
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModule.Name">
+            <summary>
+            名称
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModule.Icon">
+            <summary>
+            图标
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModule.UrlAddress">
+            <summary>
+            链接地址
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModule.IsShow">
+            <summary>
+            是否公开
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModule.Sort">
+            <summary>
+            排序
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModule.Description">
+            <summary>
+            备注
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModule.CreateTime">
+            <summary>
+            创建日期
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModuleButton.SysModuleButtonId">
+            <summary>
+            按钮主键
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModuleButton.Name">
+            <summary>
+            名称
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModuleButton.EventName">
+            <summary>
+            事件名称
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModuleButton.EnCode">
+            <summary>
+            编码
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModuleButton.Icon">
+            <summary>
+            图标
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModuleButton.Sort">
+            <summary>
+            排序
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModuleButton.CreateTime">
+            <summary>
+            创建日期
+            </summary>
+        </member>
+    </members>
+</doc>

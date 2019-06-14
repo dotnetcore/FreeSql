@@ -2270,6 +2270,13 @@
             <param name="database"></param>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.Internal.CommonUtils.GetProperyCommentBySummary(System.Type)">
+            <summary>
+            通过属性的注释文本，通过 xml 读取
+            </summary>
+            <param name="type"></param>
+            <returns>Dict：key=属性名，value=注释</returns>
+        </member>
         <member name="P:FreeSql.Internal.Model.TableRef.RefMiddleEntityType">
             <summary>
             中间表，多对多

@@ -56,6 +56,7 @@ namespace FreeSql.Internal {
 			if (tbattr != null) trytb.DisableSyncStructure = tbattr.DisableSyncStructure;
 			var propsLazy = new List<(PropertyInfo, bool, bool)>();
 			var propsNavObjs = new List<PropertyInfo>();
+			var propsComment = CommonUtils.GetProperyCommentBySummary(entity);
 			foreach (var p in trytb.Properties.Values) {
 				var setMethod = trytb.Type.GetMethod($"set_{p.Name}");
 				var colattr = common.GetEntityColumnAttribute(entity, p);
@@ -124,6 +125,8 @@ namespace FreeSql.Internal {
 					CsType = p.PropertyType,
 					Attribute = colattr
 				};
+				if (propsComment != null && propsComment.TryGetValue(p.Name, out var trycomment))
+					col.Comment = trycomment;
 				if (colattr.IsIgnore) {
 					trytb.ColumnsByCsIgnore.Add(p.Name, col);
 					continue;

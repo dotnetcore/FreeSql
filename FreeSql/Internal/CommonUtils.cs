@@ -8,11 +8,14 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data.Common;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
+using System.Xml.XPath;
 
 namespace FreeSql.Internal {
 	public abstract class CommonUtils {
@@ -237,6 +240,36 @@ namespace FreeSql.Internal {
 				}
 			}
 			return iidx == 1 ? sb.Remove(0, 5).Remove(sb.Length - 1, 1).ToString() : sb.Remove(0, 4).ToString();
+		}
+
+		/// <summary>
+		/// 通过属性的注释文本，通过 xml 读取
+		/// </summary>
+		/// <param name="type"></param>
+		/// <returns>Dict：key=属性名，value=注释</returns>
+		public static Dictionary<string, string> GetProperyCommentBySummary(Type type) {
+			var xmlPath = type.Assembly.Location.Replace(".dll", ".xml");
+			if (File.Exists(xmlPath) == false) return null;
+
+			var dic = new Dictionary<string, string>();
+			var className = type.IsNested ? $"{type.Namespace}.{type.DeclaringType.Name}.{type.Name}" : $"{type.Namespace}.{type.Name}";
+			var sReader = new StringReader(File.ReadAllText(xmlPath));
+			using (var xmlReader = XmlReader.Create(sReader)) {
+				var xpath = new XPathDocument(xmlReader);
+				var xmlNav = xpath.CreateNavigator();
+
+				var props = type.GetProperties();
+				foreach (var prop in props) {
+					var node = xmlNav.SelectSingleNode($"/doc/members/member[@name='P:{className}.{prop.Name}']/summary");
+					if (node == null) continue;
+					var comment = node.InnerXml.Trim(' ', '\r', '\n', '\t');
+					if (string.IsNullOrEmpty(comment)) continue;
+
+					dic.Add(prop.Name, comment);
+				}
+			}
+
+			return dic;
 		}
 
 		public static void PrevReheatConnectionPool(ObjectPool<DbConnection> pool, int minPoolSize) {

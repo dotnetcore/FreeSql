@@ -231,6 +231,9 @@ namespace FreeSql.Tests {
 			public virtual TaskBuild TaskBuild { get; set; }
 		}
 		public class Templates {
+			/// <summary>
+			/// 主键，ID
+			/// </summary>
 			[Column(IsPrimary = true)]
 			public Guid Id { get; set; }
 			public string Title { get; set; }
@@ -266,6 +269,10 @@ namespace FreeSql.Tests {
 
 		[Fact]
 		public void Test1() {
+
+			var dkdkdkd = g.mysql.Select<Templates>().ToList();
+
+
 
 			var testaddlist = new List<NewsArticle>();
 			for(var a = 0; a < 133905; a++) {
