@@ -112,6 +112,11 @@ namespace FreeSql.Oracle {
 						}
 						sb.Remove(sb.Length - 1, 1);
 						sb.Append("\r\n) \r\nLOGGING \r\nNOCOMPRESS \r\nNOCACHE\r\n';\r\n");
+						//备注
+						foreach (var tbcol in tb.Columns.Values) {
+							if (string.IsNullOrEmpty(tbcol.Comment) == false)
+								sb.Append("execute immediate 'COMMENT ON COLUMN ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}.{tbcol.Attribute.Name}")).Append(" IS ").Append(_commonUtils.FormatSql("{0}", tbcol.Comment).Replace("'", "''")).Append("';\r\n");
+						}
 						continue;
 					}
 					//如果新表，旧表在一个模式下，直接修改表名
@@ -127,17 +132,19 @@ namespace FreeSql.Oracle {
 				//对比字段，只可以修改类型、增加字段、有限的修改字段名；保证安全不删除字段
 				var sql = _commonUtils.FormatSql($@"
 select 
-column_name,
-data_type,
-data_length,
-data_precision,
-data_scale,
-char_used,
-case when nullable = 'Y' then 1 else 0 end,
-nvl((select 1 from user_sequences where sequence_name='{Utils.GetCsName((tboldname ?? tbname).Last())}_seq_'||all_tab_columns.column_name), 0),
-nvl((select 1 from user_triggers where trigger_name='{Utils.GetCsName((tboldname ?? tbname).Last())}_seq_'||all_tab_columns.column_name||'TI'), 0)
-from all_tab_columns
-where owner={{0}} and table_name={{1}}", tboldname ?? tbname);
+a.column_name,
+a.data_type,
+a.data_length,
+a.data_precision,
+a.data_scale,
+a.char_used,
+case when a.nullable = 'Y' then 1 else 0 end,
+nvl((select 1 from user_sequences where sequence_name='{Utils.GetCsName((tboldname ?? tbname).Last())}_seq_'||a.column_name), 0),
+nvl((select 1 from user_triggers where trigger_name='{Utils.GetCsName((tboldname ?? tbname).Last())}_seq_'||a.column_name||'TI'), 0),
+b.comments
+from all_tab_columns a
+left join all_col_comments b on b.owner = a.owner and b.table_name = a.table_name and b.column_name = a.column_name
+where a.owner={{0}} and a.table_name={{1}}", tboldname ?? tbname);
 				var ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
 				var tbstruct = ds.ToDictionary(a => string.Concat(a[0]), a => {
 					var sqlType = GetOracleSqlTypeFullName(a);
@@ -145,7 +152,8 @@ where owner={{0}} and table_name={{1}}", tboldname ?? tbname);
 						column = string.Concat(a[0]),
 						sqlType,
 						is_nullable = string.Concat(a[6]) == "1",
-						is_identity = string.Concat(a[7]) == "1" && string.Concat(a[8]) == "1"
+						is_identity = string.Concat(a[7]) == "1" && string.Concat(a[8]) == "1",
+						comment = string.Concat(a[9])
 					};
 				}, StringComparer.CurrentCultureIgnoreCase);
 
@@ -153,7 +161,8 @@ where owner={{0}} and table_name={{1}}", tboldname ?? tbname);
 					foreach (var tbcol in tb.Columns.Values) {
 						var dbtypeNoneNotNull = Regex.Replace(tbcol.Attribute.DbType, @"NOT\s+NULL", "NULL");
 						if (tbstruct.TryGetValue(tbcol.Attribute.Name, out var tbstructcol) ||
-						string.IsNullOrEmpty(tbcol.Attribute.OldName) == false && tbstruct.TryGetValue(tbcol.Attribute.OldName, out tbstructcol)) {
+							string.IsNullOrEmpty(tbcol.Attribute.OldName) == false && tbstruct.TryGetValue(tbcol.Attribute.OldName, out tbstructcol)) {
+							var isCommentChanged = tbstructcol.comment != (tbcol.Comment ?? "");
 							if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.CurrentCultureIgnoreCase) == false)
 								istmpatler = true;
 								//sbalter.Append("execute immediate 'ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" MODIFY (").Append(_commonUtils.QuoteSqlName(tbstructcol.column)).Append(" ").Append(dbtypeNoneNotNull).Append(")';\r\n");
@@ -164,9 +173,11 @@ where owner={{0}} and table_name={{1}}", tboldname ?? tbname);
 							}
 							if (tbcol.Attribute.IsIdentity != tbstructcol.is_identity)
 								seqcols.Add((tbcol, tbname, tbcol.Attribute.IsIdentity == true));
-							if (tbstructcol.column == tbcol.Attribute.OldName)
+							if (string.Compare(tbstructcol.column, tbcol.Attribute.OldName, true) == 0)
 								//修改列名
-								sbalter.Append("execute immediate 'ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" RENAME ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.OldName)).Append(" TO ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append("';\r\n");
+								sbalter.Append("execute immediate 'ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" RENAME COLUMN ").Append(_commonUtils.QuoteSqlName(tbstructcol.column)).Append(" TO ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append("';\r\n");
+							if (isCommentChanged)
+								sbalter.Append("execute immediate 'COMMENT ON COLUMN ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}.{tbcol.Attribute.Name}")).Append(" IS ").Append(_commonUtils.FormatSql("{0}", tbcol.Comment ?? "").Replace("'", "''")).Append("';\r\n");
 							continue;
 						}
 						//添加列
@@ -176,6 +187,7 @@ where owner={{0}} and table_name={{1}}", tboldname ?? tbname);
 							sbalter.Append("execute immediate 'ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" MODIFY ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" NOT NULL';\r\n");
 						}
 						if (tbcol.Attribute.IsIdentity == true) seqcols.Add((tbcol, tbname, tbcol.Attribute.IsIdentity == true));
+						if (string.IsNullOrEmpty(tbcol.Comment) == false) sbalter.Append("execute immediate 'COMMENT ON COLUMN ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}.{tbcol.Attribute.Name}")).Append(" IS ").Append(_commonUtils.FormatSql("{0}", tbcol.Comment ?? "").Replace("'", "''")).Append("';\r\n");
 					}
 					var dsuksql = _commonUtils.FormatSql(@"
 select
@@ -231,6 +243,11 @@ and a.owner in ({0}) and a.table_name in ({1})", tboldname ?? tbname);
 				}
 				sb.Remove(sb.Length - 1, 1);
 				sb.Append("\r\n) LOGGING \r\nNOCOMPRESS \r\nNOCACHE\r\n';\r\n");
+				//备注
+				foreach (var tbcol in tb.Columns.Values) {
+					if (string.IsNullOrEmpty(tbcol.Comment) == false)
+						sb.Append("execute immediate 'COMMENT ON COLUMN ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.FTmp_{tbname[1]}.{tbcol.Attribute.Name}")).Append(" IS ").Append(_commonUtils.FormatSql("{0}", tbcol.Comment).Replace("'", "''")).Append("';\r\n");
+				}
 				sb.Append("execute immediate 'INSERT INTO ").Append(tmptablename).Append(" (");
 				foreach (var tbcol in tb.Columns.Values)
 					sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");

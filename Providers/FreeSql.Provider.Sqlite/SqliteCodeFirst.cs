@@ -152,7 +152,7 @@ namespace FreeSql.Sqlite {
 								istmpatler = true;
 							if (tbcol.Attribute.IsIdentity != tbstructcol.is_identity)
 								istmpatler = true;
-							if (tbstructcol.column == tbcol.Attribute.OldName)
+							if (string.Compare(tbstructcol.column, tbcol.Attribute.OldName, true) == 0)
 								//修改列名
 								istmpatler = true;
 							continue;

@@ -74,9 +74,9 @@
             
             </summary>		
         </member>
-        <member name="P:FreeSql.Tests.UnitTest1.Templates.Id">
+        <member name="P:FreeSql.Tests.UnitTest1.Templates.Id2">
             <summary>
-            主键，ID
+            测试中文重命名id
             </summary>
         </member>
         <member name="T:FreeSql.Tests.ExamPaper">

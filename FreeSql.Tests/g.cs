@@ -39,6 +39,20 @@ public class g {
 	});
 	public static IFreeSql pgsql => pgsqlLazy.Value;
 
+	static Lazy<IFreeSql> sqlserverLazy = new Lazy<IFreeSql>(() => new FreeSql.FreeSqlBuilder()
+		.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=10")
+		.UseAutoSyncStructure(true)
+		.UseMonitorCommand(
+			cmd => {
+				Trace.WriteLine(cmd.CommandText);
+			}, //监听SQL命令对象，在执行前
+			(cmd, traceLog) => {
+				Console.WriteLine(traceLog);
+			}) //监听SQL命令对象，在执行后
+		.UseLazyLoading(true)
+		.Build());
+	public static IFreeSql sqlserver => sqlserverLazy.Value;
+
 	static Lazy<IFreeSql> oracleLazy = new Lazy<IFreeSql>(() => new FreeSql.FreeSqlBuilder()
 		.UseConnectionString(FreeSql.DataType.Oracle, "user id=user1;password=123456;data source=//127.0.0.1:1521/XE;Pooling=true;Max Pool Size=10")
 		.UseAutoSyncStructure(true)

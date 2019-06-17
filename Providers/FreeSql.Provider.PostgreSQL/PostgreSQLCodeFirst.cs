@@ -155,6 +155,11 @@ namespace FreeSql.PostgreSQL {
 						}
 						sb.Remove(sb.Length - 1, 1);
 						sb.Append("\r\n) WITH (OIDS=FALSE);\r\n");
+						//备注
+						foreach (var tbcol in tb.Columns.Values) {
+							if (string.IsNullOrEmpty(tbcol.Comment) == false)
+								sb.Append("COMMENT ON COLUMN ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}.{tbcol.Attribute.Name}")).Append(" IS ").Append(_commonUtils.FormatSql("{0}", tbcol.Comment)).Append(";\r\n");
+						}
 						continue;
 					}
 					//如果新表，旧表在一个数据库和模式下，直接修改表名
@@ -176,7 +181,8 @@ case when a.atttypmod > 0 and a.atttypmod < 32767 then a.atttypmod - 4 else a.at
 case when t.typelem > 0 and t.typinput::varchar = 'array_in' then t2.typname else t.typname end,
 case when a.attnotnull then '0' else '1' end as is_nullable,
 e.adsrc,
-a.attndims
+a.attndims,
+d.description as comment
 from pg_class c
 inner join pg_attribute a on a.attnum > 0 and a.attrelid = c.oid
 inner join pg_type t on t.oid = a.atttypid
@@ -207,7 +213,8 @@ where ns.nspname = {0} and c.relname = {1}", tboldname ?? tbname);
 						max_length = long.Parse(string.Concat(a[2])),
 						is_nullable = string.Concat(a[4]) == "1",
 						is_identity = string.Concat(a[5]).StartsWith(@"nextval('") && string.Concat(a[5]).EndsWith(@"'::regclass)"),
-						attndims
+						attndims,
+						comment = string.Concat(a[7])
 					};
 					}, StringComparer.CurrentCultureIgnoreCase);
 
@@ -215,6 +222,7 @@ where ns.nspname = {0} and c.relname = {1}", tboldname ?? tbname);
 					foreach (var tbcol in tb.Columns.Values) {
 						if (tbstruct.TryGetValue(tbcol.Attribute.Name, out var tbstructcol) ||
 							string.IsNullOrEmpty(tbcol.Attribute.OldName) == false && tbstruct.TryGetValue(tbcol.Attribute.OldName, out tbstructcol)) {
+							var isCommentChanged = tbstructcol.comment != (tbcol.Comment ?? "");
 							if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.CurrentCultureIgnoreCase) == false ||
 								tbcol.Attribute.DbType.Contains("[]") != (tbstructcol.attndims > 0))
 								sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ALTER COLUMN ").Append(_commonUtils.QuoteSqlName(tbstructcol.column)).Append(" TYPE ").Append(tbcol.Attribute.DbType.Split(' ').First()).Append(";\r\n");
@@ -222,9 +230,11 @@ where ns.nspname = {0} and c.relname = {1}", tboldname ?? tbname);
 								sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ALTER COLUMN ").Append(_commonUtils.QuoteSqlName(tbstructcol.column)).Append(" ").Append(tbcol.Attribute.IsNullable == true ? "DROP" : "SET").Append(" NOT NULL;\r\n");
 							if (tbcol.Attribute.IsIdentity != tbstructcol.is_identity)
 								seqcols.Add((tbcol, tbname, tbcol.Attribute.IsIdentity == true));
-							if (tbstructcol.column == tbcol.Attribute.OldName)
+							if (string.Compare(tbstructcol.column, tbcol.Attribute.OldName, true) == 0)
 								//修改列名
-								sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" RENAME COLUMN ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.OldName)).Append(" TO ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(";\r\n");
+								sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" RENAME COLUMN ").Append(_commonUtils.QuoteSqlName(tbstructcol.column)).Append(" TO ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(";\r\n");
+							if (isCommentChanged)
+								sbalter.Append("COMMENT ON COLUMN ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}.{tbcol.Attribute.Name}")).Append(" IS ").Append(_commonUtils.FormatSql("{0}", tbcol.Comment)).Append(";\r\n");
 							continue;
 						}
 						//添加列
@@ -232,6 +242,7 @@ where ns.nspname = {0} and c.relname = {1}", tboldname ?? tbname);
 						sbalter.Append("UPDATE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" SET ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" = ").Append(_commonUtils.FormatSql("{0};\r\n", tbcol.Attribute.DbDefautValue));
 						if (tbcol.Attribute.IsNullable == false) sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ALTER COLUMN ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" SET NOT NULL;\r\n");
 						if (tbcol.Attribute.IsIdentity == true) seqcols.Add((tbcol, tbname, tbcol.Attribute.IsIdentity == true));
+						if (string.IsNullOrEmpty(tbcol.Comment) == false) sbalter.Append("COMMENT ON COLUMN ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}.{tbcol.Attribute.Name}")).Append(" IS ").Append(_commonUtils.FormatSql("{0}", tbcol.Comment)).Append(";\r\n");
 					}
 					var dsuksql = _commonUtils.FormatSql(@"
 select
@@ -288,6 +299,11 @@ where pg_namespace.nspname={0} and pg_class.relname={1} and pg_constraint.contyp
 				}
 				sb.Remove(sb.Length - 1, 1);
 				sb.Append("\r\n) WITH (OIDS=FALSE);\r\n");
+				//备注
+				foreach (var tbcol in tb.Columns.Values) {
+					if (string.IsNullOrEmpty(tbcol.Comment) == false)
+						sb.Append("COMMENT ON COLUMN ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.FreeSqlTmp_{tbname[1]}.{tbcol.Attribute.Name}")).Append(" IS ").Append(_commonUtils.FormatSql("{0}", tbcol.Comment)).Append(";\r\n");
+				}
 				sb.Append("INSERT INTO ").Append(tmptablename).Append(" (");
 				foreach (var tbcol in tb.Columns.Values)
 					sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");

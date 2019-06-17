@@ -232,14 +232,13 @@ namespace FreeSql.Tests {
 		}
 		public class Templates {
 			/// <summary>
-			/// 主键，ID
+			/// 测试中文重命名id
 			/// </summary>
-			[Column(IsPrimary = true)]
-			public Guid Id { get; set; }
+			[Column(IsPrimary = true, OldName = "Id")]
+			public Guid Id2 { get; set; }
 			public string Title { get; set; }
 			public DateTime AddTime { get; set; } = DateTime.Now;
 			public DateTime EditTime { get; set; }
-			[Column(DbType = "text")]
 			public string Code { get; set; }
 		}
 		public class TaskBuild {
@@ -270,20 +269,20 @@ namespace FreeSql.Tests {
 		[Fact]
 		public void Test1() {
 
-			var dkdkdkd = g.mysql.Select<Templates>().ToList();
+			var dkdkdkd = g.oracle.Select<Templates>().ToList();
 
 
 
-			var testaddlist = new List<NewsArticle>();
-			for(var a = 0; a < 133905; a++) {
-				testaddlist.Add(new NewsArticle {
-					ArticleTitle = "testaddlist_topic" + a,
-					Hits = a,
-				});
-			}
-			g.sqlite.Insert<NewsArticle>(testaddlist)
-				//.NoneParameter()
-				.ExecuteAffrows();
+			//var testaddlist = new List<NewsArticle>();
+			//for(var a = 0; a < 133905; a++) {
+			//	testaddlist.Add(new NewsArticle {
+			//		ArticleTitle = "testaddlist_topic" + a,
+			//		Hits = a,
+			//	});
+			//}
+			//g.sqlite.Insert<NewsArticle>(testaddlist)
+			//	//.NoneParameter()
+			//	.ExecuteAffrows();
 
 
 g.mysql.Aop.ParseExpression = (s, e) => {

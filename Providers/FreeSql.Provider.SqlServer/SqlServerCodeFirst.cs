@@ -63,7 +63,37 @@ namespace FreeSql.SqlServer {
 			}
 			return null;
 		}
-		
+
+		void AddOrUpdateMS_Description(StringBuilder sb, string schema, string table, string column, string comment) {
+			if (string.IsNullOrEmpty(comment)) {
+				sb.AppendFormat(@"
+IF ((SELECT COUNT(1) from fn_listextendedproperty('MS_Description', 
+  'SCHEMA', N'{0}', 
+  'TABLE', N'{1}', 
+  'COLUMN', N'{2}')) > 0) 
+  EXEC sp_dropextendedproperty @name = N'MS_Description'
+    , @level0type = 'SCHEMA', @level0name = N'{0}'
+    , @level1type = 'TABLE', @level1name = N'{1}'
+    , @level2type = 'COLUMN', @level2name = N'{2}'
+", schema.Replace("'", "''"), table.Replace("'", "''"), column.Replace("'", "''"));
+				return;
+			}
+			sb.AppendFormat(@"
+IF ((SELECT COUNT(1) from fn_listextendedproperty('MS_Description', 
+  'SCHEMA', N'{0}', 
+  'TABLE', N'{1}', 
+  'COLUMN', N'{2}')) > 0) 
+  EXEC sp_updateextendedproperty @name = N'MS_Description', @value = N'{3}'
+    , @level0type = 'SCHEMA', @level0name = N'{0}'
+    , @level1type = 'TABLE', @level1name = N'{1}'
+    , @level2type = 'COLUMN', @level2name = N'{2}'
+ELSE
+  EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'{3}'
+    , @level0type = 'SCHEMA', @level0name = N'{0}'
+    , @level1type = 'TABLE', @level1name = N'{1}'
+    , @level2type = 'COLUMN', @level2name = N'{2}'
+", schema.Replace("'", "''"), table.Replace("'", "''"), column.Replace("'", "''"), comment?.Replace("'", "''") ?? "");
+		}
 		public override string GetComparisonDDLStatements(params Type[] entityTypes) {
 			var conn = _orm.Ado.MasterPool.Get(TimeSpan.FromSeconds(5));
 			var database = conn.Value.Database;
@@ -133,6 +163,11 @@ namespace FreeSql.SqlServer {
 								sb.Remove(sb.Length - 2, 2).Append("),");
 							}
 							sb.Remove(sb.Length - 1, 1).Append("\r\n);\r\n");
+							//备注
+							foreach (var tbcol in tb.Columns.Values) {
+								if (string.IsNullOrEmpty(tbcol.Comment) == false)
+									AddOrUpdateMS_Description(sb, tbname[1], tbname[2], tbcol.Attribute.Name, tbcol.Comment);
+							}
 							continue;
 						}
 						//如果新表，旧表在一个数据库和模式下，直接修改表名
@@ -160,6 +195,7 @@ a.name 'Column'
  else '' end as 'SqlType'
 ,case when a.is_nullable = 1 then '1' else '0' end 'IsNullable'
 ,case when a.is_identity = 1 then '1' else '0' end 'IsIdentity'
+,c.value
 from sys.columns a
 inner join sys.types b on b.user_type_id = a.user_type_id
 left join sys.extended_properties AS c ON c.major_id = a.object_id AND c.minor_id = a.column_id
@@ -172,23 +208,27 @@ use " + database, tboldname ?? tbname);
 						column = string.Concat(a[0]),
 						sqlType = string.Concat(a[1]),
 						is_nullable = string.Concat(a[2]) == "1",
-						is_identity = string.Concat(a[3]) == "1"
+						is_identity = string.Concat(a[3]) == "1",
+						comment = string.Concat(a[4])
 					}, StringComparer.CurrentCultureIgnoreCase);
 
 					if (istmpatler == false) {
 						foreach (var tbcol in tb.Columns.Values) {
 							if (tbstruct.TryGetValue(tbcol.Attribute.Name, out var tbstructcol) ||
 								string.IsNullOrEmpty(tbcol.Attribute.OldName) == false && tbstruct.TryGetValue(tbcol.Attribute.OldName, out tbstructcol)) {
+								var isCommentChanged = tbstructcol.comment != (tbcol.Comment ?? "");
 								if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.CurrentCultureIgnoreCase) == false ||
 									tbcol.Attribute.IsNullable != tbstructcol.is_nullable ||
 									tbcol.Attribute.IsIdentity != tbstructcol.is_identity) {
 									istmpatler = true;
 									break;
 								}
-								if (tbstructcol.column == tbcol.Attribute.OldName) {
+								if (string.Compare(tbstructcol.column, tbcol.Attribute.OldName, true) == 0)
 									//修改列名
-									sbalter.Append(_commonUtils.FormatSql("EXEC sp_rename {0}, {1}, 'COLUMN';\r\n", $"{tbname[0]}.{tbname[1]}.{tbname[2]}.{tbcol.Attribute.OldName}", tbcol.Attribute.Name));
-								}
+									sbalter.Append(_commonUtils.FormatSql("EXEC sp_rename {0}, {1}, 'COLUMN';\r\n", $"{tbname[0]}.{tbname[1]}.{tbname[2]}.{tbstructcol.column}", tbcol.Attribute.Name));
+								if (isCommentChanged)
+									//修改备备注
+									AddOrUpdateMS_Description(sbalter, tbname[1], tbname[2], tbcol.Attribute.Name, tbcol.Comment);
 								continue;
 							}
 							//添加列
@@ -199,6 +239,7 @@ use " + database, tboldname ?? tbname);
 								if (addcoldbdefault != null) sbalter.Append(_commonUtils.FormatSql(" default({0})", addcoldbdefault));
 							}
 							sbalter.Append(";\r\n");
+							if (string.IsNullOrEmpty(tbcol.Comment) == false) AddOrUpdateMS_Description(sbalter, tbname[1], tbname[2], tbcol.Attribute.Name, tbcol.Comment);
 						}
 						var dsuksql = string.Format(@"
 use [{0}];
@@ -265,6 +306,11 @@ use " + database, tboldname ?? tbname);
 						sb.Remove(sb.Length - 2, 2).Append("),");
 					}
 					sb.Remove(sb.Length - 1, 1).Append("\r\n);\r\n");
+					//备注
+					foreach (var tbcol in tb.Columns.Values) {
+						if (string.IsNullOrEmpty(tbcol.Comment) == false)
+							AddOrUpdateMS_Description(sb, tbname[1], $"FreeSqlTmp_{tbname[2]}", tbcol.Attribute.Name, tbcol.Comment);
+					}
 					sb.Append("ALTER TABLE ").Append(tmptablename).Append(" SET (LOCK_ESCALATION = TABLE);\r\n");
 					if (idents) sb.Append("SET IDENTITY_INSERT ").Append(tmptablename).Append(" ON;\r\n");
 					sb.Append("IF EXISTS(SELECT 1 FROM ").Append(tablename).Append(")\r\n");

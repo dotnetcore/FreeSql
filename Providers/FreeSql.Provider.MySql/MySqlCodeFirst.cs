@@ -152,7 +152,8 @@ select
 a.column_name,
 a.column_type,
 case when a.is_nullable = 'YES' then 1 else 0 end 'is_nullable',
-case when locate('auto_increment', a.extra) > 0 then 1 else 0 end 'is_identity'
+case when locate('auto_increment', a.extra) > 0 then 1 else 0 end 'is_identity',
+a.column_comment 'comment'
 from information_schema.columns a
 where a.table_schema in ({0}) and a.table_name in ({1})", tboldname ?? tbname);
 					var ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
@@ -164,7 +165,8 @@ where a.table_schema in ({0}) and a.table_name in ({1})", tboldname ?? tbname);
 							sqlType = a1,
 							is_nullable = string.Concat(a[2]) == "1",
 							is_identity = string.Concat(a[3]) == "1",
-							is_unsigned = string.Concat(a[1]).EndsWith(" unsigned")
+							is_unsigned = string.Concat(a[1]).EndsWith(" unsigned"),
+							comment = string.Concat(a[4])
 						};
 					}, StringComparer.CurrentCultureIgnoreCase);
 
@@ -174,18 +176,22 @@ where a.table_schema in ({0}) and a.table_name in ({1})", tboldname ?? tbname);
 							var isIdentityChanged = tbcol.Attribute.IsIdentity == true && tbcol.Attribute.DbType.IndexOf("AUTO_INCREMENT", StringComparison.CurrentCultureIgnoreCase) == -1;
 							if (tbstruct.TryGetValue(tbcol.Attribute.Name, out var tbstructcol) ||
 								string.IsNullOrEmpty(tbcol.Attribute.OldName) == false && tbstruct.TryGetValue(tbcol.Attribute.OldName, out tbstructcol)) {
+								var isCommentChanged = tbstructcol.comment != (tbcol.Comment ?? "");
 								if ((tbcol.Attribute.DbType.IndexOf(" unsigned", StringComparison.CurrentCultureIgnoreCase) != -1) != tbstructcol.is_unsigned ||
 								tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.CurrentCultureIgnoreCase) == false ||
 								tbcol.Attribute.IsNullable != tbstructcol.is_nullable ||
-								tbcol.Attribute.IsIdentity != tbstructcol.is_identity) {
+								tbcol.Attribute.IsIdentity != tbstructcol.is_identity ||
+								isCommentChanged) {
 									sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" MODIFY ").Append(_commonUtils.QuoteSqlName(tbstructcol.column)).Append(" ").Append(tbcol.Attribute.DbType);
+									if (isCommentChanged) sbalter.Append(" COMMENT ").Append(_commonUtils.FormatSql("{0}", tbcol.Comment ?? ""));
 									if (isIdentityChanged) sbalter.Append(" AUTO_INCREMENT").Append(existsPrimary == null ? "" : ", DROP PRIMARY KEY").Append(", ADD PRIMARY KEY(").Append(_commonUtils.QuoteSqlName(tbstructcol.column)).Append(")");
 									sbalter.Append(";\r\n");
 								}
-								if (tbstructcol.column == tbcol.Attribute.OldName) {
+								if (string.Compare(tbstructcol.column, tbcol.Attribute.OldName, true) == 0) {
 									//修改列名
-									sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" CHANGE COLUMN ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.OldName)).Append(" ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType);
-									if (isIdentityChanged) sb.Append(" AUTO_INCREMENT").Append(existsPrimary == null ? "" : ", DROP PRIMARY KEY").Append(", ADD PRIMARY KEY(").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(")");
+									sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" CHANGE COLUMN ").Append(_commonUtils.QuoteSqlName(tbstructcol.column)).Append(" ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType);
+									if (isCommentChanged) sbalter.Append(" COMMENT ").Append(_commonUtils.FormatSql("{0}", tbcol.Comment ?? ""));
+									if (isIdentityChanged) sbalter.Append(" AUTO_INCREMENT").Append(existsPrimary == null ? "" : ", DROP PRIMARY KEY").Append(", ADD PRIMARY KEY(").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(")");
 									sbalter.Append(";\r\n");
 								}
 								continue;
@@ -193,6 +199,7 @@ where a.table_schema in ({0}) and a.table_name in ({1})", tboldname ?? tbname);
 							//添加列
 							sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ADD ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType);
 							if (tbcol.Attribute.IsNullable == false) sbalter.Append(" DEFAULT ").Append(_commonUtils.FormatSql("{0}", tbcol.Attribute.DbDefautValue));
+							if (string.IsNullOrEmpty(tbcol.Comment) == false) sbalter.Append(" COMMENT ").Append(_commonUtils.FormatSql("{0}", tbcol.Comment ?? ""));
 							if (isIdentityChanged) sbalter.Append(" AUTO_INCREMENT").Append(existsPrimary == null ? "" : ", DROP PRIMARY KEY").Append(", ADD PRIMARY KEY(").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(")");
 							sbalter.Append(";\r\n");
 						}
@@ -228,6 +235,7 @@ where a.constraint_schema IN ({0}) and a.table_name IN ({1})", tboldname ?? tbna
 						sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ");
 						sb.Append(tbcol.Attribute.DbType);
 						if (tbcol.Attribute.IsIdentity == true && tbcol.Attribute.DbType.IndexOf("AUTO_INCREMENT", StringComparison.CurrentCultureIgnoreCase) == -1) sb.Append(" AUTO_INCREMENT");
+						if (string.IsNullOrEmpty(tbcol.Comment) == false) sb.Append(" COMMENT ").Append(_commonUtils.FormatSql("{0}", tbcol.Comment));
 						sb.Append(",");
 					}
 					if (tb.Primarys.Any()) {
