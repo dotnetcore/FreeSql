@@ -269,6 +269,14 @@ namespace FreeSql.Tests {
 		[Fact]
 		public void Test1() {
 
+			var tbid = g.sqlite.Select<TaskBuild>().First().Id;
+			var tbidsql = g.sqlite.Update<TaskBuild>().Where(a => a.Id == tbid)
+				.Set(a => new TaskBuild {
+					FileName = "111",
+					TaskName = a.TaskName + "333"
+				}).ToSql();
+
+
 			var dkdkdkd = g.oracle.Select<Templates>().ToList();
 
 

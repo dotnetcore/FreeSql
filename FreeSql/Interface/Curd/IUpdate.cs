@@ -74,11 +74,13 @@ namespace FreeSql {
 		IUpdate<T1> Set<TMember>(Expression<Func<T1, TMember>> column, TMember value);
 		/// <summary>
 		/// 设置列的的新值为基础上增加，格式：Set(a => a.Clicks + 1) 相当于 clicks=clicks+1
+		/// <para></para>
+		/// 指定更新，格式：Set(a => new { Clicks = a.Clicks + 1, Time = DateTime.Now }) 相当于 set clicks=clicks+1,time='2019-06-19....'
 		/// </summary>
 		/// <typeparam name="TMember"></typeparam>
-		/// <param name="binaryExpression"></param>
+		/// <param name="exp"></param>
 		/// <returns></returns>
-		IUpdate<T1> Set<TMember>(Expression<Func<T1, TMember>> binaryExpression);
+		IUpdate<T1> Set<TMember>(Expression<Func<T1, TMember>> exp);
 		/// <summary>
 		/// 设置值，自定义SQL语法，SetRaw("title = ?title", new { title = "newtitle" })
 		/// </summary>

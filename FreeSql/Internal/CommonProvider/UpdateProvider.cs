@@ -6,6 +6,7 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -340,15 +341,33 @@ namespace FreeSql.Internal.CommonProvider {
 			//foreach (var t in _source) Utils.FillPropertyValue(t, tryf.CsName, value);
 			return this;
 		}
-		public IUpdate<T1> Set<TMember>(Expression<Func<T1, TMember>> binaryExpression) {
-			if (binaryExpression?.Body.NodeType == ExpressionType.Equal) {
-				_set.Append(", ").Append(_commonExpression.ExpressionWhereLambdaNoneForeignObject(null, _table, null, binaryExpression, null));
+		public IUpdate<T1> Set<TMember>(Expression<Func<T1, TMember>> exp) {
+			var body = exp?.Body;
+			var nodeType = body?.NodeType;
+			if (nodeType == ExpressionType.Equal) {
+				_set.Append(", ").Append(_commonExpression.ExpressionWhereLambdaNoneForeignObject(null, _table, null, exp, null));
 				return this;
 			}
-			if (binaryExpression?.Body is BinaryExpression == false &&
-				binaryExpression?.Body.NodeType != ExpressionType.Call) return this;
+			
+			if (nodeType == ExpressionType.MemberInit) {
+				var initExp = body as MemberInitExpression;
+				if (initExp.Bindings?.Count > 0) {
+					for (var a = 0; a < initExp.Bindings.Count; a++) {
+						var initAssignExp = (initExp.Bindings[a] as MemberAssignment);
+						if (initAssignExp == null) continue;
+						var memberName = initExp.Bindings[a].Member.Name;
+						if (_table.ColumnsByCsIgnore.ContainsKey(memberName)) continue;
+						if (_table.ColumnsByCs.TryGetValue(memberName, out var col) == false) throw new Exception($"找不到属性：{memberName}");
+						var memberValue = _commonExpression.ExpressionWhereLambdaNoneForeignObject(null, _table, null, initAssignExp.Expression, null);
+						_setIncr.Append(", ").Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ").Append(memberValue);
+					}
+				}
+				return this;
+			}
+			if (body is BinaryExpression == false &&
+				nodeType != ExpressionType.Call) return this;
 			var cols = new List<SelectColumnInfo>();
-			var expt = _commonExpression.ExpressionWhereLambdaNoneForeignObject(null, _table, cols, binaryExpression, null);
+			var expt = _commonExpression.ExpressionWhereLambdaNoneForeignObject(null, _table, cols, exp, null);
 			if (cols.Any() == false) return this;
 			foreach (var col in cols) {
 				if (col.Column.Attribute.IsNullable == true && col.Column.Attribute.MapType.IsNullableType()) {
