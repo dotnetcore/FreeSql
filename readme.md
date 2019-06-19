@@ -39,7 +39,7 @@ FreeSql 是一个功能强大的对象关系映射程序(O/RM)，支持 .NETCore
 - FreeSql.Connection.Extensions 也是扩展包，提供像 Dapper 一样的用法；
 - [FreeSql.Tools 生成器](https://github.com/2881099/FreeSql.Tools)，基于 razor 模板的生成器；
 - [ABP 使用 FreeSql ORM](https://github.com/gnsilence/JPGZService)，测试中．．．；
-- [FreeSql 优势.pptx](https://github.com/2881099/FreeSql/files/3305785/FreeSql.pptx)；
+- [FreeSql 优势.pptx](https://github.com/2881099/FreeSql/files/3305852/FreeSql.pptx)；
 
 # Providers
 
