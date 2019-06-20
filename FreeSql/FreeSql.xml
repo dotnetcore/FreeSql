@@ -2349,6 +2349,47 @@
             <param name="that"></param>
             <returns></returns>
         </member>
+        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.And``1(System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}},System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})">
+            <summary>
+            使用 and 拼接两个 lambda 表达式
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.And``1(System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}},System.Boolean,System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})">
+            <summary>
+            使用 and 拼接两个 lambda 表达式
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="exp1"></param>
+            <param name="condition">true 时生效</param>
+            <param name="exp2"></param>
+            <returns></returns>
+        </member>
+        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.Or``1(System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}},System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})">
+            <summary>
+            使用 or 拼接两个 lambda 表达式
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.Or``1(System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}},System.Boolean,System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})">
+            <summary>
+            使用 or 拼接两个 lambda 表达式
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="exp1"></param>
+            <param name="condition">true 时生效</param>
+            <param name="exp2"></param>
+            <returns></returns>
+        </member>
+        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.Not``1(System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}},System.Boolean)">
+            <summary>
+            将 lambda 表达式取反
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="exp"></param>
+            <param name="condition">true 时生效</param>
+            <returns></returns>
+        </member>
         <member name="M:FreeUtil.NewMongodbId">
             <summary>
             生成类似Mongodb的ObjectId有序、不重复Guid
