@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
@@ -14,6 +15,7 @@ namespace FreeSql.Tests.DataContext.SqlServer
 			  //.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=(localdb)\\mssqllocaldb;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=10")
 			  .UseAutoSyncStructure(true)
 			  .UseLazyLoading(true)
+			  .UseMonitorCommand(t => Trace.WriteLine(t.CommandText))
 			  .Build());
 
 			// ... initialize data in the test database ...

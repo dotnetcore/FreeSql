@@ -332,6 +332,8 @@ namespace FreeSql.Internal {
 		static ConcurrentDictionary<Type, MethodInfo> _dicExpressionLambdaToSqlAsSelectAnyMethodInfo = new ConcurrentDictionary<Type, MethodInfo>();
 		internal static ConcurrentDictionary<Type, PropertyInfo> _dicNullableValueProperty = new ConcurrentDictionary<Type, PropertyInfo>();
 		static ConcurrentDictionary<Type, Expression> _dicFreeSqlGlobalExtensionsAsSelectExpression = new ConcurrentDictionary<Type, Expression>();
+		static MethodInfo MethodDateTimeSubtractDateTime = typeof(DateTime).GetMethod("Subtract", new Type[] { typeof(DateTime) });
+		static MethodInfo MethodDateTimeSubtractTimeSpan = typeof(DateTime).GetMethod("Subtract", new Type[] { typeof(TimeSpan) });
 
 		public string ExpressionBinary(string oper, Expression leftExp, Expression rightExp, ExpTSC tsc) {
 			switch (oper) {
@@ -342,6 +344,12 @@ namespace FreeSql.Internal {
 				case "-":
 					if (oper == "+" && (leftExp.Type == typeof(string) || rightExp.Type == typeof(string)))
 						return _common.StringConcat(new[] { ExpressionLambdaToSql(leftExp, tsc), ExpressionLambdaToSql(rightExp, tsc) }, new[] { leftExp.Type, rightExp.Type });
+					if (oper == "-" && leftExp.Type.NullableTypeOrThis() == typeof(DateTime)) {
+						if (rightExp.Type.NullableTypeOrThis() == typeof(DateTime))
+							return ExpressionLambdaToSql(Expression.Call(leftExp, MethodDateTimeSubtractDateTime, rightExp), tsc);
+						if (rightExp.Type.NullableTypeOrThis() == typeof(TimeSpan))
+							return ExpressionLambdaToSql(Expression.Call(leftExp, MethodDateTimeSubtractTimeSpan, rightExp), tsc);
+					}
 					return $"({ExpressionLambdaToSql(leftExp, tsc)} {oper} {ExpressionLambdaToSql(rightExp, tsc)})";
 			}
 

@@ -466,31 +466,75 @@ namespace FreeSql.Tests.PostgreSQLExpression {
 			data.Add(select.Where(a => a.CreateTime.Subtract(DateTime.Now).TotalSeconds > 0).ToList());
 			data.Add(select.Where(a => a.Type.Time.Subtract(DateTime.Now).TotalSeconds > 0).ToList());
 			data.Add(select.Where(a => a.Type.Parent.Time2.Subtract(DateTime.Now).TotalSeconds > 0).ToList());
-			//SELECT a.`Id` as1, a.`Clicks` as2, a.`TypeGuid` as3, a.`Title` as4, a.`CreateTime` as5 
-			//FROM `tb_topic111333` a 
-			//WHERE (((timestampdiff(microsecond, now(), a.`CreateTime`)) / 1000000) > 0);
+			//SELECT a."id", a."clicks", a."typeguid", a."title", a."createtime" 
+			//FROM "tb_topic111333" a 
+			//WHERE ((((extract(epoch from (a."createtime")::timestamp-(current_timestamp)::timestamp)*1000000))/1000000) > 0)
 
-			//SELECT a.`Id` as1, a.`Clicks` as2, a.`TypeGuid` as3, a__Type.`Guid` as4, a__Type.`ParentId` as5, a__Type.`Name` as6, a__Type.`Time` as7, a.`Title` as8, a.`CreateTime` as9 
-			//FROM `tb_topic111333` a, `TestTypeInfo333` a__Type 
-			//WHERE (((timestampdiff(microsecond, now(), a__Type.`Time`)) / 1000000) > 0);
+			//SELECT a."id", a."clicks", a."typeguid", a__Type."guid", a__Type."parentid", a__Type."name", a__Type."time", a."title", a."createtime" 
+			//FROM "tb_topic111333" a 
+			//LEFT JOIN "testtypeinfo333" a__Type ON a__Type."guid" = a."typeguid" 
+			//WHERE ((((extract(epoch from (a__Type."time")::timestamp-(current_timestamp)::timestamp)*1000000))/1000000) > 0)
 
-			//SELECT a.`Id` as1, a.`Clicks` as2, a.`TypeGuid` as3, a__Type.`Guid` as4, a__Type.`ParentId` as5, a__Type.`Name` as6, a__Type.`Time` as7, a.`Title` as8, a.`CreateTime` as9 
-			//FROM `tb_topic111333` a, `TestTypeInfo333` a__Type, `TestTypeParentInfo23123` a__Type__Parent 
-			//WHERE (((timestampdiff(microsecond, now(), a__Type__Parent.`Time2`)) / 1000000) > 0);
+			//SELECT a."id", a."clicks", a."typeguid", a__Type."guid", a__Type."parentid", a__Type."name", a__Type."time", a."title", a."createtime" 
+			//FROM "tb_topic111333" a 
+			//LEFT JOIN "testtypeinfo333" a__Type ON a__Type."guid" = a."typeguid" 
+			//LEFT JOIN "testtypeparentinfo23123" a__Type__Parent ON a__Type__Parent."id" = a__Type."parentid" 
+			//WHERE ((((extract(epoch from (a__Type__Parent."time2")::timestamp-(current_timestamp)::timestamp)*1000000))/1000000) > 0)
 			data.Add(select.Where(a => a.CreateTime.Subtract(TimeSpan.FromDays(1)) > a.CreateTime).ToList());
 			data.Add(select.Where(a => a.Type.Time.Subtract(TimeSpan.FromDays(1)) > a.CreateTime).ToList());
 			data.Add(select.Where(a => a.Type.Parent.Time2.Subtract(TimeSpan.FromDays(1)) > a.CreateTime).ToList());
-			//SELECT a.`Id` as1, a.`Clicks` as2, a.`TypeGuid` as3, a.`Title` as4, a.`CreateTime` as5 
-			//FROM `tb_topic111333` a 
-			//WHERE (date_sub(a.`CreateTime`, interval ((1 * 86400000000)) microsecond) > a.`CreateTime`);
+			//SELECT a."id", a."clicks", a."typeguid", a."title", a."createtime" 
+			//FROM "tb_topic111333" a 
+			//WHERE (((a."createtime")::timestamp-((((1)*86400000000))||' microseconds')::interval) > a."createtime")
 
-			//SELECT a.`Id` as1, a.`Clicks` as2, a.`TypeGuid` as3, a__Type.`Guid` as4, a__Type.`ParentId` as5, a__Type.`Name` as6, a__Type.`Time` as7, a.`Title` as8, a.`CreateTime` as9 
-			//FROM `tb_topic111333` a, `TestTypeInfo333` a__Type 
-			//WHERE (date_sub(a__Type.`Time`, interval ((1 * 86400000000)) microsecond) > a.`CreateTime`);
+			//SELECT a."id", a."clicks", a."typeguid", a__Type."guid", a__Type."parentid", a__Type."name", a__Type."time", a."title", a."createtime" 
+			//FROM "tb_topic111333" a 
+			//LEFT JOIN "testtypeinfo333" a__Type ON a__Type."guid" = a."typeguid" 
+			//WHERE (((a__Type."time")::timestamp-((((1)*86400000000))||' microseconds')::interval) > a."createtime")
 
-			//SELECT a.`Id` as1, a.`Clicks` as2, a.`TypeGuid` as3, a__Type.`Guid` as4, a__Type.`ParentId` as5, a__Type.`Name` as6, a__Type.`Time` as7, a.`Title` as8, a.`CreateTime` as9 
-			//FROM `tb_topic111333` a, `TestTypeInfo333` a__Type, `TestTypeParentInfo23123` a__Type__Parent 
-			//WHERE (date_sub(a__Type__Parent.`Time2`, interval ((1 * 86400000000)) microsecond) > a.`CreateTime`)
+			//SELECT a."id", a."clicks", a."typeguid", a__Type."guid", a__Type."parentid", a__Type."name", a__Type."time", a."title", a."createtime" 
+			//FROM "tb_topic111333" a 
+			//LEFT JOIN "testtypeinfo333" a__Type ON a__Type."guid" = a."typeguid" 
+			//LEFT JOIN "testtypeparentinfo23123" a__Type__Parent ON a__Type__Parent."id" = a__Type."parentid" 
+			//WHERE (((a__Type__Parent."time2")::timestamp-((((1)*86400000000))||' microseconds')::interval) > a."createtime")
+		}
+		[Fact]
+		public void 两个日期相减_效果同Subtract() {
+			var data = new List<object>();
+			data.Add(select.Where(a => (a.CreateTime - DateTime.Now).TotalSeconds > 0).ToList());
+			data.Add(select.Where(a => (a.Type.Time - DateTime.Now).TotalSeconds > 0).ToList());
+			data.Add(select.Where(a => (a.Type.Parent.Time2 - DateTime.Now).TotalSeconds > 0).ToList());
+			//SELECT a."id", a."clicks", a."typeguid", a."title", a."createtime" 
+			//FROM "tb_topic111333" a 
+			//WHERE ((((extract(epoch from (a."createtime")::timestamp-(current_timestamp)::timestamp)*1000000))/1000000) > 0)
+
+			//SELECT a."id", a."clicks", a."typeguid", a__Type."guid", a__Type."parentid", a__Type."name", a__Type."time", a."title", a."createtime" 
+			//FROM "tb_topic111333" a 
+			//LEFT JOIN "testtypeinfo333" a__Type ON a__Type."guid" = a."typeguid" 
+			//WHERE ((((extract(epoch from (a__Type."time")::timestamp-(current_timestamp)::timestamp)*1000000))/1000000) > 0)
+
+			//SELECT a."id", a."clicks", a."typeguid", a__Type."guid", a__Type."parentid", a__Type."name", a__Type."time", a."title", a."createtime" 
+			//FROM "tb_topic111333" a 
+			//LEFT JOIN "testtypeinfo333" a__Type ON a__Type."guid" = a."typeguid" 
+			//LEFT JOIN "testtypeparentinfo23123" a__Type__Parent ON a__Type__Parent."id" = a__Type."parentid" 
+			//WHERE ((((extract(epoch from (a__Type__Parent."time2")::timestamp-(current_timestamp)::timestamp)*1000000))/1000000) > 0)
+			data.Add(select.Where(a => (a.CreateTime - TimeSpan.FromDays(1)) > a.CreateTime).ToList());
+			data.Add(select.Where(a => (a.Type.Time - TimeSpan.FromDays(1)) > a.CreateTime).ToList());
+			data.Add(select.Where(a => (a.Type.Parent.Time2 - TimeSpan.FromDays(1)) > a.CreateTime).ToList());
+			//SELECT a."id", a."clicks", a."typeguid", a."title", a."createtime" 
+			//FROM "tb_topic111333" a 
+			//WHERE (((a."createtime")::timestamp-((((1)*86400000000))||' microseconds')::interval) > a."createtime")
+
+			//SELECT a."id", a."clicks", a."typeguid", a__Type."guid", a__Type."parentid", a__Type."name", a__Type."time", a."title", a."createtime" 
+			//FROM "tb_topic111333" a 
+			//LEFT JOIN "testtypeinfo333" a__Type ON a__Type."guid" = a."typeguid" 
+			//WHERE (((a__Type."time")::timestamp-((((1)*86400000000))||' microseconds')::interval) > a."createtime")
+
+			//SELECT a."id", a."clicks", a."typeguid", a__Type."guid", a__Type."parentid", a__Type."name", a__Type."time", a."title", a."createtime" 
+			//FROM "tb_topic111333" a 
+			//LEFT JOIN "testtypeinfo333" a__Type ON a__Type."guid" = a."typeguid" 
+			//LEFT JOIN "testtypeparentinfo23123" a__Type__Parent ON a__Type__Parent."id" = a__Type."parentid" 
+			//WHERE (((a__Type__Parent."time2")::timestamp-((((1)*86400000000))||' microseconds')::interval) > a."createtime")
 		}
 		[Fact]
 		public void this_Equals() {

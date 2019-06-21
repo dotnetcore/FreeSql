@@ -466,31 +466,75 @@ namespace FreeSql.Tests.OracleExpression {
 			data.Add(select.Where(a => a.CreateTime.Subtract(DateTime.Now).TotalSeconds > 0).ToList());
 			data.Add(select.Where(a => a.Type.Time.Subtract(DateTime.Now).TotalSeconds > 0).ToList());
 			data.Add(select.Where(a => a.Type.Parent.Time2.Subtract(DateTime.Now).TotalSeconds > 0).ToList());
-			//SELECT a.`Id` as1, a.`Clicks` as2, a.`TypeGuid` as3, a.`Title` as4, a.`CreateTime` as5 
-			//FROM `tb_topic111333` a 
-			//WHERE (((timestampdiff(microsecond, now(), a.`CreateTime`)) / 1000000) > 0);
+			//SELECT a."ID", a."CLICKS", a."TYPEGUID", a."TITLE", a."CREATETIME" 
+			//FROM "TB_TOPIC111333" a 
+			//WHERE ((extract(day from (systimestamp-a."CREATETIME"))*86400+extract(hour from (systimestamp-a."CREATETIME"))*3600+extract(minute from (systimestamp-a."CREATETIME"))*60+extract(second from (systimestamp-a."CREATETIME"))) > 0)
 
-			//SELECT a.`Id` as1, a.`Clicks` as2, a.`TypeGuid` as3, a__Type.`Guid` as4, a__Type.`ParentId` as5, a__Type.`Name` as6, a__Type.`Time` as7, a.`Title` as8, a.`CreateTime` as9 
-			//FROM `tb_topic111333` a, `TestTypeInfo333` a__Type 
-			//WHERE (((timestampdiff(microsecond, now(), a__Type.`Time`)) / 1000000) > 0);
+			//SELECT a."ID", a."CLICKS", a."TYPEGUID", a__Type."GUID", a__Type."PARENTID", a__Type."NAME", a__Type."TIME", a."TITLE", a."CREATETIME" 
+			//FROM "TB_TOPIC111333" a 
+			//LEFT JOIN "TESTTYPEINFO333" a__Type ON a__Type."GUID" = a."TYPEGUID" 
+			//WHERE ((extract(day from (systimestamp-a__Type."TIME"))*86400+extract(hour from (systimestamp-a__Type."TIME"))*3600+extract(minute from (systimestamp-a__Type."TIME"))*60+extract(second from (systimestamp-a__Type."TIME"))) > 0)
 
-			//SELECT a.`Id` as1, a.`Clicks` as2, a.`TypeGuid` as3, a__Type.`Guid` as4, a__Type.`ParentId` as5, a__Type.`Name` as6, a__Type.`Time` as7, a.`Title` as8, a.`CreateTime` as9 
-			//FROM `tb_topic111333` a, `TestTypeInfo333` a__Type, `TestTypeParentInfo23123` a__Type__Parent 
-			//WHERE (((timestampdiff(microsecond, now(), a__Type__Parent.`Time2`)) / 1000000) > 0);
+			//SELECT a."ID", a."CLICKS", a."TYPEGUID", a__Type."GUID", a__Type."PARENTID", a__Type."NAME", a__Type."TIME", a."TITLE", a."CREATETIME" 
+			//FROM "TB_TOPIC111333" a 
+			//LEFT JOIN "TESTTYPEINFO333" a__Type ON a__Type."GUID" = a."TYPEGUID" 
+			//LEFT JOIN "TESTTYPEPARENTINF1" a__Type__Parent ON a__Type__Parent."ID" = a__Type."PARENTID" 
+			//WHERE ((extract(day from (systimestamp-a__Type__Parent."TIME2"))*86400+extract(hour from (systimestamp-a__Type__Parent."TIME2"))*3600+extract(minute from (systimestamp-a__Type__Parent."TIME2"))*60+extract(second from (systimestamp-a__Type__Parent."TIME2"))) > 0)
 			data.Add(select.Where(a => a.CreateTime.Subtract(TimeSpan.FromDays(1)) > a.CreateTime).ToList());
 			data.Add(select.Where(a => a.Type.Time.Subtract(TimeSpan.FromDays(1)) > a.CreateTime).ToList());
 			data.Add(select.Where(a => a.Type.Parent.Time2.Subtract(TimeSpan.FromDays(1)) > a.CreateTime).ToList());
-			//SELECT a.`Id` as1, a.`Clicks` as2, a.`TypeGuid` as3, a.`Title` as4, a.`CreateTime` as5 
-			//FROM `tb_topic111333` a 
-			//WHERE (date_sub(a.`CreateTime`, interval ((1 * 86400000000)) microsecond) > a.`CreateTime`);
+			//SELECT a."ID", a."CLICKS", a."TYPEGUID", a."TITLE", a."CREATETIME" 
+			//FROM "TB_TOPIC111333" a 
+			//WHERE ((a."CREATETIME"-numtodsinterval((1)*86400,'second')) > a."CREATETIME")
+			//SELECT a."ID", a."CLICKS", a."TYPEGUID", a__Type."GUID", a__Type."PARENTID", a__Type."NAME", a__Type."TIME", a."TITLE", a."CREATETIME" 
 
-			//SELECT a.`Id` as1, a.`Clicks` as2, a.`TypeGuid` as3, a__Type.`Guid` as4, a__Type.`ParentId` as5, a__Type.`Name` as6, a__Type.`Time` as7, a.`Title` as8, a.`CreateTime` as9 
-			//FROM `tb_topic111333` a, `TestTypeInfo333` a__Type 
-			//WHERE (date_sub(a__Type.`Time`, interval ((1 * 86400000000)) microsecond) > a.`CreateTime`);
+			//FROM "TB_TOPIC111333" a 
+			//LEFT JOIN "TESTTYPEINFO333" a__Type ON a__Type."GUID" = a."TYPEGUID" 
+			//WHERE ((a__Type."TIME"-numtodsinterval((1)*86400,'second')) > a."CREATETIME")
+			//SELECT a."ID", a."CLICKS", a."TYPEGUID", a__Type."GUID", a__Type."PARENTID", a__Type."NAME", a__Type."TIME", a."TITLE", a."CREATETIME" 
 
-			//SELECT a.`Id` as1, a.`Clicks` as2, a.`TypeGuid` as3, a__Type.`Guid` as4, a__Type.`ParentId` as5, a__Type.`Name` as6, a__Type.`Time` as7, a.`Title` as8, a.`CreateTime` as9 
-			//FROM `tb_topic111333` a, `TestTypeInfo333` a__Type, `TestTypeParentInfo23123` a__Type__Parent 
-			//WHERE (date_sub(a__Type__Parent.`Time2`, interval ((1 * 86400000000)) microsecond) > a.`CreateTime`)
+			//FROM "TB_TOPIC111333" a 
+			//LEFT JOIN "TESTTYPEINFO333" a__Type ON a__Type."GUID" = a."TYPEGUID" 
+			//LEFT JOIN "TESTTYPEPARENTINF1" a__Type__Parent ON a__Type__Parent."ID" = a__Type."PARENTID" 
+			//WHERE ((a__Type__Parent."TIME2"-numtodsinterval((1)*86400,'second')) > a."CREATETIME")
+		}
+		[Fact]
+		public void 两个日期相减_效果同Subtract() {
+			var data = new List<object>();
+			data.Add(select.Where(a => (a.CreateTime - DateTime.Now).TotalSeconds > 0).ToList());
+			data.Add(select.Where(a => (a.Type.Time - DateTime.Now).TotalSeconds > 0).ToList());
+			data.Add(select.Where(a => (a.Type.Parent.Time2 - DateTime.Now).TotalSeconds > 0).ToList());
+			//SELECT a."ID", a."CLICKS", a."TYPEGUID", a."TITLE", a."CREATETIME" 
+			//FROM "TB_TOPIC111333" a 
+			//WHERE ((extract(day from (systimestamp-a."CREATETIME"))*86400+extract(hour from (systimestamp-a."CREATETIME"))*3600+extract(minute from (systimestamp-a."CREATETIME"))*60+extract(second from (systimestamp-a."CREATETIME"))) > 0)
+
+			//SELECT a."ID", a."CLICKS", a."TYPEGUID", a__Type."GUID", a__Type."PARENTID", a__Type."NAME", a__Type."TIME", a."TITLE", a."CREATETIME" 
+			//FROM "TB_TOPIC111333" a 
+			//LEFT JOIN "TESTTYPEINFO333" a__Type ON a__Type."GUID" = a."TYPEGUID" 
+			//WHERE ((extract(day from (systimestamp-a__Type."TIME"))*86400+extract(hour from (systimestamp-a__Type."TIME"))*3600+extract(minute from (systimestamp-a__Type."TIME"))*60+extract(second from (systimestamp-a__Type."TIME"))) > 0)
+
+			//SELECT a."ID", a."CLICKS", a."TYPEGUID", a__Type."GUID", a__Type."PARENTID", a__Type."NAME", a__Type."TIME", a."TITLE", a."CREATETIME" 
+			//FROM "TB_TOPIC111333" a 
+			//LEFT JOIN "TESTTYPEINFO333" a__Type ON a__Type."GUID" = a."TYPEGUID" 
+			//LEFT JOIN "TESTTYPEPARENTINF1" a__Type__Parent ON a__Type__Parent."ID" = a__Type."PARENTID" 
+			//WHERE ((extract(day from (systimestamp-a__Type__Parent."TIME2"))*86400+extract(hour from (systimestamp-a__Type__Parent."TIME2"))*3600+extract(minute from (systimestamp-a__Type__Parent."TIME2"))*60+extract(second from (systimestamp-a__Type__Parent."TIME2"))) > 0)
+			data.Add(select.Where(a => (a.CreateTime - TimeSpan.FromDays(1)) > a.CreateTime).ToList());
+			data.Add(select.Where(a => (a.Type.Time - TimeSpan.FromDays(1)) > a.CreateTime).ToList());
+			data.Add(select.Where(a => (a.Type.Parent.Time2 - TimeSpan.FromDays(1)) > a.CreateTime).ToList());
+			//SELECT a."ID", a."CLICKS", a."TYPEGUID", a."TITLE", a."CREATETIME" 
+			//FROM "TB_TOPIC111333" a 
+			//WHERE ((a."CREATETIME"-numtodsinterval((1)*86400,'second')) > a."CREATETIME")
+			//SELECT a."ID", a."CLICKS", a."TYPEGUID", a__Type."GUID", a__Type."PARENTID", a__Type."NAME", a__Type."TIME", a."TITLE", a."CREATETIME" 
+
+			//FROM "TB_TOPIC111333" a 
+			//LEFT JOIN "TESTTYPEINFO333" a__Type ON a__Type."GUID" = a."TYPEGUID" 
+			//WHERE ((a__Type."TIME"-numtodsinterval((1)*86400,'second')) > a."CREATETIME")
+			//SELECT a."ID", a."CLICKS", a."TYPEGUID", a__Type."GUID", a__Type."PARENTID", a__Type."NAME", a__Type."TIME", a."TITLE", a."CREATETIME" 
+
+			//FROM "TB_TOPIC111333" a 
+			//LEFT JOIN "TESTTYPEINFO333" a__Type ON a__Type."GUID" = a."TYPEGUID" 
+			//LEFT JOIN "TESTTYPEPARENTINF1" a__Type__Parent ON a__Type__Parent."ID" = a__Type."PARENTID" 
+			//WHERE ((a__Type__Parent."TIME2"-numtodsinterval((1)*86400,'second')) > a."CREATETIME")
 		}
 		[Fact]
 		public void this_Equals() {

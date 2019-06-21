@@ -228,6 +228,17 @@ namespace FreeSql.Tests.SqlServerExpression {
 			data.Add(select.Where(a => a.Type.Parent.Time2.Subtract(TimeSpan.FromDays(1)) > a.CreateTime).ToList());
 		}
 		[Fact]
+		public void 两个日期相减_效果同Subtract() {
+			var data = new List<object>();
+			data.Add(select.Where(a => (a.CreateTime - DateTime.Now).TotalSeconds > 0).ToList());
+			data.Add(select.Where(a => (a.Type.Time - DateTime.Now).TotalSeconds > 0).ToList());
+			data.Add(select.Where(a => (a.Type.Parent.Time2 - DateTime.Now).TotalSeconds > 0).ToList());
+
+			data.Add(select.Where(a => (a.CreateTime - TimeSpan.FromDays(1)) > a.CreateTime).ToList());
+			data.Add(select.Where(a => (a.Type.Time - TimeSpan.FromDays(1)) > a.CreateTime).ToList());
+			data.Add(select.Where(a => (a.Type.Parent.Time2 - TimeSpan.FromDays(1)) > a.CreateTime).ToList());
+		}
+		[Fact]
 		public void this_Equals() {
 			var data = new List<object>();
 			data.Add(select.Where(a => a.CreateTime.AddYears(1).Equals(DateTime.Now)).ToList());
