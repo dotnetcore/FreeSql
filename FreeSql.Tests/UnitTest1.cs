@@ -269,6 +269,28 @@ namespace FreeSql.Tests {
 		[Fact]
 		public void Test1() {
 
+			var dcksdkdsk = g.sqlite.Select<NewsArticle>().Where(a => a.testaddtime2.HasValue).ToSql();
+			var dcksdkdsk2 = g.sqlite.Select<NewsArticle>().Where(a => !a.testaddtime2.HasValue).ToSql();
+
+			var testgrpsql = g.sqlite.Select<TaskBuild>()
+				.From<Templates>((a, b) => a.InnerJoin(aa => aa.TemplatesId
+				  == b.Id2))
+				 .GroupBy((a, b) => b.Title)
+				 .ToSql(a => new {
+					 a.Key,
+					 sss = a.Sum(a.Value.Item1.Id)
+				 });
+
+			var testgrpsql2 = g.sqlite.Select<TaskBuild>()
+				.From<Templates>((a, b) => a.InnerJoin(aa => aa.TemplatesId
+				  == b.Id2))
+				 .GroupBy((a, b) => b.Title)
+				 .ToList(a => new {
+					 a.Key,
+					 sss = a.Sum(a.Value.Item1.Id)
+				 });
+
+
 			var tbid = g.sqlite.Select<TaskBuild>().First().Id;
 			var tbidsql = g.sqlite.Update<TaskBuild>().Where(a => a.Id == tbid)
 				.Set(a => new TaskBuild {
