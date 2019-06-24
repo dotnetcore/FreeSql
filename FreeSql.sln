@@ -42,7 +42,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Extensions.LazyLoad
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Provider.MySqlConnector", "Providers\FreeSql.Provider.MySqlConnector\FreeSql.Provider.MySqlConnector.csproj", "{D2A41321-5E84-410B-B25C-3AA122D4CA27}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreeSql.Tests.Provider.MySqlConnector", "FreeSql.Tests.Provider.MySqlConnector\FreeSql.Tests.Provider.MySqlConnector.csproj", "{D113CDFB-FB97-482B-8A00-058E715B624A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Tests.Provider.MySqlConnector", "FreeSql.Tests.Provider.MySqlConnector\FreeSql.Tests.Provider.MySqlConnector.csproj", "{D113CDFB-FB97-482B-8A00-058E715B624A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

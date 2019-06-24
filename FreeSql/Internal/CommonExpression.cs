@@ -278,40 +278,51 @@ namespace FreeSql.Internal {
 		};
 		public string ExpressionWhereLambdaNoneForeignObject(List<SelectTableInfo> _tables, TableInfo table, List<SelectColumnInfo> _selectColumnMap, Expression exp, Func<Expression[], string> getSelectGroupingMapString) {
 			var sql = ExpressionLambdaToSql(exp, new ExpTSC { _tables = _tables, _selectColumnMap = _selectColumnMap, getSelectGroupingMapString = getSelectGroupingMapString, tbtype = SelectTableInfoType.From, isQuoteName = true, isDisableDiyParse = false, style = ExpressionStyle.Where, currentTable = table });
-			if (exp.NodeType == ExpressionType.MemberAccess && exp.Type == typeof(bool) && sql.Contains(" IS ") == false && sql.Contains(" = ") == false)
+			var isBool = exp.Type.NullableTypeOrThis() == typeof(bool);
+			if (exp.NodeType == ExpressionType.MemberAccess && isBool && sql.Contains(" IS ") == false && sql.Contains(" = ") == false)
 				return $"{sql} = {formatSql(true, null)}";
-			switch (sql) {
-				case "1":
-				case "'t'": return "1=1";
-				case "0":
-				case "'f'": return "1=2";
-				default:return sql;
+			if (isBool) {
+				switch (sql) {
+					case "1":
+					case "'t'": return "1=1";
+					case "0":
+					case "'f'": return "1=2";
+					default: return sql;
+				}
 			}
+			return sql;
 		}
 
 		public string ExpressionWhereLambda(List<SelectTableInfo> _tables, Expression exp, Func<Expression[], string> getSelectGroupingMapString) {
 			var sql = ExpressionLambdaToSql(exp, new ExpTSC { _tables = _tables, getSelectGroupingMapString = getSelectGroupingMapString, tbtype = SelectTableInfoType.From, isQuoteName = true, isDisableDiyParse = false, style = ExpressionStyle.Where });
-			if (exp.NodeType == ExpressionType.MemberAccess && exp.Type == typeof(bool) && sql.Contains(" IS ") == false && sql.Contains(" = ") == false)
+			var isBool = exp.Type.NullableTypeOrThis() == typeof(bool);
+			if (exp.NodeType == ExpressionType.MemberAccess && isBool && sql.Contains(" IS ") == false && sql.Contains(" = ") == false)
 				return $"{sql} = {formatSql(true, null)}";
-			switch (sql) {
-				case "1":
-				case "'t'": return "1=1";
-				case "0":
-				case "'f'": return "1=2";
-				default: return sql;
+			if (isBool) {
+				switch (sql) {
+					case "1":
+					case "'t'": return "1=1";
+					case "0":
+					case "'f'": return "1=2";
+					default: return sql;
+				}
 			}
+			return sql;
 		}
 		public void ExpressionJoinLambda(List<SelectTableInfo> _tables, SelectTableInfoType tbtype, Expression exp, Func<Expression[], string> getSelectGroupingMapString) {
 			var tbidx = _tables.Count;
 			var sql = ExpressionLambdaToSql(exp, new ExpTSC { _tables = _tables, getSelectGroupingMapString = getSelectGroupingMapString, tbtype = tbtype, isQuoteName = true, isDisableDiyParse = false, style = ExpressionStyle.Where });
-			if (exp.NodeType == ExpressionType.MemberAccess && exp.Type == typeof(bool) && sql.Contains(" IS ") == false && sql.Contains(" = ") == false)
+			var isBool = exp.Type.NullableTypeOrThis() == typeof(bool);
+			if (exp.NodeType == ExpressionType.MemberAccess && isBool && sql.Contains(" IS ") == false && sql.Contains(" = ") == false)
 				sql = $"{sql} = {formatSql(true, null)}";
-			switch (sql) {
-				case "1":
-				case "'t'": sql = "1=1"; break;
-				case "0":
-				case "'f'": sql = "1=2"; break;
-				default: break;
+			if (isBool) {
+				switch (sql) {
+					case "1":
+					case "'t'": sql = "1=1"; break;
+					case "0":
+					case "'f'": sql = "1=2"; break;
+					default: break;
+				}
 			}
 			if (_tables.Count > tbidx) {
 				_tables[tbidx].Type = tbtype;

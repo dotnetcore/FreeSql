@@ -253,7 +253,7 @@ namespace FreeSql.Tests {
 			public bool OptionsEntity01 { get; set; } = false;
 			public bool OptionsEntity02 { get; set; } = false;
 			public bool OptionsEntity03 { get; set; } = false;
-			public bool OptionsEntity04 { get; set; } = false;
+			public int OptionsEntity04 { get; set; }
 
 			[Navigate("TbId")]
 			public virtual ICollection<TaskBuildInfo> Builds { get; set; }
@@ -292,10 +292,14 @@ namespace FreeSql.Tests {
 
 
 			var tbid = g.sqlite.Select<TaskBuild>().First().Id;
+
+			var testarray = new[] { 1, 2, 3 };
 			var tbidsql = g.sqlite.Update<TaskBuild>().Where(a => a.Id == tbid)
 				.Set(a => new TaskBuild {
 					FileName = "111",
-					TaskName = a.TaskName + "333"
+					TaskName = a.TaskName + "333",
+					 OptionsEntity02 = false,
+					  OptionsEntity04 = testarray[0]
 				}).ToSql();
 
 

@@ -358,7 +358,7 @@ namespace FreeSql.Internal.CommonProvider {
 						var memberName = initExp.Bindings[a].Member.Name;
 						if (_table.ColumnsByCsIgnore.ContainsKey(memberName)) continue;
 						if (_table.ColumnsByCs.TryGetValue(memberName, out var col) == false) throw new Exception($"找不到属性：{memberName}");
-						var memberValue = _commonExpression.ExpressionWhereLambdaNoneForeignObject(null, _table, null, initAssignExp.Expression, null);
+						var memberValue = _commonExpression.ExpressionLambdaToSql(initAssignExp.Expression, new CommonExpression.ExpTSC { });
 						_setIncr.Append(", ").Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ").Append(memberValue);
 					}
 				}

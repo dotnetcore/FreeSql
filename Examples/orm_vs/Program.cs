@@ -15,8 +15,8 @@ namespace orm_vs
     class Program
     {
 		static IFreeSql fsql = new FreeSql.FreeSqlBuilder()
-				.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=20")
-				//.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=20")
+				//.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=20")
+				.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=20")
 				.UseAutoSyncStructure(false)
 				.UseNoneCommandParameter(true)
 				//.UseConfigEntityFromDbFirst(true)
@@ -25,10 +25,10 @@ namespace orm_vs
 		static SqlSugarClient sugar {
 			get => new SqlSugarClient(new ConnectionConfig() {
 				//不欺负，让连接池100个最小
-				ConnectionString = "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Min Pool Size=20;Max Pool Size=20",
-				DbType = DbType.SqlServer,
-				//ConnectionString = "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Min Pool Size=20;Max Pool Size=20",
-				//DbType = DbType.MySql,
+				//ConnectionString = "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Min Pool Size=20;Max Pool Size=20",
+				//DbType = DbType.SqlServer,
+				ConnectionString = "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Min Pool Size=20;Max Pool Size=20",
+				DbType = DbType.MySql,
 				IsAutoCloseConnection = true,
 				InitKeyType = InitKeyType.Attribute
 			});
@@ -37,8 +37,8 @@ namespace orm_vs
 		class SongContext : DbContext {
 			public DbSet<Song> Songs { get; set; }
 			protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
-				optionsBuilder.UseSqlServer(@"Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Min Pool Size=21;Max Pool Size=21");
-				//optionsBuilder.UseMySql("Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Min Pool Size=21;Max Pool Size=21");
+				//optionsBuilder.UseSqlServer(@"Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Min Pool Size=21;Max Pool Size=21");
+				optionsBuilder.UseMySql("Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Min Pool Size=21;Max Pool Size=21");
 			}
 		}
 
@@ -48,6 +48,9 @@ namespace orm_vs
 			//sugar.CodeFirst.InitTables(typeof(Song), typeof(Song_tag), typeof(Tag));
 			//sugar创建表失败：SqlSugar.SqlSugarException: Sequence contains no elements
 
+			sugar.Aop.OnLogExecuted = (s, e) => {
+				Trace.WriteLine(s);
+			};
 			//测试前清空数据
 			fsql.Delete<Song>().Where(a => a.Id > 0).ExecuteAffrows();
 			sugar.Deleteable<Song>().Where(a => a.Id > 0).ExecuteCommand();
