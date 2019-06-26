@@ -41,8 +41,9 @@ namespace FreeSql.Internal.CommonProvider {
 						if (mem0Name?.StartsWith("Item") == true && int.TryParse(mem0Name.Substring(4), out var tryitemidx)) {
 							if (tryitemidx == 1) foridx++;
 							else {
-								var alias = $"SP10{(char)(96 + tryitemidx)}";
-								var tmptb = _tables.Where(a => a.AliasInit == alias && a.Table.Type == mem0.Type).FirstOrDefault();
+								//var alias = $"SP10{(char)(96 + tryitemidx)}";
+								var tmptb = _tables.Where((a,idx) => //a.AliasInit == alias && 
+									a.Table.Type == mem0.Type && idx == tryitemidx - 1).FirstOrDefault();
 								if (tmptb != null) {
 									tb = tmptb;
 									foridx++;
