@@ -6,11 +6,10 @@
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>YeXiangQin</Authors>
 		<Description>FreeSql is the most convenient ORM in dotnet. It supports Mysql, Postgresql, SqlServer, Oracle and Sqlite.</Description>
-		<PackageProjectUrl>https://github.com/2881099/FreeSql</PackageProjectUrl>
-		<RepositoryUrl>https://github.com/2881099/FreeSql</RepositoryUrl>
+		<PackageProjectUrl>https://github.com/2881099/FreeSql.DbContext</PackageProjectUrl>
+		<PackageTags>FreeSql ORM DbContext</PackageTags>
 		<RepositoryType>git</RepositoryType>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-		<PackageTags>FreeSql;ORM</PackageTags>
 		<PackageId>$(AssemblyName)</PackageId>
 		<Title>$(AssemblyName)</Title>
 		<IsPackable>true</IsPackable>
@@ -18,13 +17,20 @@
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-	  <DocumentationFile>FreeSql.xml</DocumentationFile>
+	  <DocumentationFile>FreeSql.DbContext.xml</DocumentationFile>
 	  <WarningLevel>3</WarningLevel>
 	</PropertyGroup>
 
-	<ItemGroup>
-	  <PackageReference Include="SafeObjectPool" Version="2.0.2" />
-	  <PackageReference Include="System.ValueTuple" Version="4.5.0" />
+	<PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+		<DefineConstants>ns20;netstandard20</DefineConstants>
+	</PropertyGroup>
+	
+	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.1.1" />
 	</ItemGroup>
-
+	
+	<ItemGroup>
+	  <ProjectReference Include="..\FreeSql\FreeSql.csproj" />
+	</ItemGroup>
+	
 </Project>

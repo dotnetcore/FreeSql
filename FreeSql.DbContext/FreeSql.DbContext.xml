@@ -1,0 +1,259 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>FreeSql.DbContext</name>
+    </assembly>
+    <members>
+        <member name="M:FreeSql.DbContext.Add``1(``0)">
+            <summary>
+            添加
+            </summary>
+            <typeparam name="TEntity"></typeparam>
+            <param name="data"></param>
+        </member>
+        <member name="M:FreeSql.DbContext.Update``1(``0)">
+            <summary>
+            更新
+            </summary>
+            <typeparam name="TEntity"></typeparam>
+            <param name="data"></param>
+        </member>
+        <member name="M:FreeSql.DbContext.Remove``1(``0)">
+            <summary>
+            删除
+            </summary>
+            <typeparam name="TEntity"></typeparam>
+            <param name="data"></param>
+        </member>
+        <member name="M:FreeSql.DbContext.AddOrUpdate``1(``0)">
+            <summary>
+            添加或更新
+            </summary>
+            <typeparam name="TEntity"></typeparam>
+            <param name="data"></param>
+        </member>
+        <member name="M:FreeSql.DbContext.Attach``1(``0)">
+            <summary>
+            附加实体，可用于不查询就更新或删除
+            </summary>
+            <typeparam name="TEntity"></typeparam>
+            <param name="data"></param>
+        </member>
+        <member name="P:FreeSql.DbContextOptions.EnableAddOrUpdateNavigateList">
+            <summary>
+            是否开启一对多，联级保存功能
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbSet`1.AsType(System.Type)">
+            <summary>
+            动态Type，在使用 DbSet&lt;object&gt; 后使用本方法，指定实体类型
+            </summary>
+            <param name="entityType"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.DbSet`1.Attach(`0)">
+            <summary>
+            附加实体，可用于不查询就更新或删除
+            </summary>
+            <param name="data"></param>
+        </member>
+        <member name="M:FreeSql.DbSet`1.FlushState">
+            <summary>
+            清空状态数据
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbSet`1.Add(`0)">
+            <summary>
+            添加
+            </summary>
+            <param name="data"></param>
+        </member>
+        <member name="M:FreeSql.DbSet`1.Update(`0)">
+            <summary>
+            更新
+            </summary>
+            <param name="data"></param>
+        </member>
+        <member name="M:FreeSql.DbSet`1.Remove(`0)">
+            <summary>
+            删除
+            </summary>
+            <param name="data"></param>
+        </member>
+        <member name="M:FreeSql.DbSet`1.AddOrUpdate(`0)">
+            <summary>
+            添加或更新
+            </summary>
+            <param name="data"></param>
+        </member>
+        <member name="M:FreeSql.IRepositoryUnitOfWork.GetRepository``2(System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})">
+            <summary>
+            在工作单元内创建默认仓库类，工作单元下的仓储操作具有事务特点
+            </summary>
+            <typeparam name="TEntity"></typeparam>
+            <typeparam name="TKey"></typeparam>
+            <param name="filter">数据过滤 + 验证</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IRepositoryUnitOfWork.GetRepository``1(System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})">
+            <summary>
+            在工作单元内创建联合主键的仓储类，工作单元下的仓储操作具有事务特点
+            </summary>
+            <typeparam name="TEntity"></typeparam>
+            <param name="filter">数据过滤 + 验证</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IRepositoryUnitOfWork.GetGuidRepository``1(System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}},System.Func{System.String,System.String})">
+            <summary>
+            在工作单元内创建仓库类，工作单元下的仓储操作具有事务特点
+            </summary>
+            <typeparam name="TEntity"></typeparam>
+            <param name="filter">数据过滤 + 验证</param>
+            <param name="asTable">分表规则，参数：旧表名；返回：新表名 https://github.com/2881099/FreeSql/wiki/Repository</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IDataFilter`1.Enable(System.String[])">
+            <summary>
+            开启过滤器，若使用 using 则使用完后，恢复为原有状态
+            </summary>
+            <param name="filterName">过滤器名称</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IDataFilter`1.EnableAll">
+            <summary>
+            开启所有过滤器，若使用 using 则使用完后，恢复为原有状态
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IDataFilter`1.Disable(System.String[])">
+            <summary>
+            禁用过滤器，若使用 using 则使用完后，恢复为原有状态
+            </summary>
+            <param name="filterName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IDataFilter`1.DisableAll">
+            <summary>
+            禁用所有过滤器，若使用 using 则使用完后，恢复为原有状态
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IBaseRepository.AsType(System.Type)">
+            <summary>
+            动态Type，在使用 Repository&lt;object&gt; 后使用本方法，指定实体类型
+            </summary>
+            <param name="entityType"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IBasicRepository`1.FlushState">
+            <summary>
+            清空状态数据
+            </summary>
+        </member>
+        <member name="M:FreeSql.IBasicRepository`1.Attach(`0)">
+            <summary>
+            附加实体，可用于不查询就更新或删除
+            </summary>
+            <param name="entity"></param>
+        </member>
+        <member name="P:FreeSql.IUnitOfWork.Enable">
+            <summary>
+            是否启用工作单元
+            </summary>
+        </member>
+        <member name="M:FreeSql.IUnitOfWork.Close">
+            <summary>
+            禁用工作单元
+            <exception cref="T:System.Exception"></exception>
+            <para></para>
+            若已开启事务（已有Insert/Update/Delete操作），调用此方法将发生异常，建议在执行逻辑前调用
+            </summary>
+        </member>
+        <member name="M:FreeSql.IUnitOfWork.Open">
+            <summary>
+            开启工作单元
+            </summary>
+        </member>
+        <member name="P:FreeSql.UnitOfWork.Enable">
+            <summary>
+            是否启用工作单元
+            </summary>
+        </member>
+        <member name="M:FreeSql.UnitOfWork.Close">
+            <summary>
+            禁用工作单元
+            <exception cref="T:System.Exception"></exception>
+            <para></para>
+            若已开启事务（已有Insert/Update/Delete操作），调用此方法将发生异常，建议在执行逻辑前调用
+            </summary>
+        </member>
+        <member name="M:FreeSqlDbContextExtenssions.CreateDbContext(IFreeSql)">
+            <summary>
+            创建普通数据上下文档对象
+            </summary>
+            <param name="that"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSqlDbContextExtenssions.NoTracking``1(FreeSql.ISelect{``0})">
+            <summary>
+            不跟踪查询的实体数据（在不需要更新其数据时使用），可提长查询性能
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="select"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSqlDbContextExtenssions.SetDbContextOptions(IFreeSql,System.Action{FreeSql.DbContextOptions})">
+            <summary>
+            设置 DbContext 选项设置
+            </summary>
+            <param name="that"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:FreeSqlRepositoryExtenssions.GetRepository``2(IFreeSql,System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})">
+            <summary>
+            返回默认仓库类
+            </summary>
+            <typeparam name="TEntity"></typeparam>
+            <typeparam name="TKey"></typeparam>
+            <param name="that"></param>
+            <param name="filter">数据过滤 + 验证</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSqlRepositoryExtenssions.GetRepository``1(IFreeSql,System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})">
+            <summary>
+            返回默认仓库类，适用联合主键的仓储类
+            </summary>
+            <typeparam name="TEntity"></typeparam>
+            <param name="that"></param>
+            <param name="filter">数据过滤 + 验证</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSqlRepositoryExtenssions.GetGuidRepository``1(IFreeSql,System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}},System.Func{System.String,System.String})">
+            <summary>
+            返回仓库类
+            </summary>
+            <typeparam name="TEntity"></typeparam>
+            <param name="that"></param>
+            <param name="filter">数据过滤 + 验证</param>
+            <param name="asTable">分表规则，参数：旧表名；返回：新表名 https://github.com/2881099/FreeSql/wiki/Repository</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSqlRepositoryExtenssions.FromRepository``2(FreeSql.ISelect{``0},FreeSql.BaseRepository{``1})">
+            <summary>
+            合并两个仓储的设置（过滤+分表），以便查询
+            </summary>
+            <typeparam name="TEntity"></typeparam>
+            <typeparam name="T2"></typeparam>
+            <param name="that"></param>
+            <param name="repos"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSqlRepositoryExtenssions.CreateUnitOfWork(IFreeSql)">
+            <summary>
+            创建基于仓储功能的工作单元，务必使用 using 包含使用
+            </summary>
+            <param name="that"></param>
+            <returns></returns>
+        </member>
+    </members>
+</doc>

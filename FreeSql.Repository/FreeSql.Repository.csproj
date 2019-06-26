@@ -3,14 +3,13 @@
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net45</TargetFrameworks>
 		<Version>0.7.1</Version>
-		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>YeXiangQin</Authors>
-		<Description>FreeSql 数据库实现，基于 Sqlite 3.0</Description>
-		<PackageProjectUrl>https://github.com/2881099/FreeSql</PackageProjectUrl>
-		<RepositoryUrl>https://github.com/2881099/FreeSql</RepositoryUrl>
+		<Description>FreeSql Implementation of General Repository, Support MySql/SqlServer/PostgreSQL/Oracle/Sqlite, and read/write separation、and split table.</Description>
+		<PackageProjectUrl>https://github.com/2881099/FreeSql/wiki/Repository</PackageProjectUrl>
+		<PackageTags>FreeSql ORM Repository</PackageTags>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<RepositoryType>git</RepositoryType>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-		<PackageTags>FreeSql;ORM</PackageTags>
 		<PackageId>$(AssemblyName)</PackageId>
 		<Title>$(AssemblyName)</Title>
 		<IsPackable>true</IsPackable>
@@ -18,11 +17,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="System.Data.SQLite.Core" Version="1.0.110" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />
+	  <ProjectReference Include="..\FreeSql.DbContext\FreeSql.DbContext.csproj" />
 	</ItemGroup>
 
 </Project>

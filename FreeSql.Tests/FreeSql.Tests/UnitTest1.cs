@@ -275,23 +275,25 @@ namespace FreeSql.Tests {
 			var testgrpsql = g.sqlite.Select<TaskBuild>()
 				.From<Templates>((a, b) => a.InnerJoin(aa => aa.TemplatesId
 				  == b.Id2))
-				 .GroupBy((a, b) => b.Title)
+				 .GroupBy((a, b) => b.Code)
 				 .ToSql(a => new {
 					 a.Key,
-					 sss = a.Sum(a.Value.Item1.Id)
+					 sss = a.Sum(a.Value.Item1.Id),
+					 sss2 = a.Sum(a.Value.Item2.Id2)
 				 });
 
 			var testgrpsql2 = g.sqlite.Select<TaskBuild>()
 				.From<Templates>((a, b) => a.InnerJoin(aa => aa.TemplatesId
 				  == b.Id2))
-				 .GroupBy((a, b) => b.Title)
+				 .GroupBy((a, b) => b.Code)
 				 .ToList(a => new {
 					 a.Key,
-					 sss = a.Sum(a.Value.Item1.Id)
+					 sss = a.Sum(a.Value.Item1.Id),
+					 sss2 = a.Sum(a.Value.Item2.Id2)
 				 });
 
 
-			var tbid = g.sqlite.Select<TaskBuild>().First().Id;
+			var tbid = g.sqlite.Select<TaskBuild>().First()?.Id ?? Guid.Empty;
 
 			var testarray = new[] { 1, 2, 3 };
 			var tbidsql = g.sqlite.Update<TaskBuild>().Where(a => a.Id == tbid)
