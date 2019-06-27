@@ -1,13 +1,16 @@
 ﻿
 
-namespace FreeSql {
-	public class DbContextOptionsBuilder {
+namespace FreeSql
+{
+    public class DbContextOptionsBuilder
+    {
 
-		internal IFreeSql _fsql;
+        internal IFreeSql _fsql;
 
-		public DbContextOptionsBuilder UseFreeSql(IFreeSql orm) {
-			_fsql = orm;
-			return this;
-		}
-	}
+        public DbContextOptionsBuilder UseFreeSql(IFreeSql orm)
+        {
+            _fsql = orm;
+            return this;
+        }
+    }
 }

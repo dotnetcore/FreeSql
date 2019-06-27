@@ -2,54 +2,65 @@ using FreeSql.DataAnnotations;
 using System;
 using Xunit;
 
-namespace FreeSql.Tests.Oracle {
-	public class OracleAdoTest {
-		[Fact]
-		public void Pool() {
-			var t1 = g.oracle.Ado.MasterPool.StatisticsFullily;
-		}
+namespace FreeSql.Tests.Oracle
+{
+    public class OracleAdoTest
+    {
+        [Fact]
+        public void Pool()
+        {
+            var t1 = g.oracle.Ado.MasterPool.StatisticsFullily;
+        }
 
-		[Fact]
-		public void SlavePools() {
-			var t2 = g.oracle.Ado.SlavePools.Count;
-		}
+        [Fact]
+        public void SlavePools()
+        {
+            var t2 = g.oracle.Ado.SlavePools.Count;
+        }
 
-		[Fact]
-		public void ExecuteReader() {
-			
-		}
-		[Fact]
-		public void ExecuteArray() {
-			
-		}
-		[Fact]
-		public void ExecuteNonQuery() {
-			
-		}
-		[Fact]
-		public void ExecuteScalar() {
-			
-		}
+        [Fact]
+        public void ExecuteReader()
+        {
 
-		[Fact]
-		public void Query() {
+        }
+        [Fact]
+        public void ExecuteArray()
+        {
 
-			var t3 = g.oracle.Ado.Query<xxx>("select * from \"TB_TOPIC\"");
+        }
+        [Fact]
+        public void ExecuteNonQuery()
+        {
 
-			var t4 = g.oracle.Ado.Query<(int, string, string)>("select * from \"TB_TOPIC\"");
+        }
+        [Fact]
+        public void ExecuteScalar()
+        {
 
-			var t5 = g.oracle.Ado.Query<dynamic>("select * from \"TB_TOPIC\"");
-		}
+        }
 
-		[Fact]
-		public void QueryMultipline() {
-			//var t3 = g.oracle.Ado.Query<xxx, (int, string, string), dynamic>("select * from \"TB_TOPIC\"; select * from \"TB_TOPIC\"; select * from \"TB_TOPIC\"");
-		}
+        [Fact]
+        public void Query()
+        {
 
-		class xxx {
-			public int Id { get; set; }
-			public string Path { get; set; }
-			public string Title2 { get; set; }
-		}
-	}
+            var t3 = g.oracle.Ado.Query<xxx>("select * from \"TB_TOPIC\"");
+
+            var t4 = g.oracle.Ado.Query<(int, string, string)>("select * from \"TB_TOPIC\"");
+
+            var t5 = g.oracle.Ado.Query<dynamic>("select * from \"TB_TOPIC\"");
+        }
+
+        [Fact]
+        public void QueryMultipline()
+        {
+            //var t3 = g.oracle.Ado.Query<xxx, (int, string, string), dynamic>("select * from \"TB_TOPIC\"; select * from \"TB_TOPIC\"; select * from \"TB_TOPIC\"");
+        }
+
+        class xxx
+        {
+            public int Id { get; set; }
+            public string Path { get; set; }
+            public string Title2 { get; set; }
+        }
+    }
 }

@@ -2,20 +2,24 @@ using FreeSql.DataAnnotations;
 using System;
 using Xunit;
 
-namespace FreeSql.Tests.Oracle {
-	public class OracleDbFirstTest {
-		[Fact]
-		public void GetDatabases() {
+namespace FreeSql.Tests.Oracle
+{
+    public class OracleDbFirstTest
+    {
+        [Fact]
+        public void GetDatabases()
+        {
 
-			var t1 = g.oracle.DbFirst.GetDatabases();
+            var t1 = g.oracle.DbFirst.GetDatabases();
 
-		}
+        }
 
-		[Fact]
-		public void GetTablesByDatabase() {
+        [Fact]
+        public void GetTablesByDatabase()
+        {
 
-			var t2 = g.oracle.DbFirst.GetTablesByDatabase();
+            var t2 = g.oracle.DbFirst.GetTablesByDatabase();
 
-		}
-	}
+        }
+    }
 }

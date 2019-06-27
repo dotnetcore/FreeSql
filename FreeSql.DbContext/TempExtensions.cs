@@ -1,5 +1,7 @@
 ﻿
-namespace FreeSql.Extensions.EntityUtil {
-	public static class TempExtensions {
-	}
+namespace FreeSql.Extensions.EntityUtil
+{
+    public static class TempExtensions
+    {
+    }
 }

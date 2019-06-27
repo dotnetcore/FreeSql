@@ -13,86 +13,98 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
-namespace repository_01 {
+namespace repository_01
+{
 
-	/// <summary>
-	/// 用户密码信息
-	/// </summary>
-	public class Sys1UserLogOn {
-		[Column(IsPrimary = true, Name = "Id")]
-		public Guid UserLogOnId { get; set; }
-		public virtual Sys1User User { get; set; }
-	}
-	public class Sys1User {
-		[Column(IsPrimary = true, Name = "Id")]
-		public Guid UserId { get; set; }
-		public virtual Sys1UserLogOn UserLogOn { get; set; }
-	}
-	
-	public class Startup {
-		public Startup(IConfiguration configuration, ILoggerFactory loggerFactory) {
-			Configuration = configuration;
+    /// <summary>
+    /// 用户密码信息
+    /// </summary>
+    public class Sys1UserLogOn
+    {
+        [Column(IsPrimary = true, Name = "Id")]
+        public Guid UserLogOnId { get; set; }
+        public virtual Sys1User User { get; set; }
+    }
+    public class Sys1User
+    {
+        [Column(IsPrimary = true, Name = "Id")]
+        public Guid UserId { get; set; }
+        public virtual Sys1UserLogOn UserLogOn { get; set; }
+    }
 
-			Fsql = new FreeSql.FreeSqlBuilder()
-				.UseConnectionString(FreeSql.DataType.Sqlite, @"Data Source=|DataDirectory|\document.db;Pooling=true;Max Pool Size=10")
-				.UseAutoSyncStructure(true)
-				.UseLazyLoading(true)
+    public class Startup
+    {
+        public Startup(IConfiguration configuration, ILoggerFactory loggerFactory)
+        {
+            Configuration = configuration;
 
-				.UseMonitorCommand(cmd => Trace.WriteLine(cmd.CommandText))
-				.Build();
+            Fsql = new FreeSql.FreeSqlBuilder()
+                .UseConnectionString(FreeSql.DataType.Sqlite, @"Data Source=|DataDirectory|\document.db;Pooling=true;Max Pool Size=10")
+                .UseAutoSyncStructure(true)
+                .UseLazyLoading(true)
 
-			var sysu = new Sys1User { };
-			Fsql.Insert<Sys1User>().AppendData(sysu).ExecuteAffrows();
-			Fsql.Insert<Sys1UserLogOn>().AppendData(new Sys1UserLogOn { UserLogOnId = sysu.UserId }).ExecuteAffrows();
-			var a = Fsql.Select<Sys1UserLogOn>().ToList();
-			var b = Fsql.Select<Sys1UserLogOn>().Any();
-		}
+                .UseMonitorCommand(cmd => Trace.WriteLine(cmd.CommandText))
+                .Build();
 
-		public IConfiguration Configuration { get; }
-		public static IFreeSql Fsql { get; private set; }
+            var sysu = new Sys1User { };
+            Fsql.Insert<Sys1User>().AppendData(sysu).ExecuteAffrows();
+            Fsql.Insert<Sys1UserLogOn>().AppendData(new Sys1UserLogOn { UserLogOnId = sysu.UserId }).ExecuteAffrows();
+            var a = Fsql.Select<Sys1UserLogOn>().ToList();
+            var b = Fsql.Select<Sys1UserLogOn>().Any();
+        }
 
-		public void ConfigureServices(IServiceCollection services) {
+        public IConfiguration Configuration { get; }
+        public static IFreeSql Fsql { get; private set; }
 
-			//services.AddTransient(s => s.)
+        public void ConfigureServices(IServiceCollection services)
+        {
 
-			services.AddMvc();
-			services.AddSwaggerGen(options => {
-				options.SwaggerDoc("v1", new Info {
-					Version = "v1",
-					Title = "FreeSql.RESTful API"
-				});
-				//options.IncludeXmlComments(xmlPath);
-			});
+            //services.AddTransient(s => s.)
 
-			services.AddSingleton<IFreeSql>(Fsql);
+            services.AddMvc();
+            services.AddSwaggerGen(options =>
+            {
+                options.SwaggerDoc("v1", new Info
+                {
+                    Version = "v1",
+                    Title = "FreeSql.RESTful API"
+                });
+                //options.IncludeXmlComments(xmlPath);
+            });
 
-			services.AddFreeRepository(filter => {
-				filter
-				  //.Apply<Song>("test", a => a.Title == DateTime.Now.ToString() + System.Threading.Thread.CurrentThread.ManagedThreadId)
-				  .Apply<ISoftDelete>("softdelete", a => a.IsDeleted == false);
-			}, this.GetType().Assembly);
-		}
+            services.AddSingleton<IFreeSql>(Fsql);
 
-		public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory) {
-			Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-			Console.OutputEncoding = Encoding.GetEncoding("GB2312");
-			Console.InputEncoding = Encoding.GetEncoding("GB2312");
+            services.AddFreeRepository(filter =>
+            {
+                filter
+                  //.Apply<Song>("test", a => a.Title == DateTime.Now.ToString() + System.Threading.Thread.CurrentThread.ManagedThreadId)
+                  .Apply<ISoftDelete>("softdelete", a => a.IsDeleted == false);
+            }, this.GetType().Assembly);
+        }
 
-			loggerFactory.AddConsole(Configuration.GetSection("Logging"));
-			loggerFactory.AddDebug();
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
+        {
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            Console.OutputEncoding = Encoding.GetEncoding("GB2312");
+            Console.InputEncoding = Encoding.GetEncoding("GB2312");
 
-			app.UseHttpMethodOverride(new HttpMethodOverrideOptions { FormFieldName = "X-Http-Method-Override" });
-			app.UseDeveloperExceptionPage();
-			app.UseMvc();
+            loggerFactory.AddConsole(Configuration.GetSection("Logging"));
+            loggerFactory.AddDebug();
 
-			app.UseSwagger();
-			app.UseSwaggerUI(c => {
-				c.SwaggerEndpoint("/swagger/v1/swagger.json", "FreeSql.RESTful API V1");
-			});
-		}
-	}
+            app.UseHttpMethodOverride(new HttpMethodOverrideOptions { FormFieldName = "X-Http-Method-Override" });
+            app.UseDeveloperExceptionPage();
+            app.UseMvc();
 
-	public interface ISoftDelete {
-		bool IsDeleted { get; set; }
-	}
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "FreeSql.RESTful API V1");
+            });
+        }
+    }
+
+    public interface ISoftDelete
+    {
+        bool IsDeleted { get; set; }
+    }
 }

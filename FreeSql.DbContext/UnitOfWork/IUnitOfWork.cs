@@ -2,12 +2,14 @@
 using System.Data;
 using System.Data.Common;
 
-namespace FreeSql {
-	public interface IUnitOfWork : IDisposable {
+namespace FreeSql
+{
+    public interface IUnitOfWork : IDisposable
+    {
 
-		DbTransaction GetOrBeginTransaction(bool isCreate = true);
+        DbTransaction GetOrBeginTransaction(bool isCreate = true);
 
-		IsolationLevel? IsolationLevel { get; set; }
+        IsolationLevel? IsolationLevel { get; set; }
 
         /// <summary>
         /// 是否启用工作单元
@@ -16,7 +18,7 @@ namespace FreeSql {
 
         void Commit();
 
-		void Rollback();
+        void Rollback();
 
         /// <summary>
         /// 禁用工作单元

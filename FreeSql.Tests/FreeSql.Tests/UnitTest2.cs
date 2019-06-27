@@ -11,10 +11,13 @@ using System.Linq.Expressions;
 using System.Threading.Tasks;
 using System.ComponentModel.DataAnnotations;
 
-namespace FreeSql.Tests {
-    public class UnitTest2 {
+namespace FreeSql.Tests
+{
+    public class UnitTest2
+    {
 
-        public partial class SysModulePermission {
+        public partial class SysModulePermission
+        {
             /// <summary>
             /// 菜单权限ID
             /// </summary>
@@ -35,7 +38,8 @@ namespace FreeSql.Tests {
             /// </summary>
             public Int32 Status { get; set; }
         }
-        public partial class SysModule {
+        public partial class SysModule
+        {
             /// <summary>
             /// 主键
             /// </summary>
@@ -83,7 +87,8 @@ namespace FreeSql.Tests {
             public DateTime CreateTime { get; set; }
 
         }
-        public partial class SysModuleButton {
+        public partial class SysModuleButton
+        {
             /// <summary>
             /// 按钮主键
             /// </summary>
@@ -120,17 +125,21 @@ namespace FreeSql.Tests {
             /// </summary>
             public DateTime CreateTime { get; set; }
         }
-        partial class SysModulePermission {
+        partial class SysModulePermission
+        {
             public SysModuleButton Button { get; set; }
         }
-        partial class SysModule {
+        partial class SysModule
+        {
             public List<SysModulePermission> Permissions { get; set; }
         }
-        partial class SysModuleButton {
+        partial class SysModuleButton
+        {
         }
 
         [Fact]
-        public void Test02() {
+        public void Test02()
+        {
 
             g.sqlite.Delete<SysModulePermission>().Where("1=1").ExecuteAffrows();
             g.sqlite.Delete<SysModuleButton>().Where("1=1").ExecuteAffrows();
@@ -164,7 +173,7 @@ namespace FreeSql.Tests {
             //   .ToList();
 
             var list = g.sqlite.Select<SysModule>()
-                .IncludeMany(m => m.Permissions.Where(p => p.SysModuleId == m.SysModuleId), 
+                .IncludeMany(m => m.Permissions.Where(p => p.SysModuleId == m.SysModuleId),
                     then => then.LeftJoin(p => p.Button.SysModuleButtonId == p.SysModuleButtonId))
                 .ToList();
         }

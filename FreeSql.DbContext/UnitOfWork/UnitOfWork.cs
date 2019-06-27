@@ -3,22 +3,26 @@ using System;
 using System.Data;
 using System.Data.Common;
 
-namespace FreeSql {
-	class UnitOfWork : IUnitOfWork {
+namespace FreeSql
+{
+    class UnitOfWork : IUnitOfWork
+    {
 
-		protected IFreeSql _fsql;
-		protected Object<DbConnection> _conn;
-		protected DbTransaction _tran;
+        protected IFreeSql _fsql;
+        protected Object<DbConnection> _conn;
+        protected DbTransaction _tran;
 
-		public UnitOfWork(IFreeSql fsql) {
-			_fsql = fsql;
-		}
+        public UnitOfWork(IFreeSql fsql)
+        {
+            _fsql = fsql;
+        }
 
-		void ReturnObject() {
-			_fsql.Ado.MasterPool.Return(_conn);
-			_tran = null;
-			_conn = null;
-		}
+        void ReturnObject()
+        {
+            _fsql.Ado.MasterPool.Return(_conn);
+            _tran = null;
+            _conn = null;
+        }
 
 
         /// <summary>
@@ -49,55 +53,74 @@ namespace FreeSql {
 
         public IsolationLevel? IsolationLevel { get; set; }
 
-		public DbTransaction GetOrBeginTransaction(bool isCreate = true) {
+        public DbTransaction GetOrBeginTransaction(bool isCreate = true)
+        {
 
-			if (_tran != null) return _tran;
-			if (isCreate == false) return null;
+            if (_tran != null) return _tran;
+            if (isCreate == false) return null;
             if (!Enable) return null;
-			if (_conn != null) _fsql.Ado.MasterPool.Return(_conn);
+            if (_conn != null) _fsql.Ado.MasterPool.Return(_conn);
 
-			_conn = _fsql.Ado.MasterPool.Get();
-			try {
-				_tran = IsolationLevel == null ? 
-					_conn.Value.BeginTransaction() : 
-					_conn.Value.BeginTransaction(IsolationLevel.Value);
-			} catch {
-				ReturnObject();
-				throw;
-			}
-			return _tran;
-		}
+            _conn = _fsql.Ado.MasterPool.Get();
+            try
+            {
+                _tran = IsolationLevel == null ?
+                    _conn.Value.BeginTransaction() :
+                    _conn.Value.BeginTransaction(IsolationLevel.Value);
+            }
+            catch
+            {
+                ReturnObject();
+                throw;
+            }
+            return _tran;
+        }
 
-		public void Commit() {
-			if (_tran != null) {
-				try {
-					_tran.Commit();
-				} finally {
-					ReturnObject();
-				}
-			}
-		}
-		public void Rollback() {
-			if (_tran != null) {
-				try {
-					_tran.Rollback();
-				} finally {
-					ReturnObject();
-				}
-			}
-		}
-		~UnitOfWork() {
-			this.Dispose();
-		}
-		bool _isdisposed = false;
-		public void Dispose() {
-			if (_isdisposed) return;
-			try {
-				this.Rollback();
-			} finally {
-				_isdisposed = true;
-				GC.SuppressFinalize(this);
-			}
-		}
-	}
+        public void Commit()
+        {
+            if (_tran != null)
+            {
+                try
+                {
+                    _tran.Commit();
+                }
+                finally
+                {
+                    ReturnObject();
+                }
+            }
+        }
+        public void Rollback()
+        {
+            if (_tran != null)
+            {
+                try
+                {
+                    _tran.Rollback();
+                }
+                finally
+                {
+                    ReturnObject();
+                }
+            }
+        }
+        ~UnitOfWork()
+        {
+            this.Dispose();
+        }
+        bool _isdisposed = false;
+        public void Dispose()
+        {
+            if (_isdisposed) return;
+            try
+            {
+                this.Rollback();
+            }
+            finally
+            {
+                _isdisposed = true;
+                GC.SuppressFinalize(this);
+            }
+        }
+    }
 }
