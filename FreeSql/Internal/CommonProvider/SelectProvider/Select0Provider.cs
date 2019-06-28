@@ -339,7 +339,11 @@ namespace FreeSql.Internal.CommonProvider
                 {
                     var read = Utils.ExecuteArrayRowReadClassOrTuple(flagStr, type, null, dr, 0, _commonUtils);
                     ret.Add((TTuple)read.Value);
+#if !NET40
                     return Task.FromResult(false);
+#else
+                    return Task.Factory.StartNew(() => false);
+#endif
                 }, CommandType.Text, sql, dbParms);
             }
             catch (Exception ex)
@@ -407,7 +411,11 @@ namespace FreeSql.Internal.CommonProvider
                         foreach (var other in otherData)
                             other.retlist.Add(_commonExpression.ReadAnonymous(other.read, dr, ref idx, false));
                     }
+#if !NET40
                     return Task.FromResult(false);
+#else
+                    return Task.Factory.StartNew(() => false);
+#endif
                 }, CommandType.Text, sql, dbParms);
             }
             catch (Exception ex)
@@ -525,7 +533,11 @@ namespace FreeSql.Internal.CommonProvider
                 {
                     var index = -1;
                     ret.Add((TReturn)_commonExpression.ReadAnonymous(af.map, dr, ref index, false));
+#if !NET40
                     return Task.FromResult(false);
+#else
+                    return Task.Factory.StartNew(() => false);
+#endif
                 }, CommandType.Text, sql, dbParms);
             }
             catch (Exception ex)
@@ -777,7 +789,11 @@ namespace FreeSql.Internal.CommonProvider
                     else
                     {
                         var proptypeGeneric = prop.PropertyType;
+#if !NET40
                         if (proptypeGeneric.IsNullableType()) proptypeGeneric = proptypeGeneric.GenericTypeArguments.First();
+#else
+                        if (proptypeGeneric.IsNullableType()) proptypeGeneric = proptypeGeneric.GetGenericArguments().First();
+#endif
                         if (proptypeGeneric.IsEnum ||
                             Utils.dicExecuteArrayRowReadClassOrTuple.ContainsKey(proptypeGeneric)) readExpAssign = Expression.New(Utils.RowInfo.Constructor,
                                 Utils.GetDataReaderValueBlockExpression(prop.PropertyType, Expression.Call(rowExp, Utils.MethodDataReaderGetValue, dataIndexExp)),

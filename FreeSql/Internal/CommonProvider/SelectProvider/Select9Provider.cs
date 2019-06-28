@@ -42,7 +42,11 @@ namespace FreeSql.Internal.CommonProvider
 
         Task<TMember> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.AvgAsync<TMember>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TMember>> column)
         {
+#if !NET40
             if (column == null) return Task.FromResult(default(TMember));
+#else
+            if (column == null) return Task.Factory.StartNew(() => default(TMember));
+#endif
             for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
             return this.InternalAvgAsync<TMember>(column?.Body);
         }
@@ -63,7 +67,11 @@ namespace FreeSql.Internal.CommonProvider
 
         Task<TMember> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.MaxAsync<TMember>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TMember>> column)
         {
+#if !NET40
             if (column == null) return Task.FromResult(default(TMember));
+#else
+            if (column == null) return Task.Factory.StartNew(() => default(TMember));
+#endif
             for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
             return this.InternalMaxAsync<TMember>(column?.Body);
         }
@@ -77,7 +85,11 @@ namespace FreeSql.Internal.CommonProvider
 
         Task<TMember> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.MinAsync<TMember>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TMember>> column)
         {
+#if !NET40
             if (column == null) return Task.FromResult(default(TMember));
+#else
+            if (column == null) return Task.Factory.StartNew(() => default(TMember));
+#endif
             for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
             return this.InternalMinAsync<TMember>(column?.Body);
         }
@@ -119,7 +131,11 @@ namespace FreeSql.Internal.CommonProvider
 
         Task<TReturn> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.ToAggregateAsync<TReturn>(Expression<Func<ISelectGroupingAggregate<T1>, ISelectGroupingAggregate<T2>, ISelectGroupingAggregate<T3>, ISelectGroupingAggregate<T4>, ISelectGroupingAggregate<T5>, ISelectGroupingAggregate<T6>, ISelectGroupingAggregate<T7>, ISelectGroupingAggregate<T8>, ISelectGroupingAggregate<T9>, TReturn>> select)
         {
+#if !NET40
             if (select == null) return Task.FromResult(default(TReturn));
+#else
+            if (select == null) return Task.Factory.StartNew(() => default(TReturn));
+#endif
             for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
             return this.InternalToAggregateAsync<TReturn>(select?.Body);
         }

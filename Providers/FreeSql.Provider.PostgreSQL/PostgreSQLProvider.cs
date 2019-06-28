@@ -2,7 +2,9 @@
 using FreeSql.Internal.CommonProvider;
 using FreeSql.PostgreSQL.Curd;
 using Newtonsoft.Json.Linq;
-using Npgsql.LegacyPostgis;
+#if !NET40
+using Npgsql.LegacyPostgis; 
+#endif
 using NpgsqlTypes;
 using System;
 using System.Collections;
@@ -22,7 +24,9 @@ namespace FreeSql.PostgreSQL
         {
             Utils.dicExecuteArrayRowReadClassOrTuple[typeof(BitArray)] = true;
             Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NpgsqlPoint)] = true;
+#if !NET40
             Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NpgsqlLine)] = true;
+#endif
             Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NpgsqlLSeg)] = true;
             Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NpgsqlBox)] = true;
             Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NpgsqlPath)] = true;
@@ -31,6 +35,7 @@ namespace FreeSql.PostgreSQL
             Utils.dicExecuteArrayRowReadClassOrTuple[typeof((IPAddress Address, int Subnet))] = true;
             Utils.dicExecuteArrayRowReadClassOrTuple[typeof(IPAddress)] = true;
             Utils.dicExecuteArrayRowReadClassOrTuple[typeof(PhysicalAddress)] = true;
+#if !NET40
             Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NpgsqlRange<int>)] = true;
             Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NpgsqlRange<long>)] = true;
             Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NpgsqlRange<decimal>)] = true;
@@ -43,6 +48,7 @@ namespace FreeSql.PostgreSQL
             Utils.dicExecuteArrayRowReadClassOrTuple[typeof(PostgisMultiPolygon)] = true;
             Utils.dicExecuteArrayRowReadClassOrTuple[typeof(PostgisGeometry)] = true;
             Utils.dicExecuteArrayRowReadClassOrTuple[typeof(PostgisGeometryCollection)] = true;
+#endif
             Utils.dicExecuteArrayRowReadClassOrTuple[typeof(Dictionary<string, string>)] = true;
             Utils.dicExecuteArrayRowReadClassOrTuple[typeof(JToken)] = true;
             Utils.dicExecuteArrayRowReadClassOrTuple[typeof(JObject)] = true;

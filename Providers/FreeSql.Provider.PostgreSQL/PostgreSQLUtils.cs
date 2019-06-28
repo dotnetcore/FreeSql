@@ -1,7 +1,9 @@
 ﻿using FreeSql.Internal;
 using Newtonsoft.Json.Linq;
 using Npgsql;
-using Npgsql.LegacyPostgis;
+#if !NET40
+using Npgsql.LegacyPostgis; 
+#endif
 using NpgsqlTypes;
 using System;
 using System.Collections;
@@ -31,11 +33,12 @@ namespace FreeSql.PostgreSQL
             for (var a = 0; a < len; a++)
             {
                 var item = valueArr.GetValue(a);
-                ret.SetValue(item == null ? defaultValue : getParamterValue(item.GetType(), item, 1), a);
+                ret.SetValue(item == null ? defaultValue : GetParamterValue(item.GetType(), item, 1), a);
             }
             return ret;
         }
-        static Dictionary<string, Func<object, object>> dicGetParamterValue = new Dictionary<string, Func<object, object>> {
+        static Dictionary<string, Func<object, object>> dicGetParamterValue = new Dictionary<string, Func<object, object>>
+        {
             { typeof(JToken).FullName, a => string.Concat(a) }, { typeof(JToken[]).FullName, a => getParamterArrayValue(typeof(string), a, null) },
             { typeof(JObject).FullName, a => string.Concat(a) }, { typeof(JObject[]).FullName, a => getParamterArrayValue(typeof(string), a, null) },
             { typeof(JArray).FullName, a => string.Concat(a) }, { typeof(JArray[]).FullName, a => getParamterArrayValue(typeof(string), a, null) },
@@ -46,19 +49,39 @@ namespace FreeSql.PostgreSQL
             { typeof(sbyte).FullName, a => short.Parse(string.Concat(a)) }, { typeof(sbyte[]).FullName, a => getParamterArrayValue(typeof(short), a, 0) }, { typeof(sbyte?[]).FullName, a => getParamterArrayValue(typeof(short?), a, null) },
             { typeof(NpgsqlPath).FullName, a => {
                 var path = (NpgsqlPath)a;
-                try { int count = path.Count; return path; } catch { return new NpgsqlPath(new NpgsqlPoint(0, 0)); }
-            } }, { typeof(NpgsqlPath[]).FullName, a => getParamterArrayValue(typeof(NpgsqlPath), a, new NpgsqlPath(new NpgsqlPoint(0, 0))) }, { typeof(NpgsqlPath?[]).FullName, a => getParamterArrayValue(typeof(NpgsqlPath?), a, null) },
+#if !NET40
+				try { int count = path.Count; return path; } catch { return new NpgsqlPath(new NpgsqlPoint(0, 0)); }
+#else
+				try { int count = path.Count; return path; } catch { return new NpgsqlPath(new[]{ new NpgsqlPoint(0, 0) }); }
+#endif
+			} },
+#if !NET40
+			{ typeof(NpgsqlPath[]).FullName, a => getParamterArrayValue(typeof(NpgsqlPath), a, new NpgsqlPath(new NpgsqlPoint(0, 0))) },
+#else
+			{ typeof(NpgsqlPath[]).FullName, a => getParamterArrayValue(typeof(NpgsqlPath), a, new NpgsqlPath(new[]{ new NpgsqlPoint(0, 0) })) },
+#endif
+			{ typeof(NpgsqlPath?[]).FullName, a => getParamterArrayValue(typeof(NpgsqlPath?), a, null) },
             { typeof(NpgsqlPolygon).FullName, a =>  {
                 var polygon = (NpgsqlPolygon)a;
-                try { int count = polygon.Count; return polygon; } catch { return new NpgsqlPolygon(new NpgsqlPoint(0, 0), new NpgsqlPoint(0, 0)); }
-            } }, { typeof(NpgsqlPolygon[]).FullName, a => getParamterArrayValue(typeof(NpgsqlPolygon), a, new NpgsqlPolygon(new NpgsqlPoint(0, 0), new NpgsqlPoint(0, 0))) }, { typeof(NpgsqlPolygon?[]).FullName, a => getParamterArrayValue(typeof(NpgsqlPolygon?), a, null) },
+#if !NET40
+				try { int count = polygon.Count; return polygon; } catch { return new NpgsqlPolygon(new NpgsqlPoint(0, 0), new NpgsqlPoint(0, 0)); }
+#else
+				try { int count = polygon.Count; return polygon; } catch { return new NpgsqlPolygon(new[]{ new NpgsqlPoint(0, 0), new NpgsqlPoint(0, 0) }); }
+#endif
+			} },
+#if !NET40
+			{ typeof(NpgsqlPolygon[]).FullName, a => getParamterArrayValue(typeof(NpgsqlPolygon), a, new NpgsqlPolygon(new NpgsqlPoint(0, 0), new NpgsqlPoint(0, 0))) },
+#else
+			{ typeof(NpgsqlPolygon[]).FullName, a => getParamterArrayValue(typeof(NpgsqlPolygon), a, new NpgsqlPolygon(new[]{ new NpgsqlPoint(0, 0), new NpgsqlPoint(0, 0) })) },
+#endif
+			{ typeof(NpgsqlPolygon?[]).FullName, a => getParamterArrayValue(typeof(NpgsqlPolygon?), a, null) },
             { typeof((IPAddress Address, int Subnet)).FullName, a => {
                 var inet = ((IPAddress Address, int Subnet))a;
                 if (inet.Address == null) return (IPAddress.Any, inet.Subnet);
                 return inet;
             } }, { typeof((IPAddress Address, int Subnet)[]).FullName, a => getParamterArrayValue(typeof((IPAddress Address, int Subnet)), a, (IPAddress.Any, 0)) }, { typeof((IPAddress Address, int Subnet)?[]).FullName, a => getParamterArrayValue(typeof((IPAddress Address, int Subnet)?), a, null) },
         };
-        static object getParamterValue(Type type, object value, int level = 0)
+        static object GetParamterValue(Type type, object value, int level = 0)
         {
             if (type.FullName == "System.Byte[]") return value;
             if (type.IsArray && level == 0)
@@ -66,13 +89,21 @@ namespace FreeSql.PostgreSQL
                 var elementType = type.GetElementType();
                 Type enumType = null;
                 if (elementType.IsEnum) enumType = elementType;
+#if !NET40
                 else if (elementType.IsNullableType() && elementType.GenericTypeArguments.First().IsEnum) enumType = elementType.GenericTypeArguments.First();
+#else
+                else if (elementType.IsNullableType() && elementType.GetGenericArguments().First().IsEnum) enumType = elementType.GetGenericArguments().First();
+#endif
                 if (enumType != null) return enumType.GetCustomAttributes(typeof(FlagsAttribute), false).Any() ?
                     getParamterArrayValue(typeof(long), value, elementType.IsEnum ? null : Enum.GetValues(enumType).GetValue(0)) :
                     getParamterArrayValue(typeof(int), value, elementType.IsEnum ? null : Enum.GetValues(enumType).GetValue(0));
                 return dicGetParamterValue.TryGetValue(type.FullName, out var trydicarr) ? trydicarr(value) : value;
             }
+#if !NET40
             if (type.IsNullableType()) type = type.GenericTypeArguments.First();
+#else
+            if (type.IsNullableType()) type = type.GetGenericArguments().First();
+#endif
             if (type.IsEnum) return (int)value;
             if (dicGetParamterValue.TryGetValue(type.FullName, out var trydic)) return trydic(value);
             return value;
@@ -81,7 +112,7 @@ namespace FreeSql.PostgreSQL
         public override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, Type type, object value)
         {
             if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
-            if (value != null) value = getParamterValue(type, value);
+            if (value != null) value = GetParamterValue(type, value);
             var ret = new NpgsqlParameter { ParameterName = QuoteParamterName(parameterName), Value = value };
             //if (value.GetType().IsEnum || value.GetType().GenericTypeArguments.FirstOrDefault()?.IsEnum == true) {
             //	ret.DataTypeName = "";
@@ -96,7 +127,7 @@ namespace FreeSql.PostgreSQL
         public override DbParameter[] GetDbParamtersByObject(string sql, object obj) =>
             Utils.GetDbParamtersByObject<NpgsqlParameter>(sql, obj, "@", (name, type, value) =>
             {
-                if (value != null) value = getParamterValue(type, value);
+                if (value != null) value = GetParamterValue(type, value);
                 var ret = new NpgsqlParameter { ParameterName = $"@{name}", Value = value };
                 //if (value.GetType().IsEnum || value.GetType().GenericTypeArguments.FirstOrDefault()?.IsEnum == true) {
                 //	ret.DataTypeName = "";
@@ -134,12 +165,14 @@ namespace FreeSql.PostgreSQL
         public override string GetNoneParamaterSqlValue(List<DbParameter> specialParams, Type type, object value)
         {
             if (value == null) return "NULL";
+#if !NET40
             if (_dicIsAssignableFromPostgisGeometry.GetOrAdd(type, t2 => typeof(PostgisGeometry).IsAssignableFrom(type.IsArray ? type.GetElementType() : type)))
             {
                 var pam = AppendParamter(specialParams, null, type, value);
                 return pam.ParameterName;
             }
-            value = getParamterValue(type, value);
+#endif
+            value = GetParamterValue(type, value);
             var type2 = value.GetType();
             if (type2 == typeof(byte[]))
             {
@@ -178,11 +211,13 @@ namespace FreeSql.PostgreSQL
             {
                 return $"'{(value as BitArray).To1010()}'";
             }
+#if !NET40
             else if (type2 == typeof(NpgsqlLine) || type2 == typeof(NpgsqlLine?))
             {
                 var line = value.ToString();
                 return line == "{0,0,0}" ? "'{0,-1,-1}'" : $"'{line}'";
             }
+#endif
             else if (type2 == typeof((IPAddress Address, int Subnet)) || type2 == typeof((IPAddress Address, int Subnet)?))
             {
                 var cidr = ((IPAddress Address, int Subnet))value;

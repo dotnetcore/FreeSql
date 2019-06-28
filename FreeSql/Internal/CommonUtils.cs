@@ -333,7 +333,11 @@ namespace FreeSql.Internal
                 var initTasks = new Task[b];
                 for (var c = 0; c < b; c++)
                 {
+#if !NET40
                     initTasks[c] = Task.Run(() =>
+#else
+                    initTasks[c] = Task.Factory.StartNew(() =>
+#endif
                     {
                         try
                         {

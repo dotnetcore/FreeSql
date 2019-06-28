@@ -376,7 +376,11 @@ namespace FreeSql.Oracle
                     case "AddTicks": return $"({left}+({args1})/864000000000)";
                     case "AddYears": return $"add_months({left},({args1})*12)";
                     case "Subtract":
+#if !NET40
                         switch ((exp.Arguments[0].Type.IsNullableType() ? exp.Arguments[0].Type.GenericTypeArguments.FirstOrDefault() : exp.Arguments[0].Type).FullName)
+#else
+                        switch ((exp.Arguments[0].Type.IsNullableType() ? exp.Arguments[0].Type.GetGenericArguments().FirstOrDefault() : exp.Arguments[0].Type).FullName)
+#endif
                         {
                             case "System.DateTime": return $"({args1}-{left})";
                             case "System.TimeSpan": return $"({left}-{args1})";

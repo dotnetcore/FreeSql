@@ -14,7 +14,9 @@ namespace Newtonsoft.Json
         private static readonly Type typeof_BitArray = typeof(BitArray);
 
         private static readonly Type typeof_NpgsqlPoint = typeof(NpgsqlPoint);
+#if !NET40
         private static readonly Type typeof_NpgsqlLine = typeof(NpgsqlLine);
+#endif
         private static readonly Type typeof_NpgsqlLSeg = typeof(NpgsqlLSeg);
         private static readonly Type typeof_NpgsqlBox = typeof(NpgsqlBox);
         private static readonly Type typeof_NpgsqlPath = typeof(NpgsqlPath);
@@ -27,19 +29,27 @@ namespace Newtonsoft.Json
 
         private static readonly Type typeof_String = typeof(string);
 
+#if !NET40
         private static readonly Type typeof_NpgsqlRange_int = typeof(NpgsqlRange<int>);
         private static readonly Type typeof_NpgsqlRange_long = typeof(NpgsqlRange<long>);
         private static readonly Type typeof_NpgsqlRange_decimal = typeof(NpgsqlRange<decimal>);
         private static readonly Type typeof_NpgsqlRange_DateTime = typeof(NpgsqlRange<DateTime>);
+#endif
         public override bool CanConvert(Type objectType)
         {
             Type ctype = objectType.IsArray ? objectType.GetElementType() : objectType;
+#if !NET40
             var ctypeGenericType1 = ctype.GenericTypeArguments.FirstOrDefault();
+#else
+            var ctypeGenericType1 = ctype.GetGenericArguments().FirstOrDefault();
+#endif
 
             if (ctype == typeof_BitArray) return true;
 
             if (ctype == typeof_NpgsqlPoint || ctypeGenericType1 == typeof_NpgsqlPoint) return true;
+#if !NET40
             if (ctype == typeof_NpgsqlLine || ctypeGenericType1 == typeof_NpgsqlLine) return true;
+#endif
             if (ctype == typeof_NpgsqlLSeg || ctypeGenericType1 == typeof_NpgsqlLSeg) return true;
             if (ctype == typeof_NpgsqlBox || ctypeGenericType1 == typeof_NpgsqlBox) return true;
             if (ctype == typeof_NpgsqlPath || ctypeGenericType1 == typeof_NpgsqlPath) return true;
@@ -50,10 +60,12 @@ namespace Newtonsoft.Json
             if (ctype == typeof_IPAddress) return true;
             if (ctype == typeof_PhysicalAddress) return true;
 
+#if !NET40
             if (ctype == typeof_NpgsqlRange_int || ctypeGenericType1 == typeof_NpgsqlRange_int) return true;
             if (ctype == typeof_NpgsqlRange_long || ctypeGenericType1 == typeof_NpgsqlRange_long) return true;
             if (ctype == typeof_NpgsqlRange_decimal || ctypeGenericType1 == typeof_NpgsqlRange_decimal) return true;
             if (ctype == typeof_NpgsqlRange_DateTime || ctypeGenericType1 == typeof_NpgsqlRange_DateTime) return true;
+#endif
 
             return false;
         }
@@ -62,9 +74,14 @@ namespace Newtonsoft.Json
             if (jt.Type == JTokenType.Null) return null;
             if (rank == 0)
             {
+#if !NET40
                 var ctypeGenericType1 = ctype.GenericTypeArguments.FirstOrDefault();//ctype.Namespace == "System" && ctype.Name.StartsWith("Nullable`") ? ctype.GenericTypeArguments.FirstOrDefault() : null;
+#else
+                var ctypeGenericType1 = ctype.GetGenericArguments().FirstOrDefault();
+#endif
                 if (ctype == typeof_BitArray) return jt.ToString().ToBitArray();
 
+#if !NET40
                 if (ctype == typeof_NpgsqlPoint || ctypeGenericType1 == typeof_NpgsqlPoint) return NpgsqlPoint.Parse(jt.ToString());
                 if (ctype == typeof_NpgsqlLine || ctypeGenericType1 == typeof_NpgsqlLine) return NpgsqlLine.Parse(jt.ToString());
                 if (ctype == typeof_NpgsqlLSeg || ctypeGenericType1 == typeof_NpgsqlLSeg) return NpgsqlLSeg.Parse(jt.ToString());
@@ -72,6 +89,14 @@ namespace Newtonsoft.Json
                 if (ctype == typeof_NpgsqlPath || ctypeGenericType1 == typeof_NpgsqlPath) return NpgsqlPath.Parse(jt.ToString());
                 if (ctype == typeof_NpgsqlPolygon || ctypeGenericType1 == typeof_NpgsqlPolygon) return NpgsqlPolygon.Parse(jt.ToString());
                 if (ctype == typeof_NpgsqlCircle || ctypeGenericType1 == typeof_NpgsqlCircle) return NpgsqlCircle.Parse(jt.ToString());
+#else
+                if (ctype == typeof_NpgsqlPoint || ctypeGenericType1 == typeof_NpgsqlPoint) return PostgreSQLTypesExtensions.NpgsqlPointParse(jt.ToString());
+                if (ctype == typeof_NpgsqlLSeg || ctypeGenericType1 == typeof_NpgsqlLSeg) return PostgreSQLTypesExtensions.NpgsqlLSegParse(jt.ToString());
+                if (ctype == typeof_NpgsqlBox || ctypeGenericType1 == typeof_NpgsqlBox) return PostgreSQLTypesExtensions.NpgsqlBoxParse(jt.ToString());
+                if (ctype == typeof_NpgsqlPath || ctypeGenericType1 == typeof_NpgsqlPath) return PostgreSQLTypesExtensions.NpgsqlPathParse(jt.ToString());
+                if (ctype == typeof_NpgsqlPolygon || ctypeGenericType1 == typeof_NpgsqlPolygon) return PostgreSQLTypesExtensions.NpgsqlPolygonParse(jt.ToString());
+                if (ctype == typeof_NpgsqlCircle || ctypeGenericType1 == typeof_NpgsqlCircle) return PostgreSQLTypesExtensions.NpgsqlCircleParse(jt.ToString());
+#endif
 
                 if (ctype == typeof_Cidr || ctypeGenericType1 == typeof_Cidr)
                 {
@@ -81,10 +106,12 @@ namespace Newtonsoft.Json
                 if (ctype == typeof_IPAddress) return IPAddress.Parse(jt.ToString());
                 if (ctype == typeof_PhysicalAddress) return PhysicalAddress.Parse(jt.ToString());
 
+#if !NET40
                 if (ctype == typeof_NpgsqlRange_int || ctypeGenericType1 == typeof_NpgsqlRange_int) return jt.ToString().ToNpgsqlRange<int>();
                 if (ctype == typeof_NpgsqlRange_long || ctypeGenericType1 == typeof_NpgsqlRange_long) return jt.ToString().ToNpgsqlRange<long>();
                 if (ctype == typeof_NpgsqlRange_decimal || ctypeGenericType1 == typeof_NpgsqlRange_decimal) return jt.ToString().ToNpgsqlRange<decimal>();
                 if (ctype == typeof_NpgsqlRange_DateTime || ctypeGenericType1 == typeof_NpgsqlRange_DateTime) return jt.ToString().ToNpgsqlRange<DateTime>();
+#endif
 
                 return null;
             }

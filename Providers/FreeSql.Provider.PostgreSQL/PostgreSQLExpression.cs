@@ -485,7 +485,11 @@ namespace FreeSql.PostgreSQL
                     case "AddTicks": return $"(({left})::timestamp+(({args1})/10||' microseconds')::interval)";
                     case "AddYears": return $"(({left})::timestamp+(({args1})||' year')::interval)";
                     case "Subtract":
+#if !NET40
                         switch ((exp.Arguments[0].Type.IsNullableType() ? exp.Arguments[0].Type.GenericTypeArguments.FirstOrDefault() : exp.Arguments[0].Type).FullName)
+#else
+                        switch ((exp.Arguments[0].Type.IsNullableType() ? exp.Arguments[0].Type.GetGenericArguments().FirstOrDefault() : exp.Arguments[0].Type).FullName)
+#endif
                         {
                             case "System.DateTime": return $"(extract(epoch from ({left})::timestamp-({args1})::timestamp)*1000000)";
                             case "System.TimeSpan": return $"(({left})::timestamp-(({args1})||' microseconds')::interval)";

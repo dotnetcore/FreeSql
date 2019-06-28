@@ -3,7 +3,9 @@ using FreeSql.DatabaseModel;
 using FreeSql.Internal;
 using FreeSql.Internal.Model;
 using Newtonsoft.Json.Linq;
-using Npgsql.LegacyPostgis;
+#if !NET40
+using Npgsql.LegacyPostgis; 
+#endif
 using NpgsqlTypes;
 using System;
 using System.Collections;
@@ -25,7 +27,8 @@ namespace FreeSql.PostgreSQL
         public PostgreSQLCodeFirst(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression) : base(orm, commonUtils, commonExpression) { }
 
         static object _dicCsToDbLock = new object();
-        static Dictionary<string, (NpgsqlDbType type, string dbtype, string dbtypeFull, bool? isUnsigned, bool? isnullable, object defaultValue)> _dicCsToDb = new Dictionary<string, (NpgsqlDbType type, string dbtype, string dbtypeFull, bool? isUnsigned, bool? isnullable, object defaultValue)>() {
+        static Dictionary<string, (NpgsqlDbType type, string dbtype, string dbtypeFull, bool? isUnsigned, bool? isnullable, object defaultValue)> _dicCsToDb = new Dictionary<string, (NpgsqlDbType type, string dbtype, string dbtypeFull, bool? isUnsigned, bool? isnullable, object defaultValue)>()
+        {
 
                 { typeof(sbyte).FullName,  (NpgsqlDbType.Smallint, "int2","int2 NOT NULL", false, false, 0) },{ typeof(sbyte?).FullName,  (NpgsqlDbType.Smallint, "int2", "int2", false, true, null) },
                 { typeof(short).FullName,  (NpgsqlDbType.Smallint, "int2","int2 NOT NULL", false, false, 0) },{ typeof(short?).FullName,  (NpgsqlDbType.Smallint, "int2", "int2", false, true, null) },
@@ -48,17 +51,34 @@ namespace FreeSql.PostgreSQL
 
                 { typeof(bool).FullName,  (NpgsqlDbType.Boolean, "bool","bool NOT NULL", null, false, false) },{ typeof(bool?).FullName,  (NpgsqlDbType.Boolean, "bool","bool", null, true, null) },
                 { typeof(Byte[]).FullName,  (NpgsqlDbType.Bytea, "bytea", "bytea", false, null, new byte[0]) },
-                { typeof(BitArray).FullName,  (NpgsqlDbType.Varbit, "varbit", "varbit(64)", false, null, new BitArray(new byte[64])) },
+#if !NET40
+                { typeof(BitArray).FullName,  (NpgsqlDbType.Varbit, "varbit", "varbit(64)", false, null, new BitArray(new byte[64])) },  
+#endif
 
                 { typeof(NpgsqlPoint).FullName,  (NpgsqlDbType.Point, "point", "point NOT NULL", false, false, new NpgsqlPoint(0, 0)) },{ typeof(NpgsqlPoint?).FullName,  (NpgsqlDbType.Point, "point", "point", false, true, null) },
+                { typeof(Byte[]).FullName,  (NpgsqlDbType.Bytea, "bytea", "bytea", false, null, new byte[0]) },
+#if !NET40
                 { typeof(NpgsqlLine).FullName,  (NpgsqlDbType.Line, "line", "line NOT NULL", false, false, new NpgsqlLine(0, 0, 1)) },{ typeof(NpgsqlLine?).FullName,  (NpgsqlDbType.Line, "line", "line", false, true, null) },
-                { typeof(NpgsqlLSeg).FullName,  (NpgsqlDbType.LSeg, "lseg", "lseg NOT NULL", false, false, new NpgsqlLSeg(0, 0, 0, 0)) },{ typeof(NpgsqlLSeg?).FullName,  (NpgsqlDbType.LSeg, "lseg", "lseg", false, true, null) },
+                { typeof(NpgsqlLSeg).FullName,  (NpgsqlDbType.LSeg, "lseg", "lseg NOT NULL", false, false, new NpgsqlLSeg(0, 0, 0, 0)) },
+#endif
+                { typeof(NpgsqlLSeg?).FullName,  (NpgsqlDbType.LSeg, "lseg", "lseg", false, true, null) },
                 { typeof(NpgsqlBox).FullName,  (NpgsqlDbType.Box, "box", "box NOT NULL", false, false, new NpgsqlBox(0, 0, 0, 0)) },{ typeof(NpgsqlBox?).FullName,  (NpgsqlDbType.Box, "box", "box", false, true, null) },
-                { typeof(NpgsqlPath).FullName,  (NpgsqlDbType.Path, "path", "path NOT NULL", false, false, new NpgsqlPath(new NpgsqlPoint(0, 0))) },{ typeof(NpgsqlPath?).FullName,  (NpgsqlDbType.Path, "path", "path", false, true, null) },
-                { typeof(NpgsqlPolygon).FullName,  (NpgsqlDbType.Polygon, "polygon", "polygon NOT NULL", false, false, new NpgsqlPolygon(new NpgsqlPoint(0, 0), new NpgsqlPoint(0, 0))) },{ typeof(NpgsqlPolygon?).FullName,  (NpgsqlDbType.Polygon, "polygon", "polygon", false, true, null) },
-                { typeof(NpgsqlCircle).FullName,  (NpgsqlDbType.Circle, "circle", "circle NOT NULL", false, false, new NpgsqlCircle(0, 0, 0)) },{ typeof(NpgsqlCircle?).FullName,  (NpgsqlDbType.Circle, "circle", "circle", false, true, null) },
+#if !NET40
+                { typeof(NpgsqlPath).FullName,  (NpgsqlDbType.Path, "path", "path NOT NULL", false, false, new NpgsqlPath(new NpgsqlPoint(0, 0))) },
+#endif
+                { typeof(NpgsqlPath?).FullName,  (NpgsqlDbType.Path, "path", "path", false, true, null) },
+#if !NET40
+                { typeof(NpgsqlPolygon).FullName,  (NpgsqlDbType.Polygon, "polygon", "polygon NOT NULL", false, false, new NpgsqlPolygon(new NpgsqlPoint(0, 0), new NpgsqlPoint(0, 0))) },
+#endif
+                { typeof(NpgsqlPolygon?).FullName,  (NpgsqlDbType.Polygon, "polygon", "polygon", false, true, null) },
+#if !NET40
+                { typeof(NpgsqlCircle).FullName,  (NpgsqlDbType.Circle, "circle", "circle NOT NULL", false, false, new NpgsqlCircle(0, 0, 0)) },
+#endif
+                { typeof(NpgsqlCircle?).FullName,  (NpgsqlDbType.Circle, "circle", "circle", false, true, null) },
 
+#if !NET40
                 { typeof((IPAddress Address, int Subnet)).FullName,  (NpgsqlDbType.Cidr, "cidr", "cidr NOT NULL", false, false, (IPAddress.Any, 0)) },{ typeof((IPAddress Address, int Subnet)?).FullName,  (NpgsqlDbType.Cidr, "cidr", "cidr", false, true, null) },
+#endif
                 { typeof(IPAddress).FullName,  (NpgsqlDbType.Inet, "inet", "inet", false, null, IPAddress.Any) },
                 { typeof(PhysicalAddress).FullName,  (NpgsqlDbType.MacAddr, "macaddr", "macaddr", false, null, PhysicalAddress.None) },
 
@@ -67,12 +87,15 @@ namespace FreeSql.PostgreSQL
                 { typeof(JArray).FullName,  (NpgsqlDbType.Jsonb, "jsonb", "jsonb", false, null, JArray.Parse("[]")) },
                 { typeof(Guid).FullName,  (NpgsqlDbType.Uuid, "uuid", "uuid NOT NULL", false, false, Guid.Empty) },{ typeof(Guid?).FullName,  (NpgsqlDbType.Uuid, "uuid", "uuid", false, true, null) },
 
+#if !NET40
                 { typeof(NpgsqlRange<int>).FullName,  (NpgsqlDbType.Range | NpgsqlDbType.Integer, "int4range", "int4range NOT NULL", false, false, NpgsqlRange<int>.Empty) },{ typeof(NpgsqlRange<int>?).FullName,  (NpgsqlDbType.Range | NpgsqlDbType.Integer, "int4range", "int4range", false, true, null) },
                 { typeof(NpgsqlRange<long>).FullName,  (NpgsqlDbType.Range | NpgsqlDbType.Bigint, "int8range", "int8range NOT NULL", false, false, NpgsqlRange<long>.Empty) },{ typeof(NpgsqlRange<long>?).FullName,  (NpgsqlDbType.Range | NpgsqlDbType.Bigint, "int8range", "int8range", false, true, null) },
                 { typeof(NpgsqlRange<decimal>).FullName,  (NpgsqlDbType.Range | NpgsqlDbType.Numeric, "numrange", "numrange NOT NULL", false, false, NpgsqlRange<decimal>.Empty) },{ typeof(NpgsqlRange<decimal>?).FullName,  (NpgsqlDbType.Range | NpgsqlDbType.Numeric, "numrange", "numrange", false, true, null) },
                 { typeof(NpgsqlRange<DateTime>).FullName,  (NpgsqlDbType.Range | NpgsqlDbType.Timestamp, "tsrange", "tsrange NOT NULL", false, false, NpgsqlRange<DateTime>.Empty) },{ typeof(NpgsqlRange<DateTime>?).FullName,  (NpgsqlDbType.Range | NpgsqlDbType.Timestamp, "tsrange", "tsrange", false, true, null) },
+#endif
 
                 { typeof(Dictionary<string, string>).FullName,  (NpgsqlDbType.Hstore, "hstore", "hstore", false, null, new Dictionary<string, string>()) },
+#if !NET40
                 { typeof(PostgisPoint).FullName,  (NpgsqlDbType.Geometry, "geometry", "geometry", false, null, new PostgisPoint(0, 0)) },
                 { typeof(PostgisLineString).FullName,  (NpgsqlDbType.Geometry, "geometry", "geometry", false, null, new PostgisLineString(new []{new Coordinate2D(0, 0),new Coordinate2D(0, 0) })) },
                 { typeof(PostgisPolygon).FullName,  (NpgsqlDbType.Geometry, "geometry", "geometry", false, null, new PostgisPolygon(new []{new []{new Coordinate2D(0, 0),new Coordinate2D(0, 0) }, new []{new Coordinate2D(0, 0),new Coordinate2D(0, 0) } })) },
@@ -81,7 +104,8 @@ namespace FreeSql.PostgreSQL
                 { typeof(PostgisMultiPolygon).FullName,  (NpgsqlDbType.Geometry, "geometry", "geometry", false, null, new PostgisMultiPolygon(new[]{new PostgisPolygon(new []{new []{new Coordinate2D(0, 0),new Coordinate2D(0, 0) }, new []{new Coordinate2D(0, 0),new Coordinate2D(0, 0) } }),new PostgisPolygon(new []{new []{new Coordinate2D(0, 0),new Coordinate2D(0, 0) }, new []{new Coordinate2D(0, 0),new Coordinate2D(0, 0) } }) })) },
                 { typeof(PostgisGeometry).FullName,  (NpgsqlDbType.Geometry, "geometry", "geometry", false, null, new PostgisPoint(0, 0)) },
                 { typeof(PostgisGeometryCollection).FullName,  (NpgsqlDbType.Geometry, "geometry", "geometry", false, null, new PostgisGeometryCollection(new[]{new PostgisPoint(0, 0),new PostgisPoint(0, 0) })) },
-            };
+#endif
+			};
 
         public override (int type, string dbtype, string dbtypeFull, bool? isnullable, object defaultValue)? GetDbInfo(Type type)
         {
@@ -98,7 +122,11 @@ namespace FreeSql.PostgreSQL
             if (_dicCsToDb.TryGetValue(type.FullName, out var trydc)) return new (NpgsqlDbType, string, string, bool?, object)?((trydc.type, trydc.dbtype, trydc.dbtypeFull, trydc.isnullable, trydc.defaultValue));
             if (type.IsArray) return null;
             var enumType = type.IsEnum ? type : null;
+#if !NET40
             if (enumType == null && type.IsNullableType() && type.GenericTypeArguments.Length == 1 && type.GenericTypeArguments.First().IsEnum) enumType = type.GenericTypeArguments.First();
+#else
+            if (enumType == null && type.IsNullableType() && type.GetGenericArguments().Length == 1 && type.GetGenericArguments().First().IsEnum) enumType = type.GetGenericArguments().First();
+#endif
             if (enumType != null)
             {
                 var newItem = enumType.GetCustomAttributes(typeof(FlagsAttribute), false).Any() ?

@@ -34,26 +34,26 @@ namespace FreeSql.Extensions.LazyLoading
             return _compiler.Value.CompileCode(cscode);
         }
 #else
+        public static Assembly CompileCode(string cscode)
+        {
 
+            using (var compiler = CodeDomProvider.CreateProvider("cs"))
+            {
 
-		public static Assembly CompileCode(string cscode) {
+                var objCompilerParameters = new CompilerParameters();
+                objCompilerParameters.ReferencedAssemblies.Add("System.dll");
+                objCompilerParameters.ReferencedAssemblies.Add("FreeSql.dll");
+                objCompilerParameters.GenerateExecutable = false;
+                objCompilerParameters.GenerateInMemory = true;
 
-			using (var compiler = CodeDomProvider.CreateProvider("cs")) {
+                CompilerResults cr = compiler.CompileAssemblyFromSource(objCompilerParameters, cscode);
 
-				var objCompilerParameters = new CompilerParameters();
-				objCompilerParameters.ReferencedAssemblies.Add("System.dll");
-				objCompilerParameters.ReferencedAssemblies.Add("FreeSql.dll");
-				objCompilerParameters.GenerateExecutable = false;
-				objCompilerParameters.GenerateInMemory = true;
+                if (cr.Errors.Count > 0)
+                    throw new Exception(cr.Errors[0].ErrorText);
 
-				CompilerResults cr = compiler.CompileAssemblyFromSource(objCompilerParameters, cscode);
-
-				if (cr.Errors.Count > 0)
-					throw new Exception(cr.Errors[0].ErrorText);
-
-				return cr.CompiledAssembly;
-			}
-		}
+                return cr.CompiledAssembly;
+            }
+        }
 
 #endif
     }

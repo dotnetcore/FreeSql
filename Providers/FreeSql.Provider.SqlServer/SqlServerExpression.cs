@@ -356,7 +356,11 @@ namespace FreeSql.SqlServer
                     case "AddTicks": return $"dateadd(second, ({args1})/10000000, {left})";
                     case "AddYears": return $"dateadd(year, {args1}, {left})";
                     case "Subtract":
+#if !NET40
                         switch ((exp.Arguments[0].Type.IsNullableType() ? exp.Arguments[0].Type.GenericTypeArguments.FirstOrDefault() : exp.Arguments[0].Type).FullName)
+#else
+                        switch ((exp.Arguments[0].Type.IsNullableType() ? exp.Arguments[0].Type.GetGenericArguments().FirstOrDefault() : exp.Arguments[0].Type).FullName)
+#endif
                         {
                             case "System.DateTime": return $"datediff(second, {args1}, {left})";
                             case "System.TimeSpan": return $"dateadd(second, {args1}*-1, {left})";

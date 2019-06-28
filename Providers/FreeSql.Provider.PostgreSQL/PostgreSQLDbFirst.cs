@@ -1,7 +1,9 @@
 ﻿using FreeSql.DatabaseModel;
 using FreeSql.Internal;
 using Newtonsoft.Json.Linq;
-using Npgsql.LegacyPostgis;
+#if !NET40
+using Npgsql.LegacyPostgis; 
+#endif
 using NpgsqlTypes;
 using SafeObjectPool;
 using System;
@@ -34,7 +36,11 @@ namespace FreeSql.PostgreSQL
             var dbtype = column.DbTypeText;
             var isarray = dbtype.EndsWith("[]");
             if (isarray) dbtype = dbtype.Remove(dbtype.Length - 2);
+#if !NET40
             NpgsqlDbType ret = NpgsqlDbType.Unknown;
+#else
+            NpgsqlDbType? ret = null;
+#endif
             switch (dbtype.ToLower().TrimStart('_'))
             {
                 case "int2": ret = NpgsqlDbType.Smallint; break;
@@ -50,16 +56,22 @@ namespace FreeSql.PostgreSQL
                 case "text": ret = NpgsqlDbType.Text; break;
 
                 case "timestamp": ret = NpgsqlDbType.Timestamp; break;
+#if !NET40
                 case "timestamptz": ret = NpgsqlDbType.TimestampTz; break;
+#endif
                 case "date": ret = NpgsqlDbType.Date; break;
                 case "time": ret = NpgsqlDbType.Time; break;
+#if !NET40
                 case "timetz": ret = NpgsqlDbType.TimeTz; break;
+#endif
                 case "interval": ret = NpgsqlDbType.Interval; break;
 
                 case "bool": ret = NpgsqlDbType.Boolean; break;
                 case "bytea": ret = NpgsqlDbType.Bytea; break;
                 case "bit": ret = NpgsqlDbType.Bit; break;
+#if !NET40
                 case "varbit": ret = NpgsqlDbType.Varbit; break;
+#endif
 
                 case "point": ret = NpgsqlDbType.Point; break;
                 case "line": ret = NpgsqlDbType.Line; break;
@@ -69,7 +81,9 @@ namespace FreeSql.PostgreSQL
                 case "polygon": ret = NpgsqlDbType.Polygon; break;
                 case "circle": ret = NpgsqlDbType.Circle; break;
 
+#if !NET40
                 case "cidr": ret = NpgsqlDbType.Cidr; break;
+#endif
                 case "inet": ret = NpgsqlDbType.Inet; break;
                 case "macaddr": ret = NpgsqlDbType.MacAddr; break;
 
@@ -77,20 +91,30 @@ namespace FreeSql.PostgreSQL
                 case "jsonb": ret = NpgsqlDbType.Jsonb; break;
                 case "uuid": ret = NpgsqlDbType.Uuid; break;
 
+#if !NET40
                 case "int4range": ret = NpgsqlDbType.Range | NpgsqlDbType.Integer; break;
                 case "int8range": ret = NpgsqlDbType.Range | NpgsqlDbType.Bigint; break;
                 case "numrange": ret = NpgsqlDbType.Range | NpgsqlDbType.Numeric; break;
                 case "tsrange": ret = NpgsqlDbType.Range | NpgsqlDbType.Timestamp; break;
                 case "tstzrange": ret = NpgsqlDbType.Range | NpgsqlDbType.TimestampTz; break;
                 case "daterange": ret = NpgsqlDbType.Range | NpgsqlDbType.Date; break;
+#endif
 
                 case "hstore": ret = NpgsqlDbType.Hstore; break;
+#if !NET40
                 case "geometry": ret = NpgsqlDbType.Geometry; break;
+#endif
             }
+#if !NET40
             return isarray ? (ret | NpgsqlDbType.Array) : ret;
+#else
+            if (ret.HasValue == true) return isarray ? (ret.Value | NpgsqlDbType.Array) : ret.Value;
+            else throw new NotImplementedException($"未实现 {column.DbTypeTextFull} 类型映射");
+#endif
         }
 
-        static readonly Dictionary<int, (string csConvert, string csParse, string csStringify, string csType, Type csTypeInfo, Type csNullableTypeInfo, string csTypeValue, string dataReaderMethod)> _dicDbToCs = new Dictionary<int, (string csConvert, string csParse, string csStringify, string csType, Type csTypeInfo, Type csNullableTypeInfo, string csTypeValue, string dataReaderMethod)>() {
+        static readonly Dictionary<int, (string csConvert, string csParse, string csStringify, string csType, Type csTypeInfo, Type csNullableTypeInfo, string csTypeValue, string dataReaderMethod)> _dicDbToCs = new Dictionary<int, (string csConvert, string csParse, string csStringify, string csType, Type csTypeInfo, Type csNullableTypeInfo, string csTypeValue, string dataReaderMethod)>() 
+        {
                 { (int)NpgsqlDbType.Smallint, ("(short?)", "short.Parse({0})", "{0}.ToString()", "short?", typeof(short), typeof(short?), "{0}.Value", "GetInt16") },
                 { (int)NpgsqlDbType.Integer, ("(int?)", "int.Parse({0})", "{0}.ToString()", "int?", typeof(int), typeof(int?), "{0}.Value", "GetInt32") },
                 { (int)NpgsqlDbType.Bigint, ("(long?)", "long.Parse({0})", "{0}.ToString()", "long?", typeof(long), typeof(long?), "{0}.Value", "GetInt64") },
@@ -104,26 +128,36 @@ namespace FreeSql.PostgreSQL
                 { (int)NpgsqlDbType.Text, ("", "{0}.Replace(StringifySplit, \"|\")", "{0}.Replace(\"|\", StringifySplit)", "string", typeof(string), typeof(string), "{0}", "GetString") },
 
                 { (int)NpgsqlDbType.Timestamp,  ("(DateTime?)", "new DateTime(long.Parse({0}))", "{0}.Ticks.ToString()", "DateTime?", typeof(DateTime), typeof(DateTime?), "{0}.Value", "GetDateTime") },
+#if !NET40
                 { (int)NpgsqlDbType.TimestampTz,  ("(DateTime?)", "new DateTime(long.Parse({0}))", "{0}.Ticks.ToString()", "DateTime?", typeof(DateTime), typeof(DateTime?), "{0}.Value", "GetDateTime") },
+#endif
                 { (int)NpgsqlDbType.Date,  ("(DateTime?)", "new DateTime(long.Parse({0}))", "{0}.Ticks.ToString()", "DateTime?", typeof(DateTime), typeof(DateTime?), "{0}.Value", "GetDateTime") },
                 { (int)NpgsqlDbType.Time, ("(TimeSpan?)", "TimeSpan.Parse(double.Parse({0}))", "{0}.Ticks.ToString()", "TimeSpan?", typeof(TimeSpan), typeof(TimeSpan?), "{0}.Value", "GetValue") },
+#if !NET40
                 { (int)NpgsqlDbType.TimeTz, ("(TimeSpan?)", "TimeSpan.Parse(double.Parse({0}))", "{0}.Ticks.ToString()", "TimeSpan?", typeof(TimeSpan), typeof(TimeSpan?), "{0}.Value", "GetValue") },
+#endif
                 { (int)NpgsqlDbType.Interval, ("(TimeSpan?)", "TimeSpan.Parse(double.Parse({0}))", "{0}.Ticks.ToString()", "TimeSpan?", typeof(TimeSpan), typeof(TimeSpan?), "{0}.Value", "GetValue") },
 
                 { (int)NpgsqlDbType.Boolean, ("(bool?)", "{0} == \"1\"", "{0} == true ? \"1\" : \"0\"", "bool?", typeof(bool), typeof(bool?), "{0}.Value", "GetBoolean") },
                 { (int)NpgsqlDbType.Bytea, ("(byte[])", "Convert.FromBase64String({0})", "Convert.ToBase64String({0})", "byte[]", typeof(byte[]), typeof(byte[]), "{0}", "GetValue") },
                 { (int)NpgsqlDbType.Bit, ("(BitArray)", "{0}.ToBitArray()", "{0}.To1010()", "BitArray", typeof(BitArray), typeof(BitArray), "{0}", "GetValue") },
+#if !NET40
                 { (int)NpgsqlDbType.Varbit, ("(BitArray)", "{0}.ToBitArray()", "{0}.To1010()", "BitArray", typeof(BitArray), typeof(BitArray), "{0}", "GetValue") },
+#endif
 
                 { (int)NpgsqlDbType.Point, ("(NpgsqlPoint?)", "NpgsqlPoint.Parse({0})", "{0}.ToString()", "NpgsqlPoint", typeof(NpgsqlPoint), typeof(NpgsqlPoint?), "{0}", "GetValue") },
+#if !NET40
                 { (int)NpgsqlDbType.Line, ("(NpgsqlLine?)", "NpgsqlLine.Parse({0})", "{0}.ToString()", "NpgsqlLine", typeof(NpgsqlLine), typeof(NpgsqlLine?), "{0}", "GetValue") },
+#endif
                 { (int)NpgsqlDbType.LSeg, ("(NpgsqlLSeg?)", "NpgsqlLSeg.Parse({0})", "{0}.ToString()", "NpgsqlLSeg", typeof(NpgsqlLSeg), typeof(NpgsqlLSeg?), "{0}", "GetValue") },
                 { (int)NpgsqlDbType.Box, ("(NpgsqlBox?)", "NpgsqlBox.Parse({0})", "{0}.ToString()", "NpgsqlBox", typeof(NpgsqlBox), typeof(NpgsqlBox?), "{0}", "GetValue") },
                 { (int)NpgsqlDbType.Path, ("(NpgsqlPath?)", "NpgsqlPath.Parse({0})", "{0}.ToString()", "NpgsqlPath", typeof(NpgsqlPath), typeof(NpgsqlPath?), "{0}", "GetValue") },
                 { (int)NpgsqlDbType.Polygon, ("(NpgsqlPolygon?)", "NpgsqlPolygon.Parse({0})", "{0}.ToString()", "NpgsqlPolygon", typeof(NpgsqlPolygon), typeof(NpgsqlPolygon?), "{0}", "GetValue") },
                 { (int)NpgsqlDbType.Circle, ("(NpgsqlCircle?)", "NpgsqlCircle.Parse({0})", "{0}.ToString()", "NpgsqlCircle", typeof(NpgsqlCircle), typeof(NpgsqlCircle?), "{0}", "GetValue") },
-
+                
+#if !NET40
                 { (int)NpgsqlDbType.Cidr, ("((IPAddress, int)?)", "(IPAddress, int)({0})", "{0}.ToString()", "(IPAddress, int)", typeof((IPAddress, int)), typeof((IPAddress, int)?), "{0}", "GetValue") },
+#endif
                 { (int)NpgsqlDbType.Inet, ("(IPAddress)", "IPAddress.Parse({0})", "{0}.ToString()", "IPAddress", typeof(IPAddress), typeof(IPAddress), "{0}", "GetValue") },
                 { (int)NpgsqlDbType.MacAddr, ("(PhysicalAddress?)", "PhysicalAddress.Parse({0})", "{0}.ToString()", "PhysicalAddress", typeof(PhysicalAddress), typeof(PhysicalAddress), "{0}", "GetValue") },
 
@@ -131,19 +165,23 @@ namespace FreeSql.PostgreSQL
                 { (int)NpgsqlDbType.Jsonb, ("(JToken)", "JToken.Parse({0})", "{0}.ToString()", "JToken", typeof(JToken), typeof(JToken), "{0}", "GetString") },
                 { (int)NpgsqlDbType.Uuid, ("(Guid?)", "Guid.Parse({0})", "{0}.ToString()", "Guid", typeof(Guid), typeof(Guid?), "{0}", "GetString") },
 
+#if !NET40
                 { (int)(NpgsqlDbType.Range | NpgsqlDbType.Integer), ("(NpgsqlRange<int>?)", "{0}.ToNpgsqlRange<int>()", "{0}.ToString()", "NpgsqlRange<int>", typeof(NpgsqlRange<int>), typeof(NpgsqlRange<int>?), "{0}", "GetString") },
                 { (int)(NpgsqlDbType.Range | NpgsqlDbType.Bigint), ("(NpgsqlRange<long>?)", "{0}.ToNpgsqlRange<long>()", "{0}.ToString()", "NpgsqlRange<long>", typeof(NpgsqlRange<long>), typeof(NpgsqlRange<long>?), "{0}", "GetString") },
                 { (int)(NpgsqlDbType.Range | NpgsqlDbType.Numeric), ("(NpgsqlRange<decimal>?)", "{0}.ToNpgsqlRange<decimal>()", "{0}.ToString()", "NpgsqlRange<decimal>", typeof(NpgsqlRange<decimal>), typeof(NpgsqlRange<decimal>?), "{0}", "GetString") },
                 { (int)(NpgsqlDbType.Range | NpgsqlDbType.Timestamp), ("(NpgsqlRange<DateTime>?)", "{0}.ToNpgsqlRange<DateTime>()", "{0}.ToString()", "NpgsqlRange<DateTime>", typeof(NpgsqlRange<DateTime>), typeof(NpgsqlRange<DateTime>?), "{0}", "GetString") },
                 { (int)(NpgsqlDbType.Range | NpgsqlDbType.TimestampTz), ("(NpgsqlRange<DateTime>?)", "{0}.ToNpgsqlRange<DateTime>()", "{0}.ToString()", "NpgsqlRange<DateTime>", typeof(NpgsqlRange<DateTime>), typeof(NpgsqlRange<DateTime>?), "{0}", "GetString") },
                 { (int)(NpgsqlDbType.Range | NpgsqlDbType.Date), ("(NpgsqlRange<DateTime>?)", "{0}.ToNpgsqlRange<DateTime>()", "{0}.ToString()", "NpgsqlRange<DateTime>", typeof(NpgsqlRange<DateTime>), typeof(NpgsqlRange<DateTime>?), "{0}", "GetString") },
+#endif
 
                 { (int)NpgsqlDbType.Hstore, ("(Dictionary<string, string>)", "JsonConvert.DeserializeObject<Dictionary<string, string>>({0})", "JsonConvert.SerializeObject({0})", "Dictionary<string, string>", typeof(Dictionary<string, string>), typeof(Dictionary<string, string>), "{0}", "GetValue") },
+#if !NET40
                 { (int)NpgsqlDbType.Geometry, ("(PostgisGeometry)", "JsonConvert.DeserializeObject<PostgisGeometry>({0})", "JsonConvert.SerializeObject({0})", "PostgisGeometry", typeof(PostgisGeometry), typeof(PostgisGeometry), "{0}", "GetValue") },
+#endif
 
-				/*** array ***/
+                /*** array ***/
 
-				{ (int)(NpgsqlDbType.Smallint | NpgsqlDbType.Array), ("(short[])", "JsonConvert.DeserializeObject<short[]>({0})", "JsonConvert.SerializeObject({0})", "short[]", typeof(short[]), typeof(short[]), "{0}", "GetValue") },
+                { (int)(NpgsqlDbType.Smallint | NpgsqlDbType.Array), ("(short[])", "JsonConvert.DeserializeObject<short[]>({0})", "JsonConvert.SerializeObject({0})", "short[]", typeof(short[]), typeof(short[]), "{0}", "GetValue") },
                 { (int)(NpgsqlDbType.Integer | NpgsqlDbType.Array), ("(int[])", "JsonConvert.DeserializeObject<int[]>({0})", "JsonConvert.SerializeObject({0})", "int[]", typeof(int[]), typeof(int[]), "{0}", "GetValue") },
                 { (int)(NpgsqlDbType.Bigint | NpgsqlDbType.Array), ("(long[])", "JsonConvert.DeserializeObject<long[]>({0})", "JsonConvert.SerializeObject({0})", "long[]", typeof(long[]), typeof(long[]), "{0}", "GetValue") },
                 { (int)(NpgsqlDbType.Numeric | NpgsqlDbType.Array), ("(decimal[])", "JsonConvert.DeserializeObject<decimal[]>({0})", "JsonConvert.SerializeObject({0})", "decimal[]", typeof(decimal[]), typeof(decimal[]), "{0}", "GetValue") },
@@ -156,26 +194,36 @@ namespace FreeSql.PostgreSQL
                 { (int)(NpgsqlDbType.Text | NpgsqlDbType.Array), ("(string[])", "JsonConvert.DeserializeObject<string[]>({0})", "JsonConvert.SerializeObject({0})", "string[]", typeof(string[]), typeof(string[]), "{0}", "GetValue") },
 
                 { (int)(NpgsqlDbType.Timestamp | NpgsqlDbType.Array), ("(DateTime[])", "JsonConvert.DeserializeObject<DateTime[]>({0})", "JsonConvert.SerializeObject({0})", "DateTime[]", typeof(DateTime[]), typeof(DateTime[]), "{0}", "GetValue") },
+#if !NET40
                 { (int)(NpgsqlDbType.TimestampTz | NpgsqlDbType.Array), ("(DateTime[])", "JsonConvert.DeserializeObject<DateTime[]>({0})", "JsonConvert.SerializeObject({0})", "DateTime[]", typeof(DateTime[]), typeof(DateTime[]), "{0}", "GetValue") },
+#endif
                 { (int)(NpgsqlDbType.Date | NpgsqlDbType.Array), ("(DateTime[])", "JsonConvert.DeserializeObject<DateTime[]>({0})", "JsonConvert.SerializeObject({0})", "DateTime[]", typeof(DateTime[]), typeof(DateTime[]), "{0}", "GetValue") },
                 { (int)(NpgsqlDbType.Time | NpgsqlDbType.Array), ("(TimeSpan[])", "JsonConvert.DeserializeObject<TimeSpan[]>({0})", "JsonConvert.SerializeObject({0})", "TimeSpan[]", typeof(TimeSpan[]), typeof(TimeSpan[]), "{0}", "GetValue") },
+#if !NET40
                 { (int)(NpgsqlDbType.TimeTz | NpgsqlDbType.Array), ("(TimeSpan[])", "JsonConvert.DeserializeObject<TimeSpan[]>({0})", "JsonConvert.SerializeObject({0})", "TimeSpan[]", typeof(TimeSpan[]), typeof(TimeSpan[]), "{0}", "GetValue") },
+#endif
                 { (int)(NpgsqlDbType.Interval | NpgsqlDbType.Array), ("(TimeSpan[])", "JsonConvert.DeserializeObject<TimeSpan[]>({0})", "JsonConvert.SerializeObject({0})", "TimeSpan[]", typeof(TimeSpan[]), typeof(TimeSpan[]), "{0}", "GetValue") },
 
                 { (int)(NpgsqlDbType.Boolean | NpgsqlDbType.Array), ("(bool[])", "JsonConvert.DeserializeObject<bool[]>({0})", "JsonConvert.SerializeObject({0})", "bool[]", typeof(bool[]), typeof(bool[]), "{0}", "GetValue") },
                 { (int)(NpgsqlDbType.Bytea | NpgsqlDbType.Array), ("(byte[][])", "JsonConvert.DeserializeObject<byte[][]>({0})", "JsonConvert.SerializeObject({0})", "byte[][]", typeof(byte[][]), typeof(byte[][]), "{0}", "GetValue") },
                 { (int)(NpgsqlDbType.Bit | NpgsqlDbType.Array), ("(BitArray[])", "JsonConvert.DeserializeObject<BitArray[]>({0})", "JsonConvert.SerializeObject({0})", "BitArray[]", typeof(BitArray[]), typeof(BitArray[]), "{0}", "GetValue") },
+#if !NET40
                 { (int)(NpgsqlDbType.Varbit | NpgsqlDbType.Array), ("(BitArray[])", "JsonConvert.DeserializeObject<BitArray[]>({0})", "JsonConvert.SerializeObject({0})", "BitArray[]", typeof(BitArray[]), typeof(BitArray[]), "{0}", "GetValue") },
+#endif
 
                 { (int)(NpgsqlDbType.Point | NpgsqlDbType.Array), ("(NpgsqlPoint[])", "JsonConvert.DeserializeObject<NpgsqlPoint[]>({0})", "JsonConvert.SerializeObject({0})", "NpgsqlPoint[]", typeof(NpgsqlPoint[]), typeof(NpgsqlPoint[]), "{0}", "GetValue") },
+#if !NET40
                 { (int)(NpgsqlDbType.Line | NpgsqlDbType.Array), ("(NpgsqlLine[])", "JsonConvert.DeserializeObject<BNpgsqlLineitArray[]>({0})", "JsonConvert.SerializeObject({0})", "NpgsqlLine[]", typeof(NpgsqlLine[]), typeof(NpgsqlLine[]), "{0}", "GetValue") },
+#endif
                 { (int)(NpgsqlDbType.LSeg | NpgsqlDbType.Array), ("(NpgsqlLSeg[])", "JsonConvert.DeserializeObject<NpgsqlLSeg[]>({0})", "JsonConvert.SerializeObject({0})", "NpgsqlLSeg[]", typeof(NpgsqlLSeg[]), typeof(NpgsqlLSeg[]), "{0}", "GetValue") },
                 { (int)(NpgsqlDbType.Box | NpgsqlDbType.Array), ("(NpgsqlBox[])", "JsonConvert.DeserializeObject<NpgsqlBox[]>({0})", "JsonConvert.SerializeObject({0})", "NpgsqlBox[]", typeof(NpgsqlBox[]), typeof(NpgsqlBox[]), "{0}", "GetValue") },
                 { (int)(NpgsqlDbType.Path | NpgsqlDbType.Array), ("(NpgsqlPath[])", "JsonConvert.DeserializeObject<NpgsqlPath[]>({0})", "JsonConvert.SerializeObject({0})", "NpgsqlPath[]", typeof(NpgsqlPath[]), typeof(NpgsqlPath[]), "{0}", "GetValue") },
                 { (int)(NpgsqlDbType.Polygon | NpgsqlDbType.Array), ("(NpgsqlPolygon[])", "JsonConvert.DeserializeObject<NpgsqlPolygon[]>({0})", "JsonConvert.SerializeObject({0})", "NpgsqlPolygon[]", typeof(NpgsqlPolygon[]), typeof(NpgsqlPolygon[]), "{0}", "GetValue") },
                 { (int)(NpgsqlDbType.Circle | NpgsqlDbType.Array), ("(NpgsqlCircle[])", "JsonConvert.DeserializeObject<NpgsqlCircle[]>({0})", "JsonConvert.SerializeObject({0})", "NpgsqlCircle[]", typeof(NpgsqlCircle[]), typeof(NpgsqlCircle[]), "{0}", "GetValue") },
-
+                
+#if !NET40
                 { (int)(NpgsqlDbType.Cidr | NpgsqlDbType.Array), ("((IPAddress, int)[])", "JsonConvert.DeserializeObject<(IPAddress, int)[]>({0})", "JsonConvert.SerializeObject({0})", "(IPAddress, int)[]", typeof((IPAddress, int)[]), typeof((IPAddress, int)[]), "{0}", "GetValue") },
+#endif
                 { (int)(NpgsqlDbType.Inet | NpgsqlDbType.Array), ("(IPAddress[])", "JsonConvert.DeserializeObject<IPAddress[]>({0})", "JsonConvert.SerializeObject({0})", "IPAddress[]", typeof(IPAddress[]), typeof(IPAddress[]), "{0}", "GetValue") },
                 { (int)(NpgsqlDbType.MacAddr | NpgsqlDbType.Array), ("(PhysicalAddress[])", "JsonConvert.DeserializeObject<PhysicalAddress[]>({0})", "JsonConvert.SerializeObject({0})", "PhysicalAddress[]", typeof(PhysicalAddress[]), typeof(PhysicalAddress[]), "{0}", "GetValue") },
 
@@ -183,16 +231,20 @@ namespace FreeSql.PostgreSQL
                 { (int)(NpgsqlDbType.Jsonb | NpgsqlDbType.Array), ("(JToken[])", "JsonConvert.DeserializeObject<JToken[]>({0})", "JsonConvert.SerializeObject({0})", "JToken[]", typeof(JToken[]), typeof(JToken[]), "{0}", "GetValue") },
                 { (int)(NpgsqlDbType.Uuid | NpgsqlDbType.Array), ("(Guid[])", "JsonConvert.DeserializeObject<Guid[]>({0})", "JsonConvert.SerializeObject({0})", "Guid[]", typeof(Guid[]), typeof(Guid[]), "{0}", "GetValue") },
 
+#if !NET40
                 { (int)(NpgsqlDbType.Range | NpgsqlDbType.Integer | NpgsqlDbType.Array), ("(NpgsqlRange<int>[])", "JsonConvert.DeserializeObject<NpgsqlRange<int>[]>({0})", "JsonConvert.SerializeObject({0})", "NpgsqlRange<int>[]", typeof(NpgsqlRange<int>[]), typeof(NpgsqlRange<int>[]), "{0}", "GetValue") },
                 { (int)(NpgsqlDbType.Range | NpgsqlDbType.Bigint | NpgsqlDbType.Array), ("(NpgsqlRange<long>[])", "JsonConvert.DeserializeObject<NpgsqlRange<long>[]>({0})", "JsonConvert.SerializeObject({0})", "NpgsqlRange<long>[]", typeof(NpgsqlRange<long>[]), typeof(NpgsqlRange<long>[]), "{0}", "GetValue") },
                 { (int)(NpgsqlDbType.Range | NpgsqlDbType.Numeric | NpgsqlDbType.Array), ("(NpgsqlRange<decimal>[])", "JsonConvert.DeserializeObject<NpgsqlRange<decimal>[]>({0})", "JsonConvert.SerializeObject({0})", "NpgsqlRange<decimal>[]", typeof(NpgsqlRange<decimal>[]), typeof(NpgsqlRange<decimal>[]), "{0}", "GetValue") },
                 { (int)(NpgsqlDbType.Range | NpgsqlDbType.Timestamp | NpgsqlDbType.Array), ("(NpgsqlRange<DateTime>[])", "JsonConvert.DeserializeObject<NpgsqlRange<DateTime>[]>({0})", "JsonConvert.SerializeObject({0})", "NpgsqlRange<DateTime>[]", typeof(NpgsqlRange<DateTime>[]), typeof(NpgsqlRange<DateTime>[]), "{0}", "GetValue") },
                 { (int)(NpgsqlDbType.Range | NpgsqlDbType.TimestampTz | NpgsqlDbType.Array), ("(NpgsqlRange<DateTime>[])", "JsonConvert.DeserializeObject<NpgsqlRange<DateTime>[]>({0})", "JsonConvert.SerializeObject({0})", "NpgsqlRange<DateTime>[]", typeof(NpgsqlRange<DateTime>[]), typeof(NpgsqlRange<DateTime>[]), "{0}", "GetValue") },
                 { (int)(NpgsqlDbType.Range | NpgsqlDbType.Date | NpgsqlDbType.Array), ("(NpgsqlRange<DateTime>[])", "JsonConvert.DeserializeObject<NpgsqlRange<DateTime>[]>({0})", "JsonConvert.SerializeObject({0})", "NpgsqlRange<DateTime>[]", typeof(NpgsqlRange<DateTime>[]), typeof(NpgsqlRange<DateTime>[]), "{0}", "GetValue") },
+#endif
 
                 { (int)(NpgsqlDbType.Hstore | NpgsqlDbType.Array), ("(Dictionary<string, string>[])", "JsonConvert.DeserializeObject<Dictionary<string, string>[]>({0})", "JsonConvert.SerializeObject({0})", "Dictionary<string, string>[]", typeof(Dictionary<string, string>[]), typeof(Dictionary<string, string>[]), "{0}", "GetValue") },
+#if !NET40
                 { (int)(NpgsqlDbType.Geometry | NpgsqlDbType.Array), ("(PostgisGeometry[])", "JsonConvert.DeserializeObject<PostgisGeometry[]>({0})", "JsonConvert.SerializeObject({0})", "PostgisGeometry[]", typeof(PostgisGeometry[]), typeof(PostgisGeometry[]), "{0}", "GetValue") },
-            };
+#endif
+			};
 
         public string GetCsConvert(DbColumnInfo column) => _dicDbToCs.TryGetValue(column.DbType, out var trydc) ? (column.IsNullable ? trydc.csConvert : trydc.csConvert.Replace("?", "")) : null;
         public string GetCsParse(DbColumnInfo column) => _dicDbToCs.TryGetValue(column.DbType, out var trydc) ? trydc.csParse : null;

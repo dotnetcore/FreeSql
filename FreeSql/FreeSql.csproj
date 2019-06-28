@@ -1,30 +1,34 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-	<PropertyGroup>
-		<TargetFrameworks>netstandard2.0;net45</TargetFrameworks>
-		<Version>0.7.1</Version>
-		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-		<Authors>YeXiangQin</Authors>
-		<Description>FreeSql is the most convenient ORM in dotnet. It supports Mysql, Postgresql, SqlServer, Oracle and Sqlite.</Description>
-		<PackageProjectUrl>https://github.com/2881099/FreeSql</PackageProjectUrl>
-		<RepositoryUrl>https://github.com/2881099/FreeSql</RepositoryUrl>
-		<RepositoryType>git</RepositoryType>
-		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-		<PackageTags>FreeSql;ORM</PackageTags>
-		<PackageId>$(AssemblyName)</PackageId>
-		<Title>$(AssemblyName)</Title>
-		<IsPackable>true</IsPackable>
-		<GenerateAssemblyInfo>true</GenerateAssemblyInfo>
-	</PropertyGroup>
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;net45;net40</TargetFrameworks>
+    <Version>0.7.1</Version>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Authors>YeXiangQin</Authors>
+    <Description>FreeSql is the most convenient ORM in dotnet. It supports Mysql, Postgresql, SqlServer, Oracle and Sqlite.</Description>
+    <PackageProjectUrl>https://github.com/2881099/FreeSql</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/2881099/FreeSql</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>FreeSql;ORM</PackageTags>
+    <PackageId>$(AssemblyName)</PackageId>
+    <Title>$(AssemblyName)</Title>
+    <IsPackable>true</IsPackable>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+  </PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-	  <DocumentationFile>FreeSql.xml</DocumentationFile>
-	  <WarningLevel>3</WarningLevel>
-	</PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>FreeSql.xml</DocumentationFile>
+    <WarningLevel>3</WarningLevel>
+  </PropertyGroup>
 
-	<ItemGroup>
-	  <PackageReference Include="SafeObjectPool" Version="2.0.2" />
-	  <PackageReference Include="System.ValueTuple" Version="4.5.0" />
-	</ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="SafeObjectPool" Version="2.0.3" />
+    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net40'">
+    <PackageReference Include="Microsoft.Bcl.Async" Version="1.0.168" />
+  </ItemGroup>
 
 </Project>

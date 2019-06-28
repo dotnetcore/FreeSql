@@ -378,7 +378,11 @@ namespace FreeSql.Sqlite
                     case "AddTicks": return $"datetime({left},(({args1})/10000000)||' seconds')";
                     case "AddYears": return $"datetime({left},({args1})||' years')";
                     case "Subtract":
+#if !NET40
                         switch ((exp.Arguments[0].Type.IsNullableType() ? exp.Arguments[0].Type.GenericTypeArguments.FirstOrDefault() : exp.Arguments[0].Type).FullName)
+#else
+						switch ((exp.Arguments[0].Type.IsNullableType() ? exp.Arguments[0].Type.GetGenericArguments().FirstOrDefault() : exp.Arguments[0].Type).FullName)
+#endif
                         {
                             case "System.DateTime": return $"(strftime('%s',{left})-strftime('%s',{args1}))";
                             case "System.TimeSpan": return $"datetime({left},(-{args1})||' seconds')";

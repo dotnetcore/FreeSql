@@ -458,7 +458,11 @@ namespace FreeSql.Internal.CommonProvider
             {
                 if (col.Column.Attribute.IsNullable == true && col.Column.Attribute.MapType.IsNullableType())
                 {
+#if !NET40
                     var replval = _orm.CodeFirst.GetDbInfo(col.Column.Attribute.MapType.GenericTypeArguments.FirstOrDefault())?.defaultValue;
+#else
+                    var replval = _orm.CodeFirst.GetDbInfo(col.Column.Attribute.MapType.GetGenericArguments().FirstOrDefault())?.defaultValue;
+#endif
                     if (replval == null) continue;
                     var replname = _commonUtils.QuoteSqlName(col.Column.Attribute.Name);
                     expt = expt.Replace(replname, _commonUtils.IsNull(replname, _commonUtils.FormatSql("{0}", replval)));

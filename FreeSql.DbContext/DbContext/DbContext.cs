@@ -49,11 +49,19 @@ namespace FreeSql
             var props = _dicGetDbSetProps.GetOrAdd(this.GetType(), tp =>
                 tp.GetProperties(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public)
                     .Where(a => a.PropertyType.IsGenericType &&
+#if !NET40
                         a.PropertyType == typeof(DbSet<>).MakeGenericType(a.PropertyType.GenericTypeArguments[0])).ToArray());
+#else
+                        a.PropertyType == typeof(DbSet<>).MakeGenericType(a.PropertyType.GetGenericArguments()[0])).ToArray());
+#endif
 
             foreach (var prop in props)
             {
+#if !NET40
                 var set = this.Set(prop.PropertyType.GenericTypeArguments[0]);
+#else
+                var set = this.Set(prop.PropertyType.GetGenericArguments()[0]);
+#endif
 
                 prop.SetValue(this, set);
                 AllSets.Add(prop.Name, set);

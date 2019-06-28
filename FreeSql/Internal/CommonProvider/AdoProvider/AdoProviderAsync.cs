@@ -40,7 +40,11 @@ namespace FreeSql.Internal.CommonProvider
                     flag = sbflag.ToString();
                 }
                 ret.Add((T)Utils.ExecuteArrayRowReadClassOrTuple(flag, type, indexes, dr, 0, _util).Value);
+#if !NET40
                 return Task.FromResult(false);
+#else
+                return Task.Factory.StartNew(() => false);
+#endif
             }, cmdType, cmdText, cmdParms);
             return ret;
         }
@@ -101,7 +105,11 @@ namespace FreeSql.Internal.CommonProvider
                         ret2.Add((T2)Utils.ExecuteArrayRowReadClassOrTuple(flag2, type2, indexes2, dr, 0, _util).Value);
                         break;
                 }
+#if !NET40
                 return Task.FromResult(false);
+#else
+                return Task.Factory.StartNew(() => false);
+#endif
             }, cmdType, cmdText, cmdParms);
             return (ret1, ret2);
         }
@@ -184,7 +192,11 @@ namespace FreeSql.Internal.CommonProvider
                         ret3.Add((T3)Utils.ExecuteArrayRowReadClassOrTuple(flag3, type3, indexes3, dr, 0, _util).Value);
                         break;
                 }
+#if !NET40
                 return Task.FromResult(false);
+#else
+                return Task.Factory.StartNew(() => false);
+#endif
             }, cmdType, cmdText, cmdParms);
             return (ret1, ret2, ret3);
         }
@@ -289,7 +301,11 @@ namespace FreeSql.Internal.CommonProvider
                         ret4.Add((T4)Utils.ExecuteArrayRowReadClassOrTuple(flag4, type4, indexes4, dr, 0, _util).Value);
                         break;
                 }
+#if !NET40
                 return Task.FromResult(false);
+#else
+                return Task.Factory.StartNew(() => false);
+#endif
             }, cmdType, cmdText, cmdParms);
             return (ret1, ret2, ret3, ret4);
         }
@@ -416,7 +432,11 @@ namespace FreeSql.Internal.CommonProvider
                         ret5.Add((T5)Utils.ExecuteArrayRowReadClassOrTuple(flag5, type5, indexes5, dr, 0, _util).Value);
                         break;
                 }
+#if !NET40
                 return Task.FromResult(false);
+#else
+                return Task.Factory.StartNew(() => false);
+#endif
             }, cmdType, cmdText, cmdParms);
             return (ret1, ret2, ret3, ret4, ret5);
         }

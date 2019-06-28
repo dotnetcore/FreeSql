@@ -101,7 +101,11 @@ namespace FreeSql.Internal.CommonProvider
         }
         public Task<TMember> AvgAsync<TMember>(Expression<Func<T1, TMember>> column)
         {
+#if !NET40
             if (column == null) return Task.FromResult(default(TMember));
+#else
+            if (column == null) return Task.Factory.StartNew(() => default(TMember));
+#endif
             _tables[0].Parameter = column.Parameters[0];
             return this.InternalAvgAsync<TMember>(column?.Body);
         }
@@ -131,7 +135,11 @@ namespace FreeSql.Internal.CommonProvider
         }
         public Task<TMember> MaxAsync<TMember>(Expression<Func<T1, TMember>> column)
         {
+#if !NET40
             if (column == null) return Task.FromResult(default(TMember));
+#else
+            if (column == null) return Task.Factory.StartNew(() => default(TMember));
+#endif
             _tables[0].Parameter = column.Parameters[0];
             return this.InternalMaxAsync<TMember>(column?.Body);
         }
@@ -144,7 +152,11 @@ namespace FreeSql.Internal.CommonProvider
         }
         public Task<TMember> MinAsync<TMember>(Expression<Func<T1, TMember>> column)
         {
+#if !NET40
             if (column == null) return Task.FromResult(default(TMember));
+#else
+            if (column == null) return Task.Factory.StartNew(() => default(TMember));
+#endif
             _tables[0].Parameter = column.Parameters[0];
             return this.InternalMinAsync<TMember>(column?.Body);
         }
@@ -171,7 +183,11 @@ namespace FreeSql.Internal.CommonProvider
         }
         public Task<TMember> SumAsync<TMember>(Expression<Func<T1, TMember>> column)
         {
+#if !NET40
             if (column == null) return Task.FromResult(default(TMember));
+#else
+            if (column == null) return Task.Factory.StartNew(() => default(TMember));
+#endif
             _tables[0].Parameter = column.Parameters[0];
             return this.InternalSumAsync<TMember>(column?.Body);
         }
@@ -244,9 +260,17 @@ namespace FreeSql.Internal.CommonProvider
             if (collectionSelector.Body.NodeType == ExpressionType.Call)
             {
                 var callExp = collectionSelector.Body as MethodCallExpression;
-                if (callExp.Method.Name == "DefaultIfEmpty" && callExp.Object.Type.GenericTypeArguments.Any())
+#if !NET40
+				if (callExp.Method.Name == "DefaultIfEmpty" && callExp.Object.Type.GenericTypeArguments.Any())
+#else
+                if (callExp.Method.Name == "DefaultIfEmpty" && callExp.Object.Type.GetGenericArguments().Any())
+#endif
                 {
+#if !NET40
                     find = _tables.Where((a, idx) => idx > 0 && a.Type == SelectTableInfoType.InnerJoin && a.Table.Type == callExp.Object.Type.GenericTypeArguments[0]).LastOrDefault();
+#else
+                    find = _tables.Where((a, idx) => idx > 0 && a.Type == SelectTableInfoType.InnerJoin && a.Table.Type == callExp.Object.Type.GetGenericArguments()[0]).LastOrDefault();
+#endif
                     if (find != null)
                     {
                         if (!string.IsNullOrEmpty(find.On)) find.On = Regex.Replace(find.On, $@"\b{find.Alias}\.", $"{resultSelector.Parameters[1].Name}.");
@@ -306,7 +330,11 @@ namespace FreeSql.Internal.CommonProvider
 
         public Task<TReturn> ToAggregateAsync<TReturn>(Expression<Func<ISelectGroupingAggregate<T1>, TReturn>> select)
         {
+#if !NET40
             if (select == null) return Task.FromResult(default(TReturn));
+#else
+            if (select == null) return Task.Factory.StartNew(() => default(TReturn));
+#endif
             _tables[0].Parameter = select.Parameters[0];
             return this.InternalToAggregateAsync<TReturn>(select?.Body);
         }
