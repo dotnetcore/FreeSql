@@ -386,7 +386,7 @@ namespace FreeSql.Internal
             }
             else
             {
-                var find = _tables.Where((a, c) => c > 0 && (a.Type == tbtype || a.Type == SelectTableInfoType.From) && string.IsNullOrEmpty(a.On)).LastOrDefault();
+                var find = _tables.Where((a, c) => c > 0 && (a.Type == tbtype || a.Type == SelectTableInfoType.From) && string.IsNullOrEmpty(a.On) && sql.Contains(a.Alias + ".")).LastOrDefault();
                 if (find != null)
                 {
                     find.Type = tbtype;

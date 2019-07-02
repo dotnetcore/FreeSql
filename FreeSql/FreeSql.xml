@@ -1377,6 +1377,13 @@
             <param name="select">选择列</param>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.ISelectGrouping`2.ToSql(System.String)">
+            <summary>
+            返回即将执行的SQL语句
+            </summary>
+            <param name="field">指定字段</param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.ISelectGrouping`2.Skip(System.Int32)">
             <summary>
             查询向后偏移行数

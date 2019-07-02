@@ -50,6 +50,12 @@ namespace FreeSql
         /// <param name="select">选择列</param>
         /// <returns></returns>
         string ToSql<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select);
+        /// <summary>
+        /// 返回即将执行的SQL语句
+        /// </summary>
+        /// <param name="field">指定字段</param>
+        /// <returns></returns>
+        string ToSql(string field);
 
 
         /// <summary>

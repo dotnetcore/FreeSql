@@ -296,6 +296,13 @@ namespace FreeSql.Tests
         [Fact]
         public void Test1()
         {
+            var tkdkdksql = g.sqlite.Select<TaskBuild>().From<Templates, Templates>((a, b, c) =>
+                a.LeftJoin(aa => aa.TemplatesId == b.Id2 && b.Code == "xx")
+                .LeftJoin(aa => aa.TemplatesId == c.Id2))
+                .GroupBy((a, b, c) => new { a.NamespaceName, c.Code })
+                .ToSql("a.id");
+
+
 
             var dcksdkdsk = g.sqlite.Select<NewsArticle>().Where(a => a.testaddtime2.HasValue).ToSql();
             var dcksdkdsk2 = g.sqlite.Select<NewsArticle>().Where(a => !a.testaddtime2.HasValue).ToSql();
