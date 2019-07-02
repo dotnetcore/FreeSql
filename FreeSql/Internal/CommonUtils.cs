@@ -282,7 +282,7 @@ namespace FreeSql.Internal
         /// <returns>Dict：key=属性名，value=注释</returns>
         public static Dictionary<string, string> GetProperyCommentBySummary(Type type)
         {
-            var xmlPath = type.Assembly.Location.Replace(".dll", ".xml");
+            var xmlPath = type.Assembly.Location.Replace(".dll", ".xml").Replace(".exe", ".xml");
             if (File.Exists(xmlPath) == false) return null;
 
             var dic = new Dictionary<string, string>();
@@ -290,7 +290,15 @@ namespace FreeSql.Internal
             var sReader = new StringReader(File.ReadAllText(xmlPath));
             using (var xmlReader = XmlReader.Create(sReader))
             {
-                var xpath = new XPathDocument(xmlReader);
+                XPathDocument xpath = null;
+                try
+                {
+                    xpath = new XPathDocument(xmlReader);
+                }
+                catch
+                {
+                    return null;
+                }
                 var xmlNav = xpath.CreateNavigator();
 
                 var props = type.GetProperties();
