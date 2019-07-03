@@ -65,7 +65,6 @@ namespace FreeSql.SqlServer.Curd
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
                 _orm.Aop.CurdAfter?.Invoke(this, after);
             }
-            this.ClearData();
             return ret;
         }
         async protected override Task<List<T1>> RawExecuteUpdatedAsync()
@@ -109,7 +108,6 @@ namespace FreeSql.SqlServer.Curd
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
                 _orm.Aop.CurdAfter?.Invoke(this, after);
             }
-            this.ClearData();
             return ret;
         }
 

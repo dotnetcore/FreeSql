@@ -52,7 +52,6 @@ namespace FreeSql.PostgreSQL.Curd
                     var after = new Aop.CurdAfterEventArgs(before, exception, ret);
                     _orm.Aop.CurdAfter?.Invoke(this, after);
                 }
-                this.ClearData();
                 return 0;
             }
             sql = string.Concat(sql, " RETURNING ", _commonUtils.QuoteSqlName(identCols.First().Value.Attribute.Name));
@@ -72,7 +71,6 @@ namespace FreeSql.PostgreSQL.Curd
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
                 _orm.Aop.CurdAfter?.Invoke(this, after);
             }
-            this.ClearData();
             return ret;
         }
         async protected override Task<long> RawExecuteIdentityAsync()
@@ -103,7 +101,6 @@ namespace FreeSql.PostgreSQL.Curd
                     var after = new Aop.CurdAfterEventArgs(before, exception, ret);
                     _orm.Aop.CurdAfter?.Invoke(this, after);
                 }
-                this.ClearData();
                 return 0;
             }
             sql = string.Concat(sql, " RETURNING ", _commonUtils.QuoteSqlName(identCols.First().Value.Attribute.Name));
@@ -123,7 +120,6 @@ namespace FreeSql.PostgreSQL.Curd
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
                 _orm.Aop.CurdAfter?.Invoke(this, after);
             }
-            this.ClearData();
             return ret;
         }
 
@@ -161,7 +157,6 @@ namespace FreeSql.PostgreSQL.Curd
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
                 _orm.Aop.CurdAfter?.Invoke(this, after);
             }
-            this.ClearData();
             return ret;
         }
         async protected override Task<List<T1>> RawExecuteInsertedAsync()
@@ -198,7 +193,6 @@ namespace FreeSql.PostgreSQL.Curd
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
                 _orm.Aop.CurdAfter?.Invoke(this, after);
             }
-            this.ClearData();
             return ret;
         }
     }

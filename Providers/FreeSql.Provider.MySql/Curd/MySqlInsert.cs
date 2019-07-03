@@ -47,7 +47,6 @@ namespace FreeSql.MySql.Curd
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
                 _orm.Aop.CurdAfter?.Invoke(this, after);
             }
-            this.ClearData();
             return ret;
         }
         async protected override Task<long> RawExecuteIdentityAsync()
@@ -74,7 +73,6 @@ namespace FreeSql.MySql.Curd
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
                 _orm.Aop.CurdAfter?.Invoke(this, after);
             }
-            this.ClearData();
             return ret;
         }
         protected override List<T1> RawExecuteInserted()
@@ -111,7 +109,6 @@ namespace FreeSql.MySql.Curd
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
                 _orm.Aop.CurdAfter?.Invoke(this, after);
             }
-            this.ClearData();
             return ret;
         }
         async protected override Task<List<T1>> RawExecuteInsertedAsync()
@@ -148,7 +145,6 @@ namespace FreeSql.MySql.Curd
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
                 _orm.Aop.CurdAfter?.Invoke(this, after);
             }
-            this.ClearData();
             return ret;
         }
     }

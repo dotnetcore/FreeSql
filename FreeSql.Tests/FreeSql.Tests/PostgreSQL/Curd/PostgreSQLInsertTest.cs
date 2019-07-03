@@ -64,6 +64,22 @@ namespace FreeSql.Tests.PostgreSQL
 
             sql = insert.AppendData(items).IgnoreColumns(a => new { a.Title, a.CreateTime }).ToSql();
             Assert.Equal("INSERT INTO \"tb_topic_insert\"(\"clicks\") VALUES(@clicks_0), (@clicks_1), (@clicks_2), (@clicks_3), (@clicks_4), (@clicks_5), (@clicks_6), (@clicks_7), (@clicks_8), (@clicks_9)", sql);
+
+            g.pgsql.Delete<TopicIgnore>().Where("1=1").ExecuteAffrows();
+            var itemsIgnore = new List<TopicIgnore>();
+            for (var a = 0; a < 2072; a++) itemsIgnore.Add(new TopicIgnore { Id = a + 1, Title = $"newtitle{a}", Clicks = a * 100, CreateTime = DateTime.Now });
+            g.pgsql.Insert<TopicIgnore>().AppendData(itemsIgnore).IgnoreColumns(a => new { a.Title }).ExecuteAffrows();
+            Assert.Equal(2072, itemsIgnore.Count);
+            Assert.Equal(2072, g.pgsql.Select<TopicIgnore>().Where(a => a.Title == null).Count());
+        }
+        [Table(Name = "tb_topicIgnoreColumns")]
+        class TopicIgnore
+        {
+            [Column(IsIdentity = true, IsPrimary = true)]
+            public int Id { get; set; }
+            public int Clicks { get; set; }
+            public string Title { get; set; }
+            public DateTime CreateTime { get; set; }
         }
         [Fact]
         public void ExecuteAffrows()

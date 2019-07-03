@@ -320,7 +320,6 @@ namespace FreeSql.Internal.CommonProvider
                 var after = new Aop.CurdAfterEventArgs(before, exception, affrows);
                 _orm.Aop.CurdAfter?.Invoke(this, after);
             }
-            this.ClearData();
             return affrows;
         }
         async protected Task<int> RawExecuteAffrowsAsync()
@@ -347,7 +346,6 @@ namespace FreeSql.Internal.CommonProvider
                 var after = new Aop.CurdAfterEventArgs(before, exception, affrows);
                 _orm.Aop.CurdAfter?.Invoke(this, after);
             }
-            this.ClearData();
             return affrows;
         }
         protected abstract List<T1> RawExecuteUpdated();

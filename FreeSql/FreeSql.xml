@@ -971,6 +971,12 @@
         <member name="M:FreeSql.ISelect0`2.Distinct">
             <summary>
             查询数据前，去重
+            <para>
+            .Distinct().ToList(x => x.GroupName) 对指定字段去重
+            </para>
+            <para>
+            .Distinct().ToList() 对整个查询去重
+            </para>
             </summary>
             <returns></returns>
         </member>

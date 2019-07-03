@@ -118,7 +118,6 @@ namespace FreeSql.Oracle.Curd
                     var after = new Aop.CurdAfterEventArgs(before, exception, ret);
                     _orm.Aop.CurdAfter?.Invoke(this, after);
                 }
-                this.ClearData();
                 return 0;
             }
             var identColName = _commonUtils.QuoteSqlName(_identCol.Attribute.Name);
@@ -143,7 +142,6 @@ namespace FreeSql.Oracle.Curd
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
                 _orm.Aop.CurdAfter?.Invoke(this, after);
             }
-            this.ClearData();
             return ret;
         }
         async protected override Task<long> RawExecuteIdentityAsync()
@@ -173,7 +171,6 @@ namespace FreeSql.Oracle.Curd
                     var after = new Aop.CurdAfterEventArgs(before, exception, ret);
                     _orm.Aop.CurdAfter?.Invoke(this, after);
                 }
-                this.ClearData();
                 return 0;
             }
             var identColName = _commonUtils.QuoteSqlName(_identCol.Attribute.Name);
@@ -198,7 +195,6 @@ namespace FreeSql.Oracle.Curd
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
                 _orm.Aop.CurdAfter?.Invoke(this, after);
             }
-            this.ClearData();
             return ret;
         }
 

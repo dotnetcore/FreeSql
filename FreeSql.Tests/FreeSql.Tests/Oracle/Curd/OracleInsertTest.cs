@@ -152,6 +152,22 @@ INTO ""TB_TOPIC_INSERT""(""CLICKS"") VALUES(:Clicks_8)
 INTO ""TB_TOPIC_INSERT""(""CLICKS"") VALUES(:Clicks_9)
  SELECT 1 FROM DUAL", sql);
             data.Add(insert.AppendData(items.First()).ExecuteIdentity());
+
+            g.oracle.Delete<TopicIgnore>().Where("1=1").ExecuteAffrows();
+            var itemsIgnore = new List<TopicIgnore>();
+            for (var a = 0; a < 2072; a++) itemsIgnore.Add(new TopicIgnore { Id = a + 1, Title = $"newtitle{a}", Clicks = a * 100, CreateTime = DateTime.Now });
+            g.oracle.Insert<TopicIgnore>().AppendData(itemsIgnore).IgnoreColumns(a => new { a.Title }).ExecuteAffrows();
+            Assert.Equal(2072, itemsIgnore.Count);
+            Assert.Equal(2072, g.oracle.Select<TopicIgnore>().Where(a => a.Title == null).Count());
+        }
+        [Table(Name = "tb_topicICs")]
+        class TopicIgnore
+        {
+            [Column(IsIdentity = true, IsPrimary = true)]
+            public int Id { get; set; }
+            public int Clicks { get; set; }
+            public string Title { get; set; }
+            public DateTime CreateTime { get; set; }
         }
         [Fact]
         public void ExecuteAffrows()

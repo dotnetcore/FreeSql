@@ -78,6 +78,22 @@ namespace FreeSql.Tests.MySql
 
             sql = insert.AppendData(items).IgnoreColumns(a => new { a.Title, a.CreateTime }).ToSql();
             Assert.Equal("INSERT INTO `tb_topic`(`Clicks`) VALUES(?Clicks_0), (?Clicks_1), (?Clicks_2), (?Clicks_3), (?Clicks_4), (?Clicks_5), (?Clicks_6), (?Clicks_7), (?Clicks_8), (?Clicks_9)", sql);
+
+            g.mysql.Delete<TopicIgnore>().Where("1=1").ExecuteAffrows();
+            var itemsIgnore = new List<TopicIgnore>();
+            for (var a = 0; a < 2072; a++) itemsIgnore.Add(new TopicIgnore { Id = a + 1, Title = $"newtitle{a}", Clicks = a * 100, CreateTime = DateTime.Now });
+            g.mysql.Insert<TopicIgnore>().AppendData(itemsIgnore).IgnoreColumns(a => new { a.Title }).ExecuteAffrows();
+            Assert.Equal(2072, itemsIgnore.Count);
+            Assert.Equal(2072, g.mysql.Select<TopicIgnore>().Where(a => a.Title == null).Count());
+        }
+        [Table(Name = "tb_topicIgnoreColumns")]
+        class TopicIgnore
+        {
+            [Column(IsIdentity = true, IsPrimary = true)]
+            public int Id { get; set; }
+            public int Clicks { get; set; }
+            public string Title { get; set; }
+            public DateTime CreateTime { get; set; }
         }
         [Fact]
         public void ExecuteAffrows()
