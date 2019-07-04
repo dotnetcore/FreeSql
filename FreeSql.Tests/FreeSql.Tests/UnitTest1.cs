@@ -296,6 +296,14 @@ namespace FreeSql.Tests
         [Fact]
         public void Test1()
         {
+            var teklksjdg = g.sqlite.Select<ZX.Model.CustomerCheckupGroup>()
+                .Where(a => true && a.CustomerMember.Group == "xxx")
+                .ToSql();
+
+            var sklgjlskdg = g.sqlite.Select<ZX.Model.CustomerMember>()
+                .Where(a => a.CheckupGroups.AsSelect().Any())
+                .ToSql();
+
             var tkdkdksql = g.sqlite.Select<TaskBuild>().From<Templates, Templates>((a, b, c) =>
                 a.LeftJoin(aa => aa.TemplatesId == b.Id2 && b.Code == "xx")
                 .LeftJoin(aa => aa.TemplatesId == c.Id2))

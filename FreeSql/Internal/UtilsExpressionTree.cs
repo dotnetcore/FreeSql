@@ -568,6 +568,19 @@ namespace FreeSql.Internal
                             trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                             //if (isLazy) throw nvref.Exception;
                         }
+                        if (trytb.Primarys.Length > 1)
+                        {
+                            if (trytb.Primarys.Select(a => a.CsType).Distinct().Count() == trytb.Primarys.Length)
+                            {
+                                var pkList = trytb.Primarys.ToList();
+                                bindColumns.Sort((a, b) => pkList.FindIndex(c => c.CsType == a.CsType).CompareTo(pkList.FindIndex(c => c.CsType == b.CsType)));
+                            }
+                            else if (string.Compare(string.Join(",", trytb.Primarys.Select(a => a.CsName).OrderBy(a => a)), string.Join(",", bindColumns.Select(a => a.CsName).OrderBy(a => a)), true) == 0)
+                            {
+                                var pkList = trytb.Primarys.ToList();
+                                bindColumns.Sort((a, b) => pkList.FindIndex(c => string.Compare(c.CsName, a.CsName, true) == 0).CompareTo(pkList.FindIndex(c => string.Compare(c.CsName, b.CsName, true) == 0)));
+                            }
+                        }
                         for (var a = 0; nvref.Exception == null && a < trytb.Primarys.Length; a++)
                         {
                             var findtrytbPkCsName = trytb.Primarys[a].CsName.TrimStart('_');
@@ -704,6 +717,19 @@ namespace FreeSql.Internal
                         nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 特性 [Navigate] Bind 数目({bindColumns.Count}) 与 外部主键数目({tbref.Primarys.Length}) 不相同");
                         trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                         //if (isLazy) throw nvref.Exception;
+                    }
+                    if (tbref.Primarys.Length > 1)
+                    {
+                        if (tbref.Primarys.Select(a => a.CsType).Distinct().Count() == tbref.Primarys.Length)
+                        {
+                            var pkList = tbref.Primarys.ToList();
+                            bindColumns.Sort((a, b) => pkList.FindIndex(c => c.CsType == a.CsType).CompareTo(pkList.FindIndex(c => c.CsType == b.CsType)));
+                        }
+                        else if (string.Compare(string.Join(",", tbref.Primarys.Select(a => a.CsName).OrderBy(a => a)), string.Join(",", bindColumns.Select(a => a.CsName).OrderBy(a => a)), true) == 0)
+                        {
+                            var pkList = tbref.Primarys.ToList();
+                            bindColumns.Sort((a, b) => pkList.FindIndex(c => string.Compare(c.CsName, a.CsName, true) == 0).CompareTo(pkList.FindIndex(c => string.Compare(c.CsName, b.CsName, true) == 0)));
+                        }
                     }
                     for (var a = 0; nvref.Exception == null && a < tbref.Primarys.Length; a++)
                     {

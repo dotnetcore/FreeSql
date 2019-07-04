@@ -327,16 +327,7 @@ namespace FreeSql.Internal
             if (exp.NodeType == ExpressionType.MemberAccess && isBool && sql.Contains(" IS ") == false && sql.Contains(" = ") == false)
                 return $"{sql} = {formatSql(true, null)}";
             if (isBool)
-            {
-                switch (sql)
-                {
-                    case "1":
-                    case "'t'": return "1=1";
-                    case "0":
-                    case "'f'": return "1=2";
-                    default: return sql;
-                }
-            }
+                return GetBoolString(sql);
             return sql;
         }
 
@@ -347,16 +338,7 @@ namespace FreeSql.Internal
             if (exp.NodeType == ExpressionType.MemberAccess && isBool && sql.Contains(" IS ") == false && sql.Contains(" = ") == false)
                 return $"{sql} = {formatSql(true, null)}";
             if (isBool)
-            {
-                switch (sql)
-                {
-                    case "1":
-                    case "'t'": return "1=1";
-                    case "0":
-                    case "'f'": return "1=2";
-                    default: return sql;
-                }
-            }
+                return GetBoolString(sql);
             return sql;
         }
         public void ExpressionJoinLambda(List<SelectTableInfo> _tables, SelectTableInfoType tbtype, Expression exp, Func<Expression[], string> getSelectGroupingMapString)
@@ -367,16 +349,8 @@ namespace FreeSql.Internal
             if (exp.NodeType == ExpressionType.MemberAccess && isBool && sql.Contains(" IS ") == false && sql.Contains(" = ") == false)
                 sql = $"{sql} = {formatSql(true, null)}";
             if (isBool)
-            {
-                switch (sql)
-                {
-                    case "1":
-                    case "'t'": sql = "1=1"; break;
-                    case "0":
-                    case "'f'": sql = "1=2"; break;
-                    default: break;
-                }
-            }
+                sql = GetBoolString(sql);
+
             if (_tables.Count > tbidx)
             {
                 _tables[tbidx].Type = tbtype;
@@ -403,6 +377,17 @@ namespace FreeSql.Internal
         static MethodInfo MethodDateTimeSubtractDateTime = typeof(DateTime).GetMethod("Subtract", new Type[] { typeof(DateTime) });
         static MethodInfo MethodDateTimeSubtractTimeSpan = typeof(DateTime).GetMethod("Subtract", new Type[] { typeof(TimeSpan) });
 
+        static string GetBoolString(string sql)
+        {
+            switch (sql)
+            {
+                case "1":
+                case "'t'": return "1=1";
+                case "0":
+                case "'f'": return "1=2";
+                default: return sql;
+            }
+        }
         public string ExpressionBinary(string oper, Expression leftExp, Expression rightExp, ExpTSC tsc)
         {
             switch (oper)
@@ -483,7 +468,15 @@ namespace FreeSql.Internal
                 left = tmp;
             }
             if (right == "NULL") oper = oper == "=" ? " IS " : " IS NOT ";
-            if (oper == "%") return _common.Mod(left, right, leftExp.Type, rightExp.Type);
+            switch(oper)
+            {
+                case "%": return _common.Mod(left, right, leftExp.Type, rightExp.Type);
+                case "AND":
+                case "OR":
+                    left = GetBoolString(left);
+                    right = GetBoolString(right);
+                    break;
+            }
             tsc.mapType = null;
             return $"{left} {oper} {right}";
         }

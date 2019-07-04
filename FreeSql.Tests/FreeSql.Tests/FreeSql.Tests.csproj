@@ -21,7 +21,6 @@
 		<Folder Include="DataAnnotations\MySql\" />
 		<Folder Include="DataAnnotations\SqlServer\" />
 		<Folder Include="DataContext\MySql\" />
-		<Folder Include="Other\" />
 	</ItemGroup>
 
 	<ItemGroup>
