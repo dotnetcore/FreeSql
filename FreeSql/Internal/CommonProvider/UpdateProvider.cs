@@ -132,6 +132,9 @@ namespace FreeSql.Internal.CommonProvider
                 ClearData();
                 return ret;
             }
+            if (_transaction == null)
+                this.WithTransaction(_orm.Ado.TransactionCurrentThread);
+
             if (_transaction != null)
             {
                 for (var a = 0; a < ss.Length; a++)
@@ -175,6 +178,9 @@ namespace FreeSql.Internal.CommonProvider
                 ClearData();
                 return ret;
             }
+            if (_transaction == null)
+                this.WithTransaction(_orm.Ado.TransactionCurrentThread);
+
             if (_transaction != null)
             {
                 for (var a = 0; a < ss.Length; a++)
@@ -218,6 +224,9 @@ namespace FreeSql.Internal.CommonProvider
                 ClearData();
                 return ret;
             }
+            if (_transaction == null)
+                this.WithTransaction(_orm.Ado.TransactionCurrentThread);
+
             if (_transaction != null)
             {
                 for (var a = 0; a < ss.Length; a++)
@@ -261,6 +270,9 @@ namespace FreeSql.Internal.CommonProvider
                 ClearData();
                 return ret;
             }
+            if (_transaction == null)
+                this.WithTransaction(_orm.Ado.TransactionCurrentThread);
+
             if (_transaction != null)
             {
                 for (var a = 0; a < ss.Length; a++)
