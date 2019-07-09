@@ -83,14 +83,33 @@ namespace FreeSql.Oracle
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["nvarchar2(255)"]);
                     return OracleDbType.Varchar2;
                 case "char":
-                    _dicDbToCs.TryAdd(dbfull, _dicDbToCs["char(36 char)"]);
+                    _dicDbToCs.TryAdd(dbfull, _dicDbToCs["nvarchar2(255)"]);
                     return OracleDbType.Char;
+                case "nchar":
+                    _dicDbToCs.TryAdd(dbfull, _dicDbToCs["nvarchar2(255)"]);
+                    return OracleDbType.NChar;
                 case "clob":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["nvarchar2(255)"]);
                     return OracleDbType.Clob;
                 case "nclob":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["nvarchar2(255)"]);
                     return OracleDbType.NClob;
+                case "raw":
+                    _dicDbToCs.TryAdd(dbfull, _dicDbToCs["blob"]);
+                    return OracleDbType.Raw;
+                case "long raw":
+                    _dicDbToCs.TryAdd(dbfull, _dicDbToCs["blob"]);
+                    return OracleDbType.LongRaw;
+                case "binary_float":
+                    _dicDbToCs.TryAdd(dbfull, _dicDbToCs["float(63)"]);
+                    return OracleDbType.BinaryFloat;
+                case "binary_double":
+                    _dicDbToCs.TryAdd(dbfull, _dicDbToCs["float(126)"]);
+                    return OracleDbType.BinaryDouble;
+                case "rowid":
+                default:
+                    _dicDbToCs.TryAdd(dbfull, _dicDbToCs["nvarchar2(255)"]);
+                    return OracleDbType.NVarchar2;
             }
             throw new NotImplementedException($"未实现 {column.DbTypeTextFull} 类型映射");
         }

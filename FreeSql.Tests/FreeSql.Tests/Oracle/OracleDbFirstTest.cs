@@ -19,7 +19,7 @@ namespace FreeSql.Tests.Oracle
         {
 
             var t2 = g.oracle.DbFirst.GetTablesByDatabase();
-
+            //var tb = g.oracle.Ado.ExecuteArray(System.Data.CommandType.Text, "select * from \"tb_dbfirst\"");
         }
     }
 }
