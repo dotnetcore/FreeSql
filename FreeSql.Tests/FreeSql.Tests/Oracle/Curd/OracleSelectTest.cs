@@ -212,6 +212,17 @@ namespace FreeSql.Tests.Oracle
             select.Where(a => 1 == 1).Count(out var count2);
             Assert.Equal(count, count2);
             Assert.Equal(0, select.Where(a => 1 == 2).Count());
+
+            var subquery = select.ToSql(a => new
+            {
+                all = a,
+                count = select.Where(b => b.Id > 0 && b.Id == a.Id).Count()
+            });
+            var subqueryList = select.ToList(a => new
+            {
+                all = a,
+                count = select.Where(b => b.Id > 0 && b.Id == a.Id).Count()
+            });
         }
         [Fact]
         public void Master()
@@ -744,18 +755,58 @@ namespace FreeSql.Tests.Oracle
         [Fact]
         public void Sum()
         {
+            var subquery = select.ToSql(a => new
+            {
+                all = a,
+                count = select.Sum(b => b.Id)
+            });
+            var subqueryList = select.ToList(a => new
+            {
+                all = a,
+                count = select.Sum(b => b.Id)
+            });
         }
         [Fact]
         public void Min()
         {
+            var subquery = select.ToSql(a => new
+            {
+                all = a,
+                count = select.Min(b => b.Id)
+            });
+            var subqueryList = select.ToList(a => new
+            {
+                all = a,
+                count = select.Min(b => b.Id)
+            });
         }
         [Fact]
         public void Max()
         {
+            var subquery = select.ToSql(a => new
+            {
+                all = a,
+                count = select.Max(b => b.Id)
+            });
+            var subqueryList = select.ToList(a => new
+            {
+                all = a,
+                count = select.Max(b => b.Id)
+            });
         }
         [Fact]
         public void Avg()
         {
+            var subquery = select.ToSql(a => new
+            {
+                all = a,
+                count = select.Avg(b => b.Id)
+            });
+            var subqueryList = select.ToList(a => new
+            {
+                all = a,
+                count = select.Avg(b => b.Id)
+            });
         }
         [Fact]
         public void As()

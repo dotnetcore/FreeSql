@@ -296,9 +296,24 @@ namespace FreeSql.Tests
         [Fact]
         public void Test1()
         {
+            
+
             var teklksjdg = g.sqlite.Select<ZX.Model.CustomerCheckupGroup>()
                 .Where(a => true && a.CustomerMember.Group == "xxx")
-                .ToSql();
+                .ToSql(a => new
+                {
+                    all = a,
+                    subquery = g.sqlite.Select<ZX.Model.CustomerCheckupGroup>().Where(b => b.Id == a.Id).First(b => b.Group)
+                });
+
+            var teklksjdg333 = g.sqlite.Select<ZX.Model.CustomerCheckupGroup>()
+                .Where(a => true && a.CustomerMember.Group == "xxx")
+                .OrderBy(a => g.sqlite.Select<ZX.Model.CustomerCheckupGroup>().Where(b => b.Id == a.Id).First(b => b.Group))
+                .ToSql(a => new
+                {
+                    all = a,
+                    subquery = g.sqlite.Select<ZX.Model.CustomerCheckupGroup>().Where(b => b.Id == a.Id).First(b => b.Group)
+                });
 
             var sklgjlskdg = g.sqlite.Select<ZX.Model.CustomerMember>()
                 .Where(a => a.CheckupGroups.AsSelect().Any())
