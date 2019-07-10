@@ -34,7 +34,7 @@ namespace System.Linq.Expressions
             if (exp2 == null) return exp1;
 
             ParameterExpression newParameter = Expression.Parameter(typeof(T), "c");
-            NewExpressionVisitor visitor = new NewExpressionVisitor(newParameter);
+            NewExpressionVisitor visitor = new NewExpressionVisitor(newParameter, exp2.Parameters.FirstOrDefault());
 
             var left = visitor.Replace(exp1.Body);
             var right = visitor.Replace(exp2.Body);
@@ -62,7 +62,7 @@ namespace System.Linq.Expressions
             if (exp2 == null) return exp1;
 
             ParameterExpression newParameter = Expression.Parameter(typeof(T), "c");
-            NewExpressionVisitor visitor = new NewExpressionVisitor(newParameter);
+            NewExpressionVisitor visitor = new NewExpressionVisitor(newParameter, exp2.Parameters.FirstOrDefault());
 
             var left = visitor.Replace(exp1.Body);
             var right = visitor.Replace(exp2.Body);
@@ -90,18 +90,16 @@ namespace System.Linq.Expressions
 
     internal class NewExpressionVisitor : ExpressionVisitor
     {
-        public ParameterExpression _newParameter { get; private set; }
-        public NewExpressionVisitor(ParameterExpression param)
+        ParameterExpression _newParameter;
+        ParameterExpression _oldParameter;
+        public NewExpressionVisitor(ParameterExpression newParam, ParameterExpression oldParam)
         {
-            this._newParameter = param;
+            this._newParameter = newParam;
+            this._oldParameter = oldParam;
         }
-        public Expression Replace(Expression exp)
-        {
-            return this.Visit(exp);
-        }
-        protected override Expression VisitParameter(ParameterExpression node)
-        {
-            return this._newParameter;
-        }
+        public Expression Replace(Expression exp) => this.Visit(exp);
+
+        protected override Expression VisitParameter(ParameterExpression node) =>
+            node == _oldParameter ? this._newParameter : node;
     }
 }
