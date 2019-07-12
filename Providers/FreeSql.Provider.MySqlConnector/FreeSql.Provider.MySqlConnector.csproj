@@ -23,7 +23,6 @@
 
 	<ItemGroup>
 		<Compile Include="../FreeSql.Provider.MySql/**/*.cs" Exclude="../FreeSql.Provider.MySql/obj/**/*" />
-		<None Include="../FreeSql.Provider.MySql/MySqlUtils.cs" />
 	</ItemGroup>
 
 	<ItemGroup>
