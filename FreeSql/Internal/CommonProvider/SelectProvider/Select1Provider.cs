@@ -902,9 +902,7 @@ namespace FreeSql.Internal.CommonProvider
                             {
                                 string key = null;
                                 if (tbref.Columns.Count == 1)
-                                {
                                     key = _orm.GetEntityValueWithPropertyName(tbref.RefMiddleEntityType, midList[a], tbref.MiddleColumns[0].CsName).ToString();
-                                }
                                 else
                                 {
                                     var sb = new StringBuilder();
