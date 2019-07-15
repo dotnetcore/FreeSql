@@ -7,12 +7,12 @@ FreeSql 是一个功能强大的对象关系映射程序(O/RM)，支持 .NETCore
 # Features
 
 - [x] 支持 CodeFirst 迁移；
-- [x] 支持 DbFirst 从数据库导入实体类，提供失血、贫血、充血三种生成模板；
-- [x] 大量采用 ExpressionTree 技术提升性能；
+- [x] 支持 DbFirst 从数据库导入实体类；
+- [x] 大量采用 ExpressionTree 提升性能；
 - [x] 支持深入的类型映射，比如pgsql的数组类型，堪称匠心制作；
 - [x] 支持丰富的表达式函数；
-- [x] 支持导航属性查询，和延时加载；
-- [x] 支持同步/异步数据库操作方法，链式查询方法；
+- [x] 支持导航属性一对多、多对多贪婪加载，以及延时加载；
+- [x] 支持同步/异步数据库操作方法；
 - [x] 支持读写分离、分表分库，租户设计，过滤器，乐观锁；
 - [x] 支持多种数据库，MySql/SqlServer/PostgreSQL/Oracle/Sqlite；
 
