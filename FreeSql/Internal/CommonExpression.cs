@@ -633,14 +633,15 @@ namespace FreeSql.Internal
                                         fsqlType.GetField("_limit", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(fsql, 1);
                                         fsqltables = fsqlType.GetField("_tables", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(fsql) as List<SelectTableInfo>;
                                         //fsqltables[0].Alias = $"{tsc._tables[0].Alias}_{fsqltables[0].Alias}";
-                                        fsqltables.AddRange(tsc._tables.Select(a => new SelectTableInfo
-                                        {
-                                            Alias = a.Alias,
-                                            On = "1=1",
-                                            Table = a.Table,
-                                            Type = SelectTableInfoType.Parent,
-                                            Parameter = a.Parameter
-                                        }));
+                                        if (fsqltables != tsc._tables)
+                                            fsqltables.AddRange(tsc._tables.Select(a => new SelectTableInfo
+                                            {
+                                                Alias = a.Alias,
+                                                On = "1=1",
+                                                Table = a.Table,
+                                                Type = SelectTableInfoType.Parent,
+                                                Parameter = a.Parameter
+                                            }));
                                     }
                                     else if (fsqlType != null)
                                     {
