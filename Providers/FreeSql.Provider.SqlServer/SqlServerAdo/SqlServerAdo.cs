@@ -34,7 +34,9 @@ namespace FreeSql.SqlServer
                 param = Utils.GetDataReaderValue(mapType, param);
             if (param is bool || param is bool?)
                 return (bool)param ? 1 : 0;
-            else if (param is string || param is char)
+            else if (param is string)
+                return string.Concat("N'", param.ToString().Replace("'", "''"), "'");
+            else if (param is char)
                 return string.Concat("'", param.ToString().Replace("'", "''"), "'");
             else if (param is Enum)
                 return ((Enum)param).ToInt64();
@@ -59,7 +61,6 @@ namespace FreeSql.SqlServer
                 foreach (var z in ie) sb.Append(",").Append(AddslashesProcessParam(z, mapType));
                 return sb.Length == 0 ? "(NULL)" : sb.Remove(0, 1).Insert(0, "(").Append(")").ToString();
             }
-            else if (param is string) return string.Concat("N'", param.ToString().Replace("'", "''"), "'");
             return string.Concat("'", param.ToString().Replace("'", "''"), "'");
         }
 
