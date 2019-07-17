@@ -59,8 +59,8 @@ namespace FreeSql.SqlServer
                 foreach (var z in ie) sb.Append(",").Append(AddslashesProcessParam(z, mapType));
                 return sb.Length == 0 ? "(NULL)" : sb.Remove(0, 1).Insert(0, "(").Append(")").ToString();
             }
+            else if (param is string) return string.Concat("N'", param.ToString().Replace("'", "''"), "'");
             return string.Concat("'", param.ToString().Replace("'", "''"), "'");
-            //if (param is string) return string.Concat('N', nparms[a]);
         }
 
         protected override DbCommand CreateCommand()
