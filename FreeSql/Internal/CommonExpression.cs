@@ -8,6 +8,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace FreeSql.Internal
 {
@@ -341,6 +342,7 @@ namespace FreeSql.Internal
                 return GetBoolString(sql);
             return sql;
         }
+        static ConcurrentDictionary<string, Regex> dicRegexAlias = new ConcurrentDictionary<string, Regex>();
         public void ExpressionJoinLambda(List<SelectTableInfo> _tables, SelectTableInfoType tbtype, Expression exp, Func<Expression[], string> getSelectGroupingMapString)
         {
             var tbidx = _tables.Count;
@@ -360,7 +362,10 @@ namespace FreeSql.Internal
             }
             else
             {
-                var find = _tables.Where((a, c) => c > 0 && (a.Type == tbtype || a.Type == SelectTableInfoType.From) && string.IsNullOrEmpty(a.On) && sql.Contains(a.Alias + ".")).LastOrDefault();
+                var find = _tables.Where((a, c) => c > 0 && 
+                    (a.Type == tbtype || a.Type == SelectTableInfoType.From) && 
+                    string.IsNullOrEmpty(a.On) &&
+                    dicRegexAlias.GetOrAdd(a.Alias, alias => new Regex($@"\b{alias}\.", RegexOptions.Compiled)).IsMatch(sql)).LastOrDefault();
                 if (find != null)
                 {
                     find.Type = tbtype;

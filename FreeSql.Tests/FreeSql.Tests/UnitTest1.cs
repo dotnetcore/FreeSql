@@ -283,6 +283,8 @@ namespace FreeSql.Tests
             [Navigate("TbId")]
             public virtual ICollection<TaskBuildInfo> Builds { get; set; }
             public Templates Templates { get; set; }
+
+            public TaskBuild Parent { get; set; }
         }
 
         public class SqlFunc
@@ -296,7 +298,27 @@ namespace FreeSql.Tests
         [Fact]
         public void Test1()
         {
-            
+            var sqksdkfjl = g.sqlite.Select<TaskBuild>()
+                .LeftJoin(a => a.Templates.Id2 == a.TemplatesId)
+                .LeftJoin(a => a.Parent.Id == a.Id)
+                .LeftJoin(a => a.Parent.Templates.Id2 == a.Parent.TemplatesId)
+                .ToSql(a => new
+                {
+                    code1 = a.Templates.Code,
+                    code2 = a.Parent.Templates.Code
+                });
+
+
+            var sqksdkfjl2223 = g.sqlite.Select<TaskBuild>().From<TaskBuild, Templates, Templates>((s1, tb2, b1, b2) => s1
+                .LeftJoin(a => a.Id == tb2.TemplatesId)
+                .LeftJoin(a => a.TemplatesId == b1.Id2)
+                .LeftJoin(a => a.TemplatesId == b2.Id2)
+            ).ToSql((a, tb2, b1, b2) => new
+            {
+                code1 = b1.Code,
+                code2 = b2.Code
+            });
+
 
             var teklksjdg = g.sqlite.Select<ZX.Model.CustomerCheckupGroup>()
                 .Where(a => true && a.CustomerMember.Group == "xxx")
