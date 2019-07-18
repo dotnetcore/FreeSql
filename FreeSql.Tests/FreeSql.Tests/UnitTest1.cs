@@ -359,8 +359,7 @@ namespace FreeSql.Tests
                  .ToSql(a => new
                  {
                      a.Key,
-                     sss = a.Sum(a.Value.Item1.Id),
-                     sss2 = a.Sum(a.Value.Item2.Id2)
+                     sss = a.Sum(a.Value.Item1.OptionsEntity04)
                  });
 
             var testgrpsql2 = g.sqlite.Select<TaskBuild>()
@@ -370,8 +369,7 @@ namespace FreeSql.Tests
                  .ToList(a => new
                  {
                      a.Key,
-                     sss = a.Sum(a.Value.Item1.Id),
-                     sss2 = a.Sum(a.Value.Item2.Id2)
+                     sss = a.Sum(a.Value.Item1.OptionsEntity04)
                  });
 
 

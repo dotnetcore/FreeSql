@@ -127,6 +127,12 @@ namespace FreeSql.PostgreSQL
 
             if (_pool.IsAvailable)
             {
+                if (obj.Value == null)
+                {
+                    if (_pool.SetUnavailable(new Exception("连接字符串错误")) == true)
+                        throw new Exception($"【{this.Name}】连接字符串错误，请检查。");
+                    return;
+                }
 
                 if (obj.Value.State != ConnectionState.Open || DateTime.Now.Subtract(obj.LastReturnTime).TotalSeconds > 60 && obj.Value.Ping() == false)
                 {
@@ -149,6 +155,12 @@ namespace FreeSql.PostgreSQL
 
             if (_pool.IsAvailable)
             {
+                if (obj.Value == null)
+                {
+                    if (_pool.SetUnavailable(new Exception("连接字符串错误")) == true)
+                        throw new Exception($"【{this.Name}】连接字符串错误，请检查。");
+                    return;
+                }
 
                 if (obj.Value.State != ConnectionState.Open || DateTime.Now.Subtract(obj.LastReturnTime).TotalSeconds > 60 && (await obj.Value.PingAsync()) == false)
                 {

@@ -426,7 +426,7 @@ namespace FreeSql.Internal
             {
                 var enumType = leftMapColumn.CsType.NullableTypeOrThis();
                 if (enumType.IsEnum)
-                    right = formatSql(Enum.Parse(enumType, right.Trim('\'')), leftMapColumn.Attribute.MapType);
+                    right = formatSql(Enum.Parse(enumType, right.StartsWith("N'") ? right.Substring(1).Trim('\'') : right.Trim('\'')), leftMapColumn.Attribute.MapType);
             }
             if (leftMapColumn == null)
             {
@@ -440,7 +440,7 @@ namespace FreeSql.Internal
                     {
                         var enumType = rightMapColumn.CsType.NullableTypeOrThis();
                         if (enumType.IsEnum)
-                            left = formatSql(Enum.Parse(enumType, left.Trim('\'')), rightMapColumn.Attribute.MapType);
+                            left = formatSql(Enum.Parse(enumType, left.StartsWith("N'") ? left.Substring(1).Trim('\'') : left.Trim('\'')), rightMapColumn.Attribute.MapType);
                     }
                 }
             }
