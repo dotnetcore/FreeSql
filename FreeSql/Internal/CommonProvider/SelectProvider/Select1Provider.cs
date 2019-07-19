@@ -321,9 +321,10 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalToAggregateAsync<TReturn>(select?.Body);
         }
 
-        public ISelect<T1> Where(Expression<Func<T1, bool>> exp)
+        public ISelect<T1> Where(Expression<Func<T1, bool>> exp) => WhereIf(true, exp);
+        public ISelect<T1> WhereIf(bool condition, Expression<Func<T1, bool>> exp)
         {
-            if (exp == null) return this;
+            if (condition == false || exp == null) return this;
             _tables[0].Parameter = exp.Parameters[0];
             return this.InternalWhere(exp?.Body);
         }
@@ -364,11 +365,10 @@ namespace FreeSql.Internal.CommonProvider
         }
         public ISelect<T1> WhereDynamic(object dywhere) => this.Where(_commonUtils.WhereObject(_tables.First().Table, $"{_tables.First().Alias}.", dywhere));
 
-        public ISelect<T1> WhereIf(bool condition, Expression<Func<T1, bool>> exp)
+        public ISelect<T1> WhereCascade(Expression<Func<T1, bool>> exp)
         {
-            if (condition == false || exp == null) return this;
-            _tables[0].Parameter = exp.Parameters[0];
-            return this.InternalWhere(exp?.Body);
+            if (exp != null) _whereCascadeExpression.Add(exp);
+            return this;
         }
 
         public bool Any(Expression<Func<T1, bool>> exp) => this.Where(exp).Any();
@@ -390,7 +390,7 @@ namespace FreeSql.Internal.CommonProvider
             var tb = _commonUtils.GetTableByEntity(expBody.Type);
             if (tb == null) throw new Exception("Include 参数类型错误");
 
-            _commonExpression.ExpressionWhereLambda(_tables, Expression.MakeMemberAccess(expBody, tb.Properties[tb.ColumnsByCs.First().Value.CsName]), null);
+            _commonExpression.ExpressionWhereLambda(_tables, Expression.MakeMemberAccess(expBody, tb.Properties[tb.ColumnsByCs.First().Value.CsName]), null, null);
             return this;
         }
 
@@ -454,15 +454,13 @@ namespace FreeSql.Internal.CommonProvider
             if (tbNav == null) throw new Exception($"类型 {typeof(TNavigate).FullName} 错误，不能使用 IncludeMany");
 
             if (collMem.Expression.NodeType != ExpressionType.Parameter)
-                _commonExpression.ExpressionWhereLambda(_tables, Expression.MakeMemberAccess(collMem.Expression, tb.Properties[tb.ColumnsByCs.First().Value.CsName]), null);
+                _commonExpression.ExpressionWhereLambda(_tables, Expression.MakeMemberAccess(collMem.Expression, tb.Properties[tb.ColumnsByCs.First().Value.CsName]), null, null);
 
             TableRef tbref = null;
             var tbrefOneToManyColumns = new List<List<MemberExpression>>(); //临时 OneToMany 三个表关联，第三个表需要前两个表确定
             if (whereExp == null)
             {
-
                 tbref = tb.GetTableRef(collMem.Member.Name, true);
-
             }
             else
             {
@@ -563,8 +561,8 @@ namespace FreeSql.Internal.CommonProvider
                 }
                 if (tbref.Columns.Any() == false) throw throwNavigateSelector;
             }
-
-            _includeToList.Enqueue(listObj =>
+            
+            _includeToList.Add(listObj =>
             {
                 var list = listObj as List<T1>;
                 if (list == null) return;
@@ -621,6 +619,10 @@ namespace FreeSql.Internal.CommonProvider
                 var subSelect = _orm.Select<TNavigate>().WithConnection(_connection).WithTransaction(_transaction).TrackToList(_trackToList) as Select1Provider<TNavigate>;
                 if (_tableRules?.Any() == true)
                     foreach (var tr in _tableRules) subSelect.AsTable(tr);
+
+                if (_whereCascadeExpression.Any())
+                    subSelect._whereCascadeExpression.AddRange(_whereCascadeExpression.ToArray());
+
                 then?.Invoke(subSelect);
                 var subSelectT1Alias = subSelect._tables[0].Alias;
                 var oldWhere = subSelect._where.ToString();
@@ -778,6 +780,11 @@ namespace FreeSql.Internal.CommonProvider
                             {
                                 if (z > 0) sbJoin.Append(" AND ");
                                 sbJoin.Append($"midtb.{_commonUtils.QuoteSqlName(tbref.MiddleColumns[tbref.Columns.Count + z].Attribute.Name)} = a.{_commonUtils.QuoteSqlName(tbref.RefColumns[z].Attribute.Name)}");
+                                if (_whereCascadeExpression.Any()) {
+                                    var cascade = _commonExpression.GetWhereCascadeSql(new SelectTableInfo { Alias = "midtb", AliasInit = "midtb", Table = tbrefMid, Type = SelectTableInfoType.InnerJoin }, _whereCascadeExpression);
+                                    if (string.IsNullOrEmpty(cascade) == false)
+                                        sbJoin.Append(" AND (").Append(cascade).Append(")");
+                                }
                             }
                             subSelect.InnerJoin(sbJoin.ToString());
                             sbJoin.Clear();

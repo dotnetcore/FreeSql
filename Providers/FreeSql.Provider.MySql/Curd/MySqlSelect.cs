@@ -12,10 +12,14 @@ namespace FreeSql.MySql.Curd
     class MySqlSelect<T1> : FreeSql.Internal.CommonProvider.Select1Provider<T1> where T1 : class
     {
 
-        internal static string ToSqlStatic(CommonUtils _commonUtils, string _select, bool _distinct, string field, StringBuilder _join, StringBuilder _where, string _groupby, string _having, string _orderby, int _skip, int _limit, List<SelectTableInfo> _tables, Func<Type, string, string> tableRuleInvoke, IFreeSql _orm)
+        internal static string ToSqlStatic(CommonUtils _commonUtils, CommonExpression _commonExpression, string _select, bool _distinct, string field, StringBuilder _join, StringBuilder _where, string _groupby, string _having, string _orderby, int _skip, int _limit, List<SelectTableInfo> _tables, Func<Type, string, string> tableRuleInvoke, List<LambdaExpression> _whereCascadeExpression, IFreeSql _orm)
         {
             if (_orm.CodeFirst.IsAutoSyncStructure)
                 _orm.CodeFirst.SyncStructure(_tables.Select(a => a.Table.Type).ToArray());
+
+            if (_whereCascadeExpression.Any())
+                foreach (var tb in _tables.Where(a => a.Type != SelectTableInfoType.Parent))
+                    tb.Cascade = _commonExpression.GetWhereCascadeSql(tb, _whereCascadeExpression);
 
             var sb = new StringBuilder();
             var sbnav = new StringBuilder();
@@ -33,8 +37,13 @@ namespace FreeSql.MySql.Curd
                     for (var b = 1; b < tbsfrom.Length; b++)
                     {
                         sb.Append(" \r\nLEFT JOIN ").Append(_commonUtils.QuoteSqlName(tableRuleInvoke(tbsfrom[b].Table.Type, tbsfrom[b].Table.DbName))).Append(" ").Append(tbsfrom[b].Alias);
-                        if (string.IsNullOrEmpty(tbsfrom[b].NavigateCondition) && string.IsNullOrEmpty(tbsfrom[b].On)) sb.Append(" ON 1 = 1");
-                        else sb.Append(" ON ").Append(tbsfrom[b].NavigateCondition ?? tbsfrom[b].On);
+
+                        if (string.IsNullOrEmpty(tbsfrom[b].NavigateCondition) && string.IsNullOrEmpty(tbsfrom[b].On) && string.IsNullOrEmpty(tbsfrom[b].Cascade)) sb.Append(" ON 1 = 1");
+                        else
+                        {
+                            sb.Append(" ON ").Append(tbsfrom[b].NavigateCondition ?? tbsfrom[b].On);
+                            if (string.IsNullOrEmpty(tbsfrom[b].Cascade) == false) sb.Append(" AND (").Append(tbsfrom[b].Cascade).Append(")");
+                        }
                     }
                     break;
                 }
@@ -42,6 +51,7 @@ namespace FreeSql.MySql.Curd
                 {
                     if (!string.IsNullOrEmpty(tbsfrom[a].NavigateCondition)) sbnav.Append(" AND (").Append(tbsfrom[a].NavigateCondition).Append(")");
                     if (!string.IsNullOrEmpty(tbsfrom[a].On)) sbnav.Append(" AND (").Append(tbsfrom[a].On).Append(")");
+                    if (a > 0 && !string.IsNullOrEmpty(tbsfrom[a].Cascade)) sbnav.Append(" AND (").Append(tbsfrom[a].Cascade).Append(")");
                 }
                 if (a < tbsfrom.Length - 1) sb.Append(", ");
             }
@@ -61,11 +71,15 @@ namespace FreeSql.MySql.Curd
                         break;
                 }
                 sb.Append(_commonUtils.QuoteSqlName(tableRuleInvoke(tb.Table.Type, tb.Table.DbName))).Append(" ").Append(tb.Alias).Append(" ON ").Append(tb.On ?? tb.NavigateCondition);
+                if (!string.IsNullOrEmpty(tb.Cascade)) sb.Append(" AND (").Append(tb.Cascade).Append(")");
                 if (!string.IsNullOrEmpty(tb.On) && !string.IsNullOrEmpty(tb.NavigateCondition)) sbnav.Append(" AND (").Append(tb.NavigateCondition).Append(")");
             }
             if (_join.Length > 0) sb.Append(_join);
 
             sbnav.Append(_where);
+            if (!string.IsNullOrEmpty(_tables[0].Cascade))
+                sbnav.Append(" AND (").Append(_tables[0].Cascade).Append(")");
+
             foreach (var tb in _tables)
             {
                 if (tb.Type == SelectTableInfoType.Parent) continue;
@@ -100,51 +114,51 @@ namespace FreeSql.MySql.Curd
         public override ISelect<T1, T2, T3, T4, T5, T6, T7, T8> From<T2, T3, T4, T5, T6, T7, T8>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, ISelectFromExpression<T1>>> exp) { this.InternalFrom(exp); var ret = new MySqlSelect<T1, T2, T3, T4, T5, T6, T7, T8>(_orm, _commonUtils, _commonExpression, null); MySqlSelect<T1>.CopyData(this, ret, exp?.Parameters); return ret; }
         public override ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9> From<T2, T3, T4, T5, T6, T7, T8, T9>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, T9, ISelectFromExpression<T1>>> exp) { this.InternalFrom(exp); var ret = new MySqlSelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>(_orm, _commonUtils, _commonExpression, null); MySqlSelect<T1>.CopyData(this, ret, exp?.Parameters); return ret; }
         public override ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> From<T2, T3, T4, T5, T6, T7, T8, T9, T10>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, T9, T10, ISelectFromExpression<T1>>> exp) { this.InternalFrom(exp); var ret = new MySqlSelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(_orm, _commonUtils, _commonExpression, null); MySqlSelect<T1>.CopyData(this, ret, exp?.Parameters); return ret; }
-        public override string ToSql(string field = null) => ToSqlStatic(_commonUtils, _select, _distinct, field ?? this.GetAllFieldExpressionTreeLevel2().Field, _join, _where, _groupby, _having, _orderby, _skip, _limit, _tables, TableRuleInvoke, _orm);
+        public override string ToSql(string field = null) => ToSqlStatic(_commonUtils, _commonExpression, _select, _distinct, field ?? this.GetAllFieldExpressionTreeLevel2().Field, _join, _where, _groupby, _having, _orderby, _skip, _limit, _tables, TableRuleInvoke, _whereCascadeExpression, _orm);
     }
     class MySqlSelect<T1, T2> : FreeSql.Internal.CommonProvider.Select2Provider<T1, T2> where T1 : class where T2 : class
     {
         public MySqlSelect(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere) : base(orm, commonUtils, commonExpression, dywhere) { }
-        public override string ToSql(string field = null) => MySqlSelect<T1>.ToSqlStatic(_commonUtils, _select, _distinct, field ?? this.GetAllFieldExpressionTreeLevel2().Field, _join, _where, _groupby, _having, _orderby, _skip, _limit, _tables, TableRuleInvoke, _orm);
+        public override string ToSql(string field = null) => MySqlSelect<T1>.ToSqlStatic(_commonUtils, _commonExpression, _select, _distinct, field ?? this.GetAllFieldExpressionTreeLevel2().Field, _join, _where, _groupby, _having, _orderby, _skip, _limit, _tables, TableRuleInvoke, _whereCascadeExpression, _orm);
     }
     class MySqlSelect<T1, T2, T3> : FreeSql.Internal.CommonProvider.Select3Provider<T1, T2, T3> where T1 : class where T2 : class where T3 : class
     {
         public MySqlSelect(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere) : base(orm, commonUtils, commonExpression, dywhere) { }
-        public override string ToSql(string field = null) => MySqlSelect<T1>.ToSqlStatic(_commonUtils, _select, _distinct, field ?? this.GetAllFieldExpressionTreeLevel2().Field, _join, _where, _groupby, _having, _orderby, _skip, _limit, _tables, TableRuleInvoke, _orm);
+        public override string ToSql(string field = null) => MySqlSelect<T1>.ToSqlStatic(_commonUtils, _commonExpression, _select, _distinct, field ?? this.GetAllFieldExpressionTreeLevel2().Field, _join, _where, _groupby, _having, _orderby, _skip, _limit, _tables, TableRuleInvoke, _whereCascadeExpression, _orm);
     }
     class MySqlSelect<T1, T2, T3, T4> : FreeSql.Internal.CommonProvider.Select4Provider<T1, T2, T3, T4> where T1 : class where T2 : class where T3 : class where T4 : class
     {
         public MySqlSelect(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere) : base(orm, commonUtils, commonExpression, dywhere) { }
-        public override string ToSql(string field = null) => MySqlSelect<T1>.ToSqlStatic(_commonUtils, _select, _distinct, field ?? this.GetAllFieldExpressionTreeLevel2().Field, _join, _where, _groupby, _having, _orderby, _skip, _limit, _tables, TableRuleInvoke, _orm);
+        public override string ToSql(string field = null) => MySqlSelect<T1>.ToSqlStatic(_commonUtils, _commonExpression, _select, _distinct, field ?? this.GetAllFieldExpressionTreeLevel2().Field, _join, _where, _groupby, _having, _orderby, _skip, _limit, _tables, TableRuleInvoke, _whereCascadeExpression, _orm);
     }
     class MySqlSelect<T1, T2, T3, T4, T5> : FreeSql.Internal.CommonProvider.Select5Provider<T1, T2, T3, T4, T5> where T1 : class where T2 : class where T3 : class where T4 : class where T5 : class
     {
         public MySqlSelect(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere) : base(orm, commonUtils, commonExpression, dywhere) { }
-        public override string ToSql(string field = null) => MySqlSelect<T1>.ToSqlStatic(_commonUtils, _select, _distinct, field ?? this.GetAllFieldExpressionTreeLevel2().Field, _join, _where, _groupby, _having, _orderby, _skip, _limit, _tables, TableRuleInvoke, _orm);
+        public override string ToSql(string field = null) => MySqlSelect<T1>.ToSqlStatic(_commonUtils, _commonExpression, _select, _distinct, field ?? this.GetAllFieldExpressionTreeLevel2().Field, _join, _where, _groupby, _having, _orderby, _skip, _limit, _tables, TableRuleInvoke, _whereCascadeExpression, _orm);
     }
     class MySqlSelect<T1, T2, T3, T4, T5, T6> : FreeSql.Internal.CommonProvider.Select6Provider<T1, T2, T3, T4, T5, T6> where T1 : class where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class
     {
         public MySqlSelect(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere) : base(orm, commonUtils, commonExpression, dywhere) { }
-        public override string ToSql(string field = null) => MySqlSelect<T1>.ToSqlStatic(_commonUtils, _select, _distinct, field ?? this.GetAllFieldExpressionTreeLevel2().Field, _join, _where, _groupby, _having, _orderby, _skip, _limit, _tables, TableRuleInvoke, _orm);
+        public override string ToSql(string field = null) => MySqlSelect<T1>.ToSqlStatic(_commonUtils, _commonExpression, _select, _distinct, field ?? this.GetAllFieldExpressionTreeLevel2().Field, _join, _where, _groupby, _having, _orderby, _skip, _limit, _tables, TableRuleInvoke, _whereCascadeExpression, _orm);
     }
     class MySqlSelect<T1, T2, T3, T4, T5, T6, T7> : FreeSql.Internal.CommonProvider.Select7Provider<T1, T2, T3, T4, T5, T6, T7> where T1 : class where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class
     {
         public MySqlSelect(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere) : base(orm, commonUtils, commonExpression, dywhere) { }
-        public override string ToSql(string field = null) => MySqlSelect<T1>.ToSqlStatic(_commonUtils, _select, _distinct, field ?? this.GetAllFieldExpressionTreeLevel2().Field, _join, _where, _groupby, _having, _orderby, _skip, _limit, _tables, TableRuleInvoke, _orm);
+        public override string ToSql(string field = null) => MySqlSelect<T1>.ToSqlStatic(_commonUtils, _commonExpression, _select, _distinct, field ?? this.GetAllFieldExpressionTreeLevel2().Field, _join, _where, _groupby, _having, _orderby, _skip, _limit, _tables, TableRuleInvoke, _whereCascadeExpression, _orm);
     }
     class MySqlSelect<T1, T2, T3, T4, T5, T6, T7, T8> : FreeSql.Internal.CommonProvider.Select8Provider<T1, T2, T3, T4, T5, T6, T7, T8> where T1 : class where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class
     {
         public MySqlSelect(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere) : base(orm, commonUtils, commonExpression, dywhere) { }
-        public override string ToSql(string field = null) => MySqlSelect<T1>.ToSqlStatic(_commonUtils, _select, _distinct, field ?? this.GetAllFieldExpressionTreeLevel2().Field, _join, _where, _groupby, _having, _orderby, _skip, _limit, _tables, TableRuleInvoke, _orm);
+        public override string ToSql(string field = null) => MySqlSelect<T1>.ToSqlStatic(_commonUtils, _commonExpression, _select, _distinct, field ?? this.GetAllFieldExpressionTreeLevel2().Field, _join, _where, _groupby, _having, _orderby, _skip, _limit, _tables, TableRuleInvoke, _whereCascadeExpression, _orm);
     }
     class MySqlSelect<T1, T2, T3, T4, T5, T6, T7, T8, T9> : FreeSql.Internal.CommonProvider.Select9Provider<T1, T2, T3, T4, T5, T6, T7, T8, T9> where T1 : class where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class
     {
         public MySqlSelect(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere) : base(orm, commonUtils, commonExpression, dywhere) { }
-        public override string ToSql(string field = null) => MySqlSelect<T1>.ToSqlStatic(_commonUtils, _select, _distinct, field ?? this.GetAllFieldExpressionTreeLevel2().Field, _join, _where, _groupby, _having, _orderby, _skip, _limit, _tables, TableRuleInvoke, _orm);
+        public override string ToSql(string field = null) => MySqlSelect<T1>.ToSqlStatic(_commonUtils, _commonExpression, _select, _distinct, field ?? this.GetAllFieldExpressionTreeLevel2().Field, _join, _where, _groupby, _having, _orderby, _skip, _limit, _tables, TableRuleInvoke, _whereCascadeExpression, _orm);
     }
     class MySqlSelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> : FreeSql.Internal.CommonProvider.Select10Provider<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> where T1 : class where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class
     {
         public MySqlSelect(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere) : base(orm, commonUtils, commonExpression, dywhere) { }
-        public override string ToSql(string field = null) => MySqlSelect<T1>.ToSqlStatic(_commonUtils, _select, _distinct, field ?? this.GetAllFieldExpressionTreeLevel2().Field, _join, _where, _groupby, _having, _orderby, _skip, _limit, _tables, TableRuleInvoke, _orm);
+        public override string ToSql(string field = null) => MySqlSelect<T1>.ToSqlStatic(_commonUtils, _commonExpression, _select, _distinct, field ?? this.GetAllFieldExpressionTreeLevel2().Field, _join, _where, _groupby, _having, _orderby, _skip, _limit, _tables, TableRuleInvoke, _whereCascadeExpression, _orm);
     }
 }

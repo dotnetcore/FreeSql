@@ -41,6 +41,13 @@ namespace FreeSql.Internal
             if (typeof(IEnumerable).IsAssignableFrom(entity) && entity.IsGenericParameter == true) return null;
             if (entity.IsArray) return null;
 
+            object entityDefault = null;
+            try
+            {
+                if (entity.IsAbstract == false && entity.IsInterface == false)
+                    entityDefault = Activator.CreateInstance(entity);
+            }
+            catch { }
             var tbattr = common.GetEntityTableAttribute(entity);
             trytb = new TableInfo();
             trytb.Type = entity;
@@ -148,7 +155,8 @@ namespace FreeSql.Internal
                     trytb.ColumnsByCsIgnore.Add(p.Name, col);
                     continue;
                 }
-                colattr.DbDefautValue = trytb.Properties[p.Name].GetValue(Activator.CreateInstance(trytb.Type));
+                if (entityDefault == null) entityDefault = Activator.CreateInstance(entity);
+                colattr.DbDefautValue = trytb.Properties[p.Name].GetValue(entityDefault);
                 if (colattr.DbDefautValue != null && p.PropertyType != colattr.MapType) colattr.DbDefautValue = Utils.GetDataReaderValue(colattr.MapType, colattr.DbDefautValue);
                 if (colattr.DbDefautValue == null) colattr.DbDefautValue = tp?.defaultValue;
                 if (colattr.IsNullable == false && colattr.DbDefautValue == null)

@@ -3,6 +3,8 @@ using System;
 using System.Collections.Concurrent;
 using System.Data.Common;
 using System.Diagnostics;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -32,5 +34,17 @@ public static class FreeUtil
         var rand = rnd.Value.Next(0, int.MaxValue);
         var guid = $"{uninxtime.ToString("x8").PadLeft(8, '0')}{__staticMachine.ToString("x8").PadLeft(8, '0').Substring(2, 6)}{__staticPid.ToString("x8").PadLeft(8, '0').Substring(6, 2)}{increment.ToString("x8").PadLeft(8, '0')}{rand.ToString("x8").PadLeft(8, '0')}";
         return Guid.Parse(guid);
+    }
+
+    public static string Sha1(string str)
+    {
+        var buffer = Encoding.UTF8.GetBytes(str);
+        var data = SHA1.Create().ComputeHash(buffer);
+
+        var sub = new StringBuilder();
+        foreach (var t in data)
+            sub.Append(t.ToString("X2"));
+
+        return sub.ToString();
     }
 }

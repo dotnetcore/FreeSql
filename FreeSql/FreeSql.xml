@@ -1259,6 +1259,21 @@
             <param name="dywhere">主键值、主键值集合、实体、实体集合、匿名对象、匿名对象集合</param>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.ISelect`1.WhereCascade(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
+            <summary>
+            多表查询时，该方法标记后，表达式条件将对所有表进行附加
+            <para></para>
+            例如：软删除、租户，每个表都给条件，挺麻烦的
+            <para></para>
+            fsql.Select&lt;T1&gt;().LeftJoin&lt;T2&gt;(...).Where&lt;T2&gt;((t1, t2 => t1.IsDeleted == false &amp;&amp; t2.IsDeleted == false)
+            <para></para>
+            修改：fsql.Select&lt;T1&gt;().LeftJoin&lt;T2&gt;(...).WhereCascade(t1 => t1.IsDeleted == false)
+            <para></para>
+            当其中的实体可附加表达式才会进行，表越多时收益越大
+            </summary>
+            <param name="exp"></param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.ISelect`1.GroupBy``1(System.Linq.Expressions.Expression{System.Func{`0,``0}})">
             <summary>
             按选择的列分组，GroupBy(a => a.Name) | GroupBy(a => new{a.Name,a.Time})

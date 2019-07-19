@@ -54,6 +54,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Tests.PerformanceTe
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Tests.Provider.MySqlConnector", "FreeSql.Tests\FreeSql.Tests.Provider.MySqlConnector\FreeSql.Tests.Provider.MySqlConnector.csproj", "{0F45294A-34FF-4FB8-A046-20E09E3A4D5C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "base_entity", "Examples\base_entity\base_entity.csproj", "{D3A1869C-A8DE-46D0-8587-89EBBE3E4DD0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -304,6 +306,18 @@ Global
 		{0F45294A-34FF-4FB8-A046-20E09E3A4D5C}.Release|x64.Build.0 = Release|Any CPU
 		{0F45294A-34FF-4FB8-A046-20E09E3A4D5C}.Release|x86.ActiveCfg = Release|Any CPU
 		{0F45294A-34FF-4FB8-A046-20E09E3A4D5C}.Release|x86.Build.0 = Release|Any CPU
+		{D3A1869C-A8DE-46D0-8587-89EBBE3E4DD0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D3A1869C-A8DE-46D0-8587-89EBBE3E4DD0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D3A1869C-A8DE-46D0-8587-89EBBE3E4DD0}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{D3A1869C-A8DE-46D0-8587-89EBBE3E4DD0}.Debug|x64.Build.0 = Debug|Any CPU
+		{D3A1869C-A8DE-46D0-8587-89EBBE3E4DD0}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D3A1869C-A8DE-46D0-8587-89EBBE3E4DD0}.Debug|x86.Build.0 = Debug|Any CPU
+		{D3A1869C-A8DE-46D0-8587-89EBBE3E4DD0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D3A1869C-A8DE-46D0-8587-89EBBE3E4DD0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D3A1869C-A8DE-46D0-8587-89EBBE3E4DD0}.Release|x64.ActiveCfg = Release|Any CPU
+		{D3A1869C-A8DE-46D0-8587-89EBBE3E4DD0}.Release|x64.Build.0 = Release|Any CPU
+		{D3A1869C-A8DE-46D0-8587-89EBBE3E4DD0}.Release|x86.ActiveCfg = Release|Any CPU
+		{D3A1869C-A8DE-46D0-8587-89EBBE3E4DD0}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -322,6 +336,7 @@ Global
 		{D2A41321-5E84-410B-B25C-3AA122D4CA27} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
 		{690F89E0-A721-423F-8F5D-D262F73235EA} = {94C8A78D-AA15-47B2-A348-530CD86BFC1B}
 		{4C0973CB-BD49-4A5B-A6FE-EE0594BDD513} = {94C8A78D-AA15-47B2-A348-530CD86BFC1B}
+		{D3A1869C-A8DE-46D0-8587-89EBBE3E4DD0} = {94C8A78D-AA15-47B2-A348-530CD86BFC1B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {089687FD-5D25-40AB-BA8A-A10D1E137F98}

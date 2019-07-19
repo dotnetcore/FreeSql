@@ -97,7 +97,7 @@ namespace FreeSql.MySql
                 case "MygisPolygon":
                 case "MygisMultiPoint":
                 case "MygisMultiLineString":
-                case "MygisMultiPolygon": return $"AsText({columnName})";
+                case "MygisMultiPolygon": return $"ST_AsText({columnName})";
             }
             return columnName;
         }

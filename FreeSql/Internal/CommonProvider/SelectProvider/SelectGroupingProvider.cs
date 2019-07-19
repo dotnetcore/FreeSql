@@ -84,7 +84,7 @@ namespace FreeSql.Internal.CommonProvider
 
         public ISelectGrouping<TKey, TValue> Having(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, bool>> exp)
         {
-            var sql = _comonExp.ExpressionWhereLambda(null, exp, getSelectGroupingMapString);
+            var sql = _comonExp.ExpressionWhereLambda(null, exp, getSelectGroupingMapString, null);
             var method = _select.GetType().GetMethod("Having", new[] { typeof(string), typeof(object) });
             method.Invoke(_select, new object[] { sql, null });
             return this;
@@ -92,7 +92,7 @@ namespace FreeSql.Internal.CommonProvider
 
         public ISelectGrouping<TKey, TValue> OrderBy<TMember>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TMember>> column)
         {
-            var sql = _comonExp.ExpressionWhereLambda(null, column, getSelectGroupingMapString);
+            var sql = _comonExp.ExpressionWhereLambda(null, column, getSelectGroupingMapString, null);
             var method = _select.GetType().GetMethod("OrderBy", new[] { typeof(string), typeof(object) });
             method.Invoke(_select, new object[] { sql, null });
             return this;
@@ -100,7 +100,7 @@ namespace FreeSql.Internal.CommonProvider
 
         public ISelectGrouping<TKey, TValue> OrderByDescending<TMember>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TMember>> column)
         {
-            var sql = _comonExp.ExpressionWhereLambda(null, column, getSelectGroupingMapString);
+            var sql = _comonExp.ExpressionWhereLambda(null, column, getSelectGroupingMapString, null);
             var method = _select.GetType().GetMethod("OrderBy", new[] { typeof(string), typeof(object) });
             method.Invoke(_select, new object[] { $"{sql} DESC", null });
             return this;
@@ -112,7 +112,7 @@ namespace FreeSql.Internal.CommonProvider
             var field = new StringBuilder();
             var index = 0;
 
-            _comonExp.ReadAnonymousField(null, field, map, ref index, select, getSelectGroupingMapString);
+            _comonExp.ReadAnonymousField(null, field, map, ref index, select, getSelectGroupingMapString, null);
             var method = _select.GetType().GetMethod("ToListMapReader", BindingFlags.Instance | BindingFlags.NonPublic);
             method = method.MakeGenericMethod(typeof(TReturn));
             return method.Invoke(_select, new object[] { (map, field.Length > 0 ? field.Remove(0, 2).ToString() : null) }) as List<TReturn>;
@@ -123,7 +123,7 @@ namespace FreeSql.Internal.CommonProvider
             var field = new StringBuilder();
             var index = 0;
 
-            _comonExp.ReadAnonymousField(null, field, map, ref index, select, getSelectGroupingMapString);
+            _comonExp.ReadAnonymousField(null, field, map, ref index, select, getSelectGroupingMapString, null);
             var method = _select.GetType().GetMethod("ToListMapReaderAsync", BindingFlags.Instance | BindingFlags.NonPublic);
             method = method.MakeGenericMethod(typeof(TReturn));
             return method.Invoke(_select, new object[] { (map, field.Length > 0 ? field.Remove(0, 2).ToString() : null) }) as Task<List<TReturn>>;
@@ -136,7 +136,7 @@ namespace FreeSql.Internal.CommonProvider
             var field = new StringBuilder();
             var index = 0;
 
-            _comonExp.ReadAnonymousField(null, field, map, ref index, select, getSelectGroupingMapString);
+            _comonExp.ReadAnonymousField(null, field, map, ref index, select, getSelectGroupingMapString, null);
             var method = _select.GetType().GetMethod("ToSql", new[] { typeof(string) });
             return method.Invoke(_select, new object[] { field.Length > 0 ? field.Remove(0, 2).ToString() : null }) as string;
         }

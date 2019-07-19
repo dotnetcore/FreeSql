@@ -24,20 +24,20 @@ namespace FreeSql.Internal
         }
 
         static ConcurrentDictionary<Type, PropertyInfo[]> _dicReadAnonymousFieldDtoPropertys = new ConcurrentDictionary<Type, PropertyInfo[]>();
-        public bool ReadAnonymousField(List<SelectTableInfo> _tables, StringBuilder field, ReadAnonymousTypeInfo parent, ref int index, Expression exp, Func<Expression[], string> getSelectGroupingMapString)
+        public bool ReadAnonymousField(List<SelectTableInfo> _tables, StringBuilder field, ReadAnonymousTypeInfo parent, ref int index, Expression exp, Func<Expression[], string> getSelectGroupingMapString, List<LambdaExpression> whereCascadeExpression)
         {
-            Func<ExpTSC> getTSC = () => new ExpTSC { _tables = _tables, getSelectGroupingMapString = getSelectGroupingMapString, tbtype = SelectTableInfoType.From, isQuoteName = true, isDisableDiyParse = false, style = ExpressionStyle.Where };
+            Func<ExpTSC> getTSC = () => new ExpTSC { _tables = _tables, getSelectGroupingMapString = getSelectGroupingMapString, tbtype = SelectTableInfoType.From, isQuoteName = true, isDisableDiyParse = false, style = ExpressionStyle.Where, whereCascadeExpression = whereCascadeExpression };
             switch (exp.NodeType)
             {
-                case ExpressionType.Quote: return ReadAnonymousField(_tables, field, parent, ref index, (exp as UnaryExpression)?.Operand, getSelectGroupingMapString);
-                case ExpressionType.Lambda: return ReadAnonymousField(_tables, field, parent, ref index, (exp as LambdaExpression)?.Body, getSelectGroupingMapString);
+                case ExpressionType.Quote: return ReadAnonymousField(_tables, field, parent, ref index, (exp as UnaryExpression)?.Operand, getSelectGroupingMapString, whereCascadeExpression);
+                case ExpressionType.Lambda: return ReadAnonymousField(_tables, field, parent, ref index, (exp as LambdaExpression)?.Body, getSelectGroupingMapString, whereCascadeExpression);
                 case ExpressionType.Negate:
                 case ExpressionType.NegateChecked:
                     parent.DbField = $"-({ExpressionLambdaToSql(exp, getTSC())})";
                     field.Append(", ").Append(parent.DbField);
                     if (index >= 0) field.Append(" as").Append(++index);
                     return false;
-                case ExpressionType.Convert: return ReadAnonymousField(_tables, field, parent, ref index, (exp as UnaryExpression)?.Operand, getSelectGroupingMapString);
+                case ExpressionType.Convert: return ReadAnonymousField(_tables, field, parent, ref index, (exp as UnaryExpression)?.Operand, getSelectGroupingMapString, whereCascadeExpression);
                 case ExpressionType.Constant:
                     var constExp = exp as ConstantExpression;
                     //处理自定义SQL语句，如： ToList(new { 
@@ -117,7 +117,7 @@ namespace FreeSql.Internal
                                 MapType = initAssignExp.Expression.Type
                             };
                             parent.Childs.Add(child);
-                            ReadAnonymousField(_tables, field, child, ref index, initAssignExp.Expression, getSelectGroupingMapString);
+                            ReadAnonymousField(_tables, field, child, ref index, initAssignExp.Expression, getSelectGroupingMapString, whereCascadeExpression);
                         }
                     }
                     else
@@ -139,7 +139,7 @@ namespace FreeSql.Internal
                                     };
                                     parent.Childs.Add(child);
                                     if (dtTb.Parameter != null)
-                                        ReadAnonymousField(_tables, field, child, ref index, Expression.Property(dtTb.Parameter, dtTb.Table.Properties[trydtocol.CsName]), getSelectGroupingMapString);
+                                        ReadAnonymousField(_tables, field, child, ref index, Expression.Property(dtTb.Parameter, dtTb.Table.Properties[trydtocol.CsName]), getSelectGroupingMapString, whereCascadeExpression);
                                     else
                                     {
                                         child.DbField = $"{dtTb.Alias}.{_common.QuoteSqlName(trydtocol.Attribute.Name)}";
@@ -169,7 +169,7 @@ namespace FreeSql.Internal
                                 MapType = newExp.Arguments[a].Type
                             };
                             parent.Childs.Add(child);
-                            ReadAnonymousField(_tables, field, child, ref index, newExp.Arguments[a], getSelectGroupingMapString);
+                            ReadAnonymousField(_tables, field, child, ref index, newExp.Arguments[a], getSelectGroupingMapString, whereCascadeExpression);
                         }
                     }
                     else
@@ -192,7 +192,7 @@ namespace FreeSql.Internal
                                     };
                                     parent.Childs.Add(child);
                                     if (dtTb.Parameter != null)
-                                        ReadAnonymousField(_tables, field, child, ref index, Expression.Property(dtTb.Parameter, dtTb.Table.Properties[trydtocol.CsName]), getSelectGroupingMapString);
+                                        ReadAnonymousField(_tables, field, child, ref index, Expression.Property(dtTb.Parameter, dtTb.Table.Properties[trydtocol.CsName]), getSelectGroupingMapString, whereCascadeExpression);
                                     else
                                     {
                                         child.DbField = $"{dtTb.Alias}.{_common.QuoteSqlName(trydtocol.Attribute.Name)}";
@@ -332,9 +332,9 @@ namespace FreeSql.Internal
             return sql;
         }
 
-        public string ExpressionWhereLambda(List<SelectTableInfo> _tables, Expression exp, Func<Expression[], string> getSelectGroupingMapString)
+        public string ExpressionWhereLambda(List<SelectTableInfo> _tables, Expression exp, Func<Expression[], string> getSelectGroupingMapString, List<LambdaExpression> whereCascadeExpression)
         {
-            var sql = ExpressionLambdaToSql(exp, new ExpTSC { _tables = _tables, getSelectGroupingMapString = getSelectGroupingMapString, tbtype = SelectTableInfoType.From, isQuoteName = true, isDisableDiyParse = false, style = ExpressionStyle.Where });
+            var sql = ExpressionLambdaToSql(exp, new ExpTSC { _tables = _tables, getSelectGroupingMapString = getSelectGroupingMapString, tbtype = SelectTableInfoType.From, isQuoteName = true, isDisableDiyParse = false, style = ExpressionStyle.Where, whereCascadeExpression = whereCascadeExpression });
             var isBool = exp.Type.NullableTypeOrThis() == typeof(bool);
             if (exp.NodeType == ExpressionType.MemberAccess && isBool && sql.Contains(" IS ") == false && sql.Contains(" = ") == false)
                 return $"{sql} = {formatSql(true, null)}";
@@ -343,10 +343,10 @@ namespace FreeSql.Internal
             return sql;
         }
         static ConcurrentDictionary<string, Regex> dicRegexAlias = new ConcurrentDictionary<string, Regex>();
-        public void ExpressionJoinLambda(List<SelectTableInfo> _tables, SelectTableInfoType tbtype, Expression exp, Func<Expression[], string> getSelectGroupingMapString)
+        public void ExpressionJoinLambda(List<SelectTableInfo> _tables, SelectTableInfoType tbtype, Expression exp, Func<Expression[], string> getSelectGroupingMapString, List<LambdaExpression> whereCascadeExpression)
         {
             var tbidx = _tables.Count;
-            var sql = ExpressionLambdaToSql(exp, new ExpTSC { _tables = _tables, getSelectGroupingMapString = getSelectGroupingMapString, tbtype = tbtype, isQuoteName = true, isDisableDiyParse = false, style = ExpressionStyle.Where });
+            var sql = ExpressionLambdaToSql(exp, new ExpTSC { _tables = _tables, getSelectGroupingMapString = getSelectGroupingMapString, tbtype = tbtype, isQuoteName = true, isDisableDiyParse = false, style = ExpressionStyle.Where, whereCascadeExpression = whereCascadeExpression });
             var isBool = exp.Type.NullableTypeOrThis() == typeof(bool);
             if (exp.NodeType == ExpressionType.MemberAccess && isBool && sql.Contains(" IS ") == false && sql.Contains(" = ") == false)
                 sql = $"{sql} = {formatSql(true, null)}";
@@ -362,8 +362,8 @@ namespace FreeSql.Internal
             }
             else
             {
-                var find = _tables.Where((a, c) => c > 0 && 
-                    (a.Type == tbtype || a.Type == SelectTableInfoType.From) && 
+                var find = _tables.Where((a, c) => c > 0 &&
+                    (a.Type == tbtype || a.Type == SelectTableInfoType.From) &&
                     string.IsNullOrEmpty(a.On) &&
                     dicRegexAlias.GetOrAdd(a.Alias, alias => new Regex($@"\b{alias}\.", RegexOptions.Compiled)).IsMatch(sql)).LastOrDefault();
                 if (find != null)
@@ -473,7 +473,7 @@ namespace FreeSql.Internal
                 left = tmp;
             }
             if (right == "NULL") oper = oper == "=" ? " IS " : " IS NOT ";
-            switch(oper)
+            switch (oper)
             {
                 case "%": return _common.Mod(left, right, leftExp.Type, rightExp.Type);
                 case "AND":
@@ -647,6 +647,12 @@ namespace FreeSql.Internal
                                                 Type = SelectTableInfoType.Parent,
                                                 Parameter = a.Parameter
                                             }));
+                                        if (tsc.whereCascadeExpression?.Any() == true)
+                                        {
+                                            var fsqlCascade = fsqlType.GetField("_whereCascadeExpression", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(fsql) as List<LambdaExpression>;
+                                            if (fsqlCascade != tsc.whereCascadeExpression)
+                                                fsqlCascade.AddRange(tsc.whereCascadeExpression);
+                                        }
                                     }
                                     else if (fsqlType != null)
                                     {
@@ -907,7 +913,8 @@ namespace FreeSql.Internal
                         }
                         var name = tb.ColumnsByCs[memberExp.Member.Name].Attribute.Name;
                         if (tsc.isQuoteName) name = _common.QuoteSqlName(name);
-                        return name;
+                        if (string.IsNullOrEmpty(tsc.alias001)) return name;
+                        return $"{tsc.alias001}.{name}";
                     }
                     Func<TableInfo, string, bool, ParameterExpression, MemberExpression, SelectTableInfo> getOrAddTable = (tbtmp, alias, isa, parmExp, mp) =>
                     {
@@ -1113,6 +1120,8 @@ namespace FreeSql.Internal
             public ExpressionStyle style { get; set; }
             public Type mapType { get; set; }
             public TableInfo currentTable { get; set; }
+            public List<LambdaExpression> whereCascadeExpression { get; set; }
+            public string alias001 { get; set; } //单表字段的表别名
 
             public ExpTSC CloneSetgetSelectGroupingMapStringAndgetSelectGroupingMapStringAndtbtype(List<SelectColumnInfo> v1, Func<Expression[], string> v2, SelectTableInfoType v3)
             {
@@ -1125,7 +1134,9 @@ namespace FreeSql.Internal
                     isQuoteName = this.isQuoteName,
                     isDisableDiyParse = this.isDisableDiyParse,
                     style = this.style,
-                    currentTable = this.currentTable
+                    currentTable = this.currentTable,
+                    whereCascadeExpression = this.whereCascadeExpression,
+                    alias001 = this.alias001
                 };
             }
             public ExpTSC CloneDisableDiyParse()
@@ -1139,9 +1150,44 @@ namespace FreeSql.Internal
                     isQuoteName = this.isQuoteName,
                     isDisableDiyParse = true,
                     style = this.style,
-                    currentTable = this.currentTable
+                    currentTable = this.currentTable,
+                    whereCascadeExpression = this.whereCascadeExpression,
+                    alias001 = this.alias001
                 };
             }
+        }
+
+        static ConcurrentDictionary<string, bool> _dicGetWhereCascadeSqlError = new ConcurrentDictionary<string, bool>();
+        public string GetWhereCascadeSql(SelectTableInfo tb, List<LambdaExpression> _whereCascadeExpression)
+        {
+            if (_whereCascadeExpression.Any())
+            {
+                var newParameter = Expression.Parameter(tb.Table.Type, "c");
+                Expression newExp = null;
+
+                foreach (var fl in _whereCascadeExpression)
+                {
+                    var errorKey = FreeUtil.Sha1($"{tb.Table.Type.FullName},{fl.ToString()}");
+                    if (_dicGetWhereCascadeSqlError.ContainsKey(errorKey)) continue;
+
+                    var visitor = new NewExpressionVisitor(newParameter, fl.Parameters.FirstOrDefault());
+                    try
+                    {
+                        var andExp = visitor.Replace(fl.Body);
+                        if (newExp == null) newExp = andExp;
+                        else newExp = Expression.AndAlso(newExp, andExp);
+                    }
+                    catch
+                    {
+                        _dicGetWhereCascadeSqlError.TryAdd(errorKey, true);
+                        continue;
+                    }
+                }
+
+                if (newExp != null)
+                    return ExpressionLambdaToSql(newExp, new ExpTSC { _tables = null, _selectColumnMap = null, getSelectGroupingMapString = null, tbtype = SelectTableInfoType.From, isQuoteName = true, isDisableDiyParse = false, style = ExpressionStyle.Where, currentTable = tb.Table, alias001 = tb.Alias });
+            }
+            return null;
         }
 
         public string formatSql(object obj, Type mapType)

@@ -568,6 +568,7 @@ namespace FreeSql.Tests.Sqlite
             Assert.Equal("SELECT a.\"Id\", a.\"Clicks\", a.\"TypeGuid\", a.\"Title\", a.\"CreateTime\" FROM \"tb_topic22\" a", sql);
             query.First();
         }
+
         [Fact]
         public void WhereExists()
         {

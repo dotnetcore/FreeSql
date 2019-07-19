@@ -21,6 +21,8 @@ namespace FreeSql.Internal.Model
         public string NavigateCondition { get; set; }
         public ParameterExpression Parameter { get; set; }
         public SelectTableInfoType Type { get; set; }
+
+        public string Cascade { get; set; }
     }
     public enum SelectTableInfoType { From, LeftJoin, InnerJoin, RightJoin, Parent }
 }
