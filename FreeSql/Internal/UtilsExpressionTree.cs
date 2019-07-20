@@ -1770,7 +1770,14 @@ namespace FreeSql.Internal
                 var exp = GetDataReaderValueBlockExpression(type, parmExp);
                 return Expression.Lambda<Func<object, object>>(exp, parmExp).Compile();
             });
-            return func(value);
+            try
+            {
+                return func(value);
+            }
+            catch (Exception ex)
+            {
+                throw new ArgumentException($"ExpressionTree 转换类型错误，值({string.Concat(value)})，类型({value.GetType().FullName})，目标类型({type.FullName})，{ex.Message}");
+            }
         }
         public static string GetCsName(string name)
         {
