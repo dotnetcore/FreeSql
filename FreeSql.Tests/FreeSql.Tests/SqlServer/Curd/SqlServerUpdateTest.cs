@@ -136,7 +136,16 @@ namespace FreeSql.Tests.SqlServer
         [Fact]
         public void ExecuteUpdated()
         {
+            _sqlserverFixture.SqlServer.Insert<Topic>().AppendData(new Topic()).ExecuteAffrows();
+            _sqlserverFixture.SqlServer.Insert<Topic>().AppendData(new Topic()).ExecuteAffrows();
+            _sqlserverFixture.SqlServer.Insert<Topic>().AppendData(new Topic()).ExecuteAffrows();
+            _sqlserverFixture.SqlServer.Insert<Topic>().AppendData(new Topic()).ExecuteAffrows();
 
+            var items = _sqlserverFixture.SqlServer.Select<Topic>().Limit(2).ToList();
+            _sqlserverFixture.SqlServer.Update<Topic>(items).SetRaw("title='test'").ExecuteUpdated();
+
+            items = _sqlserverFixture.SqlServer.Select<Topic>().Limit(2).ToList();
+            var result = _sqlserverFixture.SqlServer.Update<Topic>(items).SetRaw("title='test'").ExecuteUpdatedAsync().Result;
         }
 
         [Fact]

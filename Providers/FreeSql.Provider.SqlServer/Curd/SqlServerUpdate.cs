@@ -39,7 +39,7 @@ namespace FreeSql.SqlServer.Curd
                 ++colidx;
             }
 
-            var validx = sql.IndexOf(" WHERE ");
+            var validx = sql.IndexOf(" \r\nWHERE ");
             if (validx == -1) throw new ArgumentException("找不到 WHERE ");
             sb.Insert(0, sql.Substring(0, validx));
             sb.Append(sql.Substring(validx));
@@ -82,7 +82,7 @@ namespace FreeSql.SqlServer.Curd
                 ++colidx;
             }
 
-            var validx = sql.IndexOf(" WHERE ");
+            var validx = sql.IndexOf(" \r\nWHERE ");
             if (validx == -1) throw new ArgumentException("找不到 WHERE ");
             sb.Insert(0, sql.Substring(0, validx));
             sb.Append(sql.Substring(validx));
