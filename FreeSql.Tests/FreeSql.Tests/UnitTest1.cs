@@ -13,6 +13,19 @@ using System.Collections;
 
 namespace FreeSql.Tests
 {
+    public static class SqlFunc
+    {
+        public static T TryTo<T>(this string that)
+        {
+            return default(T);
+        }
+
+        public static string FormatDateTime()
+        {
+            return "";
+        }
+    }
+
     public class UnitTest1
     {
 
@@ -287,17 +300,32 @@ namespace FreeSql.Tests
             public TaskBuild Parent { get; set; }
         }
 
-        public class SqlFunc
-        {
-            public static string FormatDateTime()
-            {
-                return "";
-            }
-        }
+        
 
+        void parseExp(object sender, Aop.ParseExpressionEventArgs e)
+        {
+            if (e.Expression.NodeType == ExpressionType.Call)
+            {
+                var callExp = e.Expression as MethodCallExpression;
+                if (callExp.Object == null && callExp.Arguments.Any() && callExp.Arguments[0].Type == typeof(string))
+                {
+                    if (callExp.Method.Name == "TryTo")
+                    {
+                        e.Result = Expression.Lambda(
+                            typeof(Func<>).MakeGenericType(callExp.Method.GetGenericArguments().FirstOrDefault()), 
+                            e.Expression).Compile().DynamicInvoke()?.ToString();
+                        return;
+                    }
+                }
+            }
+        } 
         [Fact]
         public void Test1()
         {
+            g.sqlite.Aop.ParseExpression += parseExp;
+
+            var sqddddl = g.sqlite.Select<TaskBuild>().ToSql(t => t.OptionsEntity04 == "1".TryTo<int>());
+
             var sqksdkfjl = g.sqlite.Select<TaskBuild>()
                 .LeftJoin(a => a.Templates.Id2 == a.TemplatesId)
                 .LeftJoin(a => a.Parent.Id == a.Id)
@@ -809,6 +837,8 @@ namespace FreeSql.Tests
             {
                 a.Key.tt2,
                 cou1 = a.Count(),
+                empty = "",
+                nil = (string)null,
                 arg1 = a.Avg(a.Key.mod4),
                 ccc2 = a.Key.tt2 ?? "now()",
                 //ccc = Convert.ToDateTime("now()"), partby = Convert.ToDecimal("sum(num) over(PARTITION BY server_id,os,rid,chn order by id desc)")

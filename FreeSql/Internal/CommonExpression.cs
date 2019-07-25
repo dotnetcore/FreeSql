@@ -44,7 +44,13 @@ namespace FreeSql.Internal
                     //	ccc = "now()", 
                     //	partby = "sum(num) over(PARTITION BY server_id,os,rid,chn order by id desc)"
                     //})，有缺点即 ccc partby 接受类型都是 string，可配合 Convert.ToXxx 类型转换，请看下面的兼容
-                    parent.DbField = constExp.Type.FullName == "System.String" ? (constExp.Value?.ToString() ?? "NULL") : _common.FormatSql("{0}", constExp?.Value);
+                    if (constExp.Type.FullName == "System.String")
+                    {
+                        var constExpValue = constExp.Value?.ToString() ?? "NULL";
+                        if (constExpValue == string.Empty) constExpValue = _common.FormatSql("{0}", "");
+                        parent.DbField = constExpValue;
+                    } else
+                        parent.DbField = _common.FormatSql("{0}", constExp?.Value);
                     field.Append(", ").Append(parent.DbField);
                     if (index >= 0) field.Append(" as").Append(++index);
                     return false;
