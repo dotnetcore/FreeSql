@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace base_entity
 {
@@ -6,74 +7,70 @@ namespace base_entity
     {
         static void Main(string[] args)
         {
-            var ug1 = new UserGroup();
-            ug1.GroupName = "分组一";
-            ug1.Insert();
+            Task.Run(async () =>
+            {
+                using (var uow = BaseEntity.Begin())
+                {
+                    var itt = await UserGroup.Find(1);
+                }
 
-            var ug2 = new UserGroup();
-            ug2.GroupName = "分组二";
-            ug2.Insert();
+                var ug1 = new UserGroup();
+                ug1.GroupName = "分组一";
+                await ug1.Insert();
 
-            var u1 = new User1();
-            var u2 = new User2();
+                var ug2 = new UserGroup();
+                ug2.GroupName = "分组二";
+                await ug2.Insert();
 
-            u1.GroupId = ug1.Id;
-            u1.Save();
+                var u1 = new User1();
 
-            u2.GroupId = ug2.Id;
-            u2.Save();
+                u1.GroupId = ug1.Id;
+                await u1.Save();
 
-            u1.Delete();
-            u1.Restore();
+                await u1.Delete();
+                await u1.Restore();
 
-            u1.Nickname = "x1";
-            u1.Update();
+                u1.Nickname = "x1";
+                await u1.Update();
 
-            u2.Delete();
-            u2.Restore();
+                var u11 = await User1.Find(u1.Id);
+                u11.Description = "备注";
+                await u11.Save();
 
-            u2.Username = "x2";
-            u2.Update();
+                await u11.Delete();
 
-            var u11 = User1.Find(u1.Id);
-            u11.Description = "备注";
-            u11.Save();
+                var u11null = User1.Find(u1.Id);
 
-            u11.Delete();
+                var u11s = User1.Where(a => a.Group.Id == ug1.Id).Limit(10).ToList();
 
-            var u11null = User1.Find(u1.Id);
+                var u11s2 = User1.Select.LeftJoin<UserGroup>((a, b) => a.GroupId == b.Id).Limit(10).ToList();
 
-            var u11s = User1.Where(a => a.Group.Id == ug1.Id).Limit(10).ToList();
-            var u22s = User2.Where(a => a.Group.Id == ug2.Id).Limit(10).ToList();
+                var ug1s = UserGroup.Select
+                    .IncludeMany(a => a.User1s)
+                    .Limit(10).ToList();
 
-            var u11s2 = User1.Select.LeftJoin<UserGroup>((a, b) => a.GroupId == b.Id).Limit(10).ToList();
-            var u22s2 = User2.Select.LeftJoin<UserGroup>((a, b) => a.GroupId == b.Id).Limit(10).ToList();
+                var ug1s2 = UserGroup.Select.Where(a => a.User1s.AsSelect().Any(b => b.Nickname == "x1")).Limit(10).ToList();
 
-            var ug1s = UserGroup.Select
-                .IncludeMany(a => a.User1s)
-                .IncludeMany(a => a.User2s)
-                .Limit(10).ToList();
+                var r1 = new Role();
+                r1.Id = "管理员";
+                await r1.Save();
 
-            var ug1s2 = UserGroup.Select.Where(a => a.User1s.AsSelect().Any(b => b.Nickname == "x1")).Limit(10).ToList();
+                var r2 = new Role();
+                r2.Id = "超级会员";
+                await r2.Save();
 
-            var r1 = new Role();
-            r1.Id = "管理员";
-            r1.Save();
+                var ru1 = new RoleUser1();
+                ru1.User1Id = u1.Id;
+                ru1.RoleId = r1.Id;
+                await ru1.Save();
 
-            var r2 = new Role();
-            r2.Id = "超级会员";
-            r2.Save();
+                ru1.RoleId = r2.Id;
+                await ru1.Save();
 
-            var ru1 = new RoleUser1();
-            ru1.User1Id = u1.Id;
-            ru1.RoleId = r1.Id;
-            ru1.Save();
+                var u1roles = User1.Select.IncludeMany(a => a.Roles).ToList();
+                var u1roles2 = User1.Select.Where(a => a.Roles.AsSelect().Any(b => b.Id == "xx")).ToList();
 
-            ru1.RoleId = r2.Id;
-            ru1.Save();
-
-            var u1roles = User1.Select.IncludeMany(a => a.Roles).ToList();
-            var u1roles2 = User1.Select.Where(a => a.Roles.AsSelect().Any(b => b.Id == "xx")).ToList();
+            }).Wait();
 
             Console.WriteLine("按任意键结束。。。");
             Console.ReadKey();

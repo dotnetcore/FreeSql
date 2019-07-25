@@ -10,8 +10,6 @@ public class UserGroup : BaseEntity<UserGroup, int>
     public string GroupName { get; set; }
 
     public List<User1> User1s { get; set; }
-
-    public List<User2> User2s { get; set; }
 }
 
 public class Role : BaseEntity<Role, string>
@@ -33,41 +31,6 @@ public class User1 : BaseEntity<User1, Guid>
     public UserGroup Group { get; set; }
 
     public List<Role> Roles { get; set; }
-
-    /// <summary>
-    /// 登陆名
-    /// </summary>
-    public string Username { get; set; }
-
-    /// <summary>
-    /// 昵称
-    /// </summary>
-    public string Nickname { get; set; }
-
-    /// <summary>
-    /// 头像
-    /// </summary>
-    public string Avatar { get; set; }
-
-    /// <summary>
-    /// 描述
-    /// </summary>
-    public string Description { get; set; }
-}
-
-public class User2 : BaseEntity<User2, Guid, int>
-{
-    static User2()
-    {
-        User2.Orm.CodeFirst.ConfigEntity<User2>(t =>
-        {
-            t.Property(a => a.PkId1).Name("UserId");
-            t.Property(a => a.PkId2).Name("Index");
-        });
-    }
-
-    public int GroupId { get; set; }
-    public UserGroup Group { get; set; }
 
     /// <summary>
     /// 登陆名
