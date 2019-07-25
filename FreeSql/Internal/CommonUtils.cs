@@ -286,7 +286,6 @@ namespace FreeSql.Internal
             if (File.Exists(xmlPath) == false) return null;
 
             var dic = new Dictionary<string, string>();
-            var className = type.IsNested ? $"{type.Namespace}.{type.DeclaringType.Name}.{type.Name}" : $"{type.Namespace}.{type.Name}";
             var sReader = new StringReader(File.ReadAllText(xmlPath));
             using (var xmlReader = XmlReader.Create(sReader))
             {
@@ -304,6 +303,7 @@ namespace FreeSql.Internal
                 var props = type.GetProperties();
                 foreach (var prop in props)
                 {
+                    var className = (prop.DeclaringType.IsNested ? $"{prop.DeclaringType.Namespace}.{prop.DeclaringType.DeclaringType.Name}.{prop.DeclaringType.Name}" : $"{prop.DeclaringType.Namespace}.{prop.DeclaringType.Name}").Trim('.');
                     var node = xmlNav.SelectSingleNode($"/doc/members/member[@name='P:{className}.{prop.Name}']/summary");
                     if (node == null) continue;
                     var comment = node.InnerXml.Trim(' ', '\r', '\n', '\t');
