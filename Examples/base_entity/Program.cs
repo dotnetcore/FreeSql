@@ -11,7 +11,8 @@ namespace base_entity
             {
                 using (var uow = BaseEntity.Begin())
                 {
-                    var itt = await UserGroup.Find(1);
+                    var id = (await new User1().Save()).Id;
+                    uow.Commit();
                 }
 
                 var ug1 = new UserGroup();

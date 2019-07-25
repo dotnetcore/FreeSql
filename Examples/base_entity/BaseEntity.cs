@@ -42,7 +42,6 @@ public abstract class BaseEntity
     /// <summary>
     /// 开启工作单元事务
     /// </summary>
-    /// <param name="level"></param>
     /// <returns></returns>
     public static IUnitOfWork Begin() => Begin(null);
     public static IUnitOfWork Begin(IsolationLevel? level)
@@ -118,28 +117,28 @@ public abstract class BaseEntity<TEntity> : BaseEntity where TEntity : class
     /// <summary>
     /// 插入数据
     /// </summary>
-    async public virtual Task Insert()
+    public virtual Task<TEntity> Insert()
     {
         this.CreateTime = DateTime.Now;
         if (this.Repository == null)
             this.Repository = Orm.GetRepository<TEntity>();
 
         this.Repository.UnitOfWork = UnitOfWork.Current.Value;
-        await this.Repository.InsertAsync(this as TEntity);
+        return this.Repository.InsertAsync(this as TEntity);
     }
 
     /// <summary>
     /// 更新或插入
     /// </summary>
     /// <returns></returns>
-    async public virtual Task Save()
+    public virtual Task<TEntity> Save()
     {
         this.UpdateTime = DateTime.Now;
         if (this.Repository == null)
             this.Repository = Orm.GetRepository<TEntity>();
 
         this.Repository.UnitOfWork = UnitOfWork.Current.Value;
-        await this.Repository.InsertOrUpdateAsync(this as TEntity);
+        return this.Repository.InsertOrUpdateAsync(this as TEntity);
     }
 }
 

@@ -23,7 +23,6 @@
             <summary>
             开启工作单元事务
             </summary>
-            <param name="level"></param>
             <returns></returns>
         </member>
         <member name="M:BaseEntity`1.Delete">
