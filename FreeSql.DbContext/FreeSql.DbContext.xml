@@ -174,19 +174,6 @@
             开启工作单元
             </summary>
         </member>
-        <member name="P:FreeSql.UnitOfWork.Enable">
-            <summary>
-            是否启用工作单元
-            </summary>
-        </member>
-        <member name="M:FreeSql.UnitOfWork.Close">
-            <summary>
-            禁用工作单元
-            <exception cref="T:System.Exception"></exception>
-            <para></para>
-            若已开启事务（已有Insert/Update/Delete操作），调用此方法将发生异常，建议在执行逻辑前调用
-            </summary>
-        </member>
         <member name="M:FreeSqlDbContextExtenssions.CreateDbContext(IFreeSql)">
             <summary>
             创建普通数据上下文档对象

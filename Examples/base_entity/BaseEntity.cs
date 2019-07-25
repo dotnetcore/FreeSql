@@ -47,18 +47,18 @@ public abstract class BaseEntity
     public static IUnitOfWork Begin() => Begin(null);
     public static IUnitOfWork Begin(IsolationLevel? level)
     {
-        var uow = new BaseEntityUnitOfWork(Orm);
+        var uow = Orm.CreateUnitOfWork();
         uow.IsolationLevel = level;
+        UnitOfWork.Current.Value = uow;
         return uow;
     }
-    protected static IUnitOfWork CurrentUow => BaseEntityUnitOfWork._asyncUow.Value;
 }
 
 [Table(DisableSyncStructure = true)]
 public abstract class BaseEntity<TEntity> : BaseEntity where TEntity : class
 {
     public static ISelect<TEntity> Select => Orm.Select<TEntity>()
-        .WithTransaction(CurrentUow?.GetOrBeginTransaction(false))
+        .WithTransaction(UnitOfWork.Current.Value?.GetOrBeginTransaction(false))
         .WhereCascade(a => (a as BaseEntity<TEntity>).IsDeleted == false);
     public static ISelect<TEntity> Where(Expression<Func<TEntity, bool>> exp) => Select.Where(exp);
     public static ISelect<TEntity> WhereIf(bool condition, Expression<Func<TEntity, bool>> exp) => Select.WhereIf(condition, exp);
@@ -70,11 +70,11 @@ public abstract class BaseEntity<TEntity> : BaseEntity where TEntity : class
     {
         if (this.Repository == null)
             return await Orm.Update<TEntity>(this as TEntity)
-                .WithTransaction(CurrentUow?.GetOrBeginTransaction())
+                .WithTransaction(UnitOfWork.Current.Value?.GetOrBeginTransaction())
                 .Set(a => (a as BaseEntity<TEntity>).IsDeleted, this.IsDeleted = value).ExecuteAffrowsAsync() == 1;
 
         this.IsDeleted = value;
-        this.Repository.UnitOfWork = CurrentUow;
+        this.Repository.UnitOfWork = UnitOfWork.Current.Value;
         return await this.Repository.UpdateAsync(this as TEntity) == 1;
     }
     /// <summary>
@@ -109,10 +109,10 @@ public abstract class BaseEntity<TEntity> : BaseEntity where TEntity : class
         this.UpdateTime = DateTime.Now;
         if (this.Repository == null)
             return await Orm.Update<TEntity>()
-                .WithTransaction(CurrentUow?.GetOrBeginTransaction())
+                .WithTransaction(UnitOfWork.Current.Value?.GetOrBeginTransaction())
                 .SetSource(this as TEntity).ExecuteAffrowsAsync() == 1;
 
-        this.Repository.UnitOfWork = CurrentUow;
+        this.Repository.UnitOfWork = UnitOfWork.Current.Value;
         return await this.Repository.UpdateAsync(this as TEntity) == 1;
     }
     /// <summary>
@@ -124,7 +124,7 @@ public abstract class BaseEntity<TEntity> : BaseEntity where TEntity : class
         if (this.Repository == null)
             this.Repository = Orm.GetRepository<TEntity>();
 
-        this.Repository.UnitOfWork = CurrentUow;
+        this.Repository.UnitOfWork = UnitOfWork.Current.Value;
         await this.Repository.InsertAsync(this as TEntity);
     }
 
@@ -138,7 +138,7 @@ public abstract class BaseEntity<TEntity> : BaseEntity where TEntity : class
         if (this.Repository == null)
             this.Repository = Orm.GetRepository<TEntity>();
 
-        this.Repository.UnitOfWork = CurrentUow;
+        this.Repository.UnitOfWork = UnitOfWork.Current.Value;
         await this.Repository.InsertOrUpdateAsync(this as TEntity);
     }
 }

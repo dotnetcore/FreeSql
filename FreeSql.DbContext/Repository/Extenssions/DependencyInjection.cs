@@ -26,16 +26,9 @@ namespace FreeSql
             services.AddScoped(typeof(DefaultRepository<,>));
 
             if (assemblies?.Any() == true)
-            {
                 foreach (var asse in assemblies)
-                {
-                    foreach (var repos in asse.GetTypes().Where(a => a.IsAbstract == false && typeof(IBaseRepository).IsAssignableFrom(a)))
-                    {
-
-                        services.AddScoped(repos);
-                    }
-                }
-            }
+                    foreach (var repo in asse.GetTypes().Where(a => a.IsAbstract == false && typeof(IBaseRepository).IsAssignableFrom(a)))
+                        services.AddScoped(repo);
 
             return services;
         }
