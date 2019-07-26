@@ -1568,7 +1568,7 @@
             <summary>
             设置列的的新值为基础上增加，格式：Set(a => a.Clicks + 1) 相当于 clicks=clicks+1
             <para></para>
-            指定更新，格式：Set(a => new { Clicks = a.Clicks + 1, Time = DateTime.Now }) 相当于 set clicks=clicks+1,time='2019-06-19....'
+            指定更新，格式：Set(a => new T { Clicks = a.Clicks + 1, Time = DateTime.Now }) 相当于 set clicks=clicks+1,time='2019-06-19....'
             </summary>
             <typeparam name="TMember"></typeparam>
             <param name="exp"></param>

@@ -435,29 +435,41 @@ namespace FreeSql.Internal.CommonProvider
         {
             var body = exp?.Body;
             var nodeType = body?.NodeType;
-            if (nodeType == ExpressionType.Equal)
+            switch (nodeType)
             {
-                _set.Append(", ").Append(_commonExpression.ExpressionWhereLambdaNoneForeignObject(null, _table, null, exp, null));
-                return this;
-            }
-
-            if (nodeType == ExpressionType.MemberInit)
-            {
-                var initExp = body as MemberInitExpression;
-                if (initExp.Bindings?.Count > 0)
-                {
-                    for (var a = 0; a < initExp.Bindings.Count; a++)
+                case ExpressionType.Equal:
+                    _set.Append(", ").Append(_commonExpression.ExpressionWhereLambdaNoneForeignObject(null, _table, null, exp, null));
+                    return this;
+                case ExpressionType.MemberInit:
+                    var initExp = body as MemberInitExpression;
+                    if (initExp.Bindings?.Count > 0)
                     {
-                        var initAssignExp = (initExp.Bindings[a] as MemberAssignment);
-                        if (initAssignExp == null) continue;
-                        var memberName = initExp.Bindings[a].Member.Name;
-                        if (_table.ColumnsByCsIgnore.ContainsKey(memberName)) continue;
-                        if (_table.ColumnsByCs.TryGetValue(memberName, out var col) == false) throw new Exception($"找不到属性：{memberName}");
-                        var memberValue = _commonExpression.ExpressionLambdaToSql(initAssignExp.Expression, new CommonExpression.ExpTSC { });
-                        _setIncr.Append(", ").Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ").Append(memberValue);
+                        for (var a = 0; a < initExp.Bindings.Count; a++)
+                        {
+                            var initAssignExp = (initExp.Bindings[a] as MemberAssignment);
+                            if (initAssignExp == null) continue;
+                            var memberName = initExp.Bindings[a].Member.Name;
+                            if (_table.ColumnsByCsIgnore.ContainsKey(memberName)) continue;
+                            if (_table.ColumnsByCs.TryGetValue(memberName, out var col) == false) throw new Exception($"找不到属性：{memberName}");
+                            var memberValue = _commonExpression.ExpressionLambdaToSql(initAssignExp.Expression, new CommonExpression.ExpTSC { });
+                            _setIncr.Append(", ").Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ").Append(memberValue);
+                        }
                     }
-                }
-                return this;
+                    return this;
+                case ExpressionType.New:
+                    var newExp = body as NewExpression;
+                    if (newExp.Members?.Count > 0)
+                    {
+                        for (var a = 0; a < newExp.Members.Count; a++)
+                        {
+                            var memberName = newExp.Members[a].Name;
+                            if (_table.ColumnsByCsIgnore.ContainsKey(memberName)) continue;
+                            if (_table.ColumnsByCs.TryGetValue(memberName, out var col) == false) throw new Exception($"找不到属性：{memberName}");
+                            var memberValue = _commonExpression.ExpressionLambdaToSql(newExp.Arguments[a], new CommonExpression.ExpTSC { });
+                            _setIncr.Append(", ").Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ").Append(memberValue);
+                        }
+                    }
+                    return this;
             }
             if (body is BinaryExpression == false &&
                 nodeType != ExpressionType.Call) return this;

@@ -48,7 +48,6 @@ public abstract class BaseEntity
     {
         var uow = Orm.CreateUnitOfWork();
         uow.IsolationLevel = level;
-        UnitOfWork.Current.Value = uow;
         return uow;
     }
 }

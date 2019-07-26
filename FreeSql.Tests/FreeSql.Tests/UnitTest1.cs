@@ -404,8 +404,16 @@ namespace FreeSql.Tests
             var tbid = g.sqlite.Select<TaskBuild>().First()?.Id ?? Guid.Empty;
 
             var testarray = new[] { 1, 2, 3 };
-            var tbidsql = g.sqlite.Update<TaskBuild>().Where(a => a.Id == tbid)
+            var tbidsql1 = g.sqlite.Update<TaskBuild>().Where(a => a.Id == tbid)
                 .Set(a => new TaskBuild
+                {
+                    FileName = "111",
+                    TaskName = a.TaskName + "333",
+                    OptionsEntity02 = false,
+                    OptionsEntity04 = testarray[0]
+                }).ToSql();
+            var tbidsql2 = g.sqlite.Update<TaskBuild>().Where(a => a.Id == tbid)
+                .Set(a => new
                 {
                     FileName = "111",
                     TaskName = a.TaskName + "333",
