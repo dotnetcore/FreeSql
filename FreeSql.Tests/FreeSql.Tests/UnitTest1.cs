@@ -322,9 +322,11 @@ namespace FreeSql.Tests
         [Fact]
         public void Test1()
         {
-            g.sqlite.Aop.ParseExpression += parseExp;
+            //g.sqlite.Aop.ParseExpression += parseExp;
 
             var sqddddl = g.sqlite.Select<TaskBuild>().ToSql(t => t.OptionsEntity04 == "1".TryTo<int>());
+
+            //var sqdddd2 = g.sqlite.Select<TaskBuild>().ToSql(t => t.OptionsEntity04 == t.NamespaceName.TryTo<int>());
 
             var sqksdkfjl = g.sqlite.Select<TaskBuild>()
                 .LeftJoin(a => a.Templates.Id2 == a.TemplatesId)

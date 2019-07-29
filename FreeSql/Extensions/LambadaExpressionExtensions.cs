@@ -86,6 +86,13 @@ namespace System.Linq.Expressions
             var body = Expression.Not(exp.Body);
             return Expression.Lambda<Func<T, bool>>(body, candidateExpr);
         }
+
+        internal static bool IsParameter(this Expression exp)
+        {
+            var test = new TextParameterExpressionVisitor();
+            test.Visit(exp);
+            return test.Result;
+        }
     }
 
     internal class NewExpressionVisitor : ExpressionVisitor
@@ -101,5 +108,16 @@ namespace System.Linq.Expressions
 
         protected override Expression VisitParameter(ParameterExpression node) =>
             node == _oldParameter ? this._newParameter : node;
+    }
+
+    internal class TextParameterExpressionVisitor : ExpressionVisitor
+    {
+        public bool Result { get; private set; }
+
+        protected override Expression VisitParameter(ParameterExpression node)
+        {
+            if (!Result) Result = true;
+            return node;
+        }
     }
 }

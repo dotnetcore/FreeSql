@@ -837,6 +837,7 @@ namespace FreeSql.Internal
                     //}
                     var other3Exp = ExpressionLambdaToSqlOther(exp3, tsc);
                     if (string.IsNullOrEmpty(other3Exp) == false) return other3Exp;
+                    if (exp3.IsParameter() == false) return formatSql(Expression.Lambda(exp3).Compile().DynamicInvoke(), tsc.mapType);
                     throw new Exception($"未实现函数表达式 {exp3} 解析");
                 case ExpressionType.Parameter:
                 case ExpressionType.MemberAccess:
@@ -1097,7 +1098,11 @@ namespace FreeSql.Internal
                 case ExpressionType.Coalesce:
                     return _common.IsNull(ExpressionLambdaToSql(expBinary.Left, tsc), ExpressionLambdaToSql(expBinary.Right, tsc));
             }
-            if (dicExpressionOperator.TryGetValue(expBinary.NodeType, out var tryoper) == false) return "";
+            if (dicExpressionOperator.TryGetValue(expBinary.NodeType, out var tryoper) == false)
+            {
+                if (exp.IsParameter() == false) return formatSql(Expression.Lambda(exp).Compile().DynamicInvoke(), tsc.mapType);
+                return "";
+            }
             return ExpressionBinary(tryoper, expBinary.Left, expBinary.Right, tsc);
         }
 
