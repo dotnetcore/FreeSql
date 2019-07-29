@@ -649,6 +649,12 @@
             <param name="columns">lambda选择列</param>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.IInsert`1.InsertIdentity">
+            <summary>
+            指定可插入自增字段
+            </summary>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.IInsert`1.NoneParameter">
             <summary>
             不使用参数化，可通过 IFreeSql.CodeFirst.IsNotCommandParameter 全局性设置

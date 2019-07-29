@@ -41,17 +41,13 @@ namespace FreeSql.Oracle.Curd
             var colidx = 0;
             foreach (var col in _table.Columns.Values)
             {
-                if (col.Attribute.IsIdentity == true)
-                {
-                    _identCol = col;
-                    continue;
-                }
-                if (col.Attribute.IsIdentity == false && _ignore.ContainsKey(col.Attribute.Name) == false)
-                {
-                    if (colidx > 0) sbtb.Append(", ");
-                    sbtb.Append(_commonUtils.QuoteSqlName(col.Attribute.Name));
-                    ++colidx;
-                }
+                if (col.Attribute.IsIdentity) _identCol = col;
+                if (_ignore.ContainsKey(col.Attribute.Name)) continue;
+                if (col.Attribute.IsIdentity && _insertIdentity == false) continue;
+
+                if (colidx > 0) sbtb.Append(", ");
+                sbtb.Append(_commonUtils.QuoteSqlName(col.Attribute.Name));
+                ++colidx;
             }
             sbtb.Append(") ");
 
@@ -67,21 +63,21 @@ namespace FreeSql.Oracle.Curd
                 var colidx2 = 0;
                 foreach (var col in _table.Columns.Values)
                 {
-                    if (col.Attribute.IsIdentity == false && _ignore.ContainsKey(col.Attribute.Name) == false)
+                    if (_ignore.ContainsKey(col.Attribute.Name)) continue;
+                    if (col.Attribute.IsIdentity && _insertIdentity == false) continue;
+
+                    if (colidx2 > 0) sb.Append(", ");
+                    object val = col.GetMapValue(d);
+                    if (col.Attribute.IsPrimary && col.Attribute.MapType.NullableTypeOrThis() == typeof(Guid) && (val == null || (Guid)val == Guid.Empty))
+                        col.SetMapValue(d, val = FreeUtil.NewMongodbId());
+                    if (_noneParameter)
+                        sb.Append(_commonUtils.GetNoneParamaterSqlValue(specialParams, col.Attribute.MapType, val));
+                    else
                     {
-                        if (colidx2 > 0) sb.Append(", ");
-                        object val = col.GetMapValue(d);
-                        if (col.Attribute.IsPrimary && col.Attribute.MapType.NullableTypeOrThis() == typeof(Guid) && (val == null || (Guid)val == Guid.Empty))
-                            col.SetMapValue(d, val = FreeUtil.NewMongodbId());
-                        if (_noneParameter)
-                            sb.Append(_commonUtils.GetNoneParamaterSqlValue(specialParams, col.Attribute.MapType, val));
-                        else
-                        {
-                            sb.Append(_commonUtils.QuoteWriteParamter(col.Attribute.MapType, _commonUtils.QuoteParamterName($"{col.CsName}_{didx}")));
-                            _params[didx * colidx + colidx2] = _commonUtils.AppendParamter(null, $"{col.CsName}_{didx}", col.Attribute.MapType, val);
-                        }
-                        ++colidx2;
+                        sb.Append(_commonUtils.QuoteWriteParamter(col.Attribute.MapType, _commonUtils.QuoteParamterName($"{col.CsName}_{didx}")));
+                        _params[didx * colidx + colidx2] = _commonUtils.AppendParamter(null, $"{col.CsName}_{didx}", col.Attribute.MapType, val);
                     }
+                    ++colidx2;
                 }
                 sb.Append(")");
                 ++didx;

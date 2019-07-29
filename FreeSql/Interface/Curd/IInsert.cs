@@ -55,6 +55,12 @@ namespace FreeSql
         IInsert<T1> IgnoreColumns(Expression<Func<T1, object>> columns);
 
         /// <summary>
+        /// 指定可插入自增字段
+        /// </summary>
+        /// <returns></returns>
+        IInsert<T1> InsertIdentity();
+
+        /// <summary>
         /// 不使用参数化，可通过 IFreeSql.CodeFirst.IsNotCommandParameter 全局性设置
         /// </summary>
         /// <returns></returns>

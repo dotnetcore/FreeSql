@@ -21,7 +21,7 @@ namespace FreeSql.Internal.CommonProvider
         protected Dictionary<string, bool> _ignore = new Dictionary<string, bool>(StringComparer.CurrentCultureIgnoreCase);
         protected TableInfo _table;
         protected Func<string, string> _tableRule;
-        protected bool _noneParameter;
+        protected bool _noneParameter, _insertIdentity;
         protected DbParameter[] _params;
         protected DbTransaction _transaction;
         protected DbConnection _connection;
@@ -38,6 +38,7 @@ namespace FreeSql.Internal.CommonProvider
 
         protected void ClearData()
         {
+            _insertIdentity = false;
             _source.Clear();
             _ignore.Clear();
             _params = null;
@@ -53,6 +54,12 @@ namespace FreeSql.Internal.CommonProvider
         {
             if (_transaction?.Connection != connection) _transaction = null;
             _connection = connection;
+            return this;
+        }
+
+        public IInsert<T1> InsertIdentity()
+        {
+            _insertIdentity = true;
             return this;
         }
 
@@ -526,12 +533,14 @@ namespace FreeSql.Internal.CommonProvider
             sb.Append("INSERT INTO ").Append(_commonUtils.QuoteSqlName(_tableRule?.Invoke(_table.DbName) ?? _table.DbName)).Append("(");
             var colidx = 0;
             foreach (var col in _table.Columns.Values)
-                if (col.Attribute.IsIdentity == false && _ignore.ContainsKey(col.Attribute.Name) == false)
-                {
-                    if (colidx > 0) sb.Append(", ");
-                    sb.Append(_commonUtils.QuoteSqlName(col.Attribute.Name));
-                    ++colidx;
-                }
+            {
+                if (_ignore.ContainsKey(col.Attribute.Name)) continue;
+                if (col.Attribute.IsIdentity && _insertIdentity == false) continue;
+
+                if (colidx > 0) sb.Append(", ");
+                sb.Append(_commonUtils.QuoteSqlName(col.Attribute.Name));
+                ++colidx;
+            }
             sb.Append(") VALUES");
             _params = _noneParameter ? new DbParameter[0] : new DbParameter[colidx * _source.Count];
             var specialParams = new List<DbParameter>();
@@ -542,21 +551,23 @@ namespace FreeSql.Internal.CommonProvider
                 sb.Append("(");
                 var colidx2 = 0;
                 foreach (var col in _table.Columns.Values)
-                    if (col.Attribute.IsIdentity == false && _ignore.ContainsKey(col.Attribute.Name) == false)
+                {
+                    if (_ignore.ContainsKey(col.Attribute.Name)) continue;
+                    if (col.Attribute.IsIdentity && _insertIdentity == false) continue;
+
+                    if (colidx2 > 0) sb.Append(", ");
+                    object val = col.GetMapValue(d);
+                    if (col.Attribute.IsPrimary && col.Attribute.MapType.NullableTypeOrThis() == typeof(Guid) && (val == null || (Guid)val == Guid.Empty))
+                        col.SetMapValue(d, val = FreeUtil.NewMongodbId());
+                    if (_noneParameter)
+                        sb.Append(_commonUtils.GetNoneParamaterSqlValue(specialParams, col.Attribute.MapType, val));
+                    else
                     {
-                        if (colidx2 > 0) sb.Append(", ");
-                        object val = col.GetMapValue(d);
-                        if (col.Attribute.IsPrimary && col.Attribute.MapType.NullableTypeOrThis() == typeof(Guid) && (val == null || (Guid)val == Guid.Empty))
-                            col.SetMapValue(d, val = FreeUtil.NewMongodbId());
-                        if (_noneParameter)
-                            sb.Append(_commonUtils.GetNoneParamaterSqlValue(specialParams, col.Attribute.MapType, val));
-                        else
-                        {
-                            sb.Append(_commonUtils.QuoteWriteParamter(col.Attribute.MapType, _commonUtils.QuoteParamterName($"{col.CsName}_{didx}")));
-                            _params[didx * colidx + colidx2] = _commonUtils.AppendParamter(null, $"{col.CsName}_{didx}", col.Attribute.MapType, val);
-                        }
-                        ++colidx2;
+                        sb.Append(_commonUtils.QuoteWriteParamter(col.Attribute.MapType, _commonUtils.QuoteParamterName($"{col.CsName}_{didx}")));
+                        _params[didx * colidx + colidx2] = _commonUtils.AppendParamter(null, $"{col.CsName}_{didx}", col.Attribute.MapType, val);
                     }
+                    ++colidx2;
+                }
                 sb.Append(")");
                 ++didx;
             }
