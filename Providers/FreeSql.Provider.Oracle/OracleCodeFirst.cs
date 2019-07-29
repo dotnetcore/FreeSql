@@ -74,7 +74,8 @@ namespace FreeSql.Oracle
         public override string GetComparisonDDLStatements(params Type[] entityTypes)
         {
             var userId = (_orm.Ado.MasterPool as OracleConnectionPool).UserId;
-            var seqcols = new List<(ColumnInfo, string[], bool)>(); //序列
+            var seqcols = new List<(ColumnInfo, string[], bool)>(); //序列：列，表，自增
+            var seqnameDel = new List<string>(); //要删除的序列+触发器
 
             var sb = new StringBuilder();
             var sbDeclare = new StringBuilder();
@@ -194,11 +195,17 @@ where a.owner={{0}} and a.table_name={{1}}", tboldname ?? tbname);
                                     sbalter.Append("execute immediate 'UPDATE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" SET ").Append(_commonUtils.QuoteSqlName(tbstructcol.column)).Append(" = ").Append(_commonUtils.FormatSql("{0}", tbcol.Attribute.DbDefautValue).Replace("'", "''")).Append(" WHERE ").Append(_commonUtils.QuoteSqlName(tbstructcol.column)).Append(" IS NULL';\r\n");
                                 sbalter.Append("execute immediate 'ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" MODIFY ").Append(_commonUtils.QuoteSqlName(tbstructcol.column)).Append(" ").Append(tbcol.Attribute.IsNullable == true ? "" : "NOT").Append(" NULL';\r\n");
                             }
-                            if (tbcol.Attribute.IsIdentity != tbstructcol.is_identity)
-                                seqcols.Add((tbcol, tbname, tbcol.Attribute.IsIdentity == true));
                             if (string.Compare(tbstructcol.column, tbcol.Attribute.OldName, true) == 0)
+                            {
+                                if (tbstructcol.is_identity)
+                                    seqnameDel.Add(Utils.GetCsName($"{tbname[1]}_seq_{tbstructcol.column}"));
                                 //修改列名
                                 sbalter.Append("execute immediate 'ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" RENAME COLUMN ").Append(_commonUtils.QuoteSqlName(tbstructcol.column)).Append(" TO ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append("';\r\n");
+                                if (tbcol.Attribute.IsIdentity)
+                                    seqcols.Add((tbcol, tbname, tbcol.Attribute.IsIdentity == true));
+                            }
+                            else if (tbcol.Attribute.IsIdentity != tbstructcol.is_identity)
+                                seqcols.Add((tbcol, tbname, tbcol.Attribute.IsIdentity == true));
                             if (isCommentChanged)
                                 sbalter.Append("execute immediate 'COMMENT ON COLUMN ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}.{tbcol.Attribute.Name}")).Append(" IS ").Append(_commonUtils.FormatSql("{0}", tbcol.Comment ?? "").Replace("'", "''")).Append("';\r\n");
                             continue;
@@ -307,13 +314,8 @@ and a.owner in ({0}) and a.table_name in ({1})", tboldname ?? tbname);
                 sb.Append("execute immediate 'ALTER TABLE ").Append(tmptablename).Append(" RENAME TO ").Append(_commonUtils.QuoteSqlName($"{tbname[1]}")).Append("';\r\n");
             }
             Dictionary<string, bool> dicDeclare = new Dictionary<string, bool>();
-            foreach (var seqcol in seqcols)
+            Action<string> dropSequence = seqname =>
             {
-                var tbname = seqcol.Item2;
-                var seqname = Utils.GetCsName($"{tbname[1]}_seq_{seqcol.Item1.Attribute.Name}");
-                var tiggerName = seqname + "TI";
-                var tbname2 = _commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}");
-                var colname2 = _commonUtils.QuoteSqlName(seqcol.Item1.Attribute.Name);
                 if (dicDeclare.ContainsKey(seqname) == false)
                 {
                     sbDeclare.Append("\r\n").Append(seqname).Append("IS NUMBER; \r\n");
@@ -324,9 +326,36 @@ and a.owner in ({0}) and a.table_name in ({1})", tboldname ?? tbname);
                     .Append("if ").Append(seqname).Append("IS > 0 then \r\n")
                     .Append("  execute immediate 'DROP SEQUENCE ").Append(_commonUtils.QuoteSqlName(seqname)).Append("';\r\n")
                     .Append("end if; \r\n");
+            };
+            Action<string> dropTrigger = tiggerName =>
+            {
+                if (dicDeclare.ContainsKey(tiggerName) == false)
+                {
+                    sbDeclare.Append("\r\n").Append(tiggerName).Append("IS NUMBER; \r\n");
+                    dicDeclare.Add(tiggerName, true);
+                }
+                sb.Append(tiggerName).Append("IS := 0; \r\n")
+                    .Append(" select count(1) into ").Append(tiggerName).Append(_commonUtils.FormatSql("IS from user_triggers where trigger_name={0}; \r\n", tiggerName))
+                    .Append("if ").Append(tiggerName).Append("IS > 0 then \r\n")
+                    .Append("  execute immediate 'DROP TRIGGER ").Append(_commonUtils.QuoteSqlName(tiggerName)).Append("';\r\n")
+                    .Append("end if; \r\n");
+            };
+            foreach (var seqname in seqnameDel)
+            {
+                dropSequence(seqname);
+                dropTrigger(seqname + "TI");
+            }
+            foreach (var seqcol in seqcols)
+            {
+                var tbname = seqcol.Item2;
+                var seqname = Utils.GetCsName($"{tbname[1]}_seq_{seqcol.Item1.Attribute.Name}");
+                var tiggerName = seqname + "TI";
+                var tbname2 = _commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}");
+                var colname2 = _commonUtils.QuoteSqlName(seqcol.Item1.Attribute.Name);
+                dropSequence(seqname);
                 if (seqcol.Item3)
                 {
-                    var startWith = _orm.Ado.ExecuteScalar(CommandType.Text, _commonUtils.FormatSql(" select 1 from all_tab_comments where owner={0} and table_name={1}", tbname)) == null ? 1 :
+                    var startWith = _orm.Ado.ExecuteScalar(CommandType.Text, _commonUtils.FormatSql(" select 1 from all_tab_columns where owner={0} and table_name={1} and column_name={2}", tbname[0], tbname[1], colname2)) == null ? 1 :
                         _orm.Ado.ExecuteScalar(CommandType.Text, $" select nvl(max({colname2})+1,1) from {tbname2}");
                     sb.Append("execute immediate 'CREATE SEQUENCE ").Append(_commonUtils.QuoteSqlName(seqname)).Append(" start with ").Append(startWith).Append("';\r\n");
                     sb.Append("execute immediate 'CREATE OR REPLACE TRIGGER ").Append(_commonUtils.QuoteSqlName(tiggerName))
@@ -335,18 +364,7 @@ and a.owner in ({0}) and a.table_name in ({1})", tboldname ?? tbname);
                         .Append(".nextval into :new.").Append(colname2).Append(" from dual;\r\nend;';\r\n");
                 }
                 else
-                {
-                    if (dicDeclare.ContainsKey(tiggerName) == false)
-                    {
-                        sbDeclare.Append("\r\n").Append(tiggerName).Append("IS NUMBER; \r\n");
-                        dicDeclare.Add(tiggerName, true);
-                    }
-                    sb.Append(tiggerName).Append("IS := 0; \r\n")
-                    .Append(" select count(1) into ").Append(tiggerName).Append(_commonUtils.FormatSql("IS from user_triggers where trigger_name={0}; \r\n", tiggerName))
-                    .Append("if ").Append(tiggerName).Append("IS > 0 then \r\n")
-                    .Append("  execute immediate 'DROP TRIGGER ").Append(_commonUtils.QuoteSqlName(tiggerName)).Append("';\r\n")
-                    .Append("end if; \r\n");
-                }
+                    dropTrigger(tiggerName);
             }
             if (sbDeclare.Length > 0) sbDeclare.Insert(0, "declare ");
             return sb.Length == 0 ? null : sb.Insert(0, "BEGIN \r\n").Insert(0, sbDeclare.ToString()).Append("END;").ToString();

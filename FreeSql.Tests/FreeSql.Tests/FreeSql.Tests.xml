@@ -79,6 +79,11 @@
             测试中文重命名id
             </summary>
         </member>
+        <member name="P:FreeSql.Tests.UnitTest1.Class1.name">
+            <summary>
+            姓名
+            </summary>
+        </member>
         <member name="T:FreeSql.Tests.ExamPaper">
             <summary>
             试卷表

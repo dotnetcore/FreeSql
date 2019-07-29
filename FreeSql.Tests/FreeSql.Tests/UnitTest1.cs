@@ -10,6 +10,7 @@ using Npgsql.LegacyPostgis;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using System.Collections;
+using System.Diagnostics;
 
 namespace FreeSql.Tests
 {
@@ -318,10 +319,32 @@ namespace FreeSql.Tests
                     }
                 }
             }
-        } 
+        }
+
+        public class Class1
+        {
+            [Column(IsIdentity = true)]
+            public long ID { set; get; }
+
+            [Column(IsIdentity = true, OldName = "stu_id_log")]
+            public long stu_id { set; get; }
+            /// <summary>
+            /// 姓名
+            /// </summary>
+            public string name { set; get; }
+
+            public int age { set; get; }
+
+            public DateTime class2 { set; get; }
+        }
+
         [Fact]
         public void Test1()
         {
+            g.oracle.Aop.SyncStructureAfter += (s, e) => 
+                Trace.WriteLine(e.Sql);
+
+            g.oracle.CodeFirst.SyncStructure<Class1>();
 
             //g.sqlite.Aop.ParseExpression += parseExp;
 
