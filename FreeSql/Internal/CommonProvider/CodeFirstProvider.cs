@@ -68,7 +68,7 @@ namespace FreeSql.Internal.CommonProvider
                     }
                     var affrows = _orm.Ado.ExecuteNonQuery(CommandType.Text, ddl);
                     foreach (var syncType in syncTypes) dicSyced.TryAdd(syncType.FullName, true);
-                    return affrows > 0;
+                    return true;
                 }
             }
             catch (Exception ex)
