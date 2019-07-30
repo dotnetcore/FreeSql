@@ -378,7 +378,7 @@ namespace FreeSql.Oracle
                     case "Subtract":
                         switch ((exp.Arguments[0].Type.IsNullableType() ? exp.Arguments[0].Type.GenericTypeArguments.FirstOrDefault() : exp.Arguments[0].Type).FullName)
                         {
-                            case "System.DateTime": return $"({args1}-{left})";
+                            case "System.DateTime": return $"numtodsinterval(({left}+0)-({args1}+0),'day')";
                             case "System.TimeSpan": return $"({left}-{args1})";
                         }
                         break;
