@@ -2388,6 +2388,60 @@
             <param name="that"></param>
             <returns></returns>
         </member>
+        <member name="M:FreeSqlGlobalExtensions.Select``2(IFreeSql)">
+            <summary>
+            多表查询
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSqlGlobalExtensions.Select``3(IFreeSql)">
+            <summary>
+            多表查询
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSqlGlobalExtensions.Select``4(IFreeSql)">
+            <summary>
+            多表查询
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSqlGlobalExtensions.Select``5(IFreeSql)">
+            <summary>
+            多表查询
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSqlGlobalExtensions.Select``6(IFreeSql)">
+            <summary>
+            多表查询
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSqlGlobalExtensions.Select``7(IFreeSql)">
+            <summary>
+            多表查询
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSqlGlobalExtensions.Select``8(IFreeSql)">
+            <summary>
+            多表查询
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSqlGlobalExtensions.Select``9(IFreeSql)">
+            <summary>
+            多表查询
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSqlGlobalExtensions.Select``10(IFreeSql)">
+            <summary>
+            多表查询
+            </summary>
+            <returns></returns>
+        </member>
         <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.And``1(System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}},System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})">
             <summary>
             使用 and 拼接两个 lambda 表达式

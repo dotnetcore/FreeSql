@@ -10,9 +10,6 @@ using System.Reflection;
 
 public static partial class FreeSqlGlobalExtensions
 {
-
-    public static FreeSql.ISelect<T> Queryable<T>(this IFreeSql freesql) where T : class => freesql.Select<T>();
-
     static Lazy<Dictionary<Type, bool>> dicIsNumberType = new Lazy<Dictionary<Type, bool>>(() => new Dictionary<Type, bool>
     {
         [typeof(sbyte)] = true,
@@ -109,4 +106,63 @@ public static partial class FreeSqlGlobalExtensions
     {
         return orm?.Select<TEntity>();
     }
+
+    public static FreeSql.ISelect<T> Queryable<T>(this IFreeSql freesql) where T : class => freesql.Select<T>();
+
+    #region 多表查询
+    /// <summary>
+    /// 多表查询
+    /// </summary>
+    /// <returns></returns>
+    public static ISelect<T1, T2> Select<T1, T2>(this IFreeSql freesql) where T1 : class where T2 : class =>
+        freesql.Select<T1>().From<T2>((s, b) => s);
+    /// <summary>
+    /// 多表查询
+    /// </summary>
+    /// <returns></returns>
+    public static ISelect<T1, T2, T3> Select<T1, T2, T3>(this IFreeSql freesql) where T1 : class where T2 : class where T3 : class =>
+        freesql.Select<T1>().From<T2, T3>((s, b, c) => s);
+    /// <summary>
+    /// 多表查询
+    /// </summary>
+    /// <returns></returns>
+    public static ISelect<T1, T2, T3, T4> Select<T1, T2, T3, T4>(this IFreeSql freesql) where T1 : class where T2 : class where T3 : class where T4 : class =>
+        freesql.Select<T1>().From<T2, T3, T4>((s, b, c, d) => s);
+    /// <summary>
+    /// 多表查询
+    /// </summary>
+    /// <returns></returns>
+    public static ISelect<T1, T2, T3, T4, T5> Select<T1, T2, T3, T4, T5>(this IFreeSql freesql) where T1 : class where T2 : class where T3 : class where T4 : class where T5 : class =>
+        freesql.Select<T1>().From<T2, T3, T4, T5>((s, b, c, d, e) => s);
+    /// <summary>
+    /// 多表查询
+    /// </summary>
+    /// <returns></returns>
+    public static ISelect<T1, T2, T3, T4, T5, T6> Select<T1, T2, T3, T4, T5, T6>(this IFreeSql freesql) where T1 : class where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class =>
+        freesql.Select<T1>().From<T2, T3, T4, T5, T6>((s, b, c, d, e, f) => s);
+    /// <summary>
+    /// 多表查询
+    /// </summary>
+    /// <returns></returns>
+    public static ISelect<T1, T2, T3, T4, T5, T6, T7> Select<T1, T2, T3, T4, T5, T6, T7>(this IFreeSql freesql) where T1 : class where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class =>
+        freesql.Select<T1>().From<T2, T3, T4, T5, T6, T7>((s, b, c, d, e, f, g) => s);
+    /// <summary>
+    /// 多表查询
+    /// </summary>
+    /// <returns></returns>
+    public static ISelect<T1, T2, T3, T4, T5, T6, T7, T8> Select<T1, T2, T3, T4, T5, T6, T7, T8>(this IFreeSql freesql) where T1 : class where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class =>
+        freesql.Select<T1>().From<T2, T3, T4, T5, T6, T7, T8>((s, b, c, d, e, f, g, h) => s);
+    /// <summary>
+    /// 多表查询
+    /// </summary>
+    /// <returns></returns>
+    public static ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9> Select<T1, T2, T3, T4, T5, T6, T7, T8, T9>(this IFreeSql freesql) where T1 : class where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class =>
+        freesql.Select<T1>().From<T2, T3, T4, T5, T6, T7, T8, T9>((s, b, c, d, e, f, g, h, i) => s);
+    /// <summary>
+    /// 多表查询
+    /// </summary>
+    /// <returns></returns>
+    public static ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> Select<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(this IFreeSql freesql) where T1 : class where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class =>
+        freesql.Select<T1>().From<T2, T3, T4, T5, T6, T7, T8, T9, T10>((s, b, c, d, e, f, g, h, i, j) => s);
+    #endregion
 }
