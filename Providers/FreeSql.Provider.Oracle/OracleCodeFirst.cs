@@ -8,6 +8,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -90,6 +91,7 @@ namespace FreeSql.Oracle
 
                 var tboldname = tb.DbOldName?.Split(new[] { '.' }, 2); //旧表名
                 if (tboldname?.Length == 1) tboldname = new[] { userId, tboldname[0] };
+                var primaryKeyName = entityType.GetCustomAttribute<OraclePrimaryKeyNameAttribute>()?.Name;
 
                 if (string.Compare(tbname[0], userId) != 0 && _orm.Ado.ExecuteScalar(CommandType.Text, _commonUtils.FormatSql(" select 1 from sys.dba_users where username={0}", tbname[0])) == null) //创建数据库
                     throw new NotImplementedException($"Oracle CodeFirst 不支持代码创建 tablespace 与 schemas {tbname[0]}");
@@ -115,7 +117,8 @@ namespace FreeSql.Oracle
                         }
                         if (tb.Primarys.Any())
                         {
-                            sb.Append(" \r\n  CONSTRAINT ").Append(tbname[0]).Append("_").Append(tbname[1]).Append("_pk1 PRIMARY KEY (");
+                            var pkname = primaryKeyName ?? $"{tbname[0]}_{tbname[1]}_pk1";
+                            sb.Append(" \r\n  CONSTRAINT ").Append(pkname).Append(" PRIMARY KEY (");
                             foreach (var tbcol in tb.Primarys) sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
                             sb.Remove(sb.Length - 2, 2).Append("),");
                         }
@@ -268,7 +271,8 @@ and a.owner in ({0}) and a.table_name in ({1})", tboldname ?? tbname);
                 }
                 if (tb.Primarys.Any())
                 {
-                    sb.Append(" \r\n  CONSTRAINT ").Append(tbname[0]).Append("_").Append(tbname[1]).Append("_pk2 PRIMARY KEY (");
+                    var pkname = primaryKeyName ?? $"{tbname[0]}_{tbname[1]}_pk2";
+                    sb.Append(" \r\n  CONSTRAINT ").Append(pkname).Append(" PRIMARY KEY (");
                     foreach (var tbcol in tb.Primarys) sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
                     sb.Remove(sb.Length - 2, 2).Append("),");
                 }
