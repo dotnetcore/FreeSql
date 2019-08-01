@@ -285,5 +285,14 @@ namespace FreeSql.Tests.SqlServerExpression
             //data.Add(select.Where(a => string.IsNullOrEmpty(a.Title) == false).ToList());
             data.Add(select.Where(a => !string.IsNullOrEmpty(a.Title)).ToList());
         }
+
+        [Fact]
+        public void string_IsNullOrWhiteSpace()
+        {
+            var data = new List<object>();
+            data.Add(select.Where(a => string.IsNullOrWhiteSpace(a.Title)).ToList());
+            data.Add(select.Where(a => string.IsNullOrWhiteSpace(a.Title) == false).ToList());
+            data.Add(select.Where(a => !string.IsNullOrWhiteSpace(a.Title)).ToList());
+        }
     }
 }

@@ -235,6 +235,9 @@ namespace FreeSql.Oracle
                     case "IsNullOrEmpty":
                         var arg1 = getExp(exp.Arguments[0]);
                         return $"({arg1} is null or {arg1} = '')";
+                    case "IsNullOrWhiteSpace":
+                        var arg2 = getExp(exp.Arguments[0]);
+                        return $"({arg2} is null or {arg2} = '' or ltrim({arg2}) = '')";
                     case "Concat":
                         return _common.StringConcat(exp.Arguments.Select(a => getExp(a)).ToArray(), null);
                 }
