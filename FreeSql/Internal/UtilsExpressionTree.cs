@@ -155,8 +155,7 @@ namespace FreeSql.Internal
                     trytb.ColumnsByCsIgnore.Add(p.Name, col);
                     continue;
                 }
-                if (entityDefault == null) entityDefault = Activator.CreateInstance(entity);
-                colattr.DbDefautValue = trytb.Properties[p.Name].GetValue(entityDefault);
+                if (entityDefault != null) colattr.DbDefautValue = trytb.Properties[p.Name].GetValue(entityDefault);
                 if (colattr.DbDefautValue != null && p.PropertyType != colattr.MapType) colattr.DbDefautValue = Utils.GetDataReaderValue(colattr.MapType, colattr.DbDefautValue);
                 if (colattr.DbDefautValue == null) colattr.DbDefautValue = tp?.defaultValue;
                 if (colattr.IsNullable == false && colattr.DbDefautValue == null)
