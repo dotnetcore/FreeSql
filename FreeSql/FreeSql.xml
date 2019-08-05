@@ -123,6 +123,11 @@
             手工绑定 ManyToMany 导航关系
             </summary>
         </member>
+        <member name="P:FreeSql.DataAnnotations.OraclePrimaryKeyNameAttribute.Name">
+            <summary>
+            主键名
+            </summary>
+        </member>
         <member name="P:FreeSql.DataAnnotations.TableAttribute.Name">
             <summary>
             数据库表名

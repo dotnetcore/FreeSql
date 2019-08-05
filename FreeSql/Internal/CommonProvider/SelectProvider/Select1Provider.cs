@@ -708,12 +708,16 @@ namespace FreeSql.Internal.CommonProvider
                                 return;
                             }
 
-                            Dictionary<string, Tuple<T1, List<TNavigate>>> dicList = new Dictionary<string, Tuple<T1, List<TNavigate>>>();
+                            Dictionary<string, List<Tuple<T1, List<TNavigate>>>> dicList = new Dictionary<string, List<Tuple<T1, List<TNavigate>>>>();
                             foreach (var item in list)
                             {
                                 if (tbref.Columns.Count == 1)
                                 {
-                                    dicList.Add(getListValue(item, tbref.Columns[0].CsName, 0).ToString(), Tuple.Create(item, new List<TNavigate>()));
+                                    var dicListKey = getListValue(item, tbref.Columns[0].CsName, 0).ToString();
+                                    var dicListVal = Tuple.Create(item, new List<TNavigate>());
+                                    if (dicList.TryGetValue(dicListKey, out var items) == false)
+                                        dicList.Add(dicListKey, items = new List<Tuple<T1, List<TNavigate>>>());
+                                    items.Add(dicListVal);
                                 }
                                 else
                                 {
@@ -723,7 +727,11 @@ namespace FreeSql.Internal.CommonProvider
                                         if (z > 0) sb.Append("*$*");
                                         sb.Append(getListValue(item, tbref.Columns[z].CsName, z));
                                     }
-                                    dicList.Add(sb.ToString(), Tuple.Create(item, new List<TNavigate>()));
+                                    var dicListKey = sb.ToString();
+                                    var dicListVal = Tuple.Create(item, new List<TNavigate>());
+                                    if (dicList.TryGetValue(dicListKey, out var items) == false)
+                                        dicList.Add(dicListKey, items = new List<Tuple<T1, List<TNavigate>>>());
+                                    items.Add(dicListVal);
                                     sb.Clear();
                                 }
                             }
@@ -756,15 +764,18 @@ namespace FreeSql.Internal.CommonProvider
                                     key = sb.ToString();
                                     sb.Clear();
                                 }
-                                if (dicList.TryGetValue(key, out var t1item) == false) return;
-                                t1item.Item2.Add(nav);
+                                if (dicList.TryGetValue(key, out var t1items) == false) return;
+                                foreach (var t1item in t1items)
+                                    t1item.Item2.Add(nav);
 
                                 //将子集合的，多对一，对象设置为当前对象
                                 foreach (var parentNav in parentNavs)
-                                    _orm.SetEntityValueWithPropertyName(tbref.RefMiddleEntityType, nav, parentNav, t1item.Item1);
+                                    foreach (var t1item in t1items)
+                                        _orm.SetEntityValueWithPropertyName(tbref.RefMiddleEntityType, nav, parentNav, t1item.Item1);
                             }
-                            foreach (var t1item in dicList.Values)
-                                setListValue(t1item.Item1, t1item.Item2);
+                            foreach (var t1items in dicList.Values)
+                                foreach (var t1item in t1items)
+                                    setListValue(t1item.Item1, t1item.Item2);
                             dicList.Clear();
                         }
                         break;
