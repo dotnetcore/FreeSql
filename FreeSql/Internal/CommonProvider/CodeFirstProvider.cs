@@ -45,12 +45,12 @@ namespace FreeSql.Internal.CommonProvider
         public abstract string GetComparisonDDLStatements(params Type[] entityTypes);
 
         static object syncStructureLock = new object();
-        internal ConcurrentDictionary<string, bool> dicSyced = new ConcurrentDictionary<string, bool>();
+        internal ConcurrentDictionary<Type, bool> dicSyced = new ConcurrentDictionary<Type, bool>();
         public bool SyncStructure<TEntity>() => this.SyncStructure(typeof(TEntity));
         public bool SyncStructure(params Type[] entityTypes)
         {
             if (entityTypes == null) return false;
-            var syncTypes = entityTypes.Where(a => dicSyced.ContainsKey(a.FullName) == false && GetTableByEntity(a)?.DisableSyncStructure == false).ToArray();
+            var syncTypes = entityTypes.Where(a => dicSyced.ContainsKey(a) == false && GetTableByEntity(a)?.DisableSyncStructure == false).ToArray();
             if (syncTypes.Any() == false) return false;
             var before = new Aop.SyncStructureBeforeEventArgs(entityTypes);
             _orm.Aop.SyncStructureBefore?.Invoke(this, before);
@@ -63,11 +63,11 @@ namespace FreeSql.Internal.CommonProvider
                     ddl = this.GetComparisonDDLStatements(syncTypes);
                     if (string.IsNullOrEmpty(ddl))
                     {
-                        foreach (var syncType in syncTypes) dicSyced.TryAdd(syncType.FullName, true);
+                        foreach (var syncType in syncTypes) dicSyced.TryAdd(syncType, true);
                         return true;
                     }
                     var affrows = _orm.Ado.ExecuteNonQuery(CommandType.Text, ddl);
-                    foreach (var syncType in syncTypes) dicSyced.TryAdd(syncType.FullName, true);
+                    foreach (var syncType in syncTypes) dicSyced.TryAdd(syncType, true);
                     return true;
                 }
             }
