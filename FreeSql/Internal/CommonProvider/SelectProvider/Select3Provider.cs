@@ -156,6 +156,27 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalToSql<TReturn>(select?.Body);
         }
 
+        ISelect<T1, T2, T3> ISelect<T1, T2, T3>.LeftJoin(Expression<Func<T1, T2, T3, bool>> exp)
+        {
+            if (exp == null) return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
+            for (var a = 0; a < exp.Parameters.Count; a++) _tables[a].Parameter = exp.Parameters[a];
+            return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
+        }
+
+        ISelect<T1, T2, T3> ISelect<T1, T2, T3>.InnerJoin(Expression<Func<T1, T2, T3, bool>> exp)
+        {
+            if (exp == null) return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
+            for (var a = 0; a < exp.Parameters.Count; a++) _tables[a].Parameter = exp.Parameters[a];
+            return this.InternalJoin(exp?.Body, SelectTableInfoType.InnerJoin);
+        }
+
+        ISelect<T1, T2, T3> ISelect<T1, T2, T3>.RightJoin(Expression<Func<T1, T2, T3, bool>> exp)
+        {
+            if (exp == null) return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
+            for (var a = 0; a < exp.Parameters.Count; a++) _tables[a].Parameter = exp.Parameters[a];
+            return this.InternalJoin(exp?.Body, SelectTableInfoType.RightJoin);
+        }
+
         ISelect<T1, T2, T3> ISelect<T1, T2, T3>.Where(Expression<Func<T1, T2, T3, bool>> exp)
         {
             if (exp == null) return this.Where(null);

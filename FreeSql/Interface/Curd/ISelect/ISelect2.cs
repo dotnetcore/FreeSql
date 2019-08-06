@@ -34,6 +34,10 @@ namespace FreeSql
         TMember Avg<TMember>(Expression<Func<T1, T2, TMember>> column);
         Task<TMember> AvgAsync<TMember>(Expression<Func<T1, T2, TMember>> column);
 
+        ISelect<T1, T2> LeftJoin(Expression<Func<T1, T2, bool>> exp);
+        ISelect<T1, T2> InnerJoin(Expression<Func<T1, T2, bool>> exp);
+        ISelect<T1, T2> RightJoin(Expression<Func<T1, T2, bool>> exp);
+
         ISelect<T1, T2> Where(Expression<Func<T1, T2, bool>> exp);
         ISelect<T1, T2> WhereIf(bool condition, Expression<Func<T1, T2, bool>> exp);
 

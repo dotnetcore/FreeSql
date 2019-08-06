@@ -341,7 +341,10 @@ namespace FreeSql.Tests
         [Fact]
         public void Test1()
         {
-            var kfkfjdfg = g.oracle.Select<Templates>().Where(a => (DateTime.Now - a.EditTime).TotalMinutes > 100).ToSql();
+            g.oracle.Select<Templates, TaskBuild>()
+                .InnerJoin((a,b) => true)
+                .Where((a,b) => (DateTime.Now - a.EditTime).TotalMinutes > 100)
+                .ToSql();
             
 
             g.oracle.Aop.SyncStructureAfter += (s, e) => 
