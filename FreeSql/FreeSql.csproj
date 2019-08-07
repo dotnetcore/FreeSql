@@ -23,7 +23,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="SafeObjectPool" Version="2.1.0" />
+	  <PackageReference Include="SafeObjectPool" Version="2.1.1" />
 	  <PackageReference Include="System.ValueTuple" Version="4.5.0" />
 	</ItemGroup>
 
