@@ -75,7 +75,7 @@ namespace FreeSql.Internal
                 var setMethod = trytb.Type.GetMethod($"set_{p.Name}");
                 var colattr = common.GetEntityColumnAttribute(entity, p);
                 var tp = common.CodeFirst.GetDbInfo(colattr?.MapType ?? p.PropertyType);
-                //if (tp == null) continue;
+                if (tp == null && colattr != null) colattr.IsIgnore = true; //无法匹配的属性，认定是导航属性，且自动过滤
                 if (tp == null && colattr == null)
                 {
                     if (common.CodeFirst.IsLazyLoading)
