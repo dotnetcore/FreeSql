@@ -341,9 +341,10 @@ namespace FreeSql.Tests
         [Fact]
         public void Test1()
         {
-            g.oracle.Select<Templates, TaskBuild>()
+            var xxxkdkd = g.oracle.Select<Templates, TaskBuild>()
                 .InnerJoin((a,b) => true)
                 .Where((a,b) => (DateTime.Now - a.EditTime).TotalMinutes > 100)
+                .OrderBy((a,b) => g.oracle.Select<Templates>().Where(c => b.Id == c.Id2).Count())
                 .ToSql();
             
 

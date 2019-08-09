@@ -708,33 +708,84 @@ namespace FreeSql.Internal
                                         }));
                                         var parm123Tb = _common.GetTableByEntity(asSelectParentExp.Type);
                                         var parm123Ref = parm123Tb.GetTableRef(asSelectParentExp1.Member.Name, true);
-                                        var fsqlWhereParam = fsqltables.First().Parameter; //Expression.Parameter(asSelectEntityType);
-                                        Expression fsqlWhereExp = null;
-                                        if (parm123Ref.RefType == TableRefType.ManyToMany)
+                                        if (parm123Ref != null)
                                         {
-                                            //g.mysql.Select<Tag>().Where(a => g.mysql.Select<Song_tag>().Where(b => b.Tag_id == a.Id && b.Song_id == 1).Any());
-                                            var manyTb = _common.GetTableByEntity(parm123Ref.RefMiddleEntityType);
-                                            var manySubSelectWhere = _dicExpressionLambdaToSqlAsSelectWhereMethodInfo.GetOrAdd(parm123Ref.RefMiddleEntityType, refMiddleEntityType3 =>
-                                                typeof(ISelect<>).MakeGenericType(refMiddleEntityType3).GetMethod("Where", new[] {
+                                            var fsqlWhereParam = fsqltables.First().Parameter; //Expression.Parameter(asSelectEntityType);
+                                            Expression fsqlWhereExp = null;
+                                            if (parm123Ref.RefType == TableRefType.ManyToMany)
+                                            {
+                                                //g.mysql.Select<Tag>().Where(a => g.mysql.Select<Song_tag>().Where(b => b.Tag_id == a.Id && b.Song_id == 1).Any());
+                                                var manyTb = _common.GetTableByEntity(parm123Ref.RefMiddleEntityType);
+                                                var manySubSelectWhere = _dicExpressionLambdaToSqlAsSelectWhereMethodInfo.GetOrAdd(parm123Ref.RefMiddleEntityType, refMiddleEntityType3 =>
+                                                    typeof(ISelect<>).MakeGenericType(refMiddleEntityType3).GetMethod("Where", new[] {
                                             typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(refMiddleEntityType3, typeof(bool)))
-                                            }));
-                                            var manySubSelectWhereSql = _dicExpressionLambdaToSqlAsSelectWhereSqlMethodInfo.GetOrAdd(parm123Ref.RefMiddleEntityType, refMiddleEntityType3 =>
-                                                typeof(ISelect0<,>).MakeGenericType(typeof(ISelect<>).MakeGenericType(refMiddleEntityType3), refMiddleEntityType3).GetMethod("Where", new[] { typeof(string), typeof(object) }));
-                                            var manySubSelectAny = _dicExpressionLambdaToSqlAsSelectAnyMethodInfo.GetOrAdd(parm123Ref.RefMiddleEntityType, refMiddleEntityType3 =>
-                                                typeof(ISelect0<,>).MakeGenericType(typeof(ISelect<>).MakeGenericType(refMiddleEntityType3), refMiddleEntityType3).GetMethod("Any", new Type[0]));
-                                            var manySubSelectAsSelectExp = _dicFreeSqlGlobalExtensionsAsSelectExpression.GetOrAdd(parm123Ref.RefMiddleEntityType, refMiddleEntityType3 =>
-                                                Expression.Call(
-                                                    typeof(FreeSqlGlobalExtensions).GetMethods(BindingFlags.Static | BindingFlags.Public).Where(mfil => mfil.Name == "AsSelect" && mfil.GetParameters().Length == 1).FirstOrDefault()?.MakeGenericMethod(refMiddleEntityType3),
-                                                    Expression.Constant(Activator.CreateInstance(typeof(List<>).MakeGenericType(refMiddleEntityType3)))
-                                                ));
-                                            var manyMainParam = tsc._tables[0].Parameter;
-                                            var manySubSelectWhereParam = Expression.Parameter(parm123Ref.RefMiddleEntityType, $"M{fsqlWhereParam.Name}_M{asSelectParentExp.ToString().Replace(".", "__")}");//, $"{fsqlWhereParam.Name}__");
-                                            Expression manySubSelectWhereExp = null;
+                                                }));
+                                                var manySubSelectWhereSql = _dicExpressionLambdaToSqlAsSelectWhereSqlMethodInfo.GetOrAdd(parm123Ref.RefMiddleEntityType, refMiddleEntityType3 =>
+                                                    typeof(ISelect0<,>).MakeGenericType(typeof(ISelect<>).MakeGenericType(refMiddleEntityType3), refMiddleEntityType3).GetMethod("Where", new[] { typeof(string), typeof(object) }));
+                                                var manySubSelectAny = _dicExpressionLambdaToSqlAsSelectAnyMethodInfo.GetOrAdd(parm123Ref.RefMiddleEntityType, refMiddleEntityType3 =>
+                                                    typeof(ISelect0<,>).MakeGenericType(typeof(ISelect<>).MakeGenericType(refMiddleEntityType3), refMiddleEntityType3).GetMethod("Any", new Type[0]));
+                                                var manySubSelectAsSelectExp = _dicFreeSqlGlobalExtensionsAsSelectExpression.GetOrAdd(parm123Ref.RefMiddleEntityType, refMiddleEntityType3 =>
+                                                    Expression.Call(
+                                                        typeof(FreeSqlGlobalExtensions).GetMethods(BindingFlags.Static | BindingFlags.Public).Where(mfil => mfil.Name == "AsSelect" && mfil.GetParameters().Length == 1).FirstOrDefault()?.MakeGenericMethod(refMiddleEntityType3),
+                                                        Expression.Constant(Activator.CreateInstance(typeof(List<>).MakeGenericType(refMiddleEntityType3)))
+                                                    ));
+                                                var manyMainParam = tsc._tables[0].Parameter;
+                                                var manySubSelectWhereParam = Expression.Parameter(parm123Ref.RefMiddleEntityType, $"M{fsqlWhereParam.Name}_M{asSelectParentExp.ToString().Replace(".", "__")}");//, $"{fsqlWhereParam.Name}__");
+                                                Expression manySubSelectWhereExp = null;
+                                                for (var mn = 0; mn < parm123Ref.Columns.Count; mn++)
+                                                {
+                                                    var col1 = parm123Ref.MiddleColumns[mn];
+                                                    var col2 = parm123Ref.Columns[mn];
+                                                    var pexp1 = Expression.Property(manySubSelectWhereParam, col1.CsName);
+                                                    var pexp2 = Expression.Property(asSelectParentExp, col2.CsName);
+                                                    if (col1.CsType != col2.CsType)
+                                                    {
+                                                        if (col1.CsType.IsNullableType()) pexp1 = Expression.Property(pexp1, _dicNullableValueProperty.GetOrAdd(col1.CsType, ct1 => ct1.GetProperty("Value")));
+                                                        if (col2.CsType.IsNullableType()) pexp2 = Expression.Property(pexp2, _dicNullableValueProperty.GetOrAdd(col2.CsType, ct2 => ct2.GetProperty("Value")));
+                                                    }
+                                                    var tmpExp = Expression.Equal(pexp1, pexp2);
+                                                    if (mn == 0) manySubSelectWhereExp = tmpExp;
+                                                    else manySubSelectWhereExp = Expression.AndAlso(manySubSelectWhereExp, tmpExp);
+                                                }
+                                                var manySubSelectExpBoy = Expression.Call(
+                                                    manySubSelectAsSelectExp,
+                                                    manySubSelectWhere,
+                                                    Expression.Lambda(
+                                                        manySubSelectWhereExp,
+                                                        manySubSelectWhereParam
+                                                    )
+                                                );
+                                                Expression fsqlManyWhereExp = null;
+                                                for (var mn = 0; mn < parm123Ref.RefColumns.Count; mn++)
+                                                {
+                                                    var col1 = parm123Ref.RefColumns[mn];
+                                                    var col2 = parm123Ref.MiddleColumns[mn + parm123Ref.Columns.Count + mn];
+                                                    var pexp1 = Expression.Property(fsqlWhereParam, col1.CsName);
+                                                    var pexp2 = Expression.Property(manySubSelectWhereParam, col2.CsName);
+                                                    if (col1.CsType != col2.CsType)
+                                                    {
+                                                        if (col1.CsType.IsNullableType()) pexp1 = Expression.Property(pexp1, _dicNullableValueProperty.GetOrAdd(col1.CsType, ct1 => ct1.GetProperty("Value")));
+                                                        if (col2.CsType.IsNullableType()) pexp2 = Expression.Property(pexp2, _dicNullableValueProperty.GetOrAdd(col2.CsType, ct2 => ct2.GetProperty("Value")));
+                                                    }
+                                                    var tmpExp = Expression.Equal(pexp1, pexp2);
+                                                    if (mn == 0) fsqlManyWhereExp = tmpExp;
+                                                    else fsqlManyWhereExp = Expression.AndAlso(fsqlManyWhereExp, tmpExp);
+                                                }
+                                                fsqltables.Add(new SelectTableInfo { Alias = manySubSelectWhereParam.Name, Parameter = manySubSelectWhereParam, Table = manyTb, Type = SelectTableInfoType.Parent });
+                                                fsqlWhere.Invoke(fsql, new object[] { Expression.Lambda(fsqlManyWhereExp, fsqlWhereParam) });
+                                                var sql2 = fsqlType.GetMethod("ToSql", new Type[] { typeof(string) })?.Invoke(fsql, new object[] { "1" })?.ToString();
+                                                if (string.IsNullOrEmpty(sql2) == false)
+                                                    manySubSelectExpBoy = Expression.Call(manySubSelectExpBoy, manySubSelectWhereSql, Expression.Constant($"exists({sql2.Replace("\r\n", "\r\n\t")})"), Expression.Constant(null));
+                                                manySubSelectExpBoy = Expression.Call(manySubSelectExpBoy, manySubSelectAny);
+                                                asSelectBefores.Clear();
+
+                                                return ExpressionLambdaToSql(manySubSelectExpBoy, tsc);
+                                            }
                                             for (var mn = 0; mn < parm123Ref.Columns.Count; mn++)
                                             {
-                                                var col1 = parm123Ref.MiddleColumns[mn];
+                                                var col1 = parm123Ref.RefColumns[mn];
                                                 var col2 = parm123Ref.Columns[mn];
-                                                var pexp1 = Expression.Property(manySubSelectWhereParam, col1.CsName);
+                                                var pexp1 = Expression.Property(fsqlWhereParam, col1.CsName);
                                                 var pexp2 = Expression.Property(asSelectParentExp, col2.CsName);
                                                 if (col1.CsType != col2.CsType)
                                                 {
@@ -742,59 +793,11 @@ namespace FreeSql.Internal
                                                     if (col2.CsType.IsNullableType()) pexp2 = Expression.Property(pexp2, _dicNullableValueProperty.GetOrAdd(col2.CsType, ct2 => ct2.GetProperty("Value")));
                                                 }
                                                 var tmpExp = Expression.Equal(pexp1, pexp2);
-                                                if (mn == 0) manySubSelectWhereExp = tmpExp;
-                                                else manySubSelectWhereExp = Expression.AndAlso(manySubSelectWhereExp, tmpExp);
+                                                if (mn == 0) fsqlWhereExp = tmpExp;
+                                                else fsqlWhereExp = Expression.AndAlso(fsqlWhereExp, tmpExp);
                                             }
-                                            var manySubSelectExpBoy = Expression.Call(
-                                                manySubSelectAsSelectExp,
-                                                manySubSelectWhere,
-                                                Expression.Lambda(
-                                                    manySubSelectWhereExp,
-                                                    manySubSelectWhereParam
-                                                )
-                                            );
-                                            Expression fsqlManyWhereExp = null;
-                                            for (var mn = 0; mn < parm123Ref.RefColumns.Count; mn++)
-                                            {
-                                                var col1 = parm123Ref.RefColumns[mn];
-                                                var col2 = parm123Ref.MiddleColumns[mn + parm123Ref.Columns.Count + mn];
-                                                var pexp1 = Expression.Property(fsqlWhereParam, col1.CsName);
-                                                var pexp2 = Expression.Property(manySubSelectWhereParam, col2.CsName);
-                                                if (col1.CsType != col2.CsType)
-                                                {
-                                                    if (col1.CsType.IsNullableType()) pexp1 = Expression.Property(pexp1, _dicNullableValueProperty.GetOrAdd(col1.CsType, ct1 => ct1.GetProperty("Value")));
-                                                    if (col2.CsType.IsNullableType()) pexp2 = Expression.Property(pexp2, _dicNullableValueProperty.GetOrAdd(col2.CsType, ct2 => ct2.GetProperty("Value")));
-                                                }
-                                                var tmpExp = Expression.Equal(pexp1, pexp2);
-                                                if (mn == 0) fsqlManyWhereExp = tmpExp;
-                                                else fsqlManyWhereExp = Expression.AndAlso(fsqlManyWhereExp, tmpExp);
-                                            }
-                                            fsqltables.Add(new SelectTableInfo { Alias = manySubSelectWhereParam.Name, Parameter = manySubSelectWhereParam, Table = manyTb, Type = SelectTableInfoType.Parent });
-                                            fsqlWhere.Invoke(fsql, new object[] { Expression.Lambda(fsqlManyWhereExp, fsqlWhereParam) });
-                                            var sql2 = fsqlType.GetMethod("ToSql", new Type[] { typeof(string) })?.Invoke(fsql, new object[] { "1" })?.ToString();
-                                            if (string.IsNullOrEmpty(sql2) == false)
-                                                manySubSelectExpBoy = Expression.Call(manySubSelectExpBoy, manySubSelectWhereSql, Expression.Constant($"exists({sql2.Replace("\r\n", "\r\n\t")})"), Expression.Constant(null));
-                                            manySubSelectExpBoy = Expression.Call(manySubSelectExpBoy, manySubSelectAny);
-                                            asSelectBefores.Clear();
-
-                                            return ExpressionLambdaToSql(manySubSelectExpBoy, tsc);
+                                            fsqlWhere.Invoke(fsql, new object[] { Expression.Lambda(fsqlWhereExp, fsqlWhereParam) });
                                         }
-                                        for (var mn = 0; mn < parm123Ref.Columns.Count; mn++)
-                                        {
-                                            var col1 = parm123Ref.RefColumns[mn];
-                                            var col2 = parm123Ref.Columns[mn];
-                                            var pexp1 = Expression.Property(fsqlWhereParam, col1.CsName);
-                                            var pexp2 = Expression.Property(asSelectParentExp, col2.CsName);
-                                            if (col1.CsType != col2.CsType)
-                                            {
-                                                if (col1.CsType.IsNullableType()) pexp1 = Expression.Property(pexp1, _dicNullableValueProperty.GetOrAdd(col1.CsType, ct1 => ct1.GetProperty("Value")));
-                                                if (col2.CsType.IsNullableType()) pexp2 = Expression.Property(pexp2, _dicNullableValueProperty.GetOrAdd(col2.CsType, ct2 => ct2.GetProperty("Value")));
-                                            }
-                                            var tmpExp = Expression.Equal(pexp1, pexp2);
-                                            if (mn == 0) fsqlWhereExp = tmpExp;
-                                            else fsqlWhereExp = Expression.AndAlso(fsqlWhereExp, tmpExp);
-                                        }
-                                        fsqlWhere.Invoke(fsql, new object[] { Expression.Lambda(fsqlWhereExp, fsqlWhereParam) });
                                     }
                                     asSelectBefores.Clear();
 
@@ -1174,7 +1177,8 @@ namespace FreeSql.Internal
             if (_whereCascadeExpression.Any())
             {
                 var newParameter = Expression.Parameter(tb.Table.Type, "c");
-                Expression newExp = null;
+                var sb = new StringBuilder();
+                var isEmpty = true;
 
                 foreach (var fl in _whereCascadeExpression)
                 {
@@ -1184,9 +1188,13 @@ namespace FreeSql.Internal
                     var visitor = new NewExpressionVisitor(newParameter, fl.Parameters.FirstOrDefault());
                     try
                     {
-                        var andExp = visitor.Replace(fl.Body);
-                        if (newExp == null) newExp = andExp;
-                        else newExp = Expression.AndAlso(newExp, andExp);
+                        var expExp = visitor.Replace(fl.Body);
+                        var whereSql = ExpressionLambdaToSql(expExp, new ExpTSC { _tables = null, _selectColumnMap = null, getSelectGroupingMapString = null, tbtype = SelectTableInfoType.From, isQuoteName = true, isDisableDiyParse = false, style = ExpressionStyle.Where, currentTable = tb.Table, alias001 = tb.Alias });
+                        if (isEmpty == false)
+                            sb.Append(" AND ");
+                        else
+                            isEmpty = false;
+                        sb.Append("(").Append(whereSql).Append(")");
                     }
                     catch
                     {
@@ -1195,8 +1203,8 @@ namespace FreeSql.Internal
                     }
                 }
 
-                if (newExp != null)
-                    return ExpressionLambdaToSql(newExp, new ExpTSC { _tables = null, _selectColumnMap = null, getSelectGroupingMapString = null, tbtype = SelectTableInfoType.From, isQuoteName = true, isDisableDiyParse = false, style = ExpressionStyle.Where, currentTable = tb.Table, alias001 = tb.Alias });
+                if (isEmpty == false)
+                    return sb.ToString();
             }
             return null;
         }
