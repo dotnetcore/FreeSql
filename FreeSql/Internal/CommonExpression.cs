@@ -817,12 +817,18 @@ namespace FreeSql.Internal
                                         case "Min":
                                         case "Max":
                                         case "Avg":
-                                            var sqlSum = fsqlType.GetMethod("ToSql", new Type[] { typeof(string) })?.Invoke(fsql, new object[] { $"{exp3.Method.Name.ToLower()}({ExpressionLambdaToSql(exp3.Arguments.FirstOrDefault(), tsc)})" })?.ToString();
+                                            var tscClone1 = tsc.CloneDisableDiyParse();
+                                            tscClone1.isDisableDiyParse = false;
+                                            tscClone1._tables = fsqltables;
+                                            var sqlSum = fsqlType.GetMethod("ToSql", new Type[] { typeof(string) })?.Invoke(fsql, new object[] { $"{exp3.Method.Name.ToLower()}({ExpressionLambdaToSql(exp3.Arguments.FirstOrDefault(), tscClone1)})" })?.ToString();
                                             if (string.IsNullOrEmpty(sqlSum) == false)
                                                 return $"({sqlSum.Replace("\r\n", "\r\n\t")})";
                                             break;
                                         case "First":
-                                            var sqlFirst = fsqlType.GetMethod("ToSql", new Type[] { typeof(string) })?.Invoke(fsql, new object[] { ExpressionLambdaToSql(exp3.Arguments.FirstOrDefault(), tsc) })?.ToString();
+                                            var tscClone2 = tsc.CloneDisableDiyParse();
+                                            tscClone2.isDisableDiyParse = false;
+                                            tscClone2._tables = fsqltables;
+                                            var sqlFirst = fsqlType.GetMethod("ToSql", new Type[] { typeof(string) })?.Invoke(fsql, new object[] { ExpressionLambdaToSql(exp3.Arguments.FirstOrDefault(), tscClone2) })?.ToString();
                                             if (string.IsNullOrEmpty(sqlFirst) == false)
                                                 return $"({sqlFirst.Replace("\r\n", "\r\n\t")})";
                                             break;

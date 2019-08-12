@@ -832,12 +832,12 @@ namespace FreeSql.Tests.PostgreSQL
             var subquery = select.ToSql(a => new
             {
                 all = a,
-                count = select.Sum(b => b.Id)
+                count = (long)select.Sum(b => b.Id)
             });
             var subqueryList = select.ToList(a => new
             {
                 all = a,
-                count = select.Sum(b => b.Id)
+                count = (long)select.Sum(b => b.Id)
             });
         }
         [Fact]
