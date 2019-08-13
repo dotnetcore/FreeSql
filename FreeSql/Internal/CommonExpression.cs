@@ -922,7 +922,12 @@ namespace FreeSql.Internal
                         var pp = expStack.Pop() as ParameterExpression;
                         var memberExp = expStack.Pop() as MemberExpression;
                         var tb = _common.GetTableByEntity(pp.Type);
-                        if (tb.ColumnsByCs.ContainsKey(memberExp.Member.Name) == false) throw new ArgumentException($"{tb.DbName} 找不到列 {memberExp.Member.Name}");
+                        if (tb.ColumnsByCs.ContainsKey(memberExp.Member.Name) == false)
+                        {
+                            if (tb.ColumnsByCsIgnore.ContainsKey(memberExp.Member.Name))
+                                throw new ArgumentException($"{tb.DbName}.{memberExp.Member.Name} 被忽略，请检查 IsIgnore 设置，确认 get/set 为 public");
+                            throw new ArgumentException($"{tb.DbName} 找不到列 {memberExp.Member.Name}");
+                        }
                         if (tsc._selectColumnMap != null)
                         {
                             tsc._selectColumnMap.Add(new SelectColumnInfo { Table = null, Column = tb.ColumnsByCs[memberExp.Member.Name] });
@@ -1079,6 +1084,8 @@ namespace FreeSql.Internal
                                             if (tb3.Columns.Any()) return "";
                                         }
                                     }
+                                    if (tb2.ColumnsByCsIgnore.ContainsKey(mp2.Member.Name))
+                                        throw new ArgumentException($"{tb2.DbName}.{mp2.Member.Name} 被忽略，请检查 IsIgnore 设置，确认 get/set 为 public");
                                     throw new ArgumentException($"{tb2.DbName} 找不到列 {mp2.Member.Name}");
                                 }
                                 var col2 = tb2.ColumnsByCs[mp2.Member.Name];

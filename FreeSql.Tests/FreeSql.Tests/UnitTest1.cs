@@ -283,7 +283,7 @@ namespace FreeSql.Tests
         {
 
             [FreeSql.DataAnnotations.Column(IsPrimary = true)]
-            public Guid Id { get; set; }
+            public Guid Id { get; protected set; }
             public string TaskName { get; set; }
             public Guid TemplatesId { get; set; }
             public string GeneratePath { get; set; }
@@ -338,9 +338,23 @@ namespace FreeSql.Tests
             public DateTime class2 { set; get; }
         }
 
+        class TestDto
+        {
+            public Guid Id { get; set; }
+            public bool IsLeaf { get; set; }
+        }
+
         [Fact]
         public void Test1()
         {
+            var dkdkd = g.mysql.Select<TaskBuild>().AsTable((t,old) => "TaskBuild22")
+                .ToList< TestDto>(a => new TestDto()
+                {
+                    Id = a.Id,
+                    IsLeaf = g.mysql.Select<TaskBuild>().AsTable((t, old) => "TaskBuild22").Any(b => b.TemplatesId == a.Id)
+                });
+
+
             var xxxkdkd = g.oracle.Select<Templates, TaskBuild>()
                 .InnerJoin((a,b) => true)
                 .Where((a,b) => (DateTime.Now - a.EditTime).TotalMinutes > 100)

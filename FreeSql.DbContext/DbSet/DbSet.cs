@@ -18,7 +18,7 @@ namespace FreeSql
         {
             _ctx = ctx;
             _uow = ctx._uow;
-            _fsql = ctx._fsql;
+            _fsql = ctx.Orm;
         }
     }
 

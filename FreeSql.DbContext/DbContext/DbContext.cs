@@ -11,18 +11,16 @@ namespace FreeSql
     {
 
         internal IFreeSql _orm;
-        internal IFreeSql _fsql => _orm ?? throw new ArgumentNullException("请在 OnConfiguring 或 AddFreeDbContext 中配置 UseFreeSql");
-
-        public IFreeSql Orm => _fsql;
+        public IFreeSql Orm => _orm ?? throw new ArgumentNullException("请在 OnConfiguring 或 AddFreeDbContext 中配置 UseFreeSql");
 
         protected IUnitOfWork _uowPriv;
-        internal IUnitOfWork _uow => _isUseUnitOfWork ? (_uowPriv ?? (_uowPriv = new UnitOfWork(_fsql))) : null;
+        internal IUnitOfWork _uow => _isUseUnitOfWork ? (_uowPriv ?? (_uowPriv = new UnitOfWork(Orm))) : null;
         internal bool _isUseUnitOfWork = true; //不使用工作单元事务
 
         public IUnitOfWork UnitOfWork => _uow;
 
         DbContextOptions _options;
-        internal DbContextOptions Options
+        public DbContextOptions Options
         {
             get
             {
@@ -31,19 +29,22 @@ namespace FreeSql
                 _options = new DbContextOptions();
                 return _options;
             }
+            set => _options = value;
         }
-
-        static ConcurrentDictionary<Type, PropertyInfo[]> _dicGetDbSetProps = new ConcurrentDictionary<Type, PropertyInfo[]>();
+        
         protected DbContext()
         {
 
             var builder = new DbContextOptionsBuilder();
             OnConfiguring(builder);
             _orm = builder._fsql;
+            _options = builder._options;
 
             if (_orm != null) InitPropSets();
         }
+        protected virtual void OnConfiguring(DbContextOptionsBuilder builder) { }
 
+        static ConcurrentDictionary<Type, PropertyInfo[]> _dicGetDbSetProps = new ConcurrentDictionary<Type, PropertyInfo[]>();
         internal void InitPropSets()
         {
             var props = _dicGetDbSetProps.GetOrAdd(this.GetType(), tp =>
@@ -58,11 +59,6 @@ namespace FreeSql
                 prop.SetValue(this, set);
                 AllSets.Add(prop.Name, set);
             }
-        }
-
-        protected virtual void OnConfiguring(DbContextOptionsBuilder builder)
-        {
-
         }
 
         protected Dictionary<Type, IDbSet> _dicSet = new Dictionary<Type, IDbSet>();
@@ -133,15 +129,10 @@ namespace FreeSql
         Queue<ExecCommandInfo> _actions = new Queue<ExecCommandInfo>();
         internal int _affrows = 0;
 
-        internal void EnqueueAction(ExecCommandInfoType actionType, IDbSet dbSet, Type stateType, object state)
-        {
+        internal void EnqueueAction(ExecCommandInfoType actionType, IDbSet dbSet, Type stateType, object state) =>
             _actions.Enqueue(new ExecCommandInfo { actionType = actionType, dbSet = dbSet, stateType = stateType, state = state });
-        }
 
-        ~DbContext()
-        {
-            this.Dispose();
-        }
+        ~DbContext() => this.Dispose();
         bool _isdisposed = false;
         public void Dispose()
         {
