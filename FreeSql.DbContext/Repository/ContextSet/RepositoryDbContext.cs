@@ -13,7 +13,7 @@ namespace FreeSql
         {
             _ormPriv = orm;
             _isUseUnitOfWork = false;
-            UnitOfWork = _repo.UnitOfWork;
+            UnitOfWork = repo.UnitOfWork;
             _repo = repo;
         }
 
