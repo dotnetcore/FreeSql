@@ -10,9 +10,9 @@ namespace FreeSql
         where TEntity : class
     {
 
-        RepositoryDbContext _dbPriv;
+        internal RepositoryDbContext _dbPriv; //这个不能私有化，有地方需要反射获取它
         internal RepositoryDbContext _db => _dbPriv ?? (_dbPriv = new RepositoryDbContext(Orm, this));
-        RepositoryDbSet<TEntity> _dbsetPriv;
+        internal RepositoryDbSet<TEntity> _dbsetPriv;
         internal RepositoryDbSet<TEntity> _dbset => _dbsetPriv ?? (_dbsetPriv = _db.Set<TEntity>() as RepositoryDbSet<TEntity>);
 
         public IDataFilter<TEntity> DataFilter { get; } = new DataFilter<TEntity>();

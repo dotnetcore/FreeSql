@@ -283,7 +283,7 @@ namespace FreeSql.Tests
         {
 
             [FreeSql.DataAnnotations.Column(IsPrimary = true)]
-            public Guid Id { get; protected set; }
+            public Guid Id { get; set; }
             public string TaskName { get; set; }
             public Guid TemplatesId { get; set; }
             public string GeneratePath { get; set; }
