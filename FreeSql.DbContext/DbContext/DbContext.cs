@@ -9,41 +9,51 @@ namespace FreeSql
 {
     public abstract partial class DbContext : IDisposable
     {
+        internal IFreeSql _ormPriv;
+        public IFreeSql Orm => _ormPriv ?? throw new ArgumentNullException("请在 OnConfiguring 或 AddFreeDbContext 中配置 UseFreeSql");
 
-        internal IFreeSql _orm;
-        public IFreeSql Orm => _orm ?? throw new ArgumentNullException("请在 OnConfiguring 或 AddFreeDbContext 中配置 UseFreeSql");
-
-        protected IUnitOfWork _uowPriv;
-        internal IUnitOfWork _uow => _isUseUnitOfWork ? (_uowPriv ?? (_uowPriv = new UnitOfWork(Orm))) : null;
-        internal bool _isUseUnitOfWork = true; //不使用工作单元事务
-
-        public IUnitOfWork UnitOfWork => _uow;
-
-        DbContextOptions _options;
-        public DbContextOptions Options
+        #region Property UnitOfWork
+        internal bool _isUseUnitOfWork = true; //是否使用工作单元事务
+        IUnitOfWork _uowPriv;
+        public IUnitOfWork UnitOfWork
         {
+            set => _uowPriv = value;
             get
             {
-                if (_options != null) return _options;
-                if (FreeSqlDbContextExtenssions._dicSetDbContextOptions.TryGetValue(Orm, out _options)) return _options;
-                _options = new DbContextOptions();
-                return _options;
+                if (_uowPriv != null) return _uowPriv;
+                if (_isUseUnitOfWork == false) return null;
+                return _uowPriv = new UnitOfWork(Orm);
             }
-            set => _options = value;
         }
-        
+        #endregion
+
+        #region Property Options
+        internal DbContextOptions _optionsPriv;
+        public DbContextOptions Options
+        {
+            set => _optionsPriv = value;
+            get
+            {
+                if (_optionsPriv != null) return _optionsPriv;
+                if (FreeSqlDbContextExtenssions._dicSetDbContextOptions.TryGetValue(Orm, out _optionsPriv)) return _optionsPriv;
+                _optionsPriv = new DbContextOptions();
+                return _optionsPriv;
+            }
+        }
+        #endregion
+
         protected DbContext()
         {
-
             var builder = new DbContextOptionsBuilder();
             OnConfiguring(builder);
-            _orm = builder._fsql;
-            _options = builder._options;
+            _ormPriv = builder._fsql;
+            _optionsPriv = builder._options;
 
-            if (_orm != null) InitPropSets();
+            if (_ormPriv != null) InitPropSets();
         }
         protected virtual void OnConfiguring(DbContextOptionsBuilder builder) { }
 
+        #region Set
         static ConcurrentDictionary<Type, PropertyInfo[]> _dicGetDbSetProps = new ConcurrentDictionary<Type, PropertyInfo[]>();
         internal void InitPropSets()
         {
@@ -61,16 +71,19 @@ namespace FreeSql
             }
         }
 
+        protected List<IDbSet> _listSet = new List<IDbSet>();
         protected Dictionary<Type, IDbSet> _dicSet = new Dictionary<Type, IDbSet>();
         public DbSet<TEntity> Set<TEntity>() where TEntity : class => this.Set(typeof(TEntity)) as DbSet<TEntity>;
         public virtual IDbSet Set(Type entityType)
         {
             if (_dicSet.ContainsKey(entityType)) return _dicSet[entityType];
             var sd = Activator.CreateInstance(typeof(DbContextDbSet<>).MakeGenericType(entityType), this) as IDbSet;
+            _listSet.Add(sd);
             if (entityType != typeof(object)) _dicSet.Add(entityType, sd);
             return sd;
         }
         protected Dictionary<string, IDbSet> AllSets { get; } = new Dictionary<string, IDbSet>();
+        #endregion
 
         #region DbSet 快速代理
         /// <summary>
@@ -118,6 +131,7 @@ namespace FreeSql
         public void AttachRange<TEntity>(IEnumerable<TEntity> data) where TEntity : class => this.Set<TEntity>().AttachRange(data);
         #endregion
 
+        #region Queue Action
         internal class ExecCommandInfo
         {
             public ExecCommandInfoType actionType { get; set; }
@@ -131,31 +145,33 @@ namespace FreeSql
 
         internal void EnqueueAction(ExecCommandInfoType actionType, IDbSet dbSet, Type stateType, object state) =>
             _actions.Enqueue(new ExecCommandInfo { actionType = actionType, dbSet = dbSet, stateType = stateType, state = state });
+        #endregion
 
         ~DbContext() => this.Dispose();
         bool _isdisposed = false;
         public void Dispose()
         {
             if (_isdisposed) return;
+            _isdisposed = true;
             try
             {
                 _actions.Clear();
 
-                foreach (var set in _dicSet)
+                foreach (var set in _listSet)
                     try
                     {
-                        set.Value.Dispose();
+                        set.Dispose();
                     }
                     catch { }
 
+                _listSet.Clear();
                 _dicSet.Clear();
                 AllSets.Clear();
 
-                _uow?.Rollback();
+                UnitOfWork?.Rollback();
             }
             finally
             {
-                _isdisposed = true;
                 GC.SuppressFinalize(this);
             }
         }

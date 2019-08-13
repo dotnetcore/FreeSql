@@ -8,13 +8,13 @@ namespace FreeSql
     internal class RepositoryDbContext : DbContext
     {
 
-        protected IBaseRepository _repos;
-        public RepositoryDbContext(IFreeSql orm, IBaseRepository repos) : base()
+        protected IBaseRepository _repo;
+        public RepositoryDbContext(IFreeSql orm, IBaseRepository repo) : base()
         {
-            _orm = orm;
-            _repos = repos;
+            _ormPriv = orm;
             _isUseUnitOfWork = false;
-            _uowPriv = _repos.UnitOfWork;
+            UnitOfWork = _repo.UnitOfWork;
+            _repo = repo;
         }
 
 
@@ -24,21 +24,22 @@ namespace FreeSql
         {
             if (_dicSet.ContainsKey(entityType)) return _dicSet[entityType];
 
-            var tb = _orm.CodeFirst.GetTableByEntity(entityType);
+            var tb = _ormPriv.CodeFirst.GetTableByEntity(entityType);
             if (tb == null) return null;
 
-            object repos = _repos;
-            if (entityType != _repos.EntityType)
+            object repo = _repo;
+            if (entityType != _repo.EntityType)
             {
-                repos = Activator.CreateInstance(typeof(DefaultRepository<,>).MakeGenericType(entityType, typeof(int)), _repos.Orm);
-                (repos as IBaseRepository).UnitOfWork = _repos.UnitOfWork;
-                GetRepositoryDbField(entityType).SetValue(repos, this);
+                repo = Activator.CreateInstance(typeof(DefaultRepository<,>).MakeGenericType(entityType, typeof(int)), _repo.Orm);
+                (repo as IBaseRepository).UnitOfWork = _repo.UnitOfWork;
+                GetRepositoryDbField(entityType).SetValue(repo, this);
 
-                typeof(RepositoryDbContext).GetMethod("SetRepositoryDataFilter").MakeGenericMethod(_repos.EntityType)
-                    .Invoke(null, new object[] { repos, _repos });
+                typeof(RepositoryDbContext).GetMethod("SetRepositoryDataFilter").MakeGenericMethod(_repo.EntityType)
+                    .Invoke(null, new object[] { repo, _repo });
             }
 
-            var sd = Activator.CreateInstance(typeof(RepositoryDbSet<>).MakeGenericType(entityType), repos) as IDbSet;
+            var sd = Activator.CreateInstance(typeof(RepositoryDbSet<>).MakeGenericType(entityType), repo) as IDbSet;
+            _listSet.Add(sd);
             if (entityType != typeof(object)) _dicSet.Add(entityType, sd);
             return sd;
         }

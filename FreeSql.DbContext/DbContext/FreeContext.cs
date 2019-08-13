@@ -7,7 +7,7 @@ namespace FreeSql
 
         public FreeContext(IFreeSql orm)
         {
-            _orm = orm;
+            _ormPriv = orm;
         }
     }
 }

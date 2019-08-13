@@ -42,23 +42,23 @@ namespace FreeSql
 
         public GuidRepository<TEntity> GetGuidRepository<TEntity>(Expression<Func<TEntity, bool>> filter = null, Func<string, string> asTable = null) where TEntity : class
         {
-            var repos = new GuidRepository<TEntity>(_fsql, filter, asTable);
-            repos.UnitOfWork = this;
-            return repos;
+            var repo = new GuidRepository<TEntity>(_fsql, filter, asTable);
+            repo.UnitOfWork = this;
+            return repo;
         }
 
         public DefaultRepository<TEntity, TKey> GetRepository<TEntity, TKey>(Expression<Func<TEntity, bool>> filter = null) where TEntity : class
         {
-            var repos = new DefaultRepository<TEntity, TKey>(_fsql, filter);
-            repos.UnitOfWork = this;
-            return repos;
+            var repo = new DefaultRepository<TEntity, TKey>(_fsql, filter);
+            repo.UnitOfWork = this;
+            return repo;
         }
 
         public BaseRepository<TEntity> GetRepository<TEntity>(Expression<Func<TEntity, bool>> filter = null) where TEntity : class
         {
-            var repos = new DefaultRepository<TEntity, int>(_fsql, filter);
-            repos.UnitOfWork = this;
-            return repos;
+            var repo = new DefaultRepository<TEntity, int>(_fsql, filter);
+            repo.UnitOfWork = this;
+            return repo;
         }
     }
 }

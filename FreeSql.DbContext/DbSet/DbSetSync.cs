@@ -14,7 +14,7 @@ namespace FreeSql
         void DbContextExecCommand()
         {
             _dicUpdateTimes.Clear();
-            _ctx.ExecCommand();
+            _db.ExecCommand();
         }
 
         int DbContextBetchAdd(EntityState[] adds)
@@ -31,7 +31,7 @@ namespace FreeSql
             if (_tableIdentitys.Length > 0)
             {
                 //有自增，马上执行
-                switch (_fsql.Ado.DataType)
+                switch (_db.Orm.Ado.DataType)
                 {
                     case DataType.SqlServer:
                     case DataType.PostgreSQL:
@@ -40,9 +40,9 @@ namespace FreeSql
                             DbContextExecCommand();
                             var idtval = this.OrmInsert(data).ExecuteIdentity();
                             IncrAffrows(1);
-                            _fsql.SetEntityIdentityValueWithPrimary(_entityType, data, idtval);
+                            _db.Orm.SetEntityIdentityValueWithPrimary(_entityType, data, idtval);
                             Attach(data);
-                            if (_ctx.Options.EnableAddOrUpdateNavigateList)
+                            if (_db.Options.EnableAddOrUpdateNavigateList)
                                 AddOrUpdateNavigateList(data);
                         }
                         else
@@ -50,9 +50,9 @@ namespace FreeSql
                             DbContextExecCommand();
                             var newval = this.OrmInsert(data).ExecuteInserted().First();
                             IncrAffrows(1);
-                            _fsql.MapEntityValue(_entityType, newval, data);
+                            _db.Orm.MapEntityValue(_entityType, newval, data);
                             Attach(newval);
-                            if (_ctx.Options.EnableAddOrUpdateNavigateList)
+                            if (_db.Options.EnableAddOrUpdateNavigateList)
                                 AddOrUpdateNavigateList(data);
                         }
                         return;
@@ -64,9 +64,9 @@ namespace FreeSql
                             DbContextExecCommand();
                             var idtval = this.OrmInsert(data).ExecuteIdentity();
                             IncrAffrows(1);
-                            _fsql.SetEntityIdentityValueWithPrimary(_entityType, data, idtval);
+                            _db.Orm.SetEntityIdentityValueWithPrimary(_entityType, data, idtval);
                             Attach(data);
-                            if (_ctx.Options.EnableAddOrUpdateNavigateList)
+                            if (_db.Options.EnableAddOrUpdateNavigateList)
                                 AddOrUpdateNavigateList(data);
                         }
                         return;
@@ -74,7 +74,7 @@ namespace FreeSql
             }
             EnqueueToDbContext(DbContext.ExecCommandInfoType.Insert, CreateEntityState(data));
             Attach(data);
-            if (_ctx.Options.EnableAddOrUpdateNavigateList)
+            if (_db.Options.EnableAddOrUpdateNavigateList)
                 AddOrUpdateNavigateList(data);
         }
         /// <summary>
@@ -93,19 +93,19 @@ namespace FreeSql
             if (_tableIdentitys.Length > 0)
             {
                 //有自增，马上执行
-                switch (_fsql.Ado.DataType)
+                switch (_db.Orm.Ado.DataType)
                 {
                     case DataType.SqlServer:
                     case DataType.PostgreSQL:
                         DbContextExecCommand();
                         var rets = this.OrmInsert(data).ExecuteInserted();
-                        if (rets.Count != data.Count()) throw new Exception($"特别错误：批量添加失败，{_fsql.Ado.DataType} 的返回数据，与添加的数目不匹配");
+                        if (rets.Count != data.Count()) throw new Exception($"特别错误：批量添加失败，{_db.Orm.Ado.DataType} 的返回数据，与添加的数目不匹配");
                         var idx = 0;
                         foreach (var s in data)
-                            _fsql.MapEntityValue(_entityType, rets[idx++], s);
+                            _db.Orm.MapEntityValue(_entityType, rets[idx++], s);
                         IncrAffrows(rets.Count);
                         AttachRange(rets);
-                        if (_ctx.Options.EnableAddOrUpdateNavigateList)
+                        if (_db.Options.EnableAddOrUpdateNavigateList)
                             foreach (var item in data)
                                 AddOrUpdateNavigateList(item);
                         return;
@@ -123,7 +123,7 @@ namespace FreeSql
                 foreach (var item in data)
                     EnqueueToDbContext(DbContext.ExecCommandInfoType.Insert, CreateEntityState(item));
                 AttachRange(data);
-                if (_ctx.Options.EnableAddOrUpdateNavigateList)
+                if (_db.Options.EnableAddOrUpdateNavigateList)
                     foreach (var item in data)
                         AddOrUpdateNavigateList(item);
             }
@@ -175,7 +175,7 @@ namespace FreeSql
                         {
                             if (dbset == null)
                             {
-                                dbset = _ctx.Set(tref.RefEntityType);
+                                dbset = _db.Set(tref.RefEntityType);
                                 dbsetAddOrUpdate = dbset.GetType().GetMethod("AddOrUpdate", new Type[] { tref.RefEntityType });
                             }
                             for (var colidx = 0; colidx < tref.Columns.Count; colidx++)
@@ -202,10 +202,10 @@ namespace FreeSql
 
             if (_states.TryGetValue(uplst1.Key, out var lstval1) == false) return -999;
             var lstval2 = default(EntityState);
-            if (uplst2 != null && _states.TryGetValue(uplst2.Key, out lstval2) == false) throw new Exception($"特别错误：更新失败，数据未被跟踪：{_fsql.GetEntityString(_entityType, uplst2.Value)}");
+            if (uplst2 != null && _states.TryGetValue(uplst2.Key, out lstval2) == false) throw new Exception($"特别错误：更新失败，数据未被跟踪：{_db.Orm.GetEntityString(_entityType, uplst2.Value)}");
 
-            var cuig1 = _fsql.CompareEntityValueReturnColumns(_entityType, uplst1.Value, lstval1.Value, true);
-            var cuig2 = uplst2 != null ? _fsql.CompareEntityValueReturnColumns(_entityType, uplst2.Value, lstval2.Value, true) : null;
+            var cuig1 = _db.Orm.CompareEntityValueReturnColumns(_entityType, uplst1.Value, lstval1.Value, true);
+            var cuig2 = uplst2 != null ? _db.Orm.CompareEntityValueReturnColumns(_entityType, uplst2.Value, lstval2.Value, true) : null;
 
             List<EntityState> data = null;
             string[] cuig = null;
@@ -237,9 +237,9 @@ namespace FreeSql
                 foreach (var newval in data)
                 {
                     if (_states.TryGetValue(newval.Key, out var tryold))
-                        _fsql.MapEntityValue(_entityType, newval.Value, tryold.Value);
+                        _db.Orm.MapEntityValue(_entityType, newval.Value, tryold.Value);
                     if (newval.OldValue != null)
-                        _fsql.MapEntityValue(_entityType, newval.Value, newval.OldValue);
+                        _db.Orm.MapEntityValue(_entityType, newval.Value, newval.OldValue);
                 }
                 return affrows;
             }
@@ -256,11 +256,11 @@ namespace FreeSql
         public void Update(TEntity data)
         {
             var exists = ExistsInStates(data);
-            if (exists == null) throw new Exception($"不可更新，未设置主键的值：{_fsql.GetEntityString(_entityType, data)}");
+            if (exists == null) throw new Exception($"不可更新，未设置主键的值：{_db.Orm.GetEntityString(_entityType, data)}");
             if (exists == false)
             {
                 var olddata = OrmSelect(data).First();
-                if (olddata == null) throw new Exception($"不可更新，数据库不存在该记录：{_fsql.GetEntityString(_entityType, data)}");
+                if (olddata == null) throw new Exception($"不可更新，数据库不存在该记录：{_db.Orm.GetEntityString(_entityType, data)}");
             }
 
             UpdateRangePriv(new[] { data }, true);
@@ -279,7 +279,7 @@ namespace FreeSql
                 state.OldValue = item;
                 EnqueueToDbContext(DbContext.ExecCommandInfoType.Update, state);
             }
-            if (_ctx.Options.EnableAddOrUpdateNavigateList)
+            if (_db.Options.EnableAddOrUpdateNavigateList)
                 foreach (var item in data)
                     AddOrUpdateNavigateList(item);
         }
@@ -305,7 +305,7 @@ namespace FreeSql
             {
                 var state = CreateEntityState(item);
                 _states.TryRemove(state.Key, out var trystate);
-                _fsql.ClearEntityPrimaryValueWithIdentityAndGuid(_entityType, item);
+                _db.Orm.ClearEntityPrimaryValueWithIdentityAndGuid(_entityType, item);
 
                 EnqueueToDbContext(DbContext.ExecCommandInfoType.Delete, state);
             }
@@ -320,7 +320,7 @@ namespace FreeSql
         public void AddOrUpdate(TEntity data)
         {
             if (data == null) throw new ArgumentNullException(nameof(data));
-            if (_table.Primarys.Any() == false) throw new Exception($"不可添加，实体没有主键：{_fsql.GetEntityString(_entityType, data)}");
+            if (_table.Primarys.Any() == false) throw new Exception($"不可添加，实体没有主键：{_db.Orm.GetEntityString(_entityType, data)}");
 
             var flagExists = ExistsInStates(data);
             if (flagExists == false)
@@ -332,15 +332,15 @@ namespace FreeSql
             if (flagExists == true && CanUpdate(data, false))
             {
                 DbContextExecCommand();
-                var affrows = _ctx._affrows;
+                var affrows = _db._affrows;
                 UpdateRangePriv(new[] { data }, false);
                 DbContextExecCommand();
-                affrows = _ctx._affrows - affrows;
+                affrows = _db._affrows - affrows;
                 if (affrows > 0) return;
             }
             if (CanAdd(data, false))
             {
-                _fsql.ClearEntityPrimaryValueWithIdentity(_entityType, data);
+                _db.Orm.ClearEntityPrimaryValueWithIdentity(_entityType, data);
                 AddPriv(data, false);
             }
         }

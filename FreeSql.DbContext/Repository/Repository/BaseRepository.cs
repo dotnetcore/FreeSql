@@ -10,10 +10,11 @@ namespace FreeSql
         where TEntity : class
     {
 
-        internal RepositoryDbContext _dbPriv;
+        RepositoryDbContext _dbPriv;
         internal RepositoryDbContext _db => _dbPriv ?? (_dbPriv = new RepositoryDbContext(Orm, this));
-        internal RepositoryDbSet<TEntity> _dbsetPriv;
+        RepositoryDbSet<TEntity> _dbsetPriv;
         internal RepositoryDbSet<TEntity> _dbset => _dbsetPriv ?? (_dbsetPriv = _db.Set<TEntity>() as RepositoryDbSet<TEntity>);
+
         public IDataFilter<TEntity> DataFilter { get; } = new DataFilter<TEntity>();
         Func<string, string> _asTableVal;
         protected Func<string, string> AsTable
@@ -39,14 +40,12 @@ namespace FreeSql
             AsTable = asTable;
         }
 
-        ~BaseRepository()
-        {
-            this.Dispose();
-        }
+        ~BaseRepository() => this.Dispose();
         bool _isdisposed = false;
         public void Dispose()
         {
             if (_isdisposed) return;
+            _isdisposed = true;
             try
             {
                 _dbsetPriv?.Dispose();
@@ -55,7 +54,6 @@ namespace FreeSql
             }
             finally
             {
-                _isdisposed = true;
                 GC.SuppressFinalize(this);
             }
         }

@@ -12,7 +12,7 @@ namespace FreeSql
         public virtual int SaveChanges()
         {
             ExecCommand();
-            _uow?.Commit();
+            UnitOfWork?.Commit();
             var ret = _affrows;
             _affrows = 0;
             return ret;

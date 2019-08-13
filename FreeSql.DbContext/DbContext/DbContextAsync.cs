@@ -13,7 +13,7 @@ namespace FreeSql
         async public virtual Task<int> SaveChangesAsync()
         {
             await ExecCommandAsync();
-            _uow?.Commit();
+            UnitOfWork?.Commit();
             var ret = _affrows;
             _affrows = 0;
             return ret;

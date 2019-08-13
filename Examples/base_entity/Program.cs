@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FreeSql;
+using System;
 using System.Threading.Tasks;
 
 namespace base_entity
