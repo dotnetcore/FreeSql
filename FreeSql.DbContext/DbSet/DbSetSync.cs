@@ -326,7 +326,7 @@ namespace FreeSql
             if (flagExists == false)
             {
                 var olddata = OrmSelect(data).First();
-                if (olddata == null) flagExists = false;
+                flagExists = olddata != null;
             }
 
             if (flagExists == true && CanUpdate(data, false))

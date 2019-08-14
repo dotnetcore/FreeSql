@@ -285,7 +285,7 @@ namespace FreeSql
             if (flagExists == false)
             {
                 var olddata = await OrmSelect(data).FirstAsync();
-                if (olddata == null) flagExists = false;
+                flagExists = olddata != null;
             }
 
             if (flagExists == true && CanUpdate(data, false))
