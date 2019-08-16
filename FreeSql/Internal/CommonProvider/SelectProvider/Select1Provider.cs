@@ -680,14 +680,14 @@ namespace FreeSql.Internal.CommonProvider
                                 subSelect._where.Clear();
                                 if (tbref.Columns.Count == 1)
                                 {
-                                    var arrExp = Expression.NewArrayInit(tbref.Columns[0].CsType,
+                                    var arrExp = Expression.NewArrayInit(tbref.RefColumns[0].CsType,
                                         list.Select(a => getListValue(a, tbref.Columns[0].CsName, 0)).Distinct()
-                                            .Select(a => Expression.Constant(Convert.ChangeType(a, tbref.Columns[0].CsType))).ToArray());
+                                            .Select(a => Expression.Constant(Utils.GetDataReaderValue(tbref.RefColumns[0].CsType, a), tbref.RefColumns[0].CsType)).ToArray());
                                     var otmExpParm1 = Expression.Parameter(typeof(TNavigate), "a");
-                                    var containsMethod = _dicTypeMethod.GetOrAdd(tbref.Columns[0].CsType, et => new ConcurrentDictionary<string, MethodInfo>()).GetOrAdd("Contains", mn =>
-                                        typeof(Enumerable).GetMethods().Where(a => a.Name == mn).First()).MakeGenericMethod(tbref.Columns[0].CsType);
+                                    var containsMethod = _dicTypeMethod.GetOrAdd(tbref.RefColumns[0].CsType, et => new ConcurrentDictionary<string, MethodInfo>()).GetOrAdd("Contains", mn =>
+                                        typeof(Enumerable).GetMethods().Where(a => a.Name == mn).First()).MakeGenericMethod(tbref.RefColumns[0].CsType);
                                     var refCol = Expression.MakeMemberAccess(otmExpParm1, tbref2.Properties[tbref.RefColumns[0].CsName]);
-                                    if (refCol.Type.IsNullableType()) refCol = Expression.Property(refCol, CommonExpression._dicNullableValueProperty.GetOrAdd(refCol.Type, ct1 => ct1.GetProperty("Value")));
+                                    //if (refCol.Type.IsNullableType()) refCol = Expression.Property(refCol, CommonExpression._dicNullableValueProperty.GetOrAdd(refCol.Type, ct1 => ct1.GetProperty("Value")));
                                     subSelect.Where(Expression.Lambda<Func<TNavigate, bool>>(
                                         Expression.Call(null, containsMethod, arrExp, refCol), otmExpParm1));
                                 }

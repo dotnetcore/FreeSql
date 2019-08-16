@@ -858,7 +858,7 @@ namespace FreeSql.Tests.Sqlite
         public class TestInclude_OneToManyModel2
         {
             [Column(IsPrimary = true)]
-            public int model2id { get; set; }
+            public int? model2id { get; set; }
             public virtual TestInclude_OneToManyModel1 model1 { get; set; }
 
             public string m2setting { get; set; }
@@ -870,7 +870,7 @@ namespace FreeSql.Tests.Sqlite
             [Column(IsIdentity = true)]
             public int id { get; set; }
 
-            public int? model2111Idaaa { get; set; }
+            public int model2111Idaaa { get; set; }
             public string title { get; set; }
 
             public List<TestInclude_OneToManyModel4> childs2 { get; set; }

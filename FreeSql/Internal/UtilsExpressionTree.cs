@@ -518,7 +518,7 @@ namespace FreeSql.Internal
                                 {
 
                                 }
-                                if (trycol != null && trycol.CsType.NullableTypeOrThis() != trytb.Primarys[a].CsType)
+                                if (trycol != null && trycol.CsType.NullableTypeOrThis() != trytb.Primarys[a].CsType.NullableTypeOrThis())
                                 {
                                     nvref.Exception = new Exception($"【ManyToMany】导航属性 {trytbTypeName}.{pnv.Name} 解析错误，{tbmid.CsName}.{trycol.CsName} 和 {trytb.CsName}.{trytb.Primarys[a].CsName} 类型不一致");
                                     trytb.AddOrUpdateTableRef(pnv.Name, nvref);
@@ -558,7 +558,7 @@ namespace FreeSql.Internal
                                     {
 
                                     }
-                                    if (trycol != null && trycol.CsType.NullableTypeOrThis() != tbref.Primarys[a].CsType)
+                                    if (trycol != null && trycol.CsType.NullableTypeOrThis() != tbref.Primarys[a].CsType.NullableTypeOrThis())
                                     {
                                         nvref.Exception = new Exception($"【ManyToMany】导航属性 {trytbTypeName}.{pnv.Name} 解析错误，{tbmid.CsName}.{trycol.CsName} 和 {tbref.CsName}.{tbref.Primarys[a].CsName} 类型不一致");
                                         trytb.AddOrUpdateTableRef(pnv.Name, nvref);
@@ -653,10 +653,10 @@ namespace FreeSql.Internal
                         }
                         if (trytb.Primarys.Length > 1)
                         {
-                            if (trytb.Primarys.Select(a => a.CsType).Distinct().Count() == trytb.Primarys.Length)
+                            if (trytb.Primarys.Select(a => a.CsType.NullableTypeOrThis()).Distinct().Count() == trytb.Primarys.Length)
                             {
                                 var pkList = trytb.Primarys.ToList();
-                                bindColumns.Sort((a, b) => pkList.FindIndex(c => c.CsType == a.CsType.NullableTypeOrThis()).CompareTo(pkList.FindIndex(c => c.CsType == b.CsType.NullableTypeOrThis())));
+                                bindColumns.Sort((a, b) => pkList.FindIndex(c => c.CsType.NullableTypeOrThis() == a.CsType.NullableTypeOrThis()).CompareTo(pkList.FindIndex(c => c.CsType.NullableTypeOrThis() == b.CsType.NullableTypeOrThis())));
                             }
                             else if (string.Compare(string.Join(",", trytb.Primarys.Select(a => a.CsName).OrderBy(a => a)), string.Join(",", bindColumns.Select(a => a.CsName).OrderBy(a => a)), true) == 0)
                             {
@@ -685,7 +685,7 @@ namespace FreeSql.Internal
 
                                 }
                             }
-                            if (trycol != null && trycol.CsType.NullableTypeOrThis() != trytb.Primarys[a].CsType)
+                            if (trycol != null && trycol.CsType.NullableTypeOrThis() != trytb.Primarys[a].CsType.NullableTypeOrThis())
                             {
                                 nvref.Exception = new Exception($"【OneToMany】导航属性 {trytbTypeName}.{pnv.Name} 解析错误，{trytb.CsName}.{trytb.Primarys[a].CsName} 和 {tbref.CsName}.{trycol.CsName} 类型不一致");
                                 trytb.AddOrUpdateTableRef(pnv.Name, nvref);
@@ -776,7 +776,7 @@ namespace FreeSql.Internal
                     var isOnoToOne = pnv.PropertyType != trytb.Type &&
                         tbref.Properties.Where(z => z.Value.PropertyType == trytb.Type).Any() &&
                         tbref.Primarys.Length == trytb.Primarys.Length &&
-                        string.Join(",", tbref.Primarys.Select(a => a.CsType.FullName).OrderBy(a => a)) == string.Join(",", trytb.Primarys.Select(a => a.CsType.FullName).OrderBy(a => a));
+                        string.Join(",", tbref.Primarys.Select(a => a.CsType.NullableTypeOrThis().FullName).OrderBy(a => a)) == string.Join(",", trytb.Primarys.Select(a => a.CsType.NullableTypeOrThis().FullName).OrderBy(a => a));
 
                     List<ColumnInfo> bindColumns = new List<ColumnInfo>();
                     if (pnvBind != null)
@@ -803,10 +803,10 @@ namespace FreeSql.Internal
                     }
                     if (tbref.Primarys.Length > 1)
                     {
-                        if (tbref.Primarys.Select(a => a.CsType).Distinct().Count() == tbref.Primarys.Length)
+                        if (tbref.Primarys.Select(a => a.CsType.NullableTypeOrThis()).Distinct().Count() == tbref.Primarys.Length)
                         {
                             var pkList = tbref.Primarys.ToList();
-                            bindColumns.Sort((a, b) => pkList.FindIndex(c => c.CsType == a.CsType.NullableTypeOrThis()).CompareTo(pkList.FindIndex(c => c.CsType == b.CsType.NullableTypeOrThis())));
+                            bindColumns.Sort((a, b) => pkList.FindIndex(c => c.CsType.NullableTypeOrThis() == a.CsType.NullableTypeOrThis()).CompareTo(pkList.FindIndex(c => c.CsType.NullableTypeOrThis() == b.CsType.NullableTypeOrThis())));
                         }
                         else if (string.Compare(string.Join(",", tbref.Primarys.Select(a => a.CsName).OrderBy(a => a)), string.Join(",", bindColumns.Select(a => a.CsName).OrderBy(a => a)), true) == 0)
                         {
@@ -831,7 +831,7 @@ namespace FreeSql.Internal
                             //一对一，主键与主键查找
                             if (isOnoToOne)
                             {
-                                var trytbpks = trytb.Primarys.Where(z => z.CsType == tbref.Primarys[a].CsType); //一对一，按类型
+                                var trytbpks = trytb.Primarys.Where(z => z.CsType.NullableTypeOrThis() == tbref.Primarys[a].CsType.NullableTypeOrThis()); //一对一，按类型
                                 if (trytbpks.Count() == 1) trycol = trytbpks.First();
                                 else
                                 {
@@ -850,7 +850,7 @@ namespace FreeSql.Internal
                                 }
                             }
                         }
-                        if (trycol != null && trycol.CsType.NullableTypeOrThis() != tbref.Primarys[a].CsType)
+                        if (trycol != null && trycol.CsType.NullableTypeOrThis() != tbref.Primarys[a].CsType.NullableTypeOrThis())
                         {
                             nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 解析错误，{trytb.CsName}.{trycol.CsName} 和 {tbref.CsName}.{tbref.Primarys[a].CsName} 类型不一致");
                             trytb.AddOrUpdateTableRef(pnv.Name, nvref);
