@@ -870,7 +870,7 @@ namespace FreeSql.Tests.Sqlite
             [Column(IsIdentity = true)]
             public int id { get; set; }
 
-            public int model2111Idaaa { get; set; }
+            public int? model2111Idaaa { get; set; }
             public string title { get; set; }
 
             public List<TestInclude_OneToManyModel4> childs2 { get; set; }

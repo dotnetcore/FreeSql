@@ -489,8 +489,12 @@ namespace FreeSql.Internal.CommonProvider
                                 actWeiParse(binaryExp.Right);
                                 break;
                             case ExpressionType.Equal:
-                                var leftP1MemberExp = binaryExp.Left as MemberExpression;
-                                var rightP1MemberExp = binaryExp.Right as MemberExpression;
+                                Expression leftExp = binaryExp.Left;
+                                Expression rightExp = binaryExp.Right;
+                                while (leftExp.NodeType == ExpressionType.Convert) leftExp = (leftExp as UnaryExpression)?.Operand;
+                                while (rightExp.NodeType == ExpressionType.Convert) rightExp = (rightExp as UnaryExpression)?.Operand;
+                                var leftP1MemberExp = leftExp as MemberExpression;
+                                var rightP1MemberExp = rightExp as MemberExpression;
                                 if (leftP1MemberExp == null || rightP1MemberExp == null) throw throwNavigateSelector;
 
                                 if (leftP1MemberExp.Expression == whereExpArgLamb.Parameters[0])
