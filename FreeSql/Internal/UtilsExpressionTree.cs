@@ -244,7 +244,7 @@ namespace FreeSql.Internal
             tbc.AddOrUpdate(entity, trytb, (oldkey, oldval) => trytb);
 
             #region 查找导航属性的关系、virtual 属性延时加载，动态产生新的重写类
-            var trytbTypeName = trytb.Type.IsNested ? $"{trytb.Type.DeclaringType.Namespace}.{trytb.Type.DeclaringType.Name}.{trytb.Type.Name}" : $"{trytb.Type.Namespace}.{trytb.Type.Name}";
+            var trytbTypeName = trytb.Type.IsNested ? $"{trytb.Type.DeclaringType.Namespace?.NotNullAndConcat(".")}{trytb.Type.DeclaringType.Name}.{trytb.Type.Name}" : $"{trytb.Type.Namespace?.NotNullAndConcat(".")}{trytb.Type.Name}";
             var trytbTypeLazyName = default(string);
             var overrieds = 0;
             StringBuilder cscode = null;
@@ -270,8 +270,8 @@ namespace FreeSql.Internal
                 var vp = propsLazy.Where(a => a.Item1 == pnv).FirstOrDefault();
                 var isLazy = vp.Item1 != null && !string.IsNullOrEmpty(trytbTypeLazyName);
                 var propTypeName = pnv.PropertyType.IsGenericType ?
-                    $"{pnv.PropertyType.Namespace}.{pnv.PropertyType.Name.Remove(pnv.PropertyType.Name.IndexOf('`'))}<{string.Join(", ", pnv.PropertyType.GenericTypeArguments.Select(a => a.IsNested ? $"{a.DeclaringType.Namespace}.{a.DeclaringType.Name}.{a.Name}" : $"{a.Namespace}.{a.Name}"))}>" :
-                    (pnv.PropertyType.IsNested ? $"{pnv.PropertyType.DeclaringType.Namespace}.{pnv.PropertyType.DeclaringType.Name}.{pnv.PropertyType.Name}" : $"{pnv.PropertyType.Namespace}.{pnv.PropertyType.Name}");
+                    $"{pnv.PropertyType.Namespace?.NotNullAndConcat(".")}{pnv.PropertyType.Name.Remove(pnv.PropertyType.Name.IndexOf('`'))}<{string.Join(", ", pnv.PropertyType.GenericTypeArguments.Select(a => a.IsNested ? $"{a.DeclaringType.Namespace?.NotNullAndConcat(".")}{a.DeclaringType.Name}.{a.Name}" : $"{a.Namespace?.NotNullAndConcat(".")}{a.Name}"))}>" :
+                    (pnv.PropertyType.IsNested ? $"{pnv.PropertyType.DeclaringType.Namespace?.NotNullAndConcat(".")}{pnv.PropertyType.DeclaringType.Name}.{pnv.PropertyType.Name}" : $"{pnv.PropertyType.Namespace?.NotNullAndConcat(".")}{pnv.PropertyType.Name}");
 
                 var pnvAttr = pnv.GetCustomAttribute<NavigateAttribute>();
                 var pnvBind = pnvAttr?.Bind?.Split(',').Select(a => a.Trim()).Where(a => !string.IsNullOrEmpty(a)).ToArray();
@@ -294,7 +294,7 @@ namespace FreeSql.Internal
                     var tbref = propElementType == trytb.Type ? trytb : GetTableByEntity(propElementType, common); //可能是父子关系
                     if (tbref == null) continue;
 
-                    var tbrefTypeName = tbref.Type.IsNested ? $"{tbref.Type.DeclaringType.Namespace}.{tbref.Type.DeclaringType.Name}.{tbref.Type.Name}" : $"{tbref.Type.Namespace}.{tbref.Type.Name}";
+                    var tbrefTypeName = tbref.Type.IsNested ? $"{tbref.Type.DeclaringType.Namespace?.NotNullAndConcat(".")}{tbref.Type.DeclaringType.Name}.{tbref.Type.Name}" : $"{tbref.Type.Namespace?.NotNullAndConcat(".")}{tbref.Type.Name}";
                     Type midType = null;
                     var isManyToMany = false;
 
@@ -357,29 +357,29 @@ namespace FreeSql.Internal
                             if (midType == null)
                             {
                                 midType = trytb.Type.IsNested ?
-                                    trytb.Type.Assembly.GetType($"{trytb.Type.Namespace}.{trytb.Type.DeclaringType.Name}+{trytb.CsName}{tbref.CsName}{midFlagStr}", false, true) : //SongTag
-                                    trytb.Type.Assembly.GetType($"{trytb.Type.Namespace}.{trytb.CsName}{tbref.CsName}{midFlagStr}", false, true);
+                                    trytb.Type.Assembly.GetType($"{trytb.Type.Namespace?.NotNullAndConcat(".")}{trytb.Type.DeclaringType.Name}+{trytb.CsName}{tbref.CsName}{midFlagStr}", false, true) : //SongTag
+                                    trytb.Type.Assembly.GetType($"{trytb.Type.Namespace?.NotNullAndConcat(".")}{trytb.CsName}{tbref.CsName}{midFlagStr}", false, true);
                                 valiManyToMany();
                             }
                             if (midType == null)
                             {
                                 midType = trytb.Type.IsNested ?
-                                    trytb.Type.Assembly.GetType($"{trytb.Type.Namespace}.{trytb.Type.DeclaringType.Name}+{trytb.CsName}_{tbref.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}", false, true) : //Song_Tag
-                                    trytb.Type.Assembly.GetType($"{trytb.Type.Namespace}.{trytb.CsName}_{tbref.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}", false, true);
+                                    trytb.Type.Assembly.GetType($"{trytb.Type.Namespace?.NotNullAndConcat(".")}{trytb.Type.DeclaringType.Name}+{trytb.CsName}_{tbref.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}", false, true) : //Song_Tag
+                                    trytb.Type.Assembly.GetType($"{trytb.Type.Namespace?.NotNullAndConcat(".")}{trytb.CsName}_{tbref.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}", false, true);
                                 valiManyToMany();
                             }
                             if (midType == null)
                             {
                                 midType = trytb.Type.IsNested ?
-                                    trytb.Type.Assembly.GetType($"{trytb.Type.Namespace}.{trytb.Type.DeclaringType.Name}+{tbref.CsName}{trytb.CsName}{midFlagStr}", false, true) : //TagSong
-                                    trytb.Type.Assembly.GetType($"{trytb.Type.Namespace}.{tbref.CsName}{trytb.CsName}{midFlagStr}", false, true);
+                                    trytb.Type.Assembly.GetType($"{trytb.Type.Namespace?.NotNullAndConcat(".")}{trytb.Type.DeclaringType.Name}+{tbref.CsName}{trytb.CsName}{midFlagStr}", false, true) : //TagSong
+                                    trytb.Type.Assembly.GetType($"{trytb.Type.Namespace?.NotNullAndConcat(".")}{tbref.CsName}{trytb.CsName}{midFlagStr}", false, true);
                                 valiManyToMany();
                             }
                             if (midType == null)
                             {
                                 midType = trytb.Type.IsNested ?
-                                    trytb.Type.Assembly.GetType($"{trytb.Type.Namespace}.{trytb.Type.DeclaringType.Name}+{tbref.CsName}_{trytb.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}", false, true) : //Tag_Song
-                                    trytb.Type.Assembly.GetType($"{trytb.Type.Namespace}.{tbref.CsName}_{trytb.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}", false, true);
+                                    trytb.Type.Assembly.GetType($"{trytb.Type.Namespace?.NotNullAndConcat(".")}{trytb.Type.DeclaringType.Name}+{tbref.CsName}_{trytb.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}", false, true) : //Tag_Song
+                                    trytb.Type.Assembly.GetType($"{trytb.Type.Namespace?.NotNullAndConcat(".")}{tbref.CsName}_{trytb.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}", false, true);
                                 valiManyToMany();
                             }
                             #endregion
@@ -388,29 +388,29 @@ namespace FreeSql.Internal
                             if (midType == null)
                             {
                                 midType = tbref.Type.IsNested ?
-                                    tbref.Type.Assembly.GetType($"{tbref.Type.Namespace}.{tbref.Type.DeclaringType.Name}+{trytb.CsName}{tbref.CsName}{midFlagStr}", false, true) : //SongTag
-                                    tbref.Type.Assembly.GetType($"{tbref.Type.Namespace}.{trytb.CsName}{tbref.CsName}{midFlagStr}", false, true);
+                                    tbref.Type.Assembly.GetType($"{tbref.Type.Namespace?.NotNullAndConcat(".")}{tbref.Type.DeclaringType.Name}+{trytb.CsName}{tbref.CsName}{midFlagStr}", false, true) : //SongTag
+                                    tbref.Type.Assembly.GetType($"{tbref.Type.Namespace?.NotNullAndConcat(".")}{trytb.CsName}{tbref.CsName}{midFlagStr}", false, true);
                                 valiManyToMany();
                             }
                             if (midType == null)
                             {
                                 midType = tbref.Type.IsNested ?
-                                    tbref.Type.Assembly.GetType($"{tbref.Type.Namespace}.{tbref.Type.DeclaringType.Name}+{trytb.CsName}_{tbref.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}", false, true) : //Song_Tag
-                                    tbref.Type.Assembly.GetType($"{tbref.Type.Namespace}.{trytb.CsName}_{tbref.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}", false, true);
+                                    tbref.Type.Assembly.GetType($"{tbref.Type.Namespace?.NotNullAndConcat(".")}{tbref.Type.DeclaringType.Name}+{trytb.CsName}_{tbref.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}", false, true) : //Song_Tag
+                                    tbref.Type.Assembly.GetType($"{tbref.Type.Namespace?.NotNullAndConcat(".")}{trytb.CsName}_{tbref.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}", false, true);
                                 valiManyToMany();
                             }
                             if (midType == null)
                             {
                                 midType = tbref.Type.IsNested ?
-                                    tbref.Type.Assembly.GetType($"{tbref.Type.Namespace}.{tbref.Type.DeclaringType.Name}+{tbref.CsName}{trytb.CsName}{midFlagStr}", false, true) : //TagSong
-                                    tbref.Type.Assembly.GetType($"{tbref.Type.Namespace}.{tbref.CsName}{trytb.CsName}{midFlagStr}", false, true);
+                                    tbref.Type.Assembly.GetType($"{tbref.Type.Namespace?.NotNullAndConcat(".")}{tbref.Type.DeclaringType.Name}+{tbref.CsName}{trytb.CsName}{midFlagStr}", false, true) : //TagSong
+                                    tbref.Type.Assembly.GetType($"{tbref.Type.Namespace?.NotNullAndConcat(".")}{tbref.CsName}{trytb.CsName}{midFlagStr}", false, true);
                                 valiManyToMany();
                             }
                             if (midType == null)
                             {
                                 midType = tbref.Type.IsNested ?
-                                    tbref.Type.Assembly.GetType($"{tbref.Type.Namespace}.{tbref.Type.DeclaringType.Name}+{tbref.CsName}_{trytb.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}", false, true) : //Tag_Song
-                                    tbref.Type.Assembly.GetType($"{tbref.Type.Namespace}.{tbref.CsName}_{trytb.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}", false, true);
+                                    tbref.Type.Assembly.GetType($"{tbref.Type.Namespace?.NotNullAndConcat(".")}{tbref.Type.DeclaringType.Name}+{tbref.CsName}_{trytb.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}", false, true) : //Tag_Song
+                                    tbref.Type.Assembly.GetType($"{tbref.Type.Namespace?.NotNullAndConcat(".")}{tbref.CsName}_{trytb.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}", false, true);
                                 valiManyToMany();
                             }
                             #endregion
@@ -605,7 +605,7 @@ namespace FreeSql.Internal
 
                                 if (nvref.Exception == null)
                                     cscode.Append("				base.").Append(pnv.Name).Append(" = __fsql_orm__.Select<").Append(propElementType.IsNested ? $"{propElementType.DeclaringType.Namespace}.{propElementType.DeclaringType.Name}.{propElementType.Name}" : $"{propElementType.Namespace}.{propElementType.Name}")
-                                        .Append(">().Where(a => __fsql_orm__.Select<").Append(tbmid.Type.IsNested ? $"{tbmid.Type.DeclaringType.Namespace}.{tbmid.Type.DeclaringType.Name}.{tbmid.Type.Name}" : $"{tbmid.Type.Namespace}.{tbmid.Type.Name}")
+                                        .Append(">().Where(a => __fsql_orm__.Select<").Append(tbmid.Type.IsNested ? $"{tbmid.Type.DeclaringType.Namespace?.NotNullAndConcat(".")}{tbmid.Type.DeclaringType.Name}.{tbmid.Type.Name}" : $"{tbmid.Type.Namespace}.{tbmid.Type.Name}")
                                         .Append(">().Where(b => ").Append(lmbdWhere.ToString()).AppendLine(").Any()).ToList();")
                                         .Append("				__lazy__").Append(pnv.Name).AppendLine(" = true;");
                                 else
@@ -656,7 +656,7 @@ namespace FreeSql.Internal
                             if (trytb.Primarys.Select(a => a.CsType).Distinct().Count() == trytb.Primarys.Length)
                             {
                                 var pkList = trytb.Primarys.ToList();
-                                bindColumns.Sort((a, b) => pkList.FindIndex(c => c.CsType == a.CsType).CompareTo(pkList.FindIndex(c => c.CsType == b.CsType)));
+                                bindColumns.Sort((a, b) => pkList.FindIndex(c => c.CsType == a.CsType.NullableTypeOrThis()).CompareTo(pkList.FindIndex(c => c.CsType == b.CsType.NullableTypeOrThis())));
                             }
                             else if (string.Compare(string.Join(",", trytb.Primarys.Select(a => a.CsName).OrderBy(a => a)), string.Join(",", bindColumns.Select(a => a.CsName).OrderBy(a => a)), true) == 0)
                             {
@@ -738,7 +738,7 @@ namespace FreeSql.Internal
 
                                 if (nvref.Exception == null)
                                 {
-                                    cscode.Append("				base.").Append(pnv.Name).Append(" = __fsql_orm__.Select<").Append(propElementType.IsNested ? $"{propElementType.DeclaringType.Namespace}.{propElementType.DeclaringType.Name}.{propElementType.Name}" : $"{propElementType.Namespace}.{propElementType.Name}").Append(">().Where(a => ").Append(lmbdWhere.ToString()).AppendLine(").ToList();");
+                                    cscode.Append("				base.").Append(pnv.Name).Append(" = __fsql_orm__.Select<").Append(propElementType.IsNested ? $"{propElementType.DeclaringType.Namespace?.NotNullAndConcat(".")}{propElementType.DeclaringType.Name}.{propElementType.Name}" : $"{propElementType.Namespace?.NotNullAndConcat(".")}{propElementType.Name}").Append(">().Where(a => ").Append(lmbdWhere.ToString()).AppendLine(").ToList();");
                                     if (refprop != null)
                                     {
                                         cscode.Append("				foreach (var loc1 in base.").Append(pnv.Name).AppendLine(")")
@@ -772,7 +772,7 @@ namespace FreeSql.Internal
                         trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                         //if (isLazy) throw nvref.Exception;
                     }
-                    var tbrefTypeName = tbref.Type.IsNested ? $"{tbref.Type.DeclaringType.Namespace}.{tbref.Type.DeclaringType.Name}.{tbref.Type.Name}" : $"{tbref.Type.Namespace}.{tbref.Type.Name}";
+                    var tbrefTypeName = tbref.Type.IsNested ? $"{tbref.Type.DeclaringType.Namespace?.NotNullAndConcat(".")}{tbref.Type.DeclaringType.Name}.{tbref.Type.Name}" : $"{tbref.Type.Namespace?.NotNullAndConcat(".")}{tbref.Type.Name}";
                     var isOnoToOne = pnv.PropertyType != trytb.Type &&
                         tbref.Properties.Where(z => z.Value.PropertyType == trytb.Type).Any() &&
                         tbref.Primarys.Length == trytb.Primarys.Length &&
@@ -806,7 +806,7 @@ namespace FreeSql.Internal
                         if (tbref.Primarys.Select(a => a.CsType).Distinct().Count() == tbref.Primarys.Length)
                         {
                             var pkList = tbref.Primarys.ToList();
-                            bindColumns.Sort((a, b) => pkList.FindIndex(c => c.CsType == a.CsType).CompareTo(pkList.FindIndex(c => c.CsType == b.CsType)));
+                            bindColumns.Sort((a, b) => pkList.FindIndex(c => c.CsType == a.CsType.NullableTypeOrThis()).CompareTo(pkList.FindIndex(c => c.CsType == b.CsType.NullableTypeOrThis())));
                         }
                         else if (string.Compare(string.Join(",", tbref.Primarys.Select(a => a.CsName).OrderBy(a => a)), string.Join(",", bindColumns.Select(a => a.CsName).OrderBy(a => a)), true) == 0)
                         {

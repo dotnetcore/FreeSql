@@ -347,6 +347,10 @@ namespace FreeSql.Tests
         [Fact]
         public void Test1()
         {
+            var kdkdfm = g.sqlite.Select<AnswerQuestionnaire>()
+                .Include(a => a.MedicalRecord)
+                .ToSql();
+
             var dkdkd = g.mysql.Select<TaskBuild>().AsTable((t,old) => "TaskBuild22")
                 .ToList< TestDto>(a => new TestDto()
                 {

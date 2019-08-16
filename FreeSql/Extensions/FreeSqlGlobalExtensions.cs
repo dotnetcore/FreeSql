@@ -39,6 +39,7 @@ public static partial class FreeSqlGlobalExtensions
     public static bool IsNullableType(this Type that) => that?.FullName.StartsWith("System.Nullable`1[") == true;
     public static bool IsAnonymousType(this Type that) => that?.FullName.StartsWith("<>f__AnonymousType") == true;
     public static Type NullableTypeOrThis(this Type that) => that?.IsNullableType() == true ? that.GenericTypeArguments.First() : that;
+    internal static string NotNullAndConcat(this string that, params object[] args) => string.IsNullOrEmpty(that) ? null : string.Concat(new object[] { that }.Concat(args));
 
     /// <summary>
     /// 测量两个经纬度的距离，返回单位：米
