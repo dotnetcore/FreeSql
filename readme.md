@@ -31,21 +31,19 @@ FreeSql 是一个功能强大的对象关系映射程序(O/RM)，支持 .NETCore
 | [FreeSql.AdminLTE](https://github.com/2881099/FreeSql.AdminLTE) | [![nuget](https://img.shields.io/nuget/v/FreeSql.AdminLTE.svg?style=flat-square)](https://www.nuget.org/packages/FreeSql.AdminLTE) | [![stats](https://img.shields.io/nuget/dt/FreeSql.AdminLTE.svg?style=flat-square)](https://www.nuget.org/stats/packages/FreeSql.AdminLTE?groupby=Version) |
 | [FreeSql.Connection.Extensions](https://github.com/2881099/FreeSql.Connection.Extensions) | [![nuget](https://img.shields.io/nuget/v/FreeSql.Connection.Extensions.svg?style=flat-square)](https://www.nuget.org/packages/FreeSql.Connection.Extensions) | [![stats](https://img.shields.io/nuget/dt/FreeSql.Connection.Extensions.svg?style=flat-square)](https://www.nuget.org/stats/packages/FreeSql.Connection.Extensions?groupby=Version) |
 
-- FreeSql 是核心，提供原始用法；
-- FreeSql.DbContext 是扩展包，提供面向对象的用法（像EF）；
-- FreeSql.Repository 也是扩展包，提供仓储+工作单元用法；
-- FreeSql.Connection.Extensions 也是扩展包，提供像 Dapper 一样的用法；
+> FreeSql 提供了五种使用习惯，请根据实际情况选择团队合适的一种：
+
+- 要么FreeSql，原始用法；
+- 要么[FreeSql.Repository](https://github.com/2881099/FreeSql/wiki/Repository)，仓储+工作单元习惯；
+- 要么[FreeSql.DbContext](https://github.com/2881099/FreeSql/wiki/DbContext)，有点像efcore的使用习惯；
+- 要么[FreeSql.Connection.Extensions](https://github.com/2881099/FreeSql.Connection.Extensions)，有点像Dapper的使用习惯；
+- 要么[BaseEntity](https://github.com/2881099/ojbk)，我求简单现在使用的这个；
+
+> 其他下载
+
 - [FreeSql.Tools 生成器](https://github.com/2881099/FreeSql.Tools)，基于 razor 模板的生成器；
 - [ABP 使用 FreeSql ORM](https://github.com/gnsilence/JPGZService)，测试中．．．；
 - [FreeSql 优势.pptx](https://github.com/2881099/FreeSql/files/3305852/FreeSql.pptx)；
-
-> FreeSql 提供了五种使用习惯，请根据实际情况选择团队合适的一种：
-
-- 要么FreeSql；
-- 要么FreeSql.Repository(https://github.com/2881099/FreeSql/wiki/Repository)，仓储习惯；
-- 要么FreeSql.DbContext(https://github.com/2881099/FreeSql/wiki/DbContext)，有点像efcore的使用习惯；
-- 要么FreeSql.Connection.Extensions(https://github.com/2881099/FreeSql.Connection.Extensions)，有点像Dapper的使用习惯；
-- 要么[BaseEntity](https://github.com/2881099/ojbk)，我求简单现在使用的这个；
 
 # Providers
 
