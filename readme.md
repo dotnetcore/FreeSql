@@ -39,6 +39,14 @@ FreeSql 是一个功能强大的对象关系映射程序(O/RM)，支持 .NETCore
 - [ABP 使用 FreeSql ORM](https://github.com/gnsilence/JPGZService)，测试中．．．；
 - [FreeSql 优势.pptx](https://github.com/2881099/FreeSql/files/3305852/FreeSql.pptx)；
 
+> FreeSql 提供了五种使用习惯，请根据实际情况选择团队合适的一种：
+
+- 要么FreeSql；
+- 要么FreeSql.Repository(https://github.com/2881099/FreeSql/wiki/Repository)，仓储习惯；
+- 要么FreeSql.DbContext(https://github.com/2881099/FreeSql/wiki/DbContext)，有点像efcore的使用习惯；
+- 要么FreeSql.Connection.Extensions(https://github.com/2881099/FreeSql.Connection.Extensions)，有点像Dapper的使用习惯；
+- 要么[BaseEntity](https://github.com/2881099/ojbk)，我求简单现在使用的这个；
+
 # Providers
 
 | Package Name | Version |
