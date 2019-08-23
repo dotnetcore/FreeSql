@@ -1,6 +1,7 @@
 using FreeSql.DataAnnotations;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Xunit;
 
 namespace FreeSql.Tests.PostgreSQL
@@ -120,7 +121,11 @@ namespace FreeSql.Tests.PostgreSQL
         [Fact]
         public void ExecuteAffrows()
         {
+            var items = new List<Topic>();
+            for (var a = 0; a < 10; a++) items.Add(new Topic { Id = a + 1, Title = $"newtitle{a}", Clicks = a * 100 });
 
+            update.SetSource(items.First()).NoneParameter().ExecuteAffrows();
+            update.SetSource(items).NoneParameter().ExecuteAffrows();
         }
         [Fact]
         public void ExecuteUpdated()

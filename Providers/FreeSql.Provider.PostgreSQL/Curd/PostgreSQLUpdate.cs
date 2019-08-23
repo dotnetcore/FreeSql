@@ -136,5 +136,14 @@ namespace FreeSql.PostgreSQL.Curd
             }
             sb.Append(")");
         }
+
+        protected override void ToSqlCaseWhenEnd(StringBuilder sb, ColumnInfo col)
+        {
+            if (_noneParameter == false) return;
+            var dbtype = _commonUtils.CodeFirst.GetDbInfo(col.Attribute.MapType)?.dbtype;
+            if (dbtype == null) return;
+
+            sb.Append("::").Append(dbtype);
+        }
     }
 }

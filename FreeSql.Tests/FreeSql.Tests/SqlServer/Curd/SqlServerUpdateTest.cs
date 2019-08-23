@@ -2,6 +2,7 @@ using FreeSql.DataAnnotations;
 using FreeSql.Tests.DataContext.SqlServer;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Xunit;
 
 namespace FreeSql.Tests.SqlServer
@@ -131,7 +132,14 @@ namespace FreeSql.Tests.SqlServer
         [Fact]
         public void ExecuteAffrows()
         {
+            var items = new List<Topic>();
+            for (var a = 0; a < 10; a++) items.Add(new Topic { Id = a + 1, Title = $"newtitle{a}", Clicks = a * 100 });
 
+            var time = DateTime.Now;
+            var items222 = g.sqlserver.Select<Topic>().Where(a => a.CreateTime > time).Limit(10).ToList();
+
+            update.SetSource(items.First()).NoneParameter().ExecuteAffrows();
+            update.SetSource(items).NoneParameter().ExecuteAffrows();
         }
         [Fact]
         public void ExecuteUpdated()

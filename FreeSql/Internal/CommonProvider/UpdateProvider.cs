@@ -566,6 +566,7 @@ namespace FreeSql.Internal.CommonProvider
 
         protected abstract void ToSqlCase(StringBuilder caseWhen, ColumnInfo[] primarys);
         protected abstract void ToSqlWhen(StringBuilder sb, ColumnInfo[] primarys, object d);
+        protected virtual void ToSqlCaseWhenEnd(StringBuilder sb, ColumnInfo col) { }
 
         public IUpdate<T1> AsTable(Func<string, string> tableRule)
         {
@@ -658,7 +659,11 @@ namespace FreeSql.Internal.CommonProvider
                             if (isnull == false) isnull = value == null || value == DBNull.Value;
                         }
                         cwsb.Append(" END");
-                        if (isnull == false) sb.Append(cwsb.ToString());
+                        if (isnull == false)
+                        {
+                            ToSqlCaseWhenEnd(cwsb, col);
+                            sb.Append(cwsb.ToString());
+                        }
                         else sb.Append("NULL");
                         cwsb.Clear();
 
