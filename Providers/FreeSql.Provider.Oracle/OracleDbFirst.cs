@@ -114,7 +114,7 @@ namespace FreeSql.Oracle
             throw new NotImplementedException($"未实现 {column.DbTypeTextFull} 类型映射");
         }
 
-        static ConcurrentDictionary<string, (string csConvert, string csParse, string csStringify, string csType, Type csTypeInfo, Type csNullableTypeInfo, string csTypeValue, string dataReaderMethod)> _dicDbToCs = new ConcurrentDictionary<string, (string csConvert, string csParse, string csStringify, string csType, Type csTypeInfo, Type csNullableTypeInfo, string csTypeValue, string dataReaderMethod)>();
+        static ConcurrentDictionary<string, (string csConvert, string csParse, string csStringify, string csType, Type csTypeInfo, Type csNullableTypeInfo, string csTypeValue, string dataReaderMethod)> _dicDbToCs = new ConcurrentDictionary<string, (string csConvert, string csParse, string csStringify, string csType, Type csTypeInfo, Type csNullableTypeInfo, string csTypeValue, string dataReaderMethod)>(StringComparer.CurrentCultureIgnoreCase);
         static OracleDbFirst()
         {
             var defaultDbToCs = new Dictionary<string, (string csConvert, string csParse, string csStringify, string csType, Type csTypeInfo, Type csNullableTypeInfo, string csTypeValue, string dataReaderMethod)>() {
