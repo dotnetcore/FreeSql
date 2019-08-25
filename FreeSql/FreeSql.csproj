@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net45</TargetFrameworks>
-		<Version>0.8.10</Version>
+		<Version>0.8.11</Version>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>YeXiangQin</Authors>
 		<Description>FreeSql is the most convenient ORM in dotnet. It supports Mysql, Postgresql, SqlServer, Oracle and Sqlite.</Description>
