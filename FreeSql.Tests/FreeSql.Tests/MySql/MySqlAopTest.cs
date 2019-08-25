@@ -20,13 +20,13 @@ namespace FreeSql.Tests.MySql
         [Fact]
         public void AuditValue()
         {
-            var now = DateTime.Now;
+            var date = DateTime.Now.Date;
             var item = new TestAuditValue();
 
             EventHandler<Aop.AuditValueEventArgs> audit = (s, e) =>
              {
                  if (e.Property.GetCustomAttribute<NowAttribute>(false) != null)
-                     e.Value = DateTime.Now;
+                     e.Value = DateTime.Now.Date;
              };
             g.mysql.Aop.AuditValue += audit;
 
@@ -34,7 +34,7 @@ namespace FreeSql.Tests.MySql
 
             g.mysql.Aop.AuditValue -= audit;
 
-            Assert.Equal(item.createtime.Date, now.Date);
+            Assert.Equal(item.createtime, date);
         }
     }
 }
