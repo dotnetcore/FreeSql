@@ -74,7 +74,7 @@ namespace FreeSql.Oracle.Curd
                     {
                         var auditArgs = new Aop.AuditValueEventArgs(Aop.AutoValueType.Insert, col, _table.Properties[col.CsName], val);
                         _orm.Aop.AuditValue(this, auditArgs);
-                        if (auditArgs.Value != null)
+                        if (auditArgs.IsChanged)
                             col.SetMapValue(d, val = auditArgs.Value);
                     }
                     if (_noneParameter)

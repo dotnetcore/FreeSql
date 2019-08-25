@@ -306,7 +306,7 @@ namespace FreeSql.Aop
             }
         }
         private object _value;
-        internal bool IsChanged { get; private set; }
+        public bool IsChanged { get; private set; }
     }
     public enum AutoValueType { Update, Insert }
 }

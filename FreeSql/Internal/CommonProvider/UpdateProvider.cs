@@ -610,7 +610,7 @@ namespace FreeSql.Internal.CommonProvider
                         {
                             var auditArgs = new Aop.AuditValueEventArgs(Aop.AutoValueType.Update, col, _table.Properties[col.CsName], val);
                             _orm.Aop.AuditValue(this, auditArgs);
-                            if (auditArgs.Value != null)
+                            if (auditArgs.IsChanged)
                                 col.SetMapValue(_source.First(), val = auditArgs.Value);
                         }
                         if (_noneParameter)
@@ -656,7 +656,7 @@ namespace FreeSql.Internal.CommonProvider
                             {
                                 var auditArgs = new Aop.AuditValueEventArgs(Aop.AutoValueType.Update, col, _table.Properties[col.CsName], val);
                                 _orm.Aop.AuditValue(this, auditArgs);
-                                if (auditArgs.Value != null)
+                                if (auditArgs.IsChanged)
                                     col.SetMapValue(_source.First(), val = auditArgs.Value);
                             }
                             if (_noneParameter)
