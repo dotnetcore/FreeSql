@@ -1,5 +1,6 @@
 ﻿using FreeSql.DataAnnotations;
 using FreeSql.DatabaseModel;
+using FreeSql.Internal.Model;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -53,6 +54,11 @@ namespace FreeSql
         /// CodeFirst迁移，执行完成触发
         /// </summary>
         EventHandler<Aop.SyncStructureAfterEventArgs> SyncStructureAfter { get; set; }
+
+        /// <summary>
+        /// Insert/Update自动值处理, e.Column.SetMapValue(
+        /// </summary>
+        EventHandler<Aop.AuditValueEventArgs> AuditValue { get; set; }
     }
 }
 
@@ -264,4 +270,43 @@ namespace FreeSql.Aop
         /// </summary>
         public long ElapsedMilliseconds => this.Stopwatch.ElapsedMilliseconds;
     }
+
+    public class AuditValueEventArgs : EventArgs
+    {
+        public AuditValueEventArgs(AutoValueType autoValueType, ColumnInfo column, PropertyInfo property, object value)
+        {
+            this.AutoValueType = autoValueType;
+            this.Column = column;
+            this.Property = property;
+            this.Value = value;
+        }
+
+        /// <summary>
+        /// 类型
+        /// </summary>
+        public AutoValueType AutoValueType { get; }
+        /// <summary>
+        /// 属性列的元数据
+        /// </summary>
+        public ColumnInfo Column { get; }
+        /// <summary>
+        /// 反射的属性信息
+        /// </summary>
+        public PropertyInfo Property { get; }
+        /// <summary>
+        /// 获取实体的属性值，也可以设置实体的属性新值
+        /// </summary>
+        public object Value
+        {
+            get => _value;
+            set
+            {
+                _value = value;
+                this.IsChanged = true;
+            }
+        }
+        private object _value;
+        internal bool IsChanged { get; private set; }
+    }
+    public enum AutoValueType { Update, Insert }
 }

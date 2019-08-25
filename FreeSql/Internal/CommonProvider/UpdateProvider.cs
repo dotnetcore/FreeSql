@@ -605,15 +605,20 @@ namespace FreeSql.Internal.CommonProvider
                     {
                         if (colidx > 0) sb.Append(", ");
                         sb.Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ");
-                        var value = col.GetMapValue(_source.First());
-                        if (_noneParameter)
+                        var val = col.GetMapValue(_source.First());
+                        if (_orm.Aop.AuditValue != null)
                         {
-                            sb.Append(_commonUtils.GetNoneParamaterSqlValue(_paramsSource, col.Attribute.MapType, value));
+                            var auditArgs = new Aop.AuditValueEventArgs(Aop.AutoValueType.Update, col, _table.Properties[col.CsName], val);
+                            _orm.Aop.AuditValue(this, auditArgs);
+                            if (auditArgs.Value != null)
+                                col.SetMapValue(_source.First(), val = auditArgs.Value);
                         }
+                        if (_noneParameter)
+                            sb.Append(_commonUtils.GetNoneParamaterSqlValue(_paramsSource, col.Attribute.MapType, val));
                         else
                         {
                             sb.Append(_commonUtils.QuoteWriteParamter(col.Attribute.MapType, _commonUtils.QuoteParamterName($"p_{_paramsSource.Count}")));
-                            _commonUtils.AppendParamter(_paramsSource, null, col.Attribute.MapType, value);
+                            _commonUtils.AppendParamter(_paramsSource, null, col.Attribute.MapType, val);
                         }
                         ++colidx;
                     }
@@ -646,17 +651,22 @@ namespace FreeSql.Internal.CommonProvider
                             cwsb.Append(" \r\nWHEN ");
                             ToSqlWhen(cwsb, _table.Primarys, d);
                             cwsb.Append(" THEN ");
-                            var value = col.GetMapValue(d);
-                            if (_noneParameter)
+                            var val = col.GetMapValue(d);
+                            if (_orm.Aop.AuditValue != null)
                             {
-                                cwsb.Append(_commonUtils.GetNoneParamaterSqlValue(_paramsSource, col.Attribute.MapType, value));
+                                var auditArgs = new Aop.AuditValueEventArgs(Aop.AutoValueType.Update, col, _table.Properties[col.CsName], val);
+                                _orm.Aop.AuditValue(this, auditArgs);
+                                if (auditArgs.Value != null)
+                                    col.SetMapValue(_source.First(), val = auditArgs.Value);
                             }
+                            if (_noneParameter)
+                                cwsb.Append(_commonUtils.GetNoneParamaterSqlValue(_paramsSource, col.Attribute.MapType, val));
                             else
                             {
                                 cwsb.Append(_commonUtils.QuoteWriteParamter(col.Attribute.MapType, _commonUtils.QuoteParamterName($"p_{_paramsSource.Count}")));
-                                _commonUtils.AppendParamter(_paramsSource, null, col.Attribute.MapType, value);
+                                _commonUtils.AppendParamter(_paramsSource, null, col.Attribute.MapType, val);
                             }
-                            if (isnull == false) isnull = value == null || value == DBNull.Value;
+                            if (isnull == false) isnull = val == null || val == DBNull.Value;
                         }
                         cwsb.Append(" END");
                         if (isnull == false)

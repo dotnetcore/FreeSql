@@ -17,5 +17,6 @@ namespace FreeSql.Internal.CommonProvider
         public EventHandler<Aop.CurdAfterEventArgs> CurdAfter { get; set; }
         public EventHandler<Aop.SyncStructureBeforeEventArgs> SyncStructureBefore { get; set; }
         public EventHandler<Aop.SyncStructureAfterEventArgs> SyncStructureAfter { get; set; }
+        public EventHandler<Aop.AuditValueEventArgs> AuditValue { get; set; }
     }
 }

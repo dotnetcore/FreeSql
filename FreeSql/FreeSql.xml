@@ -2020,6 +2020,11 @@
             CodeFirst迁移，执行完成触发
             </summary>
         </member>
+        <member name="P:FreeSql.IAop.AuditValue">
+            <summary>
+            Insert/Update自动值处理, e.Column.SetMapValue(
+            </summary>
+        </member>
         <member name="P:FreeSql.Aop.ToListEventArgs.List">
             <summary>
             可重新装饰的引用数据
@@ -2143,6 +2148,26 @@
         <member name="P:FreeSql.Aop.SyncStructureAfterEventArgs.ElapsedMilliseconds">
             <summary>
             耗时（单位：毫秒）
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.AuditValueEventArgs.AutoValueType">
+            <summary>
+            类型
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.AuditValueEventArgs.Column">
+            <summary>
+            属性列的元数据
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.AuditValueEventArgs.Property">
+            <summary>
+            反射的属性信息
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.AuditValueEventArgs.Value">
+            <summary>
+            获取实体的属性值，也可以设置实体的属性新值
             </summary>
         </member>
         <member name="P:FreeSql.ICodeFirst.IsAutoSyncStructure">

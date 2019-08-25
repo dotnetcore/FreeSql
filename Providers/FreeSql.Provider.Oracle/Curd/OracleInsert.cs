@@ -70,6 +70,13 @@ namespace FreeSql.Oracle.Curd
                     object val = col.GetMapValue(d);
                     if (col.Attribute.IsPrimary && col.Attribute.MapType.NullableTypeOrThis() == typeof(Guid) && (val == null || (Guid)val == Guid.Empty))
                         col.SetMapValue(d, val = FreeUtil.NewMongodbId());
+                    if (_orm.Aop.AuditValue != null)
+                    {
+                        var auditArgs = new Aop.AuditValueEventArgs(Aop.AutoValueType.Insert, col, _table.Properties[col.CsName], val);
+                        _orm.Aop.AuditValue(this, auditArgs);
+                        if (auditArgs.Value != null)
+                            col.SetMapValue(d, val = auditArgs.Value);
+                    }
                     if (_noneParameter)
                         sb.Append(_commonUtils.GetNoneParamaterSqlValue(specialParams, col.Attribute.MapType, val));
                     else
