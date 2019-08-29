@@ -344,9 +344,17 @@ namespace FreeSql.Tests
             public bool IsLeaf { get; set; }
         }
 
+        public static int GetUNIX_TIMESTAMP() => 0;
         [Fact]
         public void Test1()
         {
+            g.mysql.Aop.ParseExpression += new EventHandler<Aop.ParseExpressionEventArgs>((s, e) =>
+            {
+                if (e.Expression.NodeType == ExpressionType.Call && (e.Expression as MethodCallExpression).Method.Name == "GetUNIX_TIMESTAMP")
+                    e.Result = "UNIX_TIMESTAMP(NOW())";
+            });
+            var dkkdksdjgj = g.mysql.Select<TaskBuild>().Where(a => a.OptionsEntity04 > GetUNIX_TIMESTAMP()).ToSql();
+
             var kdkdfm = g.sqlite.Select<AnswerQuestionnaire>()
                 .Include(a => a.MedicalRecord)
                 .ToSql();

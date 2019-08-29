@@ -65,7 +65,7 @@ IFreeSql fsql = new FreeSql.FreeSqlBuilder()
     .UseConnectionString(FreeSql.DataType.Sqlite, 
         @"Data Source=|DataDirectory|\document.db;Pooling=true;Max Pool Size=10")
     .UseAutoSyncStructure(true) //自动同步实体结构到数据库
-    .Build();
+    .Build(); //请务必定义成 Singleton 单例模式
 
 class Song {
     [Column(IsIdentity = true)]
