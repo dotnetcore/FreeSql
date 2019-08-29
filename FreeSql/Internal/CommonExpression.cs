@@ -528,6 +528,7 @@ namespace FreeSql.Internal
                     var condExp = exp as ConditionalExpression;
                     return $"case when {ExpressionLambdaToSql(condExp.Test, tsc)} then {ExpressionLambdaToSql(condExp.IfTrue, tsc)} else {ExpressionLambdaToSql(condExp.IfFalse, tsc)} end";
                 case ExpressionType.Call:
+                    tsc.mapType = null;
                     var exp3 = exp as MethodCallExpression;
                     var callType = exp3.Object?.Type ?? exp3.Method.DeclaringType;
                     switch (callType.FullName)

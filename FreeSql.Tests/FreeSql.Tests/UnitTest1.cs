@@ -355,6 +355,9 @@ namespace FreeSql.Tests
             });
             var dkkdksdjgj = g.mysql.Select<TaskBuild>().Where(a => a.OptionsEntity04 > GetUNIX_TIMESTAMP()).ToSql();
 
+            var dt1970 = new DateTime(1970, 1, 1);
+            var dkkdksdjgj22 = g.mysql.Select<TaskBuild>().Where(a => a.OptionsEntity04 > DateTime.Now.Subtract(dt1970).TotalSeconds).ToSql();
+
             var kdkdfm = g.sqlite.Select<AnswerQuestionnaire>()
                 .Include(a => a.MedicalRecord)
                 .ToSql();
