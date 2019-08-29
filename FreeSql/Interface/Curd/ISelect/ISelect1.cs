@@ -48,6 +48,13 @@ namespace FreeSql
         /// <returns></returns>
         TReturn ToOne<TReturn>(Expression<Func<T1, TReturn>> select);
         Task<TReturn> ToOneAsync<TReturn>(Expression<Func<T1, TReturn>> select);
+        /// <summary>
+        /// 执行SQL查询，返回 TDto 映射的字段，记录不存在时返回 Dto 默认值
+        /// </summary>
+        /// <typeparam name="TDto"></typeparam>
+        /// <returns></returns>
+        TDto ToOne<TDto>();
+        Task<TDto> ToOneAsync<TDto>();
 
         /// <summary>
         /// 执行SQL查询，返回指定字段的记录的第一条记录，记录不存在时返回 TReturn 默认值
@@ -57,6 +64,13 @@ namespace FreeSql
         /// <returns></returns>
         TReturn First<TReturn>(Expression<Func<T1, TReturn>> select);
         Task<TReturn> FirstAsync<TReturn>(Expression<Func<T1, TReturn>> select);
+        /// <summary>
+        /// 执行SQL查询，返回 TDto 映射的字段，记录不存在时返回 Dto 默认值
+        /// </summary>
+        /// <typeparam name="TDto"></typeparam>
+        /// <returns></returns>
+        TDto First<TDto>();
+        Task<TDto> FirstAsync<TDto>();
 
         /// <summary>
         /// 返回即将执行的SQL语句
