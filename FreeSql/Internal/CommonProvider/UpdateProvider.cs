@@ -401,10 +401,42 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
 
+        public static void AuditDataValue(object sender, IEnumerable<T1> data, IFreeSql orm, TableInfo table)
+        {
+            if (data?.Any() != true) return;
+            if (orm.Aop.AuditValue == null) return;
+            foreach (var d in data)
+            {
+                if (d == null) continue;
+                foreach (var col in table.Columns.Values)
+                {
+                    object val = col.GetMapValue(d);
+                    var auditArgs = new Aop.AuditValueEventArgs(Aop.AuditValueType.Update, col, table.Properties[col.CsName], val);
+                    orm.Aop.AuditValue(sender, auditArgs);
+                    if (auditArgs.IsChanged)
+                        col.SetMapValue(d, val = auditArgs.Value);
+                }
+            }
+        }
+        public static void AuditDataValue(object sender, T1 data, IFreeSql orm, TableInfo table)
+        {
+            if (orm.Aop.AuditValue == null) return;
+            if (data == null) return;
+            foreach (var col in table.Columns.Values)
+            {
+                object val = col.GetMapValue(data);
+                var auditArgs = new Aop.AuditValueEventArgs(Aop.AuditValueType.Update, col, table.Properties[col.CsName], val);
+                orm.Aop.AuditValue(sender, auditArgs);
+                if (auditArgs.IsChanged)
+                    col.SetMapValue(data, val = auditArgs.Value);
+            }
+        }
+
         public IUpdate<T1> SetSource(T1 source) => this.SetSource(new[] { source });
         public IUpdate<T1> SetSource(IEnumerable<T1> source)
         {
             if (source == null || source.Any() == false) return this;
+            AuditDataValue(this, source, _orm, _table);
             _source.AddRange(source.Where(a => a != null));
             return this;
         }
@@ -606,13 +638,6 @@ namespace FreeSql.Internal.CommonProvider
                         if (colidx > 0) sb.Append(", ");
                         sb.Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ");
                         var val = col.GetMapValue(_source.First());
-                        if (_orm.Aop.AuditValue != null)
-                        {
-                            var auditArgs = new Aop.AuditValueEventArgs(Aop.AutoValueType.Update, col, _table.Properties[col.CsName], val);
-                            _orm.Aop.AuditValue(this, auditArgs);
-                            if (auditArgs.IsChanged)
-                                col.SetMapValue(_source.First(), val = auditArgs.Value);
-                        }
                         if (_noneParameter)
                             sb.Append(_commonUtils.GetNoneParamaterSqlValue(_paramsSource, col.Attribute.MapType, val));
                         else
@@ -629,7 +654,7 @@ namespace FreeSql.Internal.CommonProvider
             else if (_source.Count > 1)
             { //批量保存 Source
                 if (_table.Primarys.Any() == false) return null;
-
+                
                 var caseWhen = new StringBuilder();
                 caseWhen.Append("CASE ");
                 ToSqlCase(caseWhen, _table.Primarys);
@@ -652,13 +677,6 @@ namespace FreeSql.Internal.CommonProvider
                             ToSqlWhen(cwsb, _table.Primarys, d);
                             cwsb.Append(" THEN ");
                             var val = col.GetMapValue(d);
-                            if (_orm.Aop.AuditValue != null)
-                            {
-                                var auditArgs = new Aop.AuditValueEventArgs(Aop.AutoValueType.Update, col, _table.Properties[col.CsName], val);
-                                _orm.Aop.AuditValue(this, auditArgs);
-                                if (auditArgs.IsChanged)
-                                    col.SetMapValue(_source.First(), val = auditArgs.Value);
-                            }
                             if (_noneParameter)
                                 cwsb.Append(_commonUtils.GetNoneParamaterSqlValue(_paramsSource, col.Attribute.MapType, val));
                             else

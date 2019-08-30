@@ -11,6 +11,10 @@ using System.Linq.Expressions;
 using System.Threading.Tasks;
 using System.Collections;
 using System.Diagnostics;
+using Zeus;
+using Zeus.Domain.Enum;
+using System.ComponentModel.DataAnnotations;
+using System.Reflection;
 
 namespace FreeSql.Tests
 {
@@ -345,9 +349,54 @@ namespace FreeSql.Tests
         }
 
         public static int GetUNIX_TIMESTAMP() => 0;
+
+        private List<SystemUser> GetSystemUser()
+        {
+            SystemUser user = new SystemUser
+            {
+                DisplayName = "系统管理员",
+                RealName = "系统管理员",
+                Gender = "男",
+                Birthday = new DateTime(1984, 7, 1),
+                IsEnabled = true,
+                IsDeleted = false,
+                Remark = "禁止删除",
+                SystemUserAuthentication_List = new List<SystemUserAuthentication>()
+            };
+            user.SystemUserAuthentication_List.Add(new SystemUserAuthentication()
+            {
+                IdentityType = IdentityType.Account,
+                Identifier = "admin",
+                Credential = "HyrPNXuCBaqZU3QIJqP9eThOHpFfm9p+",
+                IsVerified = true
+            });
+            user.SystemUserAuthentication_List.Add(new SystemUserAuthentication()
+            {
+                IdentityType = IdentityType.Mobile,
+                Identifier = "13580592001",
+                Credential = "HyrPNXuCBaqZU3QIJqP9eThOHpFfm9p+",
+                IsVerified = true
+            });
+            var users = new List<SystemUser>
+            {
+                user
+            };
+            return users;
+        }
+
+
         [Fact]
         public void Test1()
         {
+            //g.mysql.Aop.AuditValue += (s, e) =>
+            //{
+            //    if (e.Column.CsType == typeof(long)
+            //        && e.Property.GetCustomAttribute<KeyAttribute>(false) != null
+            //        && e.Value?.ToString() == "0")
+            //        e.Value = new Random().Next();
+            //};
+            //g.mysql.GetRepository<SystemUser>().Insert(GetSystemUser());
+
             g.mysql.Aop.ParseExpression += new EventHandler<Aop.ParseExpressionEventArgs>((s, e) =>
             {
                 if (e.Expression.NodeType == ExpressionType.Call && (e.Expression as MethodCallExpression).Method.Name == "GetUNIX_TIMESTAMP")

@@ -57,22 +57,22 @@ namespace FreeSql.Internal.Model
                 var objExp = Expression.Parameter(typeof(object), "obj");
                 var valExp = Expression.Parameter(typeof(object), "val");
 
-                if (Attribute.MapType == CsType)
-                    return Expression.Lambda<Action<object, object>>(
-                        Expression.Assign(Expression.MakeMemberAccess(
-                            Expression.TypeAs(objExp, col.Table.Type),
-                            Table.Properties[col.CsName]
-                        ), Expression.Convert(
-                            valExp,
-                            Attribute.MapType)), objExp, valExp).Compile();
+                //if (Attribute.MapType == CsType)
+                //    return Expression.Lambda<Action<object, object>>(
+                //        Expression.Assign(Expression.MakeMemberAccess(
+                //            Expression.TypeAs(objExp, col.Table.Type),
+                //            Table.Properties[col.CsName]
+                //        ), Expression.Convert(
+                //            valExp,
+                //            Attribute.MapType)), objExp, valExp).Compile();
 
                 return Expression.Lambda<Action<object, object>>(
                     Expression.Assign(Expression.MakeMemberAccess(
                         Expression.TypeAs(objExp, col.Table.Type),
                         Table.Properties[col.CsName]
                     ), Expression.Convert(
-                        Utils.GetDataReaderValueBlockExpression(Attribute.MapType, valExp),
-                        Attribute.MapType)), objExp, valExp).Compile();
+                        Utils.GetDataReaderValueBlockExpression(CsType, valExp),
+                        CsType)), objExp, valExp).Compile();
             });
             func(obj, val);
         }

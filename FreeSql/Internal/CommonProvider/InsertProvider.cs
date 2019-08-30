@@ -71,18 +71,55 @@ namespace FreeSql.Internal.CommonProvider
 
         public IInsert<T1> AppendData(T1 source)
         {
-            if (source != null) _source.Add(source);
+            if (source != null)
+            {
+                AuditDataValue(this, source, _orm, _table);
+                _source.Add(source);
+            }
             return this;
         }
         public IInsert<T1> AppendData(T1[] source)
         {
-            if (source != null) _source.AddRange(source);
+            if (source != null)
+            {
+                AuditDataValue(this, source, _orm, _table);
+                _source.AddRange(source);
+            }
             return this;
         }
         public IInsert<T1> AppendData(IEnumerable<T1> source)
         {
-            if (source != null) _source.AddRange(source.Where(a => a != null));
+            if (source != null)
+            {
+                source = source.Where(a => a != null).ToList();
+                AuditDataValue(this, source, _orm, _table);
+                _source.AddRange(source);
+                
+            }
             return this;
+        }
+        public static void AuditDataValue(object sender, IEnumerable<T1> data, IFreeSql orm, TableInfo table)
+        {
+            if (data?.Any() != true) return;
+            foreach (var d in data)
+                AuditDataValue(sender, d, orm, table);
+        }
+        public static void AuditDataValue(object sender, T1 data, IFreeSql orm, TableInfo table)
+        {
+            if (data == null) return;
+            foreach (var col in table.Columns.Values)
+            {
+                object val = col.GetMapValue(data);
+                if (col.Attribute.IsPrimary && col.Attribute.MapType.NullableTypeOrThis() == typeof(Guid) && (val == null || (Guid)val == Guid.Empty))
+                    col.SetMapValue(data, val = FreeUtil.NewMongodbId());
+                if (orm.Aop.AuditValue != null)
+                {
+                    var auditArgs = new Aop.AuditValueEventArgs(Aop.AuditValueType.Insert, col, table.Properties[col.CsName], val);
+                    orm.Aop.AuditValue(sender, auditArgs);
+                    if (auditArgs.IsChanged)
+                        col.SetMapValue(data, val = auditArgs.Value);
+                }
+            }
         }
 
         #region 参数化数据限制，或values数量限制
@@ -557,15 +594,6 @@ namespace FreeSql.Internal.CommonProvider
 
                     if (colidx2 > 0) sb.Append(", ");
                     object val = col.GetMapValue(d);
-                    if (col.Attribute.IsPrimary && col.Attribute.MapType.NullableTypeOrThis() == typeof(Guid) && (val == null || (Guid)val == Guid.Empty))
-                        col.SetMapValue(d, val = FreeUtil.NewMongodbId());
-                    if (_orm.Aop.AuditValue != null)
-                    {
-                        var auditArgs = new Aop.AuditValueEventArgs(Aop.AutoValueType.Insert, col, _table.Properties[col.CsName], val);
-                        _orm.Aop.AuditValue(this, auditArgs);
-                        if (auditArgs.IsChanged)
-                            col.SetMapValue(d, val = auditArgs.Value);
-                    }
                     if (_noneParameter)
                         sb.Append(_commonUtils.GetNoneParamaterSqlValue(specialParams, col.Attribute.MapType, val));
                     else

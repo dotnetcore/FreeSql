@@ -199,5 +199,152 @@
             创建日期
             </summary>
         </member>
+        <member name="T:Zeus.Utility.Entity.EntityBase`1">
+            <summary>
+            实体类基类
+            </summary>
+        </member>
+        <member name="M:Zeus.Utility.Entity.EntityBase`1.#ctor">
+            <summary>
+            初始化一个<see cref="T:Zeus.Utility.Entity.EntityBase`1"/>类型的新实例
+            </summary>
+        </member>
+        <member name="P:Zeus.Utility.Entity.EntityBase`1.ID">
+            <summary>
+            获取或设置主键
+            </summary>
+        </member>
+        <member name="P:Zeus.Utility.Entity.EntityBase`1.CreatedAt">
+            <summary>
+            创建时间
+            </summary>
+        </member>
+        <member name="M:Zeus.Utility.Entity.EntityBase`1.Equals(System.Object)">
+            <summary>
+            判断两个实体是否是同一数据记录的实体
+            </summary>
+            <param name="obj">要比较的实体信息</param>
+            <returns></returns>
+        </member>
+        <member name="M:Zeus.Utility.Entity.EntityBase`1.IsKeyEqual(`0,`0)">
+            <summary>
+            实体Id是否相等
+            </summary>
+        </member>
+        <member name="M:Zeus.Utility.Entity.EntityBase`1.GetHashCode">
+            <summary>
+            用作特定类型的哈希函数
+            </summary>
+            <returns>
+            当前 <see cref="T:System.Object"/> 的哈希代码。<br/>
+            如果<c>Id</c>为<c>null</c>则返回0，
+            如果不为<c>null</c>则返回<c>Id</c>对应的哈希值
+            </returns>
+        </member>
+        <member name="T:Zeus.Utility.Entity.IEntity`1">
+            <summary>
+            数据模型接口
+            </summary>
+        </member>
+        <member name="P:Zeus.Utility.Entity.IEntity`1.ID">
+            <summary>
+            实体唯一标识，主键
+            </summary>
+        </member>
+        <member name="P:Zeus.Utility.Entity.IEntity`1.CreatedAt">
+            <summary>
+            创建时间
+            </summary>
+        </member>
+        <member name="T:Zeus.Domain.Enum.IdentityType">
+            <summary>
+            登录类型
+            </summary>
+        </member>
+        <member name="T:Zeus.SystemUser">
+            <summary>
+            用户表
+            </summary>
+        </member>
+        <member name="P:Zeus.SystemUser.DisplayName">
+            <summary>
+            显示名称
+            </summary>
+        </member>
+        <member name="P:Zeus.SystemUser.RealName">
+            <summary>
+            真实名称
+            </summary>
+        </member>
+        <member name="P:Zeus.SystemUser.Gender">
+            <summary>
+            性别
+            </summary>
+        </member>
+        <member name="P:Zeus.SystemUser.Birthday">
+            <summary>
+            生日
+            </summary>
+        </member>
+        <member name="P:Zeus.SystemUser.AvaterURL">
+            <summary>
+            头像URL地址
+            </summary>
+        </member>
+        <member name="P:Zeus.SystemUser.Remark">
+            <summary>
+            备注
+            </summary>
+        </member>
+        <member name="P:Zeus.SystemUser.IsEnabled">
+            <summary>
+            启用标志
+            </summary>
+        </member>
+        <member name="P:Zeus.SystemUser.IsDeleted">
+            <summary>
+            删除标志
+            </summary>
+        </member>
+        <member name="P:Zeus.SystemUser.SystemUserAuthentication_List">
+            <summary>
+            所属用户认证记录
+            </summary>
+        </member>
+        <member name="T:Zeus.SystemUserAuthentication">
+            <summary>
+            用户认证表
+            </summary>
+        </member>
+        <member name="P:Zeus.SystemUserAuthentication.SystemUserID">
+            <summary>
+            用户表ID
+            </summary>
+        </member>
+        <member name="P:Zeus.SystemUserAuthentication.SystemUser">
+            <summary>
+            用户
+            </summary>
+        </member>
+        <member name="P:Zeus.SystemUserAuthentication.IdentityType">
+            <summary>
+            登录类型
+            </summary>
+        </member>
+        <member name="P:Zeus.SystemUserAuthentication.Identifier">
+            <summary>
+            登录标识
+            </summary>
+        </member>
+        <member name="P:Zeus.SystemUserAuthentication.Credential">
+            <summary>
+            登录凭证
+            </summary>
+        </member>
+        <member name="P:Zeus.SystemUserAuthentication.IsVerified">
+            <summary>
+            验证标志
+            </summary>
+        </member>
     </members>
 </doc>

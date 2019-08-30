@@ -2164,7 +2164,7 @@
             耗时（单位：毫秒）
             </summary>
         </member>
-        <member name="P:FreeSql.Aop.AuditValueEventArgs.AutoValueType">
+        <member name="P:FreeSql.Aop.AuditValueEventArgs.AuditValueType">
             <summary>
             类型
             </summary>

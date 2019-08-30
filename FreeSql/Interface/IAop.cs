@@ -273,18 +273,18 @@ namespace FreeSql.Aop
 
     public class AuditValueEventArgs : EventArgs
     {
-        public AuditValueEventArgs(AutoValueType autoValueType, ColumnInfo column, PropertyInfo property, object value)
+        public AuditValueEventArgs(AuditValueType autoValueType, ColumnInfo column, PropertyInfo property, object value)
         {
-            this.AutoValueType = autoValueType;
+            this.AuditValueType = autoValueType;
             this.Column = column;
             this.Property = property;
-            this.Value = value;
+            this._value = value;
         }
 
         /// <summary>
         /// 类型
         /// </summary>
-        public AutoValueType AutoValueType { get; }
+        public AuditValueType AuditValueType { get; }
         /// <summary>
         /// 属性列的元数据
         /// </summary>
@@ -308,5 +308,5 @@ namespace FreeSql.Aop
         private object _value;
         public bool IsChanged { get; private set; }
     }
-    public enum AutoValueType { Update, Insert }
+    public enum AuditValueType { Update, Insert }
 }
