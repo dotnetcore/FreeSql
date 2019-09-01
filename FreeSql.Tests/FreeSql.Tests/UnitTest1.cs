@@ -385,9 +385,41 @@ namespace FreeSql.Tests
         }
 
 
+        [Table(Name = "bz_web_post")]
+        public class Post
+        {
+            public int Id { get; set; }
+            public int AuthorId { get; set; }
+            [Navigate("AuthorId")]
+            public AuthorTest Author { get; set; }
+        }
+        [Table(Name = "bz_web_authortest")]
+        public class AuthorTest
+        {
+            public int Id { get; set; }
+            public string Name { get; set; }
+            [Navigate("AuthorId")]
+            public List<Post> Post { get; set; }
+        }
+
         [Fact]
         public void Test1()
         {
+            IFreeSql fsql = new FreeSql.FreeSqlBuilder()
+              .UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=7")
+              .UseEntityPropertyNameConvert(Internal.StringConvertType.PascalCaseToUnderscoreWithLower)
+              .UseNoneCommandParameter(true)
+              .UseAutoSyncStructure(true) //自动同步实体结构到数据库
+              .UseMonitorCommand(a => Trace.WriteLine(a.CommandText))
+              .Build();
+
+            var data = fsql.Select<Post>().ToList(r => new
+                {
+                    Id = r.Id,
+                    Name = r.AuthorId.ToString(),
+                    AuthorName = r.Author.Name,
+                });
+
             //g.mysql.Aop.AuditValue += (s, e) =>
             //{
             //    if (e.Column.CsType == typeof(long)
