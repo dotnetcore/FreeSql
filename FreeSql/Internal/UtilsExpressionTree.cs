@@ -246,7 +246,6 @@ namespace FreeSql.Internal
             #region 查找导航属性的关系、virtual 属性延时加载，动态产生新的重写类
             var trytbTypeName = trytb.Type.IsNested ? $"{trytb.Type.DeclaringType.Namespace?.NotNullAndConcat(".")}{trytb.Type.DeclaringType.Name}.{trytb.Type.Name}" : $"{trytb.Type.Namespace?.NotNullAndConcat(".")}{trytb.Type.Name}";
             var trytbTypeLazyName = default(string);
-            var overrieds = 0;
             StringBuilder cscode = null;
             if (common.CodeFirst.IsLazyLoading && propsLazy.Any())
             {
@@ -265,656 +264,15 @@ namespace FreeSql.Internal
                     .AppendLine("	[JsonIgnore] private IFreeSql __fsql_orm__ { get; set; }\r\n");
             }
 
+            var cscodeLength = cscode?.Length ?? 0;
             foreach (var pnv in propsNavObjs)
             {
                 var vp = propsLazy.Where(a => a.Item1 == pnv).FirstOrDefault();
                 var isLazy = vp.Item1 != null && !string.IsNullOrEmpty(trytbTypeLazyName);
-                var propTypeName = pnv.PropertyType.IsGenericType ?
-                    $"{pnv.PropertyType.Namespace?.NotNullAndConcat(".")}{pnv.PropertyType.Name.Remove(pnv.PropertyType.Name.IndexOf('`'))}<{string.Join(", ", pnv.PropertyType.GenericTypeArguments.Select(a => a.IsNested ? $"{a.DeclaringType.Namespace?.NotNullAndConcat(".")}{a.DeclaringType.Name}.{a.Name}" : $"{a.Namespace?.NotNullAndConcat(".")}{a.Name}"))}>" :
-                    (pnv.PropertyType.IsNested ? $"{pnv.PropertyType.DeclaringType.Namespace?.NotNullAndConcat(".")}{pnv.PropertyType.DeclaringType.Name}.{pnv.PropertyType.Name}" : $"{pnv.PropertyType.Namespace?.NotNullAndConcat(".")}{pnv.PropertyType.Name}");
 
-                var pnvAttr = pnv.GetCustomAttribute<NavigateAttribute>();
-                var pnvBind = pnvAttr?.Bind?.Split(',').Select(a => a.Trim()).Where(a => !string.IsNullOrEmpty(a)).ToArray();
-                var nvref = new TableRef();
-                nvref.Property = pnv;
-
-                //List 或 ICollection，一对多、多对多
-                var propElementType = pnv.PropertyType.GenericTypeArguments.FirstOrDefault() ?? pnv.PropertyType.GetElementType();
-                if (propElementType != null)
-                {
-                    if (typeof(IEnumerable).IsAssignableFrom(pnv.PropertyType) == false) continue;
-                    if (trytb.Primarys.Any() == false)
-                    {
-                        nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 解析错误，实体类型 {trytbTypeName} 缺少主键标识，[Column(IsPrimary = true)]");
-                        trytb.AddOrUpdateTableRef(pnv.Name, nvref);
-                        //if (isLazy) throw nvref.Exception;
-                        continue;
-                    }
-
-                    var tbref = propElementType == trytb.Type ? trytb : GetTableByEntity(propElementType, common); //可能是父子关系
-                    if (tbref == null) continue;
-
-                    var tbrefTypeName = tbref.Type.IsNested ? $"{tbref.Type.DeclaringType.Namespace?.NotNullAndConcat(".")}{tbref.Type.DeclaringType.Name}.{tbref.Type.Name}" : $"{tbref.Type.Namespace?.NotNullAndConcat(".")}{tbref.Type.Name}";
-                    Type midType = null;
-                    var isManyToMany = false;
-
-                    Action valiManyToMany = () =>
-                    {
-                        if (midType != null)
-                        {
-                            var midTypeProps = midType.GetProperties();
-                            var midTypePropsTrytb = midTypeProps.Where(a => a.PropertyType == trytb.Type).Count();
-                            var midTypePropsTbref = midTypeProps.Where(a => a.PropertyType == tbref.Type).Count();
-                            if (midTypePropsTrytb != 1 || midTypePropsTbref != 1) midType = null;
-                        }
-                    };
-
-                    if (pnvAttr?.ManyToMany != null)
-                    {
-                        isManyToMany = propElementType != trytb.Type &&
-                            tbref.Properties.Where(z => (z.Value.PropertyType.GenericTypeArguments.FirstOrDefault() == trytb.Type || z.Value.PropertyType.GetElementType() == trytb.Type) &&
-                                z.Value.GetCustomAttribute<NavigateAttribute>()?.ManyToMany == pnvAttr.ManyToMany &&
-                                typeof(IEnumerable).IsAssignableFrom(z.Value.PropertyType)).Any();
-
-                        if (isManyToMany == false)
-                        {
-                            nvref.Exception = new Exception($"【ManyToMany】导航属性 {trytbTypeName}.{pnv.Name} 解析错误，实体类型 {tbrefTypeName} 必须存在对应的 [Navigate(ManyToMany = x)] 集合属性");
-                            trytb.AddOrUpdateTableRef(pnv.Name, nvref);
-                            //if (isLazy) throw nvref.Exception;
-                            continue;
-                        }
-                        if (isManyToMany)
-                        {
-                            midType = pnvAttr.ManyToMany;
-                            valiManyToMany();
-                        }
-                    }
-                    else
-                    {
-                        isManyToMany = propElementType != trytb.Type &&
-                            pnv.Name.EndsWith($"{tbref.CsName}s", StringComparison.CurrentCultureIgnoreCase) &&
-                            tbref.Properties.Where(z => (z.Value.PropertyType.GenericTypeArguments.FirstOrDefault() == trytb.Type || z.Value.PropertyType.GetElementType() == trytb.Type) &&
-                                z.Key.EndsWith($"{trytb.CsName}s", StringComparison.CurrentCultureIgnoreCase) &&
-                                typeof(IEnumerable).IsAssignableFrom(z.Value.PropertyType)).Any();
-                    }
-                    if (isManyToMany)
-                    {
-                        if (tbref.Primarys.Any() == false)
-                        {
-                            nvref.Exception = new Exception($"【ManyToMany】导航属性 {trytbTypeName}.{pnv.Name} 解析错误，实体类型 {tbrefTypeName} 缺少主键标识，[Column(IsPrimary = true)]");
-                            trytb.AddOrUpdateTableRef(pnv.Name, nvref);
-                            //if (isLazy) throw nvref.Exception;
-                            continue;
-                        }
-                        if (pnvAttr?.ManyToMany == null)
-                        {
-                            //中间表怎么查询，比如 Song、Tag、SongTag
-                            var midFlagStr = string.Empty;
-                            if (pnv.Name.Length >= tbref.CsName.Length - 1)
-                                midFlagStr = pnv.Name.Remove(pnv.Name.Length - tbref.CsName.Length - 1);
-
-                            #region 在 trytb 命名空间下查找中间类
-                            if (midType == null)
-                            {
-                                midType = trytb.Type.IsNested ?
-                                    trytb.Type.Assembly.GetType($"{trytb.Type.Namespace?.NotNullAndConcat(".")}{trytb.Type.DeclaringType.Name}+{trytb.CsName}{tbref.CsName}{midFlagStr}", false, true) : //SongTag
-                                    trytb.Type.Assembly.GetType($"{trytb.Type.Namespace?.NotNullAndConcat(".")}{trytb.CsName}{tbref.CsName}{midFlagStr}", false, true);
-                                valiManyToMany();
-                            }
-                            if (midType == null)
-                            {
-                                midType = trytb.Type.IsNested ?
-                                    trytb.Type.Assembly.GetType($"{trytb.Type.Namespace?.NotNullAndConcat(".")}{trytb.Type.DeclaringType.Name}+{trytb.CsName}_{tbref.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}", false, true) : //Song_Tag
-                                    trytb.Type.Assembly.GetType($"{trytb.Type.Namespace?.NotNullAndConcat(".")}{trytb.CsName}_{tbref.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}", false, true);
-                                valiManyToMany();
-                            }
-                            if (midType == null)
-                            {
-                                midType = trytb.Type.IsNested ?
-                                    trytb.Type.Assembly.GetType($"{trytb.Type.Namespace?.NotNullAndConcat(".")}{trytb.Type.DeclaringType.Name}+{tbref.CsName}{trytb.CsName}{midFlagStr}", false, true) : //TagSong
-                                    trytb.Type.Assembly.GetType($"{trytb.Type.Namespace?.NotNullAndConcat(".")}{tbref.CsName}{trytb.CsName}{midFlagStr}", false, true);
-                                valiManyToMany();
-                            }
-                            if (midType == null)
-                            {
-                                midType = trytb.Type.IsNested ?
-                                    trytb.Type.Assembly.GetType($"{trytb.Type.Namespace?.NotNullAndConcat(".")}{trytb.Type.DeclaringType.Name}+{tbref.CsName}_{trytb.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}", false, true) : //Tag_Song
-                                    trytb.Type.Assembly.GetType($"{trytb.Type.Namespace?.NotNullAndConcat(".")}{tbref.CsName}_{trytb.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}", false, true);
-                                valiManyToMany();
-                            }
-                            #endregion
-
-                            #region 在 tbref 命名空间下查找中间类
-                            if (midType == null)
-                            {
-                                midType = tbref.Type.IsNested ?
-                                    tbref.Type.Assembly.GetType($"{tbref.Type.Namespace?.NotNullAndConcat(".")}{tbref.Type.DeclaringType.Name}+{trytb.CsName}{tbref.CsName}{midFlagStr}", false, true) : //SongTag
-                                    tbref.Type.Assembly.GetType($"{tbref.Type.Namespace?.NotNullAndConcat(".")}{trytb.CsName}{tbref.CsName}{midFlagStr}", false, true);
-                                valiManyToMany();
-                            }
-                            if (midType == null)
-                            {
-                                midType = tbref.Type.IsNested ?
-                                    tbref.Type.Assembly.GetType($"{tbref.Type.Namespace?.NotNullAndConcat(".")}{tbref.Type.DeclaringType.Name}+{trytb.CsName}_{tbref.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}", false, true) : //Song_Tag
-                                    tbref.Type.Assembly.GetType($"{tbref.Type.Namespace?.NotNullAndConcat(".")}{trytb.CsName}_{tbref.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}", false, true);
-                                valiManyToMany();
-                            }
-                            if (midType == null)
-                            {
-                                midType = tbref.Type.IsNested ?
-                                    tbref.Type.Assembly.GetType($"{tbref.Type.Namespace?.NotNullAndConcat(".")}{tbref.Type.DeclaringType.Name}+{tbref.CsName}{trytb.CsName}{midFlagStr}", false, true) : //TagSong
-                                    tbref.Type.Assembly.GetType($"{tbref.Type.Namespace?.NotNullAndConcat(".")}{tbref.CsName}{trytb.CsName}{midFlagStr}", false, true);
-                                valiManyToMany();
-                            }
-                            if (midType == null)
-                            {
-                                midType = tbref.Type.IsNested ?
-                                    tbref.Type.Assembly.GetType($"{tbref.Type.Namespace?.NotNullAndConcat(".")}{tbref.Type.DeclaringType.Name}+{tbref.CsName}_{trytb.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}", false, true) : //Tag_Song
-                                    tbref.Type.Assembly.GetType($"{tbref.Type.Namespace?.NotNullAndConcat(".")}{tbref.CsName}_{trytb.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}", false, true);
-                                valiManyToMany();
-                            }
-                            #endregion
-                        }
-
-                        isManyToMany = midType != null;
-                    }
-                    if (isManyToMany)
-                    {
-                        var tbmid = GetTableByEntity(midType, common);
-                        var midTypePropsTrytb = tbmid.Properties.Where(a => a.Value.PropertyType == trytb.Type).FirstOrDefault().Value;
-                        //g.mysql.Select<Tag>().Where(a => g.mysql.Select<Song_tag>().Where(b => b.Tag_id == a.Id && b.Song_id == 1).Any());
-                        var lmbdWhere = isLazy ? new StringBuilder() : null;
-
-                        if (pnvAttr?.ManyToMany != null)
-                        {
-                            #region 指定 Navigate[ManyToMany = x] 配置多对多关系
-                            TableRef trytbTf = null;
-                            try
-                            {
-                                trytbTf = tbmid.GetTableRef(midTypePropsTrytb.Name, true);
-                            }
-                            catch (Exception ex)
-                            {
-                                nvref.Exception = new Exception($"【ManyToMany】导航属性 {trytbTypeName}.{pnv.Name} 解析错误，中间类 {tbmid.CsName}.{midTypePropsTrytb.Name} 错误：{ex.Message}");
-                                trytb.AddOrUpdateTableRef(pnv.Name, nvref);
-                                //if (isLazy) throw nvref.Exception;
-                            }
-                            if (nvref.Exception == null)
-                            {
-                                if (trytbTf.RefType != TableRefType.ManyToOne && trytbTf.RefType != TableRefType.OneToOne)
-                                {
-                                    nvref.Exception = new Exception($"【ManyToMany】导航属性 {trytbTypeName}.{pnv.Name} 解析错误，中间类 {tbmid.CsName}.{midTypePropsTrytb.Name} 导航属性不是【ManyToOne】或【OneToOne】");
-                                    trytb.AddOrUpdateTableRef(pnv.Name, nvref);
-                                    //if (isLazy) throw nvref.Exception;
-                                }
-                                else
-                                {
-                                    nvref.Columns.AddRange(trytbTf.RefColumns);
-                                    nvref.MiddleColumns.AddRange(trytbTf.Columns);
-
-                                    if (tbmid.Primarys.Any() == false)
-                                        trytbTf.Columns.Select(c => tbmid.ColumnsByCs[c.CsName].Attribute.IsPrimary = true);
-                                    if (isLazy)
-                                    {
-                                        for (var a = 0; a < trytbTf.RefColumns.Count; a++)
-                                        {
-                                            if (a > 0) lmbdWhere.Append(" && ");
-                                            lmbdWhere.Append("b.").Append(trytbTf.Columns[a].CsName).Append(" == this.").Append(trytbTf.RefColumns[a].CsName);
-                                        }
-                                    }
-                                }
-                            }
-                            if (nvref.Exception == null)
-                            {
-                                var midTypePropsTbref = tbmid.Properties.Where(a => a.Value.PropertyType == tbref.Type).FirstOrDefault().Value;
-
-                                TableRef tbrefTf = null;
-                                try
-                                {
-                                    tbrefTf = tbmid.GetTableRef(midTypePropsTbref.Name, true);
-                                }
-                                catch (Exception ex)
-                                {
-                                    nvref.Exception = new Exception($"【ManyToMany】导航属性 {tbrefTypeName}.{pnv.Name} 解析错误，中间类 {tbmid.CsName}.{midTypePropsTbref.Name} 错误：{ex.Message}");
-                                    trytb.AddOrUpdateTableRef(pnv.Name, nvref);
-                                    //if (isLazy) throw nvref.Exception;
-                                }
-                                if (nvref.Exception == null)
-                                {
-                                    if (tbrefTf.RefType != TableRefType.ManyToOne && tbrefTf.RefType != TableRefType.OneToOne)
-                                    {
-                                        nvref.Exception = new Exception($"【ManyToMany】导航属性 {tbrefTypeName}.{pnv.Name} 解析错误，中间类 {tbmid.CsName}.{midTypePropsTbref.Name} 导航属性不是【ManyToOne】或【OneToOne】");
-                                        trytb.AddOrUpdateTableRef(pnv.Name, nvref);
-                                        //if (isLazy) throw nvref.Exception;
-                                    }
-                                    else
-                                    {
-                                        nvref.RefColumns.AddRange(tbrefTf.RefColumns);
-                                        nvref.MiddleColumns.AddRange(tbrefTf.Columns);
-
-                                        if (tbmid.Primarys.Any() == false)
-                                            tbrefTf.Columns.Select(c => tbmid.ColumnsByCs[c.CsName].Attribute.IsPrimary = true);
-
-                                        if (isLazy)
-                                        {
-                                            for (var a = 0; a < tbrefTf.RefColumns.Count; a++)
-                                                lmbdWhere.Append(" && b.").Append(tbrefTf.Columns[a].CsName).Append(" == a.").Append(tbrefTf.RefColumns[a].CsName);
-                                        }
-                                    }
-                                }
-                            }
-                            #endregion
-                        }
-                        else
-                        {
-                            #region 约定配置
-                            for (var a = 0; a < trytb.Primarys.Length; a++)
-                            {
-                                var findtrytbPkCsName = trytb.Primarys[a].CsName.TrimStart('_');
-                                if (findtrytbPkCsName.StartsWith(trytb.Type.Name, StringComparison.CurrentCultureIgnoreCase)) findtrytbPkCsName = findtrytbPkCsName.Substring(trytb.Type.Name.Length).TrimStart('_');
-                                if (tbmid.ColumnsByCs.TryGetValue($"{midTypePropsTrytb.Name}{findtrytbPkCsName}", out var trycol) == false && //骆峰命名
-                                    tbmid.ColumnsByCs.TryGetValue($"{midTypePropsTrytb.Name}_{findtrytbPkCsName}", out trycol) == false //下划线命名
-                                    )
-                                {
-
-                                }
-                                if (trycol != null && trycol.CsType.NullableTypeOrThis() != trytb.Primarys[a].CsType.NullableTypeOrThis())
-                                {
-                                    nvref.Exception = new Exception($"【ManyToMany】导航属性 {trytbTypeName}.{pnv.Name} 解析错误，{tbmid.CsName}.{trycol.CsName} 和 {trytb.CsName}.{trytb.Primarys[a].CsName} 类型不一致");
-                                    trytb.AddOrUpdateTableRef(pnv.Name, nvref);
-                                    //if (isLazy) throw nvref.Exception;
-                                    break;
-                                }
-                                if (trycol == null)
-                                {
-                                    nvref.Exception = new Exception($"【ManyToMany】导航属性 {trytbTypeName}.{pnv.Name} 在 {tbmid.CsName} 中没有找到对应的字段，如：{midTypePropsTrytb.Name}{findtrytbPkCsName}、{midTypePropsTrytb.Name}_{findtrytbPkCsName}");
-                                    trytb.AddOrUpdateTableRef(pnv.Name, nvref);
-                                    //if (isLazy) throw nvref.Exception;
-                                    break;
-                                }
-
-                                nvref.Columns.Add(trytb.Primarys[a]);
-                                nvref.MiddleColumns.Add(trycol);
-                                if (tbmid.Primarys.Any() == false)
-                                    trycol.Attribute.IsPrimary = true;
-
-                                if (isLazy)
-                                {
-                                    if (a > 0) lmbdWhere.Append(" && ");
-                                    lmbdWhere.Append("b.").Append(trycol.CsName).Append(" == this.").Append(trytb.Primarys[a].CsName);
-                                }
-                            }
-
-                            if (nvref.Exception == null)
-                            {
-                                var midTypePropsTbref = tbmid.Properties.Where(a => a.Value.PropertyType == tbref.Type).FirstOrDefault().Value;
-                                for (var a = 0; a < tbref.Primarys.Length; a++)
-                                {
-                                    var findtbrefPkCsName = tbref.Primarys[a].CsName.TrimStart('_');
-                                    if (findtbrefPkCsName.StartsWith(tbref.Type.Name, StringComparison.CurrentCultureIgnoreCase)) findtbrefPkCsName = findtbrefPkCsName.Substring(tbref.Type.Name.Length).TrimStart('_');
-                                    if (tbmid.ColumnsByCs.TryGetValue($"{midTypePropsTbref.Name}{findtbrefPkCsName}", out var trycol) == false && //骆峰命名
-                                        tbmid.ColumnsByCs.TryGetValue($"{midTypePropsTbref.Name}_{findtbrefPkCsName}", out trycol) == false //下划线命名
-                                        )
-                                    {
-
-                                    }
-                                    if (trycol != null && trycol.CsType.NullableTypeOrThis() != tbref.Primarys[a].CsType.NullableTypeOrThis())
-                                    {
-                                        nvref.Exception = new Exception($"【ManyToMany】导航属性 {trytbTypeName}.{pnv.Name} 解析错误，{tbmid.CsName}.{trycol.CsName} 和 {tbref.CsName}.{tbref.Primarys[a].CsName} 类型不一致");
-                                        trytb.AddOrUpdateTableRef(pnv.Name, nvref);
-                                        //if (isLazy) throw nvref.Exception;
-                                        break;
-                                    }
-                                    if (trycol == null)
-                                    {
-                                        nvref.Exception = new Exception($"【ManyToMany】导航属性 {trytbTypeName}.{pnv.Name} 在 {tbmid.CsName} 中没有找到对应的字段，如：{midTypePropsTbref.Name}{findtbrefPkCsName}、{midTypePropsTbref.Name}_{findtbrefPkCsName}");
-                                        trytb.AddOrUpdateTableRef(pnv.Name, nvref);
-                                        //if (isLazy) throw nvref.Exception;
-                                        break;
-                                    }
-
-                                    nvref.RefColumns.Add(tbref.Primarys[a]);
-                                    nvref.MiddleColumns.Add(trycol);
-                                    if (tbmid.Primarys.Any() == false)
-                                        trycol.Attribute.IsPrimary = true;
-
-                                    if (isLazy) lmbdWhere.Append(" && b.").Append(trycol.CsName).Append(" == a.").Append(tbref.Primarys[a].CsName);
-                                }
-                            }
-                            #endregion
-                        }
-                        if (nvref.Columns.Count > 0 && nvref.RefColumns.Count > 0)
-                        {
-                            nvref.RefMiddleEntityType = tbmid.Type;
-                            nvref.RefEntityType = tbref.Type;
-                            nvref.RefType = TableRefType.ManyToMany;
-                            trytb.AddOrUpdateTableRef(pnv.Name, nvref);
-
-                            if (tbmid.Primarys.Any() == false)
-                                tbmid.Primarys = tbmid.Columns.Values.Where(a => a.Attribute.IsPrimary == true).ToArray();
-                        }
-
-                        if (isLazy)
-                        {
-                            cscode.Append("	private bool __lazy__").Append(pnv.Name).AppendLine(" = false;")
-                                    .Append("	public override ").Append(propTypeName).Append(" ").Append(pnv.Name).AppendLine(" {");
-                            if (vp.Item2)
-                            { //get 重写
-                                cscode.Append("		get {\r\n")
-                                    .Append("			if (base.").Append(pnv.Name).Append(" == null && __lazy__").Append(pnv.Name).AppendLine(" == false) {");
-
-                                if (nvref.Exception == null)
-                                    cscode.Append("				base.").Append(pnv.Name).Append(" = __fsql_orm__.Select<").Append(propElementType.IsNested ? $"{propElementType.DeclaringType.Namespace}.{propElementType.DeclaringType.Name}.{propElementType.Name}" : $"{propElementType.Namespace}.{propElementType.Name}")
-                                        .Append(">().Where(a => __fsql_orm__.Select<").Append(tbmid.Type.IsNested ? $"{tbmid.Type.DeclaringType.Namespace?.NotNullAndConcat(".")}{tbmid.Type.DeclaringType.Name}.{tbmid.Type.Name}" : $"{tbmid.Type.Namespace}.{tbmid.Type.Name}")
-                                        .Append(">().Where(b => ").Append(lmbdWhere.ToString()).AppendLine(").Any()).ToList();")
-                                        .Append("				__lazy__").Append(pnv.Name).AppendLine(" = true;");
-                                else
-                                    cscode.Append("				throw new Exception(\"").Append(nvref.Exception.Message.Replace("\r\n", "\\r\\n").Replace("\"", "\\\"")).AppendLine("\");");
-
-                                cscode.Append("			}\r\n")
-                                    .Append("			return base.").Append(pnv.Name).AppendLine(";")
-                                    .Append("		}\r\n");
-                            }
-                            if (vp.Item3)
-                            { //set 重写
-                                cscode.Append("		set => base.").Append(pnv.Name).AppendLine(" = value;");
-                            }
-                            cscode.AppendLine("	}");
-                        }
-                    }
-                    else
-                    { //One To Many
-                        List<ColumnInfo> bindColumns = new List<ColumnInfo>();
-                        if (pnvBind != null)
-                        {
-                            foreach (var bi in pnvBind)
-                            {
-                                if (tbref.ColumnsByCs.TryGetValue(bi, out var trybindcol) == false)
-                                {
-                                    nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 特性 [Navigate] 解析错误，在 {tbrefTypeName} 未找到属性：{bi}");
-                                    trytb.AddOrUpdateTableRef(pnv.Name, nvref);
-                                    //if (isLazy) throw nvref.Exception;
-                                    break;
-                                }
-                                bindColumns.Add(trybindcol);
-                            }
-                        }
-
-                        PropertyInfo refprop = null;
-                        var refcols = tbref.Properties.Where(z => z.Value.PropertyType == trytb.Type);
-                        refprop = refcols.Count() == 1 ? refcols.First().Value : null;
-                        var lmbdWhere = isLazy ? new StringBuilder() : null;
-
-                        if (nvref.Exception == null && bindColumns.Any() && bindColumns.Count != trytb.Primarys.Length)
-                        {
-                            nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 特性 [Navigate] Bind 数目({bindColumns.Count}) 与 内部主键数目({trytb.Primarys.Length}) 不相同");
-                            trytb.AddOrUpdateTableRef(pnv.Name, nvref);
-                            //if (isLazy) throw nvref.Exception;
-                        }
-                        if (trytb.Primarys.Length > 1)
-                        {
-                            if (trytb.Primarys.Select(a => a.CsType.NullableTypeOrThis()).Distinct().Count() == trytb.Primarys.Length)
-                            {
-                                var pkList = trytb.Primarys.ToList();
-                                bindColumns.Sort((a, b) => pkList.FindIndex(c => c.CsType.NullableTypeOrThis() == a.CsType.NullableTypeOrThis()).CompareTo(pkList.FindIndex(c => c.CsType.NullableTypeOrThis() == b.CsType.NullableTypeOrThis())));
-                            }
-                            else if (string.Compare(string.Join(",", trytb.Primarys.Select(a => a.CsName).OrderBy(a => a)), string.Join(",", bindColumns.Select(a => a.CsName).OrderBy(a => a)), true) == 0)
-                            {
-                                var pkList = trytb.Primarys.ToList();
-                                bindColumns.Sort((a, b) => pkList.FindIndex(c => string.Compare(c.CsName, a.CsName, true) == 0).CompareTo(pkList.FindIndex(c => string.Compare(c.CsName, b.CsName, true) == 0)));
-                            }
-                        }
-                        for (var a = 0; nvref.Exception == null && a < trytb.Primarys.Length; a++)
-                        {
-                            var findtrytbPkCsName = trytb.Primarys[a].CsName.TrimStart('_');
-                            if (findtrytbPkCsName.StartsWith(trytb.Type.Name, StringComparison.CurrentCultureIgnoreCase)) findtrytbPkCsName = findtrytbPkCsName.Substring(trytb.Type.Name.Length).TrimStart('_');
-                            var findtrytb = pnv.Name;
-                            if (findtrytb.EndsWith($"{tbref.CsName}s", StringComparison.CurrentCultureIgnoreCase)) findtrytb = findtrytb.Substring(0, findtrytb.Length - tbref.CsName.Length - 1);
-                            findtrytb += trytb.CsName;
-
-                            var trycol = bindColumns.Any() ? bindColumns[a] : null;
-                            if (trycol == null &&
-                                tbref.ColumnsByCs.TryGetValue($"{findtrytb}{findtrytbPkCsName}", out trycol) == false && //骆峰命名
-                                tbref.ColumnsByCs.TryGetValue($"{findtrytb}_{findtrytbPkCsName}", out trycol) == false //下划线命名
-                                )
-                            {
-                                if (refprop != null &&
-                                    tbref.ColumnsByCs.TryGetValue($"{refprop.Name}{findtrytbPkCsName}", out trycol) == false && //骆峰命名
-                                    tbref.ColumnsByCs.TryGetValue($"{refprop.Name}_{findtrytbPkCsName}", out trycol) == false) //下划线命名
-                                {
-
-                                }
-                            }
-                            if (trycol != null && trycol.CsType.NullableTypeOrThis() != trytb.Primarys[a].CsType.NullableTypeOrThis())
-                            {
-                                nvref.Exception = new Exception($"【OneToMany】导航属性 {trytbTypeName}.{pnv.Name} 解析错误，{trytb.CsName}.{trytb.Primarys[a].CsName} 和 {tbref.CsName}.{trycol.CsName} 类型不一致");
-                                trytb.AddOrUpdateTableRef(pnv.Name, nvref);
-                                //if (isLazy) throw nvref.Exception;
-                                break;
-                            }
-                            if (trycol == null)
-                            {
-                                nvref.Exception = new Exception($"【OneToMany】导航属性 {trytbTypeName}.{pnv.Name} 在 {tbref.CsName} 中没有找到对应的字段，如：{findtrytb}{findtrytbPkCsName}、{findtrytb}_{findtrytbPkCsName}" + (refprop == null ? "" : $"、{refprop.Name}{findtrytbPkCsName}、{refprop.Name}_{findtrytbPkCsName}。或者使用 [Navigate] 特性指定关系映射。"));
-                                trytb.AddOrUpdateTableRef(pnv.Name, nvref);
-                                //if (isLazy) throw nvref.Exception;
-                                break;
-                            }
-
-                            nvref.Columns.Add(trytb.Primarys[a]);
-                            nvref.RefColumns.Add(trycol);
-
-                            if (isLazy && nvref.Exception == null)
-                            {
-                                if (a > 0) lmbdWhere.Append(" && ");
-                                lmbdWhere.Append("a.").Append(trycol.CsName).Append(" == this.").Append(trytb.Primarys[a].CsName);
-
-                                if (refprop == null)
-                                { //加载成功后，把列表对应的导航属性值设置为 this，比如 Select<TopicType>().ToOne().Topics 下的 TopicType 属性值全部为 this
-                                    var findtrytbName = trycol.CsName;
-                                    if (findtrytbName.EndsWith(trytb.Primarys.First().CsName))
-                                    {
-                                        findtrytbName = findtrytbName.Remove(findtrytbName.Length - trytb.Primarys.First().CsName.Length).TrimEnd('_');
-                                        if (tbref.Properties.TryGetValue(findtrytbName, out refprop) && refprop.PropertyType != trytb.Type)
-                                            refprop = null;
-                                    }
-                                }
-                            }
-                        }
-                        if (nvref.Columns.Count > 0 && nvref.RefColumns.Count > 0)
-                        {
-                            nvref.RefEntityType = tbref.Type;
-                            nvref.RefType = TableRefType.OneToMany;
-                            trytb.AddOrUpdateTableRef(pnv.Name, nvref);
-                        }
-
-                        if (isLazy)
-                        {
-                            cscode.Append("	private bool __lazy__").Append(pnv.Name).AppendLine(" = false;")
-                                .Append("	public override ").Append(propTypeName).Append(" ").Append(pnv.Name).AppendLine(" {");
-                            if (vp.Item2)
-                            { //get 重写
-                                cscode.Append("		get {\r\n")
-                                    .Append("			if (base.").Append(pnv.Name).Append(" == null && __lazy__").Append(pnv.Name).AppendLine(" == false) {");
-
-                                if (nvref.Exception == null)
-                                {
-                                    cscode.Append("				base.").Append(pnv.Name).Append(" = __fsql_orm__.Select<").Append(propElementType.IsNested ? $"{propElementType.DeclaringType.Namespace?.NotNullAndConcat(".")}{propElementType.DeclaringType.Name}.{propElementType.Name}" : $"{propElementType.Namespace?.NotNullAndConcat(".")}{propElementType.Name}").Append(">().Where(a => ").Append(lmbdWhere.ToString()).AppendLine(").ToList();");
-                                    if (refprop != null)
-                                    {
-                                        cscode.Append("				foreach (var loc1 in base.").Append(pnv.Name).AppendLine(")")
-                                            .Append("					loc1.").Append(refprop.Name).AppendLine(" = this;")
-                                            .Append("				__lazy__").Append(pnv.Name).AppendLine(" = true;");
-                                    }
-                                }
-                                else
-                                    cscode.Append("				throw new Exception(\"").Append(nvref.Exception.Message.Replace("\r\n", "\\r\\n").Replace("\"", "\\\"")).AppendLine("\");");
-
-                                cscode
-                                    .Append("			}\r\n")
-                                    .Append("			return base.").Append(pnv.Name).AppendLine(";")
-                                    .Append("		}\r\n");
-                            }
-                            if (vp.Item3)
-                            { //set 重写
-                                cscode.Append("		set => base.").Append(pnv.Name).AppendLine(" = value;");
-                            }
-                            cscode.AppendLine("	}");
-                        }
-                    }
-                }
-                else
-                { //一对一、多对一
-                    var tbref = pnv.PropertyType == trytb.Type ? trytb : GetTableByEntity(pnv.PropertyType, common); //可能是父子关系
-                    if (tbref == null) continue;
-                    if (tbref.Primarys.Any() == false)
-                    {
-                        nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 解析错误，实体类型 {propTypeName} 缺少主键标识，[Column(IsPrimary = true)]");
-                        trytb.AddOrUpdateTableRef(pnv.Name, nvref);
-                        //if (isLazy) throw nvref.Exception;
-                    }
-                    var tbrefTypeName = tbref.Type.IsNested ? $"{tbref.Type.DeclaringType.Namespace?.NotNullAndConcat(".")}{tbref.Type.DeclaringType.Name}.{tbref.Type.Name}" : $"{tbref.Type.Namespace?.NotNullAndConcat(".")}{tbref.Type.Name}";
-                    var isOnoToOne = pnv.PropertyType != trytb.Type &&
-                        tbref.Properties.Where(z => z.Value.PropertyType == trytb.Type).Any() &&
-                        tbref.Primarys.Length == trytb.Primarys.Length &&
-                        string.Join(",", tbref.Primarys.Select(a => a.CsType.NullableTypeOrThis().FullName).OrderBy(a => a)) == string.Join(",", trytb.Primarys.Select(a => a.CsType.NullableTypeOrThis().FullName).OrderBy(a => a));
-
-                    List<ColumnInfo> bindColumns = new List<ColumnInfo>();
-                    if (pnvBind != null)
-                    {
-                        foreach (var bi in pnvBind)
-                        {
-                            if (trytb.ColumnsByCs.TryGetValue(bi, out var trybindcol) == false)
-                            {
-                                nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 特性 [Navigate] 解析错误，在 {trytbTypeName} 未找到属性：{bi}");
-                                trytb.AddOrUpdateTableRef(pnv.Name, nvref);
-                                //if (isLazy) throw nvref.Exception;
-                                break;
-                            }
-                            bindColumns.Add(trybindcol);
-                        }
-                    }
-                    var lmbdWhere = new StringBuilder();
-
-                    if (nvref.Exception == null && bindColumns.Any() && bindColumns.Count != tbref.Primarys.Length)
-                    {
-                        nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 特性 [Navigate] Bind 数目({bindColumns.Count}) 与 外部主键数目({tbref.Primarys.Length}) 不相同");
-                        trytb.AddOrUpdateTableRef(pnv.Name, nvref);
-                        //if (isLazy) throw nvref.Exception;
-                    }
-                    if (tbref.Primarys.Length > 1)
-                    {
-                        if (tbref.Primarys.Select(a => a.CsType.NullableTypeOrThis()).Distinct().Count() == tbref.Primarys.Length)
-                        {
-                            var pkList = tbref.Primarys.ToList();
-                            bindColumns.Sort((a, b) => pkList.FindIndex(c => c.CsType.NullableTypeOrThis() == a.CsType.NullableTypeOrThis()).CompareTo(pkList.FindIndex(c => c.CsType.NullableTypeOrThis() == b.CsType.NullableTypeOrThis())));
-                        }
-                        else if (string.Compare(string.Join(",", tbref.Primarys.Select(a => a.CsName).OrderBy(a => a)), string.Join(",", bindColumns.Select(a => a.CsName).OrderBy(a => a)), true) == 0)
-                        {
-                            var pkList = tbref.Primarys.ToList();
-                            bindColumns.Sort((a, b) => pkList.FindIndex(c => string.Compare(c.CsName, a.CsName, true) == 0).CompareTo(pkList.FindIndex(c => string.Compare(c.CsName, b.CsName, true) == 0)));
-                        }
-                    }
-                    for (var a = 0; nvref.Exception == null && a < tbref.Primarys.Length; a++)
-                    {
-                        var findtbrefPkCsName = tbref.Primarys[a].CsName.TrimStart('_');
-                        if (findtbrefPkCsName.StartsWith(tbref.Type.Name, StringComparison.CurrentCultureIgnoreCase)) findtbrefPkCsName = findtbrefPkCsName.Substring(tbref.Type.Name.Length).TrimStart('_');
-
-                        var trycol = bindColumns.Any() ? bindColumns[a] : null;
-                        if (trycol == null &&
-                            trytb.ColumnsByCs.TryGetValue($"{pnv.Name}{findtbrefPkCsName}", out trycol) == false && //骆峰命名
-                            trytb.ColumnsByCs.TryGetValue($"{pnv.Name}_{findtbrefPkCsName}", out trycol) == false && //下划线命名
-                                                                                                                     //tbref.Primarys.Length == 1 &&
-                            trytb.ColumnsByCs.TryGetValue($"{pnv.Name}_Id", out trycol) == false &&
-                            trytb.ColumnsByCs.TryGetValue($"{pnv.Name}Id", out trycol) == false
-                            )
-                        {
-                            //一对一，主键与主键查找
-                            if (isOnoToOne)
-                            {
-                                var trytbpks = trytb.Primarys.Where(z => z.CsType.NullableTypeOrThis() == tbref.Primarys[a].CsType.NullableTypeOrThis()); //一对一，按类型
-                                if (trytbpks.Count() == 1) trycol = trytbpks.First();
-                                else
-                                {
-                                    trytbpks = trytb.Primarys.Where(z => string.Compare(z.CsName, tbref.Primarys[a].CsName, true) == 0); //一对一，按主键名相同
-                                    if (trytbpks.Count() == 1) trycol = trytbpks.First();
-                                    else
-                                    {
-                                        trytbpks = trytb.Primarys.Where(z => string.Compare(z.CsName, $"{tbref.CsName}{tbref.Primarys[a].CsName}", true) == 0); //一对一，主键名 = 表+主键名
-                                        if (trytbpks.Count() == 1) trycol = trytbpks.First();
-                                        else
-                                        {
-                                            trytbpks = trytb.Primarys.Where(z => string.Compare(z.CsName, $"{tbref.CsName}_{tbref.Primarys[a].CsName}", true) == 0); //一对一，主键名 = 表+_主键名
-                                            if (trytbpks.Count() == 1) trycol = trytbpks.First();
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        if (trycol != null && trycol.CsType.NullableTypeOrThis() != tbref.Primarys[a].CsType.NullableTypeOrThis())
-                        {
-                            nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 解析错误，{trytb.CsName}.{trycol.CsName} 和 {tbref.CsName}.{tbref.Primarys[a].CsName} 类型不一致");
-                            trytb.AddOrUpdateTableRef(pnv.Name, nvref);
-                            //if (isLazy) throw nvref.Exception;
-                            break;
-                        }
-                        if (trycol == null)
-                        {
-                            nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 没有找到对应的字段，如：{pnv.Name}{findtbrefPkCsName}、{pnv.Name}_{findtbrefPkCsName}。或者使用 [Navigate] 特性指定关系映射。");
-                            trytb.AddOrUpdateTableRef(pnv.Name, nvref);
-                            //if (isLazy) throw nvref.Exception;
-                            break;
-                        }
-
-                        nvref.Columns.Add(trycol);
-                        nvref.RefColumns.Add(tbref.Primarys[a]);
-
-                        if (isLazy && nvref.Exception == null)
-                        {
-                            if (a > 0) lmbdWhere.Append(" && ");
-                            lmbdWhere.Append("a.").Append(tbref.Primarys[a].CsName).Append(" == this.").Append(trycol.CsName);
-                        }
-                    }
-                    if (nvref.Columns.Count > 0 && nvref.RefColumns.Count > 0)
-                    {
-                        nvref.RefEntityType = tbref.Type;
-                        nvref.RefType = isOnoToOne ? TableRefType.OneToOne : TableRefType.ManyToOne;
-                        trytb.AddOrUpdateTableRef(pnv.Name, nvref);
-                    }
-
-                    if (isLazy)
-                    {
-                        cscode.Append("	private bool __lazy__").Append(pnv.Name).AppendLine(" = false;")
-                            .Append("	public override ").Append(propTypeName).Append(" ").Append(pnv.Name).AppendLine(" {");
-                        if (vp.Item2)
-                        { //get 重写
-                            cscode.Append("		get {\r\n")
-                                .Append("			if (base.").Append(pnv.Name).Append(" == null && __lazy__").Append(pnv.Name).AppendLine(" == false) {");
-
-                            if (nvref.Exception == null)
-                                cscode.Append("				base.").Append(pnv.Name).Append(" = __fsql_orm__.Select<").Append(propTypeName).Append(">().Where(a => ").Append(lmbdWhere.ToString()).AppendLine(").ToOne();")
-                                    .Append("				__lazy__").Append(pnv.Name).AppendLine(" = true;");
-                            else
-                                cscode.Append("				throw new Exception(\"").Append(nvref.Exception.Message.Replace("\r\n", "\\r\\n").Replace("\"", "\\\"")).AppendLine("\");");
-
-                            cscode
-                                .Append("			}\r\n")
-                                .Append("			return base.").Append(pnv.Name).AppendLine(";")
-                                .Append("		}\r\n");
-                        }
-                        if (vp.Item3)
-                        { //set 重写
-                            cscode.Append("		set {\r\n")
-                                .Append("			base.").Append(pnv.Name).AppendLine(" = value;")
-                                .Append("			__lazy__").Append(pnv.Name).AppendLine(" = true;")
-                                .Append("		}\r\n");
-                        }
-                        cscode.AppendLine("	}");
-                    }
-                }
-
-                if (isLazy) ++overrieds;
+                AddTableRef(common, trytb, pnv, isLazy, vp, cscode);
             }
-            if (overrieds > 0)
+            if (cscode?.Length > cscodeLength)
             {
                 cscode.AppendLine("}");
                 Assembly assembly = null;
@@ -935,6 +293,662 @@ namespace FreeSql.Internal
             #endregion
 
             return tbc.TryGetValue(entity, out var trytb2) ? trytb2 : trytb;
+        }
+        public static void AddTableRef(CommonUtils common, TableInfo trytb, PropertyInfo pnv, bool isLazy, (PropertyInfo, bool, bool)? vp, StringBuilder cscode)
+        {
+            var trytbTypeName = trytb.Type.IsNested ? $"{trytb.Type.DeclaringType.Namespace?.NotNullAndConcat(".")}{trytb.Type.DeclaringType.Name}.{trytb.Type.Name}" : $"{trytb.Type.Namespace?.NotNullAndConcat(".")}{trytb.Type.Name}";
+            var propTypeName = pnv.PropertyType.IsGenericType ?
+                    $"{pnv.PropertyType.Namespace?.NotNullAndConcat(".")}{pnv.PropertyType.Name.Remove(pnv.PropertyType.Name.IndexOf('`'))}<{string.Join(", ", pnv.PropertyType.GenericTypeArguments.Select(a => a.IsNested ? $"{a.DeclaringType.Namespace?.NotNullAndConcat(".")}{a.DeclaringType.Name}.{a.Name}" : $"{a.Namespace?.NotNullAndConcat(".")}{a.Name}"))}>" :
+                    (pnv.PropertyType.IsNested ? $"{pnv.PropertyType.DeclaringType.Namespace?.NotNullAndConcat(".")}{pnv.PropertyType.DeclaringType.Name}.{pnv.PropertyType.Name}" : $"{pnv.PropertyType.Namespace?.NotNullAndConcat(".")}{pnv.PropertyType.Name}");
+
+            var pnvAttr = pnv.GetCustomAttribute<NavigateAttribute>();
+            var pnvBind = pnvAttr?.Bind?.Split(',').Select(a => a.Trim()).Where(a => !string.IsNullOrEmpty(a)).ToArray();
+            var nvref = new TableRef();
+            nvref.Property = pnv;
+
+            //List 或 ICollection，一对多、多对多
+            var propElementType = pnv.PropertyType.GenericTypeArguments.FirstOrDefault() ?? pnv.PropertyType.GetElementType();
+            if (propElementType != null)
+            {
+                if (typeof(IEnumerable).IsAssignableFrom(pnv.PropertyType) == false) return;
+                if (trytb.Primarys.Any() == false)
+                {
+                    nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 解析错误，实体类型 {trytbTypeName} 缺少主键标识，[Column(IsPrimary = true)]");
+                    trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+                    //if (isLazy) throw nvref.Exception;
+                    return;
+                }
+
+                var tbref = propElementType == trytb.Type ? trytb : GetTableByEntity(propElementType, common); //可能是父子关系
+                if (tbref == null) return;
+
+                var tbrefTypeName = tbref.Type.IsNested ? $"{tbref.Type.DeclaringType.Namespace?.NotNullAndConcat(".")}{tbref.Type.DeclaringType.Name}.{tbref.Type.Name}" : $"{tbref.Type.Namespace?.NotNullAndConcat(".")}{tbref.Type.Name}";
+                Type midType = null;
+                var isManyToMany = false;
+
+                Action valiManyToMany = () =>
+                {
+                    if (midType != null)
+                    {
+                        var midTypeProps = midType.GetProperties();
+                        var midTypePropsTrytb = midTypeProps.Where(a => a.PropertyType == trytb.Type).Count();
+                        var midTypePropsTbref = midTypeProps.Where(a => a.PropertyType == tbref.Type).Count();
+                        if (midTypePropsTrytb != 1 || midTypePropsTbref != 1) midType = null;
+                    }
+                };
+
+                if (pnvAttr?.ManyToMany != null)
+                {
+                    isManyToMany = propElementType != trytb.Type &&
+                        tbref.Properties.Where(z => (z.Value.PropertyType.GenericTypeArguments.FirstOrDefault() == trytb.Type || z.Value.PropertyType.GetElementType() == trytb.Type) &&
+                            z.Value.GetCustomAttribute<NavigateAttribute>()?.ManyToMany == pnvAttr.ManyToMany &&
+                            typeof(IEnumerable).IsAssignableFrom(z.Value.PropertyType)).Any();
+
+                    if (isManyToMany == false)
+                    {
+                        nvref.Exception = new Exception($"【ManyToMany】导航属性 {trytbTypeName}.{pnv.Name} 解析错误，实体类型 {tbrefTypeName} 必须存在对应的 [Navigate(ManyToMany = x)] 集合属性");
+                        trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+                        //if (isLazy) throw nvref.Exception;
+                        return;
+                    }
+                    if (isManyToMany)
+                    {
+                        midType = pnvAttr.ManyToMany;
+                        valiManyToMany();
+                    }
+                }
+                else
+                {
+                    isManyToMany = propElementType != trytb.Type &&
+                        pnv.Name.EndsWith($"{tbref.CsName}s", StringComparison.CurrentCultureIgnoreCase) &&
+                        tbref.Properties.Where(z => (z.Value.PropertyType.GenericTypeArguments.FirstOrDefault() == trytb.Type || z.Value.PropertyType.GetElementType() == trytb.Type) &&
+                            z.Key.EndsWith($"{trytb.CsName}s", StringComparison.CurrentCultureIgnoreCase) &&
+                            typeof(IEnumerable).IsAssignableFrom(z.Value.PropertyType)).Any();
+                }
+                if (isManyToMany)
+                {
+                    if (tbref.Primarys.Any() == false)
+                    {
+                        nvref.Exception = new Exception($"【ManyToMany】导航属性 {trytbTypeName}.{pnv.Name} 解析错误，实体类型 {tbrefTypeName} 缺少主键标识，[Column(IsPrimary = true)]");
+                        trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+                        //if (isLazy) throw nvref.Exception;
+                        return;
+                    }
+                    if (pnvAttr?.ManyToMany == null)
+                    {
+                        //中间表怎么查询，比如 Song、Tag、SongTag
+                        var midFlagStr = string.Empty;
+                        if (pnv.Name.Length >= tbref.CsName.Length - 1)
+                            midFlagStr = pnv.Name.Remove(pnv.Name.Length - tbref.CsName.Length - 1);
+
+                        #region 在 trytb 命名空间下查找中间类
+                        if (midType == null)
+                        {
+                            midType = trytb.Type.IsNested ?
+                                trytb.Type.Assembly.GetType($"{trytb.Type.Namespace?.NotNullAndConcat(".")}{trytb.Type.DeclaringType.Name}+{trytb.CsName}{tbref.CsName}{midFlagStr}", false, true) : //SongTag
+                                trytb.Type.Assembly.GetType($"{trytb.Type.Namespace?.NotNullAndConcat(".")}{trytb.CsName}{tbref.CsName}{midFlagStr}", false, true);
+                            valiManyToMany();
+                        }
+                        if (midType == null)
+                        {
+                            midType = trytb.Type.IsNested ?
+                                trytb.Type.Assembly.GetType($"{trytb.Type.Namespace?.NotNullAndConcat(".")}{trytb.Type.DeclaringType.Name}+{trytb.CsName}_{tbref.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}", false, true) : //Song_Tag
+                                trytb.Type.Assembly.GetType($"{trytb.Type.Namespace?.NotNullAndConcat(".")}{trytb.CsName}_{tbref.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}", false, true);
+                            valiManyToMany();
+                        }
+                        if (midType == null)
+                        {
+                            midType = trytb.Type.IsNested ?
+                                trytb.Type.Assembly.GetType($"{trytb.Type.Namespace?.NotNullAndConcat(".")}{trytb.Type.DeclaringType.Name}+{tbref.CsName}{trytb.CsName}{midFlagStr}", false, true) : //TagSong
+                                trytb.Type.Assembly.GetType($"{trytb.Type.Namespace?.NotNullAndConcat(".")}{tbref.CsName}{trytb.CsName}{midFlagStr}", false, true);
+                            valiManyToMany();
+                        }
+                        if (midType == null)
+                        {
+                            midType = trytb.Type.IsNested ?
+                                trytb.Type.Assembly.GetType($"{trytb.Type.Namespace?.NotNullAndConcat(".")}{trytb.Type.DeclaringType.Name}+{tbref.CsName}_{trytb.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}", false, true) : //Tag_Song
+                                trytb.Type.Assembly.GetType($"{trytb.Type.Namespace?.NotNullAndConcat(".")}{tbref.CsName}_{trytb.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}", false, true);
+                            valiManyToMany();
+                        }
+                        #endregion
+
+                        #region 在 tbref 命名空间下查找中间类
+                        if (midType == null)
+                        {
+                            midType = tbref.Type.IsNested ?
+                                tbref.Type.Assembly.GetType($"{tbref.Type.Namespace?.NotNullAndConcat(".")}{tbref.Type.DeclaringType.Name}+{trytb.CsName}{tbref.CsName}{midFlagStr}", false, true) : //SongTag
+                                tbref.Type.Assembly.GetType($"{tbref.Type.Namespace?.NotNullAndConcat(".")}{trytb.CsName}{tbref.CsName}{midFlagStr}", false, true);
+                            valiManyToMany();
+                        }
+                        if (midType == null)
+                        {
+                            midType = tbref.Type.IsNested ?
+                                tbref.Type.Assembly.GetType($"{tbref.Type.Namespace?.NotNullAndConcat(".")}{tbref.Type.DeclaringType.Name}+{trytb.CsName}_{tbref.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}", false, true) : //Song_Tag
+                                tbref.Type.Assembly.GetType($"{tbref.Type.Namespace?.NotNullAndConcat(".")}{trytb.CsName}_{tbref.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}", false, true);
+                            valiManyToMany();
+                        }
+                        if (midType == null)
+                        {
+                            midType = tbref.Type.IsNested ?
+                                tbref.Type.Assembly.GetType($"{tbref.Type.Namespace?.NotNullAndConcat(".")}{tbref.Type.DeclaringType.Name}+{tbref.CsName}{trytb.CsName}{midFlagStr}", false, true) : //TagSong
+                                tbref.Type.Assembly.GetType($"{tbref.Type.Namespace?.NotNullAndConcat(".")}{tbref.CsName}{trytb.CsName}{midFlagStr}", false, true);
+                            valiManyToMany();
+                        }
+                        if (midType == null)
+                        {
+                            midType = tbref.Type.IsNested ?
+                                tbref.Type.Assembly.GetType($"{tbref.Type.Namespace?.NotNullAndConcat(".")}{tbref.Type.DeclaringType.Name}+{tbref.CsName}_{trytb.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}", false, true) : //Tag_Song
+                                tbref.Type.Assembly.GetType($"{tbref.Type.Namespace?.NotNullAndConcat(".")}{tbref.CsName}_{trytb.CsName}{(string.IsNullOrEmpty(midFlagStr) ? "" : "_")}{midFlagStr}", false, true);
+                            valiManyToMany();
+                        }
+                        #endregion
+                    }
+
+                    isManyToMany = midType != null;
+                }
+                if (isManyToMany)
+                {
+                    var tbmid = GetTableByEntity(midType, common);
+                    var midTypePropsTrytb = tbmid.Properties.Where(a => a.Value.PropertyType == trytb.Type).FirstOrDefault().Value;
+                    //g.mysql.Select<Tag>().Where(a => g.mysql.Select<Song_tag>().Where(b => b.Tag_id == a.Id && b.Song_id == 1).Any());
+                    var lmbdWhere = isLazy ? new StringBuilder() : null;
+
+                    if (pnvAttr?.ManyToMany != null)
+                    {
+                        #region 指定 Navigate[ManyToMany = x] 配置多对多关系
+                        TableRef trytbTf = null;
+                        try
+                        {
+                            trytbTf = tbmid.GetTableRef(midTypePropsTrytb.Name, true);
+                            if (trytbTf == null)
+                            {
+                                AddTableRef(common, tbmid, midTypePropsTrytb, false, null, null);
+                                trytbTf = tbmid.GetTableRef(midTypePropsTrytb.Name, true);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            nvref.Exception = new Exception($"【ManyToMany】导航属性 {trytbTypeName}.{pnv.Name} 解析错误，中间类 {tbmid.CsName}.{midTypePropsTrytb.Name} 错误：{ex.Message}");
+                            trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+                            //if (isLazy) throw nvref.Exception;
+                        }
+                        if (nvref.Exception == null)
+                        {
+                            if (trytbTf.RefType != TableRefType.ManyToOne && trytbTf.RefType != TableRefType.OneToOne)
+                            {
+                                nvref.Exception = new Exception($"【ManyToMany】导航属性 {trytbTypeName}.{pnv.Name} 解析错误，中间类 {tbmid.CsName}.{midTypePropsTrytb.Name} 导航属性不是【ManyToOne】或【OneToOne】");
+                                trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+                                //if (isLazy) throw nvref.Exception;
+                            }
+                            else
+                            {
+                                nvref.Columns.AddRange(trytbTf.RefColumns);
+                                nvref.MiddleColumns.AddRange(trytbTf.Columns);
+
+                                if (tbmid.Primarys.Any() == false)
+                                    trytbTf.Columns.Select(c => tbmid.ColumnsByCs[c.CsName].Attribute.IsPrimary = true);
+                                if (isLazy)
+                                {
+                                    for (var a = 0; a < trytbTf.RefColumns.Count; a++)
+                                    {
+                                        if (a > 0) lmbdWhere.Append(" && ");
+                                        lmbdWhere.Append("b.").Append(trytbTf.Columns[a].CsName).Append(" == this.").Append(trytbTf.RefColumns[a].CsName);
+                                    }
+                                }
+                            }
+                        }
+                        if (nvref.Exception == null)
+                        {
+                            var midTypePropsTbref = tbmid.Properties.Where(a => a.Value.PropertyType == tbref.Type).FirstOrDefault().Value;
+
+                            TableRef tbrefTf = null;
+                            try
+                            {
+                                tbrefTf = tbmid.GetTableRef(midTypePropsTbref.Name, true);
+                                if (tbrefTf == null)
+                                {
+                                    AddTableRef(common, tbmid, midTypePropsTbref, false, null, null);
+                                    tbrefTf = tbmid.GetTableRef(midTypePropsTbref.Name, true);
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                nvref.Exception = new Exception($"【ManyToMany】导航属性 {tbrefTypeName}.{pnv.Name} 解析错误，中间类 {tbmid.CsName}.{midTypePropsTbref.Name} 错误：{ex.Message}");
+                                trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+                                //if (isLazy) throw nvref.Exception;
+                            }
+                            if (nvref.Exception == null)
+                            {
+                                if (tbrefTf.RefType != TableRefType.ManyToOne && tbrefTf.RefType != TableRefType.OneToOne)
+                                {
+                                    nvref.Exception = new Exception($"【ManyToMany】导航属性 {tbrefTypeName}.{pnv.Name} 解析错误，中间类 {tbmid.CsName}.{midTypePropsTbref.Name} 导航属性不是【ManyToOne】或【OneToOne】");
+                                    trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+                                    //if (isLazy) throw nvref.Exception;
+                                }
+                                else
+                                {
+                                    nvref.RefColumns.AddRange(tbrefTf.RefColumns);
+                                    nvref.MiddleColumns.AddRange(tbrefTf.Columns);
+
+                                    if (tbmid.Primarys.Any() == false)
+                                        tbrefTf.Columns.Select(c => tbmid.ColumnsByCs[c.CsName].Attribute.IsPrimary = true);
+
+                                    if (isLazy)
+                                    {
+                                        for (var a = 0; a < tbrefTf.RefColumns.Count; a++)
+                                            lmbdWhere.Append(" && b.").Append(tbrefTf.Columns[a].CsName).Append(" == a.").Append(tbrefTf.RefColumns[a].CsName);
+                                    }
+                                }
+                            }
+                        }
+                        #endregion
+                    }
+                    else
+                    {
+                        #region 约定配置
+                        for (var a = 0; a < trytb.Primarys.Length; a++)
+                        {
+                            var findtrytbPkCsName = trytb.Primarys[a].CsName.TrimStart('_');
+                            if (findtrytbPkCsName.StartsWith(trytb.Type.Name, StringComparison.CurrentCultureIgnoreCase)) findtrytbPkCsName = findtrytbPkCsName.Substring(trytb.Type.Name.Length).TrimStart('_');
+                            if (tbmid.ColumnsByCs.TryGetValue($"{midTypePropsTrytb.Name}{findtrytbPkCsName}", out var trycol) == false && //骆峰命名
+                                tbmid.ColumnsByCs.TryGetValue($"{midTypePropsTrytb.Name}_{findtrytbPkCsName}", out trycol) == false //下划线命名
+                                )
+                            {
+
+                            }
+                            if (trycol != null && trycol.CsType.NullableTypeOrThis() != trytb.Primarys[a].CsType.NullableTypeOrThis())
+                            {
+                                nvref.Exception = new Exception($"【ManyToMany】导航属性 {trytbTypeName}.{pnv.Name} 解析错误，{tbmid.CsName}.{trycol.CsName} 和 {trytb.CsName}.{trytb.Primarys[a].CsName} 类型不一致");
+                                trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+                                //if (isLazy) throw nvref.Exception;
+                                break;
+                            }
+                            if (trycol == null)
+                            {
+                                nvref.Exception = new Exception($"【ManyToMany】导航属性 {trytbTypeName}.{pnv.Name} 在 {tbmid.CsName} 中没有找到对应的字段，如：{midTypePropsTrytb.Name}{findtrytbPkCsName}、{midTypePropsTrytb.Name}_{findtrytbPkCsName}");
+                                trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+                                //if (isLazy) throw nvref.Exception;
+                                break;
+                            }
+
+                            nvref.Columns.Add(trytb.Primarys[a]);
+                            nvref.MiddleColumns.Add(trycol);
+                            if (tbmid.Primarys.Any() == false)
+                                trycol.Attribute.IsPrimary = true;
+
+                            if (isLazy)
+                            {
+                                if (a > 0) lmbdWhere.Append(" && ");
+                                lmbdWhere.Append("b.").Append(trycol.CsName).Append(" == this.").Append(trytb.Primarys[a].CsName);
+                            }
+                        }
+
+                        if (nvref.Exception == null)
+                        {
+                            var midTypePropsTbref = tbmid.Properties.Where(a => a.Value.PropertyType == tbref.Type).FirstOrDefault().Value;
+                            for (var a = 0; a < tbref.Primarys.Length; a++)
+                            {
+                                var findtbrefPkCsName = tbref.Primarys[a].CsName.TrimStart('_');
+                                if (findtbrefPkCsName.StartsWith(tbref.Type.Name, StringComparison.CurrentCultureIgnoreCase)) findtbrefPkCsName = findtbrefPkCsName.Substring(tbref.Type.Name.Length).TrimStart('_');
+                                if (tbmid.ColumnsByCs.TryGetValue($"{midTypePropsTbref.Name}{findtbrefPkCsName}", out var trycol) == false && //骆峰命名
+                                    tbmid.ColumnsByCs.TryGetValue($"{midTypePropsTbref.Name}_{findtbrefPkCsName}", out trycol) == false //下划线命名
+                                    )
+                                {
+
+                                }
+                                if (trycol != null && trycol.CsType.NullableTypeOrThis() != tbref.Primarys[a].CsType.NullableTypeOrThis())
+                                {
+                                    nvref.Exception = new Exception($"【ManyToMany】导航属性 {trytbTypeName}.{pnv.Name} 解析错误，{tbmid.CsName}.{trycol.CsName} 和 {tbref.CsName}.{tbref.Primarys[a].CsName} 类型不一致");
+                                    trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+                                    //if (isLazy) throw nvref.Exception;
+                                    break;
+                                }
+                                if (trycol == null)
+                                {
+                                    nvref.Exception = new Exception($"【ManyToMany】导航属性 {trytbTypeName}.{pnv.Name} 在 {tbmid.CsName} 中没有找到对应的字段，如：{midTypePropsTbref.Name}{findtbrefPkCsName}、{midTypePropsTbref.Name}_{findtbrefPkCsName}");
+                                    trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+                                    //if (isLazy) throw nvref.Exception;
+                                    break;
+                                }
+
+                                nvref.RefColumns.Add(tbref.Primarys[a]);
+                                nvref.MiddleColumns.Add(trycol);
+                                if (tbmid.Primarys.Any() == false)
+                                    trycol.Attribute.IsPrimary = true;
+
+                                if (isLazy) lmbdWhere.Append(" && b.").Append(trycol.CsName).Append(" == a.").Append(tbref.Primarys[a].CsName);
+                            }
+                        }
+                        #endregion
+                    }
+                    if (nvref.Columns.Count > 0 && nvref.RefColumns.Count > 0)
+                    {
+                        nvref.RefMiddleEntityType = tbmid.Type;
+                        nvref.RefEntityType = tbref.Type;
+                        nvref.RefType = TableRefType.ManyToMany;
+                        trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+
+                        if (tbmid.Primarys.Any() == false)
+                            tbmid.Primarys = tbmid.Columns.Values.Where(a => a.Attribute.IsPrimary == true).ToArray();
+                    }
+
+                    if (isLazy)
+                    {
+                        cscode.Append("	private bool __lazy__").Append(pnv.Name).AppendLine(" = false;")
+                                .Append("	public override ").Append(propTypeName).Append(" ").Append(pnv.Name).AppendLine(" {");
+                        if (vp?.Item2 == true)
+                        { //get 重写
+                            cscode.Append("		get {\r\n")
+                                .Append("			if (base.").Append(pnv.Name).Append(" == null && __lazy__").Append(pnv.Name).AppendLine(" == false) {");
+
+                            if (nvref.Exception == null)
+                                cscode.Append("				base.").Append(pnv.Name).Append(" = __fsql_orm__.Select<").Append(propElementType.IsNested ? $"{propElementType.DeclaringType.Namespace}.{propElementType.DeclaringType.Name}.{propElementType.Name}" : $"{propElementType.Namespace}.{propElementType.Name}")
+                                    .Append(">().Where(a => __fsql_orm__.Select<").Append(tbmid.Type.IsNested ? $"{tbmid.Type.DeclaringType.Namespace?.NotNullAndConcat(".")}{tbmid.Type.DeclaringType.Name}.{tbmid.Type.Name}" : $"{tbmid.Type.Namespace}.{tbmid.Type.Name}")
+                                    .Append(">().Where(b => ").Append(lmbdWhere.ToString()).AppendLine(").Any()).ToList();")
+                                    .Append("				__lazy__").Append(pnv.Name).AppendLine(" = true;");
+                            else
+                                cscode.Append("				throw new Exception(\"").Append(nvref.Exception.Message.Replace("\r\n", "\\r\\n").Replace("\"", "\\\"")).AppendLine("\");");
+
+                            cscode.Append("			}\r\n")
+                                .Append("			return base.").Append(pnv.Name).AppendLine(";")
+                                .Append("		}\r\n");
+                        }
+                        if (vp?.Item3 == true)
+                        { //set 重写
+                            cscode.Append("		set => base.").Append(pnv.Name).AppendLine(" = value;");
+                        }
+                        cscode.AppendLine("	}");
+                    }
+                }
+                else
+                { //One To Many
+                    List<ColumnInfo> bindColumns = new List<ColumnInfo>();
+                    if (pnvBind != null)
+                    {
+                        foreach (var bi in pnvBind)
+                        {
+                            if (tbref.ColumnsByCs.TryGetValue(bi, out var trybindcol) == false)
+                            {
+                                nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 特性 [Navigate] 解析错误，在 {tbrefTypeName} 未找到属性：{bi}");
+                                trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+                                //if (isLazy) throw nvref.Exception;
+                                break;
+                            }
+                            bindColumns.Add(trybindcol);
+                        }
+                    }
+
+                    PropertyInfo refprop = null;
+                    var refcols = tbref.Properties.Where(z => z.Value.PropertyType == trytb.Type);
+                    refprop = refcols.Count() == 1 ? refcols.First().Value : null;
+                    var lmbdWhere = isLazy ? new StringBuilder() : null;
+
+                    if (nvref.Exception == null && bindColumns.Any() && bindColumns.Count != trytb.Primarys.Length)
+                    {
+                        nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 特性 [Navigate] Bind 数目({bindColumns.Count}) 与 内部主键数目({trytb.Primarys.Length}) 不相同");
+                        trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+                        //if (isLazy) throw nvref.Exception;
+                    }
+                    if (trytb.Primarys.Length > 1)
+                    {
+                        if (trytb.Primarys.Select(a => a.CsType.NullableTypeOrThis()).Distinct().Count() == trytb.Primarys.Length)
+                        {
+                            var pkList = trytb.Primarys.ToList();
+                            bindColumns.Sort((a, b) => pkList.FindIndex(c => c.CsType.NullableTypeOrThis() == a.CsType.NullableTypeOrThis()).CompareTo(pkList.FindIndex(c => c.CsType.NullableTypeOrThis() == b.CsType.NullableTypeOrThis())));
+                        }
+                        else if (string.Compare(string.Join(",", trytb.Primarys.Select(a => a.CsName).OrderBy(a => a)), string.Join(",", bindColumns.Select(a => a.CsName).OrderBy(a => a)), true) == 0)
+                        {
+                            var pkList = trytb.Primarys.ToList();
+                            bindColumns.Sort((a, b) => pkList.FindIndex(c => string.Compare(c.CsName, a.CsName, true) == 0).CompareTo(pkList.FindIndex(c => string.Compare(c.CsName, b.CsName, true) == 0)));
+                        }
+                    }
+                    for (var a = 0; nvref.Exception == null && a < trytb.Primarys.Length; a++)
+                    {
+                        var findtrytbPkCsName = trytb.Primarys[a].CsName.TrimStart('_');
+                        if (findtrytbPkCsName.StartsWith(trytb.Type.Name, StringComparison.CurrentCultureIgnoreCase)) findtrytbPkCsName = findtrytbPkCsName.Substring(trytb.Type.Name.Length).TrimStart('_');
+                        var findtrytb = pnv.Name;
+                        if (findtrytb.EndsWith($"{tbref.CsName}s", StringComparison.CurrentCultureIgnoreCase)) findtrytb = findtrytb.Substring(0, findtrytb.Length - tbref.CsName.Length - 1);
+                        findtrytb += trytb.CsName;
+
+                        var trycol = bindColumns.Any() ? bindColumns[a] : null;
+                        if (trycol == null &&
+                            tbref.ColumnsByCs.TryGetValue($"{findtrytb}{findtrytbPkCsName}", out trycol) == false && //骆峰命名
+                            tbref.ColumnsByCs.TryGetValue($"{findtrytb}_{findtrytbPkCsName}", out trycol) == false //下划线命名
+                            )
+                        {
+                            if (refprop != null &&
+                                tbref.ColumnsByCs.TryGetValue($"{refprop.Name}{findtrytbPkCsName}", out trycol) == false && //骆峰命名
+                                tbref.ColumnsByCs.TryGetValue($"{refprop.Name}_{findtrytbPkCsName}", out trycol) == false) //下划线命名
+                            {
+
+                            }
+                        }
+                        if (trycol != null && trycol.CsType.NullableTypeOrThis() != trytb.Primarys[a].CsType.NullableTypeOrThis())
+                        {
+                            nvref.Exception = new Exception($"【OneToMany】导航属性 {trytbTypeName}.{pnv.Name} 解析错误，{trytb.CsName}.{trytb.Primarys[a].CsName} 和 {tbref.CsName}.{trycol.CsName} 类型不一致");
+                            trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+                            //if (isLazy) throw nvref.Exception;
+                            break;
+                        }
+                        if (trycol == null)
+                        {
+                            nvref.Exception = new Exception($"【OneToMany】导航属性 {trytbTypeName}.{pnv.Name} 在 {tbref.CsName} 中没有找到对应的字段，如：{findtrytb}{findtrytbPkCsName}、{findtrytb}_{findtrytbPkCsName}" + (refprop == null ? "" : $"、{refprop.Name}{findtrytbPkCsName}、{refprop.Name}_{findtrytbPkCsName}。或者使用 [Navigate] 特性指定关系映射。"));
+                            trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+                            //if (isLazy) throw nvref.Exception;
+                            break;
+                        }
+
+                        nvref.Columns.Add(trytb.Primarys[a]);
+                        nvref.RefColumns.Add(trycol);
+
+                        if (isLazy && nvref.Exception == null)
+                        {
+                            if (a > 0) lmbdWhere.Append(" && ");
+                            lmbdWhere.Append("a.").Append(trycol.CsName).Append(" == this.").Append(trytb.Primarys[a].CsName);
+
+                            if (refprop == null)
+                            { //加载成功后，把列表对应的导航属性值设置为 this，比如 Select<TopicType>().ToOne().Topics 下的 TopicType 属性值全部为 this
+                                var findtrytbName = trycol.CsName;
+                                if (findtrytbName.EndsWith(trytb.Primarys.First().CsName))
+                                {
+                                    findtrytbName = findtrytbName.Remove(findtrytbName.Length - trytb.Primarys.First().CsName.Length).TrimEnd('_');
+                                    if (tbref.Properties.TryGetValue(findtrytbName, out refprop) && refprop.PropertyType != trytb.Type)
+                                        refprop = null;
+                                }
+                            }
+                        }
+                    }
+                    if (nvref.Columns.Count > 0 && nvref.RefColumns.Count > 0)
+                    {
+                        nvref.RefEntityType = tbref.Type;
+                        nvref.RefType = TableRefType.OneToMany;
+                        trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+                    }
+
+                    if (isLazy)
+                    {
+                        cscode.Append("	private bool __lazy__").Append(pnv.Name).AppendLine(" = false;")
+                            .Append("	public override ").Append(propTypeName).Append(" ").Append(pnv.Name).AppendLine(" {");
+                        if (vp?.Item2 == true)
+                        { //get 重写
+                            cscode.Append("		get {\r\n")
+                                .Append("			if (base.").Append(pnv.Name).Append(" == null && __lazy__").Append(pnv.Name).AppendLine(" == false) {");
+
+                            if (nvref.Exception == null)
+                            {
+                                cscode.Append("				base.").Append(pnv.Name).Append(" = __fsql_orm__.Select<").Append(propElementType.IsNested ? $"{propElementType.DeclaringType.Namespace?.NotNullAndConcat(".")}{propElementType.DeclaringType.Name}.{propElementType.Name}" : $"{propElementType.Namespace?.NotNullAndConcat(".")}{propElementType.Name}").Append(">().Where(a => ").Append(lmbdWhere.ToString()).AppendLine(").ToList();");
+                                if (refprop != null)
+                                {
+                                    cscode.Append("				foreach (var loc1 in base.").Append(pnv.Name).AppendLine(")")
+                                        .Append("					loc1.").Append(refprop.Name).AppendLine(" = this;")
+                                        .Append("				__lazy__").Append(pnv.Name).AppendLine(" = true;");
+                                }
+                            }
+                            else
+                                cscode.Append("				throw new Exception(\"").Append(nvref.Exception.Message.Replace("\r\n", "\\r\\n").Replace("\"", "\\\"")).AppendLine("\");");
+
+                            cscode
+                                .Append("			}\r\n")
+                                .Append("			return base.").Append(pnv.Name).AppendLine(";")
+                                .Append("		}\r\n");
+                        }
+                        if (vp?.Item3 == true)
+                        { //set 重写
+                            cscode.Append("		set => base.").Append(pnv.Name).AppendLine(" = value;");
+                        }
+                        cscode.AppendLine("	}");
+                    }
+                }
+            }
+            else
+            { //一对一、多对一
+                var tbref = pnv.PropertyType == trytb.Type ? trytb : GetTableByEntity(pnv.PropertyType, common); //可能是父子关系
+                if (tbref == null) return;
+                if (tbref.Primarys.Any() == false)
+                {
+                    nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 解析错误，实体类型 {propTypeName} 缺少主键标识，[Column(IsPrimary = true)]");
+                    trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+                    //if (isLazy) throw nvref.Exception;
+                }
+                var tbrefTypeName = tbref.Type.IsNested ? $"{tbref.Type.DeclaringType.Namespace?.NotNullAndConcat(".")}{tbref.Type.DeclaringType.Name}.{tbref.Type.Name}" : $"{tbref.Type.Namespace?.NotNullAndConcat(".")}{tbref.Type.Name}";
+                var isOnoToOne = pnv.PropertyType != trytb.Type &&
+                    tbref.Properties.Where(z => z.Value.PropertyType == trytb.Type).Any() &&
+                    tbref.Primarys.Length == trytb.Primarys.Length &&
+                    string.Join(",", tbref.Primarys.Select(a => a.CsType.NullableTypeOrThis().FullName).OrderBy(a => a)) == string.Join(",", trytb.Primarys.Select(a => a.CsType.NullableTypeOrThis().FullName).OrderBy(a => a));
+
+                List<ColumnInfo> bindColumns = new List<ColumnInfo>();
+                if (pnvBind != null)
+                {
+                    foreach (var bi in pnvBind)
+                    {
+                        if (trytb.ColumnsByCs.TryGetValue(bi, out var trybindcol) == false)
+                        {
+                            nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 特性 [Navigate] 解析错误，在 {trytbTypeName} 未找到属性：{bi}");
+                            trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+                            //if (isLazy) throw nvref.Exception;
+                            break;
+                        }
+                        bindColumns.Add(trybindcol);
+                    }
+                }
+                var lmbdWhere = new StringBuilder();
+
+                if (nvref.Exception == null && bindColumns.Any() && bindColumns.Count != tbref.Primarys.Length)
+                {
+                    nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 特性 [Navigate] Bind 数目({bindColumns.Count}) 与 外部主键数目({tbref.Primarys.Length}) 不相同");
+                    trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+                    //if (isLazy) throw nvref.Exception;
+                }
+                if (tbref.Primarys.Length > 1)
+                {
+                    if (tbref.Primarys.Select(a => a.CsType.NullableTypeOrThis()).Distinct().Count() == tbref.Primarys.Length)
+                    {
+                        var pkList = tbref.Primarys.ToList();
+                        bindColumns.Sort((a, b) => pkList.FindIndex(c => c.CsType.NullableTypeOrThis() == a.CsType.NullableTypeOrThis()).CompareTo(pkList.FindIndex(c => c.CsType.NullableTypeOrThis() == b.CsType.NullableTypeOrThis())));
+                    }
+                    else if (string.Compare(string.Join(",", tbref.Primarys.Select(a => a.CsName).OrderBy(a => a)), string.Join(",", bindColumns.Select(a => a.CsName).OrderBy(a => a)), true) == 0)
+                    {
+                        var pkList = tbref.Primarys.ToList();
+                        bindColumns.Sort((a, b) => pkList.FindIndex(c => string.Compare(c.CsName, a.CsName, true) == 0).CompareTo(pkList.FindIndex(c => string.Compare(c.CsName, b.CsName, true) == 0)));
+                    }
+                }
+                for (var a = 0; nvref.Exception == null && a < tbref.Primarys.Length; a++)
+                {
+                    var findtbrefPkCsName = tbref.Primarys[a].CsName.TrimStart('_');
+                    if (findtbrefPkCsName.StartsWith(tbref.Type.Name, StringComparison.CurrentCultureIgnoreCase)) findtbrefPkCsName = findtbrefPkCsName.Substring(tbref.Type.Name.Length).TrimStart('_');
+
+                    var trycol = bindColumns.Any() ? bindColumns[a] : null;
+                    if (trycol == null &&
+                        trytb.ColumnsByCs.TryGetValue($"{pnv.Name}{findtbrefPkCsName}", out trycol) == false && //骆峰命名
+                        trytb.ColumnsByCs.TryGetValue($"{pnv.Name}_{findtbrefPkCsName}", out trycol) == false && //下划线命名
+                                                                                                                 //tbref.Primarys.Length == 1 &&
+                        trytb.ColumnsByCs.TryGetValue($"{pnv.Name}_Id", out trycol) == false &&
+                        trytb.ColumnsByCs.TryGetValue($"{pnv.Name}Id", out trycol) == false
+                        )
+                    {
+                        //一对一，主键与主键查找
+                        if (isOnoToOne)
+                        {
+                            var trytbpks = trytb.Primarys.Where(z => z.CsType.NullableTypeOrThis() == tbref.Primarys[a].CsType.NullableTypeOrThis()); //一对一，按类型
+                            if (trytbpks.Count() == 1) trycol = trytbpks.First();
+                            else
+                            {
+                                trytbpks = trytb.Primarys.Where(z => string.Compare(z.CsName, tbref.Primarys[a].CsName, true) == 0); //一对一，按主键名相同
+                                if (trytbpks.Count() == 1) trycol = trytbpks.First();
+                                else
+                                {
+                                    trytbpks = trytb.Primarys.Where(z => string.Compare(z.CsName, $"{tbref.CsName}{tbref.Primarys[a].CsName}", true) == 0); //一对一，主键名 = 表+主键名
+                                    if (trytbpks.Count() == 1) trycol = trytbpks.First();
+                                    else
+                                    {
+                                        trytbpks = trytb.Primarys.Where(z => string.Compare(z.CsName, $"{tbref.CsName}_{tbref.Primarys[a].CsName}", true) == 0); //一对一，主键名 = 表+_主键名
+                                        if (trytbpks.Count() == 1) trycol = trytbpks.First();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if (trycol != null && trycol.CsType.NullableTypeOrThis() != tbref.Primarys[a].CsType.NullableTypeOrThis())
+                    {
+                        nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 解析错误，{trytb.CsName}.{trycol.CsName} 和 {tbref.CsName}.{tbref.Primarys[a].CsName} 类型不一致");
+                        trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+                        //if (isLazy) throw nvref.Exception;
+                        break;
+                    }
+                    if (trycol == null)
+                    {
+                        nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 没有找到对应的字段，如：{pnv.Name}{findtbrefPkCsName}、{pnv.Name}_{findtbrefPkCsName}。或者使用 [Navigate] 特性指定关系映射。");
+                        trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+                        //if (isLazy) throw nvref.Exception;
+                        break;
+                    }
+
+                    nvref.Columns.Add(trycol);
+                    nvref.RefColumns.Add(tbref.Primarys[a]);
+
+                    if (isLazy && nvref.Exception == null)
+                    {
+                        if (a > 0) lmbdWhere.Append(" && ");
+                        lmbdWhere.Append("a.").Append(tbref.Primarys[a].CsName).Append(" == this.").Append(trycol.CsName);
+                    }
+                }
+                if (nvref.Columns.Count > 0 && nvref.RefColumns.Count > 0)
+                {
+                    nvref.RefEntityType = tbref.Type;
+                    nvref.RefType = isOnoToOne ? TableRefType.OneToOne : TableRefType.ManyToOne;
+                    trytb.AddOrUpdateTableRef(pnv.Name, nvref);
+                }
+
+                if (isLazy)
+                {
+                    cscode.Append("	private bool __lazy__").Append(pnv.Name).AppendLine(" = false;")
+                        .Append("	public override ").Append(propTypeName).Append(" ").Append(pnv.Name).AppendLine(" {");
+                    if (vp?.Item2 == true)
+                    { //get 重写
+                        cscode.Append("		get {\r\n")
+                            .Append("			if (base.").Append(pnv.Name).Append(" == null && __lazy__").Append(pnv.Name).AppendLine(" == false) {");
+
+                        if (nvref.Exception == null)
+                            cscode.Append("				base.").Append(pnv.Name).Append(" = __fsql_orm__.Select<").Append(propTypeName).Append(">().Where(a => ").Append(lmbdWhere.ToString()).AppendLine(").ToOne();")
+                                .Append("				__lazy__").Append(pnv.Name).AppendLine(" = true;");
+                        else
+                            cscode.Append("				throw new Exception(\"").Append(nvref.Exception.Message.Replace("\r\n", "\\r\\n").Replace("\"", "\\\"")).AppendLine("\");");
+
+                        cscode
+                            .Append("			}\r\n")
+                            .Append("			return base.").Append(pnv.Name).AppendLine(";")
+                            .Append("		}\r\n");
+                    }
+                    if (vp?.Item3 == true)
+                    { //set 重写
+                        cscode.Append("		set {\r\n")
+                            .Append("			base.").Append(pnv.Name).AppendLine(" = value;")
+                            .Append("			__lazy__").Append(pnv.Name).AppendLine(" = true;")
+                            .Append("		}\r\n");
+                    }
+                    cscode.AppendLine("	}");
+                }
+            }
         }
         static Lazy<MethodInfo> MethodLazyLoadingComplier = new Lazy<MethodInfo>(() =>
         {
