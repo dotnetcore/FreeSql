@@ -59,6 +59,17 @@
             类型映射，比如：可将 enum 属性映射成 typeof(string)
             </summary>
         </member>
+        <member name="P:FreeSql.DataAnnotations.ColumnAttribute.Position">
+            <summary>
+            创建表时字段位置，规则如下：
+            <para></para>
+            &gt;0时排前面，1,2,3...
+            <para></para>
+            =0时排中间(默认)
+            <para></para>
+            &lt;0时排后面，...-3,-2,-1
+            </summary>
+        </member>
         <member name="M:FreeSql.DataAnnotations.ColumnFluent.Name(System.String)">
             <summary>
             数据库列名
@@ -110,7 +121,20 @@
             <summary>
             类型映射，比如：可将 enum 属性映射成 typeof(string)
             </summary>
-            <param name="type"></param>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.DataAnnotations.ColumnFluent.Position(System.Int16)">
+            <summary>
+            创建表时字段位置，规则如下：
+            <para></para>
+            &gt;0时排前面
+            <para></para>
+            =0时排中间(默认)
+            <para></para>
+            &lt;0时排后面
+            </summary>
+            <param name="value"></param>
             <returns></returns>
         </member>
         <member name="P:FreeSql.DataAnnotations.NavigateAttribute.Bind">

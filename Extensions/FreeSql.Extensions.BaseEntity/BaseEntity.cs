@@ -30,6 +30,7 @@ namespace FreeSql
         /// <summary>
         /// 主键
         /// </summary>
+        [Column(Position = 1)]
         public virtual TKey Id { get; set; }
 
         /// <summary>

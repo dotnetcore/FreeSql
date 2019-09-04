@@ -132,7 +132,7 @@ namespace FreeSql.MySql
                         {
                             //创建表
                             sb.Append("CREATE TABLE IF NOT EXISTS ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ( ");
-                            foreach (var tbcol in tb.Columns.Values)
+                            foreach (var tbcol in tb.ColumnsByPosition)
                             {
                                 sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ");
                                 sb.Append(tbcol.Attribute.DbType);
@@ -197,7 +197,7 @@ where a.table_schema in ({0}) and a.table_name in ({1})", tboldname ?? tbname);
                     if (istmpatler == false)
                     {
                         var existsPrimary = ExecuteScalar(tbname[0], _commonUtils.FormatSql("select 1 from information_schema.key_column_usage where table_schema={0} and table_name={1} and constraint_name = 'PRIMARY' limit 1", tbname));
-                        foreach (var tbcol in tb.Columns.Values)
+                        foreach (var tbcol in tb.ColumnsByPosition)
                         {
                             var isIdentityChanged = tbcol.Attribute.IsIdentity == true && tbcol.Attribute.DbType.IndexOf("AUTO_INCREMENT", StringComparison.CurrentCultureIgnoreCase) == -1;
                             if (tbstruct.TryGetValue(tbcol.Attribute.Name, out var tbstructcol) ||
@@ -263,7 +263,7 @@ where a.constraint_schema IN ({0}) and a.table_name IN ({1})", tboldname ?? tbna
                     var tmptablename = _commonUtils.QuoteSqlName($"{tbname[0]}.FreeSqlTmp_{tbname[1]}");
                     //创建临时表
                     sb.Append("CREATE TABLE IF NOT EXISTS ").Append(tmptablename).Append(" ( ");
-                    foreach (var tbcol in tb.Columns.Values)
+                    foreach (var tbcol in tb.ColumnsByPosition)
                     {
                         sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ");
                         sb.Append(tbcol.Attribute.DbType);
@@ -286,10 +286,10 @@ where a.constraint_schema IN ({0}) and a.table_name IN ({1})", tboldname ?? tbna
                     sb.Remove(sb.Length - 1, 1);
                     sb.Append("\r\n) Engine=InnoDB;\r\n");
                     sb.Append("INSERT INTO ").Append(tmptablename).Append(" (");
-                    foreach (var tbcol in tb.Columns.Values)
+                    foreach (var tbcol in tb.ColumnsByPosition)
                         sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
                     sb.Remove(sb.Length - 2, 2).Append(")\r\nSELECT ");
-                    foreach (var tbcol in tb.Columns.Values)
+                    foreach (var tbcol in tb.ColumnsByPosition)
                     {
                         var insertvalue = "NULL";
                         if (tbstruct.TryGetValue(tbcol.Attribute.Name, out var tbstructcol) ||

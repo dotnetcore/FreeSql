@@ -70,6 +70,7 @@ namespace FreeSql.Internal
             var propsLazy = new List<(PropertyInfo, bool, bool)>();
             var propsNavObjs = new List<PropertyInfo>();
             var propsComment = CommonUtils.GetProperyCommentBySummary(entity);
+            var columnsList = new List<ColumnInfo>();
             foreach (var p in trytb.Properties.Values)
             {
                 var setMethod = trytb.Type.GetMethod($"set_{p.Name}");
@@ -169,6 +170,7 @@ namespace FreeSql.Internal
 
                 trytb.Columns.Add(colattr.Name, col);
                 trytb.ColumnsByCs.Add(p.Name, col);
+                columnsList.Add(col);
             }
             trytb.VersionColumn = trytb.Columns.Values.Where(a => a.Attribute.IsVersion == true).LastOrDefault();
             if (trytb.VersionColumn != null)
@@ -241,6 +243,9 @@ namespace FreeSql.Internal
             }
             var allunique = trytb.Columns.Values.Where(a => a.Attribute._Uniques != null).SelectMany(a => a.Attribute._Uniques).Distinct();
             trytb.Uniques = allunique.ToDictionary(a => a, a => trytb.Columns.Values.Where(b => b.Attribute._Uniques != null && b.Attribute._Uniques.Contains(a)).ToList());
+            trytb.ColumnsByPosition = columnsList.Where(a => a.Attribute.Position > 0).OrderBy(a => a.Attribute.Position)
+                .Concat(columnsList.Where(a => a.Attribute.Position == 0))
+                .Concat(columnsList.Where(a => a.Attribute.Position < 0).OrderBy(a => a.Attribute.Position)).ToArray();
             tbc.AddOrUpdate(entity, trytb, (oldkey, oldval) => trytb);
 
             #region 查找导航属性的关系、virtual 属性延时加载，动态产生新的重写类

@@ -14,6 +14,7 @@ namespace FreeSql.Internal.Model
         public Dictionary<string, ColumnInfo> Columns { get; set; } = new Dictionary<string, ColumnInfo>(StringComparer.CurrentCultureIgnoreCase);
         public Dictionary<string, ColumnInfo> ColumnsByCs { get; set; } = new Dictionary<string, ColumnInfo>(StringComparer.CurrentCultureIgnoreCase);
         public Dictionary<string, ColumnInfo> ColumnsByCsIgnore { get; set; } = new Dictionary<string, ColumnInfo>(StringComparer.CurrentCultureIgnoreCase);
+        public ColumnInfo[] ColumnsByPosition { get; set; }
         public ColumnInfo[] Primarys { get; set; }
         public Dictionary<string, List<ColumnInfo>> Uniques { get; set; }
         public string CsName { get; set; }

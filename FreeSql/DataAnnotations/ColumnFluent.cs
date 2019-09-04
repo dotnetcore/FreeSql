@@ -89,11 +89,28 @@ namespace FreeSql.DataAnnotations
         /// <summary>
         /// 类型映射，比如：可将 enum 属性映射成 typeof(string)
         /// </summary>
-        /// <param name="type"></param>
+        /// <param name="value"></param>
         /// <returns></returns>
-        public ColumnFluent MapType(Type type)
+        public ColumnFluent MapType(Type value)
         {
-            _column.MapType = type;
+            _column.MapType = value;
+            return this;
+        }
+
+        /// <summary>
+        /// 创建表时字段位置，规则如下：
+        /// <para></para>
+        /// &gt;0时排前面
+        /// <para></para>
+        /// =0时排中间(默认)
+        /// <para></para>
+        /// &lt;0时排后面
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public ColumnFluent Position(short value)
+        {
+            _column.Position = value;
             return this;
         }
     }

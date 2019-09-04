@@ -126,6 +126,7 @@ namespace FreeSql.Internal
                 if (trycol._IsVersion != null) attr._IsVersion = trycol.IsVersion;
                 if (trycol._Uniques != null) attr._Uniques = trycol._Uniques;
                 if (trycol.MapType != null) attr.MapType = trycol.MapType;
+                if (trycol._Position != null) attr._Position = trycol.Position;
                 if (trycol.DbDefautValue != null) attr.DbDefautValue = trycol.DbDefautValue;
             }
             var attrs = proto.GetCustomAttributes(typeof(ColumnAttribute), false);
@@ -143,6 +144,7 @@ namespace FreeSql.Internal
                 if (tryattr._IsVersion != null) attr._IsVersion = tryattr.IsVersion;
                 if (tryattr._Uniques != null) attr._Uniques = tryattr._Uniques;
                 if (tryattr.MapType != null) attr.MapType = tryattr.MapType;
+                if (tryattr._Position != null) attr._Position = tryattr.Position;
                 if (tryattr.DbDefautValue != null) attr.DbDefautValue = tryattr.DbDefautValue;
             }
             ColumnAttribute ret = null;
@@ -156,6 +158,7 @@ namespace FreeSql.Internal
             if (attr._IsVersion != null) ret = attr;
             if (attr._Uniques != null) ret = attr;
             if (attr.MapType != null) ret = attr;
+            if (attr._Position != null) ret = attr;
             if (attr.DbDefautValue != null) ret = attr;
             if (ret != null && ret.MapType == null) ret.MapType = proto.PropertyType;
             return ret;

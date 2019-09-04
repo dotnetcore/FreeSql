@@ -162,7 +162,7 @@ ELSE
                             //创建新表
                             sb.Append("use ").Append(_commonUtils.QuoteSqlName(tbname[0])).Append(";\r\nCREATE TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[1]}.{tbname[2]}")).Append(" ( ");
                             var pkidx = 0;
-                            foreach (var tbcol in tb.Columns.Values)
+                            foreach (var tbcol in tb.ColumnsByPosition)
                             {
                                 sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ");
                                 sb.Append(tbcol.Attribute.DbType);
@@ -188,7 +188,7 @@ ELSE
                             }
                             sb.Remove(sb.Length - 1, 1).Append("\r\n);\r\n");
                             //备注
-                            foreach (var tbcol in tb.Columns.Values)
+                            foreach (var tbcol in tb.ColumnsByPosition)
                             {
                                 if (string.IsNullOrEmpty(tbcol.Comment) == false)
                                     AddOrUpdateMS_Description(sb, tbname[1], tbname[2], tbcol.Attribute.Name, tbcol.Comment);
@@ -242,7 +242,7 @@ use " + database, tboldname ?? tbname);
 
                     if (istmpatler == false)
                     {
-                        foreach (var tbcol in tb.Columns.Values)
+                        foreach (var tbcol in tb.ColumnsByPosition)
                         {
                             if (tbstruct.TryGetValue(tbcol.Attribute.Name, out var tbstructcol) ||
                                 string.IsNullOrEmpty(tbcol.Attribute.OldName) == false && tbstruct.TryGetValue(tbcol.Attribute.OldName, out tbstructcol))
@@ -321,7 +321,7 @@ use " + database, tboldname ?? tbname);
                     //创建临时表
                     sb.Append("CREATE TABLE ").Append(tmptablename).Append(" ( ");
                     var pkidx2 = 0;
-                    foreach (var tbcol in tb.Columns.Values)
+                    foreach (var tbcol in tb.ColumnsByPosition)
                     {
                         sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ");
                         sb.Append(tbcol.Attribute.DbType);
@@ -348,7 +348,7 @@ use " + database, tboldname ?? tbname);
                     }
                     sb.Remove(sb.Length - 1, 1).Append("\r\n);\r\n");
                     //备注
-                    foreach (var tbcol in tb.Columns.Values)
+                    foreach (var tbcol in tb.ColumnsByPosition)
                     {
                         if (string.IsNullOrEmpty(tbcol.Comment) == false)
                             AddOrUpdateMS_Description(sb, tbname[1], $"FreeSqlTmp_{tbname[2]}", tbcol.Attribute.Name, tbcol.Comment);
@@ -357,10 +357,10 @@ use " + database, tboldname ?? tbname);
                     if (idents) sb.Append("SET IDENTITY_INSERT ").Append(tmptablename).Append(" ON;\r\n");
                     sb.Append("IF EXISTS(SELECT 1 FROM ").Append(tablename).Append(")\r\n");
                     sb.Append("\tEXEC('INSERT INTO ").Append(tmptablename).Append(" (");
-                    foreach (var tbcol in tb.Columns.Values)
+                    foreach (var tbcol in tb.ColumnsByPosition)
                         sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
                     sb.Remove(sb.Length - 2, 2).Append(")\r\n\t\tSELECT ");
-                    foreach (var tbcol in tb.Columns.Values)
+                    foreach (var tbcol in tb.ColumnsByPosition)
                     {
                         var insertvalue = "NULL";
                         if (tbstruct.TryGetValue(tbcol.Attribute.Name, out var tbstructcol) ||

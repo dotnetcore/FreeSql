@@ -79,5 +79,17 @@ namespace FreeSql.DataAnnotations
         /// 类型映射，比如：可将 enum 属性映射成 typeof(string)
         /// </summary>
         public Type MapType { get; set; }
-    }
+
+        internal short? _Position;
+        /// <summary>
+        /// 创建表时字段位置，规则如下：
+        /// <para></para>
+        /// &gt;0时排前面，1,2,3...
+        /// <para></para>
+        /// =0时排中间(默认)
+        /// <para></para>
+        /// &lt;0时排后面，...-3,-2,-1
+        /// </summary>
+        public short Position { get => _Position ?? 0; set => _Position = value; }
+}
 }

@@ -151,7 +151,7 @@ namespace FreeSql.PostgreSQL
                     {
                         //创建表
                         sb.Append("CREATE TABLE IF NOT EXISTS ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ( ");
-                        foreach (var tbcol in tb.Columns.Values)
+                        foreach (var tbcol in tb.ColumnsByPosition)
                         {
                             sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType).Append(",");
                             if (tbcol.Attribute.IsIdentity == true) seqcols.Add((tbcol, tbname, true));
@@ -171,7 +171,7 @@ namespace FreeSql.PostgreSQL
                         sb.Remove(sb.Length - 1, 1);
                         sb.Append("\r\n) WITH (OIDS=FALSE);\r\n");
                         //备注
-                        foreach (var tbcol in tb.Columns.Values)
+                        foreach (var tbcol in tb.ColumnsByPosition)
                         {
                             if (string.IsNullOrEmpty(tbcol.Comment) == false)
                                 sb.Append("COMMENT ON COLUMN ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}.{tbcol.Attribute.Name}")).Append(" IS ").Append(_commonUtils.FormatSql("{0}", tbcol.Comment)).Append(";\r\n");
@@ -242,7 +242,7 @@ where ns.nspname = {0} and c.relname = {1}", tboldname ?? tbname);
 
                 if (istmpatler == false)
                 {
-                    foreach (var tbcol in tb.Columns.Values)
+                    foreach (var tbcol in tb.ColumnsByPosition)
                     {
                         if (tbstruct.TryGetValue(tbcol.Attribute.Name, out var tbstructcol) ||
                             string.IsNullOrEmpty(tbcol.Attribute.OldName) == false && tbstruct.TryGetValue(tbcol.Attribute.OldName, out tbstructcol))
@@ -311,7 +311,7 @@ where pg_namespace.nspname={0} and pg_class.relname={1} and pg_constraint.contyp
                 var tmptablename = _commonUtils.QuoteSqlName($"{tbname[0]}.FreeSqlTmp_{tbname[1]}");
                 //创建临时表
                 sb.Append("CREATE TABLE IF NOT EXISTS ").Append(tmptablename).Append(" ( ");
-                foreach (var tbcol in tb.Columns.Values)
+                foreach (var tbcol in tb.ColumnsByPosition)
                 {
                     sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType).Append(",");
                     if (tbcol.Attribute.IsIdentity == true) seqcols.Add((tbcol, tbname, true));
@@ -331,16 +331,16 @@ where pg_namespace.nspname={0} and pg_class.relname={1} and pg_constraint.contyp
                 sb.Remove(sb.Length - 1, 1);
                 sb.Append("\r\n) WITH (OIDS=FALSE);\r\n");
                 //备注
-                foreach (var tbcol in tb.Columns.Values)
+                foreach (var tbcol in tb.ColumnsByPosition)
                 {
                     if (string.IsNullOrEmpty(tbcol.Comment) == false)
                         sb.Append("COMMENT ON COLUMN ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.FreeSqlTmp_{tbname[1]}.{tbcol.Attribute.Name}")).Append(" IS ").Append(_commonUtils.FormatSql("{0}", tbcol.Comment)).Append(";\r\n");
                 }
                 sb.Append("INSERT INTO ").Append(tmptablename).Append(" (");
-                foreach (var tbcol in tb.Columns.Values)
+                foreach (var tbcol in tb.ColumnsByPosition)
                     sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
                 sb.Remove(sb.Length - 2, 2).Append(")\r\nSELECT ");
-                foreach (var tbcol in tb.Columns.Values)
+                foreach (var tbcol in tb.ColumnsByPosition)
                 {
                     var insertvalue = "NULL";
                     if (tbstruct.TryGetValue(tbcol.Attribute.Name, out var tbstructcol) ||

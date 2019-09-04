@@ -100,7 +100,7 @@ namespace FreeSql.Sqlite
                     {
                         //创建表
                         sb.Append("CREATE TABLE IF NOT EXISTS ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ( ");
-                        foreach (var tbcol in tb.Columns.Values)
+                        foreach (var tbcol in tb.ColumnsByPosition)
                         {
                             sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ");
                             sb.Append(tbcol.Attribute.DbType);
@@ -163,7 +163,7 @@ namespace FreeSql.Sqlite
 
                 if (istmpatler == false)
                 {
-                    foreach (var tbcol in tb.Columns.Values)
+                    foreach (var tbcol in tb.ColumnsByPosition)
                     {
                         var dbtypeNoneNotNull = Regex.Replace(tbcol.Attribute.DbType, @"NOT\s+NULL", "NULL");
                         if (tbstruct.TryGetValue(tbcol.Attribute.Name, out var tbstructcol) ||
@@ -217,7 +217,7 @@ namespace FreeSql.Sqlite
                 //创建表
                 isIndent = false;
                 sb.Append("CREATE TABLE IF NOT EXISTS ").Append(tmptablename).Append(" ( ");
-                foreach (var tbcol in tb.Columns.Values)
+                foreach (var tbcol in tb.ColumnsByPosition)
                 {
                     sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ");
                     sb.Append(tbcol.Attribute.DbType);
@@ -243,10 +243,10 @@ namespace FreeSql.Sqlite
                 sb.Remove(sb.Length - 1, 1);
                 sb.Append("\r\n) \r\n;\r\n");
                 sb.Append("INSERT INTO ").Append(tmptablename).Append(" (");
-                foreach (var tbcol in tb.Columns.Values)
+                foreach (var tbcol in tb.ColumnsByPosition)
                     sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
                 sb.Remove(sb.Length - 2, 2).Append(")\r\nSELECT ");
-                foreach (var tbcol in tb.Columns.Values)
+                foreach (var tbcol in tb.ColumnsByPosition)
                 {
                     var insertvalue = "NULL";
                     if (tbstruct.TryGetValue(tbcol.Attribute.Name, out var tbstructcol) ||

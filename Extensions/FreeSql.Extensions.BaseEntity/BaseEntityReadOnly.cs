@@ -42,18 +42,22 @@ namespace FreeSql
         /// <summary>
         /// 创建时间
         /// </summary>
+        [Column(Position = -4)]
         public DateTime CreateTime { get; set; }
         /// <summary>
         /// 更新时间
         /// </summary>
+        [Column(Position = -3)]
         public DateTime UpdateTime { get; set; }
         /// <summary>
         /// 逻辑删除
         /// </summary>
+        [Column(Position = -2)]
         public bool IsDeleted { get; set; }
         /// <summary>
         /// 排序
         /// </summary>
+        [Column(Position = -1)]
         public int Sort { get; set; }
 
         /// <summary>
