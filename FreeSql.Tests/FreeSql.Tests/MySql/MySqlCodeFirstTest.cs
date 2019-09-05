@@ -214,6 +214,10 @@ namespace FreeSql.Tests.MySql
                 testFieldUShortNullable = ushort.MinValue,
                 testFielLongNullable = long.MinValue
             };
+            var sqlPar = insert.AppendData(item2).ToSql();
+            var sqlText = insert.AppendData(item2).NoneParameter().ToSql();
+            var item3NP = insert.AppendData(item2).NoneParameter().ExecuteIdentity();
+
             item2.Id = (int)insert.AppendData(item2).ExecuteIdentity();
             var newitem2 = select.Where(a => a.Id == item2.Id).ToOne();
 

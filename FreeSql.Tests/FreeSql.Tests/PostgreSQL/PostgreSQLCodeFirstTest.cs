@@ -338,6 +338,11 @@ namespace FreeSql.Tests.PostgreSQL
                 testFielLongArrayNullable = new long?[] { 500, 600, 700, null, 999, 1000 },
                 testFielLongNullable = long.MinValue
             };
+
+            var sqlPar = insert.AppendData(item2).ToSql();
+            var sqlText = insert.AppendData(item2).NoneParameter().ToSql();
+            var item3NP = insert.AppendData(item2).NoneParameter().ExecuteInserted();
+
             var item3 = insert.AppendData(item2).ExecuteInserted().First();
             var newitem2 = select.Where(a => a.Id == item3.Id).ToOne();
 

@@ -164,6 +164,9 @@ namespace FreeSql.Tests.SqlServer
 
             var sqlPar = insert.AppendData(item2).ToSql();
             var sqlText = insert.AppendData(item2).NoneParameter().ToSql();
+            var item3NP = insert.AppendData(item2).NoneParameter().ExecuteInserted();
+
+            var sqlTestUpdate = g.sqlserver.Update<TableAllType>().SetSource(item3NP).NoneParameter().ToSql();
 
             var item3 = insert.AppendData(item2).ExecuteInserted();
             var newitem2 = select.Where(a => a.Id == item2.Id).ToOne();
