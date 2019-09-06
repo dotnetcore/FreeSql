@@ -70,20 +70,20 @@ namespace FreeSql.Tests.Oracle
             Assert.Equal("UPDATE \"TB_TOPIC\" SET \"TITLE\" = :p_0, \"CREATETIME\" = :p_1 WHERE (\"ID\" = 1)", sql);
 
             sql = update.Set(a => a.Clicks * 10 / 1).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
-            Assert.Equal("UPDATE \"TB_TOPIC\" SET \"CLICKS\" = nvl(\"CLICKS\", 0) * 10 / 1 WHERE (\"ID\" = 1)", sql);
+            Assert.Equal("UPDATE \"TB_TOPIC\" SET \"CLICKS\" = trunc(nvl(\"CLICKS\", 0) * 10 / 1) WHERE (\"ID\" = 1)", sql);
 
             sql = update.Set(a => a.Id - 10).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
             Assert.Equal("UPDATE \"TB_TOPIC\" SET \"ID\" = (\"ID\" - 10) WHERE (\"ID\" = 1)", sql);
 
             int incrv = 10;
             sql = update.Set(a => a.Clicks * incrv / 1).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
-            Assert.Equal("UPDATE \"TB_TOPIC\" SET \"CLICKS\" = nvl(\"CLICKS\", 0) * 10 / 1 WHERE (\"ID\" = 1)", sql);
+            Assert.Equal("UPDATE \"TB_TOPIC\" SET \"CLICKS\" = trunc(nvl(\"CLICKS\", 0) * 10 / 1) WHERE (\"ID\" = 1)", sql);
 
             sql = update.Set(a => a.Id - incrv).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
             Assert.Equal("UPDATE \"TB_TOPIC\" SET \"ID\" = (\"ID\" - 10) WHERE (\"ID\" = 1)", sql);
 
             sql = update.Set(a => a.Clicks == a.Clicks * 10 / 1).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
-            Assert.Equal("UPDATE \"TB_TOPIC\" SET \"CLICKS\" = \"CLICKS\" * 10 / 1 WHERE (\"ID\" = 1)", sql);
+            Assert.Equal("UPDATE \"TB_TOPIC\" SET \"CLICKS\" = trunc(\"CLICKS\" * 10 / 1) WHERE (\"ID\" = 1)", sql);
 
             sql = update.Set(a => a.Id == 10).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
             Assert.Equal("UPDATE \"TB_TOPIC\" SET \"ID\" = 10 WHERE (\"ID\" = 1)", sql);
