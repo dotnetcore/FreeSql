@@ -218,6 +218,8 @@ namespace FreeSql.Tests.MySql
             var sqlText = insert.AppendData(item2).NoneParameter().ToSql();
             var item3NP = insert.AppendData(item2).NoneParameter().ExecuteIdentity();
 
+            var enumConvInt = select.Where(a => a.Id == (int)TableAllTypeEnumType1.e1).ToSql();
+
             item2.Id = (int)insert.AppendData(item2).ExecuteIdentity();
             var newitem2 = select.Where(a => a.Id == item2.Id).ToOne();
 

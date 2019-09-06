@@ -576,7 +576,7 @@ namespace FreeSql.Internal.CommonProvider
                 var sb = new StringBuilder();
                 sb.Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ");
 
-                var isnull = false;
+                var nulls = 0;
                 var cwsb = new StringBuilder().Append(cw);
                 foreach (var d in _source)
                 {
@@ -585,11 +585,11 @@ namespace FreeSql.Internal.CommonProvider
                     cwsb.Append(" THEN ");
                     var value = col.GetMapValue(d);
                     cwsb.Append(thenValue(_commonUtils.GetNoneParamaterSqlValue(_paramsSource, col.Attribute.MapType, value)));
-                    if (isnull == false) isnull = value == null || value == DBNull.Value;
+                    if (value == null || value == DBNull.Value) nulls++;
                 }
                 cwsb.Append(" END");
-                if (isnull == false) sb.Append(cwsb.ToString());
-                else sb.Append("NULL");
+                if (nulls == _source.Count) sb.Append("NULL");
+                else sb.Append(cwsb.ToString());
                 cwsb.Clear();
 
                 return sb.ToString();
@@ -669,7 +669,7 @@ namespace FreeSql.Internal.CommonProvider
                         if (colidx > 0) sb.Append(", ");
                         sb.Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ");
 
-                        var isnull = false;
+                        var nulls = 0;
                         var cwsb = new StringBuilder().Append(cw);
                         foreach (var d in _source)
                         {
@@ -684,15 +684,15 @@ namespace FreeSql.Internal.CommonProvider
                                 cwsb.Append(_commonUtils.QuoteWriteParamter(col.Attribute.MapType, _commonUtils.QuoteParamterName($"p_{_paramsSource.Count}")));
                                 _commonUtils.AppendParamter(_paramsSource, null, col.Attribute.MapType, val);
                             }
-                            if (isnull == false) isnull = val == null || val == DBNull.Value;
+                            if (val == null || val == DBNull.Value) nulls++;
                         }
                         cwsb.Append(" END");
-                        if (isnull == false)
+                        if (nulls == _source.Count) sb.Append("NULL");
+                        else
                         {
                             ToSqlCaseWhenEnd(cwsb, col);
                             sb.Append(cwsb.ToString());
                         }
-                        else sb.Append("NULL");
                         cwsb.Clear();
 
                         ++colidx;
