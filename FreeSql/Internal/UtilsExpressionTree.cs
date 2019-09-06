@@ -1457,6 +1457,8 @@ namespace FreeSql.Internal
         static MethodInfo MethodDateTimeOffsetTryParse = typeof(DateTimeOffset).GetMethod("TryParse", new[] { typeof(string), typeof(DateTimeOffset).MakeByRefType() });
         static MethodInfo MethodToString = typeof(Utils).GetMethod("ToStringConcat", BindingFlags.NonPublic | BindingFlags.Static, null, new[] { typeof(object) }, null);
         static MethodInfo MethodBigIntegerParse = typeof(Utils).GetMethod("ToBigInteger", BindingFlags.NonPublic | BindingFlags.Static, null, new[] { typeof(string) }, null);
+        static PropertyInfo PropertyDateTimeOffsetDateTime = typeof(DateTimeOffset).GetProperty("DateTime", BindingFlags.Instance | BindingFlags.Public);
+        static ConstructorInfo CtorDateTimeOffsetArgsDateTime = typeof(DateTimeOffset).GetConstructor(new[] { typeof(DateTime) });
 
         public static ConcurrentBag<Func<LabelTarget, Expression, string, Expression>> GetDataReaderValueBlockExpressionSwitchTypeFullName = new ConcurrentBag<Func<LabelTarget, Expression, string, Expression>>();
         public static Expression GetDataReaderValueBlockExpression(Type type, Expression value)
@@ -1752,14 +1754,22 @@ namespace FreeSql.Internal
                 var defaultRetExp = type == typeof(string) ?
                     Expression.Return(returnTarget, Expression.Convert(Expression.Call(MethodToString, valueExp), typeof(object))) :
                     Expression.Return(returnTarget, Expression.Call(MethodConvertChangeType, valueExp, Expression.Constant(type, typeof(Type))));
-
+                
                 return Expression.IfThenElse(
                     Expression.TypeEqual(valueExp, type),
                     Expression.Return(returnTarget, valueExp),
                     Expression.IfThenElse(
                         Expression.TypeEqual(valueExp, typeof(string)),
                         switchExp,
-                        defaultRetExp
+                        Expression.IfThenElse(
+                            Expression.AndAlso(Expression.Equal(Expression.Constant(type), Expression.Constant(typeof(DateTime))), Expression.TypeEqual(valueExp, typeof(DateTimeOffset))),
+                            Expression.Return(returnTarget, Expression.Convert(Expression.MakeMemberAccess(Expression.Convert(valueExp, typeof(DateTimeOffset)), PropertyDateTimeOffsetDateTime), typeof(object))),
+                            Expression.IfThenElse(
+                                Expression.AndAlso(Expression.Equal(Expression.Constant(type), Expression.Constant(typeof(DateTimeOffset))), Expression.TypeEqual(valueExp, typeof(DateTime))),
+                                Expression.Return(returnTarget, Expression.Convert(Expression.New(CtorDateTimeOffsetArgsDateTime, Expression.Convert(valueExp, typeof(DateTime))), typeof(object))),
+                                defaultRetExp
+                            )
+                        )
                     )
                 );
             };
