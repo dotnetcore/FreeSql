@@ -1458,7 +1458,7 @@ namespace FreeSql.Internal
         static MethodInfo MethodToString = typeof(Utils).GetMethod("ToStringConcat", BindingFlags.NonPublic | BindingFlags.Static, null, new[] { typeof(object) }, null);
         static MethodInfo MethodBigIntegerParse = typeof(Utils).GetMethod("ToBigInteger", BindingFlags.NonPublic | BindingFlags.Static, null, new[] { typeof(string) }, null);
         static PropertyInfo PropertyDateTimeOffsetDateTime = typeof(DateTimeOffset).GetProperty("DateTime", BindingFlags.Instance | BindingFlags.Public);
-        static ConstructorInfo CtorDateTimeOffsetArgsDateTime = typeof(DateTimeOffset).GetConstructor(new[] { typeof(DateTime) });
+        static ConstructorInfo CtorDateTimeOffsetArgsDateTime = typeof(DateTimeOffset).GetConstructor(new[] { typeof(DateTime), typeof(TimeSpan) });
 
         public static ConcurrentBag<Func<LabelTarget, Expression, string, Expression>> GetDataReaderValueBlockExpressionSwitchTypeFullName = new ConcurrentBag<Func<LabelTarget, Expression, string, Expression>>();
         public static Expression GetDataReaderValueBlockExpression(Type type, Expression value)
@@ -1766,7 +1766,8 @@ namespace FreeSql.Internal
                             Expression.Return(returnTarget, Expression.Convert(Expression.MakeMemberAccess(Expression.Convert(valueExp, typeof(DateTimeOffset)), PropertyDateTimeOffsetDateTime), typeof(object))),
                             Expression.IfThenElse(
                                 Expression.AndAlso(Expression.Equal(Expression.Constant(type), Expression.Constant(typeof(DateTimeOffset))), Expression.TypeEqual(valueExp, typeof(DateTime))),
-                                Expression.Return(returnTarget, Expression.Convert(Expression.New(CtorDateTimeOffsetArgsDateTime, Expression.Convert(valueExp, typeof(DateTime))), typeof(object))),
+                                Expression.Return(returnTarget, Expression.Convert(
+                                    Expression.New(CtorDateTimeOffsetArgsDateTime, Expression.Convert(valueExp, typeof(DateTime)), Expression.Constant(TimeSpan.Zero)), typeof(object))),
                                 defaultRetExp
                             )
                         )

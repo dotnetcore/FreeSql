@@ -21,7 +21,7 @@ namespace FreeSql.Tests.MySqlMapType
         {
             //insert
             var orm = g.mysql;
-            var item = new DateTimeOffSetTestMap { dtos_to_dt = DateTimeOffset.Now, dtosnullable_to_dt = DateTimeOffset.Now };
+            var item = new DateTimeOffSetTestMap { dtos_to_dt = DateTimeOffset.Now };
             Assert.Equal(1, orm.Insert<DateTimeOffSetTestMap>().AppendData(item).ExecuteAffrows());
             var find = orm.Select<DateTimeOffSetTestMap>().Where(a => a.id == item.id).First();
             Assert.NotNull(find);
@@ -31,6 +31,14 @@ namespace FreeSql.Tests.MySqlMapType
 
             //update all
             item.dtos_to_dt = DateTimeOffset.Now;
+            Assert.Equal(1, orm.Update<DateTimeOffSetTestMap>().SetSource(item).ExecuteAffrows());
+            find = orm.Select<DateTimeOffSetTestMap>().Where(a => a.id == item.id).First();
+            Assert.NotNull(find);
+            Assert.Equal(item.id, find.id);
+            Assert.Equal(item.dtos_to_dt.ToString("g"), find.dtos_to_dt.ToString("g"));
+            Assert.Equal(item.dtosnullable_to_dt.Value.ToString("g"), find.dtosnullable_to_dt.Value.ToString("g"));
+
+            item.dtosnullable_to_dt = DateTimeOffset.Now;
             Assert.Equal(1, orm.Update<DateTimeOffSetTestMap>().SetSource(item).ExecuteAffrows());
             find = orm.Select<DateTimeOffSetTestMap>().Where(a => a.id == item.id).First();
             Assert.NotNull(find);
