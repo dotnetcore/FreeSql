@@ -405,6 +405,12 @@ namespace FreeSql.Tests
         [Fact]
         public void Test1()
         {
+            var floorSql = g.sqlite.Select<TaskBuild>().Where(a => a.OptionsEntity04 / 10000 == 121212 / 10000).ToSql();
+
+            var testBoolSql1 = g.sqlserver.Select<TaskBuild>().Where(a => a.OptionsEntity01).ToSql();
+            var testBoolSql2 = g.sqlserver.Select<TaskBuild>().Where(a => a.Id == Guid.NewGuid() && a.OptionsEntity01).ToSql();
+
+
             IFreeSql fsql = new FreeSql.FreeSqlBuilder()
               .UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=7")
               .UseEntityPropertyNameConvert(Internal.StringConvertType.PascalCaseToUnderscoreWithLower)

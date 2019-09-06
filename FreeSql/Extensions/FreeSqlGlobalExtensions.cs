@@ -28,13 +28,14 @@ public static partial class FreeSqlGlobalExtensions
         [typeof(uint?)] = true,
         [typeof(ulong)] = true,
         [typeof(ulong?)] = true,
-        [typeof(double)] = true,
-        [typeof(double?)] = true,
-        [typeof(float)] = true,
-        [typeof(float?)] = true,
-        [typeof(decimal)] = true,
-        [typeof(decimal?)] = true
+        [typeof(double)] = false,
+        [typeof(double?)] = false,
+        [typeof(float)] = false,
+        [typeof(float?)] = false,
+        [typeof(decimal)] = false,
+        [typeof(decimal?)] = false
     });
+    public static bool IsIntegerType(this Type that) => that == null ? false : (dicIsNumberType.Value.TryGetValue(that, out var tryval) ? tryval : false);
     public static bool IsNumberType(this Type that) => that == null ? false : dicIsNumberType.Value.ContainsKey(that);
     public static bool IsNullableType(this Type that) => that?.FullName.StartsWith("System.Nullable`1[") == true;
     public static bool IsAnonymousType(this Type that) => that?.FullName.StartsWith("<>f__AnonymousType") == true;

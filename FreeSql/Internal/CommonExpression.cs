@@ -387,6 +387,7 @@ namespace FreeSql.Internal
         static ConcurrentDictionary<Type, Expression> _dicFreeSqlGlobalExtensionsAsSelectExpression = new ConcurrentDictionary<Type, Expression>();
         static MethodInfo MethodDateTimeSubtractDateTime = typeof(DateTime).GetMethod("Subtract", new Type[] { typeof(DateTime) });
         static MethodInfo MethodDateTimeSubtractTimeSpan = typeof(DateTime).GetMethod("Subtract", new Type[] { typeof(TimeSpan) });
+        static MethodInfo MethodMathFloor = typeof(Math).GetMethod("Floor", new Type[] { typeof(double) });
 
         static string GetBoolString(string sql)
         {
@@ -489,6 +490,10 @@ namespace FreeSql.Internal
                     break;
             }
             tsc.mapType = null;
+            //switch(oper)
+            //{
+            //    case "/": return ExpressionLambdaToSqlCallMath(Expression.Call(MethodMathFloor, Expression.Constant(1213.1d, typeof(double))), tsc)?.Replace("1213.1", $"{left} {oper} {right}");
+            //}
             return $"{left} {oper} {right}";
         }
         public string ExpressionLambdaToSql(Expression exp, ExpTSC tsc)
