@@ -82,6 +82,8 @@ namespace FreeSql.MySql
         public override string IsNull(string sql, object value) => $"ifnull({sql}, {value})";
         public override string StringConcat(string[] objs, Type[] types) => $"concat({string.Join(", ", objs)})";
         public override string Mod(string left, string right, Type leftType, Type rightType) => $"{left} % {right}";
+        public override string Div(string left, string right, Type leftType, Type rightType) => $"{left} div {right}";
+
         public override string QuoteWriteParamter(Type type, string paramterName)
         {
             switch (type.FullName)
@@ -95,7 +97,6 @@ namespace FreeSql.MySql
             }
             return paramterName;
         }
-
         public override string QuoteReadColumn(Type type, string columnName)
         {
             switch (type.FullName)

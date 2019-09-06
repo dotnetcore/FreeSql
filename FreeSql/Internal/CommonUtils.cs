@@ -32,6 +32,7 @@ namespace FreeSql.Internal
         public abstract string IsNull(string sql, object value);
         public abstract string StringConcat(string[] objs, Type[] types);
         public abstract string Mod(string left, string right, Type leftType, Type rightType);
+        public abstract string Div(string left, string right, Type leftType, Type rightType);
         public abstract string QuoteWriteParamter(Type type, string paramterName);
         public abstract string QuoteReadColumn(Type type, string columnName);
 

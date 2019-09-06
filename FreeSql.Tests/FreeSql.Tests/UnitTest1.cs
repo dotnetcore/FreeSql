@@ -405,7 +405,8 @@ namespace FreeSql.Tests
         [Fact]
         public void Test1()
         {
-            var floorSql = g.sqlite.Select<TaskBuild>().Where(a => a.OptionsEntity04 / 10000 == 121212 / 10000).ToSql();
+            var floorSql1 = g.mysql.Select<TaskBuild>().Where(a => a.OptionsEntity04 / 10000 == 121212 / 10000).ToSql();
+            var floorSql2 = g.mysql.Select<TaskBuild>().Where(a => a.OptionsEntity04 / 10000.0 == 121212 / 10000).ToSql();
 
             var testBoolSql1 = g.sqlserver.Select<TaskBuild>().Where(a => a.OptionsEntity01).ToSql();
             var testBoolSql2 = g.sqlserver.Select<TaskBuild>().Where(a => a.Id == Guid.NewGuid() && a.OptionsEntity01).ToSql();

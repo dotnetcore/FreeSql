@@ -483,6 +483,9 @@ namespace FreeSql.Internal
             switch (oper)
             {
                 case "%": return _common.Mod(left, right, leftExp.Type, rightExp.Type);
+                case "/":
+                    if (leftExp.Type.IsIntegerType() && rightExp.Type.IsIntegerType()) return _common.Div(left, right, leftExp.Type, rightExp.Type);
+                    break;
                 case "AND":
                 case "OR":
                     left = GetBoolString(left);
@@ -490,10 +493,6 @@ namespace FreeSql.Internal
                     break;
             }
             tsc.mapType = null;
-            //switch(oper)
-            //{
-            //    case "/": return ExpressionLambdaToSqlCallMath(Expression.Call(MethodMathFloor, Expression.Constant(1213.1d, typeof(double))), tsc)?.Replace("1213.1", $"{left} {oper} {right}");
-            //}
             return $"{left} {oper} {right}";
         }
         public string ExpressionLambdaToSql(Expression exp, ExpTSC tsc)

@@ -18,6 +18,22 @@ namespace FreeSql.Tests.MySqlExpression
         }
 
         [Fact]
+        public void Div()
+        {
+            var t1 = select.Where(a => a.testFieldInt / 3 > 3).Limit(10).ToList();
+            var t2 = select.Where(a => a.testFieldLong / 3 > 3).Limit(10).ToList();
+            var t3 = select.Where(a => a.testFieldShort / 3 > 3).Limit(10).ToList();
+
+            var t4 = select.Where(a => a.testFieldInt / 3.0 > 3).Limit(10).ToList();
+            var t5 = select.Where(a => a.testFieldLong / 3.0 > 3).Limit(10).ToList();
+            var t6 = select.Where(a => a.testFieldShort / 3.0 > 3).Limit(10).ToList();
+
+            var t7 = select.Where(a => a.testFieldDouble / 3 > 3).Limit(10).ToList();
+            var t8 = select.Where(a => a.testFieldDecimal / 3 > 3).Limit(10).ToList();
+            var t9 = select.Where(a => a.testFieldFloat / 3 > 3).Limit(10).ToList();
+        }
+
+        [Fact]
         public void Boolean()
         {
             var t1 = select.Where(a => a.testFieldBool == true).ToList();

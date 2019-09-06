@@ -16,6 +16,22 @@ namespace FreeSql.Tests.OracleExpression
         }
 
         [Fact]
+        public void Div()
+        {
+            var t1 = select.Where(a => a.Int / 3 > 3).Limit(10).ToList();
+            var t2 = select.Where(a => a.Long / 3 > 3).Limit(10).ToList();
+            var t3 = select.Where(a => a.Short / 3 > 3).Limit(10).ToList();
+
+            var t4 = select.Where(a => a.Int / 3.0 > 3).Limit(10).ToList();
+            var t5 = select.Where(a => a.Long / 3.0 > 3).Limit(10).ToList();
+            var t6 = select.Where(a => a.Short / 3.0 > 3).Limit(10).ToList();
+
+            var t7 = select.Where(a => a.Double / 3 > 3).Limit(10).ToList();
+            var t8 = select.Where(a => a.Decimal / 3 > 3).Limit(10).ToList();
+            var t9 = select.Where(a => a.Float / 3 > 3).Limit(10).ToList();
+        }
+
+        [Fact]
         public void Boolean()
         {
             var t1 = select.Where(a => a.Bool == true).ToList();

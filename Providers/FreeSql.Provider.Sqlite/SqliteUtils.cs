@@ -79,6 +79,7 @@ namespace FreeSql.Sqlite
         public override string IsNull(string sql, object value) => $"ifnull({sql}, {value})";
         public override string StringConcat(string[] objs, Type[] types) => $"{string.Join(" || ", objs)}";
         public override string Mod(string left, string right, Type leftType, Type rightType) => $"{left} % {right}";
+        public override string Div(string left, string right, Type leftType, Type rightType) => $"{left} / {right}";
 
         public override string QuoteWriteParamter(Type type, string paramterName) => paramterName;
         public override string QuoteReadColumn(Type type, string columnName) => columnName;
