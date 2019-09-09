@@ -126,6 +126,18 @@ namespace FreeSql.Internal.CommonProvider
         public IDelete<T1> WhereExists<TEntity2>(ISelect<TEntity2> select, bool notExists = false) where TEntity2 : class => this.Where($"{(notExists ? "NOT " : "")}EXISTS({select.ToSql("1")})");
         public IDelete<T1> WhereDynamic(object dywhere) => this.Where(_commonUtils.WhereObject(_table, "", dywhere));
 
+        protected string TableRuleInvoke()
+        {
+            if (_tableRule == null) return _table.DbName;
+            var newname = _tableRule(_table.DbName);
+            if (!string.IsNullOrEmpty(newname))
+            {
+                if (_orm.CodeFirst.IsSyncStructureToLower) return newname.ToLower();
+                if (_orm.CodeFirst.IsSyncStructureToUpper) return newname.ToUpper();
+                return newname;
+            }
+            return _table.DbName;
+        }
         public IDelete<T1> AsTable(Func<string, string> tableRule)
         {
             _tableRule = tableRule;
@@ -141,6 +153,6 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
 
-        public string ToSql() => _whereTimes <= 0 ? null : new StringBuilder().Append("DELETE FROM ").Append(_commonUtils.QuoteSqlName(_tableRule?.Invoke(_table.DbName) ?? _table.DbName)).Append(" WHERE ").Append(_where).ToString();
+        public string ToSql() => _whereTimes <= 0 ? null : new StringBuilder().Append("DELETE FROM ").Append(_commonUtils.QuoteSqlName(TableRuleInvoke())).Append(" WHERE ").Append(_where).ToString();
     }
 }

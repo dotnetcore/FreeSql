@@ -37,7 +37,7 @@ namespace FreeSql.Oracle.Curd
             _identCol = null;
             var sbtb = new StringBuilder();
             sbtb.Append("INTO ");
-            sbtb.Append(_commonUtils.QuoteSqlName(_tableRule?.Invoke(_table.DbName) ?? _table.DbName)).Append("(");
+            sbtb.Append(_commonUtils.QuoteSqlName(TableRuleInvoke())).Append("(");
             var colidx = 0;
             foreach (var col in _table.Columns.Values)
             {

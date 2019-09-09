@@ -912,7 +912,12 @@ namespace FreeSql.Internal.CommonProvider
             foreach (var tr in _tableRules)
             {
                 var newname = tr?.Invoke(type, oldname);
-                if (!string.IsNullOrEmpty(newname)) newnames.Add(newname);
+                if (!string.IsNullOrEmpty(newname))
+                {
+                    if (_orm.CodeFirst.IsSyncStructureToLower) newnames.Add(newname.ToLower());
+                    else if (_orm.CodeFirst.IsSyncStructureToUpper) newnames.Add(newname.ToUpper());
+                    else newnames.Add(newname);
+                }
             }
             if (newnames.Any() == false) return new[] { oldname };
             return newnames.Distinct().ToArray();

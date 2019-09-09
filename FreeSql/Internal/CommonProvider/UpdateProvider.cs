@@ -600,6 +600,18 @@ namespace FreeSql.Internal.CommonProvider
         protected abstract void ToSqlWhen(StringBuilder sb, ColumnInfo[] primarys, object d);
         protected virtual void ToSqlCaseWhenEnd(StringBuilder sb, ColumnInfo col) { }
 
+        protected string TableRuleInvoke()
+        {
+            if (_tableRule == null) return _table.DbName;
+            var newname = _tableRule(_table.DbName);
+            if (!string.IsNullOrEmpty(newname))
+            {
+                if (_orm.CodeFirst.IsSyncStructureToLower) return newname.ToLower();
+                if (_orm.CodeFirst.IsSyncStructureToUpper) return newname.ToUpper();
+                return newname;
+            }
+            return _table.DbName;
+        }
         public IUpdate<T1> AsTable(Func<string, string> tableRule)
         {
             _tableRule = tableRule;
@@ -620,7 +632,7 @@ namespace FreeSql.Internal.CommonProvider
             if (_where.Length == 0 && _source.Any() == false) return null;
 
             var sb = new StringBuilder();
-            sb.Append("UPDATE ").Append(_commonUtils.QuoteSqlName(_tableRule?.Invoke(_table.DbName) ?? _table.DbName)).Append(" SET ");
+            sb.Append("UPDATE ").Append(_commonUtils.QuoteSqlName(TableRuleInvoke())).Append(" SET ");
 
             if (_set.Length > 0)
             { //指定 set 更新

@@ -548,6 +548,18 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
 
+        protected string TableRuleInvoke()
+        {
+            if (_tableRule == null) return _table.DbName;
+            var newname = _tableRule(_table.DbName);
+            if (!string.IsNullOrEmpty(newname))
+            {
+                if (_orm.CodeFirst.IsSyncStructureToLower) return newname.ToLower();
+                if (_orm.CodeFirst.IsSyncStructureToUpper) return newname.ToUpper();
+                return newname;
+            }
+            return _table.DbName;
+        }
         public IInsert<T1> AsTable(Func<string, string> tableRule)
         {
             _tableRule = tableRule;
@@ -567,7 +579,7 @@ namespace FreeSql.Internal.CommonProvider
         {
             if (_source == null || _source.Any() == false) return null;
             var sb = new StringBuilder();
-            sb.Append("INSERT INTO ").Append(_commonUtils.QuoteSqlName(_tableRule?.Invoke(_table.DbName) ?? _table.DbName)).Append("(");
+            sb.Append("INSERT INTO ").Append(_commonUtils.QuoteSqlName(TableRuleInvoke())).Append("(");
             var colidx = 0;
             foreach (var col in _table.Columns.Values)
             {
