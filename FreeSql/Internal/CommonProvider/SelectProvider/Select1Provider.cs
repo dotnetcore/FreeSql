@@ -384,6 +384,10 @@ namespace FreeSql.Internal.CommonProvider
         public TDto First<TDto>() => this.ToOne<TDto>();
         public Task<TDto> FirstAsync<TDto>() => this.ToOneAsync<TDto>();
 
+        public override List<T1> ToList(bool includeNestedMembers = false) => base.ToList(_isIncluded || includeNestedMembers);
+        public override Task<List<T1>> ToListAsync(bool includeNestedMembers = false) => base.ToListAsync(_isIncluded || includeNestedMembers);
+
+        bool _isIncluded = false;
         public ISelect<T1> Include<TNavigate>(Expression<Func<T1, TNavigate>> navigateSelector) where TNavigate : class
         {
             var expBody = navigateSelector?.Body;
@@ -391,6 +395,7 @@ namespace FreeSql.Internal.CommonProvider
             var tb = _commonUtils.GetTableByEntity(expBody.Type);
             if (tb == null) throw new Exception("Include 参数类型错误");
 
+            _isIncluded = true;
             _commonExpression.ExpressionWhereLambda(_tables, Expression.MakeMemberAccess(expBody, tb.Properties[tb.ColumnsByCs.First().Value.CsName]), null, null);
             return this;
         }

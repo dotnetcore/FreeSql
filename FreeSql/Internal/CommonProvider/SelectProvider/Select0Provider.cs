@@ -472,12 +472,12 @@ namespace FreeSql.Internal.CommonProvider
 
             return ToListAfPrivateAsync(sql, af, otherData);
         }
-        public List<T1> ToList(bool includeNestedMembers = false)
+        public virtual List<T1> ToList(bool includeNestedMembers = false)
         {
             if (_selectExpression != null) return this.InternalToList<T1>(_selectExpression);
             return this.ToListPrivate(includeNestedMembers == false ? this.GetAllFieldExpressionTreeLevel2() : this.GetAllFieldExpressionTreeLevelAll(), null);
         }
-        public Task<List<T1>> ToListAsync(bool includeNestedMembers = false)
+        public virtual Task<List<T1>> ToListAsync(bool includeNestedMembers = false)
         {
             if (_selectExpression != null) return this.InternalToListAsync<T1>(_selectExpression);
             return this.ToListPrivateAsync(includeNestedMembers == false ? this.GetAllFieldExpressionTreeLevel2() : this.GetAllFieldExpressionTreeLevelAll(), null);

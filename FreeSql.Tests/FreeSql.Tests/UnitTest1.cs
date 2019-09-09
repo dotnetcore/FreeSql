@@ -405,6 +405,10 @@ namespace FreeSql.Tests
         [Fact]
         public void Test1()
         {
+            var testincludeMemberssql1 = g.sqlite.Select<TaskBuild>().Where(a => a.Templates.Title == "1").ToList();
+            var testincludeMemberssql2 = g.sqlite.Select<TaskBuild>().Include(a => a.Templates).ToList();
+
+
             var floorSql1 = g.mysql.Select<TaskBuild>().Where(a => a.OptionsEntity04 / 10000 == 121212 / 10000).ToSql();
             var floorSql2 = g.mysql.Select<TaskBuild>().Where(a => a.OptionsEntity04 / 10000.0 == 121212 / 10000).ToSql();
 

@@ -76,6 +76,11 @@ namespace FreeSql.Internal
                 var setMethod = trytb.Type.GetMethod($"set_{p.Name}");
                 var colattr = common.GetEntityColumnAttribute(entity, p);
                 var tp = common.CodeFirst.GetDbInfo(colattr?.MapType ?? p.PropertyType);
+                if (setMethod == null) // 属性没有 set自动忽略
+                {
+                    if (colattr == null) colattr = new ColumnAttribute { IsIgnore = true };
+                    else colattr.IsIgnore = true;
+                }
                 if (tp == null && colattr?.IsIgnore != true)
                 {
                     if (common.CodeFirst.IsLazyLoading)
