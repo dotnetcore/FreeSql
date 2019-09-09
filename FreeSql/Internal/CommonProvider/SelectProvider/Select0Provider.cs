@@ -906,14 +906,16 @@ namespace FreeSql.Internal.CommonProvider
             return (map, field.ToString());
         }
 
-        protected string TableRuleInvoke(Type type, string oldname)
+        protected string[] TableRuleInvoke(Type type, string oldname)
         {
-            for (var a = _tableRules.Count - 1; a >= 0; a--)
+            List<string> newnames = new List<string>();
+            foreach (var tr in _tableRules)
             {
-                var newname = _tableRules[a]?.Invoke(type, oldname);
-                if (!string.IsNullOrEmpty(newname)) return newname;
+                var newname = tr?.Invoke(type, oldname);
+                if (!string.IsNullOrEmpty(newname)) newnames.Add(newname);
             }
-            return oldname;
+            if (newnames.Any() == false) return new[] { oldname };
+            return newnames.Distinct().ToArray();
         }
 
         public TSelect AsTable(Func<Type, string, string> tableRule)

@@ -297,6 +297,7 @@ namespace FreeSql.Tests
             public bool OptionsEntity02 { get; set; } = false;
             public bool OptionsEntity03 { get; set; } = false;
             public int OptionsEntity04 { get; set; }
+            public int? score { get; set; }
 
             [Navigate("TbId")]
             public virtual ICollection<TaskBuildInfo> Builds { get; set; }
@@ -405,6 +406,8 @@ namespace FreeSql.Tests
         [Fact]
         public void Test1()
         {
+            var testorderbysql = g.mysql.Select<TaskBuild>().OrderByDescending(a => a.OptionsEntity04 + (a.score ?? 0)).ToSql();
+
             var testincludeMemberssql1 = g.sqlite.Select<TaskBuild>().Where(a => a.Templates.Title == "1").ToList();
             var testincludeMemberssql2 = g.sqlite.Select<TaskBuild>().Include(a => a.Templates).ToList();
 

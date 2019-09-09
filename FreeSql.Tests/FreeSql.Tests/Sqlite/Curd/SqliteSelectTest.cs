@@ -790,10 +790,22 @@ namespace FreeSql.Tests.Sqlite
                 else if (type == typeof(TestTypeInfo)) return oldname + "AsTable2";
                 return oldname + "AsTable";
             };
+            Func<Type, string, string> tableRule2 = (type, oldname) =>
+            {
+                if (type == typeof(Topic)) return oldname + "Test2";
+                else if (type == typeof(TestTypeInfo)) return oldname + "Test2";
+                return oldname + "Test2";
+            };
+            var query = select.LeftJoin(a => a.Type.Guid == a.TypeGuid).AsTable(tableRule).AsTable(tableRule2);
+            var sql = query.ToSql();
+
+            query = select.AsTable((type, oldname) => "table_1").AsTable((type, oldname) => "table_2").AsTable((type, oldname) => "table_3");
+            sql = query.ToSql(a => a.Id);
+
 
             //����е�������a.Type��a.Type.Parent ���ǵ�������
-            var query = select.LeftJoin(a => a.Type.Guid == a.TypeGuid).AsTable(tableRule);
-            var sql = query.ToSql().Replace("\r\n", "");
+            query = select.LeftJoin(a => a.Type.Guid == a.TypeGuid).AsTable(tableRule);
+            sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.\"Id\", a.\"Clicks\", a.\"TypeGuid\", a__Type.\"Guid\", a__Type.\"ParentId\", a__Type.\"Name\", a.\"Title\", a.\"CreateTime\" FROM \"tb_topic22AsTable1\" a LEFT JOIN \"TestTypeInfoAsTable2\" a__Type ON a__Type.\"Guid\" = a.\"TypeGuid\"", sql);
 
             query = select.LeftJoin(a => a.Type.Guid == a.TypeGuid && a.Type.Name == "xxx").AsTable(tableRule);

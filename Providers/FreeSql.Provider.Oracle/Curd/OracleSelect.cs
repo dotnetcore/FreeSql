@@ -12,7 +12,7 @@ namespace FreeSql.Oracle.Curd
     class OracleSelect<T1> : FreeSql.Internal.CommonProvider.Select1Provider<T1> where T1 : class
     {
 
-        internal static string ToSqlStatic(CommonUtils _commonUtils, CommonExpression _commonExpression, string _select, bool _distinct, string field, StringBuilder _join, StringBuilder _where, string _groupby, string _having, string _orderby, int _skip, int _limit, List<SelectTableInfo> _tables, Func<Type, string, string> tableRuleInvoke, List<LambdaExpression> _whereCascadeExpression, IFreeSql _orm)
+        internal static string ToSqlStatic(CommonUtils _commonUtils, CommonExpression _commonExpression, string _select, bool _distinct, string field, StringBuilder _join, StringBuilder _where, string _groupby, string _having, string _orderby, int _skip, int _limit, List<SelectTableInfo> _tables, Func<Type, string, string[]> tableRuleInvoke, List<LambdaExpression> _whereCascadeExpression, IFreeSql _orm)
         {
             if (_orm.CodeFirst.IsAutoSyncStructure)
                 _orm.CodeFirst.SyncStructure(_tables.Select(a => a.Table.Type).ToArray());
@@ -22,97 +22,107 @@ namespace FreeSql.Oracle.Curd
                     tb.Cascade = _commonExpression.GetWhereCascadeSql(tb, _whereCascadeExpression);
 
             var sb = new StringBuilder();
-            var sbnav = new StringBuilder();
-            sb.Append(_select);
-            if (_distinct) sb.Append("DISTINCT ");
-            sb.Append(field);
-            if (string.IsNullOrEmpty(_orderby) && _skip > 0) sb.Append(", ROWNUM AS \"__rownum__\"");
-            sb.Append(" \r\nFROM ");
-            var tbsjoin = _tables.Where(a => a.Type != SelectTableInfoType.From).ToArray();
-            var tbsfrom = _tables.Where(a => a.Type == SelectTableInfoType.From).ToArray();
-            for (var a = 0; a < tbsfrom.Length; a++)
+            var tbrules = CommonUtils.GetAllTableRule(_tables, tableRuleInvoke);
+            var tbrulesGt0 = tbrules.Count > 1;
+            for (var tbrulesIdx = 0; tbrulesIdx < tbrules.Count; tbrulesIdx++)
             {
-                sb.Append(_commonUtils.QuoteSqlName(tableRuleInvoke(tbsfrom[a].Table.Type, tbsfrom[a].Table.DbName))).Append(" ").Append(tbsfrom[a].Alias);
-                if (tbsjoin.Length > 0)
-                {
-                    //如果存在 join 查询，则处理 from t1, t2 改为 from t1 inner join t2 on 1 = 1
-                    for (var b = 1; b < tbsfrom.Length; b++)
-                    {
-                        sb.Append(" \r\nLEFT JOIN ").Append(_commonUtils.QuoteSqlName(tableRuleInvoke(tbsfrom[b].Table.Type, tbsfrom[b].Table.DbName))).Append(" ").Append(tbsfrom[b].Alias);
+                if (tbrulesIdx > 0) sb.Append(" \r\n\r\nUNION ALL\r\n\r\n");
+                if (tbrulesGt0) sb.Append("select * from (");
+                var tbrule = tbrules[tbrulesIdx];
 
-                        if (string.IsNullOrEmpty(tbsfrom[b].NavigateCondition) && string.IsNullOrEmpty(tbsfrom[b].On) && string.IsNullOrEmpty(tbsfrom[b].Cascade)) sb.Append(" ON 1 = 1");
-                        else
+                var sbnav = new StringBuilder();
+                sb.Append(_select);
+                if (_distinct) sb.Append("DISTINCT ");
+                sb.Append(field);
+                if (string.IsNullOrEmpty(_orderby) && _skip > 0) sb.Append(", ROWNUM AS \"__rownum__\"");
+                sb.Append(" \r\nFROM ");
+                var tbsjoin = _tables.Where(a => a.Type != SelectTableInfoType.From).ToArray();
+                var tbsfrom = _tables.Where(a => a.Type == SelectTableInfoType.From).ToArray();
+                for (var a = 0; a < tbsfrom.Length; a++)
+                {
+                    sb.Append(_commonUtils.QuoteSqlName(tbrule[tbsfrom[a].Table.Type])).Append(" ").Append(tbsfrom[a].Alias);
+                    if (tbsjoin.Length > 0)
+                    {
+                        //如果存在 join 查询，则处理 from t1, t2 改为 from t1 inner join t2 on 1 = 1
+                        for (var b = 1; b < tbsfrom.Length; b++)
                         {
-                            sb.Append(" ON ").Append(tbsfrom[b].NavigateCondition ?? tbsfrom[b].On);
-                            if (string.IsNullOrEmpty(tbsfrom[b].Cascade) == false) sb.Append(" AND (").Append(tbsfrom[b].Cascade).Append(")");
+                            sb.Append(" \r\nLEFT JOIN ").Append(_commonUtils.QuoteSqlName(tbrule[tbsfrom[b].Table.Type])).Append(" ").Append(tbsfrom[b].Alias);
+
+                            if (string.IsNullOrEmpty(tbsfrom[b].NavigateCondition) && string.IsNullOrEmpty(tbsfrom[b].On) && string.IsNullOrEmpty(tbsfrom[b].Cascade)) sb.Append(" ON 1 = 1");
+                            else
+                            {
+                                sb.Append(" ON ").Append(tbsfrom[b].NavigateCondition ?? tbsfrom[b].On);
+                                if (string.IsNullOrEmpty(tbsfrom[b].Cascade) == false) sb.Append(" AND (").Append(tbsfrom[b].Cascade).Append(")");
+                            }
                         }
+                        break;
                     }
-                    break;
+                    else
+                    {
+                        if (!string.IsNullOrEmpty(tbsfrom[a].NavigateCondition)) sbnav.Append(" AND (").Append(tbsfrom[a].NavigateCondition).Append(")");
+                        if (!string.IsNullOrEmpty(tbsfrom[a].On)) sbnav.Append(" AND (").Append(tbsfrom[a].On).Append(")");
+                        if (a > 0 && !string.IsNullOrEmpty(tbsfrom[a].Cascade)) sbnav.Append(" AND (").Append(tbsfrom[a].Cascade).Append(")");
+                    }
+                    if (a < tbsfrom.Length - 1) sb.Append(", ");
+                }
+                foreach (var tb in tbsjoin)
+                {
+                    if (tb.Type == SelectTableInfoType.Parent) continue;
+                    switch (tb.Type)
+                    {
+                        case SelectTableInfoType.LeftJoin:
+                            sb.Append(" \r\nLEFT JOIN ");
+                            break;
+                        case SelectTableInfoType.InnerJoin:
+                            sb.Append(" \r\nINNER JOIN ");
+                            break;
+                        case SelectTableInfoType.RightJoin:
+                            sb.Append(" \r\nRIGHT JOIN ");
+                            break;
+                    }
+                    sb.Append(_commonUtils.QuoteSqlName(tbrule[tb.Table.Type])).Append(" ").Append(tb.Alias).Append(" ON ").Append(tb.On ?? tb.NavigateCondition);
+                    if (!string.IsNullOrEmpty(tb.Cascade)) sb.Append(" AND (").Append(tb.Cascade).Append(")");
+                    if (!string.IsNullOrEmpty(tb.On) && !string.IsNullOrEmpty(tb.NavigateCondition)) sbnav.Append(" AND (").Append(tb.NavigateCondition).Append(")");
+                }
+                if (_join.Length > 0) sb.Append(_join);
+
+                sbnav.Append(_where);
+                if (!string.IsNullOrEmpty(_tables[0].Cascade))
+                    sbnav.Append(" AND (").Append(_tables[0].Cascade).Append(")");
+
+                foreach (var tb in _tables)
+                {
+                    if (tb.Type == SelectTableInfoType.Parent) continue;
+                    if (string.IsNullOrEmpty(tb.Table.SelectFilter) == false)
+                        sbnav.Append(" AND (").Append(tb.Table.SelectFilter.Replace("a.", $"{tb.Alias}.")).Append(")");
+                }
+                if (string.IsNullOrEmpty(_orderby) && (_skip > 0 || _limit > 0))
+                    sbnav.Append(" AND ROWNUM < ").Append(_skip + _limit + 1);
+                if (sbnav.Length > 0)
+                    sb.Append(" \r\nWHERE ").Append(sbnav.Remove(0, 5));
+                if (string.IsNullOrEmpty(_groupby) == false)
+                {
+                    sb.Append(_groupby);
+                    if (string.IsNullOrEmpty(_having) == false)
+                        sb.Append(" \r\nHAVING ").Append(_having.Substring(5));
+                }
+                sb.Append(_orderby);
+
+                if (string.IsNullOrEmpty(_orderby))
+                {
+                    if (_skip > 0)
+                        sb.Insert(0, "SELECT t.* FROM (").Append(") t WHERE t.\"__rownum__\" > ").Append(_skip);
                 }
                 else
                 {
-                    if (!string.IsNullOrEmpty(tbsfrom[a].NavigateCondition)) sbnav.Append(" AND (").Append(tbsfrom[a].NavigateCondition).Append(")");
-                    if (!string.IsNullOrEmpty(tbsfrom[a].On)) sbnav.Append(" AND (").Append(tbsfrom[a].On).Append(")");
-                    if (a > 0 && !string.IsNullOrEmpty(tbsfrom[a].Cascade)) sbnav.Append(" AND (").Append(tbsfrom[a].Cascade).Append(")");
+                    if (_skip > 0 && _limit > 0) sb.Insert(0, "SELECT t.* FROM (SELECT rt.*, ROWNUM AS \"__rownum__\" FROM (").Append(") rt WHERE ROWNUM < ").Append(_skip + _limit + 1).Append(") t WHERE t.\"__rownum__\" > ").Append(_skip);
+                    else if (_skip > 0) sb.Insert(0, "SELECT t.* FROM (").Append(") t WHERE ROWNUM > ").Append(_skip);
+                    else if (_limit > 0) sb.Insert(0, "SELECT t.* FROM (").Append(") t WHERE ROWNUM < ").Append(_limit + 1);
                 }
-                if (a < tbsfrom.Length - 1) sb.Append(", ");
-            }
-            foreach (var tb in tbsjoin)
-            {
-                if (tb.Type == SelectTableInfoType.Parent) continue;
-                switch (tb.Type)
-                {
-                    case SelectTableInfoType.LeftJoin:
-                        sb.Append(" \r\nLEFT JOIN ");
-                        break;
-                    case SelectTableInfoType.InnerJoin:
-                        sb.Append(" \r\nINNER JOIN ");
-                        break;
-                    case SelectTableInfoType.RightJoin:
-                        sb.Append(" \r\nRIGHT JOIN ");
-                        break;
-                }
-                sb.Append(_commonUtils.QuoteSqlName(tableRuleInvoke(tb.Table.Type, tb.Table.DbName))).Append(" ").Append(tb.Alias).Append(" ON ").Append(tb.On ?? tb.NavigateCondition);
-                if (!string.IsNullOrEmpty(tb.Cascade)) sb.Append(" AND (").Append(tb.Cascade).Append(")");
-                if (!string.IsNullOrEmpty(tb.On) && !string.IsNullOrEmpty(tb.NavigateCondition)) sbnav.Append(" AND (").Append(tb.NavigateCondition).Append(")");
-            }
-            if (_join.Length > 0) sb.Append(_join);
 
-            sbnav.Append(_where);
-            if (!string.IsNullOrEmpty(_tables[0].Cascade))
-                sbnav.Append(" AND (").Append(_tables[0].Cascade).Append(")");
-
-            foreach (var tb in _tables)
-            {
-                if (tb.Type == SelectTableInfoType.Parent) continue;
-                if (string.IsNullOrEmpty(tb.Table.SelectFilter) == false)
-                    sbnav.Append(" AND (").Append(tb.Table.SelectFilter.Replace("a.", $"{tb.Alias}.")).Append(")");
+                sbnav.Clear();
+                if (tbrulesGt0) sb.Append(") ftb");
             }
-            if (string.IsNullOrEmpty(_orderby) && (_skip > 0 || _limit > 0))
-                sbnav.Append(" AND ROWNUM < ").Append(_skip + _limit + 1);
-            if (sbnav.Length > 0)
-                sb.Append(" \r\nWHERE ").Append(sbnav.Remove(0, 5));
-            if (string.IsNullOrEmpty(_groupby) == false)
-            {
-                sb.Append(_groupby);
-                if (string.IsNullOrEmpty(_having) == false)
-                    sb.Append(" \r\nHAVING ").Append(_having.Substring(5));
-            }
-            sb.Append(_orderby);
-
-            if (string.IsNullOrEmpty(_orderby))
-            {
-                if (_skip > 0)
-                    sb.Insert(0, "SELECT t.* FROM (").Append(") t WHERE t.\"__rownum__\" > ").Append(_skip);
-            }
-            else
-            {
-                if (_skip > 0 && _limit > 0) sb.Insert(0, "SELECT t.* FROM (SELECT rt.*, ROWNUM AS \"__rownum__\" FROM (").Append(") rt WHERE ROWNUM < ").Append(_skip + _limit + 1).Append(") t WHERE t.\"__rownum__\" > ").Append(_skip);
-                else if (_skip > 0) sb.Insert(0, "SELECT t.* FROM (").Append(") t WHERE ROWNUM > ").Append(_skip);
-                else if (_limit > 0) sb.Insert(0, "SELECT t.* FROM (").Append(") t WHERE ROWNUM < ").Append(_limit + 1);
-            }
-
-            sbnav.Clear();
             return sb.ToString();
         }
 

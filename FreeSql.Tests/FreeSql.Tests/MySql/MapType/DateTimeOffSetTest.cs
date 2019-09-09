@@ -13,7 +13,7 @@ namespace FreeSql.Tests.MySqlMapType
 
             [Column(MapType = typeof(DateTime))]
             public DateTimeOffset dtos_to_dt { get; set; }
-            [Column(MapType = typeof(DateTime))]
+            [Column(MapType = typeof(DateTime?))]
             public DateTimeOffset? dtosnullable_to_dt { get; set; }
         }
         [Fact]
@@ -27,7 +27,7 @@ namespace FreeSql.Tests.MySqlMapType
             Assert.NotNull(find);
             Assert.Equal(item.id, find.id);
             Assert.Equal(item.dtos_to_dt.ToString("g"), find.dtos_to_dt.ToString("g"));
-            Assert.Equal(item.dtosnullable_to_dt.Value.ToString("g"), find.dtosnullable_to_dt.Value.ToString("g"));
+            Assert.Equal(item.dtosnullable_to_dt, find.dtosnullable_to_dt);
 
             //update all
             item.dtos_to_dt = DateTimeOffset.Now;
@@ -36,7 +36,7 @@ namespace FreeSql.Tests.MySqlMapType
             Assert.NotNull(find);
             Assert.Equal(item.id, find.id);
             Assert.Equal(item.dtos_to_dt.ToString("g"), find.dtos_to_dt.ToString("g"));
-            Assert.Equal(item.dtosnullable_to_dt.Value.ToString("g"), find.dtosnullable_to_dt.Value.ToString("g"));
+            Assert.Equal(item.dtosnullable_to_dt, find.dtosnullable_to_dt);
 
             item.dtosnullable_to_dt = DateTimeOffset.Now;
             Assert.Equal(1, orm.Update<DateTimeOffSetTestMap>().SetSource(item).ExecuteAffrows());
