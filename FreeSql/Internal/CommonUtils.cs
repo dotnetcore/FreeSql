@@ -363,36 +363,5 @@ namespace FreeSql.Internal
             }
             while (initConns.TryTake(out var conn)) pool.Return(conn);
         }
-
-        public static List<Dictionary<Type, string>> GetAllTableRule(List<SelectTableInfo> _tables, Func<Type, string, string[]> tableRuleInvoke)
-        {
-            var tableRuleSorted = new List<(Type, string[])>();
-            var tableRuleDict = new Dictionary<Type, bool>();
-            foreach(var tb in _tables)
-            {
-                if (tb.Type == SelectTableInfoType.Parent) continue;
-                if (tableRuleDict.ContainsKey(tb.Table.Type)) continue;
-                var names = tableRuleInvoke(tb.Table.Type, tb.Table.DbName);
-                tableRuleSorted.Add((tb.Table.Type, names));
-                tableRuleDict.Add(tb.Table.Type, true);
-            }
-            var tableRules = new List<Dictionary<Type, string>>();
-            tableRules.Add(tableRuleSorted.Select(a => (a.Item1, a.Item2.First())).ToDictionary(a => a.Item1, a => a.Item2));
-            for (var z = tableRuleSorted.Count - 1; z >=0; z--)
-            {
-                var tbrd = tableRuleSorted[z];
-                var curpos = tableRules.Count;
-                for (var a = 1; a < tbrd.Item2.Length; a++)
-                {
-                    for (var b = 0; b < curpos; b++)
-                    {
-                        var tr = new Dictionary<Type, string>();
-                        foreach (var oldtd in tableRules[b]) tr.Add(oldtd.Key, tbrd.Item1 == oldtd.Key ? tbrd.Item2[a] : oldtd.Value);
-                        tableRules.Add(tr);
-                    }
-                }
-            }
-            return tableRules;
-        }
     }
 }

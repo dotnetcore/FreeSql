@@ -810,13 +810,12 @@
         <member name="M:FreeSql.ISelect0`2.AsTable(System.Func{System.Type,System.String,System.String})">
             <summary>
             设置表名规则，可用于分库/分表，参数1：实体类型；参数2：默认表名；返回值：新表名； <para></para>
-            设置后可查询分表后的多个子表记录，以 UNION ALL 形式执行。 <para></para>
+            设置多次，可查询分表后的多个子表记录，以 UNION ALL 形式执行。 <para></para>
             如：select.AsTable((type, oldname) => "table_1").AsTable((type, oldname) => "table_2").AsTable((type, oldname) => "table_3").ToSql(a => a.Id); <para></para>
             select * from (SELECT a."Id" as1 FROM "table_1" a) ftb <para></para>
-            UNION ALL<para></para>
-            select * from (SELECT a."Id" as1 FROM "table_2" a) ftb <para></para>
-            UNION ALL<para></para>
-            select * from (SELECT a."Id" as1 FROM "table_3" a) ftb
+            UNION ALL select * from (SELECT a."Id" as1 FROM "table_2" a) ftb <para></para>
+            UNION ALL select * from (SELECT a."Id" as1 FROM "table_3" a) ftb <para></para>
+            还可以这样：select.AsTable((a, b) => "(select * from tb_topic where clicks > 10)").Page(1, 10).ToList()
             </summary>
             <param name="tableRule"></param>
             <returns></returns>

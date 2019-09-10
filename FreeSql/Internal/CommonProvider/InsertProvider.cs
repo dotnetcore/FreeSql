@@ -552,13 +552,10 @@ namespace FreeSql.Internal.CommonProvider
         {
             if (_tableRule == null) return _table.DbName;
             var newname = _tableRule(_table.DbName);
-            if (!string.IsNullOrEmpty(newname))
-            {
-                if (_orm.CodeFirst.IsSyncStructureToLower) return newname.ToLower();
-                if (_orm.CodeFirst.IsSyncStructureToUpper) return newname.ToUpper();
-                return newname;
-            }
-            return _table.DbName;
+            if (string.IsNullOrEmpty(newname)) return _table.DbName;
+            if (_orm.CodeFirst.IsSyncStructureToLower) newname = newname.ToLower();
+            if (_orm.CodeFirst.IsSyncStructureToUpper) newname = newname.ToUpper();
+            return newname;
         }
         public IInsert<T1> AsTable(Func<string, string> tableRule)
         {

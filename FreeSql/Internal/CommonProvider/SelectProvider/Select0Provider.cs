@@ -906,23 +906,33 @@ namespace FreeSql.Internal.CommonProvider
             return (map, field.ToString());
         }
 
-        protected string[] TableRuleInvoke(Type type, string oldname)
+        protected List<Dictionary<Type, string>> GetTableRuleUnions()
         {
-            List<string> newnames = new List<string>();
-            foreach (var tr in _tableRules)
+            var unions = new List<Dictionary<Type, string>>();
+            var trs = _tableRules.Any() ? _tableRules : new List<Func<Type, string, string>>(new[] { new Func<Type, string, string>((type, oldname) => oldname) });
+            foreach (var tr in trs)
             {
-                var newname = tr?.Invoke(type, oldname);
-                if (!string.IsNullOrEmpty(newname))
+                var dict = new Dictionary<Type, string>();
+                foreach (var tb in _tables)
                 {
-                    if (_orm.CodeFirst.IsSyncStructureToLower) newnames.Add(newname.ToLower());
-                    else if (_orm.CodeFirst.IsSyncStructureToUpper) newnames.Add(newname.ToUpper());
-                    else newnames.Add(newname);
+                    if (tb.Type == SelectTableInfoType.Parent) continue;
+                    if (dict.ContainsKey(tb.Table.Type)) continue;
+                    var name = tr?.Invoke(tb.Table.Type, tb.Table.DbName);
+                    if (string.IsNullOrEmpty(name)) name = tb.Table.DbName;
+                    else
+                    {
+                        if (name.IndexOf(' ') == -1)
+                        {
+                            if (_orm.CodeFirst.IsSyncStructureToLower) name = name.ToLower();
+                            if (_orm.CodeFirst.IsSyncStructureToUpper) name = name.ToUpper();
+                        }
+                    }
+                    dict.Add(tb.Table.Type, name);
                 }
+                unions.Add(dict);
             }
-            if (newnames.Any() == false) return new[] { oldname };
-            return newnames.Distinct().ToArray();
+            return unions;
         }
-
         public TSelect AsTable(Func<Type, string, string> tableRule)
         {
             if (tableRule != null) _tableRules.Add(tableRule);

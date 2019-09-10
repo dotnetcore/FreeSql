@@ -225,16 +225,6 @@
             <param name="asTable">分表规则，参数：旧表名；返回：新表名 https://github.com/2881099/FreeSql/wiki/Repository</param>
             <returns></returns>
         </member>
-        <member name="M:FreeSqlRepositoryExtenssions.FromRepository``2(FreeSql.ISelect{``0},FreeSql.BaseRepository{``1})">
-            <summary>
-            合并两个仓储的设置（过滤+分表），以便查询
-            </summary>
-            <typeparam name="TEntity"></typeparam>
-            <typeparam name="T2"></typeparam>
-            <param name="that"></param>
-            <param name="repos"></param>
-            <returns></returns>
-        </member>
         <member name="M:FreeSqlRepositoryExtenssions.CreateUnitOfWork(IFreeSql)">
             <summary>
             创建基于仓储功能的工作单元，务必使用 using 包含使用

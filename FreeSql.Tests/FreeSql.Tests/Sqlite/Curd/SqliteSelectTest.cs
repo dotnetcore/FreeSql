@@ -775,10 +775,7 @@ namespace FreeSql.Tests.Sqlite
             //reposTopic.Find(Guid.Empty);
             //reposTopic.Update(new Topic { TypeGuid = 1 });
             var sql11 = reposTopic.Select
-
-                .FromRepository(reposType)
                 .From<TestTypeInfo, TestTypeParentInfo>((s, b, c) => s)
-
                 .LeftJoin(a => a.TypeGuid == a.Type.Guid)
                 .ToSql();
 

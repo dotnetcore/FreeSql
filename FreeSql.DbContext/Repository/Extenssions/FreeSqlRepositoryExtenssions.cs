@@ -44,20 +44,20 @@ public static class FreeSqlRepositoryExtenssions
         return new GuidRepository<TEntity>(that, filter, asTable);
     }
 
-    /// <summary>
-    /// 合并两个仓储的设置（过滤+分表），以便查询
-    /// </summary>
-    /// <typeparam name="TEntity"></typeparam>
-    /// <typeparam name="T2"></typeparam>
-    /// <param name="that"></param>
-    /// <param name="repos"></param>
-    /// <returns></returns>
-    public static ISelect<TEntity> FromRepository<TEntity, T2>(this ISelect<TEntity> that, BaseRepository<T2> repos) where TEntity : class where T2 : class
-    {
-        var filters = (repos.DataFilter as DataFilter<T2>)._filters.Where(a => a.Value.IsEnabled == true);
-        foreach (var filter in filters) that.Where<T2>(filter.Value.Expression);
-        return that.AsTable(repos.AsTableSelectInternal);
-    }
+    ///// <summary>
+    ///// 合并两个仓储的设置（过滤+分表），以便查询
+    ///// </summary>
+    ///// <typeparam name="TEntity"></typeparam>
+    ///// <typeparam name="T2"></typeparam>
+    ///// <param name="that"></param>
+    ///// <param name="repos"></param>
+    ///// <returns></returns>
+    //public static ISelect<TEntity> FromRepository<TEntity, T2>(this ISelect<TEntity> that, BaseRepository<T2> repos) where TEntity : class where T2 : class
+    //{
+    //    var filters = (repos.DataFilter as DataFilter<T2>)._filters.Where(a => a.Value.IsEnabled == true);
+    //    foreach (var filter in filters) that.Where<T2>(filter.Value.Expression);
+    //    return that.AsTable(repos.AsTableSelectInternal);
+    //}
 
     /// <summary>
     /// 创建基于仓储功能的工作单元，务必使用 using 包含使用
