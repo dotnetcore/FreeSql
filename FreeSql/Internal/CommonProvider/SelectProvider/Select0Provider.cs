@@ -921,7 +921,7 @@ namespace FreeSql.Internal.CommonProvider
                     if (string.IsNullOrEmpty(name)) name = tb.Table.DbName;
                     else
                     {
-                        if (name.IndexOf(' ') == -1)
+                        if (name.IndexOf(' ') == -1) //还可以这样：select.AsTable((a, b) => "(select * from tb_topic where clicks > 10)").Page(1, 10).ToList()
                         {
                             if (_orm.CodeFirst.IsSyncStructureToLower) name = name.ToLower();
                             if (_orm.CodeFirst.IsSyncStructureToUpper) name = name.ToUpper();
