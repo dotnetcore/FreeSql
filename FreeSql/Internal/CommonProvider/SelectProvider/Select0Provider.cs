@@ -472,6 +472,84 @@ namespace FreeSql.Internal.CommonProvider
 
             return ToListAfPrivateAsync(sql, af, otherData);
         }
+        #region ToChunk
+        internal void ToListAfChunkPrivate(int chunkSize, Action<List<T1>> chunkDone, string sql, GetAllFieldExpressionTreeInfo af, (string field, ReadAnonymousTypeInfo read, List<object> retlist)[] otherData)
+        {
+            var dbParms = _params.ToArray();
+            var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, Aop.CurdType.Select, sql, dbParms);
+            _orm.Aop.CurdBefore?.Invoke(this, before);
+            var ret = new List<T1>();
+            var retCount = 0;
+            Exception exception = null;
+            var checkDoneTimes = 0;
+            try
+            {
+                _orm.Ado.ExecuteReader(_connection, _transaction, dr =>
+                {
+                    ret.Add(af.Read(_orm, dr));
+                    retCount++;
+                    if (otherData != null)
+                    {
+                        var idx = af.FieldCount - 1;
+                        foreach (var other in otherData)
+                            other.retlist.Add(_commonExpression.ReadAnonymous(other.read, dr, ref idx, false));
+                    }
+                    if (chunkSize > 0 && chunkSize == ret.Count)
+                    {
+                        checkDoneTimes++;
+
+                        foreach (var include in _includeToList) include?.Invoke(ret);
+                        _orm.Aop.ToList?.Invoke(this, new Aop.ToListEventArgs(ret));
+                        _trackToList?.Invoke(ret);
+                        chunkDone(ret);
+                        
+
+                        ret.Clear();
+                        if (otherData != null)
+                            foreach (var other in otherData)
+                                other.retlist.Clear();
+                    }
+                }, CommandType.Text, sql, dbParms);
+            }
+            catch (Exception ex)
+            {
+                exception = ex;
+                throw ex;
+            }
+            finally
+            {
+                var after = new Aop.CurdAfterEventArgs(before, exception, retCount);
+                _orm.Aop.CurdAfter?.Invoke(this, after);
+            }
+            if (ret.Any() || checkDoneTimes == 0)
+            {
+                foreach (var include in _includeToList) include?.Invoke(ret);
+                _orm.Aop.ToList?.Invoke(this, new Aop.ToListEventArgs(ret));
+                _trackToList?.Invoke(ret);
+                chunkDone(ret);
+            }
+        }
+        internal void ToListChunkPrivate(int chunkSize, Action<List<T1>> chunkDone, GetAllFieldExpressionTreeInfo af, (string field, ReadAnonymousTypeInfo read, List<object> retlist)[] otherData)
+        {
+            string sql = null;
+            if (otherData?.Length > 0)
+            {
+                var sbField = new StringBuilder().Append(af.Field);
+                foreach (var other in otherData)
+                    sbField.Append(other.field);
+                sql = this.ToSql(sbField.ToString());
+            }
+            else
+                sql = this.ToSql(af.Field);
+
+            ToListAfChunkPrivate(chunkSize, chunkDone, sql, af, otherData);
+        }
+        public void ToChunk(int size, Action<List<T1>> done, bool includeNestedMembers = false)
+        {
+            if (_selectExpression != null) throw new ArgumentException("Chunk 功能之前不可使用 Select");
+            this.ToListChunkPrivate(size, done, includeNestedMembers == false ? this.GetAllFieldExpressionTreeLevel2() : this.GetAllFieldExpressionTreeLevelAll(), null);
+        }
+        #endregion
         public virtual List<T1> ToList(bool includeNestedMembers = false)
         {
             if (_selectExpression != null) return this.InternalToList<T1>(_selectExpression);

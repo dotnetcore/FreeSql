@@ -48,6 +48,12 @@ namespace orm_vs
 
         static void Main(string[] args)
         {
+            var testlist1 = fsql.Select<Song>().OrderBy(a => a.Id).ToList();
+            var testlist2 = new List<Song>();
+            fsql.Select<Song>().OrderBy(a => a.Id).ToChunk(0, list =>
+            {
+                testlist2.AddRange(list);
+            });
 
             fsql.CodeFirst.SyncStructure(typeof(Song), typeof(Song_tag), typeof(Tag));
             //sugar.CodeFirst.InitTables(typeof(Song), typeof(Song_tag), typeof(Tag));
