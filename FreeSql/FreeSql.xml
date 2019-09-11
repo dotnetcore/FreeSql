@@ -61,7 +61,7 @@
         </member>
         <member name="P:FreeSql.DataAnnotations.ColumnAttribute.Position">
             <summary>
-            创建表时字段位置，规则如下：
+            创建表时字段的位置（场景：实体继承后设置字段顺序），规则如下：
             <para></para>
             &gt;0时排前面，1,2,3...
             <para></para>

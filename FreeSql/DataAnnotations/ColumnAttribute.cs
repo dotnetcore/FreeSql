@@ -15,7 +15,8 @@ namespace FreeSql.DataAnnotations
         /// </summary>
         public string OldName { get; set; }
         /// <summary>
-        /// 数据库类型，如： varchar(255)
+        /// 数据库类型，如： varchar(255) <para></para>
+        /// 字符串长度，可使用特性 MaxLength(255)
         /// </summary>
         public string DbType { get; set; }
 
@@ -82,7 +83,7 @@ namespace FreeSql.DataAnnotations
 
         internal short? _Position;
         /// <summary>
-        /// 创建表时字段位置，规则如下：
+        /// 创建表时字段的位置（场景：实体继承后设置字段顺序），规则如下：
         /// <para></para>
         /// &gt;0时排前面，1,2,3...
         /// <para></para>
@@ -91,5 +92,5 @@ namespace FreeSql.DataAnnotations
         /// &lt;0时排后面，...-3,-2,-1
         /// </summary>
         public short Position { get => _Position ?? 0; set => _Position = value; }
-}
+    }
 }

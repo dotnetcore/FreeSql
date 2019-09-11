@@ -181,31 +181,31 @@ namespace FreeSql
                     switch (_entityPropertyConvertType)
                     {
                         case StringConvertType.Lower:
-                            ret.Aop.ConfigEntityProperty = (s, e) =>
+                            ret.Aop.ConfigEntityProperty += (s, e) =>
                             {
                                 e.ModifyResult.Name = e.Property.Name.ToLower();
                             };
                             break;
                         case StringConvertType.Upper:
-                            ret.Aop.ConfigEntityProperty = (s, e) =>
+                            ret.Aop.ConfigEntityProperty += (s, e) =>
                             {
                                 e.ModifyResult.Name = e.Property.Name.ToUpper();
                             };
                             break;
                         case StringConvertType.PascalCaseToUnderscore:
-                            ret.Aop.ConfigEntityProperty = (s, e) =>
+                            ret.Aop.ConfigEntityProperty += (s, e) =>
                             {
                                 e.ModifyResult.Name = StringUtils.PascalCaseToUnderScore(e.Property.Name);
                             };
                             break;
                         case StringConvertType.PascalCaseToUnderscoreWithLower:
-                            ret.Aop.ConfigEntityProperty = (s, e) =>
+                            ret.Aop.ConfigEntityProperty += (s, e) =>
                             {
                                 e.ModifyResult.Name = StringUtils.PascalCaseToUnderScore(e.Property.Name).ToLower();
                             };
                             break;
                         case StringConvertType.PascalCaseToUnderscoreWithUpper:
-                            ret.Aop.ConfigEntityProperty = (s, e) =>
+                            ret.Aop.ConfigEntityProperty += (s, e) =>
                             {
                                 e.ModifyResult.Name = StringUtils.PascalCaseToUnderScore(e.Property.Name).ToUpper();
                             };
@@ -214,6 +214,45 @@ namespace FreeSql
                             break;
                     }
                 }
+                //处理 MaxLength
+                ret.Aop.ConfigEntityProperty += new EventHandler<Aop.ConfigEntityPropertyEventArgs>((s, e) =>
+                {
+                    object[] attrs = null;
+                    try
+                    {
+                        attrs = e.Property.GetCustomAttributes(false).ToArray(); //.net core 反射存在版本冲突问题，导致该方法异常
+                    }
+                    catch { }
+
+                    var maxlenAttr = attrs.Where(a => {
+                        return ((a as Attribute)?.TypeId as Type)?.Name == "MaxLengthAttribute";
+                    }).FirstOrDefault();
+                    if (maxlenAttr != null)
+                    {
+                        var lenProp = maxlenAttr.GetType().GetProperties().Where(a => a.PropertyType.IsNumberType()).FirstOrDefault();
+                        if (lenProp != null && int.TryParse(string.Concat(lenProp.GetValue(maxlenAttr, null)), out var tryval) && tryval > 0)
+                        {
+                            switch (ret.Ado.DataType)
+                            {
+                                case DataType.MySql:
+                                    e.ModifyResult.DbType = $"varchar({tryval})";
+                                    break;
+                                case DataType.SqlServer:
+                                    e.ModifyResult.DbType = $"nvarchar({tryval})";
+                                    break;
+                                case DataType.PostgreSQL:
+                                    e.ModifyResult.DbType = $"varchar({tryval})";
+                                    break;
+                                case DataType.Oracle:
+                                    e.ModifyResult.DbType = $"nvarchar2({tryval})";
+                                    break;
+                                case DataType.Sqlite:
+                                    e.ModifyResult.DbType = $"nvarchar({tryval})";
+                                    break;
+                            }
+                        }
+                    }
+                });
             }
 
             return ret;

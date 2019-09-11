@@ -1,6 +1,7 @@
 ﻿using FreeSql;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 public class UserGroup : BaseEntity<UserGroup, int>
 {
@@ -35,20 +36,24 @@ public class User1 : BaseEntity<User1, Guid>
     /// <summary>
     /// 登陆名
     /// </summary>
+    [MaxLength(32)]
     public string Username { get; set; }
 
     /// <summary>
     /// 昵称
     /// </summary>
+    [MaxLength(64)]
     public string Nickname { get; set; }
 
     /// <summary>
     /// 头像
     /// </summary>
+    [MaxLength(1024)]
     public string Avatar { get; set; }
 
     /// <summary>
     /// 描述
     /// </summary>
+    [MaxLength(4000)]
     public string Description { get; set; }
 }

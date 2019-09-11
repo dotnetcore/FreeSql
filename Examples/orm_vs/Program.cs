@@ -54,7 +54,7 @@ namespace orm_vs
             {
                 testlist2.AddRange(list);
             });
-
+            
             fsql.CodeFirst.SyncStructure(typeof(Song), typeof(Song_tag), typeof(Tag));
             //sugar.CodeFirst.InitTables(typeof(Song), typeof(Song_tag), typeof(Tag));
             //sugar创建表失败：SqlSugar.SqlSugarException: Sequence contains no elements
@@ -76,7 +76,7 @@ namespace orm_vs
             Insert(sb, 1000, 10);
             Console.Write(sb.ToString());
             sb.Clear();
-
+            
             Insert(sb, 1, 1000);
             Console.Write(sb.ToString());
             sb.Clear();
