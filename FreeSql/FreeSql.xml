@@ -16,7 +16,8 @@
         </member>
         <member name="P:FreeSql.DataAnnotations.ColumnAttribute.DbType">
             <summary>
-            数据库类型，如： varchar(255)
+            数据库类型，如： varchar(255) <para></para>
+            字符串长度，可使用特性 MaxLength(255)
             </summary>
         </member>
         <member name="P:FreeSql.DataAnnotations.ColumnAttribute.IsPrimary">
