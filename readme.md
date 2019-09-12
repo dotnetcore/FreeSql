@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://user-images.githubusercontent.com/16286519/64791495-63fa1080-d5aa-11e9-8563-04d55fb54293.png"/>
+  <img height="210" src="https://user-images.githubusercontent.com/16286519/64791495-63fa1080-d5aa-11e9-8563-04d55fb54293.png"/>
 </p>
 
 FreeSql 是一个功能强大的对象关系映射程序(O/RM)，支持 .NETCore 2.1+ 或 .NETFramework 4.5+（QQ群：4336577）
