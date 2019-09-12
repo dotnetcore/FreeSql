@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/16286519/64791495-63fa1080-d5aa-11e9-8563-04d55fb54293.png"/>
+</p>
+
 FreeSql 是一个功能强大的对象关系映射程序(O/RM)，支持 .NETCore 2.1+ 或 .NETFramework 4.5+（QQ群：4336577）
 
 扶摇直上，至强ORM只为自由编码；鹏程万里，至简Linq可使保留黑发；横批：FreeSql（诗人：Coder）
