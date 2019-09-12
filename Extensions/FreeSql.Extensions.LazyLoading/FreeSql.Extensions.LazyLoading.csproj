@@ -12,7 +12,7 @@
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageTags>FreeSql;ORM</PackageTags>
 		<PackageId>$(AssemblyName)</PackageId>
-        <PackageIconUrl>https://github.com/2881099/FreeSql/blob/master/logo.png</PackageIconUrl>
+        <PackageIconUrl>https://github.com/2881099/FreeSql/blob/master/logo.png?raw=true</PackageIconUrl>
 		<Title>$(AssemblyName)</Title>
 		<IsPackable>true</IsPackable>
 		<GenerateAssemblyInfo>true</GenerateAssemblyInfo>

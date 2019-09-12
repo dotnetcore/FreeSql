@@ -11,7 +11,7 @@
 		<RepositoryType>git</RepositoryType>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageId>$(AssemblyName)</PackageId>
-        <PackageIconUrl>https://github.com/2881099/FreeSql/blob/master/logo.png</PackageIconUrl>
+        <PackageIconUrl>https://github.com/2881099/FreeSql/blob/master/logo.png?raw=true</PackageIconUrl>
 		<Title>$(AssemblyName)</Title>
 		<IsPackable>true</IsPackable>
 		<GenerateAssemblyInfo>true</GenerateAssemblyInfo>
