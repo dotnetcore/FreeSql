@@ -1466,7 +1466,8 @@ namespace FreeSql.Internal
         static PropertyInfo PropertyDateTimeTicks = typeof(DateTime).GetProperty("Ticks", BindingFlags.Instance | BindingFlags.Public);
         static ConstructorInfo CtorDateTimeOffsetArgsTicks = typeof(DateTimeOffset).GetConstructor(new[] { typeof(long), typeof(TimeSpan) });
 
-        public static ConcurrentBag<Func<LabelTarget, Expression, string, Expression>> GetDataReaderValueBlockExpressionSwitchTypeFullName = new ConcurrentBag<Func<LabelTarget, Expression, string, Expression>>();
+        public static ConcurrentBag<Func<LabelTarget, Expression, Type, Expression>> GetDataReaderValueBlockExpressionSwitchTypeFullName = new ConcurrentBag<Func<LabelTarget, Expression, Type, Expression>>();
+        public static ConcurrentBag<Func<LabelTarget, Expression, Expression, Type, Expression>> GetDataReaderValueBlockExpressionObjectToStringIfThenElse = new ConcurrentBag<Func<LabelTarget, Expression, Expression, Type, Expression>>();
         public static Expression GetDataReaderValueBlockExpression(Type type, Expression value)
         {
             var returnTarget = Expression.Label(typeof(object));
@@ -1728,11 +1729,14 @@ namespace FreeSql.Internal
                     default:
                         foreach (var switchFunc in GetDataReaderValueBlockExpressionSwitchTypeFullName)
                         {
-                            var switchFuncRet = switchFunc(returnTarget, valueExp, type.FullName);
+                            var switchFuncRet = switchFunc(returnTarget, valueExp, type);
                             if (switchFuncRet != null) return switchFuncRet;
                         }
                         break;
                 }
+                Expression callToStringExp = Expression.Return(returnTarget, Expression.Convert(Expression.Call(MethodToString, valueExp), typeof(object)));
+                foreach (var toStringFunc in GetDataReaderValueBlockExpressionObjectToStringIfThenElse)
+                    callToStringExp = toStringFunc(returnTarget, valueExp, callToStringExp, type);
                 Expression switchExp = null;
                 if (tryparseExp != null)
                     switchExp = Expression.Switch(
@@ -1753,12 +1757,12 @@ namespace FreeSql.Internal
                         Expression.SwitchCase(Expression.Return(returnTarget, Expression.Call(MethodConvertChangeType, valueExp, Expression.Constant(type, typeof(Type)))), Expression.Constant(type))
                     );
                 else if (type == typeof(string))
-                    switchExp = Expression.Return(returnTarget, Expression.Convert(Expression.Call(MethodToString, valueExp), typeof(object)));
+                    switchExp = callToStringExp;
                 else
                     switchExp = Expression.Return(returnTarget, Expression.Call(MethodConvertChangeType, valueExp, Expression.Constant(type, typeof(Type))));
 
                 var defaultRetExp = type == typeof(string) ?
-                    Expression.Return(returnTarget, Expression.Convert(Expression.Call(MethodToString, valueExp), typeof(object))) :
+                    callToStringExp :
                     Expression.Return(returnTarget, Expression.Call(MethodConvertChangeType, valueExp, Expression.Constant(type, typeof(Type))));
                 
                 return Expression.IfThenElse(

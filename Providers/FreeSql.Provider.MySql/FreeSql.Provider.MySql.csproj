@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net452</TargetFrameworks>
-		<Version>0.9.12</Version>
+		<Version>0.9.15</Version>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>YeXiangQin</Authors>
 		<Description>FreeSql 数据库实现，基于 MySql 5.6</Description>
@@ -12,6 +12,7 @@
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageTags>FreeSql;ORM</PackageTags>
 		<PackageId>$(AssemblyName)</PackageId>
+        <PackageIconUrl>https://github.com/2881099/FreeSql/blob/master/logo.png</PackageIconUrl>
 		<Title>$(AssemblyName)</Title>
 		<IsPackable>true</IsPackable>
 		<GenerateAssemblyInfo>true</GenerateAssemblyInfo>

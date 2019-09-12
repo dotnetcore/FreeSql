@@ -292,7 +292,7 @@ namespace FreeSql.SqlServer
                     case "Equals": return $"({left} = {getExp(exp.Arguments[0])})";
                 }
             }
-            throw new Exception($"SqlServerExpression 未实现函数表达式 {exp} 解析");
+            return null;
         }
         public override string ExpressionLambdaToSqlCallMath(MethodCallExpression exp, ExpTSC tsc)
         {
@@ -320,7 +320,7 @@ namespace FreeSql.SqlServer
                 case "Atan2": return $"atan2({getExp(exp.Arguments[0])}, {getExp(exp.Arguments[1])})";
                 case "Truncate": return $"floor({getExp(exp.Arguments[0])})";
             }
-            throw new Exception($"SqlServerExpression 未实现函数表达式 {exp} 解析");
+            return null;
         }
         public override string ExpressionLambdaToSqlCallDateTime(MethodCallExpression exp, ExpTSC tsc)
         {
@@ -370,7 +370,7 @@ namespace FreeSql.SqlServer
                     case "ToString": return $"convert(varchar, {left}, 121)";
                 }
             }
-            throw new Exception($"SqlServerExpression 未实现函数表达式 {exp} 解析");
+            return null;
         }
         public override string ExpressionLambdaToSqlCallTimeSpan(MethodCallExpression exp, ExpTSC tsc)
         {
@@ -406,7 +406,7 @@ namespace FreeSql.SqlServer
                     case "ToString": return $"cast({left} as varchar)";
                 }
             }
-            throw new Exception($"SqlServerExpression 未实现函数表达式 {exp} 解析");
+            return null;
         }
         public override string ExpressionLambdaToSqlCallConvert(MethodCallExpression exp, ExpTSC tsc)
         {
@@ -432,7 +432,7 @@ namespace FreeSql.SqlServer
                     case "ToUInt64": return $"cast({getExp(exp.Arguments[0])} as bigint)";
                 }
             }
-            throw new Exception($"SqlServerExpression 未实现函数表达式 {exp} 解析");
+            return null;
         }
     }
 }

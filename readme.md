@@ -55,6 +55,8 @@ FreeSql 是一个功能强大的对象关系映射程序(O/RM)，支持 .NETCore
 | FreeSql.Provider.Sqlite | NETStandard2.0、net45 |
 | FreeSql.Provider.Oracle | NETStandard2.0、net45 |
 | FreeSql.Extensions.LazyLoading | NETStandard2.0、net45 |
+| FreeSql.Extensions.JsonMap | NETStandard2.0、net45 |
+| FreeSql.Extensions.BaseEntity | NETStandard2.0 |
 
 # Quick start
 

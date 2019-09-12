@@ -310,7 +310,7 @@ namespace FreeSql.MySql
                     case "Equals": return $"({left} = {getExp(exp.Arguments[0])})";
                 }
             }
-            throw new Exception($"MySqlExpression 未实现函数表达式 {exp} 解析");
+            return null;
         }
         public override string ExpressionLambdaToSqlCallMath(MethodCallExpression exp, ExpTSC tsc)
         {
@@ -338,7 +338,7 @@ namespace FreeSql.MySql
                 case "Atan2": return $"atan2({getExp(exp.Arguments[0])}, {getExp(exp.Arguments[1])})";
                 case "Truncate": return $"truncate({getExp(exp.Arguments[0])}, 0)";
             }
-            throw new Exception($"MySqlExpression 未实现函数表达式 {exp} 解析");
+            return null;
         }
         public override string ExpressionLambdaToSqlCallDateTime(MethodCallExpression exp, ExpTSC tsc)
         {
@@ -388,7 +388,7 @@ namespace FreeSql.MySql
                     case "ToString": return $"date_format({left}, '%Y-%m-%d %H:%i:%s.%f')";
                 }
             }
-            throw new Exception($"MySqlExpression 未实现函数表达式 {exp} 解析");
+            return null;
         }
         public override string ExpressionLambdaToSqlCallTimeSpan(MethodCallExpression exp, ExpTSC tsc)
         {
@@ -424,7 +424,7 @@ namespace FreeSql.MySql
                     case "ToString": return $"cast({left} as char)";
                 }
             }
-            throw new Exception($"MySqlExpression 未实现函数表达式 {exp} 解析");
+            return null;
         }
         public override string ExpressionLambdaToSqlCallConvert(MethodCallExpression exp, ExpTSC tsc)
         {
@@ -450,7 +450,7 @@ namespace FreeSql.MySql
                     case "ToUInt64": return $"cast({getExp(exp.Arguments[0])} as unsigned)";
                 }
             }
-            throw new Exception($"MySqlExpression 未实现函数表达式 {exp} 解析");
+            return null;
         }
     }
 }

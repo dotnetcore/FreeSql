@@ -5,7 +5,7 @@
 		<Version>0.9.15</Version>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>YeXiangQin</Authors>
-		<Description>FreeSql 数据库实现，基于 Sqlite 3.0</Description>
+		<Description>FreeSql 扩展包，可实现实体类属性为对象时，以JSON形式映射存储.</Description>
 		<PackageProjectUrl>https://github.com/2881099/FreeSql</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/2881099/FreeSql</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
@@ -19,7 +19,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="System.Data.SQLite.Core" Version="1.0.110" />
+	  <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
 	</ItemGroup>
 
 	<ItemGroup>

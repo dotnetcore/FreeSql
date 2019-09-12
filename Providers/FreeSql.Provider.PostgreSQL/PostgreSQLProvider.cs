@@ -51,9 +51,9 @@ namespace FreeSql.PostgreSQL
             var MethodJTokenParse = typeof(JToken).GetMethod("Parse", new[] { typeof(string) });
             var MethodJObjectParse = typeof(JObject).GetMethod("Parse", new[] { typeof(string) });
             var MethodJArrayParse = typeof(JArray).GetMethod("Parse", new[] { typeof(string) });
-            Utils.GetDataReaderValueBlockExpressionSwitchTypeFullName.Add((LabelTarget returnTarget, Expression valueExp, string typeFullName) =>
+            Utils.GetDataReaderValueBlockExpressionSwitchTypeFullName.Add((LabelTarget returnTarget, Expression valueExp, Type type) =>
             {
-                switch (typeFullName)
+                switch (type.FullName)
                 {
                     case "Newtonsoft.Json.Linq.JToken": return Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodJTokenParse, Expression.Convert(valueExp, typeof(string))), typeof(JToken)));
                     case "Newtonsoft.Json.Linq.JObject": return Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodJObjectParse, Expression.Convert(valueExp, typeof(string))), typeof(JObject)));

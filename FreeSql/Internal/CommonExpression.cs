@@ -535,14 +535,16 @@ namespace FreeSql.Internal
                     tsc.mapType = null;
                     var exp3 = exp as MethodCallExpression;
                     var callType = exp3.Object?.Type ?? exp3.Method.DeclaringType;
+                    string other3Exp = null;
                     switch (callType.FullName)
                     {
-                        case "System.String": return ExpressionLambdaToSqlCallString(exp3, tsc);
-                        case "System.Math": return ExpressionLambdaToSqlCallMath(exp3, tsc);
-                        case "System.DateTime": return ExpressionLambdaToSqlCallDateTime(exp3, tsc);
-                        case "System.TimeSpan": return ExpressionLambdaToSqlCallTimeSpan(exp3, tsc);
-                        case "System.Convert": return ExpressionLambdaToSqlCallConvert(exp3, tsc);
+                        case "System.String": other3Exp = ExpressionLambdaToSqlCallString(exp3, tsc); break;
+                        case "System.Math": other3Exp = ExpressionLambdaToSqlCallMath(exp3, tsc); break;
+                        case "System.DateTime": other3Exp = ExpressionLambdaToSqlCallDateTime(exp3, tsc); break;
+                        case "System.TimeSpan": other3Exp = ExpressionLambdaToSqlCallTimeSpan(exp3, tsc); break;
+                        case "System.Convert": other3Exp = ExpressionLambdaToSqlCallConvert(exp3, tsc); break;
                     }
+                    if (string.IsNullOrEmpty(other3Exp) == false) return other3Exp;
                     if (exp3.Method.Name == "Equals" && exp3.Object != null && exp3.Arguments.Count > 0)
                         return ExpressionBinary("=", exp3.Object, exp3.Arguments[0], tsc);
                     if (callType.FullName.StartsWith("FreeSql.ISelectGroupingAggregate`"))
@@ -849,7 +851,7 @@ namespace FreeSql.Internal
 
                     //	}
                     //}
-                    var other3Exp = ExpressionLambdaToSqlOther(exp3, tsc);
+                    other3Exp = ExpressionLambdaToSqlOther(exp3, tsc);
                     if (string.IsNullOrEmpty(other3Exp) == false) return other3Exp;
                     if (exp3.IsParameter() == false) return formatSql(Expression.Lambda(exp3).Compile().DynamicInvoke(), tsc.mapType);
                     throw new Exception($"未实现函数表达式 {exp3} 解析");

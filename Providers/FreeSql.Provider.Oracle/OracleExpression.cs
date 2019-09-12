@@ -310,7 +310,7 @@ namespace FreeSql.Oracle
                     case "Equals": return $"({left} = {getExp(exp.Arguments[0])})";
                 }
             }
-            throw new Exception($"OracleExpression 未实现函数表达式 {exp} 解析");
+            return null;
         }
         public override string ExpressionLambdaToSqlCallMath(MethodCallExpression exp, ExpTSC tsc)
         {
@@ -340,7 +340,7 @@ namespace FreeSql.Oracle
                 //case "Atan2": return $"atan2({getExp(exp.Arguments[0])}, {getExp(exp.Arguments[1])})";
                 case "Truncate": return $"trunc({getExp(exp.Arguments[0])}, 0)";
             }
-            throw new Exception($"OracleExpression 未实现函数表达式 {exp} 解析");
+            return null;
         }
         public override string ExpressionLambdaToSqlCallDateTime(MethodCallExpression exp, ExpTSC tsc)
         {
@@ -390,7 +390,7 @@ namespace FreeSql.Oracle
                     case "ToString": return $"to_char({left},'YYYY-MM-DD HH24:MI:SS.FF6')";
                 }
             }
-            throw new Exception($"OracleExpression 未实现函数表达式 {exp} 解析");
+            return null;
         }
         public override string ExpressionLambdaToSqlCallTimeSpan(MethodCallExpression exp, ExpTSC tsc)
         {
@@ -426,7 +426,7 @@ namespace FreeSql.Oracle
                     case "ToString": return $"to_char({left})";
                 }
             }
-            throw new Exception($"OracleExpression 未实现函数表达式 {exp} 解析");
+            return null;
         }
         public override string ExpressionLambdaToSqlCallConvert(MethodCallExpression exp, ExpTSC tsc)
         {
@@ -452,7 +452,7 @@ namespace FreeSql.Oracle
                     case "ToUInt64": return $"cast({getExp(exp.Arguments[0])} as number)";
                 }
             }
-            throw new Exception($"OracleExpression 未实现函数表达式 {exp} 解析");
+            return null;
         }
     }
 }

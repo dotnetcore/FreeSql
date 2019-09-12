@@ -406,6 +406,9 @@ namespace FreeSql.Tests
         [Fact]
         public void Test1()
         {
+
+            var testssargs1 = "10100";
+            var testformatsql1 = g.mysql.Select<TaskBuild>().Where(a => a.NamespaceName == $"1_{10100}").ToSql();
             var testorderbysql = g.mysql.Select<TaskBuild>().OrderByDescending(a => a.OptionsEntity04 + (a.score ?? 0)).ToSql();
 
             var testincludeMemberssql1 = g.sqlite.Select<TaskBuild>().Where(a => a.Templates.Title == "1").ToList();

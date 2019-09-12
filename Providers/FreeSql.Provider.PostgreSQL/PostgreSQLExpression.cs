@@ -421,7 +421,7 @@ namespace FreeSql.PostgreSQL
                     case "Equals": return $"({left} = ({getExp(exp.Arguments[0])})::varchar)";
                 }
             }
-            throw new Exception($"PostgreSQLExpression 未实现函数表达式 {exp} 解析");
+            return null;
         }
         public override string ExpressionLambdaToSqlCallMath(MethodCallExpression exp, ExpTSC tsc)
         {
@@ -449,7 +449,7 @@ namespace FreeSql.PostgreSQL
                 case "Atan2": return $"atan2({getExp(exp.Arguments[0])}, {getExp(exp.Arguments[1])})";
                 case "Truncate": return $"trunc({getExp(exp.Arguments[0])}, 0)";
             }
-            throw new Exception($"PostgreSQLExpression 未实现函数表达式 {exp} 解析");
+            return null;
         }
         public override string ExpressionLambdaToSqlCallDateTime(MethodCallExpression exp, ExpTSC tsc)
         {
@@ -499,7 +499,7 @@ namespace FreeSql.PostgreSQL
                     case "ToString": return $"to_char({left}, 'YYYY-MM-DD HH24:MI:SS.US')";
                 }
             }
-            throw new Exception($"PostgreSQLExpression 未实现函数表达式 {exp} 解析");
+            return null;
         }
         public override string ExpressionLambdaToSqlCallTimeSpan(MethodCallExpression exp, ExpTSC tsc)
         {
@@ -535,7 +535,7 @@ namespace FreeSql.PostgreSQL
                     case "ToString": return $"({left})::varchar";
                 }
             }
-            throw new Exception($"PostgreSQLExpression 未实现函数表达式 {exp} 解析");
+            return null;
         }
         public override string ExpressionLambdaToSqlCallConvert(MethodCallExpression exp, ExpTSC tsc)
         {
@@ -561,7 +561,7 @@ namespace FreeSql.PostgreSQL
                     case "ToUInt64": return $"({getExp(exp.Arguments[0])})::int8";
                 }
             }
-            throw new Exception($"PostgreSQLExpression 未实现函数表达式 {exp} 解析");
+            return null;
         }
     }
 }

@@ -77,7 +77,9 @@ namespace FreeSql.DataAnnotations
         public object DbDefautValue { get; internal set; }
 
         /// <summary>
-        /// 类型映射，比如：可将 enum 属性映射成 typeof(string)
+        /// 类型映射，除了可做基本的类型映射外，特别介绍的功能：<para></para>
+        /// 1、将 enum 属性映射成 typeof(string)<para></para>
+        /// 2、将 对象 属性映射成 typeof(string)，请安装扩展包 FreeSql.Extensions.JsonMap
         /// </summary>
         public Type MapType { get; set; }
 

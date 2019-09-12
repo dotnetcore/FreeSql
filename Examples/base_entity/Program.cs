@@ -1,17 +1,48 @@
 ﻿using FreeSql;
+using FreeSql.DataAnnotations;
+using FreeSql.Extensions;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 namespace base_entity
 {
     class Program
     {
+        class TestConfig
+        {
+            public int clicks { get; set; }
+            public string title { get; set; }
+        }
+        [Table(Name = "sysconfig")]
+        public class S_SysConfig<T> : BaseEntity<S_SysConfig<T>>
+        {
+            [Column(IsPrimary = true)]
+            public string Name { get; set; }
+
+            [JsonMap]
+            public T Config { get; set; }
+        }
+
         static void Main(string[] args)
         {
+            #region 初始化 IFreeSql
             BaseEntity.Initialization(new FreeSql.FreeSqlBuilder()
                 .UseAutoSyncStructure(true)
+                .UseNoneCommandParameter(true)
                 .UseConnectionString(FreeSql.DataType.Sqlite, "data source=test.db;max pool size=5")
+                .UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=2")
                 .Build());
+            #endregion
+
+            BaseEntity.Orm.UseJsonMap();
+
+            new S_SysConfig<TestConfig> { Name = "testkey11", Config = new TestConfig { clicks = 11, title = "testtitle11" } }.Save();
+            new S_SysConfig<TestConfig> { Name = "testkey22", Config = new TestConfig { clicks = 22, title = "testtitle22" } }.Save();
+            new S_SysConfig<TestConfig> { Name = "testkey33", Config = new TestConfig { clicks = 33, title = "testtitle33" } }.Save();
+            var testconfigs11 = S_SysConfig<TestConfig>.Select.ToList();
 
             Task.Run(async () =>
             {

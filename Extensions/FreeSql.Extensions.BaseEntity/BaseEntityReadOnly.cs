@@ -43,7 +43,7 @@ namespace FreeSql
         /// 创建时间
         /// </summary>
         [Column(Position = -4)]
-        public DateTime CreateTime { get; set; }
+        public DateTime CreateTime { get; set; } = DateTime.Now;
         /// <summary>
         /// 更新时间
         /// </summary>
