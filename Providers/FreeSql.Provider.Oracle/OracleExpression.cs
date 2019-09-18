@@ -83,7 +83,7 @@ namespace FreeSql.Oracle
                             if (callExp.Method.DeclaringType.IsNumberType()) return "dbms_random.value";
                             break;
                         case "ToString":
-                            if (callExp.Object != null) return $"to_char({getExp(callExp.Object)})";
+                            if (callExp.Object != null) return callExp.Arguments.Count == 0 ? $"to_char({getExp(callExp.Object)})" : null;
                             break;
                     }
 
@@ -387,7 +387,7 @@ namespace FreeSql.Oracle
                         break;
                     case "Equals": return $"({left} = {getExp(exp.Arguments[0])})";
                     case "CompareTo": return $"extract(day from ({left}-({getExp(exp.Arguments[0])})))";
-                    case "ToString": return $"to_char({left},'YYYY-MM-DD HH24:MI:SS.FF6')";
+                    case "ToString": return exp.Arguments.Count == 0 ? $"to_char({left},'YYYY-MM-DD HH24:MI:SS.FF6')" : null;
                 }
             }
             return null;

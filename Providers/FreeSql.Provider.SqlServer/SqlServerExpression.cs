@@ -87,7 +87,7 @@ namespace FreeSql.SqlServer
                             if (callExp.Method.DeclaringType.IsNumberType()) return "rand()";
                             break;
                         case "ToString":
-                            if (callExp.Object != null) return callExp.Object.Type.NullableTypeOrThis() == typeof(Guid) ? $"cast({getExp(callExp.Object)} as varchar(36))" : $"cast({getExp(callExp.Object)} as nvarchar)";
+                            if (callExp.Object != null) return callExp.Arguments.Count == 0 ? (callExp.Object.Type.NullableTypeOrThis() == typeof(Guid) ? $"cast({getExp(callExp.Object)} as varchar(36))" : $"cast({getExp(callExp.Object)} as nvarchar)") : null;
                             break;
                     }
 
@@ -367,7 +367,7 @@ namespace FreeSql.SqlServer
                         break;
                     case "Equals": return $"({left} = {getExp(exp.Arguments[0])})";
                     case "CompareTo": return $"datediff(second,{getExp(exp.Arguments[0])},{left})";
-                    case "ToString": return $"convert(varchar, {left}, 121)";
+                    case "ToString": return exp.Arguments.Count == 0 ? $"convert(varchar, {left}, 121)" : null;
                 }
             }
             return null;

@@ -21,6 +21,12 @@ namespace FreeSql
         /// <param name="entity"></param>
         void Attach(TEntity entity);
         void Attach(IEnumerable<TEntity> entity);
+        /// <summary>
+        /// 附加实体，并且只附加主键值，可用于不更新属性值为null或默认值的字段
+        /// </summary>
+        /// <param name="data"></param>
+        IBasicRepository<TEntity> AttachOnlyPrimary(TEntity data);
+
         int Update(TEntity entity);
         int Update(IEnumerable<TEntity> entitys);
         Task<int> UpdateAsync(TEntity entity);

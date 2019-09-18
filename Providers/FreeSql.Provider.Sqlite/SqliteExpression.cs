@@ -83,7 +83,7 @@ namespace FreeSql.Sqlite
                             if (callExp.Method.DeclaringType.IsNumberType()) return "random()";
                             break;
                         case "ToString":
-                            if (callExp.Object != null) return $"cast({getExp(callExp.Object)} as character)";
+                            if (callExp.Object != null) return callExp.Arguments.Count == 0 ? $"cast({getExp(callExp.Object)} as character)" : null;
                             break;
                     }
 
@@ -389,7 +389,7 @@ namespace FreeSql.Sqlite
                         break;
                     case "Equals": return $"({left} = {getExp(exp.Arguments[0])})";
                     case "CompareTo": return $"(strftime('%s',{left})-strftime('%s',{args1}))";
-                    case "ToString": return $"strftime('%Y-%m-%d %H:%M.%f',{left})";
+                    case "ToString": return exp.Arguments.Count == 0 ? $"strftime('%Y-%m-%d %H:%M.%f',{left})" : null;
                 }
             }
             return null;

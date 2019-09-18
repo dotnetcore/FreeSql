@@ -39,6 +39,13 @@
             <typeparam name="TEntity"></typeparam>
             <param name="data"></param>
         </member>
+        <member name="M:FreeSql.DbContext.AttachOnlyPrimary``1(``0)">
+            <summary>
+            附加实体，并且只附加主键值，可用于不更新属性值为null或默认值的字段
+            </summary>
+            <typeparam name="TEntity"></typeparam>
+            <param name="data"></param>
+        </member>
         <member name="P:FreeSql.DbContextOptions.EnableAddOrUpdateNavigateList">
             <summary>
             是否开启一对多，联级保存功能
@@ -54,6 +61,12 @@
         <member name="M:FreeSql.DbSet`1.Attach(`0)">
             <summary>
             附加实体，可用于不查询就更新或删除
+            </summary>
+            <param name="data"></param>
+        </member>
+        <member name="M:FreeSql.DbSet`1.AttachOnlyPrimary(`0)">
+            <summary>
+            附加实体，并且只附加主键值，可用于不更新属性值为null或默认值的字段
             </summary>
             <param name="data"></param>
         </member>
@@ -155,6 +168,12 @@
             附加实体，可用于不查询就更新或删除
             </summary>
             <param name="entity"></param>
+        </member>
+        <member name="M:FreeSql.IBasicRepository`1.AttachOnlyPrimary(`0)">
+            <summary>
+            附加实体，并且只附加主键值，可用于不更新属性值为null或默认值的字段
+            </summary>
+            <param name="data"></param>
         </member>
         <member name="P:FreeSql.IUnitOfWork.Enable">
             <summary>

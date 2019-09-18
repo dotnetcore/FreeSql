@@ -129,6 +129,17 @@ namespace FreeSql
         /// <param name="data"></param>
         public void Attach<TEntity>(TEntity data) where TEntity : class => this.Set<TEntity>().Attach(data);
         public void AttachRange<TEntity>(IEnumerable<TEntity> data) where TEntity : class => this.Set<TEntity>().AttachRange(data);
+
+        /// <summary>
+        /// 附加实体，并且只附加主键值，可用于不更新属性值为null或默认值的字段
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <param name="data"></param>
+        public DbContext AttachOnlyPrimary<TEntity>(TEntity data) where TEntity : class
+        {
+            this.Set<TEntity>().AttachOnlyPrimary(data);
+            return this;
+        }
         #endregion
 
         #region Queue Action

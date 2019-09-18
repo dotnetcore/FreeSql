@@ -88,7 +88,7 @@ namespace FreeSql.PostgreSQL
                             if (callExp.Method.DeclaringType.IsNumberType()) return "random()";
                             break;
                         case "ToString":
-                            if (callExp.Object != null) return $"({getExp(callExp.Object)})::varchar";
+                            if (callExp.Object != null) return callExp.Arguments.Count == 0 ? $"({getExp(callExp.Object)})::varchar" : null;
                             break;
                     }
 
@@ -496,7 +496,7 @@ namespace FreeSql.PostgreSQL
                         break;
                     case "Equals": return $"({left} = ({getExp(exp.Arguments[0])})::timestamp)";
                     case "CompareTo": return $"extract(epoch from ({left})::timestamp-({getExp(exp.Arguments[0])})::timestamp)";
-                    case "ToString": return $"to_char({left}, 'YYYY-MM-DD HH24:MI:SS.US')";
+                    case "ToString": return exp.Arguments.Count == 0 ? $"to_char({left}, 'YYYY-MM-DD HH24:MI:SS.US')" : null;
                 }
             }
             return null;

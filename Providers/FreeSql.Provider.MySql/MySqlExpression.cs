@@ -83,7 +83,7 @@ namespace FreeSql.MySql
                             if (callExp.Method.DeclaringType.IsNumberType()) return "rand()";
                             break;
                         case "ToString":
-                            if (callExp.Object != null) return $"cast({getExp(callExp.Object)} as char)";
+                            if (callExp.Object != null) return callExp.Arguments.Count == 0 ? $"cast({getExp(callExp.Object)} as char)" : null;
                             break;
                     }
 
@@ -385,7 +385,7 @@ namespace FreeSql.MySql
                         break;
                     case "Equals": return $"({left} = {getExp(exp.Arguments[0])})";
                     case "CompareTo": return $"timestampdiff(microsecond,{args1},{left})";
-                    case "ToString": return $"date_format({left}, '%Y-%m-%d %H:%i:%s.%f')";
+                    case "ToString": return exp.Arguments.Count == 0 ? $"date_format({left}, '%Y-%m-%d %H:%i:%s.%f')" : null;
                 }
             }
             return null;

@@ -163,6 +163,23 @@ namespace FreeSql
             }
         }
         /// <summary>
+        /// 附加实体，并且只附加主键值，可用于不更新属性值为null或默认值的字段
+        /// </summary>
+        /// <param name="data"></param>
+        public DbSet<TEntity> AttachOnlyPrimary(TEntity data)
+        {
+            if (data == null) return this;
+            var pkitem = (TEntity)Activator.CreateInstance(_entityType);
+            foreach (var pk in _db.Orm.CodeFirst.GetTableByEntity(_entityType).Primarys)
+            {
+                var colVal = _db.Orm.GetEntityValueWithPropertyName(_entityType, data, pk.CsName);
+                _db.Orm.SetEntityValueWithPropertyName(_entityType, pkitem, pk.CsName, colVal);
+            }
+            this.Attach(pkitem);
+            return this;
+        }
+
+        /// <summary>
         /// 清空状态数据
         /// </summary>
         public void FlushState()

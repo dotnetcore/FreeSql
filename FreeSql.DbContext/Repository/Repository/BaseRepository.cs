@@ -140,6 +140,11 @@ namespace FreeSql
 
         public void Attach(TEntity data) => _db.Attach(data);
         public void Attach(IEnumerable<TEntity> data) => _db.AttachRange(data);
+        public IBasicRepository<TEntity> AttachOnlyPrimary(TEntity data)
+        {
+            _db.AttachOnlyPrimary(data);
+            return this;
+        }
         public void FlushState() => _dbset.FlushState();
 
         public TEntity InsertOrUpdate(TEntity entity)

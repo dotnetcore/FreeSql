@@ -37,8 +37,12 @@ namespace FreeSql.Tests
             repos.Attach(item);
 
             item.Title = "xxx";
-            repos.Update(item);
+            repos.Update(item); //这行执行 UPDATE "AddUpdateInfo" SET "Title" = 'xxx' WHERE("Id" = '1942fb53-9700-411d-8895-ce4cecdf3257')
             Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(item));
+
+            repos.Update(item); //这行不执行 SQL，未变化
+
+            repos.AttachOnlyPrimary(item).Update(item); //这行更新状态值，只有主键值存在，执行更新 set title = xxx
 
             Console.WriteLine(repos.UpdateDiy.Where(a => a.Id == item.Id).Set(a => a.Clicks + 1).ToSql());
             repos.UpdateDiy.Where(a => a.Id == item.Id).Set(a => a.Clicks + 1).ExecuteAffrows();

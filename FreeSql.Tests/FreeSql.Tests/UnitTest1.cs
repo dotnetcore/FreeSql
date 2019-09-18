@@ -22,7 +22,7 @@ namespace FreeSql.Tests
     {
         public static T TryTo<T>(this string that)
         {
-            return default(T);
+            return (T)Internal.Utils.GetDataReaderValue(typeof(T), that);
         }
 
         public static string FormatDateTime()
@@ -406,6 +406,12 @@ namespace FreeSql.Tests
         [Fact]
         public void Test1()
         {
+
+            var testrunsql1 =  g.mysql.Select<TaskBuild>().Where(a => a.OptionsEntity04 > DateTime.Now.AddDays(0).ToString("yyyyMMdd").TryTo<int>()).ToSql();
+            var testrunsql2 = g.pgsql.Select<TaskBuild>().Where(a => a.OptionsEntity04 > DateTime.Now.AddDays(0).ToString("yyyyMMdd").TryTo<int>()).ToSql();
+            var testrunsql3 = g.sqlserver.Select<TaskBuild>().Where(a => a.OptionsEntity04 > DateTime.Now.AddDays(0).ToString("yyyyMMdd").TryTo<int>()).ToSql();
+            var testrunsql4 = g.oracle.Select<TaskBuild>().Where(a => a.OptionsEntity04 > DateTime.Now.AddDays(0).ToString("yyyyMMdd").TryTo<int>()).ToSql();
+            var testrunsql5 = g.sqlite.Select<TaskBuild>().Where(a => a.OptionsEntity04 > DateTime.Now.AddDays(0).ToString("yyyyMMdd").TryTo<int>()).ToSql();
 
             var testssargs1 = "10100";
             var testformatsql1 = g.mysql.Select<TaskBuild>().Where(a => a.NamespaceName == $"1_{10100}").ToSql();
