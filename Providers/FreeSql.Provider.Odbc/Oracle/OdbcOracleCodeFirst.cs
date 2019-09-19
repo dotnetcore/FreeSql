@@ -38,6 +38,7 @@ namespace FreeSql.Odbc.Oracle
                 { typeof(float).FullName,  (OdbcType.Real, "float","float(63) NOT NULL", false, false, 0) },{ typeof(float?).FullName,  (OdbcType.Real, "float","float(63) NULL", false, true, null) },
                 { typeof(decimal).FullName,  (OdbcType.Decimal, "number", "number(10,2) NOT NULL", false, false, 0) },{ typeof(decimal?).FullName,  (OdbcType.Decimal, "number", "number(10,2) NULL", false, true, null) },
 
+                //oracle odbc driver 不支持 TimeSpan 类型的读取
                 //{ typeof(TimeSpan).FullName,  (OdbcType.Time, "interval day to second","interval day(2) to second(6) NOT NULL", false, false, 0) },{ typeof(TimeSpan?).FullName,  (OdbcType.Time, "interval day to second", "interval day(2) to second(6) NULL",false, true, null) },
                 { typeof(DateTime).FullName,  (OdbcType.DateTime, "timestamp", "timestamp(6) NOT NULL", false, false, new DateTime(1970,1,1)) },{ typeof(DateTime?).FullName,  (OdbcType.DateTime, "timestamp", "timestamp(6) NULL", false, true, null) },
                 { typeof(DateTimeOffset).FullName,  (OdbcType.DateTime, "timestamp with local time zone", "timestamp(6) with local time zone NOT NULL", false, false, new DateTime(1970,1,1)) },{ typeof(DateTimeOffset?).FullName,  (OdbcType.DateTime, "timestamp with local time zone", "timestamp(6) with local time zone NULL", false, true, null) },
