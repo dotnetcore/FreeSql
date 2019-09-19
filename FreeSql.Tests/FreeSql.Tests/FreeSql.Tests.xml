@@ -9,31 +9,6 @@
             保存或添加，如果主键有值则尝试 Update，如果影响的行为 0 则尝试 Insert
             </summary>
         </member>
-        <member name="P:FreeSql.Tests.FaceFeatEntity.UesrId">
-            <summary>
-            用户Id
-            </summary>
-        </member>
-        <member name="P:FreeSql.Tests.FaceFeatEntity.FaceId">
-            <summary>
-            人脸Id
-            </summary>
-        </member>
-        <member name="P:FreeSql.Tests.FaceFeatEntity.CreateTime">
-            <summary>
-            创建时间
-            </summary>
-        </member>
-        <member name="P:FreeSql.Tests.FaceFeatEntity.FaceFeat">
-            <summary>
-            创建时间
-            </summary>
-        </member>
-        <member name="P:FreeSql.Tests.FaceFeatEntity.IsDelete">
-            <summary>
-            相似度
-            </summary>
-        </member>
         <member name="T:FreeSql.Tests.UnitTest1.NewsArticle">
             <summary>
             
