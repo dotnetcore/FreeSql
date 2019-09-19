@@ -4,5 +4,10 @@ using System.Text;
 
 namespace FreeSql
 {
-    public enum DataType { MySql, SqlServer, PostgreSQL, Oracle, Sqlite }
+    public enum DataType {
+
+        MySql, SqlServer, PostgreSQL, Oracle, Sqlite,
+
+        OdbcOracle, OdbcSqlServer, OdbcMySql
+    }
 }

@@ -467,12 +467,13 @@
             <param name="columnType"></param>
             <param name="setExp"></param>
         </member>
-        <member name="M:FreeSql.FreeSqlBuilder.UseConnectionString(FreeSql.DataType,System.String)">
+        <member name="M:FreeSql.FreeSqlBuilder.UseConnectionString(FreeSql.DataType,System.String,System.Type)">
             <summary>
             使用连接串
             </summary>
             <param name="dataType">数据库类型</param>
             <param name="connectionString">数据库连接串</param>
+            <param name="providerType">提供者的类型，一般不需要指定，如果一直提示“缺少 FreeSql 数据库实现包：FreeSql.Provider.MySql.dll，可前往 nuget 下载”的错误，说明反射获取不到类型，此时该参数可排上用场</param>
             <returns></returns>
         </member>
         <member name="M:FreeSql.FreeSqlBuilder.UseSlave(System.String[])">

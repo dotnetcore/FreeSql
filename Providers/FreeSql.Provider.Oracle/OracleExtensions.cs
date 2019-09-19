@@ -7,6 +7,6 @@
     /// <param name="that"></param>
     /// <param name="args"></param>
     /// <returns></returns>
-    public static string FormatOracleSQL(this string that, params object[] args) => _oracleAdo.Addslashes(that, args);
+    public static string FormatOracle(this string that, params object[] args) => _oracleAdo.Addslashes(that, args);
     static FreeSql.Oracle.OracleAdo _oracleAdo = new FreeSql.Oracle.OracleAdo();
 }

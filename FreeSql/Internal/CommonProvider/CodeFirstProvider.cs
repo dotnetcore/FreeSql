@@ -31,7 +31,7 @@ namespace FreeSql.Internal.CommonProvider
         public bool IsSyncStructureToLower { get; set; } = false;
         public bool IsSyncStructureToUpper { get; set; } = false;
         public bool IsConfigEntityFromDbFirst { get; set; } = false;
-        public bool IsNoneCommandParameter { get; set; } = false;
+        public virtual bool IsNoneCommandParameter { get; set; } = false;
         public bool IsLazyLoading { get; set; } = false;
 
         public abstract (int type, string dbtype, string dbtypeFull, bool? isnullable, object defaultValue)? GetDbInfo(Type type);
@@ -50,7 +50,7 @@ namespace FreeSql.Internal.CommonProvider
         public bool SyncStructure(params Type[] entityTypes)
         {
             if (entityTypes == null) return false;
-            var syncTypes = entityTypes.Where(a => dicSyced.ContainsKey(a) == false && GetTableByEntity(a)?.DisableSyncStructure == false).ToArray();
+            var syncTypes = entityTypes.Where(a => dicSyced.ContainsKey(a) == false && GetTableByEntity(a)?.DisableSyncStructure == false).ToArray().Distinct().ToArray();
             if (syncTypes.Any() == false) return false;
             var before = new Aop.SyncStructureBeforeEventArgs(entityTypes);
             _orm.Aop.SyncStructureBefore?.Invoke(this, before);
@@ -66,7 +66,7 @@ namespace FreeSql.Internal.CommonProvider
                         foreach (var syncType in syncTypes) dicSyced.TryAdd(syncType, true);
                         return true;
                     }
-                    var affrows = _orm.Ado.ExecuteNonQuery(CommandType.Text, ddl);
+                    var affrows = ExecuteDDLStatements(ddl);
                     foreach (var syncType in syncTypes) dicSyced.TryAdd(syncType, true);
                     return true;
                 }
@@ -82,5 +82,7 @@ namespace FreeSql.Internal.CommonProvider
                 _orm.Aop.SyncStructureAfter?.Invoke(this, after);
             }
         }
+
+        public virtual int ExecuteDDLStatements(string ddl) => _orm.Ado.ExecuteNonQuery(CommandType.Text, ddl);
     }
 }

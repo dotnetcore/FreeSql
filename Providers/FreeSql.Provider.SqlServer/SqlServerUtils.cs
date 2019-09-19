@@ -11,7 +11,7 @@ using System.Text;
 namespace FreeSql.SqlServer
 {
 
-    class SqlServerUtils : CommonUtils
+    public class SqlServerUtils : CommonUtils
     {
         public SqlServerUtils(IFreeSql orm) : base(orm)
         {

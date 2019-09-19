@@ -45,7 +45,7 @@ namespace FreeSql.Oracle
                 return ret;
             });
 
-        public override string FormatSql(string sql, params object[] args) => sql?.FormatOracleSQL(args);
+        public override string FormatSql(string sql, params object[] args) => sql?.FormatOracle(args);
         public override string QuoteSqlName(string name)
         {
             var nametrim = name.Trim();

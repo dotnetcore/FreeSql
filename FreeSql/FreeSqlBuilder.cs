@@ -21,17 +21,20 @@ namespace FreeSql
         StringConvertType _entityPropertyConvertType = StringConvertType.None;
         Action<DbCommand> _aopCommandExecuting = null;
         Action<DbCommand, string> _aopCommandExecuted = null;
+        Type _providerType = null;
 
         /// <summary>
         /// 使用连接串
         /// </summary>
         /// <param name="dataType">数据库类型</param>
         /// <param name="connectionString">数据库连接串</param>
+        /// <param name="providerType">提供者的类型，一般不需要指定，如果一直提示“缺少 FreeSql 数据库实现包：FreeSql.Provider.MySql.dll，可前往 nuget 下载”的错误，说明反射获取不到类型，此时该参数可排上用场</param>
         /// <returns></returns>
-        public FreeSqlBuilder UseConnectionString(DataType dataType, string connectionString)
+        public FreeSqlBuilder UseConnectionString(DataType dataType, string connectionString, Type providerType = null)
         {
             _dataType = dataType;
             _masterConnectionString = connectionString;
+            _providerType = providerType;
             return this;
         }
         /// <summary>
@@ -135,31 +138,49 @@ namespace FreeSql
         {
             if (string.IsNullOrEmpty(_masterConnectionString)) throw new Exception("参数 masterConnectionString 不可为空，请检查 UseConnectionString");
             IFreeSql<TMark> ret = null;
-            Type type = null;
-            switch (_dataType)
+            var type = _providerType;
+            if (type?.IsGenericType == true) type = type.MakeGenericType(typeof(TMark));
+            if (type == null)
             {
-                case DataType.MySql:
-                    type = Type.GetType("FreeSql.MySql.MySqlProvider`1,FreeSql.Provider.MySql")?.MakeGenericType(typeof(TMark));
-                    if (type == null) type = Type.GetType("FreeSql.MySql.MySqlProvider`1,FreeSql.Provider.MySqlConnector")?.MakeGenericType(typeof(TMark));
-                    if (type == null) throw new Exception("缺少 FreeSql 数据库实现包：FreeSql.Provider.MySql.dll，可前往 nuget 下载");
-                    break;
-                case DataType.SqlServer:
-                    type = Type.GetType("FreeSql.SqlServer.SqlServerProvider`1,FreeSql.Provider.SqlServer")?.MakeGenericType(typeof(TMark));
-                    if (type == null) throw new Exception("缺少 FreeSql 数据库实现包：FreeSql.Provider.SqlServer.dll，可前往 nuget 下载");
-                    break;
-                case DataType.PostgreSQL:
-                    type = Type.GetType("FreeSql.PostgreSQL.PostgreSQLProvider`1,FreeSql.Provider.PostgreSQL")?.MakeGenericType(typeof(TMark));
-                    if (type == null) throw new Exception("缺少 FreeSql 数据库实现包：FreeSql.Provider.PostgreSQL.dll，可前往 nuget 下载");
-                    break;
-                case DataType.Oracle:
-                    type = Type.GetType("FreeSql.Oracle.OracleProvider`1,FreeSql.Provider.Oracle")?.MakeGenericType(typeof(TMark));
-                    if (type == null) throw new Exception("缺少 FreeSql 数据库实现包：FreeSql.Provider.Oracle.dll，可前往 nuget 下载");
-                    break;
-                case DataType.Sqlite:
-                    type = Type.GetType("FreeSql.Sqlite.SqliteProvider`1,FreeSql.Provider.Sqlite")?.MakeGenericType(typeof(TMark));
-                    if (type == null) throw new Exception("缺少 FreeSql 数据库实现包：FreeSql.Provider.Sqlite.dll，可前往 nuget 下载");
-                    break;
-                default: throw new Exception("未指定 UseConnectionString");
+                switch (_dataType)
+                {
+                    case DataType.MySql:
+                        type = Type.GetType("FreeSql.MySql.MySqlProvider`1,FreeSql.Provider.MySql")?.MakeGenericType(typeof(TMark));
+                        if (type == null) type = Type.GetType("FreeSql.MySql.MySqlProvider`1,FreeSql.Provider.MySqlConnector")?.MakeGenericType(typeof(TMark));
+                        if (type == null) throw new Exception("缺少 FreeSql 数据库实现包：FreeSql.Provider.MySql.dll，可前往 nuget 下载");
+                        break;
+                    case DataType.SqlServer:
+                        type = Type.GetType("FreeSql.SqlServer.SqlServerProvider`1,FreeSql.Provider.SqlServer")?.MakeGenericType(typeof(TMark));
+                        if (type == null) throw new Exception("缺少 FreeSql 数据库实现包：FreeSql.Provider.SqlServer.dll，可前往 nuget 下载");
+                        break;
+                    case DataType.PostgreSQL:
+                        type = Type.GetType("FreeSql.PostgreSQL.PostgreSQLProvider`1,FreeSql.Provider.PostgreSQL")?.MakeGenericType(typeof(TMark));
+                        if (type == null) throw new Exception("缺少 FreeSql 数据库实现包：FreeSql.Provider.PostgreSQL.dll，可前往 nuget 下载");
+                        break;
+                    case DataType.Oracle:
+                        type = Type.GetType("FreeSql.Oracle.OracleProvider`1,FreeSql.Provider.Oracle")?.MakeGenericType(typeof(TMark));
+                        if (type == null) throw new Exception("缺少 FreeSql 数据库实现包：FreeSql.Provider.Oracle.dll，可前往 nuget 下载");
+                        break;
+                    case DataType.Sqlite:
+                        type = Type.GetType("FreeSql.Sqlite.SqliteProvider`1,FreeSql.Provider.Sqlite")?.MakeGenericType(typeof(TMark));
+                        if (type == null) throw new Exception("缺少 FreeSql 数据库实现包：FreeSql.Provider.Sqlite.dll，可前往 nuget 下载");
+                        break;
+
+                    case DataType.OdbcOracle:
+                        type = Type.GetType("FreeSql.Odbc.Oracle.OdbcOracleProvider`1,FreeSql.Provider.Odbc")?.MakeGenericType(typeof(TMark));
+                        if (type == null) throw new Exception("缺少 FreeSql 数据库实现包：FreeSql.Provider.Odbc.dll，可前往 nuget 下载");
+                        break;
+                    case DataType.OdbcSqlServer:
+                        type = Type.GetType("FreeSql.Odbc.SqlServer.OdbcSqlServerProvider`1,FreeSql.Provider.Odbc")?.MakeGenericType(typeof(TMark));
+                        if (type == null) throw new Exception("缺少 FreeSql 数据库实现包：FreeSql.Provider.Odbc.dll，可前往 nuget 下载");
+                        break;
+                    case DataType.OdbcMySql:
+                        type = Type.GetType("FreeSql.Odbc.MySql.OdbcMySqlProvider`1,FreeSql.Provider.Odbc")?.MakeGenericType(typeof(TMark));
+                        if (type == null) throw new Exception("缺少 FreeSql 数据库实现包：FreeSql.Provider.Odbc.dll，可前往 nuget 下载");
+                        break;
+
+                    default: throw new Exception("未指定 UseConnectionString");
+                }
             }
             ret = Activator.CreateInstance(type, new object[] { _masterConnectionString, _slaveConnectionString }) as IFreeSql<TMark>;
             if (ret != null)
@@ -230,25 +251,28 @@ namespace FreeSql
                     if (maxlenAttr != null)
                     {
                         var lenProp = maxlenAttr.GetType().GetProperties().Where(a => a.PropertyType.IsNumberType()).FirstOrDefault();
-                        if (lenProp != null && int.TryParse(string.Concat(lenProp.GetValue(maxlenAttr, null)), out var tryval) && tryval > 0)
+                        if (lenProp != null && int.TryParse(string.Concat(lenProp.GetValue(maxlenAttr, null)), out var tryval))
                         {
-                            switch (ret.Ado.DataType)
+                            if (tryval != 0)
                             {
-                                case DataType.MySql:
-                                    e.ModifyResult.DbType = $"varchar({tryval})";
-                                    break;
-                                case DataType.SqlServer:
-                                    e.ModifyResult.DbType = $"nvarchar({tryval})";
-                                    break;
-                                case DataType.PostgreSQL:
-                                    e.ModifyResult.DbType = $"varchar({tryval})";
-                                    break;
-                                case DataType.Oracle:
-                                    e.ModifyResult.DbType = $"nvarchar2({tryval})";
-                                    break;
-                                case DataType.Sqlite:
-                                    e.ModifyResult.DbType = $"nvarchar({tryval})";
-                                    break;
+                                switch (ret.Ado.DataType)
+                                {
+                                    case DataType.MySql:
+                                        e.ModifyResult.DbType = tryval > 0 ? $"varchar({tryval})" : "text";
+                                        break;
+                                    case DataType.SqlServer:
+                                        e.ModifyResult.DbType = tryval > 0 ? $"nvarchar({tryval})" : "nvarchar(max)";
+                                        break;
+                                    case DataType.PostgreSQL:
+                                        e.ModifyResult.DbType = tryval > 0 ? $"varchar({tryval})" : "text";
+                                        break;
+                                    case DataType.Oracle:
+                                        e.ModifyResult.DbType = tryval > 0 ? $"nvarchar2({tryval})" : "nvarchar2(4000)";
+                                        break;
+                                    case DataType.Sqlite:
+                                        e.ModifyResult.DbType = tryval > 0 ? $"nvarchar({tryval})" : "text";
+                                        break;
+                                }
                             }
                         }
                     }

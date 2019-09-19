@@ -12,14 +12,8 @@ public class g
         .UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=2")
         .UseAutoSyncStructure(true)
         .UseMonitorCommand(
-            cmd =>
-            {
-                Trace.WriteLine(cmd.CommandText);
-            }, //监听SQL命令对象，在执行前
-            (cmd, traceLog) =>
-            {
-                Console.WriteLine(traceLog);
-            }) //监听SQL命令对象，在执行后
+            cmd => Trace.WriteLine(cmd.CommandText), //监听SQL命令对象，在执行前
+            (cmd, traceLog) => Console.WriteLine(traceLog))
         .UseLazyLoading(true)
         .Build());
     public static IFreeSql mysql => mysqlLazy.Value;
@@ -33,14 +27,8 @@ public class g
         .UseSyncStructureToLower(true)
         .UseLazyLoading(true)
         .UseMonitorCommand(
-            cmd =>
-            {
-                Trace.WriteLine(cmd.CommandText);
-            }, //监听SQL命令对象，在执行前
-            (cmd, traceLog) =>
-            {
-                Console.WriteLine(traceLog);
-            }) //监听SQL命令对象，在执行后
+            cmd => Trace.WriteLine(cmd.CommandText), //监听SQL命令对象，在执行前
+            (cmd, traceLog) => Console.WriteLine(traceLog))
         .Build();
     });
     public static IFreeSql pgsql => pgsqlLazy.Value;
@@ -49,14 +37,8 @@ public class g
         .UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3")
         .UseAutoSyncStructure(true)
         .UseMonitorCommand(
-            cmd =>
-            {
-                Trace.WriteLine(cmd.CommandText);
-            }, //监听SQL命令对象，在执行前
-            (cmd, traceLog) =>
-            {
-                Console.WriteLine(traceLog);
-            }) //监听SQL命令对象，在执行后
+            cmd => Trace.WriteLine(cmd.CommandText), //监听SQL命令对象，在执行前
+            (cmd, traceLog) => Console.WriteLine(traceLog))
         .UseLazyLoading(true)
         .Build());
     public static IFreeSql sqlserver => sqlserverLazy.Value;
@@ -69,14 +51,8 @@ public class g
         //.UseNoneCommandParameter(true)
 
         .UseMonitorCommand(
-            cmd =>
-            {
-                Trace.WriteLine(cmd.CommandText);
-            }, //监听SQL命令对象，在执行前
-            (cmd, traceLog) =>
-            {
-                Console.WriteLine(traceLog);
-            }) //监听SQL命令对象，在执行后
+            cmd => Trace.WriteLine(cmd.CommandText), //监听SQL命令对象，在执行前
+            (cmd, traceLog) => Console.WriteLine(traceLog))
         .Build());
     public static IFreeSql oracle => oracleLazy.Value;
 
@@ -85,14 +61,8 @@ public class g
         .UseAutoSyncStructure(true)
         .UseLazyLoading(true)
         .UseMonitorCommand(
-            cmd =>
-            {
-                Trace.WriteLine(cmd.CommandText);
-            }, //监听SQL命令对象，在执行前
-            (cmd, traceLog) =>
-            {
-                Console.WriteLine(traceLog);
-            }) //监听SQL命令对象，在执行后
+            cmd => Trace.WriteLine(cmd.CommandText), //监听SQL命令对象，在执行前
+            (cmd, traceLog) => Console.WriteLine(traceLog))
         .Build());
     public static IFreeSql sqlite => sqliteLazy.Value;
 }

@@ -21,9 +21,9 @@ namespace FreeSql.Oracle
 
         public OracleConnectionPool(string name, string connectionString, Action availableHandler, Action unavailableHandler) : base(null)
         {
-            var userIdMatch = Regex.Match(connectionString, @"User\s+Id\s*=\s*([^;]+)", RegexOptions.IgnoreCase);
-            if (userIdMatch.Success == false) throw new Exception(@"从 ConnectionString 中无法匹配 User\s+Id\s+=([^;]+)");
-            this.UserId = userIdMatch.Groups[1].Value.Trim().ToUpper();
+            var userIdMatch = Regex.Match(connectionString, @"(User\s+Id|Uid)\s*=\s*([^;]+)", RegexOptions.IgnoreCase);
+            if (userIdMatch.Success == false) throw new Exception(@"从 ConnectionString 中无法匹配 (User\s+Id|Uid)\s*=\s*([^;]+)");
+            this.UserId = userIdMatch.Groups[2].Value.Trim().ToUpper();
 
             var policy = new OracleConnectionPoolPolicy
             {

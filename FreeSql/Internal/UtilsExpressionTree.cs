@@ -76,7 +76,7 @@ namespace FreeSql.Internal
                 var setMethod = trytb.Type.GetMethod($"set_{p.Name}");
                 var colattr = common.GetEntityColumnAttribute(entity, p);
                 var tp = common.CodeFirst.GetDbInfo(colattr?.MapType ?? p.PropertyType);
-                if (setMethod == null) // 属性没有 set自动忽略
+                if (setMethod == null || (tp == null && p.PropertyType.IsValueType)) // 属性没有 set自动忽略
                 {
                     if (colattr == null) colattr = new ColumnAttribute { IsIgnore = true };
                     else colattr.IsIgnore = true;
@@ -976,7 +976,7 @@ namespace FreeSql.Internal
             var ps = type.GetProperties();
             foreach (var p in ps)
             {
-                if (sql.IndexOf($"{paramPrefix}{p.Name}", StringComparison.CurrentCultureIgnoreCase) == -1) continue;
+                if (string.IsNullOrEmpty(paramPrefix) == false && sql.IndexOf($"{paramPrefix}{p.Name}", StringComparison.CurrentCultureIgnoreCase) == -1) continue;
                 var pvalue = p.GetValue(obj);
                 if (p.PropertyType == ttype) ret.Add((T)Convert.ChangeType(pvalue, ttype));
                 else ret.Add(constructorParamter(p.Name, p.PropertyType, pvalue));
