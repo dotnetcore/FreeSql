@@ -6,7 +6,12 @@ FreeSql.Provider.Odbc 做了四种数据库的专用实现：SqlServer、Postgre
 
 # 通用实现
 
-通用实现为了让用户自己适配更多的数据库，比如连接 mssql 2000、db2 等数据库。
+通用实现为了让用户自己适配更多的数据库，比如连接 mssql 2000、db2 等数据库，牺牲了一些功能：
+
+- 不支持 CodeFirst 自动迁移
+- 不支持 DbFirst 接口方法的实现
+- 不支持 原来的分页方法，需要自行判断 id 进行分页
+- 只支持较少的基础类型：bool,sbyte,short,int,long,byte,ushort,uint,ulong,double,float,decimal,DateTime,byte[],string,Guid
 
 使用者只需求重写类 FreeSql.Odbc.Default.OdbcAdapter 就可以自定义访问不同的数据库。
 
