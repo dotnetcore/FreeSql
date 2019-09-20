@@ -15,7 +15,7 @@ FreeSql.Provider.Odbc 做了四种数据库的专用实现：SqlServer、Postgre
 
 使用者只需求重写类 FreeSql.Odbc.Default.OdbcAdapter 就可以自定义访问不同的数据库。
 
-我们默认做了一套 sqlserver 的语法和映射适配，代码在 Default/OdbcAdapter.cs，请查看代码了解。
+我们默认做了一套 sqlserver 的语法和映射适配，代码在 [Default/OdbcAdapter.cs](https://github.com/2881099/FreeSql/blob/master/Providers/FreeSql.Provider.Odbc/Default/OdbcAdapter.cs)，请查看代码了解。
 
 ```csharp
 class Mssql2000Adapter : FreeSql.Odbc.Default.OdbcAdapter
