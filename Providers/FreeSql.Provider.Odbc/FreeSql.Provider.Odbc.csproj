@@ -2,10 +2,10 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net45</TargetFrameworks>
-		<Version>0.9.17</Version>
+		<Version>0.9.18</Version>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>YeXiangQin</Authors>
-		<Description>FreeSql 数据库 Odbc 实现，基于 {Oracle}、{SQL Server}、{MySQL ODBC 8.0 Unicode Driver}</Description>
+		<Description>FreeSql 数据库 Odbc 实现，基于 {Oracle}、{SQL Server}、{MySQL ODBC 8.0 Unicode Driver}、{PostgreSQL Unicode(x64)} 专用访问实现，以及通用 Odbc 访问所有数据库</Description>
 		<PackageProjectUrl>https://github.com/2881099/FreeSql</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/2881099/FreeSql</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>

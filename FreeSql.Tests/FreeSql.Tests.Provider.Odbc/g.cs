@@ -38,4 +38,27 @@ public class g
             (cmd, traceLog) => Console.WriteLine(traceLog))
         .Build());
     public static IFreeSql oracle => oracleLazy.Value;
+
+    static Lazy<IFreeSql> pgsqlLazy = new Lazy<IFreeSql>(() =>
+    {
+        return new FreeSql.FreeSqlBuilder()
+        .UseConnectionString(FreeSql.DataType.OdbcPostgreSQL, "Driver={PostgreSQL Unicode(x64)};Server=192.168.164.10;Port=5432;UID=postgres;PWD=123456;Database=tedb_odbc;Pooling=true;Maximum Pool Size=2")
+        .UseAutoSyncStructure(true)
+        .UseSyncStructureToLower(true)
+        .UseLazyLoading(true)
+        .UseMonitorCommand(
+            cmd => Trace.WriteLine(cmd.CommandText), //监听SQL命令对象，在执行前
+            (cmd, traceLog) => Console.WriteLine(traceLog))
+        .Build();
+    });
+    public static IFreeSql pgsql => pgsqlLazy.Value;
+
+    static Lazy<IFreeSql> odbcLazy = new Lazy<IFreeSql>(() => new FreeSql.FreeSqlBuilder()
+        .UseConnectionString(FreeSql.DataType.Odbc, "Driver={SQL Server};Server=.;Persist Security Info=False;Trusted_Connection=Yes;Integrated Security=True;DATABASE=freesqlTest_odbc;Pooling=true;Max pool size=5")
+        .UseMonitorCommand(
+            cmd => Trace.WriteLine(cmd.CommandText), //监听SQL命令对象，在执行前
+            (cmd, traceLog) => Console.WriteLine(traceLog))
+        .UseLazyLoading(true)
+        .Build());
+    public static IFreeSql odbc => odbcLazy.Value;
 }

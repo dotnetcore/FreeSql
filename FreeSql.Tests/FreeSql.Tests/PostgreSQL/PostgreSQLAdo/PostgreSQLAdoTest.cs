@@ -60,7 +60,7 @@ namespace FreeSql.Tests.PostgreSQL
 
         class xxx
         {
-            public int Id { get; set; }
+            public string Id { get; set; }
             public string Path { get; set; }
             public string Title2 { get; set; }
         }

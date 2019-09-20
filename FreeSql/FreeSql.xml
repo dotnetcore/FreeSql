@@ -345,6 +345,15 @@
             枚举项
             </summary>
         </member>
+        <member name="F:FreeSql.DataType.Odbc">
+            <summary>
+            通用的 Odbc 实现，只能做基本的 Crud 操作 <para></para>
+            不支持实体结构迁移、不支持分页（只能 Take 查询） <para></para>
+            默认适配 SqlServer，可以继承后重新适配 FreeSql.Odbc.Default.OdbcAdapter，最好去看下代码 <para></para>
+            
+            适配新的 OdbcAdapter，请在 FreeSqlBuilder.Build 之后调用 IFreeSql.SetOdbcAdapter 方法设置
+            </summary>
+        </member>
         <member name="M:FreeSql.Extensions.EntityUtil.EntityUtilExtensions.GetEntityKeyString(IFreeSql,System.Type,System.Object,System.Boolean,System.String)">
             <summary>
             获取实体的主键值，以 "*|_,[,_|*" 分割，当任意一个主键属性无值时，返回 null

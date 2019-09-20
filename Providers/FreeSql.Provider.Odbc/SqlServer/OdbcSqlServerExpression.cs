@@ -362,11 +362,11 @@ namespace FreeSql.Odbc.SqlServer
                         switch ((exp.Arguments[0].Type.IsNullableType() ? exp.Arguments[0].Type.GenericTypeArguments.FirstOrDefault() : exp.Arguments[0].Type).FullName)
                         {
                             case "System.DateTime": return $"datediff(second, {args1}, {left})";
-                            case "System.TimeSpan": return $"dateadd(second, {args1}*-1, {left})";
+                            case "System.TimeSpan": return $"dateadd(second, ({args1})*-1, {left})";
                         }
                         break;
-                    case "Equals": return $"({left} = {getExp(exp.Arguments[0])})";
-                    case "CompareTo": return $"datediff(second,{getExp(exp.Arguments[0])},{left})";
+                    case "Equals": return $"({left} = {args1})";
+                    case "CompareTo": return $"datediff(second,{args1},{left})";
                     case "ToString": return exp.Arguments.Count == 0 ? $"convert(varchar, {left}, 121)" : null;
                 }
             }
@@ -401,8 +401,8 @@ namespace FreeSql.Odbc.SqlServer
                 {
                     case "Add": return $"({left}+{args1})";
                     case "Subtract": return $"({left}-({args1}))";
-                    case "Equals": return $"({left} = {getExp(exp.Arguments[0])})";
-                    case "CompareTo": return $"({left}-({getExp(exp.Arguments[0])}))";
+                    case "Equals": return $"({left} = {args1})";
+                    case "CompareTo": return $"({left}-({args1}))";
                     case "ToString": return $"cast({left} as varchar)";
                 }
             }

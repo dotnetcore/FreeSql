@@ -234,15 +234,13 @@ namespace FreeSql
                 switch (_db.Orm.Ado.DataType)
                 {
                     case DataType.SqlServer:
+                    case DataType.OdbcSqlServer:
                     case DataType.PostgreSQL:
+                    case DataType.OdbcPostgreSQL:
                         return true;
-                    case DataType.MySql:
-                    case DataType.Oracle:
-                    case DataType.Sqlite:
+                    default:
                         if (_tableIdentitys.Length == 1 && _table.Primarys.Length == 1)
-                        {
                             return true;
-                        }
                         if (isThrow) throw new Exception($"不可添加，未设置主键的值：{_db.Orm.GetEntityString(_entityType, data)}");
                         return false;
                 }

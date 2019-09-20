@@ -383,7 +383,7 @@ namespace FreeSql.MySql
                             case "System.TimeSpan": return $"date_sub({left}, interval ({args1}) microsecond)";
                         }
                         break;
-                    case "Equals": return $"({left} = {getExp(exp.Arguments[0])})";
+                    case "Equals": return $"({left} = {args1})";
                     case "CompareTo": return $"timestampdiff(microsecond,{args1},{left})";
                     case "ToString": return exp.Arguments.Count == 0 ? $"date_format({left}, '%Y-%m-%d %H:%i:%s.%f')" : null;
                 }
@@ -419,8 +419,8 @@ namespace FreeSql.MySql
                 {
                     case "Add": return $"({left}+{args1})";
                     case "Subtract": return $"({left}-({args1}))";
-                    case "Equals": return $"({left} = {getExp(exp.Arguments[0])})";
-                    case "CompareTo": return $"({left}-({getExp(exp.Arguments[0])}))";
+                    case "Equals": return $"({left} = {args1})";
+                    case "CompareTo": return $"({left}-({args1}))";
                     case "ToString": return $"cast({left} as char)";
                 }
             }

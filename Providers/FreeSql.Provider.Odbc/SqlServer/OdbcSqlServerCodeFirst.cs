@@ -1,15 +1,11 @@
-﻿using FreeSql.DataAnnotations;
-using FreeSql.DatabaseModel;
-using FreeSql.Internal;
+﻿using FreeSql.Internal;
 using FreeSql.Internal.Model;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Odbc;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 
 namespace FreeSql.Odbc.SqlServer
 {

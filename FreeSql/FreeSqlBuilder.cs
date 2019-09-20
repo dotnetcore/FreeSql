@@ -178,6 +178,14 @@ namespace FreeSql
                         type = Type.GetType("FreeSql.Odbc.MySql.OdbcMySqlProvider`1,FreeSql.Provider.Odbc")?.MakeGenericType(typeof(TMark));
                         if (type == null) throw new Exception("缺少 FreeSql 数据库实现包：FreeSql.Provider.Odbc.dll，可前往 nuget 下载");
                         break;
+                    case DataType.OdbcPostgreSQL:
+                        type = Type.GetType("FreeSql.Odbc.PostgreSQL.OdbcPostgreSQLProvider`1,FreeSql.Provider.Odbc")?.MakeGenericType(typeof(TMark));
+                        if (type == null) throw new Exception("缺少 FreeSql 数据库实现包：FreeSql.Provider.Odbc.dll，可前往 nuget 下载");
+                        break;
+                    case DataType.Odbc:
+                        type = Type.GetType("FreeSql.Odbc.Default.OdbcProvider`1,FreeSql.Provider.Odbc")?.MakeGenericType(typeof(TMark));
+                        if (type == null) throw new Exception("缺少 FreeSql 数据库实现包：FreeSql.Provider.Odbc.dll，可前往 nuget 下载");
+                        break;
 
                     default: throw new Exception("未指定 UseConnectionString");
                 }
@@ -202,34 +210,24 @@ namespace FreeSql
                     switch (_entityPropertyConvertType)
                     {
                         case StringConvertType.Lower:
-                            ret.Aop.ConfigEntityProperty += (s, e) =>
-                            {
+                            ret.Aop.ConfigEntityProperty += (_, e) =>
                                 e.ModifyResult.Name = e.Property.Name.ToLower();
-                            };
                             break;
                         case StringConvertType.Upper:
-                            ret.Aop.ConfigEntityProperty += (s, e) =>
-                            {
+                            ret.Aop.ConfigEntityProperty += (_, e) =>
                                 e.ModifyResult.Name = e.Property.Name.ToUpper();
-                            };
                             break;
                         case StringConvertType.PascalCaseToUnderscore:
-                            ret.Aop.ConfigEntityProperty += (s, e) =>
-                            {
+                            ret.Aop.ConfigEntityProperty += (_, e) =>
                                 e.ModifyResult.Name = StringUtils.PascalCaseToUnderScore(e.Property.Name);
-                            };
                             break;
                         case StringConvertType.PascalCaseToUnderscoreWithLower:
-                            ret.Aop.ConfigEntityProperty += (s, e) =>
-                            {
+                            ret.Aop.ConfigEntityProperty += (_, e) =>
                                 e.ModifyResult.Name = StringUtils.PascalCaseToUnderScore(e.Property.Name).ToLower();
-                            };
                             break;
                         case StringConvertType.PascalCaseToUnderscoreWithUpper:
-                            ret.Aop.ConfigEntityProperty += (s, e) =>
-                            {
+                            ret.Aop.ConfigEntityProperty += (_, e) =>
                                 e.ModifyResult.Name = StringUtils.PascalCaseToUnderScore(e.Property.Name).ToUpper();
-                            };
                             break;
                         default:
                             break;
@@ -258,20 +256,25 @@ namespace FreeSql
                                 switch (ret.Ado.DataType)
                                 {
                                     case DataType.MySql:
+                                    case DataType.OdbcMySql:
                                         e.ModifyResult.DbType = tryval > 0 ? $"varchar({tryval})" : "text";
                                         break;
                                     case DataType.SqlServer:
+                                    case DataType.OdbcSqlServer:
                                         e.ModifyResult.DbType = tryval > 0 ? $"nvarchar({tryval})" : "nvarchar(max)";
                                         break;
                                     case DataType.PostgreSQL:
+                                    case DataType.OdbcPostgreSQL:
                                         e.ModifyResult.DbType = tryval > 0 ? $"varchar({tryval})" : "text";
                                         break;
                                     case DataType.Oracle:
+                                    case DataType.OdbcOracle:
                                         e.ModifyResult.DbType = tryval > 0 ? $"nvarchar2({tryval})" : "nvarchar2(4000)";
                                         break;
                                     case DataType.Sqlite:
                                         e.ModifyResult.DbType = tryval > 0 ? $"nvarchar({tryval})" : "text";
                                         break;
+
                                 }
                             }
                         }

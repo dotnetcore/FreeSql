@@ -385,8 +385,8 @@ namespace FreeSql.Oracle
                             case "System.TimeSpan": return $"({left}-{args1})";
                         }
                         break;
-                    case "Equals": return $"({left} = {getExp(exp.Arguments[0])})";
-                    case "CompareTo": return $"extract(day from ({left}-({getExp(exp.Arguments[0])})))";
+                    case "Equals": return $"({left} = {args1})";
+                    case "CompareTo": return $"extract(day from ({left}-({args1})))";
                     case "ToString": return exp.Arguments.Count == 0 ? $"to_char({left},'YYYY-MM-DD HH24:MI:SS.FF6')" : null;
                 }
             }
@@ -421,8 +421,8 @@ namespace FreeSql.Oracle
                 {
                     case "Add": return $"({left}+{args1})";
                     case "Subtract": return $"({left}-({args1}))";
-                    case "Equals": return $"({left} = {getExp(exp.Arguments[0])})";
-                    case "CompareTo": return $"extract(day from ({left}-({getExp(exp.Arguments[0])})))";
+                    case "Equals": return $"({left} = {args1})";
+                    case "CompareTo": return $"extract(day from ({left}-({args1})))";
                     case "ToString": return $"to_char({left})";
                 }
             }

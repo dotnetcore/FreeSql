@@ -34,7 +34,9 @@ namespace FreeSql
                 switch (_db.Orm.Ado.DataType)
                 {
                     case DataType.SqlServer:
+                    case DataType.OdbcSqlServer:
                     case DataType.PostgreSQL:
+                    case DataType.OdbcPostgreSQL:
                         if (_tableIdentitys.Length == 1)
                         {
                             DbContextExecCommand();
@@ -56,9 +58,7 @@ namespace FreeSql
                                 AddOrUpdateNavigateList(data);
                         }
                         return;
-                    case DataType.MySql:
-                    case DataType.Oracle:
-                    case DataType.Sqlite:
+                    default:
                         if (_tableIdentitys.Length == 1)
                         {
                             DbContextExecCommand();
@@ -96,7 +96,9 @@ namespace FreeSql
                 switch (_db.Orm.Ado.DataType)
                 {
                     case DataType.SqlServer:
+                    case DataType.OdbcSqlServer:
                     case DataType.PostgreSQL:
+                    case DataType.OdbcPostgreSQL:
                         DbContextExecCommand();
                         var rets = this.OrmInsert(data).ExecuteInserted();
                         if (rets.Count != data.Count()) throw new Exception($"特别错误：批量添加失败，{_db.Orm.Ado.DataType} 的返回数据，与添加的数目不匹配");
@@ -109,9 +111,7 @@ namespace FreeSql
                             foreach (var item in data)
                                 AddOrUpdateNavigateList(item);
                         return;
-                    case DataType.MySql:
-                    case DataType.Oracle:
-                    case DataType.Sqlite:
+                    default:
                         foreach (var s in data)
                             AddPriv(s, false);
                         return;

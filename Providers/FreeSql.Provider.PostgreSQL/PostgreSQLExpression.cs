@@ -494,8 +494,8 @@ namespace FreeSql.PostgreSQL
                             case "System.TimeSpan": return $"(({left})::timestamp-(({args1})||' microseconds')::interval)";
                         }
                         break;
-                    case "Equals": return $"({left} = ({getExp(exp.Arguments[0])})::timestamp)";
-                    case "CompareTo": return $"extract(epoch from ({left})::timestamp-({getExp(exp.Arguments[0])})::timestamp)";
+                    case "Equals": return $"({left} = ({args1})::timestamp)";
+                    case "CompareTo": return $"extract(epoch from ({left})::timestamp-({args1})::timestamp)";
                     case "ToString": return exp.Arguments.Count == 0 ? $"to_char({left}, 'YYYY-MM-DD HH24:MI:SS.US')" : null;
                 }
             }
@@ -530,8 +530,8 @@ namespace FreeSql.PostgreSQL
                 {
                     case "Add": return $"({left}+{args1})";
                     case "Subtract": return $"({left}-({args1}))";
-                    case "Equals": return $"({left} = {getExp(exp.Arguments[0])})";
-                    case "CompareTo": return $"({left}-({getExp(exp.Arguments[0])}))";
+                    case "Equals": return $"({left} = {args1})";
+                    case "CompareTo": return $"({left}-({args1}))";
                     case "ToString": return $"({left})::varchar";
                 }
             }

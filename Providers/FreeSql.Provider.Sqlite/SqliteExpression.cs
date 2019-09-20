@@ -384,10 +384,10 @@ namespace FreeSql.Sqlite
                         switch ((exp.Arguments[0].Type.IsNullableType() ? exp.Arguments[0].Type.GenericTypeArguments.FirstOrDefault() : exp.Arguments[0].Type).FullName)
                         {
                             case "System.DateTime": return $"(strftime('%s',{left})-strftime('%s',{args1}))";
-                            case "System.TimeSpan": return $"datetime({left},(-{args1})||' seconds')";
+                            case "System.TimeSpan": return $"datetime({left},(({args1})*-1)||' seconds')";
                         }
                         break;
-                    case "Equals": return $"({left} = {getExp(exp.Arguments[0])})";
+                    case "Equals": return $"({left} = {args1})";
                     case "CompareTo": return $"(strftime('%s',{left})-strftime('%s',{args1}))";
                     case "ToString": return exp.Arguments.Count == 0 ? $"strftime('%Y-%m-%d %H:%M.%f',{left})" : null;
                 }
@@ -423,8 +423,8 @@ namespace FreeSql.Sqlite
                 {
                     case "Add": return $"({left}+{args1})";
                     case "Subtract": return $"({left}-({args1}))";
-                    case "Equals": return $"({left} = {getExp(exp.Arguments[0])})";
-                    case "CompareTo": return $"({left}-({getExp(exp.Arguments[0])}))";
+                    case "Equals": return $"({left} = {args1})";
+                    case "CompareTo": return $"({left}-({args1}))";
                     case "ToString": return $"cast({left} as character)";
                 }
             }
