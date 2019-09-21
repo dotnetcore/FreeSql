@@ -406,7 +406,7 @@ namespace FreeSql.Tests
         [Fact]
         public void Test1()
         {
-            var gkjdjd = g.sqlite.Select<AuthorTest>().Where(a => a.Post.Count > 0).ToSql();
+            var gkjdjd = g.sqlite.Select<AuthorTest>().Where(a => a.Post.AsSelect().Count() > 0).ToList();
 
             var testrunsql1 =  g.mysql.Select<TaskBuild>().Where(a => a.OptionsEntity04 > DateTime.Now.AddDays(0).ToString("yyyyMMdd").TryTo<int>()).ToSql();
             var testrunsql2 = g.pgsql.Select<TaskBuild>().Where(a => a.OptionsEntity04 > DateTime.Now.AddDays(0).ToString("yyyyMMdd").TryTo<int>()).ToSql();
