@@ -38,7 +38,7 @@ namespace FreeSql.Internal
             var tbc = _cacheGetTableByEntity.GetOrAdd(common._orm.Ado.DataType, k1 => new ConcurrentDictionary<Type, TableInfo>()); //区分数据库类型缓存
             if (tbc.TryGetValue(entity, out var trytb)) return trytb;
             if (common.CodeFirst.GetDbInfo(entity) != null) return null;
-            if (typeof(IEnumerable).IsAssignableFrom(entity) && entity.IsGenericParameter == true) return null;
+            if (typeof(IEnumerable).IsAssignableFrom(entity) && entity.IsGenericType == true) return null;
             if (entity.IsArray) return null;
 
             object entityDefault = null;
