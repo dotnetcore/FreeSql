@@ -368,27 +368,16 @@ namespace FreeSql.Internal.CommonProvider
         public abstract List<T1> ExecuteUpdated();
         public abstract Task<List<T1>> ExecuteUpdatedAsync();
 
-        public IUpdate<T1> IgnoreColumns(Expression<Func<T1, object>> columns)
-        {
-            var cols = _commonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(null, columns?.Body, false, null).Distinct();
-            _ignore.Clear();
-            foreach (var col in cols) _ignore.Add(col, true);
-            return this;
-        }
-        public IUpdate<T1> UpdateColumns(Expression<Func<T1, object>> columns)
-        {
-            var cols = _commonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(null, columns?.Body, false, null).ToDictionary(a => a, a => true);
-            _ignore.Clear();
-            foreach (var col in _table.Columns.Values)
-                if (cols.ContainsKey(col.Attribute.Name) == false)
-                    _ignore.Add(col.Attribute.Name, true);
-            return this;
-        }
+        public IUpdate<T1> IgnoreColumns(Expression<Func<T1, object>> columns) => IgnoreColumns(_commonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(null, columns?.Body, false, null));
+        public IUpdate<T1> UpdateColumns(Expression<Func<T1, object>> columns) => UpdateColumns(_commonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(null, columns?.Body, false, null));
 
         public IUpdate<T1> IgnoreColumns(string[] columns)
         {
+            var cols = columns.ToDictionary(a => a);
             _ignore.Clear();
-            foreach (var col in columns) _ignore.Add(col, true);
+            foreach (var col in _table.Columns.Values)
+                if (cols.ContainsKey(col.Attribute.Name) == true || cols.ContainsKey(col.CsName) == true)
+                    _ignore.Add(col.Attribute.Name, true);
             return this;
         }
         public IUpdate<T1> UpdateColumns(string[] columns)
@@ -396,7 +385,7 @@ namespace FreeSql.Internal.CommonProvider
             var cols = columns.ToDictionary(a => a);
             _ignore.Clear();
             foreach (var col in _table.Columns.Values)
-                if (cols.ContainsKey(col.Attribute.Name) == false)
+                if (cols.ContainsKey(col.Attribute.Name) == false && cols.ContainsKey(col.CsName) == false)
                     _ignore.Add(col.Attribute.Name, true);
             return this;
         }

@@ -49,7 +49,7 @@ namespace FreeSql
         /// <summary>
         /// 忽略的列
         /// </summary>
-        /// <param name="columns"></param>
+        /// <param name="columns">属性名，或者字段名</param>
         /// <returns></returns>
         IUpdate<T1> IgnoreColumns(string[] columns);
 
@@ -62,7 +62,7 @@ namespace FreeSql
         /// <summary>
         /// 指定的列
         /// </summary>
-        /// <param name="columns"></param>
+        /// <param name="columns">属性名，或者字段名</param>
         /// <returns></returns>
         IUpdate<T1> UpdateColumns(string[] columns);
 
