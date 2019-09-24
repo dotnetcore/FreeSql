@@ -164,7 +164,13 @@ namespace FreeSql.PostgreSQL
                                 if (left.StartsWith("(") || left.EndsWith(")"))
                                     return $"{right1} in {left}";
                                 if (right1.StartsWith("(") || right1.EndsWith(")")) right1 = $"array[{right1.TrimStart('(').TrimEnd(')')}]";
-                                return $"({left} @> array[{right1}])";
+                                right1 = $"array[{right1}]";
+                                if (objExp != null)
+                                {
+                                    var dbinfo = _common._orm.CodeFirst.GetDbInfo(objExp.Type);
+                                    if (dbinfo.HasValue) right1 = $"{right1}::{dbinfo.Value.dbtype}";
+                                }
+                                return $"({left} @> {right1})";
                             case "Concat":
                                 if (left.StartsWith("(") || left.EndsWith(")")) left = $"array[{left.TrimStart('(').TrimEnd(')')}]";
                                 var right2 = getExp(callExp.Arguments[argIndex]);

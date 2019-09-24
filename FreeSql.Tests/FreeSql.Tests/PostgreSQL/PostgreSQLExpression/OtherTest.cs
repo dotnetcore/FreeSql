@@ -67,6 +67,7 @@ namespace FreeSql.Tests.PostgreSQLExpression
 
             var sql1 = select.Where(a => a.testFieldIntArray.Contains(1)).ToList();
             var sql2 = select.Where(a => a.testFieldIntArray.Contains(1) == false).ToList();
+            var sql121 = select.Where(a => a.testFieldStringArray.Contains("aaa") == false).ToList();
 
             //in not in
             var sql111 = select.Where(a => new[] { 1, 2, 3 }.Contains(a.testFieldInt)).ToList();
