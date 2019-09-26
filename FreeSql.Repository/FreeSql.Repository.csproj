@@ -1,24 +1,28 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-	<PropertyGroup>
-		<TargetFrameworks>netstandard2.0;net45</TargetFrameworks>
-		<Version>0.10.2</Version>
-		<Authors>YeXiangQin</Authors>
-		<Description>FreeSql Implementation of General Repository, Support MySql/SqlServer/PostgreSQL/Oracle/Sqlite, and read/write separation、and split table.</Description>
-		<PackageProjectUrl>https://github.com/2881099/FreeSql/wiki/Repository</PackageProjectUrl>
-		<PackageTags>FreeSql ORM Repository</PackageTags>
-		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-		<RepositoryType>git</RepositoryType>
-		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-		<PackageId>$(AssemblyName)</PackageId>
-        <PackageIconUrl>https://github.com/2881099/FreeSql/blob/master/logo.png?raw=true</PackageIconUrl>
-		<Title>$(AssemblyName)</Title>
-		<IsPackable>true</IsPackable>
-		<GenerateAssemblyInfo>true</GenerateAssemblyInfo>
-	</PropertyGroup>
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;net45</TargetFrameworks>
+    <Version>0.10.3</Version>
+    <Authors>YeXiangQin</Authors>
+    <Description>FreeSql Implementation of General Repository, Support MySql/SqlServer/PostgreSQL/Oracle/Sqlite, and read/write separation、and split table.</Description>
+    <PackageProjectUrl>https://github.com/2881099/FreeSql/wiki/Repository</PackageProjectUrl>
+    <PackageTags>FreeSql ORM Repository</PackageTags>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageId>$(AssemblyName)</PackageId>
+    <PackageIcon>logo.png</PackageIcon>
+    <Title>$(AssemblyName)</Title>
+    <IsPackable>true</IsPackable>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+  </PropertyGroup>
 
-	<ItemGroup>
-	    <ProjectReference Include="..\FreeSql.DbContext\FreeSql.DbContext.csproj" />
-	</ItemGroup>
+  <ItemGroup>
+    <None Include="../logo.png" Pack="true" PackagePath="\"/>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\FreeSql.DbContext\FreeSql.DbContext.csproj" />
+  </ItemGroup>
 
 </Project>

@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net45</TargetFrameworks>
-		<Version>0.10.2</Version>
+		<Version>0.10.3</Version>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>YeXiangQin</Authors>
 		<Description>FreeSql 数据库实现，基于 Oracle 11</Description>
@@ -12,12 +12,16 @@
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageTags>FreeSql;ORM</PackageTags>
 		<PackageId>$(AssemblyName)</PackageId>
-        <PackageIconUrl>https://github.com/2881099/FreeSql/blob/master/logo.png?raw=true</PackageIconUrl>
+    <PackageIcon>logo.png</PackageIcon>
 		<Title>$(AssemblyName)</Title>
 		<IsPackable>true</IsPackable>
 		<GenerateAssemblyInfo>true</GenerateAssemblyInfo>
 	</PropertyGroup>
 
+  <ItemGroup>
+    <None Include="../../logo.png" Pack="true" PackagePath="\"/>
+  </ItemGroup>
+  
 	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
 	  <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="2.19.31" />
 	</ItemGroup>

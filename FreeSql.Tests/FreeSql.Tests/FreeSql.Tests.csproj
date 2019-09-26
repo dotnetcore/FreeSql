@@ -8,6 +8,7 @@
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
 	  <DocumentationFile>FreeSql.Tests.xml</DocumentationFile>
+    <WarningLevel>3</WarningLevel>
 	</PropertyGroup>
 
 	<ItemGroup>

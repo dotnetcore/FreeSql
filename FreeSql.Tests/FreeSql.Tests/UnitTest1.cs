@@ -414,7 +414,6 @@ namespace FreeSql.Tests
             var testrunsql4 = g.oracle.Select<TaskBuild>().Where(a => a.OptionsEntity04 > DateTime.Now.AddDays(0).ToString("yyyyMMdd").TryTo<int>()).ToSql();
             var testrunsql5 = g.sqlite.Select<TaskBuild>().Where(a => a.OptionsEntity04 > DateTime.Now.AddDays(0).ToString("yyyyMMdd").TryTo<int>()).ToSql();
 
-            var testssargs1 = "10100";
             var testformatsql1 = g.mysql.Select<TaskBuild>().Where(a => a.NamespaceName == $"1_{10100}").ToSql();
             var testorderbysql = g.mysql.Select<TaskBuild>().OrderByDescending(a => a.OptionsEntity04 + (a.score ?? 0)).ToSql();
 

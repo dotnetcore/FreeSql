@@ -6,7 +6,8 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>C:\Users\28810\Desktop\github\FreeSql\Examples\base_entity\base_entity.xml</DocumentationFile>
+    <DocumentationFile>base_entity.xml</DocumentationFile>
+    <WarningLevel>3</WarningLevel>
   </PropertyGroup>
 
   <ItemGroup>
