@@ -311,7 +311,7 @@ namespace FreeSql.Internal
                     $"{pnv.PropertyType.Namespace?.NotNullAndConcat(".")}{pnv.PropertyType.Name.Remove(pnv.PropertyType.Name.IndexOf('`'))}<{string.Join(", ", pnv.PropertyType.GenericTypeArguments.Select(a => a.IsNested ? $"{a.DeclaringType.Namespace?.NotNullAndConcat(".")}{a.DeclaringType.Name}.{a.Name}" : $"{a.Namespace?.NotNullAndConcat(".")}{a.Name}"))}>" :
                     (pnv.PropertyType.IsNested ? $"{pnv.PropertyType.DeclaringType.Namespace?.NotNullAndConcat(".")}{pnv.PropertyType.DeclaringType.Name}.{pnv.PropertyType.Name}" : $"{pnv.PropertyType.Namespace?.NotNullAndConcat(".")}{pnv.PropertyType.Name}");
 
-            var pnvAttr = pnv.GetCustomAttribute<NavigateAttribute>();
+            var pnvAttr = common.GetEntityNavigateAttribute(trytb.Type, pnv);
             var pnvBind = pnvAttr?.Bind?.Split(',').Select(a => a.Trim()).Where(a => !string.IsNullOrEmpty(a)).ToArray();
             var nvref = new TableRef();
             nvref.Property = pnv;
@@ -351,7 +351,7 @@ namespace FreeSql.Internal
                 {
                     isManyToMany = propElementType != trytb.Type &&
                         tbref.Properties.Where(z => (z.Value.PropertyType.GenericTypeArguments.FirstOrDefault() == trytb.Type || z.Value.PropertyType.GetElementType() == trytb.Type) &&
-                            z.Value.GetCustomAttribute<NavigateAttribute>()?.ManyToMany == pnvAttr.ManyToMany &&
+                            common.GetEntityNavigateAttribute(tbref.Type, z.Value)?.ManyToMany == pnvAttr.ManyToMany &&
                             typeof(IEnumerable).IsAssignableFrom(z.Value.PropertyType)).Any();
 
                     if (isManyToMany == false)

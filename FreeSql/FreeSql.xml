@@ -215,6 +215,16 @@
             禁用 CodeFirst 同步结构迁移
             </summary>
         </member>
+        <member name="M:FreeSql.DataAnnotations.TableFluent`1.Navigate``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.String,System.Type)">
+            <summary>
+            导航关系Fluent，与 NavigateAttribute 对应
+            </summary>
+            <typeparam name="TProto"></typeparam>
+            <param name="proto"></param>
+            <param name="bind"></param>
+            <param name="manyToMany">多对多关系的中间实体类型</param>
+            <returns></returns>
+        </member>
         <member name="P:FreeSql.DatabaseModel.DbColumnInfo.Table">
             <summary>
             所属表

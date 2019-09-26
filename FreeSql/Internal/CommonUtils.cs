@@ -164,6 +164,27 @@ namespace FreeSql.Internal
             if (ret != null && ret.MapType == null) ret.MapType = proto.PropertyType;
             return ret;
         }
+        public NavigateAttribute GetEntityNavigateAttribute(Type type, PropertyInfo proto)
+        {
+            var attr = new NavigateAttribute();
+            if (dicConfigEntity.TryGetValue(type, out var trytb) && trytb._navigates.TryGetValue(proto.Name, out var trynav))
+            {
+                if (!string.IsNullOrEmpty(trynav.Bind)) attr.Bind = trynav.Bind;
+                if (trynav.ManyToMany != null) attr.ManyToMany = trynav.ManyToMany;
+            }
+            var attrs = proto.GetCustomAttributes(typeof(NavigateAttribute), false);
+            foreach (var tryattrobj in attrs)
+            {
+                trynav = tryattrobj as NavigateAttribute;
+                if (trynav == null) continue;
+                if (!string.IsNullOrEmpty(trynav.Bind)) attr.Bind = trynav.Bind;
+                if (trynav.ManyToMany != null) attr.ManyToMany = trynav.ManyToMany;
+            }
+            NavigateAttribute ret = null;
+            if (!string.IsNullOrEmpty(attr.Bind)) ret = attr;
+            if (attr.ManyToMany != null) ret = attr;
+            return ret;
+        }
 
         public string WhereObject(TableInfo table, string aliasAndDot, object dywhere)
         {

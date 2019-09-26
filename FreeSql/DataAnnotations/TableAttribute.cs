@@ -26,5 +26,6 @@ namespace FreeSql.DataAnnotations
         public bool DisableSyncStructure { get => _DisableSyncStructure ?? false; set => _DisableSyncStructure = value; }
 
         internal ConcurrentDictionary<string, ColumnAttribute> _columns { get; } = new ConcurrentDictionary<string, ColumnAttribute>(StringComparer.CurrentCultureIgnoreCase);
+        internal ConcurrentDictionary<string, NavigateAttribute> _navigates { get; } = new ConcurrentDictionary<string, NavigateAttribute>(StringComparer.CurrentCultureIgnoreCase);
     }
 }

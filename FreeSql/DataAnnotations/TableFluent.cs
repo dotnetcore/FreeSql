@@ -111,5 +111,22 @@ namespace FreeSql.DataAnnotations
             var col = _table._columns.GetOrAdd(proto.Name, name => new ColumnAttribute { Name = proto.Name });
             return new ColumnFluent(col);
         }
+
+        /// <summary>
+        /// 导航关系Fluent，与 NavigateAttribute 对应
+        /// </summary>
+        /// <typeparam name="TProto"></typeparam>
+        /// <param name="proto"></param>
+        /// <param name="bind"></param>
+        /// <param name="manyToMany">多对多关系的中间实体类型</param>
+        /// <returns></returns>
+        public TableFluent<T> Navigate<TProto>(Expression<Func<T, TProto>> proto, string bind, Type manyToMany = null)
+        {
+            var member = (proto.Body as MemberExpression)?.Member;
+            if (member == null) throw new FormatException($"错误的表达式格式 {proto}");
+            var nav = new NavigateAttribute { Bind = bind, ManyToMany = manyToMany };
+            _table._navigates.AddOrUpdate(member.Name, nav, (name, old) => nav);
+            return this;
+        }
     }
 }
