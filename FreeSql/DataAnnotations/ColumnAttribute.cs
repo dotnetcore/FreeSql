@@ -94,5 +94,15 @@ namespace FreeSql.DataAnnotations
         /// &lt;0时排后面，...-3,-2,-1
         /// </summary>
         public short Position { get => _Position ?? 0; set => _Position = value; }
+
+        internal bool? _CanInsert, _CanUpdate;
+        /// <summary>
+        /// 该字段是否可以插入，默认值true，指定为false插入时该字段会被忽略
+        /// </summary>
+        public bool CanInsert { get => _CanInsert ?? true; set => _CanInsert = value; }
+        /// <summary>
+        /// 该字段是否可以更新，默认值true，指定为false更新时该字段会被忽略
+        /// </summary>
+        public bool CanUpdate { get => _CanUpdate ?? true; set => _CanUpdate = value; }
     }
 }

@@ -125,13 +125,52 @@ namespace FreeSql.Tests.DataAnnotations
             Assert.NotNull(find);
             Assert.Equal(item.id, find.id);
         }
-
         class TestIsIgnore
         {
             public Guid id { get; set; }
 
             [Column(IsIgnore = true)]
             public bool isignore { get; set; }
+        }
+
+        [Fact]
+        public void CanInsert_CanUpdate()
+        {
+            var item = new TestCanInsert { title = "testtitle", testfield1 = 1000, testfield2 = 1000 };
+            var sql = g.mysql.Insert(item).ToSql().Replace("\r\n", "");
+            Assert.Equal("INSERT INTO `TestCanInsert`(`id`, `title`, `testfield2`) VALUES(?id_0, ?title_0, ?testfield2_0)", sql);
+
+            Assert.Equal(1, g.mysql.Insert(item).ExecuteAffrows());
+            var find = g.mysql.Select<TestCanInsert>().Where(a => a.id == item.id).First();
+            Assert.NotNull(find);
+            Assert.Equal(item.id, find.id);
+            Assert.Equal(item.title, find.title);
+            Assert.NotEqual(item.testfield1, find.testfield1);
+            Assert.Equal(0, find.testfield1);
+            Assert.Equal(item.testfield2, find.testfield2);
+
+            item.title = "testtitle_update";
+            item.testfield2 = 0;
+            sql = g.mysql.Update<TestCanInsert>().SetSource(item).ToSql().Replace("\r\n", "");
+            Assert.Equal($"UPDATE `TestCanInsert` SET `id` = ?p_0, `title` = ?p_1, `testfield1` = ?p_2 WHERE (`id` = '{item.id}')", sql);
+
+            Assert.Equal(1, g.mysql.Update<TestCanInsert>().SetSource(item).ExecuteAffrows());
+            find = g.mysql.Select<TestCanInsert>().Where(a => a.id == item.id).First();
+            Assert.NotNull(find);
+            Assert.Equal(item.id, find.id);
+            Assert.Equal(item.title, find.title);
+            Assert.Equal(item.testfield1, find.testfield1);
+            Assert.NotEqual(item.testfield2, find.testfield2);
+            Assert.Equal(1000, find.testfield1);
+        }
+        class TestCanInsert
+        {
+            public Guid id { get; set; }
+            public string title { get; set; }
+            [Column(CanInsert = false)]
+            public long testfield1 { get; set; }
+            [Column(CanUpdate = false)]
+            public long testfield2 { get; set; }
         }
     }
 }

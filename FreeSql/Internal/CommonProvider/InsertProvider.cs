@@ -34,14 +34,26 @@ namespace FreeSql.Internal.CommonProvider
             _table = _commonUtils.GetTableByEntity(typeof(T1));
             _noneParameter = _orm.CodeFirst.IsNoneCommandParameter;
             if (_orm.CodeFirst.IsAutoSyncStructure && typeof(T1) != typeof(object)) _orm.CodeFirst.SyncStructure<T1>();
+            IgnoreCanInsert();
         }
 
+        /// <summary>
+        /// AsType, Ctor, ClearData 三处地方需要重新加载
+        /// </summary>
+        protected void IgnoreCanInsert()
+        {
+            if (_table == null || _table.Type == typeof(object)) return;
+            foreach (var col in _table.Columns.Values)
+                if (col.Attribute.CanInsert == false)
+                    _ignore.Add(col.Attribute.Name, true);
+        }
         protected void ClearData()
         {
             _insertIdentity = false;
             _source.Clear();
             _ignore.Clear();
             _params = null;
+            IgnoreCanInsert();
         }
 
         public IInsert<T1> WithTransaction(DbTransaction transaction)
@@ -569,6 +581,7 @@ namespace FreeSql.Internal.CommonProvider
             var newtb = _commonUtils.GetTableByEntity(entityType);
             _table = newtb ?? throw new Exception("IInsert.AsType 参数错误，请传入正确的实体类型");
             if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(entityType);
+            IgnoreCanInsert();
             return this;
         }
 

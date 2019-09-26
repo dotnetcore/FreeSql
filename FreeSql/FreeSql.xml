@@ -73,6 +73,16 @@
             &lt;0时排后面，...-3,-2,-1
             </summary>
         </member>
+        <member name="P:FreeSql.DataAnnotations.ColumnAttribute.CanInsert">
+            <summary>
+            该字段是否可以插入，默认值true，指定为false插入时该字段会被忽略
+            </summary>
+        </member>
+        <member name="P:FreeSql.DataAnnotations.ColumnAttribute.CanUpdate">
+            <summary>
+            该字段是否可以更新，默认值true，指定为false更新时该字段会被忽略
+            </summary>
+        </member>
         <member name="M:FreeSql.DataAnnotations.ColumnFluent.Name(System.String)">
             <summary>
             数据库列名
@@ -136,6 +146,20 @@
             =0时排中间(默认)
             <para></para>
             &lt;0时排后面
+            </summary>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.DataAnnotations.ColumnFluent.CanInsert(System.Boolean)">
+            <summary>
+            该字段是否可以插入，默认值true，指定为false插入时该字段会被忽略
+            </summary>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.DataAnnotations.ColumnFluent.CanUpdate(System.Boolean)">
+            <summary>
+            该字段是否可以更新，默认值true，指定为false更新时该字段会被忽略
             </summary>
             <param name="value"></param>
             <returns></returns>
@@ -2417,6 +2441,16 @@
             </summary>
             <param name="database"></param>
             <returns></returns>
+        </member>
+        <member name="M:FreeSql.Internal.CommonProvider.InsertProvider`1.IgnoreCanInsert">
+            <summary>
+            AsType, Ctor, ClearData 三处地方需要重新加载
+            </summary>
+        </member>
+        <member name="M:FreeSql.Internal.CommonProvider.UpdateProvider`1.IgnoreCanUpdate">
+            <summary>
+            AsType, Ctor, ClearData 三处地方需要重新加载
+            </summary>
         </member>
         <member name="M:FreeSql.Internal.CommonUtils.GetProperyCommentBySummary(System.Type)">
             <summary>

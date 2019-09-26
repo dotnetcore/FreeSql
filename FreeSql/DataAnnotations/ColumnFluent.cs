@@ -113,5 +113,26 @@ namespace FreeSql.DataAnnotations
             _column.Position = value;
             return this;
         }
+
+        /// <summary>
+        /// 该字段是否可以插入，默认值true，指定为false插入时该字段会被忽略
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public ColumnFluent CanInsert(bool value)
+        {
+            _column.CanInsert = value;
+            return this;
+        }
+        /// <summary>
+        /// 该字段是否可以更新，默认值true，指定为false更新时该字段会被忽略
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public ColumnFluent CanUpdate(bool value)
+        {
+            _column.CanUpdate = value;
+            return this;
+        }
     }
 }

@@ -40,8 +40,19 @@ namespace FreeSql.Internal.CommonProvider
             _noneParameter = _orm.CodeFirst.IsNoneCommandParameter;
             this.Where(_commonUtils.WhereObject(_table, "", dywhere));
             if (_orm.CodeFirst.IsAutoSyncStructure && typeof(T1) != typeof(object)) _orm.CodeFirst.SyncStructure<T1>();
+            IgnoreCanUpdate();
         }
 
+        /// <summary>
+        /// AsType, Ctor, ClearData 三处地方需要重新加载
+        /// </summary>
+        protected void IgnoreCanUpdate()
+        {
+            if (_table == null || _table.Type == typeof(object)) return;
+            foreach (var col in _table.Columns.Values)
+                if (col.Attribute.CanUpdate == false)
+                    _ignore.Add(col.Attribute.Name, true);
+        }
         protected void ClearData()
         {
             _source.Clear();
@@ -51,6 +62,7 @@ namespace FreeSql.Internal.CommonProvider
             _setIncr.Clear();
             _params.Clear();
             _paramsSource.Clear();
+            IgnoreCanUpdate();
         }
 
         public IUpdate<T1> WithTransaction(DbTransaction transaction)
@@ -610,6 +622,7 @@ namespace FreeSql.Internal.CommonProvider
             var newtb = _commonUtils.GetTableByEntity(entityType);
             _table = newtb ?? throw new Exception("IUpdate.AsType 参数错误，请传入正确的实体类型");
             if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(entityType);
+            IgnoreCanUpdate();
             return this;
         }
 
