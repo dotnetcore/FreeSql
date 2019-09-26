@@ -19,7 +19,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="MySql.Data" Version="8.0.16" />
+		<PackageReference Include="MySql.Data" Version="8.0.17" />
 	</ItemGroup>
 
 	<ItemGroup>
