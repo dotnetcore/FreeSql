@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net45</TargetFrameworks>
-		<Version>0.10.3</Version>
+		<Version>0.10.4</Version>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>YeXiangQin</Authors>
 		<Description>FreeSql is the most convenient ORM in dotnet. It supports Mysql, Postgresql, SqlServer, Oracle, Sqlite, And Odbc.</Description>
@@ -19,7 +19,7 @@
 	</PropertyGroup>
 
   <ItemGroup>
-    <None Include="../logo.png" Pack="true" PackagePath="\"/>
+    <None Include="../logo.png" Pack="true" PackagePath="\" />
   </ItemGroup>
   
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
