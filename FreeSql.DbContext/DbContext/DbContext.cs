@@ -35,7 +35,7 @@ namespace FreeSql
             get
             {
                 if (_optionsPriv != null) return _optionsPriv;
-                if (FreeSqlDbContextExtenssions._dicSetDbContextOptions.TryGetValue(Orm, out _optionsPriv)) return _optionsPriv;
+                if (FreeSqlDbContextExtensions._dicSetDbContextOptions.TryGetValue(Orm, out _optionsPriv)) return _optionsPriv;
                 _optionsPriv = new DbContextOptions();
                 return _optionsPriv;
             }
