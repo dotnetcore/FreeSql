@@ -90,6 +90,13 @@
             </summary>
             <param name="data"></param>
         </member>
+        <member name="M:FreeSql.DbSet`1.AddOrUpdateNavigateList(`0,System.Boolean)">
+            <summary>
+            联级保存导航集合
+            </summary>
+            <param name="item">实体对象</param>
+            <param name="isAdd">是否为新增的实体对象</param>
+        </member>
         <member name="M:FreeSql.DbSet`1.Update(`0)">
             <summary>
             更新

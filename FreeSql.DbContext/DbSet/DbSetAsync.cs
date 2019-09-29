@@ -47,7 +47,7 @@ namespace FreeSql
                             _db.Orm.SetEntityIdentityValueWithPrimary(_entityType, data, idtval);
                             Attach(data);
                             if (_db.Options.EnableAddOrUpdateNavigateList)
-                                await AddOrUpdateNavigateListAsync(data);
+                                await AddOrUpdateNavigateListAsync(data, true);
                         }
                         else
                         {
@@ -57,7 +57,7 @@ namespace FreeSql
                             _db.Orm.MapEntityValue(_entityType, newval, data);
                             Attach(newval);
                             if (_db.Options.EnableAddOrUpdateNavigateList)
-                                await AddOrUpdateNavigateListAsync(data);
+                                await AddOrUpdateNavigateListAsync(data, true);
                         }
                         return;
                     default:
@@ -69,7 +69,7 @@ namespace FreeSql
                             _db.Orm.SetEntityIdentityValueWithPrimary(_entityType, data, idtval);
                             Attach(data);
                             if (_db.Options.EnableAddOrUpdateNavigateList)
-                                await AddOrUpdateNavigateListAsync(data);
+                                await AddOrUpdateNavigateListAsync(data, true);
                         }
                         return;
                 }
@@ -77,7 +77,7 @@ namespace FreeSql
             EnqueueToDbContext(DbContext.ExecCommandInfoType.Insert, CreateEntityState(data));
             Attach(data);
             if (_db.Options.EnableAddOrUpdateNavigateList)
-                await AddOrUpdateNavigateListAsync(data);
+                await AddOrUpdateNavigateListAsync(data, true);
         }
         public Task AddAsync(TEntity data) => AddPrivAsync(data, true);
         async public Task AddRangeAsync(IEnumerable<TEntity> data)
@@ -107,7 +107,7 @@ namespace FreeSql
                         AttachRange(rets);
                         if (_db.Options.EnableAddOrUpdateNavigateList)
                             foreach (var item in data)
-                                await AddOrUpdateNavigateListAsync(item);
+                                await AddOrUpdateNavigateListAsync(item, true);
                         return;
                     default:
                         foreach (var s in data)
@@ -123,10 +123,10 @@ namespace FreeSql
                 AttachRange(data);
                 if (_db.Options.EnableAddOrUpdateNavigateList)
                     foreach (var item in data)
-                        await AddOrUpdateNavigateListAsync(item);
+                        await AddOrUpdateNavigateListAsync(item, true);
             }
         }
-        async Task AddOrUpdateNavigateListAsync(TEntity item)
+        async Task AddOrUpdateNavigateListAsync(TEntity item, bool isAdd)
         {
             Type itemType = null;
             foreach (var prop in _table.Properties)
@@ -164,7 +164,7 @@ namespace FreeSql
 
                 var propValEach = propVal as IEnumerable;
                 if (propValEach == null) continue;
-                DbSet<object> refSet = _db.Set<object>().AsType(tref.RefEntityType);
+                DbSet<object> refSet = GetDbSetObject(tref.RefEntityType);
                 switch (tref.RefType)
                 {
                     case Internal.Model.TableRefType.ManyToMany:
@@ -197,10 +197,16 @@ namespace FreeSql
                         }
                         else //保存
                         {
-                            var midSet = _db.Set<object>().AsType(tref.RefMiddleEntityType);
-                            var midSelect = midSet.Select;
-                            foreach (var midWhere in midWheres) midSelect.Where(midWhere);
-                            var midList = await midSelect.ToListAsync();
+                            var midSet = GetDbSetObject(tref.RefMiddleEntityType);
+                            List<object> midList = null;
+                            if (isAdd == false)
+                            {
+                                var midSelect = midSet.Select;
+                                foreach (var midWhere in midWheres) midSelect.Where(midWhere);
+                                midList = await midSelect.ToListAsync();
+                            }
+                            else
+                                midList = new List<object>();
                             var midListDel = new List<object>();
                             var midListAdd = new List<object>();
 
@@ -350,7 +356,7 @@ namespace FreeSql
             }
             if (_db.Options.EnableAddOrUpdateNavigateList)
                 foreach (var item in data)
-                    await AddOrUpdateNavigateListAsync(item);
+                    await AddOrUpdateNavigateListAsync(item, false);
         }
         #endregion
 

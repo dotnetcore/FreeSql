@@ -128,6 +128,14 @@ namespace FreeSql
             return this;
         }
 
+        Dictionary<Type, DbSet<object>> _dicDbSetObjects = new Dictionary<Type, DbSet<object>>();
+        DbSet<object> GetDbSetObject(Type et)
+        {
+            if (_dicDbSetObjects.TryGetValue(et, out var tryds)) return tryds;
+            _dicDbSetObjects.Add(et, tryds = _db.Set<object>().AsType(et));
+            return tryds;
+        }
+
         public class EntityState
         {
             public EntityState(TEntity value, string key)

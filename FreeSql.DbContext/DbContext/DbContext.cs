@@ -34,9 +34,12 @@ namespace FreeSql
             set => _optionsPriv = value;
             get
             {
-                if (_optionsPriv != null) return _optionsPriv;
-                if (FreeSqlDbContextExtensions._dicSetDbContextOptions.TryGetValue(Orm, out _optionsPriv)) return _optionsPriv;
-                _optionsPriv = new DbContextOptions();
+                if (_optionsPriv == null)
+                {
+                    _optionsPriv = new DbContextOptions();
+                    if (FreeSqlDbContextExtensions._dicSetDbContextOptions.TryGetValue(Orm, out var opt))
+                        _optionsPriv.EnableAddOrUpdateNavigateList = opt.EnableAddOrUpdateNavigateList;
+                }
                 return _optionsPriv;
             }
         }
