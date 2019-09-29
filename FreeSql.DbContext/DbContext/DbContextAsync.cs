@@ -97,10 +97,11 @@ namespace FreeSql
 
                 if (_actions.Any() == false && states.Any() ||
                     info != null && oldinfo.actionType != info.actionType ||
-                    info != null && oldinfo.stateType != info.stateType)
+                    info != null && oldinfo.stateType != info.stateType ||
+                    info != null && oldinfo.entityType != info.entityType)
                 {
 
-                    if (info != null && oldinfo.actionType == info.actionType && oldinfo.stateType == info.stateType)
+                    if (info != null && oldinfo.actionType == info.actionType && oldinfo.stateType == info.stateType && oldinfo.entityType == info.entityType)
                     {
                         //最后一个，合起来发送
                         states.Add(info.state);

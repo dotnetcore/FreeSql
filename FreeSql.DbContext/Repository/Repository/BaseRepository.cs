@@ -59,6 +59,7 @@ namespace FreeSql
         }
         public Type EntityType => _dbsetPriv?.EntityType ?? typeof(TEntity);
         public void AsType(Type entityType) => _dbset.AsType(entityType);
+        public DbContextOptions DbContextOptions { get => _db.Options; set => _db.Options = value; }
 
         public IFreeSql Orm { get; private set; }
         public IUnitOfWork UnitOfWork { get; set; }

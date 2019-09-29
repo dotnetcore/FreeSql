@@ -60,7 +60,7 @@ namespace FreeSql
         protected virtual IDelete<TEntity> OrmDelete(object dywhere) => _db.Orm.Delete<TEntity>().AsType(_entityType).WithTransaction(_uow?.GetOrBeginTransaction()).WhereDynamic(dywhere);
 
         internal void EnqueueToDbContext(DbContext.ExecCommandInfoType actionType, EntityState state) =>
-            _db.EnqueueAction(actionType, this, typeof(EntityState), state);
+            _db.EnqueueAction(actionType, this, typeof(EntityState), _entityType, state);
 
         internal void IncrAffrows(int affrows) =>
             _db._affrows += affrows;
@@ -117,14 +117,15 @@ namespace FreeSql
         /// </summary>
         /// <param name="entityType"></param>
         /// <returns></returns>
-        public void AsType(Type entityType)
+        public DbSet<TEntity> AsType(Type entityType)
         {
             if (entityType == typeof(object)) throw new Exception("ISelect.AsType 参数不支持指定为 object");
-            if (entityType == _entityType) return;
+            if (entityType == _entityType) return this;
             var newtb = _db.Orm.CodeFirst.GetTableByEntity(entityType);
             _entityType = entityType;
             _tablePriv = newtb ?? throw new Exception("DbSet.AsType 参数错误，请传入正确的实体类型");
             _tableIdentitysPriv = null;
+            return this;
         }
 
         public class EntityState

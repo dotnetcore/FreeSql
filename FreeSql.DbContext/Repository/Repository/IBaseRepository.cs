@@ -17,6 +17,11 @@ namespace FreeSql
         /// <param name="entityType"></param>
         /// <returns></returns>
         void AsType(Type entityType);
+
+        /// <summary>
+        /// 设置 DbContext 选项
+        /// </summary>
+        DbContextOptions DbContextOptions { get; set; }
     }
 
     public interface IBaseRepository<TEntity> : IReadOnlyRepository<TEntity>, IBasicRepository<TEntity>

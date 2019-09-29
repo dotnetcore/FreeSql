@@ -1,4 +1,6 @@
+using FreeSql.DataAnnotations;
 using System;
+using System.Collections.Generic;
 using Xunit;
 
 namespace FreeSql.Tests
@@ -276,6 +278,180 @@ namespace FreeSql.Tests
 
             repos.DataFilter.Apply("xxx", a => (a as AddUpdateInfo).Clicks == 2);
             Assert.Null(repos.Find(item.Id));
+        }
+
+        [Fact]
+        public void EnableAddOrUpdateNavigateList_OneToMany()
+        {
+            var repo = g.sqlite.GetRepository<Cagetory>();
+            var cts = new[] {
+                new Cagetory
+                {
+                    Name = "分类1",
+                    Goodss = new List<Goods>(new[]
+                    {
+                        new Goods { Name = "商品1" },
+                        new Goods { Name = "商品2" },
+                        new Goods { Name = "商品3" }
+                    })
+                },
+                new Cagetory
+                {
+                    Name = "分类2",
+                    Goodss = new List<Goods>(new[]
+                    {
+                        new Goods { Name = "商品4" },
+                        new Goods { Name = "商品5" }
+                    })
+                }
+            };
+            repo.Insert(cts);
+            cts[0].Name = "分类11";
+            cts[0].Goodss.Clear();
+            cts[1].Name = "分类22";
+            cts[1].Goodss.Clear();
+            repo.Update(cts);
+            cts[0].Name = "分类111";
+            cts[0].Goodss.Clear();
+            cts[0].Goodss.Add(new Goods { Name = "商品33" });
+            cts[1].Name = "分类222";
+            cts[1].Goodss.Clear();
+            cts[1].Goodss.Add(new Goods { Name = "商品55" });
+            repo.Update(cts);
+        }
+        [Table(Name = "EAUNL_OTM_CT")]
+        class Cagetory
+        {
+            public Guid Id { get; set; }
+            public string Name { get; set; }
+
+            [Navigate("CagetoryId")]
+            public List<Goods> Goodss { get; set; }
+        }
+        [Table(Name = "EAUNL_OTM_GD")]
+        class Goods
+        {
+            public Guid Id { get; set; }
+            public Guid CagetoryId { get; set; }
+            public string Name { get; set; }
+        }
+
+        [Fact]
+        public void EnableAddOrUpdateNavigateList_OneToMany_Parent()
+        {
+            var repo = g.sqlite.GetRepository<CagetoryParent>();
+            var cts = new[] {
+                new CagetoryParent
+                {
+                    Name = "分类1",
+                    Childs = new List<CagetoryParent>(new[]
+                    {
+                        new CagetoryParent { Name = "分类1_1" },
+                        new CagetoryParent { Name = "分类1_2" },
+                        new CagetoryParent { Name = "分类1_3" }
+                    })
+                },
+                new CagetoryParent
+                {
+                    Name = "分类2",
+                    Childs = new List<CagetoryParent>(new[]
+                    {
+                        new CagetoryParent { Name = "分类2_1" },
+                        new CagetoryParent { Name = "分类2_2" }
+                    })
+                }
+            };
+            repo.Insert(cts);
+            cts[0].Name = "分类11";
+            cts[0].Childs.Clear();
+            cts[1].Name = "分类22";
+            cts[1].Childs.Clear();
+            repo.Update(cts);
+            cts[0].Name = "分类111";
+            cts[0].Childs.Clear();
+            cts[0].Childs.Add(new CagetoryParent { Name = "分类1_33" });
+            cts[1].Name = "分类222";
+            cts[1].Childs.Clear();
+            cts[1].Childs.Add(new CagetoryParent { Name = "分类2_22" });
+            repo.Update(cts);
+        }
+        [Table(Name = "EAUNL_OTMP_CT")]
+        class CagetoryParent
+        {
+            public Guid Id { get; set; }
+            public string Name { get; set; }
+
+            public Guid ParentId { get; set; }
+            [Navigate("ParentId")]
+            public List<CagetoryParent> Childs { get; set; }
+        }
+
+        [Fact]
+        public void EnableAddOrUpdateNavigateList_ManyToMany()
+        {
+            var tags = new[] {
+                new Tag { TagName = "流行" },
+                new Tag { TagName = "80后" },
+                new Tag { TagName = "00后" },
+                new Tag { TagName = "摇滚" }
+            };
+            var ss = new[]
+            {
+                new Song
+                {
+                    Name = "爱你一万年.mp3",
+                    Tags = new List<Tag>(new[]
+                    {
+                        tags[0], tags[1]
+                    })
+                },
+                new Song
+                {
+                    Name = "李白.mp3",
+                    Tags = new List<Tag>(new[]
+                    {
+                        tags[0], tags[2]
+                    })
+                }
+            };
+            var repo = g.sqlite.GetRepository<Song>();
+            repo.Insert(ss);
+
+            ss[0].Name = "爱你一万年.mp5";
+            ss[0].Tags.Clear();
+            ss[0].Tags.Add(tags[0]);
+            ss[1].Name = "李白.mp5";
+            ss[1].Tags.Clear();
+            ss[1].Tags.Add(tags[3]);
+            repo.Update(ss);
+
+            ss[0].Name = "爱你一万年.mp4";
+            ss[0].Tags.Clear();
+            ss[1].Name = "李白.mp4";
+            ss[1].Tags.Clear();
+            repo.Update(ss);
+        }
+        [Table(Name = "EAUNL_MTM_SONG")]
+        class Song
+        {
+            public Guid Id { get; set; }
+            public string Name { get; set; }
+            public List<Tag> Tags { get; set; }
+        }
+        [Table(Name = "EAUNL_MTM_TAG")]
+        class Tag
+        {
+            public Guid Id { get; set; }
+            public string TagName { get; set; }
+            public List<Song> Songs { get; set; }
+        }
+        [Table(Name = "EAUNL_MTM_SONGTAG")]
+        class SongTag
+        {
+            public Guid SongId { get; set; }
+            public Song Song { get; set; }
+            public Guid TagId { get; set; }
+            public Tag Tag { get; set; }
         }
     }
 }

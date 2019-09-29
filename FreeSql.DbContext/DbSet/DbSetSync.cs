@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Reflection;
+using System.Text;
+using System.Linq.Expressions;
 
 namespace FreeSql
 {
@@ -137,8 +139,16 @@ namespace FreeSql
                 if (_table.ColumnsByCsIgnore.ContainsKey(prop.Key)) continue;
                 if (_table.ColumnsByCs.ContainsKey(prop.Key)) continue;
 
-                object propVal = null;
+                var tref = _table.GetTableRef(prop.Key, true);
+                if (tref == null) continue;
+                switch (tref.RefType)
+                {
+                    case Internal.Model.TableRefType.OneToOne:
+                    case Internal.Model.TableRefType.ManyToOne:
+                        continue;
+                }
 
+                object propVal = null;
                 if (itemType == null) itemType = item.GetType();
                 if (_table.TypeLazy != null && itemType == _table.TypeLazy)
                 {
@@ -157,33 +167,103 @@ namespace FreeSql
                     if (propVal == null) continue;
                 }
 
-                var tref = _table.GetTableRef(prop.Key, true);
-                if (tref == null) continue;
-
+                var propValEach = propVal as IEnumerable;
+                if (propValEach == null) continue;
+                DbSet<object> refSet = _db.Set<object>().AsType(tref.RefEntityType);
                 switch (tref.RefType)
                 {
-                    case Internal.Model.TableRefType.OneToOne:
-                    case Internal.Model.TableRefType.ManyToOne:
                     case Internal.Model.TableRefType.ManyToMany:
-                        continue;
-                    case Internal.Model.TableRefType.OneToMany:
-                        var propValEach = propVal as IEnumerable;
-                        if (propValEach == null) continue;
-                        object dbset = null;
-                        MethodInfo dbsetAddOrUpdate = null;
+                        var curList = new List<object>();
                         foreach (var propValItem in propValEach)
                         {
-                            if (dbset == null)
+                            curList.Add(propValItem);
+                            var flagExists = refSet.ExistsInStates(propValItem);
+                            if (flagExists == false)
+                                flagExists = refSet.Select.WhereDynamic(propValItem).Any();
+                            if (refSet.CanAdd(propValItem, false) && flagExists != true)
+                                refSet.Add(propValItem);
+                        }
+                        var midSelectParam = Expression.Parameter(typeof(object), "a");
+                        var midWheres = new List<Expression<Func<object, bool>>>();
+                        for (var colidx = 0; colidx < tref.Columns.Count; colidx++)
+                            midWheres.Add(Expression.Lambda<Func<object, bool>>(Expression.Equal(
+                                Expression.MakeMemberAccess(Expression.Convert(midSelectParam, tref.RefMiddleEntityType), tref.MiddleColumns[colidx].Table.Properties[tref.MiddleColumns[colidx].CsName]),
+                                Expression.Constant(
+                                    FreeSql.Internal.Utils.GetDataReaderValue(
+                                        tref.MiddleColumns[colidx].CsType,
+                                        _db.Orm.GetEntityValueWithPropertyName(_table.Type, item, tref.Columns[colidx].CsName)), tref.MiddleColumns[colidx].CsType)
+                                ), midSelectParam));
+
+                        if (curList.Any() == false) //全部删除
+                        {
+                            var delall = _db.Orm.Delete<object>().AsType(tref.RefMiddleEntityType);
+                            foreach (var midWhere in midWheres) delall.Where(midWhere);
+                            delall.ExecuteAffrows();
+                        }
+                        else //保存
+                        {
+                            var midSet = _db.Set<object>().AsType(tref.RefMiddleEntityType);
+                            var midSelect = midSet.Select;
+                            foreach (var midWhere in midWheres) midSelect.Where(midWhere);
+                            var midList = midSelect.ToList();
+                            var midListDel = new List<object>();
+                            var midListAdd = new List<object>();
+
+                            foreach (var midItem in midList)
                             {
-                                dbset = _db.Set(tref.RefEntityType);
-                                dbsetAddOrUpdate = dbset.GetType().GetMethod("AddOrUpdate", new Type[] { tref.RefEntityType });
+                                var curContains = new List<int>();
+                                for(var curIdx = 0; curIdx < curList.Count; curIdx ++)
+                                {
+                                    var isEquals = true;
+                                    for (var midcolidx = tref.Columns.Count; midcolidx < tref.MiddleColumns.Count; midcolidx++)
+                                    {
+                                        var refcol = tref.Columns[midcolidx - tref.Columns.Count];
+                                        var midval = FreeSql.Internal.Utils.GetDataReaderValue(refcol.CsType, _db.Orm.GetEntityValueWithPropertyName(tref.RefMiddleEntityType, midItem, tref.MiddleColumns[midcolidx].CsName));
+                                        var refval = FreeSql.Internal.Utils.GetDataReaderValue(refcol.CsType, _db.Orm.GetEntityValueWithPropertyName(tref.RefEntityType, curList[curIdx], tref.Columns[midcolidx - tref.Columns.Count].CsName));
+                                        if (object.Equals(midval, refval) == false)
+                                        {
+                                            isEquals = false;
+                                            break;
+                                        }
+                                    }
+                                    if (isEquals)
+                                        curContains.Add(curIdx);
+                                }
+                                if (curContains.Any())
+                                    foreach (var curIdx in curContains)
+                                        curList.RemoveAt(curIdx);
+                                else
+                                    midListDel.Add(midItem);
                             }
+                            midSet.RemoveRange(midListDel); //删除未保存的项
+                            foreach (var curItem in curList)
+                            {
+                                var newItem = Activator.CreateInstance(tref.RefMiddleEntityType);
+                                for (var colidx = 0; colidx < tref.Columns.Count; colidx++)
+                                {
+                                    var val = FreeSql.Internal.Utils.GetDataReaderValue(tref.MiddleColumns[colidx].CsType, _db.Orm.GetEntityValueWithPropertyName(_table.Type, item, tref.Columns[colidx].CsName));
+                                    _db.Orm.SetEntityValueWithPropertyName(tref.RefMiddleEntityType, newItem, tref.MiddleColumns[colidx].CsName, val);
+                                }
+                                for (var midcolidx = tref.Columns.Count; midcolidx < tref.MiddleColumns.Count; midcolidx++)
+                                {
+                                    var refcol = tref.Columns[midcolidx - tref.Columns.Count];
+                                    var refval = FreeSql.Internal.Utils.GetDataReaderValue(tref.MiddleColumns[midcolidx].CsType, _db.Orm.GetEntityValueWithPropertyName(tref.RefEntityType, curItem, refcol.CsName));
+                                    _db.Orm.SetEntityValueWithPropertyName(tref.RefMiddleEntityType, newItem, tref.MiddleColumns[midcolidx].CsName, refval);
+                                }
+                                midListAdd.Add(newItem);
+                            }
+                            midSet.AddRange(midListAdd);
+                        }
+                        break;
+                    case Internal.Model.TableRefType.OneToMany:
+                        foreach (var propValItem in propValEach)
+                        {
                             for (var colidx = 0; colidx < tref.Columns.Count; colidx++)
                             {
-                                tref.RefColumns[colidx].Table.Properties[tref.RefColumns[colidx].CsName]
-                                    .SetValue(propValItem, tref.Columns[colidx].Table.Properties[tref.Columns[colidx].CsName].GetValue(item));
+                                var val = FreeSql.Internal.Utils.GetDataReaderValue(tref.RefColumns[colidx].CsType, _db.Orm.GetEntityValueWithPropertyName(_table.Type, item, tref.Columns[colidx].CsName));
+                                _db.Orm.SetEntityValueWithPropertyName(tref.RefEntityType, propValItem, tref.RefColumns[colidx].CsName, val);
                             }
-                            dbsetAddOrUpdate.Invoke(dbset, new object[] { propValItem });
+                            refSet.AddOrUpdate(propValItem);
                         }
                         break;
                 }

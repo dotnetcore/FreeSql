@@ -148,14 +148,15 @@ namespace FreeSql
             public ExecCommandInfoType actionType { get; set; }
             public IDbSet dbSet { get; set; }
             public Type stateType { get; set; }
+            public Type entityType { get; set; }
             public object state { get; set; }
         }
         internal enum ExecCommandInfoType { Insert, Update, Delete }
         Queue<ExecCommandInfo> _actions = new Queue<ExecCommandInfo>();
         internal int _affrows = 0;
 
-        internal void EnqueueAction(ExecCommandInfoType actionType, IDbSet dbSet, Type stateType, object state) =>
-            _actions.Enqueue(new ExecCommandInfo { actionType = actionType, dbSet = dbSet, stateType = stateType, state = state });
+        internal void EnqueueAction(ExecCommandInfoType actionType, IDbSet dbSet, Type stateType, Type entityType, object state) =>
+            _actions.Enqueue(new ExecCommandInfo { actionType = actionType, dbSet = dbSet, stateType = stateType, entityType = entityType, state = state });
         #endregion
 
         ~DbContext() => this.Dispose();
