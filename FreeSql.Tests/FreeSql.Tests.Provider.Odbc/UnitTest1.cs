@@ -258,6 +258,7 @@ namespace FreeSql.Tests.Odbc
             public virtual ICollection<TaskBuildInfo> Builds { get; set; }
             public Templates Templates { get; set; }
 
+            public Guid ParentId { get; set; }
             public TaskBuild Parent { get; set; }
         }
 

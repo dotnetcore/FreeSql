@@ -303,6 +303,7 @@ namespace FreeSql.Tests
             public virtual ICollection<TaskBuildInfo> Builds { get; set; }
             public Templates Templates { get; set; }
 
+            public Guid ParentId { get; set; }
             public TaskBuild Parent { get; set; }
         }
 
