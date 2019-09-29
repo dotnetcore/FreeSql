@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net45</TargetFrameworks>
-    <Version>0.10.5</Version>
+    <Version>0.10.6</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>YeXiangQin</Authors>
     <Description>FreeSql 扩展包，可实现实体类属性为对象时，以JSON形式映射存储.</Description>
@@ -19,7 +19,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="../../logo.png" Pack="true" PackagePath="\"/>
+    <None Include="../../logo.png" Pack="true" PackagePath="\" />
   </ItemGroup>
   
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.0|AnyCPU'">
