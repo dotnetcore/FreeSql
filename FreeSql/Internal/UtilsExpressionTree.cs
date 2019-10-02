@@ -103,7 +103,6 @@ namespace FreeSql.Internal
                         IsNullable = tp.Value.isnullable ?? true,
                         IsPrimary = false,
                         IsIgnore = false,
-                        Unique = null,
                         MapType = p.PropertyType
                     };
                 if (colattr._IsNullable == null) colattr._IsNullable = tp?.isnullable;
@@ -119,16 +118,8 @@ namespace FreeSql.Internal
                 if (tp != null && tp.Value.isnullable == null) colattr.IsNullable = tp.Value.dbtypeFull.Contains("NOT NULL") == false;
                 if (colattr.DbType?.Contains("NOT NULL") == true) colattr.IsNullable = false;
                 if (string.IsNullOrEmpty(colattr.Name)) colattr.Name = p.Name;
-                if (common.CodeFirst.IsSyncStructureToLower)
-                {
-                    colattr.Name = colattr.Name.ToLower();
-                    colattr.Unique = colattr.Unique?.ToLower();
-                }
-                if (common.CodeFirst.IsSyncStructureToUpper)
-                {
-                    colattr.Name = colattr.Name.ToUpper();
-                    colattr.Unique = colattr.Unique?.ToUpper();
-                }
+                if (common.CodeFirst.IsSyncStructureToLower) colattr.Name = colattr.Name.ToLower();
+                if (common.CodeFirst.IsSyncStructureToUpper) colattr.Name = colattr.Name.ToUpper();
 
                 if ((colattr.IsNullable != true || colattr.IsIdentity == true || colattr.IsPrimary == true) && colattr.DbType.Contains("NOT NULL") == false)
                 {
@@ -183,27 +174,9 @@ namespace FreeSql.Internal
                 if (trytb.VersionColumn.Attribute.MapType.IsNullableType() || trytb.VersionColumn.Attribute.MapType.IsNumberType() == false)
                     throw new Exception($"属性{trytb.VersionColumn.CsName} 被标注为行锁（乐观锁）(IsVersion)，但其必须为数字类型，并且不可为 Nullable");
             }
-            trytb.Primarys = trytb.Columns.Values.Where(a => a.Attribute.IsPrimary == true).ToArray();
-            if (trytb.Primarys.Any() == false)
-            {
-                var identcol = trytb.Columns.Values.Where(a => a.Attribute.IsIdentity == true).FirstOrDefault();
-                if (identcol != null) trytb.Primarys = new[] { identcol };
-                if (trytb.Primarys.Any() == false)
-                {
-                    trytb.Primarys = trytb.Columns.Values.Where(a => string.Compare(a.Attribute.Name, "id", true) == 0).ToArray();
-                    if (trytb.Primarys.Any() == false)
-                    {
-                        trytb.Primarys = trytb.Columns.Values.Where(a => string.Compare(a.Attribute.Name, $"{trytb.DbName}id", true) == 0).ToArray();
-                        if (trytb.Primarys.Any() == false)
-                        {
-                            trytb.Primarys = trytb.Columns.Values.Where(a => string.Compare(a.Attribute.Name, $"{trytb.DbName}_id", true) == 0).ToArray();
-                        }
-                    }
-                }
-                foreach (var col in trytb.Primarys)
-                    col.Attribute.IsPrimary = true;
-            }
-            //从数据库查找主键、自增
+
+            var indexesDict = new Dictionary<string, IndexInfo>(StringComparer.CurrentCultureIgnoreCase);
+            //从数据库查找主键、自增、索引
             if (common.CodeFirst.IsConfigEntityFromDbFirst)
             {
                 try
@@ -220,37 +193,99 @@ namespace FreeSql.Internal
                         {
                             foreach (var dbident in dbtb.Identitys)
                             {
-                                if (trytb.Columns.TryGetValue(dbident.Name, out var trycol) && trycol.Attribute.MapType == dbident.CsType ||
-                                    trytb.ColumnsByCs.TryGetValue(dbident.Name, out trycol) && trycol.Attribute.MapType == dbident.CsType)
+                                if (trytb.Columns.TryGetValue(dbident.Name, out var trycol) && trycol.Attribute.MapType.NullableTypeOrThis() == dbident.CsType.NullableTypeOrThis() ||
+                                    trytb.ColumnsByCs.TryGetValue(dbident.Name, out trycol) && trycol.Attribute.MapType.NullableTypeOrThis() == dbident.CsType.NullableTypeOrThis())
                                     trycol.Attribute.IsIdentity = true;
                             }
                             foreach (var dbpk in dbtb.Primarys)
                             {
-                                if (trytb.Columns.TryGetValue(dbpk.Name, out var trycol) && trycol.Attribute.MapType == dbpk.CsType ||
-                                    trytb.ColumnsByCs.TryGetValue(dbpk.Name, out trycol) && trycol.Attribute.MapType == dbpk.CsType)
+                                if (trytb.Columns.TryGetValue(dbpk.Name, out var trycol) && trycol.Attribute.MapType.NullableTypeOrThis() == dbpk.CsType.NullableTypeOrThis() ||
+                                    trytb.ColumnsByCs.TryGetValue(dbpk.Name, out trycol) && trycol.Attribute.MapType.NullableTypeOrThis() == dbpk.CsType.NullableTypeOrThis())
                                     trycol.Attribute.IsPrimary = true;
                             }
-                            foreach (var dbuk in dbtb.UniquesDict)
+                            foreach (var dbidx in dbtb.IndexesDict)
                             {
-                                foreach (var dbcol in dbuk.Value)
+                                var indexColumns = new List<IndexColumnInfo>();
+                                foreach (var dbcol in dbidx.Value.Columns)
                                 {
-                                    if (trytb.Columns.TryGetValue(dbcol.Name, out var trycol) && trycol.Attribute.MapType == dbcol.CsType ||
-                                        trytb.ColumnsByCs.TryGetValue(dbcol.Name, out trycol) && trycol.Attribute.MapType == dbcol.CsType)
-                                        if (trycol.Attribute._Uniques?.Contains(dbuk.Key) != true)
-                                            trycol.Attribute.Unique += $"," + dbuk.Key;
+                                    if (trytb.Columns.TryGetValue(dbcol.Column.Name, out var trycol) && trycol.Attribute.MapType.NullableTypeOrThis() == dbcol.Column.CsType.NullableTypeOrThis() ||
+                                        trytb.ColumnsByCs.TryGetValue(dbcol.Column.Name, out trycol) && trycol.Attribute.MapType.NullableTypeOrThis() == dbcol.Column.CsType.NullableTypeOrThis())
+                                        indexColumns.Add(new IndexColumnInfo
+                                        {
+                                            Column = trycol,
+                                            IsDesc = dbcol.IsDesc
+                                        });
                                 }
+                                if (indexColumns.Any() == false) continue;
+                                if (indexesDict.ContainsKey(dbidx.Key)) indexesDict.Remove(dbidx.Key);
+                                indexesDict.Add(dbidx.Key, new IndexInfo
+                                {
+                                    Name = dbidx.Key,
+                                    Columns = indexColumns.ToArray(),
+                                    IsUnique = dbidx.Value.IsUnique
+                                });
                             }
                         }
                     }
                 }
                 catch { }
-                trytb.Primarys = trytb.Columns.Values.Where(a => a.Attribute.IsPrimary == true).ToArray();
             }
-            var allunique = trytb.Columns.Values.Where(a => a.Attribute._Uniques != null).SelectMany(a => a.Attribute._Uniques).Distinct();
-            trytb.Uniques = allunique.ToDictionary(a => a, a => trytb.Columns.Values.Where(b => b.Attribute._Uniques != null && b.Attribute._Uniques.Contains(a)).ToList());
+            //索引和唯一键
+            var indexes = common.GetEntityIndexAttribute(trytb.Type);
+            foreach (var index in indexes)
+            {
+                var val = index.Fields?.Trim(' ', '\t', ',');
+                if (string.IsNullOrEmpty(val)) continue;
+                var arr = val.Split(',').Select(a => a.Trim(' ', '\t').Trim()).Where(a => !string.IsNullOrEmpty(a)).ToArray();
+                if (arr.Any() == false) continue;
+                var indexColumns = new List<IndexColumnInfo>();
+                foreach (var field in arr)
+                {
+                    var idxcol = new IndexColumnInfo();
+                    if (field.EndsWith(" DESC", StringComparison.CurrentCultureIgnoreCase)) idxcol.IsDesc = true;
+                    var colname = Regex.Replace(field, " (DESC|ASC)", "", RegexOptions.IgnoreCase);
+                    if (trytb.ColumnsByCs.TryGetValue(colname, out var trycol) || trytb.Columns.TryGetValue(colname, out trycol))
+                    {
+                        idxcol.Column = trycol;
+                        indexColumns.Add(idxcol);
+                    }
+                }
+                if (indexColumns.Any() == false) continue;
+                var indexName = common.CodeFirst.IsSyncStructureToLower ? index.Name.ToLower() : (common.CodeFirst.IsSyncStructureToUpper ? index.Name.ToUpper() : index.Name);
+                if (indexesDict.ContainsKey(indexName)) indexesDict.Remove(indexName);
+                indexesDict.Add(indexName, new IndexInfo
+                {
+                    Name = indexName,
+                    Columns = indexColumns.ToArray(),
+                    IsUnique = index.IsUnique
+                });
+            }
+            trytb.Indexes = indexesDict.Values.ToArray();
             trytb.ColumnsByPosition = columnsList.Where(a => a.Attribute.Position > 0).OrderBy(a => a.Attribute.Position)
                 .Concat(columnsList.Where(a => a.Attribute.Position == 0))
                 .Concat(columnsList.Where(a => a.Attribute.Position < 0).OrderBy(a => a.Attribute.Position)).ToArray();
+
+            trytb.Primarys = trytb.Columns.Values.Where(a => a.Attribute.IsPrimary == true).ToArray();
+            if (trytb.Primarys.Any() == false)
+            {
+                trytb.Primarys = trytb.Columns.Values.Where(a => string.Compare(a.Attribute.Name, "id", true) == 0).ToArray();
+                if (trytb.Primarys.Any() == false)
+                {
+                    var identcol = trytb.Columns.Values.Where(a => a.Attribute.IsIdentity == true).FirstOrDefault();
+                    if (identcol != null) trytb.Primarys = new[] { identcol };
+                    if (trytb.Primarys.Any() == false)
+                    {
+                        trytb.Primarys = trytb.Columns.Values.Where(a => string.Compare(a.Attribute.Name, $"{trytb.DbName}id", true) == 0).ToArray();
+                        if (trytb.Primarys.Any() == false)
+                        {
+                            trytb.Primarys = trytb.Columns.Values.Where(a => string.Compare(a.Attribute.Name, $"{trytb.DbName}_id", true) == 0).ToArray();
+                        }
+                    }
+                }
+                foreach (var col in trytb.Primarys)
+                    col.Attribute.IsPrimary = true;
+            }
+            foreach (var col in trytb.Primarys) col.Attribute.IsNullable = false;
             tbc.AddOrUpdate(entity, trytb, (oldkey, oldval) => trytb);
 
             #region 查找导航属性的关系、virtual 属性延时加载，动态产生新的重写类

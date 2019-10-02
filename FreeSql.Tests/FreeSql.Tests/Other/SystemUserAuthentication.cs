@@ -10,6 +10,7 @@ namespace Zeus
     /// 用户认证表
     /// </summary>
     [Table(Name = "system_user_authentication")]
+    [Index("UK_Identifier", "Identifier", true)]
     public partial class SystemUserAuthentication : EntityBase<long>
     {
         /// <summary>
@@ -30,7 +31,7 @@ namespace Zeus
         /// <summary>
         /// 登录标识
         /// </summary>
-        [Column(DbType = "varchar(50)", IsNullable = false, Unique = "UK_Identifier")]
+        [Column(DbType = "varchar(50)", IsNullable = false)]
         public string Identifier { get; set; }
         /// <summary>
         /// 登录凭证

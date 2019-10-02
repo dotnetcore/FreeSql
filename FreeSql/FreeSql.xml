@@ -45,11 +45,6 @@
             设置行锁（乐观锁）版本号，每次更新累加版本号，若更新整个实体时会附带当前的版本号判断（修改失败时抛出异常）
             </summary>
         </member>
-        <member name="P:FreeSql.DataAnnotations.ColumnAttribute.Unique">
-            <summary>
-            唯一键，在多个属性指定相同的标识，代表联合键；可使用逗号分割多个 UniqueKey 名。
-            </summary>
-        </member>
         <member name="P:FreeSql.DataAnnotations.ColumnAttribute.DbDefautValue">
             <summary>
             数据库默认值
@@ -123,13 +118,6 @@
             乐观锁
             </summary>
         </member>
-        <member name="M:FreeSql.DataAnnotations.ColumnFluent.Unique(System.String)">
-            <summary>
-            唯一键，在多个属性指定相同的标识，代表联合键；可使用逗号分割多个 UniqueKey 名。
-            </summary>
-            <param name="value">标识</param>
-            <returns></returns>
-        </member>
         <member name="M:FreeSql.DataAnnotations.ColumnFluent.MapType(System.Type)">
             <summary>
             类型映射，比如：可将 enum 属性映射成 typeof(string)
@@ -199,6 +187,21 @@
             禁用 CodeFirst 同步结构迁移
             </summary>
         </member>
+        <member name="P:FreeSql.DataAnnotations.IndexAttribute.Name">
+            <summary>
+            索引名
+            </summary>
+        </member>
+        <member name="P:FreeSql.DataAnnotations.IndexAttribute.Fields">
+            <summary>
+            索引字段，为属性名以逗号分隔，如：Create_time ASC, Title ASC
+            </summary>
+        </member>
+        <member name="P:FreeSql.DataAnnotations.IndexAttribute.IsUnique">
+            <summary>
+            是否唯一
+            </summary>
+        </member>
         <member name="M:FreeSql.DataAnnotations.TableFluent.Name(System.String)">
             <summary>
             数据库表名
@@ -218,6 +221,15 @@
             <summary>
             禁用 CodeFirst 同步结构迁移
             </summary>
+        </member>
+        <member name="M:FreeSql.DataAnnotations.TableFluent.Index(System.String,System.String,System.Boolean)">
+            <summary>
+            设置实体的索引
+            </summary>
+            <param name="name">索引名</param>
+            <param name="fields">索引字段，为属性名以逗号分隔，如：Create_time ASC, Title ASC</param>
+            <param name="isUnique">是否唯一</param>
+            <returns></returns>
         </member>
         <member name="M:FreeSql.DataAnnotations.TableFluent`1.Name(System.String)">
             <summary>
@@ -247,6 +259,15 @@
             <param name="proto"></param>
             <param name="bind"></param>
             <param name="manyToMany">多对多关系的中间实体类型</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.DataAnnotations.TableFluent`1.Index(System.String,System.String,System.Boolean)">
+            <summary>
+            设置实体的索引
+            </summary>
+            <param name="name">索引名</param>
+            <param name="fields">索引字段，为属性名以逗号分隔，如：Create_time ASC, Title ASC</param>
+            <param name="isUnique">是否唯一</param>
             <returns></returns>
         </member>
         <member name="P:FreeSql.DatabaseModel.DbColumnInfo.Table">
@@ -551,7 +572,9 @@
         </member>
         <member name="M:FreeSql.FreeSqlBuilder.UseConfigEntityFromDbFirst(System.Boolean)">
             <summary>
-            使用数据库的主键和自增，适用 DbFirst 模式，无须在实体类型上设置 [Column(IsPrimary)] 或者 ConfigEntity。此功能目前可用于 mysql/sqlserver/postgresql。
+            将数据库的主键、自增、索引设置导入，适用 DbFirst 模式，无须在实体类型上设置 [Column(IsPrimary)] 或者 ConfigEntity。此功能目前可用于 mysql/sqlserver/postgresql/oracle。<para></para>
+            本功能会影响 IFreeSql 首次访问的速度。<para></para>
+            若使用 CodeFirst 创建索引后，又直接在数据库上建了索引，若无本功能下一次 CodeFirst 迁移时数据库上创建的索引将被删除
             </summary>
             <param name="value"></param>
             <returns></returns>
@@ -2288,7 +2311,9 @@
         </member>
         <member name="P:FreeSql.ICodeFirst.IsConfigEntityFromDbFirst">
             <summary>
-            使用数据库的主键和自增，适用 DbFirst 模式，无须在实体类型上设置 [Column(IsPrimary)] 或者 ConfigEntity。此功能目前可用于 mysql/sqlserver/postgresql。
+            将数据库的主键、自增、索引设置导入，适用 DbFirst 模式，无须在实体类型上设置 [Column(IsPrimary)] 或者 ConfigEntity。此功能目前可用于 mysql/sqlserver/postgresql/oracle。<para></para>
+            本功能会影响 IFreeSql 首次访问的速度。<para></para>
+            若使用 CodeFirst 创建索引后，又直接在数据库上建了索引，若无本功能下一次 CodeFirst 迁移时数据库上创建的索引将被删除
             </summary>
         </member>
         <member name="P:FreeSql.ICodeFirst.IsNoneCommandParameter">

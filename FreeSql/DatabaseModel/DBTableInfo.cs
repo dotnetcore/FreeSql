@@ -40,18 +40,18 @@ namespace FreeSql.DatabaseModel
         /// <summary>
         /// 唯一键/组合
         /// </summary>
-        public Dictionary<string, List<DbColumnInfo>> UniquesDict { get; set; } = new Dictionary<string, List<DbColumnInfo>>();
+        public Dictionary<string, DbIndexInfo> UniquesDict { get; set; } = new Dictionary<string, DbIndexInfo>();
         /// <summary>
         /// 索引/组合
         /// </summary>
-        public Dictionary<string, List<DbColumnInfo>> IndexesDict { get; set; } = new Dictionary<string, List<DbColumnInfo>>();
+        public Dictionary<string, DbIndexInfo> IndexesDict { get; set; } = new Dictionary<string, DbIndexInfo>();
         /// <summary>
         /// 外键
         /// </summary>
         public Dictionary<string, DbForeignInfo> ForeignsDict { get; set; } = new Dictionary<string, DbForeignInfo>();
 
-        public List<List<DbColumnInfo>> Uniques => UniquesDict.Values.ToList();
-        public List<List<DbColumnInfo>> Indexes => IndexesDict.Values.ToList();
+        public List<DbIndexInfo> Uniques => UniquesDict.Values.ToList();
+        public List<DbIndexInfo> Indexes => IndexesDict.Values.ToList();
         public List<DbForeignInfo> Foreigns => ForeignsDict.Values.ToList();
     }
 

@@ -251,7 +251,7 @@ b.relname as index_id,
 case when a.indisunique then 1 else 0 end IsUnique,
 case when a.indisprimary then 1 else 0 end IsPrimary,
 case when a.indisclustered then 0 else 1 end IsClustered,
-0 IsDesc,
+case when pg_index_column_has_property(b.oid, c.attnum, 'desc') = 't' then 1 else 0 end IsDesc,
 a.indkey::text,
 c.attnum
 from pg_index a
@@ -259,13 +259,13 @@ inner join pg_class b on b.oid = a.indexrelid
 inner join pg_attribute c on c.attnum > 0 and c.attrelid = b.oid
 inner join pg_namespace ns on ns.oid = b.relnamespace
 inner join pg_class d on d.oid = a.indrelid
-where ns.nspname || '.' || d.relname in ({loc8})
+where ns.nspname || '.' || d.relname in ({loc8}) and a.indisprimary = 'f'
 ";
                 ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
                 if (ds == null) return loc1;
 
-                var indexColumns = new Dictionary<string, Dictionary<string, List<DbColumnInfo>>>();
-                var uniqueColumns = new Dictionary<string, Dictionary<string, List<DbColumnInfo>>>();
+                var indexColumns = new Dictionary<string, Dictionary<string, DbIndexInfo>>();
+                var uniqueColumns = new Dictionary<string, Dictionary<string, DbIndexInfo>>();
                 foreach (object[] row in ds)
                 {
                     var object_id = string.Concat(row[0]);
@@ -274,7 +274,7 @@ where ns.nspname || '.' || d.relname in ({loc8})
                     var is_unique = string.Concat(row[3]) == "1";
                     var is_primary_key = string.Concat(row[4]) == "1";
                     var is_clustered = string.Concat(row[5]) == "1";
-                    var is_desc = int.Parse(string.Concat(row[6]));
+                    var is_desc = string.Concat(row[6]) == "1";
                     var inkey = string.Concat(row[7]).Split(' ');
                     var attnum = int.Parse(string.Concat(row[8]));
                     attnum = int.Parse(inkey[attnum - 1]);
@@ -290,20 +290,20 @@ where ns.nspname || '.' || d.relname in ({loc8})
                     var loc9 = loc3[object_id][column];
                     if (loc9.IsPrimary == false && is_primary_key) loc9.IsPrimary = is_primary_key;
 
-                    Dictionary<string, List<DbColumnInfo>> loc10 = null;
-                    List<DbColumnInfo> loc11 = null;
+                    Dictionary<string, DbIndexInfo> loc10 = null;
+                    DbIndexInfo loc11 = null;
                     if (!indexColumns.TryGetValue(object_id, out loc10))
-                        indexColumns.Add(object_id, loc10 = new Dictionary<string, List<DbColumnInfo>>());
+                        indexColumns.Add(object_id, loc10 = new Dictionary<string, DbIndexInfo>());
                     if (!loc10.TryGetValue(index_id, out loc11))
-                        loc10.Add(index_id, loc11 = new List<DbColumnInfo>());
-                    loc11.Add(loc9);
+                        loc10.Add(index_id, loc11 = new DbIndexInfo());
+                    loc11.Columns.Add(new DbIndexColumnInfo { Column = loc9, IsDesc = is_desc });
                     if (is_unique && !is_primary_key)
                     {
                         if (!uniqueColumns.TryGetValue(object_id, out loc10))
-                            uniqueColumns.Add(object_id, loc10 = new Dictionary<string, List<DbColumnInfo>>());
+                            uniqueColumns.Add(object_id, loc10 = new Dictionary<string, DbIndexInfo>());
                         if (!loc10.TryGetValue(index_id, out loc11))
-                            loc10.Add(index_id, loc11 = new List<DbColumnInfo>());
-                        loc11.Add(loc9);
+                            loc10.Add(index_id, loc11 = new DbIndexInfo());
+                        loc11.Columns.Add(new DbIndexColumnInfo { Column = loc9, IsDesc = is_desc });
                     }
                 }
                 foreach (var object_id in indexColumns.Keys)
@@ -315,7 +315,7 @@ where ns.nspname || '.' || d.relname in ({loc8})
                 {
                     foreach (var column in uniqueColumns[object_id])
                     {
-                        column.Value.Sort((c1, c2) => c1.Name.CompareTo(c2.Name));
+                        column.Value.Columns.Sort((c1, c2) => c1.Column.Name.CompareTo(c2.Column.Name));
                         loc2[object_id].UniquesDict.Add(column.Key, column.Value);
                     }
                 }
@@ -382,14 +382,14 @@ where ns.nspname || '.' || b.relname in ({loc8})
                 }
                 foreach (var loc4 in loc2.Values)
                 {
-                    if (loc4.Primarys.Count == 0 && loc4.UniquesDict.Count > 0)
-                    {
-                        foreach (var loc5 in loc4.UniquesDict.First().Value)
-                        {
-                            loc5.IsPrimary = true;
-                            loc4.Primarys.Add(loc5);
-                        }
-                    }
+                    //if (loc4.Primarys.Count == 0 && loc4.UniquesDict.Count > 0)
+                    //{
+                    //    foreach (var loc5 in loc4.UniquesDict.First().Value.Columns)
+                    //    {
+                    //        loc5.Column.IsPrimary = true;
+                    //        loc4.Primarys.Add(loc5.Column);
+                    //    }
+                    //}
                     loc4.Primarys.Sort((c1, c2) => c1.Name.CompareTo(c2.Name));
                     loc4.Columns.Sort((c1, c2) =>
                     {

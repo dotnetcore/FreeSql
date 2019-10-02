@@ -119,7 +119,8 @@ namespace FreeSql.Odbc.MySql
                         if (tboldname == null)
                         {
                             //创建表
-                            sb.Append("CREATE TABLE IF NOT EXISTS ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ( ");
+                            var createTableName = _commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}");
+                            sb.Append("CREATE TABLE IF NOT EXISTS ").Append(createTableName).Append(" ( ");
                             foreach (var tbcol in tb.ColumnsByPosition)
                             {
                                 sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ");
@@ -134,14 +135,22 @@ namespace FreeSql.Odbc.MySql
                                 foreach (var tbcol in tb.Primarys) sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
                                 sb.Remove(sb.Length - 2, 2).Append("),");
                             }
-                            foreach (var uk in tb.Uniques)
-                            {
-                                sb.Append(" \r\n  UNIQUE KEY ").Append(_commonUtils.QuoteSqlName(uk.Key)).Append("(");
-                                foreach (var tbcol in uk.Value) sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
-                                sb.Remove(sb.Length - 2, 2).Append("),");
-                            }
                             sb.Remove(sb.Length - 1, 1);
                             sb.Append("\r\n) Engine=InnoDB;\r\n");
+                            //创建表的索引
+                            foreach (var uk in tb.Indexes)
+                            {
+                                sb.Append("CREATE ");
+                                if (uk.IsUnique) sb.Append("UNIQUE ");
+                                sb.Append("INDEX ").Append(_commonUtils.QuoteSqlName(uk.Name)).Append(" ON ").Append(createTableName).Append("(");
+                                foreach (var tbcol in uk.Columns)
+                                {
+                                    sb.Append(_commonUtils.QuoteSqlName(tbcol.Column.Attribute.Name));
+                                    if (tbcol.IsDesc) sb.Append(" DESC");
+                                    sb.Append(", ");
+                                }
+                                sb.Remove(sb.Length - 2, 2).Append(");\r\n");
+                            }
                             continue;
                         }
                         //如果新表，旧表在一个数据库下，直接修改表名
@@ -223,19 +232,28 @@ where a.table_schema in ({0}) and a.table_name in ({1})", tboldname ?? tbname);
                         var dsuksql = _commonUtils.FormatSql(@"
 select 
 a.column_name,
-a.constraint_name 'index_id'
-from information_schema.key_column_usage a
-where a.constraint_schema IN ({0}) and a.table_name IN ({1})", tboldname ?? tbname);
-                        var dsuk = _orm.Ado.ExecuteArray(CommandType.Text, dsuksql).Select(a => new[] { string.Concat(a[0]), string.Concat(a[1]) });
-                        foreach (var uk in tb.Uniques)
+a.index_name 'index_id',
+0 'IsDesc',
+case when a.non_unique = 0 then 1 else 0 end 'IsUnique'
+from information_schema.statistics a
+where a.table_schema IN ({0}) and a.table_name IN ({1}) and a.index_name <> 'PRIMARY'", tboldname ?? tbname);
+                        var dsuk = _orm.Ado.ExecuteArray(CommandType.Text, dsuksql).Select(a => new[] { string.Concat(a[0]), string.Concat(a[1]), string.Concat(a[2]), string.Concat(a[3]) });
+                        foreach (var uk in tb.Indexes)
                         {
-                            if (uk.Key == "PRIMARY" || string.IsNullOrEmpty(uk.Key) || uk.Value.Any() == false) continue;
-                            var dsukfind1 = dsuk.Where(a => string.Compare(a[1], uk.Key, true) == 0).ToArray();
-                            if (dsukfind1.Any() == false || dsukfind1.Length != uk.Value.Count || dsukfind1.Where(a => uk.Value.Where(b => string.Compare(b.Attribute.Name, a[0], true) == 0).Any()).Count() != uk.Value.Count)
+                            if (string.IsNullOrEmpty(uk.Name) || uk.Columns.Any() == false) continue;
+                            var dsukfind1 = dsuk.Where(a => string.Compare(a[1], uk.Name, true) == 0).ToArray();
+                            if (dsukfind1.Any() == false || dsukfind1.Length != uk.Columns.Length || dsukfind1.Where(a => (a[3] == "1") == uk.IsUnique && uk.Columns.Where(b => string.Compare(b.Column.Attribute.Name, a[0], true) == 0 && (a[2] == "1") == b.IsDesc).Any()).Count() != uk.Columns.Length)
                             {
-                                if (dsukfind1.Any()) sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" DROP INDEX ").Append(_commonUtils.QuoteSqlName(uk.Key)).Append(";\r\n");
-                                sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ADD CONSTRAINT ").Append(_commonUtils.QuoteSqlName(uk.Key)).Append(" UNIQUE(");
-                                foreach (var tbcol in uk.Value) sbalter.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
+                                if (dsukfind1.Any()) sbalter.Append("DROP INDEX ").Append(_commonUtils.QuoteSqlName(uk.Name)).Append(" ON ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(";\r\n");
+                                sbalter.Append("CREATE ");
+                                if (uk.IsUnique) sbalter.Append("UNIQUE ");
+                                sbalter.Append("INDEX ").Append(_commonUtils.QuoteSqlName(uk.Name)).Append(" ON ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append("(");
+                                foreach (var tbcol in uk.Columns)
+                                {
+                                    sbalter.Append(_commonUtils.QuoteSqlName(tbcol.Column.Attribute.Name));
+                                    if (tbcol.IsDesc) sbalter.Append(" DESC");
+                                    sbalter.Append(", ");
+                                }
                                 sbalter.Remove(sbalter.Length - 2, 2).Append(");\r\n");
                             }
                         }
@@ -265,12 +283,6 @@ where a.constraint_schema IN ({0}) and a.table_name IN ({1})", tboldname ?? tbna
                         foreach (var tbcol in tb.Primarys) sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
                         sb.Remove(sb.Length - 2, 2).Append("),");
                     }
-                    foreach (var uk in tb.Uniques)
-                    {
-                        sb.Append(" \r\n  UNIQUE KEY ").Append(_commonUtils.QuoteSqlName(uk.Key)).Append("(");
-                        foreach (var tbcol in uk.Value) sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
-                        sb.Remove(sb.Length - 2, 2).Append("),");
-                    }
                     sb.Remove(sb.Length - 1, 1);
                     sb.Append("\r\n) Engine=InnoDB;\r\n");
                     sb.Append("INSERT INTO ").Append(tmptablename).Append(" (");
@@ -298,6 +310,20 @@ where a.constraint_schema IN ({0}) and a.table_name IN ({1})", tboldname ?? tbna
                     sb.Remove(sb.Length - 2, 2).Append(" FROM ").Append(tablename).Append(";\r\n");
                     sb.Append("DROP TABLE ").Append(tablename).Append(";\r\n");
                     sb.Append("ALTER TABLE ").Append(tmptablename).Append(" RENAME TO ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(";\r\n");
+                    //创建表的索引
+                    foreach (var uk in tb.Indexes)
+                    {
+                        sb.Append("CREATE ");
+                        if (uk.IsUnique) sb.Append("UNIQUE ");
+                        sb.Append("INDEX ").Append(_commonUtils.QuoteSqlName(uk.Name)).Append(" ON ").Append(tablename).Append("(");
+                        foreach (var tbcol in uk.Columns)
+                        {
+                            sb.Append(_commonUtils.QuoteSqlName(tbcol.Column.Attribute.Name));
+                            if (tbcol.IsDesc) sb.Append(" DESC");
+                            sb.Append(", ");
+                        }
+                        sb.Remove(sb.Length - 2, 2).Append(");\r\n");
+                    }
                 }
                 return sb.Length == 0 ? null : sb.ToString();
             }

@@ -59,6 +59,20 @@ namespace FreeSql.DataAnnotations
             var col = _table._columns.GetOrAdd(proto, name => new ColumnAttribute { Name = proto });
             return new ColumnFluent(col);
         }
+
+        /// <summary>
+        /// 设置实体的索引
+        /// </summary>
+        /// <param name="name">索引名</param>
+        /// <param name="fields">索引字段，为属性名以逗号分隔，如：Create_time ASC, Title ASC</param>
+        /// <param name="isUnique">是否唯一</param>
+        /// <returns></returns>
+        public TableFluent Index(string name, string fields, bool isUnique = false)
+        {
+            var idx = new IndexAttribute(name, fields, isUnique);
+            _table._indexs.AddOrUpdate(name, idx, (_, __) => idx);
+            return this;
+        }
     }
 
     public class TableFluent<T>
@@ -126,6 +140,20 @@ namespace FreeSql.DataAnnotations
             if (member == null) throw new FormatException($"错误的表达式格式 {proto}");
             var nav = new NavigateAttribute { Bind = bind, ManyToMany = manyToMany };
             _table._navigates.AddOrUpdate(member.Name, nav, (name, old) => nav);
+            return this;
+        }
+
+        /// <summary>
+        /// 设置实体的索引
+        /// </summary>
+        /// <param name="name">索引名</param>
+        /// <param name="fields">索引字段，为属性名以逗号分隔，如：Create_time ASC, Title ASC</param>
+        /// <param name="isUnique">是否唯一</param>
+        /// <returns></returns>
+        public TableFluent<T> Index(string name, string fields, bool isUnique = false)
+        {
+            var idx = new IndexAttribute(name, fields, isUnique);
+            _table._indexs.AddOrUpdate(name, idx, (_, __) => idx);
             return this;
         }
     }

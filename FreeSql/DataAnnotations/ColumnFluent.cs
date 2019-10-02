@@ -77,16 +77,6 @@ namespace FreeSql.DataAnnotations
             return this;
         }
         /// <summary>
-        /// 唯一键，在多个属性指定相同的标识，代表联合键；可使用逗号分割多个 UniqueKey 名。
-        /// </summary>
-        /// <param name="value">标识</param>
-        /// <returns></returns>
-        public ColumnFluent Unique(string value)
-        {
-            _column.Unique = value;
-            return this;
-        }
-        /// <summary>
         /// 类型映射，比如：可将 enum 属性映射成 typeof(string)
         /// </summary>
         /// <param name="value"></param>

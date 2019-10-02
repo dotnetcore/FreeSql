@@ -99,7 +99,8 @@ namespace FreeSql.Sqlite
                     if (tboldname == null)
                     {
                         //创建表
-                        sb.Append("CREATE TABLE IF NOT EXISTS ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ( ");
+                        var createTableName = _commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}");
+                        sb.Append("CREATE TABLE IF NOT EXISTS ").Append(createTableName).Append(" ( ");
                         foreach (var tbcol in tb.ColumnsByPosition)
                         {
                             sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ");
@@ -117,14 +118,22 @@ namespace FreeSql.Sqlite
                             foreach (var tbcol in tb.Primarys) sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
                             sb.Remove(sb.Length - 2, 2).Append("),");
                         }
-                        foreach (var uk in tb.Uniques)
-                        {
-                            sb.Append(" \r\n  CONSTRAINT ").Append(_commonUtils.QuoteSqlName(uk.Key)).Append(" UNIQUE(");
-                            foreach (var tbcol in uk.Value) sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
-                            sb.Remove(sb.Length - 2, 2).Append("),");
-                        }
                         sb.Remove(sb.Length - 1, 1);
                         sb.Append("\r\n) \r\n;\r\n");
+                        //创建表的索引
+                        foreach (var uk in tb.Indexes)
+                        {
+                            sb.Append("CREATE ");
+                            if (uk.IsUnique) sb.Append("UNIQUE ");
+                            sb.Append("INDEX ").Append(_commonUtils.QuoteSqlName(uk.Name)).Append(" ON ").Append(tbname[1]).Append("(");
+                            foreach (var tbcol in uk.Columns)
+                            {
+                                sb.Append(_commonUtils.QuoteSqlName(tbcol.Column.Attribute.Name));
+                                if (tbcol.IsDesc) sb.Append(" DESC");
+                                sb.Append(", ");
+                            }
+                            sb.Remove(sb.Length - 2, 2).Append(");\r\n");
+                        }
                         continue;
                     }
                     //如果新表，旧表在一个模式下，直接修改表名
@@ -183,25 +192,26 @@ namespace FreeSql.Sqlite
                         //添加列
                         istmpatler = true;
                     }
-                    var dsukMatches = _regexUK.Matches(dsql);
                     var dsuk = new List<string[]>();
-                    foreach (Match dsukm in dsukMatches)
+                    var dbIndexes = _orm.Ado.ExecuteArray(CommandType.Text, $"PRAGMA {_commonUtils.QuoteSqlName(tbtmp[0])}.INDEX_LIST({_commonUtils.QuoteSqlName(tbtmp[1])})");
+                    foreach (var dbIndex in dbIndexes)
                     {
-                        var dbsukmg2 = dsukm.Groups[2].Value.Split(',');
-                        if (dbsukmg2.Any() == false) continue;
-                        foreach (var dbfield in dbsukmg2)
+                        if (string.Concat(dbIndex[3]) == "pk") continue;
+                        var dbIndexesColumns = _orm.Ado.ExecuteArray(CommandType.Text, $"PRAGMA {_commonUtils.QuoteSqlName(tbtmp[0])}.INDEX_INFO({dbIndex[1]})");
+                        var dbIndexesSql = string.Concat(_orm.Ado.ExecuteScalar(CommandType.Text, $"SELECT sql FROM sqlite_master WHERE name = '{dbIndex[1]}'"));
+                        foreach (var dbcolumn in dbIndexesColumns)
                         {
-                            dsuk.Add(new[] { Regex.Match(dbfield, @"""([^""]+)""").Groups[1].Value, dsukm.Groups[1].Value });
+                            var dbcolumnName = string.Concat(dbcolumn[2]);
+                            var isDesc = dbIndexesSql.IndexOf($@"{dbcolumnName}"" DESC", StringComparison.CurrentCultureIgnoreCase) == -1 ? "0" : "1";
+                            dsuk.Add(new[] { dbcolumnName, string.Concat(dbIndex[1]), isDesc, string.Concat(dbIndex[2]) }); ;
                         }
                     }
-                    foreach (var uk in tb.Uniques)
+                    foreach (var uk in tb.Indexes)
                     {
-                        if (string.IsNullOrEmpty(uk.Key) || uk.Value.Any() == false) continue;
-                        var dsukfind1 = dsuk.Where(a => string.Compare(a[1], uk.Key, true) == 0).ToArray();
-                        if (dsukfind1.Any() == false || dsukfind1.Length != uk.Value.Count || dsukfind1.Where(a => uk.Value.Where(b => string.Compare(b.Attribute.Name, a[0], true) == 0).Any()).Count() != uk.Value.Count)
-                        {
+                        if (string.IsNullOrEmpty(uk.Name) || uk.Columns.Any() == false) continue;
+                        var dsukfind1 = dsuk.Where(a => string.Compare(a[1], uk.Name, true) == 0).ToArray();
+                        if (dsukfind1.Any() == false || dsukfind1.Length != uk.Columns.Length || dsukfind1.Where(a => (a[3] == "1") == uk.IsUnique && uk.Columns.Where(b => string.Compare(b.Column.Attribute.Name, a[0], true) == 0 && (a[2] == "1") == b.IsDesc).Any()).Count() != uk.Columns.Length)
                             istmpatler = true;
-                        }
                     }
                 }
                 if (istmpatler == false)
@@ -212,6 +222,7 @@ namespace FreeSql.Sqlite
 
                 //创建临时表，数据导进临时表，然后删除原表，将临时表改名为原表名
                 var tablename = tboldname == null ? _commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}") : _commonUtils.QuoteSqlName($"{tboldname[0]}.{tboldname[1]}");
+                var tablenameOnlyTb = tboldname == null ? _commonUtils.QuoteSqlName(tbname[1]) : _commonUtils.QuoteSqlName(tboldname[1]);
                 var tmptablename = _commonUtils.QuoteSqlName($"{tbname[0]}._FreeSqlTmp_{tbname[1]}");
                 //创建临时表
                 //创建表
@@ -232,12 +243,6 @@ namespace FreeSql.Sqlite
                 {
                     sb.Append(" \r\n  PRIMARY KEY (");
                     foreach (var tbcol in tb.Primarys) sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
-                    sb.Remove(sb.Length - 2, 2).Append("),");
-                }
-                foreach (var uk in tb.Uniques)
-                {
-                    sb.Append(" \r\n  CONSTRAINT ").Append(_commonUtils.QuoteSqlName(uk.Key)).Append(" UNIQUE(");
-                    foreach (var tbcol in uk.Value) sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
                     sb.Remove(sb.Length - 2, 2).Append("),");
                 }
                 sb.Remove(sb.Length - 1, 1);
@@ -268,9 +273,22 @@ namespace FreeSql.Sqlite
                 sb.Remove(sb.Length - 2, 2).Append(" FROM ").Append(tablename).Append(";\r\n");
                 sb.Append("DROP TABLE ").Append(tablename).Append(";\r\n");
                 sb.Append("ALTER TABLE ").Append(tmptablename).Append(" RENAME TO ").Append(_commonUtils.QuoteSqlName($"{tbname[1]}")).Append(";\r\n");
+                //创建表的索引
+                foreach (var uk in tb.Indexes)
+                {
+                    sb.Append("CREATE ");
+                    if (uk.IsUnique) sb.Append("UNIQUE ");
+                    sb.Append("INDEX ").Append(_commonUtils.QuoteSqlName(uk.Name)).Append(" ON ").Append(tablenameOnlyTb).Append("(");
+                    foreach (var tbcol in uk.Columns)
+                    {
+                        sb.Append(_commonUtils.QuoteSqlName(tbcol.Column.Attribute.Name));
+                        if (tbcol.IsDesc) sb.Append(" DESC");
+                        sb.Append(", ");
+                    }
+                    sb.Remove(sb.Length - 2, 2).Append(");\r\n");
+                }
             }
             return sb.Length == 0 ? null : sb.ToString();
         }
-        static Regex _regexUK = new Regex(@"CONSTRAINT\s*""([^""]+)""\s*UNIQUE\s*\(([^\)]+)\)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
     }
 }

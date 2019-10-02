@@ -9,12 +9,13 @@ namespace Zeus
     /// 用户表
     /// </summary>
     [Table(Name = "system_user")]
+    [Index("UK_DisplayName", "DisplayName", true)]
     public partial class SystemUser : EntityBase<long>
     {
         /// <summary>
         /// 显示名称
         /// </summary>
-        [Column(DbType = "varchar(20)", IsNullable = false, Unique = "UK_DisplayName")]
+        [Column(DbType = "varchar(20)", IsNullable = false)]
         public string DisplayName { get; set; }
         /// <summary>
         /// 真实名称

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FreeSql.DataAnnotations;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
@@ -16,7 +17,7 @@ namespace FreeSql.Internal.Model
         public Dictionary<string, ColumnInfo> ColumnsByCsIgnore { get; set; } = new Dictionary<string, ColumnInfo>(StringComparer.CurrentCultureIgnoreCase);
         public ColumnInfo[] ColumnsByPosition { get; set; }
         public ColumnInfo[] Primarys { get; set; }
-        public Dictionary<string, List<ColumnInfo>> Uniques { get; set; }
+        public IndexInfo[] Indexes { get; set; }
         public string CsName { get; set; }
         public string DbName { get; set; }
         public string DbOldName { get; set; }

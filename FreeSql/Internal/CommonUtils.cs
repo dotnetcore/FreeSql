@@ -125,7 +125,6 @@ namespace FreeSql.Internal
                 if (trycol._IsNullable != null) attr._IsNullable = trycol.IsNullable;
                 if (trycol._IsIgnore != null) attr._IsIgnore = trycol.IsIgnore;
                 if (trycol._IsVersion != null) attr._IsVersion = trycol.IsVersion;
-                if (trycol._Uniques != null) attr._Uniques = trycol._Uniques;
                 if (trycol.MapType != null) attr.MapType = trycol.MapType;
                 if (trycol._Position != null) attr._Position = trycol.Position;
                 if (trycol._CanInsert != null) attr._CanInsert = trycol.CanInsert;
@@ -145,7 +144,6 @@ namespace FreeSql.Internal
                 if (tryattr._IsNullable != null) attr._IsNullable = tryattr.IsNullable;
                 if (tryattr._IsIgnore != null) attr._IsIgnore = tryattr.IsIgnore;
                 if (tryattr._IsVersion != null) attr._IsVersion = tryattr.IsVersion;
-                if (tryattr._Uniques != null) attr._Uniques = tryattr._Uniques;
                 if (tryattr.MapType != null) attr.MapType = tryattr.MapType;
                 if (tryattr._Position != null) attr._Position = tryattr.Position;
                 if (tryattr._CanInsert != null) attr._CanInsert = tryattr.CanInsert;
@@ -161,7 +159,6 @@ namespace FreeSql.Internal
             if (attr._IsNullable != null) ret = attr;
             if (attr._IsIgnore != null) ret = attr;
             if (attr._IsVersion != null) ret = attr;
-            if (attr._Uniques != null) ret = attr;
             if (attr.MapType != null) ret = attr;
             if (attr._Position != null) ret = attr;
             if (attr._CanInsert != null) ret = attr;
@@ -190,6 +187,29 @@ namespace FreeSql.Internal
             if (!string.IsNullOrEmpty(attr.Bind)) ret = attr;
             if (attr.ManyToMany != null) ret = attr;
             return ret;
+        }
+        public IndexAttribute[] GetEntityIndexAttribute(Type type)
+        {
+            var ret = new Dictionary<string, IndexAttribute>(); ;
+            if (dicConfigEntity.TryGetValue(type, out var trytb))
+            {
+                foreach (var idxattr in trytb._indexs.Values)
+                {
+                    if (!string.IsNullOrEmpty(idxattr.Name) && !string.IsNullOrEmpty(idxattr.Fields))
+                        ret.Add(idxattr.Name, new IndexAttribute(idxattr.Name, idxattr.Fields) { _IsUnique = idxattr._IsUnique });
+                }
+            }
+            var attrs = type.GetCustomAttributes(typeof(IndexAttribute), true);
+            foreach (var tryattrobj in attrs)
+            {
+                var idxattr = tryattrobj as IndexAttribute;
+                if (idxattr == null) continue;
+                if (string.IsNullOrEmpty(idxattr.Name)) continue;
+                if (string.IsNullOrEmpty(idxattr.Fields)) continue;
+                if (ret.ContainsKey(idxattr.Name)) ret.Remove(idxattr.Name);
+                ret.Add(idxattr.Name, new IndexAttribute(idxattr.Name, idxattr.Fields) { _IsUnique = idxattr._IsUnique });
+            }
+            return ret.Values.ToArray();
         }
 
         public string WhereObject(TableInfo table, string aliasAndDot, object dywhere)

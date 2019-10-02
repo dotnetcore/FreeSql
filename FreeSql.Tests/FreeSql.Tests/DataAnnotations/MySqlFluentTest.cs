@@ -163,6 +163,7 @@ namespace FreeSql.Tests.DataAnnotations
             Assert.NotEqual(item.testfield2, find.testfield2);
             Assert.Equal(1000, find.testfield1);
         }
+        [Index("idx_xxx", "testfield1 ASC, testfield2 DESC")]
         class TestCanInsert
         {
             public Guid id { get; set; }

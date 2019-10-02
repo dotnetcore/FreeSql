@@ -78,7 +78,9 @@ namespace FreeSql
             return this;
         }
         /// <summary>
-        /// 使用数据库的主键和自增，适用 DbFirst 模式，无须在实体类型上设置 [Column(IsPrimary)] 或者 ConfigEntity。此功能目前可用于 mysql/sqlserver/postgresql。
+        /// 将数据库的主键、自增、索引设置导入，适用 DbFirst 模式，无须在实体类型上设置 [Column(IsPrimary)] 或者 ConfigEntity。此功能目前可用于 mysql/sqlserver/postgresql/oracle。<para></para>
+        /// 本功能会影响 IFreeSql 首次访问的速度。<para></para>
+        /// 若使用 CodeFirst 创建索引后，又直接在数据库上建了索引，若无本功能下一次 CodeFirst 迁移时数据库上创建的索引将被删除
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>

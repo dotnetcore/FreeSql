@@ -222,21 +222,21 @@ where a.table_schema in ({1}) and a.table_name in ({0})
 
             sql = string.Format(@"
 select 
-concat(a.constraint_schema, '.', a.table_name) 'table_id',
+concat(a.table_schema, '.', a.table_name) 'table_id',
 a.column_name,
-a.constraint_name 'index_id',
-1 'IsUnique',
-case when a.constraint_name = 'PRIMARY' then 1 else 0 end 'IsPrimaryKey',
+a.index_name 'index_id',
+case when a.non_unique = 0 then 1 else 0 end 'IsUnique',
+case when a.index_name = 'PRIMARY' then 1 else 0 end 'IsPrimaryKey',
 0 'IsClustered',
 0 'IsDesc'
-from information_schema.key_column_usage a
-where a.constraint_schema in ({1}) and a.table_name in ({0}) and isnull(position_in_unique_constraint)
+from information_schema.statistics a
+where a.table_schema in ({1}) and a.table_name in ({0}) and a.index_name <> 'PRIMARY'
 ", loc8, databaseIn);
             ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
             if (ds == null) return loc1;
 
-            var indexColumns = new Dictionary<string, Dictionary<string, List<DbColumnInfo>>>();
-            var uniqueColumns = new Dictionary<string, Dictionary<string, List<DbColumnInfo>>>();
+            var indexColumns = new Dictionary<string, Dictionary<string, DbIndexInfo>>();
+            var uniqueColumns = new Dictionary<string, Dictionary<string, DbIndexInfo>>();
             foreach (var row in ds)
             {
                 string table_id = string.Concat(row[0]);
@@ -245,29 +245,27 @@ where a.constraint_schema in ({1}) and a.table_name in ({0}) and isnull(position
                 bool is_unique = string.Concat(row[3]) == "1";
                 bool is_primary_key = string.Concat(row[4]) == "1";
                 bool is_clustered = string.Concat(row[5]) == "1";
-                int is_desc = int.Parse(string.Concat(row[6]));
+                bool is_desc = string.Concat(row[6]) == "1";
                 if (database.Length == 1)
-                {
                     table_id = table_id.Substring(table_id.IndexOf('.') + 1);
-                }
                 if (loc3.ContainsKey(table_id) == false || loc3[table_id].ContainsKey(column) == false) continue;
                 var loc9 = loc3[table_id][column];
                 if (loc9.IsPrimary == false && is_primary_key) loc9.IsPrimary = is_primary_key;
 
-                Dictionary<string, List<DbColumnInfo>> loc10 = null;
-                List<DbColumnInfo> loc11 = null;
+                Dictionary<string, DbIndexInfo> loc10 = null;
+                DbIndexInfo loc11 = null;
                 if (!indexColumns.TryGetValue(table_id, out loc10))
-                    indexColumns.Add(table_id, loc10 = new Dictionary<string, List<DbColumnInfo>>());
+                    indexColumns.Add(table_id, loc10 = new Dictionary<string, DbIndexInfo>());
                 if (!loc10.TryGetValue(index_id, out loc11))
-                    loc10.Add(index_id, loc11 = new List<DbColumnInfo>());
-                loc11.Add(loc9);
+                    loc10.Add(index_id, loc11 = new DbIndexInfo());
+                loc11.Columns.Add(new DbIndexColumnInfo { Column = loc9, IsDesc = is_desc });
                 if (is_unique && !is_primary_key)
                 {
                     if (!uniqueColumns.TryGetValue(table_id, out loc10))
-                        uniqueColumns.Add(table_id, loc10 = new Dictionary<string, List<DbColumnInfo>>());
+                        uniqueColumns.Add(table_id, loc10 = new Dictionary<string, DbIndexInfo>());
                     if (!loc10.TryGetValue(index_id, out loc11))
-                        loc10.Add(index_id, loc11 = new List<DbColumnInfo>());
-                    loc11.Add(loc9);
+                        loc10.Add(index_id, loc11 = new DbIndexInfo());
+                    loc11.Columns.Add(new DbIndexColumnInfo { Column = loc9, IsDesc = is_desc });
                 }
             }
             foreach (string table_id in indexColumns.Keys)
@@ -279,7 +277,7 @@ where a.constraint_schema in ({1}) and a.table_name in ({0}) and isnull(position
             {
                 foreach (var column in uniqueColumns[table_id])
                 {
-                    column.Value.Sort((c1, c2) => c1.Name.CompareTo(c2.Name));
+                    column.Value.Columns.Sort((c1, c2) => c1.Column.Name.CompareTo(c2.Column.Name));
                     loc2[table_id].UniquesDict.Add(column.Key, column.Value);
                 }
             }
@@ -342,14 +340,14 @@ where a.constraint_schema in ({1}) and a.table_name in ({0}) and not isnull(posi
             }
             foreach (var loc4 in loc2.Values)
             {
-                if (loc4.Primarys.Count == 0 && loc4.UniquesDict.Count > 0)
-                {
-                    foreach (var loc5 in loc4.UniquesDict.First().Value)
-                    {
-                        loc5.IsPrimary = true;
-                        loc4.Primarys.Add(loc5);
-                    }
-                }
+                //if (loc4.Primarys.Count == 0 && loc4.UniquesDict.Count > 0)
+                //{
+                //    foreach (var loc5 in loc4.UniquesDict.First().Value.Columns)
+                //    {
+                //        loc5.Column.IsPrimary = true;
+                //        loc4.Primarys.Add(loc5.Column);
+                //    }
+                //}
                 loc4.Primarys.Sort((c1, c2) => c1.Name.CompareTo(c2.Name));
                 loc4.Columns.Sort((c1, c2) =>
                 {

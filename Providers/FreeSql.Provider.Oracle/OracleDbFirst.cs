@@ -287,61 +287,59 @@ where a.owner in ({1}) and a.table_name in ({0})
                 loc3[table_id][column].CsType = this.GetCsTypeInfo(loc3[table_id][column]);
             }
 
+            OracleCodeFirst.CreateOracleFunction(_orm);
             sql = string.Format(@"
 select
-a.owner || '.' || a.table_name,
-c.column_name,
-c.constraint_name,
-case when a.constraint_type = 'U' then 1 else 0 end,
-case when a.constraint_type = 'P' then 1 else 0 end,
+a.table_owner || '.' || a.table_name,
+nvl(freesql_long_2_varchar(a.index_name, c.table_name, c.column_position), c.column_name),
+c.index_name,
+case when a.uniqueness = 'UNIQUE' then 1 else 0 end,
 0,
-0
-from
-all_constraints a,
-all_cons_columns c
-where
-a.constraint_name = c.constraint_name
-and a.owner = c.owner
+0,
+case when c.descend = 'DESC' then 1 else 0 end,
+c.column_position
+from all_indexes a,
+all_ind_columns c 
+where a.index_name = c.index_name
+and a.table_owner = c.table_owner
 and a.table_name = c.table_name
-and a.constraint_type  in ('P', 'U')
-and a.owner in ({1}) and a.table_name in ({0})
+and a.table_owner in ({1}) and a.table_name in ({0}) 
+and not exists(select 1 from all_constraints where constraint_name = a.index_name and constraint_type = 'P')
 ", loc8, databaseIn);
             ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
             if (ds == null) return loc1;
 
-            var indexColumns = new Dictionary<string, Dictionary<string, List<DbColumnInfo>>>();
-            var uniqueColumns = new Dictionary<string, Dictionary<string, List<DbColumnInfo>>>();
+            var indexColumns = new Dictionary<string, Dictionary<string, DbIndexInfo>>();
+            var uniqueColumns = new Dictionary<string, Dictionary<string, DbIndexInfo>>();
             foreach (var row in ds)
             {
                 string table_id = string.Concat(row[0]);
-                string column = string.Concat(row[1]);
+                string column = string.Concat(row[1]).Trim('"');
                 string index_id = string.Concat(row[2]);
                 bool is_unique = string.Concat(row[3]) == "1";
                 bool is_primary_key = string.Concat(row[4]) == "1";
                 bool is_clustered = string.Concat(row[5]) == "1";
-                int is_desc = int.Parse(string.Concat(row[6]));
+                bool is_desc = string.Concat(row[6]) == "1";
                 if (database.Length == 1)
-                {
                     table_id = table_id.Substring(table_id.IndexOf('.') + 1);
-                }
                 if (loc3.ContainsKey(table_id) == false || loc3[table_id].ContainsKey(column) == false) continue;
                 var loc9 = loc3[table_id][column];
                 if (loc9.IsPrimary == false && is_primary_key) loc9.IsPrimary = is_primary_key;
 
-                Dictionary<string, List<DbColumnInfo>> loc10 = null;
-                List<DbColumnInfo> loc11 = null;
+                Dictionary<string, DbIndexInfo> loc10 = null;
+                DbIndexInfo loc11 = null;
                 if (!indexColumns.TryGetValue(table_id, out loc10))
-                    indexColumns.Add(table_id, loc10 = new Dictionary<string, List<DbColumnInfo>>());
+                    indexColumns.Add(table_id, loc10 = new Dictionary<string, DbIndexInfo>());
                 if (!loc10.TryGetValue(index_id, out loc11))
-                    loc10.Add(index_id, loc11 = new List<DbColumnInfo>());
-                loc11.Add(loc9);
+                    loc10.Add(index_id, loc11 = new DbIndexInfo());
+                loc11.Columns.Add(new DbIndexColumnInfo { Column = loc9, IsDesc = is_desc });
                 if (is_unique && !is_primary_key)
                 {
                     if (!uniqueColumns.TryGetValue(table_id, out loc10))
-                        uniqueColumns.Add(table_id, loc10 = new Dictionary<string, List<DbColumnInfo>>());
+                        uniqueColumns.Add(table_id, loc10 = new Dictionary<string, DbIndexInfo>());
                     if (!loc10.TryGetValue(index_id, out loc11))
-                        loc10.Add(index_id, loc11 = new List<DbColumnInfo>());
-                    loc11.Add(loc9);
+                        loc10.Add(index_id, loc11 = new DbIndexInfo());
+                    loc11.Columns.Add(new DbIndexColumnInfo { Column = loc9, IsDesc = is_desc });
                 }
             }
             foreach (string table_id in indexColumns.Keys)
@@ -353,7 +351,7 @@ and a.owner in ({1}) and a.table_name in ({0})
             {
                 foreach (var column in uniqueColumns[table_id])
                 {
-                    column.Value.Sort((c1, c2) => c1.Name.CompareTo(c2.Name));
+                    column.Value.Columns.Sort((c1, c2) => c1.Column.Name.CompareTo(c2.Column.Name));
                     loc2[table_id].UniquesDict.Add(column.Key, column.Value);
                 }
             }
@@ -441,14 +439,14 @@ and a.owner in ({1}) and a.table_name in ({0})
             }
             foreach (var loc4 in loc2.Values)
             {
-                if (loc4.Primarys.Count == 0 && loc4.UniquesDict.Count > 0)
-                {
-                    foreach (var loc5 in loc4.UniquesDict.First().Value)
-                    {
-                        loc5.IsPrimary = true;
-                        loc4.Primarys.Add(loc5);
-                    }
-                }
+                //if (loc4.Primarys.Count == 0 && loc4.UniquesDict.Count > 0)
+                //{
+                //    foreach (var loc5 in loc4.UniquesDict.First().Value.Columns)
+                //    {
+                //        loc5.Column.IsPrimary = true;
+                //        loc4.Primarys.Add(loc5.Column);
+                //    }
+                //}
                 loc4.Primarys.Sort((c1, c2) => c1.Name.CompareTo(c2.Name));
                 loc4.Columns.Sort((c1, c2) =>
                 {

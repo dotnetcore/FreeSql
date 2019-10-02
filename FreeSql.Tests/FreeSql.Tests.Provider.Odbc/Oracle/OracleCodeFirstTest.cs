@@ -46,17 +46,16 @@ namespace FreeSql.Tests.Odbc.Oracle
             g.oracle.CodeFirst.SyncStructure<AddUniquesInfo>();
         }
         [Table(Name = "AddUniquesInfo", OldName = "AddUniquesInfo2")]
+        [Index("uk_phone", "phone", true)]
+        [Index("uk_group_index", "group,index", true)]
+        [Index("uk_group_index22", "group, index22", true)]
         class AddUniquesInfo
         {
             public Guid id { get; set; }
-            [Column(Unique = "uk_phone")]
             public string phone { get; set; }
 
-            [Column(Unique = "uk_group_index, uk_group_index22")]
             public string group { get; set; }
-            [Column(Unique = "uk_group_index")]
             public int index { get; set; }
-            [Column(Unique = "uk_group_index22")]
             public string index22 { get; set; }
         }
         [Fact]
