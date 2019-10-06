@@ -15,7 +15,7 @@ namespace FreeSql.Odbc.Oracle
         public IInsert<T1> Insert<T1>() where T1 : class => new OdbcOracleInsert<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression);
         public IInsert<T1> Insert<T1>(T1 source) where T1 : class => this.Insert<T1>().AppendData(source);
         public IInsert<T1> Insert<T1>(T1[] source) where T1 : class => this.Insert<T1>().AppendData(source);
-        public IInsert<T1> Insert<T1>(IEnumerable<T1> source) where T1 : class => this.Insert<T1>().AppendData(source);
+        public IInsert<T1> Insert<T1>(List<T1> source) where T1 : class => this.Insert<T1>().AppendData(source);
         public IUpdate<T1> Update<T1>() where T1 : class => new OdbcOracleUpdate<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, null);
         public IUpdate<T1> Update<T1>(object dywhere) where T1 : class => new OdbcOracleUpdate<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, dywhere);
         public IDelete<T1> Delete<T1>() where T1 : class => new OdbcOracleDelete<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, null);

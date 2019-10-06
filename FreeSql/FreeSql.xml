@@ -2678,7 +2678,7 @@
             <param name="source"></param>
             <returns></returns>
         </member>
-        <member name="M:IFreeSql.Insert``1(System.Collections.Generic.IEnumerable{``0})">
+        <member name="M:IFreeSql.Insert``1(System.Collections.Generic.List{``0})">
             <summary>
             插入数据，传入实体集合
             </summary>

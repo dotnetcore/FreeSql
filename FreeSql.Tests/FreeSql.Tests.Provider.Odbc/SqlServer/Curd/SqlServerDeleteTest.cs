@@ -77,8 +77,8 @@ namespace FreeSql.Tests.Odbc.SqlServer
             var item = g.sqlserver.Insert<Topic>(new Topic { Title = "xxxx", CreateTime = DateTime.Now }).ExecuteInserted();
             Assert.Equal(item[0].Id, delete.Where(a => a.Id == item[0].Id).ExecuteDeleted()[0].Id);
 
-            var items = Enumerable.Range(0, 301).Select(a => new Topic { Title = "xxxx" + a, CreateTime = DateTime.Now });
-            var itemsInserted = g.sqlserver.Insert<Topic>(items).ExecuteInserted();
+            var items = Enumerable.Range(0, 301).Select(a => new Topic { Title = "xxxx" + a, CreateTime = DateTime.Now }).ToArray();
+            var itemsInserted = g.sqlserver.Insert(items).ExecuteInserted();
             Assert.Equal(items.First().Title, itemsInserted[0].Title);
 
             Assert.Equal(itemsInserted[0].Id, delete.Where(a => a.Id == itemsInserted[0].Id).ExecuteDeleted()[0].Id);

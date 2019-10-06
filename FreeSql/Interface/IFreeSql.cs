@@ -32,7 +32,7 @@ public interface IFreeSql : IDisposable
     /// <typeparam name="T1"></typeparam>
     /// <param name="source"></param>
     /// <returns></returns>
-    IInsert<T1> Insert<T1>(IEnumerable<T1> source) where T1 : class;
+    IInsert<T1> Insert<T1>(List<T1> source) where T1 : class;
 
     /// <summary>
     /// 修改数据

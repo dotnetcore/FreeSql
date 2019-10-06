@@ -199,6 +199,36 @@
             创建日期
             </summary>
         </member>
+        <member name="T:SaleIDO.Entity.Storeage.AdjustPriceOrder">
+            <summary>
+            调价单
+            </summary>
+        </member>
+        <member name="T:SaleIDO.Entity.Storeage.AdjustPriceDetail">
+            <summary>
+            调价单产品明细
+            </summary>
+        </member>
+        <member name="P:SaleIDO.Entity.Storeage.AdjustPriceDetail.OldLabelPrice">
+            <summary>
+            原标签价
+            </summary>
+        </member>
+        <member name="P:SaleIDO.Entity.Storeage.AdjustPriceDetail.NewMarketCostPrice">
+            <summary>
+            新的市场成本价
+            </summary>
+        </member>
+        <member name="P:SaleIDO.Entity.Storeage.AdjustPriceDetail.NewLabelPriceRate">
+            <summary>
+            新的标签价倍率
+            </summary>
+        </member>
+        <member name="P:SaleIDO.Entity.Storeage.AdjustPriceDetail.NewLabelPrice">
+            <summary>
+            新标签价
+            </summary>
+        </member>
         <member name="T:Zeus.Utility.Entity.EntityBase`1">
             <summary>
             实体类基类

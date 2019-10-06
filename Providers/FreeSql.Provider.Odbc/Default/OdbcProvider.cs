@@ -17,7 +17,7 @@ namespace FreeSql.Odbc.Default
         public IInsert<T1> Insert<T1>() where T1 : class => new OdbcInsert<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression);
         public IInsert<T1> Insert<T1>(T1 source) where T1 : class => this.Insert<T1>().AppendData(source);
         public IInsert<T1> Insert<T1>(T1[] source) where T1 : class => this.Insert<T1>().AppendData(source);
-        public IInsert<T1> Insert<T1>(IEnumerable<T1> source) where T1 : class => this.Insert<T1>().AppendData(source);
+        public IInsert<T1> Insert<T1>(List<T1> source) where T1 : class => this.Insert<T1>().AppendData(source);
         public IUpdate<T1> Update<T1>() where T1 : class => new OdbcUpdate<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, null);
         public IUpdate<T1> Update<T1>(object dywhere) where T1 : class => new OdbcUpdate<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, dywhere);
         public IDelete<T1> Delete<T1>() where T1 : class => new OdbcDelete<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, null);

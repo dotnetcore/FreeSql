@@ -1,5 +1,6 @@
 using FreeSql.DataAnnotations;
 using FreeSql.Tests.DataContext.SqlServer;
+using SaleIDO.Entity.Storeage;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -101,6 +102,41 @@ namespace FreeSql.Tests.SqlServer
 
             //items = Enumerable.Range(0, 9989).Select(a => new Topic { Title = "newtitle" + a, CreateTime = DateTime.Now }).ToList();
             //Assert.Equal(9989, _sqlserverFixture.SqlServer.Insert<Topic>(items).ExecuteAffrows());
+
+            //var bttype = new TestBetchInsertType { title = "testbttitle1" };
+            //bttype.id = (int)_sqlserverFixture.SqlServer.Insert(bttype).ExecuteIdentity();
+            //Assert.True(bttype.id > 0);
+            //var bttopic = Enumerable.Range(0, 10000).Select(a => new TestBetchInsertTopic { TypeId = bttype.id, Text = $"testtopic{a}" }).ToArray();
+            //Assert.Equal(bttopic.Length, _sqlserverFixture.SqlServer.Insert<TestBetchInsertTopic>(bttopic).ExecuteAffrows());
+
+            //_sqlserverFixture.SqlServer.Transaction(() =>
+            //{
+            //    bttype = new TestBetchInsertType { title = "transaction_testbttitle2" };
+            //    bttype.id = (int)_sqlserverFixture.SqlServer.Insert(bttype).ExecuteIdentity();
+            //    Assert.True(bttype.id > 0);
+            //    bttopic = Enumerable.Range(0, 10000).Select(a => new TestBetchInsertTopic { TypeId = bttype.id, Text = $"transaction_testtopic{a}" }).ToArray();
+            //    Assert.Equal(bttopic.Length, _sqlserverFixture.SqlServer.Insert<TestBetchInsertTopic>(bttopic).ExecuteAffrows());
+            //});
+
+            _sqlserverFixture.SqlServer.Transaction(() =>
+            {
+                var order = new AdjustPriceOrder {  };
+                order.Id = (int)_sqlserverFixture.SqlServer.Insert(order).NoneParameter().ExecuteIdentity();
+                Assert.True(order.Id > 0);
+                var detail = Enumerable.Range(0, 10000).Select(a => new AdjustPriceDetail {   Remark = $"transaction_testdetail{a}" }).ToArray();
+                Assert.Equal(detail.Length, _sqlserverFixture.SqlServer.Insert<AdjustPriceDetail>(detail).NoneParameter().ExecuteAffrows());
+            });
+        }
+        class TestBetchInsertType { 
+            [Column(IsIdentity = true)]
+            public int id { get; set; }
+            public string title { get; set; }
+        }
+        class TestBetchInsertTopic
+        {
+            public Guid id { get; set; }
+            public int TypeId { get; set; }
+            public string Text { get; set; }
         }
         [Fact]
         public void ExecuteIdentity()

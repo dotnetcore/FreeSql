@@ -407,6 +407,12 @@ namespace FreeSql.Tests
         [Fact]
         public void Test1()
         {
+            var testlistinsert = new List<AuthorTest>();
+            g.sqlite.Insert(testlistinsert).ExecuteAffrows();
+
+
+
+
             var gkjdjd = g.sqlite.Select<AuthorTest>().Where(a => a.Post.AsSelect().Count() > 0).ToList();
 
             var testrunsql1 =  g.mysql.Select<TaskBuild>().Where(a => a.OptionsEntity04 > DateTime.Now.AddDays(0).ToString("yyyyMMdd").TryTo<int>()).ToSql();
