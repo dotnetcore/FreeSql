@@ -152,6 +152,21 @@
             <param name="value"></param>
             <returns></returns>
         </member>
+        <member name="P:FreeSql.DataAnnotations.IndexAttribute.Name">
+            <summary>
+            索引名
+            </summary>
+        </member>
+        <member name="P:FreeSql.DataAnnotations.IndexAttribute.Fields">
+            <summary>
+            索引字段，为属性名以逗号分隔，如：Create_time ASC, Title ASC
+            </summary>
+        </member>
+        <member name="P:FreeSql.DataAnnotations.IndexAttribute.IsUnique">
+            <summary>
+            是否唯一
+            </summary>
+        </member>
         <member name="P:FreeSql.DataAnnotations.NavigateAttribute.Bind">
             <summary>
             手工绑定 OneToMany、ManyToOne 导航关系
@@ -185,21 +200,6 @@
         <member name="P:FreeSql.DataAnnotations.TableAttribute.DisableSyncStructure">
             <summary>
             禁用 CodeFirst 同步结构迁移
-            </summary>
-        </member>
-        <member name="P:FreeSql.DataAnnotations.IndexAttribute.Name">
-            <summary>
-            索引名
-            </summary>
-        </member>
-        <member name="P:FreeSql.DataAnnotations.IndexAttribute.Fields">
-            <summary>
-            索引字段，为属性名以逗号分隔，如：Create_time ASC, Title ASC
-            </summary>
-        </member>
-        <member name="P:FreeSql.DataAnnotations.IndexAttribute.IsUnique">
-            <summary>
-            是否唯一
             </summary>
         </member>
         <member name="M:FreeSql.DataAnnotations.TableFluent.Name(System.String)">
@@ -1458,7 +1458,8 @@
         </member>
         <member name="M:FreeSql.ISelect`1.IncludeMany``1(System.Linq.Expressions.Expression{System.Func{`0,System.Collections.Generic.IEnumerable{``0}}},System.Action{FreeSql.ISelect{``0}})">
             <summary>
-            贪婪加载集合的导航属性，其实是分两次查询，ToList 后进行了数据重装
+            贪婪加载集合的导航属性，其实是分两次查询，ToList 后进行了数据重装<para></para>
+            文档：https://github.com/2881099/FreeSql/wiki/%e8%b4%aa%e5%a9%aa%e5%8a%a0%e8%bd%bd#%E5%AF%BC%E8%88%AA%E5%B1%9E%E6%80%A7-onetomanymanytomany
             </summary>
             <typeparam name="TNavigate"></typeparam>
             <param name="navigateSelector">选择一个集合的导航属性，也可通过 .Where 设置临时的关系映射，还可以 .Take(5) 每个子集合只取5条</param>
@@ -2606,6 +2607,20 @@
             <summary>
             多表查询
             </summary>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSqlGlobalExtensions.IncludeMany``2(System.Collections.Generic.List{``0},IFreeSql,System.Linq.Expressions.Expression{System.Func{``0,System.Collections.Generic.IEnumerable{``1}}},System.Action{FreeSql.ISelect{``1}})">
+            <summary>
+            本方法实现从已知的内存 List 数据，进行和 ISelect.IncludeMany 相同功能的贪婪加载<para></para>
+            示例：new List&lt;Song&gt;(new[] { song1, song2, song3 }).IncludeMany(g.sqlite, a => a.Tags);<para></para>
+            文档：https://github.com/2881099/FreeSql/wiki/%e8%b4%aa%e5%a9%aa%e5%8a%a0%e8%bd%bd#%E5%AF%BC%E8%88%AA%E5%B1%9E%E6%80%A7-onetomanymanytomany
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <typeparam name="TNavigate"></typeparam>
+            <param name="list"></param>
+            <param name="orm"></param>
+            <param name="navigateSelector">选择一个集合的导航属性，也可通过 .Where 设置临时的关系映射，还可以 .Take(5) 每个子集合只取5条</param>
+            <param name="then">即能 ThenInclude，还可以二次过滤（这个 EFCore 做不到？）</param>
             <returns></returns>
         </member>
         <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.And``1(System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}},System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})">
