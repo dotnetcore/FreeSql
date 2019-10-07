@@ -348,7 +348,8 @@ namespace FreeSql
         /// <returns></returns>
         ISelect<T1> Include<TNavigate>(Expression<Func<T1, TNavigate>> navigateSelector) where TNavigate : class;
         /// <summary>
-        /// 贪婪加载集合的导航属性，其实是分两次查询，ToList 后进行了数据重装
+        /// 贪婪加载集合的导航属性，其实是分两次查询，ToList 后进行了数据重装<para></para>
+        /// 文档：https://github.com/2881099/FreeSql/wiki/%e8%b4%aa%e5%a9%aa%e5%8a%a0%e8%bd%bd#%E5%AF%BC%E8%88%AA%E5%B1%9E%E6%80%A7-onetomanymanytomany
         /// </summary>
         /// <typeparam name="TNavigate"></typeparam>
         /// <param name="navigateSelector">选择一个集合的导航属性，也可通过 .Where 设置临时的关系映射，还可以 .Take(5) 每个子集合只取5条</param>

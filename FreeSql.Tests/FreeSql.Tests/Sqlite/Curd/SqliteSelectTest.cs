@@ -1155,6 +1155,8 @@ namespace FreeSql.Tests.Sqlite
             g.sqlite.Insert(new Song_tag { Song_id = song3.Id, Tag_id = tag2.Id }).ExecuteAffrows();
             g.sqlite.Insert(new Song_tag { Song_id = song3.Id, Tag_id = tag3.Id }).ExecuteAffrows();
 
+            new List<Song>(new[] { song1, song2, song3 }).IncludeMany(g.sqlite, a => a.Tags);
+
             var songs1 = g.sqlite.Select<Song>()
                 .IncludeMany(a => a.Tags)
                 .Where(a => a.Id == song1.Id || a.Id == song2.Id || a.Id == song3.Id)

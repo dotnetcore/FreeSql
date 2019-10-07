@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 
 public static partial class FreeSqlGlobalExtensions
@@ -166,5 +167,27 @@ public static partial class FreeSqlGlobalExtensions
     /// <returns></returns>
     public static ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> Select<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(this IFreeSql freesql) where T1 : class where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class =>
         freesql.Select<T1>().From<T2, T3, T4, T5, T6, T7, T8, T9, T10>((s, b, c, d, e, f, g, h, i, j) => s);
+    #endregion
+
+    #region IncludeMany
+    /// <summary>
+    /// 本方法实现从已知的内存 List 数据，进行和 ISelect.IncludeMany 相同功能的贪婪加载<para></para>
+    /// 示例：new List&lt;Song&gt;(new[] { song1, song2, song3 }).IncludeMany(g.sqlite, a => a.Tags);<para></para>
+    /// 文档：https://github.com/2881099/FreeSql/wiki/%e8%b4%aa%e5%a9%aa%e5%8a%a0%e8%bd%bd#%E5%AF%BC%E8%88%AA%E5%B1%9E%E6%80%A7-onetomanymanytomany
+    /// </summary>
+    /// <typeparam name="T1"></typeparam>
+    /// <typeparam name="TNavigate"></typeparam>
+    /// <param name="list"></param>
+    /// <param name="orm"></param>
+    /// <param name="navigateSelector">选择一个集合的导航属性，也可通过 .Where 设置临时的关系映射，还可以 .Take(5) 每个子集合只取5条</param>
+    /// <param name="then">即能 ThenInclude，还可以二次过滤（这个 EFCore 做不到？）</param>
+    /// <returns></returns>
+    public static List<T1> IncludeMany<T1, TNavigate>(this List<T1> list, IFreeSql orm, Expression<Func<T1, IEnumerable<TNavigate>>> navigateSelector, Action<ISelect<TNavigate>> then = null) where T1 : class where TNavigate : class
+    {
+        if (list == null || list.Any() == false) return list;
+        var select = orm.Select<T1>().IncludeMany(navigateSelector, then) as FreeSql.Internal.CommonProvider.Select1Provider<T1>;
+        select.SetList(list);
+        return list;
+    }
     #endregion
 }
