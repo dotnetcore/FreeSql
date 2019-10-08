@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net45</TargetFrameworks>
-		<Version>0.10.7</Version>
+		<Version>0.10.8</Version>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>YeXiangQin</Authors>
 		<Description>FreeSql 数据库实现，基于 PostgreSQL 9.5</Description>
