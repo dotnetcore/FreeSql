@@ -12,6 +12,7 @@ using System.Data.Common;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace FreeSql.PostgreSQL
@@ -258,8 +259,10 @@ and b.nspname || '.' || a.relname not in ('public.geography_columns','public.geo
                 var ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
                 if (ds == null) return loc1;
 
-                var loc6 = new List<string>();
-                var loc66 = new List<string>();
+                var loc6 = new List<string[]>();
+                var loc66 = new List<string[]>();
+                var loc6_1000 = new List<string>();
+                var loc66_1000 = new List<string>();
                 foreach (object[] row in ds)
                 {
                     var object_id = string.Concat(row[0]);
@@ -273,16 +276,40 @@ and b.nspname || '.' || a.relname not in ('public.geography_columns','public.geo
                     {
                         case DbTableType.VIEW:
                         case DbTableType.TABLE:
-                            loc6.Add(object_id);
+                            loc6_1000.Add(object_id);
+                            if (loc6_1000.Count >= 500)
+                            {
+                                loc6.Add(loc6_1000.ToArray());
+                                loc6_1000.Clear();
+                            }
                             break;
                         case DbTableType.StoreProcedure:
-                            loc66.Add(object_id);
+                            loc66_1000.Add(object_id);
+                            if (loc66_1000.Count >= 500)
+                            {
+                                loc66.Add(loc66_1000.ToArray());
+                                loc66_1000.Clear();
+                            }
                             break;
                     }
                 }
+                if (loc6_1000.Count > 0) loc6.Add(loc6_1000.ToArray());
+                if (loc66_1000.Count > 0) loc66.Add(loc66_1000.ToArray());
+
                 if (loc6.Count == 0) return loc1;
-                string loc8 = "'" + string.Join("','", loc6.ToArray()) + "'";
-                string loc88 = "'" + string.Join("','", loc66.ToArray()) + "'";
+                var loc8 = new StringBuilder().Append("(");
+                for (var loc8idx = 0; loc8idx < loc6.Count; loc8idx++)
+                {
+                    if (loc8idx > 0) loc8.Append(" OR ");
+                    loc8.Append("a.table_name in (");
+                    for (var loc8idx2 = 0; loc8idx2 < loc6[loc8idx].Length; loc8idx2++)
+                    {
+                        if (loc8idx2 > 0) loc8.Append(",");
+                        loc8.Append($"'{loc6[loc8idx][loc8idx2]}'");
+                    }
+                    loc8.Append(")");
+                }
+                loc8.Append(")");
 
                 sql = $@"
 select
@@ -307,7 +334,7 @@ left join pg_description d on d.objoid = a.attrelid and d.objsubid = a.attnum
 left join pg_attrdef e on e.adrelid = a.attrelid and e.adnum = a.attnum
 inner join pg_namespace ns on ns.oid = c.relnamespace
 inner join pg_namespace ns2 on ns2.oid = t.typnamespace
-where ns.nspname || '.' || c.relname in ({loc8})";
+where {loc8.ToString().Replace("a.table_name", "ns.nspname || '.' || c.relname")}";
                 ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
                 if (ds == null) return loc1;
 
@@ -370,7 +397,7 @@ inner join pg_class b on b.oid = a.indexrelid
 inner join pg_attribute c on c.attnum > 0 and c.attrelid = b.oid
 inner join pg_namespace ns on ns.oid = b.relnamespace
 inner join pg_class d on d.oid = a.indrelid
-where ns.nspname || '.' || d.relname in ({loc8}) and a.indisprimary = 'f'
+where {loc8.ToString().Replace("a.table_name", "ns.nspname || '.' || d.relname")} and a.indisprimary = 'f'
 ";
                 ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
                 if (ds == null) return loc1;
@@ -446,7 +473,7 @@ inner join pg_class b on b.oid = a.conrelid
 inner join pg_class c on c.oid = a.confrelid
 inner join pg_namespace ns on ns.oid = b.relnamespace
 inner join pg_namespace ns2 on ns2.oid = c.relnamespace
-where ns.nspname || '.' || b.relname in ({loc8})
+where {loc8.ToString().Replace("a.table_name", "ns.nspname || '.' || b.relname")}
 ";
                 ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
                 if (ds == null) return loc1;

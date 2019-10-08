@@ -6,6 +6,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace FreeSql.Oracle
@@ -191,8 +192,10 @@ where a.owner in ({0})", databaseIn);
             var ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
             if (ds == null) return loc1;
 
-            var loc6 = new List<string>();
-            var loc66 = new List<string>();
+            var loc6 = new List<string[]>(); 
+            var loc66 = new List<string[]>();
+            var loc6_1000 = new List<string>();
+            var loc66_1000 = new List<string>();
             foreach (var row in ds)
             {
                 var table_id = string.Concat(row[0]);
@@ -211,16 +214,40 @@ where a.owner in ({0})", databaseIn);
                 {
                     case DbTableType.TABLE:
                     case DbTableType.VIEW:
-                        loc6.Add(table.Replace("'", "''"));
+                        loc6_1000.Add(table.Replace("'", "''"));
+                        if (loc6_1000.Count >= 999)
+                        {
+                            loc6.Add(loc6_1000.ToArray());
+                            loc6_1000.Clear();
+                        }
                         break;
                     case DbTableType.StoreProcedure:
-                        loc66.Add(table.Replace("'", "''"));
+                        loc66_1000.Add(table.Replace("'", "''"));
+                        if (loc66_1000.Count >= 999)
+                        {
+                            loc66.Add(loc66_1000.ToArray());
+                            loc66_1000.Clear();
+                        }
                         break;
                 }
             }
+            if (loc6_1000.Count > 0) loc6.Add(loc6_1000.ToArray());
+            if (loc66_1000.Count > 0) loc66.Add(loc66_1000.ToArray());
+
             if (loc6.Count == 0) return loc1;
-            var loc8 = "'" + string.Join("','", loc6.ToArray()) + "'";
-            var loc88 = "'" + string.Join("','", loc66.ToArray()) + "'";
+            var loc8 = new StringBuilder().Append("(");
+            for (var loc8idx = 0; loc8idx < loc6.Count; loc8idx++)
+            {
+                if (loc8idx > 0) loc8.Append(" OR ");
+                loc8.Append("a.table_name in (");
+                for (var loc8idx2 = 0; loc8idx2 < loc6[loc8idx].Length; loc8idx2++)
+                {
+                    if (loc8idx2 > 0) loc8.Append(",");
+                    loc8.Append($"'{loc6[loc8idx][loc8idx2]}'");
+                }
+                loc8.Append(")");
+            }
+            loc8.Append(")");
 
             sql = string.Format(@"
 select
@@ -236,7 +263,7 @@ nvl((select 1 from user_sequences where upper(sequence_name)=upper(a.table_name|
 b.comments
 from all_tab_cols a
 left join all_col_comments b on b.owner = a.owner and b.table_name = a.table_name and b.column_name = a.column_name
-where a.owner in ({1}) and a.table_name in ({0})
+where a.owner in ({1}) and {0}
 ", loc8, databaseIn);
             ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
             if (ds == null) return loc1;
@@ -303,7 +330,7 @@ all_ind_columns c
 where a.index_name = c.index_name
 and a.table_owner = c.table_owner
 and a.table_name = c.table_name
-and a.table_owner in ({1}) and a.table_name in ({0}) 
+and a.table_owner in ({1}) and {0}
 and not exists(select 1 from all_constraints where constraint_name = a.index_name and constraint_type = 'P')
 ", loc8, databaseIn);
             ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
@@ -390,7 +417,7 @@ and a.owner = c.owner 　　
 and a.table_name = c.table_name 　　
 and b.owner = d.owner 　　
 and b.table_name = d.table_name
-and a.owner in ({1}) and a.table_name in ({0})
+and a.owner in ({1}) and {0}
 ", loc8, databaseIn);
             ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
             if (ds == null) return loc1;

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace FreeSql.MySql
@@ -170,8 +171,10 @@ where a.table_schema in ({0})", databaseIn);
             var ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
             if (ds == null) return loc1;
 
-            var loc6 = new List<string>();
-            var loc66 = new List<string>();
+            var loc6 = new List<string[]>();
+            var loc66 = new List<string[]>();
+            var loc6_1000 = new List<string>();
+            var loc66_1000 = new List<string>();
             foreach (var row in ds)
             {
                 var table_id = string.Concat(row[0]);
@@ -190,16 +193,40 @@ where a.table_schema in ({0})", databaseIn);
                 {
                     case DbTableType.TABLE:
                     case DbTableType.VIEW:
-                        loc6.Add(table.Replace("'", "''"));
+                        loc6_1000.Add(table.Replace("'", "''"));
+                        if (loc6_1000.Count >= 500)
+                        {
+                            loc6.Add(loc6_1000.ToArray());
+                            loc6_1000.Clear();
+                        }
                         break;
                     case DbTableType.StoreProcedure:
-                        loc66.Add(table.Replace("'", "''"));
+                        loc66_1000.Add(table.Replace("'", "''"));
+                        if (loc66_1000.Count >= 500)
+                        {
+                            loc66.Add(loc66_1000.ToArray());
+                            loc66_1000.Clear();
+                        }
                         break;
                 }
             }
+            if (loc6_1000.Count > 0) loc6.Add(loc6_1000.ToArray());
+            if (loc66_1000.Count > 0) loc66.Add(loc66_1000.ToArray());
+
             if (loc6.Count == 0) return loc1;
-            var loc8 = "'" + string.Join("','", loc6.ToArray()) + "'";
-            var loc88 = "'" + string.Join("','", loc66.ToArray()) + "'";
+            var loc8 = new StringBuilder().Append("(");
+            for (var loc8idx = 0; loc8idx < loc6.Count; loc8idx++)
+            {
+                if (loc8idx > 0) loc8.Append(" OR ");
+                loc8.Append("a.table_name in (");
+                for (var loc8idx2 = 0; loc8idx2 < loc6[loc8idx].Length; loc8idx2++)
+                {
+                    if (loc8idx2 > 0) loc8.Append(",");
+                    loc8.Append($"'{loc6[loc8idx][loc8idx2]}'");
+                }
+                loc8.Append(")");
+            }
+            loc8.Append(")");
 
             sql = string.Format(@"
 select
@@ -212,7 +239,7 @@ case when a.is_nullable = 'YES' then 1 else 0 end 'is_nullable',
 case when locate('auto_increment', a.extra) > 0 then 1 else 0 end 'is_identity',
 a.column_comment 'comment'
 from information_schema.columns a
-where a.table_schema in ({1}) and a.table_name in ({0})
+where a.table_schema in ({1}) and {0}
 ", loc8, databaseIn);
             ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
             if (ds == null) return loc1;
@@ -260,7 +287,7 @@ case when a.index_name = 'PRIMARY' then 1 else 0 end 'IsPrimaryKey',
 0 'IsClustered',
 0 'IsDesc'
 from information_schema.statistics a
-where a.table_schema in ({1}) and a.table_name in ({0}) and a.index_name <> 'PRIMARY'
+where a.table_schema in ({1}) and {0} and a.index_name <> 'PRIMARY'
 ", loc8, databaseIn);
             ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
             if (ds == null) return loc1;
@@ -321,7 +348,7 @@ concat(a.referenced_table_schema, '.', a.referenced_table_name) 'ref_table_id',
 1 'IsForeignKey',
 a.referenced_column_name 'ref_column'
 from information_schema.key_column_usage a
-where a.constraint_schema in ({1}) and a.table_name in ({0}) and not isnull(position_in_unique_constraint)
+where a.constraint_schema in ({1}) and {0} and not isnull(position_in_unique_constraint)
 ", loc8, databaseIn);
             ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
             if (ds == null) return loc1;

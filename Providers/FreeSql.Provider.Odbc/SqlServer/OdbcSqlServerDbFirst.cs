@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Odbc;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace FreeSql.Odbc.SqlServer
@@ -163,8 +164,10 @@ use [{olddatabase}];
                 var ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
                 if (ds == null) return loc1;
 
-                var loc6 = new List<int>();
-                var loc66 = new List<int>();
+                var loc6 = new List<int[]>();
+                var loc66 = new List<int[]>();
+                var loc6_1000 = new List<int>();
+                var loc66_1000 = new List<int>();
                 foreach (object[] row in ds)
                 {
                     int object_id = int.Parse(string.Concat(row[0]));
@@ -178,16 +181,47 @@ use [{olddatabase}];
                     {
                         case DbTableType.VIEW:
                         case DbTableType.TABLE:
-                            loc6.Add(object_id);
+                            loc6_1000.Add(object_id);
+                            if (loc6_1000.Count >= 500)
+                            {
+                                loc6.Add(loc6_1000.ToArray());
+                                loc6_1000.Clear();
+                            }
                             break;
                         case DbTableType.StoreProcedure:
-                            loc66.Add(object_id);
+                            loc66_1000.Add(object_id);
+                            if (loc66_1000.Count >= 500)
+                            {
+                                loc66.Add(loc66_1000.ToArray());
+                                loc66_1000.Clear();
+                            }
                             break;
                     }
                 }
+                if (loc6_1000.Count > 0) loc6.Add(loc6_1000.ToArray());
+                if (loc66_1000.Count > 0) loc66.Add(loc66_1000.ToArray());
+
                 if (loc6.Count == 0) return loc1;
-                var loc8 = string.Join(",", loc6.Select(a => string.Concat(a)));
-                var loc88 = string.Join(",", loc66.Select(a => string.Concat(a)));
+                Func<List<int[]>, StringBuilder> getloc8Sb = loclist =>
+                {
+                    if (loclist.Count == 0) return new StringBuilder();
+                    var loc8sb = new StringBuilder().Append("(");
+                    for (var loc8sbidx = 0; loc8sbidx < loclist.Count; loc8sbidx++)
+                    {
+                        if (loc8sbidx > 0) loc8sb.Append(" OR ");
+                        loc8sb.Append("a.table_name in (");
+                        for (var loc8sbidx2 = 0; loc8sbidx2 < loclist[loc8sbidx].Length; loc8sbidx2++)
+                        {
+                            if (loc8sbidx2 > 0) loc8sb.Append(",");
+                            loc8sb.Append(loclist[loc8sbidx][loc8sbidx2]);
+                        }
+                        loc8sb.Append(")");
+                    }
+                    loc8sb.Append(")");
+                    return loc8sb;
+                };
+                var loc8 = getloc8Sb(loc6);
+                var loc88 = getloc8Sb(loc66);
 
                 var tsql_place = @"
 
@@ -213,12 +247,12 @@ inner join sys.types b on b.user_type_id = a.user_type_id
 left join sys.extended_properties AS c ON c.major_id = a.object_id AND c.minor_id = a.column_id
 left join sys.tables d on d.object_id = a.object_id
 left join sys.schemas e on e.schema_id = d.schema_id
-where a.object_id in ({1})
+where {1}
 ";
                 sql = string.Format(tsql_place, @"
 ,a.is_nullable 'IsNullable'
 ,a.is_identity 'IsIdentity'
-from sys.columns", loc8);
+from sys.columns", loc8.ToString().Replace("a.table_name", "a.object_id"));
                 if (loc88.Length > 0)
                 {
                     sql += "union all" +
@@ -227,7 +261,7 @@ from sys.columns", loc8);
                         "left join sys.extended_properties AS c ON c.major_id = a.object_id AND c.minor_id = a.parameter_id"), @"
 ,cast(0 as bit) 'IsNullable'
 ,a.is_output 'IsIdentity'
-from sys.parameters", loc88);
+from sys.parameters", loc88.ToString().Replace("a.table_name", "a.object_id"));
                 }
                 sql = $"use [{db}];{sql};use [{olddatabase}]; ";
                 ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
@@ -275,7 +309,7 @@ select
 from sys.index_columns a
 inner join sys.indexes b on b.object_id = a.object_id and b.index_id = a.index_id
 left join sys.columns c on c.object_id = a.object_id and c.column_id = a.column_id
-where a.object_id in ({loc8}) and b.is_primary_key = 0
+where {loc8.ToString().Replace("a.table_name", "a.object_id")} and b.is_primary_key = 0
 ;
 use [{olddatabase}];
 ";
@@ -344,7 +378,7 @@ inner join sys.tables b on b.object_id = a.parent_object_id
 inner join sys.columns c on c.object_id = a.parent_object_id and c.column_id = a.parent_column_id
 inner join sys.columns d on d.object_id = a.referenced_object_id and d.column_id = a.referenced_column_id
 left join sys.foreign_keys e on e.object_id = a.constraint_object_id
-where b.object_id in ({loc8})
+where {loc8.ToString().Replace("a.table_name", "b.object_id")}
 ;
 use [{olddatabase}];
 ";
