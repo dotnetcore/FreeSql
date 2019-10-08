@@ -53,41 +53,29 @@ namespace FreeSql.Extensions.EntityUtil
                     Expression expthen = null;
                     if (isguid)
                     {
-                        if (pks[a].Attribute.MapType == pks[a].CsType)
-                        {
-                            expthen = Expression.Block(
-                                new Expression[]{
-                                    Expression.Assign(Expression.MakeMemberAccess(var1Parm, _table.Properties[pks[a].CsName]), Expression.Call(MethodFreeUtilNewMongodbId)),
-                                    a > 0 ? Expression.Call(var2Sb, MethodStringBuilderAppend, Expression.Constant(splitString)) : null,
-                                    Expression.Call(var2Sb, MethodStringBuilderAppend,
-                                        Expression.Convert(Expression.MakeMemberAccess(var1Parm, _table.Properties[pks[a].CsName]), typeof(object))
-                                    )
-                                }.Where(c => c != null).ToArray()
-                            );
-                        }
-                        else
-                        {
-                            expthen = Expression.Block(
-                                new Expression[]{
-                                    Expression.Assign(Expression.MakeMemberAccess(var1Parm, _table.Properties[pks[a].CsName]), FreeSql.Internal.Utils.GetDataReaderValueBlockExpression(pks[a].CsType, Expression.Call(MethodFreeUtilNewMongodbId))),
-                                    a > 0 ? Expression.Call(var2Sb, MethodStringBuilderAppend, Expression.Constant(splitString)) : null,
-                                    Expression.Call(var2Sb, MethodStringBuilderAppend,
-                                        Expression.Convert(Expression.MakeMemberAccess(var1Parm, _table.Properties[pks[a].CsName]), typeof(object))
-                                    )
-                                }.Where(c => c != null).ToArray()
-                            );
-                        }
+                        Expression newguid = Expression.Call(MethodFreeUtilNewMongodbId);
+                        if (pks[a].Attribute.MapType != pks[a].CsType) newguid = FreeSql.Internal.Utils.GetDataReaderValueBlockExpression(pks[a].CsType, newguid);
+                        if (pks[a].CsType == typeof(Guid?)) newguid = Expression.Convert(newguid, typeof(Guid?));
+                        expthen = Expression.Block(
+                            new Expression[]{
+                            Expression.Assign(Expression.MakeMemberAccess(var1Parm, _table.Properties[pks[a].CsName]), newguid),
+                            a > 0 ? Expression.Call(var2Sb, MethodStringBuilderAppend, Expression.Constant(splitString)) : null,
+                            Expression.Call(var2Sb, MethodStringBuilderAppend,
+                                Expression.Convert(Expression.MakeMemberAccess(var1Parm, _table.Properties[pks[a].CsName]), typeof(object))
+                            )
+                            }.Where(c => c != null).ToArray()
+                        );
                     }
                     else if (pks.Length > 1 && pks[a].Attribute.IsIdentity)
                     {
                         expthen = Expression.Block(
-                                new Expression[]{
-                                    a > 0 ? Expression.Call(var2Sb, MethodStringBuilderAppend, Expression.Constant(splitString)) : null,
-                                    Expression.Call(var2Sb, MethodStringBuilderAppend,
-                                        Expression.Convert(Expression.MakeMemberAccess(var1Parm, _table.Properties[pks[a].CsName]), typeof(object))
-                                    )
-                                }.Where(c => c != null).ToArray()
-                            );
+                            new Expression[]{
+                                a > 0 ? Expression.Call(var2Sb, MethodStringBuilderAppend, Expression.Constant(splitString)) : null,
+                                Expression.Call(var2Sb, MethodStringBuilderAppend,
+                                    Expression.Convert(Expression.MakeMemberAccess(var1Parm, _table.Properties[pks[a].CsName]), typeof(object))
+                                )
+                            }.Where(c => c != null).ToArray()
+                        );
                     }
                     else
                     {

@@ -403,10 +403,56 @@ namespace FreeSql.Tests
             [Navigate("AuthorId")]
             public List<Post> Post { get; set; }
         }
+        public class TestGuidId
+        {
+            public Guid? Id { get; set; }
+            public string xxx { get; set; }
+        }
 
         [Fact]
         public void Test1()
         {
+            g.sqlite.Insert(new TestGuidId { xxx = "111" }).ExecuteAffrows();
+            g.sqlite.Insert(new TestGuidId { xxx = "222" }).ExecuteAffrows();
+            var gkkdk1 = g.sqlite.Select<TestGuidId>().Where(a => true).ToList();
+            using (var testguididdb = g.sqlite.CreateDbContext())
+            {
+                var gkkdk11 = testguididdb.Set<TestGuidId>().Select.Where(a => true).ToList();
+            }
+
+            g.oracle.Insert(new TestGuidId { xxx = "111" }).ExecuteAffrows();
+            g.oracle.Insert(new TestGuidId { xxx = "222" }).ExecuteAffrows();
+            var gkkdk2 = g.oracle.Select<TestGuidId>().Where(a => true).ToList();
+            using (var testguididdb = g.sqlite.CreateDbContext())
+            {
+                var gkkdk22 = testguididdb.Set<TestGuidId>().Select.Where(a => true).ToList();
+            }
+
+            g.pgsql.Insert(new TestGuidId { xxx = "111" }).ExecuteAffrows();
+            g.pgsql.Insert(new TestGuidId { xxx = "222" }).ExecuteAffrows();
+            var gkkdk3 = g.pgsql.Select<TestGuidId>().Where(a => true).ToList();
+            using (var testguididdb = g.sqlite.CreateDbContext())
+            {
+                var gkkdk22 = testguididdb.Set<TestGuidId>().Select.Where(a => true).ToList();
+            }
+
+            g.mysql.Insert(new TestGuidId { xxx = "111" }).ExecuteAffrows();
+            g.mysql.Insert(new TestGuidId { xxx = "222" }).ExecuteAffrows();
+            var gkkdk4 = g.mysql.Select<TestGuidId>().Where(a => true).ToList();
+            using (var testguididdb = g.sqlite.CreateDbContext())
+            {
+                var gkkdk22 = testguididdb.Set<TestGuidId>().Select.Where(a => true).ToList();
+            }
+
+            g.sqlserver.Insert(new TestGuidId { xxx = "111" }).ExecuteAffrows();
+            g.sqlserver.Insert(new TestGuidId { xxx = "222" }).ExecuteAffrows();
+            var gkkdk5 = g.sqlserver.Select<TestGuidId>().Where(a => true).ToList();
+            using (var testguididdb = g.sqlite.CreateDbContext())
+            {
+                var gkkdk22 = testguididdb.Set<TestGuidId>().Select.Where(a => true).ToList();
+            }
+
+
             var testlistinsert = new List<AuthorTest>();
             g.sqlite.Insert(testlistinsert).ExecuteAffrows();
 
