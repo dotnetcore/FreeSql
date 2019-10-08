@@ -253,6 +253,14 @@ where {loc8.ToString().Replace("a.table_name", "ns.nspname || '.' || c.relname")
                         if (attndims == 0) attndims++;
                     }
                     if (sqlType.StartsWith("_")) sqlType = sqlType.Substring(1);
+                    if (max_length > 0)
+                    {
+                        switch (sqlType.ToLower())
+                        {
+                            //case "numeric": sqlType += $"({max_length})"; break;
+                            case "bpchar": case "varchar": case "bytea": case "bit": case "varbit": sqlType += $"({max_length})"; break;
+                        }
+                    }
 
                     loc3[object_id].Add(column, new DbColumnInfo
                     {
