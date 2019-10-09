@@ -163,8 +163,8 @@ namespace FreeSql.Internal
                             isEqualsEnumValue = true;
                             break;
                         }
-                    if (isEqualsEnumValue == false)
-                        colattr.DbDefautValue = enumValues.Length > 0 ? enumValues.GetValue(0) : null;
+                    if (isEqualsEnumValue == false && enumValues.Length > 0)
+                        colattr.DbDefautValue = enumValues.GetValue(0);
                 }
                 if (colattr.DbDefautValue != null && p.PropertyType != colattr.MapType) colattr.DbDefautValue = Utils.GetDataReaderValue(colattr.MapType, colattr.DbDefautValue);
                 if (colattr.DbDefautValue == null) colattr.DbDefautValue = tp?.defaultValue;
