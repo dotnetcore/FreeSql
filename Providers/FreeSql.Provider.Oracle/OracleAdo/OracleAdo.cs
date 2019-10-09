@@ -57,7 +57,9 @@ namespace FreeSql.Oracle
 
         protected override DbCommand CreateCommand()
         {
-            return new OracleCommand();
+            var cmd = new OracleCommand();
+            cmd.BindByName = true;
+            return cmd;
         }
 
         protected override void ReturnConnection(ObjectPool<DbConnection> pool, Object<DbConnection> conn, Exception ex)
