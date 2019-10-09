@@ -408,10 +408,18 @@ namespace FreeSql.Tests
             public Guid? Id { get; set; }
             public string xxx { get; set; }
         }
+        public class TestAddEnum
+        {
+            public Guid Id { get; set; }
+            public TestAddEnumType Type { get; set; }
+        }
+        public enum TestAddEnumType { 中国人, 日本人 }
 
         [Fact]
         public void Test1()
         {
+            g.mysql.Select<TestAddEnum>().ToList();
+
             g.sqlite.Insert(new TestGuidId { xxx = "111" }).ExecuteAffrows();
             g.sqlite.Insert(new TestGuidId { xxx = "222" }).ExecuteAffrows();
             var gkkdk1 = g.sqlite.Select<TestGuidId>().Where(a => true).ToList();
