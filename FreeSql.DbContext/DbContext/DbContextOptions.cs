@@ -1,4 +1,8 @@
 ﻿
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
 namespace FreeSql
 {
     public class DbContextOptions
@@ -17,5 +21,10 @@ namespace FreeSql
         /// - 属性集合不为空时，与数据库存在的关联数据（中间表）完全对比，计算出应该删除和添加的记录
         /// </summary>
         public bool EnableAddOrUpdateNavigateList { get; set; } = true;
+
+        /// <summary>
+        /// 实体变化事件
+        /// </summary>
+        public Action<List<DbContext.EntityChangeInfo>> OnEntityChange { get; set; }
     }
 }

@@ -32,7 +32,7 @@ namespace FreeSql.Odbc.Default
             if (string.IsNullOrEmpty(sql)) return 0;
 
             Object<DbConnection> poolConn = null;
-            var before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Insert, string.Concat(sql, $"; {_utils.Adapter.InsertAfterGetIdentitySql}"), _params);
+            var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, string.Concat(sql, $"; {_utils.Adapter.InsertAfterGetIdentitySql}"), _params);
             _orm.Aop.CurdBefore?.Invoke(this, before);
             long ret = 0;
             Exception exception = null;
@@ -69,7 +69,7 @@ namespace FreeSql.Odbc.Default
             if (string.IsNullOrEmpty(sql)) return 0;
 
             Object<DbConnection> poolConn = null;
-            var before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Insert, string.Concat(sql, $"; {_utils.Adapter.InsertAfterGetIdentitySql}"), _params);
+            var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, string.Concat(sql, $"; {_utils.Adapter.InsertAfterGetIdentitySql}"), _params);
             _orm.Aop.CurdBefore?.Invoke(this, before);
             long ret = 0;
             Exception exception = null;

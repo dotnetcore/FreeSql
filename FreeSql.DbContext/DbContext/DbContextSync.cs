@@ -8,14 +8,26 @@ namespace FreeSql
 {
     partial class DbContext
     {
-
+        int SaveChangesSuccess()
+        {
+            UnitOfWork?.Commit();
+            int ret;
+            try
+            {
+                EmitOnEntityChange(_entityChangeReport);
+            }
+            finally
+            {
+                _entityChangeReport.Clear();
+                ret = _affrows;
+                _affrows = 0;
+            }
+            return ret;
+        }
         public virtual int SaveChanges()
         {
             ExecCommand();
-            UnitOfWork?.Commit();
-            var ret = _affrows;
-            _affrows = 0;
-            return ret;
+            return SaveChangesSuccess();
         }
 
         static Dictionary<Type, Dictionary<string, Func<object, object[], int>>> _dicExecCommandDbContextBetch = new Dictionary<Type, Dictionary<string, Func<object, object[], int>>>();
@@ -96,31 +108,31 @@ namespace FreeSql
                 var isLiveUpdate = false;
 
                 if (_actions.Any() == false && states.Any() ||
-                    info != null && oldinfo.actionType != info.actionType ||
+                    info != null && oldinfo.changeType != info.changeType ||
                     info != null && oldinfo.stateType != info.stateType ||
                     info != null && oldinfo.entityType != info.entityType)
                 {
 
-                    if (info != null && oldinfo.actionType == info.actionType && oldinfo.stateType == info.stateType && oldinfo.entityType == info.entityType)
+                    if (info != null && oldinfo.changeType == info.changeType && oldinfo.stateType == info.stateType && oldinfo.entityType == info.entityType)
                     {
                         //最后一个，合起来发送
                         states.Add(info.state);
                         info = null;
                     }
 
-                    switch (oldinfo.actionType)
+                    switch (oldinfo.changeType)
                     {
-                        case ExecCommandInfoType.Insert:
+                        case EntityChangeType.Insert:
                             funcInsert();
                             break;
-                        case ExecCommandInfoType.Delete:
+                        case EntityChangeType.Delete:
                             funcDelete();
                             break;
                     }
                     isLiveUpdate = true;
                 }
 
-                if (isLiveUpdate || oldinfo.actionType == ExecCommandInfoType.Update)
+                if (isLiveUpdate || oldinfo.changeType == EntityChangeType.Update)
                 {
                     if (states.Any())
                         funcUpdate(isLiveUpdate);

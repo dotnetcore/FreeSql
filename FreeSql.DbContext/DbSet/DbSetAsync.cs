@@ -23,6 +23,7 @@ namespace FreeSql
         {
             if (adds.Any() == false) return 0;
             var affrows = await this.OrmInsert(adds.Select(a => a.Value)).ExecuteAffrowsAsync();
+            _db._entityChangeReport.AddRange(adds.Select(a => new DbContext.EntityChangeInfo { Object = a.Value, Type = DbContext.EntityChangeType.Insert }));
             return affrows;
         }
 
@@ -45,6 +46,7 @@ namespace FreeSql
                             var idtval = await this.OrmInsert(data).ExecuteIdentityAsync();
                             IncrAffrows(1);
                             _db.Orm.SetEntityIdentityValueWithPrimary(_entityType, data, idtval);
+                            _db._entityChangeReport.Add(new DbContext.EntityChangeInfo { Object = data, Type = DbContext.EntityChangeType.Insert });
                             Attach(data);
                             if (_db.Options.EnableAddOrUpdateNavigateList)
                                 await AddOrUpdateNavigateListAsync(data, true);
@@ -53,6 +55,7 @@ namespace FreeSql
                         {
                             await DbContextExecCommandAsync();
                             var newval = (await this.OrmInsert(data).ExecuteInsertedAsync()).First();
+                            _db._entityChangeReport.Add(new DbContext.EntityChangeInfo { Object = newval, Type = DbContext.EntityChangeType.Insert });
                             IncrAffrows(1);
                             _db.Orm.MapEntityValue(_entityType, newval, data);
                             Attach(newval);
@@ -67,6 +70,7 @@ namespace FreeSql
                             var idtval = await this.OrmInsert(data).ExecuteIdentityAsync();
                             IncrAffrows(1);
                             _db.Orm.SetEntityIdentityValueWithPrimary(_entityType, data, idtval);
+                            _db._entityChangeReport.Add(new DbContext.EntityChangeInfo { Object = data, Type = DbContext.EntityChangeType.Insert });
                             Attach(data);
                             if (_db.Options.EnableAddOrUpdateNavigateList)
                                 await AddOrUpdateNavigateListAsync(data, true);
@@ -74,7 +78,7 @@ namespace FreeSql
                         return;
                 }
             }
-            EnqueueToDbContext(DbContext.ExecCommandInfoType.Insert, CreateEntityState(data));
+            EnqueueToDbContext(DbContext.EntityChangeType.Insert, CreateEntityState(data));
             Attach(data);
             if (_db.Options.EnableAddOrUpdateNavigateList)
                 await AddOrUpdateNavigateListAsync(data, true);
@@ -100,6 +104,7 @@ namespace FreeSql
                         await DbContextExecCommandAsync();
                         var rets = await this.OrmInsert(data).ExecuteInsertedAsync();
                         if (rets.Count != data.Count()) throw new Exception($"特别错误：批量添加失败，{_db.Orm.Ado.DataType} 的返回数据，与添加的数目不匹配");
+                        _db._entityChangeReport.AddRange(rets.Select(a => new DbContext.EntityChangeInfo { Object = a, Type = DbContext.EntityChangeType.Insert }));
                         var idx = 0;
                         foreach (var s in data)
                             _db.Orm.MapEntityValue(_entityType, rets[idx++], s);
@@ -119,7 +124,7 @@ namespace FreeSql
             {
                 //进入队列，等待 SaveChanges 时执行
                 foreach (var item in data)
-                    EnqueueToDbContext(DbContext.ExecCommandInfoType.Insert, CreateEntityState(item));
+                    EnqueueToDbContext(DbContext.EntityChangeType.Insert, CreateEntityState(item));
                 AttachRange(data);
                 if (_db.Options.EnableAddOrUpdateNavigateList)
                     foreach (var item in data)
@@ -193,7 +198,9 @@ namespace FreeSql
                         {
                             var delall = _db.Orm.Delete<object>().AsType(tref.RefMiddleEntityType);
                             foreach (var midWhere in midWheres) delall.Where(midWhere);
+                            var sql = delall.ToSql();
                             await delall.ExecuteAffrowsAsync();
+                            _db._entityChangeReport.Add(new DbContext.EntityChangeInfo { Object = sql, Type = DbContext.EntityChangeType.SqlRaw });
                         }
                         else //保存
                         {
@@ -314,6 +321,7 @@ namespace FreeSql
                 var update = this.OrmUpdate(null).SetSource(updateSource).IgnoreColumns(cuig);
 
                 var affrows = await update.ExecuteAffrowsAsync();
+                _db._entityChangeReport.AddRange(updateSource.Select(a => new DbContext.EntityChangeInfo { Object = a, Type = DbContext.EntityChangeType.Update }));
 
                 foreach (var newval in data)
                 {
@@ -352,7 +360,7 @@ namespace FreeSql
 
                 var state = CreateEntityState(item);
                 state.OldValue = item;
-                EnqueueToDbContext(DbContext.ExecCommandInfoType.Update, state);
+                EnqueueToDbContext(DbContext.EntityChangeType.Update, state);
             }
             if (_db.Options.EnableAddOrUpdateNavigateList)
                 foreach (var item in data)
@@ -365,6 +373,7 @@ namespace FreeSql
         {
             if (dels.Any() == false) return 0;
             var affrows = await this.OrmDelete(dels.Select(a => a.Value)).ExecuteAffrowsAsync();
+            _db._entityChangeReport.AddRange(dels.Select(a => new DbContext.EntityChangeInfo { Object = a.Value, Type = DbContext.EntityChangeType.Delete }));
             return Math.Max(dels.Length, affrows);
         }
         #endregion

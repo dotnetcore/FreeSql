@@ -28,6 +28,11 @@ namespace dbcontext_01.Controllers
         [HttpGet]
         async public Task<string> Get()
         {
+            _orm.SetDbContextOptions(opt => {
+                opt.OnEntityChange = changeReport => {
+                    Console.WriteLine(changeReport);
+                };
+            });
 
             long id = 0;
 
@@ -150,7 +155,7 @@ namespace dbcontext_01.Controllers
 
                 using (var uow = _orm.CreateUnitOfWork())
                 {
-
+                    
                     var reposSong = uow.GetRepository<Song, int>();
                     reposSong.Where(a => a.Id > 10).ToList();
                     //查询结果，进入 states

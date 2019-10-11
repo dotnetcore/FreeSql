@@ -29,7 +29,7 @@ namespace FreeSql.MySql.Curd
             if (string.IsNullOrEmpty(sql)) return 0;
 
             sql = string.Concat(sql, "; SELECT LAST_INSERT_ID();");
-            var before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Insert, sql, _params);
+            var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
             _orm.Aop.CurdBefore?.Invoke(this, before);
             long ret = 0;
             Exception exception = null;
@@ -55,7 +55,7 @@ namespace FreeSql.MySql.Curd
             if (string.IsNullOrEmpty(sql)) return 0;
 
             sql = string.Concat(sql, "; SELECT LAST_INSERT_ID();");
-            var before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Insert, sql, _params);
+            var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
             _orm.Aop.CurdBefore?.Invoke(this, before);
             long ret = 0;
             Exception exception = null;
@@ -91,7 +91,7 @@ namespace FreeSql.MySql.Curd
                 ++colidx;
             }
             sql = sb.ToString();
-            var before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Insert, sql, _params);
+            var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
             _orm.Aop.CurdBefore?.Invoke(this, before);
             var ret = new List<T1>();
             Exception exception = null;
@@ -127,7 +127,7 @@ namespace FreeSql.MySql.Curd
                 ++colidx;
             }
             sql = sb.ToString();
-            var before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Insert, sql, _params);
+            var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
             _orm.Aop.CurdBefore?.Invoke(this, before);
             var ret = new List<T1>();
             Exception exception = null;

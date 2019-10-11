@@ -58,7 +58,7 @@ namespace FreeSql.Internal.CommonProvider
             var sql = this.ToSql();
             if (string.IsNullOrEmpty(sql)) return 0;
             var dbParms = _params.ToArray();
-            var before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Delete, sql, dbParms);
+            var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Delete, sql, dbParms);
             _orm.Aop.CurdBefore?.Invoke(this, before);
             var affrows = 0;
             Exception exception = null;
@@ -84,7 +84,7 @@ namespace FreeSql.Internal.CommonProvider
             var sql = this.ToSql();
             if (string.IsNullOrEmpty(sql)) return 0;
             var dbParms = _params.ToArray();
-            var before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Delete, sql, dbParms);
+            var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Delete, sql, dbParms);
             _orm.Aop.CurdBefore?.Invoke(this, before);
             var affrows = 0;
             Exception exception = null;

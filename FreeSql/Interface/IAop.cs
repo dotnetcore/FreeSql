@@ -151,16 +151,17 @@ namespace FreeSql.Aop
 
     public class CurdBeforeEventArgs : EventArgs
     {
-        public CurdBeforeEventArgs(Type entityType, CurdType curdType, string sql, DbParameter[] dbParms) :
-            this(Guid.NewGuid(), new Stopwatch(), entityType, curdType, sql, dbParms)
+        public CurdBeforeEventArgs(Type entityType, TableInfo table, CurdType curdType, string sql, DbParameter[] dbParms) :
+            this(Guid.NewGuid(), new Stopwatch(), entityType, table, curdType, sql, dbParms)
         {
             this.Stopwatch.Start();
         }
-        protected CurdBeforeEventArgs(Guid identifier, Stopwatch stopwatch, Type entityType, CurdType curdType, string sql, DbParameter[] dbParms)
+        protected CurdBeforeEventArgs(Guid identifier, Stopwatch stopwatch, Type entityType, TableInfo table, CurdType curdType, string sql, DbParameter[] dbParms)
         {
             this.Identifier = identifier;
             this.Stopwatch = stopwatch;
             this.EntityType = entityType;
+            this.Table = table;
             this.CurdType = curdType;
             this.Sql = sql;
             this.DbParms = dbParms;
@@ -181,6 +182,10 @@ namespace FreeSql.Aop
         /// </summary>
         public Type EntityType { get; }
         /// <summary>
+        /// 实体类型的元数据
+        /// </summary>
+        public TableInfo Table { get; set; }
+        /// <summary>
         /// 执行的 SQL
         /// </summary>
         public string Sql { get; }
@@ -193,7 +198,7 @@ namespace FreeSql.Aop
     public class CurdAfterEventArgs : CurdBeforeEventArgs
     {
         public CurdAfterEventArgs(CurdBeforeEventArgs before, Exception exception, object executeResult) :
-            base(before.Identifier, before.StopwatchInternal, before.EntityType, before.CurdType, before.Sql, before.DbParms)
+            base(before.Identifier, before.StopwatchInternal, before.EntityType, before.Table, before.CurdType, before.Sql, before.DbParms)
         {
             this.Exception = exception;
             this.ExecuteResult = executeResult;

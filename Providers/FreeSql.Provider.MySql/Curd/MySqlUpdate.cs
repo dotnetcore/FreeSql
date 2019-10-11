@@ -41,7 +41,7 @@ namespace FreeSql.MySql.Curd
             }
             sql = sb.ToString();
             var dbParms = _params.Concat(_paramsSource).ToArray();
-            var before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Update, sql, dbParms);
+            var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Update, sql, dbParms);
             _orm.Aop.CurdBefore?.Invoke(this, before);
             var ret = new List<T1>();
             Exception exception = null;
@@ -79,7 +79,7 @@ namespace FreeSql.MySql.Curd
             }
             sql = sb.ToString();
             var dbParms = _params.Concat(_paramsSource).ToArray();
-            var before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Update, sql, dbParms);
+            var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Update, sql, dbParms);
             _orm.Aop.CurdBefore?.Invoke(this, before);
             var ret = new List<T1>();
             Exception exception = null;

@@ -36,7 +36,7 @@ namespace FreeSql.PostgreSQL.Curd
             var identCols = _table.Columns.Where(a => a.Value.Attribute.IsIdentity == true);
             if (identCols.Any() == false)
             {
-                before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Insert, sql, _params);
+                before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
                 _orm.Aop.CurdBefore?.Invoke(this, before);
                 try
                 {
@@ -55,7 +55,7 @@ namespace FreeSql.PostgreSQL.Curd
                 return 0;
             }
             sql = string.Concat(sql, " RETURNING ", _commonUtils.QuoteSqlName(identCols.First().Value.Attribute.Name));
-            before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Insert, sql, _params);
+            before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
             _orm.Aop.CurdBefore?.Invoke(this, before);
             try
             {
@@ -85,7 +85,7 @@ namespace FreeSql.PostgreSQL.Curd
             var identCols = _table.Columns.Where(a => a.Value.Attribute.IsIdentity == true);
             if (identCols.Any() == false)
             {
-                before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Insert, sql, _params);
+                before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
                 _orm.Aop.CurdBefore?.Invoke(this, before);
                 try
                 {
@@ -104,7 +104,7 @@ namespace FreeSql.PostgreSQL.Curd
                 return 0;
             }
             sql = string.Concat(sql, " RETURNING ", _commonUtils.QuoteSqlName(identCols.First().Value.Attribute.Name));
-            before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Insert, sql, _params);
+            before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
             _orm.Aop.CurdBefore?.Invoke(this, before);
             try
             {
@@ -139,7 +139,7 @@ namespace FreeSql.PostgreSQL.Curd
                 ++colidx;
             }
             sql = sb.ToString();
-            var before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Insert, sql, _params);
+            var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
             _orm.Aop.CurdBefore?.Invoke(this, before);
             var ret = new List<T1>();
             Exception exception = null;
@@ -175,7 +175,7 @@ namespace FreeSql.PostgreSQL.Curd
                 ++colidx;
             }
             sql = sb.ToString();
-            var before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Insert, sql, _params);
+            var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
             _orm.Aop.CurdBefore?.Invoke(this, before);
             var ret = new List<T1>();
             Exception exception = null;

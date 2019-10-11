@@ -30,7 +30,7 @@ namespace FreeSql.Sqlite.Curd
             if (string.IsNullOrEmpty(sql)) return 0;
 
             sql = string.Concat(sql, "; SELECT last_insert_rowid();");
-            var before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Insert, sql, _params);
+            var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
             _orm.Aop.CurdBefore?.Invoke(this, before);
             long ret = 0;
             Exception exception = null;
@@ -56,7 +56,7 @@ namespace FreeSql.Sqlite.Curd
             if (string.IsNullOrEmpty(sql)) return 0;
 
             sql = string.Concat(sql, "; SELECT last_insert_rowid();");
-            var before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Insert, sql, _params);
+            var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
             _orm.Aop.CurdBefore?.Invoke(this, before);
             long ret = 0;
             Exception exception = null;

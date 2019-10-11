@@ -60,6 +60,11 @@
             - 属性集合不为空时，与数据库存在的关联数据（中间表）完全对比，计算出应该删除和添加的记录
             </summary>
         </member>
+        <member name="P:FreeSql.DbContextOptions.OnEntityChange">
+            <summary>
+            实体变化事件
+            </summary>
+        </member>
         <member name="M:FreeSql.DbSet`1.AsType(System.Type)">
             <summary>
             动态Type，在使用 DbSet&lt;object&gt; 后使用本方法，指定实体类型
@@ -212,6 +217,16 @@
         <member name="M:FreeSql.IUnitOfWork.Open">
             <summary>
             开启工作单元
+            </summary>
+        </member>
+        <member name="P:FreeSql.IUnitOfWork.OnEntityChange">
+            <summary>
+            实体变化事件
+            </summary>
+        </member>
+        <member name="P:FreeSql.UnitOfWork.EntityChangeReport">
+            <summary>
+            工作单元的实体变化记录
             </summary>
         </member>
         <member name="M:FreeSqlDbContextExtensions.CreateDbContext(IFreeSql)">

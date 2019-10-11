@@ -95,7 +95,7 @@ namespace FreeSql.Odbc.Oracle
 
             if (_identCol == null || _source.Count > 1)
             {
-                before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Insert, sql, _params);
+                before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
                 _orm.Aop.CurdBefore?.Invoke(this, before);
                 try
                 {
@@ -118,7 +118,7 @@ namespace FreeSql.Odbc.Oracle
             identParam.Direction = ParameterDirection.Output;
             sql = $"{sql} RETURNING {identColName} INTO {identParam.ParameterName}";
             var dbParms = _params.Concat(new[] { identParam }).ToArray();
-            before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Insert, sql, dbParms);
+            before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, dbParms);
             _orm.Aop.CurdBefore?.Invoke(this, before);
             try
             {
@@ -148,7 +148,7 @@ namespace FreeSql.Odbc.Oracle
 
             if (_identCol == null || _source.Count > 1)
             {
-                before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Insert, sql, _params);
+                before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
                 _orm.Aop.CurdBefore?.Invoke(this, before);
                 try
                 {
@@ -171,7 +171,7 @@ namespace FreeSql.Odbc.Oracle
             identParam.Direction = ParameterDirection.Output;
             sql = $"{sql} RETURNING {identColName} INTO {identParam.ParameterName}";
             var dbParms = _params.Concat(new[] { identParam }).ToArray();
-            before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Insert, sql, dbParms);
+            before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, dbParms);
             _orm.Aop.CurdBefore?.Invoke(this, before);
             try
             {

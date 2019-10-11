@@ -38,10 +38,19 @@ namespace FreeSql
                 {
                     _optionsPriv = new DbContextOptions();
                     if (FreeSqlDbContextExtensions._dicSetDbContextOptions.TryGetValue(Orm, out var opt))
+                    {
                         _optionsPriv.EnableAddOrUpdateNavigateList = opt.EnableAddOrUpdateNavigateList;
+                        _optionsPriv.OnEntityChange = opt.OnEntityChange;
+                    }
                 }
                 return _optionsPriv;
             }
+        }
+        internal void EmitOnEntityChange(List<DbContext.EntityChangeInfo> report)
+        {
+            var oec = UnitOfWork?.OnEntityChange ?? Options.OnEntityChange;
+            if (oec == null || report == null || report.Any() == false) return;
+            oec(report);
         }
         #endregion
 
@@ -146,20 +155,26 @@ namespace FreeSql
         #endregion
 
         #region Queue Action
+        internal List<EntityChangeInfo> _entityChangeReport = new List<EntityChangeInfo>();
+        public class EntityChangeInfo
+        {
+            public object Object { get; set; }
+            public EntityChangeType Type { get; set; }
+        }
+        public enum EntityChangeType { Insert, Update, Delete, SqlRaw }
         internal class ExecCommandInfo
         {
-            public ExecCommandInfoType actionType { get; set; }
+            public EntityChangeType changeType { get; set; }
             public IDbSet dbSet { get; set; }
             public Type stateType { get; set; }
             public Type entityType { get; set; }
             public object state { get; set; }
         }
-        internal enum ExecCommandInfoType { Insert, Update, Delete }
         Queue<ExecCommandInfo> _actions = new Queue<ExecCommandInfo>();
         internal int _affrows = 0;
 
-        internal void EnqueueAction(ExecCommandInfoType actionType, IDbSet dbSet, Type stateType, Type entityType, object state) =>
-            _actions.Enqueue(new ExecCommandInfo { actionType = actionType, dbSet = dbSet, stateType = stateType, entityType = entityType, state = state });
+        internal void EnqueueAction(EntityChangeType changeType, IDbSet dbSet, Type stateType, Type entityType, object state) =>
+            _actions.Enqueue(new ExecCommandInfo { changeType = changeType, dbSet = dbSet, stateType = stateType, entityType = entityType, state = state });
         #endregion
 
         ~DbContext() => this.Dispose();

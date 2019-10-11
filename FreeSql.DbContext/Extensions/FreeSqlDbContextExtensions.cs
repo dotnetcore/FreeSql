@@ -1,6 +1,7 @@
 ﻿using FreeSql;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 
 public static class FreeSqlDbContextExtensions
 {
@@ -31,12 +32,13 @@ public static class FreeSqlDbContextExtensions
     /// </summary>
     /// <param name="that"></param>
     /// <param name="options"></param>
-    public static void SetDbContextOptions(this IFreeSql that, Action<DbContextOptions> options)
+    public static IFreeSql SetDbContextOptions(this IFreeSql that, Action<DbContextOptions> options)
     {
-        if (options == null) return;
+        if (options == null) return that;
         var cfg = _dicSetDbContextOptions.GetOrAdd(that, t => new DbContextOptions());
         options(cfg);
         _dicSetDbContextOptions.AddOrUpdate(that, cfg, (t, o) => cfg);
+        return that;
     }
     internal static ConcurrentDictionary<IFreeSql, DbContextOptions> _dicSetDbContextOptions = new ConcurrentDictionary<IFreeSql, DbContextOptions>();
 }

@@ -1,5 +1,6 @@
 ﻿using SafeObjectPool;
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Threading;
@@ -32,6 +33,7 @@ namespace FreeSql
 #if ns20
             Current.Value = null;
 #endif
+            EntityChangeReport.Clear();
         }
 
         public bool Enable { get; private set; } = true;
@@ -76,7 +78,11 @@ namespace FreeSql
         {
             try
             {
-                if (_tran != null) _tran.Commit();
+                if (_tran != null)
+                {
+                    _tran.Commit();
+                    OnEntityChange?.Invoke(EntityChangeReport);
+                }
             }
             finally
             {
@@ -94,6 +100,13 @@ namespace FreeSql
                 ReturnObject();
             }
         }
+
+        public Action<List<DbContext.EntityChangeInfo>> OnEntityChange { get; set; }
+        /// <summary>
+        /// 工作单元的实体变化记录
+        /// </summary>
+        public List<DbContext.EntityChangeInfo> EntityChangeReport { get; } = new List<DbContext.EntityChangeInfo>();
+
         ~UnitOfWork()
         {
             this.Dispose();

@@ -59,8 +59,8 @@ namespace FreeSql
         protected virtual IUpdate<TEntity> OrmUpdate(IEnumerable<TEntity> entitys) => _db.Orm.Update<TEntity>().AsType(_entityType).SetSource(entitys).WithTransaction(_uow?.GetOrBeginTransaction());
         protected virtual IDelete<TEntity> OrmDelete(object dywhere) => _db.Orm.Delete<TEntity>().AsType(_entityType).WithTransaction(_uow?.GetOrBeginTransaction()).WhereDynamic(dywhere);
 
-        internal void EnqueueToDbContext(DbContext.ExecCommandInfoType actionType, EntityState state) =>
-            _db.EnqueueAction(actionType, this, typeof(EntityState), _entityType, state);
+        internal void EnqueueToDbContext(DbContext.EntityChangeType changeType, EntityState state) =>
+            _db.EnqueueAction(changeType, this, typeof(EntityState), _entityType, state);
 
         internal void IncrAffrows(int affrows) =>
             _db._affrows += affrows;

@@ -31,7 +31,7 @@ namespace FreeSql.Odbc.MySql
             if (string.IsNullOrEmpty(sql)) return 0;
 
             Object<DbConnection> poolConn = null;
-            var before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Insert, string.Concat(sql, "; SELECT LAST_INSERT_ID();"), _params);
+            var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, string.Concat(sql, "; SELECT LAST_INSERT_ID();"), _params);
             _orm.Aop.CurdBefore?.Invoke(this, before);
             long ret = 0;
             Exception exception = null;
@@ -68,7 +68,7 @@ namespace FreeSql.Odbc.MySql
             if (string.IsNullOrEmpty(sql)) return 0;
 
             Object<DbConnection> poolConn = null;
-            var before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Insert, string.Concat(sql, "; SELECT LAST_INSERT_ID();"), _params);
+            var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, string.Concat(sql, "; SELECT LAST_INSERT_ID();"), _params);
             _orm.Aop.CurdBefore?.Invoke(this, before);
             long ret = 0;
             Exception exception = null;
@@ -115,7 +115,7 @@ namespace FreeSql.Odbc.MySql
                 ++colidx;
             }
             sql = sb.ToString();
-            var before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Insert, sql, _params);
+            var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
             _orm.Aop.CurdBefore?.Invoke(this, before);
             var ret = new List<T1>();
             Exception exception = null;
@@ -151,7 +151,7 @@ namespace FreeSql.Odbc.MySql
                 ++colidx;
             }
             sql = sb.ToString();
-            var before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Insert, sql, _params);
+            var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
             _orm.Aop.CurdBefore?.Invoke(this, before);
             var ret = new List<T1>();
             Exception exception = null;

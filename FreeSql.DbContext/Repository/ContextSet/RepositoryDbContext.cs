@@ -54,19 +54,39 @@ namespace FreeSql
             });
         }
 
+        int SaveChangesSuccess()
+        {
+            int ret;
+            try
+            {
+                if (UnitOfWork == null) EmitOnEntityChange(_entityChangeReport);
+                else
+                {
+                    var uow = UnitOfWork as UnitOfWork;
+                    if (uow != null)
+                    {
+                        uow.EntityChangeReport.AddRange(_entityChangeReport);
+                        if (uow.OnEntityChange == null) uow.OnEntityChange = Options.OnEntityChange;
+                    }
+                }
+            }
+            finally
+            {
+                _entityChangeReport.Clear();
+                ret = _affrows;
+                _affrows = 0;
+            }
+            return ret;
+        }
         public override int SaveChanges()
         {
             ExecCommand();
-            var ret = _affrows;
-            _affrows = 0;
-            return ret;
+            return SaveChangesSuccess();
         }
         async public override Task<int> SaveChangesAsync()
         {
             await ExecCommandAsync();
-            var ret = _affrows;
-            _affrows = 0;
-            return ret;
+            return SaveChangesSuccess();
         }
     }
 }

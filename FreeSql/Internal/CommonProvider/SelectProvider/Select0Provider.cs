@@ -265,7 +265,7 @@ namespace FreeSql.Internal.CommonProvider
         {
             var sql = this.ToSql(field);
             var dbParms = _params.ToArray();
-            var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, Aop.CurdType.Select, sql, dbParms);
+            var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
             _orm.Aop.CurdBefore?.Invoke(this, before);
             DataTable ret = null;
             Exception exception = null;
@@ -289,7 +289,7 @@ namespace FreeSql.Internal.CommonProvider
         {
             var sql = this.ToSql(field);
             var dbParms = _params.ToArray();
-            var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, Aop.CurdType.Select, sql, dbParms);
+            var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
             _orm.Aop.CurdBefore?.Invoke(this, before);
             DataTable ret = null;
             Exception exception = null;
@@ -315,7 +315,7 @@ namespace FreeSql.Internal.CommonProvider
             var sql = this.ToSql(field);
             var type = typeof(TTuple);
             var dbParms = _params.ToArray();
-            var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, Aop.CurdType.Select, sql, dbParms);
+            var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
             _orm.Aop.CurdBefore?.Invoke(this, before);
             var ret = new List<TTuple>();
             var flagStr = $"ToListField:{field}";
@@ -345,7 +345,7 @@ namespace FreeSql.Internal.CommonProvider
             var sql = this.ToSql(field);
             var type = typeof(TTuple);
             var dbParms = _params.ToArray();
-            var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, Aop.CurdType.Select, sql, dbParms);
+            var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
             _orm.Aop.CurdBefore?.Invoke(this, before);
             var ret = new List<TTuple>();
             var flagStr = $"ToListField:{field}";
@@ -374,7 +374,7 @@ namespace FreeSql.Internal.CommonProvider
         internal List<T1> ToListAfPrivate(string sql, GetAllFieldExpressionTreeInfo af, (string field, ReadAnonymousTypeInfo read, List<object> retlist)[] otherData)
         {
             var dbParms = _params.ToArray();
-            var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, Aop.CurdType.Select, sql, dbParms);
+            var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
             _orm.Aop.CurdBefore?.Invoke(this, before);
             var ret = new List<T1>();
             Exception exception = null;
@@ -409,7 +409,7 @@ namespace FreeSql.Internal.CommonProvider
         async internal Task<List<T1>> ToListAfPrivateAsync(string sql, GetAllFieldExpressionTreeInfo af, (string field, ReadAnonymousTypeInfo read, List<object> retlist)[] otherData)
         {
             var dbParms = _params.ToArray();
-            var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, Aop.CurdType.Select, sql, dbParms);
+            var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
             _orm.Aop.CurdBefore?.Invoke(this, before);
             var ret = new List<T1>();
             Exception exception = null;
@@ -476,7 +476,7 @@ namespace FreeSql.Internal.CommonProvider
         internal void ToListAfChunkPrivate(int chunkSize, Action<List<T1>> chunkDone, string sql, GetAllFieldExpressionTreeInfo af, (string field, ReadAnonymousTypeInfo read, List<object> retlist)[] otherData)
         {
             var dbParms = _params.ToArray();
-            var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, Aop.CurdType.Select, sql, dbParms);
+            var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
             _orm.Aop.CurdBefore?.Invoke(this, before);
             var ret = new List<T1>();
             var retCount = 0;
@@ -579,7 +579,7 @@ namespace FreeSql.Internal.CommonProvider
             var sql = this.ToSql(af.field);
             var type = typeof(TReturn);
             var dbParms = _params.ToArray();
-            var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, Aop.CurdType.Select, sql, dbParms);
+            var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
             _orm.Aop.CurdBefore?.Invoke(this, before);
             var ret = new List<TReturn>();
             Exception exception = null;
@@ -610,7 +610,7 @@ namespace FreeSql.Internal.CommonProvider
             var sql = this.ToSql(af.field);
             var type = typeof(TReturn);
             var dbParms = _params.ToArray();
-            var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, Aop.CurdType.Select, sql, dbParms);
+            var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
             _orm.Aop.CurdBefore?.Invoke(this, before);
             var ret = new List<TReturn>();
             Exception exception = null;
@@ -1088,7 +1088,7 @@ namespace FreeSql.Internal.CommonProvider
         {
             var sql = this.InternalToSql<int>(select);
             var dbParms = _params.ToArray();
-            var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, Aop.CurdType.Select, sql, dbParms);
+            var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
             _orm.Aop.CurdBefore?.Invoke(this, before);
             DataTable ret = null;
             Exception exception = null;
@@ -1112,7 +1112,7 @@ namespace FreeSql.Internal.CommonProvider
         {
             var sql = this.InternalToSql<int>(select);
             var dbParms = _params.ToArray();
-            var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, Aop.CurdType.Select, sql, dbParms);
+            var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
             _orm.Aop.CurdBefore?.Invoke(this, before);
             DataTable ret = null;
             Exception exception = null;

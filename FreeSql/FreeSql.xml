@@ -2215,6 +2215,11 @@
             实体类型
             </summary>
         </member>
+        <member name="P:FreeSql.Aop.CurdBeforeEventArgs.Table">
+            <summary>
+            实体类型的元数据
+            </summary>
+        </member>
         <member name="P:FreeSql.Aop.CurdBeforeEventArgs.Sql">
             <summary>
             执行的 SQL

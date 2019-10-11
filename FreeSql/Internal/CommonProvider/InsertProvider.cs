@@ -488,7 +488,7 @@ namespace FreeSql.Internal.CommonProvider
         protected int RawExecuteAffrows()
         {
             var sql = ToSql();
-            var before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Insert, sql, _params);
+            var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
             _orm.Aop.CurdBefore?.Invoke(this, before);
             var affrows = 0;
             Exception exception = null;
@@ -511,7 +511,7 @@ namespace FreeSql.Internal.CommonProvider
         async protected Task<int> RawExecuteAffrowsAsync()
         {
             var sql = ToSql();
-            var before = new Aop.CurdBeforeEventArgs(_table.Type, Aop.CurdType.Insert, sql, _params);
+            var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
             _orm.Aop.CurdBefore?.Invoke(this, before);
             var affrows = 0;
             Exception exception = null;

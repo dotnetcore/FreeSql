@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FreeSql.Extensions.EntityUtil;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -69,8 +70,22 @@ namespace FreeSql
         public ISelect<TEntity> Where(Expression<Func<TEntity, bool>> exp) => _dbset.OrmSelectInternal(null).Where(exp);
         public ISelect<TEntity> WhereIf(bool condition, Expression<Func<TEntity, bool>> exp) => _dbset.OrmSelectInternal(null).WhereIf(condition, exp);
 
-        public int Delete(Expression<Func<TEntity, bool>> predicate) => _dbset.OrmDeleteInternal(null).Where(predicate).ExecuteAffrows();
-        public Task<int> DeleteAsync(Expression<Func<TEntity, bool>> predicate) => _dbset.OrmDeleteInternal(null).Where(predicate).ExecuteAffrowsAsync();
+        public int Delete(Expression<Func<TEntity, bool>> predicate)
+        {
+            var delete = _dbset.OrmDeleteInternal(null).Where(predicate);
+            var sql = delete.ToSql();
+            var affrows = delete.ExecuteAffrows();
+            _db._entityChangeReport.Add(new DbContext.EntityChangeInfo { Object = sql, Type = DbContext.EntityChangeType.SqlRaw });
+            return affrows;
+        }
+        async public Task<int> DeleteAsync(Expression<Func<TEntity, bool>> predicate)
+        {
+            var delete = _dbset.OrmDeleteInternal(null).Where(predicate);
+            var sql = delete.ToSql();
+            var affrows = await delete.ExecuteAffrowsAsync();
+            _db._entityChangeReport.Add(new DbContext.EntityChangeInfo { Object = sql, Type = DbContext.EntityChangeType.SqlRaw });
+            return affrows;
+        }
 
         public int Delete(TEntity entity)
         {
@@ -170,21 +185,23 @@ namespace FreeSql
         {
         }
 
-        public int Delete(TKey id)
+        TEntity CheckTKeyAndReturnIdEntity(TKey id)
         {
-            var stateKey = string.Concat(id);
-            _dbset._statesInternal.TryRemove(stateKey, out var trystate);
-            return _dbset.OrmDeleteInternal(id).ExecuteAffrows();
-        }
-        public Task<int> DeleteAsync(TKey id)
-        {
-            var stateKey = string.Concat(id);
-            _dbset._statesInternal.TryRemove(stateKey, out var trystate);
-            return _dbset.OrmDeleteInternal(id).ExecuteAffrowsAsync();
+            var tb = _db.Orm.CodeFirst.GetTableByEntity(EntityType);
+            if (tb.Primarys.Length != 1) throw new Exception($"实体类型 {EntityType.Name} 主键数量不为 1，无法使用该方法");
+            if (tb.Primarys[0].CsType.NullableTypeOrThis() != typeof(TKey).NullableTypeOrThis()) throw new Exception($"实体类型 {EntityType.Name} 主键类型不为 {typeof(TKey).FullName}，无法使用该方法");
+            var obj = Activator.CreateInstance(tb.Type);
+            _db.Orm.SetEntityValueWithPropertyName(tb.Type, obj, tb.Primarys[0].CsName, id);
+            var  ret = obj as TEntity;
+            if (ret == null) throw new Exception($"实体类型 {EntityType.Name} 无法转换为 {typeof(TEntity).Name}，无法使用该方法");
+            return ret;
         }
 
-        public TEntity Find(TKey id) => _dbset.OrmSelectInternal(id).ToOne();
-        public Task<TEntity> FindAsync(TKey id) => _dbset.OrmSelectInternal(id).ToOneAsync();
+        public int Delete(TKey id) => Delete(CheckTKeyAndReturnIdEntity(id));
+        public Task<int> DeleteAsync(TKey id) => DeleteAsync(CheckTKeyAndReturnIdEntity(id));
+
+        public TEntity Find(TKey id) => _dbset.OrmSelectInternal(CheckTKeyAndReturnIdEntity(id)).ToOne();
+        public Task<TEntity> FindAsync(TKey id) => _dbset.OrmSelectInternal(CheckTKeyAndReturnIdEntity(id)).ToOneAsync();
 
         public TEntity Get(TKey id) => Find(id);
         public Task<TEntity> GetAsync(TKey id) => FindAsync(id);
