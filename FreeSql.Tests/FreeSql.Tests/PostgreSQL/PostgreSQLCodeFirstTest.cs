@@ -351,7 +351,7 @@ namespace FreeSql.Tests.PostgreSQL
         [Table(Name = "tb_alltype")]
         class TableAllType
         {
-            [Column(IsPrimary = true)]
+            [Column(IsIdentity = true, IsPrimary = true)]
             public int Id { get; set; }
 
             public bool testFieldBool { get; set; }
