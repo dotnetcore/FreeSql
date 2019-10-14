@@ -2185,6 +2185,11 @@
             实体配置
             </summary>
         </member>
+        <member name="P:FreeSql.Aop.ConfigEntityEventArgs.ModifyIndexResult">
+            <summary>
+            索引配置
+            </summary>
+        </member>
         <member name="P:FreeSql.Aop.ConfigEntityPropertyEventArgs.EntityType">
             <summary>
             实体类型

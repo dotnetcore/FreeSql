@@ -87,7 +87,6 @@ namespace FreeSql.Internal
                 if (!string.IsNullOrEmpty(trytb.OldName)) attr.OldName = trytb.OldName;
                 if (!string.IsNullOrEmpty(trytb.SelectFilter)) attr.SelectFilter = trytb.SelectFilter;
                 if (trytb._DisableSyncStructure != null) attr._DisableSyncStructure = trytb.DisableSyncStructure;
-
             }
             var attrs = type.GetCustomAttributes(typeof(TableAttribute), false);
             foreach (var tryattrobj in attrs)
@@ -190,24 +189,37 @@ namespace FreeSql.Internal
         }
         public IndexAttribute[] GetEntityIndexAttribute(Type type)
         {
-            var ret = new Dictionary<string, IndexAttribute>(); ;
+            var ret = new Dictionary<string, IndexAttribute>();
+            if (_orm.Aop.ConfigEntity != null)
+            {
+                var aope = new Aop.ConfigEntityEventArgs(type);
+                _orm.Aop.ConfigEntity(_orm, aope);
+                foreach (var idxattr in aope.ModifyIndexResult)
+                    if (!string.IsNullOrEmpty(idxattr.Name) && !string.IsNullOrEmpty(idxattr.Fields))
+                    {
+                        if (ret.ContainsKey(idxattr.Name)) ret.Remove(idxattr.Name);
+                        ret.Add(idxattr.Name, new IndexAttribute(idxattr.Name, idxattr.Fields) { _IsUnique = idxattr._IsUnique });
+                    }
+            }
             if (dicConfigEntity.TryGetValue(type, out var trytb))
             {
                 foreach (var idxattr in trytb._indexs.Values)
-                {
                     if (!string.IsNullOrEmpty(idxattr.Name) && !string.IsNullOrEmpty(idxattr.Fields))
+                    {
+                        if (ret.ContainsKey(idxattr.Name)) ret.Remove(idxattr.Name);
                         ret.Add(idxattr.Name, new IndexAttribute(idxattr.Name, idxattr.Fields) { _IsUnique = idxattr._IsUnique });
-                }
+                    }
             }
             var attrs = type.GetCustomAttributes(typeof(IndexAttribute), true);
             foreach (var tryattrobj in attrs)
             {
                 var idxattr = tryattrobj as IndexAttribute;
                 if (idxattr == null) continue;
-                if (string.IsNullOrEmpty(idxattr.Name)) continue;
-                if (string.IsNullOrEmpty(idxattr.Fields)) continue;
-                if (ret.ContainsKey(idxattr.Name)) ret.Remove(idxattr.Name);
-                ret.Add(idxattr.Name, new IndexAttribute(idxattr.Name, idxattr.Fields) { _IsUnique = idxattr._IsUnique });
+                if (!string.IsNullOrEmpty(idxattr.Name) && !string.IsNullOrEmpty(idxattr.Fields))
+                {
+                    if (ret.ContainsKey(idxattr.Name)) ret.Remove(idxattr.Name);
+                    ret.Add(idxattr.Name, new IndexAttribute(idxattr.Name, idxattr.Fields) { _IsUnique = idxattr._IsUnique });
+                }
             }
             return ret.Values.ToArray();
         }

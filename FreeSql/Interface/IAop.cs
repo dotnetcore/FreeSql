@@ -115,6 +115,7 @@ namespace FreeSql.Aop
         {
             this.EntityType = entityType;
             this.ModifyResult = new TableAttribute();
+            this.ModifyIndexResult = new List<IndexAttribute>();
         }
 
         /// <summary>
@@ -125,6 +126,10 @@ namespace FreeSql.Aop
         /// 实体配置
         /// </summary>
         public TableAttribute ModifyResult { get; }
+        /// <summary>
+        /// 索引配置
+        /// </summary>
+        public List<IndexAttribute> ModifyIndexResult { get; }
     }
     public class ConfigEntityPropertyEventArgs : EventArgs
     {
