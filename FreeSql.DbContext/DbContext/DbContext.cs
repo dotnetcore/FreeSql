@@ -46,9 +46,9 @@ namespace FreeSql
                 return _optionsPriv;
             }
         }
-        internal void EmitOnEntityChange(List<DbContext.EntityChangeInfo> report)
+        internal void EmitOnEntityChange(List<EntityChangeReport.ChangeInfo> report)
         {
-            var oec = UnitOfWork?.OnEntityChange ?? Options.OnEntityChange;
+            var oec = UnitOfWork?.EntityChangeReport?.OnChange ?? Options.OnEntityChange;
             if (oec == null || report == null || report.Any() == false) return;
             oec(report);
         }
@@ -155,12 +155,23 @@ namespace FreeSql
         #endregion
 
         #region Queue Action
-        internal List<EntityChangeInfo> _entityChangeReport = new List<EntityChangeInfo>();
-        public class EntityChangeInfo
+        public class EntityChangeReport
         {
-            public object Object { get; set; }
-            public EntityChangeType Type { get; set; }
+            public class ChangeInfo
+            {
+                public object Object { get; set; }
+                public EntityChangeType Type { get; set; }
+            }
+            /// <summary>
+            /// 实体变化记录
+            /// </summary>
+            public List<ChangeInfo> Report { get; } = new List<ChangeInfo>();
+            /// <summary>
+            /// 实体变化事件
+            /// </summary>
+            public Action<List<ChangeInfo>> OnChange { get; set; }
         }
+        internal List<EntityChangeReport.ChangeInfo> _entityChangeReport = new List<EntityChangeReport.ChangeInfo>();
         public enum EntityChangeType { Insert, Update, Delete, SqlRaw }
         internal class ExecCommandInfo
         {

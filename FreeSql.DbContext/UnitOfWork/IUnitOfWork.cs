@@ -35,8 +35,8 @@ namespace FreeSql
         void Open();
 
         /// <summary>
-        /// 实体变化事件
+        /// 此工作单元内的实体变化跟踪
         /// </summary>
-        Action<List<DbContext.EntityChangeInfo>> OnEntityChange { get; set; }
+        DbContext.EntityChangeReport EntityChangeReport { get; }
     }
 }

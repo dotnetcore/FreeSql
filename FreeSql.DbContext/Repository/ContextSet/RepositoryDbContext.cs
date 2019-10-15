@@ -59,16 +59,12 @@ namespace FreeSql
             int ret;
             try
             {
-                if (UnitOfWork == null) EmitOnEntityChange(_entityChangeReport);
-                else
+                if (UnitOfWork?.EntityChangeReport != null)
                 {
-                    var uow = UnitOfWork as UnitOfWork;
-                    if (uow != null)
-                    {
-                        uow.EntityChangeReport.AddRange(_entityChangeReport);
-                        if (uow.OnEntityChange == null) uow.OnEntityChange = Options.OnEntityChange;
-                    }
-                }
+                    UnitOfWork.EntityChangeReport.Report.AddRange(_entityChangeReport);
+                    if (UnitOfWork.EntityChangeReport.OnChange == null) UnitOfWork.EntityChangeReport.OnChange = Options.OnEntityChange;
+                } else
+                    EmitOnEntityChange(_entityChangeReport);
             }
             finally
             {

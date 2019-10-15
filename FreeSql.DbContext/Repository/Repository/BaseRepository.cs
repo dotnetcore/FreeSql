@@ -75,7 +75,7 @@ namespace FreeSql
             var delete = _dbset.OrmDeleteInternal(null).Where(predicate);
             var sql = delete.ToSql();
             var affrows = delete.ExecuteAffrows();
-            _db._entityChangeReport.Add(new DbContext.EntityChangeInfo { Object = sql, Type = DbContext.EntityChangeType.SqlRaw });
+            _db._entityChangeReport.Add(new DbContext.EntityChangeReport.ChangeInfo { Object = sql, Type = DbContext.EntityChangeType.SqlRaw });
             return affrows;
         }
         async public Task<int> DeleteAsync(Expression<Func<TEntity, bool>> predicate)
@@ -83,7 +83,7 @@ namespace FreeSql
             var delete = _dbset.OrmDeleteInternal(null).Where(predicate);
             var sql = delete.ToSql();
             var affrows = await delete.ExecuteAffrowsAsync();
-            _db._entityChangeReport.Add(new DbContext.EntityChangeInfo { Object = sql, Type = DbContext.EntityChangeType.SqlRaw });
+            _db._entityChangeReport.Add(new DbContext.EntityChangeReport.ChangeInfo { Object = sql, Type = DbContext.EntityChangeType.SqlRaw });
             return affrows;
         }
 

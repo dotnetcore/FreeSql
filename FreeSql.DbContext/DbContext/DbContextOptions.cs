@@ -25,6 +25,6 @@ namespace FreeSql
         /// <summary>
         /// 实体变化事件
         /// </summary>
-        public Action<List<DbContext.EntityChangeInfo>> OnEntityChange { get; set; }
+        public Action<List<DbContext.EntityChangeReport.ChangeInfo>> OnEntityChange { get; set; }
     }
 }

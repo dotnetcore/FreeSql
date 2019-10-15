@@ -46,6 +46,16 @@
             <typeparam name="TEntity"></typeparam>
             <param name="data"></param>
         </member>
+        <member name="P:FreeSql.DbContext.EntityChangeReport.Report">
+            <summary>
+            实体变化记录
+            </summary>
+        </member>
+        <member name="P:FreeSql.DbContext.EntityChangeReport.OnChange">
+            <summary>
+            实体变化事件
+            </summary>
+        </member>
         <member name="P:FreeSql.DbContextOptions.EnableAddOrUpdateNavigateList">
             <summary>
             是否开启一对多，多对多联级保存功能<para></para>
@@ -219,14 +229,9 @@
             开启工作单元
             </summary>
         </member>
-        <member name="P:FreeSql.IUnitOfWork.OnEntityChange">
+        <member name="P:FreeSql.IUnitOfWork.EntityChangeReport">
             <summary>
-            实体变化事件
-            </summary>
-        </member>
-        <member name="P:FreeSql.UnitOfWork.EntityChangeReport">
-            <summary>
-            工作单元的实体变化记录
+            此工作单元内的实体变化跟踪
             </summary>
         </member>
         <member name="M:FreeSqlDbContextExtensions.CreateDbContext(IFreeSql)">
