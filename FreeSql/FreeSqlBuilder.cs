@@ -245,7 +245,7 @@ namespace FreeSql
                     }
                     catch { }
 
-                    var maxlenAttr = attrs.Where(a => {
+                    var maxlenAttr = attrs?.Where(a => {
                         return ((a as Attribute)?.TypeId as Type)?.Name == "MaxLengthAttribute";
                     }).FirstOrDefault();
                     if (maxlenAttr != null)
