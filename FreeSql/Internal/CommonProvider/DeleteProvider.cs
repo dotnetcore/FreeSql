@@ -79,34 +79,7 @@ namespace FreeSql.Internal.CommonProvider
             this.ClearData();
             return affrows;
         }
-        async public Task<int> ExecuteAffrowsAsync()
-        {
-            var sql = this.ToSql();
-            if (string.IsNullOrEmpty(sql)) return 0;
-            var dbParms = _params.ToArray();
-            var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Delete, sql, dbParms);
-            _orm.Aop.CurdBefore?.Invoke(this, before);
-            var affrows = 0;
-            Exception exception = null;
-            try
-            {
-                affrows = await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, dbParms);
-            }
-            catch (Exception ex)
-            {
-                exception = ex;
-                throw ex;
-            }
-            finally
-            {
-                var after = new Aop.CurdAfterEventArgs(before, exception, affrows);
-                _orm.Aop.CurdAfter?.Invoke(this, after);
-            }
-            this.ClearData();
-            return affrows;
-        }
         public abstract List<T1> ExecuteDeleted();
-        public abstract Task<List<T1>> ExecuteDeletedAsync();
 
         public IDelete<T1> Where(Expression<Func<T1, bool>> exp) => this.Where(_commonExpression.ExpressionWhereLambdaNoneForeignObject(null, _table, null, exp?.Body, null));
         public IDelete<T1> Where(string sql, object parms = null)

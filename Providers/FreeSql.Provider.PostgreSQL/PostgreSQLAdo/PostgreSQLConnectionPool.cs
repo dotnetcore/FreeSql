@@ -150,6 +150,8 @@ namespace FreeSql.PostgreSQL
             }
         }
 
+#if net40
+#else
         async public Task OnGetAsync(Object<DbConnection> obj)
         {
 
@@ -177,6 +179,7 @@ namespace FreeSql.PostgreSQL
                 }
             }
         }
+#endif
 
         public void OnGetTimeout()
         {
@@ -223,6 +226,9 @@ namespace FreeSql.PostgreSQL
                 return false;
             }
         }
+
+#if net40
+#else
         async public static Task<bool> PingAsync(this DbConnection that, bool isThrow = false)
         {
             try
@@ -237,5 +243,6 @@ namespace FreeSql.PostgreSQL
                 return false;
             }
         }
+#endif
     }
 }

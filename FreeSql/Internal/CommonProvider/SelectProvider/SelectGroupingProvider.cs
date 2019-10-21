@@ -117,17 +117,7 @@ namespace FreeSql.Internal.CommonProvider
             method = method.MakeGenericMethod(typeof(TReturn));
             return method.Invoke(_select, new object[] { (map, field.Length > 0 ? field.Remove(0, 2).ToString() : null) }) as List<TReturn>;
         }
-        public Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select)
-        {
-            var map = new ReadAnonymousTypeInfo();
-            var field = new StringBuilder();
-            var index = 0;
-
-            _comonExp.ReadAnonymousField(null, field, map, ref index, select, getSelectGroupingMapString, null);
-            var method = _select.GetType().GetMethod("ToListMapReaderAsync", BindingFlags.Instance | BindingFlags.NonPublic);
-            method = method.MakeGenericMethod(typeof(TReturn));
-            return method.Invoke(_select, new object[] { (map, field.Length > 0 ? field.Remove(0, 2).ToString() : null) }) as Task<List<TReturn>>;
-        }
+        
         public List<TReturn> Select<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select) => ToList(select);
 
         public string ToSql<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select)
@@ -171,5 +161,20 @@ namespace FreeSql.Internal.CommonProvider
             method.Invoke(_select, new object[] { pageNumber, pageSize });
             return this;
         }
+
+#if net40
+#else
+        public Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select)
+        {
+            var map = new ReadAnonymousTypeInfo();
+            var field = new StringBuilder();
+            var index = 0;
+
+            _comonExp.ReadAnonymousField(null, field, map, ref index, select, getSelectGroupingMapString, null);
+            var method = _select.GetType().GetMethod("ToListMapReaderAsync", BindingFlags.Instance | BindingFlags.NonPublic);
+            method = method.MakeGenericMethod(typeof(TReturn));
+            return method.Invoke(_select, new object[] { (map, field.Length > 0 ? field.Remove(0, 2).ToString() : null) }) as Task<List<TReturn>>;
+        }
+#endif
     }
 }

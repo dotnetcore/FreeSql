@@ -53,6 +53,9 @@ namespace FreeSql.PostgreSQL.Curd
             this.ClearData();
             return ret;
         }
+
+#if net40
+#else
         async public override Task<List<T1>> ExecuteDeletedAsync()
         {
             var sql = this.ToSql();
@@ -91,5 +94,6 @@ namespace FreeSql.PostgreSQL.Curd
             this.ClearData();
             return ret;
         }
+#endif
     }
 }

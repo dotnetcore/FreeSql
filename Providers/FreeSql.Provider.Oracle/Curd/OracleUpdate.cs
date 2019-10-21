@@ -19,16 +19,10 @@ namespace FreeSql.Oracle.Curd
         }
 
         public override int ExecuteAffrows() => base.SplitExecuteAffrows(200, 999);
-        public override Task<int> ExecuteAffrowsAsync() => base.SplitExecuteAffrowsAsync(200, 999);
         public override List<T1> ExecuteUpdated() => base.SplitExecuteUpdated(200, 999);
-        public override Task<List<T1>> ExecuteUpdatedAsync() => base.SplitExecuteUpdatedAsync(200, 999);
 
 
         protected override List<T1> RawExecuteUpdated()
-        {
-            throw new NotImplementedException();
-        }
-        protected override Task<List<T1>> RawExecuteUpdatedAsync()
         {
             throw new NotImplementedException();
         }
@@ -68,5 +62,16 @@ namespace FreeSql.Oracle.Curd
             }
             sb.Append(")");
         }
+
+#if net40
+#else
+        public override Task<int> ExecuteAffrowsAsync() => base.SplitExecuteAffrowsAsync(200, 999);
+        public override Task<List<T1>> ExecuteUpdatedAsync() => base.SplitExecuteUpdatedAsync(200, 999);
+
+        protected override Task<List<T1>> RawExecuteUpdatedAsync()
+        {
+            throw new NotImplementedException();
+        }
+#endif
     }
 }

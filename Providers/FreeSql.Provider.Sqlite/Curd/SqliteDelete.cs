@@ -19,9 +19,13 @@ namespace FreeSql.Sqlite.Curd
         {
             throw new NotImplementedException();
         }
+
+#if net40
+#else
         public override Task<List<T1>> ExecuteDeletedAsync()
         {
             throw new NotImplementedException();
         }
+#endif
     }
 }

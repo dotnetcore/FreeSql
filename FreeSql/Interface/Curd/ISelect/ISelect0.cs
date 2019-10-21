@@ -8,8 +8,21 @@ using System.Threading.Tasks;
 
 namespace FreeSql
 {
-    public interface ISelect0<TSelect, T1>
+    public partial interface ISelect0<TSelect, T1>
     {
+
+#if net40
+#else
+        Task<DataTable> ToDataTableAsync(string field = null);
+        Task<List<T1>> ToListAsync(bool includeNestedMembers = false);
+        Task<List<TTuple>> ToListAsync<TTuple>(string field);
+
+        Task<T1> ToOneAsync();
+        Task<T1> FirstAsync();
+
+        Task<bool> AnyAsync();
+        Task<long> CountAsync();
+#endif
 
         /// <summary>
         /// 指定事务对象
@@ -36,7 +49,6 @@ namespace FreeSql
         /// </summary>
         /// <returns></returns>
         DataTable ToDataTable(string field = null);
-        Task<DataTable> ToDataTableAsync(string field = null);
 
         /// <summary>
         /// 执行SQL查询，返回 T1 实体所有字段的记录，记录不存在时返回 Count 为 0 的列表
@@ -44,7 +56,6 @@ namespace FreeSql
         /// <param name="includeNestedMembers">false: 返回 2级 LeftJoin/InnerJoin/RightJoin 对象；true: 返回所有 LeftJoin/InnerJoin/RightJoin 的导航数据</param>
         /// <returns></returns>
         List<T1> ToList(bool includeNestedMembers = false);
-        Task<List<T1>> ToListAsync(bool includeNestedMembers = false);
         /// <summary>
         /// 执行SQL查询，分块返回数据，可减少内存开销。比如读取10万条数据，每次返回100条处理。
         /// </summary>
@@ -59,20 +70,17 @@ namespace FreeSql
         /// <param name="field"></param>
         /// <returns></returns>
         List<TTuple> ToList<TTuple>(string field);
-        Task<List<TTuple>> ToListAsync<TTuple>(string field);
         /// <summary>
         /// 执行SQL查询，返回 T1 实体所有字段的第一条记录，记录不存在时返回 null
         /// </summary>
         /// <returns></returns>
         T1 ToOne();
-        Task<T1> ToOneAsync();
 
         /// <summary>
         /// 执行SQL查询，返回 T1 实体所有字段的第一条记录，记录不存在时返回 null
         /// </summary>
         /// <returns></returns>
         T1 First();
-        Task<T1> FirstAsync();
 
         /// <summary>
         /// 设置表名规则，可用于分库/分表，参数1：实体类型；参数2：默认表名；返回值：新表名； <para></para>
@@ -103,14 +111,12 @@ namespace FreeSql
         /// </summary>
         /// <returns></returns>
         bool Any();
-        Task<bool> AnyAsync();
 
         /// <summary>
         /// 查询的记录数量
         /// </summary>
         /// <returns></returns>
         long Count();
-        Task<long> CountAsync();
         /// <summary>
         /// 查询的记录数量，以参数out形式返回
         /// </summary>

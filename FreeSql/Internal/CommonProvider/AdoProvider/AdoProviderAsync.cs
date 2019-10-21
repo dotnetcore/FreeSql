@@ -7,6 +7,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+#if net40
+#else
 namespace FreeSql.Internal.CommonProvider
 {
     partial class AdoProvider
@@ -729,3 +731,4 @@ namespace FreeSql.Internal.CommonProvider
         }
     }
 }
+#endif

@@ -5,11 +5,12 @@ using System.Reflection;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
+#if net40
+#else
 namespace FreeSql
 {
     partial class DbContext
     {
-
         async public virtual Task<int> SaveChangesAsync()
         {
             await ExecCommandAsync();
@@ -133,3 +134,4 @@ namespace FreeSql
         }
     }
 }
+#endif

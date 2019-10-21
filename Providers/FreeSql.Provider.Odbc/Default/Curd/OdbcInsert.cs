@@ -20,11 +20,8 @@ namespace FreeSql.Odbc.Default
         }
 
         public override int ExecuteAffrows() => base.SplitExecuteAffrows(_utils.Adapter.InsertBatchSplitLimit, 255);
-        public override Task<int> ExecuteAffrowsAsync() => base.SplitExecuteAffrowsAsync(_utils.Adapter.InsertBatchSplitLimit, 255);
         public override long ExecuteIdentity() => base.SplitExecuteIdentity(_utils.Adapter.InsertBatchSplitLimit, 255);
-        public override Task<long> ExecuteIdentityAsync() => base.SplitExecuteIdentityAsync(_utils.Adapter.InsertBatchSplitLimit, 255);
         public override List<T1> ExecuteInserted() => base.SplitExecuteInserted(_utils.Adapter.InsertBatchSplitLimit, 255);
-        public override Task<List<T1>> ExecuteInsertedAsync() => base.SplitExecuteInsertedAsync(_utils.Adapter.InsertBatchSplitLimit, 255);
 
         protected override long RawExecuteIdentity()
         {
@@ -63,6 +60,15 @@ namespace FreeSql.Odbc.Default
             }
             return ret;
         }
+
+        protected override List<T1> RawExecuteInserted() => throw new NotImplementedException("FreeSql.Odbc.Default 未实现该功能");
+
+#if net40
+#else
+        public override Task<int> ExecuteAffrowsAsync() => base.SplitExecuteAffrowsAsync(_utils.Adapter.InsertBatchSplitLimit, 255);
+        public override Task<long> ExecuteIdentityAsync() => base.SplitExecuteIdentityAsync(_utils.Adapter.InsertBatchSplitLimit, 255);
+        public override Task<List<T1>> ExecuteInsertedAsync() => base.SplitExecuteInsertedAsync(_utils.Adapter.InsertBatchSplitLimit, 255);
+        
         async protected override Task<long> RawExecuteIdentityAsync()
         {
             var sql = this.ToSql();
@@ -100,8 +106,7 @@ namespace FreeSql.Odbc.Default
             }
             return ret;
         }
-
-        protected override List<T1> RawExecuteInserted() => throw new NotImplementedException("FreeSql.Odbc.Default 未实现该功能");
         protected override Task<List<T1>> RawExecuteInsertedAsync() => throw new NotImplementedException("FreeSql.Odbc.Default 未实现该功能");
+#endif
     }
 }

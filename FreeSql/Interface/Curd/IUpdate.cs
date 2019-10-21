@@ -153,12 +153,16 @@ namespace FreeSql
         /// </summary>
         /// <returns></returns>
         int ExecuteAffrows();
-        Task<int> ExecuteAffrowsAsync();
         /// <summary>
         /// 执行SQL语句，返回更新后的记录
         /// </summary>
         /// <returns></returns>
         List<T1> ExecuteUpdated();
+
+#if net40
+#else
+        Task<int> ExecuteAffrowsAsync();
         Task<List<T1>> ExecuteUpdatedAsync();
+#endif
     }
 }

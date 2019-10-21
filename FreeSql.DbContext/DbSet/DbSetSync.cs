@@ -169,11 +169,11 @@ namespace FreeSql
                         var lazyFieldValue = (bool)lazyField.GetValue(item);
                         if (lazyFieldValue == false) continue;
                     }
-                    propVal = prop.Value.GetValue(item);
+                    propVal = prop.Value.GetValue(item, null);
                 }
                 else
                 {
-                    propVal = prop.Value.GetValue(item);
+                    propVal = prop.Value.GetValue(item, null);
                     if (propVal == null) continue;
                 }
 

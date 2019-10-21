@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>netstandard2.0;net452</TargetFrameworks>
+		<TargetFrameworks>netstandard2.0;net452;net451;net45;net40</TargetFrameworks>
 		<Version>0.10.14</Version>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>YeXiangQin</Authors>
@@ -21,13 +21,21 @@
   <ItemGroup>
     <None Include="../../logo.png" Pack="true" PackagePath="\" />
   </ItemGroup>
-  
-	<ItemGroup>
-		<PackageReference Include="MySql.Data" Version="8.0.17" />
-	</ItemGroup>
 
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'net452'">
+    <PackageReference Include="MySql.Data" Version="8.0.17" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net451' or '$(TargetFramework)' == 'net45' or '$(TargetFramework)' == 'net40'">
+    <PackageReference Include="MySql.Data" Version="6.9.12" />
+  </ItemGroup>
+  
 	<ItemGroup>
 	  <ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />
 	</ItemGroup>
 
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net40'">
+    <DefineConstants>net40</DefineConstants>
+  </PropertyGroup>
+  
 </Project>

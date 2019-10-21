@@ -272,7 +272,7 @@ namespace FreeSql.Internal
                     if (table.Columns.TryGetValue(p.Name, out var trycol) == false) continue;
                     if (psidx > 0) sb.Append(" AND ");
                     sb.Append(aliasAndDot).Append(this.QuoteSqlName(trycol.Attribute.Name));
-                    sb.Append(this.FormatSql(" = {0}", Utils.GetDataReaderValue(trycol.Attribute.MapType, p.GetValue(dywhere))));
+                    sb.Append(this.FormatSql(" = {0}", Utils.GetDataReaderValue(trycol.Attribute.MapType, p.GetValue(dywhere, null))));
                     ++psidx;
                 }
                 if (psidx == 0) return "";
@@ -404,7 +404,7 @@ namespace FreeSql.Internal
                 var initTasks = new Task[b];
                 for (var c = 0; c < b; c++)
                 {
-                    initTasks[c] = Task.Run(() =>
+                    initTasks[c] = Task.Factory.StartNew(() =>
                     {
                         try
                         {

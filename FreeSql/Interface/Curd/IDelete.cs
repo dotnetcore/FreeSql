@@ -84,12 +84,16 @@ namespace FreeSql
         /// </summary>
         /// <returns></returns>
         int ExecuteAffrows();
-        Task<int> ExecuteAffrowsAsync();
         /// <summary>
         /// 执行SQL语句，返回被删除的记录
         /// </summary>
         /// <returns></returns>
         List<T1> ExecuteDeleted();
+
+#if net40
+#else
+        Task<int> ExecuteAffrowsAsync();
         Task<List<T1>> ExecuteDeletedAsync();
+#endif
     }
 }

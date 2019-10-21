@@ -152,7 +152,7 @@ namespace FreeSql.Internal
                     trytb.ColumnsByCsIgnore.Add(p.Name, col);
                     continue;
                 }
-                if (entityDefault != null) colattr.DbDefautValue = trytb.Properties[p.Name].GetValue(entityDefault);
+                if (entityDefault != null) colattr.DbDefautValue = trytb.Properties[p.Name].GetValue(entityDefault, null);
                 if (p.PropertyType.IsEnum)
                 {
                     var isEqualsEnumValue = false;
@@ -170,7 +170,7 @@ namespace FreeSql.Internal
                 if (colattr.DbDefautValue == null) colattr.DbDefautValue = tp?.defaultValue;
                 if (colattr.IsNullable == false && colattr.DbDefautValue == null)
                 {
-                    var citype = colattr.MapType.IsNullableType() ? colattr.MapType.GenericTypeArguments.FirstOrDefault() : colattr.MapType;
+                    var citype = colattr.MapType.IsNullableType() ? colattr.MapType.GetGenericArguments().FirstOrDefault() : colattr.MapType;
                     if (citype.IsArray)
                         colattr.DbDefautValue = Array.CreateInstance(citype, 0);
                     else
@@ -343,7 +343,7 @@ namespace FreeSql.Internal
                 {
                     throw new Exception($"【延时加载】{trytbTypeName} 编译错误：{ex.Message}\r\n\r\n{cscode}");
                 }
-                var type = assembly.DefinedTypes.Where(a => a.FullName.EndsWith(trytbTypeLazyName)).FirstOrDefault();
+                var type = assembly.GetExportedTypes()/*.DefinedTypes*/.Where(a => a.FullName.EndsWith(trytbTypeLazyName)).FirstOrDefault();
                 trytb.TypeLazy = type;
                 trytb.TypeLazySetOrm = type.GetProperty("__fsql_orm__", BindingFlags.Instance | BindingFlags.NonPublic).GetSetMethod(true);
                 tbc.AddOrUpdate(type, trytb, (oldkey, oldval) => trytb);
@@ -356,7 +356,7 @@ namespace FreeSql.Internal
         {
             var trytbTypeName = trytb.Type.IsNested ? $"{trytb.Type.DeclaringType.Namespace?.NotNullAndConcat(".")}{trytb.Type.DeclaringType.Name}.{trytb.Type.Name}" : $"{trytb.Type.Namespace?.NotNullAndConcat(".")}{trytb.Type.Name}";
             var propTypeName = pnv.PropertyType.IsGenericType ?
-                    $"{pnv.PropertyType.Namespace?.NotNullAndConcat(".")}{pnv.PropertyType.Name.Remove(pnv.PropertyType.Name.IndexOf('`'))}<{string.Join(", ", pnv.PropertyType.GenericTypeArguments.Select(a => a.IsNested ? $"{a.DeclaringType.Namespace?.NotNullAndConcat(".")}{a.DeclaringType.Name}.{a.Name}" : $"{a.Namespace?.NotNullAndConcat(".")}{a.Name}"))}>" :
+                    $"{pnv.PropertyType.Namespace?.NotNullAndConcat(".")}{pnv.PropertyType.Name.Remove(pnv.PropertyType.Name.IndexOf('`'))}<{string.Join(", ", pnv.PropertyType.GetGenericArguments().Select(a => a.IsNested ? $"{a.DeclaringType.Namespace?.NotNullAndConcat(".")}{a.DeclaringType.Name}.{a.Name}" : $"{a.Namespace?.NotNullAndConcat(".")}{a.Name}"))}>" :
                     (pnv.PropertyType.IsNested ? $"{pnv.PropertyType.DeclaringType.Namespace?.NotNullAndConcat(".")}{pnv.PropertyType.DeclaringType.Name}.{pnv.PropertyType.Name}" : $"{pnv.PropertyType.Namespace?.NotNullAndConcat(".")}{pnv.PropertyType.Name}");
 
             var pnvAttr = common.GetEntityNavigateAttribute(trytb.Type, pnv);
@@ -365,7 +365,7 @@ namespace FreeSql.Internal
             nvref.Property = pnv;
 
             //List 或 ICollection，一对多、多对多
-            var propElementType = pnv.PropertyType.GenericTypeArguments.FirstOrDefault() ?? pnv.PropertyType.GetElementType();
+            var propElementType = pnv.PropertyType.GetGenericArguments().FirstOrDefault() ?? pnv.PropertyType.GetElementType();
             if (propElementType != null)
             {
                 if (typeof(IEnumerable).IsAssignableFrom(pnv.PropertyType) == false) return;
@@ -398,7 +398,7 @@ namespace FreeSql.Internal
                 if (pnvAttr?.ManyToMany != null)
                 {
                     isManyToMany = propElementType != trytb.Type &&
-                        tbref.Properties.Where(z => (z.Value.PropertyType.GenericTypeArguments.FirstOrDefault() == trytb.Type || z.Value.PropertyType.GetElementType() == trytb.Type) &&
+                        tbref.Properties.Where(z => (z.Value.PropertyType.GetGenericArguments().FirstOrDefault() == trytb.Type || z.Value.PropertyType.GetElementType() == trytb.Type) &&
                             common.GetEntityNavigateAttribute(tbref.Type, z.Value)?.ManyToMany == pnvAttr.ManyToMany &&
                             typeof(IEnumerable).IsAssignableFrom(z.Value.PropertyType)).Any();
 
@@ -419,7 +419,7 @@ namespace FreeSql.Internal
                 {
                     isManyToMany = propElementType != trytb.Type &&
                         pnv.Name.EndsWith($"{tbref.CsName}s", StringComparison.CurrentCultureIgnoreCase) &&
-                        tbref.Properties.Where(z => (z.Value.PropertyType.GenericTypeArguments.FirstOrDefault() == trytb.Type || z.Value.PropertyType.GetElementType() == trytb.Type) &&
+                        tbref.Properties.Where(z => (z.Value.PropertyType.GetGenericArguments().FirstOrDefault() == trytb.Type || z.Value.PropertyType.GetElementType() == trytb.Type) &&
                             z.Key.EndsWith($"{trytb.CsName}s", StringComparison.CurrentCultureIgnoreCase) &&
                             typeof(IEnumerable).IsAssignableFrom(z.Value.PropertyType)).Any();
                 }
@@ -1025,7 +1025,7 @@ namespace FreeSql.Internal
             foreach (var p in ps)
             {
                 if (string.IsNullOrEmpty(paramPrefix) == false && sql.IndexOf($"{paramPrefix}{p.Name}", StringComparison.CurrentCultureIgnoreCase) == -1) continue;
-                var pvalue = p.GetValue(obj);
+                var pvalue = p.GetValue(obj, null);
                 if (p.PropertyType == ttype) ret.Add((T)Convert.ChangeType(pvalue, ttype));
                 else ret.Add(constructorParamter(p.Name, p.PropertyType, pvalue));
             }
@@ -1123,7 +1123,7 @@ namespace FreeSql.Internal
                         ), new[] { typeExp, indexesExp, rowExp, dataIndexExp, commonUtilExp }).Compile();
 
                     var typeGeneric = type;
-                    if (typeGeneric.IsNullableType()) typeGeneric = type.GenericTypeArguments.First();
+                    if (typeGeneric.IsNullableType()) typeGeneric = type.GetGenericArguments().First();
                     if (typeGeneric.IsEnum ||
                         dicExecuteArrayRowReadClassOrTuple.ContainsKey(typeGeneric))
                         return Expression.Lambda<Func<Type, int[], DbDataReader, int, CommonUtils, RowInfo>>(
@@ -1156,7 +1156,7 @@ namespace FreeSql.Internal
                                 else
                                 {
                                     var fieldtypeGeneric = field.FieldType;
-                                    if (fieldtypeGeneric.IsNullableType()) fieldtypeGeneric = fieldtypeGeneric.GenericTypeArguments.First();
+                                    if (fieldtypeGeneric.IsNullableType()) fieldtypeGeneric = fieldtypeGeneric.GetGenericArguments().First();
                                     if (fieldtypeGeneric.IsEnum ||
                                         dicExecuteArrayRowReadClassOrTuple.ContainsKey(fieldtypeGeneric)) read2ExpAssign = Expression.New(RowInfo.Constructor,
                                             GetDataReaderValueBlockExpression(field.FieldType, Expression.Call(rowExp, MethodDataReaderGetValue, dataIndexExp)),
@@ -1261,7 +1261,7 @@ namespace FreeSql.Internal
                             else
                             {
                                 var proptypeGeneric = readType;
-                                if (proptypeGeneric.IsNullableType()) proptypeGeneric = proptypeGeneric.GenericTypeArguments.First();
+                                if (proptypeGeneric.IsNullableType()) proptypeGeneric = proptypeGeneric.GetGenericArguments().First();
                                 if (proptypeGeneric.IsEnum ||
                                     dicExecuteArrayRowReadClassOrTuple.ContainsKey(proptypeGeneric))
                                 {
@@ -1366,7 +1366,7 @@ namespace FreeSql.Internal
                             else
                             {
                                 var proptypeGeneric = readType;
-                                if (proptypeGeneric.IsNullableType()) proptypeGeneric = proptypeGeneric.GenericTypeArguments.First();
+                                if (proptypeGeneric.IsNullableType()) proptypeGeneric = proptypeGeneric.GetGenericArguments().First();
                                 if (proptypeGeneric.IsEnum ||
                                     dicExecuteArrayRowReadClassOrTuple.ContainsKey(proptypeGeneric))
                                 {
@@ -1562,7 +1562,7 @@ namespace FreeSql.Internal
                     );
                 }
                 var typeOrg = type;
-                if (type.IsNullableType()) type = type.GenericTypeArguments.First();
+                if (type.IsNullableType()) type = type.GetGenericArguments().First();
                 if (type.IsEnum)
                     return Expression.Block(
                         Expression.IfThenElse(

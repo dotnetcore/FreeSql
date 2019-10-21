@@ -88,18 +88,22 @@ namespace FreeSql
         /// </summary>
         /// <returns></returns>
         int ExecuteAffrows();
-        Task<int> ExecuteAffrowsAsync();
         /// <summary>
         /// 执行SQL语句，返回自增值
         /// </summary>
         /// <returns></returns>
         long ExecuteIdentity();
-        Task<long> ExecuteIdentityAsync();
         /// <summary>
         /// 执行SQL语句，返回插入后的记录
         /// </summary>
         /// <returns></returns>
         List<T1> ExecuteInserted();
+
+#if net40
+#else
+        Task<int> ExecuteAffrowsAsync();
+        Task<long> ExecuteIdentityAsync();
         Task<List<T1>> ExecuteInsertedAsync();
+#endif
     }
 }

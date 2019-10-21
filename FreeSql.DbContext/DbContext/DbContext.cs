@@ -72,13 +72,13 @@ namespace FreeSql
             var props = _dicGetDbSetProps.GetOrAdd(this.GetType(), tp =>
                 tp.GetProperties(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public)
                     .Where(a => a.PropertyType.IsGenericType &&
-                        a.PropertyType == typeof(DbSet<>).MakeGenericType(a.PropertyType.GenericTypeArguments[0])).ToArray());
+                        a.PropertyType == typeof(DbSet<>).MakeGenericType(a.PropertyType.GetGenericArguments()[0])).ToArray());
 
             foreach (var prop in props)
             {
-                var set = this.Set(prop.PropertyType.GenericTypeArguments[0]);
+                var set = this.Set(prop.PropertyType.GetGenericArguments()[0]);
 
-                prop.SetValue(this, set);
+                prop.SetValue(this, set, null);
                 AllSets.Add(prop.Name, set);
             }
         }
@@ -105,8 +105,6 @@ namespace FreeSql
         /// <param name="data"></param>
         public void Add<TEntity>(TEntity data) where TEntity : class => this.Set<TEntity>().Add(data);
         public void AddRange<TEntity>(IEnumerable<TEntity> data) where TEntity : class => this.Set<TEntity>().AddRange(data);
-        public Task AddAsync<TEntity>(TEntity data) where TEntity : class => this.Set<TEntity>().AddAsync(data);
-        public Task AddRangeAsync<TEntity>(IEnumerable<TEntity> data) where TEntity : class => this.Set<TEntity>().AddRangeAsync(data);
 
         /// <summary>
         /// 更新
@@ -115,8 +113,6 @@ namespace FreeSql
         /// <param name="data"></param>
         public void Update<TEntity>(TEntity data) where TEntity : class => this.Set<TEntity>().Update(data);
         public void UpdateRange<TEntity>(IEnumerable<TEntity> data) where TEntity : class => this.Set<TEntity>().UpdateRange(data);
-        public Task UpdateAsync<TEntity>(TEntity data) where TEntity : class => this.Set<TEntity>().UpdateAsync(data);
-        public Task UpdateRangeAsync<TEntity>(IEnumerable<TEntity> data) where TEntity : class => this.Set<TEntity>().UpdateRangeAsync(data);
 
         /// <summary>
         /// 删除
@@ -132,7 +128,6 @@ namespace FreeSql
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="data"></param>
         public void AddOrUpdate<TEntity>(TEntity data) where TEntity : class => this.Set<TEntity>().AddOrUpdate(data);
-        public Task AddOrUpdateAsync<TEntity>(TEntity data) where TEntity : class => this.Set<TEntity>().AddOrUpdateAsync(data);
 
         /// <summary>
         /// 附加实体，可用于不查询就更新或删除
@@ -152,6 +147,16 @@ namespace FreeSql
             this.Set<TEntity>().AttachOnlyPrimary(data);
             return this;
         }
+#if net40
+#else
+        public Task AddAsync<TEntity>(TEntity data) where TEntity : class => this.Set<TEntity>().AddAsync(data);
+        public Task AddRangeAsync<TEntity>(IEnumerable<TEntity> data) where TEntity : class => this.Set<TEntity>().AddRangeAsync(data);
+
+        public Task UpdateAsync<TEntity>(TEntity data) where TEntity : class => this.Set<TEntity>().UpdateAsync(data);
+        public Task UpdateRangeAsync<TEntity>(IEnumerable<TEntity> data) where TEntity : class => this.Set<TEntity>().UpdateRangeAsync(data);
+
+        public Task AddOrUpdateAsync<TEntity>(TEntity data) where TEntity : class => this.Set<TEntity>().AddOrUpdateAsync(data);
+#endif
         #endregion
 
         #region Queue Action

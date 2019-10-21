@@ -20,11 +20,12 @@ namespace FreeSql
         where TEntity : class
     {
         TEntity Get(TKey id);
-
-        Task<TEntity> GetAsync(TKey id);
-
         TEntity Find(TKey id);
 
+#if net40
+#else
+        Task<TEntity> GetAsync(TKey id);
         Task<TEntity> FindAsync(TKey id);
+#endif
     }
 }

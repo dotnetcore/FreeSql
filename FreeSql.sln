@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26124.0
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29324.140
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql", "FreeSql\FreeSql.csproj", "{AF9C50EC-6EB6-494B-9B3B-7EDBA6FD0EBB}"
 EndProject
@@ -63,6 +63,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Provider.Odbc", "Providers\FreeSql.Provider.Odbc\FreeSql.Provider.Odbc.csproj", "{C57444BA-8BF7-4790-A864-7F237123219B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Tests.Provider.Odbc", "FreeSql.Tests\FreeSql.Tests.Provider.Odbc\FreeSql.Tests.Provider.Odbc.csproj", "{FA5667B9-BA85-4970-8818-BF09DD8DA3B4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "orm_vs_net40", "Examples\orm_vs_net40\orm_vs_net40.csproj", "{1674BCE3-EEB4-4003-A2A7-06F51EFAEA23}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -374,6 +376,18 @@ Global
 		{FA5667B9-BA85-4970-8818-BF09DD8DA3B4}.Release|x64.Build.0 = Release|Any CPU
 		{FA5667B9-BA85-4970-8818-BF09DD8DA3B4}.Release|x86.ActiveCfg = Release|Any CPU
 		{FA5667B9-BA85-4970-8818-BF09DD8DA3B4}.Release|x86.Build.0 = Release|Any CPU
+		{1674BCE3-EEB4-4003-A2A7-06F51EFAEA23}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1674BCE3-EEB4-4003-A2A7-06F51EFAEA23}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1674BCE3-EEB4-4003-A2A7-06F51EFAEA23}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1674BCE3-EEB4-4003-A2A7-06F51EFAEA23}.Debug|x64.Build.0 = Debug|Any CPU
+		{1674BCE3-EEB4-4003-A2A7-06F51EFAEA23}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{1674BCE3-EEB4-4003-A2A7-06F51EFAEA23}.Debug|x86.Build.0 = Debug|Any CPU
+		{1674BCE3-EEB4-4003-A2A7-06F51EFAEA23}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1674BCE3-EEB4-4003-A2A7-06F51EFAEA23}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1674BCE3-EEB4-4003-A2A7-06F51EFAEA23}.Release|x64.ActiveCfg = Release|Any CPU
+		{1674BCE3-EEB4-4003-A2A7-06F51EFAEA23}.Release|x64.Build.0 = Release|Any CPU
+		{1674BCE3-EEB4-4003-A2A7-06F51EFAEA23}.Release|x86.ActiveCfg = Release|Any CPU
+		{1674BCE3-EEB4-4003-A2A7-06F51EFAEA23}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -396,6 +410,7 @@ Global
 		{FE0CB06E-493F-4CE8-B2D7-BF48CA8015C6} = {4A92E8A6-9A6D-41A1-9CDA-DE10899648AA}
 		{3043DEF1-85DF-47AD-8D5D-327270794356} = {4A92E8A6-9A6D-41A1-9CDA-DE10899648AA}
 		{C57444BA-8BF7-4790-A864-7F237123219B} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
+		{1674BCE3-EEB4-4003-A2A7-06F51EFAEA23} = {94C8A78D-AA15-47B2-A348-530CD86BFC1B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {089687FD-5D25-40AB-BA8A-A10D1E137F98}

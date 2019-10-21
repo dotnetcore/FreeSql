@@ -17,12 +17,8 @@ namespace FreeSql.Sqlite.Curd
         }
 
         public override int ExecuteAffrows() => base.SplitExecuteAffrows(5000, 999);
-        public override Task<int> ExecuteAffrowsAsync() => base.SplitExecuteAffrowsAsync(5000, 999);
         public override long ExecuteIdentity() => base.SplitExecuteIdentity(5000, 999);
-        public override Task<long> ExecuteIdentityAsync() => base.SplitExecuteIdentityAsync(5000, 999);
         public override List<T1> ExecuteInserted() => base.SplitExecuteInserted(5000, 999);
-        public override Task<List<T1>> ExecuteInsertedAsync() => base.SplitExecuteInsertedAsync(5000, 999);
-
 
         protected override long RawExecuteIdentity()
         {
@@ -50,6 +46,22 @@ namespace FreeSql.Sqlite.Curd
             }
             return ret;
         }
+        
+        protected override List<T1> RawExecuteInserted()
+        {
+            var sql = this.ToSql();
+            if (string.IsNullOrEmpty(sql)) return new List<T1>();
+
+            this.RawExecuteAffrows();
+            return _source;
+        }
+
+#if net40
+#else
+        public override Task<int> ExecuteAffrowsAsync() => base.SplitExecuteAffrowsAsync(5000, 999);
+        public override Task<long> ExecuteIdentityAsync() => base.SplitExecuteIdentityAsync(5000, 999);
+        public override Task<List<T1>> ExecuteInsertedAsync() => base.SplitExecuteInsertedAsync(5000, 999);
+
         async protected override Task<long> RawExecuteIdentityAsync()
         {
             var sql = this.ToSql();
@@ -76,14 +88,6 @@ namespace FreeSql.Sqlite.Curd
             }
             return ret;
         }
-        protected override List<T1> RawExecuteInserted()
-        {
-            var sql = this.ToSql();
-            if (string.IsNullOrEmpty(sql)) return new List<T1>();
-
-            this.RawExecuteAffrows();
-            return _source;
-        }
         async protected override Task<List<T1>> RawExecuteInsertedAsync()
         {
             var sql = this.ToSql();
@@ -92,5 +96,6 @@ namespace FreeSql.Sqlite.Curd
             await this.RawExecuteAffrowsAsync();
             return _source;
         }
+#endif
     }
 }

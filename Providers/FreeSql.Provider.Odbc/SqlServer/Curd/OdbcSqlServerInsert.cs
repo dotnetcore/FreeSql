@@ -18,12 +18,8 @@ namespace FreeSql.Odbc.SqlServer
         }
 
         public override int ExecuteAffrows() => base.SplitExecuteAffrows(1000, 2100);
-        public override Task<int> ExecuteAffrowsAsync() => base.SplitExecuteAffrowsAsync(1000, 2100);
         public override long ExecuteIdentity() => base.SplitExecuteIdentity(1000, 2100);
-        public override Task<long> ExecuteIdentityAsync() => base.SplitExecuteIdentityAsync(1000, 2100);
         public override List<T1> ExecuteInserted() => base.SplitExecuteInserted(1000, 2100);
-        public override Task<List<T1>> ExecuteInsertedAsync() => base.SplitExecuteInsertedAsync(1000, 2100);
-
 
         protected override long RawExecuteIdentity()
         {
@@ -38,32 +34,6 @@ namespace FreeSql.Odbc.SqlServer
             try
             {
                 long.TryParse(string.Concat(_orm.Ado.ExecuteScalar(_connection, _transaction, CommandType.Text, sql, _params)), out ret);
-            }
-            catch (Exception ex)
-            {
-                exception = ex;
-                throw ex;
-            }
-            finally
-            {
-                var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                _orm.Aop.CurdAfter?.Invoke(this, after);
-            }
-            return ret;
-        }
-        async protected override Task<long> RawExecuteIdentityAsync()
-        {
-            var sql = this.ToSql();
-            if (string.IsNullOrEmpty(sql)) return 0;
-
-            sql = string.Concat(sql, "; SELECT SCOPE_IDENTITY();");
-            var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
-            _orm.Aop.CurdBefore?.Invoke(this, before);
-            long ret = 0;
-            Exception exception = null;
-            try
-            {
-                long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync(_connection, _transaction, CommandType.Text, sql, _params)), out ret);
             }
             catch (Exception ex)
             {
@@ -119,6 +89,40 @@ namespace FreeSql.Odbc.SqlServer
             }
             return ret;
         }
+
+#if net40
+#else
+        public override Task<int> ExecuteAffrowsAsync() => base.SplitExecuteAffrowsAsync(1000, 2100);
+        public override Task<long> ExecuteIdentityAsync() => base.SplitExecuteIdentityAsync(1000, 2100);
+        public override Task<List<T1>> ExecuteInsertedAsync() => base.SplitExecuteInsertedAsync(1000, 2100);
+        
+        
+        async protected override Task<long> RawExecuteIdentityAsync()
+        {
+            var sql = this.ToSql();
+            if (string.IsNullOrEmpty(sql)) return 0;
+
+            sql = string.Concat(sql, "; SELECT SCOPE_IDENTITY();");
+            var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
+            _orm.Aop.CurdBefore?.Invoke(this, before);
+            long ret = 0;
+            Exception exception = null;
+            try
+            {
+                long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync(_connection, _transaction, CommandType.Text, sql, _params)), out ret);
+            }
+            catch (Exception ex)
+            {
+                exception = ex;
+                throw ex;
+            }
+            finally
+            {
+                var after = new Aop.CurdAfterEventArgs(before, exception, ret);
+                _orm.Aop.CurdAfter?.Invoke(this, after);
+            }
+            return ret;
+        }
         async protected override Task<List<T1>> RawExecuteInsertedAsync()
         {
             var sql = this.ToSql();
@@ -160,5 +164,6 @@ namespace FreeSql.Odbc.SqlServer
             }
             return ret;
         }
+#endif
     }
 }

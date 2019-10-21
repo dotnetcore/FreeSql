@@ -617,7 +617,7 @@ namespace FreeSql.Internal
                                                 var exp3tmpArg1Type = exp3tmpCall.Arguments.FirstOrDefault()?.Type;
                                                 if (exp3tmpArg1Type != null)
                                                 {
-                                                    asSelectEntityType = exp3tmpArg1Type.GetElementType() ?? exp3tmpArg1Type.GenericTypeArguments.FirstOrDefault();
+                                                    asSelectEntityType = exp3tmpArg1Type.GetElementType() ?? exp3tmpArg1Type.GetGenericArguments().FirstOrDefault();
                                                     if (asSelectEntityType != null)
                                                     {
                                                         fsql = _dicExpressionLambdaToSqlAsSelectMethodInfo.GetOrAdd(asSelectEntityType, asSelectEntityType2 => typeof(IFreeSql).GetMethod("Select", new Type[0]).MakeGenericMethod(asSelectEntityType2))
@@ -1051,7 +1051,7 @@ namespace FreeSql.Internal
                             case ExpressionType.MemberAccess:
 
                                 var exp2Type = exp2.Type;
-                                if (exp2Type.FullName.StartsWith("FreeSql.ISelectGroupingAggregate`")) exp2Type = exp2Type.GenericTypeArguments.LastOrDefault() ?? exp2.Type;
+                                if (exp2Type.FullName.StartsWith("FreeSql.ISelectGroupingAggregate`")) exp2Type = exp2Type.GetGenericArguments().LastOrDefault() ?? exp2.Type;
                                 var tb2tmp = _common.GetTableByEntity(exp2Type);
                                 var mp2 = exp2 as MemberExpression;
                                 if (mp2?.Member.Name == "Key" && mp2.Expression.Type.FullName.StartsWith("FreeSql.ISelectGroupingAggregate`")) continue;

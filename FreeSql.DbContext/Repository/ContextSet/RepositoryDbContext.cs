@@ -79,10 +79,13 @@ namespace FreeSql
             ExecCommand();
             return SaveChangesSuccess();
         }
+#if net40
+#else
         async public override Task<int> SaveChangesAsync()
         {
             await ExecCommandAsync();
             return SaveChangesSuccess();
         }
+#endif
     }
 }

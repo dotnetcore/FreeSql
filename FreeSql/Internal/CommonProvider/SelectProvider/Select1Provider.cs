@@ -109,12 +109,6 @@ namespace FreeSql.Internal.CommonProvider
             _tables[0].Parameter = column.Parameters[0];
             return this.InternalAvg<TMember>(column?.Body);
         }
-        public Task<TMember> AvgAsync<TMember>(Expression<Func<T1, TMember>> column)
-        {
-            if (column == null) return Task.FromResult(default(TMember));
-            _tables[0].Parameter = column.Parameters[0];
-            return this.InternalAvgAsync<TMember>(column?.Body);
-        }
 
         public abstract ISelect<T1, T2> From<T2>(Expression<Func<ISelectFromExpression<T1>, T2, ISelectFromExpression<T1>>> exp) where T2 : class;// { this.InternalFrom(exp); var ret = new Select3Provider<T1, T2, T3>(_orm, _commonUtils, _commonExpression, null); Select0Provider<ISelect<T1>, T1>.CopyData(this, ret, exp?.Parameters); return ret; }
         public abstract ISelect<T1, T2, T3> From<T2, T3>(Expression<Func<ISelectFromExpression<T1>, T2, T3, ISelectFromExpression<T1>>> exp) where T2 : class where T3 : class;// { this.InternalFrom(exp); var ret = new Select3Provider<T1, T2, T3>(_orm, _commonUtils, _commonExpression, null); Select0Provider<ISelect<T1>, T1>.CopyData(this, ret, exp?.Parameters); return ret; }
@@ -139,24 +133,11 @@ namespace FreeSql.Internal.CommonProvider
             _tables[0].Parameter = column.Parameters[0];
             return this.InternalMax<TMember>(column?.Body);
         }
-        public Task<TMember> MaxAsync<TMember>(Expression<Func<T1, TMember>> column)
-        {
-            if (column == null) return Task.FromResult(default(TMember));
-            _tables[0].Parameter = column.Parameters[0];
-            return this.InternalMaxAsync<TMember>(column?.Body);
-        }
-
         public TMember Min<TMember>(Expression<Func<T1, TMember>> column)
         {
             if (column == null) return default(TMember);
             _tables[0].Parameter = column.Parameters[0];
             return this.InternalMin<TMember>(column?.Body);
-        }
-        public Task<TMember> MinAsync<TMember>(Expression<Func<T1, TMember>> column)
-        {
-            if (column == null) return Task.FromResult(default(TMember));
-            _tables[0].Parameter = column.Parameters[0];
-            return this.InternalMinAsync<TMember>(column?.Body);
         }
         public ISelect<T1> OrderBy<TMember>(Expression<Func<T1, TMember>> column) => this.OrderBy(true, column);
         public ISelect<T1> OrderBy<TMember>(bool condition, Expression<Func<T1, TMember>> column)
@@ -179,12 +160,6 @@ namespace FreeSql.Internal.CommonProvider
             _tables[0].Parameter = column.Parameters[0];
             return this.InternalSum<TMember>(column?.Body);
         }
-        public Task<TMember> SumAsync<TMember>(Expression<Func<T1, TMember>> column)
-        {
-            if (column == null) return Task.FromResult(default(TMember));
-            _tables[0].Parameter = column.Parameters[0];
-            return this.InternalSumAsync<TMember>(column?.Body);
-        }
 
         public List<TReturn> ToList<TReturn>(Expression<Func<T1, TReturn>> select)
         {
@@ -192,14 +167,8 @@ namespace FreeSql.Internal.CommonProvider
             _tables[0].Parameter = select.Parameters[0];
             return this.InternalToList<TReturn>(select?.Body);
         }
-        public Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<T1, TReturn>> select)
-        {
-            if (select == null) return this.InternalToListAsync<TReturn>(select?.Body);
-            _tables[0].Parameter = select.Parameters[0];
-            return this.InternalToListAsync<TReturn>(select?.Body);
-        }
+        
         public List<TDto> ToList<TDto>() => ToList(GetToListDtoSelector<TDto>());
-        public Task<List<TDto>> ToListAsync<TDto>() => ToListAsync(GetToListDtoSelector<TDto>());
         Expression<Func<T1, TDto>> GetToListDtoSelector<TDto>()
         {
             var ctor = typeof(TDto).GetConstructor(new Type[0]);
@@ -254,9 +223,9 @@ namespace FreeSql.Internal.CommonProvider
             if (collectionSelector.Body.NodeType == ExpressionType.Call)
             {
                 var callExp = collectionSelector.Body as MethodCallExpression;
-                if (callExp.Method.Name == "DefaultIfEmpty" && callExp.Object.Type.GenericTypeArguments.Any())
+                if (callExp.Method.Name == "DefaultIfEmpty" && callExp.Object.Type.GetGenericArguments().Any())
                 {
-                    find = _tables.Where((a, idx) => idx > 0 && a.Type == SelectTableInfoType.InnerJoin && a.Table.Type == callExp.Object.Type.GenericTypeArguments[0]).LastOrDefault();
+                    find = _tables.Where((a, idx) => idx > 0 && a.Type == SelectTableInfoType.InnerJoin && a.Table.Type == callExp.Object.Type.GetGenericArguments()[0]).LastOrDefault();
                     if (find != null)
                     {
                         if (!string.IsNullOrEmpty(find.On)) find.On = Regex.Replace(find.On, $@"\b{find.Alias}\.", $"{resultSelector.Parameters[1].Name}.");
@@ -293,13 +262,6 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalToDataTable(select?.Body);
         }
 
-        public Task<DataTable> ToDataTableAsync<TReturn>(Expression<Func<T1, TReturn>> select)
-        {
-            if (select == null) return this.InternalToDataTableAsync(select?.Body);
-            _tables[0].Parameter = select.Parameters[0];
-            return this.InternalToDataTableAsync(select?.Body);
-        }
-
         public string ToSql<TReturn>(Expression<Func<T1, TReturn>> select)
         {
             if (select == null) return this.InternalToSql<TReturn>(select?.Body);
@@ -312,13 +274,6 @@ namespace FreeSql.Internal.CommonProvider
             if (select == null) return default(TReturn);
             _tables[0].Parameter = select.Parameters[0];
             return this.InternalToAggregate<TReturn>(select?.Body);
-        }
-
-        public Task<TReturn> ToAggregateAsync<TReturn>(Expression<Func<ISelectGroupingAggregate<T1>, TReturn>> select)
-        {
-            if (select == null) return Task.FromResult(default(TReturn));
-            _tables[0].Parameter = select.Parameters[0];
-            return this.InternalToAggregateAsync<TReturn>(select?.Body);
         }
 
         public ISelect<T1> Where(Expression<Func<T1, bool>> exp) => WhereIf(true, exp);
@@ -372,20 +327,14 @@ namespace FreeSql.Internal.CommonProvider
         }
 
         public bool Any(Expression<Func<T1, bool>> exp) => this.Where(exp).Any();
-        public Task<bool> AnyAsync(Expression<Func<T1, bool>> exp) => this.Where(exp).AnyAsync();
 
         public TReturn ToOne<TReturn>(Expression<Func<T1, TReturn>> select) => this.Limit(1).ToList(select).FirstOrDefault();
-        async public Task<TReturn> ToOneAsync<TReturn>(Expression<Func<T1, TReturn>> select) => (await this.Limit(1).ToListAsync(select)).FirstOrDefault();
         public TDto ToOne<TDto>() => this.Limit(1).ToList<TDto>().FirstOrDefault();
-        async public Task<TDto> ToOneAsync<TDto>() => (await this.Limit(1).ToListAsync<TDto>()).FirstOrDefault();
 
         public TReturn First<TReturn>(Expression<Func<T1, TReturn>> select) => this.ToOne(select);
-        public Task<TReturn> FirstAsync<TReturn>(Expression<Func<T1, TReturn>> select) => this.ToOneAsync(select);
         public TDto First<TDto>() => this.ToOne<TDto>();
-        public Task<TDto> FirstAsync<TDto>() => this.ToOneAsync<TDto>();
 
         public override List<T1> ToList(bool includeNestedMembers = false) => base.ToList(_isIncluded || includeNestedMembers);
-        public override Task<List<T1>> ToListAsync(bool includeNestedMembers = false) => base.ToListAsync(_isIncluded || includeNestedMembers);
 
         bool _isIncluded = false;
         public ISelect<T1> Include<TNavigate>(Expression<Func<T1, TNavigate>> navigateSelector) where TNavigate : class
@@ -963,5 +912,60 @@ namespace FreeSql.Internal.CommonProvider
             _orm.Aop.ToList?.Invoke(this, new Aop.ToListEventArgs(list));
             _trackToList?.Invoke(list);
         }
+
+#if net40
+#else
+        public Task<TMember> AvgAsync<TMember>(Expression<Func<T1, TMember>> column)
+        {
+            if (column == null) return Task.FromResult(default(TMember));
+            _tables[0].Parameter = column.Parameters[0];
+            return this.InternalAvgAsync<TMember>(column?.Body);
+        }
+        public Task<TMember> MaxAsync<TMember>(Expression<Func<T1, TMember>> column)
+        {
+            if (column == null) return Task.FromResult(default(TMember));
+            _tables[0].Parameter = column.Parameters[0];
+            return this.InternalMaxAsync<TMember>(column?.Body);
+        }
+        public Task<TMember> MinAsync<TMember>(Expression<Func<T1, TMember>> column)
+        {
+            if (column == null) return Task.FromResult(default(TMember));
+            _tables[0].Parameter = column.Parameters[0];
+            return this.InternalMinAsync<TMember>(column?.Body);
+        }
+        public Task<TMember> SumAsync<TMember>(Expression<Func<T1, TMember>> column)
+        {
+            if (column == null) return Task.FromResult(default(TMember));
+            _tables[0].Parameter = column.Parameters[0];
+            return this.InternalSumAsync<TMember>(column?.Body);
+        }
+        public Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<T1, TReturn>> select)
+        {
+            if (select == null) return this.InternalToListAsync<TReturn>(select?.Body);
+            _tables[0].Parameter = select.Parameters[0];
+            return this.InternalToListAsync<TReturn>(select?.Body);
+        }
+        public Task<List<TDto>> ToListAsync<TDto>() => ToListAsync(GetToListDtoSelector<TDto>());
+
+        public Task<DataTable> ToDataTableAsync<TReturn>(Expression<Func<T1, TReturn>> select)
+        {
+            if (select == null) return this.InternalToDataTableAsync(select?.Body);
+            _tables[0].Parameter = select.Parameters[0];
+            return this.InternalToDataTableAsync(select?.Body);
+        }
+        public Task<TReturn> ToAggregateAsync<TReturn>(Expression<Func<ISelectGroupingAggregate<T1>, TReturn>> select)
+        {
+            if (select == null) return Task.FromResult(default(TReturn));
+            _tables[0].Parameter = select.Parameters[0];
+            return this.InternalToAggregateAsync<TReturn>(select?.Body);
+        }
+
+        public Task<bool> AnyAsync(Expression<Func<T1, bool>> exp) => this.Where(exp).AnyAsync();
+        async public Task<TReturn> ToOneAsync<TReturn>(Expression<Func<T1, TReturn>> select) => (await this.Limit(1).ToListAsync(select)).FirstOrDefault();
+        async public Task<TDto> ToOneAsync<TDto>() => (await this.Limit(1).ToListAsync<TDto>()).FirstOrDefault();
+        public Task<TReturn> FirstAsync<TReturn>(Expression<Func<T1, TReturn>> select) => this.ToOneAsync(select);
+        public Task<TDto> FirstAsync<TDto>() => this.ToOneAsync<TDto>();
+        public override Task<List<T1>> ToListAsync(bool includeNestedMembers = false) => base.ToListAsync(_isIncluded || includeNestedMembers);
+#endif
     }
 }

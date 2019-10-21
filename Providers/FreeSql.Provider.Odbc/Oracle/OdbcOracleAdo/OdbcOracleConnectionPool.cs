@@ -155,6 +155,8 @@ namespace FreeSql.Odbc.Oracle
             }
         }
 
+#if net40
+#else
         async public Task OnGetAsync(Object<DbConnection> obj)
         {
 
@@ -182,6 +184,7 @@ namespace FreeSql.Odbc.Oracle
                 }
             }
         }
+#endif
 
         public void OnGetTimeout()
         {
@@ -228,6 +231,9 @@ namespace FreeSql.Odbc.Oracle
                 return false;
             }
         }
+
+#if net40
+#else
         async public static Task<bool> PingAsync(this DbConnection that, bool isThrow = false)
         {
             try
@@ -242,5 +248,6 @@ namespace FreeSql.Odbc.Oracle
                 return false;
             }
         }
+#endif
     }
 }

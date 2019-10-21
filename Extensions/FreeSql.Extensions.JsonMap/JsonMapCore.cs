@@ -37,7 +37,7 @@ namespace FreeSql.Extensions
 
                         that.Aop.ConfigEntityProperty += new EventHandler<Aop.ConfigEntityPropertyEventArgs>((s, e) =>
                         {
-                            if (e.Property.GetCustomAttribute<JsonMapAttribute>(false) != null)
+                            if (e.Property.GetCustomAttributes(typeof(JsonMapAttribute), false).Any())
                             {
                                 e.ModifyResult.MapType = typeof(string);
                                 if (_dicTypes.TryAdd(e.Property.PropertyType, true))

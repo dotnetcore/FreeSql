@@ -8,6 +8,12 @@ namespace FreeSql
 {
     public interface ISelectGrouping<TKey, TValue>
     {
+
+#if net40
+#else
+        Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select);
+#endif
+
         /// <summary>
         /// 按聚合条件过滤，Where(a => a.Count() > 10)
         /// </summary>
@@ -36,7 +42,6 @@ namespace FreeSql
         /// <param name="select">选择列</param>
         /// <returns></returns>
         List<TReturn> ToList<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select);
-        Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select);
 
         /// <summary>
         /// 【linq to sql】专用方法，不建议直接使用

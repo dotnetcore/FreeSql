@@ -150,6 +150,8 @@ namespace FreeSql.Sqlite
             }
         }
 
+#if net40
+#else
         async public Task OnGetAsync(Object<DbConnection> obj)
         {
 
@@ -177,6 +179,7 @@ namespace FreeSql.Sqlite
                 }
             }
         }
+#endif
 
         public void OnGetTimeout()
         {
@@ -222,21 +225,6 @@ namespace FreeSql.Sqlite
                 return false;
             }
         }
-        async public static Task<bool> PingAsync(this DbConnection that, bool isThrow = false)
-        {
-            try
-            {
-                await PingCommand(that).ExecuteNonQueryAsync();
-                return true;
-            }
-            catch
-            {
-                if (that.State != ConnectionState.Closed) try { that.Close(); } catch { }
-                if (isThrow) throw;
-                return false;
-            }
-        }
-
         public static void OpenAndAttach(this DbConnection that, string[] attach)
         {
             that.Open();
@@ -250,6 +238,23 @@ namespace FreeSql.Sqlite
                 var cmd = that.CreateCommand();
                 cmd.CommandText = sb.ToString();
                 cmd.ExecuteNonQuery();
+            }
+        }
+
+#if net40
+#else
+        async public static Task<bool> PingAsync(this DbConnection that, bool isThrow = false)
+        {
+            try
+            {
+                await PingCommand(that).ExecuteNonQueryAsync();
+                return true;
+            }
+            catch
+            {
+                if (that.State != ConnectionState.Closed) try { that.Close(); } catch { }
+                if (isThrow) throw;
+                return false;
             }
         }
         async public static Task OpenAndAttachAsync(this DbConnection that, string[] attach)
@@ -267,5 +272,6 @@ namespace FreeSql.Sqlite
                 await cmd.ExecuteNonQueryAsync();
             }
         }
+#endif
     }
 }

@@ -47,13 +47,17 @@ namespace FreeSql.Odbc.PostgreSQL
                 var elementType = type.GetElementType();
                 Type enumType = null;
                 if (elementType.IsEnum) enumType = elementType;
-                else if (elementType.IsNullableType() && elementType.GenericTypeArguments.First().IsEnum) enumType = elementType.GenericTypeArguments.First();
+                else if (elementType.IsNullableType())
+                {
+                    var genericTypesFirst = elementType.GetGenericArguments().First();
+                    if (genericTypesFirst.IsEnum) enumType = genericTypesFirst;
+                }
                 if (enumType != null) return enumType.GetCustomAttributes(typeof(FlagsAttribute), false).Any() ?
                     getParamterArrayValue(typeof(long), value, elementType.IsEnum ? null : Enum.GetValues(enumType).GetValue(0)) :
                     getParamterArrayValue(typeof(int), value, elementType.IsEnum ? null : Enum.GetValues(enumType).GetValue(0));
                 return dicGetParamterValue.TryGetValue(type.FullName, out var trydicarr) ? trydicarr(value) : value;
             }
-            if (type.IsNullableType()) type = type.GenericTypeArguments.First();
+            if (type.IsNullableType()) type = type.GetGenericArguments().First();
             if (type.IsEnum) return (int)value;
             if (dicGetParamterValue.TryGetValue(type.FullName, out var trydic)) return trydic(value);
             return value;

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>netstandard2.0;net45</TargetFrameworks>
+		<TargetFrameworks>netstandard2.0;net45;net40</TargetFrameworks>
 		<Version>0.10.14</Version>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>YeXiangQin</Authors>
@@ -28,8 +28,12 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="SafeObjectPool" Version="2.1.1" />
+	  <PackageReference Include="SafeObjectPool" Version="2.1.2" />
 	  <PackageReference Include="System.ValueTuple" Version="4.5.0" />
 	</ItemGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net40'">
+    <DefineConstants>net40</DefineConstants>
+  </PropertyGroup>
 
 </Project>

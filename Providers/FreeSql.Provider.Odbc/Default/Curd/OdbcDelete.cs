@@ -16,6 +16,10 @@ namespace FreeSql.Odbc.Default
         }
 
         public override List<T1> ExecuteDeleted() => throw new NotImplementedException("FreeSql.Odbc.Default 未实现该功能");
+
+#if net40
+#else
         public override Task<List<T1>> ExecuteDeletedAsync() => throw new NotImplementedException("FreeSql.Odbc.Default 未实现该功能");
+#endif
     }
 }

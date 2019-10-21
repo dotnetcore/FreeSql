@@ -9,20 +9,38 @@ namespace FreeSql
     public interface ISelect<T1> : ISelect0<ISelect<T1>, T1>, ILinqToSql<T1> where T1 : class
     {
 
+#if net40
+#else
+        Task<bool> AnyAsync(Expression<Func<T1, bool>> exp);
+
+        Task<DataTable> ToDataTableAsync<TReturn>(Expression<Func<T1, TReturn>> select);
+        Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<T1, TReturn>> select);
+        Task<List<TDto>> ToListAsync<TDto>();
+        
+        Task<TReturn> ToOneAsync<TReturn>(Expression<Func<T1, TReturn>> select);
+        Task<TDto> ToOneAsync<TDto>();
+        Task<TReturn> FirstAsync<TReturn>(Expression<Func<T1, TReturn>> select);
+        Task<TDto> FirstAsync<TDto>();
+        
+        Task<TReturn> ToAggregateAsync<TReturn>(Expression<Func<ISelectGroupingAggregate<T1>, TReturn>> select);
+        Task<TMember> SumAsync<TMember>(Expression<Func<T1, TMember>> column);
+        Task<TMember> MinAsync<TMember>(Expression<Func<T1, TMember>> column);
+        Task<TMember> MaxAsync<TMember>(Expression<Func<T1, TMember>> column);
+        Task<TMember> AvgAsync<TMember>(Expression<Func<T1, TMember>> column);
+#endif
+
         /// <summary>
         /// 执行SQL查询，是否有记录
         /// </summary>
         /// <param name="exp">lambda表达式</param>
         /// <returns></returns>
         bool Any(Expression<Func<T1, bool>> exp);
-        Task<bool> AnyAsync(Expression<Func<T1, bool>> exp);
 
         /// <summary>
         /// 执行SQL查询，返回 DataTable
         /// </summary>
         /// <returns></returns>
         DataTable ToDataTable<TReturn>(Expression<Func<T1, TReturn>> select);
-        Task<DataTable> ToDataTableAsync<TReturn>(Expression<Func<T1, TReturn>> select);
 
         /// <summary>
         /// 执行SQL查询，返回指定字段的记录，记录不存在时返回 Count 为 0 的列表
@@ -31,14 +49,12 @@ namespace FreeSql
         /// <param name="select">选择列</param>
         /// <returns></returns>
         List<TReturn> ToList<TReturn>(Expression<Func<T1, TReturn>> select);
-        Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<T1, TReturn>> select);
         /// <summary>
         /// 执行SQL查询，返回 TDto 映射的字段，记录不存在时返回 Count 为 0 的列表
         /// </summary>
         /// <typeparam name="TDto"></typeparam>
         /// <returns></returns>
         List<TDto> ToList<TDto>();
-        Task<List<TDto>> ToListAsync<TDto>();
 
         /// <summary>
         /// 执行SQL查询，返回指定字段的记录的第一条记录，记录不存在时返回 TReturn 默认值
@@ -47,14 +63,12 @@ namespace FreeSql
         /// <param name="select">选择列</param>
         /// <returns></returns>
         TReturn ToOne<TReturn>(Expression<Func<T1, TReturn>> select);
-        Task<TReturn> ToOneAsync<TReturn>(Expression<Func<T1, TReturn>> select);
         /// <summary>
         /// 执行SQL查询，返回 TDto 映射的字段，记录不存在时返回 Dto 默认值
         /// </summary>
         /// <typeparam name="TDto"></typeparam>
         /// <returns></returns>
         TDto ToOne<TDto>();
-        Task<TDto> ToOneAsync<TDto>();
 
         /// <summary>
         /// 执行SQL查询，返回指定字段的记录的第一条记录，记录不存在时返回 TReturn 默认值
@@ -63,14 +77,12 @@ namespace FreeSql
         /// <param name="select">选择列</param>
         /// <returns></returns>
         TReturn First<TReturn>(Expression<Func<T1, TReturn>> select);
-        Task<TReturn> FirstAsync<TReturn>(Expression<Func<T1, TReturn>> select);
         /// <summary>
         /// 执行SQL查询，返回 TDto 映射的字段，记录不存在时返回 Dto 默认值
         /// </summary>
         /// <typeparam name="TDto"></typeparam>
         /// <returns></returns>
         TDto First<TDto>();
-        Task<TDto> FirstAsync<TDto>();
 
         /// <summary>
         /// 返回即将执行的SQL语句
@@ -87,7 +99,6 @@ namespace FreeSql
         /// <param name="select"></param>
         /// <returns></returns>
         TReturn ToAggregate<TReturn>(Expression<Func<ISelectGroupingAggregate<T1>, TReturn>> select);
-        Task<TReturn> ToAggregateAsync<TReturn>(Expression<Func<ISelectGroupingAggregate<T1>, TReturn>> select);
 
         /// <summary>
         /// 求和
@@ -96,7 +107,6 @@ namespace FreeSql
         /// <param name="column">列</param>
         /// <returns></returns>
         TMember Sum<TMember>(Expression<Func<T1, TMember>> column);
-        Task<TMember> SumAsync<TMember>(Expression<Func<T1, TMember>> column);
         /// <summary>
         /// 最小值
         /// </summary>
@@ -104,7 +114,6 @@ namespace FreeSql
         /// <param name="column">列</param>
         /// <returns></returns>
         TMember Min<TMember>(Expression<Func<T1, TMember>> column);
-        Task<TMember> MinAsync<TMember>(Expression<Func<T1, TMember>> column);
         /// <summary>
         /// 最大值
         /// </summary>
@@ -112,7 +121,6 @@ namespace FreeSql
         /// <param name="column">列</param>
         /// <returns></returns>
         TMember Max<TMember>(Expression<Func<T1, TMember>> column);
-        Task<TMember> MaxAsync<TMember>(Expression<Func<T1, TMember>> column);
         /// <summary>
         /// 平均值
         /// </summary>
@@ -120,7 +128,6 @@ namespace FreeSql
         /// <param name="column">列</param>
         /// <returns></returns>
         TMember Avg<TMember>(Expression<Func<T1, TMember>> column);
-        Task<TMember> AvgAsync<TMember>(Expression<Func<T1, TMember>> column);
 
         /// <summary>
         /// 指定别名

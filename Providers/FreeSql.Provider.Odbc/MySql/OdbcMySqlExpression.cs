@@ -377,7 +377,7 @@ namespace FreeSql.Odbc.MySql
                     case "AddTicks": return $"date_add({left}, interval ({args1})/10 microsecond)";
                     case "AddYears": return $"date_add({left}, interval ({args1}) year)";
                     case "Subtract":
-                        switch ((exp.Arguments[0].Type.IsNullableType() ? exp.Arguments[0].Type.GenericTypeArguments.FirstOrDefault() : exp.Arguments[0].Type).FullName)
+                        switch ((exp.Arguments[0].Type.IsNullableType() ? exp.Arguments[0].Type.GetGenericArguments().FirstOrDefault() : exp.Arguments[0].Type).FullName)
                         {
                             case "System.DateTime": return $"timestampdiff(microsecond, {args1}, {left})";
                             case "System.TimeSpan": return $"date_sub({left}, interval ({args1}) microsecond)";

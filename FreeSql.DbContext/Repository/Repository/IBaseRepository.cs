@@ -29,7 +29,10 @@ namespace FreeSql
     {
         int Delete(Expression<Func<TEntity, bool>> predicate);
 
+#if net40
+#else
         Task<int> DeleteAsync(Expression<Func<TEntity, bool>> predicate);
+#endif
     }
 
     public interface IBaseRepository<TEntity, TKey> : IBaseRepository<TEntity>, IReadOnlyRepository<TEntity, TKey>, IBasicRepository<TEntity, TKey>

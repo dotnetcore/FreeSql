@@ -2711,6 +2711,14 @@
             <param name="source"></param>
             <returns></returns>
         </member>
+        <member name="M:IFreeSql.Insert``1(System.Collections.Generic.IEnumerable{``0})">
+            <summary>
+            插入数据，传入实体集合
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <param name="source"></param>
+            <returns></returns>
+        </member>
         <member name="M:IFreeSql.Update``1">
             <summary>
             修改数据

@@ -356,7 +356,7 @@ namespace FreeSql.Odbc.Default
                     case "AddTicks": return _utils.Adapter.LambdaDateTime_AddTicks(left, args1);
                     case "AddYears": return _utils.Adapter.LambdaDateTime_AddYears(left, args1);
                     case "Subtract":
-                        switch ((exp.Arguments[0].Type.IsNullableType() ? exp.Arguments[0].Type.GenericTypeArguments.FirstOrDefault() : exp.Arguments[0].Type).FullName)
+                        switch ((exp.Arguments[0].Type.IsNullableType() ? exp.Arguments[0].Type.GetGenericArguments().FirstOrDefault() : exp.Arguments[0].Type).FullName)
                         {
                             case "System.DateTime": return _utils.Adapter.LambdaDateTime_Subtract(left, args1);
                             case "System.TimeSpan": return _utils.Adapter.LambdaDateTime_SubtractTimeSpan(left, args1);

@@ -16,11 +16,8 @@ namespace FreeSql.MySql.Curd
         }
 
         public override int ExecuteAffrows() => base.SplitExecuteAffrows(5000, 3000);
-        public override Task<int> ExecuteAffrowsAsync() => base.SplitExecuteAffrowsAsync(5000, 3000);
         public override long ExecuteIdentity() => base.SplitExecuteIdentity(5000, 3000);
-        public override Task<long> ExecuteIdentityAsync() => base.SplitExecuteIdentityAsync(5000, 3000);
         public override List<T1> ExecuteInserted() => base.SplitExecuteInserted(5000, 3000);
-        public override Task<List<T1>> ExecuteInsertedAsync() => base.SplitExecuteInsertedAsync(5000, 3000);
 
 
         protected override long RawExecuteIdentity()
@@ -36,32 +33,6 @@ namespace FreeSql.MySql.Curd
             try
             {
                 ret = long.TryParse(string.Concat(_orm.Ado.ExecuteScalar(_connection, _transaction, CommandType.Text, sql, _params)), out var trylng) ? trylng : 0;
-            }
-            catch (Exception ex)
-            {
-                exception = ex;
-                throw ex;
-            }
-            finally
-            {
-                var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                _orm.Aop.CurdAfter?.Invoke(this, after);
-            }
-            return ret;
-        }
-        async protected override Task<long> RawExecuteIdentityAsync()
-        {
-            var sql = this.ToSql();
-            if (string.IsNullOrEmpty(sql)) return 0;
-
-            sql = string.Concat(sql, "; SELECT LAST_INSERT_ID();");
-            var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
-            _orm.Aop.CurdBefore?.Invoke(this, before);
-            long ret = 0;
-            Exception exception = null;
-            try
-            {
-                ret = long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync(_connection, _transaction, CommandType.Text, sql, _params)), out var trylng) ? trylng : 0;
             }
             catch (Exception ex)
             {
@@ -111,6 +82,39 @@ namespace FreeSql.MySql.Curd
             }
             return ret;
         }
+
+#if net40
+#else
+        public override Task<int> ExecuteAffrowsAsync() => base.SplitExecuteAffrowsAsync(5000, 3000);
+        public override Task<long> ExecuteIdentityAsync() => base.SplitExecuteIdentityAsync(5000, 3000);
+        public override Task<List<T1>> ExecuteInsertedAsync() => base.SplitExecuteInsertedAsync(5000, 3000);
+
+        async protected override Task<long> RawExecuteIdentityAsync()
+        {
+            var sql = this.ToSql();
+            if (string.IsNullOrEmpty(sql)) return 0;
+
+            sql = string.Concat(sql, "; SELECT LAST_INSERT_ID();");
+            var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
+            _orm.Aop.CurdBefore?.Invoke(this, before);
+            long ret = 0;
+            Exception exception = null;
+            try
+            {
+                ret = long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync(_connection, _transaction, CommandType.Text, sql, _params)), out var trylng) ? trylng : 0;
+            }
+            catch (Exception ex)
+            {
+                exception = ex;
+                throw ex;
+            }
+            finally
+            {
+                var after = new Aop.CurdAfterEventArgs(before, exception, ret);
+                _orm.Aop.CurdAfter?.Invoke(this, after);
+            }
+            return ret;
+        }
         async protected override Task<List<T1>> RawExecuteInsertedAsync()
         {
             var sql = this.ToSql();
@@ -147,5 +151,6 @@ namespace FreeSql.MySql.Curd
             }
             return ret;
         }
+#endif
     }
 }

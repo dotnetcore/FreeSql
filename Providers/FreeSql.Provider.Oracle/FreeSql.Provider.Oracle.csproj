@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>netstandard2.0;net45</TargetFrameworks>
+		<TargetFrameworks>netstandard2.0;net45;net40</TargetFrameworks>
 		<Version>0.10.14</Version>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>YeXiangQin</Authors>
@@ -23,16 +23,20 @@
   </ItemGroup>
   
 	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-	  <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="2.19.31" />
+	  <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="2.19.50" />
 	</ItemGroup>
 
-	<ItemGroup Condition="'$(TargetFramework)' == 'net45'">
-		<PackageReference Include="Oracle.ManagedDataAccess" Version="19.3.1" />
+	<ItemGroup Condition="'$(TargetFramework)' == 'net45' or '$(TargetFramework)' == 'net40'">
+		<PackageReference Include="Oracle.ManagedDataAccess" Version="19.5.0" />
 	</ItemGroup>
 	
 	<ItemGroup>
 	  <ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />
 	</ItemGroup>
-	
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net40'">
+    <DefineConstants>net40</DefineConstants>
+  </PropertyGroup>
+  
 </Project>
 	

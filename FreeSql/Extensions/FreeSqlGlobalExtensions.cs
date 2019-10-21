@@ -40,7 +40,7 @@ public static partial class FreeSqlGlobalExtensions
     public static bool IsNumberType(this Type that) => that == null ? false : dicIsNumberType.Value.ContainsKey(that);
     public static bool IsNullableType(this Type that) => that?.FullName.StartsWith("System.Nullable`1[") == true;
     public static bool IsAnonymousType(this Type that) => that?.FullName.StartsWith("<>f__AnonymousType") == true;
-    public static Type NullableTypeOrThis(this Type that) => that?.IsNullableType() == true ? that.GenericTypeArguments.First() : that;
+    public static Type NullableTypeOrThis(this Type that) => that?.IsNullableType() == true ? that.GetGenericArguments().First() : that;
     internal static string NotNullAndConcat(this string that, params object[] args) => string.IsNullOrEmpty(that) ? null : string.Concat(new object[] { that }.Concat(args));
 
     /// <summary>
@@ -64,15 +64,17 @@ public static partial class FreeSqlGlobalExtensions
         var value = dr.GetString(index);
         var t = typeof(T);
         var fs = _dicGetFields.GetOrAdd(t, t2 => t2.GetFields());
-        foreach (var f in fs)
-            if (f.GetCustomAttribute<DescriptionAttribute>()?.Description == value || f.Name == value) return Enum.Parse(t, f.Name, true);
+        foreach (var f in fs) {
+            var attr = f.GetCustomAttributes(typeof(DescriptionAttribute), false)?.FirstOrDefault() as DescriptionAttribute;
+            if (attr?.Description == value || f.Name == value) return Enum.Parse(t, f.Name, true);
+        }
         return null;
     }
 
     public static string ToDescriptionOrString(this Enum item)
     {
         string name = item.ToString();
-        var desc = item.GetType().GetField(name)?.GetCustomAttribute<DescriptionAttribute>();
+        var desc = item.GetType().GetField(name)?.GetCustomAttributes(typeof(DescriptionAttribute), false)?.FirstOrDefault() as DescriptionAttribute;
         return desc?.Description ?? name;
     }
     public static long ToInt64(this Enum item)

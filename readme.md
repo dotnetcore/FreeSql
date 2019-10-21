@@ -2,7 +2,7 @@
   <img height="210" src="https://github.com/2881099/FreeSql/blob/master/logo.png?raw=true"/>
 </p>
 
-FreeSql 是一个功能强大的对象关系映射程序(O/RM)，支持 .NETCore 2.1+ 或 .NETFramework 4.5+（QQ群：4336577）
+FreeSql 是一个功能强大的对象关系映射程序(O/RM)，支持 .NETCore 2.1+ 或 .NETFramework 4.0+（QQ群：4336577）
 
 扶摇直上，至强ORM只为自由编码；鹏程万里，至简Linq可使保留黑发；横批：FreeSql（诗人：Coder）
 
@@ -53,14 +53,15 @@ FreeSql 是一个功能强大的对象关系映射程序(O/RM)，支持 .NETCore
 
 | Package Name | Version |
 |--------------|  ------- |
-| FreeSql.Provider.MySql | NETStandard2.0、net452 |
+| FreeSql.Provider.MySql | NETStandard2.0、net45、net40 |
+| FreeSql.Provider.MySqlConnector | NETStandard2.0、net45 |
 | FreeSql.Provider.PostgreSQL | NETStandard2.0、net45 |
-| FreeSql.Provider.SqlServer | NETStandard2.0、net451 |
-| FreeSql.Provider.Sqlite | NETStandard2.0、net45 |
-| FreeSql.Provider.Oracle | NETStandard2.0、net45 |
-| [FreeSql.Provider.Odbc](https://github.com/2881099/FreeSql/tree/master/Providers/FreeSql.Provider.Odbc) | NETStandard2.0、net45 |
-| FreeSql.Extensions.LazyLoading | NETStandard2.0、net45 |
-| FreeSql.Extensions.JsonMap | NETStandard2.0、net45 |
+| FreeSql.Provider.SqlServer | NETStandard2.0、net45、net40 |
+| FreeSql.Provider.Sqlite | NETStandard2.0、net45、net40 |
+| FreeSql.Provider.Oracle | NETStandard2.0、net45、net40 |
+| [FreeSql.Provider.Odbc](https://github.com/2881099/FreeSql/tree/master/Providers/FreeSql.Provider.Odbc) | NETStandard2.0、net45、net40 |
+| FreeSql.Extensions.LazyLoading | NETStandard2.0、net45、net40 |
+| FreeSql.Extensions.JsonMap | NETStandard2.0、net45、net40 |
 | FreeSql.Extensions.BaseEntity | NETStandard2.0 |
 
 <p align="center">

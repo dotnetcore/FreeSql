@@ -8,11 +8,12 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
 
+#if net40
+#else
 namespace FreeSql
 {
     partial class DbSet<TEntity>
     {
-
         Task DbContextExecCommandAsync()
         {
             _dicUpdateTimes.Clear();
@@ -409,3 +410,4 @@ namespace FreeSql
         #endregion
     }
 }
+#endif
