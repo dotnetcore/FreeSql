@@ -279,7 +279,7 @@ use " + database, tboldname ?? tbname);
                             //添加列
                             sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}.{tbname[2]}")).Append(" ADD ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType);
                             if (tbcol.Attribute.IsIdentity == true && tbcol.Attribute.DbType.IndexOf("identity", StringComparison.CurrentCultureIgnoreCase) == -1) sbalter.Append(" identity(1,1)");
-                            if (tbcol.Attribute.IsNullable == false)
+                            if (tbcol.Attribute.IsNullable == false && tbcol.Attribute.IsIdentity == false)
                             {
                                 var addcoldbdefault = tbcol.Attribute.DbDefautValue;
                                 if (addcoldbdefault != null) sbalter.Append(_commonUtils.FormatSql(" default({0})", addcoldbdefault));
