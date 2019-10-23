@@ -85,7 +85,6 @@ namespace FreeSql.Internal
             {
                 if (!string.IsNullOrEmpty(trytb.Name)) attr.Name = trytb.Name;
                 if (!string.IsNullOrEmpty(trytb.OldName)) attr.OldName = trytb.OldName;
-                if (!string.IsNullOrEmpty(trytb.SelectFilter)) attr.SelectFilter = trytb.SelectFilter;
                 if (trytb._DisableSyncStructure != null) attr._DisableSyncStructure = trytb.DisableSyncStructure;
             }
             var attrs = type.GetCustomAttributes(typeof(TableAttribute), false);
@@ -95,12 +94,10 @@ namespace FreeSql.Internal
                 if (tryattr == null) continue;
                 if (!string.IsNullOrEmpty(tryattr.Name)) attr.Name = tryattr.Name;
                 if (!string.IsNullOrEmpty(tryattr.OldName)) attr.OldName = tryattr.OldName;
-                if (!string.IsNullOrEmpty(tryattr.SelectFilter)) attr.SelectFilter = tryattr.SelectFilter;
                 if (tryattr._DisableSyncStructure != null) attr._DisableSyncStructure = tryattr.DisableSyncStructure;
             }
             if (!string.IsNullOrEmpty(attr.Name)) return attr;
             if (!string.IsNullOrEmpty(attr.OldName)) return attr;
-            if (!string.IsNullOrEmpty(attr.SelectFilter)) return attr;
             if (attr._DisableSyncStructure != null) return attr;
             return null;
         }

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,6 +20,7 @@ namespace FreeSql.Internal.CommonProvider
         protected Func<string, string> _tableRule;
         protected StringBuilder _where = new StringBuilder();
         protected int _whereTimes = 0;
+        protected List<GlobalFilter.Item> _whereGlobalFilter;
         protected List<DbParameter> _params = new List<DbParameter>();
         protected DbTransaction _transaction;
         protected DbConnection _connection;
@@ -31,6 +33,7 @@ namespace FreeSql.Internal.CommonProvider
             _table = _commonUtils.GetTableByEntity(typeof(T1));
             this.Where(_commonUtils.WhereObject(_table, "", dywhere));
             if (_orm.CodeFirst.IsAutoSyncStructure && typeof(T1) != typeof(object)) _orm.CodeFirst.SyncStructure<T1>();
+            _whereGlobalFilter = _orm.GlobalFilter.GetFilters();
         }
 
         protected void ClearData()
@@ -38,6 +41,7 @@ namespace FreeSql.Internal.CommonProvider
             _where.Clear();
             _whereTimes = 0;
             _params.Clear();
+            _whereGlobalFilter = _orm.GlobalFilter.GetFilters();
         }
 
         public IDelete<T1> WithTransaction(DbTransaction transaction)
@@ -99,6 +103,24 @@ namespace FreeSql.Internal.CommonProvider
         public IDelete<T1> WhereExists<TEntity2>(ISelect<TEntity2> select, bool notExists = false) where TEntity2 : class => this.Where($"{(notExists ? "NOT " : "")}EXISTS({select.ToSql("1")})");
         public IDelete<T1> WhereDynamic(object dywhere) => this.Where(_commonUtils.WhereObject(_table, "", dywhere));
 
+        public IDelete<T1> DisableGlobalFilter(params string[] name)
+        {
+            if (_whereGlobalFilter.Any() == false) return this;
+            if (name?.Any() != true)
+            {
+                _whereGlobalFilter.Clear();
+                return this;
+            }
+            foreach (var n in name)
+            {
+                if (n == null) continue;
+                var idx = _whereGlobalFilter.FindIndex(a => string.Compare(a.Name, n, true) == 0);
+                if (idx == -1) continue;
+                _whereGlobalFilter.RemoveAt(idx);
+            }
+            return this;
+        }
+
         protected string TableRuleInvoke()
         {
             if (_tableRule == null) return _table.DbName;
@@ -123,6 +145,18 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
 
-        public string ToSql() => _whereTimes <= 0 ? null : new StringBuilder().Append("DELETE FROM ").Append(_commonUtils.QuoteSqlName(TableRuleInvoke())).Append(" WHERE ").Append(_where).ToString();
+        public string ToSql()
+        {
+            if (_whereTimes <= 0) return null;
+            var sb = new StringBuilder().Append("DELETE FROM ").Append(_commonUtils.QuoteSqlName(TableRuleInvoke())).Append(" WHERE ").Append(_where);
+
+            if (_whereGlobalFilter.Any())
+            {
+                var globalFilterCondi = _commonExpression.GetWhereCascadeSql(new SelectTableInfo { Table = _table }, _whereGlobalFilter.Select(a => a.Where).ToList());
+                if (string.IsNullOrEmpty(globalFilterCondi) == false)
+                    sb.Append(" AND ").Append(globalFilterCondi);
+            }
+            return sb.ToString();
+        }
     }
 }

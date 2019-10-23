@@ -1205,10 +1205,14 @@ namespace FreeSql.Internal
                     var errorKey = FreeUtil.Sha1($"{tb.Table.Type.FullName},{fl.ToString()}");
                     if (_dicGetWhereCascadeSqlError.ContainsKey(errorKey)) continue;
 
-                    var visitor = new NewExpressionVisitor(newParameter, fl.Parameters.FirstOrDefault());
+                    var visitor = new ReplaceVisitor();
                     try
                     {
-                        var expExp = visitor.Replace(fl.Body);
+                        var expExp = Expression.Lambda(
+                            typeof(Func<,>).MakeGenericType(tb.Table.Type, typeof(bool)),
+                            new ReplaceVisitor().Modify(fl.Body, newParameter),
+                            newParameter
+                        );
                         var whereSql = ExpressionLambdaToSql(expExp, new ExpTSC { _tables = null, _selectColumnMap = null, getSelectGroupingMapString = null, tbtype = SelectTableInfoType.From, isQuoteName = true, isDisableDiyParse = false, style = ExpressionStyle.Where, currentTable = tb.Table, alias001 = tb.Alias });
                         if (isEmpty == false)
                             sb.Append(" AND ");
@@ -1228,10 +1232,22 @@ namespace FreeSql.Internal
             }
             return null;
         }
-
-        public string formatSql(object obj, Type mapType)
+        class ReplaceVisitor : ExpressionVisitor
         {
-            return string.Concat(_ado.AddslashesProcessParam(obj, mapType));
+            private ParameterExpression parameter;
+            public Expression Modify(Expression expression, ParameterExpression parameter)
+            {
+                this.parameter = parameter;
+                return Visit(expression);
+            }
+            protected override Expression VisitMember(MemberExpression node)
+            {
+                if (node.Expression?.NodeType == ExpressionType.Parameter)
+                    return Expression.Property(parameter, node.Member.Name);
+                return base.VisitMember(node);
+            }
         }
+
+        public string formatSql(object obj, Type mapType) => string.Concat(_ado.AddslashesProcessParam(obj, mapType));
     }
 }

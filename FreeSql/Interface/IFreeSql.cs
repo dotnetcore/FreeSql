@@ -1,6 +1,8 @@
 ﻿using FreeSql;
+using FreeSql.Internal;
 using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 
 public interface IFreeSql<TMark> : IFreeSql { }
 
@@ -112,4 +114,9 @@ public interface IFreeSql : IDisposable
     /// DbFirst 模式开发相关方法
     /// </summary>
     IDbFirst DbFirst { get; }
+
+    /// <summary>
+    /// 全局过滤设置，可默认附加为 Select/Update/Delete 条件
+    /// </summary>
+    GlobalFilter GlobalFilter { get; }
 }

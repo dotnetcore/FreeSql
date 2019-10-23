@@ -192,11 +192,6 @@
             指定数据库旧的表名，修改实体命名时，同时设置此参数为修改之前的值，CodeFirst才可以正确修改数据库表；否则将视为【创建新表】
             </summary>
         </member>
-        <member name="P:FreeSql.DataAnnotations.TableAttribute.SelectFilter">
-            <summary>
-            查询过滤SQL，实现类似 a.IsDeleted = 1 功能
-            </summary>
-        </member>
         <member name="P:FreeSql.DataAnnotations.TableAttribute.DisableSyncStructure">
             <summary>
             禁用 CodeFirst 同步结构迁移
@@ -210,11 +205,6 @@
         <member name="M:FreeSql.DataAnnotations.TableFluent.OldName(System.String)">
             <summary>
             指定数据库旧的表名，修改实体命名时，同时设置此参数为修改之前的值，CodeFirst才可以正确修改数据库表；否则将视为【创建新表】
-            </summary>
-        </member>
-        <member name="M:FreeSql.DataAnnotations.TableFluent.SelectFilter(System.String)">
-            <summary>
-            查询过滤SQL，实现类似 a.IsDeleted = 1 功能
             </summary>
         </member>
         <member name="M:FreeSql.DataAnnotations.TableFluent.DisableSyncStructure(System.Boolean)">
@@ -239,11 +229,6 @@
         <member name="M:FreeSql.DataAnnotations.TableFluent`1.OldName(System.String)">
             <summary>
             指定数据库旧的表名，修改实体命名时，同时设置此参数为修改之前的值，CodeFirst才可以正确修改数据库表；否则将视为【创建新表】
-            </summary>
-        </member>
-        <member name="M:FreeSql.DataAnnotations.TableFluent`1.SelectFilter(System.String)">
-            <summary>
-            查询过滤SQL，实现类似 a.IsDeleted = 1 功能
             </summary>
         </member>
         <member name="M:FreeSql.DataAnnotations.TableFluent`1.DisableSyncStructure(System.Boolean)">
@@ -669,6 +654,13 @@
             <param name="dywhere">主键值、主键值集合、实体、实体集合、匿名对象、匿名对象集合</param>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.IDelete`1.DisableGlobalFilter(System.String[])">
+            <summary>
+            禁用全局过滤功能，不传参数时将禁用所有
+            </summary>
+            <param name="name">零个或多个过滤器名字</param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.IDelete`1.AsTable(System.Func{System.String,System.String})">
             <summary>
             设置表名规则，可用于分库/分表，参数1：默认表名；返回值：新表名；
@@ -1023,6 +1015,13 @@
             <param name="condition">true 时生效</param>
             <param name="sql">sql语法条件</param>
             <param name="parms">参数</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.ISelect0`2.DisableGlobalFilter(System.String[])">
+            <summary>
+            禁用全局过滤功能，不传参数时将禁用所有
+            </summary>
+            <param name="name">零个或多个过滤器名字</param>
             <returns></returns>
         </member>
         <member name="M:FreeSql.ISelect0`2.GroupBy(System.String,System.Object)">
@@ -1763,6 +1762,13 @@
             <param name="dywhere">主键值、主键值集合、实体、实体集合、匿名对象、匿名对象集合</param>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.IUpdate`1.DisableGlobalFilter(System.String[])">
+            <summary>
+            禁用全局过滤功能，不传参数时将禁用所有
+            </summary>
+            <param name="name">零个或多个过滤器名字</param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.IUpdate`1.AsTable(System.Func{System.String,System.String})">
             <summary>
             设置表名规则，可用于分库/分表，参数1：默认表名；返回值：新表名；
@@ -2147,7 +2153,7 @@
         </member>
         <member name="P:FreeSql.IAop.AuditValue">
             <summary>
-            Insert/Update自动值处理, e.Column.SetMapValue(
+            Insert/Update自动值处理
             </summary>
         </member>
         <member name="P:FreeSql.Aop.ToListEventArgs.List">
@@ -2495,6 +2501,15 @@
             <param name="type"></param>
             <returns>Dict：key=属性名，value=注释</returns>
         </member>
+        <member name="M:FreeSql.Internal.GlobalFilter.Apply``1(System.String,System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})">
+            <summary>
+            创建一个过滤器
+            </summary>
+            <typeparam name="TEntity"></typeparam>
+            <param name="name">名字</param>
+            <param name="where">表达式</param>
+            <returns></returns>
+        </member>
         <member name="P:FreeSql.Internal.Model.TableRef.RefMiddleEntityType">
             <summary>
             中间表，多对多
@@ -2795,6 +2810,11 @@
         <member name="P:IFreeSql.DbFirst">
             <summary>
             DbFirst 模式开发相关方法
+            </summary>
+        </member>
+        <member name="P:IFreeSql.GlobalFilter">
+            <summary>
+            全局过滤设置，可默认附加为 Select/Update/Delete 条件
             </summary>
         </member>
     </members>

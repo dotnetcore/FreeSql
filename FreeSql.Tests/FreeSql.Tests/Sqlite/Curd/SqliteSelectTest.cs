@@ -1106,7 +1106,6 @@ namespace FreeSql.Tests.Sqlite
         [Fact]
         public void Include_ManyToMany()
         {
-
             var tag1 = new Tag
             {
                 Ddd = DateTime.Now.Second,

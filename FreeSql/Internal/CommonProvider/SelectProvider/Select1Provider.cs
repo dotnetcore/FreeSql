@@ -22,7 +22,8 @@ namespace FreeSql.Internal.CommonProvider
     {
         public Select1Provider(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere) : base(orm, commonUtils, commonExpression, dywhere)
         {
-
+            _whereGlobalFilter = _orm.GlobalFilter.GetFilters();
+            _whereCascadeExpression.AddRange(_whereGlobalFilter.Select(a => a.Where));
         }
 
         protected ISelect<T1> InternalFrom(LambdaExpression lambdaExp)
@@ -575,7 +576,7 @@ namespace FreeSql.Internal.CommonProvider
                 foreach (var item in list)
                     setListValue(item, null);
 
-                var subSelect = _orm.Select<TNavigate>().WithConnection(_connection).WithTransaction(_transaction).TrackToList(_trackToList) as Select1Provider<TNavigate>;
+                var subSelect = _orm.Select<TNavigate>().DisableGlobalFilter().WithConnection(_connection).WithTransaction(_transaction).TrackToList(_trackToList) as Select1Provider<TNavigate>;
                 if (_tableRules?.Any() == true)
                     foreach (var tr in _tableRules) subSelect.AsTable(tr);
 

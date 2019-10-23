@@ -1003,7 +1003,7 @@ WHERE ROWNUM < 11";
     }
 
 
-    [Table(Name = "TestInfoT1", SelectFilter = " a.id > 0")]
+    [Table(Name = "TestInfoT1")]
     class TestInfo
     {
         [Column(IsIdentity = true, IsPrimary = true)]

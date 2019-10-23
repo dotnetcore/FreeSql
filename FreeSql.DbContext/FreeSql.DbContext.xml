@@ -256,7 +256,7 @@
             <param name="that"></param>
             <param name="options"></param>
         </member>
-        <member name="M:FreeSqlRepositoryExtenssions.GetRepository``2(IFreeSql,System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})">
+        <member name="M:FreeSqlRepositoryExtensions.GetRepository``2(IFreeSql,System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})">
             <summary>
             返回默认仓库类
             </summary>
@@ -266,7 +266,7 @@
             <param name="filter">数据过滤 + 验证</param>
             <returns></returns>
         </member>
-        <member name="M:FreeSqlRepositoryExtenssions.GetRepository``1(IFreeSql,System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})">
+        <member name="M:FreeSqlRepositoryExtensions.GetRepository``1(IFreeSql,System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})">
             <summary>
             返回默认仓库类，适用联合主键的仓储类
             </summary>
@@ -275,7 +275,7 @@
             <param name="filter">数据过滤 + 验证</param>
             <returns></returns>
         </member>
-        <member name="M:FreeSqlRepositoryExtenssions.GetGuidRepository``1(IFreeSql,System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}},System.Func{System.String,System.String})">
+        <member name="M:FreeSqlRepositoryExtensions.GetGuidRepository``1(IFreeSql,System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}},System.Func{System.String,System.String})">
             <summary>
             返回仓库类
             </summary>
@@ -285,7 +285,7 @@
             <param name="asTable">分表规则，参数：旧表名；返回：新表名 https://github.com/2881099/FreeSql/wiki/Repository</param>
             <returns></returns>
         </member>
-        <member name="M:FreeSqlRepositoryExtenssions.CreateUnitOfWork(IFreeSql)">
+        <member name="M:FreeSqlRepositoryExtensions.CreateUnitOfWork(IFreeSql)">
             <summary>
             创建基于仓储功能的工作单元，务必使用 using 包含使用
             </summary>

@@ -35,14 +35,6 @@ namespace FreeSql.DataAnnotations
             _table.OldName = value;
             return this;
         }
-        /// <summary>
-        /// 查询过滤SQL，实现类似 a.IsDeleted = 1 功能
-        /// </summary>
-        public TableFluent SelectFilter(string value)
-        {
-            _table.SelectFilter = value;
-            return this;
-        }
 
         /// <summary>
         /// 禁用 CodeFirst 同步结构迁移
@@ -98,14 +90,6 @@ namespace FreeSql.DataAnnotations
         public TableFluent<T> OldName(string value)
         {
             _table.OldName = value;
-            return this;
-        }
-        /// <summary>
-        /// 查询过滤SQL，实现类似 a.IsDeleted = 1 功能
-        /// </summary>
-        public TableFluent<T> SelectFilter(string value)
-        {
-            _table.SelectFilter = value;
             return this;
         }
 

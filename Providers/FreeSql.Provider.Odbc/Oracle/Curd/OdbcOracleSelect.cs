@@ -89,12 +89,6 @@ namespace FreeSql.Odbc.Oracle
                 if (!string.IsNullOrEmpty(_tables[0].Cascade))
                     sbnav.Append(" AND (").Append(_tables[0].Cascade).Append(")");
 
-                foreach (var tb in _tables)
-                {
-                    if (tb.Type == SelectTableInfoType.Parent) continue;
-                    if (string.IsNullOrEmpty(tb.Table.SelectFilter) == false)
-                        sbnav.Append(" AND (").Append(tb.Table.SelectFilter.Replace("a.", $"{tb.Alias}.")).Append(")");
-                }
                 if (string.IsNullOrEmpty(_orderby) && (_skip > 0 || _limit > 0))
                     sbnav.Append(" AND ROWNUM < ").Append(_skip + _limit + 1);
                 if (sbnav.Length > 0)

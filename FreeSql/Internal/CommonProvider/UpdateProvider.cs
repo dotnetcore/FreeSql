@@ -23,6 +23,7 @@ namespace FreeSql.Internal.CommonProvider
         protected TableInfo _table;
         protected Func<string, string> _tableRule;
         protected StringBuilder _where = new StringBuilder();
+        protected List<GlobalFilter.Item> _whereGlobalFilter;
         protected StringBuilder _set = new StringBuilder();
         protected StringBuilder _setIncr = new StringBuilder();
         protected List<DbParameter> _params = new List<DbParameter>();
@@ -41,6 +42,7 @@ namespace FreeSql.Internal.CommonProvider
             this.Where(_commonUtils.WhereObject(_table, "", dywhere));
             if (_orm.CodeFirst.IsAutoSyncStructure && typeof(T1) != typeof(object)) _orm.CodeFirst.SyncStructure<T1>();
             IgnoreCanUpdate();
+            _whereGlobalFilter = _orm.GlobalFilter.GetFilters();
         }
 
         /// <summary>
@@ -63,6 +65,7 @@ namespace FreeSql.Internal.CommonProvider
             _params.Clear();
             _paramsSource.Clear();
             IgnoreCanUpdate();
+            _whereGlobalFilter = _orm.GlobalFilter.GetFilters();
         }
 
         public IUpdate<T1> WithTransaction(DbTransaction transaction)
@@ -428,6 +431,24 @@ namespace FreeSql.Internal.CommonProvider
         public IUpdate<T1> WhereExists<TEntity2>(ISelect<TEntity2> select, bool notExists = false) where TEntity2 : class => this.Where($"{(notExists ? "NOT " : "")}EXISTS({select.ToSql("1")})");
         public IUpdate<T1> WhereDynamic(object dywhere) => this.Where(_commonUtils.WhereObject(_table, "", dywhere));
 
+        public IUpdate<T1> DisableGlobalFilter(params string[] name)
+        {
+            if (_whereGlobalFilter.Any() == false) return this;
+            if (name?.Any() != true)
+            {
+                _whereGlobalFilter.Clear();
+                return this;
+            }
+            foreach (var n in name)
+            {
+                if (n == null) continue;
+                var idx = _whereGlobalFilter.FindIndex(a => string.Compare(a.Name, n, true) == 0);
+                if (idx == -1) continue;
+                _whereGlobalFilter.RemoveAt(idx);
+            }
+            return this;
+        }
+
         protected string WhereCaseSource(string CsName, Func<string, string> thenValue)
         {
             if (_source.Any() == false) return null;
@@ -610,6 +631,13 @@ namespace FreeSql.Internal.CommonProvider
 
             if (_where.Length > 0)
                 sb.Append(_source.Any() ? _where.ToString() : _where.ToString().Substring(5));
+
+            if (_whereGlobalFilter.Any())
+            {
+                var globalFilterCondi = _commonExpression.GetWhereCascadeSql(new SelectTableInfo { Table = _table }, _whereGlobalFilter.Select(a => a.Where).ToList());
+                if (string.IsNullOrEmpty(globalFilterCondi) == false)
+                    sb.Append(" AND ").Append(globalFilterCondi);
+            }
 
             if (_table.VersionColumn != null)
             {

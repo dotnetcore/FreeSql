@@ -15,6 +15,7 @@ using Zeus;
 using Zeus.Domain.Enum;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
+using System.Threading;
 
 namespace FreeSql.Tests
 {
@@ -415,10 +416,27 @@ namespace FreeSql.Tests
         }
         public enum TestAddEnumType { 中国人, 日本人 }
 
+        public static AsyncLocal<Guid> TenrantId { get; set; } = new AsyncLocal<Guid>();
         [Fact]
         public void Test1()
         {
+            //g.mysql.GlobalFilter
+            //    .Apply<TestAddEnum>("test1", a => a.Id == TenrantId.Value)
+            //    .Apply<AuthorTest>("test2", a => a.Id == 111)
+            //    .Apply<AuthorTest>("test3", a => a.Name == "11");
+
+            TenrantId.Value = Guid.NewGuid();
             g.mysql.Select<TestAddEnum>().ToList();
+            g.mysql.Select<TestAddEnum>().DisableGlobalFilter("test1").ToList();
+            g.mysql.Select<TestAddEnum>().DisableGlobalFilter().ToList();
+
+            g.mysql.Delete<TestAddEnum>().Where(a => a.Id == Guid.Empty).ExecuteAffrows();
+            g.mysql.Delete<TestAddEnum>().DisableGlobalFilter("test1").Where(a => a.Id == Guid.Empty).ExecuteAffrows();
+            g.mysql.Delete<TestAddEnum>().DisableGlobalFilter().Where(a => a.Id == Guid.Empty).ExecuteAffrows();
+
+            g.mysql.Update<TestAddEnum>().SetSource(new TestAddEnum { Id = Guid.Empty }).ExecuteAffrows();
+            g.mysql.Update<TestAddEnum>().DisableGlobalFilter("test1").SetSource(new TestAddEnum { Id = Guid.Empty }).ExecuteAffrows();
+            g.mysql.Update<TestAddEnum>().DisableGlobalFilter().SetSource(new TestAddEnum { Id = Guid.Empty }).ExecuteAffrows();
 
             g.sqlite.Insert(new TestGuidId { xxx = "111" }).ExecuteAffrows();
             g.sqlite.Insert(new TestGuidId { xxx = "222" }).ExecuteAffrows();
@@ -1217,7 +1235,7 @@ namespace FreeSql.Tests
     }
 
 
-    [Table(Name = "TestInfoT1", SelectFilter = " a.id > 0")]
+    [Table(Name = "TestInfoT1")]
     class TestInfo
     {
         [Column(IsIdentity = true, IsPrimary = true)]

@@ -87,12 +87,6 @@ namespace FreeSql.PostgreSQL.Curd
                 if (!string.IsNullOrEmpty(_tables[0].Cascade))
                     sbnav.Append(" AND (").Append(_tables[0].Cascade).Append(")");
 
-                foreach (var tb in _tables)
-                {
-                    if (tb.Type == SelectTableInfoType.Parent) continue;
-                    if (string.IsNullOrEmpty(tb.Table.SelectFilter) == false)
-                        sbnav.Append(" AND (").Append(tb.Table.SelectFilter.Replace("a.", $"{tb.Alias}.")).Append(")");
-                }
                 if (sbnav.Length > 0)
                 {
                     sb.Append(" \r\nWHERE ").Append(sbnav.Remove(0, 5));

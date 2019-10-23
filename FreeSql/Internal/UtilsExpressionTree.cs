@@ -65,7 +65,6 @@ namespace FreeSql.Internal
                 trytb.DbName = trytb.DbName.ToUpper();
                 trytb.DbOldName = trytb.DbOldName?.ToUpper();
             }
-            trytb.SelectFilter = tbattr?.SelectFilter;
             if (tbattr != null) trytb.DisableSyncStructure = tbattr.DisableSyncStructure;
             var propsLazy = new List<(PropertyInfo, bool, bool)>();
             var propsNavObjs = new List<PropertyInfo>();

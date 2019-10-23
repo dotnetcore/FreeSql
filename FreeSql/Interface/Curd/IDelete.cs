@@ -63,6 +63,13 @@ namespace FreeSql
         IDelete<T1> WhereDynamic(object dywhere);
 
         /// <summary>
+        /// 禁用全局过滤功能，不传参数时将禁用所有
+        /// </summary>
+        /// <param name="name">零个或多个过滤器名字</param>
+        /// <returns></returns>
+        IDelete<T1> DisableGlobalFilter(params string[] name);
+
+        /// <summary>
         /// 设置表名规则，可用于分库/分表，参数1：默认表名；返回值：新表名；
         /// </summary>
         /// <param name="tableRule"></param>

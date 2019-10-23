@@ -87,7 +87,7 @@ namespace FreeSql.Tests.MySqlConnector
             public virtual ICollection<Tag> Tags { get; set; }
         }
 
-        [Table(Name = "TestInfoT1", SelectFilter = " a.id > 0")]
+        [Table(Name = "TestInfoT1")]
         class TestInfo
         {
             [Column(IsIdentity = true, IsPrimary = true)]

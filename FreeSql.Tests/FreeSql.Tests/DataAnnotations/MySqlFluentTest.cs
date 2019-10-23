@@ -68,21 +68,21 @@ namespace FreeSql.Tests.DataAnnotations
         {
             g.mysql.CodeFirst
                 //.ConfigEntity<TestFluenttb1>(a => {
-                //	a.Name("xxdkdkdk1").SelectFilter("a.Id22 > 0");
+                //	a.Name("xxdkdkdk1");
                 //	a.Property(b => b.Id).Name("Id22").IsIdentity(true);
                 //	a.Property(b => b.name).DbType("varchar(100)").IsNullable(true);
                 //})
 
                 .ConfigEntity(typeof(TestFluenttb1), a =>
                 {
-                    a.Name("xxdkdkdk1222").SelectFilter("a.Id22dd > 1");
+                    a.Name("xxdkdkdk1222");
                     a.Property("Id").Name("Id22dd").IsIdentity(true);
                     a.Property("Name").DbType("varchar(101)").IsNullable(true);
                 })
 
                 .ConfigEntity<TestFluenttb2>(a =>
                 {
-                    a.Name("xxdkdkdk2").SelectFilter("a.Idx > 0");
+                    a.Name("xxdkdkdk2");
                     a.Property(b => b.Id).Name("Id22").IsIdentity(true);
                     a.Property(b => b.name).DbType("varchar(100)").IsNullable(true);
                 })

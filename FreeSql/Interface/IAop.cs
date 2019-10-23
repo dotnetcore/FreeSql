@@ -56,7 +56,7 @@ namespace FreeSql
         EventHandler<Aop.SyncStructureAfterEventArgs> SyncStructureAfter { get; set; }
 
         /// <summary>
-        /// Insert/Update自动值处理, e.Column.SetMapValue(
+        /// Insert/Update自动值处理
         /// </summary>
         EventHandler<Aop.AuditValueEventArgs> AuditValue { get; set; }
     }

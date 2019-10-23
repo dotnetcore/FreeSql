@@ -209,6 +209,13 @@ namespace FreeSql
         TSelect WhereIf(bool condition, string sql, object parms = null);
 
         /// <summary>
+        /// 禁用全局过滤功能，不传参数时将禁用所有
+        /// </summary>
+        /// <param name="name">零个或多个过滤器名字</param>
+        /// <returns></returns>
+        TSelect DisableGlobalFilter(params string[] name);
+
+        /// <summary>
         /// 按原生sql语法分组，GroupBy("concat(name, ?cc)", new { cc = 1 })
         /// </summary>
         /// <param name="sql">sql语法</param>

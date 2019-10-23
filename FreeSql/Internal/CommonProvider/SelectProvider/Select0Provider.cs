@@ -35,6 +35,7 @@ namespace FreeSql.Internal.CommonProvider
         protected bool _distinct;
         protected Expression _selectExpression;
         protected List<LambdaExpression> _whereCascadeExpression = new List<LambdaExpression>();
+        protected List<GlobalFilter.Item> _whereGlobalFilter;
 
         bool _isDisponse = false;
         ~Select0Provider()
@@ -50,6 +51,8 @@ namespace FreeSql.Internal.CommonProvider
             _includeToList.Clear();
             _selectExpression = null;
             _whereCascadeExpression.Clear();
+            _whereGlobalFilter = _orm.GlobalFilter.GetFilters();
+            _whereCascadeExpression.AddRange(_whereGlobalFilter.Select(a => a.Where));
         }
         public static void CopyData(Select0Provider<TSelect, T1> from, object to, ReadOnlyCollection<ParameterExpression> lambParms)
         {
@@ -93,7 +96,8 @@ namespace FreeSql.Internal.CommonProvider
             toType.GetField("_includeToList", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._includeToList);
             toType.GetField("_distinct", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._distinct);
             toType.GetField("_selectExpression", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._selectExpression);
-            toType.GetField("_whereMultiExpression", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._whereCascadeExpression);
+            toType.GetField("_whereCascadeExpression", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._whereCascadeExpression);
+            toType.GetField("_whereGlobalFilter", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._whereGlobalFilter);
         }
 
         public Select0Provider(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere)
@@ -882,6 +886,25 @@ namespace FreeSql.Internal.CommonProvider
 
             _where.Append(" AND (").Append(sql).Append(")");
             if (parms != null) _params.AddRange(_commonUtils.GetDbParamtersByObject(sql, parms));
+            return this as TSelect;
+        }
+        public TSelect DisableGlobalFilter(params string[] name)
+        {
+            if (_whereGlobalFilter.Any() == false) return this as TSelect;
+            if (name?.Any() != true)
+            {
+                _whereCascadeExpression.RemoveRange(0, _whereGlobalFilter.Count);
+                _whereGlobalFilter.Clear();
+                return this as TSelect;
+            }
+            foreach (var n in name)
+            {
+                if (n == null) continue;
+                var idx = _whereGlobalFilter.FindIndex(a => string.Compare(a.Name, n, true) == 0);
+                if (idx == -1) continue;
+                _whereCascadeExpression.RemoveAt(idx);
+                _whereGlobalFilter.RemoveAt(idx);
+            }
             return this as TSelect;
         }
         #region common

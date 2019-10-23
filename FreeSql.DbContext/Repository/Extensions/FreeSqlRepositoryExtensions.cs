@@ -3,7 +3,7 @@ using System;
 using System.Linq.Expressions;
 using System.Linq;
 
-public static class FreeSqlRepositoryExtenssions
+public static class FreeSqlRepositoryExtensions
 {
 
     /// <summary>
