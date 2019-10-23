@@ -12,7 +12,17 @@ namespace FreeSql
         {
             services.AddScoped(dbContextType, sp =>
             {
-                var ctx = Activator.CreateInstance(dbContextType) as DbContext;
+                DbContext ctx = null;
+                try
+                {
+                    var ctor = dbContextType.GetConstructors().FirstOrDefault();
+                    var ctorParams = ctor.GetParameters().Select(a => sp.GetService(a.ParameterType)).ToArray();
+                    ctx = Activator.CreateInstance(dbContextType, ctorParams) as DbContext;
+                }
+                catch(Exception ex)
+                {
+                    throw new Exception($"AddFreeDbContext 发生错误，请检查 {dbContextType.Name} 的构造参数都已正确注入", ex);
+                }
                 if (ctx != null && ctx._ormPriv == null)
                 {
                     var builder = new DbContextOptionsBuilder();

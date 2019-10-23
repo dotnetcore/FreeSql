@@ -54,13 +54,19 @@ namespace FreeSql
         }
         #endregion
 
-        protected DbContext()
+        protected DbContext() : this(null, null) { }
+        protected DbContext(IFreeSql fsql, DbContextOptions options)
         {
-            var builder = new DbContextOptionsBuilder();
-            OnConfiguring(builder);
-            _ormPriv = builder._fsql;
-            _optionsPriv = builder._options;
+            _ormPriv = fsql;
+            _optionsPriv = options;
 
+            if (_ormPriv == null)
+            {
+                var builder = new DbContextOptionsBuilder();
+                OnConfiguring(builder);
+                _ormPriv = builder._fsql;
+                _optionsPriv = builder._options;
+            }
             if (_ormPriv != null) InitPropSets();
         }
         protected virtual void OnConfiguring(DbContextOptionsBuilder builder) { }
