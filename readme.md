@@ -65,7 +65,7 @@ FreeSql 是一个功能强大的对象关系映射程序(O/RM)，支持 .NETCore
 | FreeSql.Extensions.BaseEntity | NETStandard2.0 |
 
 <p align="center">
-  <img src="https://github.com/2881099/FreeSql/blob/master/functions06.png?raw=true"/>
+  <img src="https://images.cnblogs.com/cnblogs_com/kellynic/133561/o_functions06.png"/>
 </p>
 
 # Quick start
