@@ -377,6 +377,16 @@ namespace FreeSql
             _db._entityChangeReport.AddRange(dels.Select(a => new DbContext.EntityChangeReport.ChangeInfo { Object = a.Value, Type = DbContext.EntityChangeType.Delete }));
             return Math.Max(dels.Length, affrows);
         }
+        /// <summary>
+        /// 根据 lambda 条件删除数据
+        /// </summary>
+        /// <param name="predicate"></param>
+        /// <returns></returns>
+        async public Task<int> RemoveAsync(Expression<Func<TEntity, bool>> predicate)
+        {
+            await DbContextExecCommandAsync();
+            return await this.OrmDelete(null).Where(predicate).ExecuteAffrowsAsync();
+        }
         #endregion
 
         #region AddOrUpdateAsync

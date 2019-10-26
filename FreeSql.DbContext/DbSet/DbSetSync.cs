@@ -410,6 +410,16 @@ namespace FreeSql
                 EnqueueToDbContext(DbContext.EntityChangeType.Delete, state);
             }
         }
+        /// <summary>
+        /// 根据 lambda 条件删除数据
+        /// </summary>
+        /// <param name="predicate"></param>
+        /// <returns></returns>
+        public int Remove(Expression<Func<TEntity, bool>> predicate)
+        {
+            DbContextExecCommand();
+            return this.OrmDelete(null).Where(predicate).ExecuteAffrows();
+        }
         #endregion
 
         #region AddOrUpdate
