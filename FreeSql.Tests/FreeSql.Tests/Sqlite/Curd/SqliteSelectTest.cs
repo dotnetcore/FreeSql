@@ -141,6 +141,8 @@ namespace FreeSql.Tests.Sqlite
 
             public bool? testBool1 { get; set; }
             public bool? testBool2 { get; set; }
+
+            public TestDtoLeftJoin Obj { get; set; }
         }
         class TestDtoLeftJoin
         {
@@ -167,7 +169,7 @@ namespace FreeSql.Tests.Sqlite
             var testDto3 = select.Limit(10).ToList(a => new TestDto { });
             var testDto4 = select.Limit(10).ToList(a => new TestDto() { });
 
-            var testDto11 = select.LeftJoin<TestDtoLeftJoin>((a, b) => b.Guid == a.TypeGuid).Limit(10).ToList(a => new TestDto { id = a.Id, name = a.Title });
+            var testDto11 = select.From<TestDtoLeftJoin>((_, b) => _.LeftJoin(a => b.Guid == a.TypeGuid)).Limit(10).ToList((a, b) => new TestDto { id = a.Id, name = a.Title, Obj = b });
             var testDto22 = select.LeftJoin<TestDtoLeftJoin>((a, b) => b.Guid == a.TypeGuid).Limit(10).ToList(a => new TestDto());
             var testDto33 = select.LeftJoin<TestDtoLeftJoin>((a, b) => b.Guid == a.TypeGuid).Limit(10).ToList(a => new TestDto { });
             var testDto44 = select.LeftJoin<TestDtoLeftJoin>((a, b) => b.Guid == a.TypeGuid).Limit(10).ToList(a => new TestDto() { });

@@ -19,6 +19,7 @@ namespace FreeSql.Internal.CommonProvider
         protected CommonExpression _commonExpression;
         protected List<T1> _source = new List<T1>();
         protected Dictionary<string, bool> _ignore = new Dictionary<string, bool>(StringComparer.CurrentCultureIgnoreCase);
+        protected Dictionary<string, bool> _auditValueChangedDict = new Dictionary<string, bool>(StringComparer.CurrentCultureIgnoreCase);
         protected TableInfo _table;
         protected Func<string, string> _tableRule;
         protected bool _noneParameter, _insertIdentity;
@@ -52,6 +53,7 @@ namespace FreeSql.Internal.CommonProvider
             _insertIdentity = false;
             _source.Clear();
             _ignore.Clear();
+            _auditValueChangedDict.Clear();
             _params = null;
             IgnoreCanInsert();
         }
@@ -85,7 +87,7 @@ namespace FreeSql.Internal.CommonProvider
         {
             if (source != null)
             {
-                AuditDataValue(this, source, _orm, _table);
+                AuditDataValue(this, source, _orm, _table, _auditValueChangedDict);
                 _source.Add(source);
             }
             return this;
@@ -94,7 +96,7 @@ namespace FreeSql.Internal.CommonProvider
         {
             if (source != null)
             {
-                AuditDataValue(this, source, _orm, _table);
+                AuditDataValue(this, source, _orm, _table, _auditValueChangedDict);
                 _source.AddRange(source);
             }
             return this;
@@ -104,19 +106,19 @@ namespace FreeSql.Internal.CommonProvider
             if (source != null)
             {
                 source = source.Where(a => a != null).ToList();
-                AuditDataValue(this, source, _orm, _table);
+                AuditDataValue(this, source, _orm, _table, _auditValueChangedDict);
                 _source.AddRange(source);
                 
             }
             return this;
         }
-        public static void AuditDataValue(object sender, IEnumerable<T1> data, IFreeSql orm, TableInfo table)
+        public static void AuditDataValue(object sender, IEnumerable<T1> data, IFreeSql orm, TableInfo table, Dictionary<string, bool> changedDict)
         {
             if (data?.Any() != true) return;
             foreach (var d in data)
-                AuditDataValue(sender, d, orm, table);
+                AuditDataValue(sender, d, orm, table, changedDict);
         }
-        public static void AuditDataValue(object sender, T1 data, IFreeSql orm, TableInfo table)
+        public static void AuditDataValue(object sender, T1 data, IFreeSql orm, TableInfo table, Dictionary<string, bool> changedDict)
         {
             if (data == null) return;
             foreach (var col in table.Columns.Values)
@@ -129,7 +131,11 @@ namespace FreeSql.Internal.CommonProvider
                     var auditArgs = new Aop.AuditValueEventArgs(Aop.AuditValueType.Insert, col, table.Properties[col.CsName], val);
                     orm.Aop.AuditValue(sender, auditArgs);
                     if (auditArgs.IsChanged)
+                    {
                         col.SetMapValue(data, val = auditArgs.Value);
+                        if (changedDict != null && changedDict.ContainsKey(col.Attribute.Name) == false)
+                            changedDict.Add(col.Attribute.Name, true);
+                    }
                 }
             }
         }
@@ -375,7 +381,7 @@ namespace FreeSql.Internal.CommonProvider
             var cols = _commonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(null, columns?.Body, false, null).ToDictionary(a => a, a => true);
             _ignore.Clear();
             foreach (var col in _table.Columns.Values)
-                if (cols.ContainsKey(col.Attribute.Name) == false)
+                if (cols.ContainsKey(col.Attribute.Name) == false && _auditValueChangedDict.ContainsKey(col.Attribute.Name) == false)
                     _ignore.Add(col.Attribute.Name, true);
             return this;
         }

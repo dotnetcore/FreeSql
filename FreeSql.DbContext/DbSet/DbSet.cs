@@ -236,7 +236,7 @@ namespace FreeSql
                 if (isThrow) throw new Exception($"不可添加，实体没有主键：{_db.Orm.GetEntityString(_entityType, data)}");
                 return false;
             }
-            FreeSql.Internal.CommonProvider.InsertProvider<TEntity>.AuditDataValue(this, data, _db.Orm, _table);
+            FreeSql.Internal.CommonProvider.InsertProvider<TEntity>.AuditDataValue(this, data, _db.Orm, _table, null);
             var key = _db.Orm.GetEntityKeyString(_entityType, data, true);
             if (string.IsNullOrEmpty(key))
             {
@@ -294,7 +294,7 @@ namespace FreeSql
                 if (isThrow) throw new Exception($"不可更新，实体没有主键：{_db.Orm.GetEntityString(_entityType, data)}");
                 return false;
             }
-            FreeSql.Internal.CommonProvider.UpdateProvider<TEntity>.AuditDataValue(this, data, _db.Orm, _table);
+            FreeSql.Internal.CommonProvider.UpdateProvider<TEntity>.AuditDataValue(this, data, _db.Orm, _table, null);
             var key = _db.Orm.GetEntityKeyString(_entityType, data, false);
             if (string.IsNullOrEmpty(key))
             {

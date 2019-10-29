@@ -20,6 +20,7 @@ namespace FreeSql.Internal.CommonProvider
         protected CommonExpression _commonExpression;
         protected List<T1> _source = new List<T1>();
         protected Dictionary<string, bool> _ignore = new Dictionary<string, bool>(StringComparer.CurrentCultureIgnoreCase);
+        protected Dictionary<string, bool> _auditValueChangedDict = new Dictionary<string, bool>(StringComparer.CurrentCultureIgnoreCase);
         protected TableInfo _table;
         protected Func<string, string> _tableRule;
         protected StringBuilder _where = new StringBuilder();
@@ -59,6 +60,7 @@ namespace FreeSql.Internal.CommonProvider
         {
             _source.Clear();
             _ignore.Clear();
+            _auditValueChangedDict.Clear();
             _where.Clear();
             _set.Clear();
             _setIncr.Clear();
@@ -281,12 +283,12 @@ namespace FreeSql.Internal.CommonProvider
             var cols = columns.ToDictionary(a => a);
             _ignore.Clear();
             foreach (var col in _table.Columns.Values)
-                if (cols.ContainsKey(col.Attribute.Name) == false && cols.ContainsKey(col.CsName) == false)
+                if (cols.ContainsKey(col.Attribute.Name) == false && cols.ContainsKey(col.CsName) == false && _auditValueChangedDict.ContainsKey(col.Attribute.Name) == false)
                     _ignore.Add(col.Attribute.Name, true);
             return this;
         }
 
-        public static void AuditDataValue(object sender, IEnumerable<T1> data, IFreeSql orm, TableInfo table)
+        public static void AuditDataValue(object sender, IEnumerable<T1> data, IFreeSql orm, TableInfo table, Dictionary<string, bool> changedDict)
         {
             if (data?.Any() != true) return;
             if (orm.Aop.AuditValue == null) return;
@@ -299,11 +301,15 @@ namespace FreeSql.Internal.CommonProvider
                     var auditArgs = new Aop.AuditValueEventArgs(Aop.AuditValueType.Update, col, table.Properties[col.CsName], val);
                     orm.Aop.AuditValue(sender, auditArgs);
                     if (auditArgs.IsChanged)
+                    {
                         col.SetMapValue(d, val = auditArgs.Value);
+                        if (changedDict != null && changedDict.ContainsKey(col.Attribute.Name) == false)
+                            changedDict.Add(col.Attribute.Name, true);
+                    }
                 }
             }
         }
-        public static void AuditDataValue(object sender, T1 data, IFreeSql orm, TableInfo table)
+        public static void AuditDataValue(object sender, T1 data, IFreeSql orm, TableInfo table, Dictionary<string, bool> changedDict)
         {
             if (orm.Aop.AuditValue == null) return;
             if (data == null) return;
@@ -313,7 +319,11 @@ namespace FreeSql.Internal.CommonProvider
                 var auditArgs = new Aop.AuditValueEventArgs(Aop.AuditValueType.Update, col, table.Properties[col.CsName], val);
                 orm.Aop.AuditValue(sender, auditArgs);
                 if (auditArgs.IsChanged)
+                {
                     col.SetMapValue(data, val = auditArgs.Value);
+                    if (changedDict != null && changedDict.ContainsKey(col.Attribute.Name) == false)
+                        changedDict.Add(col.Attribute.Name, true);
+                }
             }
         }
 
@@ -321,7 +331,7 @@ namespace FreeSql.Internal.CommonProvider
         public IUpdate<T1> SetSource(IEnumerable<T1> source)
         {
             if (source == null || source.Any() == false) return this;
-            AuditDataValue(this, source, _orm, _table);
+            AuditDataValue(this, source, _orm, _table, _auditValueChangedDict);
             _source.AddRange(source.Where(a => a != null));
             return this;
         }
@@ -486,9 +496,9 @@ namespace FreeSql.Internal.CommonProvider
                     cwsb.Append(" \r\nWHEN ");
                     ToSqlWhen(cwsb, _table.Primarys, d);
                     cwsb.Append(" THEN ");
-                    var value = col.GetMapValue(d);
-                    cwsb.Append(thenValue(_commonUtils.GetNoneParamaterSqlValue(_paramsSource, col.Attribute.MapType, value)));
-                    if (value == null || value == DBNull.Value) nulls++;
+                    var val = col.GetMapValue(d);
+                    cwsb.Append(thenValue(_commonUtils.GetNoneParamaterSqlValue(_paramsSource, col.Attribute.MapType, val)));
+                    if (val == null || val == DBNull.Value) nulls++;
                 }
                 cwsb.Append(" END");
                 if (nulls == _source.Count) sb.Append("NULL");

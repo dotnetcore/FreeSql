@@ -408,6 +408,7 @@ namespace FreeSql.Tests
         {
             public Guid? Id { get; set; }
             public string xxx { get; set; }
+            public string yyy { get; set; }
         }
         public class TestAddEnum
         {
@@ -420,6 +421,18 @@ namespace FreeSql.Tests
         [Fact]
         public void Test1()
         {
+
+            //g.mysql.Aop.AuditValue += (_, e) =>
+            //{
+            //    if (e.AuditValueType == FreeSql.Aop.AuditValueType.Update)
+            //    {
+            //        if (e.Property.Name == "xxx")
+            //            e.Value = "xxx";
+            //    }
+            //};
+            //var tttee = g.mysql.Select<TestGuidId>().Limit(5).ToList();
+            //g.mysql.GetGuidRepository<TestGuidId>().UpdateDiy.SetSource(tttee).UpdateColumns(a => new { a.yyy }).NoneParameter().ExecuteAffrows();
+
             //g.mysql.GlobalFilter
             //    .Apply<TestAddEnum>("test1", a => a.Id == TenrantId.Value)
             //    .Apply<AuthorTest>("test2", a => a.Id == 111)
