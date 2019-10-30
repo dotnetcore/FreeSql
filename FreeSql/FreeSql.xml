@@ -638,15 +638,6 @@
             <param name="items">实体集合</param>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.IDelete`1.WhereExists``1(FreeSql.ISelect{``0},System.Boolean)">
-            <summary>
-            子查询是否存在
-            </summary>
-            <typeparam name="TEntity2"></typeparam>
-            <param name="select">子查询</param>
-            <param name="notExists">不存在</param>
-            <returns></returns>
-        </member>
         <member name="M:FreeSql.IDelete`1.WhereDynamic(System.Object)">
             <summary>
             传入动态对象如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
@@ -1744,15 +1735,6 @@
             传入实体集合，将主键作为条件
             </summary>
             <param name="items">实体集合</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IUpdate`1.WhereExists``1(FreeSql.ISelect{``0},System.Boolean)">
-            <summary>
-            子查询是否存在
-            </summary>
-            <typeparam name="TEntity2"></typeparam>
-            <param name="select">子查询</param>
-            <param name="notExists">不存在</param>
             <returns></returns>
         </member>
         <member name="M:FreeSql.IUpdate`1.WhereDynamic(System.Object)">

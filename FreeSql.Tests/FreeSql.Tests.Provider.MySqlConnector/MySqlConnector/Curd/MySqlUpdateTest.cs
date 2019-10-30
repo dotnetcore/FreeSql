@@ -175,11 +175,6 @@ namespace FreeSql.Tests.MySqlConnector
             Assert.Equal("UPDATE `TestEnumUpdateTb` SET `type` = 'sum211' WHERE (`id` = 0 AND `type` = 'str1')", sql);
         }
         [Fact]
-        public void WhereExists()
-        {
-
-        }
-        [Fact]
         public void ExecuteAffrows()
         {
             var items = new List<Topic>();

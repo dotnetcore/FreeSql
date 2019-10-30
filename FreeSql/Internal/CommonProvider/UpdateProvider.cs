@@ -438,7 +438,6 @@ namespace FreeSql.Internal.CommonProvider
         }
         public IUpdate<T1> Where(T1 item) => this.Where(new[] { item });
         public IUpdate<T1> Where(IEnumerable<T1> items) => this.Where(_commonUtils.WhereItems(_table, "", items));
-        public IUpdate<T1> WhereExists<TEntity2>(ISelect<TEntity2> select, bool notExists = false) where TEntity2 : class => this.Where($"{(notExists ? "NOT " : "")}EXISTS({select.ToSql("1")})");
         public IUpdate<T1> WhereDynamic(object dywhere) => this.Where(_commonUtils.WhereObject(_table, "", dywhere));
 
         public IUpdate<T1> DisableGlobalFilter(params string[] name)

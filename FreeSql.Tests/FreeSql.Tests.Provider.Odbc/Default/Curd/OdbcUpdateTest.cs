@@ -116,11 +116,6 @@ namespace FreeSql.Tests.Odbc.Default
             Assert.Equal("UPDATE [tb_topic] SET title='newtitle' WHERE ([Id] IN (1,2,3,4,5,6,7,8,9,10))", sql);
         }
         [Fact]
-        public void WhereExists()
-        {
-
-        }
-        [Fact]
         public void ExecuteAffrows()
         {
             var items = new List<Topic>();

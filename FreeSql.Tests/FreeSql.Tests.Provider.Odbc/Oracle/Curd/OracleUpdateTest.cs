@@ -114,11 +114,6 @@ namespace FreeSql.Tests.Odbc.Oracle
             Assert.Equal("UPDATE \"TB_TOPIC\" SET title='newtitle' WHERE (\"ID\" IN (1,2,3,4,5,6,7,8,9,10))", sql);
         }
         [Fact]
-        public void WhereExists()
-        {
-
-        }
-        [Fact]
         public void ExecuteAffrows()
         {
 

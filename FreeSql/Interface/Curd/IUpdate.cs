@@ -117,14 +117,6 @@ namespace FreeSql
         /// <returns></returns>
         IUpdate<T1> Where(IEnumerable<T1> items);
         /// <summary>
-        /// 子查询是否存在
-        /// </summary>
-        /// <typeparam name="TEntity2"></typeparam>
-        /// <param name="select">子查询</param>
-        /// <param name="notExists">不存在</param>
-        /// <returns></returns>
-        IUpdate<T1> WhereExists<TEntity2>(ISelect<TEntity2> select, bool notExists = false) where TEntity2 : class;
-        /// <summary>
         /// 传入动态对象如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
         /// </summary>
         /// <param name="dywhere">主键值、主键值集合、实体、实体集合、匿名对象、匿名对象集合</param>
