@@ -297,7 +297,11 @@ namespace FreeSql.Internal
                 foreach (var col in trytb.Primarys)
                     col.Attribute.IsPrimary = true;
             }
-            foreach (var col in trytb.Primarys) col.Attribute.IsNullable = false;
+            foreach (var col in trytb.Primarys)
+            {
+                col.Attribute.IsNullable = false;
+                col.Attribute.DbType = col.Attribute.DbType.Replace("NOT NULL", "");
+            }
             tbc.AddOrUpdate(entity, trytb, (oldkey, oldval) => trytb);
 
             #region 查找导航属性的关系、virtual 属性延时加载，动态产生新的重写类

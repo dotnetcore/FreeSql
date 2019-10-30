@@ -1232,5 +1232,139 @@ namespace FreeSql.Tests.Oracle
                 .Where(a => a.Tag.Id == tag1.Id || a.Tag.Id == tag2.Id)
                 .ToList(true);
         }
+
+        public class ToDel1Pk
+        {
+            [Column(IsIdentity = true)]
+            public int id { get; set; }
+            public string name { get; set; }
+        }
+        public class ToDel2Pk
+        {
+            [Column(IsPrimary = true)]
+            public Guid pk1 { get; set; }
+            [Column(IsPrimary = true)]
+            public string pk2 { get; set; }
+            public string name { get; set; }
+        }
+        public class ToDel3Pk
+        {
+            [Column(IsPrimary = true)]
+            public Guid pk1 { get; set; }
+            [Column(IsPrimary = true)]
+            public int pk2 { get; set; }
+            [Column(IsPrimary = true)]
+            public string pk3 { get; set; }
+            public string name { get; set; }
+        }
+        [Fact]
+        public void ToDelete()
+        {
+            g.oracle.Select<ToDel1Pk>().ToDelete().ExecuteAffrows();
+            Assert.Equal(0, g.oracle.Select<ToDel1Pk>().Count());
+            g.oracle.Insert(new[] {
+                new ToDel1Pk{ name = "name1"},
+                new ToDel1Pk{ name = "name2"},
+                new ToDel1Pk{ name = "nick1"},
+                new ToDel1Pk{ name = "nick2"},
+                new ToDel1Pk{ name = "nick3"}
+            }).ExecuteAffrows();
+            Assert.Equal(2, g.oracle.Select<ToDel1Pk>().Where(a => a.name.StartsWith("name")).ToDelete().ExecuteAffrows());
+            Assert.Equal(3, g.oracle.Select<ToDel1Pk>().Count());
+            Assert.Equal(3, g.oracle.Select<ToDel1Pk>().Where(a => a.name.StartsWith("nick")).Count());
+
+            g.oracle.Select<ToDel2Pk>().ToDelete().ExecuteAffrows();
+            Assert.Equal(0, g.oracle.Select<ToDel2Pk>().Count());
+            g.oracle.Insert(new[] {
+                new ToDel2Pk{ pk1 = FreeUtil.NewMongodbId(), pk2 = "pk2", name = "name1"},
+                new ToDel2Pk{ pk1 = FreeUtil.NewMongodbId(), pk2 = "pk2", name = "name2"},
+                new ToDel2Pk{ pk1 = FreeUtil.NewMongodbId(), pk2 = "pk2", name = "nick1"},
+                new ToDel2Pk{ pk1 = FreeUtil.NewMongodbId(), pk2 = "pk2", name = "nick2"},
+                new ToDel2Pk{ pk1 = FreeUtil.NewMongodbId(), pk2 = "pk2", name = "nick3"}
+            }).ExecuteAffrows();
+            Assert.Equal(2, g.oracle.Select<ToDel2Pk>().Where(a => a.name.StartsWith("name")).ToDelete().ExecuteAffrows());
+            Assert.Equal(3, g.oracle.Select<ToDel2Pk>().Count());
+            Assert.Equal(3, g.oracle.Select<ToDel2Pk>().Where(a => a.name.StartsWith("nick")).Count());
+
+            g.oracle.Select<ToDel3Pk>().ToDelete().ExecuteAffrows();
+            Assert.Equal(0, g.oracle.Select<ToDel3Pk>().Count());
+            g.oracle.Insert(new[] {
+                new ToDel3Pk{ pk1 = FreeUtil.NewMongodbId(), pk2 = 1, pk3 = "pk3", name = "name1"},
+                new ToDel3Pk{ pk1 = FreeUtil.NewMongodbId(), pk2 = 1, pk3 = "pk3", name = "name2"},
+                new ToDel3Pk{ pk1 = FreeUtil.NewMongodbId(), pk2 = 1, pk3 = "pk3", name = "nick1"},
+                new ToDel3Pk{ pk1 = FreeUtil.NewMongodbId(), pk2 = 1, pk3 = "pk3", name = "nick2"},
+                new ToDel3Pk{ pk1 = FreeUtil.NewMongodbId(), pk2 = 1, pk3 = "pk3", name = "nick3"}
+            }).ExecuteAffrows();
+            Assert.Equal(2, g.oracle.Select<ToDel3Pk>().Where(a => a.name.StartsWith("name")).ToDelete().ExecuteAffrows());
+            Assert.Equal(3, g.oracle.Select<ToDel3Pk>().Count());
+            Assert.Equal(3, g.oracle.Select<ToDel3Pk>().Where(a => a.name.StartsWith("nick")).Count());
+        }
+
+        public class ToUpd1Pk
+        {
+            [Column(IsIdentity = true)]
+            public int id { get; set; }
+            public string name { get; set; }
+        }
+        public class ToUpd2Pk
+        {
+            [Column(IsPrimary = true)]
+            public Guid pk1 { get; set; }
+            [Column(IsPrimary = true)]
+            public string pk2 { get; set; }
+            public string name { get; set; }
+        }
+        public class ToUpd3Pk
+        {
+            [Column(IsPrimary = true)]
+            public Guid pk1 { get; set; }
+            [Column(IsPrimary = true)]
+            public int pk2 { get; set; }
+            [Column(IsPrimary = true)]
+            public string pk3 { get; set; }
+            public string name { get; set; }
+        }
+        [Fact]
+        public void ToUpdate()
+        {
+            g.oracle.Select<ToUpd1Pk>().ToDelete().ExecuteAffrows();
+            Assert.Equal(0, g.oracle.Select<ToUpd1Pk>().Count());
+            g.oracle.Insert(new[] {
+                new ToUpd1Pk{ name = "name1"},
+                new ToUpd1Pk{ name = "name2"},
+                new ToUpd1Pk{ name = "nick1"},
+                new ToUpd1Pk{ name = "nick2"},
+                new ToUpd1Pk{ name = "nick3"}
+            }).ExecuteAffrows();
+            Assert.Equal(2, g.oracle.Select<ToUpd1Pk>().Where(a => a.name.StartsWith("name")).ToUpdate().Set(a => a.name, "nick?").ExecuteAffrows());
+            Assert.Equal(5, g.oracle.Select<ToUpd1Pk>().Count());
+            Assert.Equal(5, g.oracle.Select<ToUpd1Pk>().Where(a => a.name.StartsWith("nick")).Count());
+
+            g.oracle.Select<ToUpd2Pk>().ToDelete().ExecuteAffrows();
+            Assert.Equal(0, g.oracle.Select<ToUpd2Pk>().Count());
+            g.oracle.Insert(new[] {
+                new ToUpd2Pk{ pk1 = FreeUtil.NewMongodbId(), pk2 = "pk2", name = "name1"},
+                new ToUpd2Pk{ pk1 = FreeUtil.NewMongodbId(), pk2 = "pk2", name = "name2"},
+                new ToUpd2Pk{ pk1 = FreeUtil.NewMongodbId(), pk2 = "pk2", name = "nick1"},
+                new ToUpd2Pk{ pk1 = FreeUtil.NewMongodbId(), pk2 = "pk2", name = "nick2"},
+                new ToUpd2Pk{ pk1 = FreeUtil.NewMongodbId(), pk2 = "pk2", name = "nick3"}
+            }).ExecuteAffrows();
+            Assert.Equal(2, g.oracle.Select<ToUpd2Pk>().Where(a => a.name.StartsWith("name")).ToUpdate().Set(a => a.name, "nick?").ExecuteAffrows());
+            Assert.Equal(5, g.oracle.Select<ToUpd2Pk>().Count());
+            Assert.Equal(5, g.oracle.Select<ToUpd2Pk>().Where(a => a.name.StartsWith("nick")).Count());
+
+            g.oracle.Select<ToUpd3Pk>().ToDelete().ExecuteAffrows();
+            Assert.Equal(0, g.oracle.Select<ToUpd3Pk>().Count());
+            g.oracle.Insert(new[] {
+                new ToUpd3Pk{ pk1 = FreeUtil.NewMongodbId(), pk2 = 1, pk3 = "pk3", name = "name1"},
+                new ToUpd3Pk{ pk1 = FreeUtil.NewMongodbId(), pk2 = 1, pk3 = "pk3", name = "name2"},
+                new ToUpd3Pk{ pk1 = FreeUtil.NewMongodbId(), pk2 = 1, pk3 = "pk3", name = "nick1"},
+                new ToUpd3Pk{ pk1 = FreeUtil.NewMongodbId(), pk2 = 1, pk3 = "pk3", name = "nick2"},
+                new ToUpd3Pk{ pk1 = FreeUtil.NewMongodbId(), pk2 = 1, pk3 = "pk3", name = "nick3"}
+            }).ExecuteAffrows();
+            Assert.Equal(2, g.oracle.Select<ToUpd3Pk>().Where(a => a.name.StartsWith("name")).ToUpdate().Set(a => a.name, "nick?").ExecuteAffrows());
+            Assert.Equal(5, g.oracle.Select<ToUpd3Pk>().Count());
+            Assert.Equal(5, g.oracle.Select<ToUpd3Pk>().Where(a => a.name.StartsWith("nick")).Count());
+        }
     }
 }

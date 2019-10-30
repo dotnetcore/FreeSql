@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace FreeSql
 {
-    public partial interface ISelect0<TSelect, T1>
+    public partial interface ISelect0<TSelect, T1> where T1 : class
     {
 
 #if net40
@@ -81,6 +81,29 @@ namespace FreeSql
         /// </summary>
         /// <returns></returns>
         T1 First();
+
+        /// <summary>
+        /// 将查询转为删除对象，以便支持导航对象或其他查询功能删除数据，如下：<para></para>
+        /// fsql.Select&lt;T1&gt;().Where(a => a.Options.xxx == 1).ToDelete().ExecuteAffrows()<para></para>
+        /// 注意：此方法不是将数据查询到内存循环删除，上面的代码产生如下 SQL 执行：<para></para>
+        /// DELETE FROM `T1` WHERE id in (select a.id from T1 a left join Options b on b.t1id = a.id where b.xxx = 1)<para></para>
+        /// 复杂删除使用该方案的好处：<para></para>
+        /// 1、删除前可预览测试数据，防止错误删除操作；<para></para>
+        /// 2、支持更加复杂的删除操作（IDelete 默认只支持简单的操作）；
+        /// </summary>
+        /// <returns></returns>
+        IDelete<T1> ToDelete();
+        /// <summary>
+        /// 将查询转为更新对象，以便支持导航对象或其他查询功能更新数据，如下：<para></para>
+        /// fsql.Select&lt;T1&gt;().Where(a => a.Options.xxx == 1).ToUpdate().Set(a => a.Title, "111").ExecuteAffrows()<para></para>
+        /// 注意：此方法不是将数据查询到内存循环更新，上面的代码产生如下 SQL 执行：<para></para>
+        /// UPDATE `T1` SET Title = '111' WHERE id in (select a.id from T1 a left join Options b on b.t1id = a.id where b.xxx = 1)<para></para>
+        /// 复杂更新使用该方案的好处：<para></para>
+        /// 1、更新前可预览测试数据，防止错误更新操作；<para></para>
+        /// 2、支持更加复杂的更新操作（IUpdate 默认只支持简单的操作）；
+        /// </summary>
+        /// <returns></returns>
+        IUpdate<T1> ToUpdate();
 
         /// <summary>
         /// 设置表名规则，可用于分库/分表，参数1：实体类型；参数2：默认表名；返回值：新表名； <para></para>

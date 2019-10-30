@@ -71,7 +71,11 @@ namespace FreeSql.Odbc.Default
             var sb = new StringBuilder();
             var news = new string[objs.Length];
             for (var a = 0; a < objs.Length; a++)
-                news[a] = types[a] == typeof(string) ? objs[a] : $"cast({objs[a]} as nvarchar)";
+            {
+                if (types[a] == typeof(string)) news[a] = objs[a];
+                else if (types[a].NullableTypeOrThis() == typeof(Guid)) news[a] = $"cast({objs[a]} as char(36))";
+                else news[a] = $"cast({objs[a]} as nvarchar)";
+            }
             return string.Join(" + ", news);
         }
 

@@ -833,6 +833,43 @@ namespace FreeSql.Internal.CommonProvider
             return (map, field.ToString());
         }
 
+        string GetToDeleteWhere(string alias)
+        {
+            var pks = _tables[0].Table.Primarys;
+            if (pks.Length == 1)
+                return $"{_commonUtils.QuoteSqlName(_tables[0].Table.Primarys[0].Attribute.Name)} in (select * from ({this.ToSql($"{_tables[0].Alias}.{_commonUtils.QuoteSqlName(_tables[0].Table.Primarys[0].Attribute.Name)}")}) {alias})";
+            else
+            {
+                var concatTypes = new Type[pks.Length * 2 - 1];
+                var concatMainCols = new string[pks.Length * 2 - 1];
+                var concatInCols = new string[pks.Length * 2 - 1];
+                var concatSplit = _commonUtils.FormatSql("{0}", $",{alias},");
+                for (var a = 0; a < pks.Length; a++)
+                {
+                    concatTypes[a * 2] = pks[a].CsType;
+                    concatMainCols[a * 2] = _commonUtils.QuoteSqlName(pks[a].Attribute.Name);
+                    concatInCols[a * 2] = $"{_tables[0].Alias}.{_commonUtils.QuoteSqlName(pks[a].Attribute.Name)}";
+                    if (a < pks.Length - 1)
+                    {
+                        concatTypes[a * 2 + 1] = typeof(string);
+                        concatMainCols[a * 2 + 1] = concatSplit;
+                        concatInCols[a * 2 + 1] = concatSplit;
+                    }
+                }
+                return $"{_commonUtils.StringConcat(concatMainCols, concatTypes)} in (select * from ({this.ToSql($"{_commonUtils.StringConcat(concatInCols, concatTypes)} as as1")}) {alias})";
+            }
+        }
+        public IDelete<T1> ToDelete()
+        {
+            if (_tables[0].Table.Primarys.Any() == false) throw new Exception($"ToDelete 功能要求实体类 {_tables[0].Table.CsName} 必须有主键");
+            return _orm.Delete<T1>().Where(GetToDeleteWhere("ftb_del"));
+        }
+        public IUpdate<T1> ToUpdate()
+        {
+            if (_tables[0].Table.Primarys.Any() == false) throw new Exception($"ToUpdate 功能要求实体类 {_tables[0].Table.CsName} 必须有主键");
+            return _orm.Update<T1>().Where(GetToDeleteWhere("ftb_upd"));
+        }
+
         protected List<Dictionary<Type, string>> GetTableRuleUnions()
         {
             var unions = new List<Dictionary<Type, string>>();

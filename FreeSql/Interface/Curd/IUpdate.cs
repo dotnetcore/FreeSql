@@ -92,7 +92,8 @@ namespace FreeSql
         IUpdate<T1> SetRaw(string sql, object parms = null);
 
         /// <summary>
-        /// lambda表达式条件，仅支持实体基础成员（不包含导航对象）
+        /// lambda表达式条件，仅支持实体基础成员（不包含导航对象）<para></para>
+        /// 若想使用导航对象，请使用 ISelect.ToUpdate() 方法
         /// </summary>
         /// <param name="exp">lambda表达式条件</param>
         /// <returns></returns>
