@@ -1,0 +1,34 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <Version>0.11.4</Version>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Authors>YeXiangQin</Authors>
+    <Description>BaseEntity 是一种极简单的 CodeFirst 开发方式，特别对单表或多表CRUD，利用继承节省了每个实体类的重复属性（创建时间、ID等字段），软件删除等功能，进行 crud 操作时不必时常考虑仓储的使用.</Description>
+    <PackageProjectUrl>https://github.com/2881099/FreeSql/tree/master/Extensions/FreeSql.Extensions.BaseEntity</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/2881099/FreeSql/tree/master/Extensions/FreeSql.Extensions.BaseEntity</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>FreeSql;ORM;BaseEntity</PackageTags>
+    <PackageId>$(AssemblyName)</PackageId>
+    <PackageIcon>logo.png</PackageIcon>
+    <Title>$(AssemblyName)</Title>
+    <IsPackable>true</IsPackable>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="../../logo.png" Pack="true" PackagePath="\" />
+  </ItemGroup>
+  
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.0|AnyCPU'">
+    <DocumentationFile>FreeSql.Extensions.BaseEntity.xml</DocumentationFile>
+    <WarningLevel>3</WarningLevel>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\FreeSql.DbContext\FreeSql.DbContext.csproj" />
+  </ItemGroup>
+
+</Project>

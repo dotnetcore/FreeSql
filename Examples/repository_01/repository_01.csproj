@@ -6,6 +6,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="FreeSql.Provider.Sqlite" Version="0.10.2" />
 		<PackageReference Include="Microsoft.AspNetCore.App" />
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="4.0.1" />
 		<PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="4.0.1" />
@@ -13,7 +14,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\FreeSql.Repository\FreeSql.Repository.csproj" />
+	  <ProjectReference Include="..\..\FreeSql.DbContext\FreeSql.DbContext.csproj" />
 	</ItemGroup>
 
 </Project>

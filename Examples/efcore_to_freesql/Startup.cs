@@ -22,62 +22,59 @@ namespace efcore_to_freesql
         {
             Configuration = configuration;
 
-			Fsql = new FreeSql.FreeSqlBuilder()
-				.UseConnectionString(FreeSql.DataType.Sqlite, @"Data Source=|DataDirectory|\document.db;Pooling=true;Max Pool Size=10")
-				.UseLogger(loggerFactory.CreateLogger<IFreeSql>())
-				.UseAutoSyncStructure(true)
-				.Build();
+            Fsql = new FreeSql.FreeSqlBuilder()
+                .UseConnectionString(FreeSql.DataType.Sqlite, @"Data Source=|DataDirectory|\document.db;Pooling=true;Max Pool Size=10")
+                .UseAutoSyncStructure(true)
+                .Build();
 
-			DBContexts.BaseDBContext.Fsql = Fsql;
+            DBContexts.BaseDBContext.Fsql = Fsql;
 
-			var sql11 = Fsql.Select<Topic1>().ToSql();
-			//SELECT a."Id", a."Title", a."CreateTime" FROM "Topic1" a
-			var sql12 = Fsql.Insert<Topic1>().AppendData(new Topic1()).ToSql();
-			//INSERT INTO "Topic1"("Id", "Title", "CreateTime") VALUES(@Id0, @Title0, @CreateTime0)
+            var sql11 = Fsql.Select<Topic1>().ToSql();
+            //SELECT a."Id", a."Title", a."CreateTime" FROM "Topic1" a
+            var sql12 = Fsql.Insert<Topic1>().AppendData(new Topic1()).ToSql();
+            //INSERT INTO "Topic1"("Id", "Title", "CreateTime") VALUES(@Id0, @Title0, @CreateTime0)
 
-			var sql21 = Fsql.Select<Topic2>().ToSql();
-			//SELECT a."Id", a."Title", a."CreateTime" FROM "Topic2" a
-			var sql22 = Fsql.Insert<Topic2>().AppendData(new Topic2()).ToSql();
-			//INSERT INTO "Topic2"("Id", "Title", "CreateTime") VALUES(@Id0, @Title0, @CreateTime0)
+            var sql21 = Fsql.Select<Topic2>().ToSql();
+            //SELECT a."Id", a."Title", a."CreateTime" FROM "Topic2" a
+            var sql22 = Fsql.Insert<Topic2>().AppendData(new Topic2()).ToSql();
+            //INSERT INTO "Topic2"("Id", "Title", "CreateTime") VALUES(@Id0, @Title0, @CreateTime0)
 
-			using (var db = new Topic1Context()) {
-				db.Topic1s.Add(new Topic1());
-			}
-			using (var db = new Topic2Context()) {
-				db.Topic2s.Add(new Topic2());
-			}
+            using (var db = new Topic1Context())
+            {
+                db.Topic1s.Add(new Topic1());
+            }
+            using (var db = new Topic2Context())
+            {
+                db.Topic2s.Add(new Topic2());
+            }
 
-			var sql13 = Fsql.Select<Topic1>().ToSql();
-			//SELECT a."topic1_id", a."Title", a."CreateTime" FROM "topic1_sss" a
-			var sql14 = Fsql.Insert<Topic1>().AppendData(new Topic1()).ToSql();
-			//INSERT INTO "topic1_sss"("Title", "CreateTime") VALUES(@Title0, @CreateTime0)
+            var sql13 = Fsql.Select<Topic1>().ToSql();
+            //SELECT a."topic1_id", a."Title", a."CreateTime" FROM "topic1_sss" a
+            var sql14 = Fsql.Insert<Topic1>().AppendData(new Topic1()).ToSql();
+            //INSERT INTO "topic1_sss"("Title", "CreateTime") VALUES(@Title0, @CreateTime0)
 
-			var sql23 = Fsql.Select<Topic2>().ToSql();
-			//SELECT a."topic2_id", a."Title", a."CreateTime" FROM "topic2_sss" a
-			var sql24 = Fsql.Insert<Topic2>().AppendData(new Topic2()).ToSql();
-			//INSERT INTO "topic2_sss"("Title", "CreateTime") VALUES(@Title0, @CreateTime0)
-		}
+            var sql23 = Fsql.Select<Topic2>().ToSql();
+            //SELECT a."topic2_id", a."Title", a."CreateTime" FROM "topic2_sss" a
+            var sql24 = Fsql.Insert<Topic2>().AppendData(new Topic2()).ToSql();
+            //INSERT INTO "topic2_sss"("Title", "CreateTime") VALUES(@Title0, @CreateTime0)
+        }
 
-		public IConfiguration Configuration { get; }
-		public IFreeSql Fsql { get; }
+        public IConfiguration Configuration { get; }
+        public IFreeSql Fsql { get; }
 
-		public void ConfigureServices(IServiceCollection services)
+        public void ConfigureServices(IServiceCollection services)
         {
-			services.AddSingleton<IFreeSql>(Fsql);
-			services.AddMvc();
+            services.AddSingleton<IFreeSql>(Fsql);
+            services.AddMvc();
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
-			Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-			Console.OutputEncoding = Encoding.GetEncoding("GB2312");
-			Console.InputEncoding = Encoding.GetEncoding("GB2312");
+            loggerFactory.AddConsole(Configuration.GetSection("Logging"));
+            loggerFactory.AddDebug();
 
-			loggerFactory.AddConsole(Configuration.GetSection("Logging"));
-			loggerFactory.AddDebug();
-
-			app.UseDeveloperExceptionPage();
-			app.UseMvc();
-		}
+            app.UseDeveloperExceptionPage();
+            app.UseMvc();
+        }
     }
 }

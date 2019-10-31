@@ -1,82 +1,90 @@
-FreeSql 是一个功能强大的 .NETStandard 库，用于对象关系映射程序(O/RM)，便于开发人员能够使用 .NETStandard 对象来处理数据库，不必经常编写大部分数据访问代码。支持 .NETCore 2.1+ 或 .NETFramework 4.6.1+。
+<p align="center">
+  <img height="210" src="https://github.com/2881099/FreeSql/blob/master/logo.png?raw=true"/>
+</p>
+
+FreeSql 是一个功能强大的对象关系映射程序(O/RM)，支持 .NETCore 2.1+ 或 .NETFramework 4.0+（QQ群：4336577）
+
+扶摇直上，至强ORM只为自由编码；鹏程万里，至简Linq可使保留黑发；横批：FreeSql（诗人：Coder）
+
+# Features
+
+- [x] 支持 CodeFirst 迁移；
+- [x] 支持 DbFirst 从数据库导入实体类；
+- [x] 大量采用 ExpressionTree 提升性能；
+- [x] 支持 深入的类型映射，比如pgsql的数组类型；
+- [x] 支持 丰富的表达式函数；
+- [x] 支持 导航属性一对多、多对多贪婪加载，以及延时加载；
+- [x] 支持 同步/异步数据库操作方法；
+- [x] 支持 读写分离、分表分库，租户设计，过滤器，乐观锁；
+- [x] 支持 多种数据库，MySql/SqlServer/PostgreSQL/Oracle/Sqlite；
+
+| | |
+| - | - |
+| <img src="https://user-images.githubusercontent.com/16286519/55138232-f5e19e80-516d-11e9-9144-173cc7e52845.png" width="40" height="59"/> | [《新人学习指引》](https://www.cnblogs.com/FreeSql/p/11531300.html) \| [《Select》](https://github.com/2881099/FreeSql/wiki/%e6%9f%a5%e8%af%a2) \| [《Update》](https://github.com/2881099/FreeSql/wiki/%e4%bf%ae%e6%94%b9) \| [《Insert》](https://github.com/2881099/FreeSql/wiki/%e6%b7%bb%e5%8a%a0) \| [《Delete》](https://github.com/2881099/FreeSql/wiki/%e5%88%a0%e9%99%a4) |
+| <img src="https://user-images.githubusercontent.com/16286519/55138241-faa65280-516d-11e9-8b27-139dea46e4df.png" width="40" height="59"/> | [《表达式函数》](https://github.com/2881099/FreeSql/wiki/%e8%a1%a8%e8%be%be%e5%bc%8f%e5%87%bd%e6%95%b0) \| [《CodeFirst》](https://github.com/2881099/FreeSql/wiki/CodeFirst) \| [《DbFirst》](https://github.com/2881099/FreeSql/wiki/DbFirst) \| [《BaseEntity》](https://github.com/2881099/FreeSql/tree/master/Examples/base_entity) |
+| <img src="https://user-images.githubusercontent.com/16286519/55138263-06921480-516e-11e9-8da9-81f18a18b694.png" width="40" height="59"/> | [《Repository》](https://github.com/2881099/FreeSql/wiki/Repository) \| [《UnitOfWork》](https://github.com/2881099/FreeSql/wiki/%e5%b7%a5%e4%bd%9c%e5%8d%95%e5%85%83) \| [《过滤器》](https://github.com/2881099/FreeSql/wiki/%e8%bf%87%e6%bb%a4%e5%99%a8) \| [《乐观锁》](https://github.com/2881099/FreeSql/wiki/%e4%bf%ae%e6%94%b9) \| [《DbContext》](https://github.com/2881099/FreeSql/wiki/DbContext) |
+| <img src="https://user-images.githubusercontent.com/16286519/55138284-0eea4f80-516e-11e9-8764-29264807f402.png" width="40" height="59"/> | [《读写分离》](https://github.com/2881099/FreeSql/wiki/%e8%af%bb%e5%86%99%e5%88%86%e7%a6%bb) \| [《分区分表》](https://github.com/2881099/FreeSql/wiki/%e5%88%86%e5%8c%ba%e5%88%86%e8%a1%a8) \| [《租户》](https://github.com/2881099/FreeSql/wiki/%e7%a7%9f%e6%88%b7) \| [《AOP》](https://github.com/2881099/FreeSql/wiki/AOP) \| [*更新日志*](https://github.com/2881099/FreeSql/wiki/%e6%9b%b4%e6%96%b0%e6%97%a5%e5%bf%97) |
+
+# Packages
 
 | Package Name |  NuGet | Downloads |
 |--------------|  ------- |  ---- |
 | FreeSql | [![nuget](https://img.shields.io/nuget/v/FreeSql.svg?style=flat-square)](https://www.nuget.org/packages/FreeSql) | [![stats](https://img.shields.io/nuget/dt/FreeSql.svg?style=flat-square)](https://www.nuget.org/stats/packages/FreeSql?groupby=Version) |
-| [FreeSql.Repository](https://github.com/2881099/FreeSql/wiki/Repository) | [![nuget](https://img.shields.io/nuget/v/FreeSql.Repository.svg?style=flat-square)](https://www.nuget.org/packages/FreeSql.Repository) | [![stats](https://img.shields.io/nuget/dt/FreeSql.Repository.svg?style=flat-square)](https://www.nuget.org/stats/packages/FreeSql.Repository?groupby=Version) |
+| FreeSql.Repository | [![nuget](https://img.shields.io/nuget/v/FreeSql.Repository.svg?style=flat-square)](https://www.nuget.org/packages/FreeSql.Repository) | [![stats](https://img.shields.io/nuget/dt/FreeSql.Repository.svg?style=flat-square)](https://www.nuget.org/stats/packages/FreeSql.Repository?groupby=Version) |
+| FreeSql.DbContext | [![nuget](https://img.shields.io/nuget/v/FreeSql.DbContext.svg?style=flat-square)](https://www.nuget.org/packages/FreeSql.DbContext) | [![stats](https://img.shields.io/nuget/dt/FreeSql.DbContext.svg?style=flat-square)](https://www.nuget.org/stats/packages/FreeSql.DbContext?groupby=Version) |
+| [FreeSql.AdminLTE](https://github.com/2881099/FreeSql.AdminLTE) | [![nuget](https://img.shields.io/nuget/v/FreeSql.AdminLTE.svg?style=flat-square)](https://www.nuget.org/packages/FreeSql.AdminLTE) | [![stats](https://img.shields.io/nuget/dt/FreeSql.AdminLTE.svg?style=flat-square)](https://www.nuget.org/stats/packages/FreeSql.AdminLTE?groupby=Version) |
+| [FreeSql.Connection.Extensions](https://github.com/2881099/FreeSql.Connection.Extensions) | [![nuget](https://img.shields.io/nuget/v/FreeSql.Connection.Extensions.svg?style=flat-square)](https://www.nuget.org/packages/FreeSql.Connection.Extensions) | [![stats](https://img.shields.io/nuget/dt/FreeSql.Connection.Extensions.svg?style=flat-square)](https://www.nuget.org/stats/packages/FreeSql.Connection.Extensions?groupby=Version) |
 
-# 特性
+> FreeSql 提供了五种使用习惯，请根据实际情况选择团队合适的一种：
 
-- [x] 支持 CodeFirst 迁移；
-- [x] 支持 DbFirst 从数据库导入实体类，支持三种模板生成器；
-- [x] 采用 ExpressionTree 高性能读取数据；
-- [x] 支持深入的类型映射，比如pgsql的数组类型，堪称匠心制作；
-- [x] 支持丰富的表达式函数；
-- [x] 支持导航属性查询，和延时加载；
-- [x] 支持同步/异步数据库操作方法，丰富多彩的链式查询方法；
-- [x] 支持读写分离、分表分库，租户设计；
-- [x] 支持多种数据库，MySql/SqlServer/PostgreSQL/Oracle/Sqlite；
+- 要么FreeSql，原始用法；
+- 要么[FreeSql.Repository](https://github.com/2881099/FreeSql/wiki/Repository)，仓储+工作单元习惯；
+- 要么[FreeSql.DbContext](https://github.com/2881099/FreeSql/wiki/DbContext)，有点像efcore的使用习惯；
+- 要么[FreeSql.Connection.Extensions](https://github.com/2881099/FreeSql.Connection.Extensions)，有点像Dapper的使用习惯；
+- 要么[BaseEntity](https://github.com/2881099/FreeSql/tree/master/Examples/base_entity)，我求简单现在使用的这个；
 
-| | |
-| - | - |
-| 入门 | [《Select》](https://github.com/2881099/FreeSql/wiki/%e6%9f%a5%e8%af%a2) \| [《Update》](https://github.com/2881099/FreeSql/wiki/%e4%bf%ae%e6%94%b9) \| [《Insert》](https://github.com/2881099/FreeSql/wiki/%e6%b7%bb%e5%8a%a0) \| [《Delete》](https://github.com/2881099/FreeSql/wiki/%e5%88%a0%e9%99%a4) |
-| 新手 | [《表达式函数》](https://github.com/2881099/FreeSql/wiki/%e8%a1%a8%e8%be%be%e5%bc%8f%e5%87%bd%e6%95%b0) \| [《CodeFirst》](https://github.com/2881099/FreeSql/wiki/CodeFirst) \| [《DbFirst》](https://github.com/2881099/FreeSql/wiki/DbFirst) |
-| 高手 | [《Repository》](https://github.com/2881099/FreeSql/wiki/Repository) \| [《UnitOfWork》](https://github.com/2881099/FreeSql/wiki/%e5%b7%a5%e4%bd%9c%e5%8d%95%e5%85%83) \| [《过滤器》](https://github.com/2881099/FreeSql/wiki/%e8%bf%87%e6%bb%a4%e5%99%a8) |
-| 不朽 | [《读写分离》](https://github.com/2881099/FreeSql/wiki/%e8%af%bb%e5%86%99%e5%88%86%e7%a6%bb) \| [《分区分表》](https://github.com/2881099/FreeSql/wiki/%e5%88%86%e5%8c%ba%e5%88%86%e8%a1%a8) \| [《租户》](https://github.com/2881099/FreeSql/wiki/%e7%a7%9f%e6%88%b7) \| [更新日志](https://github.com/2881099/FreeSql/wiki/%e6%9b%b4%e6%96%b0%e6%97%a5%e5%bf%97) |
+> 其他下载
 
-# 快速开始
+- [FreeSql.Tools 生成器](https://github.com/2881099/FreeSql.Tools)，基于 razor 模板的生成器；
+- [Abp 中使用 FreeSql](https://github.com/gnsilence/JPGZService)，测试中．．．；
+- [FreeSql 优势.pptx](https://github.com/2881099/FreeSql/files/3305852/FreeSql.pptx)；
+
+# Providers
+
+| Package Name | Version |
+|--------------|  ------- |
+| FreeSql.Provider.MySql | NETStandard2.0、net45、net40 |
+| FreeSql.Provider.MySqlConnector | NETStandard2.0、net45 |
+| FreeSql.Provider.PostgreSQL | NETStandard2.0、net45 |
+| FreeSql.Provider.SqlServer | NETStandard2.0、net45、net40 |
+| FreeSql.Provider.Sqlite | NETStandard2.0、net45、net40 |
+| FreeSql.Provider.Oracle | NETStandard2.0、net45、net40 |
+| [FreeSql.Provider.Odbc](https://github.com/2881099/FreeSql/tree/master/Providers/FreeSql.Provider.Odbc) | NETStandard2.0、net45、net40 |
+| FreeSql.Extensions.LazyLoading | NETStandard2.0、net45、net40 |
+| FreeSql.Extensions.JsonMap | NETStandard2.0、net45、net40 |
+| FreeSql.Extensions.BaseEntity | NETStandard2.0 |
+
+<p align="center">
+  <img src="https://images.cnblogs.com/cnblogs_com/kellynic/133561/o_functions06.png"/>
+</p>
+
+# Quick start
+
+> dotnet add package FreeSql.Provider.Sqlite
+
 ```csharp
-var connstr = "Data Source=127.0.0.1;User ID=root;Password=root;" + 
-    "Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=10";
-
 IFreeSql fsql = new FreeSql.FreeSqlBuilder()
-    .UseConnectionString(FreeSql.DataType.MySql, connstr)
-    .UseSlave("connectionString1", "connectionString2")
-    //读写分离，使用从数据库，支持多个
+    .UseConnectionString(FreeSql.DataType.Sqlite, 
+        @"Data Source=|DataDirectory|\document.db;Pooling=true;Max Pool Size=10")
+    .UseAutoSyncStructure(true) //自动同步实体结构到数据库
+    .Build(); //请务必定义成 Singleton 单例模式
 
-    .UseMonitorCommand(
-        cmd => Console.WriteLine(cmd.CommandText),
-        //监听SQL命令对象，在执行前
-        (cmd, traceLog) => Console.WriteLine(traceLog))
-        //监听SQL命令对象，在执行后
-
-    .UseLogger(null)
-    //使用日志，不指定默认输出控制台 ILogger
-    .UseCache(null)
-    //使用缓存，不指定默认使用内存 IDistributedCache
-
-    .UseAutoSyncStructure(true)
-    //自动同步实体结构到数据库
-    .UseSyncStructureToLower(true)
-    //转小写同步结构
-    .UseSyncStructureToUpper(true)
-    //转大写同步结构
-    .UseConfigEntityFromDbFirst(true)
-    //若无配置实体类主键、自增，可从数据库导入
-    .UseNoneCommandParameter(true)
-    //不使用命令参数化执行，针对 Insert/Update，也可临时使用 IInsert/IUpdate.NoneParameter() 
-
-    .UseLazyLoading(true)
-    //延时加载导航属性对象，导航属性需要声明 virtual
-    .Build();
-```
-
-# 实体
-
-FreeSql 使用模型执行数据访问，模型由实体类表示数据库表或视图，用于查询和保存数据。
-
-可从现有数据库生成实体模型，提供 IDbFirst 生成实体模型。
-
-或者手动创建模型，基于模型创建或修改数据库，提供 ICodeFirst 同步结构的 API（甚至可以做到开发阶段自动同步）。
-
-```csharp
 class Song {
     [Column(IsIdentity = true)]
     public int Id { get; set; }
-    public DateTime? Create_time { get; set; }
-    public bool? Is_deleted { get; set; }
     public string Title { get; set; }
     public string Url { get; set; }
+    public DateTime CreateTime { get; set; }
 
     public virtual ICollection<Tag> Tags { get; set; }
 }
@@ -90,113 +98,132 @@ class Song_tag {
 class Tag {
     [Column(IsIdentity = true)]
     public int Id { get; set; }
+    public string Name { get; set; }
+
     public int? Parent_id { get; set; }
     public virtual Tag Parent { get; set; }
-
-    public decimal? Ddd { get; set; }
-    public string Name { get; set; }
 
     public virtual ICollection<Song> Songs { get; set; }
     public virtual ICollection<Tag> Tags { get; set; }
 }
 ```
 
-# 查询
-
+# Query
 ```csharp
 //OneToOne、ManyToOne
-var t0 = fsql.Select<Tag>().Where(a => a.Parent.Parent.Name == "粤语").ToSql();
-//SELECT a.`Id`, a.`Parent_id`, a__Parent.`Id` as3, a__Parent.`Parent_id` as4, a__Parent.`Ddd`, a__Parent.`Name`, a.`Ddd` as7, a.`Name` as8 
-//FROM `Tag` a 
-//LEFT JOIN `Tag` a__Parent ON a__Parent.`Id` = a.`Parent_id` 
-//LEFT JOIN `Tag` a__Parent__Parent ON a__Parent__Parent.`Id` = a__Parent.`Parent_id` 
-//WHERE (a__Parent__Parent.`Name` = '粤语')
+var t0 = fsql.Select<Tag>()
+    .Where(a => a.Parent.Parent.Name == "粤语")
+    .IncludeMany(a => a.Tags, then => then.Where(sub => sub.Name == "xxx"))
+    .ToList();
 
 //OneToMany
-var t1 = fsql.Select<Tag>().Where(a => a.Tags.AsSelect().Any(t => t.Parent.Id == 10)).ToSql();
-//SELECT a.`Id`, a.`Parent_id`, a.`Ddd`, a.`Name` 
-//FROM `Tag` a 
-//WHERE (exists(SELECT 1 
-//	FROM `Tag` t 
-//	LEFT JOIN `Tag` t__Parent ON t__Parent.`Id` = t.`Parent_id` 
-//	WHERE (t__Parent.`Id` = 10) AND (t.`Parent_id` = a.`Id`) 
-//	limit 0,1))
+var t1 = fsql.Select<Tag>()
+    .Where(a => a.Tags.AsSelect().Any(t => t.Parent.Id == 10))
+    .ToList();
 
 //ManyToMany
-var t2 = fsql.Select<Song>().Where(s => s.Tags.AsSelect().Any(t => t.Name == "国语")).ToSql();
-//SELECT a.`Id`, a.`Create_time`, a.`Is_deleted`, a.`Title`, a.`Url` 
-//FROM `Song` a
-//WHERE(exists(SELECT 1
-//	FROM `Song_tag` Mt_Ms
-//	WHERE(Mt_Ms.`Song_id` = a.`Id`) AND(exists(SELECT 1
-//		FROM `Tag` t
-//		WHERE(t.`Name` = '国语') AND(t.`Id` = Mt_Ms.`Tag_id`)
-//		limit 0, 1))
-//	limit 0, 1))
-```
-更多前往wiki：[《Select查询数据文档》](https://github.com/2881099/FreeSql/wiki/%e6%9f%a5%e8%af%a2)
+var t2 = fsql.Select<Song>()
+    .Where(s => s.Tags.AsSelect().Any(t => t.Name == "国语"))
+    .IncludeMany(a => a.Tags, then => then.Where(sub => sub.Name == "xxx"))
+    .ToList();
 
-# 表达式函数
+//Other
+var t3 = fsql.Select<Xxx>()
+    .Where(a => a.IsDelete == 0)
+    .WhereIf(keyword != null, a => a.UserName.Contains(keyword))
+    .WhereIf(role_id > 0, a => a.RoleId == role_id)
+    .Where(a => a.Nodes.AsSelect().Any(t => t.Parent.Id == t.UserId))
+    .Count(out var total)
+    .Page(page, size)
+    .OrderByDescending(a => a.Id)
+    .ToList()
+```
+更多前往Wiki：[《Select 查询数据文档》](https://github.com/2881099/FreeSql/wiki/%e6%9f%a5%e8%af%a2)
 
 ```csharp
-var t1 = select.Where(a => new[] { 1, 2, 3 }.Contains(a.testFieldInt)).ToSql();
-//SELECT a.`Id`, a.`Clicks`, a.`TestTypeInfoGuid`, a.`Title`, a.`CreateTime` 
-//FROM `Song` a 
-//WHERE (a.`Id` in (1,2,3))
+var t3 = fsql.Select<Song>()
+    .Where(a => new[] { 1, 2, 3 }.Contains(a.Id))
+    .ToList();
 ```
+```csharp
+var t4 = fsql.Select<Song>()
+    .Where(a => a.CreateTime.Date == DateTime.Now.Date)
+    .ToList();
+```
+```csharp
+var t5 = fsql.Select<Song>()
+    .OrderBy(a => Guid.NewGuid())
+    .Limit(1)
+    .ToList();
+```
+更多前往Wiki：[《表达式函数》](https://github.com/2881099/FreeSql/wiki/%e8%a1%a8%e8%be%be%e5%bc%8f%e5%87%bd%e6%95%b0) 
 
-查找今天创建的数据
+# Repository & UnitOfWork
+> dotnet add package FreeSql.Repository
 
 ```csharp
-var t2 = select.Where(a => a.CreateTime.Date == DateTime.Now.Date).ToSql();
+using (var uow = fsql.CreateUnitOfWork()) {
+    var repo1 = uow.GetRepository<Song, int>();
+    var repo2 = uow.GetRepository<Tag, int>();
+
+    await repo1.InsertAsync(new Song());
+    await repo2.InsertAsync(new Tag());
+    uow.Commit();
+}
 ```
 
-SqlServer 下随机获取记录
+# DbContext & DbSet
+> dotnet add package FreeSql.DbContext
 
 ```csharp
-var t3 = select.OrderBy(a => Guid.NewGuid()).Limit(1).ToSql();
-//SELECT top 1 ...
-//FROM [Song] a 
-//ORDER BY newid()
+using (var ctx = new fsql.CreateDbContext()) {
+    var songs = ctx.Set<Song>();
+    var tags = ctx.Set<Tag>();
+
+    var tag = new Tag {
+        Name = "testaddsublist",
+        Tags = new[] {
+            new Tag { Name = "sub1" },
+            new Tag { Name = "sub2" },
+            new Tag {
+                Name = "sub3",
+                Tags = new[] {
+                    new Tag { Name = "sub3_01" }
+                }
+            }
+        }
+    };
+    //tags.Add(tag);
+    ctx.Add(tag);
+    await ctx.SaveChangesAsync();
+}
 ```
 
-更多前往wiki：[《Expression 表达式函数文档》](https://github.com/2881099/FreeSql/wiki/%e8%a1%a8%e8%be%be%e5%bc%8f%e5%87%bd%e6%95%b0) 
-
-# 返回数据
+# DataFilter & Tenant
 
 ```csharp
-List<Song> t1 = fsql.Select<Song>().Where(a => a.Id > 0).ToList();
-
-//返回普通字段 + 导航对象 Type 的数据
-List<Song> t2 = fsql.Select<Song>().LeftJoin(a => a.Type.Id == a.TypeId).ToList();
-
-//返回一个字段
-List<int> t3 = fsql.Select<Song>().Where(a => a.Id > 0).ToList(a => a.Id);
-
-//返回匿名类型
-List<匿名类型> t4 = fsql.Select<Song>().Where(a => a.Id > 0).ToList(a => new { a.Id, a.Title });
-
-//返回元组
-List<(int, string)> t5 = fsql.Select<Song>().Where(a => a.Id > 0).ToList<(int, string)>("id, title");
-
-//返回SQL字段
-List<匿名类> t4 = select.Where(a => a.Id > 0).Skip(100).Limit(200)
-    .ToList(a => new {
-        a.Id, a.Title,
-        cstitle = "substr(a.title, 0, 2)", //将 substr(a.title, 0, 2) 作为查询字段
-        csnow = Convert.ToDateTime("now()"), //将 now() 作为查询字段
-        //奇思妙想：怎么查询开窗函数的结果
-    });
+public void ConfigureServices(IServiceCollection services) {
+    services.AddSingleton<IFreeSql>(Fsql);
+    services.AddFreeRepository(filter => filter
+        .Apply<ISoftDelete>("SoftDelete", a => a.IsDeleted == false)
+        .Apply<ITenant>("Tenant", a => a.TenantId == 1)
+        ,
+        this.GetType().Assembly
+    );
+}
 ```
-执行SQL返回数据
+
+Temporary disable:
 ```csharp
-List<Song> t6 = fsql.Ado.Query<Song>("select * from song");
-List<(int, string ,string)> t7 = fsql.Ado.Query<(int, string, string)>("select id,title,url from song");
-List<dynamic> t8 = fsql.Ado.Query<dynamic>("select * from song");
-```
-更多前往wiki：[《Select查询数据》](https://github.com/2881099/FreeSql/wiki/%e6%9f%a5%e8%af%a2)
+var repoq = fsql.GetRepository<Song, int>();
 
-# 性能测试
+using (repo1.DataFilter.Disable("Tenant")) {
+    //Tenant Invalid
+}
+//Tenant restore
+```
+
+# Performance
 
 FreeSql Query & Dapper Query
 ```shell
@@ -222,11 +249,15 @@ Elapsed: 00:00:00.6707125; ToList Entity Counts: 131072; ORM: FreeSql*
 Elapsed: 00:00:00.6495301; Query Entity Counts: 131072; ORM: Dapper
 ```
 
-测试方法：运行两次，以第二次性能报告，避免了首个运行慢不公平的情况。[查看测试代码](FreeSql.Tests.PerformanceTests/MySqlAdoTest.cs)
+[Test code](FreeSql.Tests.PerformanceTests/MySqlAdoTest.cs)
 
-FreeSql 目前使用的ExpressionTree+缓存，因为支持更为复杂的数据类型，所以比 Dapper Emit 慢少许。
+# Contributors
 
-# 贡献者名单
-
-[systemhejiyong](https://github.com/systemhejiyong)
-[LambertW](https://github.com/LambertW)
+[systemhejiyong](https://github.com/systemhejiyong)、
+[LambertW](https://github.com/LambertW)、
+[mypeng1985](https://github.com/mypeng1985)、
+[stulzq](https://github.com/stulzq)、
+[movingsam](https://github.com/movingsam)、
+[ALer-R](https://github.com/ALer-R)、
+[zouql](https://github.com/zouql)、
+深圳|凉茶

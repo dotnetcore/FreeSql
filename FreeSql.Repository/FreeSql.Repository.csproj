@@ -1,21 +1,28 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-	<PropertyGroup>
-		<TargetFramework>netstandard2.0</TargetFramework>
-		<Version>0.3.18</Version>
-		<Authors>YeXiangQin</Authors>
-		<Description>FreeSql Implementation of General Repository, Support MySql/SqlServer/PostgreSQL/Oracle/Sqlite, and read/write separation、and split table.</Description>
-		<PackageProjectUrl>https://github.com/2881099/FreeSql/wiki/Repository</PackageProjectUrl>
-		<PackageTags>FreeSql ORM Repository</PackageTags>
-		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-	</PropertyGroup>
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.1;netstandard2.0;net45;net40</TargetFrameworks>
+    <Version>0.11.4</Version>
+    <Authors>YeXiangQin</Authors>
+    <Description>FreeSql Implementation of General Repository, Support MySql/SqlServer/PostgreSQL/Oracle/Sqlite, and read/write separation、and split table.</Description>
+    <PackageProjectUrl>https://github.com/2881099/FreeSql/wiki/Repository</PackageProjectUrl>
+    <PackageTags>FreeSql ORM Repository</PackageTags>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageId>$(AssemblyName)</PackageId>
+    <PackageIcon>logo.png</PackageIcon>
+    <Title>$(AssemblyName)</Title>
+    <IsPackable>true</IsPackable>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+  </PropertyGroup>
 
-	<ItemGroup>
-		<PackageReference Include="Autofac.Extensions.DependencyInjection" Version="4.4.0" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<ProjectReference Include="..\FreeSql\FreeSql.csproj" />
-	</ItemGroup>
+  <ItemGroup>
+    <None Include="../logo.png" Pack="true" PackagePath="\" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\FreeSql.DbContext\FreeSql.DbContext.csproj" />
+  </ItemGroup>
 
 </Project>

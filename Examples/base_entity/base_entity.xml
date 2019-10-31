@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>base_entity</name>
+    </assembly>
+    <members>
+        <member name="P:UserGroup.GroupName">
+            <summary>
+            组名
+            </summary>
+        </member>
+        <member name="P:User1.Username">
+            <summary>
+            登陆名
+            </summary>
+        </member>
+        <member name="P:User1.Nickname">
+            <summary>
+            昵称
+            </summary>
+        </member>
+        <member name="P:User1.Avatar">
+            <summary>
+            头像
+            </summary>
+        </member>
+        <member name="P:User1.Description">
+            <summary>
+            描述
+            </summary>
+        </member>
+    </members>
+</doc>

@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>FreeSql.Extensions.JsonMap</name>
+    </assembly>
+    <members>
+        <member name="T:FreeSql.DataAnnotations.JsonMapAttribute">
+            <summary>
+            当实体类属性为【对象】时，以JSON形式映射存储
+            </summary>
+        </member>
+        <member name="M:FreeSql.Extensions.JsonMapCore.UseJsonMap(IFreeSql)">
+            <summary>
+            当实体类属性为【对象】时，并且标记特性 [JsonMap] 时，该属性将以JSON形式映射存储
+            </summary>
+            <returns></returns>
+        </member>
+    </members>
+</doc>
