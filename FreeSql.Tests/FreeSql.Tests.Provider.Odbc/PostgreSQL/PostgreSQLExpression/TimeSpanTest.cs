@@ -284,7 +284,7 @@ namespace FreeSql.Tests.Odbc.PostgreSQLExpression
         public void TimeSpan_Parse()
         {
             var data = new List<object>();
-            data.Add(select.Where(a => TimeSpan.Parse(a.CreateTime.TimeOfDay.ToString()) > TimeSpan.Zero).ToList());
+            //data.Add(select.Where(a => TimeSpan.Parse(a.CreateTime.TimeOfDay.ToString()) > TimeSpan.Zero).ToList());
             //SELECT a.`Id` as1, a.`Clicks` as2, a.`TypeGuid` as3, a.`Title` as4, a.`CreateTime` as5 
             //FROM `tb_topic` a 
             //WHERE (cast(date_format(date_add(cast('0001/1/1 0:00:00' as datetime), interval (timestampdiff(microsecond, date_format(a.`CreateTime`, '1970-1-1 %H:%i:%s.%f'), a.`CreateTime`) + 62135596800000000)) microsecond), '%Y-%m-%d %H:%i:%s.%f') as signed) > 0)

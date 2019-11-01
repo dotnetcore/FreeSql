@@ -13,7 +13,7 @@ namespace FreeSql
         public IFreeSql Orm => _ormPriv ?? throw new ArgumentNullException("请在 OnConfiguring 或 AddFreeDbContext 中配置 UseFreeSql");
 
         #region Property UnitOfWork
-        internal bool _isUseUnitOfWork = true; //是否使用工作单元事务
+        internal bool _isUseUnitOfWork = true; //是否创建工作单元事务
         IUnitOfWork _uowPriv;
         public IUnitOfWork UnitOfWork
         {
@@ -220,7 +220,8 @@ namespace FreeSql
                 _dicSet.Clear();
                 AllSets.Clear();
 
-                UnitOfWork?.Rollback();
+                if (_isUseUnitOfWork)
+                    UnitOfWork?.Rollback();
             }
             finally
             {
