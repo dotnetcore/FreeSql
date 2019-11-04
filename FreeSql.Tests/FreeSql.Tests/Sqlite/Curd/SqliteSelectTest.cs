@@ -164,6 +164,7 @@ namespace FreeSql.Tests.Sqlite
                     g.sqlite.Insert<TestDtoLeftJoin>(testdtolj).ExecuteAffrows();
             }
 
+            select.Limit(10).ToList(a => new TestDto { id = a.Id, name = a.Title });
             var testDto1 = select.Limit(10).ToList(a => new TestDto { id = a.Id, name = a.Title });
             var testDto2 = select.Limit(10).ToList(a => new TestDto());
             var testDto3 = select.Limit(10).ToList(a => new TestDto { });

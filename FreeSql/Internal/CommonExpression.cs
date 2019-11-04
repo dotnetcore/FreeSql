@@ -108,6 +108,35 @@ namespace FreeSql.Internal
                     var initExp = exp as MemberInitExpression;
                     parent.Consturctor = initExp.NewExpression.Type.GetConstructors()[0];
                     parent.ConsturctorType = ReadAnonymousTypeInfoConsturctorType.Properties;
+
+                    //dto 映射
+                    var dtoProps = _dicReadAnonymousFieldDtoPropertys.GetOrAdd(initExp.NewExpression.Type, dtoType => dtoType.GetProperties());
+                    foreach (var dtoProp in dtoProps)
+                    {
+                        foreach (var dtTb in _tables)
+                        {
+                            if (dtTb.Table.Columns.TryGetValue(dtoProp.Name, out var trydtocol))
+                            {
+                                var child = new ReadAnonymousTypeInfo
+                                {
+                                    Property = dtoProp,
+                                    CsName = dtoProp.Name,
+                                    CsType = dtoProp.PropertyType,
+                                    MapType = trydtocol.Attribute.MapType
+                                };
+                                parent.Childs.Add(child);
+                                if (dtTb.Parameter != null)
+                                    ReadAnonymousField(_tables, field, child, ref index, Expression.Property(dtTb.Parameter, dtTb.Table.Properties[trydtocol.CsName]), getSelectGroupingMapString, whereCascadeExpression);
+                                else
+                                {
+                                    child.DbField = $"{dtTb.Alias}.{_common.QuoteSqlName(trydtocol.Attribute.Name)}";
+                                    field.Append(", ").Append(child.DbField);
+                                    if (index >= 0) field.Append(" as").Append(++index);
+                                }
+                                break;
+                            }
+                        }
+                    }
                     if (initExp.Bindings?.Count > 0)
                     {
                         //指定 dto映射
@@ -126,38 +155,7 @@ namespace FreeSql.Internal
                             ReadAnonymousField(_tables, field, child, ref index, initAssignExp.Expression, getSelectGroupingMapString, whereCascadeExpression);
                         }
                     }
-                    else
-                    {
-                        //dto 映射
-                        var dtoProps = _dicReadAnonymousFieldDtoPropertys.GetOrAdd(initExp.NewExpression.Type, dtoType => dtoType.GetProperties());
-                        foreach (var dtoProp in dtoProps)
-                        {
-                            foreach (var dtTb in _tables)
-                            {
-                                if (dtTb.Table.Columns.TryGetValue(dtoProp.Name, out var trydtocol))
-                                {
-                                    var child = new ReadAnonymousTypeInfo
-                                    {
-                                        Property = dtoProp,
-                                        CsName = dtoProp.Name,
-                                        CsType = dtoProp.PropertyType,
-                                        MapType = trydtocol.Attribute.MapType
-                                    };
-                                    parent.Childs.Add(child);
-                                    if (dtTb.Parameter != null)
-                                        ReadAnonymousField(_tables, field, child, ref index, Expression.Property(dtTb.Parameter, dtTb.Table.Properties[trydtocol.CsName]), getSelectGroupingMapString, whereCascadeExpression);
-                                    else
-                                    {
-                                        child.DbField = $"{dtTb.Alias}.{_common.QuoteSqlName(trydtocol.Attribute.Name)}";
-                                        field.Append(", ").Append(child.DbField);
-                                        if (index >= 0) field.Append(" as").Append(++index);
-                                    }
-                                    break;
-                                }
-                            }
-                        }
-                        if (parent.Childs.Any() == false) throw new Exception($"映射异常：{initExp.NewExpression.Type.Name} 没有一个属性名相同");
-                    }
+                    if (parent.Childs.Any() == false) throw new Exception($"映射异常：{initExp.NewExpression.Type.Name} 没有一个属性名相同");
                     return true;
                 case ExpressionType.New:
                     var newExp = exp as NewExpression;
@@ -182,8 +180,8 @@ namespace FreeSql.Internal
                     {
                         //dto 映射
                         parent.ConsturctorType = ReadAnonymousTypeInfoConsturctorType.Properties;
-                        var dtoProps = _dicReadAnonymousFieldDtoPropertys.GetOrAdd(newExp.Type, dtoType => dtoType.GetProperties());
-                        foreach (var dtoProp in dtoProps)
+                        var dtoProps2 = _dicReadAnonymousFieldDtoPropertys.GetOrAdd(newExp.Type, dtoType => dtoType.GetProperties());
+                        foreach (var dtoProp in dtoProps2)
                         {
                             foreach (var dtTb in _tables)
                             {
