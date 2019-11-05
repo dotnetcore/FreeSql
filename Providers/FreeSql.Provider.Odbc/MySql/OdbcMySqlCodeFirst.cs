@@ -5,6 +5,7 @@ using System.Data;
 using System.Data.Odbc;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace FreeSql.Odbc.MySql
 {
@@ -205,8 +206,12 @@ where a.table_schema in ({0}) and a.table_name in ({1})", tboldname ?? tbname);
                                 string.IsNullOrEmpty(tbcol.Attribute.OldName) == false && tbstruct.TryGetValue(tbcol.Attribute.OldName, out tbstructcol))
                             {
                                 var isCommentChanged = tbstructcol.comment != (tbcol.Comment ?? "");
+                                var isDbTypeChanged = tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.CurrentCultureIgnoreCase) == false;
+                                if (tbstructcol.sqlType == "datetime(0)" && Regex.IsMatch(tbcol.Attribute.DbType, @"datetime\s+\(", RegexOptions.IgnoreCase) == false)
+                                    isDbTypeChanged = tbcol.Attribute.DbType.StartsWith("datetime", StringComparison.CurrentCultureIgnoreCase) == false;
+
                                 if ((tbcol.Attribute.DbType.IndexOf(" unsigned", StringComparison.CurrentCultureIgnoreCase) != -1) != tbstructcol.is_unsigned ||
-                                tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.CurrentCultureIgnoreCase) == false ||
+                                isDbTypeChanged ||
                                 tbcol.Attribute.IsNullable != tbstructcol.is_nullable ||
                                 tbcol.Attribute.IsIdentity != tbstructcol.is_identity ||
                                 isCommentChanged)
