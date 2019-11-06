@@ -169,7 +169,7 @@ namespace FreeSql.Sqlite
                     {
                         column = string.Concat(a[1]),
                         sqlType = string.Concat(a[2]).ToUpper(),
-                        is_nullable = string.Concat(a[3]) == "0",
+                        is_nullable = string.Concat(a[5]) == "0" && string.Concat(a[3]) == "0",
                         is_identity
                     };
                 }, StringComparer.CurrentCultureIgnoreCase);
