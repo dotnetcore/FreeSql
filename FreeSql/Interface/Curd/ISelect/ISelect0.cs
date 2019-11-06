@@ -118,6 +118,13 @@ namespace FreeSql
         /// <returns></returns>
         TSelect AsTable(Func<Type, string, string> tableRule);
         /// <summary>
+        /// 设置别名规则，可用于拦截表别名，实现类似 sqlserver 的 with(nolock) 需求<para></para>
+        /// 如：select.AsAlias((_, oldAlias) => oldAlias + " with(lock)")
+        /// </summary>
+        /// <param name="aliasRule"></param>
+        /// <returns></returns>
+        TSelect AsAlias(Func<Type, string, string> aliasRule);
+        /// <summary>
         /// 动态Type，在使用 Select&lt;object&gt; 后使用本方法，指定实体类型
         /// </summary>
         /// <param name="entityType"></param>

@@ -150,7 +150,6 @@ namespace FreeSql.Tests.SqlServer
         [Fact]
         public void ToList()
         {
-
             var testDto1 = select.Limit(10).ToList(a => new TestDto { id = a.Id, name = a.Title });
             var testDto2 = select.Limit(10).ToList(a => new TestDto());
             var testDto3 = select.Limit(10).ToList(a => new TestDto { });

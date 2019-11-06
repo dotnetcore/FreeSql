@@ -910,7 +910,6 @@ namespace FreeSql.Internal.CommonProvider
         internal void SetList(IEnumerable<T1> list)
         {
             foreach (var include in _includeToList) include?.Invoke(list);
-            _orm.Aop.ToList?.Invoke(this, new Aop.ToListEventArgs(list));
             _trackToList?.Invoke(list);
         }
 

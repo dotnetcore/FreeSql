@@ -24,6 +24,7 @@ namespace FreeSql.Internal.CommonProvider
         protected List<DbParameter> _params = new List<DbParameter>();
         protected List<SelectTableInfo> _tables = new List<SelectTableInfo>();
         protected List<Func<Type, string, string>> _tableRules = new List<Func<Type, string, string>>();
+        protected Func<Type, string, string> _aliasRule;
         protected StringBuilder _join = new StringBuilder();
         protected IFreeSql _orm;
         protected CommonUtils _commonUtils;
@@ -86,6 +87,7 @@ namespace FreeSql.Internal.CommonProvider
                     _multiTables.AddRange(from._tables.GetRange(_multiTables.Count, from._tables.Count - _multiTables.Count));
             }
             toType.GetField("_tableRules", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._tableRules);
+            toType.GetField("_aliasRule", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._aliasRule);
             toType.GetField("_join", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, new StringBuilder().Append(from._join.ToString()));
             //toType.GetField("_orm", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._orm);
             //toType.GetField("_commonUtils", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._commonUtils);
@@ -345,7 +347,6 @@ namespace FreeSql.Internal.CommonProvider
                 _orm.Aop.CurdAfter?.Invoke(this, after);
             }
             foreach (var include in _includeToList) include?.Invoke(ret);
-            _orm.Aop.ToList?.Invoke(this, new Aop.ToListEventArgs(ret));
             _trackToList?.Invoke(ret);
             return ret;
         }
@@ -391,7 +392,6 @@ namespace FreeSql.Internal.CommonProvider
                         checkDoneTimes++;
 
                         foreach (var include in _includeToList) include?.Invoke(ret);
-                        _orm.Aop.ToList?.Invoke(this, new Aop.ToListEventArgs(ret));
                         _trackToList?.Invoke(ret);
                         chunkDone(ret);
                         
@@ -416,7 +416,6 @@ namespace FreeSql.Internal.CommonProvider
             if (ret.Any() || checkDoneTimes == 0)
             {
                 foreach (var include in _includeToList) include?.Invoke(ret);
-                _orm.Aop.ToList?.Invoke(this, new Aop.ToListEventArgs(ret));
                 _trackToList?.Invoke(ret);
                 chunkDone(ret);
             }
@@ -482,7 +481,6 @@ namespace FreeSql.Internal.CommonProvider
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
                 _orm.Aop.CurdAfter?.Invoke(this, after);
             }
-            _orm.Aop.ToList?.Invoke(this, new Aop.ToListEventArgs(ret));
             _trackToList?.Invoke(ret);
             return ret;
         }
@@ -902,6 +900,11 @@ namespace FreeSql.Internal.CommonProvider
             if (tableRule != null) _tableRules.Add(tableRule);
             return this as TSelect;
         }
+        public TSelect AsAlias(Func<Type, string, string> aliasRule)
+        {
+            if (aliasRule != null) _aliasRule = aliasRule;
+            return this as TSelect;
+        }
         public TSelect AsType(Type entityType)
         {
             if (entityType == typeof(object)) throw new Exception("ISelect.AsType 参数不支持指定为 object");
@@ -917,10 +920,6 @@ namespace FreeSql.Internal.CommonProvider
         public TSelect WhereIf(bool condition, string sql, object parms = null)
         {
             if (condition == false || string.IsNullOrEmpty(sql)) return this as TSelect;
-            var args = new Aop.WhereEventArgs(sql, parms);
-            _orm.Aop.Where?.Invoke(this, new Aop.WhereEventArgs(sql, parms));
-            if (args.IsCancel == true) return this as TSelect;
-
             _where.Append(" AND (").Append(sql).Append(")");
             if (parms != null) _params.AddRange(_commonUtils.GetDbParamtersByObject(sql, parms));
             return this as TSelect;
@@ -1121,7 +1120,6 @@ namespace FreeSql.Internal.CommonProvider
                 _orm.Aop.CurdAfter?.Invoke(this, after);
             }
             foreach (var include in _includeToList) include?.Invoke(ret);
-            _orm.Aop.ToList?.Invoke(this, new Aop.ToListEventArgs(ret));
             _trackToList?.Invoke(ret);
             return ret;
         }
@@ -1184,7 +1182,6 @@ namespace FreeSql.Internal.CommonProvider
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
                 _orm.Aop.CurdAfter?.Invoke(this, after);
             }
-            _orm.Aop.ToList?.Invoke(this, new Aop.ToListEventArgs(ret));
             _trackToList?.Invoke(ret);
             return ret;
         }

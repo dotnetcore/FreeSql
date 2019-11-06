@@ -908,6 +908,14 @@
             <param name="tableRule"></param>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.ISelect0`2.AsAlias(System.Func{System.Type,System.String,System.String})">
+            <summary>
+            设置别名规则，可用于拦截表别名，实现类似 sqlserver 的 with(nolock) 需求<para></para>
+            如：select.AsAlias((_, oldAlias) => oldAlias + " with(lock)")
+            </summary>
+            <param name="aliasRule"></param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.ISelect0`2.AsType(System.Type)">
             <summary>
             动态Type，在使用 Select&lt;object&gt; 后使用本方法，指定实体类型
@@ -2114,16 +2122,6 @@
             <param name="parms"></param>
             <returns></returns>
         </member>
-        <member name="P:FreeSql.IAop.ToList">
-            <summary>
-            监控 ToList 返回的的数据，用于拦截重新装饰
-            </summary>
-        </member>
-        <member name="P:FreeSql.IAop.Where">
-            <summary>
-            监视 Where，包括 select/update/delete，可控制使上层不被执行。
-            </summary>
-        </member>
         <member name="P:FreeSql.IAop.ParseExpression">
             <summary>
             可自定义解析表达式
@@ -2162,16 +2160,6 @@
         <member name="P:FreeSql.IAop.AuditValue">
             <summary>
             Insert/Update自动值处理
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.ToListEventArgs.List">
-            <summary>
-            可重新装饰的引用数据
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.WhereEventArgs.IsCancel">
-            <summary>
-            可使上层不被执行这个条件
             </summary>
         </member>
         <member name="P:FreeSql.Aop.ParseExpressionEventArgs.FreeParse">

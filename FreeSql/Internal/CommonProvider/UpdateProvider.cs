@@ -428,10 +428,6 @@ namespace FreeSql.Internal.CommonProvider
         public IUpdate<T1> Where(string sql, object parms = null)
         {
             if (string.IsNullOrEmpty(sql)) return this;
-            var args = new Aop.WhereEventArgs(sql, parms);
-            _orm.Aop.Where?.Invoke(this, new Aop.WhereEventArgs(sql, parms));
-            if (args.IsCancel == true) return this;
-
             _where.Append(" AND (").Append(sql).Append(")");
             if (parms != null) _params.AddRange(_commonUtils.GetDbParamtersByObject(sql, parms));
             return this;
