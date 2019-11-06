@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Data.SQLite;
 using System.Linq.Expressions;
 using System.Text;
 
@@ -34,13 +33,16 @@ namespace FreeSql.Sqlite
                     dbtype = DbType.Int64;
                     break;
             }
-            var ret = new SQLiteParameter { ParameterName = QuoteParamterName(parameterName), DbType = dbtype, Value = value };
+            var ret = MonoAdapter.GetSqliteParameter();
+            ret.ParameterName = QuoteParamterName(parameterName);
+            ret.DbType = dbtype;
+            ret.Value = value;
             _params?.Add(ret);
             return ret;
         }
 
         public override DbParameter[] GetDbParamtersByObject(string sql, object obj) =>
-            Utils.GetDbParamtersByObject<SQLiteParameter>(sql, obj, "@", (name, type, value) =>
+            Utils.GetDbParamtersByObject<DbParameter>(sql, obj, "@", (name, type, value) =>
             {
                 var dbtype = (DbType)_orm.CodeFirst.GetDbInfo(type)?.type;
                 switch (dbtype)
@@ -56,7 +58,10 @@ namespace FreeSql.Sqlite
                         dbtype = DbType.Int64;
                         break;
                 }
-                var ret = new SQLiteParameter { ParameterName = $"@{name}", DbType = dbtype, Value = value };
+                var ret = MonoAdapter.GetSqliteParameter();
+                ret.ParameterName = $"@{name}";
+                ret.DbType = dbtype;
+                ret.Value = value;
                 return ret;
             });
 

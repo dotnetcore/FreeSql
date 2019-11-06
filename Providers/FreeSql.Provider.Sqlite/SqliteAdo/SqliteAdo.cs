@@ -3,7 +3,6 @@ using SafeObjectPool;
 using System;
 using System.Collections;
 using System.Data.Common;
-using System.Data.SQLite;
 using System.Text;
 using System.Threading;
 
@@ -56,7 +55,7 @@ namespace FreeSql.Sqlite
 
         protected override DbCommand CreateCommand()
         {
-            return new SQLiteCommand();
+            return MonoAdapter.GetSqliteCommand();
         }
 
         protected override void ReturnConnection(ObjectPool<DbConnection> pool, Object<DbConnection> conn, Exception ex)
