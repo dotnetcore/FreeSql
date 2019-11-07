@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net45;net40</TargetFrameworks>
-		<Version>0.11.9</Version>
+		<Version>0.11.9.2</Version>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>YeXiangQin</Authors>
 		<Description>FreeSql 数据库实现，基于 Sqlite 3.0</Description>
@@ -25,11 +25,17 @@
 	<ItemGroup>
 	  <PackageReference Include="System.Data.SQLite.Core" Version="1.0.112" />
 	</ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="3.0.0" />
+  </ItemGroup>
 
 	<ItemGroup>
 	  <ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />
 	</ItemGroup>
 
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <DefineConstants>ns20;netstandard20</DefineConstants>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(TargetFramework)' == 'net40'">
     <DefineConstants>net40</DefineConstants>
   </PropertyGroup>

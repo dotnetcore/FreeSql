@@ -55,7 +55,7 @@ namespace FreeSql.Sqlite
 
         protected override DbCommand CreateCommand()
         {
-            return MonoAdapter.GetSqliteCommand();
+            return AdonetPortable.GetSqliteCommand();
         }
 
         protected override void ReturnConnection(ObjectPool<DbConnection> pool, Object<DbConnection> conn, Exception ex)

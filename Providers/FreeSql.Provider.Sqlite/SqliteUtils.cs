@@ -33,7 +33,7 @@ namespace FreeSql.Sqlite
                     dbtype = DbType.Int64;
                     break;
             }
-            var ret = MonoAdapter.GetSqliteParameter();
+            var ret = AdonetPortable.GetSqliteParameter();
             ret.ParameterName = QuoteParamterName(parameterName);
             ret.DbType = dbtype;
             ret.Value = value;
@@ -58,7 +58,7 @@ namespace FreeSql.Sqlite
                         dbtype = DbType.Int64;
                         break;
                 }
-                var ret = MonoAdapter.GetSqliteParameter();
+                var ret = AdonetPortable.GetSqliteParameter();
                 ret.ParameterName = $"@{name}";
                 ret.DbType = dbtype;
                 ret.Value = value;

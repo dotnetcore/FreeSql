@@ -34,7 +34,7 @@ namespace FreeSql.Sqlite
 
         public void Return(Object<DbConnection> obj, Exception exception, bool isRecreate = false)
         {
-            if (exception != null && MonoAdapter.IsSqliteException(exception))
+            if (exception != null && AdonetPortable.IsSqliteException(exception))
             {
                 try { if (obj.Value.Ping() == false) obj.Value.OpenAndAttach(policy.Attaches); } catch { base.SetUnavailable(exception); }
             }
@@ -57,7 +57,6 @@ namespace FreeSql.Sqlite
         public int CheckAvailableInterval { get; set; } = 5;
         public string[] Attaches = new string[0];
 
-        static ConcurrentDictionary<string, int> dicConnStrIncr = new ConcurrentDictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
         private string _connectionString;
         public string ConnectionString
         {
@@ -68,12 +67,11 @@ namespace FreeSql.Sqlite
 
                 var pattern = @"Max\s*pool\s*size\s*=\s*(\d+)";
                 Match m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase);
-                if (m.Success == false || int.TryParse(m.Groups[1].Value, out var poolsize) == false || poolsize <= 0) poolsize = 100;
-                var connStrIncr = dicConnStrIncr.AddOrUpdate(_connectionString, 1, (oldkey, oldval) => oldval + 1);
-                PoolSize = poolsize + connStrIncr;
-                _connectionString = m.Success ?
-                    Regex.Replace(_connectionString, pattern, $"Max pool size={PoolSize}", RegexOptions.IgnoreCase) :
-                    $"{_connectionString};Max pool size={PoolSize}";
+                if (m.Success)
+                {
+                    PoolSize = int.Parse(m.Groups[1].Value);
+                    _connectionString = Regex.Replace(_connectionString, pattern, "", RegexOptions.IgnoreCase);
+                }
 
                 pattern = @"Connection\s*LifeTime\s*=\s*(\d+)";
                 m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase);
@@ -92,14 +90,26 @@ namespace FreeSql.Sqlite
                     _connectionString = Regex.Replace(_connectionString, pattern, "", RegexOptions.IgnoreCase);
                 }
 
-                var att = Regex.Split(_connectionString, @"Attachs\s*=\s*", RegexOptions.IgnoreCase);
+                var att = Regex.Split(_connectionString, @"Pooling\s*=\s*", RegexOptions.IgnoreCase);
+                if (att.Length == 2)
+                {
+                    var idx = att[1].IndexOf(';');
+                    _connectionString = string.Concat(att[0], idx == -1 ? "" : att[1].Substring(idx));
+                }
+
+                att = Regex.Split(_connectionString, @"Attachs\s*=\s*", RegexOptions.IgnoreCase);
                 if (att.Length == 2)
                 {
                     var idx = att[1].IndexOf(';');
                     Attaches = (idx == -1 ? att[1] : att[1].Substring(0, idx)).Split(',');
+                    _connectionString = string.Concat(att[0], idx == -1 ? "" : att[1].Substring(idx));
                 }
 
+#if ns20
+                minPoolSize = 1;
+#endif
                 FreeSql.Internal.CommonUtils.PrevReheatConnectionPool(_pool, minPoolSize);
+
             }
         }
 
@@ -111,7 +121,7 @@ namespace FreeSql.Sqlite
 
         public DbConnection OnCreate()
         {
-            var conn = MonoAdapter.GetSqliteConnection(_connectionString);
+            var conn = AdonetPortable.GetSqliteConnection(_connectionString);
             return conn;
         }
 
