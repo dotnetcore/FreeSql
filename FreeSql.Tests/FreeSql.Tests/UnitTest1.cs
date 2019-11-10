@@ -418,9 +418,33 @@ namespace FreeSql.Tests
         public enum TestAddEnumType { 中国人, 日本人 }
 
         public static AsyncLocal<Guid> TenrantId { get; set; } = new AsyncLocal<Guid>();
+
+        public class TestAddEnumEx : TestAddEnum
+        {
+            public new int Id { get; set; }
+        }
+
         [Fact]
         public void Test1()
         {
+            var testExNewRet1 = g.sqlite.Delete<TestAddEnumEx>().Where("1=1").ExecuteAffrows();
+            var testExNewRet2 = g.sqlite.Insert<TestAddEnumEx>(new TestAddEnumEx { Id = 1, Type = TestAddEnumType.中国人 }).ExecuteAffrows();
+            var testExNewRet3 = g.sqlite.Insert<TestAddEnumEx>(new TestAddEnumEx { Id = 2, Type = TestAddEnumType.日本人 }).ExecuteAffrows();
+            var testExNewRet4 = g.sqlite.Select<TestAddEnumEx>().ToList();
+            var testExNewRet5 = g.sqlite.Update<TestAddEnumEx>(1).Set(a => a.Type == TestAddEnumType.日本人).ExecuteAffrows();
+            var testExNewRet6 = g.sqlite.Select<TestAddEnumEx>().ToList();
+            var testExNewRet7 = g.sqlite.Delete<TestAddEnumEx>().Where("1=1").ExecuteAffrows();
+            var testExNewRet8 = g.sqlite.Select<TestAddEnumEx>().ToList();
+
+            var testBaseRet1 = g.sqlite.Delete<TestAddEnum>().Where("1=1").ExecuteAffrows();
+            var testBaseRet2 = g.sqlite.Insert<TestAddEnum>(new TestAddEnum { Type = TestAddEnumType.中国人 }).ExecuteAffrows();
+            var testBaseRet3 = g.sqlite.Insert<TestAddEnum>(new TestAddEnum { Type = TestAddEnumType.日本人 }).ExecuteAffrows();
+            var testBaseRet4 = g.sqlite.Select<TestAddEnum>().ToList();
+            var testBaseRet5 = g.sqlite.Update<TestAddEnum>(testBaseRet4[0]).Set(a => a.Type == TestAddEnumType.日本人).ExecuteAffrows();
+            var testBaseRet6 = g.sqlite.Select<TestAddEnum>().ToList();
+            var testBaseRet7 = g.sqlite.Delete<TestAddEnum>().Where("1=1").ExecuteAffrows();
+            var testBaseRet8 = g.sqlite.Select<TestAddEnum>().ToList();
+
 
             //g.mysql.Aop.AuditValue += (_, e) =>
             //{

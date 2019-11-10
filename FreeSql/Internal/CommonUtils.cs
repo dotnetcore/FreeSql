@@ -262,7 +262,7 @@ namespace FreeSql.Internal
             else
             {
                 var sb = new StringBuilder();
-                var ps = type.GetProperties();
+                var ps = type.GetPropertiesDictIgnoreCase().Values;
                 var psidx = 0;
                 foreach (var p in ps)
                 {
@@ -360,7 +360,7 @@ namespace FreeSql.Internal
                 }
                 var xmlNav = xpath.CreateNavigator();
 
-                var props = type.GetProperties();
+                var props = type.GetPropertiesDictIgnoreCase().Values;
                 foreach (var prop in props)
                 {
                     var className = (prop.DeclaringType.IsNested ? $"{prop.DeclaringType.Namespace}.{prop.DeclaringType.DeclaringType.Name}.{prop.DeclaringType.Name}" : $"{prop.DeclaringType.Namespace}.{prop.DeclaringType.Name}").Trim('.');

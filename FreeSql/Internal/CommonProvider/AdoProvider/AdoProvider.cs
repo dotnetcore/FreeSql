@@ -79,11 +79,10 @@ namespace FreeSql.Internal.CommonProvider
             if (isThrowException) throw e;
         }
 
-        internal static ConcurrentDictionary<Type, Dictionary<string, PropertyInfo>> dicQueryTypeGetProperties = new ConcurrentDictionary<Type, Dictionary<string, PropertyInfo>>();
         internal Dictionary<string, PropertyInfo> GetQueryTypeProperties(Type type)
         {
             var tb = _util.GetTableByEntity(type);
-            var props = tb?.Properties ?? dicQueryTypeGetProperties.GetOrAdd(type, k => type.GetProperties().ToDictionary(a => a.Name, a => a, StringComparer.CurrentCultureIgnoreCase));
+            var props = tb?.Properties ?? type.GetPropertiesDictIgnoreCase();
             return props;
         }
         public List<T> Query<T>(string cmdText, object parms = null) => Query<T>(null, null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));

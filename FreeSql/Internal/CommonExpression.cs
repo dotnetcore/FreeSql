@@ -23,7 +23,6 @@ namespace FreeSql.Internal
             _common = common;
         }
 
-        static ConcurrentDictionary<Type, PropertyInfo[]> _dicReadAnonymousFieldDtoPropertys = new ConcurrentDictionary<Type, PropertyInfo[]>();
         public bool ReadAnonymousField(List<SelectTableInfo> _tables, StringBuilder field, ReadAnonymousTypeInfo parent, ref int index, Expression exp, Func<Expression[], string> getSelectGroupingMapString, List<LambdaExpression> whereCascadeExpression)
         {
             Func<ExpTSC> getTSC = () => new ExpTSC { _tables = _tables, getSelectGroupingMapString = getSelectGroupingMapString, tbtype = SelectTableInfoType.From, isQuoteName = true, isDisableDiyParse = false, style = ExpressionStyle.Where, whereCascadeExpression = whereCascadeExpression };
@@ -110,7 +109,7 @@ namespace FreeSql.Internal
                     parent.ConsturctorType = ReadAnonymousTypeInfoConsturctorType.Properties;
 
                     //dto 映射
-                    var dtoProps = _dicReadAnonymousFieldDtoPropertys.GetOrAdd(initExp.NewExpression.Type, dtoType => dtoType.GetProperties());
+                    var dtoProps = initExp.NewExpression.Type.GetPropertiesDictIgnoreCase().Values;
                     foreach (var dtoProp in dtoProps)
                     {
                         foreach (var dtTb in _tables)
@@ -180,7 +179,7 @@ namespace FreeSql.Internal
                     {
                         //dto 映射
                         parent.ConsturctorType = ReadAnonymousTypeInfoConsturctorType.Properties;
-                        var dtoProps2 = _dicReadAnonymousFieldDtoPropertys.GetOrAdd(newExp.Type, dtoType => dtoType.GetProperties());
+                        var dtoProps2 = newExp.Type.GetPropertiesDictIgnoreCase().Values;
                         foreach (var dtoProp in dtoProps2)
                         {
                             foreach (var dtTb in _tables)

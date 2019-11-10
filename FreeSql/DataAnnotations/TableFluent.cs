@@ -12,7 +12,7 @@ namespace FreeSql.DataAnnotations
         public TableFluent(Type entityType, TableAttribute table)
         {
             _entityType = entityType;
-            _properties = _entityType.GetProperties().ToDictionary(a => a.Name, a => a, StringComparer.CurrentCultureIgnoreCase);
+            _properties = _entityType.GetPropertiesDictIgnoreCase();
             _table = table;
         }
 

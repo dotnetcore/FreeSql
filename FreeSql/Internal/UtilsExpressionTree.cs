@@ -51,7 +51,7 @@ namespace FreeSql.Internal
             var tbattr = common.GetEntityTableAttribute(entity);
             trytb = new TableInfo();
             trytb.Type = entity;
-            trytb.Properties = entity.GetProperties().ToDictionary(a => a.Name, a => a, StringComparer.CurrentCultureIgnoreCase);
+            trytb.Properties = entity.GetPropertiesDictIgnoreCase();
             trytb.CsName = entity.Name;
             trytb.DbName = (tbattr?.Name ?? entity.Name);
             trytb.DbOldName = tbattr?.OldName;
@@ -72,7 +72,7 @@ namespace FreeSql.Internal
             var columnsList = new List<ColumnInfo>();
             foreach (var p in trytb.Properties.Values)
             {
-                var setMethod = trytb.Type.GetMethod($"set_{p.Name}");
+                var setMethod = p.GetSetMethod(); //trytb.Type.GetMethod($"set_{p.Name}");
                 var colattr = common.GetEntityColumnAttribute(entity, p);
                 var tp = common.CodeFirst.GetDbInfo(colattr?.MapType ?? p.PropertyType);
                 if (setMethod == null || (tp == null && p.PropertyType.IsValueType)) // 属性没有 set自动忽略
@@ -391,7 +391,7 @@ namespace FreeSql.Internal
                 {
                     if (midType != null)
                     {
-                        var midTypeProps = midType.GetProperties();
+                        var midTypeProps = midType.GetPropertiesDictIgnoreCase().Values;
                         var midTypePropsTrytb = midTypeProps.Where(a => a.PropertyType == trytb.Type).Count();
                         var midTypePropsTbref = midTypeProps.Where(a => a.PropertyType == tbref.Type).Count();
                         if (midTypePropsTrytb != 1 || midTypePropsTbref != 1) midType = null;
@@ -1024,7 +1024,7 @@ namespace FreeSql.Internal
             var type = obj.GetType();
             if (type == ttype) return new[] { (T)Convert.ChangeType(obj, type) };
             var ret = new List<T>();
-            var ps = type.GetProperties();
+            var ps = type.GetPropertiesDictIgnoreCase().Values;
             foreach (var p in ps)
             {
                 if (string.IsNullOrEmpty(paramPrefix) == false && sql.IndexOf($"{paramPrefix}{p.Name}", StringComparison.CurrentCultureIgnoreCase) == -1) continue;
@@ -1346,7 +1346,7 @@ namespace FreeSql.Internal
                         Expression.Assign(readpknullExp, Expression.Constant(false))
                     });
 
-                        var props = type.GetProperties();//.ToDictionary(a => a.Name, a => a, StringComparer.CurrentCultureIgnoreCase);
+                        var props = type.GetPropertiesDictIgnoreCase().Values;
                         var propIndex = 0;
                         foreach (var prop in props)
                         {

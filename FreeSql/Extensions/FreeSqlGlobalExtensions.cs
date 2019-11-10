@@ -43,6 +43,19 @@ public static partial class FreeSqlGlobalExtensions
     public static Type NullableTypeOrThis(this Type that) => that?.IsNullableType() == true ? that.GetGenericArguments().First() : that;
     internal static string NotNullAndConcat(this string that, params object[] args) => string.IsNullOrEmpty(that) ? null : string.Concat(new object[] { that }.Concat(args));
 
+    static ConcurrentDictionary<Type, Dictionary<string, PropertyInfo>> _dicGetPropertiesDictIgnoreCase = new ConcurrentDictionary<Type, Dictionary<string, PropertyInfo>>();
+    public static Dictionary<string, PropertyInfo> GetPropertiesDictIgnoreCase(this Type that) => that == null ? null : _dicGetPropertiesDictIgnoreCase.GetOrAdd(that, tp =>
+    {
+        var props = that.GetProperties();
+        var dict = new Dictionary<string, PropertyInfo>(StringComparer.CurrentCultureIgnoreCase);
+        foreach (var prop in props)
+        {
+            if (dict.ContainsKey(prop.Name)) continue;
+            dict.Add(prop.Name, prop);
+        }
+        return dict;
+    });
+
     /// <summary>
     /// 测量两个经纬度的距离，返回单位：米
     /// </summary>
