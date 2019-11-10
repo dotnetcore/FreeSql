@@ -84,7 +84,7 @@ namespace FreeSql.Internal
                 {
                     if (common.CodeFirst.IsLazyLoading)
                     {
-                        var getIsVirtual = trytb.Type.GetMethod($"get_{p.Name}")?.IsVirtual;
+                        var getIsVirtual = p.GetGetMethod()?.IsVirtual;// trytb.Type.GetMethod($"get_{p.Name}")?.IsVirtual;
                         var setIsVirtual = setMethod?.IsVirtual;
                         if (getIsVirtual == true || setIsVirtual == true)
                             propsLazy.Add((p, getIsVirtual == true, setIsVirtual == true));
