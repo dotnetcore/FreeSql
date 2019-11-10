@@ -199,6 +199,11 @@
             创建日期
             </summary>
         </member>
+        <member name="P:FreeSql.Tests.UnitTest2.Comment.Text">
+            <summary>
+            回复的文本内容
+            </summary>
+        </member>
         <member name="T:SaleIDO.Entity.Storeage.AdjustPriceOrder">
             <summary>
             调价单

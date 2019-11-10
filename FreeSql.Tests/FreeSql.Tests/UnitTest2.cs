@@ -137,9 +137,42 @@ namespace FreeSql.Tests
         {
         }
 
+        public class LinUser
+        {
+            public long id { get; set; }
+        }
+
+        public class Comment
+        {
+            public Guid Id { get; set; }
+            /// <summary>
+            /// 回复的文本内容
+            /// </summary>
+            public string Text { get; set; }
+            [Navigate("CreateUserId")]
+            public LinUser UserInfo { get; set; }
+            public long? CreateUserId { get; set; }
+        }
+
+        public class UserLike
+        {
+            public Guid Id { get; set; }
+            public Guid SubjectId { get; set; }
+            public long? CreateUserId { get; set; }
+        }
+
         [Fact]
         public void Test02()
         {
+
+            var comments1 = g.mysql.Select<Comment, UserLike>()
+    .LeftJoin((a, b) => a.Id == b.SubjectId)
+    .ToList((a, b) => new { comment = a, b.SubjectId, user = a.UserInfo });
+
+            var comments2 = g.mysql.Select<Comment>()
+    .Include(r => r.UserInfo)
+    .From<UserLike>((z, b) => z.LeftJoin(u => u.Id == b.SubjectId))
+    .ToList((a, b) => new { comment = a, b.SubjectId, user = a.UserInfo });
 
             g.sqlite.Delete<SysModulePermission>().Where("1=1").ExecuteAffrows();
             g.sqlite.Delete<SysModuleButton>().Where("1=1").ExecuteAffrows();

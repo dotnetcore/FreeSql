@@ -71,20 +71,28 @@ namespace FreeSql.Internal.CommonProvider
                 toType.GetField("_tables", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, new List<SelectTableInfo>(from._tables.ToArray()));
             else
             {
+                var findedIndexs = new List<int>();
                 var _multiTables = toType.GetField("_tables", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(to) as List<SelectTableInfo>;
                 _multiTables[0] = from._tables[0];
                 for (var a = 1; a < lambParms.Count; a++)
                 {
-                    var tb = from._tables.Where(b => b.Alias == lambParms[a].Name && b.Table.Type == lambParms[a].Type).FirstOrDefault();
-                    if (tb != null) _multiTables[a] = tb;
+                    var tbIndex = from._tables.FindIndex(b => b.Alias == lambParms[a].Name && b.Table.Type == lambParms[a].Type); ;
+                    if (tbIndex != -1)
+                    {
+                        findedIndexs.Add(tbIndex);
+                        _multiTables[a] = from._tables[tbIndex];
+                    }
                     else
                     {
                         _multiTables[a].Alias = lambParms[a].Name;
                         _multiTables[a].Parameter = lambParms[a];
                     }
                 }
-                if (_multiTables.Count < from._tables.Count)
-                    _multiTables.AddRange(from._tables.GetRange(_multiTables.Count, from._tables.Count - _multiTables.Count));
+                for (var a = 1; a < from._tables.Count; a++)
+                {
+                    if (findedIndexs.Contains(a)) continue;
+                    _multiTables.Add(from._tables[a]);
+                }
             }
             toType.GetField("_tableRules", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._tableRules);
             toType.GetField("_aliasRule", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._aliasRule);
