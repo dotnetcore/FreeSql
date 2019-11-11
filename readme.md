@@ -49,6 +49,13 @@ FreeSql 是功能强大的对象关系映射技术(O/RM)，支持 .NETCore 2.1+ 
 - [Abp 中使用 FreeSql](https://github.com/gnsilence/JPGZService)，测试中．．．；
 - [FreeSql 优势.pptx](https://github.com/2881099/FreeSql/files/3305852/FreeSql.pptx)；
 
+> 学习项目
+
+- [😃 A simple and practical CMS implememted by .NET Core 2.2](https://github.com/luoyunchong/lin-cms-dotnetcore)
+- [内容管理系统](https://github.com/hejiyong/fscms)
+
+欢迎更多使用 FreeSql 的开源项目加入目录
+
 # Providers
 
 | Package Name | Version |
