@@ -419,8 +419,8 @@ namespace FreeSql.Internal.CommonProvider
             var colidx = 0;
             foreach (var col in _table.Columns.Values)
             {
-                if (_ignore.ContainsKey(col.Attribute.Name)) continue;
                 if (col.Attribute.IsIdentity && _insertIdentity == false) continue;
+                if (col.Attribute.IsIdentity == false && _ignore.ContainsKey(col.Attribute.Name)) continue;
 
                 if (colidx > 0) sb.Append(", ");
                 sb.Append(_commonUtils.QuoteSqlName(col.Attribute.Name));
@@ -437,8 +437,8 @@ namespace FreeSql.Internal.CommonProvider
                 var colidx2 = 0;
                 foreach (var col in _table.Columns.Values)
                 {
-                    if (_ignore.ContainsKey(col.Attribute.Name)) continue;
                     if (col.Attribute.IsIdentity && _insertIdentity == false) continue;
+                    if (col.Attribute.IsIdentity == false && _ignore.ContainsKey(col.Attribute.Name)) continue;
 
                     if (colidx2 > 0) sb.Append(", ");
                     object val = col.GetMapValue(d);
