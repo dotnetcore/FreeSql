@@ -89,8 +89,7 @@ namespace FreeSql.PostgreSQL.Curd
         public string ToSql()
         {
             var sb = new StringBuilder();
-            var insertSql = _pgsqlInsert.ToSql();
-            sb.Append(insertSql).Insert(insertSql.IndexOf('('), " AS _ftb_ ").Append("\r\nON CONFLICT(");
+            sb.Append(_pgsqlInsert.ToSql()).Append("\r\nON CONFLICT(");
             for (var a = 0; a < _columns.Length; a++)
             {
                 if (a > 0) sb.Append(", ");
@@ -117,7 +116,7 @@ namespace FreeSql.PostgreSQL.Curd
                     if (col.Attribute.IsVersion == true)
                     {
                         var field = _pgsqlInsert.InternalCommonUtils.QuoteSqlName(col.Attribute.Name);
-                        sb.Append(field).Append(" = _ftb_.").Append(field).Append(" + 1");
+                        sb.Append(field).Append(" = ").Append(_pgsqlInsert.InternalCommonUtils.QuoteSqlName(_pgsqlInsert.InternalTable.DbName)).Append(".").Append(field).Append(" + 1");
                     }
                     else if (_pgsqlInsert.InternalIgnore.ContainsKey(col.Attribute.Name))
                     {
