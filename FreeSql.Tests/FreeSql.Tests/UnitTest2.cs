@@ -167,6 +167,12 @@ namespace FreeSql.Tests
         [Fact]
         public void Test02()
         {
+
+            var dicParamslist = g.sqlite.Select<SysModule>().Page(1, 10)
+                .Where("id > @id and id > @id2 and id > @id3", 
+                    new Dictionary<string, int> { ["id"] = 1, ["id2"] = 2, ["id3"] = 3 })
+                .ToList();
+
             var list111 = g.sqlite.Select<SysModule>()
                .Page(1, 10)
                .ToList(a => new { Id = a.Id })

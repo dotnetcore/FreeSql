@@ -1024,13 +1024,28 @@ namespace FreeSql.Internal
             var type = obj.GetType();
             if (type == ttype) return new[] { (T)Convert.ChangeType(obj, type) };
             var ret = new List<T>();
-            var ps = type.GetPropertiesDictIgnoreCase().Values;
-            foreach (var p in ps)
+            var dic = obj as IDictionary;
+            if (dic != null)
             {
-                if (string.IsNullOrEmpty(paramPrefix) == false && sql.IndexOf($"{paramPrefix}{p.Name}", StringComparison.CurrentCultureIgnoreCase) == -1) continue;
-                var pvalue = p.GetValue(obj, null);
-                if (p.PropertyType == ttype) ret.Add((T)Convert.ChangeType(pvalue, ttype));
-                else ret.Add(constructorParamter(p.Name, p.PropertyType, pvalue));
+                foreach (var key in dic.Keys)
+                {
+                    if (string.IsNullOrEmpty(paramPrefix) == false && sql.IndexOf($"{paramPrefix}{key}", StringComparison.CurrentCultureIgnoreCase) == -1) continue;
+                    var val = dic[key];
+                    var valType = val == null ? typeof(string) : val.GetType();
+                    if (valType == ttype) ret.Add((T)Convert.ChangeType(val, ttype));
+                    else ret.Add(constructorParamter(key.ToString(), valType, val));
+                }
+            }
+            else
+            {
+                var ps = type.GetPropertiesDictIgnoreCase().Values;
+                foreach (var p in ps)
+                {
+                    if (string.IsNullOrEmpty(paramPrefix) == false && sql.IndexOf($"{paramPrefix}{p.Name}", StringComparison.CurrentCultureIgnoreCase) == -1) continue;
+                    var pvalue = p.GetValue(obj, null);
+                    if (p.PropertyType == ttype) ret.Add((T)Convert.ChangeType(pvalue, ttype));
+                    else ret.Add(constructorParamter(p.Name, p.PropertyType, pvalue));
+                }
             }
             return ret.ToArray();
         }
