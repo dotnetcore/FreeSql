@@ -41,18 +41,48 @@ namespace FreeSql.Internal.CommonProvider
         public TableAttribute GetConfigEntity(Type type) => _commonUtils.GetConfigEntity(type);
         public TableInfo GetTableByEntity(Type type) => _commonUtils.GetTableByEntity(type);
 
-        public string GetComparisonDDLStatements<TEntity>() => this.GetComparisonDDLStatements(typeof(TEntity));
-        public abstract string GetComparisonDDLStatements(params Type[] entityTypes);
+        protected string GetTableNameLowerOrUpper(string tableName)
+        {
+            if (string.IsNullOrEmpty(tableName)) return "";
+            if (IsSyncStructureToLower) tableName = tableName.ToLower();
+            if (IsSyncStructureToUpper) tableName = tableName.ToUpper();
+            return tableName;
+        }
+        public string GetComparisonDDLStatements<TEntity>() =>
+            this.GetComparisonDDLStatements((typeof(TEntity), ""));
+        public string GetComparisonDDLStatements(params Type[] entityTypes) => entityTypes == null ? null : 
+            this.GetComparisonDDLStatements(entityTypes.Distinct().Select(a => (a, "")).ToArray());
+        public string GetComparisonDDLStatements(Type entityType, string tableName) =>
+           this.GetComparisonDDLStatements((entityType, GetTableNameLowerOrUpper(tableName)));
+        protected abstract string GetComparisonDDLStatements(params (Type entityType, string tableName)[] objects);
 
         static object syncStructureLock = new object();
-        internal ConcurrentDictionary<Type, bool> dicSyced = new ConcurrentDictionary<Type, bool>();
-        public bool SyncStructure<TEntity>() => this.SyncStructure(typeof(TEntity));
-        public bool SyncStructure(params Type[] entityTypes)
+        object _dicSycedLock = new object();
+        Dictionary<Type, ConcurrentDictionary<string, bool>> _dicSynced = new Dictionary<Type, ConcurrentDictionary<string, bool>>();
+        internal ConcurrentDictionary<string, bool> _dicSycedGetOrAdd(Type entityType)
         {
-            if (entityTypes == null) return false;
-            var syncTypes = entityTypes.Where(a => dicSyced.ContainsKey(a) == false && GetTableByEntity(a)?.DisableSyncStructure == false).ToArray().Distinct().ToArray();
-            if (syncTypes.Any() == false) return false;
-            var before = new Aop.SyncStructureBeforeEventArgs(entityTypes);
+            if (_dicSynced.TryGetValue(entityType, out var trydic) == false)
+                lock (_dicSycedLock)
+                    if (_dicSynced.TryGetValue(entityType, out trydic) == false)
+                        _dicSynced.Add(entityType, trydic = new ConcurrentDictionary<string, bool>());
+            return trydic;
+        }
+        internal void _dicSycedTryAdd(Type entityType, string tableName = null) =>
+            _dicSycedGetOrAdd(entityType).TryAdd(GetTableNameLowerOrUpper(tableName), true);
+
+        public bool SyncStructure<TEntity>() =>
+            this.SyncStructure((typeof(TEntity), ""));
+        public bool SyncStructure(params Type[] entityTypes) => entityTypes == null ? false :
+            this.SyncStructure(entityTypes.Distinct().Select(a => (a, "")).ToArray());
+        public bool SyncStructure(Type entityType, string tableName) =>
+           this.SyncStructure((entityType, GetTableNameLowerOrUpper(tableName)));
+        protected bool SyncStructure(params (Type entityType, string tableName)[] objects)
+        {
+            if (objects == null) return false;
+            (Type entityType, string tableName)[] syncObjects = objects.Where(a => _dicSycedGetOrAdd(a.entityType).ContainsKey(GetTableNameLowerOrUpper(a.tableName)) == false && GetTableByEntity(a.entityType)?.DisableSyncStructure == false)
+                .Select(a => (a.entityType, GetTableNameLowerOrUpper(a.tableName))).ToArray();
+            if (syncObjects.Any() == false) return false;
+            var before = new Aop.SyncStructureBeforeEventArgs(syncObjects.Select(a => a.entityType).ToArray());
             _orm.Aop.SyncStructureBefore?.Invoke(this, before);
             Exception exception = null;
             string ddl = null;
@@ -60,14 +90,14 @@ namespace FreeSql.Internal.CommonProvider
             {
                 lock (syncStructureLock)
                 {
-                    ddl = this.GetComparisonDDLStatements(syncTypes);
+                    ddl = this.GetComparisonDDLStatements(syncObjects);
                     if (string.IsNullOrEmpty(ddl))
                     {
-                        foreach (var syncType in syncTypes) dicSyced.TryAdd(syncType, true);
+                        foreach (var syncObject in syncObjects) _dicSycedTryAdd(syncObject.entityType, syncObject.tableName);
                         return true;
                     }
                     var affrows = ExecuteDDLStatements(ddl);
-                    foreach (var syncType in syncTypes) dicSyced.TryAdd(syncType, true);
+                    foreach (var syncObject in syncObjects) _dicSycedTryAdd(syncObject.entityType, syncObject.tableName);
                     return true;
                 }
             }

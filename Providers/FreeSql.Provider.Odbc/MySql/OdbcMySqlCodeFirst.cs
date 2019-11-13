@@ -71,7 +71,7 @@ namespace FreeSql.Odbc.MySql
             return null;
         }
 
-        public override string GetComparisonDDLStatements(params Type[] entityTypes)
+        protected override string GetComparisonDDLStatements(params (Type entityType, string tableName)[] objects)
         {
             var conn = _orm.Ado.MasterPool.Get(TimeSpan.FromSeconds(5));
             var database = conn.Value.Database;
@@ -95,17 +95,27 @@ namespace FreeSql.Odbc.MySql
             var sb = new StringBuilder();
             try
             {
-                foreach (var entityType in entityTypes)
+                foreach (var obj in objects)
                 {
                     if (sb.Length > 0) sb.Append("\r\n");
-                    var tb = _commonUtils.GetTableByEntity(entityType);
-                    if (tb == null) throw new Exception($"类型 {entityType.FullName} 不可迁移");
-                    if (tb.Columns.Any() == false) throw new Exception($"类型 {entityType.FullName} 不可迁移，可迁移属性0个");
+                    var tb = _commonUtils.GetTableByEntity(obj.entityType);
+                    if (tb == null) throw new Exception($"类型 {obj.entityType.FullName} 不可迁移");
+                    if (tb.Columns.Any() == false) throw new Exception($"类型 {obj.entityType.FullName} 不可迁移，可迁移属性0个");
                     var tbname = tb.DbName.Split(new[] { '.' }, 2);
                     if (tbname?.Length == 1) tbname = new[] { database, tbname[0] };
 
                     var tboldname = tb.DbOldName?.Split(new[] { '.' }, 2); //旧表名
                     if (tboldname?.Length == 1) tboldname = new[] { database, tboldname[0] };
+                    if (string.IsNullOrEmpty(obj.tableName) == false)
+                    {
+                        var tbtmpname = obj.tableName.Split(new[] { '.' }, 2);
+                        if (tbtmpname?.Length == 1) tbtmpname = new[] { database, tbtmpname[0] };
+                        if (tbname[0] != tbtmpname[0] || tbname[1] != tbtmpname[1])
+                        {
+                            tbname = tbtmpname;
+                            tboldname = null;
+                        }
+                    }
 
                     if (string.Compare(tbname[0], database, true) != 0 && ExecuteScalar(database, _commonUtils.FormatSql(" select 1 from information_schema.schemata where schema_name={0}", tbname[0])) == null) //创建数据库
                         sb.Append($"CREATE DATABASE IF NOT EXISTS ").Append(_commonUtils.QuoteSqlName(tbname[0])).Append(" default charset utf8 COLLATE utf8_general_ci;\r\n");

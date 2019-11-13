@@ -895,6 +895,7 @@ namespace FreeSql.Internal.CommonProvider
                         {
                             if (_orm.CodeFirst.IsSyncStructureToLower) name = name.ToLower();
                             if (_orm.CodeFirst.IsSyncStructureToUpper) name = name.ToUpper();
+                            if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(tb.Table.Type, name);
                         }
                     }
                     dict.Add(tb.Table.Type, name);

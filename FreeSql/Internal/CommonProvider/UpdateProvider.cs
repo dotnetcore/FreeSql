@@ -515,6 +515,7 @@ namespace FreeSql.Internal.CommonProvider
             if (string.IsNullOrEmpty(newname)) return _table.DbName;
             if (_orm.CodeFirst.IsSyncStructureToLower) newname = newname.ToLower();
             if (_orm.CodeFirst.IsSyncStructureToUpper) newname = newname.ToUpper();
+            if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(_table.Type, newname);
             return newname;
         }
         public IUpdate<T1> AsTable(Func<string, string> tableRule)
