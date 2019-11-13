@@ -94,7 +94,11 @@ namespace FreeSql.MySql.Curd
                         sb.Append(field).Append(" = ").Append(field).Append(" + 1");
                     }
                     else if (_mysqlInsert.InternalIgnore.ContainsKey(col.Attribute.Name))
-                        sb.Append(_mysqlUpdate.InternalWhereCaseSource(col.CsName, sqlval => sqlval).Trim());
+                    {
+                        var caseWhen = _mysqlUpdate.InternalWhereCaseSource(col.CsName, sqlval => sqlval).Trim();
+                        sb.Append(caseWhen);
+                        if (caseWhen.EndsWith(" END")) _mysqlUpdate.InternalToSqlCaseWhenEnd(sb, col);
+                    }
                     else
                     {
                         var field = _mysqlInsert.InternalCommonUtils.QuoteSqlName(col.Attribute.Name);

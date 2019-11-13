@@ -99,7 +99,7 @@
             总分
             </summary>
         </member>
-        <member name="P:FreeSql.Tests.UnitTest2.SysModulePermission.SysModulePermissionId">
+        <member name="P:FreeSql.Tests.UnitTest2.SysModulePermission.Id">
             <summary>
             菜单权限ID
             </summary>
@@ -119,7 +119,7 @@
             菜单权限
             </summary>
         </member>
-        <member name="P:FreeSql.Tests.UnitTest2.SysModule.SysModuleId">
+        <member name="P:FreeSql.Tests.UnitTest2.SysModule.Id">
             <summary>
             主键
             </summary>
@@ -164,7 +164,7 @@
             创建日期
             </summary>
         </member>
-        <member name="P:FreeSql.Tests.UnitTest2.SysModuleButton.SysModuleButtonId">
+        <member name="P:FreeSql.Tests.UnitTest2.SysModuleButton.Id">
             <summary>
             按钮主键
             </summary>

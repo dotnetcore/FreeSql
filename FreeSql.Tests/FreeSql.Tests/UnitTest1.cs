@@ -427,6 +427,10 @@ namespace FreeSql.Tests
         [Fact]
         public void Test1()
         {
+
+
+            g.sqlite.Update<Model1>(1).NoneParameter().Set(a => a.title, null).ExecuteAffrows();
+
             var testExNewRet1 = g.sqlite.Delete<TestAddEnumEx>().Where("1=1").ExecuteAffrows();
             var testExNewRet2 = g.sqlite.Insert<TestAddEnumEx>(new TestAddEnumEx { Id = 1, Type = TestAddEnumType.中国人 }).ExecuteAffrows();
             var testExNewRet3 = g.sqlite.Insert<TestAddEnumEx>(new TestAddEnumEx { Id = 2, Type = TestAddEnumType.日本人 }).ExecuteAffrows();
@@ -841,8 +845,6 @@ namespace FreeSql.Tests
                 .IncludeMany(a => a.TestManys.Take(1).Where(b => b.id == a.id))
                 .Where(a => a.id > 10)
                 .ToList();
-
-
 
 
 
