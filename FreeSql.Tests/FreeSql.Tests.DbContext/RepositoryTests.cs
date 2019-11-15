@@ -415,7 +415,9 @@ namespace FreeSql.Tests
                 }
             };
             var repo = g.sqlite.GetRepository<Song>();
+            //repo.DbContextOptions.EnableAddOrUpdateNavigateList = false; //关闭联级保存功能
             repo.Insert(ss);
+            repo.SaveManyToMany(ss[0], "Tags"); //指定保存 Tags 多对多属性
 
             ss[0].Name = "爱你一万年.mp5";
             ss[0].Tags.Clear();

@@ -29,6 +29,12 @@ namespace FreeSql
         int Update(IEnumerable<TEntity> entitys);
 
         TEntity InsertOrUpdate(TEntity entity);
+        /// <summary>
+        /// 保存实体的指定 ManyToMany 导航属性
+        /// </summary>
+        /// <param name="entity">实体对象</param>
+        /// <param name="propertyName">属性名</param>
+        void SaveManyToMany(TEntity entity, string propertyName);
 
         IUpdate<TEntity> UpdateDiy { get; }
 
@@ -43,6 +49,7 @@ namespace FreeSql
         Task<int> UpdateAsync(TEntity entity);
         Task<int> UpdateAsync(IEnumerable<TEntity> entitys);
         Task<TEntity> InsertOrUpdateAsync(TEntity entity);
+        Task SaveManyToManyAsync(TEntity entity, string propertyName);
 
         Task<int> DeleteAsync(TEntity entity);
         Task<int> DeleteAsync(IEnumerable<TEntity> entitys);

@@ -129,6 +129,12 @@ namespace FreeSql
             _db.SaveChanges();
             return entity;
         }
+
+        public void SaveManyToMany(TEntity entity, string propertyName)
+        {
+            _dbset.SaveManyToMany(entity, propertyName);
+            _db.SaveChanges();
+        }
     }
 
     public abstract partial class BaseRepository<TEntity, TKey> : BaseRepository<TEntity>, IBaseRepository<TEntity, TKey>

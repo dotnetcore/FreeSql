@@ -137,6 +137,13 @@ namespace FreeSql
         public void AddOrUpdate<TEntity>(TEntity data) where TEntity : class => this.Set<TEntity>().AddOrUpdate(data);
 
         /// <summary>
+        /// 保存实体的指定 ManyToMany 导航属性
+        /// </summary>
+        /// <param name="data">实体对象</param>
+        /// <param name="propertyName">属性名</param>
+        public void SaveManyToMany<TEntity>(TEntity data, string propertyName) where TEntity : class => this.Set<TEntity>().SaveManyToMany(data, propertyName);
+
+        /// <summary>
         /// 附加实体，可用于不查询就更新或删除
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
@@ -163,6 +170,7 @@ namespace FreeSql
         public Task UpdateRangeAsync<TEntity>(IEnumerable<TEntity> data) where TEntity : class => this.Set<TEntity>().UpdateRangeAsync(data);
 
         public Task AddOrUpdateAsync<TEntity>(TEntity data) where TEntity : class => this.Set<TEntity>().AddOrUpdateAsync(data);
+        public Task SaveManyToManyAsync<TEntity>(TEntity data, string propertyName) where TEntity : class => this.Set<TEntity>().SaveManyToManyAsync(data, propertyName);
 #endif
         #endregion
 
