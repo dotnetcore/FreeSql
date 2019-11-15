@@ -10,6 +10,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FreeSql.Internal.CommonProvider
@@ -38,11 +39,10 @@ namespace FreeSql.Internal.CommonProvider
         protected List<LambdaExpression> _whereCascadeExpression = new List<LambdaExpression>();
         protected List<GlobalFilter.Item> _whereGlobalFilter;
 
-        bool _isDisponse = false;
+        int _disposeCounter;
         ~Select0Provider()
         {
-            if (_isDisponse) return;
-            _isDisponse = false;
+            if (Interlocked.Increment(ref _disposeCounter) != 1) return;
             _where.Clear();
             _params.Clear();
             _tables.Clear();

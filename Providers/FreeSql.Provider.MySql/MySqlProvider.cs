@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq.Expressions;
+using System.Threading;
 
 namespace FreeSql.MySql
 {
@@ -73,14 +74,11 @@ namespace FreeSql.MySql
 
         public GlobalFilter GlobalFilter { get; } = new GlobalFilter();
 
-        ~MySqlProvider()
-        {
-            this.Dispose();
-        }
-        bool _isdisposed = false;
+        ~MySqlProvider() => this.Dispose();
+        int _disposeCounter;
         public void Dispose()
         {
-            if (_isdisposed) return;
+            if (Interlocked.Increment(ref _disposeCounter) != 1) return;
             (this.Ado as AdoProvider)?.Dispose();
         }
     }

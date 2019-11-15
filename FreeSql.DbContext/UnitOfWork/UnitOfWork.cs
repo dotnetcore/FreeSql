@@ -105,18 +105,20 @@ namespace FreeSql
 
         public DbContext.EntityChangeReport EntityChangeReport { get; } = new DbContext.EntityChangeReport();
 
-        ~UnitOfWork()
-        {
-            this.Dispose();
-        }
-        bool _isdisposed = false;
+        ~UnitOfWork() => this.Dispose();
+        int _disposeCounter;
         public void Dispose()
         {
-            if (_isdisposed) return;
-            _isdisposed = true;
-            this.Rollback();
-            this.Close();
-            GC.SuppressFinalize(this);
+            if (Interlocked.Increment(ref _disposeCounter) != 1) return;
+            try
+            {
+                this.Rollback();
+                this.Close();
+            }
+            finally
+            {
+                GC.SuppressFinalize(this);
+            }
         }
     }
 }

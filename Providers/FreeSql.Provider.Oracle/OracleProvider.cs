@@ -4,6 +4,7 @@ using FreeSql.Oracle.Curd;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
+using System.Threading;
 
 namespace FreeSql.Oracle
 {
@@ -47,14 +48,11 @@ namespace FreeSql.Oracle
 
         public GlobalFilter GlobalFilter { get; } = new GlobalFilter();
 
-        ~OracleProvider()
-        {
-            this.Dispose();
-        }
-        bool _isdisposed = false;
+        ~OracleProvider() => this.Dispose();
+        int _disposeCounter;
         public void Dispose()
         {
-            if (_isdisposed) return;
+            if (Interlocked.Increment(ref _disposeCounter) != 1) return;
             (this.Ado as AdoProvider)?.Dispose();
         }
     }

@@ -144,10 +144,7 @@ namespace FreeSql
             return _filters.TryGetValue(filterName, out var tryfi) ? tryfi.IsEnabled : false;
         }
 
-        ~DataFilter()
-        {
-            this.Dispose();
-        }
+        ~DataFilter() => this.Dispose();
         public void Dispose()
         {
             _filters.Clear();
@@ -169,10 +166,7 @@ namespace FreeSql
             return this;
         }
 
-        ~FluentDataFilter()
-        {
-            this.Dispose();
-        }
+        ~FluentDataFilter() => this.Dispose();
         public void Dispose()
         {
             _filters.Clear();

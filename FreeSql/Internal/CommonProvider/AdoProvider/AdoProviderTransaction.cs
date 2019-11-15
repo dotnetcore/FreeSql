@@ -120,14 +120,11 @@ namespace FreeSql.Internal.CommonProvider
             }
         }
 
-        ~AdoProvider()
-        {
-            this.Dispose();
-        }
-        bool _isdisposed = false;
+        ~AdoProvider() => this.Dispose();
+        int _disposeCounter;
         public void Dispose()
         {
-            if (_isdisposed) return;
+            if (Interlocked.Increment(ref _disposeCounter) != 1) return;
             try
             {
                 Transaction2[] trans = null;

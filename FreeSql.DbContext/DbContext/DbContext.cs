@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace FreeSql
 {
@@ -200,11 +201,10 @@ namespace FreeSql
         #endregion
 
         ~DbContext() => this.Dispose();
-        bool _isdisposed = false;
+        int _disposeCounter;
         public void Dispose()
         {
-            if (_isdisposed) return;
-            _isdisposed = true;
+            if (Interlocked.Increment(ref _disposeCounter) != 1) return;
             try
             {
                 _actions.Clear();

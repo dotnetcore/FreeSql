@@ -11,6 +11,7 @@ using System.Data.Common;
 using System.Linq.Expressions;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Threading;
 
 namespace FreeSql.PostgreSQL
 {
@@ -100,14 +101,11 @@ namespace FreeSql.PostgreSQL
 
         public GlobalFilter GlobalFilter { get; } = new GlobalFilter();
 
-        ~PostgreSQLProvider()
-        {
-            this.Dispose();
-        }
-        bool _isdisposed = false;
+        ~PostgreSQLProvider() => this.Dispose();
+        int _disposeCounter;
         public void Dispose()
         {
-            if (_isdisposed) return;
+            if (Interlocked.Increment(ref _disposeCounter) != 1) return;
             (this.Ado as AdoProvider)?.Dispose();
         }
     }
