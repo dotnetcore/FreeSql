@@ -58,13 +58,13 @@ namespace FreeSql.Internal.CommonProvider
 
         static object syncStructureLock = new object();
         object _dicSycedLock = new object();
-        Dictionary<Type, ConcurrentDictionary<string, bool>> _dicSynced = new Dictionary<Type, ConcurrentDictionary<string, bool>>();
+        ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>> _dicSynced = new ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>>();
         internal ConcurrentDictionary<string, bool> _dicSycedGetOrAdd(Type entityType)
         {
             if (_dicSynced.TryGetValue(entityType, out var trydic) == false)
                 lock (_dicSycedLock)
                     if (_dicSynced.TryGetValue(entityType, out trydic) == false)
-                        _dicSynced.Add(entityType, trydic = new ConcurrentDictionary<string, bool>());
+                        _dicSynced.TryAdd(entityType, trydic = new ConcurrentDictionary<string, bool>());
             return trydic;
         }
         internal void _dicSycedTryAdd(Type entityType, string tableName = null) =>

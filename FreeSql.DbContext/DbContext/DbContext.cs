@@ -221,7 +221,7 @@ namespace FreeSql
                 AllSets.Clear();
 
                 if (_isUseUnitOfWork)
-                    UnitOfWork?.Rollback();
+                    UnitOfWork?.Dispose();
             }
             finally
             {

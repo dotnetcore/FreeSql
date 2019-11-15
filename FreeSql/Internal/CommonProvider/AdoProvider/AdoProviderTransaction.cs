@@ -1,6 +1,7 @@
 ﻿using SafeObjectPool;
 using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Data.Common;
 using System.Diagnostics;
 using System.Linq;
@@ -27,7 +28,7 @@ namespace FreeSql.Internal.CommonProvider
             }
         }
 
-        private Dictionary<int, Transaction2> _trans = new Dictionary<int, Transaction2>();
+        private ConcurrentDictionary<int, Transaction2> _trans = new ConcurrentDictionary<int, Transaction2>();
         private object _trans_lock = new object();
 
         public DbTransaction TransactionCurrentThread => _trans.TryGetValue(Thread.CurrentThread.ManagedThreadId, out var conn) && conn.Transaction?.Connection != null ? conn.Transaction : null;
@@ -54,7 +55,7 @@ namespace FreeSql.Internal.CommonProvider
             if (_trans.ContainsKey(tid)) CommitTransaction();
 
             lock (_trans_lock)
-                _trans.Add(tid, tran);
+                _trans.TryAdd(tid, tran);
         }
 
         private void AutoCommitTransaction()
@@ -74,7 +75,7 @@ namespace FreeSql.Internal.CommonProvider
             if (_trans.ContainsKey(tran.Conn.LastGetThreadId))
                 lock (_trans_lock)
                     if (_trans.ContainsKey(tran.Conn.LastGetThreadId))
-                        _trans.Remove(tran.Conn.LastGetThreadId);
+                        _trans.TryRemove(tran.Conn.LastGetThreadId, out var oldtran);
 
             Exception ex = null;
             var f001 = isCommit ? "提交" : "回滚";
