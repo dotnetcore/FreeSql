@@ -547,7 +547,9 @@ namespace FreeSql.Internal
                                 nvref.MiddleColumns.AddRange(trytbTf.Columns);
 
                                 if (tbmid.Primarys.Any() == false)
-                                    trytbTf.Columns.Select(c => tbmid.ColumnsByCs[c.CsName].Attribute.IsPrimary = true);
+                                    foreach (var c in trytbTf.Columns)
+                                        tbmid.ColumnsByCs[c.CsName].Attribute.IsPrimary = true;
+
                                 if (isLazy)
                                 {
                                     for (var a = 0; a < trytbTf.RefColumns.Count; a++)
@@ -592,7 +594,8 @@ namespace FreeSql.Internal
                                     nvref.MiddleColumns.AddRange(tbrefTf.Columns);
 
                                     if (tbmid.Primarys.Any() == false)
-                                        tbrefTf.Columns.Select(c => tbmid.ColumnsByCs[c.CsName].Attribute.IsPrimary = true);
+                                        foreach (var c in tbrefTf.Columns)
+                                            tbmid.ColumnsByCs[c.CsName].Attribute.IsPrimary = true;
 
                                     if (isLazy)
                                     {
