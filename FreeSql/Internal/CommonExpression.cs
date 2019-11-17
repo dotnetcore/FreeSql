@@ -420,7 +420,7 @@ namespace FreeSql.Internal
 
             var left = ExpressionLambdaToSql(leftExp, tsc);
             var leftMapColumn = SearchColumnByField(tsc._tables, tsc.currentTable, left);
-            var isLeftMapType = leftMapColumn != null && (leftMapColumn.Attribute.MapType != rightExp.Type || leftMapColumn.CsType != rightExp.Type);
+            var isLeftMapType = leftMapColumn != null && new[] { "AND", "OR" }.Contains(oper) == false && (leftMapColumn.Attribute.MapType != rightExp.Type || leftMapColumn.CsType != rightExp.Type);
             ColumnInfo rightMapColumn = null;
             var isRightMapType = false;
             if (isLeftMapType) tsc.mapType = leftMapColumn.Attribute.MapType;
@@ -435,7 +435,7 @@ namespace FreeSql.Internal
             if (leftMapColumn == null)
             {
                 rightMapColumn = SearchColumnByField(tsc._tables, tsc.currentTable, right);
-                isRightMapType = rightMapColumn != null && (rightMapColumn.Attribute.MapType != leftExp.Type || rightMapColumn.CsType != leftExp.Type);
+                isRightMapType = rightMapColumn != null && new[] { "AND", "OR" }.Contains(oper) == false && (rightMapColumn.Attribute.MapType != leftExp.Type || rightMapColumn.CsType != leftExp.Type);
                 if (isRightMapType)
                 {
                     tsc.mapType = rightMapColumn.Attribute.MapType;
@@ -485,8 +485,10 @@ namespace FreeSql.Internal
                     break;
                 case "AND":
                 case "OR":
-                    left = GetBoolString(left);
-                    right = GetBoolString(right);
+                    if (leftMapColumn != null) left = $"{left} = {formatSql(true, null)}";
+                    else left = GetBoolString(left);
+                    if (rightMapColumn != null) right = $"{right} = {formatSql(true, null)}";
+                    else right = GetBoolString(right);
                     break;
             }
             tsc.mapType = null;
