@@ -99,14 +99,18 @@ namespace FreeSql.MySql
                         argIndex++;
                     }
                     if (objType == null) objType = callExp.Method.DeclaringType;
-                    if (objType != null || objType.IsArray || typeof(IList).IsAssignableFrom(callExp.Method.DeclaringType))
+                    if (objType != null || objType.IsArrayOrList())
                     {
+                        tsc?.SetMapTypeTmp(null);
+                        var args1 = getExp(callExp.Arguments[argIndex]);
+                        var oldMapType = tsc?.SetMapTypeReturnOld(tsc?.mapTypeTmp);
                         var left = objExp == null ? null : getExp(objExp);
+                        tsc.SetMapTypeReturnOld(oldMapType);
                         switch (callExp.Method.Name)
                         {
                             case "Contains":
                                 //判断 in
-                                return $"({getExp(callExp.Arguments[argIndex])}) in {left}";
+                                return $"({args1}) in {left}";
                         }
                     }
                     break;

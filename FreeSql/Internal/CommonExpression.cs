@@ -932,12 +932,12 @@ namespace FreeSql.Internal
                                 throw new ArgumentException($"{tb.DbName}.{memberExp.Member.Name} 被忽略，请检查 IsIgnore 设置，确认 get/set 为 public");
                             throw new ArgumentException($"{tb.DbName} 找不到列 {memberExp.Member.Name}");
                         }
+                        var curcol = tb.ColumnsByCs[memberExp.Member.Name];
                         if (tsc._selectColumnMap != null)
-                        {
-                            tsc._selectColumnMap.Add(new SelectColumnInfo { Table = null, Column = tb.ColumnsByCs[memberExp.Member.Name] });
-                        }
-                        var name = tb.ColumnsByCs[memberExp.Member.Name].Attribute.Name;
+                            tsc._selectColumnMap.Add(new SelectColumnInfo { Table = null, Column = curcol });
+                        var name = curcol.Attribute.Name;
                         if (tsc.isQuoteName) name = _common.QuoteSqlName(name);
+                        tsc.mapTypeTmp = curcol.Attribute.MapType == curcol.CsType ? null : curcol.Attribute.MapType;
                         if (string.IsNullOrEmpty(tsc.alias001)) return name;
                         return $"{tsc.alias001}.{name}";
                     }
@@ -1098,7 +1098,8 @@ namespace FreeSql.Internal
                                     tsc._selectColumnMap.Add(new SelectColumnInfo { Table = find2, Column = col2 });
                                     return "";
                                 }
-                                name2 = tb2.ColumnsByCs[mp2.Member.Name].Attribute.Name;
+                                name2 = col2.Attribute.Name;
+                                tsc.mapTypeTmp = col2.Attribute.MapType == col2.CsType ? null : col2.Attribute.MapType;
                                 break;
                             case ExpressionType.Call: break;
                         }
@@ -1150,9 +1151,21 @@ namespace FreeSql.Internal
             public bool isDisableDiyParse { get; set; }
             public ExpressionStyle style { get; set; }
             public Type mapType { get; set; }
+            public Type mapTypeTmp { get; set; }
             public TableInfo currentTable { get; set; }
             public List<LambdaExpression> whereCascadeExpression { get; set; }
             public string alias001 { get; set; } //单表字段的表别名
+
+            public void SetMapTypeTmp(Type newValue)
+            {
+                this.mapTypeTmp = null;
+            }
+            public Type SetMapTypeReturnOld(Type newValue)
+            {
+                var old = this.mapType;
+                this.mapType = newValue;
+                return old;
+            }
 
             public ExpTSC CloneSetgetSelectGroupingMapStringAndgetSelectGroupingMapStringAndtbtype(List<SelectColumnInfo> v1, Func<Expression[], string> v2, SelectTableInfoType v3)
             {

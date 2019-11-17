@@ -103,11 +103,12 @@ namespace FreeSql.Odbc.PostgreSQL
                         argIndex++;
                     }
                     if (objType == null) objType = callExp.Method.DeclaringType;
-                    if (objType != null || objType.IsArray || typeof(IList).IsAssignableFrom(callExp.Method.DeclaringType))
+                    if (objType != null || objType.IsArrayOrList())
                     {
-                        var left = objExp == null ? null : getExp(objExp);
+                        string left = null;
                         if (objType.FullName == typeof(Dictionary<string, string>).FullName)
                         {
+                            left = objExp == null ? null : getExp(objExp);
                             switch (callExp.Method.Name)
                             {
                                 case "Contains":
@@ -125,24 +126,30 @@ namespace FreeSql.Odbc.PostgreSQL
                         switch (callExp.Method.Name)
                         {
                             case "Any":
+                                left = objExp == null ? null : getExp(objExp);
                                 if (left.StartsWith("(") || left.EndsWith(")")) left = $"array[{left.TrimStart('(').TrimEnd(')')}]";
                                 return $"(case when {left} is null then 0 else array_length({left},1) end > 0)";
                             case "Contains":
+                                tsc?.SetMapTypeTmp(null);
+                                var args1 = getExp(callExp.Arguments[argIndex]);
+                                var oldMapType = tsc?.SetMapTypeReturnOld(tsc?.mapTypeTmp);
+                                left = objExp == null ? null : getExp(objExp);
+                                tsc.SetMapTypeReturnOld(oldMapType);
                                 //判断 in 或 array @> array
-                                var right1 = getExp(callExp.Arguments[argIndex]);
                                 if (left.StartsWith("array[") || left.EndsWith("]"))
-                                    return $"{right1} in ({left.Substring(6, left.Length - 7)})";
+                                    return $"{args1} in ({left.Substring(6, left.Length - 7)})";
                                 if (left.StartsWith("(") || left.EndsWith(")"))
-                                    return $"{right1} in {left}";
-                                if (right1.StartsWith("(") || right1.EndsWith(")")) right1 = $"array[{right1.TrimStart('(').TrimEnd(')')}]";
-                                right1 = $"array[{right1}]";
+                                    return $"{args1} in {left}";
+                                if (args1.StartsWith("(") || args1.EndsWith(")")) args1 = $"array[{args1.TrimStart('(').TrimEnd(')')}]";
+                                args1 = $"array[{args1}]";
                                 if (objExp != null)
                                 {
                                     var dbinfo = _common._orm.CodeFirst.GetDbInfo(objExp.Type);
-                                    if (dbinfo.HasValue) right1 = $"{right1}::{dbinfo.Value.dbtype}";
+                                    if (dbinfo.HasValue) args1 = $"{args1}::{dbinfo.Value.dbtype}";
                                 }
-                                return $"({left} @> {right1})";
+                                return $"({left} @> {args1})";
                             case "Concat":
+                                left = objExp == null ? null : getExp(objExp);
                                 if (left.StartsWith("(") || left.EndsWith(")")) left = $"array[{left.TrimStart('(').TrimEnd(')')}]";
                                 var right2 = getExp(callExp.Arguments[argIndex]);
                                 if (right2.StartsWith("(") || right2.EndsWith(")")) right2 = $"array[{right2.TrimStart('(').TrimEnd(')')}]";
@@ -151,6 +158,7 @@ namespace FreeSql.Odbc.PostgreSQL
                             case "GetLongLength":
                             case "Length":
                             case "Count":
+                                left = objExp == null ? null : getExp(objExp);
                                 if (left.StartsWith("(") || left.EndsWith(")")) left = $"array[{left.TrimStart('(').TrimEnd(')')}]";
                                 return $"case when {left} is null then 0 else array_length({left},1) end";
                         }

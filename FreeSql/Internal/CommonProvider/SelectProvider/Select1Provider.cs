@@ -605,7 +605,7 @@ namespace FreeSql.Internal.CommonProvider
                                     for (var z = 0; z < tbref.Columns.Count; z++)
                                     {
                                         if (z > 0) sbWhereOne.Append(" AND ");
-                                        sbWhereOne.Append(_commonUtils.FormatSql($"{subSelectT1Alias}.{_commonUtils.QuoteSqlName(tbref.RefColumns[z].Attribute.Name)}={{0}}", getListValue(list[y], tbref.Columns[z].CsName, z)));
+                                        sbWhereOne.Append(_commonUtils.FormatSql($"{subSelectT1Alias}.{_commonUtils.QuoteSqlName(tbref.RefColumns[z].Attribute.Name)}={{0}}", Utils.GetDataReaderValue(tbref.RefColumns[z].Attribute.MapType, getListValue(list[y], tbref.Columns[z].CsName, z))));
                                     }
                                     sbWhereOne.Append(")");
                                     var whereOne = sbWhereOne.ToString();
@@ -797,7 +797,7 @@ namespace FreeSql.Internal.CommonProvider
                                     for (var z = 0; z < tbref.Columns.Count; z++)
                                     {
                                         if (z > 0) sbWhereOne.Append(" AND ");
-                                        sbWhereOne.Append(_commonUtils.FormatSql($" midtb.{_commonUtils.QuoteSqlName(tbref.MiddleColumns[z].Attribute.Name)}={{0}}", getListValue1(list[y], tbref.Columns[z].CsName)));
+                                        sbWhereOne.Append(_commonUtils.FormatSql($" midtb.{_commonUtils.QuoteSqlName(tbref.MiddleColumns[z].Attribute.Name)}={{0}}", Utils.GetDataReaderValue(tbref.MiddleColumns[z].Attribute.MapType, getListValue1(list[y], tbref.Columns[z].CsName))));
                                     }
                                     sbWhereOne.Append(")");
                                     var whereOne = sbWhereOne.ToString();
@@ -825,7 +825,7 @@ namespace FreeSql.Internal.CommonProvider
                                 subSelect._where.Clear();
                                 if (tbref.Columns.Count == 1)
                                 {
-                                    subSelect.Where(_commonUtils.FormatSql($"midtb.{_commonUtils.QuoteSqlName(tbref.MiddleColumns[0].Attribute.Name)} in {{0}}", list.Select(a => getListValue1(a, tbref.Columns[0].CsName)).Distinct()));
+                                    subSelect.Where(_commonUtils.FormatSql($"midtb.{_commonUtils.QuoteSqlName(tbref.MiddleColumns[0].Attribute.Name)} in {{0}}", list.Select(a => Utils.GetDataReaderValue(tbref.MiddleColumns[0].Attribute.MapType, getListValue1(a, tbref.Columns[0].CsName))).Distinct()));
                                 }
                                 else
                                 {
