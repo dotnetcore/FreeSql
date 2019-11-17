@@ -108,31 +108,34 @@ namespace FreeSql.Internal
                     parent.Consturctor = initExp.NewExpression.Type.GetConstructors()[0];
                     parent.ConsturctorType = ReadAnonymousTypeInfoConsturctorType.Properties;
 
-                    //dto 映射
-                    var dtoProps = initExp.NewExpression.Type.GetPropertiesDictIgnoreCase().Values;
-                    foreach (var dtoProp in dtoProps)
+                    if (initExp.NewExpression.Type != _tables.FirstOrDefault()?.Table.Type)
                     {
-                        foreach (var dtTb in _tables)
+                        //dto 映射
+                        var dtoProps = initExp.NewExpression.Type.GetPropertiesDictIgnoreCase().Values;
+                        foreach (var dtoProp in dtoProps)
                         {
-                            if (dtTb.Table.Columns.TryGetValue(dtoProp.Name, out var trydtocol))
+                            foreach (var dtTb in _tables)
                             {
-                                var child = new ReadAnonymousTypeInfo
+                                if (dtTb.Table.Columns.TryGetValue(dtoProp.Name, out var trydtocol))
                                 {
-                                    Property = dtoProp,
-                                    CsName = dtoProp.Name,
-                                    CsType = dtoProp.PropertyType,
-                                    MapType = trydtocol.Attribute.MapType
-                                };
-                                parent.Childs.Add(child);
-                                if (dtTb.Parameter != null)
-                                    ReadAnonymousField(_tables, field, child, ref index, Expression.Property(dtTb.Parameter, dtTb.Table.Properties[trydtocol.CsName]), getSelectGroupingMapString, whereCascadeExpression);
-                                else
-                                {
-                                    child.DbField = $"{dtTb.Alias}.{_common.QuoteSqlName(trydtocol.Attribute.Name)}";
-                                    field.Append(", ").Append(child.DbField);
-                                    if (index >= 0) field.Append(" as").Append(++index);
+                                    var child = new ReadAnonymousTypeInfo
+                                    {
+                                        Property = dtoProp,
+                                        CsName = dtoProp.Name,
+                                        CsType = dtoProp.PropertyType,
+                                        MapType = trydtocol.Attribute.MapType
+                                    };
+                                    parent.Childs.Add(child);
+                                    if (dtTb.Parameter != null)
+                                        ReadAnonymousField(_tables, field, child, ref index, Expression.Property(dtTb.Parameter, dtTb.Table.Properties[trydtocol.CsName]), getSelectGroupingMapString, whereCascadeExpression);
+                                    else
+                                    {
+                                        child.DbField = $"{dtTb.Alias}.{_common.QuoteSqlName(trydtocol.Attribute.Name)}";
+                                        field.Append(", ").Append(child.DbField);
+                                        if (index >= 0) field.Append(" as").Append(++index);
+                                    }
+                                    break;
                                 }
-                                break;
                             }
                         }
                     }
