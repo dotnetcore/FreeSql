@@ -251,7 +251,7 @@ namespace FreeSql.Internal
                         var objval = ReadAnonymous(parent.Childs[b], dr, ref index, notRead);
                         if (isnull == false && objval == null && parent.Table != null && parent.Table.ColumnsByCs.TryGetValue(parent.Childs[b].CsName, out var trycol) && trycol.Attribute.IsPrimary)
                             isnull = true;
-                        if (isnull == false)
+                        if (isnull == false && prop.CanWrite)
                             prop.SetValue(ret, objval, null);
                     }
                     return isnull ? null : ret;
