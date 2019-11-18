@@ -17,7 +17,9 @@ namespace FreeSql.Odbc.SqlServer
         {
         }
 
-        public bool IsSelectRowNumber = true;
+        public bool IsSelectRowNumber => ServerVersion <= 10;
+        public bool IsSqlServer2005 => ServerVersion == 9;
+        public int ServerVersion = 0;
 
         public override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, Type type, object value)
         {

@@ -18,7 +18,7 @@ namespace FreeSql.Tests.SqlServerExpression
             _sqlserverFixture = sqlserverFixture;
         }
 
-        ISelect<Topic> select => _sqlserverFixture.SqlServer.Select<Topic>();
+        ISelect<Topic> select => g.sqlserver.Select<Topic>();
 
         [Table(Name = "tb_topic")]
         class Topic
@@ -56,7 +56,7 @@ namespace FreeSql.Tests.SqlServerExpression
         {
             var list = new List<object>();
             list.Add(select.Where(a => a.Title.Equals("aaa")).ToList());
-            list.Add(_sqlserverFixture.SqlServer.Select<TestEqualsGuid>().Where(a => a.id.Equals(Guid.Empty)).ToList());
+            list.Add(g.sqlserver.Select<TestEqualsGuid>().Where(a => a.id.Equals(Guid.Empty)).ToList());
         }
 
         [Fact]

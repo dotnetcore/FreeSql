@@ -74,7 +74,7 @@ namespace FreeSql.Tests.SqlServerMapType
         public void BoolNullable()
         {
             //insert
-            var orm = _sqlserverFixture.SqlServer;
+            var orm = g.sqlserver;
             var item = new BoolMap { };
             Assert.Equal(1, orm.Insert<BoolMap>().AppendData(item).ExecuteAffrows());
             var find = orm.Select<BoolMap>().Where(a => a.id == item.id && a.toboolnullable == true).First();
@@ -130,7 +130,7 @@ namespace FreeSql.Tests.SqlServerMapType
         public void SByte()
         {
             //insert
-            var orm = _sqlserverFixture.SqlServer;
+            var orm = g.sqlserver;
             var item = new BoolMap { };
             Assert.Equal(1, orm.Insert<BoolMap>().AppendData(item).ExecuteAffrows());
             var find = orm.Select<BoolMap>().Where(a => a.id == item.id && a.tosbyte == true).First();
@@ -186,7 +186,7 @@ namespace FreeSql.Tests.SqlServerMapType
         public void SByteNullable()
         {
             //insert
-            var orm = _sqlserverFixture.SqlServer;
+            var orm = g.sqlserver;
             var item = new BoolMap { };
             Assert.Equal(1, orm.Insert<BoolMap>().AppendData(item).ExecuteAffrows());
             var find = orm.Select<BoolMap>().Where(a => a.id == item.id && a.tosbytenullable == true).First();
@@ -242,7 +242,7 @@ namespace FreeSql.Tests.SqlServerMapType
         public void Short()
         {
             //insert
-            var orm = _sqlserverFixture.SqlServer;
+            var orm = g.sqlserver;
             var item = new BoolMap { };
             Assert.Equal(1, orm.Insert<BoolMap>().AppendData(item).ExecuteAffrows());
             var find = orm.Select<BoolMap>().Where(a => a.id == item.id && a.toshort == true).First();
@@ -298,7 +298,7 @@ namespace FreeSql.Tests.SqlServerMapType
         public void ShortNullable()
         {
             //insert
-            var orm = _sqlserverFixture.SqlServer;
+            var orm = g.sqlserver;
             var item = new BoolMap { };
             Assert.Equal(1, orm.Insert<BoolMap>().AppendData(item).ExecuteAffrows());
             var find = orm.Select<BoolMap>().Where(a => a.id == item.id && a.toshortnullable == true).First();
@@ -354,7 +354,7 @@ namespace FreeSql.Tests.SqlServerMapType
         public void Int()
         {
             //insert
-            var orm = _sqlserverFixture.SqlServer;
+            var orm = g.sqlserver;
             var item = new BoolMap { };
             Assert.Equal(1, orm.Insert<BoolMap>().AppendData(item).ExecuteAffrows());
             var find = orm.Select<BoolMap>().Where(a => a.id == item.id && a.toint == true).First();
@@ -410,7 +410,7 @@ namespace FreeSql.Tests.SqlServerMapType
         public void IntNullable()
         {
             //insert
-            var orm = _sqlserverFixture.SqlServer;
+            var orm = g.sqlserver;
             var item = new BoolMap { };
             Assert.Equal(1, orm.Insert<BoolMap>().AppendData(item).ExecuteAffrows());
             var find = orm.Select<BoolMap>().Where(a => a.id == item.id && a.tointnullable == true).First();
@@ -466,7 +466,7 @@ namespace FreeSql.Tests.SqlServerMapType
         public void Long()
         {
             //insert
-            var orm = _sqlserverFixture.SqlServer;
+            var orm = g.sqlserver;
             var item = new BoolMap { };
             Assert.Equal(1, orm.Insert<BoolMap>().AppendData(item).ExecuteAffrows());
             var find = orm.Select<BoolMap>().Where(a => a.id == item.id && a.tolong == true).First();
@@ -522,7 +522,7 @@ namespace FreeSql.Tests.SqlServerMapType
         public void LongNullable()
         {
             //insert
-            var orm = _sqlserverFixture.SqlServer;
+            var orm = g.sqlserver;
             var item = new BoolMap { };
             Assert.Equal(1, orm.Insert<BoolMap>().AppendData(item).ExecuteAffrows());
             var find = orm.Select<BoolMap>().Where(a => a.id == item.id && a.tolongnullable == true).First();
@@ -579,7 +579,7 @@ namespace FreeSql.Tests.SqlServerMapType
         public void Byte()
         {
             //insert
-            var orm = _sqlserverFixture.SqlServer;
+            var orm = g.sqlserver;
             var item = new BoolMap { };
             Assert.Equal(1, orm.Insert<BoolMap>().AppendData(item).ExecuteAffrows());
             var find = orm.Select<BoolMap>().Where(a => a.id == item.id && a.tobyte == true).First();
@@ -635,7 +635,7 @@ namespace FreeSql.Tests.SqlServerMapType
         public void ByteNullable()
         {
             //insert
-            var orm = _sqlserverFixture.SqlServer;
+            var orm = g.sqlserver;
             var item = new BoolMap { };
             Assert.Equal(1, orm.Insert<BoolMap>().AppendData(item).ExecuteAffrows());
             var find = orm.Select<BoolMap>().Where(a => a.id == item.id && a.tobytenullable == true).First();
@@ -691,7 +691,7 @@ namespace FreeSql.Tests.SqlServerMapType
         public void UShort()
         {
             //insert
-            var orm = _sqlserverFixture.SqlServer;
+            var orm = g.sqlserver;
             var item = new BoolMap { };
             Assert.Equal(1, orm.Insert<BoolMap>().AppendData(item).ExecuteAffrows());
             var find = orm.Select<BoolMap>().Where(a => a.id == item.id && a.toushort == true).First();
@@ -747,7 +747,7 @@ namespace FreeSql.Tests.SqlServerMapType
         public void UShortNullable()
         {
             //insert
-            var orm = _sqlserverFixture.SqlServer;
+            var orm = g.sqlserver;
             var item = new BoolMap { };
             Assert.Equal(1, orm.Insert<BoolMap>().AppendData(item).ExecuteAffrows());
             var find = orm.Select<BoolMap>().Where(a => a.id == item.id && a.toushortnullable == true).First();
@@ -803,7 +803,7 @@ namespace FreeSql.Tests.SqlServerMapType
         public void UInt()
         {
             //insert
-            var orm = _sqlserverFixture.SqlServer;
+            var orm = g.sqlserver;
             var item = new BoolMap { };
             Assert.Equal(1, orm.Insert<BoolMap>().AppendData(item).ExecuteAffrows());
             var find = orm.Select<BoolMap>().Where(a => a.id == item.id && a.touint == true).First();
@@ -859,7 +859,7 @@ namespace FreeSql.Tests.SqlServerMapType
         public void UIntNullable()
         {
             //insert
-            var orm = _sqlserverFixture.SqlServer;
+            var orm = g.sqlserver;
             var item = new BoolMap { };
             Assert.Equal(1, orm.Insert<BoolMap>().AppendData(item).ExecuteAffrows());
             var find = orm.Select<BoolMap>().Where(a => a.id == item.id && a.touintnullable == true).First();
@@ -915,7 +915,7 @@ namespace FreeSql.Tests.SqlServerMapType
         public void ULong()
         {
             //insert
-            var orm = _sqlserverFixture.SqlServer;
+            var orm = g.sqlserver;
             var item = new BoolMap { };
             Assert.Equal(1, orm.Insert<BoolMap>().AppendData(item).ExecuteAffrows());
             var find = orm.Select<BoolMap>().Where(a => a.id == item.id && a.toulong == true).First();
@@ -971,7 +971,7 @@ namespace FreeSql.Tests.SqlServerMapType
         public void ULongNullable()
         {
             //insert
-            var orm = _sqlserverFixture.SqlServer;
+            var orm = g.sqlserver;
             var item = new BoolMap { };
             Assert.Equal(1, orm.Insert<BoolMap>().AppendData(item).ExecuteAffrows());
             var find = orm.Select<BoolMap>().Where(a => a.id == item.id && a.toulongnullable == true).First();
@@ -1049,7 +1049,7 @@ namespace FreeSql.Tests.SqlServerMapType
         public void String()
         {
             //insert
-            var orm = _sqlserverFixture.SqlServer;
+            var orm = g.sqlserver;
             var item = new BoolMap { };
             Assert.Equal(1, orm.Insert<BoolMap>().AppendData(item).ExecuteAffrows());
             var find = orm.Select<BoolMap>().Where(a => a.id == item.id && a.tostring == true).First();

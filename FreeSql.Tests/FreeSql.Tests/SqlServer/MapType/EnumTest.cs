@@ -36,7 +36,7 @@ namespace FreeSql.Tests.SqlServerMapType
         public void EnumToString()
         {
             //insert
-            var orm = _sqlserverFixture.SqlServer;
+            var orm = g.sqlserver;
             var item = new EnumTestMap { };
             Assert.Equal(1, orm.Insert<EnumTestMap>().AppendData(item).ExecuteAffrows());
             var find = orm.Select<EnumTestMap>().Where(a => a.id == item.id && a.enum_to_string == ToStringMapEnum.中国人).First();
@@ -93,7 +93,7 @@ namespace FreeSql.Tests.SqlServerMapType
         public void EnumNullableToString()
         {
             //insert
-            var orm = _sqlserverFixture.SqlServer;
+            var orm = g.sqlserver;
             var item = new EnumTestMap { };
             Assert.Equal(1, orm.Insert<EnumTestMap>().AppendData(item).ExecuteAffrows());
             var find = orm.Select<EnumTestMap>().Where(a => a.id == item.id && a.enumnullable_to_string == null).First();
@@ -154,7 +154,7 @@ namespace FreeSql.Tests.SqlServerMapType
         public void EnumToInt()
         {
             //insert
-            var orm = _sqlserverFixture.SqlServer;
+            var orm = g.sqlserver;
             var item = new EnumTestMap { };
             Assert.Equal(1, orm.Insert<EnumTestMap>().AppendData(item).ExecuteAffrows());
             var find = orm.Select<EnumTestMap>().Where(a => a.id == item.id && a.enum_to_int == ToStringMapEnum.中国人).First();
@@ -211,7 +211,7 @@ namespace FreeSql.Tests.SqlServerMapType
         public void EnumNullableToInt()
         {
             //insert
-            var orm = _sqlserverFixture.SqlServer;
+            var orm = g.sqlserver;
             var item = new EnumTestMap { };
             Assert.Equal(1, orm.Insert<EnumTestMap>().AppendData(item).ExecuteAffrows());
             var find = orm.Select<EnumTestMap>().Where(a => a.id == item.id && a.enumnullable_to_int == null).First();

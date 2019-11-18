@@ -174,7 +174,7 @@ namespace FreeSql.Internal.CommonProvider
             return ret;
         }
 
-        async protected Task<int> RawExecuteAffrowsAsync()
+        async protected virtual Task<int> RawExecuteAffrowsAsync()
         {
             var sql = ToSql();
             var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);

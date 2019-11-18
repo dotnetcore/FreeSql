@@ -18,7 +18,7 @@ namespace FreeSql.Tests.SqlServerExpression
             _sqlserverFixture = sqlserverFixture;
         }
 
-        ISelect<TableAllType> select => _sqlserverFixture.SqlServer.Select<TableAllType>();
+        ISelect<TableAllType> select => g.sqlserver.Select<TableAllType>();
 
         [Fact]
         public void Div()

@@ -17,7 +17,7 @@ namespace FreeSql.Tests.SqlServerExpression
             _sqlserverFixture = sqlserverFixture;
         }
 
-        ISelect<Topic> select => _sqlserverFixture.SqlServer.Select<Topic>();
+        ISelect<Topic> select => g.sqlserver.Select<Topic>();
 
         [Table(Name = "tb_topic111333")]
         class Topic

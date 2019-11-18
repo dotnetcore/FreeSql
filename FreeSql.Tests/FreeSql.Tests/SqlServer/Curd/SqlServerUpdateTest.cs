@@ -18,7 +18,7 @@ namespace FreeSql.Tests.SqlServer
             _sqlserverFixture = sqlserverFixture;
         }
 
-        IUpdate<Topic> update => _sqlserverFixture.SqlServer.Update<Topic>();
+        IUpdate<Topic> update => g.sqlserver.Update<Topic>();
 
         [Table(Name = "tb_topic")]
         class Topic
@@ -35,11 +35,11 @@ namespace FreeSql.Tests.SqlServer
         [Fact]
         public void Dywhere()
         {
-            Assert.Null(_sqlserverFixture.SqlServer.Update<Topic>().ToSql());
-            Assert.Equal("UPDATE [tb_topic] SET title='test' \r\nWHERE ([Id] = 1 OR [Id] = 2)", _sqlserverFixture.SqlServer.Update<Topic>(new[] { 1, 2 }).SetRaw("title='test'").ToSql());
-            Assert.Equal("UPDATE [tb_topic] SET title='test1' \r\nWHERE ([Id] = 1)", _sqlserverFixture.SqlServer.Update<Topic>(new Topic { Id = 1, Title = "test" }).SetRaw("title='test1'").ToSql());
-            Assert.Equal("UPDATE [tb_topic] SET title='test1' \r\nWHERE ([Id] = 1 OR [Id] = 2)", _sqlserverFixture.SqlServer.Update<Topic>(new[] { new Topic { Id = 1, Title = "test" }, new Topic { Id = 2, Title = "test" } }).SetRaw("title='test1'").ToSql());
-            Assert.Equal("UPDATE [tb_topic] SET title='test1' \r\nWHERE ([Id] = 1)", _sqlserverFixture.SqlServer.Update<Topic>(new { id = 1 }).SetRaw("title='test1'").ToSql());
+            Assert.Null(g.sqlserver.Update<Topic>().ToSql());
+            Assert.Equal("UPDATE [tb_topic] SET title='test' \r\nWHERE ([Id] = 1 OR [Id] = 2)", g.sqlserver.Update<Topic>(new[] { 1, 2 }).SetRaw("title='test'").ToSql());
+            Assert.Equal("UPDATE [tb_topic] SET title='test1' \r\nWHERE ([Id] = 1)", g.sqlserver.Update<Topic>(new Topic { Id = 1, Title = "test" }).SetRaw("title='test1'").ToSql());
+            Assert.Equal("UPDATE [tb_topic] SET title='test1' \r\nWHERE ([Id] = 1 OR [Id] = 2)", g.sqlserver.Update<Topic>(new[] { new Topic { Id = 1, Title = "test" }, new Topic { Id = 2, Title = "test" } }).SetRaw("title='test1'").ToSql());
+            Assert.Equal("UPDATE [tb_topic] SET title='test1' \r\nWHERE ([Id] = 1)", g.sqlserver.Update<Topic>(new { id = 1 }).SetRaw("title='test1'").ToSql());
         }
 
         [Fact]
@@ -140,26 +140,26 @@ namespace FreeSql.Tests.SqlServer
         [Fact]
         public void ExecuteUpdated()
         {
-            _sqlserverFixture.SqlServer.Insert<Topic>().AppendData(new Topic()).ExecuteAffrows();
-            _sqlserverFixture.SqlServer.Insert<Topic>().AppendData(new Topic()).ExecuteAffrows();
-            _sqlserverFixture.SqlServer.Insert<Topic>().AppendData(new Topic()).ExecuteAffrows();
-            _sqlserverFixture.SqlServer.Insert<Topic>().AppendData(new Topic()).ExecuteAffrows();
+            g.sqlserver.Insert<Topic>().AppendData(new Topic()).ExecuteAffrows();
+            g.sqlserver.Insert<Topic>().AppendData(new Topic()).ExecuteAffrows();
+            g.sqlserver.Insert<Topic>().AppendData(new Topic()).ExecuteAffrows();
+            g.sqlserver.Insert<Topic>().AppendData(new Topic()).ExecuteAffrows();
 
-            var items = _sqlserverFixture.SqlServer.Select<Topic>().Limit(2).ToList();
-            _sqlserverFixture.SqlServer.Update<Topic>(items).SetRaw("title='test'").ExecuteUpdated();
+            var items = g.sqlserver.Select<Topic>().Limit(2).ToList();
+            g.sqlserver.Update<Topic>(items).SetRaw("title='test'").ExecuteUpdated();
 
-            items = _sqlserverFixture.SqlServer.Select<Topic>().Limit(2).ToList();
-            var result = _sqlserverFixture.SqlServer.Update<Topic>(items).SetRaw("title='test'").ExecuteUpdatedAsync().Result;
+            items = g.sqlserver.Select<Topic>().Limit(2).ToList();
+            var result = g.sqlserver.Update<Topic>(items).SetRaw("title='test'").ExecuteUpdatedAsync().Result;
         }
 
         [Fact]
         public void AsTable()
         {
-            Assert.Null(_sqlserverFixture.SqlServer.Update<Topic>().ToSql());
-            Assert.Equal("UPDATE [tb_topicAsTable] SET title='test' \r\nWHERE ([Id] = 1 OR [Id] = 2)", _sqlserverFixture.SqlServer.Update<Topic>(new[] { 1, 2 }).SetRaw("title='test'").AsTable(a => "tb_topicAsTable").ToSql());
-            Assert.Equal("UPDATE [tb_topicAsTable] SET title='test1' \r\nWHERE ([Id] = 1)", _sqlserverFixture.SqlServer.Update<Topic>(new Topic { Id = 1, Title = "test" }).SetRaw("title='test1'").AsTable(a => "tb_topicAsTable").ToSql());
-            Assert.Equal("UPDATE [tb_topicAsTable] SET title='test1' \r\nWHERE ([Id] = 1 OR [Id] = 2)", _sqlserverFixture.SqlServer.Update<Topic>(new[] { new Topic { Id = 1, Title = "test" }, new Topic { Id = 2, Title = "test" } }).SetRaw("title='test1'").AsTable(a => "tb_topicAsTable").ToSql());
-            Assert.Equal("UPDATE [tb_topicAsTable] SET title='test1' \r\nWHERE ([Id] = 1)", _sqlserverFixture.SqlServer.Update<Topic>(new { id = 1 }).SetRaw("title='test1'").AsTable(a => "tb_topicAsTable").ToSql());
+            Assert.Null(g.sqlserver.Update<Topic>().ToSql());
+            Assert.Equal("UPDATE [tb_topicAsTable] SET title='test' \r\nWHERE ([Id] = 1 OR [Id] = 2)", g.sqlserver.Update<Topic>(new[] { 1, 2 }).SetRaw("title='test'").AsTable(a => "tb_topicAsTable").ToSql());
+            Assert.Equal("UPDATE [tb_topicAsTable] SET title='test1' \r\nWHERE ([Id] = 1)", g.sqlserver.Update<Topic>(new Topic { Id = 1, Title = "test" }).SetRaw("title='test1'").AsTable(a => "tb_topicAsTable").ToSql());
+            Assert.Equal("UPDATE [tb_topicAsTable] SET title='test1' \r\nWHERE ([Id] = 1 OR [Id] = 2)", g.sqlserver.Update<Topic>(new[] { new Topic { Id = 1, Title = "test" }, new Topic { Id = 2, Title = "test" } }).SetRaw("title='test1'").AsTable(a => "tb_topicAsTable").ToSql());
+            Assert.Equal("UPDATE [tb_topicAsTable] SET title='test1' \r\nWHERE ([Id] = 1)", g.sqlserver.Update<Topic>(new { id = 1 }).SetRaw("title='test1'").AsTable(a => "tb_topicAsTable").ToSql());
         }
     }
 }

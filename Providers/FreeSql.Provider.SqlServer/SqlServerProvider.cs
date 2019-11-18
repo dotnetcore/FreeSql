@@ -43,7 +43,7 @@ namespace FreeSql.SqlServer
                 {
                     try
                     {
-                        (this.InternalCommonUtils as SqlServerUtils).IsSelectRowNumber = int.Parse(conn.Value.ServerVersion.Split('.')[0]) <= 10;
+                        (this.InternalCommonUtils as SqlServerUtils).ServerVersion = int.Parse(conn.Value.ServerVersion.Split('.')[0]);
                     }
                     catch
                     {

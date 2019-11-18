@@ -42,7 +42,7 @@ namespace FreeSql.Odbc.SqlServer
                 {
                     try
                     {
-                        (this.InternalCommonUtils as OdbcSqlServerUtils).IsSelectRowNumber = int.Parse(conn.Value.ServerVersion.Split('.')[0]) <= 10;
+                        (this.InternalCommonUtils as OdbcSqlServerUtils).ServerVersion = int.Parse(conn.Value.ServerVersion.Split('.')[0]);
                     }
                     catch
                     {

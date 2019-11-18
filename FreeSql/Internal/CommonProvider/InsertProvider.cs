@@ -338,7 +338,7 @@ namespace FreeSql.Internal.CommonProvider
         }
         #endregion
 
-        protected int RawExecuteAffrows()
+        protected virtual int RawExecuteAffrows()
         {
             var sql = ToSql();
             var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
@@ -412,7 +412,9 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
 
-        public virtual string ToSql()
+        public virtual string ToSql() => ToSqlValuesOrSelectUnionAll(true);
+
+        public string ToSqlValuesOrSelectUnionAll(bool isValues = true)
         {
             if (_source == null || _source.Any() == false) return null;
             var sb = new StringBuilder();
@@ -427,14 +429,15 @@ namespace FreeSql.Internal.CommonProvider
                 sb.Append(_commonUtils.QuoteSqlName(col.Attribute.Name));
                 ++colidx;
             }
-            sb.Append(") VALUES");
+            sb.Append(") ");
+            if (isValues) sb.Append(isValues ? "VALUES" : "SELECT ");
             _params = _noneParameter ? new DbParameter[0] : new DbParameter[colidx * _source.Count];
             var specialParams = new List<DbParameter>();
             var didx = 0;
             foreach (var d in _source)
             {
-                if (didx > 0) sb.Append(", ");
-                sb.Append("(");
+                if (didx > 0) sb.Append(isValues ? ", " : " \r\nUNION ALL\r\n ");
+                sb.Append(isValues ? "(" : "SELECT ");
                 var colidx2 = 0;
                 foreach (var col in _table.Columns.Values)
                 {
@@ -452,7 +455,7 @@ namespace FreeSql.Internal.CommonProvider
                     }
                     ++colidx2;
                 }
-                sb.Append(")");
+                if (isValues) sb.Append(")");
                 ++didx;
             }
             if (_noneParameter && specialParams.Any())

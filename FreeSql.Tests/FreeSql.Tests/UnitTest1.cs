@@ -427,7 +427,7 @@ namespace FreeSql.Tests
         [Fact]
         public void Test1()
         {
-
+            g.sqlserver.Select<NewsArticle>();
 
             g.sqlite.Update<Model1>(1).NoneParameter().Set(a => a.title, null).ExecuteAffrows();
 

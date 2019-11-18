@@ -20,9 +20,9 @@ namespace FreeSql.Tests.DataAnnotations
         [Fact]
         public void DisableSyncStructure()
         {
-            Assert.Throws<SqlException>(() => _sqlserverFixture.SqlServer.Select<ModelDisableSyncStructure>().ToList());
+            Assert.Throws<SqlException>(() => g.sqlserver.Select<ModelDisableSyncStructure>().ToList());
 
-            _sqlserverFixture.SqlServer.Select<ModelSyncStructure>().ToList();
+            g.sqlserver.Select<ModelSyncStructure>().ToList();
         }
         [Table(DisableSyncStructure = true)]
         class ModelDisableSyncStructure
@@ -39,7 +39,7 @@ namespace FreeSql.Tests.DataAnnotations
         [Fact]
         public void Fluent()
         {
-            _sqlserverFixture.SqlServer.CodeFirst
+            g.sqlserver.CodeFirst
                 //.ConfigEntity<TestFluenttb1>(a => {
                 //	a.Name("xxdkdkdk1");
                 //	a.Property(b => b.Id).Name("Id22").IsIdentity(true);
@@ -61,21 +61,21 @@ namespace FreeSql.Tests.DataAnnotations
                 })
                 ;
 
-            var ddl1 = _sqlserverFixture.SqlServer.CodeFirst.GetComparisonDDLStatements<TestFluenttb1>();
-            var ddl2 = _sqlserverFixture.SqlServer.CodeFirst.GetComparisonDDLStatements<TestFluenttb2>();
+            var ddl1 = g.sqlserver.CodeFirst.GetComparisonDDLStatements<TestFluenttb1>();
+            var ddl2 = g.sqlserver.CodeFirst.GetComparisonDDLStatements<TestFluenttb2>();
 
-            var t1id = _sqlserverFixture.SqlServer.Insert<TestFluenttb1>().AppendData(new TestFluenttb1 { }).ExecuteIdentity();
-            var t1 = _sqlserverFixture.SqlServer.Select<TestFluenttb1>(t1id).ToOne();
+            var t1id = g.sqlserver.Insert<TestFluenttb1>().AppendData(new TestFluenttb1 { }).ExecuteIdentity();
+            var t1 = g.sqlserver.Select<TestFluenttb1>(t1id).ToOne();
 
-            var t2lastId = _sqlserverFixture.SqlServer.Select<TestFluenttb2>().Max(a => a.Id);
-            var t2affrows = _sqlserverFixture.SqlServer.Insert<TestFluenttb2>().AppendData(new TestFluenttb2 { Id = t2lastId + 1 }).ExecuteAffrows();
-            var t2 = _sqlserverFixture.SqlServer.Select<TestFluenttb2>(t2lastId + 1).ToOne();
+            var t2lastId = g.sqlserver.Select<TestFluenttb2>().Max(a => a.Id);
+            var t2affrows = g.sqlserver.Insert<TestFluenttb2>().AppendData(new TestFluenttb2 { Id = t2lastId + 1 }).ExecuteAffrows();
+            var t2 = g.sqlserver.Select<TestFluenttb2>(t2lastId + 1).ToOne();
         }
 
         [Fact]
         public void GroupPrimaryKey()
         {
-            _sqlserverFixture.SqlServer.CodeFirst.SyncStructure<TestgroupkeyTb>();
+            g.sqlserver.CodeFirst.SyncStructure<TestgroupkeyTb>();
             g.mysql.CodeFirst.SyncStructure<TestgroupkeyTb>();
             g.pgsql.CodeFirst.SyncStructure<TestgroupkeyTb>();
             g.sqlite.CodeFirst.SyncStructure<TestgroupkeyTb>();
@@ -114,9 +114,9 @@ namespace FreeSql.Tests.DataAnnotations
         public void IsIgnore()
         {
             var item = new TestIsIgnore { };
-            Assert.Equal(1, _sqlserverFixture.SqlServer.Insert<TestIsIgnore>().AppendData(item).ExecuteAffrows());
+            Assert.Equal(1, g.sqlserver.Insert<TestIsIgnore>().AppendData(item).ExecuteAffrows());
 
-            var find = _sqlserverFixture.SqlServer.Select<TestIsIgnore>().Where(a => a.id == item.id).First();
+            var find = g.sqlserver.Select<TestIsIgnore>().Where(a => a.id == item.id).First();
             Assert.NotNull(find);
             Assert.Equal(item.id, find.id);
         }

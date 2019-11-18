@@ -20,7 +20,7 @@ namespace FreeSql.Tests.SqlServer
         public void GetDatabases()
         {
 
-            var t1 = _sqlserverFixture.SqlServer.DbFirst.GetDatabases();
+            var t1 = g.sqlserver.DbFirst.GetDatabases();
 
         }
 
@@ -28,7 +28,7 @@ namespace FreeSql.Tests.SqlServer
         public void GetTablesByDatabase()
         {
 
-            var t2 = _sqlserverFixture.SqlServer.DbFirst.GetTablesByDatabase();
+            var t2 = g.sqlserver.DbFirst.GetTablesByDatabase();
 
         }
     }
