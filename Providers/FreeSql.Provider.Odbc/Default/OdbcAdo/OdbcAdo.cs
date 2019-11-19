@@ -1,4 +1,5 @@
 ﻿using FreeSql.Internal;
+using FreeSql.Internal.Model;
 using SafeObjectPool;
 using System;
 using System.Collections;
@@ -29,7 +30,7 @@ namespace FreeSql.Odbc.Default
         OdbcAdapter Adapter => (_util == null ? FreeSqlOdbcGlobalExtensions.DefaultOdbcAdapter : _util._orm.GetOdbcAdapter());
 
         static DateTime dt1970 = new DateTime(1970, 1, 1);
-        public override object AddslashesProcessParam(object param, Type mapType)
+        public override object AddslashesProcessParam(object param, Type mapType, ColumnInfo mapColumn)
         {
             if (param == null) return "NULL";
             if (mapType != null && mapType != param.GetType() && (param is IEnumerable == false || mapType.IsArrayOrList()))
@@ -37,7 +38,7 @@ namespace FreeSql.Odbc.Default
             if (param is bool || param is bool?)
                 return (bool)param ? 1 : 0;
             else if (param is string)
-                return Adapter.UnicodeStringRawSql(param);
+                return Adapter.UnicodeStringRawSql(param, mapColumn);
             else if (param is char)
                 return string.Concat("'", param.ToString().Replace("'", "''"), "'");
             else if (param is Enum)
@@ -52,7 +53,7 @@ namespace FreeSql.Odbc.Default
             {
                 var sb = new StringBuilder();
                 var ie = param as IEnumerable;
-                foreach (var z in ie) sb.Append(",").Append(AddslashesProcessParam(z, mapType));
+                foreach (var z in ie) sb.Append(",").Append(AddslashesProcessParam(z, mapType, mapColumn));
                 return sb.Length == 0 ? "(NULL)" : sb.Remove(0, 1).Insert(0, "(").Append(")").ToString();
             }
             return string.Concat("'", param.ToString().Replace("'", "''"), "'");

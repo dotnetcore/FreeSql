@@ -130,11 +130,11 @@ namespace FreeSql.Odbc.PostgreSQL
                                 if (left.StartsWith("(") || left.EndsWith(")")) left = $"array[{left.TrimStart('(').TrimEnd(')')}]";
                                 return $"(case when {left} is null then 0 else array_length({left},1) end > 0)";
                             case "Contains":
-                                tsc?.SetMapTypeTmp(null);
+                                tsc.SetMapColumnTmp(null);
                                 var args1 = getExp(callExp.Arguments[argIndex]);
-                                var oldMapType = tsc?.SetMapTypeReturnOld(tsc?.mapTypeTmp);
+                                var oldMapType = tsc.SetMapTypeReturnOld(tsc.mapTypeTmp);
                                 left = objExp == null ? null : getExp(objExp);
-                                tsc.SetMapTypeReturnOld(oldMapType);
+                                tsc.SetMapColumnTmp(null).SetMapTypeReturnOld(oldMapType);
                                 //判断 in 或 array @> array
                                 if (left.StartsWith("array[") || left.EndsWith("]"))
                                     return $"{args1} in ({left.Substring(6, left.Length - 7)})";

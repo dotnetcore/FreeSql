@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FreeSql.Internal.Model;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -43,7 +44,7 @@ namespace FreeSql.Odbc.Default
         public virtual char QuoteSqlNameRight => ']';
 
         public virtual string FieldSql(Type type, string columnName) => columnName;
-        public virtual string UnicodeStringRawSql(object value) => value == null ? "NULL" : string.Concat("N'", value.ToString().Replace("'", "''"), "'");
+        public virtual string UnicodeStringRawSql(object value, ColumnInfo mapColumn) => value == null ? "NULL" : string.Concat("N'", value.ToString().Replace("'", "''"), "'");
         public virtual string DateTimeRawSql(object value)
         {
             if (value == null) return "NULL";

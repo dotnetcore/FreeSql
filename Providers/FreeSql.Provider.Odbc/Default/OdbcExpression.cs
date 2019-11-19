@@ -108,11 +108,11 @@ namespace FreeSql.Odbc.Default
                     if (objType == null) objType = callExp.Method.DeclaringType;
                     if (objType != null || objType.IsArrayOrList())
                     {
-                        tsc?.SetMapTypeTmp(null);
+                        tsc.SetMapColumnTmp(null);
                         var args1 = getExp(callExp.Arguments[argIndex]);
-                        var oldMapType = tsc?.SetMapTypeReturnOld(tsc?.mapTypeTmp);
+                        var oldMapType = tsc.SetMapTypeReturnOld(tsc.mapTypeTmp);
                         var left = objExp == null ? null : getExp(objExp);
-                        tsc.SetMapTypeReturnOld(oldMapType);
+                        tsc.SetMapColumnTmp(null).SetMapTypeReturnOld(oldMapType);
                         switch (callExp.Method.Name)
                         {
                             case "Contains":

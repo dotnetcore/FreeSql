@@ -332,7 +332,7 @@ namespace FreeSql.Internal
             var sql = ExpressionLambdaToSql(exp, new ExpTSC { _tables = _tables, _selectColumnMap = _selectColumnMap, getSelectGroupingMapString = getSelectGroupingMapString, tbtype = SelectTableInfoType.From, isQuoteName = true, isDisableDiyParse = false, style = ExpressionStyle.Where, currentTable = table });
             var isBool = exp.Type.NullableTypeOrThis() == typeof(bool);
             if (exp.NodeType == ExpressionType.MemberAccess && isBool && sql.Contains(" IS ") == false && sql.Contains(" = ") == false)
-                return $"{sql} = {formatSql(true, null)}";
+                return $"{sql} = {formatSql(true, null, null)}";
             if (isBool)
                 return GetBoolString(sql);
             return sql;
@@ -343,7 +343,7 @@ namespace FreeSql.Internal
             var sql = ExpressionLambdaToSql(exp, new ExpTSC { _tables = _tables, getSelectGroupingMapString = getSelectGroupingMapString, tbtype = SelectTableInfoType.From, isQuoteName = true, isDisableDiyParse = false, style = ExpressionStyle.Where, whereCascadeExpression = whereCascadeExpression });
             var isBool = exp.Type.NullableTypeOrThis() == typeof(bool);
             if (exp.NodeType == ExpressionType.MemberAccess && isBool && sql.Contains(" IS ") == false && sql.Contains(" = ") == false)
-                return $"{sql} = {formatSql(true, null)}";
+                return $"{sql} = {formatSql(true, null, null)}";
             if (isBool)
                 return GetBoolString(sql);
             return sql;
@@ -355,7 +355,7 @@ namespace FreeSql.Internal
             var sql = ExpressionLambdaToSql(exp, new ExpTSC { _tables = _tables, getSelectGroupingMapString = getSelectGroupingMapString, tbtype = tbtype, isQuoteName = true, isDisableDiyParse = false, style = ExpressionStyle.Where, whereCascadeExpression = whereCascadeExpression });
             var isBool = exp.Type.NullableTypeOrThis() == typeof(bool);
             if (exp.NodeType == ExpressionType.MemberAccess && isBool && sql.Contains(" IS ") == false && sql.Contains(" = ") == false)
-                sql = $"{sql} = {formatSql(true, null)}";
+                sql = $"{sql} = {formatSql(true, null, null)}";
             if (isBool)
                 sql = GetBoolString(sql);
 
@@ -433,7 +433,7 @@ namespace FreeSql.Internal
             {
                 var enumType = leftMapColumn.CsType.NullableTypeOrThis();
                 if (enumType.IsEnum)
-                    right = formatSql(Enum.Parse(enumType, right.StartsWith("N'") ? right.Substring(1).Trim('\'') : right.Trim('\'')), leftMapColumn.Attribute.MapType);
+                    right = formatSql(Enum.Parse(enumType, right.StartsWith("N'") ? right.Substring(1).Trim('\'') : right.Trim('\'')), leftMapColumn.Attribute.MapType, leftMapColumn);
             }
             if (leftMapColumn == null)
             {
@@ -447,7 +447,7 @@ namespace FreeSql.Internal
                     {
                         var enumType = rightMapColumn.CsType.NullableTypeOrThis();
                         if (enumType.IsEnum)
-                            left = formatSql(Enum.Parse(enumType, left.StartsWith("N'") ? left.Substring(1).Trim('\'') : left.Trim('\'')), rightMapColumn.Attribute.MapType);
+                            left = formatSql(Enum.Parse(enumType, left.StartsWith("N'") ? left.Substring(1).Trim('\'') : left.Trim('\'')), rightMapColumn.Attribute.MapType, rightMapColumn);
                     }
                 }
             }
@@ -455,8 +455,8 @@ namespace FreeSql.Internal
             {
                 if (oper == "=")
                 {
-                    var trueVal = formatSql(true, null);
-                    var falseVal = formatSql(false, null);
+                    var trueVal = formatSql(true, null, null);
+                    var falseVal = formatSql(false, null, null);
                     if (left == trueVal) return right;
                     else if (left == falseVal) return $"not({right})";
                     else if (right == trueVal) return left;
@@ -464,15 +464,14 @@ namespace FreeSql.Internal
                 }
                 else if (oper == "<>")
                 {
-                    var trueVal = formatSql(true, null);
-                    var falseVal = formatSql(false, null);
+                    var trueVal = formatSql(true, null, null);
+                    var falseVal = formatSql(false, null, null);
                     if (left == trueVal) return $"not({right})";
                     else if (left == falseVal) return right;
                     else if (right == trueVal) return $"not({left})";
                     else if (right == falseVal) return left;
                 }
             }
-
             if (left == "NULL")
             {
                 var tmp = right;
@@ -488,9 +487,9 @@ namespace FreeSql.Internal
                     break;
                 case "AND":
                 case "OR":
-                    if (leftMapColumn != null) left = $"{left} = {formatSql(true, null)}";
+                    if (leftMapColumn != null) left = $"{left} = {formatSql(true, null, null)}";
                     else left = GetBoolString(left);
-                    if (rightMapColumn != null) right = $"{right} = {formatSql(true, null)}";
+                    if (rightMapColumn != null) right = $"{right} = {formatSql(true, null, null)}";
                     else right = GetBoolString(right);
                     break;
             }
@@ -517,7 +516,7 @@ namespace FreeSql.Internal
                         if (notBody.Contains(" IS NOT NULL")) return notBody.Replace(" IS NOT NULL", " IS NULL");
                         if (notBody.Contains("=")) return notBody.Replace("=", "!=");
                         if (notBody.Contains("!=")) return notBody.Replace("!=", "=");
-                        return $"{notBody} = {formatSql(false, null)}";
+                        return $"{notBody} = {formatSql(false, null, null)}";
                     }
                     return $"not({ExpressionLambdaToSql(notExp, tsc)})";
                 case ExpressionType.Quote: return ExpressionLambdaToSql((exp as UnaryExpression)?.Operand, tsc);
@@ -529,7 +528,7 @@ namespace FreeSql.Internal
                     return ExpressionLambdaToSql((exp as UnaryExpression)?.Operand, tsc);
                 case ExpressionType.Negate:
                 case ExpressionType.NegateChecked: return "-" + ExpressionLambdaToSql((exp as UnaryExpression)?.Operand, tsc);
-                case ExpressionType.Constant: return formatSql((exp as ConstantExpression)?.Value, tsc.mapType);
+                case ExpressionType.Constant: return formatSql((exp as ConstantExpression)?.Value, tsc.mapType, tsc.mapColumnTmp);
                 case ExpressionType.Conditional:
                     var condExp = exp as ConditionalExpression;
                     return $"case when {ExpressionLambdaToSql(condExp.Test, tsc)} then {ExpressionLambdaToSql(condExp.IfTrue, tsc)} else {ExpressionLambdaToSql(condExp.IfFalse, tsc)} end";
@@ -855,7 +854,7 @@ namespace FreeSql.Internal
                     //}
                     other3Exp = ExpressionLambdaToSqlOther(exp3, tsc);
                     if (string.IsNullOrEmpty(other3Exp) == false) return other3Exp;
-                    if (exp3.IsParameter() == false) return formatSql(Expression.Lambda(exp3).Compile().DynamicInvoke(), tsc.mapType);
+                    if (exp3.IsParameter() == false) return formatSql(Expression.Lambda(exp3).Compile().DynamicInvoke(), tsc.mapType, tsc.mapColumnTmp);
                     throw new Exception($"未实现函数表达式 {exp3} 解析");
                 case ExpressionType.Parameter:
                 case ExpressionType.MemberAccess:
@@ -915,7 +914,7 @@ namespace FreeSql.Internal
                         }
                         break;
                     }
-                    if (expStack.First().NodeType != ExpressionType.Parameter) return formatSql(Expression.Lambda(exp).Compile().DynamicInvoke(), tsc.mapType);
+                    if (expStack.First().NodeType != ExpressionType.Parameter) return formatSql(Expression.Lambda(exp).Compile().DynamicInvoke(), tsc.mapType, tsc.mapColumnTmp);
                     if (callExp != null) return ExpressionLambdaToSql(callExp, tsc);
                     if (tsc.getSelectGroupingMapString != null && expStack.First().Type.FullName.StartsWith("FreeSql.ISelectGroupingAggregate`"))
                     {
@@ -942,7 +941,7 @@ namespace FreeSql.Internal
                             tsc._selectColumnMap.Add(new SelectColumnInfo { Table = null, Column = curcol });
                         var name = curcol.Attribute.Name;
                         if (tsc.isQuoteName) name = _common.QuoteSqlName(name);
-                        tsc.mapTypeTmp = curcol.Attribute.MapType == curcol.CsType ? null : curcol.Attribute.MapType;
+                        tsc.SetMapColumnTmp(curcol);
                         if (string.IsNullOrEmpty(tsc.alias001)) return name;
                         return $"{tsc.alias001}.{name}";
                     }
@@ -1104,7 +1103,7 @@ namespace FreeSql.Internal
                                     return "";
                                 }
                                 name2 = col2.Attribute.Name;
-                                tsc.mapTypeTmp = col2.Attribute.MapType == col2.CsType ? null : col2.Attribute.MapType;
+                                tsc.SetMapColumnTmp(col2);
                                 break;
                             case ExpressionType.Call: break;
                         }
@@ -1126,7 +1125,7 @@ namespace FreeSql.Internal
             }
             if (dicExpressionOperator.TryGetValue(expBinary.NodeType, out var tryoper) == false)
             {
-                if (exp.IsParameter() == false) return formatSql(Expression.Lambda(exp).Compile().DynamicInvoke(), tsc.mapType);
+                if (exp.IsParameter() == false) return formatSql(Expression.Lambda(exp).Compile().DynamicInvoke(), tsc.mapType, tsc.mapColumnTmp);
                 return "";
             }
             return ExpressionBinary(tryoper, expBinary.Left, expBinary.Right, tsc);
@@ -1157,13 +1156,24 @@ namespace FreeSql.Internal
             public ExpressionStyle style { get; set; }
             public Type mapType { get; set; }
             public Type mapTypeTmp { get; set; }
+            public ColumnInfo mapColumnTmp { get; set; }
             public TableInfo currentTable { get; set; }
             public List<LambdaExpression> whereCascadeExpression { get; set; }
             public string alias001 { get; set; } //单表字段的表别名
 
-            public void SetMapTypeTmp(Type newValue)
+            public ExpTSC SetMapColumnTmp(ColumnInfo col)
             {
-                this.mapTypeTmp = null;
+                if (col == null)
+                {
+                    this.mapTypeTmp = null;
+                    this.mapColumnTmp = null;
+                }
+                else
+                {
+                    this.mapTypeTmp = col.Attribute.MapType == col.CsType ? null : col.Attribute.MapType;
+                    this.mapColumnTmp = col;
+                }
+                return this;
             }
             public Type SetMapTypeReturnOld(Type newValue)
             {
@@ -1263,6 +1273,6 @@ namespace FreeSql.Internal
             }
         }
 
-        public string formatSql(object obj, Type mapType) => string.Concat(_ado.AddslashesProcessParam(obj, mapType));
+        public string formatSql(object obj, Type mapType, ColumnInfo mapColumn) => string.Concat(_ado.AddslashesProcessParam(obj, mapType, mapColumn));
     }
 }

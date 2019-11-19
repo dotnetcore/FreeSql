@@ -1,4 +1,5 @@
 ﻿using FreeSql.Internal;
+using FreeSql.Internal.Model;
 using SafeObjectPool;
 using System;
 using System.Collections;
@@ -28,7 +29,7 @@ namespace FreeSql.Odbc.MySql
             }
         }
         static DateTime dt1970 = new DateTime(1970, 1, 1);
-        public override object AddslashesProcessParam(object param, Type mapType)
+        public override object AddslashesProcessParam(object param, Type mapType, ColumnInfo mapColumn)
         {
             if (param == null) return "NULL";
             if (mapType != null && mapType != param.GetType() && (param is IEnumerable == false || mapType.IsArrayOrList()))
@@ -49,7 +50,7 @@ namespace FreeSql.Odbc.MySql
             {
                 var sb = new StringBuilder();
                 var ie = param as IEnumerable;
-                foreach (var z in ie) sb.Append(",").Append(AddslashesProcessParam(z, mapType));
+                foreach (var z in ie) sb.Append(",").Append(AddslashesProcessParam(z, mapType, mapColumn));
                 return sb.Length == 0 ? "(NULL)" : sb.Remove(0, 1).Insert(0, "(").Append(")").ToString();
             }
             return string.Concat("'", param.ToString().Replace("'", "''"), "'");
