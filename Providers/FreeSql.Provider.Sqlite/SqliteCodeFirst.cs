@@ -73,21 +73,31 @@ namespace FreeSql.Sqlite
             return null;
         }
 
-        public override string GetComparisonDDLStatements(params Type[] entityTypes)
+        protected override string GetComparisonDDLStatements(params (Type entityType, string tableName)[] objects)
         {
             var sb = new StringBuilder();
             var sbDeclare = new StringBuilder();
-            foreach (var entityType in entityTypes)
+            foreach (var obj in objects)
             {
                 if (sb.Length > 0) sb.Append("\r\n");
-                var tb = _commonUtils.GetTableByEntity(entityType);
-                if (tb == null) throw new Exception($"类型 {entityType.FullName} 不可迁移");
-                if (tb.Columns.Any() == false) throw new Exception($"类型 {entityType.FullName} 不可迁移，可迁移属性0个");
+                var tb = _commonUtils.GetTableByEntity(obj.entityType);
+                if (tb == null) throw new Exception($"类型 {obj.entityType.FullName} 不可迁移");
+                if (tb.Columns.Any() == false) throw new Exception($"类型 {obj.entityType.FullName} 不可迁移，可迁移属性0个");
                 var tbname = tb.DbName.Split(new[] { '.' }, 2);
                 if (tbname?.Length == 1) tbname = new[] { "main", tbname[0] };
 
                 var tboldname = tb.DbOldName?.Split(new[] { '.' }, 2); //旧表名
                 if (tboldname?.Length == 1) tboldname = new[] { "main", tboldname[0] };
+                if (string.IsNullOrEmpty(obj.tableName) == false)
+                {
+                    var tbtmpname = obj.tableName.Split(new[] { '.' }, 2);
+                    if (tbtmpname?.Length == 1) tbtmpname = new[] { "main", tbtmpname[0] };
+                    if (tbname[0] != tbtmpname[0] || tbname[1] != tbtmpname[1])
+                    {
+                        tbname = tbtmpname;
+                        tboldname = null;
+                    }
+                }
 
                 var sbalter = new StringBuilder();
                 var istmpatler = false; //创建临时表，导入数据，删除旧表，修改
@@ -169,7 +179,7 @@ namespace FreeSql.Sqlite
                     {
                         column = string.Concat(a[1]),
                         sqlType = string.Concat(a[2]).ToUpper(),
-                        is_nullable = string.Concat(a[3]) == "0",
+                        is_nullable = string.Concat(a[5]) == "0" && string.Concat(a[3]) == "0",
                         is_identity
                     };
                 }, StringComparer.CurrentCultureIgnoreCase);

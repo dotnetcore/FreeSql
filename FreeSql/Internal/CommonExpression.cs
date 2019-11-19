@@ -23,7 +23,6 @@ namespace FreeSql.Internal
             _common = common;
         }
 
-        static ConcurrentDictionary<Type, PropertyInfo[]> _dicReadAnonymousFieldDtoPropertys = new ConcurrentDictionary<Type, PropertyInfo[]>();
         public bool ReadAnonymousField(List<SelectTableInfo> _tables, StringBuilder field, ReadAnonymousTypeInfo parent, ref int index, Expression exp, Func<Expression[], string> getSelectGroupingMapString, List<LambdaExpression> whereCascadeExpression)
         {
             Func<ExpTSC> getTSC = () => new ExpTSC { _tables = _tables, getSelectGroupingMapString = getSelectGroupingMapString, tbtype = SelectTableInfoType.From, isQuoteName = true, isDisableDiyParse = false, style = ExpressionStyle.Where, whereCascadeExpression = whereCascadeExpression };
@@ -108,28 +107,11 @@ namespace FreeSql.Internal
                     var initExp = exp as MemberInitExpression;
                     parent.Consturctor = initExp.NewExpression.Type.GetConstructors()[0];
                     parent.ConsturctorType = ReadAnonymousTypeInfoConsturctorType.Properties;
-                    if (initExp.Bindings?.Count > 0)
-                    {
-                        //指定 dto映射
-                        for (var a = 0; a < initExp.Bindings.Count; a++)
-                        {
-                            var initAssignExp = (initExp.Bindings[a] as MemberAssignment);
-                            if (initAssignExp == null) continue;
-                            var child = new ReadAnonymousTypeInfo
-                            {
-                                Property = initExp.Type.GetProperty(initExp.Bindings[a].Member.Name, BindingFlags.Public | BindingFlags.IgnoreCase | BindingFlags.Instance),
-                                CsName = initExp.Bindings[a].Member.Name,
-                                CsType = initAssignExp.Expression.Type,
-                                MapType = initAssignExp.Expression.Type
-                            };
-                            parent.Childs.Add(child);
-                            ReadAnonymousField(_tables, field, child, ref index, initAssignExp.Expression, getSelectGroupingMapString, whereCascadeExpression);
-                        }
-                    }
-                    else
+
+                    if (initExp.NewExpression.Type != _tables.FirstOrDefault()?.Table.Type)
                     {
                         //dto 映射
-                        var dtoProps = _dicReadAnonymousFieldDtoPropertys.GetOrAdd(initExp.NewExpression.Type, dtoType => dtoType.GetProperties());
+                        var dtoProps = initExp.NewExpression.Type.GetPropertiesDictIgnoreCase().Values;
                         foreach (var dtoProp in dtoProps)
                         {
                             foreach (var dtTb in _tables)
@@ -156,8 +138,26 @@ namespace FreeSql.Internal
                                 }
                             }
                         }
-                        if (parent.Childs.Any() == false) throw new Exception($"映射异常：{initExp.NewExpression.Type.Name} 没有一个属性名相同");
                     }
+                    if (initExp.Bindings?.Count > 0)
+                    {
+                        //指定 dto映射
+                        for (var a = 0; a < initExp.Bindings.Count; a++)
+                        {
+                            var initAssignExp = (initExp.Bindings[a] as MemberAssignment);
+                            if (initAssignExp == null) continue;
+                            var child = new ReadAnonymousTypeInfo
+                            {
+                                Property = initExp.Type.GetProperty(initExp.Bindings[a].Member.Name, BindingFlags.Public | BindingFlags.IgnoreCase | BindingFlags.Instance),
+                                CsName = initExp.Bindings[a].Member.Name,
+                                CsType = initAssignExp.Expression.Type,
+                                MapType = initAssignExp.Expression.Type
+                            };
+                            parent.Childs.Add(child);
+                            ReadAnonymousField(_tables, field, child, ref index, initAssignExp.Expression, getSelectGroupingMapString, whereCascadeExpression);
+                        }
+                    }
+                    if (parent.Childs.Any() == false) throw new Exception($"映射异常：{initExp.NewExpression.Type.Name} 没有一个属性名相同");
                     return true;
                 case ExpressionType.New:
                     var newExp = exp as NewExpression;
@@ -182,8 +182,8 @@ namespace FreeSql.Internal
                     {
                         //dto 映射
                         parent.ConsturctorType = ReadAnonymousTypeInfoConsturctorType.Properties;
-                        var dtoProps = _dicReadAnonymousFieldDtoPropertys.GetOrAdd(newExp.Type, dtoType => dtoType.GetProperties());
-                        foreach (var dtoProp in dtoProps)
+                        var dtoProps2 = newExp.Type.GetPropertiesDictIgnoreCase().Values;
+                        foreach (var dtoProp in dtoProps2)
                         {
                             foreach (var dtTb in _tables)
                             {
@@ -251,7 +251,7 @@ namespace FreeSql.Internal
                         var objval = ReadAnonymous(parent.Childs[b], dr, ref index, notRead);
                         if (isnull == false && objval == null && parent.Table != null && parent.Table.ColumnsByCs.TryGetValue(parent.Childs[b].CsName, out var trycol) && trycol.Attribute.IsPrimary)
                             isnull = true;
-                        if (isnull == false)
+                        if (isnull == false && prop.CanWrite)
                             prop.SetValue(ret, objval, null);
                     }
                     return isnull ? null : ret;
@@ -423,7 +423,7 @@ namespace FreeSql.Internal
 
             var left = ExpressionLambdaToSql(leftExp, tsc);
             var leftMapColumn = SearchColumnByField(tsc._tables, tsc.currentTable, left);
-            var isLeftMapType = leftMapColumn != null && (leftMapColumn.Attribute.MapType != rightExp.Type || leftMapColumn.CsType != rightExp.Type);
+            var isLeftMapType = leftMapColumn != null && new[] { "AND", "OR" }.Contains(oper) == false && (leftMapColumn.Attribute.MapType != rightExp.Type || leftMapColumn.CsType != rightExp.Type);
             ColumnInfo rightMapColumn = null;
             var isRightMapType = false;
             if (isLeftMapType) tsc.mapType = leftMapColumn.Attribute.MapType;
@@ -438,7 +438,7 @@ namespace FreeSql.Internal
             if (leftMapColumn == null)
             {
                 rightMapColumn = SearchColumnByField(tsc._tables, tsc.currentTable, right);
-                isRightMapType = rightMapColumn != null && (rightMapColumn.Attribute.MapType != leftExp.Type || rightMapColumn.CsType != leftExp.Type);
+                isRightMapType = rightMapColumn != null && new[] { "AND", "OR" }.Contains(oper) == false && (rightMapColumn.Attribute.MapType != leftExp.Type || rightMapColumn.CsType != leftExp.Type);
                 if (isRightMapType)
                 {
                     tsc.mapType = rightMapColumn.Attribute.MapType;
@@ -488,8 +488,10 @@ namespace FreeSql.Internal
                     break;
                 case "AND":
                 case "OR":
-                    left = GetBoolString(left);
-                    right = GetBoolString(right);
+                    if (leftMapColumn != null) left = $"{left} = {formatSql(true, null)}";
+                    else left = GetBoolString(left);
+                    if (rightMapColumn != null) right = $"{right} = {formatSql(true, null)}";
+                    else right = GetBoolString(right);
                     break;
             }
             tsc.mapType = null;
@@ -935,12 +937,12 @@ namespace FreeSql.Internal
                                 throw new ArgumentException($"{tb.DbName}.{memberExp.Member.Name} 被忽略，请检查 IsIgnore 设置，确认 get/set 为 public");
                             throw new ArgumentException($"{tb.DbName} 找不到列 {memberExp.Member.Name}");
                         }
+                        var curcol = tb.ColumnsByCs[memberExp.Member.Name];
                         if (tsc._selectColumnMap != null)
-                        {
-                            tsc._selectColumnMap.Add(new SelectColumnInfo { Table = null, Column = tb.ColumnsByCs[memberExp.Member.Name] });
-                        }
-                        var name = tb.ColumnsByCs[memberExp.Member.Name].Attribute.Name;
+                            tsc._selectColumnMap.Add(new SelectColumnInfo { Table = null, Column = curcol });
+                        var name = curcol.Attribute.Name;
                         if (tsc.isQuoteName) name = _common.QuoteSqlName(name);
+                        tsc.mapTypeTmp = curcol.Attribute.MapType == curcol.CsType ? null : curcol.Attribute.MapType;
                         if (string.IsNullOrEmpty(tsc.alias001)) return name;
                         return $"{tsc.alias001}.{name}";
                     }
@@ -1101,7 +1103,8 @@ namespace FreeSql.Internal
                                     tsc._selectColumnMap.Add(new SelectColumnInfo { Table = find2, Column = col2 });
                                     return "";
                                 }
-                                name2 = tb2.ColumnsByCs[mp2.Member.Name].Attribute.Name;
+                                name2 = col2.Attribute.Name;
+                                tsc.mapTypeTmp = col2.Attribute.MapType == col2.CsType ? null : col2.Attribute.MapType;
                                 break;
                             case ExpressionType.Call: break;
                         }
@@ -1153,9 +1156,21 @@ namespace FreeSql.Internal
             public bool isDisableDiyParse { get; set; }
             public ExpressionStyle style { get; set; }
             public Type mapType { get; set; }
+            public Type mapTypeTmp { get; set; }
             public TableInfo currentTable { get; set; }
             public List<LambdaExpression> whereCascadeExpression { get; set; }
             public string alias001 { get; set; } //单表字段的表别名
+
+            public void SetMapTypeTmp(Type newValue)
+            {
+                this.mapTypeTmp = null;
+            }
+            public Type SetMapTypeReturnOld(Type newValue)
+            {
+                var old = this.mapType;
+                this.mapType = newValue;
+                return old;
+            }
 
             public ExpTSC CloneSetgetSelectGroupingMapStringAndgetSelectGroupingMapStringAndtbtype(List<SelectColumnInfo> v1, Func<Expression[], string> v2, SelectTableInfoType v3)
             {

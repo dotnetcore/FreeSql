@@ -31,7 +31,7 @@ namespace FreeSql.Odbc.MySql
         public override object AddslashesProcessParam(object param, Type mapType)
         {
             if (param == null) return "NULL";
-            if (mapType != null && mapType != param.GetType())
+            if (mapType != null && mapType != param.GetType() && (param is IEnumerable == false || mapType.IsArrayOrList()))
                 param = Utils.GetDataReaderValue(mapType, param);
             if (param is bool || param is bool?)
                 return (bool)param ? 1 : 0;

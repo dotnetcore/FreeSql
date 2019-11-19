@@ -1,4 +1,4 @@
-﻿public static partial class FreeSqlGlobalExtensions
+﻿public static partial class FreeSqlSqliteGlobalExtensions
 {
 
     /// <summary>

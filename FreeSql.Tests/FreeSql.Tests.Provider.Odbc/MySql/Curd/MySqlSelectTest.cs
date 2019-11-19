@@ -425,10 +425,6 @@ namespace FreeSql.Tests.Odbc.MySql
             Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a LEFT JOIN TestTypeInfo b on b.Guid = a.TypeGuid", sql);
             query.ToList();
 
-            query = select.LeftJoin("TestTypeInfo b on b.Guid = a.TypeGuid and b.Name = ?", new { bname = "xxx" });
-            sql = query.ToSql().Replace("\r\n", "");
-            Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a LEFT JOIN TestTypeInfo b on b.Guid = a.TypeGuid and b.Name = ?", sql);
-            query.ToList();
         }
         [Fact]
         public void InnerJoin()
@@ -494,11 +490,6 @@ namespace FreeSql.Tests.Odbc.MySql
             Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a INNER JOIN TestTypeInfo b on b.Guid = a.TypeGuid", sql);
             query.ToList();
 
-            query = select.InnerJoin("TestTypeInfo b on b.Guid = a.TypeGuid and b.Name = ?", new { bname = "xxx" });
-            sql = query.ToSql().Replace("\r\n", "");
-            Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a INNER JOIN TestTypeInfo b on b.Guid = a.TypeGuid and b.Name = ?", sql);
-            query.ToList();
-
         }
         [Fact]
         public void RightJoin()
@@ -562,11 +553,6 @@ namespace FreeSql.Tests.Odbc.MySql
             query = select.RightJoin("TestTypeInfo b on b.Guid = a.TypeGuid");
             sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a RIGHT JOIN TestTypeInfo b on b.Guid = a.TypeGuid", sql);
-            query.ToList();
-
-            query = select.RightJoin("TestTypeInfo b on b.Guid = a.TypeGuid and b.Name = ?", new { bname = "xxx" });
-            sql = query.ToSql().Replace("\r\n", "");
-            Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a RIGHT JOIN TestTypeInfo b on b.Guid = a.TypeGuid and b.Name = ?", sql);
             query.ToList();
 
         }
@@ -635,11 +621,6 @@ namespace FreeSql.Tests.Odbc.MySql
             Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a, `TestTypeInfo` b, `TestTypeParentInfo` c WHERE (a.`Id` = 10 AND c.`Name` = 'xxx') AND (b.`ParentId` = 20)", sql);
             query2.ToList();
 
-            //������϶����㲻��
-            query = select.Where("a.clicks > 100 and a.id = ?", new { id = 10 });
-            sql = query.ToSql().Replace("\r\n", "");
-            Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a WHERE (a.clicks > 100 and a.id = ?)", sql);
-            query.ToList();
         }
         [Fact]
         public void WhereIf()
@@ -683,12 +664,6 @@ namespace FreeSql.Tests.Odbc.MySql
             Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a, `TestTypeInfo` b, `TestTypeParentInfo` c WHERE (a.`Id` = 10 AND c.`Name` = 'xxx') AND (b.`ParentId` = 20)", sql);
             query2.ToList();
 
-            //������϶����㲻��
-            query = select.WhereIf(true, "a.clicks > 100 and a.id = ?", new { id = 10 });
-            sql = query.ToSql().Replace("\r\n", "");
-            Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a WHERE (a.clicks > 100 and a.id = ?)", sql);
-            query.ToList();
-
             // ==========================================WhereIf(false)
 
             //����е�������a.Type��a.Type.Parent ���ǵ�������
@@ -729,12 +704,6 @@ namespace FreeSql.Tests.Odbc.MySql
             sql = query2.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a, `TestTypeInfo` b, `TestTypeParentInfo` c", sql);
             query2.ToList();
-
-            //������϶����㲻��
-            query = select.WhereIf(false, "a.clicks > 100 and a.id = ?", new { id = 10 });
-            sql = query.ToSql().Replace("\r\n", "");
-            Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a", sql);
-            query.ToList();
         }
         [Fact]
         public void WhereExists()
@@ -1090,6 +1059,40 @@ namespace FreeSql.Tests.Odbc.MySql
                     then => then.IncludeMany(m3 => m3.childs2.Take(2).Where(m4 => m4.model3333Id333 == m3.id)))
                 .Where(a => a.id <= model1.id)
                 .ToList();
+
+            //---- Select ----
+
+            var at0 = g.mysql.Select<TestInclude_OneToManyModel2>()
+                .IncludeMany(a => a.childs.Where(m3 => m3.model2111Idaaa == a.model2id).Select(m3 => new TestInclude_OneToManyModel3 { id = m3.id }))
+                .Where(a => a.model2id <= model1.id)
+                .ToList();
+
+            var at1 = g.mysql.Select<TestInclude_OneToManyModel1>()
+                .IncludeMany(a => a.model2.childs.Where(m3 => m3.model2111Idaaa == a.model2.model2id).Select(m3 => new TestInclude_OneToManyModel3 { id = m3.id }))
+                .Where(a => a.id <= model1.id)
+                .ToList();
+
+            var at2 = g.mysql.Select<TestInclude_OneToManyModel1>()
+                .IncludeMany(a => a.model2.childs.Where(m3 => m3.model2111Idaaa == a.model2.model2id).Select(m3 => new TestInclude_OneToManyModel3 { id = m3.id }),
+                    then => then.IncludeMany(m3 => m3.childs2.Where(m4 => m4.model3333Id333 == m3.id).Select(m4 => new TestInclude_OneToManyModel4 { id = m4.id })))
+                .Where(a => a.id <= model1.id)
+                .ToList();
+
+            var at00 = g.mysql.Select<TestInclude_OneToManyModel2>()
+                .IncludeMany(a => a.childs.Take(1).Where(m3 => m3.model2111Idaaa == a.model2id).Select(m3 => new TestInclude_OneToManyModel3 { id = m3.id }))
+                .Where(a => a.model2id <= model1.id)
+                .ToList();
+
+            var at11 = g.mysql.Select<TestInclude_OneToManyModel1>()
+                .IncludeMany(a => a.model2.childs.Take(1).Where(m3 => m3.model2111Idaaa == a.model2.model2id).Select(m3 => new TestInclude_OneToManyModel3 { id = m3.id }))
+                .Where(a => a.id <= model1.id)
+                .ToList();
+
+            var at22 = g.mysql.Select<TestInclude_OneToManyModel1>()
+                .IncludeMany(a => a.model2.childs.Take(1).Where(m3 => m3.model2111Idaaa == a.model2.model2id).Select(m3 => new TestInclude_OneToManyModel3 { id = m3.id }),
+                    then => then.IncludeMany(m3 => m3.childs2.Take(2).Where(m4 => m4.model3333Id333 == m3.id).Select(m4 => new TestInclude_OneToManyModel4 { id = m4.id })))
+                .Where(a => a.id <= model1.id)
+                .ToList();
         }
 
         public class TestInclude_OneToManyModel11
@@ -1107,6 +1110,8 @@ namespace FreeSql.Tests.Odbc.MySql
             [Column(IsIdentity = true)]
             public int id { get; set; }
             public string m2setting { get; set; }
+            public string aaa { get; set; }
+            public string bbb { get; set; }
             public List<TestInclude_OneToManyModel33> childs { get; set; }
         }
         public class TestInclude_OneToManyModel33
@@ -1121,7 +1126,7 @@ namespace FreeSql.Tests.Odbc.MySql
         public void Include_OneToMany2()
         {
             string setting = "x";
-            var model2 = new TestInclude_OneToManyModel22 { m2setting = DateTime.Now.Second.ToString() };
+            var model2 = new TestInclude_OneToManyModel22 { m2setting = DateTime.Now.Second.ToString(), aaa = "aaa" + DateTime.Now.Second, bbb = "bbb" + DateTime.Now.Second };
             model2.id = (int)g.mysql.Insert(model2).ExecuteIdentity();
 
             var model3s = new[]
@@ -1144,6 +1149,20 @@ namespace FreeSql.Tests.Odbc.MySql
             var t11 = g.mysql.Select<TestInclude_OneToManyModel11>()
                 .LeftJoin(a => a.model2id == a.model2.id)
                 .IncludeMany(a => a.model2.childs.Take(1).Where(m3 => m3.model2Id == a.model2.id && m3.setting == a.m3setting))
+                .Where(a => a.id <= model1.id)
+                .ToList(true);
+
+            //---- Select ----
+
+            var at1 = g.mysql.Select<TestInclude_OneToManyModel11>()
+                .LeftJoin(a => a.model2id == a.model2.id)
+                .IncludeMany(a => a.model2.childs.Where(m3 => m3.model2Id == a.model2.id && m3.setting == a.m3setting).Select(m3 => new TestInclude_OneToManyModel33 { title = m3.title }))
+                .Where(a => a.id <= model1.id)
+                .ToList(true);
+
+            var at11 = g.mysql.Select<TestInclude_OneToManyModel11>()
+                .LeftJoin(a => a.model2id == a.model2.id)
+                .IncludeMany(a => a.model2.childs.Take(1).Where(m3 => m3.model2Id == a.model2.id && m3.setting == a.m3setting).Select(m3 => new TestInclude_OneToManyModel33 { title = m3.title }))
                 .Where(a => a.id <= model1.id)
                 .ToList(true);
         }
@@ -1241,6 +1260,59 @@ namespace FreeSql.Tests.Odbc.MySql
                     then => then.Include(a => a.Parent).IncludeMany(a => a.Songs.Take(1)).IncludeMany(a => a.Tags.Take(1)))
                 .Include(a => a.Parent)
                 .IncludeMany(a => a.Songs.Take(1))
+                .Where(a => a.Id == tag1.Id || a.Id == tag2.Id)
+                .ToList();
+
+            // --- Select ---
+
+            var atags0 = g.mysql.Select<Tag>()
+                .Include(a => a.Parent)
+                .Where(a => a.Id == tag1.Id || a.Id == tag2.Id)
+                .ToList();
+
+            var atags1 = g.mysql.Select<Tag>()
+                .IncludeMany(a => a.Tags.Select(b => new Tag { Id = b.Id, Name = b.Name }))
+                .Include(a => a.Parent)
+                .IncludeMany(a => a.Songs.Select(b => new Song { Id = b.Id, Title = b.Title }))
+                .Where(a => a.Id == tag1.Id || a.Id == tag2.Id)
+                .ToList();
+
+            var atags2 = g.mysql.Select<Tag>()
+                .IncludeMany(a => a.Tags.Select(b => new Tag { Id = b.Id, Name = b.Name }),
+                    then => then.Include(a => a.Parent).IncludeMany(a => a.Songs))
+                .Include(a => a.Parent)
+                .IncludeMany(a => a.Songs.Select(b => new Song { Id = b.Id, Title = b.Title }))
+                .Where(a => a.Id == tag1.Id || a.Id == tag2.Id)
+                .ToList();
+
+            var atags3 = g.mysql.Select<Tag>()
+                .IncludeMany(a => a.Tags.Select(b => new Tag { Id = b.Id, Name = b.Name }),
+                    then => then.Include(a => a.Parent).IncludeMany(a => a.Songs.Select(b => new Song { Id = b.Id, Title = b.Title })).IncludeMany(a => a.Tags.Select(b => new Tag { Id = b.Id, Name = b.Name })))
+                .Include(a => a.Parent)
+                .IncludeMany(a => a.Songs.Select(b => new Song { Id = b.Id, Title = b.Title }))
+                .Where(a => a.Id == tag1.Id || a.Id == tag2.Id)
+                .ToList();
+
+            var atags11 = g.mysql.Select<Tag>()
+                .IncludeMany(a => a.Tags.Take(1).Select(b => new Tag { Id = b.Id, Name = b.Name }))
+                .Include(a => a.Parent)
+                .IncludeMany(a => a.Songs.Take(1).Select(b => new Song { Id = b.Id, Title = b.Title }))
+                .Where(a => a.Id == tag1.Id || a.Id == tag2.Id)
+                .ToList();
+
+            var atags22 = g.mysql.Select<Tag>()
+                .IncludeMany(a => a.Tags.Take(1).Select(b => new Tag { Id = b.Id, Name = b.Name }),
+                    then => then.Include(a => a.Parent).IncludeMany(a => a.Songs.Take(1).Select(b => new Song { Id = b.Id, Title = b.Title })))
+                .Include(a => a.Parent)
+                .IncludeMany(a => a.Songs.Take(1).Select(b => new Song { Id = b.Id, Title = b.Title }))
+                .Where(a => a.Id == tag1.Id || a.Id == tag2.Id)
+                .ToList();
+
+            var atags33 = g.mysql.Select<Tag>()
+                .IncludeMany(a => a.Tags.Take(1).Select(b => new Tag { Id = b.Id, Name = b.Name }),
+                    then => then.Include(a => a.Parent).IncludeMany(a => a.Songs.Take(1).Select(b => new Song { Id = b.Id, Title = b.Title })).IncludeMany(a => a.Tags.Take(1).Select(b => new Tag { Id = b.Id, Name = b.Name })))
+                .Include(a => a.Parent)
+                .IncludeMany(a => a.Songs.Take(1).Select(b => new Song { Id = b.Id, Title = b.Title }))
                 .Where(a => a.Id == tag1.Id || a.Id == tag2.Id)
                 .ToList();
         }
@@ -1345,6 +1417,61 @@ namespace FreeSql.Tests.Odbc.MySql
             var tags33 = g.mysql.Select<Song_tag>()
                 .Include(a => a.Tag.Parent)
                 .IncludeMany(a => a.Tag.Songs.Take(1))
+                .Where(a => a.Tag.Id == tag1.Id || a.Tag.Id == tag2.Id)
+                .ToList(true);
+
+            // --- Select ---
+
+            new List<Song>(new[] { song1, song2, song3 }).IncludeMany(g.mysql, a => a.Tags.Select(b => new Tag { Id = b.Id, Name = b.Name }));
+
+            var asongs1 = g.mysql.Select<Song>()
+                .IncludeMany(a => a.Tags.Select(b => new Tag { Id = b.Id, Name = b.Name }))
+                .Where(a => a.Id == song1.Id || a.Id == song2.Id || a.Id == song3.Id)
+                .ToList();
+            Assert.Equal(3, songs1.Count);
+            Assert.Equal(2, songs1[0].Tags.Count);
+            Assert.Equal(1, songs1[1].Tags.Count);
+            Assert.Equal(3, songs1[2].Tags.Count);
+
+            var asongs2 = g.mysql.Select<Song>()
+                .IncludeMany(a => a.Tags.Select(b => new Tag { Id = b.Id, Name = b.Name }),
+                    then => then.IncludeMany(t => t.Songs.Select(b => new Song { Id = b.Id, Title = b.Title })))
+                .Where(a => a.Id == song1.Id || a.Id == song2.Id || a.Id == song3.Id)
+                .ToList();
+            Assert.Equal(3, songs2.Count);
+            Assert.Equal(2, songs2[0].Tags.Count);
+            Assert.Equal(1, songs2[1].Tags.Count);
+            Assert.Equal(3, songs2[2].Tags.Count);
+
+            var atags3 = g.mysql.Select<Song_tag>()
+                .Include(a => a.Tag.Parent)
+                .IncludeMany(a => a.Tag.Songs.Select(b => new Song { Id = b.Id, Title = b.Title }))
+                .Where(a => a.Tag.Id == tag1.Id || a.Tag.Id == tag2.Id)
+                .ToList(true);
+
+
+            var asongs11 = g.mysql.Select<Song>()
+                .IncludeMany(a => a.Tags.Take(1).Select(b => new Tag { Id = b.Id, Name = b.Name }))
+                .Where(a => a.Id == song1.Id || a.Id == song2.Id || a.Id == song3.Id)
+                .ToList();
+            Assert.Equal(3, songs11.Count);
+            Assert.Equal(1, songs11[0].Tags.Count);
+            Assert.Equal(1, songs11[1].Tags.Count);
+            Assert.Equal(1, songs11[2].Tags.Count);
+
+            var asongs22 = g.mysql.Select<Song>()
+                .IncludeMany(a => a.Tags.Take(1).Select(b => new Tag { Id = b.Id, Name = b.Name }),
+                    then => then.IncludeMany(t => t.Songs.Take(1).Select(b => new Song { Id = b.Id, Title = b.Title })))
+                .Where(a => a.Id == song1.Id || a.Id == song2.Id || a.Id == song3.Id)
+                .ToList();
+            Assert.Equal(3, songs22.Count);
+            Assert.Equal(1, songs22[0].Tags.Count);
+            Assert.Equal(1, songs22[1].Tags.Count);
+            Assert.Equal(1, songs22[2].Tags.Count);
+
+            var atags33 = g.mysql.Select<Song_tag>()
+                .Include(a => a.Tag.Parent)
+                .IncludeMany(a => a.Tag.Songs.Take(1).Select(b => new Song { Id = b.Id, Title = b.Title }))
                 .Where(a => a.Tag.Id == tag1.Id || a.Tag.Id == tag2.Id)
                 .ToList(true);
         }

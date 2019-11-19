@@ -18,7 +18,7 @@ namespace FreeSql.Tests.SqlServer
             _sqlserverFixture = sqlserverFixture;
         }
 
-        ISelect<Topic> select => _sqlserverFixture.SqlServer.Select<Topic>();
+        ISelect<Topic> select => g.sqlserver.Select<Topic>();
 
         [Table(Name = "tb_topic22")]
         class Topic
@@ -83,7 +83,7 @@ namespace FreeSql.Tests.SqlServer
         public void AsSelect()
         {
             //OneToOne、ManyToOne
-            var t0 = _sqlserverFixture.SqlServer.Select<Tag>().Where(a => a.Parent.Parent.Name == "粤语").ToSql();
+            var t0 = g.sqlserver.Select<Tag>().Where(a => a.Parent.Parent.Name == "粤语").ToSql();
             //SELECT a.[Id], a.[Parent_id], a__Parent.[Id] as3, a__Parent.[Parent_id] as4, a__Parent.[Ddd], a__Parent.[Name], a.[Ddd] as7, a.[Name] as8 
             //FROM [Tag] a 
             //LEFT JOIN [Tag] a__Parent ON a__Parent.[Id] = a.[Parent_id] 
@@ -91,7 +91,7 @@ namespace FreeSql.Tests.SqlServer
             //WHERE (a__Parent__Parent.[Name] = '粤语')
 
             //OneToMany
-            var t1 = _sqlserverFixture.SqlServer.Select<Tag>().Where(a => a.Tags.AsSelect().Any(t => t.Parent.Id == 10)).ToSql();
+            var t1 = g.sqlserver.Select<Tag>().Where(a => a.Tags.AsSelect().Any(t => t.Parent.Id == 10)).ToSql();
             //SELECT a.[Id], a.[Parent_id], a.[Ddd], a.[Name] 
             //FROM [Tag] a 
             //WHERE (exists(SELECT 1 
@@ -101,7 +101,7 @@ namespace FreeSql.Tests.SqlServer
             //	limit 0,1))
 
             //ManyToMany
-            var t2 = _sqlserverFixture.SqlServer.Select<Song>().Where(s => s.Tags.AsSelect().Any(t => t.Name == "国语")).ToSql();
+            var t2 = g.sqlserver.Select<Song>().Where(s => s.Tags.AsSelect().Any(t => t.Name == "国语")).ToSql();
             //SELECT a.[Id], a.[Create_time], a.[Is_deleted], a.[Title], a.[Url] 
             //FROM [Song] a
             //WHERE(exists(SELECT 1
@@ -116,11 +116,11 @@ namespace FreeSql.Tests.SqlServer
         [Fact]
         public void Lazy()
         {
-            var tags = _sqlserverFixture.SqlServer.Select<Tag>().Where(a => a.Parent.Name == "xxx")
+            var tags = g.sqlserver.Select<Tag>().Where(a => a.Parent.Name == "xxx")
                 .LeftJoin(a => a.Parent_id == a.Parent.Id)
                 .ToSql();
 
-            var songs = _sqlserverFixture.SqlServer.Select<Song>().Limit(10).ToList();
+            var songs = g.sqlserver.Select<Song>().Limit(10).ToList();
 
 
         }
@@ -130,12 +130,12 @@ namespace FreeSql.Tests.SqlServer
             var items = new List<Topic>();
             for (var a = 0; a < 10; a++) items.Add(new Topic { Id = a + 1, Title = $"newtitle{a}", Clicks = a * 100, CreateTime = DateTime.Now });
 
-            Assert.Single(_sqlserverFixture.SqlServer.Insert<Topic>().AppendData(items.First()).ExecuteInserted());
-            Assert.Equal(10, _sqlserverFixture.SqlServer.Insert<Topic>().AppendData(items).ExecuteInserted().Count);
+            Assert.Single(g.sqlserver.Insert<Topic>().AppendData(items.First()).ExecuteInserted());
+            Assert.Equal(10, g.sqlserver.Insert<Topic>().AppendData(items).ExecuteInserted().Count);
 
             //items = Enumerable.Range(0, 9989).Select(a => new Topic { Title = "newtitle" + a, CreateTime = DateTime.Now }).ToList();
             //;
-            //Assert.Equal(9989, _sqlserverFixture.SqlServer.Insert<Topic>(items).NoneParameter().ExecuteAffrows());
+            //Assert.Equal(9989, g.sqlserver.Insert<Topic>(items).NoneParameter().ExecuteAffrows());
 
             var dt1 = select.Limit(10).ToDataTable();
             var dt2 = select.Limit(10).ToDataTable("id, getdate()");
@@ -150,7 +150,6 @@ namespace FreeSql.Tests.SqlServer
         [Fact]
         public void ToList()
         {
-
             var testDto1 = select.Limit(10).ToList(a => new TestDto { id = a.Id, name = a.Title });
             var testDto2 = select.Limit(10).ToList(a => new TestDto());
             var testDto3 = select.Limit(10).ToList(a => new TestDto { });
@@ -161,9 +160,9 @@ namespace FreeSql.Tests.SqlServer
             var testDto33 = select.LeftJoin(a => a.Type.Guid == a.TypeGuid).Limit(10).ToList(a => new TestDto { });
             var testDto44 = select.LeftJoin(a => a.Type.Guid == a.TypeGuid).Limit(10).ToList(a => new TestDto() { });
 
-            _sqlserverFixture.SqlServer.Insert<TestGuidIdToList>().AppendData(new TestGuidIdToList()).ExecuteAffrows();
-            var testGuidId5 = _sqlserverFixture.SqlServer.Select<TestGuidIdToList>().ToList();
-            var testGuidId6 = _sqlserverFixture.SqlServer.Select<TestGuidIdToList>().ToList(a => a.id);
+            g.sqlserver.Insert<TestGuidIdToList>().AppendData(new TestGuidIdToList()).ExecuteAffrows();
+            var testGuidId5 = g.sqlserver.Select<TestGuidIdToList>().ToList();
+            var testGuidId6 = g.sqlserver.Select<TestGuidIdToList>().ToList(a => a.id);
 
             var t11 = select.Where(a => a.Type.Name.Length > 0).ToList(true);
             var t21 = select.Where(a => a.Type.Parent.Name.Length > 0).ToList(true);
@@ -660,8 +659,8 @@ namespace FreeSql.Tests.SqlServer
                 ccc3 = a.Max(a.Value.Item3.Id)
             });
 
-            var testpid1 = _sqlserverFixture.SqlServer.Insert<TestTypeInfo>().AppendData(new TestTypeInfo { Name = "Name" + DateTime.Now.ToString("yyyyMMddHHmmss") }).ExecuteIdentity();
-            _sqlserverFixture.SqlServer.Insert<TestInfo>().AppendData(new TestInfo { Title = "Title" + DateTime.Now.ToString("yyyyMMddHHmmss"), CreateTime = DateTime.Now, TypeGuid = (int)testpid1 }).ExecuteAffrows();
+            var testpid1 = g.sqlserver.Insert<TestTypeInfo>().AppendData(new TestTypeInfo { Name = "Name" + DateTime.Now.ToString("yyyyMMddHHmmss") }).ExecuteIdentity();
+            g.sqlserver.Insert<TestInfo>().AppendData(new TestInfo { Title = "Title" + DateTime.Now.ToString("yyyyMMddHHmmss"), CreateTime = DateTime.Now, TypeGuid = (int)testpid1 }).ExecuteAffrows();
 
             var aggsql1 = select
                 .GroupBy(a => a.Title)
@@ -920,16 +919,16 @@ namespace FreeSql.Tests.SqlServer
         public void Include_OneToMany()
         {
             var model1 = new TestInclude_OneToManyModel1 { m1name = DateTime.Now.Second.ToString() };
-            model1.id = (int)_sqlserverFixture.SqlServer.Insert(model1).ExecuteIdentity();
+            model1.id = (int)g.sqlserver.Insert(model1).ExecuteIdentity();
             var model2 = new TestInclude_OneToManyModel2 { model2id = model1.id, m2setting = DateTime.Now.Second.ToString() };
-            _sqlserverFixture.SqlServer.Insert(model2).ExecuteAffrows();
+            g.sqlserver.Insert(model2).ExecuteAffrows();
 
             var model3_1 = new TestInclude_OneToManyModel3 { model2111Idaaa = model1.id, title = "testmodel3__111" };
-            model3_1.id = (int)_sqlserverFixture.SqlServer.Insert(model3_1).ExecuteIdentity();
+            model3_1.id = (int)g.sqlserver.Insert(model3_1).ExecuteIdentity();
             var model3_2 = new TestInclude_OneToManyModel3 { model2111Idaaa = model1.id, title = "testmodel3__222" };
-            model3_2.id = (int)_sqlserverFixture.SqlServer.Insert(model3_2).ExecuteIdentity();
+            model3_2.id = (int)g.sqlserver.Insert(model3_2).ExecuteIdentity();
             var model3_3 = new TestInclude_OneToManyModel3 { model2111Idaaa = model1.id, title = "testmodel3__333" };
-            model3_3.id = (int)_sqlserverFixture.SqlServer.Insert(model3_2).ExecuteIdentity();
+            model3_3.id = (int)g.sqlserver.Insert(model3_2).ExecuteIdentity();
 
             var model4s = new[] {
                 new TestInclude_OneToManyModel4{ model3333Id333 = model3_1.id, title444 = "testmodel3_4__111" },
@@ -938,37 +937,71 @@ namespace FreeSql.Tests.SqlServer
                 new TestInclude_OneToManyModel4{ model3333Id333 = model3_2.id, title444 = "testmodel3_4__222" },
                 new TestInclude_OneToManyModel4{ model3333Id333 = model3_2.id, title444 = "testmodel3_4__333" }
             };
-            Assert.Equal(5, _sqlserverFixture.SqlServer.Insert(model4s).ExecuteAffrows());
+            Assert.Equal(5, g.sqlserver.Insert(model4s).ExecuteAffrows());
 
-            var t0 = _sqlserverFixture.SqlServer.Select<TestInclude_OneToManyModel2>()
+            var t0 = g.sqlserver.Select<TestInclude_OneToManyModel2>()
                 .IncludeMany(a => a.childs.Where(m3 => m3.model2111Idaaa == a.model2id))
                 .Where(a => a.model2id <= model1.id)
                 .ToList();
 
-            var t1 = _sqlserverFixture.SqlServer.Select<TestInclude_OneToManyModel1>()
+            var t1 = g.sqlserver.Select<TestInclude_OneToManyModel1>()
                 .IncludeMany(a => a.model2.childs.Where(m3 => m3.model2111Idaaa == a.model2.model2id))
                 .Where(a => a.id <= model1.id)
                 .ToList();
 
-            var t2 = _sqlserverFixture.SqlServer.Select<TestInclude_OneToManyModel1>()
+            var t2 = g.sqlserver.Select<TestInclude_OneToManyModel1>()
                 .IncludeMany(a => a.model2.childs.Where(m3 => m3.model2111Idaaa == a.model2.model2id),
                     then => then.IncludeMany(m3 => m3.childs2.Where(m4 => m4.model3333Id333 == m3.id)))
                 .Where(a => a.id <= model1.id)
                 .ToList();
 
-            var t00 = _sqlserverFixture.SqlServer.Select<TestInclude_OneToManyModel2>()
+            var t00 = g.sqlserver.Select<TestInclude_OneToManyModel2>()
                 .IncludeMany(a => a.childs.Take(1).Where(m3 => m3.model2111Idaaa == a.model2id))
                 .Where(a => a.model2id <= model1.id)
                 .ToList();
 
-            var t11 = _sqlserverFixture.SqlServer.Select<TestInclude_OneToManyModel1>()
+            var t11 = g.sqlserver.Select<TestInclude_OneToManyModel1>()
                 .IncludeMany(a => a.model2.childs.Take(1).Where(m3 => m3.model2111Idaaa == a.model2.model2id))
                 .Where(a => a.id <= model1.id)
                 .ToList();
 
-            var t22 = _sqlserverFixture.SqlServer.Select<TestInclude_OneToManyModel1>()
+            var t22 = g.sqlserver.Select<TestInclude_OneToManyModel1>()
                 .IncludeMany(a => a.model2.childs.Take(1).Where(m3 => m3.model2111Idaaa == a.model2.model2id),
                     then => then.IncludeMany(m3 => m3.childs2.Take(2).Where(m4 => m4.model3333Id333 == m3.id)))
+                .Where(a => a.id <= model1.id)
+                .ToList();
+
+            //---- Select ----
+
+            var at0 = g.sqlserver.Select<TestInclude_OneToManyModel2>()
+                .IncludeMany(a => a.childs.Where(m3 => m3.model2111Idaaa == a.model2id).Select(m3 => new TestInclude_OneToManyModel3 { id = m3.id }))
+                .Where(a => a.model2id <= model1.id)
+                .ToList();
+
+            var at1 = g.sqlserver.Select<TestInclude_OneToManyModel1>()
+                .IncludeMany(a => a.model2.childs.Where(m3 => m3.model2111Idaaa == a.model2.model2id).Select(m3 => new TestInclude_OneToManyModel3 { id = m3.id }))
+                .Where(a => a.id <= model1.id)
+                .ToList();
+
+            var at2 = g.sqlserver.Select<TestInclude_OneToManyModel1>()
+                .IncludeMany(a => a.model2.childs.Where(m3 => m3.model2111Idaaa == a.model2.model2id).Select(m3 => new TestInclude_OneToManyModel3 { id = m3.id }),
+                    then => then.IncludeMany(m3 => m3.childs2.Where(m4 => m4.model3333Id333 == m3.id).Select(m4 => new TestInclude_OneToManyModel4 { id = m4.id })))
+                .Where(a => a.id <= model1.id)
+                .ToList();
+
+            var at00 = g.sqlserver.Select<TestInclude_OneToManyModel2>()
+                .IncludeMany(a => a.childs.Take(1).Where(m3 => m3.model2111Idaaa == a.model2id).Select(m3 => new TestInclude_OneToManyModel3 { id = m3.id }))
+                .Where(a => a.model2id <= model1.id)
+                .ToList();
+
+            var at11 = g.sqlserver.Select<TestInclude_OneToManyModel1>()
+                .IncludeMany(a => a.model2.childs.Take(1).Where(m3 => m3.model2111Idaaa == a.model2.model2id).Select(m3 => new TestInclude_OneToManyModel3 { id = m3.id }))
+                .Where(a => a.id <= model1.id)
+                .ToList();
+
+            var at22 = g.sqlserver.Select<TestInclude_OneToManyModel1>()
+                .IncludeMany(a => a.model2.childs.Take(1).Where(m3 => m3.model2111Idaaa == a.model2.model2id).Select(m3 => new TestInclude_OneToManyModel3 { id = m3.id }),
+                    then => then.IncludeMany(m3 => m3.childs2.Take(2).Where(m4 => m4.model3333Id333 == m3.id).Select(m4 => new TestInclude_OneToManyModel4 { id = m4.id })))
                 .Where(a => a.id <= model1.id)
                 .ToList();
         }
@@ -988,6 +1021,8 @@ namespace FreeSql.Tests.SqlServer
             [Column(IsIdentity = true)]
             public int id { get; set; }
             public string m2setting { get; set; }
+            public string aaa { get; set; }
+            public string bbb { get; set; }
             public List<TestInclude_OneToManyModel33> childs { get; set; }
         }
         public class TestInclude_OneToManyModel33
@@ -1002,8 +1037,8 @@ namespace FreeSql.Tests.SqlServer
         public void Include_OneToMany2()
         {
             string setting = "x";
-            var model2 = new TestInclude_OneToManyModel22 { m2setting = DateTime.Now.Second.ToString() };
-            model2.id = (int)_sqlserverFixture.SqlServer.Insert(model2).ExecuteIdentity();
+            var model2 = new TestInclude_OneToManyModel22 { m2setting = DateTime.Now.Second.ToString(), aaa = "aaa" + DateTime.Now.Second, bbb = "bbb" + DateTime.Now.Second };
+            model2.id = (int)g.sqlserver.Insert(model2).ExecuteIdentity();
 
             var model3s = new[]
             {
@@ -1011,20 +1046,34 @@ namespace FreeSql.Tests.SqlServer
                 new TestInclude_OneToManyModel33 {model2Id = model2.id, title = "testmodel3__222", setting = setting},
                 new TestInclude_OneToManyModel33 {model2Id = model2.id, title = "testmodel3__333", setting = setting}
             };
-            Assert.Equal(3, _sqlserverFixture.SqlServer.Insert(model3s).ExecuteAffrows());
+            Assert.Equal(3, g.sqlserver.Insert(model3s).ExecuteAffrows());
 
             var model1 = new TestInclude_OneToManyModel11 { m1name = DateTime.Now.Second.ToString(), model2id = model2.id, m3setting = setting };
-            model1.id = (int)_sqlserverFixture.SqlServer.Insert(model1).ExecuteIdentity();
+            model1.id = (int)g.sqlserver.Insert(model1).ExecuteIdentity();
 
-            var t1 = _sqlserverFixture.SqlServer.Select<TestInclude_OneToManyModel11>()
+            var t1 = g.sqlserver.Select<TestInclude_OneToManyModel11>()
                 .LeftJoin(a => a.model2id == a.model2.id)
                 .IncludeMany(a => a.model2.childs.Where(m3 => m3.model2Id == a.model2.id && m3.setting == a.m3setting))
                 .Where(a => a.id <= model1.id)
                 .ToList(true);
 
-            var t11 = _sqlserverFixture.SqlServer.Select<TestInclude_OneToManyModel11>()
+            var t11 = g.sqlserver.Select<TestInclude_OneToManyModel11>()
                 .LeftJoin(a => a.model2id == a.model2.id)
                 .IncludeMany(a => a.model2.childs.Take(1).Where(m3 => m3.model2Id == a.model2.id && m3.setting == a.m3setting))
+                .Where(a => a.id <= model1.id)
+                .ToList(true);
+
+            //---- Select ----
+
+            var at1 = g.sqlserver.Select<TestInclude_OneToManyModel11>()
+                .LeftJoin(a => a.model2id == a.model2.id)
+                .IncludeMany(a => a.model2.childs.Where(m3 => m3.model2Id == a.model2.id && m3.setting == a.m3setting).Select(m3 => new TestInclude_OneToManyModel33 { title = m3.title }))
+                .Where(a => a.id <= model1.id)
+                .ToList(true);
+
+            var at11 = g.sqlserver.Select<TestInclude_OneToManyModel11>()
+                .LeftJoin(a => a.model2id == a.model2.id)
+                .IncludeMany(a => a.model2.childs.Take(1).Where(m3 => m3.model2Id == a.model2.id && m3.setting == a.m3setting).Select(m3 => new TestInclude_OneToManyModel33 { title = m3.title }))
                 .Where(a => a.id <= model1.id)
                 .ToList(true);
         }
@@ -1037,56 +1086,56 @@ namespace FreeSql.Tests.SqlServer
                 Ddd = DateTime.Now.Second,
                 Name = "test_oneToChilds_01_中国"
             };
-            tag1.Id = (int)_sqlserverFixture.SqlServer.Insert(tag1).ExecuteIdentity();
+            tag1.Id = (int)g.sqlserver.Insert(tag1).ExecuteIdentity();
             var tag1_1 = new Tag
             {
                 Parent_id = tag1.Id,
                 Ddd = DateTime.Now.Second,
                 Name = "test_oneToChilds_01_北京"
             };
-            tag1_1.Id = (int)_sqlserverFixture.SqlServer.Insert(tag1_1).ExecuteIdentity();
+            tag1_1.Id = (int)g.sqlserver.Insert(tag1_1).ExecuteIdentity();
             var tag1_2 = new Tag
             {
                 Parent_id = tag1.Id,
                 Ddd = DateTime.Now.Second,
                 Name = "test_oneToChilds_01_上海"
             };
-            tag1_2.Id = (int)_sqlserverFixture.SqlServer.Insert(tag1_2).ExecuteIdentity();
+            tag1_2.Id = (int)g.sqlserver.Insert(tag1_2).ExecuteIdentity();
 
             var tag2 = new Tag
             {
                 Ddd = DateTime.Now.Second,
                 Name = "test_oneToChilds_02_美国"
             };
-            tag2.Id = (int)_sqlserverFixture.SqlServer.Insert(tag2).ExecuteIdentity();
+            tag2.Id = (int)g.sqlserver.Insert(tag2).ExecuteIdentity();
             var tag2_1 = new Tag
             {
                 Parent_id = tag2.Id,
                 Ddd = DateTime.Now.Second,
                 Name = "test_oneToChilds_02_纽约"
             };
-            tag2_1.Id = (int)_sqlserverFixture.SqlServer.Insert(tag2_1).ExecuteIdentity();
+            tag2_1.Id = (int)g.sqlserver.Insert(tag2_1).ExecuteIdentity();
             var tag2_2 = new Tag
             {
                 Parent_id = tag2.Id,
                 Ddd = DateTime.Now.Second,
                 Name = "test_oneToChilds_02_华盛顿"
             };
-            tag2_2.Id = (int)_sqlserverFixture.SqlServer.Insert(tag2_2).ExecuteIdentity();
+            tag2_2.Id = (int)g.sqlserver.Insert(tag2_2).ExecuteIdentity();
 
-            var tags0 = _sqlserverFixture.SqlServer.Select<Tag>()
+            var tags0 = g.sqlserver.Select<Tag>()
                 .Include(a => a.Parent)
                 .Where(a => a.Id == tag1.Id || a.Id == tag2.Id)
                 .ToList();
 
-            var tags1 = _sqlserverFixture.SqlServer.Select<Tag>()
+            var tags1 = g.sqlserver.Select<Tag>()
                 .IncludeMany(a => a.Tags)
                 .Include(a => a.Parent)
                 .IncludeMany(a => a.Songs)
                 .Where(a => a.Id == tag1.Id || a.Id == tag2.Id)
                 .ToList();
 
-            var tags2 = _sqlserverFixture.SqlServer.Select<Tag>()
+            var tags2 = g.sqlserver.Select<Tag>()
                 .IncludeMany(a => a.Tags,
                     then => then.Include(a => a.Parent).IncludeMany(a => a.Songs))
                 .Include(a => a.Parent)
@@ -1094,7 +1143,7 @@ namespace FreeSql.Tests.SqlServer
                 .Where(a => a.Id == tag1.Id || a.Id == tag2.Id)
                 .ToList();
 
-            var tags3 = _sqlserverFixture.SqlServer.Select<Tag>()
+            var tags3 = g.sqlserver.Select<Tag>()
                 .IncludeMany(a => a.Tags,
                     then => then.Include(a => a.Parent).IncludeMany(a => a.Songs).IncludeMany(a => a.Tags))
                 .Include(a => a.Parent)
@@ -1102,14 +1151,14 @@ namespace FreeSql.Tests.SqlServer
                 .Where(a => a.Id == tag1.Id || a.Id == tag2.Id)
                 .ToList();
 
-            var tags11 = _sqlserverFixture.SqlServer.Select<Tag>()
+            var tags11 = g.sqlserver.Select<Tag>()
                 .IncludeMany(a => a.Tags.Take(1))
                 .Include(a => a.Parent)
                 .IncludeMany(a => a.Songs.Take(1))
                 .Where(a => a.Id == tag1.Id || a.Id == tag2.Id)
                 .ToList();
 
-            var tags22 = _sqlserverFixture.SqlServer.Select<Tag>()
+            var tags22 = g.sqlserver.Select<Tag>()
                 .IncludeMany(a => a.Tags.Take(1),
                     then => then.Include(a => a.Parent).IncludeMany(a => a.Songs.Take(1)))
                 .Include(a => a.Parent)
@@ -1117,11 +1166,64 @@ namespace FreeSql.Tests.SqlServer
                 .Where(a => a.Id == tag1.Id || a.Id == tag2.Id)
                 .ToList();
 
-            var tags33 = _sqlserverFixture.SqlServer.Select<Tag>()
+            var tags33 = g.sqlserver.Select<Tag>()
                 .IncludeMany(a => a.Tags.Take(1),
                     then => then.Include(a => a.Parent).IncludeMany(a => a.Songs.Take(1)).IncludeMany(a => a.Tags.Take(1)))
                 .Include(a => a.Parent)
                 .IncludeMany(a => a.Songs.Take(1))
+                .Where(a => a.Id == tag1.Id || a.Id == tag2.Id)
+                .ToList();
+
+            // --- Select ---
+
+            var atags0 = g.sqlserver.Select<Tag>()
+                .Include(a => a.Parent)
+                .Where(a => a.Id == tag1.Id || a.Id == tag2.Id)
+                .ToList();
+
+            var atags1 = g.sqlserver.Select<Tag>()
+                .IncludeMany(a => a.Tags.Select(b => new Tag { Id = b.Id, Name = b.Name }))
+                .Include(a => a.Parent)
+                .IncludeMany(a => a.Songs.Select(b => new Song { Id = b.Id, Title = b.Title }))
+                .Where(a => a.Id == tag1.Id || a.Id == tag2.Id)
+                .ToList();
+
+            var atags2 = g.sqlserver.Select<Tag>()
+                .IncludeMany(a => a.Tags.Select(b => new Tag { Id = b.Id, Name = b.Name }),
+                    then => then.Include(a => a.Parent).IncludeMany(a => a.Songs))
+                .Include(a => a.Parent)
+                .IncludeMany(a => a.Songs.Select(b => new Song { Id = b.Id, Title = b.Title }))
+                .Where(a => a.Id == tag1.Id || a.Id == tag2.Id)
+                .ToList();
+
+            var atags3 = g.sqlserver.Select<Tag>()
+                .IncludeMany(a => a.Tags.Select(b => new Tag { Id = b.Id, Name = b.Name }),
+                    then => then.Include(a => a.Parent).IncludeMany(a => a.Songs.Select(b => new Song { Id = b.Id, Title = b.Title })).IncludeMany(a => a.Tags.Select(b => new Tag { Id = b.Id, Name = b.Name })))
+                .Include(a => a.Parent)
+                .IncludeMany(a => a.Songs.Select(b => new Song { Id = b.Id, Title = b.Title }))
+                .Where(a => a.Id == tag1.Id || a.Id == tag2.Id)
+                .ToList();
+
+            var atags11 = g.sqlserver.Select<Tag>()
+                .IncludeMany(a => a.Tags.Take(1).Select(b => new Tag { Id = b.Id, Name = b.Name }))
+                .Include(a => a.Parent)
+                .IncludeMany(a => a.Songs.Take(1).Select(b => new Song { Id = b.Id, Title = b.Title }))
+                .Where(a => a.Id == tag1.Id || a.Id == tag2.Id)
+                .ToList();
+
+            var atags22 = g.sqlserver.Select<Tag>()
+                .IncludeMany(a => a.Tags.Take(1).Select(b => new Tag { Id = b.Id, Name = b.Name }),
+                    then => then.Include(a => a.Parent).IncludeMany(a => a.Songs.Take(1).Select(b => new Song { Id = b.Id, Title = b.Title })))
+                .Include(a => a.Parent)
+                .IncludeMany(a => a.Songs.Take(1).Select(b => new Song { Id = b.Id, Title = b.Title }))
+                .Where(a => a.Id == tag1.Id || a.Id == tag2.Id)
+                .ToList();
+
+            var atags33 = g.sqlserver.Select<Tag>()
+                .IncludeMany(a => a.Tags.Take(1).Select(b => new Tag { Id = b.Id, Name = b.Name }),
+                    then => then.Include(a => a.Parent).IncludeMany(a => a.Songs.Take(1).Select(b => new Song { Id = b.Id, Title = b.Title })).IncludeMany(a => a.Tags.Take(1).Select(b => new Tag { Id = b.Id, Name = b.Name })))
+                .Include(a => a.Parent)
+                .IncludeMany(a => a.Songs.Take(1).Select(b => new Song { Id = b.Id, Title = b.Title }))
                 .Where(a => a.Id == tag1.Id || a.Id == tag2.Id)
                 .ToList();
         }
@@ -1135,19 +1237,19 @@ namespace FreeSql.Tests.SqlServer
                 Ddd = DateTime.Now.Second,
                 Name = "test_manytoMany_01_中国"
             };
-            tag1.Id = (int)_sqlserverFixture.SqlServer.Insert(tag1).ExecuteIdentity();
+            tag1.Id = (int)g.sqlserver.Insert(tag1).ExecuteIdentity();
             var tag2 = new Tag
             {
                 Ddd = DateTime.Now.Second,
                 Name = "test_manytoMany_02_美国"
             };
-            tag2.Id = (int)_sqlserverFixture.SqlServer.Insert(tag2).ExecuteIdentity();
+            tag2.Id = (int)g.sqlserver.Insert(tag2).ExecuteIdentity();
             var tag3 = new Tag
             {
                 Ddd = DateTime.Now.Second,
                 Name = "test_manytoMany_03_日本"
             };
-            tag3.Id = (int)_sqlserverFixture.SqlServer.Insert(tag3).ExecuteIdentity();
+            tag3.Id = (int)g.sqlserver.Insert(tag3).ExecuteIdentity();
 
             var song1 = new Song
             {
@@ -1155,30 +1257,30 @@ namespace FreeSql.Tests.SqlServer
                 Title = "test_manytoMany_01_我是中国人.mp3",
                 Url = "http://ww.baidu.com/"
             };
-            song1.Id = (int)_sqlserverFixture.SqlServer.Insert(song1).ExecuteIdentity();
+            song1.Id = (int)g.sqlserver.Insert(song1).ExecuteIdentity();
             var song2 = new Song
             {
                 Create_time = DateTime.Now,
                 Title = "test_manytoMany_02_爱你一万年.mp3",
                 Url = "http://ww.163.com/"
             };
-            song2.Id = (int)_sqlserverFixture.SqlServer.Insert(song2).ExecuteIdentity();
+            song2.Id = (int)g.sqlserver.Insert(song2).ExecuteIdentity();
             var song3 = new Song
             {
                 Create_time = DateTime.Now,
                 Title = "test_manytoMany_03_千年等一回.mp3",
                 Url = "http://ww.sina.com/"
             };
-            song3.Id = (int)_sqlserverFixture.SqlServer.Insert(song3).ExecuteIdentity();
+            song3.Id = (int)g.sqlserver.Insert(song3).ExecuteIdentity();
 
-            _sqlserverFixture.SqlServer.Insert(new Song_tag { Song_id = song1.Id, Tag_id = tag1.Id }).ExecuteAffrows();
-            _sqlserverFixture.SqlServer.Insert(new Song_tag { Song_id = song2.Id, Tag_id = tag1.Id }).ExecuteAffrows();
-            _sqlserverFixture.SqlServer.Insert(new Song_tag { Song_id = song3.Id, Tag_id = tag1.Id }).ExecuteAffrows();
-            _sqlserverFixture.SqlServer.Insert(new Song_tag { Song_id = song1.Id, Tag_id = tag2.Id }).ExecuteAffrows();
-            _sqlserverFixture.SqlServer.Insert(new Song_tag { Song_id = song3.Id, Tag_id = tag2.Id }).ExecuteAffrows();
-            _sqlserverFixture.SqlServer.Insert(new Song_tag { Song_id = song3.Id, Tag_id = tag3.Id }).ExecuteAffrows();
+            g.sqlserver.Insert(new Song_tag { Song_id = song1.Id, Tag_id = tag1.Id }).ExecuteAffrows();
+            g.sqlserver.Insert(new Song_tag { Song_id = song2.Id, Tag_id = tag1.Id }).ExecuteAffrows();
+            g.sqlserver.Insert(new Song_tag { Song_id = song3.Id, Tag_id = tag1.Id }).ExecuteAffrows();
+            g.sqlserver.Insert(new Song_tag { Song_id = song1.Id, Tag_id = tag2.Id }).ExecuteAffrows();
+            g.sqlserver.Insert(new Song_tag { Song_id = song3.Id, Tag_id = tag2.Id }).ExecuteAffrows();
+            g.sqlserver.Insert(new Song_tag { Song_id = song3.Id, Tag_id = tag3.Id }).ExecuteAffrows();
 
-            var songs1 = _sqlserverFixture.SqlServer.Select<Song>()
+            var songs1 = g.sqlserver.Select<Song>()
                 .IncludeMany(a => a.Tags)
                 .Where(a => a.Id == song1.Id || a.Id == song2.Id || a.Id == song3.Id)
                 .ToList();
@@ -1187,7 +1289,7 @@ namespace FreeSql.Tests.SqlServer
             Assert.Equal(1, songs1[1].Tags.Count);
             Assert.Equal(3, songs1[2].Tags.Count);
 
-            var songs2 = _sqlserverFixture.SqlServer.Select<Song>()
+            var songs2 = g.sqlserver.Select<Song>()
                 .IncludeMany(a => a.Tags,
                     then => then.IncludeMany(t => t.Songs))
                 .Where(a => a.Id == song1.Id || a.Id == song2.Id || a.Id == song3.Id)
@@ -1197,14 +1299,14 @@ namespace FreeSql.Tests.SqlServer
             Assert.Equal(1, songs2[1].Tags.Count);
             Assert.Equal(3, songs2[2].Tags.Count);
 
-            var tags3 = _sqlserverFixture.SqlServer.Select<Song_tag>()
+            var tags3 = g.sqlserver.Select<Song_tag>()
                 .Include(a => a.Tag.Parent)
                 .IncludeMany(a => a.Tag.Songs)
                 .Where(a => a.Tag.Id == tag1.Id || a.Tag.Id == tag2.Id)
                 .ToList(true);
 
 
-            var songs11 = _sqlserverFixture.SqlServer.Select<Song>()
+            var songs11 = g.sqlserver.Select<Song>()
                 .IncludeMany(a => a.Tags.Take(1))
                 .Where(a => a.Id == song1.Id || a.Id == song2.Id || a.Id == song3.Id)
                 .ToList();
@@ -1213,7 +1315,7 @@ namespace FreeSql.Tests.SqlServer
             Assert.Equal(1, songs11[1].Tags.Count);
             Assert.Equal(1, songs11[2].Tags.Count);
 
-            var songs22 = _sqlserverFixture.SqlServer.Select<Song>()
+            var songs22 = g.sqlserver.Select<Song>()
                 .IncludeMany(a => a.Tags.Take(1),
                     then => then.IncludeMany(t => t.Songs.Take(1)))
                 .Where(a => a.Id == song1.Id || a.Id == song2.Id || a.Id == song3.Id)
@@ -1223,9 +1325,64 @@ namespace FreeSql.Tests.SqlServer
             Assert.Equal(1, songs22[1].Tags.Count);
             Assert.Equal(1, songs22[2].Tags.Count);
 
-            var tags33 = _sqlserverFixture.SqlServer.Select<Song_tag>()
+            var tags33 = g.sqlserver.Select<Song_tag>()
                 .Include(a => a.Tag.Parent)
                 .IncludeMany(a => a.Tag.Songs.Take(1))
+                .Where(a => a.Tag.Id == tag1.Id || a.Tag.Id == tag2.Id)
+                .ToList(true);
+
+            // --- Select ---
+
+            new List<Song>(new[] { song1, song2, song3 }).IncludeMany(g.sqlserver, a => a.Tags.Select(b => new Tag { Id = b.Id, Name = b.Name }));
+
+            var asongs1 = g.sqlserver.Select<Song>()
+                .IncludeMany(a => a.Tags.Select(b => new Tag { Id = b.Id, Name = b.Name }))
+                .Where(a => a.Id == song1.Id || a.Id == song2.Id || a.Id == song3.Id)
+                .ToList();
+            Assert.Equal(3, songs1.Count);
+            Assert.Equal(2, songs1[0].Tags.Count);
+            Assert.Equal(1, songs1[1].Tags.Count);
+            Assert.Equal(3, songs1[2].Tags.Count);
+
+            var asongs2 = g.sqlserver.Select<Song>()
+                .IncludeMany(a => a.Tags.Select(b => new Tag { Id = b.Id, Name = b.Name }),
+                    then => then.IncludeMany(t => t.Songs.Select(b => new Song { Id = b.Id, Title = b.Title })))
+                .Where(a => a.Id == song1.Id || a.Id == song2.Id || a.Id == song3.Id)
+                .ToList();
+            Assert.Equal(3, songs2.Count);
+            Assert.Equal(2, songs2[0].Tags.Count);
+            Assert.Equal(1, songs2[1].Tags.Count);
+            Assert.Equal(3, songs2[2].Tags.Count);
+
+            var atags3 = g.sqlserver.Select<Song_tag>()
+                .Include(a => a.Tag.Parent)
+                .IncludeMany(a => a.Tag.Songs.Select(b => new Song { Id = b.Id, Title = b.Title }))
+                .Where(a => a.Tag.Id == tag1.Id || a.Tag.Id == tag2.Id)
+                .ToList(true);
+
+
+            var asongs11 = g.sqlserver.Select<Song>()
+                .IncludeMany(a => a.Tags.Take(1).Select(b => new Tag { Id = b.Id, Name = b.Name }))
+                .Where(a => a.Id == song1.Id || a.Id == song2.Id || a.Id == song3.Id)
+                .ToList();
+            Assert.Equal(3, songs11.Count);
+            Assert.Equal(1, songs11[0].Tags.Count);
+            Assert.Equal(1, songs11[1].Tags.Count);
+            Assert.Equal(1, songs11[2].Tags.Count);
+
+            var asongs22 = g.sqlserver.Select<Song>()
+                .IncludeMany(a => a.Tags.Take(1).Select(b => new Tag { Id = b.Id, Name = b.Name }),
+                    then => then.IncludeMany(t => t.Songs.Take(1).Select(b => new Song { Id = b.Id, Title = b.Title })))
+                .Where(a => a.Id == song1.Id || a.Id == song2.Id || a.Id == song3.Id)
+                .ToList();
+            Assert.Equal(3, songs22.Count);
+            Assert.Equal(1, songs22[0].Tags.Count);
+            Assert.Equal(1, songs22[1].Tags.Count);
+            Assert.Equal(1, songs22[2].Tags.Count);
+
+            var atags33 = g.sqlserver.Select<Song_tag>()
+                .Include(a => a.Tag.Parent)
+                .IncludeMany(a => a.Tag.Songs.Take(1).Select(b => new Song { Id = b.Id, Title = b.Title }))
                 .Where(a => a.Tag.Id == tag1.Id || a.Tag.Id == tag2.Id)
                 .ToList(true);
         }

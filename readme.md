@@ -2,7 +2,7 @@
   <img height="210" src="https://github.com/2881099/FreeSql/blob/master/logo.png?raw=true"/>
 </p>
 
-FreeSql 是一个功能强大的对象关系映射程序(O/RM)，支持 .NETCore 2.1+ 或 .NETFramework 4.0+（QQ群：4336577）
+FreeSql 是功能强大的对象关系映射技术(O/RM)，支持 .NETCore 2.1+ 或 .NETFramework 4.0+ 或 Xamarin
 
 扶摇直上，至强ORM只为自由编码；鹏程万里，至简Linq可使保留黑发；横批：FreeSql（诗人：Coder）
 
@@ -48,6 +48,13 @@ FreeSql 是一个功能强大的对象关系映射程序(O/RM)，支持 .NETCore
 - [FreeSql.Tools 生成器](https://github.com/2881099/FreeSql.Tools)，基于 razor 模板的生成器；
 - [Abp 中使用 FreeSql](https://github.com/gnsilence/JPGZService)，测试中．．．；
 - [FreeSql 优势.pptx](https://github.com/2881099/FreeSql/files/3305852/FreeSql.pptx)；
+
+> 学习项目
+
+- [😃 A simple and practical CMS implememted by .NET Core 2.2](https://github.com/luoyunchong/lin-cms-dotnetcore)
+- [内容管理系统](https://github.com/hejiyong/fscms)
+
+欢迎更多使用 FreeSql 的开源项目加入目录
 
 # Providers
 
@@ -261,3 +268,5 @@ Elapsed: 00:00:00.6495301; Query Entity Counts: 131072; ORM: Dapper
 [ALer-R](https://github.com/ALer-R)、
 [zouql](https://github.com/zouql)、
 深圳|凉茶
+
+（QQ群：4336577）

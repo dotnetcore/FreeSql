@@ -3,6 +3,7 @@ using FreeSql.Internal.CommonProvider;
 using FreeSql.SqlServer.Curd;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace FreeSql.SqlServer
 {
@@ -42,7 +43,7 @@ namespace FreeSql.SqlServer
                 {
                     try
                     {
-                        (this.InternalCommonUtils as SqlServerUtils).IsSelectRowNumber = int.Parse(conn.Value.ServerVersion.Split('.')[0]) <= 10;
+                        (this.InternalCommonUtils as SqlServerUtils).ServerVersion = int.Parse(conn.Value.ServerVersion.Split('.')[0]);
                     }
                     catch
                     {
@@ -58,14 +59,11 @@ namespace FreeSql.SqlServer
 
         public GlobalFilter GlobalFilter { get; } = new GlobalFilter();
 
-        ~SqlServerProvider()
-        {
-            this.Dispose();
-        }
-        bool _isdisposed = false;
+        ~SqlServerProvider() => this.Dispose();
+        int _disposeCounter;
         public void Dispose()
         {
-            if (_isdisposed) return;
+            if (Interlocked.Increment(ref _disposeCounter) != 1) return;
             (this.Ado as AdoProvider)?.Dispose();
         }
     }

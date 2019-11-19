@@ -32,6 +32,13 @@
             <typeparam name="TEntity"></typeparam>
             <param name="data"></param>
         </member>
+        <member name="M:FreeSql.DbContext.SaveManyToMany``1(``0,System.String)">
+            <summary>
+            保存实体的指定 ManyToMany 导航属性
+            </summary>
+            <param name="data">实体对象</param>
+            <param name="propertyName">属性名</param>
+        </member>
         <member name="M:FreeSql.DbContext.Attach``1(``0)">
             <summary>
             附加实体，可用于不查询就更新或删除
@@ -99,25 +106,26 @@
             清空状态数据
             </summary>
         </member>
-        <member name="M:FreeSql.DbSet`1.RemoveAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
-            <summary>
-            根据 lambda 条件删除数据
-            </summary>
-            <param name="predicate"></param>
-            <returns></returns>
-        </member>
         <member name="M:FreeSql.DbSet`1.Add(`0)">
             <summary>
             添加
             </summary>
             <param name="data"></param>
         </member>
-        <member name="M:FreeSql.DbSet`1.AddOrUpdateNavigateList(`0,System.Boolean)">
+        <member name="M:FreeSql.DbSet`1.SaveManyToMany(`0,System.String)">
+            <summary>
+            保存实体的指定 ManyToMany 导航属性
+            </summary>
+            <param name="item">实体对象</param>
+            <param name="propertyName">属性名</param>
+        </member>
+        <member name="M:FreeSql.DbSet`1.AddOrUpdateNavigateList(`0,System.Boolean,System.String)">
             <summary>
             联级保存导航集合
             </summary>
             <param name="item">实体对象</param>
             <param name="isAdd">是否为新增的实体对象</param>
+            <param name="propertyName">指定保存的属性</param>
         </member>
         <member name="M:FreeSql.DbSet`1.Update(`0)">
             <summary>
@@ -224,6 +232,13 @@
             附加实体，并且只附加主键值，可用于不更新属性值为null或默认值的字段
             </summary>
             <param name="data"></param>
+        </member>
+        <member name="M:FreeSql.IBasicRepository`1.SaveManyToMany(`0,System.String)">
+            <summary>
+            保存实体的指定 ManyToMany 导航属性
+            </summary>
+            <param name="entity">实体对象</param>
+            <param name="propertyName">属性名</param>
         </member>
         <member name="P:FreeSql.IUnitOfWork.Enable">
             <summary>

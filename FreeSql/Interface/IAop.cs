@@ -12,17 +12,6 @@ namespace FreeSql
 {
     public interface IAop
     {
-
-        /// <summary>
-        /// 监控 ToList 返回的的数据，用于拦截重新装饰
-        /// </summary>
-        EventHandler<Aop.ToListEventArgs> ToList { get; set; }
-
-        /// <summary>
-        /// 监视 Where，包括 select/update/delete，可控制使上层不被执行。
-        /// </summary>
-        EventHandler<Aop.WhereEventArgs> Where { get; set; }
-
         /// <summary>
         /// 可自定义解析表达式
         /// </summary>
@@ -64,29 +53,6 @@ namespace FreeSql
 
 namespace FreeSql.Aop
 {
-    public class ToListEventArgs : EventArgs
-    {
-        public ToListEventArgs(object list)
-        {
-            this.List = list;
-        }
-        /// <summary>
-        /// 可重新装饰的引用数据
-        /// </summary>
-        public object List { get; }
-    }
-    public class WhereEventArgs : EventArgs
-    {
-        public WhereEventArgs(params object[] parameters)
-        {
-            this.Parameters = parameters;
-        }
-        public object[] Parameters { get; }
-        /// <summary>
-        /// 可使上层不被执行这个条件
-        /// </summary>
-        public bool IsCancel { get; set; }
-    }
     public class ParseExpressionEventArgs : EventArgs
     {
         public ParseExpressionEventArgs(Expression expression, Func<Expression, string> freeParse)

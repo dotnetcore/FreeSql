@@ -133,32 +133,29 @@ select
  a.Object_id
 ,b.name 'Owner'
 ,a.name 'Name'
-,c.value
+,(select value from sys.extended_properties where major_id = a.object_id AND minor_id = 0 AND name = 'MS_Description') 'Comment'
 ,'TABLE' type
 from sys.tables a
 inner join sys.schemas b on b.schema_id = a.schema_id
-left join sys.extended_properties AS c ON c.major_id = a.object_id AND c.minor_id = 0 AND c.name = 'MS_Description'
 where not(b.name = 'dbo' and a.name = 'sysdiagrams')
 union all
 select
  a.Object_id
 ,b.name 'Owner'
 ,a.name 'Name'
-,c.value
+,(select value from sys.extended_properties where major_id = a.object_id AND minor_id = 0 AND name = 'MS_Description') 'Comment'
 ,'VIEW' type
 from sys.views a
 inner join sys.schemas b on b.schema_id = a.schema_id
-left join sys.extended_properties AS c ON c.major_id = a.object_id AND c.minor_id = 0 AND c.name = 'MS_Description'
 union all
 select 
  a.Object_id
 ,b.name 'Owner'
 ,a.name 'Name'
-,c.value
+,(select value from sys.extended_properties where major_id = a.object_id AND minor_id = 0 AND name = 'MS_Description') 'Comment'
 ,'StoreProcedure' type
 from sys.procedures a
 inner join sys.schemas b on b.schema_id = a.schema_id
-left join sys.extended_properties AS c ON c.major_id = a.object_id AND c.minor_id = 0 AND c.name = 'MS_Description'
 where a.type = 'P' and charindex('diagram', a.name) = 0
 order by type desc, b.name, a.name
 ;
@@ -244,10 +241,9 @@ isnull(e.name,'') + '.' + isnull(d.name,'')
   else cast(a.max_length as varchar) end + ')'
  when b.name in ('Numeric', 'Decimal') then '(' + cast(a.precision as varchar) + ',' + cast(a.scale as varchar) + ')'
  else '' end as 'SqlType'
-,c.value
+,(select value from sys.extended_properties where major_id = a.object_id AND minor_id = a.column_id AND name = 'MS_Description') 'Comment'
 {0} a
 inner join sys.types b on b.user_type_id = a.user_type_id
-left join sys.extended_properties AS c ON c.major_id = a.object_id AND c.minor_id = a.column_id
 left join sys.tables d on d.object_id = a.object_id
 left join sys.schemas e on e.schema_id = d.schema_id
 where {1}
@@ -260,8 +256,8 @@ from sys.columns", loc8.ToString().Replace("a.table_name", "a.object_id"));
                 {
                     sql += "union all" +
                     string.Format(tsql_place.Replace(
-                        "left join sys.extended_properties AS c ON c.major_id = a.object_id AND c.minor_id = a.column_id",
-                        "left join sys.extended_properties AS c ON c.major_id = a.object_id AND c.minor_id = a.parameter_id"), @"
+                        "select value from sys.extended_properties where major_id = a.object_id AND minor_id = a.column_id",
+                        "select value from sys.extended_properties where major_id = a.object_id AND minor_id = a.parameter_id"), @"
 ,cast(0 as bit) 'IsNullable'
 ,a.is_output 'IsIdentity'
 from sys.parameters", loc88.ToString().Replace("a.table_name", "a.object_id"));

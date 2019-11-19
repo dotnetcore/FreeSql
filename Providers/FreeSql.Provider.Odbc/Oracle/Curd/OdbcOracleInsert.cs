@@ -37,8 +37,8 @@ namespace FreeSql.Odbc.Oracle
             foreach (var col in _table.Columns.Values)
             {
                 if (col.Attribute.IsIdentity) _identCol = col;
-                if (_ignore.ContainsKey(col.Attribute.Name)) continue;
                 if (col.Attribute.IsIdentity && _insertIdentity == false) continue;
+                if (col.Attribute.IsIdentity == false && _ignore.ContainsKey(col.Attribute.Name)) continue;
 
                 if (colidx > 0) sbtb.Append(", ");
                 sbtb.Append(_commonUtils.QuoteSqlName(col.Attribute.Name));
@@ -58,8 +58,8 @@ namespace FreeSql.Odbc.Oracle
                 var colidx2 = 0;
                 foreach (var col in _table.Columns.Values)
                 {
-                    if (_ignore.ContainsKey(col.Attribute.Name)) continue;
                     if (col.Attribute.IsIdentity && _insertIdentity == false) continue;
+                    if (col.Attribute.IsIdentity == false && _ignore.ContainsKey(col.Attribute.Name)) continue;
 
                     if (colidx2 > 0) sb.Append(", ");
                     object val = col.GetMapValue(d);

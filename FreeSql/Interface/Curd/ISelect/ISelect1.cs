@@ -359,7 +359,11 @@ namespace FreeSql
         /// 文档：https://github.com/2881099/FreeSql/wiki/%e8%b4%aa%e5%a9%aa%e5%8a%a0%e8%bd%bd#%E5%AF%BC%E8%88%AA%E5%B1%9E%E6%80%A7-onetomanymanytomany
         /// </summary>
         /// <typeparam name="TNavigate"></typeparam>
-        /// <param name="navigateSelector">选择一个集合的导航属性，也可通过 .Where 设置临时的关系映射，还可以 .Take(5) 每个子集合只取5条</param>
+        /// <param name="navigateSelector">选择一个集合的导航属性，如： .IncludeMany(a => a.Tags)<para></para>
+        /// 可以 .Where 设置临时的关系映射，如： .IncludeMany(a => a.Tags.Where(tag => tag.TypeId == a.Id))<para></para>
+        /// 可以 .Take(5) 每个子集合只取5条，如： .IncludeMany(a => a.Tags.Take(5))<para></para>
+        /// 可以 .Select 设置只查询部分字段，如： (a => new TNavigate { Title = a.Title }) 
+        /// </param>
         /// <param name="then">即能 ThenInclude，还可以二次过滤（这个 EFCore 做不到？）</param>
         /// <returns></returns>
         ISelect<T1> IncludeMany<TNavigate>(Expression<Func<T1, IEnumerable<TNavigate>>> navigateSelector, Action<ISelect<TNavigate>> then = null) where TNavigate : class;

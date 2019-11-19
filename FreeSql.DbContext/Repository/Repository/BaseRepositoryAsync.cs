@@ -36,7 +36,7 @@ namespace FreeSql
         async public virtual Task<TEntity> InsertAsync(TEntity entity)
         {
             await _dbset.AddAsync(entity);
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
             return entity;
         }
         async public virtual Task<List<TEntity>> InsertAsync(IEnumerable<TEntity> entitys)
@@ -60,8 +60,14 @@ namespace FreeSql
         async public Task<TEntity> InsertOrUpdateAsync(TEntity entity)
         {
             await _dbset.AddOrUpdateAsync(entity);
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
             return entity;
+        }
+
+        async public Task SaveManyToManyAsync(TEntity entity, string propertyName)
+        {
+            await _dbset.SaveManyToManyAsync(entity, propertyName);
+            await _db.SaveChangesAsync();
         }
     }
 

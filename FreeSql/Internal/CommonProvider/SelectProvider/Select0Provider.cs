@@ -10,6 +10,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FreeSql.Internal.CommonProvider
@@ -24,6 +25,7 @@ namespace FreeSql.Internal.CommonProvider
         protected List<DbParameter> _params = new List<DbParameter>();
         protected List<SelectTableInfo> _tables = new List<SelectTableInfo>();
         protected List<Func<Type, string, string>> _tableRules = new List<Func<Type, string, string>>();
+        protected Func<Type, string, string> _aliasRule;
         protected StringBuilder _join = new StringBuilder();
         protected IFreeSql _orm;
         protected CommonUtils _commonUtils;
@@ -37,11 +39,10 @@ namespace FreeSql.Internal.CommonProvider
         protected List<LambdaExpression> _whereCascadeExpression = new List<LambdaExpression>();
         protected List<GlobalFilter.Item> _whereGlobalFilter;
 
-        bool _isDisponse = false;
+        int _disposeCounter;
         ~Select0Provider()
         {
-            if (_isDisponse) return;
-            _isDisponse = false;
+            if (Interlocked.Increment(ref _disposeCounter) != 1) return;
             _where.Clear();
             _params.Clear();
             _tables.Clear();
@@ -70,22 +71,31 @@ namespace FreeSql.Internal.CommonProvider
                 toType.GetField("_tables", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, new List<SelectTableInfo>(from._tables.ToArray()));
             else
             {
+                var findedIndexs = new List<int>();
                 var _multiTables = toType.GetField("_tables", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(to) as List<SelectTableInfo>;
                 _multiTables[0] = from._tables[0];
                 for (var a = 1; a < lambParms.Count; a++)
                 {
-                    var tb = from._tables.Where(b => b.Alias == lambParms[a].Name && b.Table.Type == lambParms[a].Type).FirstOrDefault();
-                    if (tb != null) _multiTables[a] = tb;
+                    var tbIndex = from._tables.FindIndex(b => b.Alias == lambParms[a].Name && b.Table.Type == lambParms[a].Type); ;
+                    if (tbIndex != -1)
+                    {
+                        findedIndexs.Add(tbIndex);
+                        _multiTables[a] = from._tables[tbIndex];
+                    }
                     else
                     {
                         _multiTables[a].Alias = lambParms[a].Name;
                         _multiTables[a].Parameter = lambParms[a];
                     }
                 }
-                if (_multiTables.Count < from._tables.Count)
-                    _multiTables.AddRange(from._tables.GetRange(_multiTables.Count, from._tables.Count - _multiTables.Count));
+                for (var a = 1; a < from._tables.Count; a++)
+                {
+                    if (findedIndexs.Contains(a)) continue;
+                    _multiTables.Add(from._tables[a]);
+                }
             }
             toType.GetField("_tableRules", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._tableRules);
+            toType.GetField("_aliasRule", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._aliasRule);
             toType.GetField("_join", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, new StringBuilder().Append(from._join.ToString()));
             //toType.GetField("_orm", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._orm);
             //toType.GetField("_commonUtils", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._commonUtils);
@@ -345,7 +355,6 @@ namespace FreeSql.Internal.CommonProvider
                 _orm.Aop.CurdAfter?.Invoke(this, after);
             }
             foreach (var include in _includeToList) include?.Invoke(ret);
-            _orm.Aop.ToList?.Invoke(this, new Aop.ToListEventArgs(ret));
             _trackToList?.Invoke(ret);
             return ret;
         }
@@ -391,7 +400,6 @@ namespace FreeSql.Internal.CommonProvider
                         checkDoneTimes++;
 
                         foreach (var include in _includeToList) include?.Invoke(ret);
-                        _orm.Aop.ToList?.Invoke(this, new Aop.ToListEventArgs(ret));
                         _trackToList?.Invoke(ret);
                         chunkDone(ret);
                         
@@ -416,7 +424,6 @@ namespace FreeSql.Internal.CommonProvider
             if (ret.Any() || checkDoneTimes == 0)
             {
                 foreach (var include in _includeToList) include?.Invoke(ret);
-                _orm.Aop.ToList?.Invoke(this, new Aop.ToListEventArgs(ret));
                 _trackToList?.Invoke(ret);
                 chunkDone(ret);
             }
@@ -455,9 +462,8 @@ namespace FreeSql.Internal.CommonProvider
 
         public T1 First() => this.ToOne();
 
-        protected List<TReturn> ToListMapReader<TReturn>((ReadAnonymousTypeInfo map, string field) af)
+        internal List<TReturn> ToListMrPrivate<TReturn>(string sql, (ReadAnonymousTypeInfo map, string field) af, (string field, ReadAnonymousTypeInfo read, List<object> retlist)[] otherData)
         {
-            var sql = this.ToSql(af.field);
             var type = typeof(TReturn);
             var dbParms = _params.ToArray();
             var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
@@ -470,6 +476,9 @@ namespace FreeSql.Internal.CommonProvider
                 {
                     var index = -1;
                     ret.Add((TReturn)_commonExpression.ReadAnonymous(af.map, dr, ref index, false));
+                    if (otherData != null)
+                        foreach (var other in otherData)
+                            other.retlist.Add(_commonExpression.ReadAnonymous(other.read, dr, ref index, false));
                 }, CommandType.Text, sql, dbParms);
             }
             catch (Exception ex)
@@ -482,10 +491,27 @@ namespace FreeSql.Internal.CommonProvider
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
                 _orm.Aop.CurdAfter?.Invoke(this, after);
             }
-            _orm.Aop.ToList?.Invoke(this, new Aop.ToListEventArgs(ret));
+            if (typeof(TReturn) == typeof(T1))
+                foreach (var include in _includeToList) include?.Invoke(ret);
             _trackToList?.Invoke(ret);
             return ret;
         }
+        internal List<TReturn> ToListMapReaderPrivate<TReturn>((ReadAnonymousTypeInfo map, string field) af, (string field, ReadAnonymousTypeInfo read, List<object> retlist)[] otherData)
+        {
+            string sql = null;
+            if (otherData?.Length > 0)
+            {
+                var sbField = new StringBuilder().Append(af.field);
+                foreach (var other in otherData)
+                    sbField.Append(other.field);
+                sql = this.ToSql(sbField.ToString());
+            }
+            else
+                sql = this.ToSql(af.field);
+
+            return ToListMrPrivate<TReturn>(sql, af, otherData);
+        }
+        protected List<TReturn> ToListMapReader<TReturn>((ReadAnonymousTypeInfo map, string field) af) => ToListMapReaderPrivate<TReturn>(af, null);
         protected (ReadAnonymousTypeInfo map, string field) GetExpressionField(Expression newexp)
         {
             var map = new ReadAnonymousTypeInfo();
@@ -889,6 +915,7 @@ namespace FreeSql.Internal.CommonProvider
                         {
                             if (_orm.CodeFirst.IsSyncStructureToLower) name = name.ToLower();
                             if (_orm.CodeFirst.IsSyncStructureToUpper) name = name.ToUpper();
+                            if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(tb.Table.Type, name);
                         }
                     }
                     dict.Add(tb.Table.Type, name);
@@ -900,6 +927,11 @@ namespace FreeSql.Internal.CommonProvider
         public TSelect AsTable(Func<Type, string, string> tableRule)
         {
             if (tableRule != null) _tableRules.Add(tableRule);
+            return this as TSelect;
+        }
+        public TSelect AsAlias(Func<Type, string, string> aliasRule)
+        {
+            if (aliasRule != null) _aliasRule = aliasRule;
             return this as TSelect;
         }
         public TSelect AsType(Type entityType)
@@ -917,10 +949,6 @@ namespace FreeSql.Internal.CommonProvider
         public TSelect WhereIf(bool condition, string sql, object parms = null)
         {
             if (condition == false || string.IsNullOrEmpty(sql)) return this as TSelect;
-            var args = new Aop.WhereEventArgs(sql, parms);
-            _orm.Aop.Where?.Invoke(this, new Aop.WhereEventArgs(sql, parms));
-            if (args.IsCancel == true) return this as TSelect;
-
             _where.Append(" AND (").Append(sql).Append(")");
             if (parms != null) _params.AddRange(_commonUtils.GetDbParamtersByObject(sql, parms));
             return this as TSelect;
@@ -1121,7 +1149,6 @@ namespace FreeSql.Internal.CommonProvider
                 _orm.Aop.CurdAfter?.Invoke(this, after);
             }
             foreach (var include in _includeToList) include?.Invoke(ret);
-            _orm.Aop.ToList?.Invoke(this, new Aop.ToListEventArgs(ret));
             _trackToList?.Invoke(ret);
             return ret;
         }
@@ -1156,9 +1183,8 @@ namespace FreeSql.Internal.CommonProvider
 
         public Task<T1> FirstAsync() => this.ToOneAsync();
 
-        async protected Task<List<TReturn>> ToListMapReaderAsync<TReturn>((ReadAnonymousTypeInfo map, string field) af)
+        async internal Task<List<TReturn>> ToListMrPrivateAsync<TReturn>(string sql, (ReadAnonymousTypeInfo map, string field) af, (string field, ReadAnonymousTypeInfo read, List<object> retlist)[] otherData)
         {
-            var sql = this.ToSql(af.field);
             var type = typeof(TReturn);
             var dbParms = _params.ToArray();
             var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
@@ -1171,6 +1197,9 @@ namespace FreeSql.Internal.CommonProvider
                 {
                     var index = -1;
                     ret.Add((TReturn)_commonExpression.ReadAnonymous(af.map, dr, ref index, false));
+                    if (otherData != null)
+                        foreach (var other in otherData)
+                            other.retlist.Add(_commonExpression.ReadAnonymous(other.read, dr, ref index, false));
                     return Task.FromResult(false);
                 }, CommandType.Text, sql, dbParms);
             }
@@ -1184,10 +1213,27 @@ namespace FreeSql.Internal.CommonProvider
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
                 _orm.Aop.CurdAfter?.Invoke(this, after);
             }
-            _orm.Aop.ToList?.Invoke(this, new Aop.ToListEventArgs(ret));
+            if (typeof(TReturn) == typeof(T1))
+                foreach (var include in _includeToList) include?.Invoke(ret);
             _trackToList?.Invoke(ret);
             return ret;
         }
+        internal Task<List<TReturn>> ToListMapReaderPrivateAsync<TReturn>((ReadAnonymousTypeInfo map, string field) af, (string field, ReadAnonymousTypeInfo read, List<object> retlist)[] otherData)
+        {
+            string sql = null;
+            if (otherData?.Length > 0)
+            {
+                var sbField = new StringBuilder().Append(af.field);
+                foreach (var other in otherData)
+                    sbField.Append(other.field);
+                sql = this.ToSql(sbField.ToString());
+            }
+            else
+                sql = this.ToSql(af.field);
+
+            return ToListMrPrivateAsync<TReturn>(sql, af, otherData);
+        }
+        protected Task<List<TReturn>> ToListMapReaderAsync<TReturn>((ReadAnonymousTypeInfo map, string field) af) => ToListMapReaderPrivateAsync<TReturn>(af, null);
 
         async protected Task<TMember> InternalAvgAsync<TMember>(Expression exp) => (await this.ToListAsync<TMember>($"avg({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)})")).FirstOrDefault();
         async protected Task<TMember> InternalMaxAsync<TMember>(Expression exp) => (await this.ToListAsync<TMember>($"max({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)})")).FirstOrDefault();

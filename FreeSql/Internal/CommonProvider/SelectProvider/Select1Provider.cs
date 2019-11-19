@@ -183,7 +183,7 @@ namespace FreeSql.Internal.CommonProvider
             if (typeof(TReturn) == typeof(T1)) return this as ISelect<TReturn>;
             _tables[0].Parameter = select.Parameters[0];
             _selectExpression = select.Body;
-            (_orm.CodeFirst as CodeFirstProvider).dicSyced.TryAdd(typeof(TReturn), true);
+            (_orm.CodeFirst as CodeFirstProvider)._dicSycedTryAdd(typeof(TReturn)); //._dicSyced.TryAdd(typeof(TReturn), true);
             var ret = _orm.Select<TReturn>();
             Select0Provider<ISelect<T1>, T1>.CopyData(this, ret, null);
             return ret;
@@ -198,7 +198,7 @@ namespace FreeSql.Internal.CommonProvider
             ), SelectTableInfoType.InnerJoin);
             if (typeof(TResult) == typeof(T1)) return this as ISelect<TResult>;
             _selectExpression = resultSelector.Body;
-            (_orm.CodeFirst as CodeFirstProvider).dicSyced.TryAdd(typeof(TResult), true);
+            (_orm.CodeFirst as CodeFirstProvider)._dicSycedTryAdd(typeof(TResult)); //._dicSyced.TryAdd(typeof(TResult), true);
             var ret = _orm.Select<TResult>() as Select1Provider<TResult>;
             Select0Provider<ISelect<T1>, T1>.CopyData(this, ret, null);
             return ret;
@@ -213,7 +213,7 @@ namespace FreeSql.Internal.CommonProvider
             ), SelectTableInfoType.InnerJoin);
             if (typeof(TResult) == typeof(T1)) return this as ISelect<TResult>;
             _selectExpression = resultSelector.Body;
-            (_orm.CodeFirst as CodeFirstProvider).dicSyced.TryAdd(typeof(TResult), true);
+            (_orm.CodeFirst as CodeFirstProvider)._dicSycedTryAdd(typeof(TResult)); //._dicSyced.TryAdd(typeof(TResult), true);
             var ret = _orm.Select<TResult>() as Select1Provider<TResult>;
             Select0Provider<ISelect<T1>, T1>.CopyData(this, ret, null);
             return ret;
@@ -245,7 +245,7 @@ namespace FreeSql.Internal.CommonProvider
             }
             if (typeof(TResult) == typeof(T1)) return this as ISelect<TResult>;
             _selectExpression = resultSelector.Body;
-            (_orm.CodeFirst as CodeFirstProvider).dicSyced.TryAdd(typeof(TResult), true);
+            (_orm.CodeFirst as CodeFirstProvider)._dicSycedTryAdd(typeof(TResult)); //._dicSyced.TryAdd(typeof(TResult), true);
             var ret = _orm.Select<TResult>() as Select1Provider<TResult>;
             Select0Provider<ISelect<T1>, T1>.CopyData(this, ret, null);
             return ret;
@@ -386,16 +386,23 @@ namespace FreeSql.Internal.CommonProvider
             if (expBody == null) return this;
             MethodCallExpression whereExp = null;
             int takeNumber = 0;
+            Expression<Func<TNavigate, TNavigate>> selectExp = null;
             while (expBody.NodeType == ExpressionType.Call)
             {
-                throwNavigateSelector = new Exception($"IncludeMany {nameof(navigateSelector)} 参数类型错误，表达式格式应该是 a.collections.Take(1).Where(c => c.aid == a.id)");
+                throwNavigateSelector = new Exception($"IncludeMany {nameof(navigateSelector)} 参数类型错误，正确格式： a.collections.Take(1).Where(c => c.aid == a.id).Select(a => new TNavigate {{ }})");
                 var callExp = (expBody as MethodCallExpression);
                 switch (callExp.Method.Name)
                 {
                     case "Where":
                         whereExp = callExp;
                         break;
-                    case "Take": takeNumber = int.Parse((callExp.Arguments[1] as ConstantExpression)?.Value?.ToString() ?? "0"); break;
+                    case "Take":
+                        takeNumber = int.Parse(_commonExpression.ExpressionLambdaToSql(callExp.Arguments[1], new CommonExpression.ExpTSC { }));
+                        break;
+                    case "Select":
+                        selectExp = (callExp.Arguments[1] as Expression<Func<TNavigate, TNavigate>>);
+                        if (selectExp?.Parameters.Count != 1) throw new Exception($"IncludeMany {nameof(navigateSelector)} 参数错误，Select 只可以使用一个参数的方法，正确格式： .Select(t => new TNavigate {{ }})");
+                        break;
                     default: throw throwNavigateSelector;
                 }
                 expBody = callExp.Object ?? callExp.Arguments.FirstOrDefault();
@@ -406,6 +413,9 @@ namespace FreeSql.Internal.CommonProvider
             var (membersParam, members) = GetExpressionStack(collMem.Expression);
             var tb = _commonUtils.GetTableByEntity(collMem.Expression.Type);
             if (tb == null) throw throwNavigateSelector;
+            var collMemElementType = (collMem.Type.IsGenericType ? collMem.Type.GetGenericArguments().FirstOrDefault() : collMem.Type.GetElementType());
+            if (typeof(TNavigate) != collMemElementType) 
+                throw new Exception($"IncludeMany {nameof(navigateSelector)} 参数错误，Select lambda参数返回值必须和 {collMemElementType} 类型一致");
             var tbNav = _commonUtils.GetTableByEntity(typeof(TNavigate));
             if (tbNav == null) throw new Exception($"类型 {typeof(TNavigate).FullName} 错误，不能使用 IncludeMany");
 
@@ -588,6 +598,22 @@ namespace FreeSql.Internal.CommonProvider
                 var oldWhere = subSelect._where.ToString();
                 if (oldWhere.StartsWith(" AND ")) oldWhere = oldWhere.Remove(0, 5);
 
+                if (selectExp != null)
+                {
+                    var tmpinitExp = selectExp.Body as MemberInitExpression;
+                    var newinitExpBindings = tmpinitExp.Bindings.ToList();
+                    foreach (var tbrefCol in tbref.RefColumns)
+                    {
+                        if (newinitExpBindings.Any(a => a.Member.Name == tbrefCol.CsName)) continue;
+                        var tmpMemberInfo = tbrefCol.Table.Properties[tbrefCol.CsName];
+                        newinitExpBindings.Add(Expression.Bind(tmpMemberInfo, Expression.MakeMemberAccess(selectExp.Parameters[0], tmpMemberInfo)));
+                    }
+                    Expression newinitExp = Expression.MemberInit(tmpinitExp.NewExpression, newinitExpBindings.ToList());
+                    var selectExpParam = subSelect._tables[0].Parameter ?? Expression.Parameter(typeof(TNavigate), subSelectT1Alias);
+                    newinitExp = new NewExpressionVisitor(selectExpParam, selectExp.Parameters[0]).Replace(newinitExp);
+                    selectExp = Expression.Lambda<Func<TNavigate, TNavigate>>(newinitExp, selectExpParam);
+                }
+
                 switch (tbref.RefType)
                 {
                     case TableRefType.OneToMany:
@@ -605,7 +631,7 @@ namespace FreeSql.Internal.CommonProvider
                                     for (var z = 0; z < tbref.Columns.Count; z++)
                                     {
                                         if (z > 0) sbWhereOne.Append(" AND ");
-                                        sbWhereOne.Append(_commonUtils.FormatSql($"{subSelectT1Alias}.{_commonUtils.QuoteSqlName(tbref.RefColumns[z].Attribute.Name)}={{0}}", getListValue(list[y], tbref.Columns[z].CsName, z)));
+                                        sbWhereOne.Append(_commonUtils.FormatSql($"{subSelectT1Alias}.{_commonUtils.QuoteSqlName(tbref.RefColumns[z].Attribute.Name)}={{0}}", Utils.GetDataReaderValue(tbref.RefColumns[z].Attribute.MapType, getListValue(list[y], tbref.Columns[z].CsName, z))));
                                     }
                                     sbWhereOne.Append(")");
                                     var whereOne = sbWhereOne.ToString();
@@ -616,19 +642,23 @@ namespace FreeSql.Internal.CommonProvider
                             };
                             if (takeNumber > 0)
                             {
-                                var af = subSelect.GetAllFieldExpressionTreeLevelAll();
+                                Select0Provider<ISelect<TNavigate>, TNavigate>.GetAllFieldExpressionTreeInfo af = null;
+                                (ReadAnonymousTypeInfo map, string field) mf = default;
+                                if (selectExp == null) af = subSelect.GetAllFieldExpressionTreeLevelAll();
+                                else mf = subSelect.GetExpressionField(selectExp);
                                 var sbSql = new StringBuilder();
                                 var sbDic = getWhereDic();
                                 foreach (var sbd in sbDic)
                                 {
                                     subSelect._where.Clear();
                                     subSelect.Where(sbd.Key).Where(oldWhere).Limit(takeNumber);
-                                    sbSql.Append("\r\nUNION ALL\r\nselect * from (").Append(subSelect.ToSql(af.Field)).Append(") ftb");
+                                    sbSql.Append("\r\nUNION ALL\r\nselect * from (").Append(subSelect.ToSql(selectExp == null ? af.Field : mf.field)).Append(") ftb");
                                 }
                                 sbSql.Remove(0, 13);
                                 if (sbDic.Count == 1) sbSql.Remove(0, 15).Remove(sbSql.Length - 5, 5);
                                 sbDic.Clear();
-                                subList = subSelect.ToListAfPrivate(sbSql.ToString(), af, null);
+                                if (selectExp == null) subList = subSelect.ToListAfPrivate(sbSql.ToString(), af, null);
+                                else subList = subSelect.ToListMrPrivate<TNavigate>(sbSql.ToString(), mf, null);
                                 sbSql.Clear();
                             }
                             else
@@ -658,7 +688,8 @@ namespace FreeSql.Internal.CommonProvider
                                     sbDic.Clear();
                                 }
                                 subSelect.Where(oldWhere);
-                                subList = subSelect.ToList(true);
+                                if (selectExp == null) subList = subSelect.ToList(true);
+                                else subList = subSelect.ToList<TNavigate>(selectExp);
                             }
 
                             if (subList.Any() == false)
@@ -760,7 +791,10 @@ namespace FreeSql.Internal.CommonProvider
                             subSelect.InnerJoin(sbJoin.ToString());
                             sbJoin.Clear();
 
-                            var af = subSelect.GetAllFieldExpressionTreeLevelAll();
+                            Select0Provider<ISelect<TNavigate>, TNavigate>.GetAllFieldExpressionTreeInfo af = null;
+                            (ReadAnonymousTypeInfo map, string field) mf = default;
+                            if (selectExp == null) af = subSelect.GetAllFieldExpressionTreeLevelAll();
+                            else mf = subSelect.GetExpressionField(selectExp);
                             (string field, ReadAnonymousTypeInfo read)? otherData = null;
                             var sbSql = new StringBuilder();
 
@@ -797,7 +831,7 @@ namespace FreeSql.Internal.CommonProvider
                                     for (var z = 0; z < tbref.Columns.Count; z++)
                                     {
                                         if (z > 0) sbWhereOne.Append(" AND ");
-                                        sbWhereOne.Append(_commonUtils.FormatSql($" midtb.{_commonUtils.QuoteSqlName(tbref.MiddleColumns[z].Attribute.Name)}={{0}}", getListValue1(list[y], tbref.Columns[z].CsName)));
+                                        sbWhereOne.Append(_commonUtils.FormatSql($" midtb.{_commonUtils.QuoteSqlName(tbref.MiddleColumns[z].Attribute.Name)}={{0}}", Utils.GetDataReaderValue(tbref.MiddleColumns[z].Attribute.MapType, getListValue1(list[y], tbref.Columns[z].CsName))));
                                     }
                                     sbWhereOne.Append(")");
                                     var whereOne = sbWhereOne.ToString();
@@ -814,7 +848,7 @@ namespace FreeSql.Internal.CommonProvider
                                 {
                                     subSelect._where.Clear();
                                     subSelect.Where(sbd.Key).Where(oldWhere).Limit(takeNumber);
-                                    sbSql.Append("\r\nUNION ALL\r\nselect * from (").Append(subSelect.ToSql($"{af.Field}{otherData?.field}")).Append(") ftb");
+                                    sbSql.Append("\r\nUNION ALL\r\nselect * from (").Append(subSelect.ToSql($"{(selectExp == null ? af.Field : mf.field)}{otherData?.field}")).Append(") ftb");
                                 }
                                 sbSql.Remove(0, 13);
                                 if (sbDic.Count == 1) sbSql.Remove(0, 15).Remove(sbSql.Length - 5, 5);
@@ -825,7 +859,7 @@ namespace FreeSql.Internal.CommonProvider
                                 subSelect._where.Clear();
                                 if (tbref.Columns.Count == 1)
                                 {
-                                    subSelect.Where(_commonUtils.FormatSql($"midtb.{_commonUtils.QuoteSqlName(tbref.MiddleColumns[0].Attribute.Name)} in {{0}}", list.Select(a => getListValue1(a, tbref.Columns[0].CsName)).Distinct()));
+                                    subSelect.Where(_commonUtils.FormatSql($"midtb.{_commonUtils.QuoteSqlName(tbref.MiddleColumns[0].Attribute.Name)} in {{0}}", list.Select(a => Utils.GetDataReaderValue(tbref.MiddleColumns[0].Attribute.MapType, getListValue1(a, tbref.Columns[0].CsName))).Distinct()));
                                 }
                                 else
                                 {
@@ -838,10 +872,11 @@ namespace FreeSql.Internal.CommonProvider
                                     sbDic.Clear();
                                 }
                                 subSelect.Where(oldWhere);
-                                sbSql.Append(subSelect.ToSql($"{af.Field}{otherData?.field}"));
+                                sbSql.Append(subSelect.ToSql($"{(selectExp == null ? af.Field : mf.field)}{otherData?.field}"));
                             }
 
-                            subList = subSelect.ToListAfPrivate(sbSql.ToString(), af, otherData == null ? null : new[] { (otherData.Value.field, otherData.Value.read, midList) });
+                            if (selectExp == null) subList = subSelect.ToListAfPrivate(sbSql.ToString(), af, otherData == null ? null : new[] { (otherData.Value.field, otherData.Value.read, midList) });
+                            else subList = subSelect.ToListMrPrivate<TNavigate>(sbSql.ToString(), mf, otherData == null ? null : new[] { (otherData.Value.field, otherData.Value.read, midList) });
                             if (subList.Any() == false)
                             {
                                 foreach (var item in list)
@@ -910,7 +945,6 @@ namespace FreeSql.Internal.CommonProvider
         internal void SetList(IEnumerable<T1> list)
         {
             foreach (var include in _includeToList) include?.Invoke(list);
-            _orm.Aop.ToList?.Invoke(this, new Aop.ToListEventArgs(list));
             _trackToList?.Invoke(list);
         }
 

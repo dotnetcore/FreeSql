@@ -45,6 +45,30 @@ namespace FreeSql.Tests.SqliteExpression
             var t33 = select.Where(a => a.BoolNullable == false).ToList();
             var t44 = select.Where(a => !a.BoolNullable.Value).ToList();
             var t55 = select.Where(a => a.BoolNullable.Value).ToList();
+
+            var t111 = select.Where(a => a.Bool == true && a.Id > 0).ToList();
+            var t222 = select.Where(a => a.Bool != true && a.Id > 0).ToList();
+            var t333 = select.Where(a => a.Bool == false && a.Id > 0).ToList();
+            var t444 = select.Where(a => !a.Bool && a.Id > 0).ToList();
+            var t555 = select.Where(a => a.Bool && a.Id > 0).ToList();
+
+            var t1111 = select.Where(a => a.BoolNullable == true && a.Id > 0).ToList();
+            var t2222 = select.Where(a => a.BoolNullable != true && a.Id > 0).ToList();
+            var t3333 = select.Where(a => a.BoolNullable == false && a.Id > 0).ToList();
+            var t4444 = select.Where(a => !a.BoolNullable.Value && a.Id > 0).ToList();
+            var t5555 = select.Where(a => a.BoolNullable.Value && a.Id > 0).ToList();
+
+            var t11111 = select.Where(a => a.Bool == true && a.Id > 0 && a.Bool == true).ToList();
+            var t22222 = select.Where(a => a.Bool != true && a.Id > 0 && a.Bool != true).ToList();
+            var t33333 = select.Where(a => a.Bool == false && a.Id > 0 && a.Bool == false).ToList();
+            var t44444 = select.Where(a => !a.Bool && a.Id > 0 && !a.Bool).ToList();
+            var t55555 = select.Where(a => a.Bool && a.Id > 0 && a.Bool).ToList();
+
+            var t111111 = select.Where(a => a.BoolNullable == true && a.Id > 0 && a.BoolNullable == true).ToList();
+            var t222222 = select.Where(a => a.BoolNullable != true && a.Id > 0 && a.BoolNullable != true).ToList();
+            var t333333 = select.Where(a => a.BoolNullable == false && a.Id > 0 && a.BoolNullable == false).ToList();
+            var t444444 = select.Where(a => !a.BoolNullable.Value && a.Id > 0 && !a.BoolNullable.Value).ToList();
+            var t555555 = select.Where(a => a.BoolNullable.Value && a.Id > 0 && a.BoolNullable.Value).ToList();
         }
 
         [Fact]

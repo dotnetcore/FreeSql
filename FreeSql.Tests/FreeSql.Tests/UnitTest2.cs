@@ -21,7 +21,8 @@ namespace FreeSql.Tests
             /// <summary>
             /// 菜单权限ID
             /// </summary>
-            [Column(IsPrimary = true)] public String SysModulePermissionId { get; set; }
+            [Column(IsPrimary = true, OldName = "SysModulePermissionId")] 
+            public String Id { get; set; }
 
             /// <summary>
             /// 菜单主键ID
@@ -43,8 +44,8 @@ namespace FreeSql.Tests
             /// <summary>
             /// 主键
             /// </summary>
-            [Column(IsPrimary = true)]
-            public String SysModuleId { get; set; }
+            [Column(IsPrimary = true, OldName = "SysModuleId")]
+            public String Id { get; set; }
 
             /// <summary>
             /// 父级ID
@@ -92,8 +93,8 @@ namespace FreeSql.Tests
             /// <summary>
             /// 按钮主键
             /// </summary>
-            [Column(IsPrimary = true)]
-            public String SysModuleButtonId { get; set; }
+            [Column(IsPrimary = true, OldName = "SysModuleButtonId")]
+            public String Id { get; set; }
 
             /// <summary>
             /// 名称
@@ -127,54 +128,110 @@ namespace FreeSql.Tests
         }
         partial class SysModulePermission
         {
+            [Navigate("SysModuleButtonId")]
             public SysModuleButton Button { get; set; }
         }
         partial class SysModule
         {
+            [Navigate("SysModuleId")]
             public List<SysModulePermission> Permissions { get; set; }
         }
         partial class SysModuleButton
         {
         }
 
+        public class LinUser
+        {
+            public long id { get; set; }
+        }
+
+        public class Comment
+        {
+            public Guid Id { get; set; }
+            /// <summary>
+            /// 回复的文本内容
+            /// </summary>
+            public string Text { get; set; }
+            [Navigate("CreateUserId")]
+            public LinUser UserInfo { get; set; }
+            public long? CreateUserId { get; set; }
+        }
+
+        public class UserLike
+        {
+            public Guid Id { get; set; }
+            public Guid SubjectId { get; set; }
+            public long? CreateUserId { get; set; }
+        }
+
         [Fact]
         public void Test02()
         {
+
+
+            var dbs = g.sqlserver.DbFirst.GetDatabases();
+            var tbs = g.sqlserver.DbFirst.GetTablesByDatabase("ds_shop");
+
+            var dicParamslist = g.sqlite.Select<SysModule>().Page(1, 10)
+                .Where("id > @id and id > @id2 and id > @id3", 
+                    new Dictionary<string, int> { ["id"] = 1, ["id2"] = 2, ["id3"] = 3 })
+                .ToList();
+
+            var list111 = g.sqlite.Select<SysModule>()
+               .Page(1, 10)
+               .ToList(a => new { Id = a.Id })
+               .Select(a => new SysModule { Id = a.Id }).ToList()
+               .IncludeMany(g.sqlite, a => a.Permissions, then => then.Include(a => a.Button));
+
+
+            var list222 = g.sqlite.Select<SysModule>()
+                .IncludeMany(m => m.Permissions, then => then.Include(a => a.Button))
+                .Page(1, 10)
+                .ToList();
+            
+            var comments1 = g.mysql.Select<Comment, UserLike>()
+                .LeftJoin((a, b) => a.Id == b.SubjectId)
+                .ToList((a, b) => new { comment = a, b.SubjectId, user = a.UserInfo });
+
+
+
+
+
+            var comments2 = g.mysql.Select<Comment>()
+    .Include(r => r.UserInfo)
+    .From<UserLike>((z, b) => z.LeftJoin(u => u.Id == b.SubjectId))
+    .ToList((a, b) => new { comment = a, b.SubjectId, user = a.UserInfo });
 
             g.sqlite.Delete<SysModulePermission>().Where("1=1").ExecuteAffrows();
             g.sqlite.Delete<SysModuleButton>().Where("1=1").ExecuteAffrows();
             g.sqlite.Delete<SysModule>().Where("1=1").ExecuteAffrows();
 
-            var menu1 = new SysModule { SysModuleId = "menu1", Name = "菜单1" };
-            var menu2 = new SysModule { SysModuleId = "menu2", Name = "菜单2" };
+            var menu1 = new SysModule { Id = "menu1", Name = "菜单1" };
+            var menu2 = new SysModule { Id = "menu2", Name = "菜单2" };
             g.sqlite.Insert(new[] { menu1, menu2 }).ExecuteAffrows();
 
-            var button1 = new SysModuleButton { SysModuleButtonId = "button1", Name = "添加" };
-            var button2 = new SysModuleButton { SysModuleButtonId = "button2", Name = "修改" };
-            var button3 = new SysModuleButton { SysModuleButtonId = "button3", Name = "删除" };
-            var button4 = new SysModuleButton { SysModuleButtonId = "button4", Name = "查询" };
+            var button1 = new SysModuleButton { Id = "button1", Name = "添加" };
+            var button2 = new SysModuleButton { Id = "button2", Name = "修改" };
+            var button3 = new SysModuleButton { Id = "button3", Name = "删除" };
+            var button4 = new SysModuleButton { Id = "button4", Name = "查询" };
             g.sqlite.Insert(new[] { button1, button2, button3, button4 }).ExecuteAffrows();
 
             g.sqlite.Insert(new[] {
-                new SysModulePermission { SysModulePermissionId = "menu1_button1", SysModuleId = menu1.SysModuleId, SysModuleButtonId = button1.SysModuleButtonId },
-                new SysModulePermission { SysModulePermissionId = "menu1_button2", SysModuleId = menu1.SysModuleId, SysModuleButtonId = button2.SysModuleButtonId },
-                new SysModulePermission { SysModulePermissionId = "menu1_button3", SysModuleId = menu1.SysModuleId, SysModuleButtonId = button3.SysModuleButtonId },
-                new SysModulePermission { SysModulePermissionId = "menu1_button4", SysModuleId = menu1.SysModuleId, SysModuleButtonId = button4.SysModuleButtonId },
+                new SysModulePermission { Id = "menu1_button1", SysModuleId = menu1.Id, SysModuleButtonId = button1.Id },
+                new SysModulePermission { Id = "menu1_button2", SysModuleId = menu1.Id, SysModuleButtonId = button2.Id },
+                new SysModulePermission { Id = "menu1_button3", SysModuleId = menu1.Id, SysModuleButtonId = button3.Id },
+                new SysModulePermission { Id = "menu1_button4", SysModuleId = menu1.Id, SysModuleButtonId = button4.Id },
 
-                new SysModulePermission { SysModulePermissionId = "menu2_button1", SysModuleId = menu2.SysModuleId, SysModuleButtonId = button1.SysModuleButtonId },
-                new SysModulePermission { SysModulePermissionId = "menu2_button2", SysModuleId = menu2.SysModuleId, SysModuleButtonId = button2.SysModuleButtonId },
-                new SysModulePermission { SysModulePermissionId = "menu2_button3", SysModuleId = menu2.SysModuleId, SysModuleButtonId = button3.SysModuleButtonId },
-                new SysModulePermission { SysModulePermissionId = "menu2_button4", SysModuleId = menu2.SysModuleId, SysModuleButtonId = button4.SysModuleButtonId },
+                new SysModulePermission { Id = "menu2_button1", SysModuleId = menu2.Id, SysModuleButtonId = button1.Id },
+                new SysModulePermission { Id = "menu2_button2", SysModuleId = menu2.Id, SysModuleButtonId = button2.Id },
+                new SysModulePermission { Id = "menu2_button3", SysModuleId = menu2.Id, SysModuleButtonId = button3.Id },
+                new SysModulePermission { Id = "menu2_button4", SysModuleId = menu2.Id, SysModuleButtonId = button4.Id },
             }).ExecuteAffrows();
 
-            //var list = g.sqlite.Select<SysModule>()
-            //   .IncludeMany(m => m.Buttons)
-            //   .Page(1, 10)
-            //   .ToList();
 
-            var list = g.sqlite.Select<SysModule>()
-                .IncludeMany(m => m.Permissions.Where(p => p.SysModuleId == m.SysModuleId),
-                    then => then.LeftJoin(p => p.Button.SysModuleButtonId == p.SysModuleButtonId))
+            var list123123 = g.sqlite.Select<SysModule>()
+                .IncludeMany(m => m.Permissions.Where(p => p.SysModuleId == m.Id),
+                    then => then.LeftJoin(p => p.Button.Id == p.SysModuleButtonId))
                 .ToList();
         }
     }

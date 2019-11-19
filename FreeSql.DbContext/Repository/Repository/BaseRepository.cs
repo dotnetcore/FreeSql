@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FreeSql
@@ -42,11 +43,10 @@ namespace FreeSql
         }
 
         ~BaseRepository() => this.Dispose();
-        bool _isdisposed = false;
+        int _disposeCounter;
         public void Dispose()
         {
-            if (_isdisposed) return;
-            _isdisposed = true;
+            if (Interlocked.Increment(ref _disposeCounter) != 1) return;
             try
             {
                 _dbsetPriv?.Dispose();
@@ -128,6 +128,12 @@ namespace FreeSql
             _dbset.AddOrUpdate(entity);
             _db.SaveChanges();
             return entity;
+        }
+
+        public void SaveManyToMany(TEntity entity, string propertyName)
+        {
+            _dbset.SaveManyToMany(entity, propertyName);
+            _db.SaveChanges();
         }
     }
 

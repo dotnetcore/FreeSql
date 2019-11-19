@@ -338,7 +338,7 @@ namespace FreeSql.Internal.CommonProvider
         }
         #endregion
 
-        protected int RawExecuteAffrows()
+        protected virtual int RawExecuteAffrows()
         {
             var sql = ToSql();
             var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
@@ -393,6 +393,7 @@ namespace FreeSql.Internal.CommonProvider
             if (string.IsNullOrEmpty(newname)) return _table.DbName;
             if (_orm.CodeFirst.IsSyncStructureToLower) newname = newname.ToLower();
             if (_orm.CodeFirst.IsSyncStructureToUpper) newname = newname.ToUpper();
+            if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(_table.Type, newname);
             return newname;
         }
         public IInsert<T1> AsTable(Func<string, string> tableRule)
@@ -411,7 +412,9 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
 
-        public virtual string ToSql()
+        public virtual string ToSql() => ToSqlValuesOrSelectUnionAll(true);
+
+        public string ToSqlValuesOrSelectUnionAll(bool isValues = true)
         {
             if (_source == null || _source.Any() == false) return null;
             var sb = new StringBuilder();
@@ -419,26 +422,27 @@ namespace FreeSql.Internal.CommonProvider
             var colidx = 0;
             foreach (var col in _table.Columns.Values)
             {
-                if (_ignore.ContainsKey(col.Attribute.Name)) continue;
                 if (col.Attribute.IsIdentity && _insertIdentity == false) continue;
+                if (col.Attribute.IsIdentity == false && _ignore.ContainsKey(col.Attribute.Name)) continue;
 
                 if (colidx > 0) sb.Append(", ");
                 sb.Append(_commonUtils.QuoteSqlName(col.Attribute.Name));
                 ++colidx;
             }
-            sb.Append(") VALUES");
+            sb.Append(") ");
+            if (isValues) sb.Append(isValues ? "VALUES" : "SELECT ");
             _params = _noneParameter ? new DbParameter[0] : new DbParameter[colidx * _source.Count];
             var specialParams = new List<DbParameter>();
             var didx = 0;
             foreach (var d in _source)
             {
-                if (didx > 0) sb.Append(", ");
-                sb.Append("(");
+                if (didx > 0) sb.Append(isValues ? ", " : " \r\nUNION ALL\r\n ");
+                sb.Append(isValues ? "(" : "SELECT ");
                 var colidx2 = 0;
                 foreach (var col in _table.Columns.Values)
                 {
-                    if (_ignore.ContainsKey(col.Attribute.Name)) continue;
                     if (col.Attribute.IsIdentity && _insertIdentity == false) continue;
+                    if (col.Attribute.IsIdentity == false && _ignore.ContainsKey(col.Attribute.Name)) continue;
 
                     if (colidx2 > 0) sb.Append(", ");
                     object val = col.GetMapValue(d);
@@ -451,7 +455,7 @@ namespace FreeSql.Internal.CommonProvider
                     }
                     ++colidx2;
                 }
-                sb.Append(")");
+                if (isValues) sb.Append(")");
                 ++didx;
             }
             if (_noneParameter && specialParams.Any())

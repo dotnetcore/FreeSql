@@ -89,7 +89,7 @@ namespace System.Linq.Expressions
 
         internal static bool IsParameter(this Expression exp)
         {
-            var test = new TextParameterExpressionVisitor();
+            var test = new TestParameterExpressionVisitor();
             test.Visit(exp);
             return test.Result;
         }
@@ -110,7 +110,7 @@ namespace System.Linq.Expressions
             node == _oldParameter ? this._newParameter : node;
     }
 
-    internal class TextParameterExpressionVisitor : ExpressionVisitor
+    internal class TestParameterExpressionVisitor : ExpressionVisitor
     {
         public bool Result { get; private set; }
 

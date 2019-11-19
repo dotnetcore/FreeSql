@@ -89,6 +89,6 @@ namespace FreeSql.Odbc.Default
             return null;
         }
 
-        public override string GetComparisonDDLStatements(params Type[] entityTypes) => throw new NotImplementedException("FreeSql.Odbc.Default 未实现该功能");
+        protected override string GetComparisonDDLStatements(params (Type entityType, string tableName)[] objects) => throw new NotImplementedException("FreeSql.Odbc.Default 未实现该功能");
     }
 }

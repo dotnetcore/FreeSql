@@ -2,6 +2,7 @@
 using FreeSql.Internal.CommonProvider;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace FreeSql.Odbc.SqlServer
 {
@@ -41,7 +42,7 @@ namespace FreeSql.Odbc.SqlServer
                 {
                     try
                     {
-                        (this.InternalCommonUtils as OdbcSqlServerUtils).IsSelectRowNumber = int.Parse(conn.Value.ServerVersion.Split('.')[0]) <= 10;
+                        (this.InternalCommonUtils as OdbcSqlServerUtils).ServerVersion = int.Parse(conn.Value.ServerVersion.Split('.')[0]);
                     }
                     catch
                     {
@@ -57,14 +58,11 @@ namespace FreeSql.Odbc.SqlServer
 
         public GlobalFilter GlobalFilter { get; } = new GlobalFilter();
 
-        ~OdbcSqlServerProvider()
-        {
-            this.Dispose();
-        }
-        bool _isdisposed = false;
+        ~OdbcSqlServerProvider() => this.Dispose();
+        int _disposeCounter;
         public void Dispose()
         {
-            if (_isdisposed) return;
+            if (Interlocked.Increment(ref _disposeCounter) != 1) return;
             (this.Ado as AdoProvider)?.Dispose();
         }
     }

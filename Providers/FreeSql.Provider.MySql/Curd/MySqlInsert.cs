@@ -1,7 +1,9 @@
 ﻿using FreeSql.Internal;
+using FreeSql.Internal.Model;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -14,6 +16,17 @@ namespace FreeSql.MySql.Curd
             : base(orm, commonUtils, commonExpression)
         {
         }
+
+        internal IFreeSql InternalOrm => _orm;
+        internal TableInfo InternalTable => _table;
+        internal DbParameter[] InternalParams => _params;
+        internal DbConnection InternalConnection => _connection;
+        internal DbTransaction InternalTransaction => _transaction;
+        internal CommonUtils InternalCommonUtils => _commonUtils;
+        internal CommonExpression InternalCommonExpression => _commonExpression;
+        internal List<T1> InternalSource => _source;
+        internal Dictionary<string, bool> InternalIgnore => _ignore;
+        internal void InternalClearData() => ClearData();
 
         public override int ExecuteAffrows() => base.SplitExecuteAffrows(5000, 3000);
         public override long ExecuteIdentity() => base.SplitExecuteIdentity(5000, 3000);

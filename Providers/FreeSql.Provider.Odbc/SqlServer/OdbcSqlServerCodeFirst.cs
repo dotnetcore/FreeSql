@@ -103,36 +103,38 @@ ELSE
     , @level2type = 'COLUMN', @level2name = N'{2}'
 ", schema.Replace("'", "''"), table.Replace("'", "''"), column.Replace("'", "''"), comment?.Replace("'", "''") ?? "");
         }
-        public override string GetComparisonDDLStatements(params Type[] entityTypes)
+        protected override string GetComparisonDDLStatements(params (Type entityType, string tableName)[] objects)
         {
             var conn = _orm.Ado.MasterPool.Get(TimeSpan.FromSeconds(5));
-            var database = conn.Value.Database;
-            Func<string, string, object> ExecuteScalar = (db, sql) =>
-            {
-                if (string.Compare(database, db) != 0) conn.Value.ChangeDatabase(db);
-                try
-                {
-                    using (var cmd = conn.Value.CreateCommand())
-                    {
-                        cmd.CommandText = sql;
-                        cmd.CommandType = CommandType.Text;
-                        return cmd.ExecuteScalar();
-                    }
-                }
-                finally
-                {
-                    if (string.Compare(database, db) != 0) conn.Value.ChangeDatabase(database);
-                }
-            };
-            var sb = new StringBuilder();
+            string database = null;
             try
             {
-                foreach (var entityType in entityTypes)
+                database = conn.Value.Database;
+                Func<string, string, object> ExecuteScalar = (db, sql) =>
+                {
+                    if (string.Compare(database, db) != 0) conn.Value.ChangeDatabase(db);
+                    try
+                    {
+                        using (var cmd = conn.Value.CreateCommand())
+                        {
+                            cmd.CommandText = sql;
+                            cmd.CommandType = CommandType.Text;
+                            return cmd.ExecuteScalar();
+                        }
+                    }
+                    finally
+                    {
+                        if (string.Compare(database, db) != 0) conn.Value.ChangeDatabase(database);
+                    }
+                };
+                var sb = new StringBuilder();
+
+                foreach (var obj in objects)
                 {
                     if (sb.Length > 0) sb.Append("\r\n");
-                    var tb = _commonUtils.GetTableByEntity(entityType);
-                    if (tb == null) throw new Exception($"类型 {entityType.FullName} 不可迁移");
-                    if (tb.Columns.Any() == false) throw new Exception($"类型 {entityType.FullName} 不可迁移，可迁移属性0个");
+                    var tb = _commonUtils.GetTableByEntity(obj.entityType);
+                    if (tb == null) throw new Exception($"类型 {obj.entityType.FullName} 不可迁移");
+                    if (tb.Columns.Any() == false) throw new Exception($"类型 {obj.entityType.FullName} 不可迁移，可迁移属性0个");
                     var tbname = tb.DbName.Split(new[] { '.' }, 3);
                     if (tbname?.Length == 1) tbname = new[] { database, "dbo", tbname[0] };
                     if (tbname?.Length == 2) tbname = new[] { database, tbname[0], tbname[1] };
@@ -140,6 +142,17 @@ ELSE
                     var tboldname = tb.DbOldName?.Split(new[] { '.' }, 3); //旧表名
                     if (tboldname?.Length == 1) tboldname = new[] { database, "dbo", tboldname[0] };
                     if (tboldname?.Length == 2) tboldname = new[] { database, tboldname[0], tboldname[1] };
+                    if (string.IsNullOrEmpty(obj.tableName) == false)
+                    {
+                        var tbtmpname = obj.tableName.Split(new[] { '.' }, 3);
+                        if (tbtmpname?.Length == 1) tbtmpname = new[] { database, "dbo", tbtmpname[0] };
+                        if (tbtmpname?.Length == 2) tbtmpname = new[] { database, tbtmpname[0], tbtmpname[1] };
+                        if (tbname[0] != tbtmpname[0] || tbname[1] != tbtmpname[1] || tbname[2] != tbtmpname[2])
+                        {
+                            tbname = tbtmpname;
+                            tboldname = null;
+                        }
+                    }
 
                     if (string.Compare(tbname[0], database, true) != 0 && ExecuteScalar(database, $" select 1 from sys.databases where name='{tbname[0]}'") == null) //创建数据库
                         ExecuteScalar(database, $"if not exists(select 1 from sys.databases where name='{tbname[0]}')\r\n\tcreate database [{tbname[0]}];");
@@ -232,10 +245,9 @@ a.name 'Column'
  else '' end as 'SqlType'
 ,case when a.is_nullable = 1 then '1' else '0' end 'IsNullable'
 ,case when a.is_identity = 1 then '1' else '0' end 'IsIdentity'
-,c.value
+,(select value from sys.extended_properties where major_id = a.object_id AND minor_id = a.column_id AND name = 'MS_Description') 'Comment'
 from sys.columns a
 inner join sys.types b on b.user_type_id = a.user_type_id
-left join sys.extended_properties AS c ON c.major_id = a.object_id AND c.minor_id = a.column_id
 left join sys.tables d on d.object_id = a.object_id
 left join sys.schemas e on e.schema_id = d.schema_id
 where a.object_id in (object_id(N'[{1}].[{2}]'));
@@ -366,7 +378,8 @@ use " + database, tboldname ?? tbname);
                         if (string.IsNullOrEmpty(tbcol.Comment) == false)
                             AddOrUpdateMS_Description(sb, tbname[1], $"FreeSqlTmp_{tbname[2]}", tbcol.Attribute.Name, tbcol.Comment);
                     }
-                    sb.Append("ALTER TABLE ").Append(tmptablename).Append(" SET (LOCK_ESCALATION = TABLE);\r\n");
+                    if ((_commonUtils as OdbcSqlServerUtils).ServerVersion > 9) //SqlServer 2008+
+                        sb.Append("ALTER TABLE ").Append(tmptablename).Append(" SET (LOCK_ESCALATION = TABLE);\r\n");
                     if (idents) sb.Append("SET IDENTITY_INSERT ").Append(tmptablename).Append(" ON;\r\n");
                     sb.Append("IF EXISTS(SELECT 1 FROM ").Append(tablename).Append(")\r\n");
                     sb.Append("\tEXEC('INSERT INTO ").Append(tmptablename).Append(" (");
@@ -415,7 +428,8 @@ use " + database, tboldname ?? tbname);
             {
                 try
                 {
-                    conn.Value.ChangeDatabase(database);
+                    if (string.IsNullOrEmpty(database) == false)
+                        conn.Value.ChangeDatabase(database);
                     _orm.Ado.MasterPool.Return(conn);
                 }
                 catch

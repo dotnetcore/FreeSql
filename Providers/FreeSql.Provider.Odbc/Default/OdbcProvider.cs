@@ -1,10 +1,11 @@
 ﻿using FreeSql.Internal;
 using FreeSql.Internal.CommonProvider;
-using System;
-using System.Collections.Generic;
-using System.Collections.Concurrent;
-using System.Linq;
 using FreeSql.Odbc.Default;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 
 namespace FreeSql.Odbc.Default
 {
@@ -86,14 +87,11 @@ namespace FreeSql.Odbc.Default
 
         public GlobalFilter GlobalFilter { get; } = new GlobalFilter();
 
-        ~OdbcProvider()
-        {
-            this.Dispose();
-        }
-        bool _isdisposed = false;
+        ~OdbcProvider() => this.Dispose();
+        int _disposeCounter;
         public void Dispose()
         {
-            if (_isdisposed) return;
+            if (Interlocked.Increment(ref _disposeCounter) != 1) return;
             try
             {
                 (this.Ado as AdoProvider)?.Dispose();

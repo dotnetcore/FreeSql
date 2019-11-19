@@ -18,7 +18,7 @@ namespace FreeSql.Tests.SqlServer
             _sqlserverFixture = sqlserverFixture;
         }
 
-        IInsert<Topic> insert => _sqlserverFixture.SqlServer.Insert<Topic>(); //��������
+        IInsert<Topic> insert => g.sqlserver.Insert<Topic>(); //��������
 
         [Table(Name = "tb_topic")]
         class Topic
@@ -75,12 +75,12 @@ namespace FreeSql.Tests.SqlServer
             sql = insert.AppendData(items).IgnoreColumns(a => new { a.Title, a.CreateTime, a.TypeGuid }).ToSql();
             Assert.Equal("INSERT INTO [tb_topic]([Clicks]) VALUES(@Clicks_0), (@Clicks_1), (@Clicks_2), (@Clicks_3), (@Clicks_4), (@Clicks_5), (@Clicks_6), (@Clicks_7), (@Clicks_8), (@Clicks_9)", sql);
 
-            _sqlserverFixture.SqlServer.Delete<TopicIgnore>().Where("1=1").ExecuteAffrows();
+            g.sqlserver.Delete<TopicIgnore>().Where("1=1").ExecuteAffrows();
             var itemsIgnore = new List<TopicIgnore>();
             for (var a = 0; a < 2072; a++) itemsIgnore.Add(new TopicIgnore { Id = a + 1, Title = $"newtitle{a}", Clicks = a * 100, CreateTime = DateTime.Now });
-            _sqlserverFixture.SqlServer.Insert<TopicIgnore>().AppendData(itemsIgnore).IgnoreColumns(a => new { a.Title }).ExecuteAffrows();
+            g.sqlserver.Insert<TopicIgnore>().AppendData(itemsIgnore).IgnoreColumns(a => new { a.Title }).ExecuteAffrows();
             Assert.Equal(2072, itemsIgnore.Count);
-            Assert.Equal(2072, _sqlserverFixture.SqlServer.Select<TopicIgnore>().Where(a => a.Title == null).Count());
+            Assert.Equal(2072, g.sqlserver.Select<TopicIgnore>().Where(a => a.Title == null).Count());
         }
         [Table(Name = "tb_topicIgnoreColumns")]
         class TopicIgnore
@@ -98,33 +98,33 @@ namespace FreeSql.Tests.SqlServer
             for (var a = 0; a < 10; a++) items.Add(new Topic { Id = a + 1, Title = $"newtitle{a}", Clicks = a * 100, CreateTime = DateTime.Now });
 
             Assert.Equal(1, insert.AppendData(items.First()).ExecuteAffrows());
-            Assert.Equal(10, insert.AppendData(items).ExecuteAffrows());
+            Assert.Equal(10, insert.AppendData(items).NoneParameter().ExecuteAffrows());
 
             //items = Enumerable.Range(0, 9989).Select(a => new Topic { Title = "newtitle" + a, CreateTime = DateTime.Now }).ToList();
-            //Assert.Equal(9989, _sqlserverFixture.SqlServer.Insert<Topic>(items).ExecuteAffrows());
+            //Assert.Equal(9989, g.sqlserver.Insert<Topic>(items).ExecuteAffrows());
 
             //var bttype = new TestBetchInsertType { title = "testbttitle1" };
-            //bttype.id = (int)_sqlserverFixture.SqlServer.Insert(bttype).ExecuteIdentity();
+            //bttype.id = (int)g.sqlserver.Insert(bttype).ExecuteIdentity();
             //Assert.True(bttype.id > 0);
             //var bttopic = Enumerable.Range(0, 10000).Select(a => new TestBetchInsertTopic { TypeId = bttype.id, Text = $"testtopic{a}" }).ToArray();
-            //Assert.Equal(bttopic.Length, _sqlserverFixture.SqlServer.Insert<TestBetchInsertTopic>(bttopic).ExecuteAffrows());
+            //Assert.Equal(bttopic.Length, g.sqlserver.Insert<TestBetchInsertTopic>(bttopic).ExecuteAffrows());
 
-            //_sqlserverFixture.SqlServer.Transaction(() =>
+            //g.sqlserver.Transaction(() =>
             //{
             //    bttype = new TestBetchInsertType { title = "transaction_testbttitle2" };
-            //    bttype.id = (int)_sqlserverFixture.SqlServer.Insert(bttype).ExecuteIdentity();
+            //    bttype.id = (int)g.sqlserver.Insert(bttype).ExecuteIdentity();
             //    Assert.True(bttype.id > 0);
             //    bttopic = Enumerable.Range(0, 10000).Select(a => new TestBetchInsertTopic { TypeId = bttype.id, Text = $"transaction_testtopic{a}" }).ToArray();
-            //    Assert.Equal(bttopic.Length, _sqlserverFixture.SqlServer.Insert<TestBetchInsertTopic>(bttopic).ExecuteAffrows());
+            //    Assert.Equal(bttopic.Length, g.sqlserver.Insert<TestBetchInsertTopic>(bttopic).ExecuteAffrows());
             //});
 
-            _sqlserverFixture.SqlServer.Transaction(() =>
+            g.sqlserver.Transaction(() =>
             {
                 var order = new AdjustPriceOrder {  };
-                order.Id = (int)_sqlserverFixture.SqlServer.Insert(order).NoneParameter().ExecuteIdentity();
+                order.Id = (int)g.sqlserver.Insert(order).NoneParameter().ExecuteIdentity();
                 Assert.True(order.Id > 0);
                 var detail = Enumerable.Range(0, 10000).Select(a => new AdjustPriceDetail {   Remark = $"transaction_testdetail{a}" }).ToArray();
-                Assert.Equal(detail.Length, _sqlserverFixture.SqlServer.Insert<AdjustPriceDetail>(detail).NoneParameter().ExecuteAffrows());
+                Assert.Equal(detail.Length, g.sqlserver.Insert<AdjustPriceDetail>(detail).NoneParameter().ExecuteAffrows());
             });
         }
         class TestBetchInsertType { 
@@ -149,7 +149,7 @@ namespace FreeSql.Tests.SqlServer
 
             //items = Enumerable.Range(0, 9999).Select(a => new Topic { Title = "newtitle" + a, CreateTime = DateTime.Now }).ToList();
             //var lastId = g.sqlite.Select<Topic>().Max(a => a.Id);
-            //Assert.NotEqual(lastId, _sqlserverFixture.SqlServer.Insert<Topic>(items).ExecuteIdentity());
+            //Assert.NotEqual(lastId, g.sqlserver.Insert<Topic>(items).ExecuteIdentity());
         }
         [Fact]
         public void ExecuteInserted()
@@ -160,7 +160,7 @@ namespace FreeSql.Tests.SqlServer
             var items2 = insert.AppendData(items).ExecuteInserted();
 
             items = Enumerable.Range(0, 90).Select(a => new Topic { Title = "newtitle" + a, CreateTime = DateTime.Now }).ToList();
-            var itemsInserted = _sqlserverFixture.SqlServer.Insert<Topic>(items).ExecuteInserted();
+            var itemsInserted = g.sqlserver.Insert<Topic>(items).ExecuteInserted();
             Assert.Equal(items.First().Title, itemsInserted.First().Title);
             Assert.Equal(items.Last().Title, itemsInserted.Last().Title);
         }

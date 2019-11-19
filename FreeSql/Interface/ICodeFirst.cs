@@ -44,9 +44,16 @@ namespace FreeSql
         /// <summary>
         /// 将实体类型集合与数据库对比，返回DDL语句
         /// </summary>
-        /// <param name="entityTypes"></param>
+        /// <param name="entityTypes">实体类型</param>
         /// <returns></returns>
         string GetComparisonDDLStatements(params Type[] entityTypes);
+        /// <summary>
+        /// 将实体类型与数据库对比，返回DDL语句（指定表名）
+        /// </summary>
+        /// <param name="entityType">实体类型</param>
+        /// <param name="tableName">指定表名对比</param>
+        /// <returns></returns>
+        string GetComparisonDDLStatements(Type entityType, string tableName);
         /// <summary>
         /// 同步实体类型到数据库
         /// </summary>
@@ -59,6 +66,13 @@ namespace FreeSql
         /// <param name="entityTypes"></param>
         /// <returns></returns>
         bool SyncStructure(params Type[] entityTypes);
+        /// <summary>
+        /// 同步实体类型到数据库（指定表名）
+        /// </summary>
+        /// <param name="entityType">实体类型</param>
+        /// <param name="tableName">指定表名对比</param>
+        /// <returns></returns>
+        bool SyncStructure(Type entityType, string tableName);
 
         /// <summary>
         /// 根据 System.Type 获取数据库信息

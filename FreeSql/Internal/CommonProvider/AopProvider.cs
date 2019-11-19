@@ -8,8 +8,6 @@ namespace FreeSql.Internal.CommonProvider
 {
     public class AopProvider : IAop
     {
-        public EventHandler<Aop.ToListEventArgs> ToList { get; set; }
-        public EventHandler<Aop.WhereEventArgs> Where { get; set; }
         public EventHandler<Aop.ParseExpressionEventArgs> ParseExpression { get; set; }
         public EventHandler<Aop.ConfigEntityEventArgs> ConfigEntity { get; set; }
         public EventHandler<Aop.ConfigEntityPropertyEventArgs> ConfigEntityProperty { get; set; }

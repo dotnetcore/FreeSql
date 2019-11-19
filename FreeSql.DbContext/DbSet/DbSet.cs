@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading;
 
 namespace FreeSql
 {
@@ -36,11 +37,10 @@ namespace FreeSql
         }
 
         ~DbSet() => this.Dispose();
-        bool _isdisposed = false;
+        int _disposeCounter;
         public void Dispose()
         {
-            if (_isdisposed) return;
-            _isdisposed = true;
+            if (Interlocked.Increment(ref _disposeCounter) != 1) return;
             try
             {
                 this._dicUpdateTimes.Clear();
@@ -133,7 +133,16 @@ namespace FreeSql
         {
             if (_dicDbSetObjects.TryGetValue(et, out var tryds)) return tryds;
             _dicDbSetObjects.Add(et, tryds = _db.Set<object>().AsType(et));
+            if (_db.InternalDicSet.TryGetValue(et, out var tryds2))
+            {
+                var copyTo = typeof(DbSet<>).MakeGenericType(et).GetMethod("StatesCopyToDbSetObject", BindingFlags.NonPublic | BindingFlags.Instance, null, new[] { typeof(DbSet<object>) }, null);
+                copyTo?.Invoke(tryds2, new object[] { tryds });
+            }
             return tryds;
+        }
+        void StatesCopyToDbSetObject(DbSet<object> ds)
+        {
+            ds.AttachRange(_states.Values.OrderBy(a => a.Time).Select(a => a.Value).ToArray());
         }
 
         public class EntityState

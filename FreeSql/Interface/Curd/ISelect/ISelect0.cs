@@ -51,7 +51,12 @@ namespace FreeSql
         DataTable ToDataTable(string field = null);
 
         /// <summary>
-        /// 执行SQL查询，返回 T1 实体所有字段的记录，记录不存在时返回 Count 为 0 的列表
+        /// 执行SQL查询，返回 T1 实体所有字段的记录，记录不存在时返回 Count 为 0 的列表<para></para>
+        /// 注意：<para></para>
+        /// 1、ToList(a => a) 可以返回 a 所有实体<para></para>
+        /// 2、ToList(a => new { a }) 这样也可以<para></para>
+        /// 3、ToList((a, b, c) => new { a, b, c }) 这样也可以<para></para>
+        /// 4、abc 怎么来的？请试试 fsql.Select&lt;T1, T2, T3&gt;()
         /// </summary>
         /// <param name="includeNestedMembers">false: 返回 2级 LeftJoin/InnerJoin/RightJoin 对象；true: 返回所有 LeftJoin/InnerJoin/RightJoin 的导航数据</param>
         /// <returns></returns>
@@ -117,6 +122,13 @@ namespace FreeSql
         /// <param name="tableRule"></param>
         /// <returns></returns>
         TSelect AsTable(Func<Type, string, string> tableRule);
+        /// <summary>
+        /// 设置别名规则，可用于拦截表别名，实现类似 sqlserver 的 with(nolock) 需求<para></para>
+        /// 如：select.AsAlias((_, oldAlias) => oldAlias + " with(lock)")
+        /// </summary>
+        /// <param name="aliasRule"></param>
+        /// <returns></returns>
+        TSelect AsAlias(Func<Type, string, string> aliasRule);
         /// <summary>
         /// 动态Type，在使用 Select&lt;object&gt; 后使用本方法，指定实体类型
         /// </summary>

@@ -50,7 +50,7 @@ namespace FreeSql.Tests.SqlServerMapType
         public void Enum1()
         {
             //insert
-            var orm = _sqlserverFixture.SqlServer;
+            var orm = g.sqlserver;
             var item = new ToStringMap { };
             Assert.Equal(1, orm.Insert<ToStringMap>().AppendData(item).ExecuteAffrows());
             var find = orm.Select<ToStringMap>().Where(a => a.id == item.id && a.enum_to_string == ToStringMapEnum.ÖÐ¹úÈË).First();
@@ -107,7 +107,7 @@ namespace FreeSql.Tests.SqlServerMapType
         public void EnumNullable()
         {
             //insert
-            var orm = _sqlserverFixture.SqlServer;
+            var orm = g.sqlserver;
             var item = new ToStringMap { };
             Assert.Equal(1, orm.Insert<ToStringMap>().AppendData(item).ExecuteAffrows());
             var find = orm.Select<ToStringMap>().Where(a => a.id == item.id && a.enumnullable_to_string == null).First();
@@ -167,7 +167,7 @@ namespace FreeSql.Tests.SqlServerMapType
         public void BigInteger1()
         {
             //insert
-            var orm = _sqlserverFixture.SqlServer;
+            var orm = g.sqlserver;
             var item = new ToStringMap { };
             Assert.Equal(1, orm.Insert<ToStringMap>().AppendData(item).ExecuteAffrows());
             var find = orm.Select<ToStringMap>().Where(a => a.id == item.id && a.biginteger_to_string == 0).First();
@@ -224,7 +224,7 @@ namespace FreeSql.Tests.SqlServerMapType
         public void BigIntegerNullable()
         {
             //insert
-            var orm = _sqlserverFixture.SqlServer;
+            var orm = g.sqlserver;
             var item = new ToStringMap { };
             Assert.Equal(1, orm.Insert<ToStringMap>().AppendData(item).ExecuteAffrows());
             var find = orm.Select<ToStringMap>().Where(a => a.id == item.id && a.bigintegernullable_to_string == null).First();
@@ -284,7 +284,7 @@ namespace FreeSql.Tests.SqlServerMapType
         public void TimeSpan1()
         {
             //insert
-            var orm = _sqlserverFixture.SqlServer;
+            var orm = g.sqlserver;
             var item = new ToStringMap { };
             Assert.Equal(1, orm.Insert<ToStringMap>().AppendData(item).ExecuteAffrows());
             var find = orm.Select<ToStringMap>().Where(a => a.id == item.id).First();
@@ -325,7 +325,7 @@ namespace FreeSql.Tests.SqlServerMapType
         public void TimeSpanNullable()
         {
             //insert
-            var orm = _sqlserverFixture.SqlServer;
+            var orm = g.sqlserver;
             var item = new ToStringMap { };
             Assert.Equal(1, orm.Insert<ToStringMap>().AppendData(item).ExecuteAffrows());
             var find = orm.Select<ToStringMap>().Where(a => a.id == item.id).First();
@@ -380,7 +380,7 @@ namespace FreeSql.Tests.SqlServerMapType
         public void DateTime1()
         {
             //insert
-            var orm = _sqlserverFixture.SqlServer;
+            var orm = g.sqlserver;
             var item = new ToStringMap { };
             Assert.Equal(1, orm.Insert<ToStringMap>().AppendData(item).ExecuteAffrows());
             var find = orm.Select<ToStringMap>().Where(a => a.id == item.id).First();
@@ -421,7 +421,7 @@ namespace FreeSql.Tests.SqlServerMapType
         public void DateTimeNullable()
         {
             //insert
-            var orm = _sqlserverFixture.SqlServer;
+            var orm = g.sqlserver;
             var item = new ToStringMap { };
             Assert.Equal(1, orm.Insert<ToStringMap>().AppendData(item).ExecuteAffrows());
             var find = orm.Select<ToStringMap>().Where(a => a.id == item.id).First();
@@ -477,7 +477,7 @@ namespace FreeSql.Tests.SqlServerMapType
         public void Guid1()
         {
             //insert
-            var orm = _sqlserverFixture.SqlServer;
+            var orm = g.sqlserver;
             var item = new ToStringMap { };
             Assert.Equal(1, orm.Insert<ToStringMap>().AppendData(item).ExecuteAffrows());
             var find = orm.Select<ToStringMap>().Where(a => a.id == item.id && a.guid_to_string == Guid.Empty).First();
@@ -521,7 +521,7 @@ namespace FreeSql.Tests.SqlServerMapType
         public void GuidNullable()
         {
             //insert
-            var orm = _sqlserverFixture.SqlServer;
+            var orm = g.sqlserver;
             var item = new ToStringMap { };
             Assert.Equal(1, orm.Insert<ToStringMap>().AppendData(item).ExecuteAffrows());
             var find = orm.Select<ToStringMap>().Where(a => a.id == item.id && a.guidnullable_to_string == null).First();

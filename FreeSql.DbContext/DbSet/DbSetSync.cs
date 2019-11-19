@@ -135,50 +135,70 @@ namespace FreeSql
                         AddOrUpdateNavigateList(item, true);
             }
         }
+
         static ConcurrentDictionary<Type, ConcurrentDictionary<string, FieldInfo>> _dicLazyIsSetField = new ConcurrentDictionary<Type, ConcurrentDictionary<string, FieldInfo>>();
+        /// <summary>
+        /// 保存实体的指定 ManyToMany 导航属性
+        /// </summary>
+        /// <param name="item">实体对象</param>
+        /// <param name="propertyName">属性名</param>
+        public void SaveManyToMany(TEntity item, string propertyName)
+        {
+            if (item == null) return;
+            if (_table.Properties.ContainsKey(propertyName) == false) throw new KeyNotFoundException($"{_table.Type.FullName} 不存在属性 {propertyName}");
+            if (_table.ColumnsByCsIgnore.ContainsKey(propertyName)) throw new ArgumentException($"{_table.Type.FullName} 类型已设置属性 {propertyName} 忽略特性");
+            var tref = _table.GetTableRef(propertyName, true);
+            if (tref.RefType != Internal.Model.TableRefType.ManyToMany) throw new ArgumentException($"{_table.Type.FullName} 类型的属性 {propertyName} 不是 ManyToMany 特性");
+            DbContextExecCommand();
+            var oldEnable = _db.Options.EnableAddOrUpdateNavigateList;
+            _db.Options.EnableAddOrUpdateNavigateList = false;
+            AddOrUpdateNavigateList(item, false, propertyName);
+            _db.Options.EnableAddOrUpdateNavigateList = oldEnable;
+        }
         /// <summary>
         /// 联级保存导航集合
         /// </summary>
         /// <param name="item">实体对象</param>
         /// <param name="isAdd">是否为新增的实体对象</param>
-        void AddOrUpdateNavigateList(TEntity item, bool isAdd)
+        /// <param name="propertyName">指定保存的属性</param>
+        void AddOrUpdateNavigateList(TEntity item, bool isAdd, string propertyName = null)
         {
             Type itemType = null;
-            foreach (var prop in _table.Properties)
+            Action<PropertyInfo> action = prop =>
             {
-                if (_table.ColumnsByCsIgnore.ContainsKey(prop.Key)) continue;
-                if (_table.ColumnsByCs.ContainsKey(prop.Key)) continue;
+                if (_table.ColumnsByCsIgnore.ContainsKey(prop.Name)) return;
+                if (_table.ColumnsByCs.ContainsKey(prop.Name)) return;
 
-                var tref = _table.GetTableRef(prop.Key, true);
-                if (tref == null) continue;
+                var tref = _table.GetTableRef(prop.Name, true);
+                if (tref == null) return;
                 switch (tref.RefType)
                 {
                     case Internal.Model.TableRefType.OneToOne:
                     case Internal.Model.TableRefType.ManyToOne:
-                        continue;
+                        return;
                 }
 
                 object propVal = null;
                 if (itemType == null) itemType = item.GetType();
                 if (_table.TypeLazy != null && itemType == _table.TypeLazy)
                 {
-                    var lazyField = _dicLazyIsSetField.GetOrAdd(_table.TypeLazy, tl => new ConcurrentDictionary<string, FieldInfo>()).GetOrAdd(prop.Key, propName =>
+                    var lazyField = _dicLazyIsSetField.GetOrAdd(_table.TypeLazy, tl => new ConcurrentDictionary<string, FieldInfo>()).GetOrAdd(prop.Name, propName =>
                         _table.TypeLazy.GetField($"__lazy__{propName}", BindingFlags.GetField | BindingFlags.NonPublic | BindingFlags.Instance));
                     if (lazyField != null)
                     {
                         var lazyFieldValue = (bool)lazyField.GetValue(item);
-                        if (lazyFieldValue == false) continue;
+                        if (lazyFieldValue == false) return;
                     }
-                    propVal = prop.Value.GetValue(item, null);
+                    propVal = prop.GetValue(item, null);
                 }
                 else
                 {
-                    propVal = prop.Value.GetValue(item, null);
-                    if (propVal == null) continue;
+                    propVal = prop.GetValue(item, null);
+                    if (propVal == null) return;
                 }
 
                 var propValEach = propVal as IEnumerable;
-                if (propValEach == null) continue;
+                if (propValEach == null) return;
                 DbSet<object> refSet = GetDbSetObject(tref.RefEntityType);
                 switch (tref.RefType)
                 {
@@ -230,7 +250,7 @@ namespace FreeSql
                             foreach (var midItem in midList)
                             {
                                 var curContains = new List<int>();
-                                for(var curIdx = 0; curIdx < curList.Count; curIdx ++)
+                                for (var curIdx = 0; curIdx < curList.Count; curIdx++)
                                 {
                                     var isEquals = true;
                                     for (var midcolidx = tref.Columns.Count; midcolidx < tref.MiddleColumns.Count; midcolidx++)
@@ -285,7 +305,13 @@ namespace FreeSql
                         }
                         break;
                 }
-            }
+            };
+
+            if (string.IsNullOrEmpty(propertyName))
+                foreach (var prop in _table.Properties)
+                    action(prop.Value);
+            else if (_table.Properties.TryGetValue(propertyName, out var prop))
+                action(prop);
         }
         #endregion
 

@@ -89,10 +89,6 @@ namespace FreeSql.Internal.CommonProvider
         public IDelete<T1> Where(string sql, object parms = null)
         {
             if (string.IsNullOrEmpty(sql)) return this;
-            var args = new Aop.WhereEventArgs(sql, parms);
-            _orm.Aop.Where?.Invoke(this, new Aop.WhereEventArgs(sql, parms));
-            if (args.IsCancel == true) return this;
-
             if (++_whereTimes > 1) _where.Append(" AND ");
             _where.Append("(").Append(sql).Append(")");
             if (parms != null) _params.AddRange(_commonUtils.GetDbParamtersByObject(sql, parms));
@@ -127,6 +123,7 @@ namespace FreeSql.Internal.CommonProvider
             if (string.IsNullOrEmpty(newname)) return _table.DbName;
             if (_orm.CodeFirst.IsSyncStructureToLower) newname = newname.ToLower();
             if (_orm.CodeFirst.IsSyncStructureToUpper) newname = newname.ToUpper();
+            if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(_table.Type, newname);
             return newname;
         }
         public IDelete<T1> AsTable(Func<string, string> tableRule)

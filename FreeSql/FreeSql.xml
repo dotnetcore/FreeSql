@@ -838,7 +838,12 @@
         </member>
         <member name="M:FreeSql.ISelect0`2.ToList(System.Boolean)">
             <summary>
-            执行SQL查询，返回 T1 实体所有字段的记录，记录不存在时返回 Count 为 0 的列表
+            执行SQL查询，返回 T1 实体所有字段的记录，记录不存在时返回 Count 为 0 的列表<para></para>
+            注意：<para></para>
+            1、ToList(a => a) 可以返回 a 所有实体<para></para>
+            2、ToList(a => new { a }) 这样也可以<para></para>
+            3、ToList((a, b, c) => new { a, b, c }) 这样也可以<para></para>
+            4、abc 怎么来的？请试试 fsql.Select&lt;T1, T2, T3&gt;()
             </summary>
             <param name="includeNestedMembers">false: 返回 2级 LeftJoin/InnerJoin/RightJoin 对象；true: 返回所有 LeftJoin/InnerJoin/RightJoin 的导航数据</param>
             <returns></returns>
@@ -906,6 +911,14 @@
             还可以这样：select.AsTable((a, b) => "(select * from tb_topic where clicks > 10)").Page(1, 10).ToList()
             </summary>
             <param name="tableRule"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.ISelect0`2.AsAlias(System.Func{System.Type,System.String,System.String})">
+            <summary>
+            设置别名规则，可用于拦截表别名，实现类似 sqlserver 的 with(nolock) 需求<para></para>
+            如：select.AsAlias((_, oldAlias) => oldAlias + " with(lock)")
+            </summary>
+            <param name="aliasRule"></param>
             <returns></returns>
         </member>
         <member name="M:FreeSql.ISelect0`2.AsType(System.Type)">
@@ -1477,7 +1490,11 @@
             文档：https://github.com/2881099/FreeSql/wiki/%e8%b4%aa%e5%a9%aa%e5%8a%a0%e8%bd%bd#%E5%AF%BC%E8%88%AA%E5%B1%9E%E6%80%A7-onetomanymanytomany
             </summary>
             <typeparam name="TNavigate"></typeparam>
-            <param name="navigateSelector">选择一个集合的导航属性，也可通过 .Where 设置临时的关系映射，还可以 .Take(5) 每个子集合只取5条</param>
+            <param name="navigateSelector">选择一个集合的导航属性，如： .IncludeMany(a => a.Tags)<para></para>
+            可以 .Where 设置临时的关系映射，如： .IncludeMany(a => a.Tags.Where(tag => tag.TypeId == a.Id))<para></para>
+            可以 .Take(5) 每个子集合只取5条，如： .IncludeMany(a => a.Tags.Take(5))<para></para>
+            可以 .Select 设置只查询部分字段，如： (a => new TNavigate { Title = a.Title }) 
+            </param>
             <param name="then">即能 ThenInclude，还可以二次过滤（这个 EFCore 做不到？）</param>
             <returns></returns>
         </member>
@@ -2114,16 +2131,6 @@
             <param name="parms"></param>
             <returns></returns>
         </member>
-        <member name="P:FreeSql.IAop.ToList">
-            <summary>
-            监控 ToList 返回的的数据，用于拦截重新装饰
-            </summary>
-        </member>
-        <member name="P:FreeSql.IAop.Where">
-            <summary>
-            监视 Where，包括 select/update/delete，可控制使上层不被执行。
-            </summary>
-        </member>
         <member name="P:FreeSql.IAop.ParseExpression">
             <summary>
             可自定义解析表达式
@@ -2162,16 +2169,6 @@
         <member name="P:FreeSql.IAop.AuditValue">
             <summary>
             Insert/Update自动值处理
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.ToListEventArgs.List">
-            <summary>
-            可重新装饰的引用数据
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.WhereEventArgs.IsCancel">
-            <summary>
-            可使上层不被执行这个条件
             </summary>
         </member>
         <member name="P:FreeSql.Aop.ParseExpressionEventArgs.FreeParse">
@@ -2362,7 +2359,15 @@
             <summary>
             将实体类型集合与数据库对比，返回DDL语句
             </summary>
-            <param name="entityTypes"></param>
+            <param name="entityTypes">实体类型</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.ICodeFirst.GetComparisonDDLStatements(System.Type,System.String)">
+            <summary>
+            将实体类型与数据库对比，返回DDL语句（指定表名）
+            </summary>
+            <param name="entityType">实体类型</param>
+            <param name="tableName">指定表名对比</param>
             <returns></returns>
         </member>
         <member name="M:FreeSql.ICodeFirst.SyncStructure``1">
@@ -2377,6 +2382,14 @@
             同步实体类型集合到数据库
             </summary>
             <param name="entityTypes"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.ICodeFirst.SyncStructure(System.Type,System.String)">
+            <summary>
+            同步实体类型到数据库（指定表名）
+            </summary>
+            <param name="entityType">实体类型</param>
+            <param name="tableName">指定表名对比</param>
             <returns></returns>
         </member>
         <member name="M:FreeSql.ICodeFirst.GetDbInfo(System.Type)">
@@ -2648,11 +2661,12 @@
             示例：new List&lt;Song&gt;(new[] { song1, song2, song3 }).IncludeMany(g.sqlite, a => a.Tags);<para></para>
             文档：https://github.com/2881099/FreeSql/wiki/%e8%b4%aa%e5%a9%aa%e5%8a%a0%e8%bd%bd#%E5%AF%BC%E8%88%AA%E5%B1%9E%E6%80%A7-onetomanymanytomany
             </summary>
-            <typeparam name="T1"></typeparam>
             <typeparam name="TNavigate"></typeparam>
-            <param name="list"></param>
-            <param name="orm"></param>
-            <param name="navigateSelector">选择一个集合的导航属性，也可通过 .Where 设置临时的关系映射，还可以 .Take(5) 每个子集合只取5条</param>
+            <param name="navigateSelector">选择一个集合的导航属性，如： .IncludeMany(a => a.Tags)<para></para>
+            可以 .Where 设置临时的关系映射，如： .IncludeMany(a => a.Tags.Where(tag => tag.TypeId == a.Id))<para></para>
+            可以 .Take(5) 每个子集合只取5条，如： .IncludeMany(a => a.Tags.Take(5))<para></para>
+            可以 .Select 设置只查询部分字段，如： (a => new TNavigate { Title = a.Title }) 
+            </param>
             <param name="then">即能 ThenInclude，还可以二次过滤（这个 EFCore 做不到？）</param>
             <returns></returns>
         </member>

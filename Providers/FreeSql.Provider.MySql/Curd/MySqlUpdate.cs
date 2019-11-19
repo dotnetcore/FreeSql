@@ -18,6 +18,13 @@ namespace FreeSql.MySql.Curd
         {
         }
 
+        internal StringBuilder InternalSbSet => _set;
+        internal StringBuilder InternalSbSetIncr => _setIncr;
+        internal Dictionary<string, bool> InternalIgnore => _ignore;
+        internal void InternalResetSource(List<T1> source) => _source = source;
+        internal string InternalWhereCaseSource(string CsName, Func<string, string> thenValue) => WhereCaseSource(CsName, thenValue);
+        internal void InternalToSqlCaseWhenEnd(StringBuilder sb, ColumnInfo col) => ToSqlCaseWhenEnd(sb, col);
+
         public override int ExecuteAffrows() => base.SplitExecuteAffrows(500, 3000);
         public override List<T1> ExecuteUpdated() => base.SplitExecuteUpdated(500, 3000);
 

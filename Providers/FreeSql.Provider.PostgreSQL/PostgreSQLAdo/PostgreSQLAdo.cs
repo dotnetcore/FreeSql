@@ -33,9 +33,9 @@ namespace FreeSql.PostgreSQL
         public override object AddslashesProcessParam(object param, Type mapType)
         {
             if (param == null) return "NULL";
-            if (mapType != null && mapType != param.GetType())
+            if (mapType != null && mapType != param.GetType() && (param is IEnumerable == false || mapType.IsArrayOrList() || param is JToken || param is JObject || param is JArray))
                 param = Utils.GetDataReaderValue(mapType, param);
-            bool isdic = false;
+            bool isdic;
             if (param is bool || param is bool?)
                 return (bool)param ? "'t'" : "'f'";
             else if (param is string || param is char)

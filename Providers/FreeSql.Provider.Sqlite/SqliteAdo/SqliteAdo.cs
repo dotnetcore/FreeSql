@@ -3,7 +3,6 @@ using SafeObjectPool;
 using System;
 using System.Collections;
 using System.Data.Common;
-using System.Data.SQLite;
 using System.Text;
 using System.Threading;
 
@@ -30,7 +29,7 @@ namespace FreeSql.Sqlite
         public override object AddslashesProcessParam(object param, Type mapType)
         {
             if (param == null) return "NULL";
-            if (mapType != null && mapType != param.GetType())
+            if (mapType != null && mapType != param.GetType() && (param is IEnumerable == false || mapType.IsArrayOrList()))
                 param = Utils.GetDataReaderValue(mapType, param);
             if (param is bool || param is bool?)
                 return (bool)param ? 1 : 0;
@@ -56,7 +55,7 @@ namespace FreeSql.Sqlite
 
         protected override DbCommand CreateCommand()
         {
-            return new SQLiteCommand();
+            return AdonetPortable.GetSqliteCommand();
         }
 
         protected override void ReturnConnection(ObjectPool<DbConnection> pool, Object<DbConnection> conn, Exception ex)

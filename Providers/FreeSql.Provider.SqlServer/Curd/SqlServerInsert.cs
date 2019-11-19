@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -21,9 +22,34 @@ namespace FreeSql.SqlServer.Curd
         public override long ExecuteIdentity() => base.SplitExecuteIdentity(1000, 2100);
         public override List<T1> ExecuteInserted() => base.SplitExecuteInserted(1000, 2100);
 
+        protected override int RawExecuteAffrows()
+        {
+            var versionGreaterThan10 = (_commonUtils as SqlServerUtils).ServerVersion > 10;
+            var sql = versionGreaterThan10 ? this.ToSql() : this.ToSqlValuesOrSelectUnionAll(false);
+            var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
+            _orm.Aop.CurdBefore?.Invoke(this, before);
+            var affrows = 0;
+            Exception exception = null;
+            try
+            {
+                affrows = _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, _params);
+            }
+            catch (Exception ex)
+            {
+                exception = ex;
+                throw ex;
+            }
+            finally
+            {
+                var after = new Aop.CurdAfterEventArgs(before, exception, affrows);
+                _orm.Aop.CurdAfter?.Invoke(this, after);
+            }
+            return affrows;
+        }
         protected override long RawExecuteIdentity()
         {
-            var sql = this.ToSql();
+            var versionGreaterThan10 = (_commonUtils as SqlServerUtils).ServerVersion > 10;
+            var sql = versionGreaterThan10 ? this.ToSql() : this.ToSqlValuesOrSelectUnionAll(false);
             if (string.IsNullOrEmpty(sql)) return 0;
 
             sql = string.Concat(sql, "; SELECT SCOPE_IDENTITY();");
@@ -49,7 +75,8 @@ namespace FreeSql.SqlServer.Curd
         }
         protected override List<T1> RawExecuteInserted()
         {
-            var sql = this.ToSql();
+            var versionGreaterThan10 = (_commonUtils as SqlServerUtils).ServerVersion > 10;
+            var sql = versionGreaterThan10 ? this.ToSql(): this.ToSqlValuesOrSelectUnionAll(false);
             if (string.IsNullOrEmpty(sql)) return new List<T1>();
 
             var sb = new StringBuilder();
@@ -62,10 +89,20 @@ namespace FreeSql.SqlServer.Curd
                 ++colidx;
             }
 
-            var validx = sql.IndexOf(") VALUES");
-            if (validx == -1) throw new ArgumentException("找不到 VALUES");
-            sb.Insert(0, sql.Substring(0, validx + 1));
-            sb.Append(sql.Substring(validx + 1));
+            if (versionGreaterThan10)
+            {
+                var validx = sql.IndexOf(") VALUES");
+                if (validx == -1) throw new ArgumentException("找不到 VALUES");
+                sb.Insert(0, sql.Substring(0, validx + 1));
+                sb.Append(sql.Substring(validx + 1));
+            }
+            else
+            {
+                var validx = sql.IndexOf(") SELECT ");
+                if (validx == -1) throw new ArgumentException("找不到 SELECT");
+                sb.Insert(0, sql.Substring(0, validx + 1));
+                sb.Append(sql.Substring(validx + 1));
+            }
 
             sql = sb.ToString();
             var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
@@ -95,9 +132,34 @@ namespace FreeSql.SqlServer.Curd
         public override Task<long> ExecuteIdentityAsync() => base.SplitExecuteIdentityAsync(1000, 2100);
         public override Task<List<T1>> ExecuteInsertedAsync() => base.SplitExecuteInsertedAsync(1000, 2100);
 
+        async protected override Task<int> RawExecuteAffrowsAsync()
+        {
+            var versionGreaterThan10 = (_commonUtils as SqlServerUtils).ServerVersion > 10;
+            var sql = versionGreaterThan10 ? this.ToSql() : this.ToSqlValuesOrSelectUnionAll(false);
+            var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
+            _orm.Aop.CurdBefore?.Invoke(this, before);
+            var affrows = 0;
+            Exception exception = null;
+            try
+            {
+                affrows = await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, _params);
+            }
+            catch (Exception ex)
+            {
+                exception = ex;
+                throw ex;
+            }
+            finally
+            {
+                var after = new Aop.CurdAfterEventArgs(before, exception, affrows);
+                _orm.Aop.CurdAfter?.Invoke(this, after);
+            }
+            return affrows;
+        }
         async protected override Task<long> RawExecuteIdentityAsync()
         {
-            var sql = this.ToSql();
+            var versionGreaterThan10 = (_commonUtils as SqlServerUtils).ServerVersion > 10;
+            var sql = versionGreaterThan10 ? this.ToSql() : this.ToSqlValuesOrSelectUnionAll(false);
             if (string.IsNullOrEmpty(sql)) return 0;
 
             sql = string.Concat(sql, "; SELECT SCOPE_IDENTITY();");
@@ -123,7 +185,8 @@ namespace FreeSql.SqlServer.Curd
         }
         async protected override Task<List<T1>> RawExecuteInsertedAsync()
         {
-            var sql = this.ToSql();
+            var versionGreaterThan10 = (_commonUtils as SqlServerUtils).ServerVersion > 10;
+            var sql = versionGreaterThan10 ? this.ToSql() : this.ToSqlValuesOrSelectUnionAll(false);
             if (string.IsNullOrEmpty(sql)) return new List<T1>();
 
             var sb = new StringBuilder();
@@ -136,10 +199,20 @@ namespace FreeSql.SqlServer.Curd
                 ++colidx;
             }
 
-            var validx = sql.IndexOf(") VALUES");
-            if (validx == -1) throw new ArgumentException("找不到 VALUES");
-            sb.Insert(0, sql.Substring(0, validx + 1));
-            sb.Append(sql.Substring(validx + 1));
+            if (versionGreaterThan10)
+            {
+                var validx = sql.IndexOf(") VALUES");
+                if (validx == -1) throw new ArgumentException("找不到 VALUES");
+                sb.Insert(0, sql.Substring(0, validx + 1));
+                sb.Append(sql.Substring(validx + 1));
+            }
+            else
+            {
+                var validx = sql.IndexOf(") SELECT ");
+                if (validx == -1) throw new ArgumentException("找不到 SELECT");
+                sb.Insert(0, sql.Substring(0, validx + 1));
+                sb.Append(sql.Substring(validx + 1));
+            }
 
             sql = sb.ToString();
             var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);

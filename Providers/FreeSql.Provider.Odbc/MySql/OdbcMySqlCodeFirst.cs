@@ -5,6 +5,7 @@ using System.Data;
 using System.Data.Odbc;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace FreeSql.Odbc.MySql
 {
@@ -70,7 +71,7 @@ namespace FreeSql.Odbc.MySql
             return null;
         }
 
-        public override string GetComparisonDDLStatements(params Type[] entityTypes)
+        protected override string GetComparisonDDLStatements(params (Type entityType, string tableName)[] objects)
         {
             var conn = _orm.Ado.MasterPool.Get(TimeSpan.FromSeconds(5));
             var database = conn.Value.Database;
@@ -94,17 +95,27 @@ namespace FreeSql.Odbc.MySql
             var sb = new StringBuilder();
             try
             {
-                foreach (var entityType in entityTypes)
+                foreach (var obj in objects)
                 {
                     if (sb.Length > 0) sb.Append("\r\n");
-                    var tb = _commonUtils.GetTableByEntity(entityType);
-                    if (tb == null) throw new Exception($"类型 {entityType.FullName} 不可迁移");
-                    if (tb.Columns.Any() == false) throw new Exception($"类型 {entityType.FullName} 不可迁移，可迁移属性0个");
+                    var tb = _commonUtils.GetTableByEntity(obj.entityType);
+                    if (tb == null) throw new Exception($"类型 {obj.entityType.FullName} 不可迁移");
+                    if (tb.Columns.Any() == false) throw new Exception($"类型 {obj.entityType.FullName} 不可迁移，可迁移属性0个");
                     var tbname = tb.DbName.Split(new[] { '.' }, 2);
                     if (tbname?.Length == 1) tbname = new[] { database, tbname[0] };
 
                     var tboldname = tb.DbOldName?.Split(new[] { '.' }, 2); //旧表名
                     if (tboldname?.Length == 1) tboldname = new[] { database, tboldname[0] };
+                    if (string.IsNullOrEmpty(obj.tableName) == false)
+                    {
+                        var tbtmpname = obj.tableName.Split(new[] { '.' }, 2);
+                        if (tbtmpname?.Length == 1) tbtmpname = new[] { database, tbtmpname[0] };
+                        if (tbname[0] != tbtmpname[0] || tbname[1] != tbtmpname[1])
+                        {
+                            tbname = tbtmpname;
+                            tboldname = null;
+                        }
+                    }
 
                     if (string.Compare(tbname[0], database, true) != 0 && ExecuteScalar(database, _commonUtils.FormatSql(" select 1 from information_schema.schemata where schema_name={0}", tbname[0])) == null) //创建数据库
                         sb.Append($"CREATE DATABASE IF NOT EXISTS ").Append(_commonUtils.QuoteSqlName(tbname[0])).Append(" default charset utf8 COLLATE utf8_general_ci;\r\n");
@@ -205,8 +216,12 @@ where a.table_schema in ({0}) and a.table_name in ({1})", tboldname ?? tbname);
                                 string.IsNullOrEmpty(tbcol.Attribute.OldName) == false && tbstruct.TryGetValue(tbcol.Attribute.OldName, out tbstructcol))
                             {
                                 var isCommentChanged = tbstructcol.comment != (tbcol.Comment ?? "");
+                                var isDbTypeChanged = tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.CurrentCultureIgnoreCase) == false;
+                                if (tbstructcol.sqlType == "datetime(0)" && Regex.IsMatch(tbcol.Attribute.DbType, @"datetime\s+\(", RegexOptions.IgnoreCase) == false)
+                                    isDbTypeChanged = tbcol.Attribute.DbType.StartsWith("datetime", StringComparison.CurrentCultureIgnoreCase) == false;
+
                                 if ((tbcol.Attribute.DbType.IndexOf(" unsigned", StringComparison.CurrentCultureIgnoreCase) != -1) != tbstructcol.is_unsigned ||
-                                tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.CurrentCultureIgnoreCase) == false ||
+                                isDbTypeChanged ||
                                 tbcol.Attribute.IsNullable != tbstructcol.is_nullable ||
                                 tbcol.Attribute.IsIdentity != tbstructcol.is_identity ||
                                 isCommentChanged)

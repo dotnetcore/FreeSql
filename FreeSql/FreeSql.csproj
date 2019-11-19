@@ -2,10 +2,10 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net45;net40</TargetFrameworks>
-		<Version>0.11.4</Version>
+		<Version>0.11.21</Version>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>YeXiangQin</Authors>
-		<Description>FreeSql is the most convenient ORM in dotnet. It supports Mysql, Postgresql, SqlServer, Oracle, Sqlite, And Odbc.</Description>
+		<Description>FreeSql is the most convenient ORM in .NetCore, .NetFramework, And Xamarin. It supports Mysql, Postgresql, SqlServer, Oracle, Sqlite, And Odbc.</Description>
 		<PackageProjectUrl>https://github.com/2881099/FreeSql</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/2881099/FreeSql</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
@@ -28,7 +28,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="SafeObjectPool" Version="2.1.2" />
+	  <PackageReference Include="SafeObjectPool" Version="2.1.6" />
 	  <PackageReference Include="System.ValueTuple" Version="4.5.0" />
 	</ItemGroup>
 

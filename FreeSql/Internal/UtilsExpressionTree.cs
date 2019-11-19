@@ -51,7 +51,7 @@ namespace FreeSql.Internal
             var tbattr = common.GetEntityTableAttribute(entity);
             trytb = new TableInfo();
             trytb.Type = entity;
-            trytb.Properties = entity.GetProperties().ToDictionary(a => a.Name, a => a, StringComparer.CurrentCultureIgnoreCase);
+            trytb.Properties = entity.GetPropertiesDictIgnoreCase();
             trytb.CsName = entity.Name;
             trytb.DbName = (tbattr?.Name ?? entity.Name);
             trytb.DbOldName = tbattr?.OldName;
@@ -72,7 +72,7 @@ namespace FreeSql.Internal
             var columnsList = new List<ColumnInfo>();
             foreach (var p in trytb.Properties.Values)
             {
-                var setMethod = trytb.Type.GetMethod($"set_{p.Name}");
+                var setMethod = p.GetSetMethod(); //trytb.Type.GetMethod($"set_{p.Name}");
                 var colattr = common.GetEntityColumnAttribute(entity, p);
                 var tp = common.CodeFirst.GetDbInfo(colattr?.MapType ?? p.PropertyType);
                 if (setMethod == null || (tp == null && p.PropertyType.IsValueType)) // 属性没有 set自动忽略
@@ -84,7 +84,7 @@ namespace FreeSql.Internal
                 {
                     if (common.CodeFirst.IsLazyLoading)
                     {
-                        var getIsVirtual = trytb.Type.GetMethod($"get_{p.Name}")?.IsVirtual;
+                        var getIsVirtual = p.GetGetMethod()?.IsVirtual;// trytb.Type.GetMethod($"get_{p.Name}")?.IsVirtual;
                         var setIsVirtual = setMethod?.IsVirtual;
                         if (getIsVirtual == true || setIsVirtual == true)
                             propsLazy.Add((p, getIsVirtual == true, setIsVirtual == true));
@@ -391,7 +391,7 @@ namespace FreeSql.Internal
                 {
                     if (midType != null)
                     {
-                        var midTypeProps = midType.GetProperties();
+                        var midTypeProps = midType.GetPropertiesDictIgnoreCase().Values;
                         var midTypePropsTrytb = midTypeProps.Where(a => a.PropertyType == trytb.Type).Count();
                         var midTypePropsTbref = midTypeProps.Where(a => a.PropertyType == tbref.Type).Count();
                         if (midTypePropsTrytb != 1 || midTypePropsTbref != 1) midType = null;
@@ -547,7 +547,9 @@ namespace FreeSql.Internal
                                 nvref.MiddleColumns.AddRange(trytbTf.Columns);
 
                                 if (tbmid.Primarys.Any() == false)
-                                    trytbTf.Columns.Select(c => tbmid.ColumnsByCs[c.CsName].Attribute.IsPrimary = true);
+                                    foreach (var c in trytbTf.Columns)
+                                        tbmid.ColumnsByCs[c.CsName].Attribute.IsPrimary = true;
+
                                 if (isLazy)
                                 {
                                     for (var a = 0; a < trytbTf.RefColumns.Count; a++)
@@ -592,7 +594,8 @@ namespace FreeSql.Internal
                                     nvref.MiddleColumns.AddRange(tbrefTf.Columns);
 
                                     if (tbmid.Primarys.Any() == false)
-                                        tbrefTf.Columns.Select(c => tbmid.ColumnsByCs[c.CsName].Attribute.IsPrimary = true);
+                                        foreach (var c in tbrefTf.Columns)
+                                            tbmid.ColumnsByCs[c.CsName].Attribute.IsPrimary = true;
 
                                     if (isLazy)
                                     {
@@ -1024,13 +1027,28 @@ namespace FreeSql.Internal
             var type = obj.GetType();
             if (type == ttype) return new[] { (T)Convert.ChangeType(obj, type) };
             var ret = new List<T>();
-            var ps = type.GetProperties();
-            foreach (var p in ps)
+            var dic = obj as IDictionary;
+            if (dic != null)
             {
-                if (string.IsNullOrEmpty(paramPrefix) == false && sql.IndexOf($"{paramPrefix}{p.Name}", StringComparison.CurrentCultureIgnoreCase) == -1) continue;
-                var pvalue = p.GetValue(obj, null);
-                if (p.PropertyType == ttype) ret.Add((T)Convert.ChangeType(pvalue, ttype));
-                else ret.Add(constructorParamter(p.Name, p.PropertyType, pvalue));
+                foreach (var key in dic.Keys)
+                {
+                    if (string.IsNullOrEmpty(paramPrefix) == false && sql.IndexOf($"{paramPrefix}{key}", StringComparison.CurrentCultureIgnoreCase) == -1) continue;
+                    var val = dic[key];
+                    var valType = val == null ? typeof(string) : val.GetType();
+                    if (valType == ttype) ret.Add((T)Convert.ChangeType(val, ttype));
+                    else ret.Add(constructorParamter(key.ToString(), valType, val));
+                }
+            }
+            else
+            {
+                var ps = type.GetPropertiesDictIgnoreCase().Values;
+                foreach (var p in ps)
+                {
+                    if (string.IsNullOrEmpty(paramPrefix) == false && sql.IndexOf($"{paramPrefix}{p.Name}", StringComparison.CurrentCultureIgnoreCase) == -1) continue;
+                    var pvalue = p.GetValue(obj, null);
+                    if (p.PropertyType == ttype) ret.Add((T)Convert.ChangeType(pvalue, ttype));
+                    else ret.Add(constructorParamter(p.Name, p.PropertyType, pvalue));
+                }
             }
             return ret.ToArray();
         }
@@ -1346,7 +1364,7 @@ namespace FreeSql.Internal
                         Expression.Assign(readpknullExp, Expression.Constant(false))
                     });
 
-                        var props = type.GetProperties();//.ToDictionary(a => a.Name, a => a, StringComparer.CurrentCultureIgnoreCase);
+                        var props = type.GetPropertiesDictIgnoreCase().Values;
                         var propIndex = 0;
                         foreach (var prop in props)
                         {
