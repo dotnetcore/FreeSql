@@ -18,6 +18,7 @@ public class g
 
     static Lazy<IFreeSql> sqlserverLazy = new Lazy<IFreeSql>(() => new FreeSql.FreeSqlBuilder()
         .UseConnectionString(FreeSql.DataType.OdbcSqlServer, "Driver={SQL Server};Server=.;Persist Security Info=False;Trusted_Connection=Yes;Integrated Security=True;DATABASE=freesqlTest_odbc;Pooling=true;Max pool size=3")
+        //.UseConnectionString(FreeSql.DataType.OdbcSqlServer, "Driver={SQL Server};Server=192.168.164.129;Persist Security Info=False;Trusted_Connection=Yes;UID=sa;PWD=123456;DATABASE=ds_shop;")
         .UseAutoSyncStructure(true)
         .UseMonitorCommand(
             cmd => Trace.WriteLine(cmd.CommandText), //监听SQL命令对象，在执行前

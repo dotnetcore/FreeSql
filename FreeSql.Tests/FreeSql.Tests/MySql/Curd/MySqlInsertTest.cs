@@ -130,6 +130,29 @@ namespace FreeSql.Tests.MySql
         }
 
         [Fact]
+        public void MySqlIgnoreInto()
+        {
+            var items = new List<Topic>();
+            for (var a = 0; a < 10; a++) items.Add(new Topic { Id = a + 1, Title = $"newtitle{a}", Clicks = a * 100, CreateTime = DateTime.Now });
+
+            Assert.Equal(1, insert.MySqlIgnoreInto().AppendData(items.First()).ExecuteAffrows());
+            Assert.Equal(10, insert.MySqlIgnoreInto().AppendData(items).ExecuteAffrows());
+
+            Assert.Equal(1, g.mysql.Insert<TestEnumInsertTb>().MySqlIgnoreInto().AppendData(new TestEnumInsertTb { type = TestEnumInserTbType.sum211 }).ExecuteAffrows());
+            Assert.Equal(1, g.mysql.Insert<TestEnumInsertTb>().MySqlIgnoreInto().AppendData(new TestEnumInsertTb { type = TestEnumInserTbType.sum211 }).NoneParameter().ExecuteAffrows());
+
+            items = new List<Topic>();
+            for (var a = 0; a < 10; a++) items.Add(new Topic { Id = a + 1, Title = $"newtitle{a}", Clicks = a * 100 });
+
+            Assert.NotEqual(0, insert.MySqlIgnoreInto().AppendData(items.First()).ExecuteIdentity());
+
+            var id = g.mysql.Insert<TestEnumInsertTb>().MySqlIgnoreInto().AppendData(new TestEnumInsertTb { type = TestEnumInserTbType.sum211 }).ExecuteIdentity();
+            Assert.Equal(TestEnumInserTbType.sum211, g.mysql.Select<TestEnumInsertTb>().Where(a => a.id == id).First()?.type);
+            id = g.mysql.Insert<TestEnumInsertTb>().MySqlIgnoreInto().AppendData(new TestEnumInsertTb { type = TestEnumInserTbType.sum211 }).NoneParameter().ExecuteIdentity();
+            Assert.Equal(TestEnumInserTbType.sum211, g.mysql.Select<TestEnumInsertTb>().Where(a => a.id == id).First()?.type);
+        }
+
+        [Fact]
         public void AsTable()
         {
             var items = new List<Topic>();

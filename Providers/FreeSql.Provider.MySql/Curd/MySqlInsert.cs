@@ -17,6 +17,7 @@ namespace FreeSql.MySql.Curd
         {
         }
 
+        internal bool InternalIsIgnoreInto = false;
         internal IFreeSql InternalOrm => _orm;
         internal TableInfo InternalTable => _table;
         internal DbParameter[] InternalParams => _params;
@@ -32,6 +33,13 @@ namespace FreeSql.MySql.Curd
         public override long ExecuteIdentity() => base.SplitExecuteIdentity(5000, 3000);
         public override List<T1> ExecuteInserted() => base.SplitExecuteInserted(5000, 3000);
 
+
+        public override string ToSql()
+        {
+            if (InternalIsIgnoreInto == false) return base.ToSqlValuesOrSelectUnionAll();
+            var sql = base.ToSqlValuesOrSelectUnionAll();
+            return $"INSERT IGNORE INTO {sql.Substring(12)}";
+        }
 
         protected override long RawExecuteIdentity()
         {

@@ -35,6 +35,7 @@ public class g
 
     static Lazy<IFreeSql> sqlserverLazy = new Lazy<IFreeSql>(() => new FreeSql.FreeSqlBuilder()
         .UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3")
+        //.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=192.168.164.129;uid=sa;pwd=123456;Initial Catalog=ds_shop;Pooling=true;Max Pool Size=3")
         .UseAutoSyncStructure(true)
         .UseMonitorCommand(
             cmd => Trace.WriteLine(cmd.CommandText), //监听SQL命令对象，在执行前
