@@ -44,6 +44,16 @@ public static partial class FreeSqlGlobalExtensions
     public static bool IsArrayOrList(this Type that) => that == null ? false : (that.IsArray || typeof(IList).IsAssignableFrom(that));
     public static Type NullableTypeOrThis(this Type that) => that?.IsNullableType() == true ? that.GetGenericArguments().First() : that;
     internal static string NotNullAndConcat(this string that, params object[] args) => string.IsNullOrEmpty(that) ? null : string.Concat(new object[] { that }.Concat(args));
+    static ConcurrentDictionary<Type, ParameterInfo[]> _dicGetDefaultValueFirstConstructorsParameters = new ConcurrentDictionary<Type, ParameterInfo[]>();
+    public static object CreateInstanceGetDefaultValue(this Type that)
+    {
+        if (that == null) return null;
+        if (that == typeof(string)) return default(string);
+        if (that.IsArray) return Array.CreateInstance(that, 0);
+        var ctorParms = _dicGetDefaultValueFirstConstructorsParameters.GetOrAdd(that, tp => tp.GetConstructors().FirstOrDefault()?.GetParameters());
+        if (ctorParms == null || ctorParms.Any() == false) return Activator.CreateInstance(that, null);
+        return Activator.CreateInstance(that, ctorParms.Select(a => Activator.CreateInstance(a.ParameterType, null)).ToArray());
+    }
 
     static ConcurrentDictionary<Type, Dictionary<string, PropertyInfo>> _dicGetPropertiesDictIgnoreCase = new ConcurrentDictionary<Type, Dictionary<string, PropertyInfo>>();
     public static Dictionary<string, PropertyInfo> GetPropertiesDictIgnoreCase(this Type that) => that == null ? null : _dicGetPropertiesDictIgnoreCase.GetOrAdd(that, tp =>

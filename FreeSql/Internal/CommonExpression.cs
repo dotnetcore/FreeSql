@@ -9,6 +9,8 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using FreeSql.DataAnnotations;
+using System.Threading;
 
 namespace FreeSql.Internal
 {
@@ -496,6 +498,8 @@ namespace FreeSql.Internal
             tsc.mapType = null;
             return $"{left} {oper} {right}";
         }
+        static ConcurrentDictionary<Type, bool> _dicTypeExistsExpressionCallAttribute = new ConcurrentDictionary<Type, bool>();
+        static ConcurrentDictionary<Type, FieldInfo[]> _dicTypeExpressionCallClassContextFields = new ConcurrentDictionary<Type, FieldInfo[]>();
         public string ExpressionLambdaToSql(Expression exp, ExpTSC tsc)
         {
             if (exp == null) return "";
@@ -535,6 +539,38 @@ namespace FreeSql.Internal
                 case ExpressionType.Call:
                     tsc.mapType = null;
                     var exp3 = exp as MethodCallExpression;
+                    if (exp3.Object == null && _dicTypeExistsExpressionCallAttribute.GetOrAdd(exp3.Method.DeclaringType, dttp => dttp.GetCustomAttributes(typeof(ExpressionCallAttribute), true).Any()))
+                    {
+                        var ecc = new ExpressionCallContext { DataType = _ado.DataType };
+                        var exp3MethodParams = exp3.Method.GetParameters();
+                        for (var a = 0; a < exp3.Arguments.Count; a++)
+                            if (exp3.Arguments[a].Type != typeof(ExpressionCallContext))
+                                ecc.Values.Add(exp3MethodParams[a].Name, ExpressionLambdaToSql(exp3.Arguments[a], tsc));
+
+                        var exp3InvokeParams = new object[exp3.Arguments.Count];
+                        for (var a = 0; a < exp3.Arguments.Count; a++)
+                        {
+                            if (exp3.Arguments[a].Type != typeof(ExpressionCallContext))
+                                exp3InvokeParams[a] = exp3.Arguments[a].Type.CreateInstanceGetDefaultValue();
+                            else
+                                exp3InvokeParams[a] = ecc;
+                        }
+                        var eccFields = _dicTypeExpressionCallClassContextFields.GetOrAdd(exp3.Method.DeclaringType, dttp => 
+                            dttp.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.GetField | BindingFlags.Static).Where(a => a.FieldType == typeof(ThreadLocal<ExpressionCallContext>)).ToArray());
+                        if (eccFields.Any() == false)
+                            throw new Exception($"自定义表达式解析错误：类型 {exp3.Method.DeclaringType} 需要定义 static ThreadLocal<ExpressionCallContext> 字段、字段、字段（重要三次提醒）");
+                        foreach (var eccField in eccFields)
+                            typeof(ThreadLocal<ExpressionCallContext>).GetProperty("Value").SetValue(eccField.GetValue(null), ecc, null);
+                        try
+                        {
+                            return string.Concat(exp3.Method.Invoke(null, exp3InvokeParams));
+                        }
+                        finally
+                        {
+                            foreach (var eccField in eccFields)
+                                typeof(ThreadLocal<ExpressionCallContext>).GetProperty("Value").SetValue(eccField.GetValue(null), null, null);
+                        }
+                    }
                     var callType = exp3.Object?.Type ?? exp3.Method.DeclaringType;
                     string other3Exp = null;
                     switch (callType.FullName)

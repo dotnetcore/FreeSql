@@ -170,10 +170,7 @@ namespace FreeSql.Internal
                 if (colattr.IsNullable == false && colattr.DbDefautValue == null)
                 {
                     var citype = colattr.MapType.IsNullableType() ? colattr.MapType.GetGenericArguments().FirstOrDefault() : colattr.MapType;
-                    if (citype.IsArray)
-                        colattr.DbDefautValue = Array.CreateInstance(citype, 0);
-                    else
-                        colattr.DbDefautValue = Activator.CreateInstance(citype);
+                    colattr.DbDefautValue = citype.CreateInstanceGetDefaultValue();
                 }
 
                 trytb.Columns.Add(colattr.Name, col);

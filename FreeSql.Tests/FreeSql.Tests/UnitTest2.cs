@@ -10,6 +10,7 @@ using Npgsql.LegacyPostgis;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using System.ComponentModel.DataAnnotations;
+using System.Threading;
 
 namespace FreeSql.Tests
 {
@@ -167,6 +168,34 @@ namespace FreeSql.Tests
         [Fact]
         public void Test02()
         {
+            g.mysql.Aop.ParseExpression = (s, e) =>
+            {
+                if (e.Expression.NodeType == ExpressionType.Call)
+                {
+                    var callExp = e.Expression as MethodCallExpression;
+                    if (callExp.Object?.Type == typeof(DateTime) &&
+                        callExp.Method.Name == "ToString" &&
+                        callExp.Arguments.Count == 1 &&
+                        callExp.Arguments[0].Type == typeof(string) &&
+                        callExp.Arguments[0].NodeType == ExpressionType.Constant)
+                    {
+                        var format = (callExp.Arguments[0] as ConstantExpression)?.Value?.ToString();
+
+                        if (string.IsNullOrEmpty(format) == false)
+                        {
+                            var tmp = e.FreeParse(callExp.Object);
+
+                            switch (format)
+                            {
+                                case "yyyy-MM-dd HH:mm":
+                                    tmp = $"date_format({tmp}, '%Y-%m-%d %H:%i')";
+                                    break;
+                            }
+                            e.Result = tmp;
+                        }
+                    }
+                }
+            };
 
 
             var dbs = g.sqlserver.DbFirst.GetDatabases();
@@ -233,6 +262,21 @@ namespace FreeSql.Tests
                 .IncludeMany(m => m.Permissions.Where(p => p.SysModuleId == m.Id),
                     then => then.LeftJoin(p => p.Button.Id == p.SysModuleButtonId))
                 .ToList();
+
+
+            var sql = g.sqlite.Select<SysModule>()
+                .ToSql(a => a.CreateTime.FormatDateTime("yyyy-MM-dd"));
+        }
+    }
+
+    [ExpressionCall]
+    public static class DbFunc
+    {
+        static ThreadLocal<ExpressionCallContext> context = new ThreadLocal<ExpressionCallContext>();
+
+        public static string FormatDateTime(this DateTime that, string arg1)
+        {
+            return $"date_format({context.Value.Values["arg1"]})";
         }
     }
 }
