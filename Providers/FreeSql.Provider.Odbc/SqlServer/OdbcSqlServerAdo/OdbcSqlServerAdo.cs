@@ -62,13 +62,9 @@ namespace FreeSql.Odbc.SqlServer
             }
             else if (param is TimeSpan || param is TimeSpan?)
                 return ((TimeSpan)param).TotalSeconds;
-            else if (param is IEnumerable)
-            {
-                var sb = new StringBuilder();
-                var ie = param as IEnumerable;
-                foreach (var z in ie) sb.Append(",").Append(AddslashesProcessParam(z, mapType, mapColumn));
-                return sb.Length == 0 ? "(NULL)" : sb.Remove(0, 1).Insert(0, "(").Append(")").ToString();
-            }
+            else if (param is IEnumerable) 
+                return AddslashesIEnumerable(param, mapType, mapColumn);
+
             return string.Concat("'", param.ToString().Replace("'", "''"), "'");
         }
 

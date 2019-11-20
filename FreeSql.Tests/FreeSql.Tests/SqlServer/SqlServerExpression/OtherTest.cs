@@ -106,6 +106,11 @@ namespace FreeSql.Tests.SqlServerExpression
             var sql112222 = select.Where(a => inarray.Contains(a.testFieldInt) == false).ToList();
             var sql113333 = select.Where(a => !inarray.Contains(a.testFieldInt)).ToList();
 
+            var inarray2n = Enumerable.Range(1, 3333).ToArray();
+            var sql1111111 = select.Where(a => inarray2n.Contains(a.testFieldInt)).ToList();
+            var sql1122222 = select.Where(a => inarray2n.Contains(a.testFieldInt) == false).ToList();
+            var sql1133333 = select.Where(a => !inarray2n.Contains(a.testFieldInt)).ToList();
+
             //nvarchar
             IEnumerable<string> stringlinqlist = new List<string>(new[] { "a1", "a2", "a3" });
             var ntestlinq = select.Where(a => stringlinqlist.Contains(a.testFieldString)).ToList();
@@ -134,6 +139,11 @@ namespace FreeSql.Tests.SqlServerExpression
             var nsql112222 = select.Where(a => ninarray2.Contains(a.testFieldString) == false).ToList();
             var nsql113333 = select.Where(a => !ninarray2.Contains(a.testFieldString)).ToList();
 
+            var ninarray2n = Enumerable.Range(1, 3333).Select(a => "testnvarchar" + a).ToArray();
+            var nsql1111111 = select.Where(a => ninarray2n.Contains(a.testFieldString)).ToList();
+            var nsql1122222 = select.Where(a => ninarray2n.Contains(a.testFieldString) == false).ToList();
+            var nsql1133333 = select.Where(a => !ninarray2n.Contains(a.testFieldString)).ToList();
+
             //varchar
             IEnumerable<string> vstringlinqlist = new List<string>(new[] { "a1", "a2", "a3" });
             var vtestlinq = select.Where(a => vstringlinqlist.Contains(a.testFieldStringVarchar)).ToList();
@@ -161,6 +171,11 @@ namespace FreeSql.Tests.SqlServerExpression
             var vsql111111 = select.Where(a => ninarray2.Contains(a.testFieldStringVarchar)).ToList();
             var vsql112222 = select.Where(a => ninarray2.Contains(a.testFieldStringVarchar) == false).ToList();
             var vsql113333 = select.Where(a => !ninarray2.Contains(a.testFieldStringVarchar)).ToList();
+
+            var vinarray2n = Enumerable.Range(1, 3333).Select(a => "testvarchar" + a).ToArray();
+            var vsql1111111 = select.Where(a => vinarray2n.Contains(a.testFieldStringVarchar)).ToList();
+            var vsql1122222 = select.Where(a => vinarray2n.Contains(a.testFieldStringVarchar) == false).ToList();
+            var vsql1133333 = select.Where(a => !vinarray2n.Contains(a.testFieldStringVarchar)).ToList();
         }
 
         [Table(Name = "tb_alltypeOther")]

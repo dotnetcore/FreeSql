@@ -106,6 +106,11 @@ namespace FreeSql.Tests.MySqlConnectorExpression
             var sql111111 = select.Where(a => inarray.Contains(a.testFieldInt)).ToList();
             var sql112222 = select.Where(a => inarray.Contains(a.testFieldInt) == false).ToList();
             var sql113333 = select.Where(a => !inarray.Contains(a.testFieldInt)).ToList();
+
+            var inarray2n = Enumerable.Range(1, 3333).ToArray();
+            var sql1111111 = select.Where(a => inarray2n.Contains(a.testFieldInt)).ToList();
+            var sql1122222 = select.Where(a => inarray2n.Contains(a.testFieldInt) == false).ToList();
+            var sql1133333 = select.Where(a => !inarray2n.Contains(a.testFieldInt)).ToList();
         }
 
         [Table(Name = "tb_alltype")]

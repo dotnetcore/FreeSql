@@ -113,8 +113,8 @@ namespace FreeSql.Odbc.SqlServer
                         switch (callExp.Method.Name)
                         {
                             case "Contains":
-                                //判断 in
-                                return $"({args1}) in {left}";
+                                //判断 in //在各大 Provider AdoProvider 中已约定，500元素分割, 3空格\r\n4空格
+                                return $"(({args1}) in {left.Replace(",   \r\n    \r\n", $") \r\n OR ({args1}) in (")})";
                         }
                     }
                     break;
