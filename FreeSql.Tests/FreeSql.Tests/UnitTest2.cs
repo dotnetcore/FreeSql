@@ -165,9 +165,27 @@ namespace FreeSql.Tests
             public long? CreateUserId { get; set; }
         }
 
+        public class TestMySqlStringIsNullable
+        {
+            public Guid id { get; set; }
+            public string varchar { get; set; }
+            [Column(IsNullable = true)]
+            public string varchar_null { get; set; }
+            [Column(IsNullable = false)]
+            public string varchar_notnull { get; set; }
+        }
+
         [Fact]
         public void Test02()
         {
+            g.mysql.Select<TestMySqlStringIsNullable>();
+
+            var slsksd = g.mysql.Update<UserLike>().SetSource(new UserLike { Id = Guid.NewGuid(), CreateUserId = 1000, SubjectId = Guid.NewGuid() })
+                .UpdateColumns(a => new
+                {
+                    a.SubjectId
+                }).NoneParameter().ToSql();
+
             g.mysql.Aop.ParseExpression = (s, e) =>
             {
                 if (e.Expression.NodeType == ExpressionType.Call)
