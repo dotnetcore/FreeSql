@@ -64,9 +64,9 @@ namespace FreeSql
             return entity;
         }
 
-        async public Task SaveManyToManyAsync(TEntity entity, string propertyName)
+        async public Task SaveManyAsync(TEntity entity, string propertyName)
         {
-            await _dbset.SaveManyToManyAsync(entity, propertyName);
+            await _dbset.SaveManyAsync(entity, propertyName);
             await _db.SaveChangesAsync();
         }
     }

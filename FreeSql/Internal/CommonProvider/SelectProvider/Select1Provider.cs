@@ -319,7 +319,9 @@ namespace FreeSql.Internal.CommonProvider
             _tables[0].Parameter = exp.Parameters[0];
             return this.InternalWhere(exp?.Body);
         }
-        public ISelect<T1> WhereDynamic(object dywhere) => this.Where(_commonUtils.WhereObject(_tables.First().Table, $"{_tables.First().Alias}.", dywhere));
+        public ISelect<T1> WhereDynamic(object dywhere, bool not = false) => not == false ?
+            this.Where(_commonUtils.WhereObject(_tables.First().Table, $"{_tables.First().Alias}.", dywhere)) :
+            this.Where($"not({_commonUtils.WhereObject(_tables.First().Table, $"{_tables.First().Alias}.", dywhere)})");
 
         public ISelect<T1> WhereCascade(Expression<Func<T1, bool>> exp)
         {

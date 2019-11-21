@@ -6,7 +6,7 @@
 
 ### v0.6.5
 
-- 修复 Repository 联级保存的 bug；
+- 修复 Repository 级联保存的 bug；
 - 添加工作单元开启方法；
 - 适配 .net framework 4.5、netstandard 2.0；
 
@@ -192,7 +192,7 @@ fsql.GetGuidRepository<User>().Select.FromRepository(logRepository)
 
 - 修复 AddOrUpdate/InsertOrUpdate 当主键无值时，仍然查询了一次数据库；
 - 增加 查询数据时 TrackToList 对导航集合的状态跟踪；
-- 完善 AddOrUpdateNavigateList 联级保存，忽略标记 IsIgnore 的集合属性；
+- 完善 AddOrUpdateNavigateList 级联保存，忽略标记 IsIgnore 的集合属性；
 - 完成 IFreeSql.Include、IncludeMany 功能；
 
 ### v0.5.12

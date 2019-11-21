@@ -98,7 +98,7 @@ namespace FreeSql.Tests
             var sql = g.mysql.Select<testenumWhere>().Where(a => a.type == testenumWhereType.Blaaa).ToSql();
             var tolist = g.mysql.Select<testenumWhere>().Where(a => a.type == testenumWhereType.Blaaa).ToList();
 
-            //支持 1对多 联级保存
+            //支持 1对多 级联保存
 
             using (var ctx = new FreeContext(g.sqlite))
             {
@@ -127,7 +127,7 @@ namespace FreeSql.Tests
         [Fact]
         public void Update()
         {
-            //查询 1对多，再联级保存
+            //查询 1对多，再级联保存
 
             using (var ctx = new FreeContext(g.sqlite))
             {
