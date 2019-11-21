@@ -172,8 +172,7 @@ namespace FreeSql
                     DbContextExecCommand();
                     //删除没有保存的数据
                     var propValEach = GetItemValue(item, prop) as IEnumerable;
-                    _db.Orm.Select<object>().AsType(tref.RefEntityType).WhereDynamic(propValEach, true)
-                        .ToDelete().ExecuteAffrows();
+                    _db.Orm.Delete<object>().AsType(tref.RefEntityType).WhereDynamic(propValEach, true).ExecuteAffrows();
                 }
             }
             finally

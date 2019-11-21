@@ -434,7 +434,9 @@ namespace FreeSql.Internal.CommonProvider
         }
         public IUpdate<T1> Where(T1 item) => this.Where(new[] { item });
         public IUpdate<T1> Where(IEnumerable<T1> items) => this.Where(_commonUtils.WhereItems(_table, "", items));
-        public IUpdate<T1> WhereDynamic(object dywhere) => this.Where(_commonUtils.WhereObject(_table, "", dywhere));
+        public IUpdate<T1> WhereDynamic(object dywhere, bool not = false) => not == false ?
+            this.Where(_commonUtils.WhereObject(_table, "", dywhere)) :
+            this.Where($"not({_commonUtils.WhereObject(_table, "", dywhere)})");
 
         public IUpdate<T1> DisableGlobalFilter(params string[] name)
         {
