@@ -70,7 +70,7 @@ namespace FreeSql.Oracle.Curd
                     else
                     {
                         sb.Append(_commonUtils.QuoteWriteParamter(col.Attribute.MapType, _commonUtils.QuoteParamterName($"{col.CsName}_{didx}")));
-                        _params[didx * colidx + colidx2] = _commonUtils.AppendParamter(null, $"{col.CsName}_{didx}", col.Attribute.MapType, val);
+                        _params[didx * colidx + colidx2] = _commonUtils.AppendParamter(null, $"{col.CsName}_{didx}", col, col.Attribute.MapType, val);
                     }
                     ++colidx2;
                 }
@@ -112,7 +112,7 @@ namespace FreeSql.Oracle.Curd
                 return 0;
             }
             var identColName = _commonUtils.QuoteSqlName(_identCol.Attribute.Name);
-            var identParam = _commonUtils.AppendParamter(null, $"{_identCol.CsName}99", _identCol.Attribute.MapType, 0) as OracleParameter;
+            var identParam = _commonUtils.AppendParamter(null, $"{_identCol.CsName}99", _identCol, _identCol.Attribute.MapType, 0) as OracleParameter;
             identParam.Direction = ParameterDirection.Output;
             sql = $"{sql} RETURNING {identColName} INTO {identParam.ParameterName}";
             var dbParms = _params.Concat(new[] { identParam }).ToArray();
@@ -180,7 +180,7 @@ namespace FreeSql.Oracle.Curd
                 return 0;
             }
             var identColName = _commonUtils.QuoteSqlName(_identCol.Attribute.Name);
-            var identParam = _commonUtils.AppendParamter(null, $"{_identCol.CsName}99", _identCol.Attribute.MapType, 0) as OracleParameter;
+            var identParam = _commonUtils.AppendParamter(null, $"{_identCol.CsName}99", _identCol, _identCol.Attribute.MapType, 0) as OracleParameter;
             identParam.Direction = ParameterDirection.Output;
             sql = $"{sql} RETURNING {identColName} INTO {identParam.ParameterName}";
             var dbParms = _params.Concat(new[] { identParam }).ToArray();

@@ -18,14 +18,22 @@ namespace FreeSql.MySql
         {
         }
 
-        public override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, Type type, object value)
+        public override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, ColumnInfo col, Type type, object value)
         {
             if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
+            if (type == null && col != null) type = col.Attribute.MapType ?? col.CsType;
             var ret = new MySqlParameter { ParameterName = QuoteParamterName(parameterName), Value = value };
             var tp = _orm.CodeFirst.GetDbInfo(type)?.type;
             if (tp != null)
             {
-                if ((MySqlDbType)tp.Value == MySqlDbType.Geometry)
+                if (col != null && type == typeof(string))
+                {
+                    if (col.Attribute.DbType.Contains("VARCHAR")) ret.MySqlDbType = MySqlDbType.VarChar;
+                    else if (col.Attribute.DbType.Contains("CHAR")) ret.MySqlDbType = MySqlDbType.VarChar;
+                    else if (col.Attribute.DbType.Contains("TEXT")) ret.MySqlDbType = MySqlDbType.Text;
+                    else ret.MySqlDbType = MySqlDbType.VarChar;
+                }
+                else if ((MySqlDbType)tp.Value == MySqlDbType.Geometry)
                 {
                     ret.MySqlDbType = MySqlDbType.Text;
                     if (value != null) ret.Value = (value as MygisGeometry).AsText();

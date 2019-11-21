@@ -10,6 +10,7 @@ using System.Text;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Data.Odbc;
+using FreeSql.Internal.Model;
 
 namespace FreeSql.Odbc.PostgreSQL
 {
@@ -63,9 +64,10 @@ namespace FreeSql.Odbc.PostgreSQL
             return value;
         }
 
-        public override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, Type type, object value)
+        public override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, ColumnInfo col, Type type, object value)
         {
             if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
+            if (type == null && col != null) type = col.Attribute.MapType ?? col.CsType;
             if (value != null) value = getParamterValue(type, value);
             var ret = new OdbcParameter { ParameterName = QuoteParamterName(parameterName), Value = value };
             //if (value.GetType().IsEnum || value.GetType().GenericTypeArguments.FirstOrDefault()?.IsEnum == true) {

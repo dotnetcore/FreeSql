@@ -16,15 +16,24 @@ namespace FreeSql.Oracle
         {
         }
 
-        public override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, Type type, object value)
+        public override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, ColumnInfo col, Type type, object value)
         {
             if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
+            if (type == null && col != null) type = col.Attribute.MapType ?? col.CsType;
             var dbtype = (OracleDbType)_orm.CodeFirst.GetDbInfo(type)?.type;
             if (dbtype == OracleDbType.Boolean)
             {
                 if (value == null) value = null;
                 else value = (bool)value == true ? 1 : 0;
                 dbtype = OracleDbType.Int16;
+            }
+            else if (col != null && type == typeof(string))
+            {
+                if (col.Attribute.DbType.Contains("NVARCHAR2")) dbtype = OracleDbType.NVarchar2;
+                else if (col.Attribute.DbType.Contains("VARCHAR2")) dbtype = OracleDbType.Varchar2;
+                else if (col.Attribute.DbType.Contains("NCHAR")) dbtype = OracleDbType.NChar;
+                else if (col.Attribute.DbType.Contains("CHAR")) dbtype = OracleDbType.Char;
+                else dbtype = OracleDbType.NVarchar2;
             }
             var ret = new OracleParameter { ParameterName = QuoteParamterName(parameterName), OracleDbType = dbtype, Value = value };
             _params?.Add(ret);

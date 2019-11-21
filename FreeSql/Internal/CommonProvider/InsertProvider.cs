@@ -451,7 +451,7 @@ namespace FreeSql.Internal.CommonProvider
                     else
                     {
                         sb.Append(_commonUtils.QuoteWriteParamter(col.Attribute.MapType, _commonUtils.QuoteParamterName($"{col.CsName}_{didx}")));
-                        _params[didx * colidx + colidx2] = _commonUtils.AppendParamter(null, $"{col.CsName}_{didx}", col.Attribute.MapType, val);
+                        _params[didx * colidx + colidx2] = _commonUtils.AppendParamter(null, $"{col.CsName}_{didx}", col, col.Attribute.MapType, val);
                     }
                     ++colidx2;
                 }

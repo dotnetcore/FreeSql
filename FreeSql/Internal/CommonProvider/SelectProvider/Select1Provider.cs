@@ -348,7 +348,7 @@ namespace FreeSql.Internal.CommonProvider
             if (tb == null) throw new Exception("Include 参数类型错误");
 
             _isIncluded = true;
-            _commonExpression.ExpressionWhereLambda(_tables, Expression.MakeMemberAccess(expBody, tb.Properties[tb.ColumnsByCs.First().Value.CsName]), null, null);
+            _commonExpression.ExpressionWhereLambda(_tables, Expression.MakeMemberAccess(expBody, tb.Properties[tb.ColumnsByCs.First().Value.CsName]), null, null, null);
             return this;
         }
 
@@ -422,7 +422,7 @@ namespace FreeSql.Internal.CommonProvider
             if (tbNav == null) throw new Exception($"类型 {typeof(TNavigate).FullName} 错误，不能使用 IncludeMany");
 
             if (collMem.Expression.NodeType != ExpressionType.Parameter)
-                _commonExpression.ExpressionWhereLambda(_tables, Expression.MakeMemberAccess(collMem.Expression, tb.Properties[tb.ColumnsByCs.First().Value.CsName]), null, null);
+                _commonExpression.ExpressionWhereLambda(_tables, Expression.MakeMemberAccess(collMem.Expression, tb.Properties[tb.ColumnsByCs.First().Value.CsName]), null, null, null);
 
             TableRef tbref = null;
             var tbrefOneToManyColumns = new List<List<MemberExpression>>(); //临时 OneToMany 三个表关联，第三个表需要前两个表确定

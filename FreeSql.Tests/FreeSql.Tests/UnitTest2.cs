@@ -168,17 +168,24 @@ namespace FreeSql.Tests
         public class TestMySqlStringIsNullable
         {
             public Guid id { get; set; }
-            public string varchar { get; set; }
+            public string nvarchar { get; set; }
             [Column(IsNullable = true)]
-            public string varchar_null { get; set; }
+            public string nvarchar_null { get; set; }
             [Column(IsNullable = false)]
+            public string nvarchar_notnull { get; set; }
+
+            [Column(DbType = "varchar(100)")]
+            public string varchar { get; set; }
+            [Column(IsNullable = true, DbType = "varchar(100)")]
+            public string varchar_null { get; set; }
+            [Column(IsNullable = false, DbType = "varchar(100)")]
             public string varchar_notnull { get; set; }
         }
 
         [Fact]
         public void Test02()
         {
-            g.mysql.Select<TestMySqlStringIsNullable>();
+            var testparmSelect = g.sqlserver.Select<TestMySqlStringIsNullable>().Where(a => a.nvarchar == "11" && a.nvarchar_notnull == "22" && a.nvarchar_null == "33" && a.varchar == "11" && a.varchar_notnull == "22" && a.varchar_null == "33");
 
             var slsksd = g.mysql.Update<UserLike>().SetSource(new UserLike { Id = Guid.NewGuid(), CreateUserId = 1000, SubjectId = Guid.NewGuid() })
                 .UpdateColumns(a => new

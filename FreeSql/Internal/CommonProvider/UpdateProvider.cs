@@ -353,7 +353,7 @@ namespace FreeSql.Internal.CommonProvider
             else
             {
                 _set.Append(_commonUtils.QuoteWriteParamter(col.Column.Attribute.MapType, $"{_commonUtils.QuoteParamterName("p_")}{_params.Count}"));
-                _commonUtils.AppendParamter(_params, null, col.Column.Attribute.MapType, paramVal);
+                _commonUtils.AppendParamter(_params, null, col.Column, col.Column.Attribute.MapType, paramVal);
             }
             //foreach (var t in _source) Utils.FillPropertyValue(t, tryf.CsName, value);
             return this;
@@ -365,7 +365,7 @@ namespace FreeSql.Internal.CommonProvider
             switch (nodeType)
             {
                 case ExpressionType.Equal:
-                    _set.Append(", ").Append(_commonExpression.ExpressionWhereLambdaNoneForeignObject(null, _table, null, exp, null));
+                    _set.Append(", ").Append(_commonExpression.ExpressionWhereLambdaNoneForeignObject(null, _table, null, exp, null, null));
                     return this;
                 case ExpressionType.MemberInit:
                     var initExp = body as MemberInitExpression;
@@ -401,7 +401,7 @@ namespace FreeSql.Internal.CommonProvider
             if (body is BinaryExpression == false &&
                 nodeType != ExpressionType.Call) return this;
             var cols = new List<SelectColumnInfo>();
-            var expt = _commonExpression.ExpressionWhereLambdaNoneForeignObject(null, _table, cols, exp, null);
+            var expt = _commonExpression.ExpressionWhereLambdaNoneForeignObject(null, _table, cols, exp, null, null);
             if (cols.Any() == false) return this;
             foreach (var col in cols)
             {
@@ -424,7 +424,7 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
 
-        public IUpdate<T1> Where(Expression<Func<T1, bool>> expression) => this.Where(_commonExpression.ExpressionWhereLambdaNoneForeignObject(null, _table, null, expression?.Body, null));
+        public IUpdate<T1> Where(Expression<Func<T1, bool>> expression) => this.Where(_commonExpression.ExpressionWhereLambdaNoneForeignObject(null, _table, null, expression?.Body, null, _noneParameter ? _params : null));
         public IUpdate<T1> Where(string sql, object parms = null)
         {
             if (string.IsNullOrEmpty(sql)) return this;
@@ -564,7 +564,7 @@ namespace FreeSql.Internal.CommonProvider
                         else
                         {
                             sb.Append(_commonUtils.QuoteWriteParamter(col.Attribute.MapType, _commonUtils.QuoteParamterName($"p_{_paramsSource.Count}")));
-                            _commonUtils.AppendParamter(_paramsSource, null, col.Attribute.MapType, val);
+                            _commonUtils.AppendParamter(_paramsSource, null, col, col.Attribute.MapType, val);
                         }
                         ++colidx;
                     }
@@ -603,7 +603,7 @@ namespace FreeSql.Internal.CommonProvider
                             else
                             {
                                 cwsb.Append(_commonUtils.QuoteWriteParamter(col.Attribute.MapType, _commonUtils.QuoteParamterName($"p_{_paramsSource.Count}")));
-                                _commonUtils.AppendParamter(_paramsSource, null, col.Attribute.MapType, val);
+                                _commonUtils.AppendParamter(_paramsSource, null, col, col.Attribute.MapType, val);
                             }
                             if (val == null || val == DBNull.Value) nulls++;
                         }

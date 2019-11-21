@@ -13,6 +13,7 @@ using System.Net;
 using System.Text;
 using System.Linq.Expressions;
 using System.Reflection;
+using FreeSql.Internal.Model;
 
 namespace FreeSql.PostgreSQL
 {
@@ -78,16 +79,28 @@ namespace FreeSql.PostgreSQL
             return value;
         }
 
-        public override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, Type type, object value)
+        public override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, ColumnInfo col, Type type, object value)
         {
             if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
+            if (type == null && col != null) type = col.Attribute.MapType ?? col.CsType;
             if (value != null) value = getParamterValue(type, value);
             var ret = new NpgsqlParameter { ParameterName = QuoteParamterName(parameterName), Value = value };
             //if (value.GetType().IsEnum || value.GetType().GenericTypeArguments.FirstOrDefault()?.IsEnum == true) {
             //	ret.DataTypeName = "";
             //} else {
             var tp = _orm.CodeFirst.GetDbInfo(type)?.type;
-            if (tp != null) ret.NpgsqlDbType = (NpgsqlDbType)tp.Value;
+            if (tp != null)
+            {
+                if (col != null && type == typeof(string))
+                {
+                    if (col.Attribute.DbType.Contains("VARCHAR")) ret.NpgsqlDbType = NpgsqlDbType.Varchar;
+                    else if (col.Attribute.DbType.Contains("CHAR")) ret.NpgsqlDbType = NpgsqlDbType.Char;
+                    else if (col.Attribute.DbType.Contains("TEXT")) ret.NpgsqlDbType = NpgsqlDbType.Text;
+                    else ret.NpgsqlDbType = NpgsqlDbType.Varchar;
+                }
+                else
+                    ret.NpgsqlDbType = (NpgsqlDbType)tp.Value;
+            }
             //}
             _params?.Add(ret);
             return ret;
@@ -137,7 +150,7 @@ namespace FreeSql.PostgreSQL
             if (value == null) return "NULL";
             if (_dicIsAssignableFromPostgisGeometry.GetOrAdd(type, t2 => typeof(PostgisGeometry).IsAssignableFrom(type.IsArray ? type.GetElementType() : type)))
             {
-                var pam = AppendParamter(specialParams, null, type, value);
+                var pam = AppendParamter(specialParams, null, null, type, value);
                 return pam.ParameterName;
             }
             value = getParamterValue(type, value);

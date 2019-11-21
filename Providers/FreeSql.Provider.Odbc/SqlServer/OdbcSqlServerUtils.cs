@@ -1,4 +1,5 @@
 ﻿using FreeSql.Internal;
+using FreeSql.Internal.Model;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -21,9 +22,10 @@ namespace FreeSql.Odbc.SqlServer
         public bool IsSqlServer2005 => ServerVersion == 9;
         public int ServerVersion = 0;
 
-        public override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, Type type, object value)
+        public override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, ColumnInfo col, Type type, object value)
         {
             if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
+            if (type == null && col != null) type = col.Attribute.MapType ?? col.CsType;
             if (value?.Equals(DateTime.MinValue) == true) value = new DateTime(1970, 1, 1);
             var ret = new OdbcParameter { ParameterName = QuoteParamterName(parameterName), Value = value };
             var tp = _orm.CodeFirst.GetDbInfo(type)?.type;

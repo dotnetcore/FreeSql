@@ -84,7 +84,7 @@ namespace FreeSql.Internal.CommonProvider
 
         public ISelectGrouping<TKey, TValue> Having(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, bool>> exp)
         {
-            var sql = _comonExp.ExpressionWhereLambda(null, exp, getSelectGroupingMapString, null);
+            var sql = _comonExp.ExpressionWhereLambda(null, exp, getSelectGroupingMapString, null, null);
             var method = _select.GetType().GetMethod("Having", new[] { typeof(string), typeof(object) });
             method.Invoke(_select, new object[] { sql, null });
             return this;
@@ -92,7 +92,7 @@ namespace FreeSql.Internal.CommonProvider
 
         public ISelectGrouping<TKey, TValue> OrderBy<TMember>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TMember>> column)
         {
-            var sql = _comonExp.ExpressionWhereLambda(null, column, getSelectGroupingMapString, null);
+            var sql = _comonExp.ExpressionWhereLambda(null, column, getSelectGroupingMapString, null, null);
             var method = _select.GetType().GetMethod("OrderBy", new[] { typeof(string), typeof(object) });
             method.Invoke(_select, new object[] { sql, null });
             return this;
@@ -100,7 +100,7 @@ namespace FreeSql.Internal.CommonProvider
 
         public ISelectGrouping<TKey, TValue> OrderByDescending<TMember>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TMember>> column)
         {
-            var sql = _comonExp.ExpressionWhereLambda(null, column, getSelectGroupingMapString, null);
+            var sql = _comonExp.ExpressionWhereLambda(null, column, getSelectGroupingMapString, null, null);
             var method = _select.GetType().GetMethod("OrderBy", new[] { typeof(string), typeof(object) });
             method.Invoke(_select, new object[] { $"{sql} DESC", null });
             return this;

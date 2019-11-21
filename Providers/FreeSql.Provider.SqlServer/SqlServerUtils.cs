@@ -1,4 +1,5 @@
 ﻿using FreeSql.Internal;
+using FreeSql.Internal.Model;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -21,13 +22,28 @@ namespace FreeSql.SqlServer
         public bool IsSqlServer2005 => ServerVersion == 9;
         public int ServerVersion = 0;
 
-        public override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, Type type, object value)
+        public override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, ColumnInfo col, Type type, object value)
         {
             if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
+            if (type == null && col != null) type = col.Attribute.MapType ?? col.CsType;
             if (value?.Equals(DateTime.MinValue) == true) value = new DateTime(1970, 1, 1);
             var ret = new SqlParameter { ParameterName = QuoteParamterName(parameterName), Value = value };
             var tp = _orm.CodeFirst.GetDbInfo(type)?.type;
-            if (tp != null) ret.SqlDbType = (SqlDbType)tp.Value;
+            if (tp != null)
+            {
+                if (col != null && type == typeof(string))
+                {
+                    if (col.Attribute.DbType.Contains("NVARCHAR")) ret.SqlDbType = SqlDbType.NVarChar;
+                    else if (col.Attribute.DbType.Contains("VARCHAR")) ret.SqlDbType = SqlDbType.VarChar;
+                    else if (col.Attribute.DbType.Contains("NCHAR")) ret.SqlDbType = SqlDbType.NChar;
+                    else if (col.Attribute.DbType.Contains("CHAR")) ret.SqlDbType = SqlDbType.Char;
+                    else if (col.Attribute.DbType.Contains("NTEXT")) ret.SqlDbType = SqlDbType.NText;
+                    else if (col.Attribute.DbType.Contains("TEXT")) ret.SqlDbType = SqlDbType.Text;
+                    else ret.SqlDbType = SqlDbType.VarChar;
+                }
+                else
+                    ret.SqlDbType = (SqlDbType)tp.Value;
+            }
             _params?.Add(ret);
             return ret;
         }

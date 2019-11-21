@@ -35,6 +35,7 @@ namespace FreeSql.Internal.CommonProvider
         protected Action<object> _trackToList;
         protected List<Action<object>> _includeToList = new List<Action<object>>();
         protected bool _distinct;
+        protected bool _noneParameter;
         protected Expression _selectExpression;
         protected List<LambdaExpression> _whereCascadeExpression = new List<LambdaExpression>();
         protected List<GlobalFilter.Item> _whereGlobalFilter;
@@ -105,6 +106,7 @@ namespace FreeSql.Internal.CommonProvider
             toType.GetField("_trackToList", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._trackToList);
             toType.GetField("_includeToList", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._includeToList);
             toType.GetField("_distinct", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._distinct);
+            toType.GetField("_noneParameter", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._noneParameter);
             toType.GetField("_selectExpression", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._selectExpression);
             toType.GetField("_whereCascadeExpression", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._whereCascadeExpression);
             toType.GetField("_whereGlobalFilter", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._whereGlobalFilter);
@@ -116,6 +118,7 @@ namespace FreeSql.Internal.CommonProvider
             _commonUtils = commonUtils;
             _commonExpression = commonExpression;
             _tables.Add(new SelectTableInfo { Table = _commonUtils.GetTableByEntity(typeof(T1)), Alias = "a", On = null, Type = SelectTableInfoType.From });
+            _noneParameter = _orm.CodeFirst.IsNoneCommandParameter;
             this.Where(_commonUtils.WhereObject(_tables.First().Table, "a.", dywhere));
             if (_orm.CodeFirst.IsAutoSyncStructure && typeof(T1) != typeof(object)) _orm.CodeFirst.SyncStructure<T1>();
         }
@@ -1051,7 +1054,7 @@ namespace FreeSql.Internal.CommonProvider
             return this.ToListMapReader<TReturn>((map, field.Length > 0 ? field.Remove(0, 2).ToString() : null)).FirstOrDefault();
         }
 
-        protected TSelect InternalWhere(Expression exp) => exp == null ? this as TSelect : this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp, null, _whereCascadeExpression));
+        protected TSelect InternalWhere(Expression exp) => exp == null ? this as TSelect : this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp, null, _whereCascadeExpression, _noneParameter ? _params : null));
         #endregion
 
 #if net40

@@ -145,21 +145,21 @@ namespace FreeSql.Internal.CommonProvider
         {
             if (exp == null) return this.Where(null);
             for (var a = 0; a < exp.Parameters.Count; a++) _tables[a].Parameter = exp.Parameters[a];
-            return this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp?.Body, null, _whereCascadeExpression));
+            return this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp?.Body, null, _whereCascadeExpression, _noneParameter ? _params : null));
         }
 
         ISelect<T1, T2, T3, T4, T5, T6, T7> ISelect<T1, T2, T3, T4, T5, T6, T7>.WhereIf(bool condition, Expression<Func<T1, T2, T3, T4, T5, T6, T7, bool>> exp)
         {
             if (condition == false || exp == null) return this;
             for (var a = 0; a < exp.Parameters.Count; a++) _tables[a].Parameter = exp.Parameters[a];
-            return this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp?.Body, null, _whereCascadeExpression));
+            return this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp?.Body, null, _whereCascadeExpression, _noneParameter ? _params : null));
         }
 
         bool ISelect<T1, T2, T3, T4, T5, T6, T7>.Any(Expression<Func<T1, T2, T3, T4, T5, T6, T7, bool>> exp)
         {
             if (exp == null) return this.Any();
             for (var a = 0; a < exp.Parameters.Count; a++) _tables[a].Parameter = exp.Parameters[a];
-            return this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp?.Body, null, _whereCascadeExpression)).Any();
+            return this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp?.Body, null, _whereCascadeExpression, _noneParameter ? _params : null)).Any();
         }
 
 #if net40
@@ -218,7 +218,7 @@ namespace FreeSql.Internal.CommonProvider
         {
             if (exp == null) return this.AnyAsync();
             for (var a = 0; a < exp.Parameters.Count; a++) _tables[a].Parameter = exp.Parameters[a];
-            return this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp?.Body, null, _whereCascadeExpression)).AnyAsync();
+            return this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp?.Body, null, _whereCascadeExpression, _noneParameter ? _params : null)).AnyAsync();
         }
 #endif
     }
