@@ -17,9 +17,7 @@ namespace FreeSql
 
         static int _seed;
         /// <summary>
-        /// 正在使用中的工作单元（调试）<para></para>
-        /// Key 格式：yyyyMMdd_HHmmss_种子id<para></para>
-        /// 例如：20191121_214504_1
+        /// 正在使用中的工作单元（调试）
         /// </summary>
         public static ConcurrentDictionary<string, UnitOfWork> DebugBeingUsed { get; } = new ConcurrentDictionary<string, UnitOfWork>();
 
