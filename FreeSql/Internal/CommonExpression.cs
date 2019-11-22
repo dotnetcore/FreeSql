@@ -1225,6 +1225,12 @@ namespace FreeSql.Internal
                 this.mapType = newValue;
                 return old;
             }
+            public List<DbParameter> SetDbParamsReturnOld(List<DbParameter> newValue)
+            {
+                var old = this.dbParams;
+                this.dbParams = newValue;
+                return old;
+            }
 
             public ExpTSC CloneSetgetSelectGroupingMapStringAndgetSelectGroupingMapStringAndtbtype(List<SelectColumnInfo> v1, Func<Expression[], string> v2, SelectTableInfoType v3)
             {

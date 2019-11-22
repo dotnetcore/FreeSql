@@ -348,6 +348,11 @@ namespace FreeSql.Tests
 
             g.sqlserver.Select<TestMySqlStringIsNullable>().Where(a => a.varchar == name).ToList();
             g.sqlserver.Select<TestMySqlStringIsNullable>().Where(a => a.varchar == name.SetDbParameter(10)).ToList();
+
+            var testarr = new string[] { "1", "2" };
+            var sdfsdgselect3 = g.sqlserver.Select<TestMySqlStringIsNullable>().Where(a => testarr.Contains(a.varchar));
+            g.sqlserver.Select<TestMySqlStringIsNullable>().Where(a => testarr.Contains(a.varchar)).ToList();
+
         }
     }
 
