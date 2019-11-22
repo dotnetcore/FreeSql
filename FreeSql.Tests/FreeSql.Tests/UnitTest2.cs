@@ -225,7 +225,7 @@ namespace FreeSql.Tests
             var tbs = g.sqlserver.DbFirst.GetTablesByDatabase("ds_shop");
 
             var dicParamslist = g.sqlite.Select<SysModule>().Page(1, 10)
-                .Where("id > @id and id > @id2 and id > @id3", 
+                .Where("id > @id and id > @id2 and id > @id3",
                     new Dictionary<string, int> { ["id"] = 1, ["id2"] = 2, ["id3"] = 3 })
                 .ToList();
 
@@ -240,7 +240,7 @@ namespace FreeSql.Tests
                 .IncludeMany(m => m.Permissions, then => then.Include(a => a.Button))
                 .Page(1, 10)
                 .ToList();
-            
+
             var comments1 = g.mysql.Select<Comment, UserLike>()
                 .LeftJoin((a, b) => a.Id == b.SubjectId)
                 .ToList((a, b) => new { comment = a, b.SubjectId, user = a.UserInfo });
@@ -295,7 +295,7 @@ namespace FreeSql.Tests
             var parm2 = "22";
             var parm3 = "33";
             var testparmSelect = g.sqlserver.Select<TestMySqlStringIsNullable>()
-                .Where(a => 
+                .Where(a =>
                     a.nvarchar == "11" &&
                     a.nvarchar_notnull == "22" &&
                     a.nvarchar_null == "33" &&
@@ -340,30 +340,38 @@ namespace FreeSql.Tests
                     parm3.SetDbParameter(15) == a.varchar_null
 
                     );
+
+            g.sqlserver.CodeFirst.IsGenerateCommandParameterWithLambda = true;
+            var name = "testname";
+            var sdfsdgselect1 = g.sqlserver.Select<TestMySqlStringIsNullable>().Where(a => a.varchar == name);
+            var sdfsdgselect2 = g.sqlserver.Select<TestMySqlStringIsNullable>().Where(a => a.varchar == name.SetDbParameter(10));
+
+            g.sqlserver.Select<TestMySqlStringIsNullable>().Where(a => a.varchar == name).ToList();
+            g.sqlserver.Select<TestMySqlStringIsNullable>().Where(a => a.varchar == name.SetDbParameter(10)).ToList();
         }
     }
 
-    [ExpressionCall]
-    public static class DbFunc
+[ExpressionCall]
+public static class DbFunc
+{
+    static ThreadLocal<ExpressionCallContext> context = new ThreadLocal<ExpressionCallContext>();
+
+    public static string FormatDateTime(this DateTime that, string arg1)
     {
-        static ThreadLocal<ExpressionCallContext> context = new ThreadLocal<ExpressionCallContext>();
-
-        public static string FormatDateTime(this DateTime that, string arg1)
-        {
-            return $"date_format({context.Value.Values["that"]}, {context.Value.Values["arg1"]})";
-        }
-
-        /// <summary>
-        /// 设置表达式中的 string 参数化长度，优化执行计划
-        /// </summary>
-        /// <param name="that"></param>
-        /// <param name="size"></param>
-        /// <returns></returns>
-        public static string SetDbParameter(this string that, int size)
-        {
-            if (context.Value.DbParameter != null)
-                context.Value.DbParameter.Size = size;
-            return context.Value.Values["that"];
-        }
+        return $"date_format({context.Value.Values["that"]}, {context.Value.Values["arg1"]})";
     }
+
+    /// <summary>
+    /// 设置表达式中的 string 参数化长度，优化执行计划
+    /// </summary>
+    /// <param name="that"></param>
+    /// <param name="size"></param>
+    /// <returns></returns>
+    public static string SetDbParameter(this string that, int size)
+    {
+        if (context.Value.DbParameter != null)
+            context.Value.DbParameter.Size = size;
+        return context.Value.Values["that"];
+    }
+}
 }
