@@ -341,7 +341,7 @@ namespace FreeSql.Tests
 
                     );
 
-            g.sqlserver.CodeFirst.IsGenerateCommandParameterWithLambda = true;
+            //g.sqlserver.CodeFirst.IsGenerateCommandParameterWithLambda = true;
             var name = "testname";
             var sdfsdgselect1 = g.sqlserver.Select<TestMySqlStringIsNullable>().Where(a => a.varchar == name);
             var sdfsdgselect2 = g.sqlserver.Select<TestMySqlStringIsNullable>().Where(a => a.varchar == name.SetDbParameter(10));

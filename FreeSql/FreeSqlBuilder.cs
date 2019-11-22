@@ -212,6 +212,7 @@ namespace FreeSql
                 ret.CodeFirst.IsSyncStructureToUpper = _isSyncStructureToUpper;
                 ret.CodeFirst.IsConfigEntityFromDbFirst = _isConfigEntityFromDbFirst;
                 ret.CodeFirst.IsNoneCommandParameter = _isNoneCommandParameter;
+                ret.CodeFirst.IsGenerateCommandParameterWithLambda = _isGenerateCommandParameterWithLambda;
                 ret.CodeFirst.IsLazyLoading = _isLazyLoading;
                 var ado = ret.Ado as Internal.CommonProvider.AdoProvider;
                 ado.AopCommandExecuting += _aopCommandExecuting;
