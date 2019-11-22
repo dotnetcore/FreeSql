@@ -423,13 +423,14 @@ namespace FreeSql.Internal
                     return $"({ExpressionLambdaToSql(leftExp, tsc)} {oper} {ExpressionLambdaToSql(rightExp, tsc)})";
             }
 
+            Type oldMapType = null;
             var left = ExpressionLambdaToSql(leftExp, tsc);
             var leftMapColumn = SearchColumnByField(tsc._tables, tsc.currentTable, left);
             var isLeftMapType = leftMapColumn != null && new[] { "AND", "OR" }.Contains(oper) == false && (leftMapColumn.Attribute.MapType != rightExp.Type || leftMapColumn.CsType != rightExp.Type);
             ColumnInfo rightMapColumn = null;
             var isRightMapType = false;
-            if (isLeftMapType) tsc.mapType = leftMapColumn.Attribute.MapType;
-
+            if (isLeftMapType) oldMapType = tsc.SetMapTypeReturnOld(leftMapColumn.Attribute.MapType);
+            
             var right = ExpressionLambdaToSql(rightExp, tsc);
             if (right != "NULL" && isLeftMapType)
             {
@@ -443,7 +444,7 @@ namespace FreeSql.Internal
                 isRightMapType = rightMapColumn != null && new[] { "AND", "OR" }.Contains(oper) == false && (rightMapColumn.Attribute.MapType != leftExp.Type || rightMapColumn.CsType != leftExp.Type);
                 if (isRightMapType)
                 {
-                    tsc.mapType = rightMapColumn.Attribute.MapType;
+                    oldMapType = tsc.SetMapTypeReturnOld(rightMapColumn.Attribute.MapType);
                     left = ExpressionLambdaToSql(leftExp, tsc);
                     if (left != "NULL" && isRightMapType)
                     {
@@ -495,7 +496,7 @@ namespace FreeSql.Internal
                     else right = GetBoolString(right);
                     break;
             }
-            tsc.mapType = null;
+            tsc.SetMapColumnTmp(null).SetMapTypeReturnOld(oldMapType);
             return $"{left} {oper} {right}";
         }
         static ConcurrentDictionary<Type, bool> _dicTypeExistsExpressionCallAttribute = new ConcurrentDictionary<Type, bool>();
@@ -532,7 +533,7 @@ namespace FreeSql.Internal
                     return ExpressionLambdaToSql((exp as UnaryExpression)?.Operand, tsc);
                 case ExpressionType.Negate:
                 case ExpressionType.NegateChecked: return "-" + ExpressionLambdaToSql((exp as UnaryExpression)?.Operand, tsc);
-                case ExpressionType.Constant: return formatSql((exp as ConstantExpression)?.Value, tsc.mapType, tsc.mapColumnTmp, tsc.dbParams);
+                case ExpressionType.Constant: return formatSql((exp as ConstantExpression)?.Value, tsc.mapType, tsc.mapColumnTmp, null);
                 case ExpressionType.Conditional:
                     var condExp = exp as ConditionalExpression;
                     return $"case when {ExpressionLambdaToSql(condExp.Test, tsc)} then {ExpressionLambdaToSql(condExp.IfTrue, tsc)} else {ExpressionLambdaToSql(condExp.IfFalse, tsc)} end";
@@ -543,15 +544,21 @@ namespace FreeSql.Internal
                     {
                         var ecc = new ExpressionCallContext { DataType = _ado.DataType };
                         var exp3MethodParams = exp3.Method.GetParameters();
-                        for (var a = 0; a < exp3.Arguments.Count; a++)
+                        var dbParamsIndex = tsc.dbParams?.Count;
+                        ecc.Values.Add(exp3MethodParams[0].Name, ExpressionLambdaToSql(exp3.Arguments[0], tsc));
+                        if (tsc.dbParams?.Count > dbParamsIndex) ecc.DbParameter = tsc.dbParams.Last();
+                        List<DbParameter> oldDbParams = tsc.dbParams;
+                        tsc.dbParams = null;
+                        for (var a = 1; a < exp3.Arguments.Count; a++)
                             if (exp3.Arguments[a].Type != typeof(ExpressionCallContext))
                                 ecc.Values.Add(exp3MethodParams[a].Name, ExpressionLambdaToSql(exp3.Arguments[a], tsc));
+                        tsc.dbParams = oldDbParams;
 
                         var exp3InvokeParams = new object[exp3.Arguments.Count];
                         for (var a = 0; a < exp3.Arguments.Count; a++)
                         {
                             if (exp3.Arguments[a].Type != typeof(ExpressionCallContext))
-                                exp3InvokeParams[a] = exp3.Arguments[a].Type.CreateInstanceGetDefaultValue();
+                                exp3InvokeParams[a] = Utils.GetDataReaderValue(exp3.Arguments[a].Type, ecc.Values[exp3MethodParams[a].Name]);// exp3.Arguments[a].Type.CreateInstanceGetDefaultValue();
                             else
                                 exp3InvokeParams[a] = ecc;
                         }
@@ -1321,13 +1328,13 @@ namespace FreeSql.Internal
         public string formatSql(object obj, Type mapType, ColumnInfo mapColumn, List<DbParameter> dbParams)
         {
             //参数化设置，日后优化
-            //if (dbParams != null && mapColumn != null)
-            //{
-            //    var paramName = $"exp_{dbParams.Count}";
-            //    var parm = _common.AppendParamter(dbParams, paramName, mapColumn, mapType ?? mapColumn.Attribute.MapType, mapType == null ? obj : Utils.GetDataReaderValue(mapType, obj));
-            //    _common.SetParameterSize(parm, mapColumn.Attribute.DbType, mapColumn);
-            //    return _common.QuoteParamterName(paramName);
-            //}
+            if (dbParams != null)
+            {
+                var paramName = $"exp_{dbParams.Count}";
+                var parm = _common.AppendParamter(dbParams, paramName, mapColumn,
+                    mapType ?? mapColumn?.Attribute.MapType ?? obj?.GetType(), mapType == null ? obj : Utils.GetDataReaderValue(mapType, obj));
+                return _common.QuoteParamterName(paramName);
+            }
             return string.Concat(_ado.AddslashesProcessParam(obj, mapType, mapColumn));
         }
     }

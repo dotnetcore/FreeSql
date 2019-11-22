@@ -299,6 +299,34 @@ namespace FreeSql.Internal
                 col.Attribute.IsNullable = false;
                 col.Attribute.DbType = col.Attribute.DbType.Replace("NOT NULL", "");
             }
+            foreach (var col in trytb.Columns.Values)
+            {
+                var ltp = @"\(([^\)]+)\)";
+                col.DbTypeText = Regex.Replace(col.Attribute.DbType.Replace("NOT NULL", "").Trim(), ltp, "");
+                var m = Regex.Match(col.Attribute.DbType, ltp);
+                if (m.Success == false) continue;
+                var sizeStr = m.Groups[1].Value.Trim();
+                if (string.Compare(sizeStr, "max", true) == 0)
+                {
+                    col.DbSize = -1;
+                    continue;
+                }
+                var sizeArr = sizeStr.Split(',');
+                if (int.TryParse(sizeArr[0].Trim(), out var size) == false) continue;
+                if (col.Attribute.MapType.NullableTypeOrThis() == typeof(DateTime))
+                {
+                    col.DbScale = (byte)size;
+                    continue;
+                }
+                if (sizeArr.Length == 1)
+                {
+                    col.DbSize = size;
+                    continue;
+                }
+                if (byte.TryParse(sizeArr[1], out var scale) == false) continue;
+                col.DbPrecision = (byte)size;
+                col.DbScale = scale;
+            }
             tbc.AddOrUpdate(entity, trytb, (oldkey, oldval) => trytb);
 
             #region 查找导航属性的关系、virtual 属性延时加载，动态产生新的重写类

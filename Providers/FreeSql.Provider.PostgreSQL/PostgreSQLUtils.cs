@@ -82,24 +82,23 @@ namespace FreeSql.PostgreSQL
         public override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, ColumnInfo col, Type type, object value)
         {
             if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
-            if (type == null && col != null) type = col.Attribute.MapType ?? col.CsType;
             if (value != null) value = getParamterValue(type, value);
             var ret = new NpgsqlParameter { ParameterName = QuoteParamterName(parameterName), Value = value };
             //if (value.GetType().IsEnum || value.GetType().GenericTypeArguments.FirstOrDefault()?.IsEnum == true) {
             //	ret.DataTypeName = "";
             //} else {
             var tp = _orm.CodeFirst.GetDbInfo(type)?.type;
-            if (tp != null)
+            if (tp != null) ret.NpgsqlDbType = (NpgsqlDbType)tp.Value;
+            if (col != null)
             {
-                if (col != null && type == typeof(string))
+                var dbtype = (NpgsqlDbType)_orm.DbFirst.GetDbType(new DatabaseModel.DbColumnInfo { DbTypeText = col.DbTypeText });
+                if (dbtype != NpgsqlDbType.Unknown)
                 {
-                    if (col.Attribute.DbType.Contains("VARCHAR")) ret.NpgsqlDbType = NpgsqlDbType.Varchar;
-                    else if (col.Attribute.DbType.Contains("CHAR")) ret.NpgsqlDbType = NpgsqlDbType.Char;
-                    else if (col.Attribute.DbType.Contains("TEXT")) ret.NpgsqlDbType = NpgsqlDbType.Text;
-                    else ret.NpgsqlDbType = NpgsqlDbType.Varchar;
+                    ret.NpgsqlDbType = dbtype;
+                    if (col.DbSize != 0) ret.Size = col.DbSize;
+                    if (col.DbPrecision != 0) ret.Precision = col.DbPrecision;
+                    if (col.DbScale != 0) ret.Scale = col.DbScale;
                 }
-                else
-                    ret.NpgsqlDbType = (NpgsqlDbType)tp.Value;
             }
             //}
             _params?.Add(ret);

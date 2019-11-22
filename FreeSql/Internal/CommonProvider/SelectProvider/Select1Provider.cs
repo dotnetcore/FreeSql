@@ -543,23 +543,48 @@ namespace FreeSql.Internal.CommonProvider
 
                 var t1parm = Expression.Parameter(typeof(T1));
                 Expression membersExp = t1parm;
-                foreach (var mem in members) membersExp = Expression.MakeMemberAccess(membersExp, mem.Member);
+                Expression membersExpNotNull = null;
+                foreach (var mem in members)
+                {
+                    membersExp = Expression.MakeMemberAccess(membersExp, mem.Member);
+                    var expNotNull = Expression.NotEqual(membersExp, Expression.Constant(null));
+                    if (membersExpNotNull == null) membersExpNotNull = expNotNull;
+                    else membersExpNotNull = Expression.AndAlso(membersExpNotNull, expNotNull);
+                }
                 members.Clear();
 
                 var listValueExp = Expression.Parameter(typeof(List<TNavigate>), "listValue");
-                var setListValue = Expression.Lambda<Action<T1, List<TNavigate>>>(
-                    Expression.Assign(
-                        Expression.MakeMemberAccess(membersExp, collMem.Member),
-                        Expression.TypeAs(listValueExp, collMem.Type)
-                    ), t1parm, listValueExp).Compile();
+                var setListValue = membersExpNotNull == null ?
+                    Expression.Lambda<Action<T1, List<TNavigate>>>(
+                        Expression.Assign(
+                            Expression.MakeMemberAccess(membersExp, collMem.Member),
+                            Expression.TypeAs(listValueExp, collMem.Type)
+                        ), t1parm, listValueExp).Compile() :
+                    Expression.Lambda<Action<T1, List<TNavigate>>>(
+                        Expression.IfThen(
+                            membersExpNotNull,
+                            Expression.Assign(
+                                Expression.MakeMemberAccess(membersExp, collMem.Member),
+                                Expression.TypeAs(listValueExp, collMem.Type)
+                            )
+                        ), t1parm, listValueExp).Compile();
 
                 var returnTarget = Expression.Label(typeof(object));
                 var propertyNameExp = Expression.Parameter(typeof(string), "propertyName");
-                var getListValue1 = Expression.Lambda<Func<T1, string, object>>(
-                    Expression.Block(
-                        Expression.Return(returnTarget, Expression.Call(null, GetEntityValueWithPropertyNameMethod, Expression.Constant(_orm), Expression.Constant(membersExp.Type), membersExp, propertyNameExp)),
-                        Expression.Label(returnTarget, Expression.Default(typeof(object)))
-                    ), t1parm, propertyNameExp).Compile();
+                var getListValue1 = membersExpNotNull == null ?
+                    Expression.Lambda<Func<T1, string, object>>(
+                        Expression.Block(
+                            Expression.Return(returnTarget, Expression.Call(null, GetEntityValueWithPropertyNameMethod, Expression.Constant(_orm), Expression.Constant(membersExp.Type), membersExp, propertyNameExp)),
+                            Expression.Label(returnTarget, Expression.Default(typeof(object)))
+                        ), t1parm, propertyNameExp).Compile():
+                    Expression.Lambda<Func<T1, string, object>>(
+                        Expression.Block(
+                            Expression.IfThen(
+                                membersExpNotNull,
+                                Expression.Return(returnTarget, Expression.Call(null, GetEntityValueWithPropertyNameMethod, Expression.Constant(_orm), Expression.Constant(membersExp.Type), membersExp, propertyNameExp))
+                            ),
+                            Expression.Label(returnTarget, Expression.Default(typeof(object)))
+                        ), t1parm, propertyNameExp).Compile();
 
                 var getListValue2 = new List<Func<T1, string, object>>();
                 for (var j = 0; j < tbrefOneToManyColumns.Count; j++)
@@ -570,13 +595,29 @@ namespace FreeSql.Internal.CommonProvider
                         continue;
                     }
                     Expression tbrefOneToManyColumnsMembers = t1parm;
-                    foreach (var mem in tbrefOneToManyColumns[j]) tbrefOneToManyColumnsMembers = Expression.MakeMemberAccess(tbrefOneToManyColumnsMembers, mem.Member);
+                    Expression tbrefOneToManyColumnsMembersNotNull = null;
+                    foreach (var mem in tbrefOneToManyColumns[j])
+                    {
+                        tbrefOneToManyColumnsMembers = Expression.MakeMemberAccess(tbrefOneToManyColumnsMembers, mem.Member);
+                        var expNotNull = Expression.NotEqual(membersExp, Expression.Constant(null));
+                        if (tbrefOneToManyColumnsMembersNotNull == null) tbrefOneToManyColumnsMembersNotNull = expNotNull;
+                        else tbrefOneToManyColumnsMembersNotNull = Expression.AndAlso(tbrefOneToManyColumnsMembersNotNull, expNotNull);
+                    }
                     tbrefOneToManyColumns[j].Clear();
-                    getListValue2.Add(Expression.Lambda<Func<T1, string, object>>(
-                        Expression.Block(
-                            Expression.Return(returnTarget, Expression.Call(null, GetEntityValueWithPropertyNameMethod, Expression.Constant(_orm), Expression.Constant(tbrefOneToManyColumnsMembers.Type), tbrefOneToManyColumnsMembers, propertyNameExp)),
-                            Expression.Label(returnTarget, Expression.Default(typeof(object)))
-                        ), t1parm, propertyNameExp).Compile());
+                    getListValue2.Add(tbrefOneToManyColumnsMembersNotNull == null ?
+                        Expression.Lambda<Func<T1, string, object>>(
+                            Expression.Block(
+                                Expression.Return(returnTarget, Expression.Call(null, GetEntityValueWithPropertyNameMethod, Expression.Constant(_orm), Expression.Constant(tbrefOneToManyColumnsMembers.Type), tbrefOneToManyColumnsMembers, propertyNameExp)),
+                                Expression.Label(returnTarget, Expression.Default(typeof(object)))
+                            ), t1parm, propertyNameExp).Compile() :
+                        Expression.Lambda<Func<T1, string, object>>(
+                            Expression.Block(
+                                Expression.IfThen(
+                                    tbrefOneToManyColumnsMembersNotNull,
+                                    Expression.Return(returnTarget, Expression.Call(null, GetEntityValueWithPropertyNameMethod, Expression.Constant(_orm), Expression.Constant(tbrefOneToManyColumnsMembers.Type), tbrefOneToManyColumnsMembers, propertyNameExp))
+                                ),
+                                Expression.Label(returnTarget, Expression.Default(typeof(object)))
+                            ), t1parm, propertyNameExp).Compile());
                 }
                 tbrefOneToManyColumns.Clear();
                 Func<T1, string, int, object> getListValue = (item, propName, colIndex) =>
@@ -706,7 +747,8 @@ namespace FreeSql.Internal.CommonProvider
                             {
                                 if (tbref.Columns.Count == 1)
                                 {
-                                    var dicListKey = getListValue(item, tbref.Columns[0].CsName, 0).ToString();
+                                    var dicListKey = getListValue(item, tbref.Columns[0].CsName, 0)?.ToString();
+                                    if (dicListKey == null) continue;
                                     var dicListVal = Tuple.Create(item, new List<TNavigate>());
                                     if (dicList.TryGetValue(dicListKey, out var items) == false)
                                         dicList.Add(dicListKey, items = new List<Tuple<T1, List<TNavigate>>>());
@@ -891,7 +933,8 @@ namespace FreeSql.Internal.CommonProvider
                             {
                                 if (tbref.Columns.Count == 1)
                                 {
-                                    var dicListKey = getListValue1(item, tbref.Columns[0].CsName).ToString();
+                                    var dicListKey = getListValue1(item, tbref.Columns[0].CsName)?.ToString();
+                                    if (dicListKey == null) continue;
                                     var dicListVal = Tuple.Create(item, new List<TNavigate>());
                                     if (dicList.TryGetValue(dicListKey, out var items) == false)
                                         dicList.Add(dicListKey, items = new List<Tuple<T1, List<TNavigate>>>());

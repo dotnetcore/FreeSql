@@ -67,7 +67,6 @@ namespace FreeSql.Odbc.PostgreSQL
         public override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, ColumnInfo col, Type type, object value)
         {
             if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
-            if (type == null && col != null) type = col.Attribute.MapType ?? col.CsType;
             if (value != null) value = getParamterValue(type, value);
             var ret = new OdbcParameter { ParameterName = QuoteParamterName(parameterName), Value = value };
             //if (value.GetType().IsEnum || value.GetType().GenericTypeArguments.FirstOrDefault()?.IsEnum == true) {

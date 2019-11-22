@@ -17,6 +17,7 @@ namespace FreeSql
         bool _isSyncStructureToUpper = false;
         bool _isConfigEntityFromDbFirst = false;
         bool _isNoneCommandParameter = false;
+        bool _isGenerateCommandParameterWithLambda = false;
         bool _isLazyLoading = false;
         StringConvertType _entityPropertyConvertType = StringConvertType.None;
         Action<DbCommand> _aopCommandExecuting = null;
@@ -97,6 +98,16 @@ namespace FreeSql
         public FreeSqlBuilder UseNoneCommandParameter(bool value)
         {
             _isNoneCommandParameter = value;
+            return this;
+        }
+        /// <summary>
+        /// 是否生成命令参数化执行，针对 lambda 表达式解析
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public FreeSqlBuilder UseGenerateCommandParameterWithLambda(bool value)
+        {
+            _isGenerateCommandParameterWithLambda = value;
             return this;
         }
         /// <summary>

@@ -22,7 +22,6 @@ namespace FreeSql.Internal.CommonProvider
         protected int _whereTimes = 0;
         protected List<GlobalFilter.Item> _whereGlobalFilter;
         protected List<DbParameter> _params = new List<DbParameter>();
-        protected bool _noneParameter;
         protected DbTransaction _transaction;
         protected DbConnection _connection;
 
@@ -32,7 +31,6 @@ namespace FreeSql.Internal.CommonProvider
             _commonUtils = commonUtils;
             _commonExpression = commonExpression;
             _table = _commonUtils.GetTableByEntity(typeof(T1));
-            _noneParameter = _orm.CodeFirst.IsNoneCommandParameter;
             this.Where(_commonUtils.WhereObject(_table, "", dywhere));
             if (_orm.CodeFirst.IsAutoSyncStructure && typeof(T1) != typeof(object)) _orm.CodeFirst.SyncStructure<T1>();
             _whereGlobalFilter = _orm.GlobalFilter.GetFilters();
@@ -87,7 +85,7 @@ namespace FreeSql.Internal.CommonProvider
         }
         public abstract List<T1> ExecuteDeleted();
 
-        public IDelete<T1> Where(Expression<Func<T1, bool>> exp) => this.Where(_commonExpression.ExpressionWhereLambdaNoneForeignObject(null, _table, null, exp?.Body, null, _noneParameter ? _params : null));
+        public IDelete<T1> Where(Expression<Func<T1, bool>> exp) => this.Where(_commonExpression.ExpressionWhereLambdaNoneForeignObject(null, _table, null, exp?.Body, null, _orm.CodeFirst.IsGenerateCommandParameterWithLambda ? _params : null));
         public IDelete<T1> Where(string sql, object parms = null)
         {
             if (string.IsNullOrEmpty(sql)) return this;

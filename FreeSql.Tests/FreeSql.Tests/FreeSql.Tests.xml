@@ -204,6 +204,14 @@
             回复的文本内容
             </summary>
         </member>
+        <member name="M:FreeSql.Tests.DbFunc.SetDbParameter(System.String,System.Int32)">
+            <summary>
+            设置表达式中的 string 参数化长度，优化执行计划
+            </summary>
+            <param name="that"></param>
+            <param name="size"></param>
+            <returns></returns>
+        </member>
         <member name="T:SaleIDO.Entity.Storeage.AdjustPriceOrder">
             <summary>
             调价单

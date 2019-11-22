@@ -19,7 +19,6 @@ namespace FreeSql.Sqlite
         public override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, ColumnInfo col, Type type, object value)
         {
             if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
-            if (type == null && col != null) type = col.Attribute.MapType ?? col.CsType;
             var dbtype = (DbType)_orm.CodeFirst.GetDbInfo(type)?.type;
             switch (dbtype)
             {

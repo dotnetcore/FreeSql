@@ -725,15 +725,15 @@ namespace FreeSql.Tests.Odbc.Default
         [Fact]
         public void Sum()
         {
-            var subquery = select.ToSql(a => new
+            var subquery = select.Where(a => a.Id < 200).ToSql(a => new
             {
                 all = a,
-                count = select.Sum(b => b.Id)
+                count = select.Where(b => b.Id < 200).Sum(b => b.Id)
             });
-            var subqueryList = select.ToList(a => new
+            var subqueryList = select.Where(a => a.Id < 200).ToList(a => new
             {
                 all = a,
-                count = select.Sum(b => b.Id)
+                count = select.Where(b => b.Id < 200).Sum(b => b.Id)
             });
         }
         [Fact]
@@ -767,15 +767,15 @@ namespace FreeSql.Tests.Odbc.Default
         [Fact]
         public void Avg()
         {
-            var subquery = select.ToSql(a => new
+            var subquery = select.Where(a => a.Id < 200).ToSql(a => new
             {
                 all = a,
-                count = select.Avg(b => b.Id)
+                count = select.Where(b => b.Id < 200).Sum(b => b.Id)
             });
-            var subqueryList = select.ToList(a => new
+            var subqueryList = select.Where(a => a.Id < 200).ToList(a => new
             {
                 all = a,
-                count = select.Avg(b => b.Id)
+                count = select.Where(b => b.Id < 200).Sum(b => b.Id)
             });
         }
         [Fact]

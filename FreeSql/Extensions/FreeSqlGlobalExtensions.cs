@@ -128,16 +128,9 @@ public static partial class FreeSqlGlobalExtensions
     /// <typeparam name="TEntity"></typeparam>
     /// <param name="that"></param>
     /// <returns></returns>
-    public static ISelect<TEntity> AsSelect<TEntity>(this IEnumerable<TEntity> that) where TEntity : class
-    {
-        throw new NotImplementedException();
-    }
-    public static ISelect<TEntity> AsSelect<TEntity>(this IEnumerable<TEntity> that, IFreeSql orm = null) where TEntity : class
-    {
-        return orm?.Select<TEntity>();
-    }
-
-    public static FreeSql.ISelect<T> Queryable<T>(this IFreeSql freesql) where T : class => freesql.Select<T>();
+    public static ISelect<TEntity> AsSelect<TEntity>(this IEnumerable<TEntity> that) where TEntity : class => throw new NotImplementedException();
+    public static ISelect<TEntity> AsSelect<TEntity>(this IEnumerable<TEntity> that, IFreeSql orm = null) where TEntity : class => orm?.Select<TEntity>();
+    public static ISelect<T> Queryable<T>(this IFreeSql freesql) where T : class => freesql.Select<T>();
 
     #region 多表查询
     /// <summary>

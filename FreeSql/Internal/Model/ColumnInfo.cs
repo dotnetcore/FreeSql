@@ -13,6 +13,10 @@ namespace FreeSql.Internal.Model
         public Type CsType { get; set; }
         public ColumnAttribute Attribute { get; set; }
         public string Comment { get; internal set; }
+        public string DbTypeText { get; internal set; }
+        public int DbSize { get; internal set; }
+        public byte DbPrecision { get; internal set; }
+        public byte DbScale { get; internal set; }
 
         static ConcurrentDictionary<ColumnInfo, Func<object, object>> _dicGetMapValue = new ConcurrentDictionary<ColumnInfo, Func<object, object>>();
         public object GetMapValue(object obj)

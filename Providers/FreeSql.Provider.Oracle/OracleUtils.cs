@@ -19,7 +19,6 @@ namespace FreeSql.Oracle
         public override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, ColumnInfo col, Type type, object value)
         {
             if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
-            if (type == null && col != null) type = col.Attribute.MapType ?? col.CsType;
             var dbtype = (OracleDbType)_orm.CodeFirst.GetDbInfo(type)?.type;
             if (dbtype == OracleDbType.Boolean)
             {
@@ -27,15 +26,24 @@ namespace FreeSql.Oracle
                 else value = (bool)value == true ? 1 : 0;
                 dbtype = OracleDbType.Int16;
             }
-            else if (col != null && type == typeof(string))
-            {
-                if (col.Attribute.DbType.Contains("NVARCHAR2")) dbtype = OracleDbType.NVarchar2;
-                else if (col.Attribute.DbType.Contains("VARCHAR2")) dbtype = OracleDbType.Varchar2;
-                else if (col.Attribute.DbType.Contains("NCHAR")) dbtype = OracleDbType.NChar;
-                else if (col.Attribute.DbType.Contains("CHAR")) dbtype = OracleDbType.Char;
-                else dbtype = OracleDbType.NVarchar2;
-            }
             var ret = new OracleParameter { ParameterName = QuoteParamterName(parameterName), OracleDbType = dbtype, Value = value };
+            if (col != null)
+            {
+                var dbtype2 = (OracleDbType)_orm.DbFirst.GetDbType(new DatabaseModel.DbColumnInfo { DbTypeTextFull = col.Attribute.DbType.Replace("NOT NULL", "").Trim(), DbTypeText = col.DbTypeText });
+                switch (dbtype2)
+                {
+                    case OracleDbType.Char:
+                    case OracleDbType.Varchar2:
+                    case OracleDbType.NChar:
+                    case OracleDbType.NVarchar2:
+                    case OracleDbType.Decimal:
+                        dbtype = dbtype2;
+                        if (col.DbSize != 0) ret.Size = col.DbSize;
+                        if (col.DbPrecision != 0) ret.Precision = col.DbPrecision;
+                        if (col.DbScale != 0) ret.Scale = col.DbScale;
+                        break;
+                }
+            }
             _params?.Add(ret);
             return ret;
         }

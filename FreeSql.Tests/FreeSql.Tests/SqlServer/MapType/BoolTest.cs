@@ -1110,30 +1110,5 @@ namespace FreeSql.Tests.SqlServerMapType
         public void GuidNullable()
         {
         }
-
-        [Fact]
-        public void MygisPoint()
-        {
-        }
-        [Fact]
-        public void MygisLineString()
-        {
-        }
-        [Fact]
-        public void MygisPolygon()
-        {
-        }
-        [Fact]
-        public void MygisMultiPoint()
-        {
-        }
-        [Fact]
-        public void MygisMultiLineString()
-        {
-        }
-        [Fact]
-        public void MygisMultiPolygon()
-        {
-        }
     }
 }

@@ -48,25 +48,6 @@ namespace FreeSql.Internal
             _orm = orm;
         }
 
-        static Regex _regexSize = new Regex(@"\(([^\)]+)\)", RegexOptions.Compiled);
-        internal void SetParameterSize(DbParameter parm, string dbtypeFull, ColumnInfo col)
-        {
-            if (col == null) return;
-            if (string.IsNullOrEmpty(dbtypeFull)) return;
-            var m = _regexSize.Match(dbtypeFull);
-            if (m.Success == false) return;
-            var sizeStr = m.Groups[1].Value.Trim();
-            if (string.Compare(sizeStr, "max", true) == 0)
-            {
-                parm.Size = -1;
-                return;
-            }
-            var sizeArr = sizeStr.Split(',');
-            if (int.TryParse(sizeArr[0], out var size) == false) return;
-            if (sizeArr.Length > 1 && int.TryParse(sizeArr[1], out var size2)) size += size2;
-            parm.Size = size;
-        }
-
         ConcurrentDictionary<Type, TableAttribute> dicConfigEntity = new ConcurrentDictionary<Type, TableAttribute>();
         public ICodeFirst ConfigEntity<T>(Action<TableFluent<T>> entity)
         {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Text;
 
 namespace FreeSql.DataAnnotations
@@ -18,11 +19,16 @@ namespace FreeSql.DataAnnotations
         /// <summary>
         /// 数据库类型，可用于适配多种数据库环境
         /// </summary>
-        public DataType DataType { get; set; }
+        public DataType DataType { get; internal set; }
 
         /// <summary>
         /// 已解析的表达式中参数内容
         /// </summary>
         public Dictionary<string, string> Values { get; } = new Dictionary<string, string>();
+
+        /// <summary>
+        /// 主对象的参数化对象，可重塑其属性
+        /// </summary>
+        public DbParameter DbParameter { get; internal set; }
     }
 }

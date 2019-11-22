@@ -21,29 +21,34 @@ namespace FreeSql.MySql
         public override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, ColumnInfo col, Type type, object value)
         {
             if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
-            if (type == null && col != null) type = col.Attribute.MapType ?? col.CsType;
             var ret = new MySqlParameter { ParameterName = QuoteParamterName(parameterName), Value = value };
-            var tp = _orm.CodeFirst.GetDbInfo(type)?.type;
-            if (tp != null)
+            var dbtype = (MySqlDbType)_orm.CodeFirst.GetDbInfo(type)?.type;
+            if (col != null)
             {
-                if (col != null && type == typeof(string))
+                var dbtype2 = (MySqlDbType)_orm.DbFirst.GetDbType(new DatabaseModel.DbColumnInfo { DbTypeText = col.DbTypeText, DbTypeTextFull = col.Attribute.DbType, MaxLength = col.DbSize });
+                switch (dbtype2)
                 {
-                    if (col.Attribute.DbType.Contains("VARCHAR")) ret.MySqlDbType = MySqlDbType.VarChar;
-                    else if (col.Attribute.DbType.Contains("CHAR")) ret.MySqlDbType = MySqlDbType.VarChar;
-                    else if (col.Attribute.DbType.Contains("TEXT")) ret.MySqlDbType = MySqlDbType.Text;
-                    else ret.MySqlDbType = MySqlDbType.VarChar;
+                    //case MySqlDbType.Binary:
+                    //case MySqlDbType.VarBinary:
+                    //    break;
+                    default:
+                        dbtype = dbtype2;
+                        if (col.DbSize != 0) ret.Size = col.DbSize;
+                        if (col.DbPrecision != 0) ret.Precision = col.DbPrecision;
+                        if (col.DbScale != 0) ret.Scale = col.DbScale;
+                        break;
                 }
-                else if ((MySqlDbType)tp.Value == MySqlDbType.Geometry)
-                {
-                    ret.MySqlDbType = MySqlDbType.Text;
-                    if (value != null) ret.Value = (value as MygisGeometry).AsText();
-                }
-                else
-                {
-                    ret.MySqlDbType = (MySqlDbType)tp.Value;
-                    if (ret.MySqlDbType == MySqlDbType.Enum && value != null)
-                        ret.Value = (long)Convert.ChangeType(value, typeof(long)) + 1;
-                }
+            }
+            if (dbtype == MySqlDbType.Geometry)
+            {
+                ret.MySqlDbType = MySqlDbType.Text;
+                if (value != null) ret.Value = (value as MygisGeometry).AsText();
+            }
+            else
+            {
+                ret.MySqlDbType = dbtype;
+                if (ret.MySqlDbType == MySqlDbType.Enum && value != null)
+                    ret.Value = (long)Convert.ChangeType(value, typeof(long)) + 1;
             }
             _params?.Add(ret);
             return ret;

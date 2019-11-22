@@ -25,24 +25,20 @@ namespace FreeSql.SqlServer
         public override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, ColumnInfo col, Type type, object value)
         {
             if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
-            if (type == null && col != null) type = col.Attribute.MapType ?? col.CsType;
             if (value?.Equals(DateTime.MinValue) == true) value = new DateTime(1970, 1, 1);
             var ret = new SqlParameter { ParameterName = QuoteParamterName(parameterName), Value = value };
             var tp = _orm.CodeFirst.GetDbInfo(type)?.type;
-            if (tp != null)
+            if (tp != null) ret.SqlDbType = (SqlDbType)tp.Value;
+            if (col != null)
             {
-                if (col != null && type == typeof(string))
+                var dbtype = (SqlDbType)_orm.DbFirst.GetDbType(new DatabaseModel.DbColumnInfo { DbTypeText = col.DbTypeText });
+                if (dbtype != SqlDbType.Variant)
                 {
-                    if (col.Attribute.DbType.Contains("NVARCHAR")) ret.SqlDbType = SqlDbType.NVarChar;
-                    else if (col.Attribute.DbType.Contains("VARCHAR")) ret.SqlDbType = SqlDbType.VarChar;
-                    else if (col.Attribute.DbType.Contains("NCHAR")) ret.SqlDbType = SqlDbType.NChar;
-                    else if (col.Attribute.DbType.Contains("CHAR")) ret.SqlDbType = SqlDbType.Char;
-                    else if (col.Attribute.DbType.Contains("NTEXT")) ret.SqlDbType = SqlDbType.NText;
-                    else if (col.Attribute.DbType.Contains("TEXT")) ret.SqlDbType = SqlDbType.Text;
-                    else ret.SqlDbType = SqlDbType.VarChar;
+                    ret.SqlDbType = dbtype;
+                    if (col.DbSize != 0) ret.Size = col.DbSize;
+                    if (col.DbPrecision != 0) ret.Precision = col.DbPrecision;
+                    if (col.DbScale != 0) ret.Scale = col.DbScale;
                 }
-                else
-                    ret.SqlDbType = (SqlDbType)tp.Value;
             }
             _params?.Add(ret);
             return ret;

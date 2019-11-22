@@ -185,8 +185,6 @@ namespace FreeSql.Tests
         [Fact]
         public void Test02()
         {
-            var testparmSelect = g.sqlserver.Select<TestMySqlStringIsNullable>().Where(a => a.nvarchar == "11" && a.nvarchar_notnull == "22" && a.nvarchar_null == "33" && a.varchar == "11" && a.varchar_notnull == "22" && a.varchar_null == "33");
-
             var slsksd = g.mysql.Update<UserLike>().SetSource(new UserLike { Id = Guid.NewGuid(), CreateUserId = 1000, SubjectId = Guid.NewGuid() })
                 .UpdateColumns(a => new
                 {
@@ -291,6 +289,57 @@ namespace FreeSql.Tests
 
             var sql = g.sqlite.Select<SysModule>()
                 .ToSql(a => a.CreateTime.FormatDateTime("yyyy-MM-dd"));
+
+
+            var parm1 = "11";
+            var parm2 = "22";
+            var parm3 = "33";
+            var testparmSelect = g.sqlserver.Select<TestMySqlStringIsNullable>()
+                .Where(a => 
+                    a.nvarchar == "11" &&
+                    a.nvarchar_notnull == "22" &&
+                    a.nvarchar_null == "33" &&
+                    a.varchar == "11" &&
+                    a.varchar_notnull == "22" &&
+                    a.varchar_null == "33" &&
+
+                    a.nvarchar == parm1 &&
+                    a.nvarchar_notnull == parm2 &&
+                    a.nvarchar_null == parm3 &&
+                    a.varchar == parm3 &&
+                    a.varchar_notnull == parm2 &&
+                    a.varchar_null == parm3 &&
+
+                    a.nvarchar == parm1.SetDbParameter(10) &&
+                    a.nvarchar_notnull == parm2.SetDbParameter(11) &&
+                    a.nvarchar_null == parm3.SetDbParameter(12) &&
+                    a.varchar == parm3.SetDbParameter(13) &&
+                    a.varchar_notnull == parm2.SetDbParameter(14) &&
+                    a.varchar_null == parm3.SetDbParameter(15) &&
+
+
+                    "11" == a.nvarchar &&
+                    "22" == a.nvarchar_notnull &&
+                    "33" == a.nvarchar_null &&
+                    "11" == a.varchar &&
+                    "22" == a.varchar_notnull &&
+                    "33" == a.varchar_null &&
+
+                    parm1 == a.nvarchar &&
+                    parm2 == a.nvarchar_notnull &&
+                    parm3 == a.nvarchar_null &&
+                    parm1 == a.varchar &&
+                    parm2 == a.varchar_notnull &&
+                    parm3 == a.varchar_null &&
+
+                    parm1.SetDbParameter(10) == a.nvarchar &&
+                    parm2.SetDbParameter(11) == a.nvarchar_notnull &&
+                    parm3.SetDbParameter(12) == a.nvarchar_null &&
+                    parm1.SetDbParameter(13) == a.varchar &&
+                    parm2.SetDbParameter(14) == a.varchar_notnull &&
+                    parm3.SetDbParameter(15) == a.varchar_null
+
+                    );
         }
     }
 
@@ -301,7 +350,20 @@ namespace FreeSql.Tests
 
         public static string FormatDateTime(this DateTime that, string arg1)
         {
-            return $"date_format({context.Value.Values["arg1"]})";
+            return $"date_format({context.Value.Values["that"]}, {context.Value.Values["arg1"]})";
+        }
+
+        /// <summary>
+        /// 设置表达式中的 string 参数化长度，优化执行计划
+        /// </summary>
+        /// <param name="that"></param>
+        /// <param name="size"></param>
+        /// <returns></returns>
+        public static string SetDbParameter(this string that, int size)
+        {
+            if (context.Value.DbParameter != null)
+                context.Value.DbParameter.Size = size;
+            return context.Value.Values["that"];
         }
     }
 }
