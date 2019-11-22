@@ -24,11 +24,21 @@ namespace FreeSql.DataAnnotations
         /// <summary>
         /// 已解析的表达式中参数内容
         /// </summary>
-        public Dictionary<string, string> Values { get; } = new Dictionary<string, string>();
+        public Dictionary<string, string> ParsedContent { get; } = new Dictionary<string, string>();
 
         /// <summary>
         /// 主对象的参数化对象，可重塑其属性
         /// </summary>
         public DbParameter DbParameter { get; internal set; }
+
+        /// <summary>
+        /// 可附加参数化对象
+        /// </summary>
+        public List<DbParameter> UserParameters { get; } = new List<DbParameter>();
+
+        /// <summary>
+        /// 返回表达式函数表示的 SQL 字符串
+        /// </summary>
+        public string Result { get; set; }
     }
 }

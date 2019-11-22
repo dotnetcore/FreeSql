@@ -11,6 +11,7 @@ using System.Linq.Expressions;
 using System.Threading.Tasks;
 using System.ComponentModel.DataAnnotations;
 using System.Threading;
+using System.Data.SqlClient;
 
 namespace FreeSql.Tests
 {
@@ -22,7 +23,7 @@ namespace FreeSql.Tests
             /// <summary>
             /// 菜单权限ID
             /// </summary>
-            [Column(IsPrimary = true, OldName = "SysModulePermissionId")] 
+            [Column(IsPrimary = true, OldName = "SysModulePermissionId")]
             public String Id { get; set; }
 
             /// <summary>
@@ -356,27 +357,39 @@ namespace FreeSql.Tests
         }
     }
 
-[ExpressionCall]
-public static class DbFunc
-{
-    static ThreadLocal<ExpressionCallContext> context = new ThreadLocal<ExpressionCallContext>();
-
-    public static string FormatDateTime(this DateTime that, string arg1)
+    [ExpressionCall]
+    public static class DbFunc
     {
-        return $"date_format({context.Value.Values["that"]}, {context.Value.Values["arg1"]})";
-    }
+        static ThreadLocal<ExpressionCallContext> context = new ThreadLocal<ExpressionCallContext>();
 
-    /// <summary>
-    /// 设置表达式中的 string 参数化长度，优化执行计划
-    /// </summary>
-    /// <param name="that"></param>
-    /// <param name="size"></param>
-    /// <returns></returns>
-    public static string SetDbParameter(this string that, int size)
-    {
-        if (context.Value.DbParameter != null)
-            context.Value.DbParameter.Size = size;
-        return context.Value.Values["that"];
+        public static string FormatDateTime(this DateTime that, string arg1)
+        {
+            return $"date_format({context.Value.ParsedContent["that"]}, {context.Value.ParsedContent["arg1"]})";
+        }
+
+        /// <summary>
+        /// 设置表达式中的 string 参数化长度，优化执行计划
+        /// </summary>
+        /// <param name="that"></param>
+        /// <param name="size"></param>
+        /// <returns></returns>
+        public static string SetDbParameter(this string that, int size)
+        {
+            if (context.Value.DbParameter != null)
+            {
+                //已经参数化了，开启了全局表达式参数化功能：UseGenerateCommandParameterWithLambda(true)
+                context.Value.DbParameter.Size = size;
+                return context.Value.ParsedContent["that"];
+            }
+            var guid = Guid.NewGuid().ToString("N").ToLower();
+            context.Value.UserParameters.Add(new SqlParameter
+            {
+                ParameterName = guid,
+                SqlDbType = System.Data.SqlDbType.VarChar,
+                Size = size,
+                Value = that
+            });
+            return $"@{guid}";
+        }
     }
-}
 }

@@ -85,7 +85,7 @@ namespace FreeSql.Internal.CommonProvider
         }
         public abstract List<T1> ExecuteDeleted();
 
-        public IDelete<T1> Where(Expression<Func<T1, bool>> exp) => this.Where(_commonExpression.ExpressionWhereLambdaNoneForeignObject(null, _table, null, exp?.Body, null, _orm.CodeFirst.IsGenerateCommandParameterWithLambda ? _params : null));
+        public IDelete<T1> Where(Expression<Func<T1, bool>> exp) => this.Where(_commonExpression.ExpressionWhereLambdaNoneForeignObject(null, _table, null, exp?.Body, null, _params));
         public IDelete<T1> Where(string sql, object parms = null)
         {
             if (string.IsNullOrEmpty(sql)) return this;

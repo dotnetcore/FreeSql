@@ -546,20 +546,25 @@ namespace FreeSql.Internal
                         var ecc = new ExpressionCallContext { DataType = _ado.DataType };
                         var exp3MethodParams = exp3.Method.GetParameters();
                         var dbParamsIndex = tsc.dbParams?.Count;
-                        ecc.Values.Add(exp3MethodParams[0].Name, ExpressionLambdaToSql(exp3.Arguments[0], tsc));
+                        ecc.ParsedContent.Add(exp3MethodParams[0].Name, ExpressionLambdaToSql(exp3.Arguments[0], tsc));
                         if (tsc.dbParams?.Count > dbParamsIndex) ecc.DbParameter = tsc.dbParams.Last();
-                        List<DbParameter> oldDbParams = tsc.dbParams;
-                        tsc.dbParams = null;
+                        List<DbParameter> oldDbParams = tsc.SetDbParamsReturnOld(null);
                         for (var a = 1; a < exp3.Arguments.Count; a++)
                             if (exp3.Arguments[a].Type != typeof(ExpressionCallContext))
-                                ecc.Values.Add(exp3MethodParams[a].Name, ExpressionLambdaToSql(exp3.Arguments[a], tsc));
-                        tsc.dbParams = oldDbParams;
+                                ecc.ParsedContent.Add(exp3MethodParams[a].Name, ExpressionLambdaToSql(exp3.Arguments[a], tsc));
+                        tsc.SetDbParamsReturnOld(oldDbParams);
 
                         var exp3InvokeParams = new object[exp3.Arguments.Count];
                         for (var a = 0; a < exp3.Arguments.Count; a++)
                         {
                             if (exp3.Arguments[a].Type != typeof(ExpressionCallContext))
-                                exp3InvokeParams[a] = Utils.GetDataReaderValue(exp3.Arguments[a].Type, ecc.Values[exp3MethodParams[a].Name]);// exp3.Arguments[a].Type.CreateInstanceGetDefaultValue();
+                            {
+                                var eccContent = ecc.ParsedContent[exp3MethodParams[a].Name];
+                                exp3InvokeParams[a] = Utils.GetDataReaderValue(exp3.Arguments[a].Type,
+                                    eccContent.StartsWith("N'") ?
+                                    eccContent.Substring(1).Trim('\'').Replace("''", "'") :
+                                    eccContent.Trim('\'').Replace("''", "'"));// exp3.Arguments[a].Type.CreateInstanceGetDefaultValue();
+                            }
                             else
                                 exp3InvokeParams[a] = ecc;
                         }
@@ -571,7 +576,11 @@ namespace FreeSql.Internal
                             typeof(ThreadLocal<ExpressionCallContext>).GetProperty("Value").SetValue(eccField.GetValue(null), ecc, null);
                         try
                         {
-                            return string.Concat(exp3.Method.Invoke(null, exp3InvokeParams));
+                            var sqlRet = exp3.Method.Invoke(null, exp3InvokeParams);
+                            if (string.IsNullOrEmpty(ecc.Result) && sqlRet is string) ecc.Result = string.Concat(sqlRet);
+                            if (string.IsNullOrEmpty(ecc.Result)) ecc.Result = ecc.ParsedContent[exp3MethodParams[0].Name];
+                            if (ecc.UserParameters.Any()) tsc.dbParams?.AddRange(ecc.UserParameters);
+                            return ecc.Result;
                         }
                         finally
                         {
@@ -1335,8 +1344,9 @@ namespace FreeSql.Internal
         public string formatSql(object obj, Type mapType, ColumnInfo mapColumn, List<DbParameter> dbParams)
         {
             //参数化设置，日后优化
-            if (dbParams != null)
+            if (_common.CodeFirst.IsGenerateCommandParameterWithLambda && dbParams != null)
             {
+                if (obj == null) return "NULL";
                 var paramName = $"exp_{dbParams.Count}";
                 var parm = _common.AppendParamter(dbParams, paramName, mapColumn,
                     mapType ?? mapColumn?.Attribute.MapType ?? obj?.GetType(), mapType == null ? obj : Utils.GetDataReaderValue(mapType, obj));
