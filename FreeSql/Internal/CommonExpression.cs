@@ -583,7 +583,7 @@ namespace FreeSql.Internal
                             var sqlRet = exp3.Method.Invoke(null, exp3InvokeParams);
                             if (string.IsNullOrEmpty(ecc.Result) && sqlRet is string) ecc.Result = string.Concat(sqlRet);
                             if (string.IsNullOrEmpty(ecc.Result)) ecc.Result = ecc.ParsedContent[exp3MethodParams[0].Name];
-                            if (ecc.UserParameters.Any()) tsc.dbParams?.AddRange(ecc.UserParameters);
+                            if (ecc?.UserParameters.Any() == true) tsc.dbParams?.AddRange(ecc.UserParameters);
                             return ecc.Result;
                         }
                         finally
