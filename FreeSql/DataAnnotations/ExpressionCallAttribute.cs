@@ -7,9 +7,9 @@ namespace FreeSql.DataAnnotations
 {
     /// <summary>
     /// 自定义表达式函数解析<para></para>
-    /// 注意：请使用静态扩展类
+    /// 注意：请使用静态方法、或者在类上标记
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
     public class ExpressionCallAttribute : Attribute
     {
     }
@@ -32,9 +32,10 @@ namespace FreeSql.DataAnnotations
         public DbParameter DbParameter { get; internal set; }
 
         /// <summary>
-        /// 可附加参数化对象
+        /// 可附加参数化对象<para></para>
+        /// 注意：本属性只有 Where 的表达式解析才可用
         /// </summary>
-        public List<DbParameter> UserParameters { get; } = new List<DbParameter>();
+        public List<DbParameter> UserParameters { get; internal set; }
 
         /// <summary>
         /// 返回表达式函数表示的 SQL 字符串

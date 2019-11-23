@@ -10,6 +10,7 @@ public class g
     static Lazy<IFreeSql> mysqlLazy = new Lazy<IFreeSql>(() => new FreeSql.FreeSqlBuilder()
         .UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd_mysqlconnector;Charset=utf8;SslMode=none;Max pool size=10")
         .UseAutoSyncStructure(true)
+        //.UseGenerateCommandParameterWithLambda(true)
         .UseMonitorCommand(
             cmd =>
             {

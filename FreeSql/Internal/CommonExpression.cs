@@ -500,6 +500,7 @@ namespace FreeSql.Internal
             return $"{left} {oper} {right}";
         }
         static ConcurrentDictionary<Type, bool> _dicTypeExistsExpressionCallAttribute = new ConcurrentDictionary<Type, bool>();
+        static ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>> _dicMethodExistsExpressionCallAttribute = new ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>>();
         static ConcurrentDictionary<Type, FieldInfo[]> _dicTypeExpressionCallClassContextFields = new ConcurrentDictionary<Type, FieldInfo[]>();
         public string ExpressionLambdaToSql(Expression exp, ExpTSC tsc)
         {
@@ -541,9 +542,12 @@ namespace FreeSql.Internal
                 case ExpressionType.Call:
                     tsc.mapType = null;
                     var exp3 = exp as MethodCallExpression;
-                    if (exp3.Object == null && _dicTypeExistsExpressionCallAttribute.GetOrAdd(exp3.Method.DeclaringType, dttp => dttp.GetCustomAttributes(typeof(ExpressionCallAttribute), true).Any()))
+                    if (exp3.Object == null && (
+                        _dicTypeExistsExpressionCallAttribute.GetOrAdd(exp3.Method.DeclaringType, dttp => dttp.GetCustomAttributes(typeof(ExpressionCallAttribute), true).Any()) ||
+                        exp3.Method.GetCustomAttributes(typeof(ExpressionCallAttribute), true).Any()
+                        ))
                     {
-                        var ecc = new ExpressionCallContext { DataType = _ado.DataType };
+                        var ecc = new ExpressionCallContext { DataType = _ado.DataType, UserParameters = tsc.dbParams == null ? null : new List<DbParameter>() };
                         var exp3MethodParams = exp3.Method.GetParameters();
                         var dbParamsIndex = tsc.dbParams?.Count;
                         ecc.ParsedContent.Add(exp3MethodParams[0].Name, ExpressionLambdaToSql(exp3.Arguments[0], tsc));

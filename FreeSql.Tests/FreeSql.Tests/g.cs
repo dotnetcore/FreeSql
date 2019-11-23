@@ -11,6 +11,7 @@ public class g
     static Lazy<IFreeSql> mysqlLazy = new Lazy<IFreeSql>(() => new FreeSql.FreeSqlBuilder()
         .UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=2")
         .UseAutoSyncStructure(true)
+        //.UseGenerateCommandParameterWithLambda(true)
         .UseMonitorCommand(
             cmd => Trace.WriteLine(cmd.CommandText), //监听SQL命令对象，在执行前
             (cmd, traceLog) => Console.WriteLine(traceLog))
@@ -24,6 +25,7 @@ public class g
         return new FreeSql.FreeSqlBuilder()
         .UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=2")
         .UseAutoSyncStructure(true)
+        //.UseGenerateCommandParameterWithLambda(true)
         .UseSyncStructureToLower(true)
         .UseLazyLoading(true)
         .UseMonitorCommand(
@@ -48,6 +50,7 @@ public class g
     static Lazy<IFreeSql> oracleLazy = new Lazy<IFreeSql>(() => new FreeSql.FreeSqlBuilder()
         .UseConnectionString(FreeSql.DataType.Oracle, "user id=user1;password=123456;data source=//127.0.0.1:1521/XE;Pooling=true;Max Pool Size=2")
         .UseAutoSyncStructure(true)
+        //.UseGenerateCommandParameterWithLambda(true)
         .UseLazyLoading(true)
         .UseSyncStructureToUpper(true)
         //.UseNoneCommandParameter(true)
@@ -61,6 +64,7 @@ public class g
     static Lazy<IFreeSql> sqliteLazy = new Lazy<IFreeSql>(() => new FreeSql.FreeSqlBuilder()
         .UseConnectionString(FreeSql.DataType.Sqlite, @"Data Source=|DataDirectory|\document.db;Attachs=xxxtb.db;Pooling=true;Max Pool Size=2")
         .UseAutoSyncStructure(true)
+        //.UseGenerateCommandParameterWithLambda(true)
         .UseLazyLoading(true)
         .UseMonitorCommand(
             cmd => Trace.WriteLine(cmd.CommandText), //监听SQL命令对象，在执行前
