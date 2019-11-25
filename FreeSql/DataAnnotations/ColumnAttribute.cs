@@ -72,17 +72,9 @@ namespace FreeSql.DataAnnotations
         /// </summary>
         public bool CanUpdate { get => _CanUpdate ?? true; set => _CanUpdate = value; }
 
-        internal DateTimeKind? _ServerTime;
         /// <summary>
         /// 标记属性为数据库服务器时间(utc/local)，在插入的时候使用类似 getdate() 执行
         /// </summary>
-        public DateTimeKind ServerTime
-        {
-            get => _ServerTime ?? DateTimeKind.Local;
-            set
-            {
-                _ServerTime = value == DateTimeKind.Unspecified ? DateTimeKind.Local : value;
-            }
-        }
+        public DateTimeKind ServerTime { get; set; }
     }
 }

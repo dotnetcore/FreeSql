@@ -128,7 +128,7 @@ namespace FreeSql.Internal
                 if (trycol._Position != null) attr._Position = trycol.Position;
                 if (trycol._CanInsert != null) attr._CanInsert = trycol.CanInsert;
                 if (trycol._CanUpdate != null) attr._CanUpdate = trycol.CanUpdate;
-                if (trycol._ServerTime != null) attr._ServerTime = trycol._ServerTime;
+                if (trycol.ServerTime != DateTimeKind.Unspecified) attr.ServerTime = trycol.ServerTime;
             }
             var attrs = proto.GetCustomAttributes(typeof(ColumnAttribute), false);
             foreach (var tryattrobj in attrs)
@@ -147,7 +147,7 @@ namespace FreeSql.Internal
                 if (tryattr._Position != null) attr._Position = tryattr.Position;
                 if (tryattr._CanInsert != null) attr._CanInsert = tryattr.CanInsert;
                 if (tryattr._CanUpdate != null) attr._CanUpdate = tryattr.CanUpdate;
-                if (tryattr._ServerTime != null) attr._ServerTime = tryattr.ServerTime;
+                if (tryattr.ServerTime != DateTimeKind.Unspecified) attr.ServerTime = tryattr.ServerTime;
             }
             ColumnAttribute ret = null;
             if (!string.IsNullOrEmpty(attr.Name)) ret = attr;
@@ -162,7 +162,7 @@ namespace FreeSql.Internal
             if (attr._Position != null) ret = attr;
             if (attr._CanInsert != null) ret = attr;
             if (attr._CanUpdate != null) ret = attr;
-            if (attr._ServerTime != null) ret = attr;
+            if (attr.ServerTime != DateTimeKind.Unspecified) ret = attr;
             if (ret != null && ret.MapType == null) ret.MapType = proto.PropertyType;
             return ret;
         }

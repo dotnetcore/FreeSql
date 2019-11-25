@@ -189,7 +189,7 @@ namespace FreeSql.Internal
                 //    else if (Math.Abs(dt.Subtract(DateTime.UtcNow).TotalSeconds) < 60)
                 //        col.DbDefaultValue = common.NowUtc;
                 //}
-                if (colattr._ServerTime != null && new[] { typeof(DateTime), typeof(DateTimeOffset) }.Contains(colattr.MapType.NullableTypeOrThis()))
+                if (colattr.ServerTime != DateTimeKind.Unspecified && new[] { typeof(DateTime), typeof(DateTimeOffset) }.Contains(colattr.MapType.NullableTypeOrThis()))
                 {
                     col.DbDefaultValue = colattr.ServerTime == DateTimeKind.Local ? common.Now : common.NowUtc;
                     col.DbInsertValue = colattr.ServerTime == DateTimeKind.Local ? common.Now : common.NowUtc;
