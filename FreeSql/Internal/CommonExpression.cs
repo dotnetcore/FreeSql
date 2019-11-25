@@ -110,7 +110,7 @@ namespace FreeSql.Internal
                     parent.Consturctor = initExp.NewExpression.Type.GetConstructors()[0];
                     parent.ConsturctorType = ReadAnonymousTypeInfoConsturctorType.Properties;
 
-                    if (initExp.NewExpression.Type != _tables.FirstOrDefault()?.Table.Type)
+                    if (_tables != null && _tables.Any() && initExp.NewExpression.Type != _tables.FirstOrDefault().Table.Type)
                     {
                         //dto 映射
                         var dtoProps = initExp.NewExpression.Type.GetPropertiesDictIgnoreCase().Values;

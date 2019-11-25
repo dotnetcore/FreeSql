@@ -117,8 +117,7 @@ namespace FreeSql.Sqlite
                         sb.Append("CREATE TABLE IF NOT EXISTS ").Append(createTableName).Append(" ( ");
                         foreach (var tbcol in tb.ColumnsByPosition)
                         {
-                            sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ");
-                            sb.Append(tbcol.Attribute.DbType);
+                            sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType);
                             if (tbcol.Attribute.IsIdentity == true && tbcol.Attribute.DbType.IndexOf("AUTOINCREMENT", StringComparison.CurrentCultureIgnoreCase) == -1)
                             {
                                 isIndent = true;
@@ -244,8 +243,7 @@ namespace FreeSql.Sqlite
                 sb.Append("CREATE TABLE IF NOT EXISTS ").Append(tmptablename).Append(" ( ");
                 foreach (var tbcol in tb.ColumnsByPosition)
                 {
-                    sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ");
-                    sb.Append(tbcol.Attribute.DbType);
+                    sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType);
                     if (tbcol.Attribute.IsIdentity == true && tbcol.Attribute.DbType.IndexOf("AUTOINCREMENT", StringComparison.CurrentCultureIgnoreCase) == -1)
                     {
                         isIndent = true;
@@ -278,10 +276,10 @@ namespace FreeSql.Sqlite
                             insertvalue = $"cast({insertvalue} as {dbtypeNoneNotNull})";
                         }
                         if (tbcol.Attribute.IsNullable != tbstructcol.is_nullable)
-                            insertvalue = $"ifnull({insertvalue},{_commonUtils.FormatSql("{0}", tbcol.Attribute.DbDefautValue)})";
+                            insertvalue = $"ifnull({insertvalue},{tbcol.DbDefaultValue})";
                     }
                     else if (tbcol.Attribute.IsNullable == false)
-                        insertvalue = _commonUtils.FormatSql("{0}", tbcol.Attribute.DbDefautValue);
+                        insertvalue = tbcol.DbDefaultValue;
                     sb.Append(insertvalue).Append(", ");
                 }
                 sb.Remove(sb.Length - 2, 2).Append(" FROM ").Append(tablename).Append(";\r\n");

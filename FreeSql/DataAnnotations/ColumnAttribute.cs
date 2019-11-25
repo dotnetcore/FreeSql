@@ -44,11 +44,6 @@ namespace FreeSql.DataAnnotations
         public bool IsVersion { get => _IsVersion ?? false; set => _IsVersion = value; }
 
         /// <summary>
-        /// 数据库默认值
-        /// </summary>
-        public object DbDefautValue { get; internal set; }
-
-        /// <summary>
         /// 类型映射，除了可做基本的类型映射外，特别介绍的功能：<para></para>
         /// 1、将 enum 属性映射成 typeof(string)<para></para>
         /// 2、将 对象 属性映射成 typeof(string)，请安装扩展包 FreeSql.Extensions.JsonMap
@@ -76,5 +71,18 @@ namespace FreeSql.DataAnnotations
         /// 该字段是否可以更新，默认值true，指定为false更新时该字段会被忽略
         /// </summary>
         public bool CanUpdate { get => _CanUpdate ?? true; set => _CanUpdate = value; }
+
+        internal DateTimeKind? _ServerTime;
+        /// <summary>
+        /// 标记属性为数据库服务器时间(utc/local)，在插入的时候使用类似 getdate() 执行
+        /// </summary>
+        public DateTimeKind ServerTime
+        {
+            get => _ServerTime ?? DateTimeKind.Local;
+            set
+            {
+                _ServerTime = value == DateTimeKind.Unspecified ? DateTimeKind.Local : value;
+            }
+        }
     }
 }

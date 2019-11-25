@@ -670,10 +670,10 @@ namespace FreeSql.Tests
                 .From<Templates>((a, b) => a.InnerJoin(aa => aa.TemplatesId
                   == b.Id2))
                  .GroupBy((a, b) => b.Code)
-                 .ToSql(a => new
+                 .ToSql(a => new NewsArticleDto
                  {
-                     a.Key,
-                     sss = a.Sum(a.Value.Item1.OptionsEntity04)
+                     ArticleTitle = a.Key,
+                      ChannelId = a.Sum(a.Value.Item1.OptionsEntity04)
                  });
 
             var testgrpsql2 = g.sqlite.Select<TaskBuild>()

@@ -175,8 +175,8 @@ namespace FreeSql.Oracle
             {
                 switch (exp.Member.Name)
                 {
-                    case "Now": return "systimestamp";
-                    case "UtcNow": return "sys_extract_utc(systimestamp)";
+                    case "Now": return _common.Now;
+                    case "UtcNow": return _common.NowUtc;
                     case "Today": return "trunc(systimestamp)";
                     case "MinValue": return "to_timestamp('0001-01-01 00:00:00','YYYY-MM-DD HH24:MI:SS.FF6')";
                     case "MaxValue": return "to_timestamp('9999-12-31 23:59:59','YYYY-MM-DD HH24:MI:SS.FF6')";

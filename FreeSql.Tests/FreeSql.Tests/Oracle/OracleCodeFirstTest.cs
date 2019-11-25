@@ -36,6 +36,7 @@ namespace FreeSql.Tests.Oracle
 
             public string 标题 { get; set; }
 
+            [Column(ServerTime = DateTimeKind.Local)]
             public DateTime 创建时间 { get; set; }
         }
 
@@ -222,8 +223,12 @@ namespace FreeSql.Tests.Oracle
             public float Float { get; set; }
             public decimal Decimal { get; set; }
             public TimeSpan TimeSpan { get; set; }
+
+            [Column(ServerTime = DateTimeKind.Local)]
             public DateTime DateTime { get; set; }
+            [Column(ServerTime = DateTimeKind.Local)]
             public DateTime DateTimeOffSet { get; set; }
+
             public byte[] Bytes { get; set; }
             public string String { get; set; }
             public Guid Guid { get; set; }
@@ -241,8 +246,12 @@ namespace FreeSql.Tests.Oracle
             public float? FloatNullable { get; set; }
             public decimal? DecimalNullable { get; set; }
             public TimeSpan? TimeSpanNullable { get; set; }
+
+            [Column(ServerTime = DateTimeKind.Local)]
             public DateTime? DateTimeNullable { get; set; }
+            [Column(ServerTime = DateTimeKind.Local)]
             public DateTime? DateTimeOffSetNullable { get; set; }
+
             public Guid? GuidNullable { get; set; }
 
             public TableAllTypeEnumType1 Enum1 { get; set; }

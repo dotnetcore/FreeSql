@@ -183,9 +183,44 @@ namespace FreeSql.Tests
             public string varchar_notnull { get; set; }
         }
 
+        public class TestIgnoreDefaultValue { 
+            public Guid Id { get; set; }
+
+            [Column(IsIgnore = true)]
+            public double? quantity { get; set; } = 100f;
+
+            public DateTime ct1 { get; set; }
+            public DateTime? ct2 { get; set; }
+        }
+
         [Fact]
         public void Test02()
         {
+            var serverTime = g.pgsql.Select<TestIgnoreDefaultValue>().Limit(1).First(a => DateTime.UtcNow);
+            var timeOffset = DateTime.UtcNow.Subtract(serverTime); //减去数据库时间
+
+            g.pgsql.Aop.AuditValue += new EventHandler<Aop.AuditValueEventArgs>((_, e) =>
+            {
+                if (e.Column.Attribute.MapType.NullableTypeOrThis() == typeof(DateTime))
+                {
+                    if (e.Value == null || (DateTime)e.Value == default(DateTime))
+                    {
+                        e.Value = DateTime.Now.Subtract(timeOffset);
+                        return;
+                    }
+                }
+            });
+
+
+            g.pgsql.Delete<TestIgnoreDefaultValue>().Where("1=1").ExecuteAffrows();
+            g.pgsql.GetRepository<TestIgnoreDefaultValue>().Insert(new TestIgnoreDefaultValue[]
+            {
+                new TestIgnoreDefaultValue(),
+                new TestIgnoreDefaultValue(),
+                new TestIgnoreDefaultValue()
+            });
+            var testttt = g.pgsql.Select<TestIgnoreDefaultValue>().Limit(10).ToList();
+
             var slsksd = g.mysql.Update<UserLike>().SetSource(new UserLike { Id = Guid.NewGuid(), CreateUserId = 1000, SubjectId = Guid.NewGuid() })
                 .UpdateColumns(a => new
                 {

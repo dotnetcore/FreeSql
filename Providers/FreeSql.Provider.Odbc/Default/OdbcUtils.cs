@@ -60,6 +60,8 @@ namespace FreeSql.Odbc.Default
         public override string StringConcat(string[] objs, Type[] types) => Adapter.ConcatSql(objs, types);
         public override string Mod(string left, string right, Type leftType, Type rightType) => Adapter.Mod(left, right, leftType, rightType);
         public override string Div(string left, string right, Type leftType, Type rightType) => Adapter.Div(left, right, leftType, rightType);
+        public override string Now => Adapter.LambdaDateTime_Now;
+        public override string NowUtc => Adapter.LambdaDateTime_UtcNow;
 
         public override string QuoteWriteParamter(Type type, string paramterName) => paramterName;
         public override string QuoteReadColumn(Type type, string columnName) => Adapter.FieldSql(type, columnName);

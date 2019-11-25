@@ -85,6 +85,8 @@ namespace FreeSql.Sqlite
         public override string StringConcat(string[] objs, Type[] types) => $"{string.Join(" || ", objs)}";
         public override string Mod(string left, string right, Type leftType, Type rightType) => $"{left} % {right}";
         public override string Div(string left, string right, Type leftType, Type rightType) => $"{left} / {right}";
+        public override string Now => "datetime(current_timestamp,'localtime')";
+        public override string NowUtc => "current_timestamp";
 
         public override string QuoteWriteParamter(Type type, string paramterName) => paramterName;
         public override string QuoteReadColumn(Type type, string columnName) => columnName;

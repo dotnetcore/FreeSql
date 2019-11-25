@@ -14,6 +14,8 @@ namespace FreeSql.Internal.Model
         public ColumnAttribute Attribute { get; set; }
         public string Comment { get; internal set; }
         public string DbTypeText { get; internal set; }
+        public string DbDefaultValue { get; internal set; }
+        public string DbInsertValue { get; internal set; }
         public int DbSize { get; internal set; }
         public byte DbPrecision { get; internal set; }
         public byte DbScale { get; internal set; }

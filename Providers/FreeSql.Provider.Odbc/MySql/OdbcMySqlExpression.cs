@@ -175,8 +175,8 @@ namespace FreeSql.Odbc.MySql
             {
                 switch (exp.Member.Name)
                 {
-                    case "Now": return "now()";
-                    case "UtcNow": return "utc_timestamp()";
+                    case "Now": return _common.Now;
+                    case "UtcNow": return _common.NowUtc;
                     case "Today": return "curdate()";
                     case "MinValue": return "cast('0001/1/1 0:00:00' as datetime)";
                     case "MaxValue": return "cast('9999/12/31 23:59:59' as datetime)";

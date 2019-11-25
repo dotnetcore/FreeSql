@@ -175,8 +175,8 @@ namespace FreeSql.Sqlite
             {
                 switch (exp.Member.Name)
                 {
-                    case "Now": return "datetime(current_timestamp,'localtime')";
-                    case "UtcNow": return "current_timestamp";
+                    case "Now": return _common.Now;
+                    case "UtcNow": return _common.NowUtc;
                     case "Today": return "date(current_timestamp,'localtime')";
                     case "MinValue": return "datetime('0001-01-01 00:00:00.000')";
                     case "MaxValue": return "datetime('9999-12-31 23:59:59.999')";

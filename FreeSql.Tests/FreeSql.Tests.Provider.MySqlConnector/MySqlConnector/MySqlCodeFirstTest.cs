@@ -36,6 +36,7 @@ namespace FreeSql.Tests.MySqlConnector
 
             public string 标题 { get; set; }
 
+            [Column(ServerTime = DateTimeKind.Local)]
             public DateTime 创建时间 { get; set; }
         }
 
@@ -458,7 +459,10 @@ namespace FreeSql.Tests.MySqlConnector
             public float testFieldFloat { get; set; }
             public decimal testFieldDecimal { get; set; }
             public TimeSpan testFieldTimeSpan { get; set; }
+
+            [Column(ServerTime = DateTimeKind.Local)]
             public DateTime testFieldDateTime { get; set; }
+
             public byte[] testFieldBytes { get; set; }
             public string testFieldString { get; set; }
             public Guid testFieldGuid { get; set; }
@@ -476,7 +480,10 @@ namespace FreeSql.Tests.MySqlConnector
             public float? testFieldFloatNullable { get; set; }
             public decimal? testFieldDecimalNullable { get; set; }
             public TimeSpan? testFieldTimeSpanNullable { get; set; }
+
+            [Column(ServerTime = DateTimeKind.Local)]
             public DateTime? testFieldDateTimeNullable { get; set; }
+
             public Guid? testFieldGuidNullable { get; set; }
 
             public MygisPoint testFieldPoint { get; set; }

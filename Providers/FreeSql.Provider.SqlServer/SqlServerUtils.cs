@@ -85,6 +85,8 @@ namespace FreeSql.SqlServer
         }
         public override string Mod(string left, string right, Type leftType, Type rightType) => $"{left} % {right}";
         public override string Div(string left, string right, Type leftType, Type rightType) => $"{left} / {right}";
+        public override string Now => "getdate()";
+        public override string NowUtc => "getutcdate()";
 
         public override string QuoteWriteParamter(Type type, string paramterName) => paramterName;
         public override string QuoteReadColumn(Type type, string columnName) => columnName;

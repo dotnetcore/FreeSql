@@ -151,26 +151,48 @@ namespace FreeSql.Internal
                     trytb.ColumnsByCsIgnore.Add(p.Name, col);
                     continue;
                 }
-                if (entityDefault != null) colattr.DbDefautValue = trytb.Properties[p.Name].GetValue(entityDefault, null);
+                object defaultValue = null;
+                if (entityDefault != null) defaultValue = trytb.Properties[p.Name].GetValue(entityDefault, null);
                 if (p.PropertyType.IsEnum)
                 {
                     var isEqualsEnumValue = false;
                     var enumValues = Enum.GetValues(p.PropertyType);
                     for (var a = 0; a < enumValues.Length; a++)
-                        if (object.Equals(colattr.DbDefautValue, enumValues.GetValue(a)))
+                        if (object.Equals(defaultValue, enumValues.GetValue(a)))
                         {
                             isEqualsEnumValue = true;
                             break;
                         }
                     if (isEqualsEnumValue == false && enumValues.Length > 0)
-                        colattr.DbDefautValue = enumValues.GetValue(0);
+                        defaultValue = enumValues.GetValue(0);
                 }
-                if (colattr.DbDefautValue != null && p.PropertyType != colattr.MapType) colattr.DbDefautValue = Utils.GetDataReaderValue(colattr.MapType, colattr.DbDefautValue);
-                if (colattr.DbDefautValue == null) colattr.DbDefautValue = tp?.defaultValue;
-                if (colattr.IsNullable == false && colattr.DbDefautValue == null)
+                if (defaultValue != null && p.PropertyType != colattr.MapType) defaultValue = Utils.GetDataReaderValue(colattr.MapType, defaultValue);
+                if (defaultValue == null) defaultValue = tp?.defaultValue;
+                if (colattr.IsNullable == false && defaultValue == null)
                 {
                     var citype = colattr.MapType.IsNullableType() ? colattr.MapType.GetGenericArguments().FirstOrDefault() : colattr.MapType;
-                    colattr.DbDefautValue = citype.CreateInstanceGetDefaultValue();
+                    defaultValue = citype.CreateInstanceGetDefaultValue();
+                }
+                try
+                {
+                    col.DbDefaultValue = common.GetNoneParamaterSqlValue(new List<DbParameter>(), colattr.MapType, defaultValue);
+                }
+                catch
+                {
+                    col.DbDefaultValue = "NULL";
+                }
+                //if (defaultValue != null && colattr.MapType.NullableTypeOrThis() == typeof(DateTime))
+                //{
+                //    var dt = (DateTime)defaultValue;
+                //    if (Math.Abs(dt.Subtract(DateTime.Now).TotalSeconds) < 60)
+                //        col.DbDefaultValue = common.Now;
+                //    else if (Math.Abs(dt.Subtract(DateTime.UtcNow).TotalSeconds) < 60)
+                //        col.DbDefaultValue = common.NowUtc;
+                //}
+                if (colattr._ServerTime != null && new[] { typeof(DateTime), typeof(DateTimeOffset) }.Contains(colattr.MapType.NullableTypeOrThis()))
+                {
+                    col.DbDefaultValue = colattr.ServerTime == DateTimeKind.Local ? common.Now : common.NowUtc;
+                    col.DbInsertValue = colattr.ServerTime == DateTimeKind.Local ? common.Now : common.NowUtc;
                 }
 
                 trytb.Columns.Add(colattr.Name, col);
@@ -1584,7 +1606,11 @@ namespace FreeSql.Internal
                         Expression.Block(
                             new[] { arrNewExp, arrExp, arrLenExp, arrXExp, arrReadValExp },
                             Expression.Assign(arrExp, Expression.TypeAs(valueExp, typeof(Array))),
-                            Expression.Assign(arrLenExp, Expression.Call(arrExp, MethodArrayGetLength, Expression.Constant(0))),
+                            Expression.IfThenElse(
+                                Expression.Equal(arrExp, Expression.Constant(null)),
+                                Expression.Assign(arrLenExp, Expression.Constant(0)),
+                                Expression.Assign(arrLenExp, Expression.Call(arrExp, MethodArrayGetLength, Expression.Constant(0)))
+                            ),
                             Expression.Assign(arrXExp, Expression.Constant(0)),
                             Expression.Assign(arrNewExp, Expression.NewArrayBounds(elementType, arrLenExp)),
                             Expression.Loop(

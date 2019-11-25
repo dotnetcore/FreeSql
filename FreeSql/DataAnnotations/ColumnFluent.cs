@@ -124,5 +124,16 @@ namespace FreeSql.DataAnnotations
             _column.CanUpdate = value;
             return this;
         }
+
+        /// <summary>
+        /// 标记属性为数据库服务器时间(utc/local)，在插入的时候使用类似 getdate() 执行
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public ColumnFluent ServerTime(DateTimeKind value)
+        {
+            _column.ServerTime = value;
+            return this;
+        }
     }
 }

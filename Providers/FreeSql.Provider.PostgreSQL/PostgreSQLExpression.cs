@@ -295,8 +295,8 @@ namespace FreeSql.PostgreSQL
             {
                 switch (exp.Member.Name)
                 {
-                    case "Now": return "current_timestamp";
-                    case "UtcNow": return "(current_timestamp at time zone 'UTC')";
+                    case "Now": return _common.Now;
+                    case "UtcNow": return _common.NowUtc;
                     case "Today": return "current_date";
                     case "MinValue": return "'0001/1/1 0:00:00'::timestamp";
                     case "MaxValue": return "'9999/12/31 23:59:59'::timestamp";

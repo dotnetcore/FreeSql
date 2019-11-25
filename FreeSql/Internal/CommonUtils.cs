@@ -34,6 +34,8 @@ namespace FreeSql.Internal
         public abstract string StringConcat(string[] objs, Type[] types);
         public abstract string Mod(string left, string right, Type leftType, Type rightType);
         public abstract string Div(string left, string right, Type leftType, Type rightType);
+        public abstract string Now { get; }
+        public abstract string NowUtc { get; }
         public abstract string QuoteWriteParamter(Type type, string paramterName);
         public abstract string QuoteReadColumn(Type type, string columnName);
 
@@ -126,7 +128,7 @@ namespace FreeSql.Internal
                 if (trycol._Position != null) attr._Position = trycol.Position;
                 if (trycol._CanInsert != null) attr._CanInsert = trycol.CanInsert;
                 if (trycol._CanUpdate != null) attr._CanUpdate = trycol.CanUpdate;
-                if (trycol.DbDefautValue != null) attr.DbDefautValue = trycol.DbDefautValue;
+                if (trycol._ServerTime != null) attr._ServerTime = trycol._ServerTime;
             }
             var attrs = proto.GetCustomAttributes(typeof(ColumnAttribute), false);
             foreach (var tryattrobj in attrs)
@@ -145,7 +147,7 @@ namespace FreeSql.Internal
                 if (tryattr._Position != null) attr._Position = tryattr.Position;
                 if (tryattr._CanInsert != null) attr._CanInsert = tryattr.CanInsert;
                 if (tryattr._CanUpdate != null) attr._CanUpdate = tryattr.CanUpdate;
-                if (tryattr.DbDefautValue != null) attr.DbDefautValue = tryattr.DbDefautValue;
+                if (tryattr._ServerTime != null) attr._ServerTime = tryattr.ServerTime;
             }
             ColumnAttribute ret = null;
             if (!string.IsNullOrEmpty(attr.Name)) ret = attr;
@@ -160,7 +162,7 @@ namespace FreeSql.Internal
             if (attr._Position != null) ret = attr;
             if (attr._CanInsert != null) ret = attr;
             if (attr._CanUpdate != null) ret = attr;
-            if (attr.DbDefautValue != null) ret = attr;
+            if (attr._ServerTime != null) ret = attr;
             if (ret != null && ret.MapType == null) ret.MapType = proto.PropertyType;
             return ret;
         }
@@ -343,8 +345,16 @@ namespace FreeSql.Internal
         /// <returns>Dict：key=属性名，value=注释</returns>
         public static Dictionary<string, string> GetProperyCommentBySummary(Type type)
         {
-            var xmlPath = type.Assembly.Location.Replace(".dll", ".xml").Replace(".exe", ".xml");
-            if (File.Exists(xmlPath) == false) return null;
+            var regex = new Regex(@"\.(dll|exe)", RegexOptions.IgnoreCase);
+            var xmlPath = regex.Replace(type.Assembly.Location, ".xml");
+            if (File.Exists(xmlPath) == false)
+            {
+                if (string.IsNullOrEmpty(type.Assembly.CodeBase)) return null;
+                xmlPath = regex.Replace(type.Assembly.CodeBase, ".xml");
+                if (xmlPath.StartsWith("file:///") && Uri.TryCreate(xmlPath, UriKind.Absolute, out var tryuri))
+                    xmlPath = tryuri.LocalPath;
+                if (File.Exists(xmlPath) == false) return null;
+            }
 
             var dic = new Dictionary<string, string>();
             var sReader = new StringReader(File.ReadAllText(xmlPath));
