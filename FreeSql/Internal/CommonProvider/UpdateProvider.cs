@@ -107,37 +107,21 @@ namespace FreeSql.Internal.CommonProvider
             parameterLimit = parameterLimit - 1;
             if (_source == null || _source.Any() == false) return new List<T1>[0];
             if (_source.Count == 1) return new[] { _source };
-            if (_noneParameter)
-            {
-                if (_source.Count < valuesLimit) return new[] { _source };
 
-                var execCount = (int)Math.Ceiling(1.0 * _source.Count / valuesLimit);
-                var ret = new List<T1>[execCount];
-                for (var a = 0; a < execCount; a++)
-                {
-                    var subSource = new List<T1>();
-                    subSource = _source.GetRange(a * valuesLimit, Math.Min(valuesLimit, _source.Count - a * valuesLimit));
-                    ret[a] = subSource;
-                }
-                return ret;
-            }
-            else
+            var takeMax = valuesLimit;
+            if (_noneParameter == false)
             {
                 var colSum = _table.Columns.Count - _ignore.Count;
-                var takeMax = parameterLimit / colSum;
-                var pamTotal = colSum * _source.Count;
-                if (pamTotal < parameterLimit) return new[] { _source };
-
-                var execCount = (int)Math.Ceiling(1.0 * pamTotal / takeMax / colSum);
-                var ret = new List<T1>[execCount];
-                for (var a = 0; a < execCount; a++)
-                {
-                    var subSource = new List<T1>();
-                    subSource = _source.GetRange(a * takeMax, Math.Min(takeMax, _source.Count - a * takeMax));
-                    ret[a] = subSource;
-                }
-                return ret;
+                takeMax = parameterLimit / colSum;
+                if (takeMax > valuesLimit) takeMax = valuesLimit;
             }
+            if (_source.Count <= takeMax) return new[] { _source };
+
+            var execCount = (int)Math.Ceiling(1.0 * _source.Count / takeMax);
+            var ret = new List<T1>[execCount];
+            for (var a = 0; a < execCount; a++)
+                ret[a] = _source.GetRange(a * takeMax, Math.Min(takeMax, _source.Count - a * takeMax));
+            return ret;
         }
         protected int SplitExecuteAffrows(int valuesLimit, int parameterLimit)
         {

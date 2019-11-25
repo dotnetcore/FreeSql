@@ -193,23 +193,108 @@ namespace FreeSql.Tests
             public DateTime? ct2 { get; set; }
         }
 
+        public class TBatInst
+        {
+            public Guid Id { get; set; }
+            public string Name { get; set; }
+        }
+
         [Fact]
         public void Test02()
         {
-            var serverTime = g.pgsql.Select<TestIgnoreDefaultValue>().Limit(1).First(a => DateTime.UtcNow);
-            var timeOffset = DateTime.UtcNow.Subtract(serverTime); //减去数据库时间
+            g.sqlserver.Delete<TBatInst>().Where("1=1").ExecuteAffrows();
+            g.mysql.Delete<TBatInst>().Where("1=1").ExecuteAffrows();
+            g.pgsql.Delete<TBatInst>().Where("1=1").ExecuteAffrows();
+            g.oracle.Delete<TBatInst>().Where("1=1").ExecuteAffrows();
+            g.sqlite.Delete<TBatInst>().Where("1=1").ExecuteAffrows();
 
-            g.pgsql.Aop.AuditValue += new EventHandler<Aop.AuditValueEventArgs>((_, e) =>
-            {
-                if (e.Column.Attribute.MapType.NullableTypeOrThis() == typeof(DateTime))
-                {
-                    if (e.Value == null || (DateTime)e.Value == default(DateTime))
-                    {
-                        e.Value = DateTime.Now.Subtract(timeOffset);
-                        return;
-                    }
-                }
-            });
+            g.sqlserver.Insert(Enumerable.Range(0, 1048).Select(a => new TBatInst { Name = "test" + a }).ToList()).ExecuteAffrows();
+            g.mysql.Insert(Enumerable.Range(0, 1048).Select(a => new TBatInst { Name = "test" + a }).ToList()).ExecuteAffrows();
+            g.pgsql.Insert(Enumerable.Range(0, 1048).Select(a => new TBatInst { Name = "test" + a }).ToList()).ExecuteAffrows();
+            g.oracle.Insert(Enumerable.Range(0, 1048).Select(a => new TBatInst { Name = "test" + a }).ToList()).ExecuteAffrows();
+            g.sqlite.Insert(Enumerable.Range(0, 1048).Select(a => new TBatInst { Name = "test" + a }).ToList()).ExecuteAffrows();
+
+            Assert.Equal(1048, g.sqlserver.Select<TBatInst>().Count());
+            Assert.Equal(1048, g.mysql.Select<TBatInst>().Count());
+            Assert.Equal(1048, g.pgsql.Select<TBatInst>().Count());
+            Assert.Equal(1048, g.oracle.Select<TBatInst>().Count());
+            Assert.Equal(1048, g.sqlite.Select<TBatInst>().Count());
+
+            //----
+
+            g.sqlserver.Delete<TBatInst>().Where("1=1").ExecuteAffrows();
+            g.mysql.Delete<TBatInst>().Where("1=1").ExecuteAffrows();
+            g.pgsql.Delete<TBatInst>().Where("1=1").ExecuteAffrows();
+            g.oracle.Delete<TBatInst>().Where("1=1").ExecuteAffrows();
+            g.sqlite.Delete<TBatInst>().Where("1=1").ExecuteAffrows();
+
+            g.sqlserver.Insert(Enumerable.Range(0, 1048).Select(a => new TBatInst { Name = "test" + a }).ToList()).NoneParameter().ExecuteAffrows();
+            g.mysql.Insert(Enumerable.Range(0, 1048).Select(a => new TBatInst { Name = "test" + a }).ToList()).NoneParameter().ExecuteAffrows();
+            g.pgsql.Insert(Enumerable.Range(0, 1048).Select(a => new TBatInst { Name = "test" + a }).ToList()).NoneParameter().ExecuteAffrows();
+            g.oracle.Insert(Enumerable.Range(0, 1048).Select(a => new TBatInst { Name = "test" + a }).ToList()).NoneParameter().ExecuteAffrows();
+            g.sqlite.Insert(Enumerable.Range(0, 1048).Select(a => new TBatInst { Name = "test" + a }).ToList()).NoneParameter().ExecuteAffrows();
+
+            Assert.Equal(1048, g.sqlserver.Select<TBatInst>().Count());
+            Assert.Equal(1048, g.mysql.Select<TBatInst>().Count());
+            Assert.Equal(1048, g.pgsql.Select<TBatInst>().Count());
+            Assert.Equal(1048, g.oracle.Select<TBatInst>().Count());
+            Assert.Equal(1048, g.sqlite.Select<TBatInst>().Count());
+
+            //----
+
+            g.sqlserver.Delete<TBatInst>().Where("1=1").ExecuteAffrows();
+            g.mysql.Delete<TBatInst>().Where("1=1").ExecuteAffrows();
+            g.pgsql.Delete<TBatInst>().Where("1=1").ExecuteAffrows();
+            g.oracle.Delete<TBatInst>().Where("1=1").ExecuteAffrows();
+            g.sqlite.Delete<TBatInst>().Where("1=1").ExecuteAffrows();
+
+            g.sqlserver.Insert(Enumerable.Range(0, 3348).Select(a => new TBatInst { Name = "test" + a }).ToList()).ExecuteAffrows();
+            g.mysql.Insert(Enumerable.Range(0, 3348).Select(a => new TBatInst { Name = "test" + a }).ToList()).ExecuteAffrows();
+            g.pgsql.Insert(Enumerable.Range(0, 3348).Select(a => new TBatInst { Name = "test" + a }).ToList()).ExecuteAffrows();
+            g.oracle.Insert(Enumerable.Range(0, 3348).Select(a => new TBatInst { Name = "test" + a }).ToList()).ExecuteAffrows();
+            g.sqlite.Insert(Enumerable.Range(0, 3348).Select(a => new TBatInst { Name = "test" + a }).ToList()).ExecuteAffrows();
+
+            Assert.Equal(3348, g.sqlserver.Select<TBatInst>().Count());
+            Assert.Equal(3348, g.mysql.Select<TBatInst>().Count());
+            Assert.Equal(3348, g.pgsql.Select<TBatInst>().Count());
+            Assert.Equal(3348, g.oracle.Select<TBatInst>().Count());
+            Assert.Equal(3348, g.sqlite.Select<TBatInst>().Count());
+
+            //----
+
+            g.sqlserver.Delete<TBatInst>().Where("1=1").ExecuteAffrows();
+            g.mysql.Delete<TBatInst>().Where("1=1").ExecuteAffrows();
+            g.pgsql.Delete<TBatInst>().Where("1=1").ExecuteAffrows();
+            g.oracle.Delete<TBatInst>().Where("1=1").ExecuteAffrows();
+            g.sqlite.Delete<TBatInst>().Where("1=1").ExecuteAffrows();
+
+            g.sqlserver.Insert(Enumerable.Range(0, 3348).Select(a => new TBatInst { Name = "test" + a }).ToList()).NoneParameter().ExecuteAffrows();
+            g.mysql.Insert(Enumerable.Range(0, 3348).Select(a => new TBatInst { Name = "test" + a }).ToList()).NoneParameter().ExecuteAffrows();
+            g.pgsql.Insert(Enumerable.Range(0, 3348).Select(a => new TBatInst { Name = "test" + a }).ToList()).NoneParameter().ExecuteAffrows();
+            g.oracle.Insert(Enumerable.Range(0, 3348).Select(a => new TBatInst { Name = "test" + a }).ToList()).NoneParameter().ExecuteAffrows();
+            g.sqlite.Insert(Enumerable.Range(0, 3348).Select(a => new TBatInst { Name = "test" + a }).ToList()).NoneParameter().ExecuteAffrows();
+
+            Assert.Equal(3348, g.sqlserver.Select<TBatInst>().Count());
+            Assert.Equal(3348, g.mysql.Select<TBatInst>().Count());
+            Assert.Equal(3348, g.pgsql.Select<TBatInst>().Count());
+            Assert.Equal(3348, g.oracle.Select<TBatInst>().Count());
+            Assert.Equal(3348, g.sqlite.Select<TBatInst>().Count());
+
+
+            //var serverTime = g.pgsql.Select<TestIgnoreDefaultValue>().Limit(1).First(a => DateTime.UtcNow);
+            //var timeOffset = DateTime.UtcNow.Subtract(serverTime); //减去数据库时间
+
+            //g.pgsql.Aop.AuditValue += new EventHandler<Aop.AuditValueEventArgs>((_, e) =>
+            //{
+            //    if (e.Column.Attribute.MapType.NullableTypeOrThis() == typeof(DateTime))
+            //    {
+            //        if (e.Value == null || (DateTime)e.Value == default(DateTime))
+            //        {
+            //            e.Value = DateTime.Now.Subtract(timeOffset);
+            //            return;
+            //        }
+            //    }
+            //});
 
 
             g.pgsql.Delete<TestIgnoreDefaultValue>().Where("1=1").ExecuteAffrows();
