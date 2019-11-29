@@ -124,7 +124,7 @@ namespace FreeSql.Internal
                                     {
                                         Property = dtoProp,
                                         CsName = dtoProp.Name,
-                                        CsType = dtoProp.PropertyType,
+                                        CsType = trydtocol.CsType, // dtoProp.PropertyType,
                                         MapType = trydtocol.Attribute.MapType
                                     };
                                     parent.Childs.Add(child);
@@ -195,7 +195,7 @@ namespace FreeSql.Internal
                                     {
                                         Property = dtoProp,
                                         CsName = dtoProp.Name,
-                                        CsType = dtoProp.PropertyType,
+                                        CsType = trydtocol.CsType, //dtoProp.PropertyType,
                                         MapType = trydtocol.Attribute.MapType
                                     };
                                     parent.Childs.Add(child);
@@ -227,11 +227,17 @@ namespace FreeSql.Internal
                 if (notRead)
                 {
                     ++index;
+                    if (parent.Property != null) 
+                        return Utils.GetDataReaderValue(parent.Property.PropertyType, null);
                     return Utils.GetDataReaderValue(parent.CsType, null);
                 }
-                if (parent.CsType == parent.MapType)
-                    return Utils.GetDataReaderValue(parent.CsType, dr.GetValue(++index));
-                return Utils.GetDataReaderValue(parent.CsType, Utils.GetDataReaderValue(parent.MapType, dr.GetValue(++index)));
+                object objval = dr.GetValue(++index);
+                if (parent.CsType != parent.MapType) 
+                    objval = Utils.GetDataReaderValue(parent.MapType, objval);
+                objval = Utils.GetDataReaderValue(parent.CsType, objval);
+                if (parent.Property != null && parent.CsType != parent.Property.PropertyType) 
+                    objval = Utils.GetDataReaderValue(parent.Property.PropertyType, objval);
+                return objval;
             }
             switch (parent.ConsturctorType)
             {

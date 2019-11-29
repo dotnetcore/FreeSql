@@ -424,9 +424,31 @@ namespace FreeSql.Tests
             public new int Id { get; set; }
         }
 
+        public class TestUpdateModel
+        {
+            public string F_EmpId { get; set; }
+            public TestUpdateModelEnum F_RoleType { get; set; }
+            public TestUpdateModelEnum F_UseType { get; set; }
+        }
+        public enum TestUpdateModelEnum { x1, x2, x3 }
+
         [Fact]
         public void Test1()
         {
+            var _model = new TestUpdateModel { 
+                F_EmpId = "xx11", 
+                F_RoleType = TestUpdateModelEnum.x2, 
+                F_UseType = TestUpdateModelEnum.x3 
+            };
+            var testsql2008 = g.sqlserver.Update<TestUpdateModel>()
+                .Where(a => a.F_EmpId == _model.F_EmpId)
+                .Set(a => new TestUpdateModel
+                {
+                    F_RoleType = _model.F_RoleType,
+                    F_UseType = _model.F_UseType
+                }).ToSql();
+
+
             g.sqlserver.Select<NewsArticle>();
 
             g.sqlite.Update<Model1>(1).NoneParameter().Set(a => a.title, null).ExecuteAffrows();
@@ -706,7 +728,14 @@ namespace FreeSql.Tests
                     OptionsEntity02 = false,
                     OptionsEntity04 = testarray[0]
                 }).ToSql();
-
+            var tbidsql3 = g.sqlite.Update<TaskBuild>().Where(a => a.TemplatesId == tbid)
+                .Set(a => new TaskBuild
+                {
+                    FileName = "111",
+                    TaskName = a.TaskName + "333",
+                    OptionsEntity02 = false,
+                    OptionsEntity04 = testarray[0]
+                }).ToSql();
 
             var dkdkdkd = g.oracle.Select<Templates>().ToList();
 

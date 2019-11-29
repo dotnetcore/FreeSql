@@ -389,5 +389,80 @@
             验证标志
             </summary>
         </member>
+        <member name="T:kwlib.department">
+            <summary>
+            部门表  
+            </summary>    
+        </member>
+        <member name="P:kwlib.department.id">
+            <summary>
+            部门ID  
+            </summary>
+        </member>
+        <member name="P:kwlib.department.Employees">
+            <summary>
+            员工列表  对应employee.deptid
+            </summary>
+        </member>
+        <member name="P:kwlib.department.supdeptid">
+            <summary>
+            上级部门ID  
+            </summary>
+        </member>
+        <member name="P:kwlib.department.parentdepartments">
+            <summary>
+            上级部门对象
+            </summary>
+        </member>
+        <member name="P:kwlib.department.managerid">
+            <summary>
+            部门主管ID  
+            </summary>
+        </member>
+        <member name="P:kwlib.department.manager">
+            <summary>
+            部门主管对象
+            </summary>
+        </member>
+        <member name="P:kwlib.department.childDepartments">
+            <summary>
+            下级部门列表
+            </summary>
+        </member>
+        <member name="P:kwlib.department.deptcode">
+            <summary>
+            部门代码
+            </summary>
+        </member>
+        <member name="P:kwlib.department.deptname">
+            <summary>
+            部门名称  
+            </summary>
+        </member>
+        <member name="T:kwlib.employee">
+            <summary>
+            员工表 
+            </summary>    
+        </member>
+        <member name="P:kwlib.employee.id">
+            <summary>
+            员工ID  
+            </summary>
+        </member>
+        <member name="P:kwlib.employee.parentManager">
+            <summary>
+            上级主管对象
+            </summary>
+        </member>
+        <member name="P:kwlib.employee.Employees">
+            <summary>
+            下级员工列表
+            </summary>
+        </member>
+        <member name="P:kwlib.employee.Department">
+            <summary>
+            部门对象
+            </summary>
+        </member>
     </members>
 </doc>

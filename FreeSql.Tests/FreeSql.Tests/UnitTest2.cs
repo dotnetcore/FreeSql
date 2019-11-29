@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using System.ComponentModel.DataAnnotations;
 using System.Threading;
 using System.Data.SqlClient;
+using kwlib;
 
 namespace FreeSql.Tests
 {
@@ -202,6 +203,8 @@ namespace FreeSql.Tests
         [Fact]
         public void Test02()
         {
+            var tekset = g.sqlite.Select<employee>().IncludeMany(a => a.departments).ToList();
+
             g.sqlserver.Delete<TBatInst>().Where("1=1").ExecuteAffrows();
             g.mysql.Delete<TBatInst>().Where("1=1").ExecuteAffrows();
             g.pgsql.Delete<TBatInst>().Where("1=1").ExecuteAffrows();

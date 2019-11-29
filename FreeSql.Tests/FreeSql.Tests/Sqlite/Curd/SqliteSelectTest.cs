@@ -798,9 +798,15 @@ namespace FreeSql.Tests.Sqlite
             };
             var query = select.LeftJoin(a => a.Type.Guid == a.TypeGuid).AsTable(tableRule).AsTable(tableRule2);
             var sql = query.ToSql();
+            var sql2 = query.ToSql("count(1)");
+            var count2 = query.ToList<int>("count(1)");
+
+
 
             query = select.AsTable((type, oldname) => "table_1").AsTable((type, oldname) => "table_2").AsTable((type, oldname) => "table_3");
             sql = query.ToSql(a => a.Id);
+            sql2 = query.ToSql("count(1)");
+            count2 = query.ToList<int>("count(1)");
 
 
             //����е�������a.Type��a.Type.Parent ���ǵ�������
