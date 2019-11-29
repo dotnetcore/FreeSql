@@ -144,8 +144,9 @@ namespace FreeSql.Odbc.Oracle
             var sql = this.ToSql();
             if (string.IsNullOrEmpty(sql)) return new List<T1>();
 
+            var ret = _source.ToList();
             this.RawExecuteAffrows();
-            return _source;
+            return ret;
         }
 
 #if net40
@@ -212,8 +213,9 @@ namespace FreeSql.Odbc.Oracle
             var sql = this.ToSql();
             if (string.IsNullOrEmpty(sql)) return new List<T1>();
 
+            var ret = _source.ToList();
             await this.RawExecuteAffrowsAsync();
-            return _source;
+            return ret;
         }
 #endif
     }
