@@ -267,8 +267,8 @@ namespace FreeSql
                                         curContains.Add(curIdx);
                                 }
                                 if (curContains.Any())
-                                    foreach (var curIdx in curContains)
-                                        curList.RemoveAt(curIdx);
+                                    for (var delIdx = curContains.Count - 1; delIdx >= 0; delIdx--)
+                                        curList.RemoveAt(curContains[delIdx]);
                                 else
                                     midListDel.Add(midItem);
                             }
