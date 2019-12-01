@@ -2049,47 +2049,67 @@
             <param name="parms"></param>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.IAdo.ExecuteReaderAsync(System.Func{System.Data.Common.DbDataReader,System.Threading.Tasks.Task},System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
+        <member name="P:FreeSql.IAop.ParseExpression">
             <summary>
-            查询，若使用读写分离，查询【从库】条件cmdText.StartsWith("SELECT ")，否则查询【主库】
+            可自定义解析表达式
             </summary>
-            <param name="readerHander"></param>
-            <param name="cmdType"></param>
-            <param name="cmdText"></param>
-            <param name="cmdParms"></param>
         </member>
-        <member name="M:FreeSql.IAdo.ExecuteReaderAsync(System.Func{System.Data.Common.DbDataReader,System.Threading.Tasks.Task},System.String,System.Object)">
+        <member name="P:FreeSql.IAop.ConfigEntity">
             <summary>
-            查询，ExecuteReaderAsync(dr => {}, "select * from user where age > @age", new { age = 25 })
+            自定义实体的配置，方便和多个 ORM 共同使用
             </summary>
-            <param name="cmdText"></param>
-            <param name="parms"></param>
         </member>
-        <member name="M:FreeSql.IAdo.ExecuteArrayAsync(System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
+        <member name="P:FreeSql.IAop.ConfigEntityProperty">
             <summary>
-            查询
+            自定义实体的属性配置，方便和多个 ORM 共同使用
             </summary>
-            <param name="cmdText"></param>
-            <param name="cmdParms"></param>
         </member>
-        <member name="M:FreeSql.IAdo.ExecuteArrayAsync(System.String,System.Object)">
+        <member name="P:FreeSql.IAop.CurdBefore">
             <summary>
-            查询，ExecuteArrayAsync("select * from user where age > @age", new { age = 25 })
+            增删查改，执行命令之前触发
             </summary>
-            <param name="cmdText"></param>
-            <param name="parms"></param>
-            <returns></returns>
         </member>
-        <member name="M:FreeSql.IAdo.ExecuteDataSetAsync(System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
+        <member name="P:FreeSql.IAop.CurdAfter">
             <summary>
-            查询
+            增删查改，执行命令完成后触发
             </summary>
-            <param name="cmdText"></param>
-            <param name="cmdParms"></param>
         </member>
-        <member name="M:FreeSql.IAdo.ExecuteDataSetAsync(System.String,System.Object)">
+        <member name="P:FreeSql.IAop.SyncStructureBefore">
             <summary>
-            查询，ExecuteDataSetAsync("select * from user where age > @age; select 2", new { age = 25 })
+            CodeFirst迁移，执行之前触发
+            </summary>
+        </member>
+        <member name="P:FreeSql.IAop.SyncStructureAfter">
+            <summary>
+            CodeFirst迁移，执行完成触发
+            </summary>
+        </member>
+        <member name="P:FreeSql.IAop.AuditValue">
+            <summary>
+            Insert/Update自动值处理
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.ParseExpressionEventArgs.FreeParse">
+            <summary>
+            内置解析功能，可辅助您进行解析
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.ParseExpressionEventArgs.Expression">
+            <summary>
+            需要您解析的表达式
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.ParseExpressionEventArgs.Result">
+            <summary>
+            解析后的内容
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.ConfigEntityEventArgs.EntityType">
+            <summary>
+            实体类型
+            </summary>
+        </member>
+        <elect * from user where age > @age; select 2", new { age = 25 })
             </summary>
             <param name="cmdText"></param>
             <param name="parms"></param>
@@ -2172,190 +2192,7 @@
             <returns></returns>
         </member>
         <member name="M:FreeSql.IAdo.QueryAsync``2(System.String,System.Object)">
-            <summary>
-            执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > @age; select * from address", new { age = 25 })
-            </summary>
-            <typeparam name="T1"></typeparam>
-            <param name="cmdText"></param>
-            <param name="parms"></param>
-            <returns></returns>
-        </member>
-        <member name="P:FreeSql.IAop.ParseExpression">
-            <summary>
-            可自定义解析表达式
-            </summary>
-        </member>
-        <member name="P:FreeSql.IAop.ConfigEntity">
-            <summary>
-            自定义实体的配置，方便和多个 ORM 共同使用
-            </summary>
-        </member>
-        <member name="P:FreeSql.IAop.ConfigEntityProperty">
-            <summary>
-            自定义实体的属性配置，方便和多个 ORM 共同使用
-            </summary>
-        </member>
-        <member name="P:FreeSql.IAop.CurdBefore">
-            <summary>
-            增删查改，执行命令之前触发
-            </summary>
-        </member>
-        <member name="P:FreeSql.IAop.CurdAfter">
-            <summary>
-            增删查改，执行命令完成后触发
-            </summary>
-        </member>
-        <member name="P:FreeSql.IAop.SyncStructureBefore">
-            <summary>
-            CodeFirst迁移，执行之前触发
-            </summary>
-        </member>
-        <member name="P:FreeSql.IAop.SyncStructureAfter">
-            <summary>
-            CodeFirst迁移，执行完成触发
-            </summary>
-        </member>
-        <member name="P:FreeSql.IAop.AuditValue">
-            <summary>
-            Insert/Update自动值处理
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.ParseExpressionEventArgs.FreeParse">
-            <summary>
-            内置解析功能，可辅助您进行解析
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.ParseExpressionEventArgs.Expression">
-            <summary>
-            需要您解析的表达式
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.ParseExpressionEventArgs.Result">
-            <summary>
-            解析后的内容
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.ConfigEntityEventArgs.EntityType">
-            <summary>
-            实体类型
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.ConfigEntityEventArgs.ModifyResult">
-            <summary>
-            实体配置
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.ConfigEntityEventArgs.ModifyIndexResult">
-            <summary>
-            索引配置
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.ConfigEntityPropertyEventArgs.EntityType">
-            <summary>
-            实体类型
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.ConfigEntityPropertyEventArgs.Property">
-            <summary>
-            实体的属性
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.ConfigEntityPropertyEventArgs.ModifyResult">
-            <summary>
-            实体的属性配置
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.CurdBeforeEventArgs.Identifier">
-            <summary>
-            标识符，可将 CurdBefore 与 CurdAfter 进行匹配
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.CurdBeforeEventArgs.CurdType">
-            <summary>
-            操作类型
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.CurdBeforeEventArgs.EntityType">
-            <summary>
-            实体类型
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.CurdBeforeEventArgs.Table">
-            <summary>
-            实体类型的元数据
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.CurdBeforeEventArgs.Sql">
-            <summary>
-            执行的 SQL
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.CurdBeforeEventArgs.DbParms">
-            <summary>
-            参数化命令
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.CurdAfterEventArgs.Exception">
-            <summary>
-            发生的错误
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.CurdAfterEventArgs.ExecuteResult">
-            <summary>
-            执行SQL命令，返回的结果
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.CurdAfterEventArgs.ElapsedTicks">
-            <summary>
-            耗时（单位：Ticks）
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.CurdAfterEventArgs.ElapsedMilliseconds">
-            <summary>
-            耗时（单位：毫秒）
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.SyncStructureBeforeEventArgs.Identifier">
-            <summary>
-            标识符，可将 SyncStructureBeforeEventArgs 与 SyncStructureAfterEventArgs 进行匹配
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.SyncStructureBeforeEventArgs.EntityTypes">
-            <summary>
-            实体类型
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.SyncStructureAfterEventArgs.Sql">
-            <summary>
-            执行的 SQL
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.SyncStructureAfterEventArgs.Exception">
-            <summary>
-            发生的错误
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.SyncStructureAfterEventArgs.ElapsedTicks">
-            <summary>
-            耗时（单位：Ticks）
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.SyncStructureAfterEventArgs.ElapsedMilliseconds">
-            <summary>
-            耗时（单位：毫秒）
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.AuditValueEventArgs.AuditValueType">
-            <summary>
-            类型
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.AuditValueEventArgs.Column">
-            <summary>
-            属性列的元数据
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.AuditValueEventArgs.Property">
+       ntArgs.Property">
             <summary>
             反射的属性信息
             </summary>
@@ -2484,6 +2321,167 @@
             <returns></returns>
         </member>
         <member name="M:FreeSql.IDbFirst.GetDatabases">
+            <summary>
+            获取所有数据库
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IDbFirst.GetTablesByDatabase(System.String[])">
+            <summary>
+            获取指定数据库的表信息，包括表、列详情、主键、唯一键、索引、外键、备注
+            </summary>
+            <param name="database"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IDbFirst.GetDbType(FreeSql.DatabaseModel.DbColumnInfo)">
+            <summary>
+            获取数据库枚举类型int值
+            </summary>
+            <param name="column"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IDbFirst.GetCsConvert(FreeSql.DatabaseModel.DbColumnInfo)">
+            <summary>
+            获取c#转换，(int)、(long)
+            </summary>
+            <param name="column"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IDbFirst.GetCsTypeValue(FreeSql.DatabaseModel.DbColumnInfo)">
+            <summary>
+            获取c#值
+            </summary>
+            <param name="column"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IDbFirst.GetCsType(FreeSql.DatabaseModel.DbColumnInfo)">
+            <summary>
+            获取c#类型，int、long
+            </summary>
+            <param name="column"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IDbFirst.GetCsTypeInfo(FreeSql.DatabaseModel.DbColumnInfo)">
+            <summary>
+            获取c#类型对象
+            </summary>
+            <param name="column"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IDbFirst.GetDataReaderMethod(FreeSql.DatabaseModel.DbColumnInfo)">
+            <summary>
+            获取ado.net读取方法, GetBoolean、GetInt64
+            </summary>
+            <param name="column"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IDbFirst.GetCsStringify(FreeSql.DatabaseModel.DbColumnInfo)">
+            <summary>
+            序列化
+            </summary>
+            <param name="column"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IDbFirst.GetCsParse(FreeSql.DatabaseModel.DbColumnInfo)">
+            <summary>
+            反序列化
+            </summary>
+            <param name="column"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IDbFirst.GetEnumsByDatabase(System.String[])">
+            <summary>
+            获取数据库枚举类型，适用 PostgreSQL
+            </summary>
+            <param name="database"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.Internal.CommonProvider.InsertProvider`1.IgnoreCanInsert">
+            <summary>
+            AsType, Ctor, ClearData 三处地方需要重新加载
+            </summary>
+        </member>
+        <member name="M:FreeSql.Internal.CommonProvider.UpdateProvider`1.IgnoreCanUpdate">
+            <summary>
+            AsType, Ctor, ClearData 三处地方需要重新加载
+            </summary>
+        </member>
+        <member name="M:FreeSql.Internal.CommonUtils.GetProperyCommentBySummary(System.Type)">
+            <summary>
+            通过属性的注释文本，通过 xml 读取
+            </summary>
+            <param name="type"></param>
+            <returns>Dict：key=属性名，value=注释</returns>
+        </member>
+        <member name="M:FreeSql.Internal.GlobalFilter.Apply``1(System.String,System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})">
+            <summary>
+            创建一个过滤器
+            </summary>
+            <typeparam name="TEntity"></typeparam>
+            <param name="name">名字</param>
+            <param name="where">表达式</param>
+            <returns></returns>
+        </member>
+        <member name="P:FreeSql.Internal.Model.TableRef.RefMiddleEntityType">
+            <summary>
+            中间表，多对多
+            </summary>
+        </member>
+        <member name="F:FreeSql.Internal.StringConvertType.None">
+            <summary>
+            不进行任何处理
+            </summary>
+        </member>
+        <member name="F:FreeSql.Internal.StringConvertType.PascalCaseToUnderscore">
+            <summary>
+            将帕斯卡命名字符串转换为下划线分隔字符串
+            <para></para>
+            BigApple -> Big_Apple
+            </summary>
+        </member>
+        <member name="F:FreeSql.Internal.StringConvertType.PascalCaseToUnderscoreWithUpper">
+            <summary>
+            将帕斯卡命名字符串转换为下划线分隔字符串，且转换为全大写
+            <para></para>
+            BigApple -> BIG_APPLE
+            </summary>
+        </member>
+        <member name="F:FreeSql.Internal.StringConvertType.PascalCaseToUnderscoreWithLower">
+            <summary>
+            将帕斯卡命名字符串转换为下划线分隔字符串，且转换为全小写
+            <para></para>
+            BigApple -> big_apple
+            </summary>
+        </member>
+        <member name="F:FreeSql.Internal.StringConvertType.Upper">
+            <summary>
+            将字符串转换为大写
+            <para></para>
+            BigApple -> BIGAPPLE
+            </summary>
+        </member>
+        <member name="F:FreeSql.Internal.StringConvertType.Lower">
+            <summary>
+            将字符串转换为小写
+            <para></para>
+            BigApple -> bigapple
+            </summary>
+        </member>
+        <member name="M:FreeSql.Internal.StringUtils.PascalCaseToUnderScore(System.String)">
+            <summary>
+            将帕斯卡命名字符串转换为下划线分隔字符串
+            <para></para>
+            BigApple -> Big_Apple
+            </summary>
+            <param name="str"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSqlGlobalExtensions.Distance(System.Drawing.Point,System.Drawing.Point)">
+            <summary>
+            测量两个经纬度的距离，返回单位：米
+            </summary>
+            <param name="that">经纬坐标1</param>
+            <param name="prst.GetDatabases">
             <summary>
             获取所有数据库
             </summary>
