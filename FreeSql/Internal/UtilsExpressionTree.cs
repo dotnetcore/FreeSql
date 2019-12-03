@@ -366,10 +366,9 @@ namespace FreeSql.Internal
                     .AppendLine("using FreeSql.DataAnnotations;")
                     .AppendLine("using System.Collections.Generic;")
                     .AppendLine("using System.Linq;")
-                    .AppendLine("using Newtonsoft.Json;")
                     .AppendLine()
                     .Append("public class ").Append(trytbTypeLazyName).Append(" : ").Append(trytbTypeName).AppendLine(" {")
-                    .AppendLine("	[JsonIgnore] private IFreeSql __fsql_orm__ { get; set; }\r\n");
+                    .AppendLine("	private IFreeSql __fsql_orm__ { get; set; }\r\n");
             }
 
             var cscodeLength = cscode?.Length ?? 0;

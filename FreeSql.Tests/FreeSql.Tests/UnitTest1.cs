@@ -16,6 +16,7 @@ using Zeus.Domain.Enum;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 using System.Threading;
+using Newtonsoft.Json;
 
 namespace FreeSql.Tests
 {
@@ -42,6 +43,8 @@ namespace FreeSql.Tests
             public string OrderTitle { get; set; }
             public string CustomerName { get; set; }
             public DateTime TransactionDate { get; set; }
+
+            [JsonIgnore]
             public virtual List<OrderDetail> OrderDetails { get; set; }
         }
         public class OrderDetail
