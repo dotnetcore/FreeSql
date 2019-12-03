@@ -2,6 +2,8 @@ using FreeSql.DataAnnotations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace FreeSql.Tests.Sqlite
@@ -1373,6 +1375,169 @@ namespace FreeSql.Tests.Sqlite
                 .IncludeMany(a => a.Tag.Songs.Take(1).Select(b => new Song { Id = b.Id, Title = b.Title }))
                 .Where(a => a.Tag.Id == tag1.Id || a.Tag.Id == tag2.Id)
                 .ToList(true);
+        }
+
+        [Fact]
+        async public Task Include_ManyToManyAsync()
+        {
+            ThreadPool.SetMinThreads(100, 100);
+            await Task.Yield();
+
+            var tag1 = new Tag
+            {
+                Ddd = DateTime.Now.Second,
+                Name = "test_manytoMany_01_中国"
+            };
+            tag1.Id = (int)await g.sqlite.Insert(tag1).ExecuteIdentityAsync();
+            var tag2 = new Tag
+            {
+                Ddd = DateTime.Now.Second,
+                Name = "test_manytoMany_02_美国"
+            };
+            tag2.Id = (int)await g.sqlite.Insert(tag2).ExecuteIdentityAsync();
+            var tag3 = new Tag
+            {
+                Ddd = DateTime.Now.Second,
+                Name = "test_manytoMany_03_日本"
+            };
+            tag3.Id = (int)await g.sqlite.Insert(tag3).ExecuteIdentityAsync();
+
+            var song1 = new Song
+            {
+                Create_time = DateTime.Now,
+                Title = "test_manytoMany_01_我是中国人.mp3",
+                Url = "http://ww.baidu.com/"
+            };
+            song1.Id = (int)await g.sqlite.Insert(song1).ExecuteIdentityAsync();
+            var song2 = new Song
+            {
+                Create_time = DateTime.Now,
+                Title = "test_manytoMany_02_爱你一万年.mp3",
+                Url = "http://ww.163.com/"
+            };
+            song2.Id = (int)await g.sqlite.Insert(song2).ExecuteIdentityAsync();
+            var song3 = new Song
+            {
+                Create_time = DateTime.Now,
+                Title = "test_manytoMany_03_千年等一回.mp3",
+                Url = "http://ww.sina.com/"
+            };
+            song3.Id = (int)await g.sqlite.Insert(song3).ExecuteIdentityAsync();
+
+            await g.sqlite.Insert(new Song_tag { Song_id = song1.Id, Tag_id = tag1.Id }).ExecuteAffrowsAsync();
+            await g.sqlite.Insert(new Song_tag { Song_id = song2.Id, Tag_id = tag1.Id }).ExecuteAffrowsAsync();
+            await g.sqlite.Insert(new Song_tag { Song_id = song3.Id, Tag_id = tag1.Id }).ExecuteAffrowsAsync();
+            await g.sqlite.Insert(new Song_tag { Song_id = song1.Id, Tag_id = tag2.Id }).ExecuteAffrowsAsync();
+            await g.sqlite.Insert(new Song_tag { Song_id = song3.Id, Tag_id = tag2.Id }).ExecuteAffrowsAsync();
+            await g.sqlite.Insert(new Song_tag { Song_id = song3.Id, Tag_id = tag3.Id }).ExecuteAffrowsAsync();
+
+            await new List<Song>(new[] { song1, song2, song3 }).IncludeManyAsync(g.sqlite, a => a.Tags);
+
+            var songs1 = await g.sqlite.Select<Song>()
+                .IncludeMany(a => a.Tags)
+                .Where(a => a.Id == song1.Id || a.Id == song2.Id || a.Id == song3.Id)
+                .ToListAsync();
+            Assert.Equal(3, songs1.Count);
+            Assert.Equal(2, songs1[0].Tags.Count);
+            Assert.Equal(1, songs1[1].Tags.Count);
+            Assert.Equal(3, songs1[2].Tags.Count);
+
+            var songs2 = await g.sqlite.Select<Song>()
+                .IncludeMany(a => a.Tags,
+                    then => then.IncludeMany(t => t.Songs))
+                .Where(a => a.Id == song1.Id || a.Id == song2.Id || a.Id == song3.Id)
+                .ToListAsync();
+            Assert.Equal(3, songs2.Count);
+            Assert.Equal(2, songs2[0].Tags.Count);
+            Assert.Equal(1, songs2[1].Tags.Count);
+            Assert.Equal(3, songs2[2].Tags.Count);
+
+            var tags3 = await g.sqlite.Select<Song_tag>()
+                .Include(a => a.Tag.Parent)
+                .IncludeMany(a => a.Tag.Songs)
+                .Where(a => a.Tag.Id == tag1.Id || a.Tag.Id == tag2.Id)
+                .ToListAsync(true);
+
+
+            var songs11 = await g.sqlite.Select<Song>()
+                .IncludeMany(a => a.Tags.Take(1))
+                .Where(a => a.Id == song1.Id || a.Id == song2.Id || a.Id == song3.Id)
+                .ToListAsync();
+            Assert.Equal(3, songs11.Count);
+            Assert.Equal(1, songs11[0].Tags.Count);
+            Assert.Equal(1, songs11[1].Tags.Count);
+            Assert.Equal(1, songs11[2].Tags.Count);
+
+            var songs22 = await g.sqlite.Select<Song>()
+                .IncludeMany(a => a.Tags.Take(1),
+                    then => then.IncludeMany(t => t.Songs.Take(1)))
+                .Where(a => a.Id == song1.Id || a.Id == song2.Id || a.Id == song3.Id)
+                .ToListAsync();
+            Assert.Equal(3, songs22.Count);
+            Assert.Equal(1, songs22[0].Tags.Count);
+            Assert.Equal(1, songs22[1].Tags.Count);
+            Assert.Equal(1, songs22[2].Tags.Count);
+
+            var tags33 = await g.sqlite.Select<Song_tag>()
+                .Include(a => a.Tag.Parent)
+                .IncludeMany(a => a.Tag.Songs.Take(1))
+                .Where(a => a.Tag.Id == tag1.Id || a.Tag.Id == tag2.Id)
+                .ToListAsync(true);
+
+            // --- Select ---
+
+            await new List<Song>(new[] { song1, song2, song3 }).IncludeManyAsync(g.sqlite, a => a.Tags.Select(b => new Tag { Id = b.Id, Name = b.Name }));
+
+            var asongs1 = await g.sqlite.Select<Song>()
+                .IncludeMany(a => a.Tags.Select(b => new Tag { Id = b.Id, Name = b.Name }))
+                .Where(a => a.Id == song1.Id || a.Id == song2.Id || a.Id == song3.Id)
+                .ToListAsync();
+            Assert.Equal(3, songs1.Count);
+            Assert.Equal(2, songs1[0].Tags.Count);
+            Assert.Equal(1, songs1[1].Tags.Count);
+            Assert.Equal(3, songs1[2].Tags.Count);
+
+            var asongs2 = await g.sqlite.Select<Song>()
+                .IncludeMany(a => a.Tags.Select(b => new Tag { Id = b.Id, Name = b.Name }),
+                    then => then.IncludeMany(t => t.Songs.Select(b => new Song { Id = b.Id, Title = b.Title })))
+                .Where(a => a.Id == song1.Id || a.Id == song2.Id || a.Id == song3.Id)
+                .ToListAsync();
+            Assert.Equal(3, songs2.Count);
+            Assert.Equal(2, songs2[0].Tags.Count);
+            Assert.Equal(1, songs2[1].Tags.Count);
+            Assert.Equal(3, songs2[2].Tags.Count);
+
+            var atags3 = await g.sqlite.Select<Song_tag>()
+                .Include(a => a.Tag.Parent)
+                .IncludeMany(a => a.Tag.Songs.Select(b => new Song { Id = b.Id, Title = b.Title }))
+                .Where(a => a.Tag.Id == tag1.Id || a.Tag.Id == tag2.Id)
+                .ToListAsync(true);
+
+
+            var asongs11 = await g.sqlite.Select<Song>()
+                .IncludeMany(a => a.Tags.Take(1).Select(b => new Tag { Id = b.Id, Name = b.Name }))
+                .Where(a => a.Id == song1.Id || a.Id == song2.Id || a.Id == song3.Id)
+                .ToListAsync();
+            Assert.Equal(3, songs11.Count);
+            Assert.Equal(1, songs11[0].Tags.Count);
+            Assert.Equal(1, songs11[1].Tags.Count);
+            Assert.Equal(1, songs11[2].Tags.Count);
+
+            var asongs22 = await g.sqlite.Select<Song>()
+                .IncludeMany(a => a.Tags.Take(1).Select(b => new Tag { Id = b.Id, Name = b.Name }),
+                    then => then.IncludeMany(t => t.Songs.Take(1).Select(b => new Song { Id = b.Id, Title = b.Title })))
+                .Where(a => a.Id == song1.Id || a.Id == song2.Id || a.Id == song3.Id)
+                .ToListAsync();
+            Assert.Equal(3, songs22.Count);
+            Assert.Equal(1, songs22[0].Tags.Count);
+            Assert.Equal(1, songs22[1].Tags.Count);
+            Assert.Equal(1, songs22[2].Tags.Count);
+
+            var atags33 = await g.sqlite.Select<Song_tag>()
+                .Include(a => a.Tag.Parent)
+                .IncludeMany(a => a.Tag.Songs.Take(1).Select(b => new Song { Id = b.Id, Title = b.Title }))
+                .Where(a => a.Tag.Id == tag1.Id || a.Tag.Id == tag2.Id)
+                .ToListAsync(true);
         }
 
         public class ToDel1Pk

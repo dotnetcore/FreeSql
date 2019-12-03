@@ -36,7 +36,7 @@ namespace FreeSql
         public static void Initialization(IFreeSql fsql)
         {
             _ormPriv = fsql;
-            _ormPriv.Aop.CurdBefore += (s, e) => Trace.WriteLine(e.Sql + "\r\n");
+            _ormPriv.Aop.CurdBefore += (s, e) => Trace.WriteLine($"\r\n线程{Thread.CurrentThread.ManagedThreadId}: {e.Sql}\r\n");
         }
 
         /// <summary>

@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
-
+using System.Threading;
 
 public class g
 {
@@ -13,8 +13,9 @@ public class g
         .UseAutoSyncStructure(true)
         //.UseGenerateCommandParameterWithLambda(true)
         .UseMonitorCommand(
-            cmd => Trace.WriteLine(cmd.CommandText), //监听SQL命令对象，在执行前
-            (cmd, traceLog) => Console.WriteLine(traceLog))
+            cmd => Trace.WriteLine("\r\n线程" + Thread.CurrentThread.ManagedThreadId + ": " + cmd.CommandText) //监听SQL命令对象，在执行前
+            //, (cmd, traceLog) => Console.WriteLine(traceLog)
+            )
         .UseLazyLoading(true)
         .Build());
     public static IFreeSql mysql => mysqlLazy.Value;
@@ -29,8 +30,9 @@ public class g
         .UseSyncStructureToLower(true)
         .UseLazyLoading(true)
         .UseMonitorCommand(
-            cmd => Trace.WriteLine(cmd.CommandText), //监听SQL命令对象，在执行前
-            (cmd, traceLog) => Console.WriteLine(traceLog))
+            cmd => Trace.WriteLine("\r\n线程" + Thread.CurrentThread.ManagedThreadId + ": " + cmd.CommandText) //监听SQL命令对象，在执行前
+            //, (cmd, traceLog) => Console.WriteLine(traceLog)
+            )
         .Build();
     });
     public static IFreeSql pgsql => pgsqlLazy.Value;
@@ -41,8 +43,9 @@ public class g
         .UseAutoSyncStructure(true)
         //.UseGenerateCommandParameterWithLambda(true)
         .UseMonitorCommand(
-            cmd => Trace.WriteLine(cmd.CommandText), //监听SQL命令对象，在执行前
-            (cmd, traceLog) => Console.WriteLine(traceLog))
+            cmd => Trace.WriteLine("\r\n线程" + Thread.CurrentThread.ManagedThreadId + ": " + cmd.CommandText) //监听SQL命令对象，在执行前
+            //, (cmd, traceLog) => Console.WriteLine(traceLog)
+            )
         .UseLazyLoading(true)
         .Build());
     public static IFreeSql sqlserver => sqlserverLazy.Value;
@@ -56,8 +59,9 @@ public class g
         //.UseNoneCommandParameter(true)
 
         .UseMonitorCommand(
-            cmd => Trace.WriteLine(cmd.CommandText), //监听SQL命令对象，在执行前
-            (cmd, traceLog) => Console.WriteLine(traceLog))
+            cmd => Trace.WriteLine("\r\n线程" + Thread.CurrentThread.ManagedThreadId + ": " + cmd.CommandText) //监听SQL命令对象，在执行前
+            //, (cmd, traceLog) => Console.WriteLine(traceLog)
+            )
         .Build());
     public static IFreeSql oracle => oracleLazy.Value;
 
@@ -67,8 +71,9 @@ public class g
         //.UseGenerateCommandParameterWithLambda(true)
         .UseLazyLoading(true)
         .UseMonitorCommand(
-            cmd => Trace.WriteLine(cmd.CommandText), //监听SQL命令对象，在执行前
-            (cmd, traceLog) => Console.WriteLine(traceLog))
+            cmd => Trace.WriteLine("\r\n线程" + Thread.CurrentThread.ManagedThreadId + ": " + cmd.CommandText) //监听SQL命令对象，在执行前
+            //, (cmd, traceLog) => Console.WriteLine(traceLog)
+            )
         .Build());
     public static IFreeSql sqlite => sqliteLazy.Value;
 }

@@ -210,5 +210,16 @@ public static partial class FreeSqlGlobalExtensions
         select.SetList(list);
         return list;
     }
+
+#if net40
+#else
+    async public static System.Threading.Tasks.Task<List<T1>> IncludeManyAsync<T1, TNavigate>(this List<T1> list, IFreeSql orm, Expression<Func<T1, IEnumerable<TNavigate>>> navigateSelector, Action<ISelect<TNavigate>> then = null) where T1 : class where TNavigate : class
+    {
+        if (list == null || list.Any() == false) return list;
+        var select = orm.Select<T1>().IncludeMany(navigateSelector, then) as FreeSql.Internal.CommonProvider.Select1Provider<T1>;
+        await select.SetListAsync(list);
+        return list;
+    }
+#endif
     #endregion
 }

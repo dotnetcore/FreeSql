@@ -533,9 +533,16 @@ namespace FreeSql.Internal.CommonProvider
                 }
                 if (tbref.Columns.Any() == false) throw throwNavigateSelector;
             }
-            
-            _includeToList.Add(listObj =>
+
+#if net40
+            Action<object, bool> includeToListSyncOrAsync = (listObj, isAsync) =>
             {
+                isAsync = false;
+#else
+            Func<object, bool, Task> includeToListSyncOrAsync = async (listObj, isAsync) =>
+            {
+#endif
+
                 var list = listObj as List<T1>;
                 if (list == null) return;
                 if (list.Any() == false) return;
@@ -576,7 +583,7 @@ namespace FreeSql.Internal.CommonProvider
                         Expression.Block(
                             Expression.Return(returnTarget, Expression.Call(null, GetEntityValueWithPropertyNameMethod, Expression.Constant(_orm), Expression.Constant(membersExp.Type), membersExp, propertyNameExp)),
                             Expression.Label(returnTarget, Expression.Default(typeof(object)))
-                        ), t1parm, propertyNameExp).Compile():
+                        ), t1parm, propertyNameExp).Compile() :
                     Expression.Lambda<Func<T1, string, object>>(
                         Expression.Block(
                             Expression.IfThen(
@@ -700,8 +707,20 @@ namespace FreeSql.Internal.CommonProvider
                                 sbSql.Remove(0, 13);
                                 if (sbDic.Count == 1) sbSql.Remove(0, 15).Remove(sbSql.Length - 5, 5);
                                 sbDic.Clear();
-                                if (selectExp == null) subList = subSelect.ToListAfPrivate(sbSql.ToString(), af, null);
-                                else subList = subSelect.ToListMrPrivate<TNavigate>(sbSql.ToString(), mf, null);
+
+                                if (isAsync)
+                                {
+#if net40
+#else
+                                    if (selectExp == null) subList = await subSelect.ToListAfPrivateAsync(sbSql.ToString(), af, null);
+                                    else subList = await subSelect.ToListMrPrivateAsync<TNavigate>(sbSql.ToString(), mf, null);
+#endif
+                                }
+                                else
+                                {
+                                    if (selectExp == null) subList = subSelect.ToListAfPrivate(sbSql.ToString(), af, null);
+                                    else subList = subSelect.ToListMrPrivate<TNavigate>(sbSql.ToString(), mf, null);
+                                }
                                 sbSql.Clear();
                             }
                             else
@@ -731,8 +750,20 @@ namespace FreeSql.Internal.CommonProvider
                                     sbDic.Clear();
                                 }
                                 subSelect.Where(oldWhere);
-                                if (selectExp == null) subList = subSelect.ToList(true);
-                                else subList = subSelect.ToList<TNavigate>(selectExp);
+
+                                if (isAsync)
+                                {
+#if net40
+#else
+                                    if (selectExp == null) subList = await subSelect.ToListAsync(true);
+                                    else subList = await subSelect.ToListAsync<TNavigate>(selectExp);
+#endif
+                                }
+                                else
+                                {
+                                    if (selectExp == null) subList = subSelect.ToList(true);
+                                    else subList = subSelect.ToList<TNavigate>(selectExp);
+                                }
                             }
 
                             if (subList.Any() == false)
@@ -826,7 +857,8 @@ namespace FreeSql.Internal.CommonProvider
                             {
                                 if (z > 0) sbJoin.Append(" AND ");
                                 sbJoin.Append($"midtb.{_commonUtils.QuoteSqlName(tbref.MiddleColumns[tbref.Columns.Count + z].Attribute.Name)} = a.{_commonUtils.QuoteSqlName(tbref.RefColumns[z].Attribute.Name)}");
-                                if (_whereCascadeExpression.Any()) {
+                                if (_whereCascadeExpression.Any())
+                                {
                                     var cascade = _commonExpression.GetWhereCascadeSql(new SelectTableInfo { Alias = "midtb", AliasInit = "midtb", Table = tbrefMid, Type = SelectTableInfoType.InnerJoin }, _whereCascadeExpression);
                                     if (string.IsNullOrEmpty(cascade) == false)
                                         sbJoin.Append(" AND (").Append(cascade).Append(")");
@@ -843,7 +875,7 @@ namespace FreeSql.Internal.CommonProvider
                             var sbSql = new StringBuilder();
 
                             if (_selectExpression == null)
-                            {// return this.InternalToList<T1>(_selectExpression).Select(a => (a, ()).ToList();
+                            {
                                 var field = new StringBuilder();
                                 var read = new ReadAnonymousTypeInfo();
                                 read.ConsturctorType = ReadAnonymousTypeInfoConsturctorType.Properties;
@@ -919,8 +951,19 @@ namespace FreeSql.Internal.CommonProvider
                                 sbSql.Append(subSelect.ToSql($"{(selectExp == null ? af.Field : mf.field)}{otherData?.field}"));
                             }
 
-                            if (selectExp == null) subList = subSelect.ToListAfPrivate(sbSql.ToString(), af, otherData == null ? null : new[] { (otherData.Value.field, otherData.Value.read, midList) });
-                            else subList = subSelect.ToListMrPrivate<TNavigate>(sbSql.ToString(), mf, otherData == null ? null : new[] { (otherData.Value.field, otherData.Value.read, midList) });
+                            if (isAsync)
+                            {
+#if net40
+#else
+                                if (selectExp == null) subList = await subSelect.ToListAfPrivateAsync(sbSql.ToString(), af, otherData == null ? null : new[] { (otherData.Value.field, otherData.Value.read, midList) });
+                                else subList = await subSelect.ToListMrPrivateAsync<TNavigate>(sbSql.ToString(), mf, otherData == null ? null : new[] { (otherData.Value.field, otherData.Value.read, midList) });
+#endif
+                            }
+                            else
+                            {
+                                if (selectExp == null) subList = subSelect.ToListAfPrivate(sbSql.ToString(), af, otherData == null ? null : new[] { (otherData.Value.field, otherData.Value.read, midList) });
+                                else subList = subSelect.ToListMrPrivate<TNavigate>(sbSql.ToString(), mf, otherData == null ? null : new[] { (otherData.Value.field, otherData.Value.read, midList) });
+                            }
                             if (subList.Any() == false)
                             {
                                 foreach (var item in list)
@@ -983,7 +1026,13 @@ namespace FreeSql.Internal.CommonProvider
                         }
                         break;
                 }
-            });
+            };
+
+            _includeToList.Add(listObj => includeToListSyncOrAsync(listObj, false));
+#if net40
+#else
+            _includeToListAsync.Add(listObj => includeToListSyncOrAsync(listObj, true));
+#endif
             return this;
         }
 
@@ -995,6 +1044,12 @@ namespace FreeSql.Internal.CommonProvider
 
 #if net40
 #else
+        async internal Task SetListAsync(IEnumerable<T1> list)
+        {
+            foreach (var include in _includeToListAsync) await include?.Invoke(list);
+            _trackToList?.Invoke(list);
+        }
+
         public Task<TMember> AvgAsync<TMember>(Expression<Func<T1, TMember>> column)
         {
             if (column == null) return Task.FromResult(default(TMember));

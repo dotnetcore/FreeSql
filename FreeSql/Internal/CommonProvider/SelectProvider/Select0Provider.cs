@@ -34,6 +34,10 @@ namespace FreeSql.Internal.CommonProvider
         protected DbConnection _connection;
         protected Action<object> _trackToList;
         protected List<Action<object>> _includeToList = new List<Action<object>>();
+#if net40
+#else
+        protected List<Func<object, Task>> _includeToListAsync = new List<Func<object, Task>>();
+#endif
         protected bool _distinct;
         protected Expression _selectExpression;
         protected List<LambdaExpression> _whereCascadeExpression = new List<LambdaExpression>();
@@ -50,6 +54,10 @@ namespace FreeSql.Internal.CommonProvider
             _join.Clear();
             _trackToList = null;
             _includeToList.Clear();
+#if net40
+#else
+            _includeToListAsync.Clear();
+#endif
             _selectExpression = null;
             _whereCascadeExpression.Clear();
             _whereGlobalFilter = _orm.GlobalFilter.GetFilters();
@@ -104,6 +112,10 @@ namespace FreeSql.Internal.CommonProvider
             toType.GetField("_connection", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._connection);
             toType.GetField("_trackToList", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._trackToList);
             toType.GetField("_includeToList", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._includeToList);
+#if net40
+#else
+            toType.GetField("_includeToListAsync", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._includeToListAsync);
+#endif
             toType.GetField("_distinct", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._distinct);
             toType.GetField("_selectExpression", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._selectExpression);
             toType.GetField("_whereCascadeExpression", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._whereCascadeExpression);
@@ -1154,7 +1166,7 @@ namespace FreeSql.Internal.CommonProvider
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
                 _orm.Aop.CurdAfter?.Invoke(this, after);
             }
-            foreach (var include in _includeToList) include?.Invoke(ret);
+            foreach (var include in _includeToListAsync) await include?.Invoke(ret);
             _trackToList?.Invoke(ret);
             return ret;
         }
@@ -1220,7 +1232,7 @@ namespace FreeSql.Internal.CommonProvider
                 _orm.Aop.CurdAfter?.Invoke(this, after);
             }
             if (typeof(TReturn) == typeof(T1))
-                foreach (var include in _includeToList) include?.Invoke(ret);
+                foreach (var include in _includeToListAsync) await include?.Invoke(ret);
             _trackToList?.Invoke(ret);
             return ret;
         }

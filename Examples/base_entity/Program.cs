@@ -4,7 +4,9 @@ using FreeSql.Extensions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Diagnostics;
 using System.Linq.Expressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace base_entity
@@ -124,8 +126,8 @@ namespace base_entity
                 ru1.RoleId = r2.Id;
                 await ru1.SaveAsync();
 
-                var u1roles = User1.Select.IncludeMany(a => a.Roles).ToList();
-                var u1roles2 = User1.Select.Where(a => a.Roles.AsSelect().Any(b => b.Id == "xx")).ToList();
+                var u1roles = await User1.Select.IncludeMany(a => a.Roles).ToListAsync();
+                var u1roles2 = await User1.Select.Where(a => a.Roles.AsSelect().Any(b => b.Id == "xx")).ToListAsync();
 
             }).Wait();
 
