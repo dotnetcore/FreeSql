@@ -195,6 +195,9 @@ namespace FreeSql.Internal
                     col.DbInsertValue = colattr.ServerTime == DateTimeKind.Local ? common.Now : common.NowUtc;
                 }
 
+                if (trytb.Columns.ContainsKey(colattr.Name)) throw new Exception($"ColumnAttribute.Name {colattr.Name} 重复存在，请检查（注意：不区分大小写）");
+                if (trytb.ColumnsByCs.ContainsKey(p.Name)) throw new Exception($"属性名 {p.Name} 重复存在，请检查（注意：不区分大小写）");
+
                 trytb.Columns.Add(colattr.Name, col);
                 trytb.ColumnsByCs.Add(p.Name, col);
                 columnsList.Add(col);

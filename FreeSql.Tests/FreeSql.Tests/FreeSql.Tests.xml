@@ -464,5 +464,54 @@
             部门对象
             </summary>
         </member>
+        <member name="F:Business.OtherOrder.joinYear">
+            <summary>
+            入学年份
+            </summary>
+        </member>
+        <member name="F:Business.OtherOrder.period">
+            <summary>
+            学段
+            </summary>
+        </member>
+        <member name="F:Business.OtherOrder.count">
+            <summary>
+            人数
+            </summary>
+        </member>
+        <!-- Badly formed XML comment ignored for member "T:Business.OtherOrder.orderTypeEmun" -->
+        <!-- Badly formed XML comment ignored for member "F:Business.OtherOrder.orderTypeEmun.错题本" -->
+        <!-- Badly formed XML comment ignored for member "F:Business.OtherOrder.orderTypeEmun.学情套餐" -->
+        <!-- Badly formed XML comment ignored for member "F:Business.OtherOrder.orderTypeEmun.耗材" -->
+        <!-- Badly formed XML comment ignored for member "F:Business.OtherOrder.orderTypeEmun.其他" -->
+        <!-- Badly formed XML comment ignored for member "T:Business.OtherOrder.isInvoiceEmun" -->
+        <!-- Badly formed XML comment ignored for member "F:Business.OtherOrder.isInvoiceEmun.否" -->
+        <!-- Badly formed XML comment ignored for member "F:Business.OtherOrder.isInvoiceEmun.是" -->
+        <!-- Badly formed XML comment ignored for member "T:Business.OtherOrder.staEmun" -->
+        <!-- Badly formed XML comment ignored for member "F:Business.OtherOrder.staEmun.新建" -->
+        <!-- Badly formed XML comment ignored for member "F:Business.OtherOrder.staEmun.待内勤审核" -->
+        <!-- Badly formed XML comment ignored for member "F:Business.OtherOrder.staEmun.待财务审核" -->
+        <!-- Badly formed XML comment ignored for member "F:Business.OtherOrder.staEmun.审核不通过" -->
+        <!-- Badly formed XML comment ignored for member "F:Business.OtherOrder.staEmun.审核通过" -->
+        <!-- Badly formed XML comment ignored for member "F:Business.OtherOrder.staEmun.已撤回" -->
+        <!-- Badly formed XML comment ignored for member "F:Business.OtherOrder.staEmun.已作废" -->
+        <member name="F:Business.OtherOrder.dataEnum.待标注">
+            <summary>
+            待标注
+            </summary>
+        </member>
+        <member name="F:Business.OtherOrder.dataEnum.合格">
+            <summary>
+            合格
+            </summary>
+        </member>
+        <member name="F:Business.OtherOrder.dataEnum.不合格">
+            <summary>
+            不合格
+            </summary>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:Business.OtherOrder.orderTypeNameMap(Business.OtherOrder.orderTypeEmun)" -->
+        <!-- Badly formed XML comment ignored for member "M:Business.OtherOrder.isInvoiceNameMap(Business.OtherOrder.isInvoiceEmun)" -->
+        <!-- Badly formed XML comment ignored for member "M:Business.OtherOrder.staNameMap(Business.OtherOrder.staEmun)" -->
     </members>
 </doc>
