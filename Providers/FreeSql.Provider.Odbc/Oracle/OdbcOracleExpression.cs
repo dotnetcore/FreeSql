@@ -70,21 +70,21 @@ namespace FreeSql.Odbc.Oracle
                                 case "System.UInt64": return $"cast({getExp(callExp.Arguments[0])} as number)";
                                 case "System.Guid": return $"substr(to_char({getExp(callExp.Arguments[0])}), 1, 36)";
                             }
-                            break;
+                            return null;
                         case "NewGuid":
-                            break;
+                            return null;
                         case "Next":
                             if (callExp.Object?.Type == typeof(Random)) return "cast(dbms_random.value*1000000000 as smallint)";
-                            break;
+                            return null;
                         case "NextDouble":
                             if (callExp.Object?.Type == typeof(Random)) return "dbms_random.value";
-                            break;
+                            return null;
                         case "Random":
                             if (callExp.Method.DeclaringType.IsNumberType()) return "dbms_random.value";
-                            break;
+                            return null;
                         case "ToString":
                             if (callExp.Object != null) return callExp.Arguments.Count == 0 ? $"to_char({getExp(callExp.Object)})" : null;
-                            break;
+                            return null;
                     }
 
                     var objExp = callExp.Object;

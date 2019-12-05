@@ -1335,7 +1335,7 @@ namespace FreeSql.Internal
             }
             return null;
         }
-        class ReplaceVisitor : ExpressionVisitor
+        internal class ReplaceVisitor : ExpressionVisitor
         {
             private ParameterExpression parameter;
             public Expression Modify(Expression expression, ParameterExpression parameter)

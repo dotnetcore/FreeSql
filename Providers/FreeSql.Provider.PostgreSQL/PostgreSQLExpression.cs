@@ -77,19 +77,19 @@ namespace FreeSql.PostgreSQL
                             }
                             break;
                         case "NewGuid":
-                            break;
+                            return null;
                         case "Next":
                             if (callExp.Object?.Type == typeof(Random)) return "(random()*1000000000)::int4";
-                            break;
+                            return null;
                         case "NextDouble":
                             if (callExp.Object?.Type == typeof(Random)) return "random()";
-                            break;
+                            return null;
                         case "Random":
                             if (callExp.Method.DeclaringType.IsNumberType()) return "random()";
-                            break;
+                            return null;
                         case "ToString":
                             if (callExp.Object != null) return callExp.Arguments.Count == 0 ? $"({getExp(callExp.Object)})::varchar" : null;
-                            break;
+                            return null;
                     }
 
                     var objExp = callExp.Object;

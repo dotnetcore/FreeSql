@@ -200,9 +200,33 @@ namespace FreeSql.Tests
             public string Name { get; set; }
         }
 
+        public class gf_t1
+        {
+            public Guid id { get; set; }
+            public int rowstate { get; set; }
+        }
+        public class gf_t2
+        {
+            public Guid id { get; set; }
+            public decimal rowstate { get; set; }
+        }
+        public class gf_t3
+        {
+            public Guid id { get; set; }
+            public decimal rowstate { get; set; }
+        }
+
         [Fact]
         public void Test02()
         {
+            g.mysql.GlobalFilter.Apply<gf_t1>("gft1", a => a.rowstate > -1)
+                .Apply<gf_t2>("gft2", a => a.rowstate > -2)
+                .Apply<gf_t3>("gft3", a => a.rowstate > -3);
+
+            var gft1 = g.mysql.Select<gf_t1>().Where(a => a.id == Guid.NewGuid()).ToList();
+            var gft2 = g.mysql.Select<gf_t2>().Where(a => a.id == Guid.NewGuid()).ToList();
+            var gft3 = g.mysql.Select<gf_t3>().Where(a => a.id == Guid.NewGuid()).ToList();
+
             var tekset = g.sqlite.Select<employee>().IncludeMany(a => a.departments).ToList();
 
             g.sqlserver.Delete<TBatInst>().Where("1=1").ExecuteAffrows();

@@ -70,21 +70,21 @@ namespace FreeSql.Sqlite
                                 case "System.UInt64": return $"cast({getExp(callExp.Arguments[0])} as decimal(21,0))";
                                 case "System.Guid": return $"substr(cast({getExp(callExp.Arguments[0])} as character), 1, 36)";
                             }
-                            break;
+                            return null;
                         case "NewGuid":
-                            break;
+                            return null;
                         case "Next":
                             if (callExp.Object?.Type == typeof(Random)) return "cast(random()*1000000000 as int)";
-                            break;
+                            return null;
                         case "NextDouble":
                             if (callExp.Object?.Type == typeof(Random)) return "random()";
-                            break;
+                            return null;
                         case "Random":
                             if (callExp.Method.DeclaringType.IsNumberType()) return "random()";
-                            break;
+                            return null;
                         case "ToString":
                             if (callExp.Object != null) return callExp.Arguments.Count == 0 ? $"cast({getExp(callExp.Object)} as character)" : null;
-                            break;
+                            return null;
                     }
 
                     var objExp = callExp.Object;

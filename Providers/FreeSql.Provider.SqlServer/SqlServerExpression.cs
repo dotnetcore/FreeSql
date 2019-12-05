@@ -70,25 +70,25 @@ namespace FreeSql.SqlServer
                                 case "System.UInt64": return $"cast({getExp(callExp.Arguments[0])} as bigint)";
                                 case "System.Guid": return $"cast({getExp(callExp.Arguments[0])} as uniqueidentifier)";
                             }
-                            break;
+                            return null;
                         case "NewGuid":
                             switch (callExp.Method.DeclaringType.NullableTypeOrThis().ToString())
                             {
                                 case "System.Guid": return $"newid()";
                             }
-                            break;
+                            return null;
                         case "Next":
                             if (callExp.Object?.Type == typeof(Random)) return "cast(rand()*1000000000 as int)";
-                            break;
+                            return null;
                         case "NextDouble":
                             if (callExp.Object?.Type == typeof(Random)) return "rand()";
-                            break;
+                            return null;
                         case "Random":
                             if (callExp.Method.DeclaringType.IsNumberType()) return "rand()";
-                            break;
+                            return null;
                         case "ToString":
                             if (callExp.Object != null) return callExp.Arguments.Count == 0 ? (callExp.Object.Type.NullableTypeOrThis() == typeof(Guid) ? $"cast({getExp(callExp.Object)} as varchar(36))" : $"cast({getExp(callExp.Object)} as nvarchar)") : null;
-                            break;
+                            return null;
                     }
 
                     var objExp = callExp.Object;

@@ -70,21 +70,21 @@ namespace FreeSql.Odbc.MySql
                                 case "System.UInt64": return $"cast({getExp(callExp.Arguments[0])} as unsigned)";
                                 case "System.Guid": return $"substr(cast({getExp(callExp.Arguments[0])} as char), 1, 36)";
                             }
-                            break;
+                            return null;
                         case "NewGuid":
-                            break;
+                            return null;
                         case "Next":
                             if (callExp.Object?.Type == typeof(Random)) return "cast(rand()*1000000000 as signed)";
-                            break;
+                            return null;
                         case "NextDouble":
                             if (callExp.Object?.Type == typeof(Random)) return "rand()";
-                            break;
+                            return null;
                         case "Random":
                             if (callExp.Method.DeclaringType.IsNumberType()) return "rand()";
-                            break;
+                            return null;
                         case "ToString":
                             if (callExp.Object != null) return callExp.Arguments.Count == 0 ? $"cast({getExp(callExp.Object)} as char)" : null;
-                            break;
+                            return null;
                     }
 
                     var objExp = callExp.Object;
