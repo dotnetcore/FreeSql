@@ -79,7 +79,7 @@ FreeSql 是功能强大的对象关系映射技术(O/RM)，支持 .NETCore 2.1+ 
 | FreeSql.DataType.PostgreSQL | Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Minimum Pool Size=1 |
 | FreeSql.DataType.SqlServer | Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Min Pool Size=1 |
 | FreeSql.DataType.Oracle | user id=user1;password=123456;data source=//127.0.0.1:1521/XE;Pooling=true;Min Pool Size=1 |
-| FreeSql.DataType.Sqlite | Data Source=|DataDirectory|\document.db;Attachs=xxxtb.db;Pooling=true;Min Pool Size=1 |
+| FreeSql.DataType.Sqlite | Data Source=\|DataDirectory\|\document.db;Attachs=xxxtb.db;Pooling=true;Min Pool Size=1 |
 | FreeSql.DataType.OdbcMySql | Driver={MySQL ODBC 8.0 Unicode Driver};Server=127.0.0.1;Persist Security Info=False;Trusted_Connection=Yes;UID=root;PWD=root;DATABASE=cccddd_odbc;Charset=utf8;SslMode=none;Min Pool Size=1 |
 | FreeSql.DataType.OdbcSqlServer | Driver={SQL Server};Server=.;Persist Security Info=False;Trusted_Connection=Yes;Integrated Security=True;DATABASE=freesqlTest_odbc;Pooling=true;Min Pool Size=1 |
 | FreeSql.DataType.OdbcOracle | Driver={Oracle in XE};Server=//127.0.0.1:1521/XE;Persist Security Info=False;Trusted_Connection=Yes;UID=odbc1;PWD=123456;Min Pool Size=1 |
