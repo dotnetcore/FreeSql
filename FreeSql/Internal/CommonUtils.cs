@@ -129,6 +129,7 @@ namespace FreeSql.Internal
                 if (trycol._CanInsert != null) attr._CanInsert = trycol.CanInsert;
                 if (trycol._CanUpdate != null) attr._CanUpdate = trycol.CanUpdate;
                 if (trycol.ServerTime != DateTimeKind.Unspecified) attr.ServerTime = trycol.ServerTime;
+                if (trycol._StringLength != null) attr.StringLength = trycol.StringLength;
             }
             var attrs = proto.GetCustomAttributes(typeof(ColumnAttribute), false);
             foreach (var tryattrobj in attrs)
@@ -148,6 +149,7 @@ namespace FreeSql.Internal
                 if (tryattr._CanInsert != null) attr._CanInsert = tryattr.CanInsert;
                 if (tryattr._CanUpdate != null) attr._CanUpdate = tryattr.CanUpdate;
                 if (tryattr.ServerTime != DateTimeKind.Unspecified) attr.ServerTime = tryattr.ServerTime;
+                if (tryattr._StringLength != null) attr.StringLength = tryattr.StringLength;
             }
             ColumnAttribute ret = null;
             if (!string.IsNullOrEmpty(attr.Name)) ret = attr;
@@ -163,6 +165,7 @@ namespace FreeSql.Internal
             if (attr._CanInsert != null) ret = attr;
             if (attr._CanUpdate != null) ret = attr;
             if (attr.ServerTime != DateTimeKind.Unspecified) ret = attr;
+            if (attr._StringLength != null) ret = attr;
             if (ret != null && ret.MapType == null) ret.MapType = proto.PropertyType;
             return ret;
         }

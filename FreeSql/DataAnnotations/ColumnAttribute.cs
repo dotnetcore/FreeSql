@@ -17,7 +17,7 @@ namespace FreeSql.DataAnnotations
         public string OldName { get; set; }
         /// <summary>
         /// 数据库类型，如： varchar(255) <para></para>
-        /// 字符串长度，可使用特性 MaxLength(255)
+        /// 字符串长度，可使用特性 [MaxLength(255)]
         /// </summary>
         public string DbType { get; set; }
 
@@ -76,5 +76,26 @@ namespace FreeSql.DataAnnotations
         /// 标记属性为数据库服务器时间(utc/local)，在插入的时候使用类似 getdate() 执行
         /// </summary>
         public DateTimeKind ServerTime { get; set; }
+
+        internal int? _StringLength;
+        /// <summary>
+        /// 设置长度，针对 string 类型避免 DbType 的繁琐设置<para></para>
+        /// 提示：也可以使用 [MaxLength(100)]<para></para>
+        /// ---<para></para>
+        /// StringLength = 100 时，对应 DbType：<para></para>
+        /// MySql -> varchar(100)<para></para>
+        /// SqlServer -> nvarchar(100)<para></para>
+        /// PostgreSQL -> varchar(100)<para></para>
+        /// Oracle -> nvarchar2(100)<para></para>
+        /// Sqlite -> nvarchar(100)<para></para>
+        /// ---<para></para>
+        /// StringLength = -1 时，对应 DbType：<para></para>
+        /// MySql -> text<para></para>
+        /// SqlServer -> nvarchar(max)<para></para>
+        /// PostgreSQL -> text<para></para>
+        /// Oracle -> nvarchar2(4000)<para></para>
+        /// Sqlite -> text<para></para>
+        /// </summary>
+        public int StringLength { get => _StringLength ?? 0; set => _StringLength = value; }
     }
 }

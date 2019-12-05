@@ -135,5 +135,28 @@ namespace FreeSql.DataAnnotations
             _column.ServerTime = value;
             return this;
         }
+
+        /// <summary>
+        /// 设置长度，针对 string 类型避免 DbType 的繁琐设置<para></para>
+        /// ---<para></para>
+        /// StringLength = 100 时，对应 DbType：<para></para>
+        /// MySql -> varchar(100)<para></para>
+        /// SqlServer -> nvarchar(100)<para></para>
+        /// PostgreSQL -> varchar(100)<para></para>
+        /// Oracle -> nvarchar2(100)<para></para>
+        /// Sqlite -> nvarchar(100)<para></para>
+        /// ---<para></para>
+        /// StringLength = -1 时，对应 DbType：<para></para>
+        /// MySql -> text<para></para>
+        /// SqlServer -> nvarchar(max)<para></para>
+        /// PostgreSQL -> text<para></para>
+        /// Oracle -> nvarchar2(4000)<para></para>
+        /// Sqlite -> text<para></para>
+        /// </summary>
+        public ColumnFluent StringLength(int value)
+        {
+            _column.StringLength = value;
+            return this;
+        }
     }
 }

@@ -194,6 +194,38 @@ namespace FreeSql.Internal
                     col.DbDefaultValue = colattr.ServerTime == DateTimeKind.Local ? common.Now : common.NowUtc;
                     col.DbInsertValue = colattr.ServerTime == DateTimeKind.Local ? common.Now : common.NowUtc;
                 }
+                if (colattr.MapType == typeof(string) && colattr.StringLength != 0)
+                {
+                    int strlen = colattr.StringLength;
+                    var charPatten = @"(CHAR|CHAR2|CHARACTER)\s*(\([^\)]*\))?";
+                    switch (common._orm.Ado.DataType)
+                    {
+                        case DataType.MySql:
+                        case DataType.OdbcMySql:
+                            if (strlen < 0) colattr.DbType = "text";
+                            else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
+                            break;
+                        case DataType.SqlServer:
+                        case DataType.OdbcSqlServer:
+                            if (strlen < 0) colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1(MAX)");
+                            else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
+                            break;
+                        case DataType.PostgreSQL:
+                        case DataType.OdbcPostgreSQL:
+                            if (strlen < 0) colattr.DbType = "text";
+                            else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
+                            break;
+                        case DataType.Oracle:
+                        case DataType.OdbcOracle:
+                            if (strlen < 0) colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1(4000)");
+                            else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
+                            break;
+                        case DataType.Sqlite:
+                            if (strlen < 0) colattr.DbType = "text";
+                            else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
+                            break;
+                    }
+                }
 
                 if (trytb.Columns.ContainsKey(colattr.Name)) throw new Exception($"ColumnAttribute.Name {colattr.Name} 重复存在，请检查（注意：不区分大小写）");
                 if (trytb.ColumnsByCs.ContainsKey(p.Name)) throw new Exception($"属性名 {p.Name} 重复存在，请检查（注意：不区分大小写）");

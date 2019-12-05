@@ -263,34 +263,9 @@ namespace FreeSql
                     if (maxlenAttr != null)
                     {
                         var lenProp = maxlenAttr.GetType().GetProperties().Where(a => a.PropertyType.IsNumberType()).FirstOrDefault();
-                        if (lenProp != null && int.TryParse(string.Concat(lenProp.GetValue(maxlenAttr, null)), out var tryval))
+                        if (lenProp != null && int.TryParse(string.Concat(lenProp.GetValue(maxlenAttr, null)), out var tryval) && tryval != 0)
                         {
-                            if (tryval != 0)
-                            {
-                                switch (ret.Ado.DataType)
-                                {
-                                    case DataType.MySql:
-                                    case DataType.OdbcMySql:
-                                        e.ModifyResult.DbType = tryval > 0 ? $"varchar({tryval})" : "text";
-                                        break;
-                                    case DataType.SqlServer:
-                                    case DataType.OdbcSqlServer:
-                                        e.ModifyResult.DbType = tryval > 0 ? $"nvarchar({tryval})" : "nvarchar(max)";
-                                        break;
-                                    case DataType.PostgreSQL:
-                                    case DataType.OdbcPostgreSQL:
-                                        e.ModifyResult.DbType = tryval > 0 ? $"varchar({tryval})" : "text";
-                                        break;
-                                    case DataType.Oracle:
-                                    case DataType.OdbcOracle:
-                                        e.ModifyResult.DbType = tryval > 0 ? $"nvarchar2({tryval})" : "nvarchar2(4000)";
-                                        break;
-                                    case DataType.Sqlite:
-                                        e.ModifyResult.DbType = tryval > 0 ? $"nvarchar({tryval})" : "text";
-                                        break;
-
-                                }
-                            }
+                            e.ModifyResult.StringLength = tryval;
                         }
                     }
                 });
