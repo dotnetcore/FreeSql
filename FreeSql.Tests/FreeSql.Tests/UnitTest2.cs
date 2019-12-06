@@ -219,6 +219,12 @@ namespace FreeSql.Tests
         [Fact]
         public void Test02()
         {
+            var start = DateTime.Now.Date;
+            var end = DateTime.Now.AddDays(1).Date.AddMilliseconds(-1);
+            var textbetween = g.sqlite.Select<TestIgnoreDefaultValue>()
+                .Where(a => a.ct1.Between(start, end))
+                .ToList();
+
             g.mysql.GlobalFilter.Apply<gf_t1>("gft1", a => a.rowstate > -1)
                 .Apply<gf_t2>("gft2", a => a.rowstate > -2)
                 .Apply<gf_t3>("gft3", a => a.rowstate > -3);

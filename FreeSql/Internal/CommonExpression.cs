@@ -25,20 +25,20 @@ namespace FreeSql.Internal
             _common = common;
         }
 
-        public bool ReadAnonymousField(List<SelectTableInfo> _tables, StringBuilder field, ReadAnonymousTypeInfo parent, ref int index, Expression exp, Func<Expression[], string> getSelectGroupingMapString, List<LambdaExpression> whereCascadeExpression)
+        public bool ReadAnonymousField(List<SelectTableInfo> _tables, StringBuilder field, ReadAnonymousTypeInfo parent, ref int index, Expression exp, Func<Expression[], string> getSelectGroupingMapString, List<LambdaExpression> whereCascadeExpression, bool isAllDtoMap)
         {
             Func<ExpTSC> getTSC = () => new ExpTSC { _tables = _tables, getSelectGroupingMapString = getSelectGroupingMapString, tbtype = SelectTableInfoType.From, isQuoteName = true, isDisableDiyParse = false, style = ExpressionStyle.Where, whereCascadeExpression = whereCascadeExpression };
             switch (exp.NodeType)
             {
-                case ExpressionType.Quote: return ReadAnonymousField(_tables, field, parent, ref index, (exp as UnaryExpression)?.Operand, getSelectGroupingMapString, whereCascadeExpression);
-                case ExpressionType.Lambda: return ReadAnonymousField(_tables, field, parent, ref index, (exp as LambdaExpression)?.Body, getSelectGroupingMapString, whereCascadeExpression);
+                case ExpressionType.Quote: return ReadAnonymousField(_tables, field, parent, ref index, (exp as UnaryExpression)?.Operand, getSelectGroupingMapString, whereCascadeExpression, isAllDtoMap);
+                case ExpressionType.Lambda: return ReadAnonymousField(_tables, field, parent, ref index, (exp as LambdaExpression)?.Body, getSelectGroupingMapString, whereCascadeExpression, isAllDtoMap);
                 case ExpressionType.Negate:
                 case ExpressionType.NegateChecked:
                     parent.DbField = $"-({ExpressionLambdaToSql(exp, getTSC())})";
                     field.Append(", ").Append(parent.DbField);
                     if (index >= 0) field.Append(" as").Append(++index);
                     return false;
-                case ExpressionType.Convert: return ReadAnonymousField(_tables, field, parent, ref index, (exp as UnaryExpression)?.Operand, getSelectGroupingMapString, whereCascadeExpression);
+                case ExpressionType.Convert: return ReadAnonymousField(_tables, field, parent, ref index, (exp as UnaryExpression)?.Operand, getSelectGroupingMapString, whereCascadeExpression, isAllDtoMap);
                 case ExpressionType.Constant:
                     var constExp = exp as ConstantExpression;
                     //处理自定义SQL语句，如： ToList(new { 
@@ -110,7 +110,7 @@ namespace FreeSql.Internal
                     parent.Consturctor = initExp.NewExpression.Type.GetConstructors()[0];
                     parent.ConsturctorType = ReadAnonymousTypeInfoConsturctorType.Properties;
 
-                    if (_tables != null && _tables.Any() && initExp.NewExpression.Type != _tables.FirstOrDefault().Table.Type)
+                    if (isAllDtoMap && _tables != null && _tables.Any() && initExp.NewExpression.Type != _tables.FirstOrDefault().Table.Type)
                     {
                         //dto 映射
                         var dtoProps = initExp.NewExpression.Type.GetPropertiesDictIgnoreCase().Values;
@@ -129,7 +129,7 @@ namespace FreeSql.Internal
                                     };
                                     parent.Childs.Add(child);
                                     if (dtTb.Parameter != null)
-                                        ReadAnonymousField(_tables, field, child, ref index, Expression.Property(dtTb.Parameter, dtTb.Table.Properties[trydtocol.CsName]), getSelectGroupingMapString, whereCascadeExpression);
+                                        ReadAnonymousField(_tables, field, child, ref index, Expression.Property(dtTb.Parameter, dtTb.Table.Properties[trydtocol.CsName]), getSelectGroupingMapString, whereCascadeExpression, isAllDtoMap);
                                     else
                                     {
                                         child.DbField = $"{dtTb.Alias}.{_common.QuoteSqlName(trydtocol.Attribute.Name)}";
@@ -156,7 +156,7 @@ namespace FreeSql.Internal
                                 MapType = initAssignExp.Expression.Type
                             };
                             parent.Childs.Add(child);
-                            ReadAnonymousField(_tables, field, child, ref index, initAssignExp.Expression, getSelectGroupingMapString, whereCascadeExpression);
+                            ReadAnonymousField(_tables, field, child, ref index, initAssignExp.Expression, getSelectGroupingMapString, whereCascadeExpression, false);
                         }
                     }
                     if (parent.Childs.Any() == false) throw new Exception($"映射异常：{initExp.NewExpression.Type.Name} 没有一个属性名相同");
@@ -177,7 +177,7 @@ namespace FreeSql.Internal
                                 MapType = newExp.Arguments[a].Type
                             };
                             parent.Childs.Add(child);
-                            ReadAnonymousField(_tables, field, child, ref index, newExp.Arguments[a], getSelectGroupingMapString, whereCascadeExpression);
+                            ReadAnonymousField(_tables, field, child, ref index, newExp.Arguments[a], getSelectGroupingMapString, whereCascadeExpression, false);
                         }
                     }
                     else
@@ -200,7 +200,7 @@ namespace FreeSql.Internal
                                     };
                                     parent.Childs.Add(child);
                                     if (dtTb.Parameter != null)
-                                        ReadAnonymousField(_tables, field, child, ref index, Expression.Property(dtTb.Parameter, dtTb.Table.Properties[trydtocol.CsName]), getSelectGroupingMapString, whereCascadeExpression);
+                                        ReadAnonymousField(_tables, field, child, ref index, Expression.Property(dtTb.Parameter, dtTb.Table.Properties[trydtocol.CsName]), getSelectGroupingMapString, whereCascadeExpression, isAllDtoMap);
                                     else
                                     {
                                         child.DbField = $"{dtTb.Alias}.{_common.QuoteSqlName(trydtocol.Attribute.Name)}";

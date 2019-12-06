@@ -1,4 +1,5 @@
 ﻿using FreeSql;
+using FreeSql.DataAnnotations;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -9,6 +10,7 @@ using System.Drawing;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading;
 
 public static partial class FreeSqlGlobalExtensions
 {
@@ -102,10 +104,7 @@ public static partial class FreeSqlGlobalExtensions
         var desc = item.GetType().GetField(name)?.GetCustomAttributes(typeof(DescriptionAttribute), false)?.FirstOrDefault() as DescriptionAttribute;
         return desc?.Description ?? name;
     }
-    public static long ToInt64(this Enum item)
-    {
-        return Convert.ToInt64(item);
-    }
+    public static long ToInt64(this Enum item) => Convert.ToInt64(item);
     public static IEnumerable<T> ToSet<T>(this long value)
     {
         var ret = new List<T>();
@@ -221,5 +220,46 @@ public static partial class FreeSqlGlobalExtensions
         return list;
     }
 #endif
+    #endregion
+
+    #region LambdaExpression
+
+    public static ThreadLocal<ExpressionCallContext> expContext = new ThreadLocal<ExpressionCallContext>();
+
+    /// <summary>
+    /// C#： that >= between &amp;&amp; that &lt;= and<para></para>
+    /// SQL： that BETWEEN between AND and
+    /// </summary>
+    /// <param name="that"></param>
+    /// <param name="between"></param>
+    /// <param name="and"></param>
+    /// <returns></returns>
+    [ExpressionCall]
+    public static bool Between(this DateTime that, DateTime between, DateTime and)
+    {
+        if (expContext.IsValueCreated == false || expContext.Value == null || expContext.Value.ParsedContent == null)
+            return that >= between && that <= and;
+        expContext.Value.Result = $"{expContext.Value.ParsedContent["that"]} between {expContext.Value.ParsedContent["start"]} and {expContext.Value.ParsedContent["end"]}";
+        return false;
+    }
+
+    /// <summary>
+    /// 注意：这个方法和 Between 有细微区别<para></para>
+    /// C#： that >= start &amp;&amp; that &lt; end<para></para>
+    /// SQL： that >= start and that &lt; end
+    /// </summary>
+    /// <param name="that"></param>
+    /// <param name="start"></param>
+    /// <param name="end"></param>
+    /// <returns></returns>
+    [ExpressionCall]
+    public static bool BetweenEnd(this DateTime that, DateTime start, DateTime end)
+    {
+        if (expContext.IsValueCreated == false || expContext.Value == null || expContext.Value.ParsedContent == null)
+            return that >= start && that < end;
+        expContext.Value.Result = $"{expContext.Value.ParsedContent["that"]} >= {expContext.Value.ParsedContent["start"]} and {expContext.Value.ParsedContent["that"]} < {expContext.Value.ParsedContent["end"]}";
+        return false;
+    }
+
     #endregion
 }

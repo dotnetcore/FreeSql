@@ -530,7 +530,7 @@ namespace FreeSql.Internal.CommonProvider
             var field = new StringBuilder();
             var index = 0;
 
-            _commonExpression.ReadAnonymousField(_tables, field, map, ref index, newexp, null, _whereCascadeExpression);
+            _commonExpression.ReadAnonymousField(_tables, field, map, ref index, newexp, null, _whereCascadeExpression, true);
             return (map, field.Length > 0 ? field.Remove(0, 2).ToString() : null);
         }
         static ConcurrentDictionary<Type, ConstructorInfo> _dicConstructor = new ConcurrentDictionary<Type, ConstructorInfo>();
@@ -1003,7 +1003,7 @@ namespace FreeSql.Internal.CommonProvider
             var field = new StringBuilder();
             var index = -10000; //临时规则，不返回 as1
 
-            _commonExpression.ReadAnonymousField(_tables, field, map, ref index, columns, null, _whereCascadeExpression);
+            _commonExpression.ReadAnonymousField(_tables, field, map, ref index, columns, null, _whereCascadeExpression, true);
             this.GroupBy(field.Length > 0 ? field.Remove(0, 2).ToString() : null);
             return new SelectGroupingProvider<TKey, TValue>(this, map, _commonExpression, _tables);
         }
@@ -1061,7 +1061,7 @@ namespace FreeSql.Internal.CommonProvider
             var field = new StringBuilder();
             var index = 0;
 
-            _commonExpression.ReadAnonymousField(_tables, field, map, ref index, select, null, _whereCascadeExpression);
+            _commonExpression.ReadAnonymousField(_tables, field, map, ref index, select, null, _whereCascadeExpression, true);
             return this.ToListMapReader<TReturn>((map, field.Length > 0 ? field.Remove(0, 2).ToString() : null)).FirstOrDefault();
         }
 
@@ -1291,7 +1291,7 @@ namespace FreeSql.Internal.CommonProvider
             var field = new StringBuilder();
             var index = 0;
 
-            _commonExpression.ReadAnonymousField(_tables, field, map, ref index, select, null, _whereCascadeExpression);
+            _commonExpression.ReadAnonymousField(_tables, field, map, ref index, select, null, _whereCascadeExpression, true);
             return (await this.ToListMapReaderAsync<TReturn>((map, field.Length > 0 ? field.Remove(0, 2).ToString() : null))).FirstOrDefault();
         }
 #endif
