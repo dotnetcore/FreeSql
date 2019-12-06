@@ -230,6 +230,20 @@ namespace FreeSql.Tests
         [Fact]
         public void Test02()
         {
+            g.sqlite.GlobalFilter.Apply<gf_t1>("gft1", a => a.rowstate > -1)
+                .Apply<gf_t2>("gft2", a => a.rowstate > -2)
+                .Apply<gf_t3>("gft3", a => a.rowstate > -3);
+
+            var tksk1 = g.sqlite.Select<gf_t1, gf_t2, gf_t3>()
+                .InnerJoin((a, b, c) => a.id == b.id)
+                .Where((a, b, c) => c.rowstate > 10)
+                .ToList();
+
+            var tksk2 = g.sqlite.Select<gf_t1, gf_t2, gf_t3>()
+                .InnerJoin((a, b, c) => a.id == b.id)
+                .Where((a, b, c) => c.rowstate > 10)
+                .ToList();
+
             var dtot2 = g.sqlite.Select<gf_t1>().ToList(a => new gfDto
             {
                 dto2 = new dfDto2
