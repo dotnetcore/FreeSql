@@ -48,8 +48,13 @@ namespace FreeSql.MySql.Curd
                             if (string.IsNullOrEmpty(tbsfrom[b].NavigateCondition) && string.IsNullOrEmpty(tbsfrom[b].On) && string.IsNullOrEmpty(tbsfrom[b].Cascade)) sb.Append(" ON 1 = 1");
                             else
                             {
-                                sb.Append(" ON ").Append(tbsfrom[b].NavigateCondition ?? tbsfrom[b].On);
-                                if (string.IsNullOrEmpty(tbsfrom[b].Cascade) == false) sb.Append(" AND (").Append(tbsfrom[b].Cascade).Append(")");
+                                var onSql = tbsfrom[b].NavigateCondition ?? tbsfrom[b].On;
+                                sb.Append(" ON ").Append(onSql);
+                                if (string.IsNullOrEmpty(tbsfrom[b].Cascade) == false)
+                                {
+                                    if (string.IsNullOrEmpty(onSql)) sb.Append(tbsfrom[b].Cascade);
+                                    else sb.Append(" AND (").Append(tbsfrom[b].Cascade).Append(")");
+                                }
                             }
                         }
                         break;
