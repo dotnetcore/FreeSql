@@ -2763,6 +2763,27 @@
             <param name="then">即能 ThenInclude，还可以二次过滤（这个 EFCore 做不到？）</param>
             <returns></returns>
         </member>
+        <member name="M:FreeSqlGlobalExtensions.Between(System.DateTime,System.DateTime,System.DateTime)">
+            <summary>
+            C#： that >= between &amp;&amp; that &lt;= and<para></para>
+            SQL： that BETWEEN between AND and
+            </summary>
+            <param name="that"></param>
+            <param name="between"></param>
+            <param name="and"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSqlGlobalExtensions.BetweenEnd(System.DateTime,System.DateTime,System.DateTime)">
+            <summary>
+            注意：这个方法和 Between 有细微区别<para></para>
+            C#： that >= start &amp;&amp; that &lt; end<para></para>
+            SQL： that >= start and that &lt; end
+            </summary>
+            <param name="that"></param>
+            <param name="start"></param>
+            <param name="end"></param>
+            <returns></returns>
+        </member>
         <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.And``1(System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}},System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})">
             <summary>
             使用 and 拼接两个 lambda 表达式

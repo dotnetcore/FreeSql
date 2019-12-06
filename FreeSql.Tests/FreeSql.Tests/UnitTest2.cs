@@ -216,13 +216,37 @@ namespace FreeSql.Tests
             public decimal rowstate { get; set; }
         }
 
+        public class gfDto
+        {
+            public int rowstate { get; set; }
+            public dfDto2 dto2 { get; set; }
+        }
+        public class dfDto2
+        {
+            public int id { get; set; }
+            public decimal rowstate { get; set; }
+        }
+
         [Fact]
         public void Test02()
         {
+            var dtot2 = g.sqlite.Select<gf_t1>().ToList(a => new gfDto
+            {
+                dto2 = new dfDto2
+                {
+                    rowstate = a.rowstate
+                }
+            });
+
+
             var start = DateTime.Now.Date;
             var end = DateTime.Now.AddDays(1).Date.AddMilliseconds(-1);
             var textbetween = g.sqlite.Select<TestIgnoreDefaultValue>()
                 .Where(a => a.ct1.Between(start, end))
+                .ToList();
+
+            var textbetweenend = g.sqlite.Select<TestIgnoreDefaultValue>()
+                .Where(a => a.ct1.BetweenEnd(start, end))
                 .ToList();
 
             g.mysql.GlobalFilter.Apply<gf_t1>("gft1", a => a.rowstate > -1)

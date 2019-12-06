@@ -239,7 +239,7 @@ public static partial class FreeSqlGlobalExtensions
     {
         if (expContext.IsValueCreated == false || expContext.Value == null || expContext.Value.ParsedContent == null)
             return that >= between && that <= and;
-        expContext.Value.Result = $"{expContext.Value.ParsedContent["that"]} between {expContext.Value.ParsedContent["start"]} and {expContext.Value.ParsedContent["end"]}";
+        expContext.Value.Result = $"{expContext.Value.ParsedContent["that"]} between {expContext.Value.ParsedContent["between"]} and {expContext.Value.ParsedContent["and"]}";
         return false;
     }
 
