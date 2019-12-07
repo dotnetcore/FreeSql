@@ -13,6 +13,13 @@ namespace FreeSql.DataAnnotations
     public class ExpressionCallAttribute : Attribute
     {
     }
+    /// <summary>
+    /// 自定义表达式函数解析的时候，指定参数不解析 SQL，而是直接传进来
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Parameter)]
+    public class RawValueAttribute : Attribute
+    {
+    }
 
     public class ExpressionCallContext
     {
@@ -36,6 +43,11 @@ namespace FreeSql.DataAnnotations
         /// 注意：本属性只有 Where 的表达式解析才可用
         /// </summary>
         public List<DbParameter> UserParameters { get; internal set; }
+
+        /// <summary>
+        /// 将 c# 对象转换为 SQL
+        /// </summary>
+        public Func<object, string> FormatSql { get; internal set; }
 
         /// <summary>
         /// 返回表达式函数表示的 SQL 字符串

@@ -553,15 +553,15 @@ namespace FreeSql.Internal
                         exp3.Method.GetCustomAttributes(typeof(ExpressionCallAttribute), true).Any()
                         ))
                     {
-                        var ecc = new ExpressionCallContext { DataType = _ado.DataType, UserParameters = tsc.dbParams == null ? null : new List<DbParameter>() };
+                        var ecc = new ExpressionCallContext { DataType = _ado.DataType, UserParameters = tsc.dbParams == null ? null : new List<DbParameter>(), FormatSql = obj => formatSql(obj, null, null, null) };
                         var exp3MethodParams = exp3.Method.GetParameters();
                         var dbParamsIndex = tsc.dbParams?.Count;
-                        ecc.ParsedContent.Add(exp3MethodParams[0].Name, ExpressionLambdaToSql(exp3.Arguments[0], tsc));
+                        ecc.ParsedContent.Add(exp3MethodParams[0].Name, exp3MethodParams[0].GetCustomAttributes(typeof(RawValueAttribute), true).Any() ? null: ExpressionLambdaToSql(exp3.Arguments[0], tsc));
                         if (tsc.dbParams?.Count > dbParamsIndex) ecc.DbParameter = tsc.dbParams.Last();
                         List<DbParameter> oldDbParams = tsc.SetDbParamsReturnOld(null);
                         for (var a = 1; a < exp3.Arguments.Count; a++)
                             if (exp3.Arguments[a].Type != typeof(ExpressionCallContext))
-                                ecc.ParsedContent.Add(exp3MethodParams[a].Name, ExpressionLambdaToSql(exp3.Arguments[a], tsc));
+                                ecc.ParsedContent.Add(exp3MethodParams[a].Name, exp3MethodParams[a].GetCustomAttributes(typeof(RawValueAttribute), true).Any() ? null : ExpressionLambdaToSql(exp3.Arguments[a], tsc));
                         tsc.SetDbParamsReturnOld(oldDbParams);
 
                         var exp3InvokeParams = new object[exp3.Arguments.Count];
@@ -570,10 +570,13 @@ namespace FreeSql.Internal
                             if (exp3.Arguments[a].Type != typeof(ExpressionCallContext))
                             {
                                 var eccContent = ecc.ParsedContent[exp3MethodParams[a].Name];
-                                exp3InvokeParams[a] = Utils.GetDataReaderValue(exp3.Arguments[a].Type,
-                                    eccContent.StartsWith("N'") ?
-                                    eccContent.Substring(1).Trim('\'').Replace("''", "'") :
-                                    eccContent.Trim('\'').Replace("''", "'"));// exp3.Arguments[a].Type.CreateInstanceGetDefaultValue();
+                                if (eccContent == null)
+                                    exp3InvokeParams[a] = Expression.Lambda(exp3.Arguments[a]).Compile().DynamicInvoke();
+                                else
+                                    exp3InvokeParams[a] = Utils.GetDataReaderValue(exp3.Arguments[a].Type,
+                                        eccContent.StartsWith("N'") ?
+                                        eccContent.Substring(1).Trim('\'').Replace("''", "'") :
+                                        eccContent.Trim('\'').Replace("''", "'"));// exp3.Arguments[a].Type.CreateInstanceGetDefaultValue();
                             }
                             else
                                 exp3InvokeParams[a] = ecc;

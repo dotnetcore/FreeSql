@@ -204,6 +204,11 @@
             注意：请使用静态方法、或者在类上标记
             </summary>
         </member>
+        <member name="T:FreeSql.DataAnnotations.RawValueAttribute">
+            <summary>
+            自定义表达式函数解析的时候，指定参数不解析 SQL，而是直接传进来
+            </summary>
+        </member>
         <member name="P:FreeSql.DataAnnotations.ExpressionCallContext.DataType">
             <summary>
             数据库类型，可用于适配多种数据库环境
@@ -223,6 +228,11 @@
             <summary>
             可附加参数化对象<para></para>
             注意：本属性只有 Where 的表达式解析才可用
+            </summary>
+        </member>
+        <member name="P:FreeSql.DataAnnotations.ExpressionCallContext.FormatSql">
+            <summary>
+            将 c# 对象转换为 SQL
             </summary>
         </member>
         <member name="P:FreeSql.DataAnnotations.ExpressionCallContext.Result">
@@ -2782,6 +2792,40 @@
             <param name="that"></param>
             <param name="start"></param>
             <param name="end"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSqlGlobalExtensions.ContainsMany``2(System.Collections.Generic.IEnumerable{System.ValueTuple{``0,``1}},``0,``1)">
+            <summary>
+            C#：从元组集合中查找 exp1, exp2 是否存在<para></para>
+            SQL： <para></para>
+            exp1 = that[0].Item1 and exp2 = that[0].Item2 OR <para></para>
+            exp1 = that[1].Item1 and exp2 = that[1].Item2 OR <para></para>
+            ... <para></para>
+            注意：当 that 为 null 或 empty 时，返回 1=0
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <typeparam name="T2"></typeparam>
+            <param name="that"></param>
+            <param name="exp1"></param>
+            <param name="exp2"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSqlGlobalExtensions.ContainsMany``3(System.Collections.Generic.IEnumerable{System.ValueTuple{``0,``1,``2}},``0,``1,``2)">
+            <summary>
+            C#：从元组集合中查找 exp1, exp2 是否存在<para></para>
+            SQL： <para></para>
+            exp1 = that[0].Item1 and exp2 = that[0].Item2 and exp3 = that[0].Item3 OR <para></para>
+            exp1 = that[1].Item1 and exp2 = that[1].Item2 and exp3 = that[1].Item3 OR <para></para>
+            ... <para></para>
+            注意：当 that 为 null 或 empty 时，返回 1=0
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <typeparam name="T2"></typeparam>
+            <typeparam name="T3"></typeparam>
+            <param name="that"></param>
+            <param name="exp1"></param>
+            <param name="exp2"></param>
+            <param name="exp3"></param>
             <returns></returns>
         </member>
         <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.And``1(System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}},System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})">
