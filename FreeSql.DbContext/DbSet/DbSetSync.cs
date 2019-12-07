@@ -283,7 +283,7 @@ namespace FreeSql
                                 }
                                 for (var midcolidx = tref.Columns.Count; midcolidx < tref.MiddleColumns.Count; midcolidx++)
                                 {
-                                    var refcol = tref.Columns[midcolidx - tref.Columns.Count];
+                                    var refcol = tref.RefColumns[midcolidx - tref.Columns.Count];
                                     var refval = FreeSql.Internal.Utils.GetDataReaderValue(tref.MiddleColumns[midcolidx].CsType, _db.Orm.GetEntityValueWithPropertyName(tref.RefEntityType, curItem, refcol.CsName));
                                     _db.Orm.SetEntityValueWithPropertyName(tref.RefMiddleEntityType, newItem, tref.MiddleColumns[midcolidx].CsName, refval);
                                 }

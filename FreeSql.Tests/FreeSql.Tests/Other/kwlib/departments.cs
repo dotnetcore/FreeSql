@@ -13,19 +13,19 @@ namespace kwlib
     /// </summary>    
     [Serializable]
     [Index("部门代码deptcode唯一", "deptcode", true)]
-    public class department
+    public class departments
     {
         /// <summary>
         /// 部门ID  
         /// </summary>
         [Column(IsPrimary = true, IsIdentity = true)]
-        public int id { get; set; }
+        public int deptid { get; set; }
 
-        /// <summary>
-        /// 员工列表  对应employee.deptid
-        /// </summary>
-        [Navigate("deptid")] 
-        public List<employee> Employees { get; set; }
+        ///// <summary>
+        ///// 员工列表  对应employee.deptid
+        ///// </summary>
+        //[Navigate("deptid")] 
+        //public List<employee> Employees { get; set; }
 
         /// <summary>
         /// 上级部门ID  
@@ -35,7 +35,7 @@ namespace kwlib
         /// 上级部门对象
         /// </summary>
         [Navigate("supdeptid")]
-        public department parentdepartments { get; set; }
+        public departments pDepartments { get; set; }
 
         /// <summary>
         /// 部门主管ID  
@@ -45,18 +45,18 @@ namespace kwlib
         /// 部门主管对象
         /// </summary>
         [Navigate("managerid")]
-        public employee manager { get; set; }
+        public userinfo manager { get; set; }
 
 
-        /// <summary>
-        /// 下级部门列表
-        /// </summary>
-        [Navigate("supdeptid")]
-        public List<department> childDepartments { get; set; }
+        ///// <summary>
+        ///// 下级部门列表
+        ///// </summary>
+        //[Navigate("supdeptid")]
+        //public List<departments> childDepartments { get; set; }
 
 
-        [Navigate(ManyToMany = typeof(department_employee))]
-        public List<employee> employees22 { get; set; }
+        [Navigate(ManyToMany = typeof(department_userinfo))]
+        public List<userinfo> employeesMany { get; set; }
 
 
         #region MyRegion
