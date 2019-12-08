@@ -29,6 +29,14 @@ namespace FreeSql.Tests
             using (var ctx = g.sqlite.CreateDbContext())
             {
 
+                var test150 = ctx.Set<Tag>()
+                    .Select.From<Tag>((s, b) => s.InnerJoin(a => a.Id == b.Id))
+                    .ToList((a, b) => new
+                    {
+                        a.Id,a.Name,
+                        id2 = b.Id, name2 = b.Name
+                    });
+
                 var songs = ctx.Set<Song>().Select
                     .IncludeMany(a => a.Tags)
                     .ToList();
