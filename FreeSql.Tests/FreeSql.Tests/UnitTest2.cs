@@ -264,13 +264,34 @@ namespace FreeSql.Tests
             });
 
             List<(Guid, DateTime)> contains2linqarr = new List<(Guid, DateTime)>();
-            Assert.Equal("SELECT 1 as1 FROM \"TestIgnoreDefaultValue\" a WHERE (1=0)", g.sqlite.Select<TestIgnoreDefaultValue>().Where(a => contains2linqarr.ContainsMany(a.Id, a.ct1)).ToSql(a => 1).Replace("\r\n", ""));
-            g.sqlite.Select<TestIgnoreDefaultValue>().Where(a => contains2linqarr.ContainsMany(a.Id, a.ct1)).ToList();
+            Assert.Equal("SELECT 1 as1 FROM \"TestIgnoreDefaultValue\" a WHERE (1=0)", g.sqlite.Select<TestIgnoreDefaultValue>().Where(a => contains2linqarr.Contains(a.Id, a.ct1)).ToSql(a => 1).Replace("\r\n", ""));
+            g.sqlite.Select<TestIgnoreDefaultValue>().Where(a => contains2linqarr.Contains(a.Id, a.ct1)).ToList();
 
             contains2linqarr.Add((Guid.NewGuid(), DateTime.Now));
             contains2linqarr.Add((Guid.NewGuid(), DateTime.Now));
             contains2linqarr.Add((Guid.NewGuid(), DateTime.Now));
-            g.sqlite.Select<TestIgnoreDefaultValue>().Where(a => contains2linqarr.ContainsMany(a.Id, a.ct1)).ToList();
+            g.sqlite.Select<TestIgnoreDefaultValue>()
+                .Where(a => contains2linqarr.Contains(a.Id, a.ct1)).ToList();
+
+
+
+
+
+
+
+
+
+
+
+
+            List<(Guid, DateTime, DateTime?)> contains3linqarr = new List<(Guid, DateTime, DateTime?)>();
+            Assert.Equal("SELECT 1 as1 FROM \"TestIgnoreDefaultValue\" a WHERE (1=0)", g.sqlite.Select<TestIgnoreDefaultValue>().Where(a => contains3linqarr.Contains(a.Id, a.ct1, a.ct2)).ToSql(a => 1).Replace("\r\n", ""));
+            g.sqlite.Select<TestIgnoreDefaultValue>().Where(a => contains3linqarr.Contains(a.Id, a.ct1, a.ct2)).ToList();
+
+            contains3linqarr.Add((Guid.NewGuid(), DateTime.Now, DateTime.Now));
+            contains3linqarr.Add((Guid.NewGuid(), DateTime.Now, DateTime.Now));
+            contains3linqarr.Add((Guid.NewGuid(), DateTime.Now, DateTime.Now));
+            g.sqlite.Select<TestIgnoreDefaultValue>().Where(a => contains3linqarr.Contains(a.Id, a.ct1, a.ct2)).ToList();
 
             var start = DateTime.Now.Date;
             var end = DateTime.Now.AddDays(1).Date.AddMilliseconds(-1);

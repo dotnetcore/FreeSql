@@ -2688,6 +2688,61 @@
             <param name="str"></param>
             <returns></returns>
         </member>
+        <member name="M:FreeSqlGlobalExpressionCall.Between(System.DateTime,System.DateTime,System.DateTime)">
+            <summary>
+            C#： that >= between &amp;&amp; that &lt;= and<para></para>
+            SQL： that BETWEEN between AND and
+            </summary>
+            <param name="that"></param>
+            <param name="between"></param>
+            <param name="and"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSqlGlobalExpressionCall.BetweenEnd(System.DateTime,System.DateTime,System.DateTime)">
+            <summary>
+            注意：这个方法和 Between 有细微区别<para></para>
+            C#： that >= start &amp;&amp; that &lt; end<para></para>
+            SQL： that >= start and that &lt; end
+            </summary>
+            <param name="that"></param>
+            <param name="start"></param>
+            <param name="end"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSqlGlobalExpressionCall.Contains``2(System.Collections.Generic.IEnumerable{System.ValueTuple{``0,``1}},``0,``1)">
+            <summary>
+            C#：从元组集合中查找 exp1, exp2 是否存在<para></para>
+            SQL： <para></para>
+            exp1 = that[0].Item1 and exp2 = that[0].Item2 OR <para></para>
+            exp1 = that[1].Item1 and exp2 = that[1].Item2 OR <para></para>
+            ... <para></para>
+            注意：当 that 为 null 或 empty 时，返回 1=0
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <typeparam name="T2"></typeparam>
+            <param name="that"></param>
+            <param name="exp1"></param>
+            <param name="exp2"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSqlGlobalExpressionCall.Contains``3(System.Collections.Generic.IEnumerable{System.ValueTuple{``0,``1,``2}},``0,``1,``2)">
+            <summary>
+            C#：从元组集合中查找 exp1, exp2, exp2 是否存在<para></para>
+            SQL： <para></para>
+            exp1 = that[0].Item1 and exp2 = that[0].Item2 and exp3 = that[0].Item3 OR <para></para>
+            exp1 = that[1].Item1 and exp2 = that[1].Item2 and exp3 = that[1].Item3 OR <para></para>
+            ... <para></para>
+            注意：当 that 为 null 或 empty 时，返回 1=0
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <typeparam name="T2"></typeparam>
+            <typeparam name="T3"></typeparam>
+            <param name="that"></param>
+            <param name="exp1"></param>
+            <param name="exp2"></param>
+            <param name="exp3"></param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSqlGlobalExtensions.Distance(System.Drawing.Point,System.Drawing.Point)">
             <summary>
             测量两个经纬度的距离，返回单位：米
@@ -2771,61 +2826,6 @@
             可以 .Select 设置只查询部分字段，如： (a => new TNavigate { Title = a.Title }) 
             </param>
             <param name="then">即能 ThenInclude，还可以二次过滤（这个 EFCore 做不到？）</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSqlGlobalExtensions.Between(System.DateTime,System.DateTime,System.DateTime)">
-            <summary>
-            C#： that >= between &amp;&amp; that &lt;= and<para></para>
-            SQL： that BETWEEN between AND and
-            </summary>
-            <param name="that"></param>
-            <param name="between"></param>
-            <param name="and"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSqlGlobalExtensions.BetweenEnd(System.DateTime,System.DateTime,System.DateTime)">
-            <summary>
-            注意：这个方法和 Between 有细微区别<para></para>
-            C#： that >= start &amp;&amp; that &lt; end<para></para>
-            SQL： that >= start and that &lt; end
-            </summary>
-            <param name="that"></param>
-            <param name="start"></param>
-            <param name="end"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSqlGlobalExtensions.ContainsMany``2(System.Collections.Generic.IEnumerable{System.ValueTuple{``0,``1}},``0,``1)">
-            <summary>
-            C#：从元组集合中查找 exp1, exp2 是否存在<para></para>
-            SQL： <para></para>
-            exp1 = that[0].Item1 and exp2 = that[0].Item2 OR <para></para>
-            exp1 = that[1].Item1 and exp2 = that[1].Item2 OR <para></para>
-            ... <para></para>
-            注意：当 that 为 null 或 empty 时，返回 1=0
-            </summary>
-            <typeparam name="T1"></typeparam>
-            <typeparam name="T2"></typeparam>
-            <param name="that"></param>
-            <param name="exp1"></param>
-            <param name="exp2"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSqlGlobalExtensions.ContainsMany``3(System.Collections.Generic.IEnumerable{System.ValueTuple{``0,``1,``2}},``0,``1,``2)">
-            <summary>
-            C#：从元组集合中查找 exp1, exp2 是否存在<para></para>
-            SQL： <para></para>
-            exp1 = that[0].Item1 and exp2 = that[0].Item2 and exp3 = that[0].Item3 OR <para></para>
-            exp1 = that[1].Item1 and exp2 = that[1].Item2 and exp3 = that[1].Item3 OR <para></para>
-            ... <para></para>
-            注意：当 that 为 null 或 empty 时，返回 1=0
-            </summary>
-            <typeparam name="T1"></typeparam>
-            <typeparam name="T2"></typeparam>
-            <typeparam name="T3"></typeparam>
-            <param name="that"></param>
-            <param name="exp1"></param>
-            <param name="exp2"></param>
-            <param name="exp3"></param>
             <returns></returns>
         </member>
         <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.And``1(System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}},System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})">
