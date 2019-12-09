@@ -79,14 +79,14 @@ namespace FreeSql
                     var itemType = item.GetType();
                     if (itemType == typeof(object)) return;
                     if (itemType.FullName.StartsWith("Submission#")) itemType = itemType.BaseType;
-                    if (_db.Orm.CodeFirst.GetTableByEntity(itemType) == null) return;
+                    if (_db.Orm.CodeFirst.GetTableByEntity(itemType)?.Primarys.Any() != true) return;
                     var dbset = _db.Set(itemType);
                     dbset?.GetType().GetMethod("TrackToList", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(dbset, new object[] { list });
                     return;
                 }
                 return;
             }
-
+            if (_table?.Primarys.Any() != true) return;
             foreach (var item in ls)
             {
                 var key = _db.Orm.GetEntityKeyString(_entityType, item, false);

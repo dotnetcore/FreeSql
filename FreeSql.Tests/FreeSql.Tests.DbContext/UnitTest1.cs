@@ -26,10 +26,21 @@ namespace FreeSql.Tests
             g.sqlite.CodeFirst.SyncStructure<Tag>();
             g.sqlite.CodeFirst.SyncStructure<Song>();
 
+            var test150_01 = g.sqlite.GetRepository<Tag>()
+                    .Select.From<Tag>((s, b) => s.InnerJoin(a => a.Id == b.Id))
+                    .ToList((a, b) => new
+                    {
+                        a.Id,
+                        a.Name,
+                        id2 = b.Id,
+                        name2 = b.Name
+                    });
+
+
             using (var ctx = g.sqlite.CreateDbContext())
             {
 
-                var test150 = ctx.Set<Tag>()
+                var test150_02 = ctx.Set<Tag>()
                     .Select.From<Tag>((s, b) => s.InnerJoin(a => a.Id == b.Id))
                     .ToList((a, b) => new
                     {
