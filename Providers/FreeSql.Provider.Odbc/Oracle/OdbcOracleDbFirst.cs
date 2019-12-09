@@ -174,7 +174,7 @@ namespace FreeSql.Odbc.Oracle
 
             if (database == null || database.Any() == false)
             {
-                var userUsers = _orm.Ado.ExecuteScalar("select username from user_users")?.ToString();
+                var userUsers = _orm.Ado.ExecuteScalar(" select username from user_users")?.ToString();
                 if (string.IsNullOrEmpty(userUsers)) return loc1;
                 database = new[] { userUsers };
             }

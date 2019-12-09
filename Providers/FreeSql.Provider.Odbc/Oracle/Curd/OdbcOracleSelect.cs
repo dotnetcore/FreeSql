@@ -26,7 +26,7 @@ namespace FreeSql.Odbc.Oracle
             for (var tbUnionsIdx = 0; tbUnionsIdx < tbUnions.Count; tbUnionsIdx++)
             {
                 if (tbUnionsIdx > 0) sb.Append(" \r\n\r\nUNION ALL\r\n\r\n");
-                if (tbUnionsGt0) sb.Append("select * from (");
+                if (tbUnionsGt0) sb.Append(_select).Append(" * from (");
                 var tbUnion = tbUnions[tbUnionsIdx];
 
                 var sbnav = new StringBuilder();
@@ -109,13 +109,13 @@ namespace FreeSql.Odbc.Oracle
                 if (string.IsNullOrEmpty(_orderby))
                 {
                     if (_skip > 0)
-                        sb.Insert(0, "SELECT t.* FROM (").Append(") t WHERE t.\"__rownum__\" > ").Append(_skip);
+                        sb.Insert(0, $"{_select} t.* FROM (").Append(") t WHERE t.\"__rownum__\" > ").Append(_skip);
                 }
                 else
                 {
-                    if (_skip > 0 && _limit > 0) sb.Insert(0, "SELECT t.* FROM (SELECT rt.*, ROWNUM AS \"__rownum__\" FROM (").Append(") rt WHERE ROWNUM < ").Append(_skip + _limit + 1).Append(") t WHERE t.\"__rownum__\" > ").Append(_skip);
-                    else if (_skip > 0) sb.Insert(0, "SELECT t.* FROM (").Append(") t WHERE ROWNUM > ").Append(_skip);
-                    else if (_limit > 0) sb.Insert(0, "SELECT t.* FROM (").Append(") t WHERE ROWNUM < ").Append(_limit + 1);
+                    if (_skip > 0 && _limit > 0) sb.Insert(0, $"{_select} t.* FROM (SELECT rt.*, ROWNUM AS \"__rownum__\" FROM (").Append(") rt WHERE ROWNUM < ").Append(_skip + _limit + 1).Append(") t WHERE t.\"__rownum__\" > ").Append(_skip);
+                    else if (_skip > 0) sb.Insert(0, $"{_select} t.* FROM (").Append(") t WHERE ROWNUM > ").Append(_skip);
+                    else if (_limit > 0) sb.Insert(0, $"{_select} t.* FROM (").Append(") t WHERE ROWNUM < ").Append(_limit + 1);
                 }
 
                 sbnav.Clear();

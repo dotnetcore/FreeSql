@@ -296,7 +296,7 @@ where ns.nspname in ({0}) and d.relname in ({1}) and a.indisprimary = 'f'", tbol
                     sb.Append(sbalter);
                     continue;
                 }
-                var oldpk = _orm.Ado.ExecuteScalar(CommandType.Text, _commonUtils.FormatSql(@"select pg_constraint.conname as pk_name from pg_constraint
+                var oldpk = _orm.Ado.ExecuteScalar(CommandType.Text, _commonUtils.FormatSql(@" select pg_constraint.conname as pk_name from pg_constraint
 inner join pg_class on pg_constraint.conrelid = pg_class.oid
 inner join pg_namespace on pg_namespace.oid = pg_class.relnamespace
 where pg_namespace.nspname={0} and pg_class.relname={1} and pg_constraint.contype='p'

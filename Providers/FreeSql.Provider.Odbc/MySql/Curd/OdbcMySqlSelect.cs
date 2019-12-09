@@ -26,7 +26,7 @@ namespace FreeSql.Odbc.MySql
             for (var tbUnionsIdx = 0; tbUnionsIdx < tbUnions.Count; tbUnionsIdx++)
             {
                 if (tbUnionsIdx > 0) sb.Append(" \r\n\r\nUNION ALL\r\n\r\n");
-                if (tbUnionsGt0) sb.Append("select * from (");
+                if (tbUnionsGt0) sb.Append(_select).Append(" * from (");
                 var tbUnion = tbUnions[tbUnionsIdx];
 
                 var sbnav = new StringBuilder();
