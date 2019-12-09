@@ -16,7 +16,7 @@ FreeSql 是功能强大的对象关系映射技术(O/RM)，支持 .NETCore 2.1+ 
 - [x] 支持 导航属性一对多、多对多贪婪加载，以及延时加载；
 - [x] 支持 同步/异步数据库操作方法；
 - [x] 支持 读写分离、分表分库，租户设计，过滤器，乐观锁；
-- [x] 支持 多种数据库，MySql/SqlServer/PostgreSQL/Oracle/Sqlite；
+- [x] 支持 MySql/SqlServer/PostgreSQL/Oracle/Sqlite/达梦数据库；
 
 | | |
 | - | - |

@@ -38,10 +38,11 @@
             </summary>
             <typeparam name="TEntity"></typeparam>
         </member>
-        <member name="M:FreeSql.BaseEntity`1.Delete">
+        <member name="M:FreeSql.BaseEntity`1.Delete(System.Boolean)">
             <summary>
             删除数据
             </summary>
+            <param name="physicalDelete">是否物理删除</param>
             <returns></returns>
         </member>
         <member name="M:FreeSql.BaseEntity`1.Restore">
@@ -94,10 +95,11 @@
             </summary>
             <typeparam name="TEntity"></typeparam>
         </member>
-        <member name="M:FreeSql.BaseEntityAsync`1.DeleteAsync">
+        <member name="M:FreeSql.BaseEntityAsync`1.DeleteAsync(System.Boolean)">
             <summary>
             删除数据
             </summary>
+            <param name="physicalDelete">是否物理删除</param>
             <returns></returns>
         </member>
         <member name="M:FreeSql.BaseEntityAsync`1.RestoreAsync">

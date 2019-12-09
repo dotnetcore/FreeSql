@@ -217,6 +217,7 @@ namespace FreeSql.Internal
                             break;
                         case DataType.Oracle:
                         case DataType.OdbcOracle:
+                        case DataType.OdbcDameng:
                             if (strlen < 0) colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1(4000)");
                             else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
                             break;

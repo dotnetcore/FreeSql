@@ -62,4 +62,17 @@ public class g
         .UseLazyLoading(true)
         .Build());
     public static IFreeSql odbc => odbcLazy.Value;
+
+    static Lazy<IFreeSql> damemgLazy = new Lazy<IFreeSql>(() => new FreeSql.FreeSqlBuilder()
+        .UseConnectionString(FreeSql.DataType.OdbcDameng, "Driver={DM8 ODBC DRIVER};Server=127.0.0.1:5236;Persist Security Info=False;Trusted_Connection=Yes;UID=USER1;PWD=123456789")
+        .UseAutoSyncStructure(true)
+        .UseLazyLoading(true)
+        .UseSyncStructureToUpper(true)
+        //.UseNoneCommandParameter(true)
+
+        .UseMonitorCommand(
+            cmd => Trace.WriteLine(cmd.CommandText), //监听SQL命令对象，在执行前
+            (cmd, traceLog) => Console.WriteLine(traceLog))
+        .Build());
+    public static IFreeSql dameng => damemgLazy.Value;
 }

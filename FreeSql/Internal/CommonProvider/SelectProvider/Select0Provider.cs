@@ -917,7 +917,7 @@ namespace FreeSql.Internal.CommonProvider
         protected List<Dictionary<Type, string>> GetTableRuleUnions()
         {
             var unions = new List<Dictionary<Type, string>>();
-            var trs = _tableRules.Any() ? _tableRules : new List<Func<Type, string, string>>(new[] { new Func<Type, string, string>((type, oldname) => oldname) });
+            var trs = _tableRules.Any() ? _tableRules : new List<Func<Type, string, string>>(new[] { new Func<Type, string, string>((type, oldname) => null) });
             foreach (var tr in trs)
             {
                 var dict = new Dictionary<Type, string>();
