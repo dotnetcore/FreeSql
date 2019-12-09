@@ -230,6 +230,9 @@ namespace FreeSql.Tests
         [Fact]
         public void Test02()
         {
+            var testcf = g.sqlite.CodeFirst.GetComparisonDDLStatements(typeof(dfDto2), "main.test2");
+
+
             var u1 = new userinfo {
                 name = "111",
                 departments = new List<departments>(new[]{

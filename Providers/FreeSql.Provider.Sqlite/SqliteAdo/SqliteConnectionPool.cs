@@ -242,7 +242,7 @@ namespace FreeSql.Sqlite
             {
                 var sb = new StringBuilder();
                 foreach (var att in attach)
-                    sb.Append($"attach database [{att}] as [{att.Split('.').First()}];\r\n");
+                    sb.Append($"attach database [{att}] as [{att.Split('/', '\\').Last().Split('.').First()}];\r\n");
 
                 var cmd = that.CreateCommand();
                 cmd.CommandText = sb.ToString();
@@ -274,7 +274,7 @@ namespace FreeSql.Sqlite
             {
                 var sb = new StringBuilder();
                 foreach (var att in attach)
-                    sb.Append($"attach database [{att}] as [{att.Split('.').First()}];\r\n");
+                    sb.Append($"attach database [{att}] as [{att.Split('/', '\\').Last().Split('.').First()}];\r\n");
 
                 var cmd = that.CreateCommand();
                 cmd.CommandText = sb.ToString();
