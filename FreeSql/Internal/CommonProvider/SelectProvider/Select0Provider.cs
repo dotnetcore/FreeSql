@@ -102,7 +102,7 @@ namespace FreeSql.Internal.CommonProvider
                     _multiTables.Add(from._tables[a]);
                 }
             }
-            toType.GetField("_tableRules", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._tableRules);
+            toType.GetField("_tableRules", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, new List<Func<Type, string, string>>(from._tableRules.ToArray()));
             toType.GetField("_aliasRule", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._aliasRule);
             toType.GetField("_join", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, new StringBuilder().Append(from._join.ToString()));
             //toType.GetField("_orm", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._orm);
@@ -111,15 +111,15 @@ namespace FreeSql.Internal.CommonProvider
             toType.GetField("_transaction", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._transaction);
             toType.GetField("_connection", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._connection);
             toType.GetField("_trackToList", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._trackToList);
-            toType.GetField("_includeToList", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._includeToList);
+            toType.GetField("_includeToList", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, new List<Action<object>>(from._includeToList.ToArray()));
 #if net40
 #else
-            toType.GetField("_includeToListAsync", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._includeToListAsync);
+            toType.GetField("_includeToListAsync", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, new List<Func<object, Task>>(from._includeToListAsync.ToArray()));
 #endif
             toType.GetField("_distinct", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._distinct);
             toType.GetField("_selectExpression", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._selectExpression);
-            toType.GetField("_whereCascadeExpression", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._whereCascadeExpression);
-            toType.GetField("_whereGlobalFilter", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._whereGlobalFilter);
+            toType.GetField("_whereCascadeExpression", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, new List<LambdaExpression>(from._whereCascadeExpression.ToArray()));
+            toType.GetField("_whereGlobalFilter", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, new List<GlobalFilter.Item>(from._whereGlobalFilter.ToArray()));
         }
 
         public Select0Provider(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere)
