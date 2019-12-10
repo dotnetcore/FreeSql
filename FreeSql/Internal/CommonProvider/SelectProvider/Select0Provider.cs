@@ -352,7 +352,7 @@ namespace FreeSql.Internal.CommonProvider
                     {
                         var idx = af.FieldCount - 1;
                         foreach (var other in otherData)
-                            other.retlist.Add(_commonExpression.ReadAnonymous(other.read, dr, ref idx, false));
+                            other.retlist.Add(_commonExpression.ReadAnonymous(other.read, dr, ref idx, false, null));
                     }
                 }, CommandType.Text, sql, dbParms);
             }
@@ -405,7 +405,7 @@ namespace FreeSql.Internal.CommonProvider
                     {
                         var idx = af.FieldCount - 1;
                         foreach (var other in otherData)
-                            other.retlist.Add(_commonExpression.ReadAnonymous(other.read, dr, ref idx, false));
+                            other.retlist.Add(_commonExpression.ReadAnonymous(other.read, dr, ref idx, false, null));
                     }
                     if (chunkSize > 0 && chunkSize == ret.Count)
                     {
@@ -487,10 +487,10 @@ namespace FreeSql.Internal.CommonProvider
                 _orm.Ado.ExecuteReader(_connection, _transaction, dr =>
                 {
                     var index = -1;
-                    ret.Add((TReturn)_commonExpression.ReadAnonymous(af.map, dr, ref index, false));
+                    ret.Add((TReturn)_commonExpression.ReadAnonymous(af.map, dr, ref index, false, null));
                     if (otherData != null)
                         foreach (var other in otherData)
-                            other.retlist.Add(_commonExpression.ReadAnonymous(other.read, dr, ref index, false));
+                            other.retlist.Add(_commonExpression.ReadAnonymous(other.read, dr, ref index, false, null));
                 }, CommandType.Text, sql, dbParms);
             }
             catch (Exception ex)
@@ -1151,7 +1151,7 @@ namespace FreeSql.Internal.CommonProvider
                     {
                         var idx = af.FieldCount - 1;
                         foreach (var other in otherData)
-                            other.retlist.Add(_commonExpression.ReadAnonymous(other.read, dr, ref idx, false));
+                            other.retlist.Add(_commonExpression.ReadAnonymous(other.read, dr, ref idx, false, null));
                     }
                     return Task.FromResult(false);
                 }, CommandType.Text, sql, dbParms);
@@ -1214,10 +1214,10 @@ namespace FreeSql.Internal.CommonProvider
                 await _orm.Ado.ExecuteReaderAsync(_connection, _transaction, dr =>
                 {
                     var index = -1;
-                    ret.Add((TReturn)_commonExpression.ReadAnonymous(af.map, dr, ref index, false));
+                    ret.Add((TReturn)_commonExpression.ReadAnonymous(af.map, dr, ref index, false, null));
                     if (otherData != null)
                         foreach (var other in otherData)
-                            other.retlist.Add(_commonExpression.ReadAnonymous(other.read, dr, ref index, false));
+                            other.retlist.Add(_commonExpression.ReadAnonymous(other.read, dr, ref index, false, null));
                     return Task.FromResult(false);
                 }, CommandType.Text, sql, dbParms);
             }

@@ -16,6 +16,7 @@ namespace FreeSql.Internal.Model
         public ReadAnonymousTypeInfoConsturctorType ConsturctorType { get; set; }
         public List<ReadAnonymousTypeInfo> Childs = new List<ReadAnonymousTypeInfo>();
         public TableInfo Table { get; set; }
+        public bool IsEntity { get; set; }
     }
     public enum ReadAnonymousTypeInfoConsturctorType { Arguments, Properties }
 }

@@ -80,6 +80,7 @@ namespace FreeSql.Internal
                         var tb = parent.Table = map.First().Table.Table;
                         parent.Consturctor = tb.Type.GetConstructor(new Type[0]);
                         parent.ConsturctorType = ReadAnonymousTypeInfoConsturctorType.Properties;
+                        parent.IsEntity = true;
                         for (var idx = 0; idx < map.Count; idx++)
                         {
                             var child = new ReadAnonymousTypeInfo
@@ -220,7 +221,7 @@ namespace FreeSql.Internal
             if (index >= 0) field.Append(" as").Append(++index);
             return false;
         }
-        public object ReadAnonymous(ReadAnonymousTypeInfo parent, DbDataReader dr, ref int index, bool notRead)
+        public object ReadAnonymous(ReadAnonymousTypeInfo parent, DbDataReader dr, ref int index, bool notRead, ReadAnonymousDbValueRef dbValue)
         {
             if (parent.Childs.Any() == false)
             {
@@ -232,6 +233,7 @@ namespace FreeSql.Internal
                     return Utils.GetDataReaderValue(parent.CsType, null);
                 }
                 object objval = dr.GetValue(++index);
+                if (dbValue != null) dbValue.DbValue = objval == DBNull.Value ? null : objval;
                 if (parent.CsType != parent.MapType) 
                     objval = Utils.GetDataReaderValue(parent.MapType, objval);
                 objval = Utils.GetDataReaderValue(parent.CsType, objval);
@@ -245,7 +247,7 @@ namespace FreeSql.Internal
                     var args = new object[parent.Childs.Count];
                     for (var a = 0; a < parent.Childs.Count; a++)
                     {
-                        var objval = ReadAnonymous(parent.Childs[a], dr, ref index, notRead);
+                        var objval = ReadAnonymous(parent.Childs[a], dr, ref index, notRead, null);
                         if (notRead == false)
                             args[a] = objval;
                     }
@@ -256,8 +258,9 @@ namespace FreeSql.Internal
                     for (var b = 0; b < parent.Childs.Count; b++)
                     {
                         var prop = parent.Childs[b].Property;
-                        var objval = ReadAnonymous(parent.Childs[b], dr, ref index, notRead);
-                        if (isnull == false && objval == null && parent.Table != null && parent.Table.ColumnsByCs.TryGetValue(parent.Childs[b].CsName, out var trycol) && trycol.Attribute.IsPrimary)
+                        var dbval = parent.IsEntity ? new ReadAnonymousDbValueRef() : null;
+                        var objval = ReadAnonymous(parent.Childs[b], dr, ref index, notRead, dbval);
+                        if (isnull == false && parent.IsEntity && dbval.DbValue == null && parent.Table != null && parent.Table.ColumnsByCs.TryGetValue(parent.Childs[b].CsName, out var trycol) && trycol.Attribute.IsPrimary)
                             isnull = true;
                         if (isnull == false && prop.CanWrite)
                             prop.SetValue(ret, objval, null);
@@ -265,6 +268,10 @@ namespace FreeSql.Internal
                     return isnull ? null : ret;
             }
             return null;
+        }
+        public class ReadAnonymousDbValueRef
+        {
+            public object DbValue { get; set; }
         }
 
         public ColumnInfo SearchColumnByField(List<SelectTableInfo> _tables, TableInfo currentTable, string field)

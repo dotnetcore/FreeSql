@@ -227,9 +227,41 @@ namespace FreeSql.Tests
             public decimal rowstate { get; set; }
         }
 
+        public class otot1
+        {
+            [Column(IsIdentity = true)]
+            public int id { get; set; }
+            public string name { get; set; }
+
+            public otot2 t2 { get; set; }
+        }
+        public class otot2
+        {
+            [Column(IsIdentity = true)]
+            public int id { get; set; }
+            public string title { get; set; }
+        }
+
         [Fact]
         public void Test02()
         {
+            g.sqlite.Insert(new otot1 { name = "otot1_name1" }).ExecuteAffrows();
+
+            var otolst1 = g.sqlite.Select<otot1>()
+                .LeftJoin(a => a.id == a.t2.id)
+                .ToList();
+
+            var otolst2 = g.sqlite.Select<otot1, otot2>()
+                .LeftJoin((a, b) => a.id == b.id)
+                .ToList((a, b) => new
+                {
+                    a,
+                    b
+                });
+
+
+
+
             var testcf = g.sqlite.CodeFirst.GetComparisonDDLStatements(typeof(dfDto2), "main.test2");
 
 
