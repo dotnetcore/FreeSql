@@ -20,7 +20,7 @@ namespace FreeSql.Tests.Odbc.DamengMapType
         public void DateTimeToDateTimeOffSet()
         {
             //insert
-            var orm = g.oracle;
+            var orm = g.dameng;
             var item = new Dtos_dt { dtos_to_dt = DateTimeOffset.Now, dtofnil_to_dt = DateTimeOffset.Now };
             Assert.Equal(1, orm.Insert<Dtos_dt>().AppendData(item).ExecuteAffrows());
             var find = orm.Select<Dtos_dt>().Where(a => a.id == item.id).First();

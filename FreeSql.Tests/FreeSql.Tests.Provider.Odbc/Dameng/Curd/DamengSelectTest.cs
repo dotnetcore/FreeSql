@@ -1338,7 +1338,7 @@ namespace FreeSql.Tests.Odbc.Dameng
 
             // --- Select ---
 
-            new List<Song>(new[] { song1, song2, song3 }).IncludeMany(g.oracle, a => a.Tags.Select(b => new Tag { Id = b.Id, Name = b.Name }));
+            new List<Song>(new[] { song1, song2, song3 }).IncludeMany(g.dameng, a => a.Tags.Select(b => new Tag { Id = b.Id, Name = b.Name }));
 
             var asongs1 = g.dameng.Select<Song>()
                 .IncludeMany(a => a.Tags.Select(b => new Tag { Id = b.Id, Name = b.Name }))

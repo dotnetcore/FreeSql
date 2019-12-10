@@ -9,13 +9,13 @@ namespace FreeSql.Tests.Odbc.Dameng
         [Fact]
         public void Pool()
         {
-            var t1 = g.oracle.Ado.MasterPool.StatisticsFullily;
+            var t1 = g.dameng.Ado.MasterPool.StatisticsFullily;
         }
 
         [Fact]
         public void SlavePools()
         {
-            var t2 = g.oracle.Ado.SlavePools.Count;
+            var t2 = g.dameng.Ado.SlavePools.Count;
         }
 
         [Fact]
@@ -43,17 +43,17 @@ namespace FreeSql.Tests.Odbc.Dameng
         public void Query()
         {
 
-            var t3 = g.oracle.Ado.Query<xxx>("select * from \"TB_TOPIC\"");
+            var t3 = g.dameng.Ado.Query<xxx>("select * from \"TB_TOPIC\"");
 
-            var t4 = g.oracle.Ado.Query<(int, string, string)>("select * from \"TB_TOPIC\"");
+            var t4 = g.dameng.Ado.Query<(int, string, string)>("select * from \"TB_TOPIC\"");
 
-            var t5 = g.oracle.Ado.Query<dynamic>("select * from \"TB_TOPIC\"");
+            var t5 = g.dameng.Ado.Query<dynamic>("select * from \"TB_TOPIC\"");
         }
 
         [Fact]
         public void QueryMultipline()
         {
-            //var t3 = g.oracle.Ado.Query<xxx, (int, string, string), dynamic>("select * from \"TB_TOPIC\"; select * from \"TB_TOPIC\"; select * from \"TB_TOPIC\"");
+            //var t3 = g.dameng.Ado.Query<xxx, (int, string, string), dynamic>("select * from \"TB_TOPIC\"; select * from \"TB_TOPIC\"; select * from \"TB_TOPIC\"");
         }
 
         class xxx

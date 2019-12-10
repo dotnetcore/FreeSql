@@ -41,7 +41,7 @@ namespace FreeSql.Tests.Odbc.DamengMapType
         public void Enum1()
         {
             //insert
-            var orm = g.oracle;
+            var orm = g.dameng;
             var item = new ToStringMap { };
             Assert.Equal(1, orm.Insert<ToStringMap>().AppendData(item).ExecuteAffrows());
             var find = orm.Select<ToStringMap>().Where(a => a.id == item.id && a.enum_to_string == ToStringMapEnum.ÖÐ¹úÈË).First();
@@ -98,7 +98,7 @@ namespace FreeSql.Tests.Odbc.DamengMapType
         public void EnumNullable()
         {
             //insert
-            var orm = g.oracle;
+            var orm = g.dameng;
             var item = new ToStringMap { };
             Assert.Equal(1, orm.Insert<ToStringMap>().AppendData(item).ExecuteAffrows());
             var find = orm.Select<ToStringMap>().Where(a => a.id == item.id && a.enumnullable_to_string == null).First();
@@ -158,7 +158,7 @@ namespace FreeSql.Tests.Odbc.DamengMapType
         public void BigInteger1()
         {
             //insert
-            var orm = g.oracle;
+            var orm = g.dameng;
             var item = new ToStringMap { };
             Assert.Equal(1, orm.Insert<ToStringMap>().AppendData(item).ExecuteAffrows());
             var find = orm.Select<ToStringMap>().Where(a => a.id == item.id && a.biginteger_to_string == 0).First();
@@ -215,7 +215,7 @@ namespace FreeSql.Tests.Odbc.DamengMapType
         public void BigIntegerNullable()
         {
             //insert
-            var orm = g.oracle;
+            var orm = g.dameng;
             var item = new ToStringMap { };
             Assert.Equal(1, orm.Insert<ToStringMap>().AppendData(item).ExecuteAffrows());
             var find = orm.Select<ToStringMap>().Where(a => a.id == item.id && a.bigintegernullable_to_string == null).First();
@@ -275,7 +275,7 @@ namespace FreeSql.Tests.Odbc.DamengMapType
         public void TimeSpan1()
         {
             //insert
-            var orm = g.oracle;
+            var orm = g.dameng;
             var item = new ToStringMap { };
             Assert.Equal(1, orm.Insert<ToStringMap>().AppendData(item).ExecuteAffrows());
             var find = orm.Select<ToStringMap>().Where(a => a.id == item.id).First();
@@ -316,7 +316,7 @@ namespace FreeSql.Tests.Odbc.DamengMapType
         public void TimeSpanNullable()
         {
             //insert
-            var orm = g.oracle;
+            var orm = g.dameng;
             var item = new ToStringMap { };
             Assert.Equal(1, orm.Insert<ToStringMap>().AppendData(item).ExecuteAffrows());
             var find = orm.Select<ToStringMap>().Where(a => a.id == item.id).First();
@@ -371,7 +371,7 @@ namespace FreeSql.Tests.Odbc.DamengMapType
         public void DateTime1()
         {
             //insert
-            var orm = g.oracle;
+            var orm = g.dameng;
             var item = new ToStringMap { };
             Assert.Equal(1, orm.Insert<ToStringMap>().AppendData(item).ExecuteAffrows());
             var find = orm.Select<ToStringMap>().Where(a => a.id == item.id).First();
@@ -412,7 +412,7 @@ namespace FreeSql.Tests.Odbc.DamengMapType
         public void DateTimeNullable()
         {
             //insert
-            var orm = g.oracle;
+            var orm = g.dameng;
             var item = new ToStringMap { };
             Assert.Equal(1, orm.Insert<ToStringMap>().AppendData(item).ExecuteAffrows());
             var find = orm.Select<ToStringMap>().Where(a => a.id == item.id).First();
@@ -468,7 +468,7 @@ namespace FreeSql.Tests.Odbc.DamengMapType
         public void Guid1()
         {
             //insert
-            var orm = g.oracle;
+            var orm = g.dameng;
             var item = new ToStringMap { };
             Assert.Equal(1, orm.Insert<ToStringMap>().AppendData(item).ExecuteAffrows());
             var find = orm.Select<ToStringMap>().Where(a => a.id == item.id && a.guid_to_string == Guid.Empty).First();
@@ -512,7 +512,7 @@ namespace FreeSql.Tests.Odbc.DamengMapType
         public void GuidNullable()
         {
             //insert
-            var orm = g.oracle;
+            var orm = g.dameng;
             var item = new ToStringMap { };
             Assert.Equal(1, orm.Insert<ToStringMap>().AppendData(item).ExecuteAffrows());
             var find = orm.Select<ToStringMap>().Where(a => a.id == item.id && a.guidnullable_to_string == null).First();

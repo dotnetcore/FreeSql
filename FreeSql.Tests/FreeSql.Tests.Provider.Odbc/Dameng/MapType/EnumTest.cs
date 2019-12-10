@@ -26,7 +26,7 @@ namespace FreeSql.Tests.Odbc.DamengMapType
         public void EnumToString()
         {
             //insert
-            var orm = g.oracle;
+            var orm = g.dameng;
             var item = new EnumTestMap { };
             Assert.Equal(1, orm.Insert<EnumTestMap>().AppendData(item).ExecuteAffrows());
             var find = orm.Select<EnumTestMap>().Where(a => a.id == item.id && a.enum_to_string == ToStringMapEnum.中国人).First();
@@ -83,7 +83,7 @@ namespace FreeSql.Tests.Odbc.DamengMapType
         public void EnumNullableToString()
         {
             //insert
-            var orm = g.oracle;
+            var orm = g.dameng;
             var item = new EnumTestMap { };
             Assert.Equal(1, orm.Insert<EnumTestMap>().AppendData(item).ExecuteAffrows());
             var find = orm.Select<EnumTestMap>().Where(a => a.id == item.id && a.enumnullable_to_string == null).First();
@@ -144,7 +144,7 @@ namespace FreeSql.Tests.Odbc.DamengMapType
         public void EnumToInt()
         {
             //insert
-            var orm = g.oracle;
+            var orm = g.dameng;
             var item = new EnumTestMap { };
             Assert.Equal(1, orm.Insert<EnumTestMap>().AppendData(item).ExecuteAffrows());
             var find = orm.Select<EnumTestMap>().Where(a => a.id == item.id && a.enum_to_int == ToStringMapEnum.中国人).First();
@@ -201,7 +201,7 @@ namespace FreeSql.Tests.Odbc.DamengMapType
         public void EnumNullableToInt()
         {
             //insert
-            var orm = g.oracle;
+            var orm = g.dameng;
             var item = new EnumTestMap { };
             Assert.Equal(1, orm.Insert<EnumTestMap>().AppendData(item).ExecuteAffrows());
             var find = orm.Select<EnumTestMap>().Where(a => a.id == item.id && a.enumnullable_to_int == null).First();
