@@ -68,13 +68,10 @@ namespace efcore_to_freesql
             services.AddMvc();
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
+        public void Configure(IApplicationBuilder app)
         {
-            loggerFactory.AddConsole(Configuration.GetSection("Logging"));
-            loggerFactory.AddDebug();
-
             app.UseDeveloperExceptionPage();
-            app.UseMvc();
+            app.UseEndpoints(a => a.MapControllers());
         }
     }
 }

@@ -53,7 +53,6 @@ namespace FreeSql.Bechmarker
         }
     }
 
-    [CoreJob]
     [RPlotExporter, RankColumn]
     public class OrmVsInsert
     {
@@ -111,7 +110,6 @@ namespace FreeSql.Bechmarker
         }
     }
 
-    [CoreJob]
     [RPlotExporter, RankColumn]
     public class OrmVsUpdate
     {
@@ -144,7 +142,6 @@ namespace FreeSql.Bechmarker
         }
     }
 
-    [CoreJob]
     [RPlotExporter, RankColumn]
     public class OrmVsSelect
     {

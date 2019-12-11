@@ -4,6 +4,7 @@ using FreeSql.Extensions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Threading;
@@ -35,6 +36,7 @@ namespace base_entity
 
         static void Main(string[] args)
         {
+
             #region 初始化 IFreeSql
             var fsql = new FreeSql.FreeSqlBuilder()
                 .UseAutoSyncStructure(true)
