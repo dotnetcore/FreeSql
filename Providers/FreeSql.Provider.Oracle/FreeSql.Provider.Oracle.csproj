@@ -23,11 +23,11 @@
   </ItemGroup>
   
 	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-	  <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="2.19.50" />
+	  <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="2.19.60" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net45' or '$(TargetFramework)' == 'net40'">
-		<PackageReference Include="Oracle.ManagedDataAccess" Version="19.5.0" />
+		<PackageReference Include="Oracle.ManagedDataAccess" Version="19.6.0" />
 	</ItemGroup>
 	
 	<ItemGroup>
