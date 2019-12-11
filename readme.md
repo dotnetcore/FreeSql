@@ -9,7 +9,7 @@ FreeSql 是功能强大的对象关系映射技术(O/RM)，支持 .NETCore 2.1+ 
 # Features
 
 - [x] 支持 CodeFirst 迁移；
-- [x] 支持 DbFirst 从数据库导入实体类；
+- [x] 支持 DbFirst 从数据库导入实体类，[安装实体类生成工具](https://github.com/2881099/FreeSql/wiki/DbFirst)；
 - [x] 大量采用 ExpressionTree 提升性能；
 - [x] 支持 深入的类型映射，比如pgsql的数组类型；
 - [x] 支持 丰富的表达式函数；
@@ -42,12 +42,6 @@ FreeSql 是功能强大的对象关系映射技术(O/RM)，支持 .NETCore 2.1+ 
 - 要么[FreeSql.DbContext](https://github.com/2881099/FreeSql/wiki/DbContext)，有点像efcore的使用习惯；
 - 要么[FreeSql.Connection.Extensions](https://github.com/2881099/FreeSql.Connection.Extensions)，有点像Dapper的使用习惯；
 - 要么[BaseEntity](https://github.com/2881099/FreeSql/tree/master/Examples/base_entity)，我求简单现在使用的这个；
-
-> 其他下载
-
-- [FreeSql.Tools 生成器](https://github.com/2881099/FreeSql.Tools)，基于 razor 模板的生成器；
-- [Abp 中使用 FreeSql](https://github.com/gnsilence/JPGZService)，测试中．．．；
-- [FreeSql 优势.pptx](https://github.com/2881099/FreeSql/files/3305852/FreeSql.pptx)；
 
 > 学习项目
 
