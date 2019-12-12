@@ -62,7 +62,7 @@ namespace FreeSql.Odbc.Dameng
     {
 
         internal OdbcDamengConnectionPool _pool;
-        public string Name { get; set; } = "Oracle OdbcConnection 对象池";
+        public string Name { get; set; } = "Dameng OdbcConnection 对象池";
         public int PoolSize { get; set; } = 100;
         public TimeSpan SyncGetTimeout { get; set; } = TimeSpan.FromSeconds(10);
         public TimeSpan IdleTimeout { get; set; } = TimeSpan.Zero;

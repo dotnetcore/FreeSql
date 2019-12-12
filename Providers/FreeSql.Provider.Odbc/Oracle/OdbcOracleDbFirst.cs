@@ -258,7 +258,7 @@ a.data_length,
 a.data_precision,
 a.data_scale,
 a.char_used,
-case when a.nullable = 'Y' then 1 else 0 end,
+case when a.nullable = 'N' then 0 else 1 end,
 nvl((select 1 from user_sequences where upper(sequence_name)=upper(a.table_name||'_seq_'||a.column_name)), 0),
 b.comments
 from all_tab_cols a

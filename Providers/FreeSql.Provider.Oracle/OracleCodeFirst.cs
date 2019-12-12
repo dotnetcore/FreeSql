@@ -183,7 +183,7 @@ a.data_length,
 a.data_precision,
 a.data_scale,
 a.char_used,
-case when a.nullable = 'Y' then 1 else 0 end,
+case when a.nullable = 'N' then 0 else 1 end,
 nvl((select 1 from user_sequences where sequence_name='{Utils.GetCsName((tboldname ?? tbname).Last())}_seq_'||a.column_name), 0),
 nvl((select 1 from user_triggers where trigger_name='{Utils.GetCsName((tboldname ?? tbname).Last())}_seq_'||a.column_name||'TI'), 0),
 b.comments

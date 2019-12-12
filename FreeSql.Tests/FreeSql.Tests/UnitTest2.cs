@@ -245,6 +245,8 @@ namespace FreeSql.Tests
         [Fact]
         public void Test02()
         {
+            g.sqlite.Update<TestIgnoreDefaultValue>(Guid.Empty).Set(a => a.ct1 == a.ct2).ExecuteAffrows();
+
             g.sqlite.Insert(new otot1 { name = "otot1_name1" }).ExecuteAffrows();
 
             var otolst1 = g.sqlite.Select<otot1>()

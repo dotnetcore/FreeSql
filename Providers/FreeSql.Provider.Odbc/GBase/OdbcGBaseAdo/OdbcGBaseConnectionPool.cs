@@ -9,16 +9,16 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace FreeSql.Odbc.PostgreSQL
+namespace FreeSql.Odbc.GBase
 {
 
-    class OdbcPostgreSQLConnectionPool : ObjectPool<DbConnection>
+    class OdbcGBaseConnectionPool : ObjectPool<DbConnection>
     {
 
         internal Action availableHandler;
         internal Action unavailableHandler;
 
-        public OdbcPostgreSQLConnectionPool(string name, string connectionString, Action availableHandler, Action unavailableHandler) : base(null)
+        public OdbcGBaseConnectionPool(string name, string connectionString, Action availableHandler, Action unavailableHandler) : base(null)
         {
             var policy = new OdbcPostgreSQLConnectionPoolPolicy
             {
@@ -56,8 +56,8 @@ namespace FreeSql.Odbc.PostgreSQL
     class OdbcPostgreSQLConnectionPoolPolicy : IPolicy<DbConnection>
     {
 
-        internal OdbcPostgreSQLConnectionPool _pool;
-        public string Name { get; set; } = "PostgreSQL OdbcConnection 对象池";
+        internal OdbcGBaseConnectionPool _pool;
+        public string Name { get; set; } = "GBase OdbcConnection 对象池";
         public int PoolSize { get; set; } = 50;
         public TimeSpan SyncGetTimeout { get; set; } = TimeSpan.FromSeconds(10);
         public TimeSpan IdleTimeout { get; set; } = TimeSpan.Zero;
@@ -74,14 +74,14 @@ namespace FreeSql.Odbc.PostgreSQL
             {
                 _connectionString = value ?? "";
 
-                var pattern = @"Max(imum)?\s*pool\s*size\s*=\s*(\d+)";
+                var pattern = @"Max\s*pool\s*size\s*=\s*(\d+)";
                 Match m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase);
-                if (m.Success == false || int.TryParse(m.Groups[2].Value, out var poolsize) == false || poolsize <= 0) poolsize = 50;
+                if (m.Success == false || int.TryParse(m.Groups[1].Value, out var poolsize) == false || poolsize <= 0) poolsize = 100;
                 var connStrIncr = dicConnStrIncr.AddOrUpdate(_connectionString, 1, (oldkey, oldval) => oldval + 1);
                 PoolSize = poolsize + connStrIncr;
                 _connectionString = m.Success ?
-                    Regex.Replace(_connectionString, pattern, $"Maximum pool size={PoolSize}", RegexOptions.IgnoreCase) :
-                    $"{_connectionString};Maximum pool size={PoolSize}";
+                    Regex.Replace(_connectionString, pattern, $"Max pool size={PoolSize}", RegexOptions.IgnoreCase) :
+                    $"{_connectionString};Max pool size={PoolSize}";
 
                 pattern = @"Connection\s*LifeTime\s*=\s*(\d+)";
                 m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase);
@@ -92,11 +92,11 @@ namespace FreeSql.Odbc.PostgreSQL
                 }
 
                 var minPoolSize = 0;
-                pattern = @"Min(imum)?\s*pool\s*size\s*=\s*(\d+)";
+                pattern = @"Min\s*pool\s*size\s*=\s*(\d+)";
                 m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase);
                 if (m.Success)
                 {
-                    minPoolSize = int.Parse(m.Groups[2].Value);
+                    minPoolSize = int.Parse(m.Groups[1].Value);
                     _connectionString = Regex.Replace(_connectionString, pattern, "", RegexOptions.IgnoreCase);
                 }
 
