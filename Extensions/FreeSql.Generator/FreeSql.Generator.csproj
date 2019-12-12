@@ -12,7 +12,7 @@
     <Description>使用 FreeSql 快速生成数据库的实体类； dotnet tool install -g FreeSql.Generator</Description>
     <PackageProjectUrl>https://github.com/2881099/FreeSql</PackageProjectUrl>
     <RepositoryUrl>https://github.com/2881099/FreeSql</RepositoryUrl>
-    <Version>0.12.17</Version>
+    <Version>0.12.18</Version>
     <PackageTags>FreeSql DbFirst 实体生成器</PackageTags>
   </PropertyGroup>
 
