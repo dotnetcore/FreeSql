@@ -50,6 +50,7 @@ namespace FreeSql.Generator
 new Colorful.Formatter("https://github.com/2881099/FreeSql", Color.DeepSkyBlue),
 new Colorful.Formatter("v" + string.Join(".", typeof(ConsoleApp).Assembly.GetName().Version.ToString().Split('.').Where((a, b) => b <= 2)), Color.SlateGray));
 
+            ArgsNameOptions = new[] { false, false, false, false };
             ArgsOutput = Directory.GetCurrentDirectory();
             ArgsFileName = "{name}.cs";
             string args0 = args[0].Trim().ToLower();
