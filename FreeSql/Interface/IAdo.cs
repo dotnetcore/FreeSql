@@ -41,9 +41,16 @@ namespace FreeSql
         /// <summary>
         /// 开启事务（不支持异步）
         /// </summary>
+        /// <param name="timeout">超时，未执行完将自动提交</param>
+        /// <param name="handler">事务体 () => {}</param>
+        void Transaction(TimeSpan timeout, Action handler);
+        /// <summary>
+        /// 开启事务（不支持异步）
+        /// </summary>
+        /// <param name="isolationLevel"></param>
         /// <param name="handler">事务体 () => {}</param>
         /// <param name="timeout">超时，未执行完将自动提交</param>
-        void Transaction(Action handler, TimeSpan timeout);
+        void Transaction(IsolationLevel isolationLevel, TimeSpan timeout, Action handler);
         /// <summary>
         /// 当前线程的事务
         /// </summary>

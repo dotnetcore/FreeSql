@@ -3,6 +3,7 @@ using FreeSql.Internal.CommonProvider;
 using FreeSql.Oracle.Curd;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
 using System.Threading;
 
@@ -44,7 +45,8 @@ namespace FreeSql.Oracle
         internal CommonExpression InternalCommonExpression { get; }
 
         public void Transaction(Action handler) => Ado.Transaction(handler);
-        public void Transaction(Action handler, TimeSpan timeout) => Ado.Transaction(handler, timeout);
+        public void Transaction(TimeSpan timeout, Action handler) => Ado.Transaction(timeout, handler);
+        public void Transaction(IsolationLevel isolationLevel, TimeSpan timeout, Action handler) => Ado.Transaction(isolationLevel, timeout, handler);
 
         public GlobalFilter GlobalFilter { get; } = new GlobalFilter();
 

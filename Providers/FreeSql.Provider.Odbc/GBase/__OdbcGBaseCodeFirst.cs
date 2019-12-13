@@ -25,7 +25,7 @@ namespace FreeSql.Odbc.GBase
 
                 { typeof(byte).FullName,  (OdbcType.SmallInt, "byte","byte NOT NULL", false, false, 0) },{ typeof(byte?).FullName,  (OdbcType.SmallInt, "byte", "byte", false, true, null) },
                 { typeof(ushort).FullName,  (OdbcType.Int, "integer","integer NOT NULL", false, false, 0) },{ typeof(ushort?).FullName,  (OdbcType.Int, "integer", "integer", false, true, null) },
-                { typeof(uint).FullName,  (OdbcType.BigInt, "int8","int8 NOT NULL", false, false, 0) },{ typeof(uint?).FullName,  (OdbcType.BigInt, "int8", "int8", false, true, null) },
+                { typeof(uint).FullName,  (OdbcType.BigInt, "bigint","bigint NOT NULL", false, false, 0) },{ typeof(uint?).FullName,  (OdbcType.BigInt, "bigint", "bigint", false, true, null) },
                 { typeof(ulong).FullName,  (OdbcType.Decimal, "decimal","decimal(20,0) NOT NULL", false, false, 0) },{ typeof(ulong?).FullName,  (OdbcType.Decimal, "decimal", "decimal(20,0)", false, true, null) },
 
                 { typeof(float).FullName,  (OdbcType.Real, "smallfloat","smallfloat NOT NULL", false, false, 0) },{ typeof(float?).FullName,  (OdbcType.Real, "smallfloat", "smallfloat", false, true, null) },

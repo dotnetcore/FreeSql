@@ -2,6 +2,7 @@
 using FreeSql.Internal;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq.Expressions;
 
 public interface IFreeSql<TMark> : IFreeSql { }
@@ -93,9 +94,16 @@ public interface IFreeSql : IDisposable
     /// <summary>
     /// 开启事务（不支持异步）
     /// </summary>
+    /// <param name="timeout">超时，未执行完将自动提交</param>
+    /// <param name="handler">事务体 () => {}</param>
+    void Transaction(TimeSpan timeout, Action handler);
+    /// <summary>
+    /// 开启事务（不支持异步）
+    /// </summary>
+    /// <param name="isolationLevel"></param>
     /// <param name="handler">事务体 () => {}</param>
     /// <param name="timeout">超时，未执行完将自动提交</param>
-    void Transaction(Action handler, TimeSpan timeout);
+    void Transaction(IsolationLevel isolationLevel, TimeSpan timeout, Action handler);
 
     /// <summary>
     /// 数据库访问对象

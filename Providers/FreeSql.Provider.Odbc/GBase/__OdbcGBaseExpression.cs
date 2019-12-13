@@ -27,21 +27,21 @@ namespace FreeSql.Odbc.GBase
                         switch (exp.Type.NullableTypeOrThis().ToString())
                         {
                             case "System.Boolean": return $"(({getExp(operandExp)})::varchar not in ('0','false','f','no'))";
-                            case "System.Byte": return $"({getExp(operandExp)})::int2";
+                            case "System.Byte": return $"({getExp(operandExp)})::byte";
                             case "System.Char": return $"substr(({getExp(operandExp)})::char, 1, 1)";
                             case "System.DateTime": return $"({getExp(operandExp)})::timestamp";
-                            case "System.Decimal": return $"({getExp(operandExp)})::numeric";
-                            case "System.Double": return $"({getExp(operandExp)})::float8";
-                            case "System.Int16": return $"({getExp(operandExp)})::int2";
-                            case "System.Int32": return $"({getExp(operandExp)})::int4";
-                            case "System.Int64": return $"({getExp(operandExp)})::int8";
-                            case "System.SByte": return $"({getExp(operandExp)})::int2";
-                            case "System.Single": return $"({getExp(operandExp)})::float4";
-                            case "System.String": return $"({getExp(operandExp)})::varchar";
-                            case "System.UInt16": return $"({getExp(operandExp)})::int2";
-                            case "System.UInt32": return $"({getExp(operandExp)})::int4";
-                            case "System.UInt64": return $"({getExp(operandExp)})::int8";
-                            case "System.Guid": return $"({getExp(operandExp)})::uuid";
+                            case "System.Decimal": return $"({getExp(operandExp)})::decimal";
+                            case "System.Double": return $"({getExp(operandExp)})::float";
+                            case "System.Int16": return $"({getExp(operandExp)})::smallint";
+                            case "System.Int32": return $"({getExp(operandExp)})::integer";
+                            case "System.Int64": return $"({getExp(operandExp)})::bigint";
+                            case "System.SByte": return $"({getExp(operandExp)})::smallint";
+                            case "System.Single": return $"({getExp(operandExp)})::smallfloat";
+                            case "System.String": return $"({getExp(operandExp)})::nvarchar";
+                            case "System.UInt16": return $"({getExp(operandExp)})::integer";
+                            case "System.UInt32": return $"({getExp(operandExp)})::bigint";
+                            case "System.UInt64": return $"({getExp(operandExp)})::decimal";
+                            case "System.Guid": return $"({getExp(operandExp)})::char";
                         }
                     }
                     break;
@@ -59,26 +59,26 @@ namespace FreeSql.Odbc.GBase
                             switch (callExp.Method.DeclaringType.NullableTypeOrThis().ToString())
                             {
                                 case "System.Boolean": return $"(({getExp(callExp.Arguments[0])})::varchar not in ('0','false','f','no'))";
-                                case "System.Byte": return $"({getExp(callExp.Arguments[0])})::int2";
+                                case "System.Byte": return $"({getExp(callExp.Arguments[0])})::byte";
                                 case "System.Char": return $"substr(({getExp(callExp.Arguments[0])})::char, 1, 1)";
                                 case "System.DateTime": return $"({getExp(callExp.Arguments[0])})::timestamp";
-                                case "System.Decimal": return $"({getExp(callExp.Arguments[0])})::numeric";
-                                case "System.Double": return $"({getExp(callExp.Arguments[0])})::float8";
-                                case "System.Int16": return $"({getExp(callExp.Arguments[0])})::int2";
-                                case "System.Int32": return $"({getExp(callExp.Arguments[0])})::int4";
-                                case "System.Int64": return $"({getExp(callExp.Arguments[0])})::int8";
-                                case "System.SByte": return $"({getExp(callExp.Arguments[0])})::int2";
-                                case "System.Single": return $"({getExp(callExp.Arguments[0])})::float4";
-                                case "System.UInt16": return $"({getExp(callExp.Arguments[0])})::int2";
-                                case "System.UInt32": return $"({getExp(callExp.Arguments[0])})::int4";
-                                case "System.UInt64": return $"({getExp(callExp.Arguments[0])})::int8";
-                                case "System.Guid": return $"({getExp(callExp.Arguments[0])})::uuid";
+                                case "System.Decimal": return $"({getExp(callExp.Arguments[0])})::decimal";
+                                case "System.Double": return $"({getExp(callExp.Arguments[0])})::float";
+                                case "System.Int16": return $"({getExp(callExp.Arguments[0])})::smallint";
+                                case "System.Int32": return $"({getExp(callExp.Arguments[0])})::integer";
+                                case "System.Int64": return $"({getExp(callExp.Arguments[0])})::bigint";
+                                case "System.SByte": return $"({getExp(callExp.Arguments[0])})::smallint";
+                                case "System.Single": return $"({getExp(callExp.Arguments[0])})::smallfloat";
+                                case "System.UInt16": return $"({getExp(callExp.Arguments[0])})::integer";
+                                case "System.UInt32": return $"({getExp(callExp.Arguments[0])})::bigint";
+                                case "System.UInt64": return $"({getExp(callExp.Arguments[0])})::decimal";
+                                case "System.Guid": return $"({getExp(callExp.Arguments[0])})::char";
                             }
                             break;
                         case "NewGuid":
                             return null;
                         case "Next":
-                            if (callExp.Object?.Type == typeof(Random)) return "(random()*1000000000)::int4";
+                            if (callExp.Object?.Type == typeof(Random)) return "(random()*1000000000)::integer";
                             return null;
                         case "NextDouble":
                             if (callExp.Object?.Type == typeof(Random)) return "random()";

@@ -1960,10 +1960,18 @@
             </summary>
             <param name="handler">事务体 () => {}</param>
         </member>
-        <member name="M:FreeSql.IAdo.Transaction(System.Action,System.TimeSpan)">
+        <member name="M:FreeSql.IAdo.Transaction(System.TimeSpan,System.Action)">
             <summary>
             开启事务（不支持异步）
             </summary>
+            <param name="timeout">超时，未执行完将自动提交</param>
+            <param name="handler">事务体 () => {}</param>
+        </member>
+        <member name="M:FreeSql.IAdo.Transaction(System.Data.IsolationLevel,System.TimeSpan,System.Action)">
+            <summary>
+            开启事务（不支持异步）
+            </summary>
+            <param name="isolationLevel"></param>
             <param name="handler">事务体 () => {}</param>
             <param name="timeout">超时，未执行完将自动提交</param>
         </member>
@@ -2256,187 +2264,7 @@
         </member>
         <member name="P:FreeSql.IAop.CurdAfter">
             <summary>
-            增删查改，执行命令完成后触发
-            </summary>
-        </member>
-        <member name="P:FreeSql.IAop.SyncStructureBefore">
-            <summary>
-            CodeFirst迁移，执行之前触发
-            </summary>
-        </member>
-        <member name="P:FreeSql.IAop.SyncStructureAfter">
-            <summary>
-            CodeFirst迁移，执行完成触发
-            </summary>
-        </member>
-        <member name="P:FreeSql.IAop.AuditValue">
-            <summary>
-            Insert/Update自动值处理
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.ParseExpressionEventArgs.FreeParse">
-            <summary>
-            内置解析功能，可辅助您进行解析
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.ParseExpressionEventArgs.Expression">
-            <summary>
-            需要您解析的表达式
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.ParseExpressionEventArgs.Result">
-            <summary>
-            解析后的内容
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.ConfigEntityEventArgs.EntityType">
-            <summary>
-            实体类型
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.ConfigEntityEventArgs.ModifyResult">
-            <summary>
-            实体配置
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.ConfigEntityEventArgs.ModifyIndexResult">
-            <summary>
-            索引配置
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.ConfigEntityPropertyEventArgs.EntityType">
-            <summary>
-            实体类型
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.ConfigEntityPropertyEventArgs.Property">
-            <summary>
-            实体的属性
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.ConfigEntityPropertyEventArgs.ModifyResult">
-            <summary>
-            实体的属性配置
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.CurdBeforeEventArgs.Identifier">
-            <summary>
-            标识符，可将 CurdBefore 与 CurdAfter 进行匹配
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.CurdBeforeEventArgs.CurdType">
-            <summary>
-            操作类型
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.CurdBeforeEventArgs.EntityType">
-            <summary>
-            实体类型
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.CurdBeforeEventArgs.Table">
-            <summary>
-            实体类型的元数据
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.CurdBeforeEventArgs.Sql">
-            <summary>
-            执行的 SQL
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.CurdBeforeEventArgs.DbParms">
-            <summary>
-            参数化命令
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.CurdAfterEventArgs.Exception">
-            <summary>
-            发生的错误
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.CurdAfterEventArgs.ExecuteResult">
-            <summary>
-            执行SQL命令，返回的结果
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.CurdAfterEventArgs.ElapsedTicks">
-            <summary>
-            耗时（单位：Ticks）
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.CurdAfterEventArgs.ElapsedMilliseconds">
-            <summary>
-            耗时（单位：毫秒）
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.SyncStructureBeforeEventArgs.Identifier">
-            <summary>
-            标识符，可将 SyncStructureBeforeEventArgs 与 SyncStructureAfterEventArgs 进行匹配
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.SyncStructureBeforeEventArgs.EntityTypes">
-            <summary>
-            实体类型
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.SyncStructureAfterEventArgs.Sql">
-            <summary>
-            执行的 SQL
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.SyncStructureAfterEventArgs.Exception">
-            <summary>
-            发生的错误
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.SyncStructureAfterEventArgs.ElapsedTicks">
-            <summary>
-            耗时（单位：Ticks）
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.SyncStructureAfterEventArgs.ElapsedMilliseconds">
-            <summary>
-            耗时（单位：毫秒）
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.AuditValueEventArgs.AuditValueType">
-            <summary>
-            类型
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.AuditValueEventArgs.Column">
-            <summary>
-            属性列的元数据
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.AuditValueEventArgs.Property">
-            <summary>
-            反射的属性信息
-            </summary>
-        </member>
-        <member name="P:FreeSql.Aop.AuditValueEventArgs.Value">
-            <summary>
-            获取实体的属性值，也可以设置实体的属性新值
-            </summary>
-        </member>
-        <member name="P:FreeSql.ICodeFirst.IsAutoSyncStructure">
-            <summary>
-            【开发环境必备】自动同步实体结构到数据库，程序运行中检查实体表是否存在，然后创建或修改
-            </summary>
-        </member>
-        <member name="P:FreeSql.ICodeFirst.IsSyncStructureToLower">
-            <summary>
-            转小写同步结构
-            </summary>
-        </member>
-        <member name="P:FreeSql.ICodeFirst.IsSyncStructureToUpper">
-            <summary>
-            转大写同步结构
-            </summary>
-        </member>
-        <member name="P:FreeSql.ICodeFirst.IsConfigEntityFromDbFirst">
-            <summary>
-            将数据库的主键、自增、索引设置导入，适用 DbFirst 模式，无须在实体类型上设置 [Column(IsPrimary)] 或者 ConfigEntity。此功能目前可用于 mysql/sqlserver/postgresql/oracle。<para></para>
+         或者 ConfigEntity。此功能目前可用于 mysql/sqlserver/postgresql/oracle。<para></para>
             本功能会影响 IFreeSql 首次访问的速度。<para></para>
             若使用 CodeFirst 创建索引后，又直接在数据库上建了索引，若无本功能下一次 CodeFirst 迁移时数据库上创建的索引将被删除
             </summary>
@@ -2970,10 +2798,163 @@
             </summary>
             <param name="handler">事务体 () => {}</param>
         </member>
-        <member name="M:IFreeSql.Transaction(System.Action,System.TimeSpan)">
+        <member name="M:IFreeSql.Transaction(System.TimeSpan,System.Action)">
             <summary>
             开启事务（不支持异步）
             </summary>
+            <param name="timeout">超时，未执行完将自动提交</param>
+            <param name="handler">事务体 () => {}</param>
+        </member>
+        <member name="M:IFreeSql.Transaction(System.Data.IsolationLevel,System.TimeSpan,System.Action)">
+            <summary>
+            开启事务（不支持异步）
+     �
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.And``1(System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}},System.Boolean,System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})">
+            <summary>
+            使用 and 拼接两个 lambda 表达式
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="exp1"></param>
+            <param name="condition">true 时生效</param>
+            <param name="exp2"></param>
+            <returns></returns>
+        </member>
+        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.Or``1(System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}},System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})">
+            <summary>
+            使用 or 拼接两个 lambda 表达式
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.Or``1(System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}},System.Boolean,System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})">
+            <summary>
+            使用 or 拼接两个 lambda 表达式
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="exp1"></param>
+            <param name="condition">true 时生效</param>
+            <param name="exp2"></param>
+            <returns></returns>
+        </member>
+        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.Not``1(System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}},System.Boolean)">
+            <summary>
+            将 lambda 表达式取反
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="exp"></param>
+            <param name="condition">true 时生效</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeUtil.NewMongodbId">
+            <summary>
+            生成类似Mongodb的ObjectId有序、不重复Guid
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Insert``1">
+            <summary>
+            插入数据
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Insert``1(``0)">
+            <summary>
+            插入数据，传入实体
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <param name="source"></param>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Insert``1(``0[])">
+            <summary>
+            插入数据，传入实体数组
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <param name="source"></param>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Insert``1(System.Collections.Generic.List{``0})">
+            <summary>
+            插入数据，传入实体集合
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <param name="source"></param>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Insert``1(System.Collections.Generic.IEnumerable{``0})">
+            <summary>
+            插入数据，传入实体集合
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <param name="source"></param>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Update``1">
+            <summary>
+            修改数据
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Update``1(System.Object)">
+            <summary>
+            修改数据，传入动态对象如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <param name="dywhere">主键值、主键值集合、实体、实体集合、匿名对象、匿名对象集合</param>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Select``1">
+            <summary>
+            查询数据
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Select``1(System.Object)">
+            <summary>
+            查询数据，传入动态对象如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <param name="dywhere">主键值、主键值集合、实体、实体集合、匿名对象、匿名对象集合</param>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Delete``1">
+            <summary>
+            删除数据
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Delete``1(System.Object)">
+            <summary>
+            删除数据，传入动态对象如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <param name="dywhere">主键值、主键值集合、实体、实体集合、匿名对象、匿名对象集合</param>
+            <returns></returns>
+        </member>
+        <member name="M:IFreeSql.Transaction(System.Action)">
+            <summary>
+            开启事务（不支持异步），60秒未执行完将自动提交
+            </summary>
+            <param name="handler">事务体 () => {}</param>
+        </member>
+        <member name="M:IFreeSql.Transaction(System.TimeSpan,System.Action)">
+            <summary>
+            开启事务（不支持异步）
+            </summary>
+            <param name="timeout">超时，未执行完将自动提交</param>
+            <param name="handler">事务体 () => {}</param>
+        </member>
+        <member name="M:IFreeSql.Transaction(System.Data.IsolationLevel,System.TimeSpan,System.Action)">
+            <summary>
+            开启事务（不支持异步）
+            </summary>
+            <param name="isolationLevel"></param>
             <param name="handler">事务体 () => {}</param>
             <param name="timeout">超时，未执行完将自动提交</param>
         </member>
