@@ -258,7 +258,7 @@ a.data_length,
 a.data_precision,
 a.data_scale,
 a.char_used,
-case when a.nullable = 'Y' then 1 else 0 end,
+case when a.nullable = 'N' then 0 else 1 end,
 nvl((select 1 from user_sequences where upper(sequence_name)=upper(a.table_name||'_seq_'||a.column_name)), 0),
 b.comments
 from all_tab_cols a
@@ -320,7 +320,7 @@ a.table_owner || '.' || a.table_name,
 c.column_name,
 c.index_name,
 case when a.uniqueness = 'UNIQUE' then 1 else 0 end,
-0,
+case when exists(select 1 from all_constraints where constraint_name = a.index_name and constraint_type = 'P') then 1 else 0 end,
 0,
 case when c.descend = 'DESC' then 1 else 0 end,
 c.column_position
@@ -330,7 +330,6 @@ where a.index_name = c.index_name
 and a.table_owner = c.table_owner
 and a.table_name = c.table_name
 and a.table_owner in ({1}) and {0}
-and not exists(select 1 from all_constraints where index_name = a.index_name and constraint_type = 'P')
 ", loc8, databaseIn);
             ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
             if (ds == null) return loc1;
@@ -351,6 +350,7 @@ and not exists(select 1 from all_constraints where index_name = a.index_name and
                 if (loc3.ContainsKey(table_id) == false || loc3[table_id].ContainsKey(column) == false) continue;
                 var loc9 = loc3[table_id][column];
                 if (loc9.IsPrimary == false && is_primary_key) loc9.IsPrimary = is_primary_key;
+                if (is_primary_key) continue;
 
                 Dictionary<string, DbIndexInfo> loc10 = null;
                 DbIndexInfo loc11 = null;
