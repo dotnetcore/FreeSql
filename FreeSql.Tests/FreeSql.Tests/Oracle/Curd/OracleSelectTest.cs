@@ -1530,6 +1530,10 @@ namespace FreeSql.Tests.Oracle
         public void ForUpdate()
         {
             var orm = g.oracle;
+
+            Assert.Equal("安全起见，请务必在事务开启之后，再使用 ForUpdate",
+                Assert.Throws<Exception>(() => orm.Select<ToUpd1Pk>().ForUpdate().Limit(1).ToList())?.Message);
+
             orm.Transaction(() =>
             {
                 var sql = orm.Select<ToUpd1Pk>().ForUpdate().Limit(1).ToSql().Replace("\r\n", "");
