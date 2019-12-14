@@ -26,6 +26,7 @@ namespace FreeSql.Internal.CommonProvider
         protected List<SelectTableInfo> _tables = new List<SelectTableInfo>();
         protected List<Func<Type, string, string>> _tableRules = new List<Func<Type, string, string>>();
         protected Func<Type, string, string> _aliasRule;
+        protected string _tosqlAppendContent;
         protected StringBuilder _join = new StringBuilder();
         protected IFreeSql _orm;
         protected CommonUtils _commonUtils;
@@ -987,6 +988,36 @@ namespace FreeSql.Internal.CommonProvider
                 if (idx == -1) continue;
                 _whereCascadeExpression.RemoveAt(idx);
                 _whereGlobalFilter.RemoveAt(idx);
+            }
+            return this as TSelect;
+        }
+        public TSelect ForUpdate(bool noawait = false)
+        {
+            if (_transaction == null && _orm.Ado.TransactionCurrentThread == null)
+                throw new Exception("安全起见，请务必在事务开启之后，再使用 ForUpdate");
+            switch (_orm.Ado.DataType)
+            {
+                case DataType.MySql:
+                case DataType.OdbcMySql:
+                    _tosqlAppendContent = " for update";
+                    break;
+                case DataType.SqlServer:
+                case DataType.OdbcSqlServer:
+                    _aliasRule = (_, old) => $"{old} With(UpdLock, RowLock{(noawait ? ", NoWait" : "")})";
+                    break;
+                case DataType.PostgreSQL:
+                case DataType.OdbcPostgreSQL:
+                    _tosqlAppendContent = $" for update{(noawait ? " nowait" : "")}";
+                    break;
+                case DataType.Oracle:
+                case DataType.OdbcOracle:
+                    _tosqlAppendContent = $" for update{(noawait ? " nowait" : "")}";
+                    break;
+                case DataType.Sqlite:
+                    break;
+                case DataType.OdbcDameng:
+                    _tosqlAppendContent = $" for update{(noawait ? " nowait" : "")}";
+                    break;
             }
             return this as TSelect;
         }

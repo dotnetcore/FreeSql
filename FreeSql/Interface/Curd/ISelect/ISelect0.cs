@@ -251,6 +251,20 @@ namespace FreeSql
         TSelect DisableGlobalFilter(params string[] name);
 
         /// <summary>
+        /// 排他更新锁<para></para>
+        /// 注意：务必在开启事务后使用该功能<para></para>
+        /// MySql: for update<para></para>
+        /// SqlServer: With(UpdLock, RowLock, NoWait)<para></para>
+        /// PostgreSQL: for update nowait<para></para>
+        /// Oracle: for update nowait<para></para>
+        /// Sqlite: 无效果<para></para>
+        /// 达梦: for update nowait
+        /// </summary>
+        /// <param name="nowait">noawait</param>
+        /// <returns></returns>
+        TSelect ForUpdate(bool nowait = false);
+
+        /// <summary>
         /// 按原生sql语法分组，GroupBy("concat(name, ?cc)", new { cc = 1 })
         /// </summary>
         /// <param name="sql">sql语法</param>

@@ -25,8 +25,8 @@ public static partial class FreeSqlSqlServerGlobalExtensions
     /// <returns></returns>
     public static ISelect<T> WithLock<T>(this ISelect<T> that, SqlServerLock lockType = SqlServerLock.NoLock, Dictionary<Type, bool> rule = null) where T : class 
         => rule == null ? 
-        that.AsAlias((type, old) => $"{old} with({lockType.ToString()})") :
-        that.AsAlias((type, old) => rule.TryGetValue(type, out var trybool) && trybool ? $"{old} with({lockType.ToString()})" : old);
+        that.AsAlias((type, old) => $"{old} With({lockType.ToString()})") :
+        that.AsAlias((type, old) => rule.TryGetValue(type, out var trybool) && trybool ? $"{old} With({lockType.ToString()})" : old);
 
     /// <summary>
     /// 设置全局 SqlServer with(nolock) 查询
@@ -42,7 +42,21 @@ public static partial class FreeSqlSqlServerGlobalExtensions
     internal static ConcurrentDictionary<IFreeSql, (SqlServerLock, Dictionary<Type, bool>)> _dicSetGlobalSelectWithLock = new ConcurrentDictionary<IFreeSql, (SqlServerLock, Dictionary<Type, bool>)>();
 }
 
+[Flags]
 public enum SqlServerLock
 {
-    HoldLock, NoLock, PagLock, ReadCommitted, ReadPast, ReadUnCommitted, RepeaTableRead, RowLock, Serializable, TabLock, TabLockX, UpdLock, XLock
+    NoLock = 1,
+    HoldLock = 2,
+    UpdLock = 4,
+    RowLock = 8,
+    ReadCommitted = 16,
+    ReadPast = 32,
+    ReadUnCommitted = 64,
+    RepeaTableRead = 256,
+    PagLock = 512,
+    Serializable = 1024,
+    TabLock = 2048,
+    TabLockX = 4096,
+    XLock = 8192,
+    NoWait = 16384
 }

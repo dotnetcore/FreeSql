@@ -1609,5 +1609,21 @@ namespace FreeSql.Tests.Odbc.MySql
             Assert.Equal(5, g.mysql.Select<ToUpd3Pk>().Count());
             Assert.Equal(5, g.mysql.Select<ToUpd3Pk>().Where(a => a.name.StartsWith("nick")).Count());
         }
+
+        [Fact]
+        public void ForUpdate()
+        {
+            var orm = g.mysql;
+            orm.Transaction(() =>
+            {
+                var sql = orm.Select<ToUpd1Pk>().ForUpdate().Limit(1).ToSql().Replace("\r\n", "");
+                Assert.Equal("SELECT a.`id`, a.`name` FROM `ToUpd1Pk` a limit 0,1 for update", sql);
+                orm.Select<ToUpd1Pk>().ForUpdate().Limit(1).ToList();
+
+                sql = orm.Select<ToUpd1Pk>().ForUpdate(true).Limit(1).ToSql().Replace("\r\n", "");
+                Assert.Equal("SELECT a.`id`, a.`name` FROM `ToUpd1Pk` a limit 0,1 for update", sql);
+                orm.Select<ToUpd1Pk>().ForUpdate(true).Limit(1).ToList();
+            });
+        }
     }
 }

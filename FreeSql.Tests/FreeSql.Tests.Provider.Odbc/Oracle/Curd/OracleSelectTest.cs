@@ -1525,5 +1525,21 @@ namespace FreeSql.Tests.Odbc.Oracle
             Assert.Equal(5, g.oracle.Select<ToUpd3Pk>().Count());
             Assert.Equal(5, g.oracle.Select<ToUpd3Pk>().Where(a => a.name.StartsWith("nick")).Count());
         }
+
+        [Fact]
+        public void ForUpdate()
+        {
+            var orm = g.oracle;
+            orm.Transaction(() =>
+            {
+                var sql = orm.Select<ToUpd1Pk>().ForUpdate().Limit(1).ToSql().Replace("\r\n", "");
+                Assert.Equal("SELECT a.\"ID\", a.\"NAME\" FROM \"TOUPD1PK\" a WHERE ROWNUM < 2 for update", sql);
+                orm.Select<ToUpd1Pk>().ForUpdate().Limit(1).ToList();
+
+                sql = orm.Select<ToUpd1Pk>().ForUpdate(true).Limit(1).ToSql().Replace("\r\n", "");
+                Assert.Equal("SELECT a.\"ID\", a.\"NAME\" FROM \"TOUPD1PK\" a WHERE ROWNUM < 2 for update nowait", sql);
+                orm.Select<ToUpd1Pk>().ForUpdate(true).Limit(1).ToList();
+            });
+        }
     }
 }

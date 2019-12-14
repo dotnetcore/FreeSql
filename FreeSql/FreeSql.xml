@@ -1154,6 +1154,20 @@
             <param name="name">零个或多个过滤器名字</param>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.ISelect0`2.ForUpdate(System.Boolean)">
+            <summary>
+            排他更新锁<para></para>
+            注意：务必在开启事务后使用该功能<para></para>
+            MySql: for update<para></para>
+            SqlServer: With(UpdLock, RowLock, NoWait)<para></para>
+            PostgreSQL: for update nowait<para></para>
+            Oracle: for update nowait<para></para>
+            Sqlite: 无效果<para></para>
+            达梦: for update nowait
+            </summary>
+            <param name="nowait">noawait</param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.ISelect0`2.GroupBy(System.String,System.Object)">
             <summary>
             按原生sql语法分组，GroupBy("concat(name, ?cc)", new { cc = 1 })
@@ -1956,7 +1970,7 @@
         </member>
         <member name="M:FreeSql.IAdo.Transaction(System.Action)">
             <summary>
-            开启事务（不支持异步），60秒未执行完将自动提交
+            开启事务（不支持异步），60秒未执行完成（可能）被其他线程事务自动提交
             </summary>
             <param name="handler">事务体 () => {}</param>
         </member>
@@ -1964,7 +1978,7 @@
             <summary>
             开启事务（不支持异步）
             </summary>
-            <param name="timeout">超时，未执行完将自动提交</param>
+            <param name="timeout">超时，未执行完成（可能）被其他线程事务自动提交</param>
             <param name="handler">事务体 () => {}</param>
         </member>
         <member name="M:FreeSql.IAdo.Transaction(System.Data.IsolationLevel,System.TimeSpan,System.Action)">
@@ -1973,7 +1987,7 @@
             </summary>
             <param name="isolationLevel"></param>
             <param name="handler">事务体 () => {}</param>
-            <param name="timeout">超时，未执行完将自动提交</param>
+            <param name="timeout">超时，未执行完成（可能）被其他线程事务自动提交</param>
         </member>
         <member name="P:FreeSql.IAdo.TransactionCurrentThread">
             <summary>
@@ -2974,7 +2988,7 @@
         </member>
         <member name="M:IFreeSql.Transaction(System.Action)">
             <summary>
-            开启事务（不支持异步），60秒未执行完将自动提交
+            开启事务（不支持异步），60秒未执行完成（可能）被其他线程事务自动提交
             </summary>
             <param name="handler">事务体 () => {}</param>
         </member>
@@ -2982,7 +2996,7 @@
             <summary>
             开启事务（不支持异步）
             </summary>
-            <param name="timeout">超时，未执行完将自动提交</param>
+            <param name="timeout">超时，未执行完成（可能）被其他线程事务自动提交</param>
             <param name="handler">事务体 () => {}</param>
         </member>
         <member name="M:IFreeSql.Transaction(System.Data.IsolationLevel,System.TimeSpan,System.Action)">
@@ -2991,7 +3005,7 @@
             </summary>
             <param name="isolationLevel"></param>
             <param name="handler">事务体 () => {}</param>
-            <param name="timeout">超时，未执行完将自动提交</param>
+            <param name="timeout">超时，未执行完成（可能）被其他线程事务自动提交</param>
         </member>
         <member name="P:IFreeSql.Ado">
             <summary>

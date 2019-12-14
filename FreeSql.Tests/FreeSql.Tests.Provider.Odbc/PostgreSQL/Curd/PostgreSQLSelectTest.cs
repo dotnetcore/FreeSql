@@ -1581,5 +1581,21 @@ namespace FreeSql.Tests.Odbc.PostgreSQL
             Assert.Equal(5, g.pgsql.Select<ToUpd3Pk>().Count());
             Assert.Equal(5, g.pgsql.Select<ToUpd3Pk>().Where(a => a.name.StartsWith("nick")).Count());
         }
+
+        [Fact]
+        public void ForUpdate()
+        {
+            var orm = g.pgsql;
+            orm.Transaction(() =>
+            {
+                var sql = orm.Select<ToUpd1Pk>().ForUpdate().Limit(1).ToSql().Replace("\r\n", "");
+                Assert.Equal("SELECT a.\"id\", a.\"name\" FROM \"toupd1pk\" a limit 1 for update", sql);
+                orm.Select<ToUpd1Pk>().ForUpdate().Limit(1).ToList();
+
+                sql = orm.Select<ToUpd1Pk>().ForUpdate(true).Limit(1).ToSql().Replace("\r\n", "");
+                Assert.Equal("SELECT a.\"id\", a.\"name\" FROM \"toupd1pk\" a limit 1 for update nowait", sql);
+                orm.Select<ToUpd1Pk>().ForUpdate(true).Limit(1).ToList();
+            });
+        }
     }
 }

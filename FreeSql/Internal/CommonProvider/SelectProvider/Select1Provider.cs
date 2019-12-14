@@ -636,13 +636,18 @@ namespace FreeSql.Internal.CommonProvider
                 foreach (var item in list)
                     setListValue(item, null);
 
-                var subSelect = _orm.Select<TNavigate>().DisableGlobalFilter().WithConnection(_connection).WithTransaction(_transaction).TrackToList(_trackToList) as Select1Provider<TNavigate>;
+                var subSelect = _orm.Select<TNavigate>()
+                    .DisableGlobalFilter()
+                    .WithConnection(_connection)
+                    .WithTransaction(_transaction)
+                    .TrackToList(_trackToList) as Select1Provider<TNavigate>;
                 if (_tableRules?.Any() == true)
                     foreach (var tr in _tableRules) subSelect.AsTable(tr);
 
                 if (_whereCascadeExpression.Any())
                     subSelect._whereCascadeExpression.AddRange(_whereCascadeExpression.ToArray());
 
+                //subSelect._aliasRule = _aliasRule; //把 SqlServer 查询锁传递下去
                 then?.Invoke(subSelect);
                 var subSelectT1Alias = subSelect._tables[0].Alias;
                 var oldWhere = subSelect._where.ToString();

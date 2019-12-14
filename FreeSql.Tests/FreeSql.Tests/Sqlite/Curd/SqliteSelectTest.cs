@@ -1673,5 +1673,21 @@ namespace FreeSql.Tests.Sqlite
             Assert.Equal(5, g.sqlite.Select<ToUpd3Pk>().Count());
             Assert.Equal(5, g.sqlite.Select<ToUpd3Pk>().Where(a => a.name.StartsWith("nick")).Count());
         }
+
+        [Fact]
+        public void ForUpdate()
+        {
+            var orm = g.sqlite;
+            orm.Transaction(() =>
+            {
+                var sql = orm.Select<ToUpd1Pk>().ForUpdate().Limit(1).ToSql().Replace("\r\n", "");
+                Assert.Equal("SELECT a.\"id\", a.\"name\" FROM \"ToUpd1Pk\" a limit 0,1", sql);
+                orm.Select<ToUpd1Pk>().ForUpdate().Limit(1).ToList();
+
+                sql = orm.Select<ToUpd1Pk>().ForUpdate(true).Limit(1).ToSql().Replace("\r\n", "");
+                Assert.Equal("SELECT a.\"id\", a.\"name\" FROM \"ToUpd1Pk\" a limit 0,1", sql);
+                orm.Select<ToUpd1Pk>().ForUpdate(true).Limit(1).ToList();
+            });
+        }
     }
 }

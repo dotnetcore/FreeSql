@@ -1336,5 +1336,21 @@ namespace FreeSql.Tests.Odbc.Default
             Assert.Equal(5, g.odbc.Select<ToUpd3Pk>().Count());
             Assert.Equal(5, g.odbc.Select<ToUpd3Pk>().Where(a => a.name.StartsWith("nick")).Count());
         }
+
+        [Fact]
+        public void ForUpdate()
+        {
+            var orm = g.odbc;
+            orm.Transaction(() =>
+            {
+                var sql = orm.Select<ToUpd1Pk>().ForUpdate().Limit(1).ToSql().Replace("\r\n", "");
+                Assert.Equal("SELECT TOP 1 a.[id], a.[name] FROM [ToUpd1Pk] a", sql);
+                orm.Select<ToUpd1Pk>().ForUpdate().Limit(1).ToList();
+
+                sql = orm.Select<ToUpd1Pk>().ForUpdate(true).Limit(1).ToSql().Replace("\r\n", "");
+                Assert.Equal("SELECT TOP 1 a.[id], a.[name] FROM [ToUpd1Pk] a", sql);
+                orm.Select<ToUpd1Pk>().ForUpdate(true).Limit(1).ToList();
+            });
+        }
     }
 }

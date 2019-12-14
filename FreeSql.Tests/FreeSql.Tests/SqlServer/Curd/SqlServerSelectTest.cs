@@ -1520,5 +1520,44 @@ namespace FreeSql.Tests.SqlServer
             Assert.Equal(5, g.sqlserver.Select<ToUpd3Pk>().Count());
             Assert.Equal(5, g.sqlserver.Select<ToUpd3Pk>().Where(a => a.name.StartsWith("nick")).Count());
         }
+
+        [Fact]
+        public void WithLock()
+        {
+            var orm = g.sqlserver;
+            orm.Transaction(() =>
+            {
+                var sql = orm.Select<ToUpd1Pk>().WithLock().Limit(1).ToSql().Replace("\r\n", "");
+                Assert.Equal("SELECT TOP 1 a.[id], a.[name] FROM [ToUpd1Pk] a With(NoLock)", sql);
+                orm.Select<ToUpd1Pk>().WithLock().Limit(1).ToList();
+
+                sql = orm.Select<ToUpd1Pk>().WithLock(SqlServerLock.NoLock).Limit(1).ToSql().Replace("\r\n", "");
+                Assert.Equal("SELECT TOP 1 a.[id], a.[name] FROM [ToUpd1Pk] a With(NoLock)", sql);
+                orm.Select<ToUpd1Pk>().WithLock(SqlServerLock.NoLock).Limit(1).ToList();
+
+                sql = orm.Select<ToUpd1Pk>().WithLock(SqlServerLock.NoLock | SqlServerLock.NoWait).Limit(1).ToSql().Replace("\r\n", "");
+                Assert.Equal("SELECT TOP 1 a.[id], a.[name] FROM [ToUpd1Pk] a With(NoLock, NoWait)", sql);
+                orm.Select<ToUpd1Pk>().WithLock(SqlServerLock.NoLock | SqlServerLock.NoWait).Limit(1).ToList();
+
+                sql = orm.Select<ToUpd1Pk>().WithLock(SqlServerLock.UpdLock | SqlServerLock.RowLock | SqlServerLock.NoWait).Limit(1).ToSql().Replace("\r\n", "");
+                Assert.Equal("SELECT TOP 1 a.[id], a.[name] FROM [ToUpd1Pk] a With(UpdLock, RowLock, NoWait)", sql);
+                orm.Select<ToUpd1Pk>().WithLock(SqlServerLock.UpdLock | SqlServerLock.RowLock | SqlServerLock.NoWait).Limit(1).ToList();
+            });
+        }
+        [Fact]
+        public void ForUpdate()
+        {
+            var orm = g.sqlserver;
+            orm.Transaction(() =>
+            {
+                var sql = orm.Select<ToUpd1Pk>().ForUpdate().Limit(1).ToSql().Replace("\r\n", "");
+                Assert.Equal("SELECT TOP 1 a.[id], a.[name] FROM [ToUpd1Pk] a With(UpdLock, RowLock)", sql);
+                orm.Select<ToUpd1Pk>().ForUpdate().Limit(1).ToList();
+
+                sql = orm.Select<ToUpd1Pk>().ForUpdate(true).Limit(1).ToSql().Replace("\r\n", "");
+                Assert.Equal("SELECT TOP 1 a.[id], a.[name] FROM [ToUpd1Pk] a With(UpdLock, RowLock, NoWait)", sql);
+                orm.Select<ToUpd1Pk>().ForUpdate(true).Limit(1).ToList();
+            });
+        }
     }
 }
