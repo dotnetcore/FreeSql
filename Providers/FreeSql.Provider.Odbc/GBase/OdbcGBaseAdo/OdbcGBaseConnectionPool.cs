@@ -9,6 +9,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
+//jdbc:gbasedbt-sqli://192.168.164.10:9088/gbasedb:GBASEDBTSERVER=gbaseserver;DB_LOCALE=zh_CN.GB18030-2000;CLIENT_LOCALE=zh_CN.GB18030-2000;NEWCODESET=GB18030,GB18030-2000,5488;
+
 namespace FreeSql.Odbc.GBase
 {
 
