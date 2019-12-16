@@ -9,7 +9,7 @@
     <Authors>2881099</Authors>
     <Company>2881099</Company>
     <Product>FreeSql123</Product>
-    <Description>使用 FreeSql 快速生成数据库的实体类； dotnet tool install -g FreeSql.Generator</Description>
+    <Description>使用 FreeSql 快速生成数据库的实体类，安装：dotnet tool install -g FreeSql.Generator</Description>
     <PackageProjectUrl>https://github.com/2881099/FreeSql</PackageProjectUrl>
     <RepositoryUrl>https://github.com/2881099/FreeSql</RepositoryUrl>
     <Version>0.12.20</Version>

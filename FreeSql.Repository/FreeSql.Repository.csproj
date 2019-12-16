@@ -4,7 +4,7 @@
     <TargetFrameworks>netstandard2.0;net45;net40</TargetFrameworks>
     <Version>0.12.20</Version>
     <Authors>YeXiangQin</Authors>
-    <Description>FreeSql Implementation of General Repository, Support MySql/SqlServer/PostgreSQL/Oracle/Sqlite, and read/write separation、and split table.</Description>
+    <Description>FreeSql Implementation of General Repository, Support MySql/SqlServer/PostgreSQL/Oracle/Sqlite/达梦, and read/write separation、and split table.</Description>
     <PackageProjectUrl>https://github.com/2881099/FreeSql/wiki/Repository</PackageProjectUrl>
     <PackageTags>FreeSql ORM Repository</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
