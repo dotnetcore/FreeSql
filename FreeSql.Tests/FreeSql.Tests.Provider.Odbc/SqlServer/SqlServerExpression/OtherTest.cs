@@ -36,6 +36,7 @@ namespace FreeSql.Tests.Odbc.SqlServerExpression
             var t3 = select.Where(a => a.testFieldBool == false).ToList();
             var t4 = select.Where(a => !a.testFieldBool).ToList();
             var t5 = select.Where(a => a.testFieldBool).ToList();
+            var t51 = select.WhereCascade(a => a.testFieldBool).Limit(10).ToList();
 
             var t11 = select.Where(a => a.testFieldBoolNullable == true).ToList();
             var t22 = select.Where(a => a.testFieldBoolNullable != true).ToList();

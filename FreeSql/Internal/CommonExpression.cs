@@ -342,37 +342,24 @@ namespace FreeSql.Internal
             { ExpressionType.Modulo, "%" },
             { ExpressionType.Equal, "=" },
         };
+
         public string ExpressionWhereLambdaNoneForeignObject(List<SelectTableInfo> _tables, TableInfo table, List<SelectColumnInfo> _selectColumnMap, Expression exp, Func<Expression[], string> getSelectGroupingMapString, List<DbParameter> dbParams)
         {
             var sql = ExpressionLambdaToSql(exp, new ExpTSC { _tables = _tables, _selectColumnMap = _selectColumnMap, getSelectGroupingMapString = getSelectGroupingMapString, tbtype = SelectTableInfoType.From, isQuoteName = true, isDisableDiyParse = false, style = ExpressionStyle.Where, currentTable = table, dbParams = dbParams });
-            var isBool = exp.Type.NullableTypeOrThis() == typeof(bool);
-            if (exp.NodeType == ExpressionType.MemberAccess && isBool && sql.Contains(" IS ") == false && sql.Contains(" = ") == false)
-                return $"{sql} = {formatSql(true, null, null, null)}";
-            if (isBool)
-                return GetBoolString(sql);
-            return sql;
+            return GetBoolString(exp, sql);
         }
 
         public string ExpressionWhereLambda(List<SelectTableInfo> _tables, Expression exp, Func<Expression[], string> getSelectGroupingMapString, List<LambdaExpression> whereCascadeExpression, List<DbParameter> dbParams)
         {
             var sql = ExpressionLambdaToSql(exp, new ExpTSC { _tables = _tables, getSelectGroupingMapString = getSelectGroupingMapString, tbtype = SelectTableInfoType.From, isQuoteName = true, isDisableDiyParse = false, style = ExpressionStyle.Where, whereCascadeExpression = whereCascadeExpression, dbParams = dbParams });
-            var isBool = exp.Type.NullableTypeOrThis() == typeof(bool);
-            if (exp.NodeType == ExpressionType.MemberAccess && isBool && sql.Contains(" IS ") == false && sql.Contains(" = ") == false)
-                return $"{sql} = {formatSql(true, null, null, null)}";
-            if (isBool)
-                return GetBoolString(sql);
-            return sql;
+            return GetBoolString(exp, sql);
         }
         static ConcurrentDictionary<string, Regex> dicRegexAlias = new ConcurrentDictionary<string, Regex>();
         public void ExpressionJoinLambda(List<SelectTableInfo> _tables, SelectTableInfoType tbtype, Expression exp, Func<Expression[], string> getSelectGroupingMapString, List<LambdaExpression> whereCascadeExpression)
         {
             var tbidx = _tables.Count;
             var sql = ExpressionLambdaToSql(exp, new ExpTSC { _tables = _tables, getSelectGroupingMapString = getSelectGroupingMapString, tbtype = tbtype, isQuoteName = true, isDisableDiyParse = false, style = ExpressionStyle.Where, whereCascadeExpression = whereCascadeExpression });
-            var isBool = exp.Type.NullableTypeOrThis() == typeof(bool);
-            if (exp.NodeType == ExpressionType.MemberAccess && isBool && sql.Contains(" IS ") == false && sql.Contains(" = ") == false)
-                sql = $"{sql} = {formatSql(true, null, null, null)}";
-            if (isBool)
-                sql = GetBoolString(sql);
+            sql = GetBoolString(exp, sql);
 
             if (_tables.Count > tbidx)
             {
@@ -404,6 +391,15 @@ namespace FreeSql.Internal
         static MethodInfo MethodDateTimeSubtractTimeSpan = typeof(DateTime).GetMethod("Subtract", new Type[] { typeof(TimeSpan) });
         static MethodInfo MethodMathFloor = typeof(Math).GetMethod("Floor", new Type[] { typeof(double) });
 
+        public string GetBoolString(Expression exp, string sql)
+        {
+            var isBool = exp.Type.NullableTypeOrThis() == typeof(bool);
+            if (exp.NodeType == ExpressionType.MemberAccess && isBool && sql.Contains(" IS ") == false && sql.Contains(" = ") == false)
+                return $"{sql} = {formatSql(true, null, null, null)}";
+            if (isBool)
+                return GetBoolString(sql);
+            return sql;
+        }
         static string GetBoolString(string sql)
         {
             switch (sql)
@@ -1340,7 +1336,8 @@ namespace FreeSql.Internal
                             new ReplaceVisitor().Modify(fl.Body, newParameter),
                             newParameter
                         );
-                        var whereSql = ExpressionLambdaToSql(expExp, new ExpTSC { _tables = null, _selectColumnMap = null, getSelectGroupingMapString = null, tbtype = SelectTableInfoType.From, isQuoteName = true, isDisableDiyParse = false, style = ExpressionStyle.Where, currentTable = tb.Table, alias001 = tb.Alias });
+                        var whereSql = ExpressionLambdaToSql(expExp.Body, new ExpTSC { _tables = null, _selectColumnMap = null, getSelectGroupingMapString = null, tbtype = SelectTableInfoType.From, isQuoteName = true, isDisableDiyParse = false, style = ExpressionStyle.Where, currentTable = tb.Table, alias001 = tb.Alias });
+                        whereSql = GetBoolString(expExp.Body, whereSql);
                         if (isEmpty == false)
                             sb.Append(" AND ");
                         else

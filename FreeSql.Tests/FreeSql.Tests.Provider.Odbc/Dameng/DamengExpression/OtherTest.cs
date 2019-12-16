@@ -39,6 +39,7 @@ namespace FreeSql.Tests.Odbc.DamengExpression
             var t3 = select.Where(a => a.Bool == false).ToList();
             var t4 = select.Where(a => !a.Bool).ToList();
             var t5 = select.Where(a => a.Bool).ToList();
+            var t51 = select.WhereCascade(a => a.Bool).Limit(10).ToList();
 
             var t11 = select.Where(a => a.BoolNullable == true).ToList();
             var t22 = select.Where(a => a.BoolNullable != true).ToList();

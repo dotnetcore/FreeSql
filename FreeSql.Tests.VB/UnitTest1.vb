@@ -13,6 +13,8 @@ Namespace FreeSql.Tests.VB
 
             Dim List4 = g.sqlserver.Select(Of Testvb).ToList(Function(a) New With {a, a.Id, a.Title})
 
+            Dim List5 = g.sqlserver.Select(Of Testvb).Where(Function(a) a.IsDeleted).ToList()
+
         End Sub
     End Class
 End Namespace
@@ -20,4 +22,5 @@ End Namespace
 Class Testvb
     Property Id As Integer
     Property Title As String
+    Property IsDeleted As Boolean
 End Class
