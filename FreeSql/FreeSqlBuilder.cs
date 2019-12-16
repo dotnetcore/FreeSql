@@ -12,6 +12,7 @@ namespace FreeSql
         DataType _dataType;
         string _masterConnectionString;
         string[] _slaveConnectionString;
+        Func<DbConnection> _connectionFactory;
         bool _isAutoSyncStructure = false;
         bool _isSyncStructureToLower = false;
         bool _isSyncStructureToUpper = false;
@@ -25,7 +26,7 @@ namespace FreeSql
         Type _providerType = null;
 
         /// <summary>
-        /// 使用连接串
+        /// 使用连接串（推荐）
         /// </summary>
         /// <param name="dataType">数据库类型</param>
         /// <param name="connectionString">数据库连接串</param>
@@ -33,6 +34,7 @@ namespace FreeSql
         /// <returns></returns>
         public FreeSqlBuilder UseConnectionString(DataType dataType, string connectionString, Type providerType = null)
         {
+            if (_connectionFactory != null) throw new Exception("已经指定了 UseConnectionFactory，不能再指定 UseConnectionString");
             _dataType = dataType;
             _masterConnectionString = connectionString;
             _providerType = providerType;
@@ -45,7 +47,24 @@ namespace FreeSql
         /// <returns></returns>
         public FreeSqlBuilder UseSlave(params string[] slaveConnectionString)
         {
+            if (_connectionFactory != null) throw new Exception("已经指定了 UseConnectionFactory，不能再指定 UseSlave");
             _slaveConnectionString = slaveConnectionString;
+            return this;
+        }
+        /// <summary>
+        /// 使用自定义数据库连接对象（放弃内置对象连接池技术）
+        /// </summary>
+        /// <param name="dataType">数据库类型</param>
+        /// <param name="connectionFactory">数据库连接对象创建器</param>
+        /// <param name="providerType">提供者的类型，一般不需要指定，如果一直提示“缺少 FreeSql 数据库实现包：FreeSql.Provider.MySql.dll，可前往 nuget 下载”的错误，说明反射获取不到类型，此时该参数可排上用场</param>
+        /// <returns></returns>
+        public FreeSqlBuilder UseConnectionFactory(DataType dataType, Func<DbConnection> connectionFactory, Type providerType = null)
+        {
+            if (string.IsNullOrEmpty(_masterConnectionString) == false) throw new Exception("已经指定了 UseConnectionString，不能再指定 UseConnectionFactory");
+            if (_slaveConnectionString?.Any() == true) throw new Exception("已经指定了 UseSlave，不能再指定 UseConnectionFactory");
+            _dataType = dataType;
+            _connectionFactory = connectionFactory;
+            _providerType = providerType;
             return this;
         }
         /// <summary>
@@ -149,7 +168,7 @@ namespace FreeSql
         public IFreeSql Build() => Build<IFreeSql>();
         public IFreeSql<TMark> Build<TMark>()
         {
-            if (string.IsNullOrEmpty(_masterConnectionString)) throw new Exception("参数 masterConnectionString 不可为空，请检查 UseConnectionString");
+            if (string.IsNullOrEmpty(_masterConnectionString) && _connectionFactory == null) throw new Exception("参数 masterConnectionString 不可为空，请检查 UseConnectionString");
             IFreeSql<TMark> ret = null;
             var type = _providerType;
             if (type?.IsGenericType == true) type = type.MakeGenericType(typeof(TMark));
@@ -208,7 +227,7 @@ namespace FreeSql
                     default: throw new Exception("未指定 UseConnectionString");
                 }
             }
-            ret = Activator.CreateInstance(type, new object[] { _masterConnectionString, _slaveConnectionString }) as IFreeSql<TMark>;
+            ret = Activator.CreateInstance(type, new object[] { _masterConnectionString, _slaveConnectionString, _connectionFactory }) as IFreeSql<TMark>;
             if (ret != null)
             {
                 ret.CodeFirst.IsAutoSyncStructure = _isAutoSyncStructure;

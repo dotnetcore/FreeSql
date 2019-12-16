@@ -78,7 +78,12 @@ namespace FreeSql.Oracle
 
         protected override string GetComparisonDDLStatements(params (Type entityType, string tableName)[] objects)
         {
-            var userId = (_orm.Ado.MasterPool as OracleConnectionPool).UserId;
+            var userId = (_orm.Ado.MasterPool as OracleConnectionPool)?.UserId;
+            if (string.IsNullOrEmpty(userId))
+                using (var conn = _orm.Ado.MasterPool.Get())
+                {
+                    userId = OracleConnectionPool.GetUserId(conn.Value.ConnectionString);
+                }
             var seqcols = new List<(ColumnInfo, string[], bool)>(); //序列：列，表，自增
             var seqnameDel = new List<string>(); //要删除的序列+触发器
 

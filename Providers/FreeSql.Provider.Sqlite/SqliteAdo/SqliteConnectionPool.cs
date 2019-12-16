@@ -224,7 +224,10 @@ namespace FreeSql.Sqlite
         {
             try
             {
-                PingCommand(that).ExecuteNonQuery();
+                using (var cmd = PingCommand(that))
+                {
+                    cmd.ExecuteNonQuery();
+                }
                 return true;
             }
             catch
@@ -247,6 +250,7 @@ namespace FreeSql.Sqlite
                 var cmd = that.CreateCommand();
                 cmd.CommandText = sb.ToString();
                 cmd.ExecuteNonQuery();
+                cmd.Dispose();
             }
         }
 
@@ -256,7 +260,10 @@ namespace FreeSql.Sqlite
         {
             try
             {
-                await PingCommand(that).ExecuteNonQueryAsync();
+                using (var cmd = PingCommand(that))
+                {
+                    await cmd.ExecuteNonQueryAsync();
+                }
                 return true;
             }
             catch
@@ -279,6 +286,7 @@ namespace FreeSql.Sqlite
                 var cmd = that.CreateCommand();
                 cmd.CommandText = sb.ToString();
                 await cmd.ExecuteNonQueryAsync();
+                cmd.Dispose();
             }
         }
 #endif

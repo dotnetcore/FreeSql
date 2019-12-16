@@ -758,12 +758,16 @@ namespace FreeSql.Tests.Odbc.Oracle
             var subquery = select.ToSql(a => new
             {
                 all = a,
-                count = select.Sum(b => b.Id)
+                count = (long)select.As("b").Sum(b => b.Id)
             });
+            Assert.Equal(@"SELECT a.""ID"" as1, a.""CLICKS"" as2, a.""TYPEGUID"" as3, a.""TITLE"" as4, a.""CREATETIME"" as5, (SELECT sum(b.""ID"") 
+	FROM ""TB_TOPIC22"" b 
+	WHERE ROWNUM < 2) as6 
+FROM ""TB_TOPIC22"" a", subquery);
             var subqueryList = select.ToList(a => new
             {
                 all = a,
-                count = select.Sum(b => b.Id)
+                count = (long)select.As("b").Sum(b => b.Id)
             });
         }
         [Fact]
@@ -772,12 +776,16 @@ namespace FreeSql.Tests.Odbc.Oracle
             var subquery = select.ToSql(a => new
             {
                 all = a,
-                count = select.Min(b => b.Id)
+                count = select.As("b").Min(b => b.Id)
             });
+            Assert.Equal(@"SELECT a.""ID"" as1, a.""CLICKS"" as2, a.""TYPEGUID"" as3, a.""TITLE"" as4, a.""CREATETIME"" as5, (SELECT min(b.""ID"") 
+	FROM ""TB_TOPIC22"" b 
+	WHERE ROWNUM < 2) as6 
+FROM ""TB_TOPIC22"" a", subquery);
             var subqueryList = select.ToList(a => new
             {
                 all = a,
-                count = select.Min(b => b.Id)
+                count = select.As("b").Min(b => b.Id)
             });
         }
         [Fact]
@@ -786,12 +794,16 @@ namespace FreeSql.Tests.Odbc.Oracle
             var subquery = select.ToSql(a => new
             {
                 all = a,
-                count = select.Max(b => b.Id)
+                count = select.As("b").Max(b => b.Id)
             });
+            Assert.Equal(@"SELECT a.""ID"" as1, a.""CLICKS"" as2, a.""TYPEGUID"" as3, a.""TITLE"" as4, a.""CREATETIME"" as5, (SELECT max(b.""ID"") 
+	FROM ""TB_TOPIC22"" b 
+	WHERE ROWNUM < 2) as6 
+FROM ""TB_TOPIC22"" a", subquery);
             var subqueryList = select.ToList(a => new
             {
                 all = a,
-                count = select.Max(b => b.Id)
+                count = select.As("b").Max(b => b.Id)
             });
         }
         [Fact]
@@ -800,13 +812,27 @@ namespace FreeSql.Tests.Odbc.Oracle
             var subquery = select.ToSql(a => new
             {
                 all = a,
-                count = select.Avg(b => b.Id)
+                count = select.As("b").Avg(b => b.Id)
             });
+            Assert.Equal(@"SELECT a.""ID"" as1, a.""CLICKS"" as2, a.""TYPEGUID"" as3, a.""TITLE"" as4, a.""CREATETIME"" as5, (SELECT avg(b.""ID"") 
+	FROM ""TB_TOPIC22"" b 
+	WHERE ROWNUM < 2) as6 
+FROM ""TB_TOPIC22"" a", subquery);
             var subqueryList = select.ToList(a => new
             {
                 all = a,
-                count = select.Avg(b => b.Id)
+                count = select.As("b").Avg(b => b.Id)
             });
+        }
+        [Fact]
+        public void WhereIn()
+        {
+            var subquery = select.Where(a => select.As("b").ToList(b => b.Title).Contains(a.Id.ToString())).ToSql();
+            Assert.Equal(@"SELECT a.""ID"", a.""CLICKS"", a.""TYPEGUID"", a.""TITLE"", a.""CREATETIME"" 
+FROM ""TB_TOPIC22"" a 
+WHERE (((to_char(a.""ID"")) in (SELECT b.""TITLE"" 
+	FROM ""TB_TOPIC22"" b)))", subquery);
+            var subqueryList = select.Where(a => select.As("b").ToList(b => b.Title).Contains(a.Id.ToString())).ToList();
         }
         [Fact]
         public void As()

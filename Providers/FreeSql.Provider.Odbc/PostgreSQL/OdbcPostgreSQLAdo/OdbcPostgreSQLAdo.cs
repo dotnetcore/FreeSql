@@ -13,10 +13,15 @@ namespace FreeSql.Odbc.PostgreSQL
 {
     class OdbcPostgreSQLAdo : FreeSql.Internal.CommonProvider.AdoProvider
     {
-        public OdbcPostgreSQLAdo() : base(DataType.PostgreSQL) { }
-        public OdbcPostgreSQLAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings) : base(DataType.PostgreSQL)
+        public OdbcPostgreSQLAdo() : base(DataType.OdbcPostgreSQL) { }
+        public OdbcPostgreSQLAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.OdbcPostgreSQL)
         {
             base._util = util;
+            if (connectionFactory != null)
+            {
+                MasterPool = new FreeSql.Internal.CommonProvider.DbConnectionPool(DataType.OdbcPostgreSQL, connectionFactory);
+                return;
+            }
             if (!string.IsNullOrEmpty(masterConnectionString))
                 MasterPool = new OdbcPostgreSQLConnectionPool("主库", masterConnectionString, null, null);
             if (slaveConnectionStrings != null)
@@ -58,9 +63,11 @@ namespace FreeSql.Odbc.PostgreSQL
             return new OdbcCommand();
         }
 
-        protected override void ReturnConnection(ObjectPool<DbConnection> pool, Object<DbConnection> conn, Exception ex)
+        protected override void ReturnConnection(IObjectPool<DbConnection> pool, Object<DbConnection> conn, Exception ex)
         {
-            (pool as OdbcPostgreSQLConnectionPool).Return(conn, ex);
+            var rawPool = pool as OdbcPostgreSQLConnectionPool;
+            if (rawPool != null) rawPool.Return(conn, ex);
+            else pool.Return(conn);
         }
 
         protected override DbParameter[] GetDbParamtersByObject(string sql, object obj) => _util.GetDbParamtersByObject(sql, obj);

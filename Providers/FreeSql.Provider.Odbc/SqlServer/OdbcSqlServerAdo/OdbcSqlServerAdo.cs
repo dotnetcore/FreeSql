@@ -13,10 +13,15 @@ namespace FreeSql.Odbc.SqlServer
 {
     class OdbcSqlServerAdo : FreeSql.Internal.CommonProvider.AdoProvider
     {
-        public OdbcSqlServerAdo() : base(DataType.SqlServer) { }
-        public OdbcSqlServerAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings) : base(DataType.SqlServer)
+        public OdbcSqlServerAdo() : base(DataType.OdbcSqlServer) { }
+        public OdbcSqlServerAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.OdbcSqlServer)
         {
             base._util = util;
+            if (connectionFactory != null)
+            {
+                MasterPool = new FreeSql.Internal.CommonProvider.DbConnectionPool(DataType.OdbcSqlServer, connectionFactory);
+                return;
+            }
             if (!string.IsNullOrEmpty(masterConnectionString))
                 MasterPool = new OdbcSqlServerConnectionPool("主库", masterConnectionString, null, null);
             if (slaveConnectionStrings != null)
@@ -73,9 +78,11 @@ namespace FreeSql.Odbc.SqlServer
             return new OdbcCommand();
         }
 
-        protected override void ReturnConnection(ObjectPool<DbConnection> pool, Object<DbConnection> conn, Exception ex)
+        protected override void ReturnConnection(IObjectPool<DbConnection> pool, Object<DbConnection> conn, Exception ex)
         {
-            (pool as OdbcSqlServerConnectionPool).Return(conn, ex);
+            var rawPool = pool as OdbcSqlServerConnectionPool;
+            if (rawPool != null) rawPool.Return(conn, ex);
+            else pool.Return(conn);
         }
 
         protected override DbParameter[] GetDbParamtersByObject(string sql, object obj) => _util.GetDbParamtersByObject(sql, obj);

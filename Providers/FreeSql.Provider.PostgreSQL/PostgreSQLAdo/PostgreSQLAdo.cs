@@ -15,9 +15,14 @@ namespace FreeSql.PostgreSQL
     class PostgreSQLAdo : FreeSql.Internal.CommonProvider.AdoProvider
     {
         public PostgreSQLAdo() : base(DataType.PostgreSQL) { }
-        public PostgreSQLAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings) : base(DataType.PostgreSQL)
+        public PostgreSQLAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.PostgreSQL)
         {
-            base._util = util;
+            base._util = util; 
+            if (connectionFactory != null)
+            {
+                MasterPool = new FreeSql.Internal.CommonProvider.DbConnectionPool(DataType.PostgreSQL, connectionFactory);
+                return;
+            }
             if (!string.IsNullOrEmpty(masterConnectionString))
                 MasterPool = new PostgreSQLConnectionPool("主库", masterConnectionString, null, null);
             if (slaveConnectionStrings != null)
@@ -75,9 +80,11 @@ namespace FreeSql.PostgreSQL
             return new NpgsqlCommand();
         }
 
-        protected override void ReturnConnection(ObjectPool<DbConnection> pool, Object<DbConnection> conn, Exception ex)
+        protected override void ReturnConnection(IObjectPool<DbConnection> pool, Object<DbConnection> conn, Exception ex)
         {
-            (pool as PostgreSQLConnectionPool).Return(conn, ex);
+            var rawPool = pool as PostgreSQLConnectionPool;
+            if (rawPool != null) rawPool.Return(conn, ex);
+            else pool.Return(conn);
         }
 
         protected override DbParameter[] GetDbParamtersByObject(string sql, object obj) => _util.GetDbParamtersByObject(sql, obj);

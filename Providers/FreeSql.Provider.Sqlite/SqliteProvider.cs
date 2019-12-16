@@ -29,12 +29,12 @@ namespace FreeSql.Sqlite
         public IAop Aop { get; }
         public ICodeFirst CodeFirst { get; }
         public IDbFirst DbFirst => null;
-        public SqliteProvider(string masterConnectionString, string[] slaveConnectionString)
+        public SqliteProvider(string masterConnectionString, string[] slaveConnectionString, Func<DbConnection> connectionFactory = null)
         {
             this.InternalCommonUtils = new SqliteUtils(this);
             this.InternalCommonExpression = new SqliteExpression(this.InternalCommonUtils);
 
-            this.Ado = new SqliteAdo(this.InternalCommonUtils, masterConnectionString, slaveConnectionString);
+            this.Ado = new SqliteAdo(this.InternalCommonUtils, masterConnectionString, slaveConnectionString, connectionFactory);
             this.Aop = new AopProvider();
 
             this.CodeFirst = new SqliteCodeFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);

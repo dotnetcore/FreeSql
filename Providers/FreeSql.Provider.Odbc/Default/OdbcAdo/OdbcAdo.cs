@@ -13,9 +13,14 @@ namespace FreeSql.Odbc.Default
     class OdbcAdo : FreeSql.Internal.CommonProvider.AdoProvider
     {
         public OdbcAdo() : base(DataType.Odbc) { }
-        public OdbcAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings) : base(DataType.Odbc)
+        public OdbcAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.Odbc)
         {
             base._util = util;
+            if (connectionFactory != null)
+            {
+                MasterPool = new FreeSql.Internal.CommonProvider.DbConnectionPool(DataType.Odbc, connectionFactory);
+                return;
+            }
             if (!string.IsNullOrEmpty(masterConnectionString))
                 MasterPool = new OdbcConnectionPool("主库", masterConnectionString, null, null);
             if (slaveConnectionStrings != null)
@@ -60,9 +65,11 @@ namespace FreeSql.Odbc.Default
             return new OdbcCommand();
         }
 
-        protected override void ReturnConnection(ObjectPool<DbConnection> pool, Object<DbConnection> conn, Exception ex)
+        protected override void ReturnConnection(IObjectPool<DbConnection> pool, Object<DbConnection> conn, Exception ex)
         {
-            (pool as OdbcConnectionPool).Return(conn, ex);
+            var rawPool = pool as OdbcConnectionPool;
+            if (rawPool != null) rawPool.Return(conn, ex);
+            else pool.Return(conn);
         }
 
         protected override DbParameter[] GetDbParamtersByObject(string sql, object obj) => _util.GetDbParamtersByObject(sql, obj);

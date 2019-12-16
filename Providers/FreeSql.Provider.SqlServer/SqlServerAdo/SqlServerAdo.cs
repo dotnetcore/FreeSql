@@ -14,9 +14,14 @@ namespace FreeSql.SqlServer
     class SqlServerAdo : FreeSql.Internal.CommonProvider.AdoProvider
     {
         public SqlServerAdo() : base(DataType.SqlServer) { }
-        public SqlServerAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings) : base(DataType.SqlServer)
+        public SqlServerAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.SqlServer)
         {
             base._util = util;
+            if (connectionFactory != null)
+            {
+                MasterPool = new FreeSql.Internal.CommonProvider.DbConnectionPool(DataType.SqlServer, connectionFactory);
+                return;
+            }
             if (!string.IsNullOrEmpty(masterConnectionString))
                 MasterPool = new SqlServerConnectionPool("主库", masterConnectionString, null, null);
             if (slaveConnectionStrings != null)
@@ -73,9 +78,11 @@ namespace FreeSql.SqlServer
             return new SqlCommand();
         }
 
-        protected override void ReturnConnection(ObjectPool<DbConnection> pool, Object<DbConnection> conn, Exception ex)
+        protected override void ReturnConnection(IObjectPool<DbConnection> pool, Object<DbConnection> conn, Exception ex)
         {
-            (pool as SqlServerConnectionPool).Return(conn, ex);
+            var rawPool = pool as SqlServerConnectionPool;
+            if (rawPool != null) rawPool.Return(conn, ex);
+            else pool.Return(conn);
         }
 
         protected override DbParameter[] GetDbParamtersByObject(string sql, object obj) => _util.GetDbParamtersByObject(sql, obj);

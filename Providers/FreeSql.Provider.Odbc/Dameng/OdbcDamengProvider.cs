@@ -28,12 +28,12 @@ namespace FreeSql.Odbc.Dameng
         public IAop Aop { get; }
         public ICodeFirst CodeFirst { get; }
         public IDbFirst DbFirst { get; }
-        public OdbcDamengProvider(string masterConnectionString, string[] slaveConnectionString)
+        public OdbcDamengProvider(string masterConnectionString, string[] slaveConnectionString, Func<DbConnection> connectionFactory = null)
         {
             this.InternalCommonUtils = new OdbcDamengUtils(this);
             this.InternalCommonExpression = new OdbcDamengExpression(this.InternalCommonUtils);
 
-            this.Ado = new OdbcDamengAdo(this.InternalCommonUtils, masterConnectionString, slaveConnectionString);
+            this.Ado = new OdbcDamengAdo(this.InternalCommonUtils, masterConnectionString, slaveConnectionString, connectionFactory);
             this.Aop = new AopProvider();
 
             this.DbFirst = new OdbcDamengDbFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);

@@ -68,7 +68,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "orm_vs_net40", "Examples\or
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Generator", "Extensions\FreeSql.Generator\FreeSql.Generator.csproj", "{6A3A4470-7DF7-411B-AAD7-755D7A9DB5A4}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "FreeSql.Tests.VB", "FreeSql.Tests.VB\FreeSql.Tests.VB.vbproj", "{A4FB811A-15EF-4E4C-AC15-826F9BB44E2D}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "FreeSql.Tests.VB", "FreeSql.Tests.VB\FreeSql.Tests.VB.vbproj", "{A4FB811A-15EF-4E4C-AC15-826F9BB44E2D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

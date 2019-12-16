@@ -660,6 +660,7 @@ namespace FreeSql.Internal
                             case "Min":
                             case "Max":
                             case "Avg":
+                            case "ToList": //where in
                             case "First":
                                 var anyArgs = exp3.Arguments;
                                 var exp3Stack = new Stack<Expression>();
@@ -732,7 +733,8 @@ namespace FreeSql.Internal
                                         if (fsql == null) fsql = Expression.Lambda(exp3tmp).Compile().DynamicInvoke();
                                         fsqlType = fsql?.GetType();
                                         if (fsqlType == null) break;
-                                        fsqlType.GetField("_limit", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(fsql, 1);
+                                        if (exp3.Method.Name != "ToList")
+                                            fsqlType.GetField("_limit", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(fsql, 1);
                                         fsqltables = fsqlType.GetField("_tables", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(fsql) as List<SelectTableInfo>;
                                         //fsqltables[0].Alias = $"{tsc._tables[0].Alias}_{fsqltables[0].Alias}";
                                         if (fsqltables != tsc._tables)
@@ -915,6 +917,7 @@ namespace FreeSql.Internal
                                             if (string.IsNullOrEmpty(sqlSum) == false)
                                                 return $"({sqlSum.Replace("\r\n", "\r\n\t")})";
                                             break;
+                                        case "ToList":
                                         case "First":
                                             var tscClone2 = tsc.CloneDisableDiyParse();
                                             tscClone2.isDisableDiyParse = false;

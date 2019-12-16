@@ -136,7 +136,7 @@ namespace FreeSql.Internal.CommonProvider
             }
             catch { }
 
-            ObjectPool<DbConnection>[] pools = null;
+            IObjectPool<DbConnection>[] pools = null;
             for (var a = 0; a < 10; a++)
             {
                 try

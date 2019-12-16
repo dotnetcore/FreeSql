@@ -29,12 +29,12 @@ namespace FreeSql.Oracle
         public IAop Aop { get; }
         public ICodeFirst CodeFirst { get; }
         public IDbFirst DbFirst { get; }
-        public OracleProvider(string masterConnectionString, string[] slaveConnectionString)
+        public OracleProvider(string masterConnectionString, string[] slaveConnectionString, Func<DbConnection> connectionFactory = null)
         {
             this.InternalCommonUtils = new OracleUtils(this);
             this.InternalCommonExpression = new OracleExpression(this.InternalCommonUtils);
 
-            this.Ado = new OracleAdo(this.InternalCommonUtils, masterConnectionString, slaveConnectionString);
+            this.Ado = new OracleAdo(this.InternalCommonUtils, masterConnectionString, slaveConnectionString, connectionFactory);
             this.Aop = new AopProvider();
 
             this.DbFirst = new OracleDbFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);

@@ -33,12 +33,12 @@ namespace FreeSql.Odbc.MySql
         public IAop Aop { get; }
         public ICodeFirst CodeFirst { get; }
         public IDbFirst DbFirst { get; }
-        public OdbcMySqlProvider(string masterConnectionString, string[] slaveConnectionString)
+        public OdbcMySqlProvider(string masterConnectionString, string[] slaveConnectionString, Func<DbConnection> connectionFactory = null)
         {
             this.InternalCommonUtils = new OdbcMySqlUtils(this);
             this.InternalCommonExpression = new OdbcMySqlExpression(this.InternalCommonUtils);
 
-            this.Ado = new OdbcMySqlAdo(this.InternalCommonUtils, masterConnectionString, slaveConnectionString);
+            this.Ado = new OdbcMySqlAdo(this.InternalCommonUtils, masterConnectionString, slaveConnectionString, connectionFactory);
             this.Aop = new AopProvider();
 
             this.DbFirst = new OdbcMySqlDbFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);

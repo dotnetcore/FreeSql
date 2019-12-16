@@ -448,7 +448,7 @@ namespace FreeSql.Internal.CommonProvider
                         //查从库
                         this.SlavePools : (
                         //查主库
-                        slaveUnavailables == this.SlavePools.Count ? new List<ObjectPool<DbConnection>>() :
+                        slaveUnavailables == this.SlavePools.Count ? new List<IObjectPool<DbConnection>>() :
                         //查从库可用
                         this.SlavePools.Where(sp => sp.IsAvailable).ToList());
                     if (availables.Any())
@@ -489,6 +489,7 @@ namespace FreeSql.Internal.CommonProvider
                         }
                         LoggerException(pool, pc, new Exception($"连接失败，准备切换其他可用服务器"), dt, logtxt, false);
                         pc.cmd.Parameters.Clear();
+                        pc.cmd.Dispose();
                         await ExecuteReaderMultipleAsync(multipleResult, connection, transaction, readerHander, cmdType, cmdText, cmdParms);
                         return;
                     }
@@ -551,6 +552,7 @@ namespace FreeSql.Internal.CommonProvider
             }
             LoggerException(pool, pc, ex, dt, logtxt);
             pc.cmd.Parameters.Clear();
+            pc.cmd.Dispose();
         }
         public Task<object[][]> ExecuteArrayAsync(string cmdText, object parms = null) => ExecuteArrayAsync(null, null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
         public Task<object[][]> ExecuteArrayAsync(DbTransaction transaction, string cmdText, object parms = null) => ExecuteArrayAsync(null, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
@@ -642,6 +644,7 @@ namespace FreeSql.Internal.CommonProvider
             }
             LoggerException(this.MasterPool, pc, ex, dt, logtxt);
             pc.cmd.Parameters.Clear();
+            pc.cmd.Dispose();
             return val;
         }
         public Task<object> ExecuteScalarAsync(string cmdText, object parms = null) => ExecuteScalarAsync(null, null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
@@ -677,6 +680,7 @@ namespace FreeSql.Internal.CommonProvider
             }
             LoggerException(this.MasterPool, pc, ex, dt, logtxt);
             pc.cmd.Parameters.Clear();
+            pc.cmd.Dispose();
             return val;
         }
 

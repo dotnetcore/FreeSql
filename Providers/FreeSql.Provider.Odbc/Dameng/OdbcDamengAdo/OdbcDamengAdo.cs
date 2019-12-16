@@ -12,10 +12,15 @@ namespace FreeSql.Odbc.Dameng
 {
     class OdbcDamengAdo : FreeSql.Internal.CommonProvider.AdoProvider
     {
-        public OdbcDamengAdo() : base(DataType.Oracle) { }
-        public OdbcDamengAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings) : base(DataType.Oracle)
+        public OdbcDamengAdo() : base(DataType.OdbcDameng) { }
+        public OdbcDamengAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.OdbcDameng)
         {
             base._util = util;
+            if (connectionFactory != null)
+            {
+                MasterPool = new FreeSql.Internal.CommonProvider.DbConnectionPool(DataType.OdbcDameng, connectionFactory);
+                return;
+            }
             if (!string.IsNullOrEmpty(masterConnectionString))
                 MasterPool = new OdbcDamengConnectionPool("主库", masterConnectionString, null, null);
             if (slaveConnectionStrings != null)
@@ -57,9 +62,11 @@ namespace FreeSql.Odbc.Dameng
             return new OdbcCommand();
         }
 
-        protected override void ReturnConnection(ObjectPool<DbConnection> pool, Object<DbConnection> conn, Exception ex)
+        protected override void ReturnConnection(IObjectPool<DbConnection> pool, Object<DbConnection> conn, Exception ex)
         {
-            (pool as OdbcDamengConnectionPool).Return(conn, ex);
+            var rawPool = pool as OdbcDamengConnectionPool;
+            if (rawPool != null) rawPool.Return(conn, ex);
+            else pool.Return(conn);
         }
 
         protected override DbParameter[] GetDbParamtersByObject(string sql, object obj) => _util.GetDbParamtersByObject(sql, obj);

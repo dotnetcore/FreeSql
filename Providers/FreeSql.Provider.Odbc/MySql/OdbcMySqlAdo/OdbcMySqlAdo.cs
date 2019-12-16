@@ -13,10 +13,15 @@ namespace FreeSql.Odbc.MySql
     class OdbcMySqlAdo : FreeSql.Internal.CommonProvider.AdoProvider
     {
 
-        public OdbcMySqlAdo() : base(DataType.MySql) { }
-        public OdbcMySqlAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings) : base(DataType.MySql)
+        public OdbcMySqlAdo() : base(DataType.OdbcMySql) { }
+        public OdbcMySqlAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.OdbcMySql)
         {
             base._util = util;
+            if (connectionFactory != null)
+            {
+                MasterPool = new FreeSql.Internal.CommonProvider.DbConnectionPool(DataType.OdbcMySql, connectionFactory);
+                return;
+            }
             if (!string.IsNullOrEmpty(masterConnectionString))
                 MasterPool = new OdbcMySqlConnectionPool("主库", masterConnectionString, null, null);
             if (slaveConnectionStrings != null)
@@ -57,9 +62,11 @@ namespace FreeSql.Odbc.MySql
             return new OdbcCommand();
         }
 
-        protected override void ReturnConnection(ObjectPool<DbConnection> pool, Object<DbConnection> conn, Exception ex)
+        protected override void ReturnConnection(IObjectPool<DbConnection> pool, Object<DbConnection> conn, Exception ex)
         {
-            (pool as OdbcMySqlConnectionPool).Return(conn, ex);
+            var rawPool = pool as OdbcMySqlConnectionPool;
+            if (rawPool != null) rawPool.Return(conn, ex);
+            else pool.Return(conn);
         }
 
         protected override DbParameter[] GetDbParamtersByObject(string sql, object obj) => _util.GetDbParamtersByObject(sql, obj);

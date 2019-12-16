@@ -28,12 +28,12 @@ namespace FreeSql.Odbc.Oracle
         public IAop Aop { get; }
         public ICodeFirst CodeFirst { get; }
         public IDbFirst DbFirst { get; }
-        public OdbcOracleProvider(string masterConnectionString, string[] slaveConnectionString)
+        public OdbcOracleProvider(string masterConnectionString, string[] slaveConnectionString, Func<DbConnection> connectionFactory = null)
         {
             this.InternalCommonUtils = new OdbcOracleUtils(this);
             this.InternalCommonExpression = new OdbcOracleExpression(this.InternalCommonUtils);
 
-            this.Ado = new OdbcOracleAdo(this.InternalCommonUtils, masterConnectionString, slaveConnectionString);
+            this.Ado = new OdbcOracleAdo(this.InternalCommonUtils, masterConnectionString, slaveConnectionString, connectionFactory);
             this.Aop = new AopProvider();
 
             this.DbFirst = new OdbcOracleDbFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);

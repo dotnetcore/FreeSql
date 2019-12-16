@@ -3,6 +3,7 @@ using FreeSql.Internal.CommonProvider;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Threading;
 
 namespace FreeSql.Odbc.GBase
@@ -31,12 +32,12 @@ namespace FreeSql.Odbc.GBase
         public IAop Aop { get; }
         public ICodeFirst CodeFirst { get; }
         public IDbFirst DbFirst { get; }
-        public OdbcGBaseProvider(string masterConnectionString, string[] slaveConnectionString)
+        public OdbcGBaseProvider(string masterConnectionString, string[] slaveConnectionString, Func<DbConnection> connectionFactory = null)
         {
             this.InternalCommonUtils = new OdbcGBaseUtils(this);
             this.InternalCommonExpression = new OdbcGBaseExpression(this.InternalCommonUtils);
 
-            this.Ado = new OdbcGBaseAdo(this.InternalCommonUtils, masterConnectionString, slaveConnectionString);
+            this.Ado = new OdbcGBaseAdo(this.InternalCommonUtils, masterConnectionString, slaveConnectionString, connectionFactory);
             this.Aop = new AopProvider();
 
             this.DbFirst = new OdbcGBaseDbFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);

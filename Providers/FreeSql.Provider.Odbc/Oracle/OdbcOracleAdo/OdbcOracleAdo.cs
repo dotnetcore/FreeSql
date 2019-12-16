@@ -12,10 +12,15 @@ namespace FreeSql.Odbc.Oracle
 {
     class OdbcOracleAdo : FreeSql.Internal.CommonProvider.AdoProvider
     {
-        public OdbcOracleAdo() : base(DataType.Oracle) { }
-        public OdbcOracleAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings) : base(DataType.Oracle)
+        public OdbcOracleAdo() : base(DataType.OdbcOracle) { }
+        public OdbcOracleAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.OdbcOracle)
         {
             base._util = util;
+            if (connectionFactory != null)
+            {
+                MasterPool = new FreeSql.Internal.CommonProvider.DbConnectionPool(DataType.OdbcOracle, connectionFactory);
+                return;
+            }
             if (!string.IsNullOrEmpty(masterConnectionString))
                 MasterPool = new OdbcOracleConnectionPool("主库", masterConnectionString, null, null);
             if (slaveConnectionStrings != null)
@@ -57,9 +62,11 @@ namespace FreeSql.Odbc.Oracle
             return new OdbcCommand();
         }
 
-        protected override void ReturnConnection(ObjectPool<DbConnection> pool, Object<DbConnection> conn, Exception ex)
+        protected override void ReturnConnection(IObjectPool<DbConnection> pool, Object<DbConnection> conn, Exception ex)
         {
-            (pool as OdbcOracleConnectionPool).Return(conn, ex);
+            var rawPool = pool as OdbcOracleConnectionPool;
+            if (rawPool != null) rawPool.Return(conn, ex);
+            else pool.Return(conn);
         }
 
         protected override DbParameter[] GetDbParamtersByObject(string sql, object obj) => _util.GetDbParamtersByObject(sql, obj);

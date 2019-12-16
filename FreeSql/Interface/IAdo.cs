@@ -14,11 +14,11 @@ namespace FreeSql
         /// <summary>
         /// 主库连接池
         /// </summary>
-        ObjectPool<DbConnection> MasterPool { get; }
+        IObjectPool<DbConnection> MasterPool { get; }
         /// <summary>
         /// 从库连接池
         /// </summary>
-        List<ObjectPool<DbConnection>> SlavePools { get; }
+        List<IObjectPool<DbConnection>> SlavePools { get; }
         /// <summary>
         /// 监视数据库命令对象(执行前，调试)
         /// </summary>

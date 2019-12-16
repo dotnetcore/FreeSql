@@ -55,12 +55,12 @@ namespace FreeSql.MySql
         public IAop Aop { get; }
         public ICodeFirst CodeFirst { get; }
         public IDbFirst DbFirst { get; }
-        public MySqlProvider(string masterConnectionString, string[] slaveConnectionString)
+        public MySqlProvider(string masterConnectionString, string[] slaveConnectionString, Func<DbConnection> connectionFactory = null)
         {
             this.InternalCommonUtils = new MySqlUtils(this);
             this.InternalCommonExpression = new MySqlExpression(this.InternalCommonUtils);
 
-            this.Ado = new MySqlAdo(this.InternalCommonUtils, masterConnectionString, slaveConnectionString);
+            this.Ado = new MySqlAdo(this.InternalCommonUtils, masterConnectionString, slaveConnectionString, connectionFactory);
             this.Aop = new AopProvider();
 
             this.DbFirst = new MySqlDbFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);

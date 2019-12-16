@@ -3,6 +3,7 @@ using FreeSql.Internal.CommonProvider;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Threading;
 
 namespace FreeSql.Odbc.PostgreSQL
@@ -31,12 +32,12 @@ namespace FreeSql.Odbc.PostgreSQL
         public IAop Aop { get; }
         public ICodeFirst CodeFirst { get; }
         public IDbFirst DbFirst { get; }
-        public OdbcPostgreSQLProvider(string masterConnectionString, string[] slaveConnectionString)
+        public OdbcPostgreSQLProvider(string masterConnectionString, string[] slaveConnectionString, Func<DbConnection> connectionFactory = null)
         {
             this.InternalCommonUtils = new OdbcPostgreSQLUtils(this);
             this.InternalCommonExpression = new OdbcPostgreSQLExpression(this.InternalCommonUtils);
 
-            this.Ado = new OdbcPostgreSQLAdo(this.InternalCommonUtils, masterConnectionString, slaveConnectionString);
+            this.Ado = new OdbcPostgreSQLAdo(this.InternalCommonUtils, masterConnectionString, slaveConnectionString, connectionFactory);
             this.Aop = new AopProvider();
 
             this.DbFirst = new OdbcPostgreSQLDbFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
