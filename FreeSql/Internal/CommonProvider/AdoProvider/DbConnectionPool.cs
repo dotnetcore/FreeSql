@@ -54,8 +54,11 @@ namespace FreeSql.Internal.CommonProvider
 
         public void Return(Object<DbConnection> obj, bool isReset = false)
         {
-            if (obj == null) return;
-            Policy.OnDestroy(obj.Value);
+            if (obj == null || obj.Value == null) return;
+            if (obj.Value.State != ConnectionState.Closed)
+                obj.Value.Close();
+            if (_dataType == DataType.Sqlite)
+                obj.Dispose();
         }
 
         public bool SetUnavailable(Exception exception)
