@@ -954,6 +954,21 @@ namespace FreeSql.Tests.PostgreSQL
             query = select.LeftJoin("\"testtypeinfo\" b on b.\"guid\" = a.\"typeguid\" and b.\"name\" = @bname", new { bname = "xxx" }).AsTable(tableRule);
             sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.\"id\", a.\"clicks\", a.\"typeguid\", a.\"title\", a.\"createtime\" FROM \"tb_topicastable1\" a LEFT JOIN \"testtypeinfo\" b on b.\"guid\" = a.\"typeguid\" and b.\"name\" = @bname", sql);
+
+            query = select.AsTable((_, old) => old).AsTable((_, old) => old);
+            sql = query.ToSql().Replace("\r\n", "");
+            Assert.Equal("SELECT  * from (SELECT a.\"id\", a.\"clicks\", a.\"typeguid\", a.\"title\", a.\"createtime\" FROM \"tb_topic\" a) ftb UNION ALLSELECT  * from (SELECT a.\"id\", a.\"clicks\", a.\"typeguid\", a.\"title\", a.\"createtime\" FROM \"tb_topic\" a) ftb", sql);
+            query.ToList();
+
+            query = select.AsTable((_, old) => old).AsTable((_, old) => old);
+            sql = query.ToSql("count(1) as1").Replace("\r\n", "");
+            Assert.Equal("SELECT  * from (SELECT count(1) as1 FROM \"tb_topic\" a) ftb UNION ALLSELECT  * from (SELECT count(1) as1 FROM \"tb_topic\" a) ftb", sql);
+            query.Count();
+
+            select.AsTable((_, old) => old).AsTable((_, old) => old).Max(a => a.Id);
+            select.AsTable((_, old) => old).AsTable((_, old) => old).Min(a => a.Id);
+            select.AsTable((_, old) => old).AsTable((_, old) => old).Sum(a => a.Id);
+            select.AsTable((_, old) => old).AsTable((_, old) => old).Avg(a => a.Id);
         }
 
         public class TestInclude_OneToManyModel1

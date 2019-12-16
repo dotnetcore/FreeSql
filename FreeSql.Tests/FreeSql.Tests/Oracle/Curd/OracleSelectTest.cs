@@ -881,6 +881,21 @@ namespace FreeSql.Tests.Oracle
             query = select.LeftJoin("\"TESTTYPEINFO\" b on b.\"GUID\" = a.\"TYPEGUID\" and b.\"NAME\" = :bname", new { bname = "xxx" }).AsTable(tableRule);
             sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22_T1\" a LEFT JOIN \"TESTTYPEINFO\" b on b.\"GUID\" = a.\"TYPEGUID\" and b.\"NAME\" = :bname", sql);
+
+            query = select.AsTable((_, old) => old).AsTable((_, old) => old);
+            sql = query.ToSql().Replace("\r\n", "");
+            Assert.Equal("SELECT  * from (SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a) ftb UNION ALLSELECT  * from (SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a) ftb", sql);
+            query.ToList();
+
+            query = select.AsTable((_, old) => old).AsTable((_, old) => old);
+            sql = query.ToSql("count(1) as1").Replace("\r\n", "");
+            Assert.Equal("SELECT  * from (SELECT count(1) as1 FROM \"TB_TOPIC22\" a) ftb UNION ALLSELECT  * from (SELECT count(1) as1 FROM \"TB_TOPIC22\" a) ftb", sql);
+            query.Count();
+
+            select.AsTable((_, old) => old).AsTable((_, old) => old).Max(a => a.Id);
+            select.AsTable((_, old) => old).AsTable((_, old) => old).Min(a => a.Id);
+            select.AsTable((_, old) => old).AsTable((_, old) => old).Sum(a => a.Id);
+            select.AsTable((_, old) => old).AsTable((_, old) => old).Avg(a => a.Id);
         }
 
         public class TiOtmModel1

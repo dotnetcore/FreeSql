@@ -155,10 +155,10 @@ namespace FreeSql.Internal.CommonProvider
         public bool Any()
         {
             this.Limit(1);
-            return this.ToList<int>("1").FirstOrDefault() == 1;
+            return this.ToList<int>("1 as1").FirstOrDefault() == 1;
         }
 
-        public long Count() => this.ToList<int>("count(1)").FirstOrDefault();
+        public long Count() => this.ToList<int>("count(1) as1").FirstOrDefault();
 
         public TSelect Count(out long count)
         {
@@ -1023,10 +1023,10 @@ namespace FreeSql.Internal.CommonProvider
         }
         #region common
 
-        protected TMember InternalAvg<TMember>(Expression exp) => this.ToList<TMember>($"avg({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)})").FirstOrDefault();
-        protected TMember InternalMax<TMember>(Expression exp) => this.ToList<TMember>($"max({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)})").FirstOrDefault();
-        protected TMember InternalMin<TMember>(Expression exp) => this.ToList<TMember>($"min({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)})").FirstOrDefault();
-        protected TMember InternalSum<TMember>(Expression exp) => this.ToList<TMember>($"sum({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)})").FirstOrDefault();
+        protected TMember InternalAvg<TMember>(Expression exp) => this.ToList<TMember>($"avg({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}) as1").FirstOrDefault();
+        protected TMember InternalMax<TMember>(Expression exp) => this.ToList<TMember>($"max({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}) as1").FirstOrDefault();
+        protected TMember InternalMin<TMember>(Expression exp) => this.ToList<TMember>($"min({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}) as1").FirstOrDefault();
+        protected TMember InternalSum<TMember>(Expression exp) => this.ToList<TMember>($"sum({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}) as1").FirstOrDefault();
 
         protected ISelectGrouping<TKey, TValue> InternalGroupBy<TKey, TValue>(Expression columns)
         {
@@ -1104,10 +1104,10 @@ namespace FreeSql.Internal.CommonProvider
         async public Task<bool> AnyAsync()
         {
             this.Limit(1);
-            return (await this.ToListAsync<int>("1")).FirstOrDefault() == 1;
+            return (await this.ToListAsync<int>("1 as1")).FirstOrDefault() == 1;
         }
 
-        async public Task<long> CountAsync() => (await this.ToListAsync<int>("count(1)")).FirstOrDefault();
+        async public Task<long> CountAsync() => (await this.ToListAsync<int>("count(1) as1")).FirstOrDefault();
 
         async public Task<DataTable> ToDataTableAsync(string field = null)
         {
@@ -1284,10 +1284,10 @@ namespace FreeSql.Internal.CommonProvider
         }
         protected Task<List<TReturn>> ToListMapReaderAsync<TReturn>((ReadAnonymousTypeInfo map, string field) af) => ToListMapReaderPrivateAsync<TReturn>(af, null);
 
-        async protected Task<TMember> InternalAvgAsync<TMember>(Expression exp) => (await this.ToListAsync<TMember>($"avg({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)})")).FirstOrDefault();
-        async protected Task<TMember> InternalMaxAsync<TMember>(Expression exp) => (await this.ToListAsync<TMember>($"max({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)})")).FirstOrDefault();
-        async protected Task<TMember> InternalMinAsync<TMember>(Expression exp) => (await this.ToListAsync<TMember>($"min({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)})")).FirstOrDefault();
-        async protected Task<TMember> InternalSumAsync<TMember>(Expression exp) => (await this.ToListAsync<TMember>($"sum({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)})")).FirstOrDefault();
+        async protected Task<TMember> InternalAvgAsync<TMember>(Expression exp) => (await this.ToListAsync<TMember>($"avg({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}) as1")).FirstOrDefault();
+        async protected Task<TMember> InternalMaxAsync<TMember>(Expression exp) => (await this.ToListAsync<TMember>($"max({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}) as1")).FirstOrDefault();
+        async protected Task<TMember> InternalMinAsync<TMember>(Expression exp) => (await this.ToListAsync<TMember>($"min({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}) as1")).FirstOrDefault();
+        async protected Task<TMember> InternalSumAsync<TMember>(Expression exp) => (await this.ToListAsync<TMember>($"sum({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}) as1")).FirstOrDefault();
 
         protected Task<List<TReturn>> InternalToListAsync<TReturn>(Expression select) => this.ToListMapReaderAsync<TReturn>(this.GetExpressionField(select));
 

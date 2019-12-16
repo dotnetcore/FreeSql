@@ -965,6 +965,21 @@ namespace FreeSql.Tests.Odbc.MySql
             query = select.LeftJoin("TestTypeInfo b on b.Guid = a.TypeGuid and b.Name = ?bname", new { bname = "xxx" }).AsTable(tableRule);
             sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topicAsTable1` a LEFT JOIN TestTypeInfo b on b.Guid = a.TypeGuid and b.Name = ?bname", sql);
+
+            query = select.AsTable((_, old) => old).AsTable((_, old) => old);
+            sql = query.ToSql().Replace("\r\n", "");
+            Assert.Equal("SELECT  * from (SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a) ftb UNION ALLSELECT  * from (SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a) ftb", sql);
+            query.ToList();
+
+            query = select.AsTable((_, old) => old).AsTable((_, old) => old);
+            sql = query.ToSql("count(1) as1").Replace("\r\n", "");
+            Assert.Equal("SELECT  * from (SELECT count(1) as1 FROM `tb_topic` a) ftb UNION ALLSELECT  * from (SELECT count(1) as1 FROM `tb_topic` a) ftb", sql);
+            query.Count();
+
+            select.AsTable((_, old) => old).AsTable((_, old) => old).Max(a => a.Id);
+            select.AsTable((_, old) => old).AsTable((_, old) => old).Min(a => a.Id);
+            select.AsTable((_, old) => old).AsTable((_, old) => old).Sum(a => a.Id);
+            select.AsTable((_, old) => old).AsTable((_, old) => old).Avg(a => a.Id);
         }
 
         public class TestInclude_OneToManyModel1
