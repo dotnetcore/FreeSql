@@ -894,6 +894,17 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="F:FreeSql.FieldAliasOptions.AsIndex">
+            <summary>
+            自动产生 as1, as2, as3 .... 字段别名<para></para>
+            这种方法可以最大程度防止多表，存在相同字段的问题
+            </summary>
+        </member>
+        <member name="F:FreeSql.FieldAliasOptions.AsProperty">
+            <summary>
+            使用属性名作为字段别名
+            </summary>
+        </member>
         <member name="M:FreeSql.ILinqToSql`1.Select``1(System.Linq.Expressions.Expression{System.Func{`0,``0}})">
             <summary>
             【linq to sql】专用方法，不建议直接使用
@@ -1316,12 +1327,13 @@
             <typeparam name="TDto"></typeparam>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.ISelect`1.ToSql``1(System.Linq.Expressions.Expression{System.Func{`0,``0}})">
+        <member name="M:FreeSql.ISelect`1.ToSql``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},FreeSql.FieldAliasOptions)">
             <summary>
             返回即将执行的SQL语句
             </summary>
             <typeparam name="TReturn">返回类型</typeparam>
             <param name="select">选择列</param>
+            <param name="fieldAlias">字段别名</param>
             <returns></returns>
         </member>
         <member name="M:FreeSql.ISelect`1.ToAggregate``1(System.Linq.Expressions.Expression{System.Func{FreeSql.ISelectGroupingAggregate{`0},``0}})">

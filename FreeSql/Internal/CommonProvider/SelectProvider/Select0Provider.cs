@@ -525,11 +525,11 @@ namespace FreeSql.Internal.CommonProvider
             return ToListMrPrivate<TReturn>(sql, af, otherData);
         }
         protected List<TReturn> ToListMapReader<TReturn>((ReadAnonymousTypeInfo map, string field) af) => ToListMapReaderPrivate<TReturn>(af, null);
-        protected (ReadAnonymousTypeInfo map, string field) GetExpressionField(Expression newexp)
+        protected (ReadAnonymousTypeInfo map, string field) GetExpressionField(Expression newexp, FieldAliasOptions fieldAlias = FieldAliasOptions.AsIndex)
         {
             var map = new ReadAnonymousTypeInfo();
             var field = new StringBuilder();
-            var index = 0;
+            var index = fieldAlias == FieldAliasOptions.AsProperty ? CommonExpression.ReadAnonymousFieldAsCsName : 0;
 
             _commonExpression.ReadAnonymousField(_tables, field, map, ref index, newexp, null, _whereCascadeExpression, true);
             return (map, field.Length > 0 ? field.Remove(0, 2).ToString() : null);
@@ -1059,9 +1059,9 @@ namespace FreeSql.Internal.CommonProvider
         protected TSelect InternalOrderByDescending(Expression column) => this.OrderBy($"{_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, column, true, null)} DESC");
 
         protected List<TReturn> InternalToList<TReturn>(Expression select) => this.ToListMapReader<TReturn>(this.GetExpressionField(select));
-        protected string InternalToSql<TReturn>(Expression select)
+        protected string InternalToSql<TReturn>(Expression select, FieldAliasOptions fieldAlias = FieldAliasOptions.AsIndex)
         {
-            var af = this.GetExpressionField(select);
+            var af = this.GetExpressionField(select, fieldAlias);
             return this.ToSql(af.field);
         }
 

@@ -89,8 +89,9 @@ namespace FreeSql
         /// </summary>
         /// <typeparam name="TReturn">返回类型</typeparam>
         /// <param name="select">选择列</param>
+        /// <param name="fieldAlias">字段别名</param>
         /// <returns></returns>
-        string ToSql<TReturn>(Expression<Func<T1, TReturn>> select);
+        string ToSql<TReturn>(Expression<Func<T1, TReturn>> select, FieldAliasOptions fieldAlias = FieldAliasOptions.AsIndex);
 
         /// <summary>
         /// 执行SQL查询，返回指定字段的聚合结果

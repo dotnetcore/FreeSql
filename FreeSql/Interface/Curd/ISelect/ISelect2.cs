@@ -28,7 +28,7 @@ namespace FreeSql
         DataTable ToDataTable<TReturn>(Expression<Func<T1, T2, TReturn>> select);
         List<TReturn> ToList<TReturn>(Expression<Func<T1, T2, TReturn>> select);
         List<TDto> ToList<TDto>();
-        string ToSql<TReturn>(Expression<Func<T1, T2, TReturn>> select);
+        string ToSql<TReturn>(Expression<Func<T1, T2, TReturn>> select, FieldAliasOptions fieldAlias = FieldAliasOptions.AsIndex);
         TReturn ToAggregate<TReturn>(Expression<Func<ISelectGroupingAggregate<T1>, ISelectGroupingAggregate<T2>, TReturn>> select);
         decimal Sum<TMember>(Expression<Func<T1, T2, TMember>> column);
         TMember Min<TMember>(Expression<Func<T1, T2, TMember>> column);

@@ -25,6 +25,7 @@ namespace FreeSql.Internal
             _common = common;
         }
 
+        internal const int ReadAnonymousFieldAsCsName = -53129;
         public bool ReadAnonymousField(List<SelectTableInfo> _tables, StringBuilder field, ReadAnonymousTypeInfo parent, ref int index, Expression exp, Func<Expression[], string> getSelectGroupingMapString, List<LambdaExpression> whereCascadeExpression, bool isAllDtoMap)
         {
             Func<ExpTSC> getTSC = () => new ExpTSC { _tables = _tables, getSelectGroupingMapString = getSelectGroupingMapString, tbtype = SelectTableInfoType.From, isQuoteName = true, isDisableDiyParse = false, style = ExpressionStyle.Where, whereCascadeExpression = whereCascadeExpression };
@@ -37,6 +38,7 @@ namespace FreeSql.Internal
                     parent.DbField = $"-({ExpressionLambdaToSql(exp, getTSC())})";
                     field.Append(", ").Append(parent.DbField);
                     if (index >= 0) field.Append(" as").Append(++index);
+                    else if (index == ReadAnonymousFieldAsCsName && string.IsNullOrEmpty(parent.CsName) == false) field.Append(" ").Append(parent.CsName);
                     return false;
                 case ExpressionType.Convert: return ReadAnonymousField(_tables, field, parent, ref index, (exp as UnaryExpression)?.Operand, getSelectGroupingMapString, whereCascadeExpression, isAllDtoMap);
                 case ExpressionType.Constant:
@@ -54,6 +56,7 @@ namespace FreeSql.Internal
                         parent.DbField = _common.FormatSql("{0}", constExp?.Value);
                     field.Append(", ").Append(parent.DbField);
                     if (index >= 0) field.Append(" as").Append(++index);
+                    else if (index == ReadAnonymousFieldAsCsName && string.IsNullOrEmpty(parent.CsName) == false) field.Append(" ").Append(parent.CsName);
                     return false;
                 case ExpressionType.Call:
                     var callExp = exp as MethodCallExpression;
@@ -70,6 +73,7 @@ namespace FreeSql.Internal
                         parent.DbField = ExpressionLambdaToSql(exp, getTSC());
                     field.Append(", ").Append(parent.DbField);
                     if (index >= 0) field.Append(" as").Append(++index);
+                    else if (index == ReadAnonymousFieldAsCsName && string.IsNullOrEmpty(parent.CsName) == false) field.Append(" ").Append(parent.CsName);
                     return false;
                 case ExpressionType.Parameter:
                 case ExpressionType.MemberAccess:
@@ -102,6 +106,7 @@ namespace FreeSql.Internal
                         parent.DbField = ExpressionLambdaToSql(exp, getTSC());
                         field.Append(", ").Append(parent.DbField);
                         if (index >= 0) field.Append(" as").Append(++index);
+                        else if (index == ReadAnonymousFieldAsCsName && string.IsNullOrEmpty(parent.CsName) == false) field.Append(" ").Append(parent.CsName);
                         parent.MapType = SearchColumnByField(_tables, null, parent.DbField)?.Attribute.MapType ?? exp.Type;
                         return false;
                     }
@@ -219,6 +224,7 @@ namespace FreeSql.Internal
             parent.DbField = $"({ExpressionLambdaToSql(exp, getTSC())})";
             field.Append(", ").Append(parent.DbField);
             if (index >= 0) field.Append(" as").Append(++index);
+            else if (index == ReadAnonymousFieldAsCsName && string.IsNullOrEmpty(parent.CsName) == false) field.Append(" ").Append(parent.CsName);
             return false;
         }
         public object ReadAnonymous(ReadAnonymousTypeInfo parent, DbDataReader dr, ref int index, bool notRead, ReadAnonymousDbValueRef dbValue)

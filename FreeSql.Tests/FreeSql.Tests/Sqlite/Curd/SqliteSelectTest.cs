@@ -906,6 +906,24 @@ WHERE (((cast(a.""Id"" as character)) in (SELECT b.""Title""
             select.AsTable((_, old) => old).AsTable((_, old) => old).Min(a => a.Id);
             select.AsTable((_, old) => old).AsTable((_, old) => old).Sum(a => a.Id);
             select.AsTable((_, old) => old).AsTable((_, old) => old).Avg(a => a.Id);
+
+            var sqlsss = select
+                .AsTable((type, old) => type == typeof(Topic) ? $"{old}_1" : null)
+                .AsTable((type, old) => type == typeof(Topic) ? $"{old}_2" : null)
+                .ToSql(a => new
+                {
+                    a.Id,
+                    a.Clicks
+                }, FieldAliasOptions.AsProperty);
+
+            var slsld3 = select
+                .AsTable((type, old) => type == typeof(Topic) ? $"({sqlsss})" : null)
+                .Page(1, 20)
+                .ToList(a => new
+                {
+                    a.Id,
+                    a.Clicks
+                });
         }
 
         public class TestInclude_OneToManyModel1

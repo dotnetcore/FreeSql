@@ -117,11 +117,11 @@ namespace FreeSql.Internal.CommonProvider
             for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
             return this.InternalToDataTable(select?.Body);
         }
-        string ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.ToSql<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TReturn>> select)
+        string ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.ToSql<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TReturn>> select, FieldAliasOptions fieldAlias = FieldAliasOptions.AsIndex)
         {
-            if (select == null) return this.InternalToSql<TReturn>(select?.Body);
+            if (select == null) return this.InternalToSql<TReturn>(select?.Body, fieldAlias);
             for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
-            return this.InternalToSql<TReturn>(select?.Body);
+            return this.InternalToSql<TReturn>(select?.Body, fieldAlias);
         }
 
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.LeftJoin(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, bool>> exp)

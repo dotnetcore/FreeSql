@@ -263,11 +263,11 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalToDataTable(select?.Body);
         }
 
-        public string ToSql<TReturn>(Expression<Func<T1, TReturn>> select)
+        public string ToSql<TReturn>(Expression<Func<T1, TReturn>> select, FieldAliasOptions fieldAlias = FieldAliasOptions.AsIndex)
         {
-            if (select == null) return this.InternalToSql<TReturn>(select?.Body);
+            if (select == null) return this.InternalToSql<TReturn>(select?.Body, fieldAlias);
             _tables[0].Parameter = select.Parameters[0];
-            return this.InternalToSql<TReturn>(select?.Body);
+            return this.InternalToSql<TReturn>(select?.Body, fieldAlias);
         }
 
         public TReturn ToAggregate<TReturn>(Expression<Func<ISelectGroupingAggregate<T1>, TReturn>> select)
