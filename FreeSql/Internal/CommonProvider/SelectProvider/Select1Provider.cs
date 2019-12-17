@@ -104,11 +104,11 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
 
-        public TMember Avg<TMember>(Expression<Func<T1, TMember>> column)
+        public double Avg<TMember>(Expression<Func<T1, TMember>> column)
         {
-            if (column == null) return default(TMember);
+            if (column == null) return default(double);
             _tables[0].Parameter = column.Parameters[0];
-            return this.InternalAvg<TMember>(column?.Body);
+            return this.InternalAvg(column?.Body);
         }
 
         public abstract ISelect<T1, T2> From<T2>(Expression<Func<ISelectFromExpression<T1>, T2, ISelectFromExpression<T1>>> exp) where T2 : class;// { this.InternalFrom(exp); var ret = new Select3Provider<T1, T2, T3>(_orm, _commonUtils, _commonExpression, null); Select0Provider<ISelect<T1>, T1>.CopyData(this, ret, exp?.Parameters); return ret; }
@@ -155,11 +155,11 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalOrderByDescending(column?.Body);
         }
 
-        public TMember Sum<TMember>(Expression<Func<T1, TMember>> column)
+        public decimal Sum<TMember>(Expression<Func<T1, TMember>> column)
         {
-            if (column == null) return default(TMember);
+            if (column == null) return default(decimal);
             _tables[0].Parameter = column.Parameters[0];
-            return this.InternalSum<TMember>(column?.Body);
+            return this.InternalSum(column?.Body);
         }
 
         public List<TReturn> ToList<TReturn>(Expression<Func<T1, TReturn>> select)
@@ -1055,11 +1055,11 @@ namespace FreeSql.Internal.CommonProvider
             _trackToList?.Invoke(list);
         }
 
-        public Task<TMember> AvgAsync<TMember>(Expression<Func<T1, TMember>> column)
+        public Task<double> AvgAsync<TMember>(Expression<Func<T1, TMember>> column)
         {
-            if (column == null) return Task.FromResult(default(TMember));
+            if (column == null) return Task.FromResult(default(double));
             _tables[0].Parameter = column.Parameters[0];
-            return this.InternalAvgAsync<TMember>(column?.Body);
+            return this.InternalAvgAsync(column?.Body);
         }
         public Task<TMember> MaxAsync<TMember>(Expression<Func<T1, TMember>> column)
         {
@@ -1073,11 +1073,11 @@ namespace FreeSql.Internal.CommonProvider
             _tables[0].Parameter = column.Parameters[0];
             return this.InternalMinAsync<TMember>(column?.Body);
         }
-        public Task<TMember> SumAsync<TMember>(Expression<Func<T1, TMember>> column)
+        public Task<decimal> SumAsync<TMember>(Expression<Func<T1, TMember>> column)
         {
-            if (column == null) return Task.FromResult(default(TMember));
+            if (column == null) return Task.FromResult(default(decimal));
             _tables[0].Parameter = column.Parameters[0];
-            return this.InternalSumAsync<TMember>(column?.Body);
+            return this.InternalSumAsync(column?.Body);
         }
         public Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<T1, TReturn>> select)
         {

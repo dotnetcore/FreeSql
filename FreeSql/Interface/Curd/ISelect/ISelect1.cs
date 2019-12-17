@@ -23,10 +23,10 @@ namespace FreeSql
         Task<TDto> FirstAsync<TDto>();
         
         Task<TReturn> ToAggregateAsync<TReturn>(Expression<Func<ISelectGroupingAggregate<T1>, TReturn>> select);
-        Task<TMember> SumAsync<TMember>(Expression<Func<T1, TMember>> column);
+        Task<decimal> SumAsync<TMember>(Expression<Func<T1, TMember>> column);
         Task<TMember> MinAsync<TMember>(Expression<Func<T1, TMember>> column);
         Task<TMember> MaxAsync<TMember>(Expression<Func<T1, TMember>> column);
-        Task<TMember> AvgAsync<TMember>(Expression<Func<T1, TMember>> column);
+        Task<double> AvgAsync<TMember>(Expression<Func<T1, TMember>> column);
 #endif
 
         /// <summary>
@@ -106,7 +106,7 @@ namespace FreeSql
         /// <typeparam name="TMember">返回类型</typeparam>
         /// <param name="column">列</param>
         /// <returns></returns>
-        TMember Sum<TMember>(Expression<Func<T1, TMember>> column);
+        decimal Sum<TMember>(Expression<Func<T1, TMember>> column);
         /// <summary>
         /// 最小值
         /// </summary>
@@ -127,7 +127,7 @@ namespace FreeSql
         /// <typeparam name="TMember">返回类型</typeparam>
         /// <param name="column">列</param>
         /// <returns></returns>
-        TMember Avg<TMember>(Expression<Func<T1, TMember>> column);
+        double Avg<TMember>(Expression<Func<T1, TMember>> column);
 
         /// <summary>
         /// 指定别名

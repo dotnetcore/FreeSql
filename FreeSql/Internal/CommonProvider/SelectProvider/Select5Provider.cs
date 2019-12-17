@@ -25,11 +25,11 @@ namespace FreeSql.Internal.CommonProvider
             _tables.Add(new SelectTableInfo { Table = _commonUtils.GetTableByEntity(typeof(T5)), Alias = $"SP10e", On = null, Type = SelectTableInfoType.From });
         }
 
-        TMember ISelect<T1, T2, T3, T4, T5>.Avg<TMember>(Expression<Func<T1, T2, T3, T4, T5, TMember>> column)
+        double ISelect<T1, T2, T3, T4, T5>.Avg<TMember>(Expression<Func<T1, T2, T3, T4, T5, TMember>> column)
         {
-            if (column == null) return default(TMember);
+            if (column == null) return default(double);
             for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
-            return this.InternalAvg<TMember>(column?.Body);
+            return this.InternalAvg(column?.Body);
         }
 
         ISelectGrouping<TKey, (T1, T2, T3, T4, T5)> ISelect<T1, T2, T3, T4, T5>.GroupBy<TKey>(Expression<Func<T1, T2, T3, T4, T5, TKey>> exp)
@@ -67,11 +67,11 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalOrderByDescending(column?.Body);
         }
 
-        TMember ISelect<T1, T2, T3, T4, T5>.Sum<TMember>(Expression<Func<T1, T2, T3, T4, T5, TMember>> column)
+        decimal ISelect<T1, T2, T3, T4, T5>.Sum<TMember>(Expression<Func<T1, T2, T3, T4, T5, TMember>> column)
         {
             if (column == null) this.InternalOrderBy(column?.Body);
             for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
-            return this.InternalSum<TMember>(column?.Body);
+            return this.InternalSum(column?.Body);
         }
 
         TReturn ISelect<T1, T2, T3, T4, T5>.ToAggregate<TReturn>(Expression<Func<ISelectGroupingAggregate<T1>, ISelectGroupingAggregate<T2>, ISelectGroupingAggregate<T3>, ISelectGroupingAggregate<T4>, ISelectGroupingAggregate<T5>, TReturn>> select)
@@ -158,11 +158,11 @@ namespace FreeSql.Internal.CommonProvider
 
 #if net40
 #else
-        Task<TMember> ISelect<T1, T2, T3, T4, T5>.AvgAsync<TMember>(Expression<Func<T1, T2, T3, T4, T5, TMember>> column)
+        Task<double> ISelect<T1, T2, T3, T4, T5>.AvgAsync<TMember>(Expression<Func<T1, T2, T3, T4, T5, TMember>> column)
         {
-            if (column == null) return Task.FromResult(default(TMember));
+            if (column == null) return Task.FromResult(default(double));
             for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
-            return this.InternalAvgAsync<TMember>(column?.Body);
+            return this.InternalAvgAsync(column?.Body);
         }
 
         Task<TMember> ISelect<T1, T2, T3, T4, T5>.MaxAsync<TMember>(Expression<Func<T1, T2, T3, T4, T5, TMember>> column)
@@ -179,11 +179,11 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalMinAsync<TMember>(column?.Body);
         }
 
-        Task<TMember> ISelect<T1, T2, T3, T4, T5>.SumAsync<TMember>(Expression<Func<T1, T2, T3, T4, T5, TMember>> column)
+        Task<decimal> ISelect<T1, T2, T3, T4, T5>.SumAsync<TMember>(Expression<Func<T1, T2, T3, T4, T5, TMember>> column)
         {
             if (column == null) this.InternalOrderBy(column?.Body);
             for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
-            return this.InternalSumAsync<TMember>(column?.Body);
+            return this.InternalSumAsync(column?.Body);
         }
 
         Task<TReturn> ISelect<T1, T2, T3, T4, T5>.ToAggregateAsync<TReturn>(Expression<Func<ISelectGroupingAggregate<T1>, ISelectGroupingAggregate<T2>, ISelectGroupingAggregate<T3>, ISelectGroupingAggregate<T4>, ISelectGroupingAggregate<T5>, TReturn>> select)
