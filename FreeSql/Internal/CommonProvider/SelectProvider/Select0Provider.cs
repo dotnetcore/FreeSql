@@ -240,7 +240,7 @@ namespace FreeSql.Internal.CommonProvider
         }
         public TSelect Master()
         {
-            _select = " SELECT ";
+            _select = $" {_select.Trim()} ";
             return this as TSelect;
         }
         public TSelect Offset(int offset) => this.Skip(offset) as TSelect;
