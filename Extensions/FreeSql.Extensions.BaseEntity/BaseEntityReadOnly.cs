@@ -1,7 +1,10 @@
 ﻿using FreeSql.DataAnnotations;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 
@@ -109,12 +112,47 @@ namespace FreeSql
         {
             get
             {
-                var select = Orm.Select<TEntity>().WithTransaction(UnitOfWork.Current.Value?.GetOrBeginTransaction(false));
+                var select = Orm.Select<TEntity>()
+                    .TrackToList(TrackToList) //自动为每个元素 Attach
+                    .WithTransaction(UnitOfWork.Current.Value?.GetOrBeginTransaction(false));
                 if (string.IsNullOrEmpty(CurrentTenantId) == false)
                     select.WhereCascade(a => (a as ITenant).TenantId == CurrentTenantId);
                 return select.WhereCascade(a => (a as BaseEntity).IsDeleted == false);
             }
         }
+
+        static void TrackToList(object list)
+        {
+            if (list == null) return;
+            var ls = list as IList<TEntity>;
+            if (ls == null)
+            {
+                var ie = list as IEnumerable;
+                if (ie == null) return;
+                var isFirst = true;
+                foreach (var item in ie)
+                {
+                    if (item == null) return;
+                    if (isFirst)
+                    {
+                        isFirst = false;
+                        var itemType = item.GetType();
+                        if (itemType == typeof(object)) return;
+                        if (itemType.FullName.StartsWith("Submission#")) itemType = itemType.BaseType;
+                        if (Orm.CodeFirst.GetTableByEntity(itemType)?.Primarys.Any() != true) return;
+                        if (item is BaseEntity<TEntity> == false) return;
+                    }
+                    (item as BaseEntity<TEntity>)?.Attach();
+                }
+                return;
+            }
+            if (ls.Any() == false) return;
+            if (ls.FirstOrDefault() is BaseEntity<TEntity> == false) return;
+            if (Orm.CodeFirst.GetTableByEntity(typeof(TEntity))?.Primarys.Any() != true) return;
+            foreach (var item in ls)
+                (item as BaseEntity<TEntity>)?.Attach();
+        }
+
         /// <summary>
         /// 设置当前租户id
         /// </summary>
