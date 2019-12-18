@@ -138,8 +138,8 @@ namespace FreeSql.Sqlite
             {
                 if (obj.Value == null)
                 {
-                    if (_pool.SetUnavailable(new Exception("连接字符串错误")) == true)
-                        throw new Exception($"【{this.Name}】连接字符串错误，请检查。");
+                    if (_pool.SetUnavailable(new Exception("连接字符串错误，或者检查项目属性 > 生成 > 目标平台：x86 | x64")) == true)
+                        throw new Exception($"【{this.Name}】连接字符串错误，请检查。或者检查项目属性 > 生成 > 目标平台：x86 | x64");
                     return;
                 }
 
