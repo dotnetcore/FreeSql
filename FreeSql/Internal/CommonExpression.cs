@@ -762,8 +762,9 @@ namespace FreeSql.Internal
                                     else if (fsqlType != null)
                                     {
                                         var call3Exp = exp3tmp as MethodCallExpression;
-                                        var method = fsqlType.GetMethod(call3Exp.Method.Name, call3Exp.Arguments.Select(a => a.Type).ToArray());
-                                        if (call3Exp.Method.ContainsGenericParameters) method.MakeGenericMethod(call3Exp.Method.GetGenericArguments());
+                                        var method = call3Exp.Method;
+                                        //var method = fsqlType.GetMethod(call3Exp.Method.Name, call3Exp.Arguments.Select(a => a.Type).ToArray());
+                                        //if (call3Exp.Method.ContainsGenericParameters) method.MakeGenericMethod(call3Exp.Method.GetGenericArguments());
                                         var parms = method.GetParameters();
                                         var args = new object[call3Exp.Arguments.Count];
                                         for (var a = 0; a < args.Length; a++)

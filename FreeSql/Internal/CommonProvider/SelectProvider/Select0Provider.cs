@@ -158,7 +158,19 @@ namespace FreeSql.Internal.CommonProvider
             return this.ToList<int>("1 as1").Sum() > 0; //这里的 Sum 为了分表查询
         }
 
-        public long Count() => this.ToList<int>("count(1) as1").Sum(); //这里的 Sum 为了分表查询
+        public long Count()
+        {
+            var tmpOrderBy = _orderby;
+            _orderby = null; //解决 select count(1) from t order by id 这样的 SQL 错误
+            try
+            {
+                return this.ToList<int>("count(1) as1").Sum(); //这里的 Sum 为了分表查询
+            }
+            finally
+            {
+                _orderby = tmpOrderBy;
+            }
+        }
 
         public TSelect Count(out long count)
         {
@@ -1111,7 +1123,19 @@ namespace FreeSql.Internal.CommonProvider
             return (await this.ToListAsync<int>("1 as1")).Sum() > 0; //这里的 Sum 为了分表查询
         }
 
-        async public Task<long> CountAsync() => (await this.ToListAsync<int>("count(1) as1")).Sum(); //这里的 Sum 为了分表查询
+        async public Task<long> CountAsync()
+        {
+            var tmpOrderBy = _orderby;
+            _orderby = null;
+            try
+            {
+                return (await this.ToListAsync<int>("count(1) as1")).Sum(); //这里的 Sum 为了分表查询
+            }
+            finally
+            {
+                _orderby = tmpOrderBy;
+            }
+        }
 
         async public Task<DataTable> ToDataTableAsync(string field = null)
         {

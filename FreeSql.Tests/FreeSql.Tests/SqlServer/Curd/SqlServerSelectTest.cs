@@ -209,8 +209,11 @@ namespace FreeSql.Tests.SqlServer
         public void Count()
         {
             var count = select.Where(a => 1 == 1).Count();
+            var count11 = select.Where(a => 1 == 1).OrderBy(a => a.Id).Count();
             select.Where(a => 1 == 1).Count(out var count2);
+            select.Where(a => 1 == 1).OrderBy(a => a.Id).Count(out var count22);
             Assert.Equal(count, count2);
+            Assert.Equal(count11, count22);
             Assert.Equal(0, select.Where(a => 1 == 2).Count());
 
             var subquery = select.ToSql(a => new
