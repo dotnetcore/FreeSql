@@ -43,7 +43,21 @@ namespace FreeSql.Tests
             //    fsql.Select<ut3_t1>().ToList();
             //}
 
+            var tb1 = g.sqlite.CodeFirst.GetTableByEntity(typeof(pkfalse_t1));
 
+            var tb2 = g.sqlite.CodeFirst.GetTableByEntity(typeof(pkfalse_t2));
+        }
+
+        class pkfalse_t1
+        {
+            [Column(IsPrimary = false)]
+            public int id { get; set; }
+        }
+
+        class pkfalse_t2
+        {
+            [Column(IsPrimary = true)]
+            public int id { get; set; }
         }
 
         class ut3_t1
