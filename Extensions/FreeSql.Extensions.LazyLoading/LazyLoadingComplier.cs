@@ -1,9 +1,7 @@
-﻿using Microsoft.CSharp;
-using System;
+﻿using System;
 using System.CodeDom.Compiler;
-using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
-using System.Text;
 
 namespace FreeSql.Extensions.LazyLoading
 {
@@ -14,7 +12,7 @@ namespace FreeSql.Extensions.LazyLoading
 #if ns20
         internal static Lazy<CSScriptLib.RoslynEvaluator> _compiler = new Lazy<CSScriptLib.RoslynEvaluator>(() =>
         {
-            //var dlls = Directory.GetFiles(Directory.GetParent(Type.GetType("IFreeSql, FreeSql").Assembly.Location).FullName, "*.dll");
+            //var dlls = Directory.GetFiles(Directory.GetParent(Type.GetType("IFreeSql, FreeSql").Assembly.Location).FullName, "*.dll;*.exe");
             var compiler = new CSScriptLib.RoslynEvaluator();
             compiler.DisableReferencingFromCode = false;
             //compiler.DebugBuild = true;
@@ -36,14 +34,41 @@ namespace FreeSql.Extensions.LazyLoading
 #else
 
 
-		public static Assembly CompileCode(string cscode) {
+        public static Assembly CompileCode(string cscode) {
 
-			using (var compiler = CodeDomProvider.CreateProvider("cs")) {
+            var files = Directory.GetFiles(Directory.GetParent(Type.GetType("IFreeSql, FreeSql").Assembly.Location).FullName);
+            using (var compiler = CodeDomProvider.CreateProvider("cs")) {
 
 				var objCompilerParameters = new CompilerParameters();
 				objCompilerParameters.ReferencedAssemblies.Add("System.dll");
+                objCompilerParameters.ReferencedAssemblies.Add("System.Core.dll");
 				objCompilerParameters.ReferencedAssemblies.Add("FreeSql.dll");
-				objCompilerParameters.GenerateExecutable = false;
+                foreach (var dll in files)
+                {
+                    if (!dll.EndsWith(".dll", StringComparison.OrdinalIgnoreCase) &&
+                        !dll.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)) continue;
+
+                    Console.WriteLine(dll);
+                    var dllName = string.Empty;
+                    var idx = dll.LastIndexOf('/');
+                    if (idx != -1) dllName = dll.Substring(idx + 1);
+                    else
+                    {
+                        idx = dll.LastIndexOf('\\');
+                        if (idx != -1) dllName = dll.Substring(idx + 1);
+                    }
+                    if (string.IsNullOrEmpty(dllName)) continue;
+                    try
+                    {
+                        var ass = Assembly.LoadFile(dll);
+                        objCompilerParameters.ReferencedAssemblies.Add(dllName);
+                    }
+                    catch
+                    {
+
+                    }
+                }
+                objCompilerParameters.GenerateExecutable = false;
 				objCompilerParameters.GenerateInMemory = true;
 
 				CompilerResults cr = compiler.CompileAssemblyFromSource(objCompilerParameters, cscode);

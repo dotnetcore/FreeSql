@@ -31,7 +31,7 @@ public class User1 : BaseEntity<User1, Guid>
     public int GroupId { get; set; }
     public UserGroup Group { get; set; }
 
-    public List<Role> Roles { get; set; }
+    public virtual List<Role> Roles { get; set; }
 
     /// <summary>
     /// 登陆名

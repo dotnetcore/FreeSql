@@ -788,8 +788,8 @@ namespace FreeSql.Internal
                                 .Append("			if (base.").Append(pnv.Name).Append(" == null && __lazy__").Append(pnv.Name).AppendLine(" == false) {");
 
                             if (nvref.Exception == null)
-                                cscode.Append("				base.").Append(pnv.Name).Append(" = __fsql_orm__.Select<").Append(propElementType.IsNested ? $"{propElementType.DeclaringType.Namespace}.{propElementType.DeclaringType.Name}.{propElementType.Name}" : $"{propElementType.Namespace}.{propElementType.Name}")
-                                    .Append(">().Where(a => __fsql_orm__.Select<").Append(tbmid.Type.IsNested ? $"{tbmid.Type.DeclaringType.Namespace?.NotNullAndConcat(".")}{tbmid.Type.DeclaringType.Name}.{tbmid.Type.Name}" : $"{tbmid.Type.Namespace}.{tbmid.Type.Name}")
+                                cscode.Append("				base.").Append(pnv.Name).Append(" = __fsql_orm__.Select<").Append(propElementType.IsNested ? $"{propElementType.DeclaringType.Namespace?.NotNullAndConcat(".")}{propElementType.DeclaringType.Name}.{propElementType.Name}" : $"{propElementType.Namespace?.NotNullAndConcat(".")}{propElementType.Name}")
+                                    .Append(">().Where(a => __fsql_orm__.Select<").Append(tbmid.Type.IsNested ? $"{tbmid.Type.DeclaringType.Namespace?.NotNullAndConcat(".")}{tbmid.Type.DeclaringType.Name}.{tbmid.Type.Name}" : $"{tbmid.Type.Namespace?.NotNullAndConcat(".")}{tbmid.Type.Name}")
                                     .Append(">().Where(b => ").Append(lmbdWhere.ToString()).AppendLine(").Any()).ToList();")
                                     .Append("				__lazy__").Append(pnv.Name).AppendLine(" = true;");
                             else
@@ -801,7 +801,9 @@ namespace FreeSql.Internal
                         }
                         if (vp?.Item3 == true)
                         { //set 重写
-                            cscode.Append("		set => base.").Append(pnv.Name).AppendLine(" = value;");
+                            cscode.Append("		set {\r\n")
+                                .Append("			base.").Append(pnv.Name).AppendLine(" = value;")
+                                .Append("		}\r\n");
                         }
                         cscode.AppendLine("	}");
                     }
@@ -940,7 +942,9 @@ namespace FreeSql.Internal
                         }
                         if (vp?.Item3 == true)
                         { //set 重写
-                            cscode.Append("		set => base.").Append(pnv.Name).AppendLine(" = value;");
+                            cscode.Append("		set {\r\n")
+                                .Append("			base.").Append(pnv.Name).AppendLine(" = value;")
+                                .Append("		}\r\n");
                         }
                         cscode.AppendLine("	}");
                     }

@@ -44,9 +44,12 @@ namespace base_entity
                 .UseConnectionString(FreeSql.DataType.Sqlite, "data source=test.db;max pool size=5")
                 //.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=2")
                 .UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3")
+                .UseLazyLoading(true)
                 .Build();
             BaseEntity.Initialization(fsql);
             #endregion
+
+            var us = User1.Select.Limit(10).ToList();
 
             new Products { title = "product-1" }.Save();
             new Products { title = "product-2" }.Save();
