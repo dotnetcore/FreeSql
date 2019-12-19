@@ -425,7 +425,7 @@ and not exists(select 1 from all_constraints where index_name = a.index_name and
             var data_length = long.Parse(string.Concat(a[2]));
             long.TryParse(string.Concat(a[3]), out var data_precision);
             long.TryParse(string.Concat(a[4]), out var data_scale);
-            var char_used = string.Concat(a[5]);
+            //var char_used = string.Concat(a[5]);
             if (sqlType.StartsWith("INTERVAL DAY TO SECOND"))
                 sqlType = $"INTERVAL DAY({(data_scale - 1536) / 16}) TO SECOND({(data_scale - 1536) % 16})";
             else if (Regex.IsMatch(sqlType, @"INTERVAL YEAR\(\d+\) TO MONTH", RegexOptions.IgnoreCase))

@@ -98,10 +98,7 @@ namespace FreeSql.Internal
                     {
                         Name = p.Name,
                         DbType = tp.Value.dbtypeFull,
-                        IsIdentity = false,
                         IsNullable = tp.Value.isnullable ?? true,
-                        IsPrimary = false,
-                        IsIgnore = false,
                         MapType = p.PropertyType
                     };
                 if (colattr._IsNullable == null) colattr._IsNullable = tp?.isnullable;

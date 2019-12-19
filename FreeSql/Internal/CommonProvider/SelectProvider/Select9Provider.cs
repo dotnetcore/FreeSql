@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
@@ -117,7 +118,7 @@ namespace FreeSql.Internal.CommonProvider
             for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
             return this.InternalToDataTable(select?.Body);
         }
-        string ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.ToSql<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TReturn>> select, FieldAliasOptions fieldAlias = FieldAliasOptions.AsIndex)
+        string ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.ToSql<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TReturn>> select, FieldAliasOptions fieldAlias)
         {
             if (select == null) return this.InternalToSql<TReturn>(select?.Body, fieldAlias);
             for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
@@ -162,6 +163,10 @@ namespace FreeSql.Internal.CommonProvider
             for (var a = 0; a < exp.Parameters.Count; a++) _tables[a].Parameter = exp.Parameters[a];
             return this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp?.Body, null, _whereCascadeExpression, _params)).Any();
         }
+
+        TReturn ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.ToOne<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TReturn>> select) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>).ToList(select).FirstOrDefault();
+        TReturn ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.First<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TReturn>> select) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>).ToList(select).FirstOrDefault();
+        TDto ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.First<TDto>() => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>).ToList<TDto>().FirstOrDefault();
 
 #if net40
 #else
@@ -222,6 +227,11 @@ namespace FreeSql.Internal.CommonProvider
             for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
             return this.InternalToListAsync<TReturn>(select?.Body);
         }
+
+        async Task<TReturn> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.ToOneAsync<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TReturn>> select) => (await (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>).ToListAsync(select)).FirstOrDefault();
+        async Task<TReturn> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.FirstAsync<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TReturn>> select) => (await (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>).ToListAsync(select)).FirstOrDefault();
+        async Task<TDto> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.FirstAsync<TDto>() => (await (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>).ToListAsync<TDto>()).FirstOrDefault();
+
 #endif
     }
 }
