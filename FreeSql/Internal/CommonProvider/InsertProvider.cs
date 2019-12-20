@@ -23,6 +23,8 @@ namespace FreeSql.Internal.CommonProvider
         protected TableInfo _table;
         protected Func<string, string> _tableRule;
         protected bool _noneParameter, _insertIdentity;
+        protected int _batchValuesLimit, _batchParameterLimit;
+        protected bool _batchAutoTransaction = true;
         protected DbParameter[] _params;
         protected DbTransaction _transaction;
         protected DbConnection _connection;
@@ -50,6 +52,8 @@ namespace FreeSql.Internal.CommonProvider
         }
         protected void ClearData()
         {
+            _batchValuesLimit = _batchParameterLimit = 0;
+            _batchAutoTransaction = true;
             _insertIdentity = false;
             _source.Clear();
             _ignore.Clear();
@@ -80,6 +84,14 @@ namespace FreeSql.Internal.CommonProvider
         public IInsert<T1> NoneParameter()
         {
             _noneParameter = true;
+            return this;
+        }
+
+        public IInsert<T1> BatchOptions(int valuesLimit, int parameterLimit, bool autoTransaction = true)
+        {
+            _batchValuesLimit = valuesLimit;
+            _batchParameterLimit = parameterLimit;
+            _batchAutoTransaction = autoTransaction;
             return this;
         }
 
@@ -181,7 +193,7 @@ namespace FreeSql.Internal.CommonProvider
             if (_transaction == null)
                 this.WithTransaction(_orm.Ado.TransactionCurrentThread);
 
-            if (_transaction != null)
+            if (_transaction != null || _batchAutoTransaction == false)
             {
                 for (var a = 0; a < ss.Length; a++)
                 {
@@ -233,7 +245,7 @@ namespace FreeSql.Internal.CommonProvider
             if (_transaction == null)
                 this.WithTransaction(_orm.Ado.TransactionCurrentThread);
 
-            if (_transaction != null)
+            if (_transaction != null || _batchAutoTransaction == false)
             {
                 for (var a = 0; a < ss.Length; a++)
                 {
@@ -287,7 +299,7 @@ namespace FreeSql.Internal.CommonProvider
             if (_transaction == null)
                 this.WithTransaction(_orm.Ado.TransactionCurrentThread);
 
-            if (_transaction != null)
+            if (_transaction != null || _batchAutoTransaction == false)
             {
                 for (var a = 0; a < ss.Length; a++)
                 {

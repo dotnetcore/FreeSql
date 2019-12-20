@@ -856,6 +856,22 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.IInsert`1.BatchOptions(System.Int32,System.Int32,System.Boolean)">
+            <summary>
+            批量执行选项设置，一般不需要使用该方法<para></para>
+            各数据库 values, parameters 限制不一样，默认设置：<para></para>
+            MySql 5000 3000<para></para>
+            PostgreSQL 5000 3000<para></para>
+            SqlServer 1000 2100<para></para>
+            Oracle 500 999<para></para>
+            Sqlite 5000 999<para></para>
+            若没有事务传入，内部(默认)会自动开启新事务，保证拆包执行的完整性。
+            </summary>
+            <param name="valuesLimit">指定根据 values 数量拆分执行</param>
+            <param name="parameterLimit">指定根据 parameters 数量拆分执行</param>
+            <param name="autoTransaction">是否自动开启事务</param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.IInsert`1.AsTable(System.Func{System.String,System.String})">
             <summary>
             设置表名规则，可用于分库/分表，参数1：默认表名；返回值：新表名；
@@ -1818,6 +1834,22 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.IUpdate`1.BatchOptions(System.Int32,System.Int32,System.Boolean)">
+            <summary>
+            批量执行选项设置，一般不需要使用该方法<para></para>
+            各数据库 rows, parameters 限制不一样，默认设置：<para></para>
+            MySql 500 3000<para></para>
+            PostgreSQL 500 3000<para></para>
+            SqlServer 500 2100<para></para>
+            Oracle 200 999<para></para>
+            Sqlite 200 999<para></para>
+            若没有事务传入，内部(默认)会自动开启新事务，保证拆包执行的完整性。
+            </summary>
+            <param name="rowsLimit">指定根据 rows 数量拆分执行</param>
+            <param name="parameterLimit">指定根据 parameters 数量拆分执行</param>
+            <param name="autoTransaction">是否自动开启事务</param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.IUpdate`1.SetSource(`0)">
             <summary>
             更新数据，设置更新的实体
@@ -2138,137 +2170,6 @@
             <returns></returns>
         </member>
         <member name="M:FreeSql.IAdo.Query``2(System.String,System.Object)">
-            <summary>
-            执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > @age; select * from address", new { age = 25 })
-            </summary>
-            <typeparam name="T1"></typeparam>
-            <param name="cmdText"></param>
-            <param name="parms"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteReaderAsync(System.Func{System.Data.Common.DbDataReader,System.Threading.Tasks.Task},System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
-            <summary>
-            查询，若使用读写分离，查询【从库】条件cmdText.StartsWith("SELECT ")，否则查询【主库】
-            </summary>
-            <param name="readerHander"></param>
-            <param name="cmdType"></param>
-            <param name="cmdText"></param>
-            <param name="cmdParms"></param>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteReaderAsync(System.Func{System.Data.Common.DbDataReader,System.Threading.Tasks.Task},System.String,System.Object)">
-            <summary>
-            查询，ExecuteReaderAsync(dr => {}, "select * from user where age > @age", new { age = 25 })
-            </summary>
-            <param name="cmdText"></param>
-            <param name="parms"></param>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteArrayAsync(System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
-            <summary>
-            查询
-            </summary>
-            <param name="cmdText"></param>
-            <param name="cmdParms"></param>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteArrayAsync(System.String,System.Object)">
-            <summary>
-            查询，ExecuteArrayAsync("select * from user where age > @age", new { age = 25 })
-            </summary>
-            <param name="cmdText"></param>
-            <param name="parms"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteDataSetAsync(System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
-            <summary>
-            查询
-            </summary>
-            <param name="cmdText"></param>
-            <param name="cmdParms"></param>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteDataSetAsync(System.String,System.Object)">
-            <summary>
-            查询，ExecuteDataSetAsync("select * from user where age > @age; select 2", new { age = 25 })
-            </summary>
-            <param name="cmdText"></param>
-            <param name="parms"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteDataTableAsync(System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
-            <summary>
-            查询
-            </summary>
-            <param name="cmdText"></param>
-            <param name="cmdParms"></param>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteDataTableAsync(System.String,System.Object)">
-            <summary>
-            查询，ExecuteDataTableAsync("select * from user where age > @age", new { age = 25 })
-            </summary>
-            <param name="cmdText"></param>
-            <param name="parms"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteNonQueryAsync(System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
-            <summary>
-            在【主库】执行
-            </summary>
-            <param name="cmdType"></param>
-            <param name="cmdText"></param>
-            <param name="cmdParms"></param>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteNonQueryAsync(System.String,System.Object)">
-            <summary>
-            在【主库】执行，ExecuteNonQueryAsync("delete from user where age > @age", new { age = 25 })
-            </summary>
-            <param name="cmdText"></param>
-            <param name="parms"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteScalarAsync(System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
-            <summary>
-            在【主库】执行
-            </summary>
-            <param name="cmdType"></param>
-            <param name="cmdText"></param>
-            <param name="cmdParms"></param>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteScalarAsync(System.String,System.Object)">
-            <summary>
-            在【主库】执行，ExecuteScalarAsync("select 1 from user where age > @age", new { age = 25 })
-            </summary>
-            <param name="cmdText"></param>
-            <param name="parms"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IAdo.QueryAsync``1(System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
-            <summary>
-            执行SQL返回对象集合，QueryAsync&lt;User&gt;("select * from user where age > @age", new SqlParameter { ParameterName = "age", Value = 25 })
-            </summary>
-            <typeparam name="T"></typeparam>
-            <param name="cmdType"></param>
-            <param name="cmdText"></param>
-            <param name="cmdParms"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IAdo.QueryAsync``1(System.String,System.Object)">
-            <summary>
-            执行SQL返回对象集合，QueryAsync&lt;User&gt;("select * from user where age > @age", new { age = 25 })
-            </summary>
-            <typeparam name="T"></typeparam>
-            <param name="cmdText"></param>
-            <param name="parms"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IAdo.QueryAsync``2(System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
-            <summary>
-            执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > @age; select * from address", new SqlParameter { ParameterName = "age", Value = 25 })
-            </summary>
-            <typeparam name="T1"></typeparam>
-            <param name="cmdType"></param>
-            <param name="cmdText"></param>
-            <param name="cmdParms"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IAdo.QueryAsync``2(System.String,System.Object)">
             <summary>
             执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > @age; select * from address", new { age = 25 })
             </summary>

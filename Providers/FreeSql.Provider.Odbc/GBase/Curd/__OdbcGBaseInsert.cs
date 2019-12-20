@@ -16,9 +16,9 @@ namespace FreeSql.Odbc.GBase
         {
         }
 
-        public override int ExecuteAffrows() => base.SplitExecuteAffrows(5000, 3000);
-        public override long ExecuteIdentity() => base.SplitExecuteIdentity(5000, 3000);
-        public override List<T1> ExecuteInserted() => base.SplitExecuteInserted(5000, 3000);
+        public override int ExecuteAffrows() => base.SplitExecuteAffrows(_batchValuesLimit > 0 ? _batchValuesLimit : 5000, _batchParameterLimit > 0 ? _batchParameterLimit : 3000);
+        public override long ExecuteIdentity() => base.SplitExecuteIdentity(_batchValuesLimit > 0 ? _batchValuesLimit : 5000, _batchParameterLimit > 0 ? _batchParameterLimit : 3000);
+        public override List<T1> ExecuteInserted() => base.SplitExecuteInserted(_batchValuesLimit > 0 ? _batchValuesLimit : 5000, _batchParameterLimit > 0 ? _batchParameterLimit : 3000);
 
         protected override long RawExecuteIdentity()
         {

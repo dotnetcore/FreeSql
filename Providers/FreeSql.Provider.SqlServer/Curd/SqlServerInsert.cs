@@ -18,9 +18,9 @@ namespace FreeSql.SqlServer.Curd
         {
         }
 
-        public override int ExecuteAffrows() => base.SplitExecuteAffrows(1000, 2100);
-        public override long ExecuteIdentity() => base.SplitExecuteIdentity(1000, 2100);
-        public override List<T1> ExecuteInserted() => base.SplitExecuteInserted(1000, 2100);
+        public override int ExecuteAffrows() => base.SplitExecuteAffrows(_batchValuesLimit > 0 ? _batchValuesLimit : 1000, _batchParameterLimit > 0 ? _batchParameterLimit : 2100);
+        public override long ExecuteIdentity() => base.SplitExecuteIdentity(_batchValuesLimit > 0 ? _batchValuesLimit : 1000, _batchParameterLimit > 0 ? _batchParameterLimit : 2100);
+        public override List<T1> ExecuteInserted() => base.SplitExecuteInserted(_batchValuesLimit > 0 ? _batchValuesLimit : 1000, _batchParameterLimit > 0 ? _batchParameterLimit : 2100);
 
         public override string ToSql()
         {

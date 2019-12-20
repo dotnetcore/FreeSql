@@ -19,9 +19,9 @@ namespace FreeSql.Oracle.Curd
         {
         }
 
-        public override int ExecuteAffrows() => base.SplitExecuteAffrows(500, 999);
-        public override long ExecuteIdentity() => base.SplitExecuteIdentity(500, 999);
-        public override List<T1> ExecuteInserted() => base.SplitExecuteInserted(500, 999);
+        public override int ExecuteAffrows() => base.SplitExecuteAffrows(_batchValuesLimit > 0 ? _batchValuesLimit : 500, _batchParameterLimit > 0 ? _batchParameterLimit : 999);
+        public override long ExecuteIdentity() => base.SplitExecuteIdentity(_batchValuesLimit > 0 ? _batchValuesLimit : 500, _batchParameterLimit > 0 ? _batchParameterLimit : 999);
+        public override List<T1> ExecuteInserted() => base.SplitExecuteInserted(_batchValuesLimit > 0 ? _batchValuesLimit : 500, _batchParameterLimit > 0 ? _batchParameterLimit : 999);
 
 
         public override string ToSql()

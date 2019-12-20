@@ -29,6 +29,22 @@ namespace FreeSql
         IUpdate<T1> NoneParameter();
 
         /// <summary>
+        /// 批量执行选项设置，一般不需要使用该方法<para></para>
+        /// 各数据库 rows, parameters 限制不一样，默认设置：<para></para>
+        /// MySql 500 3000<para></para>
+        /// PostgreSQL 500 3000<para></para>
+        /// SqlServer 500 2100<para></para>
+        /// Oracle 200 999<para></para>
+        /// Sqlite 200 999<para></para>
+        /// 若没有事务传入，内部(默认)会自动开启新事务，保证拆包执行的完整性。
+        /// </summary>
+        /// <param name="rowsLimit">指定根据 rows 数量拆分执行</param>
+        /// <param name="parameterLimit">指定根据 parameters 数量拆分执行</param>
+        /// <param name="autoTransaction">是否自动开启事务</param>
+        /// <returns></returns>
+        IUpdate<T1> BatchOptions(int rowsLimit, int parameterLimit, bool autoTransaction = true);
+
+        /// <summary>
         /// 更新数据，设置更新的实体
         /// </summary>
         /// <param name="source">实体</param>

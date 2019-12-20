@@ -30,6 +30,8 @@ namespace FreeSql.Internal.CommonProvider
         protected List<DbParameter> _params = new List<DbParameter>();
         protected List<DbParameter> _paramsSource = new List<DbParameter>();
         protected bool _noneParameter;
+        protected int _batchRowsLimit, _batchParameterLimit;
+        protected bool _batchAutoTransaction = true;
         protected DbTransaction _transaction;
         protected DbConnection _connection;
 
@@ -58,6 +60,8 @@ namespace FreeSql.Internal.CommonProvider
         }
         protected void ClearData()
         {
+            _batchRowsLimit = _batchParameterLimit = 0;
+            _batchAutoTransaction = true;
             _source.Clear();
             _ignore.Clear();
             _auditValueChangedDict.Clear();
@@ -86,6 +90,14 @@ namespace FreeSql.Internal.CommonProvider
         public IUpdate<T1> NoneParameter()
         {
             _noneParameter = true;
+            return this;
+        }
+
+        public IUpdate<T1> BatchOptions(int rowsLimit, int parameterLimit, bool autoTransaction = true)
+        {
+            _batchRowsLimit = rowsLimit;
+            _batchParameterLimit = parameterLimit;
+            _batchAutoTransaction = autoTransaction;
             return this;
         }
 
@@ -136,7 +148,7 @@ namespace FreeSql.Internal.CommonProvider
             if (_transaction == null)
                 this.WithTransaction(_orm.Ado.TransactionCurrentThread);
 
-            if (_transaction != null)
+            if (_transaction != null || _batchAutoTransaction == false)
             {
                 for (var a = 0; a < ss.Length; a++)
                 {
@@ -183,7 +195,7 @@ namespace FreeSql.Internal.CommonProvider
             if (_transaction == null)
                 this.WithTransaction(_orm.Ado.TransactionCurrentThread);
 
-            if (_transaction != null)
+            if (_transaction != null || _batchAutoTransaction == false)
             {
                 for (var a = 0; a < ss.Length; a++)
                 {

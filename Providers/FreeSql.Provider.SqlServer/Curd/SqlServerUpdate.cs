@@ -18,8 +18,8 @@ namespace FreeSql.SqlServer.Curd
         {
         }
 
-        public override int ExecuteAffrows() => base.SplitExecuteAffrows(500, 2100);
-        public override List<T1> ExecuteUpdated() => base.SplitExecuteUpdated(500, 2100);
+        public override int ExecuteAffrows() => base.SplitExecuteAffrows(_batchRowsLimit > 0 ? _batchRowsLimit : 500, _batchParameterLimit > 0 ? _batchParameterLimit : 2100);
+        public override List<T1> ExecuteUpdated() => base.SplitExecuteUpdated(_batchRowsLimit > 0 ? _batchRowsLimit : 500, _batchParameterLimit > 0 ? _batchParameterLimit : 2100);
 
 
         protected override List<T1> RawExecuteUpdated()
