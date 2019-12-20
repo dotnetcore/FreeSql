@@ -268,7 +268,7 @@ new Colorful.Formatter("推荐在实体类目录创建 gen.bat，双击它重新
             if (File.Exists(rebuildBat) == false)
             {
                 File.WriteAllText(rebuildBat, $@"
-FreeSql.Generator -Razor {ArgsRazorRaw} -NameOptions {string.Join(",", ArgsNameOptions.Select(a => a ? 1 : 0))} -NameSpace {ArgsNameSpace} -DB ""{ArgsDbType},{ArgsConnectionString}""
+FreeSql.Generator -Razor {ArgsRazorRaw} -NameOptions {string.Join(",", ArgsNameOptions.Select(a => a ? 1 : 0))} -NameSpace {ArgsNameSpace} -DB ""{ArgsDbType},{ArgsConnectionString}""{(string.IsNullOrEmpty(ArgsFilter) ? "" : $" -Filter \"{ArgsFilter}\"")} -FileName ""{ArgsFileName}""
 ");
                 Console.WriteFormatted(" OUT -> " + rebuildBat + "    (以后) 双击它重新生成实体\r\n", Color.Magenta);
                 ++outputCounter;
