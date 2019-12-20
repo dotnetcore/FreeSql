@@ -19,7 +19,7 @@ namespace FreeSql.Generator
         string ArgsConnectionString { get; }
         string ArgsFilter { get; }
         string ArgsFileName { get; }
-        string ArgsOutput { get; }
+        internal string ArgsOutput { get; private set; }
 
         public ConsoleApp(string[] args, ManualResetEvent wait)
         {
@@ -57,7 +57,16 @@ new Colorful.Formatter("v" + string.Join(".", typeof(ConsoleApp).Assembly.GetNam
             ArgsNameSpace = "MyProject";
             ArgsFilter = "";
             ArgsFileName = "{name}.cs";
-            ArgsOutput = Directory.GetCurrentDirectory();
+            Action<string> setArgsOutput = value =>
+            {
+                ArgsOutput = value;
+                ArgsOutput = ArgsOutput.Trim().TrimEnd('/', '\\');
+                ArgsOutput += ArgsOutput.Contains("\\") ? "\\" : "/";
+                if (!Directory.Exists(ArgsOutput))
+                    Directory.CreateDirectory(ArgsOutput);
+            };
+            setArgsOutput(Directory.GetCurrentDirectory());
+
             string args0 = args[0].Trim().ToLower();
             if (args[0] == "?" || args0 == "--help" || args0 == "-help")
             {
@@ -125,9 +134,9 @@ new Colorful.Formatter("推荐在实体类目录创建 gen.bat，双击它重新
             }
             for (int a = 0; a < args.Length; a++)
             {
-                switch (args[a])
+                switch (args[a].Trim().ToLower())
                 {
-                    case "-Razor":
+                    case "-razor":
                         ArgsRazorRaw = args[a + 1].Trim();
                         switch (ArgsRazorRaw)
                         {
@@ -138,16 +147,16 @@ new Colorful.Formatter("推荐在实体类目录创建 gen.bat，双击它重新
                         a++;
                         break;
 
-                    case "-NameOptions":
+                    case "-nameoptions":
                         ArgsNameOptions = args[a + 1].Split(',').Select(opt => opt == "1").ToArray();
                         if (ArgsNameOptions.Length != 4) throw new ArgumentException("-NameOptions 参数错误，格式为：0,0,0,0");
                         a++;
                         break;
-                    case "-NameSpace":
+                    case "-namespace":
                         ArgsNameSpace = args[a + 1];
                         a++;
                         break;
-                    case "-DB":
+                    case "-db":
                         var dbargs = args[a + 1].Split(',', 2);
                         if (dbargs.Length != 2) throw new ArgumentException("-DB 参数错误，格式为：MySql,ConnectionString");
                         switch (dbargs[0].Trim().ToLower())
@@ -162,27 +171,22 @@ new Colorful.Formatter("推荐在实体类目录创建 gen.bat，双击它重新
                         ArgsConnectionString = dbargs[1].Trim();
                         a++;
                         break;
-                    case "-Filter":
+                    case "-filter":
                         ArgsFilter = args[a + 1];
                         a++;
                         break;
-                    case "-FileName":
+                    case "-filename":
                         ArgsFileName = args[a + 1];
                         a++;
                         break;
-                    case "-Output":
-                        ArgsOutput = args[a + 1];
+                    case "-output":
+                        setArgsOutput(args[a + 1]);
                         a++;
                         break;
                 }
             }
 
             if (string.IsNullOrEmpty(ArgsConnectionString)) throw new ArgumentException($"-DB 参数错误，未提供 ConnectionString");
-
-            ArgsOutput = ArgsOutput.Trim().TrimEnd('/', '\\');
-            ArgsOutput += ArgsOutput.Contains("\\") ? "\\" : "/";
-            if (!Directory.Exists(ArgsOutput))
-                Directory.CreateDirectory(ArgsOutput);
 
             RazorEngine.Engine.Razor = RazorEngineService.Create(new RazorEngine.Configuration.TemplateServiceConfiguration
             {
@@ -200,7 +204,6 @@ new Colorful.Formatter("推荐在实体类目录创建 gen.bat，双击它重新
             {
                 var tables = fsql.DbFirst.GetTablesByDatabase();
                 var outputTables = tables;
-
 
                 //开始生成操作
                 foreach (var table in outputTables)
@@ -267,8 +270,16 @@ new Colorful.Formatter("推荐在实体类目录创建 gen.bat，双击它重新
             var rebuildBat = ArgsOutput + "__重新生成.bat";
             if (File.Exists(rebuildBat) == false)
             {
+                var razorCshtml = ArgsOutput + "__razor.cshtml.txt";
+                if (File.Exists(razorCshtml) == false)
+                {
+                    File.WriteAllText(razorCshtml, ArgsRazor);
+                    Console.WriteFormatted(" OUT -> " + razorCshtml + "    (以后) 编辑它自定义模板生成\r\n", Color.Magenta);
+                    ++outputCounter;
+                }
+
                 File.WriteAllText(rebuildBat, $@"
-FreeSql.Generator -Razor {ArgsRazorRaw} -NameOptions {string.Join(",", ArgsNameOptions.Select(a => a ? 1 : 0))} -NameSpace {ArgsNameSpace} -DB ""{ArgsDbType},{ArgsConnectionString}""{(string.IsNullOrEmpty(ArgsFilter) ? "" : $" -Filter \"{ArgsFilter}\"")} -FileName ""{ArgsFileName}""
+FreeSql.Generator -Razor ""__razor.cshtml.txt"" -NameOptions {string.Join(",", ArgsNameOptions.Select(a => a ? 1 : 0))} -NameSpace {ArgsNameSpace} -DB ""{ArgsDbType},{ArgsConnectionString}""{(string.IsNullOrEmpty(ArgsFilter) ? "" : $" -Filter \"{ArgsFilter}\"")} -FileName ""{ArgsFileName}""
 ");
                 Console.WriteFormatted(" OUT -> " + rebuildBat + "    (以后) 双击它重新生成实体\r\n", Color.Magenta);
                 ++outputCounter;
