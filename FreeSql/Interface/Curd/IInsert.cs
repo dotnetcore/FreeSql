@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
@@ -114,6 +115,15 @@ namespace FreeSql
         /// </summary>
         /// <returns></returns>
         List<T1> ExecuteInserted();
+
+        /// <summary>
+        /// 返回 DataTable 以便做 BulkCopy 数据做准备<para></para>
+        /// 此方法会处理：<para></para>
+        /// 类型、表名、字段名映射<para></para>
+        /// IgnoreColumns、InsertColumns
+        /// </summary>
+        /// <returns></returns>
+        DataTable ToDataTable();
 
 #if net40
 #else

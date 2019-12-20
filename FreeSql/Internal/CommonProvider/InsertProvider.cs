@@ -464,6 +464,31 @@ namespace FreeSql.Internal.CommonProvider
                 _params = specialParams.ToArray();
             return sb.ToString();
         }
+
+        public DataTable ToDataTable()
+        {
+            var dt = new DataTable();
+            dt.TableName = TableRuleInvoke();
+            foreach (var col in _table.ColumnsByPosition)
+            {
+                if (col.Attribute.IsIdentity && _insertIdentity == false) continue;
+                if (col.Attribute.IsIdentity == false && _ignore.ContainsKey(col.Attribute.Name)) continue;
+                dt.Columns.Add(col.Attribute.Name, col.Attribute.MapType);
+            }
+            foreach (var d in _source)
+            {
+                var row = new object[dt.Columns.Count];
+                var rowIndex = 0;
+                foreach (var col in _table.ColumnsByPosition)
+                {
+                    if (col.Attribute.IsIdentity && _insertIdentity == false) continue;
+                    if (col.Attribute.IsIdentity == false && _ignore.ContainsKey(col.Attribute.Name)) continue;
+                    row[rowIndex++] = col.GetMapValue(d);
+                }
+                dt.Rows.Add(row);
+            }
+            return dt;
+        }
     }
 }
 
