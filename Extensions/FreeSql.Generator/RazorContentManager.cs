@@ -77,8 +77,8 @@ namespace @gen.NameSpace {
         #endregion
 
         public static string 实体类_特性_导航属性_cshtml =
-        #region 长内容 
-            @"@using FreeSql.DatabaseModel;@{
+		#region 长内容 
+			@"@using FreeSql.DatabaseModel;@{
 
 var isLazying = true; //延时加载
 var isOneToMany = true; //一对多，集合属性
@@ -108,7 +108,7 @@ Func<DbForeignInfo, string> GetFkObjectNameOutside = fkx => {
 	if (fkretname.EndsWith(fkx.ReferencedColumns[0].Name, StringComparison.CurrentCultureIgnoreCase)) fkretname = fkretname.Substring(0, fkretname.Length - fkx.ReferencedColumns[0].Name.Length).TrimEnd('_');
 	if (fkretname.EndsWith(fkx.ReferencedTable.Name, StringComparison.CurrentCultureIgnoreCase)) fkretname = fkretname.Substring(0, fkretname.Length - fkx.ReferencedTable.Name.Length).TrimEnd('_');
 	if (fkretname.StartsWith(fkx.ReferencedTable.Name, StringComparison.CurrentCultureIgnoreCase)) fkretname = fkretname.Substring(fkx.ReferencedTable.Name.Length).TrimStart('_');
-	return fkx.Table.Name + ""s"";
+	return fkx.Table.Name + (string.IsNullOrEmpty(fkretname) ? """" : (""_"" + fkretname));
 };
 }@{
 switch (gen.fsql.Ado.DataType) {
@@ -179,7 +179,7 @@ namespace @gen.NameSpace {
             }
 @:
 		@:[Navigate(""@string.Join("", "", fk.Columns.Select(a => gen.GetCsName(a.Name)))"")]
-		@:public@(isLazying ? "" virtual"" : """") @gen.GetCsName(fkTableName) @GetFkObjectName(fk) { get; set; }
+		@:public@(isLazying ? "" virtual"" : """") @gen.GetCsName(fkTableName) @gen.GetCsName(GetFkObjectName(fk)) { get; set; }
 		}
 @:
 		@:#endregion
@@ -197,7 +197,7 @@ namespace @gen.NameSpace {
             }
 @:
 		@:[Navigate(""@string.Join("", "", fk.Columns.Select(a => gen.GetCsName(a.Name)))"")]
-		@:public@(isLazying ? "" virtual"" : """") List<@gen.GetCsName(fkTableName)> @GetFkObjectNameOutside(fk)s { get; set; }
+		@:public@(isLazying ? "" virtual"" : """") List<@gen.GetCsName(fkTableName)> @gen.GetCsName(GetFkObjectNameOutside(fk))s { get; set; }
 		}
 	}
 @:

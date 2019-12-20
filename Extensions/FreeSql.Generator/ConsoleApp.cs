@@ -17,6 +17,7 @@ namespace FreeSql.Generator
         string ArgsNameSpace { get; }
         DataType ArgsDbType { get; }
         string ArgsConnectionString { get; }
+        string ArgsFilter { get; }
         string ArgsFileName { get; }
         string ArgsOutput { get; }
 
@@ -50,9 +51,13 @@ namespace FreeSql.Generator
 new Colorful.Formatter("https://github.com/2881099/FreeSql", Color.DeepSkyBlue),
 new Colorful.Formatter("v" + string.Join(".", typeof(ConsoleApp).Assembly.GetName().Version.ToString().Split('.').Where((a, b) => b <= 2)), Color.SlateGray));
 
+            ArgsRazorRaw = "1";
+            ArgsRazor = RazorContentManager.实体类_特性_cshtml;
             ArgsNameOptions = new[] { false, false, false, false };
-            ArgsOutput = Directory.GetCurrentDirectory();
+            ArgsNameSpace = "MyProject";
+            ArgsFilter = "";
             ArgsFileName = "{name}.cs";
+            ArgsOutput = Directory.GetCurrentDirectory();
             string args0 = args[0].Trim().ToLower();
             if (args[0] == "?" || args0 == "--help" || args0 == "-help")
             {
@@ -91,6 +96,10 @@ new Colorful.Formatter("v" + string.Join(".", typeof(ConsoleApp).Assembly.GetNam
      
      -DB ""{10},Driver={DM8 ODBC DRIVER};Server=127.0.0.1:5236;Persist Security Info=False;Trusted_Connection=Yes;UID=USER1;PWD=123456789;Max pool size=2""
                                {10} 是国产达梦数据库，需要使用 ODBC 连接
+
+     -Filter                   Table+View+StoreProcedure
+                               默认生成：表+视图+存储过程
+                               如果不想生成视图和存储过程 -Fitler View+StoreProcedure
 
      -FileName                 文件名，默认：{name}.cs
 
@@ -151,7 +160,10 @@ new Colorful.Formatter("推荐在实体类目录创建 gen.bat，双击它重新
                             default: throw new ArgumentException($"-DB 参数错误，不支持的类型：{dbargs[0]}");
                         }
                         ArgsConnectionString = dbargs[1].Trim();
-                        if (string.IsNullOrEmpty(ArgsConnectionString)) throw new ArgumentException($"-DB 参数错误，未提供 ConnectionString");
+                        a++;
+                        break;
+                    case "-Filter":
+                        ArgsFilter = args[a + 1];
                         a++;
                         break;
                     case "-FileName":
@@ -164,6 +176,8 @@ new Colorful.Formatter("推荐在实体类目录创建 gen.bat，双击它重新
                         break;
                 }
             }
+
+            if (string.IsNullOrEmpty(ArgsConnectionString)) throw new ArgumentException($"-DB 参数错误，未提供 ConnectionString");
 
             ArgsOutput = ArgsOutput.Trim().TrimEnd('/', '\\');
             ArgsOutput += ArgsOutput.Contains("\\") ? "\\" : "/";
@@ -187,10 +201,34 @@ new Colorful.Formatter("推荐在实体类目录创建 gen.bat，双击它重新
                 var tables = fsql.DbFirst.GetTablesByDatabase();
                 var outputTables = tables;
 
-                
+
                 //开始生成操作
                 foreach (var table in outputTables)
                 {
+                    switch (table.Type)
+                    {
+                        case DatabaseModel.DbTableType.TABLE:
+                            if (ArgsFilter.Contains("Table", StringComparison.OrdinalIgnoreCase))
+                            {
+                                Console.WriteFormatted(" Ignore Table -> " + table.Name + "\r\n", Color.DarkSlateGray);
+                                continue;
+                            }
+                            break;
+                        case DatabaseModel.DbTableType.VIEW:
+                            if (ArgsFilter.Contains("View", StringComparison.OrdinalIgnoreCase))
+                            {
+                                Console.WriteFormatted(" Ignore View -> " + table.Name + "\r\n", Color.DarkSlateGray);
+                                continue;
+                            }
+                            break;
+                        case DatabaseModel.DbTableType.StoreProcedure:
+                            if (ArgsFilter.Contains("StoreProcedure", StringComparison.OrdinalIgnoreCase))
+                            {
+                                Console.WriteFormatted(" Ignore StoreProcedure -> " + table.Name + "\r\n", Color.DarkSlateGray);
+                                continue;
+                            }
+                            break;
+                    }
                     var sw = new StringWriter();
                     var model = new RazorModel(fsql, ArgsNameSpace, ArgsNameOptions, tables, table);
                     RazorEngine.Engine.Razor.Run(razorId, sw, null, model);
@@ -210,7 +248,18 @@ new Colorful.Formatter("推荐在实体类目录创建 gen.bat，双击它重新
 
                     var outputFile = $"{ArgsOutput}{ArgsFileName.Replace("{name}", model.GetCsName(table.Name))}";
                     File.WriteAllText(outputFile, plus.ToString());
-                    Console.WriteFormatted(" OUT -> " + outputFile + "\r\n", Color.DeepSkyBlue);
+                    switch (table.Type)
+                    {
+                        case DatabaseModel.DbTableType.TABLE:
+                            Console.WriteFormatted(" OUT Table -> " + outputFile + "\r\n", Color.DeepSkyBlue);
+                            break;
+                        case DatabaseModel.DbTableType.VIEW:
+                            Console.WriteFormatted(" OUT View -> " + outputFile + "\r\n", Color.DeepSkyBlue);
+                            break;
+                        case DatabaseModel.DbTableType.StoreProcedure:
+                            Console.WriteFormatted(" OUT StoreProcedure -> " + outputFile + "\r\n", Color.DeepSkyBlue);
+                            break;
+                    }
                     ++outputCounter;
                 }
             }
@@ -220,7 +269,7 @@ new Colorful.Formatter("推荐在实体类目录创建 gen.bat，双击它重新
             {
                 File.WriteAllText(rebuildBat, $@"
 FreeSql.Generator -Razor {ArgsRazorRaw} -NameOptions {string.Join(",", ArgsNameOptions.Select(a => a ? 1 : 0))} -NameSpace {ArgsNameSpace} -DB ""{ArgsDbType},{ArgsConnectionString}""
-"); 
+");
                 Console.WriteFormatted(" OUT -> " + rebuildBat + "    (以后) 双击它重新生成实体\r\n", Color.Magenta);
                 ++outputCounter;
             }
