@@ -108,7 +108,7 @@ new Colorful.Formatter("v" + string.Join(".", typeof(ConsoleApp).Assembly.GetNam
 
      -Filter                   Table+View+StoreProcedure
                                默认生成：表+视图+存储过程
-                               如果不想生成视图和存储过程 -Fitler View+StoreProcedure
+                               如果不想生成视图和存储过程 -Filter View+StoreProcedure
 
      -FileName                 文件名，默认：{name}.cs
 
@@ -183,6 +183,8 @@ new Colorful.Formatter("推荐在实体类目录创建 gen.bat，双击它重新
                         setArgsOutput(args[a + 1]);
                         a++;
                         break;
+                    default:
+                        throw new ArgumentException($"错误的参数设置：{args[a]}");
                 }
             }
 

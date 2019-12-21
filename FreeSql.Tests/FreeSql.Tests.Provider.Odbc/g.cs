@@ -82,4 +82,9 @@ public class g
             (cmd, traceLog) => Console.WriteLine(traceLog))
         .Build());
     public static IFreeSql dameng => damemgLazy.Value;
+
+    //启动神州通用数据库 /etc/init.d/oscardb_OSRDBd start
+    //SYSDBA 密码 szoscar55
+
+
 }
