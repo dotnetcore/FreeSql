@@ -78,50 +78,61 @@ public static partial class FreeSqlSqlServerGlobalExtensions
             bulkCopy.WriteToServer(dt);
         };
 
-        if (insert.InternalConnection == null && insert.InternalTransaction == null)
+        try
         {
-            using (var conn = insert.InternalOrm.Ado.MasterPool.Get())
+            if (insert.InternalConnection == null && insert.InternalTransaction == null)
+            {
+                using (var conn = insert.InternalOrm.Ado.MasterPool.Get())
+                {
+                    using (var bulkCopy = copyOptions == SqlBulkCopyOptions.Default ?
+                        new SqlBulkCopy(conn.Value as SqlConnection) :
+                        new SqlBulkCopy(conn.Value as SqlConnection, copyOptions, null))
+                    {
+                        writeToServer(bulkCopy);
+                    }
+                }
+            }
+            else if (insert.InternalTransaction != null)
             {
                 using (var bulkCopy = copyOptions == SqlBulkCopyOptions.Default ?
-                    new SqlBulkCopy(conn.Value as SqlConnection) :
-                    new SqlBulkCopy(conn.Value as SqlConnection, copyOptions, null))
+                    new SqlBulkCopy(insert.InternalTransaction.Connection as SqlConnection) :
+                    new SqlBulkCopy(insert.InternalTransaction.Connection as SqlConnection, copyOptions, insert.InternalTransaction as SqlTransaction))
                 {
                     writeToServer(bulkCopy);
                 }
             }
-        }
-        else if (insert.InternalTransaction != null)
-        {
-            using (var bulkCopy = copyOptions == SqlBulkCopyOptions.Default ?
-                new SqlBulkCopy(insert.InternalTransaction.Connection) :
-                new SqlBulkCopy(insert.InternalTransaction.Connection, copyOptions, insert.InternalTransaction))
+            else if (insert.InternalConnection != null)
             {
-                writeToServer(bulkCopy);
+                var conn = insert.InternalConnection as SqlConnection;
+                var isNotOpen = false;
+                if (conn.State != System.Data.ConnectionState.Open)
+                {
+                    isNotOpen = true;
+                    conn.Open();
+                }
+                try
+                {
+                    using (var bulkCopy = copyOptions == SqlBulkCopyOptions.Default ?
+                        new SqlBulkCopy(conn) :
+                        new SqlBulkCopy(conn, copyOptions, null))
+                    {
+                        writeToServer(bulkCopy);
+                    }
+                }
+                finally
+                {
+                    if (isNotOpen)
+                        conn.Close();
+                }
+            }
+            else
+            {
+                throw new NotImplementedException("ExecuteSqlBulkCopy 未实现错误，请反馈给作者");
             }
         }
-        else if (insert.InternalConnection != null)
+        finally
         {
-            var conn = insert.InternalConnection;
-            var isNotOpen = false;
-            if (conn.State != System.Data.ConnectionState.Open)
-            {
-                isNotOpen = true;
-                conn.Open();
-            }
-            using (var bulkCopy = copyOptions == SqlBulkCopyOptions.Default ?
-                new SqlBulkCopy(insert.InternalConnection) :
-                new SqlBulkCopy(insert.InternalConnection, copyOptions, null))
-            {
-                writeToServer(bulkCopy);
-            }
-            if (isNotOpen)
-            {
-                conn.Close();
-            }
-        }
-        else
-        {
-            throw new NotImplementedException("未实现错误，请反馈给作者");
+            dt.Clear();
         }
     }
 }

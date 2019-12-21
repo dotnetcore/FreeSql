@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,8 +19,8 @@ namespace FreeSql.SqlServer.Curd
         }
 
         internal IFreeSql InternalOrm => _orm as IFreeSql;
-        internal SqlConnection InternalConnection => _connection as SqlConnection;
-        internal SqlTransaction InternalTransaction => _transaction as SqlTransaction;
+        internal DbConnection InternalConnection => _connection;
+        internal DbTransaction InternalTransaction => _transaction;
 
         public override int ExecuteAffrows() => base.SplitExecuteAffrows(_batchValuesLimit > 0 ? _batchValuesLimit : 1000, _batchParameterLimit > 0 ? _batchParameterLimit : 2100);
         public override long ExecuteIdentity() => base.SplitExecuteIdentity(_batchValuesLimit > 0 ? _batchValuesLimit : 1000, _batchParameterLimit > 0 ? _batchParameterLimit : 2100);

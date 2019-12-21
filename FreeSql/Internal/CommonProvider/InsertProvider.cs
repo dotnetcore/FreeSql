@@ -488,6 +488,7 @@ namespace FreeSql.Internal.CommonProvider
                 if (col.Attribute.IsIdentity == false && _ignore.ContainsKey(col.Attribute.Name)) continue;
                 dt.Columns.Add(col.Attribute.Name, col.Attribute.MapType);
             }
+            if (dt.Columns.Count == 0) return dt;
             foreach (var d in _source)
             {
                 var row = new object[dt.Columns.Count];
