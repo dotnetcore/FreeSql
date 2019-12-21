@@ -52,17 +52,49 @@ namespace FreeSql.Odbc.Dameng
                 case "blob": return OdbcType.VarBinary;
                 case "nvarchar2(255)": return OdbcType.NVarChar;
 
-                case "char(36 char)": return OdbcType.Char;
+                case "char(36)": return OdbcType.Char;
             }
             switch (column.DbTypeText.ToLower())
             {
+                case "bit":
+                    _dicDbToCs.TryAdd(dbfull, _dicDbToCs["number(1)"]);
+                    return OdbcType.Bit;
+                case "smallint":
+                    _dicDbToCs.TryAdd(dbfull, _dicDbToCs["number(5)"]);
+                    return OdbcType.SmallInt;
+                case "byte":
+                    _dicDbToCs.TryAdd(dbfull, _dicDbToCs["number(3)"]);
+                    return OdbcType.TinyInt;
+                case "tinyint":
+                    _dicDbToCs.TryAdd(dbfull, _dicDbToCs["number(3)"]);
+                    return OdbcType.TinyInt;
+                case "integer":
+                    _dicDbToCs.TryAdd(dbfull, _dicDbToCs["number(11)"]);
+                    return OdbcType.Int;
+                case "bigint":
+                    _dicDbToCs.TryAdd(dbfull, _dicDbToCs["number(21)"]);
+                    return OdbcType.Int;
+                case "dec":
+                case "decimal":
+                case "numeric":
                 case "number":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["number(10,2)"]);
                     return OdbcType.Decimal;
-                case "float":
-                    _dicDbToCs.TryAdd(dbfull, _dicDbToCs["float(126)"]);
-                    return OdbcType.Double;
+                case "time":
                 case "interval day to second":
+                case "interval year to month":
+                case "interval year":
+                case "interval month":
+                case "interval day":
+                case "interval day to hour":
+                case "interval day to minute":
+                case "interval hour":
+                case "interval hour to minute":
+                case "interval hour to second":
+                case "interval minute":
+                case "interval minute to second":
+                case "interval second":
+                case "time with time zone":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["interval day(2) to second(6)"]);
                     return OdbcType.Time;
                 case "date":
@@ -72,17 +104,27 @@ namespace FreeSql.Odbc.Dameng
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["timestamp(6)"]);
                     return OdbcType.DateTime;
                 case "timestamp with local time zone":
+                case "timestamp with time zone":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["timestamp(6) with local time zone"]);
                     return OdbcType.DateTime;
+                case "binary":
+                case "varbinary":
                 case "blob":
+                case "image":
+                case "longvarbinary":
+                case "bfile":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["blob"]);
                     return OdbcType.VarBinary;
                 case "nvarchar2":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["nvarchar2(255)"]);
                     return OdbcType.NVarChar;
+                case "varchar":
                 case "varchar2":
+                case "text":
+                case "longvarchar":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["nvarchar2(255)"]);
                     return OdbcType.NVarChar;
+                case "character":
                 case "char":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["nvarchar2(255)"]);
                     return OdbcType.Char;
@@ -101,9 +143,13 @@ namespace FreeSql.Odbc.Dameng
                 case "long raw":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["blob"]);
                     return OdbcType.VarBinary;
+                case "real":
                 case "binary_float":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["float(63)"]);
                     return OdbcType.Real;
+                case "double":
+                case "float":
+                case "double precision":
                 case "binary_double":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["float(126)"]);
                     return OdbcType.Double;
