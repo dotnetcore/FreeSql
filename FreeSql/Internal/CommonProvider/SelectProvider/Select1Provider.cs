@@ -386,6 +386,7 @@ namespace FreeSql.Internal.CommonProvider
 
             var expBody = navigateSelector?.Body;
             if (expBody == null) return this;
+            if (expBody.NodeType == ExpressionType.Convert) expBody = (expBody as UnaryExpression)?.Operand;
             MethodCallExpression whereExp = null;
             int takeNumber = 0;
             Expression<Func<TNavigate, TNavigate>> selectExp = null;
