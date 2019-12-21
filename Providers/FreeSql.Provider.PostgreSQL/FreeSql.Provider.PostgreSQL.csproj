@@ -33,6 +33,10 @@
   <ItemGroup Condition="'$(TargetFramework)' == 'net452' or '$(TargetFramework)' == 'net451' or '$(TargetFramework)' == 'net45'">
     <PackageReference Include="Npgsql.LegacyPostgis" Version="4.0.10" />
   </ItemGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net452' or '$(TargetFramework)' == 'net451' or '$(TargetFramework)' == 'net45'">
+    <DefineConstants>net45</DefineConstants>
+  </PropertyGroup>
   
 	<ItemGroup>
 	  <ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />

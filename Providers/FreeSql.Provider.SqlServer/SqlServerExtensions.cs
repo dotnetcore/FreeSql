@@ -3,6 +3,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Threading.Tasks;
 
 public static partial class FreeSqlSqlServerGlobalExtensions
 {
@@ -42,6 +43,7 @@ public static partial class FreeSqlSqlServerGlobalExtensions
     }
     internal static ConcurrentDictionary<IFreeSql, (SqlServerLock, Dictionary<Type, bool>)> _dicSetGlobalSelectWithLock = new ConcurrentDictionary<IFreeSql, (SqlServerLock, Dictionary<Type, bool>)>();
 
+    #region ExecuteSqlBulkCopy
     /// <summary>
     /// SqlServer SqlCopyBulk 批量插入功能<para></para>
     /// 使用 IgnoreColumns/InsertColumns 设置忽略/指定导入的列<para></para>
@@ -135,6 +137,83 @@ public static partial class FreeSqlSqlServerGlobalExtensions
             dt.Clear();
         }
     }
+#if net40
+#else
+    async public static Task ExecuteSqlBulkCopyAsync<T>(this IInsert<T> that, SqlBulkCopyOptions copyOptions = SqlBulkCopyOptions.Default, int? batchSize = null, int? bulkCopyTimeout = null) where T : class
+    {
+        var insert = that as FreeSql.SqlServer.Curd.SqlServerInsert<T>;
+        if (insert == null) throw new Exception("ExecuteSqlBulkCopyAsync 是 FreeSql.Provider.SqlServer 特有的功能");
+
+        var dt = that.ToDataTable();
+        if (dt.Rows.Count == 0) return;
+
+        Func<SqlBulkCopy, Task> writeToServerAsync = bulkCopy =>
+        {
+            if (batchSize.HasValue) bulkCopy.BatchSize = batchSize.Value;
+            if (bulkCopyTimeout.HasValue) bulkCopy.BulkCopyTimeout = bulkCopyTimeout.Value;
+            bulkCopy.DestinationTableName = dt.TableName;
+            return bulkCopy.WriteToServerAsync(dt);
+        };
+
+        try
+        {
+            if (insert.InternalConnection == null && insert.InternalTransaction == null)
+            {
+                using (var conn = await insert.InternalOrm.Ado.MasterPool.GetAsync())
+                {
+                    using (var bulkCopy = copyOptions == SqlBulkCopyOptions.Default ?
+                        new SqlBulkCopy(conn.Value as SqlConnection) :
+                        new SqlBulkCopy(conn.Value as SqlConnection, copyOptions, null))
+                    {
+                        await writeToServerAsync(bulkCopy);
+                    }
+                }
+            }
+            else if (insert.InternalTransaction != null)
+            {
+                using (var bulkCopy = copyOptions == SqlBulkCopyOptions.Default ?
+                    new SqlBulkCopy(insert.InternalTransaction.Connection as SqlConnection) :
+                    new SqlBulkCopy(insert.InternalTransaction.Connection as SqlConnection, copyOptions, insert.InternalTransaction as SqlTransaction))
+                {
+                    await writeToServerAsync(bulkCopy);
+                }
+            }
+            else if (insert.InternalConnection != null)
+            {
+                var conn = insert.InternalConnection as SqlConnection;
+                var isNotOpen = false;
+                if (conn.State != System.Data.ConnectionState.Open)
+                {
+                    isNotOpen = true;
+                    await conn.OpenAsync();
+                }
+                try
+                {
+                    using (var bulkCopy = copyOptions == SqlBulkCopyOptions.Default ?
+                        new SqlBulkCopy(conn) :
+                        new SqlBulkCopy(conn, copyOptions, null))
+                    {
+                        await writeToServerAsync(bulkCopy);
+                    }
+                }
+                finally
+                {
+                    if (isNotOpen)
+                        conn.Close();
+                }
+            }
+            else
+            {
+                throw new NotImplementedException("ExecuteSqlBulkCopyAsync 未实现错误，请反馈给作者");
+            }
+        }
+        finally
+        {
+            dt.Clear();
+        }
+    }
+#endif
+    #endregion
 }
 
 [Flags]

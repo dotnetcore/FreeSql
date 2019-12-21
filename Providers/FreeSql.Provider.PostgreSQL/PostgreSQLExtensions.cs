@@ -5,6 +5,7 @@ using System;
 using System.Data;
 using System.Linq.Expressions;
 using System.Text;
+using System.Threading.Tasks;
 
 public static partial class FreeSqlPostgreSQLGlobalExtensions
 {
@@ -28,6 +29,7 @@ public static partial class FreeSqlPostgreSQLGlobalExtensions
     /// <returns></returns>
     public static OnConflictDoUpdate<T1> OnConflictDoUpdate<T1>(this IInsert<T1> that, Expression<Func<T1, object>> columns = null) where T1 : class => new FreeSql.PostgreSQL.Curd.OnConflictDoUpdate<T1>(that.InsertIdentity(), columns);
 
+    #region ExecutePgCopy
     /// <summary>
     /// PostgreSQL COPY 批量导入功能，封装了 NpgsqlConnection.BeginBinaryImport 方法<para></para>
     /// 使用 IgnoreColumns/InsertColumns 设置忽略/指定导入的列<para></para>
@@ -48,7 +50,7 @@ public static partial class FreeSqlPostgreSQLGlobalExtensions
     public static void ExecutePgCopy<T>(this IInsert<T> that) where T : class
     {
         var insert = that as FreeSql.PostgreSQL.Curd.PostgreSQLInsert<T>;
-        if (insert == null) throw new Exception("ExecuteSqlBulkCopy 是 FreeSql.Provider.PostgreSQL 特有的功能");
+        if (insert == null) throw new Exception("ExecutePgCopy 是 FreeSql.Provider.PostgreSQL 特有的功能");
 
         var dt = that.ToDataTable();
         if (dt.Rows.Count == 0) return;
@@ -106,7 +108,7 @@ public static partial class FreeSqlPostgreSQLGlobalExtensions
             }
             else
             {
-                throw new NotImplementedException("ExecuteCopy 未实现错误，请反馈给作者");
+                throw new NotImplementedException("ExecutePgCopy 未实现错误，请反馈给作者");
             }
         }
         finally
@@ -114,4 +116,77 @@ public static partial class FreeSqlPostgreSQLGlobalExtensions
             dt.Clear();
         }
     }
+
+#if net45
+#else
+    async public static Task ExecutePgCopyAsync<T>(this IInsert<T> that) where T : class
+    {
+        var insert = that as FreeSql.PostgreSQL.Curd.PostgreSQLInsert<T>;
+        if (insert == null) throw new Exception("ExecutePgCopyAsync 是 FreeSql.Provider.PostgreSQL 特有的功能");
+
+        var dt = that.ToDataTable();
+        if (dt.Rows.Count == 0) return;
+        Func<NpgsqlConnection, Task> binaryImportAsync = async conn =>
+        {
+            var copyFromCommand = new StringBuilder().Append("COPY ").Append(insert.InternalCommonUtils.QuoteSqlName(dt.TableName)).Append("(");
+            var colIndex = 0;
+            foreach (DataColumn col in dt.Columns)
+            {
+                if (colIndex++ > 0) copyFromCommand.Append(", ");
+                copyFromCommand.Append(insert.InternalCommonUtils.QuoteSqlName(col.ColumnName));
+            }
+            copyFromCommand.Append(") FROM STDIN BINARY");
+            using (var writer = conn.BeginBinaryImport(copyFromCommand.ToString()))
+            {
+                foreach (DataRow item in dt.Rows)
+                    await writer.WriteRowAsync(System.Threading.CancellationToken.None, item.ItemArray);
+                writer.Complete();
+            }
+            copyFromCommand.Clear();
+        };
+
+        try
+        {
+            if (insert.InternalConnection == null && insert.InternalTransaction == null)
+            {
+                using (var conn = await insert.InternalOrm.Ado.MasterPool.GetAsync())
+                {
+                    await binaryImportAsync(conn.Value as NpgsqlConnection);
+                }
+            }
+            else if (insert.InternalTransaction != null)
+            {
+                await binaryImportAsync(insert.InternalTransaction.Connection as NpgsqlConnection);
+            }
+            else if (insert.InternalConnection != null)
+            {
+                var conn = insert.InternalConnection as NpgsqlConnection;
+                var isNotOpen = false;
+                if (conn.State != System.Data.ConnectionState.Open)
+                {
+                    isNotOpen = true;
+                    await conn.OpenAsync();
+                }
+                try
+                {
+                    await binaryImportAsync(conn);
+                }
+                finally
+                {
+                    if (isNotOpen)
+                        await conn.CloseAsync();
+                }
+            }
+            else
+            {
+                throw new NotImplementedException("ExecutePgCopyAsync 未实现错误，请反馈给作者");
+            }
+        }
+        finally
+        {
+            dt.Clear();
+        }
+    }
+#endif
+    #endregion
 }
