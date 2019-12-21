@@ -559,6 +559,7 @@ namespace FreeSql.Internal
                 case ExpressionType.Lambda: return ExpressionLambdaToSql((exp as LambdaExpression)?.Body, tsc);
                 case ExpressionType.TypeAs:
                 case ExpressionType.Convert:
+                case ExpressionType.ConvertChecked:
                     //var othercExp = ExpressionLambdaToSqlOther(exp, tsc);
                     //if (string.IsNullOrEmpty(othercExp) == false) return othercExp;
                     return ExpressionLambdaToSql((exp as UnaryExpression)?.Operand, tsc);

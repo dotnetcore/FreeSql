@@ -10,6 +10,10 @@ Namespace FreeSql.Tests.VB
             Dim id As Integer = 100
             Dim List1 = g.sqlserver.Select(Of Testvb).Where(Function(a) a.Id = 100).ToList()
             Dim List2 = g.sqlserver.Select(Of Testvb).Where(Function(a) a.Id = id).ToList()
+            Dim List11 = g.sqlserver.Select(Of Testvb).Where(Function(a) a.IdNullable = 100).ToList()
+            Dim List22 = g.sqlserver.Select(Of Testvb).Where(Function(a) a.IdNullable = id).ToList()
+            Dim idNullable As Integer? = 100
+            Dim List222 = g.sqlserver.Select(Of Testvb).Where(Function(a) a.IdNullable = idNullable).ToList()
             Dim List3 = g.sqlserver.Select(Of Testvb).Where(Function(a) a.Title = "xxx").ToList()
             Dim title As String = "xxx"
             Dim List4 = g.sqlserver.Select(Of Testvb).Where(Function(a) a.Title = title).ToList()
@@ -43,6 +47,7 @@ Class Testvb
     Property Id As Integer
     Property Title As String
     Property IsDeleted As Boolean
+    Property IdNullable As Integer?
 
     Property Testvb2s As List(Of Testvb2)
 End Class
