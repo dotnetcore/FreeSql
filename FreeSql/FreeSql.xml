@@ -910,6 +910,15 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.IInsert`1.ToDataTable">
+            <summary>
+            返回 DataTable 以便做 BulkCopy 数据做准备<para></para>
+            此方法会处理：<para></para>
+            类型、表名、字段名映射<para></para>
+            IgnoreColumns、InsertColumns
+            </summary>
+            <returns></returns>
+        </member>
         <member name="F:FreeSql.FieldAliasOptions.AsIndex">
             <summary>
             自动产生 as1, as2, as3 .... 字段别名<para></para>

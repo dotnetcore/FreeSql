@@ -1,4 +1,5 @@
 ﻿using FreeSql.Internal.Model;
+using FreeSql.Extensions.EntityUtil;
 using SafeObjectPool;
 using System;
 using System.Collections.Generic;
@@ -136,8 +137,20 @@ namespace FreeSql.Internal.CommonProvider
             foreach (var col in table.Columns.Values)
             {
                 object val = col.GetMapValue(data);
-                if (col.Attribute.IsPrimary && col.Attribute.MapType.NullableTypeOrThis() == typeof(Guid) && (val == null || (Guid)val == Guid.Empty))
-                    col.SetMapValue(data, val = FreeUtil.NewMongodbId());
+                if (col.Attribute.IsPrimary)
+                {
+                    if (col.Attribute.MapType.NullableTypeOrThis() == typeof(Guid) && (val == null || (Guid)val == Guid.Empty))
+                        col.SetMapValue(data, val = FreeUtil.NewMongodbId());
+                    else if (col.CsType.NullableTypeOrThis() == typeof(Guid))
+                    {
+                        var guidVal = orm.GetEntityValueWithPropertyName(table.Type, data, col.CsName);
+                        if (guidVal == null || (Guid)guidVal == Guid.Empty)
+                        {
+                            orm.SetEntityValueWithPropertyName(table.Type, data, col.CsName, FreeUtil.NewMongodbId());
+                            val = col.GetMapValue(data);
+                        }
+                    }
+                }
                 if (orm.Aop.AuditValue != null)
                 {
                     var auditArgs = new Aop.AuditValueEventArgs(Aop.AuditValueType.Insert, col, table.Properties[col.CsName], val);
