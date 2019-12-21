@@ -639,6 +639,7 @@ namespace FreeSql.Tests.Odbc.Default
             .OrderBy(a => a.Key.tt2)
             .OrderByDescending(a => a.Count())
             .Limit(2)
+            .Count(out var trycount)
             .ToList(a => new
             {
                 a.Key.tt2,

@@ -11,6 +11,7 @@ namespace FreeSql
 
 #if net40
 #else
+        Task<long> CountAsync();
         Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select);
 #endif
 
@@ -95,6 +96,18 @@ namespace FreeSql
         /// <param name="pageSize">每页多少</param>
         /// <returns></returns>
         ISelectGrouping<TKey, TValue> Page(int pageNumber, int pageSize);
+
+        /// <summary>
+        /// 查询的记录数量
+        /// </summary>
+        /// <returns></returns>
+        long Count();
+        /// <summary>
+        /// 查询的记录数量，以参数out形式返回
+        /// </summary>
+        /// <param name="count">返回的变量</param>
+        /// <returns></returns>
+        ISelectGrouping<TKey, TValue> Count(out long count);
     }
 
     public interface ISelectGroupingAggregate<TKey>

@@ -11,13 +11,14 @@ namespace FreeSql.Internal.CommonProvider
 {
     public class SelectGroupingProvider<TKey, TValue> : ISelectGrouping<TKey, TValue>
     {
-
+        internal IFreeSql _orm;
         internal object _select;
         internal ReadAnonymousTypeInfo _map;
         internal CommonExpression _comonExp;
         internal List<SelectTableInfo> _tables;
-        public SelectGroupingProvider(object select, ReadAnonymousTypeInfo map, CommonExpression comonExp, List<SelectTableInfo> tables)
+        public SelectGroupingProvider(IFreeSql orm, object select, ReadAnonymousTypeInfo map, CommonExpression comonExp, List<SelectTableInfo> tables)
         {
+            _orm = orm;
             _select = select;
             _map = map;
             _comonExp = comonExp;
@@ -162,8 +163,17 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
 
+        public long Count() => long.TryParse(string.Concat(_orm.Ado.ExecuteScalar($"select count(1) from ({this.ToSql("1 as1")}) fta")), out var trylng) ? trylng : default(long);
+        public ISelectGrouping<TKey, TValue> Count(out long count)
+        {
+            count = this.Count();
+            return this;
+        }
+
 #if net40
 #else
+        async public Task<long> CountAsync() => long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync($"select count(1) from ({this.ToSql("1 as1")}) fta")), out var trylng) ? trylng : default(long);
+
         public Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select)
         {
             var map = new ReadAnonymousTypeInfo();

@@ -1776,6 +1776,19 @@
             <param name="pageSize">每页多少</param>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.ISelectGrouping`2.Count">
+            <summary>
+            查询的记录数量
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.ISelectGrouping`2.Count(System.Int64@)">
+            <summary>
+            查询的记录数量，以参数out形式返回
+            </summary>
+            <param name="count">返回的变量</param>
+            <returns></returns>
+        </member>
         <member name="P:FreeSql.ISelectGroupingAggregate`1.Key">
             <summary>
             分组的数据

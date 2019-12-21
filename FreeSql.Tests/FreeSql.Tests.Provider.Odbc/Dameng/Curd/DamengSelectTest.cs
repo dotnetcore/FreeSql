@@ -648,6 +648,7 @@ namespace FreeSql.Tests.Odbc.Dameng
             .OrderByDescending(a => a.Count())
             .Offset(10)
             .Limit(2)
+            .Count(out var trycount)
             .ToList(a => new
             {
                 a.Key.tt2,

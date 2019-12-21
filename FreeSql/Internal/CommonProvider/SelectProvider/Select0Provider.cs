@@ -1052,7 +1052,7 @@ namespace FreeSql.Internal.CommonProvider
 
             _commonExpression.ReadAnonymousField(_tables, field, map, ref index, columns, null, _whereCascadeExpression, true);
             this.GroupBy(field.Length > 0 ? field.Remove(0, 2).ToString() : null);
-            return new SelectGroupingProvider<TKey, TValue>(this, map, _commonExpression, _tables);
+            return new SelectGroupingProvider<TKey, TValue>(_orm, this, map, _commonExpression, _tables);
         }
         protected TSelect InternalJoin(Expression exp, SelectTableInfoType joinType)
         {
