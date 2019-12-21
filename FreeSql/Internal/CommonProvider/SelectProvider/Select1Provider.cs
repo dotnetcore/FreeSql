@@ -386,7 +386,7 @@ namespace FreeSql.Internal.CommonProvider
 
             var expBody = navigateSelector?.Body;
             if (expBody == null) return this;
-            if (expBody.NodeType == ExpressionType.Convert) expBody = (expBody as UnaryExpression)?.Operand;
+            if (expBody.NodeType == ExpressionType.Convert) expBody = (expBody as UnaryExpression)?.Operand; //- 兼容 Vb.Net 无法使用 IncludeMany 的问题；
             MethodCallExpression whereExp = null;
             int takeNumber = 0;
             Expression<Func<TNavigate, TNavigate>> selectExp = null;
