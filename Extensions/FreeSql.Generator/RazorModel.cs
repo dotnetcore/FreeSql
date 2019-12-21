@@ -66,19 +66,23 @@ public class RazorModel {
 		if (GetCsName(col.Name) != col.Name)
 			sb.Add("Name = \"" + col.Name + "\"");
 
-		var dbinfo = fsql.CodeFirst.GetDbInfo(col.CsType);
-		if (dbinfo != null && dbinfo.Value.dbtypeFull.Replace("NOT NULL", "").Trim() != col.DbTypeTextFull)
-			sb.Add("DbType = \"" + col.DbTypeTextFull + "\"");
-		if (col.IsPrimary)
-			sb.Add("IsPrimary = true");
-		if (col.IsIdentity)
-			sb.Add("IsIdentity = true");
+		if (col.CsType != null)
+		{
+			var dbinfo = fsql.CodeFirst.GetDbInfo(col.CsType);
+			if (dbinfo != null && dbinfo.Value.dbtypeFull.Replace("NOT NULL", "").Trim() != col.DbTypeTextFull)
+				sb.Add("DbType = \"" + col.DbTypeTextFull + "\"");
+			if (col.IsPrimary)
+				sb.Add("IsPrimary = true");
+			if (col.IsIdentity)
+				sb.Add("IsIdentity = true");
 
-		if (dbinfo != null && dbinfo.Value.isnullable != col.IsNullable) {
-			if (col.IsNullable && fsql.DbFirst.GetCsType(col).Contains("?") == false && col.CsType.IsValueType)
-				sb.Add("IsNullable = true");
-			if (col.IsNullable == false && fsql.DbFirst.GetCsType(col).Contains("?") == true)
-				sb.Add("IsNullable = false");
+			if (dbinfo != null && dbinfo.Value.isnullable != col.IsNullable)
+			{
+				if (col.IsNullable && fsql.DbFirst.GetCsType(col).Contains("?") == false && col.CsType.IsValueType)
+					sb.Add("IsNullable = true");
+				if (col.IsNullable == false && fsql.DbFirst.GetCsType(col).Contains("?") == true)
+					sb.Add("IsNullable = false");
+			}
 		}
 		if (sb.Any() == false) return null;
 		return "[Column(" + string.Join(", ", sb) + ")]";

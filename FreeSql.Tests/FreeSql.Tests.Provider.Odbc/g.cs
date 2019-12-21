@@ -83,6 +83,21 @@ public class g
         .Build());
     public static IFreeSql dameng => damemgLazy.Value;
 
+
+    static Lazy<IFreeSql> gbaseLazy = new Lazy<IFreeSql>(() => new FreeSql.FreeSqlBuilder()
+        .UseConnectionString(FreeSql.DataType.OdbcDameng, "Driver={DM8 ODBC DRIVER};Server=127.0.0.1:5236;Persist Security Info=False;Trusted_Connection=Yes;UID=USER1;PWD=123456789")
+        //.UseConnectionFactory(FreeSql.DataType.OdbcDameng, () => new System.Data.Odbc.OdbcConnection("Driver={DM8 ODBC DRIVER};Server=127.0.0.1:5236;Persist Security Info=False;Trusted_Connection=Yes;UID=USER1;PWD=123456789"))
+        .UseAutoSyncStructure(true)
+        .UseLazyLoading(true)
+        .UseSyncStructureToUpper(true)
+        //.UseNoneCommandParameter(true)
+
+        .UseMonitorCommand(
+            cmd => Trace.WriteLine(cmd.CommandText), //监听SQL命令对象，在执行前
+            (cmd, traceLog) => Console.WriteLine(traceLog))
+        .Build());
+    public static IFreeSql gbase => gbaseLazy.Value;
+
     //启动神州通用数据库 /etc/init.d/oscardb_OSRDBd start
     //SYSDBA 密码 szoscar55
 
