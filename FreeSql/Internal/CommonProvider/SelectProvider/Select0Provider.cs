@@ -546,7 +546,6 @@ namespace FreeSql.Internal.CommonProvider
             _commonExpression.ReadAnonymousField(_tables, field, map, ref index, newexp, null, _whereCascadeExpression, true);
             return (map, field.Length > 0 ? field.Remove(0, 2).ToString() : null);
         }
-        static ConcurrentDictionary<Type, ConstructorInfo> _dicConstructor = new ConcurrentDictionary<Type, ConstructorInfo>();
         static ConcurrentDictionary<string, GetAllFieldExpressionTreeInfo> _dicGetAllFieldExpressionTree = new ConcurrentDictionary<string, GetAllFieldExpressionTreeInfo>();
         public class GetAllFieldExpressionTreeInfo
         {
@@ -568,9 +567,8 @@ namespace FreeSql.Internal.CommonProvider
                 var readExpValue = Expression.MakeMemberAccess(readExp, Utils.RowInfo.PropertyValue);
                 var readExpDataIndex = Expression.MakeMemberAccess(readExp, Utils.RowInfo.PropertyDataIndex);
                 var blockExp = new List<Expression>();
-                var ctor = type.GetConstructor(new Type[0]) ?? type.GetConstructors().First();
                 blockExp.AddRange(new Expression[] {
-                    Expression.Assign(retExp, Expression.New(ctor, ctor.GetParameters().Select(a => Expression.Default(a.ParameterType)))),
+                    Expression.Assign(retExp, type.InternalNewExpression()),
                     Expression.Assign(dataIndexExp, Expression.Constant(0))
                 });
                 //typeof(Topic).GetMethod("get_Type").IsVirtual
@@ -711,9 +709,8 @@ namespace FreeSql.Internal.CommonProvider
                 var readExpValue = Expression.MakeMemberAccess(readExp, Utils.RowInfo.PropertyValue);
                 var readExpDataIndex = Expression.MakeMemberAccess(readExp, Utils.RowInfo.PropertyDataIndex);
                 var blockExp = new List<Expression>();
-                var ctor = type.GetConstructor(new Type[0]) ?? type.GetConstructors().First();
                 blockExp.AddRange(new Expression[] {
-                    Expression.Assign(retExp, Expression.New(ctor, ctor.GetParameters().Select(a => Expression.Default(a.ParameterType)))),
+                    Expression.Assign(retExp, type.InternalNewExpression()),
                     Expression.Assign(dataIndexExp, Expression.Constant(0))
                 });
                 //typeof(Topic).GetMethod("get_Type").IsVirtual
@@ -762,7 +759,7 @@ namespace FreeSql.Internal.CommonProvider
                         }
                     }
                     //只读到二级属性
-                    var propGetSetMethod = prop.GetSetMethod();
+                    var propGetSetMethod = prop.GetSetMethod(true);
                     Expression readExpAssign = null; //加速缓存
                     if (prop.PropertyType.IsArray) readExpAssign = Expression.New(Utils.RowInfo.Constructor,
                         Utils.GetDataReaderValueBlockExpression(prop.PropertyType, Expression.Call(rowExp, Utils.MethodDataReaderGetValue, dataIndexExp)),
@@ -836,9 +833,9 @@ namespace FreeSql.Internal.CommonProvider
         protected (ReadAnonymousTypeInfo map, string field) GetAllFieldReflection()
         {
             var tb1 = _tables.First().Table;
-            var type = tb1.Type;
-            var constructor = _dicConstructor.GetOrAdd(type, s => type.GetConstructor(new Type[0]));
-            var map = new ReadAnonymousTypeInfo { Consturctor = constructor, ConsturctorType = ReadAnonymousTypeInfoConsturctorType.Properties };
+            var type = tb1.TypeLazy ?? tb1.Type;
+            var constructor = type.InternalGetTypeConstructor0OrFirst();
+            var map = new ReadAnonymousTypeInfo { CsType = type, Consturctor = constructor, IsEntity = true };
 
             var field = new StringBuilder();
             var dicfield = new Dictionary<string, bool>();
@@ -862,8 +859,9 @@ namespace FreeSql.Internal.CommonProvider
                     var tb2 = _tables.Where(a => a.Table.Type == p.PropertyType && a.Alias.Contains(p.Name)).FirstOrDefault();
                     if (tb2 == null && ps.Where(pw => pw.Value.PropertyType == p.PropertyType).Count() == 1) tb2 = _tables.Where(a => a.Table.Type == p.PropertyType).FirstOrDefault();
                     if (tb2 == null) continue;
-                    child.Consturctor = tb2.Table.Type.GetConstructor(new Type[0]);
-                    child.ConsturctorType = ReadAnonymousTypeInfoConsturctorType.Properties;
+                    child.CsType = (tb2.Table.TypeLazy ?? tb2.Table.Type);
+                    child.Consturctor = child.CsType.InternalGetTypeConstructor0OrFirst();
+                    child.IsEntity = true;
                     foreach (var col2 in tb2.Table.Columns.Values)
                     {
                         if (index > 0) field.Append(", ");

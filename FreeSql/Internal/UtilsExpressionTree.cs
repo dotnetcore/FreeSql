@@ -72,7 +72,7 @@ namespace FreeSql.Internal
             var columnsList = new List<ColumnInfo>();
             foreach (var p in trytb.Properties.Values)
             {
-                var setMethod = p.GetSetMethod(); //trytb.Type.GetMethod($"set_{p.Name}");
+                var setMethod = p.GetSetMethod(true); //trytb.Type.GetMethod($"set_{p.Name}");
                 var colattr = common.GetEntityColumnAttribute(entity, p);
                 var tp = common.CodeFirst.GetDbInfo(colattr?.MapType ?? p.PropertyType);
                 if (setMethod == null || (tp == null && p.PropertyType.IsValueType)) // 属性没有 set自动忽略
@@ -1200,7 +1200,7 @@ namespace FreeSql.Internal
                 this.Value = value;
                 this.DataIndex = dataIndex;
             }
-            public static ConstructorInfo Constructor = typeof(RowInfo).GetConstructor(new[] { typeof(object), typeof(int) });
+            public static ConstructorInfo Constructor = typeof(RowInfo). GetConstructor(new[] { typeof(object), typeof(int) });
             public static PropertyInfo PropertyValue = typeof(RowInfo).GetProperty("Value");
             public static PropertyInfo PropertyDataIndex = typeof(RowInfo).GetProperty("DataIndex");
         }
@@ -1342,14 +1342,15 @@ namespace FreeSql.Internal
                     var readpkvalExp = Expression.Variable(typeof(object), "isnull3val");
                     var indexesLengthExp = Expression.Variable(typeof(int), "indexesLength");
                     var blockExp = new List<Expression>();
-                    var ctor = type.GetConstructor(new Type[0]) ?? type.GetConstructors().First();
-                    var ctorParms = ctor.GetParameters();
-                    if (ctorParms.Length > 0)
+                    var newExp = type.InternalNewExpression();
+                    if (false && newExp.Arguments.Count > 0)
                     {
+                        #region 按构造参数读取数据，此功能暂时关闭
+                        /*
                         blockExp.AddRange(new Expression[] {
-                        Expression.Assign(readpknullExp, Expression.Constant(false))
-                    });
-                        foreach (var ctorParm in ctorParms)
+                            Expression.Assign(readpknullExp, Expression.Constant(false))
+                        });
+                        foreach (var ctorParm in newExp.Constructor.GetParameters())
                         {
                             if (typetb.ColumnsByCsIgnore.ContainsKey(ctorParm.Name)) continue;
                             var readType = typetb.ColumnsByCs.TryGetValue(ctorParm.Name, out var trycol) ? trycol.Attribute.MapType : ctorParm.ParameterType;
@@ -1419,33 +1420,35 @@ namespace FreeSql.Internal
                             );
 
                             blockExp.AddRange(new Expression[] {
-                            Expression.Assign(tryidxExp, dataIndexExp),
-                            readVal,
-                            Expression.Assign(readExp, readExpAssign),
-                            Expression.IfThen(Expression.GreaterThan(readExpDataIndex, dataIndexExp),
-                                Expression.Assign(dataIndexExp, readExpDataIndex)
-                            ),
-                            Expression.Block(ispkExp)
-                        });
+                                Expression.Assign(tryidxExp, dataIndexExp),
+                                readVal,
+                                Expression.Assign(readExp, readExpAssign),
+                                Expression.IfThen(Expression.GreaterThan(readExpDataIndex, dataIndexExp),
+                                    Expression.Assign(dataIndexExp, readExpDataIndex)
+                                ),
+                                Expression.Block(ispkExp)
+                            });
                         }
                         blockExp.Add(
                             Expression.IfThen(
                                 Expression.IsFalse(readpknullExp),
-                                Expression.Assign(retExp, Expression.New(ctor, readExpValueParms))
+                                Expression.Assign(retExp, Expression.New(newExp.Constructor, readExpValueParms))
                             )
                         );
+                        */
+                        #endregion
                     }
                     else
                     {
                         blockExp.AddRange(new Expression[] {
-                        Expression.Assign(retExp, Expression.New(ctor)),
-                        Expression.Assign(indexesLengthExp, Expression.Constant(0)),
-                        Expression.IfThen(
-                            Expression.NotEqual(indexesExp, Expression.Constant(null)),
-                            Expression.Assign(indexesLengthExp, Expression.ArrayLength(indexesExp))
-                        ),
-                        Expression.Assign(readpknullExp, Expression.Constant(false))
-                    });
+                            Expression.Assign(retExp, newExp),
+                            Expression.Assign(indexesLengthExp, Expression.Constant(0)),
+                            Expression.IfThen(
+                                Expression.NotEqual(indexesExp, Expression.Constant(null)),
+                                Expression.Assign(indexesLengthExp, Expression.ArrayLength(indexesExp))
+                            ),
+                            Expression.Assign(readpknullExp, Expression.Constant(false))
+                        });
 
                         var props = type.GetPropertiesDictIgnoreCase().Values;
                         var propIndex = 0;
@@ -1459,7 +1462,7 @@ namespace FreeSql.Internal
                             var readType = typetb.ColumnsByCs.TryGetValue(prop.Name, out var trycol) ? trycol.Attribute.MapType : prop.PropertyType;
 
                             var ispkExp = new List<Expression>();
-                            var propGetSetMethod = prop.GetSetMethod();
+                            var propGetSetMethod = prop.GetSetMethod(true);
                             Expression readVal = Expression.Assign(readpkvalExp, Expression.Call(rowExp, MethodDataReaderGetValue, tryidxExp));
                             Expression readExpAssign = null; //加速缓存
                             if (readType.IsArray) readExpAssign = Expression.New(RowInfo.Constructor,
@@ -1524,30 +1527,30 @@ namespace FreeSql.Internal
                                 )
                             );
                             blockExp.AddRange(new Expression[] {
-							//以下注释部分为【严格读取】，会损失一点性能，使用 select * from xxx 与属性映射赋值
-							Expression.IfThenElse(
-                                Expression.LessThan(Expression.Constant(propIndex), indexesLengthExp),
-                                Expression.Assign(tryidxExp, Expression.ArrayAccess(indexesExp, Expression.Constant(propIndex))),
-                                Expression.Assign(tryidxExp, dataIndexExp)
-                            ),
-                            Expression.IfThen(
-                                Expression.GreaterThanOrEqual(tryidxExp, Expression.Constant(0)),
-                                Expression.Block(
-                                    readVal,
-                                    Expression.Assign(readExp, readExpAssign),
-                                    Expression.IfThen(Expression.GreaterThan(readExpDataIndex, dataIndexExp),
-                                        Expression.Assign(dataIndexExp, readExpDataIndex)),
-                                    Expression.Block(ispkExp)
+							    //以下注释部分为【严格读取】，会损失一点性能，使用 select * from xxx 与属性映射赋值
+							    Expression.IfThenElse(
+                                    Expression.LessThan(Expression.Constant(propIndex), indexesLengthExp),
+                                    Expression.Assign(tryidxExp, Expression.ArrayAccess(indexesExp, Expression.Constant(propIndex))),
+                                    Expression.Assign(tryidxExp, dataIndexExp)
+                                ),
+                                Expression.IfThen(
+                                    Expression.GreaterThanOrEqual(tryidxExp, Expression.Constant(0)),
+                                    Expression.Block(
+                                        readVal,
+                                        Expression.Assign(readExp, readExpAssign),
+                                        Expression.IfThen(Expression.GreaterThan(readExpDataIndex, dataIndexExp),
+                                            Expression.Assign(dataIndexExp, readExpDataIndex)),
+                                        Expression.Block(ispkExp)
+                                    )
                                 )
-                            )
-                        });
+                            });
                             ++propIndex;
                         }
                     }
                     blockExp.AddRange(new Expression[] {
-                    Expression.Return(returnTarget, Expression.New(RowInfo.Constructor, retExp, dataIndexExp)),
-                    Expression.Label(returnTarget, Expression.Default(typeof(RowInfo)))
-                });
+                        Expression.Return(returnTarget, Expression.New(RowInfo.Constructor, retExp, dataIndexExp)),
+                        Expression.Label(returnTarget, Expression.Default(typeof(RowInfo)))
+                    });
                     return Expression.Lambda<Func<Type, int[], DbDataReader, int, CommonUtils, RowInfo>>(
                         Expression.Block(new[] { retExp, readExp, tryidxExp, readpknullExp, readpkvalExp, readExpsIndex, indexesLengthExp }.Concat(readExpValueParms), blockExp), new[] { typeExp, indexesExp, rowExp, dataIndexExp, commonUtilExp }).Compile();
                 });
@@ -1616,7 +1619,7 @@ namespace FreeSql.Internal
         static MethodInfo MethodBigIntegerParse = typeof(Utils).GetMethod("ToBigInteger", BindingFlags.NonPublic | BindingFlags.Static, null, new[] { typeof(string) }, null);
         static PropertyInfo PropertyDateTimeOffsetDateTime = typeof(DateTimeOffset).GetProperty("DateTime", BindingFlags.Instance | BindingFlags.Public);
         static PropertyInfo PropertyDateTimeTicks = typeof(DateTime).GetProperty("Ticks", BindingFlags.Instance | BindingFlags.Public);
-        static ConstructorInfo CtorDateTimeOffsetArgsTicks = typeof(DateTimeOffset).GetConstructor(new[] { typeof(long), typeof(TimeSpan) });
+        static ConstructorInfo CtorDateTimeOffsetArgsTicks = typeof(DateTimeOffset). GetConstructor(new[] { typeof(long), typeof(TimeSpan) });
 
         public static ConcurrentBag<Func<LabelTarget, Expression, Type, Expression>> GetDataReaderValueBlockExpressionSwitchTypeFullName = new ConcurrentBag<Func<LabelTarget, Expression, Type, Expression>>();
         public static ConcurrentBag<Func<LabelTarget, Expression, Expression, Type, Expression>> GetDataReaderValueBlockExpressionObjectToStringIfThenElse = new ConcurrentBag<Func<LabelTarget, Expression, Expression, Type, Expression>>();

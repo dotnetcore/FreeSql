@@ -172,8 +172,8 @@ namespace FreeSql.Internal.CommonProvider
         public List<TDto> ToList<TDto>() => ToList(GetToListDtoSelector<TDto>());
         Expression<Func<T1, TDto>> GetToListDtoSelector<TDto>()
         {
-            var ctor = typeof(TDto).GetConstructor(new Type[0]);
-            return Expression.Lambda<Func<T1, TDto>>(Expression.New(ctor),
+            return Expression.Lambda<Func<T1, TDto>>(
+                typeof(TDto).InternalNewExpression(),
                 _tables[0].Parameter ?? Expression.Parameter(typeof(T1), "a"));
         }
 
@@ -884,8 +884,9 @@ namespace FreeSql.Internal.CommonProvider
                             {
                                 var field = new StringBuilder();
                                 var read = new ReadAnonymousTypeInfo();
-                                read.ConsturctorType = ReadAnonymousTypeInfoConsturctorType.Properties;
-                                read.Consturctor = (tbrefMid.TypeLazy ?? tbrefMid.Type).GetConstructor(new Type[0]);
+                                read.CsType = (tbrefMid.TypeLazy ?? tbrefMid.Type);
+                                read.Consturctor = read.CsType.InternalGetTypeConstructor0OrFirst();
+                                read.IsEntity = true;
                                 read.Table = tbrefMid;
                                 foreach (var col in tbrefMid.Columns.Values)
                                 {

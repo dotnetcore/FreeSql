@@ -1056,6 +1056,23 @@ WHERE (((cast(a.`Id` as char)) in (SELECT b.`Title`
                     a.Id,
                     a.Clicks
                 });
+
+            Assert.Equal(@"SELECT a.`Id` as1, a.`Clicks` as2 
+FROM (SELECT  * from (SELECT a.`Id` Id, a.`Clicks` Clicks 
+FROM `tb_topic_1` a) ftb 
+
+UNION ALL
+
+SELECT  * from (SELECT a.`Id` Id, a.`Clicks` Clicks 
+FROM `tb_topic_2` a) ftb) a 
+limit 0,20", select
+                .AsTable((type, old) => type == typeof(Topic) ? $"({sqlsss})" : null)
+                .Page(1, 20)
+                .ToSql(a => new
+                {
+                    a.Id,
+                    a.Clicks
+                }));
         }
 
         public class TestInclude_OneToManyModel1

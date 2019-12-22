@@ -52,7 +52,8 @@ namespace FreeSql.Internal
                         var constExpValue = constExp.Value?.ToString() ?? "NULL";
                         if (constExpValue == string.Empty) constExpValue = _common.FormatSql("{0}", "");
                         parent.DbField = constExpValue;
-                    } else
+                    }
+                    else
                         parent.DbField = _common.FormatSql("{0}", constExp?.Value);
                     field.Append(", ").Append(parent.DbField);
                     if (index >= 0) field.Append(" as").Append(++index);
@@ -82,8 +83,8 @@ namespace FreeSql.Internal
                         var map = new List<SelectColumnInfo>();
                         ExpressionSelectColumn_MemberAccess(_tables, map, SelectTableInfoType.From, exp, true, getSelectGroupingMapString);
                         var tb = parent.Table = map.First().Table.Table;
-                        parent.Consturctor = tb.Type.GetConstructor(new Type[0]);
-                        parent.ConsturctorType = ReadAnonymousTypeInfoConsturctorType.Properties;
+                        parent.CsType = tb.Type;
+                        parent.Consturctor = tb.Type.InternalGetTypeConstructor0OrFirst();
                         parent.IsEntity = true;
                         for (var idx = 0; idx < map.Count; idx++)
                         {
@@ -113,10 +114,25 @@ namespace FreeSql.Internal
                     return false;
                 case ExpressionType.MemberInit:
                     var initExp = exp as MemberInitExpression;
-                    parent.Consturctor = initExp.NewExpression.Type.GetConstructors()[0];
-                    parent.ConsturctorType = ReadAnonymousTypeInfoConsturctorType.Properties;
-
-                    if (isAllDtoMap && _tables != null && _tables.Any() && initExp.NewExpression.Type != _tables.FirstOrDefault().Table.Type)
+                    parent.CsType = initExp.Type;
+                    parent.Consturctor = initExp.NewExpression.Constructor;
+                    if (initExp.NewExpression?.Arguments.Count > 0)
+                    {
+                        //处理构造参数
+                        for (var a = 0; a < initExp.NewExpression.Arguments.Count; a++)
+                        {
+                            var child = new ReadAnonymousTypeInfo
+                            {
+                                Property = null,
+                                CsName = initExp.NewExpression.Members[a].Name,
+                                CsType = initExp.NewExpression.Arguments[a].Type,
+                                MapType = initExp.NewExpression.Arguments[a].Type
+                            };
+                            parent.Childs.Add(child);
+                            ReadAnonymousField(_tables, field, child, ref index, initExp.NewExpression.Arguments[a], getSelectGroupingMapString, whereCascadeExpression, false);
+                        }
+                    }
+                    else if (isAllDtoMap && _tables != null && _tables.Any() && initExp.NewExpression.Type != _tables.FirstOrDefault().Table.Type)
                     {
                         //dto 映射
                         var dtoProps = initExp.NewExpression.Type.GetPropertiesDictIgnoreCase().Values;
@@ -124,26 +140,26 @@ namespace FreeSql.Internal
                         {
                             foreach (var dtTb in _tables)
                             {
-                                if (dtTb.Table.Columns.TryGetValue(dtoProp.Name, out var trydtocol))
+                                if (dtTb.Table.Columns.TryGetValue(dtoProp.Name, out var trydtocol) == false) continue;
+                                if (trydtocol.Attribute.IsIgnore == true) continue;
+
+                                var child = new ReadAnonymousTypeInfo
                                 {
-                                    var child = new ReadAnonymousTypeInfo
-                                    {
-                                        Property = dtoProp,
-                                        CsName = dtoProp.Name,
-                                        CsType = trydtocol.CsType, // dtoProp.PropertyType,
-                                        MapType = trydtocol.Attribute.MapType
-                                    };
-                                    parent.Childs.Add(child);
-                                    if (dtTb.Parameter != null)
-                                        ReadAnonymousField(_tables, field, child, ref index, Expression.Property(dtTb.Parameter, dtTb.Table.Properties[trydtocol.CsName]), getSelectGroupingMapString, whereCascadeExpression, isAllDtoMap);
-                                    else
-                                    {
-                                        child.DbField = $"{dtTb.Alias}.{_common.QuoteSqlName(trydtocol.Attribute.Name)}";
-                                        field.Append(", ").Append(child.DbField);
-                                        if (index >= 0) field.Append(" as").Append(++index);
-                                    }
-                                    break;
+                                    Property = dtoProp,
+                                    CsName = dtoProp.Name,
+                                    CsType = trydtocol.CsType, // dtoProp.PropertyType,
+                                    MapType = trydtocol.Attribute.MapType
+                                };
+                                parent.Childs.Add(child);
+                                if (dtTb.Parameter != null)
+                                    ReadAnonymousField(_tables, field, child, ref index, Expression.Property(dtTb.Parameter, dtTb.Table.Properties[trydtocol.CsName]), getSelectGroupingMapString, whereCascadeExpression, isAllDtoMap);
+                                else
+                                {
+                                    child.DbField = $"{dtTb.Alias}.{_common.QuoteSqlName(trydtocol.Attribute.Name)}";
+                                    field.Append(", ").Append(child.DbField);
+                                    if (index >= 0) field.Append(" as").Append(++index);
                                 }
+                                break;
                             }
                         }
                     }
@@ -169,15 +185,27 @@ namespace FreeSql.Internal
                     return true;
                 case ExpressionType.New:
                     var newExp = exp as NewExpression;
-                    parent.Consturctor = newExp.Type.GetConstructors()[0];
-                    parent.ConsturctorType = ReadAnonymousTypeInfoConsturctorType.Arguments;
-                    if (newExp.Members?.Count > 0)
+                    parent.CsType = newExp.Type;
+                    parent.Consturctor = newExp.Constructor;
+                    if (newExp.Arguments?.Count > 0 &&
+                        (
+                            newExp.Type.IsAnonymousType() ||
+                            newExp.Arguments.Any(a =>
+                            {
+                                if (a.NodeType != ExpressionType.Constant) return true;
+                                var constVal = (a as ConstantExpression)?.Value;
+                                if (constVal == null) return true;
+                                if (object.Equals(constVal, a.Type.CreateInstanceGetDefaultValue()) == false) return true;
+                                return false;
+                            })
+                        ))
                     {
-                        for (var a = 0; a < newExp.Members.Count; a++)
+                        //处理构造参数
+                        for (var a = 0; a < newExp.Arguments.Count; a++)
                         {
                             var child = new ReadAnonymousTypeInfo
                             {
-                                Property = newExp.Type.GetProperty(newExp.Members[a].Name, BindingFlags.Public | BindingFlags.IgnoreCase | BindingFlags.Instance),
+                                Property = null,
                                 CsName = newExp.Members[a].Name,
                                 CsType = newExp.Arguments[a].Type,
                                 MapType = newExp.Arguments[a].Type
@@ -188,37 +216,37 @@ namespace FreeSql.Internal
                     }
                     else
                     {
+                        parent.IsDefaultCtor = true;
                         //dto 映射
-                        parent.ConsturctorType = ReadAnonymousTypeInfoConsturctorType.Properties;
                         var dtoProps2 = newExp.Type.GetPropertiesDictIgnoreCase().Values;
                         foreach (var dtoProp in dtoProps2)
                         {
                             foreach (var dtTb in _tables)
                             {
-                                if (dtTb.Table.ColumnsByCs.TryGetValue(dtoProp.Name, out var trydtocol))
+                                if (dtTb.Table.ColumnsByCs.TryGetValue(dtoProp.Name, out var trydtocol) == false) continue;
+                                if (trydtocol.Attribute.IsIgnore == true) continue;
+
+                                var child = new ReadAnonymousTypeInfo
                                 {
-                                    var child = new ReadAnonymousTypeInfo
-                                    {
-                                        Property = dtoProp,
-                                        CsName = dtoProp.Name,
-                                        CsType = trydtocol.CsType, //dtoProp.PropertyType,
-                                        MapType = trydtocol.Attribute.MapType
-                                    };
-                                    parent.Childs.Add(child);
-                                    if (dtTb.Parameter != null)
-                                        ReadAnonymousField(_tables, field, child, ref index, Expression.Property(dtTb.Parameter, dtTb.Table.Properties[trydtocol.CsName]), getSelectGroupingMapString, whereCascadeExpression, isAllDtoMap);
-                                    else
-                                    {
-                                        child.DbField = $"{dtTb.Alias}.{_common.QuoteSqlName(trydtocol.Attribute.Name)}";
-                                        field.Append(", ").Append(child.DbField);
-                                        if (index >= 0) field.Append(" as").Append(++index);
-                                    }
-                                    break;
+                                    Property = dtoProp,
+                                    CsName = dtoProp.Name,
+                                    CsType = trydtocol.CsType, //dtoProp.PropertyType,
+                                    MapType = trydtocol.Attribute.MapType
+                                };
+                                parent.Childs.Add(child);
+                                if (dtTb.Parameter != null)
+                                    ReadAnonymousField(_tables, field, child, ref index, Expression.Property(dtTb.Parameter, dtTb.Table.Properties[trydtocol.CsName]), getSelectGroupingMapString, whereCascadeExpression, isAllDtoMap);
+                                else
+                                {
+                                    child.DbField = $"{dtTb.Alias}.{_common.QuoteSqlName(trydtocol.Attribute.Name)}";
+                                    field.Append(", ").Append(child.DbField);
+                                    if (index >= 0) field.Append(" as").Append(++index);
                                 }
+                                break;
                             }
                         }
-                        if (parent.Childs.Any() == false) throw new Exception($"映射异常：{newExp.Type.Name} 没有一个属性名相同");
                     }
+                    if (parent.Childs.Any() == false) throw new Exception($"映射异常：{newExp.Type.Name} 没有一个属性名相同");
                     return true;
             }
             parent.DbField = $"({ExpressionLambdaToSql(exp, getTSC())})";
@@ -247,33 +275,30 @@ namespace FreeSql.Internal
                     objval = Utils.GetDataReaderValue(parent.Property.PropertyType, objval);
                 return objval;
             }
-            switch (parent.ConsturctorType)
+            var ctorParmsLength = 0;
+            object ret;
+            if (parent.IsDefaultCtor || parent.IsEntity || (ctorParmsLength = parent.Consturctor.GetParameters()?.Length ?? 0) == 0)
+                ret = parent.CsType?.CreateInstanceGetDefaultValue() ?? parent.Consturctor.Invoke(null);
+            else
             {
-                case ReadAnonymousTypeInfoConsturctorType.Arguments:
-                    var args = new object[parent.Childs.Count];
-                    for (var a = 0; a < parent.Childs.Count; a++)
-                    {
-                        var objval = ReadAnonymous(parent.Childs[a], dr, ref index, notRead, null);
-                        if (notRead == false)
-                            args[a] = objval;
-                    }
-                    return parent.Consturctor.Invoke(args);
-                case ReadAnonymousTypeInfoConsturctorType.Properties:
-                    var ret = parent.Consturctor.Invoke(null);
-                    var isnull = notRead;
-                    for (var b = 0; b < parent.Childs.Count; b++)
-                    {
-                        var prop = parent.Childs[b].Property;
-                        var dbval = parent.IsEntity ? new ReadAnonymousDbValueRef() : null;
-                        var objval = ReadAnonymous(parent.Childs[b], dr, ref index, notRead, dbval);
-                        if (isnull == false && parent.IsEntity && dbval.DbValue == null && parent.Table != null && parent.Table.ColumnsByCs.TryGetValue(parent.Childs[b].CsName, out var trycol) && trycol.Attribute.IsPrimary)
-                            isnull = true;
-                        if (isnull == false && prop.CanWrite)
-                            prop.SetValue(ret, objval, null);
-                    }
-                    return isnull ? null : ret;
+                var ctorParms = new object[ctorParmsLength];
+                for (var c = 0; c < ctorParmsLength; c++)
+                    ctorParms[c] = ReadAnonymous(parent.Childs[c], dr, ref index, notRead, null);
+                ret = parent.Consturctor.Invoke(ctorParms);
             }
-            return null;
+
+            var isnull = notRead;
+            for (var b = ctorParmsLength; b < parent.Childs.Count; b++)
+            {
+                var prop = parent.Childs[b].Property;
+                var dbval = parent.IsEntity ? new ReadAnonymousDbValueRef() : null;
+                var objval = ReadAnonymous(parent.Childs[b], dr, ref index, notRead, dbval);
+                if (isnull == false && parent.IsEntity && dbval.DbValue == null && parent.Table != null && parent.Table.ColumnsByCs.TryGetValue(parent.Childs[b].CsName, out var trycol) && trycol.Attribute.IsPrimary)
+                    isnull = true;
+                if (isnull == false && prop.CanWrite)
+                    prop.SetValue(ret, objval, null);
+            }
+            return isnull ? null : ret;
         }
         public class ReadAnonymousDbValueRef
         {

@@ -99,8 +99,8 @@ namespace FreeSql.Internal.CommonProvider
 
         Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, TDto>> GetToListDtoSelector<TDto>()
         {
-            var ctor = typeof(TDto).GetConstructor(new Type[0]);
-            return Expression.Lambda<Func<T1, T2, T3, T4, T5, T6, T7, T8, TDto>>(Expression.New(ctor),
+            return Expression.Lambda<Func<T1, T2, T3, T4, T5, T6, T7, T8, TDto>>(
+                typeof(TDto).InternalNewExpression(),
                 _tables[0].Parameter ?? Expression.Parameter(typeof(T1), "a"),
                 Expression.Parameter(typeof(T2), "b"),
                 Expression.Parameter(typeof(T3), "c"),

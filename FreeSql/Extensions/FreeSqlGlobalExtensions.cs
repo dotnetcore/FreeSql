@@ -47,21 +47,35 @@ public static partial class FreeSqlGlobalExtensions
     public static bool IsArrayOrList(this Type that) => that == null ? false : (that.IsArray || typeof(IList).IsAssignableFrom(that));
     public static Type NullableTypeOrThis(this Type that) => that?.IsNullableType() == true ? that.GetGenericArguments().First() : that;
     internal static string NotNullAndConcat(this string that, params object[] args) => string.IsNullOrEmpty(that) ? null : string.Concat(new object[] { that }.Concat(args));
-    static ConcurrentDictionary<Type, ParameterInfo[]> _dicGetDefaultValueFirstConstructorsParameters = new ConcurrentDictionary<Type, ParameterInfo[]>();
     public static object CreateInstanceGetDefaultValue(this Type that)
     {
         if (that == null) return null;
         if (that == typeof(string)) return default(string);
         if (that.IsArray) return Array.CreateInstance(that, 0);
-        var ctorParms = _dicGetDefaultValueFirstConstructorsParameters.GetOrAdd(that, tp => tp.GetConstructors().FirstOrDefault()?.GetParameters());
+        var ctorParms = that.InternalGetTypeConstructor0OrFirst(false)?.GetParameters();
         if (ctorParms == null || ctorParms.Any() == false) return Activator.CreateInstance(that, null);
         return Activator.CreateInstance(that, ctorParms.Select(a => Activator.CreateInstance(a.ParameterType, null)).ToArray());
+    }
+    internal static NewExpression InternalNewExpression(this Type that)
+    {
+        var ctor = that.InternalGetTypeConstructor0OrFirst();
+        return Expression.New(ctor, ctor.GetParameters().Select(a => Expression.Constant(a.ParameterType.CreateInstanceGetDefaultValue(), a.ParameterType)));
+    }
+
+    static ConcurrentDictionary<Type, ConstructorInfo> _dicInternalGetTypeConstructor0OrFirst = new ConcurrentDictionary<Type, ConstructorInfo>();
+    internal static ConstructorInfo InternalGetTypeConstructor0OrFirst(this Type that, bool isThrow = true)
+    {
+        var ret = _dicInternalGetTypeConstructor0OrFirst.GetOrAdd(that, tp =>
+            tp.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new Type[0], null) ??
+            tp.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).FirstOrDefault());
+        if (ret == null && isThrow) throw new ArgumentException($"{that.FullName} 类型无方法访问构造函数");
+        return ret;
     }
 
     static ConcurrentDictionary<Type, Dictionary<string, PropertyInfo>> _dicGetPropertiesDictIgnoreCase = new ConcurrentDictionary<Type, Dictionary<string, PropertyInfo>>();
     public static Dictionary<string, PropertyInfo> GetPropertiesDictIgnoreCase(this Type that) => that == null ? null : _dicGetPropertiesDictIgnoreCase.GetOrAdd(that, tp =>
     {
-        var props = that.GetProperties();
+        var props = that.GetProperties().GroupBy(p => p.DeclaringType).Reverse().SelectMany(p => p); //将基类的属性位置放在前面 #164
         var dict = new Dictionary<string, PropertyInfo>(StringComparer.CurrentCultureIgnoreCase);
         foreach (var prop in props)
         {
