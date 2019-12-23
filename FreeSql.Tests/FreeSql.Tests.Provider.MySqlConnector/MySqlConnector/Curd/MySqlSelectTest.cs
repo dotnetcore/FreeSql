@@ -1050,7 +1050,7 @@ LEFT JOIN `WF_ProcessInstance` b ON b.`Id` = a.`ProcessId`
 WHERE ((b.`IsFinished` OR a.`TaskType` = 3) AND b.`EnabledMark` = 1)", groupsql12);
 
             var grouplist12 = g.mysql.Select<WF_TaskGroupBy, WF_ProcessInstance>()
-               .AsTable((type, old) => $"( {sqltmp12} )")
+               .AsTable((type, old) => type == typeof(WF_TaskGroupBy) ? $"( {sqltmp12} )" : null)
                .LeftJoin((a, p) => p.Id == a.ProcessId)
                .Where((a, p) => (p.IsFinished || a.TaskType == 3) && p.EnabledMark)
                .ToList((a, p) => new
