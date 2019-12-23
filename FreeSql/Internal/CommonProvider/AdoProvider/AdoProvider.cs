@@ -111,6 +111,7 @@ namespace FreeSql.Internal.CommonProvider
                     for (var a = 0; a < dr.FieldCount; a++)
                     {
                         var name = dr.GetName(a);
+                        if (dic.ContainsKey(name)) continue;
                         sbflag.Append(name).Append(":").Append(a).Append(",");
                         dic.Add(name, a);
                     }
@@ -153,6 +154,7 @@ namespace FreeSql.Internal.CommonProvider
                             for (var a = 0; a < dr.FieldCount; a++)
                             {
                                 var name = dr.GetName(a);
+                                if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
                             }
@@ -169,6 +171,7 @@ namespace FreeSql.Internal.CommonProvider
                             for (var a = 0; a < dr.FieldCount; a++)
                             {
                                 var name = dr.GetName(a);
+                                if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
                             }
@@ -219,6 +222,7 @@ namespace FreeSql.Internal.CommonProvider
                             for (var a = 0; a < dr.FieldCount; a++)
                             {
                                 var name = dr.GetName(a);
+                                if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
                             }
@@ -235,6 +239,7 @@ namespace FreeSql.Internal.CommonProvider
                             for (var a = 0; a < dr.FieldCount; a++)
                             {
                                 var name = dr.GetName(a);
+                                if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
                             }
@@ -251,6 +256,7 @@ namespace FreeSql.Internal.CommonProvider
                             for (var a = 0; a < dr.FieldCount; a++)
                             {
                                 var name = dr.GetName(a);
+                                if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
                             }
@@ -307,6 +313,7 @@ namespace FreeSql.Internal.CommonProvider
                             for (var a = 0; a < dr.FieldCount; a++)
                             {
                                 var name = dr.GetName(a);
+                                if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
                             }
@@ -323,6 +330,7 @@ namespace FreeSql.Internal.CommonProvider
                             for (var a = 0; a < dr.FieldCount; a++)
                             {
                                 var name = dr.GetName(a);
+                                if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
                             }
@@ -339,6 +347,7 @@ namespace FreeSql.Internal.CommonProvider
                             for (var a = 0; a < dr.FieldCount; a++)
                             {
                                 var name = dr.GetName(a);
+                                if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
                             }
@@ -355,6 +364,7 @@ namespace FreeSql.Internal.CommonProvider
                             for (var a = 0; a < dr.FieldCount; a++)
                             {
                                 var name = dr.GetName(a);
+                                if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
                             }
@@ -417,6 +427,7 @@ namespace FreeSql.Internal.CommonProvider
                             for (var a = 0; a < dr.FieldCount; a++)
                             {
                                 var name = dr.GetName(a);
+                                if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
                             }
@@ -433,6 +444,7 @@ namespace FreeSql.Internal.CommonProvider
                             for (var a = 0; a < dr.FieldCount; a++)
                             {
                                 var name = dr.GetName(a);
+                                if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
                             }
@@ -449,6 +461,7 @@ namespace FreeSql.Internal.CommonProvider
                             for (var a = 0; a < dr.FieldCount; a++)
                             {
                                 var name = dr.GetName(a);
+                                if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
                             }
@@ -465,6 +478,7 @@ namespace FreeSql.Internal.CommonProvider
                             for (var a = 0; a < dr.FieldCount; a++)
                             {
                                 var name = dr.GetName(a);
+                                if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
                             }
@@ -481,6 +495,7 @@ namespace FreeSql.Internal.CommonProvider
                             for (var a = 0; a < dr.FieldCount; a++)
                             {
                                 var name = dr.GetName(a);
+                                if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
                             }
@@ -655,7 +670,12 @@ namespace FreeSql.Internal.CommonProvider
                 if (ret.Tables.Count <= result)
                 {
                     dt = ret.Tables.Add();
-                    for (var a = 0; a < dr.FieldCount; a++) dt.Columns.Add(dr.GetName(a));
+                    for (var a = 0; a < dr.FieldCount; a++)
+                    {
+                        var name = dr.GetName(a);
+                        if (dt.Columns.Contains(name)) name = $"{name}_{Guid.NewGuid().ToString("N").Substring(0, 4)}";
+                        dt.Columns.Add(name);
+                    }
                 }
                 object[] values = new object[dt.Columns.Count];
                 dr.GetValues(values);
@@ -674,7 +694,12 @@ namespace FreeSql.Internal.CommonProvider
             ExecuteReader(connection, transaction, dr =>
             {
                 if (ret.Columns.Count == 0)
-                    for (var a = 0; a < dr.FieldCount; a++) ret.Columns.Add(dr.GetName(a));
+                    for (var a = 0; a < dr.FieldCount; a++)
+                    {
+                        var name = dr.GetName(a);
+                        if (ret.Columns.Contains(name)) name = $"{name}_{Guid.NewGuid().ToString("N").Substring(0, 4)}";
+                        ret.Columns.Add(name);
+                    }
                 object[] values = new object[ret.Columns.Count];
                 dr.GetValues(values);
                 ret.Rows.Add(values);

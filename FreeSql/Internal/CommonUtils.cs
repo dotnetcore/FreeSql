@@ -38,6 +38,8 @@ namespace FreeSql.Internal
         public abstract string NowUtc { get; }
         public abstract string QuoteWriteParamter(Type type, string paramterName);
         public abstract string QuoteReadColumn(Type type, string columnName);
+        public virtual string FieldAsAlias(string alias) => $" {alias}";
+        public virtual string IIF(string test, string ifTrue, string ifElse) => $"case when {test} then {ifTrue} else {ifElse} end";
 
         public IFreeSql _orm { get; set; }
         public ICodeFirst CodeFirst => _orm.CodeFirst;

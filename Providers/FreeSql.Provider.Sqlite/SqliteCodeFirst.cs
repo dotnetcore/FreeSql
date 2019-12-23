@@ -216,7 +216,7 @@ namespace FreeSql.Sqlite
                         {
                             var dbcolumnName = string.Concat(dbcolumn[2]);
                             var isDesc = dbIndexesSql.IndexOf($@"{dbcolumnName}"" DESC", StringComparison.CurrentCultureIgnoreCase) == -1 ? "0" : "1";
-                            dsuk.Add(new[] { dbcolumnName, string.Concat(dbIndex[1]), isDesc, string.Concat(dbIndex[2]) }); ;
+                            dsuk.Add(new[] { dbcolumnName, string.Concat(dbIndex[1]), isDesc, string.Concat(dbIndex[2]) });
                         }
                     }
                     foreach (var uk in tb.Indexes)
@@ -238,7 +238,6 @@ namespace FreeSql.Sqlite
                 var tablenameOnlyTb = tboldname == null ? _commonUtils.QuoteSqlName(tbname[1]) : _commonUtils.QuoteSqlName(tboldname[1]);
                 var tmptablename = _commonUtils.QuoteSqlName($"{tbname[0]}._FreeSqlTmp_{tbname[1]}");
                 //创建临时表
-                //创建表
                 isIndent = false;
                 sb.Append("CREATE TABLE IF NOT EXISTS ").Append(tmptablename).Append(" ( ");
                 foreach (var tbcol in tb.ColumnsByPosition)

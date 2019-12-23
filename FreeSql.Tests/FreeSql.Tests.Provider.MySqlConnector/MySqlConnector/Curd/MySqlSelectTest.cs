@@ -1014,6 +1014,83 @@ WHERE (((cast(a.`Id` as char)) in (SELECT b.`Title`
                     a.Id,
                     a.Clicks
                 });
+
+            var sqltmp12 = g.mysql.Select<WF_Task>()
+                .Where(t => t.IsFinished && (t.AuditorId == "1" || t.AuditorId == "1cb71584-a6dd-4b26-8c88-ed9fb8cf87a3"))
+                .GroupBy(t => new { t.ProcessId, t.NodeId, t.NodeName })
+                .ToSql(t => new WF_TaskGroupBy
+                {
+                    TaskId = t.Max(t.Value.Id),
+                    TaskType = t.Max(t.Value.Type),
+                    ProcessId = t.Key.ProcessId,
+                    NodeId = t.Key.NodeId,
+                    NodeName = t.Key.NodeName
+                }, FieldAliasOptions.AsProperty);
+
+            var groupsql12 = g.mysql.Select<WF_TaskGroupBy, WF_ProcessInstance>()
+                .AsTable((type, old) => type == typeof(WF_TaskGroupBy) ? $"( {sqltmp12} )" : null)
+                .LeftJoin((a, p) => p.Id == a.ProcessId)
+                .Where((a, p) => (p.IsFinished || a.TaskType == 3) && p.EnabledMark)
+                .ToSql((a, p) => new
+                {
+                    WF_Task = a,
+                    WF_ProcessInstance = p
+                });
+
+            Assert.Equal(@"SELECT max(a.`Id`) TaskId, max(a.`Type`) TaskType, a.`ProcessId` ProcessId, a.`NodeId` NodeId, a.`NodeName` NodeName 
+FROM `WF_Task` a 
+WHERE (a.`IsFinished` = 1 AND (a.`AuditorId` = '1' OR a.`AuditorId` = '1cb71584-a6dd-4b26-8c88-ed9fb8cf87a3')) 
+GROUP BY a.`ProcessId`, a.`NodeId`, a.`NodeName`", sqltmp12);
+            Assert.Equal(@"SELECT a.`TaskId` as1, a.`TaskType` as2, a.`ProcessId` as3, a.`NodeId` as4, a.`NodeName` as5, b.`Id` as6, b.`TaskType` as7, b.`ProcessId` as8, b.`NodeId` as9, b.`CreateTime` as10, b.`IsFinished` as11, b.`EnabledMark` as12 
+FROM ( SELECT max(a.`Id`) TaskId, max(a.`Type`) TaskType, a.`ProcessId` ProcessId, a.`NodeId` NodeId, a.`NodeName` NodeName 
+    FROM `WF_Task` a 
+    WHERE (a.`IsFinished` = 1 AND (a.`AuditorId` = '1' OR a.`AuditorId` = '1cb71584-a6dd-4b26-8c88-ed9fb8cf87a3')) 
+    GROUP BY a.`ProcessId`, a.`NodeId`, a.`NodeName` ) a 
+LEFT JOIN `WF_ProcessInstance` b ON b.`Id` = a.`ProcessId` 
+WHERE ((b.`IsFinished` OR a.`TaskType` = 3) AND b.`EnabledMark` = 1)", groupsql12);
+
+            var grouplist12 = g.mysql.Select<WF_TaskGroupBy, WF_ProcessInstance>()
+               .AsTable((type, old) => $"( {sqltmp12} )")
+               .LeftJoin((a, p) => p.Id == a.ProcessId)
+               .Where((a, p) => (p.IsFinished || a.TaskType == 3) && p.EnabledMark)
+               .ToList((a, p) => new
+               {
+                   WF_Task = a,
+                   WF_ProcessInstance = p
+               });
+        }
+
+        [Table(DisableSyncStructure = true)]
+        class WF_TaskGroupBy
+        {
+            public int TaskId { get; set; }
+            public int TaskType { get; set; }
+            public int ProcessId { get; set; }
+            public int NodeId { get; set; }
+            public string NodeName { get; set; }
+        }
+        class WF_Task
+        {
+            [Column(IsIdentity = true)]
+            public int Id { get; set; }
+            public int Type { get; set; }
+            public int ProcessId { get; set; }
+            public int NodeId { get; set; }
+            public string NodeName { get; set; }
+            public string AuditorId { get; set; }
+            public DateTime CreateTime { get; set; }
+            public bool IsFinished { get; set; }
+        }
+        class WF_ProcessInstance
+        {
+            [Column(IsIdentity = true)]
+            public int Id { get; set; }
+            public int TaskType { get; set; }
+            public int ProcessId { get; set; }
+            public int NodeId { get; set; }
+            public DateTime CreateTime { get; set; }
+            public bool IsFinished { get; set; }
+            public bool EnabledMark { get; set; }
         }
 
         public class TestInclude_OneToManyModel1

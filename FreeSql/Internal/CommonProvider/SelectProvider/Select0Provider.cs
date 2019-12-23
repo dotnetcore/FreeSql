@@ -155,7 +155,7 @@ namespace FreeSql.Internal.CommonProvider
         public bool Any()
         {
             this.Limit(1);
-            return this.ToList<int>("1 as1").Sum() > 0; //这里的 Sum 为了分表查询
+            return this.ToList<int>($"{1}{_commonUtils.FieldAsAlias("as1")}").Sum() > 0; //这里的 Sum 为了分表查询
         }
 
         public long Count()
@@ -164,7 +164,7 @@ namespace FreeSql.Internal.CommonProvider
             _orderby = null; //解决 select count(1) from t order by id 这样的 SQL 错误
             try
             {
-                return this.ToList<int>("count(1) as1").Sum(); //这里的 Sum 为了分表查询
+                return this.ToList<int>($"count(1){_commonUtils.FieldAsAlias("as1")}").Sum(); //这里的 Sum 为了分表查询
             }
             finally
             {
@@ -599,7 +599,7 @@ namespace FreeSql.Internal.CommonProvider
                         var quoteName = _commonUtils.QuoteSqlName(col.Attribute.Name);
                         field.Append(_commonUtils.QuoteReadColumn(col.Attribute.MapType, $"{tbi.Alias}.{quoteName}"));
                         ++index;
-                        if (dicfield.ContainsKey(quoteName)) field.Append(" as").Append(index);
+                        if (dicfield.ContainsKey(quoteName)) field.Append(_commonUtils.FieldAsAlias($"as{index}"));
                         else dicfield.Add(quoteName, true);
                         ++colidx;
                     }
@@ -730,7 +730,7 @@ namespace FreeSql.Internal.CommonProvider
                         var quoteName = _commonUtils.QuoteSqlName(col.Attribute.Name);
                         field.Append(_commonUtils.QuoteReadColumn(col.Attribute.MapType, $"{tb.Alias}.{quoteName}"));
                         ++index;
-                        if (dicfield.ContainsKey(quoteName)) field.Append(" as").Append(index);
+                        if (dicfield.ContainsKey(quoteName)) field.Append(_commonUtils.FieldAsAlias($"as{index}"));
                         else dicfield.Add(quoteName, true);
                     }
                     else
@@ -754,7 +754,7 @@ namespace FreeSql.Internal.CommonProvider
                             field.Append(_commonUtils.QuoteReadColumn(col2.Attribute.MapType, $"{tb2.Alias}.{quoteName}"));
                             ++index;
                             ++otherindex;
-                            if (dicfield.ContainsKey(quoteName)) field.Append(" as").Append(index);
+                            if (dicfield.ContainsKey(quoteName)) field.Append(_commonUtils.FieldAsAlias($"as{index}"));
                             else dicfield.Add(quoteName, true);
                         }
                     }
@@ -851,7 +851,7 @@ namespace FreeSql.Internal.CommonProvider
                     var quoteName = _commonUtils.QuoteSqlName(col.Attribute.Name);
                     field.Append(_commonUtils.QuoteReadColumn(col.Attribute.MapType, $"{tb.Alias}.{quoteName}"));
                     ++index;
-                    if (dicfield.ContainsKey(quoteName)) field.Append(" as").Append(index);
+                    if (dicfield.ContainsKey(quoteName)) field.Append(_commonUtils.FieldAsAlias($"as{index}"));
                     else dicfield.Add(quoteName, true);
                 }
                 else
@@ -868,7 +868,7 @@ namespace FreeSql.Internal.CommonProvider
                         var quoteName = _commonUtils.QuoteSqlName(col2.Attribute.Name);
                         field.Append(_commonUtils.QuoteReadColumn(col2.Attribute.MapType, $"{tb2.Alias}.{quoteName}"));
                         ++index;
-                        if (dicfield.ContainsKey(quoteName)) field.Append(" as").Append(index);
+                        if (dicfield.ContainsKey(quoteName)) field.Append(_commonUtils.FieldAsAlias($"as{index}"));
                         else dicfield.Add(quoteName, true);
                         child.Childs.Add(new ReadAnonymousTypeInfo
                         {
@@ -946,6 +946,8 @@ namespace FreeSql.Internal.CommonProvider
                             if (_orm.CodeFirst.IsSyncStructureToUpper) name = name.ToUpper();
                             if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(tb.Table.Type, name);
                         }
+                        else
+                            name = name.Replace("\r\n", "\r\n    ");
                     }
                     dict.Add(tb.Table.Type, name);
                 }
@@ -1035,12 +1037,12 @@ namespace FreeSql.Internal.CommonProvider
 
         protected double InternalAvg(Expression exp)
         {
-            var list = this.ToList<double>($"avg({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}) as1");
+            var list = this.ToList<double>($"avg({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}){_commonUtils.FieldAsAlias("as1")}");
             return list.Sum() / list.Count;
         }
-        protected TMember InternalMax<TMember>(Expression exp) => this.ToList<TMember>($"max({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}) as1").Max();
-        protected TMember InternalMin<TMember>(Expression exp) => this.ToList<TMember>($"min({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}) as1").Min();
-        protected decimal InternalSum(Expression exp) => this.ToList<decimal>($"sum({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}) as1").Sum();
+        protected TMember InternalMax<TMember>(Expression exp) => this.ToList<TMember>($"max({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}){_commonUtils.FieldAsAlias("as1")}").Max();
+        protected TMember InternalMin<TMember>(Expression exp) => this.ToList<TMember>($"min({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}){_commonUtils.FieldAsAlias("as1")}").Min();
+        protected decimal InternalSum(Expression exp) => this.ToList<decimal>($"sum({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}){_commonUtils.FieldAsAlias("as1")}").Sum();
 
         protected ISelectGrouping<TKey, TValue> InternalGroupBy<TKey, TValue>(Expression columns)
         {
@@ -1118,7 +1120,7 @@ namespace FreeSql.Internal.CommonProvider
         async public Task<bool> AnyAsync()
         {
             this.Limit(1);
-            return (await this.ToListAsync<int>("1 as1")).Sum() > 0; //这里的 Sum 为了分表查询
+            return (await this.ToListAsync<int>($"1{_commonUtils.FieldAsAlias("as1")}")).Sum() > 0; //这里的 Sum 为了分表查询
         }
 
         async public Task<long> CountAsync()
@@ -1127,7 +1129,7 @@ namespace FreeSql.Internal.CommonProvider
             _orderby = null;
             try
             {
-                return (await this.ToListAsync<int>("count(1) as1")).Sum(); //这里的 Sum 为了分表查询
+                return (await this.ToListAsync<int>($"count(1){_commonUtils.FieldAsAlias("as1")}")).Sum(); //这里的 Sum 为了分表查询
             }
             finally
             {
@@ -1312,12 +1314,12 @@ namespace FreeSql.Internal.CommonProvider
 
         async protected Task<double> InternalAvgAsync(Expression exp)
         {
-            var list = await this.ToListAsync<double>($"avg({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}) as1");
+            var list = await this.ToListAsync<double>($"avg({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}){_commonUtils.FieldAsAlias("as1")}");
             return list.Sum() / list.Count;
         }
-        async protected Task<TMember> InternalMaxAsync<TMember>(Expression exp) => (await this.ToListAsync<TMember>($"max({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}) as1")).Max();
-        async protected Task<TMember> InternalMinAsync<TMember>(Expression exp) => (await this.ToListAsync<TMember>($"min({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}) as1")).Min();
-        async protected Task<decimal> InternalSumAsync(Expression exp) => (await this.ToListAsync<decimal>($"sum({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}) as1")).Sum();
+        async protected Task<TMember> InternalMaxAsync<TMember>(Expression exp) => (await this.ToListAsync<TMember>($"max({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}){_commonUtils.FieldAsAlias("as1")}")).Max();
+        async protected Task<TMember> InternalMinAsync<TMember>(Expression exp) => (await this.ToListAsync<TMember>($"min({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}){_commonUtils.FieldAsAlias("as1")}")).Min();
+        async protected Task<decimal> InternalSumAsync(Expression exp) => (await this.ToListAsync<decimal>($"sum({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}){_commonUtils.FieldAsAlias("as1")}")).Sum();
 
         protected Task<List<TReturn>> InternalToListAsync<TReturn>(Expression select) => this.ToListMapReaderAsync<TReturn>(this.GetExpressionField(select));
 

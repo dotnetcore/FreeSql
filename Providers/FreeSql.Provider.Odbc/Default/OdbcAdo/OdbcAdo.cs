@@ -34,7 +34,6 @@ namespace FreeSql.Odbc.Default
         }
         OdbcAdapter Adapter => (_util == null ? FreeSqlOdbcGlobalExtensions.DefaultOdbcAdapter : _util._orm.GetOdbcAdapter());
 
-        static DateTime dt1970 = new DateTime(1970, 1, 1);
         public override object AddslashesProcessParam(object param, Type mapType, ColumnInfo mapColumn)
         {
             if (param == null) return "NULL";

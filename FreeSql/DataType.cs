@@ -22,8 +22,13 @@ namespace FreeSql
         Odbc,
 
         /// <summary>
-        /// 国产数据库达梦
+        /// 武汉达梦数据库有限公司
         /// </summary>
         OdbcDameng,
+
+        /// <summary>
+        /// Microsoft Office Access 是由微软发布的关联式数据库管理系统
+        /// </summary>
+        MsAccess,
     }
 }

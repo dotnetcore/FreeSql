@@ -93,7 +93,7 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
 
-        public IUpdate<T1> BatchOptions(int rowsLimit, int parameterLimit, bool autoTransaction = true)
+        public virtual IUpdate<T1> BatchOptions(int rowsLimit, int parameterLimit, bool autoTransaction = true)
         {
             _batchRowsLimit = rowsLimit;
             _batchParameterLimit = parameterLimit;
@@ -117,6 +117,8 @@ namespace FreeSql.Internal.CommonProvider
         {
             valuesLimit = valuesLimit - 1;
             parameterLimit = parameterLimit - 1;
+            if (valuesLimit <= 0) valuesLimit = 1;
+            if (parameterLimit <= 0) parameterLimit = 999;
             if (_source == null || _source.Any() == false) return new List<T1>[0];
             if (_source.Count == 1) return new[] { _source };
 

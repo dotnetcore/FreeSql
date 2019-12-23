@@ -199,7 +199,7 @@ namespace FreeSql.Internal
                     {
                         case DataType.MySql:
                         case DataType.OdbcMySql:
-                            if (strlen < 0) colattr.DbType = "text";
+                            if (strlen < 0) colattr.DbType = "TEXT";
                             else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
                             break;
                         case DataType.SqlServer:
@@ -209,7 +209,7 @@ namespace FreeSql.Internal
                             break;
                         case DataType.PostgreSQL:
                         case DataType.OdbcPostgreSQL:
-                            if (strlen < 0) colattr.DbType = "text";
+                            if (strlen < 0) colattr.DbType = "TEXT";
                             else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
                             break;
                         case DataType.Oracle:
@@ -219,7 +219,12 @@ namespace FreeSql.Internal
                             else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
                             break;
                         case DataType.Sqlite:
-                            if (strlen < 0) colattr.DbType = "text";
+                            if (strlen < 0) colattr.DbType = "TEXT";
+                            else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
+                            break;
+                        case DataType.MsAccess:
+                            charPatten = @"(CHAR|CHAR2|CHARACTER|TEXT)\s*(\([^\)]*\))?";
+                            if (strlen < 0) colattr.DbType = "LONGTEXT";
                             else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
                             break;
                     }
