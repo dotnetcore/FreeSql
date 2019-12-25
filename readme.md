@@ -8,14 +8,12 @@ FreeSql 是功能强大的对象关系映射技术(O/RM)，支持 .NETCore 2.1+ 
 
 # Features
 
-- [x] 支持 CodeFirst 迁移；
+- [x] 支持 CodeFirst 迁移，哪怕使用 Access 数据库也支持；
 - [x] 支持 DbFirst 从数据库导入实体类，[安装实体类生成工具](https://github.com/2881099/FreeSql/wiki/DbFirst)；
-- [x] 大量采用 ExpressionTree 提升性能；
 - [x] 支持 深入的类型映射，比如pgsql的数组类型；
-- [x] 支持 丰富的表达式函数；
+- [x] 支持 丰富的表达式函数，以及灵活的自定义解析；
 - [x] 支持 导航属性一对多、多对多贪婪加载，以及延时加载；
-- [x] 支持 同步/异步数据库操作方法；
-- [x] 支持 读写分离、分表分库，租户设计，过滤器，乐观锁；
+- [x] 支持 读写分离、分表分库，租户设计，过滤器，乐观锁，悲观锁；
 - [x] 支持 MySql/SqlServer/PostgreSQL/Oracle/Sqlite/达梦数据库/Access；
 
 | | |
@@ -90,7 +88,7 @@ FreeSql 是功能强大的对象关系映射技术(O/RM)，支持 .NETCore 2.1+ 
 > dotnet add package FreeSql.Provider.Sqlite
 
 ```csharp
-IFreeSql fsql = new FreeSql.FreeSqlBuilder()
+static IFreeSql fsql = new FreeSql.FreeSqlBuilder()
     .UseConnectionString(FreeSql.DataType.Sqlite, 
         @"Data Source=|DataDirectory|\document.db;Pooling=true;Max Pool Size=10")
     .UseAutoSyncStructure(true) //自动同步实体结构到数据库
