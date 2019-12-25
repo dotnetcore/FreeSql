@@ -78,7 +78,7 @@ namespace FreeSql.Internal.CommonProvider
             cmd.Parameters.Clear();
             if (isThrowException)
             {
-                cmd.Dispose();
+                if (DataType == DataType.Sqlite) cmd.Dispose();
                 throw e;
             }
         }
@@ -575,7 +575,7 @@ namespace FreeSql.Internal.CommonProvider
                         }
                         LoggerException(pool, pc, new Exception($"连接失败，准备切换其他可用服务器"), dt, logtxt, false);
                         pc.cmd.Parameters.Clear();
-                        pc.cmd.Dispose();
+                        if (DataType == DataType.Sqlite) pc.cmd.Dispose();
                         ExecuteReaderMultiple(multipleResult, connection, transaction, readerHander, cmdType, cmdText, cmdParms);
                         return;
                     }
@@ -638,7 +638,7 @@ namespace FreeSql.Internal.CommonProvider
             }
             LoggerException(pool, pc, ex, dt, logtxt);
             pc.cmd.Parameters.Clear();
-            pc.cmd.Dispose();
+            if (DataType == DataType.Sqlite) pc.cmd.Dispose();
         }
         public object[][] ExecuteArray(string cmdText, object parms = null) => ExecuteArray(null, null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
         public object[][] ExecuteArray(DbTransaction transaction, string cmdText, object parms = null) => ExecuteArray(null, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
@@ -739,7 +739,7 @@ namespace FreeSql.Internal.CommonProvider
             }
             LoggerException(this.MasterPool, pc, ex, dt, logtxt);
             pc.cmd.Parameters.Clear();
-            pc.cmd.Dispose();
+            if (DataType == DataType.Sqlite) pc.cmd.Dispose();
             return val;
         }
         public object ExecuteScalar(string cmdText, object parms = null) => ExecuteScalar(null, null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
@@ -775,7 +775,7 @@ namespace FreeSql.Internal.CommonProvider
             }
             LoggerException(this.MasterPool, pc, ex, dt, logtxt);
             pc.cmd.Parameters.Clear();
-            pc.cmd.Dispose();
+            if (DataType == DataType.Sqlite) pc.cmd.Dispose();
             return val;
         }
 

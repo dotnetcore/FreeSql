@@ -1,6 +1,9 @@
-﻿using System;
+﻿using FreeSql.Internal;
+using FreeSql.Internal.Model;
+using System;
 using System.Collections.Generic;
 using System.Data.Common;
+using System.Linq.Expressions;
 using System.Text;
 
 namespace FreeSql.DataAnnotations
@@ -23,6 +26,15 @@ namespace FreeSql.DataAnnotations
 
     public class ExpressionCallContext
     {
+        internal ExpressionCallContext()
+        {
+            Utility = new DefaultUtility { _context = this };
+        }
+
+        public IUtility Utility { get; }
+
+        internal CommonExpression _commonExp;
+        internal CommonExpression.ExpTSC _tsc;
         /// <summary>
         /// 数据库类型，可用于适配多种数据库环境
         /// </summary>
@@ -32,6 +44,10 @@ namespace FreeSql.DataAnnotations
         /// 已解析的表达式中参数内容
         /// </summary>
         public Dictionary<string, string> ParsedContent { get; } = new Dictionary<string, string>();
+        /// <summary>
+        /// 表达式原始值
+        /// </summary>
+        public Dictionary<string, Expression> RawExpression { get; } = new Dictionary<string, Expression>();
 
         /// <summary>
         /// 主对象的参数化对象，可重塑其属性
@@ -53,5 +69,31 @@ namespace FreeSql.DataAnnotations
         /// 返回表达式函数表示的 SQL 字符串
         /// </summary>
         public string Result { get; set; }
+
+        public interface IUtility
+        {
+            /// <summary>
+            /// 获取实体元数据
+            /// </summary>
+            /// <param name="entityType"></param>
+            /// <returns></returns>
+            TableInfo GetTableByEntity(Type entityType);
+
+            /// <summary>
+            /// 解析表达式
+            /// </summary>
+            /// <param name="exp"></param>
+            /// <returns></returns>
+            string ParseExpression(Expression exp);
+        }
+
+        class DefaultUtility : IUtility
+        {
+            internal ExpressionCallContext _context;
+
+            public TableInfo GetTableByEntity(Type entityType) => _context?._commonExp._common.GetTableByEntity(entityType);
+
+            public string ParseExpression(Expression exp) => _context?._commonExp.ExpressionLambdaToSql(exp, _context._tsc.CloneDisableDiyParse());
+        }
     }
 }

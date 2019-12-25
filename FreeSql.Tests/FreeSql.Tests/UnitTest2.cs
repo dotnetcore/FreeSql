@@ -13,6 +13,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Threading;
 using System.Data.SqlClient;
 using kwlib;
+using System.Text;
 
 namespace FreeSql.Tests
 {
