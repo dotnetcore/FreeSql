@@ -2,6 +2,7 @@
 using FreeSql.Internal.CommonProvider;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
 using System.Threading;
 
@@ -27,12 +28,12 @@ namespace FreeSql.Odbc.Oracle
         public IAop Aop { get; }
         public ICodeFirst CodeFirst { get; }
         public IDbFirst DbFirst { get; }
-        public OdbcOracleProvider(string masterConnectionString, string[] slaveConnectionString)
+        public OdbcOracleProvider(string masterConnectionString, string[] slaveConnectionString, Func<DbConnection> connectionFactory = null)
         {
             this.InternalCommonUtils = new OdbcOracleUtils(this);
             this.InternalCommonExpression = new OdbcOracleExpression(this.InternalCommonUtils);
 
-            this.Ado = new OdbcOracleAdo(this.InternalCommonUtils, masterConnectionString, slaveConnectionString);
+            this.Ado = new OdbcOracleAdo(this.InternalCommonUtils, masterConnectionString, slaveConnectionString, connectionFactory);
             this.Aop = new AopProvider();
 
             this.DbFirst = new OdbcOracleDbFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
@@ -49,7 +50,8 @@ namespace FreeSql.Odbc.Oracle
         internal CommonExpression InternalCommonExpression { get; }
 
         public void Transaction(Action handler) => Ado.Transaction(handler);
-        public void Transaction(Action handler, TimeSpan timeout) => Ado.Transaction(handler, timeout);
+        public void Transaction(TimeSpan timeout, Action handler) => Ado.Transaction(timeout, handler);
+        public void Transaction(IsolationLevel isolationLevel, TimeSpan timeout, Action handler) => Ado.Transaction(isolationLevel, timeout, handler);
 
         public GlobalFilter GlobalFilter { get; } = new GlobalFilter();
 

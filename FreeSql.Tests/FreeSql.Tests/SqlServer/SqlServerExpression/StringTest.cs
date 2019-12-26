@@ -29,6 +29,8 @@ namespace FreeSql.Tests.SqlServerExpression
             public int TypeGuid { get; set; }
             public TestTypeInfo Type { get; set; }
             public string Title { get; set; }
+            [Column(DbType = "varchar(255)")]
+            public string TitleVarchar { get; set; }
             public DateTime CreateTime { get; set; }
         }
         class TestTypeInfo
@@ -56,7 +58,11 @@ namespace FreeSql.Tests.SqlServerExpression
         {
             var list = new List<object>();
             list.Add(select.Where(a => a.Title.Equals("aaa")).ToList());
+            list.Add(select.Where(a => a.TitleVarchar.Equals("aaa")).ToList());
             list.Add(g.sqlserver.Select<TestEqualsGuid>().Where(a => a.id.Equals(Guid.Empty)).ToList());
+
+            list.Add(select.Where(a => a.Title == "aaa").ToList());
+            list.Add(select.Where(a => a.TitleVarchar == "aaa").ToList());
         }
 
         [Fact]
@@ -64,6 +70,7 @@ namespace FreeSql.Tests.SqlServerExpression
         {
             var data = new List<object>();
             data.Add(select.Where(a => (a.Title ?? "") == string.Empty).ToSql());
+            data.Add(select.Where(a => (a.TitleVarchar ?? "") == string.Empty).ToSql());
         }
 
         [Fact]
@@ -79,6 +86,16 @@ namespace FreeSql.Tests.SqlServerExpression
             list.Add(select.Where(a => (a.Title + "aaa").StartsWith(a.Title)).ToList());
             list.Add(select.Where(a => (a.Title + "aaa").StartsWith(a.Title + 1)).ToList());
             list.Add(select.Where(a => (a.Title + "aaa").StartsWith(a.Type.Name)).ToList());
+
+            list.Add(select.Where(a => a.TitleVarchar.StartsWith("aaa")).ToList());
+            list.Add(select.Where(a => a.TitleVarchar.StartsWith(a.TitleVarchar)).ToList());
+            list.Add(select.Where(a => a.TitleVarchar.StartsWith(a.TitleVarchar + 1)).ToList());
+            list.Add(select.Where(a => a.TitleVarchar.StartsWith(a.Type.Name)).ToList());
+
+            list.Add(select.Where(a => (a.TitleVarchar + "aaa").StartsWith("aaa")).ToList());
+            list.Add(select.Where(a => (a.TitleVarchar + "aaa").StartsWith(a.TitleVarchar)).ToList());
+            list.Add(select.Where(a => (a.TitleVarchar + "aaa").StartsWith(a.TitleVarchar + 1)).ToList());
+            list.Add(select.Where(a => (a.TitleVarchar + "aaa").StartsWith(a.Type.Name)).ToList());
         }
         [Fact]
         public void EndsWith()
@@ -93,6 +110,16 @@ namespace FreeSql.Tests.SqlServerExpression
             list.Add(select.Where(a => (a.Title + "aaa").EndsWith(a.Title)).ToList());
             list.Add(select.Where(a => (a.Title + "aaa").EndsWith(a.Title + 1)).ToList());
             list.Add(select.Where(a => (a.Title + "aaa").EndsWith(a.Type.Name)).ToList());
+
+            list.Add(select.Where(a => a.TitleVarchar.EndsWith("aaa")).ToList());
+            list.Add(select.Where(a => a.TitleVarchar.EndsWith(a.TitleVarchar)).ToList());
+            list.Add(select.Where(a => a.TitleVarchar.EndsWith(a.TitleVarchar + 1)).ToList());
+            list.Add(select.Where(a => a.TitleVarchar.EndsWith(a.Type.Name)).ToList());
+
+            list.Add(select.Where(a => (a.TitleVarchar + "aaa").EndsWith("aaa")).ToList());
+            list.Add(select.Where(a => (a.TitleVarchar + "aaa").EndsWith(a.TitleVarchar)).ToList());
+            list.Add(select.Where(a => (a.TitleVarchar + "aaa").EndsWith(a.TitleVarchar + 1)).ToList());
+            list.Add(select.Where(a => (a.TitleVarchar + "aaa").EndsWith(a.Type.Name)).ToList());
         }
         [Fact]
         public void Contains()
@@ -107,6 +134,16 @@ namespace FreeSql.Tests.SqlServerExpression
             list.Add(select.Where(a => (a.Title + "aaa").Contains(a.Title)).ToList());
             list.Add(select.Where(a => (a.Title + "aaa").Contains(a.Title + 1)).ToList());
             list.Add(select.Where(a => (a.Title + "aaa").Contains(a.Type.Name)).ToList());
+
+            list.Add(select.Where(a => a.TitleVarchar.Contains("aaa")).ToList());
+            list.Add(select.Where(a => a.TitleVarchar.Contains(a.TitleVarchar)).ToList());
+            list.Add(select.Where(a => a.TitleVarchar.Contains(a.TitleVarchar + 1)).ToList());
+            list.Add(select.Where(a => a.TitleVarchar.Contains(a.Type.Name)).ToList());
+
+            list.Add(select.Where(a => (a.TitleVarchar + "aaa").Contains("aaa")).ToList());
+            list.Add(select.Where(a => (a.TitleVarchar + "aaa").Contains(a.TitleVarchar)).ToList());
+            list.Add(select.Where(a => (a.TitleVarchar + "aaa").Contains(a.TitleVarchar + 1)).ToList());
+            list.Add(select.Where(a => (a.TitleVarchar + "aaa").Contains(a.Type.Name)).ToList());
         }
         [Fact]
         public void ToLower()
@@ -121,6 +158,16 @@ namespace FreeSql.Tests.SqlServerExpression
             data.Add(select.Where(a => (a.Title.ToLower() + "aaa").ToLower() == a.Title).ToList());
             data.Add(select.Where(a => (a.Title.ToLower() + "aaa").ToLower() == (a.Title + 1)).ToList());
             data.Add(select.Where(a => (a.Title.ToLower() + "aaa").ToLower() == a.Type.Name).ToList());
+
+            data.Add(select.Where(a => a.TitleVarchar.ToLower() == "aaa").ToList());
+            data.Add(select.Where(a => a.TitleVarchar.ToLower() == a.TitleVarchar).ToList());
+            data.Add(select.Where(a => a.TitleVarchar.ToLower() == (a.TitleVarchar + 1)).ToList());
+            data.Add(select.Where(a => a.TitleVarchar.ToLower() == a.Type.Name).ToList());
+
+            data.Add(select.Where(a => (a.TitleVarchar.ToLower() + "aaa").ToLower() == "aaa").ToList());
+            data.Add(select.Where(a => (a.TitleVarchar.ToLower() + "aaa").ToLower() == a.TitleVarchar).ToList());
+            data.Add(select.Where(a => (a.TitleVarchar.ToLower() + "aaa").ToLower() == (a.TitleVarchar + 1)).ToList());
+            data.Add(select.Where(a => (a.TitleVarchar.ToLower() + "aaa").ToLower() == a.Type.Name).ToList());
         }
         [Fact]
         public void ToUpper()
@@ -135,6 +182,16 @@ namespace FreeSql.Tests.SqlServerExpression
             data.Add(select.Where(a => (a.Title.ToUpper() + "aaa").ToUpper() == a.Title).ToList());
             data.Add(select.Where(a => (a.Title.ToUpper() + "aaa").ToUpper() == (a.Title + 1)).ToList());
             data.Add(select.Where(a => (a.Title.ToUpper() + "aaa").ToUpper() == a.Type.Name).ToList());
+
+            data.Add(select.Where(a => a.TitleVarchar.ToUpper() == "aaa").ToList());
+            data.Add(select.Where(a => a.TitleVarchar.ToUpper() == a.TitleVarchar).ToList());
+            data.Add(select.Where(a => a.TitleVarchar.ToUpper() == (a.TitleVarchar + 1)).ToList());
+            data.Add(select.Where(a => a.TitleVarchar.ToUpper() == a.Type.Name).ToList());
+
+            data.Add(select.Where(a => (a.TitleVarchar.ToUpper() + "aaa").ToUpper() == "aaa").ToList());
+            data.Add(select.Where(a => (a.TitleVarchar.ToUpper() + "aaa").ToUpper() == a.TitleVarchar).ToList());
+            data.Add(select.Where(a => (a.TitleVarchar.ToUpper() + "aaa").ToUpper() == (a.TitleVarchar + 1)).ToList());
+            data.Add(select.Where(a => (a.TitleVarchar.ToUpper() + "aaa").ToUpper() == a.Type.Name).ToList());
         }
         [Fact]
         public void Substring()
@@ -149,6 +206,16 @@ namespace FreeSql.Tests.SqlServerExpression
             data.Add(select.Where(a => (a.Title.Substring(0) + "aaa").Substring(0, a.Title.Length) == a.Title).ToList());
             data.Add(select.Where(a => (a.Title.Substring(0) + "aaa").Substring(0, 3) == (a.Title + 1)).ToList());
             data.Add(select.Where(a => (a.Title.Substring(0) + "aaa").Substring(1, 2) == a.Type.Name).ToList());
+
+            data.Add(select.Where(a => a.TitleVarchar.Substring(0) == "aaa").ToList());
+            data.Add(select.Where(a => a.TitleVarchar.Substring(0) == a.TitleVarchar).ToList());
+            data.Add(select.Where(a => a.TitleVarchar.Substring(0) == (a.TitleVarchar + 1)).ToList());
+            data.Add(select.Where(a => a.TitleVarchar.Substring(0) == a.Type.Name).ToList());
+
+            data.Add(select.Where(a => (a.TitleVarchar.Substring(0) + "aaa").Substring(a.TitleVarchar.Length) == "aaa").ToList());
+            data.Add(select.Where(a => (a.TitleVarchar.Substring(0) + "aaa").Substring(0, a.TitleVarchar.Length) == a.TitleVarchar).ToList());
+            data.Add(select.Where(a => (a.TitleVarchar.Substring(0) + "aaa").Substring(0, 3) == (a.TitleVarchar + 1)).ToList());
+            data.Add(select.Where(a => (a.TitleVarchar.Substring(0) + "aaa").Substring(1, 2) == a.Type.Name).ToList());
         }
         [Fact]
         public void Length()
@@ -163,6 +230,16 @@ namespace FreeSql.Tests.SqlServerExpression
             data.Add(select.Where(a => (a.Title + "aaa").Length == 1).ToList());
             data.Add(select.Where(a => (a.Title + "aaa").Length == a.Title.Length + 1).ToList());
             data.Add(select.Where(a => (a.Title + "aaa").Length == a.Type.Name.Length).ToList());
+
+            data.Add(select.Where(a => a.TitleVarchar.Length == 0).ToList());
+            data.Add(select.Where(a => a.TitleVarchar.Length == 1).ToList());
+            data.Add(select.Where(a => a.TitleVarchar.Length == a.TitleVarchar.Length + 1).ToList());
+            data.Add(select.Where(a => a.TitleVarchar.Length == a.Type.Name.Length).ToList());
+
+            data.Add(select.Where(a => (a.TitleVarchar + "aaa").Length == 0).ToList());
+            data.Add(select.Where(a => (a.TitleVarchar + "aaa").Length == 1).ToList());
+            data.Add(select.Where(a => (a.TitleVarchar + "aaa").Length == a.TitleVarchar.Length + 1).ToList());
+            data.Add(select.Where(a => (a.TitleVarchar + "aaa").Length == a.Type.Name.Length).ToList());
         }
         [Fact]
         public void IndexOf()
@@ -177,6 +254,16 @@ namespace FreeSql.Tests.SqlServerExpression
             data.Add(select.Where(a => (a.Title + "aaa").IndexOf("aaa", 2) == -1).ToList());
             data.Add(select.Where(a => (a.Title + "aaa").IndexOf("aaa", 2) == (a.Title.Length + 1)).ToList());
             data.Add(select.Where(a => (a.Title + "aaa").IndexOf("aaa", 2) == a.Type.Name.Length + 1).ToList());
+
+            data.Add(select.Where(a => a.TitleVarchar.IndexOf("aaa") == -1).ToList());
+            data.Add(select.Where(a => a.TitleVarchar.IndexOf("aaa", 2) == -1).ToList());
+            data.Add(select.Where(a => a.TitleVarchar.IndexOf("aaa", 2) == (a.TitleVarchar.Length + 1)).ToList());
+            data.Add(select.Where(a => a.TitleVarchar.IndexOf("aaa", 2) == a.Type.Name.Length + 1).ToList());
+
+            data.Add(select.Where(a => (a.TitleVarchar + "aaa").IndexOf("aaa") == -1).ToList());
+            data.Add(select.Where(a => (a.TitleVarchar + "aaa").IndexOf("aaa", 2) == -1).ToList());
+            data.Add(select.Where(a => (a.TitleVarchar + "aaa").IndexOf("aaa", 2) == (a.TitleVarchar.Length + 1)).ToList());
+            data.Add(select.Where(a => (a.TitleVarchar + "aaa").IndexOf("aaa", 2) == a.Type.Name.Length + 1).ToList());
         }
         [Fact]
         public void PadLeft()
@@ -219,6 +306,16 @@ namespace FreeSql.Tests.SqlServerExpression
             data.Add(select.Where(a => (a.Title.Trim('a') + "aaa").Trim('a') == a.Title).ToList());
             data.Add(select.Where(a => (a.Title.Trim('a', 'b') + "aaa").Trim('a', 'b') == (a.Title + 1)).ToList());
             data.Add(select.Where(a => (a.Title.Trim('a', 'b', 'c') + "aaa").Trim('a', 'b', 'c') == a.Type.Name).ToList());
+
+            data.Add(select.Where(a => a.TitleVarchar.Trim() == "aaa").ToList());
+            data.Add(select.Where(a => a.TitleVarchar.Trim('a') == a.TitleVarchar).ToList());
+            data.Add(select.Where(a => a.TitleVarchar.Trim('a', 'b') == (a.TitleVarchar + 1)).ToList());
+            data.Add(select.Where(a => a.TitleVarchar.Trim('a', 'b', 'c') == a.Type.Name).ToList());
+
+            data.Add(select.Where(a => (a.TitleVarchar.Trim() + "aaa").Trim() == "aaa").ToList());
+            data.Add(select.Where(a => (a.TitleVarchar.Trim('a') + "aaa").Trim('a') == a.TitleVarchar).ToList());
+            data.Add(select.Where(a => (a.TitleVarchar.Trim('a', 'b') + "aaa").Trim('a', 'b') == (a.TitleVarchar + 1)).ToList());
+            data.Add(select.Where(a => (a.TitleVarchar.Trim('a', 'b', 'c') + "aaa").Trim('a', 'b', 'c') == a.Type.Name).ToList());
         }
         [Fact]
         public void TrimStart()
@@ -233,6 +330,16 @@ namespace FreeSql.Tests.SqlServerExpression
             data.Add(select.Where(a => (a.Title.TrimStart('a') + "aaa").TrimStart('a') == a.Title).ToList());
             data.Add(select.Where(a => (a.Title.TrimStart('a', 'b') + "aaa").TrimStart('a', 'b') == (a.Title + 1)).ToList());
             data.Add(select.Where(a => (a.Title.TrimStart('a', 'b', 'c') + "aaa").TrimStart('a', 'b', 'c') == a.Type.Name).ToList());
+
+            data.Add(select.Where(a => a.TitleVarchar.TrimStart() == "aaa").ToList());
+            data.Add(select.Where(a => a.TitleVarchar.TrimStart('a') == a.TitleVarchar).ToList());
+            data.Add(select.Where(a => a.TitleVarchar.TrimStart('a', 'b') == (a.TitleVarchar + 1)).ToList());
+            data.Add(select.Where(a => a.TitleVarchar.TrimStart('a', 'b', 'c') == a.Type.Name).ToList());
+
+            data.Add(select.Where(a => (a.TitleVarchar.TrimStart() + "aaa").TrimStart() == "aaa").ToList());
+            data.Add(select.Where(a => (a.TitleVarchar.TrimStart('a') + "aaa").TrimStart('a') == a.TitleVarchar).ToList());
+            data.Add(select.Where(a => (a.TitleVarchar.TrimStart('a', 'b') + "aaa").TrimStart('a', 'b') == (a.TitleVarchar + 1)).ToList());
+            data.Add(select.Where(a => (a.TitleVarchar.TrimStart('a', 'b', 'c') + "aaa").TrimStart('a', 'b', 'c') == a.Type.Name).ToList());
         }
         [Fact]
         public void TrimEnd()
@@ -247,6 +354,16 @@ namespace FreeSql.Tests.SqlServerExpression
             data.Add(select.Where(a => (a.Title.TrimEnd('a') + "aaa").TrimEnd('a') == a.Title).ToList());
             data.Add(select.Where(a => (a.Title.TrimEnd('a', 'b') + "aaa").TrimEnd('a', 'b') == (a.Title + 1)).ToList());
             data.Add(select.Where(a => (a.Title.TrimEnd('a', 'b', 'c') + "aaa").TrimEnd('a', 'b', 'c') == a.Type.Name).ToList());
+
+            data.Add(select.Where(a => a.TitleVarchar.TrimEnd() == "aaa").ToList());
+            data.Add(select.Where(a => a.TitleVarchar.TrimEnd('a') == a.TitleVarchar).ToList());
+            data.Add(select.Where(a => a.TitleVarchar.TrimEnd('a', 'b') == (a.TitleVarchar + 1)).ToList());
+            data.Add(select.Where(a => a.TitleVarchar.TrimEnd('a', 'b', 'c') == a.Type.Name).ToList());
+
+            data.Add(select.Where(a => (a.TitleVarchar.TrimEnd() + "aaa").TrimEnd() == "aaa").ToList());
+            data.Add(select.Where(a => (a.TitleVarchar.TrimEnd('a') + "aaa").TrimEnd('a') == a.TitleVarchar).ToList());
+            data.Add(select.Where(a => (a.TitleVarchar.TrimEnd('a', 'b') + "aaa").TrimEnd('a', 'b') == (a.TitleVarchar + 1)).ToList());
+            data.Add(select.Where(a => (a.TitleVarchar.TrimEnd('a', 'b', 'c') + "aaa").TrimEnd('a', 'b', 'c') == a.Type.Name).ToList());
         }
         [Fact]
         public void Replace()
@@ -261,6 +378,16 @@ namespace FreeSql.Tests.SqlServerExpression
             data.Add(select.Where(a => (a.Title.Replace("a", "b").Replace("b", "c") + "aaa").TrimEnd('a') == a.Title).ToList());
             data.Add(select.Where(a => (a.Title.Replace("a", "b").Replace("b", "c").Replace("c", "a") + "aaa").TrimEnd('a', 'b') == (a.Title + 1)).ToList());
             data.Add(select.Where(a => (a.Title.Replace("a", "b").Replace("b", "c").Replace(a.Type.Name, "a") + "aaa").TrimEnd('a', 'b', 'c') == a.Type.Name).ToList());
+
+            data.Add(select.Where(a => a.TitleVarchar.Replace("a", "b") == "aaa").ToList());
+            data.Add(select.Where(a => a.TitleVarchar.Replace("a", "b").Replace("b", "c") == a.TitleVarchar).ToList());
+            data.Add(select.Where(a => a.TitleVarchar.Replace("a", "b").Replace("b", "c").Replace("c", "a") == (a.TitleVarchar + 1)).ToList());
+            data.Add(select.Where(a => a.TitleVarchar.Replace("a", "b").Replace("b", "c").Replace(a.Type.Name, "a") == a.Type.Name).ToList());
+
+            data.Add(select.Where(a => (a.TitleVarchar.Replace("a", "b") + "aaa").TrimEnd() == "aaa").ToList());
+            data.Add(select.Where(a => (a.TitleVarchar.Replace("a", "b").Replace("b", "c") + "aaa").TrimEnd('a') == a.TitleVarchar).ToList());
+            data.Add(select.Where(a => (a.TitleVarchar.Replace("a", "b").Replace("b", "c").Replace("c", "a") + "aaa").TrimEnd('a', 'b') == (a.TitleVarchar + 1)).ToList());
+            data.Add(select.Where(a => (a.TitleVarchar.Replace("a", "b").Replace("b", "c").Replace(a.Type.Name, "a") + "aaa").TrimEnd('a', 'b', 'c') == a.Type.Name).ToList());
         }
         [Fact]
         public void CompareTo()
@@ -284,6 +411,10 @@ namespace FreeSql.Tests.SqlServerExpression
             data.Add(select.Where(a => string.IsNullOrEmpty(a.Title)).ToList());
             //data.Add(select.Where(a => string.IsNullOrEmpty(a.Title) == false).ToList());
             data.Add(select.Where(a => !string.IsNullOrEmpty(a.Title)).ToList());
+
+            data.Add(select.Where(a => string.IsNullOrEmpty(a.TitleVarchar)).ToList());
+            //data.Add(select.Where(a => string.IsNullOrEmpty(a.TitleVarchar) == false).ToList());
+            data.Add(select.Where(a => !string.IsNullOrEmpty(a.TitleVarchar)).ToList());
         }
 
         [Fact]
@@ -293,6 +424,10 @@ namespace FreeSql.Tests.SqlServerExpression
             data.Add(select.Where(a => string.IsNullOrWhiteSpace(a.Title)).ToList());
             data.Add(select.Where(a => string.IsNullOrWhiteSpace(a.Title) == false).ToList());
             data.Add(select.Where(a => !string.IsNullOrWhiteSpace(a.Title)).ToList());
+
+            data.Add(select.Where(a => string.IsNullOrWhiteSpace(a.TitleVarchar)).ToList());
+            data.Add(select.Where(a => string.IsNullOrWhiteSpace(a.TitleVarchar) == false).ToList());
+            data.Add(select.Where(a => !string.IsNullOrWhiteSpace(a.TitleVarchar)).ToList());
         }
     }
 }

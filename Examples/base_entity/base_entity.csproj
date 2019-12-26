@@ -11,12 +11,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\Extensions\FreeSql.Extensions.BaseEntity\FreeSql.Extensions.BaseEntity.csproj" />
     <ProjectReference Include="..\..\Extensions\FreeSql.Extensions.JsonMap\FreeSql.Extensions.JsonMap.csproj" />
+    <ProjectReference Include="..\..\Extensions\FreeSql.Extensions.LazyLoading\FreeSql.Extensions.LazyLoading.csproj" />
     <ProjectReference Include="..\..\FreeSql.Repository\FreeSql.Repository.csproj" />
     <ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />
     <ProjectReference Include="..\..\Providers\FreeSql.Provider.MySql\FreeSql.Provider.MySql.csproj" />

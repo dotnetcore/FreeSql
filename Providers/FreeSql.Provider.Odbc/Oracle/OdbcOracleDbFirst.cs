@@ -174,7 +174,7 @@ namespace FreeSql.Odbc.Oracle
 
             if (database == null || database.Any() == false)
             {
-                var userUsers = _orm.Ado.ExecuteScalar("select username from user_users")?.ToString();
+                var userUsers = _orm.Ado.ExecuteScalar(" select username from user_users")?.ToString();
                 if (string.IsNullOrEmpty(userUsers)) return loc1;
                 database = new[] { userUsers };
             }
@@ -258,7 +258,7 @@ a.data_length,
 a.data_precision,
 a.data_scale,
 a.char_used,
-case when a.nullable = 'Y' then 1 else 0 end,
+case when a.nullable = 'N' then 0 else 1 end,
 nvl((select 1 from user_sequences where upper(sequence_name)=upper(a.table_name||'_seq_'||a.column_name)), 0),
 b.comments
 from all_tab_cols a
@@ -276,8 +276,8 @@ where a.owner in ({1}) and {0}
                 ds2item[1] = row[1];
                 ds2item[2] = Regex.Replace(string.Concat(row[2]), @"\(\d+\)", "");
                 ds2item[4] = OdbcOracleCodeFirst.GetOracleSqlTypeFullName(new object[] { row[1], row[2], row[3], row[4], row[5], row[6] });
-                ds2item[5] = string.Concat(row[7]) == "1";
-                ds2item[6] = string.Concat(row[8]) == "1";
+                ds2item[5] = string.Concat(row[7]);
+                ds2item[6] = string.Concat(row[8]);
                 ds2item[7] = string.Concat(row[9]);
                 ds2.Add(ds2item);
             }
@@ -321,7 +321,7 @@ a.table_owner || '.' || a.table_name,
 nvl(freesql_long_2_varchar(a.index_name, c.table_name, c.column_position), c.column_name),
 c.index_name,
 case when a.uniqueness = 'UNIQUE' then 1 else 0 end,
-0,
+case when exists(select 1 from all_constraints where constraint_name = a.index_name and constraint_type = 'P') then 1 else 0 end,
 0,
 case when c.descend = 'DESC' then 1 else 0 end,
 c.column_position
@@ -331,7 +331,6 @@ where a.index_name = c.index_name
 and a.table_owner = c.table_owner
 and a.table_name = c.table_name
 and a.table_owner in ({1}) and {0}
-and not exists(select 1 from all_constraints where constraint_name = a.index_name and constraint_type = 'P')
 ", loc8, databaseIn);
             ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
             if (ds == null) return loc1;
@@ -352,6 +351,7 @@ and not exists(select 1 from all_constraints where constraint_name = a.index_nam
                 if (loc3.ContainsKey(table_id) == false || loc3[table_id].ContainsKey(column) == false) continue;
                 var loc9 = loc3[table_id][column];
                 if (loc9.IsPrimary == false && is_primary_key) loc9.IsPrimary = is_primary_key;
+                if (is_primary_key) continue;
 
                 Dictionary<string, DbIndexInfo> loc10 = null;
                 DbIndexInfo loc11 = null;

@@ -80,8 +80,17 @@ namespace FreeSql
         /// <summary>
         /// 删除数据
         /// </summary>
+        /// <param name="physicalDelete">是否物理删除</param>
         /// <returns></returns>
-        public virtual bool Delete() => this.UpdateIsDeleted(true);
+        public virtual bool Delete(bool physicalDelete = false)
+        {
+            if (physicalDelete == false) return this.UpdateIsDeleted(true);
+            if (this.Repository == null) 
+                return Orm.Delete<TEntity>(this as TEntity).ExecuteAffrows() == 1;
+            //this.SetTenantId();
+            this.Repository.UnitOfWork = UnitOfWork.Current.Value;
+            return this.Repository.Delete(this as TEntity) == 1;
+        }
         /// <summary>
         /// 恢复删除的数据
         /// </summary>

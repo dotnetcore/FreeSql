@@ -56,7 +56,7 @@ namespace FreeSql.Internal.CommonProvider
                         case "Where": this.InternalWhere(expCall.Arguments[0]); break;
                         case "WhereIf":
                             var whereIfCond = _commonExpression.ExpressionSelectColumn_MemberAccess(null, null, SelectTableInfoType.From, expCall.Arguments[0], false, null);
-                            if (whereIfCond == "1" || whereIfCond == "'t'")
+                            if (whereIfCond == "1" || whereIfCond == "'t'" || whereIfCond == "-1") //MsAccess -1
                                 this.InternalWhere(expCall.Arguments[1]);
                             break;
                         case "OrderBy":
@@ -73,7 +73,7 @@ namespace FreeSql.Internal.CommonProvider
                             if (expCall.Arguments.Count == 2 && expCall.Arguments[0].Type == typeof(bool))
                             {
                                 var ifcond = _commonExpression.ExpressionSelectColumn_MemberAccess(null, null, SelectTableInfoType.From, expCall.Arguments[0], false, null);
-                                if (ifcond == "1" || ifcond == "'t'")
+                                if (ifcond == "1" || ifcond == "'t'" || ifcond == "-1")//MsAccess -1
                                     this.InternalOrderByDescending(expCall.Arguments.LastOrDefault());
                                 break;
                             }
@@ -104,11 +104,11 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
 
-        public TMember Avg<TMember>(Expression<Func<T1, TMember>> column)
+        public double Avg<TMember>(Expression<Func<T1, TMember>> column)
         {
-            if (column == null) return default(TMember);
+            if (column == null) return default(double);
             _tables[0].Parameter = column.Parameters[0];
-            return this.InternalAvg<TMember>(column?.Body);
+            return this.InternalAvg(column?.Body);
         }
 
         public abstract ISelect<T1, T2> From<T2>(Expression<Func<ISelectFromExpression<T1>, T2, ISelectFromExpression<T1>>> exp) where T2 : class;// { this.InternalFrom(exp); var ret = new Select3Provider<T1, T2, T3>(_orm, _commonUtils, _commonExpression, null); Select0Provider<ISelect<T1>, T1>.CopyData(this, ret, exp?.Parameters); return ret; }
@@ -155,11 +155,11 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalOrderByDescending(column?.Body);
         }
 
-        public TMember Sum<TMember>(Expression<Func<T1, TMember>> column)
+        public decimal Sum<TMember>(Expression<Func<T1, TMember>> column)
         {
-            if (column == null) return default(TMember);
+            if (column == null) return default(decimal);
             _tables[0].Parameter = column.Parameters[0];
-            return this.InternalSum<TMember>(column?.Body);
+            return this.InternalSum(column?.Body);
         }
 
         public List<TReturn> ToList<TReturn>(Expression<Func<T1, TReturn>> select)
@@ -172,8 +172,8 @@ namespace FreeSql.Internal.CommonProvider
         public List<TDto> ToList<TDto>() => ToList(GetToListDtoSelector<TDto>());
         Expression<Func<T1, TDto>> GetToListDtoSelector<TDto>()
         {
-            var ctor = typeof(TDto).GetConstructor(new Type[0]);
-            return Expression.Lambda<Func<T1, TDto>>(Expression.New(ctor),
+            return Expression.Lambda<Func<T1, TDto>>(
+                typeof(TDto).InternalNewExpression(),
                 _tables[0].Parameter ?? Expression.Parameter(typeof(T1), "a"));
         }
 
@@ -263,11 +263,11 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalToDataTable(select?.Body);
         }
 
-        public string ToSql<TReturn>(Expression<Func<T1, TReturn>> select)
+        public string ToSql<TReturn>(Expression<Func<T1, TReturn>> select, FieldAliasOptions fieldAlias = FieldAliasOptions.AsIndex)
         {
-            if (select == null) return this.InternalToSql<TReturn>(select?.Body);
+            if (select == null) return this.InternalToSql<TReturn>(select?.Body, fieldAlias);
             _tables[0].Parameter = select.Parameters[0];
-            return this.InternalToSql<TReturn>(select?.Body);
+            return this.InternalToSql<TReturn>(select?.Body, fieldAlias);
         }
 
         public TReturn ToAggregate<TReturn>(Expression<Func<ISelectGroupingAggregate<T1>, TReturn>> select)
@@ -319,7 +319,9 @@ namespace FreeSql.Internal.CommonProvider
             _tables[0].Parameter = exp.Parameters[0];
             return this.InternalWhere(exp?.Body);
         }
-        public ISelect<T1> WhereDynamic(object dywhere) => this.Where(_commonUtils.WhereObject(_tables.First().Table, $"{_tables.First().Alias}.", dywhere));
+        public ISelect<T1> WhereDynamic(object dywhere, bool not = false) => not == false ?
+            this.Where(_commonUtils.WhereObject(_tables.First().Table, $"{_tables.First().Alias}.", dywhere)) :
+            this.Where($"not({_commonUtils.WhereObject(_tables.First().Table, $"{_tables.First().Alias}.", dywhere)})");
 
         public ISelect<T1> WhereCascade(Expression<Func<T1, bool>> exp)
         {
@@ -346,7 +348,7 @@ namespace FreeSql.Internal.CommonProvider
             if (tb == null) throw new Exception("Include 参数类型错误");
 
             _isIncluded = true;
-            _commonExpression.ExpressionWhereLambda(_tables, Expression.MakeMemberAccess(expBody, tb.Properties[tb.ColumnsByCs.First().Value.CsName]), null, null);
+            _commonExpression.ExpressionWhereLambda(_tables, Expression.MakeMemberAccess(expBody, tb.Properties[tb.ColumnsByCs.First().Value.CsName]), null, null, null);
             return this;
         }
 
@@ -384,6 +386,7 @@ namespace FreeSql.Internal.CommonProvider
 
             var expBody = navigateSelector?.Body;
             if (expBody == null) return this;
+            if (expBody.NodeType == ExpressionType.Convert) expBody = (expBody as UnaryExpression)?.Operand; //- 兼容 Vb.Net 无法使用 IncludeMany 的问题；
             MethodCallExpression whereExp = null;
             int takeNumber = 0;
             Expression<Func<TNavigate, TNavigate>> selectExp = null;
@@ -420,7 +423,7 @@ namespace FreeSql.Internal.CommonProvider
             if (tbNav == null) throw new Exception($"类型 {typeof(TNavigate).FullName} 错误，不能使用 IncludeMany");
 
             if (collMem.Expression.NodeType != ExpressionType.Parameter)
-                _commonExpression.ExpressionWhereLambda(_tables, Expression.MakeMemberAccess(collMem.Expression, tb.Properties[tb.ColumnsByCs.First().Value.CsName]), null, null);
+                _commonExpression.ExpressionWhereLambda(_tables, Expression.MakeMemberAccess(collMem.Expression, tb.Properties[tb.ColumnsByCs.First().Value.CsName]), null, null, null);
 
             TableRef tbref = null;
             var tbrefOneToManyColumns = new List<List<MemberExpression>>(); //临时 OneToMany 三个表关联，第三个表需要前两个表确定
@@ -531,9 +534,16 @@ namespace FreeSql.Internal.CommonProvider
                 }
                 if (tbref.Columns.Any() == false) throw throwNavigateSelector;
             }
-            
-            _includeToList.Add(listObj =>
+
+#if net40
+            Action<object, bool> includeToListSyncOrAsync = (listObj, isAsync) =>
             {
+                isAsync = false;
+#else
+            Func<object, bool, Task> includeToListSyncOrAsync = async (listObj, isAsync) =>
+            {
+#endif
+
                 var list = listObj as List<T1>;
                 if (list == null) return;
                 if (list.Any() == false) return;
@@ -541,23 +551,48 @@ namespace FreeSql.Internal.CommonProvider
 
                 var t1parm = Expression.Parameter(typeof(T1));
                 Expression membersExp = t1parm;
-                foreach (var mem in members) membersExp = Expression.MakeMemberAccess(membersExp, mem.Member);
+                Expression membersExpNotNull = null;
+                foreach (var mem in members)
+                {
+                    membersExp = Expression.MakeMemberAccess(membersExp, mem.Member);
+                    var expNotNull = Expression.NotEqual(membersExp, Expression.Constant(null));
+                    if (membersExpNotNull == null) membersExpNotNull = expNotNull;
+                    else membersExpNotNull = Expression.AndAlso(membersExpNotNull, expNotNull);
+                }
                 members.Clear();
 
                 var listValueExp = Expression.Parameter(typeof(List<TNavigate>), "listValue");
-                var setListValue = Expression.Lambda<Action<T1, List<TNavigate>>>(
-                    Expression.Assign(
-                        Expression.MakeMemberAccess(membersExp, collMem.Member),
-                        Expression.TypeAs(listValueExp, collMem.Type)
-                    ), t1parm, listValueExp).Compile();
+                var setListValue = membersExpNotNull == null ?
+                    Expression.Lambda<Action<T1, List<TNavigate>>>(
+                        Expression.Assign(
+                            Expression.MakeMemberAccess(membersExp, collMem.Member),
+                            Expression.TypeAs(listValueExp, collMem.Type)
+                        ), t1parm, listValueExp).Compile() :
+                    Expression.Lambda<Action<T1, List<TNavigate>>>(
+                        Expression.IfThen(
+                            membersExpNotNull,
+                            Expression.Assign(
+                                Expression.MakeMemberAccess(membersExp, collMem.Member),
+                                Expression.TypeAs(listValueExp, collMem.Type)
+                            )
+                        ), t1parm, listValueExp).Compile();
 
                 var returnTarget = Expression.Label(typeof(object));
                 var propertyNameExp = Expression.Parameter(typeof(string), "propertyName");
-                var getListValue1 = Expression.Lambda<Func<T1, string, object>>(
-                    Expression.Block(
-                        Expression.Return(returnTarget, Expression.Call(null, GetEntityValueWithPropertyNameMethod, Expression.Constant(_orm), Expression.Constant(membersExp.Type), membersExp, propertyNameExp)),
-                        Expression.Label(returnTarget, Expression.Default(typeof(object)))
-                    ), t1parm, propertyNameExp).Compile();
+                var getListValue1 = membersExpNotNull == null ?
+                    Expression.Lambda<Func<T1, string, object>>(
+                        Expression.Block(
+                            Expression.Return(returnTarget, Expression.Call(null, GetEntityValueWithPropertyNameMethod, Expression.Constant(_orm), Expression.Constant(membersExp.Type), membersExp, propertyNameExp)),
+                            Expression.Label(returnTarget, Expression.Default(typeof(object)))
+                        ), t1parm, propertyNameExp).Compile() :
+                    Expression.Lambda<Func<T1, string, object>>(
+                        Expression.Block(
+                            Expression.IfThen(
+                                membersExpNotNull,
+                                Expression.Return(returnTarget, Expression.Call(null, GetEntityValueWithPropertyNameMethod, Expression.Constant(_orm), Expression.Constant(membersExp.Type), membersExp, propertyNameExp))
+                            ),
+                            Expression.Label(returnTarget, Expression.Default(typeof(object)))
+                        ), t1parm, propertyNameExp).Compile();
 
                 var getListValue2 = new List<Func<T1, string, object>>();
                 for (var j = 0; j < tbrefOneToManyColumns.Count; j++)
@@ -568,13 +603,29 @@ namespace FreeSql.Internal.CommonProvider
                         continue;
                     }
                     Expression tbrefOneToManyColumnsMembers = t1parm;
-                    foreach (var mem in tbrefOneToManyColumns[j]) tbrefOneToManyColumnsMembers = Expression.MakeMemberAccess(tbrefOneToManyColumnsMembers, mem.Member);
+                    Expression tbrefOneToManyColumnsMembersNotNull = null;
+                    foreach (var mem in tbrefOneToManyColumns[j])
+                    {
+                        tbrefOneToManyColumnsMembers = Expression.MakeMemberAccess(tbrefOneToManyColumnsMembers, mem.Member);
+                        var expNotNull = Expression.NotEqual(membersExp, Expression.Constant(null));
+                        if (tbrefOneToManyColumnsMembersNotNull == null) tbrefOneToManyColumnsMembersNotNull = expNotNull;
+                        else tbrefOneToManyColumnsMembersNotNull = Expression.AndAlso(tbrefOneToManyColumnsMembersNotNull, expNotNull);
+                    }
                     tbrefOneToManyColumns[j].Clear();
-                    getListValue2.Add(Expression.Lambda<Func<T1, string, object>>(
-                        Expression.Block(
-                            Expression.Return(returnTarget, Expression.Call(null, GetEntityValueWithPropertyNameMethod, Expression.Constant(_orm), Expression.Constant(tbrefOneToManyColumnsMembers.Type), tbrefOneToManyColumnsMembers, propertyNameExp)),
-                            Expression.Label(returnTarget, Expression.Default(typeof(object)))
-                        ), t1parm, propertyNameExp).Compile());
+                    getListValue2.Add(tbrefOneToManyColumnsMembersNotNull == null ?
+                        Expression.Lambda<Func<T1, string, object>>(
+                            Expression.Block(
+                                Expression.Return(returnTarget, Expression.Call(null, GetEntityValueWithPropertyNameMethod, Expression.Constant(_orm), Expression.Constant(tbrefOneToManyColumnsMembers.Type), tbrefOneToManyColumnsMembers, propertyNameExp)),
+                                Expression.Label(returnTarget, Expression.Default(typeof(object)))
+                            ), t1parm, propertyNameExp).Compile() :
+                        Expression.Lambda<Func<T1, string, object>>(
+                            Expression.Block(
+                                Expression.IfThen(
+                                    tbrefOneToManyColumnsMembersNotNull,
+                                    Expression.Return(returnTarget, Expression.Call(null, GetEntityValueWithPropertyNameMethod, Expression.Constant(_orm), Expression.Constant(tbrefOneToManyColumnsMembers.Type), tbrefOneToManyColumnsMembers, propertyNameExp))
+                                ),
+                                Expression.Label(returnTarget, Expression.Default(typeof(object)))
+                            ), t1parm, propertyNameExp).Compile());
                 }
                 tbrefOneToManyColumns.Clear();
                 Func<T1, string, int, object> getListValue = (item, propName, colIndex) =>
@@ -586,13 +637,18 @@ namespace FreeSql.Internal.CommonProvider
                 foreach (var item in list)
                     setListValue(item, null);
 
-                var subSelect = _orm.Select<TNavigate>().DisableGlobalFilter().WithConnection(_connection).WithTransaction(_transaction).TrackToList(_trackToList) as Select1Provider<TNavigate>;
+                var subSelect = _orm.Select<TNavigate>()
+                    .DisableGlobalFilter()
+                    .WithConnection(_connection)
+                    .WithTransaction(_transaction)
+                    .TrackToList(_trackToList) as Select1Provider<TNavigate>;
                 if (_tableRules?.Any() == true)
                     foreach (var tr in _tableRules) subSelect.AsTable(tr);
 
                 if (_whereCascadeExpression.Any())
                     subSelect._whereCascadeExpression.AddRange(_whereCascadeExpression.ToArray());
 
+                //subSelect._aliasRule = _aliasRule; //把 SqlServer 查询锁传递下去
                 then?.Invoke(subSelect);
                 var subSelectT1Alias = subSelect._tables[0].Alias;
                 var oldWhere = subSelect._where.ToString();
@@ -657,8 +713,20 @@ namespace FreeSql.Internal.CommonProvider
                                 sbSql.Remove(0, 13);
                                 if (sbDic.Count == 1) sbSql.Remove(0, 15).Remove(sbSql.Length - 5, 5);
                                 sbDic.Clear();
-                                if (selectExp == null) subList = subSelect.ToListAfPrivate(sbSql.ToString(), af, null);
-                                else subList = subSelect.ToListMrPrivate<TNavigate>(sbSql.ToString(), mf, null);
+
+                                if (isAsync)
+                                {
+#if net40
+#else
+                                    if (selectExp == null) subList = await subSelect.ToListAfPrivateAsync(sbSql.ToString(), af, null);
+                                    else subList = await subSelect.ToListMrPrivateAsync<TNavigate>(sbSql.ToString(), mf, null);
+#endif
+                                }
+                                else
+                                {
+                                    if (selectExp == null) subList = subSelect.ToListAfPrivate(sbSql.ToString(), af, null);
+                                    else subList = subSelect.ToListMrPrivate<TNavigate>(sbSql.ToString(), mf, null);
+                                }
                                 sbSql.Clear();
                             }
                             else
@@ -688,8 +756,20 @@ namespace FreeSql.Internal.CommonProvider
                                     sbDic.Clear();
                                 }
                                 subSelect.Where(oldWhere);
-                                if (selectExp == null) subList = subSelect.ToList(true);
-                                else subList = subSelect.ToList<TNavigate>(selectExp);
+
+                                if (isAsync)
+                                {
+#if net40
+#else
+                                    if (selectExp == null) subList = await subSelect.ToListAsync(true);
+                                    else subList = await subSelect.ToListAsync<TNavigate>(selectExp);
+#endif
+                                }
+                                else
+                                {
+                                    if (selectExp == null) subList = subSelect.ToList(true);
+                                    else subList = subSelect.ToList<TNavigate>(selectExp);
+                                }
                             }
 
                             if (subList.Any() == false)
@@ -704,7 +784,8 @@ namespace FreeSql.Internal.CommonProvider
                             {
                                 if (tbref.Columns.Count == 1)
                                 {
-                                    var dicListKey = getListValue(item, tbref.Columns[0].CsName, 0).ToString();
+                                    var dicListKey = getListValue(item, tbref.Columns[0].CsName, 0)?.ToString();
+                                    if (dicListKey == null) continue;
                                     var dicListVal = Tuple.Create(item, new List<TNavigate>());
                                     if (dicList.TryGetValue(dicListKey, out var items) == false)
                                         dicList.Add(dicListKey, items = new List<Tuple<T1, List<TNavigate>>>());
@@ -782,7 +863,8 @@ namespace FreeSql.Internal.CommonProvider
                             {
                                 if (z > 0) sbJoin.Append(" AND ");
                                 sbJoin.Append($"midtb.{_commonUtils.QuoteSqlName(tbref.MiddleColumns[tbref.Columns.Count + z].Attribute.Name)} = a.{_commonUtils.QuoteSqlName(tbref.RefColumns[z].Attribute.Name)}");
-                                if (_whereCascadeExpression.Any()) {
+                                if (_whereCascadeExpression.Any())
+                                {
                                     var cascade = _commonExpression.GetWhereCascadeSql(new SelectTableInfo { Alias = "midtb", AliasInit = "midtb", Table = tbrefMid, Type = SelectTableInfoType.InnerJoin }, _whereCascadeExpression);
                                     if (string.IsNullOrEmpty(cascade) == false)
                                         sbJoin.Append(" AND (").Append(cascade).Append(")");
@@ -799,11 +881,12 @@ namespace FreeSql.Internal.CommonProvider
                             var sbSql = new StringBuilder();
 
                             if (_selectExpression == null)
-                            {// return this.InternalToList<T1>(_selectExpression).Select(a => (a, ()).ToList();
+                            {
                                 var field = new StringBuilder();
                                 var read = new ReadAnonymousTypeInfo();
-                                read.ConsturctorType = ReadAnonymousTypeInfoConsturctorType.Properties;
-                                read.Consturctor = (tbrefMid.TypeLazy ?? tbrefMid.Type).GetConstructor(new Type[0]);
+                                read.CsType = (tbrefMid.TypeLazy ?? tbrefMid.Type);
+                                read.Consturctor = read.CsType.InternalGetTypeConstructor0OrFirst();
+                                read.IsEntity = true;
                                 read.Table = tbrefMid;
                                 foreach (var col in tbrefMid.Columns.Values)
                                 {
@@ -875,8 +958,19 @@ namespace FreeSql.Internal.CommonProvider
                                 sbSql.Append(subSelect.ToSql($"{(selectExp == null ? af.Field : mf.field)}{otherData?.field}"));
                             }
 
-                            if (selectExp == null) subList = subSelect.ToListAfPrivate(sbSql.ToString(), af, otherData == null ? null : new[] { (otherData.Value.field, otherData.Value.read, midList) });
-                            else subList = subSelect.ToListMrPrivate<TNavigate>(sbSql.ToString(), mf, otherData == null ? null : new[] { (otherData.Value.field, otherData.Value.read, midList) });
+                            if (isAsync)
+                            {
+#if net40
+#else
+                                if (selectExp == null) subList = await subSelect.ToListAfPrivateAsync(sbSql.ToString(), af, otherData == null ? null : new[] { (otherData.Value.field, otherData.Value.read, midList) });
+                                else subList = await subSelect.ToListMrPrivateAsync<TNavigate>(sbSql.ToString(), mf, otherData == null ? null : new[] { (otherData.Value.field, otherData.Value.read, midList) });
+#endif
+                            }
+                            else
+                            {
+                                if (selectExp == null) subList = subSelect.ToListAfPrivate(sbSql.ToString(), af, otherData == null ? null : new[] { (otherData.Value.field, otherData.Value.read, midList) });
+                                else subList = subSelect.ToListMrPrivate<TNavigate>(sbSql.ToString(), mf, otherData == null ? null : new[] { (otherData.Value.field, otherData.Value.read, midList) });
+                            }
                             if (subList.Any() == false)
                             {
                                 foreach (var item in list)
@@ -889,7 +983,8 @@ namespace FreeSql.Internal.CommonProvider
                             {
                                 if (tbref.Columns.Count == 1)
                                 {
-                                    var dicListKey = getListValue1(item, tbref.Columns[0].CsName).ToString();
+                                    var dicListKey = getListValue1(item, tbref.Columns[0].CsName)?.ToString();
+                                    if (dicListKey == null) continue;
                                     var dicListVal = Tuple.Create(item, new List<TNavigate>());
                                     if (dicList.TryGetValue(dicListKey, out var items) == false)
                                         dicList.Add(dicListKey, items = new List<Tuple<T1, List<TNavigate>>>());
@@ -938,7 +1033,13 @@ namespace FreeSql.Internal.CommonProvider
                         }
                         break;
                 }
-            });
+            };
+
+            _includeToList.Add(listObj => includeToListSyncOrAsync(listObj, false));
+#if net40
+#else
+            _includeToListAsync.Add(listObj => includeToListSyncOrAsync(listObj, true));
+#endif
             return this;
         }
 
@@ -950,11 +1051,17 @@ namespace FreeSql.Internal.CommonProvider
 
 #if net40
 #else
-        public Task<TMember> AvgAsync<TMember>(Expression<Func<T1, TMember>> column)
+        async internal Task SetListAsync(IEnumerable<T1> list)
         {
-            if (column == null) return Task.FromResult(default(TMember));
+            foreach (var include in _includeToListAsync) await include?.Invoke(list);
+            _trackToList?.Invoke(list);
+        }
+
+        public Task<double> AvgAsync<TMember>(Expression<Func<T1, TMember>> column)
+        {
+            if (column == null) return Task.FromResult(default(double));
             _tables[0].Parameter = column.Parameters[0];
-            return this.InternalAvgAsync<TMember>(column?.Body);
+            return this.InternalAvgAsync(column?.Body);
         }
         public Task<TMember> MaxAsync<TMember>(Expression<Func<T1, TMember>> column)
         {
@@ -968,11 +1075,11 @@ namespace FreeSql.Internal.CommonProvider
             _tables[0].Parameter = column.Parameters[0];
             return this.InternalMinAsync<TMember>(column?.Body);
         }
-        public Task<TMember> SumAsync<TMember>(Expression<Func<T1, TMember>> column)
+        public Task<decimal> SumAsync<TMember>(Expression<Func<T1, TMember>> column)
         {
-            if (column == null) return Task.FromResult(default(TMember));
+            if (column == null) return Task.FromResult(default(decimal));
             _tables[0].Parameter = column.Parameters[0];
-            return this.InternalSumAsync<TMember>(column?.Body);
+            return this.InternalSumAsync(column?.Body);
         }
         public Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<T1, TReturn>> select)
         {

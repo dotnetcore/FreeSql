@@ -39,6 +39,7 @@ namespace FreeSql.Tests.SqliteExpression
             var t3 = select.Where(a => a.Bool == false).ToList();
             var t4 = select.Where(a => !a.Bool).ToList();
             var t5 = select.Where(a => a.Bool).ToList();
+            var t51 = select.WhereCascade(a => a.Bool).Limit(10).ToList();
 
             var t11 = select.Where(a => a.BoolNullable == true).ToList();
             var t22 = select.Where(a => a.BoolNullable != true).ToList();
@@ -100,6 +101,11 @@ namespace FreeSql.Tests.SqliteExpression
             var sql111111 = select.Where(a => inarray.Contains(a.Int)).ToList();
             var sql112222 = select.Where(a => inarray.Contains(a.Int) == false).ToList();
             var sql113333 = select.Where(a => !inarray.Contains(a.Int)).ToList();
+
+            var inarray2n = Enumerable.Range(1, 3333).ToArray();
+            var sql1111111 = select.Where(a => inarray2n.Contains(a.Int)).ToList();
+            var sql1122222 = select.Where(a => inarray2n.Contains(a.Int) == false).ToList();
+            var sql1133333 = select.Where(a => !inarray2n.Contains(a.Int)).ToList();
         }
 
         [Table(Name = "tb_alltype")]

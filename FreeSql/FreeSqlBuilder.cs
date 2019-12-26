@@ -12,11 +12,13 @@ namespace FreeSql
         DataType _dataType;
         string _masterConnectionString;
         string[] _slaveConnectionString;
+        Func<DbConnection> _connectionFactory;
         bool _isAutoSyncStructure = false;
         bool _isSyncStructureToLower = false;
         bool _isSyncStructureToUpper = false;
         bool _isConfigEntityFromDbFirst = false;
         bool _isNoneCommandParameter = false;
+        bool _isGenerateCommandParameterWithLambda = false;
         bool _isLazyLoading = false;
         StringConvertType _entityPropertyConvertType = StringConvertType.None;
         Action<DbCommand> _aopCommandExecuting = null;
@@ -24,7 +26,7 @@ namespace FreeSql
         Type _providerType = null;
 
         /// <summary>
-        /// 使用连接串
+        /// 使用连接串（推荐）
         /// </summary>
         /// <param name="dataType">数据库类型</param>
         /// <param name="connectionString">数据库连接串</param>
@@ -32,6 +34,7 @@ namespace FreeSql
         /// <returns></returns>
         public FreeSqlBuilder UseConnectionString(DataType dataType, string connectionString, Type providerType = null)
         {
+            if (_connectionFactory != null) throw new Exception("已经指定了 UseConnectionFactory，不能再指定 UseConnectionString");
             _dataType = dataType;
             _masterConnectionString = connectionString;
             _providerType = providerType;
@@ -44,7 +47,24 @@ namespace FreeSql
         /// <returns></returns>
         public FreeSqlBuilder UseSlave(params string[] slaveConnectionString)
         {
+            if (_connectionFactory != null) throw new Exception("已经指定了 UseConnectionFactory，不能再指定 UseSlave");
             _slaveConnectionString = slaveConnectionString;
+            return this;
+        }
+        /// <summary>
+        /// 使用自定义数据库连接对象（放弃内置对象连接池技术）
+        /// </summary>
+        /// <param name="dataType">数据库类型</param>
+        /// <param name="connectionFactory">数据库连接对象创建器</param>
+        /// <param name="providerType">提供者的类型，一般不需要指定，如果一直提示“缺少 FreeSql 数据库实现包：FreeSql.Provider.MySql.dll，可前往 nuget 下载”的错误，说明反射获取不到类型，此时该参数可排上用场</param>
+        /// <returns></returns>
+        public FreeSqlBuilder UseConnectionFactory(DataType dataType, Func<DbConnection> connectionFactory, Type providerType = null)
+        {
+            if (string.IsNullOrEmpty(_masterConnectionString) == false) throw new Exception("已经指定了 UseConnectionString，不能再指定 UseConnectionFactory");
+            if (_slaveConnectionString?.Any() == true) throw new Exception("已经指定了 UseSlave，不能再指定 UseConnectionFactory");
+            _dataType = dataType;
+            _connectionFactory = connectionFactory;
+            _providerType = providerType;
             return this;
         }
         /// <summary>
@@ -100,6 +120,16 @@ namespace FreeSql
             return this;
         }
         /// <summary>
+        /// 是否生成命令参数化执行，针对 lambda 表达式解析
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public FreeSqlBuilder UseGenerateCommandParameterWithLambda(bool value)
+        {
+            _isGenerateCommandParameterWithLambda = value;
+            return this;
+        }
+        /// <summary>
         /// 延时加载导航属性对象，导航属性需要声明 virtual
         /// </summary>
         /// <param name="value"></param>
@@ -138,7 +168,7 @@ namespace FreeSql
         public IFreeSql Build() => Build<IFreeSql>();
         public IFreeSql<TMark> Build<TMark>()
         {
-            if (string.IsNullOrEmpty(_masterConnectionString)) throw new Exception("参数 masterConnectionString 不可为空，请检查 UseConnectionString");
+            if (string.IsNullOrEmpty(_masterConnectionString) && _connectionFactory == null) throw new Exception("参数 masterConnectionString 不可为空，请检查 UseConnectionString");
             IFreeSql<TMark> ret = null;
             var type = _providerType;
             if (type?.IsGenericType == true) type = type.MakeGenericType(typeof(TMark));
@@ -189,10 +219,20 @@ namespace FreeSql
                         if (type == null) throw new Exception("缺少 FreeSql 数据库实现包：FreeSql.Provider.Odbc.dll，可前往 nuget 下载");
                         break;
 
+                    case DataType.OdbcDameng:
+                        type = Type.GetType("FreeSql.Odbc.Dameng.OdbcDamengProvider`1,FreeSql.Provider.Odbc")?.MakeGenericType(typeof(TMark));
+                        if (type == null) throw new Exception("缺少 FreeSql 数据库实现包：FreeSql.Provider.Odbc.dll，可前往 nuget 下载");
+                        break;
+
+                    case DataType.MsAccess:
+                        type = Type.GetType("FreeSql.MsAccess.MsAccessProvider`1,FreeSql.Provider.MsAccess")?.MakeGenericType(typeof(TMark));
+                        if (type == null) throw new Exception("缺少 FreeSql 数据库实现包：FreeSql.Provider.MsAccess.dll，可前往 nuget 下载");
+                        break;
+
                     default: throw new Exception("未指定 UseConnectionString");
                 }
             }
-            ret = Activator.CreateInstance(type, new object[] { _masterConnectionString, _slaveConnectionString }) as IFreeSql<TMark>;
+            ret = Activator.CreateInstance(type, new object[] { _masterConnectionString, _slaveConnectionString, _connectionFactory }) as IFreeSql<TMark>;
             if (ret != null)
             {
                 ret.CodeFirst.IsAutoSyncStructure = _isAutoSyncStructure;
@@ -201,6 +241,7 @@ namespace FreeSql
                 ret.CodeFirst.IsSyncStructureToUpper = _isSyncStructureToUpper;
                 ret.CodeFirst.IsConfigEntityFromDbFirst = _isConfigEntityFromDbFirst;
                 ret.CodeFirst.IsNoneCommandParameter = _isNoneCommandParameter;
+                ret.CodeFirst.IsGenerateCommandParameterWithLambda = _isGenerateCommandParameterWithLambda;
                 ret.CodeFirst.IsLazyLoading = _isLazyLoading;
                 var ado = ret.Ado as Internal.CommonProvider.AdoProvider;
                 ado.AopCommandExecuting += _aopCommandExecuting;
@@ -251,34 +292,9 @@ namespace FreeSql
                     if (maxlenAttr != null)
                     {
                         var lenProp = maxlenAttr.GetType().GetProperties().Where(a => a.PropertyType.IsNumberType()).FirstOrDefault();
-                        if (lenProp != null && int.TryParse(string.Concat(lenProp.GetValue(maxlenAttr, null)), out var tryval))
+                        if (lenProp != null && int.TryParse(string.Concat(lenProp.GetValue(maxlenAttr, null)), out var tryval) && tryval != 0)
                         {
-                            if (tryval != 0)
-                            {
-                                switch (ret.Ado.DataType)
-                                {
-                                    case DataType.MySql:
-                                    case DataType.OdbcMySql:
-                                        e.ModifyResult.DbType = tryval > 0 ? $"varchar({tryval})" : "text";
-                                        break;
-                                    case DataType.SqlServer:
-                                    case DataType.OdbcSqlServer:
-                                        e.ModifyResult.DbType = tryval > 0 ? $"nvarchar({tryval})" : "nvarchar(max)";
-                                        break;
-                                    case DataType.PostgreSQL:
-                                    case DataType.OdbcPostgreSQL:
-                                        e.ModifyResult.DbType = tryval > 0 ? $"varchar({tryval})" : "text";
-                                        break;
-                                    case DataType.Oracle:
-                                    case DataType.OdbcOracle:
-                                        e.ModifyResult.DbType = tryval > 0 ? $"nvarchar2({tryval})" : "nvarchar2(4000)";
-                                        break;
-                                    case DataType.Sqlite:
-                                        e.ModifyResult.DbType = tryval > 0 ? $"nvarchar({tryval})" : "text";
-                                        break;
-
-                                }
-                            }
+                            e.ModifyResult.StringLength = tryval;
                         }
                     }
                 });

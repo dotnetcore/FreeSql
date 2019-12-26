@@ -15,7 +15,7 @@ namespace FreeSql
                 DbContext ctx = null;
                 try
                 {
-                    var ctor = dbContextType.GetConstructors().FirstOrDefault();
+                    var ctor = dbContextType. GetConstructors().FirstOrDefault();
                     var ctorParams = ctor.GetParameters().Select(a => sp.GetService(a.ParameterType)).ToArray();
                     ctx = Activator.CreateInstance(dbContextType, ctorParams) as DbContext;
                 }

@@ -4,7 +4,10 @@ using FreeSql.Extensions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Data.SqlClient;
+using System.Diagnostics;
 using System.Linq.Expressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace base_entity
@@ -26,16 +29,36 @@ namespace base_entity
             public T Config { get; set; }
         }
 
+        public class Products : BaseEntity<Products, int>
+        {
+            public string title { get; set; }
+        }
+
         static void Main(string[] args)
         {
+
             #region 初始化 IFreeSql
-            BaseEntity.Initialization(new FreeSql.FreeSqlBuilder()
+            var fsql = new FreeSql.FreeSqlBuilder()
                 .UseAutoSyncStructure(true)
                 .UseNoneCommandParameter(true)
                 .UseConnectionString(FreeSql.DataType.Sqlite, "data source=test.db;max pool size=5")
-                .UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=2")
-                .Build());
+                //.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=2")
+                .UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3")
+                .UseLazyLoading(true)
+                .Build();
+            BaseEntity.Initialization(fsql);
             #endregion
+
+            var us = User1.Select.Limit(10).ToList();
+
+            new Products { title = "product-1" }.Save();
+            new Products { title = "product-2" }.Save();
+            new Products { title = "product-3" }.Save();
+            new Products { title = "product-4" }.Save();
+            new Products { title = "product-5" }.Save();
+
+            var items1 = Products.Select.Limit(10).OrderByDescending(a => a.CreateTime).ToList();
+            var items2 = fsql.Select<Products>().Limit(10).OrderByDescending(a => a.CreateTime).ToList();
 
             BaseEntity.Orm.UseJsonMap();
 
@@ -43,6 +66,8 @@ namespace base_entity
             new S_SysConfig<TestConfig> { Name = "testkey22", Config = new TestConfig { clicks = 22, title = "testtitle22" } }.Save();
             new S_SysConfig<TestConfig> { Name = "testkey33", Config = new TestConfig { clicks = 33, title = "testtitle33" } }.Save();
             var testconfigs11 = S_SysConfig<TestConfig>.Select.ToList();
+
+            var repo = BaseEntity.Orm.Select<TestConfig>().Limit(10).ToList();
 
             Task.Run(async () =>
             {
@@ -106,10 +131,12 @@ namespace base_entity
                 ru1.RoleId = r2.Id;
                 await ru1.SaveAsync();
 
-                var u1roles = User1.Select.IncludeMany(a => a.Roles).ToList();
-                var u1roles2 = User1.Select.Where(a => a.Roles.AsSelect().Any(b => b.Id == "xx")).ToList();
+                var u1roles = await User1.Select.IncludeMany(a => a.Roles).ToListAsync();
+                var u1roles2 = await User1.Select.Where(a => a.Roles.AsSelect().Any(b => b.Id == "xx")).ToListAsync();
 
             }).Wait();
+
+            
 
             Console.WriteLine("按任意键结束。。。");
             Console.ReadKey();

@@ -73,25 +73,25 @@ namespace FreeSql.Odbc.Default
                                 case "System.UInt64": return _utils.Adapter.LambdaConvert_ToUInt64(callExp.Method.DeclaringType, getExp(callExp.Arguments[0]));
                                 case "System.Guid": return _utils.Adapter.LambdaConvert_ToGuid(callExp.Method.DeclaringType, getExp(callExp.Arguments[0]));
                             }
-                            break;
+                            return null;
                         case "NewGuid":
                             switch (callExp.Method.DeclaringType.NullableTypeOrThis().ToString())
                             {
                                 case "System.Guid": return _utils.Adapter.LambdaGuid_NewGuid;
                             }
-                            break;
+                            return null;
                         case "Next":
                             if (callExp.Object?.Type == typeof(Random)) return _utils.Adapter.LambdaRandom_Next;
-                            break;
+                            return null;
                         case "NextDouble":
                             if (callExp.Object?.Type == typeof(Random)) return _utils.Adapter.LambdaRandom_NextDouble;
-                            break;
+                            return null;
                         case "Random":
                             if (callExp.Method.DeclaringType.IsNumberType()) return _utils.Adapter.LambdaRandom_NextDouble;
-                            break;
+                            return null;
                         case "ToString":
                             if (callExp.Object != null) return callExp.Arguments.Count == 0 ? _utils.Adapter.LambdaConvert_ToString(callExp.Object.Type, getExp(callExp.Object)) : null;
-                            break;
+                            return null;
                     }
 
                     var objExp = callExp.Object;
@@ -108,16 +108,18 @@ namespace FreeSql.Odbc.Default
                     if (objType == null) objType = callExp.Method.DeclaringType;
                     if (objType != null || objType.IsArrayOrList())
                     {
-                        tsc?.SetMapTypeTmp(null);
+                        tsc.SetMapColumnTmp(null);
                         var args1 = getExp(callExp.Arguments[argIndex]);
-                        var oldMapType = tsc?.SetMapTypeReturnOld(tsc?.mapTypeTmp);
+                        var oldMapType = tsc.SetMapTypeReturnOld(tsc.mapTypeTmp);
+                        var oldDbParams = tsc.SetDbParamsReturnOld(null);
                         var left = objExp == null ? null : getExp(objExp);
-                        tsc.SetMapTypeReturnOld(oldMapType);
+                        tsc.SetMapColumnTmp(null).SetMapTypeReturnOld(oldMapType);
+                        tsc.SetDbParamsReturnOld(oldDbParams);
                         switch (callExp.Method.Name)
                         {
                             case "Contains":
-                                //判断 in
-                                return $"({args1}) in {left}";
+                                //判断 in //在各大 Provider AdoProvider 中已约定，500元素分割, 3空格\r\n4空格
+                                return $"(({args1}) in {left.Replace(",   \r\n    \r\n", $") \r\n OR ({args1}) in (")})";
                         }
                     }
                     break;

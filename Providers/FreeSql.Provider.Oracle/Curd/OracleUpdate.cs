@@ -18,8 +18,8 @@ namespace FreeSql.Oracle.Curd
         {
         }
 
-        public override int ExecuteAffrows() => base.SplitExecuteAffrows(200, 999);
-        public override List<T1> ExecuteUpdated() => base.SplitExecuteUpdated(200, 999);
+        public override int ExecuteAffrows() => base.SplitExecuteAffrows(_batchRowsLimit > 0 ? _batchRowsLimit : 200, _batchParameterLimit > 0 ? _batchParameterLimit : 999);
+        public override List<T1> ExecuteUpdated() => base.SplitExecuteUpdated(_batchRowsLimit > 0 ? _batchRowsLimit : 200, _batchParameterLimit > 0 ? _batchParameterLimit : 999);
 
 
         protected override List<T1> RawExecuteUpdated()

@@ -13,6 +13,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.XPath;
@@ -23,7 +24,7 @@ namespace FreeSql.Internal
     {
 
         public abstract string GetNoneParamaterSqlValue(List<DbParameter> specialParams, Type type, object value);
-        public abstract DbParameter AppendParamter(List<DbParameter> _params, string parameterName, Type type, object value);
+        public abstract DbParameter AppendParamter(List<DbParameter> _params, string parameterName, ColumnInfo col, Type type, object value);
         public abstract DbParameter[] GetDbParamtersByObject(string sql, object obj);
         public abstract string FormatSql(string sql, params object[] args);
         public abstract string QuoteSqlName(string name);
@@ -33,8 +34,12 @@ namespace FreeSql.Internal
         public abstract string StringConcat(string[] objs, Type[] types);
         public abstract string Mod(string left, string right, Type leftType, Type rightType);
         public abstract string Div(string left, string right, Type leftType, Type rightType);
+        public abstract string Now { get; }
+        public abstract string NowUtc { get; }
         public abstract string QuoteWriteParamter(Type type, string paramterName);
         public abstract string QuoteReadColumn(Type type, string columnName);
+        public virtual string FieldAsAlias(string alias) => $" {alias}";
+        public virtual string IIF(string test, string ifTrue, string ifElse) => $"case when {test} then {ifTrue} else {ifElse} end";
 
         public IFreeSql _orm { get; set; }
         public ICodeFirst CodeFirst => _orm.CodeFirst;
@@ -125,7 +130,8 @@ namespace FreeSql.Internal
                 if (trycol._Position != null) attr._Position = trycol.Position;
                 if (trycol._CanInsert != null) attr._CanInsert = trycol.CanInsert;
                 if (trycol._CanUpdate != null) attr._CanUpdate = trycol.CanUpdate;
-                if (trycol.DbDefautValue != null) attr.DbDefautValue = trycol.DbDefautValue;
+                if (trycol.ServerTime != DateTimeKind.Unspecified) attr.ServerTime = trycol.ServerTime;
+                if (trycol._StringLength != null) attr.StringLength = trycol.StringLength;
             }
             var attrs = proto.GetCustomAttributes(typeof(ColumnAttribute), false);
             foreach (var tryattrobj in attrs)
@@ -144,7 +150,8 @@ namespace FreeSql.Internal
                 if (tryattr._Position != null) attr._Position = tryattr.Position;
                 if (tryattr._CanInsert != null) attr._CanInsert = tryattr.CanInsert;
                 if (tryattr._CanUpdate != null) attr._CanUpdate = tryattr.CanUpdate;
-                if (tryattr.DbDefautValue != null) attr.DbDefautValue = tryattr.DbDefautValue;
+                if (tryattr.ServerTime != DateTimeKind.Unspecified) attr.ServerTime = tryattr.ServerTime;
+                if (tryattr._StringLength != null) attr.StringLength = tryattr.StringLength;
             }
             ColumnAttribute ret = null;
             if (!string.IsNullOrEmpty(attr.Name)) ret = attr;
@@ -159,7 +166,8 @@ namespace FreeSql.Internal
             if (attr._Position != null) ret = attr;
             if (attr._CanInsert != null) ret = attr;
             if (attr._CanUpdate != null) ret = attr;
-            if (attr.DbDefautValue != null) ret = attr;
+            if (attr.ServerTime != DateTimeKind.Unspecified) ret = attr;
+            if (attr._StringLength != null) ret = attr;
             if (ret != null && ret.MapType == null) ret.MapType = proto.PropertyType;
             return ret;
         }
@@ -342,8 +350,16 @@ namespace FreeSql.Internal
         /// <returns>Dict：key=属性名，value=注释</returns>
         public static Dictionary<string, string> GetProperyCommentBySummary(Type type)
         {
-            var xmlPath = type.Assembly.Location.Replace(".dll", ".xml").Replace(".exe", ".xml");
-            if (File.Exists(xmlPath) == false) return null;
+            var regex = new Regex(@"\.(dll|exe)", RegexOptions.IgnoreCase);
+            var xmlPath = regex.Replace(type.Assembly.Location, ".xml");
+            if (File.Exists(xmlPath) == false)
+            {
+                if (string.IsNullOrEmpty(type.Assembly.CodeBase)) return null;
+                xmlPath = regex.Replace(type.Assembly.CodeBase, ".xml");
+                if (xmlPath.StartsWith("file:///") && Uri.TryCreate(xmlPath, UriKind.Absolute, out var tryuri))
+                    xmlPath = tryuri.LocalPath;
+                if (File.Exists(xmlPath) == false) return null;
+            }
 
             var dic = new Dictionary<string, string>();
             var sReader = new StringReader(File.ReadAllText(xmlPath));

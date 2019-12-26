@@ -1,4 +1,5 @@
 ﻿using FreeSql.Internal;
+using FreeSql.Internal.Model;
 using SafeObjectPool;
 using System;
 using System.Collections;
@@ -12,10 +13,15 @@ namespace FreeSql.Odbc.PostgreSQL
 {
     class OdbcPostgreSQLAdo : FreeSql.Internal.CommonProvider.AdoProvider
     {
-        public OdbcPostgreSQLAdo() : base(DataType.PostgreSQL) { }
-        public OdbcPostgreSQLAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings) : base(DataType.PostgreSQL)
+        public OdbcPostgreSQLAdo() : base(DataType.OdbcPostgreSQL) { }
+        public OdbcPostgreSQLAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.OdbcPostgreSQL)
         {
             base._util = util;
+            if (connectionFactory != null)
+            {
+                MasterPool = new FreeSql.Internal.CommonProvider.DbConnectionPool(DataType.OdbcPostgreSQL, connectionFactory);
+                return;
+            }
             if (!string.IsNullOrEmpty(masterConnectionString))
                 MasterPool = new OdbcPostgreSQLConnectionPool("主库", masterConnectionString, null, null);
             if (slaveConnectionStrings != null)
@@ -28,8 +34,7 @@ namespace FreeSql.Odbc.PostgreSQL
             }
         }
 
-        static DateTime dt1970 = new DateTime(1970, 1, 1);
-        public override object AddslashesProcessParam(object param, Type mapType)
+        public override object AddslashesProcessParam(object param, Type mapType, ColumnInfo mapColumn)
         {
             if (param == null) return "NULL";
             if (mapType != null && mapType != param.GetType() && (param is IEnumerable == false || mapType.IsArrayOrList()))
@@ -47,12 +52,8 @@ namespace FreeSql.Odbc.PostgreSQL
             else if (param is TimeSpan || param is TimeSpan?)
                 return ((TimeSpan)param).Ticks / 10;
             else if (param is IEnumerable)
-            {
-                var sb = new StringBuilder();
-                var ie = param as IEnumerable;
-                foreach (var z in ie) sb.Append(",").Append(AddslashesProcessParam(z, mapType));
-                return sb.Length == 0 ? "(NULL)" : sb.Remove(0, 1).Insert(0, "(").Append(")").ToString();
-            }
+                return AddslashesIEnumerable(param, mapType, mapColumn);
+
             return string.Concat("'", param.ToString().Replace("'", "''"), "'");
         }
 
@@ -61,9 +62,11 @@ namespace FreeSql.Odbc.PostgreSQL
             return new OdbcCommand();
         }
 
-        protected override void ReturnConnection(ObjectPool<DbConnection> pool, Object<DbConnection> conn, Exception ex)
+        protected override void ReturnConnection(IObjectPool<DbConnection> pool, Object<DbConnection> conn, Exception ex)
         {
-            (pool as OdbcPostgreSQLConnectionPool).Return(conn, ex);
+            var rawPool = pool as OdbcPostgreSQLConnectionPool;
+            if (rawPool != null) rawPool.Return(conn, ex);
+            else pool.Return(conn);
         }
 
         protected override DbParameter[] GetDbParamtersByObject(string sql, object obj) => _util.GetDbParamtersByObject(sql, obj);

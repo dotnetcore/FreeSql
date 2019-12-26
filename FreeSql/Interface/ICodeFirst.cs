@@ -31,6 +31,10 @@ namespace FreeSql
         /// </summary>
         bool IsNoneCommandParameter { get; set; }
         /// <summary>
+        /// 是否生成命令参数化执行，针对 lambda 表达式解析
+        /// </summary>
+        bool IsGenerateCommandParameterWithLambda { get; set; }
+        /// <summary>
         /// 延时加载导航属性对象，导航属性需要声明 virtual
         /// </summary>
         bool IsLazyLoading { get; set; }

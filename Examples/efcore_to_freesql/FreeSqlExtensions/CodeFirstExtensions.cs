@@ -47,7 +47,7 @@ public static class CodeFirstExtensions
                     );
 
                     //可空
-                    freeProp.IsNullable(prop.AfterSaveBehavior != PropertySaveBehavior.Throw);
+                    freeProp.IsNullable(prop.GetAfterSaveBehavior() != PropertySaveBehavior.Throw);
 
                     //类型
                     var relationalColumnType = prop.FindAnnotation("Relational:ColumnType");

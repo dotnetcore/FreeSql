@@ -26,8 +26,27 @@ namespace FreeSql.Tests
             g.sqlite.CodeFirst.SyncStructure<Tag>();
             g.sqlite.CodeFirst.SyncStructure<Song>();
 
+            var test150_01 = g.sqlite.GetRepository<Tag>()
+                    .Select.From<Tag>((s, b) => s.InnerJoin(a => a.Id == b.Id))
+                    .ToList((a, b) => new
+                    {
+                        a.Id,
+                        a.Name,
+                        id2 = b.Id,
+                        name2 = b.Name
+                    });
+
+
             using (var ctx = g.sqlite.CreateDbContext())
             {
+
+                var test150_02 = ctx.Set<Tag>()
+                    .Select.From<Tag>((s, b) => s.InnerJoin(a => a.Id == b.Id))
+                    .ToList((a, b) => new
+                    {
+                        a.Id,a.Name,
+                        id2 = b.Id, name2 = b.Name
+                    });
 
                 var songs = ctx.Set<Song>().Select
                     .IncludeMany(a => a.Tags)
@@ -98,7 +117,7 @@ namespace FreeSql.Tests
             var sql = g.mysql.Select<testenumWhere>().Where(a => a.type == testenumWhereType.Blaaa).ToSql();
             var tolist = g.mysql.Select<testenumWhere>().Where(a => a.type == testenumWhereType.Blaaa).ToList();
 
-            //支持 1对多 联级保存
+            //支持 1对多 级联保存
 
             using (var ctx = new FreeContext(g.sqlite))
             {
@@ -127,7 +146,7 @@ namespace FreeSql.Tests
         [Fact]
         public void Update()
         {
-            //查询 1对多，再联级保存
+            //查询 1对多，再级联保存
 
             using (var ctx = new FreeContext(g.sqlite))
             {

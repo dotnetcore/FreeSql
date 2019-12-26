@@ -85,7 +85,7 @@ namespace FreeSql.Internal.CommonProvider
         }
         public abstract List<T1> ExecuteDeleted();
 
-        public IDelete<T1> Where(Expression<Func<T1, bool>> exp) => this.Where(_commonExpression.ExpressionWhereLambdaNoneForeignObject(null, _table, null, exp?.Body, null));
+        public IDelete<T1> Where(Expression<Func<T1, bool>> exp) => this.Where(_commonExpression.ExpressionWhereLambdaNoneForeignObject(null, _table, null, exp?.Body, null, _params));
         public IDelete<T1> Where(string sql, object parms = null)
         {
             if (string.IsNullOrEmpty(sql)) return this;
@@ -96,7 +96,9 @@ namespace FreeSql.Internal.CommonProvider
         }
         public IDelete<T1> Where(T1 item) => this.Where(new[] { item });
         public IDelete<T1> Where(IEnumerable<T1> items) => this.Where(_commonUtils.WhereItems(_table, "", items));
-        public IDelete<T1> WhereDynamic(object dywhere) => this.Where(_commonUtils.WhereObject(_table, "", dywhere));
+        public IDelete<T1> WhereDynamic(object dywhere, bool not = false) => not == false ?
+            this.Where(_commonUtils.WhereObject(_table, "", dywhere)) :
+            this.Where($"not({_commonUtils.WhereObject(_table, "", dywhere)})");
 
         public IDelete<T1> DisableGlobalFilter(params string[] name)
         {
@@ -120,6 +122,7 @@ namespace FreeSql.Internal.CommonProvider
         {
             if (_tableRule == null) return _table.DbName;
             var newname = _tableRule(_table.DbName);
+            if (newname == _table.DbName) return _table.DbName;
             if (string.IsNullOrEmpty(newname)) return _table.DbName;
             if (_orm.CodeFirst.IsSyncStructureToLower) newname = newname.ToLower();
             if (_orm.CodeFirst.IsSyncStructureToUpper) newname = newname.ToUpper();

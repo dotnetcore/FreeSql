@@ -16,7 +16,7 @@ namespace FreeSql.Oracle
         {
         }
 
-        public override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, Type type, object value)
+        public override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, ColumnInfo col, Type type, object value)
         {
             if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
             var dbtype = (OracleDbType)_orm.CodeFirst.GetDbInfo(type)?.type;
@@ -27,6 +27,23 @@ namespace FreeSql.Oracle
                 dbtype = OracleDbType.Int16;
             }
             var ret = new OracleParameter { ParameterName = QuoteParamterName(parameterName), OracleDbType = dbtype, Value = value };
+            if (col != null)
+            {
+                var dbtype2 = (OracleDbType)_orm.DbFirst.GetDbType(new DatabaseModel.DbColumnInfo { DbTypeTextFull = col.Attribute.DbType.Replace("NOT NULL", "").Trim(), DbTypeText = col.DbTypeText });
+                switch (dbtype2)
+                {
+                    case OracleDbType.Char:
+                    case OracleDbType.Varchar2:
+                    case OracleDbType.NChar:
+                    case OracleDbType.NVarchar2:
+                    case OracleDbType.Decimal:
+                        dbtype = dbtype2;
+                        if (col.DbSize != 0) ret.Size = col.DbSize;
+                        if (col.DbPrecision != 0) ret.Precision = col.DbPrecision;
+                        if (col.DbScale != 0) ret.Scale = col.DbScale;
+                        break;
+                }
+            }
             _params?.Add(ret);
             return ret;
         }
@@ -65,6 +82,8 @@ namespace FreeSql.Oracle
         public override string StringConcat(string[] objs, Type[] types) => $"{string.Join(" || ", objs)}";
         public override string Mod(string left, string right, Type leftType, Type rightType) => $"mod({left}, {right})";
         public override string Div(string left, string right, Type leftType, Type rightType) => $"trunc({left} / {right})";
+        public override string Now => "systimestamp";
+        public override string NowUtc => "sys_extract_utc(systimestamp)";
 
         public override string QuoteWriteParamter(Type type, string paramterName) => paramterName;
         public override string QuoteReadColumn(Type type, string columnName) => columnName;

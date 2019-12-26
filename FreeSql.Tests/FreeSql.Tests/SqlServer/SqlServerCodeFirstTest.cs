@@ -37,6 +37,7 @@ namespace FreeSql.Tests.SqlServer
 
             public string 标题 { get; set; }
 
+            [Column(ServerTime = DateTimeKind.Local)]
             public DateTime 创建时间 { get; set; }
         }
 
@@ -159,7 +160,7 @@ namespace FreeSql.Tests.SqlServer
             var sqlTestUpdate = g.sqlserver.Update<TableAllType>().SetSource(item3NP).NoneParameter().ToSql();
 
             var item3 = insert.AppendData(item2).ExecuteInserted();
-            var newitem2 = select.Where(a => a.Id == item2.Id).ToOne();
+            var newitem2 = select.Where(a => a.Id == item3NP[0].Id).ToOne();
 
             var items = select.ToList();
         }
@@ -344,8 +345,12 @@ namespace FreeSql.Tests.SqlServer
             public float testFieldFloat { get; set; }
             public decimal testFieldDecimal { get; set; }
             public TimeSpan testFieldTimeSpan { get; set; }
+
+            [Column(ServerTime = DateTimeKind.Local)]
             public DateTime testFieldDateTime { get; set; }
+            [Column(ServerTime = DateTimeKind.Local)]
             public DateTimeOffset testFieldDateTimeOffset { get; set; }
+
             public byte[] testFieldBytes { get; set; }
             public string testFieldString { get; set; }
             public Guid testFieldGuid { get; set; }
@@ -363,8 +368,12 @@ namespace FreeSql.Tests.SqlServer
             public float? testFieldFloatNullable { get; set; }
             public decimal? testFieldDecimalNullable { get; set; }
             public TimeSpan? testFieldTimeSpanNullable { get; set; }
+
+            [Column(ServerTime = DateTimeKind.Local)]
             public DateTime? testFieldDateTimeNullable { get; set; }
+            [Column(ServerTime = DateTimeKind.Local)]
             public DateTimeOffset? testFieldDateTimeNullableOffset { get; set; }
+
             public Guid? testFieldGuidNullable { get; set; }
 
             public TableAllTypeEnumType1 testFieldEnum1 { get; set; }

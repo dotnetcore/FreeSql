@@ -17,6 +17,7 @@ namespace FreeSql.MySql.Curd
         {
         }
 
+        internal bool InternalIsIgnoreInto = false;
         internal IFreeSql InternalOrm => _orm;
         internal TableInfo InternalTable => _table;
         internal DbParameter[] InternalParams => _params;
@@ -28,10 +29,17 @@ namespace FreeSql.MySql.Curd
         internal Dictionary<string, bool> InternalIgnore => _ignore;
         internal void InternalClearData() => ClearData();
 
-        public override int ExecuteAffrows() => base.SplitExecuteAffrows(5000, 3000);
-        public override long ExecuteIdentity() => base.SplitExecuteIdentity(5000, 3000);
-        public override List<T1> ExecuteInserted() => base.SplitExecuteInserted(5000, 3000);
+        public override int ExecuteAffrows() => base.SplitExecuteAffrows(_batchValuesLimit > 0 ? _batchValuesLimit : 5000, _batchParameterLimit > 0 ? _batchParameterLimit : 3000);
+        public override long ExecuteIdentity() => base.SplitExecuteIdentity(_batchValuesLimit > 0 ? _batchValuesLimit : 5000, _batchParameterLimit > 0 ? _batchParameterLimit : 3000);
+        public override List<T1> ExecuteInserted() => base.SplitExecuteInserted(_batchValuesLimit > 0 ? _batchValuesLimit : 5000, _batchParameterLimit > 0 ? _batchParameterLimit : 3000);
 
+
+        public override string ToSql()
+        {
+            if (InternalIsIgnoreInto == false) return base.ToSqlValuesOrSelectUnionAll();
+            var sql = base.ToSqlValuesOrSelectUnionAll();
+            return $"INSERT IGNORE INTO {sql.Substring(12)}";
+        }
 
         protected override long RawExecuteIdentity()
         {

@@ -1,16 +1,11 @@
 ﻿using FreeSql;
 using FreeSql.DataAnnotations;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using restful.Entitys;
-using Swashbuckle.AspNetCore.Swagger;
 using System;
 using System.Diagnostics;
-using System.Linq;
 using System.Text;
 
 namespace repository_01
@@ -61,17 +56,7 @@ namespace repository_01
 
             //services.AddTransient(s => s.)
 
-            services.AddMvc();
-            services.AddSwaggerGen(options =>
-            {
-                options.SwaggerDoc("v1", new Info
-                {
-                    Version = "v1",
-                    Title = "FreeSql.RESTful API"
-                });
-                //options.IncludeXmlComments(xmlPath);
-            });
-
+            services.AddControllersWithViews();
             services.AddSingleton<IFreeSql>(Fsql);
 
             services.AddFreeRepository(filter =>
@@ -82,24 +67,16 @@ namespace repository_01
             }, this.GetType().Assembly);
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
+        public void Configure(IApplicationBuilder app)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             Console.OutputEncoding = Encoding.GetEncoding("GB2312");
             Console.InputEncoding = Encoding.GetEncoding("GB2312");
 
-            loggerFactory.AddConsole(Configuration.GetSection("Logging"));
-            loggerFactory.AddDebug();
-
             app.UseHttpMethodOverride(new HttpMethodOverrideOptions { FormFieldName = "X-Http-Method-Override" });
             app.UseDeveloperExceptionPage();
-            app.UseMvc();
-
-            app.UseSwagger();
-            app.UseSwaggerUI(c =>
-            {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "FreeSql.RESTful API V1");
-            });
+            app.UseRouting();
+            app.UseEndpoints(a => a.MapControllers());
         }
     }
 

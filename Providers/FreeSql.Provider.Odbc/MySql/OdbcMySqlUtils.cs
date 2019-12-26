@@ -18,7 +18,7 @@ namespace FreeSql.Odbc.MySql
         {
         }
 
-        public override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, Type type, object value)
+        public override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, ColumnInfo col, Type type, object value)
         {
             if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
             var ret = new OdbcParameter { ParameterName = QuoteParamterName(parameterName), Value = value };
@@ -59,6 +59,8 @@ namespace FreeSql.Odbc.MySql
         public override string StringConcat(string[] objs, Type[] types) => $"concat({string.Join(", ", objs)})";
         public override string Mod(string left, string right, Type leftType, Type rightType) => $"{left} % {right}";
         public override string Div(string left, string right, Type leftType, Type rightType) => $"{left} div {right}";
+        public override string Now => "now()";
+        public override string NowUtc => "utc_timestamp()";
 
         public override string QuoteWriteParamter(Type type, string paramterName)
         {

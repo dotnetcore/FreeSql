@@ -21,9 +21,7 @@ namespace FreeSql.Oracle
 
         public OracleConnectionPool(string name, string connectionString, Action availableHandler, Action unavailableHandler) : base(null)
         {
-            var userIdMatch = Regex.Match(connectionString, @"(User\s+Id|Uid)\s*=\s*([^;]+)", RegexOptions.IgnoreCase);
-            if (userIdMatch.Success == false) throw new Exception(@"从 ConnectionString 中无法匹配 (User\s+Id|Uid)\s*=\s*([^;]+)");
-            this.UserId = userIdMatch.Groups[2].Value.Trim().ToUpper();
+            this.UserId = OracleConnectionPool.GetUserId(connectionString);
 
             var policy = new OracleConnectionPoolPolicy
             {
@@ -35,6 +33,13 @@ namespace FreeSql.Oracle
 
             this.availableHandler = availableHandler;
             this.unavailableHandler = unavailableHandler;
+        }
+
+        public static string GetUserId(string connectionString)
+        {
+            var userIdMatch = Regex.Match(connectionString, @"(User\s+Id|Uid)\s*=\s*([^;]+)", RegexOptions.IgnoreCase);
+            if (userIdMatch.Success == false) throw new Exception(@"从 ConnectionString 中无法匹配 (User\s+Id|Uid)\s*=\s*([^;]+)");
+            return userIdMatch.Groups[2].Value.Trim().ToUpper();
         }
 
         public void Return(Object<DbConnection> obj, Exception exception, bool isRecreate = false)

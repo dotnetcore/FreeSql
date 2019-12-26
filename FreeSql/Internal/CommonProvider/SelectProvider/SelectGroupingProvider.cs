@@ -11,13 +11,14 @@ namespace FreeSql.Internal.CommonProvider
 {
     public class SelectGroupingProvider<TKey, TValue> : ISelectGrouping<TKey, TValue>
     {
-
+        internal IFreeSql _orm;
         internal object _select;
         internal ReadAnonymousTypeInfo _map;
         internal CommonExpression _comonExp;
         internal List<SelectTableInfo> _tables;
-        public SelectGroupingProvider(object select, ReadAnonymousTypeInfo map, CommonExpression comonExp, List<SelectTableInfo> tables)
+        public SelectGroupingProvider(IFreeSql orm, object select, ReadAnonymousTypeInfo map, CommonExpression comonExp, List<SelectTableInfo> tables)
         {
+            _orm = orm;
             _select = select;
             _map = map;
             _comonExp = comonExp;
@@ -84,7 +85,7 @@ namespace FreeSql.Internal.CommonProvider
 
         public ISelectGrouping<TKey, TValue> Having(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, bool>> exp)
         {
-            var sql = _comonExp.ExpressionWhereLambda(null, exp, getSelectGroupingMapString, null);
+            var sql = _comonExp.ExpressionWhereLambda(null, exp, getSelectGroupingMapString, null, null);
             var method = _select.GetType().GetMethod("Having", new[] { typeof(string), typeof(object) });
             method.Invoke(_select, new object[] { sql, null });
             return this;
@@ -92,7 +93,7 @@ namespace FreeSql.Internal.CommonProvider
 
         public ISelectGrouping<TKey, TValue> OrderBy<TMember>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TMember>> column)
         {
-            var sql = _comonExp.ExpressionWhereLambda(null, column, getSelectGroupingMapString, null);
+            var sql = _comonExp.ExpressionWhereLambda(null, column, getSelectGroupingMapString, null, null);
             var method = _select.GetType().GetMethod("OrderBy", new[] { typeof(string), typeof(object) });
             method.Invoke(_select, new object[] { sql, null });
             return this;
@@ -100,7 +101,7 @@ namespace FreeSql.Internal.CommonProvider
 
         public ISelectGrouping<TKey, TValue> OrderByDescending<TMember>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TMember>> column)
         {
-            var sql = _comonExp.ExpressionWhereLambda(null, column, getSelectGroupingMapString, null);
+            var sql = _comonExp.ExpressionWhereLambda(null, column, getSelectGroupingMapString, null, null);
             var method = _select.GetType().GetMethod("OrderBy", new[] { typeof(string), typeof(object) });
             method.Invoke(_select, new object[] { $"{sql} DESC", null });
             return this;
@@ -112,7 +113,7 @@ namespace FreeSql.Internal.CommonProvider
             var field = new StringBuilder();
             var index = 0;
 
-            _comonExp.ReadAnonymousField(null, field, map, ref index, select, getSelectGroupingMapString, null);
+            _comonExp.ReadAnonymousField(null, field, map, ref index, select, getSelectGroupingMapString, null, true);
             var method = _select.GetType().GetMethod("ToListMapReader", BindingFlags.Instance | BindingFlags.NonPublic);
             method = method.MakeGenericMethod(typeof(TReturn));
             return method.Invoke(_select, new object[] { (map, field.Length > 0 ? field.Remove(0, 2).ToString() : null) }) as List<TReturn>;
@@ -120,13 +121,13 @@ namespace FreeSql.Internal.CommonProvider
         
         public List<TReturn> Select<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select) => ToList(select);
 
-        public string ToSql<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select)
+        public string ToSql<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select, FieldAliasOptions fieldAlias = FieldAliasOptions.AsIndex)
         {
             var map = new ReadAnonymousTypeInfo();
             var field = new StringBuilder();
-            var index = 0;
+            var index = fieldAlias == FieldAliasOptions.AsProperty ? CommonExpression.ReadAnonymousFieldAsCsName : 0;
 
-            _comonExp.ReadAnonymousField(null, field, map, ref index, select, getSelectGroupingMapString, null);
+            _comonExp.ReadAnonymousField(null, field, map, ref index, select, getSelectGroupingMapString, null, true);
             var method = _select.GetType().GetMethod("ToSql", new[] { typeof(string) });
             return method.Invoke(_select, new object[] { field.Length > 0 ? field.Remove(0, 2).ToString() : null }) as string;
         }
@@ -162,15 +163,24 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
 
+        public long Count() => long.TryParse(string.Concat(_orm.Ado.ExecuteScalar($"select count(1) from ({this.ToSql($"1{_comonExp._common.FieldAsAlias("as1")}")}) fta")), out var trylng) ? trylng : default(long);
+        public ISelectGrouping<TKey, TValue> Count(out long count)
+        {
+            count = this.Count();
+            return this;
+        }
+
 #if net40
 #else
+        async public Task<long> CountAsync() => long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync($"select count(1) from ({this.ToSql($"1{_comonExp._common.FieldAsAlias("as1")}")}) fta")), out var trylng) ? trylng : default(long);
+
         public Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select)
         {
             var map = new ReadAnonymousTypeInfo();
             var field = new StringBuilder();
             var index = 0;
 
-            _comonExp.ReadAnonymousField(null, field, map, ref index, select, getSelectGroupingMapString, null);
+            _comonExp.ReadAnonymousField(null, field, map, ref index, select, getSelectGroupingMapString, null, true);
             var method = _select.GetType().GetMethod("ToListMapReaderAsync", BindingFlags.Instance | BindingFlags.NonPublic);
             method = method.MakeGenericMethod(typeof(TReturn));
             return method.Invoke(_select, new object[] { (map, field.Length > 0 ? field.Remove(0, 2).ToString() : null) }) as Task<List<TReturn>>;

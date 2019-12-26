@@ -138,8 +138,8 @@ namespace FreeSql.Sqlite
             {
                 if (obj.Value == null)
                 {
-                    if (_pool.SetUnavailable(new Exception("连接字符串错误")) == true)
-                        throw new Exception($"【{this.Name}】连接字符串错误，请检查。");
+                    if (_pool.SetUnavailable(new Exception("连接字符串错误，或者检查项目属性 > 生成 > 目标平台：x86 | x64")) == true)
+                        throw new Exception($"【{this.Name}】连接字符串错误，请检查。或者检查项目属性 > 生成 > 目标平台：x86 | x64");
                     return;
                 }
 
@@ -224,7 +224,10 @@ namespace FreeSql.Sqlite
         {
             try
             {
-                PingCommand(that).ExecuteNonQuery();
+                using (var cmd = PingCommand(that))
+                {
+                    cmd.ExecuteNonQuery();
+                }
                 return true;
             }
             catch
@@ -242,11 +245,12 @@ namespace FreeSql.Sqlite
             {
                 var sb = new StringBuilder();
                 foreach (var att in attach)
-                    sb.Append($"attach database [{att}] as [{att.Split('.').First()}];\r\n");
+                    sb.Append($"attach database [{att}] as [{att.Split('/', '\\').Last().Split('.').First()}];\r\n");
 
                 var cmd = that.CreateCommand();
                 cmd.CommandText = sb.ToString();
                 cmd.ExecuteNonQuery();
+                cmd.Dispose();
             }
         }
 
@@ -256,7 +260,10 @@ namespace FreeSql.Sqlite
         {
             try
             {
-                await PingCommand(that).ExecuteNonQueryAsync();
+                using (var cmd = PingCommand(that))
+                {
+                    await cmd.ExecuteNonQueryAsync();
+                }
                 return true;
             }
             catch
@@ -274,11 +281,12 @@ namespace FreeSql.Sqlite
             {
                 var sb = new StringBuilder();
                 foreach (var att in attach)
-                    sb.Append($"attach database [{att}] as [{att.Split('.').First()}];\r\n");
+                    sb.Append($"attach database [{att}] as [{att.Split('/', '\\').Last().Split('.').First()}];\r\n");
 
                 var cmd = that.CreateCommand();
                 cmd.CommandText = sb.ToString();
                 await cmd.ExecuteNonQueryAsync();
+                cmd.Dispose();
             }
         }
 #endif

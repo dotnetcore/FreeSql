@@ -32,7 +32,13 @@ namespace FreeSql.Internal
 
             _filters.TryGetValue(name, out var item);
             if (item == null) item = new Item { Id = ++_id, Name = name };
-            item.Where = where;
+
+            var newParameter = Expression.Parameter(typeof(TEntity), $"gf{_id}");
+            var newlambda = Expression.Lambda<Func<TEntity, bool>>(
+                new CommonExpression.ReplaceVisitor().Modify(where.Body, newParameter),
+                newParameter
+            );
+            item.Where = newlambda;
             _filters.AddOrUpdate(name, item, (_, __) => item);
             return this;
         }

@@ -57,7 +57,7 @@ namespace FreeSql.Odbc.PostgreSQL
     {
 
         internal OdbcPostgreSQLConnectionPool _pool;
-        public string Name { get; set; } = "PostgreSQL NpgsqlConnection 对象池";
+        public string Name { get; set; } = "PostgreSQL OdbcConnection 对象池";
         public int PoolSize { get; set; } = 50;
         public TimeSpan SyncGetTimeout { get; set; } = TimeSpan.FromSeconds(10);
         public TimeSpan IdleTimeout { get; set; } = TimeSpan.Zero;

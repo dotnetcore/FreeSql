@@ -1,7 +1,8 @@
 ﻿using SafeObjectPool;
 using System;
-using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
 using System.Linq;
@@ -33,7 +34,7 @@ namespace FreeSql.Internal.CommonProvider
 
         public DbTransaction TransactionCurrentThread => _trans.TryGetValue(Thread.CurrentThread.ManagedThreadId, out var conn) && conn.Transaction?.Connection != null ? conn.Transaction : null;
 
-        public void BeginTransaction(TimeSpan timeout)
+        public void BeginTransaction(TimeSpan timeout, IsolationLevel? isolationLevel)
         {
             if (TransactionCurrentThread != null) return;
 
@@ -44,7 +45,7 @@ namespace FreeSql.Internal.CommonProvider
             try
             {
                 conn = MasterPool.Get();
-                tran = new Transaction2(conn, conn.Value.BeginTransaction(), timeout);
+                tran = new Transaction2(conn, isolationLevel == null ? conn.Value.BeginTransaction() : conn.Value.BeginTransaction(isolationLevel.Value), timeout);
             }
             catch (Exception ex)
             {
@@ -102,15 +103,15 @@ namespace FreeSql.Internal.CommonProvider
         public void CommitTransaction() => CommitTransaction(true);
         public void RollbackTransaction() => CommitTransaction(false);
 
-        public void Transaction(Action handler)
-        {
-            Transaction(handler, TimeSpan.FromSeconds(60));
-        }
-        public void Transaction(Action handler, TimeSpan timeout)
+        public void Transaction(Action handler) => TransactionInternal(null, TimeSpan.FromSeconds(60), handler);
+        public void Transaction(TimeSpan timeout, Action handler) => TransactionInternal(null, timeout, handler);
+        public void Transaction(IsolationLevel isolationLevel, TimeSpan timeout, Action handler) => TransactionInternal(isolationLevel, timeout, handler);
+
+        void TransactionInternal(IsolationLevel? isolationLevel, TimeSpan timeout, Action handler)
         {
             try
             {
-                BeginTransaction(timeout);
+                BeginTransaction(timeout, isolationLevel);
                 handler();
                 CommitTransaction();
             }
@@ -135,7 +136,7 @@ namespace FreeSql.Internal.CommonProvider
             }
             catch { }
 
-            ObjectPool<DbConnection>[] pools = null;
+            IObjectPool<DbConnection>[] pools = null;
             for (var a = 0; a < 10; a++)
             {
                 try

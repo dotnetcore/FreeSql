@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net45</TargetFrameworks>
-		<Version>0.11.21</Version>
+		<Version>1.0.0</Version>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>YeXiangQin</Authors>
 		<Description>FreeSql 数据库实现，基于 MySql 5.6</Description>
@@ -23,7 +23,7 @@
   </ItemGroup>
   
 	<ItemGroup>
-		<PackageReference Include="MySqlConnector" Version="0.60.3" />
+		<PackageReference Include="MySqlConnector" Version="0.61.0" />
 	</ItemGroup>
 
 	<ItemGroup>

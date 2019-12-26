@@ -32,6 +32,7 @@ namespace FreeSql.Internal.CommonProvider
         public bool IsSyncStructureToUpper { get; set; } = false;
         public bool IsConfigEntityFromDbFirst { get; set; } = false;
         public virtual bool IsNoneCommandParameter { get; set; } = false;
+        public virtual bool IsGenerateCommandParameterWithLambda { get; set; } = false;
         public bool IsLazyLoading { get; set; } = false;
 
         public abstract (int type, string dbtype, string dbtypeFull, bool? isnullable, object defaultValue)? GetDbInfo(Type type);

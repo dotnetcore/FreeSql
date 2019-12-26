@@ -13,6 +13,7 @@ using System.Net;
 using System.Text;
 using System.Linq.Expressions;
 using System.Reflection;
+using FreeSql.Internal.Model;
 
 namespace FreeSql.PostgreSQL
 {
@@ -78,7 +79,7 @@ namespace FreeSql.PostgreSQL
             return value;
         }
 
-        public override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, Type type, object value)
+        public override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, ColumnInfo col, Type type, object value)
         {
             if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
             if (value != null) value = getParamterValue(type, value);
@@ -88,6 +89,17 @@ namespace FreeSql.PostgreSQL
             //} else {
             var tp = _orm.CodeFirst.GetDbInfo(type)?.type;
             if (tp != null) ret.NpgsqlDbType = (NpgsqlDbType)tp.Value;
+            if (col != null)
+            {
+                var dbtype = (NpgsqlDbType)_orm.DbFirst.GetDbType(new DatabaseModel.DbColumnInfo { DbTypeText = col.DbTypeText });
+                if (dbtype != NpgsqlDbType.Unknown)
+                {
+                    ret.NpgsqlDbType = dbtype;
+                    if (col.DbSize != 0) ret.Size = col.DbSize;
+                    if (col.DbPrecision != 0) ret.Precision = col.DbPrecision;
+                    if (col.DbScale != 0) ret.Scale = col.DbScale;
+                }
+            }
             //}
             _params?.Add(ret);
             return ret;
@@ -127,6 +139,8 @@ namespace FreeSql.PostgreSQL
         public override string StringConcat(string[] objs, Type[] types) => $"{string.Join(" || ", objs)}";
         public override string Mod(string left, string right, Type leftType, Type rightType) => $"{left} % {right}";
         public override string Div(string left, string right, Type leftType, Type rightType) => $"{left} / {right}";
+        public override string Now => "current_timestamp";
+        public override string NowUtc => "(current_timestamp at time zone 'UTC')";
 
         public override string QuoteWriteParamter(Type type, string paramterName) => paramterName;
         public override string QuoteReadColumn(Type type, string columnName) => columnName;
@@ -137,7 +151,7 @@ namespace FreeSql.PostgreSQL
             if (value == null) return "NULL";
             if (_dicIsAssignableFromPostgisGeometry.GetOrAdd(type, t2 => typeof(PostgisGeometry).IsAssignableFrom(type.IsArray ? type.GetElementType() : type)))
             {
-                var pam = AppendParamter(specialParams, null, type, value);
+                var pam = AppendParamter(specialParams, null, null, type, value);
                 return pam.ParameterName;
             }
             value = getParamterValue(type, value);

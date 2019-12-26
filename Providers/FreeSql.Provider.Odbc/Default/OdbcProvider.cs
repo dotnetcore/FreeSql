@@ -4,6 +4,8 @@ using FreeSql.Odbc.Default;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.Common;
 using System.Linq;
 using System.Threading;
 
@@ -36,12 +38,12 @@ namespace FreeSql.Odbc.Default
         /// <param name="masterConnectionString"></param>
         /// <param name="slaveConnectionString"></param>
         /// <param name="adapter">适配器</param>
-        public OdbcProvider(string masterConnectionString, string[] slaveConnectionString)
+        public OdbcProvider(string masterConnectionString, string[] slaveConnectionString, Func<DbConnection> connectionFactory = null)
         {
             this.InternalCommonUtils = new OdbcUtils(this);
             this.InternalCommonExpression = new OdbcExpression(this.InternalCommonUtils);
 
-            this.Ado = new OdbcAdo(this.InternalCommonUtils, masterConnectionString, slaveConnectionString);
+            this.Ado = new OdbcAdo(this.InternalCommonUtils, masterConnectionString, slaveConnectionString, connectionFactory);
             this.Aop = new AopProvider();
 
             this.CodeFirst = new OdbcCodeFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
@@ -83,7 +85,8 @@ namespace FreeSql.Odbc.Default
         internal CommonExpression InternalCommonExpression { get; }
 
         public void Transaction(Action handler) => Ado.Transaction(handler);
-        public void Transaction(Action handler, TimeSpan timeout) => Ado.Transaction(handler, timeout);
+        public void Transaction(TimeSpan timeout, Action handler) => Ado.Transaction(timeout, handler);
+        public void Transaction(IsolationLevel isolationLevel, TimeSpan timeout, Action handler) => Ado.Transaction(isolationLevel, timeout, handler);
 
         public GlobalFilter GlobalFilter { get; } = new GlobalFilter();
 

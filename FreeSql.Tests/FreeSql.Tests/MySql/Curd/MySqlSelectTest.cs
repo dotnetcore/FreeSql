@@ -763,6 +763,7 @@ namespace FreeSql.Tests.MySql
             .OrderByDescending(a => a.Count())
             .Offset(10)
             .Limit(2)
+            .Count(out var trycount)
             .ToList(a => new
             {
                 a.Key.tt2,
@@ -874,12 +875,16 @@ namespace FreeSql.Tests.MySql
             var subquery = select.ToSql(a => new
             {
                 all = a,
-                count = (long)select.Sum(b => b.Id)
+                count = (long)select.As("b").Sum(b => b.Id)
             });
+            Assert.Equal(@"SELECT a.`Id` as1, a.`Clicks` as2, a.`TypeGuid` as3, a.`Title` as4, a.`CreateTime` as5, (SELECT sum(b.`Id`) 
+	FROM `tb_topic` b 
+	limit 0,1) as6 
+FROM `tb_topic` a", subquery);
             var subqueryList = select.ToList(a => new
             {
                 all = a,
-                count = (long)select.Sum(b => b.Id)
+                count = (long)select.As("b").Sum(b => b.Id)
             });
         }
         [Fact]
@@ -888,12 +893,16 @@ namespace FreeSql.Tests.MySql
             var subquery = select.ToSql(a => new
             {
                 all = a,
-                count = select.Min(b => b.Id)
+                count = select.As("b").Min(b => b.Id)
             });
+            Assert.Equal(@"SELECT a.`Id` as1, a.`Clicks` as2, a.`TypeGuid` as3, a.`Title` as4, a.`CreateTime` as5, (SELECT min(b.`Id`) 
+	FROM `tb_topic` b 
+	limit 0,1) as6 
+FROM `tb_topic` a", subquery);
             var subqueryList = select.ToList(a => new
             {
                 all = a,
-                count = select.Min(b => b.Id)
+                count = select.As("b").Min(b => b.Id)
             });
         }
         [Fact]
@@ -902,12 +911,16 @@ namespace FreeSql.Tests.MySql
             var subquery = select.ToSql(a => new
             {
                 all = a,
-                count = select.Max(b => b.Id)
-            });
+                count = select.As("b").Max(b => b.Id)
+            }); 
+            Assert.Equal(@"SELECT a.`Id` as1, a.`Clicks` as2, a.`TypeGuid` as3, a.`Title` as4, a.`CreateTime` as5, (SELECT max(b.`Id`) 
+	FROM `tb_topic` b 
+	limit 0,1) as6 
+FROM `tb_topic` a", subquery);
             var subqueryList = select.ToList(a => new
             {
                 all = a,
-                count = select.Max(b => b.Id)
+                count = select.As("b").Max(b => b.Id)
             });
         }
         [Fact]
@@ -916,13 +929,27 @@ namespace FreeSql.Tests.MySql
             var subquery = select.ToSql(a => new
             {
                 all = a,
-                count = select.Avg(b => b.Id)
+                count = select.As("b").Avg(b => b.Id)
             });
+            Assert.Equal(@"SELECT a.`Id` as1, a.`Clicks` as2, a.`TypeGuid` as3, a.`Title` as4, a.`CreateTime` as5, (SELECT avg(b.`Id`) 
+	FROM `tb_topic` b 
+	limit 0,1) as6 
+FROM `tb_topic` a", subquery);
             var subqueryList = select.ToList(a => new
             {
                 all = a,
-                count = select.Avg(b => b.Id)
+                count = select.As("b").Avg(b => b.Id)
             });
+        }
+        [Fact]
+        public void WhereIn()
+        {
+            var subquery = select.Where(a => select.As("b").ToList(b => b.Title).Contains(a.Id.ToString())).ToSql();
+            Assert.Equal(@"SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` 
+FROM `tb_topic` a 
+WHERE (((cast(a.`Id` as char)) in (SELECT b.`Title` 
+	FROM `tb_topic` b)))", subquery);
+            var subqueryList = select.Where(a => select.As("b").ToList(b => b.Title).Contains(a.Id.ToString())).ToList();
         }
         [Fact]
         public void As()
@@ -996,6 +1023,133 @@ namespace FreeSql.Tests.MySql
             query = select.LeftJoin("TestTypeInfo b on b.Guid = a.TypeGuid and b.Name = ?bname", new { bname = "xxx" }).AsTable(tableRule);
             sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topicAsTable1` a LEFT JOIN TestTypeInfo b on b.Guid = a.TypeGuid and b.Name = ?bname", sql);
+
+            query = select.AsTable((_, old) => old).AsTable((_, old) => old);
+            sql = query.ToSql().Replace("\r\n", "");
+            Assert.Equal("SELECT  * from (SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a) ftb UNION ALLSELECT  * from (SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a) ftb", sql);
+            query.ToList();
+
+            query = select.AsTable((_, old) => old).AsTable((_, old) => old);
+            sql = query.ToSql("count(1) as1").Replace("\r\n", "");
+            Assert.Equal("SELECT  * from (SELECT count(1) as1 FROM `tb_topic` a) ftb UNION ALLSELECT  * from (SELECT count(1) as1 FROM `tb_topic` a) ftb", sql);
+            query.Count();
+
+            select.AsTable((_, old) => old).AsTable((_, old) => old).Max(a => a.Id);
+            select.AsTable((_, old) => old).AsTable((_, old) => old).Min(a => a.Id);
+            select.AsTable((_, old) => old).AsTable((_, old) => old).Sum(a => a.Id);
+            select.AsTable((_, old) => old).AsTable((_, old) => old).Avg(a => a.Id);
+
+            var sqlsss = select
+                .AsTable((type, old) => type == typeof(Topic) ? $"{old}_1" : null)
+                .AsTable((type, old) => type == typeof(Topic) ? $"{old}_2" : null)
+                .ToSql(a => new
+                {
+                    a.Id,
+                    a.Clicks
+                }, FieldAliasOptions.AsProperty);
+
+            var slsld3 = select
+                .AsTable((type, old) => type == typeof(Topic) ? $"({sqlsss})" : null)
+                .Page(1, 20)
+                .ToList(a => new
+                {
+                    a.Id,
+                    a.Clicks
+                });
+
+            Assert.Equal(@"SELECT a.`Id` as1, a.`Clicks` as2 
+FROM (SELECT  * from (SELECT a.`Id` Id, a.`Clicks` Clicks 
+    FROM `tb_topic_1` a) ftb 
+    
+    UNION ALL
+    
+    SELECT  * from (SELECT a.`Id` Id, a.`Clicks` Clicks 
+    FROM `tb_topic_2` a) ftb) a 
+limit 0,20", select
+                .AsTable((type, old) => type == typeof(Topic) ? $"({sqlsss})" : null)
+                .Page(1, 20)
+                .ToSql(a => new
+                {
+                    a.Id,
+                    a.Clicks
+                }));
+
+            var sqltmp12 = g.mysql.Select<WF_Task>()
+                .Where(t => t.IsFinished && (t.AuditorId == "1" || t.AuditorId == "1cb71584-a6dd-4b26-8c88-ed9fb8cf87a3"))
+                .GroupBy(t => new { t.ProcessId, t.NodeId, t.NodeName })
+                .ToSql(t => new WF_TaskGroupBy
+                {
+                    TaskId = t.Max(t.Value.Id),
+                    TaskType = t.Max(t.Value.Type),
+                    ProcessId = t.Key.ProcessId,
+                    NodeId = t.Key.NodeId,
+                    NodeName = t.Key.NodeName
+                }, FieldAliasOptions.AsProperty);
+
+            var groupsql12 = g.mysql.Select<WF_TaskGroupBy, WF_ProcessInstance>()
+                .AsTable((type, old) => type == typeof(WF_TaskGroupBy) ? $"( {sqltmp12} )" : null)
+                .LeftJoin((a, p) => p.Id == a.ProcessId)
+                .Where((a, p) => (p.IsFinished || a.TaskType == 3) && p.EnabledMark)
+                .ToSql((a, p) => new
+                {
+                    WF_Task = a,
+                    WF_ProcessInstance = p
+                });
+
+            Assert.Equal(@"SELECT max(a.`Id`) TaskId, max(a.`Type`) TaskType, a.`ProcessId` ProcessId, a.`NodeId` NodeId, a.`NodeName` NodeName 
+FROM `WF_Task` a 
+WHERE (a.`IsFinished` = 1 AND (a.`AuditorId` = '1' OR a.`AuditorId` = '1cb71584-a6dd-4b26-8c88-ed9fb8cf87a3')) 
+GROUP BY a.`ProcessId`, a.`NodeId`, a.`NodeName`", sqltmp12);
+            Assert.Equal(@"SELECT a.`TaskId` as1, a.`TaskType` as2, a.`ProcessId` as3, a.`NodeId` as4, a.`NodeName` as5, b.`Id` as6, b.`TaskType` as7, b.`ProcessId` as8, b.`NodeId` as9, b.`CreateTime` as10, b.`IsFinished` as11, b.`EnabledMark` as12 
+FROM ( SELECT max(a.`Id`) TaskId, max(a.`Type`) TaskType, a.`ProcessId` ProcessId, a.`NodeId` NodeId, a.`NodeName` NodeName 
+    FROM `WF_Task` a 
+    WHERE (a.`IsFinished` = 1 AND (a.`AuditorId` = '1' OR a.`AuditorId` = '1cb71584-a6dd-4b26-8c88-ed9fb8cf87a3')) 
+    GROUP BY a.`ProcessId`, a.`NodeId`, a.`NodeName` ) a 
+LEFT JOIN `WF_ProcessInstance` b ON b.`Id` = a.`ProcessId` 
+WHERE ((b.`IsFinished` OR a.`TaskType` = 3) AND b.`EnabledMark` = 1)", groupsql12);
+
+            var grouplist12 = g.mysql.Select<WF_TaskGroupBy, WF_ProcessInstance>()
+               .AsTable((type, old) => type == typeof(WF_TaskGroupBy) ? $"( {sqltmp12} )" : null)
+               .LeftJoin((a, p) => p.Id == a.ProcessId)
+               .Where((a, p) => (p.IsFinished || a.TaskType == 3) && p.EnabledMark)
+               .ToList((a, p) => new
+               {
+                   WF_Task = a,
+                   WF_ProcessInstance = p
+               });
+        }
+
+        [Table(DisableSyncStructure = true)]
+        class WF_TaskGroupBy
+        {
+            public int TaskId { get; set; }
+            public int TaskType { get; set; }
+            public int ProcessId { get; set; }
+            public int NodeId { get; set; }
+            public string NodeName { get; set; }
+        }
+        class WF_Task
+        {
+            [Column(IsIdentity = true)]
+            public int Id { get; set; }
+            public int Type { get; set; }
+            public int ProcessId { get; set; }
+            public int NodeId { get; set; }
+            public string NodeName { get; set; }
+            public string AuditorId { get; set; }
+            public DateTime CreateTime { get; set; }
+            public bool IsFinished { get; set; }
+        }
+        class WF_ProcessInstance
+        {
+            [Column(IsIdentity = true)]
+            public int Id { get; set; }
+            public int TaskType { get; set; }
+            public int ProcessId { get; set; }
+            public int NodeId { get; set; }
+            public DateTime CreateTime { get; set; }
+            public bool IsFinished { get; set; }
+            public bool EnabledMark { get; set; }
         }
 
         public class TestInclude_OneToManyModel1
@@ -1639,6 +1793,26 @@ namespace FreeSql.Tests.MySql
             Assert.Equal(2, g.mysql.Select<ToUpd3Pk>().Where(a => a.name.StartsWith("name")).ToUpdate().Set(a => a.name, "nick?").ExecuteAffrows());
             Assert.Equal(5, g.mysql.Select<ToUpd3Pk>().Count());
             Assert.Equal(5, g.mysql.Select<ToUpd3Pk>().Where(a => a.name.StartsWith("nick")).Count());
+        }
+
+        [Fact]
+        public void ForUpdate()
+        {
+            var orm = g.mysql;
+
+            Assert.Equal("安全起见，请务必在事务开启之后，再使用 ForUpdate",
+                Assert.Throws<Exception>(() => orm.Select<ToUpd1Pk>().ForUpdate().Limit(1).ToList())?.Message);
+
+            orm.Transaction(() =>
+            {
+                var sql = orm.Select<ToUpd1Pk>().ForUpdate().Limit(1).ToSql().Replace("\r\n", "");
+                Assert.Equal("SELECT a.`id`, a.`name` FROM `ToUpd1Pk` a limit 0,1 for update", sql);
+                orm.Select<ToUpd1Pk>().ForUpdate().Limit(1).ToList();
+
+                sql = orm.Select<ToUpd1Pk>().ForUpdate(true).Limit(1).ToSql().Replace("\r\n", "");
+                Assert.Equal("SELECT a.`id`, a.`name` FROM `ToUpd1Pk` a limit 0,1 for update", sql);
+                orm.Select<ToUpd1Pk>().ForUpdate(true).Limit(1).ToList();
+            });
         }
     }
 }

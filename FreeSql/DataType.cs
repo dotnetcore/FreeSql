@@ -8,7 +8,7 @@ namespace FreeSql
 
         MySql, SqlServer, PostgreSQL, Oracle, Sqlite,
 
-        OdbcOracle, OdbcSqlServer, OdbcMySql, OdbcPostgreSQL,
+        OdbcOracle, OdbcSqlServer, OdbcMySql, OdbcPostgreSQL, 
 
         /// <summary>
         /// 通用的 Odbc 实现，只能做基本的 Crud 操作 <para></para>
@@ -19,6 +19,16 @@ namespace FreeSql
         /// 
         /// 适配新的 OdbcAdapter，请在 FreeSqlBuilder.Build 之后调用 IFreeSql.SetOdbcAdapter 方法设置
         /// </summary>
-        Odbc
+        Odbc,
+
+        /// <summary>
+        /// 武汉达梦数据库有限公司
+        /// </summary>
+        OdbcDameng,
+
+        /// <summary>
+        /// Microsoft Office Access 是由微软发布的关联式数据库管理系统
+        /// </summary>
+        MsAccess,
     }
 }

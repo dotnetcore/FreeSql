@@ -1,4 +1,5 @@
 ﻿using FreeSql.Internal;
+using FreeSql.Internal.Model;
 using Newtonsoft.Json.Linq;
 using Npgsql;
 using SafeObjectPool;
@@ -14,9 +15,14 @@ namespace FreeSql.PostgreSQL
     class PostgreSQLAdo : FreeSql.Internal.CommonProvider.AdoProvider
     {
         public PostgreSQLAdo() : base(DataType.PostgreSQL) { }
-        public PostgreSQLAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings) : base(DataType.PostgreSQL)
+        public PostgreSQLAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.PostgreSQL)
         {
-            base._util = util;
+            base._util = util; 
+            if (connectionFactory != null)
+            {
+                MasterPool = new FreeSql.Internal.CommonProvider.DbConnectionPool(DataType.PostgreSQL, connectionFactory);
+                return;
+            }
             if (!string.IsNullOrEmpty(masterConnectionString))
                 MasterPool = new PostgreSQLConnectionPool("主库", masterConnectionString, null, null);
             if (slaveConnectionStrings != null)
@@ -29,8 +35,7 @@ namespace FreeSql.PostgreSQL
             }
         }
 
-        static DateTime dt1970 = new DateTime(1970, 1, 1);
-        public override object AddslashesProcessParam(object param, Type mapType)
+        public override object AddslashesProcessParam(object param, Type mapType, ColumnInfo mapColumn)
         {
             if (param == null) return "NULL";
             if (mapType != null && mapType != param.GetType() && (param is IEnumerable == false || mapType.IsArrayOrList() || param is JToken || param is JObject || param is JArray))
@@ -64,12 +69,8 @@ namespace FreeSql.PostgreSQL
                 return pghstore.Append("'::hstore");
             }
             else if (param is IEnumerable)
-            {
-                var sb = new StringBuilder();
-                var ie = param as IEnumerable;
-                foreach (var z in ie) sb.Append(",").Append(AddslashesProcessParam(z, mapType));
-                return sb.Length == 0 ? "(NULL)" : sb.Remove(0, 1).Insert(0, "(").Append(")").ToString();
-            }
+                return AddslashesIEnumerable(param, mapType, mapColumn);
+
             return string.Concat("'", param.ToString().Replace("'", "''"), "'");
         }
 
@@ -78,9 +79,11 @@ namespace FreeSql.PostgreSQL
             return new NpgsqlCommand();
         }
 
-        protected override void ReturnConnection(ObjectPool<DbConnection> pool, Object<DbConnection> conn, Exception ex)
+        protected override void ReturnConnection(IObjectPool<DbConnection> pool, Object<DbConnection> conn, Exception ex)
         {
-            (pool as PostgreSQLConnectionPool).Return(conn, ex);
+            var rawPool = pool as PostgreSQLConnectionPool;
+            if (rawPool != null) rawPool.Return(conn, ex);
+            else pool.Return(conn);
         }
 
         protected override DbParameter[] GetDbParamtersByObject(string sql, object obj) => _util.GetDbParamtersByObject(sql, obj);

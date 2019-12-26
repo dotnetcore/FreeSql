@@ -3,6 +3,7 @@ using FreeSql.Internal.CommonProvider;
 using FreeSql.MySql.Curd;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
 using System.Linq.Expressions;
 using System.Threading;
@@ -54,12 +55,12 @@ namespace FreeSql.MySql
         public IAop Aop { get; }
         public ICodeFirst CodeFirst { get; }
         public IDbFirst DbFirst { get; }
-        public MySqlProvider(string masterConnectionString, string[] slaveConnectionString)
+        public MySqlProvider(string masterConnectionString, string[] slaveConnectionString, Func<DbConnection> connectionFactory = null)
         {
             this.InternalCommonUtils = new MySqlUtils(this);
             this.InternalCommonExpression = new MySqlExpression(this.InternalCommonUtils);
 
-            this.Ado = new MySqlAdo(this.InternalCommonUtils, masterConnectionString, slaveConnectionString);
+            this.Ado = new MySqlAdo(this.InternalCommonUtils, masterConnectionString, slaveConnectionString, connectionFactory);
             this.Aop = new AopProvider();
 
             this.DbFirst = new MySqlDbFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
@@ -70,7 +71,8 @@ namespace FreeSql.MySql
         internal CommonExpression InternalCommonExpression { get; }
 
         public void Transaction(Action handler) => Ado.Transaction(handler);
-        public void Transaction(Action handler, TimeSpan timeout) => Ado.Transaction(handler, timeout);
+        public void Transaction(TimeSpan timeout, Action handler) => Ado.Transaction(timeout, handler);
+        public void Transaction(IsolationLevel isolationLevel, TimeSpan timeout, Action handler) => Ado.Transaction(isolationLevel, timeout, handler);
 
         public GlobalFilter GlobalFilter { get; } = new GlobalFilter();
 

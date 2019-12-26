@@ -13,9 +13,9 @@ namespace FreeSql.Internal.Model
         public Type MapType { get; set; }
         public string DbField { get; set; }
         public ConstructorInfo Consturctor { get; set; }
-        public ReadAnonymousTypeInfoConsturctorType ConsturctorType { get; set; }
         public List<ReadAnonymousTypeInfo> Childs = new List<ReadAnonymousTypeInfo>();
         public TableInfo Table { get; set; }
+        public bool IsEntity { get; set; }
+        public bool IsDefaultCtor { get; set; }
     }
-    public enum ReadAnonymousTypeInfoConsturctorType { Arguments, Properties }
 }

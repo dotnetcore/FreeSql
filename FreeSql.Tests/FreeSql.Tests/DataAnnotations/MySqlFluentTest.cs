@@ -134,6 +134,33 @@ namespace FreeSql.Tests.DataAnnotations
         }
 
         [Fact]
+        public void AutoPrimary()
+        {
+            var tb1 = g.mysql.CodeFirst.GetTableByEntity(typeof(pkfalse_t1));
+            var tb2 = g.mysql.CodeFirst.GetTableByEntity(typeof(pkfalse_t2));
+            var tb3 = g.mysql.CodeFirst.GetTableByEntity(typeof(pkfalse_t3));
+
+            Assert.True(tb1.ColumnsByCs["id"].Attribute.IsPrimary);
+            Assert.False(tb2.ColumnsByCs["id"].Attribute.IsPrimary);
+            Assert.True(tb3.ColumnsByCs["id"].Attribute.IsPrimary);
+        }
+
+        class pkfalse_t1
+        {
+            public int id { get; set; }
+        }
+        class pkfalse_t2
+        {
+            [Column(IsPrimary = false)]
+            public int id { get; set; }
+        }
+        class pkfalse_t3
+        {
+            [Column(IsPrimary = true)]
+            public int id { get; set; }
+        }
+
+        [Fact]
         public void CanInsert_CanUpdate()
         {
             var item = new TestCanInsert { title = "testtitle", testfield1 = 1000, testfield2 = 1000 };

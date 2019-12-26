@@ -41,6 +41,7 @@ namespace FreeSql.Tests.Odbc.MySqlExpression
             var t3 = select.Where(a => a.testFieldBool == false).ToList();
             var t4 = select.Where(a => !a.testFieldBool).ToList();
             var t5 = select.Where(a => a.testFieldBool).ToList();
+            var t51 = select.WhereCascade(a => a.testFieldBool).Limit(10).ToList();
 
             var t11 = select.Where(a => a.testFieldBoolNullable == true).ToList();
             var t22 = select.Where(a => a.testFieldBoolNullable != true).ToList();
@@ -105,7 +106,12 @@ namespace FreeSql.Tests.Odbc.MySqlExpression
             var inarray2 = new List<int>() { 1, 2, 3 };
             var sql111111 = select.Where(a => inarray.Contains(a.testFieldInt)).ToList();
             var sql112222 = select.Where(a => inarray.Contains(a.testFieldInt) == false).ToList();
-            var sql113333 = select.Where(a => !inarray.Contains(a.testFieldInt)).ToList();
+            var sql113333 = select.Where(a => !inarray.Contains(a.testFieldInt)).ToList(); 
+            
+            var inarray2n = Enumerable.Range(1, 3333).ToArray();
+            var sql1111111 = select.Where(a => inarray2n.Contains(a.testFieldInt)).ToList();
+            var sql1122222 = select.Where(a => inarray2n.Contains(a.testFieldInt) == false).ToList();
+            var sql1133333 = select.Where(a => !inarray2n.Contains(a.testFieldInt)).ToList();
         }
 
         [Table(Name = "tb_alltype")]

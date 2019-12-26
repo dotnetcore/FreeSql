@@ -17,11 +17,7 @@ namespace FreeSql.Tests.MySql
             var sql = g.mysql.CodeFirst.GetComparisonDDLStatements<测试中文表2>();
             g.mysql.CodeFirst.SyncStructure<测试中文表2>();
 
-            var item = new 测试中文表2
-            {
-                标题 = "测试标题",
-                创建时间 = DateTime.Now
-            };
+            var item = 测试中文表2.Create("测试标题", DateTime.Now);
             Assert.Equal(1, g.mysql.Insert<测试中文表2>().AppendData(item).ExecuteAffrows());
             Assert.NotEqual(Guid.Empty, item.编号);
             var item2 = g.mysql.Select<测试中文表2>().Where(a => a.编号 == item.编号).First();
@@ -32,11 +28,17 @@ namespace FreeSql.Tests.MySql
         class 测试中文表2
         {
             [Column(IsPrimary = true)]
-            public Guid 编号 { get; set; }
+            public Guid 编号 { get; protected set; }
 
-            public string 标题 { get; set; }
+            public string 标题 { get; protected set; }
 
-            public DateTime 创建时间 { get; set; }
+            [Column(ServerTime = DateTimeKind.Local)]
+            public DateTime 创建时间 { get; protected set; }
+
+            public static 测试中文表2 Create(string title, DateTime ctm)
+            {
+                return new 测试中文表2 { 标题 = title, 创建时间 = ctm };
+            }
         }
 
         [Fact]
@@ -464,7 +466,10 @@ namespace FreeSql.Tests.MySql
             public float testFieldFloat { get; set; }
             public decimal testFieldDecimal { get; set; }
             public TimeSpan testFieldTimeSpan { get; set; }
+
+            [Column(ServerTime = DateTimeKind.Local)]
             public DateTime testFieldDateTime { get; set; }
+
             public byte[] testFieldBytes { get; set; }
             public string testFieldString { get; set; }
             public Guid testFieldGuid { get; set; }
@@ -482,7 +487,10 @@ namespace FreeSql.Tests.MySql
             public float? testFieldFloatNullable { get; set; }
             public decimal? testFieldDecimalNullable { get; set; }
             public TimeSpan? testFieldTimeSpanNullable { get; set; }
+
+            [Column(ServerTime = DateTimeKind.Local)]
             public DateTime? testFieldDateTimeNullable { get; set; }
+
             public Guid? testFieldGuidNullable { get; set; }
 
             public MygisPoint testFieldPoint { get; set; }

@@ -1,4 +1,5 @@
 ﻿using FreeSql.Internal.Model;
+using FreeSql.Extensions.EntityUtil;
 using SafeObjectPool;
 using System;
 using System.Collections.Generic;
@@ -23,6 +24,8 @@ namespace FreeSql.Internal.CommonProvider
         protected TableInfo _table;
         protected Func<string, string> _tableRule;
         protected bool _noneParameter, _insertIdentity;
+        protected int _batchValuesLimit, _batchParameterLimit;
+        protected bool _batchAutoTransaction = true;
         protected DbParameter[] _params;
         protected DbTransaction _transaction;
         protected DbConnection _connection;
@@ -50,6 +53,8 @@ namespace FreeSql.Internal.CommonProvider
         }
         protected void ClearData()
         {
+            _batchValuesLimit = _batchParameterLimit = 0;
+            _batchAutoTransaction = true;
             _insertIdentity = false;
             _source.Clear();
             _ignore.Clear();
@@ -80,6 +85,14 @@ namespace FreeSql.Internal.CommonProvider
         public IInsert<T1> NoneParameter()
         {
             _noneParameter = true;
+            return this;
+        }
+
+        public virtual IInsert<T1> BatchOptions(int valuesLimit, int parameterLimit, bool autoTransaction = true)
+        {
+            _batchValuesLimit = valuesLimit;
+            _batchParameterLimit = parameterLimit;
+            _batchAutoTransaction = autoTransaction;
             return this;
         }
 
@@ -124,8 +137,20 @@ namespace FreeSql.Internal.CommonProvider
             foreach (var col in table.Columns.Values)
             {
                 object val = col.GetMapValue(data);
-                if (col.Attribute.IsPrimary && col.Attribute.MapType.NullableTypeOrThis() == typeof(Guid) && (val == null || (Guid)val == Guid.Empty))
-                    col.SetMapValue(data, val = FreeUtil.NewMongodbId());
+                if (col.Attribute.IsPrimary)
+                {
+                    if (col.Attribute.MapType.NullableTypeOrThis() == typeof(Guid) && (val == null || (Guid)val == Guid.Empty))
+                        col.SetMapValue(data, val = FreeUtil.NewMongodbId());
+                    else if (col.CsType.NullableTypeOrThis() == typeof(Guid))
+                    {
+                        var guidVal = orm.GetEntityValueWithPropertyName(table.Type, data, col.CsName);
+                        if (guidVal == null || (Guid)guidVal == Guid.Empty)
+                        {
+                            orm.SetEntityValueWithPropertyName(table.Type, data, col.CsName, FreeUtil.NewMongodbId());
+                            val = col.GetMapValue(data);
+                        }
+                    }
+                }
                 if (orm.Aop.AuditValue != null)
                 {
                     var auditArgs = new Aop.AuditValueEventArgs(Aop.AuditValueType.Insert, col, table.Properties[col.CsName], val);
@@ -145,39 +170,25 @@ namespace FreeSql.Internal.CommonProvider
         {
             valuesLimit = valuesLimit - 1;
             parameterLimit = parameterLimit - 1;
+            if (valuesLimit <= 0) valuesLimit = 1;
+            if (parameterLimit <= 0) parameterLimit = 999;
             if (_source == null || _source.Any() == false) return new List<T1>[0];
             if (_source.Count == 1) return new[] { _source };
-            if (_noneParameter)
-            {
-                if (_source.Count < valuesLimit) return new[] { _source };
 
-                var execCount = (int)Math.Ceiling(1.0 * _source.Count / valuesLimit);
-                var ret = new List<T1>[execCount];
-                for (var a = 0; a < execCount; a++)
-                {
-                    var subSource = new List<T1>();
-                    subSource = _source.GetRange(a * valuesLimit, Math.Min(valuesLimit, _source.Count - a * valuesLimit));
-                    ret[a] = subSource;
-                }
-                return ret;
-            }
-            else
+            var takeMax = valuesLimit;
+            if (_noneParameter == false)
             {
                 var colSum = _table.Columns.Count - _ignore.Count;
-                var takeMax = parameterLimit / colSum;
-                var pamTotal = colSum * _source.Count;
-                if (pamTotal < parameterLimit) return new[] { _source };
-
-                var execCount = (int)Math.Ceiling(1.0 * pamTotal / takeMax / colSum);
-                var ret = new List<T1>[execCount];
-                for (var a = 0; a < execCount; a++)
-                {
-                    var subSource = new List<T1>();
-                    subSource = _source.GetRange(a * takeMax, Math.Min(takeMax, _source.Count - a * takeMax));
-                    ret[a] = subSource;
-                }
-                return ret;
+                takeMax = parameterLimit / colSum;
+                if (takeMax > valuesLimit) takeMax = valuesLimit;
             }
+            if (_source.Count <= takeMax) return new[] { _source };
+
+            var execCount = (int)Math.Ceiling(1.0 * _source.Count / takeMax);
+            var ret = new List<T1>[execCount];
+            for (var a = 0; a < execCount; a++)
+                ret[a] = _source.GetRange(a * takeMax, Math.Min(takeMax, _source.Count - a * takeMax));
+            return ret;
         }
         protected int SplitExecuteAffrows(int valuesLimit, int parameterLimit)
         {
@@ -197,7 +208,7 @@ namespace FreeSql.Internal.CommonProvider
             if (_transaction == null)
                 this.WithTransaction(_orm.Ado.TransactionCurrentThread);
 
-            if (_transaction != null)
+            if (_transaction != null || _batchAutoTransaction == false)
             {
                 for (var a = 0; a < ss.Length; a++)
                 {
@@ -249,7 +260,7 @@ namespace FreeSql.Internal.CommonProvider
             if (_transaction == null)
                 this.WithTransaction(_orm.Ado.TransactionCurrentThread);
 
-            if (_transaction != null)
+            if (_transaction != null || _batchAutoTransaction == false)
             {
                 for (var a = 0; a < ss.Length; a++)
                 {
@@ -303,7 +314,7 @@ namespace FreeSql.Internal.CommonProvider
             if (_transaction == null)
                 this.WithTransaction(_orm.Ado.TransactionCurrentThread);
 
-            if (_transaction != null)
+            if (_transaction != null || _batchAutoTransaction == false)
             {
                 for (var a = 0; a < ss.Length; a++)
                 {
@@ -390,6 +401,7 @@ namespace FreeSql.Internal.CommonProvider
         {
             if (_tableRule == null) return _table.DbName;
             var newname = _tableRule(_table.DbName);
+            if (newname == _table.DbName) return _table.DbName;
             if (string.IsNullOrEmpty(newname)) return _table.DbName;
             if (_orm.CodeFirst.IsSyncStructureToLower) newname = newname.ToLower();
             if (_orm.CodeFirst.IsSyncStructureToUpper) newname = newname.ToUpper();
@@ -445,13 +457,18 @@ namespace FreeSql.Internal.CommonProvider
                     if (col.Attribute.IsIdentity == false && _ignore.ContainsKey(col.Attribute.Name)) continue;
 
                     if (colidx2 > 0) sb.Append(", ");
-                    object val = col.GetMapValue(d);
-                    if (_noneParameter)
-                        sb.Append(_commonUtils.GetNoneParamaterSqlValue(specialParams, col.Attribute.MapType, val));
+                    if (string.IsNullOrEmpty(col.DbInsertValue) == false)
+                        sb.Append(col.DbInsertValue);
                     else
                     {
-                        sb.Append(_commonUtils.QuoteWriteParamter(col.Attribute.MapType, _commonUtils.QuoteParamterName($"{col.CsName}_{didx}")));
-                        _params[didx * colidx + colidx2] = _commonUtils.AppendParamter(null, $"{col.CsName}_{didx}", col.Attribute.MapType, val);
+                        object val = col.GetMapValue(d);
+                        if (_noneParameter)
+                            sb.Append(_commonUtils.GetNoneParamaterSqlValue(specialParams, col.Attribute.MapType, val));
+                        else
+                        {
+                            sb.Append(_commonUtils.QuoteWriteParamter(col.Attribute.MapType, _commonUtils.QuoteParamterName($"{col.CsName}_{didx}")));
+                            _params[didx * colidx + colidx2] = _commonUtils.AppendParamter(null, $"{col.CsName}_{didx}", col, col.Attribute.MapType, val);
+                        }
                     }
                     ++colidx2;
                 }
@@ -461,6 +478,32 @@ namespace FreeSql.Internal.CommonProvider
             if (_noneParameter && specialParams.Any())
                 _params = specialParams.ToArray();
             return sb.ToString();
+        }
+
+        public DataTable ToDataTable()
+        {
+            var dt = new DataTable();
+            dt.TableName = TableRuleInvoke();
+            foreach (var col in _table.ColumnsByPosition)
+            {
+                if (col.Attribute.IsIdentity && _insertIdentity == false) continue;
+                if (col.Attribute.IsIdentity == false && _ignore.ContainsKey(col.Attribute.Name)) continue;
+                dt.Columns.Add(col.Attribute.Name, col.Attribute.MapType);
+            }
+            if (dt.Columns.Count == 0) return dt;
+            foreach (var d in _source)
+            {
+                var row = new object[dt.Columns.Count];
+                var rowIndex = 0;
+                foreach (var col in _table.ColumnsByPosition)
+                {
+                    if (col.Attribute.IsIdentity && _insertIdentity == false) continue;
+                    if (col.Attribute.IsIdentity == false && _ignore.ContainsKey(col.Attribute.Name)) continue;
+                    row[rowIndex++] = col.GetMapValue(d);
+                }
+                dt.Rows.Add(row);
+            }
+            return dt;
         }
     }
 }

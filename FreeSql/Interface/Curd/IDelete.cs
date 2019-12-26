@@ -52,8 +52,9 @@ namespace FreeSql
         /// 传入动态对象如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
         /// </summary>
         /// <param name="dywhere">主键值、主键值集合、实体、实体集合、匿名对象、匿名对象集合</param>
+        /// <param name="not">是否标识为NOT</param>
         /// <returns></returns>
-        IDelete<T1> WhereDynamic(object dywhere);
+        IDelete<T1> WhereDynamic(object dywhere, bool not = false);
 
         /// <summary>
         /// 禁用全局过滤功能，不传参数时将禁用所有

@@ -70,21 +70,21 @@ namespace FreeSql.Sqlite
                                 case "System.UInt64": return $"cast({getExp(callExp.Arguments[0])} as decimal(21,0))";
                                 case "System.Guid": return $"substr(cast({getExp(callExp.Arguments[0])} as character), 1, 36)";
                             }
-                            break;
+                            return null;
                         case "NewGuid":
-                            break;
+                            return null;
                         case "Next":
                             if (callExp.Object?.Type == typeof(Random)) return "cast(random()*1000000000 as int)";
-                            break;
+                            return null;
                         case "NextDouble":
                             if (callExp.Object?.Type == typeof(Random)) return "random()";
-                            break;
+                            return null;
                         case "Random":
                             if (callExp.Method.DeclaringType.IsNumberType()) return "random()";
-                            break;
+                            return null;
                         case "ToString":
                             if (callExp.Object != null) return callExp.Arguments.Count == 0 ? $"cast({getExp(callExp.Object)} as character)" : null;
-                            break;
+                            return null;
                     }
 
                     var objExp = callExp.Object;
@@ -101,16 +101,18 @@ namespace FreeSql.Sqlite
                     if (objType == null) objType = callExp.Method.DeclaringType;
                     if (objType != null || objType.IsArrayOrList())
                     {
-                        tsc?.SetMapTypeTmp(null);
+                        tsc.SetMapColumnTmp(null);
                         var args1 = getExp(callExp.Arguments[argIndex]);
-                        var oldMapType = tsc?.SetMapTypeReturnOld(tsc?.mapTypeTmp);
+                        var oldMapType = tsc.SetMapTypeReturnOld(tsc.mapTypeTmp);
+                        var oldDbParams = tsc.SetDbParamsReturnOld(null);
                         var left = objExp == null ? null : getExp(objExp);
-                        tsc.SetMapTypeReturnOld(oldMapType);
+                        tsc.SetMapColumnTmp(null).SetMapTypeReturnOld(oldMapType);
+                        tsc.SetDbParamsReturnOld(oldDbParams);
                         switch (callExp.Method.Name)
                         {
                             case "Contains":
-                                //判断 in
-                                return $"({args1}) in {left}";
+                                //判断 in //在各大 Provider AdoProvider 中已约定，500元素分割, 3空格\r\n4空格
+                                return $"(({args1}) in {left.Replace(",   \r\n    \r\n", $") \r\n OR ({args1}) in (")})";
                         }
                     }
                     break;
@@ -173,8 +175,8 @@ namespace FreeSql.Sqlite
             {
                 switch (exp.Member.Name)
                 {
-                    case "Now": return "datetime(current_timestamp,'localtime')";
-                    case "UtcNow": return "current_timestamp";
+                    case "Now": return _common.Now;
+                    case "UtcNow": return _common.NowUtc;
                     case "Today": return "date(current_timestamp,'localtime')";
                     case "MinValue": return "datetime('0001-01-01 00:00:00.000')";
                     case "MaxValue": return "datetime('9999-12-31 23:59:59.999')";

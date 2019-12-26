@@ -79,13 +79,14 @@ namespace FreeSql
                     var itemType = item.GetType();
                     if (itemType == typeof(object)) return;
                     if (itemType.FullName.StartsWith("Submission#")) itemType = itemType.BaseType;
+                    if (_db.Orm.CodeFirst.GetTableByEntity(itemType)?.Primarys.Any() != true) return;
                     var dbset = _db.Set(itemType);
                     dbset?.GetType().GetMethod("TrackToList", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(dbset, new object[] { list });
                     return;
                 }
                 return;
             }
-
+            if (_table?.Primarys.Any() != true) return;
             foreach (var item in ls)
             {
                 var key = _db.Orm.GetEntityKeyString(_entityType, item, false);
@@ -107,8 +108,9 @@ namespace FreeSql
         internal ConcurrentDictionary<string, EntityState> _statesInternal => _states;
         TableInfo _tablePriv;
         protected TableInfo _table => _tablePriv ?? (_tablePriv = _db.Orm.CodeFirst.GetTableByEntity(_entityType));
-        ColumnInfo[] _tableIdentitysPriv;
+        ColumnInfo[] _tableIdentitysPriv, _tableServerTimesPriv;
         protected ColumnInfo[] _tableIdentitys => _tableIdentitysPriv ?? (_tableIdentitysPriv = _table.Primarys.Where(a => a.Attribute.IsIdentity).ToArray());
+        protected ColumnInfo[] _tableServerTimes => _tableServerTimesPriv ?? (_tableServerTimesPriv = _table.Primarys.Where(a => a.Attribute.ServerTime != DateTimeKind.Unspecified).ToArray());
         protected Type _entityType = typeof(TEntity);
         public Type EntityType => _entityType;
 
@@ -125,6 +127,7 @@ namespace FreeSql
             _entityType = entityType;
             _tablePriv = newtb ?? throw new Exception("DbSet.AsType 参数错误，请传入正确的实体类型");
             _tableIdentitysPriv = null;
+            _tableServerTimesPriv = null;
             return this;
         }
 

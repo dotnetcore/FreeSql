@@ -3,6 +3,7 @@ using FreeSql.Internal.CommonProvider;
 using FreeSql.Sqlite.Curd;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
 using System.Threading;
 
@@ -27,13 +28,13 @@ namespace FreeSql.Sqlite
         public IAdo Ado { get; }
         public IAop Aop { get; }
         public ICodeFirst CodeFirst { get; }
-        public IDbFirst DbFirst => null;
-        public SqliteProvider(string masterConnectionString, string[] slaveConnectionString)
+        public IDbFirst DbFirst => throw new NotImplementedException("FreeSql.Provider.Sqlite 未实现该功能");
+        public SqliteProvider(string masterConnectionString, string[] slaveConnectionString, Func<DbConnection> connectionFactory = null)
         {
             this.InternalCommonUtils = new SqliteUtils(this);
             this.InternalCommonExpression = new SqliteExpression(this.InternalCommonUtils);
 
-            this.Ado = new SqliteAdo(this.InternalCommonUtils, masterConnectionString, slaveConnectionString);
+            this.Ado = new SqliteAdo(this.InternalCommonUtils, masterConnectionString, slaveConnectionString, connectionFactory);
             this.Aop = new AopProvider();
 
             this.CodeFirst = new SqliteCodeFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
@@ -43,7 +44,8 @@ namespace FreeSql.Sqlite
         internal CommonExpression InternalCommonExpression { get; }
 
         public void Transaction(Action handler) => Ado.Transaction(handler);
-        public void Transaction(Action handler, TimeSpan timeout) => Ado.Transaction(handler, timeout);
+        public void Transaction(TimeSpan timeout, Action handler) => Ado.Transaction(timeout, handler);
+        public void Transaction(IsolationLevel isolationLevel, TimeSpan timeout, Action handler) => Ado.Transaction(isolationLevel, timeout, handler);
 
         public GlobalFilter GlobalFilter { get; } = new GlobalFilter();
 

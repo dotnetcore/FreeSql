@@ -14,11 +14,11 @@ namespace FreeSql
         /// <summary>
         /// 主库连接池
         /// </summary>
-        ObjectPool<DbConnection> MasterPool { get; }
+        IObjectPool<DbConnection> MasterPool { get; }
         /// <summary>
         /// 从库连接池
         /// </summary>
-        List<ObjectPool<DbConnection>> SlavePools { get; }
+        List<IObjectPool<DbConnection>> SlavePools { get; }
         /// <summary>
         /// 监视数据库命令对象(执行前，调试)
         /// </summary>
@@ -34,16 +34,23 @@ namespace FreeSql
 
         #region 事务
         /// <summary>
-        /// 开启事务（不支持异步），60秒未执行完将自动提交
+        /// 开启事务（不支持异步），60秒未执行完成（可能）被其他线程事务自动提交
         /// </summary>
         /// <param name="handler">事务体 () => {}</param>
         void Transaction(Action handler);
         /// <summary>
         /// 开启事务（不支持异步）
         /// </summary>
+        /// <param name="timeout">超时，未执行完成（可能）被其他线程事务自动提交</param>
         /// <param name="handler">事务体 () => {}</param>
-        /// <param name="timeout">超时，未执行完将自动提交</param>
-        void Transaction(Action handler, TimeSpan timeout);
+        void Transaction(TimeSpan timeout, Action handler);
+        /// <summary>
+        /// 开启事务（不支持异步）
+        /// </summary>
+        /// <param name="isolationLevel"></param>
+        /// <param name="handler">事务体 () => {}</param>
+        /// <param name="timeout">超时，未执行完成（可能）被其他线程事务自动提交</param>
+        void Transaction(IsolationLevel isolationLevel, TimeSpan timeout, Action handler);
         /// <summary>
         /// 当前线程的事务
         /// </summary>

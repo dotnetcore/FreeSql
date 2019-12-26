@@ -30,11 +30,15 @@ namespace FreeSql
 
         TEntity InsertOrUpdate(TEntity entity);
         /// <summary>
-        /// 保存实体的指定 ManyToMany 导航属性
+        /// 保存实体的指定 ManyToMany/OneToMany 导航属性（完整对比）<para></para>
+        /// 场景：在关闭级联保存功能之后，手工使用本方法<para></para>
+        /// 例子：保存商品的 OneToMany 集合属性，SaveMany(goods, "Skus")<para></para>
+        /// 当 goods.Skus 为空(非null)时，会删除表中已存在的所有数据<para></para>
+        /// 当 goods.Skus 不为空(非null)时，添加/更新后，删除表中不存在 Skus 集合属性的所有记录
         /// </summary>
         /// <param name="entity">实体对象</param>
         /// <param name="propertyName">属性名</param>
-        void SaveManyToMany(TEntity entity, string propertyName);
+        void SaveMany(TEntity entity, string propertyName);
 
         IUpdate<TEntity> UpdateDiy { get; }
 
@@ -49,7 +53,7 @@ namespace FreeSql
         Task<int> UpdateAsync(TEntity entity);
         Task<int> UpdateAsync(IEnumerable<TEntity> entitys);
         Task<TEntity> InsertOrUpdateAsync(TEntity entity);
-        Task SaveManyToManyAsync(TEntity entity, string propertyName);
+        Task SaveManyAsync(TEntity entity, string propertyName);
 
         Task<int> DeleteAsync(TEntity entity);
         Task<int> DeleteAsync(IEnumerable<TEntity> entitys);

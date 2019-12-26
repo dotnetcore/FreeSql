@@ -1,4 +1,5 @@
 ﻿using FreeSql.Internal;
+using FreeSql.Internal.Model;
 using SafeObjectPool;
 using System;
 using System.Collections;
@@ -11,9 +12,14 @@ namespace FreeSql.Sqlite
     class SqliteAdo : FreeSql.Internal.CommonProvider.AdoProvider
     {
         public SqliteAdo() : base(DataType.Sqlite) { }
-        public SqliteAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings) : base(DataType.Sqlite)
+        public SqliteAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.Sqlite)
         {
             base._util = util;
+            if (connectionFactory != null)
+            {
+                MasterPool = new FreeSql.Internal.CommonProvider.DbConnectionPool(DataType.Sqlite, connectionFactory);
+                return;
+            }
             if (!string.IsNullOrEmpty(masterConnectionString))
                 MasterPool = new SqliteConnectionPool("主库", masterConnectionString, null, null);
             if (slaveConnectionStrings != null)
@@ -25,8 +31,7 @@ namespace FreeSql.Sqlite
                 }
             }
         }
-        static DateTime dt1970 = new DateTime(1970, 1, 1);
-        public override object AddslashesProcessParam(object param, Type mapType)
+        public override object AddslashesProcessParam(object param, Type mapType, ColumnInfo mapColumn)
         {
             if (param == null) return "NULL";
             if (mapType != null && mapType != param.GetType() && (param is IEnumerable == false || mapType.IsArrayOrList()))
@@ -44,12 +49,8 @@ namespace FreeSql.Sqlite
             else if (param is TimeSpan || param is TimeSpan?)
                 return ((TimeSpan)param).Ticks / 10000;
             else if (param is IEnumerable)
-            {
-                var sb = new StringBuilder();
-                var ie = param as IEnumerable;
-                foreach (var z in ie) sb.Append(",").Append(AddslashesProcessParam(z, mapType));
-                return sb.Length == 0 ? "(NULL)" : sb.Remove(0, 1).Insert(0, "(").Append(")").ToString();
-            }
+                return AddslashesIEnumerable(param, mapType, mapColumn);
+
             return string.Concat("'", param.ToString().Replace("'", "''"), "'");
         }
 
@@ -58,9 +59,11 @@ namespace FreeSql.Sqlite
             return AdonetPortable.GetSqliteCommand();
         }
 
-        protected override void ReturnConnection(ObjectPool<DbConnection> pool, Object<DbConnection> conn, Exception ex)
+        protected override void ReturnConnection(IObjectPool<DbConnection> pool, Object<DbConnection> conn, Exception ex)
         {
-            (pool as SqliteConnectionPool).Return(conn, ex);
+            var rawPool = pool as SqliteConnectionPool;
+            if (rawPool != null) rawPool.Return(conn, ex);
+            else pool.Return(conn);
         }
 
         protected override DbParameter[] GetDbParamtersByObject(string sql, object obj) => _util.GetDbParamtersByObject(sql, obj);

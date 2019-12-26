@@ -16,9 +16,9 @@ namespace FreeSql.Sqlite.Curd
         {
         }
 
-        public override int ExecuteAffrows() => base.SplitExecuteAffrows(5000, 999);
-        public override long ExecuteIdentity() => base.SplitExecuteIdentity(5000, 999);
-        public override List<T1> ExecuteInserted() => base.SplitExecuteInserted(5000, 999);
+        public override int ExecuteAffrows() => base.SplitExecuteAffrows(_batchValuesLimit > 0 ? _batchValuesLimit : 5000, _batchParameterLimit > 0 ? _batchParameterLimit : 999);
+        public override long ExecuteIdentity() => base.SplitExecuteIdentity(_batchValuesLimit > 0 ? _batchValuesLimit : 5000, _batchParameterLimit > 0 ? _batchParameterLimit : 999);
+        public override List<T1> ExecuteInserted() => base.SplitExecuteInserted(_batchValuesLimit > 0 ? _batchValuesLimit : 5000, _batchParameterLimit > 0 ? _batchParameterLimit : 999);
 
         protected override long RawExecuteIdentity()
         {
@@ -52,8 +52,9 @@ namespace FreeSql.Sqlite.Curd
             var sql = this.ToSql();
             if (string.IsNullOrEmpty(sql)) return new List<T1>();
 
+            var ret = _source.ToList();
             this.RawExecuteAffrows();
-            return _source;
+            return ret;
         }
 
 #if net40
@@ -93,8 +94,9 @@ namespace FreeSql.Sqlite.Curd
             var sql = this.ToSql();
             if (string.IsNullOrEmpty(sql)) return new List<T1>();
 
+            var ret = _source.ToList();
             await this.RawExecuteAffrowsAsync();
-            return _source;
+            return ret;
         }
 #endif
     }

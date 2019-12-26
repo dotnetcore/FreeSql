@@ -17,9 +17,9 @@ namespace FreeSql.Odbc.MySql
         {
         }
 
-        public override int ExecuteAffrows() => base.SplitExecuteAffrows(5000, 3000);
-        public override long ExecuteIdentity() => base.SplitExecuteIdentity(5000, 3000);
-        public override List<T1> ExecuteInserted() => base.SplitExecuteInserted(5000, 3000);
+        public override int ExecuteAffrows() => base.SplitExecuteAffrows(_batchValuesLimit > 0 ? _batchValuesLimit : 5000, _batchParameterLimit > 0 ? _batchParameterLimit : 3000);
+        public override long ExecuteIdentity() => base.SplitExecuteIdentity(_batchValuesLimit > 0 ? _batchValuesLimit : 5000, _batchParameterLimit > 0 ? _batchParameterLimit : 3000);
+        public override List<T1> ExecuteInserted() => base.SplitExecuteInserted(_batchValuesLimit > 0 ? _batchValuesLimit : 5000, _batchParameterLimit > 0 ? _batchParameterLimit : 3000);
 
 
         protected override long RawExecuteIdentity()
@@ -42,7 +42,7 @@ namespace FreeSql.Odbc.MySql
                     conn = poolConn.Value;
                 }
                 _orm.Ado.ExecuteNonQuery(conn, _transaction, CommandType.Text, sql, _params);
-                ret = long.TryParse(string.Concat(_orm.Ado.ExecuteScalar(conn, _transaction, CommandType.Text, "SELECT LAST_INSERT_ID()")), out var trylng) ? trylng : 0;
+                ret = long.TryParse(string.Concat(_orm.Ado.ExecuteScalar(conn, _transaction, CommandType.Text, " SELECT LAST_INSERT_ID()")), out var trylng) ? trylng : 0;
             }
             catch (Exception ex)
             {
@@ -122,7 +122,7 @@ namespace FreeSql.Odbc.MySql
                     conn = poolConn.Value;
                 }
                 await _orm.Ado.ExecuteNonQueryAsync(conn, _transaction, CommandType.Text, sql, _params);
-                ret = long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync(conn, _transaction, CommandType.Text, "SELECT LAST_INSERT_ID()")), out var trylng) ? trylng : 0;
+                ret = long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync(conn, _transaction, CommandType.Text, " SELECT LAST_INSERT_ID()")), out var trylng) ? trylng : 0;
             }
             catch (Exception ex)
             {

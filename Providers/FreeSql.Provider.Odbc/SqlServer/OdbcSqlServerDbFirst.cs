@@ -253,8 +253,8 @@ from sys.columns", loc8.ToString().Replace("a.table_name", "a.object_id"));
                 {
                     sql += "union all" +
                     string.Format(tsql_place.Replace(
-                        "select value from sys.extended_properties where major_id = a.object_id AND minor_id = a.column_id",
-                        "select value from sys.extended_properties where major_id = a.object_id AND minor_id = a.parameter_id"), @"
+                        " select value from sys.extended_properties where major_id = a.object_id AND minor_id = a.column_id",
+                        " select value from sys.extended_properties where major_id = a.object_id AND minor_id = a.parameter_id"), @"
 ,cast(0 as bit) 'IsNullable'
 ,a.is_output 'IsIdentity'
 from sys.parameters", loc88.ToString().Replace("a.table_name", "a.object_id"));

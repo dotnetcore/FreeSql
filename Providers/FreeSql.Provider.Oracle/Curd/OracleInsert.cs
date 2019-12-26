@@ -19,9 +19,9 @@ namespace FreeSql.Oracle.Curd
         {
         }
 
-        public override int ExecuteAffrows() => base.SplitExecuteAffrows(500, 999);
-        public override long ExecuteIdentity() => base.SplitExecuteIdentity(500, 999);
-        public override List<T1> ExecuteInserted() => base.SplitExecuteInserted(500, 999);
+        public override int ExecuteAffrows() => base.SplitExecuteAffrows(_batchValuesLimit > 0 ? _batchValuesLimit : 500, _batchParameterLimit > 0 ? _batchParameterLimit : 999);
+        public override long ExecuteIdentity() => base.SplitExecuteIdentity(_batchValuesLimit > 0 ? _batchValuesLimit : 500, _batchParameterLimit > 0 ? _batchParameterLimit : 999);
+        public override List<T1> ExecuteInserted() => base.SplitExecuteInserted(_batchValuesLimit > 0 ? _batchValuesLimit : 500, _batchParameterLimit > 0 ? _batchParameterLimit : 999);
 
 
         public override string ToSql()
@@ -64,13 +64,18 @@ namespace FreeSql.Oracle.Curd
                     if (col.Attribute.IsIdentity == false && _ignore.ContainsKey(col.Attribute.Name)) continue;
 
                     if (colidx2 > 0) sb.Append(", ");
-                    object val = col.GetMapValue(d);
-                    if (_noneParameter)
-                        sb.Append(_commonUtils.GetNoneParamaterSqlValue(specialParams, col.Attribute.MapType, val));
+                    if (string.IsNullOrEmpty(col.DbInsertValue) == false)
+                        sb.Append(col.DbInsertValue);
                     else
                     {
-                        sb.Append(_commonUtils.QuoteWriteParamter(col.Attribute.MapType, _commonUtils.QuoteParamterName($"{col.CsName}_{didx}")));
-                        _params[didx * colidx + colidx2] = _commonUtils.AppendParamter(null, $"{col.CsName}_{didx}", col.Attribute.MapType, val);
+                        object val = col.GetMapValue(d);
+                        if (_noneParameter)
+                            sb.Append(_commonUtils.GetNoneParamaterSqlValue(specialParams, col.Attribute.MapType, val));
+                        else
+                        {
+                            sb.Append(_commonUtils.QuoteWriteParamter(col.Attribute.MapType, _commonUtils.QuoteParamterName($"{col.CsName}_{didx}")));
+                            _params[didx * colidx + colidx2] = _commonUtils.AppendParamter(null, $"{col.CsName}_{didx}", col, col.Attribute.MapType, val);
+                        }
                     }
                     ++colidx2;
                 }
@@ -112,7 +117,7 @@ namespace FreeSql.Oracle.Curd
                 return 0;
             }
             var identColName = _commonUtils.QuoteSqlName(_identCol.Attribute.Name);
-            var identParam = _commonUtils.AppendParamter(null, $"{_identCol.CsName}99", _identCol.Attribute.MapType, 0) as OracleParameter;
+            var identParam = _commonUtils.AppendParamter(null, $"{_identCol.CsName}99", _identCol, _identCol.Attribute.MapType, 0) as OracleParameter;
             identParam.Direction = ParameterDirection.Output;
             sql = $"{sql} RETURNING {identColName} INTO {identParam.ParameterName}";
             var dbParms = _params.Concat(new[] { identParam }).ToArray();
@@ -140,8 +145,9 @@ namespace FreeSql.Oracle.Curd
             var sql = this.ToSql();
             if (string.IsNullOrEmpty(sql)) return new List<T1>();
 
+            var ret = _source.ToList();
             this.RawExecuteAffrows();
-            return _source;
+            return ret;
         }
 
 #if net40
@@ -180,7 +186,7 @@ namespace FreeSql.Oracle.Curd
                 return 0;
             }
             var identColName = _commonUtils.QuoteSqlName(_identCol.Attribute.Name);
-            var identParam = _commonUtils.AppendParamter(null, $"{_identCol.CsName}99", _identCol.Attribute.MapType, 0) as OracleParameter;
+            var identParam = _commonUtils.AppendParamter(null, $"{_identCol.CsName}99", _identCol, _identCol.Attribute.MapType, 0) as OracleParameter;
             identParam.Direction = ParameterDirection.Output;
             sql = $"{sql} RETURNING {identColName} INTO {identParam.ParameterName}";
             var dbParms = _params.Concat(new[] { identParam }).ToArray();
@@ -208,8 +214,9 @@ namespace FreeSql.Oracle.Curd
             var sql = this.ToSql();
             if (string.IsNullOrEmpty(sql)) return new List<T1>();
 
+            var ret = _source.ToList();
             await this.RawExecuteAffrowsAsync();
-            return _source;
+            return ret;
         }
 #endif
     }

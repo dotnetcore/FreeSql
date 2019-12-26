@@ -10,6 +10,7 @@ using System.Text;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Data.Odbc;
+using FreeSql.Internal.Model;
 
 namespace FreeSql.Odbc.PostgreSQL
 {
@@ -63,7 +64,7 @@ namespace FreeSql.Odbc.PostgreSQL
             return value;
         }
 
-        public override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, Type type, object value)
+        public override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, ColumnInfo col, Type type, object value)
         {
             if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
             if (value != null) value = getParamterValue(type, value);
@@ -112,6 +113,8 @@ namespace FreeSql.Odbc.PostgreSQL
         public override string StringConcat(string[] objs, Type[] types) => $"{string.Join(" || ", objs)}";
         public override string Mod(string left, string right, Type leftType, Type rightType) => $"{left} % {right}";
         public override string Div(string left, string right, Type leftType, Type rightType) => $"{left} / {right}";
+        public override string Now => "current_timestamp";
+        public override string NowUtc => "(current_timestamp at time zone 'UTC')";
 
         public override string QuoteWriteParamter(Type type, string paramterName) => paramterName;
         public override string QuoteReadColumn(Type type, string columnName) => columnName;

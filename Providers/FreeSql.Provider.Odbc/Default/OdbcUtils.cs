@@ -1,4 +1,5 @@
 ﻿using FreeSql.Internal;
+using FreeSql.Internal.Model;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -16,7 +17,7 @@ namespace FreeSql.Odbc.Default
         public OdbcUtils(IFreeSql orm) : base(orm) { }
         public OdbcAdapter Adapter => _orm.GetOdbcAdapter();
 
-        public override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, Type type, object value)
+        public override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, ColumnInfo col, Type type, object value)
         {
             if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
             if (value?.Equals(DateTime.MinValue) == true) value = new DateTime(1970, 1, 1);
@@ -59,6 +60,8 @@ namespace FreeSql.Odbc.Default
         public override string StringConcat(string[] objs, Type[] types) => Adapter.ConcatSql(objs, types);
         public override string Mod(string left, string right, Type leftType, Type rightType) => Adapter.Mod(left, right, leftType, rightType);
         public override string Div(string left, string right, Type leftType, Type rightType) => Adapter.Div(left, right, leftType, rightType);
+        public override string Now => Adapter.LambdaDateTime_Now;
+        public override string NowUtc => Adapter.LambdaDateTime_UtcNow;
 
         public override string QuoteWriteParamter(Type type, string paramterName) => paramterName;
         public override string QuoteReadColumn(Type type, string columnName) => Adapter.FieldSql(type, columnName);

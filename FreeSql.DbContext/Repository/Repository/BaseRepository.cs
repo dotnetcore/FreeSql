@@ -130,9 +130,9 @@ namespace FreeSql
             return entity;
         }
 
-        public void SaveManyToMany(TEntity entity, string propertyName)
+        public void SaveMany(TEntity entity, string propertyName)
         {
-            _dbset.SaveManyToMany(entity, propertyName);
+            _dbset.SaveMany(entity, propertyName);
             _db.SaveChanges();
         }
     }

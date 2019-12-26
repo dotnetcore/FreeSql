@@ -18,21 +18,34 @@ namespace FreeSql.MySql
         {
         }
 
-        public override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, Type type, object value)
+        public override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, ColumnInfo col, Type type, object value)
         {
             if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
             var ret = new MySqlParameter { ParameterName = QuoteParamterName(parameterName), Value = value };
-            var tp = _orm.CodeFirst.GetDbInfo(type)?.type;
-            if (tp != null)
+            var dbtype = (MySqlDbType)_orm.CodeFirst.GetDbInfo(type)?.type;
+            if (col != null)
             {
-                if ((MySqlDbType)tp.Value == MySqlDbType.Geometry)
+                var dbtype2 = (MySqlDbType)_orm.DbFirst.GetDbType(new DatabaseModel.DbColumnInfo { DbTypeText = col.DbTypeText, DbTypeTextFull = col.Attribute.DbType, MaxLength = col.DbSize });
+                switch (dbtype2)
                 {
-                    ret.MySqlDbType = MySqlDbType.Text;
-                    if (value != null) ret.Value = (value as MygisGeometry).AsText();
+                    case MySqlDbType.Binary:
+                    case MySqlDbType.VarBinary:
+                        break;
+                    default:
+                        dbtype = dbtype2;
+                        if (col.DbSize != 0) ret.Size = col.DbSize;
+                        if (col.DbPrecision != 0) ret.Precision = col.DbPrecision;
+                        if (col.DbScale != 0) ret.Scale = col.DbScale;
+                        break;
                 }
-                else
-                    ret.MySqlDbType = (MySqlDbType)tp.Value;
             }
+            if (dbtype == MySqlDbType.Geometry)
+            {
+                ret.MySqlDbType = MySqlDbType.Text;
+                if (value != null) ret.Value = (value as MygisGeometry).AsText();
+            }
+            else
+                ret.MySqlDbType = dbtype;
             _params?.Add(ret);
             return ret;
         }
@@ -75,6 +88,8 @@ namespace FreeSql.MySql
         public override string StringConcat(string[] objs, Type[] types) => $"concat({string.Join(", ", objs)})";
         public override string Mod(string left, string right, Type leftType, Type rightType) => $"{left} % {right}";
         public override string Div(string left, string right, Type leftType, Type rightType) => $"{left} div {right}";
+        public override string Now => "now()";
+        public override string NowUtc => "utc_timestamp()";
 
         public override string QuoteWriteParamter(Type type, string paramterName)
         {

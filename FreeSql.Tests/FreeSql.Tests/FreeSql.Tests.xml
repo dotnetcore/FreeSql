@@ -204,6 +204,14 @@
             回复的文本内容
             </summary>
         </member>
+        <member name="M:FreeSql.Tests.DbFunc.SetDbParameter(System.String,System.Int32)">
+            <summary>
+            设置表达式中的 string 参数化长度，优化执行计划
+            </summary>
+            <param name="that"></param>
+            <param name="size"></param>
+            <returns></returns>
+        </member>
         <member name="T:SaleIDO.Entity.Storeage.AdjustPriceOrder">
             <summary>
             调价单
@@ -379,6 +387,171 @@
         <member name="P:Zeus.SystemUserAuthentication.IsVerified">
             <summary>
             验证标志
+            </summary>
+        </member>
+        <member name="T:kwlib.departments">
+            <summary>
+            部门表  
+            </summary>    
+        </member>
+        <member name="P:kwlib.departments.deptid">
+            <summary>
+            部门ID  
+            </summary>
+        </member>
+        <member name="P:kwlib.departments.supdeptid">
+            <summary>
+            上级部门ID  
+            </summary>
+        </member>
+        <member name="P:kwlib.departments.pDepartments">
+            <summary>
+            上级部门对象
+            </summary>
+        </member>
+        <member name="P:kwlib.departments.managerid">
+            <summary>
+            部门主管ID  
+            </summary>
+        </member>
+        <member name="P:kwlib.departments.manager">
+            <summary>
+            部门主管对象
+            </summary>
+        </member>
+        <member name="P:kwlib.departments.deptcode">
+            <summary>
+            部门代码
+            </summary>
+        </member>
+        <member name="P:kwlib.departments.deptname">
+            <summary>
+            部门名称  
+            </summary>
+        </member>
+        <member name="T:kwlib.userinfo">
+            <summary>
+            员工表 
+            </summary>    
+        </member>
+        <member name="P:kwlib.userinfo.userid">
+            <summary>
+            员工ID  
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.badgenumber">
+            <summary>
+            考勤号码  
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.ssn">
+            <summary>
+            编号
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.IDCardNo">
+            <summary>
+            身份证  
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.name">
+            <summary>
+            姓名  
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.title">
+            <summary>
+            职务
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.birthday">
+            <summary>
+            生日
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.hiredday">
+            <summary>
+            入职时间  
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.hetongdate">
+            <summary>
+            合同日期  
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.street">
+            <summary>
+            家庭地址
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.zip">
+            <summary>
+            邮编  
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.ophone">
+            <summary>
+            办公电话  
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.pager">
+            <summary>
+            行动电话
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.fphone">
+            <summary>
+            家庭电话  
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.CardNo">
+            <summary>
+            卡号  
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.email">
+            <summary>
+            邮件地址  
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.idcardvalidtime">
+            <summary>
+            身份证有效期
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.homeaddress">
+            <summary>
+            籍贯  
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.minzu">
+            <summary>
+            民族
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.leavedate">
+            <summary>
+            离职日期  
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.loginpass">
+            <summary>
+            登录密码  
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.picurl">
+            <summary>
+            相片地址  
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.managerid">
+            <summary>
+            上级主管ID  
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.pManager">
+            <summary>
+            上级主管对象
             </summary>
         </member>
     </members>

@@ -3,6 +3,8 @@ using FreeSql.Internal.CommonProvider;
 using FreeSql.SqlServer.Curd;
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.Common;
 using System.Threading;
 
 namespace FreeSql.SqlServer
@@ -27,12 +29,12 @@ namespace FreeSql.SqlServer
         public IAop Aop { get; }
         public ICodeFirst CodeFirst { get; }
         public IDbFirst DbFirst { get; }
-        public SqlServerProvider(string masterConnectionString, string[] slaveConnectionString)
+        public SqlServerProvider(string masterConnectionString, string[] slaveConnectionString, Func<DbConnection> connectionFactory = null)
         {
             this.InternalCommonUtils = new SqlServerUtils(this);
             this.InternalCommonExpression = new SqlServerExpression(this.InternalCommonUtils);
 
-            this.Ado = new SqlServerAdo(this.InternalCommonUtils, masterConnectionString, slaveConnectionString);
+            this.Ado = new SqlServerAdo(this.InternalCommonUtils, masterConnectionString, slaveConnectionString, connectionFactory);
             this.Aop = new AopProvider();
 
             this.DbFirst = new SqlServerDbFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
@@ -55,7 +57,8 @@ namespace FreeSql.SqlServer
         internal CommonExpression InternalCommonExpression { get; }
 
         public void Transaction(Action handler) => Ado.Transaction(handler);
-        public void Transaction(Action handler, TimeSpan timeout) => Ado.Transaction(handler, timeout);
+        public void Transaction(TimeSpan timeout, Action handler) => Ado.Transaction(timeout, handler);
+        public void Transaction(IsolationLevel isolationLevel, TimeSpan timeout, Action handler) => Ado.Transaction(isolationLevel, timeout, handler);
 
         public GlobalFilter GlobalFilter { get; } = new GlobalFilter();
 
