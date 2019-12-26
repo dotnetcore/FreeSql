@@ -14,6 +14,7 @@ using System.Threading;
 using System.Data.SqlClient;
 using kwlib;
 using System.Diagnostics;
+using System.IO;
 
 namespace FreeSql.Tests
 {
@@ -43,6 +44,21 @@ namespace FreeSql.Tests
             //    fsql.Select<ut3_t1>().ToList();
             //}
 
+            //var testByte = new TestByte { pic = File.ReadAllBytes(@"C:\Users\28810\Desktop\github\FreeSql\functions06.png") };
+            //var sql = g.sqlserver.Insert(testByte).NoneParameter().ToSql();
+            //g.sqlserver.Insert(testByte).ExecuteAffrows();
+
+            //var getTestByte = g.sqlserver.Select<TestByte>(testByte).First();
+
+            //File.WriteAllBytes(@"C:\Users\28810\Desktop\github\FreeSql\functions06_write.png", getTestByte.pic);
+        }
+
+        class TestByte
+        {
+            public Guid id { get; set; }
+
+            [Column(DbType = "varbinary(max)")]
+            public byte[] pic { get; set; }
         }
 
         class ut3_t1
