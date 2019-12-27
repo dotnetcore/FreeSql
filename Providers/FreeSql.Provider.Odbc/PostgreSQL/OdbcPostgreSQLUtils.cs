@@ -129,10 +129,7 @@ namespace FreeSql.Odbc.PostgreSQL
                 var bytes = value as byte[];
                 var sb = new StringBuilder().Append("'\\x");
                 foreach (var vc in bytes)
-                {
-                    if (vc < 10) sb.Append("0");
-                    sb.Append(vc.ToString("X"));
-                }
+                    sb.Append(vc.ToString("X").PadLeft(2, '0'));
                 return sb.Append("'").ToString(); //val = Encoding.UTF8.GetString(val as byte[]);
             }
             else if (type2 == typeof(TimeSpan) || type2 == typeof(TimeSpan?))

@@ -97,10 +97,7 @@ namespace FreeSql.Odbc.MySql
                 var bytes = value as byte[];
                 var sb = new StringBuilder().Append("0x");
                 foreach (var vc in bytes)
-                {
-                    if (vc < 10) sb.Append("0");
-                    sb.Append(vc.ToString("X"));
-                }
+                    sb.Append(vc.ToString("X").PadLeft(2, '0'));
                 return sb.ToString(); //val = Encoding.UTF8.GetString(val as byte[]);
             }
             else if (type == typeof(TimeSpan) || type == typeof(TimeSpan?))

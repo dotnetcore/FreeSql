@@ -44,13 +44,13 @@ namespace FreeSql.Tests
             //    fsql.Select<ut3_t1>().ToList();
             //}
 
-            //var testByte = new TestByte { pic = File.ReadAllBytes(@"C:\Users\28810\Desktop\github\FreeSql\functions06.png") };
+            //var testByte = new TestByte { pic = File.ReadAllBytes(@"C:\Users\28810\Desktop\71500003-0ad69400-289e-11ea-85cb-36a54f52ebc0.png") };
             //var sql = g.sqlserver.Insert(testByte).NoneParameter().ToSql();
-            //g.sqlserver.Insert(testByte).ExecuteAffrows();
+            //g.sqlserver.Insert(testByte).NoneParameter().ExecuteAffrows();
 
             //var getTestByte = g.sqlserver.Select<TestByte>(testByte).First();
 
-            //File.WriteAllBytes(@"C:\Users\28810\Desktop\github\FreeSql\functions06_write.png", getTestByte.pic);
+            //File.WriteAllBytes(@"C:\Users\28810\Desktop\71500003-0ad69400-289e-11ea-85cb-36a54f52ebc0_write.png", getTestByte.pic);
         }
 
         class TestByte
