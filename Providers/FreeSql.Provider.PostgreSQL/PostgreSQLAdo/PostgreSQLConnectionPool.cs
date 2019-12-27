@@ -77,7 +77,7 @@ namespace FreeSql.PostgreSQL
                 var pattern = @"Max(imum)?\s*pool\s*size\s*=\s*(\d+)";
                 Match m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase);
                 if (m.Success == false || int.TryParse(m.Groups[2].Value, out var poolsize) == false || poolsize <= 0) poolsize = 50;
-                var connStrIncr = dicConnStrIncr.AddOrUpdate(_connectionString, 1, (oldkey, oldval) => oldval + 1);
+                var connStrIncr = dicConnStrIncr.AddOrUpdate(_connectionString, 1, (oldkey, oldval) => Math.Min(5, oldval + 1));
                 PoolSize = poolsize + connStrIncr;
                 _connectionString = m.Success ?
                     Regex.Replace(_connectionString, pattern, $"Maximum pool size={PoolSize}", RegexOptions.IgnoreCase) :
