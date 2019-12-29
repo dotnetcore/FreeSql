@@ -137,7 +137,7 @@ namespace FreeSql.DataAnnotations
         }
         public ColumnFluent Property(string proto)
         {
-            if (_properties.TryGetValue(proto, out var tryProto)) throw new KeyNotFoundException($"找不到属性名 {proto}");
+            if (_properties.TryGetValue(proto, out var tryProto) == false) throw new KeyNotFoundException($"找不到属性名 {proto}");
             var col = _table._columns.GetOrAdd(tryProto.Name, name => new ColumnAttribute { Name = proto });
             return new ColumnFluent(col);
         }
