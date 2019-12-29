@@ -31,7 +31,6 @@ FreeSql 是功能强大的对象关系映射技术(O/RM)，支持 .NETCore 2.1+ 
 | FreeSql.Repository | [![nuget](https://img.shields.io/nuget/v/FreeSql.Repository.svg?style=flat-square)](https://www.nuget.org/packages/FreeSql.Repository) | [![stats](https://img.shields.io/nuget/dt/FreeSql.Repository.svg?style=flat-square)](https://www.nuget.org/stats/packages/FreeSql.Repository?groupby=Version) |
 | FreeSql.DbContext | [![nuget](https://img.shields.io/nuget/v/FreeSql.DbContext.svg?style=flat-square)](https://www.nuget.org/packages/FreeSql.DbContext) | [![stats](https://img.shields.io/nuget/dt/FreeSql.DbContext.svg?style=flat-square)](https://www.nuget.org/stats/packages/FreeSql.DbContext?groupby=Version) |
 | [FreeSql.AdminLTE](https://github.com/2881099/FreeSql.AdminLTE) | [![nuget](https://img.shields.io/nuget/v/FreeSql.AdminLTE.svg?style=flat-square)](https://www.nuget.org/packages/FreeSql.AdminLTE) | [![stats](https://img.shields.io/nuget/dt/FreeSql.AdminLTE.svg?style=flat-square)](https://www.nuget.org/stats/packages/FreeSql.AdminLTE?groupby=Version) |
-| [FreeSql.Connection.Extensions](https://github.com/2881099/FreeSql.Connection.Extensions) | [![nuget](https://img.shields.io/nuget/v/FreeSql.Connection.Extensions.svg?style=flat-square)](https://www.nuget.org/packages/FreeSql.Connection.Extensions) | [![stats](https://img.shields.io/nuget/dt/FreeSql.Connection.Extensions.svg?style=flat-square)](https://www.nuget.org/stats/packages/FreeSql.Connection.Extensions?groupby=Version) |
 
 > FreeSql 提供了五种使用习惯，请根据实际情况选择团队合适的一种：
 
