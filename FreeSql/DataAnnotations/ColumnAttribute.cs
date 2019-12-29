@@ -97,5 +97,11 @@ namespace FreeSql.DataAnnotations
         /// Sqlite -> text<para></para>
         /// </summary>
         public int StringLength { get => _StringLength ?? 0; set => _StringLength = value; }
+
+        /// <summary>
+        /// 执行 Insert 方法时使用此值<para></para>
+        /// 注意：如果是 getdate() 这种请可考虑使用 ServerTime，因为它对数据库间作了适配
+        /// </summary>
+        public string InsertValueSql { get; set; }
     }
 }

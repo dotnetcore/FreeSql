@@ -58,7 +58,7 @@ namespace FreeSql.Internal
             if (entity == null) return _orm.CodeFirst;
             var type = typeof(T);
             var table = dicConfigEntity.GetOrAdd(type, new TableAttribute());
-            var fluent = new TableFluent<T>(table);
+            var fluent = new TableFluent<T>(CodeFirst, table);
             entity.Invoke(fluent);
             Utils.RemoveTableByEntity(type, this); //remove cache
             return _orm.CodeFirst;
@@ -67,7 +67,7 @@ namespace FreeSql.Internal
         {
             if (entity == null) return _orm.CodeFirst;
             var table = dicConfigEntity.GetOrAdd(type, new TableAttribute());
-            var fluent = new TableFluent(type, table);
+            var fluent = new TableFluent(CodeFirst, type, table);
             entity.Invoke(fluent);
             Utils.RemoveTableByEntity(type, this); //remove cache
             return _orm.CodeFirst;
@@ -132,6 +132,7 @@ namespace FreeSql.Internal
                 if (trycol._CanUpdate != null) attr._CanUpdate = trycol.CanUpdate;
                 if (trycol.ServerTime != DateTimeKind.Unspecified) attr.ServerTime = trycol.ServerTime;
                 if (trycol._StringLength != null) attr.StringLength = trycol.StringLength;
+                if (!string.IsNullOrEmpty(trycol.InsertValueSql)) attr.InsertValueSql = trycol.InsertValueSql;
             }
             var attrs = proto.GetCustomAttributes(typeof(ColumnAttribute), false);
             foreach (var tryattrobj in attrs)
@@ -152,6 +153,7 @@ namespace FreeSql.Internal
                 if (tryattr._CanUpdate != null) attr._CanUpdate = tryattr.CanUpdate;
                 if (tryattr.ServerTime != DateTimeKind.Unspecified) attr.ServerTime = tryattr.ServerTime;
                 if (tryattr._StringLength != null) attr.StringLength = tryattr.StringLength;
+                if (!string.IsNullOrEmpty(tryattr.InsertValueSql)) attr.InsertValueSql = tryattr.InsertValueSql;
             }
             ColumnAttribute ret = null;
             if (!string.IsNullOrEmpty(attr.Name)) ret = attr;
@@ -168,6 +170,7 @@ namespace FreeSql.Internal
             if (attr._CanUpdate != null) ret = attr;
             if (attr.ServerTime != DateTimeKind.Unspecified) ret = attr;
             if (attr._StringLength != null) ret = attr;
+            if (!string.IsNullOrEmpty(attr.InsertValueSql)) ret = attr;
             if (ret != null && ret.MapType == null) ret.MapType = proto.PropertyType;
             return ret;
         }

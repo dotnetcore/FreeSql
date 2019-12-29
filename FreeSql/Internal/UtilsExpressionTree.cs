@@ -191,6 +191,11 @@ namespace FreeSql.Internal
                     col.DbDefaultValue = colattr.ServerTime == DateTimeKind.Local ? common.Now : common.NowUtc;
                     col.DbInsertValue = colattr.ServerTime == DateTimeKind.Local ? common.Now : common.NowUtc;
                 }
+                if (string.IsNullOrEmpty(colattr.InsertValueSql) == false)
+                {
+                    col.DbDefaultValue = colattr.InsertValueSql;
+                    col.DbInsertValue = colattr.InsertValueSql;
+                }
                 if (colattr.MapType == typeof(string) && colattr.StringLength != 0)
                 {
                     int strlen = colattr.StringLength;

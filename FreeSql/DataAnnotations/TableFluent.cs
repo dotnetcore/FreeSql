@@ -9,16 +9,21 @@ namespace FreeSql.DataAnnotations
     public class TableFluent
     {
 
-        public TableFluent(Type entityType, TableAttribute table)
+        public TableFluent(ICodeFirst codeFirst, Type entityType, TableAttribute table)
         {
+            _codeFirst = codeFirst;
             _entityType = entityType;
             _properties = _entityType.GetPropertiesDictIgnoreCase();
             _table = table;
         }
 
+        ICodeFirst _codeFirst;
         Type _entityType;
         Dictionary<string, PropertyInfo> _properties;
         TableAttribute _table;
+
+        public void ConfigEntity<T2>(Action<TableFluent<T2>> fluent2) => _codeFirst.ConfigEntity<T2>(fluent2);
+
         /// <summary>
         /// 数据库表名
         /// </summary>
@@ -53,6 +58,21 @@ namespace FreeSql.DataAnnotations
         }
 
         /// <summary>
+        /// 导航关系Fluent，与 NavigateAttribute 对应
+        /// </summary>
+        /// <param name="proto"></param>
+        /// <param name="bind"></param>
+        /// <param name="manyToMany">多对多关系的中间实体类型</param>
+        /// <returns></returns>
+        public TableFluent Navigate(string proto, string bind, Type manyToMany = null)
+        {
+            if (_properties.TryGetValue(proto, out var tryProto) == false) throw new KeyNotFoundException($"找不到属性名 {proto}");
+            var nav = new NavigateAttribute { Bind = bind, ManyToMany = manyToMany };
+            _table._navigates.AddOrUpdate(tryProto.Name, nav, (name, old) => nav);
+            return this;
+        }
+
+        /// <summary>
         /// 设置实体的索引
         /// </summary>
         /// <param name="name">索引名</param>
@@ -70,12 +90,19 @@ namespace FreeSql.DataAnnotations
     public class TableFluent<T>
     {
 
-        public TableFluent(TableAttribute table)
+        public TableFluent(ICodeFirst codeFirst, TableAttribute table)
         {
+            _codeFirst = codeFirst;
+            _properties = typeof(T).GetPropertiesDictIgnoreCase();
             _table = table;
         }
 
+        ICodeFirst _codeFirst;
+        Dictionary<string, PropertyInfo> _properties;
         TableAttribute _table;
+
+        public void ConfigEntity<T2>(Action<TableFluent<T2>> fluent2) => _codeFirst.ConfigEntity<T2>(fluent2);
+
         /// <summary>
         /// 数据库表名
         /// </summary>
@@ -106,7 +133,12 @@ namespace FreeSql.DataAnnotations
         {
             var proto = (column.Body as MemberExpression)?.Member;
             if (proto == null) throw new FormatException($"错误的表达式格式 {column}");
-            var col = _table._columns.GetOrAdd(proto.Name, name => new ColumnAttribute { Name = proto.Name });
+            return Property(proto.Name);
+        }
+        public ColumnFluent Property(string proto)
+        {
+            if (_properties.TryGetValue(proto, out var tryProto)) throw new KeyNotFoundException($"找不到属性名 {proto}");
+            var col = _table._columns.GetOrAdd(tryProto.Name, name => new ColumnAttribute { Name = proto });
             return new ColumnFluent(col);
         }
 
@@ -122,8 +154,13 @@ namespace FreeSql.DataAnnotations
         {
             var member = (proto.Body as MemberExpression)?.Member;
             if (member == null) throw new FormatException($"错误的表达式格式 {proto}");
+            return Navigate(member.Name, bind, manyToMany);
+        }
+        public TableFluent<T> Navigate(string proto, string bind, Type manyToMany = null)
+        {
+            if (_properties.TryGetValue(proto, out var tryProto) == false) throw new KeyNotFoundException($"找不到属性名 {proto}");
             var nav = new NavigateAttribute { Bind = bind, ManyToMany = manyToMany };
-            _table._navigates.AddOrUpdate(member.Name, nav, (name, old) => nav);
+            _table._navigates.AddOrUpdate(tryProto.Name, nav, (name, old) => nav);
             return this;
         }
 
@@ -138,6 +175,11 @@ namespace FreeSql.DataAnnotations
         {
             var idx = new IndexAttribute(name, fields, isUnique);
             _table._indexs.AddOrUpdate(name, idx, (_, __) => idx);
+            return this;
+        }
+        public TableFluent<T> IndexRemove(string name)
+        {
+            _table._indexs.TryRemove(name, out var oldidx);
             return this;
         }
     }
