@@ -1,4 +1,6 @@
-这个 FreeSql 扩展包，实现与 EfCore FluentApi 95% 相似的使用习惯；
+FreeSql 原本的 FluentApi 方法名与特性名保持一致，所以使用理解成本较低（只需要了解一份）；
+
+这个扩展包目的，为了照顾熟悉 EfCore FluentApi 的开发者，使用习惯 95% 相似；
 
 ## 以假乱真
 
