@@ -21,6 +21,7 @@ namespace FreeSql.PostgreSQL.Curd
             (_pgsqlUpdatePriv = new PostgreSQLUpdate<T1>(_pgsqlInsert.InternalOrm, _pgsqlInsert.InternalCommonUtils, _pgsqlInsert.InternalCommonExpression, null) { InternalTableAlias = "EXCLUDED" }
                 .NoneParameter().SetSource(_pgsqlInsert.InternalSource) as PostgreSQLUpdate<T1>);
         ColumnInfo[] _columns;
+        bool _doNothing;
 
         public OnConflictDoUpdate(IInsert<T1> insert, Expression<Func<T1, object>> columns = null)
         {
@@ -86,6 +87,12 @@ namespace FreeSql.PostgreSQL.Curd
             return this;
         }
 
+        public OnConflictDoUpdate<T1> DoNothing()
+        {
+            _doNothing = true;
+            return this;
+        }
+
         public string ToSql()
         {
             var sb = new StringBuilder();
@@ -95,41 +102,48 @@ namespace FreeSql.PostgreSQL.Curd
                 if (a > 0) sb.Append(", ");
                 sb.Append(_pgsqlInsert.InternalCommonUtils.QuoteSqlName(_columns[a].Attribute.Name));
             }
-            sb.Append(") DO UPDATE SET\r\n");
-
-            var sbSetEmpty = _pgsqlUpdate.InternalSbSet.Length == 0;
-            var sbSetIncrEmpty = _pgsqlUpdate.InternalSbSetIncr.Length == 0;
-            if (sbSetEmpty == false || sbSetIncrEmpty == false)
+            if (_doNothing)
             {
-                if (sbSetEmpty == false) sb.Append(_pgsqlUpdate.InternalSbSet.ToString().Substring(2));
-                if (sbSetIncrEmpty == false) sb.Append(sbSetEmpty ? _pgsqlUpdate.InternalSbSetIncr.ToString().Substring(2) : _pgsqlUpdate.InternalSbSetIncr.ToString());
+                sb.Append(") DO NOTHING");
             }
             else
             {
-                var colidx = 0;
-                foreach (var col in _pgsqlInsert.InternalTable.Columns.Values)
+                sb.Append(") DO UPDATE SET\r\n");
+
+                var sbSetEmpty = _pgsqlUpdate.InternalSbSet.Length == 0;
+                var sbSetIncrEmpty = _pgsqlUpdate.InternalSbSetIncr.Length == 0;
+                if (sbSetEmpty == false || sbSetIncrEmpty == false)
                 {
-                    if (col.Attribute.IsPrimary || _pgsqlUpdate.InternalIgnore.ContainsKey(col.Attribute.Name)) continue;
+                    if (sbSetEmpty == false) sb.Append(_pgsqlUpdate.InternalSbSet.ToString().Substring(2));
+                    if (sbSetIncrEmpty == false) sb.Append(sbSetEmpty ? _pgsqlUpdate.InternalSbSetIncr.ToString().Substring(2) : _pgsqlUpdate.InternalSbSetIncr.ToString());
+                }
+                else
+                {
+                    var colidx = 0;
+                    foreach (var col in _pgsqlInsert.InternalTable.Columns.Values)
+                    {
+                        if (col.Attribute.IsPrimary || _pgsqlUpdate.InternalIgnore.ContainsKey(col.Attribute.Name)) continue;
 
-                    if (colidx > 0) sb.Append(", \r\n");
+                        if (colidx > 0) sb.Append(", \r\n");
 
-                    if (col.Attribute.IsVersion == true)
-                    {
-                        var field = _pgsqlInsert.InternalCommonUtils.QuoteSqlName(col.Attribute.Name);
-                        sb.Append(field).Append(" = ").Append(_pgsqlInsert.InternalCommonUtils.QuoteSqlName(_pgsqlInsert.InternalTable.DbName)).Append(".").Append(field).Append(" + 1");
+                        if (col.Attribute.IsVersion == true)
+                        {
+                            var field = _pgsqlInsert.InternalCommonUtils.QuoteSqlName(col.Attribute.Name);
+                            sb.Append(field).Append(" = ").Append(_pgsqlInsert.InternalCommonUtils.QuoteSqlName(_pgsqlInsert.InternalTable.DbName)).Append(".").Append(field).Append(" + 1");
+                        }
+                        else if (_pgsqlInsert.InternalIgnore.ContainsKey(col.Attribute.Name))
+                        {
+                            var caseWhen = _pgsqlUpdate.InternalWhereCaseSource(col.CsName, sqlval => sqlval).Trim();
+                            sb.Append(caseWhen);
+                            if (caseWhen.EndsWith(" END")) _pgsqlUpdate.InternalToSqlCaseWhenEnd(sb, col);
+                        }
+                        else
+                        {
+                            var field = _pgsqlInsert.InternalCommonUtils.QuoteSqlName(col.Attribute.Name);
+                            sb.Append(field).Append(" = EXCLUDED.").Append(field);
+                        }
+                        ++colidx;
                     }
-                    else if (_pgsqlInsert.InternalIgnore.ContainsKey(col.Attribute.Name))
-                    {
-                        var caseWhen = _pgsqlUpdate.InternalWhereCaseSource(col.CsName, sqlval => sqlval).Trim();
-                        sb.Append(caseWhen);
-                        if (caseWhen.EndsWith(" END")) _pgsqlUpdate.InternalToSqlCaseWhenEnd(sb, col);
-                    }
-                    else
-                    {
-                        var field = _pgsqlInsert.InternalCommonUtils.QuoteSqlName(col.Attribute.Name);
-                        sb.Append(field).Append(" = EXCLUDED.").Append(field);
-                    }
-                    ++colidx;
                 }
             }
 
