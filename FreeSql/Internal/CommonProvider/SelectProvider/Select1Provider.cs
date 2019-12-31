@@ -329,6 +329,16 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
 
+        public ISelect<T1> WithSql(string sql)
+        {
+            this.AsTable((type, old) =>
+            {
+                if (type == _tables.First().Table?.Type) return $"( {sql} )";
+                return old;
+            });
+            return this;
+        }
+
         public bool Any(Expression<Func<T1, bool>> exp) => this.Where(exp).Any();
 
         public TReturn ToOne<TReturn>(Expression<Func<T1, TReturn>> select) => this.Limit(1).ToList(select).FirstOrDefault();

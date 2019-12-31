@@ -369,5 +369,13 @@ namespace FreeSql
         /// <param name="then">即能 ThenInclude，还可以二次过滤（这个 EFCore 做不到？）</param>
         /// <returns></returns>
         ISelect<T1> IncludeMany<TNavigate>(Expression<Func<T1, IEnumerable<TNavigate>>> navigateSelector, Action<ISelect<TNavigate>> then = null) where TNavigate : class;
+
+        /// <summary>
+        /// 实现 select .. from ( select ... from t ) a 这样的功能<para></para>
+        /// 使用 AsTable 方法也可以达到效果
+        /// </summary>
+        /// <param name="sql">SQL语句</param>
+        /// <returns></returns>
+        ISelect<T1> WithSql(string sql);
     }
 }
