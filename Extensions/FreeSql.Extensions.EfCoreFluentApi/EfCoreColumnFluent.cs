@@ -21,7 +21,7 @@ namespace FreeSql.Extensions.EfCoreFluentApi
             _cf.Name(name);
             return this;
         }
-        public EfCoreColumnFluent HashColumnType(string dbtype)
+        public EfCoreColumnFluent HasColumnType(string dbtype)
         {
             _cf.DbType(dbtype);
             return this;

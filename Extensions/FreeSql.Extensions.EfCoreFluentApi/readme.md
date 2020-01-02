@@ -12,7 +12,7 @@ static void Test()
     {
         eb.ToTable("tb_song");
         eb.Ignore(a => a.Field1);
-        eb.Property(a => a.Title).HashColumnType("varchar(50)").IsRequired();
+        eb.Property(a => a.Title).HasColumnType("varchar(50)").IsRequired();
         eb.Property(a => a.Url).HasMaxLength(100);
 
         eb.Property(a => a.RowVersion).IsRowVersion();
