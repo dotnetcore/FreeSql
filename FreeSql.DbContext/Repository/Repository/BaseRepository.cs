@@ -63,7 +63,16 @@ namespace FreeSql
         public DbContextOptions DbContextOptions { get => _db.Options; set => _db.Options = value; }
 
         public IFreeSql Orm { get; private set; }
-        public IUnitOfWork UnitOfWork { get; set; }
+        IUnitOfWork _unitOfWork;
+        public IUnitOfWork UnitOfWork
+        {
+            set
+            {
+                _unitOfWork = value;
+                if (_dbsetPriv != null) _dbsetPriv._uow = _unitOfWork; //防止 dbset 对象已经存在，再次设置 UnitOfWork 无法生效，所以作此判断重新设置
+            }
+            get => _unitOfWork;
+        }
         public IUpdate<TEntity> UpdateDiy => _dbset.OrmUpdateInternal(null);
 
         public ISelect<TEntity> Select => _dbset.OrmSelectInternal(null);
