@@ -2,6 +2,8 @@ FreeSql 原本的 FluentApi 方法名与特性名保持一致，所以使用理�
 
 这个扩展包目的，为了照顾熟悉 EfCore FluentApi 的开发者，使用习惯 95% 相似；
 
+> dotnet add package FreeSql.Extensions.EfCoreFluentApi
+
 ## 以假乱真
 
 ```csharp
