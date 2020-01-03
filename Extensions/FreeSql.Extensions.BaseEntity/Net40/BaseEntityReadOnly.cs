@@ -1,4 +1,5 @@
 ﻿#if netcore
+#else
 
 using FreeSql.DataAnnotations;
 using System;
@@ -41,67 +42,8 @@ namespace FreeSql
         public static void Initialization(IFreeSql fsql)
         {
             _ormPriv = fsql;
-            _ormPriv.Aop.CurdBefore += (s, e) => Trace.WriteLine($"\r\n线程{Thread.CurrentThread.ManagedThreadId}: {e.Sql}\r\n");
+            _ormPriv.Aop.CurdBefore += (s, e) => Trace.WriteLine(e.Sql + "\r\n");
         }
-
-        /// <summary>
-        /// 创建时间
-        /// </summary>
-        [Column(Position = -4)]
-        public DateTime CreateTime { get; set; } = DateTime.Now;
-        /// <summary>
-        /// 更新时间
-        /// </summary>
-        [Column(Position = -3)]
-        public DateTime UpdateTime { get; set; }
-        /// <summary>
-        /// 逻辑删除
-        /// </summary>
-        [Column(Position = -2)]
-        public bool IsDeleted { get; set; }
-        /// <summary>
-        /// 排序
-        /// </summary>
-        [Column(Position = -1)]
-        public int Sort { get; set; }
-
-        /// <summary>
-        /// 开启工作单元事务
-        /// </summary>
-        /// <returns></returns>
-        public static IUnitOfWork Begin() => Begin(null);
-        /// <summary>
-        /// 开启工作单元事务
-        /// </summary>
-        /// <param name="level">事务等级</param>
-        /// <returns></returns>
-        public static IUnitOfWork Begin(IsolationLevel? level)
-        {
-            var uow = Orm.CreateUnitOfWork();
-            uow.IsolationLevel = level;
-            return uow;
-        }
-
-        static readonly AsyncLocal<string> _AsyncTenantId = new AsyncLocal<string>();
-        /// <summary>
-        /// 获取或设置当前租户id
-        /// </summary>
-        public static string CurrentTenantId
-        {
-            get => _AsyncTenantId.Value;
-            set => _AsyncTenantId.Value = value;
-        }
-    }
-
-    /// <summary>
-    /// 租户
-    /// </summary>
-    public interface ITenant
-    {
-        /// <summary>
-        /// 租户id
-        /// </summary>
-        string TenantId { get; set; }
     }
 
     public abstract class BaseEntityReadOnly<TEntity> : BaseEntity where TEntity : class
@@ -114,12 +56,8 @@ namespace FreeSql
         {
             get
             {
-                var select = Orm.Select<TEntity>()
-                    .TrackToList(TrackToList) //自动为每个元素 Attach
-                    .WithTransaction(UnitOfWork.Current.Value?.GetOrBeginTransaction(false));
-                if (string.IsNullOrEmpty(CurrentTenantId) == false)
-                    select.WhereCascade(a => (a as ITenant).TenantId == CurrentTenantId);
-                return select.WhereCascade(a => (a as BaseEntity).IsDeleted == false);
+                var select = Orm.Select<TEntity>().TrackToList(TrackToList); //自动为每个元素 Attach;
+                return select;
             }
         }
 
@@ -156,19 +94,6 @@ namespace FreeSql
         }
 
         /// <summary>
-        /// 设置当前租户id
-        /// </summary>
-        protected void SetTenantId()
-        {
-            if (string.IsNullOrEmpty(CurrentTenantId) == false)
-            {
-                var ten = this as ITenant;
-                if (ten != null)
-                    ten.TenantId = CurrentTenantId;
-            }
-        }
-
-        /// <summary>
         /// 查询条件，Where(a => a.Id > 10)，支持导航对象查询，Where(a => a.Author.Email == "2881099@qq.com")
         /// </summary>
         /// <param name="exp">lambda表达式</param>
@@ -196,7 +121,6 @@ namespace FreeSql
                 this.Repository = Orm.GetRepository<TEntity>();
 
             var item = this as TEntity;
-            this.SetTenantId();
             this.Repository.Attach(item);
             return item;
         }

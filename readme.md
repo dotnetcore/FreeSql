@@ -40,7 +40,7 @@ FreeSql 是功能强大的对象关系映射技术(O/RM)，支持 .NETCore 2.1+ 
 - 要么[FreeSql.Connection.Extensions](https://github.com/2881099/FreeSql.Connection.Extensions)，有点像Dapper的使用习惯；
 - 要么[FreeSql.BaseEntity](https://github.com/2881099/FreeSql/tree/master/Examples/base_entity)，我求简单现在使用的这个；
 
-> 即将推出 [FluentApi 实体模型与 EfCore 90% 相似的扩展包](https://github.com/2881099/FreeSql/tree/master/Extensions/FreeSql.Extensions.EfCoreFluentApi)；
+> [FluentApi 与 EfCore 90% 相似的扩展包](https://github.com/2881099/FreeSql/tree/master/Extensions/FreeSql.Extensions.EfCoreFluentApi)；
 
 > 学习项目
 

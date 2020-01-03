@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
-    <Version>1.0.0</Version>
+    <TargetFrameworks>netcoreapp31;netcoreapp21;net4.0;</TargetFrameworks>
+    <Version>1.0.1</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>YeXiangQin</Authors>
     <Description>BaseEntity 是一种极简单的 CodeFirst 开发方式，特别对单表或多表CRUD，利用继承节省了每个实体类的重复属性（创建时间、ID等字段），软件删除等功能，进行 crud 操作时不必时常考虑仓储的使用.</Description>
@@ -31,4 +31,12 @@
     <ProjectReference Include="..\..\FreeSql.DbContext\FreeSql.DbContext.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Net40\" />
+  </ItemGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp31' OR '$(TargetFramework)' == 'netcoreapp21'">
+    <DefineConstants>netcore</DefineConstants>
+  </PropertyGroup>
+  
 </Project>

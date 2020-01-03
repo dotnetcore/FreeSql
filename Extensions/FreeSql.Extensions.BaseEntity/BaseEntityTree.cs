@@ -1,4 +1,6 @@
-﻿using FreeSql;
+﻿#if netcore
+
+using FreeSql;
 using FreeSql.DataAnnotations;
 using System;
 using System.Collections.Generic;
@@ -162,3 +164,5 @@ namespace FreeSql
         }
     }
 }
+
+#endif
