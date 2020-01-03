@@ -1331,8 +1331,12 @@ namespace FreeSql.Internal
                             var expandodic = new Dictionary<string, object>();// (IDictionary<string, object>)expando;
                             var fc = row2.FieldCount;
                             for (var a = 0; a < fc; a++)
-                                //expando[row2.GetName(a)] = row2.GetValue(a);
-                                expandodic.Add(row2.GetName(a), row2.GetValue(a));
+                            {
+                                var name = row2.GetName(a);
+                                //expando[name] = row2.GetValue(a);
+                                if (expandodic.ContainsKey(name)) continue;
+                                expandodic.Add(name, row2.GetValue(a));
+                            }
                             //expando = expandodic;
                             return new RowInfo(expandodic, fc);
                         };

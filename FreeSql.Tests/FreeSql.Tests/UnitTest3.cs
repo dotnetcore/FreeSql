@@ -84,6 +84,17 @@ namespace FreeSql.Tests
 
             fsql = ib.Get("db3");
             fsql.Select<ut3_t1>().Limit(10).ToList();
+
+            fsql = g.sqlserver;
+            fsql.Insert<OrderMain>(new OrderMain { OrderNo = "1001", OrderTime = new DateTime(2019, 12, 01) }).ExecuteAffrows();
+            fsql.Insert<OrderDetail>(new OrderDetail { OrderNo = "1001", ItemNo = "I001", Qty = 1 }).ExecuteAffrows();
+            fsql.Insert<OrderDetail>(new OrderDetail { OrderNo = "1001", ItemNo = "I002", Qty = 1 }).ExecuteAffrows();
+            fsql.Insert<OrderDetail>(new OrderDetail { OrderNo = "1001", ItemNo = "I003", Qty = 1 }).ExecuteAffrows();
+            fsql.Insert<OrderMain>(new OrderMain { OrderNo = "1002", OrderTime = new DateTime(2019, 12, 02) }).ExecuteAffrows();
+            fsql.Insert<OrderDetail>(new OrderDetail { OrderNo = "1002", ItemNo = "I011", Qty = 1 }).ExecuteAffrows();
+            fsql.Insert<OrderDetail>(new OrderDetail { OrderNo = "1002", ItemNo = "I012", Qty = 1 }).ExecuteAffrows();
+            fsql.Insert<OrderDetail>(new OrderDetail { OrderNo = "1002", ItemNo = "I013", Qty = 1 }).ExecuteAffrows();
+            fsql.Ado.Query<object>("select * from orderdetail left join ordermain on orderdetail.orderno=ordermain.orderno where ordermain.orderno='1001'");
         }
 
         class TestByte
@@ -105,6 +116,19 @@ namespace FreeSql.Tests
             [Column(IsIdentity = true)]
             public int id { get; set; }
             public string name { get; set; }
+        }
+
+        public class OrderMain
+        {
+            public string OrderNo { get; set; }
+            public DateTime OrderTime { get; set; }
+            public decimal Amount { get; set; }
+        }
+        public class OrderDetail
+        {
+            public string OrderNo { get; set; }
+            public string ItemNo { get; set; }
+            public decimal Qty { get; set; }
         }
     }
 
