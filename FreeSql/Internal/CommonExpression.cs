@@ -1005,6 +1005,7 @@ namespace FreeSql.Internal
                         if (string.IsNullOrEmpty(other4Exp) == false) return other4Exp;
                     }
                     var expStack = new Stack<Expression>();
+                    var expStackConstOrMemberCount = 1;
                     expStack.Push(exp);
                     MethodCallExpression callExp = null;
                     var exp2 = exp4?.Expression;
@@ -1014,6 +1015,7 @@ namespace FreeSql.Internal
                         {
                             case ExpressionType.Constant:
                                 expStack.Push(exp2);
+                                expStackConstOrMemberCount++;
                                 break;
                             case ExpressionType.Parameter:
                                 expStack.Push(exp2);
@@ -1021,6 +1023,7 @@ namespace FreeSql.Internal
                             case ExpressionType.MemberAccess:
                                 expStack.Push(exp2);
                                 exp2 = (exp2 as MemberExpression).Expression;
+                                expStackConstOrMemberCount++;
                                 if (exp2 == null) break;
                                 continue;
                             case ExpressionType.Call:
@@ -1043,7 +1046,34 @@ namespace FreeSql.Internal
                         }
                         break;
                     }
-                    if (expStack.First().NodeType != ExpressionType.Parameter) return formatSql(Expression.Lambda(exp).Compile().DynamicInvoke(), tsc.mapType, tsc.mapColumnTmp, tsc.dbParams);
+                    if (expStack.First().NodeType != ExpressionType.Parameter)
+                    {
+                        if (expStackConstOrMemberCount == expStack.Count)
+                        {
+                            object firstValue = null;
+                            switch (expStack.First().NodeType)
+                            {
+                                case ExpressionType.Constant:
+                                    var expStackFirst = expStack.Pop() as ConstantExpression;
+                                    firstValue = expStackFirst?.Value;
+                                    break;
+                                case ExpressionType.MemberAccess:
+                                    var expStackFirstMem = expStack.First() as MemberExpression;
+                                    if (expStackFirstMem.Expression?.NodeType == ExpressionType.Constant) firstValue = (expStackFirstMem.Expression as ConstantExpression)?.Value;
+                                    break;
+                            }
+                            while (expStack.Any())
+                            {
+                                var expStackItem = expStack.Pop() as MemberExpression;
+                                if (expStackItem.Member.MemberType == MemberTypes.Property)
+                                    firstValue = ((PropertyInfo)expStackItem.Member).GetValue(firstValue, null);
+                                else if (expStackItem.Member.MemberType == MemberTypes.Field)
+                                    firstValue = ((FieldInfo)expStackItem.Member).GetValue(firstValue);
+                            }
+                            return formatSql(firstValue, tsc.mapType, tsc.mapColumnTmp, tsc.dbParams);
+                        }
+                        return formatSql(Expression.Lambda(exp).Compile().DynamicInvoke(), tsc.mapType, tsc.mapColumnTmp, tsc.dbParams);
+                    }
                     if (callExp != null) return ExpressionLambdaToSql(callExp, tsc);
                     if (tsc.getSelectGroupingMapString != null && expStack.First().Type.FullName.StartsWith("FreeSql.ISelectGroupingAggregate`"))
                     {
