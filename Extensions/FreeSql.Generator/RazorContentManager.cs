@@ -161,7 +161,7 @@ namespace @gen.NameSpace {
 			@:if (_@csname == value) return;
 			@:_@csname = value;
 			foreach (var fkcok2 in findfks) {
-			@:@GetFkObjectName(fkcok2) = null;
+			@:@gen.GetCsName(GetFkObjectName(fkcok2)) = null;
 			}
 		@:} }
 		@:private @gen.GetCsType(col) _@csname;
