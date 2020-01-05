@@ -30,7 +30,7 @@ namespace FreeSql
             return SaveChangesSuccess();
         }
 
-        static Dictionary<Type, Dictionary<string, Func<object, object[], int>>> _dicExecCommandDbContextBetch = new Dictionary<Type, Dictionary<string, Func<object, object[], int>>>();
+        static Dictionary<Type, Dictionary<string, Func<object, object[], int>>> _dicExecCommandDbContextBatch = new Dictionary<Type, Dictionary<string, Func<object, object[], int>>>();
         bool isExecCommanding = false;
         internal void ExecCommand()
         {
@@ -41,9 +41,9 @@ namespace FreeSql
             ExecCommandInfo oldinfo = null;
             var states = new List<object>();
 
-            Func<string, int> dbContextBetch = methodName =>
+            Func<string, int> dbContextBatch = methodName =>
             {
-                if (_dicExecCommandDbContextBetch.TryGetValue(oldinfo.stateType, out var trydic) == false)
+                if (_dicExecCommandDbContextBatch.TryGetValue(oldinfo.stateType, out var trydic) == false)
                     trydic = new Dictionary<string, Func<object, object[], int>>();
                 if (trydic.TryGetValue(methodName, out var tryfunc) == false)
                 {
@@ -67,19 +67,19 @@ namespace FreeSql
             };
             Action funcDelete = () =>
             {
-                _affrows += dbContextBetch("DbContextBetchRemove");
+                _affrows += dbContextBatch("DbContextBatchRemove");
                 states.Clear();
             };
             Action funcInsert = () =>
             {
-                _affrows += dbContextBetch("DbContextBetchAdd");
+                _affrows += dbContextBatch("DbContextBatchAdd");
                 states.Clear();
             };
             Action<bool> funcUpdate = isLiveUpdate =>
             {
                 var affrows = 0;
-                if (isLiveUpdate) affrows = dbContextBetch("DbContextBetchUpdateNow");
-                else affrows = dbContextBetch("DbContextBetchUpdate");
+                if (isLiveUpdate) affrows = dbContextBatch("DbContextBatchUpdateNow");
+                else affrows = dbContextBatch("DbContextBatchUpdate");
                 if (affrows == -999)
                 { //最后一个元素已被删除
                     states.RemoveAt(states.Count - 1);

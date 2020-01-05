@@ -19,7 +19,7 @@ namespace FreeSql
             _db.ExecCommand();
         }
 
-        int DbContextBetchAdd(EntityState[] adds)
+        int DbContextBatchAdd(EntityState[] adds)
         {
             if (adds.Any() == false) return 0;
             var affrows = this.OrmInsert(adds.Select(a => a.Value)).ExecuteAffrows();
@@ -338,9 +338,9 @@ namespace FreeSql
         #endregion
 
         #region Update
-        int DbContextBetchUpdate(EntityState[] ups) => DbContextBetchUpdatePriv(ups, false);
-        int DbContextBetchUpdateNow(EntityState[] ups) => DbContextBetchUpdatePriv(ups, true);
-        int DbContextBetchUpdatePriv(EntityState[] ups, bool isLiveUpdate)
+        int DbContextBatchUpdate(EntityState[] ups) => DbContextBatchUpdatePriv(ups, false);
+        int DbContextBatchUpdateNow(EntityState[] ups) => DbContextBatchUpdatePriv(ups, true);
+        int DbContextBatchUpdatePriv(EntityState[] ups, bool isLiveUpdate)
         {
             if (ups.Any() == false) return 0;
             var uplst1 = ups[ups.Length - 1];
@@ -433,7 +433,7 @@ namespace FreeSql
         #endregion
 
         #region Remove
-        int DbContextBetchRemove(EntityState[] dels)
+        int DbContextBatchRemove(EntityState[] dels)
         {
             if (dels.Any() == false) return 0;
             var affrows = this.OrmDelete(dels.Select(a => a.Value)).ExecuteAffrows();

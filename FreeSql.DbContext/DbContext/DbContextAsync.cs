@@ -17,7 +17,7 @@ namespace FreeSql
             return SaveChangesSuccess();
         }
 
-        static Dictionary<Type, Dictionary<string, Func<object, object[], Task<int>>>> _dicExecCommandDbContextBetchAsync = new Dictionary<Type, Dictionary<string, Func<object, object[], Task<int>>>>();
+        static Dictionary<Type, Dictionary<string, Func<object, object[], Task<int>>>> _dicExecCommandDbContextBatchAsync = new Dictionary<Type, Dictionary<string, Func<object, object[], Task<int>>>>();
         async internal Task ExecCommandAsync()
         {
             if (isExecCommanding) return;
@@ -27,9 +27,9 @@ namespace FreeSql
             ExecCommandInfo oldinfo = null;
             var states = new List<object>();
 
-            Func<string, Task<int>> dbContextBetch = methodName =>
+            Func<string, Task<int>> dbContextBatch = methodName =>
             {
-                if (_dicExecCommandDbContextBetchAsync.TryGetValue(oldinfo.stateType, out var trydic) == false)
+                if (_dicExecCommandDbContextBatchAsync.TryGetValue(oldinfo.stateType, out var trydic) == false)
                     trydic = new Dictionary<string, Func<object, object[], Task<int>>>();
                 if (trydic.TryGetValue(methodName, out var tryfunc) == false)
                 {
@@ -53,19 +53,19 @@ namespace FreeSql
             };
             Func<Task> funcDelete = async () =>
             {
-                _affrows += await dbContextBetch("DbContextBetchRemoveAsync");
+                _affrows += await dbContextBatch("DbContextBatchRemoveAsync");
                 states.Clear();
             };
             Func<Task> funcInsert = async () =>
             {
-                _affrows += await dbContextBetch("DbContextBetchAddAsync");
+                _affrows += await dbContextBatch("DbContextBatchAddAsync");
                 states.Clear();
             };
             Func<bool, Task> funcUpdate = async (isLiveUpdate) =>
             {
                 var affrows = 0;
-                if (isLiveUpdate) affrows = await dbContextBetch("DbContextBetchUpdateNowAsync");
-                else affrows = await dbContextBetch("DbContextBetchUpdateAsync");
+                if (isLiveUpdate) affrows = await dbContextBatch("DbContextBatchUpdateNowAsync");
+                else affrows = await dbContextBatch("DbContextBatchUpdateAsync");
                 if (affrows == -999)
                 { //最后一个元素已被删除
                     states.RemoveAt(states.Count - 1);

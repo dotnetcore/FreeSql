@@ -103,19 +103,19 @@ namespace FreeSql.Tests.SqlServer
             //items = Enumerable.Range(0, 9989).Select(a => new Topic { Title = "newtitle" + a, CreateTime = DateTime.Now }).ToList();
             //Assert.Equal(9989, g.sqlserver.Insert<Topic>(items).ExecuteAffrows());
 
-            //var bttype = new TestBetchInsertType { title = "testbttitle1" };
+            //var bttype = new TestBatchInsertType { title = "testbttitle1" };
             //bttype.id = (int)g.sqlserver.Insert(bttype).ExecuteIdentity();
             //Assert.True(bttype.id > 0);
-            //var bttopic = Enumerable.Range(0, 10000).Select(a => new TestBetchInsertTopic { TypeId = bttype.id, Text = $"testtopic{a}" }).ToArray();
-            //Assert.Equal(bttopic.Length, g.sqlserver.Insert<TestBetchInsertTopic>(bttopic).ExecuteAffrows());
+            //var bttopic = Enumerable.Range(0, 10000).Select(a => new TestBatchInsertTopic { TypeId = bttype.id, Text = $"testtopic{a}" }).ToArray();
+            //Assert.Equal(bttopic.Length, g.sqlserver.Insert<TestBatchInsertTopic>(bttopic).ExecuteAffrows());
 
             //g.sqlserver.Transaction(() =>
             //{
-            //    bttype = new TestBetchInsertType { title = "transaction_testbttitle2" };
+            //    bttype = new TestBatchInsertType { title = "transaction_testbttitle2" };
             //    bttype.id = (int)g.sqlserver.Insert(bttype).ExecuteIdentity();
             //    Assert.True(bttype.id > 0);
-            //    bttopic = Enumerable.Range(0, 10000).Select(a => new TestBetchInsertTopic { TypeId = bttype.id, Text = $"transaction_testtopic{a}" }).ToArray();
-            //    Assert.Equal(bttopic.Length, g.sqlserver.Insert<TestBetchInsertTopic>(bttopic).ExecuteAffrows());
+            //    bttopic = Enumerable.Range(0, 10000).Select(a => new TestBatchInsertTopic { TypeId = bttype.id, Text = $"transaction_testtopic{a}" }).ToArray();
+            //    Assert.Equal(bttopic.Length, g.sqlserver.Insert<TestBatchInsertTopic>(bttopic).ExecuteAffrows());
             //});
 
             g.sqlserver.Transaction(() =>
@@ -127,12 +127,12 @@ namespace FreeSql.Tests.SqlServer
                 Assert.Equal(detail.Length, g.sqlserver.Insert<AdjustPriceDetail>(detail).NoneParameter().ExecuteAffrows());
             });
         }
-        class TestBetchInsertType { 
+        class TestBatchInsertType { 
             [Column(IsIdentity = true)]
             public int id { get; set; }
             public string title { get; set; }
         }
-        class TestBetchInsertTopic
+        class TestBatchInsertTopic
         {
             public Guid id { get; set; }
             public int TypeId { get; set; }

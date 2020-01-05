@@ -20,7 +20,7 @@ namespace FreeSql
             return _db.ExecCommandAsync();
         }
 
-        async Task<int> DbContextBetchAddAsync(EntityState[] adds)
+        async Task<int> DbContextBatchAddAsync(EntityState[] adds)
         {
             if (adds.Any() == false) return 0;
             var affrows = await this.OrmInsert(adds.Select(a => a.Value)).ExecuteAffrowsAsync();
@@ -303,9 +303,9 @@ namespace FreeSql
         #endregion
 
         #region UpdateAsync
-        Task<int> DbContextBetchUpdateAsync(EntityState[] ups) => DbContextBetchUpdatePrivAsync(ups, false);
-        Task<int> DbContextBetchUpdateNowAsync(EntityState[] ups) => DbContextBetchUpdatePrivAsync(ups, true);
-        async Task<int> DbContextBetchUpdatePrivAsync(EntityState[] ups, bool isLiveUpdate)
+        Task<int> DbContextBatchUpdateAsync(EntityState[] ups) => DbContextBatchUpdatePrivAsync(ups, false);
+        Task<int> DbContextBatchUpdateNowAsync(EntityState[] ups) => DbContextBatchUpdatePrivAsync(ups, true);
+        async Task<int> DbContextBatchUpdatePrivAsync(EntityState[] ups, bool isLiveUpdate)
         {
             if (ups.Any() == false) return 0;
             var uplst1 = ups[ups.Length - 1];
@@ -392,7 +392,7 @@ namespace FreeSql
         #endregion
 
         #region RemoveAsync
-        async Task<int> DbContextBetchRemoveAsync(EntityState[] dels)
+        async Task<int> DbContextBatchRemoveAsync(EntityState[] dels)
         {
             if (dels.Any() == false) return 0;
             var affrows = await this.OrmDelete(dels.Select(a => a.Value)).ExecuteAffrowsAsync();
