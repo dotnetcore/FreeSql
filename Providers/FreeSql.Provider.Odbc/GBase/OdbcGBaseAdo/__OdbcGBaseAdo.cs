@@ -51,6 +51,8 @@ namespace FreeSql.Odbc.GBase
                 return string.Concat("'", ((DateTime)param).ToString("yyyy-MM-dd HH:mm:ss.ffffff"), "'");
             else if (param is TimeSpan || param is TimeSpan?)
                 return ((TimeSpan)param).Ticks / 10;
+            else if (param is byte[])
+                return $"'\\x{CommonUtils.BytesSqlRaw(param as byte[])}'";
             else if (param is IEnumerable)
                 return AddslashesIEnumerable(param, mapType, mapColumn);
 

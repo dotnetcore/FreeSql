@@ -94,7 +94,6 @@ namespace FreeSql.Sqlite
         public override string GetNoneParamaterSqlValue(List<DbParameter> specialParams, Type type, object value)
         {
             if (value == null) return "NULL";
-            if (type == typeof(byte[])) value = Encoding.UTF8.GetString(value as byte[]);
             return FormatSql("{0}", value, 1);
         }
     }

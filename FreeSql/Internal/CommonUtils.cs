@@ -40,6 +40,12 @@ namespace FreeSql.Internal
         public abstract string QuoteReadColumn(Type type, Type mapType, string columnName);
         public virtual string FieldAsAlias(string alias) => $" {alias}";
         public virtual string IIF(string test, string ifTrue, string ifElse) => $"case when {test} then {ifTrue} else {ifElse} end";
+        public static string BytesSqlRaw(byte[] bytes)
+        {
+            var sb = new StringBuilder();
+            foreach (var vc in bytes) sb.Append(vc.ToString("X2"));
+            return sb.ToString();
+        }
 
         public IFreeSql _orm { get; set; }
         public ICodeFirst CodeFirst => _orm.CodeFirst;

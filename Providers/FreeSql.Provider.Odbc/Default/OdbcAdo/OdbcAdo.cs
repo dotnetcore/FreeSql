@@ -39,6 +39,7 @@ namespace FreeSql.Odbc.Default
             if (param == null) return "NULL";
             if (mapType != null && mapType != param.GetType() && (param is IEnumerable == false || mapType.IsArrayOrList()))
                 param = Utils.GetDataReaderValue(mapType, param);
+
             if (param is bool || param is bool?)
                 return (bool)param ? 1 : 0;
             else if (param is string)
@@ -53,6 +54,8 @@ namespace FreeSql.Odbc.Default
                 return Adapter.DateTimeRawSql(param);
             else if (param is TimeSpan || param is TimeSpan?)
                 return Adapter.TimeSpanRawSql(param);
+            else if (param is byte[])
+                return Adapter.ByteRawSql(param as byte[]);
             else if (param is IEnumerable)
                 return AddslashesIEnumerable(param, mapType, mapColumn);
 

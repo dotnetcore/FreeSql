@@ -96,14 +96,7 @@ namespace FreeSql.Odbc.Oracle
         public override string GetNoneParamaterSqlValue(List<DbParameter> specialParams, Type type, object value)
         {
             if (value == null) return "NULL";
-            if (type == typeof(byte[]))
-            {
-                var bytes = value as byte[];
-                var sb = new StringBuilder().Append("rawtohex('0x");
-                foreach (var vc in bytes)
-                    sb.Append(vc.ToString("X").PadLeft(2, '0'));
-                return sb.Append("')").ToString();
-            }
+            if (type == typeof(byte[])) return $"hextoraw('{CommonUtils.BytesSqlRaw(value as byte[])}')";
             return FormatSql("{0}", value, 1);
         }
     }

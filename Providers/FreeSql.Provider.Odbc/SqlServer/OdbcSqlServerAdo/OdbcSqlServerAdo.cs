@@ -40,6 +40,7 @@ namespace FreeSql.Odbc.SqlServer
             if (param == null) return "NULL";
             if (mapType != null && mapType != param.GetType() && (param is IEnumerable == false || mapType.IsArrayOrList()))
                 param = Utils.GetDataReaderValue(mapType, param);
+
             if (param is bool || param is bool?)
                 return (bool)param ? 1 : 0;
             else if (param is string)
@@ -66,6 +67,8 @@ namespace FreeSql.Odbc.SqlServer
             }
             else if (param is TimeSpan || param is TimeSpan?)
                 return ((TimeSpan)param).TotalSeconds;
+            else if (param is byte[])
+                return $"0x{CommonUtils.BytesSqlRaw(param as byte[])}";
             else if (param is IEnumerable) 
                 return AddslashesIEnumerable(param, mapType, mapColumn);
 

@@ -36,6 +36,7 @@ namespace FreeSql.Sqlite
             if (param == null) return "NULL";
             if (mapType != null && mapType != param.GetType() && (param is IEnumerable == false || mapType.IsArrayOrList()))
                 param = Utils.GetDataReaderValue(mapType, param);
+
             if (param is bool || param is bool?)
                 return (bool)param ? 1 : 0;
             else if (param is string || param is char)
@@ -48,6 +49,8 @@ namespace FreeSql.Sqlite
                 return string.Concat("'", ((DateTime)param).ToString("yyyy-MM-dd HH:mm:ss"), "'");
             else if (param is TimeSpan || param is TimeSpan?)
                 return ((TimeSpan)param).Ticks / 10000;
+            else if (param is byte[])
+                return string.Concat("'", Encoding.UTF8.GetString(param as byte[]), "'");
             else if (param is IEnumerable)
                 return AddslashesIEnumerable(param, mapType, mapColumn);
 

@@ -68,7 +68,7 @@ namespace FreeSql.Oracle
                                 case "System.UInt16":
                                 case "System.UInt32":
                                 case "System.UInt64": return $"cast({getExp(callExp.Arguments[0])} as number)";
-                                case "System.Guid": return $"substr(to_char({getExp(callExp.Arguments[0])}), 1, 36)";
+                                case "System.Guid": return $"to_char({getExp(callExp.Arguments[0])})";
                             }
                             return null;
                         case "NewGuid":

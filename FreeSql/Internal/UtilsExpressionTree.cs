@@ -188,7 +188,7 @@ namespace FreeSql.Internal
                 //}
                 if (colattr.ServerTime != DateTimeKind.Unspecified && new[] { typeof(DateTime), typeof(DateTimeOffset) }.Contains(colattr.MapType.NullableTypeOrThis()))
                 {
-                    col.DbDefaultValue = "'1970-1-1'";
+                    col.DbDefaultValue = colattr.ServerTime == DateTimeKind.Local ? common.Now : common.NowUtc;
                     col.DbInsertValue = colattr.ServerTime == DateTimeKind.Local ? common.Now : common.NowUtc;
                     col.DbUpdateValue = colattr.ServerTime == DateTimeKind.Local ? common.Now : common.NowUtc;
                 }
@@ -1608,6 +1608,19 @@ namespace FreeSql.Internal
             if (obj == null) return null;
             return string.Concat(obj);
         }
+        static byte[] GuidToBytes(Guid guid)
+        {
+            var bytes = new byte[16];
+            var guidN = guid.ToString("N");
+            for (var a = 0; a < guidN.Length; a += 2)
+                bytes[a / 2] = byte.Parse($"{guidN[a]}{guidN[a + 1]}", System.Globalization.NumberStyles.HexNumber);
+            return bytes;
+        }
+        static Guid BytesToGuid(byte[] bytes)
+        {
+            if (bytes == null) return Guid.Empty;
+            return Guid.TryParse(BitConverter.ToString(bytes, 0, Math.Min(bytes.Length, 36)).Replace("-", ""), out var tryguid) ? tryguid : Guid.Empty;
+        }
 
         static ConcurrentDictionary<Type, ConcurrentDictionary<Type, Func<object, object>>> _dicGetDataReaderValue = new ConcurrentDictionary<Type, ConcurrentDictionary<Type, Func<object, object>>>();
         static MethodInfo MethodArrayGetValue = typeof(Array).GetMethod("GetValue", new[] { typeof(int) });
@@ -1635,6 +1648,11 @@ namespace FreeSql.Internal
         static PropertyInfo PropertyDateTimeOffsetDateTime = typeof(DateTimeOffset).GetProperty("DateTime", BindingFlags.Instance | BindingFlags.Public);
         static PropertyInfo PropertyDateTimeTicks = typeof(DateTime).GetProperty("Ticks", BindingFlags.Instance | BindingFlags.Public);
         static ConstructorInfo CtorDateTimeOffsetArgsTicks = typeof(DateTimeOffset). GetConstructor(new[] { typeof(long), typeof(TimeSpan) });
+        static Encoding DefaultEncoding = Encoding.UTF8;
+        static MethodInfo MethodEncodingGetBytes = typeof(Encoding).GetMethod("GetBytes", new[] { typeof(string) });
+        static MethodInfo MethodEncodingGetString = typeof(Encoding).GetMethod("GetString", new[] { typeof(byte[]) });
+        static MethodInfo MethodGuidToBytes = typeof(Utils).GetMethod("GuidToBytes", BindingFlags.NonPublic | BindingFlags.Static, null, new[] { typeof(Guid) }, null);
+        static MethodInfo MethodBytesToGuid = typeof(Utils).GetMethod("BytesToGuid", BindingFlags.NonPublic | BindingFlags.Static, null, new[] { typeof(byte[]) }, null);
 
         public static ConcurrentBag<Func<LabelTarget, Expression, Type, Expression>> GetDataReaderValueBlockExpressionSwitchTypeFullName = new ConcurrentBag<Func<LabelTarget, Expression, Type, Expression>>();
         public static ConcurrentBag<Func<LabelTarget, Expression, Expression, Type, Expression>> GetDataReaderValueBlockExpressionObjectToStringIfThenElse = new ConcurrentBag<Func<LabelTarget, Expression, Expression, Type, Expression>>();
@@ -1644,7 +1662,19 @@ namespace FreeSql.Internal
             var valueExp = Expression.Variable(typeof(object), "locvalue");
             Func<Expression> funcGetExpression = () =>
             {
-                if (type.FullName == "System.Byte[]") return Expression.Return(returnTarget, valueExp);
+                if (type.FullName == "System.Byte[]") return Expression.IfThenElse(
+                    Expression.TypeEqual(valueExp, type),
+                    Expression.Return(returnTarget, valueExp),
+                    Expression.IfThenElse(
+                        Expression.TypeEqual(valueExp, typeof(string)),
+                        Expression.Return(returnTarget, Expression.Call(Expression.Constant(DefaultEncoding), MethodEncodingGetBytes, Expression.Convert(valueExp, typeof(string)))),
+                        Expression.IfThenElse(
+                            Expression.Or(Expression.TypeEqual(valueExp, typeof(Guid)), Expression.TypeEqual(valueExp, typeof(Guid?))),
+                            Expression.Return(returnTarget, Expression.Call(MethodGuidToBytes, Expression.Convert(valueExp, typeof(Guid)))),
+                            Expression.Return(returnTarget, Expression.Call(Expression.Constant(DefaultEncoding), MethodEncodingGetBytes, Expression.Call(MethodToString, valueExp)))
+                        )
+                    )
+                );
                 if (type.IsArray)
                 {
                     var elementType = type.GetElementType();
@@ -1911,7 +1941,8 @@ namespace FreeSql.Internal
                 Expression callToStringExp = Expression.Return(returnTarget, Expression.Convert(Expression.Call(MethodToString, valueExp), typeof(object)));
                 foreach (var toStringFunc in GetDataReaderValueBlockExpressionObjectToStringIfThenElse)
                     callToStringExp = toStringFunc(returnTarget, valueExp, callToStringExp, type);
-                Expression switchExp = null;
+                Expression switchExp = Expression.Return(returnTarget, Expression.Call(MethodConvertChangeType, valueExp, Expression.Constant(type, typeof(Type))));
+                Expression defaultRetExp = switchExp;
                 if (tryparseExp != null)
                     switchExp = Expression.Switch(
                         Expression.Constant(type),
@@ -1921,24 +1952,16 @@ namespace FreeSql.Internal
                             Expression.Constant(typeof(byte)), Expression.Constant(typeof(ushort)), Expression.Constant(typeof(uint)), Expression.Constant(typeof(ulong)),
                             Expression.Constant(typeof(double)), Expression.Constant(typeof(float)), Expression.Constant(typeof(decimal)),
                             Expression.Constant(typeof(DateTime)), Expression.Constant(typeof(DateTimeOffset))
-                        ),
-                        Expression.SwitchCase(Expression.Return(returnTarget, Expression.Call(MethodConvertChangeType, valueExp, Expression.Constant(type, typeof(Type)))), Expression.Constant(type))
+                        )
                     );
                 else if (tryparseBooleanExp != null)
                     switchExp = Expression.Switch(
                         Expression.Constant(type),
-                        Expression.SwitchCase(tryparseBooleanExp, Expression.Constant(typeof(bool))),
-                        Expression.SwitchCase(Expression.Return(returnTarget, Expression.Call(MethodConvertChangeType, valueExp, Expression.Constant(type, typeof(Type)))), Expression.Constant(type))
+                        Expression.SwitchCase(tryparseBooleanExp, Expression.Constant(typeof(bool)))
                     );
                 else if (type == typeof(string))
-                    switchExp = callToStringExp;
-                else
-                    switchExp = Expression.Return(returnTarget, Expression.Call(MethodConvertChangeType, valueExp, Expression.Constant(type, typeof(Type))));
+                    defaultRetExp = switchExp = callToStringExp;
 
-                var defaultRetExp = type == typeof(string) ?
-                    callToStringExp :
-                    Expression.Return(returnTarget, Expression.Call(MethodConvertChangeType, valueExp, Expression.Constant(type, typeof(Type))));
-                
                 return Expression.IfThenElse(
                     Expression.TypeEqual(valueExp, type),
                     Expression.Return(returnTarget, valueExp),
@@ -1952,7 +1975,19 @@ namespace FreeSql.Internal
                                 Expression.AndAlso(Expression.Equal(Expression.Constant(type), Expression.Constant(typeof(DateTimeOffset))), Expression.TypeEqual(valueExp, typeof(DateTime))),
                                 Expression.Return(returnTarget, Expression.Convert(
                                     Expression.New(CtorDateTimeOffsetArgsTicks, Expression.MakeMemberAccess(Expression.Convert(valueExp, typeof(DateTime)), PropertyDateTimeTicks), Expression.Constant(TimeSpan.Zero)), typeof(object))),
-                                defaultRetExp
+                                Expression.IfThenElse(
+                                    Expression.TypeEqual(valueExp, typeof(byte[])),
+                                    Expression.IfThenElse(
+                                        Expression.Or(Expression.Equal(Expression.Constant(type), Expression.Constant(typeof(Guid))), Expression.Equal(Expression.Constant(type), Expression.Constant(typeof(Guid?)))),
+                                        Expression.Return(returnTarget, Expression.Convert(Expression.Call(MethodBytesToGuid, Expression.Convert(valueExp, typeof(byte[]))), typeof(object))),
+                                        Expression.IfThenElse(
+                                            Expression.Equal(Expression.Constant(type), Expression.Constant(typeof(string))),
+                                            Expression.Return(returnTarget, Expression.Convert(Expression.Call(Expression.Constant(DefaultEncoding), MethodEncodingGetString, Expression.Convert(valueExp, typeof(byte[]))), typeof(object))),
+                                            defaultRetExp
+                                        )
+                                    ),
+                                    defaultRetExp
+                                )
                             )
                         )
                     )

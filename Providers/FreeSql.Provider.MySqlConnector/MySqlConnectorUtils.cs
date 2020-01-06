@@ -129,15 +129,8 @@ namespace FreeSql.MySql
         public override string GetNoneParamaterSqlValue(List<DbParameter> specialParams, Type type, object value)
         {
             if (value == null) return "NULL";
-            if (type == typeof(byte[]))
-            {
-                var bytes = value as byte[];
-                var sb = new StringBuilder().Append("0x");
-                foreach (var vc in bytes)
-                    sb.Append(vc.ToString("X").PadLeft(2, '0'));
-                return sb.ToString(); //val = Encoding.UTF8.GetString(val as byte[]);
-            }
-            else if (type == typeof(TimeSpan) || type == typeof(TimeSpan?))
+            if (type == typeof(byte[])) return $"0x{CommonUtils.BytesSqlRaw(value as byte[])}";
+            if (type == typeof(TimeSpan) || type == typeof(TimeSpan?))
             {
                 var ts = (TimeSpan)value;
                 value = $"{Math.Floor(ts.TotalHours)}:{ts.Minutes}:{ts.Seconds}";

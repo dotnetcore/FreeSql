@@ -40,6 +40,7 @@ namespace FreeSql.PostgreSQL
             if (param == null) return "NULL";
             if (mapType != null && mapType != param.GetType() && (param is IEnumerable == false || mapType.IsArrayOrList() || param is JToken || param is JObject || param is JArray))
                 param = Utils.GetDataReaderValue(mapType, param);
+
             bool isdic;
             if (param is bool || param is bool?)
                 return (bool)param ? "'t'" : "'f'";
@@ -53,6 +54,8 @@ namespace FreeSql.PostgreSQL
                 return string.Concat("'", ((DateTime)param).ToString("yyyy-MM-dd HH:mm:ss.ffffff"), "'");
             else if (param is TimeSpan || param is TimeSpan?)
                 return ((TimeSpan)param).Ticks / 10;
+            else if (param is byte[])
+                return $"'\\x{CommonUtils.BytesSqlRaw(param as byte[])}'";
             else if (param is JToken || param is JObject || param is JArray)
                 return string.Concat("'", param.ToString().Replace("'", "''"), "'::jsonb");
             else if ((isdic = param is Dictionary<string, string>) ||

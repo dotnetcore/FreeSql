@@ -1,4 +1,5 @@
-﻿using FreeSql.Internal.Model;
+﻿using FreeSql.Internal;
+using FreeSql.Internal.Model;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -55,11 +56,7 @@ namespace FreeSql.Odbc.Default
         public virtual string ByteRawSql(object value)
         {
             if (value == null) return "NULL";
-            var bytes = value as byte[];
-            var sb = new StringBuilder().Append("0x");
-            foreach (var vc in bytes)
-                sb.Append(vc.ToString("X").PadLeft(2, '0'));
-            return sb.ToString();
+            return $"0x{CommonUtils.BytesSqlRaw(value as byte[])}";
         }
 
         public virtual string CastSql(string sql, string to) => $"cast({sql} as {to})";

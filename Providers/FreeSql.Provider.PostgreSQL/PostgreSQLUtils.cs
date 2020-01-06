@@ -156,15 +156,8 @@ namespace FreeSql.PostgreSQL
             }
             value = getParamterValue(type, value);
             var type2 = value.GetType();
-            if (type2 == typeof(byte[]))
-            {
-                var bytes = value as byte[];
-                var sb = new StringBuilder().Append("'\\x");
-                foreach (var vc in bytes)
-                    sb.Append(vc.ToString("X").PadLeft(2, '0'));
-                return sb.Append("'").ToString(); //val = Encoding.UTF8.GetString(val as byte[]);
-            }
-            else if (type2 == typeof(TimeSpan) || type2 == typeof(TimeSpan?))
+            if (type2 == typeof(byte[])) return $"'\\x{CommonUtils.BytesSqlRaw(value as byte[])}'";
+            if (type2 == typeof(TimeSpan) || type2 == typeof(TimeSpan?))
             {
                 var ts = (TimeSpan)value;
                 return $"'{Math.Min(24, (int)Math.Floor(ts.TotalHours))}:{ts.Minutes}:{ts.Seconds}'";

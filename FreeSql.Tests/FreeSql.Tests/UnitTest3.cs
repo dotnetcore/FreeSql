@@ -108,12 +108,14 @@ namespace FreeSql.Tests
                 .NoneParameter().ExecuteAffrows();
 
             var slslsl = g.oracle.Select<SendInfo>().ToList();
+            var slsld1 = g.oracle.Select<SendInfo>().Where(a => a.ID == Guid.Parse("8D9C135E7FEBC41C00BE241C1771FF97")).ToList();
+            var slsld2 = g.oracle.Select<SendInfo>().Where(a => a.ID == slsld1[0].ID).ToList();
         }
 
         [Table(Name = "t_text")]
         public class SendInfo
         {
-            [Column(IsPrimary = true)]
+            [Column(IsPrimary = true, DbType = "raw(16)", MapType = typeof(byte[]))]
             public Guid ID { get; set; }
 
             [Column(Name = "YPID5")]

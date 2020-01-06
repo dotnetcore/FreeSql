@@ -41,7 +41,7 @@ namespace FreeSql.Odbc.Oracle
                             case "System.UInt16":
                             case "System.UInt32":
                             case "System.UInt64": return $"cast({getExp(operandExp)} as number)";
-                            case "System.Guid": return $"substr(to_char({getExp(operandExp)}), 1, 36)";
+                            case "System.Guid": return $"to_char({getExp(operandExp)})";
                         }
                     }
                     break;
