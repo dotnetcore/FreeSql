@@ -37,7 +37,7 @@ namespace FreeSql.Internal
         public abstract string Now { get; }
         public abstract string NowUtc { get; }
         public abstract string QuoteWriteParamter(Type type, string paramterName);
-        public abstract string QuoteReadColumn(Type type, string columnName);
+        public abstract string QuoteReadColumn(Type type, Type mapType, string columnName);
         public virtual string FieldAsAlias(string alias) => $" {alias}";
         public virtual string IIF(string test, string ifTrue, string ifElse) => $"case when {test} then {ifTrue} else {ifElse} end";
 

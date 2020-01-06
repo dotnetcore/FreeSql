@@ -910,7 +910,7 @@ namespace FreeSql.Internal.CommonProvider
                                         Property = tbrefMid.Properties[col.CsName]
                                     };
                                     read.Childs.Add(child);
-                                    field.Append(", ").Append(_commonUtils.QuoteReadColumn(child.MapType, child.DbField));
+                                    field.Append(", ").Append(_commonUtils.QuoteReadColumn(child.CsType, child.MapType, child.DbField));
                                 }
                                 otherData = (field.ToString(), read);
                             }

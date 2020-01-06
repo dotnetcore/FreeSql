@@ -64,7 +64,7 @@ namespace FreeSql.Odbc.Default
         public override string NowUtc => Adapter.LambdaDateTime_UtcNow;
 
         public override string QuoteWriteParamter(Type type, string paramterName) => paramterName;
-        public override string QuoteReadColumn(Type type, string columnName) => Adapter.FieldSql(type, columnName);
+        public override string QuoteReadColumn(Type type, Type mapType, string columnName) => Adapter.FieldSql(type, columnName);
 
         public override string GetNoneParamaterSqlValue(List<DbParameter> specialParams, Type type, object value)
         {

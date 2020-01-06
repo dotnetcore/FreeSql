@@ -41,7 +41,7 @@ namespace FreeSql.PostgreSQL.Curd
             foreach (var col in _table.Columns.Values)
             {
                 if (colidx > 0) sb.Append(", ");
-                sb.Append(_commonUtils.QuoteReadColumn(col.Attribute.MapType, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
+                sb.Append(_commonUtils.QuoteReadColumn(col.CsType, col.Attribute.MapType, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
                 ++colidx;
             }
             sql = sb.ToString();
@@ -72,8 +72,9 @@ namespace FreeSql.PostgreSQL.Curd
         {
             if (_table.Primarys.Length == 1)
             {
+                var pk = _table.Primarys.First();
                 if (string.IsNullOrEmpty(InternalTableAlias) == false) caseWhen.Append(InternalTableAlias).Append(".");
-                caseWhen.Append(_commonUtils.QuoteReadColumn(_table.Primarys.First().Attribute.MapType, _commonUtils.QuoteSqlName(_table.Primarys.First().Attribute.Name)));
+                caseWhen.Append(_commonUtils.QuoteReadColumn(pk.CsType, pk.Attribute.MapType, _commonUtils.QuoteSqlName(pk.Attribute.Name)));
                 return;
             }
             caseWhen.Append("(");
@@ -82,7 +83,7 @@ namespace FreeSql.PostgreSQL.Curd
             {
                 if (pkidx > 0) caseWhen.Append(" || ");
                 if (string.IsNullOrEmpty(InternalTableAlias) == false) caseWhen.Append(InternalTableAlias).Append(".");
-                caseWhen.Append(_commonUtils.QuoteReadColumn(pk.Attribute.MapType, _commonUtils.QuoteSqlName(pk.Attribute.Name))).Append("::varchar");
+                caseWhen.Append(_commonUtils.QuoteReadColumn(pk.CsType, pk.Attribute.MapType, _commonUtils.QuoteSqlName(pk.Attribute.Name))).Append("::varchar");
                 ++pkidx;
             }
             caseWhen.Append(")");
@@ -132,7 +133,7 @@ namespace FreeSql.PostgreSQL.Curd
             foreach (var col in _table.Columns.Values)
             {
                 if (colidx > 0) sb.Append(", ");
-                sb.Append(_commonUtils.QuoteReadColumn(col.Attribute.MapType, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
+                sb.Append(_commonUtils.QuoteReadColumn(col.CsType, col.Attribute.MapType, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
                 ++colidx;
             }
             sql = sb.ToString();

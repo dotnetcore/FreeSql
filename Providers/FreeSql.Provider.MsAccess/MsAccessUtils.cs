@@ -73,7 +73,7 @@ namespace FreeSql.MsAccess
         public override string NowUtc => "now()";
 
         public override string QuoteWriteParamter(Type type, string paramterName) => paramterName;
-        public override string QuoteReadColumn(Type type, string columnName) => columnName;
+        public override string QuoteReadColumn(Type type, Type mapType, string columnName) => columnName;
         public override string FieldAsAlias(string alias) => $" as {alias}";
         public override string IIF(string test, string ifTrue, string ifElse) => $"iif({test}, {ifTrue}, {ifElse})";
 

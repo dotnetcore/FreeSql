@@ -112,9 +112,9 @@ namespace FreeSql.MySql
             }
             return paramterName;
         }
-        public override string QuoteReadColumn(Type type, string columnName)
+        public override string QuoteReadColumn(Type type, Type mapType, string columnName)
         {
-            switch (type.FullName)
+            switch (mapType.FullName)
             {
                 case "MygisPoint":
                 case "MygisLineString":

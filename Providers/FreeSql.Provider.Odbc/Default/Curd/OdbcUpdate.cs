@@ -28,7 +28,8 @@ namespace FreeSql.Odbc.Default
         {
             if (_table.Primarys.Length == 1)
             {
-                caseWhen.Append(_commonUtils.QuoteReadColumn(_table.Primarys.First().Attribute.MapType, _commonUtils.QuoteSqlName(_table.Primarys.First().Attribute.Name)));
+                var pk = _table.Primarys.First();
+                caseWhen.Append(_commonUtils.QuoteReadColumn(pk.CsType, pk.Attribute.MapType, _commonUtils.QuoteSqlName(pk.Attribute.Name)));
                 return;
             }
             caseWhen.Append("(");
@@ -36,7 +37,7 @@ namespace FreeSql.Odbc.Default
             foreach (var pk in _table.Primarys)
             {
                 if (pkidx > 0) caseWhen.Append(", ");
-                caseWhen.Append(_utils.Adapter.CastSql(_commonUtils.QuoteReadColumn(_table.Primarys.First().Attribute.MapType, _commonUtils.QuoteSqlName(pk.Attribute.Name)), _utils.Adapter.MappingOdbcTypeVarChar));
+                caseWhen.Append(_utils.Adapter.CastSql(_commonUtils.QuoteReadColumn(pk.CsType, pk.Attribute.MapType, _commonUtils.QuoteSqlName(pk.Attribute.Name)), _utils.Adapter.MappingOdbcTypeVarChar));
                 ++pkidx;
             }
             caseWhen.Append(")");

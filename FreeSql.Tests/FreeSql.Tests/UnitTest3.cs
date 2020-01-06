@@ -15,6 +15,7 @@ using System.Data.SqlClient;
 using kwlib;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 
 namespace FreeSql.Tests
 {
@@ -95,6 +96,36 @@ namespace FreeSql.Tests
             fsql.Insert<OrderDetail>(new OrderDetail { OrderNo = "1002", ItemNo = "I012", Qty = 1 }).ExecuteAffrows();
             fsql.Insert<OrderDetail>(new OrderDetail { OrderNo = "1002", ItemNo = "I013", Qty = 1 }).ExecuteAffrows();
             fsql.Ado.Query<object>("select * from orderdetail left join ordermain on orderdetail.orderno=ordermain.orderno where ordermain.orderno='1001'");
+
+
+            g.oracle.Insert(new[]
+                {
+                    new SendInfo{ Code = "001", Binary = Encoding.UTF8.GetBytes("我是中国人") },
+                    new SendInfo{ Code = "002", Binary = Encoding.UTF8.GetBytes("我是地球人") },
+                    new SendInfo{ Code = "003", Binary = Encoding.UTF8.GetBytes("我是.net")},
+                    new SendInfo{ Code = "004", Binary = Encoding.UTF8.GetBytes("我是freesql") },
+                })
+                .NoneParameter().ExecuteAffrows();
+
+            var slslsl = g.oracle.Select<SendInfo>().ToList();
+        }
+
+        [Table(Name = "t_text")]
+        public class SendInfo
+        {
+            [Column(IsPrimary = true)]
+            public Guid ID { get; set; }
+
+            [Column(Name = "YPID5")]
+            public string Code { get; set; }
+        
+            public byte[] Binary { get; set; }
+
+            [Column(ServerTime = DateTimeKind.Utc)]
+            public DateTime CreateTime { get; set; }
+
+            [Column(InsertValueSql = "'123'")]
+            public string InsertValue2 { get; set; }
         }
 
         class TestByte

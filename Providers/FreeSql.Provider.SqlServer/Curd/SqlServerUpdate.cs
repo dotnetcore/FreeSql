@@ -33,7 +33,7 @@ namespace FreeSql.SqlServer.Curd
             foreach (var col in _table.Columns.Values)
             {
                 if (colidx > 0) sb.Append(", ");
-                sb.Append(_commonUtils.QuoteReadColumn(col.Attribute.MapType, $"INSERTED.{_commonUtils.QuoteSqlName(col.Attribute.Name)}")).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
+                sb.Append(_commonUtils.QuoteReadColumn(col.CsType, col.Attribute.MapType, $"INSERTED.{_commonUtils.QuoteSqlName(col.Attribute.Name)}")).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
                 ++colidx;
             }
 
@@ -70,7 +70,8 @@ namespace FreeSql.SqlServer.Curd
         {
             if (_table.Primarys.Length == 1)
             {
-                caseWhen.Append(_commonUtils.QuoteReadColumn(_table.Primarys.First().Attribute.MapType, _commonUtils.QuoteSqlName(_table.Primarys.First().Attribute.Name)));
+                var pk = _table.Primarys.First();
+                caseWhen.Append(_commonUtils.QuoteReadColumn(pk.CsType, pk.Attribute.MapType, _commonUtils.QuoteSqlName(pk.Attribute.Name)));
                 return;
             }
             caseWhen.Append("(");
@@ -78,7 +79,7 @@ namespace FreeSql.SqlServer.Curd
             foreach (var pk in _table.Primarys)
             {
                 if (pkidx > 0) caseWhen.Append(", ");
-                caseWhen.Append("cast(").Append(_commonUtils.QuoteReadColumn(_table.Primarys.First().Attribute.MapType, _commonUtils.QuoteSqlName(pk.Attribute.Name))).Append(" as varchar)");
+                caseWhen.Append("cast(").Append(_commonUtils.QuoteReadColumn(pk.CsType, pk.Attribute.MapType, _commonUtils.QuoteSqlName(pk.Attribute.Name))).Append(" as varchar)");
                 ++pkidx;
             }
             caseWhen.Append(")");
@@ -116,7 +117,7 @@ namespace FreeSql.SqlServer.Curd
             foreach (var col in _table.Columns.Values)
             {
                 if (colidx > 0) sb.Append(", ");
-                sb.Append(_commonUtils.QuoteReadColumn(col.Attribute.MapType, $"INSERTED.{_commonUtils.QuoteSqlName(col.Attribute.Name)}")).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
+                sb.Append(_commonUtils.QuoteReadColumn(col.CsType, col.Attribute.MapType, $"INSERTED.{_commonUtils.QuoteSqlName(col.Attribute.Name)}")).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
                 ++colidx;
             }
 

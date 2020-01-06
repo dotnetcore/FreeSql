@@ -91,7 +91,7 @@ namespace FreeSql.Odbc.Oracle
         public override string NowUtc => "sys_extract_utc(systimestamp)";
 
         public override string QuoteWriteParamter(Type type, string paramterName) => paramterName;
-        public override string QuoteReadColumn(Type type, string columnName) => columnName;
+        public override string QuoteReadColumn(Type type, Type mapType, string columnName) => columnName;
 
         public override string GetNoneParamaterSqlValue(List<DbParameter> specialParams, Type type, object value)
         {

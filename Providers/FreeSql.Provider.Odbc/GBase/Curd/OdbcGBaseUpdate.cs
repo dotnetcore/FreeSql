@@ -30,7 +30,8 @@ namespace FreeSql.Odbc.GBase
         {
             if (_table.Primarys.Length == 1)
             {
-                caseWhen.Append(_commonUtils.QuoteReadColumn(_table.Primarys.First().Attribute.MapType, _commonUtils.QuoteSqlName(_table.Primarys.First().Attribute.Name)));
+                var pk = _table.Primarys.First();
+                caseWhen.Append(_commonUtils.QuoteReadColumn(pk.CsType, pk.Attribute.MapType, _commonUtils.QuoteSqlName(pk.Attribute.Name)));
                 return;
             }
             caseWhen.Append("(");
@@ -38,7 +39,7 @@ namespace FreeSql.Odbc.GBase
             foreach (var pk in _table.Primarys)
             {
                 if (pkidx > 0) caseWhen.Append(" || ");
-                caseWhen.Append(_commonUtils.QuoteReadColumn(pk.Attribute.MapType, _commonUtils.QuoteSqlName(pk.Attribute.Name))).Append("::varchar");
+                caseWhen.Append(_commonUtils.QuoteReadColumn(pk.CsType, pk.Attribute.MapType, _commonUtils.QuoteSqlName(pk.Attribute.Name))).Append("::varchar");
                 ++pkidx;
             }
             caseWhen.Append(")");
