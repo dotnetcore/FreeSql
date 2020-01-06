@@ -629,7 +629,7 @@ namespace FreeSql.Internal.CommonProvider
             if (_table.VersionColumn != null)
             {
                 var vcname = _commonUtils.QuoteSqlName(_table.VersionColumn.Attribute.Name);
-                sb.Append(", ").Append(vcname).Append(" = ").Append(vcname).Append(" + 1");
+                sb.Append(", ").Append(vcname).Append(" = ").Append(_commonUtils.IsNull(vcname, 0)).Append(" + 1");
             }
 
             sb.Append(" \r\nWHERE ");
