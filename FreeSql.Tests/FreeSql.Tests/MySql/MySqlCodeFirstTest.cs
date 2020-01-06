@@ -32,8 +32,11 @@ namespace FreeSql.Tests.MySql
 
             public string 标题 { get; protected set; }
 
-            [Column(ServerTime = DateTimeKind.Local)]
+            [Column(ServerTime = DateTimeKind.Local, CanUpdate = false)]
             public DateTime 创建时间 { get; protected set; }
+
+            [Column(ServerTime = DateTimeKind.Local)]
+            public DateTime 更新时间 { get; set; }
 
             public static 测试中文表2 Create(string title, DateTime ctm)
             {

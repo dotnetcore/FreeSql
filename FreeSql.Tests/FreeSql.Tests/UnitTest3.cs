@@ -121,8 +121,11 @@ namespace FreeSql.Tests
         
             public byte[] Binary { get; set; }
 
+            [Column(ServerTime = DateTimeKind.Utc, CanUpdate = false)]
+            public DateTime 创建时间 { get; set; }
+
             [Column(ServerTime = DateTimeKind.Utc)]
-            public DateTime CreateTime { get; set; }
+            public DateTime 更新时间 { get; set; }
 
             [Column(InsertValueSql = "'123'")]
             public string InsertValue2 { get; set; }

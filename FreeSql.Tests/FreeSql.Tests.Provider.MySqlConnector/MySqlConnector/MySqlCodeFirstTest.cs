@@ -28,6 +28,8 @@ namespace FreeSql.Tests.MySqlConnector
             Assert.NotNull(item2);
             Assert.Equal(item.编号, item2.编号);
             Assert.Equal(item.标题, item2.标题);
+
+            g.mysql.Update<测试中文表2>().SetSource(item2).ExecuteAffrows();
         }
         class 测试中文表2
         {
@@ -36,8 +38,11 @@ namespace FreeSql.Tests.MySqlConnector
 
             public string 标题 { get; set; }
 
-            [Column(ServerTime = DateTimeKind.Local)]
+            [Column(ServerTime = DateTimeKind.Local, CanUpdate = false)]
             public DateTime 创建时间 { get; set; }
+
+            [Column(ServerTime = DateTimeKind.Local)]
+            public DateTime 更新时间 { get; set; }
         }
 
         [Fact]

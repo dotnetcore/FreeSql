@@ -557,13 +557,19 @@ namespace FreeSql.Internal.CommonProvider
                     {
                         if (colidx > 0) sb.Append(", ");
                         sb.Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ");
-                        var val = col.GetMapValue(_source.First());
-                        if (_noneParameter)
-                            sb.Append(_commonUtils.GetNoneParamaterSqlValue(_paramsSource, col.Attribute.MapType, val));
+
+                        if (col.Attribute.CanUpdate && string.IsNullOrEmpty(col.DbUpdateValue) == false)
+                            sb.Append(col.DbUpdateValue);
                         else
                         {
-                            sb.Append(_commonUtils.QuoteWriteParamter(col.Attribute.MapType, _commonUtils.QuoteParamterName($"p_{_paramsSource.Count}")));
-                            _commonUtils.AppendParamter(_paramsSource, null, col, col.Attribute.MapType, val);
+                            var val = col.GetMapValue(_source.First());
+                            if (_noneParameter)
+                                sb.Append(_commonUtils.GetNoneParamaterSqlValue(_paramsSource, col.Attribute.MapType, val));
+                            else
+                            {
+                                sb.Append(_commonUtils.QuoteWriteParamter(col.Attribute.MapType, _commonUtils.QuoteParamterName($"p_{_paramsSource.Count}")));
+                                _commonUtils.AppendParamter(_paramsSource, null, col, col.Attribute.MapType, val);
+                            }
                         }
                         ++colidx;
                     }
@@ -589,32 +595,36 @@ namespace FreeSql.Internal.CommonProvider
                         if (colidx > 0) sb.Append(", ");
                         sb.Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ");
 
-                        var nulls = 0;
-                        var cwsb = new StringBuilder().Append(cw);
-                        foreach (var d in _source)
-                        {
-                            cwsb.Append(" \r\nWHEN ");
-                            ToSqlWhen(cwsb, _table.Primarys, d);
-                            cwsb.Append(" THEN ");
-                            var val = col.GetMapValue(d);
-                            if (_noneParameter)
-                                cwsb.Append(_commonUtils.GetNoneParamaterSqlValue(_paramsSource, col.Attribute.MapType, val));
-                            else
-                            {
-                                cwsb.Append(_commonUtils.QuoteWriteParamter(col.Attribute.MapType, _commonUtils.QuoteParamterName($"p_{_paramsSource.Count}")));
-                                _commonUtils.AppendParamter(_paramsSource, null, col, col.Attribute.MapType, val);
-                            }
-                            if (val == null || val == DBNull.Value) nulls++;
-                        }
-                        cwsb.Append(" END");
-                        if (nulls == _source.Count) sb.Append("NULL");
+                        if (col.Attribute.CanUpdate && string.IsNullOrEmpty(col.DbUpdateValue) == false)
+                            sb.Append(col.DbUpdateValue);
                         else
                         {
-                            ToSqlCaseWhenEnd(cwsb, col);
-                            sb.Append(cwsb.ToString());
+                            var nulls = 0;
+                            var cwsb = new StringBuilder().Append(cw);
+                            foreach (var d in _source)
+                            {
+                                cwsb.Append(" \r\nWHEN ");
+                                ToSqlWhen(cwsb, _table.Primarys, d);
+                                cwsb.Append(" THEN ");
+                                var val = col.GetMapValue(d);
+                                if (_noneParameter)
+                                    cwsb.Append(_commonUtils.GetNoneParamaterSqlValue(_paramsSource, col.Attribute.MapType, val));
+                                else
+                                {
+                                    cwsb.Append(_commonUtils.QuoteWriteParamter(col.Attribute.MapType, _commonUtils.QuoteParamterName($"p_{_paramsSource.Count}")));
+                                    _commonUtils.AppendParamter(_paramsSource, null, col, col.Attribute.MapType, val);
+                                }
+                                if (val == null || val == DBNull.Value) nulls++;
+                            }
+                            cwsb.Append(" END");
+                            if (nulls == _source.Count) sb.Append("NULL");
+                            else
+                            {
+                                ToSqlCaseWhenEnd(cwsb, col);
+                                sb.Append(cwsb.ToString());
+                            }
+                            cwsb.Clear();
                         }
-                        cwsb.Clear();
-
                         ++colidx;
                     }
                 }
@@ -625,6 +635,13 @@ namespace FreeSql.Internal.CommonProvider
 
             if (_setIncr.Length > 0)
                 sb.Append(_set.Length > 0 ? _setIncr.ToString() : _setIncr.ToString().Substring(2));
+
+            if (_source.Any() == false)
+            {
+                foreach (var col in _table.Columns.Values)
+                    if (col.Attribute.CanUpdate && string.IsNullOrEmpty(col.DbUpdateValue) == false)
+                        sb.Append(", ").Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ").Append(col.DbUpdateValue);
+            }
 
             if (_table.VersionColumn != null)
             {

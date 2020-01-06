@@ -188,8 +188,9 @@ namespace FreeSql.Internal
                 //}
                 if (colattr.ServerTime != DateTimeKind.Unspecified && new[] { typeof(DateTime), typeof(DateTimeOffset) }.Contains(colattr.MapType.NullableTypeOrThis()))
                 {
-                    col.DbDefaultValue = colattr.ServerTime == DateTimeKind.Local ? common.Now : common.NowUtc;
+                    col.DbDefaultValue = "'1970-1-1'";
                     col.DbInsertValue = colattr.ServerTime == DateTimeKind.Local ? common.Now : common.NowUtc;
+                    col.DbUpdateValue = colattr.ServerTime == DateTimeKind.Local ? common.Now : common.NowUtc;
                 }
                 if (string.IsNullOrEmpty(colattr.InsertValueSql) == false)
                 {
