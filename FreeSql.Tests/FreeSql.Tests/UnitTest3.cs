@@ -98,6 +98,7 @@ namespace FreeSql.Tests
             fsql.Ado.Query<object>("select * from orderdetail left join ordermain on orderdetail.orderno=ordermain.orderno where ordermain.orderno='1001'");
 
 
+            g.oracle.Delete<SendInfo>().Where("1=1").ExecuteAffrows();
             g.oracle.Insert(new[]
                 {
                     new SendInfo{ Code = "001", Binary = Encoding.UTF8.GetBytes("我是中国人") },
@@ -108,8 +109,33 @@ namespace FreeSql.Tests
                 .NoneParameter().ExecuteAffrows();
 
             var slslsl = g.oracle.Select<SendInfo>().ToList();
-            var slsld1 = g.oracle.Select<SendInfo>().Where(a => a.ID == Guid.Parse("8D9C135E7FEBC41C00BE241C1771FF97")).ToList();
-            var slsld2 = g.oracle.Select<SendInfo>().Where(a => a.ID == slsld1[0].ID).ToList();
+
+            var mt_codeId = Guid.Parse("2f48c5ca-7257-43c8-9ee2-0e16fa990253");
+            Assert.Equal(1, g.oracle.Insert(new SendInfo { ID = mt_codeId, Code = "mt_code", Binary = Encoding.UTF8.GetBytes("我是mt_code") })
+                .ExecuteAffrows());
+            var mt_code = g.oracle.Select<SendInfo>().Where(a => a.ID == mt_codeId).First();
+            Assert.NotNull(mt_code);
+            Assert.Equal(mt_codeId, mt_code.ID);
+            Assert.Equal("mt_code", mt_code.Code);
+
+            mt_code = g.oracle.Select<SendInfo>().Where(a => a.ID == Guid.Parse("2f48c5ca725743c89ee20e16fa990253".ToUpper())).First();
+            Assert.NotNull(mt_code);
+            Assert.Equal(mt_codeId, mt_code.ID);
+            Assert.Equal("mt_code", mt_code.Code);
+
+            mt_codeId = Guid.Parse("2f48c5ca-7257-43c8-9ee2-0e16fa990251");
+            Assert.Equal(1, g.oracle.Insert(new SendInfo { ID = mt_codeId, Code = "mt_code2", Binary = Encoding.UTF8.GetBytes("我是mt_code2") })
+                .NoneParameter()
+                .ExecuteAffrows());
+            mt_code = g.oracle.Select<SendInfo>().Where(a => a.ID == mt_codeId).First();
+            Assert.NotNull(mt_code);
+            Assert.Equal(mt_codeId, mt_code.ID);
+            Assert.Equal("mt_code2", mt_code.Code);
+
+            mt_code = g.oracle.Select<SendInfo>().Where(a => a.ID == Guid.Parse("2f48c5ca725743c89ee20e16fa990251".ToUpper())).First();
+            Assert.NotNull(mt_code);
+            Assert.Equal(mt_codeId, mt_code.ID);
+            Assert.Equal("mt_code2", mt_code.Code);
         }
 
         [Table(Name = "t_text")]
