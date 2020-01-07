@@ -110,6 +110,9 @@ namespace FreeSql.Tests
 
             var slslsl = g.oracle.Select<SendInfo>().ToList();
 
+            var slsls1Ids = slslsl.Select(a => a.ID).ToArray();
+            var slslss2 = g.oracle.Select<SendInfo>().Where(a => slsls1Ids.Contains(a.ID)).ToList();
+
             var mt_codeId = Guid.Parse("2f48c5ca-7257-43c8-9ee2-0e16fa990253");
             Assert.Equal(1, g.oracle.Insert(new SendInfo { ID = mt_codeId, Code = "mt_code", Binary = Encoding.UTF8.GetBytes("我是mt_code") })
                 .ExecuteAffrows());
