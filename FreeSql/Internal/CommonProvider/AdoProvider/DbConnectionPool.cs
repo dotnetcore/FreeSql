@@ -58,7 +58,7 @@ namespace FreeSql.Internal.CommonProvider
             if (obj.Value.State != ConnectionState.Closed)
                 obj.Value.Close();
             if (_dataType == DataType.Sqlite)
-                obj.Dispose();
+                obj.Value.Dispose();
         }
 
         public bool SetUnavailable(Exception exception)
