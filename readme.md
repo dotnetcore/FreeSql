@@ -276,6 +276,7 @@ Elapsed: 00:00:00.6495301; Query Entity Counts: 131072; ORM: Dapper
 [movingsam](https://github.com/movingsam)、
 [ALer-R](https://github.com/ALer-R)、
 [zouql](https://github.com/zouql)、
-深圳|凉茶
+深圳|凉茶、
+[densen2014](https://github.com/densen2014)
 
 （QQ群：4336577）
