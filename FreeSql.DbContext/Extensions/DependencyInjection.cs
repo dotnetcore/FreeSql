@@ -1,4 +1,4 @@
-﻿#if ns20
+﻿#if netcoreapp
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Linq;

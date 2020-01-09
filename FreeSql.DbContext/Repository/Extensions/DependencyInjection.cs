@@ -1,4 +1,4 @@
-﻿#if ns20
+﻿#if netcoreapp
 
 using System;
 using System.Reflection;

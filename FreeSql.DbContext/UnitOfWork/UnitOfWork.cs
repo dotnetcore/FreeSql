@@ -11,7 +11,7 @@ namespace FreeSql
 {
     public class UnitOfWork : IUnitOfWork
     {
-#if ns20
+#if netcoreapp
         public static readonly AsyncLocal<IUnitOfWork> Current = new AsyncLocal<IUnitOfWork>();
 #endif
 
@@ -35,7 +35,7 @@ namespace FreeSql
         public UnitOfWork(IFreeSql fsql)
         {
             _fsql = fsql;
-#if ns20
+#if netcoreapp
             Current.Value = this;
 #endif
         }
@@ -48,7 +48,7 @@ namespace FreeSql
             _fsql.Ado.MasterPool.Return(_conn);
             _tran = null;
             _conn = null;
-#if ns20
+#if netcoreapp
             Current.Value = null;
 #endif
             EntityChangeReport?.Report.Clear();
