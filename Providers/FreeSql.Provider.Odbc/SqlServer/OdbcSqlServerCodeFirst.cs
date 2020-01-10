@@ -135,16 +135,16 @@ ELSE
                     var tb = _commonUtils.GetTableByEntity(obj.entityType);
                     if (tb == null) throw new Exception($"类型 {obj.entityType.FullName} 不可迁移");
                     if (tb.Columns.Any() == false) throw new Exception($"类型 {obj.entityType.FullName} 不可迁移，可迁移属性0个");
-                    var tbname = tb.DbName.Split(new[] { '.' }, 3);
+                    var tbname = _commonUtils.SplitTableName(tb.DbName);
                     if (tbname?.Length == 1) tbname = new[] { database, "dbo", tbname[0] };
                     if (tbname?.Length == 2) tbname = new[] { database, tbname[0], tbname[1] };
 
-                    var tboldname = tb.DbOldName?.Split(new[] { '.' }, 3); //旧表名
+                    var tboldname = _commonUtils.SplitTableName(tb.DbOldName); //旧表名
                     if (tboldname?.Length == 1) tboldname = new[] { database, "dbo", tboldname[0] };
                     if (tboldname?.Length == 2) tboldname = new[] { database, tboldname[0], tboldname[1] };
                     if (string.IsNullOrEmpty(obj.tableName) == false)
                     {
-                        var tbtmpname = obj.tableName.Split(new[] { '.' }, 3);
+                        var tbtmpname = _commonUtils.SplitTableName(obj.tableName);
                         if (tbtmpname?.Length == 1) tbtmpname = new[] { database, "dbo", tbtmpname[0] };
                         if (tbtmpname?.Length == 2) tbtmpname = new[] { database, tbtmpname[0], tbtmpname[1] };
                         if (tbname[0] != tbtmpname[0] || tbname[1] != tbtmpname[1] || tbname[2] != tbtmpname[2])
@@ -153,6 +153,7 @@ ELSE
                             tboldname = null;
                         }
                     }
+                    //codefirst 不支持表名、模式名、数据库名中带 .
 
                     if (string.Compare(tbname[0], database, true) != 0 && ExecuteScalar(database, $" select 1 from sys.databases where name='{tbname[0]}'") == null) //创建数据库
                         ExecuteScalar(database, $"if not exists(select 1 from sys.databases where name='{tbname[0]}')\r\n\tcreate database [{tbname[0]}];");

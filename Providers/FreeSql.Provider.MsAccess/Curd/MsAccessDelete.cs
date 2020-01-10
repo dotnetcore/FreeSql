@@ -22,7 +22,7 @@ namespace FreeSql.MsAccess.Curd
 
 #if net40
 #else
-        async public override Task<List<T1>> ExecuteDeletedAsync()
+        public override Task<List<T1>> ExecuteDeletedAsync()
         {
             throw new NotImplementedException();
         }

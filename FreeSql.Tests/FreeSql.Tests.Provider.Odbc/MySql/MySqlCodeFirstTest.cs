@@ -10,6 +10,33 @@ namespace FreeSql.Tests.Odbc.MySql
 {
     public class MySqlCodeFirstTest
     {
+        [Fact]
+        public void 表名中有点()
+        {
+            var item = new tbdot01 { name = "insert" };
+            g.mysql.Insert(item).ExecuteAffrows();
+
+            var find = g.mysql.Select<tbdot01>().Where(a => a.id == item.id).First();
+            Assert.NotNull(find);
+            Assert.Equal(item.id, find.id);
+            Assert.Equal("insert", find.name);
+
+            Assert.Equal(1, g.mysql.Update<tbdot01>().Set(a => a.name == "update").Where(a => a.id == item.id).ExecuteAffrows());
+            find = g.mysql.Select<tbdot01>().Where(a => a.id == item.id).First();
+            Assert.NotNull(find);
+            Assert.Equal(item.id, find.id);
+            Assert.Equal("update", find.name);
+
+            Assert.Equal(1, g.mysql.Delete<tbdot01>().Where(a => a.id == item.id).ExecuteAffrows());
+            find = g.mysql.Select<tbdot01>().Where(a => a.id == item.id).First();
+            Assert.Null(find);
+        }
+        [Table(Name = "`sys.tbdot01`")]
+        class tbdot01
+        {
+            public Guid id { get; set; }
+            public string name { get; set; }
+        }
 
         [Fact]
         public void 中文表_字段()

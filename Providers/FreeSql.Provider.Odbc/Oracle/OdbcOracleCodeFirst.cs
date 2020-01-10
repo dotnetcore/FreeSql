@@ -94,15 +94,15 @@ namespace FreeSql.Odbc.Oracle
                 var tb = _commonUtils.GetTableByEntity(obj.entityType);
                 if (tb == null) throw new Exception($"类型 {obj.entityType.FullName} 不可迁移");
                 if (tb.Columns.Any() == false) throw new Exception($"类型 {obj.entityType.FullName} 不可迁移，可迁移属性0个");
-                var tbname = tb.DbName.Split(new[] { '.' }, 2);
+                var tbname = _commonUtils.SplitTableName(tb.DbName);
                 if (tbname?.Length == 1) tbname = new[] { userId, tbname[0] };
 
-                var tboldname = tb.DbOldName?.Split(new[] { '.' }, 2); //旧表名
+                var tboldname = _commonUtils.SplitTableName(tb.DbOldName); //旧表名
                 if (tboldname?.Length == 1) tboldname = new[] { userId, tboldname[0] };
                 var primaryKeyName = (obj.entityType.GetCustomAttributes(typeof(OraclePrimaryKeyNameAttribute), false)?.FirstOrDefault() as OraclePrimaryKeyNameAttribute)?.Name;
                 if (string.IsNullOrEmpty(obj.tableName) == false)
                 {
-                    var tbtmpname = obj.tableName.Split(new[] { '.' }, 2);
+                    var tbtmpname = _commonUtils.SplitTableName(obj.tableName);
                     if (tbtmpname?.Length == 1) tbtmpname = new[] { userId, tbtmpname[0] };
                     if (tbname[0] != tbtmpname[0] || tbname[1] != tbtmpname[1])
                     {
@@ -111,6 +111,7 @@ namespace FreeSql.Odbc.Oracle
                         primaryKeyName = null;
                     }
                 }
+                //codefirst 不支持表名中带 .
 
                 if (string.Compare(tbname[0], userId) != 0 && _orm.Ado.ExecuteScalar(CommandType.Text, _commonUtils.FormatSql(" select 1 from sys.dba_users where username={0}", tbname[0])) == null) //创建数据库
                     throw new NotImplementedException($"Oracle CodeFirst 不支持代码创建 tablespace 与 schemas {tbname[0]}");

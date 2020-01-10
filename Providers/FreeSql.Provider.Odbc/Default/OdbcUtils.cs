@@ -2,12 +2,8 @@
 using FreeSql.Internal.Model;
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Data.Common;
 using System.Data.Odbc;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
 
 namespace FreeSql.Odbc.Default
 {
@@ -39,13 +35,18 @@ namespace FreeSql.Odbc.Default
             });
 
         public override string FormatSql(string sql, params object[] args) => sql?.FormatOdbc(args);
-        public override string QuoteSqlName(string name)
+        public override string QuoteSqlName(params string[] name)
         {
-            var nametrim = name.Trim();
-            if (nametrim.StartsWith("(") && nametrim.EndsWith(")"))
-                return nametrim; //原生SQL
-            //return $"[{nametrim.TrimStart('[').TrimEnd(']').Replace(".", "].[")}]";
-            return $"{Adapter.QuoteSqlNameLeft}{nametrim.TrimStart(Adapter.QuoteSqlNameLeft).TrimEnd(Adapter.QuoteSqlNameRight).Replace(".", $"{Adapter.QuoteSqlNameRight}.{Adapter.QuoteSqlNameLeft}")}{Adapter.QuoteSqlNameRight}";
+            if (name.Length == 1)
+            {
+                var nametrim = name[0].Trim();
+                if (nametrim.StartsWith("(") && nametrim.EndsWith(")"))
+                    return nametrim; //原生SQL
+                if (nametrim.StartsWith(Adapter.QuoteSqlNameLeft.ToString()) && nametrim.EndsWith(Adapter.QuoteSqlNameRight.ToString()))
+                    return nametrim;
+                return $"{Adapter.QuoteSqlNameLeft}{nametrim.TrimStart(Adapter.QuoteSqlNameLeft).TrimEnd(Adapter.QuoteSqlNameRight).Replace(".", $"{Adapter.QuoteSqlNameRight}.{Adapter.QuoteSqlNameLeft}")}{Adapter.QuoteSqlNameRight}";
+            }
+            return $"{Adapter.QuoteSqlNameLeft}{string.Join($"{Adapter.QuoteSqlNameRight}.{Adapter.QuoteSqlNameLeft}", name)}{Adapter.QuoteSqlNameRight}";
         }
         public override string TrimQuoteSqlName(string name)
         {
@@ -55,6 +56,7 @@ namespace FreeSql.Odbc.Default
             //return $"{nametrim.TrimStart('[').TrimEnd(']').Replace("].[", ".").Replace(".[", ".")}";
             return $"{nametrim.TrimStart(Adapter.QuoteSqlNameLeft).TrimEnd(Adapter.QuoteSqlNameRight).Replace($"{Adapter.QuoteSqlNameRight}.{Adapter.QuoteSqlNameLeft}", ".").Replace($".{Adapter.QuoteSqlNameLeft}", ".")}";
         }
+        public override string[] SplitTableName(string name) => GetSplitTableNames(name, Adapter.QuoteSqlNameLeft, Adapter.QuoteSqlNameRight, 2);
         public override string QuoteParamterName(string name) => $"@{(_orm.CodeFirst.IsSyncStructureToLower ? name.ToLower() : name)}";
         public override string IsNull(string sql, object value) => Adapter.IsNullSql(sql, value);
         public override string StringConcat(string[] objs, Type[] types) => Adapter.ConcatSql(objs, types);

@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 public class RazorModel {
 	public RazorModel(IFreeSql fsql, string nameSpace, bool[] NameOptions, List<DbTableInfo> tables, DbTableInfo table) {
@@ -55,7 +54,12 @@ public class RazorModel {
 		var sb = new List<string>();
 
 		if (GetCsName(this.FullTableName) != this.FullTableName)
-			sb.Add("Name = \"" + this.FullTableName + "\"");
+		{
+			if (this.FullTableName.IndexOf('.') == -1)
+				sb.Add("Name = \"" + this.FullTableName + "\"");
+			else
+				sb.Add("Name = \"" + this.FullTableName + "\""); //Todo: QuoteSqlName
+		}
 
 		if (sb.Any() == false) return null;
 		return "[Table(" + string.Join(", ", sb) + ")]";

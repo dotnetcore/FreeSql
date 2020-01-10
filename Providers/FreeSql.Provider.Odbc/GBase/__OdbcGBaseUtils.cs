@@ -1,16 +1,11 @@
 ﻿using FreeSql.Internal;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.Concurrent;
-using System.Data.Common;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Linq.Expressions;
-using System.Reflection;
-using System.Data.Odbc;
 using FreeSql.Internal.Model;
+using System;
+using System.Collections.Generic;
+using System.Data.Common;
+using System.Data.Odbc;
+using System.Linq;
+using System.Text;
 
 namespace FreeSql.Odbc.GBase
 {
@@ -94,12 +89,18 @@ namespace FreeSql.Odbc.GBase
             });
 
         public override string FormatSql(string sql, params object[] args) => sql?.FormatOdbcPostgreSQL(args);
-        public override string QuoteSqlName(string name)
+        public override string QuoteSqlName(params string[] name)
         {
-            var nametrim = name.Trim();
-            if (nametrim.StartsWith("(") && nametrim.EndsWith(")"))
-                return nametrim; //原生SQL
-            return $"\"{nametrim.Trim('"').Replace(".", "\".\"")}\"";
+            if (name.Length == 1)
+            {
+                var nametrim = name[0].Trim();
+                if (nametrim.StartsWith("(") && nametrim.EndsWith(")"))
+                    return nametrim; //原生SQL
+                if (nametrim.StartsWith("\"") && nametrim.EndsWith("\""))
+                    return nametrim;
+                return $"\"{nametrim.Replace(".", "\".\"")}\"";
+            }
+            return $"\"{string.Join("\".\"", name)}\"";
         }
         public override string TrimQuoteSqlName(string name)
         {
@@ -108,6 +109,7 @@ namespace FreeSql.Odbc.GBase
                 return nametrim; //原生SQL
             return $"{nametrim.Trim('"').Replace("\".\"", ".").Replace(".\"", ".")}";
         }
+        public override string[] SplitTableName(string name) => GetSplitTableNames(name, '"', '"', 2);
         public override string QuoteParamterName(string name) => $"@{(_orm.CodeFirst.IsSyncStructureToLower ? name.ToLower() : name)}";
         public override string IsNull(string sql, object value) => $"coalesce({sql}, {value})";
         public override string StringConcat(string[] objs, Type[] types) => $"{string.Join(" || ", objs)}";

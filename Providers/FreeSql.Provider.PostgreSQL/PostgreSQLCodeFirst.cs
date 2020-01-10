@@ -1,13 +1,10 @@
-﻿using FreeSql.DataAnnotations;
-using FreeSql.DatabaseModel;
-using FreeSql.Internal;
+﻿using FreeSql.Internal;
 using FreeSql.Internal.Model;
 using Newtonsoft.Json.Linq;
 using Npgsql.LegacyPostgis;
 using NpgsqlTypes;
 using System;
 using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -128,14 +125,14 @@ namespace FreeSql.PostgreSQL
                 var tb = _commonUtils.GetTableByEntity(obj.entityType);
                 if (tb == null) throw new Exception($"类型 {obj.entityType.FullName} 不可迁移");
                 if (tb.Columns.Any() == false) throw new Exception($"类型 {obj.entityType.FullName} 不可迁移，可迁移属性0个");
-                var tbname = tb.DbName.Split(new[] { '.' }, 2);
+                var tbname = _commonUtils.SplitTableName(tb.DbName);
                 if (tbname?.Length == 1) tbname = new[] { "public", tbname[0] };
 
-                var tboldname = tb.DbOldName?.Split(new[] { '.' }, 2); //旧表名
+                var tboldname = _commonUtils.SplitTableName(tb.DbOldName); //旧表名
                 if (tboldname?.Length == 1) tboldname = new[] { "public", tboldname[0] };
                 if (string.IsNullOrEmpty(obj.tableName) == false)
                 {
-                    var tbtmpname = obj.tableName.Split(new[] { '.' }, 2);
+                    var tbtmpname = _commonUtils.SplitTableName(obj.tableName);
                     if (tbtmpname?.Length == 1) tbtmpname = new[] { "public", tbtmpname[0] };
                     if (tbname[0] != tbtmpname[0] || tbname[1] != tbtmpname[1])
                     {
@@ -143,6 +140,7 @@ namespace FreeSql.PostgreSQL
                         tboldname = null;
                     }
                 }
+                //codefirst 不支持表名、模式名、数据库名中带 .
 
                 if (string.Compare(tbname[0], "public", true) != 0 && _orm.Ado.ExecuteScalar(CommandType.Text, _commonUtils.FormatSql(" select 1 from pg_namespace where nspname={0}", tbname[0])) == null) //创建模式
                     sb.Append("CREATE SCHEMA IF NOT EXISTS ").Append(tbname[0]).Append(";\r\n");

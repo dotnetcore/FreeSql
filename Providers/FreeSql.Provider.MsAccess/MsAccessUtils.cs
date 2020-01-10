@@ -2,11 +2,8 @@
 using FreeSql.Internal.Model;
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Data.Common;
 using System.Data.OleDb;
-using System.Linq;
-using System.Linq.Expressions;
 using System.Text;
 
 namespace FreeSql.MsAccess
@@ -40,12 +37,18 @@ namespace FreeSql.MsAccess
             });
 
         public override string FormatSql(string sql, params object[] args) => sql?.FormatAccess(args);
-        public override string QuoteSqlName(string name)
+        public override string QuoteSqlName(params string[] name)
         {
-            var nametrim = name.Trim();
-            if (nametrim.StartsWith("(") && nametrim.EndsWith(")"))
-                return nametrim; //原生SQL
-            return $"[{nametrim.TrimStart('[').TrimEnd(']').Replace(".", "].[")}]";
+            if (name.Length == 1)
+            {
+                var nametrim = name[0].Trim();
+                if (nametrim.StartsWith("(") && nametrim.EndsWith(")"))
+                    return nametrim; //原生SQL
+                if (nametrim.StartsWith("[") && nametrim.EndsWith("]"))
+                    return nametrim;
+                return $"[{nametrim.Replace(".", "].[")}]";
+            }
+            return $"[{string.Join("].[", name)}]";
         }
         public override string TrimQuoteSqlName(string name)
         {
@@ -54,6 +57,7 @@ namespace FreeSql.MsAccess
                 return nametrim; //原生SQL
             return $"{nametrim.TrimStart('[').TrimEnd(']').Replace("].[", ".").Replace(".[", ".")}";
         }
+        public override string[] SplitTableName(string name) => GetSplitTableNames(name, '[', ']', 2);
         public override string QuoteParamterName(string name) => $"@{(_orm.CodeFirst.IsSyncStructureToLower ? name.ToLower() : name)}";
         public override string IsNull(string sql, object value) => $"iif(isnull({sql}), {value}, {sql})";
         public override string StringConcat(string[] objs, Type[] types)
