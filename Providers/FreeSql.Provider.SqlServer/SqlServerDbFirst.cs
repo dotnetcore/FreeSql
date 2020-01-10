@@ -308,7 +308,7 @@ select
 from sys.index_columns a
 inner join sys.indexes b on b.object_id = a.object_id and b.index_id = a.index_id
 left join sys.columns c on c.object_id = a.object_id and c.column_id = a.column_id
-where {loc8.ToString().Replace("a.table_name", "a.object_id")} and b.is_primary_key = 0
+where {loc8.ToString().Replace("a.table_name", "a.object_id")}
 ;
 use [{olddatabase}];
 ";

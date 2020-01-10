@@ -294,7 +294,7 @@ inner join pg_class b on b.oid = a.indexrelid
 inner join pg_attribute c on c.attnum > 0 and c.attrelid = b.oid
 inner join pg_namespace ns on ns.oid = b.relnamespace
 inner join pg_class d on d.oid = a.indrelid
-where {loc8.ToString().Replace("a.table_name", "ns.nspname || '.' || d.relname")} and a.indisprimary = 'f'
+where {loc8.ToString().Replace("a.table_name", "ns.nspname || '.' || d.relname")}
 ";
                 ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
                 if (ds == null) return loc1;

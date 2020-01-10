@@ -257,7 +257,7 @@ case when a.index_name = 'PRIMARY' then 1 else 0 end 'IsPrimaryKey',
 0 'IsClustered',
 0 'IsDesc'
 from information_schema.statistics a
-where a.table_schema in ({1}) and {0} and a.index_name <> 'PRIMARY'
+where a.table_schema in ({1}) and {0}
 ", loc8, databaseIn);
             ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
             if (ds == null) return loc1;
