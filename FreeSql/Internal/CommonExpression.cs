@@ -206,7 +206,7 @@ namespace FreeSql.Internal
                             var child = new ReadAnonymousTypeInfo
                             {
                                 Property = null,
-                                CsName = newExp.Members[a].Name,
+                                CsName = (newExp.Arguments[a] as MemberExpression)?.Member.Name,
                                 CsType = newExp.Arguments[a].Type,
                                 MapType = newExp.Arguments[a].Type
                             };
