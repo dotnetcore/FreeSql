@@ -127,14 +127,14 @@ namespace FreeSql
         /// <typeparam name="T3"></typeparam>
         /// <param name="column"></param>
         /// <returns></returns>
-        T3 Sum<T3>(T3 column);
+        decimal Sum<T3>(T3 column);
         /// <summary>
         /// 平均值
         /// </summary>
         /// <typeparam name="T3"></typeparam>
         /// <param name="column"></param>
         /// <returns></returns>
-        T3 Avg<T3>(T3 column);
+        decimal Avg<T3>(T3 column);
         /// <summary>
         /// 最大值
         /// </summary>

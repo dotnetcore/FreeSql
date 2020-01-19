@@ -698,7 +698,7 @@ namespace FreeSql.Tests
                  .ToSql(a => new NewsArticleDto
                  {
                      ArticleTitle = a.Key,
-                      ChannelId = a.Sum(a.Value.Item1.OptionsEntity04)
+                      ChannelId = (int)a.Sum(a.Value.Item1.OptionsEntity04)
                  });
 
             var testgrpsql2 = g.sqlite.Select<TaskBuild>()

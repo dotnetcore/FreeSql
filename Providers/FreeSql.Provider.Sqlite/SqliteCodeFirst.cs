@@ -160,7 +160,7 @@ namespace FreeSql.Sqlite
                 //对比字段，只可以修改类型、增加字段、有限的修改字段名；保证安全不删除字段
                 var tbtmp = tboldname ?? tbname;
                 var dsql = _orm.Ado.ExecuteScalar(CommandType.Text, $" select sql from {tbtmp[0]}.sqlite_master where type='table' and name='{tbtmp[1]}'")?.ToString();
-                var ds = _orm.Ado.ExecuteArray(CommandType.Text, $"PRAGMA {_commonUtils.QuoteSqlName(tbtmp[0])}.table_info({_commonUtils.QuoteSqlName(tbtmp[1])})");
+                var ds = _orm.Ado.ExecuteArray(CommandType.Text, $"PRAGMA {_commonUtils.QuoteSqlName(tbtmp[0])}.table_info(\"{tbtmp[1]}\")");
                 var tbstruct = ds.ToDictionary(a => string.Concat(a[1]), a =>
                 {
                     var is_identity = false;
@@ -202,7 +202,7 @@ namespace FreeSql.Sqlite
                         istmpatler = true;
                     }
                     var dsuk = new List<string[]>();
-                    var dbIndexes = _orm.Ado.ExecuteArray(CommandType.Text, $"PRAGMA {_commonUtils.QuoteSqlName(tbtmp[0])}.INDEX_LIST({_commonUtils.QuoteSqlName(tbtmp[1])})");
+                    var dbIndexes = _orm.Ado.ExecuteArray(CommandType.Text, $"PRAGMA {_commonUtils.QuoteSqlName(tbtmp[0])}.INDEX_LIST(\"{tbtmp[1]}\")");
                     foreach (var dbIndex in dbIndexes)
                     {
                         if (string.Concat(dbIndex[3]) == "pk") continue;

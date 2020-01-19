@@ -114,6 +114,7 @@ namespace FreeSql.Internal.CommonProvider
             var index = 0;
 
             _comonExp.ReadAnonymousField(null, field, map, ref index, select, getSelectGroupingMapString, null, true);
+            if (map.Childs.Any() == false && map.MapType == null) map.MapType = typeof(TReturn);
             var method = _select.GetType().GetMethod("ToListMapReader", BindingFlags.Instance | BindingFlags.NonPublic);
             method = method.MakeGenericMethod(typeof(TReturn));
             return method.Invoke(_select, new object[] { (map, field.Length > 0 ? field.Remove(0, 2).ToString() : null) }) as List<TReturn>;
@@ -181,6 +182,7 @@ namespace FreeSql.Internal.CommonProvider
             var index = 0;
 
             _comonExp.ReadAnonymousField(null, field, map, ref index, select, getSelectGroupingMapString, null, true);
+            if (map.Childs.Any() == false && map.MapType == null) map.MapType = typeof(TReturn);
             var method = _select.GetType().GetMethod("ToListMapReaderAsync", BindingFlags.Instance | BindingFlags.NonPublic);
             method = method.MakeGenericMethod(typeof(TReturn));
             return method.Invoke(_select, new object[] { (map, field.Length > 0 ? field.Remove(0, 2).ToString() : null) }) as Task<List<TReturn>>;

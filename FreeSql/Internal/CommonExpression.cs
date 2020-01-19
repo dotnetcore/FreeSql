@@ -124,7 +124,7 @@ namespace FreeSql.Internal
                             var child = new ReadAnonymousTypeInfo
                             {
                                 Property = null,
-                                CsName = (initExp.NewExpression.Arguments[a] as MemberExpression)?.Member.Name,
+                                CsName = initExp.NewExpression.Members != null ? initExp.NewExpression.Members[a].Name : (initExp.NewExpression.Arguments[a] as MemberExpression)?.Member.Name,
                                 CsType = initExp.NewExpression.Arguments[a].Type,
                                 MapType = initExp.NewExpression.Arguments[a].Type
                             };
@@ -206,7 +206,7 @@ namespace FreeSql.Internal
                             var child = new ReadAnonymousTypeInfo
                             {
                                 Property = null,
-                                CsName = (newExp.Arguments[a] as MemberExpression)?.Member.Name,
+                                CsName = newExp.Members != null ? newExp.Members[a].Name : (newExp.Arguments[a] as MemberExpression)?.Member.Name,
                                 CsType = newExp.Arguments[a].Type,
                                 MapType = newExp.Arguments[a].Type
                             };
