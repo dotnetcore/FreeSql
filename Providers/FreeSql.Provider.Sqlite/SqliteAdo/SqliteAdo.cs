@@ -19,10 +19,8 @@ namespace FreeSql.Sqlite
             if (connectionFactory != null)
             {
                 MasterPool = new FreeSql.Internal.CommonProvider.DbConnectionPool(DataType.Sqlite, connectionFactory);
-                using (var conn = MasterPool.Get())
-                {
-                    _CreateCommandConnection = conn.Value;
-                }
+                _CreateCommandConnection = MasterPool.Get().Value;
+                _CreateCommandConnection.Close();
                 return;
             }
             if (!string.IsNullOrEmpty(masterConnectionString))
@@ -65,7 +63,12 @@ namespace FreeSql.Sqlite
         DbConnection _CreateCommandConnection;
         protected override DbCommand CreateCommand()
         {
-            if (_CreateCommandConnection != null) return _CreateCommandConnection.CreateCommand();
+            if (_CreateCommandConnection != null)
+            {
+                var cmd = _CreateCommandConnection.CreateCommand();
+                cmd.Connection = null;
+                return cmd;
+            }
             return new SQLiteCommand();
         }
 
