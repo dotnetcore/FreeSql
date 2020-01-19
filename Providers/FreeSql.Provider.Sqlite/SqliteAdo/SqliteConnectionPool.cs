@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Data.SQLite;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -34,7 +35,7 @@ namespace FreeSql.Sqlite
 
         public void Return(Object<DbConnection> obj, Exception exception, bool isRecreate = false)
         {
-            if (exception != null && AdonetPortable.IsSqliteException(exception))
+            if (exception != null && exception is SQLiteException)
             {
                 try { if (obj.Value.Ping() == false) obj.Value.OpenAndAttach(policy.Attaches); } catch { base.SetUnavailable(exception); }
             }
@@ -121,7 +122,7 @@ namespace FreeSql.Sqlite
 
         public DbConnection OnCreate()
         {
-            var conn = AdonetPortable.GetSqliteConnection(_connectionString);
+            var conn = new SQLiteConnection(_connectionString);
             return conn;
         }
 

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Data.SQLite;
 
 namespace FreeSql.Sqlite
 {
@@ -31,7 +32,7 @@ namespace FreeSql.Sqlite
                     dbtype = DbType.Int64;
                     break;
             }
-            var ret = AdonetPortable.GetSqliteParameter();
+            var ret = new SQLiteParameter();
             ret.ParameterName = QuoteParamterName(parameterName);
             ret.DbType = dbtype;
             ret.Value = value;
@@ -56,7 +57,7 @@ namespace FreeSql.Sqlite
                         dbtype = DbType.Int64;
                         break;
                 }
-                var ret = AdonetPortable.GetSqliteParameter();
+                var ret = new SQLiteParameter();
                 ret.ParameterName = $"@{name}";
                 ret.DbType = dbtype;
                 ret.Value = value;

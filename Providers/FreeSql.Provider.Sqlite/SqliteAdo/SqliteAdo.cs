@@ -4,6 +4,7 @@ using SafeObjectPool;
 using System;
 using System.Collections;
 using System.Data.Common;
+using System.Data.SQLite;
 using System.Text;
 using System.Threading;
 
@@ -18,6 +19,10 @@ namespace FreeSql.Sqlite
             if (connectionFactory != null)
             {
                 MasterPool = new FreeSql.Internal.CommonProvider.DbConnectionPool(DataType.Sqlite, connectionFactory);
+                using (var conn = MasterPool.Get())
+                {
+                    _CreateCommandConnection = conn.Value;
+                }
                 return;
             }
             if (!string.IsNullOrEmpty(masterConnectionString))
@@ -57,9 +62,11 @@ namespace FreeSql.Sqlite
             return string.Concat("'", param.ToString().Replace("'", "''"), "'");
         }
 
+        DbConnection _CreateCommandConnection;
         protected override DbCommand CreateCommand()
         {
-            return AdonetPortable.GetSqliteCommand();
+            if (_CreateCommandConnection != null) return _CreateCommandConnection.CreateCommand();
+            return new SQLiteCommand();
         }
 
         protected override void ReturnConnection(IObjectPool<DbConnection> pool, Object<DbConnection> conn, Exception ex)

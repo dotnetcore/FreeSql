@@ -21,13 +21,10 @@
   <ItemGroup>
     <None Include="../../logo.png" Pack="true" PackagePath="\" />
   </ItemGroup>
-  
-	<ItemGroup>
+
+  <ItemGroup >
 	  <PackageReference Include="System.Data.SQLite.Core" Version="1.0.112" />
 	</ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="3.1.0" />
-  </ItemGroup>
 
 	<ItemGroup>
 	  <ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />

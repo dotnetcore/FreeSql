@@ -38,6 +38,7 @@ namespace FreeSql.Sqlite
             this.Aop = new AopProvider();
 
             this.CodeFirst = new SqliteCodeFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
+            if (connectionFactory != null) this.CodeFirst.IsNoneCommandParameter = true;
         }
 
         internal CommonUtils InternalCommonUtils { get; }
