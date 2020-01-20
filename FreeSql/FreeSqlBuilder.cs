@@ -174,62 +174,63 @@ namespace FreeSql
             if (type?.IsGenericType == true) type = type.MakeGenericType(typeof(TMark));
             if (type == null)
             {
+                Action<string, string> throwNotFind = (dll, providerType) => throw new Exception($"缺少 FreeSql 数据库实现包：{dll}，可前往 nuget 下载；如果存在 {dll} 依然报错（原因是环境问题导致反射不到类型），请在 UseConnectionString/UseConnectionFactory 第三个参数手工传入 typeof({providerType})");
                 switch (_dataType)
                 {
                     case DataType.MySql:
                         type = Type.GetType("FreeSql.MySql.MySqlProvider`1,FreeSql.Provider.MySql")?.MakeGenericType(typeof(TMark));
                         if (type == null) type = Type.GetType("FreeSql.MySql.MySqlProvider`1,FreeSql.Provider.MySqlConnector")?.MakeGenericType(typeof(TMark));
-                        if (type == null) throw new Exception("缺少 FreeSql 数据库实现包：FreeSql.Provider.MySql.dll，可前往 nuget 下载");
+                        if (type == null) throwNotFind("FreeSql.Provider.MySql.dll", "FreeSql.MySql.MySqlProvider<>");
                         break;
                     case DataType.SqlServer:
                         type = Type.GetType("FreeSql.SqlServer.SqlServerProvider`1,FreeSql.Provider.SqlServer")?.MakeGenericType(typeof(TMark));
-                        if (type == null) throw new Exception("缺少 FreeSql 数据库实现包：FreeSql.Provider.SqlServer.dll，可前往 nuget 下载");
+                        if (type == null) throwNotFind("FreeSql.Provider.SqlServer.dll", "FreeSql.SqlServer.SqlServerProvider<>");
                         break;
                     case DataType.PostgreSQL:
                         type = Type.GetType("FreeSql.PostgreSQL.PostgreSQLProvider`1,FreeSql.Provider.PostgreSQL")?.MakeGenericType(typeof(TMark));
-                        if (type == null) throw new Exception("缺少 FreeSql 数据库实现包：FreeSql.Provider.PostgreSQL.dll，可前往 nuget 下载");
+                        if (type == null) throwNotFind("FreeSql.Provider.PostgreSQL.dll", "FreeSql.PostgreSQL.PostgreSQLProvider<>");
                         break;
                     case DataType.Oracle:
                         type = Type.GetType("FreeSql.Oracle.OracleProvider`1,FreeSql.Provider.Oracle")?.MakeGenericType(typeof(TMark));
-                        if (type == null) throw new Exception("缺少 FreeSql 数据库实现包：FreeSql.Provider.Oracle.dll，可前往 nuget 下载");
+                        if (type == null) throwNotFind("FreeSql.Provider.Oracle.dll", "FreeSql.Oracle.OracleProvider<>");
                         break;
                     case DataType.Sqlite:
                         type = Type.GetType("FreeSql.Sqlite.SqliteProvider`1,FreeSql.Provider.Sqlite")?.MakeGenericType(typeof(TMark));
-                        if (type == null) throw new Exception("缺少 FreeSql 数据库实现包：FreeSql.Provider.Sqlite.dll，可前往 nuget 下载");
+                        if (type == null) throwNotFind("FreeSql.Provider.Sqlite.dll", "FreeSql.Sqlite.SqliteProvider<>");
                         break;
 
                     case DataType.OdbcOracle:
                         type = Type.GetType("FreeSql.Odbc.Oracle.OdbcOracleProvider`1,FreeSql.Provider.Odbc")?.MakeGenericType(typeof(TMark));
-                        if (type == null) throw new Exception("缺少 FreeSql 数据库实现包：FreeSql.Provider.Odbc.dll，可前往 nuget 下载");
+                        if (type == null) throwNotFind("FreeSql.Provider.Odbc.dll", "FreeSql.Odbc.Oracle.OdbcOracleProvider<>");
                         break;
                     case DataType.OdbcSqlServer:
                         type = Type.GetType("FreeSql.Odbc.SqlServer.OdbcSqlServerProvider`1,FreeSql.Provider.Odbc")?.MakeGenericType(typeof(TMark));
-                        if (type == null) throw new Exception("缺少 FreeSql 数据库实现包：FreeSql.Provider.Odbc.dll，可前往 nuget 下载");
+                        if (type == null) throwNotFind("FreeSql.Provider.Odbc.dll", "FreeSql.Odbc.SqlServer.OdbcSqlServerProvider<>");
                         break;
                     case DataType.OdbcMySql:
                         type = Type.GetType("FreeSql.Odbc.MySql.OdbcMySqlProvider`1,FreeSql.Provider.Odbc")?.MakeGenericType(typeof(TMark));
-                        if (type == null) throw new Exception("缺少 FreeSql 数据库实现包：FreeSql.Provider.Odbc.dll，可前往 nuget 下载");
+                        if (type == null) throwNotFind("FreeSql.Provider.Odbc.dll", "FreeSql.Odbc.MySql.OdbcMySqlProvider<>");
                         break;
                     case DataType.OdbcPostgreSQL:
                         type = Type.GetType("FreeSql.Odbc.PostgreSQL.OdbcPostgreSQLProvider`1,FreeSql.Provider.Odbc")?.MakeGenericType(typeof(TMark));
-                        if (type == null) throw new Exception("缺少 FreeSql 数据库实现包：FreeSql.Provider.Odbc.dll，可前往 nuget 下载");
+                        if (type == null) throwNotFind("FreeSql.Provider.Odbc.dll", "FreeSql.Odbc.PostgreSQL.OdbcPostgreSQLProvider<>");
                         break;
                     case DataType.Odbc:
                         type = Type.GetType("FreeSql.Odbc.Default.OdbcProvider`1,FreeSql.Provider.Odbc")?.MakeGenericType(typeof(TMark));
-                        if (type == null) throw new Exception("缺少 FreeSql 数据库实现包：FreeSql.Provider.Odbc.dll，可前往 nuget 下载");
+                        if (type == null) throwNotFind("FreeSql.Provider.Odbc.dll", "FreeSql.Odbc.Default.OdbcProvider<>");
                         break;
 
                     case DataType.OdbcDameng:
                         type = Type.GetType("FreeSql.Odbc.Dameng.OdbcDamengProvider`1,FreeSql.Provider.Odbc")?.MakeGenericType(typeof(TMark));
-                        if (type == null) throw new Exception("缺少 FreeSql 数据库实现包：FreeSql.Provider.Odbc.dll，可前往 nuget 下载");
+                        if (type == null) throwNotFind("FreeSql.Provider.Odbc.dll", "FreeSql.Odbc.Dameng.OdbcDamengProvider<>");
                         break;
 
                     case DataType.MsAccess:
                         type = Type.GetType("FreeSql.MsAccess.MsAccessProvider`1,FreeSql.Provider.MsAccess")?.MakeGenericType(typeof(TMark));
-                        if (type == null) throw new Exception("缺少 FreeSql 数据库实现包：FreeSql.Provider.MsAccess.dll，可前往 nuget 下载");
+                        if (type == null) throwNotFind("FreeSql.Provider.MsAccess.dll", "FreeSql.MsAccess.MsAccessProvider<>");
                         break;
 
-                    default: throw new Exception("未指定 UseConnectionString");
+                    default: throw new Exception("未指定 UseConnectionString 或者 UseConnectionFactory");
                 }
             }
             ret = Activator.CreateInstance(type, new object[] { _masterConnectionString, _slaveConnectionString, _connectionFactory }) as IFreeSql<TMark>;
