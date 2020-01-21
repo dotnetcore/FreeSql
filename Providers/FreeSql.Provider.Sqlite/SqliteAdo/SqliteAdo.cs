@@ -3,6 +3,7 @@ using FreeSql.Internal.Model;
 using SafeObjectPool;
 using System;
 using System.Collections;
+using System.Data;
 using System.Data.Common;
 using System.Data.SQLite;
 using System.Text;
@@ -18,9 +19,9 @@ namespace FreeSql.Sqlite
             base._util = util;
             if (connectionFactory != null)
             {
-                MasterPool = new FreeSql.Internal.CommonProvider.DbConnectionPool(DataType.Sqlite, connectionFactory);
-                _CreateCommandConnection = MasterPool.Get().Value;
-                _CreateCommandConnection.Close();
+                var pool = new FreeSql.Internal.CommonProvider.DbConnectionPool(DataType.Sqlite, connectionFactory);
+                MasterPool = pool;
+                _CreateCommandConnection = pool.TestConnection;
                 return;
             }
             if (!string.IsNullOrEmpty(masterConnectionString))

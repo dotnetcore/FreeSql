@@ -106,6 +106,12 @@ namespace FreeSql.Sqlite
                     _connectionString = string.Concat(att[0], idx == -1 ? "" : att[1].Substring(idx));
                 }
 
+                if (_connectionString.ToLower().Contains(":memory:"))
+                {
+                    //内存模式
+                    PoolSize = 1;
+                }
+
 #if ns20
                 minPoolSize = 1;
 #endif

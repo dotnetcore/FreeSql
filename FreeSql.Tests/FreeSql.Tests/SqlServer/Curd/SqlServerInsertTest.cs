@@ -25,7 +25,7 @@ namespace FreeSql.Tests.SqlServer
         {
             [Column(IsIdentity = true, IsPrimary = true)]
             public int Id { get; set; }
-            public int? Clicks { get; set; }
+            public int Clicks { get; set; }
             public int TypeGuid { get; set; }
             public TestTypeInfo Type { get; set; }
             public string Title { get; set; }
@@ -163,6 +163,15 @@ namespace FreeSql.Tests.SqlServer
             var itemsInserted = g.sqlserver.Insert<Topic>(items).ExecuteInserted();
             Assert.Equal(items.First().Title, itemsInserted.First().Title);
             Assert.Equal(items.Last().Title, itemsInserted.Last().Title);
+        }
+        [Fact]
+        public void ExecuteSqlBulkCopy()
+        {
+            var items = new List<Topic>();
+            for (var a = 0; a < 10; a++) items.Add(new Topic { Id = a + 1, Title = $"newtitle{a}", Clicks = a * 100, CreateTime = DateTime.Now });
+
+            insert.AppendData(items).InsertIdentity().ExecuteSqlBulkCopy();
+            // System.NotSupportedException:“DataSet does not support System.Nullable<>.”
         }
 
         [Fact]

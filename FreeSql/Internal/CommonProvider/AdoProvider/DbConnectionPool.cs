@@ -13,9 +13,35 @@ namespace FreeSql.Internal.CommonProvider
     {
         internal DataType _dataType;
         internal Func<DbConnection> _connectionFactory;
+        public DbConnection TestConnection { get; }
+        public bool IsSingletonConnection { get; }
         int _id;
         public DbConnectionPool(DataType dataType, Func<DbConnection> connectionFactory)
         {
+            #region Test connectionFactory
+            //情况1：() => new SqlConnection(...)
+            //情况2：() => conn
+            DbConnection conn1 = null;
+            DbConnection conn2 = null;
+            try
+            {
+                conn1 = connectionFactory(); //测试 conn
+                conn2 = connectionFactory();
+
+                TestConnection = conn1; //赋值创建 Command，兼容 Mono.Data.Sqlite
+                IsSingletonConnection = conn1 == conn2;
+            }
+            catch { }
+            finally
+            {
+                if (conn1 != conn2)
+                {
+                    if (conn1?.State == ConnectionState.Open) try { conn1?.Close(); } catch { }
+                    if (conn2?.State == ConnectionState.Open) try { conn2?.Close(); } catch { }
+                }
+            }
+            #endregion
+
             _dataType = dataType;
             _connectionFactory = connectionFactory;
             Policy = new DbConnectionPoolPolicy(this);
@@ -55,6 +81,7 @@ namespace FreeSql.Internal.CommonProvider
         public void Return(Object<DbConnection> obj, bool isReset = false)
         {
             if (obj == null || obj.Value == null) return;
+            if (IsSingletonConnection) return;
             if (obj.Value.State != ConnectionState.Closed)
                 obj.Value.Close();
             if (_dataType == DataType.Sqlite)
