@@ -215,30 +215,6 @@ using (var ctx = new fsql.CreateDbContext()) {
 }
 ```
 
-# DataFilter & Tenant
-
-```csharp
-public void ConfigureServices(IServiceCollection services) {
-    services.AddSingleton<IFreeSql>(Fsql);
-    services.AddFreeRepository(filter => filter
-        .Apply<ISoftDelete>("SoftDelete", a => a.IsDeleted == false)
-        .Apply<ITenant>("Tenant", a => a.TenantId == 1)
-        ,
-        this.GetType().Assembly
-    );
-}
-```
-
-Temporary disable:
-```csharp
-var repoq = fsql.GetRepository<Song, int>();
-
-using (repo1.DataFilter.Disable("Tenant")) {
-    //Tenant Invalid
-}
-//Tenant restore
-```
-
 # Performance
 
 FreeSql Query & Dapper Query
@@ -265,7 +241,7 @@ Elapsed: 00:00:00.6707125; ToList Entity Counts: 131072; ORM: FreeSql*
 Elapsed: 00:00:00.6495301; Query Entity Counts: 131072; ORM: Dapper
 ```
 
-[Test code](FreeSql.Tests.PerformanceTests/MySqlAdoTest.cs)
+[Test code](FreeSql.Tests.PerformanceTests/MySqlAdoTest.cs)、[More](https://github.com/2881099/FreeSql/wiki/%e6%80%a7%e8%83%bd)
 
 # Contributors
 
@@ -283,3 +259,9 @@ Elapsed: 00:00:00.6495301; Query Entity Counts: 131072; ORM: Dapper
 [tky753](https://github.com/tky753)
 
 （QQ群：4336577）
+
+# Donation
+
+L*y 58元、花花 88 元、麦兜很乖 50元、网络来者 2000元
+
+<img height="210" src="https://images.cnblogs.com/cnblogs_com/kellynic/133561/o_200123075118IMG_7935(20200123-154947).JPG"/>
