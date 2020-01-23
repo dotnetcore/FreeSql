@@ -262,7 +262,7 @@ Elapsed: 00:00:00.6495301; Query Entity Counts: 131072; ORM: Dapper
 
 # Donation
 
-L*y 58元、花花 88元、麦兜很乖 50元、网络来者 2000元
+L*y 58元、花花 88元、麦兜很乖 50元、网络来者 2000元、John 99.99元
 
 > Thank you for your donation
 
