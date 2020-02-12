@@ -140,7 +140,7 @@ namespace FreeSql.Internal
                         {
                             foreach (var dtTb in _tables)
                             {
-                                if (dtTb.Table.Columns.TryGetValue(dtoProp.Name, out var trydtocol) == false) continue;
+                                if (dtTb.Table.ColumnsByCs.TryGetValue(dtoProp.Name, out var trydtocol) == false) continue;
                                 if (trydtocol.Attribute.IsIgnore == true) continue;
 
                                 var child = new ReadAnonymousTypeInfo
