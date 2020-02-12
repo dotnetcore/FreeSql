@@ -1,0 +1,263 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>FreeSql.Extensions.BaseEntity</name>
+    </assembly>
+    <members>
+        <member name="T:FreeSql.BaseEntity`2">
+            <summary>
+            包括 CreateTime/UpdateTime/IsDeleted、CRUD 方法、以及 ID 主键定义 的实体基类
+            <para></para>
+            当 TKey 为 int/long 时，Id 主键被设为自增值主键
+            </summary>
+            <typeparam name="TEntity"></typeparam>
+            <typeparam name="TKey"></typeparam>
+        </member>
+        <member name="P:FreeSql.BaseEntity`2.Id">
+            <summary>
+            主键
+            </summary>
+        </member>
+        <member name="M:FreeSql.BaseEntity`2.FindAsync(`1)">
+            <summary>
+            根据主键值获取数据
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.BaseEntity`2.Find(`1)">
+            <summary>
+            根据主键值获取数据
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="T:FreeSql.BaseEntity`1">
+            <summary>
+            包括 CreateTime/UpdateTime/IsDeleted、以及 CRUD 异步和同步方法的实体基类
+            </summary>
+            <typeparam name="TEntity"></typeparam>
+        </member>
+        <member name="M:FreeSql.BaseEntity`1.Delete(System.Boolean)">
+            <summary>
+            删除数据
+            </summary>
+            <param name="physicalDelete">是否物理删除</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.BaseEntity`1.Restore">
+            <summary>
+            恢复删除的数据
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.BaseEntity`1.Update">
+            <summary>
+            更新数据
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.BaseEntity`1.Insert">
+            <summary>
+            插入数据
+            </summary>
+        </member>
+        <member name="M:FreeSql.BaseEntity`1.Save">
+            <summary>
+            更新或插入
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:FreeSql.BaseEntityAsync`2">
+            <summary>
+            包括 CreateTime/UpdateTime/IsDeleted、CRUD 异步方法、以及 ID 主键定义 的实体基类
+            <para></para>
+            当 TKey 为 int/long 时，Id 主键被设为自增值主键
+            </summary>
+            <typeparam name="TEntity"></typeparam>
+            <typeparam name="TKey"></typeparam>
+        </member>
+        <member name="P:FreeSql.BaseEntityAsync`2.Id">
+            <summary>
+            主键
+            </summary>
+        </member>
+        <member name="M:FreeSql.BaseEntityAsync`2.FindAsync(`1)">
+            <summary>
+            根据主键值获取数据
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="T:FreeSql.BaseEntityAsync`1">
+            <summary>
+            包括 CreateTime/UpdateTime/IsDeleted、以及 CRUD 异步方法的实体基类
+            </summary>
+            <typeparam name="TEntity"></typeparam>
+        </member>
+        <member name="M:FreeSql.BaseEntityAsync`1.DeleteAsync(System.Boolean)">
+            <summary>
+            删除数据
+            </summary>
+            <param name="physicalDelete">是否物理删除</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.BaseEntityAsync`1.RestoreAsync">
+            <summary>
+            恢复删除的数据
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.BaseEntityAsync`1.UpdateAsync">
+            <summary>
+            更新数据
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.BaseEntityAsync`1.InsertAsync">
+            <summary>
+            插入数据
+            </summary>
+        </member>
+        <member name="M:FreeSql.BaseEntityAsync`1.SaveAsync">
+            <summary>
+            更新或插入
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:FreeSql.BaseEntity">
+            <summary>
+            包括 CreateTime/UpdateTime/IsDeleted 的实体基类
+            </summary>
+        </member>
+        <member name="P:FreeSql.BaseEntity.Orm">
+            <summary>
+            全局 IFreeSql orm 对象
+            </summary>
+        </member>
+        <member name="M:FreeSql.BaseEntity.Initialization(IFreeSql)">
+            <summary>
+            初始化BaseEntity
+            BaseEntity.Initialization(new FreeSqlBuilder()
+            <para></para>
+            .UseAutoSyncStructure(true)
+            <para></para>
+            .UseConnectionString(DataType.Sqlite, "data source=test.db;max pool size=5")
+            <para></para>
+            .Build());
+            </summary>
+            <param name="fsql">IFreeSql orm 对象</param>
+        </member>
+        <member name="P:FreeSql.BaseEntity.CreateTime">
+            <summary>
+            创建时间
+            </summary>
+        </member>
+        <member name="P:FreeSql.BaseEntity.UpdateTime">
+            <summary>
+            更新时间
+            </summary>
+        </member>
+        <member name="P:FreeSql.BaseEntity.IsDeleted">
+            <summary>
+            逻辑删除
+            </summary>
+        </member>
+        <member name="P:FreeSql.BaseEntity.Sort">
+            <summary>
+            排序
+            </summary>
+        </member>
+        <member name="M:FreeSql.BaseEntity.Begin">
+            <summary>
+            开启工作单元事务
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.BaseEntity.Begin(System.Nullable{System.Data.IsolationLevel})">
+            <summary>
+            开启工作单元事务
+            </summary>
+            <param name="level">事务等级</param>
+            <returns></returns>
+        </member>
+        <member name="P:FreeSql.BaseEntity.CurrentTenantId">
+            <summary>
+            获取或设置当前租户id
+            </summary>
+        </member>
+        <member name="T:FreeSql.ITenant">
+            <summary>
+            租户
+            </summary>
+        </member>
+        <member name="P:FreeSql.ITenant.TenantId">
+            <summary>
+            租户id
+            </summary>
+        </member>
+        <member name="P:FreeSql.BaseEntityReadOnly`1.Select">
+            <summary>
+            查询数据
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.BaseEntityReadOnly`1.SetTenantId">
+            <summary>
+            设置当前租户id
+            </summary>
+        </member>
+        <member name="M:FreeSql.BaseEntityReadOnly`1.Where(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
+            <summary>
+            查询条件，Where(a => a.Id > 10)，支持导航对象查询，Where(a => a.Author.Email == "2881099@qq.com")
+            </summary>
+            <param name="exp">lambda表达式</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.BaseEntityReadOnly`1.WhereIf(System.Boolean,System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
+            <summary>
+            查询条件，Where(true, a => a.Id > 10)，支导航对象查询，Where(true, a => a.Author.Email == "2881099@qq.com")
+            </summary>
+            <param name="condition">true 时生效</param>
+            <param name="exp">lambda表达式</param>
+            <returns></returns>
+        </member>
+        <member name="P:FreeSql.BaseEntityReadOnly`1.Repository">
+            <summary>
+            仓储对象
+            </summary>
+        </member>
+        <member name="M:FreeSql.BaseEntityReadOnly`1.Attach">
+            <summary>
+            附加实体，在更新数据时，只更新变化的部分
+            </summary>
+        </member>
+        <member name="T:FreeSql.BaseEntityTree`2">
+            <summary>
+            树状基类
+            </summary>
+            <typeparam name="TEntity"></typeparam>
+            <typeparam name="TKey"></typeparam>
+        </member>
+        <member name="P:FreeSql.BaseEntityTree`2.ParentId">
+            <summary>
+            父级id
+            </summary>
+        </member>
+        <member name="P:FreeSql.BaseEntityTree`2.Childs">
+            <summary>
+            下级列表
+            </summary>
+        </member>
+        <member name="P:FreeSql.BaseEntityTree`2.Name">
+            <summary>
+            名称
+            </summary>
+        </member>
+        <member name="P:FreeSql.BaseEntityTree`2.FullName">
+            <summary>
+            名称：技术部-前端
+            </summary>
+        </member>
+    </members>
+</doc>

@@ -1,57 +1,87 @@
 ﻿using FreeSql;
+using FreeSql.DataAnnotations;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Swashbuckle.AspNetCore.Swagger;
 using System;
+using System.Diagnostics;
 using System.Text;
 
-namespace repository_01 {
-	public class Startup {
-		public Startup(IConfiguration configuration, ILoggerFactory loggerFactory) {
-			Configuration = configuration;
+namespace repository_01
+{
 
-			Fsql = new FreeSql.FreeSqlBuilder()
-				.UseConnectionString(FreeSql.DataType.Sqlite, @"Data Source=|DataDirectory|\document.db;Pooling=true;Max Pool Size=10")
-				.UseLogger(loggerFactory.CreateLogger<IFreeSql>())
-				.UseAutoSyncStructure(true)
-				.Build();
-		}
+    /// <summary>
+    /// 用户密码信息
+    /// </summary>
+    public class Sys1UserLogOn
+    {
+        [Column(IsPrimary = true, Name = "Id")]
+        public Guid UserLogOnId { get; set; }
+        public virtual Sys1User User { get; set; }
+    }
+    public class Sys1User
+    {
+        [Column(IsPrimary = true, Name = "Id")]
+        public Guid UserId { get; set; }
+        public virtual Sys1UserLogOn UserLogOn { get; set; }
+    }
 
-		public IConfiguration Configuration { get; }
-		public IFreeSql Fsql { get; }
+    public class Startup
+    {
+        public Startup(IConfiguration configuration, ILoggerFactory loggerFactory)
+        {
+            Configuration = configuration;
 
-		public void ConfigureServices(IServiceCollection services) {
-			services.AddSingleton<IFreeSql>(Fsql);
+            Fsql = new FreeSql.FreeSqlBuilder()
+                .UseConnectionString(FreeSql.DataType.Sqlite, @"Data Source=|DataDirectory|\document.db;Pooling=true;Max Pool Size=10")
+                .UseAutoSyncStructure(true)
+                .UseLazyLoading(true)
 
-			services.AddMvc();
-			services.AddSwaggerGen(options => {
-				options.SwaggerDoc("v1", new Info {
-					Version = "v1",
-					Title = "FreeSql.RESTful API"
-				});
-				//options.IncludeXmlComments(xmlPath);
-			});
-		}
+                .UseMonitorCommand(cmd => Trace.WriteLine(cmd.CommandText))
+                .Build();
 
-		public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory) {
-			Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-			Console.OutputEncoding = Encoding.GetEncoding("GB2312");
-			Console.InputEncoding = Encoding.GetEncoding("GB2312");
+            var sysu = new Sys1User { };
+            Fsql.Insert<Sys1User>().AppendData(sysu).ExecuteAffrows();
+            Fsql.Insert<Sys1UserLogOn>().AppendData(new Sys1UserLogOn { UserLogOnId = sysu.UserId }).ExecuteAffrows();
+            var a = Fsql.Select<Sys1UserLogOn>().ToList();
+            var b = Fsql.Select<Sys1UserLogOn>().Any();
+        }
 
-			loggerFactory.AddConsole(Configuration.GetSection("Logging"));
-			loggerFactory.AddDebug();
+        public IConfiguration Configuration { get; }
+        public static IFreeSql Fsql { get; private set; }
 
-			app.UseHttpMethodOverride(new HttpMethodOverrideOptions { FormFieldName = "X-Http-Method-Override" });
-			app.UseDeveloperExceptionPage();
-			app.UseMvc();
+        public void ConfigureServices(IServiceCollection services)
+        {
 
-			app.UseSwagger();
-			app.UseSwaggerUI(c => {
-				c.SwaggerEndpoint("/swagger/v1/swagger.json", "FreeSql.RESTful API V1");
-			});
-		}
-	}
+            //services.AddTransient(s => s.)
+
+            services.AddControllersWithViews();
+            services.AddSingleton<IFreeSql>(Fsql);
+
+            services.AddFreeRepository(filter =>
+            {
+                filter
+                  //.Apply<Song>("test", a => a.Title == DateTime.Now.ToString() + System.Threading.Thread.CurrentThread.ManagedThreadId)
+                  .Apply<ISoftDelete>("softdelete", a => a.IsDeleted == false);
+            }, this.GetType().Assembly);
+        }
+
+        public void Configure(IApplicationBuilder app)
+        {
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            Console.OutputEncoding = Encoding.GetEncoding("GB2312");
+            Console.InputEncoding = Encoding.GetEncoding("GB2312");
+
+            app.UseHttpMethodOverride(new HttpMethodOverrideOptions { FormFieldName = "X-Http-Method-Override" });
+            app.UseDeveloperExceptionPage();
+            app.UseRouting();
+            app.UseEndpoints(a => a.MapControllers());
+        }
+    }
+
+    public interface ISoftDelete
+    {
+        bool IsDeleted { get; set; }
+    }
 }

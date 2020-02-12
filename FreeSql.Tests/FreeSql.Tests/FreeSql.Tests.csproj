@@ -1,0 +1,43 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>netcoreapp3.1</TargetFramework>
+
+		<IsPackable>false</IsPackable>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+	  <DocumentationFile>FreeSql.Tests.xml</DocumentationFile>
+    <WarningLevel>3</WarningLevel>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="IdleBus" Version="1.0.6" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.0" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.4.0" />
+		<PackageReference Include="xunit" Version="2.4.1" />
+		<PackageReference Include="xunit.runner.visualstudio" Version="2.4.1">
+		  <PrivateAssets>all</PrivateAssets>
+		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
+
+	<ItemGroup>
+		<Folder Include="DataAnnotations\MySql\" />
+		<Folder Include="DataAnnotations\SqlServer\" />
+		<Folder Include="DataContext\MySql\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\..\Extensions\FreeSql.Extensions.LazyLoading\FreeSql.Extensions.LazyLoading.csproj" />
+	  <ProjectReference Include="..\..\FreeSql.DbContext\FreeSql.DbContext.csproj" />
+	  <ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />
+	  <ProjectReference Include="..\..\Providers\FreeSql.Provider.MsAccess\FreeSql.Provider.MsAccess.csproj" />
+	  <ProjectReference Include="..\..\Providers\FreeSql.Provider.MySql\FreeSql.Provider.MySql.csproj" />
+	  <ProjectReference Include="..\..\Providers\FreeSql.Provider.Oracle\FreeSql.Provider.Oracle.csproj" />
+	  <ProjectReference Include="..\..\Providers\FreeSql.Provider.PostgreSQL\FreeSql.Provider.PostgreSQL.csproj" />
+	  <ProjectReference Include="..\..\Providers\FreeSql.Provider.Sqlite\FreeSql.Provider.Sqlite.csproj" />
+	  <ProjectReference Include="..\..\Providers\FreeSql.Provider.SqlServer\FreeSql.Provider.SqlServer.csproj" />
+	</ItemGroup>
+
+</Project>

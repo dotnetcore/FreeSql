@@ -1,0 +1,38 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;net45;net40</TargetFrameworks>
+    <Version>1.2.0-preview1</Version>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Authors>YeXiangQin</Authors>
+    <Description>FreeSql 扩展包，可实现实体类属性为对象时，以JSON形式映射存储.</Description>
+    <PackageProjectUrl>https://github.com/2881099/FreeSql</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/2881099/FreeSql</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>FreeSql;ORM</PackageTags>
+    <PackageId>$(AssemblyName)</PackageId>
+    <PackageIcon>logo.png</PackageIcon>
+    <Title>$(AssemblyName)</Title>
+    <IsPackable>true</IsPackable>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="../../logo.png" Pack="true" PackagePath="\" />
+  </ItemGroup>
+  
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.0|AnyCPU'">
+    <DocumentationFile>FreeSql.Extensions.JsonMap.xml</DocumentationFile>
+    <WarningLevel>3</WarningLevel>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />
+  </ItemGroup>
+
+</Project>
