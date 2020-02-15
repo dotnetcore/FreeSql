@@ -120,7 +120,11 @@ namespace FreeSql
             return this;
         }
         /// <summary>
-        /// 是否生成命令参数化执行，针对 lambda 表达式解析
+        /// 是否生成命令参数化执行，针对 lambda 表达式解析<para></para>
+        /// 注意：常量不会参数化，变量才会做参数化<para></para>
+        /// var id = 100;
+        /// fsql.Select&lt;T&gt;().Where(a => a.id == id) 会参数化<para></para>
+        /// fsql.Select&lt;T&gt;().Where(a => a.id == 100) 不会参数化
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>

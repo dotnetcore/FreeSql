@@ -59,12 +59,14 @@ namespace FreeSql.Tests
             ib.Register("db1", () => new FreeSql.FreeSqlBuilder()
                 .UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=3")
                 .UseAutoSyncStructure(true)
+                .UseGenerateCommandParameterWithLambda(true)
                 .UseMonitorCommand(cmd => Trace.WriteLine("\r\n线程" + Thread.CurrentThread.ManagedThreadId + ": " + cmd.CommandText))
                 .UseLazyLoading(true)
                 .Build());
             ib.Register("db2", () => new FreeSql.FreeSqlBuilder()
                 .UseConnectionString(FreeSql.DataType.Oracle, "user id=user1;password=123456;data source=//127.0.0.1:1521/XE;Pooling=true;Max Pool Size=3")
                 .UseAutoSyncStructure(true)
+                .UseGenerateCommandParameterWithLambda(true)
                 .UseLazyLoading(true)
                 .UseSyncStructureToUpper(true)
                 .UseMonitorCommand(cmd => Trace.WriteLine("\r\n线程" + Thread.CurrentThread.ManagedThreadId + ": " + cmd.CommandText))
@@ -72,19 +74,21 @@ namespace FreeSql.Tests
             ib.Register("db3", () => new FreeSql.FreeSqlBuilder()
                 .UseConnectionString(FreeSql.DataType.Sqlite, @"Data Source=|DataDirectory|\document.db;Attachs=xxxtb.db;Pooling=true;Max Pool Size=3")
                 .UseAutoSyncStructure(true)
+                .UseGenerateCommandParameterWithLambda(true)
                 .UseLazyLoading(true)
                 .UseMonitorCommand(cmd => Trace.WriteLine("\r\n线程" + Thread.CurrentThread.ManagedThreadId + ": " + cmd.CommandText))
                 .Build());
             //...注入很多个
 
             var fsql = ib.Get("db1"); //使用的时候用 Get 方法，不要存其引用关系
-            fsql.Select<ut3_t1>().Limit(10).ToList();
+            var sqlparamId = 100;
+            fsql.Select<ut3_t1>().Limit(10).Where(a => a.id == sqlparamId).ToList();
 
             fsql = ib.Get("db2");
-            fsql.Select<ut3_t1>().Limit(10).ToList();
+            fsql.Select<ut3_t1>().Limit(10).Where(a => a.id == sqlparamId).ToList();
 
             fsql = ib.Get("db3");
-            fsql.Select<ut3_t1>().Limit(10).ToList();
+            fsql.Select<ut3_t1>().Limit(10).Where(a => a.id == sqlparamId).ToList();
 
             fsql = g.sqlserver;
             fsql.Insert<OrderMain>(new OrderMain { OrderNo = "1001", OrderTime = new DateTime(2019, 12, 01) }).ExecuteAffrows();
