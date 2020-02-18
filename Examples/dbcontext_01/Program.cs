@@ -40,6 +40,8 @@ namespace dbcontext_01
         static IFreeSql fsql;
         public static void Main(string[] args)
         {
+            var asse = typeof(SafeObjectPool.ObjectPool<>).Assembly;
+
             fsql = new FreeSql.FreeSqlBuilder()
                 .UseConnectionString(FreeSql.DataType.Sqlite, @"Data Source=|DataDirectory|\dd2.db;Pooling=true;Max Pool Size=10")
                 .UseAutoSyncStructure(true)

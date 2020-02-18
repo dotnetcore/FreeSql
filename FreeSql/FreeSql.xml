@@ -722,7 +722,11 @@
         </member>
         <member name="M:FreeSql.FreeSqlBuilder.UseGenerateCommandParameterWithLambda(System.Boolean)">
             <summary>
-            是否生成命令参数化执行，针对 lambda 表达式解析
+            是否生成命令参数化执行，针对 lambda 表达式解析<para></para>
+            注意：常量不会参数化，变量才会做参数化<para></para>
+            var id = 100;
+            fsql.Select&lt;T&gt;().Where(a => a.id == id) 会参数化<para></para>
+            fsql.Select&lt;T&gt;().Where(a => a.id == 100) 不会参数化
             </summary>
             <param name="value"></param>
             <returns></returns>
@@ -2135,7 +2139,7 @@
         </member>
         <member name="M:FreeSql.IAdo.ExecuteReader(System.Action{System.Data.Common.DbDataReader},System.String,System.Object)">
             <summary>
-            查询，ExecuteReader(dr => {}, "select * from user where age > @age", new { age = 25 })
+            查询，ExecuteReader(dr => {}, "select * from user where age > ?age", new { age = 25 })
             </summary>
             <param name="cmdText"></param>
             <param name="parms"></param>
@@ -2149,7 +2153,7 @@
         </member>
         <member name="M:FreeSql.IAdo.ExecuteArray(System.String,System.Object)">
             <summary>
-            查询，ExecuteArray("select * from user where age > @age", new { age = 25 })
+            查询，ExecuteArray("select * from user where age > ?age", new { age = 25 })
             </summary>
             <param name="cmdText"></param>
             <param name="parms"></param>
@@ -2164,7 +2168,7 @@
         </member>
         <member name="M:FreeSql.IAdo.ExecuteDataSet(System.String,System.Object)">
             <summary>
-            查询，ExecuteDataSet("select * from user where age > @age; select 2", new { age = 25 })
+            查询，ExecuteDataSet("select * from user where age > ?age; select 2", new { age = 25 })
             </summary>
             <param name="cmdText"></param>
             <param name="parms"></param>
@@ -2179,7 +2183,7 @@
         </member>
         <member name="M:FreeSql.IAdo.ExecuteDataTable(System.String,System.Object)">
             <summary>
-            查询，ExecuteDataTable("select * from user where age > @age", new { age = 25 })
+            查询，ExecuteDataTable("select * from user where age > ?age", new { age = 25 })
             </summary>
             <param name="cmdText"></param>
             <param name="parms"></param>
@@ -2195,7 +2199,7 @@
         </member>
         <member name="M:FreeSql.IAdo.ExecuteNonQuery(System.String,System.Object)">
             <summary>
-            在【主库】执行，ExecuteNonQuery("delete from user where age > @age", new { age = 25 })
+            在【主库】执行，ExecuteNonQuery("delete from user where age > ?age", new { age = 25 })
             </summary>
             <param name="cmdText"></param>
             <param name="parms"></param>
@@ -2211,7 +2215,7 @@
         </member>
         <member name="M:FreeSql.IAdo.ExecuteScalar(System.String,System.Object)">
             <summary>
-            在【主库】执行，ExecuteScalar("select 1 from user where age > @age", new { age = 25 })
+            在【主库】执行，ExecuteScalar("select 1 from user where age > ?age", new { age = 25 })
             </summary>
             <param name="cmdText"></param>
             <param name="parms"></param>
@@ -2219,7 +2223,7 @@
         </member>
         <member name="M:FreeSql.IAdo.Query``1(System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
             <summary>
-            执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > @age", new SqlParameter { ParameterName = "age", Value = 25 })
+            执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > ?age", new SqlParameter { ParameterName = "age", Value = 25 })
             </summary>
             <typeparam name="T"></typeparam>
             <param name="cmdType"></param>
@@ -2229,7 +2233,7 @@
         </member>
         <member name="M:FreeSql.IAdo.Query``1(System.String,System.Object)">
             <summary>
-            执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > @age", new { age = 25 })
+            执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > ?age", new { age = 25 })
             </summary>
             <typeparam name="T"></typeparam>
             <param name="cmdText"></param>
@@ -2238,7 +2242,7 @@
         </member>
         <member name="M:FreeSql.IAdo.Query``2(System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
             <summary>
-            执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > @age; select * from address", new SqlParameter { ParameterName = "age", Value = 25 })
+            执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > ?age; select * from address", new SqlParameter { ParameterName = "age", Value = 25 })
             </summary>
             <typeparam name="T1"></typeparam>
             <param name="cmdType"></param>
@@ -2248,7 +2252,7 @@
         </member>
         <member name="M:FreeSql.IAdo.Query``2(System.String,System.Object)">
             <summary>
-            执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > @age; select * from address", new { age = 25 })
+            执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > ?age; select * from address", new { age = 25 })
             </summary>
             <typeparam name="T1"></typeparam>
             <param name="cmdText"></param>
@@ -2266,7 +2270,7 @@
         </member>
         <member name="M:FreeSql.IAdo.ExecuteReaderAsync(System.Func{System.Data.Common.DbDataReader,System.Threading.Tasks.Task},System.String,System.Object)">
             <summary>
-            查询，ExecuteReaderAsync(dr => {}, "select * from user where age > @age", new { age = 25 })
+            查询，ExecuteReaderAsync(dr => {}, "select * from user where age > ?age", new { age = 25 })
             </summary>
             <param name="cmdText"></param>
             <param name="parms"></param>
@@ -2280,7 +2284,7 @@
         </member>
         <member name="M:FreeSql.IAdo.ExecuteArrayAsync(System.String,System.Object)">
             <summary>
-            查询，ExecuteArrayAsync("select * from user where age > @age", new { age = 25 })
+            查询，ExecuteArrayAsync("select * from user where age > ?age", new { age = 25 })
             </summary>
             <param name="cmdText"></param>
             <param name="parms"></param>
@@ -2295,7 +2299,7 @@
         </member>
         <member name="M:FreeSql.IAdo.ExecuteDataSetAsync(System.String,System.Object)">
             <summary>
-            查询，ExecuteDataSetAsync("select * from user where age > @age; select 2", new { age = 25 })
+            查询，ExecuteDataSetAsync("select * from user where age > ?age; select 2", new { age = 25 })
             </summary>
             <param name="cmdText"></param>
             <param name="parms"></param>
@@ -2310,7 +2314,7 @@
         </member>
         <member name="M:FreeSql.IAdo.ExecuteDataTableAsync(System.String,System.Object)">
             <summary>
-            查询，ExecuteDataTableAsync("select * from user where age > @age", new { age = 25 })
+            查询，ExecuteDataTableAsync("select * from user where age > ?age", new { age = 25 })
             </summary>
             <param name="cmdText"></param>
             <param name="parms"></param>
@@ -2326,7 +2330,7 @@
         </member>
         <member name="M:FreeSql.IAdo.ExecuteNonQueryAsync(System.String,System.Object)">
             <summary>
-            在【主库】执行，ExecuteNonQueryAsync("delete from user where age > @age", new { age = 25 })
+            在【主库】执行，ExecuteNonQueryAsync("delete from user where age > ?age", new { age = 25 })
             </summary>
             <param name="cmdText"></param>
             <param name="parms"></param>
@@ -2342,7 +2346,7 @@
         </member>
         <member name="M:FreeSql.IAdo.ExecuteScalarAsync(System.String,System.Object)">
             <summary>
-            在【主库】执行，ExecuteScalarAsync("select 1 from user where age > @age", new { age = 25 })
+            在【主库】执行，ExecuteScalarAsync("select 1 from user where age > ?age", new { age = 25 })
             </summary>
             <param name="cmdText"></param>
             <param name="parms"></param>
@@ -2350,7 +2354,7 @@
         </member>
         <member name="M:FreeSql.IAdo.QueryAsync``1(System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
             <summary>
-            执行SQL返回对象集合，QueryAsync&lt;User&gt;("select * from user where age > @age", new SqlParameter { ParameterName = "age", Value = 25 })
+            执行SQL返回对象集合，QueryAsync&lt;User&gt;("select * from user where age > ?age", new SqlParameter { ParameterName = "age", Value = 25 })
             </summary>
             <typeparam name="T"></typeparam>
             <param name="cmdType"></param>
@@ -2360,7 +2364,7 @@
         </member>
         <member name="M:FreeSql.IAdo.QueryAsync``1(System.String,System.Object)">
             <summary>
-            执行SQL返回对象集合，QueryAsync&lt;User&gt;("select * from user where age > @age", new { age = 25 })
+            执行SQL返回对象集合，QueryAsync&lt;User&gt;("select * from user where age > ?age", new { age = 25 })
             </summary>
             <typeparam name="T"></typeparam>
             <param name="cmdText"></param>
@@ -2369,7 +2373,7 @@
         </member>
         <member name="M:FreeSql.IAdo.QueryAsync``2(System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
             <summary>
-            执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > @age; select * from address", new SqlParameter { ParameterName = "age", Value = 25 })
+            执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > ?age; select * from address", new SqlParameter { ParameterName = "age", Value = 25 })
             </summary>
             <typeparam name="T1"></typeparam>
             <param name="cmdType"></param>
@@ -2379,7 +2383,7 @@
         </member>
         <member name="M:FreeSql.IAdo.QueryAsync``2(System.String,System.Object)">
             <summary>
-            执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > @age; select * from address", new { age = 25 })
+            执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > ?age; select * from address", new { age = 25 })
             </summary>
             <typeparam name="T1"></typeparam>
             <param name="cmdText"></param>
@@ -2600,7 +2604,11 @@
         </member>
         <member name="P:FreeSql.ICodeFirst.IsGenerateCommandParameterWithLambda">
             <summary>
-            是否生成命令参数化执行，针对 lambda 表达式解析
+            是否生成命令参数化执行，针对 lambda 表达式解析<para></para>
+            注意：常量不会参数化，变量才会做参数化<para></para>
+            var id = 100;
+            fsql.Select&lt;T&gt;().Where(a => a.id == id) 会参数化<para></para>
+            fsql.Select&lt;T&gt;().Where(a => a.id == 100) 不会参数化
             </summary>
         </member>
         <member name="P:FreeSql.ICodeFirst.IsLazyLoading">
