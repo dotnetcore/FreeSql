@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net45;net40</TargetFrameworks>
-		<Version>1.2.0-preview2</Version>
+		<Version>1.2.0-preview3</Version>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>YeXiangQin</Authors>
 		<Description>FreeSql 数据库 Ms Access 实现</Description>
@@ -17,7 +17,7 @@
 		<IsPackable>true</IsPackable>
 		<GenerateAssemblyInfo>true</GenerateAssemblyInfo>
 		<SignAssembly>true</SignAssembly>
-		<AssemblyOriginatorKeyFile>YeXiangQin.pfx</AssemblyOriginatorKeyFile>
+		<AssemblyOriginatorKeyFile>key.snk</AssemblyOriginatorKeyFile>
 		<DelaySign>false</DelaySign>
 	</PropertyGroup>
 
