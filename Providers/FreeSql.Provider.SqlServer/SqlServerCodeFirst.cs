@@ -250,7 +250,7 @@ inner join sys.types b on b.user_type_id = a.user_type_id
 left join sys.tables d on d.object_id = a.object_id
 left join sys.schemas e on e.schema_id = d.schema_id
 where a.object_id in (object_id(N'[{1}].[{2}]'));
-use " + database, tboldname ?? tbname);
+use [" + database + "];", tboldname ?? tbname);
                     var ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
                     var tbstruct = ds.ToDictionary(a => string.Concat(a[0]), a => new
                     {
@@ -302,7 +302,7 @@ from sys.index_columns a
 inner join sys.indexes b on b.object_id = a.object_id and b.index_id = a.index_id
 left join sys.columns c on c.object_id = a.object_id and c.column_id = a.column_id
 where a.object_id in (object_id(N'[{1}].[{2}]')) and b.is_primary_key = 0;
-use " + database, tboldname ?? tbname);
+use [" + database + "];", tboldname ?? tbname);
                         var dsuk = _orm.Ado.ExecuteArray(CommandType.Text, dsuksql).Select(a => new[] { string.Concat(a[0]), string.Concat(a[1]), string.Concat(a[2]), string.Concat(a[3]) });
                         foreach (var uk in tb.Indexes)
                         {
