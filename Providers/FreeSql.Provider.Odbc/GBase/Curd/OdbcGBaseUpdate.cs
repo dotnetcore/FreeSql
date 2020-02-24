@@ -38,7 +38,7 @@ namespace FreeSql.Odbc.GBase
             var pkidx = 0;
             foreach (var pk in _table.Primarys)
             {
-                if (pkidx > 0) caseWhen.Append(" || ");
+                if (pkidx > 0) caseWhen.Append(" || '+' || ");
                 caseWhen.Append(_commonUtils.QuoteReadColumn(pk.CsType, pk.Attribute.MapType, _commonUtils.QuoteSqlName(pk.Attribute.Name))).Append("::varchar");
                 ++pkidx;
             }
@@ -56,7 +56,7 @@ namespace FreeSql.Odbc.GBase
             var pkidx = 0;
             foreach (var pk in _table.Primarys)
             {
-                if (pkidx > 0) sb.Append(" || ");
+                if (pkidx > 0) sb.Append(" || '+' || ");
                 sb.Append(_commonUtils.FormatSql("{0}", pk.GetMapValue(d))).Append("::varchar");
                 ++pkidx;
             }

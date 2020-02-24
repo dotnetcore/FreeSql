@@ -48,6 +48,19 @@ namespace FreeSql.Tests.Odbc.Oracle
 
             sql = update.SetSource(items).Set(a => a.CreateTime, new DateTime(2020, 1, 1)).ToSql().Replace("\r\n", "");
             Assert.Equal("UPDATE \"TB_TOPIC\" SET \"CREATETIME\" = to_timestamp('2020-01-01 00:00:00.000000','YYYY-MM-DD HH24:MI:SS.FF6') WHERE (\"ID\" IN (1,2,3,4,5,6,7,8,9,10))", sql);
+
+            sql = g.oracle.Update<ts_source_mpk>().SetSource(new[] {
+                new ts_source_mpk { id1 = 1, id2 = 7, xx = "a1" },
+                new ts_source_mpk { id1 = 1, id2 = 8, xx = "b122" }
+            }).NoneParameter().ToSql().Replace("\r\n", "");
+        }
+        public class ts_source_mpk
+        {
+            [Column(IsPrimary = true)]
+            public int id1 { get; set; }
+            [Column(IsPrimary = true)]
+            public int id2 { get; set; }
+            public string xx { get; set; }
         }
         [Fact]
         public void IgnoreColumns()

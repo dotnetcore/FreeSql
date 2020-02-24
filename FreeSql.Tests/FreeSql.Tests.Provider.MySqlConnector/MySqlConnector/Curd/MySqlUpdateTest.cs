@@ -78,6 +78,19 @@ namespace FreeSql.Tests.MySqlConnector
             Assert.Equal("UPDATE `TestEnumUpdateTb` SET `type` = 'sum211', `time` = '0001-01-01 00:00:00.000' WHERE (`id` = 0)", sql);
             g.mysql.Update<TestEnumUpdateTb>().NoneParameter().SetSource(new TestEnumUpdateTb { id = (int)id, type = TestEnumUpdateTbType.biggit }).ExecuteAffrows();
             Assert.Equal(TestEnumUpdateTbType.biggit, g.mysql.Select<TestEnumUpdateTb>().Where(a => a.id == id).First()?.type);
+
+            sql = g.mysql.Update<ts_source_mpk>().SetSource(new[] {
+                new ts_source_mpk { id1 = 1, id2 = 7, xx = "a1" },
+                new ts_source_mpk { id1 = 1, id2 = 8, xx = "b122" }
+            }).NoneParameter().ToSql().Replace("\r\n", "");
+        }
+        public class ts_source_mpk
+        {
+            [Column(IsPrimary = true)]
+            public int id1 { get; set; }
+            [Column(IsPrimary = true)]
+            public int id2 { get; set; }
+            public string xx { get; set; }
         }
         [Fact]
         public void IgnoreColumns()

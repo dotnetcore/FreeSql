@@ -50,6 +50,29 @@ namespace FreeSql.Tests.MsAccess
 
             sql = update.SetSource(items).IgnoreColumns(a => a.TypeGuid).Set(a => a.CreateTime, new DateTime(2020, 1, 1)).ToSql().Replace("\r\n", "");
             Assert.Equal("UPDATE [tb_topic] SET [CreateTime] = '2020-01-01 00:00:00' WHERE ([Id] IN (1,2,3,4,5,6,7,8,9,10))", sql);
+
+            if (g.msaccess.Select<ts_source_mpk>().Where(a => a.id1 == 1 && a.id2 == 7).Any() == false)
+                g.msaccess.Insert(new ts_source_mpk { id1 = 1, id2 = 7 }).ExecuteAffrows();
+            if (g.msaccess.Select<ts_source_mpk>().Where(a => a.id1 == 1 && a.id2 == 8).Any() == false)
+                g.msaccess.Insert(new ts_source_mpk { id1 = 1, id2 = 8 }).ExecuteAffrows();
+
+            sql = g.msaccess.Update<ts_source_mpk>().SetSource(new[] {
+                new ts_source_mpk { id1 = 1, id2 = 7, xx = "a1" },
+                new ts_source_mpk { id1 = 1, id2 = 8, xx = "b122" }
+            }).NoneParameter().ToSql().Replace("\r\n", "");
+            g.msaccess.Update<ts_source_mpk>().SetSource(new[] {
+                new ts_source_mpk { id1 = 1, id2 = 7, xx = "a1" },
+                new ts_source_mpk { id1 = 1, id2 = 8, xx = "b122" }
+            }).NoneParameter().ExecuteAffrows();
+            var testlist = g.msaccess.Select<ts_source_mpk>().ToList();
+        }
+        public class ts_source_mpk
+        {
+            [Column(IsPrimary = true)]
+            public int id1 { get; set; }
+            [Column(IsPrimary = true)]
+            public int id2 { get; set; }
+            public string xx { get; set; }
         }
         [Fact]
         public void IgnoreColumns()

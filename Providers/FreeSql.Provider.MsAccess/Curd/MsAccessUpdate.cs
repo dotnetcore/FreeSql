@@ -43,7 +43,7 @@ namespace FreeSql.MsAccess.Curd
             var pkidx = 0;
             foreach (var pk in _table.Primarys)
             {
-                if (pkidx > 0) caseWhen.Append(", ");
+                if (pkidx > 0) caseWhen.Append(" + '+' + ");
                 caseWhen.Append(MsAccessUtils.GetCastSql(_commonUtils.QuoteReadColumn(pk.CsType, pk.Attribute.MapType, _commonUtils.QuoteSqlName(pk.Attribute.Name)), typeof(string)));
                 ++pkidx;
             }
@@ -60,7 +60,7 @@ namespace FreeSql.MsAccess.Curd
             var pkidx = 0;
             foreach (var pk in _table.Primarys)
             {
-                if (pkidx > 0) sb.Append(", ");
+                if (pkidx > 0) sb.Append(" + '+' + ");
                 sb.Append(MsAccessUtils.GetCastSql(_commonUtils.FormatSql("{0}", pk.GetMapValue(d)), typeof(string)));
                 ++pkidx;
             }
