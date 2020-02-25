@@ -121,7 +121,13 @@ namespace FreeSql.Odbc.Oracle
                 sbnav.Clear();
                 if (tbUnionsGt0) sb.Append(") ftb");
             }
-            return sb.Append(_tosqlAppendContent).ToString();
+            var sql = sb.Append(_tosqlAppendContent).ToString();
+
+            var aliasGreater30 = 0;
+            foreach (var tb in _tables)
+                if (tb.Alias.Length > 30) sql = sql.Replace(tb.Alias, $"than30_{aliasGreater30++}");
+
+            return sql;
         }
 
         public OdbcOracleSelect(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere) : base(orm, commonUtils, commonExpression, dywhere) { }
