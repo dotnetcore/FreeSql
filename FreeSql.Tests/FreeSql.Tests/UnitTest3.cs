@@ -22,9 +22,41 @@ namespace FreeSql.Tests
     public class UnitTest3
     {
 
+        public class Song23
+        {
+            public long Id { get; set; }
+            public string Name { get; set; }
+        }
+
+        public class Author23
+        {
+            public long Id { get; set; }
+            public long SongId { get; set; }
+            public string Name { get; set; }
+        }
+
+        public class TestDbContext : DbContext
+        {
+            public TestDbContext(IFreeSql orm) : base(orm, null)
+            {
+            }
+            public DbSet<Song23> Songs { get; set; }
+            public DbSet<Author23> Authors { get; set; }
+        }
+
         [Fact]
         public void Test03()
         {
+            var context = new TestDbContext(g.sqlite);
+
+            var sql = context.Songs
+                .Where(a =>
+                    context.Authors
+                        //.Select  //加上这句就不报错，不加上报 variable 'a' of type 'Song' referenced from scope '', but it is not defined
+                        .Where(b => b.SongId == a.Id)
+                        .Any())
+                .ToSql(a => a.Name);
+
             //using (var conn = new SqlConnection("Data Source=.;Integrated Security=True;Initial Catalog=webchat-abc;Pooling=true;Max Pool Size=13"))
             //{
             //    conn.Open();

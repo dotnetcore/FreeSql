@@ -771,6 +771,32 @@ namespace FreeSql.Internal
                                                     }
                                                 }
                                             }
+                                            if (new[] { "Where", "WhereIf" }.Contains(exp3tmpCall.Method.Name) && exp3tmpCall.Object != null)
+                                            {
+                                                //这段特别兼容 DbSet.Where 表达式解析 #216
+                                                var exp3tmpTestCall = Expression.Call(exp3tmpCall.Object, exp3tmpCall.Method, exp3tmpCall.Arguments.Select(a =>
+                                                {
+                                                    var a2 = a;
+                                                    if (a2.NodeType == ExpressionType.Quote) a2 = (a as UnaryExpression)?.Operand;
+                                                    if (a2?.NodeType == ExpressionType.Lambda)
+                                                    {
+                                                        var alambda = a2 as LambdaExpression;
+                                                        if (alambda.ReturnType == typeof(bool))
+                                                            return Expression.Constant(null, a.Type);// Expression.Lambda(Expression.Constant(true), alambda.Parameters);
+                                                    }
+                                                    return a;
+                                                    //if (a.Type == typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(exp3tmp.Type.GetGenericArguments()[0], typeof(bool))))
+                                                    //    return Expression.Lambda(Expression.Constant(true), 
+                                                }).ToArray());
+                                                fsql = Expression.Lambda(exp3tmpTestCall).Compile().DynamicInvoke();
+                                                var fsqlFindMethod = fsql.GetType().GetMethod(exp3tmpCall.Method.Name, exp3tmpCall.Arguments.Select(a => a.Type).ToArray());
+                                                if (fsqlFindMethod == null)
+                                                    throw new Exception($"无法解析表达式方法 {exp3tmpCall.Method.Name}");
+                                                var exp3StackOld = exp3Stack;
+                                                exp3Stack = new Stack<Expression>();
+                                                exp3Stack.Push(Expression.Call(Expression.Constant(fsql), fsqlFindMethod, exp3tmpCall.Arguments));
+                                                while (exp3StackOld.Any()) exp3Stack.Push(exp3StackOld.Pop());
+                                            }
                                         }
                                         if (fsql == null) fsql = Expression.Lambda(exp3tmp).Compile().DynamicInvoke();
                                         fsqlType = fsql?.GetType();
