@@ -271,7 +271,7 @@ namespace FreeSql.Extensions.EfCoreFluentApi
                     _tf.ConfigEntity<T2>(eb2 => eb2.Navigate(_withOneProperty, _selfBind));
                 return this;
             }
-            public HasManyFluent<T2> HasForeignKey(Expression<Func<T, object>> foreignKey)
+            public HasManyFluent<T2> HasForeignKey(Expression<Func<T2, object>> foreignKey)
             {
                 if (foreignKey?.Body == null) throw new ArgumentException("参数错误 foreignKey 不能为 null");
                 var exp = foreignKey.Body;

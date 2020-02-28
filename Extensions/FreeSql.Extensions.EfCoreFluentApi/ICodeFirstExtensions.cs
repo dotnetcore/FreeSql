@@ -36,6 +36,10 @@ namespace FreeSql.Extensions.EfCoreFluentApi
                 //多对多
                 eb.HasMany(a => a.Tags).WithMany(a => a.Songs, typeof(Song_tag));
             });
+            cf.Entity<SongType>(eb =>
+            {
+                eb.HasMany(a => a.Songs).WithOne(a => a.Type).HasForeignKey( a => a.TypeId)
+            });
         }
 
         public class SongType
