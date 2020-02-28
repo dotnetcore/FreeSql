@@ -337,11 +337,8 @@ namespace FreeSql.Internal.CommonProvider
         protected void SetPriv(ColumnInfo col, object value)
         {
             object paramVal = null;
-            if (value != null)
-            {
-                if (col.Attribute.MapType == value.GetType()) paramVal = value;
-                else paramVal = Utils.GetDataReaderValue(col.Attribute.MapType, value);
-            }
+            if (col.Attribute.MapType == col.CsType) paramVal = value;
+            else paramVal = Utils.GetDataReaderValue(col.Attribute.MapType, value);
             _set.Append(", ").Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ");
             if (_noneParameter)
             {

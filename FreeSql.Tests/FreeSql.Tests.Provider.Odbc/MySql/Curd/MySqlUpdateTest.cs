@@ -170,6 +170,15 @@ namespace FreeSql.Tests.Odbc.MySql
             Assert.Equal("UPDATE `TestEnumUpdateTb` SET `type` = 'sum211' WHERE (`id` = 0)", sql);
         }
         [Fact]
+        public void SetDto()
+        {
+            var sql = update.SetDto(new { clicks = 1, title = "xxx" }).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
+            Assert.Equal("UPDATE `tb_topic` SET `Clicks` = 1, `Title` = 'xxx' WHERE (`Id` = 1)", sql);
+
+            sql = update.SetDto(new Dictionary<string, object> { ["clicks"] = 1, ["title"] = "xxx" }).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
+            Assert.Equal("UPDATE `tb_topic` SET `Clicks` = 1, `Title` = 'xxx' WHERE (`Id` = 1)", sql);
+        }
+        [Fact]
         public void Where()
         {
             var sql = update.Where(a => a.Id == 1).SetRaw("title='newtitle'").ToSql().Replace("\r\n", "");

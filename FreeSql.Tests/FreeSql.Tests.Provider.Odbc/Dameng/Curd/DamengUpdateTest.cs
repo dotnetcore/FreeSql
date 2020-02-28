@@ -123,6 +123,15 @@ namespace FreeSql.Tests.Odbc.Dameng
             Assert.Equal("UPDATE \"TB_TOPIC\" SET clicks = clicks + ? WHERE (\"ID\" = 1)", sql);
         }
         [Fact]
+        public void SetDto()
+        {
+            var sql = update.SetDto(new { clicks = 1, title = "xxx" }).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
+            Assert.Equal("UPDATE \"TB_TOPIC\" SET \"CLICKS\" = 1, \"TITLE\" = 'xxx' WHERE (\"ID\" = 1)", sql);
+
+            sql = update.SetDto(new Dictionary<string, object> { ["clicks"] = 1, ["title"] = "xxx" }).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
+            Assert.Equal("UPDATE \"TB_TOPIC\" SET \"CLICKS\" = 1, \"TITLE\" = 'xxx' WHERE (\"ID\" = 1)", sql);
+        }
+        [Fact]
         public void Where()
         {
             var sql = update.Where(a => a.Id == 1).SetRaw("title='newtitle'").ToSql().Replace("\r\n", "");
