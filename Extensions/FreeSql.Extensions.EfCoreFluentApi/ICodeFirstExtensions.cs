@@ -38,7 +38,7 @@ namespace FreeSql.Extensions.EfCoreFluentApi
             });
             cf.Entity<SongType>(eb =>
             {
-                eb.HasMany(a => a.Songs).WithOne(a => a.Type).HasForeignKey( a => a.TypeId)
+                eb.HasMany(a => a.Songs).WithOne(a => a.Type).HasForeignKey(a => a.TypeId);
             });
         }
 
