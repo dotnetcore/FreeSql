@@ -56,6 +56,7 @@ namespace FreeSql
         /// <param name="source">实体集合</param>
         /// <returns></returns>
         IUpdate<T1> SetSource(IEnumerable<T1> source);
+        
         /// <summary>
         /// 忽略的列，IgnoreColumns(a => a.Name) | IgnoreColumns(a => new{a.Name,a.Time}) | IgnoreColumns(a => new[]{"name","time"})
         /// </summary>
@@ -106,6 +107,17 @@ namespace FreeSql
         /// <param name="parms">参数</param>
         /// <returns></returns>
         IUpdate<T1> SetRaw(string sql, object parms = null);
+
+        /// <summary>
+        /// 设置更新的列
+        /// <para></para>
+        /// SetDto(new { title = "xxx", clicks = 2 })
+        /// <para></para>
+        /// SetDto(new Dictionary&lt;string, object&gt; { ["title"] = "xxx", ["clicks"] = 2 })
+        /// </summary>
+        /// <param name="dto">dto 或 Dictionary&lt;string, object&gt;</param>
+        /// <returns></returns>
+        IUpdate<T1> SetDto(object dto);
 
         /// <summary>
         /// lambda表达式条件，仅支持实体基础成员（不包含导航对象）<para></para>

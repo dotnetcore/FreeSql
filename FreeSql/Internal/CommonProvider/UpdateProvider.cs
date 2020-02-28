@@ -334,26 +334,31 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
 
+        protected void SetPriv(ColumnInfo col, object value)
+        {
+            object paramVal = null;
+            if (value != null)
+            {
+                if (col.Attribute.MapType == value.GetType()) paramVal = value;
+                else paramVal = Utils.GetDataReaderValue(col.Attribute.MapType, value);
+            }
+            _set.Append(", ").Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ");
+            if (_noneParameter)
+            {
+                _set.Append(_commonUtils.GetNoneParamaterSqlValue(_params, col.Attribute.MapType, paramVal));
+            }
+            else
+            {
+                _set.Append(_commonUtils.QuoteWriteParamter(col.Attribute.MapType, $"{_commonUtils.QuoteParamterName("p_")}{_params.Count}"));
+                _commonUtils.AppendParamter(_params, null, col, col.Attribute.MapType, paramVal);
+            }
+        }
         public IUpdate<T1> Set<TMember>(Expression<Func<T1, TMember>> column, TMember value)
         {
             var cols = new List<SelectColumnInfo>();
             _commonExpression.ExpressionSelectColumn_MemberAccess(null, cols, SelectTableInfoType.From, column?.Body, true, null);
             if (cols.Count != 1) return this;
-            var col = cols.First();
-            object paramVal = null;
-            if (col.Column.Attribute.MapType == typeof(TMember)) paramVal = value;
-            else paramVal = Utils.GetDataReaderValue(col.Column.Attribute.MapType, value);
-            _set.Append(", ").Append(_commonUtils.QuoteSqlName(col.Column.Attribute.Name)).Append(" = ");
-            if (_noneParameter)
-            {
-                _set.Append(_commonUtils.GetNoneParamaterSqlValue(_params, col.Column.Attribute.MapType, paramVal));
-            }
-            else
-            {
-                _set.Append(_commonUtils.QuoteWriteParamter(col.Column.Attribute.MapType, $"{_commonUtils.QuoteParamterName("p_")}{_params.Count}"));
-                _commonUtils.AppendParamter(_params, null, col.Column, col.Column.Attribute.MapType, paramVal);
-            }
-            //foreach (var t in _source) Utils.FillPropertyValue(t, tryf.CsName, value);
+            SetPriv(cols.First().Column, value);
             return this;
         }
         public IUpdate<T1> Set<TMember>(Expression<Func<T1, TMember>> exp)
@@ -421,6 +426,27 @@ namespace FreeSql.Internal.CommonProvider
             if (string.IsNullOrEmpty(sql)) return this;
             _set.Append(", ").Append(sql);
             if (parms != null) _params.AddRange(_commonUtils.GetDbParamtersByObject(sql, parms));
+            return this;
+        }
+
+        public IUpdate<T1> SetDto(object dto)
+        {
+            if (dto == null) return this;
+            if (dto is Dictionary<string, object>)
+            {
+                var dic = dto as Dictionary<string, object>;
+                foreach (var kv in dic)
+                {
+                    if (_table.ColumnsByCs.TryGetValue(kv.Key, out var trycol) == false) continue;
+                    SetPriv(trycol, kv.Value);
+                }
+            }
+            var dtoProps = dto.GetType().GetProperties();
+            foreach (var dtoProp in dtoProps)
+            {
+                if (_table.ColumnsByCs.TryGetValue(dtoProp.Name, out var trycol) == false) continue;
+                SetPriv(trycol, dtoProp.GetValue(dto, null));
+            }
             return this;
         }
 

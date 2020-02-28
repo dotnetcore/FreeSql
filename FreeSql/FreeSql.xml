@@ -2000,6 +2000,17 @@
             <param name="parms">参数</param>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.IUpdate`1.SetDto(System.Object)">
+            <summary>
+            设置更新的列
+            <para></para>
+            SetDto(new { title = "xxx", clicks = 2 })
+            <para></para>
+            SetDto(new Dictionary&lt;string, object&gt; { ["title"] = "xxx", ["clicks"] = 2 })
+            </summary>
+            <param name="dto">dto 或 Dictionary&lt;string, object&gt;</param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.IUpdate`1.Where(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
             <summary>
             lambda表达式条件，仅支持实体基础成员（不包含导航对象）<para></para>
