@@ -57,6 +57,14 @@ namespace FreeSql.Tests
                         .Any())
                 .ToSql(a => a.Name);
 
+            sql = context.Songs
+                .Where(a =>
+                    context.Authors
+                        .Select  //加上这句就不报错，不加上报 variable 'a' of type 'Song' referenced from scope '', but it is not defined
+                        .Where(b => b.SongId == a.Id)
+                        .Any())
+                .ToSql(a => a.Name);
+
             //using (var conn = new SqlConnection("Data Source=.;Integrated Security=True;Initial Catalog=webchat-abc;Pooling=true;Max Pool Size=13"))
             //{
             //    conn.Open();

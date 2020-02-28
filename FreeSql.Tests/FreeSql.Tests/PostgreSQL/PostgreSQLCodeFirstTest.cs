@@ -35,6 +35,28 @@ namespace FreeSql.Tests.PostgreSQL
             Assert.NotNull(item2);
             Assert.Equal(item.编号, item2.编号);
             Assert.Equal(item.标题, item2.标题);
+
+            item.标题 = "测试标题更新";
+            Assert.Equal(1, g.pgsql.Update<测试中文表>().SetSource(item).ExecuteAffrows());
+            item2 = g.pgsql.Select<测试中文表>().Where(a => a.编号 == item.编号).First();
+            Assert.NotNull(item2);
+            Assert.Equal(item.编号, item2.编号);
+            Assert.Equal(item.标题, item2.标题);
+
+            item.标题 = "测试标题更新_repo";
+            var repo = g.pgsql.GetRepository<测试中文表>();
+            Assert.Equal(1, repo.Update(item));
+            item2 = g.pgsql.Select<测试中文表>().Where(a => a.编号 == item.编号).First();
+            Assert.NotNull(item2);
+            Assert.Equal(item.编号, item2.编号);
+            Assert.Equal(item.标题, item2.标题);
+
+            item.标题 = "测试标题更新_repo22";
+            Assert.Equal(1, repo.Update(item));
+            item2 = g.pgsql.Select<测试中文表>().Where(a => a.编号 == item.编号).First();
+            Assert.NotNull(item2);
+            Assert.Equal(item.编号, item2.编号);
+            Assert.Equal(item.标题, item2.标题);
         }
         class 测试中文表
         {

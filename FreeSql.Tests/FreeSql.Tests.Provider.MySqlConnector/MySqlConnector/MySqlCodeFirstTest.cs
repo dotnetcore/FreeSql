@@ -57,6 +57,30 @@ namespace FreeSql.Tests.MySqlConnector
             Assert.Equal(item.标题, item2.标题);
 
             g.mysql.Update<测试中文表2>().SetSource(item2).ExecuteAffrows();
+
+
+
+            item.标题 = "测试标题更新";
+            Assert.Equal(1, g.mysql.Update<测试中文表2>().SetSource(item).ExecuteAffrows());
+            item2 = g.mysql.Select<测试中文表2>().Where(a => a.编号 == item.编号).First();
+            Assert.NotNull(item2);
+            Assert.Equal(item.编号, item2.编号);
+            Assert.Equal(item.标题, item2.标题);
+
+            item.标题 = "测试标题更新_repo";
+            var repo = g.mysql.GetRepository<测试中文表2>();
+            Assert.Equal(1, repo.Update(item));
+            item2 = g.mysql.Select<测试中文表2>().Where(a => a.编号 == item.编号).First();
+            Assert.NotNull(item2);
+            Assert.Equal(item.编号, item2.编号);
+            Assert.Equal(item.标题, item2.标题);
+
+            item.标题 = "测试标题更新_repo22";
+            Assert.Equal(1, repo.Update(item));
+            item2 = g.mysql.Select<测试中文表2>().Where(a => a.编号 == item.编号).First();
+            Assert.NotNull(item2);
+            Assert.Equal(item.编号, item2.编号);
+            Assert.Equal(item.标题, item2.标题);
         }
         class 测试中文表2
         {
