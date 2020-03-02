@@ -26,7 +26,7 @@ namespace FreeSql.Odbc.SqlServer
             var versionGreaterThan10 = (_commonUtils as OdbcSqlServerUtils).ServerVersion > 10;
             var sql = versionGreaterThan10 ? this.ToSql() : this.ToSqlValuesOrSelectUnionAll(false);
             var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
-            _orm.Aop.CurdBefore?.Invoke(this, before);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             var affrows = 0;
             Exception exception = null;
             try
@@ -41,7 +41,7 @@ namespace FreeSql.Odbc.SqlServer
             finally
             {
                 var after = new Aop.CurdAfterEventArgs(before, exception, affrows);
-                _orm.Aop.CurdAfter?.Invoke(this, after);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
             return affrows;
         }
@@ -53,7 +53,7 @@ namespace FreeSql.Odbc.SqlServer
 
             sql = string.Concat(sql, "; SELECT SCOPE_IDENTITY();");
             var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
-            _orm.Aop.CurdBefore?.Invoke(this, before);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             long ret = 0;
             Exception exception = null;
             try
@@ -68,7 +68,7 @@ namespace FreeSql.Odbc.SqlServer
             finally
             {
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                _orm.Aop.CurdAfter?.Invoke(this, after);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
             return ret;
         }
@@ -105,7 +105,7 @@ namespace FreeSql.Odbc.SqlServer
 
             sql = sb.ToString();
             var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
-            _orm.Aop.CurdBefore?.Invoke(this, before);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             var ret = new List<T1>();
             Exception exception = null;
             try
@@ -120,7 +120,7 @@ namespace FreeSql.Odbc.SqlServer
             finally
             {
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                _orm.Aop.CurdAfter?.Invoke(this, after);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
             return ret;
         }
@@ -136,7 +136,7 @@ namespace FreeSql.Odbc.SqlServer
             var versionGreaterThan10 = (_commonUtils as OdbcSqlServerUtils).ServerVersion > 10;
             var sql = versionGreaterThan10 ? this.ToSql() : this.ToSqlValuesOrSelectUnionAll(false);
             var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
-            _orm.Aop.CurdBefore?.Invoke(this, before);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             var affrows = 0;
             Exception exception = null;
             try
@@ -151,7 +151,7 @@ namespace FreeSql.Odbc.SqlServer
             finally
             {
                 var after = new Aop.CurdAfterEventArgs(before, exception, affrows);
-                _orm.Aop.CurdAfter?.Invoke(this, after);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
             return affrows;
         }
@@ -163,7 +163,7 @@ namespace FreeSql.Odbc.SqlServer
 
             sql = string.Concat(sql, "; SELECT SCOPE_IDENTITY();");
             var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
-            _orm.Aop.CurdBefore?.Invoke(this, before);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             long ret = 0;
             Exception exception = null;
             try
@@ -178,7 +178,7 @@ namespace FreeSql.Odbc.SqlServer
             finally
             {
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                _orm.Aop.CurdAfter?.Invoke(this, after);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
             return ret;
         }
@@ -215,7 +215,7 @@ namespace FreeSql.Odbc.SqlServer
 
             sql = sb.ToString();
             var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
-            _orm.Aop.CurdBefore?.Invoke(this, before);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             var ret = new List<T1>();
             Exception exception = null;
             try
@@ -230,7 +230,7 @@ namespace FreeSql.Odbc.SqlServer
             finally
             {
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                _orm.Aop.CurdAfter?.Invoke(this, after);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
             return ret;
         }

@@ -30,7 +30,7 @@ namespace FreeSql.Odbc.Default
 
             Object<DbConnection> poolConn = null;
             var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, string.Concat(sql, $"; {_utils.Adapter.InsertAfterGetIdentitySql}"), _params);
-            _orm.Aop.CurdBefore?.Invoke(this, before);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             long ret = 0;
             Exception exception = null;
             try
@@ -56,7 +56,7 @@ namespace FreeSql.Odbc.Default
                     _orm.Ado.MasterPool.Return(poolConn);
 
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                _orm.Aop.CurdAfter?.Invoke(this, after);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
             return ret;
         }
@@ -76,7 +76,7 @@ namespace FreeSql.Odbc.Default
 
             Object<DbConnection> poolConn = null;
             var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, string.Concat(sql, $"; {_utils.Adapter.InsertAfterGetIdentitySql}"), _params);
-            _orm.Aop.CurdBefore?.Invoke(this, before);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             long ret = 0;
             Exception exception = null;
             try
@@ -102,7 +102,7 @@ namespace FreeSql.Odbc.Default
                     _orm.Ado.MasterPool.Return(poolConn);
 
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                _orm.Aop.CurdAfter?.Invoke(this, after);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
             return ret;
         }

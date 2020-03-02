@@ -48,7 +48,7 @@ namespace FreeSql.MySql.Curd
 
             sql = string.Concat(sql, "; SELECT LAST_INSERT_ID();");
             var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
-            _orm.Aop.CurdBefore?.Invoke(this, before);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             long ret = 0;
             Exception exception = null;
             try
@@ -63,7 +63,7 @@ namespace FreeSql.MySql.Curd
             finally
             {
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                _orm.Aop.CurdAfter?.Invoke(this, after);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
             return ret;
         }
@@ -84,7 +84,7 @@ namespace FreeSql.MySql.Curd
             }
             sql = sb.ToString();
             var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
-            _orm.Aop.CurdBefore?.Invoke(this, before);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             var ret = new List<T1>();
             Exception exception = null;
             try
@@ -99,7 +99,7 @@ namespace FreeSql.MySql.Curd
             finally
             {
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                _orm.Aop.CurdAfter?.Invoke(this, after);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
             return ret;
         }
@@ -117,7 +117,7 @@ namespace FreeSql.MySql.Curd
 
             sql = string.Concat(sql, "; SELECT LAST_INSERT_ID();");
             var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
-            _orm.Aop.CurdBefore?.Invoke(this, before);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             long ret = 0;
             Exception exception = null;
             try
@@ -132,7 +132,7 @@ namespace FreeSql.MySql.Curd
             finally
             {
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                _orm.Aop.CurdAfter?.Invoke(this, after);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
             return ret;
         }
@@ -153,7 +153,7 @@ namespace FreeSql.MySql.Curd
             }
             sql = sb.ToString();
             var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
-            _orm.Aop.CurdBefore?.Invoke(this, before);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             var ret = new List<T1>();
             Exception exception = null;
             try
@@ -168,7 +168,7 @@ namespace FreeSql.MySql.Curd
             finally
             {
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                _orm.Aop.CurdAfter?.Invoke(this, after);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
             return ret;
         }

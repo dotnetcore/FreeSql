@@ -299,7 +299,7 @@ namespace FreeSql.Internal.CommonProvider
             var sql = this.ToSql(field);
             var dbParms = _params.ToArray();
             var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
-            _orm.Aop.CurdBefore?.Invoke(this, before);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             DataTable ret = null;
             Exception exception = null;
             try
@@ -314,7 +314,7 @@ namespace FreeSql.Internal.CommonProvider
             finally
             {
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                _orm.Aop.CurdAfter?.Invoke(this, after);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
             return ret;
         }
@@ -325,7 +325,7 @@ namespace FreeSql.Internal.CommonProvider
             var type = typeof(TTuple);
             var dbParms = _params.ToArray();
             var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
-            _orm.Aop.CurdBefore?.Invoke(this, before);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             var ret = new List<TTuple>();
             var flagStr = $"ToListField:{field}";
             Exception exception = null;
@@ -345,7 +345,7 @@ namespace FreeSql.Internal.CommonProvider
             finally
             {
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                _orm.Aop.CurdAfter?.Invoke(this, after);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
             return ret;
         }
@@ -353,7 +353,7 @@ namespace FreeSql.Internal.CommonProvider
         {
             var dbParms = _params.ToArray();
             var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
-            _orm.Aop.CurdBefore?.Invoke(this, before);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             var ret = new List<T1>();
             Exception exception = null;
             try
@@ -377,7 +377,7 @@ namespace FreeSql.Internal.CommonProvider
             finally
             {
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                _orm.Aop.CurdAfter?.Invoke(this, after);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
             foreach (var include in _includeToList) include?.Invoke(ret);
             _trackToList?.Invoke(ret);
@@ -403,7 +403,7 @@ namespace FreeSql.Internal.CommonProvider
         {
             var dbParms = _params.ToArray();
             var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
-            _orm.Aop.CurdBefore?.Invoke(this, before);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             var ret = new List<T1>();
             var retCount = 0;
             Exception exception = null;
@@ -444,7 +444,7 @@ namespace FreeSql.Internal.CommonProvider
             finally
             {
                 var after = new Aop.CurdAfterEventArgs(before, exception, retCount);
-                _orm.Aop.CurdAfter?.Invoke(this, after);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
             if (ret.Any() || checkDoneTimes == 0)
             {
@@ -492,7 +492,7 @@ namespace FreeSql.Internal.CommonProvider
             var type = typeof(TReturn);
             var dbParms = _params.ToArray();
             var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
-            _orm.Aop.CurdBefore?.Invoke(this, before);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             var ret = new List<TReturn>();
             Exception exception = null;
             try
@@ -514,7 +514,7 @@ namespace FreeSql.Internal.CommonProvider
             finally
             {
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                _orm.Aop.CurdAfter?.Invoke(this, after);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
             if (typeof(TReturn) == typeof(T1))
                 foreach (var include in _includeToList) include?.Invoke(ret);
@@ -1082,7 +1082,7 @@ namespace FreeSql.Internal.CommonProvider
             var sql = this.InternalToSql<int>(select);
             var dbParms = _params.ToArray();
             var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
-            _orm.Aop.CurdBefore?.Invoke(this, before);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             DataTable ret = null;
             Exception exception = null;
             try
@@ -1097,7 +1097,7 @@ namespace FreeSql.Internal.CommonProvider
             finally
             {
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                _orm.Aop.CurdAfter?.Invoke(this, after);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
             return ret;
         }
@@ -1142,7 +1142,7 @@ namespace FreeSql.Internal.CommonProvider
             var sql = this.ToSql(field);
             var dbParms = _params.ToArray();
             var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
-            _orm.Aop.CurdBefore?.Invoke(this, before);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             DataTable ret = null;
             Exception exception = null;
             try
@@ -1157,7 +1157,7 @@ namespace FreeSql.Internal.CommonProvider
             finally
             {
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                _orm.Aop.CurdAfter?.Invoke(this, after);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
             return ret;
         }
@@ -1168,7 +1168,7 @@ namespace FreeSql.Internal.CommonProvider
             var type = typeof(TTuple);
             var dbParms = _params.ToArray();
             var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
-            _orm.Aop.CurdBefore?.Invoke(this, before);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             var ret = new List<TTuple>();
             var flagStr = $"ToListField:{field}";
             Exception exception = null;
@@ -1189,7 +1189,7 @@ namespace FreeSql.Internal.CommonProvider
             finally
             {
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                _orm.Aop.CurdAfter?.Invoke(this, after);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
             return ret;
         }
@@ -1198,7 +1198,7 @@ namespace FreeSql.Internal.CommonProvider
         {
             var dbParms = _params.ToArray();
             var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
-            _orm.Aop.CurdBefore?.Invoke(this, before);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             var ret = new List<T1>();
             Exception exception = null;
             try
@@ -1223,7 +1223,7 @@ namespace FreeSql.Internal.CommonProvider
             finally
             {
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                _orm.Aop.CurdAfter?.Invoke(this, after);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
             foreach (var include in _includeToListAsync) await include?.Invoke(ret);
             _trackToList?.Invoke(ret);
@@ -1265,7 +1265,7 @@ namespace FreeSql.Internal.CommonProvider
             var type = typeof(TReturn);
             var dbParms = _params.ToArray();
             var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
-            _orm.Aop.CurdBefore?.Invoke(this, before);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             var ret = new List<TReturn>();
             Exception exception = null;
             try
@@ -1288,7 +1288,7 @@ namespace FreeSql.Internal.CommonProvider
             finally
             {
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                _orm.Aop.CurdAfter?.Invoke(this, after);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
             if (typeof(TReturn) == typeof(T1))
                 foreach (var include in _includeToListAsync) await include?.Invoke(ret);
@@ -1328,7 +1328,7 @@ namespace FreeSql.Internal.CommonProvider
             var sql = this.InternalToSql<int>(select);
             var dbParms = _params.ToArray();
             var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
-            _orm.Aop.CurdBefore?.Invoke(this, before);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             DataTable ret = null;
             Exception exception = null;
             try
@@ -1343,7 +1343,7 @@ namespace FreeSql.Internal.CommonProvider
             finally
             {
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                _orm.Aop.CurdAfter?.Invoke(this, after);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
             return ret;
         }

@@ -31,20 +31,20 @@ namespace dbcontext_01
                     (cmd, log) => Trace.WriteLine(log)
                 )
                 .Build();
-            Fsql.Aop.SyncStructureBefore = (s, e) =>
+            Fsql.Aop.SyncStructureBefore += (s, e) =>
             {
                 Console.WriteLine(e.Identifier + ": " + string.Join(", ", e.EntityTypes.Select(a => a.FullName)));
             };
-            Fsql.Aop.SyncStructureAfter = (s, e) =>
+            Fsql.Aop.SyncStructureAfter += (s, e) =>
             {
                 Console.WriteLine(e.Identifier + ": " + string.Join(", ", e.EntityTypes.Select(a => a.FullName)) + " " + e.ElapsedMilliseconds + "ms\r\n" + e.Exception?.Message + e.Sql);
             };
 
-            Fsql.Aop.CurdBefore = (s, e) =>
+            Fsql.Aop.CurdBefore += (s, e) =>
             {
                 Console.WriteLine(e.Identifier + ": " + e.EntityType.FullName + ", " + e.Sql);
             };
-            Fsql.Aop.CurdAfter = (s, e) =>
+            Fsql.Aop.CurdAfter += (s, e) =>
             {
                 Console.WriteLine(e.Identifier + ": " + e.EntityType.FullName + " " + e.ElapsedMilliseconds + "ms, " + e.Sql);
             };

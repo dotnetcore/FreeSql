@@ -156,7 +156,7 @@ namespace FreeSql.PostgreSQL.Curd
             if (string.IsNullOrEmpty(sql)) return 0;
 
             var before = new CurdBeforeEventArgs(_pgsqlInsert.InternalTable.Type, _pgsqlInsert.InternalTable, CurdType.Insert, sql, _pgsqlInsert.InternalParams);
-            _pgsqlInsert.InternalOrm.Aop.CurdBefore?.Invoke(_pgsqlInsert, before);
+            _pgsqlInsert.InternalOrm.Aop.CurdBeforeHandler?.Invoke(_pgsqlInsert, before);
             long ret = 0;
             Exception exception = null;
             try
@@ -171,7 +171,7 @@ namespace FreeSql.PostgreSQL.Curd
             finally
             {
                 var after = new CurdAfterEventArgs(before, exception, ret);
-                _pgsqlInsert.InternalOrm.Aop.CurdAfter?.Invoke(_pgsqlInsert, after);
+                _pgsqlInsert.InternalOrm.Aop.CurdAfterHandler?.Invoke(_pgsqlInsert, after);
                 ClearData();
             }
             return ret;
@@ -185,7 +185,7 @@ namespace FreeSql.PostgreSQL.Curd
             if (string.IsNullOrEmpty(sql)) return 0;
 
             var before = new CurdBeforeEventArgs(_pgsqlInsert.InternalTable.Type, _pgsqlInsert.InternalTable, CurdType.Insert, sql, _pgsqlInsert.InternalParams);
-            _pgsqlInsert.InternalOrm.Aop.CurdBefore?.Invoke(_pgsqlInsert, before);
+            _pgsqlInsert.InternalOrm.Aop.CurdBeforeHandler?.Invoke(_pgsqlInsert, before);
             long ret = 0;
             Exception exception = null;
             try
@@ -200,7 +200,7 @@ namespace FreeSql.PostgreSQL.Curd
             finally
             {
                 var after = new CurdAfterEventArgs(before, exception, ret);
-                _pgsqlInsert.InternalOrm.Aop.CurdAfter?.Invoke(_pgsqlInsert, after);
+                _pgsqlInsert.InternalOrm.Aop.CurdAfterHandler?.Invoke(_pgsqlInsert, after);
                 ClearData();
             }
             return ret;

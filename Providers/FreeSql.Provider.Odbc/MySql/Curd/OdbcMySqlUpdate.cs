@@ -40,7 +40,7 @@ namespace FreeSql.Odbc.MySql
             sql = sb.ToString();
             var dbParms = _params.Concat(_paramsSource).ToArray();
             var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Update, sql, dbParms);
-            _orm.Aop.CurdBefore?.Invoke(this, before);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             var ret = new List<T1>();
             Exception exception = null;
             try
@@ -56,7 +56,7 @@ namespace FreeSql.Odbc.MySql
             finally
             {
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                _orm.Aop.CurdAfter?.Invoke(this, after);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
             return ret;
         }
@@ -121,7 +121,7 @@ namespace FreeSql.Odbc.MySql
             sql = sb.ToString();
             var dbParms = _params.Concat(_paramsSource).ToArray();
             var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Update, sql, dbParms);
-            _orm.Aop.CurdBefore?.Invoke(this, before);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             var ret = new List<T1>();
             Exception exception = null;
             try
@@ -137,7 +137,7 @@ namespace FreeSql.Odbc.MySql
             finally
             {
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                _orm.Aop.CurdAfter?.Invoke(this, after);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
             return ret;
         }

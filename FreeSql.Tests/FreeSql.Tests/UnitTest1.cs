@@ -756,7 +756,7 @@ namespace FreeSql.Tests
             //	.ExecuteAffrows();
 
 
-            g.mysql.Aop.ParseExpression = (s, e) =>
+            g.mysql.Aop.ParseExpression += (s, e) =>
             {
                 if (e.Expression.NodeType == ExpressionType.Call)
                 {

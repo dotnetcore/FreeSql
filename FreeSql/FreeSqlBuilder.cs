@@ -248,9 +248,15 @@ namespace FreeSql
                 ret.CodeFirst.IsNoneCommandParameter = _isNoneCommandParameter;
                 ret.CodeFirst.IsGenerateCommandParameterWithLambda = _isGenerateCommandParameterWithLambda;
                 ret.CodeFirst.IsLazyLoading = _isLazyLoading;
-                var ado = ret.Ado as Internal.CommonProvider.AdoProvider;
-                ado.AopCommandExecuting += _aopCommandExecuting;
-                ado.AopCommandExecuted += _aopCommandExecuted;
+
+                ret.Aop.CommandBefore += new EventHandler<Aop.CommandBeforeEventArgs>((s, e) =>
+                {
+                    _aopCommandExecuting(e.Command);
+                });
+                ret.Aop.CommandAfter += new EventHandler<Aop.CommandAfterEventArgs>((s, e) =>
+                {
+                    _aopCommandExecuted(e.Command, e.Log);
+                });
 
                 //添加实体属性名全局AOP转换处理
                 if (_entityPropertyConvertType != StringConvertType.None)

@@ -8,6 +8,11 @@ namespace FreeSql
     public interface IUnitOfWork : IDisposable
     {
 
+        /// <summary>
+        /// 开启事务，或者返回已开启的事务
+        /// </summary>
+        /// <param name="isCreate">若未开启事务，则开启</param>
+        /// <returns></returns>
         DbTransaction GetOrBeginTransaction(bool isCreate = true);
 
         IsolationLevel? IsolationLevel { get; set; }

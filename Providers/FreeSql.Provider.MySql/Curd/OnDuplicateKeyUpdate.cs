@@ -117,7 +117,7 @@ namespace FreeSql.MySql.Curd
             if (string.IsNullOrEmpty(sql)) return 0;
 
             var before = new CurdBeforeEventArgs(_mysqlInsert.InternalTable.Type, _mysqlInsert.InternalTable, CurdType.Insert, sql, _mysqlInsert.InternalParams);
-            _mysqlInsert.InternalOrm.Aop.CurdBefore?.Invoke(_mysqlInsert, before);
+            _mysqlInsert.InternalOrm.Aop.CurdBeforeHandler?.Invoke(_mysqlInsert, before);
             long ret = 0;
             Exception exception = null;
             try
@@ -132,7 +132,7 @@ namespace FreeSql.MySql.Curd
             finally
             {
                 var after = new CurdAfterEventArgs(before, exception, ret);
-                _mysqlInsert.InternalOrm.Aop.CurdAfter?.Invoke(_mysqlInsert, after);
+                _mysqlInsert.InternalOrm.Aop.CurdAfterHandler?.Invoke(_mysqlInsert, after);
                 ClearData();
             }
             return ret;
@@ -146,7 +146,7 @@ namespace FreeSql.MySql.Curd
             if (string.IsNullOrEmpty(sql)) return 0;
 
             var before = new CurdBeforeEventArgs(_mysqlInsert.InternalTable.Type, _mysqlInsert.InternalTable, CurdType.Insert, sql, _mysqlInsert.InternalParams);
-            _mysqlInsert.InternalOrm.Aop.CurdBefore?.Invoke(_mysqlInsert, before);
+            _mysqlInsert.InternalOrm.Aop.CurdBeforeHandler?.Invoke(_mysqlInsert, before);
             long ret = 0;
             Exception exception = null;
             try
@@ -161,7 +161,7 @@ namespace FreeSql.MySql.Curd
             finally
             {
                 var after = new CurdAfterEventArgs(before, exception, ret);
-                _mysqlInsert.InternalOrm.Aop.CurdAfter?.Invoke(_mysqlInsert, after);
+                _mysqlInsert.InternalOrm.Aop.CurdAfterHandler?.Invoke(_mysqlInsert, after);
                 ClearData();
             }
             return ret;

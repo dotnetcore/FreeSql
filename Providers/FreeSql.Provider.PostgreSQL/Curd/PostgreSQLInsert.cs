@@ -46,7 +46,7 @@ namespace FreeSql.PostgreSQL.Curd
             if (identCols.Any() == false)
             {
                 before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
-                _orm.Aop.CurdBefore?.Invoke(this, before);
+                _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
                 try
                 {
                     ret = _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, _params);
@@ -59,13 +59,13 @@ namespace FreeSql.PostgreSQL.Curd
                 finally
                 {
                     var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                    _orm.Aop.CurdAfter?.Invoke(this, after);
+                    _orm.Aop.CurdAfterHandler?.Invoke(this, after);
                 }
                 return 0;
             }
             sql = string.Concat(sql, " RETURNING ", _commonUtils.QuoteSqlName(identCols.First().Value.Attribute.Name));
             before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
-            _orm.Aop.CurdBefore?.Invoke(this, before);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             try
             {
                 long.TryParse(string.Concat(_orm.Ado.ExecuteScalar(_connection, _transaction, CommandType.Text, sql, _params)), out ret);
@@ -78,7 +78,7 @@ namespace FreeSql.PostgreSQL.Curd
             finally
             {
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                _orm.Aop.CurdAfter?.Invoke(this, after);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
             return ret;
         }
@@ -100,7 +100,7 @@ namespace FreeSql.PostgreSQL.Curd
             }
             sql = sb.ToString();
             var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
-            _orm.Aop.CurdBefore?.Invoke(this, before);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             var ret = new List<T1>();
             Exception exception = null;
             try
@@ -115,7 +115,7 @@ namespace FreeSql.PostgreSQL.Curd
             finally
             {
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                _orm.Aop.CurdAfter?.Invoke(this, after);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
             return ret;
         }
@@ -139,7 +139,7 @@ namespace FreeSql.PostgreSQL.Curd
             if (identCols.Any() == false)
             {
                 before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
-                _orm.Aop.CurdBefore?.Invoke(this, before);
+                _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
                 try
                 {
                     ret = await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, _params);
@@ -152,13 +152,13 @@ namespace FreeSql.PostgreSQL.Curd
                 finally
                 {
                     var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                    _orm.Aop.CurdAfter?.Invoke(this, after);
+                    _orm.Aop.CurdAfterHandler?.Invoke(this, after);
                 }
                 return 0;
             }
             sql = string.Concat(sql, " RETURNING ", _commonUtils.QuoteSqlName(identCols.First().Value.Attribute.Name));
             before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
-            _orm.Aop.CurdBefore?.Invoke(this, before);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             try
             {
                 long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync(_connection, _transaction, CommandType.Text, sql, _params)), out ret);
@@ -171,7 +171,7 @@ namespace FreeSql.PostgreSQL.Curd
             finally
             {
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                _orm.Aop.CurdAfter?.Invoke(this, after);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
             return ret;
         }
@@ -192,7 +192,7 @@ namespace FreeSql.PostgreSQL.Curd
             }
             sql = sb.ToString();
             var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
-            _orm.Aop.CurdBefore?.Invoke(this, before);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             var ret = new List<T1>();
             Exception exception = null;
             try
@@ -207,7 +207,7 @@ namespace FreeSql.PostgreSQL.Curd
             finally
             {
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                _orm.Aop.CurdAfter?.Invoke(this, after);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
             return ret;
         }

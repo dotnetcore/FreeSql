@@ -97,7 +97,7 @@ namespace FreeSql.Odbc.Dameng
             if (_identCol == null || _source.Count > 1)
             {
                 before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
-                _orm.Aop.CurdBefore?.Invoke(this, before);
+                _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
                 try
                 {
                     ret = _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, _params);
@@ -110,7 +110,7 @@ namespace FreeSql.Odbc.Dameng
                 finally
                 {
                     var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                    _orm.Aop.CurdAfter?.Invoke(this, after);
+                    _orm.Aop.CurdAfterHandler?.Invoke(this, after);
                 }
                 return 0;
             }
@@ -120,7 +120,7 @@ namespace FreeSql.Odbc.Dameng
             sql = $"{sql} RETURNING {identColName} INTO {identParam.ParameterName}";
             var dbParms = _params.Concat(new[] { identParam }).ToArray();
             before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, dbParms);
-            _orm.Aop.CurdBefore?.Invoke(this, before);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             try
             {
                 _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, dbParms);
@@ -134,7 +134,7 @@ namespace FreeSql.Odbc.Dameng
             finally
             {
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                _orm.Aop.CurdAfter?.Invoke(this, after);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
             return ret;
         }
@@ -167,7 +167,7 @@ namespace FreeSql.Odbc.Dameng
             if (_identCol == null || _source.Count > 1)
             {
                 before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
-                _orm.Aop.CurdBefore?.Invoke(this, before);
+                _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
                 try
                 {
                     ret = await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, _params);
@@ -180,7 +180,7 @@ namespace FreeSql.Odbc.Dameng
                 finally
                 {
                     var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                    _orm.Aop.CurdAfter?.Invoke(this, after);
+                    _orm.Aop.CurdAfterHandler?.Invoke(this, after);
                 }
                 return 0;
             }
@@ -190,7 +190,7 @@ namespace FreeSql.Odbc.Dameng
             sql = $"{sql} RETURNING {identColName} INTO {identParam.ParameterName}";
             var dbParms = _params.Concat(new[] { identParam }).ToArray();
             before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, dbParms);
-            _orm.Aop.CurdBefore?.Invoke(this, before);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             try
             {
                 await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, dbParms);
@@ -204,7 +204,7 @@ namespace FreeSql.Odbc.Dameng
             finally
             {
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                _orm.Aop.CurdAfter?.Invoke(this, after);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
             return ret;
         }

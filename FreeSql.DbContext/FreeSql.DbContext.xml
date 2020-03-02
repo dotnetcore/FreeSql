@@ -110,13 +110,6 @@
             清空状态数据
             </summary>
         </member>
-        <member name="M:FreeSql.DbSet`1.RemoveAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
-            <summary>
-            根据 lambda 条件删除数据
-            </summary>
-            <param name="predicate"></param>
-            <returns></returns>
-        </member>
         <member name="M:FreeSql.DbSet`1.Add(`0)">
             <summary>
             添加
@@ -250,6 +243,13 @@
             </summary>
             <param name="entity">实体对象</param>
             <param name="propertyName">属性名</param>
+        </member>
+        <member name="M:FreeSql.IUnitOfWork.GetOrBeginTransaction(System.Boolean)">
+            <summary>
+            开启事务，或者返回已开启的事务
+            </summary>
+            <param name="isCreate">若未开启事务，则开启</param>
+            <returns></returns>
         </member>
         <member name="P:FreeSql.IUnitOfWork.Enable">
             <summary>

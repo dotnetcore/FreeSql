@@ -100,10 +100,10 @@ namespace FreeSql.Internal
         public TableAttribute GetEntityTableAttribute(Type type)
         {
             TableAttribute attr = null;
-            if (_orm.Aop.ConfigEntity != null)
+            if (_orm.Aop.ConfigEntityHandler != null)
             {
                 var aope = new Aop.ConfigEntityEventArgs(type);
-                _orm.Aop.ConfigEntity(_orm, aope);
+                _orm.Aop.ConfigEntityHandler(_orm, aope);
                 attr = aope.ModifyResult;
             }
             if (attr == null) attr = new TableAttribute();
@@ -130,10 +130,10 @@ namespace FreeSql.Internal
         public ColumnAttribute GetEntityColumnAttribute(Type type, PropertyInfo proto)
         {
             ColumnAttribute attr = null;
-            if (_orm.Aop.ConfigEntityProperty != null)
+            if (_orm.Aop.ConfigEntityPropertyHandler != null)
             {
                 var aope = new Aop.ConfigEntityPropertyEventArgs(type, proto);
-                _orm.Aop.ConfigEntityProperty(_orm, aope);
+                _orm.Aop.ConfigEntityPropertyHandler(_orm, aope);
                 attr = aope.ModifyResult;
             }
             if (attr == null) attr = new ColumnAttribute();
@@ -219,10 +219,10 @@ namespace FreeSql.Internal
         public IndexAttribute[] GetEntityIndexAttribute(Type type)
         {
             var ret = new Dictionary<string, IndexAttribute>();
-            if (_orm.Aop.ConfigEntity != null)
+            if (_orm.Aop.ConfigEntityHandler != null)
             {
                 var aope = new Aop.ConfigEntityEventArgs(type);
-                _orm.Aop.ConfigEntity(_orm, aope);
+                _orm.Aop.ConfigEntityHandler(_orm, aope);
                 foreach (var idxattr in aope.ModifyIndexResult)
                     if (!string.IsNullOrEmpty(idxattr.Name) && !string.IsNullOrEmpty(idxattr.Fields))
                     {

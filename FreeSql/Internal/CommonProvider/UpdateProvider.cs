@@ -150,35 +150,55 @@ namespace FreeSql.Internal.CommonProvider
             if (_transaction == null)
                 this.WithTransaction(_orm.Ado.TransactionCurrentThread);
 
-            if (_transaction != null || _batchAutoTransaction == false)
+            var before = new Aop.TraceBeforeEventArgs("SplitExecuteAffrows", null);
+            _orm.Aop.TraceBeforeHandler?.Invoke(this, before);
+            Exception exception = null;
+            try
             {
-                for (var a = 0; a < ss.Length; a++)
+                if (_transaction != null || _batchAutoTransaction == false)
                 {
-                    _source = ss[a];
-                    ret += this.RawExecuteAffrows();
+                    for (var a = 0; a < ss.Length; a++)
+                    {
+                        _source = ss[a];
+                        ret += this.RawExecuteAffrows();
+                    }
+                }
+                else
+                {
+                    using (var conn = _orm.Ado.MasterPool.Get())
+                    {
+                        _transaction = conn.Value.BeginTransaction();
+                        var transBefore = new Aop.TraceBeforeEventArgs("BeginTransaction", null);
+                        _orm.Aop.TraceBeforeHandler?.Invoke(this, transBefore);
+                        try
+                        {
+                            for (var a = 0; a < ss.Length; a++)
+                            {
+                                _source = ss[a];
+                                ret += this.RawExecuteAffrows();
+                            }
+                            _transaction.Commit();
+                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, "提交", null));
+                        }
+                        catch (Exception ex)
+                        {
+                            _transaction.Rollback();
+                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, "回滚", ex));
+                            throw ex;
+                        }
+                        _transaction = null;
+                    }
                 }
             }
-            else
+            catch (Exception ex)
             {
-                using (var conn = _orm.Ado.MasterPool.Get())
-                {
-                    _transaction = conn.Value.BeginTransaction();
-                    try
-                    {
-                        for (var a = 0; a < ss.Length; a++)
-                        {
-                            _source = ss[a];
-                            ret += this.RawExecuteAffrows();
-                        }
-                        _transaction.Commit();
-                    }
-                    catch
-                    {
-                        _transaction.Rollback();
-                        throw;
-                    }
-                    _transaction = null;
-                }
+                exception = ex;
+                throw ex;
+            }
+            finally
+            {
+                var after = new Aop.TraceAfterEventArgs(before, null, exception);
+                _orm.Aop.TraceAfterHandler?.Invoke(this, after);
             }
             ClearData();
             return ret;
@@ -197,35 +217,55 @@ namespace FreeSql.Internal.CommonProvider
             if (_transaction == null)
                 this.WithTransaction(_orm.Ado.TransactionCurrentThread);
 
-            if (_transaction != null || _batchAutoTransaction == false)
+            var before = new Aop.TraceBeforeEventArgs("SplitExecuteUpdated", null);
+            _orm.Aop.TraceBeforeHandler?.Invoke(this, before);
+            Exception exception = null;
+            try
             {
-                for (var a = 0; a < ss.Length; a++)
+                if (_transaction != null || _batchAutoTransaction == false)
                 {
-                    _source = ss[a];
-                    ret.AddRange(this.RawExecuteUpdated());
+                    for (var a = 0; a < ss.Length; a++)
+                    {
+                        _source = ss[a];
+                        ret.AddRange(this.RawExecuteUpdated());
+                    }
+                }
+                else
+                {
+                    using (var conn = _orm.Ado.MasterPool.Get())
+                    {
+                        _transaction = conn.Value.BeginTransaction();
+                        var transBefore = new Aop.TraceBeforeEventArgs("BeginTransaction", null);
+                        _orm.Aop.TraceBeforeHandler?.Invoke(this, transBefore);
+                        try
+                        {
+                            for (var a = 0; a < ss.Length; a++)
+                            {
+                                _source = ss[a];
+                                ret.AddRange(this.RawExecuteUpdated());
+                            }
+                            _transaction.Commit();
+                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, "提交", null));
+                        }
+                        catch (Exception ex)
+                        {
+                            _transaction.Rollback();
+                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, "回滚", ex));
+                            throw ex;
+                        }
+                        _transaction = null;
+                    }
                 }
             }
-            else
+            catch (Exception ex)
             {
-                using (var conn = _orm.Ado.MasterPool.Get())
-                {
-                    _transaction = conn.Value.BeginTransaction();
-                    try
-                    {
-                        for (var a = 0; a < ss.Length; a++)
-                        {
-                            _source = ss[a];
-                            ret.AddRange(this.RawExecuteUpdated());
-                        }
-                        _transaction.Commit();
-                    }
-                    catch
-                    {
-                        _transaction.Rollback();
-                        throw;
-                    }
-                    _transaction = null;
-                }
+                exception = ex;
+                throw ex;
+            }
+            finally
+            {
+                var after = new Aop.TraceAfterEventArgs(before, null, exception);
+                _orm.Aop.TraceAfterHandler?.Invoke(this, after);
             }
             ClearData();
             return ret;
@@ -238,7 +278,7 @@ namespace FreeSql.Internal.CommonProvider
             if (string.IsNullOrEmpty(sql)) return 0;
             var dbParms = _params.Concat(_paramsSource).ToArray();
             var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Update, sql, dbParms);
-            _orm.Aop.CurdBefore?.Invoke(this, before);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             var affrows = 0;
             Exception exception = null;
             try
@@ -254,7 +294,7 @@ namespace FreeSql.Internal.CommonProvider
             finally
             {
                 var after = new Aop.CurdAfterEventArgs(before, exception, affrows);
-                _orm.Aop.CurdAfter?.Invoke(this, after);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
             return affrows;
         }
@@ -289,7 +329,7 @@ namespace FreeSql.Internal.CommonProvider
         public static void AuditDataValue(object sender, IEnumerable<T1> data, IFreeSql orm, TableInfo table, Dictionary<string, bool> changedDict)
         {
             if (data?.Any() != true) return;
-            if (orm.Aop.AuditValue == null) return;
+            if (orm.Aop.AuditValueHandler == null) return;
             foreach (var d in data)
             {
                 if (d == null) continue;
@@ -297,7 +337,7 @@ namespace FreeSql.Internal.CommonProvider
                 {
                     object val = col.GetMapValue(d);
                     var auditArgs = new Aop.AuditValueEventArgs(Aop.AuditValueType.Update, col, table.Properties[col.CsName], val);
-                    orm.Aop.AuditValue(sender, auditArgs);
+                    orm.Aop.AuditValueHandler(sender, auditArgs);
                     if (auditArgs.IsChanged)
                     {
                         col.SetMapValue(d, val = auditArgs.Value);
@@ -309,13 +349,13 @@ namespace FreeSql.Internal.CommonProvider
         }
         public static void AuditDataValue(object sender, T1 data, IFreeSql orm, TableInfo table, Dictionary<string, bool> changedDict)
         {
-            if (orm.Aop.AuditValue == null) return;
+            if (orm.Aop.AuditValueHandler == null) return;
             if (data == null) return;
             foreach (var col in table.Columns.Values)
             {
                 object val = col.GetMapValue(data);
                 var auditArgs = new Aop.AuditValueEventArgs(Aop.AuditValueType.Update, col, table.Properties[col.CsName], val);
-                orm.Aop.AuditValue(sender, auditArgs);
+                orm.Aop.AuditValueHandler(sender, auditArgs);
                 if (auditArgs.IsChanged)
                 {
                     col.SetMapValue(data, val = auditArgs.Value);
@@ -605,7 +645,7 @@ namespace FreeSql.Internal.CommonProvider
             else if (_source.Count > 1)
             { //批量保存 Source
                 if (_table.Primarys.Any() == false) return null;
-                
+
                 var caseWhen = new StringBuilder();
                 caseWhen.Append("CASE ");
                 ToSqlCase(caseWhen, _table.Primarys);

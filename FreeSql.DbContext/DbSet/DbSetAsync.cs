@@ -160,7 +160,9 @@ namespace FreeSql
                     await DbContextExecCommandAsync();
                     //删除没有保存的数据
                     var propValEach = GetItemValue(item, prop) as IEnumerable;
-                    await _db.Orm.Delete<object>().AsType(tref.RefEntityType).WhereDynamic(propValEach, true).ExecuteAffrowsAsync();
+                    await _db.Orm.Delete<object>().AsType(tref.RefEntityType)
+                        .WithTransaction(_uow?.GetOrBeginTransaction())
+                        .WhereDynamic(propValEach, true).ExecuteAffrowsAsync();
                 }
             }
             finally
@@ -213,7 +215,8 @@ namespace FreeSql
 
                         if (curList.Any() == false) //全部删除
                         {
-                            var delall = _db.Orm.Delete<object>().AsType(tref.RefMiddleEntityType);
+                            var delall = _db.Orm.Delete<object>().AsType(tref.RefMiddleEntityType)
+                                .WithTransaction(_uow?.GetOrBeginTransaction());
                             foreach (var midWhere in midWheres) delall.Where(midWhere);
                             var sql = delall.ToSql();
                             await delall.ExecuteAffrowsAsync();

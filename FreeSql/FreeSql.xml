@@ -2098,16 +2098,6 @@
             从库连接池
             </summary>
         </member>
-        <member name="P:FreeSql.IAdo.AopCommandExecuting">
-            <summary>
-            监视数据库命令对象(执行前，调试)
-            </summary>
-        </member>
-        <member name="P:FreeSql.IAdo.AopCommandExecuted">
-            <summary>
-            监视数据库命令对象(执行后，用于监视执行性能)
-            </summary>
-        </member>
         <member name="P:FreeSql.IAdo.DataType">
             <summary>
             数据库类型
@@ -2401,44 +2391,64 @@
             <param name="parms"></param>
             <returns></returns>
         </member>
-        <member name="P:FreeSql.IAop.ParseExpression">
+        <member name="E:FreeSql.IAop.ParseExpression">
             <summary>
             可自定义解析表达式
             </summary>
         </member>
-        <member name="P:FreeSql.IAop.ConfigEntity">
+        <member name="E:FreeSql.IAop.ConfigEntity">
             <summary>
             自定义实体的配置，方便和多个 ORM 共同使用
             </summary>
         </member>
-        <member name="P:FreeSql.IAop.ConfigEntityProperty">
+        <member name="E:FreeSql.IAop.ConfigEntityProperty">
             <summary>
             自定义实体的属性配置，方便和多个 ORM 共同使用
             </summary>
         </member>
-        <member name="P:FreeSql.IAop.CurdBefore">
+        <member name="E:FreeSql.IAop.CurdBefore">
             <summary>
             增删查改，执行命令之前触发
             </summary>
         </member>
-        <member name="P:FreeSql.IAop.CurdAfter">
+        <member name="E:FreeSql.IAop.CurdAfter">
             <summary>
             增删查改，执行命令完成后触发
             </summary>
         </member>
-        <member name="P:FreeSql.IAop.SyncStructureBefore">
+        <member name="E:FreeSql.IAop.SyncStructureBefore">
             <summary>
             CodeFirst迁移，执行之前触发
             </summary>
         </member>
-        <member name="P:FreeSql.IAop.SyncStructureAfter">
+        <member name="E:FreeSql.IAop.SyncStructureAfter">
             <summary>
             CodeFirst迁移，执行完成触发
             </summary>
         </member>
-        <member name="P:FreeSql.IAop.AuditValue">
+        <member name="E:FreeSql.IAop.AuditValue">
             <summary>
             Insert/Update自动值处理
+            </summary>
+        </member>
+        <member name="E:FreeSql.IAop.CommandBefore">
+            <summary>
+            监视数据库命令对象(执行前，调试)
+            </summary>
+        </member>
+        <member name="E:FreeSql.IAop.CommandAfter">
+            <summary>
+            监视数据库命令对象(执行后，用于监视执行性能)
+            </summary>
+        </member>
+        <member name="E:FreeSql.IAop.TraceBefore">
+            <summary>
+            跟踪开始
+            </summary>
+        </member>
+        <member name="E:FreeSql.IAop.TraceAfter">
+            <summary>
+            跟踪结束
             </summary>
         </member>
         <member name="P:FreeSql.Aop.ParseExpressionEventArgs.FreeParse">
@@ -2584,6 +2594,56 @@
         <member name="P:FreeSql.Aop.AuditValueEventArgs.Value">
             <summary>
             获取实体的属性值，也可以设置实体的属性新值
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.CommandBeforeEventArgs.Identifier">
+            <summary>
+            标识符，可将 CommandBefore 与 CommandAfter 进行匹配
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.CommandAfterEventArgs.Exception">
+            <summary>
+            发生的错误
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.CommandAfterEventArgs.Log">
+            <summary>
+            执行SQL命令，返回的结果
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.CommandAfterEventArgs.ElapsedTicks">
+            <summary>
+            耗时（单位：Ticks）
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.CommandAfterEventArgs.ElapsedMilliseconds">
+            <summary>
+            耗时（单位：毫秒）
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.TraceBeforeEventArgs.Identifier">
+            <summary>
+            标识符，可将 TraceBeforeEventArgs 与 TraceAfterEventArgs 进行匹配
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.TraceAfterEventArgs.Remark">
+            <summary>
+            备注
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.TraceAfterEventArgs.Exception">
+            <summary>
+            发生的错误
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.TraceAfterEventArgs.ElapsedTicks">
+            <summary>
+            耗时（单位：Ticks）
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.TraceAfterEventArgs.ElapsedMilliseconds">
+            <summary>
+            耗时（单位：毫秒）
             </summary>
         </member>
         <member name="P:FreeSql.ICodeFirst.IsAutoSyncStructure">

@@ -20,14 +20,6 @@ namespace FreeSql
         /// </summary>
         List<IObjectPool<DbConnection>> SlavePools { get; }
         /// <summary>
-        /// 监视数据库命令对象(执行前，调试)
-        /// </summary>
-        Action<DbCommand> AopCommandExecuting { get; set; }
-        /// <summary>
-        /// 监视数据库命令对象(执行后，用于监视执行性能)
-        /// </summary>
-        Action<DbCommand, string> AopCommandExecuted { get; set; }
-        /// <summary>
         /// 数据库类型
         /// </summary>
         DataType DataType { get; }

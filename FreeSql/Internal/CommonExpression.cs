@@ -486,7 +486,9 @@ namespace FreeSql.Internal
             if (isLeftMapType) oldMapType = tsc.SetMapTypeReturnOld(leftMapColumn.Attribute.MapType);
             
             var right = ExpressionLambdaToSql(rightExp, tsc);
-            if (right != "NULL" && isLeftMapType)
+            if (right != "NULL" && isLeftMapType && 
+                //判断参数化后的bug
+                !(right.Contains('@') || right.Contains('?') || right.Contains(':')))
             {
                 var enumType = leftMapColumn.CsType.NullableTypeOrThis();
                 if (enumType.IsEnum)
@@ -500,7 +502,9 @@ namespace FreeSql.Internal
                 {
                     oldMapType = tsc.SetMapTypeReturnOld(rightMapColumn.Attribute.MapType);
                     left = ExpressionLambdaToSql(leftExp, tsc);
-                    if (left != "NULL" && isRightMapType)
+                    if (left != "NULL" && isRightMapType &&
+                        //判断参数化后的bug
+                        !(left.Contains('@') || left.Contains('?') || left.Contains(':')))
                     {
                         var enumType = rightMapColumn.CsType.NullableTypeOrThis();
                         if (enumType.IsEnum)
@@ -560,10 +564,10 @@ namespace FreeSql.Internal
         {
             if (exp == null) return "";
             if (tsc.dbParams != null && tsc.mapColumnTmp != null && tsc.mapColumnTmp.CsType.NullableTypeOrThis() != exp.Type) tsc.SetMapColumnTmp(null);
-            if (tsc.isDisableDiyParse == false && _common._orm.Aop.ParseExpression != null)
+            if (tsc.isDisableDiyParse == false && _common._orm.Aop.ParseExpressionHandler != null)
             {
                 var args = new Aop.ParseExpressionEventArgs(exp, ukexp => ExpressionLambdaToSql(ukexp, tsc.CloneDisableDiyParse()));
-                _common._orm.Aop.ParseExpression?.Invoke(this, args);
+                _common._orm.Aop.ParseExpressionHandler?.Invoke(this, args);
                 if (string.IsNullOrEmpty(args.Result) == false) return args.Result;
             }
             switch (exp.NodeType)

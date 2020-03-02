@@ -459,7 +459,7 @@ namespace FreeSql.Tests
                     a.SubjectId
                 }).NoneParameter().ToSql();
 
-            g.mysql.Aop.ParseExpression = (s, e) =>
+            g.mysql.Aop.ParseExpression += (s, e) =>
             {
                 if (e.Expression.NodeType == ExpressionType.Call)
                 {

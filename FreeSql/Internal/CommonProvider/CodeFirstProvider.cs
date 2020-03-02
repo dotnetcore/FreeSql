@@ -84,7 +84,7 @@ namespace FreeSql.Internal.CommonProvider
                 .Select(a => (a.entityType, GetTableNameLowerOrUpper(a.tableName))).ToArray();
             if (syncObjects.Any() == false) return false;
             var before = new Aop.SyncStructureBeforeEventArgs(syncObjects.Select(a => a.entityType).ToArray());
-            _orm.Aop.SyncStructureBefore?.Invoke(this, before);
+            _orm.Aop.SyncStructureBeforeHandler?.Invoke(this, before);
             Exception exception = null;
             string ddl = null;
             try
@@ -110,7 +110,7 @@ namespace FreeSql.Internal.CommonProvider
             finally
             {
                 var after = new Aop.SyncStructureAfterEventArgs(before, ddl, exception);
-                _orm.Aop.SyncStructureAfter?.Invoke(this, after);
+                _orm.Aop.SyncStructureAfterHandler?.Invoke(this, after);
             }
         }
 
