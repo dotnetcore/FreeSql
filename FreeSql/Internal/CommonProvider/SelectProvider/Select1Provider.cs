@@ -354,6 +354,8 @@ namespace FreeSql.Internal.CommonProvider
         {
             var expBody = navigateSelector?.Body;
             if (expBody == null) return this;
+            if (expBody.NodeType != ExpressionType.MemberAccess) throw new Exception("Include 参数类型错误，表达式类型应该为 MemberAccess");
+            if (typeof(IEnumerable).IsAssignableFrom(expBody.Type)) throw new Exception("Include 参数类型错误，集合属性请使用 IncludeMany");
             var tb = _commonUtils.GetTableByEntity(expBody.Type);
             if (tb == null) throw new Exception("Include 参数类型错误");
 
