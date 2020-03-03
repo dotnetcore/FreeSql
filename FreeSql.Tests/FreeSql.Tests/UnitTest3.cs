@@ -44,9 +44,103 @@ namespace FreeSql.Tests
             public DbSet<Author23> Authors { get; set; }
         }
 
+        /// <summary>
+        /// 父级
+        /// </summary>
+        public class BaseModel
+        {
+            [Column(IsPrimary = true)]
+            public string ID { get; set; }
+
+            /// <summary>
+            /// 创建人
+            /// </summary>
+            public string UserID { get; set; } = "Admin";
+
+            /// <summary>
+            /// 创建时间
+            /// </summary>
+            [Column(ServerTime = DateTimeKind.Utc)]
+            public DateTime CreateTime { get; set; }
+
+            /// <summary>
+            /// 备注
+            /// </summary>
+            public string Description { get; set; }
+        }
+        public class Menu : BaseModel
+        {
+            public string SubNameID { get; set; }
+
+            /// <summary>
+            /// 菜单名称
+            /// </summary>
+            public string Name { get; set; }
+
+            /// <summary>
+            /// 英文名称
+            /// </summary>
+            public string EnName { get; set; }
+
+            /// <summary>
+            /// 链接地址
+            /// </summary>
+            public string Url { get; set; }
+
+            /// <summary>
+            /// 父级菜单 一级为 0
+            /// </summary>
+            public string ParentID { get; set; }
+
+            /// <summary>
+            /// 按钮操作 逗号分隔
+            /// </summary>
+            public string OperationIds { get; set; }
+
+            /// <summary>
+            /// 导航属性
+            /// </summary>
+            public virtual Menu Parent { get; set; }
+
+
+            [Column(IsIgnore = true)]
+            public string OperationNames { get; set; }
+
+            [Column(IsIgnore = true)]
+            public string SystemName { get; set; }
+
+        }
+        class SubSystem
+        {
+            public string Id { get; set; }
+            public string Name { get; set; }
+        }
+
         [Fact]
         public void Test03()
         {
+            var subSyetemId = "xxx";
+            var list = g.sqlite.Select<Menu, SubSystem>()
+                .LeftJoin((a,b) => a.SubNameID == b.Id)
+                .WhereIf(!string.IsNullOrEmpty(subSyetemId), (a, s) => a.SubNameID == subSyetemId)
+                .ToList((a, s) => new Menu
+                {
+                    ID = a.ID,
+                    SystemName = s.Name,
+                    SubNameID = s.Id,
+                    CreateTime = a.CreateTime,
+                    Description = a.Description,
+                    EnName = a.EnName,
+                    Name = a.Name,
+                    OperationIds = a.OperationIds,
+                    Parent = a.Parent,
+                    ParentID = a.ParentID,
+                    Url = a.Url,
+                    UserID = a.UserID
+                });
+
+
+
             var context = new TestDbContext(g.sqlite);
 
             var sql = context.Songs

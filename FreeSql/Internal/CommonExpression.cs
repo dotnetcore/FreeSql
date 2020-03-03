@@ -1140,7 +1140,8 @@ namespace FreeSql.Internal
                         if (tsc.style == ExpressionStyle.SelectColumns)
                         {
                             finds = tsc._tables.Where(a => a.Table.Type == tbtmp.Type && a.Alias == alias).ToArray();
-                            if (finds.Length != 1) finds = tsc._tables.Where(a => a.Table.Type == tbtmp.Type).ToArray();
+                            if (finds.Any() == false && alias.Contains("__") == false) 
+                                finds = tsc._tables.Where(a => a.Table.Type == tbtmp.Type).ToArray();
                             if (finds.Any()) finds = new[] { finds.First() };
                         }
                         if (finds.Length != 1 && isa && parmExp != null)
