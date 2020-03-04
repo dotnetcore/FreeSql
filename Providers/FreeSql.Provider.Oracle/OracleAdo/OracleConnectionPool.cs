@@ -21,6 +21,8 @@ namespace FreeSql.Oracle
 
         public OracleConnectionPool(string name, string connectionString, Action availableHandler, Action unavailableHandler) : base(null)
         {
+            this.availableHandler = availableHandler;
+            this.unavailableHandler = unavailableHandler;
             this.UserId = OracleConnectionPool.GetUserId(connectionString);
 
             var policy = new OracleConnectionPoolPolicy
@@ -30,9 +32,6 @@ namespace FreeSql.Oracle
             };
             this.Policy = policy;
             policy.ConnectionString = connectionString;
-
-            this.availableHandler = availableHandler;
-            this.unavailableHandler = unavailableHandler;
         }
 
         public static string GetUserId(string connectionString)

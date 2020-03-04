@@ -22,6 +22,8 @@ namespace FreeSql.Odbc.GBase
 
         public OdbcGBaseConnectionPool(string name, string connectionString, Action availableHandler, Action unavailableHandler) : base(null)
         {
+            this.availableHandler = availableHandler;
+            this.unavailableHandler = unavailableHandler;
             var policy = new OdbcPostgreSQLConnectionPoolPolicy
             {
                 _pool = this,
@@ -29,9 +31,6 @@ namespace FreeSql.Odbc.GBase
             };
             this.Policy = policy;
             policy.ConnectionString = connectionString;
-
-            this.availableHandler = availableHandler;
-            this.unavailableHandler = unavailableHandler;
         }
 
         public void Return(Object<DbConnection> obj, Exception exception, bool isRecreate = false)

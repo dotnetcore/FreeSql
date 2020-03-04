@@ -21,6 +21,8 @@ namespace FreeSql.Sqlite
 
         public SqliteConnectionPool(string name, string connectionString, Action availableHandler, Action unavailableHandler) : base(null)
         {
+            this.availableHandler = availableHandler;
+            this.unavailableHandler = unavailableHandler;
             policy = new SqliteConnectionPoolPolicy
             {
                 _pool = this,
@@ -28,9 +30,6 @@ namespace FreeSql.Sqlite
             };
             this.Policy = policy;
             policy.ConnectionString = connectionString;
-
-            this.availableHandler = availableHandler;
-            this.unavailableHandler = unavailableHandler;
         }
 
         public void Return(Object<DbConnection> obj, Exception exception, bool isRecreate = false)

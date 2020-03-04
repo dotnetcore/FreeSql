@@ -20,6 +20,9 @@ namespace dbcontext_01
                 .UseConnectionString(FreeSql.DataType.Sqlite, @"Data Source=|DataDirectory|\document2.db;Pooling=true;Max Pool Size=10")
                 //.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=10")
 
+                //.UseConnectionString(DataType.MySql, "Data Source=192.168.164.10;Port=33061;User ID=root;Password=123456;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=5")
+                //.UseSlave("Data Source=192.168.164.10;Port=33062;User ID=root;Password=123456;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=5")
+
                 //.UseConnectionString(FreeSql.DataType.Oracle, "user id=user1;password=123456;data source=//127.0.0.1:1521/XE;Pooling=true;Max Pool Size=10")
                 //.UseSyncStructureToUpper(true)
 

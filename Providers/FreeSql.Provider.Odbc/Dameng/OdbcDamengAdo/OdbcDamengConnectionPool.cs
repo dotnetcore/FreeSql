@@ -23,6 +23,8 @@ namespace FreeSql.Odbc.Dameng
         {
             this.UserId = OdbcDamengConnectionPool.GetUserId(connectionString);
 
+            this.availableHandler = availableHandler;
+            this.unavailableHandler = unavailableHandler;
             var policy = new OdbcOracleConnectionPoolPolicy
             {
                 _pool = this,
@@ -30,9 +32,6 @@ namespace FreeSql.Odbc.Dameng
             };
             this.Policy = policy;
             policy.ConnectionString = connectionString;
-
-            this.availableHandler = availableHandler;
-            this.unavailableHandler = unavailableHandler;
         }
 
         public static string GetUserId(string connectionString)

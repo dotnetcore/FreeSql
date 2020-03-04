@@ -19,6 +19,8 @@ namespace FreeSql.SqlServer
 
         public SqlServerConnectionPool(string name, string connectionString, Action availableHandler, Action unavailableHandler) : base(null)
         {
+            this.availableHandler = availableHandler;
+            this.unavailableHandler = unavailableHandler;
             var policy = new SqlServerConnectionPoolPolicy
             {
                 _pool = this,
@@ -26,9 +28,6 @@ namespace FreeSql.SqlServer
             };
             this.Policy = policy;
             policy.ConnectionString = connectionString;
-
-            this.availableHandler = availableHandler;
-            this.unavailableHandler = unavailableHandler;
         }
 
         public void Return(Object<DbConnection> obj, Exception exception, bool isRecreate = false)

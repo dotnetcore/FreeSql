@@ -235,9 +235,9 @@ namespace dbcontext_01.Controllers
 
         // GET api/values/5
         [HttpGet("{id}")]
-        public ActionResult<string> Get(int id)
+        public ActionResult<object> Get(int id)
         {
-            return "value";
+            return _orm.Select<Song>().Where(a => a.Id == id).First();
         }
 
         // POST api/values
