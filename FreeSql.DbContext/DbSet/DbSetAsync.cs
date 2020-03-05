@@ -158,10 +158,25 @@ namespace FreeSql
                 if (tref.RefType == Internal.Model.TableRefType.OneToMany)
                 {
                     await DbContextExecCommandAsync();
-                    //删除没有保存的数据
+                    //删除没有保存的数据，求出主体的条件
+                    var deleteWhereParentParam = Expression.Parameter(typeof(object), "a");
+                    Expression whereParentExp = null;
+                    for (var colidx = 0; colidx < tref.Columns.Count; colidx++)
+                    {
+                        var whereExp = Expression.Equal(
+                            Expression.MakeMemberAccess(Expression.Convert(deleteWhereParentParam, tref.RefEntityType), tref.RefColumns[colidx].Table.Properties[tref.RefColumns[colidx].CsName]),
+                            Expression.Constant(
+                                FreeSql.Internal.Utils.GetDataReaderValue(
+                                    tref.Columns[colidx].CsType,
+                                    _db.Orm.GetEntityValueWithPropertyName(_table.Type, item, tref.Columns[colidx].CsName)), tref.RefColumns[colidx].CsType)
+                            );
+                        if (whereParentExp == null) whereParentExp = whereExp;
+                        else whereParentExp = Expression.AndAlso(whereParentExp, whereExp);
+                    }
                     var propValEach = GetItemValue(item, prop) as IEnumerable;
                     await _db.Orm.Delete<object>().AsType(tref.RefEntityType)
                         .WithTransaction(_uow?.GetOrBeginTransaction())
+                        .Where(Expression.Lambda<Func<object, bool>>(whereParentExp, deleteWhereParentParam))
                         .WhereDynamic(propValEach, true).ExecuteAffrowsAsync();
                 }
             }

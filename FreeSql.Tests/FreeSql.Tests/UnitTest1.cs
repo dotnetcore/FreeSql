@@ -1092,7 +1092,9 @@ namespace FreeSql.Tests
                 })
             };
 
-            g.mysql.GetRepository<Order>().Insert(neworder);
+            var repo = g.mysql.GetRepository<Order>();
+            repo.DbContextOptions.EnableAddOrUpdateNavigateList = true;
+            repo.Insert(neworder);
 
             var order = g.mysql.Select<Order>().Where(a => a.Id == neworder.Id).ToOne(); //查询订单表
             if (order == null)
