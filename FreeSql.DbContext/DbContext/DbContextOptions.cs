@@ -20,7 +20,7 @@ namespace FreeSql
         /// - 属性集合为空时，删除他们的所有关联数据（中间表）
         /// - 属性集合不为空时，与数据库存在的关联数据（中间表）完全对比，计算出应该删除和添加的记录
         /// </summary>
-        public bool EnableAddOrUpdateNavigateList { get; set; } = true;
+        public bool EnableAddOrUpdateNavigateList { get; set; } = false;
 
         /// <summary>
         /// 实体变化事件
