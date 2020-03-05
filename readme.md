@@ -42,7 +42,7 @@ FreeSql 是功能强大的对象关系映射技术(O/RM)，支持 .NETCore 2.1+ 
 欢迎更多使用 FreeSql 的开源项目加入目录
 
 <p align="center">
-  <img src="https://images.cnblogs.com/cnblogs_com/kellynic/133561/o_functions06.png"/>
+  <img src="https://images.cnblogs.com/cnblogs_com/kellynic/133561/o_200305164701functions07.png"/>
 </p>
 
 ## Quick start
