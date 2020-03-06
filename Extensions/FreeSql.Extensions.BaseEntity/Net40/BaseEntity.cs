@@ -104,6 +104,18 @@ namespace FreeSql
 
             return this.Repository.InsertOrUpdate(this as TEntity);
         }
+
+        /// <summary>
+        /// 【完整】保存导航属性，子表
+        /// </summary>
+        /// <param name="navigatePropertyName">导航属性名</param>
+        public virtual void SaveMany(string navigatePropertyName)
+        {
+            if (this.Repository == null)
+                this.Repository = Orm.GetRepository<TEntity>();
+
+            this.Repository.SaveMany(this as TEntity, navigatePropertyName);
+        }
     }
 }
 

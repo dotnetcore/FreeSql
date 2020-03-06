@@ -186,10 +186,15 @@ namespace FreeSql
                         else whereParentExp = Expression.AndAlso(whereParentExp, whereExp);
                     }
                     var propValEach = GetItemValue(item, prop) as IEnumerable;
-                    _db.Orm.Delete<object>().AsType(tref.RefEntityType)
+                    var subDelete = _db.Orm.Delete<object>().AsType(tref.RefEntityType)
                         .WithTransaction(_uow?.GetOrBeginTransaction())
-                        .Where(Expression.Lambda<Func<object, bool>>(whereParentExp, deleteWhereParentParam))
-                        .WhereDynamic(propValEach, true).ExecuteAffrows();
+                        .Where(Expression.Lambda<Func<object, bool>>(whereParentExp, deleteWhereParentParam));
+                    foreach (var propValItem in propValEach)
+                    {
+                        subDelete.WhereDynamic(propValEach, true);
+                        break;
+                    }
+                    subDelete.ExecuteAffrows();
                 }
             }
             finally

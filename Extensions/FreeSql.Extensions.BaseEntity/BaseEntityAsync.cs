@@ -125,6 +125,19 @@ namespace FreeSql
             this.Repository.UnitOfWork = UnitOfWork.Current.Value;
             return this.Repository.InsertOrUpdateAsync(this as TEntity);
         }
+
+        /// <summary>
+        /// 【完整】保存导航属性，子表
+        /// </summary>
+        /// <param name="navigatePropertyName">导航属性名</param>
+        public virtual Task SaveManyAsync(string navigatePropertyName)
+        {
+            if (this.Repository == null)
+                this.Repository = Orm.GetRepository<TEntity>();
+
+            this.Repository.UnitOfWork = UnitOfWork.Current.Value;
+            return this.Repository.SaveManyAsync(this as TEntity, navigatePropertyName);
+        }
     }
 }
 

@@ -335,6 +335,57 @@ namespace FreeSql.Tests
             public Guid CagetoryId { get; set; }
             public string Name { get; set; }
         }
+        [Fact]
+        public void SaveMany_OneToMany()
+        {
+            var repo = g.sqlite.GetRepository<Cagetory>();
+            repo.DbContextOptions.EnableAddOrUpdateNavigateList = false; //关闭级联保存功能
+            var cts = new[] {
+                new Cagetory
+                {
+                    Name = "分类1",
+                    Goodss = new List<Goods>(new[]
+                    {
+                        new Goods { Name = "商品1" },
+                        new Goods { Name = "商品2" },
+                        new Goods { Name = "商品3" }
+                    })
+                },
+                new Cagetory
+                {
+                    Name = "分类2",
+                    Goodss = new List<Goods>(new[]
+                    {
+                        new Goods { Name = "商品4" },
+                        new Goods { Name = "商品5" }
+                    })
+                }
+            };
+            repo.Insert(cts);
+            repo.SaveMany(cts[0], "Goodss"); //指定保存 Goodss 一对多属性
+            repo.SaveMany(cts[1], "Goodss"); //指定保存 Goodss 一对多属性
+            cts[0].Goodss.RemoveAt(1);
+            cts[1].Goodss.RemoveAt(1);
+            repo.SaveMany(cts[0], "Goodss"); //指定保存 Goodss 一对多属性
+            repo.SaveMany(cts[1], "Goodss"); //指定保存 Goodss 一对多属性
+
+            cts[0].Name = "分类11";
+            cts[0].Goodss.Clear();
+            cts[1].Name = "分类22";
+            cts[1].Goodss.Clear();
+            repo.Update(cts);
+            repo.SaveMany(cts[0], "Goodss"); //指定保存 Goodss 一对多属性
+            repo.SaveMany(cts[1], "Goodss"); //指定保存 Goodss 一对多属性
+            cts[0].Name = "分类111";
+            cts[0].Goodss.Clear();
+            cts[0].Goodss.Add(new Goods { Name = "商品33" });
+            cts[1].Name = "分类222";
+            cts[1].Goodss.Clear();
+            cts[1].Goodss.Add(new Goods { Name = "商品55" });
+            repo.Update(cts);
+            repo.SaveMany(cts[0], "Goodss"); //指定保存 Goodss 一对多属性
+            repo.SaveMany(cts[1], "Goodss"); //指定保存 Goodss 一对多属性
+        }
 
         [Fact]
         public void EnableAddOrUpdateNavigateList_OneToMany_Parent()
@@ -417,7 +468,7 @@ namespace FreeSql.Tests
                 }
             };
             var repo = g.sqlite.GetRepository<Song>();
-            //repo.DbContextOptions.EnableAddOrUpdateNavigateList = false; //关闭级联保存功能
+            repo.DbContextOptions.EnableAddOrUpdateNavigateList = true; //打开级联保存功能
             repo.Insert(ss);
             //repo.SaveMany(ss[0], "Tags"); //指定保存 Tags 多对多属性
 
