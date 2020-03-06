@@ -21,6 +21,35 @@ namespace FreeSql.Tests
         [Fact]
         public void Include_ManyToMany()
         {
+            g.sqlite.Delete<userinfo>().Where("1=1").ExecuteAffrows();
+            g.sqlite.Delete<DEPARTMENTS>().Where("1=1").ExecuteAffrows();
+            g.sqlite.Delete<dept_user>().Where("1=1").ExecuteAffrows();
+            BaseEntity.Initialization(g.sqlite);
+
+            userinfo user = new userinfo { userid = 1 };
+            user.Insert();
+
+            user.depts = new List<DEPARTMENTS>(
+                new[] {
+                    new DEPARTMENTS { deptid = 1, deptcode = "01" },
+                    new DEPARTMENTS { deptid = 2, deptcode = "02" },
+                    new DEPARTMENTS { deptid = 3, deptcode = "03" },
+                });
+            user.SaveMany("depts");
+
+            user.depts = new List<DEPARTMENTS>(
+                new[] {
+                    new DEPARTMENTS { deptid = 1, deptcode = "01" },
+                    new DEPARTMENTS { deptid = 2, deptcode = "02" },
+                    new DEPARTMENTS { deptid = 4, deptcode = "04" },
+                });
+            user.SaveMany("depts");
+
+            user.depts = new List<DEPARTMENTS>(
+                new[] {
+                    new DEPARTMENTS { deptid = 2, deptcode = "02" },
+                });
+            user.SaveMany("depts");
 
             g.sqlite.CodeFirst.SyncStructure<Song_tag>();
             g.sqlite.CodeFirst.SyncStructure<Tag>();

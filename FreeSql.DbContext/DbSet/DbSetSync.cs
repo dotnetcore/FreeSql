@@ -277,9 +277,9 @@ namespace FreeSql
                                     var isEquals = true;
                                     for (var midcolidx = tref.Columns.Count; midcolidx < tref.MiddleColumns.Count; midcolidx++)
                                     {
-                                        var refcol = tref.Columns[midcolidx - tref.Columns.Count];
+                                        var refcol = tref.RefColumns[midcolidx - tref.Columns.Count];
                                         var midval = FreeSql.Internal.Utils.GetDataReaderValue(refcol.CsType, _db.Orm.GetEntityValueWithPropertyName(tref.RefMiddleEntityType, midItem, tref.MiddleColumns[midcolidx].CsName));
-                                        var refval = FreeSql.Internal.Utils.GetDataReaderValue(refcol.CsType, _db.Orm.GetEntityValueWithPropertyName(tref.RefEntityType, curList[curIdx], tref.Columns[midcolidx - tref.Columns.Count].CsName));
+                                        var refval = FreeSql.Internal.Utils.GetDataReaderValue(refcol.CsType, _db.Orm.GetEntityValueWithPropertyName(tref.RefEntityType, curList[curIdx], refcol.CsName));
                                         if (object.Equals(midval, refval) == false)
                                         {
                                             isEquals = false;

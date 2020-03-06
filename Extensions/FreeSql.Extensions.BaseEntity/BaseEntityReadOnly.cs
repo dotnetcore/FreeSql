@@ -140,7 +140,7 @@ namespace FreeSql
                         isFirst = false;
                         var itemType = item.GetType();
                         if (itemType == typeof(object)) return;
-                        if (itemType.FullName.StartsWith("Submission#")) itemType = itemType.BaseType;
+                        if (itemType.FullName.Contains("FreeSqlLazyEntity__")) itemType = itemType.BaseType;
                         if (Orm.CodeFirst.GetTableByEntity(itemType)?.Primarys.Any() != true) return;
                         if (item is BaseEntity<TEntity> == false) return;
                     }
