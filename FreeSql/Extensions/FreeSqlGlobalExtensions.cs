@@ -220,6 +220,12 @@ public static partial class FreeSqlGlobalExtensions
     public static List<T1> IncludeMany<T1, TNavigate>(this List<T1> list, IFreeSql orm, Expression<Func<T1, IEnumerable<TNavigate>>> navigateSelector, Action<ISelect<TNavigate>> then = null) where T1 : class where TNavigate : class
     {
         if (list == null || list.Any() == false) return list;
+        if (orm.CodeFirst.IsAutoSyncStructure)
+        {
+            var tb = orm.CodeFirst.GetTableByEntity(typeof(T1));
+            if (tb == null || tb.Primarys.Any() == false)
+                (orm.CodeFirst as FreeSql.Internal.CommonProvider.CodeFirstProvider)._dicSycedTryAdd(typeof(T1)); //._dicSyced.TryAdd(typeof(TReturn), true);
+        }
         var select = orm.Select<T1>().IncludeMany(navigateSelector, then) as FreeSql.Internal.CommonProvider.Select1Provider<T1>;
         select.SetList(list);
         return list;
@@ -230,6 +236,12 @@ public static partial class FreeSqlGlobalExtensions
     async public static System.Threading.Tasks.Task<List<T1>> IncludeManyAsync<T1, TNavigate>(this List<T1> list, IFreeSql orm, Expression<Func<T1, IEnumerable<TNavigate>>> navigateSelector, Action<ISelect<TNavigate>> then = null) where T1 : class where TNavigate : class
     {
         if (list == null || list.Any() == false) return list;
+        if (orm.CodeFirst.IsAutoSyncStructure)
+        {
+            var tb = orm.CodeFirst.GetTableByEntity(typeof(T1));
+            if (tb == null || tb.Primarys.Any() == false)
+                (orm.CodeFirst as FreeSql.Internal.CommonProvider.CodeFirstProvider)._dicSycedTryAdd(typeof(T1)); //._dicSyced.TryAdd(typeof(TReturn), true);
+        }
         var select = orm.Select<T1>().IncludeMany(navigateSelector, then) as FreeSql.Internal.CommonProvider.Select1Provider<T1>;
         await select.SetListAsync(list);
         return list;
