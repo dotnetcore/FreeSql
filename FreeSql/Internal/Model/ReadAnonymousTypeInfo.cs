@@ -18,4 +18,25 @@ namespace FreeSql.Internal.Model
         public bool IsEntity { get; set; }
         public bool IsDefaultCtor { get; set; }
     }
+    public class ReadAnonymousTypeAfInfo
+    {
+        public ReadAnonymousTypeInfo map { get; }
+        public string field { get; }
+        public ReadAnonymousTypeAfInfo(ReadAnonymousTypeInfo map, string field)
+        {
+            this.map = map;
+            this.field = field;
+        }
+    }
+    public class ReadAnonymousTypeOtherInfo {
+        public string field { get; }
+        public ReadAnonymousTypeInfo read { get; }
+        public List<object> retlist { get; }
+        public ReadAnonymousTypeOtherInfo(string field, ReadAnonymousTypeInfo read, List<object> retlist)
+        {
+            this.field = field;
+            this.read = read;
+            this.retlist = retlist;
+        }
+    }
 }

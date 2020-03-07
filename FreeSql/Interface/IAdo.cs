@@ -1,4 +1,5 @@
 ﻿using FreeSql.DatabaseModel;
+using FreeSql.Internal.Model;
 using SafeObjectPool;
 using System;
 using System.Collections.Generic;
@@ -185,9 +186,9 @@ namespace FreeSql
         /// <param name="cmdText"></param>
         /// <param name="cmdParms"></param>
         /// <returns></returns>
-        (List<T1>, List<T2>) Query<T1, T2>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-        (List<T1>, List<T2>) Query<T1, T2>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-        (List<T1>, List<T2>) Query<T1, T2>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+        NaviteTuple<List<T1>, List<T2>> Query<T1, T2>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+        NaviteTuple<List<T1>, List<T2>> Query<T1, T2>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+        NaviteTuple<List<T1>, List<T2>> Query<T1, T2>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
         /// <summary>
         /// 执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > ?age; select * from address", new { age = 25 })
         /// </summary>
@@ -195,28 +196,28 @@ namespace FreeSql
         /// <param name="cmdText"></param>
         /// <param name="parms"></param>
         /// <returns></returns>
-        (List<T1>, List<T2>) Query<T1, T2>(string cmdText, object parms = null);
-        (List<T1>, List<T2>) Query<T1, T2>(DbTransaction transaction, string cmdText, object parms = null);
-        (List<T1>, List<T2>) Query<T1, T2>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null);
+        NaviteTuple<List<T1>, List<T2>> Query<T1, T2>(string cmdText, object parms = null);
+        NaviteTuple<List<T1>, List<T2>> Query<T1, T2>(DbTransaction transaction, string cmdText, object parms = null);
+        NaviteTuple<List<T1>, List<T2>> Query<T1, T2>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null);
 
-        (List<T1>, List<T2>, List<T3>) Query<T1, T2, T3>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-        (List<T1>, List<T2>, List<T3>) Query<T1, T2, T3>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-        (List<T1>, List<T2>, List<T3>) Query<T1, T2, T3>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-        (List<T1>, List<T2>, List<T3>) Query<T1, T2, T3>(string cmdText, object parms = null);
-        (List<T1>, List<T2>, List<T3>) Query<T1, T2, T3>(DbTransaction transaction, string cmdText, object parms = null);
-        (List<T1>, List<T2>, List<T3>) Query<T1, T2, T3>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null);
-        (List<T1>, List<T2>, List<T3>, List<T4>) Query<T1, T2, T3, T4>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-        (List<T1>, List<T2>, List<T3>, List<T4>) Query<T1, T2, T3, T4>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-        (List<T1>, List<T2>, List<T3>, List<T4>) Query<T1, T2, T3, T4>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-        (List<T1>, List<T2>, List<T3>, List<T4>) Query<T1, T2, T3, T4>(string cmdText, object parms = null);
-        (List<T1>, List<T2>, List<T3>, List<T4>) Query<T1, T2, T3, T4>(DbTransaction transaction, string cmdText, object parms = null);
-        (List<T1>, List<T2>, List<T3>, List<T4>) Query<T1, T2, T3, T4>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null);
-        (List<T1>, List<T2>, List<T3>, List<T4>, List<T5>) Query<T1, T2, T3, T4, T5>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-        (List<T1>, List<T2>, List<T3>, List<T4>, List<T5>) Query<T1, T2, T3, T4, T5>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-        (List<T1>, List<T2>, List<T3>, List<T4>, List<T5>) Query<T1, T2, T3, T4, T5>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-        (List<T1>, List<T2>, List<T3>, List<T4>, List<T5>) Query<T1, T2, T3, T4, T5>(string cmdText, object parms = null);
-        (List<T1>, List<T2>, List<T3>, List<T4>, List<T5>) Query<T1, T2, T3, T4, T5>(DbTransaction transaction, string cmdText, object parms = null);
-        (List<T1>, List<T2>, List<T3>, List<T4>, List<T5>) Query<T1, T2, T3, T4, T5>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null);
+        NaviteTuple<List<T1>, List<T2>, List<T3>> Query<T1, T2, T3>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+        NaviteTuple<List<T1>, List<T2>, List<T3>> Query<T1, T2, T3>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+        NaviteTuple<List<T1>, List<T2>, List<T3>> Query<T1, T2, T3>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+        NaviteTuple<List<T1>, List<T2>, List<T3>> Query<T1, T2, T3>(string cmdText, object parms = null);
+        NaviteTuple<List<T1>, List<T2>, List<T3>> Query<T1, T2, T3>(DbTransaction transaction, string cmdText, object parms = null);
+        NaviteTuple<List<T1>, List<T2>, List<T3>> Query<T1, T2, T3>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null);
+        NaviteTuple<List<T1>, List<T2>, List<T3>, List<T4>> Query<T1, T2, T3, T4>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+        NaviteTuple<List<T1>, List<T2>, List<T3>, List<T4>> Query<T1, T2, T3, T4>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+        NaviteTuple<List<T1>, List<T2>, List<T3>, List<T4>> Query<T1, T2, T3, T4>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+        NaviteTuple<List<T1>, List<T2>, List<T3>, List<T4>> Query<T1, T2, T3, T4>(string cmdText, object parms = null);
+        NaviteTuple<List<T1>, List<T2>, List<T3>, List<T4>> Query<T1, T2, T3, T4>(DbTransaction transaction, string cmdText, object parms = null);
+        NaviteTuple<List<T1>, List<T2>, List<T3>, List<T4>> Query<T1, T2, T3, T4>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null);
+        NaviteTuple<List<T1>, List<T2>, List<T3>, List<T4>, List<T5>> Query<T1, T2, T3, T4, T5>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+        NaviteTuple<List<T1>, List<T2>, List<T3>, List<T4>, List<T5>> Query<T1, T2, T3, T4, T5>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+        NaviteTuple<List<T1>, List<T2>, List<T3>, List<T4>, List<T5>> Query<T1, T2, T3, T4, T5>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+        NaviteTuple<List<T1>, List<T2>, List<T3>, List<T4>, List<T5>> Query<T1, T2, T3, T4, T5>(string cmdText, object parms = null);
+        NaviteTuple<List<T1>, List<T2>, List<T3>, List<T4>, List<T5>> Query<T1, T2, T3, T4, T5>(DbTransaction transaction, string cmdText, object parms = null);
+        NaviteTuple<List<T1>, List<T2>, List<T3>, List<T4>, List<T5>> Query<T1, T2, T3, T4, T5>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null);
 
 #if net40
 #else
@@ -357,9 +358,9 @@ namespace FreeSql
         /// <param name="cmdText"></param>
         /// <param name="cmdParms"></param>
         /// <returns></returns>
-        Task<(List<T1>, List<T2>)> QueryAsync<T1, T2>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-        Task<(List<T1>, List<T2>)> QueryAsync<T1, T2>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-        Task<(List<T1>, List<T2>)> QueryAsync<T1, T2>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+        Task<NaviteTuple<List<T1>, List<T2>>> QueryAsync<T1, T2>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+        Task<NaviteTuple<List<T1>, List<T2>>> QueryAsync<T1, T2>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+        Task<NaviteTuple<List<T1>, List<T2>>> QueryAsync<T1, T2>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
         /// <summary>
         /// 执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > ?age; select * from address", new { age = 25 })
         /// </summary>
@@ -367,28 +368,28 @@ namespace FreeSql
         /// <param name="cmdText"></param>
         /// <param name="parms"></param>
         /// <returns></returns>
-        Task<(List<T1>, List<T2>)> QueryAsync<T1, T2>(string cmdText, object parms = null);
-        Task<(List<T1>, List<T2>)> QueryAsync<T1, T2>(DbTransaction transaction, string cmdText, object parms = null);
-        Task<(List<T1>, List<T2>)> QueryAsync<T1, T2>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null);
+        Task<NaviteTuple<List<T1>, List<T2>>> QueryAsync<T1, T2>(string cmdText, object parms = null);
+        Task<NaviteTuple<List<T1>, List<T2>>> QueryAsync<T1, T2>(DbTransaction transaction, string cmdText, object parms = null);
+        Task<NaviteTuple<List<T1>, List<T2>>> QueryAsync<T1, T2>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null);
 
-        Task<(List<T1>, List<T2>, List<T3>)> QueryAsync<T1, T2, T3>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-        Task<(List<T1>, List<T2>, List<T3>)> QueryAsync<T1, T2, T3>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-        Task<(List<T1>, List<T2>, List<T3>)> QueryAsync<T1, T2, T3>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-        Task<(List<T1>, List<T2>, List<T3>)> QueryAsync<T1, T2, T3>(string cmdText, object parms = null);
-        Task<(List<T1>, List<T2>, List<T3>)> QueryAsync<T1, T2, T3>(DbTransaction transaction, string cmdText, object parms = null);
-        Task<(List<T1>, List<T2>, List<T3>)> QueryAsync<T1, T2, T3>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null);
-        Task<(List<T1>, List<T2>, List<T3>, List<T4>)> QueryAsync<T1, T2, T3, T4>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-        Task<(List<T1>, List<T2>, List<T3>, List<T4>)> QueryAsync<T1, T2, T3, T4>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-        Task<(List<T1>, List<T2>, List<T3>, List<T4>)> QueryAsync<T1, T2, T3, T4>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-        Task<(List<T1>, List<T2>, List<T3>, List<T4>)> QueryAsync<T1, T2, T3, T4>(string cmdText, object parms = null);
-        Task<(List<T1>, List<T2>, List<T3>, List<T4>)> QueryAsync<T1, T2, T3, T4>(DbTransaction transaction, string cmdText, object parms = null);
-        Task<(List<T1>, List<T2>, List<T3>, List<T4>)> QueryAsync<T1, T2, T3, T4>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null);
-        Task<(List<T1>, List<T2>, List<T3>, List<T4>, List<T5>)> QueryAsync<T1, T2, T3, T4, T5>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-        Task<(List<T1>, List<T2>, List<T3>, List<T4>, List<T5>)> QueryAsync<T1, T2, T3, T4, T5>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-        Task<(List<T1>, List<T2>, List<T3>, List<T4>, List<T5>)> QueryAsync<T1, T2, T3, T4, T5>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-        Task<(List<T1>, List<T2>, List<T3>, List<T4>, List<T5>)> QueryAsync<T1, T2, T3, T4, T5>(string cmdText, object parms = null);
-        Task<(List<T1>, List<T2>, List<T3>, List<T4>, List<T5>)> QueryAsync<T1, T2, T3, T4, T5>(DbTransaction transaction, string cmdText, object parms = null);
-        Task<(List<T1>, List<T2>, List<T3>, List<T4>, List<T5>)> QueryAsync<T1, T2, T3, T4, T5>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null);
+        Task<NaviteTuple<List<T1>, List<T2>, List<T3>>> QueryAsync<T1, T2, T3>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+        Task<NaviteTuple<List<T1>, List<T2>, List<T3>>> QueryAsync<T1, T2, T3>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+        Task<NaviteTuple<List<T1>, List<T2>, List<T3>>> QueryAsync<T1, T2, T3>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+        Task<NaviteTuple<List<T1>, List<T2>, List<T3>>> QueryAsync<T1, T2, T3>(string cmdText, object parms = null);
+        Task<NaviteTuple<List<T1>, List<T2>, List<T3>>> QueryAsync<T1, T2, T3>(DbTransaction transaction, string cmdText, object parms = null);
+        Task<NaviteTuple<List<T1>, List<T2>, List<T3>>> QueryAsync<T1, T2, T3>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null);
+        Task<NaviteTuple<List<T1>, List<T2>, List<T3>, List<T4>>> QueryAsync<T1, T2, T3, T4>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+        Task<NaviteTuple<List<T1>, List<T2>, List<T3>, List<T4>>> QueryAsync<T1, T2, T3, T4>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+        Task<NaviteTuple<List<T1>, List<T2>, List<T3>, List<T4>>> QueryAsync<T1, T2, T3, T4>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+        Task<NaviteTuple<List<T1>, List<T2>, List<T3>, List<T4>>> QueryAsync<T1, T2, T3, T4>(string cmdText, object parms = null);
+        Task<NaviteTuple<List<T1>, List<T2>, List<T3>, List<T4>>> QueryAsync<T1, T2, T3, T4>(DbTransaction transaction, string cmdText, object parms = null);
+        Task<NaviteTuple<List<T1>, List<T2>, List<T3>, List<T4>>> QueryAsync<T1, T2, T3, T4>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null);
+        Task<NaviteTuple<List<T1>, List<T2>, List<T3>, List<T4>, List<T5>>> QueryAsync<T1, T2, T3, T4, T5>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+        Task<NaviteTuple<List<T1>, List<T2>, List<T3>, List<T4>, List<T5>>> QueryAsync<T1, T2, T3, T4, T5>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+        Task<NaviteTuple<List<T1>, List<T2>, List<T3>, List<T4>, List<T5>>> QueryAsync<T1, T2, T3, T4, T5>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+        Task<NaviteTuple<List<T1>, List<T2>, List<T3>, List<T4>, List<T5>>> QueryAsync<T1, T2, T3, T4, T5>(string cmdText, object parms = null);
+        Task<NaviteTuple<List<T1>, List<T2>, List<T3>, List<T4>, List<T5>>> QueryAsync<T1, T2, T3, T4, T5>(DbTransaction transaction, string cmdText, object parms = null);
+        Task<NaviteTuple<List<T1>, List<T2>, List<T3>, List<T4>, List<T5>>> QueryAsync<T1, T2, T3, T4, T5>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null);
         #endregion
 #endif
     }

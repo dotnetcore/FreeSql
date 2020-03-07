@@ -66,7 +66,7 @@ namespace FreeSql.Internal
                 trytb.DbOldName = trytb.DbOldName?.ToUpper();
             }
             if (tbattr != null) trytb.DisableSyncStructure = tbattr.DisableSyncStructure;
-            var propsLazy = new List<(PropertyInfo, bool, bool)>();
+            var propsLazy = new List<NaviteTuple<PropertyInfo, bool, bool>>();
             var propsNavObjs = new List<PropertyInfo>();
             var propsComment = CommonUtils.GetProperyCommentBySummary(entity);
             var columnsList = new List<ColumnInfo>();
@@ -87,7 +87,7 @@ namespace FreeSql.Internal
                         var getIsVirtual = p.GetGetMethod()?.IsVirtual;// trytb.Type.GetMethod($"get_{p.Name}")?.IsVirtual;
                         var setIsVirtual = setMethod?.IsVirtual;
                         if (getIsVirtual == true || setIsVirtual == true)
-                            propsLazy.Add((p, getIsVirtual == true, setIsVirtual == true));
+                            propsLazy.Add(NaviteTuple.Create(p, getIsVirtual == true, setIsVirtual == true));
                     }
                     propsNavObjs.Add(p);
                     continue;
@@ -97,8 +97,8 @@ namespace FreeSql.Internal
                     colattr = new ColumnAttribute
                     {
                         Name = p.Name,
-                        DbType = tp.Value.dbtypeFull,
-                        IsNullable = tp.Value.isnullable ?? true,
+                        DbType = tp.dbtypeFull,
+                        IsNullable = tp.isnullable ?? true,
                         MapType = p.PropertyType
                     };
                 if (colattr._IsNullable == null) colattr._IsNullable = tp?.isnullable;
@@ -111,7 +111,7 @@ namespace FreeSql.Internal
                 else
                     colattr.DbType = colattr.DbType.ToUpper();
 
-                if (colattr._IsNullable == null && tp != null && tp.Value.isnullable == null) colattr.IsNullable = tp.Value.dbtypeFull.Contains("NOT NULL") == false;
+                if (colattr._IsNullable == null && tp != null && tp.isnullable == null) colattr.IsNullable = tp.dbtypeFull.Contains("NOT NULL") == false;
                 if (colattr.DbType?.Contains("NOT NULL") == true) colattr.IsNullable = false;
                 if (string.IsNullOrEmpty(colattr.Name)) colattr.Name = p.Name;
                 if (common.CodeFirst.IsSyncStructureToLower) colattr.Name = colattr.Name.ToLower();
@@ -419,7 +419,7 @@ namespace FreeSql.Internal
             foreach (var pnv in propsNavObjs)
             {
                 var vp = propsLazy.Where(a => a.Item1 == pnv).FirstOrDefault();
-                var isLazy = vp.Item1 != null && !string.IsNullOrEmpty(trytbTypeLazyName);
+                var isLazy = vp != null && vp.Item1 != null && !string.IsNullOrEmpty(trytbTypeLazyName);
 
                 AddTableRef(common, trytb, pnv, isLazy, vp, cscode);
             }
@@ -445,7 +445,7 @@ namespace FreeSql.Internal
 
             return tbc.TryGetValue(entity, out var trytb2) ? trytb2 : trytb;
         }
-        public static void AddTableRef(CommonUtils common, TableInfo trytb, PropertyInfo pnv, bool isLazy, (PropertyInfo, bool, bool)? vp, StringBuilder cscode)
+        public static void AddTableRef(CommonUtils common, TableInfo trytb, PropertyInfo pnv, bool isLazy, NaviteTuple<PropertyInfo, bool, bool> vp, StringBuilder cscode)
         {
             var trytbTypeName = trytb.Type.IsNested ? $"{trytb.Type.DeclaringType.Namespace?.NotNullAndConcat(".")}{trytb.Type.DeclaringType.Name}.{trytb.Type.Name}" : $"{trytb.Type.Namespace?.NotNullAndConcat(".")}{trytb.Type.Name}";
             var propTypeName = pnv.PropertyType.IsGenericType ?

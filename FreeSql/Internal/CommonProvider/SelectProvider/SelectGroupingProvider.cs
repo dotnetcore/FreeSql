@@ -117,7 +117,7 @@ namespace FreeSql.Internal.CommonProvider
             if (map.Childs.Any() == false && map.MapType == null) map.MapType = typeof(TReturn);
             var method = _select.GetType().GetMethod("ToListMapReader", BindingFlags.Instance | BindingFlags.NonPublic);
             method = method.MakeGenericMethod(typeof(TReturn));
-            return method.Invoke(_select, new object[] { (map, field.Length > 0 ? field.Remove(0, 2).ToString() : null) }) as List<TReturn>;
+            return method.Invoke(_select, new object[] { new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null) }) as List<TReturn>;
         }
         
         public List<TReturn> Select<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select) => ToList(select);
@@ -185,7 +185,7 @@ namespace FreeSql.Internal.CommonProvider
             if (map.Childs.Any() == false && map.MapType == null) map.MapType = typeof(TReturn);
             var method = _select.GetType().GetMethod("ToListMapReaderAsync", BindingFlags.Instance | BindingFlags.NonPublic);
             method = method.MakeGenericMethod(typeof(TReturn));
-            return method.Invoke(_select, new object[] { (map, field.Length > 0 ? field.Remove(0, 2).ToString() : null) }) as Task<List<TReturn>>;
+            return method.Invoke(_select, new object[] { new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null) }) as Task<List<TReturn>>;
         }
 #endif
     }

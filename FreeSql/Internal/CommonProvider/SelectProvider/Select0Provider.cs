@@ -349,7 +349,7 @@ namespace FreeSql.Internal.CommonProvider
             }
             return ret;
         }
-        internal List<T1> ToListAfPrivate(string sql, GetAllFieldExpressionTreeInfo af, (string field, ReadAnonymousTypeInfo read, List<object> retlist)[] otherData)
+        internal List<T1> ToListAfPrivate(string sql, GetAllFieldExpressionTreeInfo af, ReadAnonymousTypeOtherInfo[] otherData)
         {
             var dbParms = _params.ToArray();
             var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
@@ -383,7 +383,7 @@ namespace FreeSql.Internal.CommonProvider
             _trackToList?.Invoke(ret);
             return ret;
         }
-        internal List<T1> ToListPrivate(GetAllFieldExpressionTreeInfo af, (string field, ReadAnonymousTypeInfo read, List<object> retlist)[] otherData)
+        internal List<T1> ToListPrivate(GetAllFieldExpressionTreeInfo af, ReadAnonymousTypeOtherInfo[] otherData)
         {
             string sql = null;
             if (otherData?.Length > 0)
@@ -399,7 +399,7 @@ namespace FreeSql.Internal.CommonProvider
             return ToListAfPrivate(sql, af, otherData);
         }
         #region ToChunk
-        internal void ToListAfChunkPrivate(int chunkSize, Action<List<T1>> chunkDone, string sql, GetAllFieldExpressionTreeInfo af, (string field, ReadAnonymousTypeInfo read, List<object> retlist)[] otherData)
+        internal void ToListAfChunkPrivate(int chunkSize, Action<List<T1>> chunkDone, string sql, GetAllFieldExpressionTreeInfo af, ReadAnonymousTypeOtherInfo[] otherData)
         {
             var dbParms = _params.ToArray();
             var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
@@ -453,7 +453,7 @@ namespace FreeSql.Internal.CommonProvider
                 chunkDone(ret);
             }
         }
-        internal void ToListChunkPrivate(int chunkSize, Action<List<T1>> chunkDone, GetAllFieldExpressionTreeInfo af, (string field, ReadAnonymousTypeInfo read, List<object> retlist)[] otherData)
+        internal void ToListChunkPrivate(int chunkSize, Action<List<T1>> chunkDone, GetAllFieldExpressionTreeInfo af, ReadAnonymousTypeOtherInfo[] otherData)
         {
             string sql = null;
             if (otherData?.Length > 0)
@@ -487,7 +487,7 @@ namespace FreeSql.Internal.CommonProvider
 
         public T1 First() => this.ToOne();
 
-        internal List<TReturn> ToListMrPrivate<TReturn>(string sql, (ReadAnonymousTypeInfo map, string field) af, (string field, ReadAnonymousTypeInfo read, List<object> retlist)[] otherData)
+        internal List<TReturn> ToListMrPrivate<TReturn>(string sql, ReadAnonymousTypeAfInfo af, ReadAnonymousTypeOtherInfo[] otherData)
         {
             var type = typeof(TReturn);
             var dbParms = _params.ToArray();
@@ -521,7 +521,7 @@ namespace FreeSql.Internal.CommonProvider
             _trackToList?.Invoke(ret);
             return ret;
         }
-        internal List<TReturn> ToListMapReaderPrivate<TReturn>((ReadAnonymousTypeInfo map, string field) af, (string field, ReadAnonymousTypeInfo read, List<object> retlist)[] otherData)
+        internal List<TReturn> ToListMapReaderPrivate<TReturn>(ReadAnonymousTypeAfInfo af, ReadAnonymousTypeOtherInfo[] otherData)
         {
             string sql = null;
             if (otherData?.Length > 0)
@@ -536,15 +536,15 @@ namespace FreeSql.Internal.CommonProvider
 
             return ToListMrPrivate<TReturn>(sql, af, otherData);
         }
-        protected List<TReturn> ToListMapReader<TReturn>((ReadAnonymousTypeInfo map, string field) af) => ToListMapReaderPrivate<TReturn>(af, null);
-        protected (ReadAnonymousTypeInfo map, string field) GetExpressionField(Expression newexp, FieldAliasOptions fieldAlias = FieldAliasOptions.AsIndex)
+        protected List<TReturn> ToListMapReader<TReturn>(ReadAnonymousTypeAfInfo af) => ToListMapReaderPrivate<TReturn>(af, null);
+        protected ReadAnonymousTypeAfInfo GetExpressionField(Expression newexp, FieldAliasOptions fieldAlias = FieldAliasOptions.AsIndex)
         {
             var map = new ReadAnonymousTypeInfo();
             var field = new StringBuilder();
             var index = fieldAlias == FieldAliasOptions.AsProperty ? CommonExpression.ReadAnonymousFieldAsCsName : 0;
 
             _commonExpression.ReadAnonymousField(_tables, field, map, ref index, newexp, null, _whereCascadeExpression, true);
-            return (map, field.Length > 0 ? field.Remove(0, 2).ToString() : null);
+            return new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null);
         }
         static ConcurrentDictionary<string, GetAllFieldExpressionTreeInfo> _dicGetAllFieldExpressionTree = new ConcurrentDictionary<string, GetAllFieldExpressionTreeInfo>();
         public class GetAllFieldExpressionTreeInfo
@@ -830,7 +830,7 @@ namespace FreeSql.Internal.CommonProvider
                 };
             });
         }
-        protected (ReadAnonymousTypeInfo map, string field) GetAllFieldReflection()
+        protected ReadAnonymousTypeAfInfo GetAllFieldReflection()
         {
             var tb1 = _tables.First().Table;
             var type = tb1.TypeLazy ?? tb1.Type;
@@ -879,7 +879,7 @@ namespace FreeSql.Internal.CommonProvider
                 }
                 map.Childs.Add(child);
             }
-            return (map, field.ToString());
+            return new ReadAnonymousTypeAfInfo(map, field.ToString());
         }
 
         string GetToDeleteWhere(string alias)
@@ -1109,7 +1109,7 @@ namespace FreeSql.Internal.CommonProvider
             var index = 0;
 
             _commonExpression.ReadAnonymousField(_tables, field, map, ref index, select, null, _whereCascadeExpression, true);
-            return this.ToListMapReader<TReturn>((map, field.Length > 0 ? field.Remove(0, 2).ToString() : null)).FirstOrDefault();
+            return this.ToListMapReader<TReturn>(new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null)).FirstOrDefault();
         }
 
         protected TSelect InternalWhere(Expression exp) => exp == null ? this as TSelect : this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp, null, _whereCascadeExpression, _params));
@@ -1194,7 +1194,7 @@ namespace FreeSql.Internal.CommonProvider
             return ret;
         }
 
-        async internal Task<List<T1>> ToListAfPrivateAsync(string sql, GetAllFieldExpressionTreeInfo af, (string field, ReadAnonymousTypeInfo read, List<object> retlist)[] otherData)
+        async internal Task<List<T1>> ToListAfPrivateAsync(string sql, GetAllFieldExpressionTreeInfo af, ReadAnonymousTypeOtherInfo[] otherData)
         {
             var dbParms = _params.ToArray();
             var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
@@ -1230,7 +1230,7 @@ namespace FreeSql.Internal.CommonProvider
             return ret;
         }
 
-        internal Task<List<T1>> ToListPrivateAsync(GetAllFieldExpressionTreeInfo af, (string field, ReadAnonymousTypeInfo read, List<object> retlist)[] otherData)
+        internal Task<List<T1>> ToListPrivateAsync(GetAllFieldExpressionTreeInfo af, ReadAnonymousTypeOtherInfo[] otherData)
         {
             string sql = null;
             if (otherData?.Length > 0)
@@ -1260,7 +1260,7 @@ namespace FreeSql.Internal.CommonProvider
 
         public Task<T1> FirstAsync() => this.ToOneAsync();
 
-        async internal Task<List<TReturn>> ToListMrPrivateAsync<TReturn>(string sql, (ReadAnonymousTypeInfo map, string field) af, (string field, ReadAnonymousTypeInfo read, List<object> retlist)[] otherData)
+        async internal Task<List<TReturn>> ToListMrPrivateAsync<TReturn>(string sql, ReadAnonymousTypeAfInfo af, ReadAnonymousTypeOtherInfo[] otherData)
         {
             var type = typeof(TReturn);
             var dbParms = _params.ToArray();
@@ -1295,7 +1295,7 @@ namespace FreeSql.Internal.CommonProvider
             _trackToList?.Invoke(ret);
             return ret;
         }
-        internal Task<List<TReturn>> ToListMapReaderPrivateAsync<TReturn>((ReadAnonymousTypeInfo map, string field) af, (string field, ReadAnonymousTypeInfo read, List<object> retlist)[] otherData)
+        internal Task<List<TReturn>> ToListMapReaderPrivateAsync<TReturn>(ReadAnonymousTypeAfInfo af, ReadAnonymousTypeOtherInfo[] otherData)
         {
             string sql = null;
             if (otherData?.Length > 0)
@@ -1310,7 +1310,7 @@ namespace FreeSql.Internal.CommonProvider
 
             return ToListMrPrivateAsync<TReturn>(sql, af, otherData);
         }
-        protected Task<List<TReturn>> ToListMapReaderAsync<TReturn>((ReadAnonymousTypeInfo map, string field) af) => ToListMapReaderPrivateAsync<TReturn>(af, null);
+        protected Task<List<TReturn>> ToListMapReaderAsync<TReturn>(ReadAnonymousTypeAfInfo af) => ToListMapReaderPrivateAsync<TReturn>(af, null);
 
         async protected Task<double> InternalAvgAsync(Expression exp)
         {
@@ -1355,7 +1355,7 @@ namespace FreeSql.Internal.CommonProvider
             var index = 0;
 
             _commonExpression.ReadAnonymousField(_tables, field, map, ref index, select, null, _whereCascadeExpression, true);
-            return (await this.ToListMapReaderAsync<TReturn>((map, field.Length > 0 ? field.Remove(0, 2).ToString() : null))).FirstOrDefault();
+            return (await this.ToListMapReaderAsync<TReturn>(new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null))).FirstOrDefault();
         }
 #endif
     }

@@ -368,7 +368,7 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
 
-        static (ParameterExpression param, List<MemberExpression> members) GetExpressionStack(Expression exp)
+        static NaviteTuple<ParameterExpression, List<MemberExpression>> GetExpressionStack(Expression exp)
         {
             Expression tmpExp = exp;
             ParameterExpression param = null;
@@ -392,7 +392,7 @@ namespace FreeSql.Internal.CommonProvider
                 }
             }
             if (param == null) throw new Exception($"表达式错误，它的顶级对象不是 ParameterExpression：{exp}");
-            return (param, members);
+            return NaviteTuple.Create(param, members);
         }
         static MethodInfo GetEntityValueWithPropertyNameMethod = typeof(EntityUtilExtensions).GetMethod("GetEntityValueWithPropertyName");
         static ConcurrentDictionary<Type, ConcurrentDictionary<string, MethodInfo>> _dicTypeMethod = new ConcurrentDictionary<Type, ConcurrentDictionary<string, MethodInfo>>();
@@ -429,7 +429,9 @@ namespace FreeSql.Internal.CommonProvider
 
             if (expBody.NodeType != ExpressionType.MemberAccess) throw throwNavigateSelector;
             var collMem = expBody as MemberExpression;
-            var (membersParam, members) = GetExpressionStack(collMem.Expression);
+            var ges = GetExpressionStack(collMem.Expression);
+            var membersParam = ges.Item1;
+            var members = ges.Item2;
             var tb = _commonUtils.GetTableByEntity(collMem.Expression.Type);
             if (tb == null) throw throwNavigateSelector;
             var collMemElementType = (collMem.Type.IsGenericType ? collMem.Type.GetGenericArguments().FirstOrDefault() : collMem.Type.GetElementType());
@@ -484,7 +486,9 @@ namespace FreeSql.Internal.CommonProvider
 
                                 if (leftP1MemberExp.Expression == whereExpArgLamb.Parameters[0])
                                 {
-                                    var (rightMembersParam, rightMembers) = GetExpressionStack(rightP1MemberExp.Expression);
+                                    var rightGes = GetExpressionStack(rightP1MemberExp.Expression);
+                                    var rightMembersParam = rightGes.Item1;
+                                    var rightMembers = rightGes.Item2;
                                     if (rightMembersParam != membersParam) throw throwNavigateSelector;
                                     var isCollMemEquals = rightMembers.Count == members.Count;
                                     if (isCollMemEquals)
@@ -513,7 +517,9 @@ namespace FreeSql.Internal.CommonProvider
                                 }
                                 if (rightP1MemberExp.Expression == whereExpArgLamb.Parameters[0])
                                 {
-                                    var (leftMembersParam, leftMembers) = GetExpressionStack(leftP1MemberExp.Expression);
+                                    var leftGes = GetExpressionStack(leftP1MemberExp.Expression);
+                                    var leftMembersParam = leftGes.Item1;
+                                    var leftMembers = leftGes.Item2;
                                     if (leftMembersParam != membersParam) throw throwNavigateSelector;
                                     var isCollMemEquals = leftMembers.Count == members.Count;
                                     if (isCollMemEquals)
@@ -715,7 +721,7 @@ namespace FreeSql.Internal.CommonProvider
                             if (takeNumber > 0)
                             {
                                 Select0Provider<ISelect<TNavigate>, TNavigate>.GetAllFieldExpressionTreeInfo af = null;
-                                (ReadAnonymousTypeInfo map, string field) mf = default;
+                                ReadAnonymousTypeAfInfo mf = default;
                                 if (selectExp == null) af = subSelect.GetAllFieldExpressionTreeLevelAll();
                                 else mf = subSelect.GetExpressionField(selectExp);
                                 var sbSql = new StringBuilder();
@@ -890,10 +896,10 @@ namespace FreeSql.Internal.CommonProvider
                             sbJoin.Clear();
 
                             Select0Provider<ISelect<TNavigate>, TNavigate>.GetAllFieldExpressionTreeInfo af = null;
-                            (ReadAnonymousTypeInfo map, string field) mf = default;
+                            ReadAnonymousTypeAfInfo mf = default;
                             if (selectExp == null) af = subSelect.GetAllFieldExpressionTreeLevelAll();
                             else mf = subSelect.GetExpressionField(selectExp);
-                            (string field, ReadAnonymousTypeInfo read)? otherData = null;
+                            ReadAnonymousTypeAfInfo otherData = null;
                             var sbSql = new StringBuilder();
 
                             if (_selectExpression == null)
@@ -918,7 +924,7 @@ namespace FreeSql.Internal.CommonProvider
                                     read.Childs.Add(child);
                                     field.Append(", ").Append(_commonUtils.QuoteReadColumn(child.CsType, child.MapType, child.DbField));
                                 }
-                                otherData = (field.ToString(), read);
+                                otherData = new ReadAnonymousTypeAfInfo(read, field.ToString());
                             }
                             Func<Dictionary<string, bool>> getWhereDic = () =>
                             {
@@ -978,14 +984,14 @@ namespace FreeSql.Internal.CommonProvider
                             {
 #if net40
 #else
-                                if (selectExp == null) subList = await subSelect.ToListAfPrivateAsync(sbSql.ToString(), af, otherData == null ? null : new[] { (otherData.Value.field, otherData.Value.read, midList) });
-                                else subList = await subSelect.ToListMrPrivateAsync<TNavigate>(sbSql.ToString(), mf, otherData == null ? null : new[] { (otherData.Value.field, otherData.Value.read, midList) });
+                                if (selectExp == null) subList = await subSelect.ToListAfPrivateAsync(sbSql.ToString(), af, otherData == null ? null : new[] { new ReadAnonymousTypeOtherInfo(otherData.field, otherData.map, midList) });
+                                else subList = await subSelect.ToListMrPrivateAsync<TNavigate>(sbSql.ToString(), mf, otherData == null ? null : new[] { new ReadAnonymousTypeOtherInfo(otherData.field, otherData.map, midList) });
 #endif
                             }
                             else
                             {
-                                if (selectExp == null) subList = subSelect.ToListAfPrivate(sbSql.ToString(), af, otherData == null ? null : new[] { (otherData.Value.field, otherData.Value.read, midList) });
-                                else subList = subSelect.ToListMrPrivate<TNavigate>(sbSql.ToString(), mf, otherData == null ? null : new[] { (otherData.Value.field, otherData.Value.read, midList) });
+                                if (selectExp == null) subList = subSelect.ToListAfPrivate(sbSql.ToString(), af, otherData == null ? null : new[] { new ReadAnonymousTypeOtherInfo(otherData.field, otherData.map, midList) });
+                                else subList = subSelect.ToListMrPrivate<TNavigate>(sbSql.ToString(), mf, otherData == null ? null : new[] { new ReadAnonymousTypeOtherInfo(otherData.field, otherData.map, midList) });
                             }
                             if (subList.Any() == false)
                             {

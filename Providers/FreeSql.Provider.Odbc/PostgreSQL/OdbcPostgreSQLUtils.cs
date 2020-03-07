@@ -146,7 +146,7 @@ namespace FreeSql.Odbc.PostgreSQL
                 }
                 sb.Append("]");
                 var dbinfo = _orm.CodeFirst.GetDbInfo(type);
-                if (dbinfo.HasValue) sb.Append("::").Append(dbinfo.Value.dbtype);
+                if (dbinfo != null) sb.Append("::").Append(dbinfo.dbtype);
                 return sb.ToString();
             }
             else if (dicGetParamterValue.ContainsKey(type2.FullName))

@@ -147,7 +147,7 @@ namespace FreeSql.Odbc.PostgreSQL
                                 if (objExp != null)
                                 {
                                     var dbinfo = _common._orm.CodeFirst.GetDbInfo(objExp.Type);
-                                    if (dbinfo.HasValue) args1 = $"{args1}::{dbinfo.Value.dbtype}";
+                                    if (dbinfo != null) args1 = $"{args1}::{dbinfo.dbtype}";
                                 }
                                 return $"({left} @> {args1})";
                             case "Concat":

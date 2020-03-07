@@ -19,37 +19,37 @@ namespace FreeSql.Odbc.Oracle
         public OdbcOracleCodeFirst(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression) : base(orm, commonUtils, commonExpression) { }
 
         static object _dicCsToDbLock = new object();
-        static Dictionary<string, (OdbcType type, string dbtype, string dbtypeFull, bool? isUnsigned, bool? isnullable, object defaultValue)> _dicCsToDb = new Dictionary<string, (OdbcType type, string dbtype, string dbtypeFull, bool? isUnsigned, bool? isnullable, object defaultValue)>() {
-                { typeof(bool).FullName,  (OdbcType.Bit, "number","number(1) NOT NULL", null, false, false) },{ typeof(bool?).FullName,  (OdbcType.Bit, "number","number(1) NULL", null, true, null) },
+        static Dictionary<string, CsToDb<OdbcType>> _dicCsToDb = new Dictionary<string, CsToDb<OdbcType>>() {
+                { typeof(bool).FullName, CsToDb.New(OdbcType.Bit, "number","number(1) NOT NULL", null, false, false) },{ typeof(bool?).FullName, CsToDb.New(OdbcType.Bit, "number","number(1) NULL", null, true, null) },
 
-                { typeof(sbyte).FullName,  (OdbcType.SmallInt, "number", "number(4) NOT NULL", false, false, 0) },{ typeof(sbyte?).FullName,  (OdbcType.SmallInt, "number", "number(4) NULL", false, true, null) },
-                { typeof(short).FullName,  (OdbcType.SmallInt, "number","number(6) NOT NULL", false, false, 0) },{ typeof(short?).FullName,  (OdbcType.SmallInt, "number", "number(6) NULL", false, true, null) },
-                { typeof(int).FullName,  (OdbcType.Int, "number", "number(11) NOT NULL", false, false, 0) },{ typeof(int?).FullName,  (OdbcType.Int, "number", "number(11) NULL", false, true, null) },
-                { typeof(long).FullName,  (OdbcType.BigInt, "number","number(21) NOT NULL", false, false, 0) },{ typeof(long?).FullName,  (OdbcType.BigInt, "number","number(21) NULL", false, true, null) },
+                { typeof(sbyte).FullName, CsToDb.New(OdbcType.SmallInt, "number", "number(4) NOT NULL", false, false, 0) },{ typeof(sbyte?).FullName, CsToDb.New(OdbcType.SmallInt, "number", "number(4) NULL", false, true, null) },
+                { typeof(short).FullName, CsToDb.New(OdbcType.SmallInt, "number","number(6) NOT NULL", false, false, 0) },{ typeof(short?).FullName, CsToDb.New(OdbcType.SmallInt, "number", "number(6) NULL", false, true, null) },
+                { typeof(int).FullName, CsToDb.New(OdbcType.Int, "number", "number(11) NOT NULL", false, false, 0) },{ typeof(int?).FullName, CsToDb.New(OdbcType.Int, "number", "number(11) NULL", false, true, null) },
+                { typeof(long).FullName, CsToDb.New(OdbcType.BigInt, "number","number(21) NOT NULL", false, false, 0) },{ typeof(long?).FullName, CsToDb.New(OdbcType.BigInt, "number","number(21) NULL", false, true, null) },
 
-                { typeof(byte).FullName,  (OdbcType.TinyInt, "number","number(3) NOT NULL", true, false, 0) },{ typeof(byte?).FullName,  (OdbcType.TinyInt, "number","number(3) NULL", true, true, null) },
-                { typeof(ushort).FullName,  (OdbcType.Int, "number","number(5) NOT NULL", true, false, 0) },{ typeof(ushort?).FullName,  (OdbcType.Int, "number", "number(5) NULL", true, true, null) },
-                { typeof(uint).FullName,  (OdbcType.BigInt, "number", "number(10) NOT NULL", true, false, 0) },{ typeof(uint?).FullName,  (OdbcType.BigInt, "number", "number(10) NULL", true, true, null) },
-                { typeof(ulong).FullName,  (OdbcType.Decimal, "number", "number(20) NOT NULL", true, false, 0) },{ typeof(ulong?).FullName,  (OdbcType.Decimal, "number", "number(20) NULL", true, true, null) },
+                { typeof(byte).FullName, CsToDb.New(OdbcType.TinyInt, "number","number(3) NOT NULL", true, false, 0) },{ typeof(byte?).FullName, CsToDb.New(OdbcType.TinyInt, "number","number(3) NULL", true, true, null) },
+                { typeof(ushort).FullName, CsToDb.New(OdbcType.Int, "number","number(5) NOT NULL", true, false, 0) },{ typeof(ushort?).FullName, CsToDb.New(OdbcType.Int, "number", "number(5) NULL", true, true, null) },
+                { typeof(uint).FullName, CsToDb.New(OdbcType.BigInt, "number", "number(10) NOT NULL", true, false, 0) },{ typeof(uint?).FullName, CsToDb.New(OdbcType.BigInt, "number", "number(10) NULL", true, true, null) },
+                { typeof(ulong).FullName, CsToDb.New(OdbcType.Decimal, "number", "number(20) NOT NULL", true, false, 0) },{ typeof(ulong?).FullName, CsToDb.New(OdbcType.Decimal, "number", "number(20) NULL", true, true, null) },
 
-                { typeof(double).FullName,  (OdbcType.Double, "float", "float(126) NOT NULL", false, false, 0) },{ typeof(double?).FullName,  (OdbcType.Double, "float", "float(126) NULL", false, true, null) },
-                { typeof(float).FullName,  (OdbcType.Real, "float","float(63) NOT NULL", false, false, 0) },{ typeof(float?).FullName,  (OdbcType.Real, "float","float(63) NULL", false, true, null) },
-                { typeof(decimal).FullName,  (OdbcType.Decimal, "number", "number(10,2) NOT NULL", false, false, 0) },{ typeof(decimal?).FullName,  (OdbcType.Decimal, "number", "number(10,2) NULL", false, true, null) },
+                { typeof(double).FullName, CsToDb.New(OdbcType.Double, "float", "float(126) NOT NULL", false, false, 0) },{ typeof(double?).FullName, CsToDb.New(OdbcType.Double, "float", "float(126) NULL", false, true, null) },
+                { typeof(float).FullName, CsToDb.New(OdbcType.Real, "float","float(63) NOT NULL", false, false, 0) },{ typeof(float?).FullName, CsToDb.New(OdbcType.Real, "float","float(63) NULL", false, true, null) },
+                { typeof(decimal).FullName, CsToDb.New(OdbcType.Decimal, "number", "number(10,2) NOT NULL", false, false, 0) },{ typeof(decimal?).FullName, CsToDb.New(OdbcType.Decimal, "number", "number(10,2) NULL", false, true, null) },
 
                 //oracle odbc driver 不支持 TimeSpan 类型的读取
-                //{ typeof(TimeSpan).FullName,  (OdbcType.Time, "interval day to second","interval day(2) to second(6) NOT NULL", false, false, 0) },{ typeof(TimeSpan?).FullName,  (OdbcType.Time, "interval day to second", "interval day(2) to second(6) NULL",false, true, null) },
-                { typeof(DateTime).FullName,  (OdbcType.DateTime, "timestamp", "timestamp(6) NOT NULL", false, false, new DateTime(1970,1,1)) },{ typeof(DateTime?).FullName,  (OdbcType.DateTime, "timestamp", "timestamp(6) NULL", false, true, null) },
-                { typeof(DateTimeOffset).FullName,  (OdbcType.DateTime, "timestamp with local time zone", "timestamp(6) with local time zone NOT NULL", false, false, new DateTime(1970,1,1)) },{ typeof(DateTimeOffset?).FullName,  (OdbcType.DateTime, "timestamp with local time zone", "timestamp(6) with local time zone NULL", false, true, null) },
+                //{ typeof(TimeSpan).FullName, CsToDb.NewInfo(OdbcType.Time, "interval day to second","interval day(2) to second(6) NOT NULL", false, false, 0) },{ typeof(TimeSpan?).FullName, CsToDb.NewInfo(OdbcType.Time, "interval day to second", "interval day(2) to second(6) NULL",false, true, null) },
+                { typeof(DateTime).FullName, CsToDb.New(OdbcType.DateTime, "timestamp", "timestamp(6) NOT NULL", false, false, new DateTime(1970,1,1)) },{ typeof(DateTime?).FullName, CsToDb.New(OdbcType.DateTime, "timestamp", "timestamp(6) NULL", false, true, null) },
+                { typeof(DateTimeOffset).FullName, CsToDb.New(OdbcType.DateTime, "timestamp with local time zone", "timestamp(6) with local time zone NOT NULL", false, false, new DateTime(1970,1,1)) },{ typeof(DateTimeOffset?).FullName, CsToDb.New(OdbcType.DateTime, "timestamp with local time zone", "timestamp(6) with local time zone NULL", false, true, null) },
 
-                { typeof(byte[]).FullName,  (OdbcType.VarBinary, "blob", "blob NULL", false, null, new byte[0]) },
-                { typeof(string).FullName,  (OdbcType.NVarChar, "nvarchar2", "nvarchar2(255) NULL", false, null, "") },
+                { typeof(byte[]).FullName, CsToDb.New(OdbcType.VarBinary, "blob", "blob NULL", false, null, new byte[0]) },
+                { typeof(string).FullName, CsToDb.New(OdbcType.NVarChar, "nvarchar2", "nvarchar2(255) NULL", false, null, "") },
 
-                { typeof(Guid).FullName,  (OdbcType.Char, "char", "char(36 CHAR) NOT NULL", false, false, Guid.Empty) },{ typeof(Guid?).FullName,  (OdbcType.Char, "char", "char(36 CHAR) NULL", false, true, null) },
+                { typeof(Guid).FullName, CsToDb.New(OdbcType.Char, "char", "char(36 CHAR) NOT NULL", false, false, Guid.Empty) },{ typeof(Guid?).FullName, CsToDb.New(OdbcType.Char, "char", "char(36 CHAR) NULL", false, true, null) },
             };
 
-        public override (int type, string dbtype, string dbtypeFull, bool? isnullable, object defaultValue)? GetDbInfo(Type type)
+        public override DbInfoResult GetDbInfo(Type type)
         {
-            if (_dicCsToDb.TryGetValue(type.FullName, out var trydc)) return new (int, string, string, bool?, object)?(((int)trydc.type, trydc.dbtype, trydc.dbtypeFull, trydc.isnullable, trydc.defaultValue));
+            if (_dicCsToDb.TryGetValue(type.FullName, out var trydc)) return new DbInfoResult((int)trydc.type, trydc.dbtype, trydc.dbtypeFull, trydc.isnullable, trydc.defaultValue);
             if (type.IsArray) return null;
             var enumType = type.IsEnum ? type : null;
             if (enumType == null && type.IsNullableType())
@@ -60,8 +60,8 @@ namespace FreeSql.Odbc.Oracle
             if (enumType != null)
             {
                 var newItem = enumType.GetCustomAttributes(typeof(FlagsAttribute), false).Any() ?
-                    (OdbcType.Int, "number", $"number(16){(type.IsEnum ? " NOT NULL" : "")}", false, type.IsEnum ? false : true, Enum.GetValues(enumType).GetValue(0)) :
-                    (OdbcType.BigInt, "number", $"number(32){(type.IsEnum ? " NOT NULL" : "")}", false, type.IsEnum ? false : true, Enum.GetValues(enumType).GetValue(0));
+                    CsToDb.New(OdbcType.Int, "number", $"number(16){(type.IsEnum ? " NOT NULL" : "")}", false, type.IsEnum ? false : true, Enum.GetValues(enumType).GetValue(0)) :
+                    CsToDb.New(OdbcType.BigInt, "number", $"number(32){(type.IsEnum ? " NOT NULL" : "")}", false, type.IsEnum ? false : true, Enum.GetValues(enumType).GetValue(0));
                 if (_dicCsToDb.ContainsKey(type.FullName) == false)
                 {
                     lock (_dicCsToDbLock)
@@ -70,12 +70,12 @@ namespace FreeSql.Odbc.Oracle
                             _dicCsToDb.Add(type.FullName, newItem);
                     }
                 }
-                return ((int)newItem.Item1, newItem.Item2, newItem.Item3, newItem.Item5, newItem.Item6);
+                return new DbInfoResult((int)newItem.type, newItem.dbtype, newItem.dbtypeFull, newItem.isnullable, newItem.defaultValue);
             }
             return null;
         }
 
-        protected override string GetComparisonDDLStatements(params (Type entityType, string tableName)[] objects)
+        protected override string GetComparisonDDLStatements(params TypeAndName[] objects)
         {
             var userId = (_orm.Ado.MasterPool as OdbcOracleConnectionPool)?.UserId;
             if (string.IsNullOrEmpty(userId))
@@ -83,7 +83,7 @@ namespace FreeSql.Odbc.Oracle
                 {
                     userId = OdbcOracleConnectionPool.GetUserId(conn.Value.ConnectionString);
                 }
-            var seqcols = new List<(ColumnInfo, string[], bool)>(); //序列：列，表，自增
+            var seqcols = new List<NaviteTuple<ColumnInfo, string[], bool>>(); //序列：列，表，自增
             var seqnameDel = new List<string>(); //要删除的序列+触发器
 
             var sb = new StringBuilder();
@@ -134,7 +134,7 @@ namespace FreeSql.Odbc.Oracle
                         foreach (var tbcol in tb.ColumnsByPosition)
                         {
                             sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType).Append(",");
-                            if (tbcol.Attribute.IsIdentity == true) seqcols.Add((tbcol, tbname, true));
+                            if (tbcol.Attribute.IsIdentity == true) seqcols.Add(NaviteTuple.Create(tbcol, tbname, true));
                         }
                         if (tb.Primarys.Any())
                         {
@@ -234,10 +234,10 @@ where a.owner={{0}} and a.table_name={{1}}", tboldname ?? tbname);
                                 //修改列名
                                 sbalter.Append("execute immediate 'ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" RENAME COLUMN ").Append(_commonUtils.QuoteSqlName(tbstructcol.column)).Append(" TO ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append("';\r\n");
                                 if (tbcol.Attribute.IsIdentity)
-                                    seqcols.Add((tbcol, tbname, tbcol.Attribute.IsIdentity == true));
+                                    seqcols.Add(NaviteTuple.Create(tbcol, tbname, tbcol.Attribute.IsIdentity == true));
                             }
                             else if (tbcol.Attribute.IsIdentity != tbstructcol.is_identity)
-                                seqcols.Add((tbcol, tbname, tbcol.Attribute.IsIdentity == true));
+                                seqcols.Add(NaviteTuple.Create(tbcol, tbname, tbcol.Attribute.IsIdentity == true));
                             if (isCommentChanged)
                                 sbalter.Append("execute immediate 'COMMENT ON COLUMN ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}.{tbcol.Attribute.Name}")).Append(" IS ").Append(_commonUtils.FormatSql("{0}", tbcol.Comment ?? "").Replace("'", "''")).Append("';\r\n");
                             continue;
@@ -249,7 +249,7 @@ where a.owner={{0}} and a.table_name={{1}}", tboldname ?? tbname);
                             sbalter.Append("execute immediate 'UPDATE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" SET ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" = ").Append(tbcol.DbDefaultValue.Replace("'", "''")).Append("';\r\n");
                             sbalter.Append("execute immediate 'ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" MODIFY ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" NOT NULL';\r\n");
                         }
-                        if (tbcol.Attribute.IsIdentity == true) seqcols.Add((tbcol, tbname, tbcol.Attribute.IsIdentity == true));
+                        if (tbcol.Attribute.IsIdentity == true) seqcols.Add(NaviteTuple.Create(tbcol, tbname, tbcol.Attribute.IsIdentity == true));
                         if (string.IsNullOrEmpty(tbcol.Comment) == false) sbalter.Append("execute immediate 'COMMENT ON COLUMN ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}.{tbcol.Attribute.Name}")).Append(" IS ").Append(_commonUtils.FormatSql("{0}", tbcol.Comment ?? "").Replace("'", "''")).Append("';\r\n");
                     }
 
@@ -305,7 +305,7 @@ and not exists(select 1 from all_constraints where constraint_name = a.index_nam
                 foreach (var tbcol in tb.ColumnsByPosition)
                 {
                     sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType).Append(",");
-                    if (tbcol.Attribute.IsIdentity == true) seqcols.Add((tbcol, tbname, true));
+                    if (tbcol.Attribute.IsIdentity == true) seqcols.Add(NaviteTuple.Create(tbcol, tbname, true));
                 }
                 if (tb.Primarys.Any())
                 {

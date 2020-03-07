@@ -87,7 +87,7 @@ namespace FreeSql
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        (int type, string dbtype, string dbtypeFull, bool? isnullable, object defaultValue)? GetDbInfo(Type type);
+        DbInfoResult GetDbInfo(Type type);
         /// <summary>
         /// 在外部配置实体的特性
         /// </summary>

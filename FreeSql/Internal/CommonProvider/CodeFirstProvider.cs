@@ -35,7 +35,7 @@ namespace FreeSql.Internal.CommonProvider
         public virtual bool IsGenerateCommandParameterWithLambda { get; set; } = false;
         public bool IsLazyLoading { get; set; } = false;
 
-        public abstract (int type, string dbtype, string dbtypeFull, bool? isnullable, object defaultValue)? GetDbInfo(Type type);
+        public abstract DbInfoResult GetDbInfo(Type type);
 
         public ICodeFirst ConfigEntity<T>(Action<TableFluent<T>> entity) => _commonUtils.ConfigEntity(entity);
         public ICodeFirst ConfigEntity(Type type, Action<TableFluent> entity) => _commonUtils.ConfigEntity(type, entity);
@@ -50,12 +50,22 @@ namespace FreeSql.Internal.CommonProvider
             return tableName;
         }
         public string GetComparisonDDLStatements<TEntity>() =>
-            this.GetComparisonDDLStatements((typeof(TEntity), ""));
+            this.GetComparisonDDLStatements(new TypeAndName(typeof(TEntity), ""));
         public string GetComparisonDDLStatements(params Type[] entityTypes) => entityTypes == null ? null : 
-            this.GetComparisonDDLStatements(entityTypes.Distinct().Select(a => (a, "")).ToArray());
+            this.GetComparisonDDLStatements(entityTypes.Distinct().Select(a => new TypeAndName(a, "")).ToArray());
         public string GetComparisonDDLStatements(Type entityType, string tableName) =>
-           this.GetComparisonDDLStatements((entityType, GetTableNameLowerOrUpper(tableName)));
-        protected abstract string GetComparisonDDLStatements(params (Type entityType, string tableName)[] objects);
+           this.GetComparisonDDLStatements(new TypeAndName(entityType, GetTableNameLowerOrUpper(tableName)));
+        protected abstract string GetComparisonDDLStatements(params TypeAndName[] objects);
+        public class TypeAndName
+        {
+            public Type entityType { get; }
+            public string tableName { get; }
+            public TypeAndName(Type entityType, string tableName)
+            {
+                this.entityType = entityType;
+                this.tableName = tableName;
+            }
+        }
 
         static object syncStructureLock = new object();
         object _dicSycedLock = new object();
@@ -72,16 +82,16 @@ namespace FreeSql.Internal.CommonProvider
             _dicSycedGetOrAdd(entityType).TryAdd(GetTableNameLowerOrUpper(tableName), true);
 
         public bool SyncStructure<TEntity>() =>
-            this.SyncStructure((typeof(TEntity), ""));
+            this.SyncStructure(new TypeAndName(typeof(TEntity), ""));
         public bool SyncStructure(params Type[] entityTypes) => entityTypes == null ? false :
-            this.SyncStructure(entityTypes.Distinct().Select(a => (a, "")).ToArray());
+            this.SyncStructure(entityTypes.Distinct().Select(a => new TypeAndName(a, "")).ToArray());
         public bool SyncStructure(Type entityType, string tableName) =>
-           this.SyncStructure((entityType, GetTableNameLowerOrUpper(tableName)));
-        protected bool SyncStructure(params (Type entityType, string tableName)[] objects)
+           this.SyncStructure(new TypeAndName(entityType, GetTableNameLowerOrUpper(tableName)));
+        protected bool SyncStructure(params TypeAndName[] objects)
         {
             if (objects == null) return false;
-            (Type entityType, string tableName)[] syncObjects = objects.Where(a => _dicSycedGetOrAdd(a.entityType).ContainsKey(GetTableNameLowerOrUpper(a.tableName)) == false && GetTableByEntity(a.entityType)?.DisableSyncStructure == false)
-                .Select(a => (a.entityType, GetTableNameLowerOrUpper(a.tableName))).ToArray();
+            var syncObjects = objects.Where(a => _dicSycedGetOrAdd(a.entityType).ContainsKey(GetTableNameLowerOrUpper(a.tableName)) == false && GetTableByEntity(a.entityType)?.DisableSyncStructure == false)
+                .Select(a => new TypeAndName(a.entityType, GetTableNameLowerOrUpper(a.tableName))).ToArray();
             if (syncObjects.Any() == false) return false;
             var before = new Aop.SyncStructureBeforeEventArgs(syncObjects.Select(a => a.entityType).ToArray());
             _orm.Aop.SyncStructureBeforeHandler?.Invoke(this, before);

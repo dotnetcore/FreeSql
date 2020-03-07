@@ -51,6 +51,7 @@ public static class FreeSqlGlobalExpressionCall
         return false;
     }
 
+#if netcoreapp
     /// <summary>
     /// C#：从元组集合中查找 exp1, exp2 是否存在<para></para>
     /// SQL： <para></para>
@@ -127,4 +128,5 @@ public static class FreeSqlGlobalExpressionCall
         expContext.Value.Result = sb.ToString();
         return true;
     }
+#endif
 }

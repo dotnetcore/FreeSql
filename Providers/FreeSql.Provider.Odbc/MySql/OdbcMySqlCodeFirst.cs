@@ -1,4 +1,5 @@
 ﻿using FreeSql.Internal;
+using FreeSql.Internal.Model;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -16,35 +17,35 @@ namespace FreeSql.Odbc.MySql
         public OdbcMySqlCodeFirst(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression) : base(orm, commonUtils, commonExpression) { }
 
         static object _dicCsToDbLock = new object();
-        static Dictionary<string, (OdbcType type, string dbtype, string dbtypeFull, bool? isUnsigned, bool? isnullable, object defaultValue)> _dicCsToDb = new Dictionary<string, (OdbcType type, string dbtype, string dbtypeFull, bool? isUnsigned, bool? isnullable, object defaultValue)>() {
-                { typeof(bool).FullName,  (OdbcType.Bit, "bit","bit(1) NOT NULL", null, false, false) },{ typeof(bool?).FullName,  (OdbcType.Bit, "bit","bit(1)", null, true, null) },
+        static Dictionary<string, CsToDb<OdbcType>> _dicCsToDb = new Dictionary<string, CsToDb<OdbcType>>() {
+                { typeof(bool).FullName, CsToDb.New(OdbcType.Bit, "bit","bit(1) NOT NULL", null, false, false) },{ typeof(bool?).FullName, CsToDb.New(OdbcType.Bit, "bit","bit(1)", null, true, null) },
 
-                { typeof(sbyte).FullName,  (OdbcType.SmallInt, "tinyint", "tinyint(3) NOT NULL", false, false, 0) },{ typeof(sbyte?).FullName,  (OdbcType.SmallInt, "tinyint", "tinyint(3)", false, true, null) },
-                { typeof(short).FullName,  (OdbcType.SmallInt, "smallint","smallint(6) NOT NULL", false, false, 0) },{ typeof(short?).FullName,  (OdbcType.SmallInt, "smallint", "smallint(6)", false, true, null) },
-                { typeof(int).FullName,  (OdbcType.Int, "int", "int(11) NOT NULL", false, false, 0) },{ typeof(int?).FullName,  (OdbcType.Int, "int", "int(11)", false, true, null) },
-                { typeof(long).FullName,  (OdbcType.BigInt, "bigint","bigint(20) NOT NULL", false, false, 0) },{ typeof(long?).FullName,  (OdbcType.BigInt, "bigint","bigint(20)", false, true, null) },
+                { typeof(sbyte).FullName, CsToDb.New(OdbcType.SmallInt, "tinyint", "tinyint(3) NOT NULL", false, false, 0) },{ typeof(sbyte?).FullName, CsToDb.New(OdbcType.SmallInt, "tinyint", "tinyint(3)", false, true, null) },
+                { typeof(short).FullName, CsToDb.New(OdbcType.SmallInt, "smallint","smallint(6) NOT NULL", false, false, 0) },{ typeof(short?).FullName, CsToDb.New(OdbcType.SmallInt, "smallint", "smallint(6)", false, true, null) },
+                { typeof(int).FullName, CsToDb.New(OdbcType.Int, "int", "int(11) NOT NULL", false, false, 0) },{ typeof(int?).FullName, CsToDb.New(OdbcType.Int, "int", "int(11)", false, true, null) },
+                { typeof(long).FullName, CsToDb.New(OdbcType.BigInt, "bigint","bigint(20) NOT NULL", false, false, 0) },{ typeof(long?).FullName, CsToDb.New(OdbcType.BigInt, "bigint","bigint(20)", false, true, null) },
 
-                { typeof(byte).FullName,  (OdbcType.TinyInt, "tinyint","tinyint(3) unsigned NOT NULL", true, false, 0) },{ typeof(byte?).FullName,  (OdbcType.TinyInt, "tinyint","tinyint(3) unsigned", true, true, null) },
-                { typeof(ushort).FullName,  (OdbcType.Int, "smallint","smallint(5) unsigned NOT NULL", true, false, 0) },{ typeof(ushort?).FullName,  (OdbcType.Int, "smallint", "smallint(5) unsigned", true, true, null) },
-                { typeof(uint).FullName,  (OdbcType.BigInt, "int", "int(10) unsigned NOT NULL", true, false, 0) },{ typeof(uint?).FullName,  (OdbcType.BigInt, "int", "int(10) unsigned", true, true, null) },
-                { typeof(ulong).FullName,  (OdbcType.Decimal, "bigint", "bigint(20) unsigned NOT NULL", true, false, 0) },{ typeof(ulong?).FullName,  (OdbcType.Decimal, "bigint", "bigint(20) unsigned", true, true, null) },
+                { typeof(byte).FullName, CsToDb.New(OdbcType.TinyInt, "tinyint","tinyint(3) unsigned NOT NULL", true, false, 0) },{ typeof(byte?).FullName, CsToDb.New(OdbcType.TinyInt, "tinyint","tinyint(3) unsigned", true, true, null) },
+                { typeof(ushort).FullName, CsToDb.New(OdbcType.Int, "smallint","smallint(5) unsigned NOT NULL", true, false, 0) },{ typeof(ushort?).FullName, CsToDb.New(OdbcType.Int, "smallint", "smallint(5) unsigned", true, true, null) },
+                { typeof(uint).FullName, CsToDb.New(OdbcType.BigInt, "int", "int(10) unsigned NOT NULL", true, false, 0) },{ typeof(uint?).FullName, CsToDb.New(OdbcType.BigInt, "int", "int(10) unsigned", true, true, null) },
+                { typeof(ulong).FullName, CsToDb.New(OdbcType.Decimal, "bigint", "bigint(20) unsigned NOT NULL", true, false, 0) },{ typeof(ulong?).FullName, CsToDb.New(OdbcType.Decimal, "bigint", "bigint(20) unsigned", true, true, null) },
 
-                { typeof(double).FullName,  (OdbcType.Double, "double", "double NOT NULL", false, false, 0) },{ typeof(double?).FullName,  (OdbcType.Double, "double", "double", false, true, null) },
-                { typeof(float).FullName,  (OdbcType.Real, "float","float NOT NULL", false, false, 0) },{ typeof(float?).FullName,  (OdbcType.Real, "float","float", false, true, null) },
-                { typeof(decimal).FullName,  (OdbcType.Decimal, "decimal", "decimal(10,2) NOT NULL", false, false, 0) },{ typeof(decimal?).FullName,  (OdbcType.Decimal, "decimal", "decimal(10,2)", false, true, null) },
+                { typeof(double).FullName, CsToDb.New(OdbcType.Double, "double", "double NOT NULL", false, false, 0) },{ typeof(double?).FullName, CsToDb.New(OdbcType.Double, "double", "double", false, true, null) },
+                { typeof(float).FullName, CsToDb.New(OdbcType.Real, "float","float NOT NULL", false, false, 0) },{ typeof(float?).FullName, CsToDb.New(OdbcType.Real, "float","float", false, true, null) },
+                { typeof(decimal).FullName, CsToDb.New(OdbcType.Decimal, "decimal", "decimal(10,2) NOT NULL", false, false, 0) },{ typeof(decimal?).FullName, CsToDb.New(OdbcType.Decimal, "decimal", "decimal(10,2)", false, true, null) },
 
-                { typeof(TimeSpan).FullName,  (OdbcType.Time, "time","time NOT NULL", false, false, 0) },{ typeof(TimeSpan?).FullName,  (OdbcType.Time, "time", "time",false, true, null) },
-                { typeof(DateTime).FullName,  (OdbcType.DateTime, "datetime(3)", "datetime(3) NOT NULL", false, false, new DateTime(1970,1,1)) },{ typeof(DateTime?).FullName,  (OdbcType.DateTime, "datetime(3)", "datetime(3)", false, true, null) },
+                { typeof(TimeSpan).FullName, CsToDb.New(OdbcType.Time, "time","time NOT NULL", false, false, 0) },{ typeof(TimeSpan?).FullName, CsToDb.New(OdbcType.Time, "time", "time",false, true, null) },
+                { typeof(DateTime).FullName, CsToDb.New(OdbcType.DateTime, "datetime(3)", "datetime(3) NOT NULL", false, false, new DateTime(1970,1,1)) },{ typeof(DateTime?).FullName, CsToDb.New(OdbcType.DateTime, "datetime(3)", "datetime(3)", false, true, null) },
 
-                { typeof(byte[]).FullName,  (OdbcType.VarBinary, "varbinary", "varbinary(255)", false, null, new byte[0]) },
-                { typeof(string).FullName,  (OdbcType.VarChar, "varchar", "varchar(255)", false, null, "") },
+                { typeof(byte[]).FullName, CsToDb.New(OdbcType.VarBinary, "varbinary", "varbinary(255)", false, null, new byte[0]) },
+                { typeof(string).FullName, CsToDb.New(OdbcType.VarChar, "varchar", "varchar(255)", false, null, "") },
 
-                { typeof(Guid).FullName,  (OdbcType.VarChar, "char", "char(36) NOT NULL", false, false, Guid.Empty) },{ typeof(Guid?).FullName,  (OdbcType.VarChar, "char", "char(36)", false, true, null) },
+                { typeof(Guid).FullName, CsToDb.New(OdbcType.VarChar, "char", "char(36) NOT NULL", false, false, Guid.Empty) },{ typeof(Guid?).FullName, CsToDb.New(OdbcType.VarChar, "char", "char(36)", false, true, null) },
             };
 
-        public override (int type, string dbtype, string dbtypeFull, bool? isnullable, object defaultValue)? GetDbInfo(Type type)
+        public override DbInfoResult GetDbInfo(Type type)
         {
-            if (_dicCsToDb.TryGetValue(type.FullName, out var trydc)) return new (int, string, string, bool?, object)?(((int)trydc.type, trydc.dbtype, trydc.dbtypeFull, trydc.isnullable, trydc.defaultValue));
+            if (_dicCsToDb.TryGetValue(type.FullName, out var trydc)) return new DbInfoResult((int)trydc.type, trydc.dbtype, trydc.dbtypeFull, trydc.isnullable, trydc.defaultValue);
             if (type.IsArray) return null;
             var enumType = type.IsEnum ? type : null;
             if (enumType == null && type.IsNullableType())
@@ -56,8 +57,8 @@ namespace FreeSql.Odbc.MySql
             {
                 var names = string.Join(",", Enum.GetNames(enumType).Select(a => _commonUtils.FormatSql("{0}", a)));
                 var newItem = enumType.GetCustomAttributes(typeof(FlagsAttribute), false).Any() ?
-                    (OdbcType.VarChar, "set", $"set({names}){(type.IsEnum ? " NOT NULL" : "")}", false, type.IsEnum ? false : true, Enum.GetValues(enumType).GetValue(0)) :
-                    (OdbcType.VarChar, "enum", $"enum({names}){(type.IsEnum ? " NOT NULL" : "")}", false, type.IsEnum ? false : true, Enum.GetValues(enumType).GetValue(0));
+                    CsToDb.New(OdbcType.VarChar, "set", $"set({names}){(type.IsEnum ? " NOT NULL" : "")}", false, type.IsEnum ? false : true, Enum.GetValues(enumType).GetValue(0)) :
+                    CsToDb.New(OdbcType.VarChar, "enum", $"enum({names}){(type.IsEnum ? " NOT NULL" : "")}", false, type.IsEnum ? false : true, Enum.GetValues(enumType).GetValue(0));
                 if (_dicCsToDb.ContainsKey(type.FullName) == false)
                 {
                     lock (_dicCsToDbLock)
@@ -66,12 +67,12 @@ namespace FreeSql.Odbc.MySql
                             _dicCsToDb.Add(type.FullName, newItem);
                     }
                 }
-                return ((int)newItem.Item1, newItem.Item2, newItem.Item3, newItem.Item5, newItem.Item6);
+                return new DbInfoResult((int)newItem.type, newItem.dbtype, newItem.dbtypeFull, newItem.isnullable, newItem.defaultValue);
             }
             return null;
         }
 
-        protected override string GetComparisonDDLStatements(params (Type entityType, string tableName)[] objects)
+        protected override string GetComparisonDDLStatements(params TypeAndName[] objects)
         {
             var conn = _orm.Ado.MasterPool.Get(TimeSpan.FromSeconds(5));
             var database = conn.Value.Database;

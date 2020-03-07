@@ -16,44 +16,44 @@ namespace FreeSql.Odbc.PostgreSQL
         public OdbcPostgreSQLCodeFirst(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression) : base(orm, commonUtils, commonExpression) { }
 
         static object _dicCsToDbLock = new object();
-        static Dictionary<string, (OdbcType type, string dbtype, string dbtypeFull, bool? isUnsigned, bool? isnullable, object defaultValue)> _dicCsToDb = new Dictionary<string, (OdbcType type, string dbtype, string dbtypeFull, bool? isUnsigned, bool? isnullable, object defaultValue)>() {
+        static Dictionary<string, CsToDb<OdbcType>> _dicCsToDb = new Dictionary<string, CsToDb<OdbcType>>() {
 
-                { typeof(sbyte).FullName,  (OdbcType.SmallInt, "int2","int2 NOT NULL", false, false, 0) },{ typeof(sbyte?).FullName,  (OdbcType.SmallInt, "int2", "int2", false, true, null) },
-                { typeof(short).FullName,  (OdbcType.SmallInt, "int2","int2 NOT NULL", false, false, 0) },{ typeof(short?).FullName,  (OdbcType.SmallInt, "int2", "int2", false, true, null) },
-                { typeof(int).FullName,  (OdbcType.Int, "int4","int4 NOT NULL", false, false, 0) },{ typeof(int?).FullName,  (OdbcType.Int, "int4", "int4", false, true, null) },
-                { typeof(long).FullName,  (OdbcType.BigInt, "int8","int8 NOT NULL", false, false, 0) },{ typeof(long?).FullName,  (OdbcType.BigInt, "int8", "int8", false, true, null) },
+                { typeof(sbyte).FullName, CsToDb.New(OdbcType.SmallInt, "int2","int2 NOT NULL", false, false, 0) },{ typeof(sbyte?).FullName, CsToDb.New(OdbcType.SmallInt, "int2", "int2", false, true, null) },
+                { typeof(short).FullName, CsToDb.New(OdbcType.SmallInt, "int2","int2 NOT NULL", false, false, 0) },{ typeof(short?).FullName, CsToDb.New(OdbcType.SmallInt, "int2", "int2", false, true, null) },
+                { typeof(int).FullName, CsToDb.New(OdbcType.Int, "int4","int4 NOT NULL", false, false, 0) },{ typeof(int?).FullName, CsToDb.New(OdbcType.Int, "int4", "int4", false, true, null) },
+                { typeof(long).FullName, CsToDb.New(OdbcType.BigInt, "int8","int8 NOT NULL", false, false, 0) },{ typeof(long?).FullName, CsToDb.New(OdbcType.BigInt, "int8", "int8", false, true, null) },
 
-                { typeof(byte).FullName,  (OdbcType.SmallInt, "int2","int2 NOT NULL", false, false, 0) },{ typeof(byte?).FullName,  (OdbcType.SmallInt, "int2", "int2", false, true, null) },
-                { typeof(ushort).FullName,  (OdbcType.Int, "int4","int4 NOT NULL", false, false, 0) },{ typeof(ushort?).FullName,  (OdbcType.Int, "int4", "int4", false, true, null) },
-                { typeof(uint).FullName,  (OdbcType.BigInt, "int8","int8 NOT NULL", false, false, 0) },{ typeof(uint?).FullName,  (OdbcType.BigInt, "int8", "int8", false, true, null) },
-                { typeof(ulong).FullName,  (OdbcType.Numeric, "numeric","numeric(20,0) NOT NULL", false, false, 0) },{ typeof(ulong?).FullName,  (OdbcType.Numeric, "numeric", "numeric(20,0)", false, true, null) },
+                { typeof(byte).FullName, CsToDb.New(OdbcType.SmallInt, "int2","int2 NOT NULL", false, false, 0) },{ typeof(byte?).FullName, CsToDb.New(OdbcType.SmallInt, "int2", "int2", false, true, null) },
+                { typeof(ushort).FullName, CsToDb.New(OdbcType.Int, "int4","int4 NOT NULL", false, false, 0) },{ typeof(ushort?).FullName, CsToDb.New(OdbcType.Int, "int4", "int4", false, true, null) },
+                { typeof(uint).FullName, CsToDb.New(OdbcType.BigInt, "int8","int8 NOT NULL", false, false, 0) },{ typeof(uint?).FullName, CsToDb.New(OdbcType.BigInt, "int8", "int8", false, true, null) },
+                { typeof(ulong).FullName, CsToDb.New(OdbcType.Numeric, "numeric","numeric(20,0) NOT NULL", false, false, 0) },{ typeof(ulong?).FullName, CsToDb.New(OdbcType.Numeric, "numeric", "numeric(20,0)", false, true, null) },
 
-                { typeof(float).FullName,  (OdbcType.Real, "float4","float4 NOT NULL", false, false, 0) },{ typeof(float?).FullName,  (OdbcType.Real, "float4", "float4", false, true, null) },
-                { typeof(double).FullName,  (OdbcType.Double, "float8","float8 NOT NULL", false, false, 0) },{ typeof(double?).FullName,  (OdbcType.Double, "float8", "float8", false, true, null) },
-                { typeof(decimal).FullName,  (OdbcType.Numeric, "numeric", "numeric(10,2) NOT NULL", false, false, 0) },{ typeof(decimal?).FullName,  (OdbcType.Numeric, "numeric", "numeric(10,2)", false, true, null) },
+                { typeof(float).FullName, CsToDb.New(OdbcType.Real, "float4","float4 NOT NULL", false, false, 0) },{ typeof(float?).FullName, CsToDb.New(OdbcType.Real, "float4", "float4", false, true, null) },
+                { typeof(double).FullName, CsToDb.New(OdbcType.Double, "float8","float8 NOT NULL", false, false, 0) },{ typeof(double?).FullName, CsToDb.New(OdbcType.Double, "float8", "float8", false, true, null) },
+                { typeof(decimal).FullName, CsToDb.New(OdbcType.Numeric, "numeric", "numeric(10,2) NOT NULL", false, false, 0) },{ typeof(decimal?).FullName, CsToDb.New(OdbcType.Numeric, "numeric", "numeric(10,2)", false, true, null) },
 
-                { typeof(string).FullName,  (OdbcType.VarChar, "varchar", "varchar(255)", false, null, "") },
+                { typeof(string).FullName, CsToDb.New(OdbcType.VarChar, "varchar", "varchar(255)", false, null, "") },
 
-                { typeof(TimeSpan).FullName,  (OdbcType.Time, "time","time NOT NULL", false, false, 0) },{ typeof(TimeSpan?).FullName,  (OdbcType.Time, "time", "time",false, true, null) },
-                { typeof(DateTime).FullName,  (OdbcType.DateTime, "timestamp", "timestamp NOT NULL", false, false, new DateTime(1970,1,1)) },{ typeof(DateTime?).FullName,  (OdbcType.DateTime, "timestamp", "timestamp", false, true, null) },
+                { typeof(TimeSpan).FullName, CsToDb.New(OdbcType.Time, "time","time NOT NULL", false, false, 0) },{ typeof(TimeSpan?).FullName, CsToDb.New(OdbcType.Time, "time", "time",false, true, null) },
+                { typeof(DateTime).FullName, CsToDb.New(OdbcType.DateTime, "timestamp", "timestamp NOT NULL", false, false, new DateTime(1970,1,1)) },{ typeof(DateTime?).FullName, CsToDb.New(OdbcType.DateTime, "timestamp", "timestamp", false, true, null) },
 
-                { typeof(bool).FullName,  (OdbcType.Bit, "bool","bool NOT NULL", null, false, false) },{ typeof(bool?).FullName,  (OdbcType.Bit, "bool","bool", null, true, null) },
-                { typeof(Byte[]).FullName,  (OdbcType.VarBinary, "bytea", "bytea", false, null, new byte[0]) },
+                { typeof(bool).FullName, CsToDb.New(OdbcType.Bit, "bool","bool NOT NULL", null, false, false) },{ typeof(bool?).FullName, CsToDb.New(OdbcType.Bit, "bool","bool", null, true, null) },
+                { typeof(Byte[]).FullName, CsToDb.New(OdbcType.VarBinary, "bytea", "bytea", false, null, new byte[0]) },
 
-                { typeof(Guid).FullName,  (OdbcType.UniqueIdentifier, "uuid", "uuid NOT NULL", false, false, Guid.Empty) },{ typeof(Guid?).FullName,  (OdbcType.UniqueIdentifier, "uuid", "uuid", false, true, null) },
+                { typeof(Guid).FullName, CsToDb.New(OdbcType.UniqueIdentifier, "uuid", "uuid NOT NULL", false, false, Guid.Empty) },{ typeof(Guid?).FullName, CsToDb.New(OdbcType.UniqueIdentifier, "uuid", "uuid", false, true, null) },
             };
 
-        public override (int type, string dbtype, string dbtypeFull, bool? isnullable, object defaultValue)? GetDbInfo(Type type)
+        public override DbInfoResult GetDbInfo(Type type)
         {
             var isarray = type.FullName != "System.Byte[]" && type.IsArray;
             var elementType = isarray ? type.GetElementType() : type;
             var info = GetDbInfoNoneArray(elementType);
             if (info == null) return null;
-            return ((int)info.Value.type, info.Value.dbtype, info.Value.dbtypeFull, info.Value.isnullable, info.Value.defaultValue);
+            return new DbInfoResult((int)info.type, info.dbtype, info.dbtypeFull, info.isnullable, info.defaultValue);
         }
-        (OdbcType type, string dbtype, string dbtypeFull, bool? isnullable, object defaultValue)? GetDbInfoNoneArray(Type type)
+        CsToDb<OdbcType> GetDbInfoNoneArray(Type type)
         {
-            if (_dicCsToDb.TryGetValue(type.FullName, out var trydc)) return new (OdbcType, string, string, bool?, object)?((trydc.type, trydc.dbtype, trydc.dbtypeFull, trydc.isnullable, trydc.defaultValue));
+            if (_dicCsToDb.TryGetValue(type.FullName, out var trydc)) return trydc;
             if (type.IsArray) return null;
             var enumType = type.IsEnum ? type : null;
             if (enumType == null && type.IsNullableType())
@@ -64,8 +64,8 @@ namespace FreeSql.Odbc.PostgreSQL
             if (enumType != null)
             {
                 var newItem = enumType.GetCustomAttributes(typeof(FlagsAttribute), false).Any() ?
-                    (OdbcType.Int, "int8", $"int8{(type.IsEnum ? " NOT NULL" : "")}", false, type.IsEnum ? false : true, Enum.GetValues(enumType).GetValue(0)) :
-                    (OdbcType.BigInt, "int4", $"int4{(type.IsEnum ? " NOT NULL" : "")}", false, type.IsEnum ? false : true, Enum.GetValues(enumType).GetValue(0));
+                    CsToDb.New(OdbcType.Int, "int8", $"int8{(type.IsEnum ? " NOT NULL" : "")}", false, type.IsEnum ? false : true, Enum.GetValues(enumType).GetValue(0)) :
+                    CsToDb.New(OdbcType.BigInt, "int4", $"int4{(type.IsEnum ? " NOT NULL" : "")}", false, type.IsEnum ? false : true, Enum.GetValues(enumType).GetValue(0));
                 if (_dicCsToDb.ContainsKey(type.FullName) == false)
                 {
                     lock (_dicCsToDbLock)
@@ -74,15 +74,15 @@ namespace FreeSql.Odbc.PostgreSQL
                             _dicCsToDb.Add(type.FullName, newItem);
                     }
                 }
-                return (newItem.Item1, newItem.Item2, newItem.Item3, newItem.Item5, newItem.Item6);
+                return newItem;
             }
             return null;
         }
 
-        protected override string GetComparisonDDLStatements(params (Type entityType, string tableName)[] objects)
+        protected override string GetComparisonDDLStatements(params TypeAndName[] objects)
         {
             var sb = new StringBuilder();
-            var seqcols = new List<(ColumnInfo, string[], bool)>(); //序列
+            var seqcols = new List<NaviteTuple<ColumnInfo, string[], bool>>(); //序列
 
             foreach (var obj in objects)
             {
@@ -128,7 +128,7 @@ namespace FreeSql.Odbc.PostgreSQL
                         foreach (var tbcol in tb.ColumnsByPosition)
                         {
                             sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType).Append(",");
-                            if (tbcol.Attribute.IsIdentity == true) seqcols.Add((tbcol, tbname, true));
+                            if (tbcol.Attribute.IsIdentity == true) seqcols.Add(NaviteTuple.Create(tbcol, tbname, true));
                         }
                         if (tb.Primarys.Any())
                         {
@@ -244,7 +244,7 @@ where ns.nspname = {0} and c.relname = {1}", tboldname ?? tbname);
                                 }
                             }
                             if (tbcol.Attribute.IsIdentity != tbstructcol.is_identity)
-                                seqcols.Add((tbcol, tbname, tbcol.Attribute.IsIdentity == true));
+                                seqcols.Add(NaviteTuple.Create(tbcol, tbname, tbcol.Attribute.IsIdentity == true));
                             if (string.Compare(tbstructcol.column, tbcol.Attribute.OldName, true) == 0)
                                 //修改列名
                                 sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" RENAME COLUMN ").Append(_commonUtils.QuoteSqlName(tbstructcol.column)).Append(" TO ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(";\r\n");
@@ -256,7 +256,7 @@ where ns.nspname = {0} and c.relname = {1}", tboldname ?? tbname);
                         sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ADD COLUMN ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType.Split(' ').First()).Append(";\r\n");
                         sbalter.Append("UPDATE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" SET ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" = ").Append(tbcol.DbDefaultValue).Append(";\r\n");
                         if (tbcol.Attribute.IsNullable == false) sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" ALTER COLUMN ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" SET NOT NULL;\r\n");
-                        if (tbcol.Attribute.IsIdentity == true) seqcols.Add((tbcol, tbname, tbcol.Attribute.IsIdentity == true));
+                        if (tbcol.Attribute.IsIdentity == true) seqcols.Add(NaviteTuple.Create(tbcol, tbname, tbcol.Attribute.IsIdentity == true));
                         if (string.IsNullOrEmpty(tbcol.Comment) == false) sbalter.Append("COMMENT ON COLUMN ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}.{tbcol.Attribute.Name}")).Append(" IS ").Append(_commonUtils.FormatSql("{0}", tbcol.Comment)).Append(";\r\n");
                     }
                     var dsuksql = _commonUtils.FormatSql(@"
@@ -313,7 +313,7 @@ where pg_namespace.nspname={0} and pg_class.relname={1} and pg_constraint.contyp
                 foreach (var tbcol in tb.ColumnsByPosition)
                 {
                     sb.Append(" \r\n  ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType).Append(",");
-                    if (tbcol.Attribute.IsIdentity == true) seqcols.Add((tbcol, tbname, true));
+                    if (tbcol.Attribute.IsIdentity == true) seqcols.Add(NaviteTuple.Create(tbcol, tbname, true));
                 }
                 if (tb.Primarys.Any())
                 {

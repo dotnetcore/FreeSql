@@ -1,4 +1,5 @@
 ﻿using FreeSql.Internal;
+using FreeSql.Internal.Model;
 using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
@@ -16,42 +17,42 @@ namespace FreeSql.MySql
         public MySqlCodeFirst(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression) : base(orm, commonUtils, commonExpression) { }
 
         static object _dicCsToDbLock = new object();
-        static Dictionary<string, (MySqlDbType type, string dbtype, string dbtypeFull, bool? isUnsigned, bool? isnullable, object defaultValue)> _dicCsToDb = new Dictionary<string, (MySqlDbType type, string dbtype, string dbtypeFull, bool? isUnsigned, bool? isnullable, object defaultValue)>() {
-                { typeof(bool).FullName,  (MySqlDbType.Bit, "bit","bit(1) NOT NULL", null, false, false) },{ typeof(bool?).FullName,  (MySqlDbType.Bit, "bit","bit(1)", null, true, null) },
+        static Dictionary<string, CsToDb<MySqlDbType>> _dicCsToDb = new Dictionary<string, CsToDb<MySqlDbType>>() {
+                { typeof(bool).FullName, CsToDb.New(MySqlDbType.Bit, "bit","bit(1) NOT NULL", null, false, false) },{ typeof(bool?).FullName, CsToDb.New(MySqlDbType.Bit, "bit","bit(1)", null, true, null) },
 
-                { typeof(sbyte).FullName,  (MySqlDbType.Byte, "tinyint", "tinyint(3) NOT NULL", false, false, 0) },{ typeof(sbyte?).FullName,  (MySqlDbType.Byte, "tinyint", "tinyint(3)", false, true, null) },
-                { typeof(short).FullName,  (MySqlDbType.Int16, "smallint","smallint(6) NOT NULL", false, false, 0) },{ typeof(short?).FullName,  (MySqlDbType.Int16, "smallint", "smallint(6)", false, true, null) },
-                { typeof(int).FullName,  (MySqlDbType.Int32, "int", "int(11) NOT NULL", false, false, 0) },{ typeof(int?).FullName,  (MySqlDbType.Int32, "int", "int(11)", false, true, null) },
-                { typeof(long).FullName,  (MySqlDbType.Int64, "bigint","bigint(20) NOT NULL", false, false, 0) },{ typeof(long?).FullName,  (MySqlDbType.Int64, "bigint","bigint(20)", false, true, null) },
+                { typeof(sbyte).FullName, CsToDb.New(MySqlDbType.Byte, "tinyint", "tinyint(3) NOT NULL", false, false, 0) },{ typeof(sbyte?).FullName, CsToDb.New(MySqlDbType.Byte, "tinyint", "tinyint(3)", false, true, null) },
+                { typeof(short).FullName, CsToDb.New(MySqlDbType.Int16, "smallint","smallint(6) NOT NULL", false, false, 0) },{ typeof(short?).FullName, CsToDb.New(MySqlDbType.Int16, "smallint", "smallint(6)", false, true, null) },
+                { typeof(int).FullName, CsToDb.New(MySqlDbType.Int32, "int", "int(11) NOT NULL", false, false, 0) },{ typeof(int?).FullName, CsToDb.New(MySqlDbType.Int32, "int", "int(11)", false, true, null) },
+                { typeof(long).FullName, CsToDb.New(MySqlDbType.Int64, "bigint","bigint(20) NOT NULL", false, false, 0) },{ typeof(long?).FullName, CsToDb.New(MySqlDbType.Int64, "bigint","bigint(20)", false, true, null) },
 
-                { typeof(byte).FullName,  (MySqlDbType.UByte, "tinyint","tinyint(3) unsigned NOT NULL", true, false, 0) },{ typeof(byte?).FullName,  (MySqlDbType.UByte, "tinyint","tinyint(3) unsigned", true, true, null) },
-                { typeof(ushort).FullName,  (MySqlDbType.UInt16, "smallint","smallint(5) unsigned NOT NULL", true, false, 0) },{ typeof(ushort?).FullName,  (MySqlDbType.UInt16, "smallint", "smallint(5) unsigned", true, true, null) },
-                { typeof(uint).FullName,  (MySqlDbType.UInt32, "int", "int(10) unsigned NOT NULL", true, false, 0) },{ typeof(uint?).FullName,  (MySqlDbType.UInt32, "int", "int(10) unsigned", true, true, null) },
-                { typeof(ulong).FullName,  (MySqlDbType.UInt64, "bigint", "bigint(20) unsigned NOT NULL", true, false, 0) },{ typeof(ulong?).FullName,  (MySqlDbType.UInt64, "bigint", "bigint(20) unsigned", true, true, null) },
+                { typeof(byte).FullName, CsToDb.New(MySqlDbType.UByte, "tinyint","tinyint(3) unsigned NOT NULL", true, false, 0) },{ typeof(byte?).FullName, CsToDb.New(MySqlDbType.UByte, "tinyint","tinyint(3) unsigned", true, true, null) },
+                { typeof(ushort).FullName, CsToDb.New(MySqlDbType.UInt16, "smallint","smallint(5) unsigned NOT NULL", true, false, 0) },{ typeof(ushort?).FullName, CsToDb.New(MySqlDbType.UInt16, "smallint", "smallint(5) unsigned", true, true, null) },
+                { typeof(uint).FullName, CsToDb.New(MySqlDbType.UInt32, "int", "int(10) unsigned NOT NULL", true, false, 0) },{ typeof(uint?).FullName, CsToDb.New(MySqlDbType.UInt32, "int", "int(10) unsigned", true, true, null) },
+                { typeof(ulong).FullName, CsToDb.New(MySqlDbType.UInt64, "bigint", "bigint(20) unsigned NOT NULL", true, false, 0) },{ typeof(ulong?).FullName, CsToDb.New(MySqlDbType.UInt64, "bigint", "bigint(20) unsigned", true, true, null) },
 
-                { typeof(double).FullName,  (MySqlDbType.Double, "double", "double NOT NULL", false, false, 0) },{ typeof(double?).FullName,  (MySqlDbType.Double, "double", "double", false, true, null) },
-                { typeof(float).FullName,  (MySqlDbType.Float, "float","float NOT NULL", false, false, 0) },{ typeof(float?).FullName,  (MySqlDbType.Float, "float","float", false, true, null) },
-                { typeof(decimal).FullName,  (MySqlDbType.Decimal, "decimal", "decimal(10,2) NOT NULL", false, false, 0) },{ typeof(decimal?).FullName,  (MySqlDbType.Decimal, "decimal", "decimal(10,2)", false, true, null) },
+                { typeof(double).FullName, CsToDb.New(MySqlDbType.Double, "double", "double NOT NULL", false, false, 0) },{ typeof(double?).FullName, CsToDb.New(MySqlDbType.Double, "double", "double", false, true, null) },
+                { typeof(float).FullName, CsToDb.New(MySqlDbType.Float, "float","float NOT NULL", false, false, 0) },{ typeof(float?).FullName, CsToDb.New(MySqlDbType.Float, "float","float", false, true, null) },
+                { typeof(decimal).FullName, CsToDb.New(MySqlDbType.Decimal, "decimal", "decimal(10,2) NOT NULL", false, false, 0) },{ typeof(decimal?).FullName, CsToDb.New(MySqlDbType.Decimal, "decimal", "decimal(10,2)", false, true, null) },
 
-                { typeof(TimeSpan).FullName,  (MySqlDbType.Time, "time","time NOT NULL", false, false, 0) },{ typeof(TimeSpan?).FullName,  (MySqlDbType.Time, "time", "time",false, true, null) },
-                { typeof(DateTime).FullName,  (MySqlDbType.DateTime, "datetime(3)", "datetime(3) NOT NULL", false, false, new DateTime(1970,1,1)) },{ typeof(DateTime?).FullName,  (MySqlDbType.DateTime, "datetime(3)", "datetime(3)", false, true, null) },
+                { typeof(TimeSpan).FullName, CsToDb.New(MySqlDbType.Time, "time","time NOT NULL", false, false, 0) },{ typeof(TimeSpan?).FullName, CsToDb.New(MySqlDbType.Time, "time", "time",false, true, null) },
+                { typeof(DateTime).FullName, CsToDb.New(MySqlDbType.DateTime, "datetime(3)", "datetime(3) NOT NULL", false, false, new DateTime(1970,1,1)) },{ typeof(DateTime?).FullName, CsToDb.New(MySqlDbType.DateTime, "datetime(3)", "datetime(3)", false, true, null) },
 
-                { typeof(byte[]).FullName,  (MySqlDbType.VarBinary, "varbinary", "varbinary(255)", false, null, new byte[0]) },
-                { typeof(string).FullName,  (MySqlDbType.VarChar, "varchar", "varchar(255)", false, null, "") },
+                { typeof(byte[]).FullName, CsToDb.New(MySqlDbType.VarBinary, "varbinary", "varbinary(255)", false, null, new byte[0]) },
+                { typeof(string).FullName, CsToDb.New(MySqlDbType.VarChar, "varchar", "varchar(255)", false, null, "") },
 
-                { typeof(Guid).FullName,  (MySqlDbType.VarChar, "char", "char(36) NOT NULL", false, false, Guid.Empty) },{ typeof(Guid?).FullName,  (MySqlDbType.VarChar, "char", "char(36)", false, true, null) },
+                { typeof(Guid).FullName, CsToDb.New(MySqlDbType.VarChar, "char", "char(36) NOT NULL", false, false, Guid.Empty) },{ typeof(Guid?).FullName, CsToDb.New(MySqlDbType.VarChar, "char", "char(36)", false, true, null) },
 
-                { typeof(MygisPoint).FullName,  (MySqlDbType.Geometry, "point", "point", false, null, new MygisPoint(0, 0)) },
-                { typeof(MygisLineString).FullName,  (MySqlDbType.Geometry, "linestring", "linestring", false, null, new MygisLineString(new[]{new MygisCoordinate2D(),new MygisCoordinate2D()})) },
-                { typeof(MygisPolygon).FullName,  (MySqlDbType.Geometry, "polygon", "polygon", false, null, new MygisPolygon(new[]{new[]{new MygisCoordinate2D(),new MygisCoordinate2D()},new[]{new MygisCoordinate2D(),new MygisCoordinate2D()}})) },
-                { typeof(MygisMultiPoint).FullName,  (MySqlDbType.Geometry, "multipoint","multipoint", false, null, new MygisMultiPoint(new[]{new MygisCoordinate2D(),new MygisCoordinate2D()})) },
-                { typeof(MygisMultiLineString).FullName,  (MySqlDbType.Geometry, "multilinestring","multilinestring", false, null, new MygisMultiLineString(new[]{new[]{new MygisCoordinate2D(),new MygisCoordinate2D()},new[]{new MygisCoordinate2D(),new MygisCoordinate2D()}})) },
-                { typeof(MygisMultiPolygon).FullName,  (MySqlDbType.Geometry, "multipolygon", "multipolygon", false, null, new MygisMultiPolygon(new[]{new MygisPolygon(new[]{new[]{new MygisCoordinate2D(),new MygisCoordinate2D()},new[]{new MygisCoordinate2D(),new MygisCoordinate2D()}}),new MygisPolygon(new[]{new[]{new MygisCoordinate2D(),new MygisCoordinate2D()},new[]{new MygisCoordinate2D(),new MygisCoordinate2D()}})})) },
+                { typeof(MygisPoint).FullName, CsToDb.New(MySqlDbType.Geometry, "point", "point", false, null, new MygisPoint(0, 0)) },
+                { typeof(MygisLineString).FullName, CsToDb.New(MySqlDbType.Geometry, "linestring", "linestring", false, null, new MygisLineString(new[]{new MygisCoordinate2D(),new MygisCoordinate2D()})) },
+                { typeof(MygisPolygon).FullName, CsToDb.New(MySqlDbType.Geometry, "polygon", "polygon", false, null, new MygisPolygon(new[]{new[]{new MygisCoordinate2D(),new MygisCoordinate2D()},new[]{new MygisCoordinate2D(),new MygisCoordinate2D()}})) },
+                { typeof(MygisMultiPoint).FullName, CsToDb.New(MySqlDbType.Geometry, "multipoint","multipoint", false, null, new MygisMultiPoint(new[]{new MygisCoordinate2D(),new MygisCoordinate2D()})) },
+                { typeof(MygisMultiLineString).FullName, CsToDb.New(MySqlDbType.Geometry, "multilinestring","multilinestring", false, null, new MygisMultiLineString(new[]{new[]{new MygisCoordinate2D(),new MygisCoordinate2D()},new[]{new MygisCoordinate2D(),new MygisCoordinate2D()}})) },
+                { typeof(MygisMultiPolygon).FullName, CsToDb.New(MySqlDbType.Geometry, "multipolygon", "multipolygon", false, null, new MygisMultiPolygon(new[]{new MygisPolygon(new[]{new[]{new MygisCoordinate2D(),new MygisCoordinate2D()},new[]{new MygisCoordinate2D(),new MygisCoordinate2D()}}),new MygisPolygon(new[]{new[]{new MygisCoordinate2D(),new MygisCoordinate2D()},new[]{new MygisCoordinate2D(),new MygisCoordinate2D()}})})) },
             };
 
-        public override (int type, string dbtype, string dbtypeFull, bool? isnullable, object defaultValue)? GetDbInfo(Type type)
+        public override DbInfoResult GetDbInfo(Type type)
         {
-            if (_dicCsToDb.TryGetValue(type.FullName, out var trydc)) return new (int, string, string, bool?, object)?(((int)trydc.type, trydc.dbtype, trydc.dbtypeFull, trydc.isnullable, trydc.defaultValue));
+            if (_dicCsToDb.TryGetValue(type.FullName, out var trydc)) return new DbInfoResult((int)trydc.type, trydc.dbtype, trydc.dbtypeFull, trydc.isnullable, trydc.defaultValue);
             if (type.IsArray) return null;
             var enumType = type.IsEnum ? type : null;
             if (enumType == null && type.IsNullableType()) 
@@ -63,8 +64,8 @@ namespace FreeSql.MySql
             {
                 var names = string.Join(",", Enum.GetNames(enumType).Select(a => _commonUtils.FormatSql("{0}", a)));
                 var newItem = enumType.GetCustomAttributes(typeof(FlagsAttribute), false).Any() ?
-                    (MySqlDbType.Set, "set", $"set({names}){(type.IsEnum ? " NOT NULL" : "")}", false, type.IsEnum ? false : true, Enum.GetValues(enumType).GetValue(0)) :
-                    (MySqlDbType.Enum, "enum", $"enum({names}){(type.IsEnum ? " NOT NULL" : "")}", false, type.IsEnum ? false : true, Enum.GetValues(enumType).GetValue(0));
+                    CsToDb.New(MySqlDbType.Set, "set", $"set({names}){(type.IsEnum ? " NOT NULL" : "")}", false, type.IsEnum ? false : true, Enum.GetValues(enumType).GetValue(0)) :
+                    CsToDb.New(MySqlDbType.Enum, "enum", $"enum({names}){(type.IsEnum ? " NOT NULL" : "")}", false, type.IsEnum ? false : true, Enum.GetValues(enumType).GetValue(0));
                 if (_dicCsToDb.ContainsKey(type.FullName) == false)
                 {
                     lock (_dicCsToDbLock)
@@ -73,12 +74,12 @@ namespace FreeSql.MySql
                             _dicCsToDb.Add(type.FullName, newItem);
                     }
                 }
-                return ((int)newItem.Item1, newItem.Item2, newItem.Item3, newItem.Item5, newItem.Item6);
+                return new DbInfoResult((int)newItem.type, newItem.dbtype, newItem.dbtypeFull, newItem.isnullable, newItem.defaultValue);
             }
             return null;
         }
 
-        protected override string GetComparisonDDLStatements(params (Type entityType, string tableName)[] objects)
+        protected override string GetComparisonDDLStatements(params TypeAndName[] objects)
         {
             var conn = _orm.Ado.MasterPool.Get(TimeSpan.FromSeconds(5));
             var database = conn.Value.Database;

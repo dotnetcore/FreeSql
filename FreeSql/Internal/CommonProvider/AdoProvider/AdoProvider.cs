@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Reflection;
+using FreeSql.Internal.Model;
 
 namespace FreeSql.Internal.CommonProvider
 {
@@ -33,7 +34,7 @@ namespace FreeSql.Internal.CommonProvider
             this.DataType = dataType;
         }
 
-        void LoggerException(IObjectPool<DbConnection> pool, (Aop.CommandBeforeEventArgs before, DbCommand cmd, bool isclose) pc, Exception ex, DateTime dt, StringBuilder logtxt, bool isThrowException = true)
+        void LoggerException(IObjectPool<DbConnection> pool, PrepareCommandResult pc, Exception ex, DateTime dt, StringBuilder logtxt, bool isThrowException = true)
         {
             var cmd = pc.cmd;
             if (pc.isclose) pc.cmd.Connection.Close();
@@ -121,14 +122,14 @@ namespace FreeSql.Internal.CommonProvider
             return ret;
         }
         #region query multi
-        public (List<T1>, List<T2>) Query<T1, T2>(string cmdText, object parms = null) => Query<T1, T2>(null, null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-        public (List<T1>, List<T2>) Query<T1, T2>(DbTransaction transaction, string cmdText, object parms = null) => Query<T1, T2>(null, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-        public (List<T1>, List<T2>) Query<T1, T2>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null) => Query<T1, T2>(connection, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-        public (List<T1>, List<T2>) Query<T1, T2>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => Query<T1, T2>(null, null, cmdType, cmdText, cmdParms);
-        public (List<T1>, List<T2>) Query<T1, T2>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => Query<T1, T2>(null, transaction, cmdType, cmdText, cmdParms);
-        public (List<T1>, List<T2>) Query<T1, T2>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms)
+        public NaviteTuple<List<T1>, List<T2>> Query<T1, T2>(string cmdText, object parms = null) => Query<T1, T2>(null, null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+        public NaviteTuple<List<T1>, List<T2>> Query<T1, T2>(DbTransaction transaction, string cmdText, object parms = null) => Query<T1, T2>(null, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+        public NaviteTuple<List<T1>, List<T2>> Query<T1, T2>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null) => Query<T1, T2>(connection, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+        public NaviteTuple<List<T1>, List<T2>> Query<T1, T2>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => Query<T1, T2>(null, null, cmdType, cmdText, cmdParms);
+        public NaviteTuple<List<T1>, List<T2>> Query<T1, T2>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => Query<T1, T2>(null, transaction, cmdType, cmdText, cmdParms);
+        public NaviteTuple<List<T1>, List<T2>> Query<T1, T2>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms)
         {
-            if (string.IsNullOrEmpty(cmdText)) return (new List<T1>(), new List<T2>());
+            if (string.IsNullOrEmpty(cmdText)) return NaviteTuple.Create(new List<T1>(), new List<T2>());
             var ret1 = new List<T1>();
             var type1 = typeof(T1);
             string flag1 = null;
@@ -180,17 +181,17 @@ namespace FreeSql.Internal.CommonProvider
                         break;
                 }
             }, cmdType, cmdText, cmdParms);
-            return (ret1, ret2);
+            return NaviteTuple.Create(ret1, ret2);
         }
 
-        public (List<T1>, List<T2>, List<T3>) Query<T1, T2, T3>(string cmdText, object parms = null) => Query<T1, T2, T3>(null, null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-        public (List<T1>, List<T2>, List<T3>) Query<T1, T2, T3>(DbTransaction transaction, string cmdText, object parms = null) => Query<T1, T2, T3>(null, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-        public (List<T1>, List<T2>, List<T3>) Query<T1, T2, T3>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null) => Query<T1, T2, T3>(connection, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-        public (List<T1>, List<T2>, List<T3>) Query<T1, T2, T3>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => Query<T1, T2, T3>(null, null, cmdType, cmdText, cmdParms);
-        public (List<T1>, List<T2>, List<T3>) Query<T1, T2, T3>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => Query<T1, T2, T3>(null, transaction, cmdType, cmdText, cmdParms);
-        public (List<T1>, List<T2>, List<T3>) Query<T1, T2, T3>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms)
+        public NaviteTuple<List<T1>, List<T2>, List<T3>> Query<T1, T2, T3>(string cmdText, object parms = null) => Query<T1, T2, T3>(null, null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+        public NaviteTuple<List<T1>, List<T2>, List<T3>> Query<T1, T2, T3>(DbTransaction transaction, string cmdText, object parms = null) => Query<T1, T2, T3>(null, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+        public NaviteTuple<List<T1>, List<T2>, List<T3>> Query<T1, T2, T3>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null) => Query<T1, T2, T3>(connection, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+        public NaviteTuple<List<T1>, List<T2>, List<T3>> Query<T1, T2, T3>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => Query<T1, T2, T3>(null, null, cmdType, cmdText, cmdParms);
+        public NaviteTuple<List<T1>, List<T2>, List<T3>> Query<T1, T2, T3>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => Query<T1, T2, T3>(null, transaction, cmdType, cmdText, cmdParms);
+        public NaviteTuple<List<T1>, List<T2>, List<T3>> Query<T1, T2, T3>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms)
         {
-            if (string.IsNullOrEmpty(cmdText)) return (new List<T1>(), new List<T2>(), new List<T3>());
+            if (string.IsNullOrEmpty(cmdText)) return NaviteTuple.Create(new List<T1>(), new List<T2>(), new List<T3>());
             var ret1 = new List<T1>();
             var type1 = typeof(T1);
             string flag1 = null;
@@ -265,17 +266,17 @@ namespace FreeSql.Internal.CommonProvider
                         break;
                 }
             }, cmdType, cmdText, cmdParms);
-            return (ret1, ret2, ret3);
+            return NaviteTuple.Create(ret1, ret2, ret3);
         }
 
-        public (List<T1>, List<T2>, List<T3>, List<T4>) Query<T1, T2, T3, T4>(string cmdText, object parms = null) => Query<T1, T2, T3, T4>(null, null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-        public (List<T1>, List<T2>, List<T3>, List<T4>) Query<T1, T2, T3, T4>(DbTransaction transaction, string cmdText, object parms = null) => Query<T1, T2, T3, T4>(null, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-        public (List<T1>, List<T2>, List<T3>, List<T4>) Query<T1, T2, T3, T4>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null) => Query<T1, T2, T3, T4>(connection, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-        public (List<T1>, List<T2>, List<T3>, List<T4>) Query<T1, T2, T3, T4>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => Query<T1, T2, T3, T4>(null, null, cmdType, cmdText, cmdParms);
-        public (List<T1>, List<T2>, List<T3>, List<T4>) Query<T1, T2, T3, T4>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => Query<T1, T2, T3, T4>(null, transaction, cmdType, cmdText, cmdParms);
-        public (List<T1>, List<T2>, List<T3>, List<T4>) Query<T1, T2, T3, T4>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms)
+        public NaviteTuple<List<T1>, List<T2>, List<T3>, List<T4>> Query<T1, T2, T3, T4>(string cmdText, object parms = null) => Query<T1, T2, T3, T4>(null, null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+        public NaviteTuple<List<T1>, List<T2>, List<T3>, List<T4>> Query<T1, T2, T3, T4>(DbTransaction transaction, string cmdText, object parms = null) => Query<T1, T2, T3, T4>(null, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+        public NaviteTuple<List<T1>, List<T2>, List<T3>, List<T4>> Query<T1, T2, T3, T4>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null) => Query<T1, T2, T3, T4>(connection, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+        public NaviteTuple<List<T1>, List<T2>, List<T3>, List<T4>> Query<T1, T2, T3, T4>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => Query<T1, T2, T3, T4>(null, null, cmdType, cmdText, cmdParms);
+        public NaviteTuple<List<T1>, List<T2>, List<T3>, List<T4>> Query<T1, T2, T3, T4>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => Query<T1, T2, T3, T4>(null, transaction, cmdType, cmdText, cmdParms);
+        public NaviteTuple<List<T1>, List<T2>, List<T3>, List<T4>> Query<T1, T2, T3, T4>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms)
         {
-            if (string.IsNullOrEmpty(cmdText)) return (new List<T1>(), new List<T2>(), new List<T3>(), new List<T4>());
+            if (string.IsNullOrEmpty(cmdText)) return NaviteTuple.Create(new List<T1>(), new List<T2>(), new List<T3>(), new List<T4>());
             var ret1 = new List<T1>();
             var type1 = typeof(T1);
             string flag1 = null;
@@ -373,17 +374,17 @@ namespace FreeSql.Internal.CommonProvider
                         break;
                 }
             }, cmdType, cmdText, cmdParms);
-            return (ret1, ret2, ret3, ret4);
+            return NaviteTuple.Create(ret1, ret2, ret3, ret4);
         }
 
-        public (List<T1>, List<T2>, List<T3>, List<T4>, List<T5>) Query<T1, T2, T3, T4, T5>(string cmdText, object parms = null) => Query<T1, T2, T3, T4, T5>(null, null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-        public (List<T1>, List<T2>, List<T3>, List<T4>, List<T5>) Query<T1, T2, T3, T4, T5>(DbTransaction transaction, string cmdText, object parms = null) => Query<T1, T2, T3, T4, T5>(null, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-        public (List<T1>, List<T2>, List<T3>, List<T4>, List<T5>) Query<T1, T2, T3, T4, T5>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null) => Query<T1, T2, T3, T4, T5>(connection, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-        public (List<T1>, List<T2>, List<T3>, List<T4>, List<T5>) Query<T1, T2, T3, T4, T5>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => Query<T1, T2, T3, T4, T5>(null, null, cmdType, cmdText, cmdParms);
-        public (List<T1>, List<T2>, List<T3>, List<T4>, List<T5>) Query<T1, T2, T3, T4, T5>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => Query<T1, T2, T3, T4, T5>(null, transaction, cmdType, cmdText, cmdParms);
-        public (List<T1>, List<T2>, List<T3>, List<T4>, List<T5>) Query<T1, T2, T3, T4, T5>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms)
+        public NaviteTuple<List<T1>, List<T2>, List<T3>, List<T4>, List<T5>> Query<T1, T2, T3, T4, T5>(string cmdText, object parms = null) => Query<T1, T2, T3, T4, T5>(null, null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+        public NaviteTuple<List<T1>, List<T2>, List<T3>, List<T4>, List<T5>> Query<T1, T2, T3, T4, T5>(DbTransaction transaction, string cmdText, object parms = null) => Query<T1, T2, T3, T4, T5>(null, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+        public NaviteTuple<List<T1>, List<T2>, List<T3>, List<T4>, List<T5>> Query<T1, T2, T3, T4, T5>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null) => Query<T1, T2, T3, T4, T5>(connection, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+        public NaviteTuple<List<T1>, List<T2>, List<T3>, List<T4>, List<T5>> Query<T1, T2, T3, T4, T5>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => Query<T1, T2, T3, T4, T5>(null, null, cmdType, cmdText, cmdParms);
+        public NaviteTuple<List<T1>, List<T2>, List<T3>, List<T4>, List<T5>> Query<T1, T2, T3, T4, T5>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => Query<T1, T2, T3, T4, T5>(null, transaction, cmdType, cmdText, cmdParms);
+        public NaviteTuple<List<T1>, List<T2>, List<T3>, List<T4>, List<T5>> Query<T1, T2, T3, T4, T5>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms)
         {
-            if (string.IsNullOrEmpty(cmdText)) return (new List<T1>(), new List<T2>(), new List<T3>(), new List<T4>(), new List<T5>());
+            if (string.IsNullOrEmpty(cmdText)) return NaviteTuple.Create(new List<T1>(), new List<T2>(), new List<T3>(), new List<T4>(), new List<T5>());
             var ret1 = new List<T1>();
             var type1 = typeof(T1);
             string flag1 = null;
@@ -504,7 +505,7 @@ namespace FreeSql.Internal.CommonProvider
                         break;
                 }
             }, cmdType, cmdText, cmdParms);
-            return (ret1, ret2, ret3, ret4, ret5);
+            return NaviteTuple.Create(ret1, ret2, ret3, ret4, ret5);
         }
         #endregion
 
@@ -771,7 +772,19 @@ namespace FreeSql.Internal.CommonProvider
             return val;
         }
 
-        (Aop.CommandBeforeEventArgs before, DbCommand cmd, bool isclose) PrepareCommand(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, DbParameter[] cmdParms, StringBuilder logtxt)
+        class PrepareCommandResult
+        {
+            public Aop.CommandBeforeEventArgs before { get; }
+            public DbCommand cmd { get; }
+            public bool isclose { get; }
+            public PrepareCommandResult(Aop.CommandBeforeEventArgs before, DbCommand cmd, bool isclose)
+            {
+                this.before = before;
+                this.cmd = cmd;
+                this.isclose = isclose;
+            }
+        }
+        PrepareCommandResult PrepareCommand(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, DbParameter[] cmdParms, StringBuilder logtxt)
         {
             var dt = DateTime.Now;
             DbCommand cmd = CreateCommand();
@@ -818,7 +831,7 @@ namespace FreeSql.Internal.CommonProvider
 
             var before = new Aop.CommandBeforeEventArgs(cmd);
             _util?._orm?.Aop.CommandBeforeHandler?.Invoke(_util._orm, before);
-            return (before, cmd, isclose);
+            return new PrepareCommandResult(before, cmd, isclose);
         }
     }
 }
