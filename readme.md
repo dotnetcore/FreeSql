@@ -62,14 +62,14 @@ class Song {
   public string Url { get; set; }
   public DateTime CreateTime { get; set; }
   
-  public virtual ICollection<Tag> Tags { get; set; }
+  public ICollection<Tag> Tags { get; set; }
 }
 class Song_tag {
   public int Song_id { get; set; }
-  public virtual Song Song { get; set; }
+  public Song Song { get; set; }
   
   public int Tag_id { get; set; }
-  public virtual Tag Tag { get; set; }
+  public Tag Tag { get; set; }
 }
 class Tag {
   [Column(IsIdentity = true)]
@@ -77,10 +77,10 @@ class Tag {
   public string Name { get; set; }
   
   public int? Parent_id { get; set; }
-  public virtual Tag Parent { get; set; }
+  public Tag Parent { get; set; }
   
-  public virtual ICollection<Song> Songs { get; set; }
-  public virtual ICollection<Tag> Tags { get; set; }
+  public ICollection<Song> Songs { get; set; }
+  public ICollection<Tag> Tags { get; set; }
 }
 ```
 
@@ -89,12 +89,11 @@ class Tag {
 //OneToOne、ManyToOne
 fsql.Select<Tag>()
   .Where(a => a.Parent.Parent.Name == "粤语")
-  .IncludeMany(a => a.Tags, then => then.Where(sub => sub.Name == "xxx"))
   .ToList();
 
 //OneToMany
 fsql.Select<Tag>()
-  .Where(a => a.Tags.AsSelect().Any(t => t.Parent.Id == 10))
+  .IncludeMany(a => a.Tags, then => then.Where(sub => sub.Name == "xxx"))
   .ToList();
 
 //ManyToMany
@@ -127,7 +126,7 @@ fsql.Select<Song>()
 
 fsql.Select<Song>()
   .OrderBy(a => Guid.NewGuid())
-  .Limit(1)
+  .Limit(10)
   .ToList();
 ```
 更多前往Wiki：[《表达式函数》](https://github.com/2881099/FreeSql/wiki/%e8%a1%a8%e8%be%be%e5%bc%8f%e5%87%bd%e6%95%b0) 
@@ -140,21 +139,8 @@ using (var uow = fsql.CreateUnitOfWork()) {
   var repo1 = uow.GetRepository<Song>();
   var repo2 = uow.GetRepository<Tag>();
 
-  await repo1.InsertAsync(new Song());
-  await repo2.InsertAsync(new Tag());
-  uow.Commit();
-}
-```
-
-## DbContext & DbSet
-> dotnet add package FreeSql.DbContext
-
-```csharp
-using (var ctx = new fsql.CreateDbContext()) {
-  var songs = ctx.Set<Song>();
-  var tags = ctx.Set<Tag>();
-
-  var tag = new Tag {
+  repo2.DbContextOptions.EnableAddOrUpdateNavigateList = true;
+  repo2.Insert(new Tag {
     Name = "testaddsublist",
     Tags = new[] {
       new Tag { Name = "sub1" },
@@ -166,10 +152,8 @@ using (var ctx = new fsql.CreateDbContext()) {
         }
       }
     }
-  };
-  //tags.Add(tag);
-  ctx.Add(tag);
-  await ctx.SaveChangesAsync();
+  });
+  uow.Commit();
 }
 ```
 

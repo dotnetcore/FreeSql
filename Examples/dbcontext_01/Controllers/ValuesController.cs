@@ -14,13 +14,12 @@ namespace dbcontext_01.Controllers
 
         IFreeSql _orm;
         SongContext _songContext;
-        public ValuesController(SongContext songContext,
-            IFreeSql orm1, IFreeSql orm2,
-            IFreeSql<long> orm3
-            )
+        CurdAfterLog _curdLog;
+        public ValuesController(SongContext songContext, IFreeSql orm1, CurdAfterLog curdLog)
         {
             _songContext = songContext;
             _orm = orm1;
+            _curdLog = curdLog;
 
         }
 
@@ -230,7 +229,7 @@ namespace dbcontext_01.Controllers
             var item22 = await _orm.Select<Song>().Where(a => a.Id == id).FirstAsync();
             var item33 = await _orm.Select<Song>().Where(a => a.Id > id).ToListAsync();
 
-            return item22.Id.ToString();
+            return item22.Id.ToString() + "\r\n\r\n" + _curdLog.Sb.ToString();
         }
 
         // GET api/values/5
@@ -238,6 +237,14 @@ namespace dbcontext_01.Controllers
         public ActionResult<object> Get(int id)
         {
             return _orm.Select<Song>().Where(a => a.Id == id).First();
+        }
+
+        [HttpGet("get{id}")]
+        public ActionResult<string> Get2(int id)
+        {
+            var item1 = _orm.Select<Song>().Where(a => a.Id == id).First();
+            var item2 = _orm.Select<Song>().Where(a => a.Id == id).First();
+            return _curdLog.Sb.ToString();
         }
 
         // POST api/values
