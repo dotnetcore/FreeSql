@@ -544,24 +544,32 @@ namespace FreeSql.Internal.CommonProvider
         {
             var dt = new DataTable();
             dt.TableName = TableRuleInvoke();
+            var dtCols = new List<NaviteTuple<ColumnInfo, Type, bool>>();
             foreach (var col in _table.ColumnsByPosition)
             {
                 if (col.Attribute.IsIdentity && _insertIdentity == false) continue;
                 if (col.Attribute.IsIdentity == false && _ignore.ContainsKey(col.Attribute.Name)) continue;
-                dt.Columns.Add(col.Attribute.Name, col.Attribute.MapType);
+                dt.Columns.Add(col.Attribute.Name, col.Attribute.MapType.NullableTypeOrThis());
+                dtCols.Add(NaviteTuple.Create(col, col.Attribute.MapType.NullableTypeOrThis(), col.Attribute.MapType.IsNullableType()));
             }
             if (dt.Columns.Count == 0) return dt;
+            var didx = 0;
             foreach (var d in _source)
             {
                 var row = new object[dt.Columns.Count];
                 var rowIndex = 0;
-                foreach (var col in _table.ColumnsByPosition)
+                foreach (var col in dtCols)
                 {
-                    if (col.Attribute.IsIdentity && _insertIdentity == false) continue;
-                    if (col.Attribute.IsIdentity == false && _ignore.ContainsKey(col.Attribute.Name)) continue;
-                    row[rowIndex++] = col.GetMapValue(d);
+                    var val = col.Item1.GetMapValue(d);
+                    if (col.Item3 == true)
+                    {
+                        if (val == null) throw new Exception($"[{didx}].{col.Item1.CsName} 值不可为 null；DataTable 限制不可使用 int?/long? 可空类型，IInsert.ToDataTable 将映射成 int/long，因此不可接受 null 值");
+                        val = Utils.GetDataReaderValue(col.Item2, val);
+                    }
+                    row[rowIndex++] = val;
                 }
                 dt.Rows.Add(row);
+                didx++;
             }
             return dt;
         }

@@ -70,7 +70,7 @@ public static partial class FreeSqlSqlServerGlobalExtensions
         var insert = that as FreeSql.SqlServer.Curd.SqlServerInsert<T>;
         if (insert == null) throw new Exception("ExecuteSqlBulkCopy 是 FreeSql.Provider.SqlServer 特有的功能");
 
-        var dt = that.ToDataTable();
+        var dt = that.InsertIdentity().ToDataTable();
         if (dt.Rows.Count == 0) return;
 
         Action<SqlBulkCopy> writeToServer = bulkCopy =>
@@ -145,7 +145,7 @@ public static partial class FreeSqlSqlServerGlobalExtensions
         var insert = that as FreeSql.SqlServer.Curd.SqlServerInsert<T>;
         if (insert == null) throw new Exception("ExecuteSqlBulkCopyAsync 是 FreeSql.Provider.SqlServer 特有的功能");
 
-        var dt = that.ToDataTable();
+        var dt = that.InsertIdentity().ToDataTable();
         if (dt.Rows.Count == 0) return;
 
         Func<SqlBulkCopy, Task> writeToServerAsync = bulkCopy =>
