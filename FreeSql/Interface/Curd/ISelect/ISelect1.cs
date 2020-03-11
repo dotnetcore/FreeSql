@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
@@ -377,5 +378,13 @@ namespace FreeSql
         /// <param name="sql">SQL语句</param>
         /// <returns></returns>
         ISelect<T1> WithSql(string sql);
+
+        /// <summary>
+        /// 将 ISelect&lt;T1&gt; 转换为 IQueryable&lt;T1&gt;<para></para>
+        /// 此方法主要用于扩展，比如：abp IRepository GetAll() 接口方法需要返回 IQueryable 对象<para></para>
+        /// 注意：IQueryable 方法污染较为严重，请尽量避免此转换
+        /// </summary>
+        /// <returns></returns>
+        IQueryable<T1> AsQueryable();
     }
 }

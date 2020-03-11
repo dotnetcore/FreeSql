@@ -1071,6 +1071,8 @@ namespace FreeSql.Internal.CommonProvider
             _trackToList?.Invoke(list);
         }
 
+        public IQueryable<T1> AsQueryable() => new QueryableProvider<T1>(this);
+
 #if net40
 #else
         async internal Task SetListAsync(IEnumerable<T1> list)

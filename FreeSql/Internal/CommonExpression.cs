@@ -707,6 +707,7 @@ namespace FreeSql.Internal
                             case "Max":
                             case "Avg":
                             case "ToList": //where in
+                            case "ToOne":
                             case "First":
                                 var anyArgs = exp3.Arguments;
                                 var exp3Stack = new Stack<Expression>();
@@ -991,6 +992,7 @@ namespace FreeSql.Internal
                                                 return $"({sqlSum.Replace("\r\n", "\r\n\t")})";
                                             break;
                                         case "ToList":
+                                        case "ToOne":
                                         case "First":
                                             var tscClone2 = tsc.CloneDisableDiyParse();
                                             tscClone2.isDisableDiyParse = false;

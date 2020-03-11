@@ -1719,6 +1719,14 @@
             <param name="sql">SQL语句</param>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.ISelect`1.AsQueryable">
+            <summary>
+            将 ISelect&lt;T1&gt; 转换为 IQueryable&lt;T1&gt;<para></para>
+            此方法主要用于扩展，比如：abp IRepository GetAll() 接口方法需要返回 IQueryable 对象<para></para>
+            注意：IQueryable 方法污染较为严重，请尽量避免此转换
+            </summary>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.ISelectFromExpression`1.Where(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
             <summary>
             查询条件，Where(a => a.Id > 10)，支持导航对象查询，Where(a => a.Author.Email == "2881099@qq.com")

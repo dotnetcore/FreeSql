@@ -116,9 +116,39 @@ namespace FreeSql.Tests
             public string Name { get; set; }
         }
 
+        [Table(Name = "EDI")]
+        public class Edi
+        {
+            [Column(Name = "EDI_ID")] public long Id { get; set; }
+        }
+        [Table(Name = "EDI_ITEM")]
+        public class EdiItem
+        {
+            [Column(Name = "EDII_ID")] public long Id { get; set; }
+            [Column(Name = "EDII_EDI_ID")] public long EdiId { get; set; }
+        }
+
         [Fact]
         public void Test03()
         {
+            var lksdjkg1 = g.sqlite.Select<Edi>()
+                .AsQueryable().Where(a => a.Id > 0).ToList();
+
+            var lksdjkg2 = g.sqlite.Select<Edi>()
+                .AsQueryable().Where(a => a.Id > 0).First();
+
+            var lksdjkg3 = g.sqlite.Select<Edi>()
+                .AsQueryable().Where(a => a.Id > 0).FirstOrDefault();
+
+
+            var sql222efe = g.sqlite.Select<Edi, EdiItem>()
+                .InnerJoin((a, b) => b.Id == g.sqlite.Select<EdiItem>().As("c").Where(c => c.EdiId == a.Id).OrderBy(c => c.Id).ToOne(c => c.Id))
+                .ToSql((a, b) => new
+                {
+                    Id = a.Id,
+                    EdiId = b.Id
+                });
+
             var subSyetemId = "xxx";
             var list = g.sqlite.Select<Menu, SubSystem>()
                 .LeftJoin((a,b) => a.SubNameID == b.Id)
