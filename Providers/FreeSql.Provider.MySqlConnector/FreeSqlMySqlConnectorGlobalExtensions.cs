@@ -31,7 +31,7 @@ public static class FreeSqlMySqlConnectorGlobalExtensions
         var insert = that as FreeSql.MySql.Curd.MySqlInsert<T>;
         if (insert == null) throw new Exception("ExecuteMySqlBulkCopy 是 FreeSql.Provider.MySqlConnector 特有的功能");
 
-        var dt = that.InsertIdentity().ToDataTable();
+        var dt = that.ToDataTable();
         if (dt.Rows.Count == 0) return;
 
         Action<MySqlBulkCopy> writeToServer = bulkCopy =>
@@ -90,7 +90,7 @@ public static class FreeSqlMySqlConnectorGlobalExtensions
         var insert = that as FreeSql.MySql.Curd.MySqlInsert<T>;
         if (insert == null) throw new Exception("ExecuteMySqlBulkCopyAsync 是 FreeSql.Provider.MySqlConnector 特有的功能");
 
-        var dt = that.InsertIdentity().ToDataTable();
+        var dt = that.ToDataTable();
         if (dt.Rows.Count == 0) return;
 
         Func<MySqlBulkCopy, Task> writeToServer = bulkCopy =>

@@ -52,7 +52,7 @@ public static partial class FreeSqlPostgreSQLGlobalExtensions
         var insert = that as FreeSql.PostgreSQL.Curd.PostgreSQLInsert<T>;
         if (insert == null) throw new Exception("ExecutePgCopy 是 FreeSql.Provider.PostgreSQL 特有的功能");
 
-        var dt = that.InsertIdentity().ToDataTable();
+        var dt = that.ToDataTable();
         if (dt.Rows.Count == 0) return;
 
         Action<NpgsqlConnection> binaryImport = conn =>
@@ -124,7 +124,7 @@ public static partial class FreeSqlPostgreSQLGlobalExtensions
         var insert = that as FreeSql.PostgreSQL.Curd.PostgreSQLInsert<T>;
         if (insert == null) throw new Exception("ExecutePgCopyAsync 是 FreeSql.Provider.PostgreSQL 特有的功能");
 
-        var dt = that.InsertIdentity().ToDataTable();
+        var dt = that.ToDataTable();
         if (dt.Rows.Count == 0) return;
         Func<NpgsqlConnection, Task> binaryImportAsync = async conn =>
         {
