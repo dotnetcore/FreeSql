@@ -1495,7 +1495,8 @@ namespace FreeSql.Internal
 
                                     //判断主键为空，则整个对象不读取
                                     //blockExp.Add(Expression.Assign(readpkvalExp, Expression.Call(rowExp, MethodDataReaderGetValue, dataIndexExp)));
-                                    if (trycol?.Attribute.IsPrimary == true)
+                                    if (flagStr.StartsWith("adoQuery") == false && //Ado.Query 的时候不作此判断
+                                        trycol?.Attribute.IsPrimary == true) //若主键值为 null，则整行读取出来的对象为 null
                                     {
                                         ispkExp.Add(
                                             Expression.IfThen(

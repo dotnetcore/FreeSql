@@ -31,7 +31,7 @@ namespace FreeSql.Internal.CommonProvider
             {
                 if (indexes == null)
                 {
-                    var sbflag = new StringBuilder().Append("query");
+                    var sbflag = new StringBuilder().Append("adoQuery");
                     var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
                     for (var a = 0; a < dr.FieldCount; a++)
                     {
@@ -75,7 +75,7 @@ namespace FreeSql.Internal.CommonProvider
                     case 0:
                         if (indexes1 == null)
                         {
-                            var sbflag = new StringBuilder().Append("QueryAsync");
+                            var sbflag = new StringBuilder().Append("adoQuery");
                             var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
                             for (var a = 0; a < dr.FieldCount; a++)
                             {
@@ -92,7 +92,7 @@ namespace FreeSql.Internal.CommonProvider
                     case 1:
                         if (indexes2 == null)
                         {
-                            var sbflag = new StringBuilder().Append("QueryAsync");
+                            var sbflag = new StringBuilder().Append("adoQuery");
                             var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
                             for (var a = 0; a < dr.FieldCount; a++)
                             {
@@ -144,7 +144,7 @@ namespace FreeSql.Internal.CommonProvider
                     case 0:
                         if (indexes1 == null)
                         {
-                            var sbflag = new StringBuilder().Append("QueryAsync");
+                            var sbflag = new StringBuilder().Append("adoQuery");
                             var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
                             for (var a = 0; a < dr.FieldCount; a++)
                             {
@@ -161,7 +161,7 @@ namespace FreeSql.Internal.CommonProvider
                     case 1:
                         if (indexes2 == null)
                         {
-                            var sbflag = new StringBuilder().Append("QueryAsync");
+                            var sbflag = new StringBuilder().Append("adoQuery");
                             var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
                             for (var a = 0; a < dr.FieldCount; a++)
                             {
@@ -178,7 +178,7 @@ namespace FreeSql.Internal.CommonProvider
                     case 2:
                         if (indexes3 == null)
                         {
-                            var sbflag = new StringBuilder().Append("QueryAsync");
+                            var sbflag = new StringBuilder().Append("adoQuery");
                             var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
                             for (var a = 0; a < dr.FieldCount; a++)
                             {
@@ -236,7 +236,7 @@ namespace FreeSql.Internal.CommonProvider
                     case 0:
                         if (indexes1 == null)
                         {
-                            var sbflag = new StringBuilder().Append("QueryAsync");
+                            var sbflag = new StringBuilder().Append("adoQuery");
                             var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
                             for (var a = 0; a < dr.FieldCount; a++)
                             {
@@ -253,7 +253,7 @@ namespace FreeSql.Internal.CommonProvider
                     case 1:
                         if (indexes2 == null)
                         {
-                            var sbflag = new StringBuilder().Append("QueryAsync");
+                            var sbflag = new StringBuilder().Append("adoQuery");
                             var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
                             for (var a = 0; a < dr.FieldCount; a++)
                             {
@@ -270,7 +270,7 @@ namespace FreeSql.Internal.CommonProvider
                     case 2:
                         if (indexes3 == null)
                         {
-                            var sbflag = new StringBuilder().Append("QueryAsync");
+                            var sbflag = new StringBuilder().Append("adoQuery");
                             var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
                             for (var a = 0; a < dr.FieldCount; a++)
                             {
@@ -287,7 +287,7 @@ namespace FreeSql.Internal.CommonProvider
                     case 3:
                         if (indexes4 == null)
                         {
-                            var sbflag = new StringBuilder().Append("QueryAsync");
+                            var sbflag = new StringBuilder().Append("adoQuery");
                             var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
                             for (var a = 0; a < dr.FieldCount; a++)
                             {
@@ -351,7 +351,7 @@ namespace FreeSql.Internal.CommonProvider
                     case 0:
                         if (indexes1 == null)
                         {
-                            var sbflag = new StringBuilder().Append("QueryAsync");
+                            var sbflag = new StringBuilder().Append("adoQuery");
                             var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
                             for (var a = 0; a < dr.FieldCount; a++)
                             {
@@ -368,7 +368,7 @@ namespace FreeSql.Internal.CommonProvider
                     case 1:
                         if (indexes2 == null)
                         {
-                            var sbflag = new StringBuilder().Append("QueryAsync");
+                            var sbflag = new StringBuilder().Append("adoQuery");
                             var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
                             for (var a = 0; a < dr.FieldCount; a++)
                             {
@@ -385,7 +385,7 @@ namespace FreeSql.Internal.CommonProvider
                     case 2:
                         if (indexes3 == null)
                         {
-                            var sbflag = new StringBuilder().Append("QueryAsync");
+                            var sbflag = new StringBuilder().Append("adoQuery");
                             var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
                             for (var a = 0; a < dr.FieldCount; a++)
                             {
@@ -402,7 +402,7 @@ namespace FreeSql.Internal.CommonProvider
                     case 3:
                         if (indexes4 == null)
                         {
-                            var sbflag = new StringBuilder().Append("QueryAsync");
+                            var sbflag = new StringBuilder().Append("adoQuery");
                             var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
                             for (var a = 0; a < dr.FieldCount; a++)
                             {
@@ -419,7 +419,7 @@ namespace FreeSql.Internal.CommonProvider
                     case 4:
                         if (indexes5 == null)
                         {
-                            var sbflag = new StringBuilder().Append("QueryAsync");
+                            var sbflag = new StringBuilder().Append("adoQuery");
                             var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
                             for (var a = 0; a < dr.FieldCount; a++)
                             {
