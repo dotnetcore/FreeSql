@@ -226,6 +226,13 @@ namespace FreeSql
         /// <param name="parms">参数</param>
         /// <returns></returns>
         TSelect RightJoin(string sql, object parms = null);
+        /// <summary>
+        /// 在 JOIN 位置插入 SQL 内容<para></para>
+        /// 如：.RawJoin("OUTER APPLY ( select id from t2 ) b")
+        /// </summary>
+        /// <param name="sql"></param>
+        /// <returns></returns>
+        TSelect RawJoin(string sql);
 
         /// <summary>
         /// 原生sql语法条件，Where("id = ?id", new { id = 1 })

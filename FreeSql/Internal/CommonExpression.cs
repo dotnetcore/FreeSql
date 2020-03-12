@@ -808,6 +808,8 @@ namespace FreeSql.Internal
                                         if (fsqlType == null) break;
                                         if (exp3.Method.Name != "ToList")
                                             fsqlType.GetField("_limit", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(fsql, 1);
+                                        if (tsc.dbParams != null)
+                                            fsqlType.GetField("_params", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(fsql, tsc.dbParams);
                                         fsqltables = fsqlType.GetField("_tables", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(fsql) as List<SelectTableInfo>;
                                         //fsqltables[0].Alias = $"{tsc._tables[0].Alias}_{fsqltables[0].Alias}";
                                         if (fsqltables != tsc._tables)

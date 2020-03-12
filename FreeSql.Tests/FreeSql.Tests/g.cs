@@ -83,7 +83,7 @@ public class g
         //    return conn;
         //})
         .UseAutoSyncStructure(true)
-        //.UseGenerateCommandParameterWithLambda(true)
+        .UseGenerateCommandParameterWithLambda(true)
         .UseLazyLoading(true)
         .UseMonitorCommand(
             cmd => Trace.WriteLine("\r\n线程" + Thread.CurrentThread.ManagedThreadId + ": " + cmd.CommandText) //监听SQL命令对象，在执行前

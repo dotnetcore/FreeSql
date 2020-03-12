@@ -244,6 +244,19 @@ namespace FreeSql.Internal.CommonProvider
             if (parms != null) _params.AddRange(_commonUtils.GetDbParamtersByObject(sql, parms));
             return this as TSelect;
         }
+        public TSelect RightJoin(string sql, object parms = null)
+        {
+            if (string.IsNullOrEmpty(sql)) return this as TSelect;
+            _join.Append(" \r\nRIGHT JOIN ").Append(sql);
+            if (parms != null) _params.AddRange(_commonUtils.GetDbParamtersByObject(sql, parms));
+            return this as TSelect;
+        }
+        public TSelect RawJoin(string sql)
+        {
+            if (string.IsNullOrEmpty(sql)) return this as TSelect;
+            _join.Append(" \r\n").Append(sql);
+            return this as TSelect;
+        }
 
         public TSelect Limit(int limit)
         {
@@ -271,14 +284,6 @@ namespace FreeSql.Internal.CommonProvider
         {
             this.Skip(Math.Max(0, pageNumber - 1) * pageSize);
             return this.Limit(pageSize) as TSelect;
-        }
-
-        public TSelect RightJoin(string sql, object parms = null)
-        {
-            if (string.IsNullOrEmpty(sql)) return this as TSelect;
-            _join.Append(" \r\nRIGHT JOIN ").Append(sql);
-            if (parms != null) _params.AddRange(_commonUtils.GetDbParamtersByObject(sql, parms));
-            return this as TSelect;
         }
 
         public TSelect Skip(int offset)
