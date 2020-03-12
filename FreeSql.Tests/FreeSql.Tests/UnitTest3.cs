@@ -131,9 +131,10 @@ namespace FreeSql.Tests
         [Fact]
         public void Test03()
         {
+            var itemId2 = 2;
             var itemId = 1;
             var edi = g.sqlite.Select<Edi>()
-                .Where(a => g.sqlite.Select<EdiItem>().Where(b => b.Id == itemId).Any())
+                .Where(a => a.Id == itemId2 && g.sqlite.Select<EdiItem>().Where(b => b.Id == itemId).Any())
                 .First(a => a); //#231
 
             var lksdjkg1 = g.sqlite.Select<Edi>()
