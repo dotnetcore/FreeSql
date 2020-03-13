@@ -563,8 +563,11 @@ namespace FreeSql.Internal.CommonProvider
                     var val = col.Item1.GetMapValue(d);
                     if (col.Item3 == true)
                     {
-                        if (val == null) throw new Exception($"[{didx}].{col.Item1.CsName} 值不可为 null；DataTable 限制不可使用 int?/long? 可空类型，IInsert.ToDataTable 将映射成 int/long，因此不可接受 null 值");
-                        val = Utils.GetDataReaderValue(col.Item2, val);
+                        //if (val == null) throw new Exception($"[{didx}].{col.Item1.CsName} 值不可为 null；DataTable 限制不可使用 int?/long? 可空类型，IInsert.ToDataTable 将映射成 int/long，因此不可接受 null 值");
+                        if (val == null)
+                            val = DBNull.Value;
+                        else
+                            val = Utils.GetDataReaderValue(col.Item2, val);
                     }
                     row[rowIndex++] = val;
                 }
