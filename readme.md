@@ -198,7 +198,8 @@ Elapsed: 00:00:00.6495301; Query Entity Counts: 131072; ORM: Dapper
 [densen2014](https://github.com/densen2014)、
 [LiaoLiaoWuJu](https://github.com/LiaoLiaoWuJu)、
 [hd2y](https://github.com/hd2y)、
-[tky753](https://github.com/tky753)
+[tky753](https://github.com/tky753)、
+[feijie999](https://github.com/feijie999)
 
 （QQ群：4336577）
 
