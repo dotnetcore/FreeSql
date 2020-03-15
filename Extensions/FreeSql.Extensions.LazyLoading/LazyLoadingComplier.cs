@@ -10,12 +10,27 @@ namespace FreeSql.Extensions.LazyLoading
     {
 
 #if ns20
+        //public static Assembly CompileCode(string cscode)
+        //{
+        //    Natasha.AssemblyComplier complier = new Natasha.AssemblyComplier();
+        //    //complier.Domain = DomainManagment.Random;
+        //    complier.Add(cscode);
+        //    return complier.GetAssembly();
+        //}
+
+        internal static Lazy<CSScriptLib.RoslynEvaluator> _compiler = new Lazy<CSScriptLib.RoslynEvaluator>(() =>
+        {
+            var compiler = new CSScriptLib.RoslynEvaluator();
+            compiler.DisableReferencingFromCode = false;
+            compiler
+                .ReferenceAssemblyOf<IFreeSql>()
+                .ReferenceDomainAssemblies();
+            return compiler;
+        });
+
         public static Assembly CompileCode(string cscode)
         {
-            Natasha.AssemblyComplier complier = new Natasha.AssemblyComplier();
-            //complier.Domain = DomainManagment.Random;
-            complier.Add(cscode);
-            return complier.GetAssembly();
+            return _compiler.Value.CompileCode(cscode);
         }
 #else
 
