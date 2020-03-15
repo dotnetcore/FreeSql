@@ -3080,6 +3080,15 @@
             <param name="then">即能 ThenInclude，还可以二次过滤（这个 EFCore 做不到？）</param>
             <returns></returns>
         </member>
+        <member name="M:FreeSqlGlobalExtensions.ToTreeList``1(FreeSql.ISelect{``0})">
+            <summary>
+            查询数据，加工为树型 List 返回<para></para>
+            注意：实体需要配置父子导航属性
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <param name="that"></param>
+            <returns></returns>
+        </member>
         <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.And``1(System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}},System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})">
             <summary>
             使用 and 拼接两个 lambda 表达式

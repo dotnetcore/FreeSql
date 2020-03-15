@@ -659,6 +659,93 @@ namespace FreeSql.Internal.CommonProvider
                 foreach (var item in list)
                     setListValue(item, null);
 
+                Action<List<TNavigate>, TableInfo> fillOneToManyData = (subList, tbref2) =>
+                {
+                    if (subList.Any() == false)
+                    {
+                        foreach (var item in list)
+                            setListValue(item, new List<TNavigate>());
+                        return;
+                    }
+
+                    Dictionary<string, List<Tuple<T1, List<TNavigate>>>> dicList = new Dictionary<string, List<Tuple<T1, List<TNavigate>>>>();
+                    foreach (var item in list)
+                    {
+                        if (tbref.Columns.Count == 1)
+                        {
+                            var dicListKey = getListValue(item, tbref.Columns[0].CsName, 0)?.ToString();
+                            if (dicListKey == null) continue;
+                            var dicListVal = Tuple.Create(item, new List<TNavigate>());
+                            if (dicList.TryGetValue(dicListKey, out var items) == false)
+                                dicList.Add(dicListKey, items = new List<Tuple<T1, List<TNavigate>>>());
+                            items.Add(dicListVal);
+                        }
+                        else
+                        {
+                            var sb = new StringBuilder();
+                            for (var z = 0; z < tbref.Columns.Count; z++)
+                            {
+                                if (z > 0) sb.Append("*$*");
+                                sb.Append(getListValue(item, tbref.Columns[z].CsName, z));
+                            }
+                            var dicListKey = sb.ToString();
+                            var dicListVal = Tuple.Create(item, new List<TNavigate>());
+                            if (dicList.TryGetValue(dicListKey, out var items) == false)
+                                dicList.Add(dicListKey, items = new List<Tuple<T1, List<TNavigate>>>());
+                            items.Add(dicListVal);
+                            sb.Clear();
+                        }
+                    }
+                    var parentNavs = new List<string>();
+                    foreach (var navProp in tbref2.Properties)
+                    {
+                        if (tbref2.ColumnsByCs.ContainsKey(navProp.Key)) continue;
+                        if (tbref2.ColumnsByCsIgnore.ContainsKey(navProp.Key)) continue;
+                        var tr2ref = tbref2.GetTableRef(navProp.Key, false);
+                        if (tr2ref == null) continue;
+                        if (tr2ref.RefType != TableRefType.ManyToOne) continue;
+                        if (tr2ref.RefEntityType != tb.Type) continue;
+                        parentNavs.Add(navProp.Key);
+                    }
+                    foreach (var nav in subList)
+                    {
+                        string key = null;
+                        if (tbref.RefColumns.Count == 1)
+                        {
+                            key = _orm.GetEntityValueWithPropertyName(tbref.RefEntityType, nav, tbref.RefColumns[0].CsName).ToString();
+                        }
+                        else
+                        {
+                            var sb = new StringBuilder();
+                            for (var z = 0; z < tbref.RefColumns.Count; z++)
+                            {
+                                if (z > 0) sb.Append("*$*");
+                                sb.Append(_orm.GetEntityValueWithPropertyName(tbref.RefEntityType, nav, tbref.RefColumns[z].CsName));
+                            }
+                            key = sb.ToString();
+                            sb.Clear();
+                        }
+                        if (dicList.TryGetValue(key, out var t1items) == false) continue;
+                        foreach (var t1item in t1items)
+                            t1item.Item2.Add(nav);
+
+                        //将子集合的，多对一，对象设置为当前对象
+                        foreach (var parentNav in parentNavs)
+                            foreach (var t1item in t1items)
+                                _orm.SetEntityValueWithPropertyName(tbref.RefMiddleEntityType, nav, parentNav, t1item.Item1);
+                    }
+                    foreach (var t1items in dicList.Values)
+                        foreach (var t1item in t1items)
+                            setListValue(t1item.Item1, t1item.Item2);
+                    dicList.Clear();
+                };
+
+                if (tbref.RefType ==  TableRefType.OneToMany && _includeManySubListOneToManyTempValue1 != null && _includeManySubListOneToManyTempValue1 is List<TNavigate>)
+                {
+                    fillOneToManyData(_includeManySubListOneToManyTempValue1 as List<TNavigate>, _commonUtils.GetTableByEntity(tbref.RefEntityType));
+                    return;
+                }
+
                 var subSelect = _orm.Select<TNavigate>()
                     .DisableGlobalFilter()
                     .WithConnection(_connection)
@@ -794,83 +881,7 @@ namespace FreeSql.Internal.CommonProvider
                                 }
                             }
 
-                            if (subList.Any() == false)
-                            {
-                                foreach (var item in list)
-                                    setListValue(item, new List<TNavigate>());
-                                return;
-                            }
-
-                            Dictionary<string, List<Tuple<T1, List<TNavigate>>>> dicList = new Dictionary<string, List<Tuple<T1, List<TNavigate>>>>();
-                            foreach (var item in list)
-                            {
-                                if (tbref.Columns.Count == 1)
-                                {
-                                    var dicListKey = getListValue(item, tbref.Columns[0].CsName, 0)?.ToString();
-                                    if (dicListKey == null) continue;
-                                    var dicListVal = Tuple.Create(item, new List<TNavigate>());
-                                    if (dicList.TryGetValue(dicListKey, out var items) == false)
-                                        dicList.Add(dicListKey, items = new List<Tuple<T1, List<TNavigate>>>());
-                                    items.Add(dicListVal);
-                                }
-                                else
-                                {
-                                    var sb = new StringBuilder();
-                                    for (var z = 0; z < tbref.Columns.Count; z++)
-                                    {
-                                        if (z > 0) sb.Append("*$*");
-                                        sb.Append(getListValue(item, tbref.Columns[z].CsName, z));
-                                    }
-                                    var dicListKey = sb.ToString();
-                                    var dicListVal = Tuple.Create(item, new List<TNavigate>());
-                                    if (dicList.TryGetValue(dicListKey, out var items) == false)
-                                        dicList.Add(dicListKey, items = new List<Tuple<T1, List<TNavigate>>>());
-                                    items.Add(dicListVal);
-                                    sb.Clear();
-                                }
-                            }
-                            var parentNavs = new List<string>();
-                            foreach (var navProp in tbref2.Properties)
-                            {
-                                if (tbref2.ColumnsByCs.ContainsKey(navProp.Key)) continue;
-                                if (tbref2.ColumnsByCsIgnore.ContainsKey(navProp.Key)) continue;
-                                var tr2ref = tbref2.GetTableRef(navProp.Key, false);
-                                if (tr2ref == null) continue;
-                                if (tr2ref.RefType != TableRefType.ManyToOne) continue;
-                                if (tr2ref.RefEntityType != tb.Type) continue;
-                                parentNavs.Add(navProp.Key);
-                            }
-                            foreach (var nav in subList)
-                            {
-                                string key = null;
-                                if (tbref.RefColumns.Count == 1)
-                                {
-                                    key = _orm.GetEntityValueWithPropertyName(tbref.RefEntityType, nav, tbref.RefColumns[0].CsName).ToString();
-                                }
-                                else
-                                {
-                                    var sb = new StringBuilder();
-                                    for (var z = 0; z < tbref.RefColumns.Count; z++)
-                                    {
-                                        if (z > 0) sb.Append("*$*");
-                                        sb.Append(_orm.GetEntityValueWithPropertyName(tbref.RefEntityType, nav, tbref.RefColumns[z].CsName));
-                                    }
-                                    key = sb.ToString();
-                                    sb.Clear();
-                                }
-                                if (dicList.TryGetValue(key, out var t1items) == false) return;
-                                foreach (var t1item in t1items)
-                                    t1item.Item2.Add(nav);
-
-                                //将子集合的，多对一，对象设置为当前对象
-                                foreach (var parentNav in parentNavs)
-                                    foreach (var t1item in t1items)
-                                        _orm.SetEntityValueWithPropertyName(tbref.RefMiddleEntityType, nav, parentNav, t1item.Item1);
-                            }
-                            foreach (var t1items in dicList.Values)
-                                foreach (var t1item in t1items)
-                                    setListValue(t1item.Item1, t1item.Item2);
-                            dicList.Clear();
+                            fillOneToManyData(subList, tbref2);
                         }
                         break;
                     case TableRefType.ManyToMany:
@@ -1044,7 +1055,7 @@ namespace FreeSql.Internal.CommonProvider
                                     key = sb.ToString();
                                     sb.Clear();
                                 }
-                                if (dicList.TryGetValue(key, out var t1items) == false) return;
+                                if (dicList.TryGetValue(key, out var t1items) == false) continue;
                                 foreach (var t1item in t1items)
                                     t1item.Item2.Add(subList[a]);
                             }
@@ -1065,6 +1076,7 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
 
+        internal object _includeManySubListOneToManyTempValue1 = null;
         internal void SetList(IEnumerable<T1> list)
         {
             foreach (var include in _includeToList) include?.Invoke(list);

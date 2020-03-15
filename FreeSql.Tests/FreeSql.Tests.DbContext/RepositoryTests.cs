@@ -1,6 +1,7 @@
 using FreeSql.DataAnnotations;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Xunit;
 
 namespace FreeSql.Tests
@@ -318,6 +319,7 @@ namespace FreeSql.Tests
             cts[1].Goodss.Clear();
             cts[1].Goodss.Add(new Goods { Name = "商品55" });
             repo.Update(cts);
+
         }
         [Table(Name = "EAUNL_OTM_CT")]
         class Cagetory
@@ -390,6 +392,7 @@ namespace FreeSql.Tests
         [Fact]
         public void EnableAddOrUpdateNavigateList_OneToMany_Parent()
         {
+            g.sqlite.Delete<CagetoryParent>().Where("1=1").ExecuteAffrows();
             var repo = g.sqlite.GetRepository<CagetoryParent>();
             var cts = new[] {
                 new CagetoryParent
@@ -412,9 +415,12 @@ namespace FreeSql.Tests
                     })
                 }
             };
-            repo.DbContextOptions.EnableAddOrUpdateNavigateList = false; //关闭级联保存功能
+            repo.DbContextOptions.EnableAddOrUpdateNavigateList = true; //打开级联保存功能
             repo.Insert(cts);
-            repo.SaveMany(cts[0], "Childs"); //指定保存 Childs 一对多属性
+
+            var treelist1 = repo.Select.ToTreeList();
+
+            //repo.SaveMany(cts[0], "Childs"); //指定保存 Childs 一对多属性
             cts[0].Name = "分类11";
             cts[0].Childs.Clear();
             cts[1].Name = "分类22";
@@ -427,6 +433,7 @@ namespace FreeSql.Tests
             cts[1].Childs.Clear();
             cts[1].Childs.Add(new CagetoryParent { Name = "分类2_22" });
             repo.Update(cts);
+            var treelist2 = repo.Select.ToTreeList();
         }
         [Table(Name = "EAUNL_OTMP_CT")]
         class CagetoryParent

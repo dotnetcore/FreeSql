@@ -1,5 +1,6 @@
 ﻿using FreeSql;
 using FreeSql.DataAnnotations;
+using FreeSql.Internal.CommonProvider;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -245,6 +246,61 @@ public static partial class FreeSqlGlobalExtensions
         var select = orm.Select<T1>().IncludeMany(navigateSelector, then) as FreeSql.Internal.CommonProvider.Select1Provider<T1>;
         await select.SetListAsync(list);
         return list;
+    }
+#endif
+    #endregion
+
+    #region ToTreeList() 父子分类
+    /// <summary>
+    /// 查询数据，加工为树型 List 返回<para></para>
+    /// 注意：实体需要配置父子导航属性
+    /// </summary>
+    /// <typeparam name="T1"></typeparam>
+    /// <param name="that"></param>
+    /// <returns></returns>
+    public static List<T1> ToTreeList<T1>(this ISelect<T1> that) where T1 : class
+    {
+        var select = that as Select1Provider<T1>;
+        var tb = select._tables[0].Table;
+        var navs = tb.Properties.Select(a => tb.GetTableRef(a.Key, false))
+            .Where(a => a != null && 
+                a.RefType == FreeSql.Internal.Model.TableRefType.OneToMany &&
+                a.RefEntityType == tb.Type).ToArray();
+
+        if (navs.Length != 1) return select.ToList();
+        var list = select.ToList();
+
+        select._trackToList = null;
+        select._includeToList.Clear();
+        var navigateSelectorParamExp = select._tables[0].Parameter ?? Expression.Parameter(typeof(T1), select._tables[0].Alias);
+        var navigateSelector = Expression.Lambda<Func<T1, IEnumerable<T1>>>(Expression.MakeMemberAccess(navigateSelectorParamExp, navs[0].Property), navigateSelectorParamExp);
+        select.IncludeMany(navigateSelector);
+        select._includeManySubListOneToManyTempValue1 = list;
+        select.SetList(list);
+        return list.Except(list.SelectMany(a => FreeSql.Extensions.EntityUtil.EntityUtilExtensions.GetEntityValueWithPropertyName(select._orm, tb.Type, a, navs[0].Property.Name) as IEnumerable<T1>)).ToList();
+    }
+#if net40
+#else
+    async public static System.Threading.Tasks.Task<List<T1>> ToTreeListAsync<T1>(this ISelect<T1> that) where T1 : class
+    {
+        var select = that as Select1Provider<T1>;
+        var tb = select._tables[0].Table;
+        var navs = tb.Properties.Select(a => tb.GetTableRef(a.Key, false))
+            .Where(a => a != null &&
+                a.RefType == FreeSql.Internal.Model.TableRefType.OneToMany &&
+                a.RefEntityType == tb.Type).ToArray();
+
+        if (navs.Length != 1) return await select.ToListAsync();
+        var list = await select.ToListAsync();
+
+        select._trackToList = null;
+        select._includeToList.Clear();
+        var navigateSelectorParamExp = select._tables[0].Parameter ?? Expression.Parameter(typeof(T1), select._tables[0].Alias);
+        var navigateSelector = Expression.Lambda<Func<T1, IEnumerable<T1>>>(Expression.MakeMemberAccess(navigateSelectorParamExp, navs[0].Property), navigateSelectorParamExp);
+        select.IncludeMany(navigateSelector);
+        select._includeManySubListOneToManyTempValue1 = list;
+        select.SetList(list);
+        return list.Except(list.SelectMany(a => FreeSql.Extensions.EntityUtil.EntityUtilExtensions.GetEntityValueWithPropertyName(select._orm, tb.Type, a, navs[0].Property.Name) as IEnumerable<T1>)).ToList();
     }
 #endif
     #endregion

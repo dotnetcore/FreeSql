@@ -23,18 +23,18 @@ namespace FreeSql.Internal.CommonProvider
         protected string _select = "SELECT ", _orderby, _groupby, _having;
         protected StringBuilder _where = new StringBuilder();
         protected List<DbParameter> _params = new List<DbParameter>();
-        protected List<SelectTableInfo> _tables = new List<SelectTableInfo>();
+        internal protected List<SelectTableInfo> _tables = new List<SelectTableInfo>();
         protected List<Func<Type, string, string>> _tableRules = new List<Func<Type, string, string>>();
         protected Func<Type, string, string> _aliasRule;
         protected string _tosqlAppendContent;
         protected StringBuilder _join = new StringBuilder();
-        protected IFreeSql _orm;
+        internal protected IFreeSql _orm;
         protected CommonUtils _commonUtils;
         protected CommonExpression _commonExpression;
         protected DbTransaction _transaction;
         protected DbConnection _connection;
-        protected Action<object> _trackToList;
-        protected List<Action<object>> _includeToList = new List<Action<object>>();
+        internal protected Action<object> _trackToList;
+        internal protected List<Action<object>> _includeToList = new List<Action<object>>();
 #if net40
 #else
         protected List<Func<object, Task>> _includeToListAsync = new List<Func<object, Task>>();
