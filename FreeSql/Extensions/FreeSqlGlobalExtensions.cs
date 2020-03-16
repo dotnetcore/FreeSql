@@ -55,7 +55,7 @@ public static partial class FreeSqlGlobalExtensions
         if (that.IsArray) return Array.CreateInstance(that, 0);
         var ctorParms = that.InternalGetTypeConstructor0OrFirst(false)?.GetParameters();
         if (ctorParms == null || ctorParms.Any() == false) return Activator.CreateInstance(that, null);
-        return Activator.CreateInstance(that, ctorParms.Select(a => Activator.CreateInstance(a.ParameterType, null)).ToArray());
+        return Activator.CreateInstance(that, ctorParms.Select(a => a.ParameterType.IsInterface || a.ParameterType.IsAbstract ? null : Activator.CreateInstance(a.ParameterType, null)).ToArray());
     }
     internal static NewExpression InternalNewExpression(this Type that)
     {
