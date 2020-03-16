@@ -84,10 +84,11 @@ namespace FreeSql.Internal
                 {
                     if (common.CodeFirst.IsLazyLoading)
                     {
-                        var getIsVirtual = p.GetGetMethod()?.IsVirtual;// trytb.Type.GetMethod($"get_{p.Name}")?.IsVirtual;
-                        var setIsVirtual = setMethod?.IsVirtual;
+                        var getMethod = p.GetGetMethod();
+                        var getIsVirtual = getMethod?.IsVirtual == true && getMethod?.IsFinal == false;// trytb.Type.GetMethod($"get_{p.Name}")?.IsVirtual;
+                        var setIsVirtual = setMethod?.IsVirtual == true && setMethod?.IsFinal == false;
                         if (getIsVirtual == true || setIsVirtual == true)
-                            propsLazy.Add(NaviteTuple.Create(p, getIsVirtual == true, setIsVirtual == true));
+                            propsLazy.Add(NaviteTuple.Create(p, getIsVirtual, setIsVirtual));
                     }
                     propsNavObjs.Add(p);
                     continue;

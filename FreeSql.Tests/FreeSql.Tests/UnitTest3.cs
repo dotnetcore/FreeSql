@@ -116,10 +116,17 @@ namespace FreeSql.Tests
             public string Name { get; set; }
         }
 
+        public interface EdiInterface
+        {
+            List<EdiItem> Children { get; set; }
+        }
+
         [Table(Name = "EDI")]
-        public class Edi
+        public class Edi : EdiInterface
         {
             [Column(Name = "EDI_ID")] public long Id { get; set; }
+
+            public List<EdiItem> Children { get; set; }
         }
         [Table(Name = "EDI_ITEM")]
         public class EdiItem
@@ -131,6 +138,8 @@ namespace FreeSql.Tests
         [Fact]
         public void Test03()
         {
+            g.sqlite.Select<Edi>().ToList();
+
             var itemId2 = 2;
             var itemId = 1;
             var edi = g.sqlite.Select<Edi>()
