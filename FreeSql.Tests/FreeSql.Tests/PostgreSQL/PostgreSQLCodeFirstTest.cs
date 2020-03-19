@@ -369,7 +369,7 @@ namespace FreeSql.Tests.PostgreSQL
             var item3NP = insert.AppendData(item2).NoneParameter().ExecuteInserted();
 
             var item3 = insert.AppendData(item2).ExecuteInserted().First();
-            var newitem2 = select.Where(a => a.Id == item3.Id).ToOne();
+            var newitem2 = select.Where(a => a.Id == item3.Id && object.Equals(a.testFieldJToken["a"], "1")).ToOne();
 
             var items = select.ToList();
         }

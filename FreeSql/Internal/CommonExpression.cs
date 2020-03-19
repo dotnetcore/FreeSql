@@ -675,8 +675,11 @@ namespace FreeSql.Internal
                         case "System.Convert": other3Exp = ExpressionLambdaToSqlCallConvert(exp3, tsc); break;
                     }
                     if (string.IsNullOrEmpty(other3Exp) == false) return other3Exp;
-                    if (exp3.Method.Name == "Equals" && exp3.Object != null && exp3.Arguments.Count > 0)
-                        return ExpressionBinary("=", exp3.Object, exp3.Arguments[0], tsc);
+                    if (exp3.Method.Name == "Equals")
+                    {
+                        if (exp3.Arguments.Count > 0 && exp3.Object != null) return ExpressionBinary("=", exp3.Object, exp3.Arguments[0], tsc);
+                        if (exp3.Arguments.Count > 1 && exp3.Method.DeclaringType == typeof(object)) return ExpressionBinary("=", exp3.Arguments[0], exp3.Arguments[1], tsc);
+                    }
                     if (callType.FullName.StartsWith("FreeSql.ISelectGroupingAggregate`"))
                     {
                         //if (exp3.Type == typeof(string) && exp3.Arguments.Any() && exp3.Arguments[0].NodeType == ExpressionType.Constant) {

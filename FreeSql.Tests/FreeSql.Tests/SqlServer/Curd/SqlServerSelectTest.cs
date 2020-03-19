@@ -963,6 +963,15 @@ WHERE (((cast(a.[Id] as nvarchar)) in (SELECT b.[Title]
                     a.Id,
                     a.Clicks
                 });
+
+            var testUnionAll = select
+                .WithSql("SELECT * FROM [tb_topic22] where id = 10")
+                .WithSql("SELECT * FROM [tb_topic22] where id = 11")
+                .ToSql(a => new
+                {
+                    a.Id,
+                    a.Clicks
+                });
         }
 
         public class TestInclude_OneToManyModel1

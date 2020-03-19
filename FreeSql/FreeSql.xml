@@ -2961,6 +2961,40 @@
             <param name="end"></param>
             <returns></returns>
         </member>
+        <member name="M:FreeSqlGlobalExpressionCall.Contains``2(System.Collections.Generic.IEnumerable{System.ValueTuple{``0,``1}},``0,``1)">
+            <summary>
+            C#：从元组集合中查找 exp1, exp2 是否存在<para></para>
+            SQL： <para></para>
+            exp1 = that[0].Item1 and exp2 = that[0].Item2 OR <para></para>
+            exp1 = that[1].Item1 and exp2 = that[1].Item2 OR <para></para>
+            ... <para></para>
+            注意：当 that 为 null 或 empty 时，返回 1=0
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <typeparam name="T2"></typeparam>
+            <param name="that"></param>
+            <param name="exp1"></param>
+            <param name="exp2"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSqlGlobalExpressionCall.Contains``3(System.Collections.Generic.IEnumerable{System.ValueTuple{``0,``1,``2}},``0,``1,``2)">
+            <summary>
+            C#：从元组集合中查找 exp1, exp2, exp2 是否存在<para></para>
+            SQL： <para></para>
+            exp1 = that[0].Item1 and exp2 = that[0].Item2 and exp3 = that[0].Item3 OR <para></para>
+            exp1 = that[1].Item1 and exp2 = that[1].Item2 and exp3 = that[1].Item3 OR <para></para>
+            ... <para></para>
+            注意：当 that 为 null 或 empty 时，返回 1=0
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <typeparam name="T2"></typeparam>
+            <typeparam name="T3"></typeparam>
+            <param name="that"></param>
+            <param name="exp1"></param>
+            <param name="exp2"></param>
+            <param name="exp3"></param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSqlGlobalExtensions.Distance(System.Drawing.Point,System.Drawing.Point)">
             <summary>
             测量两个经纬度的距离，返回单位：米
@@ -3189,52 +3223,6 @@
         <member name="M:IFreeSql.Transaction(System.Action)">
             <summary>
             开启事务（不支持异步），60秒未执行完成（可能）被其他线程事务自动提交
-            </summary>
-            <param name="handler">事务体 () => {}</param>
-        </member>
-        <member name="M:IFreeSql.Transaction(System.TimeSpan,System.Action)">
-            <summary>
-            开启事务（不支持异步）
-            </summary>
-            <param name="timeout">超时，未执行完成（可能）被其他线程事务自动提交</param>
-            <param name="handler">事务体 () => {}</param>
-        </member>
-        <member name="M:IFreeSql.Transaction(System.Data.IsolationLevel,System.TimeSpan,System.Action)">
-            <summary>
-            开启事务（不支持异步）
-            </summary>
-            <param name="isolationLevel"></param>
-            <param name="handler">事务体 () => {}</param>
-            <param name="timeout">超时，未执行完成（可能）被其他线程事务自动提交</param>
-        </member>
-        <member name="P:IFreeSql.Ado">
-            <summary>
-            数据库访问对象
-            </summary>
-        </member>
-        <member name="P:IFreeSql.Aop">
-            <summary>
-            所有拦截方法都在这里
-            </summary>
-        </member>
-        <member name="P:IFreeSql.CodeFirst">
-            <summary>
-            CodeFirst 模式开发相关方法
-            </summary>
-        </member>
-        <member name="P:IFreeSql.DbFirst">
-            <summary>
-            DbFirst 模式开发相关方法
-            </summary>
-        </member>
-        <member name="P:IFreeSql.GlobalFilter">
-            <summary>
-            全局过滤设置，可默认附加为 Select/Update/Delete 条件
-            </summary>
-        </member>
-    </members>
-</doc>
-�完成（可能）被其他线程事务自动提交
             </summary>
             <param name="handler">事务体 () => {}</param>
         </member>

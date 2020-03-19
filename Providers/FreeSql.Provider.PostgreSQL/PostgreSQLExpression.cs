@@ -115,6 +115,7 @@ namespace FreeSql.PostgreSQL
                                 left = objExp == null ? null : getExp(objExp);
                                 switch (callExp.Method.Name)
                                 {
+                                    case "get_Item": return $"{left}->{getExp(callExp.Arguments[argIndex])}";
                                     case "Any": return $"(jsonb_array_length(coalesce({left},'[]')) > 0)";
                                     case "Contains":
                                         var json = getExp(callExp.Arguments[argIndex]);
