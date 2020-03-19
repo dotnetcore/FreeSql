@@ -1033,6 +1033,15 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.ISelect0`2.ToDictionary``1(System.Func{`1,``0})">
+            <summary>
+            以字典的形式返回查询结果<para></para>
+            注意：字典的特点会导致 OrderBy 排序失效
+            </summary>
+            <typeparam name="TKey"></typeparam>
+            <param name="keySelector"></param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.ISelect0`2.ToList(System.Boolean)">
             <summary>
             执行SQL查询，返回 T1 实体所有字段的记录，记录不存在时返回 Count 为 0 的列表<para></para>

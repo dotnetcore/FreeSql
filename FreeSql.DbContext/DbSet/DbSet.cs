@@ -68,7 +68,7 @@ namespace FreeSql
         internal void TrackToList(object list)
         {
             if (list == null) return;
-            var ls = list as IList<TEntity>;
+            var ls = list as IEnumerable<TEntity>;
             if (ls == null)
             {
                 var ie = list as IEnumerable;

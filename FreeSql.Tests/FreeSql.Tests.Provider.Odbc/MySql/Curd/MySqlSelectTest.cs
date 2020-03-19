@@ -292,6 +292,18 @@ namespace FreeSql.Tests.Odbc.MySql
             var t11 = select.Where(a => a.Type.Name.Length > 0).ToList(true);
             var t21 = select.Where(a => a.Type.Parent.Name.Length > 0).ToList(true);
         }
+        [Fact]
+        public void ToDictionary()
+        {
+            var testDto1 = select.Limit(10).ToDictionary(a => a.Id);
+            var testDto2 = select.Limit(10).ToDictionary(a => a.Id, a => new { a.Id, a.Title });
+
+            var repo = g.mysql.GetRepository<Topic>();
+            var dic = repo.Select.Limit(10).ToDictionary(a => a.Id);
+            var first = dic.First().Value;
+            first.Clicks++;
+            repo.Update(first);
+        }
         class TestGuidIdToList
         {
             public Guid id { get; set; }

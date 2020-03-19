@@ -479,6 +479,39 @@ namespace FreeSql.Internal.CommonProvider
             this.ToListChunkPrivate(size, done, includeNestedMembers == false ? this.GetAllFieldExpressionTreeLevel2() : this.GetAllFieldExpressionTreeLevelAll(), null);
         }
         #endregion
+        public Dictionary<TKey, T1> ToDictionary<TKey>(Func<T1, TKey> keySelector) => ToDictionary(keySelector, a => a);
+        public Dictionary<TKey, TValue> ToDictionary<TKey, TValue>(Func<T1, TKey> keySelector, Func<T1, TValue> valueSelector)
+        {
+            if (keySelector == null) throw new ArgumentNullException(nameof(keySelector));
+            if (valueSelector == null) throw new ArgumentNullException(nameof(valueSelector));
+            var af = this.GetAllFieldExpressionTreeLevel2();
+            var sql = this.ToSql(af.Field);
+            var dbParms = _params.ToArray();
+            var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
+            var ret = new Dictionary<TKey, TValue>();
+            Exception exception = null;
+            try
+            {
+                _orm.Ado.ExecuteReader(_connection, _transaction, dr =>
+                {
+                    var item = af.Read(_orm, dr);
+                    ret.Add(keySelector(item), valueSelector(item));
+                }, CommandType.Text, sql, dbParms);
+            }
+            catch (Exception ex)
+            {
+                exception = ex;
+                throw ex;
+            }
+            finally
+            {
+                var after = new Aop.CurdAfterEventArgs(before, exception, ret);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
+            }
+            if (typeof(TValue) == typeof(T1)) _trackToList?.Invoke(ret.Values);
+            return ret;
+        }
         public virtual List<T1> ToList(bool includeNestedMembers = false)
         {
             if (_selectExpression != null) return this.InternalToList<T1>(_selectExpression);
@@ -1251,6 +1284,40 @@ namespace FreeSql.Internal.CommonProvider
             return ToListAfPrivateAsync(sql, af, otherData);
         }
 
+        public Task<Dictionary<TKey, T1>> ToDictionaryAsync<TKey>(Func<T1, TKey> keySelector) => ToDictionaryAsync(keySelector, a => a);
+        async public Task<Dictionary<TKey, TValue>> ToDictionaryAsync<TKey, TValue>(Func<T1, TKey> keySelector, Func<T1, TValue> valueSelector)
+        {
+            if (keySelector == null) throw new ArgumentNullException(nameof(keySelector));
+            if (valueSelector == null) throw new ArgumentNullException(nameof(valueSelector));
+            var af = this.GetAllFieldExpressionTreeLevel2();
+            var sql = this.ToSql(af.Field);
+            var dbParms = _params.ToArray();
+            var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
+            var ret = new Dictionary<TKey, TValue>();
+            Exception exception = null;
+            try
+            {
+                await _orm.Ado.ExecuteReaderAsync(_connection, _transaction, dr =>
+                {
+                    var item = af.Read(_orm, dr);
+                    ret.Add(keySelector(item), valueSelector(item));
+                    return Task.FromResult(false);
+                }, CommandType.Text, sql, dbParms);
+            }
+            catch (Exception ex)
+            {
+                exception = ex;
+                throw ex;
+            }
+            finally
+            {
+                var after = new Aop.CurdAfterEventArgs(before, exception, ret);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
+            }
+            if (typeof(TValue) == typeof(T1)) _trackToList?.Invoke(ret.Values);
+            return ret;
+        }
         public virtual Task<List<T1>> ToListAsync(bool includeNestedMembers = false)
         {
             if (_selectExpression != null) return this.InternalToListAsync<T1>(_selectExpression);
