@@ -186,6 +186,7 @@ namespace FreeSql.Tests.MsAccess
         [Fact]
         public void ToDictionary()
         {
+            g.msaccess.Insert(new Topic { Title = "xxx" }).ExecuteAffrows();
             var testDto1 = select.Limit(10).ToDictionary(a => a.Id);
             var testDto2 = select.Limit(10).ToDictionary(a => a.Id, a=> new { a.Id, a.Title });
             var testDto11 = select.Limit(10).ToDictionaryAsync(a => a.Id).Result;

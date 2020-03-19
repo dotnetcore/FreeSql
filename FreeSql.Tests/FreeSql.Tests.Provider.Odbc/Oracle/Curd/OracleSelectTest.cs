@@ -195,6 +195,7 @@ namespace FreeSql.Tests.Odbc.Oracle
         [Fact]
         public void ToDictionary()
         {
+            g.oracle.Insert(new Topic { Title = "xxx" }).ExecuteAffrows();
             var testDto1 = select.Limit(10).ToDictionary(a => a.Id);
             var testDto2 = select.Limit(10).ToDictionary(a => a.Id, a => new { a.Id, a.Title });
 
@@ -708,7 +709,6 @@ namespace FreeSql.Tests.Odbc.Oracle
                 {
                     b.Key,
                     cou = b.Count(),
-                    sum = b.Sum(b.Key),
                     sum2 = b.Sum(b.Value.TypeGuid)
                 });
             var aggtolist1 = select
@@ -717,7 +717,6 @@ namespace FreeSql.Tests.Odbc.Oracle
                 {
                     b.Key,
                     cou = b.Count(),
-                    sum = b.Sum(b.Key),
                     sum2 = b.Sum(b.Value.TypeGuid)
                 });
 
@@ -729,7 +728,6 @@ namespace FreeSql.Tests.Odbc.Oracle
                     b.Key.yyyy,
 
                     cou = b.Count(),
-                    sum = b.Sum(b.Key.yyyy),
                     sum2 = b.Sum(b.Value.TypeGuid)
                 });
             var aggtolist2 = select
@@ -740,7 +738,6 @@ namespace FreeSql.Tests.Odbc.Oracle
                     b.Key.yyyy,
 
                     cou = b.Count(),
-                    sum = b.Sum(b.Key.yyyy),
                     sum2 = b.Sum(b.Value.TypeGuid)
                 });
 
@@ -750,7 +747,6 @@ namespace FreeSql.Tests.Odbc.Oracle
                 {
                     b.Key,
                     cou = b.Count(),
-                    sum = b.Sum(b.Key),
                     sum2 = b.Sum(b.Value.TypeGuid),
                     sum3 = b.Sum(b.Value.Type.Parent.Id)
                 });

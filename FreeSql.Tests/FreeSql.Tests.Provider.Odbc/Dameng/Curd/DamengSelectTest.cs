@@ -195,6 +195,7 @@ namespace FreeSql.Tests.Odbc.Dameng
         [Fact]
         public void ToDictionary()
         {
+            g.dameng.Insert(new Topic { Title = "xxx" }).ExecuteAffrows();
             var testDto1 = select.Limit(10).ToDictionary(a => a.Id);
             var testDto2 = select.Limit(10).ToDictionary(a => a.Id, a => new { a.Id, a.Title });
 
@@ -717,7 +718,6 @@ namespace FreeSql.Tests.Odbc.Dameng
                 {
                     b.Key,
                     cou = b.Count(),
-                    sum = b.Sum(b.Key),
                     sum2 = b.Sum(b.Value.TypeGuid)
                 });
 
@@ -729,7 +729,6 @@ namespace FreeSql.Tests.Odbc.Dameng
                     b.Key.yyyy,
 
                     cou = b.Count(),
-                    sum = b.Sum(b.Key.yyyy),
                     sum2 = b.Sum(b.Value.TypeGuid)
                 });
             var aggtolist2 = select
@@ -738,9 +737,7 @@ namespace FreeSql.Tests.Odbc.Dameng
                 {
                     b.Key.Title,
                     b.Key.yyyy,
-
                     cou = b.Count(),
-                    sum = b.Sum(b.Key.yyyy),
                     sum2 = b.Sum(b.Value.TypeGuid)
                 });
 
@@ -750,7 +747,6 @@ namespace FreeSql.Tests.Odbc.Dameng
                 {
                     b.Key,
                     cou = b.Count(),
-                    sum = b.Sum(b.Key),
                     sum2 = b.Sum(b.Value.TypeGuid),
                     sum3 = b.Sum(b.Value.Type.Parent.Id)
                 });

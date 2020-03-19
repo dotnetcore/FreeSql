@@ -195,6 +195,7 @@ namespace FreeSql.Tests.SqlServer
         [Fact]
         public void ToDictionary()
         {
+            g.sqlserver.Insert(new Topic { Title = "xxx" }).ExecuteAffrows();
             var testDto1 = select.Limit(10).ToDictionary(a => a.Id);
             var testDto2 = select.Limit(10).ToDictionary(a => a.Id, a => new { a.Id, a.Title });
 
