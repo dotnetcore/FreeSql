@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net45;net40</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net45;net40;netcoreapp3.0</TargetFrameworks>
     <Version>1.3.0-preview10</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>YeXiangQin</Authors>
@@ -24,13 +24,16 @@
   <ItemGroup>
     <None Include="../../logo.png" Pack="true" PackagePath="\" />
   </ItemGroup>
-  
+
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.0|AnyCPU'">
     <DocumentationFile>FreeSql.Extensions.JsonMap.xml</DocumentationFile>
     <WarningLevel>3</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp3.0' ">
+    <DefineConstants>NETCORE30</DefineConstants>   
+  </PropertyGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition=" '$(TargetFramework)' != 'netcoreapp3.0' ">
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
   </ItemGroup>
 
