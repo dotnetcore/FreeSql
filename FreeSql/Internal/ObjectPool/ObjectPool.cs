@@ -241,14 +241,16 @@ namespace FreeSql.Internal.ObjectPool
 
             AppDomain.CurrentDomain.ProcessExit += (s1, e1) =>
             {
-                running = false;
+                if (Policy.IsAutoDisposeWithSystem)
+                    running = false;
             };
             try
             {
                 Console.CancelKeyPress += (s1, e1) =>
                 {
                     if (e1.Cancel) return;
-                    running = false;
+                    if (Policy.IsAutoDisposeWithSystem)
+                        running = false;
                 };
             }
             catch { }

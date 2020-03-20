@@ -2982,6 +2982,11 @@
             获取超时后，是否抛出异常
             </summary>
         </member>
+        <member name="P:FreeSql.Internal.ObjectPool.IPolicy`1.IsAutoDisposeWithSystem">
+            <summary>
+            监听 AppDomain.CurrentDomain.ProcessExit/Console.CancelKeyPress 事件自动释放
+            </summary>
+        </member>
         <member name="P:FreeSql.Internal.ObjectPool.IPolicy`1.CheckAvailableInterval">
             <summary>
             后台定时检查可用性间隔秒数

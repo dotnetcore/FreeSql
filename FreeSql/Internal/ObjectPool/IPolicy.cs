@@ -39,6 +39,11 @@ namespace FreeSql.Internal.ObjectPool
         bool IsThrowGetTimeoutException { get; set; }
 
         /// <summary>
+        /// 监听 AppDomain.CurrentDomain.ProcessExit/Console.CancelKeyPress 事件自动释放
+        /// </summary>
+        bool IsAutoDisposeWithSystem { get; set; }
+
+        /// <summary>
         /// 后台定时检查可用性间隔秒数
         /// </summary>
         int CheckAvailableInterval { get; set; }
