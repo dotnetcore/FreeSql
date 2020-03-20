@@ -1,6 +1,6 @@
 ﻿using FreeSql.Internal.Model;
 using FreeSql.Extensions.EntityUtil;
-using SafeObjectPool;
+using FreeSql.Internal.ObjectPool;
 using System;
 using System.Collections.Generic;
 using System.Data;

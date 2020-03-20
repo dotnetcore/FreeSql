@@ -1,5 +1,5 @@
 ﻿using FreeSql.Internal;
-using SafeObjectPool;
+using FreeSql.Internal.ObjectPool;
 using System;
 using System.Collections.Generic;
 using System.Data;

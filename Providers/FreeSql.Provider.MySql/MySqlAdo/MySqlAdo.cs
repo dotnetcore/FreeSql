@@ -1,7 +1,7 @@
 ﻿using FreeSql.Internal;
 using FreeSql.Internal.Model;
 using MySql.Data.MySqlClient;
-using SafeObjectPool;
+using FreeSql.Internal.ObjectPool;
 using System;
 using System.Collections;
 using System.Data.Common;

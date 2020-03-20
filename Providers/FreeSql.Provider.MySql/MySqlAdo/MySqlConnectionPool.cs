@@ -1,5 +1,5 @@
 ﻿using MySql.Data.MySqlClient;
-using SafeObjectPool;
+using FreeSql.Internal.ObjectPool;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;

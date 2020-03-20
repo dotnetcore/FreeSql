@@ -2900,6 +2900,225 @@
             中间表，多对多
             </summary>
         </member>
+        <member name="P:FreeSql.Internal.ObjectPool.IObjectPool`1.IsAvailable">
+            <summary>
+            是否可用
+            </summary>
+        </member>
+        <member name="P:FreeSql.Internal.ObjectPool.IObjectPool`1.UnavailableException">
+            <summary>
+            不可用错误
+            </summary>
+        </member>
+        <member name="P:FreeSql.Internal.ObjectPool.IObjectPool`1.UnavailableTime">
+            <summary>
+            不可用时间
+            </summary>
+        </member>
+        <member name="M:FreeSql.Internal.ObjectPool.IObjectPool`1.SetUnavailable(System.Exception)">
+            <summary>
+            将对象池设置为不可用，后续 Get/GetAsync 均会报错，同时启动后台定时检查服务恢复可用
+            </summary>
+            <param name="exception"></param>
+            <returns>由【可用】变成【不可用】时返回true，否则返回false</returns>
+        </member>
+        <member name="P:FreeSql.Internal.ObjectPool.IObjectPool`1.Statistics">
+            <summary>
+            统计对象池中的对象
+            </summary>
+        </member>
+        <member name="P:FreeSql.Internal.ObjectPool.IObjectPool`1.StatisticsFullily">
+            <summary>
+            统计对象池中的对象（完整)
+            </summary>
+        </member>
+        <member name="M:FreeSql.Internal.ObjectPool.IObjectPool`1.Get(System.Nullable{System.TimeSpan})">
+            <summary>
+            获取资源
+            </summary>
+            <param name="timeout">超时</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.Internal.ObjectPool.IObjectPool`1.GetAsync">
+            <summary>
+            获取资源
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.Internal.ObjectPool.IObjectPool`1.Return(FreeSql.Internal.ObjectPool.Object{`0},System.Boolean)">
+            <summary>
+            使用完毕后，归还资源
+            </summary>
+            <param name="obj">对象</param>
+            <param name="isReset">是否重新创建</param>
+        </member>
+        <member name="P:FreeSql.Internal.ObjectPool.IPolicy`1.Name">
+            <summary>
+            名称
+            </summary>
+        </member>
+        <member name="P:FreeSql.Internal.ObjectPool.IPolicy`1.PoolSize">
+            <summary>
+            池容量
+            </summary>
+        </member>
+        <member name="P:FreeSql.Internal.ObjectPool.IPolicy`1.SyncGetTimeout">
+            <summary>
+            默认获取超时设置
+            </summary>
+        </member>
+        <member name="P:FreeSql.Internal.ObjectPool.IPolicy`1.IdleTimeout">
+            <summary>
+            空闲时间，获取时若超出，则重新创建
+            </summary>
+        </member>
+        <member name="P:FreeSql.Internal.ObjectPool.IPolicy`1.AsyncGetCapacity">
+            <summary>
+            异步获取排队队列大小，小于等于0不生效
+            </summary>
+        </member>
+        <member name="P:FreeSql.Internal.ObjectPool.IPolicy`1.IsThrowGetTimeoutException">
+            <summary>
+            获取超时后，是否抛出异常
+            </summary>
+        </member>
+        <member name="P:FreeSql.Internal.ObjectPool.IPolicy`1.CheckAvailableInterval">
+            <summary>
+            后台定时检查可用性间隔秒数
+            </summary>
+        </member>
+        <member name="M:FreeSql.Internal.ObjectPool.IPolicy`1.OnCreate">
+            <summary>
+            对象池的对象被创建时
+            </summary>
+            <returns>返回被创建的对象</returns>
+        </member>
+        <member name="M:FreeSql.Internal.ObjectPool.IPolicy`1.OnDestroy(`0)">
+            <summary>
+            销毁对象
+            </summary>
+            <param name="obj">资源对象</param>
+        </member>
+        <member name="M:FreeSql.Internal.ObjectPool.IPolicy`1.OnGetTimeout">
+            <summary>
+            从对象池获取对象超时的时候触发，通过该方法统计
+            </summary>
+        </member>
+        <member name="M:FreeSql.Internal.ObjectPool.IPolicy`1.OnGet(FreeSql.Internal.ObjectPool.Object{`0})">
+            <summary>
+            从对象池获取对象成功的时候触发，通过该方法统计或初始化对象
+            </summary>
+            <param name="obj">资源对象</param>
+        </member>
+        <member name="M:FreeSql.Internal.ObjectPool.IPolicy`1.OnGetAsync(FreeSql.Internal.ObjectPool.Object{`0})">
+            <summary>
+            从对象池获取对象成功的时候触发，通过该方法统计或初始化对象
+            </summary>
+            <param name="obj">资源对象</param>
+        </member>
+        <member name="M:FreeSql.Internal.ObjectPool.IPolicy`1.OnReturn(FreeSql.Internal.ObjectPool.Object{`0})">
+            <summary>
+            归还对象给对象池的时候触发
+            </summary>
+            <param name="obj">资源对象</param>
+        </member>
+        <member name="M:FreeSql.Internal.ObjectPool.IPolicy`1.OnCheckAvailable(FreeSql.Internal.ObjectPool.Object{`0})">
+            <summary>
+            检查可用性
+            </summary>
+            <param name="obj">资源对象</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.Internal.ObjectPool.IPolicy`1.OnAvailable">
+            <summary>
+            事件：可用时触发
+            </summary>
+        </member>
+        <member name="M:FreeSql.Internal.ObjectPool.IPolicy`1.OnUnavailable">
+            <summary>
+            事件：不可用时触发
+            </summary>
+        </member>
+        <member name="P:FreeSql.Internal.ObjectPool.Object`1.Pool">
+            <summary>
+            所属对象池
+            </summary>
+        </member>
+        <member name="P:FreeSql.Internal.ObjectPool.Object`1.Id">
+            <summary>
+            在对象池中的唯一标识
+            </summary>
+        </member>
+        <member name="P:FreeSql.Internal.ObjectPool.Object`1.Value">
+            <summary>
+            资源对象
+            </summary>
+        </member>
+        <member name="P:FreeSql.Internal.ObjectPool.Object`1.GetTimes">
+            <summary>
+            被获取的总次数
+            </summary>
+        </member>
+        <member name="P:FreeSql.Internal.ObjectPool.Object`1.LastGetTime">
+            最后获取时的时间
+        </member>
+        <member name="P:FreeSql.Internal.ObjectPool.Object`1.LastReturnTime">
+            <summary>
+            最后归还时的时间
+            </summary>
+        </member>
+        <member name="P:FreeSql.Internal.ObjectPool.Object`1.CreateTime">
+            <summary>
+            创建时间
+            </summary>
+        </member>
+        <member name="P:FreeSql.Internal.ObjectPool.Object`1.LastGetThreadId">
+            <summary>
+            最后获取时的线程id
+            </summary>
+        </member>
+        <member name="P:FreeSql.Internal.ObjectPool.Object`1.LastReturnThreadId">
+            <summary>
+            最后归还时的线程id
+            </summary>
+        </member>
+        <member name="M:FreeSql.Internal.ObjectPool.Object`1.ResetValue">
+            <summary>
+            重置 Value 值
+            </summary>
+        </member>
+        <member name="T:FreeSql.Internal.ObjectPool.ObjectPool`1">
+            <summary>
+            对象池管理类
+            </summary>
+            <typeparam name="T">对象类型</typeparam>
+        </member>
+        <member name="M:FreeSql.Internal.ObjectPool.ObjectPool`1.CheckAvailable(System.Int32)">
+            <summary>
+            后台定时检查可用性
+            </summary>
+            <param name="interval"></param>
+        </member>
+        <member name="M:FreeSql.Internal.ObjectPool.ObjectPool`1.#ctor(System.Int32,System.Func{`0},System.Action{FreeSql.Internal.ObjectPool.Object{`0}})">
+            <summary>
+            创建对象池
+            </summary>
+            <param name="poolsize">池大小</param>
+            <param name="createObject">池内对象的创建委托</param>
+            <param name="onGetObject">获取池内对象成功后，进行使用前操作</param>
+        </member>
+        <member name="M:FreeSql.Internal.ObjectPool.ObjectPool`1.#ctor(FreeSql.Internal.ObjectPool.IPolicy{`0})">
+            <summary>
+            创建对象池
+            </summary>
+            <param name="policy">策略</param>
+        </member>
+        <member name="M:FreeSql.Internal.ObjectPool.ObjectPool`1.getFree(System.Boolean)">
+            <summary>
+            获取可用资源，或创建资源
+            </summary>
+            <returns></returns>
+        </member>
         <member name="F:FreeSql.Internal.StringConvertType.None">
             <summary>
             不进行任何处理
@@ -2968,40 +3187,6 @@
             <param name="that"></param>
             <param name="start"></param>
             <param name="end"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSqlGlobalExpressionCall.Contains``2(System.Collections.Generic.IEnumerable{System.ValueTuple{``0,``1}},``0,``1)">
-            <summary>
-            C#：从元组集合中查找 exp1, exp2 是否存在<para></para>
-            SQL： <para></para>
-            exp1 = that[0].Item1 and exp2 = that[0].Item2 OR <para></para>
-            exp1 = that[1].Item1 and exp2 = that[1].Item2 OR <para></para>
-            ... <para></para>
-            注意：当 that 为 null 或 empty 时，返回 1=0
-            </summary>
-            <typeparam name="T1"></typeparam>
-            <typeparam name="T2"></typeparam>
-            <param name="that"></param>
-            <param name="exp1"></param>
-            <param name="exp2"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSqlGlobalExpressionCall.Contains``3(System.Collections.Generic.IEnumerable{System.ValueTuple{``0,``1,``2}},``0,``1,``2)">
-            <summary>
-            C#：从元组集合中查找 exp1, exp2, exp2 是否存在<para></para>
-            SQL： <para></para>
-            exp1 = that[0].Item1 and exp2 = that[0].Item2 and exp3 = that[0].Item3 OR <para></para>
-            exp1 = that[1].Item1 and exp2 = that[1].Item2 and exp3 = that[1].Item3 OR <para></para>
-            ... <para></para>
-            注意：当 that 为 null 或 empty 时，返回 1=0
-            </summary>
-            <typeparam name="T1"></typeparam>
-            <typeparam name="T2"></typeparam>
-            <typeparam name="T3"></typeparam>
-            <param name="that"></param>
-            <param name="exp1"></param>
-            <param name="exp2"></param>
-            <param name="exp3"></param>
             <returns></returns>
         </member>
         <member name="M:FreeSqlGlobalExtensions.Distance(System.Drawing.Point,System.Drawing.Point)">

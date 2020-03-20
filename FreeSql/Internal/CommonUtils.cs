@@ -2,7 +2,7 @@
 using FreeSql.DatabaseModel;
 using FreeSql.Extensions.EntityUtil;
 using FreeSql.Internal.Model;
-using SafeObjectPool;
+using FreeSql.Internal.ObjectPool;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;

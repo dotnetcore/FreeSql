@@ -3,7 +3,7 @@ using FreeSql.Internal;
 using Newtonsoft.Json.Linq;
 using Npgsql.LegacyPostgis;
 using NpgsqlTypes;
-using SafeObjectPool;
+using FreeSql.Internal.ObjectPool;
 using System;
 using System.Collections;
 using System.Collections.Generic;

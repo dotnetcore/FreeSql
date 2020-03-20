@@ -2,7 +2,7 @@
 using FreeSql.Internal.Model;
 using Newtonsoft.Json.Linq;
 using Npgsql;
-using SafeObjectPool;
+using FreeSql.Internal.ObjectPool;
 using System;
 using System.Collections;
 using System.Collections.Generic;
