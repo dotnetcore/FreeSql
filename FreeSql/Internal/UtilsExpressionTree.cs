@@ -66,7 +66,7 @@ namespace FreeSql.Internal
                 trytb.DbOldName = trytb.DbOldName?.ToUpper();
             }
             if (tbattr != null) trytb.DisableSyncStructure = tbattr.DisableSyncStructure;
-            var propsLazy = new List<NaviteTuple<PropertyInfo, bool, bool>>();
+            var propsLazy = new List<NaviteTuple<PropertyInfo, bool, bool, MethodInfo, MethodInfo>>();
             var propsNavObjs = new List<PropertyInfo>();
             var propsComment = CommonUtils.GetProperyCommentBySummary(entity);
             var columnsList = new List<ColumnInfo>();
@@ -79,6 +79,9 @@ namespace FreeSql.Internal
                 {
                     if (colattr == null) colattr = new ColumnAttribute { IsIgnore = true };
                     else colattr.IsIgnore = true;
+                    //Navigate 错误提示
+                    var pnvAttr = common.GetEntityNavigateAttribute(trytb.Type, p);
+                    if (pnvAttr != null) throw new Exception($"【导航属性】{trytb.Type.DisplayCsharp()}.{p.Name} 缺少 set 属性");
                 }
                 if (tp == null && colattr?.IsIgnore != true)
                 {
@@ -88,7 +91,7 @@ namespace FreeSql.Internal
                         var getIsVirtual = getMethod?.IsVirtual == true && getMethod?.IsFinal == false;// trytb.Type.GetMethod($"get_{p.Name}")?.IsVirtual;
                         var setIsVirtual = setMethod?.IsVirtual == true && setMethod?.IsFinal == false;
                         if (getIsVirtual == true || setIsVirtual == true)
-                            propsLazy.Add(NaviteTuple.Create(p, getIsVirtual, setIsVirtual));
+                            propsLazy.Add(NaviteTuple.Create(p, getIsVirtual, setIsVirtual, getMethod, setMethod));
                     }
                     propsNavObjs.Add(p);
                     continue;
@@ -446,10 +449,17 @@ namespace FreeSql.Internal
 
             return tbc.TryGetValue(entity, out var trytb2) ? trytb2 : trytb;
         }
-        public static void AddTableRef(CommonUtils common, TableInfo trytb, PropertyInfo pnv, bool isLazy, NaviteTuple<PropertyInfo, bool, bool> vp, StringBuilder cscode)
+        public static void AddTableRef(CommonUtils common, TableInfo trytb, PropertyInfo pnv, bool isLazy, NaviteTuple<PropertyInfo, bool, bool, MethodInfo, MethodInfo> vp, StringBuilder cscode)
         {
+            var getMethod = vp?.Item4;
+            var setMethod = vp?.Item5;
             var trytbTypeName = trytb.Type.DisplayCsharp();
             var propTypeName = pnv.PropertyType.DisplayCsharp();
+            var propModification = (getMethod?.IsPublic == true || setMethod?.IsPublic == true ? "public " : (getMethod?.IsAssembly == true || setMethod?.IsAssembly == true ? "internal " : (getMethod?.IsFamily == true || setMethod?.IsFamily == true ? "protected " : (getMethod?.IsPrivate == true || setMethod?.IsPrivate == true ? "private " : ""))));
+            var propSetModification = (setMethod?.IsPublic == true ? "public " : (setMethod?.IsAssembly == true ? "internal " : (setMethod?.IsFamily == true ? "protected " : (setMethod?.IsPrivate == true ? "private " : ""))));
+            var propGetModification = (getMethod?.IsPublic == true ? "public " : (getMethod?.IsAssembly == true ? "internal " : (getMethod?.IsFamily == true ? "protected " : (getMethod?.IsPrivate == true ? "private " : ""))));
+            if (propSetModification == propModification) propSetModification = "";
+            if (propGetModification == propModification) propGetModification = "";
 
             var pnvAttr = common.GetEntityNavigateAttribute(trytb.Type, pnv);
             var pnvBind = pnvAttr?.Bind?.Split(',').Select(a => a.Trim()).Where(a => !string.IsNullOrEmpty(a)).ToArray();
@@ -788,10 +798,10 @@ namespace FreeSql.Internal
                     if (isLazy)
                     {
                         cscode.Append("	private bool __lazy__").Append(pnv.Name).AppendLine(" = false;")
-                                .Append("	public override ").Append(propTypeName).Append(" ").Append(pnv.Name).AppendLine(" {");
+                                .Append("	").Append(propModification).Append(" override ").Append(propTypeName).Append(" ").Append(pnv.Name).AppendLine(" {");
                         if (vp?.Item2 == true)
                         { //get 重写
-                            cscode.Append("		get {\r\n")
+                            cscode.Append("		").Append(propGetModification).Append(" get {\r\n")
                                 .Append("			if (base.").Append(pnv.Name).Append(" == null && __lazy__").Append(pnv.Name).AppendLine(" == false) {");
 
                             if (nvref.Exception == null)
@@ -808,7 +818,7 @@ namespace FreeSql.Internal
                         }
                         if (vp?.Item3 == true)
                         { //set 重写
-                            cscode.Append("		set {\r\n")
+                            cscode.Append("		").Append(propSetModification).Append(" set {\r\n")
                                 .Append("			base.").Append(pnv.Name).AppendLine(" = value;")
                                 .Append("		}\r\n");
                         }
@@ -923,10 +933,10 @@ namespace FreeSql.Internal
                     if (isLazy)
                     {
                         cscode.Append("	private bool __lazy__").Append(pnv.Name).AppendLine(" = false;")
-                            .Append("	public override ").Append(propTypeName).Append(" ").Append(pnv.Name).AppendLine(" {");
+                            .Append("	").Append(propModification).Append(" override ").Append(propTypeName).Append(" ").Append(pnv.Name).AppendLine(" {");
                         if (vp?.Item2 == true)
                         { //get 重写
-                            cscode.Append("		get {\r\n")
+                            cscode.Append("		").Append(propGetModification).Append(" get {\r\n")
                                 .Append("			if (base.").Append(pnv.Name).Append(" == null && __lazy__").Append(pnv.Name).AppendLine(" == false) {");
 
                             if (nvref.Exception == null)
@@ -949,7 +959,7 @@ namespace FreeSql.Internal
                         }
                         if (vp?.Item3 == true)
                         { //set 重写
-                            cscode.Append("		set {\r\n")
+                            cscode.Append("		").Append(propSetModification).Append(" set {\r\n")
                                 .Append("			base.").Append(pnv.Name).AppendLine(" = value;")
                                 .Append("		}\r\n");
                         }
@@ -1079,10 +1089,10 @@ namespace FreeSql.Internal
                 if (isLazy)
                 {
                     cscode.Append("	private bool __lazy__").Append(pnv.Name).AppendLine(" = false;")
-                        .Append("	public override ").Append(propTypeName).Append(" ").Append(pnv.Name).AppendLine(" {");
+                        .Append("	").Append(propModification).Append(" override ").Append(propTypeName).Append(" ").Append(pnv.Name).AppendLine(" {");
                     if (vp?.Item2 == true)
                     { //get 重写
-                        cscode.Append("		get {\r\n")
+                        cscode.Append("		").Append(propGetModification).Append(" get {\r\n")
                             .Append("			if (base.").Append(pnv.Name).Append(" == null && __lazy__").Append(pnv.Name).AppendLine(" == false) {");
 
                         if (nvref.Exception == null)
@@ -1098,7 +1108,7 @@ namespace FreeSql.Internal
                     }
                     if (vp?.Item3 == true)
                     { //set 重写
-                        cscode.Append("		set {\r\n")
+                        cscode.Append("		").Append(propSetModification).Append(" set {\r\n")
                             .Append("			base.").Append(pnv.Name).AppendLine(" = value;")
                             .Append("			__lazy__").Append(pnv.Name).AppendLine(" = true;")
                             .Append("		}\r\n");

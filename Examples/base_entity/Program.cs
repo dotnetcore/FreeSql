@@ -49,6 +49,9 @@ namespace base_entity
             BaseEntity.Initialization(fsql);
             #endregion
 
+            var test01 = EMSServerModel.Model.User.Select.IncludeMany(a => a.Roles).ToList();
+            var test01tb = EMSServerModel.Model.User.Orm.CodeFirst.GetTableByEntity(typeof(EMSServerModel.Model.User));
+
             var us = User1.Select.Limit(10).ToList();
 
             new Products { title = "product-1" }.Save();
