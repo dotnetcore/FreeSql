@@ -3194,6 +3194,13 @@
             <param name="end"></param>
             <returns></returns>
         </member>
+        <member name="M:FreeSqlGlobalExtensions.DisplayCsharp(System.Type)">
+            <summary>
+            获取 Type 的原始 c# 文本表示
+            </summary>
+            <param name="that"></param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSqlGlobalExtensions.Distance(System.Drawing.Point,System.Drawing.Point)">
             <summary>
             测量两个经纬度的距离，返回单位：米
