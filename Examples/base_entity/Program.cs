@@ -18,8 +18,6 @@ namespace base_entity
         {
             public int clicks { get; set; }
             public string title { get; set; }
-
-            public string nullvalue { get; set; }
         }
         [Table(Name = "sysconfig")]
         public class S_SysConfig<T> : BaseEntity<S_SysConfig<T>>
@@ -45,7 +43,7 @@ namespace base_entity
                 .UseNoneCommandParameter(true)
                 .UseConnectionString(FreeSql.DataType.Sqlite, "data source=test.db;max pool size=5")
                 //.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=2")
-                //.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3")
+                .UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3")
                 .UseLazyLoading(true)
                 .Build();
             BaseEntity.Initialization(fsql);
@@ -61,12 +59,10 @@ namespace base_entity
 
             var items1 = Products.Select.Limit(10).OrderByDescending(a => a.CreateTime).ToList();
             var items2 = fsql.Select<Products>().Limit(10).OrderByDescending(a => a.CreateTime).ToList();
-#if NETCORE30
-            BaseEntity.Orm.UseJsonMap(new System.Text.Json.JsonSerializerOptions { IgnoreNullValues = true });
-#else
-            BaseEntity.Orm.UseJsonMap(new JsonSerializerSettings { NullValueHandling=NullValueHandling.Ignore });
-#endif
-            new S_SysConfig<TestConfig> { Name = "testkey11", Config = new TestConfig { clicks = 11, title = "testtitle11", nullvalue = null } }.Save();
+
+            BaseEntity.Orm.UseJsonMap();
+
+            new S_SysConfig<TestConfig> { Name = "testkey11", Config = new TestConfig { clicks = 11, title = "testtitle11" } }.Save();
             new S_SysConfig<TestConfig> { Name = "testkey22", Config = new TestConfig { clicks = 22, title = "testtitle22" } }.Save();
             new S_SysConfig<TestConfig> { Name = "testkey33", Config = new TestConfig { clicks = 33, title = "testtitle33" } }.Save();
             var testconfigs11 = S_SysConfig<TestConfig>.Select.ToList();
@@ -140,7 +136,7 @@ namespace base_entity
 
             }).Wait();
 
-
+            
 
             Console.WriteLine("按任意键结束。。。");
             Console.ReadKey();
