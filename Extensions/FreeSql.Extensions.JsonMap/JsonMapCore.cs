@@ -21,9 +21,10 @@ namespace FreeSql.Extensions
         /// 当实体类属性为【对象】时，并且标记特性 [JsonMap] 时，该属性将以JSON形式映射存储
         /// </summary>
         /// <returns></returns>
+
         public static void UseJsonMap(this IFreeSql that)
         {
-            UseJsonMap(that, null);
+            UseJsonMap(that, Newtonsoft.Json.JsonConvert.DefaultSettings?.Invoke() ?? new JsonSerializerSettings());
         }
 
         public static void UseJsonMap(this IFreeSql that, JsonSerializerSettings settings)
