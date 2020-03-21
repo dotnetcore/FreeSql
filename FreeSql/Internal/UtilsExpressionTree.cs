@@ -397,7 +397,7 @@ namespace FreeSql.Internal
             tbc.AddOrUpdate(entity, trytb, (oldkey, oldval) => trytb);
 
             #region 查找导航属性的关系、virtual 属性延时加载，动态产生新的重写类
-            var trytbTypeName = trytb.Type.IsNested ? $"{trytb.Type.DeclaringType.Namespace?.NotNullAndConcat(".")}{trytb.Type.DeclaringType.Name}.{trytb.Type.Name}" : $"{trytb.Type.Namespace?.NotNullAndConcat(".")}{trytb.Type.Name}";
+            var trytbTypeName = trytb.Type.DisplayCsharp();
             var trytbTypeLazyName = default(string);
             StringBuilder cscode = null;
             if (common.CodeFirst.IsLazyLoading && propsLazy.Any())
@@ -448,10 +448,8 @@ namespace FreeSql.Internal
         }
         public static void AddTableRef(CommonUtils common, TableInfo trytb, PropertyInfo pnv, bool isLazy, NaviteTuple<PropertyInfo, bool, bool> vp, StringBuilder cscode)
         {
-            var trytbTypeName = trytb.Type.IsNested ? $"{trytb.Type.DeclaringType.Namespace?.NotNullAndConcat(".")}{trytb.Type.DeclaringType.Name}.{trytb.Type.Name}" : $"{trytb.Type.Namespace?.NotNullAndConcat(".")}{trytb.Type.Name}";
-            var propTypeName = pnv.PropertyType.IsGenericType ?
-                    $"{pnv.PropertyType.Namespace?.NotNullAndConcat(".")}{pnv.PropertyType.Name.Remove(pnv.PropertyType.Name.IndexOf('`'))}<{string.Join(", ", pnv.PropertyType.GetGenericArguments().Select(a => a.IsNested ? $"{a.DeclaringType.Namespace?.NotNullAndConcat(".")}{a.DeclaringType.Name}.{a.Name}" : $"{a.Namespace?.NotNullAndConcat(".")}{a.Name}"))}>" :
-                    (pnv.PropertyType.IsNested ? $"{pnv.PropertyType.DeclaringType.Namespace?.NotNullAndConcat(".")}{pnv.PropertyType.DeclaringType.Name}.{pnv.PropertyType.Name}" : $"{pnv.PropertyType.Namespace?.NotNullAndConcat(".")}{pnv.PropertyType.Name}");
+            var trytbTypeName = trytb.Type.DisplayCsharp();
+            var propTypeName = pnv.PropertyType.DisplayCsharp();
 
             var pnvAttr = common.GetEntityNavigateAttribute(trytb.Type, pnv);
             var pnvBind = pnvAttr?.Bind?.Split(',').Select(a => a.Trim()).Where(a => !string.IsNullOrEmpty(a)).ToArray();
@@ -474,7 +472,7 @@ namespace FreeSql.Internal
                 var tbref = propElementType == trytb.Type ? trytb : GetTableByEntity(propElementType, common); //可能是父子关系
                 if (tbref == null) return;
 
-                var tbrefTypeName = tbref.Type.IsNested ? $"{tbref.Type.DeclaringType.Namespace?.NotNullAndConcat(".")}{tbref.Type.DeclaringType.Name}.{tbref.Type.Name}" : $"{tbref.Type.Namespace?.NotNullAndConcat(".")}{tbref.Type.Name}";
+                var tbrefTypeName = tbref.Type.DisplayCsharp();
                 Type midType = null;
                 var isManyToMany = false;
 
@@ -797,8 +795,8 @@ namespace FreeSql.Internal
                                 .Append("			if (base.").Append(pnv.Name).Append(" == null && __lazy__").Append(pnv.Name).AppendLine(" == false) {");
 
                             if (nvref.Exception == null)
-                                cscode.Append("				base.").Append(pnv.Name).Append(" = __fsql_orm__.Select<").Append(propElementType.IsNested ? $"{propElementType.DeclaringType.Namespace?.NotNullAndConcat(".")}{propElementType.DeclaringType.Name}.{propElementType.Name}" : $"{propElementType.Namespace?.NotNullAndConcat(".")}{propElementType.Name}")
-                                    .Append(">().Where(a => __fsql_orm__.Select<").Append(tbmid.Type.IsNested ? $"{tbmid.Type.DeclaringType.Namespace?.NotNullAndConcat(".")}{tbmid.Type.DeclaringType.Name}.{tbmid.Type.Name}" : $"{tbmid.Type.Namespace?.NotNullAndConcat(".")}{tbmid.Type.Name}")
+                                cscode.Append("				base.").Append(pnv.Name).Append(" = __fsql_orm__.Select<").Append(propElementType.DisplayCsharp())
+                                    .Append(">().Where(a => __fsql_orm__.Select<").Append(tbmid.Type.DisplayCsharp())
                                     .Append(">().Where(b => ").Append(lmbdWhere.ToString()).AppendLine(").Any()).ToList();")
                                     .Append("				__lazy__").Append(pnv.Name).AppendLine(" = true;");
                             else
@@ -933,7 +931,7 @@ namespace FreeSql.Internal
 
                             if (nvref.Exception == null)
                             {
-                                cscode.Append("				base.").Append(pnv.Name).Append(" = __fsql_orm__.Select<").Append(propElementType.IsNested ? $"{propElementType.DeclaringType.Namespace?.NotNullAndConcat(".")}{propElementType.DeclaringType.Name}.{propElementType.Name}" : $"{propElementType.Namespace?.NotNullAndConcat(".")}{propElementType.Name}").Append(">().Where(a => ").Append(lmbdWhere.ToString()).AppendLine(").ToList();");
+                                cscode.Append("				base.").Append(pnv.Name).Append(" = __fsql_orm__.Select<").Append(propElementType.DisplayCsharp()).Append(">().Where(a => ").Append(lmbdWhere.ToString()).AppendLine(").ToList();");
                                 if (refprop != null)
                                 {
                                     cscode.Append("				foreach (var loc1 in base.").Append(pnv.Name).AppendLine(")")
@@ -969,7 +967,7 @@ namespace FreeSql.Internal
                     trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                     //if (isLazy) throw nvref.Exception;
                 }
-                var tbrefTypeName = tbref.Type.IsNested ? $"{tbref.Type.DeclaringType.Namespace?.NotNullAndConcat(".")}{tbref.Type.DeclaringType.Name}.{tbref.Type.Name}" : $"{tbref.Type.Namespace?.NotNullAndConcat(".")}{tbref.Type.Name}";
+                var tbrefTypeName = tbref.Type.DisplayCsharp();
                 var isOnoToOne = pnv.PropertyType != trytb.Type &&
                     tbref.Properties.Where(z => z.Value.PropertyType == trytb.Type).Any() &&
                     tbref.Primarys.Length == trytb.Primarys.Length &&

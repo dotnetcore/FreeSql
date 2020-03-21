@@ -16,7 +16,7 @@ using System.Threading;
 
 public static partial class FreeSqlGlobalExtensions
 {
-    static Lazy<Dictionary<Type, bool>> dicIsNumberType = new Lazy<Dictionary<Type, bool>>(() => new Dictionary<Type, bool>
+    static Lazy<Dictionary<Type, bool>> _dicIsNumberType = new Lazy<Dictionary<Type, bool>>(() => new Dictionary<Type, bool>
     {
         [typeof(sbyte)] = true,
         [typeof(sbyte?)] = true,
@@ -41,13 +41,60 @@ public static partial class FreeSqlGlobalExtensions
         [typeof(decimal)] = false,
         [typeof(decimal?)] = false
     });
-    public static bool IsIntegerType(this Type that) => that == null ? false : (dicIsNumberType.Value.TryGetValue(that, out var tryval) ? tryval : false);
-    public static bool IsNumberType(this Type that) => that == null ? false : dicIsNumberType.Value.ContainsKey(that);
+    public static bool IsIntegerType(this Type that) => that == null ? false : (_dicIsNumberType.Value.TryGetValue(that, out var tryval) ? tryval : false);
+    public static bool IsNumberType(this Type that) => that == null ? false : _dicIsNumberType.Value.ContainsKey(that);
     public static bool IsNullableType(this Type that) => that.IsArray == false && that?.FullName.StartsWith("System.Nullable`1[") == true;
     public static bool IsAnonymousType(this Type that) => that?.FullName.StartsWith("<>f__AnonymousType") == true;
     public static bool IsArrayOrList(this Type that) => that == null ? false : (that.IsArray || typeof(IList).IsAssignableFrom(that));
     public static Type NullableTypeOrThis(this Type that) => that?.IsNullableType() == true ? that.GetGenericArguments().First() : that;
     internal static string NotNullAndConcat(this string that, params object[] args) => string.IsNullOrEmpty(that) ? null : string.Concat(new object[] { that }.Concat(args));
+    /// <summary>
+    /// 获取 Type 的原始 c# 文本表示
+    /// </summary>
+    /// <param name="that"></param>
+    /// <returns></returns>
+    public static string DisplayCsharp(this Type that)
+    {
+        return DisplayCsharp(that, true);
+    }
+    static string DisplayCsharp(this Type that, bool isNameSpace)
+    {
+        if (that == typeof(void)) return "void";
+        if (that.IsGenericParameter) return that.Name;
+        var sb = new StringBuilder();
+        var nestedType = that;
+        while (nestedType.IsNested)
+        {
+            sb.Insert(0, ".").Insert(0, DisplayCsharp(nestedType.DeclaringType, false));
+            nestedType = nestedType.DeclaringType;
+        }
+        if (isNameSpace && string.IsNullOrEmpty(nestedType.Namespace) == false)
+            sb.Insert(0, ".").Insert(0, nestedType.Namespace);
+
+        if (that.IsGenericType == false)
+            return sb.Append(that.Name).ToString();
+
+        var genericParameters = that.GetGenericArguments();
+        if (that.IsNested && that.DeclaringType.IsGenericType)
+        {
+            var dic = genericParameters.ToDictionary(a => a.Name);
+            foreach (var nestedGenericParameter in that.DeclaringType.GetGenericArguments())
+                if (dic.ContainsKey(nestedGenericParameter.Name))
+                    dic.Remove(nestedGenericParameter.Name);
+            genericParameters = dic.Values.ToArray();
+        }
+        if (genericParameters.Any() == false)
+            return sb.Append(that.Name).ToString();
+
+        sb.Append(that.Name.Remove(that.Name.IndexOf('`'))).Append("<");
+        var genericTypeIndex = 0;
+        foreach (var genericType in genericParameters)
+        {
+            if (genericTypeIndex++ > 0) sb.Append(", ");
+            sb.Append(DisplayCsharp(genericType, true));
+        }
+        return sb.Append(">").ToString();
+    }
     public static object CreateInstanceGetDefaultValue(this Type that)
     {
         if (that == null) return null;
