@@ -15,7 +15,7 @@ namespace FreeSql.Extensions
         static object _isAopedLock = new object();
         static ConcurrentDictionary<Type, bool> _dicTypes = new ConcurrentDictionary<Type, bool>();
         static MethodInfo MethodJsonConvertDeserializeObject = typeof(JsonConvert).GetMethod("DeserializeObject", new[] { typeof(string), typeof(Type) });
-        static MethodInfo MethodJsonConvertSerializeObject = typeof(JsonConvert).GetMethod("SerializeObject", new[] { typeof(object) });
+        static MethodInfo MethodJsonConvertSerializeObject = typeof(JsonConvert).GetMethod("SerializeObject", new[] { typeof(object), typeof(JsonSerializerSettings) });
 
         /// <summary>
         /// 当实体类属性为【对象】时，并且标记特性 [JsonMap] 时，该属性将以JSON形式映射存储
@@ -23,8 +23,13 @@ namespace FreeSql.Extensions
         /// <returns></returns>
         public static void UseJsonMap(this IFreeSql that)
         {
+            UseJsonMap(that, null);
+        }
+
+        public static void UseJsonMap(this IFreeSql that, JsonSerializerSettings settings)
+        {
             if (_isAoped == false)
-                lock(_isAopedLock)
+                lock (_isAopedLock)
                     if (_isAoped == false)
                     {
                         _isAoped = true;
@@ -46,7 +51,7 @@ namespace FreeSql.Extensions
                                     {
                                         return Expression.IfThenElse(
                                             Expression.TypeEqual(valueExp, e.Property.PropertyType),
-                                            Expression.Return(returnTarget, Expression.Call(MethodJsonConvertSerializeObject, Expression.Convert(valueExp, typeof(object))), typeof(object)),
+                                            Expression.Return(returnTarget, Expression.Call(MethodJsonConvertSerializeObject, Expression.Convert(valueExp, typeof(object)), Expression.Constant(settings)), typeof(object)),
                                             elseExp);
                                     });
                                 }
@@ -54,5 +59,6 @@ namespace FreeSql.Extensions
                         });
                     }
         }
+
     }
 }
