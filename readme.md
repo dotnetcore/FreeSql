@@ -36,6 +36,7 @@ FreeSql 是功能强大的对象关系映射技术(O/RM)，支持 .NETCore 2.1+ 
 
 > 学习项目
 
+- [zhontai.net Admin后台管理系统](https://github.com/zhontai/Admin.Core)
 - [😃 A simple and practical CMS implememted by .NET Core 2.2](https://github.com/luoyunchong/lin-cms-dotnetcore)
 - [内容管理系统](https://github.com/hejiyong/fscms)
 
