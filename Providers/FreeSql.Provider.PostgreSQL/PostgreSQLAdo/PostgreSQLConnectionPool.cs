@@ -118,7 +118,8 @@ namespace FreeSql.PostgreSQL
 
         public void OnDestroy(DbConnection obj)
         {
-            if (obj.State != ConnectionState.Closed) obj.Close();
+            try { if (obj.State != ConnectionState.Closed) obj.Close(); } catch { }
+            try { NpgsqlConnection.ClearPool(obj as NpgsqlConnection); } catch { }
             obj.Dispose();
         }
 
@@ -188,7 +189,7 @@ namespace FreeSql.PostgreSQL
 
         public void OnReturn(Object<DbConnection> obj)
         {
-
+            //if (obj?.Value != null && obj.Value.State != ConnectionState.Closed) try { obj.Value.Close(); } catch { }
         }
 
         public void OnAvailable()

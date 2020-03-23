@@ -128,7 +128,8 @@ namespace FreeSql.Oracle
 
         public void OnDestroy(DbConnection obj)
         {
-            if (obj.State != ConnectionState.Closed) obj.Close();
+            try { if (obj.State != ConnectionState.Closed) obj.Close(); } catch { }
+            try { OracleConnection.ClearPool(obj as OracleConnection); } catch { }
             obj.Dispose();
         }
 
@@ -198,7 +199,7 @@ namespace FreeSql.Oracle
 
         public void OnReturn(Object<DbConnection> obj)
         {
-
+            //if (obj?.Value != null && obj.Value.State != ConnectionState.Closed) try { obj.Value.Close(); } catch { }
         }
 
         public void OnAvailable()

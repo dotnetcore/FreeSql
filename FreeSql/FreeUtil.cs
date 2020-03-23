@@ -32,7 +32,7 @@ public static class FreeUtil
         var uninxtime = (int)now.Subtract(dt1970).TotalSeconds;
         int increment = Interlocked.Increment(ref __staticIncrement) & 0x00ffffff;
         var rand = rnd.Value.Next(0, int.MaxValue);
-        var guid = $"{uninxtime.ToString("x8").PadLeft(8, '0')}{__staticMachine.ToString("x8").PadLeft(8, '0').Substring(2, 6)}{__staticPid.ToString("x8").PadLeft(8, '0').Substring(6, 2)}{increment.ToString("x8").PadLeft(8, '0')}{rand.ToString("x8").PadLeft(8, '0')}";
+        var guid = $"{uninxtime.ToString("x8").PadLeft(8, '0')}{rand.ToString("x8").PadLeft(8, '0')}{__staticMachine.ToString("x8").PadLeft(8, '0').Substring(2, 6)}{__staticPid.ToString("x8").PadLeft(8, '0').Substring(6, 2)}{increment.ToString("x8").PadLeft(8, '0')}";
         return Guid.Parse(guid);
     }
 

@@ -111,7 +111,8 @@ namespace FreeSql.SqlServer
 
         public void OnDestroy(DbConnection obj)
         {
-            if (obj.State != ConnectionState.Closed) obj.Close();
+            try { if (obj.State != ConnectionState.Closed) obj.Close(); } catch { }
+            try { SqlConnection.ClearPool(obj as SqlConnection); } catch { }
             obj.Dispose();
         }
 
@@ -181,7 +182,7 @@ namespace FreeSql.SqlServer
 
         public void OnReturn(Object<DbConnection> obj)
         {
-            if (obj.Value.State != ConnectionState.Closed) try { obj.Value.Close(); } catch { }
+           //if (obj?.Value != null && obj.Value.State != ConnectionState.Closed) try { obj.Value.Close(); } catch { }
         }
 
         public void OnAvailable()

@@ -54,7 +54,7 @@ namespace FreeSql
 
         /// <summary>
         /// 以字典的形式返回查询结果<para></para>
-        /// 注意：字典的特点会导致 OrderBy 排序失效
+        /// 注意：字典的特点会导致返回的数据无序
         /// </summary>
         /// <typeparam name="TKey"></typeparam>
         /// <param name="keySelector"></param>

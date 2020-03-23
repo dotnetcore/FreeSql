@@ -183,7 +183,7 @@ namespace FreeSql.Odbc.Default
 
         public void OnReturn(Object<DbConnection> obj)
         {
-            if (obj.Value.State != ConnectionState.Closed) try { obj.Value.Close(); } catch { }
+            //if (obj?.Value != null && obj.Value.State != ConnectionState.Closed) try { obj.Value.Close(); } catch { }
         }
 
         public void OnAvailable()
