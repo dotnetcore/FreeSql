@@ -39,8 +39,7 @@ namespace restful.Controllers
             DefaultRepository<xxxx, int> repos21,
 
             BaseRepository<Song> repos3, BaseRepository<Song, int> repos4,
-            IBasicRepository<Song> repos31, IBasicRepository<Song, int> repos41,
-            IReadOnlyRepository<Song> repos311, IReadOnlyRepository<Song, int> repos411,
+            IBaseRepository<Song> repos31, IBaseRepository<Song, int> repos41,
 
             SongRepository reposSong
             )

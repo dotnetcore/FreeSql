@@ -22,7 +22,7 @@ namespace FreeSql
 
             var filters = (_repo.DataFilter as DataFilter<TEntity>)._filters.Where(a => a.Value.IsEnabled == true);
             foreach (var filter in filters) select.Where(filter.Value.Expression);
-            return select.AsTable(_repo.AsTableSelectInternal);
+            return select.AsTable(_repo.AsTableSelectValueInternal);
         }
         internal ISelect<TEntity> OrmSelectInternal(object dywhere) => OrmSelect(dywhere);
         protected override IUpdate<TEntity> OrmUpdate(IEnumerable<TEntity> entitys)
@@ -37,7 +37,7 @@ namespace FreeSql
                             throw new Exception($"FreeSql.Repository Update 失败，因为设置了过滤器 {filter.Key}: {filter.Value.Expression}，更新的数据不符合 {_db.Orm.GetEntityString(_entityType, entity)}");
                 update.Where(filter.Value.Expression);
             }
-            return update.AsTable(_repo.AsTableInternal);
+            return update.AsTable(_repo.AsTableValueInternal);
         }
         internal IUpdate<TEntity> OrmUpdateInternal(IEnumerable<TEntity> entitys) => OrmUpdate(entitys);
         protected override IDelete<TEntity> OrmDelete(object dywhere)
@@ -45,7 +45,7 @@ namespace FreeSql
             var delete = base.OrmDelete(dywhere);
             var filters = (_repo.DataFilter as DataFilter<TEntity>)._filters.Where(a => a.Value.IsEnabled == true);
             foreach (var filter in filters) delete.Where(filter.Value.Expression);
-            return delete.AsTable(_repo.AsTableInternal);
+            return delete.AsTable(_repo.AsTableValueInternal);
         }
         internal IDelete<TEntity> OrmDeleteInternal(object dywhere) => OrmDelete(dywhere);
         protected override IInsert<TEntity> OrmInsert(TEntity entity) => OrmInsert(new[] { entity });
@@ -60,7 +60,7 @@ namespace FreeSql
                         if (filter.Value.ExpressionDelegate?.Invoke(entity) == false)
                             throw new Exception($"FreeSql.Repository Insert 失败，因为设置了过滤器 {filter.Key}: {filter.Value.Expression}，插入的数据不符合 {_db.Orm.GetEntityString(_entityType, entity)}");
             }
-            return insert.AsTable(_repo.AsTableInternal);
+            return insert.AsTable(_repo.AsTableValueInternal);
         }
         internal IInsert<TEntity> OrmInsertInternal(TEntity entity) => OrmInsert(entity);
         internal IInsert<TEntity> OrmInsertInternal(IEnumerable<TEntity> entitys) => OrmInsert(entitys);

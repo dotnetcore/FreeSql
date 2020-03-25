@@ -18,19 +18,8 @@ namespace FreeSql
         internal RepositoryDbSet<TEntity> _dbset => _dbsetPriv ?? (_dbsetPriv = _db.Set<TEntity>() as RepositoryDbSet<TEntity>);
 
         public IDataFilter<TEntity> DataFilter { get; } = new DataFilter<TEntity>();
-        Func<string, string> _asTableVal;
-        protected Func<string, string> AsTable
-        {
-            get => _asTableVal;
-            set
-            {
-                _asTableVal = value;
-                AsTableSelect = value == null ? null : new Func<Type, string, string>((a, b) => a == EntityType ? value(b) : null);
-            }
-        }
-        internal Func<string, string> AsTableInternal => AsTable;
-        protected Func<Type, string, string> AsTableSelect { get; private set; }
-        internal Func<Type, string, string> AsTableSelectInternal => AsTableSelect;
+        internal Func<string, string> AsTableValueInternal { get; private set; }
+        internal Func<Type, string, string> AsTableSelectValueInternal { get; private set; }
 
         protected void ApplyDataFilter(string name, Expression<Func<TEntity, bool>> exp) => DataFilter.Apply(name, exp);
 
@@ -39,7 +28,7 @@ namespace FreeSql
             Orm = fsql;
             DataFilterUtil.SetRepositoryDataFilter(this, null);
             DataFilter.Apply("", filter);
-            AsTable = asTable;
+            AsTable(asTable);
         }
 
         ~BaseRepository() => this.Dispose();
@@ -60,6 +49,11 @@ namespace FreeSql
         }
         public Type EntityType => _dbsetPriv?.EntityType ?? typeof(TEntity);
         public void AsType(Type entityType) => _dbset.AsType(entityType);
+        public void AsTable(Func<string, string> rule)
+        {
+            AsTableValueInternal = rule;
+            AsTableSelectValueInternal = rule == null ? null : new Func<Type, string, string>((a, b) => a == EntityType ? rule(b) : null);
+        }
         public DbContextOptions DbContextOptions { get => _db.Options; set => _db.Options = value; }
 
         public IFreeSql Orm { get; private set; }
@@ -125,7 +119,7 @@ namespace FreeSql
 
         public void Attach(TEntity data) => _db.Attach(data);
         public void Attach(IEnumerable<TEntity> data) => _db.AttachRange(data);
-        public IBasicRepository<TEntity> AttachOnlyPrimary(TEntity data)
+        public IBaseRepository<TEntity> AttachOnlyPrimary(TEntity data)
         {
             _db.AttachOnlyPrimary(data);
             return this;
@@ -149,10 +143,7 @@ namespace FreeSql
     public abstract partial class BaseRepository<TEntity, TKey> : BaseRepository<TEntity>, IBaseRepository<TEntity, TKey>
         where TEntity : class
     {
-
-        public BaseRepository(IFreeSql fsql, Expression<Func<TEntity, bool>> filter, Func<string, string> asTable = null) : base(fsql, filter, asTable)
-        {
-        }
+        public BaseRepository(IFreeSql fsql, Expression<Func<TEntity, bool>> filter, Func<string, string> asTable = null) : base(fsql, filter, asTable) { }
 
         TEntity CheckTKeyAndReturnIdEntity(TKey id)
         {
@@ -167,9 +158,7 @@ namespace FreeSql
         }
 
         public int Delete(TKey id) => Delete(CheckTKeyAndReturnIdEntity(id));
-
         public TEntity Find(TKey id) => _dbset.OrmSelectInternal(CheckTKeyAndReturnIdEntity(id)).ToOne();
-
         public TEntity Get(TKey id) => Find(id);
     }
 }

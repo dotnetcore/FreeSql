@@ -105,7 +105,7 @@ namespace FreeSql
             repo.Update(buf);
         }
 
-        T UpdateIsDelete<T>(bool value, Func<BaseRepository<TEntity>, List<TEntity>, T> func)
+        T UpdateIsDelete<T>(bool value, Func<IBaseRepository<TEntity>, List<TEntity>, T> func)
         {
             var childs = GetAllChilds();
             childs.Add(this as TEntity);

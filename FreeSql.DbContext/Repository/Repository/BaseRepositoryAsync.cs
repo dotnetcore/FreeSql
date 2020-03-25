@@ -73,11 +73,8 @@ namespace FreeSql
 
     partial class BaseRepository<TEntity, TKey>
     {
-
         public Task<int> DeleteAsync(TKey id) => DeleteAsync(CheckTKeyAndReturnIdEntity(id));
-
         public Task<TEntity> FindAsync(TKey id) => _dbset.OrmSelectInternal(CheckTKeyAndReturnIdEntity(id)).ToOneAsync();
-
         public Task<TEntity> GetAsync(TKey id) => FindAsync(id);
     }
 }

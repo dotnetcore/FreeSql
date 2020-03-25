@@ -110,13 +110,6 @@
             清空状态数据
             </summary>
         </member>
-        <member name="M:FreeSql.DbSet`1.RemoveAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
-            <summary>
-            根据 lambda 条件删除数据
-            </summary>
-            <param name="predicate"></param>
-            <returns></returns>
-        </member>
         <member name="M:FreeSql.DbSet`1.Add(`0)">
             <summary>
             添加
@@ -218,29 +211,35 @@
             <param name="entityType"></param>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.IBaseRepository.AsTable(System.Func{System.String,System.String})">
+            <summary>
+            分表规则，参数：旧表名；返回：新表名 https://github.com/2881099/FreeSql/wiki/Repository
+            </summary>
+            <param name="rule"></param>
+        </member>
         <member name="P:FreeSql.IBaseRepository.DbContextOptions">
             <summary>
             设置 DbContext 选项
             </summary>
         </member>
-        <member name="M:FreeSql.IBasicRepository`1.FlushState">
+        <member name="M:FreeSql.IBaseRepository`1.FlushState">
             <summary>
             清空状态数据
             </summary>
         </member>
-        <member name="M:FreeSql.IBasicRepository`1.Attach(`0)">
+        <member name="M:FreeSql.IBaseRepository`1.Attach(`0)">
             <summary>
             附加实体，可用于不查询就更新或删除
             </summary>
             <param name="entity"></param>
         </member>
-        <member name="M:FreeSql.IBasicRepository`1.AttachOnlyPrimary(`0)">
+        <member name="M:FreeSql.IBaseRepository`1.AttachOnlyPrimary(`0)">
             <summary>
             附加实体，并且只附加主键值，可用于不更新属性值为null或默认值的字段
             </summary>
             <param name="data"></param>
         </member>
-        <member name="M:FreeSql.IBasicRepository`1.SaveMany(`0,System.String)">
+        <member name="M:FreeSql.IBaseRepository`1.SaveMany(`0,System.String)">
             <summary>
             保存实体的指定 ManyToMany/OneToMany 导航属性（完整对比）<para></para>
             场景：在关闭级联保存功能之后，手工使用本方法<para></para>
