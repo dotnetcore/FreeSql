@@ -105,6 +105,7 @@ namespace FreeSql.Odbc.Oracle
                     if (objType == null) objType = callExp.Method.DeclaringType;
                     if (objType != null || objType.IsArrayOrList())
                     {
+                        if (argIndex >= callExp.Arguments.Count) break;
                         tsc.SetMapColumnTmp(null);
                         var args1 = getExp(callExp.Arguments[argIndex]);
                         var oldMapType = tsc.SetMapTypeReturnOld(tsc.mapTypeTmp);

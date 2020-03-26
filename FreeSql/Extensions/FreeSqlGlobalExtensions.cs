@@ -51,18 +51,15 @@ public static partial class FreeSqlGlobalExtensions
     /// <summary>
     /// 获取 Type 的原始 c# 文本表示
     /// </summary>
-    /// <param name="that"></param>
+    /// <param name="type"></param>
     /// <returns></returns>
-    public static string DisplayCsharp(this Type that)
+    internal static string DisplayCsharp(this Type type, bool isNameSpace = true)
     {
-        return DisplayCsharp(that, true);
-    }
-    static string DisplayCsharp(this Type that, bool isNameSpace)
-    {
-        if (that == typeof(void)) return "void";
-        if (that.IsGenericParameter) return that.Name;
+        if (type == null) return null;
+        if (type == typeof(void)) return "void";
+        if (type.IsGenericParameter) return type.Name;
         var sb = new StringBuilder();
-        var nestedType = that;
+        var nestedType = type;
         while (nestedType.IsNested)
         {
             sb.Insert(0, ".").Insert(0, DisplayCsharp(nestedType.DeclaringType, false));
@@ -71,22 +68,22 @@ public static partial class FreeSqlGlobalExtensions
         if (isNameSpace && string.IsNullOrEmpty(nestedType.Namespace) == false)
             sb.Insert(0, ".").Insert(0, nestedType.Namespace);
 
-        if (that.IsGenericType == false)
-            return sb.Append(that.Name).ToString();
+        if (type.IsGenericType == false)
+            return sb.Append(type.Name).ToString();
 
-        var genericParameters = that.GetGenericArguments();
-        if (that.IsNested && that.DeclaringType.IsGenericType)
+        var genericParameters = type.GetGenericArguments();
+        if (type.IsNested && type.DeclaringType.IsGenericType)
         {
             var dic = genericParameters.ToDictionary(a => a.Name);
-            foreach (var nestedGenericParameter in that.DeclaringType.GetGenericArguments())
+            foreach (var nestedGenericParameter in type.DeclaringType.GetGenericArguments())
                 if (dic.ContainsKey(nestedGenericParameter.Name))
                     dic.Remove(nestedGenericParameter.Name);
             genericParameters = dic.Values.ToArray();
         }
         if (genericParameters.Any() == false)
-            return sb.Append(that.Name).ToString();
+            return sb.Append(type.Name).ToString();
 
-        sb.Append(that.Name.Remove(that.Name.IndexOf('`'))).Append("<");
+        sb.Append(type.Name.Remove(type.Name.IndexOf('`'))).Append("<");
         var genericTypeIndex = 0;
         foreach (var genericType in genericParameters)
         {
@@ -94,6 +91,37 @@ public static partial class FreeSqlGlobalExtensions
             sb.Append(DisplayCsharp(genericType, true));
         }
         return sb.Append(">").ToString();
+    }
+    internal static string DisplayCsharp(this MethodInfo method, bool isOverride)
+    {
+        if (method == null) return null;
+        var sb = new StringBuilder();
+        if (method.IsPublic) sb.Append("public ");
+        if (method.IsAssembly) sb.Append("internal ");
+        if (method.IsFamily) sb.Append("protected ");
+        if (method.IsPrivate) sb.Append("private ");
+        if (method.IsPrivate) sb.Append("private ");
+        if (method.IsStatic) sb.Append("static ");
+        if (method.IsAbstract && method.DeclaringType.IsInterface == false) sb.Append("abstract ");
+        if (method.IsVirtual && method.DeclaringType.IsInterface == false) sb.Append(isOverride ? "override " : "virtual ");
+        sb.Append(method.ReturnType.DisplayCsharp()).Append(" ").Append(method.Name);
+
+        var genericParameters = method.GetGenericArguments();
+        if (method.DeclaringType.IsNested && method.DeclaringType.DeclaringType.IsGenericType)
+        {
+            var dic = genericParameters.ToDictionary(a => a.Name);
+            foreach (var nestedGenericParameter in method.DeclaringType.DeclaringType.GetGenericArguments())
+                if (dic.ContainsKey(nestedGenericParameter.Name))
+                    dic.Remove(nestedGenericParameter.Name);
+            genericParameters = dic.Values.ToArray();
+        }
+        if (genericParameters.Any())
+            sb.Append("<")
+                .Append(string.Join(", ", genericParameters.Select(a => a.DisplayCsharp())))
+                .Append(">");
+
+        sb.Append("(").Append(string.Join(", ", method.GetParameters().Select(a => $"{a.ParameterType.DisplayCsharp()} {a.Name}"))).Append(")");
+        return sb.ToString();
     }
     public static object CreateInstanceGetDefaultValue(this Type that)
     {

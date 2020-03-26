@@ -550,7 +550,6 @@ namespace FreeSql.Tests
 
 
 
-
             var gkjdjd = g.sqlite.Select<AuthorTest>().Where(a => a.Post.AsSelect().Count() > 0).ToList();
 
             var testrunsql1 =  g.mysql.Select<TaskBuild>().Where(a => a.OptionsEntity04 > DateTime.Now.AddDays(0).ToString("yyyyMMdd").TryTo<int>()).ToSql();
@@ -877,8 +876,6 @@ namespace FreeSql.Tests
                 .IncludeMany(a => a.TestManys.Take(1).Where(b => b.id == a.id))
                 .Where(a => a.id > 10)
                 .ToList();
-
-
 
 
 
