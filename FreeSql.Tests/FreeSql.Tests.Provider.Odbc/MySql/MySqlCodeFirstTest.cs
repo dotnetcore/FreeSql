@@ -11,6 +11,19 @@ namespace FreeSql.Tests.Odbc.MySql
     public class MySqlCodeFirstTest
     {
         [Fact]
+        public void StringLength()
+        {
+            var dll = g.mysql.CodeFirst.GetComparisonDDLStatements<TS_SLTB>();
+            g.mysql.CodeFirst.SyncStructure<TS_SLTB>();
+        }
+        class TS_SLTB
+        {
+            public Guid Id { get; set; }
+            [Column(StringLength = 50)]
+            public string Title { get; set; }
+        }
+
+        [Fact]
         public void 表名中有点()
         {
             var item = new tbdot01 { name = "insert" };

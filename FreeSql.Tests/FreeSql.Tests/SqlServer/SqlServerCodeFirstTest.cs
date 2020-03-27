@@ -11,6 +11,18 @@ namespace FreeSql.Tests.SqlServer
 {
     public class SqlServerCodeFirstTest
     {
+        [Fact]
+        public void StringLength()
+        {
+            var dll = g.sqlserver.CodeFirst.GetComparisonDDLStatements<TS_SLTB>();
+            g.sqlserver.CodeFirst.SyncStructure<TS_SLTB>();
+        }
+        class TS_SLTB
+        {
+            public Guid Id { get; set; }
+            [Column(StringLength = 50)]
+            public string Title { get; set; }
+        }
 
         [Fact]
         public void ÖÐÎÄ±í_×Ö¶Î()

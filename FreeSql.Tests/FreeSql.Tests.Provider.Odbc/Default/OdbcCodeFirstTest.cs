@@ -11,6 +11,7 @@ namespace FreeSql.Tests.Odbc.Default
 
     public class OdbcCodeFirstTest
     {
+
         [Fact]
         public void 中文表_字段()
         {

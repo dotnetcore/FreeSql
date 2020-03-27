@@ -10,6 +10,18 @@ namespace FreeSql.Tests.Oracle
 {
     public class OracleCodeFirstTest
     {
+        [Fact]
+        public void StringLength()
+        {
+            var dll = g.oracle.CodeFirst.GetComparisonDDLStatements<TS_SLTB>();
+            g.oracle.CodeFirst.SyncStructure<TS_SLTB>();
+        }
+        class TS_SLTB
+        {
+            public Guid Id { get; set; }
+            [Column(StringLength = 50)]
+            public string Title { get; set; }
+        }
 
         [Fact]
         public void ÖÐÎÄ±í_×Ö¶Î()

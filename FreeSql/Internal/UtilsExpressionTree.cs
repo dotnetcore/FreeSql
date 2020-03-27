@@ -204,7 +204,7 @@ namespace FreeSql.Internal
                 if (colattr.MapType == typeof(string) && colattr.StringLength != 0)
                 {
                     int strlen = colattr.StringLength;
-                    var charPatten = @"(CHAR|CHAR2|CHARACTER)\s*(\([^\)]*\))?";
+                    var charPatten = @"(CHARACTER|CHAR2|CHAR)\s*(\([^\)]*\))?";
                     switch (common._orm.Ado.DataType)
                     {
                         case DataType.MySql:

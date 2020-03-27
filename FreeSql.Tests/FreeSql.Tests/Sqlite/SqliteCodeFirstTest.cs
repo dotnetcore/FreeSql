@@ -10,6 +10,18 @@ namespace FreeSql.Tests.Sqlite
 {
     public class SqliteCodeFirstTest
     {
+        [Fact]
+        public void StringLength()
+        {
+            var dll = g.sqlite.CodeFirst.GetComparisonDDLStatements<TS_SLTB>();
+            g.sqlite.CodeFirst.SyncStructure<TS_SLTB>();
+        }
+        class TS_SLTB
+        {
+            public Guid Id { get; set; }
+            [Column(StringLength = 50)]
+            public string Title { get; set; }
+        }
 
         [Fact]
         public void 表名中有点()

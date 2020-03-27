@@ -10,6 +10,18 @@ namespace FreeSql.Tests.MsAccess
 {
     public class MsAccessCodeFirstTest
     {
+        [Fact]
+        public void StringLength()
+        {
+            var dll = g.msaccess.CodeFirst.GetComparisonDDLStatements<TS_SLTB>();
+            g.msaccess.CodeFirst.SyncStructure<TS_SLTB>();
+        }
+        class TS_SLTB
+        {
+            public Guid Id { get; set; }
+            [Column(StringLength = 50)]
+            public string Title { get; set; }
+        }
 
         [Fact]
         public void ÖÐÎÄ±í_×Ö¶Î()
