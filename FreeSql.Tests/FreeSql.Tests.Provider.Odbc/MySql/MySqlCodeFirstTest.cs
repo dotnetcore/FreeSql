@@ -21,6 +21,9 @@ namespace FreeSql.Tests.Odbc.MySql
             public Guid Id { get; set; }
             [Column(StringLength = 50)]
             public string Title { get; set; }
+
+            [Column(IsNullable = false, StringLength = 50)]
+            public string TitleSub { get; set; }
         }
 
         [Fact]

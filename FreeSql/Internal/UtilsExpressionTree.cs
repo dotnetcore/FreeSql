@@ -124,7 +124,7 @@ namespace FreeSql.Internal
                 if ((colattr.IsNullable != true || colattr.IsIdentity == true || colattr.IsPrimary == true) && colattr.DbType.Contains("NOT NULL") == false)
                 {
                     colattr.IsNullable = false;
-                    colattr.DbType += " NOT NULL";
+                    colattr.DbType = Regex.Replace(colattr.DbType, @"\bNULL\b", "").Trim() + " NOT NULL";
                 }
                 if (colattr.IsNullable == true && colattr.DbType.Contains("NOT NULL")) colattr.DbType = colattr.DbType.Replace("NOT NULL", "");
                 colattr.DbType = Regex.Replace(colattr.DbType, @"\([^\)]+\)", m =>
