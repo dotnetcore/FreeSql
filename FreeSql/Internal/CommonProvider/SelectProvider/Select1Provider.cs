@@ -712,7 +712,7 @@ namespace FreeSql.Internal.CommonProvider
                         string key = null;
                         if (tbref.RefColumns.Count == 1)
                         {
-                            key = _orm.GetEntityValueWithPropertyName(tbref.RefEntityType, nav, tbref.RefColumns[0].CsName).ToString();
+                            key = _orm.GetEntityValueWithPropertyName(tbref.RefEntityType, nav, tbref.RefColumns[0].CsName)?.ToString() ?? "";
                         }
                         else
                         {
@@ -1043,7 +1043,7 @@ namespace FreeSql.Internal.CommonProvider
                             {
                                 string key = null;
                                 if (tbref.Columns.Count == 1)
-                                    key = _orm.GetEntityValueWithPropertyName(tbref.RefMiddleEntityType, midList[a], tbref.MiddleColumns[0].CsName).ToString();
+                                    key = _orm.GetEntityValueWithPropertyName(tbref.RefMiddleEntityType, midList[a], tbref.MiddleColumns[0].CsName)?.ToString() ?? "";
                                 else
                                 {
                                     var sb = new StringBuilder();

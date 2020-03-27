@@ -267,6 +267,45 @@ namespace FreeSql.Tests.Odbc.PostgreSQL
 
             var t11 = select.Where(a => a.Type.Name.Length > 0).ToList(true);
             var t21 = select.Where(a => a.Type.Parent.Name.Length > 0).ToList(true);
+
+            g.pgsql.Delete<District>().Where("1=1").ExecuteAffrows();
+            var repo = g.pgsql.GetRepository<District>();
+            repo.DbContextOptions.EnableAddOrUpdateNavigateList = true;
+            repo.Insert(new District
+            {
+                Code = "001",
+                Name = "001_name",
+                Childs = new List<District>(new[] {
+                    new District{
+                        Code = "001_01",
+                        Name = "001_01_name"
+                    },
+                    new District{
+                        Code = "001_02",
+                        Name = "001_02_name"
+                    }
+                })
+            });
+            var ddd = g.pgsql.Select<District>().LeftJoin(d => d.ParentCode == d.Parent.Code).ToTreeList();
+            Assert.Equal(1, ddd.Count);
+            Assert.Equal(2, ddd[0].Childs.Count);
+        }
+        public class District
+        {
+            [Column(IsPrimary = true, StringLength = 6)]
+            public string Code { get; set; }
+
+            [Column(StringLength = 20, IsNullable = false)]
+            public string Name { get; set; }
+
+            [Column(StringLength = 6)]
+            public string ParentCode { get; set; }
+
+            [Navigate(nameof(ParentCode))]
+            public District Parent { get; set; }
+
+            [Navigate(nameof(ParentCode))]
+            public List<District> Childs { get; set; }
         }
         [Fact]
         public void ToDictionary()
