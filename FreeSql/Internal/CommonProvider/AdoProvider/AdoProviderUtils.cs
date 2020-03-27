@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
+using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -22,7 +23,7 @@ namespace FreeSql.Internal.CommonProvider
                         .Replace(filter, $" IS {{{a}}}");
                 nparms[a] = AddslashesProcessParam(parms[a], null, null);
             }
-            try { string ret = string.Format(filter, nparms); return ret; } catch { return filter; }
+            try { string ret = string.Format(CultureInfo.InvariantCulture, filter, nparms); return ret; } catch { return filter; }
         }
         static ConcurrentDictionary<int, Regex> _dicAddslashesReplaceIsNull = new ConcurrentDictionary<int, Regex>();
 

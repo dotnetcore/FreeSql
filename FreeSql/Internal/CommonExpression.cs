@@ -11,6 +11,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using FreeSql.DataAnnotations;
 using System.Threading;
+using System.Globalization;
 
 namespace FreeSql.Internal
 {
@@ -1501,7 +1502,8 @@ namespace FreeSql.Internal
                     mapType ?? mapColumn?.Attribute.MapType ?? obj?.GetType(), mapType == null ? obj : Utils.GetDataReaderValue(mapType, obj));
                 return _common.QuoteParamterName(paramName);
             }
-            return string.Concat(_ado.AddslashesProcessParam(obj, mapType, mapColumn));
+            return string.Format(CultureInfo.InvariantCulture, "{0}", _ado.AddslashesProcessParam(obj, mapType, mapColumn));
+            //return string.Concat(_ado.AddslashesProcessParam(obj, mapType, mapColumn));
         }
     }
 }
