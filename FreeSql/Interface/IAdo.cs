@@ -24,6 +24,14 @@ namespace FreeSql
         /// 数据库类型
         /// </summary>
         DataType DataType { get; }
+        /// <summary>
+        /// UseConnectionString 时候的值
+        /// </summary>
+        string ConnectionString { get; }
+        /// <summary>
+        /// UseSalve 时候的值
+        /// </summary>
+        string[] SlaveConnectionStrings { get; }
 
         #region 事务
         /// <summary>

@@ -12,8 +12,8 @@ namespace FreeSql.Odbc.Dameng
 {
     class OdbcDamengAdo : FreeSql.Internal.CommonProvider.AdoProvider
     {
-        public OdbcDamengAdo() : base(DataType.OdbcDameng) { }
-        public OdbcDamengAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.OdbcDameng)
+        public OdbcDamengAdo() : base(DataType.OdbcDameng, null, null) { }
+        public OdbcDamengAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.OdbcDameng, masterConnectionString, slaveConnectionStrings)
         {
             base._util = util;
             if (connectionFactory != null)

@@ -12,8 +12,8 @@ namespace FreeSql.Odbc.Default
 {
     class OdbcAdo : FreeSql.Internal.CommonProvider.AdoProvider
     {
-        public OdbcAdo() : base(DataType.Odbc) { }
-        public OdbcAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.Odbc)
+        public OdbcAdo() : base(DataType.Odbc, null, null) { }
+        public OdbcAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.Odbc, masterConnectionString, slaveConnectionStrings)
         {
             base._util = util;
             if (connectionFactory != null)

@@ -12,8 +12,8 @@ namespace FreeSql.Odbc.Oracle
 {
     class OdbcOracleAdo : FreeSql.Internal.CommonProvider.AdoProvider
     {
-        public OdbcOracleAdo() : base(DataType.OdbcOracle) { }
-        public OdbcOracleAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.OdbcOracle)
+        public OdbcOracleAdo() : base(DataType.OdbcOracle, null, null) { }
+        public OdbcOracleAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.OdbcOracle, masterConnectionString, slaveConnectionStrings)
         {
             base._util = util;
             if (connectionFactory != null)

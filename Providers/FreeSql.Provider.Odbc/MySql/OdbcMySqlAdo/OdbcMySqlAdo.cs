@@ -13,8 +13,8 @@ namespace FreeSql.Odbc.MySql
     class OdbcMySqlAdo : FreeSql.Internal.CommonProvider.AdoProvider
     {
 
-        public OdbcMySqlAdo() : base(DataType.OdbcMySql) { }
-        public OdbcMySqlAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.OdbcMySql)
+        public OdbcMySqlAdo() : base(DataType.OdbcMySql, null, null) { }
+        public OdbcMySqlAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.OdbcMySql, masterConnectionString, slaveConnectionStrings)
         {
             base._util = util;
             if (connectionFactory != null)

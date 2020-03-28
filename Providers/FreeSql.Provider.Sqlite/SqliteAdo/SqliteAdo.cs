@@ -13,8 +13,8 @@ namespace FreeSql.Sqlite
 {
     class SqliteAdo : FreeSql.Internal.CommonProvider.AdoProvider
     {
-        public SqliteAdo() : base(DataType.Sqlite) { }
-        public SqliteAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.Sqlite)
+        public SqliteAdo() : base(DataType.Sqlite, null, null) { }
+        public SqliteAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.Sqlite, masterConnectionString, slaveConnectionStrings)
         {
             base._util = util;
             if (connectionFactory != null)

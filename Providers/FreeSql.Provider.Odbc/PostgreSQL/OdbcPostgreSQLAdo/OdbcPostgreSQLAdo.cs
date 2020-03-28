@@ -13,8 +13,8 @@ namespace FreeSql.Odbc.PostgreSQL
 {
     class OdbcPostgreSQLAdo : FreeSql.Internal.CommonProvider.AdoProvider
     {
-        public OdbcPostgreSQLAdo() : base(DataType.OdbcPostgreSQL) { }
-        public OdbcPostgreSQLAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.OdbcPostgreSQL)
+        public OdbcPostgreSQLAdo() : base(DataType.OdbcPostgreSQL, null, null) { }
+        public OdbcPostgreSQLAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.OdbcPostgreSQL, masterConnectionString, slaveConnectionStrings)
         {
             base._util = util;
             if (connectionFactory != null)

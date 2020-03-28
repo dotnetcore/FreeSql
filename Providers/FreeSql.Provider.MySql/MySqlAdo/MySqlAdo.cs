@@ -13,8 +13,8 @@ namespace FreeSql.MySql
     class MySqlAdo : FreeSql.Internal.CommonProvider.AdoProvider
     {
 
-        public MySqlAdo() : base(DataType.MySql) { }
-        public MySqlAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.MySql)
+        public MySqlAdo() : base(DataType.MySql, null, null) { }
+        public MySqlAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.MySql, masterConnectionString, slaveConnectionStrings)
         {
             base._util = util;
             if (connectionFactory != null)

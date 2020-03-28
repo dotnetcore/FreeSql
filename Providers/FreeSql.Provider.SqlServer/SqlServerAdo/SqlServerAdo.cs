@@ -13,8 +13,8 @@ namespace FreeSql.SqlServer
 {
     class SqlServerAdo : FreeSql.Internal.CommonProvider.AdoProvider
     {
-        public SqlServerAdo() : base(DataType.SqlServer) { }
-        public SqlServerAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.SqlServer)
+        public SqlServerAdo() : base(DataType.SqlServer, null, null) { }
+        public SqlServerAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.SqlServer, masterConnectionString, slaveConnectionStrings)
         {
             base._util = util;
             if (connectionFactory != null)

@@ -24,14 +24,18 @@ namespace FreeSql.Internal.CommonProvider
         public IObjectPool<DbConnection> MasterPool { get; protected set; }
         public List<IObjectPool<DbConnection>> SlavePools { get; } = new List<IObjectPool<DbConnection>>();
         public DataType DataType { get; }
+        public string ConnectionString { get; }
+        public string[] SlaveConnectionStrings { get; }
         protected CommonUtils _util { get; set; }
         protected int slaveUnavailables = 0;
         private object slaveLock = new object();
         private Random slaveRandom = new Random();
 
-        public AdoProvider(DataType dataType)
+        public AdoProvider(DataType dataType, string connectionString, string[] slaveConnectionStrings)
         {
             this.DataType = dataType;
+            this.ConnectionString = connectionString;
+            this.SlaveConnectionStrings = slaveConnectionStrings;
         }
 
         void LoggerException(IObjectPool<DbConnection> pool, PrepareCommandResult pc, Exception ex, DateTime dt, StringBuilder logtxt, bool isThrowException = true)

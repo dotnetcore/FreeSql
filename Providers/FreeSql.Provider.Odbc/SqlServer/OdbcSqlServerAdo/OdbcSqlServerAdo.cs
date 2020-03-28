@@ -13,8 +13,8 @@ namespace FreeSql.Odbc.SqlServer
 {
     class OdbcSqlServerAdo : FreeSql.Internal.CommonProvider.AdoProvider
     {
-        public OdbcSqlServerAdo() : base(DataType.OdbcSqlServer) { }
-        public OdbcSqlServerAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.OdbcSqlServer)
+        public OdbcSqlServerAdo() : base(DataType.OdbcSqlServer, null, null) { }
+        public OdbcSqlServerAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.OdbcSqlServer, masterConnectionString, slaveConnectionStrings)
         {
             base._util = util;
             if (connectionFactory != null)

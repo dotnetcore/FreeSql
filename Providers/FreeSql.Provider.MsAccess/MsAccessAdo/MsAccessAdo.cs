@@ -13,8 +13,8 @@ namespace FreeSql.MsAccess
 {
     class MsAccessAdo : FreeSql.Internal.CommonProvider.AdoProvider
     {
-        public MsAccessAdo() : base(DataType.MsAccess) { }
-        public MsAccessAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.MsAccess)
+        public MsAccessAdo() : base(DataType.MsAccess, null, null) { }
+        public MsAccessAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.MsAccess, masterConnectionString, slaveConnectionStrings)
         {
             base._util = util;
             if (connectionFactory != null)

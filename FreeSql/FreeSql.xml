@@ -2128,6 +2128,16 @@
             数据库类型
             </summary>
         </member>
+        <member name="P:FreeSql.IAdo.ConnectionString">
+            <summary>
+            UseConnectionString 时候的值
+            </summary>
+        </member>
+        <member name="P:FreeSql.IAdo.SlaveConnectionStrings">
+            <summary>
+            UseSalve 时候的值
+            </summary>
+        </member>
         <member name="M:FreeSql.IAdo.Transaction(System.Action)">
             <summary>
             开启事务（不支持异步），60秒未执行完成（可能）被其他线程事务自动提交

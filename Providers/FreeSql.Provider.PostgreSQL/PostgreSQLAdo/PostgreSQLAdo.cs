@@ -14,8 +14,8 @@ namespace FreeSql.PostgreSQL
 {
     class PostgreSQLAdo : FreeSql.Internal.CommonProvider.AdoProvider
     {
-        public PostgreSQLAdo() : base(DataType.PostgreSQL) { }
-        public PostgreSQLAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.PostgreSQL)
+        public PostgreSQLAdo() : base(DataType.PostgreSQL, null, null) { }
+        public PostgreSQLAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.PostgreSQL, masterConnectionString, slaveConnectionStrings)
         {
             base._util = util; 
             if (connectionFactory != null)
