@@ -28,7 +28,7 @@ namespace FreeSql.Sqlite
         public IAdo Ado { get; }
         public IAop Aop { get; }
         public ICodeFirst CodeFirst { get; }
-        public IDbFirst DbFirst => throw new NotImplementedException("FreeSql.Provider.Sqlite 未实现该功能");
+        public IDbFirst DbFirst { get; }// => throw new NotImplementedException("FreeSql.Provider.Sqlite 未实现该功能");
         public SqliteProvider(string masterConnectionString, string[] slaveConnectionString, Func<DbConnection> connectionFactory = null)
         {
             this.InternalCommonUtils = new SqliteUtils(this);
@@ -38,6 +38,7 @@ namespace FreeSql.Sqlite
             this.Aop = new AopProvider();
 
             this.CodeFirst = new SqliteCodeFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
+            this.DbFirst = new SqliteDbFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
             if (connectionFactory != null) this.CodeFirst.IsNoneCommandParameter = true;
         }
 

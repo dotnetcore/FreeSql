@@ -102,9 +102,11 @@ new Colorful.Formatter("v" + string.Join(".", typeof(ConsoleApp).Assembly.GetNam
      -DB ""{8},Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=数据库;Pooling=true;Maximum Pool Size=2""
      
      -DB ""{9},user id=user1;password=123456;data source=//127.0.0.1:1521/XE;Pooling=true;Max Pool Size=2""
+
+     -DB ""{10},Data Source=document.db;Attachs=xxxtb.db;""
      
-     -DB ""{10},Driver={DM8 ODBC DRIVER};Server=127.0.0.1:5236;Persist Security Info=False;Trusted_Connection=Yes;UID=USER1;PWD=123456789;Max pool size=2""
-                               {10} 是国产达梦数据库，需要使用 ODBC 连接
+     -DB ""{11},Driver={DM8 ODBC DRIVER};Server=127.0.0.1:5236;Persist Security Info=False;Trusted_Connection=Yes;UID=USER1;PWD=123456789;Max pool size=2""
+                               {11} 是国产达梦数据库，需要使用 ODBC 连接
 
      -Filter                   Table+View+StoreProcedure
                                默认生成：表+视图+存储过程
@@ -113,7 +115,7 @@ new Colorful.Formatter("v" + string.Join(".", typeof(ConsoleApp).Assembly.GetNam
      -FileName                 文件名，默认：{name}.cs
 
      -Output                   保存路径，默认为当前 shell 所在目录
-                               {11}
+                               {12}
 
 ", Color.SlateGray,
 new Colorful.Formatter("使用 FreeSql 快速生成数据库的实体类", Color.SlateGray),
@@ -126,6 +128,7 @@ new Colorful.Formatter("MySql", Color.Yellow),
 new Colorful.Formatter("SqlServer", Color.Yellow),
 new Colorful.Formatter("PostgreSQL", Color.Yellow),
 new Colorful.Formatter("Oracle", Color.Yellow),
+new Colorful.Formatter("Sqlite", Color.Yellow),
 new Colorful.Formatter("OdbcDameng", Color.Yellow),
 new Colorful.Formatter("推荐在实体类目录创建 gen.bat，双击它重新所有实体类", Color.ForestGreen)
 );
@@ -165,6 +168,7 @@ new Colorful.Formatter("推荐在实体类目录创建 gen.bat，双击它重新
                             case "sqlserver": ArgsDbType = DataType.SqlServer; break;
                             case "postgresql": ArgsDbType = DataType.PostgreSQL; break;
                             case "oracle": ArgsDbType = DataType.Oracle; break;
+                            case "sqlite": ArgsDbType = DataType.Sqlite; break;
                             case "odbcdameng": ArgsDbType = DataType.OdbcDameng; break;
                             default: throw new ArgumentException($"-DB 参数错误，不支持的类型：{dbargs[0]}");
                         }
