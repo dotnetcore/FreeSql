@@ -322,6 +322,14 @@ namespace FreeSql.Tests
             Assert.NotNull(mt_code);
             Assert.Equal(mt_codeId, mt_code.ID);
             Assert.Equal("mt_code2", mt_code.Code);
+
+            var id = g.oracle.Insert(new TestORC12()).ExecuteIdentity();
+        }
+
+        class TestORC12
+        {
+            [Column(IsIdentity = true, InsertValueSql = "\"CLASS1_seq_ID\".nextval")]
+            public int Id { get; set; }
         }
 
         [Table(Name = "t_text")]

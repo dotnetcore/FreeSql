@@ -106,12 +106,14 @@ namespace FreeSql
         /// <returns></returns>
         int ExecuteAffrows();
         /// <summary>
-        /// 执行SQL语句，返回自增值
+        /// 执行SQL语句，返回自增值<para></para>
+        /// 注意：请检查实体类是否标记了 [Column(IsIdentity = true)]
         /// </summary>
         /// <returns></returns>
         long ExecuteIdentity();
         /// <summary>
-        /// 执行SQL语句，返回插入后的记录
+        /// 执行SQL语句，返回插入后的记录<para></para>
+        /// 注意：此方法只有 Postgresql/SqlServer 有效果
         /// </summary>
         /// <returns></returns>
         List<T1> ExecuteInserted();
