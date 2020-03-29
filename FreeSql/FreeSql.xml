@@ -842,7 +842,8 @@
         </member>
         <member name="M:FreeSql.IDelete`1.ExecuteDeleted">
             <summary>
-            执行SQL语句，返回被删除的记录
+            执行SQL语句，返回被删除的记录<para></para>
+            注意：此方法只有 Postgresql/SqlServer 有效果
             </summary>
             <returns></returns>
         </member>
@@ -951,13 +952,15 @@
         </member>
         <member name="M:FreeSql.IInsert`1.ExecuteIdentity">
             <summary>
-            执行SQL语句，返回自增值
+            执行SQL语句，返回自增值<para></para>
+            注意：请检查实体类是否标记了 [Column(IsIdentity = true)]
             </summary>
             <returns></returns>
         </member>
         <member name="M:FreeSql.IInsert`1.ExecuteInserted">
             <summary>
-            执行SQL语句，返回插入后的记录
+            执行SQL语句，返回插入后的记录<para></para>
+            注意：此方法只有 Postgresql/SqlServer 有效果
             </summary>
             <returns></returns>
         </member>
@@ -2109,7 +2112,8 @@
         </member>
         <member name="M:FreeSql.IUpdate`1.ExecuteUpdated">
             <summary>
-            执行SQL语句，返回更新后的记录
+            执行SQL语句，返回更新后的记录<para></para>
+            注意：此方法只有 Postgresql/SqlServer 有效果
             </summary>
             <returns></returns>
         </member>

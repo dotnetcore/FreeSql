@@ -37,7 +37,7 @@ namespace FreeSql.Odbc.Dameng
             foreach (var col in _table.Columns.Values)
             {
                 if (col.Attribute.IsIdentity) _identCol = col;
-                if (col.Attribute.IsIdentity && _insertIdentity == false) continue;
+                if (col.Attribute.IsIdentity && _insertIdentity == false && string.IsNullOrEmpty(col.DbInsertValue)) continue;
                 if (col.Attribute.IsIdentity == false && _ignore.ContainsKey(col.Attribute.Name)) continue;
 
                 if (colidx > 0) sbtb.Append(", ");
@@ -58,7 +58,7 @@ namespace FreeSql.Odbc.Dameng
                 var colidx2 = 0;
                 foreach (var col in _table.Columns.Values)
                 {
-                    if (col.Attribute.IsIdentity && _insertIdentity == false) continue;
+                    if (col.Attribute.IsIdentity && _insertIdentity == false && string.IsNullOrEmpty(col.DbInsertValue)) continue;
                     if (col.Attribute.IsIdentity == false && _ignore.ContainsKey(col.Attribute.Name)) continue;
 
                     if (colidx2 > 0) sb.Append(", ");
