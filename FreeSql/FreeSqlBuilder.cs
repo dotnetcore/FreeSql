@@ -21,6 +21,7 @@ namespace FreeSql
         bool _isGenerateCommandParameterWithLambda = false;
         bool _isLazyLoading = false;
         StringConvertType _entityPropertyConvertType = StringConvertType.None;
+        NameConvertType _nameConvertType = NameConvertType.None;
         Action<DbCommand> _aopCommandExecuting = null;
         Action<DbCommand, string> _aopCommandExecuted = null;
         Type _providerType = null;
@@ -82,6 +83,7 @@ namespace FreeSql
         /// </summary>
         /// <param name="value">true:转小写, false:不转</param>
         /// <returns></returns>
+        [Obsolete("请使用 UseNameConvert(NameConvertType.ToLower)，或者 fsql.CodeFirst.IsSyncStructureToLower = value")]
         public FreeSqlBuilder UseSyncStructureToLower(bool value)
         {
             _isSyncStructureToLower = value;
@@ -92,6 +94,7 @@ namespace FreeSql
         /// </summary>
         /// <param name="value">true:转大写, false:不转</param>
         /// <returns></returns>
+        [Obsolete("请使用 UseNameConvert(NameConvertType.ToUpper)，或者 fsql.CodeFirst.IsSyncStructureToUpper = value")]
         public FreeSqlBuilder UseSyncStructureToUpper(bool value)
         {
             _isSyncStructureToUpper = value;
@@ -163,9 +166,22 @@ namespace FreeSql
         /// </summary>
         /// <param name="convertType"></param>
         /// <returns></returns>
+        [Obsolete("请使用 UseNameConvert 功能")]
         public FreeSqlBuilder UseEntityPropertyNameConvert(StringConvertType convertType)
         {
             _entityPropertyConvertType = convertType;
+            return this;
+        }
+
+        /// <summary>
+        /// 实体类名 -> 数据库表名，命名转换（类名、属性名都生效）<para></para>
+        /// 优先级小于 [Table(Name = "xxx")]、[Column(Name = "xxx")]
+        /// </summary>
+        /// <param name="convertType"></param>
+        /// <returns></returns>
+        public FreeSqlBuilder UseNameConvert(NameConvertType convertType)
+        {
+            _nameConvertType = convertType;
             return this;
         }
 
@@ -263,27 +279,60 @@ namespace FreeSql
                 //添加实体属性名全局AOP转换处理
                 if (_entityPropertyConvertType != StringConvertType.None)
                 {
+                    string PascalCaseToUnderScore(string str) => string.Concat(str.Select((x, i) => i > 0 && char.IsUpper(x) ? "_" + x.ToString() : x.ToString()));
+
                     switch (_entityPropertyConvertType)
                     {
                         case StringConvertType.Lower:
-                            ret.Aop.ConfigEntityProperty += (_, e) =>
-                                e.ModifyResult.Name = e.Property.Name.ToLower();
+                            ret.Aop.ConfigEntityProperty += (_, e) => e.ModifyResult.Name = e.Property.Name.ToLower();
                             break;
                         case StringConvertType.Upper:
-                            ret.Aop.ConfigEntityProperty += (_, e) =>
-                                e.ModifyResult.Name = e.Property.Name.ToUpper();
+                            ret.Aop.ConfigEntityProperty += (_, e) => e.ModifyResult.Name = e.Property.Name.ToUpper();
                             break;
                         case StringConvertType.PascalCaseToUnderscore:
-                            ret.Aop.ConfigEntityProperty += (_, e) =>
-                                e.ModifyResult.Name = StringUtils.PascalCaseToUnderScore(e.Property.Name);
+                            ret.Aop.ConfigEntityProperty += (_, e) => e.ModifyResult.Name = PascalCaseToUnderScore(e.Property.Name);
                             break;
                         case StringConvertType.PascalCaseToUnderscoreWithLower:
-                            ret.Aop.ConfigEntityProperty += (_, e) =>
-                                e.ModifyResult.Name = StringUtils.PascalCaseToUnderScore(e.Property.Name).ToLower();
+                            ret.Aop.ConfigEntityProperty += (_, e) => e.ModifyResult.Name = PascalCaseToUnderScore(e.Property.Name).ToLower();
                             break;
                         case StringConvertType.PascalCaseToUnderscoreWithUpper:
-                            ret.Aop.ConfigEntityProperty += (_, e) =>
-                                e.ModifyResult.Name = StringUtils.PascalCaseToUnderScore(e.Property.Name).ToUpper();
+                            ret.Aop.ConfigEntityProperty += (_, e) => e.ModifyResult.Name = PascalCaseToUnderScore(e.Property.Name).ToUpper();
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                //添加实体属性名全局AOP转换处理
+                if (_nameConvertType != NameConvertType.None)
+                {
+                    string PascalCaseToUnderScore(string str) => string.Concat(str.Select((x, i) => i > 0 && char.IsUpper(x) ? "_" + x.ToString() : x.ToString()));
+                    string UnderScorePascalCase(string str) => string.Join("", str.Split('_').Select(a => a.Length > 0 ? string.Concat(char.ToUpper(a[0]), a.Substring(1)) : ""));
+
+                    switch (_nameConvertType)
+                    {
+                        case NameConvertType.ToLower:
+                            ret.Aop.ConfigEntity += (_, e) => e.ModifyResult.Name = e.EntityType.Name.ToLower();
+                            ret.Aop.ConfigEntityProperty += (_, e) => e.ModifyResult.Name = e.Property.Name.ToLower();
+                            break;
+                        case NameConvertType.ToUpper:
+                            ret.Aop.ConfigEntity += (_, e) => e.ModifyResult.Name = e.EntityType.Name.ToUpper();
+                            ret.Aop.ConfigEntityProperty += (_, e) => e.ModifyResult.Name = e.Property.Name.ToUpper();
+                            break;
+                        case NameConvertType.PascalCaseToUnderscore:
+                            ret.Aop.ConfigEntity += (_, e) => e.ModifyResult.Name = PascalCaseToUnderScore(e.EntityType.Name);
+                            ret.Aop.ConfigEntityProperty += (_, e) => e.ModifyResult.Name = PascalCaseToUnderScore(e.Property.Name);
+                            break;
+                        case NameConvertType.PascalCaseToUnderscoreWithLower:
+                            ret.Aop.ConfigEntity += (_, e) => e.ModifyResult.Name = PascalCaseToUnderScore(e.EntityType.Name).ToLower();
+                            ret.Aop.ConfigEntityProperty += (_, e) => e.ModifyResult.Name = PascalCaseToUnderScore(e.Property.Name).ToLower();
+                            break;
+                        case NameConvertType.PascalCaseToUnderscoreWithUpper:
+                            ret.Aop.ConfigEntity += (_, e) => e.ModifyResult.Name = PascalCaseToUnderScore(e.EntityType.Name).ToUpper();
+                            ret.Aop.ConfigEntityProperty += (_, e) => e.ModifyResult.Name = PascalCaseToUnderScore(e.Property.Name).ToUpper();
+                            break;
+                        case NameConvertType.UnderscoreToPascalCase:
+                            ret.Aop.ConfigEntity += (_, e) => e.ModifyResult.Name = UnderScorePascalCase(e.EntityType.Name);
+                            ret.Aop.ConfigEntityProperty += (_, e) => e.ModifyResult.Name = UnderScorePascalCase(e.Property.Name);
                             break;
                         default:
                             break;

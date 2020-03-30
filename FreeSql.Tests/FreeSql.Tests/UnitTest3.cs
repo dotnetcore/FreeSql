@@ -247,7 +247,7 @@ namespace FreeSql.Tests
                 .UseAutoSyncStructure(true)
                 .UseGenerateCommandParameterWithLambda(true)
                 .UseLazyLoading(true)
-                .UseSyncStructureToUpper(true)
+                .UseNameConvert(FreeSql.Internal.NameConvertType.ToUpper)
                 .UseMonitorCommand(cmd => Trace.WriteLine("\r\n线程" + Thread.CurrentThread.ManagedThreadId + ": " + cmd.CommandText))
                 .Build());
             ib.Register("db3", () => new FreeSql.FreeSqlBuilder()

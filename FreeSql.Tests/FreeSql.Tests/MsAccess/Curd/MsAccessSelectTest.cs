@@ -202,7 +202,7 @@ namespace FreeSql.Tests.MsAccess
                 })
             });
             var ddd = g.msaccess.Select<District>().LeftJoin(d => d.ParentCode == d.Parent.Code).ToTreeList();
-            Assert.Equal(1, ddd.Count);
+            Assert.Single(ddd);
             Assert.Equal(2, ddd[0].Childs.Count);
         }
         public class District

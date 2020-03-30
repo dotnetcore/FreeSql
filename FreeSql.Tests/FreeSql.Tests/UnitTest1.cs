@@ -574,7 +574,7 @@ namespace FreeSql.Tests
 
             IFreeSql fsql = new FreeSql.FreeSqlBuilder()
               .UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=7")
-              .UseEntityPropertyNameConvert(Internal.StringConvertType.PascalCaseToUnderscoreWithLower)
+              .UseNameConvert(Internal.NameConvertType.PascalCaseToUnderscoreWithLower)
               .UseNoneCommandParameter(true)
               .UseAutoSyncStructure(true) //自动同步实体结构到数据库
               .UseMonitorCommand(a => Trace.WriteLine(a.CommandText))

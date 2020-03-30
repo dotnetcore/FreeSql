@@ -29,7 +29,7 @@ public class g
         //.UseConnectionFactory(FreeSql.DataType.PostgreSQL, () => new Npgsql.NpgsqlConnection("Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;"))
         .UseAutoSyncStructure(true)
         //.UseGenerateCommandParameterWithLambda(true)
-        .UseSyncStructureToLower(true)
+        .UseNameConvert(FreeSql.Internal.NameConvertType.ToLower)
         .UseLazyLoading(true)
         .UseMonitorCommand(
             cmd => Trace.WriteLine("\r\n线程" + Thread.CurrentThread.ManagedThreadId + ": " + cmd.CommandText) //监听SQL命令对象，在执行前
@@ -60,7 +60,7 @@ public class g
         .UseAutoSyncStructure(true)
         //.UseGenerateCommandParameterWithLambda(true)
         .UseLazyLoading(true)
-        .UseSyncStructureToUpper(true)
+        .UseNameConvert(FreeSql.Internal.NameConvertType.ToUpper)
         //.UseNoneCommandParameter(true)
 
         .UseMonitorCommand(

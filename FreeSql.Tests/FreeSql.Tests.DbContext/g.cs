@@ -44,7 +44,7 @@ public class g
     static Lazy<IFreeSql> pgsqlLazy = new Lazy<IFreeSql>(() => new FreeSql.FreeSqlBuilder()
         .UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=10")
         .UseAutoSyncStructure(true)
-        .UseSyncStructureToLower(true)
+        .UseNameConvert(FreeSql.Internal.NameConvertType.ToLower)
         .UseLazyLoading(true)
         .UseMonitorCommand(
             cmd =>
@@ -63,7 +63,7 @@ public class g
         .UseConnectionString(FreeSql.DataType.Oracle, "user id=user1;password=123456;data source=//127.0.0.1:1521/XE;Pooling=true;Max Pool Size=10")
         .UseAutoSyncStructure(true)
         .UseLazyLoading(true)
-        .UseSyncStructureToUpper(true)
+        .UseNameConvert(FreeSql.Internal.NameConvertType.ToUpper)
         .UseNoneCommandParameter(true)
 
         .UseMonitorCommand(

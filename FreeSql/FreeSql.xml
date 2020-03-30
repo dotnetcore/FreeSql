@@ -902,10 +902,11 @@
             </summary>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.IInsert`1.NoneParameter">
+        <member name="M:FreeSql.IInsert`1.NoneParameter(System.Boolean)">
             <summary>
             不使用参数化，可通过 IFreeSql.CodeFirst.IsNotCommandParameter 全局性设置
             </summary>
+            <param name="isNotCommandParameter">是否不使用参数化</param>
             <returns></returns>
         </member>
         <member name="M:FreeSql.IInsert`1.BatchOptions(System.Int32,System.Int32,System.Boolean)">
@@ -1937,10 +1938,11 @@
             <param name="connection"></param>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.IUpdate`1.NoneParameter">
+        <member name="M:FreeSql.IUpdate`1.NoneParameter(System.Boolean)">
             <summary>
             不使用参数化，可通过 IFreeSql.CodeFirst.IsNotCommandParameter 全局性设置
             </summary>
+            <param name="isNotCommandParameter">是否不使用参数化</param>
             <returns></returns>
         </member>
         <member name="M:FreeSql.IUpdate`1.BatchOptions(System.Int32,System.Int32,System.Boolean)">
@@ -2692,12 +2694,12 @@
         </member>
         <member name="P:FreeSql.ICodeFirst.IsSyncStructureToLower">
             <summary>
-            转小写同步结构
+            转小写同步结构，适用 PostgreSQL
             </summary>
         </member>
         <member name="P:FreeSql.ICodeFirst.IsSyncStructureToUpper">
             <summary>
-            转大写同步结构
+            转大写同步结构，适用 Oracle/达梦
             </summary>
         </member>
         <member name="P:FreeSql.ICodeFirst.IsConfigEntityFromDbFirst">
@@ -3178,14 +3180,52 @@
             BigApple -> bigapple
             </summary>
         </member>
-        <member name="M:FreeSql.Internal.StringUtils.PascalCaseToUnderScore(System.String)">
+        <member name="F:FreeSql.Internal.NameConvertType.None">
+            <summary>
+            不进行任何处理
+            </summary>
+        </member>
+        <member name="F:FreeSql.Internal.NameConvertType.PascalCaseToUnderscore">
             <summary>
             将帕斯卡命名字符串转换为下划线分隔字符串
             <para></para>
             BigApple -> Big_Apple
             </summary>
-            <param name="str"></param>
-            <returns></returns>
+        </member>
+        <member name="F:FreeSql.Internal.NameConvertType.PascalCaseToUnderscoreWithUpper">
+            <summary>
+            将帕斯卡命名字符串转换为下划线分隔字符串，且转换为全大写
+            <para></para>
+            BigApple -> BIG_APPLE
+            </summary>
+        </member>
+        <member name="F:FreeSql.Internal.NameConvertType.PascalCaseToUnderscoreWithLower">
+            <summary>
+            将帕斯卡命名字符串转换为下划线分隔字符串，且转换为全小写
+            <para></para>
+            BigApple -> big_apple
+            </summary>
+        </member>
+        <member name="F:FreeSql.Internal.NameConvertType.UnderscoreToPascalCase">
+            <summary>
+            将下划线分隔字符串命名字符串转换为帕斯卡
+            <para></para>
+            big_apple -> BigApple
+            </summary>
+        </member>
+        <member name="F:FreeSql.Internal.NameConvertType.ToUpper">
+            <summary>
+            将字符串转换为大写
+            <para></para>
+            BigApple -> BIGAPPLE
+            </summary>
+        </member>
+        <member name="F:FreeSql.Internal.NameConvertType.ToLower">
+            <summary>
+            将字符串转换为小写
+            <para></para>
+            BigApple -> bigapple
+            </summary>
         </member>
         <member name="M:FreeSqlGlobalExpressionCall.Between(System.DateTime,System.DateTime,System.DateTime)">
             <summary>

@@ -13,11 +13,11 @@ namespace FreeSql
         bool IsAutoSyncStructure { get; set; }
 
         /// <summary>
-        /// 转小写同步结构
+        /// 转小写同步结构，适用 PostgreSQL
         /// </summary>
         bool IsSyncStructureToLower { get; set; }
         /// <summary>
-        /// 转大写同步结构
+        /// 转大写同步结构，适用 Oracle/达梦
         /// </summary>
         bool IsSyncStructureToUpper { get; set; }
         /// <summary>
