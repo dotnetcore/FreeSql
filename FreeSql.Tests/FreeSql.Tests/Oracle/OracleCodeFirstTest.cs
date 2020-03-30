@@ -12,6 +12,51 @@ namespace FreeSql.Tests.Oracle
     public class OracleCodeFirstTest
     {
         [Fact]
+        public void NClob_StringLength_1()
+        {
+            var str1 = string.Join(",", Enumerable.Range(0, 10000).Select(a => "我是中国人"));
+
+            var item1 = new TS_NCLB02 { Data = str1 };
+            Assert.Equal(1, g.oracle.Insert(item1).ExecuteAffrows());
+
+            var item2 = g.oracle.Select<TS_NCLB02>().Where(a => a.Id == item1.Id).First();
+            Assert.Equal(str1, item2.Data);
+
+            //NoneParameter
+            item1 = new TS_NCLB02 { Data = str1 };
+            Assert.Throws<OracleException>(() => g.oracle.Insert(item1).NoneParameter().ExecuteAffrows());
+            //Oracle.ManagedDataAccess.Client.OracleException:“ORA-01704: 字符串文字太长”
+        }
+        class TS_NCLB02
+        {
+            public Guid Id { get; set; }
+            [Column(StringLength = - 1)]
+            public string Data { get; set; }
+        }
+
+        [Fact]
+        public void NClob()
+        {
+            var str1 = string.Join(",", Enumerable.Range(0, 10000).Select(a => "我是中国人"));
+
+            var item1 = new TS_NCLB01 { Data = str1 };
+            Assert.Equal(1, g.oracle.Insert(item1).ExecuteAffrows());
+
+            var item2 = g.oracle.Select<TS_NCLB01>().Where(a => a.Id == item1.Id).First();
+            Assert.Equal(str1, item2.Data);
+
+            //NoneParameter
+            item1 = new TS_NCLB01 { Data = str1 };
+            Assert.Throws<OracleException>(() => g.oracle.Insert(item1).NoneParameter().ExecuteAffrows());
+            //Oracle.ManagedDataAccess.Client.OracleException:“ORA-01704: 字符串文字太长”
+        }
+        class TS_NCLB01
+        {
+            public Guid Id { get; set; }
+            [Column(DbType = "nclob")]
+            public string Data { get; set; }
+        }
+        [Fact]
         public void Clob()
         {
             var str1 = string.Join(",", Enumerable.Range(0, 10000).Select(a => "我是中国人"));

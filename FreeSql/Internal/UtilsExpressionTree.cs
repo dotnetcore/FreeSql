@@ -223,6 +223,9 @@ namespace FreeSql.Internal
                             else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
                             break;
                         case DataType.Oracle:
+                            if (strlen < 0) colattr.DbType = "NCLOB"; //v1.3.2+ https://github.com/dotnetcore/FreeSql/issues/259
+                            else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
+                            break;
                         case DataType.OdbcOracle:
                         case DataType.OdbcDameng:
                             if (strlen < 0) colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1(4000)");
