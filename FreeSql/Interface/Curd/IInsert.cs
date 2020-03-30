@@ -64,8 +64,9 @@ namespace FreeSql
         /// <summary>
         /// 不使用参数化，可通过 IFreeSql.CodeFirst.IsNotCommandParameter 全局性设置
         /// </summary>
+        /// <param name="isNotCommandParameter">是否不使用参数化</param>
         /// <returns></returns>
-        IInsert<T1> NoneParameter();
+        IInsert<T1> NoneParameter(bool isNotCommandParameter = true);
 
         /// <summary>
         /// 批量执行选项设置，一般不需要使用该方法<para></para>

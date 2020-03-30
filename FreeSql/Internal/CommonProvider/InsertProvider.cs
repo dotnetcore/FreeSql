@@ -82,9 +82,9 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
 
-        public IInsert<T1> NoneParameter()
+        public IInsert<T1> NoneParameter(bool isNotCommandParameter = true)
         {
-            _noneParameter = true;
+            _noneParameter = isNotCommandParameter;
             return this;
         }
 
