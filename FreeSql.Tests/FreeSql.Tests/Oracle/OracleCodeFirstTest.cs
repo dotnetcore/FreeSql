@@ -1,5 +1,6 @@
 using FreeSql.DataAnnotations;
 using Newtonsoft.Json;
+using Oracle.ManagedDataAccess.Client;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +11,53 @@ namespace FreeSql.Tests.Oracle
 {
     public class OracleCodeFirstTest
     {
+        [Fact]
+        public void Clob()
+        {
+            var str1 = string.Join(",", Enumerable.Range(0, 10000).Select(a => "我是中国人"));
+
+            var item1 = new TS_CLB01 { Data = str1 };
+            Assert.Equal(1, g.oracle.Insert(item1).ExecuteAffrows());
+
+            var item2 = g.oracle.Select<TS_CLB01>().Where(a => a.Id == item1.Id).First();
+            Assert.Equal(str1, item2.Data);
+
+            //NoneParameter
+            item1 = new TS_CLB01 { Data = str1 };
+            Assert.Throws<OracleException>(() => g.oracle.Insert(item1).NoneParameter().ExecuteAffrows());
+            //Oracle.ManagedDataAccess.Client.OracleException:“ORA-01704: 字符串文字太长”
+        }
+        class TS_CLB01
+        {
+            public Guid Id { get; set; }
+            [Column(DbType = "clob")]
+            public string Data { get; set; }
+        }
+        [Fact]
+        public void Blob()
+        {
+            var str1 = string.Join(",", Enumerable.Range(0, 10000).Select(a => "我是中国人"));
+            var data1 = Encoding.UTF8.GetBytes(str1);
+
+            var item1 = new TS_BLB01 { Data = data1 };
+            Assert.Equal(1, g.oracle.Insert(item1).ExecuteAffrows());
+
+            var item2 = g.oracle.Select<TS_BLB01>().Where(a => a.Id == item1.Id).First();
+            Assert.Equal(item1.Data.Length, item2.Data.Length);
+
+            var str2 = Encoding.UTF8.GetString(item2.Data);
+            Assert.Equal(str1, str2);
+
+            //NoneParameter
+            item1 = new TS_BLB01 { Data = data1 };
+            Assert.Throws<OracleException>(() => g.oracle.Insert(item1).NoneParameter().ExecuteAffrows());
+            //Oracle.ManagedDataAccess.Client.OracleException:“ORA-01704: 字符串文字太长”
+        }
+        class TS_BLB01
+        {
+            public Guid Id { get; set; }
+            public byte[] Data { get; set; }
+        }
         [Fact]
         public void StringLength()
         {

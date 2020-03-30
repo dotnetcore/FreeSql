@@ -40,6 +40,10 @@ namespace FreeSql.Oracle
                         if (col.DbPrecision != 0) ret.Precision = col.DbPrecision;
                         if (col.DbScale != 0) ret.Scale = col.DbScale;
                         break;
+                    case OracleDbType.Clob:
+                    case OracleDbType.NClob:
+                        ret = new OracleParameter { ParameterName = QuoteParamterName(parameterName), OracleDbType = dbtype2, Value = value };
+                        break;
                 }
             }
             _params?.Add(ret);
