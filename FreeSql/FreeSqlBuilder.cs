@@ -83,7 +83,6 @@ namespace FreeSql
         /// </summary>
         /// <param name="value">true:转小写, false:不转</param>
         /// <returns></returns>
-        [Obsolete("请使用 UseNameConvert(NameConvertType.ToLower)，或者 fsql.CodeFirst.IsSyncStructureToLower = value")]
         public FreeSqlBuilder UseSyncStructureToLower(bool value)
         {
             _isSyncStructureToLower = value;
@@ -94,7 +93,6 @@ namespace FreeSql
         /// </summary>
         /// <param name="value">true:转大写, false:不转</param>
         /// <returns></returns>
-        [Obsolete("请使用 UseNameConvert(NameConvertType.ToUpper)，或者 fsql.CodeFirst.IsSyncStructureToUpper = value")]
         public FreeSqlBuilder UseSyncStructureToUpper(bool value)
         {
             _isSyncStructureToUpper = value;
@@ -306,17 +304,19 @@ namespace FreeSql
                 if (_nameConvertType != NameConvertType.None)
                 {
                     string PascalCaseToUnderScore(string str) => string.Concat(str.Select((x, i) => i > 0 && char.IsUpper(x) ? "_" + x.ToString() : x.ToString()));
-                    string UnderScorePascalCase(string str) => string.Join("", str.Split('_').Select(a => a.Length > 0 ? string.Concat(char.ToUpper(a[0]), a.Substring(1)) : ""));
+                    //string UnderScorePascalCase(string str) => string.Join("", str.Split('_').Select(a => a.Length > 0 ? string.Concat(char.ToUpper(a[0]), a.Substring(1)) : ""));
 
                     switch (_nameConvertType)
                     {
                         case NameConvertType.ToLower:
                             ret.Aop.ConfigEntity += (_, e) => e.ModifyResult.Name = e.EntityType.Name.ToLower();
                             ret.Aop.ConfigEntityProperty += (_, e) => e.ModifyResult.Name = e.Property.Name.ToLower();
+                            ret.CodeFirst.IsSyncStructureToLower = true;
                             break;
                         case NameConvertType.ToUpper:
                             ret.Aop.ConfigEntity += (_, e) => e.ModifyResult.Name = e.EntityType.Name.ToUpper();
                             ret.Aop.ConfigEntityProperty += (_, e) => e.ModifyResult.Name = e.Property.Name.ToUpper();
+                            ret.CodeFirst.IsSyncStructureToUpper = true;
                             break;
                         case NameConvertType.PascalCaseToUnderscore:
                             ret.Aop.ConfigEntity += (_, e) => e.ModifyResult.Name = PascalCaseToUnderScore(e.EntityType.Name);
@@ -330,10 +330,10 @@ namespace FreeSql
                             ret.Aop.ConfigEntity += (_, e) => e.ModifyResult.Name = PascalCaseToUnderScore(e.EntityType.Name).ToUpper();
                             ret.Aop.ConfigEntityProperty += (_, e) => e.ModifyResult.Name = PascalCaseToUnderScore(e.Property.Name).ToUpper();
                             break;
-                        case NameConvertType.UnderscoreToPascalCase:
-                            ret.Aop.ConfigEntity += (_, e) => e.ModifyResult.Name = UnderScorePascalCase(e.EntityType.Name);
-                            ret.Aop.ConfigEntityProperty += (_, e) => e.ModifyResult.Name = UnderScorePascalCase(e.Property.Name);
-                            break;
+                        //case NameConvertType.UnderscoreToPascalCase:
+                        //    ret.Aop.ConfigEntity += (_, e) => e.ModifyResult.Name = UnderScorePascalCase(e.EntityType.Name);
+                        //    ret.Aop.ConfigEntityProperty += (_, e) => e.ModifyResult.Name = UnderScorePascalCase(e.Property.Name);
+                        //    break;
                         default:
                             break;
                     }

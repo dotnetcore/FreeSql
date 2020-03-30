@@ -73,12 +73,12 @@ namespace FreeSql.Internal
         /// </summary>
         PascalCaseToUnderscoreWithLower,
 
-        /// <summary>
-        /// 将下划线分隔字符串命名字符串转换为帕斯卡
-        /// <para></para>
-        /// big_apple -> BigApple
-        /// </summary>
-        UnderscoreToPascalCase,
+        ///// <summary>
+        ///// 将下划线分隔字符串命名字符串转换为帕斯卡
+        ///// <para></para>
+        ///// big_apple -> BigApple
+        ///// </summary>
+        //UnderscoreToPascalCase,
 
         /// <summary>
         /// 将字符串转换为大写

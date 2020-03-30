@@ -306,7 +306,7 @@ a.data_precision,
 a.data_scale,
 a.char_used,
 case when a.nullable = 'N' then 0 else 1 end,
-nvl((select 1 from user_sequences where upper(sequence_name)=upper(a.table_name||'_seq_'||a.column_name)), 0),
+nvl((select 1 from user_sequences where upper(sequence_name)=upper(a.table_name||'_seq_'||a.column_name) and rownum < 2), 0),
 b.comments
 from all_tab_cols a
 left join all_col_comments b on b.owner = a.owner and b.table_name = a.table_name and b.column_name = a.column_name

@@ -755,6 +755,14 @@
             <param name="convertType"></param>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.FreeSqlBuilder.UseNameConvert(FreeSql.Internal.NameConvertType)">
+            <summary>
+            实体类名 -> 数据库表名，命名转换（类名、属性名都生效）<para></para>
+            优先级小于 [Table(Name = "xxx")]、[Column(Name = "xxx")]
+            </summary>
+            <param name="convertType"></param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.IDelete`1.WithTransaction(System.Data.Common.DbTransaction)">
             <summary>
             指定事务对象
@@ -3204,13 +3212,6 @@
             将帕斯卡命名字符串转换为下划线分隔字符串，且转换为全小写
             <para></para>
             BigApple -> big_apple
-            </summary>
-        </member>
-        <member name="F:FreeSql.Internal.NameConvertType.UnderscoreToPascalCase">
-            <summary>
-            将下划线分隔字符串命名字符串转换为帕斯卡
-            <para></para>
-            big_apple -> BigApple
             </summary>
         </member>
         <member name="F:FreeSql.Internal.NameConvertType.ToUpper">
