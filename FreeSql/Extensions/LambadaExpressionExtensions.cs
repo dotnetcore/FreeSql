@@ -14,78 +14,218 @@ namespace System.Linq.Expressions
     public static partial class LambadaExpressionExtensions
     {
 
-        /// <summary>
-        /// 使用 and 拼接两个 lambda 表达式
-        /// </summary>
-        /// <returns></returns>
-        public static Expression<Func<T, bool>> And<T>(this Expression<Func<T, bool>> exp1, Expression<Func<T, bool>> exp2) => And(exp1, true, exp2);
-        /// <summary>
-        /// 使用 and 拼接两个 lambda 表达式
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="exp1"></param>
-        /// <param name="condition">true 时生效</param>
-        /// <param name="exp2"></param>
-        /// <returns></returns>
-        public static Expression<Func<T, bool>> And<T>(this Expression<Func<T, bool>> exp1, bool condition, Expression<Func<T, bool>> exp2)
+        static LambdaExpression InternalAndOrExpression(bool condition, LambdaExpression exp1, LambdaExpression exp2, bool isAndAlso)
         {
             if (condition == false) return exp1;
             if (exp1 == null) return exp2;
             if (exp2 == null) return exp1;
 
-            ParameterExpression newParameter = Expression.Parameter(typeof(T), "c");
-            NewExpressionVisitor visitor = new NewExpressionVisitor(newParameter, exp2.Parameters.FirstOrDefault());
+            var newParameters = exp1.Parameters.Select((a, b) => Expression.Parameter(a.Type, $"new{b}")).ToArray();
 
-            var left = visitor.Replace(exp1.Body);
-            var right = visitor.Replace(exp2.Body);
-            var body = Expression.AndAlso(left, right);
-            return Expression.Lambda<Func<T, bool>>(body, newParameter);
+            var left = new NewExpressionVisitor(newParameters, exp2.Parameters.ToArray()).Replace(exp1.Body);
+            var right = new NewExpressionVisitor(newParameters, exp2.Parameters.ToArray()).Replace(exp2.Body);
+            var body = isAndAlso ? Expression.AndAlso(left, right) : Expression.OrElse(left, right);
+            return Expression.Lambda(exp1.Type, body, newParameters);
         }
-
-        /// <summary>
-        /// 使用 or 拼接两个 lambda 表达式
-        /// </summary>
-        /// <returns></returns>
-        public static Expression<Func<T, bool>> Or<T>(this Expression<Func<T, bool>> exp1, Expression<Func<T, bool>> exp2) => Or(exp1, true, exp2);
-        /// <summary>
-        /// 使用 or 拼接两个 lambda 表达式
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="exp1"></param>
-        /// <param name="condition">true 时生效</param>
-        /// <param name="exp2"></param>
-        /// <returns></returns>
-        public static Expression<Func<T, bool>> Or<T>(this Expression<Func<T, bool>> exp1, bool condition, Expression<Func<T, bool>> exp2)
-        {
-            if (condition == false) return exp1;
-            if (exp1 == null) return exp2;
-            if (exp2 == null) return exp1;
-
-            ParameterExpression newParameter = Expression.Parameter(typeof(T), "c");
-            NewExpressionVisitor visitor = new NewExpressionVisitor(newParameter, exp2.Parameters.FirstOrDefault());
-
-            var left = visitor.Replace(exp1.Body);
-            var right = visitor.Replace(exp2.Body);
-            var body = Expression.OrElse(left, right);
-            return Expression.Lambda<Func<T, bool>>(body, newParameter);
-        }
-
-        /// <summary>
-        /// 将 lambda 表达式取反
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="exp"></param>
-        /// <param name="condition">true 时生效</param>
-        /// <returns></returns>
-        public static Expression<Func<T, bool>> Not<T>(this Expression<Func<T, bool>> exp, bool condition = true)
+        static LambdaExpression InternalNotExpression(bool condition, LambdaExpression exp)
         {
             if (condition == false) return exp;
             if (exp == null) return null;
 
-            var candidateExpr = exp.Parameters[0];
+            var newParameters = exp.Parameters.Select((a, b) => Expression.Parameter(a.Type, $"new{b}")).ToArray();
             var body = Expression.Not(exp.Body);
-            return Expression.Lambda<Func<T, bool>>(body, candidateExpr);
+            return Expression.Lambda(exp.Type, body, newParameters);
         }
+
+        #region T1
+        /// <summary>
+        /// 使用 and 拼接两个 lambda 表达式
+        /// </summary>
+        /// <returns></returns>
+        public static Expression<Func<T1, bool>> And<T1>(this Expression<Func<T1, bool>> exp1, Expression<Func<T1, bool>> exp2) => And(exp1, true, exp2);
+        /// <summary>
+        /// 使用 and 拼接两个 lambda 表达式
+        /// </summary>
+        /// <param name="exp1"></param>
+        /// <param name="condition">true 时生效</param>
+        /// <param name="exp2"></param>
+        /// <returns></returns>
+        public static Expression<Func<T1, bool>> And<T1>(this Expression<Func<T1, bool>> exp1, bool condition, Expression<Func<T1, bool>> exp2) => (Expression<Func<T1, bool>>)InternalAndOrExpression(condition, exp1, exp2, true);
+
+        /// <summary>
+        /// 使用 or 拼接两个 lambda 表达式
+        /// </summary>
+        /// <returns></returns>
+        public static Expression<Func<T1, bool>> Or<T1>(this Expression<Func<T1, bool>> exp1, Expression<Func<T1, bool>> exp2) => Or(exp1, true, exp2);
+        /// <summary>
+        /// 使用 or 拼接两个 lambda 表达式
+        /// </summary>
+        /// <param name="exp1"></param>
+        /// <param name="condition">true 时生效</param>
+        /// <param name="exp2"></param>
+        /// <returns></returns>
+        public static Expression<Func<T1, bool>> Or<T1>(this Expression<Func<T1, bool>> exp1, bool condition, Expression<Func<T1, bool>> exp2) => (Expression<Func<T1, bool>>)InternalAndOrExpression(condition, exp1, exp2, false);
+
+        /// <summary>
+        /// 将 lambda 表达式取反
+        /// </summary>
+        /// <param name="exp"></param>
+        /// <param name="condition">true 时生效</param>
+        /// <returns></returns>
+        public static Expression<Func<T1, bool>> Not<T1>(this Expression<Func<T1, bool>> exp, bool condition = true) => (Expression<Func<T1, bool>>)InternalNotExpression(condition, exp);
+        #endregion
+
+        #region T1, T2
+        /// <summary>
+        /// 使用 and 拼接两个 lambda 表达式
+        /// </summary>
+        /// <returns></returns>
+        public static Expression<Func<T1, T2, bool>> And<T1, T2>(this Expression<Func<T1, T2, bool>> exp1, Expression<Func<T1, T2, bool>> exp2) => And(exp1, true, exp2);
+        /// <summary>
+        /// 使用 and 拼接两个 lambda 表达式
+        /// </summary>
+        /// <param name="exp1"></param>
+        /// <param name="condition">true 时生效</param>
+        /// <param name="exp2"></param>
+        /// <returns></returns>
+        public static Expression<Func<T1, T2, bool>> And<T1, T2>(this Expression<Func<T1, T2, bool>> exp1, bool condition, Expression<Func<T1, T2, bool>> exp2) => (Expression<Func<T1, T2, bool>>)InternalAndOrExpression(condition, exp1, exp2, true);
+
+        /// <summary>
+        /// 使用 or 拼接两个 lambda 表达式
+        /// </summary>
+        /// <returns></returns>
+        public static Expression<Func<T1, T2, bool>> Or<T1, T2>(this Expression<Func<T1, T2, bool>> exp1, Expression<Func<T1, T2, bool>> exp2) => Or(exp1, true, exp2);
+        /// <summary>
+        /// 使用 or 拼接两个 lambda 表达式
+        /// </summary>
+        /// <param name="exp1"></param>
+        /// <param name="condition">true 时生效</param>
+        /// <param name="exp2"></param>
+        /// <returns></returns>
+        public static Expression<Func<T1, T2, bool>> Or<T1, T2>(this Expression<Func<T1, T2, bool>> exp1, bool condition, Expression<Func<T1, T2, bool>> exp2) => (Expression<Func<T1, T2, bool>>)InternalAndOrExpression(condition, exp1, exp2, false);
+
+        /// <summary>
+        /// 将 lambda 表达式取反
+        /// </summary>
+        /// <param name="exp"></param>
+        /// <param name="condition">true 时生效</param>
+        /// <returns></returns>
+        public static Expression<Func<T1, T2, bool>> Not<T1, T2>(this Expression<Func<T1, T2, bool>> exp, bool condition = true) => (Expression<Func<T1, T2, bool>>)InternalNotExpression(condition, exp);
+        #endregion
+
+        #region T1, T2, T3
+        /// <summary>
+        /// 使用 and 拼接两个 lambda 表达式
+        /// </summary>
+        /// <returns></returns>
+        public static Expression<Func<T1, T2, T3, bool>> And<T1, T2, T3>(this Expression<Func<T1, T2, T3, bool>> exp1, Expression<Func<T1, T2, T3, bool>> exp2) => And(exp1, true, exp2);
+        /// <summary>
+        /// 使用 and 拼接两个 lambda 表达式
+        /// </summary>
+        /// <param name="exp1"></param>
+        /// <param name="condition">true 时生效</param>
+        /// <param name="exp2"></param>
+        /// <returns></returns>
+        public static Expression<Func<T1, T2, T3, bool>> And<T1, T2, T3>(this Expression<Func<T1, T2, T3, bool>> exp1, bool condition, Expression<Func<T1, T2, T3, bool>> exp2) => (Expression<Func<T1, T2, T3, bool>>)InternalAndOrExpression(condition, exp1, exp2, true);
+
+        /// <summary>
+        /// 使用 or 拼接两个 lambda 表达式
+        /// </summary>
+        /// <returns></returns>
+        public static Expression<Func<T1, T2, T3, bool>> Or<T1, T2, T3>(this Expression<Func<T1, T2, T3, bool>> exp1, Expression<Func<T1, T2, T3, bool>> exp2) => Or(exp1, true, exp2);
+        /// <summary>
+        /// 使用 or 拼接两个 lambda 表达式
+        /// </summary>
+        /// <param name="exp1"></param>
+        /// <param name="condition">true 时生效</param>
+        /// <param name="exp2"></param>
+        /// <returns></returns>
+        public static Expression<Func<T1, T2, T3, bool>> Or<T1, T2, T3>(this Expression<Func<T1, T2, T3, bool>> exp1, bool condition, Expression<Func<T1, T2, T3, bool>> exp2) => (Expression<Func<T1, T2, T3, bool>>)InternalAndOrExpression(condition, exp1, exp2, false);
+
+        /// <summary>
+        /// 将 lambda 表达式取反
+        /// </summary>
+        /// <param name="exp"></param>
+        /// <param name="condition">true 时生效</param>
+        /// <returns></returns>
+        public static Expression<Func<T1, T2, T3, bool>> Not<T1, T2, T3>(this Expression<Func<T1, T2, T3, bool>> exp, bool condition = true) => (Expression<Func<T1, T2, T3, bool>>)InternalNotExpression(condition, exp);
+        #endregion
+
+        #region T1, T2, T3, T4
+        /// <summary>
+        /// 使用 and 拼接两个 lambda 表达式
+        /// </summary>
+        /// <returns></returns>
+        public static Expression<Func<T1, T2, T3, T4, bool>> And<T1, T2, T3, T4>(this Expression<Func<T1, T2, T3, T4, bool>> exp1, Expression<Func<T1, T2, T3, T4, bool>> exp2) => And(exp1, true, exp2);
+        /// <summary>
+        /// 使用 and 拼接两个 lambda 表达式
+        /// </summary>
+        /// <param name="exp1"></param>
+        /// <param name="condition">true 时生效</param>
+        /// <param name="exp2"></param>
+        /// <returns></returns>
+        public static Expression<Func<T1, T2, T3, T4, bool>> And<T1, T2, T3, T4>(this Expression<Func<T1, T2, T3, T4, bool>> exp1, bool condition, Expression<Func<T1, T2, T3, T4, bool>> exp2) => (Expression<Func<T1, T2, T3, T4, bool>>)InternalAndOrExpression(condition, exp1, exp2, true);
+
+        /// <summary>
+        /// 使用 or 拼接两个 lambda 表达式
+        /// </summary>
+        /// <returns></returns>
+        public static Expression<Func<T1, T2, T3, T4, bool>> Or<T1, T2, T3, T4>(this Expression<Func<T1, T2, T3, T4, bool>> exp1, Expression<Func<T1, T2, T3, T4, bool>> exp2) => Or(exp1, true, exp2);
+        /// <summary>
+        /// 使用 or 拼接两个 lambda 表达式
+        /// </summary>
+        /// <param name="exp1"></param>
+        /// <param name="condition">true 时生效</param>
+        /// <param name="exp2"></param>
+        /// <returns></returns>
+        public static Expression<Func<T1, T2, T3, T4, bool>> Or<T1, T2, T3, T4>(this Expression<Func<T1, T2, T3, T4, bool>> exp1, bool condition, Expression<Func<T1, T2, T3, T4, bool>> exp2) => (Expression<Func<T1, T2, T3, T4, bool>>)InternalAndOrExpression(condition, exp1, exp2, false);
+
+        /// <summary>
+        /// 将 lambda 表达式取反
+        /// </summary>
+        /// <param name="exp"></param>
+        /// <param name="condition">true 时生效</param>
+        /// <returns></returns>
+        public static Expression<Func<T1, T2, T3, T4, bool>> Not<T1, T2, T3, T4>(this Expression<Func<T1, T2, T3, T4, bool>> exp, bool condition = true) => (Expression<Func<T1, T2, T3, T4, bool>>)InternalNotExpression(condition, exp);
+        #endregion
+
+        #region T1, T2, T3, T4, T5
+        /// <summary>
+        /// 使用 and 拼接两个 lambda 表达式
+        /// </summary>
+        /// <returns></returns>
+        public static Expression<Func<T1, T2, T3, T4, T5, bool>> And<T1, T2, T3, T4, T5>(this Expression<Func<T1, T2, T3, T4, T5, bool>> exp1, Expression<Func<T1, T2, T3, T4, T5, bool>> exp2) => And(exp1, true, exp2);
+        /// <summary>
+        /// 使用 and 拼接两个 lambda 表达式
+        /// </summary>
+        /// <param name="exp1"></param>
+        /// <param name="condition">true 时生效</param>
+        /// <param name="exp2"></param>
+        /// <returns></returns>
+        public static Expression<Func<T1, T2, T3, T4, T5, bool>> And<T1, T2, T3, T4, T5>(this Expression<Func<T1, T2, T3, T4, T5, bool>> exp1, bool condition, Expression<Func<T1, T2, T3, T4, T5, bool>> exp2) => (Expression<Func<T1, T2, T3, T4, T5, bool>>)InternalAndOrExpression(condition, exp1, exp2, true);
+
+        /// <summary>
+        /// 使用 or 拼接两个 lambda 表达式
+        /// </summary>
+        /// <returns></returns>
+        public static Expression<Func<T1, T2, T3, T4, T5, bool>> Or<T1, T2, T3, T4, T5>(this Expression<Func<T1, T2, T3, T4, T5, bool>> exp1, Expression<Func<T1, T2, T3, T4, T5, bool>> exp2) => Or(exp1, true, exp2);
+        /// <summary>
+        /// 使用 or 拼接两个 lambda 表达式
+        /// </summary>
+        /// <param name="exp1"></param>
+        /// <param name="condition">true 时生效</param>
+        /// <param name="exp2"></param>
+        /// <returns></returns>
+        public static Expression<Func<T1, T2, T3, T4, T5, bool>> Or<T1, T2, T3, T4, T5>(this Expression<Func<T1, T2, T3, T4, T5, bool>> exp1, bool condition, Expression<Func<T1, T2, T3, T4, T5, bool>> exp2) => (Expression<Func<T1, T2, T3, T4, T5, bool>>)InternalAndOrExpression(condition, exp1, exp2, false);
+
+        /// <summary>
+        /// 将 lambda 表达式取反
+        /// </summary>
+        /// <param name="exp"></param>
+        /// <param name="condition">true 时生效</param>
+        /// <returns></returns>
+        public static Expression<Func<T1, T2, T3, T4, T5, bool>> Not<T1, T2, T3, T4, T5>(this Expression<Func<T1, T2, T3, T4, T5, bool>> exp, bool condition = true) => (Expression<Func<T1, T2, T3, T4, T5, bool>>)InternalNotExpression(condition, exp);
+        #endregion
 
         internal static bool IsParameter(this Expression exp)
         {
@@ -97,17 +237,23 @@ namespace System.Linq.Expressions
 
     internal class NewExpressionVisitor : ExpressionVisitor
     {
-        ParameterExpression _newParameter;
-        ParameterExpression _oldParameter;
-        public NewExpressionVisitor(ParameterExpression newParam, ParameterExpression oldParam)
+        ParameterExpression[] _newParameters;
+        ParameterExpression[] _oldParameters;
+        public NewExpressionVisitor(ParameterExpression newParam, ParameterExpression oldParam) : this(new[] { newParam }, new[] { oldParam }) { }
+        public NewExpressionVisitor(ParameterExpression[] newParams, ParameterExpression[] oldParams)
         {
-            this._newParameter = newParam;
-            this._oldParameter = oldParam;
+            this._newParameters = newParams;
+            this._oldParameters = oldParams;
         }
         public Expression Replace(Expression exp) => this.Visit(exp);
 
-        protected override Expression VisitParameter(ParameterExpression node) =>
-            node == _oldParameter ? this._newParameter : node;
+        protected override Expression VisitParameter(ParameterExpression node)
+        {
+            for (var a = 0; a < _oldParameters.Length; a++)
+                if (_oldParameters[a] == node)
+                    return _newParameters[a];
+            return node;
+        }
     }
 
     internal class TestParameterExpressionVisitor : ExpressionVisitor
