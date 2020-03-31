@@ -15,7 +15,7 @@ FreeSql 是功能强大的对象关系映射技术(O/RM)，支持 .NETCore 2.1+ 
 - [x] 支持 深入的类型映射，比如pgsql的数组类型；
 - [x] 支持 丰富的表达式函数，以及灵活的自定义解析；
 - [x] 支持 导航属性一对多、多对多贪婪加载，以及延时加载；
-- [x] 支持 读写分离、分表分库，租户设计，过滤器，乐观锁，悲观锁；
+- [x] 支持 读写分离、分表分库、过滤器、乐观锁、悲观锁；
 - [x] 支持 MySql/SqlServer/PostgreSQL/Oracle/Sqlite/达梦数据库/Access；
 
 ## Documentation
@@ -39,8 +39,6 @@ FreeSql 是功能强大的对象关系映射技术(O/RM)，支持 .NETCore 2.1+ 
 - [zhontai.net Admin后台管理系统](https://github.com/zhontai/Admin.Core)
 - [😃 A simple and practical CMS implememted by .NET Core 2.2](https://github.com/luoyunchong/lin-cms-dotnetcore)
 - [内容管理系统](https://github.com/hejiyong/fscms)
-
-欢迎更多使用 FreeSql 的开源项目加入目录
 
 <p align="center">
   <img src="https://images.cnblogs.com/cnblogs_com/kellynic/133561/o_200305164701functions07.png"/>
@@ -114,7 +112,7 @@ fsql.Select<Xxx>()
   .OrderByDescending(a => a.Id)
   .ToList()
 ```
-更多前往Wiki：[《Select 查询数据文档》](https://github.com/2881099/FreeSql/wiki/%e6%9f%a5%e8%af%a2)
+[More..](https://github.com/2881099/FreeSql/wiki/%e6%9f%a5%e8%af%a2)
 
 ```csharp
 fsql.Select<Song>()
@@ -130,7 +128,7 @@ fsql.Select<Song>()
   .Limit(10)
   .ToList();
 ```
-更多前往Wiki：[《表达式函数》](https://github.com/2881099/FreeSql/wiki/%e8%a1%a8%e8%be%be%e5%bc%8f%e5%87%bd%e6%95%b0) 
+[More..](https://github.com/2881099/FreeSql/wiki/%e8%a1%a8%e8%be%be%e5%bc%8f%e5%87%bd%e6%95%b0) 
 
 ## Repository & UnitOfWork
 > dotnet add package FreeSql.Repository
@@ -184,7 +182,7 @@ Elapsed: 00:00:00.6707125; ToList Entity Counts: 131072; ORM: FreeSql*
 Elapsed: 00:00:00.6495301; Query Entity Counts: 131072; ORM: Dapper
 ```
 
-[Test code](FreeSql.Tests.PerformanceTests/MySqlAdoTest.cs)、[More](https://github.com/2881099/FreeSql/wiki/%e6%80%a7%e8%83%bd)
+[More..](https://github.com/2881099/FreeSql/wiki/%e6%80%a7%e8%83%bd)
 
 ## Contributors
 
