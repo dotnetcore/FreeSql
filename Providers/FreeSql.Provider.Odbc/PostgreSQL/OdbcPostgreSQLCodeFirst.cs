@@ -158,6 +158,8 @@ namespace FreeSql.Odbc.PostgreSQL
                             if (string.IsNullOrEmpty(tbcol.Comment) == false)
                                 sb.Append("COMMENT ON COLUMN ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}.{tbcol.Attribute.Name}")).Append(" IS ").Append(_commonUtils.FormatSql("{0}", tbcol.Comment)).Append(";\r\n");
                         }
+                        if (string.IsNullOrEmpty(tb.Comment) == false)
+                            sb.Append("COMMENT ON TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" IS ").Append(_commonUtils.FormatSql("{0}", tb.Comment)).Append(";\r\n");
                         continue;
                     }
                     //如果新表，旧表在一个数据库和模式下，直接修改表名
@@ -180,7 +182,7 @@ t.typname,
 case when a.atttypmod > 0 and a.atttypmod < 32767 then a.atttypmod - 4 else a.attlen end len,
 case when t.typelem > 0 and t.typinput::varchar = 'array_in' then t2.typname else t.typname end,
 case when a.attnotnull then '0' else '1' end as is_nullable,
-coalesce((select 1 from pg_sequences where sequencename = {0} || '_' || {1} || '_' || a.attname || '_sequence_name' limit 1),0) is_identity,
+coalesce((select 1 from pg_sequences where lower(sequencename) = lower({0} || '_' || {1} || '_' || a.attname || '_sequence_name') limit 1),0) is_identity,
 --e.adsrc,
 a.attndims,
 d.description as comment
@@ -294,6 +296,16 @@ where ns.nspname in ({0}) and d.relname in ({1}) and a.indisprimary = 'f'", tbol
                 }
                 if (istmpatler == false)
                 {
+                    var dbcomment = string.Concat(_orm.Ado.ExecuteScalar(CommandType.Text, _commonUtils.FormatSql(@" select
+d.description
+from pg_class a
+inner join pg_namespace b on b.oid = a.relnamespace
+left join pg_description d on d.objoid = a.oid and objsubid = 0
+where b.nspname not in ('pg_catalog', 'information_schema') and a.relkind in ('r') and b.nspname = {0} and a.relname = {1}
+and b.nspname || '.' || a.relname not in ('public.geography_columns','public.geometry_columns','public.raster_columns','public.raster_overviews')", tbname[0], tbname[1])));
+                    if (dbcomment != (tb.Comment ?? ""))
+                        sb.Append("COMMENT ON TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" IS ").Append(_commonUtils.FormatSql("{0}", tb.Comment)).Append(";\r\n");
+
                     sb.Append(sbalter);
                     continue;
                 }
@@ -329,6 +341,9 @@ where pg_namespace.nspname={0} and pg_class.relname={1} and pg_constraint.contyp
                     if (string.IsNullOrEmpty(tbcol.Comment) == false)
                         sb.Append("COMMENT ON COLUMN ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.FreeSqlTmp_{tbname[1]}.{tbcol.Attribute.Name}")).Append(" IS ").Append(_commonUtils.FormatSql("{0}", tbcol.Comment)).Append(";\r\n");
                 }
+                if (string.IsNullOrEmpty(tb.Comment) == false)
+                    sb.Append("COMMENT ON TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.FreeSqlTmp_{tbname[1]}")).Append(" IS ").Append(_commonUtils.FormatSql("{0}", tb.Comment)).Append(";\r\n");
+
                 sb.Append("INSERT INTO ").Append(tmptablename).Append(" (");
                 foreach (var tbcol in tb.ColumnsByPosition)
                     sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
@@ -370,7 +385,7 @@ where pg_namespace.nspname={0} and pg_class.relname={1} and pg_constraint.contyp
             foreach (var seqcol in seqcols)
             {
                 var tbname = seqcol.Item2;
-                var seqname = Utils.GetCsName($"{tbname[0]}.{tbname[1]}_{seqcol.Item1.Attribute.Name}_sequence_name");
+                var seqname = Utils.GetCsName($"{tbname[0]}.{tbname[1]}_{seqcol.Item1.Attribute.Name}_sequence_name").ToLower(); ;
                 var tbname2 = _commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}");
                 var colname2 = _commonUtils.QuoteSqlName(seqcol.Item1.Attribute.Name);
                 sb.Append("ALTER TABLE ").Append(tbname2).Append(" ALTER COLUMN ").Append(colname2).Append(" SET DEFAULT null;\r\n");

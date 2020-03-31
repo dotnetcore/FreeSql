@@ -69,6 +69,7 @@ namespace FreeSql.Internal
             var propsLazy = new List<NaviteTuple<PropertyInfo, bool, bool, MethodInfo, MethodInfo>>();
             var propsNavObjs = new List<PropertyInfo>();
             var propsComment = CommonUtils.GetProperyCommentBySummary(entity);
+            trytb.Comment = propsComment.TryGetValue("", out var tbcomment) ? tbcomment : "";
             var columnsList = new List<ColumnInfo>();
             foreach (var p in trytb.Properties.Values)
             {
@@ -370,7 +371,7 @@ namespace FreeSql.Internal
             foreach (var col in trytb.Primarys)
             {
                 col.Attribute.IsNullable = false;
-                col.Attribute.DbType = col.Attribute.DbType.Replace("NOT NULL", "");
+                col.Attribute.DbType = col.Attribute.DbType.Replace("NOT NULL", "").Trim();
             }
             foreach (var col in trytb.Columns.Values)
             {
@@ -795,7 +796,14 @@ namespace FreeSql.Internal
                         trytb.AddOrUpdateTableRef(pnv.Name, nvref);
 
                         if (tbmid.Primarys.Any() == false)
+                        {
                             tbmid.Primarys = tbmid.Columns.Values.Where(a => a.Attribute.IsPrimary == true).ToArray();
+                            foreach (var col in tbmid.Primarys)
+                            {
+                                col.Attribute.IsNullable = false;
+                                col.Attribute.DbType = col.Attribute.DbType.Replace("NOT NULL", "").Trim();
+                            }
+                        }
                     }
 
                     if (isLazy)

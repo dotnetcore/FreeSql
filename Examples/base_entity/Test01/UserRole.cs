@@ -5,12 +5,12 @@ using FreeSql;
 namespace EMSServerModel.Model
 {
 	/// <summary>
-	/// 用户角色关系表
+	/// 用户角色关系表aa111
 	/// </summary>
 	[JsonObject(MemberSerialization.OptIn)]
 	public partial class UserRole : BaseEntity<UserRole>{
 		/// <summary>
-		/// 角色编号
+		/// 角色编号1
 		/// </summary>
 		[JsonProperty]
 		public long RoleId { get; set; }

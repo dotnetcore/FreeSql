@@ -8,10 +8,10 @@ using FreeSql;
 namespace EMSServerModel.Model
 {
 	/// <summary>
-	/// 用户表
+	/// 用户表bb123123
 	/// </summary>
 	[JsonObject(MemberSerialization.OptIn)]
-	public partial class User : BaseEntity<User, long>{
+	public partial class User : BaseEntity<User> {
 
 		//[JsonProperty, Column(IsIdentity = true)]
 		//public long Id { get; set; }

@@ -41,15 +41,39 @@ namespace base_entity
             var fsql = new FreeSql.FreeSqlBuilder()
                 .UseAutoSyncStructure(true)
                 .UseNoneCommandParameter(true)
+
                 .UseConnectionString(FreeSql.DataType.Sqlite, "data source=test.db;max pool size=5")
+
                 //.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=2")
-                .UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3")
+
+                //.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3")
+
+                //.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=2")
+                //.UseNameConvert(FreeSql.Internal.NameConvertType.ToLower)
+
+                //.UseConnectionString(FreeSql.DataType.Oracle, "user id=user1;password=123456;data source=//127.0.0.1:1521/XE;Pooling=true;Max Pool Size=2")
+                //.UseNameConvert(FreeSql.Internal.NameConvertType.ToUpper)
+
+
+                //.UseConnectionString(FreeSql.DataType.OdbcMySql, "Driver={MySQL ODBC 8.0 Unicode Driver};Server=127.0.0.1;Persist Security Info=False;Trusted_Connection=Yes;UID=root;PWD=root;DATABASE=cccddd_odbc;Charset=utf8;SslMode=none;Max pool size=2")
+
+                //.UseConnectionString(FreeSql.DataType.OdbcSqlServer, "Driver={SQL Server};Server=.;Persist Security Info=False;Trusted_Connection=Yes;Integrated Security=True;DATABASE=freesqlTest_odbc;Pooling=true;Max pool size=3")
+
+                //.UseConnectionString(FreeSql.DataType.OdbcPostgreSQL, "Driver={PostgreSQL Unicode(x64)};Server=192.168.164.10;Port=5432;UID=postgres;PWD=123456;Database=tedb_odbc;Pooling=true;Maximum Pool Size=2")
+                //.UseNameConvert(FreeSql.Internal.NameConvertType.ToLower)
+
+                //.UseConnectionString(FreeSql.DataType.OdbcOracle, "Driver={Oracle in XE};Server=//127.0.0.1:1521/XE;Persist Security Info=False;Trusted_Connection=Yes;UID=odbc1;PWD=123456")
+                //.UseNameConvert(FreeSql.Internal.NameConvertType.ToUpper)
+
+                .UseConnectionString(FreeSql.DataType.OdbcDameng, "Driver={DM8 ODBC DRIVER};Server=127.0.0.1:5236;Persist Security Info=False;Trusted_Connection=Yes;UID=USER1;PWD=123456789")
+
                 .UseLazyLoading(true)
                 .Build();
             BaseEntity.Initialization(fsql);
             #endregion
 
             var test01 = EMSServerModel.Model.User.Select.IncludeMany(a => a.Roles).ToList();
+            var test02 = EMSServerModel.Model.UserRole.Select.ToList();
             var test01tb = EMSServerModel.Model.User.Orm.CodeFirst.GetTableByEntity(typeof(EMSServerModel.Model.User));
 
             var us = User1.Select.Limit(10).ToList();

@@ -165,6 +165,8 @@ namespace FreeSql.Odbc.Oracle
                             if (string.IsNullOrEmpty(tbcol.Comment) == false)
                                 sb.Append("execute immediate 'COMMENT ON COLUMN ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}.{tbcol.Attribute.Name}")).Append(" IS ").Append(_commonUtils.FormatSql("{0}", tbcol.Comment).Replace("'", "''")).Append("';\r\n");
                         }
+                        if (string.IsNullOrEmpty(tb.Comment) == false)
+                            sb.Append("execute immediate 'COMMENT ON TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" IS ").Append(_commonUtils.FormatSql("{0}", tb.Comment).Replace("'", "''")).Append("';\r\n");
                         continue;
                     }
                     //如果新表，旧表在一个模式下，直接修改表名
@@ -189,8 +191,8 @@ a.data_precision,
 a.data_scale,
 a.char_used,
 case when a.nullable = 'N' then 0 else 1 end,
-nvl((select 1 from user_sequences where sequence_name='{Utils.GetCsName((tboldname ?? tbname).Last())}_seq_'||a.column_name), 0),
-nvl((select 1 from user_triggers where trigger_name='{Utils.GetCsName((tboldname ?? tbname).Last())}_seq_'||a.column_name||'TI'), 0),
+nvl((select 1 from user_sequences where upper(sequence_name)=upper('{Utils.GetCsName((tboldname ?? tbname).Last())}_seq_'||a.column_name) and rownum < 2), 0),
+nvl((select 1 from user_triggers where upper(trigger_name)=upper('{Utils.GetCsName((tboldname ?? tbname).Last())}_seq_'||a.column_name||'TI') and rownum < 2), 0),
 b.comments
 from all_tab_columns a
 left join all_col_comments b on b.owner = a.owner and b.table_name = a.table_name and b.column_name = a.column_name
@@ -219,7 +221,12 @@ where a.owner={{0}} and a.table_name={{1}}", tboldname ?? tbname);
                         {
                             var isCommentChanged = tbstructcol.comment != (tbcol.Comment ?? "");
                             if (tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.CurrentCultureIgnoreCase) == false)
+                            {
                                 istmpatler = true;
+                                if (tbcol.Attribute.DbType.StartsWith("varchar", StringComparison.CurrentCultureIgnoreCase) && tbstructcol.sqlType.StartsWith("varchar2", StringComparison.CurrentCultureIgnoreCase)
+                                    && Regex.Match(tbcol.Attribute.DbType, @"\(\d+").Groups[0].Value == Regex.Match(tbstructcol.sqlType, @"\(\d+").Groups[0].Value)
+                                    istmpatler = false;
+                            }
                             //sbalter.Append("execute immediate 'ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" MODIFY (").Append(_commonUtils.QuoteSqlName(tbstructcol.column)).Append(" ").Append(dbtypeNoneNotNull).Append(")';\r\n");
                             if (tbcol.Attribute.IsNullable != tbstructcol.is_nullable)
                             {
@@ -290,6 +297,10 @@ and not exists(select 1 from all_constraints where constraint_name = a.index_nam
                 }
                 if (istmpatler == false)
                 {
+                    var dbcomment = string.Concat(_orm.Ado.ExecuteScalar(CommandType.Text, _commonUtils.FormatSql(@" select comments from all_tab_comments where owner = {0} and table_name = {1} and table_type = 'TABLE'", tbname[0], tbname[1])));
+                    if (dbcomment != (tb.Comment ?? ""))
+                        sb.Append("execute immediate 'COMMENT ON TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" IS ").Append(_commonUtils.FormatSql("{0}", tb.Comment).Replace("'", "''")).Append("';\r\n");
+
                     sb.Append(sbalter);
                     continue;
                 }
@@ -322,6 +333,9 @@ and not exists(select 1 from all_constraints where constraint_name = a.index_nam
                     if (string.IsNullOrEmpty(tbcol.Comment) == false)
                         sb.Append("execute immediate 'COMMENT ON COLUMN ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.FTmp_{tbname[1]}.{tbcol.Attribute.Name}")).Append(" IS ").Append(_commonUtils.FormatSql("{0}", tbcol.Comment).Replace("'", "''")).Append("';\r\n");
                 }
+                if (string.IsNullOrEmpty(tb.Comment) == false)
+                    sb.Append("execute immediate 'COMMENT ON TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.FTmp_{tbname[1]}")).Append(" IS ").Append(_commonUtils.FormatSql("{0}", tb.Comment).Replace("'", "''")).Append("';\r\n");
+
                 sb.Append("execute immediate 'INSERT INTO ").Append(tmptablename).Append(" (");
                 foreach (var tbcol in tb.ColumnsByPosition)
                     sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
@@ -398,7 +412,7 @@ and not exists(select 1 from all_constraints where constraint_name = a.index_nam
             foreach (var seqcol in seqcols)
             {
                 var tbname = seqcol.Item2;
-                var seqname = Utils.GetCsName($"{tbname[1]}_seq_{seqcol.Item1.Attribute.Name}");
+                var seqname = Utils.GetCsName($"{tbname[1]}_seq_{seqcol.Item1.Attribute.Name}").ToUpper();
                 var tiggerName = seqname + "TI";
                 var tbname2 = _commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}");
                 var colname2 = _commonUtils.QuoteSqlName(seqcol.Item1.Attribute.Name);
@@ -438,6 +452,12 @@ and not exists(select 1 from all_constraints where constraint_name = a.index_nam
             {
             }
             else if (sqlType.StartsWith("BLOB"))
+            {
+            }
+            else if (sqlType.StartsWith("CLOB"))
+            {
+            }
+            else if (sqlType.StartsWith("NCLOB"))
             {
             }
             else if (char_used.ToLower() == "c")

@@ -70,6 +70,35 @@ namespace FreeSql.SqlServer
             return null;
         }
 
+        void AddOrUpdateMS_Description(StringBuilder sb, string schema, string table, string comment)
+        {
+            if (string.IsNullOrEmpty(comment))
+            {
+                sb.AppendFormat(@"
+IF ((SELECT COUNT(1) from fn_listextendedproperty('MS_Description', 
+  'SCHEMA', N'{0}', 
+  'TABLE', N'{1}', 
+  NULL, NULL)) > 0) 
+  EXEC sp_dropextendedproperty @name = N'MS_Description'
+    , @level0type = 'SCHEMA', @level0name = N'{0}'
+    , @level1type = 'TABLE', @level1name = N'{1}'
+", schema.Replace("'", "''"), table.Replace("'", "''"));
+                return;
+            }
+            sb.AppendFormat(@"
+IF ((SELECT COUNT(1) from fn_listextendedproperty('MS_Description', 
+  'SCHEMA', N'{0}', 
+  'TABLE', N'{1}', 
+  NULL, NULL)) > 0) 
+  EXEC sp_updateextendedproperty @name = N'MS_Description', @value = N'{2}'
+    , @level0type = 'SCHEMA', @level0name = N'{0}'
+    , @level1type = 'TABLE', @level1name = N'{1}'
+ELSE
+  EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'{2}'
+    , @level0type = 'SCHEMA', @level0name = N'{0}'
+    , @level1type = 'TABLE', @level1name = N'{1}'
+", schema.Replace("'", "''"), table.Replace("'", "''"), comment?.Replace("'", "''") ?? "");
+        }
         void AddOrUpdateMS_Description(StringBuilder sb, string schema, string table, string column, string comment)
         {
             if (string.IsNullOrEmpty(comment))
@@ -215,6 +244,8 @@ ELSE
                                 if (string.IsNullOrEmpty(tbcol.Comment) == false)
                                     AddOrUpdateMS_Description(sb, tbname[1], tbname[2], tbcol.Attribute.Name, tbcol.Comment);
                             }
+                            if (string.IsNullOrEmpty(tb.Comment) == false)
+                                AddOrUpdateMS_Description(sb, tbname[1], tbname[2], tb.Comment);
                             continue;
                         }
                         //如果新表，旧表在一个数据库和模式下，直接修改表名
@@ -326,6 +357,10 @@ use [" + database + "];", tboldname ?? tbname);
                     }
                     if (istmpatler == false)
                     {
+                        var dbcomment = string.Concat(_orm.Ado.ExecuteScalar(CommandType.Text, $" SELECT value from fn_listextendedproperty('MS_Description', 'schema', N'{tbname[1].Replace("'", "''")}', 'table', N'{tbname[2].Replace("'", "''")}', NULL, NULL)"));
+                        if (dbcomment != (tb.Comment ?? ""))
+                            AddOrUpdateMS_Description(sb, tbname[1], tbname[2], tb.Comment);
+
                         if (sbalter.Length > 0)
                             sb.Append(sbalter).Append("\r\nuse " + database);
                         continue;
@@ -372,6 +407,9 @@ use [" + database + "];", tboldname ?? tbname);
                         if (string.IsNullOrEmpty(tbcol.Comment) == false)
                             AddOrUpdateMS_Description(sb, tbname[1], $"FreeSqlTmp_{tbname[2]}", tbcol.Attribute.Name, tbcol.Comment);
                     }
+                    if (string.IsNullOrEmpty(tb.Comment) == false)
+                        AddOrUpdateMS_Description(sb, tbname[1], $"FreeSqlTmp_{tbname[2]}", tb.Comment);
+
                     if ((_commonUtils as SqlServerUtils).ServerVersion > 9) //SqlServer 2008+
                         sb.Append("ALTER TABLE ").Append(tmptablename).Append(" SET (LOCK_ESCALATION = TABLE);\r\n");
                     if (idents) sb.Append("SET IDENTITY_INSERT ").Append(tmptablename).Append(" ON;\r\n");

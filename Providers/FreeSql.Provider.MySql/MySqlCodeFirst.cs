@@ -158,7 +158,10 @@ namespace FreeSql.MySql
                                 sb.Remove(sb.Length - 2, 2).Append("),");
                             }
                             sb.Remove(sb.Length - 1, 1);
-                            sb.Append("\r\n) Engine=InnoDB;\r\n");
+                            sb.Append("\r\n) Engine=InnoDB");
+                            if (string.IsNullOrEmpty(tb.Comment) == false)
+                                sb.Append(" Comment=").Append(_commonUtils.FormatSql("{0}", tb.Comment));
+                            sb.Append(";\r\n");
                             //创建表的索引
                             foreach (var uk in tb.Indexes)
                             {
@@ -291,6 +294,10 @@ where a.table_schema IN ({0}) and a.table_name IN ({1}) and a.index_name <> 'PRI
                     }
                     if (istmpatler == false)
                     {
+                        var dbcomment = string.Concat(_orm.Ado.ExecuteScalar(CommandType.Text, _commonUtils.FormatSql(@" select table_comment from information_schema.tables where table_schema = {0} and table_name = {1}", tbname[0], tbname[1])));
+                        if (dbcomment != (tb.Comment ?? ""))
+                            sb.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName(tbname[0], tbname[1])).Append(" COMMENT ").Append(" ").Append(_commonUtils.FormatSql("{0}", tb.Comment ?? "")).Append(";\r\n");
+
                         sb.Append(sbalter);
                         continue;
                     }
@@ -314,7 +321,11 @@ where a.table_schema IN ({0}) and a.table_name IN ({1}) and a.index_name <> 'PRI
                         sb.Remove(sb.Length - 2, 2).Append("),");
                     }
                     sb.Remove(sb.Length - 1, 1);
-                    sb.Append("\r\n) Engine=InnoDB;\r\n");
+                    sb.Append("\r\n) Engine=InnoDB");
+                    if (string.IsNullOrEmpty(tb.Comment) == false)
+                        sb.Append(" Comment=").Append(_commonUtils.FormatSql("{0}", tb.Comment));
+                    sb.Append(";\r\n");
+
                     sb.Append("INSERT INTO ").Append(tmptablename).Append(" (");
                     foreach (var tbcol in tb.ColumnsByPosition)
                         sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");

@@ -400,11 +400,19 @@ namespace FreeSql.Internal
                 }
                 var xmlNav = xpath.CreateNavigator();
 
+                var className = (type.IsNested ? $"{type.Namespace}.{type.DeclaringType.Name}.{type.Name}" : $"{type.Namespace}.{type.Name}").Trim('.');
+                var node = xmlNav.SelectSingleNode($"/doc/members/member[@name='T:{className}']/summary");
+                if (node != null)
+                {
+                    var comment = node.InnerXml.Trim(' ', '\r', '\n', '\t');
+                    if (string.IsNullOrEmpty(comment) == false) dic.Add("", comment); //class注释
+                }
+
                 var props = type.GetPropertiesDictIgnoreCase().Values;
                 foreach (var prop in props)
                 {
-                    var className = (prop.DeclaringType.IsNested ? $"{prop.DeclaringType.Namespace}.{prop.DeclaringType.DeclaringType.Name}.{prop.DeclaringType.Name}" : $"{prop.DeclaringType.Namespace}.{prop.DeclaringType.Name}").Trim('.');
-                    var node = xmlNav.SelectSingleNode($"/doc/members/member[@name='P:{className}.{prop.Name}']/summary");
+                    className = (prop.DeclaringType.IsNested ? $"{prop.DeclaringType.Namespace}.{prop.DeclaringType.DeclaringType.Name}.{prop.DeclaringType.Name}" : $"{prop.DeclaringType.Namespace}.{prop.DeclaringType.Name}").Trim('.');
+                    node = xmlNav.SelectSingleNode($"/doc/members/member[@name='P:{className}.{prop.Name}']/summary");
                     if (node == null) continue;
                     var comment = node.InnerXml.Trim(' ', '\r', '\n', '\t');
                     if (string.IsNullOrEmpty(comment)) continue;

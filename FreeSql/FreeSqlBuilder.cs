@@ -83,6 +83,7 @@ namespace FreeSql
         /// </summary>
         /// <param name="value">true:转小写, false:不转</param>
         /// <returns></returns>
+        [Obsolete("请使用 UseNameConvert(NameConvertType.ToLower)，或者 fsql.CodeFirst.IsSyncStructureToLower = value")]
         public FreeSqlBuilder UseSyncStructureToLower(bool value)
         {
             _isSyncStructureToLower = value;
@@ -93,6 +94,7 @@ namespace FreeSql
         /// </summary>
         /// <param name="value">true:转大写, false:不转</param>
         /// <returns></returns>
+        [Obsolete("请使用 UseNameConvert(NameConvertType.ToUpper)，或者 fsql.CodeFirst.IsSyncStructureToUpper = value")]
         public FreeSqlBuilder UseSyncStructureToUpper(bool value)
         {
             _isSyncStructureToUpper = value;
