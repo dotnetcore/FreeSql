@@ -489,7 +489,9 @@ namespace FreeSql.Internal
             var right = ExpressionLambdaToSql(rightExp, tsc);
             if (right != "NULL" && isLeftMapType && 
                 //判断参数化后的bug
-                !(right.Contains('@') || right.Contains('?') || right.Contains(':')))
+                !(right.Contains('@') || right.Contains('?') || right.Contains(':')) &&
+                //三元表达式后，取消此条件 #184
+                tsc.mapType != null)
             {
                 var enumType = leftMapColumn.CsType.NullableTypeOrThis();
                 if (enumType.IsEnum)
@@ -505,7 +507,9 @@ namespace FreeSql.Internal
                     left = ExpressionLambdaToSql(leftExp, tsc);
                     if (left != "NULL" && isRightMapType &&
                         //判断参数化后的bug
-                        !(left.Contains('@') || left.Contains('?') || left.Contains(':')))
+                        !(left.Contains('@') || left.Contains('?') || left.Contains(':')) &&
+                        //三元表达式后，取消此条件 #184
+                        tsc.mapType != null)
                     {
                         var enumType = rightMapColumn.CsType.NullableTypeOrThis();
                         if (enumType.IsEnum)
@@ -598,7 +602,12 @@ namespace FreeSql.Internal
                 case ExpressionType.Constant: return formatSql((exp as ConstantExpression)?.Value, tsc.mapType, tsc.mapColumnTmp, null);
                 case ExpressionType.Conditional:
                     var condExp = exp as ConditionalExpression;
-                    return _common.IIF(ExpressionLambdaToSql(condExp.Test, tsc), ExpressionLambdaToSql(condExp.IfTrue, tsc), ExpressionLambdaToSql(condExp.IfFalse, tsc));
+                    var conditionalTestOldMapType = tsc.SetMapTypeReturnOld(null);
+                    var conditionalTestSql = ExpressionLambdaToSql(condExp.Test, tsc);
+                    tsc.SetMapTypeReturnOld(conditionalTestOldMapType);
+                    var conditionalSql = _common.IIF(conditionalTestSql, ExpressionLambdaToSql(condExp.IfTrue, tsc), ExpressionLambdaToSql(condExp.IfFalse, tsc));
+                    tsc.SetMapTypeReturnOld(null);
+                    return conditionalSql;
                 case ExpressionType.Call:
                     tsc.mapType = null;
                     var exp3 = exp as MethodCallExpression;

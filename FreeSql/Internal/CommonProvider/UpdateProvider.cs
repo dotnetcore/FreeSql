@@ -406,8 +406,7 @@ namespace FreeSql.Internal.CommonProvider
             {
                 case ExpressionType.Equal:
                     var equalBinaryExp = body as BinaryExpression;
-                    _set.Append(", ").Append(_commonExpression.ExpressionWhereLambdaNoneForeignObject(null, _table, null, equalBinaryExp.Left, null, null))
-                        .Append(" = ").Append(_commonExpression.ExpressionWhereLambdaNoneForeignObject(null, _table, null, equalBinaryExp.Right, null, null));
+                    _set.Append(", ").Append(_commonExpression.ExpressionWhereLambdaNoneForeignObject(null, _table, null, body, null, null));
                     return this;
                 case ExpressionType.MemberInit:
                     var initExp = body as MemberInitExpression;

@@ -3,6 +3,7 @@ using FreeSql.Internal.Model;
 using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Data.Common;
 
 namespace FreeSql.MySql
@@ -44,12 +45,11 @@ namespace FreeSql.MySql
             {
                 ret.MySqlDbType = dbtype;
                 if (ret.MySqlDbType == MySqlDbType.Enum && value != null)
-                    ret.Value = (long)Convert.ChangeType(value, typeof(long)) + 1;
+                    ret.Value = EnumValueToMySql(col, value);
             }
             _params?.Add(ret);
             return ret;
         }
-
         public override DbParameter[] GetDbParamtersByObject(string sql, object obj) =>
             Utils.GetDbParamtersByObject<MySqlParameter>(sql, obj, "@", (name, type, value) =>
             {
@@ -66,11 +66,26 @@ namespace FreeSql.MySql
                     {
                         ret.MySqlDbType = (MySqlDbType)tp.Value;
                         if (ret.MySqlDbType == MySqlDbType.Enum && value != null)
-                            ret.Value = (long)Convert.ChangeType(value, typeof(long)) + 1;
+                            ret.Value = EnumValueToMySql(null, value);
                     }
                 }
                 return ret;
             });
+
+        static ConcurrentDictionary<Type, Dictionary<string, int>> _dicEnumNames = new ConcurrentDictionary<Type, Dictionary<string, int>>();
+        static long EnumValueToMySql(ColumnInfo col, object value) //mysqlConnector 不支持 enumString 作为参数化传递，所以要计算出下标值，mysql 下标从 1 开始，并且 c# 设置了枚举元素值会影响下标
+        {
+            if (value == null) return 0;
+            if (value is Enum == false) return 0;
+            var names = _dicEnumNames.GetOrAdd(col?.Attribute.MapType ?? value.GetType(), type =>
+            {
+                var dic = new Dictionary<string, int>();
+                var ns = Enum.GetNames(type);
+                for (var a = 0; a < ns.Length; a++) dic.Add(ns[a], a + 1);
+                return dic;
+            });
+            return names.TryGetValue(value.ToString(), out var tryval) ? tryval : 0;
+        }
 
         public override string FormatSql(string sql, params object[] args) => sql?.FormatMySql(args);
         public override string QuoteSqlName(params string[] name)

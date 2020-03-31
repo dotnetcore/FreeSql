@@ -161,6 +161,134 @@ namespace FreeSql.Tests.MySql
             g.mysql.Update<TestEnumUpdateTb>().NoneParameter().Where(a => a.id == id).Set(a => a.type, TestEnumUpdateTbType.str1).ExecuteAffrows();
             Assert.Equal(TestEnumUpdateTbType.str1, g.mysql.Select<TestEnumUpdateTb>().Where(a => a.id == id).First()?.type);
         }
+        public class tenumcls
+        {
+            public Guid id { get; set; }
+            public tenum status { get; set; }
+        }
+        public enum tenum
+        {
+            WaitPay = 1,
+            Pay = 3,
+            Finsh = 8,
+            Cacel = 16,
+            Refunding = 32
+        }
+        [Fact]
+        public void SetEnum()
+        {
+            var fsql = g.mysql;
+            //#184
+            fsql.Delete<tenumcls>(Guid.Parse("5e83a910-672f-847c-00c1-316b71d153fb")).ExecuteAffrows();
+            var item = new tenumcls { id = Guid.Parse("5e83a910-672f-847c-00c1-316b71d153fb"), status = tenum.Finsh };
+            Assert.Equal("INSERT INTO `tenumcls`(`id`, `status`) VALUES('5e83a910-672f-847c-00c1-316b71d153fb', 'Finsh')",
+                fsql.Insert<tenumcls>().NoneParameter().AppendData(item).ToSql());
+            Assert.Equal(1, fsql.Insert<tenumcls>().NoneParameter().AppendData(item).ExecuteAffrows());
+            var item2 = fsql.Select<tenumcls>().Where(a => a.id == item.id).First();
+            Assert.Equal(item.id, item2.id);
+            Assert.Equal(tenum.Finsh, item2.status);
+
+            Assert.Equal(@"UPDATE `tenumcls` SET `status` = case when `id` = '5e83a910-672f-847c-00c1-316b71d153fb' then 'Pay' else 'Refunding' end 
+WHERE (`id` = '5e83a910-672f-847c-00c1-316b71d153fb')",
+                fsql.Update<tenumcls>(item).NoneParameter().Set(a => a.status == (a.id == item.id ? tenum.Pay : tenum.Refunding)).ToSql());
+            Assert.Equal(1, fsql.Update<tenumcls>(item).NoneParameter().Set(a => a.status == (a.id == item.id ? tenum.Pay : tenum.Refunding)).ExecuteAffrows());
+            item2 = fsql.Select<tenumcls>().Where(a => a.id == item.id).First();
+            Assert.Equal(item.id, item2.id);
+            Assert.Equal(tenum.Pay, item2.status);
+
+            Assert.Equal(@"UPDATE `tenumcls` SET `status` = 'Finsh' 
+WHERE (`id` = '5e83a910-672f-847c-00c1-316b71d153fb')",
+                fsql.Update<tenumcls>(item).NoneParameter().Set(a => a.status == tenum.Finsh).ToSql());
+            Assert.Equal(1, fsql.Update<tenumcls>(item).NoneParameter().Set(a => a.status == tenum.Finsh).ExecuteAffrows());
+            item2 = fsql.Select<tenumcls>().Where(a => a.id == item.id).First();
+            Assert.Equal(item.id, item2.id);
+            Assert.Equal(tenum.Finsh, item2.status);
+
+            Assert.Equal(@"UPDATE `tenumcls` SET `status` = 'Pay' 
+WHERE (`id` = '5e83a910-672f-847c-00c1-316b71d153fb')",
+    fsql.Update<tenumcls>(item).NoneParameter().Set(a => a.status == tenum.Pay).ToSql());
+            Assert.Equal(1, fsql.Update<tenumcls>(item).NoneParameter().Set(a => a.status == tenum.Pay).ExecuteAffrows());
+            item2 = fsql.Select<tenumcls>().Where(a => a.id == item.id).First();
+            Assert.Equal(item.id, item2.id);
+            Assert.Equal(tenum.Pay, item2.status);
+
+            Assert.Equal(@"UPDATE `tenumcls` SET `status` = 'Finsh' 
+WHERE (`id` = '5e83a910-672f-847c-00c1-316b71d153fb')",
+                fsql.Update<tenumcls>(item).NoneParameter().Set(a => a.status, tenum.Finsh).ToSql());
+            Assert.Equal(1, fsql.Update<tenumcls>(item).NoneParameter().Set(a => a.status, tenum.Finsh).ExecuteAffrows());
+            item2 = fsql.Select<tenumcls>().Where(a => a.id == item.id).First();
+            Assert.Equal(item.id, item2.id);
+            Assert.Equal(tenum.Finsh, item2.status);
+
+            Assert.Equal(@"UPDATE `tenumcls` SET `status` = 'Pay' 
+WHERE (`id` = '5e83a910-672f-847c-00c1-316b71d153fb')",
+    fsql.Update<tenumcls>(item).NoneParameter().Set(a => a.status, tenum.Pay).ToSql());
+            Assert.Equal(1, fsql.Update<tenumcls>(item).NoneParameter().Set(a => a.status, tenum.Pay).ExecuteAffrows());
+
+            Assert.Equal(@"SELECT a.`id`, a.`status` 
+FROM `tenumcls` a 
+WHERE (a.`id` = '5e83a910-672f-847c-00c1-316b71d153fb' AND a.`status` = case when a.`id` = '5e83a910-672f-847c-00c1-316b71d153fb' then 'Pay' else 'Refunding' end) 
+limit 0,1", fsql.Select<tenumcls>().Where(a => a.id == item.id && a.status == (a.id == item.id ? tenum.Pay : tenum.Refunding)).Limit(1).ToSql());
+            item2 = fsql.Select<tenumcls>().Where(a => a.id == item.id && a.status == (a.id == item.id ? tenum.Pay : tenum.Refunding)).First();
+            Assert.Equal(item.id, item2.id);
+            Assert.Equal(tenum.Pay, item2.status);
+
+            //Parameter
+            fsql.Delete<tenumcls>(Guid.Parse("5e83a910-672f-847c-00c1-316b71d153fb")).ExecuteAffrows();
+            item = new tenumcls { id = Guid.Parse("5e83a910-672f-847c-00c1-316b71d153fb"), status = tenum.Finsh };
+            Assert.Equal("INSERT INTO `tenumcls`(`id`, `status`) VALUES(?id_0, ?status_0)",
+                fsql.Insert<tenumcls>().AppendData(item).ToSql());
+            Assert.Equal(1, fsql.Insert<tenumcls>().AppendData(item).ExecuteAffrows());
+            item2 = fsql.Select<tenumcls>().Where(a => a.id == item.id).First();
+            Assert.Equal(item.id, item2.id);
+            Assert.Equal(tenum.Finsh, item2.status);
+
+            Assert.Equal(@"UPDATE `tenumcls` SET `status` = case when `id` = '5e83a910-672f-847c-00c1-316b71d153fb' then 'Pay' else 'Refunding' end 
+WHERE (`id` = '5e83a910-672f-847c-00c1-316b71d153fb')",
+                fsql.Update<tenumcls>(item).Set(a => a.status == (a.id == item.id ? tenum.Pay : tenum.Refunding)).ToSql());
+            Assert.Equal(1, fsql.Update<tenumcls>(item).Set(a => a.status == (a.id == item.id ? tenum.Pay : tenum.Refunding)).ExecuteAffrows());
+            item2 = fsql.Select<tenumcls>().Where(a => a.id == item.id).First();
+            Assert.Equal(item.id, item2.id);
+            Assert.Equal(tenum.Pay, item2.status);
+
+            Assert.Equal(@"UPDATE `tenumcls` SET `status` = 'Finsh' 
+WHERE (`id` = '5e83a910-672f-847c-00c1-316b71d153fb')",
+                fsql.Update<tenumcls>(item).Set(a => a.status == tenum.Finsh).ToSql());
+            Assert.Equal(1, fsql.Update<tenumcls>(item).Set(a => a.status == tenum.Finsh).ExecuteAffrows());
+            item2 = fsql.Select<tenumcls>().Where(a => a.id == item.id).First();
+            Assert.Equal(item.id, item2.id);
+            Assert.Equal(tenum.Finsh, item2.status);
+
+            Assert.Equal(@"UPDATE `tenumcls` SET `status` = 'Pay' 
+WHERE (`id` = '5e83a910-672f-847c-00c1-316b71d153fb')",
+    fsql.Update<tenumcls>(item).Set(a => a.status == tenum.Pay).ToSql());
+            Assert.Equal(1, fsql.Update<tenumcls>(item).Set(a => a.status == tenum.Pay).ExecuteAffrows());
+            item2 = fsql.Select<tenumcls>().Where(a => a.id == item.id).First();
+            Assert.Equal(item.id, item2.id);
+            Assert.Equal(tenum.Pay, item2.status);
+
+            Assert.Equal(@"UPDATE `tenumcls` SET `status` = ?p_0 
+WHERE (`id` = '5e83a910-672f-847c-00c1-316b71d153fb')",
+                fsql.Update<tenumcls>(item).Set(a => a.status, tenum.Finsh).ToSql());
+            Assert.Equal(1, fsql.Update<tenumcls>(item).Set(a => a.status, tenum.Finsh).ExecuteAffrows());
+            item2 = fsql.Select<tenumcls>().Where(a => a.id == item.id).First();
+            Assert.Equal(item.id, item2.id);
+            Assert.Equal(tenum.Finsh, item2.status);
+
+            Assert.Equal(@"UPDATE `tenumcls` SET `status` = ?p_0 
+WHERE (`id` = '5e83a910-672f-847c-00c1-316b71d153fb')",
+    fsql.Update<tenumcls>(item).Set(a => a.status, tenum.Pay).ToSql());
+            Assert.Equal(1, fsql.Update<tenumcls>(item).Set(a => a.status, tenum.Pay).ExecuteAffrows());
+
+            Assert.Equal(@"SELECT a.`id`, a.`status` 
+FROM `tenumcls` a 
+WHERE (a.`id` = '5e83a910-672f-847c-00c1-316b71d153fb' AND a.`status` = case when a.`id` = '5e83a910-672f-847c-00c1-316b71d153fb' then 'Pay' else 'Refunding' end) 
+limit 0,1", fsql.Select<tenumcls>().Where(a => a.id == item.id && a.status == (a.id == item.id ? tenum.Pay : tenum.Refunding)).Limit(1).ToSql());
+            item2 = fsql.Select<tenumcls>().Where(a => a.id == item.id && a.status == (a.id == item.id ? tenum.Pay : tenum.Refunding)).First();
+            Assert.Equal(item.id, item2.id);
+            Assert.Equal(tenum.Pay, item2.status);
+        }
+
         [Fact]
         public void SetRaw()
         {
