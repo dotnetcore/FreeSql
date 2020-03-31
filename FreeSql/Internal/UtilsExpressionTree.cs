@@ -69,7 +69,7 @@ namespace FreeSql.Internal
             var propsLazy = new List<NaviteTuple<PropertyInfo, bool, bool, MethodInfo, MethodInfo>>();
             var propsNavObjs = new List<PropertyInfo>();
             var propsComment = CommonUtils.GetProperyCommentBySummary(entity);
-            trytb.Comment = propsComment.TryGetValue("", out var tbcomment) ? tbcomment : "";
+            trytb.Comment = propsComment != null && propsComment.TryGetValue("", out var tbcomment) ? tbcomment : "";
             var columnsList = new List<ColumnInfo>();
             foreach (var p in trytb.Properties.Values)
             {
