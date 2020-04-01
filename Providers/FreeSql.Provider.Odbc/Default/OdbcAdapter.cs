@@ -105,7 +105,7 @@ namespace FreeSql.Odbc.Default
         public virtual string LambdaString_ToLower(string operand) => $"lower({operand})";
         public virtual string LambdaString_ToUpper(string operand) => $"upper({operand})";
         public virtual string LambdaString_Substring(string operand, string startIndex, string length) => string.IsNullOrEmpty(length) ? $"left({operand}, {startIndex})" : $"substring({operand}, {startIndex}, {length})";
-        public virtual string LambdaString_IndexOf(string operand, string value, string startIndex) => string.IsNullOrEmpty(startIndex) ? $"(charindex({operand}, {value})-1)" : $"(charindex({operand}, {value}, {startIndex})-1)";
+        public virtual string LambdaString_IndexOf(string operand, string value, string startIndex) => string.IsNullOrEmpty(startIndex) ? $"(charindex({value}, {operand})-1)" : $"(charindex({value}, {operand}, {startIndex})-1)";
         public virtual string LambdaString_PadLeft(string operand, string length, string paddingChar) => string.IsNullOrEmpty(paddingChar) ? $"lpad({operand}, {length})" : $"lpad({operand}, {length}, {paddingChar})";
         public virtual string LambdaString_PadRight(string operand, string length, string paddingChar) => string.IsNullOrEmpty(paddingChar) ? $"rpad({operand}, {length})" : $"rpad({operand}, {length}, {paddingChar})";
         public virtual string LambdaString_Trim(string operand) => $"ltrim(rtrim({operand}))";

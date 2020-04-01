@@ -282,9 +282,9 @@ namespace FreeSql.Odbc.SqlServer
                             var locateArgs1 = getExp(exp.Arguments[1]);
                             if (long.TryParse(locateArgs1, out var testtrylng2)) locateArgs1 = (testtrylng2 + 1).ToString();
                             else locateArgs1 += "+1";
-                            return $"(charindex({left}, {indexOfFindStr}, {locateArgs1})-1)";
+                            return $"(charindex({indexOfFindStr}, {left}, {locateArgs1})-1)";
                         }
-                        return $"(charindex({left}, {indexOfFindStr})-1)";
+                        return $"(charindex({indexOfFindStr}, {left})-1)";
                     case "PadLeft":
                         if (exp.Arguments.Count == 1) return $"lpad({left}, {getExp(exp.Arguments[0])})";
                         return $"lpad({left}, {getExp(exp.Arguments[0])}, {getExp(exp.Arguments[1])})";
