@@ -11,6 +11,11 @@ namespace FreeSql
     public abstract partial class DbContext : IDisposable
     {
         internal IFreeSql _ormPriv;
+
+        /// <summary>
+        /// 注意：IFreeSql 属于顶级对象，事务无法自动传递。<para></para>
+        /// 手工传递事务：ISelect/IInsert/IDelete/IUpdate 可以使用 WithTransaction(uow.GetOrBeginTransaction())
+        /// </summary>
         public IFreeSql Orm => _ormPriv ?? throw new ArgumentNullException("请在 OnConfiguring 或 AddFreeDbContext 中配置 UseFreeSql");
 
         #region Property UnitOfWork
