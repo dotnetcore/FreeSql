@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
 using System.Reflection;
@@ -7,7 +8,7 @@ using FreeSql.Internal;
 
 namespace FreeSql
 {
-    public class FreeSqlBuilder
+    public partial class FreeSqlBuilder
     {
         DataType _dataType;
         string _masterConnectionString;
@@ -79,28 +80,6 @@ namespace FreeSql
             return this;
         }
         /// <summary>
-        /// 转小写同步结构
-        /// </summary>
-        /// <param name="value">true:转小写, false:不转</param>
-        /// <returns></returns>
-        [Obsolete("请使用 UseNameConvert(NameConvertType.ToLower)，或者 fsql.CodeFirst.IsSyncStructureToLower = value")]
-        public FreeSqlBuilder UseSyncStructureToLower(bool value)
-        {
-            _isSyncStructureToLower = value;
-            return this;
-        }
-        /// <summary>
-        /// 转大写同步结构
-        /// </summary>
-        /// <param name="value">true:转大写, false:不转</param>
-        /// <returns></returns>
-        [Obsolete("请使用 UseNameConvert(NameConvertType.ToUpper)，或者 fsql.CodeFirst.IsSyncStructureToUpper = value")]
-        public FreeSqlBuilder UseSyncStructureToUpper(bool value)
-        {
-            _isSyncStructureToUpper = value;
-            return this;
-        }
-        /// <summary>
         /// 将数据库的主键、自增、索引设置导入，适用 DbFirst 模式，无须在实体类型上设置 [Column(IsPrimary)] 或者 ConfigEntity。此功能目前可用于 mysql/sqlserver/postgresql/oracle。<para></para>
         /// 本功能会影响 IFreeSql 首次访问的速度。<para></para>
         /// 若使用 CodeFirst 创建索引后，又直接在数据库上建了索引，若无本功能下一次 CodeFirst 迁移时数据库上创建的索引将被删除
@@ -156,20 +135,6 @@ namespace FreeSql
         {
             _aopCommandExecuting = executing;
             _aopCommandExecuted = executed;
-            return this;
-        }
-
-        /// <summary>
-        /// 自动转换实体属性名称 Entity Property -> Db Filed
-        /// <para></para>
-        /// *不会覆盖 [Column] 特性设置的Name
-        /// </summary>
-        /// <param name="convertType"></param>
-        /// <returns></returns>
-        [Obsolete("请使用 UseNameConvert 功能")]
-        public FreeSqlBuilder UseEntityPropertyNameConvert(StringConvertType convertType)
-        {
-            _entityPropertyConvertType = convertType;
             return this;
         }
 
@@ -276,32 +241,7 @@ namespace FreeSql
                         _aopCommandExecuted?.Invoke(e.Command, e.Log);
                     });
 
-                //添加实体属性名全局AOP转换处理
-                if (_entityPropertyConvertType != StringConvertType.None)
-                {
-                    string PascalCaseToUnderScore(string str) => string.Concat(str.Select((x, i) => i > 0 && char.IsUpper(x) ? "_" + x.ToString() : x.ToString()));
-
-                    switch (_entityPropertyConvertType)
-                    {
-                        case StringConvertType.Lower:
-                            ret.Aop.ConfigEntityProperty += (_, e) => e.ModifyResult.Name = e.Property.Name.ToLower();
-                            break;
-                        case StringConvertType.Upper:
-                            ret.Aop.ConfigEntityProperty += (_, e) => e.ModifyResult.Name = e.Property.Name.ToUpper();
-                            break;
-                        case StringConvertType.PascalCaseToUnderscore:
-                            ret.Aop.ConfigEntityProperty += (_, e) => e.ModifyResult.Name = PascalCaseToUnderScore(e.Property.Name);
-                            break;
-                        case StringConvertType.PascalCaseToUnderscoreWithLower:
-                            ret.Aop.ConfigEntityProperty += (_, e) => e.ModifyResult.Name = PascalCaseToUnderScore(e.Property.Name).ToLower();
-                            break;
-                        case StringConvertType.PascalCaseToUnderscoreWithUpper:
-                            ret.Aop.ConfigEntityProperty += (_, e) => e.ModifyResult.Name = PascalCaseToUnderScore(e.Property.Name).ToUpper();
-                            break;
-                        default:
-                            break;
-                    }
-                }
+                this.EntityPropertyNameConvert(ret);
                 //添加实体属性名全局AOP转换处理
                 if (_nameConvertType != NameConvertType.None)
                 {
@@ -362,9 +302,70 @@ namespace FreeSql
                         }
                     }
                 });
+
+                //SeedData
+                if (_seedData != null && _seedData._data.Any())
+                {
+                    ret.Aop.SyncStructureAfter += new EventHandler<Aop.SyncStructureAfterEventArgs>((s, e) =>
+                    {
+                        if (string.IsNullOrEmpty(e.Sql)) return;
+                        foreach (var et in e.EntityTypes)
+                        {
+                            if (_seedData._data.TryGetValue(et, out var sd) == false) continue;
+                            if (sd.Any() == false) continue;
+                            if (ret.Select<object>().AsType(et).Any()) continue;
+                            ret.Insert<object>()
+                                .AsType(et)
+                                .NoneParameter()
+                                .InsertIdentity()
+                                .AppendData(sd.ToArray())
+                                .ExecuteAffrows();
+                        }
+                    });
+
+                    foreach (var sd in _seedData._data)
+                    {
+                        ret.CodeFirst.SyncStructure(sd.Key);
+                    }
+                }
             }
 
             return ret;
+        }
+
+        public class SeedDataBuilder
+        {
+            internal Dictionary<Type, List<object>> _data = new Dictionary<Type, List<object>>();
+            public SeedDataBuilder Apply<T>(T data) where T : class
+            {
+                if (_data.TryGetValue(typeof(T), out var ds) == false)
+                    _data.Add(typeof(T), ds = new List<object>());
+                ds.Add(data);
+                return this;
+            }
+            public SeedDataBuilder Apply<T>(T[] data) where T : class
+            {
+                return this.Apply(data as IEnumerable<T>);
+            }
+            public SeedDataBuilder Apply<T>(IEnumerable<T> data) where T : class
+            {
+                foreach (var d in data) this.Apply(d);
+                return this;
+            }
+        }
+        SeedDataBuilder _seedData;
+
+        /// <summary>
+        /// CodeFirst 初始化种子数据<para></para>
+        /// 表数据为空时，创建设定的种子数据
+        /// </summary>
+        /// <param name="sd"></param>
+        /// <returns></returns>
+        public FreeSqlBuilder UseSeedData(Action<SeedDataBuilder> sd)
+        {
+            _seedData = new SeedDataBuilder();
+            sd?.Invoke(_seedData);
+            return this;
         }
     }
 }

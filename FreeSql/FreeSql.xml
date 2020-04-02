@@ -690,20 +690,6 @@
             <param name="value">true:运行时检查自动同步结构, false:不同步结构</param>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.FreeSqlBuilder.UseSyncStructureToLower(System.Boolean)">
-            <summary>
-            转小写同步结构
-            </summary>
-            <param name="value">true:转小写, false:不转</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.FreeSqlBuilder.UseSyncStructureToUpper(System.Boolean)">
-            <summary>
-            转大写同步结构
-            </summary>
-            <param name="value">true:转大写, false:不转</param>
-            <returns></returns>
-        </member>
         <member name="M:FreeSql.FreeSqlBuilder.UseConfigEntityFromDbFirst(System.Boolean)">
             <summary>
             将数据库的主键、自增、索引设置导入，适用 DbFirst 模式，无须在实体类型上设置 [Column(IsPrimary)] 或者 ConfigEntity。此功能目前可用于 mysql/sqlserver/postgresql/oracle。<para></para>
@@ -746,19 +732,41 @@
             <param name="executed">执行后，可监视执行性能</param>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.FreeSqlBuilder.UseNameConvert(FreeSql.Internal.NameConvertType)">
+            <summary>
+            实体类名 -> 数据库表名，命名转换（类名、属性名都生效）<para></para>
+            优先级小于 [Table(Name = "xxx")]、[Column(Name = "xxx")]
+            </summary>
+            <param name="convertType"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.FreeSqlBuilder.UseSeedData(System.Action{FreeSql.FreeSqlBuilder.SeedDataBuilder})">
+            <summary>
+            CodeFirst 初始化种子数据<para></para>
+            表数据为空时，创建设定的种子数据
+            </summary>
+            <param name="sd"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.FreeSqlBuilder.UseSyncStructureToLower(System.Boolean)">
+            <summary>
+            转小写同步结构
+            </summary>
+            <param name="value">true:转小写, false:不转</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.FreeSqlBuilder.UseSyncStructureToUpper(System.Boolean)">
+            <summary>
+            转大写同步结构
+            </summary>
+            <param name="value">true:转大写, false:不转</param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.FreeSqlBuilder.UseEntityPropertyNameConvert(FreeSql.Internal.StringConvertType)">
             <summary>
             自动转换实体属性名称 Entity Property -> Db Filed
             <para></para>
             *不会覆盖 [Column] 特性设置的Name
-            </summary>
-            <param name="convertType"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.FreeSqlBuilder.UseNameConvert(FreeSql.Internal.NameConvertType)">
-            <summary>
-            实体类名 -> 数据库表名，命名转换（类名、属性名都生效）<para></para>
-            优先级小于 [Table(Name = "xxx")]、[Column(Name = "xxx")]
             </summary>
             <param name="convertType"></param>
             <returns></returns>
@@ -2309,137 +2317,6 @@
             <param name="parms"></param>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.IAdo.ExecuteReaderAsync(System.Func{System.Data.Common.DbDataReader,System.Threading.Tasks.Task},System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
-            <summary>
-            查询，若使用读写分离，查询【从库】条件cmdText.StartsWith("SELECT ")，否则查询【主库】
-            </summary>
-            <param name="readerHander"></param>
-            <param name="cmdType"></param>
-            <param name="cmdText"></param>
-            <param name="cmdParms"></param>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteReaderAsync(System.Func{System.Data.Common.DbDataReader,System.Threading.Tasks.Task},System.String,System.Object)">
-            <summary>
-            查询，ExecuteReaderAsync(dr => {}, "select * from user where age > ?age", new { age = 25 })
-            </summary>
-            <param name="cmdText"></param>
-            <param name="parms"></param>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteArrayAsync(System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
-            <summary>
-            查询
-            </summary>
-            <param name="cmdText"></param>
-            <param name="cmdParms"></param>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteArrayAsync(System.String,System.Object)">
-            <summary>
-            查询，ExecuteArrayAsync("select * from user where age > ?age", new { age = 25 })
-            </summary>
-            <param name="cmdText"></param>
-            <param name="parms"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteDataSetAsync(System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
-            <summary>
-            查询
-            </summary>
-            <param name="cmdText"></param>
-            <param name="cmdParms"></param>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteDataSetAsync(System.String,System.Object)">
-            <summary>
-            查询，ExecuteDataSetAsync("select * from user where age > ?age; select 2", new { age = 25 })
-            </summary>
-            <param name="cmdText"></param>
-            <param name="parms"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteDataTableAsync(System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
-            <summary>
-            查询
-            </summary>
-            <param name="cmdText"></param>
-            <param name="cmdParms"></param>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteDataTableAsync(System.String,System.Object)">
-            <summary>
-            查询，ExecuteDataTableAsync("select * from user where age > ?age", new { age = 25 })
-            </summary>
-            <param name="cmdText"></param>
-            <param name="parms"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteNonQueryAsync(System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
-            <summary>
-            在【主库】执行
-            </summary>
-            <param name="cmdType"></param>
-            <param name="cmdText"></param>
-            <param name="cmdParms"></param>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteNonQueryAsync(System.String,System.Object)">
-            <summary>
-            在【主库】执行，ExecuteNonQueryAsync("delete from user where age > ?age", new { age = 25 })
-            </summary>
-            <param name="cmdText"></param>
-            <param name="parms"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteScalarAsync(System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
-            <summary>
-            在【主库】执行
-            </summary>
-            <param name="cmdType"></param>
-            <param name="cmdText"></param>
-            <param name="cmdParms"></param>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteScalarAsync(System.String,System.Object)">
-            <summary>
-            在【主库】执行，ExecuteScalarAsync("select 1 from user where age > ?age", new { age = 25 })
-            </summary>
-            <param name="cmdText"></param>
-            <param name="parms"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IAdo.QueryAsync``1(System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
-            <summary>
-            执行SQL返回对象集合，QueryAsync&lt;User&gt;("select * from user where age > ?age", new SqlParameter { ParameterName = "age", Value = 25 })
-            </summary>
-            <typeparam name="T"></typeparam>
-            <param name="cmdType"></param>
-            <param name="cmdText"></param>
-            <param name="cmdParms"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IAdo.QueryAsync``1(System.String,System.Object)">
-            <summary>
-            执行SQL返回对象集合，QueryAsync&lt;User&gt;("select * from user where age > ?age", new { age = 25 })
-            </summary>
-            <typeparam name="T"></typeparam>
-            <param name="cmdText"></param>
-            <param name="parms"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IAdo.QueryAsync``2(System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
-            <summary>
-            执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > ?age; select * from address", new SqlParameter { ParameterName = "age", Value = 25 })
-            </summary>
-            <typeparam name="T1"></typeparam>
-            <param name="cmdType"></param>
-            <param name="cmdText"></param>
-            <param name="cmdParms"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IAdo.QueryAsync``2(System.String,System.Object)">
-            <summary>
-            执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > ?age; select * from address", new { age = 25 })
-            </summary>
-            <typeparam name="T1"></typeparam>
-            <param name="cmdText"></param>
-            <param name="parms"></param>
-            <returns></returns>
-        </member>
         <member name="E:FreeSql.IAop.ParseExpression">
             <summary>
             可自定义解析表达式
@@ -2963,12 +2840,6 @@
             <param name="timeout">超时</param>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.Internal.ObjectPool.IObjectPool`1.GetAsync">
-            <summary>
-            获取资源
-            </summary>
-            <returns></returns>
-        </member>
         <member name="M:FreeSql.Internal.ObjectPool.IObjectPool`1.Return(FreeSql.Internal.ObjectPool.Object{`0},System.Boolean)">
             <summary>
             使用完毕后，归还资源
@@ -3034,12 +2905,6 @@
             </summary>
         </member>
         <member name="M:FreeSql.Internal.ObjectPool.IPolicy`1.OnGet(FreeSql.Internal.ObjectPool.Object{`0})">
-            <summary>
-            从对象池获取对象成功的时候触发，通过该方法统计或初始化对象
-            </summary>
-            <param name="obj">资源对象</param>
-        </member>
-        <member name="M:FreeSql.Internal.ObjectPool.IPolicy`1.OnGetAsync(FreeSql.Internal.ObjectPool.Object{`0})">
             <summary>
             从对象池获取对象成功的时候触发，通过该方法统计或初始化对象
             </summary>

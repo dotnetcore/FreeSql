@@ -25,8 +25,7 @@ namespace FreeSql
         {
             var tkeyType = typeof(TKey)?.NullableTypeOrThis();
             if (tkeyType == typeof(int) || tkeyType == typeof(long))
-                Orm.CodeFirst.ConfigEntity(typeof(TEntity),
-                    t => t.Property("Id").IsIdentity(true));
+                BaseEntity.ConfigEntity(typeof(TEntity), t => t.Property("Id").IsIdentity(true));
         }
 
         /// <summary>

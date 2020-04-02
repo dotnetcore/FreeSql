@@ -4,6 +4,7 @@ using FreeSql.DataAnnotations;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Data;
 using System.Diagnostics;
 using System.Linq;
@@ -18,7 +19,7 @@ namespace FreeSql
     [Table(DisableSyncStructure = true)]
     public abstract class BaseEntity
     {
-        static IFreeSql _ormPriv;
+        internal static IFreeSql _ormPriv;
         /// <summary>
         /// 全局 IFreeSql orm 对象
         /// </summary>
@@ -42,6 +43,32 @@ namespace FreeSql
         {
             _ormPriv = fsql;
             _ormPriv.Aop.CurdBefore += (s, e) => Trace.WriteLine($"\r\n线程{Thread.CurrentThread.ManagedThreadId}: {e.Sql}\r\n");
+            if (_configEntityQueues.Any())
+            {
+                lock (_configEntityLock)
+                {
+                    while (_configEntityQueues.TryDequeue(out var cei))
+                        _ormPriv.CodeFirst.ConfigEntity(cei.EntityType, cei.Fluent);
+                }
+            }
+        }
+        
+        class ConfigEntityInfo
+        {
+            public Type EntityType;
+            public Action<TableFluent> Fluent;
+        }
+        static ConcurrentQueue<ConfigEntityInfo> _configEntityQueues = new ConcurrentQueue<ConfigEntityInfo>();
+        static object _configEntityLock = new object();
+        internal static void ConfigEntity(Type entityType, Action<TableFluent> fluent)
+        {
+            lock (_configEntityLock)
+            {
+                if (_ormPriv == null)
+                    _configEntityQueues.Enqueue(new ConfigEntityInfo { EntityType = entityType, Fluent = fluent });
+                else
+                    _ormPriv.CodeFirst.ConfigEntity(entityType, fluent);
+            }
         }
 
         /// <summary>
