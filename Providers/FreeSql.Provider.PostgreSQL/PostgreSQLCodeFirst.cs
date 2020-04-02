@@ -217,8 +217,8 @@ t.typname,
 case when a.atttypmod > 0 and a.atttypmod < 32767 then a.atttypmod - 4 else a.attlen end len,
 case when t.typelem > 0 and t.typinput::varchar = 'array_in' then t2.typname else t.typname end,
 case when a.attnotnull then '0' else '1' end as is_nullable,
-coalesce((select 1 from pg_sequences where lower(sequencename) = lower({0} || '_' || {1} || '_' || a.attname || '_sequence_name') limit 1),0) is_identity,
 --e.adsrc,
+(select pg_get_expr(adbin, adrelid) from pg_attrdef where adrelid = e.adrelid) is_identity,
 a.attndims,
 d.description as comment
 from pg_class c
@@ -254,7 +254,7 @@ where ns.nspname = {0} and c.relname = {1}", tboldname ?? tbname);
                         sqlType = string.Concat(sqlType),
                         max_length = long.Parse(string.Concat(a[2])),
                         is_nullable = string.Concat(a[4]) == "1",
-                        is_identity = string.Concat(a[5]) == "1", //string.Concat(a[5]).StartsWith(@"nextval('") && string.Concat(a[5]).EndsWith(@"'::regclass)"),
+                        is_identity = string.Concat(a[5]).StartsWith(@"nextval('") && string.Concat(a[5]).EndsWith(@"'::regclass)"),
                         attndims,
                         comment = string.Concat(a[7])
                     };
