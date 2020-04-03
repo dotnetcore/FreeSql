@@ -58,6 +58,7 @@ public static partial class FreeSqlGlobalExtensions
         if (type == null) return null;
         if (type == typeof(void)) return "void";
         if (type.IsGenericParameter) return type.Name;
+        if (type.IsArray) return $"{DisplayCsharp(type.GetElementType())}[]";
         var sb = new StringBuilder();
         var nestedType = type;
         while (nestedType.IsNested)

@@ -79,7 +79,7 @@ namespace FreeSql.Internal
             if (entity == null) return _orm.CodeFirst;
             var type = typeof(T);
             var table = dicConfigEntity.GetOrAdd(type, new TableAttribute());
-            var fluent = new TableFluent<T>(CodeFirst, table);
+            var fluent = new TableFluent<T>(table);
             entity.Invoke(fluent);
             Utils.RemoveTableByEntity(type, this); //remove cache
             return _orm.CodeFirst;
@@ -88,7 +88,7 @@ namespace FreeSql.Internal
         {
             if (entity == null) return _orm.CodeFirst;
             var table = dicConfigEntity.GetOrAdd(type, new TableAttribute());
-            var fluent = new TableFluent(CodeFirst, type, table);
+            var fluent = new TableFluent(type, table);
             entity.Invoke(fluent);
             Utils.RemoveTableByEntity(type, this); //remove cache
             return _orm.CodeFirst;

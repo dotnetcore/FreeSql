@@ -87,6 +87,11 @@
             - 属性集合不为空时，与数据库存在的关联数据（中间表）完全对比，计算出应该删除和添加的记录
             </summary>
         </member>
+        <member name="P:FreeSql.DbContextOptions.NoneParameter">
+            <summary>
+            使用无参数化设置（对应 IInsert/IUpdate）
+            </summary>
+        </member>
         <member name="P:FreeSql.DbContextOptions.OnEntityChange">
             <summary>
             实体变化事件

@@ -23,6 +23,11 @@ namespace FreeSql
         public bool EnableAddOrUpdateNavigateList { get; set; } = false;
 
         /// <summary>
+        /// 使用无参数化设置（对应 IInsert/IUpdate）
+        /// </summary>
+        public bool? NoneParameter { get; set; }
+
+        /// <summary>
         /// 实体变化事件
         /// </summary>
         public Action<List<DbContext.EntityChangeReport.ChangeInfo>> OnEntityChange { get; set; }

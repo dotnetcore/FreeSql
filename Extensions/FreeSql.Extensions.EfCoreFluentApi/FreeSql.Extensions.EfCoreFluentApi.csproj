@@ -25,13 +25,13 @@
     <None Include="../../logo.png" Pack="true" PackagePath="\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\FreeSql.DbContext\FreeSql.DbContext.csproj" />
+  </ItemGroup>
+
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.0|AnyCPU'">
     <DocumentationFile>FreeSql.Extensions.EfCoreFluentApi.xml</DocumentationFile>
     <WarningLevel>3</WarningLevel>
   </PropertyGroup>
-  
-  <ItemGroup>
-    <ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />
-  </ItemGroup>
 
 </Project>

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using FreeSql.DataAnnotations;
+using FreeSql.Internal.CommonProvider;
 
 namespace FreeSql.Extensions.EfCoreFluentApi
 {
@@ -10,13 +11,14 @@ namespace FreeSql.Extensions.EfCoreFluentApi
 
         public static ICodeFirst Entity<T>(this ICodeFirst codeFirst, Action<EfCoreTableFluent<T>> modelBuilder)
         {
-            codeFirst.ConfigEntity<T>(tf => modelBuilder(new EfCoreTableFluent<T>(tf)));
+            var cf = codeFirst as CodeFirstProvider;
+            codeFirst.ConfigEntity<T>(tf => modelBuilder(new EfCoreTableFluent<T>(cf._orm, tf)));
             return codeFirst;
         }
 
-        static void Test()
+        public static void Test(IFreeSql fsql)
         {
-            ICodeFirst cf = null;
+            var cf = fsql.CodeFirst;
             cf.Entity<Song>(eb =>
             {
                 eb.ToTable("tb_song");
@@ -25,7 +27,7 @@ namespace FreeSql.Extensions.EfCoreFluentApi
                 eb.Property(a => a.Url).HasMaxLength(100);
 
                 eb.Property(a => a.RowVersion).IsRowVersion();
-                eb.Property(a => a.CreateTime).HasDefaultValueSql("getdate()");
+                eb.Property(a => a.CreateTime).HasDefaultValueSql("current_timestamp");
 
                 eb.HasKey(a => a.Id);
                 eb.HasIndex(a => a.Title).IsUnique().HasName("idx_xxx11");
@@ -39,7 +41,33 @@ namespace FreeSql.Extensions.EfCoreFluentApi
             cf.Entity<SongType>(eb =>
             {
                 eb.HasMany(a => a.Songs).WithOne(a => a.Type).HasForeignKey(a => a.TypeId);
+
+                eb.HasData(new[]
+                {
+                    new SongType 
+                    {
+                        Id = 1,
+                        Name = "流行", 
+                        Songs = new List<Song>(new[]
+                        {
+                            new Song{ Title = "真的爱你" },
+                            new Song{ Title = "爱你一万年" },
+                        })
+                    },
+                    new SongType
+                    {
+                        Id = 2,
+                        Name = "乡村",
+                        Songs = new List<Song>(new[]
+                        {
+                            new Song{ Title = "乡里乡亲" },
+                        })
+                    },
+                });
             });
+
+            cf.SyncStructure<SongType>();
+            cf.SyncStructure<Song>();
         }
 
         public class SongType
@@ -52,6 +80,7 @@ namespace FreeSql.Extensions.EfCoreFluentApi
 
         public class Song
         {
+            [Column(IsIdentity = true)]
             public int Id { get; set; }
             public string Title { get; set; }
             public string Url { get; set; }

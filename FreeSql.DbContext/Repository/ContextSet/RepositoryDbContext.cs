@@ -33,8 +33,9 @@ namespace FreeSql
                 (repo as IBaseRepository).UnitOfWork = _repo.UnitOfWork;
                 GetRepositoryDbField(entityType).SetValue(repo, this);
 
-                typeof(RepositoryDbContext).GetMethod("SetRepositoryDataFilter").MakeGenericMethod(_repo.EntityType)
-                    .Invoke(null, new object[] { repo, _repo });
+                if (typeof(IBaseRepository<>).MakeGenericType(_repo.EntityType).IsAssignableFrom(_repo.GetType()))
+                    typeof(RepositoryDbContext).GetMethod("SetRepositoryDataFilter").MakeGenericMethod(_repo.EntityType)
+                        .Invoke(null, new object[] { repo, _repo });
             }
 
             var sd = Activator.CreateInstance(typeof(RepositoryDbSet<>).MakeGenericType(entityType), repo) as IDbSet;
@@ -43,10 +44,10 @@ namespace FreeSql
             return sd;
         }
 
-        public static void SetRepositoryDataFilter<TEntity>(object repos, BaseRepository<TEntity> baseRepo) where TEntity : class
+        public static void SetRepositoryDataFilter<TEntity>(object repo, IBaseRepository<TEntity> baseRepo) where TEntity : class
         {
             var filter = baseRepo.DataFilter as DataFilter<TEntity>;
-            DataFilterUtil.SetRepositoryDataFilter(repos, fl =>
+            DataFilterUtil.SetRepositoryDataFilter(repo, fl =>
             {
                 foreach (var f in filter._filters)
                     fl.Apply<TEntity>(f.Key, f.Value.Expression);

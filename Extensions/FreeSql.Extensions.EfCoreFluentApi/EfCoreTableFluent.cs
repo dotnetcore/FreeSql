@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using FreeSql.DataAnnotations;
 
@@ -7,9 +8,11 @@ namespace FreeSql.Extensions.EfCoreFluentApi
 {
     public class EfCoreTableFluent<T>
     {
+        IFreeSql _fsql;
         TableFluent<T> _tf;
-        internal EfCoreTableFluent(TableFluent<T> tf)
+        internal EfCoreTableFluent(IFreeSql fsql, TableFluent<T> tf)
         {
+            _fsql = fsql;
             _tf = tf;
         }
 
@@ -33,8 +36,10 @@ namespace FreeSql.Extensions.EfCoreFluentApi
         #region HasKey
         public EfCoreTableFluent<T> HasKey(Expression<Func<T, object>> key)
         {
-            if (key?.Body == null) return this;
-            var exp = key.Body;
+            var exp = key?.Body;
+            if (exp?.NodeType == ExpressionType.Convert) exp = (exp as UnaryExpression)?.Operand;
+            if (exp == null) throw new ArgumentException("参数错误 key 不能为 null");
+
             switch (exp.NodeType)
             {
                 case ExpressionType.MemberAccess:
@@ -52,8 +57,9 @@ namespace FreeSql.Extensions.EfCoreFluentApi
         #region HasIndex
         public HasIndexFluent HasIndex(Expression<Func<T, object>> index)
         {
-            if (index?.Body == null) throw new ArgumentException("参数错误 index 不能为 null");
-            var exp = index.Body;
+            var exp = index?.Body;
+            if (exp?.NodeType == ExpressionType.Convert) exp = (exp as UnaryExpression)?.Operand;
+            if (exp == null) throw new ArgumentException("参数错误 index 不能为 null");
 
             var indexName = $"idx_{Guid.NewGuid().ToString("N").Substring(0, 8)}";
             var columns = new List<string>();
@@ -102,8 +108,9 @@ namespace FreeSql.Extensions.EfCoreFluentApi
         #region HasOne
         public HasOneFluent<T2> HasOne<T2>(Expression<Func<T, T2>> one)
         {
-            if (one?.Body == null) throw new ArgumentException("参数错误 one 不能为 null");
-            var exp = one.Body;
+            var exp = one?.Body;
+            if (exp?.NodeType == ExpressionType.Convert) exp = (exp as UnaryExpression)?.Operand;
+            if (exp == null) throw new ArgumentException("参数错误 one 不能为 null");
 
             var oneProperty = "";
             switch (exp.NodeType)
@@ -113,10 +120,11 @@ namespace FreeSql.Extensions.EfCoreFluentApi
                     break;
             }
             if (string.IsNullOrEmpty(oneProperty)) throw new ArgumentException("参数错误 one");
-            return new HasOneFluent<T2>(_tf, oneProperty);
+            return new HasOneFluent<T2>(_fsql, _tf, oneProperty);
         }
         public class HasOneFluent<T2>
         {
+            IFreeSql _fsql;
             TableFluent<T> _tf;
             string _selfProperty;
             string _selfBind;
@@ -124,15 +132,17 @@ namespace FreeSql.Extensions.EfCoreFluentApi
             string _withOneProperty;
             string _withOneBind;
 
-            internal HasOneFluent(TableFluent<T> modelBuilder, string oneProperty)
+            internal HasOneFluent(IFreeSql fsql, TableFluent<T> modelBuilder, string oneProperty)
             {
+                _fsql = fsql;
                 _tf = modelBuilder;
                 _selfProperty = oneProperty;
             }
             public HasOneFluent<T2> WithMany<TMany>(Expression<Func<T2, TMany>> many)
             {
-                if (many?.Body == null) throw new ArgumentException("参数错误 many 不能为 null");
-                var exp = many.Body;
+                var exp = many?.Body;
+                if (exp?.NodeType == ExpressionType.Convert) exp = (exp as UnaryExpression)?.Operand;
+                if (exp == null) throw new ArgumentException("参数错误 many 不能为 null");
 
                 switch (exp.NodeType)
                 {
@@ -142,13 +152,14 @@ namespace FreeSql.Extensions.EfCoreFluentApi
                 }
                 if (string.IsNullOrEmpty(_withManyProperty)) throw new ArgumentException("参数错误 many");
                 if (string.IsNullOrEmpty(_selfBind) == false)
-                    _tf.ConfigEntity<T2>(eb2 => eb2.Navigate(_withManyProperty, _selfBind));
+                    _fsql.CodeFirst.ConfigEntity<T2>(eb2 => eb2.Navigate(_withManyProperty, _selfBind));
                 return this;
             }
             public HasOneFluent<T2> WithOne(Expression<Func<T2, T>> one, Expression<Func<T2, object>> foreignKey)
             {
-                if (one?.Body == null) throw new ArgumentException("参数错误 one 不能为 null");
-                var exp = one.Body;
+                var exp = one?.Body;
+                if (exp?.NodeType == ExpressionType.Convert) exp = (exp as UnaryExpression)?.Operand;
+                if (exp == null) throw new ArgumentException("参数错误 one 不能为 null");
 
                 switch (exp.NodeType)
                 {
@@ -158,8 +169,9 @@ namespace FreeSql.Extensions.EfCoreFluentApi
                 }
                 if (string.IsNullOrEmpty(_withOneProperty)) throw new ArgumentException("参数错误 one");
 
-                if (foreignKey?.Body == null) throw new ArgumentException("参数错误 foreignKey 不能为 null");
-                exp = foreignKey.Body;
+                exp = foreignKey?.Body;
+                if (exp?.NodeType == ExpressionType.Convert) exp = (exp as UnaryExpression)?.Operand;
+                if (exp == null) throw new ArgumentException("参数错误 foreignKey 不能为 null");
 
                 switch (exp.NodeType)
                 {
@@ -176,13 +188,14 @@ namespace FreeSql.Extensions.EfCoreFluentApi
                 }
                 if (string.IsNullOrEmpty(_withOneBind)) throw new ArgumentException("参数错误 foreignKey");
                 if (string.IsNullOrEmpty(_selfBind) == false)
-                    _tf.ConfigEntity<T2>(eb2 => eb2.Navigate(_withOneProperty, _withOneBind));
+                    _fsql.CodeFirst.ConfigEntity<T2>(eb2 => eb2.Navigate(_withOneProperty, _withOneBind));
                 return this;
             }
             public HasOneFluent<T2> HasForeignKey(Expression<Func<T, object>> foreignKey)
             {
-                if (foreignKey?.Body == null) throw new ArgumentException("参数错误 foreignKey 不能为 null");
-                var exp = foreignKey.Body;
+                var exp = foreignKey?.Body;
+                if (exp?.NodeType == ExpressionType.Convert) exp = (exp as UnaryExpression)?.Operand;
+                if (exp == null) throw new ArgumentException("参数错误 foreignKey 不能为 null");
 
                 switch (exp.NodeType)
                 {
@@ -200,9 +213,9 @@ namespace FreeSql.Extensions.EfCoreFluentApi
                 if (string.IsNullOrEmpty(_selfBind)) throw new ArgumentException("参数错误 foreignKey");
                 _tf.Navigate(_selfProperty, _selfBind);
                 if (string.IsNullOrEmpty(_withManyProperty) == false)
-                    _tf.ConfigEntity<T2>(eb2 => eb2.Navigate(_withManyProperty, _selfBind));
+                    _fsql.CodeFirst.ConfigEntity<T2>(eb2 => eb2.Navigate(_withManyProperty, _selfBind));
                 if (string.IsNullOrEmpty(_withOneProperty) == false && string.IsNullOrEmpty(_withOneBind) == false)
-                    _tf.ConfigEntity<T2>(eb2 => eb2.Navigate(_withOneProperty, _withOneBind));
+                    _fsql.CodeFirst.ConfigEntity<T2>(eb2 => eb2.Navigate(_withOneProperty, _withOneBind));
                 return this;
             }
         }
@@ -211,8 +224,9 @@ namespace FreeSql.Extensions.EfCoreFluentApi
         #region HasMany
         public HasManyFluent<T2> HasMany<T2>(Expression<Func<T, IEnumerable<T2>>> many)
         {
-            if (many?.Body == null) throw new ArgumentException("参数错误 many 不能为 null");
-            var exp = many.Body;
+            var exp = many?.Body;
+            if (exp?.NodeType == ExpressionType.Convert) exp = (exp as UnaryExpression)?.Operand;
+            if (exp == null) throw new ArgumentException("参数错误 many 不能为 null");
 
             var manyProperty = "";
             switch (exp.NodeType)
@@ -222,26 +236,29 @@ namespace FreeSql.Extensions.EfCoreFluentApi
                     break;
             }
             if (string.IsNullOrEmpty(manyProperty)) throw new ArgumentException("参数错误 many");
-            return new HasManyFluent<T2>(_tf, manyProperty);
+            return new HasManyFluent<T2>(_fsql, _tf, manyProperty);
         }
         public class HasManyFluent<T2>
         {
+            IFreeSql _fsql;
             TableFluent<T> _tf;
             string _selfProperty;
             string _selfBind;
             string _withOneProperty;
             string _withManyProperty;
 
-            internal HasManyFluent(TableFluent<T> modelBuilder, string manyProperty)
+            internal HasManyFluent(IFreeSql fsql, TableFluent<T> modelBuilder, string manyProperty)
             {
+                _fsql = fsql;
                 _tf = modelBuilder;
                 _selfProperty = manyProperty;
             }
 
             public void WithMany(Expression<Func<T2, IEnumerable<T>>> many, Type middleType)
             {
-                if (many?.Body == null) throw new ArgumentException("参数错误 many 不能为 null");
-                var exp = many.Body;
+                var exp = many?.Body;
+                if (exp?.NodeType == ExpressionType.Convert) exp = (exp as UnaryExpression)?.Operand;
+                if (exp == null) throw new ArgumentException("参数错误 many 不能为 null");
 
                 switch (exp.NodeType)
                 {
@@ -252,12 +269,13 @@ namespace FreeSql.Extensions.EfCoreFluentApi
                 if (string.IsNullOrEmpty(_withManyProperty)) throw new ArgumentException("参数错误 many");
 
                 _tf.Navigate(_selfProperty, null, middleType);
-                _tf.ConfigEntity<T2>(eb2 => eb2.Navigate(_withManyProperty, null, middleType));
+                _fsql.CodeFirst.ConfigEntity<T2>(eb2 => eb2.Navigate(_withManyProperty, null, middleType));
             }
             public HasManyFluent<T2> WithOne(Expression<Func<T2, T>> one)
             {
-                if (one?.Body == null) throw new ArgumentException("参数错误 one 不能为 null");
-                var exp = one.Body;
+                var exp = one?.Body;
+                if (exp?.NodeType == ExpressionType.Convert) exp = (exp as UnaryExpression)?.Operand;
+                if (exp == null) throw new ArgumentException("参数错误 one 不能为 null");
 
                 switch (exp.NodeType)
                 {
@@ -268,13 +286,14 @@ namespace FreeSql.Extensions.EfCoreFluentApi
                 if (string.IsNullOrEmpty(_withOneProperty)) throw new ArgumentException("参数错误 one");
                 
                 if (string.IsNullOrEmpty(_selfBind) == false)
-                    _tf.ConfigEntity<T2>(eb2 => eb2.Navigate(_withOneProperty, _selfBind));
+                    _fsql.CodeFirst.ConfigEntity<T2>(eb2 => eb2.Navigate(_withOneProperty, _selfBind));
                 return this;
             }
             public HasManyFluent<T2> HasForeignKey(Expression<Func<T2, object>> foreignKey)
             {
-                if (foreignKey?.Body == null) throw new ArgumentException("参数错误 foreignKey 不能为 null");
-                var exp = foreignKey.Body;
+                var exp = foreignKey?.Body;
+                if (exp?.NodeType == ExpressionType.Convert) exp = (exp as UnaryExpression)?.Operand;
+                if (exp == null) throw new ArgumentException("参数错误 foreignKey 不能为 null");
 
                 switch (exp.NodeType)
                 {
@@ -292,7 +311,7 @@ namespace FreeSql.Extensions.EfCoreFluentApi
                 if (string.IsNullOrEmpty(_selfBind)) throw new ArgumentException("参数错误 foreignKey");
                 _tf.Navigate(_selfProperty, _selfBind);
                 if (string.IsNullOrEmpty(_withOneProperty) == false)
-                    _tf.ConfigEntity<T2>(eb2 => eb2.Navigate(_withOneProperty, _selfBind));
+                    _fsql.CodeFirst.ConfigEntity<T2>(eb2 => eb2.Navigate(_withOneProperty, _selfBind));
                 return this;
             }
         }
@@ -303,10 +322,40 @@ namespace FreeSql.Extensions.EfCoreFluentApi
             _tf.Property(property).IsIgnore(true);
             return this;
         }
-        //public EfCoreTableFluent<T> HasData(T data) => HasData(new[] { data });
-        //public EfCoreTableFluent<T> HasData(IEnumerable<T> data)
-        //{
-        //    return this;
-        //}
+        public EfCoreTableFluent<T> HasData(T data) => HasData(new[] { data });
+
+        /// <summary>
+        /// 使用 Repository + EnableAddOrUpdateNavigateList + NoneParameter 方式插入种子数据
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public EfCoreTableFluent<T> HasData(IEnumerable<T> data)
+        {
+            if (data.Any() == false) return this;
+            var sdCopy = data.Select(a => (object)a).ToList();
+            var sdCopyLock = new object();
+            _fsql.Aop.SyncStructureAfter += new EventHandler<Aop.SyncStructureAfterEventArgs>((s, e) =>
+            {
+                object[] sd = null;
+                lock (sdCopyLock)
+                    sd = sdCopy?.ToArray();
+                if (sd == null || sd.Any() == false) return;
+                foreach (var et in e.EntityTypes)
+                {
+                    if (et != typeof(T)) continue;
+                    if (_fsql.Select<object>().AsType(et).Any()) continue;
+
+                    var repo = _fsql.GetRepository<object>();
+                    repo.DbContextOptions.EnableAddOrUpdateNavigateList = true;
+                    repo.DbContextOptions.NoneParameter = true;
+                    repo.AsType(et);
+                    repo.Insert(sd);
+
+                    lock (sdCopyLock)
+                        sdCopy = null;
+                }
+            });
+            return this;
+        }
     }
 }

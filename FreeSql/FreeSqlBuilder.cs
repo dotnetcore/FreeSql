@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Data.Common;
 using System.Linq;
 using System.Reflection;
@@ -308,7 +309,7 @@ namespace FreeSql
                 {
                     ret.Aop.SyncStructureAfter += new EventHandler<Aop.SyncStructureAfterEventArgs>((s, e) =>
                     {
-                        if (string.IsNullOrEmpty(e.Sql)) return;
+                        if (_seedData._data.Any() == false) return;
                         foreach (var et in e.EntityTypes)
                         {
                             if (_seedData._data.TryGetValue(et, out var sd) == false) continue;
@@ -320,6 +321,7 @@ namespace FreeSql
                                 .InsertIdentity()
                                 .AppendData(sd.ToArray())
                                 .ExecuteAffrows();
+                            _seedData._data.TryRemove(et, out var old);
                         }
                     });
 
@@ -335,11 +337,11 @@ namespace FreeSql
 
         public class SeedDataBuilder
         {
-            internal Dictionary<Type, List<object>> _data = new Dictionary<Type, List<object>>();
+            internal ConcurrentDictionary<Type, List<object>> _data = new ConcurrentDictionary<Type, List<object>>();
             public SeedDataBuilder Apply<T>(T data) where T : class
             {
                 if (_data.TryGetValue(typeof(T), out var ds) == false)
-                    _data.Add(typeof(T), ds = new List<object>());
+                    _data.TryAdd(typeof(T), ds = new List<object>());
                 ds.Add(data);
                 return this;
             }

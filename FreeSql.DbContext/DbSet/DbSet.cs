@@ -52,11 +52,21 @@ namespace FreeSql
             }
         }
 
-        protected virtual IInsert<TEntity> OrmInsert() => _db.Orm.Insert<TEntity>().AsType(_entityType).WithTransaction(_uow?.GetOrBeginTransaction());
-        protected virtual IInsert<TEntity> OrmInsert(TEntity data) => _db.Orm.Insert<TEntity>().AsType(_entityType).WithTransaction(_uow?.GetOrBeginTransaction()).AppendData(data);
-        protected virtual IInsert<TEntity> OrmInsert(IEnumerable<TEntity> data) => _db.Orm.Insert<TEntity>().AsType(_entityType).WithTransaction(_uow?.GetOrBeginTransaction()).AppendData(data);
+        protected virtual IInsert<TEntity> OrmInsert()
+        {
+            var insert = _db.Orm.Insert<TEntity>().AsType(_entityType).WithTransaction(_uow?.GetOrBeginTransaction());
+            if (_db.Options.NoneParameter != null) insert.NoneParameter(_db.Options.NoneParameter.Value);
+            return insert;
+        }
+        protected virtual IInsert<TEntity> OrmInsert(TEntity data) => OrmInsert().AppendData(data);
+        protected virtual IInsert<TEntity> OrmInsert(IEnumerable<TEntity> data) => OrmInsert().AppendData(data);
 
-        protected virtual IUpdate<TEntity> OrmUpdate(IEnumerable<TEntity> entitys) => _db.Orm.Update<TEntity>().AsType(_entityType).SetSource(entitys).WithTransaction(_uow?.GetOrBeginTransaction());
+        protected virtual IUpdate<TEntity> OrmUpdate(IEnumerable<TEntity> entitys)
+        {
+            var update = _db.Orm.Update<TEntity>().AsType(_entityType).WithTransaction(_uow?.GetOrBeginTransaction());
+            if (_db.Options.NoneParameter != null) update.NoneParameter(_db.Options.NoneParameter.Value);
+            return update.SetSource(entitys);
+        }
         protected virtual IDelete<TEntity> OrmDelete(object dywhere) => _db.Orm.Delete<TEntity>().AsType(_entityType).WithTransaction(_uow?.GetOrBeginTransaction()).WhereDynamic(dywhere);
 
         internal void EnqueueToDbContext(DbContext.EntityChangeType changeType, EntityState state) =>

@@ -8,21 +8,16 @@ namespace FreeSql.DataAnnotations
 {
     public class TableFluent
     {
-
-        public TableFluent(ICodeFirst codeFirst, Type entityType, TableAttribute table)
+        public TableFluent(Type entityType, TableAttribute table)
         {
-            _codeFirst = codeFirst;
             _entityType = entityType;
             _properties = _entityType.GetPropertiesDictIgnoreCase();
             _table = table;
         }
 
-        ICodeFirst _codeFirst;
         Type _entityType;
         Dictionary<string, PropertyInfo> _properties;
         TableAttribute _table;
-
-        public void ConfigEntity<T2>(Action<TableFluent<T2>> fluent2) => _codeFirst.ConfigEntity<T2>(fluent2);
 
         /// <summary>
         /// 数据库表名
@@ -89,19 +84,14 @@ namespace FreeSql.DataAnnotations
 
     public class TableFluent<T>
     {
-
-        public TableFluent(ICodeFirst codeFirst, TableAttribute table)
+        public TableFluent(TableAttribute table)
         {
-            _codeFirst = codeFirst;
             _properties = typeof(T).GetPropertiesDictIgnoreCase();
             _table = table;
         }
 
-        ICodeFirst _codeFirst;
         Dictionary<string, PropertyInfo> _properties;
         TableAttribute _table;
-
-        public void ConfigEntity<T2>(Action<TableFluent<T2>> fluent2) => _codeFirst.ConfigEntity<T2>(fluent2);
 
         /// <summary>
         /// 数据库表名
@@ -131,7 +121,9 @@ namespace FreeSql.DataAnnotations
 
         public ColumnFluent Property<TProto>(Expression<Func<T, TProto>> column)
         {
-            var proto = (column.Body as MemberExpression)?.Member;
+            var exp = column?.Body;
+            if (exp?.NodeType == ExpressionType.Convert) exp = (exp as UnaryExpression)?.Operand;
+            var proto = (exp as MemberExpression)?.Member;
             if (proto == null) throw new FormatException($"错误的表达式格式 {column}");
             return Property(proto.Name);
         }
@@ -152,7 +144,9 @@ namespace FreeSql.DataAnnotations
         /// <returns></returns>
         public TableFluent<T> Navigate<TProto>(Expression<Func<T, TProto>> proto, string bind, Type manyToMany = null)
         {
-            var member = (proto.Body as MemberExpression)?.Member;
+            var exp = proto?.Body;
+            if (exp.NodeType == ExpressionType.Convert) exp = (exp as UnaryExpression)?.Operand;
+            var member = (exp as MemberExpression)?.Member;
             if (member == null) throw new FormatException($"错误的表达式格式 {proto}");
             return Navigate(member.Name, bind, manyToMany);
         }

@@ -17,9 +17,9 @@ namespace FreeSql.Internal.CommonProvider
     public abstract partial class CodeFirstProvider : ICodeFirst
     {
 
-        protected IFreeSql _orm;
-        protected CommonUtils _commonUtils;
-        protected CommonExpression _commonExpression;
+        public IFreeSql _orm;
+        public CommonUtils _commonUtils;
+        public CommonExpression _commonExpression;
         public CodeFirstProvider(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression)
         {
             _orm = orm;
