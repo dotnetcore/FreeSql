@@ -740,14 +740,6 @@
             <param name="convertType"></param>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.FreeSqlBuilder.UseSeedData(System.Action{FreeSql.FreeSqlBuilder.SeedDataBuilder})">
-            <summary>
-            CodeFirst 初始化种子数据<para></para>
-            表数据为空时，创建设定的种子数据
-            </summary>
-            <param name="sd"></param>
-            <returns></returns>
-        </member>
         <member name="M:FreeSql.FreeSqlBuilder.UseSyncStructureToLower(System.Boolean)">
             <summary>
             转小写同步结构

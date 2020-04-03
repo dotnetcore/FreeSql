@@ -303,71 +303,9 @@ namespace FreeSql
                         }
                     }
                 });
-
-                //SeedData
-                if (_seedData != null && _seedData._data.Any())
-                {
-                    ret.Aop.SyncStructureAfter += new EventHandler<Aop.SyncStructureAfterEventArgs>((s, e) =>
-                    {
-                        if (_seedData._data.Any() == false) return;
-                        foreach (var et in e.EntityTypes)
-                        {
-                            if (_seedData._data.TryGetValue(et, out var sd) == false) continue;
-                            if (sd.Any() == false) continue;
-                            if (ret.Select<object>().AsType(et).Any()) continue;
-                            ret.Insert<object>()
-                                .AsType(et)
-                                .NoneParameter()
-                                .InsertIdentity()
-                                .AppendData(sd.ToArray())
-                                .ExecuteAffrows();
-                            _seedData._data.TryRemove(et, out var old);
-                        }
-                    });
-
-                    foreach (var sd in _seedData._data)
-                    {
-                        ret.CodeFirst.SyncStructure(sd.Key);
-                    }
-                }
             }
 
             return ret;
-        }
-
-        public class SeedDataBuilder
-        {
-            internal ConcurrentDictionary<Type, List<object>> _data = new ConcurrentDictionary<Type, List<object>>();
-            public SeedDataBuilder Apply<T>(T data) where T : class
-            {
-                if (_data.TryGetValue(typeof(T), out var ds) == false)
-                    _data.TryAdd(typeof(T), ds = new List<object>());
-                ds.Add(data);
-                return this;
-            }
-            public SeedDataBuilder Apply<T>(T[] data) where T : class
-            {
-                return this.Apply(data as IEnumerable<T>);
-            }
-            public SeedDataBuilder Apply<T>(IEnumerable<T> data) where T : class
-            {
-                foreach (var d in data) this.Apply(d);
-                return this;
-            }
-        }
-        SeedDataBuilder _seedData;
-
-        /// <summary>
-        /// CodeFirst 初始化种子数据<para></para>
-        /// 表数据为空时，创建设定的种子数据
-        /// </summary>
-        /// <param name="sd"></param>
-        /// <returns></returns>
-        public FreeSqlBuilder UseSeedData(Action<SeedDataBuilder> sd)
-        {
-            _seedData = new SeedDataBuilder();
-            sd?.Invoke(_seedData);
-            return this;
         }
     }
 }

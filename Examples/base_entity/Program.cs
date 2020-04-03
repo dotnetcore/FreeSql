@@ -68,22 +68,6 @@ namespace base_entity
                 //.UseConnectionString(FreeSql.DataType.OdbcDameng, "Driver={DM8 ODBC DRIVER};Server=127.0.0.1:5236;Persist Security Info=False;Trusted_Connection=Yes;UID=USER1;PWD=123456789")
 
                 .UseMonitorCommand(cmd => Console.Write(cmd.CommandText))
-                .UseSeedData(sd => sd
-                    .Apply(new[]
-                    {
-                        new Products { Id = 1, title = "product-1" },
-                        new Products { Id = 2, title = "product-2" },
-                        new Products { Id = 3, title = "product-3" },
-                        new Products { Id = 4, title = "product-4" }
-                    })
-                    .Apply(new[]
-                    {
-                        new S_SysConfig<TestConfig> { Name = "testkey11", Config = new TestConfig { clicks = 11, title = "testtitle11" } },
-                        new S_SysConfig<TestConfig> { Name = "testkey22", Config = new TestConfig { clicks = 22, title = "testtitle22" } },
-                        new S_SysConfig<TestConfig> { Name = "testkey33", Config = new TestConfig { clicks = 33, title = "testtitle33" } }
-                    })
-                 )
-
                 .UseLazyLoading(true)
                 .Build();
             BaseEntity.Initialization(fsql);
