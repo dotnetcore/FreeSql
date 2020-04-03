@@ -29,6 +29,34 @@ static void Test()
         //多对多
         eb.HasMany(a => a.Tags).WithMany(a => a.Songs, typeof(Song_tag));
     });
+
+    cf.Entity<SongType>(eb =>
+    {
+        eb.HasMany(a => a.Songs).WithOne(a => a.Type).HasForeignKey(a => a.TypeId);
+
+        eb.HasData(new[]
+        {
+            new SongType 
+            {
+                Id = 1,
+                Name = "流行", 
+                Songs = new List<Song>(new[]
+                {
+                    new Song{ Title = "真的爱你" },
+                    new Song{ Title = "爱你一万年" },
+                })
+            },
+            new SongType
+            {
+                Id = 2,
+                Name = "乡村",
+                Songs = new List<Song>(new[]
+                {
+                    new Song{ Title = "乡里乡亲" },
+                })
+            },
+        });
+    });
 }
 
 public class SongType
@@ -41,6 +69,7 @@ public class SongType
 
 public class Song
 {
+    [Column(IsIdentity = true)]
     public int Id { get; set; }
     public string Title { get; set; }
     public string Url { get; set; }
