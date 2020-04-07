@@ -2763,14 +2763,12 @@
             同步实体类型到数据库
             </summary>
             <typeparam name="TEntity"></typeparam>
-            <returns></returns>
         </member>
         <member name="M:FreeSql.ICodeFirst.SyncStructure(System.Type[])">
             <summary>
             同步实体类型集合到数据库
             </summary>
             <param name="entityTypes"></param>
-            <returns></returns>
         </member>
         <member name="M:FreeSql.ICodeFirst.SyncStructure(System.Type,System.String)">
             <summary>
@@ -2778,7 +2776,6 @@
             </summary>
             <param name="entityType">实体类型</param>
             <param name="tableName">指定表名对比</param>
-            <returns></returns>
         </member>
         <member name="M:FreeSql.ICodeFirst.GetDbInfo(System.Type)">
             <summary>

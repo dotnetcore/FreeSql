@@ -81,18 +81,18 @@ namespace FreeSql.Internal.CommonProvider
         internal void _dicSycedTryAdd(Type entityType, string tableName = null) =>
             _dicSycedGetOrAdd(entityType).TryAdd(GetTableNameLowerOrUpper(tableName), true);
 
-        public bool SyncStructure<TEntity>() =>
+        public void SyncStructure<TEntity>() =>
             this.SyncStructure(new TypeAndName(typeof(TEntity), ""));
-        public bool SyncStructure(params Type[] entityTypes) => entityTypes == null ? false :
-            this.SyncStructure(entityTypes.Distinct().Select(a => new TypeAndName(a, "")).ToArray());
-        public bool SyncStructure(Type entityType, string tableName) =>
+        public void SyncStructure(params Type[] entityTypes) => 
+            this.SyncStructure(entityTypes?.Distinct().Select(a => new TypeAndName(a, "")).ToArray());
+        public void SyncStructure(Type entityType, string tableName) =>
            this.SyncStructure(new TypeAndName(entityType, GetTableNameLowerOrUpper(tableName)));
-        protected bool SyncStructure(params TypeAndName[] objects)
+        protected void SyncStructure(params TypeAndName[] objects)
         {
-            if (objects == null) return false;
+            if (objects == null) return;
             var syncObjects = objects.Where(a => _dicSycedGetOrAdd(a.entityType).ContainsKey(GetTableNameLowerOrUpper(a.tableName)) == false && GetTableByEntity(a.entityType)?.DisableSyncStructure == false)
                 .Select(a => new TypeAndName(a.entityType, GetTableNameLowerOrUpper(a.tableName))).ToArray();
-            if (syncObjects.Any() == false) return false;
+            if (syncObjects.Any() == false) return;
             var before = new Aop.SyncStructureBeforeEventArgs(syncObjects.Select(a => a.entityType).ToArray());
             _orm.Aop.SyncStructureBeforeHandler?.Invoke(this, before);
             Exception exception = null;
@@ -105,11 +105,11 @@ namespace FreeSql.Internal.CommonProvider
                     if (string.IsNullOrEmpty(ddl))
                     {
                         foreach (var syncObject in syncObjects) _dicSycedTryAdd(syncObject.entityType, syncObject.tableName);
-                        return true;
+                        return;
                     }
                     var affrows = ExecuteDDLStatements(ddl);
                     foreach (var syncObject in syncObjects) _dicSycedTryAdd(syncObject.entityType, syncObject.tableName);
-                    return true;
+                    return;
                 }
             }
             catch (Exception ex)

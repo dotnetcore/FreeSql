@@ -66,21 +66,18 @@ namespace FreeSql
         /// 同步实体类型到数据库
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
-        /// <returns></returns>
-        bool SyncStructure<TEntity>();
+        void SyncStructure<TEntity>();
         /// <summary>
         /// 同步实体类型集合到数据库
         /// </summary>
         /// <param name="entityTypes"></param>
-        /// <returns></returns>
-        bool SyncStructure(params Type[] entityTypes);
+        void SyncStructure(params Type[] entityTypes);
         /// <summary>
         /// 同步实体类型到数据库（指定表名）
         /// </summary>
         /// <param name="entityType">实体类型</param>
         /// <param name="tableName">指定表名对比</param>
-        /// <returns></returns>
-        bool SyncStructure(Type entityType, string tableName);
+        void SyncStructure(Type entityType, string tableName);
 
         /// <summary>
         /// 根据 System.Type 获取数据库信息
