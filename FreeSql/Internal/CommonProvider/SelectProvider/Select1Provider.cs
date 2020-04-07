@@ -372,7 +372,7 @@ namespace FreeSql.Internal.CommonProvider
         {
             Expression tmpExp = exp;
             ParameterExpression param = null;
-            var members = new List<MemberExpression>();
+            var members = new Stack<MemberExpression>();
             var isbreak = false;
             while (isbreak == false)
             {
@@ -381,7 +381,7 @@ namespace FreeSql.Internal.CommonProvider
                     case ExpressionType.MemberAccess:
                         var memExp = tmpExp as MemberExpression;
                         tmpExp = memExp.Expression;
-                        members.Add(memExp);
+                        members.Push(memExp);
                         continue;
                     case ExpressionType.Parameter:
                         param = tmpExp as ParameterExpression;
@@ -392,7 +392,7 @@ namespace FreeSql.Internal.CommonProvider
                 }
             }
             if (param == null) throw new Exception($"表达式错误，它的顶级对象不是 ParameterExpression：{exp}");
-            return NaviteTuple.Create(param, members);
+            return NaviteTuple.Create(param, members.ToList());
         }
         static MethodInfo GetEntityValueWithPropertyNameMethod = typeof(EntityUtilExtensions).GetMethod("GetEntityValueWithPropertyName");
         static ConcurrentDictionary<Type, ConcurrentDictionary<string, MethodInfo>> _dicTypeMethod = new ConcurrentDictionary<Type, ConcurrentDictionary<string, MethodInfo>>();
