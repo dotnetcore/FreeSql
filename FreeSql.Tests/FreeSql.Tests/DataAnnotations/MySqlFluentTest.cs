@@ -16,7 +16,7 @@ namespace FreeSql.Tests.DataAnnotations
         [Fact]
         public void DisableSyncStructure()
         {
-            Assert.Throws<MySqlException>(() => g.mysql.Select<ModelDisableSyncStructure>().ToList());
+            Assert.Throws<Exception>(() => g.mysql.Select<ModelDisableSyncStructure>().ToList());
 
             g.mysql.Select<ModelSyncStructure>().ToList();
         }

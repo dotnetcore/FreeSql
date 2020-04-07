@@ -20,7 +20,7 @@ namespace FreeSql.Tests.DataAnnotations
         [Fact]
         public void DisableSyncStructure()
         {
-            Assert.Throws<SqlException>(() => g.sqlserver.Select<ModelDisableSyncStructure>().ToList());
+            Assert.Throws<Exception>(() => g.sqlserver.Select<ModelDisableSyncStructure>().ToList());
 
             g.sqlserver.Select<ModelSyncStructure>().ToList();
         }

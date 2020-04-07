@@ -82,7 +82,7 @@ namespace FreeSql.Internal.CommonProvider
             if (isThrowException)
             {
                 if (DataType == DataType.Sqlite) cmd.Dispose();
-                throw ex;
+                throw new Exception(ex.Message, ex);
             }
         }
 

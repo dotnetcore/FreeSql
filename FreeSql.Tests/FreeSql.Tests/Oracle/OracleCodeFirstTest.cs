@@ -24,7 +24,7 @@ namespace FreeSql.Tests.Oracle
 
             //NoneParameter
             item1 = new TS_NCLB02 { Data = str1 };
-            Assert.Throws<OracleException>(() => g.oracle.Insert(item1).NoneParameter().ExecuteAffrows());
+            Assert.Throws<Exception>(() => g.oracle.Insert(item1).NoneParameter().ExecuteAffrows());
             //Oracle.ManagedDataAccess.Client.OracleException:¡°ORA-01704: ×Ö·û´®ÎÄ×ÖÌ«³¤¡±
         }
         class TS_NCLB02
@@ -47,7 +47,7 @@ namespace FreeSql.Tests.Oracle
 
             //NoneParameter
             item1 = new TS_NCLB01 { Data = str1 };
-            Assert.Throws<OracleException>(() => g.oracle.Insert(item1).NoneParameter().ExecuteAffrows());
+            Assert.Throws<Exception>(() => g.oracle.Insert(item1).NoneParameter().ExecuteAffrows());
             //Oracle.ManagedDataAccess.Client.OracleException:¡°ORA-01704: ×Ö·û´®ÎÄ×ÖÌ«³¤¡±
         }
         class TS_NCLB01
@@ -69,7 +69,7 @@ namespace FreeSql.Tests.Oracle
 
             //NoneParameter
             item1 = new TS_CLB01 { Data = str1 };
-            Assert.Throws<OracleException>(() => g.oracle.Insert(item1).NoneParameter().ExecuteAffrows());
+            Assert.Throws<Exception>(() => g.oracle.Insert(item1).NoneParameter().ExecuteAffrows());
             //Oracle.ManagedDataAccess.Client.OracleException:¡°ORA-01704: ×Ö·û´®ÎÄ×ÖÌ«³¤¡±
         }
         class TS_CLB01
@@ -95,7 +95,7 @@ namespace FreeSql.Tests.Oracle
 
             //NoneParameter
             item1 = new TS_BLB01 { Data = data1 };
-            Assert.Throws<OracleException>(() => g.oracle.Insert(item1).NoneParameter().ExecuteAffrows());
+            Assert.Throws<Exception>(() => g.oracle.Insert(item1).NoneParameter().ExecuteAffrows());
             //Oracle.ManagedDataAccess.Client.OracleException:¡°ORA-01704: ×Ö·û´®ÎÄ×ÖÌ«³¤¡±
         }
         class TS_BLB01

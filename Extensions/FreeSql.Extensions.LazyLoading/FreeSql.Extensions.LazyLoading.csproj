@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;netstandard2.1;net45;net40</TargetFrameworks>
-    <Version>1.4.0-preview20200404</Version>
+    <Version>1.3.5</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>YeXiangQin</Authors>
     <Description>FreeSql 扩展包，可实现【延时加载】属性.</Description>

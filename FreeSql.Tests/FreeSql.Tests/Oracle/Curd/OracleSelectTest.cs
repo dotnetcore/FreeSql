@@ -793,7 +793,7 @@ namespace FreeSql.Tests.Oracle
         [Fact]
         public void ToAggregate()
         {
-            var sql = select.ToAggregate(a => new { sum = a.Sum(a.Key.Id + 11.11), avg = a.Avg(a.Key.Id), count = a.Count(), max = a.Max(a.Key.Id), min = a.Min(a.Key.Id) });
+            var sql = select.ToAggregate(a => new { sum = a.Sum(a.Key.Id + 11.11), count = a.Count(), max = a.Max(a.Key.Id), min = a.Min(a.Key.Id) });
         }
         [Fact]
         public void OrderBy()
@@ -997,7 +997,7 @@ WHERE (((to_char(a.""ID"")) in (SELECT b.""TITLE""
             select.AsTable((_, old) => old).AsTable((_, old) => old).Max(a => a.Id);
             select.AsTable((_, old) => old).AsTable((_, old) => old).Min(a => a.Id);
             select.AsTable((_, old) => old).AsTable((_, old) => old).Sum(a => a.Id);
-            select.AsTable((_, old) => old).AsTable((_, old) => old).Avg(a => a.Id);
+            //select.AsTable((_, old) => old).AsTable((_, old) => old).Avg(a => a.Id);
 
             var sqlsss = select
                 .AsTable((type, old) => type == typeof(Topic) ? $"{old}_1" : null)
