@@ -702,7 +702,7 @@ namespace FreeSql.Internal
                         //}
                         switch (exp3.Method.Name)
                         {
-                            case "Count": return "count(1)";
+                            case "Count": return exp3.Arguments.Count == 0 ? "count(1)" : $"count({ExpressionLambdaToSql(exp3.Arguments[0], tsc)})";
                             case "Sum": return $"sum({ExpressionLambdaToSql(exp3.Arguments[0], tsc)})";
                             case "Avg": return $"avg({ExpressionLambdaToSql(exp3.Arguments[0], tsc)})";
                             case "Max": return $"max({ExpressionLambdaToSql(exp3.Arguments[0], tsc)})";

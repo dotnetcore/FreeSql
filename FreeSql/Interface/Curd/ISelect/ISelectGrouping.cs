@@ -121,6 +121,7 @@ namespace FreeSql
         /// </summary>
         /// <returns></returns>
         int Count();
+        int Count<T3>(T3 column);
         /// <summary>
         /// 求和
         /// </summary>

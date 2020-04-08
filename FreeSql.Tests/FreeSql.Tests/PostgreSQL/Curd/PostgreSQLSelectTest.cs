@@ -807,6 +807,7 @@ namespace FreeSql.Tests.PostgreSQL
             {
                 a.Key.tt2,
                 cou1 = a.Count(),
+                cou2 = a.Count(a.Value.Item3.Id),
                 arg1 = a.Avg(a.Key.mod4),
                 ccc2 = a.Key.tt2 ?? "now()",
                 //ccc = Convert.ToDateTime("now()"), partby = Convert.ToDecimal("sum(num) over(PARTITION BY server_id,os,rid,chn order by id desc)")
