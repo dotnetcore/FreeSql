@@ -328,7 +328,7 @@ namespace FreeSql.Tests
 
         class TestORC12
         {
-            [Column(IsIdentity = true, InsertValueSql = "\"CLASS1_seq_ID\".nextval")]
+            [Column(IsIdentity = true, InsertValueSql = "\"TAG_SEQ_ID\".nextval")]
             public int Id { get; set; }
         }
 

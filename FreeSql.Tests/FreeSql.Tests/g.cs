@@ -55,8 +55,8 @@ public class g
     public static IFreeSql sqlserver => sqlserverLazy.Value;
 
     static Lazy<IFreeSql> oracleLazy = new Lazy<IFreeSql>(() => new FreeSql.FreeSqlBuilder()
-        .UseConnectionString(FreeSql.DataType.Oracle, "user id=123user1;password=123456;data source=//127.0.0.1:1521/XE;Pooling=true;Max Pool Size=2")
-        //.UseConnectionFactory(FreeSql.DataType.Oracle, () => new Oracle.ManagedDataAccess.Client.OracleConnection("user id=123user1;password=123456;data source=//127.0.0.1:1521/XE;Pooling=true;"))
+        .UseConnectionString(FreeSql.DataType.Oracle, "user id=1user;password=123456;data source=//127.0.0.1:1521/XE;Pooling=true;Max Pool Size=2")
+        //.UseConnectionFactory(FreeSql.DataType.Oracle, () => new Oracle.ManagedDataAccess.Client.OracleConnection("user id=1user;password=123456;data source=//127.0.0.1:1521/XE;Pooling=true;"))
         .UseAutoSyncStructure(true)
         //.UseGenerateCommandParameterWithLambda(true)
         .UseLazyLoading(true)

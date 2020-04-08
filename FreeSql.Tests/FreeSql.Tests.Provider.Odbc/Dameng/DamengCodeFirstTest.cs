@@ -79,55 +79,55 @@ namespace FreeSql.Tests.Odbc.Dameng
             public DateTime 创建时间 { get; set; }
         }
 
-        //[Fact]
-        //public void 中文表_字段()
-        //{
-        //    var sql = g.dameng.CodeFirst.GetComparisonDDLStatements<测试中文表>();
-        //    g.dameng.CodeFirst.SyncStructure<测试中文表>();
+        [Fact]
+        public void 中文表_字段()
+        {
+            var sql = g.dameng.CodeFirst.GetComparisonDDLStatements<测试中文表>();
+            g.dameng.CodeFirst.SyncStructure<测试中文表>();
 
-        //    var item = new 测试中文表
-        //    {
-        //        标题 = "测试标题",
-        //        创建时间 = DateTime.Now
-        //    };
-        //    Assert.Equal(1, g.dameng.Insert<测试中文表>().AppendData(item).ExecuteAffrows());
-        //    Assert.NotEqual(Guid.Empty, item.编号);
-        //    var item2 = g.dameng.Select<测试中文表>().Where(a => a.编号 == item.编号).First();
-        //    Assert.NotNull(item2);
-        //    Assert.Equal(item.编号, item2.编号);
-        //    Assert.Equal(item.标题, item2.标题);
+            var item = new 测试中文表
+            {
+                标题 = "测试标题",
+                创建时间 = DateTime.Now
+            };
+            Assert.Equal(1, g.dameng.Insert<测试中文表>().AppendData(item).ExecuteAffrows());
+            Assert.NotEqual(Guid.Empty, item.编号);
+            var item2 = g.dameng.Select<测试中文表>().Where(a => a.编号 == item.编号).First();
+            Assert.NotNull(item2);
+            Assert.Equal(item.编号, item2.编号);
+            Assert.Equal(item.标题, item2.标题);
 
-        //    item.标题 = "测试标题更新";
-        //    Assert.Equal(1, g.dameng.Update<测试中文表>().SetSource(item).ExecuteAffrows());
-        //    item2 = g.dameng.Select<测试中文表>().Where(a => a.编号 == item.编号).First();
-        //    Assert.NotNull(item2);
-        //    Assert.Equal(item.编号, item2.编号);
-        //    Assert.Equal(item.标题, item2.标题);
+            item.标题 = "测试标题更新";
+            Assert.Equal(1, g.dameng.Update<测试中文表>().SetSource(item).ExecuteAffrows());
+            item2 = g.dameng.Select<测试中文表>().Where(a => a.编号 == item.编号).First();
+            Assert.NotNull(item2);
+            Assert.Equal(item.编号, item2.编号);
+            Assert.Equal(item.标题, item2.标题);
 
-        //    item.标题 = "测试标题更新_repo";
-        //    var repo = g.dameng.GetRepository<测试中文表>();
-        //    Assert.Equal(1, repo.Update(item));
-        //    item2 = g.dameng.Select<测试中文表>().Where(a => a.编号 == item.编号).First();
-        //    Assert.NotNull(item2);
-        //    Assert.Equal(item.编号, item2.编号);
-        //    Assert.Equal(item.标题, item2.标题);
+            item.标题 = "测试标题更新_repo";
+            var repo = g.dameng.GetRepository<测试中文表>();
+            Assert.Equal(1, repo.Update(item));
+            item2 = g.dameng.Select<测试中文表>().Where(a => a.编号 == item.编号).First();
+            Assert.NotNull(item2);
+            Assert.Equal(item.编号, item2.编号);
+            Assert.Equal(item.标题, item2.标题);
 
-        //    item.标题 = "测试标题更新_repo22";
-        //    Assert.Equal(1, repo.Update(item));
-        //    item2 = g.dameng.Select<测试中文表>().Where(a => a.编号 == item.编号).First();
-        //    Assert.NotNull(item2);
-        //    Assert.Equal(item.编号, item2.编号);
-        //    Assert.Equal(item.标题, item2.标题);
-        //}
-        //class 测试中文表
-        //{
-        //    [Column(IsPrimary = true)]
-        //    public Guid 编号 { get; set; }
+            item.标题 = "测试标题更新_repo22";
+            Assert.Equal(1, repo.Update(item));
+            item2 = g.dameng.Select<测试中文表>().Where(a => a.编号 == item.编号).First();
+            Assert.NotNull(item2);
+            Assert.Equal(item.编号, item2.编号);
+            Assert.Equal(item.标题, item2.标题);
+        }
+        class 测试中文表
+        {
+            [Column(IsPrimary = true)]
+            public Guid 编号 { get; set; }
 
-        //    public string 标题 { get; set; }
+            public string 标题 { get; set; }
 
-        //    public DateTime 创建时间 { get; set; }
-        //}
+            public DateTime 创建时间 { get; set; }
+        }
 
         [Fact]
         public void AddUniques()

@@ -27,6 +27,59 @@ namespace FreeSql.Tests.Odbc.Oracle
         }
 
         [Fact]
+        public void 数字表_字段()
+        {
+            var sql = g.oracle.CodeFirst.GetComparisonDDLStatements<测试数字表>();
+            g.oracle.CodeFirst.SyncStructure<测试数字表>();
+
+            var item = new 测试数字表
+            {
+                标题 = "测试标题",
+                创建时间 = DateTime.Now
+            };
+            Assert.Equal(1, g.oracle.Insert<测试数字表>().AppendData(item).ExecuteAffrows());
+            Assert.NotEqual(Guid.Empty, item.编号);
+            var item2 = g.oracle.Select<测试数字表>().Where(a => a.编号 == item.编号).First();
+            Assert.NotNull(item2);
+            Assert.Equal(item.编号, item2.编号);
+            Assert.Equal(item.标题, item2.标题);
+
+            item.标题 = "测试标题更新";
+            Assert.Equal(1, g.oracle.Update<测试数字表>().SetSource(item).ExecuteAffrows());
+            item2 = g.oracle.Select<测试数字表>().Where(a => a.编号 == item.编号).First();
+            Assert.NotNull(item2);
+            Assert.Equal(item.编号, item2.编号);
+            Assert.Equal(item.标题, item2.标题);
+
+            item.标题 = "测试标题更新_repo";
+            var repo = g.oracle.GetRepository<测试数字表>();
+            Assert.Equal(1, repo.Update(item));
+            item2 = g.oracle.Select<测试数字表>().Where(a => a.编号 == item.编号).First();
+            Assert.NotNull(item2);
+            Assert.Equal(item.编号, item2.编号);
+            Assert.Equal(item.标题, item2.标题);
+
+            item.标题 = "测试标题更新_repo22";
+            Assert.Equal(1, repo.Update(item));
+            item2 = g.oracle.Select<测试数字表>().Where(a => a.编号 == item.编号).First();
+            Assert.NotNull(item2);
+            Assert.Equal(item.编号, item2.编号);
+            Assert.Equal(item.标题, item2.标题);
+        }
+        [Table(Name = "123tb")]
+        class 测试数字表
+        {
+            [Column(IsPrimary = true, Name = "123id")]
+            public Guid 编号 { get; set; }
+
+            [Column(Name = "123title")]
+            public string 标题 { get; set; }
+
+            [Column(Name = "123time")]
+            public DateTime 创建时间 { get; set; }
+        }
+
+        [Fact]
         public void 中文表_字段()
         {
             var sql = g.oracle.CodeFirst.GetComparisonDDLStatements<测试中文表>();
