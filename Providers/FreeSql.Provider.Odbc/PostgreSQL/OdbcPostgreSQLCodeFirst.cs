@@ -132,7 +132,8 @@ namespace FreeSql.Odbc.PostgreSQL
                         }
                         if (tb.Primarys.Any())
                         {
-                            sb.Append(" \r\n  CONSTRAINT ").Append(tbname[0]).Append("_").Append(tbname[1]).Append("_pkey PRIMARY KEY (");
+                            var pkname = $"{tbname[0]}_{tbname[1]}_pkey";
+                            sb.Append(" \r\n  CONSTRAINT ").Append(_commonUtils.QuoteSqlName(pkname)).Append(" PRIMARY KEY (");
                             foreach (var tbcol in tb.Primarys) sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
                             sb.Remove(sb.Length - 2, 2).Append("),");
                         }
@@ -329,7 +330,8 @@ where pg_namespace.nspname={0} and pg_class.relname={1} and pg_constraint.contyp
                 }
                 if (tb.Primarys.Any())
                 {
-                    sb.Append(" \r\n  CONSTRAINT ").Append(tbname[0]).Append("_").Append(tbname[1]).Append("_pkey PRIMARY KEY (");
+                    var pkname = $"{tbname[0]}_{tbname[1]}_pkey";
+                    sb.Append(" \r\n  CONSTRAINT ").Append(_commonUtils.QuoteSqlName(pkname)).Append(" PRIMARY KEY (");
                     foreach (var tbcol in tb.Primarys) sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
                     sb.Remove(sb.Length - 2, 2).Append("),");
                 }

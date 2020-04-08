@@ -140,7 +140,7 @@ namespace FreeSql.Oracle
                         if (tb.Primarys.Any())
                         {
                             var pkname = primaryKeyName ?? $"{tbname[0]}_{tbname[1]}_pk1";
-                            sb.Append(" \r\n  CONSTRAINT ").Append(pkname).Append(" PRIMARY KEY (");
+                            sb.Append(" \r\n  CONSTRAINT ").Append(_commonUtils.QuoteSqlName(pkname)).Append(" PRIMARY KEY (");
                             foreach (var tbcol in tb.Primarys) sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
                             sb.Remove(sb.Length - 2, 2).Append("),");
                         }
@@ -322,7 +322,7 @@ and not exists(select 1 from all_constraints where constraint_name = a.index_nam
                 if (tb.Primarys.Any())
                 {
                     var pkname = primaryKeyName ?? $"{tbname[0]}_{tbname[1]}_pk2";
-                    sb.Append(" \r\n  CONSTRAINT ").Append(pkname).Append(" PRIMARY KEY (");
+                    sb.Append(" \r\n  CONSTRAINT ").Append(_commonUtils.QuoteSqlName(pkname)).Append(" PRIMARY KEY (");
                     foreach (var tbcol in tb.Primarys) sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
                     sb.Remove(sb.Length - 2, 2).Append("),");
                 }
@@ -383,12 +383,12 @@ and not exists(select 1 from all_constraints where constraint_name = a.index_nam
             {
                 if (dicDeclare.ContainsKey(seqname) == false)
                 {
-                    sbDeclare.Append("\r\n").Append(seqname).Append("IS NUMBER; \r\n");
+                    sbDeclare.Append("\r\nIS").Append(seqname).Append(" NUMBER; \r\n");
                     dicDeclare.Add(seqname, true);
                 }
-                sb.Append(seqname).Append("IS := 0; \r\n")
-                    .Append(" select count(1) into ").Append(seqname).Append(_commonUtils.FormatSql("IS from user_sequences where sequence_name={0}; \r\n", seqname))
-                    .Append("if ").Append(seqname).Append("IS > 0 then \r\n")
+                sb.Append("IS").Append(seqname).Append(" := 0; \r\n")
+                    .Append(" select count(1) into IS").Append(seqname).Append(_commonUtils.FormatSql(" from user_sequences where sequence_name={0}; \r\n", seqname))
+                    .Append("if IS").Append(seqname).Append(" > 0 then \r\n")
                     .Append("  execute immediate 'DROP SEQUENCE ").Append(_commonUtils.QuoteSqlName(seqname)).Append("';\r\n")
                     .Append("end if; \r\n");
             };
@@ -396,12 +396,12 @@ and not exists(select 1 from all_constraints where constraint_name = a.index_nam
             {
                 if (dicDeclare.ContainsKey(tiggerName) == false)
                 {
-                    sbDeclare.Append("\r\n").Append(tiggerName).Append("IS NUMBER; \r\n");
+                    sbDeclare.Append("\r\nIS").Append(tiggerName).Append(" NUMBER; \r\n");
                     dicDeclare.Add(tiggerName, true);
                 }
-                sb.Append(tiggerName).Append("IS := 0; \r\n")
-                    .Append(" select count(1) into ").Append(tiggerName).Append(_commonUtils.FormatSql("IS from user_triggers where trigger_name={0}; \r\n", tiggerName))
-                    .Append("if ").Append(tiggerName).Append("IS > 0 then \r\n")
+                sb.Append("IS").Append(tiggerName).Append(" := 0; \r\n")
+                    .Append(" select count(1) into IS").Append(tiggerName).Append(_commonUtils.FormatSql(" from user_triggers where trigger_name={0}; \r\n", tiggerName))
+                    .Append("if IS").Append(tiggerName).Append(" > 0 then \r\n")
                     .Append("  execute immediate 'DROP TRIGGER ").Append(_commonUtils.QuoteSqlName(tiggerName)).Append("';\r\n")
                     .Append("end if; \r\n");
             };
