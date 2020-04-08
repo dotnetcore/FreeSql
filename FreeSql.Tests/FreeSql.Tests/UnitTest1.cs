@@ -962,6 +962,29 @@ namespace FreeSql.Tests
                     sum2 = b.Sum(b.Value.TypeGuid)
                 });
 
+            var aggtolist21 = select
+                .GroupBy(a => new { a.Title, yyyy = string.Concat(a.CreateTime.Year, '-', a.CreateTime.Month) })
+                .ToDictionary(b => new
+                {
+                    b.Key.Title,
+                    b.Key.yyyy,
+
+                    cou = b.Count(),
+                    sum = b.Sum(b.Key.yyyy),
+                    sum2 = b.Sum(b.Value.TypeGuid)
+                }); 
+            var aggtolist22 = select
+                 .GroupBy(a => new { a.Title, yyyy = string.Concat(a.CreateTime.Year, '-', a.CreateTime.Month) })
+                 .ToDictionaryAsync(b => new
+                 {
+                     b.Key.Title,
+                     b.Key.yyyy,
+
+                     cou = b.Count(),
+                     sum = b.Sum(b.Key.yyyy),
+                     sum2 = b.Sum(b.Value.TypeGuid)
+                 }).Result;
+
             var aggsql3 = select
                 .GroupBy(a => a.Title)
                 .ToSql(b => new

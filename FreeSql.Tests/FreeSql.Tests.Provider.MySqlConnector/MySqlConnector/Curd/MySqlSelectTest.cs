@@ -821,7 +821,6 @@ namespace FreeSql.Tests.MySqlConnector
                 {
                     b.Key,
                     cou = b.Count(),
-                    sum = b.Sum(b.Key),
                     sum2 = b.Sum(b.Value.TypeGuid)
                 });
             var aggtolist1 = select
@@ -830,7 +829,14 @@ namespace FreeSql.Tests.MySqlConnector
                 {
                     b.Key,
                     cou = b.Count(),
-                    sum = b.Sum(b.Key),
+                    sum2 = b.Sum(b.Value.TypeGuid)
+                });
+            var aggtolist11 = select
+                .GroupBy(a => a.Title)
+                .ToDictionary(b => new
+                {
+                    b.Key,
+                    cou = b.Count(),
                     sum2 = b.Sum(b.Value.TypeGuid)
                 });
 
@@ -842,7 +848,6 @@ namespace FreeSql.Tests.MySqlConnector
                     b.Key.yyyy,
 
                     cou = b.Count(),
-                    sum = b.Sum(b.Key.yyyy),
                     sum2 = b.Sum(b.Value.TypeGuid)
                 });
             var aggtolist2 = select
@@ -853,7 +858,16 @@ namespace FreeSql.Tests.MySqlConnector
                     b.Key.yyyy,
 
                     cou = b.Count(),
-                    sum = b.Sum(b.Key.yyyy),
+                    sum2 = b.Sum(b.Value.TypeGuid)
+                });
+            var aggtolist22 = select
+                .GroupBy(a => new { a.Title, yyyy = string.Concat(a.CreateTime.Year, '-', a.CreateTime.Month) })
+                .ToDictionary(b => new
+                {
+                    b.Key.Title,
+                    b.Key.yyyy,
+
+                    cou = b.Count(),
                     sum2 = b.Sum(b.Value.TypeGuid)
                 });
 
@@ -863,7 +877,6 @@ namespace FreeSql.Tests.MySqlConnector
                 {
                     b.Key,
                     cou = b.Count(),
-                    sum = b.Sum(b.Key),
                     sum2 = b.Sum(b.Value.TypeGuid),
                     sum3 = b.Sum(b.Value.Type.Parent.Id)
                 });

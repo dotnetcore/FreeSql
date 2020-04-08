@@ -836,6 +836,14 @@ namespace FreeSql.Tests.PostgreSQL
                     cou = b.Count(),
                     sum2 = b.Sum(b.Value.TypeGuid)
                 });
+            var aggtolist11 = select
+                .GroupBy(a => a.Title)
+                .ToDictionary(b => new
+                {
+                    b.Key,
+                    cou = b.Count(),
+                    sum2 = b.Sum(b.Value.TypeGuid)
+                });
 
             var aggsql2 = select
                 .GroupBy(a => new { a.Title, yyyy = string.Concat(a.CreateTime.Year, '-', a.CreateTime.Month) })
@@ -850,6 +858,16 @@ namespace FreeSql.Tests.PostgreSQL
             var aggtolist2 = select
                 .GroupBy(a => new { a.Title, yyyy = string.Concat(a.CreateTime.Year, '-', a.CreateTime.Month) })
                 .ToList(b => new
+                {
+                    b.Key.Title,
+                    b.Key.yyyy,
+
+                    cou = b.Count(),
+                    sum2 = b.Sum(b.Value.TypeGuid)
+                });
+            var aggtolist22 = select
+                .GroupBy(a => new { a.Title, yyyy = string.Concat(a.CreateTime.Year, '-', a.CreateTime.Month) })
+                .ToDictionary(b => new
                 {
                     b.Key.Title,
                     b.Key.yyyy,

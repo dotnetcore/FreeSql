@@ -14,13 +14,15 @@ namespace FreeSql.Internal.CommonProvider
         internal IFreeSql _orm;
         internal object _select;
         internal ReadAnonymousTypeInfo _map;
+        internal string _field;
         internal CommonExpression _comonExp;
         internal List<SelectTableInfo> _tables;
-        public SelectGroupingProvider(IFreeSql orm, object select, ReadAnonymousTypeInfo map, CommonExpression comonExp, List<SelectTableInfo> tables)
+        public SelectGroupingProvider(IFreeSql orm, object select, ReadAnonymousTypeInfo map, string field, CommonExpression comonExp, List<SelectTableInfo> tables)
         {
             _orm = orm;
             _select = select;
             _map = map;
+            _field = field;
             _comonExp = comonExp;
             _tables = tables;
         }
@@ -107,20 +109,33 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
 
+        public List<TReturn> Select<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select) => ToList(select);
         public List<TReturn> ToList<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select)
         {
             var map = new ReadAnonymousTypeInfo();
             var field = new StringBuilder();
             var index = 0;
 
-            _comonExp.ReadAnonymousField(null, field, map, ref index, select, getSelectGroupingMapString, null, true);
+            _comonExp.ReadAnonymousField(null, field, map, ref index, select, getSelectGroupingMapString, null, false);
             if (map.Childs.Any() == false && map.MapType == null) map.MapType = typeof(TReturn);
             var method = _select.GetType().GetMethod("ToListMapReader", BindingFlags.Instance | BindingFlags.NonPublic);
             method = method.MakeGenericMethod(typeof(TReturn));
             return method.Invoke(_select, new object[] { new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null) }) as List<TReturn>;
         }
-        
-        public List<TReturn> Select<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select) => ToList(select);
+        public Dictionary<TKey, TElement> ToDictionary<TElement>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TElement>> elementSelector)
+        {
+            var map = new ReadAnonymousTypeInfo();
+            var field = new StringBuilder();
+            var index = 0;
+
+            _comonExp.ReadAnonymousField(null, field, map, ref index, elementSelector, getSelectGroupingMapString, null, false);
+            if (map.Childs.Any() == false && map.MapType == null) map.MapType = typeof(TElement);
+            var method = _select.GetType().GetMethod("ToListMapReaderPrivate", BindingFlags.Instance | BindingFlags.NonPublic);
+            method = method.MakeGenericMethod(typeof(TElement));
+            var otherAf = new ReadAnonymousTypeOtherInfo(_field, _map, new List<object>());
+            var values = method.Invoke(_select, new object[] { new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null), new[] { otherAf } }) as List<TElement>;
+            return otherAf.retlist.Select((a, b) => new KeyValuePair<TKey, TElement>((TKey)a, values[b])).ToDictionary(a => a.Key, a => a.Value);
+        }
 
         public string ToSql<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select, FieldAliasOptions fieldAlias = FieldAliasOptions.AsIndex)
         {
@@ -128,7 +143,7 @@ namespace FreeSql.Internal.CommonProvider
             var field = new StringBuilder();
             var index = fieldAlias == FieldAliasOptions.AsProperty ? CommonExpression.ReadAnonymousFieldAsCsName : 0;
 
-            _comonExp.ReadAnonymousField(null, field, map, ref index, select, getSelectGroupingMapString, null, true);
+            _comonExp.ReadAnonymousField(null, field, map, ref index, select, getSelectGroupingMapString, null, false);
             var method = _select.GetType().GetMethod("ToSql", new[] { typeof(string) });
             return method.Invoke(_select, new object[] { field.Length > 0 ? field.Remove(0, 2).ToString() : null }) as string;
         }
@@ -181,11 +196,25 @@ namespace FreeSql.Internal.CommonProvider
             var field = new StringBuilder();
             var index = 0;
 
-            _comonExp.ReadAnonymousField(null, field, map, ref index, select, getSelectGroupingMapString, null, true);
+            _comonExp.ReadAnonymousField(null, field, map, ref index, select, getSelectGroupingMapString, null, false);
             if (map.Childs.Any() == false && map.MapType == null) map.MapType = typeof(TReturn);
             var method = _select.GetType().GetMethod("ToListMapReaderAsync", BindingFlags.Instance | BindingFlags.NonPublic);
             method = method.MakeGenericMethod(typeof(TReturn));
             return method.Invoke(_select, new object[] { new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null) }) as Task<List<TReturn>>;
+        }
+        async public Task<Dictionary<TKey, TElement>> ToDictionaryAsync<TElement>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TElement>> elementSelector)
+        {
+            var map = new ReadAnonymousTypeInfo();
+            var field = new StringBuilder();
+            var index = 0;
+
+            _comonExp.ReadAnonymousField(null, field, map, ref index, elementSelector, getSelectGroupingMapString, null, false);
+            if (map.Childs.Any() == false && map.MapType == null) map.MapType = typeof(TElement);
+            var method = _select.GetType().GetMethod("ToListMapReaderPrivateAsync", BindingFlags.Instance | BindingFlags.NonPublic);
+            method = method.MakeGenericMethod(typeof(TElement));
+            var otherAf = new ReadAnonymousTypeOtherInfo(_field, _map, new List<object>());
+            var values = await (method.Invoke(_select, new object[] { new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null), new[] { otherAf } }) as Task<List<TElement>>);
+            return otherAf.retlist.Select((a, b) => new KeyValuePair<TKey, TElement>((TKey)a, values[b])).ToDictionary(a => a.Key, a => a.Value);
         }
 #endif
     }

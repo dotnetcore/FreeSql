@@ -749,12 +749,19 @@ namespace FreeSql.Tests.Odbc.Dameng
                 {
                     b.Key,
                     cou = b.Count(),
-                    sum = b.Sum(b.Key),
                     sum2 = b.Sum(b.Value.TypeGuid)
                 });
             var aggtolist1 = select
                 .GroupBy(a => a.Title)
                 .ToList(b => new
+                {
+                    b.Key,
+                    cou = b.Count(),
+                    sum2 = b.Sum(b.Value.TypeGuid)
+                });
+            var aggtolist11 = select
+                .GroupBy(a => a.Title)
+                .ToDictionary(b => new
                 {
                     b.Key,
                     cou = b.Count(),
@@ -777,6 +784,16 @@ namespace FreeSql.Tests.Odbc.Dameng
                 {
                     b.Key.Title,
                     b.Key.yyyy,
+                    cou = b.Count(),
+                    sum2 = b.Sum(b.Value.TypeGuid)
+                });
+            var aggtolist22 = select
+                .GroupBy(a => new { a.Title, yyyy = string.Concat(a.CreateTime.Year, '-', a.CreateTime.Month) })
+                .ToDictionary(b => new
+                {
+                    b.Key.Title,
+                    b.Key.yyyy,
+
                     cou = b.Count(),
                     sum2 = b.Sum(b.Value.TypeGuid)
                 });

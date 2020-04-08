@@ -480,23 +480,23 @@ namespace FreeSql.Internal.CommonProvider
         }
         #endregion
         public Dictionary<TKey, T1> ToDictionary<TKey>(Func<T1, TKey> keySelector) => ToDictionary(keySelector, a => a);
-        public Dictionary<TKey, TValue> ToDictionary<TKey, TValue>(Func<T1, TKey> keySelector, Func<T1, TValue> valueSelector)
+        public Dictionary<TKey, TElement> ToDictionary<TKey, TElement>(Func<T1, TKey> keySelector, Func<T1, TElement> elementSelector)
         {
             if (keySelector == null) throw new ArgumentNullException(nameof(keySelector));
-            if (valueSelector == null) throw new ArgumentNullException(nameof(valueSelector));
+            if (elementSelector == null) throw new ArgumentNullException(nameof(elementSelector));
             var af = this.GetAllFieldExpressionTreeLevel2();
             var sql = this.ToSql(af.Field);
             var dbParms = _params.ToArray();
             var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
             _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
-            var ret = new Dictionary<TKey, TValue>();
+            var ret = new Dictionary<TKey, TElement>();
             Exception exception = null;
             try
             {
                 _orm.Ado.ExecuteReader(_connection, _transaction, dr =>
                 {
                     var item = af.Read(_orm, dr);
-                    ret.Add(keySelector(item), valueSelector(item));
+                    ret.Add(keySelector(item), elementSelector(item));
                 }, CommandType.Text, sql, dbParms);
             }
             catch (Exception ex)
@@ -509,7 +509,7 @@ namespace FreeSql.Internal.CommonProvider
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
                 _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
-            if (typeof(TValue) == typeof(T1)) _trackToList?.Invoke(ret.Values);
+            if (typeof(TElement) == typeof(T1)) _trackToList?.Invoke(ret.Values);
             return ret;
         }
         public virtual List<T1> ToList(bool includeNestedMembers = false)
@@ -1088,9 +1088,10 @@ namespace FreeSql.Internal.CommonProvider
             var field = new StringBuilder();
             var index = -10000; //临时规则，不返回 as1
 
-            _commonExpression.ReadAnonymousField(_tables, field, map, ref index, columns, null, _whereCascadeExpression, true);
-            this.GroupBy(field.Length > 0 ? field.Remove(0, 2).ToString() : null);
-            return new SelectGroupingProvider<TKey, TValue>(_orm, this, map, _commonExpression, _tables);
+            _commonExpression.ReadAnonymousField(_tables, field, map, ref index, columns, null, _whereCascadeExpression, false); //不走 DTO 映射
+            var sql = field.ToString();
+            this.GroupBy(sql.Length > 0 ? sql.Substring(2) : null);
+            return new SelectGroupingProvider<TKey, TValue>(_orm, this, map, sql, _commonExpression, _tables);
         }
         protected TSelect InternalJoin(Expression exp, SelectTableInfoType joinType)
         {
@@ -1146,7 +1147,7 @@ namespace FreeSql.Internal.CommonProvider
             var field = new StringBuilder();
             var index = 0;
 
-            _commonExpression.ReadAnonymousField(_tables, field, map, ref index, select, null, _whereCascadeExpression, true);
+            _commonExpression.ReadAnonymousField(_tables, field, map, ref index, select, null, _whereCascadeExpression, false); //不走 DTO 映射
             return this.ToListMapReader<TReturn>(new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null)).FirstOrDefault();
         }
 
@@ -1285,23 +1286,23 @@ namespace FreeSql.Internal.CommonProvider
         }
 
         public Task<Dictionary<TKey, T1>> ToDictionaryAsync<TKey>(Func<T1, TKey> keySelector) => ToDictionaryAsync(keySelector, a => a);
-        async public Task<Dictionary<TKey, TValue>> ToDictionaryAsync<TKey, TValue>(Func<T1, TKey> keySelector, Func<T1, TValue> valueSelector)
+        async public Task<Dictionary<TKey, TElement>> ToDictionaryAsync<TKey, TElement>(Func<T1, TKey> keySelector, Func<T1, TElement> elementSelector)
         {
             if (keySelector == null) throw new ArgumentNullException(nameof(keySelector));
-            if (valueSelector == null) throw new ArgumentNullException(nameof(valueSelector));
+            if (elementSelector == null) throw new ArgumentNullException(nameof(elementSelector));
             var af = this.GetAllFieldExpressionTreeLevel2();
             var sql = this.ToSql(af.Field);
             var dbParms = _params.ToArray();
             var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
             _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
-            var ret = new Dictionary<TKey, TValue>();
+            var ret = new Dictionary<TKey, TElement>();
             Exception exception = null;
             try
             {
                 await _orm.Ado.ExecuteReaderAsync(_connection, _transaction, dr =>
                 {
                     var item = af.Read(_orm, dr);
-                    ret.Add(keySelector(item), valueSelector(item));
+                    ret.Add(keySelector(item), elementSelector(item));
                     return Task.FromResult(false);
                 }, CommandType.Text, sql, dbParms);
             }
@@ -1315,7 +1316,7 @@ namespace FreeSql.Internal.CommonProvider
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
                 _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
-            if (typeof(TValue) == typeof(T1)) _trackToList?.Invoke(ret.Values);
+            if (typeof(TElement) == typeof(T1)) _trackToList?.Invoke(ret.Values);
             return ret;
         }
         public virtual Task<List<T1>> ToListAsync(bool includeNestedMembers = false)
@@ -1426,7 +1427,7 @@ namespace FreeSql.Internal.CommonProvider
             var field = new StringBuilder();
             var index = 0;
 
-            _commonExpression.ReadAnonymousField(_tables, field, map, ref index, select, null, _whereCascadeExpression, true);
+            _commonExpression.ReadAnonymousField(_tables, field, map, ref index, select, null, _whereCascadeExpression, false); //不走 DTO 映射
             return (await this.ToListMapReaderAsync<TReturn>(new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null))).FirstOrDefault();
         }
 #endif

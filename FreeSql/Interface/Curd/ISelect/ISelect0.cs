@@ -15,7 +15,7 @@ namespace FreeSql
 #else
         Task<DataTable> ToDataTableAsync(string field = null);
         Task<Dictionary<TKey, T1>> ToDictionaryAsync<TKey>(Func<T1, TKey> keySelector);
-        Task<Dictionary<TKey, TValue>> ToDictionaryAsync<TKey, TValue>(Func<T1, TKey> keySelector, Func<T1, TValue> valueSelector);
+        Task<Dictionary<TKey, TElement>> ToDictionaryAsync<TKey, TElement>(Func<T1, TKey> keySelector, Func<T1, TElement> elementSelector);
         Task<List<T1>> ToListAsync(bool includeNestedMembers = false);
         Task<List<TTuple>> ToListAsync<TTuple>(string field);
 
@@ -60,7 +60,7 @@ namespace FreeSql
         /// <param name="keySelector"></param>
         /// <returns></returns>
         Dictionary<TKey, T1> ToDictionary<TKey>(Func<T1, TKey> keySelector);
-        Dictionary<TKey, TValue> ToDictionary<TKey, TValue>(Func<T1, TKey> keySelector, Func<T1, TValue> valueSelector);
+        Dictionary<TKey, TElement> ToDictionary<TKey, TElement>(Func<T1, TKey> keySelector, Func<T1, TElement> elementSelector);
         /// <summary>
         /// 执行SQL查询，返回 T1 实体所有字段的记录，记录不存在时返回 Count 为 0 的列表<para></para>
         /// 注意：<para></para>
