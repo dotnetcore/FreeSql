@@ -476,7 +476,7 @@ namespace FreeSql.Internal.CommonProvider
                 foreach (var kv in dic)
                 {
                     if (_table.ColumnsByCs.TryGetValue(kv.Key, out var trycol) == false) continue;
-                    if (_ignore.ContainsKey(kv.Key)) continue;
+                    if (_ignore.ContainsKey(trycol.Attribute.Name)) continue;
                     SetPriv(trycol, kv.Value);
                 }
             }
@@ -484,7 +484,7 @@ namespace FreeSql.Internal.CommonProvider
             foreach (var dtoProp in dtoProps)
             {
                 if (_table.ColumnsByCs.TryGetValue(dtoProp.Name, out var trycol) == false) continue;
-                if (_ignore.ContainsKey(dtoProp.Name)) continue;
+                if (_ignore.ContainsKey(trycol.Attribute.Name)) continue;
                 SetPriv(trycol, dtoProp.GetValue(dto, null));
             }
             return this;

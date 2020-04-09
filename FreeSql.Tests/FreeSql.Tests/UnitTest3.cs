@@ -147,7 +147,10 @@ namespace FreeSql.Tests
                 .First(a => a); //#231
 
             var lksdjkg1 = g.sqlite.Select<Edi>()
-                .AsQueryable().Where(a => a.Id > 0).ToList();
+                .AsQueryable().Where(a => a.Id > 0).Where(a => a.Id == 1).ToList();
+
+            var lksdjkg11 = g.sqlite.Select<Edi>()
+               .AsQueryable().Where(a => a.Id > 0).Where(a => a.Id == 1).Any();
 
             var lksdjkg2 = g.sqlite.Select<Edi>()
                 .AsQueryable().Where(a => a.Id > 0).First();
