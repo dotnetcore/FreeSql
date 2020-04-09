@@ -13,7 +13,7 @@ namespace FreeSql
         where TEntity : class
     {
 
-        async public Task<int> DeleteAsync(Expression<Func<TEntity, bool>> predicate)
+        async virtual public Task<int> DeleteAsync(Expression<Func<TEntity, bool>> predicate)
         {
             var delete = _dbset.OrmDeleteInternal(null).Where(predicate);
             var sql = delete.ToSql();
@@ -22,12 +22,12 @@ namespace FreeSql
             return affrows;
         }
 
-        public Task<int> DeleteAsync(TEntity entity)
+        public virtual Task<int> DeleteAsync(TEntity entity)
         {
             _dbset.Remove(entity);
             return _db.SaveChangesAsync();
         }
-        public Task<int> DeleteAsync(IEnumerable<TEntity> entitys)
+        public virtual Task<int> DeleteAsync(IEnumerable<TEntity> entitys)
         {
             _dbset.RemoveRange(entitys);
             return _db.SaveChangesAsync();
@@ -73,7 +73,7 @@ namespace FreeSql
 
     partial class BaseRepository<TEntity, TKey>
     {
-        public Task<int> DeleteAsync(TKey id) => DeleteAsync(CheckTKeyAndReturnIdEntity(id));
+        public virtual Task<int> DeleteAsync(TKey id) => DeleteAsync(CheckTKeyAndReturnIdEntity(id));
         public Task<TEntity> FindAsync(TKey id) => _dbset.OrmSelectInternal(CheckTKeyAndReturnIdEntity(id)).ToOneAsync();
         public Task<TEntity> GetAsync(TKey id) => FindAsync(id);
     }

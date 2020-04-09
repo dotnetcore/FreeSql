@@ -16,7 +16,6 @@ namespace FreeSql.Internal.CommonProvider
 
     public abstract partial class CodeFirstProvider : ICodeFirst
     {
-
         public IFreeSql _orm;
         public CommonUtils _commonUtils;
         public CommonExpression _commonExpression;
@@ -78,7 +77,7 @@ namespace FreeSql.Internal.CommonProvider
                         _dicSynced.TryAdd(entityType, trydic = new ConcurrentDictionary<string, bool>());
             return trydic;
         }
-        internal void _dicSycedTryAdd(Type entityType, string tableName = null) =>
+        public void _dicSycedTryAdd(Type entityType, string tableName = null) =>
             _dicSycedGetOrAdd(entityType).TryAdd(GetTableNameLowerOrUpper(tableName), true);
 
         public void SyncStructure<TEntity>() =>

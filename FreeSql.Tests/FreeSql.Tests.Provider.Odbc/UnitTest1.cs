@@ -563,8 +563,6 @@ WHERE ROWNUM < 11";
                 .UpdateColumns(x => new { x.Status, x.CategoryId, x.ArticleTitle })
                 .ToSql();
 
-            var sqldddklist = g.mysql.Select<NewsArticle>().Select(a => new NewsArticleDto { }).ToList();
-
 
             var sql1111333 = g.mysql.Update<Model2>()
                 .SetSource(new Model2 { id = 1, Title = "xxx", Parent_id = 0 })
@@ -608,15 +606,6 @@ WHERE ROWNUM < 11";
                 .ToList();
 
             var ttt1 = g.mysql.Select<Model1>().Where(a => a.Childs.AsSelect().Any(b => b.Title == "111")).ToList();
-
-            var linqto1 =
-                from p in g.mysql.Select<Order>()
-                where p.Id >= 0
-                // && p.OrderDetails.AsSelect().Where(c => c.Id > 10).Any()
-                orderby p.Id descending
-                orderby p.CustomerName ascending
-                select new { Name = p.CustomerName, Length = p.Id };
-
             var testpid1 = g.mysql.Insert<TestTypeInfo>().AppendData(new TestTypeInfo { Name = "Name" + DateTime.Now.ToString("yyyyMMddHHmmss") }).ExecuteIdentity();
             g.mysql.Insert<TestInfo>().AppendData(new TestInfo { Title = "Title" + DateTime.Now.ToString("yyyyMMddHHmmss"), CreateTime = DateTime.Now, TypeGuid = (int)testpid1 }).ExecuteAffrows();
 

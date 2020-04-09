@@ -73,7 +73,7 @@ namespace FreeSql
         public ISelect<TEntity> Where(Expression<Func<TEntity, bool>> exp) => _dbset.OrmSelectInternal(null).Where(exp);
         public ISelect<TEntity> WhereIf(bool condition, Expression<Func<TEntity, bool>> exp) => _dbset.OrmSelectInternal(null).WhereIf(condition, exp);
 
-        public int Delete(Expression<Func<TEntity, bool>> predicate)
+        public virtual int Delete(Expression<Func<TEntity, bool>> predicate)
         {
             var delete = _dbset.OrmDeleteInternal(null).Where(predicate);
             var sql = delete.ToSql();
@@ -82,12 +82,12 @@ namespace FreeSql
             return affrows;
         }
 
-        public int Delete(TEntity entity)
+        public virtual int Delete(TEntity entity)
         {
             _dbset.Remove(entity);
             return _db.SaveChanges();
         }
-        public int Delete(IEnumerable<TEntity> entitys)
+        public virtual int Delete(IEnumerable<TEntity> entitys)
         {
             _dbset.RemoveRange(entitys);
             return _db.SaveChanges();
@@ -157,7 +157,7 @@ namespace FreeSql
             return ret;
         }
 
-        public int Delete(TKey id) => Delete(CheckTKeyAndReturnIdEntity(id));
+        public virtual int Delete(TKey id) => Delete(CheckTKeyAndReturnIdEntity(id));
         public TEntity Find(TKey id) => _dbset.OrmSelectInternal(CheckTKeyAndReturnIdEntity(id)).ToOne();
         public TEntity Get(TKey id) => Find(id);
     }

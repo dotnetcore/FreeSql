@@ -16,33 +16,32 @@ using System.Threading.Tasks;
 namespace FreeSql.Internal.CommonProvider
 {
 
-    public abstract partial class Select0Provider<TSelect, T1> : ISelect0<TSelect, T1> where TSelect : class where T1 : class
+    public abstract partial class Select0Provider
     {
-
-        protected int _limit, _skip;
-        protected string _select = "SELECT ", _orderby, _groupby, _having;
-        protected StringBuilder _where = new StringBuilder();
-        protected List<DbParameter> _params = new List<DbParameter>();
-        internal protected List<SelectTableInfo> _tables = new List<SelectTableInfo>();
-        protected List<Func<Type, string, string>> _tableRules = new List<Func<Type, string, string>>();
-        protected Func<Type, string, string> _aliasRule;
-        protected string _tosqlAppendContent;
-        protected StringBuilder _join = new StringBuilder();
-        internal protected IFreeSql _orm;
-        protected CommonUtils _commonUtils;
-        protected CommonExpression _commonExpression;
-        protected DbTransaction _transaction;
-        protected DbConnection _connection;
-        internal protected Action<object> _trackToList;
-        internal protected List<Action<object>> _includeToList = new List<Action<object>>();
+        public int _limit, _skip;
+        public string _select = "SELECT ", _orderby, _groupby, _having;
+        public StringBuilder _where = new StringBuilder();
+        public List<DbParameter> _params = new List<DbParameter>();
+        public List<SelectTableInfo> _tables = new List<SelectTableInfo>();
+        public List<Func<Type, string, string>> _tableRules = new List<Func<Type, string, string>>();
+        public Func<Type, string, string> _aliasRule;
+        public string _tosqlAppendContent;
+        public StringBuilder _join = new StringBuilder();
+        public IFreeSql _orm;
+        public CommonUtils _commonUtils;
+        public CommonExpression _commonExpression;
+        public DbTransaction _transaction;
+        public DbConnection _connection;
+        public Action<object> _trackToList;
+        public List<Action<object>> _includeToList = new List<Action<object>>();
 #if net40
 #else
-        protected List<Func<object, Task>> _includeToListAsync = new List<Func<object, Task>>();
+        public List<Func<object, Task>> _includeToListAsync = new List<Func<object, Task>>();
 #endif
-        protected bool _distinct;
-        protected Expression _selectExpression;
-        protected List<LambdaExpression> _whereCascadeExpression = new List<LambdaExpression>();
-        protected List<GlobalFilter.Item> _whereGlobalFilter;
+        public bool _distinct;
+        public Expression _selectExpression;
+        public List<LambdaExpression> _whereCascadeExpression = new List<LambdaExpression>();
+        public List<GlobalFilter.Item> _whereGlobalFilter;
 
         int _disposeCounter;
         ~Select0Provider()
@@ -64,24 +63,25 @@ namespace FreeSql.Internal.CommonProvider
             _whereGlobalFilter = _orm.GlobalFilter.GetFilters();
             _whereCascadeExpression.AddRange(_whereGlobalFilter.Select(a => a.Where));
         }
-        public static void CopyData(Select0Provider<TSelect, T1> from, object to, ReadOnlyCollection<ParameterExpression> lambParms)
+
+        public static void CopyData(Select0Provider from, Select0Provider to, ReadOnlyCollection<ParameterExpression> lambParms)
         {
-            var toType = to?.GetType();
-            if (toType == null) return;
-            toType.GetField("_limit", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._limit);
-            toType.GetField("_skip", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._skip);
-            toType.GetField("_select", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._select);
-            toType.GetField("_orderby", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._orderby);
-            toType.GetField("_groupby", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._groupby);
-            toType.GetField("_having", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._having);
-            toType.GetField("_where", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, new StringBuilder().Append(from._where.ToString()));
-            toType.GetField("_params", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, new List<DbParameter>(from._params.ToArray()));
+            if (to == null) return;
+            to._limit = from._limit;
+            to._skip = from._skip;
+            to._select = from._select;
+            to._orderby = from._orderby;
+            to._groupby = from._groupby;
+            to._having = from._having;
+            to._where = new StringBuilder().Append(from._where.ToString());
+            to._params = new List<DbParameter>(from._params.ToArray());
+
             if (lambParms == null)
-                toType.GetField("_tables", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, new List<SelectTableInfo>(from._tables.ToArray()));
+                to._tables = new List<SelectTableInfo>(from._tables.ToArray());
             else
             {
                 var findedIndexs = new List<int>();
-                var _multiTables = toType.GetField("_tables", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(to) as List<SelectTableInfo>;
+                var _multiTables = to._tables;
                 _multiTables[0] = from._tables[0];
                 for (var a = 1; a < lambParms.Count; a++)
                 {
@@ -103,26 +103,29 @@ namespace FreeSql.Internal.CommonProvider
                     _multiTables.Add(from._tables[a]);
                 }
             }
-            toType.GetField("_tableRules", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, new List<Func<Type, string, string>>(from._tableRules.ToArray()));
-            toType.GetField("_aliasRule", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._aliasRule);
-            toType.GetField("_join", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, new StringBuilder().Append(from._join.ToString()));
-            //toType.GetField("_orm", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._orm);
-            //toType.GetField("_commonUtils", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._commonUtils);
-            //toType.GetField("_commonExpression", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._commonExpression);
-            toType.GetField("_transaction", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._transaction);
-            toType.GetField("_connection", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._connection);
-            toType.GetField("_trackToList", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._trackToList);
-            toType.GetField("_includeToList", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, new List<Action<object>>(from._includeToList.ToArray()));
+            to._tableRules = new List<Func<Type, string, string>>(from._tableRules.ToArray());
+            to._aliasRule = from._aliasRule;
+            to._join = new StringBuilder().Append(from._join.ToString());
+            //to._orm = from._orm;
+            //to._commonUtils = from._commonUtils;
+            //to._commonExpression = from._commonExpression;
+            to._transaction = from._transaction;
+            to._connection = from._connection;
+            to._trackToList = from._trackToList;
+            to._includeToList = new List<Action<object>>(from._includeToList.ToArray());
 #if net40
 #else
-            toType.GetField("_includeToListAsync", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, new List<Func<object, Task>>(from._includeToListAsync.ToArray()));
+            to._includeToListAsync = new List<Func<object, Task>>(from._includeToListAsync.ToArray());
 #endif
-            toType.GetField("_distinct", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._distinct);
-            toType.GetField("_selectExpression", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, from._selectExpression);
-            toType.GetField("_whereCascadeExpression", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, new List<LambdaExpression>(from._whereCascadeExpression.ToArray()));
-            toType.GetField("_whereGlobalFilter", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(to, new List<GlobalFilter.Item>(from._whereGlobalFilter.ToArray()));
+            to._distinct = from._distinct;
+            to._selectExpression = from._selectExpression;
+            to._whereCascadeExpression = new List<LambdaExpression>(from._whereCascadeExpression.ToArray());
+            to._whereGlobalFilter = new List<GlobalFilter.Item>(from._whereGlobalFilter.ToArray());
         }
+    }
 
+    public abstract partial class Select0Provider<TSelect, T1> : Select0Provider, ISelect0<TSelect, T1> where TSelect : class where T1 : class
+    {
         public Select0Provider(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere)
         {
             _orm = orm;
@@ -1082,7 +1085,7 @@ namespace FreeSql.Internal.CommonProvider
         protected TMember InternalMin<TMember>(Expression exp) => this.ToList<TMember>($"min({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}){_commonUtils.FieldAsAlias("as1")}").Min();
         protected decimal InternalSum(Expression exp) => this.ToList<decimal>($"sum({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}){_commonUtils.FieldAsAlias("as1")}").Sum();
 
-        protected ISelectGrouping<TKey, TValue> InternalGroupBy<TKey, TValue>(Expression columns)
+        public ISelectGrouping<TKey, TValue> InternalGroupBy<TKey, TValue>(Expression columns)
         {
             var map = new ReadAnonymousTypeInfo();
             var field = new StringBuilder();
@@ -1093,7 +1096,7 @@ namespace FreeSql.Internal.CommonProvider
             this.GroupBy(sql.Length > 0 ? sql.Substring(2) : null);
             return new SelectGroupingProvider<TKey, TValue>(_orm, this, map, sql, _commonExpression, _tables);
         }
-        protected TSelect InternalJoin(Expression exp, SelectTableInfoType joinType)
+        public TSelect InternalJoin(Expression exp, SelectTableInfoType joinType)
         {
             _commonExpression.ExpressionJoinLambda(_tables, joinType, exp, null, _whereCascadeExpression);
             return this as TSelect;
@@ -1109,7 +1112,7 @@ namespace FreeSql.Internal.CommonProvider
         protected TSelect InternalOrderBy(Expression column) => this.OrderBy(_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, column, true, null));
         protected TSelect InternalOrderByDescending(Expression column) => this.OrderBy($"{_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, column, true, null)} DESC");
 
-        protected List<TReturn> InternalToList<TReturn>(Expression select) => this.ToListMapReader<TReturn>(this.GetExpressionField(select));
+        public List<TReturn> InternalToList<TReturn>(Expression select) => this.ToListMapReader<TReturn>(this.GetExpressionField(select));
         protected string InternalToSql<TReturn>(Expression select, FieldAliasOptions fieldAlias = FieldAliasOptions.AsIndex)
         {
             var af = this.GetExpressionField(select, fieldAlias);
@@ -1151,7 +1154,7 @@ namespace FreeSql.Internal.CommonProvider
             return this.ToListMapReader<TReturn>(new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null)).FirstOrDefault();
         }
 
-        protected TSelect InternalWhere(Expression exp) => exp == null ? this as TSelect : this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp, null, _whereCascadeExpression, _params));
+        public TSelect InternalWhere(Expression exp) => exp == null ? this as TSelect : this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp, null, _whereCascadeExpression, _params));
         #endregion
 
 #if net40

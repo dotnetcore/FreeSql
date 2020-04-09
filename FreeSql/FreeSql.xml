@@ -993,31 +993,6 @@
             使用属性名作为字段别名
             </summary>
         </member>
-        <member name="M:FreeSql.ILinqToSql`1.Select``1(System.Linq.Expressions.Expression{System.Func{`0,``0}})">
-            <summary>
-            【linq to sql】专用方法，不建议直接使用
-            </summary>
-        </member>
-        <member name="M:FreeSql.ILinqToSql`1.Join``3(FreeSql.ISelect{``0},System.Linq.Expressions.Expression{System.Func{`0,``1}},System.Linq.Expressions.Expression{System.Func{``0,``1}},System.Linq.Expressions.Expression{System.Func{`0,``0,``2}})">
-            <summary>
-            【linq to sql】专用方法，不建议直接使用
-            </summary>
-        </member>
-        <member name="M:FreeSql.ILinqToSql`1.GroupJoin``3(FreeSql.ISelect{``0},System.Linq.Expressions.Expression{System.Func{`0,``1}},System.Linq.Expressions.Expression{System.Func{``0,``1}},System.Linq.Expressions.Expression{System.Func{`0,FreeSql.ISelect{``0},``2}})">
-            <summary>
-            【linq to sql】专用方法，不建议直接使用
-            </summary>
-        </member>
-        <member name="M:FreeSql.ILinqToSql`1.DefaultIfEmpty">
-            <summary>
-            【linq to sql】专用方法，不建议直接使用
-            </summary>
-        </member>
-        <member name="M:FreeSql.ILinqToSql`1.SelectMany``2(System.Linq.Expressions.Expression{System.Func{`0,FreeSql.ISelect{``0}}},System.Linq.Expressions.Expression{System.Func{`0,``0,``1}})">
-            <summary>
-            【linq to sql】专用方法，不建议直接使用
-            </summary>
-        </member>
         <member name="M:FreeSql.ISelect0`2.WithTransaction(System.Data.Common.DbTransaction)">
             <summary>
             指定事务对象
@@ -1746,14 +1721,6 @@
             使用 AsTable 方法也可以达到效果
             </summary>
             <param name="sql">SQL语句</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.ISelect`1.AsQueryable">
-            <summary>
-            将 ISelect&lt;T1&gt; 转换为 IQueryable&lt;T1&gt;<para></para>
-            此方法主要用于扩展，比如：abp IRepository GetAll() 接口方法需要返回 IQueryable 对象<para></para>
-            注意：IQueryable 方法污染较为严重，请尽量避免此转换
-            </summary>
             <returns></returns>
         </member>
         <member name="M:FreeSql.ISelectFromExpression`1.Where(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
