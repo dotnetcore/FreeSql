@@ -10,11 +10,6 @@ namespace FreeSql
     {
         Type EntityType { get; }
         IUnitOfWork UnitOfWork { get; set; }
-
-        /// <summary>
-        /// 注意：IFreeSql 属于顶级对象，事务无法自动传递。<para></para>
-        /// 手工传递事务：ISelect/IInsert/IDelete/IUpdate 可以使用 WithTransaction(uow.GetOrBeginTransaction())
-        /// </summary>
         IFreeSql Orm { get; }
 
         /// <summary>

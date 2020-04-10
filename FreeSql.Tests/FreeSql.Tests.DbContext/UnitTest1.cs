@@ -118,6 +118,8 @@ namespace FreeSql.Tests
                 };
                 ctx.AddRange(new[] { song1, song2, song3 });
 
+                ctx.Orm.Select<Tag>().Limit(10).ToList();
+
                 ctx.AddRange(
                     new[] {
                         new Song_tag { Song_id = song1.Id, Tag_id = tag1.Id },
@@ -150,7 +152,7 @@ namespace FreeSql.Tests
 
             using (var ctx = g.sqlite.CreateDbContext())
             {
-
+                ctx.Options.EnableAddOrUpdateNavigateList = true;
                 var tags = ctx.Set<Tag>().Select.IncludeMany(a => a.Tags).ToList();
 
                 var tag = new Tag
@@ -168,6 +170,9 @@ namespace FreeSql.Tests
                     }
                 };
                 ctx.Add(tag);
+
+                var tags2 = ctx.Orm.Select<Tag>().IncludeMany(a => a.Tags).ToList();
+
                 ctx.SaveChanges();
             }
         }
@@ -179,10 +184,12 @@ namespace FreeSql.Tests
 
             using (var ctx = g.sqlite.CreateDbContext())
             {
-
+                ctx.Options.EnableAddOrUpdateNavigateList = true;
                 var tag = ctx.Set<Tag>().Select.First();
                 tag.Tags.Add(new Tag { Name = "sub3" });
+                tag.Name = Guid.NewGuid().ToString();
                 ctx.Update(tag);
+                var xxx = ctx.Orm.Select<Tag>().First();
                 ctx.SaveChanges();
             }
         }

@@ -10,13 +10,9 @@ namespace FreeSql
 {
     public abstract partial class DbContext : IDisposable
     {
-        internal IFreeSql _ormPriv;
-
-        /// <summary>
-        /// 注意：IFreeSql 属于顶级对象，事务无法自动传递。<para></para>
-        /// 手工传递事务：ISelect/IInsert/IDelete/IUpdate 可以使用 WithTransaction(uow.GetOrBeginTransaction())
-        /// </summary>
-        public IFreeSql Orm => _ormPriv ?? throw new ArgumentNullException("请在 OnConfiguring 或 AddFreeDbContext 中配置 UseFreeSql");
+        internal DbContextScopedFreeSql _ormScoped;
+        internal IFreeSql OrmOriginal => _ormScoped?._originalFsql ?? throw new ArgumentNullException("请在 OnConfiguring 或 AddFreeDbContext 中配置 UseFreeSql");
+        public IFreeSql Orm => _ormScoped ?? throw new ArgumentNullException("请在 OnConfiguring 或 AddFreeDbContext 中配置 UseFreeSql");
 
         #region Property UnitOfWork
         internal bool _isUseUnitOfWork = true; //是否创建工作单元事务
@@ -28,7 +24,7 @@ namespace FreeSql
             {
                 if (_uowPriv != null) return _uowPriv;
                 if (_isUseUnitOfWork == false) return null;
-                return _uowPriv = new UnitOfWork(Orm);
+                return _uowPriv = new UnitOfWork(OrmOriginal);
             }
         }
         #endregion
@@ -43,7 +39,7 @@ namespace FreeSql
                 if (_optionsPriv == null)
                 {
                     _optionsPriv = new DbContextOptions();
-                    if (FreeSqlDbContextExtensions._dicSetDbContextOptions.TryGetValue(Orm.Ado.Identifier, out var opt))
+                    if (FreeSqlDbContextExtensions._dicSetDbContextOptions.TryGetValue(OrmOriginal.Ado.Identifier, out var opt))
                     {
                         _optionsPriv.EnableAddOrUpdateNavigateList = opt.EnableAddOrUpdateNavigateList;
                         _optionsPriv.OnEntityChange = opt.OnEntityChange;
@@ -63,17 +59,17 @@ namespace FreeSql
         protected DbContext() : this(null, null) { }
         protected DbContext(IFreeSql fsql, DbContextOptions options)
         {
-            _ormPriv = fsql;
+            _ormScoped = DbContextScopedFreeSql.Create(fsql, () => this, () => UnitOfWork);
             _optionsPriv = options;
 
-            if (_ormPriv == null)
+            if (_ormScoped == null)
             {
                 var builder = new DbContextOptionsBuilder();
                 OnConfiguring(builder);
-                _ormPriv = builder._fsql;
+                _ormScoped = DbContextScopedFreeSql.Create(builder._fsql, () => this, () => UnitOfWork);
                 _optionsPriv = builder._options;
             }
-            if (_ormPriv != null) InitPropSets();
+            if (_ormScoped != null) InitPropSets();
         }
         protected virtual void OnConfiguring(DbContextOptionsBuilder builder) { }
 
@@ -113,7 +109,7 @@ namespace FreeSql
         #region DbSet 快速代理
         void CheckEntityTypeOrThrow(Type entityType)
         {
-            if (Orm.CodeFirst.GetTableByEntity(entityType) == null)
+            if (OrmOriginal.CodeFirst.GetTableByEntity(entityType) == null)
                 throw new ArgumentException($"参数 data 类型错误 {entityType.FullName} ");
         }
         /// <summary>

@@ -11,7 +11,7 @@ namespace FreeSql
         protected IBaseRepository _repo;
         public RepositoryDbContext(IFreeSql orm, IBaseRepository repo) : base()
         {
-            _ormPriv = orm;
+            _ormScoped = DbContextScopedFreeSql.Create(orm, () => this, () => repo.UnitOfWork);
             _isUseUnitOfWork = false;
             UnitOfWork = repo.UnitOfWork;
             _repo = repo;
@@ -23,7 +23,7 @@ namespace FreeSql
         {
             if (_dicSet.ContainsKey(entityType)) return _dicSet[entityType];
 
-            var tb = _ormPriv.CodeFirst.GetTableByEntity(entityType);
+            var tb = OrmOriginal.CodeFirst.GetTableByEntity(entityType);
             if (tb == null) return null;
 
             object repo = _repo;

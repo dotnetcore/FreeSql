@@ -34,7 +34,7 @@ namespace FreeSql
                 if (entitys != null)
                     foreach (var entity in entitys)
                         if (filter.Value.ExpressionDelegate?.Invoke(entity) == false)
-                            throw new Exception($"FreeSql.Repository Update 失败，因为设置了过滤器 {filter.Key}: {filter.Value.Expression}，更新的数据不符合 {_db.Orm.GetEntityString(_entityType, entity)}");
+                            throw new Exception($"FreeSql.Repository Update 失败，因为设置了过滤器 {filter.Key}: {filter.Value.Expression}，更新的数据不符合 {_db.OrmOriginal.GetEntityString(_entityType, entity)}");
                 update.Where(filter.Value.Expression);
             }
             return update.AsTable(_repo.AsTableValueInternal);
@@ -58,7 +58,7 @@ namespace FreeSql
                 if (entitys != null)
                     foreach (var entity in entitys)
                         if (filter.Value.ExpressionDelegate?.Invoke(entity) == false)
-                            throw new Exception($"FreeSql.Repository Insert 失败，因为设置了过滤器 {filter.Key}: {filter.Value.Expression}，插入的数据不符合 {_db.Orm.GetEntityString(_entityType, entity)}");
+                            throw new Exception($"FreeSql.Repository Insert 失败，因为设置了过滤器 {filter.Key}: {filter.Value.Expression}，插入的数据不符合 {_db.OrmOriginal.GetEntityString(_entityType, entity)}");
             }
             return insert.AsTable(_repo.AsTableValueInternal);
         }

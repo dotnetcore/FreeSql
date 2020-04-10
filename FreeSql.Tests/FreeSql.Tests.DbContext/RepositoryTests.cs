@@ -29,6 +29,13 @@ namespace FreeSql.Tests
 
             item = repos.Find(item.Id);
             Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(item));
+
+            repos.Orm.Insert(new AddUpdateInfo()).ExecuteAffrows();
+            repos.Orm.Insert(new AddUpdateInfo { Id = Guid.NewGuid() }).ExecuteAffrows();
+            repos.Orm.Update<AddUpdateInfo>().Set(a => a.Title == "xxx").Where(a => a.Id == item.Id).ExecuteAffrows();
+            item = repos.Orm.Select<AddUpdateInfo>(item).First();
+            Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(item));
+            repos.Orm.Delete<AddUpdateInfo>(item).ExecuteAffrows();
         }
 
         [Fact]
@@ -122,6 +129,7 @@ namespace FreeSql.Tests
                 {
                     flowRepos = uow.GetRepository<FlowModel>();
                     flowRepos.Insert(flow);
+                    flowRepos.Orm.Select<FlowModel>().ToList();
                     uow.Commit();
                 }
             }
@@ -158,6 +166,7 @@ namespace FreeSql.Tests
                     uow.Close();
                     var uowFlowRepos = uow.GetRepository<FlowModel>();
                     uowFlowRepos.Insert(flow);
+                    uowFlowRepos.Orm.Select<FlowModel>().ToList();
                     //已关闭工作单元，提不提交都没影响，此处注释来确定工作单元开关是否生效：关闭了，不Commit也应该插入数据
                     //uow.Commit();
                 }
@@ -199,6 +208,7 @@ namespace FreeSql.Tests
                     {
                         var uowFlowRepos = uow.GetRepository<FlowModel>();
                         uowFlowRepos.Insert(flow);
+                        uowFlowRepos.Orm.Select<FlowModel>().ToList();
                         //有了任意 Insert/Update/Delete 调用关闭uow的方法将会发生异常
                         uow.Close();
                         uow.Commit();
@@ -240,6 +250,7 @@ namespace FreeSql.Tests
                 {
                     var uowFlowRepos = uow.GetRepository<FlowModel>();
                     uowFlowRepos.Insert(flow);
+                    uowFlowRepos.Orm.Select<FlowModel>().ToList();
                     //不调用commit将不会提交数据库更改
                     //uow.Commit();
                 }

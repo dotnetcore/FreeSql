@@ -2869,203 +2869,32 @@
             <summary>
             从对象池获取对象成功的时候触发，通过该方法统计或初始化对象
             </summary>
-            <param na <param name="column"></param>
+            <param name="obj">资源对象</param>
+        </member>
+        <member name="M:FreeSql.Internal.ObjectPool.IPolicy`1.OnReturn(FreeSql.Internal.ObjectPool.Object{`0})">
+            <summary>
+            归还对象给对象池的时候触发
+            </summary>
+            <param name="obj">资源对象</param>
+        </member>
+        <member name="M:FreeSql.Internal.ObjectPool.IPolicy`1.OnCheckAvailable(FreeSql.Internal.ObjectPool.Object{`0})">
+            <summary>
+            检查可用性
+            </summary>
+            <param name="obj">资源对象</param>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.IDbFirst.GetCsParse(FreeSql.DatabaseModel.DbColumnInfo)">
+        <member name="M:FreeSql.Internal.ObjectPool.IPolicy`1.OnAvailable">
             <summary>
-            反序列化
-            </summary>
-            <param name="column"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IDbFirst.GetEnumsByDatabase(System.String[])">
-            <summary>
-            获取数据库枚举类型，适用 PostgreSQL
-            </summary>
-            <param name="database"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.Internal.CommonProvider.InsertProvider`1.IgnoreCanInsert">
-            <summary>
-            AsType, Ctor, ClearData 三处地方需要重新加载
+            事件：可用时触发
             </summary>
         </member>
-        <member name="M:FreeSql.Internal.CommonProvider.UpdateProvider`1.IgnoreCanUpdate">
+        <member name="M:FreeSql.Internal.ObjectPool.IPolicy`1.OnUnavailable">
             <summary>
-            AsType, Ctor, ClearData 三处地方需要重新加载
+            事件：不可用时触发
             </summary>
         </member>
-        <member name="M:FreeSql.Internal.CommonUtils.GetProperyCommentBySummary(System.Type)">
-            <summary>
-            通过属性的注释文本，通过 xml 读取
-            </summary>
-            <param name="type"></param>
-            <returns>Dict：key=属性名，value=注释</returns>
-        </member>
-        <member name="M:FreeSql.Internal.GlobalFilter.Apply``1(System.String,System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})">
-            <summary>
-            创建一个过滤器
-            </summary>
-            <typeparam name="TEntity"></typeparam>
-            <param name="name">名字</param>
-            <param name="where">表达式</param>
-            <returns></returns>
-        </member>
-        <member name="P:FreeSql.Internal.Model.TableRef.RefMiddleEntityType">
-            <summary>
-            中间表，多对多
-            </summary>
-        </member>
-        <member name="P:FreeSql.Internal.ObjectPool.IObjectPool`1.IsAvailable">
-            <summary>
-            是否可用
-            </summary>
-        </member>
-        <member name="P:FreeSql.Internal.ObjectPool.IObjectPool`1.UnavailableException">
-            <summary>
-            不可用错误
-            </summary>
-        </member>
-        <member name="P:FreeSql.Internal.ObjectPool.IObjectPool`1.UnavailableTime">
-            <summary>
-            不可用时间
-            </summary>
-        </member>
-        <member name="M:FreeSql.Internal.ObjectPool.IObjectPool`1.SetUnavailable(System.Exception)">
-            <summary>
-            将对象池设置为不可用，后续 Get/GetAsync 均会报错，同时启动后台定时检查服务恢复可用
-            </summary>
-            <param name="exception"></param>
-            <returns>由【可用】变成【不可用】时返回true，否则返回false</returns>
-        </member>
-        <member name="P:FreeSql.Internal.ObjectPool.IObjectPool`1.Statistics">
-            <summary>
-            统计对象池中的对象
-            </summary>
-        </member>
-        <member name="P:FreeSql.Internal.ObjectPool.IObjectPool`1.StatisticsFullily">
-            <summary>
-            统计对象池中的对象（完整)
-            </summary>
-        </member>
-        <member name="M:FreeSql.Internal.ObjectPool.IObjectPool`1.Get(System.Nullable{System.TimeSpan})">
-            <summary>
-            获取资源
-            </summary>
-            <param name="timeout">超时</param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.Internal.ObjectPool.IObjectPool`1.GetAsync">
-            <summary>
-            获取资源
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.Internal.ObjectPool.IObjectPool`1.Return(FreeSql.Internal.ObjectPool.Object{`0},System.Boolean)">
-            <summary>
-            使用完毕后，归还资源
-            <     </summary>
-            <returns></returns>
-        </member>
-        <member name="F:FreeSql.Internal.StringConvertType.None">
-            <summary>
-            不进行任何处理
-            </summary>
-        </member>
-        <member name="F:FreeSql.Internal.StringConvertType.PascalCaseToUnderscore">
-            <summary>
-            将帕斯卡命名字符串转换为下划线分隔字符串
-            <para></para>
-            BigApple -> Big_Apple
-            </summary>
-        </member>
-        <member name="F:FreeSql.Internal.StringConvertType.PascalCaseToUnderscoreWithUpper">
-            <summary>
-            将帕斯卡命名字符串转换为下划线分隔字符串，且转换为全大写
-            <para></para>
-            BigApple -> BIG_APPLE
-            </summary>
-        </member>
-        <member name="F:FreeSql.Internal.StringConvertType.PascalCaseToUnderscoreWithLower">
-            <summary>
-            将帕斯卡命名字符串转换为下划线分隔字符串，且转换为全小写
-            <para></para>
-            BigApple -> big_apple
-            </summary>
-        </member>
-        <member name="F:FreeSql.Internal.StringConvertType.Upper">
-            <summary>
-            将字符串转换为大写
-            <para></para>
-            BigApple -> BIGAPPLE
-            </summary>
-        </member>
-        <member name="F:FreeSql.Internal.StringConvertType.Lower">
-            <summary>
-            将字符串转换为小写
-            <para></para>
-            BigApple -> bigapple
-            </summary>
-        </member>
-        <member name="F:FreeSql.Internal.NameConvertType.None">
-            <summary>
-            不进行任何处理
-            </summary>
-        </member>
-        <member name="F:FreeSql.Internal.NameConvertType.PascalCaseToUnderscore">
-            <summary>
-            将帕斯卡命名字符串转换为下划线分隔字符串
-            <para></para>
-            BigApple -> Big_Apple
-            </summary>
-        </member>
-        <member name="F:FreeSql.Internal.NameConvertType.PascalCaseToUnderscoreWithUpper">
-            <summary>
-            将帕斯卡命名字符串转换为下划线分隔字符串，且转换为全大写
-            <para></para>
-            BigApple -> BIG_APPLE
-            </summary>
-        </member>
-        <member name="F:FreeSql.Internal.NameConvertType.PascalCaseToUnderscoreWithLower">
-            <summary>
-            将帕斯卡命名字符串转换为下划线分隔字符串，且转换为全小写
-            <para></para>
-            BigApple -> big_apple
-            </summary>
-        </member>
-        <member name="F:FreeSql.Internal.NameConvertType.ToUpper">
-            <summary>
-            将字符串转换为大写
-            <para></para>
-            BigApple -> BIGAPPLE
-            </summary>
-        </member>
-        <member name="F:FreeSql.Internal.NameConvertType.ToLower">
-            <summary>
-            将字符串转换为小写
-            <para></para>
-            BigApple -> bigapple
-            </summary>
-        </member>
-        <member name="M:FreeSqlGlobalExpressionCall.Between(System.DateTime,System.DateTime,System.DateTime)">
-            <summary>
-            C#： that >= between &amp;&amp; that &lt;= and<para></para>
-            SQL： that BETWEEN between AND and
-            </summary>
-            <param name="that"></param>
-            <param name="between"></param>
-            <param name="and"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSqlGlobalExpressionCall.BetweenEnd(System.DateTime,System.DateTime,System.DateTime)">
-            <summary>
-            注意：这个方法和 Between 有细微区别<para></para>
-            C#： that >= start &amp;&amp; that &lt; end<para></para>
-            SQL： that >= start and that &lt; end
-            </summary>
-            <param name="that"></param>
-            <param name="start"></param>Object`1.Pool">
+        <member name="P:FreeSql.Internal.ObjectPool.Object`1.Pool">
             <summary>
             所属对象池
             </summary>
@@ -3420,7 +3249,125 @@
             将 lambda 表达式取反
             </summary>
             <param name="exp"></param>
-            <param name="     <summary>
+            <param name="condition">true 时生效</param>
+            <returns></returns>
+        </member>
+        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.And``3(System.Linq.Expressions.Expression{System.Func{``0,``1,``2,System.Boolean}},System.Linq.Expressions.Expression{System.Func{``0,``1,``2,System.Boolean}})">
+            <summary>
+            使用 and 拼接两个 lambda 表达式
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.And``3(System.Linq.Expressions.Expression{System.Func{``0,``1,``2,System.Boolean}},System.Boolean,System.Linq.Expressions.Expression{System.Func{``0,``1,``2,System.Boolean}})">
+            <summary>
+            使用 and 拼接两个 lambda 表达式
+            </summary>
+            <param name="exp1"></param>
+            <param name="condition">true 时生效</param>
+            <param name="exp2"></param>
+            <returns></returns>
+        </member>
+        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.Or``3(System.Linq.Expressions.Expression{System.Func{``0,``1,``2,System.Boolean}},System.Linq.Expressions.Expression{System.Func{``0,``1,``2,System.Boolean}})">
+            <summary>
+            使用 or 拼接两个 lambda 表达式
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.Or``3(System.Linq.Expressions.Expression{System.Func{``0,``1,``2,System.Boolean}},System.Boolean,System.Linq.Expressions.Expression{System.Func{``0,``1,``2,System.Boolean}})">
+            <summary>
+            使用 or 拼接两个 lambda 表达式
+            </summary>
+            <param name="exp1"></param>
+            <param name="condition">true 时生效</param>
+            <param name="exp2"></param>
+            <returns></returns>
+        </member>
+        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.Not``3(System.Linq.Expressions.Expression{System.Func{``0,``1,``2,System.Boolean}},System.Boolean)">
+            <summary>
+            将 lambda 表达式取反
+            </summary>
+            <param name="exp"></param>
+            <param name="condition">true 时生效</param>
+            <returns></returns>
+        </member>
+        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.And``4(System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,System.Boolean}},System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,System.Boolean}})">
+            <summary>
+            使用 and 拼接两个 lambda 表达式
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.And``4(System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,System.Boolean}},System.Boolean,System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,System.Boolean}})">
+            <summary>
+            使用 and 拼接两个 lambda 表达式
+            </summary>
+            <param name="exp1"></param>
+            <param name="condition">true 时生效</param>
+            <param name="exp2"></param>
+            <returns></returns>
+        </member>
+        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.Or``4(System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,System.Boolean}},System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,System.Boolean}})">
+            <summary>
+            使用 or 拼接两个 lambda 表达式
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.Or``4(System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,System.Boolean}},System.Boolean,System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,System.Boolean}})">
+            <summary>
+            使用 or 拼接两个 lambda 表达式
+            </summary>
+            <param name="exp1"></param>
+            <param name="condition">true 时生效</param>
+            <param name="exp2"></param>
+            <returns></returns>
+        </member>
+        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.Not``4(System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,System.Boolean}},System.Boolean)">
+            <summary>
+            将 lambda 表达式取反
+            </summary>
+            <param name="exp"></param>
+            <param name="condition">true 时生效</param>
+            <returns></returns>
+        </member>
+        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.And``5(System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,``4,System.Boolean}},System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,``4,System.Boolean}})">
+            <summary>
+            使用 and 拼接两个 lambda 表达式
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.And``5(System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,``4,System.Boolean}},System.Boolean,System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,``4,System.Boolean}})">
+            <summary>
+            使用 and 拼接两个 lambda 表达式
+            </summary>
+            <param name="exp1"></param>
+            <param name="condition">true 时生效</param>
+            <param name="exp2"></param>
+            <returns></returns>
+        </member>
+        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.Or``5(System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,``4,System.Boolean}},System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,``4,System.Boolean}})">
+            <summary>
+            使用 or 拼接两个 lambda 表达式
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.Or``5(System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,``4,System.Boolean}},System.Boolean,System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,``4,System.Boolean}})">
+            <summary>
+            使用 or 拼接两个 lambda 表达式
+            </summary>
+            <param name="exp1"></param>
+            <param name="condition">true 时生效</param>
+            <param name="exp2"></param>
+            <returns></returns>
+        </member>
+        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.Not``5(System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,``4,System.Boolean}},System.Boolean)">
+            <summary>
+            将 lambda 表达式取反
+            </summary>
+            <param name="exp"></param>
+            <param name="condition">true 时生效</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeUtil.NewMongodbId">
+            <summary>
             生成类似Mongodb的ObjectId有序、不重复Guid
             </summary>
             <returns></returns>
@@ -3517,33 +3464,47 @@
         </member>
         <member name="M:IFreeSql.Transaction(System.TimeSpan,System.Action)">
             <summary>
-            <param name="exp1"></param>
-            <param name="condition">true 时生效</param>
-            <param name="exp2"></param>
-            <returns></returns>
-        </member>
-        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.Not``4(System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,System.Boolean}},System.Boolean)">
-            <summary>
-            将 lambda 表达式取反
+            开启事务（不支持异步）
             </summary>
-            <param name="exp"></param>
-            <param name="condition">true 时生效</param>
-            <returns></returns>
+            <param name="timeout">超时，未执行完成（可能）被其他线程事务自动提交</param>
+            <param name="handler">事务体 () => {}</param>
         </member>
-        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.And``5(System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,``4,System.Boolean}},System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,``4,System.Boolean}})">
+        <member name="M:IFreeSql.Transaction(System.Data.IsolationLevel,System.TimeSpan,System.Action)">
             <summary>
-            使用 and 拼接两个 lambda 表达式
+            开启事务（不支持异步）
             </summary>
-            <returns></returns>
+            <param name="isolationLevel"></param>
+            <param name="handler">事务体 () => {}</param>
+            <param name="timeout">超时，未执行完成（可能）被其他线程事务自动提交</param>
         </member>
-        <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.And``5(System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,``4,System.Boolean}},System.Boolean,System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,``4,System.Boolean}})">
+        <member name="P:IFreeSql.Ado">
             <summary>
-            使用 and 拼接两个 lambda 表达式
+            数据库访问对象
             </summary>
-            <param name="exp1"></param>
-            <param name="condition">true 时生效</param>
-            <param name="exp2"></param>
-            <returns></returns>
+        </member>
+        <member name="P:IFreeSql.Aop">
+            <summary>
+            所有拦截方法都在这里
+            </summary>
+        </member>
+        <member name="P:IFreeSql.CodeFirst">
+            <summary>
+            CodeFirst 模式开发相关方法
+            </summary>
+        </member>
+        <member name="P:IFreeSql.DbFirst">
+            <summary>
+            DbFirst 模式开发相关方法
+            </summary>
+        </member>
+        <member name="P:IFreeSql.GlobalFilter">
+            <summary>
+            全局过滤设置，可默认附加为 Select/Update/Delete 条件
+            </summary>
+        </member>
+    </members>
+</doc>
+           <returns></returns>
         </member>
         <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.Or``5(System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,``4,System.Boolean}},System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,``4,System.Boolean}})">
             <summary>

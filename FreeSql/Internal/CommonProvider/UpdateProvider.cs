@@ -351,7 +351,7 @@ namespace FreeSql.Internal.CommonProvider
         {
             if (orm.Aop.AuditValueHandler == null) return;
             if (data == null) return;
-            if (typeof(T1) == typeof(object) && data.GetType() != table.Type) 
+            if (typeof(T1) == typeof(object) && new[] { table.Type, table.TypeLazy }.Contains(data.GetType()) == false)
                 throw new Exception($"操作的数据类型({data.GetType().DisplayCsharp()}) 与 AsType({table.Type.DisplayCsharp()}) 不一致，请检查。");
             foreach (var col in table.Columns.Values)
             {
