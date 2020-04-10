@@ -3,10 +3,8 @@ using System;
 using System.Linq;
 using Xunit;
 
-namespace FreeSql.Tests.LinqToSql
+namespace FreeSql.Tests.Linq
 {
-
-
     class TestLinqToSql
     {
         public Guid id { get; set; }
@@ -29,7 +27,7 @@ namespace FreeSql.Tests.LinqToSql
         public DateTime createtime { get; set; } = DateTime.Now;
     }
 
-    public class SqliteLinqToSqlTests
+    public class ISelectLinqToSqlTests
     {
 
         [Fact]

@@ -13,15 +13,15 @@ namespace FreeSql.Extensions.Linq
 {
     class QueryableProvider<TCurrent, TSource> : IQueryable<TCurrent>, IOrderedQueryable<TCurrent> where TSource : class
     {
-        private Expression _expression;
-        private IQueryProvider _provider;
-        private Select1Provider<TSource> _select;
+        Expression _expression;
+        IQueryProvider _provider;
+        internal Select1Provider<TSource> _select;
 
         public QueryableProvider(Select1Provider<TSource> select)
         {
             _select = select;
             _expression = Expression.Constant(this);
-            _provider = new QueryProvider<TCurrent, TSource>(_select);
+            _provider = new QueryProvider<TCurrent, TSource>(_select, _expression);
         }
         public QueryableProvider(Expression expression, IQueryProvider provider, Select1Provider<TSource> select)
         {
@@ -49,56 +49,58 @@ namespace FreeSql.Extensions.Linq
 
     class QueryProvider<TCurrent, TSource> : IQueryProvider where TSource : class
     {
-        private Select1Provider<TSource> _select;
+        Select1Provider<TSource> _select;
+        Expression _oldExpression;
 
-        public QueryProvider(Select1Provider<TSource> select)
+        public QueryProvider(Select1Provider<TSource> select, Expression oldExpression)
         {
             _select = select;
+            _oldExpression = oldExpression;
         }
 
         public IQueryable<TElement> CreateQuery<TElement>(Expression expression)
         {
+            ExecuteExp(expression, null, false);
             if (typeof(TElement) != typeof(TCurrent))
-                return new QueryableProvider<TElement, TSource>(expression, new QueryProvider<TElement, TSource>(_select), _select);
+                return new QueryableProvider<TElement, TSource>(expression, new QueryProvider<TElement, TSource>(_select, expression), _select);
 
+            _oldExpression = expression;
             return new QueryableProvider<TElement, TSource>(expression, this, _select);
         }
         public IQueryable CreateQuery(Expression expression) => throw new NotImplementedException();
 
         public TResult Execute<TResult>(Expression expression)
         {
-            var stackCallExps = new Stack<MethodCallExpression>();
-            var callExp = expression as MethodCallExpression;
-            while(callExp != null)
-            {
-                stackCallExps.Push(callExp);
-                callExp = callExp?.Arguments.FirstOrDefault() as MethodCallExpression;
-            }
+            return (TResult)ExecuteExp(expression, typeof(TResult), _oldExpression == expression);
+        }
+        public object Execute(Expression expression) => throw new NotImplementedException();
 
-            SelectGroupingProvider groupBy = null;
+        public object ExecuteExp(Expression expression, Type tresult, bool isProcessed)
+        {
+            var callExp = expression as MethodCallExpression;
             var isfirst = false;
-            while (stackCallExps.Any())
+            if (callExp != null && isProcessed == false)
             {
-                callExp = stackCallExps.Pop();
-                TResult throwCallExp(string message) => throw new Exception($"FreeSql Queryable 解析出错，执行的方法 {callExp.Method.Name} {message}");
+                object throwCallExp(string message) => throw new Exception($"解析失败 {callExp.Method.Name} {message}，提示：可以使用扩展方法 IQueryable.RestoreToSelect() 还原为 ISelect 再查询");
                 if (callExp.Method.DeclaringType != typeof(Queryable)) return throwCallExp($"必须属于 System.Linq.Queryable");
 
-                TResult tplMaxMinAvgSum(string method) {
+                object tplMaxMinAvgSum(string method)
+                {
                     if (callExp.Arguments.Count == 2)
                     {
                         var avgParam = (callExp.Arguments[1] as UnaryExpression)?.Operand as LambdaExpression;
-                        return (TResult)Utils.GetDataReaderValue(typeof(TResult), 
+                        return Utils.GetDataReaderValue(tresult,
                             _select.GetType().GetMethod(method).MakeGenericMethod(avgParam.ReturnType).Invoke(_select, new object[] { avgParam }));
                     }
                     return throwCallExp($" 不支持 {callExp.Arguments.Count}个参数的方法");
                 }
-                TResult tplOrderBy(string method, bool isDescending)
+                object tplOrderBy(string method, bool isDescending)
                 {
                     if (callExp.Arguments.Count == 2)
                     {
                         var arg1 = (callExp.Arguments[1] as UnaryExpression)?.Operand as LambdaExpression;
                         _select.OrderByReflection(arg1, isDescending);
-                        return default(TResult);
+                        return tresult.CreateInstanceGetDefaultValue();
                     }
                     return throwCallExp($" 不支持 {callExp.Arguments.Count}个参数的方法");
                 }
@@ -106,7 +108,7 @@ namespace FreeSql.Extensions.Linq
                 {
                     case "Any":
                         if (callExp.Arguments.Count == 2) _select.InternalWhere(callExp.Arguments[1]);
-                        return (TResult)(object)_select.Any();
+                        return _select.Any();
                     case "AsQueryable":
                         break;
 
@@ -123,13 +125,13 @@ namespace FreeSql.Extensions.Linq
                             var dywhere = callExp.Arguments[1].GetConstExprValue();
                             if (dywhere == null) return throwCallExp($" 参数值不能为 null");
                             _select.WhereDynamic(dywhere);
-                            return (TResult)(object)_select.Any();
+                            return _select.Any();
                         }
                         return throwCallExp($" 不支持 {callExp.Arguments.Count}个参数的方法");
                     case "Count":
                         if (callExp.Arguments.Count == 2) _select.InternalWhere(callExp.Arguments[1]);
-                        return (TResult)Utils.GetDataReaderValue(typeof(TResult), _select.Count());
-                    
+                        return Utils.GetDataReaderValue(tresult, _select.Count());
+
                     case "Distinct":
                         if (callExp.Arguments.Count == 1)
                         {
@@ -153,25 +155,24 @@ namespace FreeSql.Extensions.Linq
                         isfirst = true;
                         break;
 
-                    case "OrderBy": 
+                    case "OrderBy":
                         tplOrderBy("OrderByReflection", false);
                         break;
-                    case "OrderByDescending": 
-                        tplOrderBy("OrderByReflection", true); 
+                    case "OrderByDescending":
+                        tplOrderBy("OrderByReflection", true);
                         break;
-                    case "ThenBy": 
-                        tplOrderBy("OrderByReflection", false); 
+                    case "ThenBy":
+                        tplOrderBy("OrderByReflection", false);
                         break;
-                    case "ThenByDescending": 
-                        tplOrderBy("OrderByReflection", true); 
+                    case "ThenByDescending":
+                        tplOrderBy("OrderByReflection", true);
                         break;
 
                     case "Where":
                         var whereParam = (callExp.Arguments[1] as UnaryExpression)?.Operand as LambdaExpression;
                         if (whereParam.Parameters.Count == 1)
                         {
-                            if (groupBy != null) groupBy.InternalHaving(whereParam);
-                            else _select.InternalWhere(whereParam);
+                            _select.InternalWhere(whereParam);
                             break;
                         }
                         return throwCallExp(" 不支持");
@@ -185,7 +186,7 @@ namespace FreeSql.Extensions.Linq
 
                     case "ToList":
                         if (callExp.Arguments.Count == 1)
-                            return (TResult)(object)_select.ToList();
+                            return _select.ToList();
                         return throwCallExp(" 不支持");
 
                     case "Select":
@@ -242,37 +243,21 @@ namespace FreeSql.Extensions.Linq
                     case "GroupBy":
                         return throwCallExp(" 不支持");
 
-                        if (callExp.Arguments.Count == 2) //TODO: 待实现
-                        {
-                            var arg1 = (callExp.Arguments[1] as UnaryExpression)?.Operand as LambdaExpression;
-
-                            var map = new ReadAnonymousTypeInfo();
-                            var field = new StringBuilder();
-                            var index = -10000; //临时规则，不返回 as1
-
-                            _select._commonExpression.ReadAnonymousField(_select._tables, field, map, ref index, arg1, null, _select._whereCascadeExpression, false); //不走 DTO 映射
-                            var sql = field.ToString();
-                            _select.GroupBy(sql.Length > 0 ? sql.Substring(2) : null);
-                            groupBy = new SelectGroupingProvider(_select._orm, _select, map, sql, _select._commonExpression, _select._tables);
-                            break;
-                        }
-                        return throwCallExp($" 不支持 {callExp.Arguments.Count}个参数的方法");
-
                     default:
                         return throwCallExp(" 不支持");
                 }
             }
+            if (tresult == null) return null;
             if (isfirst)
             {
                 _select.Limit(1);
                 if (_select._selectExpression != null)
-                    return (TResult)(object)_select.InternalToList<TCurrent>(_select._selectExpression).FirstOrDefault();
-                return (TResult)(object)_select.ToList().FirstOrDefault();
+                    return _select.InternalToList<TCurrent>(_select._selectExpression).FirstOrDefault();
+                return _select.ToList().FirstOrDefault();
             }
             if (_select._selectExpression != null)
-                return (TResult)(object)_select.InternalToList<TCurrent>(_select._selectExpression);
-            return (TResult)(object)_select.ToList();
+                return _select.InternalToList<TCurrent>(_select._selectExpression);
+            return _select.ToList();
         }
-        public object Execute(Expression expression) => throw new NotImplementedException();
     }
 }

@@ -7,9 +7,19 @@
         <member name="M:FreeSqlExtensionsLinqSql.AsQueryable``1(FreeSql.ISelect{``0})">
             <summary>
             将 ISelect&lt;T1&gt; 转换为 IQueryable&lt;T1&gt;<para></para>
-            此方法主要用于扩展，比如：abp IRepository GetAll() 接口方法需要返回 IQueryable 对象<para></para>
-            注意：IQueryable 方法污染较为严重，请尽量避免此转换
+            用于扩展如：abp IRepository GetAll() 接口方法需要返回 IQueryable 对象<para></para>
+            提示：IQueryable 方法污染严重，查询功能的实现也不理想，应尽量避免此转换<para></para>
+            IQueryable&lt;T1&gt; 扩展方法 RestoreToSelect() 可以还原为 ISelect&lt;T1&gt;
             </summary>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSqlExtensionsLinqSql.RestoreToSelect``1(System.Linq.IQueryable{``0})">
+            <summary>
+            将 IQueryable&lt;T1&gt; 转换为 ISelect&lt;T1&gt;<para></para>
+            前提：IQueryable 必须由 FreeSql.Extensions.Linq.QueryableProvider 实现
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <param name="that"></param>
             <returns></returns>
         </member>
         <member name="M:FreeSqlExtensionsLinqSql.Select``2(FreeSql.ISelect{``0},System.Linq.Expressions.Expression{System.Func{``0,``1}})">

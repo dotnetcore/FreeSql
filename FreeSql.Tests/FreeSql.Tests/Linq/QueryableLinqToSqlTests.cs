@@ -59,29 +59,6 @@ namespace FreeSql.Tests.Linq
         }
 
         [Fact]
-        public void GroupBy()
-        {
-            //var item = new TestQueryableLinqToSql { name = Guid.NewGuid().ToString() };
-            //g.sqlite.Insert<TestQueryableLinqToSql>().AppendData(item).ExecuteAffrows();
-
-            //var t1 = (from a in g.sqlite.Select<TestQueryableLinqToSql>().AsQueryable()
-            //          where a.id == item.id
-            //          group a by new { a.id, a.name } into g
-            //          select new
-            //          {
-            //              g.Key.id,
-            //              g.Key.name,
-            //              cou = g.Count(),
-            //              avg = g.Average(x => x.click),
-            //              sum = g.Sum(x => x.click),
-            //              max = g.Max(x => x.click),
-            //              min = g.Min(x => x.click)
-            //          }).ToList();
-            //Assert.True(t1.Any());
-            //Assert.Equal(item.id, t1.First().id);
-        }
-
-        [Fact]
         public void CaseWhen()
         {
             var item = new TestQueryableLinqToSql { name = Guid.NewGuid().ToString() };

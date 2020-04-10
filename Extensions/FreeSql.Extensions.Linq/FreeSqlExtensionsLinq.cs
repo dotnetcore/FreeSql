@@ -15,13 +15,26 @@ public static class FreeSqlExtensionsLinqSql
 
     /// <summary>
     /// 将 ISelect&lt;T1&gt; 转换为 IQueryable&lt;T1&gt;<para></para>
-    /// 此方法主要用于扩展，比如：abp IRepository GetAll() 接口方法需要返回 IQueryable 对象<para></para>
-    /// 注意：IQueryable 方法污染较为严重，请尽量避免此转换
+    /// 用于扩展如：abp IRepository GetAll() 接口方法需要返回 IQueryable 对象<para></para>
+    /// 提示：IQueryable 方法污染严重，查询功能的实现也不理想，应尽量避免此转换<para></para>
+    /// IQueryable&lt;T1&gt; 扩展方法 RestoreToSelect() 可以还原为 ISelect&lt;T1&gt;
     /// </summary>
     /// <returns></returns>
     public static IQueryable<T1> AsQueryable<T1>(this ISelect<T1> that) where T1 : class
     {
         return new QueryableProvider<T1, T1>(that as Select1Provider<T1>);
+    }
+    /// <summary>
+    /// 将 IQueryable&lt;T1&gt; 转换为 ISelect&lt;T1&gt;<para></para>
+    /// 前提：IQueryable 必须由 FreeSql.Extensions.Linq.QueryableProvider 实现
+    /// </summary>
+    /// <typeparam name="T1"></typeparam>
+    /// <param name="that"></param>
+    /// <returns></returns>
+    public static ISelect<T1> RestoreToSelect<T1>(this IQueryable<T1> that) where T1 : class
+    {
+        var queryable = that as QueryableProvider<T1, T1> ?? throw new Exception($"无法将 IQueryable<{typeof(T1).Name}> 转换为 ISelect<{typeof(T1).Name}>，因为他的实现不是 FreeSql.Extensions.Linq.QueryableProvider");
+        return queryable._select;
     }
 
     /// <summary>
