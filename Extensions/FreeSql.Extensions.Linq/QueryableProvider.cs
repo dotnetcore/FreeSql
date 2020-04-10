@@ -81,7 +81,7 @@ namespace FreeSql.Extensions.Linq
             {
                 callExp = stackCallExps.Pop();
                 TResult throwCallExp(string message) => throw new Exception($"FreeSql Queryable 解析出错，执行的方法 {callExp.Method.Name} {message}");
-                if (callExp.Method.DeclaringType != typeof(Queryable)) return throwCallExp($"必须属于 System.Linq.Enumerable");
+                if (callExp.Method.DeclaringType != typeof(Queryable)) return throwCallExp($"必须属于 System.Linq.Queryable");
 
                 TResult tplMaxMinAvgSum(string method) {
                     if (callExp.Arguments.Count == 2)
@@ -105,7 +105,7 @@ namespace FreeSql.Extensions.Linq
                 switch (callExp.Method.Name)
                 {
                     case "Any":
-                        if (callExp.Arguments.Count == 2) _select.Where((Expression<Func<TSource, bool>>)(callExp.Arguments[1] as UnaryExpression)?.Operand);
+                        if (callExp.Arguments.Count == 2) _select.InternalWhere(callExp.Arguments[1]);
                         return (TResult)(object)_select.Any();
                     case "AsQueryable":
                         break;
@@ -120,14 +120,14 @@ namespace FreeSql.Extensions.Linq
                     case "Contains":
                         if (callExp.Arguments.Count == 2)
                         {
-                            var dywhere = (callExp.Arguments[1] as ConstantExpression)?.Value as TSource;
+                            var dywhere = callExp.Arguments[1].GetConstExprValue();
                             if (dywhere == null) return throwCallExp($" 参数值不能为 null");
                             _select.WhereDynamic(dywhere);
                             return (TResult)(object)_select.Any();
                         }
                         return throwCallExp($" 不支持 {callExp.Arguments.Count}个参数的方法");
                     case "Count":
-                        if (callExp.Arguments.Count == 2) _select.Where((Expression<Func<TSource, bool>>)(callExp.Arguments[1] as UnaryExpression)?.Operand);
+                        if (callExp.Arguments.Count == 2) _select.InternalWhere(callExp.Arguments[1]);
                         return (TResult)Utils.GetDataReaderValue(typeof(TResult), _select.Count());
                     
                     case "Distinct":
@@ -140,7 +140,7 @@ namespace FreeSql.Extensions.Linq
 
                     case "ElementAt":
                     case "ElementAtOrDefault":
-                        _select.Offset((int)(callExp.Arguments[1] as ConstantExpression)?.Value);
+                        _select.Offset((int)callExp.Arguments[1].GetConstExprValue());
                         _select.Limit(1);
                         isfirst = true;
                         break;
@@ -148,7 +148,7 @@ namespace FreeSql.Extensions.Linq
                     case "FirstOrDefault":
                     case "Single":
                     case "SingleOrDefault":
-                        if (callExp.Arguments.Count == 2) _select.Where((Expression<Func<TSource, bool>>)(callExp.Arguments[1] as UnaryExpression)?.Operand);
+                        if (callExp.Arguments.Count == 2) _select.InternalWhere(callExp.Arguments[1]);
                         _select.Limit(1);
                         isfirst = true;
                         break;
@@ -177,17 +177,16 @@ namespace FreeSql.Extensions.Linq
                         return throwCallExp(" 不支持");
 
                     case "Skip":
-                        _select.Offset((int)(callExp.Arguments[1] as ConstantExpression)?.Value);
+                        _select.Offset((int)callExp.Arguments[1].GetConstExprValue());
                         break;
                     case "Take":
-                        _select.Limit((int)(callExp.Arguments[1] as ConstantExpression)?.Value);
+                        _select.Limit((int)callExp.Arguments[1].GetConstExprValue());
                         break;
 
                     case "ToList":
                         if (callExp.Arguments.Count == 1)
                             return (TResult)(object)_select.ToList();
                         return throwCallExp(" 不支持");
-
 
                     case "Select":
                         var selectParam = (callExp.Arguments[1] as UnaryExpression)?.Operand as LambdaExpression;
