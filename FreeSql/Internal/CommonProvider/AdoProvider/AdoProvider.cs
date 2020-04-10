@@ -26,6 +26,7 @@ namespace FreeSql.Internal.CommonProvider
         public DataType DataType { get; }
         public string ConnectionString { get; }
         public string[] SlaveConnectionStrings { get; }
+        public Guid Identifier { get; }
         protected CommonUtils _util { get; set; }
         protected int slaveUnavailables = 0;
         private object slaveLock = new object();
@@ -36,6 +37,7 @@ namespace FreeSql.Internal.CommonProvider
             this.DataType = dataType;
             this.ConnectionString = connectionString;
             this.SlaveConnectionStrings = slaveConnectionStrings;
+            this.Identifier = Guid.NewGuid();
         }
 
         void LoggerException(IObjectPool<DbConnection> pool, PrepareCommandResult pc, Exception ex, DateTime dt, StringBuilder logtxt, bool isThrowException = true)

@@ -148,7 +148,7 @@ namespace FreeSql.Tests
 
             //支持 1对多 级联保存
 
-            using (var ctx = new FreeContext(g.sqlite))
+            using (var ctx = g.sqlite.CreateDbContext())
             {
 
                 var tags = ctx.Set<Tag>().Select.IncludeMany(a => a.Tags).ToList();
@@ -177,7 +177,7 @@ namespace FreeSql.Tests
         {
             //查询 1对多，再级联保存
 
-            using (var ctx = new FreeContext(g.sqlite))
+            using (var ctx = g.sqlite.CreateDbContext())
             {
 
                 var tag = ctx.Set<Tag>().Select.First();

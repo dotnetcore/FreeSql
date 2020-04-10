@@ -101,7 +101,7 @@ namespace FreeSql.Odbc.Default
             }
             finally
             {
-                FreeSqlOdbcGlobalExtensions._dicOdbcAdater.TryRemove(this as IFreeSql, out var tryada);
+                FreeSqlOdbcGlobalExtensions._dicOdbcAdater.TryRemove(Ado.Identifier, out var tryada);
             }
         }
     }
@@ -110,7 +110,7 @@ namespace FreeSql.Odbc.Default
 partial class FreeSqlOdbcGlobalExtensions
 {
     internal static OdbcAdapter DefaultOdbcAdapter = new OdbcAdapter();
-    internal static ConcurrentDictionary<IFreeSql, OdbcAdapter> _dicOdbcAdater = new ConcurrentDictionary<IFreeSql, OdbcAdapter>();
-    public static void SetOdbcAdapter(this IFreeSql that, OdbcAdapter adapter) => _dicOdbcAdater.AddOrUpdate(that, adapter, (fsql, old) => adapter);
-    internal static OdbcAdapter GetOdbcAdapter(this IFreeSql that) => _dicOdbcAdater.TryGetValue(that, out var tryada) ? tryada : DefaultOdbcAdapter;
+    internal static ConcurrentDictionary<Guid, OdbcAdapter> _dicOdbcAdater = new ConcurrentDictionary<Guid, OdbcAdapter>();
+    public static void SetOdbcAdapter(this IFreeSql that, OdbcAdapter adapter) => _dicOdbcAdater.AddOrUpdate(that.Ado.Identifier, adapter, (fsql, old) => adapter);
+    internal static OdbcAdapter GetOdbcAdapter(this IFreeSql that) => _dicOdbcAdater.TryGetValue(that.Ado.Identifier, out var tryada) ? tryada : DefaultOdbcAdapter;
 }

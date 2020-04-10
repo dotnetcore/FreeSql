@@ -32,6 +32,10 @@ namespace FreeSql
         /// UseSalve 时候的值
         /// </summary>
         string[] SlaveConnectionStrings { get; }
+        /// <summary>
+        /// 唯一标识
+        /// </summary>
+        Guid Identifier { get; }
 
         #region 事务
         /// <summary>

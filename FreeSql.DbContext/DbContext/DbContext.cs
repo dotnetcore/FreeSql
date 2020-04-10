@@ -43,7 +43,7 @@ namespace FreeSql
                 if (_optionsPriv == null)
                 {
                     _optionsPriv = new DbContextOptions();
-                    if (FreeSqlDbContextExtensions._dicSetDbContextOptions.TryGetValue(Orm, out var opt))
+                    if (FreeSqlDbContextExtensions._dicSetDbContextOptions.TryGetValue(Orm.Ado.Identifier, out var opt))
                     {
                         _optionsPriv.EnableAddOrUpdateNavigateList = opt.EnableAddOrUpdateNavigateList;
                         _optionsPriv.OnEntityChange = opt.OnEntityChange;
