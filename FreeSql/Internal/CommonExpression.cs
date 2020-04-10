@@ -646,11 +646,13 @@ namespace FreeSql.Internal
                                 var eccContent = ecc.ParsedContent[exp3MethodParams[a].Name];
                                 if (eccContent == null)
                                     exp3InvokeParams[a] = Expression.Lambda(exp3.Arguments[a]).Compile().DynamicInvoke();
+                                else if (exp3.Arguments[a].IsParameter())
+                                    exp3InvokeParams[a] = exp3.Arguments[a].Type.CreateInstanceGetDefaultValue();
                                 else
                                     exp3InvokeParams[a] = Utils.GetDataReaderValue(exp3.Arguments[a].Type,
                                         eccContent.StartsWith("N'") ?
                                         eccContent.Substring(1).Trim('\'').Replace("''", "'") :
-                                        eccContent.Trim('\'').Replace("''", "'"));// exp3.Arguments[a].Type.CreateInstanceGetDefaultValue();
+                                        eccContent.Trim('\'').Replace("''", "'"));
                             }
                             else
                                 exp3InvokeParams[a] = ecc;
