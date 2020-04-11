@@ -35,14 +35,14 @@ namespace FreeSql
 
         public ISelect<T1> Select<T1>() where T1 : class
         {
-            _resolveDbContext()?.ExecCommand();
+            _resolveDbContext()?.FlushCommand();
             return _originalFsql.Select<T1>().WithTransaction(_resolveUnitOfWork()?.GetOrBeginTransaction(false));
         }
         public ISelect<T1> Select<T1>(object dywhere) where T1 : class => Select<T1>().WhereDynamic(dywhere);
 
         public IDelete<T1> Delete<T1>() where T1 : class
         {
-            _resolveDbContext()?.ExecCommand();
+            _resolveDbContext()?.FlushCommand();
             return _originalFsql.Delete<T1>().WithTransaction(_resolveUnitOfWork()?.GetOrBeginTransaction());
         }
         public IDelete<T1> Delete<T1>(object dywhere) where T1 : class => Delete<T1>().WhereDynamic(dywhere);
@@ -50,7 +50,7 @@ namespace FreeSql
         public IUpdate<T1> Update<T1>() where T1 : class
         {
             var db = _resolveDbContext();
-            db?.ExecCommand();
+            db?.FlushCommand();
             var update = _originalFsql.Update<T1>().WithTransaction(_resolveUnitOfWork()?.GetOrBeginTransaction());
             if (db?.Options.NoneParameter != null) update.NoneParameter(db.Options.NoneParameter.Value);
             return update;
@@ -60,7 +60,7 @@ namespace FreeSql
         public IInsert<T1> Insert<T1>() where T1 : class
         {
             var db = _resolveDbContext();
-            db?.ExecCommand();
+            db?.FlushCommand();
             var insert = _originalFsql.Insert<T1>().WithTransaction(_resolveUnitOfWork()?.GetOrBeginTransaction());
             if (db?.Options.NoneParameter != null) insert.NoneParameter(db.Options.NoneParameter.Value);
             return insert;

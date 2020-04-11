@@ -14,10 +14,10 @@ namespace FreeSql
 {
     partial class DbSet<TEntity>
     {
-        Task DbContextExecCommandAsync()
+        Task DbContextFlushCommandAsync()
         {
             _dicUpdateTimes.Clear();
-            return _db.ExecCommandAsync();
+            return _db.FlushCommandAsync();
         }
 
         async Task<int> DbContextBatchAddAsync(EntityState[] adds)
@@ -43,7 +43,7 @@ namespace FreeSql
                     case DataType.OdbcPostgreSQL:
                         if (_tableIdentitys.Length == 1 && _table.Primarys.Length == 1)
                         {
-                            await DbContextExecCommandAsync();
+                            await DbContextFlushCommandAsync();
                             var idtval = await this.OrmInsert(data).ExecuteIdentityAsync();
                             IncrAffrows(1);
                             _db.OrmOriginal.SetEntityIdentityValueWithPrimary(_entityType, data, idtval);
@@ -54,7 +54,7 @@ namespace FreeSql
                         }
                         else
                         {
-                            await DbContextExecCommandAsync();
+                            await DbContextFlushCommandAsync();
                             var newval = (await this.OrmInsert(data).ExecuteInsertedAsync()).First();
                             _db._entityChangeReport.Add(new DbContext.EntityChangeReport.ChangeInfo { Object = newval, Type = DbContext.EntityChangeType.Insert });
                             IncrAffrows(1);
@@ -67,7 +67,7 @@ namespace FreeSql
                     default:
                         if (_tableIdentitys.Length == 1 && _table.Primarys.Length == 1)
                         {
-                            await DbContextExecCommandAsync();
+                            await DbContextFlushCommandAsync();
                             var idtval = await this.OrmInsert(data).ExecuteIdentityAsync();
                             IncrAffrows(1);
                             _db.OrmOriginal.SetEntityIdentityValueWithPrimary(_entityType, data, idtval);
@@ -102,7 +102,7 @@ namespace FreeSql
                     case DataType.OdbcSqlServer:
                     case DataType.PostgreSQL:
                     case DataType.OdbcPostgreSQL:
-                        await DbContextExecCommandAsync();
+                        await DbContextFlushCommandAsync();
                         var rets = await this.OrmInsert(data).ExecuteInsertedAsync();
                         if (rets.Count != data.Count()) throw new Exception($"特别错误：批量添加失败，{_db.OrmOriginal.Ado.DataType} 的返回数据，与添加的数目不匹配");
                         _db._entityChangeReport.AddRange(rets.Select(a => new DbContext.EntityChangeReport.ChangeInfo { Object = a, Type = DbContext.EntityChangeType.Insert }));
@@ -149,7 +149,7 @@ namespace FreeSql
                     throw new ArgumentException($"{_table.Type.FullName} 类型的属性 {propertyName} 不是 OneToMany 或 ManyToMany 特性");
             }
 
-            await DbContextExecCommandAsync();
+            await DbContextFlushCommandAsync();
             var oldEnable = _db.Options.EnableAddOrUpdateNavigateList;
             _db.Options.EnableAddOrUpdateNavigateList = false;
             try
@@ -157,7 +157,7 @@ namespace FreeSql
                 await AddOrUpdateNavigateListAsync(item, false, propertyName);
                 if (tref.RefType == Internal.Model.TableRefType.OneToMany)
                 {
-                    await DbContextExecCommandAsync();
+                    await DbContextFlushCommandAsync();
                     //删除没有保存的数据，求出主体的条件
                     var deleteWhereParentParam = Expression.Parameter(typeof(object), "a");
                     Expression whereParentExp = null;
@@ -401,7 +401,7 @@ namespace FreeSql
             foreach (var item in data)
             {
                 if (_dicUpdateTimes.ContainsKey(item))
-                    await DbContextExecCommandAsync();
+                    await DbContextFlushCommandAsync();
                 _dicUpdateTimes.Add(item, 1);
 
                 var state = CreateEntityState(item);
@@ -429,7 +429,7 @@ namespace FreeSql
         /// <returns></returns>
         async public Task<int> RemoveAsync(Expression<Func<TEntity, bool>> predicate)
         {
-            await DbContextExecCommandAsync();
+            await DbContextFlushCommandAsync();
             return await this.OrmDelete(null).Where(predicate).ExecuteAffrowsAsync();
         }
         #endregion
@@ -449,10 +449,10 @@ namespace FreeSql
 
             if (flagExists == true && CanUpdate(data, false))
             {
-                await DbContextExecCommandAsync();
+                await DbContextFlushCommandAsync();
                 var affrows = _db._affrows;
                 await UpdateRangePrivAsync(new[] { data }, false);
-                await DbContextExecCommandAsync();
+                await DbContextFlushCommandAsync();
                 affrows = _db._affrows - affrows;
                 if (affrows > 0) return;
             }

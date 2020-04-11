@@ -225,7 +225,7 @@ namespace FreeSql
 #endif
         #endregion
 
-        #region Queue Action
+        #region Queue PreCommand
         public class EntityChangeReport
         {
             public class ChangeInfo
@@ -244,7 +244,7 @@ namespace FreeSql
         }
         internal List<EntityChangeReport.ChangeInfo> _entityChangeReport = new List<EntityChangeReport.ChangeInfo>();
         public enum EntityChangeType { Insert, Update, Delete, SqlRaw }
-        internal class ExecCommandInfo
+        internal class PrevCommandInfo
         {
             public EntityChangeType changeType { get; set; }
             public IDbSet dbSet { get; set; }
@@ -252,11 +252,11 @@ namespace FreeSql
             public Type entityType { get; set; }
             public object state { get; set; }
         }
-        Queue<ExecCommandInfo> _actions = new Queue<ExecCommandInfo>();
+        Queue<PrevCommandInfo> _prevCommands = new Queue<PrevCommandInfo>();
         internal int _affrows = 0;
 
-        internal void EnqueueAction(EntityChangeType changeType, IDbSet dbSet, Type stateType, Type entityType, object state) =>
-            _actions.Enqueue(new ExecCommandInfo { changeType = changeType, dbSet = dbSet, stateType = stateType, entityType = entityType, state = state });
+        internal void EnqueuePreCommand(EntityChangeType changeType, IDbSet dbSet, Type stateType, Type entityType, object state) =>
+            _prevCommands.Enqueue(new PrevCommandInfo { changeType = changeType, dbSet = dbSet, stateType = stateType, entityType = entityType, state = state });
         #endregion
 
         ~DbContext() => this.Dispose();
@@ -266,7 +266,7 @@ namespace FreeSql
             if (Interlocked.Increment(ref _disposeCounter) != 1) return;
             try
             {
-                _actions.Clear();
+                _prevCommands.Clear();
 
                 foreach (var set in _listSet)
                     try

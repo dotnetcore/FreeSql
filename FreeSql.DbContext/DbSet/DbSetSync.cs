@@ -13,10 +13,10 @@ namespace FreeSql
     partial class DbSet<TEntity>
     {
 
-        void DbContextExecCommand()
+        void DbContextFlushCommand()
         {
             _dicUpdateTimes.Clear();
-            _db.ExecCommand();
+            _db.FlushCommand();
         }
 
         int DbContextBatchAdd(EntityState[] adds)
@@ -42,7 +42,7 @@ namespace FreeSql
                     case DataType.OdbcPostgreSQL:
                         if (_tableIdentitys.Length == 1)
                         {
-                            DbContextExecCommand();
+                            DbContextFlushCommand();
                             var idtval = this.OrmInsert(data).ExecuteIdentity();
                             IncrAffrows(1);
                             _db.OrmOriginal.SetEntityIdentityValueWithPrimary(_entityType, data, idtval);
@@ -53,7 +53,7 @@ namespace FreeSql
                         }
                         else
                         {
-                            DbContextExecCommand();
+                            DbContextFlushCommand();
                             var newval = this.OrmInsert(data).ExecuteInserted().First();
                             _db._entityChangeReport.Add(new DbContext.EntityChangeReport.ChangeInfo { Object = newval, Type = DbContext.EntityChangeType.Insert });
                             IncrAffrows(1);
@@ -66,7 +66,7 @@ namespace FreeSql
                     default:
                         if (_tableIdentitys.Length == 1)
                         {
-                            DbContextExecCommand();
+                            DbContextFlushCommand();
                             var idtval = this.OrmInsert(data).ExecuteIdentity();
                             IncrAffrows(1);
                             _db.OrmOriginal.SetEntityIdentityValueWithPrimary(_entityType, data, idtval);
@@ -105,7 +105,7 @@ namespace FreeSql
                     case DataType.OdbcSqlServer:
                     case DataType.PostgreSQL:
                     case DataType.OdbcPostgreSQL:
-                        DbContextExecCommand();
+                        DbContextFlushCommand();
                         var rets = this.OrmInsert(data).ExecuteInserted();
                         if (rets.Count != data.Count()) throw new Exception($"特别错误：批量添加失败，{_db.OrmOriginal.Ado.DataType} 的返回数据，与添加的数目不匹配");
                         _db._entityChangeReport.AddRange(rets.Select(a => new DbContext.EntityChangeReport.ChangeInfo { Object = a, Type = DbContext.EntityChangeType.Insert }));
@@ -161,7 +161,7 @@ namespace FreeSql
                     throw new ArgumentException($"{_table.Type.FullName} 类型的属性 {propertyName} 不是 OneToMany 或 ManyToMany 特性");
             }
 
-            DbContextExecCommand();
+            DbContextFlushCommand();
             var oldEnable = _db.Options.EnableAddOrUpdateNavigateList;
             _db.Options.EnableAddOrUpdateNavigateList = false;
             try
@@ -169,7 +169,7 @@ namespace FreeSql
                 AddOrUpdateNavigateList(item, false, propertyName);
                 if (tref.RefType == Internal.Model.TableRefType.OneToMany)
                 {
-                    DbContextExecCommand();
+                    DbContextFlushCommand();
                     //删除没有保存的数据，求出主体的条件
                     var deleteWhereParentParam = Expression.Parameter(typeof(object), "a");
                     Expression whereParentExp = null;
@@ -442,7 +442,7 @@ namespace FreeSql
             foreach (var item in data)
             {
                 if (_dicUpdateTimes.ContainsKey(item))
-                    DbContextExecCommand();
+                    DbContextFlushCommand();
                 _dicUpdateTimes.Add(item, 1);
 
                 var state = CreateEntityState(item);
@@ -488,7 +488,7 @@ namespace FreeSql
         /// <returns></returns>
         public int Remove(Expression<Func<TEntity, bool>> predicate)
         {
-            DbContextExecCommand();
+            DbContextFlushCommand();
             return this.OrmDelete(null).Where(predicate).ExecuteAffrows();
         }
         #endregion
@@ -512,10 +512,10 @@ namespace FreeSql
 
             if (flagExists == true && CanUpdate(data, false))
             {
-                DbContextExecCommand();
+                DbContextFlushCommand();
                 var affrows = _db._affrows;
                 UpdateRangePriv(new[] { data }, false);
-                DbContextExecCommand();
+                DbContextFlushCommand();
                 affrows = _db._affrows - affrows;
                 if (affrows > 0) return;
             }

@@ -67,6 +67,11 @@
             实体变化事件
             </summary>
         </member>
+        <member name="M:FreeSql.DbContext.FlushCommand">
+            <summary>
+            刷新队列中的命令
+            </summary>
+        </member>
         <member name="P:FreeSql.DbContextOptions.EnableAddOrUpdateNavigateList">
             <summary>
             是否开启一对多，多对多级联保存功能<para></para>
@@ -114,6 +119,13 @@
             <summary>
             清空状态数据
             </summary>
+        </member>
+        <member name="M:FreeSql.DbSet`1.RemoveAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
+            <summary>
+            根据 lambda 条件删除数据
+            </summary>
+            <param name="predicate"></param>
+            <returns></returns>
         </member>
         <member name="M:FreeSql.DbSet`1.Add(`0)">
             <summary>

@@ -76,14 +76,14 @@ namespace FreeSql
         }
         public override int SaveChanges()
         {
-            ExecCommand();
+            FlushCommand();
             return SaveChangesSuccess();
         }
 #if net40
 #else
         async public override Task<int> SaveChangesAsync()
         {
-            await ExecCommandAsync();
+            await FlushCommandAsync();
             return SaveChangesSuccess();
         }
 #endif
