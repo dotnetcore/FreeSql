@@ -181,7 +181,7 @@ namespace FreeSql.Tests.SqlServer
                 testFieldSByteNullable = sbyte.MinValue,
                 testFieldShort = short.MaxValue,
                 testFieldShortNullable = short.MinValue,
-                testFieldString = "我是中国人string",
+                testFieldString = "我是中国人string'\\?!@#$%^&*()_+{}}{~?><<>",
                 testFieldTimeSpan = TimeSpan.FromSeconds(999),
                 testFieldTimeSpanNullable = TimeSpan.FromSeconds(30),
                 testFieldUInt = uint.MaxValue,
@@ -200,7 +200,12 @@ namespace FreeSql.Tests.SqlServer
             var sqlTestUpdate = g.sqlserver.Update<TableAllType>().SetSource(item3NP).NoneParameter().ToSql();
 
             var item3 = insert.AppendData(item2).ExecuteInserted();
-            var newitem2 = select.Where(a => a.Id == item3NP[0].Id).ToOne();
+            var newitem2 = select.Where(a => a.Id == item3[0].Id).ToOne();
+            Assert.Equal(item2.testFieldString, newitem2.testFieldString);
+
+            item3 = insert.NoneParameter().AppendData(item2).ExecuteInserted();
+            newitem2 = select.Where(a => a.Id == item3[0].Id).ToOne();
+            Assert.Equal(item2.testFieldString, newitem2.testFieldString);
 
             var items = select.ToList();
         }

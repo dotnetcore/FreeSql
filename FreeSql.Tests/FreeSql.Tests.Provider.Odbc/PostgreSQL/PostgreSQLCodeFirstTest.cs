@@ -182,7 +182,7 @@ namespace FreeSql.Tests.Odbc.PostgreSQL
                 testFieldSByteNullable = sbyte.MinValue,
                 testFieldShort = short.MaxValue,
                 testFieldShortNullable = short.MinValue,
-                testFieldString = "我是中国人String",
+                testFieldString = "我是中国人string'\\?!@#$%^&*()_+{}}{~?><<>",
                 testFieldTimeSpan = TimeSpan.FromDays(1),
                 testFieldTimeSpanNullable = TimeSpan.FromSeconds(90),
                 testFieldUInt = uint.MaxValue,
@@ -200,6 +200,11 @@ namespace FreeSql.Tests.Odbc.PostgreSQL
 
             var item3 = insert.AppendData(item2).ExecuteInserted().First();
             var newitem2 = select.Where(a => a.Id == item3.Id).ToOne();
+            Assert.Equal(item2.testFieldString, newitem2.testFieldString);
+
+            item3 = insert.NoneParameter().AppendData(item2).ExecuteInserted().First();
+            newitem2 = select.Where(a => a.Id == item3.Id).ToOne();
+            Assert.Equal(item2.testFieldString, newitem2.testFieldString);
 
             var items = select.ToList();
         }
