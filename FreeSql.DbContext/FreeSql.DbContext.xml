@@ -221,6 +221,15 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.FreeSqlRepositoryDependencyInjection.AddFreeRepository(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Action{FreeSql.FluentDataFilter},System.Reflection.Assembly[])">
+            <summary>
+            批量注入 Repository，可以参考代码自行调整
+            </summary>
+            <param name="services"></param>
+            <param name="globalDataFilter"></param>
+            <param name="assemblies"></param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.IBaseRepository.AsType(System.Type)">
             <summary>
             动态Type，在使用 Repository&lt;object&gt; 后使用本方法，指定实体类型
