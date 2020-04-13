@@ -36,6 +36,19 @@ namespace FreeSql.Tests.Odbc.MySql
 
             sql = g.mysql.Delete<Topic>(new { id = 1 }).ToSql();
             Assert.Equal("DELETE FROM `tb_topic` WHERE (`Id` = 1)", sql);
+
+            sql = g.mysql.Delete<MultiPkTopic>(new[] { new { Id1 = 1, Id2 = 10 }, new { Id1 = 2, Id2 = 20 } }).ToSql();
+            Assert.Equal("DELETE FROM `MultiPkTopic` WHERE (`Id1` = 1 AND `Id2` = 10 OR `Id1` = 2 AND `Id2` = 20)", sql);
+        }
+        class MultiPkTopic
+        {
+            [Column(IsPrimary = true)]
+            public int Id1 { get; set; }
+            [Column(IsPrimary = true)]
+            public int Id2 { get; set; }
+            public int Clicks { get; set; }
+            public string Title { get; set; }
+            public DateTime CreateTime { get; set; }
         }
 
         [Fact]
