@@ -243,13 +243,16 @@ isnull(e.name,'') + '.' + isnull(d.name,'')
 {0} a
 inner join sys.types b on b.user_type_id = a.user_type_id
 left join sys.tables d on d.object_id = a.object_id
-left join sys.schemas e on e.schema_id = d.schema_id
+left join sys.schemas e on e.schema_id = d.schema_id{2}
 where {1}
 ";
                 sql = string.Format(tsql_place, @"
 ,a.is_nullable 'IsNullable'
 ,a.is_identity 'IsIdentity'
-from sys.columns", loc8.ToString().Replace("a.table_name", "a.object_id"));
+,f.text as 'DefaultValue'
+from sys.columns", loc8.ToString().Replace("a.table_name", "a.object_id"), @"
+left join syscomments f on f.id = a.default_object_id
+");
                 if (loc88.Length > 0)
                 {
                     sql += "union all" +
@@ -258,7 +261,8 @@ from sys.columns", loc8.ToString().Replace("a.table_name", "a.object_id"));
                         " select value from sys.extended_properties where major_id = a.object_id AND minor_id = a.parameter_id"), @"
 ,cast(0 as bit) 'IsNullable'
 ,a.is_output 'IsIdentity'
-from sys.parameters", loc88.ToString().Replace("a.table_name", "a.object_id"));
+,'' as 'DefaultValue'
+from sys.parameters", loc88.ToString().Replace("a.table_name", "a.object_id"), "");
                 }
                 sql = $"use [{db}];{sql};use [{olddatabase}]; ";
                 ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
@@ -275,6 +279,7 @@ from sys.parameters", loc88.ToString().Replace("a.table_name", "a.object_id"));
                     var comment = string.Concat(row[6]);
                     var is_nullable = bool.Parse(string.Concat(row[7]));
                     var is_identity = bool.Parse(string.Concat(row[8]));
+                    var defaultValue = string.Concat(row[9]);
                     if (max_length == 0) max_length = -1;
 
                     loc3[object_id].Add(column, new DbColumnInfo
@@ -287,7 +292,8 @@ from sys.parameters", loc88.ToString().Replace("a.table_name", "a.object_id"));
                         DbTypeText = type,
                         DbTypeTextFull = sqlType,
                         Table = loc2[object_id],
-                        Coment = comment
+                        Coment = comment,
+                        DefaultValue = defaultValue
                     });
                     loc3[object_id][column].DbType = this.GetDbType(loc3[object_id][column]);
                     loc3[object_id][column].CsType = this.GetCsTypeInfo(loc3[object_id][column]);

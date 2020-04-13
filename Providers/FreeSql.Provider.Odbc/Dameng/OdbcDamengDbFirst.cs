@@ -307,7 +307,8 @@ a.data_scale,
 a.char_used,
 case when a.nullable = 'N' then 0 else 1 end,
 nvl((select 1 from user_sequences where upper(sequence_name)=upper(a.table_name||'_seq_'||a.column_name) and rownum < 2), 0),
-b.comments
+b.comments,
+a.data_default
 from all_tab_cols a
 left join all_col_comments b on b.owner = a.owner and b.table_name = a.table_name and b.column_name = a.column_name
 where a.owner in ({1}) and {0}
@@ -318,7 +319,7 @@ where a.owner in ({1}) and {0}
             var ds2 = new List<object[]>();
             foreach (var row in ds)
             {
-                var ds2item = new object[8];
+                var ds2item = new object[9];
                 ds2item[0] = row[0];
                 ds2item[1] = row[1];
                 ds2item[2] = Regex.Replace(string.Concat(row[2]), @"\(\d+\)", "");
@@ -326,6 +327,7 @@ where a.owner in ({1}) and {0}
                 ds2item[5] = string.Concat(row[7]) == "1";
                 ds2item[6] = string.Concat(row[8]) == "1";
                 ds2item[7] = string.Concat(row[9]);
+                ds2item[8] = string.Concat(row[10]);
                 ds2.Add(ds2item);
             }
             foreach (var row in ds2)
@@ -340,6 +342,7 @@ where a.owner in ({1}) and {0}
                 bool is_nullable = string.Concat(row[5]) == "1";
                 bool is_identity = string.Concat(row[6]) == "1";
                 string comment = string.Concat(row[7]);
+                string defaultValue = string.Concat(row[8]);
                 if (max_length == 0) max_length = -1;
                 if (database.Length == 1)
                 {
@@ -355,7 +358,8 @@ where a.owner in ({1}) and {0}
                     DbTypeText = type,
                     DbTypeTextFull = sqlType,
                     Table = loc2[table_id],
-                    Coment = comment
+                    Coment = comment,
+                    DefaultValue = defaultValue
                 });
                 loc3[table_id][column].DbType = this.GetDbType(loc3[table_id][column]);
                 loc3[table_id][column].CsType = this.GetCsTypeInfo(loc3[table_id][column]);

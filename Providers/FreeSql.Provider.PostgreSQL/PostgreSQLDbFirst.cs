@@ -348,6 +348,7 @@ where {loc8.ToString().Replace("a.table_name", "ns.nspname || '.' || c.relname")
                     var is_nullable = string.Concat(row[5]) == "1";
                     var is_identity = string.Concat(row[6]).StartsWith(@"nextval('") && string.Concat(row[6]).EndsWith(@"'::regclass)");
                     var comment = string.Concat(row[7]);
+                    var defaultValue = string.Concat(row[6]);
                     int attndims = int.Parse(string.Concat(row[8]));
                     string typtype = string.Concat(row[9]);
                     string owner = string.Concat(row[10]);
@@ -383,7 +384,8 @@ where {loc8.ToString().Replace("a.table_name", "ns.nspname || '.' || c.relname")
                         DbTypeText = type,
                         DbTypeTextFull = sqlType,
                         Table = loc2[object_id],
-                        Coment = comment
+                        Coment = comment,
+                        DefaultValue = defaultValue
                     });
                     loc3[object_id][column].DbType = this.GetDbType(loc3[object_id][column]);
                     loc3[object_id][column].CsType = this.GetCsTypeInfo(loc3[object_id][column]);

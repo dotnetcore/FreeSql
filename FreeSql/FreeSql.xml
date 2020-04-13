@@ -440,6 +440,11 @@
             备注
             </summary>
         </member>
+        <member name="P:FreeSql.DatabaseModel.DbColumnInfo.DefaultValue">
+            <summary>
+            数据库默认值
+            </summary>
+        </member>
         <member name="P:FreeSql.DatabaseModel.DbEnumInfo.Name">
             <summary>
             枚举类型标识

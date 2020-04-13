@@ -172,6 +172,7 @@ namespace FreeSql.Sqlite
                 bool is_identity = string.Concat(row[6]) == "1";
                 bool is_primary = string.Concat(row[7]) == "1";
                 string comment = string.Concat(row[8]);
+                string defaultValue = string.Concat(row[9]);
                 if (max_length == 0) max_length = -1;
                 loc3[table_id].Add(column, new DbColumnInfo
                 {
@@ -183,7 +184,8 @@ namespace FreeSql.Sqlite
                     DbTypeText = type,
                     DbTypeTextFull = sqlType,
                     Table = loc2[table_id],
-                    Coment = comment
+                    Coment = comment,
+                    DefaultValue = defaultValue
                 });
                 loc3[table_id][column].DbType = this.GetDbType(loc3[table_id][column]);
                 loc3[table_id][column].CsType = this.GetCsTypeInfo(loc3[table_id][column]);
@@ -256,7 +258,7 @@ from {db}.sqlite_master where type = 'table'";
                                 if (dsqlLastIdx > 0) is_identity = dsql.Substring(dsqlIdx.Value, dsqlLastIdx - dsqlIdx.Value).Contains("AUTOINCREMENT");
                             }
 
-                            var ds2item = new object[9];
+                            var ds2item = new object[10];
                             ds2item[0] = table_id;
                             ds2item[1] = col_name;
                             ds2item[2] = Regex.Replace(string.Concat(col[2]), @"\(\d+(\b*,\b*\d+)?\)", "").ToUpper();
@@ -265,6 +267,7 @@ from {db}.sqlite_master where type = 'table'";
                             ds2item[6] = is_identity;
                             ds2item[7] = string.Concat(col[5]) == "1" ? 1 : 0;
                             ds2item[8] = "";
+                            ds2item[9] = string.Concat(col[4]);
                             addColumn(ds2item);
                         }
 
