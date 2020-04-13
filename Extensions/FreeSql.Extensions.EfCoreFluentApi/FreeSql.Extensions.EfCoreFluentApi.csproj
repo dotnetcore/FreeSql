@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
-    <Version>1.3.6</Version>
+    <Version>1.4.0-preview0413</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>YeXiangQin</Authors>
     <Description>FreeSql 扩展包实现，使用 FluentApi 方式配置实体模型，使用习惯接近 EFCore，方便过渡.</Description>
