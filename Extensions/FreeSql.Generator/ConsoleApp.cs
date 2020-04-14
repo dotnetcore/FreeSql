@@ -4,6 +4,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using Console = Colorful.Console;
 
@@ -18,6 +19,7 @@ namespace FreeSql.Generator
         DataType ArgsDbType { get; }
         string ArgsConnectionString { get; }
         string ArgsFilter { get; }
+        string ArgsMatch { get; }
         string ArgsFileName { get; }
         internal string ArgsOutput { get; private set; }
 
@@ -56,6 +58,7 @@ new Colorful.Formatter("v" + string.Join(".", typeof(ConsoleApp).Assembly.GetNam
             ArgsNameOptions = new[] { false, false, false, false };
             ArgsNameSpace = "MyProject";
             ArgsFilter = "";
+            ArgsMatch = "";
             ArgsFileName = "{name}.cs";
             Action<string> setArgsOutput = value =>
             {
@@ -111,6 +114,8 @@ new Colorful.Formatter("v" + string.Join(".", typeof(ConsoleApp).Assembly.GetNam
      -Filter                   Table+View+StoreProcedure
                                默认生成：表+视图+存储过程
                                如果不想生成视图和存储过程 -Filter View+StoreProcedure
+
+     -Match                    正则表达式，只生成匹配的表，如：dbo\.TB_.+
 
      -FileName                 文件名，默认：{name}.cs
 
@@ -179,6 +184,11 @@ new Colorful.Formatter("推荐在实体类目录创建 gen.bat，双击它重新
                         ArgsFilter = args[a + 1];
                         a++;
                         break;
+                    case "-match":
+                        ArgsMatch = args[a + 1];
+                        if (Regex.IsMatch("", ArgsMatch)) { } //throw
+                        a++;
+                        break;
                     case "-filename":
                         ArgsFileName = args[a + 1];
                         a++;
@@ -214,6 +224,10 @@ new Colorful.Formatter("推荐在实体类目录创建 gen.bat，双击它重新
                 //开始生成操作
                 foreach (var table in outputTables)
                 {
+                    if (string.IsNullOrEmpty(ArgsMatch) == false)
+                    {
+                        if (Regex.IsMatch($"{table.Schema}.{table.Name}".TrimStart('.'), ArgsMatch) == false) continue;
+                    }
                     switch (table.Type)
                     {
                         case DatabaseModel.DbTableType.TABLE:
@@ -285,7 +299,7 @@ new Colorful.Formatter("推荐在实体类目录创建 gen.bat，双击它重新
                 }
 
                 File.WriteAllText(rebuildBat, $@"
-FreeSql.Generator -Razor ""__razor.cshtml.txt"" -NameOptions {string.Join(",", ArgsNameOptions.Select(a => a ? 1 : 0))} -NameSpace {ArgsNameSpace} -DB ""{ArgsDbType},{ArgsConnectionString}""{(string.IsNullOrEmpty(ArgsFilter) ? "" : $" -Filter \"{ArgsFilter}\"")} -FileName ""{ArgsFileName}""
+FreeSql.Generator -Razor ""__razor.cshtml.txt"" -NameOptions {string.Join(",", ArgsNameOptions.Select(a => a ? 1 : 0))} -NameSpace {ArgsNameSpace} -DB ""{ArgsDbType},{ArgsConnectionString}""{(string.IsNullOrEmpty(ArgsFilter) ? "" : $" -Filter \"{ArgsFilter}\"")}{(string.IsNullOrEmpty(ArgsMatch) ? "" : $" -Match \"{ArgsMatch}\"")} -FileName ""{ArgsFileName}""
 ");
                 Console.WriteFormatted(" OUT -> " + rebuildBat + "    (以后) 双击它重新生成实体\r\n", Color.Magenta);
                 ++outputCounter;
