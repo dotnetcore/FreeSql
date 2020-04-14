@@ -26,6 +26,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\FreeSql.Repository\FreeSql.Repository.csproj" />
+    <ProjectReference Include="..\Providers\FreeSql.Provider.Dameng\FreeSql.Provider.Dameng.csproj" />
     <ProjectReference Include="..\Providers\FreeSql.Provider.MsAccess\FreeSql.Provider.MsAccess.csproj" />
     <ProjectReference Include="..\Providers\FreeSql.Provider.MySql\FreeSql.Provider.MySql.csproj" />
     <ProjectReference Include="..\Providers\FreeSql.Provider.Odbc\FreeSql.Provider.Odbc.csproj" />

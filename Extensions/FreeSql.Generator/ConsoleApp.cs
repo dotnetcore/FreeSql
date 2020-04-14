@@ -106,10 +106,10 @@ new Colorful.Formatter("v" + string.Join(".", typeof(ConsoleApp).Assembly.GetNam
      
      -DB ""{9},user id=user1;password=123456;data source=//127.0.0.1:1521/XE;Pooling=true;Max Pool Size=2""
 
-     -DB ""{10},Data Source=document.db;Attachs=xxxtb.db;""
+     -DB ""{10},Data Source=document.db""
      
-     -DB ""{11},Driver={DM8 ODBC DRIVER};Server=127.0.0.1:5236;Persist Security Info=False;Trusted_Connection=Yes;UID=USER1;PWD=123456789;Max pool size=2""
-                               {11} 是国产达梦数据库，需要使用 ODBC 连接
+     -DB ""{11},server=127.0.0.1;port=5236;user id=2user;password=123456789;database=2user;poolsize=2""
+                               {11} 是国产达梦数据库
 
      -Filter                   Table+View+StoreProcedure
                                默认生成：表+视图+存储过程
@@ -134,7 +134,7 @@ new Colorful.Formatter("SqlServer", Color.Yellow),
 new Colorful.Formatter("PostgreSQL", Color.Yellow),
 new Colorful.Formatter("Oracle", Color.Yellow),
 new Colorful.Formatter("Sqlite", Color.Yellow),
-new Colorful.Formatter("OdbcDameng", Color.Yellow),
+new Colorful.Formatter("Dameng", Color.Yellow),
 new Colorful.Formatter("推荐在实体类目录创建 gen.bat，双击它重新所有实体类", Color.ForestGreen)
 );
                 wait.Set();
@@ -174,7 +174,7 @@ new Colorful.Formatter("推荐在实体类目录创建 gen.bat，双击它重新
                             case "postgresql": ArgsDbType = DataType.PostgreSQL; break;
                             case "oracle": ArgsDbType = DataType.Oracle; break;
                             case "sqlite": ArgsDbType = DataType.Sqlite; break;
-                            case "odbcdameng": ArgsDbType = DataType.OdbcDameng; break;
+                            case "dameng": ArgsDbType = DataType.Dameng; break;
                             default: throw new ArgumentException($"-DB 参数错误，不支持的类型：{dbargs[0]}");
                         }
                         ArgsConnectionString = dbargs[1].Trim();
