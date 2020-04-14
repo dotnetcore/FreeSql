@@ -139,6 +139,17 @@ namespace FreeSql.Internal.CommonProvider
             foreach (var col in table.Columns.Values)
             {
                 object val = col.GetMapValue(data);
+                if (orm.Aop.AuditValueHandler != null)
+                {
+                    var auditArgs = new Aop.AuditValueEventArgs(Aop.AuditValueType.Insert, col, table.Properties[col.CsName], val);
+                    orm.Aop.AuditValueHandler(sender, auditArgs);
+                    if (auditArgs.IsChanged)
+                    {
+                        col.SetMapValue(data, val = auditArgs.Value);
+                        if (changedDict != null && changedDict.ContainsKey(col.Attribute.Name) == false)
+                            changedDict.Add(col.Attribute.Name, true);
+                    }
+                }
                 if (col.Attribute.IsPrimary)
                 {
                     if (col.Attribute.MapType.NullableTypeOrThis() == typeof(Guid) && (val == null || (Guid)val == Guid.Empty))
@@ -151,17 +162,6 @@ namespace FreeSql.Internal.CommonProvider
                             orm.SetEntityValueWithPropertyName(table.Type, data, col.CsName, FreeUtil.NewMongodbId());
                             val = col.GetMapValue(data);
                         }
-                    }
-                }
-                if (orm.Aop.AuditValueHandler != null)
-                {
-                    var auditArgs = new Aop.AuditValueEventArgs(Aop.AuditValueType.Insert, col, table.Properties[col.CsName], val);
-                    orm.Aop.AuditValueHandler(sender, auditArgs);
-                    if (auditArgs.IsChanged)
-                    {
-                        col.SetMapValue(data, val = auditArgs.Value);
-                        if (changedDict != null && changedDict.ContainsKey(col.Attribute.Name) == false)
-                            changedDict.Add(col.Attribute.Name, true);
                     }
                 }
             }
