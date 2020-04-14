@@ -49,11 +49,24 @@ namespace FreeSql
         /// <returns></returns>
         IInsert<T1> InsertColumns(Expression<Func<T1, object>> columns);
         /// <summary>
+        /// 只插入的列
+        /// </summary>
+        /// <param name="columns">属性名，或者字段名</param>
+        /// <returns></returns>
+        IInsert<T1> InsertColumns(string[] columns);
+
+        /// <summary>
         /// 忽略的列，IgnoreColumns(a => a.Name) | IgnoreColumns(a => new{a.Name,a.Time}) | IgnoreColumns(a => new[]{"name","time"})
         /// </summary>
         /// <param name="columns">lambda选择列</param>
         /// <returns></returns>
         IInsert<T1> IgnoreColumns(Expression<Func<T1, object>> columns);
+        /// <summary>
+        /// 忽略的列
+        /// </summary>
+        /// <param name="columns">属性名，或者字段名</param>
+        /// <returns></returns>
+        IInsert<T1> IgnoreColumns(string[] columns);
 
         /// <summary>
         /// 指定可插入自增字段

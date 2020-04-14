@@ -907,11 +907,25 @@
             <param name="columns">lambda选择列</param>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.IInsert`1.InsertColumns(System.String[])">
+            <summary>
+            只插入的列
+            </summary>
+            <param name="columns">属性名，或者字段名</param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.IInsert`1.IgnoreColumns(System.Linq.Expressions.Expression{System.Func{`0,System.Object}})">
             <summary>
             忽略的列，IgnoreColumns(a => a.Name) | IgnoreColumns(a => new{a.Name,a.Time}) | IgnoreColumns(a => new[]{"name","time"})
             </summary>
             <param name="columns">lambda选择列</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IInsert`1.IgnoreColumns(System.String[])">
+            <summary>
+            忽略的列
+            </summary>
+            <param name="columns">属性名，或者字段名</param>
             <returns></returns>
         </member>
         <member name="M:FreeSql.IInsert`1.InsertIdentity">

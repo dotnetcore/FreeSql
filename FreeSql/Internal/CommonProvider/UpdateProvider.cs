@@ -309,7 +309,7 @@ namespace FreeSql.Internal.CommonProvider
 
         public IUpdate<T1> IgnoreColumns(string[] columns)
         {
-            var cols = columns.ToDictionary(a => a);
+            var cols = columns.Distinct().ToDictionary(a => a);
             _ignore.Clear();
             foreach (var col in _table.Columns.Values)
                 if (cols.ContainsKey(col.Attribute.Name) == true || cols.ContainsKey(col.CsName) == true)
@@ -318,7 +318,7 @@ namespace FreeSql.Internal.CommonProvider
         }
         public IUpdate<T1> UpdateColumns(string[] columns)
         {
-            var cols = columns.ToDictionary(a => a);
+            var cols = columns.Distinct().ToDictionary(a => a);
             _ignore.Clear();
             foreach (var col in _table.Columns.Values)
                 if (cols.ContainsKey(col.Attribute.Name) == false && cols.ContainsKey(col.CsName) == false && _auditValueChangedDict.ContainsKey(col.Attribute.Name) == false)
