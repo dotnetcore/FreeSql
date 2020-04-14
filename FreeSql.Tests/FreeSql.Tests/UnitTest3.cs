@@ -235,7 +235,7 @@ namespace FreeSql.Tests
 
             //File.WriteAllBytes(@"C:\Users\28810\Desktop\71500003-0ad69400-289e-11ea-85cb-36a54f52ebc0_write.png", getTestByte.pic);
 
-            var ib = new IdleBus<IFreeSql>(TimeSpan.FromMinutes(10), 2);
+            var ib = new IdleBus<IFreeSql>(TimeSpan.FromMinutes(10));
             ib.Notice += (_, e2) => Trace.WriteLine($"[{DateTime.Now.ToString("HH:mm:ss")}] 线程{Thread.CurrentThread.ManagedThreadId}：{e2.Log}");
 
             ib.Register("db1", () => new FreeSql.FreeSqlBuilder()
