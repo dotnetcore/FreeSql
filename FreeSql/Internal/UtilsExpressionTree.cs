@@ -1235,7 +1235,12 @@ namespace FreeSql.Internal
             public static PropertyInfo PropertyValue = typeof(RowInfo).GetProperty("Value");
             public static PropertyInfo PropertyDataIndex = typeof(RowInfo).GetProperty("DataIndex");
         }
-        internal static MethodInfo MethodDataReaderGetValue = typeof(DbDataReader).GetMethod("GetValue");
+        internal static MethodInfo MethodDataReaderGetValue = typeof(Utils).GetMethod("InternalDataReaderGetValue", BindingFlags.Static | BindingFlags.NonPublic);
+        internal static object InternalDataReaderGetValue(CommonUtils commonUtil, DbDataReader dr, int index)
+        {
+            if (commonUtil._orm.Ado.DataType == DataType.Dameng && dr.IsDBNull(index)) return null;
+            return dr.GetValue(index);
+        }
         internal static RowInfo ExecuteArrayRowReadClassOrTuple(string flagStr, Type typeOrg, int[] indexes, DbDataReader row, int dataIndex, CommonUtils _commonUtils)
         {
             if (string.IsNullOrEmpty(flagStr)) flagStr = "all";
@@ -1252,8 +1257,8 @@ namespace FreeSql.Internal
 
                     if (type.IsArray) return Expression.Lambda<Func<Type, int[], DbDataReader, int, CommonUtils, RowInfo>>(
                         Expression.New(RowInfo.Constructor,
-                            GetDataReaderValueBlockExpression(type, Expression.Call(rowExp, MethodDataReaderGetValue, dataIndexExp)),
-                            //Expression.Call(MethodGetDataReaderValue, new Expression[] { typeExp, Expression.Call(rowExp, MethodDataReaderGetValue, dataIndexExp) }),
+                            GetDataReaderValueBlockExpression(type, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp })),
+                            //Expression.Call(MethodGetDataReaderValue, new Expression[] { typeExp, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp }) }),
                             Expression.Add(dataIndexExp, Expression.Constant(1))
                         ), new[] { typeExp, indexesExp, rowExp, dataIndexExp, commonUtilExp }).Compile();
 
@@ -1263,8 +1268,8 @@ namespace FreeSql.Internal
                         dicExecuteArrayRowReadClassOrTuple.ContainsKey(typeGeneric))
                         return Expression.Lambda<Func<Type, int[], DbDataReader, int, CommonUtils, RowInfo>>(
                         Expression.New(RowInfo.Constructor,
-                            GetDataReaderValueBlockExpression(type, Expression.Call(rowExp, MethodDataReaderGetValue, dataIndexExp)),
-                            //Expression.Call(MethodGetDataReaderValue, new Expression[] { typeExp, Expression.Call(rowExp, MethodDataReaderGetValue, dataIndexExp) }),
+                            GetDataReaderValueBlockExpression(type, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp })),
+                            //Expression.Call(MethodGetDataReaderValue, new Expression[] { typeExp, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp }) }),
                             Expression.Add(dataIndexExp, Expression.Constant(1))
                         ), new[] { typeExp, indexesExp, rowExp, dataIndexExp, commonUtilExp }).Compile();
 
@@ -1284,8 +1289,8 @@ namespace FreeSql.Internal
                             {
                                 Expression read2ExpAssign = null; //加速缓存
                                 if (field.FieldType.IsArray) read2ExpAssign = Expression.New(RowInfo.Constructor,
-                                    GetDataReaderValueBlockExpression(field.FieldType, Expression.Call(rowExp, MethodDataReaderGetValue, dataIndexExp)),
-                                    //Expression.Call(MethodGetDataReaderValue, new Expression[] { Expression.Constant(field.FieldType), Expression.Call(rowExp, MethodDataReaderGetValue, dataIndexExp) }),
+                                    GetDataReaderValueBlockExpression(field.FieldType, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp })),
+                                    //Expression.Call(MethodGetDataReaderValue, new Expression[] { Expression.Constant(field.FieldType), Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp }) }),
                                     Expression.Add(dataIndexExp, Expression.Constant(1))
                                 );
                                 else
@@ -1294,8 +1299,8 @@ namespace FreeSql.Internal
                                     if (fieldtypeGeneric.IsNullableType()) fieldtypeGeneric = fieldtypeGeneric.GetGenericArguments().First();
                                     if (fieldtypeGeneric.IsEnum ||
                                         dicExecuteArrayRowReadClassOrTuple.ContainsKey(fieldtypeGeneric)) read2ExpAssign = Expression.New(RowInfo.Constructor,
-                                            GetDataReaderValueBlockExpression(field.FieldType, Expression.Call(rowExp, MethodDataReaderGetValue, dataIndexExp)),
-                                            //Expression.Call(MethodGetDataReaderValue, new Expression[] { Expression.Constant(field.FieldType), Expression.Call(rowExp, MethodDataReaderGetValue, dataIndexExp) }),
+                                            GetDataReaderValueBlockExpression(field.FieldType, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp })),
+                                            //Expression.Call(MethodGetDataReaderValue, new Expression[] { Expression.Constant(field.FieldType), Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp }) }),
                                             Expression.Add(dataIndexExp, Expression.Constant(1))
                                     );
                                     else
@@ -1336,8 +1341,8 @@ namespace FreeSql.Internal
                                 Expression.IfThen(
                                     Expression.LessThan(dataIndexExp, rowLenExp),
                                         Expression.Return(returnTarget, Expression.New(RowInfo.Constructor,
-                                            GetDataReaderValueBlockExpression(type, Expression.Call(rowExp, MethodDataReaderGetValue, dataIndexExp)),
-                                            //Expression.Call(MethodGetDataReaderValue, new Expression[] { typeExp, Expression.Call(rowExp, MethodDataReaderGetValue, dataIndexExp) }),
+                                            GetDataReaderValueBlockExpression(type, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp })),
+                                            //Expression.Call(MethodGetDataReaderValue, new Expression[] { typeExp, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp }) }),
                                             Expression.Add(dataIndexExp, Expression.Constant(1))))
                                 ),
                                 Expression.Label(returnTarget, Expression.Default(typeof(RowInfo)))
@@ -1391,7 +1396,7 @@ namespace FreeSql.Internal
                             var readType = typetb.ColumnsByCs.TryGetValue(ctorParm.Name, out var trycol) ? trycol.Attribute.MapType : ctorParm.ParameterType;
 
                             var ispkExp = new List<Expression>();
-                            Expression readVal = Expression.Assign(readpkvalExp, Expression.Call(rowExp, MethodDataReaderGetValue, dataIndexExp));
+                            Expression readVal = Expression.Assign(readpkvalExp, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp }));
                             Expression readExpAssign = null; //加速缓存
                             if (readType.IsArray) readExpAssign = Expression.New(RowInfo.Constructor,
                                 GetDataReaderValueBlockExpression(readType, readpkvalExp),
@@ -1407,7 +1412,7 @@ namespace FreeSql.Internal
                                 {
 
                                     //判断主键为空，则整个对象不读取
-                                    //blockExp.Add(Expression.Assign(readpkvalExp, Expression.Call(rowExp, MethodDataReaderGetValue, dataIndexExp)));
+                                    //blockExp.Add(Expression.Assign(readpkvalExp, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp })));
                                     if (trycol?.Attribute.IsPrimary == true)
                                     {
                                         ispkExp.Add(
@@ -1498,7 +1503,7 @@ namespace FreeSql.Internal
 
                             var ispkExp = new List<Expression>();
                             var propGetSetMethod = prop.GetSetMethod(true);
-                            Expression readVal = Expression.Assign(readpkvalExp, Expression.Call(rowExp, MethodDataReaderGetValue, tryidxExp));
+                            Expression readVal = Expression.Assign(readpkvalExp, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, tryidxExp }));
                             Expression readExpAssign = null; //加速缓存
                             if (readType.IsArray) readExpAssign = Expression.New(RowInfo.Constructor,
                                 GetDataReaderValueBlockExpression(readType, readpkvalExp),
@@ -1514,7 +1519,7 @@ namespace FreeSql.Internal
                                 {
 
                                     //判断主键为空，则整个对象不读取
-                                    //blockExp.Add(Expression.Assign(readpkvalExp, Expression.Call(rowExp, MethodDataReaderGetValue, dataIndexExp)));
+                                    //blockExp.Add(Expression.Assign(readpkvalExp, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp })));
                                     if (flagStr.StartsWith("adoQuery") == false && //Ado.Query 的时候不作此判断
                                         trycol?.Attribute.IsPrimary == true) //若主键值为 null，则整行读取出来的对象为 null
                                     {

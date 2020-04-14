@@ -38,12 +38,6 @@ namespace FreeSql.Odbc.Dameng
 
             this.DbFirst = new OdbcDamengDbFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
             this.CodeFirst = new OdbcDamengCodeFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
-
-            //this.Aop.AuditValue += new EventHandler<Aop.AuditValueEventArgs>((_, e) =>
-            //{
-            //    if (e.Value == null && e.Column.Attribute.IsPrimary == false && e.Column.Attribute.IsIdentity == false)
-            //        e.Value = Utils.GetDataReaderValue(e.Property.PropertyType.NullableTypeOrThis(), e.Column.Attribute.DbDefautValue);
-            //});
         }
 
         internal CommonUtils InternalCommonUtils { get; }

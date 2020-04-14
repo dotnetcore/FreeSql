@@ -46,8 +46,23 @@ namespace orm_vs
             }
         }
 
+        static Lazy<IFreeSql> damengLazy = new Lazy<IFreeSql>(() => new FreeSql.FreeSqlBuilder()
+            .UseConnectionString(FreeSql.DataType.Dameng, "server=127.0.0.1;port=5236;user id=2user;password=123456789;database=2user")
+             //.UseConnectionFactory(FreeSql.DataType.Dameng, () => new Dm.DmConnection("data source=127.0.0.1:5236;user id=2user;password=123456789;Pooling=true;Max Pool Size=2"))
+             .UseAutoSyncStructure(true)
+            .UseNameConvert(FreeSql.Internal.NameConvertType.ToUpper)
+            //.UseNoneCommandParameter(true)
+
+            .UseMonitorCommand(
+                cmd => Trace.WriteLine(cmd.CommandText), //监听SQL命令对象，在执行前
+                (cmd, traceLog) => Console.WriteLine(traceLog))
+            .Build());
+        public static IFreeSql dameng => damengLazy.Value;
+
         static void Main(string[] args)
         {
+            dameng.Select<Song>().ToList();
+
             var testlist1 = fsql.Select<Song>().OrderBy(a => a.Id).ToList();
             var testlist2 = new List<Song>();
             fsql.Select<Song>().OrderBy(a => a.Id).ToChunk(0, list =>

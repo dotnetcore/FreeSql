@@ -114,7 +114,7 @@ namespace FreeSql.Odbc.Dameng
                 //codefirst 不支持表名中带 .
 
                 if (string.Compare(tbname[0], userId) != 0 && _orm.Ado.ExecuteScalar(CommandType.Text, _commonUtils.FormatSql(" select 1 from sys.dba_users where username={0}", tbname[0])) == null) //创建数据库
-                    throw new NotImplementedException($"Oracle CodeFirst 不支持代码创建 tablespace 与 schemas {tbname[0]}");
+                    throw new NotImplementedException($"达梦 CodeFirst 不支持代码创建 tablespace 与 schemas {tbname[0]}");
 
                 var sbalter = new StringBuilder();
                 var istmpatler = false; //创建临时表，导入数据，删除旧表，修改
@@ -200,7 +200,7 @@ where a.owner={{0}} and a.table_name={{1}}", tboldname ?? tbname);
                 var ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
                 var tbstruct = ds.ToDictionary(a => string.Concat(a[0]), a =>
                 {
-                    var sqlType = GetOracleSqlTypeFullName(a);
+                    var sqlType = GetDamengSqlTypeFullName(a);
                     return new
                     {
                         column = string.Concat(a[0]),
@@ -436,7 +436,7 @@ and not exists(select 1 from all_constraints where index_name = a.index_name and
             return sb.Length == 0 ? null : sb.Insert(0, "BEGIN \r\n").Insert(0, sbDeclare.ToString()).Append("END;").ToString();
         }
 
-        internal static string GetOracleSqlTypeFullName(object[] row)
+        internal static string GetDamengSqlTypeFullName(object[] row)
         {
             var a = row;
             var sqlType = string.Concat(a[1]).ToUpper();

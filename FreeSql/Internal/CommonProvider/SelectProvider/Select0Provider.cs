@@ -803,7 +803,7 @@ namespace FreeSql.Internal.CommonProvider
                     var propGetSetMethod = prop.GetSetMethod(true);
                     Expression readExpAssign = null; //加速缓存
                     if (prop.PropertyType.IsArray) readExpAssign = Expression.New(Utils.RowInfo.Constructor,
-                        Utils.GetDataReaderValueBlockExpression(prop.PropertyType, Expression.Call(rowExp, Utils.MethodDataReaderGetValue, dataIndexExp)),
+                        Utils.GetDataReaderValueBlockExpression(prop.PropertyType, Expression.Call(Utils.MethodDataReaderGetValue, new Expression[] { Expression.Constant(_commonUtils), rowExp, dataIndexExp })),
                         //Expression.Call(Utils.MethodGetDataReaderValue, new Expression[] { Expression.Constant(prop.PropertyType), Expression.Call(rowExp, Utils.MethodDataReaderGetValue, dataIndexExp) }),
                         Expression.Add(dataIndexExp, Expression.Constant(1))
                     );
@@ -813,7 +813,7 @@ namespace FreeSql.Internal.CommonProvider
                         if (proptypeGeneric.IsNullableType()) proptypeGeneric = proptypeGeneric.GetGenericArguments().First();
                         if (proptypeGeneric.IsEnum ||
                             Utils.dicExecuteArrayRowReadClassOrTuple.ContainsKey(proptypeGeneric)) readExpAssign = Expression.New(Utils.RowInfo.Constructor,
-                                Utils.GetDataReaderValueBlockExpression(prop.PropertyType, Expression.Call(rowExp, Utils.MethodDataReaderGetValue, dataIndexExp)),
+                                Utils.GetDataReaderValueBlockExpression(prop.PropertyType, Expression.Call(Utils.MethodDataReaderGetValue, new Expression[] { Expression.Constant(_commonUtils), rowExp, dataIndexExp })),
                                 //Expression.Call(Utils.MethodGetDataReaderValue, new Expression[] { Expression.Constant(prop.PropertyType), Expression.Call(rowExp, Utils.MethodDataReaderGetValue, dataIndexExp) }),
                                 Expression.Add(dataIndexExp, Expression.Constant(1))
                         );
@@ -1069,6 +1069,7 @@ namespace FreeSql.Internal.CommonProvider
                 case DataType.Sqlite:
                     break;
                 case DataType.OdbcDameng:
+                case DataType.Dameng:
                     _tosqlAppendContent = $" for update{(noawait ? " nowait" : "")}";
                     break;
             }

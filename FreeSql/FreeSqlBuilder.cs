@@ -216,6 +216,11 @@ namespace FreeSql
                         if (type == null) throwNotFind("FreeSql.Provider.MsAccess.dll", "FreeSql.MsAccess.MsAccessProvider<>");
                         break;
 
+                    case DataType.Dameng:
+                        type = Type.GetType("FreeSql.Dameng.DamengProvider`1,FreeSql.Provider.Dameng")?.MakeGenericType(typeof(TMark));
+                        if (type == null) throwNotFind("FreeSql.Provider.Dameng.dll", "FreeSql.Dameng.DamengProvider<>");
+                        break;
+
                     default: throw new Exception("未指定 UseConnectionString 或者 UseConnectionFactory");
                 }
             }

@@ -25,7 +25,7 @@ namespace FreeSql.Odbc.Dameng
 
             this.availableHandler = availableHandler;
             this.unavailableHandler = unavailableHandler;
-            var policy = new OdbcOracleConnectionPoolPolicy
+            var policy = new OdbcDamengConnectionPoolPolicy
             {
                 _pool = this,
                 Name = name
@@ -62,7 +62,7 @@ namespace FreeSql.Odbc.Dameng
         }
     }
 
-    class OdbcOracleConnectionPoolPolicy : IPolicy<DbConnection>
+    class OdbcDamengConnectionPoolPolicy : IPolicy<DbConnection>
     {
 
         internal OdbcDamengConnectionPool _pool;

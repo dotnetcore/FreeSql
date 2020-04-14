@@ -533,12 +533,17 @@
         </member>
         <member name="F:FreeSql.DataType.OdbcDameng">
             <summary>
-            武汉达梦数据库有限公司
+            武汉达梦数据库有限公司，基于 Odbc 的实现
             </summary>
         </member>
         <member name="F:FreeSql.DataType.MsAccess">
             <summary>
             Microsoft Office Access 是由微软发布的关联式数据库管理系统
+            </summary>
+        </member>
+        <member name="F:FreeSql.DataType.Dameng">
+            <summary>
+            武汉达梦数据库有限公司，基于 DmProvider.dll 的实现
             </summary>
         </member>
         <member name="M:FreeSql.Extensions.EntityUtil.EntityUtilExtensions.GetEntityKeyString(IFreeSql,System.Type,System.Object,System.Boolean,System.String)">

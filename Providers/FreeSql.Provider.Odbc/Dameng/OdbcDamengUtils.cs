@@ -65,7 +65,7 @@ namespace FreeSql.Odbc.Dameng
                 return ret;
             });
 
-        public override string FormatSql(string sql, params object[] args) => sql?.FormatOdbcOracle(args);
+        public override string FormatSql(string sql, params object[] args) => sql?.FormatOdbcDameng(args);
         public override string QuoteSqlName(params string[] name)
         {
             if (name.Length == 1)

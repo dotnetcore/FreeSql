@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />
+    <ProjectReference Include="..\..\Providers\FreeSql.Provider.Dameng\FreeSql.Provider.Dameng.csproj" />
     <ProjectReference Include="..\..\Providers\FreeSql.Provider.MySql\FreeSql.Provider.MySql.csproj" />
     <ProjectReference Include="..\..\Providers\FreeSql.Provider.SqlServer\FreeSql.Provider.SqlServer.csproj" />
   </ItemGroup>
