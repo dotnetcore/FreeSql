@@ -1,12 +1,12 @@
 ﻿#if netcoreapp
-using Microsoft.Extensions.DependencyInjection;
+using FreeSql;
 using System;
 using System.Linq;
 using System.Reflection;
 
-namespace FreeSql
+namespace Microsoft.Extensions.DependencyInjection
 {
-    public static class DbContextDependencyInjection
+    public static class FreeSqlDbContextDependencyInjection
     {
         static IServiceCollection AddFreeDbContext(this IServiceCollection services, Type dbContextType, Action<DbContextOptionsBuilder> options)
         {

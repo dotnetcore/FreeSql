@@ -3,7 +3,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 
-public static class FreeSqlDbContextExtensions
+public static partial class FreeSqlDbContextExtensions
 {
 
     /// <summary>

@@ -3,7 +3,7 @@ using System;
 using System.Threading;
 
 [ExpressionCall]
-public static class FreeSqlGlobalExpressionCall
+public static class FreeSqlGlobalExpressionCallExtensions
 {
     public static ThreadLocal<ExpressionCallContext> expContext = new ThreadLocal<ExpressionCallContext>();
 

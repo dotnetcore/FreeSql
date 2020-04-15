@@ -31,6 +31,10 @@ namespace FreeSql.Extensions.EfCoreFluentApi
         public EfCoreColumnFluent Property<TProperty>(Expression<Func<T, TProperty>> property) => new EfCoreColumnFluent(_tf.Property(property));
         public EfCoreColumnFluent Property(string property) => new EfCoreColumnFluent(_tf.Property(property));
 
+        /// <summary>
+        /// 使用 FreeSql FluentApi 方法，当 EFCore FluentApi 方法无法表示的时候使用
+        /// </summary>
+        /// <returns></returns>
         public TableFluent<T> Help() => _tf;
 
         #region HasKey

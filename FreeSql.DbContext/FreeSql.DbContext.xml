@@ -162,6 +162,25 @@
             </summary>
             <param name="data"></param>
         </member>
+        <member name="M:FreeSql.Extensions.EfCoreFluentApi.EfCoreColumnFluent.Help">
+            <summary>
+            使用 FreeSql FluentApi 方法，当 EFCore FluentApi 方法无法表示的时候使用
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.Extensions.EfCoreFluentApi.EfCoreTableFluent`1.Help">
+            <summary>
+            使用 FreeSql FluentApi 方法，当 EFCore FluentApi 方法无法表示的时候使用
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.Extensions.EfCoreFluentApi.EfCoreTableFluent`1.HasData(System.Collections.Generic.IEnumerable{`0})">
+            <summary>
+            使用 Repository + EnableAddOrUpdateNavigateList + NoneParameter 方式插入种子数据
+            </summary>
+            <param name="data"></param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.IRepositoryUnitOfWork.GetRepository``2(System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})">
             <summary>
             在工作单元内创建默认仓库类，工作单元下的仓储操作具有事务特点
@@ -302,6 +321,15 @@
             例如：20191121_214504_1
             </summary>
         </member>
+        <member name="M:FreeSqlDbContextExtensions.Entity``1(FreeSql.ICodeFirst,System.Action{FreeSql.Extensions.EfCoreFluentApi.EfCoreTableFluent{``0}})">
+            <summary>
+            EFCore 99% 相似的 FluentApi 扩展方法
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="codeFirst"></param>
+            <param name="modelBuilder"></param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSqlDbContextExtensions.CreateDbContext(IFreeSql)">
             <summary>
             创建普通数据上下文档对象
@@ -324,7 +352,7 @@
             <param name="that"></param>
             <param name="options"></param>
         </member>
-        <member name="M:FreeSqlRepositoryExtensions.GetRepository``2(IFreeSql,System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})">
+        <member name="M:FreeSqlDbContextExtensions.GetRepository``2(IFreeSql,System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})">
             <summary>
             返回默认仓库类
             </summary>
@@ -334,7 +362,7 @@
             <param name="filter">数据过滤 + 验证</param>
             <returns></returns>
         </member>
-        <member name="M:FreeSqlRepositoryExtensions.GetRepository``1(IFreeSql,System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})">
+        <member name="M:FreeSqlDbContextExtensions.GetRepository``1(IFreeSql,System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})">
             <summary>
             返回默认仓库类，适用联合主键的仓储类
             </summary>
@@ -343,7 +371,7 @@
             <param name="filter">数据过滤 + 验证</param>
             <returns></returns>
         </member>
-        <member name="M:FreeSqlRepositoryExtensions.GetGuidRepository``1(IFreeSql,System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}},System.Func{System.String,System.String})">
+        <member name="M:FreeSqlDbContextExtensions.GetGuidRepository``1(IFreeSql,System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}},System.Func{System.String,System.String})">
             <summary>
             返回仓库类
             </summary>
@@ -353,7 +381,7 @@
             <param name="asTable">分表规则，参数：旧表名；返回：新表名 https://github.com/2881099/FreeSql/wiki/Repository</param>
             <returns></returns>
         </member>
-        <member name="M:FreeSqlRepositoryExtensions.CreateUnitOfWork(IFreeSql)">
+        <member name="M:FreeSqlDbContextExtensions.CreateUnitOfWork(IFreeSql)">
             <summary>
             创建基于仓储功能的工作单元，务必使用 using 包含使用
             </summary>

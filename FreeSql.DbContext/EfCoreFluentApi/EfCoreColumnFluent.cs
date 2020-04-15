@@ -14,6 +14,10 @@ namespace FreeSql.Extensions.EfCoreFluentApi
             _cf = tf;
         }
 
+        /// <summary>
+        /// 使用 FreeSql FluentApi 方法，当 EFCore FluentApi 方法无法表示的时候使用
+        /// </summary>
+        /// <returns></returns>
         public ColumnFluent Help() => _cf;
 
         public EfCoreColumnFluent HasColumnName(string name)

@@ -10,7 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Extensions\FreeSql.Extensions.EfCoreFluentApi\FreeSql.Extensions.EfCoreFluentApi.csproj" />
+    <ProjectReference Include="..\..\FreeSql.DbContext\FreeSql.DbContext.csproj" />
     <ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />
     <ProjectReference Include="..\..\Providers\FreeSql.Provider.Sqlite\FreeSql.Provider.Sqlite.csproj" />
   </ItemGroup>

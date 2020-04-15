@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Threading;
+using FreeSql.Internal.Model;
 
 namespace FreeSql
 {
@@ -71,18 +72,27 @@ namespace FreeSql
             }
             if (_ormScoped != null) InitPropSets();
         }
-        protected virtual void OnConfiguring(DbContextOptionsBuilder builder) { }
+        protected virtual void OnConfiguring(DbContextOptionsBuilder options) { }
+        protected virtual void OnModelCreating(ICodeFirst codefirst) { }
 
         #region Set
-        static ConcurrentDictionary<Type, PropertyInfo[]> _dicGetDbSetProps = new ConcurrentDictionary<Type, PropertyInfo[]>();
+        static ConcurrentDictionary<Type, NaviteTuple<PropertyInfo[], bool>> _dicGetDbSetProps = new ConcurrentDictionary<Type, NaviteTuple<PropertyInfo[], bool>>();
         internal void InitPropSets()
         {
-            var props = _dicGetDbSetProps.GetOrAdd(this.GetType(), tp =>
-                tp.GetProperties(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public)
-                    .Where(a => a.PropertyType.IsGenericType &&
-                        a.PropertyType == typeof(DbSet<>).MakeGenericType(a.PropertyType.GetGenericArguments()[0])).ToArray());
+            var thisType = this.GetType();
+            var dicval = _dicGetDbSetProps.GetOrAdd(thisType, tp =>
+                NaviteTuple.Create(
+                    tp.GetProperties(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public)
+                        .Where(a => a.PropertyType.IsGenericType &&
+                            a.PropertyType == typeof(DbSet<>).MakeGenericType(a.PropertyType.GetGenericArguments()[0])).ToArray(),
+                    false));
+            if (dicval.Item2 == false)
+            {
+                if (_dicGetDbSetProps.TryUpdate(thisType, NaviteTuple.Create(dicval.Item1, true), dicval))
+                    OnModelCreating(OrmOriginal.CodeFirst);
+            }
 
-            foreach (var prop in props)
+            foreach (var prop in dicval.Item1)
             {
                 var set = this.Set(prop.PropertyType.GetGenericArguments()[0]);
 
