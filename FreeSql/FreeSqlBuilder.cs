@@ -286,7 +286,7 @@ namespace FreeSql
                             break;
                     }
                 }
-                //处理 MaxLength
+                //处理 MaxLength、EFCore 特性
                 ret.Aop.ConfigEntityProperty += new EventHandler<Aop.ConfigEntityPropertyEventArgs>((s, e) =>
                 {
                     object[] attrs = null;
@@ -296,16 +296,82 @@ namespace FreeSql
                     }
                     catch { }
 
-                    var maxlenAttr = attrs?.Where(a => {
+                    var dyattr = attrs?.Where(a => {
                         return ((a as Attribute)?.TypeId as Type)?.Name == "MaxLengthAttribute";
                     }).FirstOrDefault();
-                    if (maxlenAttr != null)
+                    if (dyattr != null)
                     {
-                        var lenProp = maxlenAttr.GetType().GetProperties().Where(a => a.PropertyType.IsNumberType()).FirstOrDefault();
-                        if (lenProp != null && int.TryParse(string.Concat(lenProp.GetValue(maxlenAttr, null)), out var tryval) && tryval != 0)
+                        var lenProp = dyattr.GetType().GetProperties().Where(a => a.PropertyType.IsNumberType()).FirstOrDefault();
+                        if (lenProp != null && int.TryParse(string.Concat(lenProp.GetValue(dyattr, null)), out var tryval) && tryval != 0)
                         {
                             e.ModifyResult.StringLength = tryval;
                         }
+                    }
+
+                    dyattr = attrs?.Where(a => {
+                        return ((a as Attribute)?.TypeId as Type)?.FullName == "System.ComponentModel.DataAnnotations.RequiredAttribute";
+                    }).FirstOrDefault();
+                    if (dyattr != null)
+                    {
+                        e.ModifyResult.IsNullable = false;
+                    }
+
+                    dyattr = attrs?.Where(a => {
+                        return ((a as Attribute)?.TypeId as Type)?.FullName == "System.ComponentModel.DataAnnotations.Schema.NotMappedAttribute";
+                    }).FirstOrDefault();
+                    if (dyattr != null)
+                    {
+                        e.ModifyResult.IsIgnore = true;
+                    }
+
+                    dyattr = attrs?.Where(a => {
+                        return ((a as Attribute)?.TypeId as Type)?.FullName == "System.ComponentModel.DataAnnotations.Schema.ColumnAttribute";
+                    }).FirstOrDefault();
+                    if (dyattr != null)
+                    {
+                        var name = dyattr.GetType().GetProperties().Where(a => a.PropertyType == typeof(string) && a.Name == "Name").FirstOrDefault()?.GetValue(dyattr, null)?.ToString();
+                        short.TryParse(string.Concat(dyattr.GetType().GetProperties().Where(a => a.PropertyType == typeof(int) && a.Name == "Order").FirstOrDefault()?.GetValue(dyattr, null)), out var order);
+                        var typeName = dyattr.GetType().GetProperties().Where(a => a.PropertyType == typeof(string) && a.Name == "TypeName").FirstOrDefault()?.GetValue(dyattr, null)?.ToString();
+
+                        if (string.IsNullOrEmpty(name) == false)
+                            e.ModifyResult.Name = name;
+                        if (order != 0)
+                            e.ModifyResult.Position = order;
+                        if (string.IsNullOrEmpty(typeName) == false)
+                            e.ModifyResult.DbType = typeName;
+                    }
+
+                    dyattr = attrs?.Where(a => {
+                        return ((a as Attribute)?.TypeId as Type)?.FullName == "System.ComponentModel.DataAnnotations.KeyAttribute";
+                    }).FirstOrDefault();
+                    if (dyattr != null)
+                    {
+                        e.ModifyResult.IsPrimary = true;
+                    }
+                });
+                //EFCore 特性
+                ret.Aop.ConfigEntity += new EventHandler<Aop.ConfigEntityEventArgs>((s, e) =>
+                {
+                    object[] attrs = null;
+                    try
+                    {
+                        attrs = e.EntityType.GetCustomAttributes(false).ToArray(); //.net core 反射存在版本冲突问题，导致该方法异常
+                    }
+                    catch { }
+
+                    var dyattr = attrs?.Where(a => {
+                        return ((a as Attribute)?.TypeId as Type)?.FullName == "System.ComponentModel.DataAnnotations.Schema.TableAttribute";
+                    }).FirstOrDefault();
+                    if (dyattr != null)
+                    {
+                        var name = dyattr.GetType().GetProperties().Where(a => a.PropertyType == typeof(string) && a.Name == "Name").FirstOrDefault()?.GetValue(dyattr, null)?.ToString();
+                        var schema = dyattr.GetType().GetProperties().Where(a => a.PropertyType == typeof(string) && a.Name == "Schema").FirstOrDefault()?.GetValue(dyattr, null)?.ToString();
+                        if (string.IsNullOrEmpty(name) == false && string.IsNullOrEmpty(schema) == false)
+                            e.ModifyResult.Name = $"{schema}.{name}";
+                        else if (string.IsNullOrEmpty(name) == false)
+                            e.ModifyResult.Name = name;
+                        else if (string.IsNullOrEmpty(schema) == false)
+                            e.ModifyResult.Name = $"{schema}.{e.EntityType.Name}";
                     }
                 });
             }
