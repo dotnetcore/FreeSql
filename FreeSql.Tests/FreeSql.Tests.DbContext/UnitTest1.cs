@@ -26,28 +26,28 @@ namespace FreeSql.Tests
             g.sqlite.Delete<dept_user>().Where("1=1").ExecuteAffrows();
             BaseEntity.Initialization(g.sqlite);
 
-            userinfo user = new userinfo { userid = 1 };
+            userinfo user = new userinfo { userid = 1, badgenumber = "", Name="", IDCardNo="" };
             user.Insert();
 
             user.depts = new List<DEPARTMENTS>(
                 new[] {
-                    new DEPARTMENTS { deptid = 1, deptcode = "01" },
-                    new DEPARTMENTS { deptid = 2, deptcode = "02" },
-                    new DEPARTMENTS { deptid = 3, deptcode = "03" },
+                    new DEPARTMENTS { deptid = 1, deptcode = "01", deptname = "" },
+                    new DEPARTMENTS { deptid = 2, deptcode = "02", deptname = "" },
+                    new DEPARTMENTS { deptid = 3, deptcode = "03" , deptname = ""},
                 });
             user.SaveMany("depts");
 
             user.depts = new List<DEPARTMENTS>(
                 new[] {
-                    new DEPARTMENTS { deptid = 1, deptcode = "01" },
-                    new DEPARTMENTS { deptid = 2, deptcode = "02" },
-                    new DEPARTMENTS { deptid = 4, deptcode = "04" },
+                    new DEPARTMENTS { deptid = 1, deptcode = "01", deptname = "" },
+                    new DEPARTMENTS { deptid = 2, deptcode = "02", deptname = "" },
+                    new DEPARTMENTS { deptid = 4, deptcode = "04", deptname = "" },
                 });
             user.SaveMany("depts");
 
             user.depts = new List<DEPARTMENTS>(
                 new[] {
-                    new DEPARTMENTS { deptid = 2, deptcode = "02" },
+                    new DEPARTMENTS { deptid = 2, deptcode = "02", deptname = "" },
                 });
             user.SaveMany("depts");
 
