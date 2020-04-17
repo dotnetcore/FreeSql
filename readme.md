@@ -41,7 +41,7 @@ FreeSql 是功能强大的对象关系映射技术(O/RM)，支持 .NETCore 2.1+ 
 - [内容管理系统](https://github.com/hejiyong/fscms)
 
 <p align="center">
-  <img src="https://images.cnblogs.com/cnblogs_com/kellynic/133561/o_200305164701functions07.png"/>
+  <img src="https://images.cnblogs.com/cnblogs_com/kellynic/133561/o_200417052121functions08.png"/>
 </p>
 
 ## Quick start
@@ -210,5 +210,5 @@ L*y 58元、花花 88元、麦兜很乖 50元、网络来者 2000元、John 99.9
 
 | | |
 | - | - |
-| <img height="210" src="https://images.cnblogs.com/cnblogs_com/kellynic/133561/o_200123075118IMG_7935(20200123-154947).JPG"/> | <img height="210" src="https://images.cnblogs.com/cnblogs_com/kellynic/133561/o_200123075928IMG_7936(20200123-155553).JPG"/> |
+| <img height="300" src="https://images.cnblogs.com/cnblogs_com/kellynic/133561/o_200417052520IMG_7936(20200123-155553).png"/> | <img height="300" src="https://images.cnblogs.com/cnblogs_com/kellynic/133561/o_200417052707IMG_7935(20200123-155553).png"/> |
 
