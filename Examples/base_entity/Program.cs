@@ -27,6 +27,8 @@ namespace base_entity
 
             [JsonMap]
             public T Config { get; set; }
+
+            public T Config2 { get; set; }
         }
 
         public class Products : BaseEntity<Products, int>
@@ -89,10 +91,15 @@ namespace base_entity
             var items2 = fsql.Select<Products>().Limit(10).OrderByDescending(a => a.CreateTime).ToList();
 
             BaseEntity.Orm.UseJsonMap();
+            BaseEntity.Orm.UseJsonMap();
+            BaseEntity.Orm.CodeFirst.ConfigEntity<S_SysConfig<TestConfig>>(a =>
+            {
+                a.Property(b => b.Config2).JsonMap();
+            });
 
-            new S_SysConfig<TestConfig> { Name = "testkey11", Config = new TestConfig { clicks = 11, title = "testtitle11" } }.Save();
-            new S_SysConfig<TestConfig> { Name = "testkey22", Config = new TestConfig { clicks = 22, title = "testtitle22" } }.Save();
-            new S_SysConfig<TestConfig> { Name = "testkey33", Config = new TestConfig { clicks = 33, title = "testtitle33" } }.Save();
+            new S_SysConfig<TestConfig> { Name = "testkey11", Config = new TestConfig { clicks = 11, title = "testtitle11" }, Config2 = new TestConfig { clicks = 11, title = "testtitle11" } }.Save();
+            new S_SysConfig<TestConfig> { Name = "testkey22", Config = new TestConfig { clicks = 22, title = "testtitle22" }, Config2 = new TestConfig { clicks = 11, title = "testtitle11" } }.Save();
+            new S_SysConfig<TestConfig> { Name = "testkey33", Config = new TestConfig { clicks = 33, title = "testtitle33" }, Config2 = new TestConfig { clicks = 11, title = "testtitle11" } }.Save();
             var testconfigs11 = S_SysConfig<TestConfig>.Select.ToList();
 
             var repo = BaseEntity.Orm.Select<TestConfig>().Limit(10).ToList();

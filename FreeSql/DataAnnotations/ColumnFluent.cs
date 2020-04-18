@@ -1,16 +1,22 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Reflection;
 
 namespace FreeSql.DataAnnotations
 {
     public class ColumnFluent
     {
 
-        public ColumnFluent(ColumnAttribute column)
+        public ColumnFluent(ColumnAttribute column, PropertyInfo property, Type entityType)
         {
             _column = column;
+            _property = property;
+            _entityType = entityType;
         }
 
-        ColumnAttribute _column;
+        public ColumnAttribute _column;
+        public PropertyInfo _property;
+        public Type _entityType;
         /// <summary>
         /// 数据库列名
         /// </summary>
