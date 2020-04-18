@@ -84,7 +84,6 @@ namespace FreeSql
             _db._entityChangeReport.Add(new DbContext.EntityChangeReport.ChangeInfo { Object = sql, Type = DbContext.EntityChangeType.SqlRaw });
             return affrows;
         }
-
         public virtual int Delete(TEntity entity)
         {
             _dbset.Remove(entity);
@@ -109,12 +108,12 @@ namespace FreeSql
             return entitys.ToList();
         }
 
-        public int Update(TEntity entity)
+        public virtual int Update(TEntity entity)
         {
             _dbset.Update(entity);
             return _db.SaveChanges();
         }
-        public int Update(IEnumerable<TEntity> entitys)
+        public virtual int Update(IEnumerable<TEntity> entitys)
         {
             _dbset.UpdateRange(entitys);
             return _db.SaveChanges();
@@ -129,7 +128,7 @@ namespace FreeSql
         }
         public void FlushState() => _dbset.FlushState();
 
-        public TEntity InsertOrUpdate(TEntity entity)
+        public virtual TEntity InsertOrUpdate(TEntity entity)
         {
             _dbset.AddOrUpdate(entity);
             _db.SaveChanges();
@@ -161,7 +160,7 @@ namespace FreeSql
         }
 
         public virtual int Delete(TKey id) => Delete(CheckTKeyAndReturnIdEntity(id));
-        public TEntity Find(TKey id) => _dbset.OrmSelectInternal(CheckTKeyAndReturnIdEntity(id)).ToOne();
+        public virtual TEntity Find(TKey id) => _dbset.OrmSelectInternal(CheckTKeyAndReturnIdEntity(id)).ToOne();
         public TEntity Get(TKey id) => Find(id);
     }
 }

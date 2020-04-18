@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;netcoreapp31;netcoreapp30;netcoreapp22;netcoreapp21;net45;net40</TargetFrameworks>
-    <Version>1.4.0-preview0415</Version>
+    <Version>1.4.0-preview0418</Version>
     <Authors>YeXiangQin</Authors>
     <Description>FreeSql Implementation of General Repository, Support MySql/SqlServer/PostgreSQL/Oracle/Sqlite/达梦/Access, and read/write separation、and split table.</Description>
     <PackageProjectUrl>https://github.com/2881099/FreeSql/wiki/Repository</PackageProjectUrl>
