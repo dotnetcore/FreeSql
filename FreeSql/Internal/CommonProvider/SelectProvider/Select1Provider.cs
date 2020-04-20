@@ -55,8 +55,7 @@ namespace FreeSql.Internal.CommonProvider
                     {
                         case "Where": this.InternalWhere(expCall.Arguments[0]); break;
                         case "WhereIf":
-                            var whereIfCond = _commonExpression.ExpressionSelectColumn_MemberAccess(null, null, SelectTableInfoType.From, expCall.Arguments[0], false, null);
-                            if (whereIfCond == "1" || whereIfCond == "'t'" || whereIfCond == "-1") //MsAccess -1
+                            if ((bool)Expression.Lambda(expCall.Arguments[0]).Compile().DynamicInvoke())
                                 this.InternalWhere(expCall.Arguments[1]);
                             break;
                         case "OrderBy":

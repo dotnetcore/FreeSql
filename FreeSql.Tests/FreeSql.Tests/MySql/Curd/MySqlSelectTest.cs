@@ -422,19 +422,24 @@ namespace FreeSql.Tests.MySql
         [Fact]
         public void From()
         {
+            var testid = "";
             var query2 = select.From<TestTypeInfo>((s, b) => s
                  .LeftJoin(a => a.TypeGuid == b.Guid)
+                 .WhereIf(string.IsNullOrEmpty(testid), a => a.Clicks == 11)
+                 .WhereIf(!string.IsNullOrEmpty(testid), a => a.Clicks == 12)
                 );
             var sql2 = query2.ToSql().Replace("\r\n", "");
-            Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, b.`Guid`, b.`ParentId`, b.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topic` a LEFT JOIN `TestTypeInfo` b ON a.`TypeGuid` = b.`Guid`", sql2);
+            Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, b.`Guid`, b.`ParentId`, b.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topic` a LEFT JOIN `TestTypeInfo` b ON a.`TypeGuid` = b.`Guid` WHERE (a.`Clicks` = 11)", sql2);
             query2.ToList();
 
             var query3 = select.From<TestTypeInfo, TestTypeParentInfo>((s, b, c) => s
                  .LeftJoin(a => a.TypeGuid == b.Guid)
                  .LeftJoin(a => b.ParentId == c.Id)
+                 .WhereIf(string.IsNullOrEmpty(testid), a => a.Clicks == 11)
+                 .WhereIf(!string.IsNullOrEmpty(testid), a => a.Clicks == 12)
                 );
             var sql3 = query3.ToSql().Replace("\r\n", "");
-            Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, b.`Guid`, b.`ParentId`, b.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topic` a LEFT JOIN `TestTypeInfo` b ON a.`TypeGuid` = b.`Guid` LEFT JOIN `TestTypeParentInfo` c ON b.`ParentId` = c.`Id`", sql3);
+            Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, b.`Guid`, b.`ParentId`, b.`Name`, a.`Title`, a.`CreateTime` FROM `tb_topic` a LEFT JOIN `TestTypeInfo` b ON a.`TypeGuid` = b.`Guid` LEFT JOIN `TestTypeParentInfo` c ON b.`ParentId` = c.`Id` WHERE (a.`Clicks` = 11)", sql3);
             query3.ToList();
         }
         [Fact]
