@@ -175,6 +175,19 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.Extensions.EfCoreFluentApi.EfCoreTableFluent.Help">
+            <summary>
+            使用 FreeSql FluentApi 方法，当 EFCore FluentApi 方法无法表示的时候使用
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.Extensions.EfCoreFluentApi.EfCoreTableFluent.HasData(System.Collections.Generic.IEnumerable{System.Object})">
+            <summary>
+            使用 Repository + EnableAddOrUpdateNavigateList + NoneParameter 方式插入种子数据
+            </summary>
+            <param name="data"></param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.Extensions.EfCoreFluentApi.EfCoreTableFluent`1.Help">
             <summary>
             使用 FreeSql FluentApi 方法，当 EFCore FluentApi 方法无法表示的时候使用
@@ -330,10 +343,19 @@
         </member>
         <member name="M:FreeSqlDbContextExtensions.Entity``1(FreeSql.ICodeFirst,System.Action{FreeSql.Extensions.EfCoreFluentApi.EfCoreTableFluent{``0}})">
             <summary>
-            EFCore 99% 相似的 FluentApi 扩展方法
+            EFCore 95% 相似的 FluentApi 扩展方法
             </summary>
             <typeparam name="T"></typeparam>
             <param name="codeFirst"></param>
+            <param name="modelBuilder"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSqlDbContextExtensions.Entity(FreeSql.ICodeFirst,System.Type,System.Action{FreeSql.Extensions.EfCoreFluentApi.EfCoreTableFluent})">
+            <summary>
+            EFCore 95% 相似的 FluentApi 扩展方法
+            </summary>
+            <param name="codeFirst"></param>
+            <param name="entityType">实体类型</param>
             <param name="modelBuilder"></param>
             <returns></returns>
         </member>
@@ -393,15 +415,6 @@
             创建基于仓储功能的工作单元，务必使用 using 包含使用
             </summary>
             <param name="that"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Microsoft.Extensions.DependencyInjection.FreeSqlRepositoryDependencyInjection.AddFreeRepository(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Action{FreeSql.FluentDataFilter},System.Reflection.Assembly[])">
-            <summary>
-            批量注入 Repository，可以参考代码自行调整
-            </summary>
-            <param name="services"></param>
-            <param name="globalDataFilter"></param>
-            <param name="assemblies"></param>
             <returns></returns>
         </member>
     </members>

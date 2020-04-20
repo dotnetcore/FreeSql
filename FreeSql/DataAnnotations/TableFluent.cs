@@ -80,6 +80,11 @@ namespace FreeSql.DataAnnotations
             _table._indexs.AddOrUpdate(name, idx, (_, __) => idx);
             return this;
         }
+        public TableFluent IndexRemove(string name)
+        {
+            _table._indexs.TryRemove(name, out var oldidx);
+            return this;
+        }
     }
 
     public class TableFluent<T>

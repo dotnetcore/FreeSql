@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -6,88 +7,73 @@ using FreeSql.DataAnnotations;
 
 namespace FreeSql.Extensions.EfCoreFluentApi
 {
-    public class EfCoreTableFluent<T>
+    public class EfCoreTableFluent
     {
         IFreeSql _fsql;
-        TableFluent<T> _tf;
-        internal EfCoreTableFluent(IFreeSql fsql, TableFluent<T> tf)
+        TableFluent _tf;
+        internal Type _entityType;
+        internal EfCoreTableFluent(IFreeSql fsql, TableFluent tf, Type entityType)
         {
             _fsql = fsql;
             _tf = tf;
+            _entityType = entityType;
         }
 
-        public EfCoreTableFluent<T> ToTable(string name)
+        public EfCoreTableFluent ToTable(string name)
         {
             _tf.Name(name);
             return this;
         }
-        public EfCoreTableFluent<T> ToView(string name)
+        public EfCoreTableFluent ToView(string name)
         {
             _tf.DisableSyncStructure(true);
             _tf.Name(name);
             return this;
         }
 
-        public EfCoreColumnFluent Property<TProperty>(Expression<Func<T, TProperty>> property) => new EfCoreColumnFluent(_tf.Property(property));
         public EfCoreColumnFluent Property(string property) => new EfCoreColumnFluent(_tf.Property(property));
 
         /// <summary>
         /// 使用 FreeSql FluentApi 方法，当 EFCore FluentApi 方法无法表示的时候使用
         /// </summary>
         /// <returns></returns>
-        public TableFluent<T> Help() => _tf;
+        public TableFluent Help() => _tf;
 
         #region HasKey
-        public EfCoreTableFluent<T> HasKey(Expression<Func<T, object>> key)
+        public EfCoreTableFluent HasKey(string key)
         {
-            var exp = key?.Body;
-            if (exp?.NodeType == ExpressionType.Convert) exp = (exp as UnaryExpression)?.Operand;
-            if (exp == null) throw new ArgumentException("参数错误 key 不能为 null");
-
-            switch (exp.NodeType)
+            if (key == null) throw new ArgumentException("参数错误 key 不能为 null");
+            foreach (string name in key.Split(','))
             {
-                case ExpressionType.MemberAccess:
-                    _tf.Property((exp as MemberExpression).Member.Name).IsPrimary(true);
-                    break;
-                case ExpressionType.New:
-                    foreach (var member in (exp as NewExpression).Members)
-                        _tf.Property(member.Name).IsPrimary(true);
-                    break;
+                if (string.IsNullOrEmpty(name.Trim())) continue;
+                _tf.Property(name.Trim()).IsPrimary(true);
             }
             return this;
         }
         #endregion
 
         #region HasIndex
-        public HasIndexFluent HasIndex(Expression<Func<T, object>> index)
+        public HasIndexFluent HasIndex(string index)
         {
-            var exp = index?.Body;
-            if (exp?.NodeType == ExpressionType.Convert) exp = (exp as UnaryExpression)?.Operand;
-            if (exp == null) throw new ArgumentException("参数错误 index 不能为 null");
-
+            if (index == null) throw new ArgumentException("参数错误 index 不能为 null");
             var indexName = $"idx_{Guid.NewGuid().ToString("N").Substring(0, 8)}";
             var columns = new List<string>();
-            switch (exp.NodeType)
+            foreach (string name in index.Split(','))
             {
-                case ExpressionType.MemberAccess:
-                    columns.Add((exp as MemberExpression).Member.Name);
-                    break;
-                case ExpressionType.New:
-                    foreach (var member in (exp as NewExpression).Members)
-                        columns.Add(member.Name);
-                    break;
+                if (string.IsNullOrEmpty(name.Trim())) continue;
+                columns.Add(name.Trim());
             }
             _tf.Index(indexName, string.Join(", ", columns), false);
             return new HasIndexFluent(_tf, indexName, columns);
         }
         public class HasIndexFluent
         {
-            TableFluent<T> _modelBuilder;
+            TableFluent _modelBuilder;
             string _indexName;
             List<string> _columns;
             bool _isUnique;
 
-            internal HasIndexFluent(TableFluent<T> modelBuilder, string indexName, List<string> columns)
+            internal HasIndexFluent(TableFluent modelBuilder, string indexName, List<string> columns)
             {
                 _modelBuilder = modelBuilder;
                 _indexName = indexName;
@@ -110,230 +96,157 @@ namespace FreeSql.Extensions.EfCoreFluentApi
         #endregion
 
         #region HasOne
-        public HasOneFluent<T2> HasOne<T2>(Expression<Func<T, T2>> one)
+        public HasOneFluent HasOne(string one)
         {
-            var exp = one?.Body;
-            if (exp?.NodeType == ExpressionType.Convert) exp = (exp as UnaryExpression)?.Operand;
-            if (exp == null) throw new ArgumentException("参数错误 one 不能为 null");
-
-            var oneProperty = "";
-            switch (exp.NodeType)
-            {
-                case ExpressionType.MemberAccess:
-                    oneProperty = (exp as MemberExpression).Member.Name;
-                    break;
-            }
-            if (string.IsNullOrEmpty(oneProperty)) throw new ArgumentException("参数错误 one");
-            return new HasOneFluent<T2>(_fsql, _tf, oneProperty);
+            if (string.IsNullOrEmpty(one)) throw new ArgumentException("参数错误 one 不能为 null");
+            if (_entityType.GetPropertiesDictIgnoreCase().TryGetValue(one, out var oneProperty) == false) throw new ArgumentException($"参数错误 {one} 属性不存在");
+            return new HasOneFluent(_fsql, _tf, _entityType, oneProperty.PropertyType, one);
         }
-        public class HasOneFluent<T2>
+        public class HasOneFluent
         {
             IFreeSql _fsql;
-            TableFluent<T> _tf;
+            TableFluent _tf;
+            Type _entityType1;
+            Type _entityType2;
             string _selfProperty;
             string _selfBind;
             string _withManyProperty;
             string _withOneProperty;
             string _withOneBind;
 
-            internal HasOneFluent(IFreeSql fsql, TableFluent<T> modelBuilder, string oneProperty)
+            internal HasOneFluent(IFreeSql fsql, TableFluent modelBuilder, Type entityType1, Type entityType2, string oneProperty)
             {
                 _fsql = fsql;
                 _tf = modelBuilder;
+                _entityType1 = entityType1;
+                _entityType2 = entityType2;
                 _selfProperty = oneProperty;
             }
-            public HasOneFluent<T2> WithMany<TMany>(Expression<Func<T2, TMany>> many)
+            public HasOneFluent WithMany(string many)
             {
-                var exp = many?.Body;
-                if (exp?.NodeType == ExpressionType.Convert) exp = (exp as UnaryExpression)?.Operand;
-                if (exp == null) throw new ArgumentException("参数错误 many 不能为 null");
-
-                switch (exp.NodeType)
-                {
-                    case ExpressionType.MemberAccess:
-                        _withManyProperty = (exp as MemberExpression).Member.Name;
-                        break;
-                }
-                if (string.IsNullOrEmpty(_withManyProperty)) throw new ArgumentException("参数错误 many");
+                if (many == null) throw new ArgumentException("参数错误 many 不能为 null");
+                if (_entityType2.GetPropertiesDictIgnoreCase().TryGetValue(many, out var manyProperty) == false) throw new ArgumentException($"参数错误 {many} 属性不存在");
+                _withManyProperty = manyProperty.Name;
                 if (string.IsNullOrEmpty(_selfBind) == false)
-                    _fsql.CodeFirst.ConfigEntity<T2>(eb2 => eb2.Navigate(_withManyProperty, _selfBind));
+                    _fsql.CodeFirst.ConfigEntity(_entityType2, eb2 => eb2.Navigate(many, _selfBind));
                 return this;
             }
-            public HasOneFluent<T2> WithOne(Expression<Func<T2, T>> one, Expression<Func<T2, object>> foreignKey)
+            public HasOneFluent WithOne(string one, string foreignKey)
             {
-                var exp = one?.Body;
-                if (exp?.NodeType == ExpressionType.Convert) exp = (exp as UnaryExpression)?.Operand;
-                if (exp == null) throw new ArgumentException("参数错误 one 不能为 null");
+                if (string.IsNullOrEmpty(one)) throw new ArgumentException("参数错误 one 不能为 null");
+                if (_entityType1.GetPropertiesDictIgnoreCase().TryGetValue(one, out var oneProperty) == false) throw new ArgumentException($"参数错误 {one} 属性不存在");
+                if (oneProperty != _entityType1) throw new ArgumentException($"参数错误 {one} 属性不存在");
+                _withOneProperty = oneProperty.Name;
 
-                switch (exp.NodeType)
+                if (foreignKey == null) throw new ArgumentException("参数错误 foreignKey 不能为 null");
+                foreach (string name in foreignKey.Split(','))
                 {
-                    case ExpressionType.MemberAccess:
-                        _withOneProperty = (exp as MemberExpression).Member.Name;
-                        break;
-                }
-                if (string.IsNullOrEmpty(_withOneProperty)) throw new ArgumentException("参数错误 one");
-
-                exp = foreignKey?.Body;
-                if (exp?.NodeType == ExpressionType.Convert) exp = (exp as UnaryExpression)?.Operand;
-                if (exp == null) throw new ArgumentException("参数错误 foreignKey 不能为 null");
-
-                switch (exp.NodeType)
-                {
-                    case ExpressionType.MemberAccess:
-                        _withOneBind = (exp as MemberExpression).Member.Name;
-                        _withOneBind = _withOneBind.TrimStart(',', ' ');
-                        break;
-                    case ExpressionType.New:
-                        _withOneBind = "";
-                        foreach (var member in (exp as NewExpression).Members)
-                            _withOneBind += ", " + member.Name;
-                        _withOneBind = _withOneBind.TrimStart(',', ' ');
-                        break;
+                    if (string.IsNullOrEmpty(name.Trim())) continue;
+                    _withOneBind += ", " + name.Trim();
                 }
                 if (string.IsNullOrEmpty(_withOneBind)) throw new ArgumentException("参数错误 foreignKey");
+                _withOneBind = _withOneBind.TrimStart(',', ' ');
                 if (string.IsNullOrEmpty(_selfBind) == false)
-                    _fsql.CodeFirst.ConfigEntity<T2>(eb2 => eb2.Navigate(_withOneProperty, _withOneBind));
+                    _fsql.CodeFirst.ConfigEntity(_entityType2, eb2 => eb2.Navigate(_withOneProperty, _withOneBind));
                 return this;
             }
-            public HasOneFluent<T2> HasForeignKey(Expression<Func<T, object>> foreignKey)
+            public HasOneFluent HasForeignKey(string foreignKey)
             {
-                var exp = foreignKey?.Body;
-                if (exp?.NodeType == ExpressionType.Convert) exp = (exp as UnaryExpression)?.Operand;
-                if (exp == null) throw new ArgumentException("参数错误 foreignKey 不能为 null");
-
-                switch (exp.NodeType)
+                if (foreignKey == null) throw new ArgumentException("参数错误 foreignKey 不能为 null");
+                foreach (string name in foreignKey.Split(','))
                 {
-                    case ExpressionType.MemberAccess:
-                        _selfBind = (exp as MemberExpression).Member.Name;
-                        _selfBind = _selfBind.TrimStart(',', ' ');
-                        break;
-                    case ExpressionType.New:
-                        _selfBind = "";
-                        foreach (var member in (exp as NewExpression).Members)
-                            _selfBind += ", " + member.Name;
-                        _selfBind = _selfBind.TrimStart(',', ' ');
-                        break;
+                    if (string.IsNullOrEmpty(name.Trim())) continue;
+                    _selfBind += ", " + name.Trim();
                 }
                 if (string.IsNullOrEmpty(_selfBind)) throw new ArgumentException("参数错误 foreignKey");
+                _selfBind = _selfBind.TrimStart(',', ' ');
                 _tf.Navigate(_selfProperty, _selfBind);
                 if (string.IsNullOrEmpty(_withManyProperty) == false)
-                    _fsql.CodeFirst.ConfigEntity<T2>(eb2 => eb2.Navigate(_withManyProperty, _selfBind));
+                    _fsql.CodeFirst.ConfigEntity(_entityType2, eb2 => eb2.Navigate(_withManyProperty, _selfBind));
                 if (string.IsNullOrEmpty(_withOneProperty) == false && string.IsNullOrEmpty(_withOneBind) == false)
-                    _fsql.CodeFirst.ConfigEntity<T2>(eb2 => eb2.Navigate(_withOneProperty, _withOneBind));
+                    _fsql.CodeFirst.ConfigEntity(_entityType2, eb2 => eb2.Navigate(_withOneProperty, _withOneBind));
                 return this;
             }
         }
         #endregion
 
         #region HasMany
-        public HasManyFluent<T2> HasMany<T2>(Expression<Func<T, IEnumerable<T2>>> many)
+        public HasManyFluent HasMany(string many)
         {
-            var exp = many?.Body;
-            if (exp?.NodeType == ExpressionType.Convert) exp = (exp as UnaryExpression)?.Operand;
-            if (exp == null) throw new ArgumentException("参数错误 many 不能为 null");
-
-            var manyProperty = "";
-            switch (exp.NodeType)
-            {
-                case ExpressionType.MemberAccess:
-                    manyProperty = (exp as MemberExpression).Member.Name;
-                    break;
-            }
-            if (string.IsNullOrEmpty(manyProperty)) throw new ArgumentException("参数错误 many");
-            return new HasManyFluent<T2>(_fsql, _tf, manyProperty);
+            if (string.IsNullOrEmpty(many)) throw new ArgumentException("参数错误 many 不能为 null");
+            if (_entityType.GetPropertiesDictIgnoreCase().TryGetValue(many, out var manyProperty) == false) throw new ArgumentException($"参数错误 {many} 集合属性不存在");
+            if (typeof(IEnumerable).IsAssignableFrom(manyProperty.PropertyType) == false || manyProperty.PropertyType.IsGenericType == false) throw new ArgumentException("参数错误 {many} 不是集合属性");
+            return new HasManyFluent(_fsql, _tf, _entityType, manyProperty.PropertyType.GetGenericArguments()[0], manyProperty.Name);
         }
-        public class HasManyFluent<T2>
+        public class HasManyFluent
         {
             IFreeSql _fsql;
-            TableFluent<T> _tf;
+            TableFluent _tf;
+            Type _entityType1;
+            Type _entityType2;
             string _selfProperty;
             string _selfBind;
             string _withOneProperty;
             string _withManyProperty;
 
-            internal HasManyFluent(IFreeSql fsql, TableFluent<T> modelBuilder, string manyProperty)
+            internal HasManyFluent(IFreeSql fsql, TableFluent modelBuilder, Type entityType1, Type entityType2, string manyProperty)
             {
                 _fsql = fsql;
                 _tf = modelBuilder;
+                _entityType1 = entityType1;
+                _entityType2 = entityType2;
                 _selfProperty = manyProperty;
             }
 
-            public void WithMany(Expression<Func<T2, IEnumerable<T>>> many, Type middleType)
+            public void WithMany(string many, Type middleType)
             {
-                var exp = many?.Body;
-                if (exp?.NodeType == ExpressionType.Convert) exp = (exp as UnaryExpression)?.Operand;
-                if (exp == null) throw new ArgumentException("参数错误 many 不能为 null");
-
-                switch (exp.NodeType)
-                {
-                    case ExpressionType.MemberAccess:
-                        _withManyProperty = (exp as MemberExpression).Member.Name;
-                        break;
-                }
-                if (string.IsNullOrEmpty(_withManyProperty)) throw new ArgumentException("参数错误 many");
-
+                if (string.IsNullOrEmpty(many)) throw new ArgumentException("参数错误 many 不能为 null");
+                if (_entityType2.GetPropertiesDictIgnoreCase().TryGetValue(many, out var manyProperty) == false) throw new ArgumentException($"参数错误 {many} 集合属性不存在");
+                if (typeof(IEnumerable).IsAssignableFrom(manyProperty.PropertyType) == false || manyProperty.PropertyType.IsGenericType == false) throw new ArgumentException("参数错误 {many} 不是集合属性");
+                _withManyProperty = manyProperty.Name;
                 _tf.Navigate(_selfProperty, null, middleType);
-                _fsql.CodeFirst.ConfigEntity<T2>(eb2 => eb2.Navigate(_withManyProperty, null, middleType));
+                _fsql.CodeFirst.ConfigEntity(_entityType2, eb2 => eb2.Navigate(_withManyProperty, null, middleType));
             }
-            public HasManyFluent<T2> WithOne(Expression<Func<T2, T>> one)
+            public HasManyFluent WithOne(string one)
             {
-                var exp = one?.Body;
-                if (exp?.NodeType == ExpressionType.Convert) exp = (exp as UnaryExpression)?.Operand;
-                if (exp == null) throw new ArgumentException("参数错误 one 不能为 null");
-
-                switch (exp.NodeType)
-                {
-                    case ExpressionType.MemberAccess:
-                        _withOneProperty = (exp as MemberExpression).Member.Name;
-                        break;
-                }
-                if (string.IsNullOrEmpty(_withOneProperty)) throw new ArgumentException("参数错误 one");
-                
+                if (string.IsNullOrEmpty(one)) throw new ArgumentException("参数错误 one 不能为 null");
+                if (_entityType2.GetPropertiesDictIgnoreCase().TryGetValue(one, out var oneProperty) == false) throw new ArgumentException($"参数错误 {one} 属性不存在");
+                if (oneProperty.PropertyType != _entityType1) throw new ArgumentException($"参数错误 {one} 属性不存在");
+                _withOneProperty = oneProperty.Name;
                 if (string.IsNullOrEmpty(_selfBind) == false)
-                    _fsql.CodeFirst.ConfigEntity<T2>(eb2 => eb2.Navigate(_withOneProperty, _selfBind));
+                    _fsql.CodeFirst.ConfigEntity(_entityType2, eb2 => eb2.Navigate(oneProperty.Name, _selfBind));
                 return this;
             }
-            public HasManyFluent<T2> HasForeignKey(Expression<Func<T2, object>> foreignKey)
+            public HasManyFluent HasForeignKey(string foreignKey)
             {
-                var exp = foreignKey?.Body;
-                if (exp?.NodeType == ExpressionType.Convert) exp = (exp as UnaryExpression)?.Operand;
-                if (exp == null) throw new ArgumentException("参数错误 foreignKey 不能为 null");
-
-                switch (exp.NodeType)
+                if (foreignKey == null) throw new ArgumentException("参数错误 foreignKey 不能为 null");
+                foreach (string name in foreignKey.Split(','))
                 {
-                    case ExpressionType.MemberAccess:
-                        _selfBind = (exp as MemberExpression).Member.Name;
-                        _selfBind = _selfBind.TrimStart(',', ' ');
-                        break;
-                    case ExpressionType.New:
-                        _selfBind = "";
-                        foreach (var member in (exp as NewExpression).Members)
-                            _selfBind += ", " + member.Name;
-                        _selfBind = _selfBind.TrimStart(',', ' ');
-                        break;
+                    if (string.IsNullOrEmpty(name.Trim())) continue;
+                    _selfBind += ", " + name.Trim();
                 }
                 if (string.IsNullOrEmpty(_selfBind)) throw new ArgumentException("参数错误 foreignKey");
+                _selfBind = _selfBind.TrimStart(',', ' ');
                 _tf.Navigate(_selfProperty, _selfBind);
                 if (string.IsNullOrEmpty(_withOneProperty) == false)
-                    _fsql.CodeFirst.ConfigEntity<T2>(eb2 => eb2.Navigate(_withOneProperty, _selfBind));
+                    _fsql.CodeFirst.ConfigEntity(_entityType2, eb2 => eb2.Navigate(_withOneProperty, _selfBind));
                 return this;
             }
         }
         #endregion
 
-        public EfCoreTableFluent<T> Ignore<TProperty>(Expression<Func<T, TProperty>> property)
+        public EfCoreTableFluent Ignore(string property)
         {
             _tf.Property(property).IsIgnore(true);
             return this;
         }
-        public EfCoreTableFluent<T> HasData(T data) => HasData(new[] { data });
 
         /// <summary>
         /// 使用 Repository + EnableAddOrUpdateNavigateList + NoneParameter 方式插入种子数据
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public EfCoreTableFluent<T> HasData(IEnumerable<T> data)
+        public EfCoreTableFluent HasData(IEnumerable<object> data)
         {
             if (data.Any() == false) return this;
             var sdCopy = data.Select(a => (object)a).ToList();
@@ -346,7 +259,7 @@ namespace FreeSql.Extensions.EfCoreFluentApi
                 if (sd == null || sd.Any() == false) return;
                 foreach (var et in e.EntityTypes)
                 {
-                    if (et != typeof(T)) continue;
+                    if (et != _entityType) continue;
                     if (_fsql.Select<object>().AsType(et).Any()) continue;
 
                     var repo = _fsql.GetRepository<object>();
