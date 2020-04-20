@@ -120,13 +120,6 @@
             清空状态数据
             </summary>
         </member>
-        <member name="M:FreeSql.DbSet`1.RemoveAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
-            <summary>
-            根据 lambda 条件删除数据
-            </summary>
-            <param name="predicate"></param>
-            <returns></returns>
-        </member>
         <member name="M:FreeSql.DbSet`1.Add(`0)">
             <summary>
             添加
