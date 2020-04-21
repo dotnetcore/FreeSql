@@ -276,6 +276,10 @@ namespace FreeSql.Internal
                 }
                 return sb.ToString();
             }
+            else if (primarys.Length == 1 && type == typeof(string))
+            {
+                return $"{aliasAndDot}{this.QuoteSqlName(pk1.Attribute.Name)} = {this.FormatSql("{0}", Utils.GetDataReaderValue(pk1.Attribute.MapType, dywhere))}";
+            }
             else if (dywhere is IEnumerable)
             {
                 var sb = new StringBuilder();
