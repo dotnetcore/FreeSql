@@ -303,6 +303,7 @@ where a.owner in ({1}) and {0}
                 ds2item[8] = string.Concat(row[10]);
                 ds2.Add(ds2item);
             }
+            var position = 0;
             foreach (var row in ds2)
             {
                 string table_id = string.Concat(row[0]);
@@ -332,7 +333,8 @@ where a.owner in ({1}) and {0}
                     DbTypeTextFull = sqlType,
                     Table = loc2[table_id],
                     Coment = comment,
-                    DefaultValue = defaultValue
+                    DefaultValue = defaultValue,
+                    Position = ++position
                 });
                 loc3[table_id][column].DbType = this.GetDbType(loc3[table_id][column]);
                 loc3[table_id][column].CsType = this.GetCsTypeInfo(loc3[table_id][column]);

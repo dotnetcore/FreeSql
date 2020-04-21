@@ -216,6 +216,7 @@ where a.table_schema in ({1}) and {0}
             ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
             if (ds == null) return loc1;
 
+            var position = 0;
             foreach (var row in ds)
             {
                 string table_id = string.Concat(row[0]);
@@ -245,7 +246,8 @@ where a.table_schema in ({1}) and {0}
                     DbTypeTextFull = sqlType,
                     Table = loc2[table_id],
                     Coment = comment,
-                    DefaultValue = defaultValue
+                    DefaultValue = defaultValue,
+                    Position = ++position
                 });
                 loc3[table_id][column].DbType = this.GetDbType(loc3[table_id][column]);
                 loc3[table_id][column].CsType = this.GetCsTypeInfo(loc3[table_id][column]);

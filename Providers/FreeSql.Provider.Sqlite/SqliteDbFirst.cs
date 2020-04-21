@@ -159,7 +159,7 @@ namespace FreeSql.Sqlite
             if (database == null || database.Any() == false) database = GetDatabases().ToArray();
             if (database.Any() == false) return loc1;
 
-            Action<object[]> addColumn = row =>
+            Action<object[], int> addColumn = (row, position) =>
             {
                 string table_id = string.Concat(row[0]);
                 string column = string.Concat(row[1]);
@@ -185,7 +185,8 @@ namespace FreeSql.Sqlite
                     DbTypeTextFull = sqlType,
                     Table = loc2[table_id],
                     Coment = comment,
-                    DefaultValue = defaultValue
+                    DefaultValue = defaultValue,
+                    Position = position
                 });
                 loc3[table_id][column].DbType = this.GetDbType(loc3[table_id][column]);
                 loc3[table_id][column].CsType = this.GetCsTypeInfo(loc3[table_id][column]);
@@ -247,6 +248,7 @@ from {db}.sqlite_master where type = 'table'";
                     {
                         var dsql = string.Concat(row[5]);
                         var cols = _orm.Ado.ExecuteArray(CommandType.Text, $"PRAGMA \"{db}\".table_info(\"{table}\")");
+                        var position = 0;
                         foreach (var col in cols)
                         {
                             var col_name = string.Concat(col[1]);
@@ -268,7 +270,7 @@ from {db}.sqlite_master where type = 'table'";
                             ds2item[7] = string.Concat(col[5]) == "1" ? 1 : 0;
                             ds2item[8] = "";
                             ds2item[9] = string.Concat(col[4]);
-                            addColumn(ds2item);
+                            addColumn(ds2item, ++position);
                         }
 
                         var fks = _orm.Ado.ExecuteArray(CommandType.Text, $"PRAGMA \"{db}\".foreign_key_list(\"{table}\")");

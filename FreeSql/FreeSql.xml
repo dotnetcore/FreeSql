@@ -445,6 +445,11 @@
             数据库默认值
             </summary>
         </member>
+        <member name="P:FreeSql.DatabaseModel.DbColumnInfo.Position">
+            <summary>
+            字段位置
+            </summary>
+        </member>
         <member name="P:FreeSql.DatabaseModel.DbEnumInfo.Name">
             <summary>
             枚举类型标识
@@ -2305,137 +2310,6 @@
             <param name="parms"></param>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.IAdo.ExecuteReaderAsync(System.Func{System.Data.Common.DbDataReader,System.Threading.Tasks.Task},System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
-            <summary>
-            查询，若使用读写分离，查询【从库】条件cmdText.StartsWith("SELECT ")，否则查询【主库】
-            </summary>
-            <param name="readerHander"></param>
-            <param name="cmdType"></param>
-            <param name="cmdText"></param>
-            <param name="cmdParms"></param>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteReaderAsync(System.Func{System.Data.Common.DbDataReader,System.Threading.Tasks.Task},System.String,System.Object)">
-            <summary>
-            查询，ExecuteReaderAsync(dr => {}, "select * from user where age > ?age", new { age = 25 })
-            </summary>
-            <param name="cmdText"></param>
-            <param name="parms"></param>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteArrayAsync(System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
-            <summary>
-            查询
-            </summary>
-            <param name="cmdText"></param>
-            <param name="cmdParms"></param>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteArrayAsync(System.String,System.Object)">
-            <summary>
-            查询，ExecuteArrayAsync("select * from user where age > ?age", new { age = 25 })
-            </summary>
-            <param name="cmdText"></param>
-            <param name="parms"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteDataSetAsync(System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
-            <summary>
-            查询
-            </summary>
-            <param name="cmdText"></param>
-            <param name="cmdParms"></param>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteDataSetAsync(System.String,System.Object)">
-            <summary>
-            查询，ExecuteDataSetAsync("select * from user where age > ?age; select 2", new { age = 25 })
-            </summary>
-            <param name="cmdText"></param>
-            <param name="parms"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteDataTableAsync(System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
-            <summary>
-            查询
-            </summary>
-            <param name="cmdText"></param>
-            <param name="cmdParms"></param>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteDataTableAsync(System.String,System.Object)">
-            <summary>
-            查询，ExecuteDataTableAsync("select * from user where age > ?age", new { age = 25 })
-            </summary>
-            <param name="cmdText"></param>
-            <param name="parms"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteNonQueryAsync(System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
-            <summary>
-            在【主库】执行
-            </summary>
-            <param name="cmdType"></param>
-            <param name="cmdText"></param>
-            <param name="cmdParms"></param>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteNonQueryAsync(System.String,System.Object)">
-            <summary>
-            在【主库】执行，ExecuteNonQueryAsync("delete from user where age > ?age", new { age = 25 })
-            </summary>
-            <param name="cmdText"></param>
-            <param name="parms"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteScalarAsync(System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
-            <summary>
-            在【主库】执行
-            </summary>
-            <param name="cmdType"></param>
-            <param name="cmdText"></param>
-            <param name="cmdParms"></param>
-        </member>
-        <member name="M:FreeSql.IAdo.ExecuteScalarAsync(System.String,System.Object)">
-            <summary>
-            在【主库】执行，ExecuteScalarAsync("select 1 from user where age > ?age", new { age = 25 })
-            </summary>
-            <param name="cmdText"></param>
-            <param name="parms"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IAdo.QueryAsync``1(System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
-            <summary>
-            执行SQL返回对象集合，QueryAsync&lt;User&gt;("select * from user where age > ?age", new SqlParameter { ParameterName = "age", Value = 25 })
-            </summary>
-            <typeparam name="T"></typeparam>
-            <param name="cmdType"></param>
-            <param name="cmdText"></param>
-            <param name="cmdParms"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IAdo.QueryAsync``1(System.String,System.Object)">
-            <summary>
-            执行SQL返回对象集合，QueryAsync&lt;User&gt;("select * from user where age > ?age", new { age = 25 })
-            </summary>
-            <typeparam name="T"></typeparam>
-            <param name="cmdText"></param>
-            <param name="parms"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IAdo.QueryAsync``2(System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
-            <summary>
-            执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > ?age; select * from address", new SqlParameter { ParameterName = "age", Value = 25 })
-            </summary>
-            <typeparam name="T1"></typeparam>
-            <param name="cmdType"></param>
-            <param name="cmdText"></param>
-            <param name="cmdParms"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IAdo.QueryAsync``2(System.String,System.Object)">
-            <summary>
-            执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > ?age; select * from address", new { age = 25 })
-            </summary>
-            <typeparam name="T1"></typeparam>
-            <param name="cmdText"></param>
-            <param name="parms"></param>
-            <returns></returns>
-        </member>
         <member name="E:FreeSql.IAop.ParseExpression">
             <summary>
             可自定义解析表达式
@@ -2839,6 +2713,166 @@
         </member>
         <member name="M:FreeSql.IDbFirst.GetCsTypeValue(FreeSql.DatabaseModel.DbColumnInfo)">
             <summary>
+            获取c#值
+            </summary>
+            <param name="column"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IDbFirst.GetCsType(FreeSql.DatabaseModel.DbColumnInfo)">
+            <summary>
+            获取c#类型，int、long
+            </summary>
+            <param name="column"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IDbFirst.GetCsTypeInfo(FreeSql.DatabaseModel.DbColumnInfo)">
+            <summary>
+            获取c#类型对象
+            </summary>
+            <param name="column"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IDbFirst.GetDataReaderMethod(FreeSql.DatabaseModel.DbColumnInfo)">
+            <summary>
+            获取ado.net读取方法, GetBoolean、GetInt64
+            </summary>
+            <param name="column"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IDbFirst.GetCsStringify(FreeSql.DatabaseModel.DbColumnInfo)">
+            <summary>
+            序列化
+            </summary>
+            <param name="column"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IDbFirst.GetCsParse(FreeSql.DatabaseModel.DbColumnInfo)">
+            <summary>
+            反序列化
+            </summary>
+            <param name="column"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IDbFirst.GetEnumsByDatabase(System.String[])">
+            <summary>
+            获取数据库枚举类型，适用 PostgreSQL
+            </summary>
+            <param name="database"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.Internal.CommonProvider.InsertProvider`1.IgnoreCanInsert">
+            <summary>
+            AsType, Ctor, ClearData 三处地方需要重新加载
+            </summary>
+        </member>
+        <member name="M:FreeSql.Internal.CommonProvider.UpdateProvider`1.IgnoreCanUpdate">
+            <summary>
+            AsType, Ctor, ClearData 三处地方需要重新加载
+            </summary>
+        </member>
+        <member name="M:FreeSql.Internal.CommonUtils.GetProperyCommentBySummary(System.Type)">
+            <summary>
+            通过属性的注释文本，通过 xml 读取
+            </summary>
+            <param name="type"></param>
+            <returns>Dict：key=属性名，value=注释</returns>
+        </member>
+        <member name="M:FreeSql.Internal.GlobalFilter.Apply``1(System.String,System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})">
+            <summary>
+            创建一个过滤器
+            </summary>
+            <typeparam name="TEntity"></typeparam>
+            <param name="name">名字</param>
+            <param name="where">表达式</param>
+            <returns></returns>
+        </member>
+        <member name="P:FreeSql.Internal.Model.TableRef.RefMiddleEntityType">
+            <summary>
+            中间表，多对多
+            </summary>
+        </member>
+        <member name="P:FreeSql.Internal.ObjectPool.IObjectPool`1.IsAvailable">
+            <summary>
+            是否可用
+            </summary>
+        </member>
+        <member name="P:FreeSql.Internal.ObjectPool.IObjectPool`1.UnavailableException">
+            <summary>
+            不可用错误
+            </summary>
+        </member>
+        <member name="P:FreeSql.Internal.ObjectPool.IObjectPool`1.UnavailableTime">
+            <summary>
+            不可用时间
+            </summary>
+        </member>
+        <member name="M:FreeSql.Internal.ObjectPool.IObjectPool`1.SetUnavailable(System.Exception)">
+            <summary>
+            将对象池设置为不可用，后续 Get/GetAsync 均会报错，同时启动后台定时检查服务恢复可用
+            </summary>
+            <param name="exception"></param>
+            <returns>由【可用】变成【不可用】时返回true，否则返回false</returns>
+        </member>
+        <member name="P:FreeSql.Internal.ObjectPool.IObjectPool`1.Statistics">
+            <summary>
+            统计对象池中的对象
+            </summary>
+        </member>
+        <member name="P:FreeSql.Internal.ObjectPool.IObjectPool`1.StatisticsFullily">
+            <summary>
+            统计对象池中的对象（完整)
+            </summary>
+        </member>
+        <member name="M:FreeSql.Internal.ObjectPool.IObjectPool`1.Get(System.Nullable{System.TimeSpan})">
+            <summary>
+            获取资源
+            </summary>
+            <param name="timeout">超时</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.Internal.ObjectPool.IObjectPool`1.Return(FreeSql.Internal.ObjectPool.Object{`0},System.Boolean)">
+            <summary>
+            使用完毕后，归还资源
+            </summary>
+            <param name="obj">对象</param>
+            <param name="isReset">是否重新创建</param>
+        </member>
+        <member name="P:FreeSql.Internal.ObjectPool.IPolicy`1.Name">
+            <summary>
+            名称
+            </summary>
+        </member>
+        <member name="P:FreeSql.Internal.ObjectPool.IPolicy`1.PoolSize">
+            <summary>
+            池容量
+            </summary>
+        </member>
+        <member name="P:FreeSql.Internal.ObjectPool.IPolicy`1.SyncGetTimeout">
+            <summary>
+            默认获取超时设置
+            </summary>
+        </member>
+        <member name="P:FreeSql.Internal.ObjectPool.IPolicy`1.IdleTimeout">
+            <summary>
+            空闲时间，获取时若超出，则重新创建
+            </summary>
+        </member>
+        <member name="P:FreeSql.Internal.ObjectPool.IPolicy`1.AsyncGetCapacity">
+            <summary>
+            异步获取排队队列大小，小于等于0不生效
+            </summary>
+        </member>
+        <member name="P:FreeSql.Internal.ObjectPool.IPolicy`1.IsThrowGetTimeoutException">
+            <summary>
+            获取超时后，是否抛出异常
+            </summary>
+        </member>
+        <member name="P:FreeSql.Internal.ObjectPool.IPolicy`1.IsAutoDisposeWithSystem">
+            <summary>
+            监听 AppDomain.CurrentDomain.ProcessExit/Console.CancelKeyPress 事件自动释放
+            </summary>
+        </member>
+      ry>
             获取c#值
             </summary>
             <param name="column"></param>
