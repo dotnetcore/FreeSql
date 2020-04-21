@@ -227,6 +227,41 @@
             <param name="asTable">分表规则，参数：旧表名；返回：新表名 https://github.com/2881099/FreeSql/wiki/Repository</param>
             <returns></returns>
         </member>
+        <member name="T:FreeSql.RepositoryUnitOfWorkManager">
+            <summary>
+            仓储的工作单元管理器
+            </summary>
+        </member>
+        <member name="F:FreeSql.RepositoryUnitOfWorkManager.Propagation.Requierd">
+            <summary>
+            如果当前没有事务，就新建一个事务，如果已存在一个事务中，加入到这个事务中，默认的选择。
+            </summary>
+        </member>
+        <member name="F:FreeSql.RepositoryUnitOfWorkManager.Propagation.Supports">
+            <summary>
+            支持当前事务，如果没有当前事务，就以非事务方法执行。
+            </summary>
+        </member>
+        <member name="F:FreeSql.RepositoryUnitOfWorkManager.Propagation.Mandatory">
+            <summary>
+            使用当前事务，如果没有当前事务，就抛出异常。
+            </summary>
+        </member>
+        <member name="F:FreeSql.RepositoryUnitOfWorkManager.Propagation.NotSupported">
+            <summary>
+            以非事务方式执行操作，如果当前存在事务，就把当前事务挂起。
+            </summary>
+        </member>
+        <member name="F:FreeSql.RepositoryUnitOfWorkManager.Propagation.Never">
+            <summary>
+            以非事务方式执行操作，如果当前事务存在则抛出异常。
+            </summary>
+        </member>
+        <member name="F:FreeSql.RepositoryUnitOfWorkManager.Propagation.Nested">
+            <summary>
+            如果当前存在事务，则在嵌套事务内执行。如果当前没有事务，就新建一个事务。
+            </summary>
+        </member>
         <member name="M:FreeSql.IDataFilter`1.Enable(System.String[])">
             <summary>
             开启过滤器，若使用 using 则使用完后，恢复为原有状态
@@ -299,6 +334,11 @@
             <param name="entity">实体对象</param>
             <param name="propertyName">属性名</param>
         </member>
+        <member name="T:FreeSql.IUnitOfWork">
+            <summary>
+            工作单元
+            </summary>
+        </member>
         <member name="M:FreeSql.IUnitOfWork.GetOrBeginTransaction(System.Boolean)">
             <summary>
             开启事务，或者返回已开启的事务
@@ -326,7 +366,7 @@
         </member>
         <member name="P:FreeSql.IUnitOfWork.EntityChangeReport">
             <summary>
-            此工作单元内的实体变化跟踪
+            工作单元内的实体变化跟踪
             </summary>
         </member>
         <member name="P:FreeSql.UnitOfWork.DebugBeingUsed">

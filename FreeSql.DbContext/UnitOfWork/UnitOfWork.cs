@@ -11,10 +11,6 @@ namespace FreeSql
 {
     public class UnitOfWork : IUnitOfWork
     {
-#if netcoreapp
-        public static readonly AsyncLocal<IUnitOfWork> Current = new AsyncLocal<IUnitOfWork>();
-#endif
-
         static int _seed;
         /// <summary>
         /// 正在使用中的工作单元（调试）
@@ -40,11 +36,7 @@ namespace FreeSql
             if (_fsql == null) throw new ArgumentNullException(nameof(fsql));
 
             _uowBefore = new Aop.TraceBeforeEventArgs("UnitOfWork", null);
-            _fsql?.Aop.TraceBeforeHandler?.Invoke(this, _uowBefore);
-
-#if netcoreapp
-            Current.Value = this;
-#endif
+            _fsql.Aop.TraceBeforeHandler?.Invoke(this, _uowBefore);
         }
 
         void ReturnObject()
@@ -55,9 +47,6 @@ namespace FreeSql
             _fsql.Ado.MasterPool.Return(_conn);
             _tran = null;
             _conn = null;
-#if netcoreapp
-            Current.Value = null;
-#endif
             EntityChangeReport?.Report.Clear();
         }
 
@@ -174,7 +163,6 @@ namespace FreeSql
             try
             {
                 this.Rollback();
-                this.Close();
             }
             finally
             {

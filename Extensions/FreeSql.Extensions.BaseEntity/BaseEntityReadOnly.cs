@@ -106,9 +106,11 @@ namespace FreeSql
         {
             var uow = Orm.CreateUnitOfWork();
             uow.IsolationLevel = level;
+            CurrentUnitOfWork = uow;
             return uow;
         }
 
+        static readonly AsyncLocal<IUnitOfWork> _AsyncUnitOfWork = new AsyncLocal<IUnitOfWork>();
         static readonly AsyncLocal<string> _AsyncTenantId = new AsyncLocal<string>();
         /// <summary>
         /// 获取或设置当前租户id
@@ -117,6 +119,14 @@ namespace FreeSql
         {
             get => _AsyncTenantId.Value;
             set => _AsyncTenantId.Value = value;
+        }
+        /// <summary>
+        /// 获取或设置当前租户id
+        /// </summary>
+        public static IUnitOfWork CurrentUnitOfWork
+        {
+            get => _AsyncUnitOfWork.Value;
+            set => _AsyncUnitOfWork.Value = value;
         }
     }
 
@@ -143,7 +153,7 @@ namespace FreeSql
             {
                 var select = Orm.Select<TEntity>()
                     .TrackToList(TrackToList) //自动为每个元素 Attach
-                    .WithTransaction(UnitOfWork.Current.Value?.GetOrBeginTransaction(false));
+                    .WithTransaction(CurrentUnitOfWork?.GetOrBeginTransaction(false));
                 if (string.IsNullOrEmpty(CurrentTenantId) == false)
                     select.WhereCascade(a => (a as ITenant).TenantId == CurrentTenantId);
                 return select.WhereCascade(a => (a as BaseEntity).IsDeleted == false);

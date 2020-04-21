@@ -53,11 +53,11 @@ namespace FreeSql
         {
             if (this.Repository == null)
                 return await Orm.Update<TEntity>(this as TEntity)
-                    .WithTransaction(UnitOfWork.Current.Value?.GetOrBeginTransaction())
+                    .WithTransaction(CurrentUnitOfWork?.GetOrBeginTransaction())
                     .Set(a => (a as BaseEntity).IsDeleted, this.IsDeleted = value).ExecuteAffrowsAsync() == 1;
 
             this.IsDeleted = value;
-            this.Repository.UnitOfWork = UnitOfWork.Current.Value;
+            this.Repository.UnitOfWork = CurrentUnitOfWork;
             return await this.Repository.UpdateAsync(this as TEntity) == 1;
         }
         /// <summary>
@@ -71,7 +71,7 @@ namespace FreeSql
             if (this.Repository == null)
                 return await Orm.Delete<TEntity>(this as TEntity).ExecuteAffrowsAsync() == 1;
             //this.SetTenantId();
-            this.Repository.UnitOfWork = UnitOfWork.Current.Value;
+            this.Repository.UnitOfWork = CurrentUnitOfWork;
             return await this.Repository.DeleteAsync(this as TEntity) == 1;
         }
         /// <summary>
@@ -89,11 +89,11 @@ namespace FreeSql
             this.UpdateTime = DateTime.Now;
             if (this.Repository == null)
                 return await Orm.Update<TEntity>()
-                    .WithTransaction(UnitOfWork.Current.Value?.GetOrBeginTransaction())
+                    .WithTransaction(CurrentUnitOfWork?.GetOrBeginTransaction())
                     .SetSource(this as TEntity).ExecuteAffrowsAsync() == 1;
 
             this.SetTenantId();
-            this.Repository.UnitOfWork = UnitOfWork.Current.Value;
+            this.Repository.UnitOfWork = CurrentUnitOfWork;
             return await this.Repository.UpdateAsync(this as TEntity) == 1;
         }
         /// <summary>
@@ -106,7 +106,7 @@ namespace FreeSql
                 this.Repository = Orm.GetRepository<TEntity>();
 
             this.SetTenantId();
-            this.Repository.UnitOfWork = UnitOfWork.Current.Value;
+            this.Repository.UnitOfWork = CurrentUnitOfWork;
             return this.Repository.InsertAsync(this as TEntity);
         }
 
@@ -121,7 +121,7 @@ namespace FreeSql
                 this.Repository = Orm.GetRepository<TEntity>();
 
             this.SetTenantId();
-            this.Repository.UnitOfWork = UnitOfWork.Current.Value;
+            this.Repository.UnitOfWork = CurrentUnitOfWork;
             return this.Repository.InsertOrUpdateAsync(this as TEntity);
         }
 
@@ -134,7 +134,7 @@ namespace FreeSql
             if (this.Repository == null)
                 this.Repository = Orm.GetRepository<TEntity>();
 
-            this.Repository.UnitOfWork = UnitOfWork.Current.Value;
+            this.Repository.UnitOfWork = CurrentUnitOfWork;
             return this.Repository.SaveManyAsync(this as TEntity, navigatePropertyName);
         }
     }

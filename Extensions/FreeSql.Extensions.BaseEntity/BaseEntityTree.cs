@@ -79,7 +79,7 @@ namespace FreeSql
             buf.Add(this as TEntity);
             buf.AddRange(this.GetAllChilds());
             var repo = Orm.GetRepository<TEntity>();
-            repo.UnitOfWork = UnitOfWork.Current.Value;
+            repo.UnitOfWork = CurrentUnitOfWork;
             buf = repo.Select.WhereDynamic(buf)
                 .Include(a => ((((((((((a as BaseEntityTree<TEntity, TKey>).Parent
                     as BaseEntityTree<TEntity, TKey>).Parent
@@ -110,7 +110,7 @@ namespace FreeSql
             var childs = GetAllChilds();
             childs.Add(this as TEntity);
             var repo = Orm.GetRepository<TEntity>();
-            repo.UnitOfWork = UnitOfWork.Current.Value;
+            repo.UnitOfWork = CurrentUnitOfWork;
             repo.Attach(childs);
             foreach (var item in childs)
                 (item as BaseEntity).IsDeleted = false;

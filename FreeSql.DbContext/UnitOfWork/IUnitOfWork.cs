@@ -5,6 +5,9 @@ using System.Data.Common;
 
 namespace FreeSql
 {
+    /// <summary>
+    /// 工作单元
+    /// </summary>
     public interface IUnitOfWork : IDisposable
     {
 
@@ -40,7 +43,7 @@ namespace FreeSql
         void Open();
 
         /// <summary>
-        /// 此工作单元内的实体变化跟踪
+        /// 工作单元内的实体变化跟踪
         /// </summary>
         DbContext.EntityChangeReport EntityChangeReport { get; }
     }
