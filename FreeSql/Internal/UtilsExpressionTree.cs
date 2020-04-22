@@ -1236,6 +1236,7 @@ namespace FreeSql.Internal
             public static PropertyInfo PropertyDataIndex = typeof(RowInfo).GetProperty("DataIndex");
         }
         internal static MethodInfo MethodDataReaderGetValue = typeof(Utils).GetMethod("InternalDataReaderGetValue", BindingFlags.Static | BindingFlags.NonPublic);
+        internal static PropertyInfo PropertyDataReaderFieldCount = typeof(DbDataReader).GetProperty("FieldCount");
         internal static object InternalDataReaderGetValue(CommonUtils commonUtil, DbDataReader dr, int index)
         {
             if (commonUtil._orm.Ado.DataType == DataType.Dameng && dr.IsDBNull(index)) return null;
@@ -1309,33 +1310,33 @@ namespace FreeSql.Internal
                                     }
                                 }
                                 block2Exp.AddRange(new Expression[] {
-								//Expression.TryCatch(Expression.Block(
-								//	typeof(void),
-									Expression.Assign(read2Exp, read2ExpAssign),
-                                    Expression.IfThen(Expression.GreaterThan(read2ExpDataIndex, dataIndexExp),
-                                        Expression.Assign(dataIndexExp, read2ExpDataIndex)),
-                                    Expression.IfThenElse(Expression.Equal(read2ExpValue, Expression.Constant(null)),
-                                        Expression.Assign(Expression.MakeMemberAccess(ret2Exp, field), Expression.Default(field.FieldType)),
-                                        Expression.Assign(Expression.MakeMemberAccess(ret2Exp, field), Expression.Convert(read2ExpValue, field.FieldType)))
-								//), 
-								//Expression.Catch(typeof(Exception), Expression.Block(
-								//		Expression.IfThen(Expression.Equal(read2ExpDataIndex, Expression.Constant(0)), Expression.Throw(Expression.Constant(new Exception(field.Name + "," + 0)))),
-								//		Expression.IfThen(Expression.Equal(read2ExpDataIndex, Expression.Constant(1)), Expression.Throw(Expression.Constant(new Exception(field.Name + "," + 1)))),
-								//		Expression.IfThen(Expression.Equal(read2ExpDataIndex, Expression.Constant(2)), Expression.Throw(Expression.Constant(new Exception(field.Name + "," + 2)))),
-								//		Expression.IfThen(Expression.Equal(read2ExpDataIndex, Expression.Constant(3)), Expression.Throw(Expression.Constant(new Exception(field.Name + "," + 3)))),
-								//		Expression.IfThen(Expression.Equal(read2ExpDataIndex, Expression.Constant(4)), Expression.Throw(Expression.Constant(new Exception(field.Name + "," + 4))))
-								//	)
-								//))
-							});
+								    //Expression.TryCatch(Expression.Block(
+								    //	typeof(void),
+									    Expression.Assign(read2Exp, read2ExpAssign),
+                                        Expression.IfThen(Expression.GreaterThan(read2ExpDataIndex, dataIndexExp),
+                                            Expression.Assign(dataIndexExp, read2ExpDataIndex)),
+                                        Expression.IfThenElse(Expression.Equal(read2ExpValue, Expression.Constant(null)),
+                                            Expression.Assign(Expression.MakeMemberAccess(ret2Exp, field), Expression.Default(field.FieldType)),
+                                            Expression.Assign(Expression.MakeMemberAccess(ret2Exp, field), Expression.Convert(read2ExpValue, field.FieldType)))
+								    //), 
+								    //Expression.Catch(typeof(Exception), Expression.Block(
+								    //		Expression.IfThen(Expression.Equal(read2ExpDataIndex, Expression.Constant(0)), Expression.Throw(Expression.Constant(new Exception(field.Name + "," + 0)))),
+								    //		Expression.IfThen(Expression.Equal(read2ExpDataIndex, Expression.Constant(1)), Expression.Throw(Expression.Constant(new Exception(field.Name + "," + 1)))),
+								    //		Expression.IfThen(Expression.Equal(read2ExpDataIndex, Expression.Constant(2)), Expression.Throw(Expression.Constant(new Exception(field.Name + "," + 2)))),
+								    //		Expression.IfThen(Expression.Equal(read2ExpDataIndex, Expression.Constant(3)), Expression.Throw(Expression.Constant(new Exception(field.Name + "," + 3)))),
+								    //		Expression.IfThen(Expression.Equal(read2ExpDataIndex, Expression.Constant(4)), Expression.Throw(Expression.Constant(new Exception(field.Name + "," + 4))))
+								    //	)
+								    //))
+							    });
                             }
                             block2Exp.AddRange(new Expression[] {
-                            Expression.Return(returnTarget, Expression.New(RowInfo.Constructor, Expression.Convert(ret2Exp, typeof(object)), dataIndexExp)),
-                            Expression.Label(returnTarget, Expression.Default(typeof(RowInfo)))
-                        });
+                                Expression.Return(returnTarget, Expression.New(RowInfo.Constructor, Expression.Convert(ret2Exp, typeof(object)), dataIndexExp)),
+                                Expression.Label(returnTarget, Expression.Default(typeof(RowInfo)))
+                            });
                             return Expression.Lambda<Func<Type, int[], DbDataReader, int, CommonUtils, RowInfo>>(
                                 Expression.Block(new[] { ret2Exp, read2Exp }, block2Exp), new[] { typeExp, indexesExp, rowExp, dataIndexExp, commonUtilExp }).Compile();
                         }
-                        var rowLenExp = Expression.ArrayLength(rowExp);
+                        var rowLenExp = Expression.MakeMemberAccess(rowExp, PropertyDataReaderFieldCount);
                         return Expression.Lambda<Func<Type, int[], DbDataReader, int, CommonUtils, RowInfo>>(
                             Expression.Block(
                                 Expression.IfThen(

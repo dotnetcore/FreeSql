@@ -32,6 +32,11 @@ namespace FreeSql.Tests.MySqlConnector
         public void Test1()
         {
             g.mysql.Select<TestAddEnum>().ToList();
+
+
+            var soc = g.mysql.GetRepository<Jhfw.Models.BankOutlets, int>();
+            var item1 = soc.Where(d => d.Id == 1).Include(x => x.OneBankOutlets).Include(d => d.OneBanks).First();
+            var item2 = soc.Where(d => d.Id == 1).Include(d => d.OneBanks).Include(x => x.OneBankOutlets).First();
         }
     }
 }

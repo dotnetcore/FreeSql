@@ -287,6 +287,7 @@ namespace FreeSql.Internal.CommonProvider
             if (tb == null) throw new Exception("Include 参数类型错误");
 
             _isIncluded = true;
+            _tables[0].Parameter = navigateSelector.Parameters[0];
             _commonExpression.ExpressionWhereLambda(_tables, Expression.MakeMemberAccess(expBody, tb.Properties[tb.ColumnsByCs.First().Value.CsName]), null, null, null);
             return this;
         }
