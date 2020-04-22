@@ -55,6 +55,7 @@ namespace FreeSql.Extensions.EntityUtil
                     {
                         Expression newguid = Expression.Call(MethodFreeUtilNewMongodbId);
                         if (pks[a].Attribute.MapType != pks[a].CsType) newguid = FreeSql.Internal.Utils.GetDataReaderValueBlockExpression(pks[a].CsType, newguid);
+                        if (pks[a].CsType == typeof(Guid)) newguid = Expression.Convert(newguid, typeof(Guid));
                         if (pks[a].CsType == typeof(Guid?)) newguid = Expression.Convert(newguid, typeof(Guid?));
                         expthen = Expression.Block(
                             new Expression[]{
