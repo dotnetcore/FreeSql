@@ -34,6 +34,10 @@ namespace FreeSql
         /// <summary>
         /// 武汉达梦数据库有限公司，基于 DmProvider.dll 的实现
         /// </summary>
-        Dameng
+        Dameng,
+        /// <summary>
+        /// 涛思数据的TDengine,基于Maikebing.Data.Taos实现
+        /// </summary>
+        TDengine
     }
 }

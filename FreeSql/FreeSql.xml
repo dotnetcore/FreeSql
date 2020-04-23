@@ -551,6 +551,11 @@
             武汉达梦数据库有限公司，基于 DmProvider.dll 的实现
             </summary>
         </member>
+        <member name="F:FreeSql.DataType.TDengine">
+            <summary>
+            涛思数据的TDengine,基于Maikebing.Data.Taos实现
+            </summary>
+        </member>
         <member name="M:FreeSql.Extensions.EntityUtil.EntityUtilExtensions.GetEntityKeyString(IFreeSql,System.Type,System.Object,System.Boolean,System.String)">
             <summary>
             获取实体的主键值，以 "*|_,[,_|*" 分割，当任意一个主键属性无值时，返回 null
