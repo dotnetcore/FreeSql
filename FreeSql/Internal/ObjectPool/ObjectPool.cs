@@ -329,7 +329,7 @@ namespace FreeSql.Internal.ObjectPool
                     Policy.OnGetTimeout();
 
                     if (Policy.IsThrowGetTimeoutException)
-                        throw new TimeoutException($"SafeObjectPool.Get 获取超时（{timeout.Value.TotalSeconds}秒）。");
+                        throw new TimeoutException($"ObjectPool.Get 获取超时（{timeout.Value.TotalSeconds}秒）。");
 
                     return null;
                 }
@@ -363,7 +363,7 @@ namespace FreeSql.Internal.ObjectPool
             {
 
                 if (Policy.AsyncGetCapacity > 0 && _getAsyncQueue.Count >= Policy.AsyncGetCapacity - 1)
-                    throw new OutOfMemoryException($"SafeObjectPool.GetAsync 无可用资源且队列过长，Policy.AsyncGetCapacity = {Policy.AsyncGetCapacity}。");
+                    throw new OutOfMemoryException($"ObjectPool.GetAsync 无可用资源且队列过长，Policy.AsyncGetCapacity = {Policy.AsyncGetCapacity}。");
 
                 var tcs = new TaskCompletionSource<Object<T>>();
 
@@ -383,7 +383,7 @@ namespace FreeSql.Internal.ObjectPool
                 //	Policy.GetTimeout();
 
                 //	if (Policy.IsThrowGetTimeoutException)
-                //		throw new Exception($"SafeObjectPool.GetAsync 获取超时（{timeout.Value.TotalSeconds}秒）。");
+                //		throw new Exception($"ObjectPool.GetAsync 获取超时（{timeout.Value.TotalSeconds}秒）。");
 
                 //	return null;
                 //}
