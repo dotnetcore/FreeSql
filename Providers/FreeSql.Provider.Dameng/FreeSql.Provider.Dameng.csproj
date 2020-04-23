@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net45;net40</TargetFrameworks>
-    <Version>1.4.0-preview0423</Version>
+    <Version>1.4.0-preview0424</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>YeXiangQin</Authors>
     <Description>FreeSql 数据库实现，基于 达梦数据库 Ado.net (DmProvider)</Description>

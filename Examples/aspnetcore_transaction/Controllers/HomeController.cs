@@ -39,7 +39,7 @@ namespace aspnetcore_transaction.Controllers
             _repoSong2 = repoSong2;
         }
 
-        [Transactional]
+        [Transactional(Propagation = Propagation.Nested)] //sqlite 不能嵌套事务，会锁库的
         public virtual void Test()
         {
             _repoSong.Insert(new Song());
