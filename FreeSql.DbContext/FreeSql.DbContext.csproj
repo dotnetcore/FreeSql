@@ -6,7 +6,7 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>YeXiangQin</Authors>
     <Description>FreeSql is the ORM in .NetCore, .NetFramework, And Xamarin. It supports Mysql, Postgresql, SqlServer, Oracle, Sqlite, Odbc, 达梦, And Access</Description>
-    <PackageProjectUrl>https://github.com/2881099/FreeSql.DbContext</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/2881099/FreeSql/wiki/DbContext</PackageProjectUrl>
     <PackageTags>FreeSql ORM DbContext</PackageTags>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

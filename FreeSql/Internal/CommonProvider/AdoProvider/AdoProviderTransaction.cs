@@ -16,14 +16,14 @@ namespace FreeSql.Internal.CommonProvider
         class Transaction2
         {
             internal Aop.TraceBeforeEventArgs AopBefore;
-            internal Object<DbConnection> Conn;
+            internal Object<DbConnection> Connection;
             internal DbTransaction Transaction;
             internal DateTime RunTime;
             internal TimeSpan Timeout;
 
             public Transaction2(Object<DbConnection> conn, DbTransaction tran, TimeSpan timeout)
             {
-                Conn = conn;
+                Connection = conn;
                 Transaction = tran;
                 RunTime = DateTime.Now;
                 Timeout = timeout;
@@ -31,7 +31,6 @@ namespace FreeSql.Internal.CommonProvider
         }
 
         private ConcurrentDictionary<int, Transaction2> _trans = new ConcurrentDictionary<int, Transaction2>();
-        private object _trans_lock = new object();
 
         public DbTransaction TransactionCurrentThread => _trans.TryGetValue(Thread.CurrentThread.ManagedThreadId, out var conn) && conn.Transaction?.Connection != null ? conn.Transaction : null;
         public Aop.TraceBeforeEventArgs TransactionCurrentThreadAopBefore => _trans.TryGetValue(Thread.CurrentThread.ManagedThreadId, out var conn) && conn.Transaction?.Connection != null ? conn.AopBefore : null;
@@ -61,35 +60,27 @@ namespace FreeSql.Internal.CommonProvider
                 throw ex;
             }
             if (_trans.ContainsKey(tid)) CommitTransaction();
-
-            lock (_trans_lock)
-                _trans.TryAdd(tid, tran);
+            _trans.TryAdd(tid, tran);
         }
 
         private void CommitTimeoutTransaction()
         {
             if (_trans.Count > 0)
             {
-                Transaction2[] trans = null;
-                lock (_trans_lock)
-                    trans = _trans.Values.Where(st2 => DateTime.Now.Subtract(st2.RunTime) > st2.Timeout).ToArray();
-                foreach (Transaction2 tran in trans) CommitTransaction(true, tran, null, "Timeout自动提交");
+                var trans = _trans.Values.Where(st2 => DateTime.Now.Subtract(st2.RunTime) > st2.Timeout).ToArray();
+                foreach (var tran in trans) CommitTransaction(true, tran, null, "Timeout自动提交");
             }
         }
         private void CommitTransaction(bool isCommit, Transaction2 tran, Exception rollbackException, string remark = null)
         {
             if (tran == null || tran.Transaction == null || tran.Transaction.Connection == null) return;
-
-            if (_trans.ContainsKey(tran.Conn.LastGetThreadId))
-                lock (_trans_lock)
-                    if (_trans.ContainsKey(tran.Conn.LastGetThreadId))
-                        _trans.TryRemove(tran.Conn.LastGetThreadId, out var oldtran);
+            _trans.TryRemove(tran.Connection.LastGetThreadId, out var oldtran);
 
             Exception ex = null;
             if (string.IsNullOrEmpty(remark)) remark = isCommit ? "提交" : "回滚";
             try
             {
-                Trace.WriteLine($"线程{tran.Conn.LastGetThreadId}事务{remark}");
+                Trace.WriteLine($"线程{tran.Connection.LastGetThreadId}事务{remark}");
                 if (isCommit) tran.Transaction.Commit();
                 else tran.Transaction.Rollback();
             }
@@ -100,7 +91,7 @@ namespace FreeSql.Internal.CommonProvider
             }
             finally
             {
-                ReturnConnection(MasterPool, tran.Conn, ex); //MasterPool.Return(tran.Conn, ex);
+                ReturnConnection(MasterPool, tran.Connection, ex); //MasterPool.Return(tran.Conn, ex);
 
                 var after = new Aop.TraceAfterEventArgs(tran.AopBefore, remark, ex ?? rollbackException);
                 _util?._orm?.Aop.TraceAfterHandler?.Invoke(this, after);
@@ -141,10 +132,8 @@ namespace FreeSql.Internal.CommonProvider
             if (Interlocked.Increment(ref _disposeCounter) != 1) return;
             try
             {
-                Transaction2[] trans = null;
-                lock (_trans_lock)
-                    trans = _trans.Values.ToArray();
-                foreach (Transaction2 tran in trans) CommitTransaction(false, tran, null, "Dispose自动提交");
+                var trans = _trans.Values.ToArray();
+                foreach (var tran in trans) CommitTransaction(false, tran, null, "Dispose自动提交");
             }
             catch { }
 
