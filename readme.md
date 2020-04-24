@@ -8,7 +8,7 @@ FreeSql 是功能强大的对象关系映射技术(O/RM)，支持 .NETCore 2.1+ 
 
 [![nuget](https://img.shields.io/nuget/v/FreeSql.svg?style=flat-square)](https://www.nuget.org/packages/FreeSql) [![stats](https://img.shields.io/nuget/dt/FreeSql.svg?style=flat-square)](https://www.nuget.org/stats/packages/FreeSql?groupby=Version) [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/2881099/FreeSql/master/LICENSE.txt)
 
-## ✨ Features
+## 🐮 Features
 
 - [x] 支持 CodeFirst 迁移，哪怕使用 Access 数据库也支持；
 - [x] 支持 DbFirst 从数据库导入实体类，[安装实体类生成工具](https://github.com/2881099/FreeSql/wiki/DbFirst)；
