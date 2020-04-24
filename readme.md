@@ -141,14 +141,15 @@ repo.DbContextOptions.EnableAddOrUpdateNavigateList = true;
 repo.Insert(new Tag {
   Name = "testaddsublist",
   Tags = new[] {
-      new Tag { Name = "sub1" },
-      new Tag { Name = "sub2" },
-      new Tag {
+    new Tag { Name = "sub1" },
+    new Tag { Name = "sub2" },
+    new Tag {
       Name = "sub3",
-      Tags = new[] {
+        Tags = new[] {
           new Tag { Name = "sub3_01" }
+        }
       }
-      }
+    }
   }
 });
 ```
