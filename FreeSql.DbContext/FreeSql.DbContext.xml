@@ -91,6 +91,11 @@
             使用无参数化设置（对应 IInsert/IUpdate）
             </summary>
         </member>
+        <member name="P:FreeSql.DbContextOptions.EnableGlobalFilter">
+            <summary>
+            是否开启 IFreeSql GlobalFilter 功能（默认：true）
+            </summary>
+        </member>
         <member name="P:FreeSql.DbContextOptions.OnEntityChange">
             <summary>
             实体变化事件
@@ -479,15 +484,6 @@
             创建基于仓储功能的工作单元，务必使用 using 包含使用
             </summary>
             <param name="that"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Microsoft.Extensions.DependencyInjection.FreeSqlRepositoryDependencyInjection.AddFreeRepository(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Action{FreeSql.FluentDataFilter},System.Reflection.Assembly[])">
-            <summary>
-            批量注入 Repository，可以参考代码自行调整
-            </summary>
-            <param name="services"></param>
-            <param name="globalDataFilter"></param>
-            <param name="assemblies"></param>
             <returns></returns>
         </member>
     </members>

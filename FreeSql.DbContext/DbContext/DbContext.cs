@@ -43,6 +43,8 @@ namespace FreeSql
                     if (FreeSqlDbContextExtensions._dicSetDbContextOptions.TryGetValue(OrmOriginal.Ado.Identifier, out var opt))
                     {
                         _optionsPriv.EnableAddOrUpdateNavigateList = opt.EnableAddOrUpdateNavigateList;
+                        _optionsPriv.EnableGlobalFilter = opt.EnableGlobalFilter;
+                        _optionsPriv.NoneParameter = opt.NoneParameter;
                         _optionsPriv.OnEntityChange = opt.OnEntityChange;
                     }
                 }

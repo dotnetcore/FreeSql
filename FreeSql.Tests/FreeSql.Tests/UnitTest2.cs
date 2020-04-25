@@ -301,6 +301,25 @@ namespace FreeSql.Tests
                 }
             });
 
+            var repo_dtot22 = g.sqlite.GetRepository<gf_t1>();
+
+            var dtot221 = repo_dtot22.Select.ToList(a => new gfDto
+            {
+                dto2 = new dfDto2
+                {
+                    rowstate = a.rowstate
+                }
+            });
+
+            repo_dtot22.DbContextOptions.EnableGlobalFilter = false;
+            var dtot222 = repo_dtot22.Select.ToList(a => new gfDto
+            {
+                dto2 = new dfDto2
+                {
+                    rowstate = a.rowstate
+                }
+            });
+
             //List<(Guid, DateTime)> contains2linqarr = new List<(Guid, DateTime)>();
             //Assert.Equal("SELECT 1 as1 FROM \"TestIgnoreDefaultValue\" a WHERE (1=0)", g.sqlite.Select<TestIgnoreDefaultValue>().Where(a => contains2linqarr.Contains(a.Id, a.ct1)).ToSql(a => 1).Replace("\r\n", ""));
             //g.sqlite.Select<TestIgnoreDefaultValue>().Where(a => contains2linqarr.Contains(a.Id, a.ct1)).ToList();

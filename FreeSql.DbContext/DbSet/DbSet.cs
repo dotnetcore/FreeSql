@@ -33,7 +33,9 @@ namespace FreeSql
         protected virtual ISelect<TEntity> OrmSelect(object dywhere)
         {
             DbContextFlushCommand(); //查询前先提交，否则会出脏读
-            return _db.OrmOriginal.Select<TEntity>().AsType(_entityType).WithTransaction(_uow?.GetOrBeginTransaction(false)).TrackToList(TrackToList).WhereDynamic(dywhere);
+            var select = _db.OrmOriginal.Select<TEntity>().AsType(_entityType).WithTransaction(_uow?.GetOrBeginTransaction(false)).TrackToList(TrackToList).WhereDynamic(dywhere);
+            if (_db.Options.EnableGlobalFilter == false) select.DisableGlobalFilter();
+            return select;
         }
 
         ~DbSet() => this.Dispose();
@@ -65,9 +67,15 @@ namespace FreeSql
         {
             var update = _db.OrmOriginal.Update<TEntity>().AsType(_entityType).WithTransaction(_uow?.GetOrBeginTransaction());
             if (_db.Options.NoneParameter != null) update.NoneParameter(_db.Options.NoneParameter.Value);
+            if (_db.Options.EnableGlobalFilter == false) update.DisableGlobalFilter();
             return update.SetSource(entitys);
         }
-        protected virtual IDelete<TEntity> OrmDelete(object dywhere) => _db.OrmOriginal.Delete<TEntity>().AsType(_entityType).WithTransaction(_uow?.GetOrBeginTransaction()).WhereDynamic(dywhere);
+        protected virtual IDelete<TEntity> OrmDelete(object dywhere)
+        {
+            var delete = _db.OrmOriginal.Delete<TEntity>().AsType(_entityType).WithTransaction(_uow?.GetOrBeginTransaction()).WhereDynamic(dywhere);
+            if (_db.Options.EnableGlobalFilter == false) delete.DisableGlobalFilter();
+            return delete;
+        }
 
         internal void EnqueueToDbContext(DbContext.EntityChangeType changeType, EntityState state) =>
             _db.EnqueuePreCommand(changeType, this, typeof(EntityState), _entityType, state);

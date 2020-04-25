@@ -28,6 +28,11 @@ namespace FreeSql
         public bool? NoneParameter { get; set; }
 
         /// <summary>
+        /// 是否开启 IFreeSql GlobalFilter 功能（默认：true）
+        /// </summary>
+        public bool EnableGlobalFilter { get; set; } = true;
+
+        /// <summary>
         /// 实体变化事件
         /// </summary>
         public Action<List<DbContext.EntityChangeReport.ChangeInfo>> OnEntityChange { get; set; }
