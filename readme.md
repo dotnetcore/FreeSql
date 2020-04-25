@@ -18,7 +18,7 @@ FreeSql 是功能强大的对象关系映射技术(O/RM)，支持 .NETCore 2.1+ 
 - [x] 支持 读写分离、分表分库、过滤器、乐观锁、悲观锁；
 - [x] 支持 MySql/SqlServer/PostgreSQL/Oracle/Sqlite/达梦数据库/Access；
 
-## 📖 Documentation
+## 📚 Documentation
 
 | | |
 | - | - |
@@ -83,22 +83,18 @@ class Tag {
 }
 ```
 
-## 🔍 Query
+## 👀 Query
 ```csharp
 //OneToOne、ManyToOne
-fsql.Select<Tag>()
-  .Where(a => a.Parent.Parent.Name == "粤语")
-  .ToList();
+fsql.Select<Tag>().Where(a => a.Parent.Parent.Name == "粤语").ToList();
 
 //OneToMany
-fsql.Select<Tag>()
-  .IncludeMany(a => a.Tags, then => then.Where(sub => sub.Name == "xxx"))
-  .ToList();
+fsql.Select<Tag>().IncludeMany(a => a.Tags, then => then.Where(sub => sub.Name == "xxx")).ToList();
 
 //ManyToMany
 fsql.Select<Song>()
-  .Where(s => s.Tags.AsSelect().Any(t => t.Name == "国语"))
   .IncludeMany(a => a.Tags, then => then.Where(sub => sub.Name == "xxx"))
+  .Where(s => s.Tags.AsSelect().Any(t => t.Name == "国语"))
   .ToList();
 
 //Other
@@ -115,18 +111,11 @@ fsql.Select<Xxx>()
 [More..](https://github.com/2881099/FreeSql/wiki/%e6%9f%a5%e8%af%a2)
 
 ```csharp
-fsql.Select<Song>()
-  .Where(a => new[] { 1, 2, 3 }.Contains(a.Id))
-  .ToList();
+fsql.Select<Song>().Where(a => new[] { 1, 2, 3 }.Contains(a.Id)).ToList();
 
-fsql.Select<Song>()
-  .Where(a => a.CreateTime.Date == DateTime.Today)
-  .ToList();
+fsql.Select<Song>().Where(a => a.CreateTime.Date == DateTime.Today).ToList();
 
-fsql.Select<Song>()
-  .OrderBy(a => Guid.NewGuid())
-  .Limit(10)
-  .ToList();
+fsql.Select<Song>().OrderBy(a => Guid.NewGuid()).Limit(10).ToList();
 ```
 [More..](https://github.com/2881099/FreeSql/wiki/%e8%a1%a8%e8%be%be%e5%bc%8f%e5%87%bd%e6%95%b0) 
 
