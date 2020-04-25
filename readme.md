@@ -83,7 +83,7 @@ class Tag {
 }
 ```
 
-## 👀 Query
+## 🔎 Query
 ```csharp
 //OneToOne、ManyToOne
 fsql.Select<Tag>().Where(a => a.Parent.Parent.Name == "粤语").ToList();
@@ -119,7 +119,7 @@ fsql.Select<Song>().OrderBy(a => Guid.NewGuid()).Limit(10).ToList();
 ```
 [More..](https://github.com/2881099/FreeSql/wiki/%e8%a1%a8%e8%be%be%e5%bc%8f%e5%87%bd%e6%95%b0) 
 
-## 📦 Repository
+## 🚁 Repository
 
 > dotnet add package FreeSql.Repository
 
