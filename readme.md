@@ -124,24 +124,26 @@ fsql.Select<Song>().OrderBy(a => Guid.NewGuid()).Limit(10).ToList();
 > dotnet add package FreeSql.Repository
 
 ```csharp
-var repo = uow.GetRepository<Tag>();
-repo.DbContextOptions.EnableAddOrUpdateNavigateList = true;
+[Transactional]
+public void Add()
+{
+  var repo = ioc.GetService<BaseRepository<Tag>>();
+  repo.DbContextOptions.EnableAddOrUpdateNavigateList = true;
 
-repo.Insert(new Tag {
-  Name = "testaddsublist",
-  Tags = new[] {
-    new Tag { Name = "sub1" },
-    new Tag { Name = "sub2" },
-    new Tag {
-      Name = "sub3",
-        Tags = new[] {
-          new Tag { Name = "sub3_01" }
-        }
-      }
+  var item = new Tag
+  {
+    Name = "testaddsublist",
+    Tags = new[]
+    {
+      new Tag { Name = "sub1" },
+      new Tag { Name = "sub2" }
     }
-  }
-});
+  };
+  repo.Insert(item);
+}
 ```
+
+参考：[在 asp.net core 中使用 TransactionalAttribute + UnitOfWorkManager 实现多种事务传播](https://github.com/dotnetcore/FreeSql/issues/289)
 
 ## 💪 Performance
 
