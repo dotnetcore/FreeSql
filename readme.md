@@ -27,14 +27,14 @@ FreeSql 是功能强大的对象关系映射技术(O/RM)，支持 .NETCore 2.1+ 
 | <img src="https://images.cnblogs.com/cnblogs_com/FreeSql/1656841/o_200424151835freesql_doc3.png" width="30" height="46"/> | [《Repository》](https://github.com/2881099/FreeSql/wiki/Repository) \| [《UnitOfWork》](https://github.com/2881099/FreeSql/wiki/%e5%b7%a5%e4%bd%9c%e5%8d%95%e5%85%83) \| [《AOP》](https://github.com/2881099/FreeSql/wiki/AOP) \| [《DbContext》](https://github.com/2881099/FreeSql/wiki/DbContext) |
 | <img src="https://images.cnblogs.com/cnblogs_com/FreeSql/1656841/o_200424151840freesql_doc4.png" width="30" height="46"/> | [《读写分离》](https://github.com/2881099/FreeSql/wiki/%e8%af%bb%e5%86%99%e5%88%86%e7%a6%bb) \| [《分区分表》](https://github.com/2881099/FreeSql/wiki/%e5%88%86%e5%8c%ba%e5%88%86%e8%a1%a8) \| [《黑科技》](https://github.com/2881099/FreeSql/wiki/%E9%AA%9A%E6%93%8D%E4%BD%9C) \| [《常见问题》](https://github.com/dotnetcore/FreeSql/wiki/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98)  \| [*更新日志*](https://github.com/2881099/FreeSql/wiki/%e6%9b%b4%e6%96%b0%e6%97%a5%e5%bf%97) |
 
-> 💿 FreeSql 提供多种使用习惯，请根据实际情况选择团队合适的一种：
+> FreeSql 提供多种使用习惯，请根据实际情况选择团队合适的一种：
 
 - 要么FreeSql，原始用法；
 - 要么[FreeSql.Repository](https://github.com/2881099/FreeSql/wiki/Repository)，仓储+工作单元习惯；
 - 要么[FreeSql.DbContext](https://github.com/2881099/FreeSql/wiki/DbContext)，有点像efcore的使用习惯；
 - 要么[FreeSql.BaseEntity](https://github.com/2881099/FreeSql/tree/master/Examples/base_entity)，求简单使用这个；
 
-> 💿 学习项目
+> 学习项目
 
 - [zhontai.net Admin 后台管理系统](https://github.com/zhontai/Admin.Core)
 - [A simple and practical CMS implememted by .NET Core 2.2](https://github.com/luoyunchong/lin-cms-dotnetcore)
@@ -190,7 +190,7 @@ Elapsed: 00:00:00.6495301; Query Entity Counts: 131072; ORM: Dapper
 
 ## 💕 Donation
 
-L*y 58元、花花 88元、麦兜很乖 50元、网络来者 2000元、John 99.99元、alex 666元、bacongao 36元、无名 100元、Eternity 188元、无名 10元、⌒.Helper~..oO 66元、习惯与被习惯 100元、无名 100元
+L*y 58元、花花 88元、麦兜很乖 50元、网络来者 2000元、John 99.99元、alex 666元、bacongao 36元、无名 100元、Eternity 188元、无名 10元、⌒.Helper~..oO 66元、习惯与被习惯 100元、无名 100元、蔡易喋 88元
 
 > Thank you for your donation
 
