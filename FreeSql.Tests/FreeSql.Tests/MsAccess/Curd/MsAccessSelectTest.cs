@@ -1087,17 +1087,20 @@ WHERE (((cstr(a.[Id])) in (SELECT b.[Title]
             var t00 = g.msaccess.Select<TestInclude_OneToManyModel2>()
                 .IncludeMany(a => a.childs.Take(1).Where(m3 => m3.model2111Idaaa == a.model2id))
                 .Where(a => a.model2id <= model1.id)
+                .Limit(10)
                 .ToList();
 
             var t11 = g.msaccess.Select<TestInclude_OneToManyModel1>()
                 .IncludeMany(a => a.model2.childs.Take(1).Where(m3 => m3.model2111Idaaa == a.model2.model2id))
                 .Where(a => a.id <= model1.id)
+                .Limit(10)
                 .ToList();
 
             var t22 = g.msaccess.Select<TestInclude_OneToManyModel1>()
                 .IncludeMany(a => a.model2.childs.Take(1).Where(m3 => m3.model2111Idaaa == a.model2.model2id),
                     then => then.IncludeMany(m3 => m3.childs2.Take(2).Where(m4 => m4.model3333Id333 == m3.id)))
                 .Where(a => a.id <= model1.id)
+                .Limit(10)
                 .ToList();
         }
 
@@ -1148,12 +1151,14 @@ WHERE (((cstr(a.[Id])) in (SELECT b.[Title]
                 .LeftJoin(a => a.model2id == a.model2.id)
                 .IncludeMany(a => a.model2.childs.Where(m3 => m3.model2Id == a.model2.id && m3.setting == a.m3setting))
                 .Where(a => a.id <= model1.id)
+                .Limit(10)
                 .ToList(true);
 
             var t11 = g.msaccess.Select<TestInclude_OneToManyModel11>()
                 .LeftJoin(a => a.model2id == a.model2.id)
                 .IncludeMany(a => a.model2.childs.Take(1).Where(m3 => m3.model2Id == a.model2.id && m3.setting == a.m3setting))
                 .Where(a => a.id <= model1.id)
+                .Limit(10)
                 .ToList(true);
         }
 

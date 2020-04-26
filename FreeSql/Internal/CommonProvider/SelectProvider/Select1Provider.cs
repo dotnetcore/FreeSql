@@ -528,14 +528,22 @@ namespace FreeSql.Internal.CommonProvider
                 var getListValue1 = membersExpNotNull == null ?
                     Expression.Lambda<Func<T1, string, object>>(
                         Expression.Block(
-                            Expression.Return(returnTarget, Expression.Call(null, GetEntityValueWithPropertyNameMethod, Expression.Constant(_orm), Expression.Constant(membersExp.Type), membersExp, propertyNameExp)),
+                            Expression.IfThenElse(
+                                Expression.Equal(propertyNameExp, Expression.Constant("")), //propertyName == "" 返回自身
+                                Expression.Return(returnTarget, membersExp),
+                                Expression.Return(returnTarget, Expression.Call(null, GetEntityValueWithPropertyNameMethod, Expression.Constant(_orm), Expression.Constant(membersExp.Type), membersExp, propertyNameExp))
+                            ),
                             Expression.Label(returnTarget, Expression.Default(typeof(object)))
                         ), t1parm, propertyNameExp).Compile() :
                     Expression.Lambda<Func<T1, string, object>>(
                         Expression.Block(
                             Expression.IfThen(
                                 membersExpNotNull,
-                                Expression.Return(returnTarget, Expression.Call(null, GetEntityValueWithPropertyNameMethod, Expression.Constant(_orm), Expression.Constant(membersExp.Type), membersExp, propertyNameExp))
+                                Expression.IfThenElse(
+                                    Expression.Equal(propertyNameExp, Expression.Constant("")),
+                                    Expression.Return(returnTarget, membersExp),
+                                    Expression.Return(returnTarget, Expression.Call(null, GetEntityValueWithPropertyNameMethod, Expression.Constant(_orm), Expression.Constant(membersExp.Type), membersExp, propertyNameExp))
+                                )
                             ),
                             Expression.Label(returnTarget, Expression.Default(typeof(object)))
                         ), t1parm, propertyNameExp).Compile();
@@ -656,7 +664,7 @@ namespace FreeSql.Internal.CommonProvider
                         //将子集合的，多对一，对象设置为当前对象
                         foreach (var parentNav in parentNavs)
                             foreach (var t1item in t1items)
-                                _orm.SetEntityValueWithPropertyName(tbref.RefMiddleEntityType, nav, parentNav, t1item.Item1);
+                                _orm.SetEntityValueWithPropertyName(tbref.RefEntityType, nav, parentNav, getListValue1(t1item.Item1, "")); //propertyName == "" 返回自身
                     }
                     foreach (var t1items in dicList.Values)
                         foreach (var t1item in t1items)
@@ -992,9 +1000,14 @@ namespace FreeSql.Internal.CommonProvider
                 }
             };
 
-            _includeToList.Add(listObj => includeToListSyncOrAsync(listObj, false));
 #if net40
+            _includeToList.Add(listObj => includeToListSyncOrAsync(listObj, false));
 #else
+            _includeToList.Add(listObj =>
+            {
+                var task = includeToListSyncOrAsync(listObj, false);
+                if (task.Exception != null) throw task.Exception.InnerException ?? task.Exception;
+            });
             _includeToListAsync.Add(listObj => includeToListSyncOrAsync(listObj, true));
 #endif
             return this;
