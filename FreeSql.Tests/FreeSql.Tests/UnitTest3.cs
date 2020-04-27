@@ -135,9 +135,35 @@ namespace FreeSql.Tests
             [Column(Name = "EDII_EDI_ID")] public long EdiId { get; set; }
         }
 
+        public class Song123
+        {
+            public long Id { get; set; }
+            protected Song123() { }
+            public Song123(long id) => Id = id;
+        }
+        public class Author123
+        {
+            public long Id { get; set; }
+            public long SongId { get; set; }
+            public Author123(long id, long songId)
+            {
+                Id = id;
+                SongId = songId;
+            }
+        }
+
         [Fact]
         public void Test03()
         {
+            g.sqlite.Delete<Song123>().Where("1=1").ExecuteAffrows();
+            g.sqlite.Delete<Author123>().Where("1=1").ExecuteAffrows();
+            g.sqlite.Insert(new Song123(1)).ExecuteAffrows();
+            g.sqlite.Insert(new Author123(11, 1)).ExecuteAffrows();
+            var song = g.sqlite.Select<Song123>()
+                .From<Author123>((a, b) => a.InnerJoin(a1 => a1.Id == b.SongId))
+                .First((a, b) => a); // throw error
+            Console.WriteLine(song == null);
+
             g.sqlite.Select<Edi>().ToList();
 
             var itemId2 = 2;
