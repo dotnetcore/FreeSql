@@ -429,6 +429,7 @@ namespace FreeSql.Tests
             repo.DbContextOptions.EnableAddOrUpdateNavigateList = true; //打开级联保存功能
             repo.Insert(cts);
 
+            var notreelist1 = repo.Select.ToList();
             var treelist1 = repo.Select.ToTreeList();
 
             //repo.SaveMany(cts[0], "Childs"); //指定保存 Childs 一对多属性
