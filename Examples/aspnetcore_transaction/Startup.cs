@@ -28,6 +28,9 @@ namespace aspnetcore_transaction
                  .UseMonitorCommand(cmd => Trace.WriteLine(cmd.CommandText))
                  .UseNoneCommandParameter(true)
                  .Build();
+
+            Fsql.Aop.TraceBefore += (_, e) => Trace.WriteLine($"----TraceBefore---{e.Identifier} {e.Operation}");
+            Fsql.Aop.TraceAfter += (_, e) => Trace.WriteLine($"----TraceAfter---{e.Identifier} {e.Operation} {e.Remark} {e.Exception?.Message} {e.ElapsedMilliseconds}ms\r\n");
         }
 
         public IConfiguration Configuration { get; }
