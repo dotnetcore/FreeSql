@@ -4,6 +4,7 @@ using FreeSql.Internal.Model;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
+using System.Globalization;
 
 namespace FreeSql.Dameng
 {
@@ -95,6 +96,7 @@ namespace FreeSql.Dameng
         public override string GetNoneParamaterSqlValue(List<DbParameter> specialParams, Type type, object value)
         {
             if (value == null) return "NULL";
+            if (type.IsNumberType()) return string.Format(CultureInfo.InvariantCulture, "{0}", value);
             if (type == typeof(byte[])) return $"hextoraw('{CommonUtils.BytesSqlRaw(value as byte[])}')";
             return FormatSql("{0}", value, 1);
         }

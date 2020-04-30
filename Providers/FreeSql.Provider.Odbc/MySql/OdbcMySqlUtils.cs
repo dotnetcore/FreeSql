@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Data.Odbc;
+using System.Globalization;
 
 namespace FreeSql.Odbc.MySql
 {
@@ -95,6 +96,7 @@ namespace FreeSql.Odbc.MySql
         public override string GetNoneParamaterSqlValue(List<DbParameter> specialParams, Type type, object value)
         {
             if (value == null) return "NULL";
+            if (type.IsNumberType()) return string.Format(CultureInfo.InvariantCulture, "{0}", value);
             if (type == typeof(byte[])) return $"0x{CommonUtils.BytesSqlRaw(value as byte[])}";
             if (type == typeof(TimeSpan) || type == typeof(TimeSpan?))
             {

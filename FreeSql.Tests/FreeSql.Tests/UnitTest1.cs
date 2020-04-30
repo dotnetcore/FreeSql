@@ -675,6 +675,12 @@ namespace FreeSql.Tests
                     subquery = g.sqlite.Select<ZX.Model.CustomerCheckupGroup>().Where(b => b.Id == a.Id).First(b => b.Group)
                 });
 
+            var sklgjlskdg12 = g.sqlite.Select<ZX.Model.CustomerMember>()
+                .Where(a => g.sqlite.Select<ZX.Model.CustomerCheckupGroup>().Any(b => b.MemberId == a.MemberId))
+                .ToUpdate()
+                .Set(a => a.Phone, "123123")
+                .ToSql();
+
             var sklgjlskdg = g.sqlite.Select<ZX.Model.CustomerMember>()
                 .Where(a => a.CheckupGroups.AsSelect().Any())
                 .ToSql();

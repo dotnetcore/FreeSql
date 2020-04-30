@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Data.SQLite;
+using System.Globalization;
 
 namespace FreeSql.Sqlite
 {
@@ -100,6 +101,7 @@ namespace FreeSql.Sqlite
         public override string GetNoneParamaterSqlValue(List<DbParameter> specialParams, Type type, object value)
         {
             if (value == null) return "NULL";
+            if (type.IsNumberType()) return string.Format(CultureInfo.InvariantCulture, "{0}", value);
             return FormatSql("{0}", value, 1);
         }
     }
