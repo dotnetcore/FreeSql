@@ -72,9 +72,9 @@ namespace FreeSql
         }
         public IUpdate<TEntity> UpdateDiy => _dbset.OrmUpdateInternal(null);
 
-        public ISelect<TEntity> Select => _dbset.OrmSelectInternal(null);
-        public ISelect<TEntity> Where(Expression<Func<TEntity, bool>> exp) => _dbset.OrmSelectInternal(null).Where(exp);
-        public ISelect<TEntity> WhereIf(bool condition, Expression<Func<TEntity, bool>> exp) => _dbset.OrmSelectInternal(null).WhereIf(condition, exp);
+        public virtual ISelect<TEntity> Select => _dbset.OrmSelectInternal(null);
+        public ISelect<TEntity> Where(Expression<Func<TEntity, bool>> exp) => Select.Where(exp);
+        public ISelect<TEntity> WhereIf(bool condition, Expression<Func<TEntity, bool>> exp) => Select.WhereIf(condition, exp);
 
         public virtual int Delete(Expression<Func<TEntity, bool>> predicate)
         {
@@ -160,7 +160,7 @@ namespace FreeSql
         }
 
         public virtual int Delete(TKey id) => Delete(CheckTKeyAndReturnIdEntity(id));
-        public virtual TEntity Find(TKey id) => _dbset.OrmSelectInternal(CheckTKeyAndReturnIdEntity(id)).ToOne();
+        public virtual TEntity Find(TKey id) => Select.WhereDynamic(CheckTKeyAndReturnIdEntity(id)).ToOne();
         public TEntity Get(TKey id) => Find(id);
     }
 }
