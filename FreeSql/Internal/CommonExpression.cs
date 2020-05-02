@@ -1438,7 +1438,8 @@ namespace FreeSql.Internal
         {
             if (_whereCascadeExpression.Any())
             {
-                var newParameter = Expression.Parameter(tb.Table.Type, "c");
+                var newParameter = Expression.Parameter(tb.Table.Type, tb.Alias);
+                tb.Parameter = newParameter;
                 var sb = new StringBuilder();
                 var isEmpty = true;
 
@@ -1452,10 +1453,10 @@ namespace FreeSql.Internal
                     {
                         var expExp = Expression.Lambda(
                             typeof(Func<,>).MakeGenericType(tb.Table.Type, typeof(bool)),
-                            new ReplaceVisitor().Modify(fl.Body, newParameter),
+                            new ReplaceVisitor().Modify(fl, newParameter),
                             newParameter
                         );
-                        var whereSql = ExpressionLambdaToSql(expExp.Body, new ExpTSC { _tables = null, _selectColumnMap = null, getSelectGroupingMapString = null, tbtype = SelectTableInfoType.From, isQuoteName = true, isDisableDiyParse = false, style = ExpressionStyle.Where, currentTable = tb.Table, alias001 = tb.Alias });
+                        var whereSql = ExpressionLambdaToSql(expExp.Body, new ExpTSC { _tables = new List<SelectTableInfo>(new[] { tb }), _selectColumnMap = null, getSelectGroupingMapString = null, tbtype = SelectTableInfoType.From, isQuoteName = true, isDisableDiyParse = false, style = ExpressionStyle.Where, currentTable = tb.Table, alias001 = tb.Alias });
                         whereSql = GetBoolString(expExp.Body, whereSql);
                         if (isEmpty == false)
                             sb.Append(" AND ");
@@ -1478,14 +1479,16 @@ namespace FreeSql.Internal
         internal class ReplaceVisitor : ExpressionVisitor
         {
             private ParameterExpression parameter;
-            public Expression Modify(Expression expression, ParameterExpression parameter)
+            private ParameterExpression oldParameter;
+            public Expression Modify(LambdaExpression lambda, ParameterExpression parameter)
             {
                 this.parameter = parameter;
-                return Visit(expression);
+                this.oldParameter = lambda.Parameters.FirstOrDefault();
+                return Visit(lambda.Body);
             }
             protected override Expression VisitMember(MemberExpression node)
             {
-                if (node.Expression?.NodeType == ExpressionType.Parameter)
+                if (node.Expression?.NodeType == ExpressionType.Parameter && node.Expression == oldParameter)
                     return Expression.Property(parameter, node.Member.Name);
                 return base.VisitMember(node);
             }

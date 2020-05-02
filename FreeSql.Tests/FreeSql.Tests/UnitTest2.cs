@@ -279,7 +279,7 @@ namespace FreeSql.Tests
             kwrepo.Insert(u1);
 
 
-            g.sqlite.GlobalFilter.Apply<gf_t1>("gft1", a => a.rowstate > -1)
+            g.sqlite.GlobalFilter.Apply<gf_t1>("gft1", a => a.rowstate > -1 && g.sqlite.Select<gf_t2>().Any(b => b.id == a.id))
                 .Apply<gf_t2>("gft2", a => a.rowstate > -2)
                 .Apply<gf_t3>("gft3", a => a.rowstate > -3);
 
