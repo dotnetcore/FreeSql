@@ -2,9 +2,9 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net451;net45;net40</TargetFrameworks>
-		<Version>1.4.0</Version>
+		<Version>1.5.0-preview0502</Version>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-		<Authors>YeXiangQin</Authors>
+		<Authors>ncc;YeXiangQin</Authors>
 		<Description>FreeSql 数据库实现，基于 SqlServer 2005+，并根据版本适配分页方法：row_number 或 offset fetch next</Description>
 		<PackageProjectUrl>https://github.com/2881099/FreeSql</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/2881099/FreeSql</RepositoryUrl>
