@@ -193,9 +193,25 @@ namespace FreeSql.Internal
                 //}
                 if (colattr.ServerTime != DateTimeKind.Unspecified && new[] { typeof(DateTime), typeof(DateTimeOffset) }.Contains(colattr.MapType.NullableTypeOrThis()))
                 {
-                    col.DbDefaultValue = colattr.ServerTime == DateTimeKind.Local ? common.Now : common.NowUtc;
-                    col.DbInsertValue = colattr.ServerTime == DateTimeKind.Local ? common.Now : common.NowUtc;
-                    col.DbUpdateValue = colattr.ServerTime == DateTimeKind.Local ? common.Now : common.NowUtc;
+                    var commonNow = common.Now;
+                    var commonNowUtc = common.NowUtc;
+                    switch (common._orm.Ado.DataType)
+                    {
+                        case DataType.MySql:
+                        case DataType.OdbcMySql: //处理毫秒
+                            var timeLength = 0;
+                            var mTimeLength = Regex.Match(colattr.DbType, @"(DATETIME|TIMESTAMP)\s*\((\d+)\)");
+                            if (mTimeLength.Success) timeLength = int.Parse(mTimeLength.Groups[2].Value);
+                            if (timeLength > 0 && timeLength < 7)
+                            {
+                                commonNow = $"{commonNow.TrimEnd('(', ')')}({timeLength})";
+                                commonNowUtc = $"{commonNowUtc.TrimEnd('(', ')')}({timeLength})";
+                            }
+                            break;
+                    }
+                    col.DbDefaultValue = colattr.ServerTime == DateTimeKind.Local ? commonNow : commonNowUtc;
+                    col.DbInsertValue = colattr.ServerTime == DateTimeKind.Local ? commonNow : commonNowUtc;
+                    col.DbUpdateValue = colattr.ServerTime == DateTimeKind.Local ? commonNow : commonNowUtc;
                 }
                 if (string.IsNullOrEmpty(colattr.InsertValueSql) == false)
                 {
