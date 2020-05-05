@@ -1122,7 +1122,7 @@ namespace FreeSql.Internal.CommonProvider
 
         protected DataTable InternalToDataTable(Expression select)
         {
-            var sql = this.InternalToSql<int>(select);
+            var sql = this.InternalToSql<int>(select, FieldAliasOptions.AsProperty); //DataTable 使用 AsProperty
             var dbParms = _params.ToArray();
             var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
             _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
@@ -1402,7 +1402,7 @@ namespace FreeSql.Internal.CommonProvider
 
         async protected Task<DataTable> InternalToDataTableAsync(Expression select)
         {
-            var sql = this.InternalToSql<int>(select);
+            var sql = this.InternalToSql<int>(select, FieldAliasOptions.AsProperty); //DataTable 使用 AsProperty
             var dbParms = _params.ToArray();
             var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
             _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
