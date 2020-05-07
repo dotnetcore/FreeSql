@@ -1,4 +1,6 @@
 using FreeSql.DataAnnotations;
+using FreeSql.Internal.Model;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -1930,6 +1932,106 @@ WHERE (((cast(a.""Id"" as character)) in (SELECT b.""Title""
 
             [Navigate(nameof(ParentCode))]
             public VM_District_Parent Parent { get; set; }
+        }
+
+        [Fact]
+        public void WhereDynamicFilter()
+        {
+            var fsql = g.sqlite;
+            var sql = fsql.Select<VM_District_Parent>().WhereDynamicFilter(JsonConvert.DeserializeObject<DynamicFilterInfo>(@"
+{
+  ""Logic"" : ""Or"",
+  ""Filters"" :
+  [
+    {
+      ""Field"" : ""Code"",
+      ""Operator"" : ""Contains"",
+      ""Value"" : ""val1"",
+      ""Filters"" :
+      [
+        {
+          ""Field"" : ""Name"",
+          ""Operator"" : ""StartsWith"",
+          ""Value"" : ""val2"",
+        }
+      ]
+    },
+    {
+      ""Field"" : ""Name"",
+      ""Operator"" : ""EndsWith"",
+      ""Value"" : ""val3""
+    },
+    {
+      ""Field"" : ""ParentCode"",
+      ""Operator"" : ""Equals"",
+      ""Value"" : ""val4""
+    }
+  ]
+}
+")).ToSql();
+            Assert.Equal(@"SELECT a.""Code"", a.""Name"", a.""ParentCode"" 
+FROM ""D_District"" a 
+WHERE (((a.""Code"") LIKE '%val1%' AND (a.""Name"") LIKE 'val2%' OR (a.""Name"") LIKE '%val3' OR a.""ParentCode"" = 'val4'))", sql);
+
+            sql = fsql.Select<VM_District_Parent>().WhereDynamicFilter(JsonConvert.DeserializeObject<DynamicFilterInfo>(@"
+{
+  ""Logic"" : ""Or"",
+  ""Filters"" :
+  [
+    {
+      ""Field"" : ""Code"",
+      ""Operator"" : ""NotContains"",
+      ""Value"" : ""val1"",
+      ""Filters"" :
+      [
+        {
+          ""Field"" : ""Name"",
+          ""Operator"" : ""NotStartsWith"",
+          ""Value"" : ""val2"",
+        }
+      ]
+    },
+    {
+      ""Field"" : ""Name"",
+      ""Operator"" : ""NotEndsWith"",
+      ""Value"" : ""val3""
+    },
+    {
+      ""Field"" : ""ParentCode"",
+      ""Operator"" : ""NotEqual"",
+      ""Value"" : ""val4""
+    },
+
+    {
+      ""Field"" : ""Parent.Code"",
+      ""Operator"" : ""eq"",
+      ""Value"" : ""val11"",
+      ""Filters"" :
+      [
+        {
+          ""Field"" : ""Parent.Name"",
+          ""Operator"" : ""contains"",
+          ""Value"" : ""val22"",
+        }
+      ]
+    },
+    {
+      ""Field"" : ""Parent.Name"",
+      ""Operator"" : ""eq"",
+      ""Value"" : ""val33""
+    },
+    {
+      ""Field"" : ""Parent.ParentCode"",
+      ""Operator"" : ""eq"",
+      ""Value"" : ""val44""
+    }
+  ]
+}
+")).ToSql();
+            Assert.Equal(@"SELECT a.""Code"", a.""Name"", a.""ParentCode"", a__Parent.""Code"" as4, a__Parent.""Name"" as5, a__Parent.""ParentCode"" as6 
+FROM ""D_District"" a 
+LEFT JOIN ""D_District"" a__Parent ON a__Parent.""Code"" = a.""ParentCode"" 
+WHERE ((not((a.""Code"") LIKE '%val1%') AND not((a.""Name"") LIKE 'val2%') OR not((a.""Name"") LIKE '%val3') OR a.""ParentCode"" <> 'val4' OR a__Parent.""Code"" = 'val11' AND (a__Parent.""Name"") LIKE '%val22%' OR a__Parent.""Name"" = 'val33' OR a__Parent.""ParentCode"" = 'val44'))", sql);
         }
     }
 }

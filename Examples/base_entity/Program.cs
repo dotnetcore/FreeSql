@@ -1,6 +1,7 @@
 ﻿using FreeSql;
 using FreeSql.DataAnnotations;
 using FreeSql.Extensions;
+using FreeSql.Internal.Model;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -86,6 +87,43 @@ namespace base_entity
             new Products { title = "product-3" }.Save();
             new Products { title = "product-4" }.Save();
             new Products { title = "product-5" }.Save();
+
+            Products.Select.WhereDynamicFilter(JsonConvert.DeserializeObject<DynamicFilterInfo>(@"
+{
+  ""Logic"" : ""Or"",
+  ""Filters"" :
+  [
+    {
+      ""Field"" : ""title"",
+      ""Operator"" : ""eq"",
+      ""Value"" : ""product-1"",
+      ""Filters"" :
+      [
+        {
+          ""Field"" : ""title"",
+          ""Operator"" : ""contains"",
+          ""Value"" : ""product-1111"",
+        }
+      ]
+    },
+    {
+      ""Field"" : ""title"",
+      ""Operator"" : ""eq"",
+      ""Value"" : ""product-2""
+    },
+    {
+      ""Field"" : ""title"",
+      ""Operator"" : ""eq"",
+      ""Value"" : ""product-3""
+    },
+    {
+      ""Field"" : ""title"",
+      ""Operator"" : ""eq"",
+      ""Value"" : ""product-4""
+    },
+  ]
+}
+")).ToList();
 
             var items1 = Products.Select.Limit(10).OrderByDescending(a => a.CreateTime).ToList();
             var items2 = fsql.Select<Products>().Limit(10).OrderByDescending(a => a.CreateTime).ToList();

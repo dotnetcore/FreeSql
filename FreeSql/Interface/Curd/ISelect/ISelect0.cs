@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FreeSql.Internal.Model;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -260,6 +261,13 @@ namespace FreeSql
         /// <param name="parms">参数</param>
         /// <returns></returns>
         TSelect WhereIf(bool condition, string sql, object parms = null);
+
+        /// <summary>
+        /// 动态过滤条件
+        /// </summary>
+        /// <param name="filter"></param>
+        /// <returns></returns>
+        TSelect WhereDynamicFilter(DynamicFilterInfo filter);
 
         /// <summary>
         /// 禁用全局过滤功能，不传参数时将禁用所有

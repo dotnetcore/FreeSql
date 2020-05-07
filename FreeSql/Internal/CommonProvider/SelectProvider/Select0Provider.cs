@@ -1025,6 +1025,111 @@ namespace FreeSql.Internal.CommonProvider
             if (parms != null) _params.AddRange(_commonUtils.GetDbParamtersByObject(sql, parms));
             return this as TSelect;
         }
+
+        static MethodInfo MethodStringContains = typeof(string).GetMethod("Contains", new[] { typeof(string) });
+        static MethodInfo MethodStringStartsWith = typeof(string).GetMethod("StartsWith", new[] { typeof(string) });
+        static MethodInfo MethodStringEndsWith = typeof(string).GetMethod("EndsWith", new[] { typeof(string) });
+        public TSelect WhereDynamicFilter(DynamicFilterInfo filter)
+        {
+            if (filter == null) return this as TSelect;
+            var sb = new StringBuilder();
+            ParseFilter(DynamicFilterLogic.And, filter, true);
+            this.Where(sb.ToString());
+            sb.Clear();
+            return this as TSelect;
+
+            void ParseFilter(DynamicFilterLogic logic, DynamicFilterInfo fi, bool isend)
+            {
+                if (string.IsNullOrEmpty(fi.Field) == false)
+                {
+                    var field = fi.Field.Split('.').Select(a => a.Trim()).ToArray();
+                    Expression exp = null;
+
+                    if (field.Length == 1)
+                    {
+                        foreach (var tb in _tables)
+                        {
+                            if (tb.Table.ColumnsByCs.TryGetValue(field[0], out var col) &&
+                                tb.Table.Properties.TryGetValue(field[0], out var prop))
+                            {
+                                tb.Parameter = Expression.Parameter(tb.Table.Type, tb.Alias);
+                                exp = Expression.MakeMemberAccess(tb.Parameter, prop);
+                                break;
+                            }
+                        }
+                        if (exp == null) throw new Exception($"无法匹配 {fi.Field}");
+                    }
+                    else
+                    {
+                        var firstTb = _tables[0];
+                        var firstTbs = _tables.Where(a => a.AliasInit == field[0]).ToArray();
+                        if (firstTbs.Length == 1)
+                        {
+                            firstTb = firstTbs[0];
+                        }
+
+                        firstTb.Parameter = Expression.Parameter(firstTb.Table.Type, firstTb.Alias);
+                        var currentType = firstTb.Table.Type;
+                        Expression currentExp = firstTb.Parameter;
+
+                        for (var x = 0; x < field.Length; x++)
+                        {
+                            var tmp1 = field[x];
+                            if (_commonUtils.GetTableByEntity(currentType).Properties.TryGetValue(tmp1, out var prop) == false)
+                                throw new ArgumentException($"{currentType.DisplayCsharp()} 无法找到属性名 {tmp1}");
+                            currentType = prop.PropertyType;
+                            currentExp = Expression.MakeMemberAccess(currentExp, prop);
+                        }
+                        exp = currentExp;
+                    }
+
+                    switch (fi.Operator)
+                    {
+                        case DynamicFilterOperator.Contains: exp = Expression.Call(exp, MethodStringContains, Expression.Constant(fi.Value)); break;
+                        case DynamicFilterOperator.StartsWith: exp = Expression.Call(exp, MethodStringStartsWith, Expression.Constant(fi.Value)); break;
+                        case DynamicFilterOperator.EndsWith: exp = Expression.Call(exp, MethodStringEndsWith, Expression.Constant(fi.Value)); break;
+                        case DynamicFilterOperator.NotContains: exp = Expression.Not(Expression.Call(exp, MethodStringContains, Expression.Constant(fi.Value))); break;
+                        case DynamicFilterOperator.NotStartsWith: exp = Expression.Not(Expression.Call(exp, MethodStringStartsWith, Expression.Constant(fi.Value))); break;
+                        case DynamicFilterOperator.NotEndsWith: exp = Expression.Not(Expression.Call(exp, MethodStringEndsWith, Expression.Constant(fi.Value))); break;
+
+                        case DynamicFilterOperator.Equals:
+                        case DynamicFilterOperator.Eq: exp = Expression.Equal(exp, Expression.Constant(Utils.GetDataReaderValue(exp.Type, fi.Value), exp.Type)); break;
+                        case DynamicFilterOperator.NotEqual: exp = Expression.NotEqual(exp, Expression.Constant(Utils.GetDataReaderValue(exp.Type, fi.Value), exp.Type)); break;
+
+                        case DynamicFilterOperator.GreaterThan: exp = Expression.GreaterThan(exp, Expression.Constant(Utils.GetDataReaderValue(exp.Type, fi.Value), exp.Type)); break;
+                        case DynamicFilterOperator.GreaterThanOrEqual: exp = Expression.GreaterThanOrEqual(exp, Expression.Constant(Utils.GetDataReaderValue(exp.Type, fi.Value), exp.Type)); break;
+                        case DynamicFilterOperator.LessThan: exp = Expression.LessThan(exp, Expression.Constant(Utils.GetDataReaderValue(exp.Type, fi.Value), exp.Type)); break;
+                        case DynamicFilterOperator.LessThanOrEqual: exp = Expression.LessThanOrEqual(exp, Expression.Constant(Utils.GetDataReaderValue(exp.Type, fi.Value), exp.Type)); break;
+                    }
+
+                    var sql = _commonExpression.ExpressionWhereLambda(_tables, exp, null, null, _params);
+
+                    sb.Append(sql);
+                }
+                if (fi.Filters?.Any() == true)
+                {
+                    if (string.IsNullOrEmpty(fi.Field) == false)
+                        sb.Append(" AND ");
+                    if (fi.Logic == DynamicFilterLogic.Or) sb.Append("(");
+                    for (var x = 0; x < fi.Filters.Count; x++)
+                        ParseFilter(fi.Logic, fi.Filters[x], x == fi.Filters.Count - 1);
+                    if (fi.Logic == DynamicFilterLogic.Or) sb.Append(")");
+                }
+
+                if (isend == false)
+                {
+                    if (string.IsNullOrEmpty(fi.Field) == false || fi.Filters?.Any() == true)
+                    {
+                        switch (filter.Logic)
+                        {
+                            case DynamicFilterLogic.And: sb.Append(" AND "); break;
+                            case DynamicFilterLogic.Or: sb.Append(" OR "); break;
+                        }
+                    }
+                }
+            }
+        }
+
         public TSelect DisableGlobalFilter(params string[] name)
         {
             if (_whereGlobalFilter.Any() == false) return this as TSelect;
