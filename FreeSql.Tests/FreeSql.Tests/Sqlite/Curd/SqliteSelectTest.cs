@@ -1916,6 +1916,8 @@ WHERE (((cast(a.""Id"" as character)) in (SELECT b.""Title""
 
             [Column(StringLength = 6)]
             public virtual string ParentCode { get; set; }
+
+            public DateTime CreateTime { get; set; }
         }
         [Table(Name = "D_District", DisableSyncStructure = true)]
         public class VM_District_Child : BaseDistrict
@@ -1965,13 +1967,18 @@ WHERE (((cast(a.""Id"" as character)) in (SELECT b.""Title""
       ""Field"" : ""ParentCode"",
       ""Operator"" : ""Equals"",
       ""Value"" : ""val4""
+    },
+    {
+      ""Field"" : ""CreateTime"",
+      ""Operator"" : ""GreaterThanOrEqual"",
+      ""Value"" : ""2010-10-10""
     }
   ]
 }
 ")).ToSql();
-            Assert.Equal(@"SELECT a.""Code"", a.""Name"", a.""ParentCode"" 
+            Assert.Equal(@"SELECT a.""Code"", a.""Name"", a.""CreateTime"", a.""ParentCode"" 
 FROM ""D_District"" a 
-WHERE (((a.""Code"") LIKE '%val1%' AND (a.""Name"") LIKE 'val2%' OR (a.""Name"") LIKE '%val3' OR a.""ParentCode"" = 'val4'))", sql);
+WHERE (((a.""Code"") LIKE '%val1%' AND (a.""Name"") LIKE 'val2%' OR (a.""Name"") LIKE '%val3' OR a.""ParentCode"" = 'val4' OR a.""CreateTime"" >= '2010-10-10 00:00:00'))", sql);
 
             sql = fsql.Select<VM_District_Parent>().WhereDynamicFilter(JsonConvert.DeserializeObject<DynamicFilterInfo>(@"
 {
@@ -2028,7 +2035,7 @@ WHERE (((a.""Code"") LIKE '%val1%' AND (a.""Name"") LIKE 'val2%' OR (a.""Name"")
   ]
 }
 ")).ToSql();
-            Assert.Equal(@"SELECT a.""Code"", a.""Name"", a.""ParentCode"", a__Parent.""Code"" as4, a__Parent.""Name"" as5, a__Parent.""ParentCode"" as6 
+            Assert.Equal(@"SELECT a.""Code"", a.""Name"", a.""CreateTime"", a.""ParentCode"", a__Parent.""Code"" as5, a__Parent.""Name"" as6, a__Parent.""CreateTime"" as7, a__Parent.""ParentCode"" as8 
 FROM ""D_District"" a 
 LEFT JOIN ""D_District"" a__Parent ON a__Parent.""Code"" = a.""ParentCode"" 
 WHERE ((not((a.""Code"") LIKE '%val1%') AND not((a.""Name"") LIKE 'val2%') OR not((a.""Name"") LIKE '%val3') OR a.""ParentCode"" <> 'val4' OR a__Parent.""Code"" = 'val11' AND (a__Parent.""Name"") LIKE '%val22%' OR a__Parent.""Name"" = 'val33' OR a__Parent.""ParentCode"" = 'val44'))", sql);
