@@ -69,7 +69,10 @@ namespace FreeSql.Internal
             var propsLazy = new List<NaviteTuple<PropertyInfo, bool, bool, MethodInfo, MethodInfo>>();
             var propsNavObjs = new List<PropertyInfo>();
             var propsComment = CommonUtils.GetProperyCommentBySummary(entity);
+            var propsCommentByDescAttr = CommonUtils.GetPropertyCommentByDescriptionAttribute(entity);
             trytb.Comment = propsComment != null && propsComment.TryGetValue("", out var tbcomment) ? tbcomment : "";
+            if (string.IsNullOrEmpty(trytb.Comment) && propsCommentByDescAttr != null && propsCommentByDescAttr.TryGetValue("", out tbcomment)) trytb.Comment = tbcomment;
+
             var columnsList = new List<ColumnInfo>();
             foreach (var p in trytb.Properties.Values)
             {
@@ -148,6 +151,9 @@ namespace FreeSql.Internal
                 };
                 if (propsComment != null && propsComment.TryGetValue(p.Name, out var trycomment))
                     col.Comment = trycomment;
+                if (string.IsNullOrEmpty(col.Comment) && propsCommentByDescAttr != null && propsCommentByDescAttr.TryGetValue(p.Name, out trycomment))
+                    col.Comment = trycomment;
+
                 if (colattr.IsIgnore)
                 {
                     trytb.ColumnsByCsIgnore.Add(p.Name, col);

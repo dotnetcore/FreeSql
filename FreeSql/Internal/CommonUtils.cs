@@ -372,12 +372,56 @@ namespace FreeSql.Internal
         }
 
         /// <summary>
+        /// 动态读取 DescriptionAttribute 注释文本
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static Dictionary<string, string> GetPropertyCommentByDescriptionAttribute(Type type)
+        {
+            var dic = new Dictionary<string, string>();
+            GetDydesc(null); //class注释
+
+            var props = type.GetPropertiesDictIgnoreCase().Values;
+            foreach (var prop in props)
+                GetDydesc(prop);
+
+            return dic;
+
+            void GetDydesc(PropertyInfo prop)
+            {
+                object[] attrs = null;
+                try
+                {
+                    attrs = prop == null ? 
+                        type.GetCustomAttributes(false).ToArray() : 
+                        prop.GetCustomAttributes(false).ToArray(); //.net core 反射存在版本冲突问题，导致该方法异常
+                }
+                catch { }
+
+                var dyattr = attrs?.Where(a => {
+                    return ((a as Attribute)?.TypeId as Type)?.Name == "DescriptionAttribute";
+                }).FirstOrDefault();
+                if (dyattr != null)
+                {
+                    var valueProp = dyattr.GetType().GetProperties().Where(a => a.PropertyType == typeof(string)).FirstOrDefault();
+                    var comment = valueProp?.GetValue(dyattr, null)?.ToString();
+                    if (string.IsNullOrEmpty(comment) == false)
+                        dic.Add(prop == null ? 
+                            "" : 
+                            prop.Name, comment);
+                }
+            }
+        }
+
+        /// <summary>
         /// 通过属性的注释文本，通过 xml 读取
         /// </summary>
         /// <param name="type"></param>
         /// <returns>Dict：key=属性名，value=注释</returns>
         public static Dictionary<string, string> GetProperyCommentBySummary(Type type)
         {
+            if (type.Assembly.IsDynamic) return null;
+            //动态生成的程序集，访问不了 Assembly.Location/Assembly.CodeBase
             var regex = new Regex(@"\.(dll|exe)", RegexOptions.IgnoreCase);
             var xmlPath = regex.Replace(type.Assembly.Location, ".xml");
             if (File.Exists(xmlPath) == false)

@@ -128,7 +128,7 @@ namespace FreeSql.Tests.PostgreSQL
 
             var dt1 = select.Limit(10).ToDataTable();
             var dt2 = select.Limit(10).ToDataTable("id, 222");
-            var dt3 = select.Limit(10).ToDataTable(a => new { a.Id, a.Type.Name, now = DateTime.Now });
+            var dt3 = select.Limit(10).ToDataTable(a => new { id = a.Id, name2 = a.Type.Name, now = DateTime.Now });
         }
         class TestDto
         {

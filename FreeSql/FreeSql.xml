@@ -2901,6 +2901,13 @@
             AsType, Ctor, ClearData 三处地方需要重新加载
             </summary>
         </member>
+        <member name="M:FreeSql.Internal.CommonUtils.GetPropertyCommentByDescriptionAttribute(System.Type)">
+            <summary>
+            动态读取 DescriptionAttribute 注释文本
+            </summary>
+            <param name="type"></param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.Internal.CommonUtils.GetProperyCommentBySummary(System.Type)">
             <summary>
             通过属性的注释文本，通过 xml 读取

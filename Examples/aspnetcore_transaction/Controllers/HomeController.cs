@@ -2,6 +2,7 @@
 using FreeSql.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System.ComponentModel;
 using System.Threading.Tasks;
 
 namespace aspnetcore_transaction.Controllers
@@ -45,6 +46,7 @@ namespace aspnetcore_transaction.Controllers
 
         public SongService(BaseRepository<Song> repoSong, BaseRepository<Detail> repoDetail, SongRepository repoSong2)
         {
+            var tb = repoSong.Orm.CodeFirst.GetTableByEntity(typeof(Song));
             _repoSong = repoSong;
             _repoDetail = repoDetail;
             _repoSong2 = repoSong2;
@@ -81,9 +83,14 @@ namespace aspnetcore_transaction.Controllers
         public SongRepository(UnitOfWorkManager uowm) : base(uowm?.Orm, uowm) { }
     }
 
+    [Description("123")]
     public class Song
     {
+        /// <summary>
+        /// 自增
+        /// </summary>
         [Column(IsIdentity = true)]
+        [Description("自增id")]
         public int Id { get; set; }
         public string Title { get; set; }
     }

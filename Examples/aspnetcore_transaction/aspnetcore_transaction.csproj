@@ -4,6 +4,10 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>aspnetcore_transaction.xml</DocumentationFile>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="FreeSql.DynamicProxy" Version="1.3.0" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="4.7.0" />
