@@ -824,7 +824,7 @@
         </member>
         <member name="M:FreeSql.IDelete`1.WhereDynamic(System.Object,System.Boolean)">
             <summary>
-            传入动态对象如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
+            传入动态条件，如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
             </summary>
             <param name="dywhere">主键值、主键值集合、实体、实体集合、匿名对象、匿名对象集合</param>
             <param name="not">是否标识为NOT</param>
@@ -1662,7 +1662,7 @@
         </member>
         <member name="M:FreeSql.ISelect`1.WhereDynamic(System.Object,System.Boolean)">
             <summary>
-            传入动态对象如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
+            传入动态条件，如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
             </summary>
             <param name="dywhere">主键值、主键值集合、实体、实体集合、匿名对象、匿名对象集合</param>
             <param name="not">是否标识为NOT</param>
@@ -2077,7 +2077,7 @@
         </member>
         <member name="M:FreeSql.IUpdate`1.WhereDynamic(System.Object,System.Boolean)">
             <summary>
-            传入动态对象如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
+            传入动态条件，如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
             </summary>
             <param name="dywhere">主键值、主键值集合、实体、实体集合、匿名对象、匿名对象集合</param>
             <param name="not">是否标识为NOT</param>
@@ -3456,7 +3456,7 @@
         </member>
         <member name="M:IFreeSql.Update``1(System.Object)">
             <summary>
-            修改数据，传入动态对象如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
+            修改数据，传入动态条件，如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
             </summary>
             <typeparam name="T1"></typeparam>
             <param name="dywhere">主键值、主键值集合、实体、实体集合、匿名对象、匿名对象集合</param>
@@ -3471,7 +3471,7 @@
         </member>
         <member name="M:IFreeSql.Select``1(System.Object)">
             <summary>
-            查询数据，传入动态对象如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
+            查询数据，传入动态条件，如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
             </summary>
             <typeparam name="T1"></typeparam>
             <param name="dywhere">主键值、主键值集合、实体、实体集合、匿名对象、匿名对象集合</param>
@@ -3486,7 +3486,7 @@
         </member>
         <member name="M:IFreeSql.Delete``1(System.Object)">
             <summary>
-            删除数据，传入动态对象如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
+            删除数据，传入动态条件，如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
             </summary>
             <typeparam name="T1"></typeparam>
             <param name="dywhere">主键值、主键值集合、实体、实体集合、匿名对象、匿名对象集合</param>
@@ -3540,7 +3540,7 @@
         </member>
     </members>
 </doc>
-           <returns></returns>
+  <returns></returns>
         </member>
         <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.Or``5(System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,``4,System.Boolean}},System.Linq.Expressions.Expression{System.Func{``0,``1,``2,``3,``4,System.Boolean}})">
             <summary>
@@ -3619,7 +3619,7 @@
         </member>
         <member name="M:IFreeSql.Update``1(System.Object)">
             <summary>
-            修改数据，传入动态对象如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
+            修改数据，传入动态条件，如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
             </summary>
             <typeparam name="T1"></typeparam>
             <param name="dywhere">主键值、主键值集合、实体、实体集合、匿名对象、匿名对象集合</param>
@@ -3634,7 +3634,7 @@
         </member>
         <member name="M:IFreeSql.Select``1(System.Object)">
             <summary>
-            查询数据，传入动态对象如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
+            查询数据，传入动态条件，如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
             </summary>
             <typeparam name="T1"></typeparam>
             <param name="dywhere">主键值、主键值集合、实体、实体集合、匿名对象、匿名对象集合</param>
@@ -3649,7 +3649,7 @@
         </member>
         <member name="M:IFreeSql.Delete``1(System.Object)">
             <summary>
-            删除数据，传入动态对象如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
+            删除数据，传入动态条件，如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
             </summary>
             <typeparam name="T1"></typeparam>
             <param name="dywhere">主键值、主键值集合、实体、实体集合、匿名对象、匿名对象集合</param>

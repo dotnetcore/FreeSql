@@ -51,7 +51,7 @@ public interface IFreeSql : IDisposable
     /// <returns></returns>
     IUpdate<T1> Update<T1>() where T1 : class;
     /// <summary>
-    /// 修改数据，传入动态对象如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
+    /// 修改数据，传入动态条件，如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
     /// </summary>
     /// <typeparam name="T1"></typeparam>
     /// <param name="dywhere">主键值、主键值集合、实体、实体集合、匿名对象、匿名对象集合</param>
@@ -65,7 +65,7 @@ public interface IFreeSql : IDisposable
     /// <returns></returns>
     ISelect<T1> Select<T1>() where T1 : class;
     /// <summary>
-    /// 查询数据，传入动态对象如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
+    /// 查询数据，传入动态条件，如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
     /// </summary>
     /// <typeparam name="T1"></typeparam>
     /// <param name="dywhere">主键值、主键值集合、实体、实体集合、匿名对象、匿名对象集合</param>
@@ -79,7 +79,7 @@ public interface IFreeSql : IDisposable
     /// <returns></returns>
     IDelete<T1> Delete<T1>() where T1 : class;
     /// <summary>
-    /// 删除数据，传入动态对象如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
+    /// 删除数据，传入动态条件，如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
     /// </summary>
     /// <typeparam name="T1"></typeparam>
     /// <param name="dywhere">主键值、主键值集合、实体、实体集合、匿名对象、匿名对象集合</param>
