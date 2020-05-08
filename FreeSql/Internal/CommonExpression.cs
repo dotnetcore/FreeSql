@@ -1433,8 +1433,8 @@ namespace FreeSql.Internal
             }
         }
 
-        static ConcurrentDictionary<string, bool> _dicGetWhereCascadeSqlError = new ConcurrentDictionary<string, bool>();
-        public string GetWhereCascadeSql(SelectTableInfo tb, List<LambdaExpression> _whereCascadeExpression)
+        static ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>> _dicGetWhereCascadeSqlError = new ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>>();
+        public string GetWhereCascadeSql(SelectTableInfo tb, List<LambdaExpression> _whereCascadeExpression, bool isMultitb)
         {
             if (_whereCascadeExpression.Any())
             {
@@ -1445,8 +1445,9 @@ namespace FreeSql.Internal
 
                 foreach (var fl in _whereCascadeExpression)
                 {
-                    var errorKey = FreeUtil.Sha1($"{tb.Table.Type.FullName},{fl.ToString()}");
-                    if (_dicGetWhereCascadeSqlError.ContainsKey(errorKey)) continue;
+                    var dicSqlError = _dicGetWhereCascadeSqlError.GetOrAdd(tb.Table.Type, tp => new ConcurrentDictionary<string, bool>());
+                    var errorKey = FreeUtil.Sha1($"{(isMultitb ? 1 : 0)},{fl.ToString()}");
+                    if (dicSqlError.ContainsKey(errorKey)) continue;
 
                     var visitor = new ReplaceVisitor();
                     try
@@ -1456,7 +1457,9 @@ namespace FreeSql.Internal
                             new ReplaceVisitor().Modify(fl, newParameter),
                             newParameter
                         );
-                        var whereSql = ExpressionLambdaToSql(expExp.Body, new ExpTSC { _tables = new List<SelectTableInfo>(new[] { tb }), _selectColumnMap = null, getSelectGroupingMapString = null, tbtype = SelectTableInfoType.From, isQuoteName = true, isDisableDiyParse = false, style = ExpressionStyle.Where, currentTable = tb.Table, alias001 = tb.Alias });
+                        var whereSql = ExpressionLambdaToSql(expExp.Body, new ExpTSC { _tables = 
+                            isMultitb ? new List<SelectTableInfo>(new[] { tb }) : null, 
+                            _selectColumnMap = null, getSelectGroupingMapString = null, tbtype = SelectTableInfoType.From, isQuoteName = true, isDisableDiyParse = false, style = ExpressionStyle.Where, currentTable = tb.Table, alias001 = tb.Alias });
                         whereSql = GetBoolString(expExp.Body, whereSql);
                         if (isEmpty == false)
                             sb.Append(" AND ");
@@ -1466,7 +1469,7 @@ namespace FreeSql.Internal
                     }
                     catch
                     {
-                        _dicGetWhereCascadeSqlError.TryAdd(errorKey, true);
+                        dicSqlError.TryAdd(errorKey, true);
                         continue;
                     }
                 }

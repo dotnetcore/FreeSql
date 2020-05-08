@@ -830,7 +830,7 @@ namespace FreeSql.Internal.CommonProvider
                                 sbJoin.Append($"midtb.{_commonUtils.QuoteSqlName(tbref.MiddleColumns[tbref.Columns.Count + z].Attribute.Name)} = a.{_commonUtils.QuoteSqlName(tbref.RefColumns[z].Attribute.Name)}");
                                 if (_whereCascadeExpression.Any())
                                 {
-                                    var cascade = _commonExpression.GetWhereCascadeSql(new SelectTableInfo { Alias = "midtb", AliasInit = "midtb", Table = tbrefMid, Type = SelectTableInfoType.InnerJoin }, _whereCascadeExpression);
+                                    var cascade = _commonExpression.GetWhereCascadeSql(new SelectTableInfo { Alias = "midtb", AliasInit = "midtb", Table = tbrefMid, Type = SelectTableInfoType.InnerJoin }, _whereCascadeExpression, true);
                                     if (string.IsNullOrEmpty(cascade) == false)
                                         sbJoin.Append(" AND (").Append(cascade).Append(")");
                                 }
