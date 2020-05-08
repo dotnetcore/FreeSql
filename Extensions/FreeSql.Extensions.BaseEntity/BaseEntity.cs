@@ -1,6 +1,4 @@
-﻿#if netcore
-
-using FreeSql;
+﻿using FreeSql;
 using FreeSql.DataAnnotations;
 using System;
 using System.Data;
@@ -34,6 +32,8 @@ namespace FreeSql
         [Column(Position = 1)]
         public virtual TKey Id { get; set; }
 
+#if net40
+#else
         /// <summary>
         /// 根据主键值获取数据
         /// </summary>
@@ -45,6 +45,7 @@ namespace FreeSql
             (item as BaseEntity<TEntity>)?.Attach();
             return item;
         }
+#endif
 
         /// <summary>
         /// 根据主键值获取数据
@@ -70,12 +71,11 @@ namespace FreeSql
         {
             if (this.Repository == null)
                 return Orm.Update<TEntity>(this as TEntity)
-                    .WithTransaction(CurrentUnitOfWork?.GetOrBeginTransaction())
+                    .WithTransaction(_resolveUow?.Invoke()?.GetOrBeginTransaction())
                     .Set(a => (a as BaseEntity).IsDeleted, this.IsDeleted = value).ExecuteAffrows() == 1;
 
-            this.SetTenantId();
             this.IsDeleted = value;
-            this.Repository.UnitOfWork = CurrentUnitOfWork;
+            this.Repository.UnitOfWork = _resolveUow?.Invoke();
             return this.Repository.Update(this as TEntity) == 1;
         }
         /// <summary>
@@ -88,8 +88,8 @@ namespace FreeSql
             if (physicalDelete == false) return this.UpdateIsDeleted(true);
             if (this.Repository == null) 
                 return Orm.Delete<TEntity>(this as TEntity).ExecuteAffrows() == 1;
-            //this.SetTenantId();
-            this.Repository.UnitOfWork = CurrentUnitOfWork;
+
+            this.Repository.UnitOfWork = _resolveUow?.Invoke();
             return this.Repository.Delete(this as TEntity) == 1;
         }
         /// <summary>
@@ -107,11 +107,10 @@ namespace FreeSql
             this.UpdateTime = DateTime.Now;
             if (this.Repository == null)
                 return Orm.Update<TEntity>()
-                    .WithTransaction(CurrentUnitOfWork?.GetOrBeginTransaction())
+                    .WithTransaction(_resolveUow?.Invoke()?.GetOrBeginTransaction())
                     .SetSource(this as TEntity).ExecuteAffrows() == 1;
 
-            this.SetTenantId();
-            this.Repository.UnitOfWork = CurrentUnitOfWork;
+            this.Repository.UnitOfWork = _resolveUow?.Invoke();
             return this.Repository.Update(this as TEntity) == 1;
         }
         /// <summary>
@@ -123,8 +122,7 @@ namespace FreeSql
             if (this.Repository == null)
                 this.Repository = Orm.GetRepository<TEntity>();
 
-            this.SetTenantId();
-            this.Repository.UnitOfWork = CurrentUnitOfWork;
+            this.Repository.UnitOfWork = _resolveUow?.Invoke();
             return this.Repository.Insert(this as TEntity);
         }
 
@@ -138,8 +136,7 @@ namespace FreeSql
             if (this.Repository == null)
                 this.Repository = Orm.GetRepository<TEntity>();
 
-            this.SetTenantId();
-            this.Repository.UnitOfWork = CurrentUnitOfWork;
+            this.Repository.UnitOfWork = _resolveUow?.Invoke();
             return this.Repository.InsertOrUpdate(this as TEntity);
         }
 
@@ -152,10 +149,8 @@ namespace FreeSql
             if (this.Repository == null)
                 this.Repository = Orm.GetRepository<TEntity>();
 
-            this.Repository.UnitOfWork = CurrentUnitOfWork;
+            this.Repository.UnitOfWork = _resolveUow?.Invoke();
             this.Repository.SaveMany(this as TEntity, navigatePropertyName);
         }
     }
 }
-
-#endif

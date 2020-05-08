@@ -39,7 +39,7 @@ Namespace FreeSql.Tests.VB
 
             Dim List9 = g.sqlserver.Select(Of Testvb).IncludeMany(Function(a) a.Testvb2s).ToList()
 
-            BaseEntity.Initialization(g.sqlserver)
+            BaseEntity.Initialization(g.sqlserver, Nothing)
             Dim cowR As CowRecord = New CowRecord
             cowR.Id = 1
             cowR.Lact = 1

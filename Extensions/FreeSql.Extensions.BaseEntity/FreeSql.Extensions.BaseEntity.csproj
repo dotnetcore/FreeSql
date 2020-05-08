@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp31;netcoreapp21;net4.0;</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net45;net40</TargetFrameworks>
     <Version>1.5.0-preview0509</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>ncc;YeXiangQin</Authors>
@@ -34,12 +34,8 @@
     <ProjectReference Include="..\..\FreeSql.DbContext\FreeSql.DbContext.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Net40\" />
-  </ItemGroup>
-
-  <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp31' OR '$(TargetFramework)' == 'netcoreapp21'">
-    <DefineConstants>netcore</DefineConstants>
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net40'">
+    <DefineConstants>net40</DefineConstants>
   </PropertyGroup>
   
 </Project>

@@ -1,5 +1,4 @@
-﻿#if netcore
-
+﻿
 using FreeSql;
 using FreeSql.DataAnnotations;
 using System;
@@ -27,8 +26,11 @@ namespace FreeSql
         /// <summary>
         /// 主键
         /// </summary>
+        [Column(Position = 1)] 
         public virtual TKey Id { get; set; }
 
+#if net40
+#else
         /// <summary>
         /// 根据主键值获取数据
         /// </summary>
@@ -40,6 +42,8 @@ namespace FreeSql
             (item as BaseEntity<TEntity>)?.Attach();
             return item;
         }
+#endif
+
     }
 
     /// <summary>
@@ -49,15 +53,17 @@ namespace FreeSql
     [Table(DisableSyncStructure = true)]
     public abstract class BaseEntityAsync<TEntity> : BaseEntityReadOnly<TEntity> where TEntity : class
     {
+#if net40
+#else
         async Task<bool> UpdateIsDeletedAsync(bool value)
         {
             if (this.Repository == null)
                 return await Orm.Update<TEntity>(this as TEntity)
-                    .WithTransaction(CurrentUnitOfWork?.GetOrBeginTransaction())
+                    .WithTransaction(_resolveUow?.Invoke()?.GetOrBeginTransaction())
                     .Set(a => (a as BaseEntity).IsDeleted, this.IsDeleted = value).ExecuteAffrowsAsync() == 1;
 
             this.IsDeleted = value;
-            this.Repository.UnitOfWork = CurrentUnitOfWork;
+            this.Repository.UnitOfWork = _resolveUow?.Invoke();
             return await this.Repository.UpdateAsync(this as TEntity) == 1;
         }
         /// <summary>
@@ -70,8 +76,8 @@ namespace FreeSql
             if (physicalDelete == false) return await this.UpdateIsDeletedAsync(true);
             if (this.Repository == null)
                 return await Orm.Delete<TEntity>(this as TEntity).ExecuteAffrowsAsync() == 1;
-            //this.SetTenantId();
-            this.Repository.UnitOfWork = CurrentUnitOfWork;
+
+            this.Repository.UnitOfWork = _resolveUow?.Invoke();
             return await this.Repository.DeleteAsync(this as TEntity) == 1;
         }
         /// <summary>
@@ -89,11 +95,10 @@ namespace FreeSql
             this.UpdateTime = DateTime.Now;
             if (this.Repository == null)
                 return await Orm.Update<TEntity>()
-                    .WithTransaction(CurrentUnitOfWork?.GetOrBeginTransaction())
+                    .WithTransaction(_resolveUow?.Invoke()?.GetOrBeginTransaction())
                     .SetSource(this as TEntity).ExecuteAffrowsAsync() == 1;
 
-            this.SetTenantId();
-            this.Repository.UnitOfWork = CurrentUnitOfWork;
+            this.Repository.UnitOfWork = _resolveUow?.Invoke();
             return await this.Repository.UpdateAsync(this as TEntity) == 1;
         }
         /// <summary>
@@ -105,8 +110,7 @@ namespace FreeSql
             if (this.Repository == null)
                 this.Repository = Orm.GetRepository<TEntity>();
 
-            this.SetTenantId();
-            this.Repository.UnitOfWork = CurrentUnitOfWork;
+            this.Repository.UnitOfWork = _resolveUow?.Invoke();
             return this.Repository.InsertAsync(this as TEntity);
         }
 
@@ -120,8 +124,7 @@ namespace FreeSql
             if (this.Repository == null)
                 this.Repository = Orm.GetRepository<TEntity>();
 
-            this.SetTenantId();
-            this.Repository.UnitOfWork = CurrentUnitOfWork;
+            this.Repository.UnitOfWork = _resolveUow?.Invoke();
             return this.Repository.InsertOrUpdateAsync(this as TEntity);
         }
 
@@ -134,10 +137,9 @@ namespace FreeSql
             if (this.Repository == null)
                 this.Repository = Orm.GetRepository<TEntity>();
 
-            this.Repository.UnitOfWork = CurrentUnitOfWork;
+            this.Repository.UnitOfWork = _resolveUow?.Invoke();
             return this.Repository.SaveManyAsync(this as TEntity, navigatePropertyName);
         }
+#endif
     }
 }
-
-#endif

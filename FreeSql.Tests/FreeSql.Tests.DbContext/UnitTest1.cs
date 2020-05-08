@@ -24,7 +24,7 @@ namespace FreeSql.Tests
             g.sqlite.Delete<userinfo>().Where("1=1").ExecuteAffrows();
             g.sqlite.Delete<DEPARTMENTS>().Where("1=1").ExecuteAffrows();
             g.sqlite.Delete<dept_user>().Where("1=1").ExecuteAffrows();
-            BaseEntity.Initialization(g.sqlite);
+            BaseEntity.Initialization(g.sqlite, null);
 
             userinfo user = new userinfo { userid = 1, badgenumber = "", Name="", IDCardNo="" };
             user.Insert();

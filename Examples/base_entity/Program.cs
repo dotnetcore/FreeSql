@@ -37,6 +37,8 @@ namespace base_entity
             public string title { get; set; }
         }
 
+        static AsyncLocal<IUnitOfWork> _asyncUow = new AsyncLocal<IUnitOfWork>();
+
         static void Main(string[] args)
         {
 
@@ -73,7 +75,7 @@ namespace base_entity
                 .UseMonitorCommand(cmd => Console.Write(cmd.CommandText))
                 .UseLazyLoading(true)
                 .Build();
-            BaseEntity.Initialization(fsql);
+            BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
             var test01 = EMSServerModel.Model.User.Select.IncludeMany(a => a.Roles).ToList();
@@ -144,9 +146,17 @@ namespace base_entity
 
             Task.Run(async () =>
             {
-                using (var uow = BaseEntity.Begin())
+                using (var uow = BaseEntity.Orm.CreateUnitOfWork())
                 {
-                    var id = (await new User1().SaveAsync()).Id;
+                    _asyncUow.Value = uow;
+                    try
+                    {
+                        var id = (await new User1().SaveAsync()).Id;
+                    }
+                    finally
+                    {
+                        _asyncUow.Value = null;
+                    }
                     uow.Commit();
                 }
 
