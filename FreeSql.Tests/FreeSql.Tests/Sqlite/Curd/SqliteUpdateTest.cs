@@ -69,6 +69,20 @@ namespace FreeSql.Tests.Sqlite
         {
             var sql = update.SetSource(new Topic { Id = 1, Title = "newtitle" }).IgnoreColumns(a => new { a.Clicks, a.CreateTime, a.TypeGuid }).ToSql().Replace("\r\n", "");
             Assert.Equal("UPDATE \"tb_topic\" SET \"Title\" = @p_0 WHERE (\"Id\" = 1)", sql);
+
+            sql = update.SetSource(new Topic { Id = 1, Title = "newtitle" }).IgnoreColumns(a => new object[] { a.Clicks, a.CreateTime, a.TypeGuid }).ToSql().Replace("\r\n", "");
+            Assert.Equal("UPDATE \"tb_topic\" SET \"Title\" = @p_0 WHERE (\"Id\" = 1)", sql);
+
+            sql = update.SetSource(new Topic { Id = 1, Title = "newtitle" }).IgnoreColumns(a => new[] { "Clicks", "CreateTime", "TypeGuid" }).ToSql().Replace("\r\n", "");
+            Assert.Equal("UPDATE \"tb_topic\" SET \"Title\" = @p_0 WHERE (\"Id\" = 1)", sql);
+
+            var cols = new[] { "Clicks", "CreateTime", "TypeGuid" };
+            sql = update.SetSource(new Topic { Id = 1, Title = "newtitle" }).IgnoreColumns(a => cols).ToSql().Replace("\r\n", "");
+            Assert.Equal("UPDATE \"tb_topic\" SET \"Title\" = @p_0 WHERE (\"Id\" = 1)", sql);
+
+            cols = new[] { "Clicks", "CreateTime", "TypeGuid" };
+            sql = update.SetSource(new Topic { Id = 1, Title = "newtitle" }).IgnoreColumns(cols).ToSql().Replace("\r\n", "");
+            Assert.Equal("UPDATE \"tb_topic\" SET \"Title\" = @p_0 WHERE (\"Id\" = 1)", sql);
         }
         [Fact]
         public void UpdateColumns()
