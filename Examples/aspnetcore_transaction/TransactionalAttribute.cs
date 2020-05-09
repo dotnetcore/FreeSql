@@ -15,7 +15,8 @@ namespace FreeSql
     public class TransactionalAttribute : DynamicProxyAttribute, IActionFilter
     {
         public Propagation Propagation { get; set; } = Propagation.Requierd;
-        public IsolationLevel? IsolationLevel { get; set; }
+        public IsolationLevel IsolationLevel { get => _IsolationLevelPriv.Value; set => _IsolationLevelPriv = value; }
+        IsolationLevel? _IsolationLevelPriv;
 
         [DynamicProxyFromServices]
         UnitOfWorkManager _uowManager;
@@ -31,7 +32,7 @@ namespace FreeSql
 
         Task OnBefore(UnitOfWorkManager uowm)
         {
-            _uow = uowm.Begin(this.Propagation, this.IsolationLevel);
+            _uow = uowm.Begin(this.Propagation, this._IsolationLevelPriv);
             return Task.FromResult(false);
         }
         Task OnAfter(Exception ex)

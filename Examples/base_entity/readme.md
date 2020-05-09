@@ -93,7 +93,7 @@ var items = UserGroup.Where(a => a.Id > 10).ToList();
 
 # 事务建议
 
-由于 AsyncLocal 平台兼容不好，所以交给外部管理。
+由于 AsyncLocal 平台兼容不好，所以交给外部管理事务。
 
 ```csharp
 static AsyncLocal<IUnitOfWork> _asyncUow = new AsyncLocal<IUnitOfWork>();
