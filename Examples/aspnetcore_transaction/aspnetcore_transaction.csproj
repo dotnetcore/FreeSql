@@ -6,11 +6,13 @@
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DocumentationFile>aspnetcore_transaction.xml</DocumentationFile>
+	  <WarningLevel>3</WarningLevel>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="FreeSql.DynamicProxy" Version="1.3.0" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="4.7.0" />
+    <PackageReference Include="FreeSql.DynamicProxy" Version="1.4.0" />
+    <PackageReference Include="IdleBus" Version="1.3.3" />
   </ItemGroup>
 
   <ItemGroup>
