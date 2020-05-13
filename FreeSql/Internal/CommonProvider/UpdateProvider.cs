@@ -400,6 +400,7 @@ namespace FreeSql.Internal.CommonProvider
             SetPriv(cols.First().Column, value);
             return this;
         }
+        public IUpdate<T1> SetIf<TMember>(bool condition, Expression<Func<T1, TMember>> column, TMember value) => condition ? Set(column, value) : this;
         public IUpdate<T1> Set<TMember>(Expression<Func<T1, TMember>> exp)
         {
             var body = exp?.Body;
@@ -459,6 +460,7 @@ namespace FreeSql.Internal.CommonProvider
             _setIncr.Append(", ").Append(_commonUtils.QuoteSqlName(cols.First().Column.Attribute.Name)).Append(" = ").Append(expt);
             return this;
         }
+        public IUpdate<T1> SetIf<TMember>(bool condition, Expression<Func<T1, TMember>> exp) => condition ? Set(exp) : this;
         public IUpdate<T1> SetRaw(string sql, object parms = null)
         {
             if (string.IsNullOrEmpty(sql)) return this;

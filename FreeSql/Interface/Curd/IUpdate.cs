@@ -93,6 +93,15 @@ namespace FreeSql
         /// <returns></returns>
         IUpdate<T1> Set<TMember>(Expression<Func<T1, TMember>> column, TMember value);
         /// <summary>
+        /// 设置列的新值，Set(a => a.Name, "newvalue")
+        /// </summary>
+        /// <typeparam name="TMember"></typeparam>
+        /// <param name="condition">true 时生效</param>
+        /// <param name="column">lambda选择列</param>
+        /// <param name="value">新值</param>
+        /// <returns></returns>
+        IUpdate<T1> SetIf<TMember>(bool condition, Expression<Func<T1, TMember>> column, TMember value);
+        /// <summary>
         /// 设置列的的新值为基础上增加，格式：Set(a => a.Clicks + 1) 相当于 clicks=clicks+1
         /// <para></para>
         /// 指定更新，格式：Set(a => new T { Clicks = a.Clicks + 1, Time = DateTime.Now }) 相当于 set clicks=clicks+1,time='2019-06-19....'
@@ -101,6 +110,16 @@ namespace FreeSql
         /// <param name="exp"></param>
         /// <returns></returns>
         IUpdate<T1> Set<TMember>(Expression<Func<T1, TMember>> exp);
+        /// <summary>
+        /// 设置列的的新值为基础上增加，格式：Set(a => a.Clicks + 1) 相当于 clicks=clicks+1
+        /// <para></para>
+        /// 指定更新，格式：Set(a => new T { Clicks = a.Clicks + 1, Time = DateTime.Now }) 相当于 set clicks=clicks+1,time='2019-06-19....'
+        /// </summary>
+        /// <typeparam name="TMember"></typeparam>
+        /// <param name="condition">true 时生效</param>
+        /// <param name="exp"></param>
+        /// <returns></returns>
+        IUpdate<T1> SetIf<TMember>(bool condition, Expression<Func<T1, TMember>> exp);
         /// <summary>
         /// 设置值，自定义SQL语法，SetRaw("title = ?title", new { title = "newtitle" })
         /// </summary>
