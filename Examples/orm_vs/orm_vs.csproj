@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Dapper" Version="2.0.35" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.1.0" />
     <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="3.1.0" />
     <PackageReference Include="sqlSugarCore" Version="5.0.0.11" />
@@ -13,8 +14,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />
-    <ProjectReference Include="..\..\Providers\FreeSql.Provider.Dameng\FreeSql.Provider.Dameng.csproj" />
     <ProjectReference Include="..\..\Providers\FreeSql.Provider.MySql\FreeSql.Provider.MySql.csproj" />
+    <ProjectReference Include="..\..\Providers\FreeSql.Provider.Dameng\FreeSql.Provider.Dameng.csproj" />
     <ProjectReference Include="..\..\Providers\FreeSql.Provider.SqlServer\FreeSql.Provider.SqlServer.csproj" />
   </ItemGroup>
 

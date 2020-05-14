@@ -2023,6 +2023,16 @@
             <param name="value">新值</param>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.IUpdate`1.SetIf``1(System.Boolean,System.Linq.Expressions.Expression{System.Func{`0,``0}},``0)">
+            <summary>
+            设置列的新值，Set(a => a.Name, "newvalue")
+            </summary>
+            <typeparam name="TMember"></typeparam>
+            <param name="condition">true 时生效</param>
+            <param name="column">lambda选择列</param>
+            <param name="value">新值</param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.IUpdate`1.Set``1(System.Linq.Expressions.Expression{System.Func{`0,``0}})">
             <summary>
             设置列的的新值为基础上增加，格式：Set(a => a.Clicks + 1) 相当于 clicks=clicks+1
@@ -2030,6 +2040,17 @@
             指定更新，格式：Set(a => new T { Clicks = a.Clicks + 1, Time = DateTime.Now }) 相当于 set clicks=clicks+1,time='2019-06-19....'
             </summary>
             <typeparam name="TMember"></typeparam>
+            <param name="exp"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IUpdate`1.SetIf``1(System.Boolean,System.Linq.Expressions.Expression{System.Func{`0,``0}})">
+            <summary>
+            设置列的的新值为基础上增加，格式：Set(a => a.Clicks + 1) 相当于 clicks=clicks+1
+            <para></para>
+            指定更新，格式：Set(a => new T { Clicks = a.Clicks + 1, Time = DateTime.Now }) 相当于 set clicks=clicks+1,time='2019-06-19....'
+            </summary>
+            <typeparam name="TMember"></typeparam>
+            <param name="condition">true 时生效</param>
             <param name="exp"></param>
             <returns></returns>
         </member>

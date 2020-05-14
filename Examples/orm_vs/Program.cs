@@ -15,8 +15,8 @@ namespace orm_vs
     class Program
     {
         static IFreeSql fsql = new FreeSql.FreeSqlBuilder()
-                //.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=20")
-                .UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=20")
+                .UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=20")
+                //.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=20")
                 .UseAutoSyncStructure(false)
                 .UseNoneCommandParameter(true)
                 //.UseConfigEntityFromDbFirst(true)
@@ -27,10 +27,10 @@ namespace orm_vs
             get => new SqlSugarClient(new ConnectionConfig()
             {
                 //不欺负，让连接池100个最小
-                //ConnectionString = "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Min Pool Size=20;Max Pool Size=20",
-                //DbType = DbType.SqlServer,
-                ConnectionString = "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Min Pool Size=20;Max Pool Size=20",
-                DbType = DbType.MySql,
+                ConnectionString = "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Min Pool Size=20;Max Pool Size=20",
+                DbType = DbType.SqlServer,
+                //ConnectionString = "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Min Pool Size=20;Max Pool Size=20",
+                //DbType = DbType.MySql,
                 IsAutoCloseConnection = true,
                 InitKeyType = InitKeyType.Attribute
             });
@@ -41,8 +41,8 @@ namespace orm_vs
             public DbSet<Song> Songs { get; set; }
             protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
             {
-                //optionsBuilder.UseSqlServer(@"Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Min Pool Size=21;Max Pool Size=21");
-                optionsBuilder.UseMySql("Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Min Pool Size=21;Max Pool Size=21");
+                optionsBuilder.UseSqlServer(@"Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Min Pool Size=21;Max Pool Size=21");
+                //optionsBuilder.UseMySql("Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Min Pool Size=21;Max Pool Size=21");
             }
         }
 
@@ -175,7 +175,16 @@ namespace orm_vs
                 }
             }
             sw.Stop();
-            sb.AppendLine($"EFCore Select {size}条数据，循环{forTime}次，耗时{sw.ElapsedMilliseconds}ms\r\n");
+            sb.AppendLine($"EFCore Select {size}条数据，循环{forTime}次，耗时{sw.ElapsedMilliseconds}ms");
+
+            sw.Restart();
+            using (var conn = fsql.Ado.MasterPool.Get())
+            {
+                for (var a = 0; a < forTime; a++)
+                    Dapper.SqlMapper.Query<Song>(conn.Value, $"select top {size} * from freesql_song").ToList();
+            }
+            sw.Stop();
+            sb.AppendLine($"Dapper Select {size}条数据，循环{forTime}次，耗时{sw.ElapsedMilliseconds}ms\r\n");
         }
 
         static void Insert(StringBuilder sb, int forTime, int size)
