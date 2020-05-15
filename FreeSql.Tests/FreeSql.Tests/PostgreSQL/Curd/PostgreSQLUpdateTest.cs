@@ -107,6 +107,9 @@ namespace FreeSql.Tests.PostgreSQL
 
             sql = update.Set(a => a.Id == 10).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
             Assert.Equal("UPDATE \"tb_topic\" SET \"id\" = 10 WHERE (\"id\" = 1)", sql);
+
+            sql = update.Set(a => a.Clicks == null).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
+            Assert.Equal("UPDATE \"tb_topic\" SET \"clicks\" = NULL WHERE (\"id\" = 1)", sql);
         }
         [Fact]
         public void SetRaw()

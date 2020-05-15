@@ -1363,10 +1363,10 @@ namespace FreeSql.Internal
                             Expression.Block(
                                 Expression.IfThen(
                                     Expression.LessThan(dataIndexExp, rowLenExp),
-                                        Expression.Return(returnTarget, Expression.New(RowInfo.Constructor,
-                                            GetDataReaderValueBlockExpression(type, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp })),
-                                            //Expression.Call(MethodGetDataReaderValue, new Expression[] { typeExp, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp }) }),
-                                            Expression.Add(dataIndexExp, Expression.Constant(1))))
+                                    Expression.Return(returnTarget, Expression.New(RowInfo.Constructor,
+                                        GetDataReaderValueBlockExpression(type, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp })),
+                                        //Expression.Call(MethodGetDataReaderValue, new Expression[] { typeExp, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, dataIndexExp }) }),
+                                        Expression.Add(dataIndexExp, Expression.Constant(1))))
                                 ),
                                 Expression.Label(returnTarget, Expression.Default(typeof(RowInfo)))
                             ), new[] { typeExp, indexesExp, rowExp, dataIndexExp, commonUtilExp }).Compile();
@@ -1442,7 +1442,7 @@ namespace FreeSql.Internal
                                             Expression.IfThen(
                                                 Expression.AndAlso(
                                                     Expression.IsFalse(readpknullExp),
-                                                    Expression.Or(
+                                                    Expression.OrElse(
                                                         Expression.Equal(readpkvalExp, Expression.Constant(DBNull.Value)),
                                                         Expression.Equal(readpkvalExp, Expression.Constant(null))
                                                     )
@@ -1550,7 +1550,7 @@ namespace FreeSql.Internal
                                             Expression.IfThen(
                                                 Expression.AndAlso(
                                                     Expression.IsFalse(readpknullExp),
-                                                    Expression.Or(
+                                                    Expression.OrElse(
                                                         Expression.Equal(readpkvalExp, Expression.Constant(DBNull.Value)),
                                                         Expression.Equal(readpkvalExp, Expression.Constant(null))
                                                     )
@@ -1718,7 +1718,7 @@ namespace FreeSql.Internal
                         Expression.TypeEqual(valueExp, typeof(string)),
                         Expression.Return(returnTarget, Expression.Call(Expression.Constant(DefaultEncoding), MethodEncodingGetBytes, Expression.Convert(valueExp, typeof(string)))),
                         Expression.IfThenElse(
-                            Expression.Or(Expression.TypeEqual(valueExp, typeof(Guid)), Expression.TypeEqual(valueExp, typeof(Guid?))),
+                            Expression.OrElse(Expression.TypeEqual(valueExp, typeof(Guid)), Expression.TypeEqual(valueExp, typeof(Guid?))),
                             Expression.Return(returnTarget, Expression.Call(MethodGuidToBytes, Expression.Convert(valueExp, typeof(Guid)))),
                             Expression.Return(returnTarget, Expression.Call(Expression.Constant(DefaultEncoding), MethodEncodingGetBytes, Expression.Call(MethodToString, valueExp)))
                         )
@@ -1969,11 +1969,11 @@ namespace FreeSql.Internal
                         break;
                     case "System.Boolean":
                         tryparseBooleanExp = Expression.Return(returnTarget,
-                                Expression.Convert(
-                                    Expression.Not(
-                                        Expression.Or(
-                                            Expression.Equal(Expression.Convert(valueExp, typeof(string)), Expression.Constant("False")),
-                                        Expression.Or(
+                            Expression.Convert(
+                                Expression.Not(
+                                    Expression.OrElse(
+                                        Expression.Equal(Expression.Convert(valueExp, typeof(string)), Expression.Constant("False")),
+                                        Expression.OrElse(
                                             Expression.Equal(Expression.Convert(valueExp, typeof(string)), Expression.Constant("false")),
                                             Expression.Equal(Expression.Convert(valueExp, typeof(string)), Expression.Constant("0"))))),
                             typeof(object))
@@ -2027,7 +2027,7 @@ namespace FreeSql.Internal
                                 Expression.IfThenElse(
                                     Expression.TypeEqual(valueExp, typeof(byte[])),
                                     Expression.IfThenElse(
-                                        Expression.Or(Expression.Equal(Expression.Constant(type), Expression.Constant(typeof(Guid))), Expression.Equal(Expression.Constant(type), Expression.Constant(typeof(Guid?)))),
+                                        Expression.OrElse(Expression.Equal(Expression.Constant(type), Expression.Constant(typeof(Guid))), Expression.Equal(Expression.Constant(type), Expression.Constant(typeof(Guid?)))),
                                         Expression.Return(returnTarget, Expression.Convert(Expression.Call(MethodBytesToGuid, Expression.Convert(valueExp, typeof(byte[]))), typeof(object))),
                                         Expression.IfThenElse(
                                             Expression.Equal(Expression.Constant(type), Expression.Constant(typeof(string))),
@@ -2047,7 +2047,7 @@ namespace FreeSql.Internal
                 new[] { valueExp },
                 Expression.Assign(valueExp, Expression.Convert(value, typeof(object))),
                 Expression.IfThenElse(
-                    Expression.Or(
+                    Expression.OrElse(
                         Expression.Equal(valueExp, Expression.Constant(null)),
                         Expression.Equal(valueExp, Expression.Constant(DBNull.Value))
                     ),

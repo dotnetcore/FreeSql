@@ -1063,10 +1063,7 @@ namespace FreeSql.Internal.CommonProvider
                     {
                         var firstTb = _tables[0];
                         var firstTbs = _tables.Where(a => a.AliasInit == field[0]).ToArray();
-                        if (firstTbs.Length == 1)
-                        {
-                            firstTb = firstTbs[0];
-                        }
+                        if (firstTbs.Length == 1) firstTb = firstTbs[0];
 
                         firstTb.Parameter = Expression.Parameter(firstTb.Table.Type, firstTb.Alias);
                         var currentType = firstTb.Table.Type;
