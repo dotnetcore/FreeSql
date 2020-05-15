@@ -26,7 +26,7 @@
   </ItemGroup>
   
 	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-	  <PackageReference Include="System.Data.OleDb" Version="4.7.0" />
+	  <PackageReference Include="System.Data.OleDb" Version="4.7.1" />
 	</ItemGroup>
     
 	<ItemGroup>
