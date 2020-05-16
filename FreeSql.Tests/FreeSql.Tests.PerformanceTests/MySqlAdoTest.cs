@@ -173,30 +173,46 @@ namespace FreeSql.Tests.PerformanceTest
             g.mysql.Ado.ExecuteReader(dr =>
             {
                 var xim = new xxx();
-                var val1 = dr.GetValue(0);
-                if (val1 is int) ;
-                val1 = int.Parse(string.Format("{0}", val1));
-                xim.Id = (int)val1;
-                val1 = dr.GetValue(1);
-                if (val1 is DateTime) ;
-                val1 = (DateTime)val1;
-                xim.Create_time = (DateTime)val1;
-                val1 = dr.GetValue(2);
-                if (val1 is int) ;
-                val1 = int.Parse(string.Format("{0}", val1)) != 0;
-                xim.Is_deleted = (bool)val1;
-                val1 = dr.GetValue(3);
-                if (val1 is string) ;
-                val1 = (string)val1;
-                xim.Title = (string)val1;
-                val1 = dr.GetValue(4);
-                if (val1 is string) ;
-                val1 = (string)val1;
-                xim.Title = (string)val1;
+                dr.GetValue(0);
+                dr.GetValue(1);
+                dr.GetValue(2);
+                dr.GetValue(3);
+                dr.GetValue(4);
                 adolist1.Add(xim);
             }, "select * from freesql_song");
             time.Stop();
             sb.AppendLine($"Elapsed: {time.Elapsed}; ExecuteReader Entity Counts: {adolist1.Count}; ORM: FreeSql ExecuteReader*");
+
+            time.Restart();
+            adolist1 = new List<xxx>();
+            g.mysql.Ado.ExecuteReader(dr =>
+            {
+                var xim = new xxx();
+                dr.GetFieldValue<int>(0);
+                dr.GetFieldValue<DateTime>(1);
+                dr.GetFieldValue<bool>(2);
+                dr.GetFieldValue<string>(3);
+                dr.GetFieldValue<string>(4);
+                adolist1.Add(xim);
+            }, "select * from freesql_song");
+            time.Stop();
+            sb.AppendLine($"Elapsed: {time.Elapsed}; ExecuteReader0000 Entity Counts: {adolist1.Count}; ORM: FreeSql ExecuteReader0000*");
+
+            //time.Restart();
+            //adolist1 = new List<xxx>();
+            //g.mysql.Ado.ExecuteReader(dr =>
+            //{
+            //    var xim = new xxx();
+            //    Utils.GetDataReaderValue(typeof(int), dr.GetValue(0));
+            //    Utils.GetDataReaderValue(typeof(DateTime), dr.GetValue(1));
+            //    Utils.GetDataReaderValue(typeof(bool), dr.GetValue(2));
+            //    Utils.GetDataReaderValue(typeof(string), dr.GetValue(3));
+            //    Utils.GetDataReaderValue(typeof(string), dr.GetValue(4));
+            //    adolist1.Add(xim);
+            //}, "select * from freesql_song");
+            //time.Stop();
+            //sb.AppendLine($"Elapsed: {time.Elapsed}; ExecuteReader1111 Entity Counts: {adolist1.Count}; ORM: FreeSql ExecuteReader1111*");
+
 
             time.Restart();
             List<xxx> dplist1 = null;

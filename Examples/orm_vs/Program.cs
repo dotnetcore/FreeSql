@@ -1,11 +1,14 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using FreeSql.Internal;
+using Microsoft.EntityFrameworkCore;
 using SqlSugar;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Data.Common;
 using System.Diagnostics;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -48,6 +51,297 @@ namespace orm_vs
 
         static void Main(string[] args)
         {
+            var sb = new StringBuilder();
+            var time = new Stopwatch();
+
+            //var t31 = fsql.Select<xxx>().ToList();
+            fsql.Select<Song>().First();
+
+            time.Restart();
+            var t3 = fsql.Select<Song>().ToList();
+            time.Stop();
+            sb.AppendLine($"Elapsed: {time.Elapsed}; ToList Entity Counts: {t3.Count}; ORM: FreeSql*");
+
+            time.Restart();
+            var adoarr1 = fsql.Ado.ExecuteArray("select * from freesql_song");
+            time.Stop();
+            sb.AppendLine($"Elapsed: {time.Elapsed}; ExecuteArray Entity Counts: {adoarr1.Length}; ORM: FreeSql ExecuteArray*");
+
+            time.Restart();
+            var adolist1 = new List<Song>();
+            fsql.Ado.ExecuteReader(dr =>
+            {
+                var xim = new Song();
+                dr.GetValue(0)?.GetType();
+                dr.GetValue(1)?.GetType();
+                dr.GetValue(2)?.GetType();
+                dr.GetValue(3)?.GetType();
+                dr.GetValue(4)?.GetType();
+                adolist1.Add(xim);
+            }, "select * from freesql_song");
+            time.Stop();
+            sb.AppendLine($"Elapsed: {time.Elapsed}; ExecuteReader Entity Counts: {adolist1.Count}; ORM: FreeSql ExecuteReader*");
+
+
+            time.Restart();
+            adolist1 = new List<Song>();
+            fsql.Ado.ExecuteReader(dr =>
+            {
+                var xim = new Song();
+                var v1 = dr.GetValue(0);
+                var locvalue = (object)v1;
+                if (locvalue == null || locvalue == DBNull.Value) xim.Id = default;
+                else
+                {
+                    if (locvalue is int iv) xim.Id = iv;
+                    else
+                    {
+                        if (locvalue is string)
+                        {
+                            
+                        }
+                    }
+                }
+                v1 = dr.GetValue(1);
+                locvalue = (object)v1;
+                if (locvalue == null || locvalue == DBNull.Value) xim.Create_time = default;
+                else
+                {
+                    if (locvalue is DateTime dt) xim.Create_time = dt;
+                    else
+                    {
+                        if (locvalue is string)
+                        {
+
+                        }
+                    }
+                }
+                v1 = dr.GetValue(2);
+                locvalue = (object)v1;
+                if (locvalue == null || locvalue == DBNull.Value) xim.Is_deleted = default;
+                else
+                {
+                    if (locvalue is bool bl) xim.Is_deleted = bl;
+                    else
+                    {
+                        if (locvalue is string)
+                        {
+
+                        }
+                    }
+                }
+                v1 = dr.GetValue(3);
+                locvalue = (object)v1;
+                if (locvalue == null || locvalue == DBNull.Value) xim.Title = default;
+                else
+                {
+                    if (locvalue is string str) xim.Title = str;
+                    else
+                    {
+                        if (locvalue is string)
+                        {
+
+                        }
+                    }
+                }
+                v1 = dr.GetValue(4);
+                locvalue = (object)v1;
+                if (locvalue == null || locvalue == DBNull.Value) xim.Url = default;
+                else
+                {
+                    if (locvalue is string str) xim.Url = str;
+                    else
+                    {
+                        if (locvalue is string)
+                        {
+
+                        }
+                    }
+                }
+                adolist1.Add(xim);
+            }, "select * from freesql_song");
+            time.Stop();
+            sb.AppendLine($"Elapsed: {time.Elapsed}; ExecuteReaderObject Entity Counts: {adolist1.Count}; ORM: FreeSql ExecuteReaderObject*");
+
+            //var type = typeof(Song);
+            //var myfuncParam1 = Expression.Parameter(typeof(object[]), "values");
+            //var retExp = Expression.Variable(type, "ret");
+            //var objExp = Expression.Variable(typeof(object), "obj");
+            //var returnTarget = Expression.Label(type);
+            //var myfuncBody = Expression.Block(
+            //    new[] { retExp, objExp },
+            //    Expression.Assign(retExp, type.InternalNewExpression()),
+            //    Expression.Assign(objExp, Expression.ArrayIndex(myfuncParam1, Expression.Constant(0))),
+            //    Utils.GetConvertExpression(type.GetProperty("Id").PropertyType, objExp),
+            //    Expression.Assign(Expression.MakeMemberAccess(retExp, type.GetProperty("Id")), Expression.Convert(objExp, type.GetProperty("Id").PropertyType)),
+            //    Expression.Assign(objExp, Expression.ArrayIndex(myfuncParam1, Expression.Constant(1))),
+            //    Utils.GetConvertExpression(type.GetProperty("Create_time").PropertyType, objExp),
+            //    Expression.Assign(Expression.MakeMemberAccess(retExp, type.GetProperty("Create_time")), Expression.Convert(objExp, type.GetProperty("Create_time").PropertyType)),
+            //    Expression.Assign(objExp, Expression.ArrayIndex(myfuncParam1, Expression.Constant(2))),
+            //    Utils.GetConvertExpression(type.GetProperty("Is_deleted").PropertyType, objExp),
+            //    Expression.Assign(Expression.MakeMemberAccess(retExp, type.GetProperty("Is_deleted")), Expression.Convert(objExp, type.GetProperty("Is_deleted").PropertyType)),
+            //    Expression.Assign(objExp, Expression.ArrayIndex(myfuncParam1, Expression.Constant(3))),
+            //    Utils.GetConvertExpression(type.GetProperty("Title").PropertyType, objExp),
+            //    Expression.Assign(Expression.MakeMemberAccess(retExp, type.GetProperty("Title")), Expression.Convert(objExp, type.GetProperty("Title").PropertyType)),
+            //    Expression.Assign(objExp, Expression.ArrayIndex(myfuncParam1, Expression.Constant(4))),
+            //    Utils.GetConvertExpression(type.GetProperty("Url").PropertyType, objExp),
+            //    Expression.Assign(Expression.MakeMemberAccess(retExp, type.GetProperty("Url")), Expression.Convert(objExp, type.GetProperty("Url").PropertyType)),
+            //    Expression.Return(returnTarget, retExp),
+            //    Expression.Label(returnTarget, Expression.Default(type))
+            //);
+            //var myfunc = Expression.Lambda<Func<object[], Song>>(myfuncBody, myfuncParam1).Compile();
+            //time.Restart();
+            //adolist1 = new List<Song>();
+            //fsql.Ado.ExecuteReader(dr =>
+            //{
+            //    var values = new object[dr.FieldCount];
+            //    dr.GetValues(values);
+            //    var xim = myfunc(values);
+            //    adolist1.Add(xim);
+            //}, "select * from freesql_song");
+            //time.Stop();
+            //sb.AppendLine($"Elapsed: {time.Elapsed}; ExecuteReaderMyFunc Entity Counts: {adolist1.Count}; ORM: FreeSql ExecuteReaderMyFunc*");
+
+
+            //var methodDrgv = typeof(DbDataReader).GetMethod("GetValue");
+            //var myfunc2Param1 = Expression.Parameter(typeof(DbDataReader), "dr");
+            //var myfunc2Body = Expression.Block(
+            //    new[] { retExp, objExp },
+            //    Expression.Assign(retExp, type.InternalNewExpression()),
+            //    Expression.Assign(objExp, Expression.Call(myfunc2Param1, methodDrgv, Expression.Constant(0))),
+            //    Utils.GetConvertExpression(type.GetProperty("Id").PropertyType, objExp),
+            //    Expression.Assign(Expression.MakeMemberAccess(retExp, type.GetProperty("Id")), Expression.Convert(objExp, type.GetProperty("Id").PropertyType)),
+            //    Expression.Assign(objExp, Expression.Call(myfunc2Param1, methodDrgv, Expression.Constant(1))),
+            //    Utils.GetConvertExpression(type.GetProperty("Create_time").PropertyType, objExp),
+            //    Expression.Assign(Expression.MakeMemberAccess(retExp, type.GetProperty("Create_time")), Expression.Convert(objExp, type.GetProperty("Create_time").PropertyType)),
+            //    Expression.Assign(objExp, Expression.Call(myfunc2Param1, methodDrgv, Expression.Constant(2))),
+            //    Utils.GetConvertExpression(type.GetProperty("Is_deleted").PropertyType, objExp),
+            //    Expression.Assign(Expression.MakeMemberAccess(retExp, type.GetProperty("Is_deleted")), Expression.Convert(objExp, type.GetProperty("Is_deleted").PropertyType)),
+            //    Expression.Assign(objExp, Expression.Call(myfunc2Param1, methodDrgv, Expression.Constant(3))),
+            //    Utils.GetConvertExpression(type.GetProperty("Title").PropertyType, objExp),
+            //    Expression.Assign(Expression.MakeMemberAccess(retExp, type.GetProperty("Title")), Expression.Convert(objExp, type.GetProperty("Title").PropertyType)),
+            //    Expression.Assign(objExp, Expression.Call(myfunc2Param1, methodDrgv, Expression.Constant(4))),
+            //    Utils.GetConvertExpression(type.GetProperty("Url").PropertyType, objExp),
+            //    Expression.Assign(Expression.MakeMemberAccess(retExp, type.GetProperty("Url")), Expression.Convert(objExp, type.GetProperty("Url").PropertyType)),
+            //    Expression.Return(returnTarget, retExp),
+            //    Expression.Label(returnTarget, Expression.Default(type))
+            //);
+            //var myfunc2 = Expression.Lambda<Func<DbDataReader, Song>>(myfunc2Body, myfunc2Param1).Compile();
+            //time.Restart();
+            //adolist1 = new List<Song>();
+            //fsql.Ado.ExecuteReader(dr =>
+            //{
+            //    var xim = myfunc2(dr);
+            //    adolist1.Add(xim);
+            //}, "select * from freesql_song");
+            //time.Stop();
+            //sb.AppendLine($"Elapsed: {time.Elapsed}; ExecuteReaderMyFunc22 Entity Counts: {adolist1.Count}; ORM: FreeSql ExecuteReaderMyFunc22*");
+
+
+            time.Restart();
+            adolist1 = new List<Song>();
+            fsql.Ado.ExecuteReader(dr =>
+            {
+                var xim = new Song();
+                dr.GetFieldValue<int>(0);
+                dr.GetFieldValue<DateTime>(1);
+                dr.GetFieldValue<bool>(2);
+                dr.GetFieldValue<string>(3);
+                dr.GetFieldValue<string>(4);
+                adolist1.Add(xim);
+            }, "select * from freesql_song");
+            time.Stop();
+            sb.AppendLine($"Elapsed: {time.Elapsed}; ExecuteReader0000 Entity Counts: {adolist1.Count}; ORM: FreeSql ExecuteReader0000*");
+
+            time.Restart();
+            adolist1 = new List<Song>();
+            fsql.Ado.ExecuteReader(dr =>
+            {
+                var xim = new Song();
+                Utils.GetDataReaderValue(typeof(int), dr.GetValue(0));
+                Utils.GetDataReaderValue(typeof(DateTime), dr.GetValue(1));
+                Utils.GetDataReaderValue(typeof(bool), dr.GetValue(2));
+                Utils.GetDataReaderValue(typeof(string), dr.GetValue(3));
+                Utils.GetDataReaderValue(typeof(string), dr.GetValue(4));
+                adolist1.Add(xim);
+            }, "select * from freesql_song");
+            time.Stop();
+            sb.AppendLine($"Elapsed: {time.Elapsed}; ExecuteReader1111 Entity Counts: {adolist1.Count}; ORM: FreeSql ExecuteReader1111*");
+
+
+            //time.Restart();
+            //adolist1 = new List<Song>();
+            //fsql.Ado.ExecuteReader(dr =>
+            //{
+            //    var xim = new Song();
+            //    Utils.GetConvertValue(typeof(int), dr.GetValue(0));
+            //    Utils.GetConvertValue(typeof(DateTime), dr.GetValue(1));
+            //    Utils.GetConvertValue(typeof(bool), dr.GetValue(2));
+            //    Utils.GetConvertValue(typeof(string), dr.GetValue(3));
+            //    Utils.GetConvertValue(typeof(string), dr.GetValue(4));
+            //    adolist1.Add(xim);
+            //}, "select * from freesql_song");
+            //time.Stop();
+            //sb.AppendLine($"Elapsed: {time.Elapsed}; ExecuteReader11112222 Entity Counts: {adolist1.Count}; ORM: FreeSql ExecuteReader11112222*");
+
+
+            time.Restart();
+            adolist1 = new List<Song>();
+            fsql.Ado.ExecuteReader(dr =>
+            {
+                var values = new object[dr.FieldCount];
+                dr.GetValues(values);
+
+                var xim = new Song();
+                xim.Id = (int)Utils.GetDataReaderValue(typeof(int), values[0]);
+                xim.Create_time = (DateTime)Utils.GetDataReaderValue(typeof(DateTime), values[1]);
+                xim.Is_deleted = (bool)Utils.GetDataReaderValue(typeof(bool), values[2]);
+                xim.Title = (string)Utils.GetDataReaderValue(typeof(string), values[3]);
+                xim.Url = (string)Utils.GetDataReaderValue(typeof(string), values[4]);
+                adolist1.Add(xim);
+            }, "select * from freesql_song");
+            time.Stop();
+            sb.AppendLine($"Elapsed: {time.Elapsed}; ExecuteReader1111 Entity Counts: {adolist1.Count}; ORM: FreeSql ExecuteReader1111*");
+
+
+            //time.Restart();
+            //adolist1 = new List<Song>();
+            //fsql.Ado.ExecuteReader(dr =>
+            //{
+            //    var values = new object[dr.FieldCount];
+            //    dr.GetValues(values);
+
+            //    var xim = new Song();
+            //    xim.Id = (int)Utils.GetConvertValue(typeof(int), values[0]);
+            //    xim.Create_time = (DateTime)Utils.GetConvertValue(typeof(DateTime), values[1]);
+            //    xim.Is_deleted = (bool)Utils.GetConvertValue(typeof(bool), values[2]);
+            //    xim.Title = (string)Utils.GetConvertValue(typeof(string), values[3]);
+            //    xim.Url = (string)Utils.GetConvertValue(typeof(string), values[4]);
+            //    adolist1.Add(xim);
+            //}, "select * from freesql_song");
+            //time.Stop();
+            //sb.AppendLine($"Elapsed: {time.Elapsed}; ExecuteReader11112222 Entity Counts: {adolist1.Count}; ORM: FreeSql ExecuteReader11112222*");
+
+
+            time.Restart();
+            List<Song> dplist1 = null;
+            using (var conn = fsql.Ado.MasterPool.Get())
+            {
+                dplist1 = Dapper.SqlMapper.Query<Song>(conn.Value, "select * from freesql_song").ToList();
+            }
+            time.Stop();
+            sb.AppendLine($"Elapsed: {time.Elapsed}; Query Entity Counts: {dplist1.Count}; ORM: Dapper");
+
+            time.Restart();
+            t3 = fsql.Select<Song>().ToList();
+            time.Stop();
+            sb.AppendLine($"Elapsed: {time.Elapsed}; ToList Entity Counts: {t3.Count}; ORM: FreeSql*");
+
+            Console.WriteLine(sb.ToString());
+            Console.ReadKey();
+
+            return;
+
             var testlist1 = fsql.Select<Song>().OrderBy(a => a.Id).ToList();
             var testlist2 = new List<Song>();
             fsql.Select<Song>().OrderBy(a => a.Id).ToChunk(0, list =>
@@ -68,7 +362,6 @@ namespace orm_vs
             sugar.Deleteable<Song>().Where(a => a.Id > 0).ExecuteCommand();
             fsql.Ado.ExecuteNonQuery("delete from efcore_song");
 
-            var sb = new StringBuilder();
             Console.WriteLine("插入性能：");
             Insert(sb, 1000, 1);
             Console.Write(sb.ToString());

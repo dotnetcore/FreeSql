@@ -129,11 +129,10 @@ namespace FreeSql
         IUpdate<T1> SetRaw(string sql, object parms = null);
 
         /// <summary>
-        /// 设置更新的列
-        /// <para></para>
-        /// SetDto(new { title = "xxx", clicks = 2 })
-        /// <para></para>
-        /// SetDto(new Dictionary&lt;string, object&gt; { ["title"] = "xxx", ["clicks"] = 2 })
+        /// 设置更新的列<para></para>
+        /// SetDto(new { title = "xxx", clicks = 2 })<para></para>
+        /// SetDto(new Dictionary&lt;string, object&gt; { ["title"] = "xxx", ["clicks"] = 2 })<para></para>
+        /// 注意：标记 [Column(CanUpdate = false)] 的属性不会被更新
         /// </summary>
         /// <param name="dto">dto 或 Dictionary&lt;string, object&gt;</param>
         /// <returns></returns>
