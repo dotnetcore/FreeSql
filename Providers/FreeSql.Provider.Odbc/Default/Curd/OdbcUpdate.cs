@@ -19,8 +19,8 @@ namespace FreeSql.Odbc.Default
             _utils = _commonUtils as OdbcUtils;
         }
 
-        public override int ExecuteAffrows() => base.SplitExecuteAffrows(_utils.Adapter.InsertBatchSplitLimit, 255);
-        public override List<T1> ExecuteUpdated() => base.SplitExecuteUpdated(_utils.Adapter.InsertBatchSplitLimit, 255);
+        public override int ExecuteAffrows() => base.SplitExecuteAffrows(_batchRowsLimit > 0 ? _batchRowsLimit : _utils.Adapter.UpdateBatchSplitLimit, _batchParameterLimit > 0 ? _batchParameterLimit : 255);
+        public override List<T1> ExecuteUpdated() => base.SplitExecuteUpdated(_batchRowsLimit > 0 ? _batchRowsLimit : _utils.Adapter.UpdateBatchSplitLimit, _batchParameterLimit > 0 ? _batchParameterLimit : 255);
 
         protected override List<T1> RawExecuteUpdated() => throw new NotImplementedException("FreeSql.Odbc.Default 未实现该功能");
 
@@ -61,8 +61,8 @@ namespace FreeSql.Odbc.Default
 
 #if net40
 #else
-        public override Task<int> ExecuteAffrowsAsync() => base.SplitExecuteAffrowsAsync(_utils.Adapter.InsertBatchSplitLimit, 255);
-        public override Task<List<T1>> ExecuteUpdatedAsync() => base.SplitExecuteUpdatedAsync(_utils.Adapter.InsertBatchSplitLimit, 255);
+        public override Task<int> ExecuteAffrowsAsync() => base.SplitExecuteAffrowsAsync(_batchRowsLimit > 0 ? _batchRowsLimit : _utils.Adapter.UpdateBatchSplitLimit, _batchParameterLimit > 0 ? _batchParameterLimit : 255);
+        public override Task<List<T1>> ExecuteUpdatedAsync() => base.SplitExecuteUpdatedAsync(_batchRowsLimit > 0 ? _batchRowsLimit : _utils.Adapter.UpdateBatchSplitLimit, _batchParameterLimit > 0 ? _batchParameterLimit : 255);
 
         protected override Task<List<T1>> RawExecuteUpdatedAsync() => throw new NotImplementedException("FreeSql.Odbc.Default 未实现该功能");
 #endif

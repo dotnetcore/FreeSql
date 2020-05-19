@@ -102,9 +102,9 @@ namespace FreeSql.MsAccess.Curd
 
 #if net40
 #else
-        public override Task<int> ExecuteAffrowsAsync() => base.SplitExecuteAffrowsAsync(1000, 2100);
-        public override Task<long> ExecuteIdentityAsync() => base.SplitExecuteIdentityAsync(1000, 2100);
-        public override Task<List<T1>> ExecuteInsertedAsync() => base.SplitExecuteInsertedAsync(1000, 2100);
+        public override Task<int> ExecuteAffrowsAsync() => base.SplitExecuteAffrowsAsync(1, 1000);
+        public override Task<long> ExecuteIdentityAsync() => base.SplitExecuteIdentityAsync(1, 1000);
+        public override Task<List<T1>> ExecuteInsertedAsync() => base.SplitExecuteInsertedAsync(1, 1000);
 
         async protected override Task<int> RawExecuteAffrowsAsync()
         {
