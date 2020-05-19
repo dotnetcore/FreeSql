@@ -151,7 +151,7 @@ namespace FreeSql.Odbc.SqlServer
                 ++colidx;
             }
 
-            if ((_commonUtils as SqlServerUtils).ServerVersion > 10)
+            if ((_commonUtils as OdbcSqlServerUtils).ServerVersion > 10)
             {
                 var validx = sql.IndexOf(") VALUES");
                 if (validx == -1) throw new ArgumentException("找不到 VALUES");
