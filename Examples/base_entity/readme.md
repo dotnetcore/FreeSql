@@ -114,7 +114,7 @@ using (var uow = fsql.CreateUnitOfWork())
 
     try
     {
-        //todo ...
+        //todo ... BaseEntity 内部 curd 方法保持使用 uow 事务
     }
     finally
     {
