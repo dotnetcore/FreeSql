@@ -74,8 +74,8 @@ namespace FreeSql.Odbc.Default
             if (enumType != null)
             {
                 var newItem = enumType.GetCustomAttributes(typeof(FlagsAttribute), false).Any() ?
-                    CsToDb.New(OdbcType.BigInt, _utils.Adapter.MappingOdbcTypeBigInt, $"{_utils.Adapter.MappingOdbcTypeBigInt}{(type.IsEnum ? " NOT NULL" : "")}", false, type.IsEnum ? false : true, Enum.GetValues(enumType).GetValue(0)) :
-                    CsToDb.New(OdbcType.Int, _utils.Adapter.MappingOdbcTypeInt, $"{_utils.Adapter.MappingOdbcTypeInt}{(type.IsEnum ? " NOT NULL" : "")}", false, type.IsEnum ? false : true, Enum.GetValues(enumType).GetValue(0));
+                    CsToDb.New(OdbcType.BigInt, _utils.Adapter.MappingOdbcTypeBigInt, $"{_utils.Adapter.MappingOdbcTypeBigInt}{(type.IsEnum ? " NOT NULL" : "")}", false, type.IsEnum ? false : true, enumType.CreateInstanceGetDefaultValue()) :
+                    CsToDb.New(OdbcType.Int, _utils.Adapter.MappingOdbcTypeInt, $"{_utils.Adapter.MappingOdbcTypeInt}{(type.IsEnum ? " NOT NULL" : "")}", false, type.IsEnum ? false : true, enumType.CreateInstanceGetDefaultValue());
                 if (_dicCsToDb.ContainsKey(type.FullName) == false)
                 {
                     lock (_dicCsToDbLock)

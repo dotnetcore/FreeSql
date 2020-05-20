@@ -371,6 +371,11 @@ namespace FreeSql.Tests.Sqlite
             public TableAllTypeEnumType1? Enum1Nullable { get; set; }
             public TableAllTypeEnumType2 Enum2 { get; set; }
             public TableAllTypeEnumType2? Enum2Nullable { get; set; }
+
+            public TableAllTypeEnumType3 testFieldEnum3 { get; set; }
+            public TableAllTypeEnumType3? testFieldEnum3Nullable { get; set; }
+
+            public enum TableAllTypeEnumType3 { }
         }
 
         public enum TableAllTypeEnumType1 { e1, e2, e3, e5 }
