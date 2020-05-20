@@ -15,25 +15,25 @@ namespace FreeSql.Internal.CommonProvider
 
     public abstract partial class UpdateProvider<T1> : IUpdate<T1> where T1 : class
     {
-        protected IFreeSql _orm;
-        protected CommonUtils _commonUtils;
-        protected CommonExpression _commonExpression;
-        protected List<T1> _source = new List<T1>();
-        protected Dictionary<string, bool> _ignore = new Dictionary<string, bool>(StringComparer.CurrentCultureIgnoreCase);
-        protected Dictionary<string, bool> _auditValueChangedDict = new Dictionary<string, bool>(StringComparer.CurrentCultureIgnoreCase);
-        protected TableInfo _table;
-        protected Func<string, string> _tableRule;
-        protected StringBuilder _where = new StringBuilder();
-        protected List<GlobalFilter.Item> _whereGlobalFilter;
-        protected StringBuilder _set = new StringBuilder();
-        protected StringBuilder _setIncr = new StringBuilder();
-        protected List<DbParameter> _params = new List<DbParameter>();
-        protected List<DbParameter> _paramsSource = new List<DbParameter>();
-        protected bool _noneParameter;
-        protected int _batchRowsLimit, _batchParameterLimit;
-        protected bool _batchAutoTransaction = true;
-        protected DbTransaction _transaction;
-        protected DbConnection _connection;
+        public IFreeSql _orm;
+        public CommonUtils _commonUtils;
+        public CommonExpression _commonExpression;
+        public List<T1> _source = new List<T1>();
+        public Dictionary<string, bool> _ignore = new Dictionary<string, bool>(StringComparer.CurrentCultureIgnoreCase);
+        public Dictionary<string, bool> _auditValueChangedDict = new Dictionary<string, bool>(StringComparer.CurrentCultureIgnoreCase);
+        public TableInfo _table;
+        public Func<string, string> _tableRule;
+        public StringBuilder _where = new StringBuilder();
+        public List<GlobalFilter.Item> _whereGlobalFilter;
+        public StringBuilder _set = new StringBuilder();
+        public StringBuilder _setIncr = new StringBuilder();
+        public List<DbParameter> _params = new List<DbParameter>();
+        public List<DbParameter> _paramsSource = new List<DbParameter>();
+        public bool _noneParameter;
+        public int _batchRowsLimit, _batchParameterLimit;
+        public bool _batchAutoTransaction = true;
+        public DbTransaction _transaction;
+        public DbConnection _connection;
 
         public UpdateProvider(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere)
         {

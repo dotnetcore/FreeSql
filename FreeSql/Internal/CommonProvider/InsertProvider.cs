@@ -15,20 +15,20 @@ namespace FreeSql.Internal.CommonProvider
 
     public abstract partial class InsertProvider<T1> : IInsert<T1> where T1 : class
     {
-        protected IFreeSql _orm;
-        protected CommonUtils _commonUtils;
-        protected CommonExpression _commonExpression;
-        protected List<T1> _source = new List<T1>();
-        protected Dictionary<string, bool> _ignore = new Dictionary<string, bool>(StringComparer.CurrentCultureIgnoreCase);
-        protected Dictionary<string, bool> _auditValueChangedDict = new Dictionary<string, bool>(StringComparer.CurrentCultureIgnoreCase);
-        protected TableInfo _table;
-        protected Func<string, string> _tableRule;
-        protected bool _noneParameter, _insertIdentity;
-        protected int _batchValuesLimit, _batchParameterLimit;
-        protected bool _batchAutoTransaction = true;
-        protected DbParameter[] _params;
-        protected DbTransaction _transaction;
-        protected DbConnection _connection;
+        public IFreeSql _orm;
+        public CommonUtils _commonUtils;
+        public CommonExpression _commonExpression;
+        public List<T1> _source = new List<T1>();
+        public Dictionary<string, bool> _ignore = new Dictionary<string, bool>(StringComparer.CurrentCultureIgnoreCase);
+        public Dictionary<string, bool> _auditValueChangedDict = new Dictionary<string, bool>(StringComparer.CurrentCultureIgnoreCase);
+        public TableInfo _table;
+        public Func<string, string> _tableRule;
+        public bool _noneParameter, _insertIdentity;
+        public int _batchValuesLimit, _batchParameterLimit;
+        public bool _batchAutoTransaction = true;
+        public DbParameter[] _params;
+        public DbTransaction _transaction;
+        public DbConnection _connection;
 
         public InsertProvider(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression)
         {
@@ -509,7 +509,7 @@ namespace FreeSql.Internal.CommonProvider
                 ++colidx;
             }
             sb.Append(") ");
-            if (isValues) sb.Append(isValues ? "VALUES" : "SELECT ");
+            if (isValues) sb.Append("VALUES");
             _params = _noneParameter ? new DbParameter[0] : new DbParameter[colidx * _source.Count];
             var specialParams = new List<DbParameter>();
             var didx = 0;

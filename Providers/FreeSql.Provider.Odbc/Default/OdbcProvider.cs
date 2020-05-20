@@ -26,6 +26,7 @@ namespace FreeSql.Odbc.Default
         public IUpdate<T1> Update<T1>(object dywhere) where T1 : class => new OdbcUpdate<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, dywhere);
         public IDelete<T1> Delete<T1>() where T1 : class => new OdbcDelete<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, null);
         public IDelete<T1> Delete<T1>(object dywhere) where T1 : class => new OdbcDelete<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, dywhere);
+        public IInsertOrUpdate<T1> InsertOrUpdate<T1>() where T1 : class => throw new NotImplementedException();
 
         public IAdo Ado { get; }
         public IAop Aop { get; }

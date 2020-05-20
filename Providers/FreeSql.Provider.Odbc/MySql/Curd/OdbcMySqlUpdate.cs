@@ -18,9 +18,15 @@ namespace FreeSql.Odbc.MySql
         {
         }
 
+        internal StringBuilder InternalSbSet => _set;
+        internal StringBuilder InternalSbSetIncr => _setIncr;
+        internal Dictionary<string, bool> InternalIgnore => _ignore;
+        internal void InternalResetSource(List<T1> source) => _source = source;
+        internal string InternalWhereCaseSource(string CsName, Func<string, string> thenValue) => WhereCaseSource(CsName, thenValue);
+        internal void InternalToSqlCaseWhenEnd(StringBuilder sb, ColumnInfo col) => ToSqlCaseWhenEnd(sb, col);
+
         public override int ExecuteAffrows() => base.SplitExecuteAffrows(_batchRowsLimit > 0 ? _batchRowsLimit : 500, _batchParameterLimit > 0 ? _batchParameterLimit : 3000);
         public override List<T1> ExecuteUpdated() => base.SplitExecuteUpdated(_batchRowsLimit > 0 ? _batchRowsLimit : 500, _batchParameterLimit > 0 ? _batchParameterLimit : 3000);
-
 
         protected override List<T1> RawExecuteUpdated()
         {

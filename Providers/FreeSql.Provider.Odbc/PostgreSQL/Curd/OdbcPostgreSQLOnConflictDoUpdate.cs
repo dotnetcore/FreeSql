@@ -8,22 +8,22 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FreeSql.PostgreSQL.Curd
+namespace FreeSql.Odbc.PostgreSQL
 {
-    public class OnConflictDoUpdate<T1> where T1 : class
+    public class OdbcPostgreSQLOnConflictDoUpdate<T1> where T1 : class
     {
-        internal PostgreSQLInsert<T1> _pgsqlInsert;
-        internal PostgreSQLUpdate<T1> _pgsqlUpdatePriv;
-        internal PostgreSQLUpdate<T1> _pgsqlUpdate => _pgsqlUpdatePriv ?? 
-            (_pgsqlUpdatePriv = new PostgreSQLUpdate<T1>(_pgsqlInsert.InternalOrm, _pgsqlInsert.InternalCommonUtils, _pgsqlInsert.InternalCommonExpression, null) { InternalTableAlias = "EXCLUDED" }
-                .NoneParameter().SetSource(_pgsqlInsert.InternalSource) as PostgreSQLUpdate<T1>);
+        internal OdbcPostgreSQLInsert<T1> _pgsqlInsert;
+        internal OdbcPostgreSQLUpdate<T1> _pgsqlUpdatePriv;
+        internal OdbcPostgreSQLUpdate<T1> _pgsqlUpdate => _pgsqlUpdatePriv ?? 
+            (_pgsqlUpdatePriv = new OdbcPostgreSQLUpdate<T1>(_pgsqlInsert.InternalOrm, _pgsqlInsert.InternalCommonUtils, _pgsqlInsert.InternalCommonExpression, null) { InternalTableAlias = "EXCLUDED" }
+                .NoneParameter().SetSource(_pgsqlInsert.InternalSource) as OdbcPostgreSQLUpdate<T1>);
         ColumnInfo[] _columns;
         bool _doNothing;
 
-        public OnConflictDoUpdate(IInsert<T1> insert, Expression<Func<T1, object>> columns = null)
+        public OdbcPostgreSQLOnConflictDoUpdate(IInsert<T1> insert, Expression<Func<T1, object>> columns = null)
         {
-            _pgsqlInsert = insert as PostgreSQLInsert<T1>;
-            if (_pgsqlInsert == null) throw new Exception("OnConflictDoUpdate 是 FreeSql.Provider.PostgreSQL 特有的功能");
+            _pgsqlInsert = insert as OdbcPostgreSQLInsert<T1>;
+            if (_pgsqlInsert == null) throw new Exception("OnConflictDoUpdate 是 FreeSql.Provider.Odbc/PostgreSQL 特有的功能");
 
             if (columns != null)
             {
@@ -45,28 +45,28 @@ namespace FreeSql.PostgreSQL.Curd
             _pgsqlUpdatePriv = null;
         }
 
-        public OnConflictDoUpdate<T1> IgnoreColumns(Expression<Func<T1, object>> columns)
+        public OdbcPostgreSQLOnConflictDoUpdate<T1> IgnoreColumns(Expression<Func<T1, object>> columns)
         {
             _pgsqlUpdate.IgnoreColumns(columns);
             return this;
         }
-        public OnConflictDoUpdate<T1> UpdateColumns(Expression<Func<T1, object>> columns)
+        public OdbcPostgreSQLOnConflictDoUpdate<T1> UpdateColumns(Expression<Func<T1, object>> columns)
         {
             _pgsqlUpdate.UpdateColumns(columns);
             return this;
         }
-        public OnConflictDoUpdate<T1> IgnoreColumns(string[] columns)
+        public OdbcPostgreSQLOnConflictDoUpdate<T1> IgnoreColumns(string[] columns)
         {
             _pgsqlUpdate.IgnoreColumns(columns);
             return this;
         }
-        public OnConflictDoUpdate<T1> UpdateColumns(string[] columns)
+        public OdbcPostgreSQLOnConflictDoUpdate<T1> UpdateColumns(string[] columns)
         {
             _pgsqlUpdate.UpdateColumns(columns);
             return this;
         }
 
-        public OnConflictDoUpdate<T1> Set<TMember>(Expression<Func<T1, TMember>> column, TMember value)
+        public OdbcPostgreSQLOnConflictDoUpdate<T1> Set<TMember>(Expression<Func<T1, TMember>> column, TMember value)
         {
             _pgsqlUpdate.Set(column, value);
             return this;
@@ -78,13 +78,13 @@ namespace FreeSql.PostgreSQL.Curd
         //    _pgsqlUpdate.Set(exp);
         //    return this;
         //}
-        public OnConflictDoUpdate<T1> SetRaw(string sql)
+        public OdbcPostgreSQLOnConflictDoUpdate<T1> SetRaw(string sql)
         {
             _pgsqlUpdate.SetRaw(sql);
             return this;
         }
 
-        public OnConflictDoUpdate<T1> DoNothing()
+        public OdbcPostgreSQLOnConflictDoUpdate<T1> DoNothing()
         {
             _doNothing = true;
             return this;

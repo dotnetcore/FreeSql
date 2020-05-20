@@ -45,6 +45,19 @@ public interface IFreeSql : IDisposable
     IInsert<T1> Insert<T1>(IEnumerable<T1> source) where T1 : class;
 
     /// <summary>
+    /// 插入或更新数据<para></para>
+    /// MySql: on duplicate key update<para></para>
+    /// PostgreSQL: on conflict do update<para></para>
+    /// SqlServer: merge into<para></para>
+    /// Oracle: merge into<para></para>
+    /// Sqlite: replace into<para></para>
+    /// Dameng: merge into<para></para>
+    /// </summary>
+    /// <typeparam name="T1"></typeparam>
+    /// <returns></returns>
+    IInsertOrUpdate<T1> InsertOrUpdate<T1>() where T1 : class;
+
+    /// <summary>
     /// 修改数据
     /// </summary>
     /// <typeparam name="T1"></typeparam>

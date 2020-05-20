@@ -5,18 +5,18 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FreeSql.MySql.Curd
+namespace FreeSql.Odbc.MySql
 {
-    public class OnDuplicateKeyUpdate<T1> where T1 : class
+    public class OdbcMySqlOnDuplicateKeyUpdate<T1> where T1 : class
     {
-        internal MySqlInsert<T1> _mysqlInsert;
-        internal MySqlUpdate<T1> _mysqlUpdatePriv;
-        internal MySqlUpdate<T1> _mysqlUpdate => _mysqlUpdatePriv ?? (_mysqlUpdatePriv = new MySqlUpdate<T1>(_mysqlInsert.InternalOrm, _mysqlInsert.InternalCommonUtils, _mysqlInsert.InternalCommonExpression, null).NoneParameter().SetSource(_mysqlInsert.InternalSource) as MySqlUpdate<T1>);
+        internal OdbcMySqlInsert<T1> _mysqlInsert;
+        internal OdbcMySqlUpdate<T1> _mysqlUpdatePriv;
+        internal OdbcMySqlUpdate<T1> _mysqlUpdate => _mysqlUpdatePriv ?? (_mysqlUpdatePriv = new OdbcMySqlUpdate<T1>(_mysqlInsert.InternalOrm, _mysqlInsert.InternalCommonUtils, _mysqlInsert.InternalCommonExpression, null).NoneParameter().SetSource(_mysqlInsert.InternalSource) as OdbcMySqlUpdate<T1>);
 
-        public OnDuplicateKeyUpdate(IInsert<T1> insert)
+        public OdbcMySqlOnDuplicateKeyUpdate(IInsert<T1> insert)
         {
-            _mysqlInsert = insert as MySqlInsert<T1>;
-            if (_mysqlInsert == null) throw new Exception("OnDuplicateKeyUpdate 是 FreeSql.Provider.MySql/FreeSql.Provider.MySqlConnector 特有的功能");
+            _mysqlInsert = insert as OdbcMySqlInsert<T1>;
+            if (_mysqlInsert == null) throw new Exception("OnDuplicateKeyUpdate 是 FreeSql.Provider.Odbc/MySql 特有的功能");
         }
 
         protected void ClearData()
@@ -25,38 +25,38 @@ namespace FreeSql.MySql.Curd
             _mysqlUpdatePriv = null;
         }
 
-        public OnDuplicateKeyUpdate<T1> IgnoreColumns(Expression<Func<T1, object>> columns)
+        public OdbcMySqlOnDuplicateKeyUpdate<T1> IgnoreColumns(Expression<Func<T1, object>> columns)
         {
             _mysqlUpdate.IgnoreColumns(columns);
             return this;
         }
-        public OnDuplicateKeyUpdate<T1> UpdateColumns(Expression<Func<T1, object>> columns)
+        public OdbcMySqlOnDuplicateKeyUpdate<T1> UpdateColumns(Expression<Func<T1, object>> columns)
         {
             _mysqlUpdate.UpdateColumns(columns);
             return this;
         }
-        public OnDuplicateKeyUpdate<T1> IgnoreColumns(string[] columns)
+        public OdbcMySqlOnDuplicateKeyUpdate<T1> IgnoreColumns(string[] columns)
         {
             _mysqlUpdate.IgnoreColumns(columns);
             return this;
         }
-        public OnDuplicateKeyUpdate<T1> UpdateColumns(string[] columns)
+        public OdbcMySqlOnDuplicateKeyUpdate<T1> UpdateColumns(string[] columns)
         {
             _mysqlUpdate.UpdateColumns(columns);
             return this;
         }
 
-        public OnDuplicateKeyUpdate<T1> Set<TMember>(Expression<Func<T1, TMember>> column, TMember value)
+        public OdbcMySqlOnDuplicateKeyUpdate<T1> Set<TMember>(Expression<Func<T1, TMember>> column, TMember value)
         {
             _mysqlUpdate.Set(column, value);
             return this;
         }
-        public OnDuplicateKeyUpdate<T1> Set<TMember>(Expression<Func<T1, TMember>> exp)
+        public OdbcMySqlOnDuplicateKeyUpdate<T1> Set<TMember>(Expression<Func<T1, TMember>> exp)
         {
             _mysqlUpdate.Set(exp);
             return this;
         }
-        public OnDuplicateKeyUpdate<T1> SetRaw(string sql)
+        public OdbcMySqlOnDuplicateKeyUpdate<T1> SetRaw(string sql)
         {
             _mysqlUpdate.SetRaw(sql);
             return this;

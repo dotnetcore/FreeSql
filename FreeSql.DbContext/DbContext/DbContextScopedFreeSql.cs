@@ -76,6 +76,11 @@ namespace FreeSql
         public IInsert<T1> Insert<T1>(T1[] source) where T1 : class => Insert<T1>().AppendData(source);
         public IInsert<T1> Insert<T1>(List<T1> source) where T1 : class => Insert<T1>().AppendData(source);
         public IInsert<T1> Insert<T1>(IEnumerable<T1> source) where T1 : class => Insert<T1>().AppendData(source);
-
+        public IInsertOrUpdate<T1> InsertOrUpdate<T1>() where T1 : class
+        {
+            var db = _resolveDbContext?.Invoke();
+            db?.FlushCommand();
+            return _originalFsql.InsertOrUpdate<T1>().WithTransaction(_resolveUnitOfWork()?.GetOrBeginTransaction());
+        }
     }
 }

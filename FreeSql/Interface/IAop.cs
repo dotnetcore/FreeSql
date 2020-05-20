@@ -201,7 +201,7 @@ namespace FreeSql.Aop
         /// </summary>
         public DbParameter[] DbParms { get; }
     }
-    public enum CurdType { Select, Delete, Update, Insert }
+    public enum CurdType { Select, Delete, Update, Insert, InsertOrUpdate }
     public class CurdAfterEventArgs : CurdBeforeEventArgs
     {
         public CurdAfterEventArgs(CurdBeforeEventArgs before, Exception exception, object executeResult) :
@@ -324,7 +324,7 @@ namespace FreeSql.Aop
         private object _value;
         public bool IsChanged { get; private set; }
     }
-    public enum AuditValueType { Update, Insert }
+    public enum AuditValueType { Update, Insert, InsertOrUpdate }
     #endregion
 
     #region CommandBefore/After
