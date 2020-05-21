@@ -22,6 +22,7 @@ namespace FreeSql
         bool _isNoneCommandParameter = false;
         bool _isGenerateCommandParameterWithLambda = false;
         bool _isLazyLoading = false;
+        bool _isExitAutoDisposePool = true;
         StringConvertType _entityPropertyConvertType = StringConvertType.None;
         NameConvertType _nameConvertType = NameConvertType.None;
         Action<DbCommand> _aopCommandExecuting = null;
@@ -148,6 +149,18 @@ namespace FreeSql
         public FreeSqlBuilder UseNameConvert(NameConvertType convertType)
         {
             _nameConvertType = convertType;
+            return this;
+        }
+
+        /// <summary>
+        /// 监听 AppDomain.CurrentDomain.ProcessExit/Console.CancelKeyPress 事件自动释放连接池<para></para>
+        /// 默认值: true
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public FreeSqlBuilder UseExitAutoDisposePool(bool value)
+        {
+            _isExitAutoDisposePool = value;
             return this;
         }
 
@@ -374,6 +387,9 @@ namespace FreeSql
                             e.ModifyResult.Name = $"{schema}.{e.EntityType.Name}";
                     }
                 });
+
+                ret.Ado.MasterPool.Policy.IsAutoDisposeWithSystem = _isExitAutoDisposePool;
+                ret.Ado.SlavePools.ForEach(a => a.Policy.IsAutoDisposeWithSystem = _isExitAutoDisposePool);
             }
 
             return ret;

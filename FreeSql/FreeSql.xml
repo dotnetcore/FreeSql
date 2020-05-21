@@ -755,6 +755,14 @@
             <param name="convertType"></param>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.FreeSqlBuilder.UseExitAutoDisposePool(System.Boolean)">
+            <summary>
+            监听 AppDomain.CurrentDomain.ProcessExit/Console.CancelKeyPress 事件自动释放连接池<para></para>
+            默认值: true
+            </summary>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.FreeSqlBuilder.UseSyncStructureToLower(System.Boolean)">
             <summary>
             转小写同步结构
