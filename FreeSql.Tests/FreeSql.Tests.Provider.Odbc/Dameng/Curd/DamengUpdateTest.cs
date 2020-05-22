@@ -73,6 +73,20 @@ namespace FreeSql.Tests.Odbc.Dameng
             public string xx { get; set; }
         }
         [Fact]
+        public void SetSourceIgnore()
+        {
+            Assert.Equal("UPDATE \"TSSI01\" SET \"TINT\" = 10 WHERE (\"ID\" = '00000000-0000-0000-0000-000000000000')",
+                g.dameng.Update<tssi01>().NoneParameter()
+                    .SetSourceIgnore(new tssi01 { id = Guid.Empty, tint = 10 }, col => col == null).ToSql().Replace("\r\n", ""));
+        }
+        public class tssi01
+        {
+            [Column(CanUpdate = false)]
+            public Guid id { get; set; }
+            public int tint { get; set; }
+            public string title { get; set; }
+        }
+        [Fact]
         public void IgnoreColumns()
         {
             var sql = update.SetSource(new Topic { Id = 1, Title = "newtitle" }).IgnoreColumns(a => new { a.Clicks, a.CreateTime }).ToSql().Replace("\r\n", "");

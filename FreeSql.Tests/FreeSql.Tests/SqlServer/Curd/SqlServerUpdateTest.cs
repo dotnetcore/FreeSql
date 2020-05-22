@@ -74,7 +74,20 @@ namespace FreeSql.Tests.SqlServer
             public int id2 { get; set; }
             public string xx { get; set; }
         }
-
+        [Fact]
+        public void SetSourceIgnore()
+        {
+            Assert.Equal("UPDATE [tssi01] SET [tint] = 10 WHERE ([id] = '00000000-0000-0000-0000-000000000000')",
+                g.sqlserver.Update<tssi01>().NoneParameter()
+                    .SetSourceIgnore(new tssi01 { id = Guid.Empty, tint = 10 }, col => col == null).ToSql().Replace("\r\n", ""));
+        }
+        public class tssi01
+        {
+            [Column(CanUpdate = false)]
+            public Guid id { get; set; }
+            public int tint { get; set; }
+            public string title { get; set; }
+        }
         [Fact]
         public void IgnoreColumns()
         {

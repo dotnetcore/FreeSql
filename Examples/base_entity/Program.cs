@@ -72,7 +72,7 @@ namespace base_entity
 
                 //.UseConnectionString(FreeSql.DataType.OdbcDameng, "Driver={DM8 ODBC DRIVER};Server=127.0.0.1:5236;Persist Security Info=False;Trusted_Connection=Yes;UID=USER1;PWD=123456789")
 
-                .UseMonitorCommand(cmd => Console.Write(cmd.CommandText))
+                .UseMonitorCommand(cmd => Console.WriteLine(cmd.CommandText))
                 .UseLazyLoading(true)
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);

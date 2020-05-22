@@ -57,28 +57,41 @@ namespace FreeSql
         /// <param name="source">实体集合</param>
         /// <returns></returns>
         IUpdate<T1> SetSource(IEnumerable<T1> source);
-        
         /// <summary>
-        /// 忽略的列，IgnoreColumns(a => a.Name) | IgnoreColumns(a => new{a.Name,a.Time}) | IgnoreColumns(a => new[]{"name","time"})
+        /// 更新数据，设置更新的实体，同时设置忽略的列<para></para>
+        /// 忽略 null 属性：fsql.Update&lt;T&gt;().SetSourceAndIgnore(item, colval => colval == null)<para></para>
+        /// 注意：参数 ignore 与 IUpdate.IgnoreColumns/UpdateColumns 不能同时使用
+        /// </summary>
+        /// <param name="source">实体</param>
+        /// <param name="ignore">属性值忽略判断, true忽略</param>
+        /// <returns></returns>
+        IUpdate<T1> SetSourceIgnore(T1 source, Func<object, bool> ignore);
+
+        /// <summary>
+        /// 忽略的列，IgnoreColumns(a => a.Name) | IgnoreColumns(a => new{a.Name,a.Time}) | IgnoreColumns(a => new[]{"name","time"})<para></para>
+        /// 注意：不能与 UpdateColumns 不能同时使用
         /// </summary>
         /// <param name="columns">lambda选择列</param>
         /// <returns></returns>
         IUpdate<T1> IgnoreColumns(Expression<Func<T1, object>> columns);
         /// <summary>
-        /// 忽略的列
+        /// 忽略的列<para></para>
+        /// 注意：不能与 UpdateColumns 不能同时使用
         /// </summary>
         /// <param name="columns">属性名，或者字段名</param>
         /// <returns></returns>
         IUpdate<T1> IgnoreColumns(string[] columns);
 
         /// <summary>
-        /// 指定的列，UpdateColumns(a => a.Name) | UpdateColumns(a => new{a.Name,a.Time}) | UpdateColumns(a => new[]{"name","time"})
+        /// 指定的列，UpdateColumns(a => a.Name) | UpdateColumns(a => new{a.Name,a.Time}) | UpdateColumns(a => new[]{"name","time"})<para></para>
+        /// 注意：不能与 IgnoreColumns 不能同时使用
         /// </summary>
         /// <param name="columns">lambda选择列</param>
         /// <returns></returns>
         IUpdate<T1> UpdateColumns(Expression<Func<T1, object>> columns);
         /// <summary>
-        /// 指定的列
+        /// 指定的列<para></para>
+        /// 注意：不能与 IgnoreColumns 同时使用
         /// </summary>
         /// <param name="columns">属性名，或者字段名</param>
         /// <returns></returns>

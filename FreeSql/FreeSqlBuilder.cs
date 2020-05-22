@@ -250,15 +250,9 @@ namespace FreeSql
                 ret.CodeFirst.IsLazyLoading = _isLazyLoading;
 
                 if (_aopCommandExecuting != null)
-                    ret.Aop.CommandBefore += new EventHandler<Aop.CommandBeforeEventArgs>((s, e) =>
-                    {
-                        _aopCommandExecuting?.Invoke(e.Command);
-                    });
+                    ret.Aop.CommandBefore += new EventHandler<Aop.CommandBeforeEventArgs>((s, e) => _aopCommandExecuting?.Invoke(e.Command));
                 if (_aopCommandExecuted != null)
-                    ret.Aop.CommandAfter += new EventHandler<Aop.CommandAfterEventArgs>((s, e) =>
-                    {
-                        _aopCommandExecuted?.Invoke(e.Command, e.Log);
-                    });
+                    ret.Aop.CommandAfter += new EventHandler<Aop.CommandAfterEventArgs>((s, e) => _aopCommandExecuted?.Invoke(e.Command, e.Log));
 
                 this.EntityPropertyNameConvert(ret);
                 //添加实体属性名全局AOP转换处理

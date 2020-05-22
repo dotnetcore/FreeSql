@@ -55,7 +55,7 @@ namespace FreeSql.Internal.CommonProvider
         {
             if (_table == null || _table.Type == typeof(object)) return;
             foreach (var col in _table.Columns.Values)
-                if (col.Attribute.CanUpdate == false)
+                if (col.Attribute.CanUpdate == false && _ignore.ContainsKey(col.Attribute.Name) == false)
                     _ignore.Add(col.Attribute.Name, true);
         }
         protected void ClearData()
@@ -374,6 +374,16 @@ namespace FreeSql.Internal.CommonProvider
             AuditDataValue(this, source, _orm, _table, _auditValueChangedDict);
             _source.AddRange(source.Where(a => a != null));
             return this;
+        }
+        public IUpdate<T1> SetSourceIgnore(T1 source, Func<object, bool> ignore)
+        {
+            if (ignore == null) throw new ArgumentNullException(nameof(ignore));
+            var columns = _table.Columns.Values
+                .Where(col => ignore(_orm.GetEntityValueWithPropertyName(_table.Type, source, col.CsName)))
+                .Select(col => col.Attribute.Name).ToArray();
+            IgnoreColumns(columns);
+            IgnoreCanUpdate();
+            return SetSource(source);
         }
 
         protected void SetPriv(ColumnInfo col, object value)
