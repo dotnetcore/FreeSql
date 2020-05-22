@@ -52,6 +52,7 @@ public interface IFreeSql : IDisposable
     /// Oracle: merge into<para></para>
     /// Sqlite: replace into<para></para>
     /// Dameng: merge into<para></para>
+    /// 注意：还可以使用 FreeSql.Repository 的 InsertOrUpdate 方法
     /// </summary>
     /// <typeparam name="T1"></typeparam>
     /// <returns></returns>

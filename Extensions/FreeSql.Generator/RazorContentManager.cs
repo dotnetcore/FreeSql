@@ -50,6 +50,7 @@ switch (gen.fsql.Ado.DataType) {
 		break;
 }
 }
+
 namespace @gen.NameSpace {
 
 @if (string.IsNullOrEmpty(gen.table.Comment) == false) {
@@ -133,6 +134,7 @@ switch (gen.fsql.Ado.DataType) {
 		break;
 }
 }
+
 namespace @gen.NameSpace {
 
 @if (string.IsNullOrEmpty(gen.table.Comment) == false) {

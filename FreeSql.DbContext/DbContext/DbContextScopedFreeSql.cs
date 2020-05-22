@@ -37,7 +37,7 @@ namespace FreeSql
         {
             var db = _resolveDbContext?.Invoke();
             db?.FlushCommand();
-            var select = _originalFsql.Select<T1>().WithTransaction(_resolveUnitOfWork()?.GetOrBeginTransaction(false));
+            var select = _originalFsql.Select<T1>().WithTransaction(_resolveUnitOfWork?.Invoke()?.GetOrBeginTransaction(false));
             if (db?.Options.EnableGlobalFilter == false) select.DisableGlobalFilter();
             return select;
         }
@@ -47,7 +47,7 @@ namespace FreeSql
         {
             var db = _resolveDbContext?.Invoke();
             db?.FlushCommand();
-            var delete = _originalFsql.Delete<T1>().WithTransaction(_resolveUnitOfWork()?.GetOrBeginTransaction());
+            var delete = _originalFsql.Delete<T1>().WithTransaction(_resolveUnitOfWork?.Invoke()?.GetOrBeginTransaction());
             if (db?.Options.EnableGlobalFilter == false) delete.DisableGlobalFilter();
             return delete;
         }
@@ -57,7 +57,7 @@ namespace FreeSql
         {
             var db = _resolveDbContext?.Invoke();
             db?.FlushCommand();
-            var update = _originalFsql.Update<T1>().WithTransaction(_resolveUnitOfWork()?.GetOrBeginTransaction());
+            var update = _originalFsql.Update<T1>().WithTransaction(_resolveUnitOfWork?.Invoke()?.GetOrBeginTransaction());
             if (db?.Options.NoneParameter != null) update.NoneParameter(db.Options.NoneParameter.Value);
             if (db?.Options.EnableGlobalFilter == false) update.DisableGlobalFilter();
             return update;
@@ -68,7 +68,7 @@ namespace FreeSql
         {
             var db = _resolveDbContext?.Invoke();
             db?.FlushCommand();
-            var insert = _originalFsql.Insert<T1>().WithTransaction(_resolveUnitOfWork()?.GetOrBeginTransaction());
+            var insert = _originalFsql.Insert<T1>().WithTransaction(_resolveUnitOfWork?.Invoke()?.GetOrBeginTransaction());
             if (db?.Options.NoneParameter != null) insert.NoneParameter(db.Options.NoneParameter.Value);
             return insert;
         }
@@ -76,11 +76,12 @@ namespace FreeSql
         public IInsert<T1> Insert<T1>(T1[] source) where T1 : class => Insert<T1>().AppendData(source);
         public IInsert<T1> Insert<T1>(List<T1> source) where T1 : class => Insert<T1>().AppendData(source);
         public IInsert<T1> Insert<T1>(IEnumerable<T1> source) where T1 : class => Insert<T1>().AppendData(source);
+
         public IInsertOrUpdate<T1> InsertOrUpdate<T1>() where T1 : class
         {
             var db = _resolveDbContext?.Invoke();
             db?.FlushCommand();
-            return _originalFsql.InsertOrUpdate<T1>().WithTransaction(_resolveUnitOfWork()?.GetOrBeginTransaction());
+            return _originalFsql.InsertOrUpdate<T1>().WithTransaction(_resolveUnitOfWork?.Invoke()?.GetOrBeginTransaction());
         }
     }
 }
