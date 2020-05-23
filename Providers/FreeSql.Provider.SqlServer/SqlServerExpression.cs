@@ -374,7 +374,7 @@ namespace FreeSql.SqlServer
                     case "Equals": return $"({left} = {args1})";
                     case "CompareTo": return $"datediff(second,{args1},{left})";
                     case "ToString":
-                        left = $"cast({left} as datetime)";
+                        if (left.EndsWith(" as datetime)") == false) left = $"cast({left} as datetime)";
                         if (exp.Arguments.Count == 0) return $"convert(varchar, {left}, 121)";
                         switch (args1.TrimStart('N'))
                         {

@@ -1,5 +1,4 @@
 ﻿using FreeSql.Internal;
-using FreeSql.Internal.Model;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
@@ -516,7 +515,7 @@ namespace FreeSql.PostgreSQL
                     case "Equals": return $"({left} = ({args1})::timestamp)";
                     case "CompareTo": return $"extract(epoch from ({left})::timestamp-({args1})::timestamp)";
                     case "ToString":
-                        left = $"({left})::timestamp";
+                        if (left.EndsWith("::timestamp") == false) left = $"({left})::timestamp";
                         if (exp.Arguments.Count == 0) return $"to_char({left},'YYYY-MM-DD HH24:MI:SS.US')";
                         switch (args1)
                         {
