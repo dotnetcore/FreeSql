@@ -99,8 +99,7 @@ namespace FreeSql.PostgreSQL
         internal CommonExpression InternalCommonExpression { get; }
 
         public void Transaction(Action handler) => Ado.Transaction(handler);
-        public void Transaction(TimeSpan timeout, Action handler) => Ado.Transaction(timeout, handler);
-        public void Transaction(IsolationLevel isolationLevel, TimeSpan timeout, Action handler) => Ado.Transaction(isolationLevel, timeout, handler);
+        public void Transaction(IsolationLevel isolationLevel, Action handler) => Ado.Transaction(isolationLevel, handler);
 
         public GlobalFilter GlobalFilter { get; } = new GlobalFilter();
 

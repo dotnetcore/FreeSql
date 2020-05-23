@@ -35,7 +35,7 @@ namespace FreeSql.Internal.CommonProvider
         public DbTransaction TransactionCurrentThread => _trans.TryGetValue(Thread.CurrentThread.ManagedThreadId, out var conn) && conn.Transaction?.Connection != null ? conn.Transaction : null;
         public Aop.TraceBeforeEventArgs TransactionCurrentThreadAopBefore => _trans.TryGetValue(Thread.CurrentThread.ManagedThreadId, out var conn) && conn.Transaction?.Connection != null ? conn.AopBefore : null;
 
-        public void BeginTransaction(TimeSpan timeout, IsolationLevel? isolationLevel)
+        public void BeginTransaction(IsolationLevel? isolationLevel)
         {
             if (TransactionCurrentThread != null) return;
 
@@ -48,7 +48,7 @@ namespace FreeSql.Internal.CommonProvider
             try
             {
                 conn = MasterPool.Get();
-                tran = new Transaction2(conn, isolationLevel == null ? conn.Value.BeginTransaction() : conn.Value.BeginTransaction(isolationLevel.Value), timeout);
+                tran = new Transaction2(conn, isolationLevel == null ? conn.Value.BeginTransaction() : conn.Value.BeginTransaction(isolationLevel.Value), TimeSpan.FromSeconds(60));
                 tran.AopBefore = before;
             }
             catch (Exception ex)
@@ -107,15 +107,14 @@ namespace FreeSql.Internal.CommonProvider
             if (_trans.TryGetValue(Thread.CurrentThread.ManagedThreadId, out var tran)) CommitTransaction(false, tran, ex);
         }
 
-        public void Transaction(Action handler) => TransactionInternal(null, TimeSpan.FromSeconds(60), handler);
-        public void Transaction(TimeSpan timeout, Action handler) => TransactionInternal(null, timeout, handler);
-        public void Transaction(IsolationLevel isolationLevel, TimeSpan timeout, Action handler) => TransactionInternal(isolationLevel, timeout, handler);
+        public void Transaction(Action handler) => TransactionInternal(null, handler);
+        public void Transaction(IsolationLevel isolationLevel, Action handler) => TransactionInternal(isolationLevel, handler);
 
-        void TransactionInternal(IsolationLevel? isolationLevel, TimeSpan timeout, Action handler)
+        void TransactionInternal(IsolationLevel? isolationLevel, Action handler)
         {
             try
             {
-                BeginTransaction(timeout, isolationLevel);
+                BeginTransaction(isolationLevel);
                 handler();
                 CommitTransaction();
             }

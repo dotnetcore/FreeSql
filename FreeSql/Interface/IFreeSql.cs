@@ -101,23 +101,18 @@ public interface IFreeSql : IDisposable
     IDelete<T1> Delete<T1>(object dywhere) where T1 : class;
 
     /// <summary>
-    /// 开启事务（不支持异步），60秒未执行完成（可能）被其他线程事务自动提交
+    /// 开启事务（不支持异步）<para></para>
+    /// v1.5.0 关闭了线程事务超时自动提交的机制
     /// </summary>
     /// <param name="handler">事务体 () => {}</param>
     void Transaction(Action handler);
     /// <summary>
-    /// 开启事务（不支持异步）
-    /// </summary>
-    /// <param name="timeout">超时，未执行完成（可能）被其他线程事务自动提交</param>
-    /// <param name="handler">事务体 () => {}</param>
-    void Transaction(TimeSpan timeout, Action handler);
-    /// <summary>
-    /// 开启事务（不支持异步）
+    /// 开启事务（不支持异步）<para></para>
+    /// v1.5.0 关闭了线程事务超时自动提交的机制
     /// </summary>
     /// <param name="isolationLevel"></param>
     /// <param name="handler">事务体 () => {}</param>
-    /// <param name="timeout">超时，未执行完成（可能）被其他线程事务自动提交</param>
-    void Transaction(IsolationLevel isolationLevel, TimeSpan timeout, Action handler);
+    void Transaction(IsolationLevel isolationLevel, Action handler);
 
     /// <summary>
     /// 数据库访问对象

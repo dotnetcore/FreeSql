@@ -30,8 +30,7 @@ namespace FreeSql
         public void Dispose() { }
 
         public void Transaction(Action handler) => _originalFsql.Transaction(handler);
-        public void Transaction(TimeSpan timeout, Action handler) => _originalFsql.Transaction(timeout, handler);
-        public void Transaction(IsolationLevel isolationLevel, TimeSpan timeout, Action handler) => _originalFsql.Transaction(isolationLevel, timeout, handler);
+        public void Transaction(IsolationLevel isolationLevel, Action handler) => _originalFsql.Transaction(isolationLevel, handler);
 
         public ISelect<T1> Select<T1>() where T1 : class
         {
