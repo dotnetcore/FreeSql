@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace FreeSql.Sqlite
 {
@@ -396,7 +397,56 @@ namespace FreeSql.Sqlite
                         break;
                     case "Equals": return $"({left} = {args1})";
                     case "CompareTo": return $"(strftime('%s',{left})-strftime('%s',{args1}))";
-                    case "ToString": return exp.Arguments.Count == 0 ? $"strftime('%Y-%m-%d %H:%M.%f',{left})" : null;
+                    case "ToString":
+                        if (exp.Arguments.Count == 0) return $"strftime('%Y-%m-%d %H:%M:%f',{left})";
+                        switch (args1)
+                        {
+                            case "'yyyy-MM-dd HH:mm:ss'": return $"strftime('%Y-%m-%d %H:%M:%S',{left})";
+                            case "'yyyy-MM-dd HH:mm'": return $"strftime('%Y-%m-%d %H:%M',{left})";
+                            case "'yyyy-MM-dd HH'": return $"strftime('%Y-%m-%d %H',{left})";
+                            case "'yyyy-MM-dd'": return $"strftime('%Y-%m-%d',{left})";
+                            case "'yyyy-MM'": return $"strftime('%Y-%m',{left})";
+                            case "'yyyyMMddHHmmss'": return $"strftime('%Y%m%d%H%M%S',{left})";
+                            case "'yyyyMMddHHmm'": return $"strftime('%Y%m%d%H%M',{left})";
+                            case "'yyyyMMddHH'": return $"strftime('%Y%m%d%H',{left})";
+                            case "'yyyyMMdd'": return $"strftime('%Y%m%d',{left})";
+                            case "'yyyyMM'": return $"strftime('%Y%m',{left})";
+                            case "'yyyy'": return $"strftime('%Y',{left})";
+                            case "'HH:mm:ss'": return $"strftime('%H:%M:%S',{left})";
+                        }
+                        args1 = Regex.Replace(args1, "(yyyy|MM|dd|HH|mm|ss)", m =>
+                        {
+                            switch (m.Groups[1].Value)
+                            {
+                                case "yyyy": return $"%Y";
+                                case "MM": return $"%_a1";
+                                case "dd": return $"%_a2";
+                                case "HH": return $"%_a3";
+                                case "mm": return $"%_a4";
+                                case "ss": return $"%S";
+                            }
+                            return m.Groups[0].Value;
+                        });
+                        var isMatched = false;
+                        args1 = Regex.Replace(args1, "(yy|M|d|H|hh|h|m|s|tt|t)", m =>
+                        {
+                            isMatched = true;
+                            switch (m.Groups[1].Value)
+                            {
+                                case "yy": return $"',{left}) || substr(strftime('%Y',{left}),3,2) || strftime('";
+                                case "M": return $"',{left}) || ltrim(strftime('%m',{left}),'0') || strftime('";
+                                case "d": return $"',{left}) || ltrim(strftime('%d',{left}),'0') || strftime('";
+                                case "H": return $"',{left}) || case when substr(strftime('%H',{left}),1,1) = '0' then substr(strftime('%H',{left}),2,1) else strftime('%H',{left}) end || strftime('";
+                                case "hh": return $"',{left}) || case cast(case when substr(strftime('%H',{left}),1,1) = '0' then substr(strftime('%H',{left}),2,1) else strftime('%H',{left}) end as smallint) % 12 when 0 then '12' when 1 then '01' when 2 then '02' when 3 then '03' when 4 then '04' when 5 then '05' when 6 then '06' when 7 then '07' when 8 then '08' when 9 then '09' when 10 then '10' when 11 then '11' end || strftime('";
+                                case "h": return $"',{left}) || case cast(case when substr(strftime('%H',{left}),1,1) = '0' then substr(strftime('%H',{left}),2,1) else strftime('%H',{left}) end as smallint) % 12 when 0 then '12' when 1 then '1' when 2 then '2' when 3 then '3' when 4 then '4' when 5 then '5' when 6 then '6' when 7 then '7' when 8 then '8' when 9 then '9' when 10 then '10' when 11 then '11' end || strftime('";
+                                case "m": return $"',{left}) || case when substr(strftime('%M',{left}),1,1) = '0' then substr(strftime('%M',{left}),2,1) else strftime('%M',{left}) end || strftime('";
+                                case "s": return $"',{left}) || case when substr(strftime('%S',{left}),1,1) = '0' then substr(strftime('%S',{left}),2,1) else strftime('%S',{left}) end || strftime('";
+                                case "tt": return $"',{left}) || case when cast(case when substr(strftime('%H',{left}),1,1) = '0' then substr(strftime('%H',{left}),2,1) else strftime('%H',{left}) end as smallint) >= 12 then 'PM' else 'AM' end || strftime('";
+                                case "t": return $"',{left}) || case when cast(case when substr(strftime('%H',{left}),1,1) = '0' then substr(strftime('%H',{left}),2,1) else strftime('%H',{left}) end as smallint) >= 12 then 'P' else 'A' end || strftime('";
+                            }
+                            return m.Groups[0].Value;
+                        }).Replace("%_a1", "%m").Replace("%_a2", "%d").Replace("%_a3", "%H").Replace("%_a4", "%M");
+                        return isMatched == false ? $"strftime({args1},{left})" : $"(strftime({args1},{left}))".Replace($"strftime('',{left})", "''");
                 }
             }
             return null;
