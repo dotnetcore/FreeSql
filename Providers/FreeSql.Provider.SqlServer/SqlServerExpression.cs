@@ -388,9 +388,11 @@ namespace FreeSql.SqlServer
                             case "'yyyy'": return $"substring(convert(char(8), {left}, 112), 1, 4)";
                             case "'HH:mm:ss'": return $"convert(char(8), {left}, 24)";
                         }
+                        var isMatched = false;
                         var nchar = args1.StartsWith("N'") ? "N" : "";
-                        return Regex.Replace(args1, "(yyyy|yy|MM|M|dd|d|HH|H|hh|h|mm|m|ss|s|tt|t)", m =>
+                        args1 = Regex.Replace(args1, "(yyyy|yy|MM|M|dd|d|HH|H|hh|h|mm|m|ss|s|tt|t)", m =>
                         {
+                            isMatched = true;
                             switch (m.Groups[1].Value)
                             {
                                 case "yyyy": return $"' + substring(convert(char(8), {left}, 112), 1, 4) + {nchar}'";
@@ -414,6 +416,7 @@ namespace FreeSql.SqlServer
                             }
                             return m.Groups[0].Value;
                         });
+                        return isMatched == false ? args1 : $"({args1})";
                 }
             }
             return null;

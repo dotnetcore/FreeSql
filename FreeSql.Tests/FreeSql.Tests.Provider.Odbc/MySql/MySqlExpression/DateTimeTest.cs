@@ -62,7 +62,13 @@ namespace FreeSql.Tests.Odbc.MySqlExpression
             //WHERE ((date_format(date_add(a__Type__Parent.`Time2`, interval (1) year), '%Y-%m-%d %H:%i:%s.%f') = now()))
 
             g.mysql.Insert(new Topic()).ExecuteAffrows();
-            foreach (var dt in new[] { DateTime.Parse("2020-5-6 0:1:2"), DateTime.Parse("2020-11-16 13:21:22"), })
+            var dtn = DateTime.Parse("2020-1-1 0:0:0");
+            var dts = Enumerable.Range(1, 12).Select(a => dtn.AddMonths(a))
+                .Concat(Enumerable.Range(1, 31).Select(a => dtn.AddDays(a)))
+                .Concat(Enumerable.Range(1, 24).Select(a => dtn.AddHours(a)))
+                .Concat(Enumerable.Range(1, 60).Select(a => dtn.AddMinutes(a)))
+                .Concat(Enumerable.Range(1, 60).Select(a => dtn.AddSeconds(a)));
+            foreach (var dt in dts)
             {
                 Assert.Equal(dt.ToString("yyyy-MM-dd HH:mm:ss.ffffff"), select.First(a => dt.ToString()));
                 Assert.Equal(dt.ToString("yyyy-MM-dd HH:mm:ss"), select.First(a => dt.ToString("yyyy-MM-dd HH:mm:ss")));

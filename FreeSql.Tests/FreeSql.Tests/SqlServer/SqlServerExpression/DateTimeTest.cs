@@ -59,7 +59,13 @@ namespace FreeSql.Tests.SqlServerExpression
             data.Add(select.Where(a => a.Type.Parent.Time2.AddYears(1).ToString().Equals(DateTime.Now)).ToList());
 
             g.sqlserver.Insert(new Topic()).ExecuteAffrows();
-            foreach (var dt in new[] { DateTime.Parse("2020-5-6 0:1:2"), DateTime.Parse("2020-11-16 13:21:22"), })
+            var dtn = DateTime.Parse("2020-1-1 0:0:0");
+            var dts = Enumerable.Range(1, 12).Select(a => dtn.AddMonths(a))
+                .Concat(Enumerable.Range(1, 31).Select(a => dtn.AddDays(a)))
+                .Concat(Enumerable.Range(1, 24).Select(a => dtn.AddHours(a)))
+                .Concat(Enumerable.Range(1, 60).Select(a => dtn.AddMinutes(a)))
+                .Concat(Enumerable.Range(1, 60).Select(a => dtn.AddSeconds(a)));
+            foreach (var dt in dts)
             {
                 Assert.Equal(dt.ToString("yyyy-MM-dd HH:mm:ss.fff"), select.First(a => dt.ToString()));
                 Assert.Equal(dt.ToString("yyyy-MM-dd HH:mm:ss"), select.First(a => dt.ToString("yyyy-MM-dd HH:mm:ss")));
@@ -67,6 +73,9 @@ namespace FreeSql.Tests.SqlServerExpression
                 Assert.Equal(dt.ToString("yyyy-MM-dd HH"), select.First(a => dt.ToString("yyyy-MM-dd HH")));
                 Assert.Equal(dt.ToString("yyyy-MM-dd"), select.First(a => dt.ToString("yyyy-MM-dd")));
                 Assert.Equal(dt.ToString("yyyy-MM"), select.First(a => dt.ToString("yyyy-MM")));
+                Assert.Equal(dt.ToString("yyyyMMddHHmmss"), select.First(a => dt.ToString("yyyyMMddHHmmss")));
+                Assert.Equal(dt.ToString("yyyyMMddHHmm"), select.First(a => dt.ToString("yyyyMMddHHmm")));
+                Assert.Equal(dt.ToString("yyyyMMddHH"), select.First(a => dt.ToString("yyyyMMddHH")));
                 Assert.Equal(dt.ToString("yyyyMMdd"), select.First(a => dt.ToString("yyyyMMdd")));
                 Assert.Equal(dt.ToString("yyyyMM"), select.First(a => dt.ToString("yyyyMM")));
                 Assert.Equal(dt.ToString("yyyy"), select.First(a => dt.ToString("yyyy")));

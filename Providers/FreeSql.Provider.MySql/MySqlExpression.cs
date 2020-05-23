@@ -394,21 +394,21 @@ namespace FreeSql.MySql
                     case "Equals": return $"({left} = {args1})";
                     case "CompareTo": return $"timestampdiff(microsecond,{args1},{left})";
                     case "ToString":
-                        if (exp.Arguments.Count == 0) return $"date_format({left}, '%Y-%m-%d %H:%i:%s.%f')";
+                        if (exp.Arguments.Count == 0) return $"date_format({left},'%Y-%m-%d %H:%i:%s.%f')";
                         switch (args1)
                         {
-                            case "'yyyy-MM-dd HH:mm:ss'": return $"date_format({left}, '%Y-%m-%d %H:%i:%s')";
-                            case "'yyyy-MM-dd HH:mm'": return $"date_format({left}, '%Y-%m-%d %H:%i')";
-                            case "'yyyy-MM-dd HH'": return $"date_format({left}, '%Y-%m-%d %H')";
-                            case "'yyyy-MM-dd'": return $"date_format({left}, '%Y-%m-%d')";
-                            case "'yyyy-MM'": return $"date_format({left}, '%Y-%m')";
-                            case "'yyyyMMddHHmmss'": return $"date_format({left}, '%Y%m%d%H%i%s')";
-                            case "'yyyyMMddHHmm'": return $"date_format({left}, '%Y%m%d%H%i')";
-                            case "'yyyyMMddHH'": return $"date_format({left}, '%Y%m%d%H')";
-                            case "'yyyyMMdd'": return $"date_format({left}, '%Y%m%d')";
-                            case "'yyyyMM'": return $"date_format({left}, '%Y%m')";
-                            case "'yyyy'": return $"date_format({left}, '%Y')";
-                            case "'HH:mm:ss'": return $"date_format({left}, '%H:%i:%s')";
+                            case "'yyyy-MM-dd HH:mm:ss'": return $"date_format({left},'%Y-%m-%d %H:%i:%s')";
+                            case "'yyyy-MM-dd HH:mm'": return $"date_format({left},'%Y-%m-%d %H:%i')";
+                            case "'yyyy-MM-dd HH'": return $"date_format({left},'%Y-%m-%d %H')";
+                            case "'yyyy-MM-dd'": return $"date_format({left},'%Y-%m-%d')";
+                            case "'yyyy-MM'": return $"date_format({left},'%Y-%m')";
+                            case "'yyyyMMddHHmmss'": return $"date_format({left},'%Y%m%d%H%i%s')";
+                            case "'yyyyMMddHHmm'": return $"date_format({left},'%Y%m%d%H%i')";
+                            case "'yyyyMMddHH'": return $"date_format({left},'%Y%m%d%H')";
+                            case "'yyyyMMdd'": return $"date_format({left},'%Y%m%d')";
+                            case "'yyyyMM'": return $"date_format({left},'%Y%m')";
+                            case "'yyyy'": return $"date_format({left},'%Y')";
+                            case "'HH:mm:ss'": return $"date_format({left},'%H:%i:%s')";
                         }
                        
                         args1 = Regex.Replace(args1, "(yyyy|yy|MM|M|dd|d|HH|H|hh|h|mm|ss|tt)", m =>
@@ -437,13 +437,13 @@ namespace FreeSql.MySql
                             isMatched = true;
                             switch (m.Groups[1].Value)
                             {
-                                case "m": return $"'), trim(leading '0' from date_format({left}, '%i')), date_format({left}, '";
-                                case "s": return $"'), trim(leading '0' from date_format({left}, '%s')), date_format({left}, '";
-                                case "t": return $"'), trim(trailing 'M' from date_format({left}, '%p')), date_format({left}, '";
+                                case "m": return $"'), case when substr(date_format({left},'%i'),1,1) = '0' then substr(date_format({left},'%i'),2,1) else date_format({left},'%i') end, date_format({left},'";
+                                case "s": return $"'), case when substr(date_format({left},'%s'),1,1) = '0' then substr(date_format({left},'%s'),2,1) else date_format({left},'%s') end, date_format({left},'";
+                                case "t": return $"'), trim(trailing 'M' from date_format({left},'%p')), date_format({left},'";
                             }
                             return m.Groups[0].Value;
                         }).Replace("%_a1", "%m").Replace("%_a2", "%s");
-                        return isMatched == false ? $"date_format({left}, {args1})" : $"concat(date_format({left}, {args1}))".Replace($"date_format({left}, '')", "''");
+                        return isMatched == false ? $"date_format({left},{args1})" : $"concat(date_format({left},{args1}))".Replace($"date_format({left},'')", "''");
                 }
             }
             return null;
