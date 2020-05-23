@@ -70,6 +70,9 @@ namespace FreeSql.Tests.Odbc.MySqlExpression
                 Assert.Equal(dt.ToString("yyyy-MM-dd HH"), select.First(a => dt.ToString("yyyy-MM-dd HH")));
                 Assert.Equal(dt.ToString("yyyy-MM-dd"), select.First(a => dt.ToString("yyyy-MM-dd")));
                 Assert.Equal(dt.ToString("yyyy-MM"), select.First(a => dt.ToString("yyyy-MM")));
+                Assert.Equal(dt.ToString("yyyyMMddHHmmss"), select.First(a => dt.ToString("yyyyMMddHHmmss")));
+                Assert.Equal(dt.ToString("yyyyMMddHHmm"), select.First(a => dt.ToString("yyyyMMddHHmm")));
+                Assert.Equal(dt.ToString("yyyyMMddHH"), select.First(a => dt.ToString("yyyyMMddHH")));
                 Assert.Equal(dt.ToString("yyyyMMdd"), select.First(a => dt.ToString("yyyyMMdd")));
                 Assert.Equal(dt.ToString("yyyyMM"), select.First(a => dt.ToString("yyyyMM")));
                 Assert.Equal(dt.ToString("yyyy"), select.First(a => dt.ToString("yyyy")));

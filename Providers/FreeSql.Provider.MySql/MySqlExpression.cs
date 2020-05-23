@@ -402,6 +402,9 @@ namespace FreeSql.MySql
                             case "'yyyy-MM-dd HH'": return $"date_format({left}, '%Y-%m-%d %H')";
                             case "'yyyy-MM-dd'": return $"date_format({left}, '%Y-%m-%d')";
                             case "'yyyy-MM'": return $"date_format({left}, '%Y-%m')";
+                            case "'yyyyMMddHHmmss'": return $"date_format({left}, '%Y%m%d%H%i%s')";
+                            case "'yyyyMMddHHmm'": return $"date_format({left}, '%Y%m%d%H%i')";
+                            case "'yyyyMMddHH'": return $"date_format({left}, '%Y%m%d%H')";
                             case "'yyyyMMdd'": return $"date_format({left}, '%Y%m%d')";
                             case "'yyyyMM'": return $"date_format({left}, '%Y%m')";
                             case "'yyyy'": return $"date_format({left}, '%Y')";
