@@ -49,6 +49,31 @@ namespace FreeSql.Tests.SqlServerExpression
             public List<TestTypeInfo> Types { get; set; }
             public DateTime Time2 { get; set; }
         }
+
+        [Fact]
+        public void this_ToString()
+        {
+            var data = new List<object>();
+            data.Add(select.Where(a => a.CreateTime.ToString().Equals(DateTime.Now)).ToList());
+            data.Add(select.Where(a => a.Type.Time.AddYears(1).ToString().Equals(DateTime.Now)).ToList());
+            data.Add(select.Where(a => a.Type.Parent.Time2.AddYears(1).ToString().Equals(DateTime.Now)).ToList());
+
+            g.sqlserver.Insert(new Topic()).ExecuteAffrows();
+            foreach (var dt in new[] { DateTime.Parse("2020-5-6 0:1:2"), DateTime.Parse("2020-11-16 13:21:22"), })
+            {
+                Assert.Equal(dt.ToString("yyyy-MM-dd HH:mm:ss.fff"), select.First(a => dt.ToString()));
+                Assert.Equal(dt.ToString("yyyy-MM-dd HH:mm:ss"), select.First(a => dt.ToString("yyyy-MM-dd HH:mm:ss")));
+                Assert.Equal(dt.ToString("yyyy-MM-dd HH:mm"), select.First(a => dt.ToString("yyyy-MM-dd HH:mm")));
+                Assert.Equal(dt.ToString("yyyy-MM-dd HH"), select.First(a => dt.ToString("yyyy-MM-dd HH")));
+                Assert.Equal(dt.ToString("yyyy-MM-dd"), select.First(a => dt.ToString("yyyy-MM-dd")));
+                Assert.Equal(dt.ToString("yyyy-MM"), select.First(a => dt.ToString("yyyy-MM")));
+                Assert.Equal(dt.ToString("yyyyMMdd"), select.First(a => dt.ToString("yyyyMMdd")));
+                Assert.Equal(dt.ToString("yyyyMM"), select.First(a => dt.ToString("yyyyMM")));
+                Assert.Equal(dt.ToString("yyyy"), select.First(a => dt.ToString("yyyy")));
+                Assert.Equal(dt.ToString("HH:mm:ss"), select.First(a => dt.ToString("HH:mm:ss")));
+                Assert.Equal(dt.ToString("yyyy MM dd HH mm ss yy M d H hh h m s tt t").Replace("上午", "AM").Replace("下午", "PM").Replace("上", "A").Replace("下", "P"), select.First(a => dt.ToString("yyyy MM dd HH mm ss yy M d H hh h m s tt t")));
+            }
+        }
         [Fact]
         public void Now()
         {
@@ -276,14 +301,6 @@ namespace FreeSql.Tests.SqlServerExpression
             data.Add(select.Where(a => a.CreateTime.AddYears(1).Equals(DateTime.Now)).ToList());
             data.Add(select.Where(a => a.Type.Time.AddYears(1).Equals(DateTime.Now)).ToList());
             data.Add(select.Where(a => a.Type.Parent.Time2.AddYears(1).Equals(DateTime.Now)).ToList());
-        }
-        [Fact]
-        public void this_ToString()
-        {
-            var data = new List<object>();
-            data.Add(select.Where(a => a.CreateTime.ToString().Equals(DateTime.Now)).ToList());
-            data.Add(select.Where(a => a.Type.Time.AddYears(1).ToString().Equals(DateTime.Now)).ToList());
-            data.Add(select.Where(a => a.Type.Parent.Time2.AddYears(1).ToString().Equals(DateTime.Now)).ToList());
         }
 
         [Fact]
