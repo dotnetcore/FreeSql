@@ -95,6 +95,93 @@ ON CONFLICT(""id"") DO UPDATE SET
             public int id { get; set; }
             public string name { get; set; }
         }
+        [Fact]
+        public void InsertOrUpdate_OnePrimaryAndIdentity()
+        {
+            fsql.Delete<tbiou022>().Where("1=1").ExecuteAffrows();
+            var iou = fsql.InsertOrUpdate<tbiou022>().SetSource(new tbiou022 { id = 1, name = "01" });
+            var sql = iou.ToSql();
+            Assert.Equal(@"INSERT INTO ""tbiou022""(""id"", ""name"") VALUES(1, '01')
+ON CONFLICT(""id"") DO UPDATE SET
+""name"" = EXCLUDED.""name""", sql);
+            Assert.Equal(1, iou.ExecuteAffrows());
+
+            iou = fsql.InsertOrUpdate<tbiou022>().SetSource(new tbiou022 { id = 1, name = "011" });
+            sql = iou.ToSql();
+            Assert.Equal(@"INSERT INTO ""tbiou022""(""id"", ""name"") VALUES(1, '011')
+ON CONFLICT(""id"") DO UPDATE SET
+""name"" = EXCLUDED.""name""", sql);
+            Assert.Equal(1, iou.ExecuteAffrows());
+
+            iou = fsql.InsertOrUpdate<tbiou022>().SetSource(new tbiou022 { id = 2, name = "02" });
+            sql = iou.ToSql();
+            Assert.Equal(@"INSERT INTO ""tbiou022""(""id"", ""name"") VALUES(2, '02')
+ON CONFLICT(""id"") DO UPDATE SET
+""name"" = EXCLUDED.""name""", sql);
+            Assert.Equal(1, iou.ExecuteAffrows());
+
+            iou = fsql.InsertOrUpdate<tbiou022>().SetSource(new[] { new tbiou022 { id = 1, name = "01" }, new tbiou022 { id = 2, name = "02" }, new tbiou022 { id = 3, name = "03" }, new tbiou022 { id = 4, name = "04" } });
+            sql = iou.ToSql();
+            Assert.Equal(@"INSERT INTO ""tbiou022""(""id"", ""name"") VALUES(1, '01'), (2, '02'), (3, '03'), (4, '04')
+ON CONFLICT(""id"") DO UPDATE SET
+""name"" = EXCLUDED.""name""", sql);
+            Assert.Equal(4, iou.ExecuteAffrows());
+
+            iou = fsql.InsertOrUpdate<tbiou022>().SetSource(new[] { new tbiou022 { id = 1, name = "001" }, new tbiou022 { id = 2, name = "002" }, new tbiou022 { id = 3, name = "003" }, new tbiou022 { id = 4, name = "004" } });
+            sql = iou.ToSql();
+            Assert.Equal(@"INSERT INTO ""tbiou022""(""id"", ""name"") VALUES(1, '001'), (2, '002'), (3, '003'), (4, '004')
+ON CONFLICT(""id"") DO UPDATE SET
+""name"" = EXCLUDED.""name""", sql);
+            Assert.Equal(4, iou.ExecuteAffrows());
+            var lst = fsql.Select<tbiou022>().Where(a => new[] { 1, 2, 3, 4 }.Contains(a.id)).ToList();
+            Assert.Equal(4, lst.Where(a => a.name == "00" + a.id).Count());
+
+            //--no primary
+            iou = fsql.InsertOrUpdate<tbiou022>().SetSource(new tbiou022 { name = "01" });
+            sql = iou.ToSql();
+            Assert.Equal(@"INSERT INTO ""tbiou022""(""name"") VALUES('01')", sql);
+            Assert.Equal(1, iou.ExecuteAffrows());
+
+            iou = fsql.InsertOrUpdate<tbiou022>().SetSource(new tbiou022 { name = "011" });
+            sql = iou.ToSql();
+            Assert.Equal(@"INSERT INTO ""tbiou022""(""name"") VALUES('011')", sql);
+            Assert.Equal(1, iou.ExecuteAffrows());
+
+            iou = fsql.InsertOrUpdate<tbiou022>().SetSource(new tbiou022 { name = "02" });
+            sql = iou.ToSql();
+            Assert.Equal(@"INSERT INTO ""tbiou022""(""name"") VALUES('02')", sql);
+            Assert.Equal(1, iou.ExecuteAffrows());
+
+            iou = fsql.InsertOrUpdate<tbiou022>().SetSource(new[] { new tbiou022 { name = "01" }, new tbiou022 { name = "02" }, new tbiou022 { name = "03" }, new tbiou022 { name = "04" } });
+            sql = iou.ToSql();
+            Assert.Equal(@"INSERT INTO ""tbiou022""(""name"") VALUES('01'), ('02'), ('03'), ('04')", sql);
+            Assert.Equal(4, iou.ExecuteAffrows());
+
+            iou = fsql.InsertOrUpdate<tbiou022>().SetSource(new[] { new tbiou022 { name = "001" }, new tbiou022 { name = "002" }, new tbiou022 { name = "003" }, new tbiou022 { name = "004" } });
+            sql = iou.ToSql();
+            Assert.Equal(@"INSERT INTO ""tbiou022""(""name"") VALUES('001'), ('002'), ('003'), ('004')", sql);
+            Assert.Equal(4, iou.ExecuteAffrows());
+
+            //--no primary and yes
+            iou = fsql.InsertOrUpdate<tbiou022>().SetSource(new[] { new tbiou022 { id = 1, name = "100001" }, new tbiou022 { name = "00001" }, new tbiou022 { id = 2, name = "100002" }, new tbiou022 { name = "00002" }, new tbiou022 { id = 3, name = "100003" }, new tbiou022 { name = "00003" }, new tbiou022 { id = 4, name = "100004" }, new tbiou022 { name = "00004" } });
+            sql = iou.ToSql();
+            Assert.Equal(@"INSERT INTO ""tbiou022""(""id"", ""name"") VALUES(1, '100001'), (2, '100002'), (3, '100003'), (4, '100004')
+ON CONFLICT(""id"") DO UPDATE SET
+""name"" = EXCLUDED.""name""
+
+;
+
+INSERT INTO ""tbiou022""(""name"") VALUES('00001'), ('00002'), ('00003'), ('00004')", sql);
+            Assert.Equal(8, iou.ExecuteAffrows());
+            lst = fsql.Select<tbiou022>().Where(a => new[] { 1, 2, 3, 4 }.Contains(a.id)).ToList();
+            Assert.Equal(4, lst.Where(a => a.name == "10000" + a.id).Count());
+        }
+        class tbiou022
+        {
+            [Column(IsIdentity = true)]
+            public int id { get; set; }
+            public string name { get; set; }
+        }
 
         [Fact]
         public void InsertOrUpdate_TwoPrimary()

@@ -154,6 +154,149 @@ WHEN NOT MATCHED THEN
             public int id { get; set; }
             public string name { get; set; }
         }
+        public void InsertOrUpdate_OnePrimaryAndIdentity()
+        {
+            fsql.Delete<tbiou022>().Where("1=1").ExecuteAffrows();
+            var iou = fsql.InsertOrUpdate<tbiou022>().SetSource(new tbiou022 { id = 1, name = "01" });
+            var sql = iou.ToSql();
+            Assert.Equal(@"MERGE INTO ""TBIOU022"" t1 
+USING (SELECT 1 as ID, '01' as NAME FROM dual ) t2 ON (t1.""ID"" = t2.ID) 
+WHEN MATCHED THEN 
+  update set ""NAME"" = t2.NAME 
+WHEN NOT MATCHED THEN 
+  insert (""ID"", ""NAME"") 
+  values (t2.ID, t2.NAME)", sql);
+            iou.ExecuteAffrows();
+
+            iou = fsql.InsertOrUpdate<tbiou022>().SetSource(new tbiou022 { id = 1, name = "011" });
+            sql = iou.ToSql();
+            Assert.Equal(@"MERGE INTO ""TBIOU022"" t1 
+USING (SELECT 1 as ID, '011' as NAME FROM dual ) t2 ON (t1.""ID"" = t2.ID) 
+WHEN MATCHED THEN 
+  update set ""NAME"" = t2.NAME 
+WHEN NOT MATCHED THEN 
+  insert (""ID"", ""NAME"") 
+  values (t2.ID, t2.NAME)", sql);
+            iou.ExecuteAffrows();
+
+            iou = fsql.InsertOrUpdate<tbiou022>().SetSource(new tbiou022 { id = 2, name = "02" });
+            sql = iou.ToSql();
+            Assert.Equal(@"MERGE INTO ""TBIOU022"" t1 
+USING (SELECT 2 as ID, '02' as NAME FROM dual ) t2 ON (t1.""ID"" = t2.ID) 
+WHEN MATCHED THEN 
+  update set ""NAME"" = t2.NAME 
+WHEN NOT MATCHED THEN 
+  insert (""ID"", ""NAME"") 
+  values (t2.ID, t2.NAME)", sql);
+            iou.ExecuteAffrows();
+
+            iou = fsql.InsertOrUpdate<tbiou022>().SetSource(new[] { new tbiou022 { id = 1, name = "01" }, new tbiou022 { id = 2, name = "02" }, new tbiou022 { id = 3, name = "03" }, new tbiou022 { id = 4, name = "04" } });
+            sql = iou.ToSql();
+            Assert.Equal(@"MERGE INTO ""TBIOU022"" t1 
+USING (SELECT 1 as ID, '01' as NAME FROM dual 
+UNION ALL
+ SELECT 2, '02' FROM dual 
+UNION ALL
+ SELECT 3, '03' FROM dual 
+UNION ALL
+ SELECT 4, '04' FROM dual ) t2 ON (t1.""ID"" = t2.ID) 
+WHEN MATCHED THEN 
+  update set ""NAME"" = t2.NAME 
+WHEN NOT MATCHED THEN 
+  insert (""ID"", ""NAME"") 
+  values (t2.ID, t2.NAME)", sql);
+            iou.ExecuteAffrows();
+
+            iou = fsql.InsertOrUpdate<tbiou022>().SetSource(new[] { new tbiou022 { id = 1, name = "001" }, new tbiou022 { id = 2, name = "002" }, new tbiou022 { id = 3, name = "003" }, new tbiou022 { id = 4, name = "004" } });
+            sql = iou.ToSql();
+            Assert.Equal(@"MERGE INTO ""TBIOU022"" t1 
+USING (SELECT 1 as ID, '001' as NAME FROM dual 
+UNION ALL
+ SELECT 2, '002' FROM dual 
+UNION ALL
+ SELECT 3, '003' FROM dual 
+UNION ALL
+ SELECT 4, '004' FROM dual ) t2 ON (t1.""ID"" = t2.ID) 
+WHEN MATCHED THEN 
+  update set ""NAME"" = t2.NAME 
+WHEN NOT MATCHED THEN 
+  insert (""ID"", ""NAME"") 
+  values (t2.ID, t2.NAME)", sql);
+            iou.ExecuteAffrows();
+            var lst = fsql.Select<tbiou022>().Where(a => new[] { 1, 2, 3, 4 }.Contains(a.id)).ToList();
+            //Assert.Equal(4, lst.Where(a => a.name == "00" + a.id).Count());
+
+            //--no primary
+            iou = fsql.InsertOrUpdate<tbiou022>().SetSource(new tbiou022 { name = "01" });
+            sql = iou.ToSql();
+            Assert.Equal(@"INSERT INTO ""TBIOU022""(""NAME"") VALUES('01')", sql);
+            iou.ExecuteAffrows();
+
+            iou = fsql.InsertOrUpdate<tbiou022>().SetSource(new tbiou022 { name = "011" });
+            sql = iou.ToSql();
+            Assert.Equal(@"INSERT INTO ""TBIOU022""(""NAME"") VALUES('011')", sql);
+            iou.ExecuteAffrows();
+
+            iou = fsql.InsertOrUpdate<tbiou022>().SetSource(new tbiou022 { name = "02" });
+            sql = iou.ToSql();
+            Assert.Equal(@"INSERT INTO ""TBIOU022""(""NAME"") VALUES('02')", sql);
+            iou.ExecuteAffrows();
+
+            iou = fsql.InsertOrUpdate<tbiou022>().SetSource(new[] { new tbiou022 { name = "01" }, new tbiou022 { name = "02" }, new tbiou022 { name = "03" }, new tbiou022 { name = "04" } });
+            sql = iou.ToSql();
+            Assert.Equal(@"INSERT ALL
+INTO ""TBIOU022""(""NAME"") VALUES('01')
+INTO ""TBIOU022""(""NAME"") VALUES('02')
+INTO ""TBIOU022""(""NAME"") VALUES('03')
+INTO ""TBIOU022""(""NAME"") VALUES('04')
+ SELECT 1 FROM DUAL", sql);
+            iou.ExecuteAffrows();
+
+            iou = fsql.InsertOrUpdate<tbiou022>().SetSource(new[] { new tbiou022 { name = "001" }, new tbiou022 { name = "002" }, new tbiou022 { name = "003" }, new tbiou022 { name = "004" } });
+            sql = iou.ToSql();
+            Assert.Equal(@"INSERT ALL
+INTO ""TBIOU022""(""NAME"") VALUES('001')
+INTO ""TBIOU022""(""NAME"") VALUES('002')
+INTO ""TBIOU022""(""NAME"") VALUES('003')
+INTO ""TBIOU022""(""NAME"") VALUES('004')
+ SELECT 1 FROM DUAL", sql);
+            iou.ExecuteAffrows();
+
+            //--no primary and yes
+            iou = fsql.InsertOrUpdate<tbiou022>().SetSource(new[] { new tbiou022 { id = 1, name = "100001" }, new tbiou022 { name = "00001" }, new tbiou022 { id = 2, name = "100002" }, new tbiou022 { name = "00002" }, new tbiou022 { id = 3, name = "100003" }, new tbiou022 { name = "00003" }, new tbiou022 { id = 4, name = "100004" }, new tbiou022 { name = "00004" } });
+            sql = iou.ToSql();
+            Assert.Equal(@"MERGE INTO ""TBIOU022"" t1 
+USING (SELECT 1 as ID, '100001' as NAME FROM dual 
+UNION ALL
+ SELECT 2, '100002' FROM dual 
+UNION ALL
+ SELECT 3, '100003' FROM dual 
+UNION ALL
+ SELECT 4, '100004' FROM dual ) t2 ON (t1.""ID"" = t2.ID) 
+WHEN MATCHED THEN 
+  update set ""NAME"" = t2.NAME 
+WHEN NOT MATCHED THEN 
+  insert (""ID"", ""NAME"") 
+  values (t2.ID, t2.NAME)
+
+;
+
+INSERT ALL
+INTO ""TBIOU022""(""NAME"") VALUES('00001')
+INTO ""TBIOU022""(""NAME"") VALUES('00002')
+INTO ""TBIOU022""(""NAME"") VALUES('00003')
+INTO ""TBIOU022""(""NAME"") VALUES('00004')
+ SELECT 1 FROM DUAL", sql);
+            iou.ExecuteAffrows();
+            lst = fsql.Select<tbiou022>().Where(a => new[] { 1, 2, 3, 4 }.Contains(a.id)).ToList();
+            //Assert.Equal(4, lst.Where(a => a.name == "10000" + a.id).Count());
+        }
+        class tbiou022
+        {
+            [Column(IsIdentity = true)]
+            public int id { get; set; }
+            public string name { get; set; }
+        }
 
         [Fact]
         public void InsertOrUpdate_TwoPrimary()

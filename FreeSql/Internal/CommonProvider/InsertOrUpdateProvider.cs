@@ -25,6 +25,7 @@ namespace FreeSql.Internal.CommonProvider
         protected DbParameter[] _params;
         protected DbTransaction _transaction;
         protected DbConnection _connection;
+        public ColumnInfo IdentityColumn { get; }
 
         public InsertOrUpdateProvider(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression)
         {
@@ -33,6 +34,7 @@ namespace FreeSql.Internal.CommonProvider
             _commonExpression = commonExpression;
             _table = _commonUtils.GetTableByEntity(typeof(T1));
             if (_orm.CodeFirst.IsAutoSyncStructure && typeof(T1) != typeof(object)) _orm.CodeFirst.SyncStructure<T1>();
+            IdentityColumn = _table.Primarys.Where(a => a.Attribute.IsIdentity).FirstOrDefault();
         }
 
         protected void ClearData()
@@ -130,11 +132,10 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
 
-        public void WriteSourceSelectUnionAll(StringBuilder sb)
+        public void WriteSourceSelectUnionAll(List<T1> source, StringBuilder sb, List<DbParameter> dbParams)
         {
-            var specialParams = new List<DbParameter>();
             var didx = 0;
-            foreach (var d in _source)
+            foreach (var d in source)
             {
                 if (didx > 0) sb.Append(" \r\nUNION ALL\r\n ");
                 sb.Append("SELECT ");
@@ -147,7 +148,7 @@ namespace FreeSql.Internal.CommonProvider
                     else
                     {
                         object val = col.GetMapValue(d);
-                        sb.Append(_commonUtils.GetNoneParamaterSqlValue(specialParams, col.Attribute.MapType, val));
+                        sb.Append(_commonUtils.GetNoneParamaterSqlValue(dbParams, col.Attribute.MapType, val));
                     }
                     if (didx == 0) sb.Append(" as ").Append(col.Attribute.Name);
                     ++colidx2;
@@ -163,11 +164,82 @@ namespace FreeSql.Internal.CommonProvider
                 }
                 ++didx;
             }
-            if (specialParams.Any()) _params = specialParams.ToArray();
+        }
+
+        byte _SplitSourceByIdentityValueIsNullFlag = 0; //防止重复计算 SplitSource
+        /// <summary>
+        /// 如果实体类有自增属性，分成两个 List，有值的Item1 merge，无值的Item2 insert
+        /// </summary>
+        /// <param name="source"></param>
+        /// <returns></returns>
+        public NaviteTuple<List<T1>, List<T1>> SplitSourceByIdentityValueIsNull(List<T1> source)
+        {
+            if (_SplitSourceByIdentityValueIsNullFlag == 1) return NaviteTuple.Create(source, new List<T1>());
+            if (_SplitSourceByIdentityValueIsNullFlag == 2) return NaviteTuple.Create(new List<T1>(), source);
+            if (IdentityColumn == null) return NaviteTuple.Create(source, new List<T1>());
+            var ret = NaviteTuple.Create(new List<T1>(), new List<T1>());
+            foreach (var item in source)
+            {
+                if (object.Equals(_orm.GetEntityValueWithPropertyName(_table.Type, item, IdentityColumn.CsName), IdentityColumn.CsType.CreateInstanceGetDefaultValue()))
+                    ret.Item2.Add(item); //自增无值的，记录为直接插入
+                else
+                    ret.Item1.Add(item);
+            }
+            return ret;
         }
 
         public abstract string ToSql();
         public int ExecuteAffrows()
+        {
+            var affrows = 0;
+            var ss = SplitSourceByIdentityValueIsNull(_source);
+            try
+            {
+                if (_transaction != null)
+                {
+                    _source = ss.Item1;
+                    _SplitSourceByIdentityValueIsNullFlag = 1;
+                    affrows += this.RawExecuteAffrows();
+                    _source = ss.Item2;
+                    _SplitSourceByIdentityValueIsNullFlag = 2;
+                    affrows += this.RawExecuteAffrows();
+                }
+                else
+                {
+                    using (var conn = _orm.Ado.MasterPool.Get())
+                    {
+                        _transaction = conn.Value.BeginTransaction();
+                        var transBefore = new Aop.TraceBeforeEventArgs("BeginTransaction", null);
+                        _orm.Aop.TraceBeforeHandler?.Invoke(this, transBefore);
+                        try
+                        {
+                            _source = ss.Item1;
+                            _SplitSourceByIdentityValueIsNullFlag = 1;
+                            affrows += this.RawExecuteAffrows();
+                            _source = ss.Item2;
+                            _SplitSourceByIdentityValueIsNullFlag = 2;
+                            affrows += this.RawExecuteAffrows();
+                            _transaction.Commit();
+                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, "提交", null));
+                        }
+                        catch (Exception ex)
+                        {
+                            _transaction.Rollback();
+                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, "回滚", ex));
+                            throw ex;
+                        }
+                        _transaction = null;
+                    }
+                }
+            }
+            finally
+            {
+                _SplitSourceByIdentityValueIsNullFlag = 0;
+                ClearData();
+            }
+            return affrows;
+        }
+        public int RawExecuteAffrows()
         {
             var sql = this.ToSql();
             if (string.IsNullOrEmpty(sql)) return 0;
@@ -193,7 +265,7 @@ namespace FreeSql.Internal.CommonProvider
         }
 #if net40
 #else
-        async public Task<int> ExecuteAffrowsAsync()
+        async public Task<int> RawExecuteAffrowsAsync()
         {
             var sql = this.ToSql();
             if (string.IsNullOrEmpty(sql)) return 0;
@@ -214,6 +286,56 @@ namespace FreeSql.Internal.CommonProvider
             {
                 var after = new Aop.CurdAfterEventArgs(before, exception, affrows);
                 _orm.Aop.CurdAfterHandler?.Invoke(this, after);
+            }
+            return affrows;
+        }
+        async public Task<int> ExecuteAffrowsAsync()
+        {
+            var affrows = 0;
+            var ss = SplitSourceByIdentityValueIsNull(_source);
+            try
+            {
+                if (_transaction != null)
+                {
+                    _source = ss.Item1;
+                    _SplitSourceByIdentityValueIsNullFlag = 1;
+                    affrows += await this.RawExecuteAffrowsAsync();
+                    _source = ss.Item2;
+                    _SplitSourceByIdentityValueIsNullFlag = 2;
+                    affrows += await this.RawExecuteAffrowsAsync();
+                }
+                else
+                {
+                    using (var conn = await _orm.Ado.MasterPool.GetAsync())
+                    {
+                        _transaction = conn.Value.BeginTransaction();
+                        var transBefore = new Aop.TraceBeforeEventArgs("BeginTransaction", null);
+                        _orm.Aop.TraceBeforeHandler?.Invoke(this, transBefore);
+                        try
+                        {
+                            _source = ss.Item1;
+                            _SplitSourceByIdentityValueIsNullFlag = 1;
+                            affrows += await this.RawExecuteAffrowsAsync();
+                            _source = ss.Item2;
+                            _SplitSourceByIdentityValueIsNullFlag = 2;
+                            affrows += await this.RawExecuteAffrowsAsync();
+                            _transaction.Commit();
+                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, "提交", null));
+                        }
+                        catch (Exception ex)
+                        {
+                            _transaction.Rollback();
+                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, "回滚", ex));
+                            throw ex;
+                        }
+                        _transaction = null;
+                    }
+                }
+            }
+            finally
+            {
+                _SplitSourceByIdentityValueIsNullFlag = 0;
+                ClearData();
             }
             return affrows;
         }
