@@ -71,6 +71,7 @@ namespace FreeSql.Tests.SqlServerExpression
                 Assert.Equal(dt.ToString("yyyyMM"), select.First(a => dt.ToString("yyyyMM")));
                 Assert.Equal(dt.ToString("yyyy"), select.First(a => dt.ToString("yyyy")));
                 Assert.Equal(dt.ToString("HH:mm:ss"), select.First(a => dt.ToString("HH:mm:ss")));
+                Assert.Equal(dt.ToString("yyyy MM dd HH mm ss yy M d H hh h"), select.First(a => dt.ToString("yyyy MM dd HH mm ss yy M d H hh h")));
                 Assert.Equal(dt.ToString("yyyy MM dd HH mm ss yy M d H hh h m s tt t").Replace("上午", "AM").Replace("下午", "PM").Replace("上", "A").Replace("下", "P"), select.First(a => dt.ToString("yyyy MM dd HH mm ss yy M d H hh h m s tt t")));
             }
         }

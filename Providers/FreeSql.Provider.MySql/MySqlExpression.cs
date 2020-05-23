@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace FreeSql.MySql
 {
@@ -392,7 +393,54 @@ namespace FreeSql.MySql
                         break;
                     case "Equals": return $"({left} = {args1})";
                     case "CompareTo": return $"timestampdiff(microsecond,{args1},{left})";
-                    case "ToString": return exp.Arguments.Count == 0 ? $"date_format({left}, '%Y-%m-%d %H:%i:%s.%f')" : null;
+                    case "ToString":
+                        if (exp.Arguments.Count == 0) return $"date_format({left}, '%Y-%m-%d %H:%i:%s.%f')";
+                        switch (args1)
+                        {
+                            case "'yyyy-MM-dd HH:mm:ss'": return $"date_format({left}, '%Y-%m-%d %H:%i:%s')";
+                            case "'yyyy-MM-dd HH:mm'": return $"date_format({left}, '%Y-%m-%d %H:%i')";
+                            case "'yyyy-MM-dd HH'": return $"date_format({left}, '%Y-%m-%d %H')";
+                            case "'yyyy-MM-dd'": return $"date_format({left}, '%Y-%m-%d')";
+                            case "'yyyy-MM'": return $"date_format({left}, '%Y-%m')";
+                            case "'yyyyMMdd'": return $"date_format({left}, '%Y%m%d')";
+                            case "'yyyyMM'": return $"date_format({left}, '%Y%m')";
+                            case "'yyyy'": return $"date_format({left}, '%Y')";
+                            case "'HH:mm:ss'": return $"date_format({left}, '%H:%i:%s')";
+                        }
+                       
+                        args1 = Regex.Replace(args1, "(yyyy|yy|MM|M|dd|d|HH|H|hh|h|mm|ss|tt)", m =>
+                        {
+                            switch (m.Groups[1].Value)
+                            {
+                                case "yyyy": return $"%Y";
+                                case "yy": return $"%y";
+                                case "MM": return $"%_a1";
+                                case "M": return $"%c";
+                                case "dd": return $"%d";
+                                case "d": return $"%e";
+                                case "HH": return $"%H";
+                                case "H": return $"%k";
+                                case "hh": return $"%h";
+                                case "h": return $"%l";
+                                case "mm": return $"%i";
+                                case "ss": return $"%_a2";
+                                case "tt": return $"%p";
+                            }
+                            return m.Groups[0].Value;
+                        });
+                        var isMatched = false;
+                        args1 = Regex.Replace(args1, "(m|s|t)", m =>
+                        {
+                            isMatched = true;
+                            switch (m.Groups[1].Value)
+                            {
+                                case "m": return $"'), trim(leading '0' from date_format({left}, '%i')), date_format({left}, '";
+                                case "s": return $"'), trim(leading '0' from date_format({left}, '%s')), date_format({left}, '";
+                                case "t": return $"'), trim(trailing 'M' from date_format({left}, '%p')), date_format({left}, '";
+                            }
+                            return m.Groups[0].Value;
+                        }).Replace("%_a1", "%m").Replace("%_a2", "%s");
+                        return isMatched == false ? $"date_format({left}, {args1})" : $"concat(date_format({left}, {args1}))".Replace($"date_format({left}, '')", "''");
                 }
             }
             return null;
