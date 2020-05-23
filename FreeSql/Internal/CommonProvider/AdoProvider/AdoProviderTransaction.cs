@@ -65,11 +65,12 @@ namespace FreeSql.Internal.CommonProvider
 
         private void CommitTimeoutTransaction()
         {
-            if (_trans.Count > 0)
-            {
-                var trans = _trans.Values.Where(st2 => DateTime.Now.Subtract(st2.RunTime) > st2.Timeout).ToArray();
-                foreach (var tran in trans) CommitTransaction(true, tran, null, "Timeout自动提交");
-            }
+            //关闭 fsql.Transaction 线程事务自动提交机制 https://github.com/dotnetcore/FreeSql/issues/323
+            //if (_trans.Count > 0)
+            //{
+            //    var trans = _trans.Values.Where(st2 => DateTime.Now.Subtract(st2.RunTime) > st2.Timeout).ToArray();
+            //    foreach (var tran in trans) CommitTransaction(true, tran, null, "Timeout自动提交");
+            //}
         }
         private void CommitTransaction(bool isCommit, Transaction2 tran, Exception rollbackException, string remark = null)
         {
