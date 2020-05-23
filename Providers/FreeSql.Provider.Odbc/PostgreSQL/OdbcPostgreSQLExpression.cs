@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace FreeSql.Odbc.PostgreSQL
 {
@@ -483,7 +484,57 @@ namespace FreeSql.Odbc.PostgreSQL
                         break;
                     case "Equals": return $"({left} = ({args1})::timestamp)";
                     case "CompareTo": return $"extract(epoch from ({left})::timestamp-({args1})::timestamp)";
-                    case "ToString": return exp.Arguments.Count == 0 ? $"to_char({left}, 'YYYY-MM-DD HH24:MI:SS.US')" : null;
+                    case "ToString":
+                        left = $"({left})::timestamp";
+                        if (exp.Arguments.Count == 0) return $"to_char({left},'YYYY-MM-DD HH24:MI:SS.US')";
+                        switch (args1)
+                        {
+                            case "'yyyy-MM-dd HH:mm:ss'": return $"to_char({left},'YYYY-MM-DD HH24:MI:SS')";
+                            case "'yyyy-MM-dd HH:mm'": return $"to_char({left},'YYYY-MM-DD HH24:MI')";
+                            case "'yyyy-MM-dd HH'": return $"to_char({left},'YYYY-MM-DD HH24')";
+                            case "'yyyy-MM-dd'": return $"to_char({left},'YYYY-MM-DD')";
+                            case "'yyyy-MM'": return $"to_char({left},'YYYY-MM')";
+                            case "'yyyyMMddHHmmss'": return $"to_char({left},'YYYYMMDDHH24MISS')";
+                            case "'yyyyMMddHHmm'": return $"to_char({left},'YYYYMMDDHH24MI')";
+                            case "'yyyyMMddHH'": return $"to_char({left},'YYYYMMDDHH24')";
+                            case "'yyyyMMdd'": return $"to_char({left},'YYYYMMDD')";
+                            case "'yyyyMM'": return $"to_char({left},'YYYYMM')";
+                            case "'yyyy'": return $"to_char({left},'YYYY')";
+                            case "'HH:mm:ss'": return $"to_char({left},'HH24:MI:SS')";
+                        }
+                        args1 = Regex.Replace(args1, "(yyyy|yy|MM|dd|HH|hh|mm|ss|tt)", m =>
+                        {
+                            switch (m.Groups[1].Value)
+                            {
+                                case "yyyy": return $"YYYY";
+                                case "yy": return $"YY";
+                                case "MM": return $"%_a1";
+                                case "dd": return $"%_a2";
+                                case "HH": return $"%_a3";
+                                case "hh": return $"%_a4";
+                                case "mm": return $"%_a5";
+                                case "ss": return $"SS";
+                                case "tt": return $"%_a6";
+                            }
+                            return m.Groups[0].Value;
+                        });
+                        var isMatched = false;
+                        args1 = Regex.Replace(args1, "(M|d|H|h|m|s|t)", m =>
+                        {
+                            isMatched = true;
+                            switch (m.Groups[1].Value)
+                            {
+                                case "M": return $"') || ltrim(to_char({left},'MM'),'0') || to_char({left},'";
+                                case "d": return $"') || case when substr(to_char({left},'DD'),1,1) = '0' then substr(to_char({left},'DD'),2,1) else to_char({left},'DD') end || to_char({left},'";
+                                case "H": return $"') || case when substr(to_char({left},'HH24'),1,1) = '0' then substr(to_char({left},'HH24'),2,1) else to_char({left},'HH24') end || to_char({left},'";
+                                case "h": return $"') || case when substr(to_char({left},'HH12'),1,1) = '0' then substr(to_char({left},'HH12'),2,1) else to_char({left},'HH12') end || to_char({left},'";
+                                case "m": return $"') || case when substr(to_char({left},'MI'),1,1) = '0' then substr(to_char({left},'MI'),2,1) else to_char({left},'MI') end || to_char({left},'";
+                                case "s": return $"') || case when substr(to_char({left},'SS'),1,1) = '0' then substr(to_char({left},'SS'),2,1) else to_char({left},'SS') end || to_char({left},'";
+                                case "t": return $"') || rtrim(to_char({left},'AM'),'M') || to_char({left},'";
+                            }
+                            return m.Groups[0].Value;
+                        }).Replace("%_a1", "MM").Replace("%_a2", "DD").Replace("%_a3", "HH24").Replace("%_a4", "HH12").Replace("%_a5", "MI").Replace("%_a6", "AM");
+                        return isMatched == false ? $"to_char({left},{args1})" : $"(to_char({left},{args1}))".Replace($"to_char({left},'')", "''");
                 }
             }
             return null;

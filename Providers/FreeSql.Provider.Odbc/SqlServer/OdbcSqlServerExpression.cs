@@ -374,8 +374,8 @@ namespace FreeSql.Odbc.SqlServer
                     case "Equals": return $"({left} = {args1})";
                     case "CompareTo": return $"datediff(second,{args1},{left})";
                     case "ToString":
-                        if (exp.Arguments.Count == 0) return $"convert(varchar, cast({left} as datetime), 121)";
                         left = $"cast({left} as datetime)";
+                        if (exp.Arguments.Count == 0) return $"convert(varchar, {left}, 121)";
                         switch (args1.TrimStart('N'))
                         {
                             case "'yyyy-MM-dd HH:mm:ss'": return $"convert(char(19), {left}, 120)";

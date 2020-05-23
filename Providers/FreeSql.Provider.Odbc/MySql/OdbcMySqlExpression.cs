@@ -410,7 +410,6 @@ namespace FreeSql.Odbc.MySql
                             case "'yyyy'": return $"date_format({left},'%Y')";
                             case "'HH:mm:ss'": return $"date_format({left},'%H:%i:%s')";
                         }
-
                         args1 = Regex.Replace(args1, "(yyyy|yy|MM|M|dd|d|HH|H|hh|h|mm|ss|tt)", m =>
                         {
                             switch (m.Groups[1].Value)
