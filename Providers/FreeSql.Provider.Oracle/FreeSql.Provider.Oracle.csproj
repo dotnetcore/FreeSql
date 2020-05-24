@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net45;net40</TargetFrameworks>
-		<Version>1.5.0-preview0525</Version>
+		<Version>1.5.0</Version>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>ncc;YeXiangQin</Authors>
 		<Description>FreeSql 数据库实现，基于 Oracle 11</Description>
