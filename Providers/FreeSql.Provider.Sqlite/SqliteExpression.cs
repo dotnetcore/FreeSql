@@ -425,26 +425,32 @@ namespace FreeSql.Sqlite
                             }
                             return m.Groups[0].Value;
                         });
-                        var isMatched = false;
-                        args1 = Regex.Replace(args1, "(yy|M|d|H|hh|h|m|s|tt|t)", m =>
+                        var argsFinds = new[] { "%Y", "%_a1", "%_a2", "%_a3", "%_a4", "%S" };
+                        var argsSpts = Regex.Split(args1, "(yy|M|d|H|hh|h|m|s|tt|t)");
+                        for (var a = 0; a < argsSpts.Length; a++)
                         {
-                            isMatched = true;
-                            switch (m.Groups[1].Value)
+                            switch (argsSpts[a])
                             {
-                                case "yy": return $"',{left}) || substr(strftime('%Y',{left}),3,2) || strftime('";
-                                case "M": return $"',{left}) || ltrim(strftime('%m',{left}),'0') || strftime('";
-                                case "d": return $"',{left}) || ltrim(strftime('%d',{left}),'0') || strftime('";
-                                case "H": return $"',{left}) || case when substr(strftime('%H',{left}),1,1) = '0' then substr(strftime('%H',{left}),2,1) else strftime('%H',{left}) end || strftime('";
-                                case "hh": return $"',{left}) || case cast(case when substr(strftime('%H',{left}),1,1) = '0' then substr(strftime('%H',{left}),2,1) else strftime('%H',{left}) end as smallint) % 12 when 0 then '12' when 1 then '01' when 2 then '02' when 3 then '03' when 4 then '04' when 5 then '05' when 6 then '06' when 7 then '07' when 8 then '08' when 9 then '09' when 10 then '10' when 11 then '11' end || strftime('";
-                                case "h": return $"',{left}) || case cast(case when substr(strftime('%H',{left}),1,1) = '0' then substr(strftime('%H',{left}),2,1) else strftime('%H',{left}) end as smallint) % 12 when 0 then '12' when 1 then '1' when 2 then '2' when 3 then '3' when 4 then '4' when 5 then '5' when 6 then '6' when 7 then '7' when 8 then '8' when 9 then '9' when 10 then '10' when 11 then '11' end || strftime('";
-                                case "m": return $"',{left}) || case when substr(strftime('%M',{left}),1,1) = '0' then substr(strftime('%M',{left}),2,1) else strftime('%M',{left}) end || strftime('";
-                                case "s": return $"',{left}) || case when substr(strftime('%S',{left}),1,1) = '0' then substr(strftime('%S',{left}),2,1) else strftime('%S',{left}) end || strftime('";
-                                case "tt": return $"',{left}) || case when cast(case when substr(strftime('%H',{left}),1,1) = '0' then substr(strftime('%H',{left}),2,1) else strftime('%H',{left}) end as smallint) >= 12 then 'PM' else 'AM' end || strftime('";
-                                case "t": return $"',{left}) || case when cast(case when substr(strftime('%H',{left}),1,1) = '0' then substr(strftime('%H',{left}),2,1) else strftime('%H',{left}) end as smallint) >= 12 then 'P' else 'A' end || strftime('";
+                                case "yy": argsSpts[a] = $"substr(strftime('%Y',{left}),3,2)"; break;
+                                case "M": argsSpts[a] = $"ltrim(strftime('%m',{left}),'0')"; break;
+                                case "d": argsSpts[a] = $"ltrim(strftime('%d',{left}),'0')"; break;
+                                case "H": argsSpts[a] = $"case when substr(strftime('%H',{left}),1,1) = '0' then substr(strftime('%H',{left}),2,1) else strftime('%H',{left}) end"; break;
+                                case "hh": argsSpts[a] = $"case cast(case when substr(strftime('%H',{left}),1,1) = '0' then substr(strftime('%H',{left}),2,1) else strftime('%H',{left}) end as smallint) % 12 when 0 then '12' when 1 then '01' when 2 then '02' when 3 then '03' when 4 then '04' when 5 then '05' when 6 then '06' when 7 then '07' when 8 then '08' when 9 then '09' when 10 then '10' when 11 then '11' end"; break;
+                                case "h": argsSpts[a] = $"case cast(case when substr(strftime('%H',{left}),1,1) = '0' then substr(strftime('%H',{left}),2,1) else strftime('%H',{left}) end as smallint) % 12 when 0 then '12' when 1 then '1' when 2 then '2' when 3 then '3' when 4 then '4' when 5 then '5' when 6 then '6' when 7 then '7' when 8 then '8' when 9 then '9' when 10 then '10' when 11 then '11' end"; break;
+                                case "m": argsSpts[a] = $"case when substr(strftime('%M',{left}),1,1) = '0' then substr(strftime('%M',{left}),2,1) else strftime('%M',{left}) end"; break;
+                                case "s": argsSpts[a] = $"case when substr(strftime('%S',{left}),1,1) = '0' then substr(strftime('%S',{left}),2,1) else strftime('%S',{left}) end"; break;
+                                case "tt": argsSpts[a] = $"case when cast(case when substr(strftime('%H',{left}),1,1) = '0' then substr(strftime('%H',{left}),2,1) else strftime('%H',{left}) end as smallint) >= 12 then 'PM' else 'AM' end"; break;
+                                case "t": argsSpts[a] = $"case when cast(case when substr(strftime('%H',{left}),1,1) = '0' then substr(strftime('%H',{left}),2,1) else strftime('%H',{left}) end as smallint) >= 12 then 'P' else 'A' end"; break;
+                                default:
+                                    var argsSptsA = argsSpts[a];
+                                    if (argsSptsA.StartsWith("'")) argsSptsA = argsSptsA.Substring(1);
+                                    if (argsSptsA.EndsWith("'")) argsSptsA = argsSptsA.Remove(argsSptsA.Length - 1);
+                                    argsSpts[a] = argsFinds.Any(m => argsSptsA.Contains(m)) ? $"strftime('{argsSptsA}',{left})" : $"'{argsSptsA}'"; 
+                                    break;
                             }
-                            return m.Groups[0].Value;
-                        }).Replace("%_a1", "%m").Replace("%_a2", "%d").Replace("%_a3", "%H").Replace("%_a4", "%M");
-                        return isMatched == false ? $"strftime({args1},{left})" : $"(strftime({args1},{left}))".Replace($"strftime('',{left})", "''");
+                        }
+                        if (argsSpts.Length > 0) args1 = $"({string.Join(" || ", argsSpts.Where(a => a != "''"))})";
+                        return args1.Replace("%_a1", "%m").Replace("%_a2", "%d").Replace("%_a3", "%H").Replace("%_a4", "%M");
                 }
             }
             return null;

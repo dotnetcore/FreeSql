@@ -496,7 +496,7 @@ namespace FreeSql.PostgreSQL
                 var args1 = exp.Arguments.Count == 0 ? null : getExp(exp.Arguments[0]);
                 switch (exp.Method.Name)
                 {
-                    case "Add": return $"(({left})::timestamp+(({args1})||' microseconds')::interval)";
+                    case "Add": return $"(({left})::timestamp+((({args1})/1000)||' milliseconds')::interval)";
                     case "AddDays": return $"(({left})::timestamp+(({args1})||' day')::interval)";
                     case "AddHours": return $"(({left})::timestamp+(({args1})||' hour')::interval)";
                     case "AddMilliseconds": return $"(({left})::timestamp+(({args1})||' milliseconds')::interval)";
@@ -509,7 +509,7 @@ namespace FreeSql.PostgreSQL
                         switch ((exp.Arguments[0].Type.IsNullableType() ? exp.Arguments[0].Type.GetGenericArguments().FirstOrDefault() : exp.Arguments[0].Type).FullName)
                         {
                             case "System.DateTime": return $"(extract(epoch from ({left})::timestamp-({args1})::timestamp)*1000000)";
-                            case "System.TimeSpan": return $"(({left})::timestamp-(({args1})||' microseconds')::interval)";
+                            case "System.TimeSpan": return $"(({left})::timestamp-((({args1})/1000)||' milliseconds')::interval)";
                         }
                         break;
                     case "Equals": return $"({left} = ({args1})::timestamp)";
@@ -548,23 +548,29 @@ namespace FreeSql.PostgreSQL
                             }
                             return m.Groups[0].Value;
                         });
-                        var isMatched = false;
-                        args1 = Regex.Replace(args1, "(M|d|H|h|m|s|t)", m =>
+                        var argsFinds = new[] { "YYYY", "YY", "%_a1", "%_a2", "%_a3", "%_a4", "%_a5", "SS", "%_a6" };
+                        var argsSpts = Regex.Split(args1, "(M|d|H|h|m|s|t)");
+                        for (var a = 0; a < argsSpts.Length; a++)
                         {
-                            isMatched = true;
-                            switch (m.Groups[1].Value)
+                            switch (argsSpts[a])
                             {
-                                case "M": return $"') || ltrim(to_char({left},'MM'),'0') || to_char({left},'";
-                                case "d": return $"') || case when substr(to_char({left},'DD'),1,1) = '0' then substr(to_char({left},'DD'),2,1) else to_char({left},'DD') end || to_char({left},'";
-                                case "H": return $"') || case when substr(to_char({left},'HH24'),1,1) = '0' then substr(to_char({left},'HH24'),2,1) else to_char({left},'HH24') end || to_char({left},'";
-                                case "h": return $"') || case when substr(to_char({left},'HH12'),1,1) = '0' then substr(to_char({left},'HH12'),2,1) else to_char({left},'HH12') end || to_char({left},'";
-                                case "m": return $"') || case when substr(to_char({left},'MI'),1,1) = '0' then substr(to_char({left},'MI'),2,1) else to_char({left},'MI') end || to_char({left},'";
-                                case "s": return $"') || case when substr(to_char({left},'SS'),1,1) = '0' then substr(to_char({left},'SS'),2,1) else to_char({left},'SS') end || to_char({left},'";
-                                case "t": return $"') || rtrim(to_char({left},'AM'),'M') || to_char({left},'";
+                                case "M": argsSpts[a] = $"ltrim(to_char({left},'MM'),'0')"; break;
+                                case "d": argsSpts[a] = $"case when substr(to_char({left},'DD'),1,1) = '0' then substr(to_char({left},'DD'),2,1) else to_char({left},'DD') end"; break;
+                                case "H": argsSpts[a] = $"case when substr(to_char({left},'HH24'),1,1) = '0' then substr(to_char({left},'HH24'),2,1) else to_char({left},'HH24') end"; break;
+                                case "h": argsSpts[a] = $"case when substr(to_char({left},'HH12'),1,1) = '0' then substr(to_char({left},'HH12'),2,1) else to_char({left},'HH12') end"; break;
+                                case "m": argsSpts[a] = $"case when substr(to_char({left},'MI'),1,1) = '0' then substr(to_char({left},'MI'),2,1) else to_char({left},'MI') end"; break;
+                                case "s": argsSpts[a] = $"case when substr(to_char({left},'SS'),1,1) = '0' then substr(to_char({left},'SS'),2,1) else to_char({left},'SS') end"; break;
+                                case "t": argsSpts[a] = $"rtrim(to_char({left},'AM'),'M')"; break;
+                                default:
+                                    var argsSptsA = argsSpts[a];
+                                    if (argsSptsA.StartsWith("'")) argsSptsA = argsSptsA.Substring(1);
+                                    if (argsSptsA.EndsWith("'")) argsSptsA = argsSptsA.Remove(argsSptsA.Length - 1);
+                                    argsSpts[a] = argsFinds.Any(m => argsSptsA.Contains(m)) ? $"to_char({left},'{argsSptsA}')" : $"'{argsSptsA}'"; 
+                                    break;
                             }
-                            return m.Groups[0].Value;
-                        }).Replace("%_a1", "MM").Replace("%_a2", "DD").Replace("%_a3", "HH24").Replace("%_a4", "HH12").Replace("%_a5", "MI").Replace("%_a6", "AM");
-                        return isMatched == false ? $"to_char({left},{args1})" : $"(to_char({left},{args1}))".Replace($"to_char({left},'')", "''");
+                        }
+                        if (argsSpts.Length > 0) args1 = $"({string.Join(" || ", argsSpts.Where(a => a != "''"))})";
+                        return args1.Replace("%_a1", "MM").Replace("%_a2", "DD").Replace("%_a3", "HH24").Replace("%_a4", "HH12").Replace("%_a5", "MI").Replace("%_a6", "AM");
                 }
             }
             return null;

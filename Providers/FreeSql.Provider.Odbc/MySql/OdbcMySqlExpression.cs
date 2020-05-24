@@ -428,19 +428,25 @@ namespace FreeSql.Odbc.MySql
                             }
                             return m.Groups[0].Value;
                         });
-                        var isMatched = false;
-                        args1 = Regex.Replace(args1, "(m|s|t)", m =>
+                        var argsFinds = new[] { "%Y", "%y", "%_a1", "%c", "%d", "%e", "%H", "%k", "%h", "%l", "%i", "%_a2", "%p" };
+                        var argsSpts = Regex.Split(args1, "(m|s|t)");
+                        for (var a = 0; a < argsSpts.Length; a++)
                         {
-                            isMatched = true;
-                            switch (m.Groups[1].Value)
+                            switch (argsSpts[a])
                             {
-                                case "m": return $"'), case when substr(date_format({left},'%i'),1,1) = '0' then substr(date_format({left},'%i'),2,1) else date_format({left},'%i') end, date_format({left},'";
-                                case "s": return $"'), case when substr(date_format({left},'%s'),1,1) = '0' then substr(date_format({left},'%s'),2,1) else date_format({left},'%s') end, date_format({left},'";
-                                case "t": return $"'), trim(trailing 'M' from date_format({left},'%p')), date_format({left},'";
+                                case "m": argsSpts[a] = $"case when substr(date_format({left},'%i'),1,1) = '0' then substr(date_format({left},'%i'),2,1) else date_format({left},'%i') end"; break;
+                                case "s": argsSpts[a] = $"case when substr(date_format({left},'%s'),1,1) = '0' then substr(date_format({left},'%s'),2,1) else date_format({left},'%s') end"; break;
+                                case "t": argsSpts[a] = $"trim(trailing 'M' from date_format({left},'%p'))"; break;
+                                default:
+                                    var argsSptsA = argsSpts[a];
+                                    if (argsSptsA.StartsWith("'")) argsSptsA = argsSptsA.Substring(1);
+                                    if (argsSptsA.EndsWith("'")) argsSptsA = argsSptsA.Remove(argsSptsA.Length - 1);
+                                    argsSpts[a] = argsFinds.Any(m => argsSptsA.Contains(m)) ? $"date_format({left},'{argsSptsA}')" : $"'{argsSptsA}'";
+                                    break;
                             }
-                            return m.Groups[0].Value;
-                        }).Replace("%_a1", "%m").Replace("%_a2", "%s");
-                        return isMatched == false ? $"date_format({left},{args1})" : $"concat(date_format({left},{args1}))".Replace($"date_format({left},'')", "''");
+                        }
+                        if (argsSpts.Length > 0) args1 = $"concat({string.Join(", ", argsSpts.Where(a => a != "''"))})";
+                        return args1.Replace("%_a1", "%m").Replace("%_a2", "%s");
                 }
             }
             return null;

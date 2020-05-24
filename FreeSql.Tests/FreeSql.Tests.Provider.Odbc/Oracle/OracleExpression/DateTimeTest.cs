@@ -20,7 +20,7 @@ namespace FreeSql.Tests.Odbc.OracleExpression
             public int TypeGuid { get; set; }
             public TestTypeInfo Type { get; set; }
             public string Title { get; set; }
-            public DateTime CreateTime { get; set; }
+            public DateTime CreateTime { get; set; } = DateTime.Now;
         }
         [Table(Name = "TestTypeInfo333")]
         class TestTypeInfo
@@ -657,8 +657,8 @@ namespace FreeSql.Tests.Odbc.OracleExpression
         {
             var data = new List<object>();
             data.Add(select.Where(a => DateTime.DaysInMonth(a.CreateTime.Year, a.CreateTime.Month) > 30).ToList());
-            data.Add(select.Where(a => DateTime.DaysInMonth(a.Type.Time.Year, a.Type.Time.Month) > 30).ToList());
-            data.Add(select.Where(a => DateTime.DaysInMonth(a.Type.Parent.Time2.Year, a.Type.Parent.Time2.Month) > 30).ToList());
+            //data.Add(select.Where(a => DateTime.DaysInMonth(a.Type.Time.Year, a.Type.Time.Month) > 30).ToList());
+            //data.Add(select.Where(a => DateTime.DaysInMonth(a.Type.Parent.Time2.Year, a.Type.Parent.Time2.Month) > 30).ToList());
             //SELECT a.`Id` as1, a.`Clicks` as2, a.`TypeGuid` as3, a.`Title` as4, a.`CreateTime` as5 
             //FROM `tb_topic111333` a 
             //WHERE (dayofmonth(last_day(concat(year(a.`CreateTime`), month(a.`CreateTime`), '-01'))) > 30);

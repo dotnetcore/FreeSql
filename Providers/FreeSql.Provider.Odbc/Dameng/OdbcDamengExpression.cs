@@ -1,11 +1,10 @@
 ﻿using FreeSql.Internal;
-using FreeSql.Internal.Model;
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace FreeSql.Odbc.Dameng
 {
@@ -193,7 +192,7 @@ namespace FreeSql.Odbc.Dameng
             {
                 case "Date": return $"trunc({left})";
                 case "TimeOfDay": return $"(cast({left} as timestamp with time zone)-trunc({left}))";
-                case "DayOfWeek": return $"case when to_char({left})='7' then 0 else cast(to_char({left}) as number) end";
+                case "DayOfWeek": return $"case when to_char({left},'D')='7' then 0 else cast(to_char({left},'D') as number) end";
                 case "Day": return $"cast(to_char({left},'DD') as number)";
                 case "DayOfYear": return $"cast(to_char({left},'DDD') as number)";
                 case "Month": return $"cast(to_char({left},'MM') as number)";
@@ -361,7 +360,7 @@ namespace FreeSql.Odbc.Dameng
                 switch (exp.Method.Name)
                 {
                     case "Compare": return $"extract(day from ({getExp(exp.Arguments[0])}-({getExp(exp.Arguments[1])})))";
-                    case "DaysInMonth": return $"cast(to_char(last_day(({getExp(exp.Arguments[0])})||'-'||({getExp(exp.Arguments[1])})||'-01'),'DD') as number)";
+                    case "DaysInMonth": return $"cast(to_char(last_day(to_date(({getExp(exp.Arguments[0])})||'-'||({getExp(exp.Arguments[1])})||'-01','yyyy-mm-dd')),'DD') as number)";
                     case "Equals": return $"({getExp(exp.Arguments[0])} = {getExp(exp.Arguments[1])})";
 
                     case "IsLeapYear":
@@ -398,7 +397,64 @@ namespace FreeSql.Odbc.Dameng
                         break;
                     case "Equals": return $"({left} = {args1})";
                     case "CompareTo": return $"extract(day from ({left}-({args1})))";
-                    case "ToString": return exp.Arguments.Count == 0 ? $"to_char({left},'YYYY-MM-DD HH24:MI:SS.FF6')" : null;
+                    case "ToString":
+                        if (left.StartsWith("'") || left.EndsWith("'")) left = $"to_timestamp({left},'YYYY-MM-DD HH24:MI:SS.FF6')";
+                        if (exp.Arguments.Count == 0) return $"to_char({left},'YYYY-MM-DD HH24:MI:SS.FF6')";
+                        switch (args1)
+                        {
+                            case "'yyyy-MM-dd HH:mm:ss'": return $"to_char({left},'YYYY-MM-DD HH24:MI:SS')";
+                            case "'yyyy-MM-dd HH:mm'": return $"to_char({left},'YYYY-MM-DD HH24:MI')";
+                            case "'yyyy-MM-dd HH'": return $"to_char({left},'YYYY-MM-DD HH24')";
+                            case "'yyyy-MM-dd'": return $"to_char({left},'YYYY-MM-DD')";
+                            case "'yyyy-MM'": return $"to_char({left},'YYYY-MM')";
+                            case "'yyyyMMddHHmmss'": return $"to_char({left},'YYYYMMDDHH24MISS')";
+                            case "'yyyyMMddHHmm'": return $"to_char({left},'YYYYMMDDHH24MI')";
+                            case "'yyyyMMddHH'": return $"to_char({left},'YYYYMMDDHH24')";
+                            case "'yyyyMMdd'": return $"to_char({left},'YYYYMMDD')";
+                            case "'yyyyMM'": return $"to_char({left},'YYYYMM')";
+                            case "'yyyy'": return $"to_char({left},'YYYY')";
+                            case "'HH:mm:ss'": return $"to_char({left},'HH24:MI:SS')";
+                        }
+                        args1 = Regex.Replace(args1, "(yyyy|yy|MM|dd|HH|hh|mm|ss|tt)", m =>
+                        {
+                            switch (m.Groups[1].Value)
+                            {
+                                case "yyyy": return "YYYY";
+                                case "yy": return "YY";
+                                case "MM": return "%_a1";
+                                case "dd": return "%_a2";
+                                case "HH": return "%_a3";
+                                case "mm": return "%_a4";
+                                case "ss": return "SS";
+                                case "tt": return "%_a5";
+                            }
+                            return m.Groups[0].Value;
+                        });
+                        var argsFinds = new[] { "YYYY", "YY", "%_a1", "%_a2", "%_a3", "%_a4", "SS", "%_a5" };
+                        var argsSpts = Regex.Split(args1, "(M|d|H|hh|h|m|s|t)");
+                        for (var a = 0; a < argsSpts.Length; a++)
+                        {
+                            switch (argsSpts[a])
+                            {
+                                case "M": argsSpts[a] = $"ltrim(to_char({left},'MM'),'0')"; break;
+                                case "d": argsSpts[a] = $"case when substr(to_char({left},'DD'),1,1) = '0' then substr(to_char({left},'DD'),2,1) else to_char({left},'DD') end"; break;
+                                case "H": argsSpts[a] = $"case when substr(to_char({left},'HH24'),1,1) = '0' then substr(to_char({left},'HH24'),2,1) else to_char({left},'HH24') end"; break;
+                                case "hh": argsSpts[a] = $"case mod(cast(case when substr(to_char({left},'HH24'),1,1) = '0' then substr(to_char({left},'HH24'),2,1) else to_char({left},'HH24') end as number),12) when 0 then '12' when 1 then '01' when 2 then '02' when 3 then '03' when 4 then '04' when 5 then '05' when 6 then '06' when 7 then '07' when 8 then '08' when 9 then '09' when 10 then '10' when 11 then '11' end"; break;
+                                case "h": argsSpts[a] = $"case mod(cast(case when substr(to_char({left},'HH24'),1,1) = '0' then substr(to_char({left},'HH24'),2,1) else to_char({left},'HH24') end as number),12) when 0 then '12' when 1 then '1' when 2 then '2' when 3 then '3' when 4 then '4' when 5 then '5' when 6 then '6' when 7 then '7' when 8 then '8' when 9 then '9' when 10 then '10' when 11 then '11' end"; break;
+                                case "m": argsSpts[a] = $"case when substr(to_char({left},'MI'),1,1) = '0' then substr(to_char({left},'MI'),2,1) else to_char({left},'MI') end"; break;
+                                case "s": argsSpts[a] = $"case when substr(to_char({left},'SS'),1,1) = '0' then substr(to_char({left},'SS'),2,1) else to_char({left},'SS') end"; break;
+                                case "t": argsSpts[a] = $"rtrim(to_char({left},'AM'),'M')"; break;
+                                default:
+                                    var argsSptsA = argsSpts[a];
+                                    if (argsSptsA.StartsWith("'")) argsSptsA = argsSptsA.Substring(1);
+                                    if (argsSptsA.EndsWith("'")) argsSptsA = argsSptsA.Remove(argsSptsA.Length - 1);
+                                    argsSpts[a] = argsFinds.Any(m => argsSptsA.Contains(m)) ? $"to_char({left},'{argsSptsA}')" : $"'{argsSptsA}'"; 
+                                    break;
+                                    //达梦 to_char(to_timestamp('2020-02-01 00:00:00.000000','YYYY-MM-DD HH24:MI:SS.FF6'),' ') 无效
+                            }
+                        }
+                        if (argsSpts.Length > 0) args1 = $"({string.Join(" || ", argsSpts.Where(a => a != "''"))})";
+                        return args1.Replace("%_a1", "MM").Replace("%_a2", "DD").Replace("%_a3", "HH24").Replace("%_a4", "MI").Replace("%_a5", "AM");
                 }
             }
             return null;
