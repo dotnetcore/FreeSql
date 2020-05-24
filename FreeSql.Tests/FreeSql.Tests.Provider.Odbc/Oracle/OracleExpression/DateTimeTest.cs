@@ -61,31 +61,31 @@ namespace FreeSql.Tests.Odbc.OracleExpression
             //FROM `tb_topic111333` a, `TestTypeInfo333` a__Type, `TestTypeParentInfo23123` a__Type__Parent 
             //WHERE ((date_format(date_add(a__Type__Parent.`Time2`, interval (1) year), '%Y-%m-%d %H:%i:%s.%f') = now()))
 
-            g.oracle.Insert(new Topic()).ExecuteAffrows();
-            var dtn = DateTime.Parse("2020-1-1 0:0:0");
-            var dts = Enumerable.Range(1, 12).Select(a => dtn.AddMonths(a))
-                .Concat(Enumerable.Range(1, 31).Select(a => dtn.AddDays(a)))
-                .Concat(Enumerable.Range(1, 24).Select(a => dtn.AddHours(a)))
-                .Concat(Enumerable.Range(1, 60).Select(a => dtn.AddMinutes(a)))
-                .Concat(Enumerable.Range(1, 60).Select(a => dtn.AddSeconds(a)));
-            foreach (var dt in dts)
-            {
-                Assert.Equal(dt.ToString("yyyy-MM-dd HH:mm:ss.ffffff"), select.First(a => dt.ToString()));
-                Assert.Equal(dt.ToString("yyyy-MM-dd HH:mm:ss"), select.First(a => dt.ToString("yyyy-MM-dd HH:mm:ss")));
-                Assert.Equal(dt.ToString("yyyy-MM-dd HH:mm"), select.First(a => dt.ToString("yyyy-MM-dd HH:mm")));
-                Assert.Equal(dt.ToString("yyyy-MM-dd HH"), select.First(a => dt.ToString("yyyy-MM-dd HH")));
-                Assert.Equal(dt.ToString("yyyy-MM-dd"), select.First(a => dt.ToString("yyyy-MM-dd")));
-                Assert.Equal(dt.ToString("yyyy-MM"), select.First(a => dt.ToString("yyyy-MM")));
-                Assert.Equal(dt.ToString("yyyyMMddHHmmss"), select.First(a => dt.ToString("yyyyMMddHHmmss")));
-                Assert.Equal(dt.ToString("yyyyMMddHHmm"), select.First(a => dt.ToString("yyyyMMddHHmm")));
-                Assert.Equal(dt.ToString("yyyyMMddHH"), select.First(a => dt.ToString("yyyyMMddHH")));
-                Assert.Equal(dt.ToString("yyyyMMdd"), select.First(a => dt.ToString("yyyyMMdd")));
-                Assert.Equal(dt.ToString("yyyyMM"), select.First(a => dt.ToString("yyyyMM")));
-                Assert.Equal(dt.ToString("yyyy"), select.First(a => dt.ToString("yyyy")));
-                Assert.Equal(dt.ToString("HH:mm:ss"), select.First(a => dt.ToString("HH:mm:ss")));
-                Assert.Equal(dt.ToString("yyyy MM dd HH mm ss yy M d H hh h"), select.First(a => dt.ToString("yyyy MM dd HH mm ss yy M d H hh h")));
-                Assert.Equal(dt.ToString("yyyy MM dd HH mm ss yy M d H hh h m s"), select.First(a => dt.ToString("yyyy MM dd HH mm ss yy M d H hh h m s")));
-            }
+            //g.oracle.Insert(new Topic()).ExecuteAffrows();
+            //var dtn = DateTime.Parse("2020-1-1 0:0:0");
+            //var dts = Enumerable.Range(1, 12).Select(a => dtn.AddMonths(a))
+            //    .Concat(Enumerable.Range(1, 31).Select(a => dtn.AddDays(a)))
+            //    .Concat(Enumerable.Range(1, 24).Select(a => dtn.AddHours(a)))
+            //    .Concat(Enumerable.Range(1, 60).Select(a => dtn.AddMinutes(a)))
+            //    .Concat(Enumerable.Range(1, 60).Select(a => dtn.AddSeconds(a)));
+            //foreach (var dt in dts)
+            //{
+            //    Assert.Equal(dt.ToString("yyyy-MM-dd HH:mm:ss.ffffff"), select.First(a => dt.ToString()));
+            //    Assert.Equal(dt.ToString("yyyy-MM-dd HH:mm:ss"), select.First(a => dt.ToString("yyyy-MM-dd HH:mm:ss")));
+            //    Assert.Equal(dt.ToString("yyyy-MM-dd HH:mm"), select.First(a => dt.ToString("yyyy-MM-dd HH:mm")));
+            //    Assert.Equal(dt.ToString("yyyy-MM-dd HH"), select.First(a => dt.ToString("yyyy-MM-dd HH")));
+            //    Assert.Equal(dt.ToString("yyyy-MM-dd"), select.First(a => dt.ToString("yyyy-MM-dd")));
+            //    Assert.Equal(dt.ToString("yyyy-MM"), select.First(a => dt.ToString("yyyy-MM")));
+            //    Assert.Equal(dt.ToString("yyyyMMddHHmmss"), select.First(a => dt.ToString("yyyyMMddHHmmss")));
+            //    Assert.Equal(dt.ToString("yyyyMMddHHmm"), select.First(a => dt.ToString("yyyyMMddHHmm")));
+            //    Assert.Equal(dt.ToString("yyyyMMddHH"), select.First(a => dt.ToString("yyyyMMddHH")));
+            //    Assert.Equal(dt.ToString("yyyyMMdd"), select.First(a => dt.ToString("yyyyMMdd")));
+            //    Assert.Equal(dt.ToString("yyyyMM"), select.First(a => dt.ToString("yyyyMM")));
+            //    Assert.Equal(dt.ToString("yyyy"), select.First(a => dt.ToString("yyyy")));
+            //    Assert.Equal(dt.ToString("HH:mm:ss"), select.First(a => dt.ToString("HH:mm:ss")));
+            //    Assert.Equal(dt.ToString("yyyy MM dd HH mm ss yy M d H hh h"), select.First(a => dt.ToString("yyyy MM dd HH mm ss yy M d H hh h")));
+            //    Assert.Equal(dt.ToString("yyyy MM dd HH mm ss yy M d H hh h m s"), select.First(a => dt.ToString("yyyy MM dd HH mm ss yy M d H hh h m s")));
+            //}
         }
         [Fact]
         public void Now()
