@@ -1,4 +1,5 @@
 ﻿using FreeSql;
+using FreeSql.Internal.Model;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -37,11 +38,11 @@ public static partial class FreeSqlSqlServerGlobalExtensions
     /// <param name="options"></param>
     public static IFreeSql SetGlobalSelectWithLock(this IFreeSql that, SqlServerLock lockType, Dictionary<Type, bool> rule)
     {
-        var value = (lockType, rule);
-        _dicSetGlobalSelectWithLock.AddOrUpdate(that, value, (_, __) => value);
+        var value = NaviteTuple.Create(lockType, rule);
+        _dicSetGlobalSelectWithLock.AddOrUpdate(that.Ado.Identifier, value, (_, __) => value);
         return that;
     }
-    internal static ConcurrentDictionary<IFreeSql, (SqlServerLock, Dictionary<Type, bool>)> _dicSetGlobalSelectWithLock = new ConcurrentDictionary<IFreeSql, (SqlServerLock, Dictionary<Type, bool>)>();
+    internal static ConcurrentDictionary<Guid, NaviteTuple<SqlServerLock, Dictionary<Type, bool>>> _dicSetGlobalSelectWithLock = new ConcurrentDictionary<Guid, NaviteTuple<SqlServerLock, Dictionary<Type, bool>>>();
 
     #region ExecuteSqlBulkCopy
     /// <summary>

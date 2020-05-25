@@ -2,9 +2,9 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net45;net40</TargetFrameworks>
-		<Version>1.0.0</Version>
+		<Version>1.5.0</Version>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-		<Authors>YeXiangQin</Authors>
+		<Authors>ncc;YeXiangQin</Authors>
 		<Description>FreeSql 数据库实现，基于 Oracle 11</Description>
 		<PackageProjectUrl>https://github.com/2881099/FreeSql</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/2881099/FreeSql</RepositoryUrl>
@@ -16,6 +16,9 @@
 		<Title>$(AssemblyName)</Title>
 		<IsPackable>true</IsPackable>
 		<GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+		<SignAssembly>true</SignAssembly>
+		<AssemblyOriginatorKeyFile>key.snk</AssemblyOriginatorKeyFile>
+		<DelaySign>false</DelaySign>
 	</PropertyGroup>
 
   <ItemGroup>
@@ -23,11 +26,11 @@
   </ItemGroup>
   
 	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-	  <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="2.19.60" />
+	  <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="2.19.70" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net45' or '$(TargetFramework)' == 'net40'">
-		<PackageReference Include="Oracle.ManagedDataAccess" Version="19.6.0" />
+		<PackageReference Include="Oracle.ManagedDataAccess" Version="19.7.0" />
 	</ItemGroup>
 	
 	<ItemGroup>

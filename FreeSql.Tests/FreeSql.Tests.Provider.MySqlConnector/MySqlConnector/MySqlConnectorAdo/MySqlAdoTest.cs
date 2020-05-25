@@ -31,8 +31,20 @@ namespace FreeSql.Tests.MySqlConnector
         [Fact]
         public void ExecuteNonQuery()
         {
-
+            var item = new TestExecute01 { title = "title01" };
+            g.mysql.Insert(item).ExecuteAffrows();
+            var affrows = g.mysql.Ado.ExecuteNonQuery("update TestExecute01 set title = '完成' where id=@id", new { id = item.id });
+            Assert.Equal(1, affrows);
+            var item2 = g.mysql.Select<TestExecute01>(item).First();
+            Assert.NotNull(item2);
+            Assert.Equal("完成", item2.title);
         }
+        class TestExecute01
+        {
+            public Guid id { get; set; }
+            public string title { get; set; }
+        }
+
         [Fact]
         public void ExecuteScalar()
         {

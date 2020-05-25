@@ -1,11 +1,10 @@
 ﻿using FreeSql.Internal;
-using FreeSql.Internal.Model;
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace FreeSql.Odbc.Oracle
 {
@@ -41,7 +40,9 @@ namespace FreeSql.Odbc.Oracle
                             case "System.UInt16":
                             case "System.UInt32":
                             case "System.UInt64": return $"cast({getExp(operandExp)} as number)";
-                            case "System.Guid": return $"substr(to_char({getExp(operandExp)}), 1, 36)";
+                            case "System.Guid":
+                                if (tsc.mapType == typeof(byte[])) return $"hextoraw({getExp(operandExp)})";
+                                return $"to_char({getExp(operandExp)})";
                         }
                     }
                     break;
@@ -68,7 +69,9 @@ namespace FreeSql.Odbc.Oracle
                                 case "System.UInt16":
                                 case "System.UInt32":
                                 case "System.UInt64": return $"cast({getExp(callExp.Arguments[0])} as number)";
-                                case "System.Guid": return $"substr(to_char({getExp(callExp.Arguments[0])}), 1, 36)";
+                                case "System.Guid":
+                                    if (tsc.mapType == typeof(byte[])) return $"hextoraw({getExp(callExp.Arguments[0])})";
+                                    return $"to_char({getExp(callExp.Arguments[0])})";
                             }
                             return null;
                         case "NewGuid":
@@ -101,6 +104,7 @@ namespace FreeSql.Odbc.Oracle
                     if (objType == null) objType = callExp.Method.DeclaringType;
                     if (objType != null || objType.IsArrayOrList())
                     {
+                        if (argIndex >= callExp.Arguments.Count) break;
                         tsc.SetMapColumnTmp(null);
                         var args1 = getExp(callExp.Arguments[argIndex]);
                         var oldMapType = tsc.SetMapTypeReturnOld(tsc.mapTypeTmp);
@@ -188,7 +192,7 @@ namespace FreeSql.Odbc.Oracle
             {
                 case "Date": return $"trunc({left})";
                 case "TimeOfDay": return $"({left}-trunc({left}))";
-                case "DayOfWeek": return $"case when to_char({left})='7' then 0 else cast(to_char({left}) as number) end";
+                case "DayOfWeek": return $"case when to_char({left},'D')='7' then 0 else cast(to_char({left},'D') as number) end";
                 case "Day": return $"cast(to_char({left},'DD') as number)";
                 case "DayOfYear": return $"cast(to_char({left},'DDD') as number)";
                 case "Month": return $"cast(to_char({left},'MM') as number)";
@@ -356,7 +360,7 @@ namespace FreeSql.Odbc.Oracle
                 switch (exp.Method.Name)
                 {
                     case "Compare": return $"extract(day from ({getExp(exp.Arguments[0])}-({getExp(exp.Arguments[1])})))";
-                    case "DaysInMonth": return $"cast(to_char(last_day(({getExp(exp.Arguments[0])})||'-'||({getExp(exp.Arguments[1])})||'-01'),'DD') as number)";
+                    case "DaysInMonth": return $"cast(to_char(last_day(to_date(({getExp(exp.Arguments[0])})||'-'||({getExp(exp.Arguments[1])})||'-01','yyyy-mm-dd')),'DD') as number)";
                     case "Equals": return $"({getExp(exp.Arguments[0])} = {getExp(exp.Arguments[1])})";
 
                     case "IsLeapYear":
@@ -393,7 +397,63 @@ namespace FreeSql.Odbc.Oracle
                         break;
                     case "Equals": return $"({left} = {args1})";
                     case "CompareTo": return $"extract(day from ({left}-({args1})))";
-                    case "ToString": return exp.Arguments.Count == 0 ? $"to_char({left},'YYYY-MM-DD HH24:MI:SS.FF6')" : null;
+                    case "ToString":
+                        if (left.StartsWith("'") || left.EndsWith("'")) left = $"to_timestamp({left},'YYYY-MM-DD HH24:MI:SS.FF6')";
+                        if (exp.Arguments.Count == 0) return $"to_char({left},'YYYY-MM-DD HH24:MI:SS.FF6')";
+                        switch (args1)
+                        {
+                            case "'yyyy-MM-dd HH:mm:ss'": return $"to_char({left},'YYYY-MM-DD HH24:MI:SS')";
+                            case "'yyyy-MM-dd HH:mm'": return $"to_char({left},'YYYY-MM-DD HH24:MI')";
+                            case "'yyyy-MM-dd HH'": return $"to_char({left},'YYYY-MM-DD HH24')";
+                            case "'yyyy-MM-dd'": return $"to_char({left},'YYYY-MM-DD')";
+                            case "'yyyy-MM'": return $"to_char({left},'YYYY-MM')";
+                            case "'yyyyMMddHHmmss'": return $"to_char({left},'YYYYMMDDHH24MISS')";
+                            case "'yyyyMMddHHmm'": return $"to_char({left},'YYYYMMDDHH24MI')";
+                            case "'yyyyMMddHH'": return $"to_char({left},'YYYYMMDDHH24')";
+                            case "'yyyyMMdd'": return $"to_char({left},'YYYYMMDD')";
+                            case "'yyyyMM'": return $"to_char({left},'YYYYMM')";
+                            case "'yyyy'": return $"to_char({left},'YYYY')";
+                            case "'HH:mm:ss'": return $"to_char({left},'HH24:MI:SS')";
+                        }
+                        args1 = Regex.Replace(args1, "(yyyy|yy|MM|dd|HH|hh|mm|ss|tt)", m =>
+                        {
+                            switch (m.Groups[1].Value)
+                            {
+                                case "yyyy": return $"YYYY";
+                                case "yy": return $"YY";
+                                case "MM": return $"%_a1";
+                                case "dd": return $"%_a2";
+                                case "HH": return $"%_a3";
+                                case "hh": return $"%_a4";
+                                case "mm": return $"%_a5";
+                                case "ss": return $"SS";
+                                case "tt": return $"%_a6";
+                            }
+                            return m.Groups[0].Value;
+                        });
+                        var argsFinds = new[] { "YYYY", "YY", "%_a1", "%_a2", "%_a3", "%_a4", "%_a5", "SS", "%_a6" };
+                        var argsSpts = Regex.Split(args1, "(M|d|H|h|m|s|t)");
+                        for (var a = 0; a < argsSpts.Length; a++)
+                        {
+                            switch (argsSpts[a])
+                            {
+                                case "M": argsSpts[a] = $"ltrim(to_char({left},'MM'),'0')"; break;
+                                case "d": argsSpts[a] = $"case when substr(to_char({left},'DD'),1,1) = '0' then substr(to_char({left},'DD'),2,1) else to_char({left},'DD') end"; break;
+                                case "H": argsSpts[a] = $"case when substr(to_char({left},'HH24'),1,1) = '0' then substr(to_char({left},'HH24'),2,1) else to_char({left},'HH24') end"; break;
+                                case "h": argsSpts[a] = $"case when substr(to_char({left},'HH12'),1,1) = '0' then substr(to_char({left},'HH12'),2,1) else to_char({left},'HH12') end"; break;
+                                case "m": argsSpts[a] = $"case when substr(to_char({left},'MI'),1,1) = '0' then substr(to_char({left},'MI'),2,1) else to_char({left},'MI') end"; break;
+                                case "s": argsSpts[a] = $"case when substr(to_char({left},'SS'),1,1) = '0' then substr(to_char({left},'SS'),2,1) else to_char({left},'SS') end"; break;
+                                case "t": argsSpts[a] = $"rtrim(to_char({left},'AM'),'M')"; break;
+                                default:
+                                    var argsSptsA = argsSpts[a];
+                                    if (argsSptsA.StartsWith("'")) argsSptsA = argsSptsA.Substring(1);
+                                    if (argsSptsA.EndsWith("'")) argsSptsA = argsSptsA.Remove(argsSptsA.Length - 1);
+                                    argsSpts[a] = argsFinds.Any(m => argsSptsA.Contains(m)) ? $"to_char({left},'{argsSptsA}')" : $"'{argsSptsA}'"; 
+                                    break;
+                            }
+                        }
+                        if (argsSpts.Length > 0) args1 = $"({string.Join(" || ", argsSpts.Where(a => a != "''"))})";
+                        return args1.Replace("%_a1", "MM").Replace("%_a2", "DD").Replace("%_a3", "HH24").Replace("%_a4", "HH12").Replace("%_a5", "MI").Replace("%_a6", "AM");
                 }
             }
             return null;

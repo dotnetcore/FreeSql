@@ -155,6 +155,19 @@ namespace FreeSql.Tests.MySqlConnector
             public string name { get; set; } //这是join表的属性
             public int ParentId { get; set; } //这是join表的属性
         }
+        class TestDto2
+        {
+            public int id { get; set; }
+            public string name { get; set; } //这是join表的属性
+            public int ParentId { get; set; } //这是join表的属性
+
+            public TestDto2() { }
+            public TestDto2(int id, string name)
+            {
+                this.id = id;
+                this.name = name;
+            }
+        }
         [Fact]
         public void ToList()
         {
@@ -170,6 +183,18 @@ namespace FreeSql.Tests.MySqlConnector
             var testDto33 = select.LeftJoin(a => a.Type.Guid == a.TypeGuid).Limit(10).ToList(a => new TestDto { });
             var testDto44 = select.LeftJoin(a => a.Type.Guid == a.TypeGuid).Limit(10).ToList(a => new TestDto() { });
             var testDto55 = select.LeftJoin(a => a.Type.Guid == a.TypeGuid).Limit(10).ToList<TestDto>();
+
+            var testDto211 = select.Limit(10).ToList(a => new TestDto2(a.Id, a.Title));
+            var testDto212 = select.Limit(10).ToList(a => new TestDto2());
+            var testDto213 = select.Limit(10).ToList(a => new TestDto2 { });
+            var testDto214 = select.Limit(10).ToList(a => new TestDto2() { });
+            var testDto215 = select.Limit(10).ToList<TestDto2>();
+
+            var testDto2211 = select.LeftJoin(a => a.Type.Guid == a.TypeGuid).Limit(10).ToList(a => new TestDto2(a.Id, a.Title));
+            var testDto2222 = select.LeftJoin(a => a.Type.Guid == a.TypeGuid).Limit(10).ToList(a => new TestDto2());
+            var testDto2233 = select.LeftJoin(a => a.Type.Guid == a.TypeGuid).Limit(10).ToList(a => new TestDto2 { });
+            var testDto2244 = select.LeftJoin(a => a.Type.Guid == a.TypeGuid).Limit(10).ToList(a => new TestDto2() { });
+            var testDto2255 = select.LeftJoin(a => a.Type.Guid == a.TypeGuid).Limit(10).ToList<TestDto2>();
 
             var t0 = select.Limit(50).ToList();
 
@@ -225,6 +250,57 @@ namespace FreeSql.Tests.MySqlConnector
 
             var t11 = select.Where(a => a.Type.Name.Length > 0).ToList(true);
             var t21 = select.Where(a => a.Type.Parent.Name.Length > 0).ToList(true);
+
+            g.mysql.Delete<District>().Where("1=1").ExecuteAffrows();
+            var repo = g.mysql.GetRepository<District>();
+            repo.DbContextOptions.EnableAddOrUpdateNavigateList = true;
+            repo.Insert(new District
+            {
+                Code = "001",
+                Name = "001_name",
+                Childs = new List<District>(new[] {
+                    new District{
+                        Code = "001_01",
+                        Name = "001_01_name"
+                    },
+                    new District{
+                        Code = "001_02",
+                        Name = "001_02_name"
+                    }
+                })
+            });
+            var ddd = g.mysql.Select<District>().LeftJoin(d => d.ParentCode == d.Parent.Code).ToTreeList();
+            Assert.Single(ddd);
+            Assert.Equal(2, ddd[0].Childs.Count);
+        }
+        public class District
+        {
+            [Column(IsPrimary = true, StringLength = 6)]
+            public string Code { get; set; }
+
+            [Column(StringLength = 20, IsNullable = false)]
+            public string Name { get; set; }
+
+            [Column(StringLength = 6)]
+            public string ParentCode { get; set; }
+
+            [Navigate(nameof(ParentCode))]
+            public District Parent { get; set; }
+
+            [Navigate(nameof(ParentCode))]
+            public List<District> Childs { get; set; }
+        }
+        [Fact]
+        public void ToDictionary()
+        {
+            var testDto1 = select.Limit(10).ToDictionary(a => a.Id);
+            var testDto2 = select.Limit(10).ToDictionary(a => a.Id, a => new { a.Id, a.Title });
+
+            var repo = g.mysql.GetRepository<Topic>();
+            var dic = repo.Select.Limit(10).ToDictionary(a => a.Id);
+            var first = dic.First().Value;
+            first.Clicks++;
+            repo.Update(first);
         }
         class TestGuidIdToList
         {
@@ -727,6 +803,7 @@ namespace FreeSql.Tests.MySqlConnector
             {
                 a.Key.tt2,
                 cou1 = a.Count(),
+                cou2 = a.Count(a.Value.Item3.Id),
                 arg1 = a.Avg(a.Key.mod4),
                 ccc2 = a.Key.tt2 ?? "now()",
                 //ccc = Convert.ToDateTime("now()"), partby = Convert.ToDecimal("sum(num) over(PARTITION BY server_id,os,rid,chn order by id desc)")
@@ -735,13 +812,15 @@ namespace FreeSql.Tests.MySqlConnector
 
             var testpid1 = g.mysql.Insert<TestTypeInfo>().AppendData(new TestTypeInfo { Name = "Name" + DateTime.Now.ToString("yyyyMMddHHmmss") }).ExecuteIdentity();
 
+            var fkfjfj = select.GroupBy(a => a.Title)
+                .ToList(a => a.Sum(a.Value.TypeGuid));
+
             var aggsql1 = select
                 .GroupBy(a => a.Title)
                 .ToSql(b => new
                 {
                     b.Key,
                     cou = b.Count(),
-                    sum = b.Sum(b.Key),
                     sum2 = b.Sum(b.Value.TypeGuid)
                 });
             var aggtolist1 = select
@@ -750,7 +829,14 @@ namespace FreeSql.Tests.MySqlConnector
                 {
                     b.Key,
                     cou = b.Count(),
-                    sum = b.Sum(b.Key),
+                    sum2 = b.Sum(b.Value.TypeGuid)
+                });
+            var aggtolist11 = select
+                .GroupBy(a => a.Title)
+                .ToDictionary(b => new
+                {
+                    b.Key,
+                    cou = b.Count(),
                     sum2 = b.Sum(b.Value.TypeGuid)
                 });
 
@@ -762,7 +848,6 @@ namespace FreeSql.Tests.MySqlConnector
                     b.Key.yyyy,
 
                     cou = b.Count(),
-                    sum = b.Sum(b.Key.yyyy),
                     sum2 = b.Sum(b.Value.TypeGuid)
                 });
             var aggtolist2 = select
@@ -773,7 +858,16 @@ namespace FreeSql.Tests.MySqlConnector
                     b.Key.yyyy,
 
                     cou = b.Count(),
-                    sum = b.Sum(b.Key.yyyy),
+                    sum2 = b.Sum(b.Value.TypeGuid)
+                });
+            var aggtolist22 = select
+                .GroupBy(a => new { a.Title, yyyy = string.Concat(a.CreateTime.Year, '-', a.CreateTime.Month) })
+                .ToDictionary(b => new
+                {
+                    b.Key.Title,
+                    b.Key.yyyy,
+
+                    cou = b.Count(),
                     sum2 = b.Sum(b.Value.TypeGuid)
                 });
 
@@ -783,7 +877,6 @@ namespace FreeSql.Tests.MySqlConnector
                 {
                     b.Key,
                     cou = b.Count(),
-                    sum = b.Sum(b.Key),
                     sum2 = b.Sum(b.Value.TypeGuid),
                     sum3 = b.Sum(b.Value.Type.Parent.Id)
                 });
@@ -1754,6 +1847,91 @@ WHERE ((b.`IsFinished` OR a.`TaskType` = 3) AND b.`EnabledMark` = 1)", groupsql1
                 Assert.Equal("SELECT a.`id`, a.`name` FROM `ToUpd1Pk` a limit 0,1 for update", sql);
                 orm.Select<ToUpd1Pk>().ForUpdate(true).Limit(1).ToList();
             });
+        }
+
+        [Fact]
+        public void ToTreeList()
+        {
+            var fsql = g.mysql;
+            fsql.Delete<BaseDistrict>().Where("1=1").ExecuteAffrows();
+            var repo = fsql.GetRepository<VM_District_Child>();
+            repo.DbContextOptions.EnableAddOrUpdateNavigateList = true;
+            repo.DbContextOptions.NoneParameter = true;
+            repo.Insert(new VM_District_Child
+            {
+                Code = "100000",
+                Name = "中国",
+                Childs = new List<VM_District_Child>(new[] {
+                    new VM_District_Child
+                    {
+                        Code = "110000",
+                        Name = "北京市",
+                        Childs = new List<VM_District_Child>(new[] {
+                            new VM_District_Child{ Code="110100", Name = "北京市" },
+                            new VM_District_Child{ Code="110101", Name = "东城区" },
+                        })
+                    }
+                })
+            });
+
+            var t1 = fsql.Select<VM_District_Parent>()
+                .InnerJoin(a => a.ParentCode == a.Parent.Code)
+                .Where(a => a.Code == "110101")
+                .ToList(true);
+            Assert.Single(t1);
+            Assert.Equal("110101", t1[0].Code);
+            Assert.NotNull(t1[0].Parent);
+            Assert.Equal("110000", t1[0].Parent.Code);
+
+            var t2 = fsql.Select<VM_District_Parent>()
+                .InnerJoin(a => a.ParentCode == a.Parent.Code)
+                .InnerJoin(a => a.Parent.ParentCode == a.Parent.Parent.Code)
+                .Where(a => a.Code == "110101")
+                .ToList(true);
+            Assert.Single(t2);
+            Assert.Equal("110101", t2[0].Code);
+            Assert.NotNull(t2[0].Parent);
+            Assert.Equal("110000", t2[0].Parent.Code);
+            Assert.NotNull(t2[0].Parent.Parent);
+            Assert.Equal("100000", t2[0].Parent.Parent.Code);
+
+            var t3 = fsql.Select<VM_District_Child>().ToTreeList();
+            Assert.Single(t3);
+            Assert.Equal("100000", t3[0].Code);
+            Assert.Single(t3[0].Childs);
+            Assert.Equal("110000", t3[0].Childs[0].Code);
+            Assert.Equal(2, t3[0].Childs[0].Childs.Count);
+            Assert.Equal("110100", t3[0].Childs[0].Childs[0].Code);
+            Assert.Equal("110101", t3[0].Childs[0].Childs[1].Code);
+        }
+
+        [Table(Name = "D_District")]
+        public class BaseDistrict
+        {
+            [Column(IsPrimary = true, StringLength = 6)]
+            public string Code { get; set; }
+
+            [Column(StringLength = 20, IsNullable = false)]
+            public string Name { get; set; }
+
+            [Column(StringLength = 6)]
+            public virtual string ParentCode { get; set; }
+        }
+        [Table(Name = "D_District", DisableSyncStructure = true)]
+        public class VM_District_Child : BaseDistrict
+        {
+            public override string ParentCode { get => base.ParentCode; set => base.ParentCode = value; }
+
+            [Navigate(nameof(ParentCode))]
+            public List<VM_District_Child> Childs { get; set; }
+        }
+        [Table(Name = "D_District", DisableSyncStructure = true)]
+        public class VM_District_Parent : BaseDistrict
+        {
+            public override string ParentCode { get => base.ParentCode; set => base.ParentCode = value; }
+
+            [Navigate(nameof(ParentCode))]
+            public VM_District_Parent Parent { get; set; }
         }
     }
 }

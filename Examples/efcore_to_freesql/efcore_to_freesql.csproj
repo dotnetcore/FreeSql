@@ -10,7 +10,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\FreeSql.DbContext\FreeSql.DbContext.csproj" />
     <ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />
+    <ProjectReference Include="..\..\Providers\FreeSql.Provider.Sqlite\FreeSql.Provider.Sqlite.csproj" />
   </ItemGroup>
 
 </Project>

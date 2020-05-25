@@ -1,5 +1,6 @@
 ﻿using FreeSql.DatabaseModel;
 using FreeSql.Internal;
+using FreeSql.Internal.Model;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -60,7 +61,7 @@ namespace FreeSql.Odbc.Dameng
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["number(1)"]);
                     return OdbcType.Bit;
                 case "smallint":
-                    _dicDbToCs.TryAdd(dbfull, _dicDbToCs["number(5)"]);
+                    _dicDbToCs.TryAdd(dbfull, _dicDbToCs["number(4)"]);
                     return OdbcType.SmallInt;
                 case "byte":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["number(3)"]);
@@ -161,35 +162,35 @@ namespace FreeSql.Odbc.Dameng
             throw new NotImplementedException($"未实现 {column.DbTypeTextFull} 类型映射");
         }
 
-        static ConcurrentDictionary<string, (string csConvert, string csParse, string csStringify, string csType, Type csTypeInfo, Type csNullableTypeInfo, string csTypeValue, string dataReaderMethod)> _dicDbToCs = new ConcurrentDictionary<string, (string csConvert, string csParse, string csStringify, string csType, Type csTypeInfo, Type csNullableTypeInfo, string csTypeValue, string dataReaderMethod)>(StringComparer.CurrentCultureIgnoreCase);
+        static ConcurrentDictionary<string, DbToCs> _dicDbToCs = new ConcurrentDictionary<string, DbToCs>(StringComparer.CurrentCultureIgnoreCase);
         static OdbcDamengDbFirst()
         {
-            var defaultDbToCs = new Dictionary<string, (string csConvert, string csParse, string csStringify, string csType, Type csTypeInfo, Type csNullableTypeInfo, string csTypeValue, string dataReaderMethod)>() {
-                { "number(1)", ("(bool?)", "{0} == \"1\"", "{0} == true ? \"1\" : \"0\"", "bool?", typeof(bool), typeof(bool?), "{0}.Value", "GetBoolean") },
+            var defaultDbToCs = new Dictionary<string, DbToCs>() {
+                { "number(1)", new DbToCs("(bool?)", "{0} == \"1\"", "{0} == true ? \"1\" : \"0\"", "bool?", typeof(bool), typeof(bool?), "{0}.Value", "GetBoolean") },
 
-                { "number(4)", ("(sbyte?)", "sbyte.Parse({0})", "{0}.ToString()", "sbyte?", typeof(sbyte), typeof(sbyte?), "{0}.Value", "GetInt16") },
-                { "number(6)", ("(short?)", "short.Parse({0})", "{0}.ToString()", "short?", typeof(short), typeof(short?), "{0}.Value", "GetInt16") },
-                { "number(11)", ("(int?)", "int.Parse({0})", "{0}.ToString()", "int?", typeof(int), typeof(int?), "{0}.Value", "GetInt32") },
-                { "number(21)", ("(long?)", "long.Parse({0})", "{0}.ToString()", "long?", typeof(long), typeof(long?), "{0}.Value", "GetInt64") },
+                { "number(4)", new DbToCs("(sbyte?)", "sbyte.Parse({0})", "{0}.ToString()", "sbyte?", typeof(sbyte), typeof(sbyte?), "{0}.Value", "GetInt16") },
+                { "number(6)", new DbToCs("(short?)", "short.Parse({0})", "{0}.ToString()", "short?", typeof(short), typeof(short?), "{0}.Value", "GetInt16") },
+                { "number(11)", new DbToCs("(int?)", "int.Parse({0})", "{0}.ToString()", "int?", typeof(int), typeof(int?), "{0}.Value", "GetInt32") },
+                { "number(21)", new DbToCs("(long?)", "long.Parse({0})", "{0}.ToString()", "long?", typeof(long), typeof(long?), "{0}.Value", "GetInt64") },
 
-                { "number(3)", ("(byte?)", "byte.Parse({0})", "{0}.ToString()", "byte?", typeof(byte), typeof(byte?), "{0}.Value", "GetByte") },
-                { "number(5)", ("(ushort?)", "ushort.Parse({0})", "{0}.ToString()", "ushort?", typeof(ushort), typeof(ushort?), "{0}.Value", "GetInt32") },
-                { "number(10)", ("(uint?)", "uint.Parse({0})", "{0}.ToString()", "uint?", typeof(uint), typeof(uint?), "{0}.Value", "GetInt64") },
-                { "number(20)", ("(ulong?)", "ulong.Parse({0})", "{0}.ToString()", "ulong?", typeof(ulong), typeof(ulong?), "{0}.Value", "GetDecimal") },
+                { "number(3)", new DbToCs("(byte?)", "byte.Parse({0})", "{0}.ToString()", "byte?", typeof(byte), typeof(byte?), "{0}.Value", "GetByte") },
+                { "number(5)", new DbToCs("(ushort?)", "ushort.Parse({0})", "{0}.ToString()", "ushort?", typeof(ushort), typeof(ushort?), "{0}.Value", "GetInt32") },
+                { "number(10)", new DbToCs("(uint?)", "uint.Parse({0})", "{0}.ToString()", "uint?", typeof(uint), typeof(uint?), "{0}.Value", "GetInt64") },
+                { "number(20)", new DbToCs("(ulong?)", "ulong.Parse({0})", "{0}.ToString()", "ulong?", typeof(ulong), typeof(ulong?), "{0}.Value", "GetDecimal") },
 
-                { "float(126)", ("(double?)", "double.Parse({0})", "{0}.ToString()", "double?", typeof(double), typeof(double?), "{0}.Value", "GetDouble") },
-                { "float(63)", ("(float?)", "float.Parse({0})", "{0}.ToString()", "float?", typeof(float), typeof(float?), "{0}.Value", "GetFloat") },
-                { "number(10,2)", ("(decimal?)", "decimal.Parse({0})", "{0}.ToString()", "decimal?", typeof(decimal), typeof(decimal?), "{0}.Value", "GetDecimal") },
+                { "float(126)", new DbToCs("(double?)", "double.Parse({0})", "{0}.ToString()", "double?", typeof(double), typeof(double?), "{0}.Value", "GetDouble") },
+                { "float(63)", new DbToCs("(float?)", "float.Parse({0})", "{0}.ToString()", "float?", typeof(float), typeof(float?), "{0}.Value", "GetFloat") },
+                { "number(10,2)", new DbToCs("(decimal?)", "decimal.Parse({0})", "{0}.ToString()", "decimal?", typeof(decimal), typeof(decimal?), "{0}.Value", "GetDecimal") },
 
-                { "interval day(2) to second(6)", ("(TimeSpan?)", "TimeSpan.Parse(double.Parse({0}))", "{0}.Ticks.ToString()", "TimeSpan?", typeof(TimeSpan), typeof(TimeSpan?), "{0}.Value", "GetValue") },
-                { "date(7)", ("(DateTime?)", "new DateTime(long.Parse({0}))", "{0}.Ticks.ToString()", "DateTime?", typeof(DateTime), typeof(DateTime?), "{0}.Value", "GetValue") },
-                { "timestamp(6)", ("(DateTime?)", "new DateTime(long.Parse({0}))", "{0}.Ticks.ToString()", "DateTime?", typeof(DateTime), typeof(DateTime?), "{0}.Value", "GetValue") },
-                { "timestamp(6) with local time zone", ("(DateTime?)", "new DateTime(long.Parse({0}))", "{0}.Ticks.ToString()", "DateTime?", typeof(DateTime), typeof(DateTime?), "{0}.Value", "GetValue") },
+                { "interval day(2) to second(6)", new DbToCs("(TimeSpan?)", "TimeSpan.Parse(double.Parse({0}))", "{0}.Ticks.ToString()", "TimeSpan?", typeof(TimeSpan), typeof(TimeSpan?), "{0}.Value", "GetValue") },
+                { "date(7)", new DbToCs("(DateTime?)", "new DateTime(long.Parse({0}))", "{0}.Ticks.ToString()", "DateTime?", typeof(DateTime), typeof(DateTime?), "{0}.Value", "GetValue") },
+                { "timestamp(6)", new DbToCs("(DateTime?)", "new DateTime(long.Parse({0}))", "{0}.Ticks.ToString()", "DateTime?", typeof(DateTime), typeof(DateTime?), "{0}.Value", "GetValue") },
+                { "timestamp(6) with local time zone", new DbToCs("(DateTime?)", "new DateTime(long.Parse({0}))", "{0}.Ticks.ToString()", "DateTime?", typeof(DateTime), typeof(DateTime?), "{0}.Value", "GetValue") },
 
-                { "blob", ("(byte[])", "Convert.FromBase64String({0})", "Convert.ToBase64String({0})", "byte[]", typeof(byte[]), typeof(byte[]), "{0}", "GetValue") },
+                { "blob", new DbToCs("(byte[])", "Convert.FromBase64String({0})", "Convert.ToBase64String({0})", "byte[]", typeof(byte[]), typeof(byte[]), "{0}", "GetValue") },
 
-                { "nvarchar2(255)", ("", "{0}.Replace(StringifySplit, \"|\")", "{0}.Replace(\"|\", StringifySplit)", "string", typeof(string), typeof(string), "{0}", "GetString") },
-                { "char(36 char)", ("(Guid?)", "Guid.Parse({0})", "{0}.ToString()", "Guid?", typeof(Guid), typeof(Guid?), "{0}.Value", "GetGuid") },
+                { "nvarchar2(255)", new DbToCs("", "{0}.Replace(StringifySplit, \"|\")", "{0}.Replace(\"|\", StringifySplit)", "string", typeof(string), typeof(string), "{0}", "GetString") },
+                { "char(36 char)", new DbToCs("(Guid?)", "Guid.Parse({0})", "{0}.ToString()", "Guid?", typeof(Guid), typeof(Guid?), "{0}.Value", "GetGuid") },
             };
             foreach (var kv in defaultDbToCs)
                 _dicDbToCs.TryAdd(kv.Key, kv.Value);
@@ -305,8 +306,9 @@ a.data_precision,
 a.data_scale,
 a.char_used,
 case when a.nullable = 'N' then 0 else 1 end,
-nvl((select 1 from user_sequences where upper(sequence_name)=upper(a.table_name||'_seq_'||a.column_name)), 0),
-b.comments
+nvl((select 1 from user_sequences where upper(sequence_name)=upper(a.table_name||'_seq_'||a.column_name) and rownum < 2), 0),
+b.comments,
+a.data_default
 from all_tab_cols a
 left join all_col_comments b on b.owner = a.owner and b.table_name = a.table_name and b.column_name = a.column_name
 where a.owner in ({1}) and {0}
@@ -317,16 +319,18 @@ where a.owner in ({1}) and {0}
             var ds2 = new List<object[]>();
             foreach (var row in ds)
             {
-                var ds2item = new object[8];
+                var ds2item = new object[9];
                 ds2item[0] = row[0];
                 ds2item[1] = row[1];
                 ds2item[2] = Regex.Replace(string.Concat(row[2]), @"\(\d+\)", "");
-                ds2item[4] = OdbcDamengCodeFirst.GetOracleSqlTypeFullName(new object[] { row[1], row[2], row[3], row[4], row[5], row[6] });
+                ds2item[4] = OdbcDamengCodeFirst.GetDamengSqlTypeFullName(new object[] { row[1], row[2], row[3], row[4], row[5], row[6] });
                 ds2item[5] = string.Concat(row[7]) == "1";
                 ds2item[6] = string.Concat(row[8]) == "1";
                 ds2item[7] = string.Concat(row[9]);
+                ds2item[8] = string.Concat(row[10]);
                 ds2.Add(ds2item);
             }
+            var position = 0;
             foreach (var row in ds2)
             {
                 string table_id = string.Concat(row[0]);
@@ -339,6 +343,7 @@ where a.owner in ({1}) and {0}
                 bool is_nullable = string.Concat(row[5]) == "1";
                 bool is_identity = string.Concat(row[6]) == "1";
                 string comment = string.Concat(row[7]);
+                string defaultValue = string.Concat(row[8]);
                 if (max_length == 0) max_length = -1;
                 if (database.Length == 1)
                 {
@@ -354,7 +359,9 @@ where a.owner in ({1}) and {0}
                     DbTypeText = type,
                     DbTypeTextFull = sqlType,
                     Table = loc2[table_id],
-                    Coment = comment
+                    Coment = comment,
+                    DefaultValue = defaultValue,
+                    Position = ++position
                 });
                 loc3[table_id][column].DbType = this.GetDbType(loc3[table_id][column]);
                 loc3[table_id][column].CsType = this.GetCsTypeInfo(loc3[table_id][column]);

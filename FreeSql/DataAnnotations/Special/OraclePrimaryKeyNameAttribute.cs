@@ -2,6 +2,7 @@
 
 namespace FreeSql.DataAnnotations
 {
+    [AttributeUsage(AttributeTargets.Class)]
     public class OraclePrimaryKeyNameAttribute : Attribute
     {
         public OraclePrimaryKeyNameAttribute(string name)

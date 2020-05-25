@@ -13,6 +13,22 @@ namespace FreeSql.Tests.Odbc.SqlServer
     public class SqlServerCodeFirstTest
     {
         [Fact]
+        public void StringLength()
+        {
+            var dll = g.sqlserver.CodeFirst.GetComparisonDDLStatements<TS_SLTB>();
+            g.sqlserver.CodeFirst.SyncStructure<TS_SLTB>();
+        }
+        class TS_SLTB
+        {
+            public Guid Id { get; set; }
+            [Column(StringLength = 50)]
+            public string Title { get; set; }
+
+            [Column(IsNullable = false, StringLength = 50)]
+            public string TitleSub { get; set; }
+        }
+
+        [Fact]
         public void 中文表_字段()
         {
             var sql = g.sqlserver.CodeFirst.GetComparisonDDLStatements<测试中文表>();
@@ -26,6 +42,28 @@ namespace FreeSql.Tests.Odbc.SqlServer
             Assert.Equal(1, g.sqlserver.Insert<测试中文表>().AppendData(item).ExecuteAffrows());
             Assert.NotEqual(Guid.Empty, item.编号);
             var item2 = g.sqlserver.Select<测试中文表>().Where(a => a.编号 == item.编号).First();
+            Assert.NotNull(item2);
+            Assert.Equal(item.编号, item2.编号);
+            Assert.Equal(item.标题, item2.标题);
+
+            item.标题 = "测试标题更新";
+            Assert.Equal(1, g.sqlserver.Update<测试中文表>().SetSource(item).ExecuteAffrows());
+            item2 = g.sqlserver.Select<测试中文表>().Where(a => a.编号 == item.编号).First();
+            Assert.NotNull(item2);
+            Assert.Equal(item.编号, item2.编号);
+            Assert.Equal(item.标题, item2.标题);
+
+            item.标题 = "测试标题更新_repo";
+            var repo = g.sqlserver.GetRepository<测试中文表>();
+            Assert.Equal(1, repo.Update(item));
+            item2 = g.sqlserver.Select<测试中文表>().Where(a => a.编号 == item.编号).First();
+            Assert.NotNull(item2);
+            Assert.Equal(item.编号, item2.编号);
+            Assert.Equal(item.标题, item2.标题);
+
+            item.标题 = "测试标题更新_repo22";
+            Assert.Equal(1, repo.Update(item));
+            item2 = g.sqlserver.Select<测试中文表>().Where(a => a.编号 == item.编号).First();
             Assert.NotNull(item2);
             Assert.Equal(item.编号, item2.编号);
             Assert.Equal(item.标题, item2.标题);
@@ -140,7 +178,7 @@ namespace FreeSql.Tests.Odbc.SqlServer
                 testFieldSByteNullable = sbyte.MinValue,
                 testFieldShort = short.MaxValue,
                 testFieldShortNullable = short.MinValue,
-                testFieldString = "我是中国人string",
+                testFieldString = "我是中国人string'\\?!@#$%^&*()_+{}}{~?><<>",
                 testFieldTimeSpan = TimeSpan.FromSeconds(999),
                 testFieldTimeSpanNullable = TimeSpan.FromSeconds(30),
                 testFieldUInt = uint.MaxValue,
@@ -159,7 +197,12 @@ namespace FreeSql.Tests.Odbc.SqlServer
             var sqlTestUpdate = g.sqlserver.Update<TableAllType>().SetSource(item3NP).NoneParameter().ToSql();
 
             var item3 = insert.AppendData(item2).ExecuteInserted();
-            var newitem2 = select.Where(a => a.Id == item2.Id).ToOne();
+            var newitem2 = select.Where(a => a.Id == item3[0].Id).ToOne();
+            Assert.Equal(item2.testFieldString, newitem2.testFieldString);
+
+            item3 = insert.NoneParameter().AppendData(item2).ExecuteInserted();
+            newitem2 = select.Where(a => a.Id == item3[0].Id).ToOne();
+            Assert.Equal(item2.testFieldString, newitem2.testFieldString);
 
             var items = select.ToList();
         }

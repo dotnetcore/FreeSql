@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FreeSql.Internal.Model;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq.Expressions;
@@ -50,7 +51,7 @@ namespace FreeSql
         ISelect<T1, T2, T3, T4, T5, T6, T7> Where(Expression<Func<T1, T2, T3, T4, T5, T6, T7, bool>> exp);
         ISelect<T1, T2, T3, T4, T5, T6, T7> WhereIf(bool condition, Expression<Func<T1, T2, T3, T4, T5, T6, T7, bool>> exp);
 
-        ISelectGrouping<TKey, (T1, T2, T3, T4, T5, T6, T7)> GroupBy<TKey>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, TKey>> exp);
+        ISelectGrouping<TKey, NaviteTuple<T1, T2, T3, T4, T5, T6, T7>> GroupBy<TKey>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, TKey>> exp);
 
         ISelect<T1, T2, T3, T4, T5, T6, T7> OrderBy<TMember>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, TMember>> column);
         ISelect<T1, T2, T3, T4, T5, T6, T7> OrderByDescending<TMember>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, TMember>> column);

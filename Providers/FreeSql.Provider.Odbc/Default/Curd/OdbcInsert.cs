@@ -1,5 +1,5 @@
 ﻿using FreeSql.Internal;
-using SafeObjectPool;
+using FreeSql.Internal.ObjectPool;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -19,9 +19,9 @@ namespace FreeSql.Odbc.Default
             _utils = _commonUtils as OdbcUtils;
         }
 
-        public override int ExecuteAffrows() => base.SplitExecuteAffrows(_utils.Adapter.InsertBatchSplitLimit, 255);
-        public override long ExecuteIdentity() => base.SplitExecuteIdentity(_utils.Adapter.InsertBatchSplitLimit, 255);
-        public override List<T1> ExecuteInserted() => base.SplitExecuteInserted(_utils.Adapter.InsertBatchSplitLimit, 255);
+        public override int ExecuteAffrows() => base.SplitExecuteAffrows(_batchValuesLimit > 0 ? _batchValuesLimit : _utils.Adapter.InsertBatchSplitLimit, _batchParameterLimit > 0 ? _batchParameterLimit : 255);
+        public override long ExecuteIdentity() => base.SplitExecuteIdentity(_batchValuesLimit > 0 ? _batchValuesLimit : _utils.Adapter.InsertBatchSplitLimit, _batchParameterLimit > 0 ? _batchParameterLimit : 255);
+        public override List<T1> ExecuteInserted() => base.SplitExecuteInserted(_batchValuesLimit > 0 ? _batchValuesLimit : _utils.Adapter.InsertBatchSplitLimit, _batchParameterLimit > 0 ? _batchParameterLimit : 255);
 
         protected override long RawExecuteIdentity()
         {
@@ -30,7 +30,7 @@ namespace FreeSql.Odbc.Default
 
             Object<DbConnection> poolConn = null;
             var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, string.Concat(sql, $"; {_utils.Adapter.InsertAfterGetIdentitySql}"), _params);
-            _orm.Aop.CurdBefore?.Invoke(this, before);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             long ret = 0;
             Exception exception = null;
             try
@@ -56,7 +56,7 @@ namespace FreeSql.Odbc.Default
                     _orm.Ado.MasterPool.Return(poolConn);
 
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                _orm.Aop.CurdAfter?.Invoke(this, after);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
             return ret;
         }
@@ -65,10 +65,10 @@ namespace FreeSql.Odbc.Default
 
 #if net40
 #else
-        public override Task<int> ExecuteAffrowsAsync() => base.SplitExecuteAffrowsAsync(_utils.Adapter.InsertBatchSplitLimit, 255);
-        public override Task<long> ExecuteIdentityAsync() => base.SplitExecuteIdentityAsync(_utils.Adapter.InsertBatchSplitLimit, 255);
-        public override Task<List<T1>> ExecuteInsertedAsync() => base.SplitExecuteInsertedAsync(_utils.Adapter.InsertBatchSplitLimit, 255);
-        
+        public override Task<int> ExecuteAffrowsAsync() => base.SplitExecuteAffrowsAsync(_batchValuesLimit > 0 ? _batchValuesLimit : _utils.Adapter.InsertBatchSplitLimit, _batchParameterLimit > 0 ? _batchParameterLimit : 255);
+        public override Task<long> ExecuteIdentityAsync() => base.SplitExecuteIdentityAsync(_batchValuesLimit > 0 ? _batchValuesLimit : _utils.Adapter.InsertBatchSplitLimit, _batchParameterLimit > 0 ? _batchParameterLimit : 255);
+        public override Task<List<T1>> ExecuteInsertedAsync() => base.SplitExecuteInsertedAsync(_batchValuesLimit > 0 ? _batchValuesLimit : _utils.Adapter.InsertBatchSplitLimit, _batchParameterLimit > 0 ? _batchParameterLimit : 255);
+
         async protected override Task<long> RawExecuteIdentityAsync()
         {
             var sql = this.ToSql();
@@ -76,7 +76,7 @@ namespace FreeSql.Odbc.Default
 
             Object<DbConnection> poolConn = null;
             var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, string.Concat(sql, $"; {_utils.Adapter.InsertAfterGetIdentitySql}"), _params);
-            _orm.Aop.CurdBefore?.Invoke(this, before);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             long ret = 0;
             Exception exception = null;
             try
@@ -102,7 +102,7 @@ namespace FreeSql.Odbc.Default
                     _orm.Ado.MasterPool.Return(poolConn);
 
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                _orm.Aop.CurdAfter?.Invoke(this, after);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
             return ret;
         }

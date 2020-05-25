@@ -13,7 +13,7 @@ namespace FreeSql
         where TEntity : class
     {
 
-        async public Task<int> DeleteAsync(Expression<Func<TEntity, bool>> predicate)
+        async virtual public Task<int> DeleteAsync(Expression<Func<TEntity, bool>> predicate)
         {
             var delete = _dbset.OrmDeleteInternal(null).Where(predicate);
             var sql = delete.ToSql();
@@ -21,13 +21,12 @@ namespace FreeSql
             _db._entityChangeReport.Add(new DbContext.EntityChangeReport.ChangeInfo { Object = sql, Type = DbContext.EntityChangeType.SqlRaw });
             return affrows;
         }
-
-        public Task<int> DeleteAsync(TEntity entity)
+        public virtual Task<int> DeleteAsync(TEntity entity)
         {
             _dbset.Remove(entity);
             return _db.SaveChangesAsync();
         }
-        public Task<int> DeleteAsync(IEnumerable<TEntity> entitys)
+        public virtual Task<int> DeleteAsync(IEnumerable<TEntity> entitys)
         {
             _dbset.RemoveRange(entitys);
             return _db.SaveChangesAsync();
@@ -46,18 +45,18 @@ namespace FreeSql
             return entitys.ToList();
         }
 
-        public Task<int> UpdateAsync(TEntity entity)
+        public virtual Task<int> UpdateAsync(TEntity entity)
         {
             _dbset.Update(entity);
             return _db.SaveChangesAsync();
         }
-        public Task<int> UpdateAsync(IEnumerable<TEntity> entitys)
+        public virtual Task<int> UpdateAsync(IEnumerable<TEntity> entitys)
         {
             _dbset.UpdateRange(entitys);
             return _db.SaveChangesAsync();
         }
 
-        async public Task<TEntity> InsertOrUpdateAsync(TEntity entity)
+        async public virtual Task<TEntity> InsertOrUpdateAsync(TEntity entity)
         {
             await _dbset.AddOrUpdateAsync(entity);
             await _db.SaveChangesAsync();
@@ -73,11 +72,8 @@ namespace FreeSql
 
     partial class BaseRepository<TEntity, TKey>
     {
-
-        public Task<int> DeleteAsync(TKey id) => DeleteAsync(CheckTKeyAndReturnIdEntity(id));
-
-        public Task<TEntity> FindAsync(TKey id) => _dbset.OrmSelectInternal(CheckTKeyAndReturnIdEntity(id)).ToOneAsync();
-
+        public virtual Task<int> DeleteAsync(TKey id) => DeleteAsync(CheckTKeyAndReturnIdEntity(id));
+        public virtual Task<TEntity> FindAsync(TKey id) => _dbset.OrmSelectInternal(CheckTKeyAndReturnIdEntity(id)).ToOneAsync();
         public Task<TEntity> GetAsync(TKey id) => FindAsync(id);
     }
 }

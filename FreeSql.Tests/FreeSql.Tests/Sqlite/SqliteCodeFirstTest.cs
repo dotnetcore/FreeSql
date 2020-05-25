@@ -10,6 +10,49 @@ namespace FreeSql.Tests.Sqlite
 {
     public class SqliteCodeFirstTest
     {
+        [Fact]
+        public void StringLength()
+        {
+            var dll = g.sqlite.CodeFirst.GetComparisonDDLStatements<TS_SLTB>();
+            g.sqlite.CodeFirst.SyncStructure<TS_SLTB>();
+        }
+        class TS_SLTB
+        {
+            public Guid Id { get; set; }
+            [Column(StringLength = 50)]
+            public string Title { get; set; }
+
+            [Column(IsNullable = false, StringLength = 50)]
+            public string TitleSub { get; set; }
+        }
+
+        [Fact]
+        public void 表名中有点()
+        {
+            var item = new tbdot01 { name = "insert" };
+            g.sqlite.Insert(item).ExecuteAffrows();
+
+            var find = g.sqlite.Select<tbdot01>().Where(a => a.id == item.id).First();
+            Assert.NotNull(find);
+            Assert.Equal(item.id, find.id);
+            Assert.Equal("insert", find.name);
+
+            Assert.Equal(1, g.sqlite.Update<tbdot01>().Set(a => a.name == "update").Where(a => a.id == item.id).ExecuteAffrows());
+            find = g.sqlite.Select<tbdot01>().Where(a => a.id == item.id).First();
+            Assert.NotNull(find);
+            Assert.Equal(item.id, find.id);
+            Assert.Equal("update", find.name);
+
+            Assert.Equal(1, g.sqlite.Delete<tbdot01>().Where(a => a.id == item.id).ExecuteAffrows());
+            find = g.sqlite.Select<tbdot01>().Where(a => a.id == item.id).First();
+            Assert.Null(find);
+        }
+        [Table(Name = "\"sys.tbdot01\"")]
+        class tbdot01
+        {
+            public Guid id { get; set; }
+            public string name { get; set; }
+        }
 
         [Fact]
         public void 中文表_字段()
@@ -28,6 +71,28 @@ namespace FreeSql.Tests.Sqlite
             Assert.NotNull(item2);
             Assert.Equal(item.编号, item2.编号);
             Assert.Equal(item.标题, item2.标题);
+
+            item.标题 = "测试标题更新";
+            Assert.Equal(1, g.sqlite.Update<测试中文表>().SetSource(item).ExecuteAffrows());
+            item2 = g.sqlite.Select<测试中文表>().Where(a => a.编号 == item.编号).First();
+            Assert.NotNull(item2);
+            Assert.Equal(item.编号, item2.编号);
+            Assert.Equal(item.标题, item2.标题);
+
+            item.标题 = "测试标题更新_repo";
+            var repo = g.sqlite.GetRepository<测试中文表>();
+            Assert.Equal(1, repo.Update(item));
+            item2 = g.sqlite.Select<测试中文表>().Where(a => a.编号 == item.编号).First();
+            Assert.NotNull(item2);
+            Assert.Equal(item.编号, item2.编号);
+            Assert.Equal(item.标题, item2.标题);
+
+            item.标题 = "测试标题更新_repo22";
+            Assert.Equal(1, repo.Update(item));
+            item2 = g.sqlite.Select<测试中文表>().Where(a => a.编号 == item.编号).First();
+            Assert.NotNull(item2);
+            Assert.Equal(item.编号, item2.编号);
+            Assert.Equal(item.标题, item2.标题);
         }
         class 测试中文表
         {
@@ -36,8 +101,11 @@ namespace FreeSql.Tests.Sqlite
 
             public string 标题 { get; set; }
 
-            [Column(ServerTime = DateTimeKind.Local)]
+            [Column(ServerTime = DateTimeKind.Local, CanUpdate = false)]
             public DateTime 创建时间 { get; set; }
+
+            [Column(ServerTime = DateTimeKind.Local)]
+            public DateTime 更新时间 { get; set; }
         }
 
         [Fact]
@@ -225,7 +293,7 @@ namespace FreeSql.Tests.Sqlite
                 SByteNullable = 99,
                 Short = short.MaxValue,
                 ShortNullable = short.MinValue,
-                String = "我是中国人string",
+                String = "我是中国人string'\\?!@#$%^&*()_+{}}{~?><<>",
                 TimeSpan = TimeSpan.FromSeconds(999),
                 TimeSpanNullable = TimeSpan.FromSeconds(60),
                 UInt = uint.MaxValue,
@@ -238,6 +306,11 @@ namespace FreeSql.Tests.Sqlite
             };
             item2.Id = (int)insert.AppendData(item2).ExecuteIdentity();
             var newitem2 = select.Where(a => a.Id == item2.Id).ToOne();
+            Assert.Equal(item2.String, newitem2.String);
+
+            item2.Id = (int)insert.NoneParameter().AppendData(item2).ExecuteIdentity();
+            newitem2 = select.Where(a => a.Id == item2.Id).ToOne();
+            Assert.Equal(item2.String, newitem2.String);
 
             var items = select.ToList();
         }
@@ -298,6 +371,11 @@ namespace FreeSql.Tests.Sqlite
             public TableAllTypeEnumType1? Enum1Nullable { get; set; }
             public TableAllTypeEnumType2 Enum2 { get; set; }
             public TableAllTypeEnumType2? Enum2Nullable { get; set; }
+
+            public TableAllTypeEnumType3 testFieldEnum3 { get; set; }
+            public TableAllTypeEnumType3? testFieldEnum3Nullable { get; set; }
+
+            public enum TableAllTypeEnumType3 { }
         }
 
         public enum TableAllTypeEnumType1 { e1, e2, e3, e5 }

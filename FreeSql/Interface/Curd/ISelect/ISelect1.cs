@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 namespace FreeSql
 {
-    public interface ISelect<T1> : ISelect0<ISelect<T1>, T1>, ILinqToSql<T1> where T1 : class
+    public interface ISelect<T1> : ISelect0<ISelect<T1>, T1> where T1 : class
     {
 
 #if net40
@@ -291,7 +292,7 @@ namespace FreeSql
         /// <returns></returns>
         ISelect<T1> Where<T2, T3, T4, T5>(Expression<Func<T1, T2, T3, T4, T5, bool>> exp) where T2 : class where T3 : class where T4 : class where T5 : class;
         /// <summary>
-        /// 传入动态对象如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
+        /// 传入动态条件，如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
         /// </summary>
         /// <param name="dywhere">主键值、主键值集合、实体、实体集合、匿名对象、匿名对象集合</param>
         /// <param name="not">是否标识为NOT</param>
@@ -369,5 +370,13 @@ namespace FreeSql
         /// <param name="then">即能 ThenInclude，还可以二次过滤（这个 EFCore 做不到？）</param>
         /// <returns></returns>
         ISelect<T1> IncludeMany<TNavigate>(Expression<Func<T1, IEnumerable<TNavigate>>> navigateSelector, Action<ISelect<TNavigate>> then = null) where TNavigate : class;
+
+        /// <summary>
+        /// 实现 select .. from ( select ... from t ) a 这样的功能<para></para>
+        /// 使用 AsTable 方法也可以达到效果
+        /// </summary>
+        /// <param name="sql">SQL语句</param>
+        /// <returns></returns>
+        ISelect<T1> WithSql(string sql);
     }
 }

@@ -1,6 +1,7 @@
 using FreeSql.DataAnnotations;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Xunit;
 
 namespace FreeSql.Tests
@@ -28,6 +29,13 @@ namespace FreeSql.Tests
 
             item = repos.Find(item.Id);
             Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(item));
+
+            repos.Orm.Insert(new AddUpdateInfo()).ExecuteAffrows();
+            repos.Orm.Insert(new AddUpdateInfo { Id = Guid.NewGuid() }).ExecuteAffrows();
+            repos.Orm.Update<AddUpdateInfo>().Set(a => a.Title == "xxx").Where(a => a.Id == item.Id).ExecuteAffrows();
+            item = repos.Orm.Select<AddUpdateInfo>(item).First();
+            Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(item));
+            repos.Orm.Delete<AddUpdateInfo>(item).ExecuteAffrows();
         }
 
         [Fact]
@@ -121,6 +129,7 @@ namespace FreeSql.Tests
                 {
                     flowRepos = uow.GetRepository<FlowModel>();
                     flowRepos.Insert(flow);
+                    flowRepos.Orm.Select<FlowModel>().ToList();
                     uow.Commit();
                 }
             }
@@ -157,6 +166,7 @@ namespace FreeSql.Tests
                     uow.Close();
                     var uowFlowRepos = uow.GetRepository<FlowModel>();
                     uowFlowRepos.Insert(flow);
+                    uowFlowRepos.Orm.Select<FlowModel>().ToList();
                     //已关闭工作单元，提不提交都没影响，此处注释来确定工作单元开关是否生效：关闭了，不Commit也应该插入数据
                     //uow.Commit();
                 }
@@ -198,6 +208,7 @@ namespace FreeSql.Tests
                     {
                         var uowFlowRepos = uow.GetRepository<FlowModel>();
                         uowFlowRepos.Insert(flow);
+                        uowFlowRepos.Orm.Select<FlowModel>().ToList();
                         //有了任意 Insert/Update/Delete 调用关闭uow的方法将会发生异常
                         uow.Close();
                         uow.Commit();
@@ -239,6 +250,7 @@ namespace FreeSql.Tests
                 {
                     var uowFlowRepos = uow.GetRepository<FlowModel>();
                     uowFlowRepos.Insert(flow);
+                    uowFlowRepos.Orm.Select<FlowModel>().ToList();
                     //不调用commit将不会提交数据库更改
                     //uow.Commit();
                 }
@@ -318,6 +330,7 @@ namespace FreeSql.Tests
             cts[1].Goodss.Clear();
             cts[1].Goodss.Add(new Goods { Name = "商品55" });
             repo.Update(cts);
+
         }
         [Table(Name = "EAUNL_OTM_CT")]
         class Cagetory
@@ -335,10 +348,62 @@ namespace FreeSql.Tests
             public Guid CagetoryId { get; set; }
             public string Name { get; set; }
         }
+        [Fact]
+        public void SaveMany_OneToMany()
+        {
+            var repo = g.sqlite.GetRepository<Cagetory>();
+            repo.DbContextOptions.EnableAddOrUpdateNavigateList = false; //关闭级联保存功能
+            var cts = new[] {
+                new Cagetory
+                {
+                    Name = "分类1",
+                    Goodss = new List<Goods>(new[]
+                    {
+                        new Goods { Name = "商品1" },
+                        new Goods { Name = "商品2" },
+                        new Goods { Name = "商品3" }
+                    })
+                },
+                new Cagetory
+                {
+                    Name = "分类2",
+                    Goodss = new List<Goods>(new[]
+                    {
+                        new Goods { Name = "商品4" },
+                        new Goods { Name = "商品5" }
+                    })
+                }
+            };
+            repo.Insert(cts);
+            repo.SaveMany(cts[0], "Goodss"); //指定保存 Goodss 一对多属性
+            repo.SaveMany(cts[1], "Goodss"); //指定保存 Goodss 一对多属性
+            cts[0].Goodss.RemoveAt(1);
+            cts[1].Goodss.RemoveAt(1);
+            repo.SaveMany(cts[0], "Goodss"); //指定保存 Goodss 一对多属性
+            repo.SaveMany(cts[1], "Goodss"); //指定保存 Goodss 一对多属性
+
+            cts[0].Name = "分类11";
+            cts[0].Goodss.Clear();
+            cts[1].Name = "分类22";
+            cts[1].Goodss.Clear();
+            repo.Update(cts);
+            repo.SaveMany(cts[0], "Goodss"); //指定保存 Goodss 一对多属性
+            repo.SaveMany(cts[1], "Goodss"); //指定保存 Goodss 一对多属性
+            cts[0].Name = "分类111";
+            cts[0].Goodss.Clear();
+            cts[0].Goodss.Add(new Goods { Name = "商品33" });
+            cts[1].Name = "分类222";
+            cts[1].Goodss.Clear();
+            cts[1].Goodss.Add(new Goods { Name = "商品55" });
+            repo.Update(cts);
+            repo.SaveMany(cts[0], "Goodss"); //指定保存 Goodss 一对多属性
+            repo.SaveMany(cts[1], "Goodss"); //指定保存 Goodss 一对多属性
+        }
 
         [Fact]
         public void EnableAddOrUpdateNavigateList_OneToMany_Parent()
         {
+            g.sqlite.Delete<CagetoryParent>().Where("1=1").ExecuteAffrows();
             var repo = g.sqlite.GetRepository<CagetoryParent>();
             var cts = new[] {
                 new CagetoryParent
@@ -361,9 +426,13 @@ namespace FreeSql.Tests
                     })
                 }
             };
-            repo.DbContextOptions.EnableAddOrUpdateNavigateList = false; //关闭级联保存功能
+            repo.DbContextOptions.EnableAddOrUpdateNavigateList = true; //打开级联保存功能
             repo.Insert(cts);
-            repo.SaveMany(cts[0], "Childs"); //指定保存 Childs 一对多属性
+
+            var notreelist1 = repo.Select.ToList();
+            var treelist1 = repo.Select.ToTreeList();
+
+            //repo.SaveMany(cts[0], "Childs"); //指定保存 Childs 一对多属性
             cts[0].Name = "分类11";
             cts[0].Childs.Clear();
             cts[1].Name = "分类22";
@@ -376,6 +445,7 @@ namespace FreeSql.Tests
             cts[1].Childs.Clear();
             cts[1].Childs.Add(new CagetoryParent { Name = "分类2_22" });
             repo.Update(cts);
+            var treelist2 = repo.Select.ToTreeList();
         }
         [Table(Name = "EAUNL_OTMP_CT")]
         class CagetoryParent
@@ -417,7 +487,7 @@ namespace FreeSql.Tests
                 }
             };
             var repo = g.sqlite.GetRepository<Song>();
-            //repo.DbContextOptions.EnableAddOrUpdateNavigateList = false; //关闭级联保存功能
+            repo.DbContextOptions.EnableAddOrUpdateNavigateList = true; //打开级联保存功能
             repo.Insert(ss);
             //repo.SaveMany(ss[0], "Tags"); //指定保存 Tags 多对多属性
 

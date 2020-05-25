@@ -1,4 +1,4 @@
-﻿using SafeObjectPool;
+﻿using FreeSql.Internal.ObjectPool;
 using System;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Reflection;
+using FreeSql.Internal.Model;
 
 namespace FreeSql.Internal.CommonProvider
 {
@@ -17,40 +18,44 @@ namespace FreeSql.Internal.CommonProvider
         protected abstract void ReturnConnection(IObjectPool<DbConnection> pool, Object<DbConnection> conn, Exception ex);
         protected abstract DbCommand CreateCommand();
         protected abstract DbParameter[] GetDbParamtersByObject(string sql, object obj);
-        public Action<DbCommand> AopCommandExecuting { get; set; }
-        public Action<DbCommand, string> AopCommandExecuted { get; set; }
 
-        protected bool IsTracePerformance => AopCommandExecuted != null;
+        protected bool IsTracePerformance => _util?._orm?.Aop.CommandAfterHandler != null;
 
         public IObjectPool<DbConnection> MasterPool { get; protected set; }
         public List<IObjectPool<DbConnection>> SlavePools { get; } = new List<IObjectPool<DbConnection>>();
         public DataType DataType { get; }
+        public string ConnectionString { get; }
+        public string[] SlaveConnectionStrings { get; }
+        public Guid Identifier { get; }
         protected CommonUtils _util { get; set; }
         protected int slaveUnavailables = 0;
         private object slaveLock = new object();
         private Random slaveRandom = new Random();
 
-        public AdoProvider(DataType dataType)
+        public AdoProvider(DataType dataType, string connectionString, string[] slaveConnectionStrings)
         {
             this.DataType = dataType;
+            this.ConnectionString = connectionString;
+            this.SlaveConnectionStrings = slaveConnectionStrings;
+            this.Identifier = Guid.NewGuid();
         }
 
-        void LoggerException(IObjectPool<DbConnection> pool, (DbCommand cmd, bool isclose) pc, Exception e, DateTime dt, StringBuilder logtxt, bool isThrowException = true)
+        void LoggerException(IObjectPool<DbConnection> pool, PrepareCommandResult pc, Exception ex, DateTime dt, StringBuilder logtxt, bool isThrowException = true)
         {
             var cmd = pc.cmd;
             if (pc.isclose) pc.cmd.Connection.Close();
             if (IsTracePerformance)
             {
                 TimeSpan ts = DateTime.Now.Subtract(dt);
-                if (e == null && ts.TotalMilliseconds > 100)
+                if (ex == null && ts.TotalMilliseconds > 100)
                     Trace.WriteLine(logtxt.Insert(0, $"{pool?.Policy.Name}（执行SQL）语句耗时过长{ts.TotalMilliseconds}ms\r\n{cmd.CommandText}\r\n").ToString());
                 else
                     logtxt.Insert(0, $"{pool?.Policy.Name}（执行SQL）耗时{ts.TotalMilliseconds}ms\r\n{cmd.CommandText}\r\n").ToString();
             }
 
-            if (e == null)
+            if (ex == null)
             {
-                AopCommandExecuted?.Invoke(cmd, logtxt.ToString());
+                _util?._orm?.Aop.CommandAfterHandler?.Invoke(_util._orm, new Aop.CommandAfterEventArgs(pc.before, null, logtxt.ToString()));
                 return;
             }
 
@@ -59,7 +64,7 @@ namespace FreeSql.Internal.CommonProvider
             foreach (DbParameter parm in cmd.Parameters)
                 log.Append(parm.ParameterName.PadRight(20, ' ')).Append(" = ").Append((parm.Value ?? DBNull.Value) == DBNull.Value ? "NULL" : parm.Value).Append("\r\n");
 
-            log.Append(e.Message);
+            log.Append(ex.Message);
             Trace.WriteLine(log.ToString());
 
             if (cmd.Transaction != null)
@@ -70,16 +75,16 @@ namespace FreeSql.Internal.CommonProvider
                     //cmd.Transaction.Rollback();
                 }
                 else
-                    RollbackTransaction();
+                    RollbackTransaction(ex);
             }
 
-            AopCommandExecuted?.Invoke(cmd, log.ToString());
+            _util?._orm?.Aop.CommandAfterHandler?.Invoke(_util._orm, new Aop.CommandAfterEventArgs(pc.before, null, logtxt.ToString()));
 
             cmd.Parameters.Clear();
             if (isThrowException)
             {
                 if (DataType == DataType.Sqlite) cmd.Dispose();
-                throw e;
+                throw new Exception(ex.Message, ex);
             }
         }
 
@@ -106,7 +111,7 @@ namespace FreeSql.Internal.CommonProvider
             {
                 if (indexes == null)
                 {
-                    var sbflag = new StringBuilder().Append("query");
+                    var sbflag = new StringBuilder().Append("adoQuery");
                     var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
                     for (var a = 0; a < dr.FieldCount; a++)
                     {
@@ -123,14 +128,14 @@ namespace FreeSql.Internal.CommonProvider
             return ret;
         }
         #region query multi
-        public (List<T1>, List<T2>) Query<T1, T2>(string cmdText, object parms = null) => Query<T1, T2>(null, null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-        public (List<T1>, List<T2>) Query<T1, T2>(DbTransaction transaction, string cmdText, object parms = null) => Query<T1, T2>(null, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-        public (List<T1>, List<T2>) Query<T1, T2>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null) => Query<T1, T2>(connection, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-        public (List<T1>, List<T2>) Query<T1, T2>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => Query<T1, T2>(null, null, cmdType, cmdText, cmdParms);
-        public (List<T1>, List<T2>) Query<T1, T2>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => Query<T1, T2>(null, transaction, cmdType, cmdText, cmdParms);
-        public (List<T1>, List<T2>) Query<T1, T2>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms)
+        public NaviteTuple<List<T1>, List<T2>> Query<T1, T2>(string cmdText, object parms = null) => Query<T1, T2>(null, null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+        public NaviteTuple<List<T1>, List<T2>> Query<T1, T2>(DbTransaction transaction, string cmdText, object parms = null) => Query<T1, T2>(null, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+        public NaviteTuple<List<T1>, List<T2>> Query<T1, T2>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null) => Query<T1, T2>(connection, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+        public NaviteTuple<List<T1>, List<T2>> Query<T1, T2>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => Query<T1, T2>(null, null, cmdType, cmdText, cmdParms);
+        public NaviteTuple<List<T1>, List<T2>> Query<T1, T2>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => Query<T1, T2>(null, transaction, cmdType, cmdText, cmdParms);
+        public NaviteTuple<List<T1>, List<T2>> Query<T1, T2>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms)
         {
-            if (string.IsNullOrEmpty(cmdText)) return (new List<T1>(), new List<T2>());
+            if (string.IsNullOrEmpty(cmdText)) return NaviteTuple.Create(new List<T1>(), new List<T2>());
             var ret1 = new List<T1>();
             var type1 = typeof(T1);
             string flag1 = null;
@@ -149,7 +154,7 @@ namespace FreeSql.Internal.CommonProvider
                     case 0:
                         if (indexes1 == null)
                         {
-                            var sbflag = new StringBuilder().Append("query");
+                            var sbflag = new StringBuilder().Append("adoQuery");
                             var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
                             for (var a = 0; a < dr.FieldCount; a++)
                             {
@@ -166,7 +171,7 @@ namespace FreeSql.Internal.CommonProvider
                     case 1:
                         if (indexes2 == null)
                         {
-                            var sbflag = new StringBuilder().Append("query");
+                            var sbflag = new StringBuilder().Append("adoQuery");
                             var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
                             for (var a = 0; a < dr.FieldCount; a++)
                             {
@@ -182,17 +187,17 @@ namespace FreeSql.Internal.CommonProvider
                         break;
                 }
             }, cmdType, cmdText, cmdParms);
-            return (ret1, ret2);
+            return NaviteTuple.Create(ret1, ret2);
         }
 
-        public (List<T1>, List<T2>, List<T3>) Query<T1, T2, T3>(string cmdText, object parms = null) => Query<T1, T2, T3>(null, null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-        public (List<T1>, List<T2>, List<T3>) Query<T1, T2, T3>(DbTransaction transaction, string cmdText, object parms = null) => Query<T1, T2, T3>(null, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-        public (List<T1>, List<T2>, List<T3>) Query<T1, T2, T3>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null) => Query<T1, T2, T3>(connection, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-        public (List<T1>, List<T2>, List<T3>) Query<T1, T2, T3>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => Query<T1, T2, T3>(null, null, cmdType, cmdText, cmdParms);
-        public (List<T1>, List<T2>, List<T3>) Query<T1, T2, T3>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => Query<T1, T2, T3>(null, transaction, cmdType, cmdText, cmdParms);
-        public (List<T1>, List<T2>, List<T3>) Query<T1, T2, T3>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms)
+        public NaviteTuple<List<T1>, List<T2>, List<T3>> Query<T1, T2, T3>(string cmdText, object parms = null) => Query<T1, T2, T3>(null, null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+        public NaviteTuple<List<T1>, List<T2>, List<T3>> Query<T1, T2, T3>(DbTransaction transaction, string cmdText, object parms = null) => Query<T1, T2, T3>(null, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+        public NaviteTuple<List<T1>, List<T2>, List<T3>> Query<T1, T2, T3>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null) => Query<T1, T2, T3>(connection, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+        public NaviteTuple<List<T1>, List<T2>, List<T3>> Query<T1, T2, T3>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => Query<T1, T2, T3>(null, null, cmdType, cmdText, cmdParms);
+        public NaviteTuple<List<T1>, List<T2>, List<T3>> Query<T1, T2, T3>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => Query<T1, T2, T3>(null, transaction, cmdType, cmdText, cmdParms);
+        public NaviteTuple<List<T1>, List<T2>, List<T3>> Query<T1, T2, T3>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms)
         {
-            if (string.IsNullOrEmpty(cmdText)) return (new List<T1>(), new List<T2>(), new List<T3>());
+            if (string.IsNullOrEmpty(cmdText)) return NaviteTuple.Create(new List<T1>(), new List<T2>(), new List<T3>());
             var ret1 = new List<T1>();
             var type1 = typeof(T1);
             string flag1 = null;
@@ -217,7 +222,7 @@ namespace FreeSql.Internal.CommonProvider
                     case 0:
                         if (indexes1 == null)
                         {
-                            var sbflag = new StringBuilder().Append("query");
+                            var sbflag = new StringBuilder().Append("adoQuery");
                             var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
                             for (var a = 0; a < dr.FieldCount; a++)
                             {
@@ -234,7 +239,7 @@ namespace FreeSql.Internal.CommonProvider
                     case 1:
                         if (indexes2 == null)
                         {
-                            var sbflag = new StringBuilder().Append("query");
+                            var sbflag = new StringBuilder().Append("adoQuery");
                             var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
                             for (var a = 0; a < dr.FieldCount; a++)
                             {
@@ -251,7 +256,7 @@ namespace FreeSql.Internal.CommonProvider
                     case 2:
                         if (indexes3 == null)
                         {
-                            var sbflag = new StringBuilder().Append("query");
+                            var sbflag = new StringBuilder().Append("adoQuery");
                             var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
                             for (var a = 0; a < dr.FieldCount; a++)
                             {
@@ -267,17 +272,17 @@ namespace FreeSql.Internal.CommonProvider
                         break;
                 }
             }, cmdType, cmdText, cmdParms);
-            return (ret1, ret2, ret3);
+            return NaviteTuple.Create(ret1, ret2, ret3);
         }
 
-        public (List<T1>, List<T2>, List<T3>, List<T4>) Query<T1, T2, T3, T4>(string cmdText, object parms = null) => Query<T1, T2, T3, T4>(null, null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-        public (List<T1>, List<T2>, List<T3>, List<T4>) Query<T1, T2, T3, T4>(DbTransaction transaction, string cmdText, object parms = null) => Query<T1, T2, T3, T4>(null, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-        public (List<T1>, List<T2>, List<T3>, List<T4>) Query<T1, T2, T3, T4>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null) => Query<T1, T2, T3, T4>(connection, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-        public (List<T1>, List<T2>, List<T3>, List<T4>) Query<T1, T2, T3, T4>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => Query<T1, T2, T3, T4>(null, null, cmdType, cmdText, cmdParms);
-        public (List<T1>, List<T2>, List<T3>, List<T4>) Query<T1, T2, T3, T4>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => Query<T1, T2, T3, T4>(null, transaction, cmdType, cmdText, cmdParms);
-        public (List<T1>, List<T2>, List<T3>, List<T4>) Query<T1, T2, T3, T4>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms)
+        public NaviteTuple<List<T1>, List<T2>, List<T3>, List<T4>> Query<T1, T2, T3, T4>(string cmdText, object parms = null) => Query<T1, T2, T3, T4>(null, null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+        public NaviteTuple<List<T1>, List<T2>, List<T3>, List<T4>> Query<T1, T2, T3, T4>(DbTransaction transaction, string cmdText, object parms = null) => Query<T1, T2, T3, T4>(null, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+        public NaviteTuple<List<T1>, List<T2>, List<T3>, List<T4>> Query<T1, T2, T3, T4>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null) => Query<T1, T2, T3, T4>(connection, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+        public NaviteTuple<List<T1>, List<T2>, List<T3>, List<T4>> Query<T1, T2, T3, T4>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => Query<T1, T2, T3, T4>(null, null, cmdType, cmdText, cmdParms);
+        public NaviteTuple<List<T1>, List<T2>, List<T3>, List<T4>> Query<T1, T2, T3, T4>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => Query<T1, T2, T3, T4>(null, transaction, cmdType, cmdText, cmdParms);
+        public NaviteTuple<List<T1>, List<T2>, List<T3>, List<T4>> Query<T1, T2, T3, T4>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms)
         {
-            if (string.IsNullOrEmpty(cmdText)) return (new List<T1>(), new List<T2>(), new List<T3>(), new List<T4>());
+            if (string.IsNullOrEmpty(cmdText)) return NaviteTuple.Create(new List<T1>(), new List<T2>(), new List<T3>(), new List<T4>());
             var ret1 = new List<T1>();
             var type1 = typeof(T1);
             string flag1 = null;
@@ -308,7 +313,7 @@ namespace FreeSql.Internal.CommonProvider
                     case 0:
                         if (indexes1 == null)
                         {
-                            var sbflag = new StringBuilder().Append("query");
+                            var sbflag = new StringBuilder().Append("adoQuery");
                             var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
                             for (var a = 0; a < dr.FieldCount; a++)
                             {
@@ -325,7 +330,7 @@ namespace FreeSql.Internal.CommonProvider
                     case 1:
                         if (indexes2 == null)
                         {
-                            var sbflag = new StringBuilder().Append("query");
+                            var sbflag = new StringBuilder().Append("adoQuery");
                             var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
                             for (var a = 0; a < dr.FieldCount; a++)
                             {
@@ -342,7 +347,7 @@ namespace FreeSql.Internal.CommonProvider
                     case 2:
                         if (indexes3 == null)
                         {
-                            var sbflag = new StringBuilder().Append("query");
+                            var sbflag = new StringBuilder().Append("adoQuery");
                             var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
                             for (var a = 0; a < dr.FieldCount; a++)
                             {
@@ -359,7 +364,7 @@ namespace FreeSql.Internal.CommonProvider
                     case 3:
                         if (indexes4 == null)
                         {
-                            var sbflag = new StringBuilder().Append("query");
+                            var sbflag = new StringBuilder().Append("adoQuery");
                             var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
                             for (var a = 0; a < dr.FieldCount; a++)
                             {
@@ -375,17 +380,17 @@ namespace FreeSql.Internal.CommonProvider
                         break;
                 }
             }, cmdType, cmdText, cmdParms);
-            return (ret1, ret2, ret3, ret4);
+            return NaviteTuple.Create(ret1, ret2, ret3, ret4);
         }
 
-        public (List<T1>, List<T2>, List<T3>, List<T4>, List<T5>) Query<T1, T2, T3, T4, T5>(string cmdText, object parms = null) => Query<T1, T2, T3, T4, T5>(null, null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-        public (List<T1>, List<T2>, List<T3>, List<T4>, List<T5>) Query<T1, T2, T3, T4, T5>(DbTransaction transaction, string cmdText, object parms = null) => Query<T1, T2, T3, T4, T5>(null, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-        public (List<T1>, List<T2>, List<T3>, List<T4>, List<T5>) Query<T1, T2, T3, T4, T5>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null) => Query<T1, T2, T3, T4, T5>(connection, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-        public (List<T1>, List<T2>, List<T3>, List<T4>, List<T5>) Query<T1, T2, T3, T4, T5>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => Query<T1, T2, T3, T4, T5>(null, null, cmdType, cmdText, cmdParms);
-        public (List<T1>, List<T2>, List<T3>, List<T4>, List<T5>) Query<T1, T2, T3, T4, T5>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => Query<T1, T2, T3, T4, T5>(null, transaction, cmdType, cmdText, cmdParms);
-        public (List<T1>, List<T2>, List<T3>, List<T4>, List<T5>) Query<T1, T2, T3, T4, T5>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms)
+        public NaviteTuple<List<T1>, List<T2>, List<T3>, List<T4>, List<T5>> Query<T1, T2, T3, T4, T5>(string cmdText, object parms = null) => Query<T1, T2, T3, T4, T5>(null, null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+        public NaviteTuple<List<T1>, List<T2>, List<T3>, List<T4>, List<T5>> Query<T1, T2, T3, T4, T5>(DbTransaction transaction, string cmdText, object parms = null) => Query<T1, T2, T3, T4, T5>(null, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+        public NaviteTuple<List<T1>, List<T2>, List<T3>, List<T4>, List<T5>> Query<T1, T2, T3, T4, T5>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null) => Query<T1, T2, T3, T4, T5>(connection, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+        public NaviteTuple<List<T1>, List<T2>, List<T3>, List<T4>, List<T5>> Query<T1, T2, T3, T4, T5>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => Query<T1, T2, T3, T4, T5>(null, null, cmdType, cmdText, cmdParms);
+        public NaviteTuple<List<T1>, List<T2>, List<T3>, List<T4>, List<T5>> Query<T1, T2, T3, T4, T5>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => Query<T1, T2, T3, T4, T5>(null, transaction, cmdType, cmdText, cmdParms);
+        public NaviteTuple<List<T1>, List<T2>, List<T3>, List<T4>, List<T5>> Query<T1, T2, T3, T4, T5>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms)
         {
-            if (string.IsNullOrEmpty(cmdText)) return (new List<T1>(), new List<T2>(), new List<T3>(), new List<T4>(), new List<T5>());
+            if (string.IsNullOrEmpty(cmdText)) return NaviteTuple.Create(new List<T1>(), new List<T2>(), new List<T3>(), new List<T4>(), new List<T5>());
             var ret1 = new List<T1>();
             var type1 = typeof(T1);
             string flag1 = null;
@@ -422,7 +427,7 @@ namespace FreeSql.Internal.CommonProvider
                     case 0:
                         if (indexes1 == null)
                         {
-                            var sbflag = new StringBuilder().Append("query");
+                            var sbflag = new StringBuilder().Append("adoQuery");
                             var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
                             for (var a = 0; a < dr.FieldCount; a++)
                             {
@@ -439,7 +444,7 @@ namespace FreeSql.Internal.CommonProvider
                     case 1:
                         if (indexes2 == null)
                         {
-                            var sbflag = new StringBuilder().Append("query");
+                            var sbflag = new StringBuilder().Append("adoQuery");
                             var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
                             for (var a = 0; a < dr.FieldCount; a++)
                             {
@@ -456,7 +461,7 @@ namespace FreeSql.Internal.CommonProvider
                     case 2:
                         if (indexes3 == null)
                         {
-                            var sbflag = new StringBuilder().Append("query");
+                            var sbflag = new StringBuilder().Append("adoQuery");
                             var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
                             for (var a = 0; a < dr.FieldCount; a++)
                             {
@@ -473,7 +478,7 @@ namespace FreeSql.Internal.CommonProvider
                     case 3:
                         if (indexes4 == null)
                         {
-                            var sbflag = new StringBuilder().Append("query");
+                            var sbflag = new StringBuilder().Append("adoQuery");
                             var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
                             for (var a = 0; a < dr.FieldCount; a++)
                             {
@@ -490,7 +495,7 @@ namespace FreeSql.Internal.CommonProvider
                     case 4:
                         if (indexes5 == null)
                         {
-                            var sbflag = new StringBuilder().Append("query");
+                            var sbflag = new StringBuilder().Append("adoQuery");
                             var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
                             for (var a = 0; a < dr.FieldCount; a++)
                             {
@@ -506,7 +511,7 @@ namespace FreeSql.Internal.CommonProvider
                         break;
                 }
             }, cmdType, cmdText, cmdParms);
-            return (ret1, ret2, ret3, ret4, ret5);
+            return NaviteTuple.Create(ret1, ret2, ret3, ret4, ret5);
         }
         #endregion
 
@@ -547,11 +552,14 @@ namespace FreeSql.Internal.CommonProvider
 
             Object<DbConnection> conn = null;
             var pc = PrepareCommand(connection, transaction, cmdType, cmdText, cmdParms, logtxt);
-            if (IsTracePerformance) logtxt.Append("PrepareCommand: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms\r\n");
+            if (IsTracePerformance)
+            {
+                logtxt.Append("PrepareCommand: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms\r\n");
+                logtxt_dt = DateTime.Now;
+            }
             Exception ex = null;
             try
             {
-                if (IsTracePerformance) logtxt_dt = DateTime.Now;
                 if (isSlave)
                 {
                     //从库查询切换，恢复
@@ -571,7 +579,7 @@ namespace FreeSql.Internal.CommonProvider
                         {
                             if (IsTracePerformance) logtxt_dt = DateTime.Now;
                             ReturnConnection(pool, conn, ex); //pool.Return(conn, ex);
-                            if (IsTracePerformance) logtxt.Append("ReleaseConnection: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms");
+                            if (IsTracePerformance) logtxt.Append("Pool.Return: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms");
                         }
                         LoggerException(pool, pc, new Exception($"连接失败，准备切换其他可用服务器"), dt, logtxt, false);
                         pc.cmd.Parameters.Clear();
@@ -587,43 +595,31 @@ namespace FreeSql.Internal.CommonProvider
                 }
                 if (IsTracePerformance)
                 {
-                    logtxt.Append("Open: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms\r\n");
+                    logtxt.Append("Pool.Get: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms\r\n");
                     logtxt_dt = DateTime.Now;
                 }
                 using (var dr = pc.cmd.ExecuteReader())
                 {
-                    if (IsTracePerformance) logtxt.Append("ExecuteReader: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms\r\n");
                     int resultIndex = 0;
                     while (true)
                     {
                         while (true)
                         {
-                            if (IsTracePerformance) logtxt_dt = DateTime.Now;
                             bool isread = dr.Read();
-                            if (IsTracePerformance) logtxt.Append("	dr.Read: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms\r\n");
                             if (isread == false) break;
 
                             if (readerHander != null)
-                            {
-                                object[] values = null;
-                                if (IsTracePerformance)
-                                {
-                                    logtxt_dt = DateTime.Now;
-                                    values = new object[dr.FieldCount];
-                                    dr.GetValues(values);
-                                    logtxt.Append("	dr.GetValues: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms\r\n");
-                                    logtxt_dt = DateTime.Now;
-                                }
                                 readerHander(dr, resultIndex);
-                                if (IsTracePerformance) logtxt.Append("	readerHander: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms (").Append(string.Join(", ", values)).Append(")\r\n");
-                            }
                         }
                         if (++resultIndex >= multipleResult || dr.NextResult() == false) break;
                     }
-                    if (IsTracePerformance) logtxt_dt = DateTime.Now;
                     dr.Close();
                 }
-                if (IsTracePerformance) logtxt.Append("ExecuteReader_dispose: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms\r\n");
+                if (IsTracePerformance)
+                {
+                    logtxt.Append("ExecuteReader: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms\r\n");
+                    logtxt_dt = DateTime.Now;
+                }
             }
             catch (Exception ex2)
             {
@@ -632,9 +628,12 @@ namespace FreeSql.Internal.CommonProvider
 
             if (conn != null)
             {
-                if (IsTracePerformance) logtxt_dt = DateTime.Now;
                 ReturnConnection(pool, conn, ex); //pool.Return(conn, ex);
-                if (IsTracePerformance) logtxt.Append("ReleaseConnection: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms");
+                if (IsTracePerformance)
+                {
+                    logtxt.Append("Pool.Return: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms");
+                    logtxt_dt = DateTime.Now;
+                }
             }
             LoggerException(pool, pc, ex, dt, logtxt);
             pc.cmd.Parameters.Clear();
@@ -735,7 +734,7 @@ namespace FreeSql.Internal.CommonProvider
             {
                 if (IsTracePerformance) logtxt_dt = DateTime.Now;
                 ReturnConnection(MasterPool, conn, ex); //this.MasterPool.Return(conn, ex);
-                if (IsTracePerformance) logtxt.Append("ReleaseConnection: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms");
+                if (IsTracePerformance) logtxt.Append("Pool.Return: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms");
             }
             LoggerException(this.MasterPool, pc, ex, dt, logtxt);
             pc.cmd.Parameters.Clear();
@@ -771,7 +770,7 @@ namespace FreeSql.Internal.CommonProvider
             {
                 if (IsTracePerformance) logtxt_dt = DateTime.Now;
                 ReturnConnection(MasterPool, conn, ex); //this.MasterPool.Return(conn, ex);
-                if (IsTracePerformance) logtxt.Append("ReleaseConnection: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms");
+                if (IsTracePerformance) logtxt.Append("Pool.Return: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms");
             }
             LoggerException(this.MasterPool, pc, ex, dt, logtxt);
             pc.cmd.Parameters.Clear();
@@ -779,7 +778,19 @@ namespace FreeSql.Internal.CommonProvider
             return val;
         }
 
-        (DbCommand cmd, bool isclose) PrepareCommand(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, DbParameter[] cmdParms, StringBuilder logtxt)
+        class PrepareCommandResult
+        {
+            public Aop.CommandBeforeEventArgs before { get; }
+            public DbCommand cmd { get; }
+            public bool isclose { get; }
+            public PrepareCommandResult(Aop.CommandBeforeEventArgs before, DbCommand cmd, bool isclose)
+            {
+                this.before = before;
+                this.cmd = cmd;
+                this.isclose = isclose;
+            }
+        }
+        PrepareCommandResult PrepareCommand(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, DbParameter[] cmdParms, StringBuilder logtxt)
         {
             var dt = DateTime.Now;
             DbCommand cmd = CreateCommand();
@@ -800,14 +811,10 @@ namespace FreeSql.Internal.CommonProvider
             if (connection == null)
             {
                 var tran = transaction ?? TransactionCurrentThread;
-                if (IsTracePerformance) logtxt.Append("	PrepareCommand_part1: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms cmdParms: ").Append(cmd.Parameters.Count).Append("\r\n");
-
                 if (tran != null && connection == null)
                 {
-                    if (IsTracePerformance) dt = DateTime.Now;
                     cmd.Connection = tran.Connection;
                     cmd.Transaction = tran;
-                    if (IsTracePerformance) logtxt.Append("	PrepareCommand_tran!=null: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms\r\n");
                 }
             }
             else
@@ -825,11 +832,12 @@ namespace FreeSql.Internal.CommonProvider
             }
 
             if (IsTracePerformance) dt = DateTime.Now;
-            AutoCommitTransaction();
-            if (IsTracePerformance) logtxt.Append("   AutoCommitTransaction: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms\r\n");
+            CommitTimeoutTransaction();
+            if (IsTracePerformance) logtxt.Append("   CommitTimeoutTransaction: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms\r\n");
 
-            AopCommandExecuting?.Invoke(cmd);
-            return (cmd, isclose);
+            var before = new Aop.CommandBeforeEventArgs(cmd);
+            _util?._orm?.Aop.CommandBeforeHandler?.Invoke(_util._orm, before);
+            return new PrepareCommandResult(before, cmd, isclose);
         }
     }
 }

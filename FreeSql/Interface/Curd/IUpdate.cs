@@ -25,8 +25,9 @@ namespace FreeSql
         /// <summary>
         /// 不使用参数化，可通过 IFreeSql.CodeFirst.IsNotCommandParameter 全局性设置
         /// </summary>
+        /// <param name="isNotCommandParameter">是否不使用参数化</param>
         /// <returns></returns>
-        IUpdate<T1> NoneParameter();
+        IUpdate<T1> NoneParameter(bool isNotCommandParameter = true);
 
         /// <summary>
         /// 批量执行选项设置，一般不需要使用该方法<para></para>
@@ -57,26 +58,40 @@ namespace FreeSql
         /// <returns></returns>
         IUpdate<T1> SetSource(IEnumerable<T1> source);
         /// <summary>
-        /// 忽略的列，IgnoreColumns(a => a.Name) | IgnoreColumns(a => new{a.Name,a.Time}) | IgnoreColumns(a => new[]{"name","time"})
+        /// 更新数据，设置更新的实体，同时设置忽略的列<para></para>
+        /// 忽略 null 属性：fsql.Update&lt;T&gt;().SetSourceAndIgnore(item, colval => colval == null)<para></para>
+        /// 注意：参数 ignore 与 IUpdate.IgnoreColumns/UpdateColumns 不能同时使用
+        /// </summary>
+        /// <param name="source">实体</param>
+        /// <param name="ignore">属性值忽略判断, true忽略</param>
+        /// <returns></returns>
+        IUpdate<T1> SetSourceIgnore(T1 source, Func<object, bool> ignore);
+
+        /// <summary>
+        /// 忽略的列，IgnoreColumns(a => a.Name) | IgnoreColumns(a => new{a.Name,a.Time}) | IgnoreColumns(a => new[]{"name","time"})<para></para>
+        /// 注意：不能与 UpdateColumns 不能同时使用
         /// </summary>
         /// <param name="columns">lambda选择列</param>
         /// <returns></returns>
         IUpdate<T1> IgnoreColumns(Expression<Func<T1, object>> columns);
         /// <summary>
-        /// 忽略的列
+        /// 忽略的列<para></para>
+        /// 注意：不能与 UpdateColumns 不能同时使用
         /// </summary>
         /// <param name="columns">属性名，或者字段名</param>
         /// <returns></returns>
         IUpdate<T1> IgnoreColumns(string[] columns);
 
         /// <summary>
-        /// 指定的列，UpdateColumns(a => a.Name) | UpdateColumns(a => new{a.Name,a.Time}) | UpdateColumns(a => new[]{"name","time"})
+        /// 指定的列，UpdateColumns(a => a.Name) | UpdateColumns(a => new{a.Name,a.Time}) | UpdateColumns(a => new[]{"name","time"})<para></para>
+        /// 注意：不能与 IgnoreColumns 不能同时使用
         /// </summary>
         /// <param name="columns">lambda选择列</param>
         /// <returns></returns>
         IUpdate<T1> UpdateColumns(Expression<Func<T1, object>> columns);
         /// <summary>
-        /// 指定的列
+        /// 指定的列<para></para>
+        /// 注意：不能与 IgnoreColumns 同时使用
         /// </summary>
         /// <param name="columns">属性名，或者字段名</param>
         /// <returns></returns>
@@ -91,6 +106,15 @@ namespace FreeSql
         /// <returns></returns>
         IUpdate<T1> Set<TMember>(Expression<Func<T1, TMember>> column, TMember value);
         /// <summary>
+        /// 设置列的新值，Set(a => a.Name, "newvalue")
+        /// </summary>
+        /// <typeparam name="TMember"></typeparam>
+        /// <param name="condition">true 时生效</param>
+        /// <param name="column">lambda选择列</param>
+        /// <param name="value">新值</param>
+        /// <returns></returns>
+        IUpdate<T1> SetIf<TMember>(bool condition, Expression<Func<T1, TMember>> column, TMember value);
+        /// <summary>
         /// 设置列的的新值为基础上增加，格式：Set(a => a.Clicks + 1) 相当于 clicks=clicks+1
         /// <para></para>
         /// 指定更新，格式：Set(a => new T { Clicks = a.Clicks + 1, Time = DateTime.Now }) 相当于 set clicks=clicks+1,time='2019-06-19....'
@@ -100,12 +124,32 @@ namespace FreeSql
         /// <returns></returns>
         IUpdate<T1> Set<TMember>(Expression<Func<T1, TMember>> exp);
         /// <summary>
+        /// 设置列的的新值为基础上增加，格式：Set(a => a.Clicks + 1) 相当于 clicks=clicks+1
+        /// <para></para>
+        /// 指定更新，格式：Set(a => new T { Clicks = a.Clicks + 1, Time = DateTime.Now }) 相当于 set clicks=clicks+1,time='2019-06-19....'
+        /// </summary>
+        /// <typeparam name="TMember"></typeparam>
+        /// <param name="condition">true 时生效</param>
+        /// <param name="exp"></param>
+        /// <returns></returns>
+        IUpdate<T1> SetIf<TMember>(bool condition, Expression<Func<T1, TMember>> exp);
+        /// <summary>
         /// 设置值，自定义SQL语法，SetRaw("title = ?title", new { title = "newtitle" })
         /// </summary>
         /// <param name="sql">sql语法</param>
         /// <param name="parms">参数</param>
         /// <returns></returns>
         IUpdate<T1> SetRaw(string sql, object parms = null);
+
+        /// <summary>
+        /// 设置更新的列<para></para>
+        /// SetDto(new { title = "xxx", clicks = 2 })<para></para>
+        /// SetDto(new Dictionary&lt;string, object&gt; { ["title"] = "xxx", ["clicks"] = 2 })<para></para>
+        /// 注意：标记 [Column(CanUpdate = false)] 的属性不会被更新
+        /// </summary>
+        /// <param name="dto">dto 或 Dictionary&lt;string, object&gt;</param>
+        /// <returns></returns>
+        IUpdate<T1> SetDto(object dto);
 
         /// <summary>
         /// lambda表达式条件，仅支持实体基础成员（不包含导航对象）<para></para>
@@ -134,7 +178,7 @@ namespace FreeSql
         /// <returns></returns>
         IUpdate<T1> Where(IEnumerable<T1> items);
         /// <summary>
-        /// 传入动态对象如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
+        /// 传入动态条件，如：主键值 | new[]{主键值1,主键值2} | TEntity1 | new[]{TEntity1,TEntity2} | new{id=1}
         /// </summary>
         /// <param name="dywhere">主键值、主键值集合、实体、实体集合、匿名对象、匿名对象集合</param>
         /// <param name="not">是否标识为NOT</param>
@@ -171,7 +215,8 @@ namespace FreeSql
         /// <returns></returns>
         int ExecuteAffrows();
         /// <summary>
-        /// 执行SQL语句，返回更新后的记录
+        /// 执行SQL语句，返回更新后的记录<para></para>
+        /// 注意：此方法只有 Postgresql/SqlServer 有效果
         /// </summary>
         /// <returns></returns>
         List<T1> ExecuteUpdated();

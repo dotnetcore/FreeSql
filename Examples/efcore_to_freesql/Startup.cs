@@ -27,6 +27,9 @@ namespace efcore_to_freesql
                 .UseAutoSyncStructure(true)
                 .Build();
 
+            //FreeSqlDbContextExtensions.EfCoreFluentApiTestGeneric(Fsql);
+            FreeSqlDbContextExtensions.EfCoreFluentApiTestDynamic(Fsql);
+
             DBContexts.BaseDBContext.Fsql = Fsql;
 
             var sql11 = Fsql.Select<Topic1>().ToSql();
@@ -64,13 +67,20 @@ namespace efcore_to_freesql
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddControllersWithViews();
             services.AddSingleton<IFreeSql>(Fsql);
             services.AddMvc();
         }
 
         public void Configure(IApplicationBuilder app)
         {
-            app.UseDeveloperExceptionPage();
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            Console.OutputEncoding = Encoding.GetEncoding("GB2312");
+            Console.InputEncoding = Encoding.GetEncoding("GB2312");
+
+            app.UseHttpMethodOverride(new HttpMethodOverrideOptions { FormFieldName = "X-Http-Method-Override" });
+            app.UseDeveloperExceptionPage(); 
+            app.UseRouting();
             app.UseEndpoints(a => a.MapControllers());
         }
     }

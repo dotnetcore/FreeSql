@@ -12,8 +12,8 @@ namespace orm_vs
     class Program
     {
         static IFreeSql fsql = new FreeSql.FreeSqlBuilder()
-                //.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=20")
-                .UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=20")
+                .UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=20")
+                //.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=20")
                 .UseAutoSyncStructure(false)
                 .UseNoneCommandParameter(true)
                 //.UseConfigEntityFromDbFirst(true)
@@ -130,6 +130,15 @@ namespace orm_vs
             //    sugar.Queryable<Song>().Take(size).ToList();
             //sw.Stop();
             //sb.AppendLine($"SqlSugar Select {size}条数据，循环{forTime}次，耗时{sw.ElapsedMilliseconds}ms");
+
+            sw.Restart();
+            using (var conn = fsql.Ado.MasterPool.Get())
+            {
+                for (var a = 0; a < forTime; a++)
+                    Dapper.SqlMapper.Query<Song>(conn.Value, $"select top {size} * from freesql_song").ToList();
+            }
+            sw.Stop();
+            sb.AppendLine($"Dapper Select {size}条数据，循环{forTime}次，耗时{sw.ElapsedMilliseconds}ms");
         }
 
         static void Insert(StringBuilder sb, int forTime, int size)

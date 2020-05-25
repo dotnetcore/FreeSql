@@ -11,6 +11,7 @@ namespace FreeSql.Tests.Odbc.Default
 
     public class OdbcCodeFirstTest
     {
+
         [Fact]
         public void 中文表_字段()
         {
@@ -22,6 +23,28 @@ namespace FreeSql.Tests.Odbc.Default
             Assert.Equal(1, g.odbc.Insert<测试中文表>().AppendData(item).ExecuteAffrows());
             Assert.NotEqual(Guid.Empty, item.编号);
             var item2 = g.odbc.Select<测试中文表>().Where(a => a.编号 == item.编号).First();
+            Assert.NotNull(item2);
+            Assert.Equal(item.编号, item2.编号);
+            Assert.Equal(item.标题, item2.标题);
+
+            item.标题 = "测试标题更新";
+            Assert.Equal(1, g.odbc.Update<测试中文表>().SetSource(item).ExecuteAffrows());
+            item2 = g.odbc.Select<测试中文表>().Where(a => a.编号 == item.编号).First();
+            Assert.NotNull(item2);
+            Assert.Equal(item.编号, item2.编号);
+            Assert.Equal(item.标题, item2.标题);
+
+            item.标题 = "测试标题更新_repo";
+            var repo = g.odbc.GetRepository<测试中文表>();
+            Assert.Equal(1, repo.Update(item));
+            item2 = g.odbc.Select<测试中文表>().Where(a => a.编号 == item.编号).First();
+            Assert.NotNull(item2);
+            Assert.Equal(item.编号, item2.编号);
+            Assert.Equal(item.标题, item2.标题);
+
+            item.标题 = "测试标题更新_repo22";
+            Assert.Equal(1, repo.Update(item));
+            item2 = g.odbc.Select<测试中文表>().Where(a => a.编号 == item.编号).First();
             Assert.NotNull(item2);
             Assert.Equal(item.编号, item2.编号);
             Assert.Equal(item.标题, item2.标题);
@@ -75,7 +98,7 @@ namespace FreeSql.Tests.Odbc.Default
                 testFieldSByteNullable = sbyte.MinValue,
                 testFieldShort = short.MaxValue,
                 testFieldShortNullable = short.MinValue,
-                testFieldString = "我是中国人string",
+                testFieldString = "我是中国人string'\\?!@#$%^&*()_+{}}{~?><<>",
                 testFieldUInt = uint.MaxValue,
                 testFieldUIntNullable = uint.MinValue,
                 testFieldULong = ulong.MaxValue,
@@ -93,6 +116,11 @@ namespace FreeSql.Tests.Odbc.Default
 
             var item3 = insert.AppendData(item2).ExecuteIdentity();
             var newitem2 = select.Where(a => a.Id == item2.Id).ToOne();
+            Assert.Equal(item2.testFieldString, newitem2.testFieldString);
+
+            item2.Id = (int)insert.NoneParameter().AppendData(item2).ExecuteIdentity();
+            newitem2 = select.Where(a => a.Id == item2.Id).ToOne();
+            Assert.Equal(item2.testFieldString, newitem2.testFieldString);
 
             var items = select.ToList();
         }

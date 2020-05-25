@@ -1,4 +1,4 @@
-﻿using SafeObjectPool;
+﻿using FreeSql.Internal.ObjectPool;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -13,9 +13,35 @@ namespace FreeSql.Internal.CommonProvider
     {
         internal DataType _dataType;
         internal Func<DbConnection> _connectionFactory;
+        public DbConnection TestConnection { get; }
+        public bool IsSingletonConnection { get; }
         int _id;
         public DbConnectionPool(DataType dataType, Func<DbConnection> connectionFactory)
         {
+            #region Test connectionFactory
+            //情况1：() => new SqlConnection(...)
+            //情况2：() => conn
+            DbConnection conn1 = null;
+            DbConnection conn2 = null;
+            try
+            {
+                conn1 = connectionFactory(); //测试 conn
+                conn2 = connectionFactory();
+
+                TestConnection = conn1; //赋值创建 Command，兼容 Mono.Data.Sqlite
+                IsSingletonConnection = conn1 == conn2;
+            }
+            catch { }
+            finally
+            {
+                if (conn1 != conn2)
+                {
+                    if (conn1?.State == ConnectionState.Open) try { conn1?.Close(); } catch { }
+                    if (conn2?.State == ConnectionState.Open) try { conn2?.Close(); } catch { }
+                }
+            }
+            #endregion
+
             _dataType = dataType;
             _connectionFactory = connectionFactory;
             Policy = new DbConnectionPoolPolicy(this);
@@ -55,10 +81,11 @@ namespace FreeSql.Internal.CommonProvider
         public void Return(Object<DbConnection> obj, bool isReset = false)
         {
             if (obj == null || obj.Value == null) return;
+            if (IsSingletonConnection) return;
             if (obj.Value.State != ConnectionState.Closed)
                 obj.Value.Close();
             if (_dataType == DataType.Sqlite)
-                obj.Dispose();
+                obj.Value.Dispose();
         }
 
         public bool SetUnavailable(Exception exception)
@@ -78,9 +105,10 @@ namespace FreeSql.Internal.CommonProvider
         public string Name { get; set; } = typeof(DbConnectionPoolPolicy).GetType().FullName;
         public int PoolSize { get; set; } = 1000;
         public TimeSpan SyncGetTimeout { get; set; } = TimeSpan.FromSeconds(10);
-        public TimeSpan IdleTimeout { get; set; } = TimeSpan.FromSeconds(50);
+        public TimeSpan IdleTimeout { get; set; } = TimeSpan.FromSeconds(20);
         public int AsyncGetCapacity { get; set; } = 10000;
         public bool IsThrowGetTimeoutException { get; set; } = true;
+        public bool IsAutoDisposeWithSystem { get; set; } = true;
         public int CheckAvailableInterval { get; set; } = 5;
 
         public DbConnection OnCreate()

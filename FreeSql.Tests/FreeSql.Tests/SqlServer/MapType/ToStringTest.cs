@@ -18,6 +18,7 @@ namespace FreeSql.Tests.SqlServerMapType
 
         class ToStringMap
         {
+            [Column(MapType = typeof(string))]
             public Guid id { get; set; }
 
             [Column(MapType = typeof(string))]
@@ -49,6 +50,19 @@ namespace FreeSql.Tests.SqlServerMapType
         [Fact]
         public void Enum1()
         {
+            g.sqlserver.Aop.AuditValue += new EventHandler<FreeSql.Aop.AuditValueEventArgs>((s, e) =>
+            {
+                if (e.Column.CsType == typeof(Guid) &&
+                    e.Column.Attribute.MapType == typeof(string) &&
+                    e.Value?.ToString() == Guid.Empty.ToString())
+                    e.Value = FreeUtil.NewMongodbId();
+            });
+
+            g.sqlserver.GetRepository<ToStringMap>().InsertOrUpdate(new ToStringMap
+            {
+
+            });
+
             //insert
             var orm = g.sqlserver;
             var item = new ToStringMap { };

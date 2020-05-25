@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 public class RazorModel {
 	public RazorModel(IFreeSql fsql, string nameSpace, bool[] NameOptions, List<DbTableInfo> tables, DbTableInfo table) {
@@ -55,7 +54,12 @@ public class RazorModel {
 		var sb = new List<string>();
 
 		if (GetCsName(this.FullTableName) != this.FullTableName)
-			sb.Add("Name = \"" + this.FullTableName + "\"");
+		{
+			if (this.FullTableName.IndexOf('.') == -1)
+				sb.Add("Name = \"" + this.FullTableName + "\"");
+			else
+				sb.Add("Name = \"" + this.FullTableName + "\""); //Todo: QuoteSqlName
+		}
 
 		if (sb.Any() == false) return null;
 		return "[Table(" + string.Join(", ", sb) + ")]";
@@ -69,14 +73,14 @@ public class RazorModel {
 		if (col.CsType != null)
 		{
 			var dbinfo = fsql.CodeFirst.GetDbInfo(col.CsType);
-			if (dbinfo != null && dbinfo.Value.dbtypeFull.Replace("NOT NULL", "").Trim() != col.DbTypeTextFull)
+			if (dbinfo != null && string.Compare(dbinfo.dbtypeFull.Replace("NOT NULL", "").Trim(), col.DbTypeTextFull, true) != 0)
 				sb.Add("DbType = \"" + col.DbTypeTextFull + "\"");
 			if (col.IsPrimary)
 				sb.Add("IsPrimary = true");
 			if (col.IsIdentity)
 				sb.Add("IsIdentity = true");
 
-			if (dbinfo != null && dbinfo.Value.isnullable != col.IsNullable)
+			if (dbinfo != null && dbinfo.isnullable != col.IsNullable)
 			{
 				if (col.IsNullable && fsql.DbFirst.GetCsType(col).Contains("?") == false && col.CsType.IsValueType)
 					sb.Add("IsNullable = true");

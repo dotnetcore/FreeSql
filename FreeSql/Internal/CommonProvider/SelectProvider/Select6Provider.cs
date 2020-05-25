@@ -35,11 +35,11 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalAvg(column?.Body);
         }
 
-        ISelectGrouping<TKey, (T1, T2, T3, T4, T5, T6)> ISelect<T1, T2, T3, T4, T5, T6>.GroupBy<TKey>(Expression<Func<T1, T2, T3, T4, T5, T6, TKey>> exp)
+        ISelectGrouping<TKey, NaviteTuple<T1, T2, T3, T4, T5, T6>> ISelect<T1, T2, T3, T4, T5, T6>.GroupBy<TKey>(Expression<Func<T1, T2, T3, T4, T5, T6, TKey>> exp)
         {
-            if (exp == null) return this.InternalGroupBy<TKey, (T1, T2, T3, T4, T5, T6)>(exp?.Body);
+            if (exp == null) return this.InternalGroupBy<TKey, NaviteTuple<T1, T2, T3, T4, T5, T6>>(exp?.Body);
             for (var a = 0; a < exp.Parameters.Count; a++) _tables[a].Parameter = exp.Parameters[a];
-            return this.InternalGroupBy<TKey, (T1, T2, T3, T4, T5, T6)>(exp?.Body);
+            return this.InternalGroupBy<TKey, NaviteTuple<T1, T2, T3, T4, T5, T6>>(exp?.Body);
         }
 
         TMember ISelect<T1, T2, T3, T4, T5, T6>.Max<TMember>(Expression<Func<T1, T2, T3, T4, T5, T6, TMember>> column)

@@ -53,7 +53,7 @@ namespace FreeSql.Tests.Odbc.MySql
         [Fact]
         public void QueryMultipline()
         {
-            Assert.Throws<OdbcException>(() => g.mysql.Ado.Query<xxx, (int, string, string), dynamic>("select * from song; select * from song; select * from song"));
+            Assert.Throws<Exception>(() => g.mysql.Ado.Query<xxx, (int, string, string), dynamic>("select * from song; select * from song; select * from song"));
         }
 
         class xxx

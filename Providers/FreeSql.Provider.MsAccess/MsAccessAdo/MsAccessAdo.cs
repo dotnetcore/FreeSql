@@ -1,6 +1,6 @@
 ﻿using FreeSql.Internal;
 using FreeSql.Internal.Model;
-using SafeObjectPool;
+using FreeSql.Internal.ObjectPool;
 using System;
 using System.Collections;
 using System.Data.Common;
@@ -13,8 +13,8 @@ namespace FreeSql.MsAccess
 {
     class MsAccessAdo : FreeSql.Internal.CommonProvider.AdoProvider
     {
-        public MsAccessAdo() : base(DataType.MsAccess) { }
-        public MsAccessAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.MsAccess)
+        public MsAccessAdo() : base(DataType.MsAccess, null, null) { }
+        public MsAccessAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.MsAccess, masterConnectionString, slaveConnectionStrings)
         {
             base._util = util;
             if (connectionFactory != null)
@@ -37,8 +37,9 @@ namespace FreeSql.MsAccess
         public override object AddslashesProcessParam(object param, Type mapType, ColumnInfo mapColumn)
         {
             if (param == null) return "NULL";
-            if (mapType != null && mapType != param.GetType() && (param is IEnumerable == false || mapType.IsArrayOrList()))
+            if (mapType != null && mapType != param.GetType() && (param is IEnumerable == false))
                 param = Utils.GetDataReaderValue(mapType, param);
+
             if (param is bool || param is bool?)
                 return (bool)param ? -1 : 0;
             else if (param is string || param is char)
@@ -54,7 +55,9 @@ namespace FreeSql.MsAccess
             }
             else if (param is TimeSpan || param is TimeSpan?)
                 return ((TimeSpan)param).TotalSeconds;
-            else if (param is IEnumerable) 
+            else if (param is byte[])
+                return $"0x{CommonUtils.BytesSqlRaw(param as byte[])}";
+            else if (param is IEnumerable)
                 return AddslashesIEnumerable(param, mapType, mapColumn);
 
             return string.Concat("'", param.ToString().Replace("'", "''"), "'");

@@ -15,44 +15,75 @@ namespace FreeSql
         /// <summary>
         /// 可自定义解析表达式
         /// </summary>
-        EventHandler<Aop.ParseExpressionEventArgs> ParseExpression { get; set; }
+        event EventHandler<Aop.ParseExpressionEventArgs> ParseExpression;
+        EventHandler<Aop.ParseExpressionEventArgs> ParseExpressionHandler { get; }
 
         /// <summary>
         /// 自定义实体的配置，方便和多个 ORM 共同使用
         /// </summary>
-        EventHandler<Aop.ConfigEntityEventArgs> ConfigEntity { get; set; }
+        event EventHandler<Aop.ConfigEntityEventArgs> ConfigEntity;
+        EventHandler<Aop.ConfigEntityEventArgs> ConfigEntityHandler { get; }
         /// <summary>
         /// 自定义实体的属性配置，方便和多个 ORM 共同使用
         /// </summary>
-        EventHandler<Aop.ConfigEntityPropertyEventArgs> ConfigEntityProperty { get; set; }
+        event EventHandler<Aop.ConfigEntityPropertyEventArgs> ConfigEntityProperty;
+        EventHandler<Aop.ConfigEntityPropertyEventArgs> ConfigEntityPropertyHandler { get; }
 
         /// <summary>
         /// 增删查改，执行命令之前触发
         /// </summary>
-        EventHandler<Aop.CurdBeforeEventArgs> CurdBefore { get; set; }
+        event EventHandler<Aop.CurdBeforeEventArgs> CurdBefore;
+        EventHandler<Aop.CurdBeforeEventArgs> CurdBeforeHandler { get; }
         /// <summary>
         /// 增删查改，执行命令完成后触发
         /// </summary>
-        EventHandler<Aop.CurdAfterEventArgs> CurdAfter { get; set; }
+        event EventHandler<Aop.CurdAfterEventArgs> CurdAfter;
+        EventHandler<Aop.CurdAfterEventArgs> CurdAfterHandler { get; }
 
         /// <summary>
         /// CodeFirst迁移，执行之前触发
         /// </summary>
-        EventHandler<Aop.SyncStructureBeforeEventArgs> SyncStructureBefore { get; set; }
+        event EventHandler<Aop.SyncStructureBeforeEventArgs> SyncStructureBefore;
+        EventHandler<Aop.SyncStructureBeforeEventArgs> SyncStructureBeforeHandler { get; }
         /// <summary>
         /// CodeFirst迁移，执行完成触发
         /// </summary>
-        EventHandler<Aop.SyncStructureAfterEventArgs> SyncStructureAfter { get; set; }
+        event EventHandler<Aop.SyncStructureAfterEventArgs> SyncStructureAfter;
+        EventHandler<Aop.SyncStructureAfterEventArgs> SyncStructureAfterHandler { get; }
 
         /// <summary>
         /// Insert/Update自动值处理
         /// </summary>
-        EventHandler<Aop.AuditValueEventArgs> AuditValue { get; set; }
+        event EventHandler<Aop.AuditValueEventArgs> AuditValue;
+        EventHandler<Aop.AuditValueEventArgs> AuditValueHandler { get; }
+
+        /// <summary>
+        /// 监视数据库命令对象(执行前，调试)
+        /// </summary>
+        event EventHandler<Aop.CommandBeforeEventArgs> CommandBefore;
+        EventHandler<Aop.CommandBeforeEventArgs> CommandBeforeHandler { get; }
+        /// <summary>
+        /// 监视数据库命令对象(执行后，用于监视执行性能)
+        /// </summary>
+        event EventHandler<Aop.CommandAfterEventArgs> CommandAfter;
+        EventHandler<Aop.CommandAfterEventArgs> CommandAfterHandler { get; }
+
+        /// <summary>
+        /// 跟踪开始
+        /// </summary>
+        event EventHandler<Aop.TraceBeforeEventArgs> TraceBefore;
+        EventHandler<Aop.TraceBeforeEventArgs> TraceBeforeHandler { get; }
+        /// <summary>
+        /// 跟踪结束
+        /// </summary>
+        event EventHandler<Aop.TraceAfterEventArgs> TraceAfter;
+        EventHandler<Aop.TraceAfterEventArgs> TraceAfterHandler { get; }
     }
 }
 
 namespace FreeSql.Aop
 {
+    #region ParseExpression
     public class ParseExpressionEventArgs : EventArgs
     {
         public ParseExpressionEventArgs(Expression expression, Func<Expression, string> freeParse)
@@ -75,6 +106,9 @@ namespace FreeSql.Aop
         /// </summary>
         public string Result { get; set; }
     }
+    #endregion
+
+    #region ConfigEntity/Property
     public class ConfigEntityEventArgs : EventArgs
     {
         public ConfigEntityEventArgs(Type entityType)
@@ -119,7 +153,9 @@ namespace FreeSql.Aop
         /// </summary>
         public ColumnAttribute ModifyResult { get; }
     }
+    #endregion
 
+    #region CurdBefore/After
     public class CurdBeforeEventArgs : EventArgs
     {
         public CurdBeforeEventArgs(Type entityType, TableInfo table, CurdType curdType, string sql, DbParameter[] dbParms) :
@@ -155,7 +191,7 @@ namespace FreeSql.Aop
         /// <summary>
         /// 实体类型的元数据
         /// </summary>
-        public TableInfo Table { get; set; }
+        public TableInfo Table { get; }
         /// <summary>
         /// 执行的 SQL
         /// </summary>
@@ -165,7 +201,7 @@ namespace FreeSql.Aop
         /// </summary>
         public DbParameter[] DbParms { get; }
     }
-    public enum CurdType { Select, Delete, Update, Insert }
+    public enum CurdType { Select, Delete, Update, Insert, InsertOrUpdate }
     public class CurdAfterEventArgs : CurdBeforeEventArgs
     {
         public CurdAfterEventArgs(CurdBeforeEventArgs before, Exception exception, object executeResult) :
@@ -183,7 +219,7 @@ namespace FreeSql.Aop
         /// <summary>
         /// 执行SQL命令，返回的结果
         /// </summary>
-        public object ExecuteResult { get; set; }
+        public object ExecuteResult { get; }
         /// <summary>
         /// 耗时（单位：Ticks）
         /// </summary>
@@ -193,7 +229,9 @@ namespace FreeSql.Aop
         /// </summary>
         public long ElapsedMilliseconds => this.Stopwatch.ElapsedMilliseconds;
     }
+    #endregion
 
+    #region SyncStructureBefore/After
     public class SyncStructureBeforeEventArgs : EventArgs
     {
         public SyncStructureBeforeEventArgs(Type[] entityTypes) :
@@ -246,7 +284,9 @@ namespace FreeSql.Aop
         /// </summary>
         public long ElapsedMilliseconds => this.Stopwatch.ElapsedMilliseconds;
     }
+    #endregion
 
+    #region AuditValue
     public class AuditValueEventArgs : EventArgs
     {
         public AuditValueEventArgs(AuditValueType autoValueType, ColumnInfo column, PropertyInfo property, object value)
@@ -284,5 +324,112 @@ namespace FreeSql.Aop
         private object _value;
         public bool IsChanged { get; private set; }
     }
-    public enum AuditValueType { Update, Insert }
+    public enum AuditValueType { Update, Insert, InsertOrUpdate }
+    #endregion
+
+    #region CommandBefore/After
+    public class CommandBeforeEventArgs : EventArgs
+    {
+        public CommandBeforeEventArgs(DbCommand command) :
+            this(Guid.NewGuid(), new Stopwatch(), command)
+        {
+            this.Stopwatch.Start();
+        }
+        protected CommandBeforeEventArgs(Guid identifier, Stopwatch stopwatch, DbCommand command)
+        {
+            this.Identifier = identifier;
+            this.Stopwatch = stopwatch;
+            this.Command = command;
+        }
+
+        /// <summary>
+        /// 标识符，可将 CommandBefore 与 CommandAfter 进行匹配
+        /// </summary>
+        public Guid Identifier { get; protected set; }
+        protected Stopwatch Stopwatch { get; }
+        internal Stopwatch StopwatchInternal => Stopwatch;
+        public DbCommand Command { get; }
+    }
+    public class CommandAfterEventArgs : CommandBeforeEventArgs
+    {
+        public CommandAfterEventArgs(CommandBeforeEventArgs before, Exception exception, string log) :
+            base(before.Identifier, before.StopwatchInternal, before.Command)
+        {
+            this.Exception = exception;
+            this.Log = log;
+            this.Stopwatch.Stop();
+        }
+
+        /// <summary>
+        /// 发生的错误
+        /// </summary>
+        public Exception Exception { get; }
+        /// <summary>
+        /// 执行SQL命令，返回的结果
+        /// </summary>
+        public string Log { get; }
+        /// <summary>
+        /// 耗时（单位：Ticks）
+        /// </summary>
+        public long ElapsedTicks => this.Stopwatch.ElapsedTicks;
+        /// <summary>
+        /// 耗时（单位：毫秒）
+        /// </summary>
+        public long ElapsedMilliseconds => this.Stopwatch.ElapsedMilliseconds;
+    }
+    #endregion
+
+    #region TraceBefore/After
+    public class TraceBeforeEventArgs : EventArgs
+    {
+        public TraceBeforeEventArgs(string operation, object value) :
+            this(Guid.NewGuid(), new Stopwatch(), operation, value)
+        {
+            this.Stopwatch.Start();
+        }
+        protected TraceBeforeEventArgs(Guid identifier, Stopwatch stopwatch, string operation, object value)
+        {
+            this.Identifier = identifier;
+            this.Stopwatch = stopwatch;
+            this.Operation = operation;
+            this.Value = value;
+        }
+
+        /// <summary>
+        /// 标识符，可将 TraceBeforeEventArgs 与 TraceAfterEventArgs 进行匹配
+        /// </summary>
+        public Guid Identifier { get; protected set; }
+        protected Stopwatch Stopwatch { get; }
+        internal Stopwatch StopwatchInternal => Stopwatch;
+        public string Operation { get; }
+        public object Value { get; }
+    }
+    public class TraceAfterEventArgs : TraceBeforeEventArgs
+    {
+        public TraceAfterEventArgs(TraceBeforeEventArgs before, string remark, Exception exception) :
+            base(before.Identifier, before.StopwatchInternal, before.Operation, before.Value)
+        {
+            this.Remark = remark;
+            this.Exception = exception;
+            this.Stopwatch.Stop();
+        }
+
+        /// <summary>
+        /// 备注
+        /// </summary>
+        public string Remark { get; }
+        /// <summary>
+        /// 发生的错误
+        /// </summary>
+        public Exception Exception { get; }
+        /// <summary>
+        /// 耗时（单位：Ticks）
+        /// </summary>
+        public long ElapsedTicks => this.Stopwatch.ElapsedTicks;
+        /// <summary>
+        /// 耗时（单位：毫秒）
+        /// </summary>
+        public long ElapsedMilliseconds => this.Stopwatch.ElapsedMilliseconds;
+    }
+    #endregion
 }

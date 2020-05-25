@@ -12,6 +12,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Extensions\FreeSql.Extensions.LazyLoading\FreeSql.Extensions.LazyLoading.csproj" />
     <ProjectReference Include="..\..\FreeSql.DbContext\FreeSql.DbContext.csproj" />
+    <ProjectReference Include="..\..\Providers\FreeSql.Provider.MySql\FreeSql.Provider.MySql.csproj" />
     <ProjectReference Include="..\..\Providers\FreeSql.Provider.Sqlite\FreeSql.Provider.Sqlite.csproj" />
   </ItemGroup>
 

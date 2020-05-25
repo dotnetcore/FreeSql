@@ -39,7 +39,7 @@ namespace FreeSql.Oracle.Curd
             foreach (var col in _table.Columns.Values)
             {
                 if (col.Attribute.IsIdentity) _identCol = col;
-                if (col.Attribute.IsIdentity && _insertIdentity == false) continue;
+                if (col.Attribute.IsIdentity && _insertIdentity == false && string.IsNullOrEmpty(col.DbInsertValue)) continue;
                 if (col.Attribute.IsIdentity == false && _ignore.ContainsKey(col.Attribute.Name)) continue;
 
                 if (colidx > 0) sbtb.Append(", ");
@@ -60,7 +60,7 @@ namespace FreeSql.Oracle.Curd
                 var colidx2 = 0;
                 foreach (var col in _table.Columns.Values)
                 {
-                    if (col.Attribute.IsIdentity && _insertIdentity == false) continue;
+                    if (col.Attribute.IsIdentity && _insertIdentity == false && string.IsNullOrEmpty(col.DbInsertValue)) continue;
                     if (col.Attribute.IsIdentity == false && _ignore.ContainsKey(col.Attribute.Name)) continue;
 
                     if (colidx2 > 0) sb.Append(", ");
@@ -99,7 +99,7 @@ namespace FreeSql.Oracle.Curd
             if (_identCol == null || _source.Count > 1)
             {
                 before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
-                _orm.Aop.CurdBefore?.Invoke(this, before);
+                _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
                 try
                 {
                     ret = _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, _params);
@@ -112,7 +112,7 @@ namespace FreeSql.Oracle.Curd
                 finally
                 {
                     var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                    _orm.Aop.CurdAfter?.Invoke(this, after);
+                    _orm.Aop.CurdAfterHandler?.Invoke(this, after);
                 }
                 return 0;
             }
@@ -122,7 +122,7 @@ namespace FreeSql.Oracle.Curd
             sql = $"{sql} RETURNING {identColName} INTO {identParam.ParameterName}";
             var dbParms = _params.Concat(new[] { identParam }).ToArray();
             before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, dbParms);
-            _orm.Aop.CurdBefore?.Invoke(this, before);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             try
             {
                 _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, dbParms);
@@ -136,7 +136,7 @@ namespace FreeSql.Oracle.Curd
             finally
             {
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                _orm.Aop.CurdAfter?.Invoke(this, after);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
             return ret;
         }
@@ -152,9 +152,9 @@ namespace FreeSql.Oracle.Curd
 
 #if net40
 #else
-        public override Task<int> ExecuteAffrowsAsync() => base.SplitExecuteAffrowsAsync(500, 999);
-        public override Task<long> ExecuteIdentityAsync() => base.SplitExecuteIdentityAsync(500, 999);
-        public override Task<List<T1>> ExecuteInsertedAsync() => base.SplitExecuteInsertedAsync(500, 999);
+        public override Task<int> ExecuteAffrowsAsync() => base.SplitExecuteAffrowsAsync(_batchValuesLimit > 0 ? _batchValuesLimit : 500, _batchParameterLimit > 0 ? _batchParameterLimit : 999);
+        public override Task<long> ExecuteIdentityAsync() => base.SplitExecuteIdentityAsync(_batchValuesLimit > 0 ? _batchValuesLimit : 500, _batchParameterLimit > 0 ? _batchParameterLimit : 999);
+        public override Task<List<T1>> ExecuteInsertedAsync() => base.SplitExecuteInsertedAsync(_batchValuesLimit > 0 ? _batchValuesLimit : 500, _batchParameterLimit > 0 ? _batchParameterLimit : 999);
 
         async protected override Task<long> RawExecuteIdentityAsync()
         {
@@ -168,7 +168,7 @@ namespace FreeSql.Oracle.Curd
             if (_identCol == null || _source.Count > 1)
             {
                 before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
-                _orm.Aop.CurdBefore?.Invoke(this, before);
+                _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
                 try
                 {
                     ret = await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, _params);
@@ -181,7 +181,7 @@ namespace FreeSql.Oracle.Curd
                 finally
                 {
                     var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                    _orm.Aop.CurdAfter?.Invoke(this, after);
+                    _orm.Aop.CurdAfterHandler?.Invoke(this, after);
                 }
                 return 0;
             }
@@ -191,7 +191,7 @@ namespace FreeSql.Oracle.Curd
             sql = $"{sql} RETURNING {identColName} INTO {identParam.ParameterName}";
             var dbParms = _params.Concat(new[] { identParam }).ToArray();
             before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, dbParms);
-            _orm.Aop.CurdBefore?.Invoke(this, before);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             try
             {
                 await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, dbParms);
@@ -205,7 +205,7 @@ namespace FreeSql.Oracle.Curd
             finally
             {
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                _orm.Aop.CurdAfter?.Invoke(this, after);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
             return ret;
         }

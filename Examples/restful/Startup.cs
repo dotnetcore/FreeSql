@@ -18,7 +18,7 @@ namespace restful
                 .UseAutoSyncStructure(true)
                 .Build();
 
-            Fsql.Aop.CurdAfter = (s, e) =>
+            Fsql.Aop.CurdAfter += (s, e) =>
             {
                 if (e.ElapsedMilliseconds > 200)
                 {

@@ -1,5 +1,6 @@
 ﻿using FreeSql.DatabaseModel;
 using FreeSql.Internal;
+using FreeSql.Internal.Model;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -59,36 +60,36 @@ namespace FreeSql.Odbc.SqlServer
             }
         }
 
-        static readonly Dictionary<int, (string csConvert, string csParse, string csStringify, string csType, Type csTypeInfo, Type csNullableTypeInfo, string csTypeValue, string dataReaderMethod)> _dicDbToCs = new Dictionary<int, (string csConvert, string csParse, string csStringify, string csType, Type csTypeInfo, Type csNullableTypeInfo, string csTypeValue, string dataReaderMethod)>() {
-                { (int)OdbcType.Bit, ("(bool?)", "{0} == \"1\"", "{0} == true ? \"1\" : \"0\"", "bool?", typeof(bool), typeof(bool?), "{0}.Value", "GetBoolean") },
+        static readonly Dictionary<int, DbToCs> _dicDbToCs = new Dictionary<int, DbToCs>() {
+                { (int)OdbcType.Bit, new DbToCs("(bool?)", "{0} == \"1\"", "{0} == true ? \"1\" : \"0\"", "bool?", typeof(bool), typeof(bool?), "{0}.Value", "GetBoolean") },
 
-                { (int)OdbcType.TinyInt, ("(byte?)", "byte.Parse({0})", "{0}.ToString()", "byte?", typeof(byte), typeof(byte?), "{0}.Value", "GetByte") },
-                { (int)OdbcType.SmallInt, ("(short?)", "short.Parse({0})", "{0}.ToString()", "short?", typeof(short), typeof(short?), "{0}.Value", "GetInt16") },
-                { (int)OdbcType.Int, ("(int?)", "int.Parse({0})", "{0}.ToString()", "int?", typeof(int), typeof(int?), "{0}.Value", "GetInt32") },
-                { (int)OdbcType.BigInt, ("(long?)", "long.Parse({0})", "{0}.ToString()", "long?", typeof(long), typeof(long?), "{0}.Value", "GetInt64") },
+                { (int)OdbcType.TinyInt, new DbToCs("(byte?)", "byte.Parse({0})", "{0}.ToString()", "byte?", typeof(byte), typeof(byte?), "{0}.Value", "GetByte") },
+                { (int)OdbcType.SmallInt, new DbToCs("(short?)", "short.Parse({0})", "{0}.ToString()", "short?", typeof(short), typeof(short?), "{0}.Value", "GetInt16") },
+                { (int)OdbcType.Int, new DbToCs("(int?)", "int.Parse({0})", "{0}.ToString()", "int?", typeof(int), typeof(int?), "{0}.Value", "GetInt32") },
+                { (int)OdbcType.BigInt, new DbToCs("(long?)", "long.Parse({0})", "{0}.ToString()", "long?", typeof(long), typeof(long?), "{0}.Value", "GetInt64") },
 
-                { (int)OdbcType.Decimal, ("(decimal?)", "decimal.Parse({0})", "{0}.ToString()", "decimal?", typeof(decimal), typeof(decimal?), "{0}.Value", "GetDecimal") },
-                { (int)OdbcType.Double, ("(double?)", "double.Parse({0})", "{0}.ToString()", "double?", typeof(double), typeof(double?), "{0}.Value", "GetDouble") },
-                { (int)OdbcType.Real, ("(float?)", "float.Parse({0})", "{0}.ToString()", "float?", typeof(float), typeof(float?), "{0}.Value", "GetFloat") },
+                { (int)OdbcType.Decimal, new DbToCs("(decimal?)", "decimal.Parse({0})", "{0}.ToString()", "decimal?", typeof(decimal), typeof(decimal?), "{0}.Value", "GetDecimal") },
+                { (int)OdbcType.Double, new DbToCs("(double?)", "double.Parse({0})", "{0}.ToString()", "double?", typeof(double), typeof(double?), "{0}.Value", "GetDouble") },
+                { (int)OdbcType.Real, new DbToCs("(float?)", "float.Parse({0})", "{0}.ToString()", "float?", typeof(float), typeof(float?), "{0}.Value", "GetFloat") },
 
-                { (int)OdbcType.Time, ("(TimeSpan?)", "TimeSpan.Parse(double.Parse({0}))", "{0}.Ticks.ToString()", "TimeSpan?", typeof(TimeSpan), typeof(TimeSpan?), "{0}.Value", "GetValue") },
-                { (int)OdbcType.Date, ("(DateTime?)", "new DateTime(long.Parse({0}))", "{0}.Ticks.ToString()", "DateTime?", typeof(DateTime), typeof(DateTime?), "{0}.Value", "GetDateTime") },
-                { (int)OdbcType.DateTime, ("(DateTime?)", "new DateTime(long.Parse({0}))", "{0}.Ticks.ToString()", "DateTime?", typeof(DateTime), typeof(DateTime?), "{0}.Value", "GetDateTime") },
-                { (int)OdbcType.SmallDateTime, ("(DateTime?)", "new DateTime(long.Parse({0}))", "{0}.Ticks.ToString()", "DateTime?", typeof(DateTime), typeof(DateTime?), "{0}.Value", "GetDateTime") },
+                { (int)OdbcType.Time, new DbToCs("(TimeSpan?)", "TimeSpan.Parse(double.Parse({0}))", "{0}.Ticks.ToString()", "TimeSpan?", typeof(TimeSpan), typeof(TimeSpan?), "{0}.Value", "GetValue") },
+                { (int)OdbcType.Date, new DbToCs("(DateTime?)", "new DateTime(long.Parse({0}))", "{0}.Ticks.ToString()", "DateTime?", typeof(DateTime), typeof(DateTime?), "{0}.Value", "GetDateTime") },
+                { (int)OdbcType.DateTime, new DbToCs("(DateTime?)", "new DateTime(long.Parse({0}))", "{0}.Ticks.ToString()", "DateTime?", typeof(DateTime), typeof(DateTime?), "{0}.Value", "GetDateTime") },
+                { (int)OdbcType.SmallDateTime, new DbToCs("(DateTime?)", "new DateTime(long.Parse({0}))", "{0}.Ticks.ToString()", "DateTime?", typeof(DateTime), typeof(DateTime?), "{0}.Value", "GetDateTime") },
 
-                { (int)OdbcType.Binary, ("(byte[])", "Convert.FromBase64String({0})", "Convert.ToBase64String({0})", "byte[]", typeof(byte[]), typeof(byte[]), "{0}", "GetValue") },
-                { (int)OdbcType.VarBinary, ("(byte[])", "Convert.FromBase64String({0})", "Convert.ToBase64String({0})", "byte[]", typeof(byte[]), typeof(byte[]), "{0}", "GetValue") },
-                { (int)OdbcType.Image, ("(byte[])", "Convert.FromBase64String({0})", "Convert.ToBase64String({0})", "byte[]", typeof(byte[]), typeof(byte[]), "{0}", "GetValue") },
-                { (int)OdbcType.Timestamp, ("(byte[])", "Convert.FromBase64String({0})", "Convert.ToBase64String({0})", "byte[]", typeof(byte[]), typeof(byte[]), "{0}", "GetValue") },
+                { (int)OdbcType.Binary, new DbToCs("(byte[])", "Convert.FromBase64String({0})", "Convert.ToBase64String({0})", "byte[]", typeof(byte[]), typeof(byte[]), "{0}", "GetValue") },
+                { (int)OdbcType.VarBinary, new DbToCs("(byte[])", "Convert.FromBase64String({0})", "Convert.ToBase64String({0})", "byte[]", typeof(byte[]), typeof(byte[]), "{0}", "GetValue") },
+                { (int)OdbcType.Image, new DbToCs("(byte[])", "Convert.FromBase64String({0})", "Convert.ToBase64String({0})", "byte[]", typeof(byte[]), typeof(byte[]), "{0}", "GetValue") },
+                { (int)OdbcType.Timestamp, new DbToCs("(byte[])", "Convert.FromBase64String({0})", "Convert.ToBase64String({0})", "byte[]", typeof(byte[]), typeof(byte[]), "{0}", "GetValue") },
 
-                { (int)OdbcType.Char, ("", "{0}.Replace(StringifySplit, \"|\")", "{0}.Replace(\"|\", StringifySplit)", "string", typeof(string), typeof(string), "{0}", "GetString") },
-                { (int)OdbcType.VarChar, ("", "{0}.Replace(StringifySplit, \"|\")", "{0}.Replace(\"|\", StringifySplit)", "string", typeof(string), typeof(string), "{0}", "GetString") },
-                { (int)OdbcType.Text, ("", "{0}.Replace(StringifySplit, \"|\")", "{0}.Replace(\"|\", StringifySplit)", "string", typeof(string), typeof(string), "{0}", "GetString") },
-                { (int)OdbcType.NChar, ("", "{0}.Replace(StringifySplit, \"|\")", "{0}.Replace(\"|\", StringifySplit)", "string", typeof(string), typeof(string), "{0}", "GetString") },
-                { (int)OdbcType.NVarChar, ("", "{0}.Replace(StringifySplit, \"|\")", "{0}.Replace(\"|\", StringifySplit)", "string", typeof(string), typeof(string), "{0}", "GetString") },
-                { (int)OdbcType.NText, ("", "{0}.Replace(StringifySplit, \"|\")", "{0}.Replace(\"|\", StringifySplit)", "string", typeof(string), typeof(string), "{0}", "GetString") },
+                { (int)OdbcType.Char, new DbToCs("", "{0}.Replace(StringifySplit, \"|\")", "{0}.Replace(\"|\", StringifySplit)", "string", typeof(string), typeof(string), "{0}", "GetString") },
+                { (int)OdbcType.VarChar, new DbToCs("", "{0}.Replace(StringifySplit, \"|\")", "{0}.Replace(\"|\", StringifySplit)", "string", typeof(string), typeof(string), "{0}", "GetString") },
+                { (int)OdbcType.Text, new DbToCs("", "{0}.Replace(StringifySplit, \"|\")", "{0}.Replace(\"|\", StringifySplit)", "string", typeof(string), typeof(string), "{0}", "GetString") },
+                { (int)OdbcType.NChar, new DbToCs("", "{0}.Replace(StringifySplit, \"|\")", "{0}.Replace(\"|\", StringifySplit)", "string", typeof(string), typeof(string), "{0}", "GetString") },
+                { (int)OdbcType.NVarChar, new DbToCs("", "{0}.Replace(StringifySplit, \"|\")", "{0}.Replace(\"|\", StringifySplit)", "string", typeof(string), typeof(string), "{0}", "GetString") },
+                { (int)OdbcType.NText, new DbToCs("", "{0}.Replace(StringifySplit, \"|\")", "{0}.Replace(\"|\", StringifySplit)", "string", typeof(string), typeof(string), "{0}", "GetString") },
 
-                { (int)OdbcType.UniqueIdentifier, ("(Guid?)", "Guid.Parse({0})", "{0}.ToString()", "Guid?", typeof(Guid), typeof(Guid?), "{0}.Value", "GetGuid") },
+                { (int)OdbcType.UniqueIdentifier, new DbToCs("(Guid?)", "Guid.Parse({0})", "{0}.ToString()", "Guid?", typeof(Guid), typeof(Guid?), "{0}.Value", "GetGuid") },
             };
 
         public string GetCsConvert(DbColumnInfo column) => _dicDbToCs.TryGetValue(column.DbType, out var trydc) ? (column.IsNullable ? trydc.csConvert : trydc.csConvert.Replace("?", "")) : null;
@@ -242,13 +243,16 @@ isnull(e.name,'') + '.' + isnull(d.name,'')
 {0} a
 inner join sys.types b on b.user_type_id = a.user_type_id
 left join sys.tables d on d.object_id = a.object_id
-left join sys.schemas e on e.schema_id = d.schema_id
+left join sys.schemas e on e.schema_id = d.schema_id{2}
 where {1}
 ";
                 sql = string.Format(tsql_place, @"
 ,a.is_nullable 'IsNullable'
 ,a.is_identity 'IsIdentity'
-from sys.columns", loc8.ToString().Replace("a.table_name", "a.object_id"));
+,f.text as 'DefaultValue'
+from sys.columns", loc8.ToString().Replace("a.table_name", "a.object_id"), @"
+left join syscomments f on f.id = a.default_object_id
+");
                 if (loc88.Length > 0)
                 {
                     sql += "union all" +
@@ -257,12 +261,14 @@ from sys.columns", loc8.ToString().Replace("a.table_name", "a.object_id"));
                         " select value from sys.extended_properties where major_id = a.object_id AND minor_id = a.parameter_id"), @"
 ,cast(0 as bit) 'IsNullable'
 ,a.is_output 'IsIdentity'
-from sys.parameters", loc88.ToString().Replace("a.table_name", "a.object_id"));
+,'' as 'DefaultValue'
+from sys.parameters", loc88.ToString().Replace("a.table_name", "a.object_id"), "");
                 }
                 sql = $"use [{db}];{sql};use [{olddatabase}]; ";
                 ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
                 if (ds == null) return loc1;
 
+                var position = 0;
                 foreach (object[] row in ds)
                 {
                     var table_id = string.Concat(row[0]);
@@ -274,6 +280,7 @@ from sys.parameters", loc88.ToString().Replace("a.table_name", "a.object_id"));
                     var comment = string.Concat(row[6]);
                     var is_nullable = bool.Parse(string.Concat(row[7]));
                     var is_identity = bool.Parse(string.Concat(row[8]));
+                    var defaultValue = string.Concat(row[9]);
                     if (max_length == 0) max_length = -1;
 
                     loc3[object_id].Add(column, new DbColumnInfo
@@ -286,7 +293,9 @@ from sys.parameters", loc88.ToString().Replace("a.table_name", "a.object_id"));
                         DbTypeText = type,
                         DbTypeTextFull = sqlType,
                         Table = loc2[object_id],
-                        Coment = comment
+                        Coment = comment,
+                        DefaultValue = defaultValue,
+                        Position = ++position
                     });
                     loc3[object_id][column].DbType = this.GetDbType(loc3[object_id][column]);
                     loc3[object_id][column].CsType = this.GetCsTypeInfo(loc3[object_id][column]);
@@ -305,7 +314,7 @@ select
 from sys.index_columns a
 inner join sys.indexes b on b.object_id = a.object_id and b.index_id = a.index_id
 left join sys.columns c on c.object_id = a.object_id and c.column_id = a.column_id
-where {loc8.ToString().Replace("a.table_name", "a.object_id")} and b.is_primary_key = 0
+where {loc8.ToString().Replace("a.table_name", "a.object_id")}
 ;
 use [{olddatabase}];
 ";

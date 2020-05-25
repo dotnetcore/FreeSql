@@ -7,7 +7,7 @@ namespace FreeSql
 
         public FreeContext(IFreeSql orm)
         {
-            _ormPriv = orm;
+            _ormScoped = DbContextScopedFreeSql.Create(orm, () => this, () => UnitOfWork);
         }
     }
 }

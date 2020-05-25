@@ -68,6 +68,12 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.BaseEntity`1.SaveMany(System.String)">
+            <summary>
+            【完整】保存导航属性，子表
+            </summary>
+            <param name="navigatePropertyName">导航属性名</param>
+        </member>
         <member name="T:FreeSql.BaseEntityAsync`2">
             <summary>
             包括 CreateTime/UpdateTime/IsDeleted、CRUD 异步方法、以及 ID 主键定义 的实体基类
@@ -125,6 +131,12 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.BaseEntityAsync`1.SaveManyAsync(System.String)">
+            <summary>
+            【完整】保存导航属性，子表
+            </summary>
+            <param name="navigatePropertyName">导航属性名</param>
+        </member>
         <member name="T:FreeSql.BaseEntity">
             <summary>
             包括 CreateTime/UpdateTime/IsDeleted 的实体基类
@@ -135,7 +147,7 @@
             全局 IFreeSql orm 对象
             </summary>
         </member>
-        <member name="M:FreeSql.BaseEntity.Initialization(IFreeSql)">
+        <member name="M:FreeSql.BaseEntity.Initialization(IFreeSql,System.Func{FreeSql.IUnitOfWork})">
             <summary>
             初始化BaseEntity
             BaseEntity.Initialization(new FreeSqlBuilder()
@@ -147,6 +159,7 @@
             .Build());
             </summary>
             <param name="fsql">IFreeSql orm 对象</param>
+            <param name="resolveUow">工作单元(事务)委托，如果不使用事务请传 null<para></para>解释：由于AsyncLocal平台兼容不好，所以交给外部管理</param>
         </member>
         <member name="P:FreeSql.BaseEntity.CreateTime">
             <summary>
@@ -168,44 +181,11 @@
             排序
             </summary>
         </member>
-        <member name="M:FreeSql.BaseEntity.Begin">
-            <summary>
-            开启工作单元事务
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.BaseEntity.Begin(System.Nullable{System.Data.IsolationLevel})">
-            <summary>
-            开启工作单元事务
-            </summary>
-            <param name="level">事务等级</param>
-            <returns></returns>
-        </member>
-        <member name="P:FreeSql.BaseEntity.CurrentTenantId">
-            <summary>
-            获取或设置当前租户id
-            </summary>
-        </member>
-        <member name="T:FreeSql.ITenant">
-            <summary>
-            租户
-            </summary>
-        </member>
-        <member name="P:FreeSql.ITenant.TenantId">
-            <summary>
-            租户id
-            </summary>
-        </member>
         <member name="P:FreeSql.BaseEntityReadOnly`1.Select">
             <summary>
             查询数据
             </summary>
             <returns></returns>
-        </member>
-        <member name="M:FreeSql.BaseEntityReadOnly`1.SetTenantId">
-            <summary>
-            设置当前租户id
-            </summary>
         </member>
         <member name="M:FreeSql.BaseEntityReadOnly`1.Where(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
             <summary>
@@ -230,33 +210,6 @@
         <member name="M:FreeSql.BaseEntityReadOnly`1.Attach">
             <summary>
             附加实体，在更新数据时，只更新变化的部分
-            </summary>
-        </member>
-        <member name="T:FreeSql.BaseEntityTree`2">
-            <summary>
-            树状基类
-            </summary>
-            <typeparam name="TEntity"></typeparam>
-            <typeparam name="TKey"></typeparam>
-        </member>
-        <member name="P:FreeSql.BaseEntityTree`2.ParentId">
-            <summary>
-            父级id
-            </summary>
-        </member>
-        <member name="P:FreeSql.BaseEntityTree`2.Childs">
-            <summary>
-            下级列表
-            </summary>
-        </member>
-        <member name="P:FreeSql.BaseEntityTree`2.Name">
-            <summary>
-            名称
-            </summary>
-        </member>
-        <member name="P:FreeSql.BaseEntityTree`2.FullName">
-            <summary>
-            名称：技术部-前端
             </summary>
         </member>
     </members>

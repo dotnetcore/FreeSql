@@ -1,16 +1,22 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Reflection;
 
 namespace FreeSql.DataAnnotations
 {
     public class ColumnFluent
     {
 
-        public ColumnFluent(ColumnAttribute column)
+        public ColumnFluent(ColumnAttribute column, PropertyInfo property, Type entityType)
         {
             _column = column;
+            _property = property;
+            _entityType = entityType;
         }
 
-        ColumnAttribute _column;
+        public ColumnAttribute _column;
+        public PropertyInfo _property;
+        public Type _entityType;
         /// <summary>
         /// 数据库列名
         /// </summary>
@@ -156,6 +162,18 @@ namespace FreeSql.DataAnnotations
         public ColumnFluent StringLength(int value)
         {
             _column.StringLength = value;
+            return this;
+        }
+
+        /// <summary>
+        /// 执行 Insert 方法时使用此值<para></para>
+        /// 注意：如果是 getdate() 这种请可考虑使用 ServerTime，因为它对数据库间作了适配
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public ColumnFluent InsertValueSql(string value)
+        {
+            _column.InsertValueSql = value;
             return this;
         }
     }

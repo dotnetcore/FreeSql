@@ -27,13 +27,13 @@ namespace FreeSql.Odbc.PostgreSQL
             foreach (var col in _table.Columns.Values)
             {
                 if (colidx > 0) sb.Append(", ");
-                sb.Append(_commonUtils.QuoteReadColumn(col.Attribute.MapType, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
+                sb.Append(_commonUtils.QuoteReadColumn(col.CsType, col.Attribute.MapType, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
                 ++colidx;
             }
             sql = sb.ToString();
             var dbParms = _params.ToArray();
             var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Delete, sql, dbParms);
-            _orm.Aop.CurdBefore?.Invoke(this, before);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             var ret = new List<T1>();
             Exception exception = null;
             try
@@ -48,7 +48,7 @@ namespace FreeSql.Odbc.PostgreSQL
             finally
             {
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                _orm.Aop.CurdAfter?.Invoke(this, after);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
             this.ClearData();
             return ret;
@@ -68,13 +68,13 @@ namespace FreeSql.Odbc.PostgreSQL
             foreach (var col in _table.Columns.Values)
             {
                 if (colidx > 0) sb.Append(", ");
-                sb.Append(_commonUtils.QuoteReadColumn(col.Attribute.MapType, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
+                sb.Append(_commonUtils.QuoteReadColumn(col.CsType, col.Attribute.MapType, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
                 ++colidx;
             }
             sql = sb.ToString();
             var dbParms = _params.ToArray();
             var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Delete, sql, dbParms);
-            _orm.Aop.CurdBefore?.Invoke(this, before);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             var ret = new List<T1>();
             Exception exception = null;
             try
@@ -89,7 +89,7 @@ namespace FreeSql.Odbc.PostgreSQL
             finally
             {
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                _orm.Aop.CurdAfter?.Invoke(this, after);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
             this.ClearData();
             return ret;

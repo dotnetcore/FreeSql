@@ -1,4 +1,4 @@
-﻿using SafeObjectPool;
+﻿using FreeSql.Internal.ObjectPool;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -19,6 +19,8 @@ namespace FreeSql.SqlServer
 
         public SqlServerConnectionPool(string name, string connectionString, Action availableHandler, Action unavailableHandler) : base(null)
         {
+            this.availableHandler = availableHandler;
+            this.unavailableHandler = unavailableHandler;
             var policy = new SqlServerConnectionPoolPolicy
             {
                 _pool = this,
@@ -26,9 +28,6 @@ namespace FreeSql.SqlServer
             };
             this.Policy = policy;
             policy.ConnectionString = connectionString;
-
-            this.availableHandler = availableHandler;
-            this.unavailableHandler = unavailableHandler;
         }
 
         public void Return(Object<DbConnection> obj, Exception exception, bool isRecreate = false)
@@ -53,9 +52,10 @@ namespace FreeSql.SqlServer
         public string Name { get; set; } = "SqlServer SqlConnection 对象池";
         public int PoolSize { get; set; } = 100;
         public TimeSpan SyncGetTimeout { get; set; } = TimeSpan.FromSeconds(10);
-        public TimeSpan IdleTimeout { get; set; } = TimeSpan.Zero;
+        public TimeSpan IdleTimeout { get; set; } = TimeSpan.FromSeconds(20);
         public int AsyncGetCapacity { get; set; } = 10000;
         public bool IsThrowGetTimeoutException { get; set; } = true;
+        public bool IsAutoDisposeWithSystem { get; set; } = true;
         public int CheckAvailableInterval { get; set; } = 5;
 
         static ConcurrentDictionary<string, int> dicConnStrIncr = new ConcurrentDictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
@@ -70,7 +70,7 @@ namespace FreeSql.SqlServer
                 var pattern = @"Max\s*pool\s*size\s*=\s*(\d+)";
                 Match m = Regex.Match(_connectionString, pattern, RegexOptions.IgnoreCase);
                 if (m.Success == false || int.TryParse(m.Groups[1].Value, out var poolsize) == false || poolsize <= 0) poolsize = 100;
-                var connStrIncr = dicConnStrIncr.AddOrUpdate(_connectionString, 1, (oldkey, oldval) => oldval + 1);
+                var connStrIncr = dicConnStrIncr.AddOrUpdate(_connectionString, 1, (oldkey, oldval) => Math.Min(5, oldval + 1));
                 PoolSize = poolsize + connStrIncr;
                 _connectionString = m.Success ?
                     Regex.Replace(_connectionString, pattern, $"Max pool size={PoolSize}", RegexOptions.IgnoreCase) :
@@ -111,7 +111,8 @@ namespace FreeSql.SqlServer
 
         public void OnDestroy(DbConnection obj)
         {
-            if (obj.State != ConnectionState.Closed) obj.Close();
+            try { if (obj.State != ConnectionState.Closed) obj.Close(); } catch { }
+            try { SqlConnection.ClearPool(obj as SqlConnection); } catch { }
             obj.Dispose();
         }
 
@@ -181,7 +182,7 @@ namespace FreeSql.SqlServer
 
         public void OnReturn(Object<DbConnection> obj)
         {
-            if (obj.Value.State != ConnectionState.Closed) try { obj.Value.Close(); } catch { }
+           //if (obj?.Value != null && obj.Value.State != ConnectionState.Closed) try { obj.Value.Close(); } catch { }
         }
 
         public void OnAvailable()

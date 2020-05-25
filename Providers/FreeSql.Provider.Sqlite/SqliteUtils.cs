@@ -4,8 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Linq.Expressions;
-using System.Text;
+using System.Data.SQLite;
+using System.Globalization;
 
 namespace FreeSql.Sqlite
 {
@@ -33,7 +33,7 @@ namespace FreeSql.Sqlite
                     dbtype = DbType.Int64;
                     break;
             }
-            var ret = AdonetPortable.GetSqliteParameter();
+            var ret = new SQLiteParameter();
             ret.ParameterName = QuoteParamterName(parameterName);
             ret.DbType = dbtype;
             ret.Value = value;
@@ -58,7 +58,7 @@ namespace FreeSql.Sqlite
                         dbtype = DbType.Int64;
                         break;
                 }
-                var ret = AdonetPortable.GetSqliteParameter();
+                var ret = new SQLiteParameter();
                 ret.ParameterName = $"@{name}";
                 ret.DbType = dbtype;
                 ret.Value = value;
@@ -66,12 +66,18 @@ namespace FreeSql.Sqlite
             });
 
         public override string FormatSql(string sql, params object[] args) => sql?.FormatSqlite(args);
-        public override string QuoteSqlName(string name)
+        public override string QuoteSqlName(params string[] name)
         {
-            var nametrim = name.Trim();
-            if (nametrim.StartsWith("(") && nametrim.EndsWith(")"))
-                return nametrim; //原生SQL
-            return $"\"{nametrim.Trim('"').Replace(".", "\".\"")}\"";
+            if (name.Length == 1)
+            {
+                var nametrim = name[0].Trim();
+                if (nametrim.StartsWith("(") && nametrim.EndsWith(")"))
+                    return nametrim; //原生SQL
+                if (nametrim.StartsWith("\"") && nametrim.EndsWith("\""))
+                    return nametrim;
+                return $"\"{nametrim.Replace(".", "\".\"")}\"";
+            }
+            return $"\"{string.Join("\".\"", name)}\"";
         }
         public override string TrimQuoteSqlName(string name)
         {
@@ -80,6 +86,7 @@ namespace FreeSql.Sqlite
                 return nametrim; //原生SQL
             return $"{nametrim.Trim('"').Replace("\".\"", ".").Replace(".\"", ".")}";
         }
+        public override string[] SplitTableName(string name) => GetSplitTableNames(name, '"', '"', 2);
         public override string QuoteParamterName(string name) => $"@{(_orm.CodeFirst.IsSyncStructureToLower ? name.ToLower() : name)}";
         public override string IsNull(string sql, object value) => $"ifnull({sql}, {value})";
         public override string StringConcat(string[] objs, Type[] types) => $"{string.Join(" || ", objs)}";
@@ -89,12 +96,12 @@ namespace FreeSql.Sqlite
         public override string NowUtc => "current_timestamp";
 
         public override string QuoteWriteParamter(Type type, string paramterName) => paramterName;
-        public override string QuoteReadColumn(Type type, string columnName) => columnName;
+        public override string QuoteReadColumn(Type type, Type mapType, string columnName) => columnName;
 
         public override string GetNoneParamaterSqlValue(List<DbParameter> specialParams, Type type, object value)
         {
             if (value == null) return "NULL";
-            if (type == typeof(byte[])) value = Encoding.UTF8.GetString(value as byte[]);
+            if (type.IsNumberType()) return string.Format(CultureInfo.InvariantCulture, "{0}", value);
             return FormatSql("{0}", value, 1);
         }
     }

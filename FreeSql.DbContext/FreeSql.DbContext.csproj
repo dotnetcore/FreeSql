@@ -1,12 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net45;net40</TargetFrameworks>
-    <Version>1.0.0</Version>
+    <TargetFrameworks>netstandard2.0;netcoreapp31;netcoreapp30;netcoreapp22;netcoreapp21;net45;net40</TargetFrameworks>
+    <Version>1.5.0</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Authors>YeXiangQin</Authors>
+    <Authors>ncc;YeXiangQin</Authors>
     <Description>FreeSql is the ORM in .NetCore, .NetFramework, And Xamarin. It supports Mysql, Postgresql, SqlServer, Oracle, Sqlite, Odbc, 达梦, And Access</Description>
-    <PackageProjectUrl>https://github.com/2881099/FreeSql.DbContext</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/2881099/FreeSql/wiki/DbContext</PackageProjectUrl>
     <PackageTags>FreeSql ORM DbContext</PackageTags>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -15,6 +15,9 @@
     <Title>$(AssemblyName)</Title>
     <IsPackable>true</IsPackable>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>key.snk</AssemblyOriginatorKeyFile>
+    <DelaySign>false</DelaySign>
   </PropertyGroup>
 
   <ItemGroup>
@@ -26,15 +29,24 @@
     <WarningLevel>3</WarningLevel>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <DefineConstants>ns20;netstandard20</DefineConstants>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(TargetFramework)' == 'net40'">
     <DefineConstants>net40</DefineConstants>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp31' or '$(TargetFramework)' == 'netcoreapp30' or '$(TargetFramework)' == 'netcoreapp22' or '$(TargetFramework)' == 'netcoreapp21'">
+    <DefineConstants>netcoreapp</DefineConstants>
+  </PropertyGroup>
   
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.0" />
+  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp31'">
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.1" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp30'">
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.0.3" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp22'">
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.2.0" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp21'">
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.1.1" />
   </ItemGroup>
 
   <ItemGroup>

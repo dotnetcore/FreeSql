@@ -48,6 +48,33 @@ namespace FreeSql.Tests.Odbc.Oracle
 
             sql = update.SetSource(items).Set(a => a.CreateTime, new DateTime(2020, 1, 1)).ToSql().Replace("\r\n", "");
             Assert.Equal("UPDATE \"TB_TOPIC\" SET \"CREATETIME\" = to_timestamp('2020-01-01 00:00:00.000000','YYYY-MM-DD HH24:MI:SS.FF6') WHERE (\"ID\" IN (1,2,3,4,5,6,7,8,9,10))", sql);
+
+            sql = g.oracle.Update<ts_source_mpk>().SetSource(new[] {
+                new ts_source_mpk { id1 = 1, id2 = 7, xx = "a1" },
+                new ts_source_mpk { id1 = 1, id2 = 8, xx = "b122" }
+            }).NoneParameter().ToSql().Replace("\r\n", "");
+        }
+        public class ts_source_mpk
+        {
+            [Column(IsPrimary = true)]
+            public int id1 { get; set; }
+            [Column(IsPrimary = true)]
+            public int id2 { get; set; }
+            public string xx { get; set; }
+        }
+        [Fact]
+        public void SetSourceIgnore()
+        {
+            Assert.Equal("UPDATE \"TSSI01\" SET \"TINT\" = 10 WHERE (\"ID\" = '00000000-0000-0000-0000-000000000000')",
+                g.oracle.Update<tssi01>().NoneParameter()
+                    .SetSourceIgnore(new tssi01 { id = Guid.Empty, tint = 10 }, col => col == null).ToSql().Replace("\r\n", ""));
+        }
+        public class tssi01
+        {
+            [Column(CanUpdate = false)]
+            public Guid id { get; set; }
+            public int tint { get; set; }
+            public string title { get; set; }
         }
         [Fact]
         public void IgnoreColumns()
@@ -86,14 +113,30 @@ namespace FreeSql.Tests.Odbc.Oracle
             sql = update.Set(a => a.Clicks == a.Clicks * 10 / 1).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
             Assert.Equal("UPDATE \"TB_TOPIC\" SET \"CLICKS\" = trunc(\"CLICKS\" * 10 / 1) WHERE (\"ID\" = 1)", sql);
 
+            var dt2000 = DateTime.Parse("2000-01-01");
+            sql = update.Set(a => a.Clicks == (a.CreateTime > dt2000 ? 1 : 2)).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
+            Assert.Equal("UPDATE \"TB_TOPIC\" SET \"CLICKS\" = case when \"CREATETIME\" > to_timestamp('2000-01-01 00:00:00.000000','YYYY-MM-DD HH24:MI:SS.FF6') then 1 else 2 end WHERE (\"ID\" = 1)", sql);
+
             sql = update.Set(a => a.Id == 10).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
             Assert.Equal("UPDATE \"TB_TOPIC\" SET \"ID\" = 10 WHERE (\"ID\" = 1)", sql);
+
+            sql = update.Set(a => a.Clicks == null).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
+            Assert.Equal("UPDATE \"TB_TOPIC\" SET \"CLICKS\" = NULL WHERE (\"ID\" = 1)", sql);
         }
         [Fact]
         public void SetRaw()
         {
             var sql = update.Where(a => a.Id == 1).SetRaw("clicks = clicks + ?", new { incrClick = 1 }).ToSql().Replace("\r\n", "");
             Assert.Equal("UPDATE \"TB_TOPIC\" SET clicks = clicks + ? WHERE (\"ID\" = 1)", sql);
+        }
+        [Fact]
+        public void SetDto()
+        {
+            var sql = update.SetDto(new { clicks = 1, title = "xxx" }).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
+            Assert.Equal("UPDATE \"TB_TOPIC\" SET \"CLICKS\" = 1, \"TITLE\" = 'xxx' WHERE (\"ID\" = 1)", sql);
+
+            sql = update.SetDto(new Dictionary<string, object> { ["clicks"] = 1, ["title"] = "xxx" }).Where(a => a.Id == 1).ToSql().Replace("\r\n", "");
+            Assert.Equal("UPDATE \"TB_TOPIC\" SET \"CLICKS\" = 1, \"TITLE\" = 'xxx' WHERE (\"ID\" = 1)", sql);
         }
         [Fact]
         public void Where()

@@ -13,6 +13,7 @@ namespace FreeSql
 #else
         Task<long> CountAsync();
         Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select);
+        Task<Dictionary<TKey, TElement>> ToDictionaryAsync<TElement>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TElement>> elementSelector);
 #endif
 
         /// <summary>
@@ -43,6 +44,7 @@ namespace FreeSql
         /// <param name="select">选择列</param>
         /// <returns></returns>
         List<TReturn> ToList<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select);
+        Dictionary<TKey, TElement> ToDictionary<TElement>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TElement>> elementSelector);
 
         /// <summary>
         /// 【linq to sql】专用方法，不建议直接使用
@@ -121,20 +123,21 @@ namespace FreeSql
         /// </summary>
         /// <returns></returns>
         int Count();
+        int Count<T3>(T3 column);
         /// <summary>
         /// 求和
         /// </summary>
         /// <typeparam name="T3"></typeparam>
         /// <param name="column"></param>
         /// <returns></returns>
-        T3 Sum<T3>(T3 column);
+        decimal Sum<T3>(T3 column);
         /// <summary>
         /// 平均值
         /// </summary>
         /// <typeparam name="T3"></typeparam>
         /// <param name="column"></param>
         /// <returns></returns>
-        T3 Avg<T3>(T3 column);
+        decimal Avg<T3>(T3 column);
         /// <summary>
         /// 最大值
         /// </summary>

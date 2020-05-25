@@ -1,5 +1,6 @@
 ﻿using FreeSql;
 using FreeSql.DataAnnotations;
+using FreeSql.Internal.CommonProvider;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -15,7 +16,7 @@ using System.Threading;
 
 public static partial class FreeSqlGlobalExtensions
 {
-    static Lazy<Dictionary<Type, bool>> dicIsNumberType = new Lazy<Dictionary<Type, bool>>(() => new Dictionary<Type, bool>
+    static Lazy<Dictionary<Type, bool>> _dicIsNumberType = new Lazy<Dictionary<Type, bool>>(() => new Dictionary<Type, bool>
     {
         [typeof(sbyte)] = true,
         [typeof(sbyte?)] = true,
@@ -40,21 +41,101 @@ public static partial class FreeSqlGlobalExtensions
         [typeof(decimal)] = false,
         [typeof(decimal?)] = false
     });
-    public static bool IsIntegerType(this Type that) => that == null ? false : (dicIsNumberType.Value.TryGetValue(that, out var tryval) ? tryval : false);
-    public static bool IsNumberType(this Type that) => that == null ? false : dicIsNumberType.Value.ContainsKey(that);
+    public static bool IsIntegerType(this Type that) => that == null ? false : (_dicIsNumberType.Value.TryGetValue(that, out var tryval) ? tryval : false);
+    public static bool IsNumberType(this Type that) => that == null ? false : _dicIsNumberType.Value.ContainsKey(that);
     public static bool IsNullableType(this Type that) => that.IsArray == false && that?.FullName.StartsWith("System.Nullable`1[") == true;
     public static bool IsAnonymousType(this Type that) => that?.FullName.StartsWith("<>f__AnonymousType") == true;
     public static bool IsArrayOrList(this Type that) => that == null ? false : (that.IsArray || typeof(IList).IsAssignableFrom(that));
     public static Type NullableTypeOrThis(this Type that) => that?.IsNullableType() == true ? that.GetGenericArguments().First() : that;
     internal static string NotNullAndConcat(this string that, params object[] args) => string.IsNullOrEmpty(that) ? null : string.Concat(new object[] { that }.Concat(args));
+    /// <summary>
+    /// 获取 Type 的原始 c# 文本表示
+    /// </summary>
+    /// <param name="type"></param>
+    /// <returns></returns>
+    internal static string DisplayCsharp(this Type type, bool isNameSpace = true)
+    {
+        if (type == null) return null;
+        if (type == typeof(void)) return "void";
+        if (type.IsGenericParameter) return type.Name;
+        if (type.IsArray) return $"{DisplayCsharp(type.GetElementType())}[]";
+        var sb = new StringBuilder();
+        var nestedType = type;
+        while (nestedType.IsNested)
+        {
+            sb.Insert(0, ".").Insert(0, DisplayCsharp(nestedType.DeclaringType, false));
+            nestedType = nestedType.DeclaringType;
+        }
+        if (isNameSpace && string.IsNullOrEmpty(nestedType.Namespace) == false)
+            sb.Insert(0, ".").Insert(0, nestedType.Namespace);
+
+        if (type.IsGenericType == false)
+            return sb.Append(type.Name).ToString();
+
+        var genericParameters = type.GetGenericArguments();
+        if (type.IsNested && type.DeclaringType.IsGenericType)
+        {
+            var dic = genericParameters.ToDictionary(a => a.Name);
+            foreach (var nestedGenericParameter in type.DeclaringType.GetGenericArguments())
+                if (dic.ContainsKey(nestedGenericParameter.Name))
+                    dic.Remove(nestedGenericParameter.Name);
+            genericParameters = dic.Values.ToArray();
+        }
+        if (genericParameters.Any() == false)
+            return sb.Append(type.Name).ToString();
+
+        sb.Append(type.Name.Remove(type.Name.IndexOf('`'))).Append("<");
+        var genericTypeIndex = 0;
+        foreach (var genericType in genericParameters)
+        {
+            if (genericTypeIndex++ > 0) sb.Append(", ");
+            sb.Append(DisplayCsharp(genericType, true));
+        }
+        return sb.Append(">").ToString();
+    }
+    internal static string DisplayCsharp(this MethodInfo method, bool isOverride)
+    {
+        if (method == null) return null;
+        var sb = new StringBuilder();
+        if (method.IsPublic) sb.Append("public ");
+        if (method.IsAssembly) sb.Append("internal ");
+        if (method.IsFamily) sb.Append("protected ");
+        if (method.IsPrivate) sb.Append("private ");
+        if (method.IsPrivate) sb.Append("private ");
+        if (method.IsStatic) sb.Append("static ");
+        if (method.IsAbstract && method.DeclaringType.IsInterface == false) sb.Append("abstract ");
+        if (method.IsVirtual && method.DeclaringType.IsInterface == false) sb.Append(isOverride ? "override " : "virtual ");
+        sb.Append(method.ReturnType.DisplayCsharp()).Append(" ").Append(method.Name);
+
+        var genericParameters = method.GetGenericArguments();
+        if (method.DeclaringType.IsNested && method.DeclaringType.DeclaringType.IsGenericType)
+        {
+            var dic = genericParameters.ToDictionary(a => a.Name);
+            foreach (var nestedGenericParameter in method.DeclaringType.DeclaringType.GetGenericArguments())
+                if (dic.ContainsKey(nestedGenericParameter.Name))
+                    dic.Remove(nestedGenericParameter.Name);
+            genericParameters = dic.Values.ToArray();
+        }
+        if (genericParameters.Any())
+            sb.Append("<")
+                .Append(string.Join(", ", genericParameters.Select(a => a.DisplayCsharp())))
+                .Append(">");
+
+        sb.Append("(").Append(string.Join(", ", method.GetParameters().Select(a => $"{a.ParameterType.DisplayCsharp()} {a.Name}"))).Append(")");
+        return sb.ToString();
+    }
     public static object CreateInstanceGetDefaultValue(this Type that)
     {
         if (that == null) return null;
         if (that == typeof(string)) return default(string);
+        if (that == typeof(Guid)) return default(Guid);
         if (that.IsArray) return Array.CreateInstance(that, 0);
         var ctorParms = that.InternalGetTypeConstructor0OrFirst(false)?.GetParameters();
-        if (ctorParms == null || ctorParms.Any() == false) return Activator.CreateInstance(that, null);
-        return Activator.CreateInstance(that, ctorParms.Select(a => Activator.CreateInstance(a.ParameterType, null)).ToArray());
+        if (ctorParms == null || ctorParms.Any() == false) return Activator.CreateInstance(that, true);
+        return Activator.CreateInstance(that, ctorParms
+            .Select(a => a.ParameterType.IsInterface || a.ParameterType.IsAbstract || a.ParameterType == typeof(string) || a.ParameterType.IsArray ?
+            null : 
+            Activator.CreateInstance(a.ParameterType, null)).ToArray());
     }
     internal static NewExpression InternalNewExpression(this Type that)
     {
@@ -137,7 +218,7 @@ public static partial class FreeSqlGlobalExtensions
     }
 
     /// <summary>
-    /// 将 IEnumable&lt;T&gt; 转成 ISelect&lt;T&gt;，以便使用 FreeSql 的查询功能。此方法用于 Lambad 表达式中，快速进行集合导航的查询。
+    /// 将 IEnumable&lt;T&gt; 转成 ISelect&lt;T&gt;，以便使用 FreeSql 的查询功能。此方法用于 Lambda 表达式中，快速进行集合导航的查询。
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
     /// <param name="that"></param>
@@ -220,6 +301,12 @@ public static partial class FreeSqlGlobalExtensions
     public static List<T1> IncludeMany<T1, TNavigate>(this List<T1> list, IFreeSql orm, Expression<Func<T1, IEnumerable<TNavigate>>> navigateSelector, Action<ISelect<TNavigate>> then = null) where T1 : class where TNavigate : class
     {
         if (list == null || list.Any() == false) return list;
+        if (orm.CodeFirst.IsAutoSyncStructure)
+        {
+            var tb = orm.CodeFirst.GetTableByEntity(typeof(T1));
+            if (tb == null || tb.Primarys.Any() == false)
+                (orm.CodeFirst as FreeSql.Internal.CommonProvider.CodeFirstProvider)._dicSycedTryAdd(typeof(T1)); //._dicSyced.TryAdd(typeof(TReturn), true);
+        }
         var select = orm.Select<T1>().IncludeMany(navigateSelector, then) as FreeSql.Internal.CommonProvider.Select1Provider<T1>;
         select.SetList(list);
         return list;
@@ -230,9 +317,70 @@ public static partial class FreeSqlGlobalExtensions
     async public static System.Threading.Tasks.Task<List<T1>> IncludeManyAsync<T1, TNavigate>(this List<T1> list, IFreeSql orm, Expression<Func<T1, IEnumerable<TNavigate>>> navigateSelector, Action<ISelect<TNavigate>> then = null) where T1 : class where TNavigate : class
     {
         if (list == null || list.Any() == false) return list;
+        if (orm.CodeFirst.IsAutoSyncStructure)
+        {
+            var tb = orm.CodeFirst.GetTableByEntity(typeof(T1));
+            if (tb == null || tb.Primarys.Any() == false)
+                (orm.CodeFirst as FreeSql.Internal.CommonProvider.CodeFirstProvider)._dicSycedTryAdd(typeof(T1)); //._dicSyced.TryAdd(typeof(TReturn), true);
+        }
         var select = orm.Select<T1>().IncludeMany(navigateSelector, then) as FreeSql.Internal.CommonProvider.Select1Provider<T1>;
         await select.SetListAsync(list);
         return list;
+    }
+#endif
+    #endregion
+
+    #region ToTreeList() 父子分类
+    /// <summary>
+    /// 查询数据，加工为树型 List 返回<para></para>
+    /// 注意：实体需要配置父子导航属性
+    /// </summary>
+    /// <typeparam name="T1"></typeparam>
+    /// <param name="that"></param>
+    /// <returns></returns>
+    public static List<T1> ToTreeList<T1>(this ISelect<T1> that) where T1 : class
+    {
+        var select = that as Select1Provider<T1>;
+        var tb = select._tables[0].Table;
+        var navs = tb.Properties.Select(a => tb.GetTableRef(a.Key, false))
+            .Where(a => a != null && 
+                a.RefType == FreeSql.Internal.Model.TableRefType.OneToMany &&
+                a.RefEntityType == tb.Type).ToArray();
+
+        if (navs.Length != 1) return select.ToList();
+        var list = select.ToList();
+
+        select._trackToList = null;
+        select._includeToList.Clear();
+        var navigateSelectorParamExp = select._tables[0].Parameter ?? Expression.Parameter(typeof(T1), select._tables[0].Alias);
+        var navigateSelector = Expression.Lambda<Func<T1, IEnumerable<T1>>>(Expression.MakeMemberAccess(navigateSelectorParamExp, navs[0].Property), navigateSelectorParamExp);
+        select.IncludeMany(navigateSelector);
+        select._includeManySubListOneToManyTempValue1 = list;
+        select.SetList(list);
+        return list.Except(list.SelectMany(a => FreeSql.Extensions.EntityUtil.EntityUtilExtensions.GetEntityValueWithPropertyName(select._orm, tb.Type, a, navs[0].Property.Name) as IEnumerable<T1>)).ToList();
+    }
+#if net40
+#else
+    async public static System.Threading.Tasks.Task<List<T1>> ToTreeListAsync<T1>(this ISelect<T1> that) where T1 : class
+    {
+        var select = that as Select1Provider<T1>;
+        var tb = select._tables[0].Table;
+        var navs = tb.Properties.Select(a => tb.GetTableRef(a.Key, false))
+            .Where(a => a != null &&
+                a.RefType == FreeSql.Internal.Model.TableRefType.OneToMany &&
+                a.RefEntityType == tb.Type).ToArray();
+
+        if (navs.Length != 1) return await select.ToListAsync();
+        var list = await select.ToListAsync();
+
+        select._trackToList = null;
+        select._includeToList.Clear();
+        var navigateSelectorParamExp = select._tables[0].Parameter ?? Expression.Parameter(typeof(T1), select._tables[0].Alias);
+        var navigateSelector = Expression.Lambda<Func<T1, IEnumerable<T1>>>(Expression.MakeMemberAccess(navigateSelectorParamExp, navs[0].Property), navigateSelectorParamExp);
+        select.IncludeMany(navigateSelector);
+        select._includeManySubListOneToManyTempValue1 = list;
+        select.SetList(list);
+        return list.Except(list.SelectMany(a => FreeSql.Extensions.EntityUtil.EntityUtilExtensions.GetEntityValueWithPropertyName(select._orm, tb.Type, a, navs[0].Property.Name) as IEnumerable<T1>)).ToList();
     }
 #endif
     #endregion

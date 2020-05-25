@@ -37,6 +37,19 @@ namespace FreeSql.Tests.Odbc.PostgreSQL
 
             sql = g.pgsql.Delete<Topic>(new { id = 1 }).ToSql();
             Assert.Equal("DELETE FROM \"tb_topic_del\" WHERE (\"id\" = 1)", sql);
+
+            sql = g.pgsql.Delete<MultiPkTopic>(new[] { new { Id1 = 1, Id2 = 10 }, new { Id1 = 2, Id2 = 20 } }).ToSql();
+            Assert.Equal("DELETE FROM \"multipktopic\" WHERE (\"id1\" = 1 AND \"id2\" = 10 OR \"id1\" = 2 AND \"id2\" = 20)", sql);
+        }
+        class MultiPkTopic
+        {
+            [Column(IsPrimary = true)]
+            public int Id1 { get; set; }
+            [Column(IsPrimary = true)]
+            public int Id2 { get; set; }
+            public int Clicks { get; set; }
+            public string Title { get; set; }
+            public DateTime CreateTime { get; set; }
         }
 
         [Fact]

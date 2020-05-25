@@ -35,7 +35,7 @@ namespace FreeSql.Internal
 
             var newParameter = Expression.Parameter(typeof(TEntity), $"gf{_id}");
             var newlambda = Expression.Lambda<Func<TEntity, bool>>(
-                new CommonExpression.ReplaceVisitor().Modify(where.Body, newParameter),
+                new CommonExpression.ReplaceVisitor().Modify(where, newParameter),
                 newParameter
             );
             item.Where = newlambda;

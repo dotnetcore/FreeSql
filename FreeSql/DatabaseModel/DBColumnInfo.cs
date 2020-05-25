@@ -48,5 +48,13 @@ namespace FreeSql.DatabaseModel
         /// 备注
         /// </summary>
         public string Coment { get; set; }
+        /// <summary>
+        /// 数据库默认值
+        /// </summary>
+        public string DefaultValue { get; set; }
+        /// <summary>
+        /// 字段位置
+        /// </summary>
+        public int Position { get; set; }
     }
 }

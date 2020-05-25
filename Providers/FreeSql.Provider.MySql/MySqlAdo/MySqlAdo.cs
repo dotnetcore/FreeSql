@@ -1,7 +1,7 @@
 ﻿using FreeSql.Internal;
 using FreeSql.Internal.Model;
 using MySql.Data.MySqlClient;
-using SafeObjectPool;
+using FreeSql.Internal.ObjectPool;
 using System;
 using System.Collections;
 using System.Data.Common;
@@ -13,8 +13,8 @@ namespace FreeSql.MySql
     class MySqlAdo : FreeSql.Internal.CommonProvider.AdoProvider
     {
 
-        public MySqlAdo() : base(DataType.MySql) { }
-        public MySqlAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.MySql)
+        public MySqlAdo() : base(DataType.MySql, null, null) { }
+        public MySqlAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.MySql, masterConnectionString, slaveConnectionStrings)
         {
             base._util = util;
             if (connectionFactory != null)
@@ -36,26 +36,29 @@ namespace FreeSql.MySql
         public override object AddslashesProcessParam(object param, Type mapType, ColumnInfo mapColumn)
         {
             if (param == null) return "NULL";
-            if (mapType != null && mapType != param.GetType() && (param is IEnumerable == false || mapType.IsArrayOrList()))
+            if (mapType != null && mapType != param.GetType() && (param is IEnumerable == false))
                 param = Utils.GetDataReaderValue(mapType, param);
+
             if (param is bool || param is bool?)
                 return (bool)param ? 1 : 0;
             else if (param is string || param is char)
-                return string.Concat("'", param.ToString().Replace("'", "''"), "'");
+                return string.Concat("'", param.ToString().Replace("'", "''").Replace("\\", "\\\\"), "'"); //只有 mysql 需要处理反斜杠
             else if (param is Enum)
-                return string.Concat("'", param.ToString().Replace("'", "''"), "'"); //((Enum)val).ToInt64();
+                return string.Concat("'", param.ToString().Replace("'", "''").Replace("\\", "\\\\"), "'"); //((Enum)val).ToInt64();
             else if (decimal.TryParse(string.Concat(param), out var trydec))
                 return param;
             else if (param is DateTime || param is DateTime?)
                 return string.Concat("'", ((DateTime)param).ToString("yyyy-MM-dd HH:mm:ss.fff"), "'");
             else if (param is TimeSpan || param is TimeSpan?)
                 return ((TimeSpan)param).Ticks / 10;
+            else if (param is byte[])
+                return $"0x{CommonUtils.BytesSqlRaw(param as byte[])}";
             else if (param is MygisGeometry)
-                return string.Concat("ST_GeomFromText('", (param as MygisGeometry).AsText().Replace("'", "''"), "')");
+                return string.Concat("ST_GeomFromText('", (param as MygisGeometry).AsText().Replace("'", "''").Replace("\\", "\\\\"), "')");
             else if (param is IEnumerable)
                 return AddslashesIEnumerable(param, mapType, mapColumn);
 
-            return string.Concat("'", param.ToString().Replace("'", "''"), "'");
+            return string.Concat("'", param.ToString().Replace("'", "''").Replace("\\", "\\\\"), "'");
         }
 
         protected override DbCommand CreateCommand()

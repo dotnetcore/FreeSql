@@ -33,7 +33,7 @@ namespace FreeSql.SqlServer.Curd
             foreach (var col in _table.Columns.Values)
             {
                 if (colidx > 0) sb.Append(", ");
-                sb.Append(_commonUtils.QuoteReadColumn(col.Attribute.MapType, $"INSERTED.{_commonUtils.QuoteSqlName(col.Attribute.Name)}")).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
+                sb.Append(_commonUtils.QuoteReadColumn(col.CsType, col.Attribute.MapType, $"INSERTED.{_commonUtils.QuoteSqlName(col.Attribute.Name)}")).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
                 ++colidx;
             }
 
@@ -45,7 +45,7 @@ namespace FreeSql.SqlServer.Curd
             sql = sb.ToString();
             var dbParms = _params.Concat(_paramsSource).ToArray();
             var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Update, sql, dbParms);
-            _orm.Aop.CurdBefore?.Invoke(this, before);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             var ret = new List<T1>();
             Exception exception = null;
             try
@@ -61,7 +61,7 @@ namespace FreeSql.SqlServer.Curd
             finally
             {
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                _orm.Aop.CurdAfter?.Invoke(this, after);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
             return ret;
         }
@@ -70,15 +70,16 @@ namespace FreeSql.SqlServer.Curd
         {
             if (_table.Primarys.Length == 1)
             {
-                caseWhen.Append(_commonUtils.QuoteReadColumn(_table.Primarys.First().Attribute.MapType, _commonUtils.QuoteSqlName(_table.Primarys.First().Attribute.Name)));
+                var pk = _table.Primarys.First();
+                caseWhen.Append(_commonUtils.QuoteReadColumn(pk.CsType, pk.Attribute.MapType, _commonUtils.QuoteSqlName(pk.Attribute.Name)));
                 return;
             }
             caseWhen.Append("(");
             var pkidx = 0;
             foreach (var pk in _table.Primarys)
             {
-                if (pkidx > 0) caseWhen.Append(", ");
-                caseWhen.Append("cast(").Append(_commonUtils.QuoteReadColumn(_table.Primarys.First().Attribute.MapType, _commonUtils.QuoteSqlName(pk.Attribute.Name))).Append(" as varchar)");
+                if (pkidx > 0) caseWhen.Append(" + '+' + ");
+                caseWhen.Append("cast(").Append(_commonUtils.QuoteReadColumn(pk.CsType, pk.Attribute.MapType, _commonUtils.QuoteSqlName(pk.Attribute.Name))).Append(" as varchar)");
                 ++pkidx;
             }
             caseWhen.Append(")");
@@ -94,7 +95,7 @@ namespace FreeSql.SqlServer.Curd
             var pkidx = 0;
             foreach (var pk in _table.Primarys)
             {
-                if (pkidx > 0) sb.Append(", ");
+                if (pkidx > 0) sb.Append(" + '+' + ");
                 sb.Append("cast(").Append(_commonUtils.FormatSql("{0}", pk.GetMapValue(d))).Append(" as varchar)");
                 ++pkidx;
             }
@@ -102,9 +103,9 @@ namespace FreeSql.SqlServer.Curd
 
 #if net40
 #else
-        public override Task<int> ExecuteAffrowsAsync() => base.SplitExecuteAffrowsAsync(500, 2100);
-        public override Task<List<T1>> ExecuteUpdatedAsync() => base.SplitExecuteUpdatedAsync(500, 2100);
-        
+        public override Task<int> ExecuteAffrowsAsync() => base.SplitExecuteAffrowsAsync(_batchRowsLimit > 0 ? _batchRowsLimit : 500, _batchParameterLimit > 0 ? _batchParameterLimit : 2100);
+        public override Task<List<T1>> ExecuteUpdatedAsync() => base.SplitExecuteUpdatedAsync(_batchRowsLimit > 0 ? _batchRowsLimit : 500, _batchParameterLimit > 0 ? _batchParameterLimit : 2100);
+
         async protected override Task<List<T1>> RawExecuteUpdatedAsync()
         {
             var sql = this.ToSql();
@@ -116,7 +117,7 @@ namespace FreeSql.SqlServer.Curd
             foreach (var col in _table.Columns.Values)
             {
                 if (colidx > 0) sb.Append(", ");
-                sb.Append(_commonUtils.QuoteReadColumn(col.Attribute.MapType, $"INSERTED.{_commonUtils.QuoteSqlName(col.Attribute.Name)}")).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
+                sb.Append(_commonUtils.QuoteReadColumn(col.CsType, col.Attribute.MapType, $"INSERTED.{_commonUtils.QuoteSqlName(col.Attribute.Name)}")).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
                 ++colidx;
             }
 
@@ -128,7 +129,7 @@ namespace FreeSql.SqlServer.Curd
             sql = sb.ToString();
             var dbParms = _params.Concat(_paramsSource).ToArray();
             var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Update, sql, dbParms);
-            _orm.Aop.CurdBefore?.Invoke(this, before);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             var ret = new List<T1>();
             Exception exception = null;
             try
@@ -144,7 +145,7 @@ namespace FreeSql.SqlServer.Curd
             finally
             {
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                _orm.Aop.CurdAfter?.Invoke(this, after);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
             return ret;
         }

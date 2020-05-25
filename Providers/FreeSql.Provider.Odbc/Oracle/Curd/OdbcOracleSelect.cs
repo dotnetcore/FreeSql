@@ -19,7 +19,7 @@ namespace FreeSql.Odbc.Oracle
 
             if (_whereCascadeExpression.Any())
                 foreach (var tb in _tables.Where(a => a.Type != SelectTableInfoType.Parent))
-                    tb.Cascade = _commonExpression.GetWhereCascadeSql(tb, _whereCascadeExpression);
+                    tb.Cascade = _commonExpression.GetWhereCascadeSql(tb, _whereCascadeExpression, true);
 
             var sb = new StringBuilder();
             var tbUnionsGt0 = tbUnions.Count > 1;
@@ -121,7 +121,13 @@ namespace FreeSql.Odbc.Oracle
                 sbnav.Clear();
                 if (tbUnionsGt0) sb.Append(") ftb");
             }
-            return sb.Append(_tosqlAppendContent).ToString();
+            var sql = sb.Append(_tosqlAppendContent).ToString();
+
+            var aliasGreater30 = 0;
+            foreach (var tb in _tables)
+                if (tb.Alias.Length > 30) sql = sql.Replace(tb.Alias, $"than30_{aliasGreater30++}");
+
+            return sql;
         }
 
         public OdbcOracleSelect(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere) : base(orm, commonUtils, commonExpression, dywhere) { }

@@ -1,9 +1,10 @@
-﻿using SafeObjectPool;
+﻿using FreeSql.Internal.ObjectPool;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Data.SQLite;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -20,6 +21,8 @@ namespace FreeSql.Sqlite
 
         public SqliteConnectionPool(string name, string connectionString, Action availableHandler, Action unavailableHandler) : base(null)
         {
+            this.availableHandler = availableHandler;
+            this.unavailableHandler = unavailableHandler;
             policy = new SqliteConnectionPoolPolicy
             {
                 _pool = this,
@@ -27,14 +30,11 @@ namespace FreeSql.Sqlite
             };
             this.Policy = policy;
             policy.ConnectionString = connectionString;
-
-            this.availableHandler = availableHandler;
-            this.unavailableHandler = unavailableHandler;
         }
 
         public void Return(Object<DbConnection> obj, Exception exception, bool isRecreate = false)
         {
-            if (exception != null && AdonetPortable.IsSqliteException(exception))
+            if (exception != null && exception is SQLiteException)
             {
                 try { if (obj.Value.Ping() == false) obj.Value.OpenAndAttach(policy.Attaches); } catch { base.SetUnavailable(exception); }
             }
@@ -54,6 +54,7 @@ namespace FreeSql.Sqlite
         public TimeSpan IdleTimeout { get; set; } = TimeSpan.Zero;
         public int AsyncGetCapacity { get; set; } = 10000;
         public bool IsThrowGetTimeoutException { get; set; } = true;
+        public bool IsAutoDisposeWithSystem { get; set; } = true;
         public int CheckAvailableInterval { get; set; } = 5;
         public string[] Attaches = new string[0];
 
@@ -105,6 +106,12 @@ namespace FreeSql.Sqlite
                     _connectionString = string.Concat(att[0], idx == -1 ? "" : att[1].Substring(idx));
                 }
 
+                if (_connectionString.ToLower().Contains(":memory:"))
+                {
+                    //内存模式
+                    PoolSize = 1;
+                }
+
 #if ns20
                 minPoolSize = 1;
 #endif
@@ -121,7 +128,7 @@ namespace FreeSql.Sqlite
 
         public DbConnection OnCreate()
         {
-            var conn = AdonetPortable.GetSqliteConnection(_connectionString);
+            var conn = new SQLiteConnection(_connectionString);
             return conn;
         }
 
@@ -197,7 +204,7 @@ namespace FreeSql.Sqlite
 
         public void OnReturn(Object<DbConnection> obj)
         {
-
+            //if (obj?.Value != null && obj.Value.State != ConnectionState.Closed) try { obj.Value.Close(); } catch { }
         }
 
         public void OnAvailable()

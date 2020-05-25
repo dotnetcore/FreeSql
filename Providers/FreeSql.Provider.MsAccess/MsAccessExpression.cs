@@ -74,6 +74,7 @@ namespace FreeSql.MsAccess
                     if (objType == null) objType = callExp.Method.DeclaringType;
                     if (objType != null || objType.IsArrayOrList())
                     {
+                        if (argIndex >= callExp.Arguments.Count) break;
                         tsc.SetMapColumnTmp(null);
                         var args1 = getExp(callExp.Arguments[argIndex]);
                         var oldMapType = tsc.SetMapTypeReturnOld(tsc.mapTypeTmp);
@@ -342,7 +343,7 @@ namespace FreeSql.MsAccess
                         break;
                     case "Equals": return $"({left} = {args1})";
                     case "CompareTo": return $"datediff('s',{args1},{left})";
-                    case "ToString": return exp.Arguments.Count == 0 ? $"format({left},'yyyy-mm-dd HH:mm:ss')" : null;
+                    case "ToString": return exp.Arguments.Count == 0 ? $"format({left},'yyyy-mm-dd HH:mm:ss')" : $"format({left},{args1})";
                 }
             }
             return null;

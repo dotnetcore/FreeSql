@@ -1,6 +1,7 @@
 ﻿using FreeSql;
 using FreeSql.DataAnnotations;
 using FreeSql.Extensions;
+using FreeSql.Internal.Model;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -27,12 +28,16 @@ namespace base_entity
 
             [JsonMap]
             public T Config { get; set; }
+
+            public T Config2 { get; set; }
         }
 
         public class Products : BaseEntity<Products, int>
         {
             public string title { get; set; }
         }
+
+        static AsyncLocal<IUnitOfWork> _asyncUow = new AsyncLocal<IUnitOfWork>();
 
         static void Main(string[] args)
         {
@@ -41,13 +46,41 @@ namespace base_entity
             var fsql = new FreeSql.FreeSqlBuilder()
                 .UseAutoSyncStructure(true)
                 .UseNoneCommandParameter(true)
+
                 .UseConnectionString(FreeSql.DataType.Sqlite, "data source=test.db;max pool size=5")
+
                 //.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=2")
-                .UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3")
+
+                //.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3")
+
+                //.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=2")
+                //.UseNameConvert(FreeSql.Internal.NameConvertType.ToLower)
+
+                //.UseConnectionString(FreeSql.DataType.Oracle, "user id=user1;password=123456;data source=//127.0.0.1:1521/XE;Pooling=true;Max Pool Size=2")
+                //.UseNameConvert(FreeSql.Internal.NameConvertType.ToUpper)
+
+
+                //.UseConnectionString(FreeSql.DataType.OdbcMySql, "Driver={MySQL ODBC 8.0 Unicode Driver};Server=127.0.0.1;Persist Security Info=False;Trusted_Connection=Yes;UID=root;PWD=root;DATABASE=cccddd_odbc;Charset=utf8;SslMode=none;Max pool size=2")
+
+                //.UseConnectionString(FreeSql.DataType.OdbcSqlServer, "Driver={SQL Server};Server=.;Persist Security Info=False;Trusted_Connection=Yes;Integrated Security=True;DATABASE=freesqlTest_odbc;Pooling=true;Max pool size=3")
+
+                //.UseConnectionString(FreeSql.DataType.OdbcPostgreSQL, "Driver={PostgreSQL Unicode(x64)};Server=192.168.164.10;Port=5432;UID=postgres;PWD=123456;Database=tedb_odbc;Pooling=true;Maximum Pool Size=2")
+                //.UseNameConvert(FreeSql.Internal.NameConvertType.ToLower)
+
+                //.UseConnectionString(FreeSql.DataType.OdbcOracle, "Driver={Oracle in XE};Server=//127.0.0.1:1521/XE;Persist Security Info=False;Trusted_Connection=Yes;UID=odbc1;PWD=123456")
+                //.UseNameConvert(FreeSql.Internal.NameConvertType.ToUpper)
+
+                //.UseConnectionString(FreeSql.DataType.OdbcDameng, "Driver={DM8 ODBC DRIVER};Server=127.0.0.1:5236;Persist Security Info=False;Trusted_Connection=Yes;UID=USER1;PWD=123456789")
+
+                .UseMonitorCommand(cmd => Console.WriteLine(cmd.CommandText))
                 .UseLazyLoading(true)
                 .Build();
-            BaseEntity.Initialization(fsql);
+            BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
+
+            var test01 = EMSServerModel.Model.User.Select.IncludeMany(a => a.Roles).ToList();
+            var test02 = EMSServerModel.Model.UserRole.Select.ToList();
+            var test01tb = EMSServerModel.Model.User.Orm.CodeFirst.GetTableByEntity(typeof(EMSServerModel.Model.User));
 
             var us = User1.Select.Limit(10).ToList();
 
@@ -57,23 +90,73 @@ namespace base_entity
             new Products { title = "product-4" }.Save();
             new Products { title = "product-5" }.Save();
 
+            Products.Select.WhereDynamicFilter(JsonConvert.DeserializeObject<DynamicFilterInfo>(@"
+{
+  ""Logic"" : ""Or"",
+  ""Filters"" :
+  [
+    {
+      ""Field"" : ""title"",
+      ""Operator"" : ""eq"",
+      ""Value"" : ""product-1"",
+      ""Filters"" :
+      [
+        {
+          ""Field"" : ""title"",
+          ""Operator"" : ""contains"",
+          ""Value"" : ""product-1111"",
+        }
+      ]
+    },
+    {
+      ""Field"" : ""title"",
+      ""Operator"" : ""eq"",
+      ""Value"" : ""product-2""
+    },
+    {
+      ""Field"" : ""title"",
+      ""Operator"" : ""eq"",
+      ""Value"" : ""product-3""
+    },
+    {
+      ""Field"" : ""title"",
+      ""Operator"" : ""eq"",
+      ""Value"" : ""product-4""
+    },
+  ]
+}
+")).ToList();
+
             var items1 = Products.Select.Limit(10).OrderByDescending(a => a.CreateTime).ToList();
             var items2 = fsql.Select<Products>().Limit(10).OrderByDescending(a => a.CreateTime).ToList();
 
             BaseEntity.Orm.UseJsonMap();
+            BaseEntity.Orm.UseJsonMap();
+            BaseEntity.Orm.CodeFirst.ConfigEntity<S_SysConfig<TestConfig>>(a =>
+            {
+                a.Property(b => b.Config2).JsonMap();
+            });
 
-            new S_SysConfig<TestConfig> { Name = "testkey11", Config = new TestConfig { clicks = 11, title = "testtitle11" } }.Save();
-            new S_SysConfig<TestConfig> { Name = "testkey22", Config = new TestConfig { clicks = 22, title = "testtitle22" } }.Save();
-            new S_SysConfig<TestConfig> { Name = "testkey33", Config = new TestConfig { clicks = 33, title = "testtitle33" } }.Save();
+            new S_SysConfig<TestConfig> { Name = "testkey11", Config = new TestConfig { clicks = 11, title = "testtitle11" }, Config2 = new TestConfig { clicks = 11, title = "testtitle11" } }.Save();
+            new S_SysConfig<TestConfig> { Name = "testkey22", Config = new TestConfig { clicks = 22, title = "testtitle22" }, Config2 = new TestConfig { clicks = 11, title = "testtitle11" } }.Save();
+            new S_SysConfig<TestConfig> { Name = "testkey33", Config = new TestConfig { clicks = 33, title = "testtitle33" }, Config2 = new TestConfig { clicks = 11, title = "testtitle11" } }.Save();
             var testconfigs11 = S_SysConfig<TestConfig>.Select.ToList();
 
             var repo = BaseEntity.Orm.Select<TestConfig>().Limit(10).ToList();
 
             Task.Run(async () =>
             {
-                using (var uow = BaseEntity.Begin())
+                using (var uow = BaseEntity.Orm.CreateUnitOfWork())
                 {
-                    var id = (await new User1().SaveAsync()).Id;
+                    _asyncUow.Value = uow;
+                    try
+                    {
+                        var id = (await new User1().SaveAsync()).Id;
+                    }
+                    finally
+                    {
+                        _asyncUow.Value = null;
+                    }
                     uow.Commit();
                 }
 

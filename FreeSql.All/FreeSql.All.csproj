@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;net45;net40</TargetFrameworks>
+    <Version>1.5.0</Version>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Authors>ncc;YeXiangQin</Authors>
+    <Description>FreeSql 全家桶，懒人专用</Description>
+    <PackageProjectUrl>https://github.com/2881099/FreeSql.DbContext</PackageProjectUrl>
+    <PackageTags>FreeSql ORM DbContext</PackageTags>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageId>$(AssemblyName)</PackageId>
+    <PackageIcon>logo.png</PackageIcon>
+    <Title>$(AssemblyName)</Title>
+    <IsPackable>true</IsPackable>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>key.snk</AssemblyOriginatorKeyFile>
+    <DelaySign>false</DelaySign>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="../logo.png" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FreeSql.Repository\FreeSql.Repository.csproj" />
+    <ProjectReference Include="..\Providers\FreeSql.Provider.Dameng\FreeSql.Provider.Dameng.csproj" />
+    <ProjectReference Include="..\Providers\FreeSql.Provider.MsAccess\FreeSql.Provider.MsAccess.csproj" />
+    <ProjectReference Include="..\Providers\FreeSql.Provider.MySql\FreeSql.Provider.MySql.csproj" />
+    <ProjectReference Include="..\Providers\FreeSql.Provider.Odbc\FreeSql.Provider.Odbc.csproj" />
+    <ProjectReference Include="..\Providers\FreeSql.Provider.Oracle\FreeSql.Provider.Oracle.csproj" />
+    <ProjectReference Include="..\Providers\FreeSql.Provider.PostgreSQL\FreeSql.Provider.PostgreSQL.csproj" Condition="'$(TargetFramework)' != 'net40'" />
+    <ProjectReference Include="..\Providers\FreeSql.Provider.Sqlite\FreeSql.Provider.Sqlite.csproj" />
+    <ProjectReference Include="..\Providers\FreeSql.Provider.SqlServer\FreeSql.Provider.SqlServer.csproj" />
+  </ItemGroup>
+
+</Project>

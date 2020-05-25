@@ -78,8 +78,8 @@ namespace FreeSql.Tests.Odbc.MySqlExpression
         public void Array()
         {
             int[] nullarr = null;
-            Assert.Throws<OdbcException>(() => { select.Where(a => nullarr.Contains(a.testFieldInt)).ToList(); });
-            Assert.Throws<OdbcException>(() => { select.Where(a => new int[0].Contains(a.testFieldInt)).ToList(); });
+            Assert.Throws<Exception>(() => { select.Where(a => nullarr.Contains(a.testFieldInt)).ToList(); });
+            Assert.Throws<Exception>(() => { select.Where(a => new int[0].Contains(a.testFieldInt)).ToList(); });
 
             IEnumerable<int> testlinqlist = new List<int>(new[] { 1, 2, 3 });
             var testlinq = select.Where(a => testlinqlist.Contains(a.testFieldInt)).ToList();

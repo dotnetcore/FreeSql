@@ -2,7 +2,7 @@
 using FreeSql.DatabaseModel;
 using FreeSql.Extensions.EntityUtil;
 using FreeSql.Internal.Model;
-using SafeObjectPool;
+using FreeSql.Internal.ObjectPool;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -27,8 +27,23 @@ namespace FreeSql.Internal
         public abstract DbParameter AppendParamter(List<DbParameter> _params, string parameterName, ColumnInfo col, Type type, object value);
         public abstract DbParameter[] GetDbParamtersByObject(string sql, object obj);
         public abstract string FormatSql(string sql, params object[] args);
-        public abstract string QuoteSqlName(string name);
+        public abstract string QuoteSqlName(params string[] name);
         public abstract string TrimQuoteSqlName(string name);
+        public abstract string[] SplitTableName(string name);
+        public static string[] GetSplitTableNames(string name, char leftQuote, char rightQuote, int size)
+        {
+            if (string.IsNullOrEmpty(name)) return null;
+            if (name.IndexOf(leftQuote) == -1) return name.Split(new[] { '.' }, size);
+            name = Regex.Replace(name, 
+                (leftQuote == '[' ? "\\" : "") + 
+                leftQuote + @"([^" + (rightQuote == ']' ? "\\" : "") + rightQuote + @"]+)" +
+                (rightQuote == ']' ? "\\" : "") + 
+                rightQuote, m => m.Groups[1].Value.Replace('.', '?'));
+            var ret = name.Split(new[] { '.' }, size);
+            for (var a = 0; a < ret.Length; a++)
+                ret[a] = ret[a].Replace('?', '.');
+            return ret;
+        }
         public abstract string QuoteParamterName(string name);
         public abstract string IsNull(string sql, object value);
         public abstract string StringConcat(string[] objs, Type[] types);
@@ -37,9 +52,15 @@ namespace FreeSql.Internal
         public abstract string Now { get; }
         public abstract string NowUtc { get; }
         public abstract string QuoteWriteParamter(Type type, string paramterName);
-        public abstract string QuoteReadColumn(Type type, string columnName);
+        public abstract string QuoteReadColumn(Type type, Type mapType, string columnName);
         public virtual string FieldAsAlias(string alias) => $" {alias}";
         public virtual string IIF(string test, string ifTrue, string ifElse) => $"case when {test} then {ifTrue} else {ifElse} end";
+        public static string BytesSqlRaw(byte[] bytes)
+        {
+            var sb = new StringBuilder();
+            foreach (var vc in bytes) sb.Append(vc.ToString("X2"));
+            return sb.ToString();
+        }
 
         public IFreeSql _orm { get; set; }
         public ICodeFirst CodeFirst => _orm.CodeFirst;
@@ -79,10 +100,10 @@ namespace FreeSql.Internal
         public TableAttribute GetEntityTableAttribute(Type type)
         {
             TableAttribute attr = null;
-            if (_orm.Aop.ConfigEntity != null)
+            if (_orm.Aop.ConfigEntityHandler != null)
             {
                 var aope = new Aop.ConfigEntityEventArgs(type);
-                _orm.Aop.ConfigEntity(_orm, aope);
+                _orm.Aop.ConfigEntityHandler(_orm, aope);
                 attr = aope.ModifyResult;
             }
             if (attr == null) attr = new TableAttribute();
@@ -109,10 +130,10 @@ namespace FreeSql.Internal
         public ColumnAttribute GetEntityColumnAttribute(Type type, PropertyInfo proto)
         {
             ColumnAttribute attr = null;
-            if (_orm.Aop.ConfigEntityProperty != null)
+            if (_orm.Aop.ConfigEntityPropertyHandler != null)
             {
                 var aope = new Aop.ConfigEntityPropertyEventArgs(type, proto);
-                _orm.Aop.ConfigEntityProperty(_orm, aope);
+                _orm.Aop.ConfigEntityPropertyHandler(_orm, aope);
                 attr = aope.ModifyResult;
             }
             if (attr == null) attr = new ColumnAttribute();
@@ -132,6 +153,7 @@ namespace FreeSql.Internal
                 if (trycol._CanUpdate != null) attr._CanUpdate = trycol.CanUpdate;
                 if (trycol.ServerTime != DateTimeKind.Unspecified) attr.ServerTime = trycol.ServerTime;
                 if (trycol._StringLength != null) attr.StringLength = trycol.StringLength;
+                if (!string.IsNullOrEmpty(trycol.InsertValueSql)) attr.InsertValueSql = trycol.InsertValueSql;
             }
             var attrs = proto.GetCustomAttributes(typeof(ColumnAttribute), false);
             foreach (var tryattrobj in attrs)
@@ -152,6 +174,7 @@ namespace FreeSql.Internal
                 if (tryattr._CanUpdate != null) attr._CanUpdate = tryattr.CanUpdate;
                 if (tryattr.ServerTime != DateTimeKind.Unspecified) attr.ServerTime = tryattr.ServerTime;
                 if (tryattr._StringLength != null) attr.StringLength = tryattr.StringLength;
+                if (!string.IsNullOrEmpty(tryattr.InsertValueSql)) attr.InsertValueSql = tryattr.InsertValueSql;
             }
             ColumnAttribute ret = null;
             if (!string.IsNullOrEmpty(attr.Name)) ret = attr;
@@ -168,6 +191,7 @@ namespace FreeSql.Internal
             if (attr._CanUpdate != null) ret = attr;
             if (attr.ServerTime != DateTimeKind.Unspecified) ret = attr;
             if (attr._StringLength != null) ret = attr;
+            if (!string.IsNullOrEmpty(attr.InsertValueSql)) ret = attr;
             if (ret != null && ret.MapType == null) ret.MapType = proto.PropertyType;
             return ret;
         }
@@ -195,10 +219,10 @@ namespace FreeSql.Internal
         public IndexAttribute[] GetEntityIndexAttribute(Type type)
         {
             var ret = new Dictionary<string, IndexAttribute>();
-            if (_orm.Aop.ConfigEntity != null)
+            if (_orm.Aop.ConfigEntityHandler != null)
             {
                 var aope = new Aop.ConfigEntityEventArgs(type);
-                _orm.Aop.ConfigEntity(_orm, aope);
+                _orm.Aop.ConfigEntityHandler(_orm, aope);
                 foreach (var idxattr in aope.ModifyIndexResult)
                     if (!string.IsNullOrEmpty(idxattr.Name) && !string.IsNullOrEmpty(idxattr.Fields))
                     {
@@ -251,6 +275,10 @@ namespace FreeSql.Internal
                     ++pkidx;
                 }
                 return sb.ToString();
+            }
+            else if (primarys.Length == 1 && type == typeof(string))
+            {
+                return $"{aliasAndDot}{this.QuoteSqlName(pk1.Attribute.Name)} = {this.FormatSql("{0}", Utils.GetDataReaderValue(pk1.Attribute.MapType, dywhere))}";
             }
             else if (dywhere is IEnumerable)
             {
@@ -344,12 +372,56 @@ namespace FreeSql.Internal
         }
 
         /// <summary>
+        /// 动态读取 DescriptionAttribute 注释文本
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static Dictionary<string, string> GetPropertyCommentByDescriptionAttribute(Type type)
+        {
+            var dic = new Dictionary<string, string>();
+            GetDydesc(null); //class注释
+
+            var props = type.GetPropertiesDictIgnoreCase().Values;
+            foreach (var prop in props)
+                GetDydesc(prop);
+
+            return dic;
+
+            void GetDydesc(PropertyInfo prop)
+            {
+                object[] attrs = null;
+                try
+                {
+                    attrs = prop == null ? 
+                        type.GetCustomAttributes(false).ToArray() : 
+                        prop.GetCustomAttributes(false).ToArray(); //.net core 反射存在版本冲突问题，导致该方法异常
+                }
+                catch { }
+
+                var dyattr = attrs?.Where(a => {
+                    return ((a as Attribute)?.TypeId as Type)?.Name == "DescriptionAttribute";
+                }).FirstOrDefault();
+                if (dyattr != null)
+                {
+                    var valueProp = dyattr.GetType().GetProperties().Where(a => a.PropertyType == typeof(string)).FirstOrDefault();
+                    var comment = valueProp?.GetValue(dyattr, null)?.ToString();
+                    if (string.IsNullOrEmpty(comment) == false)
+                        dic.Add(prop == null ? 
+                            "" : 
+                            prop.Name, comment);
+                }
+            }
+        }
+
+        /// <summary>
         /// 通过属性的注释文本，通过 xml 读取
         /// </summary>
         /// <param name="type"></param>
         /// <returns>Dict：key=属性名，value=注释</returns>
         public static Dictionary<string, string> GetProperyCommentBySummary(Type type)
         {
+            if (type.Assembly.IsDynamic) return null;
+            //动态生成的程序集，访问不了 Assembly.Location/Assembly.CodeBase
             var regex = new Regex(@"\.(dll|exe)", RegexOptions.IgnoreCase);
             var xmlPath = regex.Replace(type.Assembly.Location, ".xml");
             if (File.Exists(xmlPath) == false)
@@ -376,11 +448,19 @@ namespace FreeSql.Internal
                 }
                 var xmlNav = xpath.CreateNavigator();
 
+                var className = (type.IsNested ? $"{type.Namespace}.{type.DeclaringType.Name}.{type.Name}" : $"{type.Namespace}.{type.Name}").Trim('.');
+                var node = xmlNav.SelectSingleNode($"/doc/members/member[@name='T:{className}']/summary");
+                if (node != null)
+                {
+                    var comment = node.InnerXml.Trim(' ', '\r', '\n', '\t');
+                    if (string.IsNullOrEmpty(comment) == false) dic.Add("", comment); //class注释
+                }
+
                 var props = type.GetPropertiesDictIgnoreCase().Values;
                 foreach (var prop in props)
                 {
-                    var className = (prop.DeclaringType.IsNested ? $"{prop.DeclaringType.Namespace}.{prop.DeclaringType.DeclaringType.Name}.{prop.DeclaringType.Name}" : $"{prop.DeclaringType.Namespace}.{prop.DeclaringType.Name}").Trim('.');
-                    var node = xmlNav.SelectSingleNode($"/doc/members/member[@name='P:{className}.{prop.Name}']/summary");
+                    className = (prop.DeclaringType.IsNested ? $"{prop.DeclaringType.Namespace}.{prop.DeclaringType.DeclaringType.Name}.{prop.DeclaringType.Name}" : $"{prop.DeclaringType.Namespace}.{prop.DeclaringType.Name}").Trim('.');
+                    node = xmlNav.SelectSingleNode($"/doc/members/member[@name='P:{className}.{prop.Name}']/summary");
                     if (node == null) continue;
                     var comment = node.InnerXml.Trim(' ', '\r', '\n', '\t');
                     if (string.IsNullOrEmpty(comment)) continue;

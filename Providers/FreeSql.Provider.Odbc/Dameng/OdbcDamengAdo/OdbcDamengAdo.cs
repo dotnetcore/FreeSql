@@ -1,6 +1,6 @@
 ﻿using FreeSql.Internal;
 using FreeSql.Internal.Model;
-using SafeObjectPool;
+using FreeSql.Internal.ObjectPool;
 using System;
 using System.Collections;
 using System.Data.Common;
@@ -12,8 +12,8 @@ namespace FreeSql.Odbc.Dameng
 {
     class OdbcDamengAdo : FreeSql.Internal.CommonProvider.AdoProvider
     {
-        public OdbcDamengAdo() : base(DataType.OdbcDameng) { }
-        public OdbcDamengAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.OdbcDameng)
+        public OdbcDamengAdo() : base(DataType.OdbcDameng, null, null) { }
+        public OdbcDamengAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.OdbcDameng, masterConnectionString, slaveConnectionStrings)
         {
             base._util = util;
             if (connectionFactory != null)
@@ -35,9 +35,12 @@ namespace FreeSql.Odbc.Dameng
         public override object AddslashesProcessParam(object param, Type mapType, ColumnInfo mapColumn)
         {
             if (param == null) return "NULL";
-            if (mapType != null && mapType != param.GetType() && (param is IEnumerable == false || mapType.IsArrayOrList()))
+            if (mapType != null && mapType != param.GetType() && (param is IEnumerable == false))
                 param = Utils.GetDataReaderValue(mapType, param);
-            if (param is bool || param is bool?)
+
+            if (param is byte[])
+                return $"hextoraw('{CommonUtils.BytesSqlRaw(param as byte[])}')";
+            else if (param is bool || param is bool?)
                 return (bool)param ? 1 : 0;
             else if (param is string || param is char)
                 return string.Concat("'", param.ToString().Replace("'", "''"), "'");

@@ -10,6 +10,21 @@ namespace FreeSql.Tests.MsAccess
 {
     public class MsAccessCodeFirstTest
     {
+        [Fact]
+        public void StringLength()
+        {
+            var dll = g.msaccess.CodeFirst.GetComparisonDDLStatements<TS_SLTB>();
+            g.msaccess.CodeFirst.SyncStructure<TS_SLTB>();
+        }
+        class TS_SLTB
+        {
+            public Guid Id { get; set; }
+            [Column(StringLength = 50)]
+            public string Title { get; set; }
+
+            [Column(IsNullable = false, StringLength = 50)]
+            public string TitleSub { get; set; }
+        }
 
         [Fact]
         public void 中文表_字段()
@@ -28,6 +43,28 @@ namespace FreeSql.Tests.MsAccess
             Assert.NotNull(item2);
             Assert.Equal(item.编号, item2.编号);
             Assert.Equal(item.标题, item2.标题);
+
+            item.标题 = "测试标题更新";
+            Assert.Equal(1, g.msaccess.Update<测试中文表>().SetSource(item).ExecuteAffrows());
+            item2 = g.msaccess.Select<测试中文表>().Where(a => a.编号 == item.编号).First();
+            Assert.NotNull(item2);
+            Assert.Equal(item.编号, item2.编号);
+            Assert.Equal(item.标题, item2.标题);
+
+            item.标题 = "测试标题更新_repo";
+            var repo = g.msaccess.GetRepository<测试中文表>();
+            Assert.Equal(1, repo.Update(item));
+            item2 = g.msaccess.Select<测试中文表>().Where(a => a.编号 == item.编号).First();
+            Assert.NotNull(item2);
+            Assert.Equal(item.编号, item2.编号);
+            Assert.Equal(item.标题, item2.标题);
+
+            item.标题 = "测试标题更新_repo22";
+            Assert.Equal(1, repo.Update(item));
+            item2 = g.msaccess.Select<测试中文表>().Where(a => a.编号 == item.编号).First();
+            Assert.NotNull(item2);
+            Assert.Equal(item.编号, item2.编号);
+            Assert.Equal(item.标题, item2.标题);
         }
         class 测试中文表
         {
@@ -36,8 +73,11 @@ namespace FreeSql.Tests.MsAccess
 
             public string 标题 { get; set; }
 
-            [Column(ServerTime = DateTimeKind.Local)]
+            [Column(ServerTime = DateTimeKind.Local, CanUpdate = false)]
             public DateTime 创建时间 { get; set; }
+
+            [Column(ServerTime = DateTimeKind.Local)]
+            public DateTime 更新时间 { get; set; }
         }
 
         [Fact]
@@ -226,7 +266,7 @@ namespace FreeSql.Tests.MsAccess
                 SByteNullable = 99,
                 Short = short.MaxValue,
                 ShortNullable = short.MinValue,
-                String = "我是中国人string",
+                String = "我是中国人string'\\?!@#$%^&*()_+{}}{~?><<>",
                 TimeSpan = TimeSpan.FromSeconds(999),
                 TimeSpanNullable = TimeSpan.FromSeconds(60),
                 UInt = uint.MaxValue,
@@ -239,6 +279,11 @@ namespace FreeSql.Tests.MsAccess
             };
             item2.Id = (int)insert.AppendData(item2).ExecuteIdentity();
             var newitem2 = select.Where(a => a.Id == item2.Id).ToOne();
+            Assert.Equal(item2.String, newitem2.String);
+
+            item2.Id = (int)insert.NoneParameter().AppendData(item2).ExecuteIdentity();
+            newitem2 = select.Where(a => a.Id == item2.Id).ToOne();
+            Assert.Equal(item2.String, newitem2.String);
 
             var items = select.ToList();
         }

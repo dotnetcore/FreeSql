@@ -14,13 +14,12 @@ namespace dbcontext_01.Controllers
 
         IFreeSql _orm;
         SongContext _songContext;
-        public ValuesController(SongContext songContext,
-            IFreeSql orm1, IFreeSql orm2,
-            IFreeSql<long> orm3
-            )
+        CurdAfterLog _curdLog;
+        public ValuesController(SongContext songContext, IFreeSql orm1, CurdAfterLog curdLog)
         {
             _songContext = songContext;
             _orm = orm1;
+            _curdLog = curdLog;
 
         }
 
@@ -43,12 +42,12 @@ namespace dbcontext_01.Controllers
                 repos2Song.Where(a => a.Id > 10).ToList();
                 //查询结果，进入 states
 
-                var song = new Song { };
+                var song = new Song { Title = "empty" };
                 repos2Song.Insert(song);
                 id = song.Id;
 
                 var adds = Enumerable.Range(0, 100)
-                    .Select(a => new Song { Create_time = DateTime.Now, Is_deleted = false, Title = "xxxx" + a, Url = "url222" })
+                    .Select(a => new Song { CreateTime = DateTime.Now, Title = "xxxx" + a, Url = "url222" })
                     .ToList();
                 //创建一堆无主键值
 
@@ -73,17 +72,7 @@ namespace dbcontext_01.Controllers
                 var ctx = _songContext;
                 var tag = new Tag
                 {
-                    Name = "testaddsublist",
-                    Tags = new[] {
-                            new Tag { Name = "sub1" },
-                            new Tag { Name = "sub2" },
-                            new Tag {
-                                Name = "sub3",
-                                Tags = new[] {
-                                    new Tag { Name = "sub3_01" }
-                                }
-                            }
-                        }
+                    Name = "testaddsublist"
                 };
                 ctx.Tags.Add(tag);
 
@@ -92,17 +81,7 @@ namespace dbcontext_01.Controllers
 
                 var tagAsync = new Tag
                 {
-                    Name = "testaddsublist",
-                    Tags = new[] {
-                            new Tag { Name = "sub1" },
-                            new Tag { Name = "sub2" },
-                            new Tag {
-                                Name = "sub3",
-                                Tags = new[] {
-                                    new Tag { Name = "sub3_01" }
-                                }
-                            }
-                        }
+                    Name = "testaddsublist"
                 };
                 await ctx.Tags.AddAsync(tagAsync);
 
@@ -110,7 +89,7 @@ namespace dbcontext_01.Controllers
                 ctx.Songs.Select.Where(a => a.Id > 10).ToList();
                 //查询结果，进入 states
 
-                song = new Song { };
+                song = new Song { Title = "empty" };
                 //可插入的 song
 
                 ctx.Songs.Add(song);
@@ -118,7 +97,7 @@ namespace dbcontext_01.Controllers
                 //因有自增类型，立即开启事务执行SQL，返回自增值
 
                 adds = Enumerable.Range(0, 100)
-                    .Select(a => new Song { Create_time = DateTime.Now, Is_deleted = false, Title = "xxxx" + a, Url = "url222" })
+                    .Select(a => new Song { CreateTime = DateTime.Now, Title = "xxxx" + a, Url = "url222" })
                     .ToList();
                 //创建一堆无主键值
 
@@ -160,12 +139,12 @@ namespace dbcontext_01.Controllers
                     reposSong.Where(a => a.Id > 10).ToList();
                     //查询结果，进入 states
 
-                    song = new Song { };
+                    song = new Song { Title = "empty" };
                     reposSong.Insert(song);
                     id = song.Id;
 
                     adds = Enumerable.Range(0, 100)
-                        .Select(a => new Song { Create_time = DateTime.Now, Is_deleted = false, Title = "xxxx" + a, Url = "url222" })
+                        .Select(a => new Song { CreateTime = DateTime.Now, Title = "xxxx" + a, Url = "url222" })
                         .ToList();
                     //创建一堆无主键值
 
@@ -194,12 +173,12 @@ namespace dbcontext_01.Controllers
                 using (ctx = new SongContext())
                 {
 
-                    song = new Song { };
+                    song = new Song { Title = "empty" };
                     await ctx.Songs.AddAsync(song);
                     id = song.Id;
 
                     adds = Enumerable.Range(0, 100)
-                        .Select(a => new Song { Create_time = DateTime.Now, Is_deleted = false, Title = "xxxx" + a, Url = "url222" })
+                        .Select(a => new Song { CreateTime = DateTime.Now, Title = "xxxx" + a, Url = "url222" })
                         .ToList();
                     await ctx.Songs.AddRangeAsync(adds);
 
@@ -230,14 +209,22 @@ namespace dbcontext_01.Controllers
             var item22 = await _orm.Select<Song>().Where(a => a.Id == id).FirstAsync();
             var item33 = await _orm.Select<Song>().Where(a => a.Id > id).ToListAsync();
 
-            return item22.Id.ToString();
+            return item22.Id.ToString() + "\r\n\r\n" + _curdLog.Sb.ToString();
         }
 
         // GET api/values/5
         [HttpGet("{id}")]
-        public ActionResult<string> Get(int id)
+        public ActionResult<object> Get(int id)
         {
-            return "value";
+            return _orm.Select<Song>().Where(a => a.Id == id).First();
+        }
+
+        [HttpGet("get{id}")]
+        public ActionResult<string> Get2(int id)
+        {
+            var item1 = _orm.Select<Song>().Where(a => a.Id == id).First();
+            var item2 = _orm.Select<Song>().Where(a => a.Id == id).First();
+            return _curdLog.Sb.ToString();
         }
 
         // POST api/values

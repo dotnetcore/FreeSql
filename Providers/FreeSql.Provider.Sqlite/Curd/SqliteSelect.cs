@@ -19,7 +19,7 @@ namespace FreeSql.Sqlite.Curd
 
             if (_whereCascadeExpression.Any())
                 foreach (var tb in _tables.Where(a => a.Type != SelectTableInfoType.Parent))
-                    tb.Cascade = _commonExpression.GetWhereCascadeSql(tb, _whereCascadeExpression);
+                    tb.Cascade = _commonExpression.GetWhereCascadeSql(tb, _whereCascadeExpression, true);
 
             var sb = new StringBuilder();
             var tbUnionsGt0 = tbUnions.Count > 1;

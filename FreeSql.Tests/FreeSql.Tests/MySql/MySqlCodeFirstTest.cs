@@ -10,6 +10,49 @@ namespace FreeSql.Tests.MySql
 {
     public class MySqlCodeFirstTest
     {
+        [Fact]
+        public void StringLength()
+        {
+            var dll = g.mysql.CodeFirst.GetComparisonDDLStatements<TS_SLTB>();
+            g.mysql.CodeFirst.SyncStructure<TS_SLTB>();
+        }
+        class TS_SLTB
+        {
+            public Guid Id { get; set; }
+            [Column(StringLength = 50)]
+            public string Title { get; set; }
+
+            [Column(IsNullable = false, StringLength = 50)]
+            public string TitleSub { get; set; }
+        }
+
+        [Fact]
+        public void 表名中有点()
+        {
+            var item = new tbdot01 { name = "insert" };
+            g.mysql.Insert(item).ExecuteAffrows();
+
+            var find = g.mysql.Select<tbdot01>().Where(a => a.id == item.id).First();
+            Assert.NotNull(find);
+            Assert.Equal(item.id, find.id);
+            Assert.Equal("insert", find.name);
+
+            Assert.Equal(1, g.mysql.Update<tbdot01>().Set(a => a.name == "update").Where(a => a.id == item.id).ExecuteAffrows());
+            find = g.mysql.Select<tbdot01>().Where(a => a.id == item.id).First();
+            Assert.NotNull(find);
+            Assert.Equal(item.id, find.id);
+            Assert.Equal("update", find.name);
+
+            Assert.Equal(1, g.mysql.Delete<tbdot01>().Where(a => a.id == item.id).ExecuteAffrows()); 
+            find = g.mysql.Select<tbdot01>().Where(a => a.id == item.id).First();
+            Assert.Null(find);
+        }
+        [Table(Name = "`sys.tbdot01`")]
+        class tbdot01
+        {
+            public Guid id { get; set; }
+            public string name { get; set; }
+        }
 
         [Fact]
         public void 中文表_字段()
@@ -24,6 +67,28 @@ namespace FreeSql.Tests.MySql
             Assert.NotNull(item2);
             Assert.Equal(item.编号, item2.编号);
             Assert.Equal(item.标题, item2.标题);
+
+            item.标题22 = "测试标题更新";
+            Assert.Equal(1, g.mysql.Update<测试中文表2>().SetSource(item).ExecuteAffrows());
+            item2 = g.mysql.Select<测试中文表2>().Where(a => a.编号 == item.编号).First();
+            Assert.NotNull(item2);
+            Assert.Equal(item.编号, item2.编号);
+            Assert.Equal(item.标题22, item2.标题22);
+
+            item.标题22 = "测试标题更新_repo";
+            var repo = g.mysql.GetRepository<测试中文表2>();
+            Assert.Equal(1, repo.Update(item));
+            item2 = g.mysql.Select<测试中文表2>().Where(a => a.编号 == item.编号).First();
+            Assert.NotNull(item2);
+            Assert.Equal(item.编号, item2.编号);
+            Assert.Equal(item.标题22, item2.标题22);
+
+            item.标题22 = "测试标题更新_repo22";
+            Assert.Equal(1, repo.Update(item));
+            item2 = g.mysql.Select<测试中文表2>().Where(a => a.编号 == item.编号).First();
+            Assert.NotNull(item2);
+            Assert.Equal(item.编号, item2.编号);
+            Assert.Equal(item.标题22, item2.标题22);
         }
         class 测试中文表2
         {
@@ -32,12 +97,17 @@ namespace FreeSql.Tests.MySql
 
             public string 标题 { get; protected set; }
 
-            [Column(ServerTime = DateTimeKind.Local)]
+            public string 标题22 { get; set; }
+
+            [Column(ServerTime = DateTimeKind.Local, CanUpdate = false)]
             public DateTime 创建时间 { get; protected set; }
+
+            [Column(ServerTime = DateTimeKind.Local)]
+            public DateTime 更新时间 { get; set; }
 
             public static 测试中文表2 Create(string title, DateTime ctm)
             {
-                return new 测试中文表2 { 标题 = title, 创建时间 = ctm };
+                return new 测试中文表2 { 标题 = title, 标题22 = title, 创建时间 = ctm };
             }
         }
 
@@ -204,7 +274,7 @@ namespace FreeSql.Tests.MySql
                 testFieldSByteNullable = 99,
                 testFieldShort = short.MaxValue,
                 testFieldShortNullable = short.MinValue,
-                testFieldString = "我是中国人string",
+                testFieldString = "我是中国人string'\\?!@#$%^&*()_+{}}{~?><<>",
                 testFieldTimeSpan = TimeSpan.FromSeconds(999),
                 testFieldTimeSpanNullable = TimeSpan.FromSeconds(60),
                 testFieldUInt = uint.MaxValue,
@@ -223,6 +293,11 @@ namespace FreeSql.Tests.MySql
 
             item2.Id = (int)insert.AppendData(item2).ExecuteIdentity();
             var newitem2 = select.Where(a => a.Id == item2.Id).ToOne();
+            Assert.Equal(item2.testFieldString, newitem2.testFieldString);
+
+            item2.Id = (int)insert.NoneParameter().AppendData(item2).ExecuteIdentity();
+            newitem2 = select.Where(a => a.Id == item2.Id).ToOne();
+            Assert.Equal(item2.testFieldString, newitem2.testFieldString);
 
             var items = select.ToList();
         }

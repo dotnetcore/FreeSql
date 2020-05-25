@@ -19,8 +19,8 @@ namespace FreeSql.Odbc.Default
             _utils = _commonUtils as OdbcUtils;
         }
 
-        public override int ExecuteAffrows() => base.SplitExecuteAffrows(_utils.Adapter.InsertBatchSplitLimit, 255);
-        public override List<T1> ExecuteUpdated() => base.SplitExecuteUpdated(_utils.Adapter.InsertBatchSplitLimit, 255);
+        public override int ExecuteAffrows() => base.SplitExecuteAffrows(_batchRowsLimit > 0 ? _batchRowsLimit : _utils.Adapter.UpdateBatchSplitLimit, _batchParameterLimit > 0 ? _batchParameterLimit : 255);
+        public override List<T1> ExecuteUpdated() => base.SplitExecuteUpdated(_batchRowsLimit > 0 ? _batchRowsLimit : _utils.Adapter.UpdateBatchSplitLimit, _batchParameterLimit > 0 ? _batchParameterLimit : 255);
 
         protected override List<T1> RawExecuteUpdated() => throw new NotImplementedException("FreeSql.Odbc.Default 未实现该功能");
 
@@ -28,15 +28,16 @@ namespace FreeSql.Odbc.Default
         {
             if (_table.Primarys.Length == 1)
             {
-                caseWhen.Append(_commonUtils.QuoteReadColumn(_table.Primarys.First().Attribute.MapType, _commonUtils.QuoteSqlName(_table.Primarys.First().Attribute.Name)));
+                var pk = _table.Primarys.First();
+                caseWhen.Append(_commonUtils.QuoteReadColumn(pk.CsType, pk.Attribute.MapType, _commonUtils.QuoteSqlName(pk.Attribute.Name)));
                 return;
             }
             caseWhen.Append("(");
             var pkidx = 0;
             foreach (var pk in _table.Primarys)
             {
-                if (pkidx > 0) caseWhen.Append(", ");
-                caseWhen.Append(_utils.Adapter.CastSql(_commonUtils.QuoteReadColumn(_table.Primarys.First().Attribute.MapType, _commonUtils.QuoteSqlName(pk.Attribute.Name)), _utils.Adapter.MappingOdbcTypeVarChar));
+                if (pkidx > 0) caseWhen.Append(" + '+' + ");
+                caseWhen.Append(_utils.Adapter.CastSql(_commonUtils.QuoteReadColumn(pk.CsType, pk.Attribute.MapType, _commonUtils.QuoteSqlName(pk.Attribute.Name)), _utils.Adapter.MappingOdbcTypeVarChar));
                 ++pkidx;
             }
             caseWhen.Append(")");
@@ -52,7 +53,7 @@ namespace FreeSql.Odbc.Default
             var pkidx = 0;
             foreach (var pk in _table.Primarys)
             {
-                if (pkidx > 0) sb.Append(", ");
+                if (pkidx > 0) sb.Append(" + '+' + ");
                 sb.Append(_utils.Adapter.CastSql(_commonUtils.FormatSql("{0}", pk.GetMapValue(d)), _utils.Adapter.MappingOdbcTypeVarChar));
                 ++pkidx;
             }
@@ -60,8 +61,8 @@ namespace FreeSql.Odbc.Default
 
 #if net40
 #else
-        public override Task<int> ExecuteAffrowsAsync() => base.SplitExecuteAffrowsAsync(_utils.Adapter.InsertBatchSplitLimit, 255);
-        public override Task<List<T1>> ExecuteUpdatedAsync() => base.SplitExecuteUpdatedAsync(_utils.Adapter.InsertBatchSplitLimit, 255);
+        public override Task<int> ExecuteAffrowsAsync() => base.SplitExecuteAffrowsAsync(_batchRowsLimit > 0 ? _batchRowsLimit : _utils.Adapter.UpdateBatchSplitLimit, _batchParameterLimit > 0 ? _batchParameterLimit : 255);
+        public override Task<List<T1>> ExecuteUpdatedAsync() => base.SplitExecuteUpdatedAsync(_batchRowsLimit > 0 ? _batchRowsLimit : _utils.Adapter.UpdateBatchSplitLimit, _batchParameterLimit > 0 ? _batchParameterLimit : 255);
 
         protected override Task<List<T1>> RawExecuteUpdatedAsync() => throw new NotImplementedException("FreeSql.Odbc.Default 未实现该功能");
 #endif

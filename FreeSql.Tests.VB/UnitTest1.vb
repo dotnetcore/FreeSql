@@ -1,4 +1,5 @@
 Imports System
+Imports FreeSql.DataAnnotations
 Imports Xunit
 
 Namespace FreeSql.Tests.VB
@@ -38,6 +39,17 @@ Namespace FreeSql.Tests.VB
 
             Dim List9 = g.sqlserver.Select(Of Testvb).IncludeMany(Function(a) a.Testvb2s).ToList()
 
+            BaseEntity.Initialization(g.sqlserver, Nothing)
+            Dim cowR As CowRecord = New CowRecord
+            cowR.Id = 1
+            cowR.Lact = 1
+            cowR.VetCount = 1
+            cowR.Save()
+
+            cowR.VetCount += 1
+            cowR.Update()
+
+
 
         End Sub
     End Class
@@ -57,4 +69,53 @@ Class Testvb2
     Property TestvbId As Integer
     Property Testvb As Testvb
     Property Context As String
+End Class
+
+<Index("uk_Primary", "Id,Lact", True)>
+Public Class CowRecord
+    Inherits BaseEntity(Of CowRecord)
+    Private _Id As Integer
+    Private _Lact As Integer
+    Private _Pen As Integer
+    Private _BDAT As Date?
+    Private _FDAT As Date?
+    Private _DDAT As Date?
+    Private _EDAT As Date?
+    Private _ARDAT As Date?
+    Private _MKDAT As Date?
+    Private _BFDAT As Date?
+    Private _USDAT As Date?
+    Private _RC As Integer
+    Private _DMLK1 As Integer
+    Private _VetCount As Integer
+
+    <Column(IsPrimary:=True)>
+    Public Property Id As Integer
+        Get
+            Return _Id
+        End Get
+        Set(value As Integer)
+            _Id = value
+        End Set
+    End Property
+
+
+    <Column(IsPrimary:=True)>
+    Public Property Lact As Integer
+        Get
+            Return _Lact
+        End Get
+        Set(value As Integer)
+            _Lact = value
+        End Set
+    End Property
+
+    Public Property VetCount As Integer
+        Get
+            Return _VetCount
+        End Get
+        Set(value As Integer)
+            _VetCount = value
+        End Set
+    End Property
 End Class

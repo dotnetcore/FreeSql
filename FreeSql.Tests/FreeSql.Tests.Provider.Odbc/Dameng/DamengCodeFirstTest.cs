@@ -10,6 +10,74 @@ namespace FreeSql.Tests.Odbc.Dameng
 {
     public class DamengCodeFirstTest
     {
+        [Fact]
+        public void StringLength()
+        {
+            var dll = g.dameng.CodeFirst.GetComparisonDDLStatements<TS_SLTB>();
+            g.dameng.CodeFirst.SyncStructure<TS_SLTB>();
+        }
+        class TS_SLTB
+        {
+            public Guid Id { get; set; }
+            [Column(StringLength = 50)]
+            public string Title { get; set; }
+
+            [Column(IsNullable = false, StringLength = 50)]
+            public string TitleSub { get; set; }
+        }
+
+        [Fact]
+        public void 数字表_字段()
+        {
+            var sql = g.dameng.CodeFirst.GetComparisonDDLStatements<测试数字表>();
+            g.dameng.CodeFirst.SyncStructure<测试数字表>();
+
+            var item = new 测试数字表
+            {
+                标题 = "测试标题",
+                创建时间 = DateTime.Now
+            };
+            Assert.Equal(1, g.dameng.Insert<测试数字表>().AppendData(item).ExecuteAffrows());
+            Assert.NotEqual(Guid.Empty, item.编号);
+            var item2 = g.dameng.Select<测试数字表>().Where(a => a.编号 == item.编号).First();
+            Assert.NotNull(item2);
+            Assert.Equal(item.编号, item2.编号);
+            Assert.Equal(item.标题, item2.标题);
+
+            item.标题 = "测试标题更新";
+            Assert.Equal(1, g.dameng.Update<测试数字表>().SetSource(item).ExecuteAffrows());
+            item2 = g.dameng.Select<测试数字表>().Where(a => a.编号 == item.编号).First();
+            Assert.NotNull(item2);
+            Assert.Equal(item.编号, item2.编号);
+            Assert.Equal(item.标题, item2.标题);
+
+            item.标题 = "测试标题更新_repo";
+            var repo = g.dameng.GetRepository<测试数字表>();
+            Assert.Equal(1, repo.Update(item));
+            item2 = g.dameng.Select<测试数字表>().Where(a => a.编号 == item.编号).First();
+            Assert.NotNull(item2);
+            Assert.Equal(item.编号, item2.编号);
+            Assert.Equal(item.标题, item2.标题);
+
+            item.标题 = "测试标题更新_repo22";
+            Assert.Equal(1, repo.Update(item));
+            item2 = g.dameng.Select<测试数字表>().Where(a => a.编号 == item.编号).First();
+            Assert.NotNull(item2);
+            Assert.Equal(item.编号, item2.编号);
+            Assert.Equal(item.标题, item2.标题);
+        }
+        [Table(Name = "123测试数字表")]
+        class 测试数字表
+        {
+            [Column(IsPrimary = true, Name = "123编号")]
+            public Guid 编号 { get; set; }
+
+            [Column(Name = "123标题")]
+            public string 标题 { get; set; }
+
+            [Column(Name = "123创建时间")]
+            public DateTime 创建时间 { get; set; }
+        }
 
         [Fact]
         public void 中文表_字段()
@@ -25,6 +93,28 @@ namespace FreeSql.Tests.Odbc.Dameng
             Assert.Equal(1, g.dameng.Insert<测试中文表>().AppendData(item).ExecuteAffrows());
             Assert.NotEqual(Guid.Empty, item.编号);
             var item2 = g.dameng.Select<测试中文表>().Where(a => a.编号 == item.编号).First();
+            Assert.NotNull(item2);
+            Assert.Equal(item.编号, item2.编号);
+            Assert.Equal(item.标题, item2.标题);
+
+            item.标题 = "测试标题更新";
+            Assert.Equal(1, g.dameng.Update<测试中文表>().SetSource(item).ExecuteAffrows());
+            item2 = g.dameng.Select<测试中文表>().Where(a => a.编号 == item.编号).First();
+            Assert.NotNull(item2);
+            Assert.Equal(item.编号, item2.编号);
+            Assert.Equal(item.标题, item2.标题);
+
+            item.标题 = "测试标题更新_repo";
+            var repo = g.dameng.GetRepository<测试中文表>();
+            Assert.Equal(1, repo.Update(item));
+            item2 = g.dameng.Select<测试中文表>().Where(a => a.编号 == item.编号).First();
+            Assert.NotNull(item2);
+            Assert.Equal(item.编号, item2.编号);
+            Assert.Equal(item.标题, item2.标题);
+
+            item.标题 = "测试标题更新_repo22";
+            Assert.Equal(1, repo.Update(item));
+            item2 = g.dameng.Select<测试中文表>().Where(a => a.编号 == item.编号).First();
             Assert.NotNull(item2);
             Assert.Equal(item.编号, item2.编号);
             Assert.Equal(item.标题, item2.标题);
@@ -180,7 +270,7 @@ namespace FreeSql.Tests.Odbc.Dameng
                 SByteNullable = 99,
                 Short = short.MaxValue,
                 ShortNullable = short.MinValue,
-                String = "我是中国人string",
+                String = "我是中国人string'\\?!@#$%^&*()_+{}}{~?><<>",
                 TimeSpan = TimeSpan.FromSeconds(999),
                 TimeSpanNullable = TimeSpan.FromSeconds(60),
                 UInt = uint.MaxValue,
@@ -197,6 +287,11 @@ namespace FreeSql.Tests.Odbc.Dameng
 
             item2.Id = (int)insert.AppendData(item2).ExecuteIdentity();
             var newitem2 = select.Where(a => a.Id == item2.Id).ToOne();
+            Assert.Equal(item2.String, newitem2.String);
+
+            item2.Id = (int)insert.NoneParameter().AppendData(item2).ExecuteIdentity();
+            newitem2 = select.Where(a => a.Id == item2.Id).ToOne();
+            Assert.Equal(item2.String, newitem2.String);
 
             var items = select.ToList();
         }

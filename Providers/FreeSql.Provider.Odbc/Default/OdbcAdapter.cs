@@ -1,4 +1,5 @@
-﻿using FreeSql.Internal.Model;
+﻿using FreeSql.Internal;
+using FreeSql.Internal.Model;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -55,14 +56,7 @@ namespace FreeSql.Odbc.Default
         public virtual string ByteRawSql(object value)
         {
             if (value == null) return "NULL";
-            var bytes = value as byte[];
-            var sb = new StringBuilder().Append("0x");
-            foreach (var vc in bytes)
-            {
-                if (vc < 10) sb.Append("0");
-                sb.Append(vc.ToString("X"));
-            }
-            return sb.ToString();
+            return $"0x{CommonUtils.BytesSqlRaw(value as byte[])}";
         }
 
         public virtual string CastSql(string sql, string to) => $"cast({sql} as {to})";
@@ -111,7 +105,7 @@ namespace FreeSql.Odbc.Default
         public virtual string LambdaString_ToLower(string operand) => $"lower({operand})";
         public virtual string LambdaString_ToUpper(string operand) => $"upper({operand})";
         public virtual string LambdaString_Substring(string operand, string startIndex, string length) => string.IsNullOrEmpty(length) ? $"left({operand}, {startIndex})" : $"substring({operand}, {startIndex}, {length})";
-        public virtual string LambdaString_IndexOf(string operand, string value, string startIndex) => string.IsNullOrEmpty(startIndex) ? $"(charindex({operand}, {value})-1)" : $"(charindex({operand}, {value}, {startIndex})-1)";
+        public virtual string LambdaString_IndexOf(string operand, string value, string startIndex) => string.IsNullOrEmpty(startIndex) ? $"(charindex({value}, {operand})-1)" : $"(charindex({value}, {operand}, {startIndex})-1)";
         public virtual string LambdaString_PadLeft(string operand, string length, string paddingChar) => string.IsNullOrEmpty(paddingChar) ? $"lpad({operand}, {length})" : $"lpad({operand}, {length}, {paddingChar})";
         public virtual string LambdaString_PadRight(string operand, string length, string paddingChar) => string.IsNullOrEmpty(paddingChar) ? $"rpad({operand}, {length})" : $"rpad({operand}, {length}, {paddingChar})";
         public virtual string LambdaString_Trim(string operand) => $"ltrim(rtrim({operand}))";

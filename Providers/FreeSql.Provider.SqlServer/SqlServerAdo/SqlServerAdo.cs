@@ -1,6 +1,6 @@
 ﻿using FreeSql.Internal;
 using FreeSql.Internal.Model;
-using SafeObjectPool;
+using FreeSql.Internal.ObjectPool;
 using System;
 using System.Collections;
 using System.Data.Common;
@@ -13,8 +13,8 @@ namespace FreeSql.SqlServer
 {
     class SqlServerAdo : FreeSql.Internal.CommonProvider.AdoProvider
     {
-        public SqlServerAdo() : base(DataType.SqlServer) { }
-        public SqlServerAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.SqlServer)
+        public SqlServerAdo() : base(DataType.SqlServer, null, null) { }
+        public SqlServerAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.SqlServer, masterConnectionString, slaveConnectionStrings)
         {
             base._util = util;
             if (connectionFactory != null)
@@ -39,8 +39,9 @@ namespace FreeSql.SqlServer
         public override object AddslashesProcessParam(object param, Type mapType, ColumnInfo mapColumn)
         {
             if (param == null) return "NULL";
-            if (mapType != null && mapType != param.GetType() && (param is IEnumerable == false || mapType.IsArrayOrList()))
+            if (mapType != null && mapType != param.GetType() && (param is IEnumerable == false))
                 param = Utils.GetDataReaderValue(mapType, param);
+
             if (param is bool || param is bool?)
                 return (bool)param ? 1 : 0;
             else if (param is string)
@@ -67,6 +68,8 @@ namespace FreeSql.SqlServer
             }
             else if (param is TimeSpan || param is TimeSpan?)
                 return ((TimeSpan)param).TotalSeconds;
+            else if (param is byte[])
+                return $"0x{CommonUtils.BytesSqlRaw(param as byte[])}";
             else if (param is IEnumerable)
                 return AddslashesIEnumerable(param, mapType, mapColumn);
 

@@ -18,7 +18,7 @@ namespace FreeSql.Tests.Odbc.PostgreSQL
         public void GetTablesByDatabase()
         {
 
-            var t2 = g.pgsql.DbFirst.GetTablesByDatabase(g.pgsql.DbFirst.GetDatabases()[1]);
+            var t2 = g.pgsql.DbFirst.GetTablesByDatabase(g.pgsql.DbFirst.GetDatabases()[2]);
 
         }
     }

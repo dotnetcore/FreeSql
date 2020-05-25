@@ -1,5 +1,6 @@
 ﻿using FreeSql.Internal.Model;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -9,23 +10,26 @@ using System.Threading.Tasks;
 
 namespace FreeSql.Internal.CommonProvider
 {
-    public class SelectGroupingProvider<TKey, TValue> : ISelectGrouping<TKey, TValue>
+    public class SelectGroupingProvider
     {
-        internal IFreeSql _orm;
-        internal object _select;
-        internal ReadAnonymousTypeInfo _map;
-        internal CommonExpression _comonExp;
-        internal List<SelectTableInfo> _tables;
-        public SelectGroupingProvider(IFreeSql orm, object select, ReadAnonymousTypeInfo map, CommonExpression comonExp, List<SelectTableInfo> tables)
+        public IFreeSql _orm;
+        public object _select;
+        public ReadAnonymousTypeInfo _map;
+        public string _field;
+        public CommonExpression _comonExp;
+        public List<SelectTableInfo> _tables;
+
+        public SelectGroupingProvider(IFreeSql orm, object select, ReadAnonymousTypeInfo map, string field, CommonExpression comonExp, List<SelectTableInfo> tables)
         {
             _orm = orm;
             _select = select;
             _map = map;
+            _field = field;
             _comonExp = comonExp;
             _tables = tables;
         }
 
-        string getSelectGroupingMapString(Expression[] members)
+        public string getSelectGroupingMapString(Expression[] members)
         {
             if (members.Any() == false) return _map.DbField;
             var parentName = ((members.FirstOrDefault() as MemberExpression)?.Expression as MemberExpression)?.Member.Name;
@@ -83,54 +87,62 @@ namespace FreeSql.Internal.CommonProvider
             return null;
         }
 
-        public ISelectGrouping<TKey, TValue> Having(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, bool>> exp)
+        public void InternalHaving(Expression exp)
         {
             var sql = _comonExp.ExpressionWhereLambda(null, exp, getSelectGroupingMapString, null, null);
             var method = _select.GetType().GetMethod("Having", new[] { typeof(string), typeof(object) });
             method.Invoke(_select, new object[] { sql, null });
-            return this;
         }
-
-        public ISelectGrouping<TKey, TValue> OrderBy<TMember>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TMember>> column)
+        public void InternalOrderBy(Expression exp, bool isDescending)
         {
-            var sql = _comonExp.ExpressionWhereLambda(null, column, getSelectGroupingMapString, null, null);
+            var sql = _comonExp.ExpressionWhereLambda(null, exp, getSelectGroupingMapString, null, null);
             var method = _select.GetType().GetMethod("OrderBy", new[] { typeof(string), typeof(object) });
-            method.Invoke(_select, new object[] { sql, null });
-            return this;
+            method.Invoke(_select, new object[] { isDescending ? $"{sql} DESC" : sql, null });
         }
-
-        public ISelectGrouping<TKey, TValue> OrderByDescending<TMember>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TMember>> column)
-        {
-            var sql = _comonExp.ExpressionWhereLambda(null, column, getSelectGroupingMapString, null, null);
-            var method = _select.GetType().GetMethod("OrderBy", new[] { typeof(string), typeof(object) });
-            method.Invoke(_select, new object[] { $"{sql} DESC", null });
-            return this;
-        }
-
-        public List<TReturn> ToList<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select)
+        public object InternalToList(Expression select, Type elementType, bool isAsync)
         {
             var map = new ReadAnonymousTypeInfo();
             var field = new StringBuilder();
             var index = 0;
 
-            _comonExp.ReadAnonymousField(null, field, map, ref index, select, getSelectGroupingMapString, null, true);
-            var method = _select.GetType().GetMethod("ToListMapReader", BindingFlags.Instance | BindingFlags.NonPublic);
-            method = method.MakeGenericMethod(typeof(TReturn));
-            return method.Invoke(_select, new object[] { (map, field.Length > 0 ? field.Remove(0, 2).ToString() : null) }) as List<TReturn>;
+            _comonExp.ReadAnonymousField(null, field, map, ref index, select, getSelectGroupingMapString, null, false);
+            if (map.Childs.Any() == false && map.MapType == null) map.MapType = elementType;
+            var method = _select.GetType().GetMethod(isAsync ? "ToListMapReaderAsync" : "ToListMapReader", BindingFlags.Instance | BindingFlags.NonPublic);
+            method = method.MakeGenericMethod(elementType);
+            return method.Invoke(_select, new object[] { new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null) });
         }
-        
-        public List<TReturn> Select<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select) => ToList(select);
+        public IEnumerable<KeyValuePair<object, object>> InternalToKeyValuePairs(Expression elementSelector, Type elementType)
+        {
+            var map = new ReadAnonymousTypeInfo();
+            var field = new StringBuilder();
+            var index = 0;
 
-        public string ToSql<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select, FieldAliasOptions fieldAlias = FieldAliasOptions.AsIndex)
+            _comonExp.ReadAnonymousField(null, field, map, ref index, elementSelector, getSelectGroupingMapString, null, false);
+            if (map.Childs.Any() == false && map.MapType == null) map.MapType = elementType;
+            var method = _select.GetType().GetMethod("ToListMapReaderPrivate", BindingFlags.Instance | BindingFlags.NonPublic);
+            method = method.MakeGenericMethod(elementType);
+            var otherAf = new ReadAnonymousTypeOtherInfo(_field, _map, new List<object>());
+            var values = method.Invoke(_select, new object[] { new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null), new[] { otherAf } }) as IList;
+            return otherAf.retlist.Select((a, b) => new KeyValuePair<object, object>(a, values[b]));
+        }
+        public string InternalToSql(Expression select, FieldAliasOptions fieldAlias = FieldAliasOptions.AsIndex)
         {
             var map = new ReadAnonymousTypeInfo();
             var field = new StringBuilder();
             var index = fieldAlias == FieldAliasOptions.AsProperty ? CommonExpression.ReadAnonymousFieldAsCsName : 0;
 
-            _comonExp.ReadAnonymousField(null, field, map, ref index, select, getSelectGroupingMapString, null, true);
+            _comonExp.ReadAnonymousField(null, field, map, ref index, select, getSelectGroupingMapString, null, false);
             var method = _select.GetType().GetMethod("ToSql", new[] { typeof(string) });
             return method.Invoke(_select, new object[] { field.Length > 0 ? field.Remove(0, 2).ToString() : null }) as string;
         }
+    }
+
+    public class SelectGroupingProvider<TKey, TValue> : SelectGroupingProvider, ISelectGrouping<TKey, TValue>
+    {
+        public SelectGroupingProvider(IFreeSql orm, object select, ReadAnonymousTypeInfo map, string field, CommonExpression comonExp, List<SelectTableInfo> tables)
+            :base(orm, select, map, field, comonExp, tables) { }
+
+        public string ToSql<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select, FieldAliasOptions fieldAlias = FieldAliasOptions.AsIndex) => InternalToSql(select, fieldAlias);
         public string ToSql(string field)
         {
             if (string.IsNullOrEmpty(field))
@@ -147,7 +159,6 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
         public ISelectGrouping<TKey, TValue> Offset(int offset) => this.Skip(offset);
-
         public ISelectGrouping<TKey, TValue> Limit(int limit)
         {
             var method = _select.GetType().GetMethod("Limit", new[] { typeof(int) });
@@ -155,7 +166,6 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
         public ISelectGrouping<TKey, TValue> Take(int limit) => this.Limit(limit);
-
         public ISelectGrouping<TKey, TValue> Page(int pageNumber, int pageSize)
         {
             var method = _select.GetType().GetMethod("Page", new[] { typeof(int), typeof(int) });
@@ -170,20 +180,44 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
 
+        public ISelectGrouping<TKey, TValue> Having(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, bool>> exp)
+        {
+            InternalHaving(exp);
+            return this;
+        }
+        public ISelectGrouping<TKey, TValue> OrderBy<TMember>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TMember>> column)
+        {
+            InternalOrderBy(column, false);
+            return this;
+        }
+        public ISelectGrouping<TKey, TValue> OrderByDescending<TMember>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TMember>> column)
+        {
+            InternalOrderBy(column, true);
+            return this;
+        }
+
+        public List<TReturn> Select<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select) => ToList(select);
+        public List<TReturn> ToList<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select) => InternalToList(select, typeof(TReturn), false) as List<TReturn>;
+        public Dictionary<TKey, TElement> ToDictionary<TElement>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TElement>> elementSelector) => InternalToKeyValuePairs(elementSelector, typeof(TElement)).ToDictionary(a => (TKey)a.Key, a => (TElement)a.Value);
+
 #if net40
 #else
         async public Task<long> CountAsync() => long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync($"select count(1) from ({this.ToSql($"1{_comonExp._common.FieldAsAlias("as1")}")}) fta")), out var trylng) ? trylng : default(long);
 
-        public Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select)
+        public Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select) => InternalToList(select, typeof(TReturn), true) as Task<List<TReturn>>;
+        async public Task<Dictionary<TKey, TElement>> ToDictionaryAsync<TElement>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TElement>> elementSelector)
         {
             var map = new ReadAnonymousTypeInfo();
             var field = new StringBuilder();
             var index = 0;
 
-            _comonExp.ReadAnonymousField(null, field, map, ref index, select, getSelectGroupingMapString, null, true);
-            var method = _select.GetType().GetMethod("ToListMapReaderAsync", BindingFlags.Instance | BindingFlags.NonPublic);
-            method = method.MakeGenericMethod(typeof(TReturn));
-            return method.Invoke(_select, new object[] { (map, field.Length > 0 ? field.Remove(0, 2).ToString() : null) }) as Task<List<TReturn>>;
+            _comonExp.ReadAnonymousField(null, field, map, ref index, elementSelector, getSelectGroupingMapString, null, false);
+            if (map.Childs.Any() == false && map.MapType == null) map.MapType = typeof(TElement);
+            var method = _select.GetType().GetMethod("ToListMapReaderPrivateAsync", BindingFlags.Instance | BindingFlags.NonPublic);
+            method = method.MakeGenericMethod(typeof(TElement));
+            var otherAf = new ReadAnonymousTypeOtherInfo(_field, _map, new List<object>());
+            var values = await (method.Invoke(_select, new object[] { new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null), new[] { otherAf } }) as Task<List<TElement>>);
+            return otherAf.retlist.Select((a, b) => new KeyValuePair<TKey, TElement>((TKey)a, values[b])).ToDictionary(a => a.Key, a => a.Value);
         }
 #endif
     }

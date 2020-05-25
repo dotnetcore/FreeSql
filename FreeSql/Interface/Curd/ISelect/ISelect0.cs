@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FreeSql.Internal.Model;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -14,6 +15,8 @@ namespace FreeSql
 #if net40
 #else
         Task<DataTable> ToDataTableAsync(string field = null);
+        Task<Dictionary<TKey, T1>> ToDictionaryAsync<TKey>(Func<T1, TKey> keySelector);
+        Task<Dictionary<TKey, TElement>> ToDictionaryAsync<TKey, TElement>(Func<T1, TKey> keySelector, Func<T1, TElement> elementSelector);
         Task<List<T1>> ToListAsync(bool includeNestedMembers = false);
         Task<List<TTuple>> ToListAsync<TTuple>(string field);
 
@@ -50,6 +53,15 @@ namespace FreeSql
         /// <returns></returns>
         DataTable ToDataTable(string field = null);
 
+        /// <summary>
+        /// 以字典的形式返回查询结果<para></para>
+        /// 注意：字典的特点会导致返回的数据无序
+        /// </summary>
+        /// <typeparam name="TKey"></typeparam>
+        /// <param name="keySelector"></param>
+        /// <returns></returns>
+        Dictionary<TKey, T1> ToDictionary<TKey>(Func<T1, TKey> keySelector);
+        Dictionary<TKey, TElement> ToDictionary<TKey, TElement>(Func<T1, TKey> keySelector, Func<T1, TElement> elementSelector);
         /// <summary>
         /// 执行SQL查询，返回 T1 实体所有字段的记录，记录不存在时返回 Count 为 0 的列表<para></para>
         /// 注意：<para></para>
@@ -226,6 +238,13 @@ namespace FreeSql
         /// <param name="parms">参数</param>
         /// <returns></returns>
         TSelect RightJoin(string sql, object parms = null);
+        /// <summary>
+        /// 在 JOIN 位置插入 SQL 内容<para></para>
+        /// 如：.RawJoin("OUTER APPLY ( select id from t2 ) b")
+        /// </summary>
+        /// <param name="sql"></param>
+        /// <returns></returns>
+        TSelect RawJoin(string sql);
 
         /// <summary>
         /// 原生sql语法条件，Where("id = ?id", new { id = 1 })
@@ -242,6 +261,13 @@ namespace FreeSql
         /// <param name="parms">参数</param>
         /// <returns></returns>
         TSelect WhereIf(bool condition, string sql, object parms = null);
+
+        /// <summary>
+        /// 动态过滤条件
+        /// </summary>
+        /// <param name="filter"></param>
+        /// <returns></returns>
+        TSelect WhereDynamicFilter(DynamicFilterInfo filter);
 
         /// <summary>
         /// 禁用全局过滤功能，不传参数时将禁用所有

@@ -23,6 +23,7 @@ namespace FreeSql.Odbc.Oracle
         public IUpdate<T1> Update<T1>(object dywhere) where T1 : class => new OdbcOracleUpdate<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, dywhere);
         public IDelete<T1> Delete<T1>() where T1 : class => new OdbcOracleDelete<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, null);
         public IDelete<T1> Delete<T1>(object dywhere) where T1 : class => new OdbcOracleDelete<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, dywhere);
+        public IInsertOrUpdate<T1> InsertOrUpdate<T1>() where T1 : class => new OdbcOracleInsertOrUpdate<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression);
 
         public IAdo Ado { get; }
         public IAop Aop { get; }
@@ -50,8 +51,7 @@ namespace FreeSql.Odbc.Oracle
         internal CommonExpression InternalCommonExpression { get; }
 
         public void Transaction(Action handler) => Ado.Transaction(handler);
-        public void Transaction(TimeSpan timeout, Action handler) => Ado.Transaction(timeout, handler);
-        public void Transaction(IsolationLevel isolationLevel, TimeSpan timeout, Action handler) => Ado.Transaction(isolationLevel, timeout, handler);
+        public void Transaction(IsolationLevel isolationLevel, Action handler) => Ado.Transaction(isolationLevel, handler);
 
         public GlobalFilter GlobalFilter { get; } = new GlobalFilter();
 

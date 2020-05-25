@@ -1,10 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net45;net40</TargetFrameworks>
-    <Version>1.0.0</Version>
+    <TargetFrameworks>netstandard2.0;netstandard2.1;net45;net40</TargetFrameworks>
+    <Version>1.5.0</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Authors>YeXiangQin</Authors>
+    <Authors>ncc;YeXiangQin</Authors>
     <Description>FreeSql 扩展包，可实现【延时加载】属性.</Description>
     <PackageProjectUrl>https://github.com/2881099/FreeSql</PackageProjectUrl>
     <RepositoryUrl>https://github.com/2881099/FreeSql</RepositoryUrl>
@@ -23,10 +23,19 @@
   </ItemGroup>
   
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="CS-Script.Core" Version="1.2.2" />
+    <PackageReference Include="CS-Script.Core" Version="1.2.3" />
   </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
+    <PackageReference Include="CS-Script.Core" Version="1.3.1" />
+  </ItemGroup>
+  
+  <!--
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'netstandard2.1'">
+    <PackageReference Include="DotNetCore.Natasha" Version="2.12.0" />
+  </ItemGroup>
+  -->
 
-  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'netstandard2.1'">
     <DefineConstants>ns20;netstandard20</DefineConstants>
   </PropertyGroup>
 

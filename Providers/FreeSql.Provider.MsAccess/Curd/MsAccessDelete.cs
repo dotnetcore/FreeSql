@@ -17,92 +17,14 @@ namespace FreeSql.MsAccess.Curd
 
         public override List<T1> ExecuteDeleted()
         {
-            var sql = this.ToSql();
-            if (string.IsNullOrEmpty(sql)) return new List<T1>();
-
-            var sb = new StringBuilder();
-            sb.Append(" OUTPUT ");
-            var colidx = 0;
-            foreach (var col in _table.Columns.Values)
-            {
-                if (colidx > 0) sb.Append(", ");
-                sb.Append("DELETED.").Append(_commonUtils.QuoteReadColumn(col.Attribute.MapType, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
-                ++colidx;
-            }
-
-            var validx = sql.IndexOf(" WHERE ");
-            if (validx == -1) throw new ArgumentException("找不到 WHERE ");
-            sb.Insert(0, sql.Substring(0, validx));
-            sb.Append(sql.Substring(validx));
-
-            sql = sb.ToString();
-            var dbParms = _params.ToArray();
-            var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Delete, sql, dbParms);
-            _orm.Aop.CurdBefore?.Invoke(this, before);
-            var ret = new List<T1>();
-            Exception exception = null;
-            try
-            {
-                ret = _orm.Ado.Query<T1>(_connection, _transaction, CommandType.Text, sql, dbParms);
-            }
-            catch (Exception ex)
-            {
-                exception = ex;
-                throw ex;
-            }
-            finally
-            {
-                var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                _orm.Aop.CurdAfter?.Invoke(this, after);
-            }
-            this.ClearData();
-            return ret;
+            throw new NotImplementedException();
         }
 
 #if net40
 #else
-        async public override Task<List<T1>> ExecuteDeletedAsync()
+        public override Task<List<T1>> ExecuteDeletedAsync()
         {
-            var sql = this.ToSql();
-            if (string.IsNullOrEmpty(sql)) return new List<T1>();
-
-            var sb = new StringBuilder();
-            sb.Append(" OUTPUT ");
-            var colidx = 0;
-            foreach (var col in _table.Columns.Values)
-            {
-                if (colidx > 0) sb.Append(", ");
-                sb.Append("DELETED.").Append(_commonUtils.QuoteReadColumn(col.Attribute.MapType, _commonUtils.QuoteSqlName(col.Attribute.Name))).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
-                ++colidx;
-            }
-
-            var validx = sql.IndexOf(" WHERE ");
-            if (validx == -1) throw new ArgumentException("找不到 WHERE ");
-            sb.Insert(0, sql.Substring(0, validx));
-            sb.Append(sql.Substring(validx));
-
-            sql = sb.ToString();
-            var dbParms = _params.ToArray();
-            var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Delete, sql, dbParms);
-            _orm.Aop.CurdBefore?.Invoke(this, before);
-            var ret = new List<T1>();
-            Exception exception = null;
-            try
-            {
-                ret = await _orm.Ado.QueryAsync<T1>(_connection, _transaction, CommandType.Text, sql, dbParms);
-            }
-            catch (Exception ex)
-            {
-                exception = ex;
-                throw ex;
-            }
-            finally
-            {
-                var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                _orm.Aop.CurdAfter?.Invoke(this, after);
-            }
-            this.ClearData();
-            return ret;
+            throw new NotImplementedException();
         }
 #endif
     }

@@ -550,7 +550,6 @@ namespace FreeSql.Tests
 
 
 
-
             var gkjdjd = g.sqlite.Select<AuthorTest>().Where(a => a.Post.AsSelect().Count() > 0).ToList();
 
             var testrunsql1 =  g.mysql.Select<TaskBuild>().Where(a => a.OptionsEntity04 > DateTime.Now.AddDays(0).ToString("yyyyMMdd").TryTo<int>()).ToSql();
@@ -575,7 +574,7 @@ namespace FreeSql.Tests
 
             IFreeSql fsql = new FreeSql.FreeSqlBuilder()
               .UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=7")
-              .UseEntityPropertyNameConvert(Internal.StringConvertType.PascalCaseToUnderscoreWithLower)
+              .UseNameConvert(Internal.NameConvertType.PascalCaseToUnderscoreWithLower)
               .UseNoneCommandParameter(true)
               .UseAutoSyncStructure(true) //自动同步实体结构到数据库
               .UseMonitorCommand(a => Trace.WriteLine(a.CommandText))
@@ -676,6 +675,12 @@ namespace FreeSql.Tests
                     subquery = g.sqlite.Select<ZX.Model.CustomerCheckupGroup>().Where(b => b.Id == a.Id).First(b => b.Group)
                 });
 
+            var sklgjlskdg12 = g.sqlite.Select<ZX.Model.CustomerMember>()
+                .Where(a => g.sqlite.Select<ZX.Model.CustomerCheckupGroup>().Any(b => b.MemberId == a.MemberId))
+                .ToUpdate()
+                .Set(a => a.Phone, "123123")
+                .ToSql();
+
             var sklgjlskdg = g.sqlite.Select<ZX.Model.CustomerMember>()
                 .Where(a => a.CheckupGroups.AsSelect().Any())
                 .ToSql();
@@ -698,7 +703,7 @@ namespace FreeSql.Tests
                  .ToSql(a => new NewsArticleDto
                  {
                      ArticleTitle = a.Key,
-                      ChannelId = a.Sum(a.Value.Item1.OptionsEntity04)
+                      ChannelId = (int)a.Sum(a.Value.Item1.OptionsEntity04)
                  });
 
             var testgrpsql2 = g.sqlite.Select<TaskBuild>()
@@ -756,7 +761,7 @@ namespace FreeSql.Tests
             //	.ExecuteAffrows();
 
 
-            g.mysql.Aop.ParseExpression = (s, e) =>
+            g.mysql.Aop.ParseExpression += (s, e) =>
             {
                 if (e.Expression.NodeType == ExpressionType.Call)
                 {
@@ -892,8 +897,6 @@ namespace FreeSql.Tests
 
 
 
-
-
             var ttt1 = g.sqlite.Select<Model1>().Where(a => a.Childs.AsSelect().Any(b => b.Title == "111")).ToList();
 
 
@@ -964,6 +967,29 @@ namespace FreeSql.Tests
                     sum = b.Sum(b.Key.yyyy),
                     sum2 = b.Sum(b.Value.TypeGuid)
                 });
+
+            var aggtolist21 = select
+                .GroupBy(a => new { a.Title, yyyy = string.Concat(a.CreateTime.Year, '-', a.CreateTime.Month) })
+                .ToDictionary(b => new
+                {
+                    b.Key.Title,
+                    b.Key.yyyy,
+
+                    cou = b.Count(),
+                    sum = b.Sum(b.Key.yyyy),
+                    sum2 = b.Sum(b.Value.TypeGuid)
+                }); 
+            var aggtolist22 = select
+                 .GroupBy(a => new { a.Title, yyyy = string.Concat(a.CreateTime.Year, '-', a.CreateTime.Month) })
+                 .ToDictionaryAsync(b => new
+                 {
+                     b.Key.Title,
+                     b.Key.yyyy,
+
+                     cou = b.Count(),
+                     sum = b.Sum(b.Key.yyyy),
+                     sum2 = b.Sum(b.Value.TypeGuid)
+                 }).Result;
 
             var aggsql3 = select
                 .GroupBy(a => a.Title)
@@ -1092,7 +1118,9 @@ namespace FreeSql.Tests
                 })
             };
 
-            g.mysql.GetRepository<Order>().Insert(neworder);
+            var repo = g.mysql.GetRepository<Order>();
+            repo.DbContextOptions.EnableAddOrUpdateNavigateList = true;
+            repo.Insert(neworder);
 
             var order = g.mysql.Select<Order>().Where(a => a.Id == neworder.Id).ToOne(); //查询订单表
             if (order == null)

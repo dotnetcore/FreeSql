@@ -2,7 +2,7 @@
 using FreeSql.Internal.Model;
 using Newtonsoft.Json.Linq;
 using Npgsql;
-using SafeObjectPool;
+using FreeSql.Internal.ObjectPool;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -14,8 +14,8 @@ namespace FreeSql.PostgreSQL
 {
     class PostgreSQLAdo : FreeSql.Internal.CommonProvider.AdoProvider
     {
-        public PostgreSQLAdo() : base(DataType.PostgreSQL) { }
-        public PostgreSQLAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.PostgreSQL)
+        public PostgreSQLAdo() : base(DataType.PostgreSQL, null, null) { }
+        public PostgreSQLAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.PostgreSQL, masterConnectionString, slaveConnectionStrings)
         {
             base._util = util; 
             if (connectionFactory != null)
@@ -38,8 +38,9 @@ namespace FreeSql.PostgreSQL
         public override object AddslashesProcessParam(object param, Type mapType, ColumnInfo mapColumn)
         {
             if (param == null) return "NULL";
-            if (mapType != null && mapType != param.GetType() && (param is IEnumerable == false || mapType.IsArrayOrList() || param is JToken || param is JObject || param is JArray))
+            if (mapType != null && mapType != param.GetType() && (param is IEnumerable == false || param is JToken || param is JObject || param is JArray))
                 param = Utils.GetDataReaderValue(mapType, param);
+
             bool isdic;
             if (param is bool || param is bool?)
                 return (bool)param ? "'t'" : "'f'";
@@ -53,6 +54,8 @@ namespace FreeSql.PostgreSQL
                 return string.Concat("'", ((DateTime)param).ToString("yyyy-MM-dd HH:mm:ss.ffffff"), "'");
             else if (param is TimeSpan || param is TimeSpan?)
                 return ((TimeSpan)param).Ticks / 10;
+            else if (param is byte[])
+                return $"'\\x{CommonUtils.BytesSqlRaw(param as byte[])}'";
             else if (param is JToken || param is JObject || param is JArray)
                 return string.Concat("'", param.ToString().Replace("'", "''"), "'::jsonb");
             else if ((isdic = param is Dictionary<string, string>) ||

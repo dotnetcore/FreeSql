@@ -21,6 +21,7 @@
     <ProjectReference Include="..\..\FreeSql.Repository\FreeSql.Repository.csproj" />
     <ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />
     <ProjectReference Include="..\..\Providers\FreeSql.Provider.MySql\FreeSql.Provider.MySql.csproj" />
+    <ProjectReference Include="..\..\Providers\FreeSql.Provider.Odbc\FreeSql.Provider.Odbc.csproj" />
     <ProjectReference Include="..\..\Providers\FreeSql.Provider.Oracle\FreeSql.Provider.Oracle.csproj" />
     <ProjectReference Include="..\..\Providers\FreeSql.Provider.PostgreSQL\FreeSql.Provider.PostgreSQL.csproj" />
     <ProjectReference Include="..\..\Providers\FreeSql.Provider.Sqlite\FreeSql.Provider.Sqlite.csproj" />

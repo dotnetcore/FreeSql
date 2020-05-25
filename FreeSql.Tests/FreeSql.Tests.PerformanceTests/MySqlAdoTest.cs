@@ -8,6 +8,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Threading;
+using FreeSql.Internal;
 
 namespace FreeSql.Tests.PerformanceTest
 {
@@ -24,7 +25,7 @@ namespace FreeSql.Tests.PerformanceTest
             List<xxx> dplist1 = null;
             using (var conn = g.mysql.Ado.MasterPool.Get())
             {
-                dplist1 = Dapper.SqlMapper.Query<xxx>(conn.Value, "select * from song").ToList();
+                dplist1 = Dapper.SqlMapper.Query<xxx>(conn.Value, "select * from freesql_song").ToList();
             }
             time.Stop();
             sb.AppendLine($"Elapsed: {time.Elapsed}; Query Entity Counts: {dplist1.Count}; ORM: Dapper");
@@ -33,7 +34,7 @@ namespace FreeSql.Tests.PerformanceTest
             List<(int, string, string)> dplist2 = null;
             using (var conn = g.mysql.Ado.MasterPool.Get())
             {
-                dplist2 = Dapper.SqlMapper.Query<(int, string, string)>(conn.Value, "select * from song").ToList();
+                dplist2 = Dapper.SqlMapper.Query<(int, string, string)>(conn.Value, "select * from freesql_song").ToList();
             }
             time.Stop();
             sb.AppendLine($"Elapsed: {time.Elapsed}; Query Tuple Counts: {dplist2.Count}; ORM: Dapper");
@@ -42,7 +43,7 @@ namespace FreeSql.Tests.PerformanceTest
             List<dynamic> dplist3 = null;
             using (var conn = g.mysql.Ado.MasterPool.Get())
             {
-                dplist3 = Dapper.SqlMapper.Query<dynamic>(conn.Value, "select * from song").ToList();
+                dplist3 = Dapper.SqlMapper.Query<dynamic>(conn.Value, "select * from freesql_song").ToList();
             }
             time.Stop();
             sb.AppendLine($"Elapsed: {time.Elapsed}; Query Dynamic Counts: {dplist3.Count}; ORM: Dapper");
@@ -50,15 +51,15 @@ namespace FreeSql.Tests.PerformanceTest
 
 
 
-            var t31 = g.mysql.Ado.Query<xxx>("select * from song limit 1");
+            var t31 = g.mysql.Ado.Query<xxx>("select * from freesql_song limit 1");
 
             time.Restart();
-            var t3 = g.mysql.Ado.Query<xxx>("select * from song");
+            var t3 = g.mysql.Ado.Query<xxx>("select * from freesql_song");
             time.Stop();
             sb.AppendLine($"Elapsed: {time.Elapsed}; Query Entity Counts: {t3.Count}; ORM: FreeSql*");
 
             time.Restart();
-            var t4 = g.mysql.Ado.Query<(int, string, string)>("select * from song");
+            var t4 = g.mysql.Ado.Query<(int, string, string)>("select * from freesql_song");
             time.Stop();
             sb.AppendLine($"Elapsed: {time.Elapsed}; Query Tuple Counts: {t4.Count}; ORM: FreeSql*");
 
@@ -68,7 +69,7 @@ namespace FreeSql.Tests.PerformanceTest
             sb.AppendLine($"Elapsed: {time.Elapsed}; Query ToList<Tuple> Counts: {t41.Count}; ORM: FreeSql*");
 
             time.Restart();
-            var t5 = g.mysql.Ado.Query<dynamic>("select * from song");
+            var t5 = g.mysql.Ado.Query<dynamic>("select * from freesql_song");
             time.Stop();
             sb.AppendLine($"Elapsed: {time.Elapsed}; Query Dynamic Counts: {t3.Count}; ORM: FreeSql*");
 
@@ -86,7 +87,7 @@ namespace FreeSql.Tests.PerformanceTest
             {
                 using (var conn = g.mysql.Ado.MasterPool.Get())
                 {
-                    dplist1.AddRange(Dapper.SqlMapper.Query<xxx>(conn.Value, "select * from song limit 10").ToList());
+                    dplist1.AddRange(Dapper.SqlMapper.Query<xxx>(conn.Value, "select * from freesql_song limit 10").ToList());
                 }
             }
             time.Stop();
@@ -98,7 +99,7 @@ namespace FreeSql.Tests.PerformanceTest
             {
                 using (var conn = g.mysql.Ado.MasterPool.Get())
                 {
-                    dplist2.AddRange(Dapper.SqlMapper.Query<(int, string, string)>(conn.Value, "select * from song limit 10").ToList());
+                    dplist2.AddRange(Dapper.SqlMapper.Query<(int, string, string)>(conn.Value, "select * from freesql_song limit 10").ToList());
                 }
             }
             time.Stop();
@@ -110,7 +111,7 @@ namespace FreeSql.Tests.PerformanceTest
             {
                 using (var conn = g.mysql.Ado.MasterPool.Get())
                 {
-                    dplist3.AddRange(Dapper.SqlMapper.Query<dynamic>(conn.Value, "select * from song limit 10").ToList());
+                    dplist3.AddRange(Dapper.SqlMapper.Query<dynamic>(conn.Value, "select * from freesql_song limit 10").ToList());
                 }
             }
             time.Stop();
@@ -123,7 +124,7 @@ namespace FreeSql.Tests.PerformanceTest
             List<xxx> t3 = new List<xxx>();
             for (var a = 0; a < 10000; a++)
             {
-                t3.AddRange(g.mysql.Ado.Query<xxx>("select * from song limit 10"));
+                t3.AddRange(g.mysql.Ado.Query<xxx>("select * from freesql_song limit 10"));
             }
             time.Stop();
             sb.AppendLine($"Elapsed: {time.Elapsed}; Query Entity Counts: {t3.Count}; ORM: FreeSql*");
@@ -132,7 +133,7 @@ namespace FreeSql.Tests.PerformanceTest
             List<(int, string, string)> t4 = new List<(int, string, string)>();
             for (var a = 0; a < 10000; a++)
             {
-                t4.AddRange(g.mysql.Ado.Query<(int, string, string)>("select * from song limit 10"));
+                t4.AddRange(g.mysql.Ado.Query<(int, string, string)>("select * from freesql_song limit 10"));
             }
             time.Stop();
             sb.AppendLine($"Elapsed: {time.Elapsed}; Query Tuple Counts: {t4.Count}; ORM: FreeSql*");
@@ -141,7 +142,7 @@ namespace FreeSql.Tests.PerformanceTest
             List<dynamic> t5 = new List<dynamic>();
             for (var a = 0; a < 10000; a++)
             {
-                t5.AddRange(g.mysql.Ado.Query<dynamic>("select * from song limit 10"));
+                t5.AddRange(g.mysql.Ado.Query<dynamic>("select * from freesql_song limit 10"));
             }
             time.Stop();
             sb.AppendLine($"Elapsed: {time.Elapsed}; Query Dynamic Counts: {t3.Count}; ORM: FreeSql*");
@@ -155,6 +156,7 @@ namespace FreeSql.Tests.PerformanceTest
             var time = new Stopwatch();
 
             //var t31 = g.mysql.Select<xxx>().ToList();
+            g.mysql.Select<xxx>().First();
 
             time.Restart();
             var t3 = g.mysql.Select<xxx>().ToList();
@@ -162,10 +164,61 @@ namespace FreeSql.Tests.PerformanceTest
             sb.AppendLine($"Elapsed: {time.Elapsed}; ToList Entity Counts: {t3.Count}; ORM: FreeSql*");
 
             time.Restart();
+            var adoarr1 = g.mysql.Ado.ExecuteArray("select * from freesql_song");
+            time.Stop();
+            sb.AppendLine($"Elapsed: {time.Elapsed}; ExecuteArray Entity Counts: {adoarr1.Length}; ORM: FreeSql ExecuteArray*");
+
+            time.Restart();
+            var adolist1 = new List<xxx>();
+            g.mysql.Ado.ExecuteReader(dr =>
+            {
+                var xim = new xxx();
+                dr.GetValue(0);
+                dr.GetValue(1);
+                dr.GetValue(2);
+                dr.GetValue(3);
+                dr.GetValue(4);
+                adolist1.Add(xim);
+            }, "select * from freesql_song");
+            time.Stop();
+            sb.AppendLine($"Elapsed: {time.Elapsed}; ExecuteReader Entity Counts: {adolist1.Count}; ORM: FreeSql ExecuteReader*");
+
+            time.Restart();
+            adolist1 = new List<xxx>();
+            g.mysql.Ado.ExecuteReader(dr =>
+            {
+                var xim = new xxx();
+                dr.GetFieldValue<int>(0);
+                dr.GetFieldValue<DateTime>(1);
+                dr.GetFieldValue<bool>(2);
+                dr.GetFieldValue<string>(3);
+                dr.GetFieldValue<string>(4);
+                adolist1.Add(xim);
+            }, "select * from freesql_song");
+            time.Stop();
+            sb.AppendLine($"Elapsed: {time.Elapsed}; ExecuteReader0000 Entity Counts: {adolist1.Count}; ORM: FreeSql ExecuteReader0000*");
+
+            //time.Restart();
+            //adolist1 = new List<xxx>();
+            //g.mysql.Ado.ExecuteReader(dr =>
+            //{
+            //    var xim = new xxx();
+            //    Utils.GetDataReaderValue(typeof(int), dr.GetValue(0));
+            //    Utils.GetDataReaderValue(typeof(DateTime), dr.GetValue(1));
+            //    Utils.GetDataReaderValue(typeof(bool), dr.GetValue(2));
+            //    Utils.GetDataReaderValue(typeof(string), dr.GetValue(3));
+            //    Utils.GetDataReaderValue(typeof(string), dr.GetValue(4));
+            //    adolist1.Add(xim);
+            //}, "select * from freesql_song");
+            //time.Stop();
+            //sb.AppendLine($"Elapsed: {time.Elapsed}; ExecuteReader1111 Entity Counts: {adolist1.Count}; ORM: FreeSql ExecuteReader1111*");
+
+
+            time.Restart();
             List<xxx> dplist1 = null;
             using (var conn = g.mysql.Ado.MasterPool.Get())
             {
-                dplist1 = Dapper.SqlMapper.Query<xxx>(conn.Value, "select * from song").ToList();
+                dplist1 = Dapper.SqlMapper.Query<xxx>(conn.Value, "select * from freesql_song").ToList();
             }
             time.Stop();
             sb.AppendLine($"Elapsed: {time.Elapsed}; Query Entity Counts: {dplist1.Count}; ORM: Dapper");
@@ -201,7 +254,7 @@ namespace FreeSql.Tests.PerformanceTest
                 {
                     using (var conn = g.mysql.Ado.MasterPool.Get())
                     {
-                        dplist1.AddRange(Dapper.SqlMapper.Query<xxx>(conn.Value, "select * from song limit 50").ToList());
+                        dplist1.AddRange(Dapper.SqlMapper.Query<xxx>(conn.Value, "select * from freesql_song limit 50").ToList());
                     }
                 }
                 Interlocked.Add(ref dplist1Count, dplist1.Count);
@@ -211,12 +264,12 @@ namespace FreeSql.Tests.PerformanceTest
             sb.AppendLine($"Elapsed: {time.Elapsed}; Query Entity Counts: {dplist1Count}; ORM: Dapper");
         }
 
-        [Table(Name = "song")]
+        [Table(Name = "freesql_song")]
         class xxx
         {
             public int Id { get; set; }
             public string Title { get; set; }
-            //public string Url { get; set; }
+            public string Url { get; set; }
             public DateTime Create_time { get; set; }
             public bool Is_deleted { get; set; }
         }

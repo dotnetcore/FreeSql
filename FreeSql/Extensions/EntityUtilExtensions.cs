@@ -55,6 +55,7 @@ namespace FreeSql.Extensions.EntityUtil
                     {
                         Expression newguid = Expression.Call(MethodFreeUtilNewMongodbId);
                         if (pks[a].Attribute.MapType != pks[a].CsType) newguid = FreeSql.Internal.Utils.GetDataReaderValueBlockExpression(pks[a].CsType, newguid);
+                        if (pks[a].CsType == typeof(Guid)) newguid = Expression.Convert(newguid, typeof(Guid));
                         if (pks[a].CsType == typeof(Guid?)) newguid = Expression.Convert(newguid, typeof(Guid?));
                         expthen = Expression.Block(
                             new Expression[]{
@@ -553,20 +554,31 @@ namespace FreeSql.Extensions.EntityUtil
                 {
                     if (_table.ColumnsByCs.TryGetValue(prop.Name, out var trycol) == false) continue;
                     exps.Add(
-                        Expression.IfThenElse(
-                            Expression.Equal(
-                                Expression.MakeMemberAccess(var1Parm, prop),
-                                Expression.MakeMemberAccess(var2Parm, prop)
-                            ),
+                        trycol.Attribute.CanUpdate == false ?
                             Expression.IfThen(
                                 Expression.IsTrue(parm3),
                                 Expression.Call(var1Ret, typeof(List<string>).GetMethod("Add", new Type[] { typeof(string) }), Expression.Constant(trycol.Attribute.Name))
-                            ),
-                            Expression.IfThen(
-                                Expression.IsFalse(parm3),
-                                Expression.Call(var1Ret, typeof(List<string>).GetMethod("Add", new Type[] { typeof(string) }), Expression.Constant(trycol.Attribute.Name))
+                            ) : (
+                                trycol.Attribute.CanUpdate && string.IsNullOrEmpty(trycol.DbUpdateValue) == false ?
+                                Expression.IfThen(
+                                    Expression.IsFalse(parm3),
+                                    Expression.Call(var1Ret, typeof(List<string>).GetMethod("Add", new Type[] { typeof(string) }), Expression.Constant(trycol.Attribute.Name))
+                                ) :
+                                Expression.IfThenElse(
+                                    Expression.Equal(
+                                        Expression.MakeMemberAccess(var1Parm, prop),
+                                        Expression.MakeMemberAccess(var2Parm, prop)
+                                    ),
+                                    Expression.IfThen(
+                                        Expression.IsTrue(parm3),
+                                        Expression.Call(var1Ret, typeof(List<string>).GetMethod("Add", new Type[] { typeof(string) }), Expression.Constant(trycol.Attribute.Name))
+                                    ),
+                                    Expression.IfThen(
+                                        Expression.IsFalse(parm3),
+                                        Expression.Call(var1Ret, typeof(List<string>).GetMethod("Add", new Type[] { typeof(string) }), Expression.Constant(trycol.Attribute.Name))
+                                    )
+                                )
                             )
-                        )
                     );
                     a++;
                 }

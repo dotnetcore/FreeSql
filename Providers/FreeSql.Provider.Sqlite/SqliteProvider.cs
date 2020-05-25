@@ -24,11 +24,12 @@ namespace FreeSql.Sqlite
         public IUpdate<T1> Update<T1>(object dywhere) where T1 : class => new SqliteUpdate<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, dywhere);
         public IDelete<T1> Delete<T1>() where T1 : class => new SqliteDelete<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, null);
         public IDelete<T1> Delete<T1>(object dywhere) where T1 : class => new SqliteDelete<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, dywhere);
+        public IInsertOrUpdate<T1> InsertOrUpdate<T1>() where T1 : class => new SqliteInsertOrUpdate<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression);
 
         public IAdo Ado { get; }
         public IAop Aop { get; }
         public ICodeFirst CodeFirst { get; }
-        public IDbFirst DbFirst => throw new NotImplementedException("FreeSql.Provider.Sqlite 未实现该功能");
+        public IDbFirst DbFirst { get; }// => throw new NotImplementedException("FreeSql.Provider.Sqlite 未实现该功能");
         public SqliteProvider(string masterConnectionString, string[] slaveConnectionString, Func<DbConnection> connectionFactory = null)
         {
             this.InternalCommonUtils = new SqliteUtils(this);
@@ -38,14 +39,15 @@ namespace FreeSql.Sqlite
             this.Aop = new AopProvider();
 
             this.CodeFirst = new SqliteCodeFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
+            this.DbFirst = new SqliteDbFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
+            if (connectionFactory != null) this.CodeFirst.IsNoneCommandParameter = true;
         }
 
         internal CommonUtils InternalCommonUtils { get; }
         internal CommonExpression InternalCommonExpression { get; }
 
         public void Transaction(Action handler) => Ado.Transaction(handler);
-        public void Transaction(TimeSpan timeout, Action handler) => Ado.Transaction(timeout, handler);
-        public void Transaction(IsolationLevel isolationLevel, TimeSpan timeout, Action handler) => Ado.Transaction(isolationLevel, timeout, handler);
+        public void Transaction(IsolationLevel isolationLevel, Action handler) => Ado.Transaction(isolationLevel, handler);
 
         public GlobalFilter GlobalFilter { get; } = new GlobalFilter();
 

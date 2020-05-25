@@ -13,7 +13,7 @@ namespace FreeSql
         /// <typeparam name="TKey"></typeparam>
         /// <param name="filter">数据过滤 + 验证</param>
         /// <returns></returns>
-        DefaultRepository<TEntity, TKey> GetRepository<TEntity, TKey>(Expression<Func<TEntity, bool>> filter = null) where TEntity : class;
+        IBaseRepository<TEntity, TKey> GetRepository<TEntity, TKey>(Expression<Func<TEntity, bool>> filter = null) where TEntity : class;
 
         /// <summary>
         /// 在工作单元内创建联合主键的仓储类，工作单元下的仓储操作具有事务特点
@@ -21,7 +21,7 @@ namespace FreeSql
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="filter">数据过滤 + 验证</param>
         /// <returns></returns>
-        BaseRepository<TEntity> GetRepository<TEntity>(Expression<Func<TEntity, bool>> filter = null) where TEntity : class;
+        IBaseRepository<TEntity> GetRepository<TEntity>(Expression<Func<TEntity, bool>> filter = null) where TEntity : class;
 
         /// <summary>
         /// 在工作单元内创建仓库类，工作单元下的仓储操作具有事务特点
@@ -30,7 +30,7 @@ namespace FreeSql
         /// <param name="filter">数据过滤 + 验证</param>
         /// <param name="asTable">分表规则，参数：旧表名；返回：新表名 https://github.com/2881099/FreeSql/wiki/Repository</param>
         /// <returns></returns>
-        GuidRepository<TEntity> GetGuidRepository<TEntity>(Expression<Func<TEntity, bool>> filter = null, Func<string, string> asTable = null) where TEntity : class;
+        IBaseRepository<TEntity, Guid> GetGuidRepository<TEntity>(Expression<Func<TEntity, bool>> filter = null, Func<string, string> asTable = null) where TEntity : class;
     }
 
     class RepositoryUnitOfWork : UnitOfWork, IRepositoryUnitOfWork
@@ -40,21 +40,21 @@ namespace FreeSql
         {
         }
 
-        public GuidRepository<TEntity> GetGuidRepository<TEntity>(Expression<Func<TEntity, bool>> filter = null, Func<string, string> asTable = null) where TEntity : class
+        public IBaseRepository<TEntity, Guid> GetGuidRepository<TEntity>(Expression<Func<TEntity, bool>> filter = null, Func<string, string> asTable = null) where TEntity : class
         {
             var repo = new GuidRepository<TEntity>(_fsql, filter, asTable);
             repo.UnitOfWork = this;
             return repo;
         }
 
-        public DefaultRepository<TEntity, TKey> GetRepository<TEntity, TKey>(Expression<Func<TEntity, bool>> filter = null) where TEntity : class
+        public IBaseRepository<TEntity, TKey> GetRepository<TEntity, TKey>(Expression<Func<TEntity, bool>> filter = null) where TEntity : class
         {
             var repo = new DefaultRepository<TEntity, TKey>(_fsql, filter);
             repo.UnitOfWork = this;
             return repo;
         }
 
-        public BaseRepository<TEntity> GetRepository<TEntity>(Expression<Func<TEntity, bool>> filter = null) where TEntity : class
+        public IBaseRepository<TEntity> GetRepository<TEntity>(Expression<Func<TEntity, bool>> filter = null) where TEntity : class
         {
             var repo = new DefaultRepository<TEntity, int>(_fsql, filter);
             repo.UnitOfWork = this;

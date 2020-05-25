@@ -3,7 +3,7 @@ using FreeSql.Internal;
 using Newtonsoft.Json.Linq;
 using Npgsql.LegacyPostgis;
 using NpgsqlTypes;
-using SafeObjectPool;
+using FreeSql.Internal.ObjectPool;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -319,8 +319,8 @@ t.typname,
 case when a.atttypmod > 0 and a.atttypmod < 32767 then a.atttypmod - 4 else a.attlen end len,
 case when t.typelem = 0 then t.typname else t2.typname end,
 case when a.attnotnull then 0 else 1 end as is_nullable,
-coalesce((select 1 from pg_sequences where sequencename = {0} || '_' || {1} || '_' || a.attname || '_sequence_name' limit 1),0) is_identity,
---e.adsrc as is_identity,
+--e.adsrc as is_identity, pg12以下
+(select pg_get_expr(adbin, adrelid) from pg_attrdef where adrelid = e.adrelid limit 1) is_identity,
 d.description as comment,
 a.attndims,
 case when t.typelem = 0 then t.typtype else t2.typtype end,
@@ -338,6 +338,7 @@ where {loc8.ToString().Replace("a.table_name", "ns.nspname || '.' || c.relname")
                 ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
                 if (ds == null) return loc1;
 
+                var position = 0;
                 foreach (object[] row in ds)
                 {
                     var object_id = string.Concat(row[0]);
@@ -346,8 +347,9 @@ where {loc8.ToString().Replace("a.table_name", "ns.nspname || '.' || c.relname")
                     var max_length = int.Parse(string.Concat(row[3]));
                     var sqlType = string.Concat(row[4]);
                     var is_nullable = string.Concat(row[5]) == "1";
-                    var is_identity = string.Concat(row[6]) == "1"; //string.Concat(row[6]).StartsWith(@"nextval('") && string.Concat(row[6]).EndsWith(@"'::regclass)");
+                    var is_identity = string.Concat(row[6]).StartsWith(@"nextval('") && string.Concat(row[6]).EndsWith(@"'::regclass)");
                     var comment = string.Concat(row[7]);
+                    var defaultValue = string.Concat(row[6]);
                     int attndims = int.Parse(string.Concat(row[8]));
                     string typtype = string.Concat(row[9]);
                     string owner = string.Concat(row[10]);
@@ -383,7 +385,9 @@ where {loc8.ToString().Replace("a.table_name", "ns.nspname || '.' || c.relname")
                         DbTypeText = type,
                         DbTypeTextFull = sqlType,
                         Table = loc2[object_id],
-                        Coment = comment
+                        Coment = comment,
+                        DefaultValue = defaultValue,
+                        Position = ++position
                     });
                     loc3[object_id][column].DbType = this.GetDbType(loc3[object_id][column]);
                     loc3[object_id][column].CsType = this.GetCsTypeInfo(loc3[object_id][column]);
@@ -405,7 +409,7 @@ inner join pg_class b on b.oid = a.indexrelid
 inner join pg_attribute c on c.attnum > 0 and c.attrelid = b.oid
 inner join pg_namespace ns on ns.oid = b.relnamespace
 inner join pg_class d on d.oid = a.indrelid
-where {loc8.ToString().Replace("a.table_name", "ns.nspname || '.' || d.relname")} and a.indisprimary = 'f'
+where {loc8.ToString().Replace("a.table_name", "ns.nspname || '.' || d.relname")}
 ";
                 ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
                 if (ds == null) return loc1;

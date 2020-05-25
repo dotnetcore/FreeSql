@@ -1,14 +1,10 @@
-﻿using FreeSql.DataAnnotations;
-using FreeSql.DatabaseModel;
-using FreeSql.Internal;
+﻿using FreeSql.Internal;
 using FreeSql.Internal.Model;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 
 namespace FreeSql.SqlServer
 {
@@ -19,36 +15,36 @@ namespace FreeSql.SqlServer
         public SqlServerCodeFirst(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression) : base(orm, commonUtils, commonExpression) { }
 
         static object _dicCsToDbLock = new object();
-        static Dictionary<string, (SqlDbType type, string dbtype, string dbtypeFull, bool? isUnsigned, bool? isnullable, object defaultValue)> _dicCsToDb = new Dictionary<string, (SqlDbType type, string dbtype, string dbtypeFull, bool? isUnsigned, bool? isnullable, object defaultValue)>() {
-                { typeof(bool).FullName,  (SqlDbType.Bit, "bit","bit NOT NULL", null, false, false) },{ typeof(bool?).FullName,  (SqlDbType.Bit, "bit","bit", null, true, null) },
+        static Dictionary<string, CsToDb<SqlDbType>> _dicCsToDb = new Dictionary<string, CsToDb<SqlDbType>>() {
+                { typeof(bool).FullName, CsToDb.New(SqlDbType.Bit, "bit","bit NOT NULL", null, false, false) },{ typeof(bool?).FullName, CsToDb.New(SqlDbType.Bit, "bit","bit", null, true, null) },
 
-                { typeof(sbyte).FullName,  (SqlDbType.SmallInt, "smallint", "smallint NOT NULL", false, false, 0) },{ typeof(sbyte?).FullName,  (SqlDbType.SmallInt, "smallint", "smallint", false, true, null) },
-                { typeof(short).FullName,  (SqlDbType.SmallInt, "smallint","smallint NOT NULL", false, false, 0) },{ typeof(short?).FullName,  (SqlDbType.SmallInt, "smallint", "smallint", false, true, null) },
-                { typeof(int).FullName,  (SqlDbType.Int, "int", "int NOT NULL", false, false, 0) },{ typeof(int?).FullName,  (SqlDbType.Int, "int", "int", false, true, null) },
-                { typeof(long).FullName,  (SqlDbType.BigInt, "bigint","bigint NOT NULL", false, false, 0) },{ typeof(long?).FullName,  (SqlDbType.BigInt, "bigint","bigint", false, true, null) },
+                { typeof(sbyte).FullName, CsToDb.New(SqlDbType.SmallInt, "smallint", "smallint NOT NULL", false, false, 0) },{ typeof(sbyte?).FullName, CsToDb.New(SqlDbType.SmallInt, "smallint", "smallint", false, true, null) },
+                { typeof(short).FullName, CsToDb.New(SqlDbType.SmallInt, "smallint","smallint NOT NULL", false, false, 0) },{ typeof(short?).FullName, CsToDb.New(SqlDbType.SmallInt, "smallint", "smallint", false, true, null) },
+                { typeof(int).FullName, CsToDb.New(SqlDbType.Int, "int", "int NOT NULL", false, false, 0) },{ typeof(int?).FullName, CsToDb.New(SqlDbType.Int, "int", "int", false, true, null) },
+                { typeof(long).FullName, CsToDb.New(SqlDbType.BigInt, "bigint","bigint NOT NULL", false, false, 0) },{ typeof(long?).FullName, CsToDb.New(SqlDbType.BigInt, "bigint","bigint", false, true, null) },
 
-                { typeof(byte).FullName,  (SqlDbType.TinyInt, "tinyint","tinyint NOT NULL", true, false, 0) },{ typeof(byte?).FullName,  (SqlDbType.TinyInt, "tinyint","tinyint", true, true, null) },
-                { typeof(ushort).FullName,  (SqlDbType.Int, "int","int NOT NULL", true, false, 0) },{ typeof(ushort?).FullName,  (SqlDbType.Int, "int", "int", true, true, null) },
-                { typeof(uint).FullName,  (SqlDbType.BigInt, "bigint", "bigint NOT NULL", true, false, 0) },{ typeof(uint?).FullName,  (SqlDbType.BigInt, "bigint", "bigint", true, true, null) },
-                { typeof(ulong).FullName,  (SqlDbType.Decimal, "decimal", "decimal(20,0) NOT NULL", true, false, 0) },{ typeof(ulong?).FullName,  (SqlDbType.Decimal, "decimal", "decimal(20,0)", true, true, null) },
+                { typeof(byte).FullName, CsToDb.New(SqlDbType.TinyInt, "tinyint","tinyint NOT NULL", true, false, 0) },{ typeof(byte?).FullName, CsToDb.New(SqlDbType.TinyInt, "tinyint","tinyint", true, true, null) },
+                { typeof(ushort).FullName, CsToDb.New(SqlDbType.Int, "int","int NOT NULL", true, false, 0) },{ typeof(ushort?).FullName, CsToDb.New(SqlDbType.Int, "int", "int", true, true, null) },
+                { typeof(uint).FullName, CsToDb.New(SqlDbType.BigInt, "bigint", "bigint NOT NULL", true, false, 0) },{ typeof(uint?).FullName, CsToDb.New(SqlDbType.BigInt, "bigint", "bigint", true, true, null) },
+                { typeof(ulong).FullName, CsToDb.New(SqlDbType.Decimal, "decimal", "decimal(20,0) NOT NULL", true, false, 0) },{ typeof(ulong?).FullName, CsToDb.New(SqlDbType.Decimal, "decimal", "decimal(20,0)", true, true, null) },
 
-                { typeof(double).FullName,  (SqlDbType.Float, "float", "float NOT NULL", false, false, 0) },{ typeof(double?).FullName,  (SqlDbType.Float, "float", "float", false, true, null) },
-                { typeof(float).FullName,  (SqlDbType.Real, "real","real NOT NULL", false, false, 0) },{ typeof(float?).FullName,  (SqlDbType.Real, "real","real", false, true, null) },
-                { typeof(decimal).FullName,  (SqlDbType.Decimal, "decimal", "decimal(10,2) NOT NULL", false, false, 0) },{ typeof(decimal?).FullName,  (SqlDbType.Decimal, "decimal", "decimal(10,2)", false, true, null) },
+                { typeof(double).FullName, CsToDb.New(SqlDbType.Float, "float", "float NOT NULL", false, false, 0) },{ typeof(double?).FullName, CsToDb.New(SqlDbType.Float, "float", "float", false, true, null) },
+                { typeof(float).FullName, CsToDb.New(SqlDbType.Real, "real","real NOT NULL", false, false, 0) },{ typeof(float?).FullName, CsToDb.New(SqlDbType.Real, "real","real", false, true, null) },
+                { typeof(decimal).FullName, CsToDb.New(SqlDbType.Decimal, "decimal", "decimal(10,2) NOT NULL", false, false, 0) },{ typeof(decimal?).FullName, CsToDb.New(SqlDbType.Decimal, "decimal", "decimal(10,2)", false, true, null) },
 
-                { typeof(TimeSpan).FullName,  (SqlDbType.Time, "time","time NOT NULL", false, false, 0) },{ typeof(TimeSpan?).FullName,  (SqlDbType.Time, "time", "time",false, true, null) },
-                { typeof(DateTime).FullName,  (SqlDbType.DateTime, "datetime", "datetime NOT NULL", false, false, new DateTime(1970,1,1)) },{ typeof(DateTime?).FullName,  (SqlDbType.DateTime, "datetime", "datetime", false, true, null) },
-                { typeof(DateTimeOffset).FullName,  (SqlDbType.DateTimeOffset, "datetimeoffset", "datetimeoffset NOT NULL", false, false, new DateTimeOffset(new DateTime(1970,1,1), TimeSpan.Zero)) },{ typeof(DateTimeOffset?).FullName,  (SqlDbType.DateTimeOffset, "datetimeoffset", "datetimeoffset", false, true, null) },
+                { typeof(TimeSpan).FullName, CsToDb.New(SqlDbType.Time, "time","time NOT NULL", false, false, 0) },{ typeof(TimeSpan?).FullName, CsToDb.New(SqlDbType.Time, "time", "time",false, true, null) },
+                { typeof(DateTime).FullName, CsToDb.New(SqlDbType.DateTime, "datetime", "datetime NOT NULL", false, false, new DateTime(1970,1,1)) },{ typeof(DateTime?).FullName, CsToDb.New(SqlDbType.DateTime, "datetime", "datetime", false, true, null) },
+                { typeof(DateTimeOffset).FullName, CsToDb.New(SqlDbType.DateTimeOffset, "datetimeoffset", "datetimeoffset NOT NULL", false, false, new DateTimeOffset(new DateTime(1970,1,1), TimeSpan.Zero)) },{ typeof(DateTimeOffset?).FullName, CsToDb.New(SqlDbType.DateTimeOffset, "datetimeoffset", "datetimeoffset", false, true, null) },
 
-                { typeof(byte[]).FullName,  (SqlDbType.VarBinary, "varbinary", "varbinary(255)", false, null, new byte[0]) },
-                { typeof(string).FullName,  (SqlDbType.NVarChar, "nvarchar", "nvarchar(255)", false, null, "") },
+                { typeof(byte[]).FullName, CsToDb.New(SqlDbType.VarBinary, "varbinary", "varbinary(255)", false, null, new byte[0]) },
+                { typeof(string).FullName, CsToDb.New(SqlDbType.NVarChar, "nvarchar", "nvarchar(255)", false, null, "") },
 
-                { typeof(Guid).FullName,  (SqlDbType.UniqueIdentifier, "uniqueidentifier", "uniqueidentifier NOT NULL", false, false, Guid.Empty) },{ typeof(Guid?).FullName,  (SqlDbType.UniqueIdentifier, "uniqueidentifier", "uniqueidentifier", false, true, null) },
+                { typeof(Guid).FullName, CsToDb.New(SqlDbType.UniqueIdentifier, "uniqueidentifier", "uniqueidentifier NOT NULL", false, false, Guid.Empty) },{ typeof(Guid?).FullName, CsToDb.New(SqlDbType.UniqueIdentifier, "uniqueidentifier", "uniqueidentifier", false, true, null) },
             };
 
-        public override (int type, string dbtype, string dbtypeFull, bool? isnullable, object defaultValue)? GetDbInfo(Type type)
+        public override DbInfoResult GetDbInfo(Type type)
         {
-            if (_dicCsToDb.TryGetValue(type.FullName, out var trydc)) return new (int, string, string, bool?, object)?(((int)trydc.type, trydc.dbtype, trydc.dbtypeFull, trydc.isnullable, trydc.defaultValue));
+            if (_dicCsToDb.TryGetValue(type.FullName, out var trydc)) return new DbInfoResult((int)trydc.type, trydc.dbtype, trydc.dbtypeFull, trydc.isnullable, trydc.defaultValue);
             if (type.IsArray) return null;
             var enumType = type.IsEnum ? type : null;
             if (enumType == null && type.IsNullableType())
@@ -59,8 +55,8 @@ namespace FreeSql.SqlServer
             if (enumType != null)
             {
                 var newItem = enumType.GetCustomAttributes(typeof(FlagsAttribute), false).Any() ?
-                    (SqlDbType.BigInt, "bigint", $"bigint{(type.IsEnum ? " NOT NULL" : "")}", false, type.IsEnum ? false : true, Enum.GetValues(enumType).GetValue(0)) :
-                    (SqlDbType.Int, "int", $"int{(type.IsEnum ? " NOT NULL" : "")}", false, type.IsEnum ? false : true, Enum.GetValues(enumType).GetValue(0));
+                    CsToDb.New(SqlDbType.BigInt, "bigint", $"bigint{(type.IsEnum ? " NOT NULL" : "")}", false, type.IsEnum ? false : true, enumType.CreateInstanceGetDefaultValue()) :
+                    CsToDb.New(SqlDbType.Int, "int", $"int{(type.IsEnum ? " NOT NULL" : "")}", false, type.IsEnum ? false : true, enumType.CreateInstanceGetDefaultValue());
                 if (_dicCsToDb.ContainsKey(type.FullName) == false)
                 {
                     lock (_dicCsToDbLock)
@@ -69,11 +65,40 @@ namespace FreeSql.SqlServer
                             _dicCsToDb.Add(type.FullName, newItem);
                     }
                 }
-                return ((int)newItem.Item1, newItem.Item2, newItem.Item3, newItem.Item5, newItem.Item6);
+                return new DbInfoResult((int)newItem.type, newItem.dbtype, newItem.dbtypeFull, newItem.isnullable, newItem.defaultValue);
             }
             return null;
         }
 
+        void AddOrUpdateMS_Description(StringBuilder sb, string schema, string table, string comment)
+        {
+            if (string.IsNullOrEmpty(comment))
+            {
+                sb.AppendFormat(@"
+IF ((SELECT COUNT(1) from fn_listextendedproperty('MS_Description', 
+  'SCHEMA', N'{0}', 
+  'TABLE', N'{1}', 
+  NULL, NULL)) > 0) 
+  EXEC sp_dropextendedproperty @name = N'MS_Description'
+    , @level0type = 'SCHEMA', @level0name = N'{0}'
+    , @level1type = 'TABLE', @level1name = N'{1}'
+", schema.Replace("'", "''"), table.Replace("'", "''"));
+                return;
+            }
+            sb.AppendFormat(@"
+IF ((SELECT COUNT(1) from fn_listextendedproperty('MS_Description', 
+  'SCHEMA', N'{0}', 
+  'TABLE', N'{1}', 
+  NULL, NULL)) > 0) 
+  EXEC sp_updateextendedproperty @name = N'MS_Description', @value = N'{2}'
+    , @level0type = 'SCHEMA', @level0name = N'{0}'
+    , @level1type = 'TABLE', @level1name = N'{1}'
+ELSE
+  EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'{2}'
+    , @level0type = 'SCHEMA', @level0name = N'{0}'
+    , @level1type = 'TABLE', @level1name = N'{1}'
+", schema.Replace("'", "''"), table.Replace("'", "''"), comment?.Replace("'", "''") ?? "");
+        }
         void AddOrUpdateMS_Description(StringBuilder sb, string schema, string table, string column, string comment)
         {
             if (string.IsNullOrEmpty(comment))
@@ -106,7 +131,7 @@ ELSE
     , @level2type = 'COLUMN', @level2name = N'{2}'
 ", schema.Replace("'", "''"), table.Replace("'", "''"), column.Replace("'", "''"), comment?.Replace("'", "''") ?? "");
         }
-        protected override string GetComparisonDDLStatements(params (Type entityType, string tableName)[] objects)
+        protected override string GetComparisonDDLStatements(params TypeAndName[] objects)
         {
             var conn = _orm.Ado.MasterPool.Get(TimeSpan.FromSeconds(5));
             string database = null;
@@ -138,16 +163,16 @@ ELSE
                     var tb = _commonUtils.GetTableByEntity(obj.entityType);
                     if (tb == null) throw new Exception($"类型 {obj.entityType.FullName} 不可迁移");
                     if (tb.Columns.Any() == false) throw new Exception($"类型 {obj.entityType.FullName} 不可迁移，可迁移属性0个");
-                    var tbname = tb.DbName.Split(new[] { '.' }, 3);
+                    var tbname = _commonUtils.SplitTableName(tb.DbName);
                     if (tbname?.Length == 1) tbname = new[] { database, "dbo", tbname[0] };
                     if (tbname?.Length == 2) tbname = new[] { database, tbname[0], tbname[1] };
 
-                    var tboldname = tb.DbOldName?.Split(new[] { '.' }, 3); //旧表名
+                    var tboldname = _commonUtils.SplitTableName(tb.DbOldName); //旧表名
                     if (tboldname?.Length == 1) tboldname = new[] { database, "dbo", tboldname[0] };
                     if (tboldname?.Length == 2) tboldname = new[] { database, tboldname[0], tboldname[1] };
                     if (string.IsNullOrEmpty(obj.tableName) == false)
                     {
-                        var tbtmpname = obj.tableName.Split(new[] { '.' }, 3);
+                        var tbtmpname = _commonUtils.SplitTableName(obj.tableName);
                         if (tbtmpname?.Length == 1) tbtmpname = new[] { database, "dbo", tbtmpname[0] };
                         if (tbtmpname?.Length == 2) tbtmpname = new[] { database, tbtmpname[0], tbtmpname[1] };
                         if (tbname[0] != tbtmpname[0] || tbname[1] != tbtmpname[1] || tbname[2] != tbtmpname[2])
@@ -156,6 +181,7 @@ ELSE
                             tboldname = null;
                         }
                     }
+                    //codefirst 不支持表名、模式名、数据库名中带 .
 
                     if (string.Compare(tbname[0], database, true) != 0 && ExecuteScalar(database, $" select 1 from sys.databases where name='{tbname[0]}'") == null) //创建数据库
                         ExecuteScalar(database, $"if not exists(select 1 from sys.databases where name='{tbname[0]}')\r\n\tcreate database [{tbname[0]}];");
@@ -218,6 +244,8 @@ ELSE
                                 if (string.IsNullOrEmpty(tbcol.Comment) == false)
                                     AddOrUpdateMS_Description(sb, tbname[1], tbname[2], tbcol.Attribute.Name, tbcol.Comment);
                             }
+                            if (string.IsNullOrEmpty(tb.Comment) == false)
+                                AddOrUpdateMS_Description(sb, tbname[1], tbname[2], tb.Comment);
                             continue;
                         }
                         //如果新表，旧表在一个数据库和模式下，直接修改表名
@@ -253,7 +281,7 @@ inner join sys.types b on b.user_type_id = a.user_type_id
 left join sys.tables d on d.object_id = a.object_id
 left join sys.schemas e on e.schema_id = d.schema_id
 where a.object_id in (object_id(N'[{1}].[{2}]'));
-use " + database, tboldname ?? tbname);
+use [" + database + "];", tboldname ?? tbname);
                     var ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
                     var tbstruct = ds.ToDictionary(a => string.Concat(a[0]), a => new
                     {
@@ -305,7 +333,7 @@ from sys.index_columns a
 inner join sys.indexes b on b.object_id = a.object_id and b.index_id = a.index_id
 left join sys.columns c on c.object_id = a.object_id and c.column_id = a.column_id
 where a.object_id in (object_id(N'[{1}].[{2}]')) and b.is_primary_key = 0;
-use " + database, tboldname ?? tbname);
+use [" + database + "];", tboldname ?? tbname);
                         var dsuk = _orm.Ado.ExecuteArray(CommandType.Text, dsuksql).Select(a => new[] { string.Concat(a[0]), string.Concat(a[1]), string.Concat(a[2]), string.Concat(a[3]) });
                         foreach (var uk in tb.Indexes)
                         {
@@ -329,6 +357,10 @@ use " + database, tboldname ?? tbname);
                     }
                     if (istmpatler == false)
                     {
+                        var dbcomment = string.Concat(_orm.Ado.ExecuteScalar(CommandType.Text, $" SELECT value from fn_listextendedproperty('MS_Description', 'schema', N'{tbname[1].Replace("'", "''")}', 'table', N'{tbname[2].Replace("'", "''")}', NULL, NULL)"));
+                        if (dbcomment != (tb.Comment ?? ""))
+                            AddOrUpdateMS_Description(sb, tbname[1], tbname[2], tb.Comment);
+
                         if (sbalter.Length > 0)
                             sb.Append(sbalter).Append("\r\nuse " + database);
                         continue;
@@ -375,6 +407,9 @@ use " + database, tboldname ?? tbname);
                         if (string.IsNullOrEmpty(tbcol.Comment) == false)
                             AddOrUpdateMS_Description(sb, tbname[1], $"FreeSqlTmp_{tbname[2]}", tbcol.Attribute.Name, tbcol.Comment);
                     }
+                    if (string.IsNullOrEmpty(tb.Comment) == false)
+                        AddOrUpdateMS_Description(sb, tbname[1], $"FreeSqlTmp_{tbname[2]}", tb.Comment);
+
                     if ((_commonUtils as SqlServerUtils).ServerVersion > 9) //SqlServer 2008+
                         sb.Append("ALTER TABLE ").Append(tmptablename).Append(" SET (LOCK_ESCALATION = TABLE);\r\n");
                     if (idents) sb.Append("SET IDENTITY_INSERT ").Append(tmptablename).Append(" ON;\r\n");

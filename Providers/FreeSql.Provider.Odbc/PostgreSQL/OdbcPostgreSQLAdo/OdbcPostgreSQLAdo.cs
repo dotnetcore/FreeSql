@@ -1,6 +1,6 @@
 ﻿using FreeSql.Internal;
 using FreeSql.Internal.Model;
-using SafeObjectPool;
+using FreeSql.Internal.ObjectPool;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -13,8 +13,8 @@ namespace FreeSql.Odbc.PostgreSQL
 {
     class OdbcPostgreSQLAdo : FreeSql.Internal.CommonProvider.AdoProvider
     {
-        public OdbcPostgreSQLAdo() : base(DataType.OdbcPostgreSQL) { }
-        public OdbcPostgreSQLAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.OdbcPostgreSQL)
+        public OdbcPostgreSQLAdo() : base(DataType.OdbcPostgreSQL, null, null) { }
+        public OdbcPostgreSQLAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.OdbcPostgreSQL, masterConnectionString, slaveConnectionStrings)
         {
             base._util = util;
             if (connectionFactory != null)
@@ -37,8 +37,9 @@ namespace FreeSql.Odbc.PostgreSQL
         public override object AddslashesProcessParam(object param, Type mapType, ColumnInfo mapColumn)
         {
             if (param == null) return "NULL";
-            if (mapType != null && mapType != param.GetType() && (param is IEnumerable == false || mapType.IsArrayOrList()))
+            if (mapType != null && mapType != param.GetType() && (param is IEnumerable == false))
                 param = Utils.GetDataReaderValue(mapType, param);
+
             if (param is bool || param is bool?)
                 return (bool)param ? "'t'" : "'f'";
             else if (param is string || param is char)
@@ -51,6 +52,8 @@ namespace FreeSql.Odbc.PostgreSQL
                 return string.Concat("'", ((DateTime)param).ToString("yyyy-MM-dd HH:mm:ss.ffffff"), "'");
             else if (param is TimeSpan || param is TimeSpan?)
                 return ((TimeSpan)param).Ticks / 10;
+            else if (param is byte[])
+                return $"'\\x{CommonUtils.BytesSqlRaw(param as byte[])}'";
             else if (param is IEnumerable)
                 return AddslashesIEnumerable(param, mapType, mapColumn);
 

@@ -63,7 +63,7 @@ namespace FreeSql.Internal.CommonProvider
             if (string.IsNullOrEmpty(sql)) return 0;
             var dbParms = _params.ToArray();
             var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Delete, sql, dbParms);
-            _orm.Aop.CurdBefore?.Invoke(this, before);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             var affrows = 0;
             Exception exception = null;
             try
@@ -78,7 +78,7 @@ namespace FreeSql.Internal.CommonProvider
             finally
             {
                 var after = new Aop.CurdAfterEventArgs(before, exception, affrows);
-                _orm.Aop.CurdAfter?.Invoke(this, after);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
             this.ClearData();
             return affrows;
@@ -151,7 +151,7 @@ namespace FreeSql.Internal.CommonProvider
 
             if (_whereGlobalFilter.Any())
             {
-                var globalFilterCondi = _commonExpression.GetWhereCascadeSql(new SelectTableInfo { Table = _table }, _whereGlobalFilter.Select(a => a.Where).ToList());
+                var globalFilterCondi = _commonExpression.GetWhereCascadeSql(new SelectTableInfo { Table = _table }, _whereGlobalFilter.Select(a => a.Where).ToList(), false);
                 if (string.IsNullOrEmpty(globalFilterCondi) == false)
                     sb.Append(" AND ").Append(globalFilterCondi);
             }

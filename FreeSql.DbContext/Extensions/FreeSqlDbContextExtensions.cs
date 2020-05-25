@@ -3,7 +3,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 
-public static class FreeSqlDbContextExtensions
+public static partial class FreeSqlDbContextExtensions
 {
 
     /// <summary>
@@ -35,10 +35,10 @@ public static class FreeSqlDbContextExtensions
     public static IFreeSql SetDbContextOptions(this IFreeSql that, Action<DbContextOptions> options)
     {
         if (options == null) return that;
-        var cfg = _dicSetDbContextOptions.GetOrAdd(that, t => new DbContextOptions());
+        var cfg = _dicSetDbContextOptions.GetOrAdd(that.Ado.Identifier, t => new DbContextOptions());
         options(cfg);
-        _dicSetDbContextOptions.AddOrUpdate(that, cfg, (t, o) => cfg);
+        _dicSetDbContextOptions.AddOrUpdate(that.Ado.Identifier, cfg, (t, o) => cfg);
         return that;
     }
-    internal static ConcurrentDictionary<IFreeSql, DbContextOptions> _dicSetDbContextOptions = new ConcurrentDictionary<IFreeSql, DbContextOptions>();
+    internal static ConcurrentDictionary<Guid, DbContextOptions> _dicSetDbContextOptions = new ConcurrentDictionary<Guid, DbContextOptions>();
 }

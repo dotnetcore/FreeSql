@@ -1,16 +1,12 @@
 ﻿using FreeSql.Internal;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.Concurrent;
-using System.Data.Common;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Linq.Expressions;
-using System.Reflection;
-using System.Data.Odbc;
 using FreeSql.Internal.Model;
+using System;
+using System.Collections.Generic;
+using System.Data.Common;
+using System.Data.Odbc;
+using System.Globalization;
+using System.Linq;
+using System.Text;
 
 namespace FreeSql.Odbc.PostgreSQL
 {
@@ -54,8 +50,8 @@ namespace FreeSql.Odbc.PostgreSQL
                     if (genericTypesFirst.IsEnum) enumType = genericTypesFirst;
                 }
                 if (enumType != null) return enumType.GetCustomAttributes(typeof(FlagsAttribute), false).Any() ?
-                    getParamterArrayValue(typeof(long), value, elementType.IsEnum ? null : Enum.GetValues(enumType).GetValue(0)) :
-                    getParamterArrayValue(typeof(int), value, elementType.IsEnum ? null : Enum.GetValues(enumType).GetValue(0));
+                    getParamterArrayValue(typeof(long), value, elementType.IsEnum ? null : enumType.CreateInstanceGetDefaultValue()) :
+                    getParamterArrayValue(typeof(int), value, elementType.IsEnum ? null : enumType.CreateInstanceGetDefaultValue());
                 return dicGetParamterValue.TryGetValue(type.FullName, out var trydicarr) ? trydicarr(value) : value;
             }
             if (type.IsNullableType()) type = type.GetGenericArguments().First();
@@ -94,12 +90,18 @@ namespace FreeSql.Odbc.PostgreSQL
             });
 
         public override string FormatSql(string sql, params object[] args) => sql?.FormatOdbcPostgreSQL(args);
-        public override string QuoteSqlName(string name)
+        public override string QuoteSqlName(params string[] name)
         {
-            var nametrim = name.Trim();
-            if (nametrim.StartsWith("(") && nametrim.EndsWith(")"))
-                return nametrim; //原生SQL
-            return $"\"{nametrim.Trim('"').Replace(".", "\".\"")}\"";
+            if (name.Length == 1)
+            {
+                var nametrim = name[0].Trim();
+                if (nametrim.StartsWith("(") && nametrim.EndsWith(")"))
+                    return nametrim; //原生SQL
+                if (nametrim.StartsWith("\"") && nametrim.EndsWith("\""))
+                    return nametrim;
+                return $"\"{nametrim.Replace(".", "\".\"")}\"";
+            }
+            return $"\"{string.Join("\".\"", name)}\"";
         }
         public override string TrimQuoteSqlName(string name)
         {
@@ -108,6 +110,7 @@ namespace FreeSql.Odbc.PostgreSQL
                 return nametrim; //原生SQL
             return $"{nametrim.Trim('"').Replace("\".\"", ".").Replace(".\"", ".")}";
         }
+        public override string[] SplitTableName(string name) => GetSplitTableNames(name, '"', '"', 2);
         public override string QuoteParamterName(string name) => $"@{(_orm.CodeFirst.IsSyncStructureToLower ? name.ToLower() : name)}";
         public override string IsNull(string sql, object value) => $"coalesce({sql}, {value})";
         public override string StringConcat(string[] objs, Type[] types) => $"{string.Join(" || ", objs)}";
@@ -117,25 +120,16 @@ namespace FreeSql.Odbc.PostgreSQL
         public override string NowUtc => "(current_timestamp at time zone 'UTC')";
 
         public override string QuoteWriteParamter(Type type, string paramterName) => paramterName;
-        public override string QuoteReadColumn(Type type, string columnName) => columnName;
+        public override string QuoteReadColumn(Type type, Type mapType, string columnName) => columnName;
 
         public override string GetNoneParamaterSqlValue(List<DbParameter> specialParams, Type type, object value)
         {
             if (value == null) return "NULL";
+            if (type.IsNumberType()) return string.Format(CultureInfo.InvariantCulture, "{0}", value);
             value = getParamterValue(type, value);
             var type2 = value.GetType();
-            if (type2 == typeof(byte[]))
-            {
-                var bytes = value as byte[];
-                var sb = new StringBuilder().Append("'\\x");
-                foreach (var vc in bytes)
-                {
-                    if (vc < 10) sb.Append("0");
-                    sb.Append(vc.ToString("X"));
-                }
-                return sb.Append("'").ToString(); //val = Encoding.UTF8.GetString(val as byte[]);
-            }
-            else if (type2 == typeof(TimeSpan) || type2 == typeof(TimeSpan?))
+            if (type2 == typeof(byte[])) return $"'\\x{CommonUtils.BytesSqlRaw(value as byte[])}'";
+            if (type2 == typeof(TimeSpan) || type2 == typeof(TimeSpan?))
             {
                 var ts = (TimeSpan)value;
                 return $"'{Math.Min(24, (int)Math.Floor(ts.TotalHours))}:{ts.Minutes}:{ts.Seconds}'";
@@ -154,7 +148,7 @@ namespace FreeSql.Odbc.PostgreSQL
                 }
                 sb.Append("]");
                 var dbinfo = _orm.CodeFirst.GetDbInfo(type);
-                if (dbinfo.HasValue) sb.Append("::").Append(dbinfo.Value.dbtype);
+                if (dbinfo != null) sb.Append("::").Append(dbinfo.dbtype);
                 return sb.ToString();
             }
             else if (dicGetParamterValue.ContainsKey(type2.FullName))

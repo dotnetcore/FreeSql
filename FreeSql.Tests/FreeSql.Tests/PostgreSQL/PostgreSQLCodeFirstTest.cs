@@ -17,6 +17,21 @@ namespace FreeSql.Tests.PostgreSQL
 {
     public class PostgreSQLCodeFirstTest
     {
+        [Fact]
+        public void StringLength()
+        {
+            var dll = g.pgsql.CodeFirst.GetComparisonDDLStatements<TS_SLTB>();
+            g.pgsql.CodeFirst.SyncStructure<TS_SLTB>();
+        }
+        class TS_SLTB
+        {
+            public Guid Id { get; set; }
+            [Column(StringLength = 50)]
+            public string Title { get; set; }
+
+            [Column(IsNullable = false, StringLength = 50)]
+            public string TitleSub { get; set; }
+        }
 
         [Fact]
         public void 中文表_字段()
@@ -35,6 +50,28 @@ namespace FreeSql.Tests.PostgreSQL
             Assert.NotNull(item2);
             Assert.Equal(item.编号, item2.编号);
             Assert.Equal(item.标题, item2.标题);
+
+            item.标题 = "测试标题更新";
+            Assert.Equal(1, g.pgsql.Update<测试中文表>().SetSource(item).ExecuteAffrows());
+            item2 = g.pgsql.Select<测试中文表>().Where(a => a.编号 == item.编号).First();
+            Assert.NotNull(item2);
+            Assert.Equal(item.编号, item2.编号);
+            Assert.Equal(item.标题, item2.标题);
+
+            item.标题 = "测试标题更新_repo";
+            var repo = g.pgsql.GetRepository<测试中文表>();
+            Assert.Equal(1, repo.Update(item));
+            item2 = g.pgsql.Select<测试中文表>().Where(a => a.编号 == item.编号).First();
+            Assert.NotNull(item2);
+            Assert.Equal(item.编号, item2.编号);
+            Assert.Equal(item.标题, item2.标题);
+
+            item.标题 = "测试标题更新_repo22";
+            Assert.Equal(1, repo.Update(item));
+            item2 = g.pgsql.Select<测试中文表>().Where(a => a.编号 == item.编号).First();
+            Assert.NotNull(item2);
+            Assert.Equal(item.编号, item2.编号);
+            Assert.Equal(item.标题, item2.标题);
         }
         class 测试中文表
         {
@@ -43,8 +80,11 @@ namespace FreeSql.Tests.PostgreSQL
 
             public string 标题 { get; set; }
 
-            [Column(ServerTime = DateTimeKind.Local)]
+            [Column(ServerTime = DateTimeKind.Local, CanUpdate = false)]
             public DateTime 创建时间 { get; set; }
+
+            [Column(ServerTime = DateTimeKind.Local)]
+            public DateTime 更新时间 { get; set; }
         }
 
         [Fact]
@@ -313,7 +353,7 @@ namespace FreeSql.Tests.PostgreSQL
                 testFieldShortArray = new short[] { 1, 2, 3, 4, 5 },
                 testFieldShortArrayNullable = new short?[] { 1, 2, 3, null, 4, 5 },
                 testFieldShortNullable = short.MinValue,
-                testFieldString = "我是中国人String",
+                testFieldString = "我是中国人string'\\?!@#$%^&*()_+{}}{~?><<>",
                 testFieldStringArray = new[] { "我是中国人String1", "我是中国人String2", null, "我是中国人String3" },
                 testFieldTimeSpan = TimeSpan.FromDays(1),
                 testFieldTimeSpanArray = new[] { TimeSpan.FromDays(1), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(60) },
@@ -344,7 +384,12 @@ namespace FreeSql.Tests.PostgreSQL
             var item3NP = insert.AppendData(item2).NoneParameter().ExecuteInserted();
 
             var item3 = insert.AppendData(item2).ExecuteInserted().First();
-            var newitem2 = select.Where(a => a.Id == item3.Id).ToOne();
+            var newitem2 = select.Where(a => a.Id == item3.Id && object.Equals(a.testFieldJToken["a"], "1")).ToOne();
+            Assert.Equal(item2.testFieldString, newitem2.testFieldString);
+
+            item3 = insert.NoneParameter().AppendData(item2).ExecuteInserted().First();
+            newitem2 = select.Where(a => a.Id == item3.Id && object.Equals(a.testFieldJToken["a"], "1")).ToOne();
+            Assert.Equal(item2.testFieldString, newitem2.testFieldString);
 
             var items = select.ToList();
         }

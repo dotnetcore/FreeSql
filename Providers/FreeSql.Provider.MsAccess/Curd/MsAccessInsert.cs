@@ -1,5 +1,5 @@
 ﻿using FreeSql.Internal;
-using SafeObjectPool;
+using FreeSql.Internal.ObjectPool;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -31,7 +31,7 @@ namespace FreeSql.MsAccess.Curd
         {
             var sql = this.ToSql();
             var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
-            _orm.Aop.CurdBefore?.Invoke(this, before);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             var affrows = 0;
             Exception exception = null;
             try
@@ -46,7 +46,7 @@ namespace FreeSql.MsAccess.Curd
             finally
             {
                 var after = new Aop.CurdAfterEventArgs(before, exception, affrows);
-                _orm.Aop.CurdAfter?.Invoke(this, after);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
             return affrows;
         }
@@ -56,7 +56,7 @@ namespace FreeSql.MsAccess.Curd
             if (string.IsNullOrEmpty(sql)) return 0;
 
             var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, string.Concat(sql, "; SELECT @@identity;"), _params);
-            _orm.Aop.CurdBefore?.Invoke(this, before);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             long ret = 0;
             Exception exception = null;
             var isUseConnection = _connection != null;
@@ -86,7 +86,7 @@ namespace FreeSql.MsAccess.Curd
             {
                 if (isUseConnection == false) _connection = null;
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                _orm.Aop.CurdAfter?.Invoke(this, after);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
             return ret;
         }
@@ -102,15 +102,15 @@ namespace FreeSql.MsAccess.Curd
 
 #if net40
 #else
-        public override Task<int> ExecuteAffrowsAsync() => base.SplitExecuteAffrowsAsync(1000, 2100);
-        public override Task<long> ExecuteIdentityAsync() => base.SplitExecuteIdentityAsync(1000, 2100);
-        public override Task<List<T1>> ExecuteInsertedAsync() => base.SplitExecuteInsertedAsync(1000, 2100);
+        public override Task<int> ExecuteAffrowsAsync() => base.SplitExecuteAffrowsAsync(1, 1000);
+        public override Task<long> ExecuteIdentityAsync() => base.SplitExecuteIdentityAsync(1, 1000);
+        public override Task<List<T1>> ExecuteInsertedAsync() => base.SplitExecuteInsertedAsync(1, 1000);
 
         async protected override Task<int> RawExecuteAffrowsAsync()
         {
             var sql = this.ToSql();
             var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
-            _orm.Aop.CurdBefore?.Invoke(this, before);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             var affrows = 0;
             Exception exception = null;
             try
@@ -125,7 +125,7 @@ namespace FreeSql.MsAccess.Curd
             finally
             {
                 var after = new Aop.CurdAfterEventArgs(before, exception, affrows);
-                _orm.Aop.CurdAfter?.Invoke(this, after);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
             return affrows;
         }
@@ -135,7 +135,7 @@ namespace FreeSql.MsAccess.Curd
             if (string.IsNullOrEmpty(sql)) return 0;
 
             var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, string.Concat(sql, "; SELECT @@identity;"), _params);
-            _orm.Aop.CurdBefore?.Invoke(this, before);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             long ret = 0;
             Exception exception = null;
             var isUseConnection = _connection != null;
@@ -165,7 +165,7 @@ namespace FreeSql.MsAccess.Curd
             {
                 if (isUseConnection == false) _connection = null;
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                _orm.Aop.CurdAfter?.Invoke(this, after);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
             return ret;
         }

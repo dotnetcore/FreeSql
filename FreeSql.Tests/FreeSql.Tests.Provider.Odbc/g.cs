@@ -31,11 +31,11 @@ public class g
     public static IFreeSql sqlserver => sqlserverLazy.Value;
 
     static Lazy<IFreeSql> oracleLazy = new Lazy<IFreeSql>(() => new FreeSql.FreeSqlBuilder()
-        .UseConnectionString(FreeSql.DataType.OdbcOracle, "Driver={Oracle in XE};Server=//127.0.0.1:1521/XE;Persist Security Info=False;Trusted_Connection=Yes;UID=odbc1;PWD=123456")
-        //.UseConnectionFactory(FreeSql.DataType.OdbcOracle, () => new System.Data.Odbc.OdbcConnection("Driver={Oracle in XE};Server=//127.0.0.1:1521/XE;Persist Security Info=False;Trusted_Connection=Yes;UID=odbc1;PWD=123456"))
+        .UseConnectionString(FreeSql.DataType.OdbcOracle, "Driver={Oracle in XE};Server=//127.0.0.1:1521/XE;Persist Security Info=False;Trusted_Connection=Yes;UID=1odbc;PWD=123456")
+        //.UseConnectionFactory(FreeSql.DataType.OdbcOracle, () => new System.Data.Odbc.OdbcConnection("Driver={Oracle in XE};Server=//127.0.0.1:1521/XE;Persist Security Info=False;Trusted_Connection=Yes;UID=1odbc;PWD=123456"))
         .UseAutoSyncStructure(true)
         .UseLazyLoading(true)
-        .UseSyncStructureToUpper(true)
+        .UseNameConvert(FreeSql.Internal.NameConvertType.ToUpper)
         //.UseNoneCommandParameter(true)
 
         .UseMonitorCommand(
@@ -50,7 +50,7 @@ public class g
         .UseConnectionString(FreeSql.DataType.OdbcPostgreSQL, "Driver={PostgreSQL Unicode(x64)};Server=192.168.164.10;Port=5432;UID=postgres;PWD=123456;Database=tedb_odbc;Pooling=true;Maximum Pool Size=2")
         //.UseConnectionFactory(FreeSql.DataType.OdbcPostgreSQL, () => new System.Data.Odbc.OdbcConnection("Driver={PostgreSQL Unicode(x64)};Server=192.168.164.10;Port=5432;UID=postgres;PWD=123456;Database=tedb_odbc;Pooling=true;"))
         .UseAutoSyncStructure(true)
-        .UseSyncStructureToLower(true)
+        .UseNameConvert(FreeSql.Internal.NameConvertType.ToLower)
         .UseLazyLoading(true)
         .UseMonitorCommand(
             cmd => Trace.WriteLine(cmd.CommandText), //监听SQL命令对象，在执行前
@@ -70,11 +70,11 @@ public class g
     public static IFreeSql odbc => odbcLazy.Value;
 
     static Lazy<IFreeSql> damemgLazy = new Lazy<IFreeSql>(() => new FreeSql.FreeSqlBuilder()
-        .UseConnectionString(FreeSql.DataType.OdbcDameng, "Driver={DM8 ODBC DRIVER};Server=127.0.0.1:5236;Persist Security Info=False;Trusted_Connection=Yes;UID=USER1;PWD=123456789")
-        //.UseConnectionFactory(FreeSql.DataType.OdbcDameng, () => new System.Data.Odbc.OdbcConnection("Driver={DM8 ODBC DRIVER};Server=127.0.0.1:5236;Persist Security Info=False;Trusted_Connection=Yes;UID=USER1;PWD=123456789"))
+        .UseConnectionString(FreeSql.DataType.OdbcDameng, "Driver={DM8 ODBC DRIVER};Server=127.0.0.1:5236;Persist Security Info=False;Trusted_Connection=Yes;UID=1user;PWD=123456789")
+        //.UseConnectionFactory(FreeSql.DataType.OdbcDameng, () => new System.Data.Odbc.OdbcConnection("Driver={DM8 ODBC DRIVER};Server=127.0.0.1:5236;Persist Security Info=False;Trusted_Connection=Yes;UID=1user;PWD=123456789"))
         .UseAutoSyncStructure(true)
         .UseLazyLoading(true)
-        .UseSyncStructureToUpper(true)
+        .UseNameConvert(FreeSql.Internal.NameConvertType.ToUpper)
         //.UseNoneCommandParameter(true)
 
         .UseMonitorCommand(
@@ -85,11 +85,11 @@ public class g
 
     //启动南大通用数据库 oninit -vy
     static Lazy<IFreeSql> gbaseLazy = new Lazy<IFreeSql>(() => new FreeSql.FreeSqlBuilder()
-        .UseConnectionString(FreeSql.DataType.OdbcDameng, "Driver={GBase ODBC DRIVER (64-bit)};Server=192.168.164.10:5236;Persist Security Info=False;Trusted_Connection=Yes;UID=USER1;PWD=123456789")
-        //.UseConnectionFactory(FreeSql.DataType.OdbcDameng, () => new System.Data.Odbc.OdbcConnection("Driver={DM8 ODBC DRIVER};Server=127.0.0.1:5236;Persist Security Info=False;Trusted_Connection=Yes;UID=USER1;PWD=123456789"))
+        .UseConnectionString(FreeSql.DataType.OdbcDameng, "Driver={GBase ODBC DRIVER (64-bit)};Server=192.168.164.10:5236;Persist Security Info=False;Trusted_Connection=Yes;UID=1user;PWD=123456789")
+        //.UseConnectionFactory(FreeSql.DataType.OdbcDameng, () => new System.Data.Odbc.OdbcConnection("Driver={DM8 ODBC DRIVER};Server=127.0.0.1:5236;Persist Security Info=False;Trusted_Connection=Yes;UID=1user;PWD=123456789"))
         .UseAutoSyncStructure(true)
         .UseLazyLoading(true)
-        .UseSyncStructureToUpper(true)
+        .UseNameConvert(FreeSql.Internal.NameConvertType.ToUpper)
         //.UseNoneCommandParameter(true)
 
         .UseMonitorCommand(
