@@ -353,9 +353,10 @@ namespace FreeSql.MsAccess
                 {
                     foreach (var tbcol in tb.ColumnsByPosition)
                     {
+                        if (istmpatler) break;
                         var dbtypeNoneNotNull = Regex.Replace(tbcol.Attribute.DbType, @"NOT\s+NULL", "NULL");
                         if (tbstruct.TryGetValue(tbcol.Attribute.Name, out var tbstructcol) ||
-                        string.IsNullOrEmpty(tbcol.Attribute.OldName) == false && tbstruct.TryGetValue(tbcol.Attribute.OldName, out tbstructcol))
+                            string.IsNullOrEmpty(tbcol.Attribute.OldName) == false && tbstruct.TryGetValue(tbcol.Attribute.OldName, out tbstructcol))
                         {
                             if (tbstructcol.sqlType != "LONG" && tbcol.Attribute.DbType.StartsWith(tbstructcol.sqlType, StringComparison.CurrentCultureIgnoreCase) == false)
                                 istmpatler = true;
@@ -371,6 +372,9 @@ namespace FreeSql.MsAccess
                         //添加列
                         istmpatler = true;
                     }
+                }
+                if (istmpatler == false)
+                {
                     var dsuk = getIndexesByTableName(tbtmp);
                     foreach (var uk in tb.Indexes)
                     {

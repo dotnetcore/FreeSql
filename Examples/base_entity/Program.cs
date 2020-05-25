@@ -5,6 +5,7 @@ using FreeSql.Internal.Model;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Data.Odbc;
 using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Linq.Expressions;
@@ -41,6 +42,14 @@ namespace base_entity
 
         static void Main(string[] args)
         {
+            var conn = new OdbcConnection("Driver={KingbaseES 8.2 ODBC Driver ANSI};Server=127.0.0.1;Port=54321;UID=USER2;PWD=123456789;database=TEST");
+            conn.Open();
+            var cmd = conn.CreateCommand();
+            cmd.CommandText = "insert into cc2.IDETB01(C1) values(1),(2)";
+            cmd.ExecuteNonQuery();
+            cmd.CommandText = "select C1 from cc2.\"IDETB01\" where rownum < 2";
+            var idw = cmd.ExecuteScalar();
+            conn.Close();
 
             #region 初始化 IFreeSql
             var fsql = new FreeSql.FreeSqlBuilder()
@@ -72,7 +81,7 @@ namespace base_entity
 
                 //.UseConnectionString(FreeSql.DataType.OdbcDameng, "Driver={DM8 ODBC DRIVER};Server=127.0.0.1:5236;Persist Security Info=False;Trusted_Connection=Yes;UID=USER1;PWD=123456789")
 
-                .UseMonitorCommand(cmd => Console.WriteLine(cmd.CommandText))
+                .UseMonitorCommand(umcmd => Console.WriteLine(umcmd.CommandText))
                 .UseLazyLoading(true)
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);

@@ -322,6 +322,9 @@ use [" + database + "];", tboldname ?? tbname);
                             sbalter.Append(";\r\n");
                             if (string.IsNullOrEmpty(tbcol.Comment) == false) AddOrUpdateMS_Description(sbalter, tbname[1], tbname[2], tbcol.Attribute.Name, tbcol.Comment);
                         }
+                    }
+                    if (istmpatler == false)
+                    {
                         var dsuksql = string.Format(@"
 use [{0}];
 select 

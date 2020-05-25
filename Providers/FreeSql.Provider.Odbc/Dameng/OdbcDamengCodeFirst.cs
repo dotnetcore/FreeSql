@@ -229,6 +229,7 @@ where a.owner={{0}} and a.table_name={{1}}", tboldname ?? tbname);
                                 if (istmpatler && Regex.IsMatch(tbcol.Attribute.DbType, @"\(\d+") == false && Regex.IsMatch(tbstructcol.sqlType, @"\(\d+")
                                     && string.Compare(tbcol.Attribute.DbType, Regex.Replace(tbstructcol.sqlType, @"\([^\)]+\)", ""), StringComparison.CurrentCultureIgnoreCase) == 0)
                                     istmpatler = false;
+                                if (istmpatler) break;
                             }
                             //sbalter.Append("execute immediate 'ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" MODIFY (").Append(_commonUtils.QuoteSqlName(tbstructcol.column)).Append(" ").Append(dbtypeNoneNotNull).Append(")';\r\n");
                             if (tbcol.Attribute.IsNullable != tbstructcol.is_nullable)
@@ -262,7 +263,9 @@ where a.owner={{0}} and a.table_name={{1}}", tboldname ?? tbname);
                         if (tbcol.Attribute.IsIdentity == true) seqcols.Add(NaviteTuple.Create(tbcol, tbname, tbcol.Attribute.IsIdentity == true));
                         if (string.IsNullOrEmpty(tbcol.Comment) == false) sbalter.Append("execute immediate 'COMMENT ON COLUMN ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}.{tbcol.Attribute.Name}")).Append(" IS ").Append(_commonUtils.FormatSql("{0}", tbcol.Comment ?? "").Replace("'", "''")).Append("';\r\n");
                     }
-
+                }
+                if (istmpatler == false)
+                {
                     var dsuksql = _commonUtils.FormatSql(@"
 select
 c.column_name,

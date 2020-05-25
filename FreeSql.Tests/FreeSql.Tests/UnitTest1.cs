@@ -438,6 +438,17 @@ namespace FreeSql.Tests
         [Fact]
         public void Test1()
         {
+            var testemoji = new TestGuidId { xxx = "💐🌸💮🌹🌺🌻🌼🌷🌱🌿🍀" };
+            Assert.Equal(1, g.sqlserver.Insert(testemoji).ExecuteAffrows());
+            var emoji = g.sqlserver.Select<TestGuidId>().Where(a => a.Id == testemoji.Id).First();
+            Assert.Equal("💐🌸💮🌹🌺🌻🌼🌷🌱🌿🍀", emoji.xxx);
+
+            Assert.Equal(1, g.sqlserver.Delete<TestGuidId>(testemoji).ExecuteAffrows());
+            testemoji = new TestGuidId { xxx = "💐🌸💮🌹🌺🌻🌼🌷🌱🌿🍀" };
+            Assert.Equal(1, g.sqlserver.Insert<TestGuidId>().NoneParameter().AppendData(testemoji).ExecuteAffrows());
+            emoji = g.sqlserver.Select<TestGuidId>().Where(a => a.Id == testemoji.Id).First();
+            Assert.Equal("💐🌸💮🌹🌺🌻🌼🌷🌱🌿🍀", emoji.xxx);
+
             var _model = new TestUpdateModel { 
                 F_EmpId = "xx11", 
                 F_RoleType = TestUpdateModelEnum.x2, 
