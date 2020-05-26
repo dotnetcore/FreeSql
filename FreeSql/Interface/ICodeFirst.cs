@@ -17,7 +17,7 @@ namespace FreeSql
         /// </summary>
         bool IsSyncStructureToLower { get; set; }
         /// <summary>
-        /// 转大写同步结构，适用 Oracle/达梦
+        /// 转大写同步结构，适用 Oracle/达梦/人大金仓
         /// </summary>
         bool IsSyncStructureToUpper { get; set; }
         /// <summary>
