@@ -75,7 +75,7 @@ namespace FreeSql.SqlServer
             return $"{nametrim.TrimStart('[').TrimEnd(']').Replace("].[", ".").Replace(".[", ".")}";
         }
         public override string[] SplitTableName(string name) => GetSplitTableNames(name, '[', ']', 3);
-        public override string QuoteParamterName(string name) => $"@{(_orm.CodeFirst.IsSyncStructureToLower ? name.ToLower() : name)}";
+        public override string QuoteParamterName(string name) => $"@{name}";
         public override string IsNull(string sql, object value) => $"isnull({sql}, {value})";
         public override string StringConcat(string[] objs, Type[] types)
         {

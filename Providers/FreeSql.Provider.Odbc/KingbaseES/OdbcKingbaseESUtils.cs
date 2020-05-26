@@ -8,12 +8,12 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 
-namespace FreeSql.Odbc.PostgreSQL
+namespace FreeSql.Odbc.KingbaseES
 {
 
-    class OdbcPostgreSQLUtils : CommonUtils
+    class OdbcKingbaseESUtils : CommonUtils
     {
-        public OdbcPostgreSQLUtils(IFreeSql orm) : base(orm)
+        public OdbcKingbaseESUtils(IFreeSql orm) : base(orm)
         {
         }
 
@@ -79,7 +79,7 @@ namespace FreeSql.Odbc.PostgreSQL
             Utils.GetDbParamtersByObject<OdbcParameter>(sql, obj, null, (name, type, value) =>
             {
                 if (value != null) value = getParamterValue(type, value);
-                var ret = new OdbcParameter { ParameterName = $"@{name}", Value = value };
+                var ret = new OdbcParameter { ParameterName = $"@{name.ToUpper()}", Value = value };
                 //if (value.GetType().IsEnum || value.GetType().GenericTypeArguments.FirstOrDefault()?.IsEnum == true) {
                 //	ret.DataTypeName = "";
                 //} else {
@@ -89,7 +89,7 @@ namespace FreeSql.Odbc.PostgreSQL
                 return ret;
             });
 
-        public override string FormatSql(string sql, params object[] args) => sql?.FormatOdbcPostgreSQL(args);
+        public override string FormatSql(string sql, params object[] args) => sql?.FormatOdbcKingbaseES(args);
         public override string QuoteSqlName(params string[] name)
         {
             if (name.Length == 1)
@@ -111,7 +111,7 @@ namespace FreeSql.Odbc.PostgreSQL
             return $"{nametrim.Trim('"').Replace("\".\"", ".").Replace(".\"", ".")}";
         }
         public override string[] SplitTableName(string name) => GetSplitTableNames(name, '"', '"', 2);
-        public override string QuoteParamterName(string name) => $"@{(name.ToLower())}";
+        public override string QuoteParamterName(string name) => $"@{name.ToUpper()}";
         public override string IsNull(string sql, object value) => $"coalesce({sql}, {value})";
         public override string StringConcat(string[] objs, Type[] types) => $"{string.Join(" || ", objs)}";
         public override string Mod(string left, string right, Type leftType, Type rightType) => $"{left} % {right}";

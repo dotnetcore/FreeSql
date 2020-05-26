@@ -34,6 +34,11 @@ namespace FreeSql
         /// <summary>
         /// 武汉达梦数据库有限公司，基于 DmProvider.dll 的实现
         /// </summary>
-        Dameng
+        Dameng,
+
+        /// <summary>
+        /// 北京人大金仓信息技术股份有限公司，基于 Odbc 的实现
+        /// </summary>
+        OdbcKingbaseES
     }
 }

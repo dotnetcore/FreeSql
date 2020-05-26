@@ -1172,6 +1172,7 @@ namespace FreeSql.Internal.CommonProvider
                     break;
                 case DataType.OdbcDameng:
                 case DataType.Dameng:
+                case DataType.OdbcKingbaseES:
                     _tosqlAppendContent = $" for update{(noawait ? " nowait" : "")}";
                     break;
             }

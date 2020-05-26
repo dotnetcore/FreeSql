@@ -59,7 +59,7 @@ namespace FreeSql.MsAccess
             return $"{nametrim.TrimStart('[').TrimEnd(']').Replace("].[", ".").Replace(".[", ".")}";
         }
         public override string[] SplitTableName(string name) => GetSplitTableNames(name, '[', ']', 2);
-        public override string QuoteParamterName(string name) => $"@{(_orm.CodeFirst.IsSyncStructureToLower ? name.ToLower() : name)}";
+        public override string QuoteParamterName(string name) => $"@{name}";
         public override string IsNull(string sql, object value) => $"iif(isnull({sql}), {value}, {sql})";
         public override string StringConcat(string[] objs, Type[] types)
         {

@@ -42,15 +42,6 @@ namespace base_entity
 
         static void Main(string[] args)
         {
-            var conn = new OdbcConnection("Driver={KingbaseES 8.2 ODBC Driver ANSI};Server=127.0.0.1;Port=54321;UID=USER2;PWD=123456789;database=TEST");
-            conn.Open();
-            var cmd = conn.CreateCommand();
-            cmd.CommandText = "insert into cc2.IDETB01(C1) values(1),(2)";
-            cmd.ExecuteNonQuery();
-            cmd.CommandText = "select C1 from cc2.\"IDETB01\" where rownum < 2";
-            var idw = cmd.ExecuteScalar();
-            conn.Close();
-
             #region 初始化 IFreeSql
             var fsql = new FreeSql.FreeSqlBuilder()
                 .UseAutoSyncStructure(true)

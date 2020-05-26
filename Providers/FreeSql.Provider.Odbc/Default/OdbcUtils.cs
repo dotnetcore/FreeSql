@@ -58,7 +58,7 @@ namespace FreeSql.Odbc.Default
             return $"{nametrim.TrimStart(Adapter.QuoteSqlNameLeft).TrimEnd(Adapter.QuoteSqlNameRight).Replace($"{Adapter.QuoteSqlNameRight}.{Adapter.QuoteSqlNameLeft}", ".").Replace($".{Adapter.QuoteSqlNameLeft}", ".")}";
         }
         public override string[] SplitTableName(string name) => GetSplitTableNames(name, Adapter.QuoteSqlNameLeft, Adapter.QuoteSqlNameRight, 2);
-        public override string QuoteParamterName(string name) => $"@{(_orm.CodeFirst.IsSyncStructureToLower ? name.ToLower() : name)}";
+        public override string QuoteParamterName(string name) => $"@{name}";
         public override string IsNull(string sql, object value) => Adapter.IsNullSql(sql, value);
         public override string StringConcat(string[] objs, Type[] types) => Adapter.ConcatSql(objs, types);
         public override string Mod(string left, string right, Type leftType, Type rightType) => Adapter.Mod(left, right, leftType, rightType);

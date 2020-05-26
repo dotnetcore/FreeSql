@@ -83,10 +83,9 @@ public class g
         .Build());
     public static IFreeSql dameng => damemgLazy.Value;
 
-    //启动南大通用数据库 oninit -vy
-    static Lazy<IFreeSql> gbaseLazy = new Lazy<IFreeSql>(() => new FreeSql.FreeSqlBuilder()
-        .UseConnectionString(FreeSql.DataType.OdbcDameng, "Driver={GBase ODBC DRIVER (64-bit)};Server=192.168.164.10:5236;Persist Security Info=False;Trusted_Connection=Yes;UID=1user;PWD=123456789")
-        //.UseConnectionFactory(FreeSql.DataType.OdbcDameng, () => new System.Data.Odbc.OdbcConnection("Driver={DM8 ODBC DRIVER};Server=127.0.0.1:5236;Persist Security Info=False;Trusted_Connection=Yes;UID=1user;PWD=123456789"))
+    static Lazy<IFreeSql> kingbaseESLazy = new Lazy<IFreeSql>(() => new FreeSql.FreeSqlBuilder()
+        .UseConnectionString(FreeSql.DataType.OdbcKingbaseES, "Driver={KingbaseES 8.2 ODBC Driver ANSI};Server=127.0.0.1;Port=54321;UID=USER2;PWD=123456789;database=TEST")
+        //.UseConnectionFactory(FreeSql.DataType.OdbcKingbaseES, () => new System.Data.Odbc.OdbcConnection("Driver={KingbaseES 8.2 ODBC Driver ANSI};Server=127.0.0.1;Port=54321;UID=USER2;PWD=123456789;database=TEST"))
         .UseAutoSyncStructure(true)
         .UseLazyLoading(true)
         .UseNameConvert(FreeSql.Internal.NameConvertType.ToUpper)
@@ -96,7 +95,7 @@ public class g
             cmd => Trace.WriteLine(cmd.CommandText), //监听SQL命令对象，在执行前
             (cmd, traceLog) => Console.WriteLine(traceLog))
         .Build());
-    public static IFreeSql gbase => gbaseLazy.Value;
+    public static IFreeSql kingbaseES => kingbaseESLazy.Value;
 
 
     //启动神州通用数据库 /etc/init.d/oscardb_OSRDBd start
