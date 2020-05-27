@@ -9,16 +9,13 @@ namespace FreeSql.Tests.Odbc.KingbaseES
         [Fact]
         public void GetDatabases()
         {
-
             var t1 = g.kingbaseES.DbFirst.GetDatabases();
-
         }
 
         [Fact]
         public void GetTablesByDatabase()
         {
-
-            //var t2 = g.kingbaseES.DbFirst.GetTablesByDatabase();
+            var t2 = g.kingbaseES.DbFirst.GetTablesByDatabase();
             //var tb = g.kingbaseES.Ado.ExecuteArray(System.Data.CommandType.Text, "select * from \"tb_dbfirst\"");
         }
     }

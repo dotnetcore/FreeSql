@@ -113,7 +113,7 @@ namespace FreeSql.Odbc.KingbaseES
         public override string[] SplitTableName(string name) => GetSplitTableNames(name, '"', '"', 2);
         public override string QuoteParamterName(string name) => $"@{name.ToUpper()}";
         public override string IsNull(string sql, object value) => $"coalesce({sql}, {value})";
-        public override string StringConcat(string[] objs, Type[] types) => $"{string.Join(" || ", objs)}";
+        public override string StringConcat(string[] objs, Type[] types) => $"{string.Join(" || ", objs.Select((a, b) => b == 0 ? $"{a}::varchar" : a))}"; //First ::varchar
         public override string Mod(string left, string right, Type leftType, Type rightType) => $"{left} % {right}";
         public override string Div(string left, string right, Type leftType, Type rightType) => $"{left} / {right}";
         public override string Now => "current_timestamp";

@@ -39,7 +39,6 @@ namespace FreeSql.Odbc.KingbaseES
             if (mapType != null && mapType != param.GetType() && (param is IEnumerable == false))
                 param = Utils.GetDataReaderValue(mapType, param);
 
-            bool isdic;
             if (param is bool || param is bool?)
                 return (bool)param ? "'t'" : "'f'";
             else if (param is string || param is char)
