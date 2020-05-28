@@ -420,7 +420,7 @@ namespace FreeSql.Internal.CommonProvider
                 case ExpressionType.Equal:
                     var equalBinaryExp = body as BinaryExpression;
                     var eqval = _commonExpression.ExpressionWhereLambdaNoneForeignObject(null, _table, null, body, null, null);
-                    if (eqval.EndsWith("  IS  NULL")) eqval = $"{eqval.Remove(eqval.Length - 10)} = NULL"; //issues/311
+                    if (eqval.EndsWith("  IS  NULL")) eqval = $"{eqval.Remove(eqval.Length - 10)} = NULL"; //#311
                     _set.Append(", ").Append(eqval);
                     return this;
                 case ExpressionType.MemberInit:
@@ -434,7 +434,7 @@ namespace FreeSql.Internal.CommonProvider
                             var memberName = initExp.Bindings[a].Member.Name;
                             if (_table.ColumnsByCsIgnore.ContainsKey(memberName)) continue;
                             if (_table.ColumnsByCs.TryGetValue(memberName, out var col) == false) throw new Exception($"找不到属性：{memberName}");
-                            var memberValue = _commonExpression.ExpressionLambdaToSql(initAssignExp.Expression, new CommonExpression.ExpTSC { isQuoteName = true });
+                            var memberValue = _commonExpression.ExpressionLambdaToSql(initAssignExp.Expression, new CommonExpression.ExpTSC { isQuoteName = true, mapType = col.Attribute.MapType });
                             _setIncr.Append(", ").Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ").Append(memberValue);
                         }
                     }
@@ -448,7 +448,7 @@ namespace FreeSql.Internal.CommonProvider
                             var memberName = newExp.Members[a].Name;
                             if (_table.ColumnsByCsIgnore.ContainsKey(memberName)) continue;
                             if (_table.ColumnsByCs.TryGetValue(memberName, out var col) == false) throw new Exception($"找不到属性：{memberName}");
-                            var memberValue = _commonExpression.ExpressionLambdaToSql(newExp.Arguments[a], new CommonExpression.ExpTSC { isQuoteName = true });
+                            var memberValue = _commonExpression.ExpressionLambdaToSql(newExp.Arguments[a], new CommonExpression.ExpTSC { isQuoteName = true, mapType = col.Attribute.MapType });
                             _setIncr.Append(", ").Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ").Append(memberValue);
                         }
                     }
