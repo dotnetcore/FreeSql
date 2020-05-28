@@ -35,8 +35,7 @@ namespace FreeSql.SqlServer.Curd
 
                 var sb = new StringBuilder();
                 if (IdentityColumn != null) sb.Append("SET IDENTITY_INSERT ").Append(_commonUtils.QuoteSqlName(TableRuleInvoke())).Append(" ON;\r\n");
-                sb.Append("MERGE INTO ").Append(_commonUtils.QuoteSqlName(TableRuleInvoke())).Append(" t1 \r\n")
-                .Append("USING (");
+                sb.Append("MERGE INTO ").Append(_commonUtils.QuoteSqlName(TableRuleInvoke())).Append(" t1 \r\nUSING (");
                 WriteSourceSelectUnionAll(data, sb, dbParams);
                 sb.Append(" ) t2 ON (").Append(string.Join(" AND ", _table.Primarys.Select(a => $"t1.{_commonUtils.QuoteSqlName(a.Attribute.Name)} = t2.{a.Attribute.Name}"))).Append(") \r\n");
 
@@ -49,10 +48,11 @@ namespace FreeSql.SqlServer.Curd
                             $"{_commonUtils.QuoteSqlName(a.Attribute.Name)} = t2.{a.Attribute.Name}"
                             ))).Append(" \r\n");
 
-                cols = _table.Columns.Values;
-                sb.Append("WHEN NOT MATCHED THEN \r\n")
-                    .Append("  insert (").Append(string.Join(", ", cols.Select(a => _commonUtils.QuoteSqlName(a.Attribute.Name)))).Append(") \r\n")
-                    .Append("  values (").Append(string.Join(", ", cols.Select(a => $"t2.{a.Attribute.Name}"))).Append(");");
+                cols = _table.Columns.Values.Where(a => a.Attribute.CanInsert == true);
+                if (cols.Any())
+                    sb.Append("WHEN NOT MATCHED THEN \r\n")
+                        .Append("  insert (").Append(string.Join(", ", cols.Select(a => _commonUtils.QuoteSqlName(a.Attribute.Name)))).Append(") \r\n")
+                        .Append("  values (").Append(string.Join(", ", cols.Select(a => $"t2.{a.Attribute.Name}"))).Append(");");
 
                 if (IdentityColumn != null) sb.Append(";\r\nSET IDENTITY_INSERT ").Append(_commonUtils.QuoteSqlName(TableRuleInvoke())).Append(" OFF;");
 
