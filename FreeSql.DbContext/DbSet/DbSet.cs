@@ -276,6 +276,7 @@ namespace FreeSql
                     case DataType.OdbcSqlServer:
                     case DataType.PostgreSQL:
                     case DataType.OdbcPostgreSQL:
+                    case DataType.OdbcKingbaseES:
                         return true;
                     default:
                         if (_tableIdentitys.Length == 1 && _table.Primarys.Length == 1)

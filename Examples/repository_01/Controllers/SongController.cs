@@ -1,5 +1,6 @@
 ﻿using FreeSql;
 using Microsoft.AspNetCore.Mvc;
+using repository_01;
 using restful.Entitys;
 using System;
 using System.Collections.Generic;
@@ -32,31 +33,23 @@ namespace restful.Controllers
 
 
         public SongsController(IFreeSql fsql,
-            GuidRepository<Song> repos1,
-            GuidRepository<xxxx> repos2,
-
-            DefaultRepository<Song, int> repos11,
-            DefaultRepository<xxxx, int> repos21,
-
             BaseRepository<Song> repos3, BaseRepository<Song, int> repos4,
             IBaseRepository<Song> repos31, IBaseRepository<Song, int> repos41,
 
-            SongRepository reposSong
+            SongRepository reposSong,
+            IBaseRepository<TestSoftDelete> reposTest
             )
         {
-            _songRepository = repos4;
+            Console.Write(reposTest.Select.ToSql());
 
+            _songRepository = repos4;
             //test code
             var curd1 = fsql.GetRepository<Song, int>();
             var curd2 = fsql.GetRepository<Song, string>();
             var curd3 = fsql.GetRepository<Song, Guid>();
             var curd4 = fsql.GetGuidRepository<Song>();
 
-            Console.WriteLine(repos1.Select.ToSql());
             Console.WriteLine(reposSong.Select.ToSql());
-
-            Console.WriteLine(repos2.Select.ToSql());
-            Console.WriteLine(repos21.Select.ToSql());
 
             using (reposSong.DataFilter.DisableAll())
             {

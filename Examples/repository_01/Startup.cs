@@ -84,4 +84,12 @@ namespace repository_01
     {
         bool IsDeleted { get; set; }
     }
+
+    public class TestSoftDelete : ISoftDelete
+    {
+        [Column(IsIdentity = true)]
+        public int Id { get; set; }
+        public string Title { get; set; }
+        public bool IsDeleted { get; set; }
+    }
 }
