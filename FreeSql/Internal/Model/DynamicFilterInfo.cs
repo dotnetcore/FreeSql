@@ -55,9 +55,19 @@ namespace FreeSql.Internal.Model
         NotEndsWith,
 
         /// <summary>
-        /// =
+        /// =<para></para>
+        /// Equal/Equals/Eq 效果相同
+        /// </summary>
+        Equal,
+        /// <summary>
+        /// =<para></para>
+        /// Equal/Equals/Eq 效果相同
         /// </summary>
         Equals,
+        /// <summary>
+        /// =<para></para>
+        /// Equal/Equals/Eq 效果相同
+        /// </summary>
         Eq,
         /// <summary>
         /// &lt;&gt;
@@ -80,5 +90,17 @@ namespace FreeSql.Internal.Model
         /// &lt;=
         /// </summary>
         LessThanOrEqual,
+
+        /// <summary>
+        /// &gt;= and &lt;<para></para>
+        /// 此时 Value 的值格式为逗号分割：value1,value2
+        /// </summary>
+        Range,
+
+        /// <summary>
+        /// in (1,2,3)<para></para>
+        /// 此时 Value 的值格式为逗号分割：value1,value2,value3...
+        /// </summary>
+        Any
     }
 }

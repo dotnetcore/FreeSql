@@ -1918,6 +1918,8 @@ WHERE (((cast(a.""Id"" as character)) in (SELECT b.""Title""
             public virtual string ParentCode { get; set; }
 
             public DateTime CreateTime { get; set; }
+
+            public int testint { get; set; }
         }
         [Table(Name = "D_District", DisableSyncStructure = true)]
         public class VM_District_Child : BaseDistrict
@@ -1976,9 +1978,41 @@ WHERE (((cast(a.""Id"" as character)) in (SELECT b.""Title""
   ]
 }
 ")).ToSql();
-            Assert.Equal(@"SELECT a.""Code"", a.""Name"", a.""CreateTime"", a.""ParentCode"" 
+            Assert.Equal(@"SELECT a.""Code"", a.""Name"", a.""CreateTime"", a.""testint"", a.""ParentCode"" 
 FROM ""D_District"" a 
 WHERE (((a.""Code"") LIKE '%val1%' AND (a.""Name"") LIKE 'val2%' OR (a.""Name"") LIKE '%val3' OR a.""ParentCode"" = 'val4' OR a.""CreateTime"" >= '2010-10-10 00:00:00'))", sql);
+
+            sql = fsql.Select<VM_District_Parent>().WhereDynamicFilter(JsonConvert.DeserializeObject<DynamicFilterInfo>(@"
+{
+  ""Logic"" : ""Or"",
+  ""Filters"" :
+  [
+    {
+      ""Field"" : ""CreateTime"",
+      ""Operator"" : ""Range"",
+      ""Value"" : ""2010-10-10,2010-12-10""
+    },
+    {
+      ""Field"" : ""Name"",
+      ""Operator"" : ""Any"",
+      ""Value"" : ""val1,val2,val3,val4""
+    },
+    {
+      ""Field"" : ""testint"",
+      ""Operator"" : ""Range"",
+      ""Value"" : ""100,555""
+    },
+    {
+      ""Field"" : ""testint"",
+      ""Operator"" : ""Any"",
+      ""Value"" : ""1,5,11,15""
+    }
+  ]
+}
+")).ToSql();
+            Assert.Equal(@"SELECT a.""Code"", a.""Name"", a.""CreateTime"", a.""testint"", a.""ParentCode"" 
+FROM ""D_District"" a 
+WHERE ((a.""CreateTime"" >= '2010-10-10 00:00:00' AND a.""CreateTime"" < '2010-12-10 00:00:00' OR ((a.""Name"") in ('val1','val2','val3','val4')) OR a.""testint"" >= 100 AND a.""testint"" < 555 OR ((a.""testint"") in (1,5,11,15))))", sql);
 
             sql = fsql.Select<VM_District_Parent>().WhereDynamicFilter(JsonConvert.DeserializeObject<DynamicFilterInfo>(@"
 {
@@ -2035,7 +2069,7 @@ WHERE (((a.""Code"") LIKE '%val1%' AND (a.""Name"") LIKE 'val2%' OR (a.""Name"")
   ]
 }
 ")).ToSql();
-            Assert.Equal(@"SELECT a.""Code"", a.""Name"", a.""CreateTime"", a.""ParentCode"", a__Parent.""Code"" as5, a__Parent.""Name"" as6, a__Parent.""CreateTime"" as7, a__Parent.""ParentCode"" as8 
+            Assert.Equal(@"SELECT a.""Code"", a.""Name"", a.""CreateTime"", a.""testint"", a.""ParentCode"", a__Parent.""Code"" as6, a__Parent.""Name"" as7, a__Parent.""CreateTime"" as8, a__Parent.""testint"" as9, a__Parent.""ParentCode"" as10 
 FROM ""D_District"" a 
 LEFT JOIN ""D_District"" a__Parent ON a__Parent.""Code"" = a.""ParentCode"" 
 WHERE ((not((a.""Code"") LIKE '%val1%') AND not((a.""Name"") LIKE 'val2%') OR not((a.""Name"") LIKE '%val3') OR a.""ParentCode"" <> 'val4' OR a__Parent.""Code"" = 'val11' AND (a__Parent.""Name"") LIKE '%val22%' OR a__Parent.""Name"" = 'val33' OR a__Parent.""ParentCode"" = 'val44'))", sql);

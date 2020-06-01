@@ -1029,6 +1029,8 @@ namespace FreeSql.Internal.CommonProvider
         static MethodInfo MethodStringContains = typeof(string).GetMethod("Contains", new[] { typeof(string) });
         static MethodInfo MethodStringStartsWith = typeof(string).GetMethod("StartsWith", new[] { typeof(string) });
         static MethodInfo MethodStringEndsWith = typeof(string).GetMethod("EndsWith", new[] { typeof(string) });
+        static ConcurrentDictionary<Type, MethodInfo> MethodEnumerableContainsDic = new ConcurrentDictionary<Type, MethodInfo>();
+        static MethodInfo GetMethodEnumerableContains(Type elementType) => MethodEnumerableContainsDic.GetOrAdd(elementType, et => typeof(Enumerable).GetMethods().Where(a => a.Name == "Contains").FirstOrDefault().MakeGenericMethod(elementType));
         public TSelect WhereDynamicFilter(DynamicFilterInfo filter)
         {
             if (filter == null) return this as TSelect;
@@ -1089,14 +1091,27 @@ namespace FreeSql.Internal.CommonProvider
                         case DynamicFilterOperator.NotStartsWith: exp = Expression.Not(Expression.Call(exp, MethodStringStartsWith, Expression.Constant(fi.Value))); break;
                         case DynamicFilterOperator.NotEndsWith: exp = Expression.Not(Expression.Call(exp, MethodStringEndsWith, Expression.Constant(fi.Value))); break;
 
+                        case DynamicFilterOperator.Eq:
                         case DynamicFilterOperator.Equals:
-                        case DynamicFilterOperator.Eq: exp = Expression.Equal(exp, Expression.Constant(Utils.GetDataReaderValue(exp.Type, fi.Value), exp.Type)); break;
+                        case DynamicFilterOperator.Equal: exp = Expression.Equal(exp, Expression.Constant(Utils.GetDataReaderValue(exp.Type, fi.Value), exp.Type)); break;
                         case DynamicFilterOperator.NotEqual: exp = Expression.NotEqual(exp, Expression.Constant(Utils.GetDataReaderValue(exp.Type, fi.Value), exp.Type)); break;
 
                         case DynamicFilterOperator.GreaterThan: exp = Expression.GreaterThan(exp, Expression.Constant(Utils.GetDataReaderValue(exp.Type, fi.Value), exp.Type)); break;
                         case DynamicFilterOperator.GreaterThanOrEqual: exp = Expression.GreaterThanOrEqual(exp, Expression.Constant(Utils.GetDataReaderValue(exp.Type, fi.Value), exp.Type)); break;
                         case DynamicFilterOperator.LessThan: exp = Expression.LessThan(exp, Expression.Constant(Utils.GetDataReaderValue(exp.Type, fi.Value), exp.Type)); break;
                         case DynamicFilterOperator.LessThanOrEqual: exp = Expression.LessThanOrEqual(exp, Expression.Constant(Utils.GetDataReaderValue(exp.Type, fi.Value), exp.Type)); break;
+                        case DynamicFilterOperator.Range:
+                            var fiValueRangeArray = fi.Value.Split(',');
+                            if (fiValueRangeArray.Length != 2) throw new ArgumentException($"Range 对应 Value 应该逗号分割，并且长度为 2");
+                            exp = Expression.AndAlso(
+                                Expression.GreaterThanOrEqual(exp, Expression.Constant(Utils.GetDataReaderValue(exp.Type, fiValueRangeArray[0]), exp.Type)),
+                                Expression.LessThan(exp, Expression.Constant(Utils.GetDataReaderValue(exp.Type, fiValueRangeArray[1]), exp.Type))); 
+                            break;
+                        case DynamicFilterOperator.Any:
+                            var fiValueAnyArray = fi.Value.Split(',');
+                            var fiValueAnyArrayType = exp.Type.MakeArrayType();
+                            exp = Expression.Call(GetMethodEnumerableContains(exp.Type), Expression.Constant(Utils.GetDataReaderValue(fiValueAnyArrayType, fiValueAnyArray), fiValueAnyArrayType), exp);
+                            break;
                     }
 
                     var sql = _commonExpression.ExpressionWhereLambda(_tables, exp, null, null, _params);
