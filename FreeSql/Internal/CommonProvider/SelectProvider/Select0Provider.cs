@@ -10,6 +10,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -1102,10 +1103,23 @@ namespace FreeSql.Internal.CommonProvider
                         case DynamicFilterOperator.LessThanOrEqual: exp = Expression.LessThanOrEqual(exp, Expression.Constant(Utils.GetDataReaderValue(exp.Type, fi.Value), exp.Type)); break;
                         case DynamicFilterOperator.Range:
                             var fiValueRangeArray = fi.Value.Split(',');
-                            if (fiValueRangeArray.Length != 2) throw new ArgumentException($"Range 对应 Value 应该逗号分割，并且长度为 2");
+                            if (fiValueRangeArray.Length != 2) throw new ArgumentException($"Range 要求 Value 应该逗号分割，并且长度为 2");
                             exp = Expression.AndAlso(
                                 Expression.GreaterThanOrEqual(exp, Expression.Constant(Utils.GetDataReaderValue(exp.Type, fiValueRangeArray[0]), exp.Type)),
                                 Expression.LessThan(exp, Expression.Constant(Utils.GetDataReaderValue(exp.Type, fiValueRangeArray[1]), exp.Type))); 
+                            break;
+                        case DynamicFilterOperator.DateRange:
+                            var fiValueDateRangeArray = fi.Value.Split(',');
+                            if (fiValueDateRangeArray.Length != 2) throw new ArgumentException($"DateRange 要求 Value 应该逗号分割，并且长度为 2");
+                            if (Regex.IsMatch(fiValueDateRangeArray[1], @"^\d\d\d\d[\-/]\d\d?[\-/]\d\d?$")) fiValueDateRangeArray[1] = DateTime.Parse(fiValueDateRangeArray[1]).AddDays(1).ToString("yyyy-MM-dd HH:mm:ss");
+                            else if (Regex.IsMatch(fiValueDateRangeArray[1], @"^\d\d\d\d[\-/]\d\d?$")) fiValueDateRangeArray[1] = DateTime.Parse($"{fiValueDateRangeArray[1]}-01").AddMonths(1).ToString("yyyy-MM-dd HH:mm:ss");
+                            else if (Regex.IsMatch(fiValueDateRangeArray[1], @"^\d\d\d\d$")) fiValueDateRangeArray[1] = DateTime.Parse($"{fiValueDateRangeArray[1]}-01-01").AddYears(1).ToString("yyyy-MM-dd HH:mm:ss");
+                            else if (Regex.IsMatch(fiValueDateRangeArray[1], @"^\d\d\d\d[\-/]\d\d?[\-/]\d\d? \d\d?$")) fiValueDateRangeArray[1] = DateTime.Parse($"{fiValueDateRangeArray[1]}:00:00").AddHours(1).ToString("yyyy-MM-dd HH:mm:ss");
+                            else if (Regex.IsMatch(fiValueDateRangeArray[1], @"^\d\d\d\d[\-/]\d\d?[\-/]\d\d? \d\d?:\d\d?$")) fiValueDateRangeArray[1] = DateTime.Parse($"{fiValueDateRangeArray[1]}:00").AddMinutes(1).ToString("yyyy-MM-dd HH:mm:ss");
+                            else throw new ArgumentException($"DateRange 要求 Value[1] 格式必须为：yyyy、yyyy-MM、yyyy-MM-dd、yyyy-MM-dd HH、yyyy、yyyy-MM-dd HH:mm");
+                            exp = Expression.AndAlso(
+                                Expression.GreaterThanOrEqual(exp, Expression.Constant(Utils.GetDataReaderValue(exp.Type, fiValueDateRangeArray[0]), exp.Type)),
+                                Expression.LessThan(exp, Expression.Constant(Utils.GetDataReaderValue(exp.Type, fiValueDateRangeArray[1]), exp.Type)));
                             break;
                         case DynamicFilterOperator.Any:
                             var fiValueAnyArray = fi.Value.Split(',');

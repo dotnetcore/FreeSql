@@ -98,6 +98,19 @@ namespace FreeSql.Internal.Model
         Range,
 
         /// <summary>
+        /// &gt;= and &lt;<para></para>
+        /// 此时 Value 的值格式为逗号分割：date1,date2<para></para>
+        /// 这是专门为日期范围查询定制的操作符，它会处理 date2 + 1，比如：<para></para>
+        /// 当 date2 选择的是 2020-05-30，那查询的时候是 &lt; 2020-05-31<para></para>
+        /// 当 date2 选择的是 2020-05，那查询的时候是 &lt; 2020-06<para></para>
+        /// 当 date2 选择的是 2020，那查询的时候是 &lt; 2021<para></para>
+        /// 当 date2 选择的是 2020-05-30 12，那查询的时候是 &lt; 2020-05-30 13<para></para>
+        /// 当 date2 选择的是 2020-05-30 12:30，那查询的时候是 &lt; 2020-05-30 12:31<para></para>
+        /// 并且 date2 只支持以上 5 种格式 (date1 没有限制)
+        /// </summary>
+        DateRange,
+
+        /// <summary>
         /// in (1,2,3)<para></para>
         /// 此时 Value 的值格式为逗号分割：value1,value2,value3...
         /// </summary>
