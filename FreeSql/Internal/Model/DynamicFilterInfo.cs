@@ -114,6 +114,11 @@ namespace FreeSql.Internal.Model
         /// in (1,2,3)<para></para>
         /// 此时 Value 的值格式为逗号分割：value1,value2,value3...
         /// </summary>
-        Any
+        Any,
+        /// <summary>
+        /// not in (1,2,3)<para></para>
+        /// 此时 Value 的值格式为逗号分割：value1,value2,value3...
+        /// </summary>
+        NotAny
     }
 }

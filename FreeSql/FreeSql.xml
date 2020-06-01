@@ -3138,6 +3138,12 @@
             此时 Value 的值格式为逗号分割：value1,value2,value3...
             </summary>
         </member>
+        <member name="F:FreeSql.Internal.Model.DynamicFilterOperator.NotAny">
+            <summary>
+            not in (1,2,3)<para></para>
+            此时 Value 的值格式为逗号分割：value1,value2,value3...
+            </summary>
+        </member>
         <member name="P:FreeSql.Internal.Model.TableRef.RefMiddleEntityType">
             <summary>
             中间表，多对多

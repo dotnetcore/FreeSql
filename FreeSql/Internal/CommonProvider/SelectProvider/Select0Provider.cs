@@ -1122,9 +1122,11 @@ namespace FreeSql.Internal.CommonProvider
                                 Expression.LessThan(exp, Expression.Constant(Utils.GetDataReaderValue(exp.Type, fiValueDateRangeArray[1]), exp.Type)));
                             break;
                         case DynamicFilterOperator.Any:
+                        case DynamicFilterOperator.NotAny:
                             var fiValueAnyArray = fi.Value.Split(',');
                             var fiValueAnyArrayType = exp.Type.MakeArrayType();
                             exp = Expression.Call(GetMethodEnumerableContains(exp.Type), Expression.Constant(Utils.GetDataReaderValue(fiValueAnyArrayType, fiValueAnyArray), fiValueAnyArrayType), exp);
+                            if (fi.Operator == DynamicFilterOperator.NotAny) exp = Expression.Not(exp);
                             break;
                     }
 
