@@ -1990,34 +1990,34 @@ WHERE (((a.""Code"") LIKE '%val1%' AND (a.""Name"") LIKE 'val2%' OR (a.""Name"")
     {
       ""Field"" : ""CreateTime"",
       ""Operator"" : ""DateRange"",
-      ""Value"" : ""2010-10-10,2010-11-10""
+      ""Value"" : [""2010-10-10"", ""2010-11-10""]
     },
     {
       ""Field"" : ""CreateTime"",
       ""Operator"" : ""DateRange"",
-      ""Value"" : ""2010-10-10,2010-11""
+      ""Value"" : ""2010-10,2010-11""
     },
     {
       ""Field"" : ""CreateTime"",
       ""Operator"" : ""DateRange"",
-      ""Value"" : ""2010-10-10,2010""
+      ""Value"" : ""2010,2010""
     },
     {
       ""Field"" : ""CreateTime"",
       ""Operator"" : ""DateRange"",
-      ""Value"" : ""2010-10-10,2010-11-10 11""
+      ""Value"" : ""2010-10-10 11,2010-11-10 11""
     },
     {
       ""Field"" : ""CreateTime"",
       ""Operator"" : ""DateRange"",
-      ""Value"" : ""2010-10-10,2010-11-10 11:20""
+      ""Value"" : ""2010-10-10 11:20,2010-11-10 11:20""
     },
   ]
 }
 ")).ToSql();
             Assert.Equal(@"SELECT a.""Code"", a.""Name"", a.""CreateTime"", a.""testint"", a.""ParentCode"" 
 FROM ""D_District"" a 
-WHERE ((a.""CreateTime"" >= '2010-10-10 00:00:00' AND a.""CreateTime"" < '2010-11-11 00:00:00' OR a.""CreateTime"" >= '2010-10-10 00:00:00' AND a.""CreateTime"" < '2010-12-01 00:00:00' OR a.""CreateTime"" >= '2010-10-10 00:00:00' AND a.""CreateTime"" < '2011-01-01 00:00:00' OR a.""CreateTime"" >= '2010-10-10 00:00:00' AND a.""CreateTime"" < '2010-11-10 12:00:00' OR a.""CreateTime"" >= '2010-10-10 00:00:00' AND a.""CreateTime"" < '2010-11-10 11:21:00'))", sql);
+WHERE ((a.""CreateTime"" >= '2010-10-10 00:00:00' AND a.""CreateTime"" < '2010-11-11 00:00:00' OR a.""CreateTime"" >= '2010-10-01 00:00:00' AND a.""CreateTime"" < '2010-12-01 00:00:00' OR a.""CreateTime"" >= '2010-01-01 00:00:00' AND a.""CreateTime"" < '2011-01-01 00:00:00' OR a.""CreateTime"" >= '2010-10-10 11:00:00' AND a.""CreateTime"" < '2010-11-10 12:00:00' OR a.""CreateTime"" >= '2010-10-10 11:20:00' AND a.""CreateTime"" < '2010-11-10 11:21:00'))", sql);
 
             sql = fsql.Select<VM_District_Parent>().WhereDynamicFilter(JsonConvert.DeserializeObject<DynamicFilterInfo>(@"
 {
