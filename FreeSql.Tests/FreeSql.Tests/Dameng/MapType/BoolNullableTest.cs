@@ -1497,15 +1497,6 @@ namespace FreeSql.Tests.DamengMapType
             Assert.Equal(item.tostring, find.tostring);
             Assert.Equal(false, find.tostring);
 
-            item = new BoolNullableMap { tostring = null };
-            Assert.Equal(1, orm.Insert<BoolNullableMap>().AppendData(item).ExecuteAffrows());
-            Assert.Null(orm.Select<BoolNullableMap>().Where(a => a.id == item.id && a.tostring == false).First());
-            find = orm.Select<BoolNullableMap>().Where(a => a.id == item.id && a.tostring == null).First();
-            Assert.NotNull(find);
-            Assert.Equal(item.id, find.id);
-            Assert.Equal(item.tostring, find.tostring);
-            Assert.Null(find.tostring);
-
             //update all
             item.tostring = true;
             Assert.Equal(1, orm.Update<BoolNullableMap>().SetSource(item).ExecuteAffrows());
@@ -1523,15 +1514,6 @@ namespace FreeSql.Tests.DamengMapType
             Assert.Equal(item.tostring, find.tostring);
             Assert.Equal(false, find.tostring);
 
-            item.tostring = null;
-            Assert.Equal(1, orm.Update<BoolNullableMap>().SetSource(item).ExecuteAffrows());
-            Assert.Null(orm.Select<BoolNullableMap>().Where(a => a.id == item.id && a.tostring == false).First());
-            find = orm.Select<BoolNullableMap>().Where(a => a.id == item.id && a.tostring == null).First();
-            Assert.NotNull(find);
-            Assert.Equal(item.id, find.id);
-            Assert.Equal(item.tostring, find.tostring);
-            Assert.Null(find.tostring);
-
             //update set
             Assert.Equal(1, orm.Update<BoolNullableMap>().Where(a => a.id == item.id).Set(a => a.tostring, true).ExecuteAffrows());
             find = orm.Select<BoolNullableMap>().Where(a => a.id == item.id && a.tostring == true).First();
@@ -1545,17 +1527,9 @@ namespace FreeSql.Tests.DamengMapType
             Assert.Equal(item.id, find.id);
             Assert.Equal(false, find.tostring);
 
-            Assert.Equal(1, orm.Update<BoolNullableMap>().Where(a => a.id == item.id).Set(a => a.tostring, null).ExecuteAffrows());
-            Assert.Null(orm.Select<BoolNullableMap>().Where(a => a.id == item.id && a.tostring == false).First());
-            find = orm.Select<BoolNullableMap>().Where(a => a.id == item.id && a.tostring == null).First();
-            Assert.NotNull(find);
-            Assert.Equal(item.id, find.id);
-            Assert.Null(find.tostring);
-
             //delete
             Assert.Equal(0, orm.Delete<BoolNullableMap>().Where(a => a.id == item.id && a.tostring == true).ExecuteAffrows());
-            Assert.Equal(0, orm.Delete<BoolNullableMap>().Where(a => a.id == item.id && a.tostring == false).ExecuteAffrows());
-            Assert.Equal(1, orm.Delete<BoolNullableMap>().Where(a => a.id == item.id && a.tostring == null).ExecuteAffrows());
+            Assert.Equal(1, orm.Delete<BoolNullableMap>().Where(a => a.id == item.id && a.tostring == false).ExecuteAffrows());
             Assert.Null(orm.Select<BoolNullableMap>().Where(a => a.id == item.id).First());
         }
 

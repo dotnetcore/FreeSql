@@ -99,17 +99,9 @@ namespace FreeSql.Tests.DamengMapType
         {
             //insert
             var orm = g.dameng;
-            var item = new ToStringMap { };
+            var item = new ToStringMap { enumnullable_to_string = ToStringMapEnum.中国人 };
             Assert.Equal(1, orm.Insert<ToStringMap>().AppendData(item).ExecuteAffrows());
-            var find = orm.Select<ToStringMap>().Where(a => a.id == item.id && a.enumnullable_to_string == null).First();
-            Assert.NotNull(find);
-            Assert.Equal(item.id, find.id);
-            Assert.Equal(item.enumnullable_to_string, find.enumnullable_to_string);
-            Assert.Null(find.enumnullable_to_string);
-
-            item = new ToStringMap { enumnullable_to_string = ToStringMapEnum.中国人 };
-            Assert.Equal(1, orm.Insert<ToStringMap>().AppendData(item).ExecuteAffrows());
-            find = orm.Select<ToStringMap>().Where(a => a.id == item.id && a.enumnullable_to_string == ToStringMapEnum.中国人).First();
+            var find = orm.Select<ToStringMap>().Where(a => a.id == item.id && a.enumnullable_to_string == ToStringMapEnum.中国人).First();
             Assert.NotNull(find);
             Assert.Equal(item.id, find.id);
             Assert.Equal(item.enumnullable_to_string, find.enumnullable_to_string);
@@ -124,15 +116,6 @@ namespace FreeSql.Tests.DamengMapType
             Assert.Equal(item.enumnullable_to_string, find.enumnullable_to_string);
             Assert.Equal(ToStringMapEnum.香港, find.enumnullable_to_string);
 
-            item.enumnullable_to_string = null;
-            Assert.Equal(1, orm.Update<ToStringMap>().SetSource(item).ExecuteAffrows());
-            Assert.Null(orm.Select<ToStringMap>().Where(a => a.id == item.id && a.enumnullable_to_string == ToStringMapEnum.香港).First());
-            find = orm.Select<ToStringMap>().Where(a => a.id == item.id && a.enumnullable_to_string == null).First();
-            Assert.NotNull(find);
-            Assert.Equal(item.id, find.id);
-            Assert.Equal(item.enumnullable_to_string, find.enumnullable_to_string);
-            Assert.Null(find.enumnullable_to_string);
-
             //update set
             Assert.Equal(1, orm.Update<ToStringMap>().Where(a => a.id == item.id).Set(a => a.enumnullable_to_string, ToStringMapEnum.abc).ExecuteAffrows());
             find = orm.Select<ToStringMap>().Where(a => a.id == item.id && a.enumnullable_to_string == ToStringMapEnum.abc).First();
@@ -140,19 +123,10 @@ namespace FreeSql.Tests.DamengMapType
             Assert.Equal(item.id, find.id);
             Assert.Equal(ToStringMapEnum.abc, find.enumnullable_to_string);
 
-
-            Assert.Equal(1, orm.Update<ToStringMap>().Where(a => a.id == item.id).Set(a => a.enumnullable_to_string, null).ExecuteAffrows());
-            Assert.Null(orm.Select<ToStringMap>().Where(a => a.id == item.id && a.enumnullable_to_string == ToStringMapEnum.abc).First());
-            find = orm.Select<ToStringMap>().Where(a => a.id == item.id && a.enumnullable_to_string == null).First();
-            Assert.NotNull(find);
-            Assert.Equal(item.id, find.id);
-            Assert.Null(find.enumnullable_to_string);
-
             //delete
             Assert.Equal(0, orm.Delete<ToStringMap>().Where(a => a.id == item.id && a.enumnullable_to_string == ToStringMapEnum.中国人).ExecuteAffrows());
             Assert.Equal(0, orm.Delete<ToStringMap>().Where(a => a.id == item.id && a.enumnullable_to_string == ToStringMapEnum.香港).ExecuteAffrows());
-            Assert.Equal(1, orm.Delete<ToStringMap>().Where(a => a.id == item.id && a.enumnullable_to_string == null).ExecuteAffrows());
-            Assert.Null(orm.Select<ToStringMap>().Where(a => a.id == item.id).First());
+            Assert.NotNull(orm.Select<ToStringMap>().Where(a => a.id == item.id).First());
         }
         [Fact]
         public void BigInteger1()
@@ -216,17 +190,9 @@ namespace FreeSql.Tests.DamengMapType
         {
             //insert
             var orm = g.dameng;
-            var item = new ToStringMap { };
+            var item = new ToStringMap { bigintegernullable_to_string = 101 };
             Assert.Equal(1, orm.Insert<ToStringMap>().AppendData(item).ExecuteAffrows());
-            var find = orm.Select<ToStringMap>().Where(a => a.id == item.id && a.bigintegernullable_to_string == null).First();
-            Assert.NotNull(find);
-            Assert.Equal(item.id, find.id);
-            Assert.Equal(item.bigintegernullable_to_string, find.bigintegernullable_to_string);
-            Assert.Null(find.bigintegernullable_to_string);
-
-            item = new ToStringMap { bigintegernullable_to_string = 101 };
-            Assert.Equal(1, orm.Insert<ToStringMap>().AppendData(item).ExecuteAffrows());
-            find = orm.Select<ToStringMap>().Where(a => a.id == item.id && a.bigintegernullable_to_string == 101).First();
+            var find = orm.Select<ToStringMap>().Where(a => a.id == item.id && a.bigintegernullable_to_string == 101).First();
             Assert.NotNull(find);
             Assert.Equal(item.id, find.id);
             Assert.Equal(item.bigintegernullable_to_string, find.bigintegernullable_to_string);
@@ -241,15 +207,6 @@ namespace FreeSql.Tests.DamengMapType
             Assert.Equal(item.bigintegernullable_to_string, find.bigintegernullable_to_string);
             Assert.Equal(2004, find.bigintegernullable_to_string);
 
-            item.bigintegernullable_to_string = null;
-            Assert.Equal(1, orm.Update<ToStringMap>().SetSource(item).ExecuteAffrows());
-            Assert.Null(orm.Select<ToStringMap>().Where(a => a.id == item.id && a.bigintegernullable_to_string == 2004).First());
-            find = orm.Select<ToStringMap>().Where(a => a.id == item.id && a.bigintegernullable_to_string == null).First();
-            Assert.NotNull(find);
-            Assert.Equal(item.id, find.id);
-            Assert.Equal(item.bigintegernullable_to_string, find.bigintegernullable_to_string);
-            Assert.Null(find.bigintegernullable_to_string);
-
             //update set
             Assert.Equal(1, orm.Update<ToStringMap>().Where(a => a.id == item.id).Set(a => a.bigintegernullable_to_string, 998).ExecuteAffrows());
             find = orm.Select<ToStringMap>().Where(a => a.id == item.id && a.bigintegernullable_to_string == 998).First();
@@ -257,18 +214,9 @@ namespace FreeSql.Tests.DamengMapType
             Assert.Equal(item.id, find.id);
             Assert.Equal(998, find.bigintegernullable_to_string);
 
-
-            Assert.Equal(1, orm.Update<ToStringMap>().Where(a => a.id == item.id).Set(a => a.bigintegernullable_to_string, null).ExecuteAffrows());
-            Assert.Null(orm.Select<ToStringMap>().Where(a => a.id == item.id && a.bigintegernullable_to_string == 998).First());
-            find = orm.Select<ToStringMap>().Where(a => a.id == item.id && a.bigintegernullable_to_string == null).First();
-            Assert.NotNull(find);
-            Assert.Equal(item.id, find.id);
-            Assert.Null(find.bigintegernullable_to_string);
-
             //delete
-            Assert.Equal(0, orm.Delete<ToStringMap>().Where(a => a.id == item.id && a.bigintegernullable_to_string == 998).ExecuteAffrows());
+            Assert.Equal(1, orm.Delete<ToStringMap>().Where(a => a.id == item.id && a.bigintegernullable_to_string == 998).ExecuteAffrows());
             Assert.Equal(0, orm.Delete<ToStringMap>().Where(a => a.id == item.id && a.bigintegernullable_to_string == 2004).ExecuteAffrows());
-            Assert.Equal(1, orm.Delete<ToStringMap>().Where(a => a.id == item.id && a.bigintegernullable_to_string == null).ExecuteAffrows());
             Assert.Null(orm.Select<ToStringMap>().Where(a => a.id == item.id).First());
         }
         [Fact]
@@ -513,18 +461,10 @@ namespace FreeSql.Tests.DamengMapType
         {
             //insert
             var orm = g.dameng;
-            var item = new ToStringMap { };
-            Assert.Equal(1, orm.Insert<ToStringMap>().AppendData(item).ExecuteAffrows());
-            var find = orm.Select<ToStringMap>().Where(a => a.id == item.id && a.guidnullable_to_string == null).First();
-            Assert.NotNull(find);
-            Assert.Equal(item.id, find.id);
-            Assert.Equal(item.guidnullable_to_string, find.guidnullable_to_string);
-            Assert.Null(find.guidnullable_to_string);
-
             var newid = Guid.NewGuid();
-            item = new ToStringMap { guidnullable_to_string = newid };
+            var item = new ToStringMap { guidnullable_to_string = newid };
             Assert.Equal(1, orm.Insert<ToStringMap>().AppendData(item).ExecuteAffrows());
-            find = orm.Select<ToStringMap>().Where(a => a.id == item.id && a.guidnullable_to_string == newid).First();
+            var find = orm.Select<ToStringMap>().Where(a => a.id == item.id && a.guidnullable_to_string == newid).First();
             Assert.NotNull(find);
             Assert.Equal(item.id, find.id);
             Assert.Equal(item.guidnullable_to_string, find.guidnullable_to_string);
@@ -540,14 +480,6 @@ namespace FreeSql.Tests.DamengMapType
             Assert.Equal(item.guidnullable_to_string, find.guidnullable_to_string);
             Assert.Equal(newid, find.guidnullable_to_string);
 
-            item.guidnullable_to_string = null;
-            Assert.Equal(1, orm.Update<ToStringMap>().SetSource(item).ExecuteAffrows());
-            find = orm.Select<ToStringMap>().Where(a => a.id == item.id && a.guidnullable_to_string == null).First();
-            Assert.NotNull(find);
-            Assert.Equal(item.id, find.id);
-            Assert.Equal(item.guidnullable_to_string, find.guidnullable_to_string);
-            Assert.Null(find.guidnullable_to_string);
-
             //update set
             newid = Guid.NewGuid();
             Assert.Equal(1, orm.Update<ToStringMap>().Where(a => a.id == item.id).Set(a => a.guidnullable_to_string, newid).ExecuteAffrows());
@@ -556,14 +488,8 @@ namespace FreeSql.Tests.DamengMapType
             Assert.Equal(item.id, find.id);
             Assert.Equal(newid, find.guidnullable_to_string);
 
-            Assert.Equal(1, orm.Update<ToStringMap>().Where(a => a.id == item.id).Set(a => a.guidnullable_to_string, null).ExecuteAffrows());
-            find = orm.Select<ToStringMap>().Where(a => a.id == item.id && a.guidnullable_to_string == null).First();
-            Assert.NotNull(find);
-            Assert.Equal(item.id, find.id);
-            Assert.Null(find.guidnullable_to_string);
-
             //delete
-            Assert.Equal(1, orm.Delete<ToStringMap>().Where(a => a.id == item.id && a.guidnullable_to_string == null).ExecuteAffrows());
+            Assert.Equal(1, orm.Delete<ToStringMap>().Where(a => a.id == item.id).ExecuteAffrows());
             Assert.Null(orm.Select<ToStringMap>().Where(a => a.id == item.id).First());
         }
     }

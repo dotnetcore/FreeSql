@@ -9,7 +9,7 @@ namespace FreeSql.Tests.Dameng
     public class DamengInsertTest
     {
 
-        IInsert<Topic> insert => g.dameng.Insert<Topic>(); //��������
+        IInsert<Topic> insert => g.dameng.Insert<Topic>().NoneParameter();
 
         [Table(Name = "tb_topic_insert")]
         class Topic

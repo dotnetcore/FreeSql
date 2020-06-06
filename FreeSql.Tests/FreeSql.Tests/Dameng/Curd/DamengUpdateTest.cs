@@ -7,7 +7,7 @@ namespace FreeSql.Tests.Dameng
 {
     public class DamengUpdateTest
     {
-        IUpdate<Topic> update => g.dameng.Update<Topic>();
+        IUpdate<Topic> update => g.dameng.Update<Topic>().NoneParameter();
 
         [Table(Name = "tb_topic")]
         class Topic

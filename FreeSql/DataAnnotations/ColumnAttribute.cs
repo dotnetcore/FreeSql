@@ -89,11 +89,11 @@ namespace FreeSql.DataAnnotations
         /// Oracle -> nvarchar2(100)<para></para>
         /// Sqlite -> nvarchar(100)<para></para>
         /// ---<para></para>
-        /// StringLength = -1 时，对应 DbType：<para></para>
-        /// MySql -> text<para></para>
+        /// StringLength &lt; 0 时，对应 DbType：<para></para>
+        /// MySql -> text (StringLength = -2 时，对应 DbType longtext)<para></para>
         /// SqlServer -> nvarchar(max)<para></para>
         /// PostgreSQL -> text<para></para>
-        /// Oracle -> nvarchar2(4000)<para></para>
+        /// Oracle -> nclob<para></para>
         /// Sqlite -> text<para></para>
         /// </summary>
         public int StringLength { get => _StringLength ?? 0; set => _StringLength = value; }

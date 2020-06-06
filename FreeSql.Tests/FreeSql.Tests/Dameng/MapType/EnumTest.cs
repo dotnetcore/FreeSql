@@ -84,17 +84,9 @@ namespace FreeSql.Tests.DamengMapType
         {
             //insert
             var orm = g.dameng;
-            var item = new EnumTestMap { };
+            var item = new EnumTestMap { enumnullable_to_string = ToStringMapEnum.中国人 };
             Assert.Equal(1, orm.Insert<EnumTestMap>().AppendData(item).ExecuteAffrows());
-            var find = orm.Select<EnumTestMap>().Where(a => a.id == item.id && a.enumnullable_to_string == null).First();
-            Assert.NotNull(find);
-            Assert.Equal(item.id, find.id);
-            Assert.Equal(item.enumnullable_to_string, find.enumnullable_to_string);
-            Assert.Null(find.enumnullable_to_string);
-
-            item = new EnumTestMap { enumnullable_to_string = ToStringMapEnum.中国人 };
-            Assert.Equal(1, orm.Insert<EnumTestMap>().AppendData(item).ExecuteAffrows());
-            find = orm.Select<EnumTestMap>().Where(a => a.id == item.id && a.enumnullable_to_string == ToStringMapEnum.中国人).First();
+            var find = orm.Select<EnumTestMap>().Where(a => a.id == item.id && a.enumnullable_to_string == ToStringMapEnum.中国人).First();
             Assert.NotNull(find);
             Assert.Equal(item.id, find.id);
             Assert.Equal(item.enumnullable_to_string, find.enumnullable_to_string);
@@ -109,15 +101,6 @@ namespace FreeSql.Tests.DamengMapType
             Assert.Equal(item.enumnullable_to_string, find.enumnullable_to_string);
             Assert.Equal(ToStringMapEnum.香港, find.enumnullable_to_string);
 
-            item.enumnullable_to_string = null;
-            Assert.Equal(1, orm.Update<EnumTestMap>().SetSource(item).ExecuteAffrows());
-            Assert.Null(orm.Select<EnumTestMap>().Where(a => a.id == item.id && a.enumnullable_to_string == ToStringMapEnum.香港).First());
-            find = orm.Select<EnumTestMap>().Where(a => a.id == item.id && a.enumnullable_to_string == null).First();
-            Assert.NotNull(find);
-            Assert.Equal(item.id, find.id);
-            Assert.Equal(item.enumnullable_to_string, find.enumnullable_to_string);
-            Assert.Null(find.enumnullable_to_string);
-
             //update set
             Assert.Equal(1, orm.Update<EnumTestMap>().Where(a => a.id == item.id).Set(a => a.enumnullable_to_string, ToStringMapEnum.abc).ExecuteAffrows());
             find = orm.Select<EnumTestMap>().Where(a => a.id == item.id && a.enumnullable_to_string == ToStringMapEnum.abc).First();
@@ -125,19 +108,10 @@ namespace FreeSql.Tests.DamengMapType
             Assert.Equal(item.id, find.id);
             Assert.Equal(ToStringMapEnum.abc, find.enumnullable_to_string);
 
-
-            Assert.Equal(1, orm.Update<EnumTestMap>().Where(a => a.id == item.id).Set(a => a.enumnullable_to_string, null).ExecuteAffrows());
-            Assert.Null(orm.Select<EnumTestMap>().Where(a => a.id == item.id && a.enumnullable_to_string == ToStringMapEnum.abc).First());
-            find = orm.Select<EnumTestMap>().Where(a => a.id == item.id && a.enumnullable_to_string == null).First();
-            Assert.NotNull(find);
-            Assert.Equal(item.id, find.id);
-            Assert.Null(find.enumnullable_to_string);
-
             //delete
             Assert.Equal(0, orm.Delete<EnumTestMap>().Where(a => a.id == item.id && a.enumnullable_to_string == ToStringMapEnum.中国人).ExecuteAffrows());
             Assert.Equal(0, orm.Delete<EnumTestMap>().Where(a => a.id == item.id && a.enumnullable_to_string == ToStringMapEnum.香港).ExecuteAffrows());
-            Assert.Equal(1, orm.Delete<EnumTestMap>().Where(a => a.id == item.id && a.enumnullable_to_string == null).ExecuteAffrows());
-            Assert.Null(orm.Select<EnumTestMap>().Where(a => a.id == item.id).First());
+            Assert.NotNull(orm.Select<EnumTestMap>().Where(a => a.id == item.id).First());
         }
 
         [Fact]

@@ -1218,12 +1218,12 @@ namespace FreeSql.Internal.CommonProvider
                     break;
                 case DataType.Oracle:
                 case DataType.OdbcOracle:
+                case DataType.Dameng:
+                case DataType.OdbcDameng:
                     _tosqlAppendContent = $" for update{(noawait ? " nowait" : "")}";
                     break;
                 case DataType.Sqlite:
                     break;
-                case DataType.OdbcDameng:
-                case DataType.Dameng:
                 case DataType.OdbcKingbaseES:
                     _tosqlAppendContent = $" for update{(noawait ? " nowait" : "")}";
                     break;

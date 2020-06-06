@@ -310,8 +310,9 @@ and not exists(select 1 from all_constraints where index_name = a.index_name and
                     continue;
                 }
                 var oldpk = _orm.Ado.ExecuteScalar(CommandType.Text, _commonUtils.FormatSql(@" select constraint_name from user_constraints where owner={0} and table_name={1} and constraint_type='P'", tbname))?.ToString();
-                if (string.IsNullOrEmpty(oldpk) == false)
-                    sb.Append("execute immediate 'ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" DROP CONSTRAINT ").Append(oldpk).Append("';\r\n");
+                //if (string.IsNullOrEmpty(oldpk) == false)
+                //    sb.Append("execute immediate 'ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}")).Append(" DROP CONSTRAINT ").Append(_commonUtils.QuoteSqlName(oldpk)).Append("';\r\n");
+                //执行失败(语句1) 试图删除聚集主键
 
                 //创建临时表，数据导进临时表，然后删除原表，将临时表改名为原表名
                 var tablename = tboldname == null ? _commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}") : _commonUtils.QuoteSqlName($"{tboldname[0]}.{tboldname[1]}");
@@ -325,7 +326,8 @@ and not exists(select 1 from all_constraints where index_name = a.index_name and
                 }
                 if (tb.Primarys.Any())
                 {
-                    var pkname = primaryKeyName ?? $"{tbname[0]}_{tbname[1]}_pk2";
+                    var pkname = primaryKeyName ?? $"{tbname[0]}_{tbname[1]}_pk1";
+                    if (string.IsNullOrEmpty(oldpk) == false && oldpk == pkname) pkname = $"{pkname}1";
                     sb.Append(" \r\n  CONSTRAINT ").Append(_commonUtils.QuoteSqlName(pkname)).Append(" PRIMARY KEY (");
                     foreach (var tbcol in tb.Primarys) sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
                     sb.Remove(sb.Length - 2, 2).Append("),");
