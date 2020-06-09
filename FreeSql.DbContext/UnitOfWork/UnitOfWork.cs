@@ -64,6 +64,9 @@ namespace FreeSql
             Enable = true;
         }
 
+        DbContextScopedFreeSql _ormScoped;
+        public IFreeSql Orm => _ormScoped ?? (_ormScoped = DbContextScopedFreeSql.Create(_fsql, null, () => this));
+
         public IsolationLevel? IsolationLevel { get; set; }
 
         public DbTransaction GetOrBeginTransaction(bool isCreate = true)

@@ -184,6 +184,7 @@ namespace FreeSql
             IUnitOfWork _baseUow;
             internal Action OnDispose;
             public UnitOfWorkOrginal(IUnitOfWork baseUow) => _baseUow = baseUow;
+            public IFreeSql Orm => _baseUow.Orm;
             public IsolationLevel? IsolationLevel { get => _baseUow.IsolationLevel; set => _baseUow.IsolationLevel = value; }
             public DbContext.EntityChangeReport EntityChangeReport => _baseUow.EntityChangeReport;
 
@@ -205,6 +206,7 @@ namespace FreeSql
             IUnitOfWork _baseUow;
             internal Action OnDispose;
             public UnitOfWorkVirtual(IUnitOfWork baseUow) => _baseUow = baseUow;
+            public IFreeSql Orm => _baseUow.Orm;
             public IsolationLevel? IsolationLevel { get => _baseUow.IsolationLevel; set { } }
             public DbContext.EntityChangeReport EntityChangeReport => _baseUow.EntityChangeReport;
 
@@ -222,6 +224,7 @@ namespace FreeSql
             internal IFreeSql _fsql;
             internal Action OnDispose;
             public UnitOfWorkNothing(IFreeSql fsql) => _fsql = fsql;
+            public IFreeSql Orm => _fsql;
             public IsolationLevel? IsolationLevel { get; set; }
             public DbContext.EntityChangeReport EntityChangeReport { get; } = new DbContext.EntityChangeReport();
 
