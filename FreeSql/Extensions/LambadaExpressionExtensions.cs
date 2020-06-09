@@ -20,9 +20,9 @@ namespace System.Linq.Expressions
             if (exp1 == null) return exp2;
             if (exp2 == null) return exp1;
 
-            var newParameters = exp1.Parameters.Select((a, b) => Expression.Parameter(a.Type, $"new{b}")).ToArray();
+            var newParameters = exp1.Parameters.Select((a, b) => Expression.Parameter(a.Type, a.Name /*$"new{b}"*/)).ToArray();
 
-            var left = new NewExpressionVisitor(newParameters, exp2.Parameters.ToArray()).Replace(exp1.Body);
+            var left = new NewExpressionVisitor(newParameters, exp1.Parameters.ToArray()).Replace(exp1.Body);
             var right = new NewExpressionVisitor(newParameters, exp2.Parameters.ToArray()).Replace(exp2.Body);
             var body = isAndAlso ? Expression.AndAlso(left, right) : Expression.OrElse(left, right);
             return Expression.Lambda(exp1.Type, body, newParameters);
@@ -32,7 +32,7 @@ namespace System.Linq.Expressions
             if (condition == false) return exp;
             if (exp == null) return null;
 
-            var newParameters = exp.Parameters.Select((a, b) => Expression.Parameter(a.Type, $"new{b}")).ToArray();
+            var newParameters = exp.Parameters.Select((a, b) => Expression.Parameter(a.Type, a.Name /*$"new{b}"*/)).ToArray();
             var body = Expression.Not(exp.Body);
             return Expression.Lambda(exp.Type, body, newParameters);
         }
