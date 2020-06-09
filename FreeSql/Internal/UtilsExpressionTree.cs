@@ -244,6 +244,7 @@ namespace FreeSql.Internal
                         case DataType.PostgreSQL:
                         case DataType.OdbcPostgreSQL:
                         case DataType.OdbcKingbaseES:
+                        case DataType.ShenTong:
                             if (strlen < 0) colattr.DbType = "TEXT";
                             else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
                             break;

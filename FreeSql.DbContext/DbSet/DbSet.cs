@@ -277,6 +277,7 @@ namespace FreeSql
                     case DataType.PostgreSQL:
                     case DataType.OdbcPostgreSQL:
                     case DataType.OdbcKingbaseES:
+                    case DataType.ShenTong:
                         return true;
                     default:
                         if (_tableIdentitys.Length == 1 && _table.Primarys.Length == 1)

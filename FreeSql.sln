@@ -78,7 +78,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Extensions.Linq", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Provider.Dameng", "Providers\FreeSql.Provider.Dameng\FreeSql.Provider.Dameng.csproj", "{E74D90E8-1CBC-4677-817B-1CA05AB97937}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "aspnetcore_transaction", "Examples\aspnetcore_transaction\aspnetcore_transaction.csproj", "{07AB0B37-A8B1-4FB1-9259-7B804E369E36}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "aspnetcore_transaction", "Examples\aspnetcore_transaction\aspnetcore_transaction.csproj", "{07AB0B37-A8B1-4FB1-9259-7B804E369E36}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Provider.ShenTong", "Providers\FreeSql.Provider.ShenTong\FreeSql.Provider.ShenTong.csproj", "{938173AF-157F-4040-AED3-171DA1809CAA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -486,6 +488,18 @@ Global
 		{07AB0B37-A8B1-4FB1-9259-7B804E369E36}.Release|x64.Build.0 = Release|Any CPU
 		{07AB0B37-A8B1-4FB1-9259-7B804E369E36}.Release|x86.ActiveCfg = Release|Any CPU
 		{07AB0B37-A8B1-4FB1-9259-7B804E369E36}.Release|x86.Build.0 = Release|Any CPU
+		{938173AF-157F-4040-AED3-171DA1809CAA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{938173AF-157F-4040-AED3-171DA1809CAA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{938173AF-157F-4040-AED3-171DA1809CAA}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{938173AF-157F-4040-AED3-171DA1809CAA}.Debug|x64.Build.0 = Debug|Any CPU
+		{938173AF-157F-4040-AED3-171DA1809CAA}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{938173AF-157F-4040-AED3-171DA1809CAA}.Debug|x86.Build.0 = Debug|Any CPU
+		{938173AF-157F-4040-AED3-171DA1809CAA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{938173AF-157F-4040-AED3-171DA1809CAA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{938173AF-157F-4040-AED3-171DA1809CAA}.Release|x64.ActiveCfg = Release|Any CPU
+		{938173AF-157F-4040-AED3-171DA1809CAA}.Release|x64.Build.0 = Release|Any CPU
+		{938173AF-157F-4040-AED3-171DA1809CAA}.Release|x86.ActiveCfg = Release|Any CPU
+		{938173AF-157F-4040-AED3-171DA1809CAA}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -514,6 +528,7 @@ Global
 		{57B3F5B0-D46A-4442-8EC6-9A9A784404B7} = {4A92E8A6-9A6D-41A1-9CDA-DE10899648AA}
 		{E74D90E8-1CBC-4677-817B-1CA05AB97937} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
 		{07AB0B37-A8B1-4FB1-9259-7B804E369E36} = {94C8A78D-AA15-47B2-A348-530CD86BFC1B}
+		{938173AF-157F-4040-AED3-171DA1809CAA} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {089687FD-5D25-40AB-BA8A-A10D1E137F98}

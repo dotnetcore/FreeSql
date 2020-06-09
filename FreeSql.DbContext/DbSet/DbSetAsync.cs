@@ -42,6 +42,7 @@ namespace FreeSql
                     case DataType.PostgreSQL:
                     case DataType.OdbcPostgreSQL:
                     case DataType.OdbcKingbaseES:
+                    case DataType.ShenTong:
                         if (_tableIdentitys.Length == 1 && _table.Primarys.Length == 1)
                         {
                             await DbContextFlushCommandAsync();
@@ -104,6 +105,7 @@ namespace FreeSql
                     case DataType.PostgreSQL:
                     case DataType.OdbcPostgreSQL:
                     case DataType.OdbcKingbaseES:
+                    case DataType.ShenTong:
                         await DbContextFlushCommandAsync();
                         var rets = await this.OrmInsert(data).ExecuteInsertedAsync();
                         if (rets.Count != data.Count()) throw new Exception($"特别错误：批量添加失败，{_db.OrmOriginal.Ado.DataType} 的返回数据，与添加的数目不匹配");

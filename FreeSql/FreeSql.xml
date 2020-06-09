@@ -556,6 +556,11 @@
             北京人大金仓信息技术股份有限公司，基于 Odbc 的实现
             </summary>
         </member>
+        <member name="F:FreeSql.DataType.ShenTong">
+            <summary>
+             天津神舟通用数据技术有限公司，基于 System.Data.OscarClient.dll 的实现
+            </summary>
+        </member>
         <member name="M:FreeSql.Extensions.EntityUtil.EntityUtilExtensions.GetEntityKeyString(IFreeSql,System.Type,System.Object,System.Boolean,System.String)">
             <summary>
             获取实体的主键值，以 "*|_,[,_|*" 分割，当任意一个主键属性无值时，返回 null
@@ -1367,7 +1372,8 @@
             Oracle: for update nowait<para></para>
             Sqlite: 无效果<para></para>
             达梦: for update nowait<para></para>
-            人大金仓: for update nowait
+            人大金仓: for update nowait<para></para>
+            神通: for update nowait
             </summary>
             <param name="nowait">noawait</param>
             <returns></returns>

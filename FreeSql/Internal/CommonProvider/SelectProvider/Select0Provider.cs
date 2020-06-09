@@ -1214,6 +1214,7 @@ namespace FreeSql.Internal.CommonProvider
                     break;
                 case DataType.PostgreSQL:
                 case DataType.OdbcPostgreSQL:
+                case DataType.OdbcKingbaseES:
                     _tosqlAppendContent = $" for update{(noawait ? " nowait" : "")}";
                     break;
                 case DataType.Oracle:
@@ -1224,8 +1225,8 @@ namespace FreeSql.Internal.CommonProvider
                     break;
                 case DataType.Sqlite:
                     break;
-                case DataType.OdbcKingbaseES:
-                    _tosqlAppendContent = $" for update{(noawait ? " nowait" : "")}";
+                case DataType.ShenTong: //神通测试中发现，不支持 nowait
+                    _tosqlAppendContent = " for update";
                     break;
             }
             return this as TSelect;

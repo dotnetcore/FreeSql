@@ -120,4 +120,30 @@ public class g
             (cmd, traceLog) => Console.WriteLine(traceLog))
         .Build());
     public static IFreeSql dameng => damengLazy.Value;
+
+    static Lazy<IFreeSql> shentongLazy = new Lazy<IFreeSql>(() =>
+    {
+        var connString = new System.Data.OscarClient.OscarConnectionStringBuilder {
+            Host = "192.168.164.10",
+            Port = 2003,
+            UserName = "SYSDBA",
+            Password = "szoscar55",
+            Database = "OSRDB",
+            Pooling = true,
+            MaxPoolSize = 2
+        };
+        return new FreeSql.FreeSqlBuilder()
+        .UseConnectionString(FreeSql.DataType.ShenTong, "HOST=192.168.164.10;PORT=2003;DATABASE=OSRDB;USERNAME=SYSDBA;PASSWORD=szoscar55;MAXPOOLSIZE=2")
+        //.UseConnectionFactory(FreeSql.DataType.ShenTong, () => new System.Data.OscarClient.OscarConnection("HOST=192.168.164.10;PORT=2003;DATABASE=OSRDB;USERNAME=SYSDBA;PASSWORD=szoscar55;MAXPOOLSIZE=2"))
+        .UseAutoSyncStructure(true)
+        //.UseGenerateCommandParameterWithLambda(true)
+        .UseNameConvert(FreeSql.Internal.NameConvertType.ToUpper)
+        .UseLazyLoading(true)
+        .UseMonitorCommand(
+            cmd => Trace.WriteLine("\r\n线程" + Thread.CurrentThread.ManagedThreadId + ": " + cmd.CommandText) //监听SQL命令对象，在执行前
+            //, (cmd, traceLog) => Console.WriteLine(traceLog)
+            )
+        .Build();
+    });
+    public static IFreeSql shentong => shentongLazy.Value;
 }
