@@ -18,8 +18,9 @@ namespace orm_vs
     class Program
     {
         static IFreeSql fsql = new FreeSql.FreeSqlBuilder()
-                //.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=20")
-                .UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=20")
+                .UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=20")
+                //.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=20")
+                //.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=20")
                 .UseAutoSyncStructure(false)
                 .UseNoneCommandParameter(true)
                 //.UseConfigEntityFromDbFirst(true)
@@ -29,10 +30,12 @@ namespace orm_vs
         {
             get => new SqlSugarClient(new ConnectionConfig()
             {
-                //ConnectionString = "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Min Pool Size=20;Max Pool Size=20",
-                //DbType = DbType.SqlServer,
-                ConnectionString = "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Min Pool Size=20;Max Pool Size=20",
-                DbType = DbType.MySql,
+                ConnectionString = "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Min Pool Size=20;Max Pool Size=20",
+                DbType = DbType.SqlServer,
+                //ConnectionString = "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Min Pool Size=20;Max Pool Size=20",
+                //DbType = DbType.MySql,
+                //ConnectionString = "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=21",
+                //DbType = DbType.PostgreSQL,
                 IsAutoCloseConnection = true,
                 InitKeyType = InitKeyType.Attribute
             });
@@ -43,15 +46,33 @@ namespace orm_vs
             public DbSet<Song> Songs { get; set; }
             protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
             {
-                //optionsBuilder.UseSqlServer(@"Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Min Pool Size=21;Max Pool Size=21");
-                optionsBuilder.UseMySql("Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Min Pool Size=21;Max Pool Size=21");
+                optionsBuilder.UseSqlServer(@"Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Min Pool Size=21;Max Pool Size=21");
+                //optionsBuilder.UseMySql("Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Min Pool Size=21;Max Pool Size=21");
+                //optionsBuilder.UseNpgsql("Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=21");
             }
         }
 
         static void Main(string[] args)
         {
+            //fsql.CodeFirst.SyncStructure(typeof(Song), typeof(Song_tag), typeof(Tag));
+            //sugar.CodeFirst.InitTables(typeof(Song), typeof(Song_tag), typeof(Tag));
+            //sugar创建表失败：SqlSugar.SqlSugarException: Sequence contains no elements
+            fsql.CodeFirst.SyncStructure(typeof(Song), "freesql_song");
+            fsql.CodeFirst.SyncStructure(typeof(Song), "sugar_song");
+            fsql.CodeFirst.SyncStructure(typeof(Song), "efcore_song");
+
+            fsql.CodeFirst.SyncStructure(typeof(Song_tag), "freesql_song_tag");
+            fsql.CodeFirst.SyncStructure(typeof(Song_tag), "sugar_song_tag");
+            fsql.CodeFirst.SyncStructure(typeof(Song_tag), "efcore_song_tag");
+
+            fsql.CodeFirst.SyncStructure(typeof(Tag), "freesql_tag");
+            fsql.CodeFirst.SyncStructure(typeof(Tag), "sugar_tag");
+            fsql.CodeFirst.SyncStructure(typeof(Tag), "efcore_tag");
+
             var sb = new StringBuilder();
             var time = new Stopwatch();
+
+            var sql222 = fsql.Select<Song>().Where(a => DateTime.Now.Subtract(a.create_time.Value).TotalHours > 0).ToSql();
 
             #region ET test
             ////var t31 = fsql.Select<xxx>().ToList();
@@ -98,7 +119,7 @@ namespace orm_vs
             //        {
             //            if (locvalue is string)
             //            {
-                            
+
             //            }
             //        }
             //    }
@@ -342,24 +363,20 @@ namespace orm_vs
 
             #endregion
 
-            var testlist1 = fsql.Select<Song>().OrderBy(a => a.Id).ToList();
+            var testlist1 = fsql.Select<Song>().OrderBy(a => a.id).ToList();
             var testlist2 = new List<Song>();
-            fsql.Select<Song>().OrderBy(a => a.Id).ToChunk(0, list =>
+            fsql.Select<Song>().OrderBy(a => a.id).ToChunk(0, list =>
             {
                 testlist2.AddRange(list);
             });
-            
-            fsql.CodeFirst.SyncStructure(typeof(Song), typeof(Song_tag), typeof(Tag));
-            //sugar.CodeFirst.InitTables(typeof(Song), typeof(Song_tag), typeof(Tag));
-            //sugar创建表失败：SqlSugar.SqlSugarException: Sequence contains no elements
 
             //sugar.Aop.OnLogExecuted = (s, e) =>
             //{
             //    Trace.WriteLine(s);
             //};
             //测试前清空数据
-            fsql.Delete<Song>().Where(a => a.Id > 0).ExecuteAffrows();
-            sugar.Deleteable<Song>().Where(a => a.Id > 0).ExecuteCommand();
+            fsql.Delete<Song>().Where(a => a.id > 0).ExecuteAffrows();
+            sugar.Deleteable<Song>().Where(a => a.id > 0).ExecuteCommand();
             fsql.Ado.ExecuteNonQuery("delete from efcore_song");
 
             Console.WriteLine("插入性能：");
@@ -469,10 +486,10 @@ namespace orm_vs
         {
             var songs = Enumerable.Range(0, size).Select(a => new Song
             {
-                Create_time = DateTime.Now,
-                Is_deleted = false,
-                Title = $"Insert_{a}",
-                Url = $"Url_{a}"
+                create_time = DateTime.Now,
+                is_deleted = false,
+                title = $"Insert_{a}",
+                url = $"Url_{a}"
             });
 
             //预热
@@ -585,11 +602,11 @@ namespace orm_vs
         [SugarColumn(IsPrimaryKey = true, IsIdentity = true)]
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int Id { get; set; }
-        public DateTime? Create_time { get; set; }
-        public bool? Is_deleted { get; set; }
-        public string Title { get; set; }
-        public string Url { get; set; }
+        public int id { get; set; }
+        public DateTime? create_time { get; set; }
+        public bool? is_deleted { get; set; }
+        public string title { get; set; }
+        public string url { get; set; }
 
         [SugarColumn(IsIgnore = true)]
         [NotMapped]
@@ -600,12 +617,12 @@ namespace orm_vs
     [Table("efcore_song_tag")]
     public class Song_tag
     {
-        public int Song_id { get; set; }
+        public int song_id { get; set; }
         [SugarColumn(IsIgnore = true)]
         [NotMapped]
         public virtual Song Song { get; set; }
 
-        public int Tag_id { get; set; }
+        public int tag_id { get; set; }
         [SugarColumn(IsIgnore = true)]
         [NotMapped]
         public virtual Tag Tag { get; set; }
@@ -619,14 +636,14 @@ namespace orm_vs
         [SugarColumn(IsPrimaryKey = true, IsIdentity = true)]
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int Id { get; set; }
-        public int? Parent_id { get; set; }
+        public int id { get; set; }
+        public int? parent_id { get; set; }
         [SugarColumn(IsIgnore = true)]
         [NotMapped]
         public virtual Tag Parent { get; set; }
 
-        public decimal? Ddd { get; set; }
-        public string Name { get; set; }
+        public decimal? ddd { get; set; }
+        public string name { get; set; }
 
         [SugarColumn(IsIgnore = true)]
         [NotMapped]
