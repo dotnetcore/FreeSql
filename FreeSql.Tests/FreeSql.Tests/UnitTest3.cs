@@ -155,6 +155,10 @@ namespace FreeSql.Tests
         [Fact]
         public void Test03()
         {
+            var tttrule = 8;
+            var tttid = new long[] { 18, 19, 4017 };
+            g.sqlserver.Update<Author123>().Set(it => it.SongId == (short)(it.SongId & ~tttrule)).Where(it => (it.SongId & tttrule) == tttrule && !tttid.Contains(it.Id)).ExecuteAffrows();
+
             g.sqlite.Delete<Song123>().Where("1=1").ExecuteAffrows();
             g.sqlite.Delete<Author123>().Where("1=1").ExecuteAffrows();
             g.sqlite.Insert(new Song123(1)).ExecuteAffrows();

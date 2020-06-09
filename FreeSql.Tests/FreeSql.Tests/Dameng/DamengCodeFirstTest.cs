@@ -306,6 +306,7 @@ namespace FreeSql.Tests.Dameng
         [Fact]
         public void CurdAllField()
         {
+            g.dameng.Delete<TableAllType>().Where("1=1").ExecuteAffrows();
             var item2 = new TableAllType
             {
                 Bool = true,

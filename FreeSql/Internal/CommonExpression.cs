@@ -580,6 +580,7 @@ namespace FreeSql.Internal
             {
                 case ExpressionType.Not:
                     var notExp = (exp as UnaryExpression)?.Operand;
+                    if (notExp.Type.IsNumberType()) return $"~{ExpressionLambdaToSql(notExp, tsc)}"; //位操作
                     if (notExp.NodeType == ExpressionType.MemberAccess)
                     {
                         var notBody = ExpressionLambdaToSql(notExp, tsc);
