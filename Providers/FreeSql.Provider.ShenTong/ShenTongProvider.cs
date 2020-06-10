@@ -32,7 +32,7 @@ namespace FreeSql.ShenTong
         public IAdo Ado { get; }
         public IAop Aop { get; }
         public ICodeFirst CodeFirst { get; }
-        public IDbFirst DbFirst => throw new NotImplementedException("正在支持中");
+        public IDbFirst DbFirst { get; }
         public ShenTongProvider(string masterConnectionString, string[] slaveConnectionString, Func<DbConnection> connectionFactory = null)
         {
             this.InternalCommonUtils = new ShenTongUtils(this);
@@ -41,7 +41,7 @@ namespace FreeSql.ShenTong
             this.Ado = new ShenTongAdo(this.InternalCommonUtils, masterConnectionString, slaveConnectionString, connectionFactory);
             this.Aop = new AopProvider();
 
-            //this.DbFirst = new ShenTongDbFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
+            this.DbFirst = new ShenTongDbFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
             this.CodeFirst = new ShenTongCodeFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
         }
 

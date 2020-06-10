@@ -18,7 +18,7 @@ namespace FreeSql.Tests.ShenTong
         public void GetTablesByDatabase()
         {
 
-            var t2 = g.shentong.DbFirst.GetTablesByDatabase(g.shentong.DbFirst.GetDatabases()[1]);
+            var t2 = g.shentong.DbFirst.GetTablesByDatabase(g.shentong.DbFirst.GetDatabases()[0]);
 
         }
     }

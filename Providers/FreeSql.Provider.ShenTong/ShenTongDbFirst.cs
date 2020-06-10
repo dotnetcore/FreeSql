@@ -143,17 +143,16 @@ namespace FreeSql.ShenTong
 
                 var sql = $@"
 select
-b.nspname || '.' || a.tablename,
-a.schemaname,
-a.tablename ,
+b.nspname || '.' || a.relname,
+b.nspname,
+a.relname,
 d.description,
 'TABLE'
-from sys_tables a
-inner join sys_namespace b on b.nspname = a.schemaname
-inner join sys_class c on c.relnamespace = b.oid and c.relname = a.tablename
-left join sys_description d on d.objoid = c.oid and objsubid = 0
-where a.schemaname not in ('DIRECTORIES', 'INFO_SCHEM', 'REPLICATION', 'STAGENT', 'SYSAUDIT', 'SYSDBA', 'SYSFTSDBA', 'SYSSECURE', 'SYS_GLOBAL_TEMP', 'WMSYS')
-and b.nspname || '.' || a.tablename not in ('PUBLIC.SPATIAL_REF_SYS')
+from sys_class a
+inner join sys_namespace b on b.oid = a.relnamespace
+left join sys_description d on d.objoid = a.oid and objsubid = 0
+where b.nspname not in ('DIRECTORIES', 'INFO_SCHEM', 'REPLICATION', 'STAGENT', 'SYSAUDIT', 'SYSDBA', 'SYSFTSDBA', 'SYSSECURE', 'SYS_GLOBAL_TEMP', 'WMSYS') and a.relkind in ('r') 
+and b.nspname || '.' || a.relname not in ('PUBLIC.SPATIAL_REF_SYS')
 
 union all
 
@@ -167,7 +166,7 @@ from sys_class a
 inner join sys_namespace b on b.oid = a.relnamespace
 left join sys_description d on d.objoid = a.oid and objsubid = 0
 where b.nspname not in ('DIRECTORIES', 'INFO_SCHEM', 'REPLICATION', 'STAGENT', 'SYSAUDIT', 'SYSDBA', 'SYSFTSDBA', 'SYSSECURE', 'SYS_GLOBAL_TEMP', 'WMSYS') and a.relkind in ('m','v') 
-and b.nspname || '.' || a.relname not in ('PUBLIC.GEOGRAPHY_COLUMNS','PUBLIC.GEOMETRY_COLUMNS','PUBLIC.RASTER_COLUMNS','PUBLIC.RASTER_OVERVIEWS')
+and b.nspname || '.' || a.relname not in ('PUBLIC.GEOGRAPHY_COLUMNS','PUBLIC.GEOMETRY_COLUMNS','PUBLIC.RASTER_COLUMNS','PUBLIC.RASTER_OVERVIEWS','PUBLIC.DBA_JOBS')
 ";
                 var ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
                 if (ds == null) return loc1;
@@ -260,7 +259,7 @@ where {loc8.ToString().Replace("a.table_name", "ns.nspname || '.' || c.relname")
                     var max_length = int.Parse(string.Concat(row[3]));
                     var sqlType = string.Concat(row[4]);
                     var is_nullable = string.Concat(row[5]) == "1";
-                    var is_identity = string.Concat(row[6]).StartsWith(@"NEXTVAL('") && string.Concat(row[6]).EndsWith(@"'::REGCLASS)");
+                    var is_identity = string.Concat(row[6]).StartsWith(@"NEXTVAL('") && string.Concat(row[6]).EndsWith(@"'::text)");
                     var comment = string.Concat(row[7]);
                     var defaultValue = string.Concat(row[6]);
                     int attndims = int.Parse(string.Concat(row[8]));
@@ -314,8 +313,9 @@ b.relname as index_id,
 case when a.indisunique then 1 else 0 end IsUnique,
 case when a.indisprimary then 1 else 0 end IsPrimary,
 case when a.indisclustered then 0 else 1 end IsClustered,
-case when sys_index_column_has_property(b.oid, c.attnum, 'desc') = 't' then 1 else 0 end IsDesc,
-a.indkey::text,
+--case when sys_index_column_has_property(b.oid, c.attnum, 'desc') = 't' then 1 else 0 end IsDesc,
+0,
+a.indkey,
 c.attnum
 from sys_index a
 inner join sys_class b on b.oid = a.indexrelid
@@ -385,50 +385,41 @@ where {loc8.ToString().Replace("a.table_name", "ns.nspname || '.' || d.relname")
 
                 sql = $@"
 select
-ns.nspname || '.' || b.relname as table_id, 
-array(select attname from sys_attribute where attrelid = a.conrelid and attnum = any(a.conkey)) as column_name,
-a.conname as FKId,
-ns2.nspname || '.' || c.relname as ref_table_id, 
-1 as IsForeignKey,
-array(select attname from sys_attribute where attrelid = a.confrelid and attnum = any(a.confkey)) as ref_column,
-null ref_sln,
-null ref_table
-from  sys_constraint a
-inner join sys_class b on b.oid = a.conrelid
-inner join sys_class c on c.oid = a.confrelid
-inner join sys_namespace ns on ns.oid = b.relnamespace
-inner join sys_namespace ns2 on ns2.oid = c.relnamespace
-where {loc8.ToString().Replace("a.table_name", "ns.nspname || '.' || b.relname")}
+a.pktable_schem || '.' || a.pktable_name,
+a.pkcolumn_name,
+a.fk_name,
+a.fktable_schem || '.' || a.fktable_name,
+1,
+a.fkcolumn_name
+from v_sys_foreign_keys a
+where {loc8.ToString().Replace("a.table_name", "a.pktable_schem || '.' || a.pktable_name")}
 ";
                 ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
                 if (ds == null) return loc1;
 
                 var fkColumns = new Dictionary<string, Dictionary<string, DbForeignInfo>>();
-                foreach (object[] row in ds)
+                foreach (var row in ds)
                 {
-                    var table_id = string.Concat(row[0]);
-                    var column = row[1] as string[];
-                    var fk_id = string.Concat(row[2]);
-                    var ref_table_id = string.Concat(row[3]);
-                    var is_foreign_key = string.Concat(row[4]) == "1";
-                    var referenced_column = row[5] as string[];
-                    var referenced_db = string.Concat(row[6]);
-                    var referenced_table = string.Concat(row[7]);
-
+                    string table_id = string.Concat(row[0]);
+                    string column = string.Concat(row[1]);
+                    string fk_id = string.Concat(row[2]);
+                    string ref_table_id = string.Concat(row[3]);
+                    bool is_foreign_key = string.Concat(row[4]) == "1";
+                    string referenced_column = string.Concat(row[5]);
+                    if (loc3.ContainsKey(table_id) == false || loc3[table_id].ContainsKey(column) == false) continue;
+                    var loc9 = loc3[table_id][column];
                     if (loc2.ContainsKey(ref_table_id) == false) continue;
+                    var loc10 = loc2[ref_table_id];
+                    var loc11 = loc3[ref_table_id][referenced_column];
 
                     Dictionary<string, DbForeignInfo> loc12 = null;
                     DbForeignInfo loc13 = null;
                     if (!fkColumns.TryGetValue(table_id, out loc12))
                         fkColumns.Add(table_id, loc12 = new Dictionary<string, DbForeignInfo>());
                     if (!loc12.TryGetValue(fk_id, out loc13))
-                        loc12.Add(fk_id, loc13 = new DbForeignInfo { Table = loc2[table_id], ReferencedTable = loc2[ref_table_id] });
-
-                    for (int a = 0; a < column.Length; a++)
-                    {
-                        loc13.Columns.Add(loc3[table_id][column[a]]);
-                        loc13.ReferencedColumns.Add(loc3[ref_table_id][referenced_column[a]]);
-                    }
+                        loc12.Add(fk_id, loc13 = new DbForeignInfo { Table = loc2[table_id], ReferencedTable = loc10 });
+                    loc13.Columns.Add(loc9);
+                    loc13.ReferencedColumns.Add(loc11);
                 }
                 foreach (var table_id in fkColumns.Keys)
                     foreach (var fk in fkColumns[table_id])
@@ -482,32 +473,6 @@ where {loc8.ToString().Replace("a.table_name", "ns.nspname || '.' || b.relname")
             return tables;
         }
 
-        public class GetEnumsByDatabaseQueryInfo
-        {
-            public string name { get; set; }
-            public string label { get; set; }
-        }
-        public List<DbEnumInfo> GetEnumsByDatabase(params string[] database)
-        {
-            if (database == null || database.Length == 0) return new List<DbEnumInfo>();
-            var drs = _orm.Ado.Query<GetEnumsByDatabaseQueryInfo>(CommandType.Text, _commonUtils.FormatSql(@"
-select
-ns.nspname || '.' || a.typname AS name,
-b.enumlabel AS label
-from sys_type a
-inner join sys_enum b on b.enumtypid = a.oid
-inner join sys_namespace ns on ns.oid = a.typnamespace
-where a.typtype = 'e' and ns.nspname in (SELECT schema_name FROM information_schema.schemata where catalog_name in {0})", database));
-            var ret = new Dictionary<string, Dictionary<string, string>>();
-            foreach (var dr in drs)
-            {
-                if (ret.TryGetValue(dr.name, out var labels) == false) ret.Add(dr.name, labels = new Dictionary<string, string>());
-                var key = dr.label;
-                if (Regex.IsMatch(key, @"^[\u0391-\uFFE5a-zA-Z_\$][\u0391-\uFFE5a-zA-Z_\$\d]*$") == false)
-                    key = $"Unkown{ret[dr.name].Count + 1}";
-                if (labels.ContainsKey(key) == false) labels.Add(key, dr.label);
-            }
-            return ret.Select(a => new DbEnumInfo { Name = a.Key, Labels = a.Value }).ToList();
-        }
+        public List<DbEnumInfo> GetEnumsByDatabase(params string[] database) => new List<DbEnumInfo>();
     }
 }
