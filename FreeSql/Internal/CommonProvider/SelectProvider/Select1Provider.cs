@@ -637,6 +637,7 @@ namespace FreeSql.Internal.CommonProvider
                         if (tr2ref == null) continue;
                         if (tr2ref.RefType != TableRefType.ManyToOne) continue;
                         if (tr2ref.RefEntityType != tb.Type) continue;
+                        if (string.Join(",", tr2ref.Columns.Select(a => a.CsName).OrderBy(a => a)) != string.Join(",", tbref.RefColumns.Select(a => a.CsName).OrderBy(a => a))) continue; //防止把 ManyToOne 多个相同类型的导航属性值都填充了
                         parentNavs.Add(navProp.Key);
                     }
                     foreach (var nav in subList)
