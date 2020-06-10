@@ -42,6 +42,7 @@ namespace FreeSql.Tests.Linq
         [Fact]
         public void RestoreToSelect()
         {
+            fsql.Insert(new qt01[] { new qt01 { name = "001" }, new qt01 { name = "001" } }).ExecuteAffrows();
             Assert.Equal(fsql.Select<qt01>().Skip(2).First(a => a.name), fsql.Select<qt01>().AsQueryable().Skip(2).Take(1).RestoreToSelect().First(a => a.name));
             Assert.Equal(fsql.Select<qt01>().Skip(2).First(a => new { a.name }).name, fsql.Select<qt01>().AsQueryable().Skip(2).Take(1).RestoreToSelect().First(a => new { a.name }).name);
         }
