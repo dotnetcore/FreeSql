@@ -132,8 +132,8 @@ namespace FreeSql.Internal.CommonProvider
             if (Interlocked.Increment(ref _disposeCounter) != 1) return;
             try
             {
-                var trans = _trans.Values.ToArray();
-                foreach (var tran in trans) CommitTransaction(false, tran, null, "Dispose自动提交");
+                var trans = _trans?.Values.ToArray();
+                if (trans != null) foreach (var tran in trans) CommitTransaction(false, tran, null, "Dispose自动提交");
             }
             catch { }
 
@@ -142,8 +142,8 @@ namespace FreeSql.Internal.CommonProvider
             {
                 try
                 {
-                    pools = SlavePools.ToArray();
-                    SlavePools.Clear();
+                    pools = SlavePools?.ToArray();
+                    SlavePools?.Clear();
                     break;
                 }
                 catch
@@ -154,10 +154,10 @@ namespace FreeSql.Internal.CommonProvider
             {
                 foreach (var pool in pools)
                 {
-                    try { pool.Dispose(); } catch { }
+                    try { pool?.Dispose(); } catch { }
                 }
             }
-            try { MasterPool.Dispose(); } catch { }
+            try { MasterPool?.Dispose(); } catch { }
         }
     }
 }
