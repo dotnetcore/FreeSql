@@ -11,7 +11,7 @@ namespace FreeSql.Tests.Odbc.MySql
 
         IInsert<Topic> insert => g.mysql.Insert<Topic>(); //��������
 
-        [Table(Name = "tb_topic")]
+        [Table(Name = "tb_topic_insert")]
         class Topic
         {
             [Column(IsIdentity = true, IsPrimary = true)]
@@ -36,16 +36,16 @@ namespace FreeSql.Tests.Odbc.MySql
             for (var a = 0; a < 10; a++) items.Add(new Topic { Id = a + 1, Title = $"newtitle{a}", Clicks = a * 100 });
 
             var sql = insert.AppendData(items.First()).ToSql();
-            Assert.Equal("INSERT INTO `tb_topic`(`Clicks`, `Title`, `CreateTime`) VALUES(0, 'newtitle0', '0001-01-01 00:00:00.000')", sql);
+            Assert.Equal("INSERT INTO `tb_topic_insert`(`Clicks`, `Title`, `CreateTime`) VALUES(0, 'newtitle0', '0001-01-01 00:00:00.000')", sql);
 
             sql = insert.AppendData(items).ToSql();
-            Assert.Equal("INSERT INTO `tb_topic`(`Clicks`, `Title`, `CreateTime`) VALUES(0, 'newtitle0', '0001-01-01 00:00:00.000'), (100, 'newtitle1', '0001-01-01 00:00:00.000'), (200, 'newtitle2', '0001-01-01 00:00:00.000'), (300, 'newtitle3', '0001-01-01 00:00:00.000'), (400, 'newtitle4', '0001-01-01 00:00:00.000'), (500, 'newtitle5', '0001-01-01 00:00:00.000'), (600, 'newtitle6', '0001-01-01 00:00:00.000'), (700, 'newtitle7', '0001-01-01 00:00:00.000'), (800, 'newtitle8', '0001-01-01 00:00:00.000'), (900, 'newtitle9', '0001-01-01 00:00:00.000')", sql);
+            Assert.Equal("INSERT INTO `tb_topic_insert`(`Clicks`, `Title`, `CreateTime`) VALUES(0, 'newtitle0', '0001-01-01 00:00:00.000'), (100, 'newtitle1', '0001-01-01 00:00:00.000'), (200, 'newtitle2', '0001-01-01 00:00:00.000'), (300, 'newtitle3', '0001-01-01 00:00:00.000'), (400, 'newtitle4', '0001-01-01 00:00:00.000'), (500, 'newtitle5', '0001-01-01 00:00:00.000'), (600, 'newtitle6', '0001-01-01 00:00:00.000'), (700, 'newtitle7', '0001-01-01 00:00:00.000'), (800, 'newtitle8', '0001-01-01 00:00:00.000'), (900, 'newtitle9', '0001-01-01 00:00:00.000')", sql);
 
             sql = insert.AppendData(items).InsertColumns(a => a.Title).ToSql();
-            Assert.Equal("INSERT INTO `tb_topic`(`Title`) VALUES('newtitle0'), ('newtitle1'), ('newtitle2'), ('newtitle3'), ('newtitle4'), ('newtitle5'), ('newtitle6'), ('newtitle7'), ('newtitle8'), ('newtitle9')", sql);
+            Assert.Equal("INSERT INTO `tb_topic_insert`(`Title`) VALUES('newtitle0'), ('newtitle1'), ('newtitle2'), ('newtitle3'), ('newtitle4'), ('newtitle5'), ('newtitle6'), ('newtitle7'), ('newtitle8'), ('newtitle9')", sql);
 
             sql = insert.AppendData(items).IgnoreColumns(a => a.CreateTime).ToSql();
-            Assert.Equal("INSERT INTO `tb_topic`(`Clicks`, `Title`) VALUES(0, 'newtitle0'), (100, 'newtitle1'), (200, 'newtitle2'), (300, 'newtitle3'), (400, 'newtitle4'), (500, 'newtitle5'), (600, 'newtitle6'), (700, 'newtitle7'), (800, 'newtitle8'), (900, 'newtitle9')", sql);
+            Assert.Equal("INSERT INTO `tb_topic_insert`(`Clicks`, `Title`) VALUES(0, 'newtitle0'), (100, 'newtitle1'), (200, 'newtitle2'), (300, 'newtitle3'), (400, 'newtitle4'), (500, 'newtitle5'), (600, 'newtitle6'), (700, 'newtitle7'), (800, 'newtitle8'), (900, 'newtitle9')", sql);
 
             sql = g.mysql.Insert<TestEnumInsertTb>().AppendData(new TestEnumInsertTb { type = TestEnumInserTbType.sum211, time = DateTime.Parse("2019-09-19 21:26:51.030") }).ToSql();
             Assert.Equal("INSERT INTO `TestEnumInsertTb`(`type`, `time`) VALUES('sum211', '2019-09-19 21:26:51.030')", sql);
@@ -61,10 +61,10 @@ namespace FreeSql.Tests.Odbc.MySql
             for (var a = 0; a < 10; a++) items.Add(new Topic { Id = a + 1, Title = $"newtitle{a}", Clicks = a * 100 });
 
             var sql = insert.AppendData(items).InsertColumns(a => a.Title).ToSql();
-            Assert.Equal("INSERT INTO `tb_topic`(`Title`) VALUES('newtitle0'), ('newtitle1'), ('newtitle2'), ('newtitle3'), ('newtitle4'), ('newtitle5'), ('newtitle6'), ('newtitle7'), ('newtitle8'), ('newtitle9')", sql);
+            Assert.Equal("INSERT INTO `tb_topic_insert`(`Title`) VALUES('newtitle0'), ('newtitle1'), ('newtitle2'), ('newtitle3'), ('newtitle4'), ('newtitle5'), ('newtitle6'), ('newtitle7'), ('newtitle8'), ('newtitle9')", sql);
 
             sql = insert.AppendData(items).InsertColumns(a => new { a.Title, a.Clicks }).ToSql();
-            Assert.Equal("INSERT INTO `tb_topic`(`Clicks`, `Title`) VALUES(0, 'newtitle0'), (100, 'newtitle1'), (200, 'newtitle2'), (300, 'newtitle3'), (400, 'newtitle4'), (500, 'newtitle5'), (600, 'newtitle6'), (700, 'newtitle7'), (800, 'newtitle8'), (900, 'newtitle9')", sql);
+            Assert.Equal("INSERT INTO `tb_topic_insert`(`Clicks`, `Title`) VALUES(0, 'newtitle0'), (100, 'newtitle1'), (200, 'newtitle2'), (300, 'newtitle3'), (400, 'newtitle4'), (500, 'newtitle5'), (600, 'newtitle6'), (700, 'newtitle7'), (800, 'newtitle8'), (900, 'newtitle9')", sql);
         }
         [Fact]
         public void IgnoreColumns()
@@ -73,10 +73,10 @@ namespace FreeSql.Tests.Odbc.MySql
             for (var a = 0; a < 10; a++) items.Add(new Topic { Id = a + 1, Title = $"newtitle{a}", Clicks = a * 100 });
 
             var sql = insert.AppendData(items).IgnoreColumns(a => a.CreateTime).ToSql();
-            Assert.Equal("INSERT INTO `tb_topic`(`Clicks`, `Title`) VALUES(0, 'newtitle0'), (100, 'newtitle1'), (200, 'newtitle2'), (300, 'newtitle3'), (400, 'newtitle4'), (500, 'newtitle5'), (600, 'newtitle6'), (700, 'newtitle7'), (800, 'newtitle8'), (900, 'newtitle9')", sql);
+            Assert.Equal("INSERT INTO `tb_topic_insert`(`Clicks`, `Title`) VALUES(0, 'newtitle0'), (100, 'newtitle1'), (200, 'newtitle2'), (300, 'newtitle3'), (400, 'newtitle4'), (500, 'newtitle5'), (600, 'newtitle6'), (700, 'newtitle7'), (800, 'newtitle8'), (900, 'newtitle9')", sql);
 
             sql = insert.AppendData(items).IgnoreColumns(a => new { a.Title, a.CreateTime }).ToSql();
-            Assert.Equal("INSERT INTO `tb_topic`(`Clicks`) VALUES(0), (100), (200), (300), (400), (500), (600), (700), (800), (900)", sql);
+            Assert.Equal("INSERT INTO `tb_topic_insert`(`Clicks`) VALUES(0), (100), (200), (300), (400), (500), (600), (700), (800), (900)", sql);
 
             g.mysql.Delete<TopicIgnore>().Where("1=1").ExecuteAffrows();
             var itemsIgnore = new List<TopicIgnore>();
@@ -85,7 +85,7 @@ namespace FreeSql.Tests.Odbc.MySql
             Assert.Equal(2072, itemsIgnore.Count);
             Assert.Equal(2072, g.mysql.Select<TopicIgnore>().Where(a => a.Title == null).Count());
         }
-        [Table(Name = "tb_topicIgnoreColumns")]
+        [Table(Name = "tb_topic_insertIgnoreColumns")]
         class TopicIgnore
         {
             [Column(IsIdentity = true, IsPrimary = true)]

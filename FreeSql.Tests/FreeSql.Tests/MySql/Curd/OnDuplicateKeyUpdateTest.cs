@@ -13,7 +13,7 @@ namespace FreeSql.Tests.MySql
             [Column(IsIdentity = true)]
             public int id { get; set; }
             public string title { get; set; }
-            public DateTime time { get; set; }
+            public DateTime? time { get; set; }
         }
 
         [Fact]
