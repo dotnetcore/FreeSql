@@ -119,6 +119,12 @@ namespace FreeSql.PostgreSQL
             var sb = new StringBuilder();
             var seqcols = new List<(ColumnInfo, string[], bool)>(); //序列
 
+            var is96 = true;
+            using (var conn = _orm.Ado.MasterPool.Get(TimeSpan.FromSeconds(5)))
+            {
+                is96 = PostgreSQLDbFirst.PgVersionIs96(conn.Value.ServerVersion);
+            }
+
             foreach (var obj in objects)
             {
                 if (sb.Length > 0) sb.Append("\r\n");
@@ -297,24 +303,24 @@ where ns.nspname = {0} and c.relname = {1}", tboldname ?? tbname);
                         if (tbcol.Attribute.IsIdentity == true) seqcols.Add((tbcol, tbname, tbcol.Attribute.IsIdentity == true));
                         if (string.IsNullOrEmpty(tbcol.Comment) == false) sbalter.Append("COMMENT ON COLUMN ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}.{tbcol.Attribute.Name}")).Append(" IS ").Append(_commonUtils.FormatSql("{0}", tbcol.Comment)).Append(";\r\n");
                     }
-                    var dsuksql = _commonUtils.FormatSql(@"
+                    var dsuksql = _commonUtils.FormatSql($@"
 select
 c.attname,
 b.relname,
-case when pg_index_column_has_property(b.oid, c.attnum, 'desc') = 't' then 1 else 0 end IsDesc,
+{(is96 ? "case when pg_index_column_has_property(b.oid, c.attnum, 'desc') = 't' then 1 else 0 end" : "0")} IsDesc,
 case when indisunique = 't' then 1 else 0 end IsUnique
 from pg_index a
 inner join pg_class b on b.oid = a.indexrelid
 inner join pg_attribute c on c.attnum > 0 and c.attrelid = b.oid
 inner join pg_namespace ns on ns.oid = b.relnamespace
 inner join pg_class d on d.oid = a.indrelid
-where ns.nspname in ({0}) and d.relname in ({1}) and a.indisprimary = 'f'", tboldname ?? tbname);
+where ns.nspname in ({{0}}) and d.relname in ({{1}}) and a.indisprimary = 'f'", tboldname ?? tbname);
                     var dsuk = _orm.Ado.ExecuteArray(CommandType.Text, dsuksql).Select(a => new[] { string.Concat(a[0]), string.Concat(a[1]), string.Concat(a[2]), string.Concat(a[3]) });
                     foreach (var uk in tb.Indexes)
                     {
                         if (string.IsNullOrEmpty(uk.Name) || uk.Columns.Any() == false) continue;
                         var dsukfind1 = dsuk.Where(a => string.Compare(a[1], uk.Name, true) == 0).ToArray();
-                        if (dsukfind1.Any() == false || dsukfind1.Length != uk.Columns.Length || dsukfind1.Where(a => uk.Columns.Where(b => (a[3] == "1") == uk.IsUnique && string.Compare(b.Column.Attribute.Name, a[0], true) == 0 && (a[2] == "1") == b.IsDesc).Any()).Count() != uk.Columns.Length)
+                        if (dsukfind1.Any() == false || dsukfind1.Length != uk.Columns.Length || dsukfind1.Where(a => uk.Columns.Where(b => (a[3] == "1") == uk.IsUnique && string.Compare(b.Column.Attribute.Name, a[0], true) == 0 && ((a[2] == "1") == b.IsDesc || is96 == false)).Any()).Count() != uk.Columns.Length)
                         {
                             if (dsukfind1.Any()) sbalter.Append("DROP INDEX ").Append(_commonUtils.QuoteSqlName(uk.Name)).Append(";\r\n");
                             sbalter.Append("CREATE ");
