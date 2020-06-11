@@ -157,9 +157,9 @@ namespace FreeSql.Internal.CommonProvider
             return this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp?.Body, null, _whereCascadeExpression, _params)).Any();
         }
 
-        TReturn ISelect<T1, T2, T3, T4, T5>.ToOne<TReturn>(Expression<Func<T1, T2, T3, T4, T5, TReturn>> select) => (this as ISelect<T1, T2, T3, T4, T5>).ToList(select).FirstOrDefault();
-        TReturn ISelect<T1, T2, T3, T4, T5>.First<TReturn>(Expression<Func<T1, T2, T3, T4, T5, TReturn>> select) => (this as ISelect<T1, T2, T3, T4, T5>).ToList(select).FirstOrDefault();
-        TDto ISelect<T1, T2, T3, T4, T5>.First<TDto>() => (this as ISelect<T1, T2, T3, T4, T5>).ToList<TDto>().FirstOrDefault();
+        TReturn ISelect<T1, T2, T3, T4, T5>.ToOne<TReturn>(Expression<Func<T1, T2, T3, T4, T5, TReturn>> select) => (this as ISelect<T1, T2, T3, T4, T5>).Limit(1).ToList(select).FirstOrDefault();
+        TReturn ISelect<T1, T2, T3, T4, T5>.First<TReturn>(Expression<Func<T1, T2, T3, T4, T5, TReturn>> select) => (this as ISelect<T1, T2, T3, T4, T5>).Limit(1).ToList(select).FirstOrDefault();
+        TDto ISelect<T1, T2, T3, T4, T5>.First<TDto>() => (this as ISelect<T1, T2, T3, T4, T5>).Limit(1).ToList<TDto>().FirstOrDefault();
 
 #if net40
 #else
@@ -220,9 +220,9 @@ namespace FreeSql.Internal.CommonProvider
             return this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp?.Body, null, _whereCascadeExpression, _params)).AnyAsync();
         }
 
-        async Task<TReturn> ISelect<T1, T2, T3, T4, T5>.ToOneAsync<TReturn>(Expression<Func<T1, T2, T3, T4, T5, TReturn>> select) => (await (this as ISelect<T1, T2, T3, T4, T5>).ToListAsync(select)).FirstOrDefault();
-        async Task<TReturn> ISelect<T1, T2, T3, T4, T5>.FirstAsync<TReturn>(Expression<Func<T1, T2, T3, T4, T5, TReturn>> select) => (await (this as ISelect<T1, T2, T3, T4, T5>).ToListAsync(select)).FirstOrDefault();
-        async Task<TDto> ISelect<T1, T2, T3, T4, T5>.FirstAsync<TDto>() => (await (this as ISelect<T1, T2, T3, T4, T5>).ToListAsync<TDto>()).FirstOrDefault();
+        async Task<TReturn> ISelect<T1, T2, T3, T4, T5>.ToOneAsync<TReturn>(Expression<Func<T1, T2, T3, T4, T5, TReturn>> select) => (await (this as ISelect<T1, T2, T3, T4, T5>).Limit(1).ToListAsync(select)).FirstOrDefault();
+        async Task<TReturn> ISelect<T1, T2, T3, T4, T5>.FirstAsync<TReturn>(Expression<Func<T1, T2, T3, T4, T5, TReturn>> select) => (await (this as ISelect<T1, T2, T3, T4, T5>).Limit(1).ToListAsync(select)).FirstOrDefault();
+        async Task<TDto> ISelect<T1, T2, T3, T4, T5>.FirstAsync<TDto>() => (await (this as ISelect<T1, T2, T3, T4, T5>).Limit(1).ToListAsync<TDto>()).FirstOrDefault();
 
 #endif
     }
