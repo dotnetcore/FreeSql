@@ -627,8 +627,11 @@ namespace FreeSql.Internal
                         };
                         var exp3MethodParams = exp3.Method.GetParameters();
                         var dbParamsIndex = tsc.dbParams?.Count;
-                        ecc.RawExpression.Add(exp3MethodParams[0].Name, exp3.Arguments[0]);
-                        ecc.ParsedContent.Add(exp3MethodParams[0].Name, exp3MethodParams[0].GetCustomAttributes(typeof(RawValueAttribute), true).Any() ? null : ExpressionLambdaToSql(exp3.Arguments[0], tsc));
+                        if (exp3MethodParams.Any())
+                        {
+                            ecc.RawExpression.Add(exp3MethodParams[0].Name, exp3.Arguments[0]);
+                            ecc.ParsedContent.Add(exp3MethodParams[0].Name, exp3MethodParams[0].GetCustomAttributes(typeof(RawValueAttribute), true).Any() ? null : ExpressionLambdaToSql(exp3.Arguments[0], tsc));
+                        }
                         if (tsc.dbParams?.Count > dbParamsIndex) ecc.DbParameter = tsc.dbParams.Last();
                         List<DbParameter> oldDbParams = tsc.SetDbParamsReturnOld(null);
                         for (var a = 1; a < exp3.Arguments.Count; a++)
@@ -646,7 +649,20 @@ namespace FreeSql.Internal
                             {
                                 var eccContent = ecc.ParsedContent[exp3MethodParams[a].Name];
                                 if (eccContent == null)
-                                    exp3InvokeParams[a] = Expression.Lambda(exp3.Arguments[a]).Compile().DynamicInvoke();
+                                {
+                                    var isdyInvoke = true;
+                                    if (exp3.Arguments[a].NodeType == ExpressionType.Call) //判断如果参数也是标记 ExpressionCall
+                                    {
+                                        var exp3ArgsACallExp = exp3.Arguments[a] as MethodCallExpression;
+                                        if (exp3ArgsACallExp.Object == null && (
+                                            _dicTypeExistsExpressionCallAttribute.GetOrAdd(exp3ArgsACallExp.Method.DeclaringType, dttp => dttp.GetCustomAttributes(typeof(ExpressionCallAttribute), true).Any()) ||
+                                            exp3ArgsACallExp.Method.GetCustomAttributes(typeof(ExpressionCallAttribute), true).Any()
+                                            ))
+                                            isdyInvoke = false;
+                                    }
+                                    if (isdyInvoke)
+                                        exp3InvokeParams[a] = Expression.Lambda(exp3.Arguments[a]).Compile().DynamicInvoke();
+                                }
                                 else if (exp3.Arguments[a].IsParameter())
                                     exp3InvokeParams[a] = exp3.Arguments[a].Type.CreateInstanceGetDefaultValue();
                                 else
@@ -668,7 +684,7 @@ namespace FreeSql.Internal
                         {
                             var sqlRet = exp3.Method.Invoke(null, exp3InvokeParams);
                             if (string.IsNullOrEmpty(ecc.Result) && sqlRet is string) ecc.Result = string.Concat(sqlRet);
-                            if (string.IsNullOrEmpty(ecc.Result)) ecc.Result = ecc.ParsedContent[exp3MethodParams[0].Name];
+                            if (string.IsNullOrEmpty(ecc.Result) && exp3MethodParams.Any()) ecc.Result = ecc.ParsedContent[exp3MethodParams[0].Name];
                             if (ecc.UserParameters?.Any() == true) tsc.dbParams?.AddRange(ecc.UserParameters);
                             return ecc.Result;
                         }

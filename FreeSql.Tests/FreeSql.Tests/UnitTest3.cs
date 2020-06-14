@@ -155,6 +155,23 @@ namespace FreeSql.Tests
         [Fact]
         public void Test03()
         {
+            var sqlextOver = g.sqlserver.Select<Edi, EdiItem>()
+                .InnerJoin((a, b) => b.Id == a.Id)
+                .ToSql((a, b) => new
+                {
+                    Id = a.Id,
+                    EdiId = b.Id,
+                    over1 = SqlExt.Rank().Over().OrderBy(a.Id).OrderByDescending(b.EdiId).ToValue()
+                });
+            var sqlextOverToList = g.sqlserver.Select<Edi, EdiItem>()
+                .InnerJoin((a, b) => b.Id == a.Id)
+                .ToList((a, b) => new
+                {
+                    Id = a.Id,
+                    EdiId = b.Id,
+                    over1 = SqlExt.Rank().Over().OrderBy(a.Id).OrderByDescending(b.EdiId).ToValue()
+                });
+
             var tttrule = 8;
             var tttid = new long[] { 18, 19, 4017 };
             g.sqlserver.Update<Author123>().Set(it => it.SongId == (short)(it.SongId & ~tttrule)).Where(it => (it.SongId & tttrule) == tttrule && !tttid.Contains(it.Id)).ExecuteAffrows();
