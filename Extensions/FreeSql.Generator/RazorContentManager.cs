@@ -206,8 +206,7 @@ namespace @gen.NameSpace {
 		@:#endregion
 }
 @if (isManyToMany) {
-@:
-		@:#region 外键 => 导航属性，ManyToMany
+	var manyAny = false;
 	foreach (var ft in gen.tables) {
         if (ft != gen.table) {
             var ftfks = ft.Foreigns.Where(ftfk => ftfk.Columns.Where(ftfkcol => ftfkcol.IsPrimary == false).Any() == false).ToArray();
@@ -230,15 +229,30 @@ namespace @gen.NameSpace {
                     {
                         fkTableName = fkTableName.Replace(rightft.Schema + ""."", """");
                     }
+                    var middleTableName = (midft.Schema + ""."" + midft.Name).Trim('.');
+                    if (midft.Schema == ""public"" || midft.Schema == ""dbo"")
+                    {
+                        middleTableName = middleTableName.Replace(midft.Schema + ""."", """");
+                    }
                     var csname = rightft.Name;
+                    if (manyAny == false)
+                    {
+                        manyAny = true;
 @:
+		@:#region 外键 => 导航属性，ManyToMany
+                    }
+@:
+		@:[Navigate(ManyToMany = typeof(@gen.GetCsName(middleTableName)))]
 		@:public@(isLazying ? "" virtual"" : """") List<@gen.GetCsName(fkTableName)> @gen.GetCsName(csname)s { get; set; }
 				}
 			}
 		}
 	}
+    if (manyAny)
+    {
 @:
 		@:#endregion
+    }
 }
 	}
 @gen.GetMySqlEnumSetDefine()
