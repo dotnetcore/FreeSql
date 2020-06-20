@@ -141,6 +141,11 @@ namespace base_entity
             new S_SysConfig<TestConfig> { Name = "testkey22", Config = new TestConfig { clicks = 22, title = "testtitle22" }, Config2 = new TestConfig { clicks = 11, title = "testtitle11" } }.Save();
             new S_SysConfig<TestConfig> { Name = "testkey33", Config = new TestConfig { clicks = 33, title = "testtitle33" }, Config2 = new TestConfig { clicks = 11, title = "testtitle11" } }.Save();
             var testconfigs11 = S_SysConfig<TestConfig>.Select.ToList();
+            var testconfigs111 = S_SysConfig<TestConfig>.Select.ToList(a => a.Name);
+            var testconfigs112 = S_SysConfig<TestConfig>.Select.ToList(a => a.Config);
+            var testconfigs1122 = S_SysConfig<TestConfig>.Select.ToList(a => new { a.Name, a.Config });
+            var testconfigs113 = S_SysConfig<TestConfig>.Select.ToList(a => a.Config2);
+            var testconfigs1133 = S_SysConfig<TestConfig>.Select.ToList(a => new { a.Name, a.Config2 });
 
             var repo = BaseEntity.Orm.Select<TestConfig>().Limit(10).ToList();
 

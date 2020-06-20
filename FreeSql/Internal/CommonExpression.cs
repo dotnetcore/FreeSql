@@ -80,8 +80,15 @@ namespace FreeSql.Internal
                     return false;
                 case ExpressionType.Parameter:
                 case ExpressionType.MemberAccess:
-                    if (_common.GetTableByEntity(exp.Type) != null)
-                    { //加载表所有字段
+                    if (_common.GetTableByEntity(exp.Type) != null && 
+                        //判断 [JsonMap] 并非导航对象
+                        (exp.NodeType == ExpressionType.Parameter || exp is MemberExpression expMem && (
+                            _common.GetTableByEntity(expMem.Expression.Type)?.ColumnsByCs.ContainsKey(expMem.Member.Name) == false ||
+                            expMem.Expression.NodeType == ExpressionType.Parameter && expMem.Expression.Type.IsAnonymousType()) //<>h__TransparentIdentifier 是 Linq To Sql 的类型判断，此时为匿名类型
+                        )
+                        )
+                    {
+                        //加载表所有字段
                         var map = new List<SelectColumnInfo>();
                         ExpressionSelectColumn_MemberAccess(_tables, map, SelectTableInfoType.From, exp, true, getSelectGroupingMapString);
                         var tb = parent.Table = map.First().Table.Table;
@@ -1272,9 +1279,24 @@ namespace FreeSql.Internal
 
                                 var exp2Type = exp2.Type;
                                 if (exp2Type.FullName.StartsWith("FreeSql.ISelectGroupingAggregate`")) exp2Type = exp2Type.GetGenericArguments().LastOrDefault() ?? exp2.Type;
-                                var tb2tmp = _common.GetTableByEntity(exp2Type);
                                 var mp2 = exp2 as MemberExpression;
                                 if (mp2?.Member.Name == "Key" && mp2.Expression.Type.FullName.StartsWith("FreeSql.ISelectGroupingAggregate`")) continue;
+
+                                ColumnInfo col2 = null;
+                                if (tb2?.ColumnsByCs.TryGetValue(mp2.Member.Name, out col2) == true)
+                                {
+                                    if (tsc._selectColumnMap != null && find2 != null)
+                                    {
+                                        tsc._selectColumnMap.Add(new SelectColumnInfo { Table = find2, Column = col2 });
+                                        return "";
+                                    }
+                                    name2 = col2.Attribute.Name;
+                                    tsc.SetMapColumnTmp(col2);
+                                    break;
+                                }
+                                //判断 [JsonMap] 并非导航对象，所以在上面提前判断 ColumnsByCs
+
+                                var tb2tmp = _common.GetTableByEntity(exp2Type);
                                 if (tb2tmp != null)
                                 {
                                     if (exp2.NodeType == ExpressionType.Parameter)
@@ -1317,7 +1339,7 @@ namespace FreeSql.Internal
                                         throw new ArgumentException($"{tb2.DbName}.{mp2.Member.Name} 导航属性集合忘了 .AsSelect() 吗？如果在 ToList(a => a.{mp2.Member.Name}) 中使用，请移步参考 IncludeMany 文档。");
                                     throw new ArgumentException($"{tb2.DbName} 找不到列 {mp2.Member.Name}");
                                 }
-                                var col2 = tb2.ColumnsByCs[mp2.Member.Name];
+                                col2 = tb2.ColumnsByCs[mp2.Member.Name];
                                 if (tsc._selectColumnMap != null && find2 != null)
                                 {
                                     tsc._selectColumnMap.Add(new SelectColumnInfo { Table = find2, Column = col2 });
