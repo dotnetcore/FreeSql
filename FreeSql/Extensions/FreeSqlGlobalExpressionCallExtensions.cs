@@ -1,5 +1,7 @@
 ﻿using FreeSql.DataAnnotations;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading;
 
@@ -48,8 +50,6 @@ namespace FreeSql
     public static class SqlExt
     {
         public static ThreadLocal<ExpressionCallContext> expContext = new ThreadLocal<ExpressionCallContext>();
-        static ThreadLocal<StringBuilder> expSb = new ThreadLocal<StringBuilder>();
-        static ThreadLocal<bool> expSbIsOrderBy = new ThreadLocal<bool>();
 
         public static ISqlOver<long> Rank() => Over<long>("RANK()");
         public static ISqlOver<long> DenseRank() => Over<long>("DENSE_RANK()");
@@ -61,32 +61,34 @@ namespace FreeSql
         public static ISqlOver<long> RowNumber() => Over<long>("ROW_NUMBER()");
 
         #region .. over([partition by ..] order by ...)
+        static ThreadLocal<StringBuilder> expOverSb = new ThreadLocal<StringBuilder>();
+        static ThreadLocal<bool> expOverSbIsOrderBy = new ThreadLocal<bool>();
         static ISqlOver<TValue> Over<TValue>(string sqlFunc)
         {
-            expSb.Value = new StringBuilder();
-            expSbIsOrderBy.Value = false;
-            expSb.Value.Append($"{sqlFunc} ");
+            expOverSb.Value = new StringBuilder();
+            expOverSbIsOrderBy.Value = false;
+            expOverSb.Value.Append($"{sqlFunc} ");
             return null;
         }
         public static ISqlOver<TValue> Over<TValue>(this ISqlOver<TValue> that)
         {
-            expSb.Value.Append("OVER(");
+            expOverSb.Value.Append("OVER(");
             return that;
         }
         public static ISqlOver<TValue> PartitionBy<TValue>(this ISqlOver<TValue> that, object column)
         {
-            expSb.Value.Append("PARTITION BY ").Append(expContext.Value.ParsedContent["column"]).Append(",");
+            expOverSb.Value.Append("PARTITION BY ").Append(expContext.Value.ParsedContent["column"]).Append(",");
             return that;
         }
         public static ISqlOver<TValue> OrderBy<TValue>(this ISqlOver<TValue> that, object column) => OrderBy(that, false);
         public static ISqlOver<TValue> OrderByDescending<TValue>(this ISqlOver<TValue> that, object column) => OrderBy(that, true);
         static ISqlOver<TValue> OrderBy<TValue>(this ISqlOver<TValue> that, bool isDesc)
         {
-            var sb = expSb.Value;
-            if (expSbIsOrderBy.Value == false)
+            var sb = expOverSb.Value;
+            if (expOverSbIsOrderBy.Value == false)
             {
                 sb.Append("ORDER BY ");
-                expSbIsOrderBy.Value = true;
+                expOverSbIsOrderBy.Value = true;
             }
             sb.Append(expContext.Value.ParsedContent["column"]);
             if (isDesc) sb.Append(" desc");
@@ -95,12 +97,48 @@ namespace FreeSql
         }
         public static TValue ToValue<TValue>(this ISqlOver<TValue> that)
         {
-            var sb = expSb.Value.ToString().TrimEnd(',');
-            expSb.Value.Clear();
+            var sb = expOverSb.Value.ToString().TrimEnd(',');
+            expOverSb.Value.Clear();
             expContext.Value.Result = $"{sb})";
             return default;
         }
         public interface ISqlOver<TValue> { }
+        #endregion
+
+        #region case when .. then .. when .. then .. end
+        static ThreadLocal<List<StringBuilder>> expCaseWhenEndSb = new ThreadLocal<List<StringBuilder>>();
+        public static ICaseWhenEnd Case()
+        {
+            if (expCaseWhenEndSb.Value == null) expCaseWhenEndSb.Value = new List<StringBuilder>();
+            expCaseWhenEndSb.Value.Add(new StringBuilder().Append("CASE "));
+            return null;
+        }
+        public static ICaseWhenEnd<TValue> When<TValue>(this ICaseWhenEnd that, bool test, TValue then)
+        {
+            expCaseWhenEndSb.Value.Last().Append("\r\n  WHEN ").Append(expContext.Value.ParsedContent["test"]).Append(" THEN ").Append(expContext.Value.ParsedContent["then"]);
+            return null;
+        }
+        public static ICaseWhenEnd<TValue> When<TValue>(this ICaseWhenEnd<TValue> that, bool test, TValue then)
+        {
+            expCaseWhenEndSb.Value.Last().Append("\r\n  WHEN ").Append(expContext.Value.ParsedContent["test"]).Append(" THEN ").Append(expContext.Value.ParsedContent["then"]);
+            return null;
+        }
+        public static ICaseWhenEnd<TValue> Else<TValue>(this ICaseWhenEnd<TValue> that, TValue then)
+        {
+            expCaseWhenEndSb.Value.Last().Append("\r\n  ELSE ").Append(expContext.Value.ParsedContent["then"]);
+            return null;
+        }
+        public static TValue End<TValue>(this ICaseWhenEnd<TValue> that)
+        {
+            var sb = expCaseWhenEndSb.Value;
+            var sql = sb.Last().Append("\r\nEND").ToString();
+            sb.Last().Clear();
+            sb.RemoveAt(sb.Count - 1);
+            expContext.Value.Result = sql;
+            return default;
+        }
+        public interface ICaseWhenEnd { }
+        public interface ICaseWhenEnd<TValue> { }
         #endregion
     }
 }

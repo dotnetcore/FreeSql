@@ -155,6 +155,36 @@ namespace FreeSql.Tests
         [Fact]
         public void Test03()
         {
+            var sqlextCase = g.sqlserver.Select<Edi, EdiItem>()
+                .InnerJoin((a, b) => b.Id == a.Id)
+                .ToSql((a, b) => new
+                {
+                    Id = a.Id,
+                    EdiId = b.Id,
+                    case1 = SqlExt.Case()
+                        .When(a.Id == 1, 10)
+                        .When(a.Id == 2, 11)
+                        .When(a.Id == 3, 12)
+                        .When(a.Id == 4, 13)
+                        .When(a.Id == 5, SqlExt.Case().When(b.Id == 1, 10000).Else(999).End())
+                        .End()
+                });
+            var sqlextCaseToList = g.sqlserver.Select<Edi, EdiItem>()
+                .InnerJoin((a, b) => b.Id == a.Id)
+                .ToList((a, b) => new
+                {
+                    Id = a.Id,
+                    EdiId = b.Id,
+                    case1 = SqlExt.Case()
+                        .When(a.Id == 1, 10)
+                        .When(a.Id == 2, 11)
+                        .When(a.Id == 3, 12)
+                        .When(a.Id == 4, 13)
+                        .When(a.Id == 5, SqlExt.Case().When(b.Id == 1, 10000).Else(999).End())
+                        .End()
+                });
+
+
             var sqlextOver = g.sqlserver.Select<Edi, EdiItem>()
                 .InnerJoin((a, b) => b.Id == a.Id)
                 .ToSql((a, b) => new
