@@ -2,6 +2,7 @@ using FreeSql.DataAnnotations;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using Xunit;
@@ -76,6 +77,7 @@ namespace FreeSql.Tests.Dameng
         class TS_BLB01
         {
             public Guid Id { get; set; }
+            [MaxLength(-1)]
             public byte[] Data { get; set; }
         }
         [Fact]

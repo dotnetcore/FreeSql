@@ -2,6 +2,7 @@ using FreeSql.DataAnnotations;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
@@ -12,6 +13,7 @@ namespace FreeSql.Tests.ShenTong
 {
     public class ShenTongCodeFirstTest
     {
+
         [Fact]
         public void StringLength()
         {

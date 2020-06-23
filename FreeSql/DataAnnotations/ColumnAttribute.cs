@@ -79,7 +79,7 @@ namespace FreeSql.DataAnnotations
 
         internal int? _StringLength;
         /// <summary>
-        /// 设置长度，针对 string 类型避免 DbType 的繁琐设置<para></para>
+        /// 设置长度，针对 string/byte[] 类型避免 DbType 的繁琐设置<para></para>
         /// 提示：也可以使用 [MaxLength(100)]<para></para>
         /// ---<para></para>
         /// StringLength = 100 时，对应 DbType：<para></para>
@@ -90,11 +90,12 @@ namespace FreeSql.DataAnnotations
         /// Sqlite -> nvarchar(100)<para></para>
         /// ---<para></para>
         /// StringLength &lt; 0 时，对应 DbType：<para></para>
-        /// MySql -> text (StringLength = -2 时，对应 DbType longtext)<para></para>
+        /// MySql -> text (StringLength = -2 时，对应 longtext)<para></para>
         /// SqlServer -> nvarchar(max)<para></para>
         /// PostgreSQL -> text<para></para>
         /// Oracle -> nclob<para></para>
         /// Sqlite -> text<para></para>
+        /// v1.6.0+ byte[] 支持设置 StringLength
         /// </summary>
         public int StringLength { get => _StringLength ?? 0; set => _StringLength = value; }
 

@@ -149,6 +149,26 @@ namespace base_entity
 
             var repo = BaseEntity.Orm.Select<TestConfig>().Limit(10).ToList();
 
+
+            //void ConfigEntityProperty(object sender, FreeSql.Aop.ConfigEntityPropertyEventArgs e)
+            //{
+            //    if (e.Property.PropertyType == typeof(byte[]))
+            //    {
+            //        var orm = sender as IFreeSql;
+            //        switch (orm.Ado.DataType)
+            //        {
+            //            case DataType.SqlServer:
+            //                e.ModifyResult.DbType = "image";
+            //                break;
+            //            case DataType.MySql:
+            //                e.ModifyResult.DbType = "longblob";
+            //                break;
+            //        }
+            //    }
+            //}
+            //fsql.Aop.ConfigEntityProperty += ConfigEntityProperty;
+
+
             Task.Run(async () =>
             {
                 using (var uow = BaseEntity.Orm.CreateUnitOfWork())
