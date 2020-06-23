@@ -684,6 +684,77 @@
             <param name="columnType"></param>
             <param name="setExp"></param>
         </member>
+        <member name="T:FreeSql.SqlExt">
+            <summary>
+            SqlExt 是利用自定表达式函数解析功能，解析默认常用的SQL函数，欢迎 PR
+            </summary>
+        </member>
+        <member name="M:FreeSql.SqlExt.Rank">
+            <summary>
+            rank() over(order by ...)
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.SqlExt.DenseRank">
+            <summary>
+            dense_rank() over(order by ...)
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.SqlExt.Count">
+            <summary>
+            count() over(order by ...)
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.SqlExt.Sum(System.Object)">
+            <summary>
+            sum(..) over(order by ...)
+            </summary>
+            <param name="column"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.SqlExt.Avg">
+            <summary>
+            avg(..) over(order by ...)
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.SqlExt.Max``1(``0)">
+            <summary>
+            max(..) over(order by ...)
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="column"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.SqlExt.Min``1(``0)">
+            <summary>
+            min(..) over(order by ...)
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="column"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.SqlExt.RowNumber">
+            <summary>
+            SqlServer row_number() over(order by ...)
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.SqlExt.Case">
+            <summary>
+            case when .. then .. end
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.SqlExt.GroupConcat(System.Object)">
+            <summary>
+            MySql group_concat(distinct .. order by .. separator ..)
+            </summary>
+            <param name="column"></param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.FreeSqlBuilder.UseConnectionString(FreeSql.DataType,System.String,System.Type)">
             <summary>
             使用连接串（推荐）

@@ -130,6 +130,7 @@ public static partial class FreeSqlGlobalExtensions
         if (that == typeof(string)) return default(string);
         if (that == typeof(Guid)) return default(Guid);
         if (that.IsArray) return Array.CreateInstance(that, 0);
+        if (that.IsInterface || that.IsAbstract) return null;
         var ctorParms = that.InternalGetTypeConstructor0OrFirst(false)?.GetParameters();
         if (ctorParms == null || ctorParms.Any() == false) return Activator.CreateInstance(that, true);
         return Activator.CreateInstance(that, ctorParms

@@ -155,6 +155,37 @@ namespace FreeSql.Tests
         [Fact]
         public void Test03()
         {
+            var sqlextGroupConcat = g.mysql.Select<Edi, EdiItem>()
+                .InnerJoin((a, b) => b.Id == a.Id)
+                .ToSql((a, b) => new
+                {
+                    Id = a.Id,
+                    EdiId = b.Id,
+                    case1 = SqlExt.Case()
+                        .When(a.Id == 1, 10)
+                        .When(a.Id == 2, 11)
+                        .When(a.Id == 3, 12)
+                        .When(a.Id == 4, 13)
+                        .When(a.Id == 5, SqlExt.Case().When(b.Id == 1, 10000).Else(999).End())
+                        .End(),
+                    groupct1 = SqlExt.GroupConcat(a.Id).Distinct().OrderBy(b.EdiId).Separator("_").ToValue()
+                });
+            var sqlextGroupConcatToList = g.mysql.Select<Edi, EdiItem>()
+                .InnerJoin((a, b) => b.Id == a.Id)
+                .ToList((a, b) => new
+                {
+                    Id = a.Id,
+                    EdiId = b.Id,
+                    case1 = SqlExt.Case()
+                        .When(a.Id == 1, 10)
+                        .When(a.Id == 2, 11)
+                        .When(a.Id == 3, 12)
+                        .When(a.Id == 4, 13)
+                        .When(a.Id == 5, SqlExt.Case().When(b.Id == 1, 10000).Else(999).End())
+                        .End(),
+                    groupct1 = SqlExt.GroupConcat(a.Id).Distinct().OrderBy(b.EdiId).Separator("_").ToValue()
+                });
+
             var sqlextCase = g.sqlserver.Select<Edi, EdiItem>()
                 .InnerJoin((a, b) => b.Id == a.Id)
                 .ToSql((a, b) => new
@@ -167,7 +198,8 @@ namespace FreeSql.Tests
                         .When(a.Id == 3, 12)
                         .When(a.Id == 4, 13)
                         .When(a.Id == 5, SqlExt.Case().When(b.Id == 1, 10000).Else(999).End())
-                        .End()
+                        .End(),
+                    over1 = SqlExt.Rank().Over().OrderBy(a.Id).OrderByDescending(b.EdiId).ToValue(),
                 });
             var sqlextCaseToList = g.sqlserver.Select<Edi, EdiItem>()
                 .InnerJoin((a, b) => b.Id == a.Id)
@@ -181,7 +213,8 @@ namespace FreeSql.Tests
                         .When(a.Id == 3, 12)
                         .When(a.Id == 4, 13)
                         .When(a.Id == 5, SqlExt.Case().When(b.Id == 1, 10000).Else(999).End())
-                        .End()
+                        .End(),
+                    over1 = SqlExt.Rank().Over().OrderBy(a.Id).OrderByDescending(b.EdiId).ToValue(),
                 });
 
 
