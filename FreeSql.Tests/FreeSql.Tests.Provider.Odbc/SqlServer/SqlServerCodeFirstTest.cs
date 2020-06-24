@@ -29,6 +29,40 @@ namespace FreeSql.Tests.Odbc.SqlServer
         }
 
         [Fact]
+        public void 表名中有点()
+        {
+            var item = new tbdot01 { name = "insert" };
+            g.sqlserver.Insert(item).ExecuteAffrows();
+
+            var find = g.sqlserver.Select<tbdot01>().Where(a => a.id == item.id).First();
+            Assert.NotNull(find);
+            Assert.Equal(item.id, find.id);
+            Assert.Equal("insert", find.name);
+
+            Assert.Equal(1, g.sqlserver.Update<tbdot01>().Set(a => a.name == "update").Where(a => a.id == item.id).ExecuteAffrows());
+            find = g.sqlserver.Select<tbdot01>().Where(a => a.id == item.id).First();
+            Assert.NotNull(find);
+            Assert.Equal(item.id, find.id);
+            Assert.Equal("update", find.name);
+
+            Assert.Equal(1, g.sqlserver.Delete<tbdot01>().Where(a => a.id == item.id).ExecuteAffrows());
+            find = g.sqlserver.Select<tbdot01>().Where(a => a.id == item.id).First();
+            Assert.Null(find);
+        }
+        /// <summary>
+        /// 表中带点
+        /// </summary>
+        [Table(Name = "[freesql.T].[dbo].[sys.tbdot01]")]
+        class tbdot01
+        {
+            /// <summary>
+            /// 主键
+            /// </summary>
+            public Guid id { get; set; }
+            public string name { get; set; }
+        }
+
+        [Fact]
         public void 中文表_字段()
         {
             var sql = g.sqlserver.CodeFirst.GetComparisonDDLStatements<测试中文表>();

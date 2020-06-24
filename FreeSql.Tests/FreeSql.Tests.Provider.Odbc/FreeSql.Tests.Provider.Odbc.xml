@@ -9,6 +9,16 @@
             保存或添加，如果主键有值则尝试 Update，如果影响的行为 0 则尝试 Insert
             </summary>
         </member>
+        <member name="T:FreeSql.Tests.Odbc.SqlServer.SqlServerCodeFirstTest.tbdot01">
+            <summary>
+            表中带点
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Odbc.SqlServer.SqlServerCodeFirstTest.tbdot01.id">
+            <summary>
+            主键
+            </summary>
+        </member>
         <member name="T:FreeSql.Tests.Odbc.UnitTest1.NewsArticle">
             <summary>
             

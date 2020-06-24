@@ -9,6 +9,16 @@
             保存或添加，如果主键有值则尝试 Update，如果影响的行为 0 则尝试 Insert
             </summary>
         </member>
+        <member name="T:FreeSql.Tests.SqlServer.SqlServerCodeFirstTest.tbdot01">
+            <summary>
+            表中带点
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerCodeFirstTest.tbdot01.id">
+            <summary>
+            主键
+            </summary>
+        </member>
         <member name="T:FreeSql.Tests.UnitTest1.NewsArticle">
             <summary>
             
@@ -260,6 +270,11 @@
         <member name="P:FreeSql.Tests.UnitTest3.Menu.Parent">
             <summary>
             导航属性
+            </summary>
+        </member>
+        <member name="M:FreeSql.Tests.UnitTest4._HandleIncludeString``1(FreeSql.ISelect{``0},System.String[])">
+            <summary>
+            设置字符串的 Include，使用方法和格式跟 EF Core 一样
             </summary>
         </member>
         <member name="T:SaleIDO.Entity.Storeage.AdjustPriceOrder">

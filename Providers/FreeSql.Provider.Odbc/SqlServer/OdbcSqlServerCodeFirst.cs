@@ -204,8 +204,8 @@ ELSE
                         if (tboldname == null)
                         {
                             //创建表
-                            var createTableName = _commonUtils.QuoteSqlName($"{tbname[1]}.{tbname[2]}");
-                            sb.Append("use ").Append(_commonUtils.QuoteSqlName(tbname[0])).Append(";\r\nCREATE TABLE ").Append(createTableName).Append(" ( ");
+                            var createTableName = _commonUtils.QuoteSqlName(tbname[1], tbname[2]);
+                            sb.Append("use [").Append(tbname[0]).Append("];\r\nCREATE TABLE ").Append(createTableName).Append(" ( ");
                             var pkidx = 0;
                             foreach (var tbcol in tb.ColumnsByPosition)
                             {
@@ -252,7 +252,7 @@ ELSE
                         //如果新表，旧表在一个数据库和模式下，直接修改表名
                         if (string.Compare(tbname[0], tboldname[0], true) == 0 &&
                             string.Compare(tbname[1], tboldname[1], true) == 0)
-                            sbalter.Append("use ").Append(_commonUtils.QuoteSqlName(tbname[0])).Append(_commonUtils.FormatSql(";\r\nEXEC sp_rename {0}, {1};\r\n", _commonUtils.QuoteSqlName($"{tboldname[0]}.{tboldname[1]}.{tboldname[2]}"), tbname[2]));
+                            sbalter.Append("use [").Append(tbname[0]).Append(_commonUtils.FormatSql("];\r\nEXEC sp_rename {0}, {1};\r\n", _commonUtils.QuoteSqlName(tboldname[0], tboldname[1], tboldname[2]), tbname[2]));
                         else
                         {
                             //如果新表，旧表不在一起，创建新表，导入数据，删除旧表
@@ -317,7 +317,7 @@ use [" + database + "];", tboldname ?? tbname);
                                 continue;
                             }
                             //添加列
-                            sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}.{tbname[2]}")).Append(" ADD ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType);
+                            sbalter.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName(tbname[0], tbname[1], tbname[2])).Append(" ADD ").Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(" ").Append(tbcol.Attribute.DbType);
                             if (tbcol.Attribute.IsIdentity == true && tbcol.Attribute.DbType.IndexOf("identity", StringComparison.CurrentCultureIgnoreCase) == -1) sbalter.Append(" identity(1,1)");
                             if (tbcol.Attribute.IsNullable == false && tbcol.DbDefaultValue != "NULL" && tbcol.Attribute.IsIdentity == false) sbalter.Append(" default(").Append(GetTransferDbDefaultValue(tbcol)).Append(")");
                             sbalter.Append(";\r\n");
@@ -345,10 +345,10 @@ use [" + database + "];", tboldname ?? tbname);
                             var dsukfind1 = dsuk.Where(a => string.Compare(a[1], uk.Name, true) == 0).ToArray();
                             if (dsukfind1.Any() == false || dsukfind1.Length != uk.Columns.Length || dsukfind1.Where(a => (a[3] == "1") == uk.IsUnique && uk.Columns.Where(b => string.Compare(b.Column.Attribute.Name, a[0], true) == 0 && (a[2] == "1") == b.IsDesc).Any()).Count() != uk.Columns.Length)
                             {
-                                if (dsukfind1.Any()) sbalter.Append("DROP INDEX ").Append(_commonUtils.QuoteSqlName(uk.Name)).Append(" ON ").Append(_commonUtils.QuoteSqlName($"{tbname[1]}.{tbname[2]}")).Append(";\r\n");
+                                if (dsukfind1.Any()) sbalter.Append("DROP INDEX ").Append(_commonUtils.QuoteSqlName(uk.Name)).Append(" ON ").Append(_commonUtils.QuoteSqlName(tbname[1], tbname[2])).Append(";\r\n");
                                 sbalter.Append("CREATE ");
                                 if (uk.IsUnique) sbalter.Append("UNIQUE ");
-                                sbalter.Append("INDEX ").Append(_commonUtils.QuoteSqlName(uk.Name)).Append(" ON ").Append(_commonUtils.QuoteSqlName($"{tbname[1]}.{tbname[2]}")).Append("(");
+                                sbalter.Append("INDEX ").Append(_commonUtils.QuoteSqlName(uk.Name)).Append(" ON ").Append(_commonUtils.QuoteSqlName(tbname[1], tbname[2])).Append("(");
                                 foreach (var tbcol in uk.Columns)
                                 {
                                     sbalter.Append(_commonUtils.QuoteSqlName(tbcol.Column.Attribute.Name));
@@ -361,18 +361,20 @@ use [" + database + "];", tboldname ?? tbname);
                     }
                     if (istmpatler == false)
                     {
-                        var dbcomment = string.Concat(_orm.Ado.ExecuteScalar(CommandType.Text, $" SELECT value from fn_listextendedproperty('MS_Description', 'schema', N'{tbname[1].Replace("'", "''")}', 'table', N'{tbname[2].Replace("'", "''")}', NULL, NULL)"));
+                        var dbcommentsql = $" SELECT value from fn_listextendedproperty('MS_Description', 'schema', N'{tbname[1].Replace("'", "''")}', 'table', N'{tbname[2].Replace("'", "''")}', NULL, NULL)";
+                        if (string.Compare(tbname[0], database, true) != 0) dbcommentsql = $"use [{tbname[0]}];{dbcommentsql};use [{database}];";
+                        var dbcomment = string.Concat(_orm.Ado.ExecuteScalar(CommandType.Text, dbcommentsql));
                         if (dbcomment != (tb.Comment ?? ""))
-                            AddOrUpdateMS_Description(sb, tbname[1], tbname[2], tb.Comment);
+                            AddOrUpdateMS_Description(sbalter, tbname[1], tbname[2], tb.Comment);
 
                         if (sbalter.Length > 0)
-                            sb.Append(sbalter).Append("\r\nuse " + database);
+                            sb.Append($"use [{tbname[0]}];").Append(sbalter).Append("\r\nuse [").Append(database).Append("];");
                         continue;
                     }
                     //创建临时表，数据导进临时表，然后删除原表，将临时表改名为原表名
                     bool idents = false;
-                    var tablename = tboldname == null ? _commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}.{tbname[2]}") : _commonUtils.QuoteSqlName($"{tboldname[0]}.{tboldname[1]}.{tboldname[2]}");
-                    var tmptablename = _commonUtils.QuoteSqlName($"{tbname[0]}.{tbname[1]}.FreeSqlTmp_{tbname[2]}");
+                    var tablename = tboldname == null ? _commonUtils.QuoteSqlName(tbname[0], tbname[1], tbname[2]) : _commonUtils.QuoteSqlName(tboldname[0], tboldname[1], tboldname[2]);
+                    var tmptablename = _commonUtils.QuoteSqlName(tbname[0], tbname[1], $"FreeSqlTmp_{tbname[2]}");
                     sb.Append("BEGIN TRANSACTION\r\n")
                         .Append("SET QUOTED_IDENTIFIER ON\r\n")
                         .Append("SET ARITHABORT ON\r\n")
