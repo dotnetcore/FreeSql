@@ -272,11 +272,6 @@
             导航属性
             </summary>
         </member>
-        <member name="M:FreeSql.Tests.UnitTest4._HandleIncludeString``1(FreeSql.ISelect{``0},System.String[])">
-            <summary>
-            设置字符串的 Include，使用方法和格式跟 EF Core 一样
-            </summary>
-        </member>
         <member name="T:SaleIDO.Entity.Storeage.AdjustPriceOrder">
             <summary>
             调价单
