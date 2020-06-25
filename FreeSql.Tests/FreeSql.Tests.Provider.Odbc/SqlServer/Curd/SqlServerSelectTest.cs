@@ -876,7 +876,7 @@ FROM [tb_topic22] a", subquery);
             var subquery = select.Where(a => select.As("b").ToList(b => b.Title).Contains(a.Id.ToString())).ToSql();
             Assert.Equal(@"SELECT a.[Id], a.[Clicks], a.[TypeGuid], a.[Title], a.[CreateTime] 
 FROM [tb_topic22] a 
-WHERE (((cast(a.[Id] as nvarchar)) in (SELECT b.[Title] 
+WHERE (((cast(a.[Id] as nvarchar(100))) in (SELECT b.[Title] 
 	FROM [tb_topic22] b)))", subquery);
             var subqueryList = select.Where(a => select.As("b").ToList(b => b.Title).Contains(a.Id.ToString())).ToList();
         }

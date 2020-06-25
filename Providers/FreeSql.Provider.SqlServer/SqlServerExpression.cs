@@ -36,7 +36,9 @@ namespace FreeSql.SqlServer
                             case "System.Int64": return $"cast({getExp(operandExp)} as bigint)";
                             case "System.SByte": return $"cast({getExp(operandExp)} as tinyint)";
                             case "System.Single": return $"cast({getExp(operandExp)} as decimal(14,7))";
-                            case "System.String": return operandExp.Type.NullableTypeOrThis() == typeof(Guid) ? $"cast({getExp(operandExp)} as varchar(36))" : $"cast({getExp(operandExp)} as nvarchar)";
+                            case "System.String": return gentype == typeof(Guid) ? 
+                                    $"cast({getExp(operandExp)} as varchar(36))" : 
+                                    $"cast({getExp(operandExp)} as nvarchar{(gentype.IsNumberType() || gentype.IsEnum ? "(100)" : "(max)")})";
                             case "System.UInt16": return $"cast({getExp(operandExp)} as smallint)";
                             case "System.UInt32": return $"cast({getExp(operandExp)} as int)";
                             case "System.UInt64": return $"cast({getExp(operandExp)} as bigint)";
@@ -86,7 +88,10 @@ namespace FreeSql.SqlServer
                             if (callExp.Method.DeclaringType.IsNumberType()) return "rand()";
                             return null;
                         case "ToString":
-                            if (callExp.Object != null) return callExp.Arguments.Count == 0 ? (callExp.Object.Type.NullableTypeOrThis() == typeof(Guid) ? $"cast({getExp(callExp.Object)} as varchar(36))" : $"cast({getExp(callExp.Object)} as nvarchar)") : null;
+                            var gentype2 = callExp.Object.Type.NullableTypeOrThis();
+                            if (callExp.Object != null) return callExp.Arguments.Count == 0 ? (gentype2 == typeof(Guid) ? 
+                                    $"cast({getExp(callExp.Object)} as varchar(36))" : 
+                                    $"cast({getExp(callExp.Object)} as nvarchar{(gentype2.IsNumberType() || gentype2.IsEnum ? "(100)" : "(max)")})") : null;
                             return null;
                     }
 
@@ -262,10 +267,10 @@ namespace FreeSql.SqlServer
                     case "Contains":
                         var args0Value = getExp(exp.Arguments[0]);
                         if (args0Value == "NULL") return $"({left}) IS NULL";
-                        if (exp.Method.Name == "StartsWith") return $"({left}) LIKE {(args0Value.EndsWith("'") ? args0Value.Insert(args0Value.Length - 1, "%") : $"(cast({args0Value} as nvarchar)+'%')")}";
-                        if (exp.Method.Name == "EndsWith") return $"({left}) LIKE {(args0Value.StartsWith("'") ? args0Value.Insert(1, "%") : $"('%'+cast({args0Value} as nvarchar))")}";
+                        if (exp.Method.Name == "StartsWith") return $"({left}) LIKE {(args0Value.EndsWith("'") ? args0Value.Insert(args0Value.Length - 1, "%") : $"(cast({args0Value} as nvarchar(max))+'%')")}";
+                        if (exp.Method.Name == "EndsWith") return $"({left}) LIKE {(args0Value.StartsWith("'") ? args0Value.Insert(1, "%") : $"('%'+cast({args0Value} as nvarchar(max)))")}";
                         if (args0Value.StartsWith("'") && args0Value.EndsWith("'")) return $"({left}) LIKE {args0Value.Insert(1, "%").Insert(args0Value.Length, "%")}";
-                        return $"({left}) LIKE ('%'+cast({args0Value} as nvarchar)+'%')";
+                        return $"({left}) LIKE ('%'+cast({args0Value} as nvarchar(max))+'%')";
                     case "ToLower": return $"lower({left})";
                     case "ToUpper": return $"upper({left})";
                     case "Substring":
@@ -336,7 +341,7 @@ namespace FreeSql.SqlServer
                 switch (exp.Method.Name)
                 {
                     case "Compare": return $"({getExp(exp.Arguments[0])} - ({getExp(exp.Arguments[1])}))";
-                    case "DaysInMonth": return $"datepart(day, dateadd(day, -1, dateadd(month, 1, cast({getExp(exp.Arguments[0])} as varchar) + '-' + cast({getExp(exp.Arguments[1])} as varchar) + '-1')))";
+                    case "DaysInMonth": return $"datepart(day, dateadd(day, -1, dateadd(month, 1, cast({getExp(exp.Arguments[0])} as varchar(100)) + '-' + cast({getExp(exp.Arguments[1])} as varchar(100)) + '-1')))";
                     case "Equals": return $"({getExp(exp.Arguments[0])} = {getExp(exp.Arguments[1])})";
 
                     case "IsLeapYear":
@@ -452,7 +457,7 @@ namespace FreeSql.SqlServer
                     case "Subtract": return $"({left}-({args1}))";
                     case "Equals": return $"({left} = {args1})";
                     case "CompareTo": return $"({left}-({args1}))";
-                    case "ToString": return $"cast({left} as varchar)";
+                    case "ToString": return $"cast({left} as varchar(100))";
                 }
             }
             return null;
@@ -475,7 +480,11 @@ namespace FreeSql.SqlServer
                     case "ToInt64": return $"cast({getExp(exp.Arguments[0])} as bigint)";
                     case "ToSByte": return $"cast({getExp(exp.Arguments[0])} as tinyint)";
                     case "ToSingle": return $"cast({getExp(exp.Arguments[0])} as decimal(14,7))";
-                    case "ToString": return exp.Arguments[0].Type.NullableTypeOrThis() == typeof(Guid) ? $"cast({getExp(exp.Arguments[0])} as varchar(36))" : $"cast({getExp(exp.Arguments[0])} as nvarchar)";
+                    case "ToString":
+                        var gentype = exp.Arguments[0].Type.NullableTypeOrThis();
+                        return gentype == typeof(Guid) ? 
+                            $"cast({getExp(exp.Arguments[0])} as varchar(36))" : 
+                            $"cast({getExp(exp.Arguments[0])} as nvarchar{(gentype.IsNumberType() || gentype.IsEnum ? "(100)" : "(max)")})";
                     case "ToUInt16": return $"cast({getExp(exp.Arguments[0])} as smallint)";
                     case "ToUInt32": return $"cast({getExp(exp.Arguments[0])} as int)";
                     case "ToUInt64": return $"cast({getExp(exp.Arguments[0])} as bigint)";
