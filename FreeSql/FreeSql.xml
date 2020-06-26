@@ -3653,6 +3653,16 @@
             <param name="that"></param>
             <returns></returns>
         </member>
+        <member name="M:FreeSqlGlobalExtensions.AsCteTree``1(FreeSql.ISelect{``0},System.Int32)">
+            <summary>
+            使用递归 CTE 查询树型的所有子数据。<para></para>
+            通过测试的数据库：MySql8.0、SqlServer、PostgreSQL、Oracle、Sqlite、达梦、人大金仓
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <param name="that"></param>
+            <param name="depth">深度</param>
+            <returns></returns>
+        </member>
         <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.And``1(System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}},System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})">
             <summary>
             使用 and 拼接两个 lambda 表达式

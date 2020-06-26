@@ -45,5 +45,11 @@ namespace FreeSql.Internal.CommonProvider
 
             return sb.Length == 0 ? "(NULL)" : sb.Remove(0, 1).Insert(0, "(").Append(")").ToString();
         }
+
+        public static bool IsFromSlave(string cmdText)
+        {
+            return cmdText.StartsWith("SELECT ", StringComparison.CurrentCultureIgnoreCase) ||
+                cmdText.StartsWith("WITH ", StringComparison.CurrentCultureIgnoreCase);
+        }
     }
 }

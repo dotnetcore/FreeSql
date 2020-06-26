@@ -596,7 +596,7 @@ namespace FreeSql.Internal.CommonProvider
             public int FieldCount { get; set; }
             public Func<IFreeSql, DbDataReader, T1> Read { get; set; }
         }
-        protected GetAllFieldExpressionTreeInfo GetAllFieldExpressionTreeLevelAll()
+        public GetAllFieldExpressionTreeInfo GetAllFieldExpressionTreeLevelAll()
         {
             return _dicGetAllFieldExpressionTree.GetOrAdd($"*{string.Join("+", _tables.Select(a => $"{_orm.Ado.DataType}-{a.Table.DbName}-{a.Alias}-{a.Type}"))}", s =>
             {
@@ -735,7 +735,7 @@ namespace FreeSql.Internal.CommonProvider
                 };
             });
         }
-        protected GetAllFieldExpressionTreeInfo GetAllFieldExpressionTreeLevel2()
+        public GetAllFieldExpressionTreeInfo GetAllFieldExpressionTreeLevel2()
         {
             return _dicGetAllFieldExpressionTree.GetOrAdd(string.Join("+", _tables.Select(a => $"{_orm.Ado.DataType}-{a.Table.DbName}-{a.Alias}-{a.Type}")), s =>
             {

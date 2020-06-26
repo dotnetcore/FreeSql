@@ -385,4 +385,80 @@ public static partial class FreeSqlGlobalExtensions
     }
 #endif
     #endregion
+
+    #region WhereTree(..) 递归查询
+    /// <summary>
+    /// 使用递归 CTE 查询树型的所有子数据。<para></para>
+    /// 通过测试的数据库：MySql8.0、SqlServer、PostgreSQL、Oracle、Sqlite、达梦、人大金仓
+    /// </summary>
+    /// <typeparam name="T1"></typeparam>
+    /// <param name="that"></param>
+    /// <param name="depth">深度</param>
+    /// <returns></returns>
+    public static ISelect<T1> AsCteTree<T1>(this ISelect<T1> that, int depth = -1) where T1 : class
+    {
+        var select = that as Select1Provider<T1>;
+        var tb = select._tables[0].Table;
+        var navs = tb.Properties.Select(a => tb.GetTableRef(a.Key, false))
+            .Where(a => a != null &&
+                a.RefType == FreeSql.Internal.Model.TableRefType.OneToMany &&
+                a.RefEntityType == tb.Type).ToArray();
+
+        if (navs.Length != 1) throw new ArgumentException($"{tb.Type.FullName} 不是父子关系，无法使用该功能");
+        var tbref = navs[0];
+
+        var cteName = "as_cte_tree";
+        if (select._orm.CodeFirst.IsSyncStructureToLower) cteName = cteName.ToLower();
+        if (select._orm.CodeFirst.IsSyncStructureToUpper) cteName = cteName.ToUpper();
+        var sql1 = select.ToSql($"0 as as_cte_tree_depth, {select.GetAllFieldExpressionTreeLevel2().Field}").Trim();
+
+        select._where.Clear();
+        select.As("wct2");
+        var sql2Field = select.GetAllFieldExpressionTreeLevel2().Field;
+        var sql2 = select
+            .AsAlias((type, old) => type == tb.Type ? old.Replace("wct2", "wct1") : old)
+            .AsTable((type, old) => type == tb.Type ? cteName : old)
+            .InnerJoin($"{select._commonUtils.QuoteSqlName(tb.DbName)} wct2 ON {string.Join(" and ", tbref.Columns.Select((a,z) => $"wct2.{select._commonUtils.QuoteSqlName(tbref.RefColumns[z].Attribute.Name)} = wct1.{select._commonUtils.QuoteSqlName(a.Attribute.Name)}"))}")
+            .ToSql($"wct1.as_cte_tree_depth + 1 as as_cte_tree_depth, {sql2Field}").Trim();
+
+        var newSelect = select._orm.Select<T1>()
+            .AsType(tb.Type)
+            .AsTable((type, old) => type == tb.Type ? cteName : old)
+            .WhereIf(depth > 0, $"a.as_cte_tree_depth < {depth + 1}") as Select1Provider<T1>;
+
+        var nsselsb = new StringBuilder();
+        if (AdoProvider.IsFromSlave(select._select) == false) nsselsb.Append(" "); //读写分离规则，如果强制读主库，则在前面加个空格
+        nsselsb.Append("WITH ");
+        switch (select._orm.Ado.DataType)
+        {
+            case DataType.PostgreSQL:
+            case DataType.OdbcPostgreSQL:
+            case DataType.OdbcKingbaseES:
+            case DataType.ShenTong: //神通测试未通过
+            case DataType.MySql:
+            case DataType.OdbcMySql:
+                nsselsb.Append("RECURSIVE ");
+                break;
+        }
+        nsselsb.Append(select._commonUtils.QuoteSqlName(cteName));
+        switch (select._orm.Ado.DataType)
+        {
+            case DataType.Oracle: //[Err] ORA-32039: recursive WITH clause must have column alias list
+            case DataType.OdbcOracle:
+            case DataType.Dameng: //递归 WITH 子句必须具有列别名列表
+            case DataType.OdbcDameng:
+                nsselsb.Append($"(as_cte_tree_depth, {sql2Field.Replace("wct2.", "")})");
+                break;
+        }
+        nsselsb.Append(@"
+as
+(
+").Append(sql1).Append("\r\n\r\nunion all\r\n\r\n").Append(sql2).Append(@"
+)
+SELECT ");
+        newSelect._select = nsselsb.ToString();
+        nsselsb.Clear();
+        return newSelect;
+    }
+    #endregion
 }

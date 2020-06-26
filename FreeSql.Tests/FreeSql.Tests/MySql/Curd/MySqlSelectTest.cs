@@ -1929,7 +1929,7 @@ WHERE ((b.`IsFinished` OR a.`TaskType` = 3) AND b.`EnabledMark` = 1)", groupsql1
                     new VM_District_Child
                     {
                         Code = "110000",
-                        Name = "北京市",
+                        Name = "北京",
                         Childs = new List<VM_District_Child>(new[] {
                             new VM_District_Child{ Code="110100", Name = "北京市" },
                             new VM_District_Child{ Code="110101", Name = "东城区" },
@@ -1967,6 +1967,28 @@ WHERE ((b.`IsFinished` OR a.`TaskType` = 3) AND b.`EnabledMark` = 1)", groupsql1
             Assert.Equal(2, t3[0].Childs[0].Childs.Count);
             Assert.Equal("110100", t3[0].Childs[0].Childs[0].Code);
             Assert.Equal("110101", t3[0].Childs[0].Childs[1].Code);
+
+            //t3 = fsql.Select<VM_District_Child>().Where(a => a.Name == "中国").AsCteTree().OrderBy(a => a.Code).ToTreeList();
+            //Assert.Single(t3);
+            //Assert.Equal("100000", t3[0].Code);
+            //Assert.Single(t3[0].Childs);
+            //Assert.Equal("110000", t3[0].Childs[0].Code);
+            //Assert.Equal(2, t3[0].Childs[0].Childs.Count);
+            //Assert.Equal("110100", t3[0].Childs[0].Childs[0].Code);
+            //Assert.Equal("110101", t3[0].Childs[0].Childs[1].Code);
+
+            //t3 = fsql.Select<VM_District_Child>().Where(a => a.Name == "中国").AsCteTree().OrderBy(a => a.Code).ToList();
+            //Assert.Equal(4, t3.Count);
+            //Assert.Equal("100000", t3[0].Code);
+            //Assert.Equal("110000", t3[1].Code);
+            //Assert.Equal("110100", t3[2].Code);
+            //Assert.Equal("110101", t3[3].Code);
+
+            //t3 = fsql.Select<VM_District_Child>().Where(a => a.Name == "北京").AsCteTree().OrderBy(a => a.Code).ToList();
+            //Assert.Equal(3, t3.Count);
+            //Assert.Equal("110000", t3[0].Code);
+            //Assert.Equal("110100", t3[1].Code);
+            //Assert.Equal("110101", t3[2].Code);
         }
 
         [Table(Name = "D_District")]
