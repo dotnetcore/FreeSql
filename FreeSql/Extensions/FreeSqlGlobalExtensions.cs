@@ -386,16 +386,24 @@ public static partial class FreeSqlGlobalExtensions
 #endif
     #endregion
 
-    #region WhereTree(..) 递归查询
+    #region AsTreeCte(..) 递归查询
     /// <summary>
-    /// 使用递归 CTE 查询树型的所有子数据。<para></para>
-    /// 通过测试的数据库：MySql8.0、SqlServer、PostgreSQL、Oracle、Sqlite、达梦、人大金仓
+    /// 使用递归 CTE 查询树型的所有子记录，或者所有父记录。<para></para>
+    /// 通过测试的数据库：MySql8.0、SqlServer、PostgreSQL、Oracle、Sqlite、达梦、人大金仓<para></para>
+    /// 返回隐藏字段：.ToList(a =&gt; new { item = a, level = "a.cte_level", path = "a.cte_path" })
     /// </summary>
     /// <typeparam name="T1"></typeparam>
     /// <param name="that"></param>
-    /// <param name="depth">深度</param>
+    /// <param name="up">false(默认)：由父级向子级的递归查询<para></para>true：由子级向父级的递归查询</param>
+    /// <param name="pathSelector">路径内容选择</param>
+    /// <param name="pathSeparator">连接路径内容</param>
+    /// <param name="level">递归层级</param>
     /// <returns></returns>
-    public static ISelect<T1> AsCteTree<T1>(this ISelect<T1> that, int depth = -1) where T1 : class
+    public static ISelect<T1> AsTreeCte<T1>(this ISelect<T1> that,
+        Expression<Func<T1, string>> pathSelector = null,
+        bool up = false,
+        string pathSeparator = " -> ",
+        int level = -1) where T1 : class
     {
         var select = that as Select1Provider<T1>;
         var tb = select._tables[0].Table;
@@ -407,24 +415,66 @@ public static partial class FreeSqlGlobalExtensions
         if (navs.Length != 1) throw new ArgumentException($"{tb.Type.FullName} 不是父子关系，无法使用该功能");
         var tbref = navs[0];
 
-        var cteName = "as_cte_tree";
+        var cteName = "as_tree_cte";
         if (select._orm.CodeFirst.IsSyncStructureToLower) cteName = cteName.ToLower();
         if (select._orm.CodeFirst.IsSyncStructureToUpper) cteName = cteName.ToUpper();
-        var sql1 = select.ToSql($"0 as as_cte_tree_depth, {select.GetAllFieldExpressionTreeLevel2().Field}").Trim();
+        var sql1ctePath = "";
+        if (pathSelector != null)
+        {
+            select._tables[0].Parameter = pathSelector?.Parameters[0];
+            switch (select._orm.Ado.DataType)
+            {
+                case DataType.PostgreSQL:
+                case DataType.OdbcPostgreSQL:
+                case DataType.OdbcKingbaseES:
+                case DataType.ShenTong: //神通测试未通过
+                case DataType.SqlServer:
+                case DataType.OdbcSqlServer:
+                    sql1ctePath = select._commonExpression.ExpressionWhereLambda(select._tables, Expression.Call(typeof(Convert).GetMethod("ToString", new Type[] { typeof(string) }), pathSelector?.Body), null, null, null);
+                    break;
+                default:
+                    sql1ctePath = select._commonExpression.ExpressionWhereLambda(select._tables, pathSelector?.Body, null, null, null);
+                    break;
+            }
+            sql1ctePath = $"{sql1ctePath} as cte_path, ";
+        }
+        var sql1 = select.ToSql($"0 as cte_level, {sql1ctePath}{select.GetAllFieldExpressionTreeLevel2().Field}").Trim();
 
         select._where.Clear();
         select.As("wct2");
         var sql2Field = select.GetAllFieldExpressionTreeLevel2().Field;
+        var sql2InnerJoinOn = up == false ?
+            string.Join(" and ", tbref.Columns.Select((a, z) => $"wct2.{select._commonUtils.QuoteSqlName(tbref.RefColumns[z].Attribute.Name)} = wct1.{select._commonUtils.QuoteSqlName(a.Attribute.Name)}")) :
+            string.Join(" and ", tbref.Columns.Select((a, z) => $"wct2.{select._commonUtils.QuoteSqlName(a.Attribute.Name)} = wct1.{select._commonUtils.QuoteSqlName(tbref.RefColumns[z].Attribute.Name)}"));
+        
+        var sql2ctePath = "";
+        if (pathSelector != null)
+        {
+            select._tables[0].Parameter = pathSelector?.Parameters[0];
+            var wct2ctePath = select._commonExpression.ExpressionWhereLambda(select._tables, pathSelector?.Body, null, null, null);
+            sql2ctePath = select._commonUtils.StringConcat(
+                new string[] {
+                    up == false ? "wct1.cte_path" : wct2ctePath,
+                    select._commonUtils.FormatSql("{0}", pathSeparator),
+                    up == false ? wct2ctePath : "wct1.cte_path"
+                }, new Type[] {
+                    typeof(string),
+                    typeof(string),
+                    typeof(string)
+                });
+            sql2ctePath = $"{sql2ctePath} as cte_path, ";
+        }
         var sql2 = select
             .AsAlias((type, old) => type == tb.Type ? old.Replace("wct2", "wct1") : old)
             .AsTable((type, old) => type == tb.Type ? cteName : old)
-            .InnerJoin($"{select._commonUtils.QuoteSqlName(tb.DbName)} wct2 ON {string.Join(" and ", tbref.Columns.Select((a,z) => $"wct2.{select._commonUtils.QuoteSqlName(tbref.RefColumns[z].Attribute.Name)} = wct1.{select._commonUtils.QuoteSqlName(a.Attribute.Name)}"))}")
-            .ToSql($"wct1.as_cte_tree_depth + 1 as as_cte_tree_depth, {sql2Field}").Trim();
+            .InnerJoin($"{select._commonUtils.QuoteSqlName(tb.DbName)} wct2 ON {sql2InnerJoinOn}")
+            .ToSql($"wct1.cte_level + 1 as cte_level, {sql2ctePath}{sql2Field}").Trim();
 
         var newSelect = select._orm.Select<T1>()
             .AsType(tb.Type)
             .AsTable((type, old) => type == tb.Type ? cteName : old)
-            .WhereIf(depth > 0, $"a.as_cte_tree_depth < {depth + 1}") as Select1Provider<T1>;
+            .WhereIf(level > 0, $"a.cte_level < {level + 1}")
+            .OrderBy(up, "a.cte_level desc") as Select1Provider<T1>;
 
         var nsselsb = new StringBuilder();
         if (AdoProvider.IsFromSlave(select._select) == false) nsselsb.Append(" "); //读写分离规则，如果强制读主库，则在前面加个空格
@@ -447,7 +497,7 @@ public static partial class FreeSqlGlobalExtensions
             case DataType.OdbcOracle:
             case DataType.Dameng: //递归 WITH 子句必须具有列别名列表
             case DataType.OdbcDameng:
-                nsselsb.Append($"(as_cte_tree_depth, {sql2Field.Replace("wct2.", "")})");
+                nsselsb.Append($"(cte_level, {(pathSelector == null ? "" : "cte_path, ")}{sql2Field.Replace("wct2.", "")})");
                 break;
         }
         nsselsb.Append(@"

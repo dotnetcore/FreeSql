@@ -85,7 +85,8 @@ namespace FreeSql.SqlServer
             {
                 if (types[a] == typeof(string)) news[a] = objs[a];
                 else if (types[a].NullableTypeOrThis() == typeof(Guid)) news[a] = $"cast({objs[a]} as char(36))";
-                else news[a] = $"cast({objs[a]} as nvarchar)";
+                else if (types[a].IsNumberType()) news[a] = $"cast({objs[a]} as varchar)";
+                else news[a] = $"cast({objs[a]} as nvarchar(max))";
             }
             return string.Join(" + ", news);
         }
