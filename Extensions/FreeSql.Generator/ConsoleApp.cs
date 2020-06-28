@@ -115,7 +115,7 @@ new Colorful.Formatter("v" + string.Join(".", typeof(ConsoleApp).Assembly.GetNam
                                {12} 人大金仓数据库
 
      -DB ""{13},HOST=192.168.164.10;PORT=2003;DATABASE=OSRDB;USERNAME=SYSDBA;PASSWORD=szoscar55;MAXPOOLSIZE=2""
-                               {13} 神州通用数据库
+                               {13} 神舟通用数据库
 
      -Filter                   Table+View+StoreProcedure
                                默认生成：表+视图+存储过程

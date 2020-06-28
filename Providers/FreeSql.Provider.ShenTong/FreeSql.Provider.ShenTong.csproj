@@ -5,12 +5,12 @@
 		<Version>1.6.0-preview0602</Version>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>ncc;YeXiangQin</Authors>
-		<Description>FreeSql 数据库实现，基于 神州通用数据库 7.0.8</Description>
+		<Description>FreeSql 数据库实现，基于 神舟通用数据库 7.0.8</Description>
 		<PackageProjectUrl>https://github.com/2881099/FreeSql</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/2881099/FreeSql</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-		<PackageTags>FreeSql;ORM;ShenTong;Oscar;神通;神州通用</PackageTags>
+		<PackageTags>FreeSql;ORM;ShenTong;Oscar;神通;神舟通用</PackageTags>
 		<PackageId>$(AssemblyName)</PackageId>
     <PackageIcon>logo.png</PackageIcon>
 		<Title>$(AssemblyName)</Title>

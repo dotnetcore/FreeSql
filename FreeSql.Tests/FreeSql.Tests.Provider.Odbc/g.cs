@@ -98,7 +98,7 @@ public class g
     public static IFreeSql kingbaseES => kingbaseESLazy.Value;
 
 
-    //启动神州通用数据库 /etc/init.d/oscardb_OSRDBd start
+    //启动神舟通用数据库 /etc/init.d/oscardb_OSRDBd start
     //SYSDBA 密码 szoscar55
 
 
