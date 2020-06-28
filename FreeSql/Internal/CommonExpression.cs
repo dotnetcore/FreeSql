@@ -675,10 +675,19 @@ namespace FreeSql.Internal
                                 else if (exp3.Arguments[a].IsParameter())
                                     exp3InvokeParams[a] = exp3.Arguments[a].Type.CreateInstanceGetDefaultValue();
                                 else
-                                    exp3InvokeParams[a] = Utils.GetDataReaderValue(exp3.Arguments[a].Type,
-                                        eccContent.StartsWith("N'") ?
+                                {
+                                    var exp3CsValue = eccContent.StartsWith("N'") ?
                                         eccContent.Substring(1).Trim('\'').Replace("''", "'") :
-                                        eccContent.Trim('\'').Replace("''", "'"));
+                                        eccContent.Trim('\'').Replace("''", "'");
+                                    switch (_ado.DataType)
+                                    {
+                                        case DataType.MySql:
+                                        case DataType.OdbcMySql:
+                                            exp3CsValue = exp3CsValue.Replace("\\\\", "\\");
+                                            break;
+                                    }
+                                    exp3InvokeParams[a] = Utils.GetDataReaderValue(exp3.Arguments[a].Type, exp3CsValue);
+                                }
                             }
                             else
                                 exp3InvokeParams[a] = ecc;
