@@ -7,17 +7,17 @@ namespace FreeSql.Generator
     class RazorContentManager
     {
         public static string 实体类_特性_cshtml =
-        #region 长内容
-            @"@using FreeSql.DatabaseModel;@{
+		#region 长内容
+			@"using FreeSql.DatabaseModel;@{
 var gen = Model as RazorModel;
 
 Func<string, string> GetAttributeString = attr => {
-	if (string.IsNullOrEmpty(attr)) return null;
+	if (string.IsNullOrEmpty(attr)) return """";
 	return string.Concat("", "", attr.Trim('[', ']'));
 };
-Func<DbColumnInfo, string> GetDefaultValue = col => {
-    if (col.CsType == typeof(string)) return "" = string.Empty;"";
-    return """";
+Func<string, string> GetDefaultValue = defval => {
+    if (string.IsNullOrEmpty(defval)) return """";
+    return "" = "" + defval + "";"";
 };
 }@{
 switch (gen.fsql.Ado.DataType) {
@@ -68,8 +68,8 @@ namespace @gen.NameSpace {
 		@:/// @col.Coment.Replace(""\r\n"", ""\n"").Replace(""\n"", ""\r\n		/// "")
 		@:/// </summary>
 		}
-		@:@(""[JsonProperty"" + GetAttributeString(gen.GetColumnAttribute(col)) + ""]"")
-		@:public @gen.GetCsType(col) @gen.GetCsName(col.Name) { get; set; }@GetDefaultValue(col)
+		@:@(""[JsonProperty"" + GetAttributeString(gen.GetColumnAttribute(col, true)) + ""]"")
+		@:public @gen.GetCsType(col) @gen.GetCsName(col.Name) { get; set; }@GetDefaultValue(gen.GetColumnDefaultValue(col, false))
 @:
 	}
 	}
@@ -89,8 +89,12 @@ var gen = Model as RazorModel;
 var fks = gen.table.Foreigns;
 
 Func<string, string> GetAttributeString = attr => {
-	if (string.IsNullOrEmpty(attr)) return null;
+	if (string.IsNullOrEmpty(attr)) return """";
 	return string.Concat("", "", attr.Trim('[', ']'));
+};
+Func<string, string> GetDefaultValue = defval => {
+    if (string.IsNullOrEmpty(defval)) return """";
+    return "" = "" + defval + "";"";
 };
 
 Func<DbForeignInfo, string> GetFkObjectName = fkx => {
@@ -155,9 +159,9 @@ namespace @gen.NameSpace {
 		@:/// @col.Coment.Replace(""\r\n"", ""\n"").Replace(""\n"", ""\r\n		/// "")
 		@:/// </summary>
 		}
-		@:@(""[JsonProperty"" + GetAttributeString(gen.GetColumnAttribute(col)) + ""]"")
+		@:@(""[JsonProperty"" + GetAttributeString(gen.GetColumnAttribute(col, true)) + ""]"")
 		if (findfks.Any() == false) {
-		@:public @gen.GetCsType(col) @csname { get; set; }
+		@:public @gen.GetCsType(col) @csname { get; set; }@GetDefaultValue(gen.GetColumnDefaultValue(col, false))
 		} else {
 		@:public @gen.GetCsType(col) @csname { get => _@csname; set {
 			@:if (_@csname == value) return;
@@ -166,7 +170,7 @@ namespace @gen.NameSpace {
 			@:@gen.GetCsName(GetFkObjectName(fkcok2)) = null;
 			}
 		@:} }
-		@:private @gen.GetCsType(col) _@csname;
+		@:private @gen.GetCsType(col) _@csname@GetDefaultValue(gen.GetColumnDefaultValue(col, false)).TrimEnd(';');
 		}
 @:
 	}
