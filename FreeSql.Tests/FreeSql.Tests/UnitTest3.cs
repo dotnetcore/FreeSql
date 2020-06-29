@@ -16,6 +16,10 @@ using kwlib;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using Newtonsoft.Json;
+using System.Net.NetworkInformation;
+using System.Net;
+using System.Collections;
 
 namespace FreeSql.Tests
 {
@@ -502,3 +506,5 @@ namespace FreeSql.Tests
     }
 
 }
+
+

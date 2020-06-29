@@ -212,7 +212,7 @@ case when a.atttypmod > 0 and a.atttypmod < 32767 then a.atttypmod - 4 else a.at
 case when t.typelem = 0 then t.typname else t2.typname end,
 case when a.attnotnull then 0 else 1 end as is_nullable,
 --e.adsrc as is_identity, pg12以下
-(select pg_get_expr(adbin, adrelid) from pg_attrdef where adrelid = e.adrelid limit 1) is_identity,
+(select pg_get_expr(adbin, adrelid) from pg_attrdef where adrelid = e.adrelid and adnum = e.adnum limit 1) is_identity,
 d.description as comment,
 a.attndims,
 case when t.typelem = 0 then t.typtype else t2.typtype end,
@@ -266,6 +266,7 @@ where {loc8.ToString().Replace("a.table_name", "ns.nspname || '.' || c.relname")
                             case "bpchar": case "varchar": case "bytea": case "bit": case "varbit": sqlType += $"({max_length})"; break;
                         }
                     }
+                    if (attndims > 0) type += "[]";
 
                     loc3[object_id].Add(column, new DbColumnInfo
                     {
