@@ -459,15 +459,15 @@ all_constraints b,
 all_cons_columns c, --外键表
 all_cons_columns d  --主键表
 where
-a.r_constraint_name = b.constraint_name 　　
-and a.constraint_type = 'R' 　　
-and b.constraint_type = 'P' 　　
-and a.r_owner = b.owner 　　
-and a.constraint_name = c.constraint_name 　　
-and b.constraint_name = d.constraint_name 　　
-and a.owner = c.owner 　　
-and a.table_name = c.table_name 　　
-and b.owner = d.owner 　　
+a.r_constraint_name = b.constraint_name
+and a.constraint_type = 'R'
+and b.constraint_type = 'P'
+and a.r_owner = b.owner
+and a.constraint_name = c.constraint_name
+and b.constraint_name = d.constraint_name
+and a.owner = c.owner
+and a.table_name = c.table_name
+and b.owner = d.owner
 and b.table_name = d.table_name
 and a.owner in ({1}) and {0}
 ", loc8, databaseIn);

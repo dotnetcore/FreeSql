@@ -272,7 +272,7 @@ a.index_name,
 case when c.descend = 'DESC' then 1 else 0 end,
 case when a.uniqueness = 'UNIQUE' then 1 else 0 end
 from all_indexes a,
-all_ind_columns c 
+all_ind_columns c
 where a.index_name = c.index_name
 and a.table_owner = c.table_owner
 and a.table_name = c.table_name
