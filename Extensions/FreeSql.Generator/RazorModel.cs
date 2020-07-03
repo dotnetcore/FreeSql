@@ -73,9 +73,9 @@ public class RazorModel
         sb.Add("Name = \"" + this.FullTableName + "\"");
         sb.Add("DisableSyncStructure = true");
         if (sb.Any() == false) return null;
-        //return "[Table(" + string.Join(", ", sb) + ")]";
+        return "[Table(" + string.Join(", ", sb) + ")]";
         //类特性因为没了Json特性前缀 故不需要再添加逗号，而是直接返回特性行即可 By Joker 2020-07-03 19:13:23
-        return "[Table(" + sb + ")]";
+        //return "[Table(" + sb + ")]";
     }
     public string GetColumnAttribute(DbColumnInfo col, bool isInsertValueSql = false)
     {
@@ -210,9 +210,9 @@ public class RazorModel
             }
         }
         if (sb.Any() == false) return null;
-        //return "[Column(" + string.Join(", ", sb) + ")]";
+        return "[Column(" + string.Join(", ", sb) + ")]";
         //字段特性因为没了Json特性前缀 故不需要再添加逗号，而是直接返回特性行即可 By Joker 2020 - 07 - 03 19:13:23
-        return "[Column(" + sb + ")]";
+       // return "[Column(" + sb + ")]";
     }
     public string GetColumnDefaultValue(DbColumnInfo col, bool isInsertValueSql)
     {

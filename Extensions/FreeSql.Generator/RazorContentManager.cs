@@ -7,13 +7,13 @@ namespace FreeSql.Generator
     class RazorContentManager
     {
         public static string 实体类_特性_cshtml =
-        #region 长内容
-            @"using FreeSql.DatabaseModel;@{
+		#region 长内容
+			@"using FreeSql.DatabaseModel;@{
 var gen = Model as RazorModel;
 
 Func<string, string> GetAttributeString = attr => {
 	if (string.IsNullOrEmpty(attr)) return """";
-	return string.Concat("", "", attr.Trim('[', ']'));
+	return  attr.Trim('[', ']');
 };
 Func<string, string> GetDefaultValue = defval => {
     if (string.IsNullOrEmpty(defval)) return """";
@@ -73,8 +73,8 @@ namespace @gen.NameSpace {
         #endregion
 
         public static string 实体类_特性_导航属性_cshtml =
-        #region 长内容 
-            @"@using FreeSql.DatabaseModel;@{
+		#region 长内容 
+			@"@using FreeSql.DatabaseModel;@{
 
 var isLazying = true; //延时加载
 var isOneToMany = true; //一对多，集合属性
@@ -85,7 +85,7 @@ var fks = gen.table.Foreigns;
 
 Func<string, string> GetAttributeString = attr => {
 	if (string.IsNullOrEmpty(attr)) return """";
-	return string.Concat("", "", attr.Trim('[', ']'));
+	return  attr.Trim('[', ']');
 };
 Func<string, string> GetDefaultValue = defval => {
     if (string.IsNullOrEmpty(defval)) return """";
