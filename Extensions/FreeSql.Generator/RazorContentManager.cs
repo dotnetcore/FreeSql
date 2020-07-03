@@ -7,8 +7,8 @@ namespace FreeSql.Generator
     class RazorContentManager
     {
         public static string 实体类_特性_cshtml =
-		#region 长内容
-			@"using FreeSql.DatabaseModel;@{
+        #region 长内容
+            @"using FreeSql.DatabaseModel;@{
 var gen = Model as RazorModel;
 
 Func<string, string> GetAttributeString = attr => {
@@ -28,13 +28,9 @@ switch (gen.fsql.Ado.DataType) {
 @:using System.Linq;
 @:using System.Reflection;
 @:using System.Threading.Tasks;
-@:using Newtonsoft.Json;
 @:using FreeSql.DataAnnotations;
 @:using System.Net;
-@:using Newtonsoft.Json.Linq;
 @:using System.Net.NetworkInformation;
-@:using NpgsqlTypes;
-@:using Npgsql.LegacyPostgis;
 		break;
 	case FreeSql.DataType.SqlServer:
 	case FreeSql.DataType.MySql:
@@ -45,7 +41,6 @@ switch (gen.fsql.Ado.DataType) {
 @:using System.Linq;
 @:using System.Reflection;
 @:using System.Threading.Tasks;
-@:using Newtonsoft.Json;
 @:using FreeSql.DataAnnotations;
 		break;
 }
@@ -58,7 +53,7 @@ namespace @gen.NameSpace {
 	@:/// @gen.table.Comment.Replace(""\r\n"", ""\n"").Replace(""\n"", ""\r\n		/// "")
 	@:/// </summary>
 }
-	[JsonObject(MemberSerialization.OptIn)@GetAttributeString(gen.GetTableAttribute())]
+	[@GetAttributeString(gen.GetTableAttribute())]
 	public partial class @gen.GetCsName(gen.FullTableName) {
 
 	@foreach (var col in gen.columns) {
@@ -68,7 +63,7 @@ namespace @gen.NameSpace {
 		@:/// @col.Coment.Replace(""\r\n"", ""\n"").Replace(""\n"", ""\r\n		/// "")
 		@:/// </summary>
 		}
-		@:@(""[JsonProperty"" + GetAttributeString(gen.GetColumnAttribute(col, true)) + ""]"")
+		@:@(""["" + GetAttributeString(gen.GetColumnAttribute(col, true)) + ""]"")
 		@:public @gen.GetCsType(col) @gen.GetCsName(col.Name) { get; set; }@GetDefaultValue(gen.GetColumnDefaultValue(col, false))
 @:
 	}
@@ -78,8 +73,8 @@ namespace @gen.NameSpace {
         #endregion
 
         public static string 实体类_特性_导航属性_cshtml =
-		#region 长内容 
-			@"@using FreeSql.DatabaseModel;@{
+        #region 长内容 
+            @"@using FreeSql.DatabaseModel;@{
 
 var isLazying = true; //延时加载
 var isOneToMany = true; //一对多，集合属性
@@ -120,20 +115,15 @@ switch (gen.fsql.Ado.DataType) {
 	case FreeSql.DataType.PostgreSQL:
 @:using System;
 @:using System.Collections.Generic;
-@:using Newtonsoft.Json;
 @:using FreeSql.DataAnnotations;
 @:using System.Net;
-@:using Newtonsoft.Json.Linq;
 @:using System.Net.NetworkInformation;
-@:using NpgsqlTypes;
-@:using Npgsql.LegacyPostgis;
 		break;
 	case FreeSql.DataType.SqlServer:
 	case FreeSql.DataType.MySql:
 	default:
 @:using System;
 @:using System.Collections.Generic;
-@:using Newtonsoft.Json;
 @:using FreeSql.DataAnnotations;
 		break;
 }
@@ -146,7 +136,7 @@ namespace @gen.NameSpace {
 	@:/// @gen.table.Comment.Replace(""\r\n"", ""\n"").Replace(""\n"", ""\r\n		/// "")
 	@:/// </summary>
 }
-	[JsonObject(MemberSerialization.OptIn)@GetAttributeString(gen.GetTableAttribute())]
+	[@GetAttributeString(gen.GetTableAttribute())]
 	public partial class @gen.GetCsName(gen.FullTableName) {
 
 	@foreach (var col in gen.columns) {
@@ -159,7 +149,7 @@ namespace @gen.NameSpace {
 		@:/// @col.Coment.Replace(""\r\n"", ""\n"").Replace(""\n"", ""\r\n		/// "")
 		@:/// </summary>
 		}
-		@:@(""[JsonProperty"" + GetAttributeString(gen.GetColumnAttribute(col, true)) + ""]"")
+		@:@(""["" + GetAttributeString(gen.GetColumnAttribute(col, true)) + ""]"")
 		if (findfks.Any() == false) {
 		@:public @gen.GetCsType(col) @csname { get; set; }@GetDefaultValue(gen.GetColumnDefaultValue(col, false))
 		} else {
@@ -260,7 +250,7 @@ namespace @gen.NameSpace {
 }
 	}
 @gen.GetMySqlEnumSetDefine()
-}"; 
+}";
         #endregion
     }
 }

@@ -27,12 +27,14 @@ namespace FreeSql.Generator
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             var gb2312 = Encoding.GetEncoding("GB2312");
-            if (gb2312 != null)
+            //修改编码格式为UTF-8 解决MacOS环境命令行中文显示乱码的问题  By Joker 2020-07-03 19:24:05
+            var UTF8 = Encoding.GetEncoding("UTF-8");
+            if (UTF8 != null)
             {
                 try
                 {
-                    Console.OutputEncoding = gb2312;
-                    Console.InputEncoding = gb2312;
+                    Console.OutputEncoding = UTF8;
+                    Console.InputEncoding = UTF8;
                 }
                 catch { }
             }
