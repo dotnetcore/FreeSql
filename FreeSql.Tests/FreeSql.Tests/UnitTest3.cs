@@ -159,6 +159,16 @@ namespace FreeSql.Tests
         [Fact]
         public void Test03()
         {
+            var sql123 = g.sqlserver.Select<Edi>()
+
+                .WithSql(
+                    g.sqlserver.Select<Edi>().ToSql(a => new { a.Id }, FieldAliasOptions.AsProperty) + 
+                    " UNION ALL " +
+                    g.sqlserver.Select<Edi>().ToSql(a => new { a.Id }, FieldAliasOptions.AsProperty))
+                
+                .Page(1, 10).ToSql("Id");
+
+
             var sqlextGroupConcat = g.mysql.Select<Edi, EdiItem>()
                 .InnerJoin((a, b) => b.Id == a.Id)
                 .ToSql((a, b) => new

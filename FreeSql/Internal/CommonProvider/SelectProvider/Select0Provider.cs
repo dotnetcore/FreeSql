@@ -1169,7 +1169,7 @@ namespace FreeSql.Internal.CommonProvider
                 {
                     if (string.IsNullOrEmpty(fi.Field) == false || fi.Filters?.Any() == true)
                     {
-                        switch (filter.Logic)
+                        switch (logic)
                         {
                             case DynamicFilterLogic.And: sb.Append(" AND "); break;
                             case DynamicFilterLogic.Or: sb.Append(" OR "); break;
