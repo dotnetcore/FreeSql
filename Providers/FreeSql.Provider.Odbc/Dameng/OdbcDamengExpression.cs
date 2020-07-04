@@ -77,7 +77,7 @@ namespace FreeSql.Odbc.Dameng
                         case "NewGuid":
                             return null;
                         case "Next":
-                            if (callExp.Object?.Type == typeof(Random)) return "cast(dbms_random.value*1000000000 as smallint)";
+                            if (callExp.Object?.Type == typeof(Random)) return "cast(dbms_random.value*1000000000 as number)";
                             return null;
                         case "NextDouble":
                             if (callExp.Object?.Type == typeof(Random)) return "dbms_random.value";
@@ -222,7 +222,7 @@ namespace FreeSql.Odbc.Dameng
             {
                 case "Days": return $"extract(day from {left})";
                 case "Hours": return $"extract(hour from {left})";
-                case "Milliseconds": return $"cast(substr(extract(second from {left})-floor(extract(second from {left})),2,3) as number)";
+                case "Milliseconds": return $"cast(substr(extract(second from {left})-floor(extract(second from {left})),3,3) as number)";
                 case "Minutes": return $"extract(minute from {left})";
                 case "Seconds": return $"floor(extract(second from {left}))";
                 case "Ticks": return $"(extract(day from {left})*86400+extract(hour from {left})*3600+extract(minute from {left})*60+extract(second from {left}))*10000000";
@@ -250,6 +250,10 @@ namespace FreeSql.Odbc.Dameng
                         return $"({arg2} is null or {arg2} = '' or ltrim({arg2}) = '')";
                     case "Concat":
                         return _common.StringConcat(exp.Arguments.Select(a => getExp(a)).ToArray(), null);
+                    case "Format":
+                        if (exp.Arguments[0].NodeType != ExpressionType.Constant) throw new Exception($"未实现函数表达式 {exp} 解析，参数 {exp.Arguments[0]} 必须为常量");
+                        var expArgs = exp.Arguments.Where((a, z) => z > 0).Select(a => $"'||({ExpressionLambdaToSql(a, tsc)})||'").ToArray();
+                        return string.Format(ExpressionLambdaToSql(exp.Arguments[0], tsc), expArgs);
                 }
             }
             else

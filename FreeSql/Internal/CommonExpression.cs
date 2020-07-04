@@ -716,31 +716,7 @@ namespace FreeSql.Internal
                     string other3Exp = null;
                     switch (callType.FullName)
                     {
-                        case "System.String":
-                            //$"{id}_{name}"
-                            if (exp3.Method.Name == "Format" && exp3.Object == null && exp3.Arguments[0].NodeType == ExpressionType.Constant)
-                            {
-                                if (exp3.Arguments.Count == 1) return ExpressionLambdaToSql(exp3.Arguments[0], tsc);
-                                var exp3Args0 = (exp3.Arguments[0] as ConstantExpression)?.Value?.ToString().Replace("{{", "{{_freesql_tMp_fLag_");
-                                var exp3Args1n = exp3.Arguments.Where((a, z) => z > 0).Select(a => ExpressionLambdaToSql(a, tsc)).ToArray();
-                                var exp3Args0Spt = Regex.Split(exp3Args0, @"{(\d+)}");
-                                var exp3ArgsConcatType = new Type[exp3Args0Spt.Length];
-                                exp3Args0Spt[0] = _common.FormatSql("{0}", exp3Args0Spt[0].Replace("{{_freesql_tMp_fLag_", "{{"));
-                                exp3ArgsConcatType[0] = typeof(string);
-                                for (var exp3Args0SptIndex = 1; exp3Args0SptIndex < exp3Args0Spt.Length; exp3Args0SptIndex += 2)
-                                {
-                                    var exp3Args1nIndex = int.Parse(exp3Args0Spt[exp3Args0SptIndex]);
-                                    exp3Args0Spt[exp3Args0SptIndex] = exp3Args1n[exp3Args1nIndex];
-                                    var expArgsType = exp3.Arguments[exp3Args1nIndex + 1];
-                                    exp3ArgsConcatType[exp3Args0SptIndex] = (expArgsType as UnaryExpression)?.Operand.Type ?? expArgsType.Type;
-
-                                    exp3Args0Spt[exp3Args0SptIndex + 1] = _common.FormatSql("{0}", exp3Args0Spt[exp3Args0SptIndex + 1].Replace("{{_freesql_tMp_fLag_", "{{"));
-                                    exp3ArgsConcatType[exp3Args0SptIndex + 1] = typeof(string);
-                                }
-                                return _common.StringConcat(exp3Args0Spt, exp3ArgsConcatType);
-                            }
-                            other3Exp = ExpressionLambdaToSqlCallString(exp3, tsc); 
-                            break;
+                        case "System.String": other3Exp = ExpressionLambdaToSqlCallString(exp3, tsc); break;
                         case "System.Math": other3Exp = ExpressionLambdaToSqlCallMath(exp3, tsc); break;
                         case "System.DateTime": other3Exp = ExpressionLambdaToSqlCallDateTime(exp3, tsc); break;
                         case "System.TimeSpan": other3Exp = ExpressionLambdaToSqlCallTimeSpan(exp3, tsc); break;

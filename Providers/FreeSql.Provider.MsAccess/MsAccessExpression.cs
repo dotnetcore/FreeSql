@@ -220,6 +220,10 @@ namespace FreeSql.MsAccess
                         return $"({arg2} is null or {arg2} = '' or ltrim({arg2}) = '')";
                     case "Concat":
                         return _common.StringConcat(exp.Arguments.Select(a => getExp(a)).ToArray(), exp.Arguments.Select(a => a.Type).ToArray());
+                    case "Format":
+                        if (exp.Arguments[0].NodeType != ExpressionType.Constant) throw new Exception($"未实现函数表达式 {exp} 解析，参数 {exp.Arguments[0]} 必须为常量");
+                        var expArgs = exp.Arguments.Where((a, z) => z > 0).Select(a => $"'+{(((a as UnaryExpression)?.Operand.Type ?? a.Type) == typeof(string) ? $"({ExpressionLambdaToSql(a, tsc)})" : $"cstr({ExpressionLambdaToSql(a, tsc)})")}+'").ToArray();
+                        return string.Format(ExpressionLambdaToSql(exp.Arguments[0], tsc), expArgs);
                 }
             }
             else

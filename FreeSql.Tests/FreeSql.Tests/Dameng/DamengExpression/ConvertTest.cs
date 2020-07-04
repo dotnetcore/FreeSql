@@ -162,8 +162,8 @@ namespace FreeSql.Tests.DamengExpression
         public void Random()
         {
             var data = new List<object>();
-            data.Add(select.Where(a => new Random().Next() > a.Clicks).Limit(10).ToList());
-            data.Add(select.Where(a => new Random().NextDouble() > a.Clicks).Limit(10).ToList());
+            data.Add(select.OrderBy(a => new Random().Next()).Limit(10).ToList());
+            data.Add(select.OrderBy(a => new Random().NextDouble()).Limit(10).ToList());
         }
     }
 }

@@ -50,6 +50,28 @@ namespace FreeSql.Tests.PostgreSQLExpression
             list.Add(g.pgsql.Select<TestEqualsGuid>().Where(a => a.id.Equals(Guid.Empty)).ToList());
         }
 
+        [Fact]
+        public void Format()
+        {
+            var item = g.pgsql.GetRepository<Topic>().Insert(new Topic { Clicks = 101, Title = "我是中国人101", CreateTime = DateTime.Parse("2020-7-5") });
+            var sql = select.WhereDynamic(item).ToSql(a => new
+            {
+                str = $"x{a.Id + 1}z-{a.CreateTime.ToString("yyyyMM")}{a.Title}",
+                str2 = string.Format("{0}x{0}z-{1}{2}", a.Id + 1, a.CreateTime.ToString("yyyyMM"), a.Title)
+            });
+            Assert.Equal($@"SELECT 'x'||((a.""id"" + 1))||'z-'||(to_char((a.""createtime"")::timestamp,'YYYYMM'))||''||(a.""title"")||'' as1, ''||((a.""id"" + 1))||'x'||((a.""id"" + 1))||'z-'||(to_char((a.""createtime"")::timestamp,'YYYYMM'))||''||(a.""title"")||'' as2 
+FROM ""tb_topic"" a 
+WHERE (a.""id"" = {item.Id})", sql);
+
+            var item2 = select.WhereDynamic(item).First(a => new
+            {
+                str = $"x{a.Id + 1}z-{a.CreateTime.ToString("yyyyMM")}{a.Title}",
+                str2 = string.Format("{0}x{0}z-{1}{2}", a.Id + 1, a.CreateTime.ToString("yyyyMM"), a.Title)
+            });
+            Assert.NotNull(item2);
+            Assert.Equal($"x{item.Id + 1}z-{item.CreateTime.ToString("yyyyMM")}{item.Title}", item2.str);
+            Assert.Equal(string.Format("{0}x{0}z-{1}{2}", item.Id + 1, item.CreateTime.ToString("yyyyMM"), item.Title), item2.str2);
+        }
 
         [Fact]
         public void Empty()

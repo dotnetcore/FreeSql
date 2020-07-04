@@ -51,6 +51,29 @@ namespace FreeSql.Tests.SqliteExpression
         }
 
         [Fact]
+        public void Format()
+        {
+            var item = g.sqlite.GetRepository<Topic>().Insert(new Topic { Clicks = 101, Title = "我是中国人101", CreateTime = DateTime.Parse("2020-7-5") });
+            var sql = select.WhereDynamic(item).ToSql(a => new
+            {
+                str = $"x{a.Id + 1}z-{a.CreateTime.ToString("yyyyMM")}{a.Title}",
+                str2 = string.Format("{0}x{0}z-{1}{2}", a.Id + 1, a.CreateTime.ToString("yyyyMM"), a.Title)
+            });
+            Assert.Equal($@"SELECT 'x'||((a.""Id"" + 1))||'z-'||(strftime('%Y%m',a.""CreateTime""))||''||(a.""Title"")||'' as1, ''||((a.""Id"" + 1))||'x'||((a.""Id"" + 1))||'z-'||(strftime('%Y%m',a.""CreateTime""))||''||(a.""Title"")||'' as2 
+FROM ""tb_topic"" a 
+WHERE (a.""Id"" = {item.Id})", sql);
+
+            var item2 = select.WhereDynamic(item).First(a => new
+            {
+                str = $"x{a.Id + 1}z-{a.CreateTime.ToString("yyyyMM")}{a.Title}",
+                str2 = string.Format("{0}x{0}z-{1}{2}", a.Id + 1, a.CreateTime.ToString("yyyyMM"), a.Title)
+            });
+            Assert.NotNull(item2);
+            Assert.Equal($"x{item.Id + 1}z-{item.CreateTime.ToString("yyyyMM")}{item.Title}", item2.str);
+            Assert.Equal(string.Format("{0}x{0}z-{1}{2}", item.Id + 1, item.CreateTime.ToString("yyyyMM"), item.Title), item2.str2);
+        }
+
+        [Fact]
         public void Empty()
         {
             var data = new List<object>();
