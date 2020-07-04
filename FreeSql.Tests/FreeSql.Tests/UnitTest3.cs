@@ -159,6 +159,13 @@ namespace FreeSql.Tests
         [Fact]
         public void Test03()
         {
+            var testStringFormat = g.sqlite.Select<Edi>().First(a => new {
+                str = $"x{a.Id}_{DateTime.Now.ToString("yyyyMM")}z",
+                str2 = string.Format("{0}x{0}_{1}z", a.Id, DateTime.Now.ToString("yyyyMM"))
+            });
+
+
+
             var sql123 = g.sqlserver.Select<Edi>()
 
                 .WithSql(
