@@ -87,7 +87,7 @@ namespace FreeSql.Odbc.SqlServer
             Exception exception = null;
             try
             {
-                ret = _orm.Ado.Query<T1>(_connection, _transaction, CommandType.Text, sql, _params);
+                ret = _orm.Ado.Query<T1>(_table.TypeLazy ?? _table.Type, _connection, _transaction, CommandType.Text, sql, _params);
             }
             catch (Exception ex)
             {
@@ -171,7 +171,7 @@ namespace FreeSql.Odbc.SqlServer
             Exception exception = null;
             try
             {
-                ret = await _orm.Ado.QueryAsync<T1>(_connection, _transaction, CommandType.Text, sql, _params);
+                ret = await _orm.Ado.QueryAsync<T1>(_table.TypeLazy ?? _table.Type, _connection, _transaction, CommandType.Text, sql, _params);
             }
             catch (Exception ex)
             {

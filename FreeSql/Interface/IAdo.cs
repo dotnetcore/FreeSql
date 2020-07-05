@@ -172,6 +172,7 @@ namespace FreeSql
         List<T> Query<T>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
         List<T> Query<T>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
         List<T> Query<T>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+        List<T> Query<T>(Type resultType, DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
         /// <summary>
         /// 执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > ?age", new { age = 25 })
         /// </summary>
@@ -344,6 +345,7 @@ namespace FreeSql
         Task<List<T>> QueryAsync<T>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
         Task<List<T>> QueryAsync<T>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
         Task<List<T>> QueryAsync<T>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+        Task<List<T>> QueryAsync<T>(Type resultType, DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
         /// <summary>
         /// 执行SQL返回对象集合，QueryAsync&lt;User&gt;("select * from user where age > ?age", new { age = 25 })
         /// </summary>

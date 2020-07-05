@@ -94,16 +94,18 @@ namespace FreeSql.Internal.CommonProvider
             var props = tb?.Properties ?? type.GetPropertiesDictIgnoreCase();
             return props;
         }
-        public List<T> Query<T>(string cmdText, object parms = null) => Query<T>(null, null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-        public List<T> Query<T>(DbTransaction transaction, string cmdText, object parms = null) => Query<T>(null, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-        public List<T> Query<T>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null) => Query<T>(connection, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-        public List<T> Query<T>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => Query<T>(null, null, cmdType, cmdText, cmdParms);
-        public List<T> Query<T>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => Query<T>(null, transaction, cmdType, cmdText, cmdParms);
-        public List<T> Query<T>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms)
+        public List<T> Query<T>(string cmdText, object parms = null) => Query<T>(null, null, null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+        public List<T> Query<T>(DbTransaction transaction, string cmdText, object parms = null) => Query<T>(null, null, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+        public List<T> Query<T>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null) => Query<T>(null, connection, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+        public List<T> Query<T>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => Query<T>(null, null, null, cmdType, cmdText, cmdParms);
+        public List<T> Query<T>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => Query<T>(null, null, transaction, cmdType, cmdText, cmdParms);
+        public List<T> Query<T>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => Query<T>(null, connection, transaction, cmdType, cmdText, cmdParms);
+        public List<T> Query<T>(Type resultType, DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms)
         {
             var ret = new List<T>();
             if (string.IsNullOrEmpty(cmdText)) return ret;
             var type = typeof(T);
+            if (resultType != null && type != resultType) type = resultType;
             string flag = null;
             int[] indexes = null;
             var props = GetQueryTypeProperties(type);

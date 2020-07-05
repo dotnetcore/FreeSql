@@ -52,7 +52,7 @@ namespace FreeSql.Odbc.PostgreSQL
             Exception exception = null;
             try
             {
-                ret = _orm.Ado.Query<T1>(_connection, _transaction, CommandType.Text, sql, dbParms);
+                ret = _orm.Ado.Query<T1>(_table.TypeLazy ?? _table.Type, _connection, _transaction, CommandType.Text, sql, dbParms);
                 ValidateVersionAndThrow(ret.Count);
             }
             catch (Exception ex)
@@ -144,7 +144,7 @@ namespace FreeSql.Odbc.PostgreSQL
             Exception exception = null;
             try
             {
-                ret = await _orm.Ado.QueryAsync<T1>(_connection, _transaction, CommandType.Text, sql, dbParms);
+                ret = await _orm.Ado.QueryAsync<T1>(_table.TypeLazy ?? _table.Type, _connection, _transaction, CommandType.Text, sql, dbParms);
                 ValidateVersionAndThrow(ret.Count);
             }
             catch (Exception ex)

@@ -14,16 +14,18 @@ namespace FreeSql.Internal.CommonProvider
 {
     partial class AdoProvider
     {
-        public Task<List<T>> QueryAsync<T>(string cmdText, object parms = null) => QueryAsync<T>(null, null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-        public Task<List<T>> QueryAsync<T>(DbTransaction transaction, string cmdText, object parms = null) => QueryAsync<T>(null, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-        public Task<List<T>> QueryAsync<T>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null) => QueryAsync<T>(connection, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-        public Task<List<T>> QueryAsync<T>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => QueryAsync<T>(null, null, cmdType, cmdText, cmdParms);
-        public Task<List<T>> QueryAsync<T>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => QueryAsync<T>(null, transaction, cmdType, cmdText, cmdParms);
-        async public Task<List<T>> QueryAsync<T>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms)
+        public Task<List<T>> QueryAsync<T>(string cmdText, object parms = null) => QueryAsync<T>(null, null, null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+        public Task<List<T>> QueryAsync<T>(DbTransaction transaction, string cmdText, object parms = null) => QueryAsync<T>(null, null, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+        public Task<List<T>> QueryAsync<T>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null) => QueryAsync<T>(null, connection, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+        public Task<List<T>> QueryAsync<T>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => QueryAsync<T>(null, null, null, cmdType, cmdText, cmdParms);
+        public Task<List<T>> QueryAsync<T>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => QueryAsync<T>(null, null, transaction, cmdType, cmdText, cmdParms);
+        public Task<List<T>> QueryAsync<T>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => QueryAsync<T>(null, connection, transaction, cmdType, cmdText, cmdParms);
+        async public Task<List<T>> QueryAsync<T>(Type resultType, DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms)
         {
             var ret = new List<T>();
             if (string.IsNullOrEmpty(cmdText)) return ret;
             var type = typeof(T);
+            if (resultType != null && type != resultType) type = resultType;
             string flag = null;
             int[] indexes = null;
             var props = GetQueryTypeProperties(type);
