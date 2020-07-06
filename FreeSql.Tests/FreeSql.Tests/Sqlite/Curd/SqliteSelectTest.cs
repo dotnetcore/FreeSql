@@ -107,6 +107,17 @@ namespace FreeSql.Tests.Sqlite
             //		WHERE(t.`Name` = '国语') AND(t.`Id` = Mt_Ms.`Tag_id`)
             //		limit 0, 1))
             //	limit 0, 1))
+
+            var t3 = g.sqlite.Select<Song>().ToList(r => new
+            {
+                r.Title,
+                count = r.Tags.AsSelect().Count(),
+                //sum = r.Tags.AsSelect().Sum(b => b.Id + 0),
+                //avg = r.Tags.AsSelect().Avg(b => b.Id + 1),
+                //max = r.Tags.AsSelect().Max(b => b.Id + 2),
+                //min = r.Tags.AsSelect().Min(b => b.Id + 3),
+                //first = r.Tags.AsSelect().First(b => b.Name)
+            });
         }
 
         [Fact]

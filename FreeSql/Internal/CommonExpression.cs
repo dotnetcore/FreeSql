@@ -426,7 +426,7 @@ namespace FreeSql.Internal
         static ConcurrentDictionary<Type, MethodInfo> _dicExpressionLambdaToSqlAsSelectMethodInfo = new ConcurrentDictionary<Type, MethodInfo>();
         static ConcurrentDictionary<Type, MethodInfo> _dicExpressionLambdaToSqlAsSelectWhereMethodInfo = new ConcurrentDictionary<Type, MethodInfo>();
         static ConcurrentDictionary<Type, MethodInfo> _dicExpressionLambdaToSqlAsSelectWhereSqlMethodInfo = new ConcurrentDictionary<Type, MethodInfo>();
-        static ConcurrentDictionary<Type, MethodInfo> _dicExpressionLambdaToSqlAsSelectAnyMethodInfo = new ConcurrentDictionary<Type, MethodInfo>();
+        static ConcurrentDictionary<Type, ConcurrentDictionary<string, MethodInfo>> _dicExpressionLambdaToSqlAsSelectAggMethodInfo = new ConcurrentDictionary<Type, ConcurrentDictionary<string, MethodInfo>>();
         internal static ConcurrentDictionary<Type, PropertyInfo> _dicNullableValueProperty = new ConcurrentDictionary<Type, PropertyInfo>();
         static ConcurrentDictionary<Type, Expression> _dicFreeSqlGlobalExtensionsAsSelectExpression = new ConcurrentDictionary<Type, Expression>();
         static MethodInfo MethodDateTimeSubtractDateTime = typeof(DateTime).GetMethod("Subtract", new Type[] { typeof(DateTime) });
@@ -915,8 +915,8 @@ namespace FreeSql.Internal
                                         }
                                         var fsqlWhere = _dicExpressionLambdaToSqlAsSelectWhereMethodInfo.GetOrAdd(asSelectEntityType, asSelectEntityType3 =>
                                             typeof(ISelect<>).MakeGenericType(asSelectEntityType3).GetMethod("Where", new[] {
-                                            typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(asSelectEntityType3, typeof(bool)))
-                                        }));
+                                                typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(asSelectEntityType3, typeof(bool)))
+                                            }));
                                         var parm123Tb = _common.GetTableByEntity(asSelectParentExp.Type);
                                         var parm123Ref = parm123Tb.GetTableRef(asSelectParentExp1.Member.Name, true);
                                         if (parm123Ref != null)
@@ -929,12 +929,10 @@ namespace FreeSql.Internal
                                                 var manyTb = _common.GetTableByEntity(parm123Ref.RefMiddleEntityType);
                                                 var manySubSelectWhere = _dicExpressionLambdaToSqlAsSelectWhereMethodInfo.GetOrAdd(parm123Ref.RefMiddleEntityType, refMiddleEntityType3 =>
                                                     typeof(ISelect<>).MakeGenericType(refMiddleEntityType3).GetMethod("Where", new[] {
-                                            typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(refMiddleEntityType3, typeof(bool)))
-                                                }));
+                                                        typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(refMiddleEntityType3, typeof(bool)))
+                                                    }));
                                                 var manySubSelectWhereSql = _dicExpressionLambdaToSqlAsSelectWhereSqlMethodInfo.GetOrAdd(parm123Ref.RefMiddleEntityType, refMiddleEntityType3 =>
                                                     typeof(ISelect0<,>).MakeGenericType(typeof(ISelect<>).MakeGenericType(refMiddleEntityType3), refMiddleEntityType3).GetMethod("Where", new[] { typeof(string), typeof(object) }));
-                                                var manySubSelectAny = _dicExpressionLambdaToSqlAsSelectAnyMethodInfo.GetOrAdd(parm123Ref.RefMiddleEntityType, refMiddleEntityType3 =>
-                                                    typeof(ISelect0<,>).MakeGenericType(typeof(ISelect<>).MakeGenericType(refMiddleEntityType3), refMiddleEntityType3).GetMethod("Any", new Type[0]));
                                                 var manySubSelectAsSelectExp = _dicFreeSqlGlobalExtensionsAsSelectExpression.GetOrAdd(parm123Ref.RefMiddleEntityType, refMiddleEntityType3 =>
                                                     Expression.Call(
                                                         typeof(FreeSqlGlobalExtensions).GetMethods(BindingFlags.Static | BindingFlags.Public).Where(mfil => mfil.Name == "AsSelect" && mfil.GetParameters().Length == 1).FirstOrDefault()?.MakeGenericMethod(refMiddleEntityType3),
@@ -987,9 +985,25 @@ namespace FreeSql.Internal
                                                 var sql2 = fsqlType.GetMethod("ToSql", new Type[] { typeof(string) })?.Invoke(fsql, new object[] { "1" })?.ToString();
                                                 if (string.IsNullOrEmpty(sql2) == false)
                                                     manySubSelectExpBoy = Expression.Call(manySubSelectExpBoy, manySubSelectWhereSql, Expression.Constant($"exists({sql2.Replace("\r\n", "\r\n\t")})"), Expression.Constant(null));
-                                                manySubSelectExpBoy = Expression.Call(manySubSelectExpBoy, manySubSelectAny);
+                                                MethodInfo manySubSelectAggMethod = null;
+                                                switch (exp3.Method.Name) //https://github.com/dotnetcore/FreeSql/issues/362
+                                                {
+                                                    case "Any":
+                                                    case "Count":
+                                                        manySubSelectAggMethod = _dicExpressionLambdaToSqlAsSelectAggMethodInfo.GetOrAdd(parm123Ref.RefMiddleEntityType, _ => new ConcurrentDictionary<string, MethodInfo>()).GetOrAdd(exp3.Method.Name, exp3MethodName =>
+                                                            typeof(ISelect0<,>).MakeGenericType(typeof(ISelect<>).MakeGenericType(parm123Ref.RefMiddleEntityType), parm123Ref.RefMiddleEntityType).GetMethod(exp3MethodName, new Type[0]));
+                                                        manySubSelectExpBoy = Expression.Call(manySubSelectExpBoy, manySubSelectAggMethod);
+                                                        break;
+                                                    case "Sum":
+                                                    case "Min":
+                                                    case "Max":
+                                                    case "Avg":
+                                                    case "ToList":
+                                                    case "ToOne":
+                                                    case "First":
+                                                        throw new ArgumentException($"ManyToMany 导航属性 .AsSelect() 暂时不可用于 Sum/Avg/Max/Min/First/ToOne/ToList 方法");
+                                                }
                                                 asSelectBefores.Clear();
-
                                                 return ExpressionLambdaToSql(manySubSelectExpBoy, tsc);
                                             }
                                             for (var mn = 0; mn < parm123Ref.Columns.Count; mn++)

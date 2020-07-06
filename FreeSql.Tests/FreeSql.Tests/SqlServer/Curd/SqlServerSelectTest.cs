@@ -111,6 +111,12 @@ namespace FreeSql.Tests.SqlServer
             //		WHERE(t.[Name] = '国语') AND(t.[Id] = Mt_Ms.[Tag_id])
             //		limit 0, 1))
             //	limit 0, 1))
+
+            var t3 = g.sqlserver.Select<Song>().ToList(r => new
+            {
+                r.Title,
+                count = r.Tags.AsSelect().Count()
+            });
         }
 
         [Fact]
