@@ -85,11 +85,12 @@ namespace FreeSql.Tests.Odbc.PostgreSQL
         {
             var sql = g.pgsql.CodeFirst.GetComparisonDDLStatements<AddUniquesInfo>();
             g.pgsql.CodeFirst.SyncStructure<AddUniquesInfo>();
+            g.pgsql.CodeFirst.SyncStructure(typeof(AddUniquesInfo), "AddUniquesInfo1");
         }
         [Table(Name = "AddUniquesInfo", OldName = "AddUniquesInfo2")]
-        [Index("uk_phone", "phone", true)]
-        [Index("uk_group_index", "group,index", true)]
-        [Index("uk_group_index22", "group, index22", true)]
+        [Index("{tablename}_uk_phone", "phone", true)]
+        [Index("{tablename}_uk_group_index", "group,index", true)]
+        [Index("{tablename}_uk_group_index22", "group, index22", true)]
         class AddUniquesInfo
         {
             public Guid id { get; set; }

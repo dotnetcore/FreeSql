@@ -204,11 +204,12 @@ namespace FreeSql.Tests.Dameng
         {
             var sql = g.dameng.CodeFirst.GetComparisonDDLStatements<AddUniquesInfo>();
             g.dameng.CodeFirst.SyncStructure<AddUniquesInfo>();
+            g.dameng.CodeFirst.SyncStructure(typeof(AddUniquesInfo), "AddUniquesInf1");
         }
-        [Table(Name = "AddUniquesInfo", OldName = "AddUniquesInfo2")]
-        [Index("uk_phone", "phone", true)]
-        [Index("uk_group_index", "group,index", true)]
-        [Index("uk_group_index22", "group, index22", true)]
+        [Table(Name = "AddUniquesInf", OldName = "AddUniquesInfo2")]
+        [Index("{tablename}_uk_phone", "phone", true)]
+        [Index("{tablename}_uk_group_index", "group,index", true)]
+        [Index("{tablename}_uk_group_index22", "group, index22", true)]
         class AddUniquesInfo
         {
             public Guid id { get; set; }

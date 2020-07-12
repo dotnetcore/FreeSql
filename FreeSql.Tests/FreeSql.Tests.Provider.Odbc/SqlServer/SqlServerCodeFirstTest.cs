@@ -118,6 +118,7 @@ namespace FreeSql.Tests.Odbc.SqlServer
         {
             var sql = g.sqlserver.CodeFirst.GetComparisonDDLStatements<AddUniquesInfo>();
             g.sqlserver.CodeFirst.SyncStructure<AddUniquesInfo>();
+            g.sqlserver.CodeFirst.SyncStructure(typeof(AddUniquesInfo), "AddUniquesInfo1");
         }
         [Table(Name = "AddUniquesInfo", OldName = "AddUniquesInfo2")]
         [Index("uk_phone", "phone", true)]

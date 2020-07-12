@@ -146,11 +146,12 @@ namespace FreeSql.Tests.Sqlite
         {
             var sql = g.sqlite.CodeFirst.GetComparisonDDLStatements<AddUniquesInfo>();
             g.sqlite.CodeFirst.SyncStructure<AddUniquesInfo>();
+            g.sqlite.CodeFirst.SyncStructure(typeof(AddUniquesInfo), "AddUniquesInfo1");
         }
         [Table(Name = "AddUniquesInfo2", OldName = "AddUniquesInfo")]
-        [Index("uk_phone", "phone", true)]
-        [Index("uk_group_index", "group,index", true)]
-        [Index("uk_group_index22", "group desc, index22", true)]
+        [Index("{tablename}_uk_phone", "phone", true)]
+        [Index("{tablename}_uk_group_index", "group,index", true)]
+        [Index("{tablename}_uk_group_index22", "group desc, index22", true)]
         class AddUniquesInfo
         {
             public Guid id { get; set; }

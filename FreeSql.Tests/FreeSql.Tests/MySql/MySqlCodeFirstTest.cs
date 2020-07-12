@@ -237,6 +237,7 @@ namespace FreeSql.Tests.MySql
         {
             var sql = g.mysql.CodeFirst.GetComparisonDDLStatements<AddUniquesInfo>();
             g.mysql.CodeFirst.SyncStructure<AddUniquesInfo>();
+            g.mysql.CodeFirst.SyncStructure(typeof(AddUniquesInfo), "AddUniquesInfo1");
         }
         [Table(Name = "AddUniquesInfo", OldName = "AddUniquesInfo2")]
         [Index("uk_phone", "phone", true)]

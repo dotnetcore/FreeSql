@@ -90,11 +90,12 @@ namespace FreeSql.Tests.ShenTong
         {
             var sql = g.shentong.CodeFirst.GetComparisonDDLStatements<AddUniquesInfo>();
             g.shentong.CodeFirst.SyncStructure<AddUniquesInfo>();
+            g.shentong.CodeFirst.SyncStructure(typeof(AddUniquesInfo), "AddUniquesInfo1");
         }
         [Table(Name = "AddUniquesInfo", OldName = "AddUniquesInfo2")]
-        [Index("uk_phone", "phone", true)]
-        [Index("uk_group_index", "group,index", true)]
-        [Index("uk_group_index22", "group, index22", false)]
+        [Index("{tablename}_uk_phone", "phone", true)]
+        [Index("{tablename}_uk_group_index", "group,index", true)]
+        [Index("{tablename}_uk_group_index22", "group, index22", false)]
         class AddUniquesInfo
         {
             public Guid id { get; set; }

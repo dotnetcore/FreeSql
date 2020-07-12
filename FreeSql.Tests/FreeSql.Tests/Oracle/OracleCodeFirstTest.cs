@@ -234,6 +234,7 @@ namespace FreeSql.Tests.Oracle
         {
             var sql = g.oracle.CodeFirst.GetComparisonDDLStatements<AddUniquesInfo>();
             g.oracle.CodeFirst.SyncStructure<AddUniquesInfo>();
+            //g.oracle.CodeFirst.SyncStructure(typeof(AddUniquesInfo), "AddUniquesInfo1");
         }
         [Table(Name = "AddUniquesInfo", OldName = "AddUniquesInfo2")]
         [Index("uk_phone", "phone", true)]
