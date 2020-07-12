@@ -126,6 +126,7 @@ namespace FreeSql.Internal.CommonProvider
             if (_noneParameter == false)
             {
                 var colSum = _table.Columns.Count - _ignore.Count;
+                if (colSum <= 0) colSum = 1;
                 takeMax = parameterLimit / colSum;
                 if (takeMax > valuesLimit) takeMax = valuesLimit;
             }
