@@ -31,6 +31,7 @@
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'net461'">
     <PackageReference Include="Npgsql.LegacyPostgis" Version="4.1.3" />
+    <PackageReference Include="Npgsql.NetTopologySuite" Version="4.1.3" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net452' or '$(TargetFramework)' == 'net451' or '$(TargetFramework)' == 'net45'">
@@ -39,6 +40,10 @@
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'net452' or '$(TargetFramework)' == 'net451' or '$(TargetFramework)' == 'net45'">
     <DefineConstants>net45</DefineConstants>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'net461'">
+    <DefineConstants>nts</DefineConstants>
   </PropertyGroup>
   
 	<ItemGroup>

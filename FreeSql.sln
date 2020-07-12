@@ -82,6 +82,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "aspnetcore_transaction", "E
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Provider.ShenTong", "Providers\FreeSql.Provider.ShenTong\FreeSql.Provider.ShenTong.csproj", "{938173AF-157F-4040-AED3-171DA1809CAA}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Tests.Provider.PostgreSQL.NetTopologySuite", "FreeSql.Tests\FreeSql.Tests.Provider.PostgreSQL.NetTopologySuite\FreeSql.Tests.Provider.PostgreSQL.NetTopologySuite.csproj", "{330F15A7-5089-456B-B553-A98B14DEB764}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -500,6 +502,18 @@ Global
 		{938173AF-157F-4040-AED3-171DA1809CAA}.Release|x64.Build.0 = Release|Any CPU
 		{938173AF-157F-4040-AED3-171DA1809CAA}.Release|x86.ActiveCfg = Release|Any CPU
 		{938173AF-157F-4040-AED3-171DA1809CAA}.Release|x86.Build.0 = Release|Any CPU
+		{330F15A7-5089-456B-B553-A98B14DEB764}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{330F15A7-5089-456B-B553-A98B14DEB764}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{330F15A7-5089-456B-B553-A98B14DEB764}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{330F15A7-5089-456B-B553-A98B14DEB764}.Debug|x64.Build.0 = Debug|Any CPU
+		{330F15A7-5089-456B-B553-A98B14DEB764}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{330F15A7-5089-456B-B553-A98B14DEB764}.Debug|x86.Build.0 = Debug|Any CPU
+		{330F15A7-5089-456B-B553-A98B14DEB764}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{330F15A7-5089-456B-B553-A98B14DEB764}.Release|Any CPU.Build.0 = Release|Any CPU
+		{330F15A7-5089-456B-B553-A98B14DEB764}.Release|x64.ActiveCfg = Release|Any CPU
+		{330F15A7-5089-456B-B553-A98B14DEB764}.Release|x64.Build.0 = Release|Any CPU
+		{330F15A7-5089-456B-B553-A98B14DEB764}.Release|x86.ActiveCfg = Release|Any CPU
+		{330F15A7-5089-456B-B553-A98B14DEB764}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

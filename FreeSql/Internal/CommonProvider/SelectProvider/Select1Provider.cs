@@ -372,12 +372,7 @@ namespace FreeSql.Internal.CommonProvider
             if (whereExp == null)
             {
                 tbref = tb.GetTableRef(collMem.Member.Name, true);
-                if (tbref == null)
-                {
-                    tb = _commonUtils.GetTableByEntity(collMem.Expression.Type); //debug https://github.com/dotnetcore/FreeSql/issues/367
-                    tbref = tb.GetTableRef(collMem.Member.Name, true);
-                    if (tbref == null) throw new Exception($"IncludeMany 类型 {tb.Type.DisplayCsharp()} 的属性 {collMem.Member.Name} 不是有效的导航属性，提示：IsIgnore = true 不会成为导航属性");
-                }
+                if (tbref == null) throw new Exception($"IncludeMany 类型 {tb.Type.DisplayCsharp()} 的属性 {collMem.Member.Name} 不是有效的导航属性，提示：IsIgnore = true 不会成为导航属性");
             }
             else
             {

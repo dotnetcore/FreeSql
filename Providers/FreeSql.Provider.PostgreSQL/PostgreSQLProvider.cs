@@ -37,6 +37,7 @@ namespace FreeSql.PostgreSQL
             Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NpgsqlRange<long>)] = true;
             Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NpgsqlRange<decimal>)] = true;
             Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NpgsqlRange<DateTime>)] = true;
+
             Utils.dicExecuteArrayRowReadClassOrTuple[typeof(PostgisPoint)] = true;
             Utils.dicExecuteArrayRowReadClassOrTuple[typeof(PostgisLineString)] = true;
             Utils.dicExecuteArrayRowReadClassOrTuple[typeof(PostgisPolygon)] = true;
@@ -45,6 +46,18 @@ namespace FreeSql.PostgreSQL
             Utils.dicExecuteArrayRowReadClassOrTuple[typeof(PostgisMultiPolygon)] = true;
             Utils.dicExecuteArrayRowReadClassOrTuple[typeof(PostgisGeometry)] = true;
             Utils.dicExecuteArrayRowReadClassOrTuple[typeof(PostgisGeometryCollection)] = true;
+
+#if nts
+            Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NetTopologySuite.Geometries.Point)] = true;
+            Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NetTopologySuite.Geometries.LineString)] = true;
+            Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NetTopologySuite.Geometries.Polygon)] = true;
+            Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NetTopologySuite.Geometries.MultiPoint)] = true;
+            Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NetTopologySuite.Geometries.MultiLineString)] = true;
+            Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NetTopologySuite.Geometries.MultiPolygon)] = true;
+            Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NetTopologySuite.Geometries.Geometry)] = true;
+            Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NetTopologySuite.Geometries.GeometryCollection)] = true;
+#endif
+
             Utils.dicExecuteArrayRowReadClassOrTuple[typeof(Dictionary<string, string>)] = true;
             Utils.dicExecuteArrayRowReadClassOrTuple[typeof(JToken)] = true;
             Utils.dicExecuteArrayRowReadClassOrTuple[typeof(JObject)] = true;
@@ -61,6 +74,7 @@ namespace FreeSql.PostgreSQL
                     case "Newtonsoft.Json.Linq.JObject": return Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodJObjectParse, Expression.Convert(valueExp, typeof(string))), typeof(JObject)));
                     case "Newtonsoft.Json.Linq.JArray": return Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodJArrayParse, Expression.Convert(valueExp, typeof(string))), typeof(JArray)));
                     case "Npgsql.LegacyPostgis.PostgisGeometry": return Expression.Return(returnTarget, valueExp);
+                    case "NetTopologySuite.Geometries.Geometry": return Expression.Return(returnTarget, valueExp);
                 }
                 return null;
             });
