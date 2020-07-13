@@ -7,8 +7,12 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Data.Odbc;
 using System.Data.SqlClient;
+using System.Data.SQLite;
 using System.Diagnostics;
 using System.Linq.Expressions;
+using System.Text.Encodings.Web;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -40,8 +44,23 @@ namespace base_entity
 
         static AsyncLocal<IUnitOfWork> _asyncUow = new AsyncLocal<IUnitOfWork>();
 
+        public class TestEnumCls
+        {
+            public CollationTypeEnum val { get; set; } = CollationTypeEnum.Binary;
+        }
+
         static void Main(string[] args)
         {
+//            var result2 = Newtonsoft.Json.JsonConvert.DeserializeObject<TestEnumCls>(@"
+//{
+//  ""val"": ""Binary""
+//}");
+//            var result1 = System.Text.Json.JsonSerializer.Deserialize<TestEnumCls>(@"
+//{
+//  ""val"": ""Binary""
+//}");
+
+
             #region 初始化 IFreeSql
             var fsql = new FreeSql.FreeSqlBuilder()
                 .UseAutoSyncStructure(true)
@@ -90,7 +109,7 @@ namespace base_entity
             new Products { title = "product-4" }.Save();
             new Products { title = "product-5" }.Save();
 
-            Products.Select.WhereDynamicFilter(JsonConvert.DeserializeObject<DynamicFilterInfo>(@"
+            var wdy1 = JsonConvert.DeserializeObject<DynamicFilterInfo>(@"
 {
   ""Logic"" : ""Or"",
   ""Filters"" :
@@ -125,7 +144,52 @@ namespace base_entity
     },
   ]
 }
-")).ToList();
+"); 
+            var config = new JsonSerializerOptions()
+            {
+                PropertyNamingPolicy = null,
+                AllowTrailingCommas = true,
+                IgnoreNullValues = true,
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                Converters = { new JsonStringEnumConverter() }
+            };
+            var wdy2 = System.Text.Json.JsonSerializer.Deserialize<DynamicFilterInfo>(@"
+{
+  ""Logic"" : 1,
+  ""Filters"" :
+  [
+    {
+      ""Field"" : ""title"",
+      ""Operator"" : 8,
+      ""Value"" : ""product-1"",
+      ""Filters"" :
+      [
+        {
+          ""Field"" : ""title"",
+          ""Operator"" : 0,
+          ""Value"" : ""product-1111""
+        }
+      ]
+    },
+    {
+      ""Field"" : ""title"",
+      ""Operator"" : 8,
+      ""Value"" : ""product-2""
+    },
+    {
+      ""Field"" : ""title"",
+      ""Operator"" : 8,
+      ""Value"" : ""product-3""
+    },
+    {
+      ""Field"" : ""title"",
+      ""Operator"" : 8,
+      ""Value"" : ""product-4""
+    }
+  ]
+}
+", config);
+            Products.Select.WhereDynamicFilter(wdy2).ToList();
 
             var items1 = Products.Select.Limit(10).OrderByDescending(a => a.CreateTime).ToList();
             var items2 = fsql.Select<Products>().Limit(10).OrderByDescending(a => a.CreateTime).ToList();
