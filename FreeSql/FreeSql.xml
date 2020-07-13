@@ -803,9 +803,10 @@
         </member>
         <member name="M:FreeSql.FreeSqlBuilder.UseAutoSyncStructure(System.Boolean)">
             <summary>
-            【开发环境必备】自动同步实体结构到数据库，程序运行中检查实体表是否存在，然后创建或修改
+            【开发环境必备】自动同步实体结构到数据库，程序运行中检查实体表是否存在，然后创建或修改<para></para>
+            注意：生产环境中谨慎使用
             </summary>
-            <param name="value">true:运行时检查自动同步结构, false:不同步结构</param>
+            <param name="value">true:运行时检查自动同步结构, false:不同步结构(默认)</param>
             <returns></returns>
         </member>
         <member name="M:FreeSql.FreeSqlBuilder.UseConfigEntityFromDbFirst(System.Boolean)">
@@ -2961,19 +2962,22 @@
         </member>
         <member name="M:FreeSql.ICodeFirst.SyncStructure``1">
             <summary>
-            同步实体类型到数据库
+            同步实体类型到数据库<para></para>
+            注意：生产环境中谨慎使用
             </summary>
             <typeparam name="TEntity"></typeparam>
         </member>
         <member name="M:FreeSql.ICodeFirst.SyncStructure(System.Type[])">
             <summary>
-            同步实体类型集合到数据库
+            同步实体类型集合到数据库<para></para>
+            注意：生产环境中谨慎使用
             </summary>
             <param name="entityTypes"></param>
         </member>
         <member name="M:FreeSql.ICodeFirst.SyncStructure(System.Type,System.String)">
             <summary>
-            同步实体类型到数据库（指定表名）
+            同步实体类型到数据库（指定表名）<para></para>
+            注意：生产环境中谨慎使用
             </summary>
             <param name="entityType">实体类型</param>
             <param name="tableName">指定表名对比</param>
