@@ -294,6 +294,7 @@ namespace FreeSql.Tests.Odbc.Oracle
             Assert.Equal(item2.String, newitem2.String);
 
             var items = select.ToList();
+            var itemstb = select.ToDataTable();
         }
 
         [Table(Name = "tb_alltype")]

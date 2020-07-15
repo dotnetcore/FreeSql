@@ -675,7 +675,7 @@ namespace FreeSql.Internal.CommonProvider
                     {
                         var name = dr.GetName(a);
                         if (dt.Columns.Contains(name)) name = $"{name}_{Guid.NewGuid().ToString("N").Substring(0, 4)}";
-                        dt.Columns.Add(name);
+                        dt.Columns.Add(name, dr.GetFieldType(a));
                     }
                 }
                 object[] values = new object[dt.Columns.Count];
@@ -699,7 +699,7 @@ namespace FreeSql.Internal.CommonProvider
                     {
                         var name = dr.GetName(a);
                         if (ret.Columns.Contains(name)) name = $"{name}_{Guid.NewGuid().ToString("N").Substring(0, 4)}";
-                        ret.Columns.Add(name);
+                        ret.Columns.Add(name, dr.GetFieldType(a));
                     }
                 object[] values = new object[ret.Columns.Count];
                 dr.GetValues(values);

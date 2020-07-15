@@ -426,6 +426,7 @@ namespace FreeSql.Tests.PostgreSQL
             Assert.Equal(item2.testFieldString, newitem2.testFieldString);
 
             var items = select.ToList();
+            var itemstb = select.ToDataTable();
         }
 
         [Table(Name = "tb_alltype")]
