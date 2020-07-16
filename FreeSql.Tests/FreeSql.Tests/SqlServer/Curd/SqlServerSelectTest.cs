@@ -1,5 +1,6 @@
 using FreeSql.DataAnnotations;
 using FreeSql.Tests.DataContext.SqlServer;
+using NetTaste;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -1049,6 +1050,11 @@ WHERE (((cast(a.[Id] as nvarchar(100))) in (SELECT b.[Title]
                     a.Id,
                     a.Clicks
                 });
+
+            var testUnionAll2 = g.sqlite.Select<object>()
+                .WithSql("SELECT * FROM [tb_topic22] where id = 10")
+                .WithSql("SELECT * FROM [tb_topic22] where id = 11")
+                .ToDataTable("*");
         }
 
         public class TestInclude_OneToManyModel1

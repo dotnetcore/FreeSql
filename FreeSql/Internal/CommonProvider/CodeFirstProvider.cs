@@ -90,7 +90,7 @@ namespace FreeSql.Internal.CommonProvider
         protected void SyncStructure(params TypeAndName[] objects)
         {
             if (objects == null) return;
-            var syncObjects = objects.Where(a => _dicSycedGetOrAdd(a.entityType).ContainsKey(GetTableNameLowerOrUpper(a.tableName)) == false && GetTableByEntity(a.entityType)?.DisableSyncStructure == false)
+            var syncObjects = objects.Where(a => a.entityType != typeof(object) && _dicSycedGetOrAdd(a.entityType).ContainsKey(GetTableNameLowerOrUpper(a.tableName)) == false && GetTableByEntity(a.entityType)?.DisableSyncStructure == false)
                 .Select(a => new TypeAndName(a.entityType, GetTableNameLowerOrUpper(a.tableName))).ToArray();
             if (syncObjects.Any() == false) return;
             var before = new Aop.SyncStructureBeforeEventArgs(syncObjects.Select(a => a.entityType).ToArray());
