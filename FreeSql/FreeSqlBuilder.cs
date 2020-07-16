@@ -327,6 +327,20 @@ namespace FreeSql
                     }
 
                     dyattr = attrs?.Where(a => {
+                        return ((a as Attribute)?.TypeId as Type)?.Name == "StringLengthAttribute";
+                    }).FirstOrDefault();
+                    if (dyattr != null)
+                    {
+                        var lenProps = dyattr.GetType().GetProperties().Where(a => a.PropertyType.IsNumberType()).ToArray();
+                        var lenProp = lenProps.Length == 1 ? lenProps.FirstOrDefault() : lenProps.Where(a => a.Name == "MaximumLength").FirstOrDefault();
+                        if (lenProp != null && int.TryParse(string.Concat(lenProp.GetValue(dyattr, null)), out var tryval) && tryval != 0)
+                        {
+                            e.ModifyResult.StringLength = tryval;
+                        }
+                    }
+
+
+                    dyattr = attrs?.Where(a => {
                         return ((a as Attribute)?.TypeId as Type)?.FullName == "System.ComponentModel.DataAnnotations.RequiredAttribute";
                     }).FirstOrDefault();
                     if (dyattr != null)

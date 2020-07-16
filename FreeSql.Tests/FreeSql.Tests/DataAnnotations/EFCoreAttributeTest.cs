@@ -33,12 +33,15 @@ namespace FreeSql.Tests.DataAnnotations
         {
             fsql.CodeFirst.SyncStructure<eftesttb03>();
             Assert.Equal("NVARCHAR(100)", fsql.CodeFirst.GetTableByEntity(typeof(eftesttb03)).ColumnsByCs["title"].Attribute.DbType);
+            Assert.Equal("NVARCHAR(101)", fsql.CodeFirst.GetTableByEntity(typeof(eftesttb03)).ColumnsByCs["title2"].Attribute.DbType);
         }
         class eftesttb03
         {
             public Guid id { get; set; }
             [System.ComponentModel.DataAnnotations.MaxLength(100)]
             public string title { get; set; }
+            [System.ComponentModel.DataAnnotations.StringLength(101)]
+            public string title2 { get; set; }
         }
 
         [Fact]
