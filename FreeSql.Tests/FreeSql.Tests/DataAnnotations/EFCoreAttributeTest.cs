@@ -33,13 +33,23 @@ namespace FreeSql.Tests.DataAnnotations
         {
             fsql.CodeFirst.SyncStructure<eftesttb03>();
             Assert.Equal("NVARCHAR(100)", fsql.CodeFirst.GetTableByEntity(typeof(eftesttb03)).ColumnsByCs["title"].Attribute.DbType);
-            Assert.Equal("NVARCHAR(101)", fsql.CodeFirst.GetTableByEntity(typeof(eftesttb03)).ColumnsByCs["title2"].Attribute.DbType);
         }
         class eftesttb03
         {
             public Guid id { get; set; }
             [System.ComponentModel.DataAnnotations.MaxLength(100)]
             public string title { get; set; }
+        }
+
+        [Fact]
+        public void StringLengthAttribute()
+        {
+            fsql.CodeFirst.SyncStructure<eftesttb033>();
+            Assert.Equal("NVARCHAR(101)", fsql.CodeFirst.GetTableByEntity(typeof(eftesttb033)).ColumnsByCs["title2"].Attribute.DbType);
+        }
+        class eftesttb033
+        {
+            public Guid id { get; set; }
             [System.ComponentModel.DataAnnotations.StringLength(101)]
             public string title2 { get; set; }
         }
@@ -108,6 +118,24 @@ namespace FreeSql.Tests.DataAnnotations
             public Guid id { get; set; }
             [System.ComponentModel.DataAnnotations.Key]
             public string title { get; set; }
+        }
+
+        [Fact]
+        public void DatabaseGeneratedAttribute()
+        {
+            fsql.CodeFirst.SyncStructure<eftesttb08>();
+            Assert.True(fsql.CodeFirst.GetTableByEntity(typeof(eftesttb08)).ColumnsByCs["id"].Attribute.IsPrimary);
+            Assert.True(fsql.CodeFirst.GetTableByEntity(typeof(eftesttb08)).ColumnsByCs["id"].Attribute.IsIdentity);
+            Assert.False(fsql.CodeFirst.GetTableByEntity(typeof(eftesttb08)).ColumnsByCs["createtime"].Attribute.CanInsert);
+            Assert.False(fsql.CodeFirst.GetTableByEntity(typeof(eftesttb08)).ColumnsByCs["createtime"].Attribute.CanUpdate);
+        }
+        class eftesttb08
+        {
+            [System.ComponentModel.DataAnnotations.Schema.DatabaseGeneratedAttribute(System.ComponentModel.DataAnnotations.Schema.DatabaseGeneratedOption.Identity)]
+            public int id { get; set; }
+            public string title { get; set; }
+            [System.ComponentModel.DataAnnotations.Schema.DatabaseGeneratedAttribute(System.ComponentModel.DataAnnotations.Schema.DatabaseGeneratedOption.Computed)]
+            public string createtime { get; set; }
         }
     }
 }

@@ -327,20 +327,6 @@ namespace FreeSql
                     }
 
                     dyattr = attrs?.Where(a => {
-                        return ((a as Attribute)?.TypeId as Type)?.Name == "StringLengthAttribute";
-                    }).FirstOrDefault();
-                    if (dyattr != null)
-                    {
-                        var lenProps = dyattr.GetType().GetProperties().Where(a => a.PropertyType.IsNumberType()).ToArray();
-                        var lenProp = lenProps.Length == 1 ? lenProps.FirstOrDefault() : lenProps.Where(a => a.Name == "MaximumLength").FirstOrDefault();
-                        if (lenProp != null && int.TryParse(string.Concat(lenProp.GetValue(dyattr, null)), out var tryval) && tryval != 0)
-                        {
-                            e.ModifyResult.StringLength = tryval;
-                        }
-                    }
-
-
-                    dyattr = attrs?.Where(a => {
                         return ((a as Attribute)?.TypeId as Type)?.FullName == "System.ComponentModel.DataAnnotations.RequiredAttribute";
                     }).FirstOrDefault();
                     if (dyattr != null)
@@ -379,6 +365,38 @@ namespace FreeSql
                     if (dyattr != null)
                     {
                         e.ModifyResult.IsPrimary = true;
+                    }
+
+                    dyattr = attrs?.Where(a => {
+                        return ((a as Attribute)?.TypeId as Type)?.FullName == "System.ComponentModel.DataAnnotations.StringLengthAttribute";
+                    }).FirstOrDefault();
+                    if (dyattr != null)
+                    {
+                        var lenProps = dyattr.GetType().GetProperties().Where(a => a.PropertyType.IsNumberType()).ToArray();
+                        var lenProp = lenProps.Length == 1 ? lenProps.FirstOrDefault() : lenProps.Where(a => a.Name == "MaximumLength").FirstOrDefault();
+                        if (lenProp != null && int.TryParse(string.Concat(lenProp.GetValue(dyattr, null)), out var tryval) && tryval != 0)
+                        {
+                            e.ModifyResult.StringLength = tryval;
+                        }
+                    }
+
+                    //https://github.com/dotnetcore/FreeSql/issues/378
+                    dyattr = attrs?.Where(a => {
+                        return ((a as Attribute)?.TypeId as Type)?.FullName == "System.ComponentModel.DataAnnotations.Schema.DatabaseGeneratedAttribute";
+                    }).FirstOrDefault();
+                    if (dyattr != null)
+                    {
+                        switch(string.Concat(dyattr.GetType().GetProperty("DatabaseGeneratedOption")?.GetValue(dyattr, null)))
+                        {
+                            case "Identity":
+                            case "1":
+                                e.ModifyResult.IsIdentity = true;
+                                break;
+                            default:
+                                e.ModifyResult.CanInsert = false;
+                                e.ModifyResult.CanUpdate = false;
+                                break;
+                        }
                     }
                 });
                 //EFCore 特性
