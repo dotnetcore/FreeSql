@@ -465,7 +465,7 @@ namespace FreeSql
             if (dels.Any() == false) return 0;
             var affrows = this.OrmDelete(dels.Select(a => a.Value)).ExecuteAffrows();
             _db._entityChangeReport.AddRange(dels.Select(a => new DbContext.EntityChangeReport.ChangeInfo { Object = a.Value, Type = DbContext.EntityChangeType.Delete }));
-            return Math.Max(dels.Length, affrows);
+            return affrows; //https://github.com/dotnetcore/FreeSql/issues/373
         }
 
         /// <summary>

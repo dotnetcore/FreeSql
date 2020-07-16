@@ -159,6 +159,11 @@ namespace FreeSql.Tests
         [Fact]
         public void Test03()
         {
+            var aff1 = g.sqlite.GetRepository<Edi, long>().Delete(10086);
+            var aff2 = g.sqlite.Delete<Edi>(10086).ExecuteAffrows();
+            Assert.Equal(aff1, aff2);
+
+
             var testStringFormat = g.sqlite.Select<Edi>().First(a => new {
                 str = $"x{a.Id}_{DateTime.Now.ToString("yyyyMM")}z",
                 str2 = string.Format("{0}x{0}_{1}z", a.Id, DateTime.Now.ToString("yyyyMM"))
