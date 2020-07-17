@@ -44,6 +44,63 @@ namespace FreeSql.Tests.Linq
         }
 
         [Fact]
+        public void OrderBy()
+        {
+            var item = new TestLinqToSql { name = Guid.NewGuid().ToString() };
+            g.sqlite.Insert<TestLinqToSql>().AppendData(item).ExecuteAffrows();
+
+            var t1 = (from a in g.sqlite.Select<TestLinqToSql>()
+                      where a.id == item.id
+                      orderby a.id
+                      select a).ToList();
+            Assert.True(t1.Any());
+            Assert.Equal(item.id, t1[0].id);
+
+            Assert.Equal((from a in g.sqlite.Select<TestLinqToSql>()
+                          where a.id == item.id
+                          orderby a.id
+                          select a).ToSql(),
+                          (from a in g.sqlite.Select<TestLinqToSql>()
+                           where a.id == item.id
+                           orderby a.id ascending
+                           select a).ToSql());
+
+            Assert.Equal((from a in g.sqlite.Select<TestLinqToSql>()
+                          where a.id == item.id
+                          orderby a.id ascending
+                          select a).ToSql(),
+                          g.sqlite.Select<TestLinqToSql>().Where(a => a.id == item.id).OrderBy(a => a.id).ToSql());
+
+            Assert.Equal((from a in g.sqlite.Select<TestLinqToSql>()
+                          where a.id == item.id
+                          orderby a.id descending
+                          select a).ToSql(),
+                          g.sqlite.Select<TestLinqToSql>().Where(a => a.id == item.id).OrderByDescending(a => a.id).ToSql());
+
+
+            Assert.Equal((from a in g.sqlite.Select<TestLinqToSql>()
+                          where a.id == item.id
+                          orderby a.id, a.createtime ascending, a.name descending
+                          select a).ToSql(),
+                          (from a in g.sqlite.Select<TestLinqToSql>()
+                           where a.id == item.id
+                           orderby a.id, a.createtime, a.name descending
+                           select a).ToSql());
+
+            Assert.Equal((from a in g.sqlite.Select<TestLinqToSql>()
+                          where a.id == item.id
+                          orderby a.id ascending, a.createtime ascending, a.name descending
+                          select a).ToSql(),
+                          g.sqlite.Select<TestLinqToSql>().Where(a => a.id == item.id).OrderBy(a => a.id).OrderBy(a => a.createtime).OrderByDescending(a => a.name).ToSql());
+
+            Assert.Equal((from a in g.sqlite.Select<TestLinqToSql>()
+                          where a.id == item.id
+                          orderby a.id descending, a.createtime ascending, a.name descending
+                          select a).ToSql(),
+                          g.sqlite.Select<TestLinqToSql>().Where(a => a.id == item.id).OrderByDescending(a => a.id).OrderBy(a => a.createtime).OrderByDescending(a => a.name).ToSql());
+        }
+
+        [Fact]
         public void Select()
         {
             var item = new TestLinqToSql { name = Guid.NewGuid().ToString() };
@@ -111,6 +168,7 @@ namespace FreeSql.Tests.Linq
 
             var t1 = (from a in g.sqlite.Select<TestLinqToSql>()
                       join b in g.sqlite.Select<TestLinqToSqlComment>() on a.id equals b.TestLinqToSqlId
+                      orderby b.id descending
                       select a).ToList();
             Assert.True(t1.Any());
             //Assert.Equal(item.id, t1[0].id);

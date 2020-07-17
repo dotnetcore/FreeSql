@@ -47,5 +47,15 @@
             【linq to sql】专用扩展方法，不建议直接使用
             </summary>
         </member>
+        <member name="M:FreeSqlExtensionsLinqSql.ThenBy``2(FreeSql.ISelect{``0},System.Linq.Expressions.Expression{System.Func{``0,``1}})">
+            <summary>
+            【linq to sql】专用扩展方法，不建议直接使用
+            </summary>
+        </member>
+        <member name="M:FreeSqlExtensionsLinqSql.ThenByDescending``2(FreeSql.ISelect{``0},System.Linq.Expressions.Expression{System.Func{``0,``1}})">
+            <summary>
+            【linq to sql】专用扩展方法，不建议直接使用
+            </summary>
+        </member>
     </members>
 </doc>

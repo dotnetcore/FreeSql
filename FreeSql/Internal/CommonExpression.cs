@@ -1320,19 +1320,29 @@ namespace FreeSql.Internal
                                 //判断 [JsonMap] 并非导航对象，所以在上面提前判断 ColumnsByCs
 
                                 var tb2tmp = _common.GetTableByEntity(exp2Type);
+                                var exp2IsParameter = false;
                                 if (tb2tmp != null)
                                 {
                                     if (exp2.NodeType == ExpressionType.Parameter)
                                     {
                                         parmExp2 = (exp2 as ParameterExpression);
                                         alias2 = parmExp2.Name;
+                                        exp2IsParameter = true;
                                     }
-                                    else alias2 = $"{alias2}__{mp2.Member.Name}";
-                                    find2 = getOrAddTable(tb2tmp, alias2, exp2.NodeType == ExpressionType.Parameter, parmExp2, mp2);
+                                    else if (string.IsNullOrEmpty(alias2) && exp2 is MemberExpression expMem && (
+                                        _common.GetTableByEntity(expMem.Expression.Type)?.ColumnsByCs.ContainsKey(expMem.Member.Name) == false ||
+                                        expMem.Expression.NodeType == ExpressionType.Parameter && expMem.Expression.Type.IsAnonymousType())) //<>h__TransparentIdentifier 是 Linq To Sql 的类型判断，此时为匿名类型
+                                    {
+                                        alias2 = mp2.Member.Name;
+                                        exp2IsParameter = true;
+                                    }
+                                    else
+                                        alias2 = $"{alias2}__{mp2.Member.Name}";
+                                    find2 = getOrAddTable(tb2tmp, alias2, exp2IsParameter, parmExp2, mp2);
                                     alias2 = find2.Alias;
                                     tb2 = tb2tmp;
                                 }
-                                if (exp2.NodeType == ExpressionType.Parameter && expStack.Any() == false)
+                                if (exp2IsParameter && expStack.Any() == false)
                                 { //附加选择的参数所有列
                                     if (tsc._selectColumnMap != null)
                                     {
@@ -1349,7 +1359,7 @@ namespace FreeSql.Internal
                                         var tb3 = _common.GetTableByEntity(mp2.Type);
                                         if (tb3 != null)
                                         {
-                                            var find3 = getOrAddTable(tb2tmp, alias2 /*$"{alias2}__{mp2.Member.Name}"*/, exp2.NodeType == ExpressionType.Parameter, parmExp2, mp2);
+                                            var find3 = getOrAddTable(tb2tmp, alias2 /*$"{alias2}__{mp2.Member.Name}"*/, exp2IsParameter, parmExp2, mp2);
 
                                             foreach (var tb3c in tb3.Columns.Values)
                                                 tsc._selectColumnMap.Add(new SelectColumnInfo { Table = find3, Column = tb3c });
