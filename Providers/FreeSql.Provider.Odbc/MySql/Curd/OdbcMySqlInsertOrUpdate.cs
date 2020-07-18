@@ -1,4 +1,5 @@
 ﻿using FreeSql.Internal;
+using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
@@ -38,7 +39,23 @@ namespace FreeSql.Odbc.MySql
 
                 string sql = "";
                 if (IdentityColumn != null && flagInsert) sql = insert.ToSql();
-                else sql = new OdbcMySqlOnDuplicateKeyUpdate<T1>(insert.InsertIdentity()).ToSql();
+                else
+                {
+                    insert.InsertIdentity();
+                    if (_doNothing == false)
+                        sql = new OdbcMySqlOnDuplicateKeyUpdate<T1>(insert).ToSql();
+                    else
+                    {
+                        if (_table.Primarys.Any() == false) throw new Exception($"fsql.InsertOrUpdate + IfExistsDoNothing + MySql 要求实体类 {_table.CsName} 必须有主键");
+                        sql = insert.ToSqlValuesOrSelectUnionAllExtension101(false, (rowd, idx, sb) =>
+                            sb.Append(" \r\n FROM dual WHERE NOT EXISTS(").Append(
+                                _orm.Select<T1>()
+                                .AsTable((_, __) => _tableRule?.Invoke(__)).AsType(_table.Type)
+                                .DisableGlobalFilter()
+                                .WhereDynamic(rowd)
+                                .Limit(1).ToSql("1").Replace("\r\n", "\r\n\t")).Append(")"));
+                    }
+                }
                 if (string.IsNullOrEmpty(sql)) return null;
                 if (insert._params?.Any() == true) dbParams.AddRange(insert._params);
                 return sql;

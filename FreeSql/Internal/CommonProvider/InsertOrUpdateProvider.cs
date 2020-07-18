@@ -19,6 +19,7 @@ namespace FreeSql.Internal.CommonProvider
         protected CommonUtils _commonUtils;
         protected CommonExpression _commonExpression;
         protected List<T1> _source = new List<T1>();
+        protected bool _doNothing = false;
         protected Dictionary<string, bool> _auditValueChangedDict = new Dictionary<string, bool>(StringComparer.CurrentCultureIgnoreCase);
         protected TableInfo _table;
         protected Func<string, string> _tableRule;
@@ -103,6 +104,12 @@ namespace FreeSql.Internal.CommonProvider
             if (source == null || source.Any() == false) return this;
             AuditDataValue(this, source, _orm, _table, _auditValueChangedDict);
             _source.AddRange(source.Where(a => a != null));
+            return this;
+        }
+
+        public IInsertOrUpdate<T1> IfExistsDoNothing()
+        {
+            _doNothing = true;
             return this;
         }
 

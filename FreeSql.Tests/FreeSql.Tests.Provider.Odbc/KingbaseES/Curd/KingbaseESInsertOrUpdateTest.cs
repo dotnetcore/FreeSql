@@ -107,9 +107,9 @@ ON CONFLICT(""ID1"", ""ID2"") DO UPDATE SET
 ""NAME"" = EXCLUDED.""NAME""", sql);
             Assert.Equal(1, iou.ExecuteAffrows());
 
-            iou = fsql.InsertOrUpdate<tbiou03>().SetSource(new tbiou03 { id1 = 1, id2 = "02", name = "011" });
+            iou = fsql.InsertOrUpdate<tbiou03>().SetSource(new tbiou03 { id1 = 1, id2 = "01", name = "011" });
             sql = iou.ToSql();
-            Assert.Equal(@"INSERT INTO ""TBIOU03""(""ID1"", ""ID2"", ""NAME"") VALUES(1, '02', '011')
+            Assert.Equal(@"INSERT INTO ""TBIOU03""(""ID1"", ""ID2"", ""NAME"") VALUES(1, '01', '011')
 ON CONFLICT(""ID1"", ""ID2"") DO UPDATE SET
 ""NAME"" = EXCLUDED.""NAME""", sql);
             Assert.Equal(1, iou.ExecuteAffrows());

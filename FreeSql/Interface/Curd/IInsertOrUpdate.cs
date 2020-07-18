@@ -36,6 +36,13 @@ namespace FreeSql
         IInsertOrUpdate<T1> SetSource(IEnumerable<T1> source);
 
         /// <summary>
+        /// 当记录存在时，什么都不做<para></para>
+        /// 换句话：只有记录不存在时才插入
+        /// </summary>
+        /// <returns></returns>
+        IInsertOrUpdate<T1> IfExistsDoNothing();
+
+        /// <summary>
         /// 设置表名规则，可用于分库/分表，参数1：默认表名；返回值：新表名；
         /// </summary>
         /// <param name="tableRule"></param>

@@ -166,9 +166,9 @@ INSERT INTO ""tbiou022""(""name"") VALUES('00001'), ('00002'), ('00003'), ('0000
             Assert.Equal(@"REPLACE INTO ""tbiou03""(""id1"", ""id2"", ""name"") VALUES(1, '01', '01')", sql);
             Assert.Equal(1, iou.ExecuteAffrows());
 
-            iou = fsql.InsertOrUpdate<tbiou03>().SetSource(new tbiou03 { id1 = 1, id2 = "02", name = "011" });
+            iou = fsql.InsertOrUpdate<tbiou03>().SetSource(new tbiou03 { id1 = 1, id2 = "01", name = "011" });
             sql = iou.ToSql();
-            Assert.Equal(@"REPLACE INTO ""tbiou03""(""id1"", ""id2"", ""name"") VALUES(1, '02', '011')", sql);
+            Assert.Equal(@"REPLACE INTO ""tbiou03""(""id1"", ""id2"", ""name"") VALUES(1, '01', '011')", sql);
             Assert.Equal(1, iou.ExecuteAffrows());
 
             iou = fsql.InsertOrUpdate<tbiou03>().SetSource(new tbiou03 { id1 = 2, id2 = "02", name = "02" });

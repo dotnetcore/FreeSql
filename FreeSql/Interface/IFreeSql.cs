@@ -45,14 +45,17 @@ public interface IFreeSql : IDisposable
     IInsert<T1> Insert<T1>(IEnumerable<T1> source) where T1 : class;
 
     /// <summary>
-    /// 插入或更新数据<para></para>
-    /// MySql: on duplicate key update<para></para>
-    /// PostgreSQL: on conflict do update<para></para>
-    /// SqlServer: merge into<para></para>
-    /// Oracle: merge into<para></para>
+    /// 插入或更新数据，此功能依赖数据库特性（低版本可能不支持），参考如下：<para></para>
+    /// MySql 5.6+: on duplicate key update<para></para>
+    /// PostgreSQL 9.4+: on conflict do update<para></para>
+    /// SqlServer 2008+: merge into<para></para>
+    /// Oracle 11+: merge into<para></para>
     /// Sqlite: replace into<para></para>
-    /// Dameng: merge into<para></para>
-    /// 注意：还可以使用 FreeSql.Repository 的 InsertOrUpdate 方法
+    /// 达梦: merge into<para></para>
+    /// 人大金仓：on conflict do update<para></para>
+    /// 神通：merge into<para></para>
+    /// MsAccess：不支持<para></para>
+    /// 注意区别：FreeSql.Repository 仓储也有 InsertOrUpdate 方法（不依赖数据库特性）
     /// </summary>
     /// <typeparam name="T1"></typeparam>
     /// <returns></returns>

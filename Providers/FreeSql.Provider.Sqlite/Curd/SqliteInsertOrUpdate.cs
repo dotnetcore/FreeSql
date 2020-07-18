@@ -37,15 +37,32 @@ namespace FreeSql.Sqlite.Curd
                     .NoneParameter(true) as Internal.CommonProvider.InsertProvider<T1>;
                 insert._source = data;
 
-                if (IdentityColumn != null && flagInsert == false) insert.InsertIdentity();
-
-                var sql = insert.ToSql();
+                string sql = "";
+                if (IdentityColumn != null && flagInsert) sql = insert.ToSql();
+                else
+                {
+                    insert.InsertIdentity();
+                    if (_doNothing == false)
+                    {
+                        sql = insert.ToSql();
+                        if (sql?.StartsWith("INSERT INTO ") == true)
+                            sql = $"REPLACE INTO {sql.Substring("INSERT INTO ".Length)}";
+                    }
+                    else
+                    {
+                        if (_table.Primarys.Any() == false) throw new Exception($"fsql.InsertOrUpdate + IfExistsDoNothing + Sqlite 要求实体类 {_table.CsName} 必须有主键");
+                        sql = insert.ToSqlValuesOrSelectUnionAllExtension101(false, (rowd, idx, sb) =>
+                            sb.Append(" \r\n WHERE NOT EXISTS(").Append(
+                                _orm.Select<T1>()
+                                .AsTable((_, __) => _tableRule?.Invoke(__)).AsType(_table.Type)
+                                .DisableGlobalFilter()
+                                .WhereDynamic(rowd)
+                                .Limit(1).ToSql("1").Replace("\r\n", "\r\n\t")).Append(")"));
+                    }
+                }
                 if (string.IsNullOrEmpty(sql)) return null;
                 if (insert._params?.Any() == true) dbParams.AddRange(insert._params);
-                if (IdentityColumn != null && flagInsert) return sql;
-
-                if (sql.StartsWith("INSERT INTO ") == false) return null;
-                return $"REPLACE INTO {sql.Substring("INSERT INTO ".Length)}";
+                return sql;
             }
         }
     }

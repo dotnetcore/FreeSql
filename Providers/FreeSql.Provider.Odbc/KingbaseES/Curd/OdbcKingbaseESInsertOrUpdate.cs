@@ -44,7 +44,7 @@ namespace FreeSql.Odbc.KingbaseES
                 {
                     var ocdu = new OdbcKingbaseESOnConflictDoUpdate<T1>(insert.InsertIdentity());
                     ocdu.IgnoreColumns(_table.Columns.Values.Where(a => a.Attribute.CanUpdate == false).Select(a => a.Attribute.Name).ToArray());
-                    if (_table.Columns.Values.Where(a => a.Attribute.IsPrimary == false && a.Attribute.CanUpdate == true).Any() == false)
+                    if (_doNothing == true || _table.Columns.Values.Where(a => a.Attribute.IsPrimary == false && a.Attribute.CanUpdate == true).Any() == false)
                         ocdu.DoNothing();
                     sql = ocdu.ToSql();
                 }

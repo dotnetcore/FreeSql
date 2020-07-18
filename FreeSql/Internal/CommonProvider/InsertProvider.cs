@@ -494,7 +494,8 @@ namespace FreeSql.Internal.CommonProvider
 
         public virtual string ToSql() => ToSqlValuesOrSelectUnionAll(true);
 
-        public string ToSqlValuesOrSelectUnionAll(bool isValues = true)
+        public string ToSqlValuesOrSelectUnionAll(bool isValues = true) => ToSqlValuesOrSelectUnionAllExtension101(isValues, null);
+        public string ToSqlValuesOrSelectUnionAllExtension101(bool isValues, Action<object, int, StringBuilder> onrow)
         {
             if (_source == null || _source.Any() == false) return null;
             var sb = new StringBuilder();
@@ -541,6 +542,7 @@ namespace FreeSql.Internal.CommonProvider
                     ++colidx2;
                 }
                 if (isValues) sb.Append(")");
+                onrow?.Invoke(d, didx, sb);
                 ++didx;
             }
             if (_noneParameter && specialParams.Any())

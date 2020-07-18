@@ -314,10 +314,10 @@ WHEN NOT MATCHED THEN
   values (t2.ID1, t2.ID2, t2.NAME)", sql);
             iou.ExecuteAffrows();
 
-            iou = fsql.InsertOrUpdate<tbiou03>().SetSource(new tbiou03 { id1 = 1, id2 = "02", name = "011" });
+            iou = fsql.InsertOrUpdate<tbiou03>().SetSource(new tbiou03 { id1 = 1, id2 = "01", name = "011" });
             sql = iou.ToSql();
             Assert.Equal(@"MERGE INTO ""TBIOU03"" t1 
-USING (SELECT 1 as ID1, '02' as ID2, '011' as NAME FROM dual ) t2 ON (t1.""ID1"" = t2.ID1 AND t1.""ID2"" = t2.ID2) 
+USING (SELECT 1 as ID1, '01' as ID2, '011' as NAME FROM dual ) t2 ON (t1.""ID1"" = t2.ID1 AND t1.""ID2"" = t2.ID2) 
 WHEN MATCHED THEN 
   update set ""NAME"" = t2.NAME 
 WHEN NOT MATCHED THEN 
