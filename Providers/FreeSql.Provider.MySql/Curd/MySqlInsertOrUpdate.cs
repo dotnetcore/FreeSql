@@ -54,7 +54,7 @@ namespace FreeSql.MySql.Curd
                                 .AsTable((_, __) => _tableRule?.Invoke(__)).AsType(_table.Type)
                                 .DisableGlobalFilter()
                                 .WhereDynamic(rowd)
-                                .Limit(1).ToSql("1").Replace("\r\n", "\r\n\t")).Append(")"));
+                                .Limit(1).ToSql("1").Replace(" \r\n", " \r\n    ")).Append(")"));
                     }
                 }
                 if (string.IsNullOrEmpty(sql)) return null;

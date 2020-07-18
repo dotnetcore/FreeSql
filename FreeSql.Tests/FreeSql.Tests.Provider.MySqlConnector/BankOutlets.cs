@@ -13,63 +13,63 @@ using Newtonsoft.Json;
 using FreeSql.DataAnnotations;
 namespace FreeSql.Jhfw.Models {
 
-	public interface IBaseModel<TKey>
-	{
-		TKey Id { get; set; }
-	}
-	[JsonObject(MemberSerialization.OptIn), Table(Name = "bank_outlets")]
-	public partial class BankOutlets : IBaseModel<int>
+    public interface IBaseModel<TKey>
+    {
+        TKey Id { get; set; }
+    }
+    [JsonObject(MemberSerialization.OptIn), Table(Name = "bank_outlets")]
+    public partial class BankOutlets : IBaseModel<int>
     {
 
-		[JsonProperty]
-		public int? BankId { get => _BankId; set {
-			if (_BankId == value) return;
-			_BankId = value;
-			OneBanks = null;
-		}}
-		private int? _BankId;
+        [JsonProperty]
+        public int? BankId { get => _BankId; set {
+            if (_BankId == value) return;
+            _BankId = value;
+            OneBanks = null;
+        }}
+        private int? _BankId;
 
-		[JsonProperty]
-		public int? ParentId { get => _ParentId; set {
-			if (_ParentId == value) return;
-			_ParentId = value;
-			OneBankOutlets = null;
-		}}
-		private int? _ParentId;
+        [JsonProperty]
+        public int? ParentId { get => _ParentId; set {
+            if (_ParentId == value) return;
+            _ParentId = value;
+            OneBankOutlets = null;
+        }}
+        private int? _ParentId;
 
-		[JsonProperty]
-		public string Address { get; set; } = "";
+        [JsonProperty]
+        public string Address { get; set; } = "";
 
-		[JsonProperty, Column(DbType = "varchar(50)")]
-		public string Area { get; set; } = "";
+        [JsonProperty, Column(DbType = "varchar(50)")]
+        public string Area { get; set; } = "";
 
-		[JsonProperty, Column(Name = "ID", IsIdentity = true)]
-		public int Id { get; set; }
+        [JsonProperty, Column(Name = "ID", IsIdentity = true)]
+        public int Id { get; set; }
 
-		[JsonProperty, Column(DbType = "varchar(50)")]
-		public string Name { get; set; } = "";
+        [JsonProperty, Column(DbType = "varchar(50)")]
+        public string Name { get; set; } = "";
 
 
-		#region 外键 => 导航属性，ManyToOne/OneToOne
+        #region 外键 => 导航属性，ManyToOne/OneToOne
 
-		[Navigate("BankId")]
-		public virtual Banks OneBanks { get; set; }
+        [Navigate("BankId")]
+        public virtual Banks OneBanks { get; set; }
 
-		[Navigate("ParentId")]
-		public virtual BankOutlets OneBankOutlets { get; set; }
+        [Navigate("ParentId")]
+        public virtual BankOutlets OneBankOutlets { get; set; }
 
-		#endregion
+        #endregion
 
-		#region 外键 => 导航属性，OneToMany
+        #region 外键 => 导航属性，OneToMany
 
-		[Navigate("ParentId")]
-		public virtual List<BankOutlets> ManyBankOutlets { get; set; }
+        [Navigate("ParentId")]
+        public virtual List<BankOutlets> ManyBankOutlets { get; set; }
 
-		#endregion
+        #endregion
 
-		#region 外键 => 导航属性，ManyToMany
+        #region 外键 => 导航属性，ManyToMany
 
-		#endregion
-	}
+        #endregion
+    }
 
 }

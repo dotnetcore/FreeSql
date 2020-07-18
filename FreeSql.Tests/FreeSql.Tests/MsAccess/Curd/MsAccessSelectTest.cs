@@ -85,22 +85,22 @@ namespace FreeSql.Tests.MsAccess
             //SELECT a.[Id], a.[Parent_id], a.[Ddd], a.[Name] 
             //FROM [Tag] a 
             //WHERE (exists(SELECT 1 
-            //	FROM [Tag] t 
-            //	LEFT JOIN [Tag] t__Parent ON t__Parent.[Id] = t.[Parent_id] 
-            //	WHERE (t__Parent.[Id] = 10) AND (t.[Parent_id] = a.[Id]) 
-            //	limit 0,1))
+            //    FROM [Tag] t 
+            //    LEFT JOIN [Tag] t__Parent ON t__Parent.[Id] = t.[Parent_id] 
+            //    WHERE (t__Parent.[Id] = 10) AND (t.[Parent_id] = a.[Id]) 
+            //    limit 0,1))
 
             //ManyToMany
             var t2 = g.msaccess.Select<Song>().Where(s => s.Tags.AsSelect().Any(t => t.Name == "国语")).ToSql();
             //SELECT a.[Id], a.[Create_time], a.[Is_deleted], a.[Title], a.[Url] 
             //FROM [Song] a
             //WHERE(exists(SELECT 1
-            //	FROM [Song_tag] Mt_Ms
-            //	WHERE(Mt_Ms.[Song_id] = a.[Id]) AND(exists(SELECT 1
-            //		FROM [Tag] t
-            //		WHERE(t.[Name] = '国语') AND(t.[Id] = Mt_Ms.[Tag_id])
-            //		limit 0, 1))
-            //	limit 0, 1))
+            //    FROM [Song_tag] Mt_Ms
+            //    WHERE(Mt_Ms.[Song_id] = a.[Id]) AND(exists(SELECT 1
+            //        FROM [Tag] t
+            //        WHERE(t.[Name] = '国语') AND(t.[Id] = Mt_Ms.[Tag_id])
+            //        limit 0, 1))
+            //    limit 0, 1))
         }
 
         [Fact]
@@ -831,7 +831,7 @@ namespace FreeSql.Tests.MsAccess
                 count = (long)select.As("b").Sum(b => b.Id)
             });
             Assert.Equal(@"SELECT a.[Id] as as1, a.[Clicks] as as2, a.[TypeGuid] as as3, a.[Title] as as4, a.[CreateTime] as as5, (SELECT TOP 1 sum(b.[Id]) 
-	FROM [tb_topic22] b) as as6 
+    FROM [tb_topic22] b) as as6 
 FROM [tb_topic22] a", subquery);
             var subqueryList = select.ToList(a => new
             {
@@ -848,7 +848,7 @@ FROM [tb_topic22] a", subquery);
                 count = select.As("b").Min(b => b.Id)
             });
             Assert.Equal(@"SELECT a.[Id] as as1, a.[Clicks] as as2, a.[TypeGuid] as as3, a.[Title] as as4, a.[CreateTime] as as5, (SELECT TOP 1 min(b.[Id]) 
-	FROM [tb_topic22] b) as as6 
+    FROM [tb_topic22] b) as as6 
 FROM [tb_topic22] a", subquery);
             var subqueryList = select.ToList(a => new
             {
@@ -865,7 +865,7 @@ FROM [tb_topic22] a", subquery);
                 count = select.As("b").Max(b => b.Id)
             });
             Assert.Equal(@"SELECT a.[Id] as as1, a.[Clicks] as as2, a.[TypeGuid] as as3, a.[Title] as as4, a.[CreateTime] as as5, (SELECT TOP 1 max(b.[Id]) 
-	FROM [tb_topic22] b) as as6 
+    FROM [tb_topic22] b) as as6 
 FROM [tb_topic22] a", subquery);
             var subqueryList = select.ToList(a => new
             {
@@ -882,7 +882,7 @@ FROM [tb_topic22] a", subquery);
                 count = select.As("b").Avg(b => b.Id)
             });
             Assert.Equal(@"SELECT a.[Id] as as1, a.[Clicks] as as2, a.[TypeGuid] as as3, a.[Title] as as4, a.[CreateTime] as as5, (SELECT TOP 1 avg(b.[Id]) 
-	FROM [tb_topic22] b) as as6 
+    FROM [tb_topic22] b) as as6 
 FROM [tb_topic22] a", subquery);
             var subqueryList = select.ToList(a => new
             {
@@ -897,7 +897,7 @@ FROM [tb_topic22] a", subquery);
             Assert.Equal(@"SELECT a.[Id], a.[Clicks], a.[TypeGuid], a.[Title], a.[CreateTime] 
 FROM [tb_topic22] a 
 WHERE (((cstr(a.[Id])) in (SELECT b.[Title] 
-	FROM [tb_topic22] b)))", subquery);
+    FROM [tb_topic22] b)))", subquery);
             var subqueryList = select.Where(a => select.As("b").ToList(b => b.Title).Contains(a.Id.ToString())).ToList();
         }
         [Fact]
@@ -975,12 +975,12 @@ WHERE (((cstr(a.[Id])) in (SELECT b.[Title]
 
             query = select.AsTable((_, old) => old).AsTable((_, old) => old);
             sql = query.ToSql().Replace("\r\n", "");
-            Assert.Equal("SELECT  * from (SELECT a.[Id], a.[Clicks], a.[TypeGuid], a.[Title], a.[CreateTime] FROM [tb_topic22] a) ftb UNION ALLSELECT  * from (SELECT a.[Id], a.[Clicks], a.[TypeGuid], a.[Title], a.[CreateTime] FROM [tb_topic22] a) ftb", sql);
+            Assert.Equal("SELECT  * from (SELECT a.[Id], a.[Clicks], a.[TypeGuid], a.[Title], a.[CreateTime] FROM [tb_topic22] a) ftb UNION ALL SELECT  * from (SELECT a.[Id], a.[Clicks], a.[TypeGuid], a.[Title], a.[CreateTime] FROM [tb_topic22] a) ftb", sql);
             query.ToList();
 
             query = select.AsTable((_, old) => old).AsTable((_, old) => old);
             sql = query.ToSql("count(1) as1").Replace("\r\n", "");
-            Assert.Equal("SELECT  * from (SELECT count(1) as1 FROM [tb_topic22] a) ftb UNION ALLSELECT  * from (SELECT count(1) as1 FROM [tb_topic22] a) ftb", sql);
+            Assert.Equal("SELECT  * from (SELECT count(1) as1 FROM [tb_topic22] a) ftb UNION ALL SELECT  * from (SELECT count(1) as1 FROM [tb_topic22] a) ftb", sql);
             query.Count();
 
             select.AsTable((_, old) => old).AsTable((_, old) => old).Max(a => a.Id);

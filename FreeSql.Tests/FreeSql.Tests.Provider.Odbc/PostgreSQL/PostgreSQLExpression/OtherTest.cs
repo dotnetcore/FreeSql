@@ -81,7 +81,7 @@ namespace FreeSql.Tests.Odbc.PostgreSQLExpression
         public void Array()
         {
             //g.pgsql.Aop.CurdAfter = (s, e) => {
-            //	Trace.WriteLine(e.CurdType + ": " + e.ElapsedMilliseconds + "ms " + e.Sql.Replace("\n", ""));
+            //    Trace.WriteLine(e.CurdType + ": " + e.ElapsedMilliseconds + "ms " + e.Sql.Replace("\n", ""));
             //};
             IEnumerable<int> testlinqlist = new List<int>(new[] { 1, 2, 3 });
             var testlinq = select.Where(a => testlinqlist.Contains(a.testFieldInt)).ToList();

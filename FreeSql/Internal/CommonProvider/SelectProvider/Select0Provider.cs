@@ -990,7 +990,7 @@ namespace FreeSql.Internal.CommonProvider
                             if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(tb.Table.Type, name);
                         }
                         else
-                            name = name.Replace("\r\n", "\r\n    ");
+                            name = name.Replace(" \r\n", " \r\n    ");
                     }
                     dict.Add(tb.Table.Type, name);
                 }

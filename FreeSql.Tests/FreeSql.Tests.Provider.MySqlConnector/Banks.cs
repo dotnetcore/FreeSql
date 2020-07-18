@@ -13,54 +13,54 @@ using Newtonsoft.Json;
 using FreeSql.DataAnnotations;
 namespace FreeSql.Jhfw.Models {
 
-	[JsonObject(MemberSerialization.OptIn), Table(Name = "banks")]
-	public partial class Banks : IBaseModel<int>
+    [JsonObject(MemberSerialization.OptIn), Table(Name = "banks")]
+    public partial class Banks : IBaseModel<int>
     {
 
-		[JsonProperty, Column(DbType = "datetime")]
-		public DateTime? Addtime { get; set; }
+        [JsonProperty, Column(DbType = "datetime")]
+        public DateTime? Addtime { get; set; }
 
-		[JsonProperty, Column(DbType = "varchar(250)")]
-		public string Banner { get; set; } = "";
+        [JsonProperty, Column(DbType = "varchar(250)")]
+        public string Banner { get; set; } = "";
 
-		[JsonProperty, Column(DbType = "varchar(20)")]
-		public string City { get; set; } = "";
+        [JsonProperty, Column(DbType = "varchar(20)")]
+        public string City { get; set; } = "";
 
-		[JsonProperty, Column(Name = "ID", IsIdentity = true)]
-		public int Id { get; set; }
+        [JsonProperty, Column(Name = "ID", IsIdentity = true)]
+        public int Id { get; set; }
 
-		[JsonProperty, Column(DbType = "tinyint(1)")]
-		public bool IsDelete { get; set; }
+        [JsonProperty, Column(DbType = "tinyint(1)")]
+        public bool IsDelete { get; set; }
 
-		[JsonProperty, Column(DbType = "tinyint(1)")]
-		public bool IsGrab { get; set; }
+        [JsonProperty, Column(DbType = "tinyint(1)")]
+        public bool IsGrab { get; set; }
 
-		[JsonProperty, Column(DbType = "tinyint(1)")]
-		public bool IsJoinHmd { get; set; }
+        [JsonProperty, Column(DbType = "tinyint(1)")]
+        public bool IsJoinHmd { get; set; }
 
-		[JsonProperty, Column(DbType = "varchar(100)")]
-		public string LoanType { get; set; } = "";
+        [JsonProperty, Column(DbType = "varchar(100)")]
+        public string LoanType { get; set; } = "";
 
-		[JsonProperty, Column(DbType = "varchar(250)")]
-		public string Logo { get; set; } = "";
+        [JsonProperty, Column(DbType = "varchar(250)")]
+        public string Logo { get; set; } = "";
 
-		[JsonProperty]
-		public string Name { get; set; } = "";
+        [JsonProperty]
+        public string Name { get; set; } = "";
 
-		[JsonProperty, Column(DbType = "varchar(3000)")]
-		public string Notice { get; set; } = "";
+        [JsonProperty, Column(DbType = "varchar(3000)")]
+        public string Notice { get; set; } = "";
 
 
-		#region 外键 => 导航属性，OneToMany
+        #region 外键 => 导航属性，OneToMany
 
-		[Navigate("BankId")]
-		public virtual List<BankOutlets> ManyBankOutlets { get; set; }
+        [Navigate("BankId")]
+        public virtual List<BankOutlets> ManyBankOutlets { get; set; }
 
-		#endregion
+        #endregion
 
-		#region 外键 => 导航属性，ManyToMany
+        #region 外键 => 导航属性，ManyToMany
 
-		#endregion
-	}
+        #endregion
+    }
 
 }

@@ -46,20 +46,20 @@ namespace FreeSql.Tests.Odbc.SqlServer
         {
 
             //var tt1 = g.sqlserver.Select<xxx>()
-            //	.LeftJoin(a => a.ParentId == a.Parent.Id)
-            //	.ToSql(a => new { a.Id, a.Title });
+            //    .LeftJoin(a => a.ParentId == a.Parent.Id)
+            //    .ToSql(a => new { a.Id, a.Title });
 
             //var tt2result = g.sqlserver.Select<xxx>()
-            //	.LeftJoin(a => a.ParentId == a.Parent.Id)
-            //	.ToList(a => new { a.Id, a.Title });
+            //    .LeftJoin(a => a.ParentId == a.Parent.Id)
+            //    .ToList(a => new { a.Id, a.Title });
 
             //var tt = g.sqlserver.Select<xxx>()
-            //	.LeftJoin<xxx>((a, b) => b.Id == a.Id)
-            //	.ToSql(a => new { a.Id, a.Title });
+            //    .LeftJoin<xxx>((a, b) => b.Id == a.Id)
+            //    .ToSql(a => new { a.Id, a.Title });
 
             //var ttresult = g.sqlserver.Select<xxx>()
-            //	.LeftJoin<xxx>((a, b) => b.Id == a.Id)
-            //	.ToList(a => new { a.Id, a.Title });
+            //    .LeftJoin<xxx>((a, b) => b.Id == a.Id)
+            //    .ToList(a => new { a.Id, a.Title });
 
             var tnsql1 = g.sqlserver.Select<xxx>().Where(a => a.Id > 0).Where(b => b.Title != null).Page(1, 3).ToSql(a => a.Id);
             var tnsql2 = g.sqlserver.Select<xxx>().Where(a => a.Id > 0).Where(b => b.Title != null).Page(2, 3).ToSql(a => a.Id);

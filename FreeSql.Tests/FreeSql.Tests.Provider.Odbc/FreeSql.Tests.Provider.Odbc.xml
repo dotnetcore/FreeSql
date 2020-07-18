@@ -27,62 +27,62 @@
         <member name="P:FreeSql.Tests.Odbc.UnitTest1.NewsArticle.ArticleId">
             <summary>
             
-            </summary>		
+            </summary>        
         </member>
         <member name="P:FreeSql.Tests.Odbc.UnitTest1.NewsArticle.ArticleTitle">
             <summary>
             
-            </summary>		
+            </summary>        
         </member>
         <member name="P:FreeSql.Tests.Odbc.UnitTest1.NewsArticle.CategoryId">
             <summary>
             
-            </summary>		
+            </summary>        
         </member>
         <member name="P:FreeSql.Tests.Odbc.UnitTest1.NewsArticle.ChannelId">
             <summary>
             
-            </summary>		
+            </summary>        
         </member>
         <member name="P:FreeSql.Tests.Odbc.UnitTest1.NewsArticle.TypeId">
             <summary>
             类型
-            </summary>		
+            </summary>        
         </member>
         <member name="P:FreeSql.Tests.Odbc.UnitTest1.NewsArticle.Summary">
             <summary>
             内容简介
-            </summary>		
+            </summary>        
         </member>
         <member name="P:FreeSql.Tests.Odbc.UnitTest1.NewsArticle.Thumbnail">
             <summary>
             缩略图
-            </summary>		
+            </summary>        
         </member>
         <member name="P:FreeSql.Tests.Odbc.UnitTest1.NewsArticle.Hits">
             <summary>
             点击量
-            </summary>		
+            </summary>        
         </member>
         <member name="P:FreeSql.Tests.Odbc.UnitTest1.NewsArticle.IsDisplay">
             <summary>
             
-            </summary>		
+            </summary>        
         </member>
         <member name="P:FreeSql.Tests.Odbc.UnitTest1.NewsArticle.Status">
             <summary>
             
-            </summary>		
+            </summary>        
         </member>
         <member name="P:FreeSql.Tests.Odbc.UnitTest1.NewsArticle.CreateTime">
             <summary>
             
-            </summary>		
+            </summary>        
         </member>
         <member name="P:FreeSql.Tests.Odbc.UnitTest1.NewsArticle.ReleaseTime">
             <summary>
             
-            </summary>		
+            </summary>        
         </member>
         <member name="P:FreeSql.Tests.Odbc.UnitTest1.Templates.Id2">
             <summary>

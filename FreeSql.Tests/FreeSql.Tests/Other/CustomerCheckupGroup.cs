@@ -18,67 +18,67 @@ using FreeSql.DataAnnotations;
 
 namespace ZX.Model {
 
-	[JsonObject(MemberSerialization.OptIn)]
-	public class CustomerCheckupGroup {
+    [JsonObject(MemberSerialization.OptIn)]
+    public class CustomerCheckupGroup {
 
-		[JsonProperty, Column(IsPrimary = true)]
-		public short ShopId { get => _ShopId; set {
-			if (_ShopId == value) return;
-			_ShopId = value;
-		} }
-		private short _ShopId;
+        [JsonProperty, Column(IsPrimary = true)]
+        public short ShopId { get => _ShopId; set {
+            if (_ShopId == value) return;
+            _ShopId = value;
+        } }
+        private short _ShopId;
 
-		[JsonProperty, Column(DbType = "varchar(50)", IsPrimary = true)]
-		public string Id { get; set; }
+        [JsonProperty, Column(DbType = "varchar(50)", IsPrimary = true)]
+        public string Id { get; set; }
 
-		[JsonProperty, Column(DbType = "nvarchar(50)")]
-		public string MemberId { get => _MemberId; set {
-			if (_MemberId == value) return;
-			_MemberId = value;
-		} }
-		private string _MemberId;
+        [JsonProperty, Column(DbType = "nvarchar(50)")]
+        public string MemberId { get => _MemberId; set {
+            if (_MemberId == value) return;
+            _MemberId = value;
+        } }
+        private string _MemberId;
 
-		[JsonProperty, Column(DbType = "varchar(50)")]
-		public string Discount { get; set; }
+        [JsonProperty, Column(DbType = "varchar(50)")]
+        public string Discount { get; set; }
 
-		[JsonProperty, Column(DbType = "varchar(50)")]
-		public string Doctor { get; set; }
+        [JsonProperty, Column(DbType = "varchar(50)")]
+        public string Doctor { get; set; }
 
-		[JsonProperty]
-		public DateTime? FirstTime { get; set; }
+        [JsonProperty]
+        public DateTime? FirstTime { get; set; }
 
-		[JsonProperty, Column(DbType = "varchar(50)")]
-		public string Group { get; set; }
+        [JsonProperty, Column(DbType = "varchar(50)")]
+        public string Group { get; set; }
 
-		[JsonProperty]
-		public DateTime? InsertTime { get; set; }
+        [JsonProperty]
+        public DateTime? InsertTime { get; set; }
 
-		[JsonProperty, Column(Name = "isOK")]
-		public bool? IsOK { get; set; }
+        [JsonProperty, Column(Name = "isOK")]
+        public bool? IsOK { get; set; }
 
-		[JsonProperty, Column(Name = "isPay", DbType = "varchar(50)")]
-		public string IsPay { get; set; }
+        [JsonProperty, Column(Name = "isPay", DbType = "varchar(50)")]
+        public string IsPay { get; set; }
 
-		[JsonProperty, Column(DbType = "varchar(50)")]
-		public string Office { get; set; }
+        [JsonProperty, Column(DbType = "varchar(50)")]
+        public string Office { get; set; }
 
-		[JsonProperty, Column(DbType = "varchar(50)")]
-		public string PayType { get; set; }
+        [JsonProperty, Column(DbType = "varchar(50)")]
+        public string PayType { get; set; }
 
-		[JsonProperty, Column(DbType = "decimal(9,2)")]
-		public decimal? Price { get; set; }
+        [JsonProperty, Column(DbType = "decimal(9,2)")]
+        public decimal? Price { get; set; }
 
-		[JsonProperty]
-		public DateTime? UpdateTime { get; set; }
+        [JsonProperty]
+        public DateTime? UpdateTime { get; set; }
 
-		[JsonProperty, Column(DbType = "decimal(9,2)")]
-		public decimal? Value { get; set; }
+        [JsonProperty, Column(DbType = "decimal(9,2)")]
+        public decimal? Value { get; set; }
 
 
-		#region 外键 => 导航属性，ManyToOne/OneToOne
+        #region 外键 => 导航属性，ManyToOne/OneToOne
 
-		[Navigate("ShopId, MemberId")]
-		public virtual CustomerMember CustomerMember { get; set; }
+        [Navigate("ShopId, MemberId")]
+        public virtual CustomerMember CustomerMember { get; set; }
         #endregion
 
         #region 外键 => 导航属性，ManyToMany

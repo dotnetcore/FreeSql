@@ -984,7 +984,7 @@ namespace FreeSql.Internal
                                                 fsqlWhere.Invoke(fsql, new object[] { Expression.Lambda(fsqlManyWhereExp, fsqlWhereParam) });
                                                 var sql2 = fsqlType.GetMethod("ToSql", new Type[] { typeof(string) })?.Invoke(fsql, new object[] { "1" })?.ToString();
                                                 if (string.IsNullOrEmpty(sql2) == false)
-                                                    manySubSelectExpBoy = Expression.Call(manySubSelectExpBoy, manySubSelectWhereSql, Expression.Constant($"exists({sql2.Replace("\r\n", "\r\n\t")})"), Expression.Constant(null));
+                                                    manySubSelectExpBoy = Expression.Call(manySubSelectExpBoy, manySubSelectWhereSql, Expression.Constant($"exists({sql2.Replace(" \r\n", " \r\n    ")})"), Expression.Constant(null));
                                                 MethodInfo manySubSelectAggMethod = null;
                                                 switch (exp3.Method.Name) //https://github.com/dotnetcore/FreeSql/issues/362
                                                 {
@@ -1031,12 +1031,12 @@ namespace FreeSql.Internal
                                         case "Any":
                                             var sql = fsqlType.GetMethod("ToSql", new Type[] { typeof(string) })?.Invoke(fsql, new object[] { "1" })?.ToString();
                                             if (string.IsNullOrEmpty(sql) == false)
-                                                return $"exists({sql.Replace("\r\n", "\r\n\t")})";
+                                                return $"exists({sql.Replace(" \r\n", " \r\n    ")})";
                                             break;
                                         case "Count":
                                             var sqlCount = fsqlType.GetMethod("ToSql", new Type[] { typeof(string) })?.Invoke(fsql, new object[] { "count(1)" })?.ToString();
                                             if (string.IsNullOrEmpty(sqlCount) == false)
-                                                return $"({sqlCount.Replace("\r\n", "\r\n\t")})";
+                                                return $"({sqlCount.Replace(" \r\n", " \r\n    ")})";
                                             break;
                                         case "Sum":
                                         case "Min":
@@ -1047,7 +1047,7 @@ namespace FreeSql.Internal
                                             tscClone1._tables = fsqltables;
                                             var sqlSum = fsqlType.GetMethod("ToSql", new Type[] { typeof(string) })?.Invoke(fsql, new object[] { $"{exp3.Method.Name.ToLower()}({ExpressionLambdaToSql(exp3.Arguments.FirstOrDefault(), tscClone1)})" })?.ToString();
                                             if (string.IsNullOrEmpty(sqlSum) == false)
-                                                return $"({sqlSum.Replace("\r\n", "\r\n\t")})";
+                                                return $"({sqlSum.Replace(" \r\n", " \r\n    ")})";
                                             break;
                                         case "ToList":
                                         case "ToOne":
@@ -1057,7 +1057,7 @@ namespace FreeSql.Internal
                                             tscClone2._tables = fsqltables;
                                             var sqlFirst = fsqlType.GetMethod("ToSql", new Type[] { typeof(string) })?.Invoke(fsql, new object[] { ExpressionLambdaToSql(exp3.Arguments.FirstOrDefault(), tscClone2) })?.ToString();
                                             if (string.IsNullOrEmpty(sqlFirst) == false)
-                                                return $"({sqlFirst.Replace("\r\n", "\r\n\t")})";
+                                                return $"({sqlFirst.Replace(" \r\n", " \r\n    ")})";
                                             break;
                                     }
                                 }

@@ -25,84 +25,84 @@ namespace ZX.Model {
             CheckupGroups = new List<CustomerCheckupGroup>();
         }
 
-		[JsonProperty, Column(DbType = "nvarchar(50)", IsPrimary = true)]
-		public string MemberId { get; set; }
+        [JsonProperty, Column(DbType = "nvarchar(50)", IsPrimary = true)]
+        public string MemberId { get; set; }
 
-		[JsonProperty, Column(IsPrimary = true)]
-		public short ShopId { get; set; }
+        [JsonProperty, Column(IsPrimary = true)]
+        public short ShopId { get; set; }
 
-		[JsonProperty]
-		public long? CustomerId { get => _CustomerId; set {
-			if (_CustomerId == value) return;
-			_CustomerId = value;
-		} }
-		private long? _CustomerId;
+        [JsonProperty]
+        public long? CustomerId { get => _CustomerId; set {
+            if (_CustomerId == value) return;
+            _CustomerId = value;
+        } }
+        private long? _CustomerId;
 
-		[JsonProperty, Column(DbType = "varchar(500)")]
-		public string Address { get; set; }
+        [JsonProperty, Column(DbType = "varchar(500)")]
+        public string Address { get; set; }
 
-		[JsonProperty, Column(DbType = "smalldatetime")]
-		public DateTime? Birthday { get; set; }
+        [JsonProperty, Column(DbType = "smalldatetime")]
+        public DateTime? Birthday { get; set; }
 
-		[JsonProperty, Column(DbType = "varchar(50)")]
-		public string CardNo { get; set; }
+        [JsonProperty, Column(DbType = "varchar(50)")]
+        public string CardNo { get; set; }
 
-		[JsonProperty, Column(DbType = "varchar(50)")]
-		public string CardType { get; set; }
+        [JsonProperty, Column(DbType = "varchar(50)")]
+        public string CardType { get; set; }
 
-		[JsonProperty, Column(DbType = "varchar(50)")]
-		public string Doctor { get; set; }
+        [JsonProperty, Column(DbType = "varchar(50)")]
+        public string Doctor { get; set; }
 
-		[JsonProperty]
-		public DateTime? EndDate { get; set; }
+        [JsonProperty]
+        public DateTime? EndDate { get; set; }
 
-		[JsonProperty, Column(DbType = "varchar(50)")]
-		public string Group { get; set; }
+        [JsonProperty, Column(DbType = "varchar(50)")]
+        public string Group { get; set; }
 
-		[JsonProperty, Column(DbType = "varchar(50)")]
-		public string Marry { get; set; }
+        [JsonProperty, Column(DbType = "varchar(50)")]
+        public string Marry { get; set; }
 
-		[JsonProperty, Column(DbType = "varchar(50)")]
-		public string Name { get; set; }
+        [JsonProperty, Column(DbType = "varchar(50)")]
+        public string Name { get; set; }
 
-		[JsonProperty, Column(DbType = "varchar(50)")]
-		public string Part { get; set; }
+        [JsonProperty, Column(DbType = "varchar(50)")]
+        public string Part { get; set; }
 
-		[JsonProperty, Column(DbType = "varchar(50)")]
-		public string PayType { get; set; }
+        [JsonProperty, Column(DbType = "varchar(50)")]
+        public string PayType { get; set; }
 
-		[JsonProperty, Column(DbType = "varchar(50)")]
-		public string Phone { get; set; }
+        [JsonProperty, Column(DbType = "varchar(50)")]
+        public string Phone { get; set; }
 
-		[JsonProperty, Column(DbType = "varchar(10)")]
-		public string Sex { get; set; }
+        [JsonProperty, Column(DbType = "varchar(10)")]
+        public string Sex { get; set; }
 
-		[JsonProperty]
-		public DateTime? StartDate { get; set; }
+        [JsonProperty]
+        public DateTime? StartDate { get; set; }
 
-		[JsonProperty, Column(DbType = "text")]
-		public string Suggest { get; set; }
+        [JsonProperty, Column(DbType = "text")]
+        public string Suggest { get; set; }
 
-		[JsonProperty, Column(DbType = "text")]
-		public string SumUp { get; set; }
+        [JsonProperty, Column(DbType = "text")]
+        public string SumUp { get; set; }
 
-		[JsonProperty, Column(DbType = "varchar(50)")]
-		public string Team { get; set; }
+        [JsonProperty, Column(DbType = "varchar(50)")]
+        public string Team { get; set; }
 
-		[JsonProperty, Column(DbType = "decimal(9,2)")]
-		public decimal? TotalFee { get; set; }
+        [JsonProperty, Column(DbType = "decimal(9,2)")]
+        public decimal? TotalFee { get; set; }
 
 
-		#region 外键 => 导航属性，ManyToOne/OneToOne
+        #region 外键 => 导航属性，ManyToOne/OneToOne
 
         [Navigate("MemberId,ShopId")]
         public virtual List<CustomerCheckupGroup> CheckupGroups { get; set; }
 
-		#endregion
+        #endregion
 
-		#region 外键 => 导航属性，ManyToMany
+        #region 外键 => 导航属性，ManyToMany
 
-		#endregion
-	}
+        #endregion
+    }
 
 }
