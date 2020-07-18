@@ -26,13 +26,12 @@
   </ItemGroup>
   
 	<ItemGroup>
-		<PackageReference Include="MySqlConnector" Version="0.69.4" />
+		<PackageReference Include="MySqlConnector" Version="1.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<Compile Include="../FreeSql.Provider.MySql/**/*.cs" Exclude="../FreeSql.Provider.MySql/obj/**/*" />
 	</ItemGroup>
-
 	<ItemGroup>
 	  <Compile Remove="..\FreeSql.Provider.MySql\MySqlUtils.cs" />
 	</ItemGroup>
@@ -40,5 +39,9 @@
 	<ItemGroup>
 		<ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />
 	</ItemGroup>
+
+  <PropertyGroup>
+    <DefineConstants>MySqlConnector</DefineConstants>
+  </PropertyGroup>
   
 </Project>

@@ -1,12 +1,16 @@
 ﻿using FreeSql.Internal;
 using FreeSql.Internal.Model;
-using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+#if MySqlConnector
+using MySqlConnector;
+#else
+using MySql.Data.MySqlClient;
+#endif
 
 namespace FreeSql.MySql
 {

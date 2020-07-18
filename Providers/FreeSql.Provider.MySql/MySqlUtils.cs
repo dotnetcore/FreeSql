@@ -1,6 +1,10 @@
 ﻿using FreeSql.Internal;
 using FreeSql.Internal.Model;
+#if MySqlConnector
+using MySqlConnector;
+#else
 using MySql.Data.MySqlClient;
+#endif
 using System;
 using System.Collections.Generic;
 using System.Data.Common;

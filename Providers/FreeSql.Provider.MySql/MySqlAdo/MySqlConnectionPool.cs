@@ -1,5 +1,4 @@
-﻿using MySql.Data.MySqlClient;
-using FreeSql.Internal.ObjectPool;
+﻿using FreeSql.Internal.ObjectPool;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -7,6 +6,11 @@ using System.Data;
 using System.Data.Common;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+#if MySqlConnector
+using MySqlConnector;
+#else
+using MySql.Data.MySqlClient;
+#endif
 
 namespace FreeSql.MySql
 {

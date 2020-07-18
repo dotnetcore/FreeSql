@@ -1,9 +1,13 @@
 ﻿using FreeSql;
-using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+#if MySqlConnector
+using MySqlConnector;
+#else
+using MySql.Data.MySqlClient;
+#endif
 
 public static class FreeSqlMySqlConnectorGlobalExtensions
 {
