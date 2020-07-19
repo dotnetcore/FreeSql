@@ -2,6 +2,7 @@
 using FreeSql.DataAnnotations;
 using FreeSql.DatabaseModel;
 using FreeSql.Internal.CommonProvider;
+using MySqlConnector;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -47,7 +48,7 @@ public class RazorModel {
 
 	public string GetCsType(DbColumnInfo col) {
 		if (fsql.Ado.DataType == FreeSql.DataType.MySql)
-			if (col.DbType == (int)MySql.Data.MySqlClient.MySqlDbType.Enum || col.DbType == (int)MySql.Data.MySqlClient.MySqlDbType.Set)
+			if (col.DbType == (int)MySqlDbType.Enum || col.DbType == (int)MySqlDbType.Set)
 				return $"{this.GetCsName(this.FullTableName)}{this.GetCsName(col.Name).ToUpper()}{(col.IsNullable ? "?" : "")}";
 		return fsql.DbFirst.GetCsType(col);
 	}
@@ -243,7 +244,7 @@ public class RazorModel {
 		if (cstype == typeof(string)) return isInsertValueSql ? (fsql.Select<TestTb>() as Select0Provider)._commonUtils.FormatSql("{0}", defval) : $"\"{defval.Replace("\r\n", "\\r\\n").Replace("\"", "\\\"")}\"";
 		if (cstype == typeof(bool)) return isInsertValueSql ? defval : (defval == "1" || defval == "t" ? "true" : "false");
 		if (fsql.Ado.DataType == DataType.MySql || fsql.Ado.DataType == DataType.OdbcMySql)
-			if (col.DbType == (int)MySql.Data.MySqlClient.MySqlDbType.Enum || col.DbType == (int)MySql.Data.MySqlClient.MySqlDbType.Set)
+			if (col.DbType == (int)MySqlDbType.Enum || col.DbType == (int)MySqlDbType.Set)
 				if (isInsertValueSql) return (fsql.Select<TestTb>() as Select0Provider)._commonUtils.FormatSql("{0}", defval);
 		return isInsertValueSql ? defval : null; //sql function or exp
 	}
@@ -255,10 +256,10 @@ public class RazorModel {
 		if (fsql.Ado.DataType != FreeSql.DataType.MySql && fsql.Ado.DataType != FreeSql.DataType.OdbcMySql) return null;
 		var sb = new StringBuilder();
 		foreach (var col in table.Columns) {
-			if (col.DbType == (int)MySql.Data.MySqlClient.MySqlDbType.Enum || col.DbType == (int)MySql.Data.MySqlClient.MySqlDbType.Set) {
-				if (col.DbType == (int)MySql.Data.MySqlClient.MySqlDbType.Set) sb.Append("\r\n\t[Flags]");
+			if (col.DbType == (int)MySqlDbType.Enum || col.DbType == (int)MySqlDbType.Set) {
+				if (col.DbType == (int)MySqlDbType.Set) sb.Append("\r\n\t[Flags]");
 				sb.Append($"\r\n\tpublic enum {this.GetCsName(this.FullTableName)}{this.GetCsName(col.Name).ToUpper()}");
-				if (col.DbType == (int)MySql.Data.MySqlClient.MySqlDbType.Set) sb.Append(" : long");
+				if (col.DbType == (int)MySqlDbType.Set) sb.Append(" : long");
 				sb.Append(" {\r\n\t\t");
 
 				string slkdgjlksdjg = "";
@@ -289,9 +290,9 @@ public class RazorModel {
 /// </summary>
 [Description(""{0}"")]
 Unknow{1}", str2.Replace("\"", "\\\""), ++unknow_idx);
-							if (col.DbType == (int)MySql.Data.MySqlClient.MySqlDbType.Set)
+							if (col.DbType == (int)MySqlDbType.Set)
 								slkdgjlksdjg += " = " + Math.Pow(2, field_idx++);
-							if (col.DbType == (int)MySql.Data.MySqlClient.MySqlDbType.Enum && field_idx++ == 0)
+							if (col.DbType == (int)MySqlDbType.Enum && field_idx++ == 0)
 								slkdgjlksdjg += " = 1";
 							break;
 						}

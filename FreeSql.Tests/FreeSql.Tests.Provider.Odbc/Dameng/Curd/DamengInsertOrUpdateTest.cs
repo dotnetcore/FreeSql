@@ -154,6 +154,7 @@ WHEN NOT MATCHED THEN
             public int id { get; set; }
             public string name { get; set; }
         }
+        [Fact]
         public void InsertOrUpdate_OnePrimaryAndIdentity()
         {
             fsql.Delete<tbiou022>().Where("1=1").ExecuteAffrows();

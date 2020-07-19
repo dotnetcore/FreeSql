@@ -174,7 +174,7 @@ namespace FreeSql.Tests.ShenTongExpression
             public TableAllTypeEnumType2 testFieldEnum2 { get; set; }
             public TableAllTypeEnumType2? testFieldEnum2Nullable { get; set; }
 
-            ///* array */
+            //* array */
             //public bool[] testFieldBoolArray { get; set; }
             //public sbyte[] testFieldSByteArray { get; set; }
             //public short[] testFieldShortArray { get; set; }
