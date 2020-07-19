@@ -28,7 +28,7 @@ FreeSql 是功能强大的对象关系映射技术(O/RM)，支持 .NETCore 2.1+ 
 - 要么[FreeSql.DbContext](https://github.com/2881099/FreeSql/wiki/DbContext)，有点像efcore的使用习惯；
 - 要么[FreeSql.BaseEntity](https://github.com/2881099/FreeSql/tree/master/Examples/base_entity)，求简单使用这个；
 
-> 学习项目
+> 示范项目
 
 - [iusaas.com SaaS 企业应用管理系统](https://github.com/alonsoalon/TenantSite.Server)
 - [zhontai.net Admin 后台管理系统](https://github.com/zhontai/Admin.Core)
