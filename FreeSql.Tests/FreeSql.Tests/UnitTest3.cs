@@ -433,8 +433,12 @@ namespace FreeSql.Tests
                     new SendInfo{ Code = "002", Binary = Encoding.UTF8.GetBytes("我是地球人") },
                     new SendInfo{ Code = "003", Binary = Encoding.UTF8.GetBytes("我是.net")},
                     new SendInfo{ Code = "004", Binary = Encoding.UTF8.GetBytes("我是freesql") },
+                    new SendInfo{ Code = "005", Binary = Encoding.UTF8.GetBytes("我是freesql233") },
                 })
-                .NoneParameter().ExecuteAffrows();
+                .NoneParameter()
+                .BatchOptions(3, 200)
+                .BatchProgress(a => Trace.WriteLine($"{a.Current}/{a.Total}"))
+                .ExecuteAffrows();
 
             var slslsl = g.oracle.Select<SendInfo>().ToList();
 

@@ -26,6 +26,7 @@ namespace FreeSql.Internal.CommonProvider
         public bool _noneParameter, _insertIdentity;
         public int _batchValuesLimit, _batchParameterLimit;
         public bool _batchAutoTransaction = true;
+        public Action<BatchProgressStatus<T1>> _batchProgress;
         public DbParameter[] _params;
         public DbTransaction _transaction;
         public DbConnection _connection;
@@ -55,6 +56,7 @@ namespace FreeSql.Internal.CommonProvider
         {
             _batchValuesLimit = _batchParameterLimit = 0;
             _batchAutoTransaction = true;
+            _batchProgress = null;
             _insertIdentity = false;
             _source.Clear();
             _ignore.Clear();
@@ -93,6 +95,12 @@ namespace FreeSql.Internal.CommonProvider
             _batchValuesLimit = valuesLimit;
             _batchParameterLimit = parameterLimit;
             _batchAutoTransaction = autoTransaction;
+            return this;
+        }
+
+        public IInsert<T1> BatchProgress(Action<BatchProgressStatus<T1>> callback)
+        {
+            _batchProgress = callback;
             return this;
         }
 
@@ -204,6 +212,7 @@ namespace FreeSql.Internal.CommonProvider
             }
             if (ss.Length == 1)
             {
+                _batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, 1, 1));
                 ret = this.RawExecuteAffrows();
                 ClearData();
                 return ret;
@@ -221,6 +230,7 @@ namespace FreeSql.Internal.CommonProvider
                     for (var a = 0; a < ss.Length; a++)
                     {
                         _source = ss[a];
+                        _batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, a + 1, ss.Length));
                         ret += this.RawExecuteAffrows();
                     }
                 }
@@ -236,6 +246,7 @@ namespace FreeSql.Internal.CommonProvider
                             for (var a = 0; a < ss.Length; a++)
                             {
                                 _source = ss[a];
+                                _batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, a + 1, ss.Length));
                                 ret += this.RawExecuteAffrows();
                             }
                             _transaction.Commit();
@@ -276,6 +287,7 @@ namespace FreeSql.Internal.CommonProvider
             }
             if (ss.Length == 1)
             {
+                _batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, 1, 1));
                 ret = this.RawExecuteIdentity();
                 ClearData();
                 return ret;
@@ -293,6 +305,7 @@ namespace FreeSql.Internal.CommonProvider
                     for (var a = 0; a < ss.Length; a++)
                     {
                         _source = ss[a];
+                        _batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, a + 1, ss.Length));
                         if (a < ss.Length - 1) this.RawExecuteAffrows();
                         else ret = this.RawExecuteIdentity();
                     }
@@ -309,6 +322,7 @@ namespace FreeSql.Internal.CommonProvider
                             for (var a = 0; a < ss.Length; a++)
                             {
                                 _source = ss[a];
+                                _batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, a + 1, ss.Length));
                                 if (a < ss.Length - 1) this.RawExecuteAffrows();
                                 else ret = this.RawExecuteIdentity();
                             }
@@ -350,6 +364,7 @@ namespace FreeSql.Internal.CommonProvider
             }
             if (ss.Length == 1)
             {
+                _batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, 1, 1));
                 ret = this.RawExecuteInserted();
                 ClearData();
                 return ret;
@@ -367,6 +382,7 @@ namespace FreeSql.Internal.CommonProvider
                     for (var a = 0; a < ss.Length; a++)
                     {
                         _source = ss[a];
+                        _batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, a + 1, ss.Length));
                         ret.AddRange(this.RawExecuteInserted());
                     }
                 }
@@ -382,6 +398,7 @@ namespace FreeSql.Internal.CommonProvider
                             for (var a = 0; a < ss.Length; a++)
                             {
                                 _source = ss[a];
+                                _batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, a + 1, ss.Length));
                                 ret.AddRange(this.RawExecuteInserted());
                             }
                             _transaction.Commit();

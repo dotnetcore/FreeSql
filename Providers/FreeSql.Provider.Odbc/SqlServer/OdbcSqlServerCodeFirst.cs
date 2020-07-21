@@ -1,8 +1,10 @@
 ﻿using FreeSql.Internal;
 using FreeSql.Internal.Model;
+using FreeSql.Internal.ObjectPool;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Data.Odbc;
 using System.Linq;
 using System.Text;
@@ -134,30 +136,15 @@ ELSE
         }
         protected override string GetComparisonDDLStatements(params TypeAndName[] objects)
         {
-            var conn = _orm.Ado.MasterPool.Get(TimeSpan.FromSeconds(5));
+            Object<DbConnection> conn = null;
             string database = null;
+
             try
             {
+                conn = _orm.Ado.MasterPool.Get(TimeSpan.FromSeconds(5));
                 database = conn.Value.Database;
-                Func<string, string, object> ExecuteScalar = (db, sql) =>
-                {
-                    if (string.Compare(database, db) != 0) conn.Value.ChangeDatabase(db);
-                    try
-                    {
-                        using (var cmd = conn.Value.CreateCommand())
-                        {
-                            cmd.CommandText = sql;
-                            cmd.CommandType = CommandType.Text;
-                            return cmd.ExecuteScalar();
-                        }
-                    }
-                    finally
-                    {
-                        if (string.Compare(database, db) != 0) conn.Value.ChangeDatabase(database);
-                    }
-                };
-                var sb = new StringBuilder();
 
+                var sb = new StringBuilder();
                 foreach (var obj in objects)
                 {
                     if (sb.Length > 0) sb.Append("\r\n");
@@ -184,20 +171,20 @@ ELSE
                     }
                     //codefirst 不支持表名、模式名、数据库名中带 .
 
-                    if (string.Compare(tbname[0], database, true) != 0 && ExecuteScalar(database, $" select 1 from sys.databases where name='{tbname[0]}'") == null) //创建数据库
-                        ExecuteScalar(database, $"if not exists(select 1 from sys.databases where name='{tbname[0]}')\r\n\tcreate database [{tbname[0]}];");
-                    if (string.Compare(tbname[1], "dbo", true) != 0 && ExecuteScalar(tbname[0], $" select 1 from sys.schemas where name='{tbname[1]}'") == null) //创建模式
-                        ExecuteScalar(tbname[0], $"create schema [{tbname[1]}] authorization [dbo]");
+                    if (string.Compare(tbname[0], database, true) != 0 && LocalExecuteScalar(database, $" select 1 from sys.databases where name='{tbname[0]}'") == null) //创建数据库
+                        LocalExecuteScalar(database, $"if not exists(select 1 from sys.databases where name='{tbname[0]}')\r\n\tcreate database [{tbname[0]}];");
+                    if (string.Compare(tbname[1], "dbo", true) != 0 && LocalExecuteScalar(tbname[0], $" select 1 from sys.schemas where name='{tbname[1]}'") == null) //创建模式
+                        LocalExecuteScalar(tbname[0], $"create schema [{tbname[1]}] authorization [dbo]");
 
                     var sbalter = new StringBuilder();
                     var istmpatler = false; //创建临时表，导入数据，删除旧表，修改
-                    if (ExecuteScalar(tbname[0], $" select 1 from dbo.sysobjects where id = object_id(N'[{tbname[1]}].[{tbname[2]}]') and OBJECTPROPERTY(id, N'IsUserTable') = 1") == null)
+                    if (LocalExecuteScalar(tbname[0], $" select 1 from dbo.sysobjects where id = object_id(N'[{tbname[1]}].[{tbname[2]}]') and OBJECTPROPERTY(id, N'IsUserTable') = 1") == null)
                     { //表不存在
                         if (tboldname != null)
                         {
-                            if (string.Compare(tboldname[0], tbname[0], true) != 0 && ExecuteScalar(database, $" select 1 from sys.databases where name='{tboldname[0]}'") == null ||
-                                string.Compare(tboldname[1], tbname[1], true) != 0 && ExecuteScalar(tboldname[0], $" select 1 from sys.schemas where name='{tboldname[1]}'") == null ||
-                                ExecuteScalar(tboldname[0], $" select 1 from dbo.sysobjects where id = object_id(N'[{tboldname[1]}].[{tboldname[2]}]') and OBJECTPROPERTY(id, N'IsUserTable') = 1") == null)
+                            if (string.Compare(tboldname[0], tbname[0], true) != 0 && LocalExecuteScalar(database, $" select 1 from sys.databases where name='{tboldname[0]}'") == null ||
+                                string.Compare(tboldname[1], tbname[1], true) != 0 && LocalExecuteScalar(tboldname[0], $" select 1 from sys.schemas where name='{tboldname[1]}'") == null ||
+                                LocalExecuteScalar(tboldname[0], $" select 1 from dbo.sysobjects where id = object_id(N'[{tboldname[1]}].[{tboldname[2]}]') and OBJECTPROPERTY(id, N'IsUserTable') = 1") == null)
                                 //数据库或模式或表不存在
                                 tboldname = null;
                         }
@@ -475,6 +462,24 @@ use [" + database + "];", tboldname ?? tbname);
                 catch
                 {
                     _orm.Ado.MasterPool.Return(conn, true);
+                }
+            }
+
+            object LocalExecuteScalar(string db, string sql)
+            {
+                if (string.Compare(database, db) != 0) conn.Value.ChangeDatabase(db);
+                try
+                {
+                    using (var cmd = conn.Value.CreateCommand())
+                    {
+                        cmd.CommandText = sql;
+                        cmd.CommandType = CommandType.Text;
+                        return cmd.ExecuteScalar();
+                    }
+                }
+                finally
+                {
+                    if (string.Compare(database, db) != 0) conn.Value.ChangeDatabase(database);
                 }
             }
         }

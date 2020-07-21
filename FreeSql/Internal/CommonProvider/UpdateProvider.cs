@@ -32,6 +32,7 @@ namespace FreeSql.Internal.CommonProvider
         public bool _noneParameter;
         public int _batchRowsLimit, _batchParameterLimit;
         public bool _batchAutoTransaction = true;
+        public Action<BatchProgressStatus<T1>> _batchProgress;
         public DbTransaction _transaction;
         public DbConnection _connection;
 
@@ -101,6 +102,12 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
 
+        public IUpdate<T1> BatchProgress(Action<BatchProgressStatus<T1>> callback)
+        {
+            _batchProgress = callback;
+            return this;
+        }
+
         protected void ValidateVersionAndThrow(int affrows)
         {
             if (_table.VersionColumn != null && _source.Count > 0)
@@ -144,6 +151,7 @@ namespace FreeSql.Internal.CommonProvider
             var ret = 0;
             if (ss.Length <= 1)
             {
+                if (_source?.Any() == true) _batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, 1, 1));
                 ret = this.RawExecuteAffrows();
                 ClearData();
                 return ret;
@@ -161,6 +169,7 @@ namespace FreeSql.Internal.CommonProvider
                     for (var a = 0; a < ss.Length; a++)
                     {
                         _source = ss[a];
+                        _batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, a + 1, ss.Length));
                         ret += this.RawExecuteAffrows();
                     }
                 }
@@ -176,6 +185,7 @@ namespace FreeSql.Internal.CommonProvider
                             for (var a = 0; a < ss.Length; a++)
                             {
                                 _source = ss[a];
+                                _batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, a + 1, ss.Length));
                                 ret += this.RawExecuteAffrows();
                             }
                             _transaction.Commit();
@@ -211,6 +221,7 @@ namespace FreeSql.Internal.CommonProvider
             var ret = new List<T1>();
             if (ss.Length <= 1)
             {
+                if (_source?.Any() == true) _batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, 1, 1));
                 ret = this.RawExecuteUpdated();
                 ClearData();
                 return ret;
@@ -228,6 +239,7 @@ namespace FreeSql.Internal.CommonProvider
                     for (var a = 0; a < ss.Length; a++)
                     {
                         _source = ss[a];
+                        _batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, a + 1, ss.Length));
                         ret.AddRange(this.RawExecuteUpdated());
                     }
                 }
@@ -243,6 +255,7 @@ namespace FreeSql.Internal.CommonProvider
                             for (var a = 0; a < ss.Length; a++)
                             {
                                 _source = ss[a];
+                                _batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, a + 1, ss.Length));
                                 ret.AddRange(this.RawExecuteUpdated());
                             }
                             _transaction.Commit();

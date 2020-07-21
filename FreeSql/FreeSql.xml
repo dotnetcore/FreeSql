@@ -1069,9 +1069,16 @@
             Sqlite 5000 999<para></para>
             若没有事务传入，内部(默认)会自动开启新事务，保证拆包执行的完整性。
             </summary>
-            <param name="valuesLimit">指定根据 values 数量拆分执行</param>
-            <param name="parameterLimit">指定根据 parameters 数量拆分执行</param>
+            <param name="valuesLimit">指定根据 values 上限数量拆分执行</param>
+            <param name="parameterLimit">指定根据 parameters 上限数量拆分执行</param>
             <param name="autoTransaction">是否自动开启事务</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IInsert`1.BatchProgress(System.Action{FreeSql.Internal.Model.BatchProgressStatus{`0}})">
+            <summary>
+            批量执行时，分批次执行的进度状态
+            </summary>
+            <param name="callback">批量执行时的回调委托</param>
             <returns></returns>
         </member>
         <member name="M:FreeSql.IInsert`1.AsTable(System.Func{System.String,System.String})">
@@ -2142,9 +2149,16 @@
             Sqlite 200 999<para></para>
             若没有事务传入，内部(默认)会自动开启新事务，保证拆包执行的完整性。
             </summary>
-            <param name="rowsLimit">指定根据 rows 数量拆分执行</param>
-            <param name="parameterLimit">指定根据 parameters 数量拆分执行</param>
+            <param name="rowsLimit">指定根据 rows 上限数量拆分执行</param>
+            <param name="parameterLimit">指定根据 parameters 上限数量拆分执行</param>
             <param name="autoTransaction">是否自动开启事务</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IUpdate`1.BatchProgress(System.Action{FreeSql.Internal.Model.BatchProgressStatus{`0}})">
+            <summary>
+            批量执行时，分批次执行的进度状态
+            </summary>
+            <param name="callback">批量执行时的回调委托</param>
             <returns></returns>
         </member>
         <member name="M:FreeSql.IUpdate`1.SetSource(`0)">
@@ -2919,89 +2933,104 @@
             转大写同步结构，适用 Oracle/达梦/人大金仓
             </summary>
         </member>
-        <member name="P:FreeSql.ICodeFirst.IsConfigEntityFromDbFirst">
-            <summary>
-            将数据库的主键、自增、索引设置导入，适用 DbFirst 模式，无须在实体类型上设置 [Column(IsPrimary)] 或者 ConfigEntity。此功能目前可用于 mysql/sqlserver/postgresql/oracle。<para></para>
-            本功能会影响 IFreeSql 首次访问的速度。<para></para>
-            若使用 CodeFirst 创建索引后，又直接在数据库上建了索引，若无本功能下一次 CodeFirst 迁移时数据库上创建的索引将被删除
+        <member name="P:Fre        获取c#类型，int、long
             </summary>
-        </member>
-        <member name="P:FreeSql.ICodeFirst.IsNoneCommandParameter">
-            <summary>
-            不使用命令参数化执行，针对 Insert/Update
-            </summary>
-        </member>
-        <member name="P:FreeSql.ICodeFirst.IsGenerateCommandParameterWithLambda">
-            <summary>
-            是否生成命令参数化执行，针对 lambda 表达式解析<para></para>
-            注意：常量不会参数化，变量才会做参数化<para></para>
-            var id = 100;
-            fsql.Select&lt;T&gt;().Where(a => a.id == id) 会参数化<para></para>
-            fsql.Select&lt;T&gt;().Where(a => a.id == 100) 不会参数化
-            </summary>
-        </member>
-        <member name="P:FreeSql.ICodeFirst.IsLazyLoading">
-            <summary>
-            延时加载导航属性对象，导航属性需要声明 virtual
-            </summary>
-        </member>
-        <member name="M:FreeSql.ICodeFirst.GetComparisonDDLStatements``1">
-            <summary>
-            将实体类型与数据库对比，返回DDL语句
-            </summary>
-            <typeparam name="TEntity"></typeparam>
+            <param name="column"></param>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.ICodeFirst.GetComparisonDDLStatements(System.Type[])">
+        <member name="M:FreeSql.IDbFirst.GetCsTypeInfo(FreeSql.DatabaseModel.DbColumnInfo)">
             <summary>
-            将实体类型集合与数据库对比，返回DDL语句
+            获取c#类型对象
             </summary>
-            <param name="entityTypes">实体类型</param>
+            <param name="column"></param>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.ICodeFirst.GetComparisonDDLStatements(System.Type,System.String)">
+        <member name="M:FreeSql.IDbFirst.GetDataReaderMethod(FreeSql.DatabaseModel.DbColumnInfo)">
             <summary>
-            将实体类型与数据库对比，返回DDL语句（指定表名）
+            获取ado.net读取方法, GetBoolean、GetInt64
             </summary>
-            <param name="entityType">实体类型</param>
-            <param name="tableName">指定表名对比</param>
+            <param name="column"></param>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.ICodeFirst.SyncStructure``1">
+        <member name="M:FreeSql.IDbFirst.GetCsStringify(FreeSql.DatabaseModel.DbColumnInfo)">
             <summary>
-            同步实体类型到数据库<para></para>
-            注意：生产环境中谨慎使用
+            序列化
             </summary>
-            <typeparam name="TEntity"></typeparam>
+            <param name="column"></param>
+            <returns></returns>
         </member>
-        <member name="M:FreeSql.ICodeFirst.SyncStructure(System.Type[])">
+        <member name="M:FreeSql.IDbFirst.GetCsParse(FreeSql.DatabaseModel.DbColumnInfo)">
             <summary>
-            同步实体类型集合到数据库<para></para>
-            注意：生产环境中谨慎使用
+            反序列化
             </summary>
-            <param name="entityTypes"></param>
+            <param name="column"></param>
+            <returns></returns>
         </member>
-        <member name="M:FreeSql.ICodeFirst.SyncStructure(System.Type,System.String)">
+        <member name="M:FreeSql.IDbFirst.GetEnumsByDatabase(System.String[])">
             <summary>
-            同步实体类型到数据库（指定表名）<para></para>
-            注意：生产环境中谨慎使用
+            获取数据库枚举类型，适用 PostgreSQL
             </summary>
-            <param name="entityType">实体类型</param>
-            <param name="tableName">指定表名对比</param>
+            <param name="database"></param>
+            <returns></returns>
         </member>
-        <member name="M:FreeSql.ICodeFirst.GetDbInfo(System.Type)">
+        <member name="M:FreeSql.Internal.CommonProvider.InsertOrUpdateProvider`1.SplitSourceByIdentityValueIsNull(System.Collections.Generic.List{`0})">
             <summary>
-            根据 System.Type 获取数据库信息
+            如果实体类有自增属性，分成两个 List，有值的Item1 merge，无值的Item2 insert
+            </summary>
+            <param name="source"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.Internal.CommonProvider.InsertProvider`1.IgnoreCanInsert">
+            <summary>
+            AsType, Ctor, ClearData 三处地方需要重新加载
+            </summary>
+        </member>
+        <member name="M:FreeSql.Internal.CommonProvider.UpdateProvider`1.IgnoreCanUpdate">
+            <summary>
+            AsType, Ctor, ClearData 三处地方需要重新加载
+            </summary>
+        </member>
+        <member name="M:FreeSql.Internal.CommonUtils.GetPropertyCommentByDescriptionAttribute(System.Type)">
+            <summary>
+            动态读取 DescriptionAttribute 注释文本
             </summary>
             <param name="type"></param>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.ICodeFirst.ConfigEntity``1(System.Action{FreeSql.DataAnnotations.TableFluent{``0}})">
+        <member name="M:FreeSql.Internal.CommonUtils.GetProperyCommentBySummary(System.Type)">
             <summary>
-            FreeSql FluentApi 配置实体，方法名与特性相同
+            通过属性的注释文本，通过 xml 读取
             </summary>
-            <typeparam name="T"></typeparam>
-            <param name="entity"></param>
+            <param name="type"></param>
+            <returns>Dict：key=属性名，value=注释</returns>
+        </member>
+        <member name="M:FreeSql.Internal.GlobalFilter.Apply``1(System.String,System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})">
+            <summary>
+            创建一个过滤器
+            </summary>
+            <typeparam name="TEntity"></typeparam>
+            <param name="name">名字</param>
+            <param name="where">表达式</param>
+            <returns></returns>
+        </member>
+        <member name="P:FreeSql.Internal.Model.BatchProgressStatus`1.Data">
+            <summary>
+            当前操作的数据
+            </summary>
+        </member>
+        <member name="P:FreeSql.Internal.Model.BatchProgressStatus`1.Current">
+            <summary>
+            当前批次
+            </summary>
+        </member>
+        <member name="P:FreeSql.Internal.Model.BatchProgressStatus`1.Total">
+            <summary>
+            总批次数量
+            </summary>
+        </member>
+        <member name="T:FreeSql.Internal.Model.DynamicFilterInfo">
+            <summary>
+            �me="entity"></param>
             <returns></returns>
         </member>
         <member name="M:FreeSql.ICodeFirst.ConfigEntity(System.Type,System.Action{FreeSql.DataAnnotations.TableFluent})">
@@ -3141,6 +3170,21 @@
             <param name="name">名字</param>
             <param name="where">表达式</param>
             <returns></returns>
+        </member>
+        <member name="P:FreeSql.Internal.Model.BatchProgressStatus`1.Data">
+            <summary>
+            当前操作的数据
+            </summary>
+        </member>
+        <member name="P:FreeSql.Internal.Model.BatchProgressStatus`1.Current">
+            <summary>
+            当前批次
+            </summary>
+        </member>
+        <member name="P:FreeSql.Internal.Model.BatchProgressStatus`1.Total">
+            <summary>
+            总批次数量
+            </summary>
         </member>
         <member name="T:FreeSql.Internal.Model.DynamicFilterInfo">
             <summary>

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FreeSql.Internal.Model;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -91,11 +92,18 @@ namespace FreeSql
         /// Sqlite 5000 999<para></para>
         /// 若没有事务传入，内部(默认)会自动开启新事务，保证拆包执行的完整性。
         /// </summary>
-        /// <param name="valuesLimit">指定根据 values 数量拆分执行</param>
-        /// <param name="parameterLimit">指定根据 parameters 数量拆分执行</param>
+        /// <param name="valuesLimit">指定根据 values 上限数量拆分执行</param>
+        /// <param name="parameterLimit">指定根据 parameters 上限数量拆分执行</param>
         /// <param name="autoTransaction">是否自动开启事务</param>
         /// <returns></returns>
         IInsert<T1> BatchOptions(int valuesLimit, int parameterLimit, bool autoTransaction = true);
+
+        /// <summary>
+        /// 批量执行时，分批次执行的进度状态
+        /// </summary>
+        /// <param name="callback">批量执行时的回调委托</param>
+        /// <returns></returns>
+        IInsert<T1> BatchProgress(Action<BatchProgressStatus<T1>> callback);
 
         /// <summary>
         /// 设置表名规则，可用于分库/分表，参数1：默认表名；返回值：新表名；

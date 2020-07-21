@@ -6,6 +6,8 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Data.Common;
+using FreeSql.Internal.ObjectPool;
 #if MySqlConnector
 using MySqlConnector;
 #else
@@ -85,28 +87,15 @@ namespace FreeSql.MySql
 
         protected override string GetComparisonDDLStatements(params TypeAndName[] objects)
         {
-            var conn = _orm.Ado.MasterPool.Get(TimeSpan.FromSeconds(5));
-            var database = conn.Value.Database;
-            Func<string, string, object> ExecuteScalar = (db, sql) =>
-            {
-                if (string.Compare(database, db) != 0) conn.Value.ChangeDatabase(db);
-                try
-                {
-                    using (var cmd = conn.Value.CreateCommand())
-                    {
-                        cmd.CommandText = sql;
-                        cmd.CommandType = CommandType.Text;
-                        return cmd.ExecuteScalar();
-                    }
-                }
-                finally
-                {
-                    if (string.Compare(database, db) != 0) conn.Value.ChangeDatabase(database);
-                }
-            };
-            var sb = new StringBuilder();
+            Object<DbConnection> conn = null;
+            string database = null;
+            
             try
             {
+                conn = _orm.Ado.MasterPool.Get(TimeSpan.FromSeconds(5));
+                database = conn.Value.Database;
+
+                var sb = new StringBuilder();
                 foreach (var obj in objects)
                 {
                     if (sb.Length > 0) sb.Append("\r\n");
@@ -129,17 +118,17 @@ namespace FreeSql.MySql
                         }
                     }
 
-                    if (string.Compare(tbname[0], database, true) != 0 && ExecuteScalar(database, _commonUtils.FormatSql(" select 1 from information_schema.schemata where schema_name={0}", tbname[0])) == null) //创建数据库
+                    if (string.Compare(tbname[0], database, true) != 0 && LocalExecuteScalar(database, _commonUtils.FormatSql(" select 1 from information_schema.schemata where schema_name={0}", tbname[0])) == null) //创建数据库
                         sb.Append($"CREATE DATABASE IF NOT EXISTS ").Append(_commonUtils.QuoteSqlName(tbname[0])).Append(" default charset utf8 COLLATE utf8_general_ci;\r\n");
 
                     var sbalter = new StringBuilder();
                     var istmpatler = false; //创建临时表，导入数据，删除旧表，修改
-                    if (ExecuteScalar(tbname[0], _commonUtils.FormatSql(" SELECT 1 FROM information_schema.TABLES WHERE table_schema={0} and table_name={1}", tbname)) == null)
+                    if (LocalExecuteScalar(tbname[0], _commonUtils.FormatSql(" SELECT 1 FROM information_schema.TABLES WHERE table_schema={0} and table_name={1}", tbname)) == null)
                     { //表不存在
                         if (tboldname != null)
                         {
-                            if (string.Compare(tboldname[0], tbname[0], true) != 0 && ExecuteScalar(database, _commonUtils.FormatSql(" select 1 from information_schema.schemata where schema_name={0}", tboldname[0])) == null ||
-                                ExecuteScalar(tboldname[0], _commonUtils.FormatSql(" SELECT 1 FROM information_schema.TABLES WHERE table_schema={0} and table_name={1}", tboldname)) == null)
+                            if (string.Compare(tboldname[0], tbname[0], true) != 0 && LocalExecuteScalar(database, _commonUtils.FormatSql(" select 1 from information_schema.schemata where schema_name={0}", tboldname[0])) == null ||
+                                LocalExecuteScalar(tboldname[0], _commonUtils.FormatSql(" SELECT 1 FROM information_schema.TABLES WHERE table_schema={0} and table_name={1}", tboldname)) == null)
                                 //数据库或表不存在
                                 tboldname = null;
                         }
@@ -222,7 +211,7 @@ where a.table_schema in ({0}) and a.table_name in ({1})", tboldname ?? tbname);
 
                     if (istmpatler == false)
                     {
-                        var existsPrimary = ExecuteScalar(tbname[0], _commonUtils.FormatSql(" select 1 from information_schema.key_column_usage where table_schema={0} and table_name={1} and constraint_name = 'PRIMARY' limit 1", tbname));
+                        var existsPrimary = LocalExecuteScalar(tbname[0], _commonUtils.FormatSql(" select 1 from information_schema.key_column_usage where table_schema={0} and table_name={1} and constraint_name = 'PRIMARY' limit 1", tbname));
                         foreach (var tbcol in tb.ColumnsByPosition)
                         {
                             var isIdentityChanged = tbcol.Attribute.IsIdentity == true && tbcol.Attribute.DbType.IndexOf("AUTO_INCREMENT", StringComparison.CurrentCultureIgnoreCase) == -1;
@@ -385,12 +374,31 @@ where a.table_schema IN ({0}) and a.table_name IN ({1}) and a.index_name <> 'PRI
             {
                 try
                 {
-                    conn.Value.ChangeDatabase(database);
+                    if (string.IsNullOrEmpty(database) == false)
+                        conn.Value.ChangeDatabase(database);
                     _orm.Ado.MasterPool.Return(conn);
                 }
                 catch
                 {
                     _orm.Ado.MasterPool.Return(conn, true);
+                }
+            }
+
+            object LocalExecuteScalar(string db, string sql)
+            {
+                if (string.Compare(database, db) != 0) conn.Value.ChangeDatabase(db);
+                try
+                {
+                    using (var cmd = conn.Value.CreateCommand())
+                    {
+                        cmd.CommandText = sql;
+                        cmd.CommandType = CommandType.Text;
+                        return cmd.ExecuteScalar();
+                    }
+                }
+                finally
+                {
+                    if (string.Compare(database, db) != 0) conn.Value.ChangeDatabase(database);
                 }
             }
         }

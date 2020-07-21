@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FreeSql.Internal.Model;
+using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq.Expressions;
@@ -39,11 +40,18 @@ namespace FreeSql
         /// Sqlite 200 999<para></para>
         /// 若没有事务传入，内部(默认)会自动开启新事务，保证拆包执行的完整性。
         /// </summary>
-        /// <param name="rowsLimit">指定根据 rows 数量拆分执行</param>
-        /// <param name="parameterLimit">指定根据 parameters 数量拆分执行</param>
+        /// <param name="rowsLimit">指定根据 rows 上限数量拆分执行</param>
+        /// <param name="parameterLimit">指定根据 parameters 上限数量拆分执行</param>
         /// <param name="autoTransaction">是否自动开启事务</param>
         /// <returns></returns>
         IUpdate<T1> BatchOptions(int rowsLimit, int parameterLimit, bool autoTransaction = true);
+
+        /// <summary>
+        /// 批量执行时，分批次执行的进度状态
+        /// </summary>
+        /// <param name="callback">批量执行时的回调委托</param>
+        /// <returns></returns>
+        IUpdate<T1> BatchProgress(Action<BatchProgressStatus<T1>> callback);
 
         /// <summary>
         /// 更新数据，设置更新的实体
