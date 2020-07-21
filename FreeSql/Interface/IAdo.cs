@@ -58,21 +58,21 @@ namespace FreeSql
         /// <summary>
         /// 查询，若使用读写分离，查询【从库】条件cmdText.StartsWith("SELECT ")，否则查询【主库】
         /// </summary>
-        /// <param name="readerHander"></param>
+        /// <param name="fetchHandler"></param>
         /// <param name="cmdType"></param>
         /// <param name="cmdText"></param>
         /// <param name="cmdParms"></param>
-        void ExecuteReader(Action<DbDataReader> readerHander, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-        void ExecuteReader(DbTransaction transaction, Action<DbDataReader> readerHander, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-        void ExecuteReader(DbConnection connection, DbTransaction transaction, Action<DbDataReader> readerHander, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+        void ExecuteReader(Action<FetchCallbackArgs<DbDataReader>> fetchHandler, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+        void ExecuteReader(DbTransaction transaction, Action<FetchCallbackArgs<DbDataReader>> fetchHandler, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+        void ExecuteReader(DbConnection connection, DbTransaction transaction, Action<FetchCallbackArgs<DbDataReader>> fetchHandler, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
         /// <summary>
         /// 查询，ExecuteReader(dr => {}, "select * from user where age > ?age", new { age = 25 })
         /// </summary>
         /// <param name="cmdText"></param>
         /// <param name="parms"></param>
-        void ExecuteReader(Action<DbDataReader> readerHander, string cmdText, object parms = null);
-        void ExecuteReader(DbTransaction transaction, Action<DbDataReader> readerHander, string cmdText, object parms = null);
-        void ExecuteReader(DbConnection connection, DbTransaction transaction, Action<DbDataReader> readerHander, string cmdText, object parms = null);
+        void ExecuteReader(Action<FetchCallbackArgs<DbDataReader>> fetchHandler, string cmdText, object parms = null);
+        void ExecuteReader(DbTransaction transaction, Action<FetchCallbackArgs<DbDataReader>> fetchHandler, string cmdText, object parms = null);
+        void ExecuteReader(DbConnection connection, DbTransaction transaction, Action<FetchCallbackArgs<DbDataReader>> fetchHandler, string cmdText, object parms = null);
         /// <summary>
         /// 查询
         /// </summary>
@@ -235,17 +235,17 @@ namespace FreeSql
         /// <param name="cmdType"></param>
         /// <param name="cmdText"></param>
         /// <param name="cmdParms"></param>
-        Task ExecuteReaderAsync(Func<DbDataReader, Task> readerHander, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-        Task ExecuteReaderAsync(DbTransaction transaction, Func<DbDataReader, Task> readerHander, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-        Task ExecuteReaderAsync(DbConnection connection, DbTransaction transaction, Func<DbDataReader, Task> readerHander, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+        Task ExecuteReaderAsync(Func<FetchCallbackArgs<DbDataReader>, Task> readerHander, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+        Task ExecuteReaderAsync(DbTransaction transaction, Func<FetchCallbackArgs<DbDataReader>, Task> readerHander, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
+        Task ExecuteReaderAsync(DbConnection connection, DbTransaction transaction, Func<FetchCallbackArgs<DbDataReader>, Task> readerHander, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
         /// <summary>
         /// 查询，ExecuteReaderAsync(dr => {}, "select * from user where age > ?age", new { age = 25 })
         /// </summary>
         /// <param name="cmdText"></param>
         /// <param name="parms"></param>
-        Task ExecuteReaderAsync(Func<DbDataReader, Task> readerHander, string cmdText, object parms = null);
-        Task ExecuteReaderAsync(DbTransaction transaction, Func<DbDataReader, Task> readerHander, string cmdText, object parms = null);
-        Task ExecuteReaderAsync(DbConnection connection, DbTransaction transaction, Func<DbDataReader, Task> readerHander, string cmdText, object parms = null);
+        Task ExecuteReaderAsync(Func<FetchCallbackArgs<DbDataReader>, Task> readerHander, string cmdText, object parms = null);
+        Task ExecuteReaderAsync(DbTransaction transaction, Func<FetchCallbackArgs<DbDataReader>, Task> readerHander, string cmdText, object parms = null);
+        Task ExecuteReaderAsync(DbConnection connection, DbTransaction transaction, Func<FetchCallbackArgs<DbDataReader>, Task> readerHander, string cmdText, object parms = null);
         /// <summary>
         /// 查询
         /// </summary>

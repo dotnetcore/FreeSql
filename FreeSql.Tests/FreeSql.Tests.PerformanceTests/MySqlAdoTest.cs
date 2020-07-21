@@ -170,14 +170,14 @@ namespace FreeSql.Tests.PerformanceTest
 
             time.Restart();
             var adolist1 = new List<xxx>();
-            g.mysql.Ado.ExecuteReader(dr =>
+            g.mysql.Ado.ExecuteReader(fetch =>
             {
                 var xim = new xxx();
-                dr.GetValue(0);
-                dr.GetValue(1);
-                dr.GetValue(2);
-                dr.GetValue(3);
-                dr.GetValue(4);
+                fetch.Object.GetValue(0);
+                fetch.Object.GetValue(1);
+                fetch.Object.GetValue(2);
+                fetch.Object.GetValue(3);
+                fetch.Object.GetValue(4);
                 adolist1.Add(xim);
             }, "select * from freesql_song");
             time.Stop();
@@ -185,14 +185,14 @@ namespace FreeSql.Tests.PerformanceTest
 
             time.Restart();
             adolist1 = new List<xxx>();
-            g.mysql.Ado.ExecuteReader(dr =>
+            g.mysql.Ado.ExecuteReader(fetch =>
             {
                 var xim = new xxx();
-                dr.GetFieldValue<int>(0);
-                dr.GetFieldValue<DateTime>(1);
-                dr.GetFieldValue<bool>(2);
-                dr.GetFieldValue<string>(3);
-                dr.GetFieldValue<string>(4);
+                fetch.Object.GetFieldValue<int>(0);
+                fetch.Object.GetFieldValue<DateTime>(1);
+                fetch.Object.GetFieldValue<bool>(2);
+                fetch.Object.GetFieldValue<string>(3);
+                fetch.Object.GetFieldValue<string>(4);
                 adolist1.Add(xim);
             }, "select * from freesql_song");
             time.Stop();

@@ -109,15 +109,15 @@ namespace FreeSql.Internal.CommonProvider
             string flag = null;
             int[] indexes = null;
             var props = GetQueryTypeProperties(type);
-            ExecuteReader(connection, transaction, dr =>
+            ExecuteReader(connection, transaction, fetch =>
             {
                 if (indexes == null)
                 {
                     var sbflag = new StringBuilder().Append("adoQuery");
                     var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
-                    for (var a = 0; a < dr.FieldCount; a++)
+                    for (var a = 0; a < fetch.Object.FieldCount; a++)
                     {
-                        var name = dr.GetName(a);
+                        var name = fetch.Object.GetName(a);
                         if (dic.ContainsKey(name)) continue;
                         sbflag.Append(name).Append(":").Append(a).Append(",");
                         dic.Add(name, a);
@@ -125,7 +125,7 @@ namespace FreeSql.Internal.CommonProvider
                     indexes = props.Select(a => dic.TryGetValue(a.Key, out var tryint) ? tryint : -1).ToArray();
                     flag = sbflag.ToString();
                 }
-                ret.Add((T)Utils.ExecuteArrayRowReadClassOrTuple(flag, type, indexes, dr, 0, _util).Value);
+                ret.Add((T)Utils.ExecuteArrayRowReadClassOrTuple(flag, type, indexes, fetch.Object, 0, _util).Value);
             }, cmdType, cmdText, cmdParms);
             return ret;
         }
@@ -149,7 +149,7 @@ namespace FreeSql.Internal.CommonProvider
             string flag2 = null;
             int[] indexes2 = null;
             var props2 = GetQueryTypeProperties(type2);
-            ExecuteReaderMultiple(2, connection, transaction, (dr, result) =>
+            ExecuteReaderMultiple(2, connection, transaction, (fetch, result) =>
             {
                 switch (result)
                 {
@@ -158,9 +158,9 @@ namespace FreeSql.Internal.CommonProvider
                         {
                             var sbflag = new StringBuilder().Append("adoQuery");
                             var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
-                            for (var a = 0; a < dr.FieldCount; a++)
+                            for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
-                                var name = dr.GetName(a);
+                                var name = fetch.Object.GetName(a);
                                 if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
@@ -168,16 +168,16 @@ namespace FreeSql.Internal.CommonProvider
                             indexes1 = props1.Select(a => dic.TryGetValue(a.Key, out var tryint) ? tryint : -1).ToArray();
                             flag1 = sbflag.ToString();
                         }
-                        ret1.Add((T1)Utils.ExecuteArrayRowReadClassOrTuple(flag1, type1, indexes1, dr, 0, _util).Value);
+                        ret1.Add((T1)Utils.ExecuteArrayRowReadClassOrTuple(flag1, type1, indexes1, fetch.Object, 0, _util).Value);
                         break;
                     case 1:
                         if (indexes2 == null)
                         {
                             var sbflag = new StringBuilder().Append("adoQuery");
                             var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
-                            for (var a = 0; a < dr.FieldCount; a++)
+                            for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
-                                var name = dr.GetName(a);
+                                var name = fetch.Object.GetName(a);
                                 if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
@@ -185,7 +185,7 @@ namespace FreeSql.Internal.CommonProvider
                             indexes2 = props2.Select(a => dic.TryGetValue(a.Key, out var tryint) ? tryint : -1).ToArray();
                             flag2 = sbflag.ToString();
                         }
-                        ret2.Add((T2)Utils.ExecuteArrayRowReadClassOrTuple(flag2, type2, indexes2, dr, 0, _util).Value);
+                        ret2.Add((T2)Utils.ExecuteArrayRowReadClassOrTuple(flag2, type2, indexes2, fetch.Object, 0, _util).Value);
                         break;
                 }
             }, cmdType, cmdText, cmdParms);
@@ -217,7 +217,7 @@ namespace FreeSql.Internal.CommonProvider
             string flag3 = null;
             int[] indexes3 = null;
             var props3 = GetQueryTypeProperties(type3);
-            ExecuteReaderMultiple(3, connection, transaction, (dr, result) =>
+            ExecuteReaderMultiple(3, connection, transaction, (fetch, result) =>
             {
                 switch (result)
                 {
@@ -226,9 +226,9 @@ namespace FreeSql.Internal.CommonProvider
                         {
                             var sbflag = new StringBuilder().Append("adoQuery");
                             var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
-                            for (var a = 0; a < dr.FieldCount; a++)
+                            for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
-                                var name = dr.GetName(a);
+                                var name = fetch.Object.GetName(a);
                                 if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
@@ -236,16 +236,16 @@ namespace FreeSql.Internal.CommonProvider
                             indexes1 = props1.Select(a => dic.TryGetValue(a.Key, out var tryint) ? tryint : -1).ToArray();
                             flag1 = sbflag.ToString();
                         }
-                        ret1.Add((T1)Utils.ExecuteArrayRowReadClassOrTuple(flag1, type1, indexes1, dr, 0, _util).Value);
+                        ret1.Add((T1)Utils.ExecuteArrayRowReadClassOrTuple(flag1, type1, indexes1, fetch.Object, 0, _util).Value);
                         break;
                     case 1:
                         if (indexes2 == null)
                         {
                             var sbflag = new StringBuilder().Append("adoQuery");
                             var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
-                            for (var a = 0; a < dr.FieldCount; a++)
+                            for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
-                                var name = dr.GetName(a);
+                                var name = fetch.Object.GetName(a);
                                 if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
@@ -253,16 +253,16 @@ namespace FreeSql.Internal.CommonProvider
                             indexes2 = props2.Select(a => dic.TryGetValue(a.Key, out var tryint) ? tryint : -1).ToArray();
                             flag2 = sbflag.ToString();
                         }
-                        ret2.Add((T2)Utils.ExecuteArrayRowReadClassOrTuple(flag2, type2, indexes2, dr, 0, _util).Value);
+                        ret2.Add((T2)Utils.ExecuteArrayRowReadClassOrTuple(flag2, type2, indexes2, fetch.Object, 0, _util).Value);
                         break;
                     case 2:
                         if (indexes3 == null)
                         {
                             var sbflag = new StringBuilder().Append("adoQuery");
                             var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
-                            for (var a = 0; a < dr.FieldCount; a++)
+                            for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
-                                var name = dr.GetName(a);
+                                var name = fetch.Object.GetName(a);
                                 if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
@@ -270,7 +270,7 @@ namespace FreeSql.Internal.CommonProvider
                             indexes3 = props3.Select(a => dic.TryGetValue(a.Key, out var tryint) ? tryint : -1).ToArray();
                             flag3 = sbflag.ToString();
                         }
-                        ret3.Add((T3)Utils.ExecuteArrayRowReadClassOrTuple(flag3, type3, indexes3, dr, 0, _util).Value);
+                        ret3.Add((T3)Utils.ExecuteArrayRowReadClassOrTuple(flag3, type3, indexes3, fetch.Object, 0, _util).Value);
                         break;
                 }
             }, cmdType, cmdText, cmdParms);
@@ -308,7 +308,7 @@ namespace FreeSql.Internal.CommonProvider
             string flag4 = null;
             int[] indexes4 = null;
             var props4 = GetQueryTypeProperties(type4);
-            ExecuteReaderMultiple(4, connection, transaction, (dr, result) =>
+            ExecuteReaderMultiple(4, connection, transaction, (fetch, result) =>
             {
                 switch (result)
                 {
@@ -317,9 +317,9 @@ namespace FreeSql.Internal.CommonProvider
                         {
                             var sbflag = new StringBuilder().Append("adoQuery");
                             var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
-                            for (var a = 0; a < dr.FieldCount; a++)
+                            for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
-                                var name = dr.GetName(a);
+                                var name = fetch.Object.GetName(a);
                                 if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
@@ -327,16 +327,16 @@ namespace FreeSql.Internal.CommonProvider
                             indexes1 = props1.Select(a => dic.TryGetValue(a.Key, out var tryint) ? tryint : -1).ToArray();
                             flag1 = sbflag.ToString();
                         }
-                        ret1.Add((T1)Utils.ExecuteArrayRowReadClassOrTuple(flag1, type1, indexes1, dr, 0, _util).Value);
+                        ret1.Add((T1)Utils.ExecuteArrayRowReadClassOrTuple(flag1, type1, indexes1, fetch.Object, 0, _util).Value);
                         break;
                     case 1:
                         if (indexes2 == null)
                         {
                             var sbflag = new StringBuilder().Append("adoQuery");
                             var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
-                            for (var a = 0; a < dr.FieldCount; a++)
+                            for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
-                                var name = dr.GetName(a);
+                                var name = fetch.Object.GetName(a);
                                 if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
@@ -344,16 +344,16 @@ namespace FreeSql.Internal.CommonProvider
                             indexes2 = props2.Select(a => dic.TryGetValue(a.Key, out var tryint) ? tryint : -1).ToArray();
                             flag2 = sbflag.ToString();
                         }
-                        ret2.Add((T2)Utils.ExecuteArrayRowReadClassOrTuple(flag2, type2, indexes2, dr, 0, _util).Value);
+                        ret2.Add((T2)Utils.ExecuteArrayRowReadClassOrTuple(flag2, type2, indexes2, fetch.Object, 0, _util).Value);
                         break;
                     case 2:
                         if (indexes3 == null)
                         {
                             var sbflag = new StringBuilder().Append("adoQuery");
                             var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
-                            for (var a = 0; a < dr.FieldCount; a++)
+                            for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
-                                var name = dr.GetName(a);
+                                var name = fetch.Object.GetName(a);
                                 if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
@@ -361,16 +361,16 @@ namespace FreeSql.Internal.CommonProvider
                             indexes3 = props3.Select(a => dic.TryGetValue(a.Key, out var tryint) ? tryint : -1).ToArray();
                             flag3 = sbflag.ToString();
                         }
-                        ret3.Add((T3)Utils.ExecuteArrayRowReadClassOrTuple(flag3, type3, indexes3, dr, 0, _util).Value);
+                        ret3.Add((T3)Utils.ExecuteArrayRowReadClassOrTuple(flag3, type3, indexes3, fetch.Object, 0, _util).Value);
                         break;
                     case 3:
                         if (indexes4 == null)
                         {
                             var sbflag = new StringBuilder().Append("adoQuery");
                             var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
-                            for (var a = 0; a < dr.FieldCount; a++)
+                            for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
-                                var name = dr.GetName(a);
+                                var name = fetch.Object.GetName(a);
                                 if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
@@ -378,7 +378,7 @@ namespace FreeSql.Internal.CommonProvider
                             indexes4 = props4.Select(a => dic.TryGetValue(a.Key, out var tryint) ? tryint : -1).ToArray();
                             flag4 = sbflag.ToString();
                         }
-                        ret4.Add((T4)Utils.ExecuteArrayRowReadClassOrTuple(flag4, type4, indexes4, dr, 0, _util).Value);
+                        ret4.Add((T4)Utils.ExecuteArrayRowReadClassOrTuple(flag4, type4, indexes4, fetch.Object, 0, _util).Value);
                         break;
                 }
             }, cmdType, cmdText, cmdParms);
@@ -422,7 +422,7 @@ namespace FreeSql.Internal.CommonProvider
             string flag5 = null;
             int[] indexes5 = null;
             var props5 = GetQueryTypeProperties(type5);
-            ExecuteReaderMultiple(5, connection, transaction, (dr, result) =>
+            ExecuteReaderMultiple(5, connection, transaction, (fetch, result) =>
             {
                 switch (result)
                 {
@@ -431,9 +431,9 @@ namespace FreeSql.Internal.CommonProvider
                         {
                             var sbflag = new StringBuilder().Append("adoQuery");
                             var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
-                            for (var a = 0; a < dr.FieldCount; a++)
+                            for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
-                                var name = dr.GetName(a);
+                                var name = fetch.Object.GetName(a);
                                 if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
@@ -441,16 +441,16 @@ namespace FreeSql.Internal.CommonProvider
                             indexes1 = props1.Select(a => dic.TryGetValue(a.Key, out var tryint) ? tryint : -1).ToArray();
                             flag1 = sbflag.ToString();
                         }
-                        ret1.Add((T1)Utils.ExecuteArrayRowReadClassOrTuple(flag1, type1, indexes1, dr, 0, _util).Value);
+                        ret1.Add((T1)Utils.ExecuteArrayRowReadClassOrTuple(flag1, type1, indexes1, fetch.Object, 0, _util).Value);
                         break;
                     case 1:
                         if (indexes2 == null)
                         {
                             var sbflag = new StringBuilder().Append("adoQuery");
                             var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
-                            for (var a = 0; a < dr.FieldCount; a++)
+                            for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
-                                var name = dr.GetName(a);
+                                var name = fetch.Object.GetName(a);
                                 if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
@@ -458,16 +458,16 @@ namespace FreeSql.Internal.CommonProvider
                             indexes2 = props2.Select(a => dic.TryGetValue(a.Key, out var tryint) ? tryint : -1).ToArray();
                             flag2 = sbflag.ToString();
                         }
-                        ret2.Add((T2)Utils.ExecuteArrayRowReadClassOrTuple(flag2, type2, indexes2, dr, 0, _util).Value);
+                        ret2.Add((T2)Utils.ExecuteArrayRowReadClassOrTuple(flag2, type2, indexes2, fetch.Object, 0, _util).Value);
                         break;
                     case 2:
                         if (indexes3 == null)
                         {
                             var sbflag = new StringBuilder().Append("adoQuery");
                             var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
-                            for (var a = 0; a < dr.FieldCount; a++)
+                            for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
-                                var name = dr.GetName(a);
+                                var name = fetch.Object.GetName(a);
                                 if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
@@ -475,16 +475,16 @@ namespace FreeSql.Internal.CommonProvider
                             indexes3 = props3.Select(a => dic.TryGetValue(a.Key, out var tryint) ? tryint : -1).ToArray();
                             flag3 = sbflag.ToString();
                         }
-                        ret3.Add((T3)Utils.ExecuteArrayRowReadClassOrTuple(flag3, type3, indexes3, dr, 0, _util).Value);
+                        ret3.Add((T3)Utils.ExecuteArrayRowReadClassOrTuple(flag3, type3, indexes3, fetch.Object, 0, _util).Value);
                         break;
                     case 3:
                         if (indexes4 == null)
                         {
                             var sbflag = new StringBuilder().Append("adoQuery");
                             var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
-                            for (var a = 0; a < dr.FieldCount; a++)
+                            for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
-                                var name = dr.GetName(a);
+                                var name = fetch.Object.GetName(a);
                                 if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
@@ -492,16 +492,16 @@ namespace FreeSql.Internal.CommonProvider
                             indexes4 = props4.Select(a => dic.TryGetValue(a.Key, out var tryint) ? tryint : -1).ToArray();
                             flag4 = sbflag.ToString();
                         }
-                        ret4.Add((T4)Utils.ExecuteArrayRowReadClassOrTuple(flag4, type4, indexes4, dr, 0, _util).Value);
+                        ret4.Add((T4)Utils.ExecuteArrayRowReadClassOrTuple(flag4, type4, indexes4, fetch.Object, 0, _util).Value);
                         break;
                     case 4:
                         if (indexes5 == null)
                         {
                             var sbflag = new StringBuilder().Append("adoQuery");
                             var dic = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
-                            for (var a = 0; a < dr.FieldCount; a++)
+                            for (var a = 0; a < fetch.Object.FieldCount; a++)
                             {
-                                var name = dr.GetName(a);
+                                var name = fetch.Object.GetName(a);
                                 if (dic.ContainsKey(name)) continue;
                                 sbflag.Append(name).Append(":").Append(a).Append(",");
                                 dic.Add(name, a);
@@ -509,7 +509,7 @@ namespace FreeSql.Internal.CommonProvider
                             indexes5 = props5.Select(a => dic.TryGetValue(a.Key, out var tryint) ? tryint : -1).ToArray();
                             flag5 = sbflag.ToString();
                         }
-                        ret5.Add((T5)Utils.ExecuteArrayRowReadClassOrTuple(flag5, type5, indexes5, dr, 0, _util).Value);
+                        ret5.Add((T5)Utils.ExecuteArrayRowReadClassOrTuple(flag5, type5, indexes5, fetch.Object, 0, _util).Value);
                         break;
                 }
             }, cmdType, cmdText, cmdParms);
@@ -517,13 +517,13 @@ namespace FreeSql.Internal.CommonProvider
         }
         #endregion
 
-        public void ExecuteReader(Action<DbDataReader> readerHander, string cmdText, object parms = null) => ExecuteReader(null, null, readerHander, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-        public void ExecuteReader(DbTransaction transaction, Action<DbDataReader> readerHander, string cmdText, object parms = null) => ExecuteReader(null, transaction, readerHander, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-        public void ExecuteReader(DbConnection connection, DbTransaction transaction, Action<DbDataReader> readerHander, string cmdText, object parms = null) => ExecuteReader(connection, transaction, readerHander, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
-        public void ExecuteReader(Action<DbDataReader> readerHander, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteReader(null, null, readerHander, cmdType, cmdText, cmdParms);
-        public void ExecuteReader(DbTransaction transaction, Action<DbDataReader> readerHander, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteReader(null, transaction, readerHander, cmdType, cmdText, cmdParms);
-        public void ExecuteReader(DbConnection connection, DbTransaction transaction, Action<DbDataReader> readerHander, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteReaderMultiple(1, connection, transaction, (dr, result) => readerHander(dr), cmdType, cmdText, cmdParms);
-        void ExecuteReaderMultiple(int multipleResult, DbConnection connection, DbTransaction transaction, Action<DbDataReader, int> readerHander, CommandType cmdType, string cmdText, params DbParameter[] cmdParms)
+        public void ExecuteReader(Action<FetchCallbackArgs<DbDataReader>> fetchHandler, string cmdText, object parms = null) => ExecuteReader(null, null, fetchHandler, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+        public void ExecuteReader(DbTransaction transaction, Action<FetchCallbackArgs<DbDataReader>> fetchHandler, string cmdText, object parms = null) => ExecuteReader(null, transaction, fetchHandler, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+        public void ExecuteReader(DbConnection connection, DbTransaction transaction, Action<FetchCallbackArgs<DbDataReader>> fetchHandler, string cmdText, object parms = null) => ExecuteReader(connection, transaction, fetchHandler, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
+        public void ExecuteReader(Action<FetchCallbackArgs<DbDataReader>> fetchHandler, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteReader(null, null, fetchHandler, cmdType, cmdText, cmdParms);
+        public void ExecuteReader(DbTransaction transaction, Action<FetchCallbackArgs<DbDataReader>> fetchHandler, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteReader(null, transaction, fetchHandler, cmdType, cmdText, cmdParms);
+        public void ExecuteReader(DbConnection connection, DbTransaction transaction, Action<FetchCallbackArgs<DbDataReader>> fetchHandler, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteReaderMultiple(1, connection, transaction, (fetch, result) => fetchHandler(fetch), cmdType, cmdText, cmdParms);
+        void ExecuteReaderMultiple(int multipleResult, DbConnection connection, DbTransaction transaction, Action<FetchCallbackArgs<DbDataReader>, int> fetchHandler, CommandType cmdType, string cmdText, params DbParameter[] cmdParms)
         {
             if (string.IsNullOrEmpty(cmdText)) return;
             var dt = DateTime.Now;
@@ -586,7 +586,7 @@ namespace FreeSql.Internal.CommonProvider
                         LoggerException(pool, pc, new Exception($"连接失败，准备切换其他可用服务器"), dt, logtxt, false);
                         pc.cmd.Parameters.Clear();
                         if (DataType == DataType.Sqlite) pc.cmd.Dispose();
-                        ExecuteReaderMultiple(multipleResult, connection, transaction, readerHander, cmdType, cmdText, cmdParms);
+                        ExecuteReaderMultiple(multipleResult, connection, transaction, fetchHandler, cmdType, cmdText, cmdParms);
                         return;
                     }
                 }
@@ -603,6 +603,7 @@ namespace FreeSql.Internal.CommonProvider
                 using (var dr = pc.cmd.ExecuteReader())
                 {
                     int resultIndex = 0;
+                    var fetch = new FetchCallbackArgs<DbDataReader> { Object = dr };
                     while (true)
                     {
                         while (true)
@@ -610,8 +611,15 @@ namespace FreeSql.Internal.CommonProvider
                             bool isread = dr.Read();
                             if (isread == false) break;
 
-                            if (readerHander != null)
-                                readerHander(dr, resultIndex);
+                            if (fetchHandler != null)
+                            {
+                                fetchHandler(fetch, resultIndex);
+                                if (fetch.IsBreak)
+                                {
+                                    resultIndex = multipleResult;
+                                    break;
+                                }
+                            }
                         }
                         if (++resultIndex >= multipleResult || dr.NextResult() == false) break;
                     }
@@ -649,10 +657,10 @@ namespace FreeSql.Internal.CommonProvider
         public object[][] ExecuteArray(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms)
         {
             List<object[]> ret = new List<object[]>();
-            ExecuteReader(connection, transaction, dr =>
+            ExecuteReader(connection, transaction, fetch =>
             {
-                object[] values = new object[dr.FieldCount];
-                dr.GetValues(values);
+                object[] values = new object[fetch.Object.FieldCount];
+                fetch.Object.GetValues(values);
                 ret.Add(values);
             }, cmdType, cmdText, cmdParms);
             return ret.ToArray();
@@ -666,20 +674,20 @@ namespace FreeSql.Internal.CommonProvider
         {
             var ret = new DataSet();
             DataTable dt = null;
-            ExecuteReaderMultiple(16, connection, transaction, (dr, result) =>
+            ExecuteReaderMultiple(16, connection, transaction, (fetch, result) =>
             {
                 if (ret.Tables.Count <= result)
                 {
                     dt = ret.Tables.Add();
-                    for (var a = 0; a < dr.FieldCount; a++)
+                    for (var a = 0; a < fetch.Object.FieldCount; a++)
                     {
-                        var name = dr.GetName(a);
+                        var name = fetch.Object.GetName(a);
                         if (dt.Columns.Contains(name)) name = $"{name}_{Guid.NewGuid().ToString("N").Substring(0, 4)}";
-                        dt.Columns.Add(name, dr.GetFieldType(a));
+                        dt.Columns.Add(name, fetch.Object.GetFieldType(a));
                     }
                 }
                 object[] values = new object[dt.Columns.Count];
-                dr.GetValues(values);
+                fetch.Object.GetValues(values);
                 dt.Rows.Add(values);
             }, cmdType, cmdText, cmdParms);
             return ret;
@@ -692,17 +700,17 @@ namespace FreeSql.Internal.CommonProvider
         public DataTable ExecuteDataTable(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms)
         {
             var ret = new DataTable();
-            ExecuteReader(connection, transaction, dr =>
+            ExecuteReader(connection, transaction, fetch =>
             {
                 if (ret.Columns.Count == 0)
-                    for (var a = 0; a < dr.FieldCount; a++)
+                    for (var a = 0; a < fetch.Object.FieldCount; a++)
                     {
-                        var name = dr.GetName(a);
+                        var name = fetch.Object.GetName(a);
                         if (ret.Columns.Contains(name)) name = $"{name}_{Guid.NewGuid().ToString("N").Substring(0, 4)}";
-                        ret.Columns.Add(name, dr.GetFieldType(a));
+                        ret.Columns.Add(name, fetch.Object.GetFieldType(a));
                     }
                 object[] values = new object[ret.Columns.Count];
-                dr.GetValues(values);
+                fetch.Object.GetValues(values);
                 ret.Rows.Add(values);
             }, cmdType, cmdText, cmdParms);
             return ret;

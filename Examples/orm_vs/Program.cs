@@ -365,9 +365,9 @@ namespace orm_vs
 
             var testlist1 = fsql.Select<Song>().OrderBy(a => a.id).ToList();
             var testlist2 = new List<Song>();
-            fsql.Select<Song>().OrderBy(a => a.id).ToChunk(0, list =>
+            fsql.Select<Song>().OrderBy(a => a.id).ToChunk(2, fetch =>
             {
-                testlist2.AddRange(list);
+                testlist2.AddRange(fetch.Object);
             });
 
             //sugar.Aop.OnLogExecuted = (s, e) =>

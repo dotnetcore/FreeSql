@@ -341,9 +341,9 @@ namespace FreeSql.Internal.CommonProvider
             Exception exception = null;
             try
             {
-                _orm.Ado.ExecuteReader(_connection, _transaction, dr =>
+                _orm.Ado.ExecuteReader(_connection, _transaction, fetch =>
                 {
-                    var read = Utils.ExecuteArrayRowReadClassOrTuple(flagStr, type, null, dr, 0, _commonUtils);
+                    var read = Utils.ExecuteArrayRowReadClassOrTuple(flagStr, type, null, fetch.Object, 0, _commonUtils);
                     ret.Add((TTuple)read.Value);
                 }, CommandType.Text, sql, dbParms);
             }
@@ -368,14 +368,14 @@ namespace FreeSql.Internal.CommonProvider
             Exception exception = null;
             try
             {
-                _orm.Ado.ExecuteReader(_connection, _transaction, dr =>
+                _orm.Ado.ExecuteReader(_connection, _transaction, fetch =>
                 {
-                    ret.Add(af.Read(_orm, dr));
+                    ret.Add(af.Read(_orm, fetch.Object));
                     if (otherData != null)
                     {
                         var idx = af.FieldCount - 1;
                         foreach (var other in otherData)
-                            other.retlist.Add(_commonExpression.ReadAnonymous(other.read, dr, ref idx, false, null));
+                            other.retlist.Add(_commonExpression.ReadAnonymous(other.read, fetch.Object, ref idx, false, null));
                     }
                 }, CommandType.Text, sql, dbParms);
             }
@@ -409,37 +409,37 @@ namespace FreeSql.Internal.CommonProvider
             return ToListAfPrivate(sql, af, otherData);
         }
         #region ToChunk
-        internal void ToListAfChunkPrivate(int chunkSize, Action<List<T1>> chunkDone, string sql, GetAllFieldExpressionTreeInfo af, ReadAnonymousTypeOtherInfo[] otherData)
+        internal void ToListAfChunkPrivate(int chunkSize, Action<FetchCallbackArgs<List<T1>>> chunkDone, string sql, GetAllFieldExpressionTreeInfo af, ReadAnonymousTypeOtherInfo[] otherData)
         {
             var dbParms = _params.ToArray();
             var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
             _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
-            var ret = new List<T1>();
+            var ret = new FetchCallbackArgs<List<T1>> { Object = new List<T1>() };
             var retCount = 0;
             Exception exception = null;
             var checkDoneTimes = 0;
             try
             {
-                _orm.Ado.ExecuteReader(_connection, _transaction, dr =>
+                _orm.Ado.ExecuteReader(_connection, _transaction, fetch =>
                 {
-                    ret.Add(af.Read(_orm, dr));
+                    ret.Object.Add(af.Read(_orm, fetch.Object));
                     retCount++;
                     if (otherData != null)
                     {
                         var idx = af.FieldCount - 1;
                         foreach (var other in otherData)
-                            other.retlist.Add(_commonExpression.ReadAnonymous(other.read, dr, ref idx, false, null));
+                            other.retlist.Add(_commonExpression.ReadAnonymous(other.read, fetch.Object, ref idx, false, null));
                     }
-                    if (chunkSize > 0 && chunkSize == ret.Count)
+                    if (chunkSize > 0 && chunkSize == ret.Object.Count)
                     {
                         checkDoneTimes++;
 
-                        foreach (var include in _includeToList) include?.Invoke(ret);
-                        _trackToList?.Invoke(ret);
+                        foreach (var include in _includeToList) include?.Invoke(ret.Object);
+                        _trackToList?.Invoke(ret.Object);
                         chunkDone(ret);
-                        
+                        fetch.IsBreak = ret.IsBreak;
 
-                        ret.Clear();
+                        ret.Object.Clear();
                         if (otherData != null)
                             foreach (var other in otherData)
                                 other.retlist.Clear();
@@ -456,14 +456,14 @@ namespace FreeSql.Internal.CommonProvider
                 var after = new Aop.CurdAfterEventArgs(before, exception, retCount);
                 _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
-            if (ret.Any() || checkDoneTimes == 0)
+            if (ret.Object.Any() || checkDoneTimes == 0)
             {
-                foreach (var include in _includeToList) include?.Invoke(ret);
-                _trackToList?.Invoke(ret);
+                foreach (var include in _includeToList) include?.Invoke(ret.Object);
+                _trackToList?.Invoke(ret.Object);
                 chunkDone(ret);
             }
         }
-        internal void ToListChunkPrivate(int chunkSize, Action<List<T1>> chunkDone, GetAllFieldExpressionTreeInfo af, ReadAnonymousTypeOtherInfo[] otherData)
+        internal void ToListChunkPrivate(int chunkSize, Action<FetchCallbackArgs<List<T1>>> chunkDone, GetAllFieldExpressionTreeInfo af, ReadAnonymousTypeOtherInfo[] otherData)
         {
             string sql = null;
             if (otherData?.Length > 0)
@@ -478,7 +478,7 @@ namespace FreeSql.Internal.CommonProvider
 
             ToListAfChunkPrivate(chunkSize, chunkDone, sql, af, otherData);
         }
-        public void ToChunk(int size, Action<List<T1>> done, bool includeNestedMembers = false)
+        public void ToChunk(int size, Action<FetchCallbackArgs<List<T1>>> done, bool includeNestedMembers = false)
         {
             if (_selectExpression != null) throw new ArgumentException("Chunk 功能之前不可使用 Select");
             this.ToListChunkPrivate(size, done, includeNestedMembers == false ? this.GetAllFieldExpressionTreeLevel2() : this.GetAllFieldExpressionTreeLevelAll(), null);
@@ -498,9 +498,9 @@ namespace FreeSql.Internal.CommonProvider
             Exception exception = null;
             try
             {
-                _orm.Ado.ExecuteReader(_connection, _transaction, dr =>
+                _orm.Ado.ExecuteReader(_connection, _transaction, fetch =>
                 {
-                    var item = af.Read(_orm, dr);
+                    var item = af.Read(_orm, fetch.Object);
                     ret.Add(keySelector(item), elementSelector(item));
                 }, CommandType.Text, sql, dbParms);
             }
@@ -540,13 +540,13 @@ namespace FreeSql.Internal.CommonProvider
             Exception exception = null;
             try
             {
-                _orm.Ado.ExecuteReader(_connection, _transaction, dr =>
+                _orm.Ado.ExecuteReader(_connection, _transaction, fetch =>
                 {
                     var index = -1;
-                    ret.Add((TReturn)_commonExpression.ReadAnonymous(af.map, dr, ref index, false, null));
+                    ret.Add((TReturn)_commonExpression.ReadAnonymous(af.map, fetch.Object, ref index, false, null));
                     if (otherData != null)
                         foreach (var other in otherData)
-                            other.retlist.Add(_commonExpression.ReadAnonymous(other.read, dr, ref index, false, null));
+                            other.retlist.Add(_commonExpression.ReadAnonymous(other.read, fetch.Object, ref index, false, null));
                 }, CommandType.Text, sql, dbParms);
             }
             catch (Exception ex)
@@ -1373,9 +1373,9 @@ namespace FreeSql.Internal.CommonProvider
             Exception exception = null;
             try
             {
-                await _orm.Ado.ExecuteReaderAsync(_connection, _transaction, dr =>
+                await _orm.Ado.ExecuteReaderAsync(_connection, _transaction, fetch =>
                 {
-                    var read = Utils.ExecuteArrayRowReadClassOrTuple(flagStr, type, null, dr, 0, _commonUtils);
+                    var read = Utils.ExecuteArrayRowReadClassOrTuple(flagStr, type, null, fetch.Object, 0, _commonUtils);
                     ret.Add((TTuple)read.Value);
                     return Task.FromResult(false);
                 }, CommandType.Text, sql, dbParms);
@@ -1402,14 +1402,14 @@ namespace FreeSql.Internal.CommonProvider
             Exception exception = null;
             try
             {
-                await _orm.Ado.ExecuteReaderAsync(_connection, _transaction, dr =>
+                await _orm.Ado.ExecuteReaderAsync(_connection, _transaction, fetch =>
                 {
-                    ret.Add(af.Read(_orm, dr));
+                    ret.Add(af.Read(_orm, fetch.Object));
                     if (otherData != null)
                     {
                         var idx = af.FieldCount - 1;
                         foreach (var other in otherData)
-                            other.retlist.Add(_commonExpression.ReadAnonymous(other.read, dr, ref idx, false, null));
+                            other.retlist.Add(_commonExpression.ReadAnonymous(other.read, fetch.Object, ref idx, false, null));
                     }
                     return Task.FromResult(false);
                 }, CommandType.Text, sql, dbParms);
@@ -1459,9 +1459,9 @@ namespace FreeSql.Internal.CommonProvider
             Exception exception = null;
             try
             {
-                await _orm.Ado.ExecuteReaderAsync(_connection, _transaction, dr =>
+                await _orm.Ado.ExecuteReaderAsync(_connection, _transaction, fetch =>
                 {
-                    var item = af.Read(_orm, dr);
+                    var item = af.Read(_orm, fetch.Object);
                     ret.Add(keySelector(item), elementSelector(item));
                     return Task.FromResult(false);
                 }, CommandType.Text, sql, dbParms);
@@ -1503,13 +1503,13 @@ namespace FreeSql.Internal.CommonProvider
             Exception exception = null;
             try
             {
-                await _orm.Ado.ExecuteReaderAsync(_connection, _transaction, dr =>
+                await _orm.Ado.ExecuteReaderAsync(_connection, _transaction, fetch =>
                 {
                     var index = -1;
-                    ret.Add((TReturn)_commonExpression.ReadAnonymous(af.map, dr, ref index, false, null));
+                    ret.Add((TReturn)_commonExpression.ReadAnonymous(af.map, fetch.Object, ref index, false, null));
                     if (otherData != null)
                         foreach (var other in otherData)
-                            other.retlist.Add(_commonExpression.ReadAnonymous(other.read, dr, ref index, false, null));
+                            other.retlist.Add(_commonExpression.ReadAnonymous(other.read, fetch.Object, ref index, false, null));
                     return Task.FromResult(false);
                 }, CommandType.Text, sql, dbParms);
             }

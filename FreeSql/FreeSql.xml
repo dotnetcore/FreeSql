@@ -1250,7 +1250,7 @@
             <param name="includeNestedMembers">false: 返回 2级 LeftJoin/InnerJoin/RightJoin 对象；true: 返回所有 LeftJoin/InnerJoin/RightJoin 的导航数据</param>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.ISelect0`2.ToChunk(System.Int32,System.Action{System.Collections.Generic.List{`1}},System.Boolean)">
+        <member name="M:FreeSql.ISelect0`2.ToChunk(System.Int32,System.Action{FreeSql.Internal.Model.FetchCallbackArgs{System.Collections.Generic.List{`1}}},System.Boolean)">
             <summary>
             执行SQL查询，分块返回数据，可减少内存开销。比如读取10万条数据，每次返回100条处理。
             </summary>
@@ -2401,16 +2401,16 @@
             当前线程的事务
             </summary>
         </member>
-        <member name="M:FreeSql.IAdo.ExecuteReader(System.Action{System.Data.Common.DbDataReader},System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
+        <member name="M:FreeSql.IAdo.ExecuteReader(System.Action{FreeSql.Internal.Model.FetchCallbackArgs{System.Data.Common.DbDataReader}},System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
             <summary>
             查询，若使用读写分离，查询【从库】条件cmdText.StartsWith("SELECT ")，否则查询【主库】
             </summary>
-            <param name="readerHander"></param>
+            <param name="fetchHandler"></param>
             <param name="cmdType"></param>
             <param name="cmdText"></param>
             <param name="cmdParms"></param>
         </member>
-        <member name="M:FreeSql.IAdo.ExecuteReader(System.Action{System.Data.Common.DbDataReader},System.String,System.Object)">
+        <member name="M:FreeSql.IAdo.ExecuteReader(System.Action{FreeSql.Internal.Model.FetchCallbackArgs{System.Data.Common.DbDataReader}},System.String,System.Object)">
             <summary>
             查询，ExecuteReader(dr => {}, "select * from user where age > ?age", new { age = 25 })
             </summary>
@@ -2532,7 +2532,7 @@
             <param name="parms"></param>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.IAdo.ExecuteReaderAsync(System.Func{System.Data.Common.DbDataReader,System.Threading.Tasks.Task},System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
+        <member name="M:FreeSql.IAdo.ExecuteReaderAsync(System.Func{FreeSql.Internal.Model.FetchCallbackArgs{System.Data.Common.DbDataReader},System.Threading.Tasks.Task},System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
             <summary>
             查询，若使用读写分离，查询【从库】条件cmdText.StartsWith("SELECT ")，否则查询【主库】
             </summary>
@@ -2541,7 +2541,7 @@
             <param name="cmdText"></param>
             <param name="cmdParms"></param>
         </member>
-        <member name="M:FreeSql.IAdo.ExecuteReaderAsync(System.Func{System.Data.Common.DbDataReader,System.Threading.Tasks.Task},System.String,System.Object)">
+        <member name="M:FreeSql.IAdo.ExecuteReaderAsync(System.Func{FreeSql.Internal.Model.FetchCallbackArgs{System.Data.Common.DbDataReader},System.Threading.Tasks.Task},System.String,System.Object)">
             <summary>
             查询，ExecuteReaderAsync(dr => {}, "select * from user where age > ?age", new { age = 25 })
             </summary>
@@ -2933,104 +2933,89 @@
             转大写同步结构，适用 Oracle/达梦/人大金仓
             </summary>
         </member>
-        <member name="P:Fre        获取c#类型，int、long
-            </summary>
-            <param name="column"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IDbFirst.GetCsTypeInfo(FreeSql.DatabaseModel.DbColumnInfo)">
+        <member name="P:FreeSql.ICodeFirst.IsConfigEntityFromDbFirst">
             <summary>
-            获取c#类型对象
-            </summary>
-            <param name="column"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IDbFirst.GetDataReaderMethod(FreeSql.DatabaseModel.DbColumnInfo)">
-            <summary>
-            获取ado.net读取方法, GetBoolean、GetInt64
-            </summary>
-            <param name="column"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IDbFirst.GetCsStringify(FreeSql.DatabaseModel.DbColumnInfo)">
-            <summary>
-            序列化
-            </summary>
-            <param name="column"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IDbFirst.GetCsParse(FreeSql.DatabaseModel.DbColumnInfo)">
-            <summary>
-            反序列化
-            </summary>
-            <param name="column"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IDbFirst.GetEnumsByDatabase(System.String[])">
-            <summary>
-            获取数据库枚举类型，适用 PostgreSQL
-            </summary>
-            <param name="database"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.Internal.CommonProvider.InsertOrUpdateProvider`1.SplitSourceByIdentityValueIsNull(System.Collections.Generic.List{`0})">
-            <summary>
-            如果实体类有自增属性，分成两个 List，有值的Item1 merge，无值的Item2 insert
-            </summary>
-            <param name="source"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.Internal.CommonProvider.InsertProvider`1.IgnoreCanInsert">
-            <summary>
-            AsType, Ctor, ClearData 三处地方需要重新加载
+            将数据库的主键、自增、索引设置导入，适用 DbFirst 模式，无须在实体类型上设置 [Column(IsPrimary)] 或者 ConfigEntity。此功能目前可用于 mysql/sqlserver/postgresql/oracle。<para></para>
+            本功能会影响 IFreeSql 首次访问的速度。<para></para>
+            若使用 CodeFirst 创建索引后，又直接在数据库上建了索引，若无本功能下一次 CodeFirst 迁移时数据库上创建的索引将被删除
             </summary>
         </member>
-        <member name="M:FreeSql.Internal.CommonProvider.UpdateProvider`1.IgnoreCanUpdate">
+        <member name="P:FreeSql.ICodeFirst.IsNoneCommandParameter">
             <summary>
-            AsType, Ctor, ClearData 三处地方需要重新加载
+            不使用命令参数化执行，针对 Insert/Update
             </summary>
         </member>
-        <member name="M:FreeSql.Internal.CommonUtils.GetPropertyCommentByDescriptionAttribute(System.Type)">
+        <member name="P:FreeSql.ICodeFirst.IsGenerateCommandParameterWithLambda">
             <summary>
-            动态读取 DescriptionAttribute 注释文本
+            是否生成命令参数化执行，针对 lambda 表达式解析<para></para>
+            注意：常量不会参数化，变量才会做参数化<para></para>
+            var id = 100;
+            fsql.Select&lt;T&gt;().Where(a => a.id == id) 会参数化<para></para>
+            fsql.Select&lt;T&gt;().Where(a => a.id == 100) 不会参数化
             </summary>
-            <param name="type"></param>
-            <returns></returns>
         </member>
-        <member name="M:FreeSql.Internal.CommonUtils.GetProperyCommentBySummary(System.Type)">
+        <member name="P:FreeSql.ICodeFirst.IsLazyLoading">
             <summary>
-            通过属性的注释文本，通过 xml 读取
+            延时加载导航属性对象，导航属性需要声明 virtual
             </summary>
-            <param name="type"></param>
-            <returns>Dict：key=属性名，value=注释</returns>
         </member>
-        <member name="M:FreeSql.Internal.GlobalFilter.Apply``1(System.String,System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})">
+        <member name="M:FreeSql.ICodeFirst.GetComparisonDDLStatements``1">
             <summary>
-            创建一个过滤器
+            将实体类型与数据库对比，返回DDL语句
             </summary>
             <typeparam name="TEntity"></typeparam>
-            <param name="name">名字</param>
-            <param name="where">表达式</param>
             <returns></returns>
         </member>
-        <member name="P:FreeSql.Internal.Model.BatchProgressStatus`1.Data">
+        <member name="M:FreeSql.ICodeFirst.GetComparisonDDLStatements(System.Type[])">
             <summary>
-            当前操作的数据
+            将实体类型集合与数据库对比，返回DDL语句
             </summary>
+            <param name="entityTypes">实体类型</param>
+            <returns></returns>
         </member>
-        <member name="P:FreeSql.Internal.Model.BatchProgressStatus`1.Current">
+        <member name="M:FreeSql.ICodeFirst.GetComparisonDDLStatements(System.Type,System.String)">
             <summary>
-            当前批次
+            将实体类型与数据库对比，返回DDL语句（指定表名）
             </summary>
+            <param name="entityType">实体类型</param>
+            <param name="tableName">指定表名对比</param>
+            <returns></returns>
         </member>
-        <member name="P:FreeSql.Internal.Model.BatchProgressStatus`1.Total">
+        <member name="M:FreeSql.ICodeFirst.SyncStructure``1">
             <summary>
-            总批次数量
+            同步实体类型到数据库<para></para>
+            注意：生产环境中谨慎使用
             </summary>
+            <typeparam name="TEntity"></typeparam>
         </member>
-        <member name="T:FreeSql.Internal.Model.DynamicFilterInfo">
+        <member name="M:FreeSql.ICodeFirst.SyncStructure(System.Type[])">
             <summary>
-            �me="entity"></param>
+            同步实体类型集合到数据库<para></para>
+            注意：生产环境中谨慎使用
+            </summary>
+            <param name="entityTypes"></param>
+        </member>
+        <member name="M:FreeSql.ICodeFirst.SyncStructure(System.Type,System.String)">
+            <summary>
+            同步实体类型到数据库（指定表名）<para></para>
+            注意：生产环境中谨慎使用
+            </summary>
+            <param name="entityType">实体类型</param>
+            <param name="tableName">指定表名对比</param>
+        </member>
+        <member name="M:FreeSql.ICodeFirst.GetDbInfo(System.Type)">
+            <summary>
+            根据 System.Type 获取数据库信息
+            </summary>
+            <param name="type"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.ICodeFirst.ConfigEntity``1(System.Action{FreeSql.DataAnnotations.TableFluent{``0}})">
+            <summary>
+            FreeSql FluentApi 配置实体，方法名与特性相同
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="entity"></param>
             <returns></returns>
         </member>
         <member name="M:FreeSql.ICodeFirst.ConfigEntity(System.Type,System.Action{FreeSql.DataAnnotations.TableFluent})">
@@ -3296,6 +3281,11 @@
             <summary>
             not in (1,2,3)<para></para>
             此时 Value 的值格式为逗号分割：value1,value2,value3... 或者数组
+            </summary>
+        </member>
+        <member name="P:FreeSql.Internal.Model.FetchCallbackArgs`1.IsBreak">
+            <summary>
+            是否放弃继续读取
             </summary>
         </member>
         <member name="P:FreeSql.Internal.Model.TableRef.RefMiddleEntityType">

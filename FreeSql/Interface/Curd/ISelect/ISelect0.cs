@@ -79,7 +79,7 @@ namespace FreeSql
         /// <param name="size">数据块的大小</param>
         /// <param name="done">处理数据块</param>
         /// <param name="includeNestedMembers">false: 返回 2级 LeftJoin/InnerJoin/RightJoin 对象；true: 返回所有 LeftJoin/InnerJoin/RightJoin 的导航数据</param>
-        void ToChunk(int size, Action<List<T1>> done, bool includeNestedMembers = false);
+        void ToChunk(int size, Action<FetchCallbackArgs<List<T1>>> done, bool includeNestedMembers = false);
         /// <summary>
         /// 执行SQL查询，返回 field 指定字段的记录，并以元组或基础类型(int,string,long)接收，记录不存在时返回 Count 为 0 的列表
         /// </summary>
