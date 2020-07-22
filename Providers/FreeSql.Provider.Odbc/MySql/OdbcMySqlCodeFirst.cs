@@ -41,6 +41,7 @@ namespace FreeSql.Odbc.MySql
 
                 { typeof(byte[]).FullName, CsToDb.New(OdbcType.VarBinary, "varbinary", "varbinary(255)", false, null, new byte[0]) },
                 { typeof(string).FullName, CsToDb.New(OdbcType.VarChar, "varchar", "varchar(255)", false, null, "") },
+                { typeof(char).FullName, CsToDb.New(OdbcType.Char, "char", "char(1) NULL", false, null, '\0') },
 
                 { typeof(Guid).FullName, CsToDb.New(OdbcType.VarChar, "char", "char(36) NOT NULL", false, false, Guid.Empty) },{ typeof(Guid?).FullName, CsToDb.New(OdbcType.VarChar, "char", "char(36)", false, true, null) },
             };

@@ -40,6 +40,7 @@ namespace FreeSql.SqlServer
 
                 { typeof(byte[]).FullName, CsToDb.New(SqlDbType.VarBinary, "varbinary", "varbinary(255)", false, null, new byte[0]) },
                 { typeof(string).FullName, CsToDb.New(SqlDbType.NVarChar, "nvarchar", "nvarchar(255)", false, null, "") },
+                { typeof(char).FullName, CsToDb.New(SqlDbType.Char, "char", "char(1)", false, null, '\0') },
 
                 { typeof(Guid).FullName, CsToDb.New(SqlDbType.UniqueIdentifier, "uniqueidentifier", "uniqueidentifier NOT NULL", false, false, Guid.Empty) },{ typeof(Guid?).FullName, CsToDb.New(SqlDbType.UniqueIdentifier, "uniqueidentifier", "uniqueidentifier", false, true, null) },
             };

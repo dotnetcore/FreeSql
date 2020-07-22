@@ -45,6 +45,7 @@ namespace FreeSql.MySql
 
                 { typeof(byte[]).FullName, CsToDb.New(MySqlDbType.VarBinary, "varbinary", "varbinary(255)", false, null, new byte[0]) },
                 { typeof(string).FullName, CsToDb.New(MySqlDbType.VarChar, "varchar", "varchar(255)", false, null, "") },
+                { typeof(char).FullName, CsToDb.New(MySqlDbType.VarChar, "char", "char(1)", false, null, '\0') },
 
                 { typeof(Guid).FullName, CsToDb.New(MySqlDbType.VarChar, "char", "char(36) NOT NULL", false, false, Guid.Empty) },{ typeof(Guid?).FullName, CsToDb.New(MySqlDbType.VarChar, "char", "char(36)", false, true, null) },
 

@@ -38,6 +38,7 @@ namespace FreeSql.Sqlite
 
                 { typeof(byte[]).FullName, CsToDb.New(DbType.Binary, "blob", "blob", false, null, new byte[0]) },
                 { typeof(string).FullName, CsToDb.New(DbType.String, "nvarchar", "nvarchar(255)", false, null, "") },
+                { typeof(char).FullName, CsToDb.New(DbType.AnsiString, "char", "char(1)", false, null, '\0') },
 
                 { typeof(Guid).FullName, CsToDb.New(DbType.Guid, "character", "character(36) NOT NULL", false, false, Guid.Empty) },{ typeof(Guid?).FullName, CsToDb.New(DbType.Guid, "character", "character(36)", false, true, null) },
             };

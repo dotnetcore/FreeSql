@@ -38,6 +38,7 @@ namespace FreeSql.Odbc.Default
         public virtual string MappingOdbcTypeDateTime => "datetime";
         public virtual string MappingOdbcTypeVarBinary => "varbinary";
         public virtual string MappingOdbcTypeVarChar => "nvarchar";
+        public virtual string MappingOdbcTypeChar => "char";
         public virtual string MappingOdbcTypeText => "nvarchar(max)";
         public virtual string MappingOdbcTypeUniqueIdentifier => "uniqueidentifier";
 

@@ -39,6 +39,7 @@ namespace FreeSql.PostgreSQL
                 { typeof(decimal).FullName, CsToDb.New(NpgsqlDbType.Numeric, "numeric", "numeric(10,2) NOT NULL", false, false, 0) },{ typeof(decimal?).FullName, CsToDb.New(NpgsqlDbType.Numeric, "numeric", "numeric(10,2)", false, true, null) },
 
                 { typeof(string).FullName, CsToDb.New(NpgsqlDbType.Varchar, "varchar", "varchar(255)", false, null, "") },
+                { typeof(char).FullName, CsToDb.New(NpgsqlDbType.Char, "bpchar", "bpchar(1)", false, null, '\0') },
 
                 { typeof(TimeSpan).FullName, CsToDb.New(NpgsqlDbType.Time, "time","time NOT NULL", false, false, 0) },{ typeof(TimeSpan?).FullName, CsToDb.New(NpgsqlDbType.Time, "time", "time",false, true, null) },
                 { typeof(DateTime).FullName, CsToDb.New(NpgsqlDbType.Timestamp, "timestamp", "timestamp NOT NULL", false, false, new DateTime(1970,1,1)) },{ typeof(DateTime?).FullName, CsToDb.New(NpgsqlDbType.Timestamp, "timestamp", "timestamp", false, true, null) },

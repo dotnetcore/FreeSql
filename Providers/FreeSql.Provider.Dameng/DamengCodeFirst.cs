@@ -42,6 +42,7 @@ namespace FreeSql.Dameng
 
                 { typeof(byte[]).FullName, CsToDb.New(DmDbType.VarBinary, "blob", "blob NULL", false, null, new byte[0]) },
                 { typeof(string).FullName, CsToDb.New(DmDbType.VarChar, "nvarchar2", "nvarchar2(255) NULL", false, null, "") },
+                { typeof(char).FullName, CsToDb.New(DmDbType.Char, "char", "char(1) NULL", false, null, '\0') },
 
                 { typeof(Guid).FullName, CsToDb.New(DmDbType.Char, "char", "char(36) NOT NULL", false, false, Guid.Empty) },{ typeof(Guid?).FullName, CsToDb.New(DmDbType.Char, "char", "char(36) NULL", false, true, null) },
             };

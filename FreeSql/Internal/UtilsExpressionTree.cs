@@ -451,6 +451,7 @@ namespace FreeSql.Internal
                 var m = Regex.Match(col.Attribute.DbType, ltp);
                 if (m.Success == false) continue;
                 var sizeStr = m.Groups[1].Value.Trim();
+                if (sizeStr.EndsWith(" BYTE") || sizeStr.EndsWith(" CHAR")) sizeStr = sizeStr.Remove(sizeStr.Length - 5); //ORACLE
                 if (string.Compare(sizeStr, "max", true) == 0)
                 {
                     col.DbSize = -1;
@@ -1257,6 +1258,7 @@ namespace FreeSql.Internal
             [typeof(DateTimeOffset)] = true,
             [typeof(byte[])] = true,
             [typeof(string)] = true,
+            [typeof(char)] = true,
             [typeof(Guid)] = true,
             //[typeof(MygisPoint)] = true,
             //[typeof(MygisLineString)] = true,
@@ -1719,6 +1721,11 @@ namespace FreeSql.Internal
             if (bytes == null) return Guid.Empty;
             return Guid.TryParse(BitConverter.ToString(bytes, 0, Math.Min(bytes.Length, 36)).Replace("-", ""), out var tryguid) ? tryguid : Guid.Empty;
         }
+        static char StringToChar(string str)
+        {
+            if (string.IsNullOrEmpty(str)) return default(char);
+            return str.ToCharArray(0, 1)[0];
+        }
 
         static ConcurrentDictionary<Type, ConcurrentDictionary<Type, Func<object, object>>> _dicGetDataReaderValue = new ConcurrentDictionary<Type, ConcurrentDictionary<Type, Func<object, object>>>();
         static MethodInfo MethodArrayGetValue = typeof(Array).GetMethod("GetValue", new[] { typeof(int) });
@@ -1749,6 +1756,8 @@ namespace FreeSql.Internal
         static Encoding DefaultEncoding = Encoding.UTF8;
         static MethodInfo MethodEncodingGetBytes = typeof(Encoding).GetMethod("GetBytes", new[] { typeof(string) });
         static MethodInfo MethodEncodingGetString = typeof(Encoding).GetMethod("GetString", new[] { typeof(byte[]) });
+        static MethodInfo MethodStringToCharArray = typeof(string).GetMethod("ToCharArray", new Type[0]);
+        static MethodInfo MethodStringToChar = typeof(Utils).GetMethod("StringToChar", BindingFlags.NonPublic | BindingFlags.Static, null, new[] { typeof(string) }, null);
         static MethodInfo MethodGuidToBytes = typeof(Utils).GetMethod("GuidToBytes", BindingFlags.NonPublic | BindingFlags.Static, null, new[] { typeof(Guid) }, null);
         static MethodInfo MethodBytesToGuid = typeof(Utils).GetMethod("BytesToGuid", BindingFlags.NonPublic | BindingFlags.Static, null, new[] { typeof(byte[]) }, null);
 
@@ -1760,21 +1769,35 @@ namespace FreeSql.Internal
             var valueExp = Expression.Variable(typeof(object), "locvalue");
             Func<Expression> funcGetExpression = () =>
             {
-                if (type.FullName == "System.Byte[]") return Expression.IfThenElse(
-                    Expression.TypeEqual(valueExp, type),
-                    Expression.Return(returnTarget, valueExp),
-                    Expression.IfThenElse(
-                        Expression.TypeEqual(valueExp, typeof(string)),
-                        Expression.Return(returnTarget, Expression.Call(Expression.Constant(DefaultEncoding), MethodEncodingGetBytes, Expression.Convert(valueExp, typeof(string)))),
-                        Expression.IfThenElse(
-                            Expression.OrElse(Expression.TypeEqual(valueExp, typeof(Guid)), Expression.TypeEqual(valueExp, typeof(Guid?))),
-                            Expression.Return(returnTarget, Expression.Call(MethodGuidToBytes, Expression.Convert(valueExp, typeof(Guid)))),
-                            Expression.Return(returnTarget, Expression.Call(Expression.Constant(DefaultEncoding), MethodEncodingGetBytes, Expression.Call(MethodToString, valueExp)))
-                        )
-                    )
-                );
                 if (type.IsArray)
                 {
+                    switch (type.FullName) 
+                    {
+                        case "System.Byte[]":
+                            return Expression.IfThenElse(
+                                Expression.TypeEqual(valueExp, type),
+                                Expression.Return(returnTarget, valueExp),
+                                Expression.IfThenElse(
+                                    Expression.TypeEqual(valueExp, typeof(string)),
+                                    Expression.Return(returnTarget, Expression.Call(Expression.Constant(DefaultEncoding), MethodEncodingGetBytes, Expression.Convert(valueExp, typeof(string)))),
+                                    Expression.IfThenElse(
+                                        Expression.OrElse(Expression.TypeEqual(valueExp, typeof(Guid)), Expression.TypeEqual(valueExp, typeof(Guid?))),
+                                        Expression.Return(returnTarget, Expression.Call(MethodGuidToBytes, Expression.Convert(valueExp, typeof(Guid)))),
+                                        Expression.Return(returnTarget, Expression.Call(Expression.Constant(DefaultEncoding), MethodEncodingGetBytes, Expression.Call(MethodToString, valueExp)))
+                                    )
+                                )
+                            );
+                        case "System.Char[]":
+                            return Expression.IfThenElse(
+                                Expression.TypeEqual(valueExp, type),
+                                Expression.Return(returnTarget, valueExp),
+                                Expression.IfThenElse(
+                                    Expression.TypeEqual(valueExp, typeof(string)),
+                                    Expression.Return(returnTarget, Expression.Call(Expression.Convert(valueExp, typeof(string)), MethodStringToCharArray)),
+                                    Expression.Return(returnTarget, Expression.Call(Expression.Call(MethodToString, valueExp), MethodStringToCharArray))
+                                )
+                            );
+                    }
                     var elementType = type.GetElementType();
                     var arrNewExp = Expression.Variable(type, "arrNew");
                     var arrExp = Expression.Variable(typeof(Array), "arr");
@@ -1817,14 +1840,6 @@ namespace FreeSql.Internal
                 }
                 var typeOrg = type;
                 if (type.IsNullableType()) type = type.GetGenericArguments().First();
-                if (type.IsEnum)
-                    return Expression.Block(
-                        Expression.IfThenElse(
-                            Expression.Equal(Expression.TypeAs(valueExp, typeof(string)), Expression.Constant(string.Empty)),
-                            Expression.Return(returnTarget, Expression.Convert(Expression.Default(type), typeof(object))),
-                            Expression.Return(returnTarget, Expression.Call(MethodEnumParse, Expression.Constant(type, typeof(Type)), Expression.Call(MethodToString, valueExp), Expression.Constant(true, typeof(bool))))
-                        )
-                    );
                 Expression tryparseExp = null;
                 Expression tryparseBooleanExp = null;
                 ParameterExpression tryparseVarExp = null;
@@ -1860,6 +1875,16 @@ namespace FreeSql.Internal
                                     )
                                }
                            );
+                    case "System.Char":
+                        return Expression.IfThenElse(
+                                Expression.TypeEqual(valueExp, type),
+                                Expression.Return(returnTarget, valueExp),
+                                Expression.IfThenElse(
+                                    Expression.TypeEqual(valueExp, typeof(string)),
+                                    Expression.Return(returnTarget, Expression.Convert(Expression.Call(MethodStringToChar, Expression.Convert(valueExp, typeof(string))), typeof(object))),
+                                    Expression.Return(returnTarget, Expression.Convert(Expression.Call(MethodStringToChar, Expression.Call(MethodToString, valueExp)), typeof(object)))
+                                )
+                            );
                     case "System.SByte":
                         tryparseExp = Expression.Block(
                            new[] { tryparseVarExp = Expression.Variable(typeof(sbyte)) },
@@ -2029,6 +2054,14 @@ namespace FreeSql.Internal
                         );
                         break;
                     default:
+                        if (type.IsEnum)
+                            return Expression.Block(
+                                Expression.IfThenElse(
+                                    Expression.Equal(Expression.TypeAs(valueExp, typeof(string)), Expression.Constant(string.Empty)),
+                                    Expression.Return(returnTarget, Expression.Convert(Expression.Default(type), typeof(object))),
+                                    Expression.Return(returnTarget, Expression.Call(MethodEnumParse, Expression.Constant(type, typeof(Type)), Expression.Call(MethodToString, valueExp), Expression.Constant(true, typeof(bool))))
+                                )
+                            );
                         foreach (var switchFunc in GetDataReaderValueBlockExpressionSwitchTypeFullName)
                         {
                             var switchFuncRet = switchFunc(returnTarget, valueExp, type);

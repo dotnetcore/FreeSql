@@ -56,6 +56,7 @@ namespace FreeSql.Odbc.Default
 
                             { typeof(byte[]).FullName, CsToDb.New(OdbcType.VarBinary, _utils.Adapter.MappingOdbcTypeVarBinary, $"{_utils.Adapter.MappingOdbcTypeVarBinary}(255)", false, null, new byte[0]) },
                             { typeof(string).FullName, CsToDb.New(OdbcType.VarChar, _utils.Adapter.MappingOdbcTypeVarChar, $"{_utils.Adapter.MappingOdbcTypeVarChar}(255)", false, null, "") },
+                            { typeof(char).FullName, CsToDb.New(OdbcType.Char, _utils.Adapter.MappingOdbcTypeChar, $"{_utils.Adapter.MappingOdbcTypeChar}(1)", false, null, '\0') },
 
                             { typeof(Guid).FullName, CsToDb.New(OdbcType.UniqueIdentifier, deleteBrackets(_utils.Adapter.MappingOdbcTypeUniqueIdentifier), $"{_utils.Adapter.MappingOdbcTypeUniqueIdentifier} NOT NULL", false, false, Guid.Empty) },{ typeof(Guid?).FullName, CsToDb.New(OdbcType.UniqueIdentifier, deleteBrackets(_utils.Adapter.MappingOdbcTypeUniqueIdentifier), _utils.Adapter.MappingOdbcTypeUniqueIdentifier, false, true, null) },
                         };

@@ -44,6 +44,7 @@ namespace FreeSql.Oracle
 
                 { typeof(byte[]).FullName, CsToDb.New(OracleDbType.Blob, "blob", "blob NULL", false, null, new byte[0]) },
                 { typeof(string).FullName, CsToDb.New(OracleDbType.NVarchar2, "nvarchar2", "nvarchar2(255) NULL", false, null, "") },
+                { typeof(char).FullName, CsToDb.New(OracleDbType.Char, "char", "char(1 CHAR) NULL", false, null, '\0') },
 
                 { typeof(Guid).FullName, CsToDb.New(OracleDbType.Char, "char", "char(36 CHAR) NOT NULL", false, false, Guid.Empty) },{ typeof(Guid?).FullName, CsToDb.New(OracleDbType.Char, "char", "char(36 CHAR) NULL", false, true, null) },
             };

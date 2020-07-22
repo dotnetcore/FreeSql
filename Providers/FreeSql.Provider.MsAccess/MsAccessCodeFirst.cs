@@ -39,6 +39,7 @@ namespace FreeSql.MsAccess
 
                 { typeof(byte[]).FullName, CsToDb.New(OleDbType.VarBinary, "varbinary", "varbinary(255)", false, null, new byte[0]) },
                 { typeof(string).FullName, CsToDb.New(OleDbType.VarChar, "varchar", "varchar(255)", false, null, "") },
+                { typeof(char).FullName, CsToDb.New(OleDbType.VarChar, "varchar", "varchar(1)", false, null, '\0') },
 
                 { typeof(Guid).FullName, CsToDb.New(OleDbType.Guid, "varchar", "varchar(36) NOT NULL", false, false, Guid.Empty) },{ typeof(Guid?).FullName, CsToDb.New(OleDbType.Guid, "varchar", "varchar(36)", false, true, null) },
             };

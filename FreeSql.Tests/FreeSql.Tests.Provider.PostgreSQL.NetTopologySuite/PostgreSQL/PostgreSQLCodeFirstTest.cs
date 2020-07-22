@@ -22,8 +22,8 @@ namespace FreeSql.Tests.PostgreSQL.NetTopologySuite
         [Fact]
         public void GetComparisonDDLStatements()
         {
-
             var sql = g.pgsql.CodeFirst.GetComparisonDDLStatements<TableAllType>();
+            Assert.True(string.IsNullOrEmpty(sql)); //测试运行两次后
             g.pgsql.Select<TableAllType>();
         }
 
@@ -230,6 +230,7 @@ namespace FreeSql.Tests.PostgreSQL.NetTopologySuite
                 testFieldShortArrayNullable = new short?[] { 1, 2, 3, null, 4, 5 },
                 testFieldShortNullable = short.MinValue,
                 testFieldString = "我是中国人string'\\?!@#$%^&*()_+{}}{~?><<>",
+                testFieldChar = 'X',
                 testFieldStringArray = new[] { "我是中国人String1", "我是中国人String2", null, "我是中国人String3" },
                 testFieldTimeSpan = TimeSpan.FromDays(1),
                 testFieldTimeSpanArray = new[] { TimeSpan.FromDays(1), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(60) },
@@ -262,10 +263,12 @@ namespace FreeSql.Tests.PostgreSQL.NetTopologySuite
             var item3 = insert.AppendData(item2).ExecuteInserted().First();
             var newitem2 = select.Where(a => a.Id == item3.Id && object.Equals(a.testFieldJToken["a"], "1")).ToOne();
             Assert.Equal(item2.testFieldString, newitem2.testFieldString);
+            Assert.Equal(item2.testFieldChar, newitem2.testFieldChar);
 
             item3 = insert.NoneParameter().AppendData(item2).ExecuteInserted().First();
             newitem2 = select.Where(a => a.Id == item3.Id && object.Equals(a.testFieldJToken["a"], "1")).ToOne();
             Assert.Equal(item2.testFieldString, newitem2.testFieldString);
+            Assert.Equal(item2.testFieldChar, newitem2.testFieldChar);
 
             var items = select.ToList();
             var itemstb = select.ToDataTable();
@@ -296,6 +299,7 @@ namespace FreeSql.Tests.PostgreSQL.NetTopologySuite
 
             public byte[] testFieldBytes { get; set; }
             public string testFieldString { get; set; }
+            public char testFieldChar { get; set; }
             public Guid testFieldGuid { get; set; }
             public NpgsqlPoint testFieldNpgsqlPoint { get; set; }
             public NpgsqlLine testFieldNpgsqlLine { get; set; }

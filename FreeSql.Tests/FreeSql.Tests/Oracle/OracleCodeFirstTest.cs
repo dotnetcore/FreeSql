@@ -279,57 +279,7 @@ namespace FreeSql.Tests.Oracle
         {
 
             var sql = g.oracle.CodeFirst.GetComparisonDDLStatements<TableAllType>();
-            if (string.IsNullOrEmpty(sql) == false)
-            {
-                Assert.Equal(@"CREATE TABLE IF NOT EXISTS `cccddd`.`tb_alltype` ( 
-  `Id` INT(11) NOT NULL AUTO_INCREMENT, 
-  `Bool` BIT(1) NOT NULL, 
-  `SByte` TINYINT(3) NOT NULL, 
-  `Short` SMALLINT(6) NOT NULL, 
-  `Int` INT(11) NOT NULL, 
-  `Long` BIGINT(20) NOT NULL, 
-  `Byte` TINYINT(3) UNSIGNED NOT NULL, 
-  `UShort` SMALLINT(5) UNSIGNED NOT NULL, 
-  `UInt` INT(10) UNSIGNED NOT NULL, 
-  `ULong` BIGINT(20) UNSIGNED NOT NULL, 
-  `Double` DOUBLE NOT NULL, 
-  `Float` FLOAT NOT NULL, 
-  `Decimal` DECIMAL(10,2) NOT NULL, 
-  `TimeSpan` TIME NOT NULL, 
-  `DateTime` DATETIME NOT NULL, 
-  `Bytes` VARBINARY(255), 
-  `String` VARCHAR(255), 
-  `Guid` VARCHAR(36), 
-  `BoolNullable` BIT(1), 
-  `SByteNullable` TINYINT(3), 
-  `ShortNullable` SMALLINT(6), 
-  `IntNullable` INT(11), 
-  `testFielLongNullable` BIGINT(20), 
-  `ByteNullable` TINYINT(3) UNSIGNED, 
-  `UShortNullable` SMALLINT(5) UNSIGNED, 
-  `UIntNullable` INT(10) UNSIGNED, 
-  `ULongNullable` BIGINT(20) UNSIGNED, 
-  `DoubleNullable` DOUBLE, 
-  `FloatNullable` FLOAT, 
-  `DecimalNullable` DECIMAL(10,2), 
-  `TimeSpanNullable` TIME, 
-  `DateTimeNullable` DATETIME, 
-  `GuidNullable` VARCHAR(36), 
-  `Point` POINT, 
-  `LineString` LINESTRING, 
-  `Polygon` POLYGON, 
-  `MultiPoint` MULTIPOINT, 
-  `MultiLineString` MULTILINESTRING, 
-  `MultiPolygon` MULTIPOLYGON, 
-  `Enum1` ENUM('E1','E2','E3') NOT NULL, 
-  `Enum1Nullable` ENUM('E1','E2','E3'), 
-  `Enum2` SET('F1','F2','F3') NOT NULL, 
-  `Enum2Nullable` SET('F1','F2','F3'), 
-  PRIMARY KEY (`Id`)
-) Engine=InnoDB;
-", sql);
-            }
-
+            Assert.True(string.IsNullOrEmpty(sql)); //测试运行两次后
             //sql = g.oracle.CodeFirst.GetComparisonDDLStatements<Tb_alltype>();
         }
 
@@ -372,6 +322,7 @@ namespace FreeSql.Tests.Oracle
                 Short = short.MaxValue,
                 ShortNullable = short.MinValue,
                 String = "我是中国人string'\\?!@#$%^&*()_+{}}{~?><<>",
+                Char = 'X',
                 TimeSpan = TimeSpan.FromSeconds(999),
                 TimeSpanNullable = TimeSpan.FromSeconds(60),
                 UInt = uint.MaxValue,
@@ -389,10 +340,12 @@ namespace FreeSql.Tests.Oracle
             item2.Id = (int)insert.AppendData(item2).ExecuteIdentity();
             var newitem2 = select.Where(a => a.Id == item2.Id).ToOne();
             Assert.Equal(item2.String, newitem2.String);
+            Assert.Equal(item2.Char, newitem2.Char);
 
             item2.Id = (int)insert.NoneParameter().AppendData(item2).ExecuteIdentity();
             newitem2 = select.Where(a => a.Id == item2.Id).ToOne();
             Assert.Equal(item2.String, newitem2.String);
+            Assert.Equal(item2.Char, newitem2.Char);
 
             var items = select.ToList();
             var itemstb = select.ToDataTable();
@@ -427,6 +380,7 @@ namespace FreeSql.Tests.Oracle
 
             public byte[] Bytes { get; set; }
             public string String { get; set; }
+            public char Char { get; set; }
             public Guid Guid { get; set; }
 
             public bool? BoolNullable { get; set; }

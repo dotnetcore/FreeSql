@@ -99,6 +99,7 @@ namespace FreeSql.Tests.Odbc.Default
                 testFieldShort = short.MaxValue,
                 testFieldShortNullable = short.MinValue,
                 testFieldString = "我是中国人string'\\?!@#$%^&*()_+{}}{~?><<>",
+                testFieldChar = 'X',
                 testFieldUInt = uint.MaxValue,
                 testFieldUIntNullable = uint.MinValue,
                 testFieldULong = ulong.MaxValue,
@@ -117,10 +118,12 @@ namespace FreeSql.Tests.Odbc.Default
             var item3 = insert.AppendData(item2).ExecuteIdentity();
             var newitem2 = select.Where(a => a.Id == item2.Id).ToOne();
             Assert.Equal(item2.testFieldString, newitem2.testFieldString);
+            Assert.Equal(item2.testFieldChar, newitem2.testFieldChar);
 
             item2.Id = (int)insert.NoneParameter().AppendData(item2).ExecuteIdentity();
             newitem2 = select.Where(a => a.Id == item2.Id).ToOne();
             Assert.Equal(item2.testFieldString, newitem2.testFieldString);
+            Assert.Equal(item2.testFieldChar, newitem2.testFieldChar);
 
             var items = select.ToList();
             var itemstb = select.ToDataTable();
@@ -148,6 +151,7 @@ namespace FreeSql.Tests.Odbc.Default
             public DateTime testFieldDateTime { get; set; }
             public byte[] testFieldBytes { get; set; }
             public string testFieldString { get; set; }
+            public char testFieldChar { get; set; }
             public Guid testFieldGuid { get; set; }
 
             public bool? testFieldBoolNullable { get; set; }
