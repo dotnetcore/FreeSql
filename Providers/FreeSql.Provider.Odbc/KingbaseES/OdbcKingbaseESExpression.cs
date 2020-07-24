@@ -334,7 +334,7 @@ namespace FreeSql.Odbc.KingbaseES
                         if (exp.Arguments.Count > 1)
                         {
                             if (exp.Arguments[1].Type == typeof(bool) ||
-                                exp.Arguments[1].Type == typeof(StringComparison) && getExp(exp.Arguments[0]).Contains("IgnoreCase")) likeOpt = "ILIKE";
+                                exp.Arguments[1].Type == typeof(StringComparison)) likeOpt = "ILIKE";
                         }
                         if (exp.Method.Name == "StartsWith") return $"({left}) {likeOpt} {(args0Value.EndsWith("'") ? args0Value.Insert(args0Value.Length - 1, "%") : $"(({args0Value})::text || '%')")}";
                         if (exp.Method.Name == "EndsWith") return $"({left}) {likeOpt} {(args0Value.StartsWith("'") ? args0Value.Insert(1, "%") : $"('%' || ({args0Value})::text)")}";
