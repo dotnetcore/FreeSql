@@ -59,7 +59,7 @@ namespace FreeSql.Tests.ShenTongExpression
                 str = $"x{a.Id + 1}z-{a.CreateTime.ToString("yyyyMM")}{a.Title}",
                 str2 = string.Format("{0}x{0}z-{1}{2}", a.Id + 1, a.CreateTime.ToString("yyyyMM"), a.Title)
             });
-            Assert.Equal($@"SELECT 'x'||((a.""ID"" + 1))||'z-'||(to_char((a.""CREATETIME"")::timestamp,'YYYYMM'))||''||(a.""TITLE"")||'' as1, ''||((a.""ID"" + 1))||'x'||((a.""ID"" + 1))||'z-'||(to_char((a.""CREATETIME"")::timestamp,'YYYYMM'))||''||(a.""TITLE"")||'' as2 
+            Assert.Equal($@"SELECT 'x'||coalesce((a.""ID"" + 1), '')||'z-'||coalesce(to_char((a.""CREATETIME"")::timestamp,'YYYYMM'), '')||''||coalesce(a.""TITLE"", '')||'' as1, ''||coalesce((a.""ID"" + 1), '')||'x'||coalesce((a.""ID"" + 1), '')||'z-'||coalesce(to_char((a.""CREATETIME"")::timestamp,'YYYYMM'), '')||''||coalesce(a.""TITLE"", '')||'' as2 
 FROM ""TB_TOPIC"" a 
 WHERE (a.""ID"" = {item.Id})", sql);
 

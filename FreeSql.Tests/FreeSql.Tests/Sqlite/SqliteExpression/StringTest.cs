@@ -59,7 +59,7 @@ namespace FreeSql.Tests.SqliteExpression
                 str = $"x{a.Id + 1}z-{a.CreateTime.ToString("yyyyMM")}{a.Title}",
                 str2 = string.Format("{0}x{0}z-{1}{2}", a.Id + 1, a.CreateTime.ToString("yyyyMM"), a.Title)
             });
-            Assert.Equal($@"SELECT 'x'||((a.""Id"" + 1))||'z-'||(strftime('%Y%m',a.""CreateTime""))||''||(a.""Title"")||'' as1, ''||((a.""Id"" + 1))||'x'||((a.""Id"" + 1))||'z-'||(strftime('%Y%m',a.""CreateTime""))||''||(a.""Title"")||'' as2 
+            Assert.Equal($@"SELECT 'x'||ifnull((a.""Id"" + 1), '')||'z-'||ifnull(strftime('%Y%m',a.""CreateTime""), '')||''||ifnull(a.""Title"", '')||'' as1, ''||ifnull((a.""Id"" + 1), '')||'x'||ifnull((a.""Id"" + 1), '')||'z-'||ifnull(strftime('%Y%m',a.""CreateTime""), '')||''||ifnull(a.""Title"", '')||'' as2 
 FROM ""tb_topic"" a 
 WHERE (a.""Id"" = {item.Id})", sql);
 

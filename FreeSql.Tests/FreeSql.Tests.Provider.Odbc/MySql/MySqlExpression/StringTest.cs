@@ -61,7 +61,7 @@ namespace FreeSql.Tests.Odbc.MySqlExpression
                 str = $"x{a.Id + 1}z-{a.CreateTime.ToString("yyyyMM")}{a.Title}",
                 str2 = string.Format("{0}x{0}z-{1}{2}", a.Id + 1, a.CreateTime.ToString("yyyyMM"), a.Title)
             });
-            Assert.Equal($@"SELECT concat('x',(a.`Id` + 1),'z-',date_format(a.`CreateTime`,'%Y%m'),'',a.`Title`,'') as1, concat('',(a.`Id` + 1),'x',(a.`Id` + 1),'z-',date_format(a.`CreateTime`,'%Y%m'),'',a.`Title`,'') as2 
+            Assert.Equal($@"SELECT concat('x',ifnull((a.`Id` + 1), ''),'z-',ifnull(date_format(a.`CreateTime`,'%Y%m'), ''),'',ifnull(a.`Title`, ''),'') as1, concat('',ifnull((a.`Id` + 1), ''),'x',ifnull((a.`Id` + 1), ''),'z-',ifnull(date_format(a.`CreateTime`,'%Y%m'), ''),'',ifnull(a.`Title`, ''),'') as2 
 FROM `tb_topic` a 
 WHERE (a.`Id` = {item.Id})", sql);
 

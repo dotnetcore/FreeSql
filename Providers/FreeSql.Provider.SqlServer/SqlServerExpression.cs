@@ -263,10 +263,10 @@ namespace FreeSql.SqlServer
                         var expArgs = exp.Arguments.Where((a, z) => z > 0).Select(a =>
                         {
                             var atype = (a as UnaryExpression)?.Operand.Type.NullableTypeOrThis() ?? a.Type.NullableTypeOrThis();
-                            if (atype == typeof(string)) return $"'+({ExpressionLambdaToSql(a, tsc)})+{nchar}'";
-                            if (atype == typeof(Guid)) return $"'+cast({ExpressionLambdaToSql(a, tsc)} as char(36))+{nchar}'";
-                            if (atype.IsNumberType()) return $"'+cast({ExpressionLambdaToSql(a, tsc)} as varchar)+{nchar}'";
-                            return $"'+cast({ExpressionLambdaToSql(a, tsc)} as nvarchar(max))+{nchar}'";
+                            if (atype == typeof(string)) return $"'+{_common.IsNull(ExpressionLambdaToSql(a, tsc), "''")}+{nchar}'";
+                            if (atype == typeof(Guid)) return $"'+{_common.IsNull($"cast({ExpressionLambdaToSql(a, tsc)} as char(36))", "''")}+{nchar}'";
+                            if (atype.IsNumberType()) return $"'+{_common.IsNull($"cast({ExpressionLambdaToSql(a, tsc)} as varchar)", "''")}+{nchar}'";
+                            return $"'+{_common.IsNull($"cast({ExpressionLambdaToSql(a, tsc)} as nvarchar(max))", "''")}+{nchar}'";
                         }).ToArray();
                         return string.Format(expArgs0, expArgs);
                 }

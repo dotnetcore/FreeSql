@@ -249,7 +249,7 @@ namespace FreeSql.Odbc.MySql
                     case "Format":
                         if (exp.Arguments[0].NodeType != ExpressionType.Constant) throw new Exception($"未实现函数表达式 {exp} 解析，参数 {exp.Arguments[0]} 必须为常量");
                         if (exp.Arguments.Count == 1) return ExpressionLambdaToSql(exp.Arguments[0], tsc);
-                        var expArgs = exp.Arguments.Where((a, z) => z > 0).Select(a => $"',{ExpressionLambdaToSql(a, tsc)},'").ToArray();
+                        var expArgs = exp.Arguments.Where((a, z) => z > 0).Select(a => $"',{_common.IsNull(ExpressionLambdaToSql(a, tsc), "''")},'").ToArray();
                         return $"concat({string.Format(ExpressionLambdaToSql(exp.Arguments[0], tsc), expArgs)})";
                 }
             }

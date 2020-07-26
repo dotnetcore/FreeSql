@@ -59,7 +59,7 @@ namespace FreeSql.Tests.Odbc.PostgreSQLExpression
                 str = $"x{a.Id + 1}z-{a.CreateTime.ToString("yyyyMM")}{a.Title}",
                 str2 = string.Format("{0}x{0}z-{1}{2}", a.Id + 1, a.CreateTime.ToString("yyyyMM"), a.Title)
             });
-            Assert.Equal($@"SELECT 'x'||((a.""id"" + 1))||'z-'||(to_char((a.""createtime"")::timestamp,'YYYYMM'))||''||(a.""title"")||'' as1, ''||((a.""id"" + 1))||'x'||((a.""id"" + 1))||'z-'||(to_char((a.""createtime"")::timestamp,'YYYYMM'))||''||(a.""title"")||'' as2 
+            Assert.Equal($@"SELECT 'x'||coalesce(((a.""id"" + 1))::text, '')||'z-'||coalesce(to_char((a.""createtime"")::timestamp,'YYYYMM'), '')||''||coalesce(a.""title"", '')||'' as1, ''||coalesce(((a.""id"" + 1))::text, '')||'x'||coalesce(((a.""id"" + 1))::text, '')||'z-'||coalesce(to_char((a.""createtime"")::timestamp,'YYYYMM'), '')||''||coalesce(a.""title"", '')||'' as2 
 FROM ""tb_topic"" a 
 WHERE (a.""id"" = {item.Id})", sql);
 

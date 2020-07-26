@@ -74,7 +74,7 @@ namespace FreeSql.Tests.SqlServerExpression
                 str = $"x{a.Id + 1}z-{a.CreateTime.ToString("yyyyMM")}{a.Title}",
                 str2 = string.Format("{0}x{0}z-{1}{2}", a.Id + 1, a.CreateTime.ToString("yyyyMM"), a.Title)
             });
-            Assert.Equal($@"SELECT N'x'+cast((a.[Id] + 1) as varchar)+N'z-'+(substring(convert(char(8), cast(a.[CreateTime] as datetime), 112), 1, 6))+N''+(a.[Title])+N'' as1, N''+cast((a.[Id] + 1) as varchar)+N'x'+cast((a.[Id] + 1) as varchar)+N'z-'+(substring(convert(char(8), cast(a.[CreateTime] as datetime), 112), 1, 6))+N''+(a.[Title])+N'' as2 
+            Assert.Equal($@"SELECT N'x'+isnull(cast((a.[Id] + 1) as varchar), '')+N'z-'+isnull(substring(convert(char(8), cast(a.[CreateTime] as datetime), 112), 1, 6), '')+N''+isnull(a.[Title], '')+N'' as1, N''+isnull(cast((a.[Id] + 1) as varchar), '')+N'x'+isnull(cast((a.[Id] + 1) as varchar), '')+N'z-'+isnull(substring(convert(char(8), cast(a.[CreateTime] as datetime), 112), 1, 6), '')+N''+isnull(a.[Title], '')+N'' as2 
 FROM [tb_topic] a 
 WHERE (a.[Id] = {item.Id})", sql);
 

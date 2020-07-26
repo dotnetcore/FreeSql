@@ -59,7 +59,7 @@ namespace FreeSql.Tests.MsAccessExpression
                 str = $"x{a.Id + 1}z-{a.CreateTime.ToString("yyyyMM")}{a.Title}",
                 str2 = string.Format("{0}x{0}z-{1}{2}", a.Id + 1, a.CreateTime.ToString("yyyyMM"), a.Title)
             });
-            Assert.Equal($@"SELECT 'x'+cstr((a.[Id] + 1))+'z-'+(format(a.[CreateTime],'yyyyMM'))+''+(a.[Title])+'' as as1, ''+cstr((a.[Id] + 1))+'x'+cstr((a.[Id] + 1))+'z-'+(format(a.[CreateTime],'yyyyMM'))+''+(a.[Title])+'' as as2 
+            Assert.Equal($@"SELECT 'x'+iif(isnull(cstr((a.[Id] + 1))), '', cstr((a.[Id] + 1)))+'z-'+iif(isnull(format(a.[CreateTime],'yyyyMM')), '', format(a.[CreateTime],'yyyyMM'))+''+iif(isnull(a.[Title]), '', a.[Title])+'' as as1, ''+iif(isnull(cstr((a.[Id] + 1))), '', cstr((a.[Id] + 1)))+'x'+iif(isnull(cstr((a.[Id] + 1))), '', cstr((a.[Id] + 1)))+'z-'+iif(isnull(format(a.[CreateTime],'yyyyMM')), '', format(a.[CreateTime],'yyyyMM'))+''+iif(isnull(a.[Title]), '', a.[Title])+'' as as2 
 FROM [tb_topic] a 
 WHERE (a.[Id] = {item.Id})", sql);
 
