@@ -11,7 +11,7 @@ using System.Linq.Expressions;
 using System.Threading.Tasks;
 using System.ComponentModel.DataAnnotations;
 using System.Threading;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using kwlib;
 using System.Text;
 

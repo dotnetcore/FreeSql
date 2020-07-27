@@ -3,7 +3,11 @@ using FreeSql.Internal.Model;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+#if microsoft
+using Microsoft.Data.SqlClient;
+#else
 using System.Data.SqlClient;
+#endif
 using System.Threading.Tasks;
 
 public static partial class FreeSqlSqlServerGlobalExtensions

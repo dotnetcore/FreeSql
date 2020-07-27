@@ -79,7 +79,7 @@ namespace FreeSql.Tests.SqlServer
             var t4 = g.sqlserver.Ado.Query<(int, int, string, string DateTime)>("select * from xxx");
 
             var t5 = g.sqlserver.Ado.Query<dynamic>(System.Data.CommandType.Text, "select * from xxx where Id = @Id",
-                new System.Data.SqlClient.SqlParameter("Id", 1));
+                new Microsoft.Data.SqlClient.SqlParameter("Id", 1));
         }
 
         [Fact]

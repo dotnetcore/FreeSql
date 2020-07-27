@@ -4,7 +4,11 @@ using FreeSql.Internal.ObjectPool;
 using System;
 using System.Collections;
 using System.Data.Common;
+#if microsoft
+using Microsoft.Data.SqlClient;
+#else
 using System.Data.SqlClient;
+#endif
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -19,7 +23,9 @@ namespace FreeSql.SqlServer
             base._util = util;
             if (connectionFactory != null)
             {
-                MasterPool = new FreeSql.Internal.CommonProvider.DbConnectionPool(DataType.SqlServer, connectionFactory);
+                var pool = new FreeSql.Internal.CommonProvider.DbConnectionPool(DataType.Sqlite, connectionFactory);
+                MasterPool = pool;
+                _CreateCommandConnection = pool.TestConnection;
                 return;
             }
             if (!string.IsNullOrEmpty(masterConnectionString))
@@ -76,8 +82,15 @@ namespace FreeSql.SqlServer
             return string.Concat("'", param.ToString().Replace("'", "''"), "'");
         }
 
+        DbConnection _CreateCommandConnection;
         protected override DbCommand CreateCommand()
         {
+            if (_CreateCommandConnection != null)
+            {
+                var cmd = _CreateCommandConnection.CreateCommand();
+                cmd.Connection = null;
+                return cmd;
+            }
             return new SqlCommand();
         }
 
