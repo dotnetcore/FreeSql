@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -13,13 +14,13 @@ namespace FreeSql.Internal.CommonProvider
     public class SelectGroupingProvider
     {
         public IFreeSql _orm;
-        public object _select;
+        public Select0Provider _select;
         public ReadAnonymousTypeInfo _map;
         public string _field;
         public CommonExpression _comonExp;
         public List<SelectTableInfo> _tables;
 
-        public SelectGroupingProvider(IFreeSql orm, object select, ReadAnonymousTypeInfo map, string field, CommonExpression comonExp, List<SelectTableInfo> tables)
+        public SelectGroupingProvider(IFreeSql orm, Select0Provider select, ReadAnonymousTypeInfo map, string field, CommonExpression comonExp, List<SelectTableInfo> tables)
         {
             _orm = orm;
             _select = select;
@@ -139,7 +140,7 @@ namespace FreeSql.Internal.CommonProvider
 
     public class SelectGroupingProvider<TKey, TValue> : SelectGroupingProvider, ISelectGrouping<TKey, TValue>
     {
-        public SelectGroupingProvider(IFreeSql orm, object select, ReadAnonymousTypeInfo map, string field, CommonExpression comonExp, List<SelectTableInfo> tables)
+        public SelectGroupingProvider(IFreeSql orm, Select0Provider select, ReadAnonymousTypeInfo map, string field, CommonExpression comonExp, List<SelectTableInfo> tables)
             :base(orm, select, map, field, comonExp, tables) { }
 
         public string ToSql<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select, FieldAliasOptions fieldAlias = FieldAliasOptions.AsIndex) => InternalToSql(select, fieldAlias);
@@ -154,26 +155,24 @@ namespace FreeSql.Internal.CommonProvider
 
         public ISelectGrouping<TKey, TValue> Skip(int offset)
         {
-            var method = _select.GetType().GetMethod("Skip", new[] { typeof(int) });
-            method.Invoke(_select, new object[] { offset });
+            _select._skip = offset;
             return this;
         }
         public ISelectGrouping<TKey, TValue> Offset(int offset) => this.Skip(offset);
         public ISelectGrouping<TKey, TValue> Limit(int limit)
         {
-            var method = _select.GetType().GetMethod("Limit", new[] { typeof(int) });
-            method.Invoke(_select, new object[] { limit });
+            _select._limit = limit;
             return this;
         }
         public ISelectGrouping<TKey, TValue> Take(int limit) => this.Limit(limit);
         public ISelectGrouping<TKey, TValue> Page(int pageNumber, int pageSize)
         {
-            var method = _select.GetType().GetMethod("Page", new[] { typeof(int), typeof(int) });
-            method.Invoke(_select, new object[] { pageNumber, pageSize });
+            _select._skip = Math.Max(0, pageNumber - 1) * pageSize;
+            _select._limit = pageSize;
             return this;
         }
 
-        public long Count() => long.TryParse(string.Concat(_orm.Ado.ExecuteScalar($"select count(1) from ({this.ToSql($"1{_comonExp._common.FieldAsAlias("as1")}")}) fta")), out var trylng) ? trylng : default(long);
+        public long Count() => long.TryParse(string.Concat(_orm.Ado.ExecuteScalar(CommandType.Text, $"select count(1) from ({this.ToSql($"1{_comonExp._common.FieldAsAlias("as1")}")}) fta", _select._params.ToArray())), out var trylng) ? trylng : default(long);
         public ISelectGrouping<TKey, TValue> Count(out long count)
         {
             count = this.Count();
@@ -202,7 +201,7 @@ namespace FreeSql.Internal.CommonProvider
 
 #if net40
 #else
-        async public Task<long> CountAsync() => long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync($"select count(1) from ({this.ToSql($"1{_comonExp._common.FieldAsAlias("as1")}")}) fta")), out var trylng) ? trylng : default(long);
+        async public Task<long> CountAsync() => long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync(CommandType.Text, $"select count(1) from ({this.ToSql($"1{_comonExp._common.FieldAsAlias("as1")}")}) fta", _select._params.ToArray())), out var trylng) ? trylng : default(long);
 
         public Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select) => InternalToList(select, typeof(TReturn), true) as Task<List<TReturn>>;
         async public Task<Dictionary<TKey, TElement>> ToDictionaryAsync<TElement>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TElement>> elementSelector)
