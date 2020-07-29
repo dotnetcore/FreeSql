@@ -245,7 +245,7 @@ namespace FreeSql.Tests.MsAccess
             var itemstb = select.ToDataTable();
         }
 
-        [Table(Name = "tb_alltype")]
+        [Table(Name = "tb_alltype_insert")]
         class TableAllType
         {
             [Column(IsIdentity = true, IsPrimary = true)]

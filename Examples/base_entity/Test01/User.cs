@@ -94,10 +94,13 @@ namespace EMSServerModel.Model
 		/// <summary>
 		/// 职务编号
 		/// </summary>
-		[JsonProperty]
-		public long? TitleId { get; set; }
+		[JsonProperty, Column(IsNullable = true)]
+		public long TitleId { get; set; }
 
-		
+		[JsonProperty]
+		public long TitleId2 { get; set; }
+
+
 		///// <summary>
 		///// 创建时间
 		///// </summary>

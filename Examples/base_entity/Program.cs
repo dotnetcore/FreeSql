@@ -97,6 +97,8 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+            var sql = fsql.CodeFirst.GetComparisonDDLStatements(typeof(EMSServerModel.Model.User), "testxsx001");
+
             var test01 = EMSServerModel.Model.User.Select.IncludeMany(a => a.Roles).ToList();
             var test02 = EMSServerModel.Model.UserRole.Select.ToList();
             var test01tb = EMSServerModel.Model.User.Orm.CodeFirst.GetTableByEntity(typeof(EMSServerModel.Model.User));

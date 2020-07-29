@@ -101,6 +101,8 @@ namespace FreeSql.Internal
                     continue;
                 }
                 if (tp == null && colattr != null) colattr.IsIgnore = true; //无法匹配的属性，认定是导航属性，且自动过滤
+                var colattrIsNullable = colattr?._IsNullable;
+                var colattrIsNull = colattr == null;
                 if (colattr == null)
                     colattr = new ColumnAttribute
                     {
@@ -119,6 +121,8 @@ namespace FreeSql.Internal
                 else
                     colattr.DbType = colattr.DbType.ToUpper();
 
+                if (colattrIsNull == false && colattrIsNullable == true) colattr.DbType = colattr.DbType.Replace("NOT NULL", "");
+                if (colattrIsNull == false && colattrIsNullable == false) colattr.DbType = Regex.Replace(colattr.DbType, @"\bNULL\b", "").Trim() + " NOT NULL";
                 if (colattr._IsNullable == null && tp != null && tp.isnullable == null) colattr.IsNullable = tp.dbtypeFull.Contains("NOT NULL") == false;
                 if (colattr.DbType?.Contains("NOT NULL") == true) colattr.IsNullable = false;
                 if (string.IsNullOrEmpty(colattr.Name)) colattr.Name = p.Name;
