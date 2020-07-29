@@ -296,6 +296,7 @@ namespace FreeSql.Tests
         public void EnableAddOrUpdateNavigateList_OneToMany()
         {
             var repo = g.sqlite.GetRepository<Cagetory>();
+            repo.DbContextOptions.EnableAddOrUpdateNavigateList = true;
             var cts = new[] {
                 new Cagetory
                 {

@@ -159,6 +159,8 @@ namespace FreeSql.Tests
         [Fact]
         public void Test03()
         {
+            var sqlxx = g.pgsql.InsertOrUpdate<userinfo>().SetSource(new userinfo { userid = 10 }).UpdateColumns(a => new { a.birthday, a.CardNo }).ToSql();
+
             var aff1 = g.sqlite.GetRepository<Edi, long>().Delete(10086);
             var aff2 = g.sqlite.Delete<Edi>(10086).ExecuteAffrows();
             Assert.Equal(aff1, aff2);

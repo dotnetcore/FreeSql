@@ -15,17 +15,18 @@ namespace FreeSql.Internal.CommonProvider
 
     public abstract partial class InsertOrUpdateProvider<T1> : IInsertOrUpdate<T1> where T1 : class
     {
-        protected IFreeSql _orm;
-        protected CommonUtils _commonUtils;
-        protected CommonExpression _commonExpression;
-        protected List<T1> _source = new List<T1>();
-        protected bool _doNothing = false;
-        protected Dictionary<string, bool> _auditValueChangedDict = new Dictionary<string, bool>(StringComparer.CurrentCultureIgnoreCase);
-        protected TableInfo _table;
-        protected Func<string, string> _tableRule;
-        protected DbParameter[] _params;
-        protected DbTransaction _transaction;
-        protected DbConnection _connection;
+        public IFreeSql _orm;
+        public CommonUtils _commonUtils;
+        public CommonExpression _commonExpression;
+        public List<T1> _source = new List<T1>();
+        public bool _doNothing = false;
+        public Dictionary<string, bool> _updateIgnore = new Dictionary<string, bool>(StringComparer.CurrentCultureIgnoreCase);
+        public Dictionary<string, bool> _auditValueChangedDict = new Dictionary<string, bool>(StringComparer.CurrentCultureIgnoreCase);
+        public TableInfo _table;
+        public Func<string, string> _tableRule;
+        public DbParameter[] _params;
+        public DbTransaction _transaction;
+        public DbConnection _connection;
         public ColumnInfo IdentityColumn { get; }
 
         public InsertOrUpdateProvider(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression)
@@ -54,6 +55,17 @@ namespace FreeSql.Internal.CommonProvider
         {
             if (_transaction?.Connection != connection) _transaction = null;
             _connection = connection;
+            return this;
+        }
+
+        public IInsertOrUpdate<T1> UpdateColumns(Expression<Func<T1, object>> columns) => UpdateColumns(_commonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(null, columns?.Body, false, null));
+        public IInsertOrUpdate<T1> UpdateColumns(string[] columns)
+        {
+            var cols = columns.Distinct().ToDictionary(a => a);
+            _updateIgnore.Clear();
+            foreach (var col in _table.Columns.Values)
+                if (cols.ContainsKey(col.Attribute.Name) == false && cols.ContainsKey(col.CsName) == false)
+                    _updateIgnore.Add(col.Attribute.Name, true);
             return this;
         }
 

@@ -39,7 +39,7 @@ namespace FreeSql.SqlServer.Curd
                 WriteSourceSelectUnionAll(data, sb, dbParams);
                 sb.Append(" ) t2 ON (").Append(string.Join(" AND ", _table.Primarys.Select(a => $"t1.{_commonUtils.QuoteSqlName(a.Attribute.Name)} = t2.{a.Attribute.Name}"))).Append(") \r\n");
 
-                var cols = _table.Columns.Values.Where(a => a.Attribute.IsPrimary == false && a.Attribute.CanUpdate == true);
+                var cols = _table.Columns.Values.Where(a => a.Attribute.IsPrimary == false && a.Attribute.CanUpdate == true && _updateIgnore.ContainsKey(a.Attribute.Name) == false);
                 if (_doNothing == false && cols.Any())
                     sb.Append("WHEN MATCHED THEN \r\n")
                         .Append("  update set ").Append(string.Join(", ", cols.Select(a =>

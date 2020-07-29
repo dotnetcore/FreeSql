@@ -44,6 +44,7 @@ namespace FreeSql.Sqlite.Curd
                     insert.InsertIdentity();
                     if (_doNothing == false)
                     {
+                        if (_updateIgnore.Any()) throw new Exception($"fsql.InsertOrUpdate Sqlite 无法完成 UpdateColumns 操作");
                         sql = insert.ToSql();
                         if (sql?.StartsWith("INSERT INTO ") == true)
                             sql = $"REPLACE INTO {sql.Substring("INSERT INTO ".Length)}";

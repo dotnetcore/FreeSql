@@ -43,6 +43,19 @@ namespace FreeSql
         IInsertOrUpdate<T1> IfExistsDoNothing();
 
         /// <summary>
+        /// 当记录存在时，指定只更新的字段，UpdateColumns(a => a.Name) | UpdateColumns(a => new{a.Name,a.Time}) | UpdateColumns(a => new[]{"name","time"})
+        /// </summary>
+        /// <param name="columns">lambda选择列</param>
+        /// <returns></returns>
+        IInsertOrUpdate<T1> UpdateColumns(Expression<Func<T1, object>> columns);
+        /// <summary>
+        /// 当记录存在时，指定只更新的字段
+        /// </summary>
+        /// <param name="columns">属性名，或者字段名</param>
+        /// <returns></returns>
+        IInsertOrUpdate<T1> UpdateColumns(string[] columns);
+
+        /// <summary>
         /// 设置表名规则，可用于分库/分表，参数1：默认表名；返回值：新表名；
         /// </summary>
         /// <param name="tableRule"></param>
