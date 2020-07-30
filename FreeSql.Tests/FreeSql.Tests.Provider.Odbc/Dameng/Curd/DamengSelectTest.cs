@@ -1076,6 +1076,11 @@ WHERE (((to_char(a.""ID"")) in (SELECT b.""TITLE""
         [Fact]
         public void Include_OneToMany()
         {
+            g.dameng.Delete<TiOtmModel1>().Where("1=1").ExecuteAffrows();
+            g.dameng.Delete<TiOtmModel2>().Where("1=1").ExecuteAffrows();
+            g.dameng.Delete<TiOtmModel3>().Where("1=1").ExecuteAffrows();
+            g.dameng.Delete<TiOtmModel4>().Where("1=1").ExecuteAffrows();
+
             var model1 = new TiOtmModel1 { m1name = DateTime.Now.Second.ToString() };
             model1.id = (int)g.dameng.Insert(model1).ExecuteIdentity();
             var model2 = new TiOtmModel2 { model2id = model1.id, m2setting = DateTime.Now.Second.ToString() };
@@ -1194,6 +1199,10 @@ WHERE (((to_char(a.""ID"")) in (SELECT b.""TITLE""
         [Fact]
         public void Include_OneToMany2()
         {
+            g.dameng.Delete<TiOtmModel11>().Where("1=1").ExecuteAffrows();
+            g.dameng.Delete<TiOtmModel22>().Where("1=1").ExecuteAffrows();
+            g.dameng.Delete<TiOtmModel33>().Where("1=1").ExecuteAffrows();
+
             string setting = "x";
             var model2 = new TiOtmModel22 { m2setting = DateTime.Now.Second.ToString(), aaa = "aaa" + DateTime.Now.Second, bbb = "bbb" + DateTime.Now.Second };
             model2.id = (int)g.dameng.Insert(model2).ExecuteIdentity();
