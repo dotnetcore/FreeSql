@@ -51,6 +51,19 @@ namespace FreeSql.Tests.DamengExpression
         }
 
         [Fact]
+        public void First()
+        {
+            Assert.Equal('x', select.First(a => "x1".First()));
+            Assert.Equal('z', select.First(a => "z1".First()));
+        }
+        [Fact]
+        public void FirstOrDefault()
+        {
+            Assert.Equal('x', select.First(a => "x1".FirstOrDefault()));
+            Assert.Equal('z', select.First(a => "z1".FirstOrDefault()));
+        }
+
+        [Fact]
         public void Format()
         {
             var item = g.dameng.GetRepository<Topic>().Insert(new Topic { Clicks = 101, Title = "我是中国人101", CreateTime = DateTime.Parse("2020-7-5") });

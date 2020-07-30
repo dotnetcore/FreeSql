@@ -41,6 +41,7 @@ namespace FreeSql.Internal
                     field.Append(", ").Append(parent.DbField);
                     if (index >= 0) field.Append(_common.FieldAsAlias($"as{++index}"));
                     else if (index == ReadAnonymousFieldAsCsName && string.IsNullOrEmpty(parent.CsName) == false) field.Append(_common.FieldAsAlias(parent.CsName));
+                    if (parent.CsType == null) parent.CsType = exp.Type;
                     return false;
                 case ExpressionType.Convert: return ReadAnonymousField(_tables, field, parent, ref index, (exp as UnaryExpression)?.Operand, getSelectGroupingMapString, whereCascadeExpression, isAllDtoMap);
                 case ExpressionType.Constant:
@@ -60,6 +61,7 @@ namespace FreeSql.Internal
                     field.Append(", ").Append(parent.DbField);
                     if (index >= 0) field.Append(_common.FieldAsAlias($"as{++index}"));
                     else if (index == ReadAnonymousFieldAsCsName && string.IsNullOrEmpty(parent.CsName) == false) field.Append(_common.FieldAsAlias(parent.CsName));
+                    if (parent.CsType == null) parent.CsType = exp.Type;
                     return false;
                 case ExpressionType.Call:
                     var callExp = exp as MethodCallExpression;
@@ -77,6 +79,7 @@ namespace FreeSql.Internal
                     field.Append(", ").Append(parent.DbField);
                     if (index >= 0) field.Append(_common.FieldAsAlias($"as{++index}"));
                     else if (index == ReadAnonymousFieldAsCsName && string.IsNullOrEmpty(parent.CsName) == false) field.Append(_common.FieldAsAlias(parent.CsName));
+                    if (parent.CsType == null) parent.CsType = exp.Type;
                     return false;
                 case ExpressionType.Parameter:
                 case ExpressionType.MemberAccess:
@@ -262,6 +265,7 @@ namespace FreeSql.Internal
             field.Append(", ").Append(parent.DbField);
             if (index >= 0) field.Append(_common.FieldAsAlias($"as{++index}"));
             else if (index == ReadAnonymousFieldAsCsName && string.IsNullOrEmpty(parent.CsName) == false) field.Append(_common.FieldAsAlias(parent.CsName));
+            if (parent.CsType == null) parent.CsType = exp.Type;
             return false;
         }
         public object ReadAnonymous(ReadAnonymousTypeInfo parent, DbDataReader dr, ref int index, bool notRead, ReadAnonymousDbValueRef dbValue)

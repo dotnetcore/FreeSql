@@ -51,6 +51,19 @@ namespace FreeSql.Tests.Odbc.DefaultExpression
         }
 
         [Fact]
+        public void First()
+        {
+            Assert.Equal('x', select.First(a => "x1".First()));
+            Assert.Equal('z', select.First(a => "z1".First()));
+        }
+        [Fact]
+        public void FirstOrDefault()
+        {
+            Assert.Equal('x', select.First(a => "x1".FirstOrDefault()));
+            Assert.Equal('z', select.First(a => "z1".FirstOrDefault()));
+        }
+
+        [Fact]
         public void Empty()
         {
             var data = new List<object>();

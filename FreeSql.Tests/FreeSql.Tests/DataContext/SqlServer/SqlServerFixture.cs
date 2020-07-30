@@ -42,7 +42,7 @@ namespace FreeSql.Tests.DataContext.SqlServer
                 "TestTypeParentInfo23123", "xxdkdkdk1222", "xxx"};
             foreach (var tempTable in tempTables)
             {
-                DeleteTmpTable(dataTables, tempTable);
+                //DeleteTmpTable(dataTables, tempTable);
             }
         }
 

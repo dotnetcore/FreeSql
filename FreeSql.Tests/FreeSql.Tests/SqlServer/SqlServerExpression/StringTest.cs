@@ -1,5 +1,6 @@
 using FreeSql.DataAnnotations;
 using FreeSql.Tests.DataContext.SqlServer;
+using Microsoft.EntityFrameworkCore.Internal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -63,6 +64,19 @@ namespace FreeSql.Tests.SqlServerExpression
 
             list.Add(select.Where(a => a.Title == "aaa").ToList());
             list.Add(select.Where(a => a.TitleVarchar == "aaa").ToList());
+        }
+
+        [Fact]
+        public void First()
+        {
+            Assert.Equal('x', select.First(a => "x1".First()));
+            Assert.Equal('z', select.First(a => "z1".First()));
+        }
+        [Fact]
+        public void FirstOrDefault()
+        {
+            Assert.Equal('x', select.First(a => "x1".FirstOrDefault()));
+            Assert.Equal('z', select.First(a => "z1".FirstOrDefault()));
         }
 
         [Fact]
