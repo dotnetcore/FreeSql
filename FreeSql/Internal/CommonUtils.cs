@@ -196,6 +196,8 @@ namespace FreeSql.Internal
             if (attr.ServerTime != DateTimeKind.Unspecified) ret = attr;
             if (attr._StringLength != null) ret = attr;
             if (!string.IsNullOrEmpty(attr.InsertValueSql)) ret = attr;
+            if (attr._Precision != null) ret = attr;
+            if (attr._Scale != null) ret = attr;
             if (ret != null && ret.MapType == null) ret.MapType = proto.PropertyType;
             return ret;
         }
