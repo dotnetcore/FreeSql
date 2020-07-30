@@ -54,5 +54,11 @@ namespace FreeSql.Extensions.EfCoreFluentApi
         //{
         //    return this;
         //}
+        public EfCoreColumnFluent HasPrecision(int precision, int scale = 0)
+        {
+            _cf.Precision(precision, scale);
+            return this;
+        }
+
     }
 }

@@ -154,6 +154,8 @@ namespace FreeSql.Internal
                 if (trycol.ServerTime != DateTimeKind.Unspecified) attr.ServerTime = trycol.ServerTime;
                 if (trycol._StringLength != null) attr.StringLength = trycol.StringLength;
                 if (!string.IsNullOrEmpty(trycol.InsertValueSql)) attr.InsertValueSql = trycol.InsertValueSql;
+                if (trycol._Precision != null) attr.Precision = trycol.Precision;
+                if (trycol._Scale != null) attr.Scale = trycol.Scale;
             }
             var attrs = proto.GetCustomAttributes(typeof(ColumnAttribute), false);
             foreach (var tryattrobj in attrs)
@@ -174,7 +176,9 @@ namespace FreeSql.Internal
                 if (tryattr._CanUpdate != null) attr._CanUpdate = tryattr.CanUpdate;
                 if (tryattr.ServerTime != DateTimeKind.Unspecified) attr.ServerTime = tryattr.ServerTime;
                 if (tryattr._StringLength != null) attr.StringLength = tryattr.StringLength;
-                if (!string.IsNullOrEmpty(tryattr.InsertValueSql)) attr.InsertValueSql = tryattr.InsertValueSql;
+                if (!string.IsNullOrEmpty(tryattr.InsertValueSql)) attr.InsertValueSql = tryattr.InsertValueSql; 
+                if (tryattr._Precision != null) attr.Precision = tryattr.Precision;
+                if (tryattr._Scale != null) attr.Scale = tryattr.Scale;
             }
             ColumnAttribute ret = null;
             if (!string.IsNullOrEmpty(attr.Name)) ret = attr;

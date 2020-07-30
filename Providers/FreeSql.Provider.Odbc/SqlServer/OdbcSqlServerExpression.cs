@@ -113,7 +113,7 @@ namespace FreeSql.Odbc.SqlServer
                             {
                                 case "First":
                                 case "FirstOrDefault":
-                                    return $"substr({getExp(callExp.Arguments[0])}, 1, 1)";
+                                    return $"substring({getExp(callExp.Arguments[0])}, 1, 1)";
                             }
                         }
                     }

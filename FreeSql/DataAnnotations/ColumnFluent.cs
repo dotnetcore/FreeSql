@@ -176,5 +176,18 @@ namespace FreeSql.DataAnnotations
             _column.InsertValueSql = value;
             return this;
         }
+
+        /// <summary>
+        /// decimal/numeric 类型的长度/小数位长度
+        /// </summary>
+        /// <param name="precision">总长度</param>
+        /// <param name="scale">小数位长度</param>
+        /// <returns></returns>
+        public ColumnFluent Precision(int precision, int scale = 0)
+        {
+            _column.Precision = precision;
+            _column.Scale = scale;
+            return this;
+        }
     }
 }

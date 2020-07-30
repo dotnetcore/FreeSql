@@ -279,19 +279,19 @@ namespace FreeSql.Internal
                 if (colattr.MapType == typeof(byte[]) && colattr.StringLength != 0)
                 {
                     int strlen = colattr.StringLength;
-                    var charPatten = @"(VARBINARY|BINARY|BYTEA)\s*(\([^\)]*\))?";
+                    var bytePatten = @"(VARBINARY|BINARY|BYTEA)\s*(\([^\)]*\))?";
                     switch (common._orm.Ado.DataType)
                     {
                         case DataType.MySql:
                         case DataType.OdbcMySql:
                             if (strlen == -2) colattr.DbType = "LONGBLOB";
                             else if (strlen < 0) colattr.DbType = "BLOB";
-                            else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
+                            else colattr.DbType = Regex.Replace(colattr.DbType, bytePatten, $"$1({strlen})");
                             break;
                         case DataType.SqlServer:
                         case DataType.OdbcSqlServer:
-                            if (strlen < 0) colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1(MAX)");
-                            else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
+                            if (strlen < 0) colattr.DbType = Regex.Replace(colattr.DbType, bytePatten, $"$1(MAX)");
+                            else colattr.DbType = Regex.Replace(colattr.DbType, bytePatten, $"$1({strlen})");
                             break;
                         case DataType.PostgreSQL:
                         case DataType.OdbcPostgreSQL:
@@ -314,9 +314,14 @@ namespace FreeSql.Internal
                             break;
                         case DataType.MsAccess:
                             if (strlen < 0) colattr.DbType = "BLOB";
-                            else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
+                            else colattr.DbType = Regex.Replace(colattr.DbType, bytePatten, $"$1({strlen})");
                             break;
                     }
+                }
+                if (colattr.MapType == typeof(decimal) && colattr.Precision > 0)
+                {
+                    var decimalPatten = @"(DECIMAL|NUMERIC|NUMBER)\s*(\([^\)]*\))?";
+                    colattr.DbType = Regex.Replace(colattr.DbType, decimalPatten, $"$1({colattr.Precision},{colattr.Scale})");
                 }
 
                 if (trytb.Columns.ContainsKey(colattr.Name)) throw new Exception($"ColumnAttribute.Name {colattr.Name} 重复存在，请检查（注意：不区分大小写）");
