@@ -51,7 +51,6 @@ namespace FreeSql.Internal.Model
         }
     }
 
-
     public class DbInfoResult
     {
         public int type { get; }

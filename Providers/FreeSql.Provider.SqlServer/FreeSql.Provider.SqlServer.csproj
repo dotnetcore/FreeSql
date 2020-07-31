@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>netstandard2.0;net46;net45;net40</TargetFrameworks>
+		<TargetFrameworks>netstandard2.0;net451;net45;net40</TargetFrameworks>
 		<Version>1.7.0</Version>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>ncc;YeXiangQin</Authors>
@@ -25,7 +25,10 @@
     <None Include="../../logo.png" Pack="true" PackagePath="\" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'net46'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'net451'">
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.1" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <PackageReference Include="Microsoft.Data.SqlClient" Version="2.0.0" />
   </ItemGroup>
 
@@ -33,7 +36,7 @@
 	  <ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />
 	</ItemGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'net46'">
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <DefineConstants>microsoft</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(TargetFramework)' == 'net40'">
