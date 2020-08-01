@@ -47,6 +47,8 @@ namespace FreeSql
             {
                 this._dicUpdateTimes.Clear();
                 this._states.Clear();
+                this._statesEditing.Clear();
+                this._dataEditing = null;
             }
             finally
             {
@@ -123,7 +125,6 @@ namespace FreeSql
         public ISelect<TEntity> WhereIf(bool condition, Expression<Func<TEntity, bool>> exp) => this.OrmSelect(null).WhereIf(condition, exp);
 
         protected ConcurrentDictionary<string, EntityState> _states = new ConcurrentDictionary<string, EntityState>();
-        internal ConcurrentDictionary<string, EntityState> _statesInternal => _states;
         TableInfo _tablePriv;
         protected TableInfo _table => _tablePriv ?? (_tablePriv = _db.OrmOriginal.CodeFirst.GetTableByEntity(_entityType));
         ColumnInfo[] _tableIdentitysPriv, _tableServerTimesPriv;

@@ -68,6 +68,21 @@ namespace FreeSql.Tests
 
             using (var ctx = g.sqlite.CreateDbContext())
             {
+                //var setTag = ctx.Set<Tag>();
+                //var tags = setTag.Select.Limit(10).ToList();
+                //setTag.BeginEdit(tags);
+
+                //tags.Add(new Tag
+                //{
+                //    Ddd = DateTime.Now.Second,
+                //    Name = "test_manytoMany_01_ÖÐ¹ú2234234"
+                //});
+                //tags[0].Name = "123123";
+                //tags.RemoveAt(1);
+
+                //tags.Clear();
+
+                //Assert.Equal(10, setTag.EndEdit());
 
                 var test150_02 = ctx.Set<Tag>()
                     .Select.From<Tag>((s, b) => s.InnerJoin(a => a.Id == b.Id))

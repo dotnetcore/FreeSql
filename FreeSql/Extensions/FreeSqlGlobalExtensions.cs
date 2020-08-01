@@ -306,9 +306,9 @@ public static partial class FreeSqlGlobalExtensions
         {
             var tb = orm.CodeFirst.GetTableByEntity(typeof(T1));
             if (tb == null || tb.Primarys.Any() == false)
-                (orm.CodeFirst as FreeSql.Internal.CommonProvider.CodeFirstProvider)._dicSycedTryAdd(typeof(T1)); //._dicSyced.TryAdd(typeof(TReturn), true);
+                (orm.CodeFirst as CodeFirstProvider)._dicSycedTryAdd(typeof(T1)); //._dicSyced.TryAdd(typeof(TReturn), true);
         }
-        var select = orm.Select<T1>().IncludeMany(navigateSelector, then) as FreeSql.Internal.CommonProvider.Select1Provider<T1>;
+        var select = orm.Select<T1>().IncludeMany(navigateSelector, then) as Select1Provider<T1>;
         select.SetList(list);
         return list;
     }
@@ -322,9 +322,9 @@ public static partial class FreeSqlGlobalExtensions
         {
             var tb = orm.CodeFirst.GetTableByEntity(typeof(T1));
             if (tb == null || tb.Primarys.Any() == false)
-                (orm.CodeFirst as FreeSql.Internal.CommonProvider.CodeFirstProvider)._dicSycedTryAdd(typeof(T1)); //._dicSyced.TryAdd(typeof(TReturn), true);
+                (orm.CodeFirst as CodeFirstProvider)._dicSycedTryAdd(typeof(T1)); //._dicSyced.TryAdd(typeof(TReturn), true);
         }
-        var select = orm.Select<T1>().IncludeMany(navigateSelector, then) as FreeSql.Internal.CommonProvider.Select1Provider<T1>;
+        var select = orm.Select<T1>().IncludeMany(navigateSelector, then) as Select1Provider<T1>;
         await select.SetListAsync(list);
         return list;
     }
