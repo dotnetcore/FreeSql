@@ -292,7 +292,7 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
 
-        static NaviteTuple<ParameterExpression, List<MemberExpression>> GetExpressionStack(Expression exp)
+        static NativeTuple<ParameterExpression, List<MemberExpression>> GetExpressionStack(Expression exp)
         {
             Expression tmpExp = exp;
             ParameterExpression param = null;
@@ -316,7 +316,7 @@ namespace FreeSql.Internal.CommonProvider
                 }
             }
             if (param == null) throw new Exception($"表达式错误，它的顶级对象不是 ParameterExpression：{exp}");
-            return NaviteTuple.Create(param, members.ToList());
+            return NativeTuple.Create(param, members.ToList());
         }
         static MethodInfo GetEntityValueWithPropertyNameMethod = typeof(EntityUtilExtensions).GetMethod("GetEntityValueWithPropertyName");
         static ConcurrentDictionary<Type, ConcurrentDictionary<string, MethodInfo>> _dicTypeMethod = new ConcurrentDictionary<Type, ConcurrentDictionary<string, MethodInfo>>();

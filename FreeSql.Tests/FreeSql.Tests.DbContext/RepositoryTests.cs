@@ -528,5 +528,35 @@ namespace FreeSql.Tests
             public Guid TagId { get; set; }
             public Tag Tag { get; set; }
         }
+
+        [Fact]
+        public void BeginEdit()
+        {
+            g.sqlite.Delete<BeginEdit01>().Where("1=1").ExecuteAffrows();
+            var repo = g.sqlite.GetRepository<BeginEdit01>();
+            var cts = new[] {
+                new BeginEdit01 { Name = "分类1" },
+                new BeginEdit01 { Name = "分类1_1" },
+                new BeginEdit01 { Name = "分类1_2" },
+                new BeginEdit01 { Name = "分类1_3" },
+                new BeginEdit01 { Name = "分类2" },
+                new BeginEdit01 { Name = "分类2_1" },
+                new BeginEdit01 { Name = "分类2_2" }
+            }.ToList();
+            repo.Insert(cts);
+
+            repo.BeginEdit(cts);
+
+            cts.Add(new BeginEdit01 { Name = "分类2_3" });
+            cts[0].Name = "123123";
+            cts.RemoveAt(1);
+
+            Assert.Equal(3, repo.EndEdit());
+        }
+        class BeginEdit01
+        {
+            public Guid Id { get; set; }
+            public string Name { get; set; }
+        }
     }
 }

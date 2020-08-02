@@ -1,12 +1,13 @@
 ﻿using FreeSql.Extensions.EntityUtil;
+using FreeSql.Internal.Model;
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
-using System.Linq.Expressions;
 
 namespace FreeSql
 {
@@ -539,82 +540,85 @@ namespace FreeSql
         /// 开始编辑数据，然后调用方法 EndEdit 分析出添加、修改、删除 SQL 语句进行执行<para></para>
         /// 场景：winform 加载表数据后，一顿添加、修改、删除操作之后，最后才点击【保存】<para></para><para></para>
         /// 示例：https://github.com/dotnetcore/FreeSql/issues/397<para></para>
+        /// 注意：* 本方法只支持单表操作，不支持导航属性级联保存
         /// </summary>
         /// <param name="data"></param>
-        //public void BeginEdit(List<TEntity> data)
-        //{
-        //    if (data == null || data.Any() == false) return;
-        //    if (_table.Primarys.Any() == false) throw new Exception($"不可进行编辑，实体没有主键：{_db.OrmOriginal.GetEntityString(_entityType, data.First())}");
-        //    _statesEditing.Clear();
-        //    _dataEditing = data;
-        //    foreach (var item in data)
-        //    {
-        //        var key = _db.OrmOriginal.GetEntityKeyString(_entityType, item, false);
-        //        if (string.IsNullOrEmpty(key)) continue;
+        public void BeginEdit(List<TEntity> data)
+        {
+            if (data == null || data.Any() == false) return;
+            if (_table.Primarys.Any() == false) throw new Exception($"不可进行编辑，实体没有主键：{_db.OrmOriginal.GetEntityString(_entityType, data.First())}");
+            _statesEditing.Clear();
+            _dataEditing = data;
+            foreach (var item in data)
+            {
+                var key = _db.OrmOriginal.GetEntityKeyString(_entityType, item, false);
+                if (string.IsNullOrEmpty(key)) continue;
 
-        //        _statesEditing.AddOrUpdate(key, k => CreateEntityState(item), (k, ov) =>
-        //        {
-        //            _db.OrmOriginal.MapEntityValue(_entityType, item, ov.Value);
-        //            ov.Time = DateTime.Now;
-        //            return ov;
-        //        });
-        //    }
-        //}
-        ///// <summary>
-        ///// 完成编辑数据，进行保存动作<para></para>
-        ///// 该方法根据 BeginEdit 传入的状态分析出添加、修改、删除 SQL 语句
-        ///// </summary>
-        ///// <returns></returns>
-        //public int EndEdit()
-        //{
-        //    var beforeAffrows = 0;
-        //    if (_dataEditing == null) return 0;
-        //    var oldEnable = _db.Options.EnableAddOrUpdateNavigateList;
-        //    _db.Options.EnableAddOrUpdateNavigateList = false;
-        //    try
-        //    {
-        //        DbContextFlushCommand();
-        //        var addList = new List<TEntity>();
-        //        var ediList = new List<TEntity>();
-        //        foreach (var item in _dataEditing)
-        //        {
-        //            var key = _db.OrmOriginal.GetEntityKeyString(_entityType, item, false);
-        //            if (_statesEditing.TryRemove(key, out var state) == false)
-        //            {
-        //                addList.Add(item);
-        //                continue;
-        //            }
-        //            _states.AddOrUpdate(key, k => state, (k, ov) =>
-        //            {
-        //                ov.Value = state.Value;
-        //                ov.Time = DateTime.Now;
-        //                return ov;
-        //            });
-        //            if (_db.OrmOriginal.CompareEntityValueReturnColumns(_entityType, item, state.Value, false).Any())
-        //                ediList.Add(item);
-        //        }
-        //        beforeAffrows = _db._affrows;
-        //        AddRange(addList);
-        //        UpdateRange(ediList);
+                _statesEditing.AddOrUpdate(key, k => CreateEntityState(item), (k, ov) =>
+                {
+                    _db.OrmOriginal.MapEntityValue(_entityType, item, ov.Value);
+                    ov.Time = DateTime.Now;
+                    return ov;
+                });
+            }
+        }
+        /// <summary>
+        /// 完成编辑数据，进行保存动作<para></para>
+        /// 该方法根据 BeginEdit 传入的数据状态分析出添加、修改、删除 SQL 语句<para></para>
+        /// 注意：* 本方法只支持单表操作，不支持导航属性级联保存
+        /// </summary>
+        /// <returns></returns>
+        public int EndEdit()
+        {
+            var beforeAffrows = 0;
+            if (_dataEditing == null) return 0;
+            var oldEnable = _db.Options.EnableAddOrUpdateNavigateList;
+            _db.Options.EnableAddOrUpdateNavigateList = false;
+            try
+            {
+                DbContextFlushCommand();
+                var addList = new List<TEntity>();
+                var ediList = new List<NativeTuple<TEntity, string>>();
+                foreach (var item in _dataEditing)
+                {
+                    var key = _db.OrmOriginal.GetEntityKeyString(_entityType, item, false);
+                    if (_statesEditing.TryRemove(key, out var state) == false)
+                    {
+                        addList.Add(item);
+                        continue;
+                    }
+                    _states.AddOrUpdate(key, k => state, (k, ov) =>
+                    {
+                        ov.Value = state.Value;
+                        ov.Time = DateTime.Now;
+                        return ov;
+                    });
+                    var edicmp = _db.OrmOriginal.CompareEntityValueReturnColumns(_entityType, item, state.Value, false);
+                    if (edicmp.Any())
+                        ediList.Add(NativeTuple.Create(item, string.Join(",", edicmp)));
+                }
+                beforeAffrows = _db._affrows;
+                AddRange(addList);
+                UpdateRange(ediList.OrderBy(a => a.Item2).Select(a => a.Item1).ToList());
 
-        //        DbContextFlushCommand();
-        //        var delList = _statesEditing.Values.OrderBy(a => a.Time).ToArray();
-        //        _db._affrows += DbContextBatchRemove(delList); //为了减的少不必要的开销，此处没有直接调用 RemoveRange
-        //        foreach (var state in delList)
-        //        {
-        //            _db.OrmOriginal.ClearEntityPrimaryValueWithIdentityAndGuid(_entityType, state.Value);
-        //            _states.TryRemove(state.Key, out var oldstate);
-        //        }
-        //        DbContextFlushCommand();
-        //    }
-        //    finally
-        //    {
-        //        _dataEditing = null;
-        //        _statesEditing.Clear();
-        //        _db.Options.EnableAddOrUpdateNavigateList = oldEnable;
-        //    }
-        //    return _db._affrows - beforeAffrows;
-        //}
+                DbContextFlushCommand();
+                var delList = _statesEditing.Values.OrderBy(a => a.Time).ToArray();
+                _db._affrows += DbContextBatchRemove(delList); //为了减的少不必要的开销，此处没有直接调用 RemoveRange
+                foreach (var state in delList)
+                {
+                    _db.OrmOriginal.ClearEntityPrimaryValueWithIdentityAndGuid(_entityType, state.Value);
+                    _states.TryRemove(state.Key, out var oldstate);
+                }
+                DbContextFlushCommand();
+            }
+            finally
+            {
+                _dataEditing = null;
+                _statesEditing.Clear();
+                _db.Options.EnableAddOrUpdateNavigateList = oldEnable;
+            }
+            return _db._affrows - beforeAffrows;
+        }
         #endregion
     }
 }

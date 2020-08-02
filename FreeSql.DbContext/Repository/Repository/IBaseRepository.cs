@@ -79,6 +79,22 @@ namespace FreeSql
         int Delete(IEnumerable<TEntity> entitys);
         int Delete(Expression<Func<TEntity, bool>> predicate);
 
+        /// <summary>
+        /// 开始编辑数据，然后调用方法 EndEdit 分析出添加、修改、删除 SQL 语句进行执行<para></para>
+        /// 场景：winform 加载表数据后，一顿添加、修改、删除操作之后，最后才点击【保存】<para></para><para></para>
+        /// 示例：https://github.com/dotnetcore/FreeSql/issues/397<para></para>
+        /// 注意：* 本方法只支持单表操作，不支持导航属性级联保存
+        /// </summary>
+        /// <param name="data"></param>
+        void BeginEdit(List<TEntity> data);
+        /// <summary>
+        /// 完成编辑数据，进行保存动作<para></para>
+        /// 该方法根据 BeginEdit 传入的数据状态分析出添加、修改、删除 SQL 语句<para></para>
+        /// 注意：* 本方法只支持单表操作，不支持导航属性级联保存
+        /// </summary>
+        /// <returns></returns>
+        int EndEdit();
+
 #if net40
 #else
         Task<TEntity> InsertAsync(TEntity entity);

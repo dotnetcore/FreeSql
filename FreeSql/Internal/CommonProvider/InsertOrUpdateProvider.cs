@@ -191,12 +191,12 @@ namespace FreeSql.Internal.CommonProvider
         /// </summary>
         /// <param name="source"></param>
         /// <returns></returns>
-        public NaviteTuple<List<T1>, List<T1>> SplitSourceByIdentityValueIsNull(List<T1> source)
+        public NativeTuple<List<T1>, List<T1>> SplitSourceByIdentityValueIsNull(List<T1> source)
         {
-            if (_SplitSourceByIdentityValueIsNullFlag == 1) return NaviteTuple.Create(source, new List<T1>());
-            if (_SplitSourceByIdentityValueIsNullFlag == 2) return NaviteTuple.Create(new List<T1>(), source);
-            if (IdentityColumn == null) return NaviteTuple.Create(source, new List<T1>());
-            var ret = NaviteTuple.Create(new List<T1>(), new List<T1>());
+            if (_SplitSourceByIdentityValueIsNullFlag == 1) return NativeTuple.Create(source, new List<T1>());
+            if (_SplitSourceByIdentityValueIsNullFlag == 2) return NativeTuple.Create(new List<T1>(), source);
+            if (IdentityColumn == null) return NativeTuple.Create(source, new List<T1>());
+            var ret = NativeTuple.Create(new List<T1>(), new List<T1>());
             foreach (var item in source)
             {
                 if (object.Equals(_orm.GetEntityValueWithPropertyName(_table.Type, item, IdentityColumn.CsName), IdentityColumn.CsType.CreateInstanceGetDefaultValue()))

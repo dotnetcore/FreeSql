@@ -119,11 +119,11 @@ namespace FreeSql
             return _db.SaveChanges();
         }
 
-        public void Attach(TEntity data) => _db.Attach(data);
-        public void Attach(IEnumerable<TEntity> data) => _db.AttachRange(data);
+        public void Attach(TEntity data) => _dbset.Attach(data);
+        public void Attach(IEnumerable<TEntity> data) => _dbset.AttachRange(data);
         public IBaseRepository<TEntity> AttachOnlyPrimary(TEntity data)
         {
-            _db.AttachOnlyPrimary(data);
+            _dbset.AttachOnlyPrimary(data);
             return this;
         }
         public void FlushState() => _dbset.FlushState();
@@ -140,6 +140,9 @@ namespace FreeSql
             _dbset.SaveMany(entity, propertyName);
             _db.SaveChanges();
         }
+
+        public void BeginEdit(List<TEntity> data) => _dbset.BeginEdit(data);
+        public int EndEdit() => _dbset.EndEdit();
     }
 
     public abstract partial class BaseRepository<TEntity, TKey> : BaseRepository<TEntity>, IBaseRepository<TEntity, TKey>
