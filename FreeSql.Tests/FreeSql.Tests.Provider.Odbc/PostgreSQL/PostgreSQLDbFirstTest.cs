@@ -1,5 +1,6 @@
 using FreeSql.DataAnnotations;
 using System;
+using System.Linq;
 using Xunit;
 
 namespace FreeSql.Tests.Odbc.PostgreSQL
@@ -20,6 +21,9 @@ namespace FreeSql.Tests.Odbc.PostgreSQL
 
             var t2 = g.pgsql.DbFirst.GetTablesByDatabase(g.pgsql.DbFirst.GetDatabases()[2]);
 
+            var tb_alltype = t2.Where(a => a.Name == "tb_alltype").FirstOrDefault();
+
+            var tb_identity = t2.Where(a => a.Name == "test_new").FirstOrDefault();
         }
     }
 }

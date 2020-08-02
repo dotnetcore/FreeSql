@@ -23,6 +23,8 @@ namespace FreeSql.Tests.PostgreSQL
 
             var tb_alltype = t2.Where(a => a.Name == "tb_alltype").FirstOrDefault();
 
+            var tb_identity = t2.Where(a => a.Name == "test_new").FirstOrDefault();
+
         }
     }
 }

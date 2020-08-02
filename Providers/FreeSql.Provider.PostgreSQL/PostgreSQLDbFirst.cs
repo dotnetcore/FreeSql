@@ -29,6 +29,28 @@ namespace FreeSql.PostgreSQL
             _commonExpression = commonExpression;
         }
 
+        public bool IsPg10 => ServerVersion >= 10;
+        public int ServerVersion
+        {
+            get
+            {
+                if (_ServerVersionValue == 0 && _orm.Ado.MasterPool != null)
+                    using (var conn = _orm.Ado.MasterPool.Get())
+                    {
+                        try
+                        {
+                            _ServerVersionValue = int.Parse(conn.Value.ServerVersion.Split('.')[0]);
+                        }
+                        catch
+                        {
+                            _ServerVersionValue = 9;
+                        }
+                    }
+                return _ServerVersionValue;
+            }
+        }
+        int _ServerVersionValue = 0;
+
         public int GetDbType(DbColumnInfo column) => (int)GetNpgsqlDbType(column);
         NpgsqlDbType GetNpgsqlDbType(DbColumnInfo column)
         {
@@ -327,7 +349,7 @@ d.description as comment,
 a.attndims,
 case when t.typelem = 0 then t.typtype else t2.typtype end,
 ns2.nspname,
-a.attnum
+a.attnum{(IsPg10 ? ", a.attidentity" : "")}
 from pg_class c
 inner join pg_attribute a on a.attnum > 0 and a.attrelid = c.oid
 inner join pg_type t on t.oid = a.atttypid
@@ -349,7 +371,8 @@ where {loc8.ToString().Replace("a.table_name", "ns.nspname || '.' || c.relname")
                     var max_length = int.Parse(string.Concat(row[3]));
                     var sqlType = string.Concat(row[4]);
                     var is_nullable = string.Concat(row[5]) == "1";
-                    var is_identity = string.Concat(row[6]).StartsWith(@"nextval('") && string.Concat(row[6]).EndsWith(@"'::regclass)");
+                    var is_identity = string.Concat(row[6]).StartsWith(@"nextval('") && (string.Concat(row[6]).EndsWith(@"'::regclass)") || string.Concat(row[6]).EndsWith(@"')"))
+                        || IsPg10 && new[] { "a", "d" }.Contains(string.Concat(row[12])); //pg10 GENERATED { BY DEFAULT | AWAYS } AS IDENTITY
                     var comment = string.Concat(row[7]);
                     var defaultValue = string.Concat(row[6]);
                     int attndims = int.Parse(string.Concat(row[8]));

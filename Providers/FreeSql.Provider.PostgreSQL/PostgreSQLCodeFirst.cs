@@ -274,7 +274,7 @@ where ns.nspname = {0} and c.relname = {1}", tboldname ?? tbname);
                         sqlType = string.Concat(sqlType),
                         max_length = long.Parse(string.Concat(a[2])),
                         is_nullable = string.Concat(a[4]) == "1",
-                        is_identity = string.Concat(a[5]).StartsWith(@"nextval('") && string.Concat(a[5]).EndsWith(@"'::regclass)"),
+                        is_identity = string.Concat(a[5]).StartsWith(@"nextval('") && (string.Concat(a[5]).EndsWith(@"'::regclass)") || string.Concat(a[5]).EndsWith(@"')")), //pgsql10
                         attndims,
                         comment = string.Concat(a[7])
                     };

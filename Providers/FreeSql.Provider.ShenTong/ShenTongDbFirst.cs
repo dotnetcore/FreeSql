@@ -259,7 +259,7 @@ where {loc8.ToString().Replace("a.table_name", "ns.nspname || '.' || c.relname")
                     var max_length = int.Parse(string.Concat(row[3]));
                     var sqlType = string.Concat(row[4]);
                     var is_nullable = string.Concat(row[5]) == "1";
-                    var is_identity = string.Concat(row[6]).StartsWith(@"NEXTVAL('") && string.Concat(row[6]).EndsWith(@"'::text)");
+                    var is_identity = string.Concat(row[6]).StartsWith(@"NEXTVAL('") && (string.Concat(row[6]).EndsWith(@"'::text)") || string.Concat(row[6]).EndsWith(@"')"));
                     var comment = string.Concat(row[7]);
                     var defaultValue = string.Concat(row[6]);
                     int attndims = int.Parse(string.Concat(row[8]));
