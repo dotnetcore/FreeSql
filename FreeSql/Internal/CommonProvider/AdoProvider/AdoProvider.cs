@@ -188,7 +188,7 @@ namespace FreeSql.Internal.CommonProvider
                         ret2.Add((T2)Utils.ExecuteArrayRowReadClassOrTuple(flag2, type2, indexes2, fetch.Object, 0, _util).Value);
                         break;
                 }
-            }, cmdType, cmdText, cmdParms);
+            }, null, cmdType, cmdText, cmdParms);
             return NativeTuple.Create(ret1, ret2);
         }
 
@@ -273,7 +273,7 @@ namespace FreeSql.Internal.CommonProvider
                         ret3.Add((T3)Utils.ExecuteArrayRowReadClassOrTuple(flag3, type3, indexes3, fetch.Object, 0, _util).Value);
                         break;
                 }
-            }, cmdType, cmdText, cmdParms);
+            }, null, cmdType, cmdText, cmdParms);
             return NativeTuple.Create(ret1, ret2, ret3);
         }
 
@@ -381,7 +381,7 @@ namespace FreeSql.Internal.CommonProvider
                         ret4.Add((T4)Utils.ExecuteArrayRowReadClassOrTuple(flag4, type4, indexes4, fetch.Object, 0, _util).Value);
                         break;
                 }
-            }, cmdType, cmdText, cmdParms);
+            }, null, cmdType, cmdText, cmdParms);
             return NativeTuple.Create(ret1, ret2, ret3, ret4);
         }
 
@@ -512,7 +512,7 @@ namespace FreeSql.Internal.CommonProvider
                         ret5.Add((T5)Utils.ExecuteArrayRowReadClassOrTuple(flag5, type5, indexes5, fetch.Object, 0, _util).Value);
                         break;
                 }
-            }, cmdType, cmdText, cmdParms);
+            }, null, cmdType, cmdText, cmdParms);
             return NativeTuple.Create(ret1, ret2, ret3, ret4, ret5);
         }
         #endregion
@@ -522,8 +522,8 @@ namespace FreeSql.Internal.CommonProvider
         public void ExecuteReader(DbConnection connection, DbTransaction transaction, Action<FetchCallbackArgs<DbDataReader>> fetchHandler, string cmdText, object parms = null) => ExecuteReader(connection, transaction, fetchHandler, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
         public void ExecuteReader(Action<FetchCallbackArgs<DbDataReader>> fetchHandler, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteReader(null, null, fetchHandler, cmdType, cmdText, cmdParms);
         public void ExecuteReader(DbTransaction transaction, Action<FetchCallbackArgs<DbDataReader>> fetchHandler, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteReader(null, transaction, fetchHandler, cmdType, cmdText, cmdParms);
-        public void ExecuteReader(DbConnection connection, DbTransaction transaction, Action<FetchCallbackArgs<DbDataReader>> fetchHandler, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteReaderMultiple(1, connection, transaction, (fetch, result) => fetchHandler(fetch), cmdType, cmdText, cmdParms);
-        void ExecuteReaderMultiple(int multipleResult, DbConnection connection, DbTransaction transaction, Action<FetchCallbackArgs<DbDataReader>, int> fetchHandler, CommandType cmdType, string cmdText, params DbParameter[] cmdParms)
+        public void ExecuteReader(DbConnection connection, DbTransaction transaction, Action<FetchCallbackArgs<DbDataReader>> fetchHandler, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteReaderMultiple(1, connection, transaction, (fetch, result) => fetchHandler(fetch), null, cmdType, cmdText, cmdParms);
+        void ExecuteReaderMultiple(int multipleResult, DbConnection connection, DbTransaction transaction, Action<FetchCallbackArgs<DbDataReader>, int> fetchHandler, Action<DbDataReader, int> schemaHandler, CommandType cmdType, string cmdText, params DbParameter[] cmdParms)
         {
             if (string.IsNullOrEmpty(cmdText)) return;
             var dt = DateTime.Now;
@@ -586,7 +586,7 @@ namespace FreeSql.Internal.CommonProvider
                         LoggerException(pool, pc, new Exception($"连接失败，准备切换其他可用服务器"), dt, logtxt, false);
                         pc.cmd.Parameters.Clear();
                         if (DataType == DataType.Sqlite) pc.cmd.Dispose();
-                        ExecuteReaderMultiple(multipleResult, connection, transaction, fetchHandler, cmdType, cmdText, cmdParms);
+                        ExecuteReaderMultiple(multipleResult, connection, transaction, fetchHandler, schemaHandler, cmdType, cmdText, cmdParms);
                         return;
                     }
                 }
@@ -606,9 +606,15 @@ namespace FreeSql.Internal.CommonProvider
                     var fetch = new FetchCallbackArgs<DbDataReader> { Object = dr };
                     while (true)
                     {
+                        bool isfirst = true;
                         while (true)
                         {
                             bool isread = dr.Read();
+                            if (schemaHandler != null && isfirst)
+                            {
+                                isfirst = false;
+                                schemaHandler(dr, resultIndex);
+                            }
                             if (isread == false) break;
 
                             if (fetchHandler != null)
@@ -676,19 +682,18 @@ namespace FreeSql.Internal.CommonProvider
             DataTable dt = null;
             ExecuteReaderMultiple(16, connection, transaction, (fetch, result) =>
             {
-                if (ret.Tables.Count <= result)
-                {
-                    dt = ret.Tables.Add();
-                    for (var a = 0; a < fetch.Object.FieldCount; a++)
-                    {
-                        var name = fetch.Object.GetName(a);
-                        if (dt.Columns.Contains(name)) name = $"{name}_{Guid.NewGuid().ToString("N").Substring(0, 4)}";
-                        dt.Columns.Add(name, fetch.Object.GetFieldType(a));
-                    }
-                }
                 object[] values = new object[dt.Columns.Count];
                 fetch.Object.GetValues(values);
                 dt.Rows.Add(values);
+            }, (dr, result) =>
+            {
+                dt = ret.Tables.Add();
+                for (var a = 0; a < dr.FieldCount; a++)
+                {
+                    var name = dr.GetName(a);
+                    if (dt.Columns.Contains(name)) name = $"{name}_{Guid.NewGuid().ToString("N").Substring(0, 4)}";
+                    dt.Columns.Add(name, dr.GetFieldType(a));
+                }
             }, cmdType, cmdText, cmdParms);
             return ret;
         }
@@ -700,18 +705,19 @@ namespace FreeSql.Internal.CommonProvider
         public DataTable ExecuteDataTable(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms)
         {
             var ret = new DataTable();
-            ExecuteReader(connection, transaction, fetch =>
+            ExecuteReaderMultiple(1, connection, transaction, (fetch, result) =>
             {
-                if (ret.Columns.Count == 0)
-                    for (var a = 0; a < fetch.Object.FieldCount; a++)
-                    {
-                        var name = fetch.Object.GetName(a);
-                        if (ret.Columns.Contains(name)) name = $"{name}_{Guid.NewGuid().ToString("N").Substring(0, 4)}";
-                        ret.Columns.Add(name, fetch.Object.GetFieldType(a));
-                    }
                 object[] values = new object[ret.Columns.Count];
                 fetch.Object.GetValues(values);
                 ret.Rows.Add(values);
+            }, (dr, result) =>
+            {
+                for (var a = 0; a < dr.FieldCount; a++)
+                {
+                    var name = dr.GetName(a);
+                    if (ret.Columns.Contains(name)) name = $"{name}_{Guid.NewGuid().ToString("N").Substring(0, 4)}";
+                    ret.Columns.Add(name, dr.GetFieldType(a));
+                }
             }, cmdType, cmdText, cmdParms);
             return ret;
         }
