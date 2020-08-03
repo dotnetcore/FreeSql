@@ -67,7 +67,7 @@ namespace FreeSql.Odbc.Dameng
                     else
                     {
                         object val = col.GetMapValue(d);
-                        if (val == null && col.Attribute.IsNullable == false) val = Utils.GetDataReaderValue(col.CsType.NullableTypeOrThis(), null);//#384
+                        if (val == null && col.Attribute.IsNullable == false) val = col.CsType == typeof(string) ? "" : Utils.GetDataReaderValue(col.CsType.NullableTypeOrThis(), null);//#384
                         if (_noneParameter)
                             sb.Append(_commonUtils.GetNoneParamaterSqlValue(specialParams, col.Attribute.MapType, val));
                         else

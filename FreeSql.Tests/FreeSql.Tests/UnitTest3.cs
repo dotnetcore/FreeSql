@@ -156,9 +156,23 @@ namespace FreeSql.Tests
             }
         }
 
+        class testInsertNullable
+        {
+            [Column(IsIdentity = true)]
+            public long Id { get; set; }
+
+            [Column(IsNullable = false)]
+            public string str1 { get; set; }
+            [Column(IsNullable = false)]
+            public int? int1 { get; set; }
+        }
+
         [Fact]
         public void Test03()
         {
+            g.sqlite.Insert(new testInsertNullable()).NoneParameter().ExecuteAffrows();
+
+
             var sqlxx = g.pgsql.InsertOrUpdate<userinfo>().SetSource(new userinfo { userid = 10 }).UpdateColumns(a => new { a.birthday, a.CardNo }).ToSql();
 
             var aff1 = g.sqlite.GetRepository<Edi, long>().Delete(10086);
