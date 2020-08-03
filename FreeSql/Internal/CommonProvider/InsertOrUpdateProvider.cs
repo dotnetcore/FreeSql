@@ -214,6 +214,9 @@ namespace FreeSql.Internal.CommonProvider
             var ss = SplitSourceByIdentityValueIsNull(_source);
             try
             {
+                if (_transaction == null)
+                    this.WithTransaction(_orm.Ado.TransactionCurrentThread);
+
                 if (_transaction != null)
                 {
                     _source = ss.Item1;
@@ -314,6 +317,9 @@ namespace FreeSql.Internal.CommonProvider
             var ss = SplitSourceByIdentityValueIsNull(_source);
             try
             {
+                if (_transaction == null)
+                    this.WithTransaction(_orm.Ado.TransactionCurrentThread);
+
                 if (_transaction != null)
                 {
                     _source = ss.Item1;
