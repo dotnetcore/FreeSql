@@ -84,6 +84,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Provider.ShenTong",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Tests.Provider.PostgreSQL.NetTopologySuite", "FreeSql.Tests\FreeSql.Tests.Provider.PostgreSQL.NetTopologySuite\FreeSql.Tests.Provider.PostgreSQL.NetTopologySuite.csproj", "{330F15A7-5089-456B-B553-A98B14DEB764}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Provider.SqlServerForSystem", "Providers\FreeSql.Provider.SqlServerForSystem\FreeSql.Provider.SqlServerForSystem.csproj", "{3D2BD8EC-253A-437F-B4C8-74BC0D91429B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -514,6 +516,18 @@ Global
 		{330F15A7-5089-456B-B553-A98B14DEB764}.Release|x64.Build.0 = Release|Any CPU
 		{330F15A7-5089-456B-B553-A98B14DEB764}.Release|x86.ActiveCfg = Release|Any CPU
 		{330F15A7-5089-456B-B553-A98B14DEB764}.Release|x86.Build.0 = Release|Any CPU
+		{3D2BD8EC-253A-437F-B4C8-74BC0D91429B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3D2BD8EC-253A-437F-B4C8-74BC0D91429B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3D2BD8EC-253A-437F-B4C8-74BC0D91429B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{3D2BD8EC-253A-437F-B4C8-74BC0D91429B}.Debug|x64.Build.0 = Debug|Any CPU
+		{3D2BD8EC-253A-437F-B4C8-74BC0D91429B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{3D2BD8EC-253A-437F-B4C8-74BC0D91429B}.Debug|x86.Build.0 = Debug|Any CPU
+		{3D2BD8EC-253A-437F-B4C8-74BC0D91429B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3D2BD8EC-253A-437F-B4C8-74BC0D91429B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3D2BD8EC-253A-437F-B4C8-74BC0D91429B}.Release|x64.ActiveCfg = Release|Any CPU
+		{3D2BD8EC-253A-437F-B4C8-74BC0D91429B}.Release|x64.Build.0 = Release|Any CPU
+		{3D2BD8EC-253A-437F-B4C8-74BC0D91429B}.Release|x86.ActiveCfg = Release|Any CPU
+		{3D2BD8EC-253A-437F-B4C8-74BC0D91429B}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -543,6 +557,7 @@ Global
 		{E74D90E8-1CBC-4677-817B-1CA05AB97937} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
 		{07AB0B37-A8B1-4FB1-9259-7B804E369E36} = {94C8A78D-AA15-47B2-A348-530CD86BFC1B}
 		{938173AF-157F-4040-AED3-171DA1809CAA} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
+		{3D2BD8EC-253A-437F-B4C8-74BC0D91429B} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {089687FD-5D25-40AB-BA8A-A10D1E137F98}
