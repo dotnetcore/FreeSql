@@ -142,7 +142,33 @@ namespace FreeSql
         }
 
         public void BeginEdit(List<TEntity> data) => _dbset.BeginEdit(data);
-        public int EndEdit() => _dbset.EndEdit();
+        public int EndEdit()
+        {
+            _db.FlushCommand();
+            if (UnitOfWork?.GetOrBeginTransaction(true) == null && _db.OrmOriginal.Ado.TransactionCurrentThread == null)
+            {
+                int affrows = 0;
+                IUnitOfWork olduow = UnitOfWork;
+                UnitOfWork = new UnitOfWork(_db.OrmOriginal);
+                try
+                {
+                    affrows = _dbset.EndEdit();
+                    UnitOfWork.Commit();
+                }
+                catch
+                {
+                    UnitOfWork.Rollback();
+                    throw;
+                }
+                finally
+                {
+                    UnitOfWork.Dispose();
+                    UnitOfWork = olduow;
+                }
+                return affrows;
+            }
+            return _dbset.EndEdit();
+        }
     }
 
     public abstract partial class BaseRepository<TEntity, TKey> : BaseRepository<TEntity>, IBaseRepository<TEntity, TKey>
