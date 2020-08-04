@@ -545,7 +545,7 @@ namespace FreeSql
         /// <param name="data"></param>
         public void BeginEdit(List<TEntity> data)
         {
-            if (data == null || data.Any() == false) return;
+            if (data == null) return;
             if (_table.Primarys.Any() == false) throw new Exception($"不可进行编辑，实体没有主键：{_db.OrmOriginal.GetEntityString(_entityType, data.First())}");
             _statesEditing.Clear();
             _dataEditing = data;

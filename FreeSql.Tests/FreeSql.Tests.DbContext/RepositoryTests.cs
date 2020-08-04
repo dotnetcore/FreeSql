@@ -552,6 +552,23 @@ namespace FreeSql.Tests
             cts.RemoveAt(1);
 
             Assert.Equal(3, repo.EndEdit());
+
+            g.sqlite.Delete<BeginEdit01>().Where("1=1").ExecuteAffrows();
+            repo = g.sqlite.GetRepository<BeginEdit01>();
+            cts = repo.Select.ToList();
+            repo.BeginEdit(cts);
+
+            cts.AddRange(new[] {
+                new BeginEdit01 { Name = "分类1" },
+                new BeginEdit01 { Name = "分类1_1" },
+                new BeginEdit01 { Name = "分类1_2" },
+                new BeginEdit01 { Name = "分类1_3" },
+                new BeginEdit01 { Name = "分类2" },
+                new BeginEdit01 { Name = "分类2_1" },
+                new BeginEdit01 { Name = "分类2_2" }
+            });
+
+            Assert.Equal(7, repo.EndEdit());
         }
         class BeginEdit01
         {
