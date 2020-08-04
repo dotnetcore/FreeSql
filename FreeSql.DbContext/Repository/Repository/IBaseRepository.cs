@@ -92,8 +92,9 @@ namespace FreeSql
         /// 该方法根据 BeginEdit 传入的数据状态分析出添加、修改、删除 SQL 语句<para></para>
         /// 注意：* 本方法只支持单表操作，不支持导航属性级联保存
         /// </summary>
+        /// <param name="data">可选参数：手工传递最终的 data 值进行对比<para></para>默认：如果不传递，则使用 BeginEdit 传入的 data 引用进行对比</param>
         /// <returns></returns>
-        int EndEdit();
+        int EndEdit(List<TEntity> data = null);
 
 #if net40
 #else

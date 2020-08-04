@@ -567,11 +567,13 @@ namespace FreeSql
         /// 该方法根据 BeginEdit 传入的数据状态分析出添加、修改、删除 SQL 语句<para></para>
         /// 注意：* 本方法只支持单表操作，不支持导航属性级联保存
         /// </summary>
+        /// <param name="data">可选参数：手工传递最终的 data 值进行对比<para></para>默认：如果不传递，则使用 BeginEdit 传入的 data 引用进行对比</param>
         /// <returns></returns>
-        public int EndEdit()
+        public int EndEdit(List<TEntity> data = null)
         {
+            if (data == null) data = _dataEditing;
             var beforeAffrows = 0;
-            if (_dataEditing == null) return 0;
+            if (data == null) return 0;
             var oldEnable = _db.Options.EnableAddOrUpdateNavigateList;
             _db.Options.EnableAddOrUpdateNavigateList = false;
             try
@@ -579,7 +581,7 @@ namespace FreeSql
                 DbContextFlushCommand();
                 var addList = new List<TEntity>();
                 var ediList = new List<NativeTuple<TEntity, string>>();
-                foreach (var item in _dataEditing)
+                foreach (var item in data)
                 {
                     var key = _db.OrmOriginal.GetEntityKeyString(_entityType, item, false);
                     if (_statesEditing.TryRemove(key, out var state) == false)

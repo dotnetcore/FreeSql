@@ -142,7 +142,7 @@ namespace FreeSql
         }
 
         public void BeginEdit(List<TEntity> data) => _dbset.BeginEdit(data);
-        public int EndEdit()
+        public int EndEdit(List<TEntity> data = null)
         {
             _db.FlushCommand();
             if (UnitOfWork?.GetOrBeginTransaction(true) == null && _db.OrmOriginal.Ado.TransactionCurrentThread == null)
@@ -152,7 +152,7 @@ namespace FreeSql
                 UnitOfWork = new UnitOfWork(_db.OrmOriginal);
                 try
                 {
-                    affrows = _dbset.EndEdit();
+                    affrows = _dbset.EndEdit(data);
                     UnitOfWork.Commit();
                 }
                 catch
@@ -167,7 +167,7 @@ namespace FreeSql
                 }
                 return affrows;
             }
-            return _dbset.EndEdit();
+            return _dbset.EndEdit(data);
         }
     }
 

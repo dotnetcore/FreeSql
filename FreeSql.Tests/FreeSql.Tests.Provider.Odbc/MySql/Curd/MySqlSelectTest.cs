@@ -1915,7 +1915,7 @@ WHERE ((b.`IsFinished` OR a.`TaskType` = 3) AND b.`EnabledMark` = 1)", groupsql1
             Assert.Equal("110100", t3[0].Childs[0].Childs[0].Code);
             Assert.Equal("110101", t3[0].Childs[0].Childs[1].Code);
 
-            //t3 = fsql.Select<VM_District_Child>().Where(a => a.Name == "中国").AsCteTree().OrderBy(a => a.Code).ToTreeList();
+            //t3 = fsql.Select<VM_District_Child>().Where(a => a.Name == "中国").AsTreeCte().OrderBy(a => a.Code).ToTreeList();
             //Assert.Single(t3);
             //Assert.Equal("100000", t3[0].Code);
             //Assert.Single(t3[0].Childs);
@@ -1924,18 +1924,34 @@ WHERE ((b.`IsFinished` OR a.`TaskType` = 3) AND b.`EnabledMark` = 1)", groupsql1
             //Assert.Equal("110100", t3[0].Childs[0].Childs[0].Code);
             //Assert.Equal("110101", t3[0].Childs[0].Childs[1].Code);
 
-            //t3 = fsql.Select<VM_District_Child>().Where(a => a.Name == "中国").AsCteTree().OrderBy(a => a.Code).ToList();
+            //t3 = fsql.Select<VM_District_Child>().Where(a => a.Name == "中国").AsTreeCte().OrderBy(a => a.Code).ToList();
             //Assert.Equal(4, t3.Count);
             //Assert.Equal("100000", t3[0].Code);
             //Assert.Equal("110000", t3[1].Code);
             //Assert.Equal("110100", t3[2].Code);
             //Assert.Equal("110101", t3[3].Code);
 
-            //t3 = fsql.Select<VM_District_Child>().Where(a => a.Name == "北京").AsCteTree().OrderBy(a => a.Code).ToList();
+            //t3 = fsql.Select<VM_District_Child>().Where(a => a.Name == "北京").AsTreeCte().OrderBy(a => a.Code).ToList();
             //Assert.Equal(3, t3.Count);
             //Assert.Equal("110000", t3[0].Code);
             //Assert.Equal("110100", t3[1].Code);
             //Assert.Equal("110101", t3[2].Code);
+
+            //var select = fsql.Select<VM_District_Child>()
+            //    .Where(a => a.Name == "中国")
+            //    .AsTreeCte()
+            //    //.OrderBy("a.cte_level desc") //递归层级
+            //    ;
+            //// var list = select.ToList(); //自己调试看查到的数据
+            //select.ToUpdate().Set(a => a.testint, 855).ExecuteAffrows();
+            //Assert.Equal(855, fsql.Select<VM_District_Child>()
+            //    .Where(a => a.Name == "中国")
+            //    .AsTreeCte().Distinct().First(a => a.testint));
+
+            //Assert.Equal(4, select.ToDelete().ExecuteAffrows());
+            //Assert.False(fsql.Select<VM_District_Child>()
+            //    .Where(a => a.Name == "中国")
+            //    .AsTreeCte().Any());
         }
 
         [Table(Name = "D_District")]
@@ -1949,6 +1965,8 @@ WHERE ((b.`IsFinished` OR a.`TaskType` = 3) AND b.`EnabledMark` = 1)", groupsql1
 
             [Column(StringLength = 6)]
             public virtual string ParentCode { get; set; }
+
+            public int testint { get; set; }
         }
         [Table(Name = "D_District", DisableSyncStructure = true)]
         public class VM_District_Child : BaseDistrict

@@ -13,17 +13,18 @@ namespace FreeSql.Internal.CommonProvider
 
     public abstract partial class DeleteProvider<T1> : IDelete<T1> where T1 : class
     {
-        protected IFreeSql _orm;
-        protected CommonUtils _commonUtils;
-        protected CommonExpression _commonExpression;
-        protected TableInfo _table;
-        protected Func<string, string> _tableRule;
-        protected StringBuilder _where = new StringBuilder();
-        protected int _whereTimes = 0;
-        protected List<GlobalFilter.Item> _whereGlobalFilter;
-        protected List<DbParameter> _params = new List<DbParameter>();
-        protected DbTransaction _transaction;
-        protected DbConnection _connection;
+        public IFreeSql _orm;
+        public CommonUtils _commonUtils;
+        public CommonExpression _commonExpression;
+        public TableInfo _table;
+        public Func<string, string> _tableRule;
+        public StringBuilder _where = new StringBuilder();
+        public int _whereTimes = 0;
+        public List<GlobalFilter.Item> _whereGlobalFilter;
+        public List<DbParameter> _params = new List<DbParameter>();
+        public DbTransaction _transaction;
+        public DbConnection _connection;
+        public Action<StringBuilder> _interceptSql;
 
         public DeleteProvider(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere)
         {
@@ -155,6 +156,7 @@ namespace FreeSql.Internal.CommonProvider
                 if (string.IsNullOrEmpty(globalFilterCondi) == false)
                     sb.Append(" AND ").Append(globalFilterCondi);
             }
+            _interceptSql?.Invoke(sb);
             return sb.ToString();
         }
     }

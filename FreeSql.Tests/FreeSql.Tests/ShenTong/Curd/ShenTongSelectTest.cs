@@ -1842,6 +1842,8 @@ WHERE ((((a.""ID"")::text) in (SELECT b.""TITLE""
 
             [Column(StringLength = 6)]
             public virtual string ParentCode { get; set; }
+
+            public int testint { get; set; }
         }
         [Table(Name = "D_District", DisableSyncStructure = true)]
         public class VM_District_Child : BaseDistrict

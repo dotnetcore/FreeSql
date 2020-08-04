@@ -35,6 +35,7 @@ namespace FreeSql.Internal.CommonProvider
         public Action<BatchProgressStatus<T1>> _batchProgress;
         public DbTransaction _transaction;
         public DbConnection _connection;
+        public Action<StringBuilder> _interceptSql;
 
         public UpdateProvider(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere)
         {
@@ -766,6 +767,7 @@ namespace FreeSql.Internal.CommonProvider
                     sb.Append(" AND ").Append(versionCondi);
             }
 
+            _interceptSql?.Invoke(sb);
             return sb.ToString();
         }
     }
