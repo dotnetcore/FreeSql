@@ -213,7 +213,7 @@ uow.OnEntityChange = report => {
 参数 report 是一个 List 集合，集合元素的类型定义如下：
 
 ```csharp
-public class EntityChangeInfo
+public class ChangeInfo
 {
     public object Object { get; set; }
     public EntityChangeType Type { get; set; }

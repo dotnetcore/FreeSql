@@ -243,6 +243,10 @@ namespace FreeSql
             public class ChangeInfo
             {
                 public object Object { get; set; }
+                /// <summary>
+                /// Type = Update 的时候，获取更新之前的对象
+                /// </summary>
+                public object BeforeObject { get; set; }
                 public EntityChangeType Type { get; set; }
             }
             /// <summary>

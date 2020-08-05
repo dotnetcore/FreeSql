@@ -57,6 +57,11 @@
             <typeparam name="TEntity"></typeparam>
             <param name="data"></param>
         </member>
+        <member name="P:FreeSql.DbContext.EntityChangeReport.ChangeInfo.BeforeObject">
+            <summary>
+            Type = Update 的时候，获取更新之前的对象
+            </summary>
+        </member>
         <member name="P:FreeSql.DbContext.EntityChangeReport.Report">
             <summary>
             实体变化记录

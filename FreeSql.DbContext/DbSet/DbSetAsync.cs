@@ -363,15 +363,16 @@ namespace FreeSql
 
             if (data?.Count > 0)
             {
-
                 if (cuig.Length == _table.Columns.Count)
                     return ups.Length == data.Count ? -998 : -997;
 
-                var updateSource = data.Select(a => a.Value).ToArray();
-                var update = this.OrmUpdate(null).SetSource(updateSource).IgnoreColumns(cuig);
-
+                var update = this.OrmUpdate(null).SetSource(data.Select(a => a.Value)).IgnoreColumns(cuig);
                 var affrows = await update.ExecuteAffrowsAsync();
-                _db._entityChangeReport.AddRange(updateSource.Select(a => new DbContext.EntityChangeReport.ChangeInfo { Object = a, Type = DbContext.EntityChangeType.Update }));
+                _db._entityChangeReport.AddRange(data.Select(a => new DbContext.EntityChangeReport.ChangeInfo { 
+                    Object = a.Value, 
+                    BeforeObject = _states.TryGetValue(a.Key, out var beforeVal) ? beforeVal.Value : null, 
+                    Type = DbContext.EntityChangeType.Update 
+                }));
 
                 foreach (var newval in data)
                 {
