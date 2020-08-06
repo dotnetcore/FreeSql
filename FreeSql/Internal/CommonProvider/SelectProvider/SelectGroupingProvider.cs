@@ -30,7 +30,7 @@ namespace FreeSql.Internal.CommonProvider
             _tables = tables;
         }
 
-        public string getSelectGroupingMapString(Expression[] members)
+        public string GetSelectGroupingMapString(Expression[] members)
         {
             if (members.Any() == false) return _map.DbField;
             var parentName = ((members.FirstOrDefault() as MemberExpression)?.Expression as MemberExpression)?.Member.Name;
@@ -90,13 +90,13 @@ namespace FreeSql.Internal.CommonProvider
 
         public void InternalHaving(Expression exp)
         {
-            var sql = _comonExp.ExpressionWhereLambda(null, exp, getSelectGroupingMapString, null, null);
+            var sql = _comonExp.ExpressionWhereLambda(null, exp, this, null, null);
             var method = _select.GetType().GetMethod("Having", new[] { typeof(string), typeof(object) });
             method.Invoke(_select, new object[] { sql, null });
         }
         public void InternalOrderBy(Expression exp, bool isDescending)
         {
-            var sql = _comonExp.ExpressionWhereLambda(null, exp, getSelectGroupingMapString, null, null);
+            var sql = _comonExp.ExpressionWhereLambda(null, exp, this, null, null);
             var method = _select.GetType().GetMethod("OrderBy", new[] { typeof(string), typeof(object) });
             method.Invoke(_select, new object[] { isDescending ? $"{sql} DESC" : sql, null });
         }
@@ -106,7 +106,7 @@ namespace FreeSql.Internal.CommonProvider
             var field = new StringBuilder();
             var index = 0;
 
-            _comonExp.ReadAnonymousField(null, field, map, ref index, select, getSelectGroupingMapString, null, false);
+            _comonExp.ReadAnonymousField(null, field, map, ref index, select, this, null, false);
             if (map.Childs.Any() == false && map.MapType == null) map.MapType = elementType;
             var method = _select.GetType().GetMethod(isAsync ? "ToListMapReaderAsync" : "ToListMapReader", BindingFlags.Instance | BindingFlags.NonPublic);
             method = method.MakeGenericMethod(elementType);
@@ -118,7 +118,7 @@ namespace FreeSql.Internal.CommonProvider
             var field = new StringBuilder();
             var index = 0;
 
-            _comonExp.ReadAnonymousField(null, field, map, ref index, elementSelector, getSelectGroupingMapString, null, false);
+            _comonExp.ReadAnonymousField(null, field, map, ref index, elementSelector, this, null, false);
             if (map.Childs.Any() == false && map.MapType == null) map.MapType = elementType;
             var method = _select.GetType().GetMethod("ToListMapReaderPrivate", BindingFlags.Instance | BindingFlags.NonPublic);
             method = method.MakeGenericMethod(elementType);
@@ -132,7 +132,7 @@ namespace FreeSql.Internal.CommonProvider
             var field = new StringBuilder();
             var index = fieldAlias == FieldAliasOptions.AsProperty ? CommonExpression.ReadAnonymousFieldAsCsName : 0;
 
-            _comonExp.ReadAnonymousField(null, field, map, ref index, select, getSelectGroupingMapString, null, false);
+            _comonExp.ReadAnonymousField(null, field, map, ref index, select, this, null, false);
             var method = _select.GetType().GetMethod("ToSql", new[] { typeof(string) });
             return method.Invoke(_select, new object[] { field.Length > 0 ? field.Remove(0, 2).ToString() : null }) as string;
         }
@@ -210,7 +210,7 @@ namespace FreeSql.Internal.CommonProvider
             var field = new StringBuilder();
             var index = 0;
 
-            _comonExp.ReadAnonymousField(null, field, map, ref index, elementSelector, getSelectGroupingMapString, null, false);
+            _comonExp.ReadAnonymousField(null, field, map, ref index, elementSelector, this, null, false);
             if (map.Childs.Any() == false && map.MapType == null) map.MapType = typeof(TElement);
             var method = _select.GetType().GetMethod("ToListMapReaderPrivateAsync", BindingFlags.Instance | BindingFlags.NonPublic);
             method = method.MakeGenericMethod(typeof(TElement));

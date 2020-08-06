@@ -996,7 +996,7 @@ namespace FreeSql.Tests
                  {
                      b.Key.Title,
                      b.Key.yyyy,
-
+                     b.Key,
                      cou = b.Count(),
                      sum = b.Sum(b.Key.yyyy),
                      sum2 = b.Sum(b.Value.TypeGuid)

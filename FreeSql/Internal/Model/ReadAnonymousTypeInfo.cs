@@ -17,6 +17,20 @@ namespace FreeSql.Internal.Model
         public TableInfo Table { get; set; }
         public bool IsEntity { get; set; }
         public bool IsDefaultCtor { get; set; }
+
+        public void CopyTo(ReadAnonymousTypeInfo target)
+        {
+            target.Property = Property;
+            target.CsName = CsName;
+            target.CsType = CsType;
+            target.MapType = MapType;
+            target.DbField = DbField;
+            target.Consturctor = Consturctor;
+            target.Childs = Childs;
+            target.Table = Table;
+            target.IsEntity = IsEntity;
+            target.IsDefaultCtor = IsDefaultCtor;
+        }
     }
     public class ReadAnonymousTypeAfInfo
     {

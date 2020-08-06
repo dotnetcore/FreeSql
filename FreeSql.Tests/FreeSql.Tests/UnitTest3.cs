@@ -179,6 +179,17 @@ namespace FreeSql.Tests
             var aff2 = g.sqlite.Delete<Edi>(10086).ExecuteAffrows();
             Assert.Equal(aff1, aff2);
 
+            g.sqlserver.Delete<Edi>().Where("1=1").ExecuteAffrows();
+            g.sqlserver.Delete<EdiItem>().Where("1=1").ExecuteAffrows();
+            g.sqlserver.Insert(new[] { new Edi { Id = 1 }, new Edi { Id = 2 }, new Edi { Id = 3 }, new Edi { Id = 4 }, new Edi { Id = 5 } }).ExecuteAffrows();
+            g.sqlserver.Insert(new[] { 
+                new EdiItem { Id = 1, EdiId = 1 }, new EdiItem { Id = 2, EdiId = 1 }, new EdiItem { Id = 3, EdiId = 1 } ,
+                new EdiItem { Id = 4, EdiId = 2 }, new EdiItem { Id = 5, EdiId = 2 },
+                new EdiItem { Id = 6, EdiId = 3 }, new EdiItem { Id = 7, EdiId = 3 },
+                new EdiItem { Id = 8, EdiId = 4 }, new EdiItem { Id = 9, EdiId = 4 }, 
+                new EdiItem { Id = 10, EdiId = 5 }, new EdiItem { Id = 11, EdiId = 5 },
+            }).ExecuteAffrows();
+
 
             var testStringFormat = g.sqlite.Select<Edi>().First(a => new {
                 str = $"x{a.Id}_{DateTime.Now.ToString("yyyyMM")}z",
@@ -263,6 +274,22 @@ namespace FreeSql.Tests
                         .When(a.Id == 5, SqlExt.Case().When(b.Id == 1, 10000).Else(999).End())
                         .End(),
                     over1 = SqlExt.Rank().Over().OrderBy(a.Id).OrderByDescending(b.EdiId).ToValue(),
+                });
+
+            var sqlextCaseGroupBy1 = g.sqlserver.Select<Edi, EdiItem>()
+                .InnerJoin((a, b) => b.Id == a.Id)
+                .GroupBy((a, b) => new { aid = a.Id, bid = b.Id })
+                .ToDictionary(a => new
+                {
+                    sum = a.Sum(a.Value.Item2.EdiId)
+                });
+
+            var sqlextCaseGroupBy2 = g.sqlserver.Select<Edi, EdiItem>()
+                .InnerJoin((a, b) => b.Id == a.Id)
+                .GroupBy((a, b) => new { aid = a.Id, bid = b.Id })
+                .ToList(a => new
+                {
+                    a.Key, sum = a.Sum(a.Value.Item2.EdiId)
                 });
 
 
