@@ -227,7 +227,9 @@ namespace FreeSql.Tests
                         .When(a.Id == 4, 13)
                         .When(a.Id == 5, SqlExt.Case().When(b.Id == 1, 10000).Else(999).End())
                         .End(),
-                    groupct1 = SqlExt.GroupConcat(a.Id).Distinct().OrderBy(b.EdiId).Separator("_").ToValue()
+                    groupct1 = SqlExt.GroupConcat(a.Id).Distinct().OrderBy(b.EdiId).Separator("_").ToValue(),
+                    testb1 = b == null ? 1 : 0,
+                    testb2 = b != null ? 1 : 0,
                 });
             var sqlextGroupConcatToList = g.mysql.Select<Edi, EdiItem>()
                 .InnerJoin((a, b) => b.Id == a.Id)
@@ -242,7 +244,9 @@ namespace FreeSql.Tests
                         .When(a.Id == 4, 13)
                         .When(a.Id == 5, SqlExt.Case().When(b.Id == 1, 10000).Else(999).End())
                         .End(),
-                    groupct1 = SqlExt.GroupConcat(a.Id).Distinct().OrderBy(b.EdiId).Separator("_").ToValue()
+                    groupct1 = SqlExt.GroupConcat(a.Id).Distinct().OrderBy(b.EdiId).Separator("_").ToValue(),
+                    testb1 = b == null ? 1 : 0,
+                    testb2 = b != null ? 1 : 0,
                 });
 
             var sqlextCase = g.sqlserver.Select<Edi, EdiItem>()
@@ -281,7 +285,9 @@ namespace FreeSql.Tests
                 .GroupBy((a, b) => new { aid = a.Id, bid = b.Id })
                 .ToDictionary(a => new
                 {
-                    sum = a.Sum(a.Value.Item2.EdiId)
+                    sum = a.Sum(a.Value.Item2.EdiId),
+                    testb1 = a.Value.Item2 == null ? 1 : 0,
+                    testb2 = a.Value.Item2 != null ? 1 : 0,
                 });
 
             var sqlextCaseGroupBy2 = g.sqlserver.Select<Edi, EdiItem>()
@@ -289,7 +295,9 @@ namespace FreeSql.Tests
                 .GroupBy((a, b) => new { aid = a.Id, bid = b.Id })
                 .ToList(a => new
                 {
-                    a.Key, sum = a.Sum(a.Value.Item2.EdiId)
+                    a.Key, sum = a.Sum(a.Value.Item2.EdiId),
+                    testb1 = a.Value.Item2 == null ? 1 : 0,
+                    testb2 = a.Value.Item2 != null ? 1 : 0,
                 });
 
 

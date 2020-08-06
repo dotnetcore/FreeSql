@@ -147,6 +147,8 @@ namespace FreeSql.Tests
         public class LinUser
         {
             public long id { get; set; }
+            public string name { get; set; }
+            public string nick { get; set; }
         }
 
         public class Comment
@@ -530,9 +532,14 @@ namespace FreeSql.Tests
 
 
             var comments2 = g.mysql.Select<Comment>()
-    .Include(r => r.UserInfo)
-    .From<UserLike>((z, b) => z.LeftJoin(u => u.Id == b.SubjectId))
-    .ToList((a, b) => new { comment = a, b.SubjectId, user = a.UserInfo });
+                .Include(r => r.UserInfo)
+                .From<UserLike>((z, b) => z.LeftJoin(u => u.Id == b.SubjectId))
+                .ToList((a, b) => new { comment = a, b.SubjectId, user = a.UserInfo,
+                    testb1 = a.UserInfo == null ? 1 : 0,
+                    testb2 = a.UserInfo != null ? 2 : 0,
+                    testb4 = b == null ? 3 : 0,
+                    testb5 = b != null ? 4 : 0,
+                });
 
             g.sqlite.Delete<SysModulePermission>().Where("1=1").ExecuteAffrows();
             g.sqlite.Delete<SysModuleButton>().Where("1=1").ExecuteAffrows();

@@ -1,4 +1,5 @@
-﻿using FreeSql.Internal;
+﻿using FreeSql.DataAnnotations;
+using FreeSql.Internal;
 using FreeSql.Internal.Model;
 using System;
 using System.Collections.Generic;
@@ -83,7 +84,7 @@ namespace FreeSql.ShenTong.Curd
             {
                 if (pkidx > 0) caseWhen.Append(" || '+' || ");
                 if (string.IsNullOrEmpty(InternalTableAlias) == false) caseWhen.Append(InternalTableAlias).Append(".");
-                caseWhen.Append(_commonUtils.QuoteReadColumn(pk.CsType, pk.Attribute.MapType, _commonUtils.QuoteSqlName(pk.Attribute.Name))).Append("::varchar");
+                caseWhen.Append(_commonUtils.QuoteReadColumn(pk.CsType, pk.Attribute.MapType, _commonUtils.QuoteSqlName(pk.Attribute.Name))).Append("::text");
                 ++pkidx;
             }
             caseWhen.Append(")");
@@ -101,7 +102,7 @@ namespace FreeSql.ShenTong.Curd
             foreach (var pk in _table.Primarys)
             {
                 if (pkidx > 0) sb.Append(" || '+' || ");
-                sb.Append(_commonUtils.FormatSql("{0}", pk.GetMapValue(d))).Append("::varchar");
+                sb.Append(_commonUtils.FormatSql("{0}", pk.GetMapValue(d))).Append("::text");
                 ++pkidx;
             }
             sb.Append(")");
@@ -110,6 +111,11 @@ namespace FreeSql.ShenTong.Curd
         protected override void ToSqlCaseWhenEnd(StringBuilder sb, ColumnInfo col)
         {
             if (_noneParameter == false) return;
+            if (col.Attribute.MapType == typeof(string))
+            {
+                sb.Append("::text");
+                return;
+            }
             var dbtype = _commonUtils.CodeFirst.GetDbInfo(col.Attribute.MapType)?.dbtype;
             if (dbtype == null) return;
 

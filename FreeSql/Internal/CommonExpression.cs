@@ -496,6 +496,13 @@ namespace FreeSql.Internal
                             return ExpressionLambdaToSql(Expression.Call(leftExp, MethodDateTimeSubtractTimeSpan, rightExp), tsc);
                     }
                     return $"({ExpressionLambdaToSql(leftExp, tsc)} {oper} {ExpressionLambdaToSql(rightExp, tsc)})";
+                case "=":
+                case "<>":
+                    var exptb = _common.GetTableByEntity(leftExp.Type);
+                    if (exptb != null) leftExp = Expression.MakeMemberAccess(leftExp, exptb.Properties[(exptb.Primarys.FirstOrDefault() ?? exptb.Columns.FirstOrDefault().Value).CsName]);
+                    exptb = _common.GetTableByEntity(leftExp.Type);
+                    if (exptb?.Primarys.Any() == true) rightExp = Expression.MakeMemberAccess(rightExp, exptb.Properties[(exptb.Primarys.FirstOrDefault() ?? exptb.Columns.FirstOrDefault().Value).CsName]);
+                    break;
             }
 
             Type oldMapType = null;
