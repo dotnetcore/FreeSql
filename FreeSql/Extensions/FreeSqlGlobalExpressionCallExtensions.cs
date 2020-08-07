@@ -114,6 +114,18 @@ namespace FreeSql
         /// <param name="column"></param>
         /// <returns></returns>
         public static IGroupConcat GroupConcat(object column) => SqlExtExtensions.GroupConcat(column);
+
+        /// <summary>
+        /// PostgreSQL string_agg(.., ..)
+        /// </summary>
+        /// <param name="column"></param>
+        /// <param name="delimiter"></param>
+        /// <returns></returns>
+        public static string StringAgg(object column, object delimiter)
+        {
+            expContext.Value.Result = $"string_agg({expContext.Value.ParsedContent["column"]}, {expContext.Value.ParsedContent["delimiter"]})";
+            return "";
+        }
     }
 
     [ExpressionCall]

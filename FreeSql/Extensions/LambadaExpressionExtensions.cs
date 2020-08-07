@@ -233,6 +233,26 @@ namespace System.Linq.Expressions
             test.Visit(exp);
             return test.Result;
         }
+
+        public static bool IsStringJoin(this MethodCallExpression exp, out MethodCallExpression joinExpArgs1Out, out LambdaExpression joinExpArgs1Args0Out)
+        {
+            if (exp.Arguments.Count == 2 &&
+                exp.Arguments[1].NodeType == ExpressionType.Call &&
+                exp.Arguments[1].Type.FullName.StartsWith("System.Collections.Generic.List`1") &&
+                exp.Arguments[1] is MethodCallExpression joinExpArgs1 &&
+                joinExpArgs1.Method.Name == "ToList" &&
+                joinExpArgs1.Arguments.Count == 1 &&
+                joinExpArgs1.Arguments[0] is UnaryExpression joinExpArgs1Args0Tmp &&
+                joinExpArgs1Args0Tmp.Operand is LambdaExpression joinExpArgs1Args0)
+            {
+                joinExpArgs1Out = joinExpArgs1;
+                joinExpArgs1Args0Out = joinExpArgs1Args0;
+                return true;
+            }
+            joinExpArgs1Out = null;
+            joinExpArgs1Args0Out = null;
+            return false;
+        }
     }
 
     internal class NewExpressionVisitor : ExpressionVisitor
