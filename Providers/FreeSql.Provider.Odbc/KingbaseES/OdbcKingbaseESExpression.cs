@@ -337,6 +337,20 @@ namespace FreeSql.Odbc.KingbaseES
                             return $"'||{_common.IsNull($"({ExpressionLambdaToSql(a, tsc)})::text", "''")}||'";
                         }).ToArray();
                         return string.Format(ExpressionLambdaToSql(exp.Arguments[0], tsc), expArgs);
+                    case "Join":
+                        if (exp.IsStringJoin(out var tolistObjectExp, out var toListMethod, out var toListArgs1))
+                        {
+                            var newToListArgs0 = Expression.Call(tolistObjectExp, toListMethod,
+                                Expression.Lambda(
+                                    Expression.Call(
+                                        typeof(SqlExtExtensions).GetMethod("StringJoinPgsqlGroupConcat"),
+                                        Expression.Convert(toListArgs1.Body, typeof(object)),
+                                        Expression.Convert(exp.Arguments[0], typeof(object))),
+                                    toListArgs1.Parameters));
+                            var newToListSql = getExp(newToListArgs0);
+                            return newToListSql;
+                        }
+                        break;
                 }
             }
             else

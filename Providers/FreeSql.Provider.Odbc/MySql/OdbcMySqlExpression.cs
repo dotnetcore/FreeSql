@@ -265,6 +265,20 @@ namespace FreeSql.Odbc.MySql
                         //4个 {} 时，Arguments[1] 只能解析这个出来，然后里面是 NewArray []
                         var expArgs = expArgsHack.Select(a => $"',{_common.IsNull(ExpressionLambdaToSql(a, tsc), "''")},'").ToArray();
                         return $"concat({string.Format(ExpressionLambdaToSql(exp.Arguments[0], tsc), expArgs)})";
+                    case "Join":
+                        if (exp.IsStringJoin(out var tolistObjectExp, out var toListMethod, out var toListArgs1))
+                        {
+                            var newToListArgs0 = Expression.Call(tolistObjectExp, toListMethod,
+                                Expression.Lambda(
+                                    Expression.Call(
+                                        typeof(SqlExtExtensions).GetMethod("StringJoinMySqlGroupConcat"),
+                                        Expression.Convert(toListArgs1.Body, typeof(object)),
+                                        Expression.Convert(exp.Arguments[0], typeof(object))),
+                                    toListArgs1.Parameters));
+                            var newToListSql = getExp(newToListArgs0);
+                            return newToListSql;
+                        }
+                        break;
                 }
             }
             else

@@ -53,6 +53,36 @@ namespace FreeSql.Tests.MySqlConnectorExpression
         }
 
         [Fact]
+        public void StringJoin()
+        {
+            var fsql = g.mysql;
+            fsql.Delete<StringJoin01>().Where("1=1").ExecuteAffrows();
+            fsql.Insert(new[] { new StringJoin01 { name = "北京" }, new StringJoin01 { name = "上海" }, new StringJoin01 { name = "深圳" }, }).ExecuteAffrows();
+
+            var val1 = string.Join(",", fsql.Select<StringJoin01>().ToList(a => a.name));
+            var val2 = fsql.Select<StringJoin01>().ToList(a => string.Join(",", fsql.Select<StringJoin01>().As("b").ToList(b => b.name)));
+            Assert.Equal(val1, val2[0]);
+
+            val1 = string.Join("**", fsql.Select<StringJoin01>().ToList(a => a.name));
+            val2 = fsql.Select<StringJoin01>().ToList(a => string.Join("**", fsql.Select<StringJoin01>().As("b").ToList(b => b.name)));
+            Assert.Equal(val1, val2[0]);
+
+            val1 = string.Join(",", fsql.Select<StringJoin01>().ToList(a => a.id));
+            val2 = fsql.Select<StringJoin01>().ToList(a => string.Join(",", fsql.Select<StringJoin01>().As("b").ToList(b => b.id)));
+            Assert.Equal(val1, val2[0]);
+
+            val1 = string.Join("**", fsql.Select<StringJoin01>().ToList(a => a.id));
+            val2 = fsql.Select<StringJoin01>().ToList(a => string.Join("**", fsql.Select<StringJoin01>().As("b").ToList(b => b.id)));
+            Assert.Equal(val1, val2[0]);
+        }
+        class StringJoin01
+        {
+            [Column(IsIdentity = true)]
+            public int id { get; set; }
+            public string name { get; set; }
+        }
+
+        [Fact]
         public void First()
         {
             Assert.Equal('x', select.First(a => "x1".First()));

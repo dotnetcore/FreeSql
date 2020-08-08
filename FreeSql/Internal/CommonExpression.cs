@@ -1060,6 +1060,7 @@ namespace FreeSql.Internal
                                         case "Max":
                                         case "Avg":
                                             var tscClone1 = tsc.CloneDisableDiyParse();
+                                            tscClone1.subSelect001 = fsql as Select0Provider; //#405 Oracle within group(order by ..)
                                             tscClone1.isDisableDiyParse = false;
                                             tscClone1._tables = fsqltables;
                                             var sqlSum = fsqlType.GetMethod("ToSql", new Type[] { typeof(string) })?.Invoke(fsql, new object[] { $"{exp3.Method.Name.ToLower()}({ExpressionLambdaToSql(exp3.Arguments.FirstOrDefault(), tscClone1)})" })?.ToString();
@@ -1070,6 +1071,7 @@ namespace FreeSql.Internal
                                         case "ToOne":
                                         case "First":
                                             var tscClone2 = tsc.CloneDisableDiyParse();
+                                            tscClone2.subSelect001 = fsql as Select0Provider; //#405 Oracle within group(order by ..)
                                             tscClone2.isDisableDiyParse = false;
                                             tscClone2._tables = fsqltables;
                                             var sqlFirst = fsqlType.GetMethod("ToSql", new Type[] { typeof(string) })?.Invoke(fsql, new object[] { ExpressionLambdaToSql(exp3.Arguments.FirstOrDefault(), tscClone2) })?.ToString();
@@ -1443,6 +1445,7 @@ namespace FreeSql.Internal
             public List<SelectTableInfo> _tables { get; set; }
             public List<SelectColumnInfo> _selectColumnMap { get; set; }
             public SelectGroupingProvider grouping { get; set; }
+            public Select0Provider subSelect001 { get; set; } //#405 Oracle within group(order by ..)
             public SelectTableInfoType tbtype { get; set; }
             public bool isQuoteName { get; set; }
             public bool isDisableDiyParse { get; set; }
@@ -1509,6 +1512,7 @@ namespace FreeSql.Internal
                     _tables = this._tables,
                     _selectColumnMap = this._selectColumnMap,
                     grouping = this.grouping,
+                    subSelect001 = this.subSelect001,
                     tbtype = this.tbtype,
                     isQuoteName = this.isQuoteName,
                     isDisableDiyParse = true,

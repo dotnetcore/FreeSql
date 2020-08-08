@@ -284,19 +284,19 @@ namespace FreeSql.SqlServer
                         }).ToArray();
                         return string.Format(expArgs0, expArgs);
                     case "Join":
-                        if (exp.IsStringJoin(out var joinExpArgs1, out var joinExpArgs1Args0))
+                        if (exp.IsStringJoin(out var tolistObjectExp, out var toListMethod, out var toListArgs1))
                         {
-                            var newToListArgs0 = Expression.Call(joinExpArgs1.Object, joinExpArgs1.Method,
+                            var newToListArgs0 = Expression.Call(tolistObjectExp, toListMethod,
                                 Expression.Lambda(
                                     Expression.Call(
                                         typeof(string).GetMethod("Concat", new[] { typeof(object), typeof(object) }),
-                                        Expression.Convert(joinExpArgs1Args0.Body, typeof(object)),
-                                        Expression.Convert(exp.Arguments[0], typeof(object))),
-                                    joinExpArgs1Args0.Parameters));
+                                        Expression.Convert(exp.Arguments[0], typeof(object)),
+                                        Expression.Convert(toListArgs1.Body, typeof(object))),
+                                    toListArgs1.Parameters));
                             var newToListSql = getExp(newToListArgs0);
                             if (string.IsNullOrEmpty(newToListSql) == false && newToListSql.StartsWith("(") && newToListSql.EndsWith(")"))
                             {
-                                newToListSql = $"{newToListSql.Substring(0, newToListSql.Length - 1)} FOR XML PATH(''))";
+                                newToListSql = $"stuff({newToListSql.Substring(0, newToListSql.Length - 1)} FOR XML PATH('')),1,len({getExp(exp.Arguments[0])}),'')";
                                 return newToListSql;
                             }
                         }

@@ -794,6 +794,14 @@
             <param name="column"></param>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.SqlExt.StringAgg(System.Object,System.Object)">
+            <summary>
+            PostgreSQL string_agg(.., ..)
+            </summary>
+            <param name="column"></param>
+            <param name="delimiter"></param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.FreeSqlBuilder.UseConnectionString(FreeSql.DataType,System.String,System.Type)">
             <summary>
             使用连接串（推荐）

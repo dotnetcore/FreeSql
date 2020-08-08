@@ -234,23 +234,28 @@ namespace System.Linq.Expressions
             return test.Result;
         }
 
-        public static bool IsStringJoin(this MethodCallExpression exp, out MethodCallExpression joinExpArgs1Out, out LambdaExpression joinExpArgs1Args0Out)
+        static ConcurrentDictionary<Type, ConcurrentDictionary<string, MethodInfo>> _dicTypeMethod = new ConcurrentDictionary<Type, ConcurrentDictionary<string, MethodInfo>>();
+        public static bool IsStringJoin(this MethodCallExpression exp, out Expression tolistObjectExpOut, out MethodInfo toListMethodOut, out LambdaExpression toListArgs0Out)
         {
             if (exp.Arguments.Count == 2 &&
                 exp.Arguments[1].NodeType == ExpressionType.Call &&
                 exp.Arguments[1].Type.FullName.StartsWith("System.Collections.Generic.List`1") &&
-                exp.Arguments[1] is MethodCallExpression joinExpArgs1 &&
-                joinExpArgs1.Method.Name == "ToList" &&
-                joinExpArgs1.Arguments.Count == 1 &&
-                joinExpArgs1.Arguments[0] is UnaryExpression joinExpArgs1Args0Tmp &&
-                joinExpArgs1Args0Tmp.Operand is LambdaExpression joinExpArgs1Args0)
+                exp.Arguments[1] is MethodCallExpression toListMethod &&
+                toListMethod.Method.Name == "ToList" &&
+                toListMethod.Arguments.Count == 1 &&
+                toListMethod.Arguments[0] is UnaryExpression joinExpArgs1Args0Tmp &&
+                joinExpArgs1Args0Tmp.Operand is LambdaExpression toListArgs0)
             {
-                joinExpArgs1Out = joinExpArgs1;
-                joinExpArgs1Args0Out = joinExpArgs1Args0;
+                tolistObjectExpOut = toListMethod.Object;
+                toListMethodOut = toListMethod.Type.GetGenericArguments().FirstOrDefault() == typeof(string) ?
+                    toListMethod.Method :
+                    toListMethod.Method.GetGenericMethodDefinition().MakeGenericMethod(typeof(string));
+                toListArgs0Out = toListArgs0;
                 return true;
             }
-            joinExpArgs1Out = null;
-            joinExpArgs1Args0Out = null;
+            tolistObjectExpOut = null;
+            toListMethodOut = null;
+            toListArgs0Out = null;
             return false;
         }
     }

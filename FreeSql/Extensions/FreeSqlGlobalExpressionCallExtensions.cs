@@ -269,5 +269,41 @@ namespace FreeSql
         }
         public interface IGroupConcat { }
         #endregion
+
+        #region string.Join 反射处理，此块代卖用于反射，所以别修改定义
+        public static string StringJoinSqliteGroupConcat(object column, object delimiter)
+        {
+            expContext.Result = $"group_concat({expContext.ParsedContent["column"]},{expContext.ParsedContent["delimiter"]})";
+            return null;
+        }
+        public static string StringJoinPgsqlGroupConcat(object column, object delimiter)
+        {
+            expContext.Result = $"string_agg(({expContext.ParsedContent["column"]})::text,{expContext.ParsedContent["delimiter"]})";
+            return null;
+        }
+        public static string StringJoinMySqlGroupConcat(object column, object delimiter)
+        {
+            expContext.Result = $"group_concat({expContext.ParsedContent["column"]} separator {expContext.ParsedContent["delimiter"]})";
+            return null;
+        }
+        public static string StringJoinOracleGroupConcat(object column, object delimiter)
+        {
+            string orderby = null;
+            var subSelect = expContext._tsc?.subSelect001;
+            if (subSelect != null)
+            {
+                orderby = subSelect?._orderby?.Trim('\r', '\n');
+                if (string.IsNullOrEmpty(orderby))
+                {
+                    var subSelectTb1 = subSelect._tables.FirstOrDefault();
+                    if (subSelectTb1 != null && subSelectTb1.Table.Primarys.Any() == true)
+                        orderby = $"order by {string.Join(",", subSelectTb1.Table.Primarys.Select(a => $"{subSelectTb1.Alias}.{subSelect._commonUtils.QuoteSqlName(a.Attribute.Name)}"))}";
+                }
+            }
+            if (string.IsNullOrEmpty(orderby)) orderby = "order by 1";
+            expContext.Result = $"listagg(to_char({expContext.ParsedContent["column"]}),{expContext.ParsedContent["delimiter"]}) within group({orderby})";
+            return null;
+        }
+        #endregion
     }
 }
