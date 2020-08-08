@@ -42,15 +42,15 @@ namespace FreeSql.SqlServer
             this.CodeFirst = new SqlServerCodeFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
 
             if (this.Ado.MasterPool != null)
-                using (var conn = this.Ado.MasterPool.Get())
+                try
                 {
-                    try
+                    using (var conn = this.Ado.MasterPool.Get())
                     {
                         (this.InternalCommonUtils as SqlServerUtils).ServerVersion = int.Parse(conn.Value.ServerVersion.Split('.')[0]);
                     }
-                    catch
-                    {
-                    }
+                }
+                catch
+                {
                 }
         }
 

@@ -41,15 +41,15 @@ namespace FreeSql.Odbc.SqlServer
             this.CodeFirst = new OdbcSqlServerCodeFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
 
             if (this.Ado.MasterPool != null)
-                using (var conn = this.Ado.MasterPool.Get())
+                try
                 {
-                    try
+                    using (var conn = this.Ado.MasterPool.Get())
                     {
                         (this.InternalCommonUtils as OdbcSqlServerUtils).ServerVersion = int.Parse(conn.Value.ServerVersion.Split('.')[0]);
                     }
-                    catch
-                    {
-                    }
+                }
+                catch
+                {
                 }
         }
 
