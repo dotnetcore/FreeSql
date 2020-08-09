@@ -4,6 +4,17 @@ Imports Xunit
 
 Namespace FreeSql.Tests.VB
     Public Class UnitTest1
+
+        <Fact>
+        Sub IsNothing()
+            Dim sql = g.sqlserver.Select(Of Testvb).Where(Function(a) a.Id = 100 AndAlso a.Title Is Nothing).ToSql()
+            Assert.Equal("SELECT a.[Id], a.[Title], a.[IsDeleted], a.[IdNullable] 
+FROM [Testvb] a 
+WHERE (a.[Id] = 100 AND a.[Title]  IS  NULL)", sql)
+
+            Dim lst = g.sqlserver.Select(Of Testvb).Where(Function(a) a.Id = 100 AndAlso a.Title Is Nothing).ToList()
+        End Sub
+
         <Fact>
         Sub TestSub()
 
