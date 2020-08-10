@@ -24,6 +24,7 @@ namespace FreeSql.Odbc.KingbaseES
         {
             _pgsqlInsert = insert as OdbcKingbaseESInsert<T1>;
             if (_pgsqlInsert == null) throw new Exception("OnConflictDoUpdate 是 FreeSql.Provider.Odbc/KingbaseES 特有的功能");
+            if (_pgsqlInsert._noneParameterFlag == "c") _pgsqlInsert._noneParameterFlag = "cu";
 
             if (columns != null)
             {

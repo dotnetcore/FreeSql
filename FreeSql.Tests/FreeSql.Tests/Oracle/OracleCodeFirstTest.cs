@@ -25,8 +25,11 @@ namespace FreeSql.Tests.Oracle
 
             //NoneParameter
             item1 = new TS_NCLB02 { Data = str1 };
-            Assert.Throws<Exception>(() => g.oracle.Insert(item1).NoneParameter().ExecuteAffrows());
+            Assert.Equal(1, g.oracle.Insert(item1).NoneParameter().ExecuteAffrows());
             //Oracle.ManagedDataAccess.Client.OracleException:¡°ORA-01704: ×Ö·û´®ÎÄ×ÖÌ«³¤¡±
+
+            item2 = g.oracle.Select<TS_NCLB02>().Where(a => a.Id == item1.Id).First();
+            Assert.Equal(str1, item2.Data);
         }
         class TS_NCLB02
         {
@@ -48,8 +51,11 @@ namespace FreeSql.Tests.Oracle
 
             //NoneParameter
             item1 = new TS_NCLB01 { Data = str1 };
-            Assert.Throws<Exception>(() => g.oracle.Insert(item1).NoneParameter().ExecuteAffrows());
+            Assert.Equal(1, g.oracle.Insert(item1).NoneParameter().ExecuteAffrows());
             //Oracle.ManagedDataAccess.Client.OracleException:¡°ORA-01704: ×Ö·û´®ÎÄ×ÖÌ«³¤¡±
+
+            item2 = g.oracle.Select<TS_NCLB01>().Where(a => a.Id == item1.Id).First();
+            Assert.Equal(str1, item2.Data);
         }
         class TS_NCLB01
         {
@@ -70,8 +76,11 @@ namespace FreeSql.Tests.Oracle
 
             //NoneParameter
             item1 = new TS_CLB01 { Data = str1 };
-            Assert.Throws<Exception>(() => g.oracle.Insert(item1).NoneParameter().ExecuteAffrows());
+            Assert.Equal(1, g.oracle.Insert(item1).NoneParameter().ExecuteAffrows());
             //Oracle.ManagedDataAccess.Client.OracleException:¡°ORA-01704: ×Ö·û´®ÎÄ×ÖÌ«³¤¡±
+
+            item2 = g.oracle.Select<TS_CLB01>().Where(a => a.Id == item1.Id).First();
+            Assert.Equal(str1, item2.Data);
         }
         class TS_CLB01
         {
@@ -96,8 +105,21 @@ namespace FreeSql.Tests.Oracle
 
             //NoneParameter
             item1 = new TS_BLB01 { Data = data1 };
-            Assert.Throws<Exception>(() => g.oracle.Insert(item1).NoneParameter().ExecuteAffrows());
+            Assert.Equal(1, g.oracle.Insert(item1).NoneParameter().ExecuteAffrows());
             //Oracle.ManagedDataAccess.Client.OracleException:¡°ORA-01704: ×Ö·û´®ÎÄ×ÖÌ«³¤¡±
+
+            item2 = g.oracle.Select<TS_BLB01>().Where(a => a.Id == item1.Id).First();
+            Assert.Equal(item1.Data.Length, item2.Data.Length);
+
+            str2 = Encoding.UTF8.GetString(item2.Data);
+            Assert.Equal(str1, str2);
+
+            Assert.Equal(1, g.oracle.InsertOrUpdate<TS_BLB01>().SetSource(new TS_BLB01 { Data = data1 }).ExecuteAffrows());
+            item2 = g.oracle.Select<TS_BLB01>().Where(a => a.Id == item1.Id).First();
+            Assert.Equal(item1.Data.Length, item2.Data.Length);
+
+            str2 = Encoding.UTF8.GetString(item2.Data);
+            Assert.Equal(str1, str2);
         }
         class TS_BLB01
         {

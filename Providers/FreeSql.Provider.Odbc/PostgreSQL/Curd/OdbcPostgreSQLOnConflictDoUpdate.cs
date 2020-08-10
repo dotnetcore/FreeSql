@@ -24,6 +24,7 @@ namespace FreeSql.Odbc.PostgreSQL
         {
             _pgsqlInsert = insert as OdbcPostgreSQLInsert<T1>;
             if (_pgsqlInsert == null) throw new Exception("OnConflictDoUpdate 是 FreeSql.Provider.Odbc/PostgreSQL 特有的功能");
+            if (_pgsqlInsert._noneParameterFlag == "c") _pgsqlInsert._noneParameterFlag = "cu";
 
             if (columns != null)
             {

@@ -187,7 +187,7 @@ namespace FreeSql.Internal
                 }
                 try
                 {
-                    col.DbDefaultValue = common.GetNoneParamaterSqlValue(new List<DbParameter>(), colattr.MapType, defaultValue);
+                    col.DbDefaultValue = common.GetNoneParamaterSqlValue(new List<DbParameter>(), "init", colattr.MapType, defaultValue);
                 }
                 catch
                 {

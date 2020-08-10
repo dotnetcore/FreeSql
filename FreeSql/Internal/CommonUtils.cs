@@ -23,7 +23,7 @@ namespace FreeSql.Internal
     public abstract class CommonUtils
     {
 
-        public abstract string GetNoneParamaterSqlValue(List<DbParameter> specialParams, Type type, object value);
+        public abstract string GetNoneParamaterSqlValue(List<DbParameter> specialParams, string specialParamFlag, Type type, object value);
         public abstract DbParameter AppendParamter(List<DbParameter> _params, string parameterName, ColumnInfo col, Type type, object value);
         public abstract DbParameter[] GetDbParamtersByObject(string sql, object obj);
         public abstract string FormatSql(string sql, params object[] args);

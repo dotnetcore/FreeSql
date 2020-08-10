@@ -17,6 +17,7 @@ namespace FreeSql.MySql.Curd
         {
             _mysqlInsert = insert as MySqlInsert<T1>;
             if (_mysqlInsert == null) throw new Exception("OnDuplicateKeyUpdate 是 FreeSql.Provider.MySql/FreeSql.Provider.MySqlConnector 特有的功能");
+            if (_mysqlInsert._noneParameterFlag == "c") _mysqlInsert._noneParameterFlag = "cu";
         }
 
         protected void ClearData()

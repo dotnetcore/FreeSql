@@ -35,6 +35,7 @@ namespace FreeSql.PostgreSQL.Curd
                     .WithTransaction(_transaction)
                     .NoneParameter(true) as Internal.CommonProvider.InsertProvider<T1>;
                 insert._source = data;
+                insert._noneParameterFlag = flagInsert ? "cuc" : "cu";
 
                 string sql = "";
                 if (IdentityColumn != null && flagInsert) sql = insert.ToSql();

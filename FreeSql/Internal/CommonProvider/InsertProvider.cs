@@ -23,6 +23,7 @@ namespace FreeSql.Internal.CommonProvider
         public Dictionary<string, bool> _auditValueChangedDict = new Dictionary<string, bool>(StringComparer.CurrentCultureIgnoreCase);
         public TableInfo _table;
         public Func<string, string> _tableRule;
+        public string _noneParameterFlag = "c";
         public bool _noneParameter, _insertIdentity;
         public int _batchValuesLimit, _batchParameterLimit;
         public bool _batchAutoTransaction = true;
@@ -550,7 +551,7 @@ namespace FreeSql.Internal.CommonProvider
                         object val = col.GetMapValue(d);
                         if (val == null && col.Attribute.IsNullable == false) val = col.CsType == typeof(string) ? "" : Utils.GetDataReaderValue(col.CsType.NullableTypeOrThis(), null);//#384
                         if (_noneParameter)
-                            sb.Append(_commonUtils.GetNoneParamaterSqlValue(specialParams, col.Attribute.MapType, val));
+                            sb.Append(_commonUtils.GetNoneParamaterSqlValue(specialParams, _noneParameterFlag, col.Attribute.MapType, val));
                         else
                         {
                             sb.Append(_commonUtils.QuoteWriteParamter(col.Attribute.MapType, _commonUtils.QuoteParamterName($"{col.CsName}_{didx}")));
@@ -563,8 +564,7 @@ namespace FreeSql.Internal.CommonProvider
                 onrow?.Invoke(d, didx, sb);
                 ++didx;
             }
-            if (_noneParameter && specialParams.Any())
-                _params = specialParams.ToArray();
+            if (_noneParameter && specialParams.Any()) _params = specialParams.ToArray();
             return sb.ToString();
         }
 

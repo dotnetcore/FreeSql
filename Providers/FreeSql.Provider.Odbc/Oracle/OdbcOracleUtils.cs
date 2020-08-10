@@ -99,11 +99,30 @@ namespace FreeSql.Odbc.Oracle
         public override string QuoteWriteParamter(Type type, string paramterName) => paramterName;
         public override string QuoteReadColumn(Type type, Type mapType, string columnName) => columnName;
 
-        public override string GetNoneParamaterSqlValue(List<DbParameter> specialParams, Type type, object value)
+        public override string GetNoneParamaterSqlValue(List<DbParameter> specialParams, string specialParamFlag, Type type, object value)
         {
             if (value == null) return "NULL";
             if (type.IsNumberType()) return string.Format(CultureInfo.InvariantCulture, "{0}", value);
-            if (type == typeof(byte[])) return $"hextoraw('{CommonUtils.BytesSqlRaw(value as byte[])}')";
+            if (type == typeof(string))
+            {
+                var valueString = value as string;
+                if (valueString != null)
+                {
+                    if (valueString.Length < 4000) return string.Concat("'", valueString.Replace("'", "''"), "'");
+                    var pam = AppendParamter(specialParams, $"p_{specialParams?.Count}{specialParamFlag}", null, type, value);
+                    return pam.ParameterName;
+                }
+            }
+            if (type == typeof(byte[]))
+            {
+                var valueBytes = value as byte[];
+                if (valueBytes != null)
+                {
+                    if (valueBytes.Length < 4000) return $"hextoraw('{CommonUtils.BytesSqlRaw(valueBytes)}')";
+                    var pam = AppendParamter(specialParams, $"p_{specialParams?.Count}{specialParamFlag}", null, type, value);
+                    return pam.ParameterName;
+                }
+            }
             return FormatSql("{0}", value, 1);
         }
     }

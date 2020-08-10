@@ -35,6 +35,13 @@ namespace FreeSql.Tests.Sqlite
 
             str2 = Encoding.UTF8.GetString(item2.Data);
             Assert.Equal(str1, str2);
+
+            Assert.Equal(1, g.sqlite.InsertOrUpdate<TS_BLB01>().SetSource(new TS_BLB01 { Data = data1 }).ExecuteAffrows());
+            item2 = g.sqlite.Select<TS_BLB01>().Where(a => a.Id == item1.Id).First();
+            Assert.Equal(item1.Data.Length, item2.Data.Length);
+
+            str2 = Encoding.UTF8.GetString(item2.Data);
+            Assert.Equal(str1, str2);
         }
         class TS_BLB01
         {
