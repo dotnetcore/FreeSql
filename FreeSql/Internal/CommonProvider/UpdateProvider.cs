@@ -650,6 +650,7 @@ namespace FreeSql.Internal.CommonProvider
                 var colidx = 0;
                 foreach (var col in _table.Columns.Values)
                 {
+                    if (col.Attribute.IsPrimary) continue;
                     if (col.Attribute.IsIdentity == false && col.Attribute.IsVersion == false && _ignore.ContainsKey(col.Attribute.Name) == false)
                     {
                         if (colidx > 0) sb.Append(", ");
@@ -687,6 +688,7 @@ namespace FreeSql.Internal.CommonProvider
                 var colidx = 0;
                 foreach (var col in _table.Columns.Values)
                 {
+                    if (col.Attribute.IsPrimary) continue;
                     if (col.Attribute.IsIdentity == false && col.Attribute.IsVersion == false && _ignore.ContainsKey(col.Attribute.Name) == false)
                     {
                         if (colidx > 0) sb.Append(", ");

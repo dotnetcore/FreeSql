@@ -21,6 +21,17 @@ namespace FreeSql.Tests.Sqlite
             public string Title { get; set; }
             public DateTime CreateTime { get; set; }
         }
+        [Table(Name = "tb_topic_setsource")]
+        class Topic22
+        {
+            [Column(IsPrimary = true)]
+            public int Id { get; set; }
+            public int? Clicks { get; set; }
+            public int TypeGuid { get; set; }
+            public TestTypeInfo Type { get; set; }
+            public string Title { get; set; }
+            public DateTime CreateTime { get; set; }
+        }
 
         [Fact]
         public void Dywhere()
@@ -63,6 +74,28 @@ namespace FreeSql.Tests.Sqlite
             [Column(IsPrimary = true)]
             public int id2 { get; set; }
             public string xx { get; set; }
+        }
+        [Fact]
+        public void SetSourceNoIdentity()
+        {
+            var fsql = g.sqlite;
+            fsql.Delete<Topic22>().Where("1=1").ExecuteAffrows();
+            var sql = fsql.Update<Topic22>().SetSource(new Topic22 { Id = 1, Title = "newtitle" }).IgnoreColumns(a => a.TypeGuid).ToSql().Replace("\r\n", "");
+            Assert.Equal("UPDATE \"tb_topic_setsource\" SET \"Clicks\" = @p_0, \"Title\" = @p_1, \"CreateTime\" = @p_2 WHERE (\"Id\" = 1)", sql);
+
+            var items = new List<Topic22>();
+            for (var a = 0; a < 10; a++) items.Add(new Topic22 { Id = a + 1, Title = $"newtitle{a}", Clicks = a * 100 });
+            Assert.Equal(10, fsql.Insert(items).ExecuteAffrows());
+            items[0].Clicks = null;
+
+            sql = fsql.Update<Topic22>().SetSource(items).IgnoreColumns(a => a.TypeGuid).ToSql().Replace("\r\n", "");
+            Assert.Equal("UPDATE \"tb_topic_setsource\" SET \"Clicks\" = CASE \"Id\" WHEN 1 THEN @p_0 WHEN 2 THEN @p_1 WHEN 3 THEN @p_2 WHEN 4 THEN @p_3 WHEN 5 THEN @p_4 WHEN 6 THEN @p_5 WHEN 7 THEN @p_6 WHEN 8 THEN @p_7 WHEN 9 THEN @p_8 WHEN 10 THEN @p_9 END, \"Title\" = CASE \"Id\" WHEN 1 THEN @p_10 WHEN 2 THEN @p_11 WHEN 3 THEN @p_12 WHEN 4 THEN @p_13 WHEN 5 THEN @p_14 WHEN 6 THEN @p_15 WHEN 7 THEN @p_16 WHEN 8 THEN @p_17 WHEN 9 THEN @p_18 WHEN 10 THEN @p_19 END, \"CreateTime\" = CASE \"Id\" WHEN 1 THEN @p_20 WHEN 2 THEN @p_21 WHEN 3 THEN @p_22 WHEN 4 THEN @p_23 WHEN 5 THEN @p_24 WHEN 6 THEN @p_25 WHEN 7 THEN @p_26 WHEN 8 THEN @p_27 WHEN 9 THEN @p_28 WHEN 10 THEN @p_29 END WHERE (\"Id\" IN (1,2,3,4,5,6,7,8,9,10))", sql);
+
+            sql = fsql.Update<Topic22>().SetSource(items).IgnoreColumns(a => new { a.Clicks, a.CreateTime, a.TypeGuid }).ToSql().Replace("\r\n", "");
+            Assert.Equal("UPDATE \"tb_topic_setsource\" SET \"Title\" = CASE \"Id\" WHEN 1 THEN @p_0 WHEN 2 THEN @p_1 WHEN 3 THEN @p_2 WHEN 4 THEN @p_3 WHEN 5 THEN @p_4 WHEN 6 THEN @p_5 WHEN 7 THEN @p_6 WHEN 8 THEN @p_7 WHEN 9 THEN @p_8 WHEN 10 THEN @p_9 END WHERE (\"Id\" IN (1,2,3,4,5,6,7,8,9,10))", sql);
+
+            sql = fsql.Update<Topic22>().SetSource(items).IgnoreColumns(a => a.TypeGuid).Set(a => a.CreateTime, new DateTime(2020, 1, 1)).ToSql().Replace("\r\n", "");
+            Assert.Equal("UPDATE \"tb_topic_setsource\" SET \"CreateTime\" = @p_0 WHERE (\"Id\" IN (1,2,3,4,5,6,7,8,9,10))", sql);
         }
         [Fact]
         public void SetSourceIgnore()
