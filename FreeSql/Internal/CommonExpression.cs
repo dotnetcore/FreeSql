@@ -465,20 +465,6 @@ namespace FreeSql.Internal
         }
         public string ExpressionBinary(string oper, Expression leftExp, Expression rightExp, ExpTSC tsc)
         {
-            if (leftExp.NodeType == ExpressionType.Call &&
-                rightExp.NodeType == ExpressionType.Constant &&
-                new[] { "=", "<>" }.Contains(oper))
-            {
-                var leftExpCall = leftExp as MethodCallExpression;
-                //vb 语法，将字符串比较转换为了 CompareString
-                if (leftExpCall.Method.Name == "CompareString" &&
-                    leftExpCall.Method.DeclaringType?.FullName == "Microsoft.VisualBasic.CompilerServices.Operators" &&
-                    leftExpCall.Arguments.Count == 3 &&
-                    leftExpCall.Arguments[2].Type == typeof(bool) &&
-                    rightExp.Type == typeof(int) &&
-                    (int)(rightExp as ConstantExpression).Value == 0)
-                    return ExpressionBinary(oper, leftExpCall.Arguments[0], leftExpCall.Arguments[1], tsc);
-            }
             switch (oper)
             {
                 case "OR":
@@ -498,6 +484,19 @@ namespace FreeSql.Internal
                     return $"({ExpressionLambdaToSql(leftExp, tsc)} {oper} {ExpressionLambdaToSql(rightExp, tsc)})";
                 case "=":
                 case "<>":
+                    if (leftExp.NodeType == ExpressionType.Call &&
+                        rightExp.NodeType == ExpressionType.Constant)
+                    {
+                        var leftExpCall = leftExp as MethodCallExpression;
+                        //vb 语法，将字符串比较转换为了 CompareString
+                        if (leftExpCall.Method.Name == "CompareString" &&
+                            leftExpCall.Method.DeclaringType?.FullName == "Microsoft.VisualBasic.CompilerServices.Operators" &&
+                            leftExpCall.Arguments.Count == 3 &&
+                            leftExpCall.Arguments[2].Type == typeof(bool) &&
+                            rightExp.Type == typeof(int) &&
+                            (int)(rightExp as ConstantExpression).Value == 0)
+                            return ExpressionBinary(oper, leftExpCall.Arguments[0], leftExpCall.Arguments[1], tsc);
+                    }
                     var exptb = _common.GetTableByEntity(leftExp.Type);
                     if (exptb?.Properties.Any() == true) leftExp = Expression.MakeMemberAccess(leftExp, exptb.Properties[(exptb.Primarys.FirstOrDefault() ?? exptb.Columns.FirstOrDefault().Value)?.CsName]);
                     exptb = _common.GetTableByEntity(leftExp.Type);
