@@ -169,9 +169,16 @@ namespace FreeSql.Tests
             public int int2 { get; set; }
         }
 
+        class testUpdateNonePk
+        {
+            public string name { get; set; }
+        }
+
         [Fact]
         public void Test03()
         {
+            Assert.Throws<ArgumentException>(() => g.sqlite.Update<testUpdateNonePk>().SetSource(new testUpdateNonePk()).ExecuteAffrows());
+
             g.sqlite.Insert(new testInsertNullable()).NoneParameter().ExecuteAffrows();
             var ddlsql = g.sqlite.CodeFirst.GetComparisonDDLStatements(typeof(testInsertNullable), "tb123123");
             Assert.Equal(@"CREATE TABLE IF NOT EXISTS ""main"".""tb123123"" (  

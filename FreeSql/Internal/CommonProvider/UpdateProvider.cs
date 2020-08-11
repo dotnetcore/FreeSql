@@ -750,7 +750,10 @@ namespace FreeSql.Internal.CommonProvider
 
             sb.Append(" \r\nWHERE ");
             if (_source.Any())
+            {
+                if (_table.Primarys.Any() == false) throw new ArgumentException($"{_table.Type.DisplayCsharp()} 没有定义主键，无法使用 SetSource，请尝试 SetDto");
                 sb.Append("(").Append(_commonUtils.WhereItems(_table, "", _source)).Append(")");
+            }
 
             if (_where.Length > 0)
                 sb.Append(_source.Any() ? _where.ToString() : _where.ToString().Substring(5));

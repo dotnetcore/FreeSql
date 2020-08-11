@@ -54,13 +54,15 @@ namespace FreeSql
         IUpdate<T1> BatchProgress(Action<BatchProgressStatus<T1>> callback);
 
         /// <summary>
-        /// 更新数据，设置更新的实体
+        /// 更新数据，设置更新的实体<para></para>
+        /// 注意：实体必须定义主键，并且最终会自动附加条件 where id = source.Id
         /// </summary>
         /// <param name="source">实体</param>
         /// <returns></returns>
         IUpdate<T1> SetSource(T1 source);
         /// <summary>
-        /// 更新数据，设置更新的实体集合
+        /// 更新数据，设置更新的实体集合<para></para>
+        /// 注意：实体必须定义主键，并且最终会自动附加条件 where id in (source.Id)
         /// </summary>
         /// <param name="source">实体集合</param>
         /// <returns></returns>
