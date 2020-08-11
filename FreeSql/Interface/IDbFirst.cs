@@ -20,6 +20,22 @@ namespace FreeSql
         List<DbTableInfo> GetTablesByDatabase(params string[] database);
 
         /// <summary>
+        /// 获取指定单表信息，包括列详情、主键、唯一键、索引、备注
+        /// </summary>
+        /// <param name="name">表名，如：dbo.table1</param>
+        /// <param name="ignoreCase">是否忽略大小写</param>
+        /// <returns></returns>
+        DbTableInfo GetTableByName(string name, bool ignoreCase = true);
+
+        /// <summary>
+        /// 判断表是否存在
+        /// </summary>
+        /// <param name="name">表名，如：dbo.table1</param>
+        /// <param name="ignoreCase">是否忽略大小写</param>
+        /// <returns></returns>
+        bool ExistsTable(string name, bool ignoreCase = true);
+
+        /// <summary>
         /// 获取数据库枚举类型int值
         /// </summary>
         /// <param name="column"></param>
@@ -75,15 +91,5 @@ namespace FreeSql
         /// <param name="database"></param>
         /// <returns></returns>
         List<DbEnumInfo> GetEnumsByDatabase(params string[] database);
-
-        /// <summary>
-        /// 判断表是否存在
-        /// </summary>
-        /// <param name="name">表名，如：dbo.table1</param>
-        /// <param name="ignoreCase">是否忽略大小写</param>
-        /// <returns></returns>
-        bool ExistsTable(string name, bool ignoreCase = true);
-
-        //DbTableInfo GetTableByName(string name);
     }
 }

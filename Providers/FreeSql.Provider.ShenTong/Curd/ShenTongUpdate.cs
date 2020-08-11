@@ -19,7 +19,7 @@ namespace FreeSql.ShenTong.Curd
         {
         }
 
-        internal string InternalTableAlias;
+        internal string InternalTableAlias { get; set; }
         internal StringBuilder InternalSbSet => _set;
         internal StringBuilder InternalSbSetIncr => _setIncr;
         internal Dictionary<string, bool> InternalIgnore => _ignore;

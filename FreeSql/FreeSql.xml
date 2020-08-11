@@ -3121,6 +3121,22 @@
             <param name="database"></param>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.IDbFirst.GetTableByName(System.String,System.Boolean)">
+            <summary>
+            获取指定单表信息，包括列详情、主键、唯一键、索引、备注
+            </summary>
+            <param name="name">表名，如：dbo.table1</param>
+            <param name="ignoreCase">是否忽略大小写</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IDbFirst.ExistsTable(System.String,System.Boolean)">
+            <summary>
+            判断表是否存在
+            </summary>
+            <param name="name">表名，如：dbo.table1</param>
+            <param name="ignoreCase">是否忽略大小写</param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.IDbFirst.GetDbType(FreeSql.DatabaseModel.DbColumnInfo)">
             <summary>
             获取数据库枚举类型int值
@@ -3182,14 +3198,6 @@
             获取数据库枚举类型，适用 PostgreSQL
             </summary>
             <param name="database"></param>
-            <returns></returns>
-        </member>
-        <member name="M:FreeSql.IDbFirst.ExistsTable(System.String,System.Boolean)">
-            <summary>
-            判断表是否存在
-            </summary>
-            <param name="name">表名，如：dbo.table1</param>
-            <param name="ignoreCase">是否忽略大小写</param>
             <returns></returns>
         </member>
         <member name="M:FreeSql.Internal.CommonProvider.InsertOrUpdateProvider`1.SplitSourceByIdentityValueIsNull(System.Collections.Generic.List{`0})">

@@ -10,17 +10,29 @@ namespace FreeSql.Tests.Odbc.SqlServer
         [Fact]
         public void GetDatabases()
         {
-
             var t1 = g.sqlserver.DbFirst.GetDatabases();
-
         }
 
         [Fact]
         public void GetTablesByDatabase()
         {
-
             var t2 = g.sqlserver.DbFirst.GetTablesByDatabase();
+            Assert.True(t2.Count > 0);
+        }
 
+        [Fact]
+        public void GetTableByName()
+        {
+            var fsql = g.sqlserver;
+            var t1 = fsql.DbFirst.GetTableByName("tb_alltype");
+            var t2 = fsql.DbFirst.GetTableByName("dbo.tb_alltype");
+            Assert.NotNull(t1);
+            Assert.NotNull(t2);
+            Assert.True(t1.Columns.Count > 0);
+            Assert.True(t2.Columns.Count > 0);
+            Assert.Equal(t1.Columns.Count, t2.Columns.Count);
+            var t3 = fsql.DbFirst.GetTableByName("notexists_tb");
+            Assert.Null(t3);
         }
 
         [Fact]

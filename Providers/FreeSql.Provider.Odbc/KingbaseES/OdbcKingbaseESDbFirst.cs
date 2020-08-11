@@ -116,20 +116,31 @@ namespace FreeSql.Odbc.KingbaseES
             var tbname = _commonUtils.SplitTableName(name);
             if (tbname?.Length == 1) tbname = new[] { "public", tbname[0] };
             if (ignoreCase) tbname = tbname.Select(a => a.ToLower()).ToArray();
-            var sql = $" select 1 from sys_tables a inner join sys_namespace b on b.nspname = a.schemaname where {(ignoreCase ? "lower(b.nspname)" : "b.nspname")} = {_commonUtils.FormatSql("{0}", tbname[0])} and {(ignoreCase ? "lower(a.tablename)" : "a.tablename")} = {_commonUtils.FormatSql("{0}", tbname[1])}";
+            var sql = $" select 1 from sys_tables a inner join sys_namespace b on b.nspname = a.schemaname where {(ignoreCase ? "lower(b.nspname)" : "b.nspname")}={_commonUtils.FormatSql("{0}", tbname[0])} and {(ignoreCase ? "lower(a.tablename)" : "a.tablename")}={_commonUtils.FormatSql("{0}", tbname[1])}";
             return string.Concat(_orm.Ado.ExecuteScalar(CommandType.Text, sql)) == "1";
         }
 
-        public List<DbTableInfo> GetTablesByDatabase(params string[] database)
+        public DbTableInfo GetTableByName(string name, bool ignoreCase = true) => GetTables(null, name, ignoreCase)?.FirstOrDefault();
+        public List<DbTableInfo> GetTablesByDatabase(params string[] database) => GetTables(database, null, false);
+
+        public List<DbTableInfo> GetTables(string[] database, string tablename, bool ignoreCase)
         {
             var olddatabase = "";
             using (var conn = _orm.Ado.MasterPool.Get(TimeSpan.FromSeconds(5)))
             {
                 olddatabase = conn.Value.Database;
             }
-            var dbs = database == null || database.Any() == false ? new[] { olddatabase } : database;
-            var tables = new List<DbTableInfo>();
+            string[] tbname = null;
+            string[] dbs = database == null || database.Any() == false ? new[] { olddatabase } : database;
+            if (string.IsNullOrEmpty(tablename) == false)
+            {
+                tbname = _commonUtils.SplitTableName(tablename);
+                if (tbname?.Length == 1) tbname = new[] { "public", tbname[0] };
+                if (ignoreCase) tbname = tbname.Select(a => a.ToLower()).ToArray();
+                dbs = new[] { olddatabase };
+            }
 
+            var tables = new List<DbTableInfo>();
             foreach (var db in dbs)
             {
                 if (string.IsNullOrEmpty(db) || string.Compare(db, olddatabase, true) != 0) continue;
@@ -139,7 +150,7 @@ namespace FreeSql.Odbc.KingbaseES
                 var loc3 = new Dictionary<string, Dictionary<string, DbColumnInfo>>();
 
                 var sql = $@"
-select
+{(tbname == null ? "" : $"select * from (")}select
 b.nspname || '.' || a.tablename,
 a.schemaname,
 a.tablename ,
@@ -165,7 +176,7 @@ inner join sys_namespace b on b.oid = a.relnamespace
 left join sys_description d on d.objoid = a.oid and objsubid = 0
 where b.nspname not in ('SYS_CATALOG', 'INFORMATION_SCHEMA', 'TOPOLOGY', 'SYSAUDIT', 'SYSLOGICAL', 'SYS_TEMP_1', 'SYS_TOAST', 'SYS_TOAST_TEMP_1', 'XLOG_RECORD_READ') and a.relkind in ('m','v') 
 and b.nspname || '.' || a.relname not in ('PUBLIC.GEOGRAPHY_COLUMNS','PUBLIC.GEOMETRY_COLUMNS','PUBLIC.RASTER_COLUMNS','PUBLIC.RASTER_OVERVIEWS')
-";
+{(tbname == null ? "" : $") ft_dbf where {(ignoreCase ? "lower(schemaname)" : "schemaname")}={_commonUtils.FormatSql("{0}", tbname[0])} and {(ignoreCase ? "lower(tablename)" : "tablename")}={_commonUtils.FormatSql("{0}", tbname[1])}")}";
                 var ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
                 if (ds == null) return loc1;
 
@@ -381,7 +392,9 @@ where {loc8.ToString().Replace("a.table_name", "ns.nspname || '.' || d.relname")
                     }
                 }
 
-                sql = $@"
+                if (tbname == null)
+                {
+                    sql = $@"
 select
 ns.nspname || '.' || b.relname as table_id, 
 array(select attname from sys_attribute where attrelid = a.conrelid and attnum = any(a.conkey)) as column_name,
@@ -398,39 +411,40 @@ inner join sys_namespace ns on ns.oid = b.relnamespace
 inner join sys_namespace ns2 on ns2.oid = c.relnamespace
 where {loc8.ToString().Replace("a.table_name", "ns.nspname || '.' || b.relname")}
 ";
-                ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
-                if (ds == null) return loc1;
+                    ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
+                    if (ds == null) return loc1;
 
-                var fkColumns = new Dictionary<string, Dictionary<string, DbForeignInfo>>();
-                foreach (object[] row in ds)
-                {
-                    var table_id = string.Concat(row[0]);
-                    var column = row[1] as string[];
-                    var fk_id = string.Concat(row[2]);
-                    var ref_table_id = string.Concat(row[3]);
-                    var is_foreign_key = string.Concat(row[4]) == "1";
-                    var referenced_column = row[5] as string[];
-                    var referenced_db = string.Concat(row[6]);
-                    var referenced_table = string.Concat(row[7]);
-
-                    if (loc2.ContainsKey(ref_table_id) == false) continue;
-
-                    Dictionary<string, DbForeignInfo> loc12 = null;
-                    DbForeignInfo loc13 = null;
-                    if (!fkColumns.TryGetValue(table_id, out loc12))
-                        fkColumns.Add(table_id, loc12 = new Dictionary<string, DbForeignInfo>());
-                    if (!loc12.TryGetValue(fk_id, out loc13))
-                        loc12.Add(fk_id, loc13 = new DbForeignInfo { Table = loc2[table_id], ReferencedTable = loc2[ref_table_id] });
-
-                    for (int a = 0; a < column.Length; a++)
+                    var fkColumns = new Dictionary<string, Dictionary<string, DbForeignInfo>>();
+                    foreach (object[] row in ds)
                     {
-                        loc13.Columns.Add(loc3[table_id][column[a]]);
-                        loc13.ReferencedColumns.Add(loc3[ref_table_id][referenced_column[a]]);
+                        var table_id = string.Concat(row[0]);
+                        var column = row[1] as string[];
+                        var fk_id = string.Concat(row[2]);
+                        var ref_table_id = string.Concat(row[3]);
+                        var is_foreign_key = string.Concat(row[4]) == "1";
+                        var referenced_column = row[5] as string[];
+                        var referenced_db = string.Concat(row[6]);
+                        var referenced_table = string.Concat(row[7]);
+
+                        if (loc2.ContainsKey(ref_table_id) == false) continue;
+
+                        Dictionary<string, DbForeignInfo> loc12 = null;
+                        DbForeignInfo loc13 = null;
+                        if (!fkColumns.TryGetValue(table_id, out loc12))
+                            fkColumns.Add(table_id, loc12 = new Dictionary<string, DbForeignInfo>());
+                        if (!loc12.TryGetValue(fk_id, out loc13))
+                            loc12.Add(fk_id, loc13 = new DbForeignInfo { Table = loc2[table_id], ReferencedTable = loc2[ref_table_id] });
+
+                        for (int a = 0; a < column.Length; a++)
+                        {
+                            loc13.Columns.Add(loc3[table_id][column[a]]);
+                            loc13.ReferencedColumns.Add(loc3[ref_table_id][referenced_column[a]]);
+                        }
                     }
+                    foreach (var table_id in fkColumns.Keys)
+                        foreach (var fk in fkColumns[table_id])
+                            loc2[table_id].ForeignsDict.Add(fk.Key, fk.Value);
                 }
-                foreach (var table_id in fkColumns.Keys)
-                    foreach (var fk in fkColumns[table_id])
-                        loc2[table_id].ForeignsDict.Add(fk.Key, fk.Value);
 
                 foreach (var table_id in loc3.Keys)
                 {

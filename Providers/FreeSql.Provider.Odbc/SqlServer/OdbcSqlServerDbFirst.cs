@@ -7,7 +7,6 @@ using System.Data;
 using System.Data.Odbc;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 
 namespace FreeSql.Odbc.SqlServer
 {
@@ -125,21 +124,32 @@ select
 1
 from sys.tables a
 inner join sys.schemas b on b.schema_id = a.schema_id
-where lower(b.name) = {_commonUtils.FormatSql("{0}", tbname[1])} and lower(a.name) = {_commonUtils.FormatSql("{0}", tbname[2])}
+where lower(b.name)={_commonUtils.FormatSql("{0}", tbname[1])} and lower(a.name)={_commonUtils.FormatSql("{0}", tbname[2])}
 ;
 use [{olddatabase}];
 ";
             return string.Concat(_orm.Ado.ExecuteScalar(CommandType.Text, sql)) == "1";
         }
+        public DbTableInfo GetTableByName(string name, bool ignoreCase = true) => GetTables(null, name, ignoreCase)?.FirstOrDefault();
+        public List<DbTableInfo> GetTablesByDatabase(params string[] database) => GetTables(database, null, false);
 
-        public List<DbTableInfo> GetTablesByDatabase(params string[] database)
+        public List<DbTableInfo> GetTables(string[] database, string tablename, bool ignoreCase)
         {
             var olddatabase = "";
             using (var conn = _orm.Ado.MasterPool.Get(TimeSpan.FromSeconds(5)))
             {
                 olddatabase = conn.Value.Database;
             }
-            var dbs = database == null || database.Any() == false ? new[] { olddatabase } : database;
+            string[] tbname = null;
+            string[] dbs = database == null || database.Any() == false ? new[] { olddatabase } : database;
+            if (string.IsNullOrEmpty(tablename) == false)
+            {
+                tbname = _commonUtils.SplitTableName(tablename);
+                if (tbname?.Length == 1) tbname = new[] { olddatabase, "dbo", tbname[0] };
+                if (tbname?.Length == 2) tbname = new[] { olddatabase, tbname[0], tbname[1] };
+                tbname = tbname.Select(a => a.ToLower()).ToArray();
+                dbs = new[] { tbname[0] };
+            }
             var tables = new List<DbTableInfo>();
 
             foreach (var db in dbs)
@@ -152,6 +162,7 @@ use [{olddatabase}];
 
                 var sql = $@"
 use [{db}];
+select * from (
 select 
  a.Object_id
 ,b.name 'Owner'
@@ -180,8 +191,8 @@ select
 from sys.procedures a
 inner join sys.schemas b on b.schema_id = a.schema_id
 where a.type = 'P' and charindex('diagram', a.name) = 0
-order by type desc, b.name, a.name
-;
+) ft_dbf{(tbname == null ? "" : _commonUtils.FormatSql(" where lower([owner])={0} and lower([Name])={1}", new[] { tbname[1], tbname[2] }))}
+order by type desc, [owner], [Name];
 use [{olddatabase}];
 ";
                 var ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
@@ -264,7 +275,7 @@ isnull(e.name,'') + '.' + isnull(d.name,'')
   else cast(a.max_length as varchar) end + ')'
  when b.name in ('Numeric', 'Decimal') then '(' + cast(a.precision as varchar) + ',' + cast(a.scale as varchar) + ')'
  else '' end as 'SqlType'
-,(select value from sys.extended_properties where major_id = a.object_id AND minor_id = a.column_id AND name = 'MS_Description') 'Comment'
+,( select value from sys.extended_properties where major_id = a.object_id AND minor_id = a.column_id AND name = 'MS_Description') 'Comment'
 {0} a
 inner join sys.types b on b.user_type_id = a.user_type_id
 left join sys.tables d on d.object_id = a.object_id
@@ -392,7 +403,9 @@ use [{olddatabase}];
                     }
                 }
 
-                sql = $@"
+                if (tbname == null)
+                {
+                    sql = $@"
 use [{db}];
 select 
  b.object_id 'Object_id'
@@ -412,47 +425,48 @@ where {loc8.ToString().Replace("a.table_name", "b.object_id")}
 ;
 use [{olddatabase}];
 ";
-                ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
-                if (ds == null) return loc1;
+                    ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
+                    if (ds == null) return loc1;
 
-                var fkColumns = new Dictionary<int, Dictionary<string, DbForeignInfo>>();
-                foreach (object[] row in ds)
-                {
-                    int object_id, referenced_object_id;
-                    int.TryParse(string.Concat(row[0]), out object_id);
-                    var column = string.Concat(row[1]);
-                    string fk_id = string.Concat(row[2]);
-                    int.TryParse(string.Concat(row[3]), out referenced_object_id);
-                    var is_foreign_key = bool.Parse(string.Concat(row[4]));
-                    var referenced_column = string.Concat(row[5]);
-                    var referenced_db = string.Concat(row[6]);
-                    var referenced_table = string.Concat(row[7]);
-                    DbColumnInfo loc9 = loc3[object_id][column];
-                    DbTableInfo loc10 = null;
-                    DbColumnInfo loc11 = null;
-                    bool isThisSln = referenced_object_id != 0;
-
-                    if (isThisSln)
+                    var fkColumns = new Dictionary<int, Dictionary<string, DbForeignInfo>>();
+                    foreach (object[] row in ds)
                     {
-                        loc10 = loc2[referenced_object_id];
-                        loc11 = loc3[referenced_object_id][referenced_column];
-                    }
-                    else
-                    {
+                        int object_id, referenced_object_id;
+                        int.TryParse(string.Concat(row[0]), out object_id);
+                        var column = string.Concat(row[1]);
+                        string fk_id = string.Concat(row[2]);
+                        int.TryParse(string.Concat(row[3]), out referenced_object_id);
+                        var is_foreign_key = bool.Parse(string.Concat(row[4]));
+                        var referenced_column = string.Concat(row[5]);
+                        var referenced_db = string.Concat(row[6]);
+                        var referenced_table = string.Concat(row[7]);
+                        DbColumnInfo loc9 = loc3[object_id][column];
+                        DbTableInfo loc10 = null;
+                        DbColumnInfo loc11 = null;
+                        bool isThisSln = referenced_object_id != 0;
 
+                        if (isThisSln)
+                        {
+                            loc10 = loc2[referenced_object_id];
+                            loc11 = loc3[referenced_object_id][referenced_column];
+                        }
+                        else
+                        {
+
+                        }
+                        Dictionary<string, DbForeignInfo> loc12 = null;
+                        DbForeignInfo loc13 = null;
+                        if (!fkColumns.TryGetValue(object_id, out loc12))
+                            fkColumns.Add(object_id, loc12 = new Dictionary<string, DbForeignInfo>());
+                        if (!loc12.TryGetValue(fk_id, out loc13))
+                            loc12.Add(fk_id, loc13 = new DbForeignInfo { Table = loc2[object_id], ReferencedTable = loc10 });
+                        loc13.Columns.Add(loc9);
+                        loc13.ReferencedColumns.Add(loc11);
                     }
-                    Dictionary<string, DbForeignInfo> loc12 = null;
-                    DbForeignInfo loc13 = null;
-                    if (!fkColumns.TryGetValue(object_id, out loc12))
-                        fkColumns.Add(object_id, loc12 = new Dictionary<string, DbForeignInfo>());
-                    if (!loc12.TryGetValue(fk_id, out loc13))
-                        loc12.Add(fk_id, loc13 = new DbForeignInfo { Table = loc2[object_id], ReferencedTable = loc10 });
-                    loc13.Columns.Add(loc9);
-                    loc13.ReferencedColumns.Add(loc11);
+                    foreach (var table_id in fkColumns.Keys)
+                        foreach (var fk in fkColumns[table_id])
+                            loc2[table_id].ForeignsDict.Add(fk.Key, fk.Value);
                 }
-                foreach (var table_id in fkColumns.Keys)
-                    foreach (var fk in fkColumns[table_id])
-                        loc2[table_id].ForeignsDict.Add(fk.Key, fk.Value);
 
                 foreach (var table_id in loc3.Keys)
                 {
