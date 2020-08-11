@@ -232,6 +232,16 @@ namespace FreeSql.PostgreSQL
             return ds.Select(a => a.FirstOrDefault()?.ToString()).ToList();
         }
 
+        public bool ExistsTable(string name, bool ignoreCase)
+        {
+            if (string.IsNullOrEmpty(name)) return false;
+            var tbname = _commonUtils.SplitTableName(name);
+            if (tbname?.Length == 1) tbname = new[] { "public", tbname[0] };
+            if (ignoreCase) tbname = tbname.Select(a => a.ToLower()).ToArray();
+            var sql = $" select 1 from pg_tables a inner join pg_namespace b on b.nspname = a.schemaname where {(ignoreCase ? "lower(b.nspname)" : "b.nspname")} = {_commonUtils.FormatSql("{0}", tbname[0])} and {(ignoreCase ? "lower(a.tablename)" : "a.tablename")} = {_commonUtils.FormatSql("{0}", tbname[1])}";
+            return string.Concat(_orm.Ado.ExecuteScalar(CommandType.Text, sql)) == "1";
+        }
+
         public List<DbTableInfo> GetTablesByDatabase(params string[] database)
         {
             var olddatabase = "";

@@ -21,5 +21,32 @@ namespace FreeSql.Tests.Oracle
             var t2 = g.oracle.DbFirst.GetTablesByDatabase();
             //var tb = g.oracle.Ado.ExecuteArray(System.Data.CommandType.Text, "select * from \"tb_dbfirst\"");
         }
+
+        [Fact]
+        public void ExistsTable()
+        {
+            var fsql = g.oracle;
+            Assert.False(fsql.DbFirst.ExistsTable("test_existstb01"));
+            Assert.False(fsql.DbFirst.ExistsTable("1user.test_existstb01"));
+            Assert.False(fsql.DbFirst.ExistsTable("test_existstb01", false));
+            Assert.False(fsql.DbFirst.ExistsTable("1user.test_existstb01", false));
+            fsql.CodeFirst.SyncStructure(typeof(test_existstb01));
+            Assert.True(fsql.DbFirst.ExistsTable("test_existstb01"));
+            Assert.True(fsql.DbFirst.ExistsTable("1user.test_existstb01"));
+            Assert.False(fsql.DbFirst.ExistsTable("test_existstb01", false));
+            Assert.False(fsql.DbFirst.ExistsTable("1user.test_existstb01", false));
+            fsql.Ado.ExecuteNonQuery("drop table test_existstb01");
+
+            Assert.False(fsql.DbFirst.ExistsTable("1user.test_existstb01"));
+            Assert.False(fsql.DbFirst.ExistsTable("1user.test_existstb01", false));
+            fsql.CodeFirst.SyncStructure(typeof(test_existstb01), "1user.test_existstb01");
+            Assert.True(fsql.DbFirst.ExistsTable("1user.test_existstb01"));
+            Assert.False(fsql.DbFirst.ExistsTable("1user.test_existstb01", false));
+            fsql.Ado.ExecuteNonQuery("drop table \"1USER\".test_existstb01");
+        }
+        class test_existstb01
+        {
+            public Guid id { get; set; }
+        }
     }
 }

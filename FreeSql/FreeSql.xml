@@ -3184,6 +3184,14 @@
             <param name="database"></param>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.IDbFirst.ExistsTable(System.String,System.Boolean)">
+            <summary>
+            判断表是否存在
+            </summary>
+            <param name="name">表名，如：dbo.table1</param>
+            <param name="ignoreCase">是否忽略大小写</param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.Internal.CommonProvider.InsertOrUpdateProvider`1.SplitSourceByIdentityValueIsNull(System.Collections.Generic.List{`0})">
             <summary>
             如果实体类有自增属性，分成两个 List，有值的Item1 merge，无值的Item2 insert

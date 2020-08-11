@@ -114,6 +114,24 @@ namespace FreeSql.Odbc.MySql
             return ds.Select(a => a.FirstOrDefault()?.ToString()).ToList();
         }
 
+        public bool ExistsTable(string name, bool ignoreCase)
+        {
+            if (string.IsNullOrEmpty(name)) return false;
+            var tbname = _commonUtils.SplitTableName(name);
+            if (tbname?.Length == 1)
+            {
+                var database = "";
+                using (var conn = _orm.Ado.MasterPool.Get(TimeSpan.FromSeconds(5)))
+                {
+                    database = conn.Value.Database;
+                }
+                tbname = new[] { database, tbname[0] };
+            }
+            if (ignoreCase) tbname = tbname.Select(a => a.ToLower()).ToArray();
+            var sql = $" SELECT 1 FROM information_schema.TABLES WHERE {(ignoreCase ? "lower(table_schema)" : "table_schema")} = {_commonUtils.FormatSql("{0}", tbname[0])} and {(ignoreCase ? "lower(table_name)" : "table_name")} = {_commonUtils.FormatSql("{0}", tbname[1])}";
+            return string.Concat(_orm.Ado.ExecuteScalar(CommandType.Text, sql)) == "1";
+        }
+
         public List<DbTableInfo> GetTablesByDatabase(params string[] database2)
         {
             var loc1 = new List<DbTableInfo>();

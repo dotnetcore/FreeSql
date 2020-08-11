@@ -123,6 +123,22 @@ namespace FreeSql.ShenTong
             return ds.Select(a => a.FirstOrDefault()?.ToString()).ToList();
         }
 
+        public bool ExistsTable(string name, bool ignoreCase)
+        {
+            if (string.IsNullOrEmpty(name)) return false;
+            var tbname = _commonUtils.SplitTableName(name);
+            if (tbname?.Length == 1) tbname = new[] { "PUBLIC", tbname[0] };
+            if (ignoreCase) tbname = tbname.Select(a => a.ToLower()).ToArray();
+            var sql = $@"
+select
+1
+from sys_class a
+inner join sys_namespace b on b.oid = a.relnamespace
+where {(ignoreCase ? "lower(b.nspname)" : "b.nspname")} = {_commonUtils.FormatSql("{0}", tbname[0])} and {(ignoreCase ? "lower(a.relname)" : "a.relname")} = {_commonUtils.FormatSql("{0}", tbname[1])} and a.relkind in ('r')
+";
+            return string.Concat(_orm.Ado.ExecuteScalar(CommandType.Text, sql)) == "1";
+        }
+
         public List<DbTableInfo> GetTablesByDatabase(params string[] database)
         {
             var olddatabase = "";

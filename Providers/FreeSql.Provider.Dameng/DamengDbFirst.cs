@@ -212,6 +212,25 @@ namespace FreeSql.Dameng
             return ds.Select(a => a.FirstOrDefault()?.ToString()).ToList();
         }
 
+        public bool ExistsTable(string name, bool ignoreCase)
+        {
+            if (string.IsNullOrEmpty(name)) return false;
+            var tbname = _commonUtils.SplitTableName(name);
+            if (tbname?.Length == 1)
+            {
+                var userId = (_orm.Ado.MasterPool as DamengConnectionPool)?.UserId;
+                if (string.IsNullOrEmpty(userId))
+                    using (var conn = _orm.Ado.MasterPool.Get())
+                    {
+                        userId = DamengConnectionPool.GetUserId(conn.Value.ConnectionString);
+                    }
+                tbname = new[] { userId, tbname[0] };
+            }
+            if (ignoreCase) tbname = tbname.Select(a => a.ToLower()).ToArray();
+            var sql = $" select 1 from all_tab_comments where {(ignoreCase ? "lower(owner)" : "owner")}={_commonUtils.FormatSql("{0}", tbname[0])} and {(ignoreCase ? "lower(table_name)" : "table_name")}={_commonUtils.FormatSql("{0}", tbname[1])}";
+            return string.Concat(_orm.Ado.ExecuteScalar(CommandType.Text, sql)) == "1";
+        }
+
         public List<DbTableInfo> GetTablesByDatabase(params string[] database2)
         {
             var loc1 = new List<DbTableInfo>();

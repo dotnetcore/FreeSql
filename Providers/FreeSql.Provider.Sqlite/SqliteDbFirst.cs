@@ -149,6 +149,16 @@ namespace FreeSql.Sqlite
             return _orm.Ado.ExecuteArray("PRAGMA database_list").Select(a => string.Concat(a[1])).ToList();
         }
 
+        public bool ExistsTable(string name, bool ignoreCase)
+        {
+            if (string.IsNullOrEmpty(name)) return false;
+            var tbname = _commonUtils.SplitTableName(name);
+            if (tbname?.Length == 1) tbname = new[] { "main", tbname[0] };
+            if (ignoreCase) tbname = tbname.Select(a => a.ToLower()).ToArray();
+            var sql = $@" select 1 from {_commonUtils.QuoteSqlName(tbname[0])}.sqlite_master where type = 'table' and {(ignoreCase ? "lower(tbl_name)" : "tbl_name")} = {_commonUtils.FormatSql("{0}", tbname[1])}";
+            return string.Concat(_orm.Ado.ExecuteScalar(CommandType.Text, sql)) == "1";
+        }
+
         public List<DbTableInfo> GetTablesByDatabase(params string[] database2)
         {
             var loc1 = new List<DbTableInfo>();
@@ -194,7 +204,8 @@ namespace FreeSql.Sqlite
 
             foreach (var db in database)
             {
-                var sql = $@"select 
+                var sql = $@"
+select 
 '{db}.' || tbl_name,
 '{db}',
 tbl_name,

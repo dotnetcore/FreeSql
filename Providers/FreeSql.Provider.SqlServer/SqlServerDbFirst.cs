@@ -110,6 +110,31 @@ namespace FreeSql.SqlServer
             return ds.Select(a => a.FirstOrDefault()?.ToString()).ToList();
         }
 
+        public bool ExistsTable(string name, bool ignoreCase)
+        {
+            if (string.IsNullOrEmpty(name)) return false;
+            var olddatabase = "";
+            using (var conn = _orm.Ado.MasterPool.Get(TimeSpan.FromSeconds(5)))
+            {
+                olddatabase = conn.Value.Database;
+            }
+            var tbname = _commonUtils.SplitTableName(name);
+            if (tbname?.Length == 1) tbname = new[] { olddatabase, "dbo", tbname[0] };
+            if (tbname?.Length == 2) tbname = new[] { olddatabase, tbname[0], tbname[1] };
+            tbname = tbname.Select(a => a.ToLower()).ToArray();
+            var sql = $@"
+use [{tbname[0]}];
+select 
+1
+from sys.tables a
+inner join sys.schemas b on b.schema_id = a.schema_id
+where lower(b.name) = {_commonUtils.FormatSql("{0}", tbname[1])} and lower(a.name) = {_commonUtils.FormatSql("{0}", tbname[2])}
+;
+use [{olddatabase}];
+";
+            return string.Concat(_orm.Ado.ExecuteScalar(CommandType.Text, sql)) == "1";
+        }
+
         public List<DbTableInfo> GetTablesByDatabase(params string[] database)
         {
             var olddatabase = "";
