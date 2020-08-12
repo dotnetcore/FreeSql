@@ -937,6 +937,8 @@ WHERE (((to_char(a.""ID"")) in (SELECT b.""TITLE""
         public void AsTable()
         {
             g.dameng.CodeFirst.SyncStructure(typeof(Topic), "TB_TOPIC");
+            g.dameng.CodeFirst.SyncStructure(typeof(Topic), "TB_TOPIC");
+            g.dameng.CodeFirst.SyncStructure(typeof(Topic), "TB_TOPIC", isForceSync: true);
 
             var listt = select.AsTable((a, b) => "(select * from tb_topic where clicks > 10)").Page(1, 10).ToList();
 

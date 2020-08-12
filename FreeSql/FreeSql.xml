@@ -3065,13 +3065,14 @@
             </summary>
             <param name="entityTypes"></param>
         </member>
-        <member name="M:FreeSql.ICodeFirst.SyncStructure(System.Type,System.String)">
+        <member name="M:FreeSql.ICodeFirst.SyncStructure(System.Type,System.String,System.Boolean)">
             <summary>
             同步实体类型到数据库（指定表名）<para></para>
             注意：生产环境中谨慎使用
             </summary>
             <param name="entityType">实体类型</param>
             <param name="tableName">指定表名对比</param>
+            <param name="isForceSync">强制同步结构，无视缓存每次都同步</param>
         </member>
         <member name="M:FreeSql.ICodeFirst.GetDbInfo(System.Type)">
             <summary>

@@ -80,7 +80,8 @@ namespace FreeSql
         /// </summary>
         /// <param name="entityType">实体类型</param>
         /// <param name="tableName">指定表名对比</param>
-        void SyncStructure(Type entityType, string tableName);
+        /// <param name="isForceSync">强制同步结构，无视缓存每次都同步</param>
+        void SyncStructure(Type entityType, string tableName, bool isForceSync = false);
 
         /// <summary>
         /// 根据 System.Type 获取数据库信息

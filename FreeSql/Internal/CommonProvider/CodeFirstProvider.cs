@@ -69,7 +69,7 @@ namespace FreeSql.Internal.CommonProvider
 
         static object syncStructureLock = new object();
         object _dicSycedLock = new object();
-        ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>> _dicSynced = new ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>>();
+        public ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>> _dicSynced = new ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>>();
         internal ConcurrentDictionary<string, bool> _dicSycedGetOrAdd(Type entityType)
         {
             if (_dicSynced.TryGetValue(entityType, out var trydic) == false)
@@ -85,8 +85,12 @@ namespace FreeSql.Internal.CommonProvider
             this.SyncStructure(new TypeAndName(typeof(TEntity), ""));
         public void SyncStructure(params Type[] entityTypes) => 
             this.SyncStructure(entityTypes?.Distinct().Select(a => new TypeAndName(a, "")).ToArray());
-        public void SyncStructure(Type entityType, string tableName) =>
-           this.SyncStructure(new TypeAndName(entityType, GetTableNameLowerOrUpper(tableName)));
+        public void SyncStructure(Type entityType, string tableName, bool isForceSync)
+        {
+            tableName = GetTableNameLowerOrUpper(tableName);
+            if (isForceSync && _dicSynced.TryGetValue(entityType, out var dic)) dic.TryRemove(tableName, out var old);
+            this.SyncStructure(new TypeAndName(entityType, tableName));
+        }
         protected void SyncStructure(params TypeAndName[] objects)
         {
             if (objects == null) return;
