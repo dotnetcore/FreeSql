@@ -1,8 +1,12 @@
 ﻿using FreeSql;
 using FreeSql.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.ComponentModel;
+using System.Linq;
+using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace aspnetcore_transaction.Controllers
@@ -101,5 +105,54 @@ namespace aspnetcore_transaction.Controllers
 
         public int SongId { get; set; }
         public string Title { get; set; }
+    }
+
+    public static class IdleBusExtesions
+    {
+        static AsyncLocal<string> AsyncLocalTenantId = new AsyncLocal<string>();
+        public static IdleBus<IFreeSql> ChangeTenant(this IdleBus<IFreeSql> ib, string tenantId)
+        {
+            AsyncLocalTenantId.Value = tenantId;
+            return ib;
+        }
+        public static IFreeSql Get(this IdleBus<IFreeSql> ib) => ib.Get(AsyncLocalTenantId.Value ?? "default");
+        public static IBaseRepository<T> GetRepository<T>(this IdleBus<IFreeSql> ib) where T : class => ib.Get().GetRepository<T>();
+
+        static void test()
+        {
+            IdleBus<IFreeSql> ib = null; //单例注入
+
+            var fsql = ib.Get(); //获取当前租户对应的 IFreeSql
+
+            var fsql00102 = ib.ChangeTenant("00102").Get(); //切换租户，后面的操作都是针对 00102
+
+            var songRepository = ib.GetRepository<Song>();
+            var detailRepository = ib.GetRepository<Detail>();
+        }
+
+        public static IServiceCollection AddRepository(this IServiceCollection services, params Assembly[] assemblies)
+        {
+            services.AddScoped(typeof(IBaseRepository<>), typeof(YourDefaultRepository<>));
+            services.AddScoped(typeof(BaseRepository<>), typeof(YourDefaultRepository<>));
+
+            services.AddScoped(typeof(IBaseRepository<,>), typeof(YourDefaultRepository<,>));
+            services.AddScoped(typeof(BaseRepository<,>), typeof(YourDefaultRepository<,>));
+
+            if (assemblies?.Any() == true)
+                foreach (var asse in assemblies)
+                    foreach (var repo in asse.GetTypes().Where(a => a.IsAbstract == false && typeof(IBaseRepository).IsAssignableFrom(a)))
+                        services.AddScoped(repo);
+
+            return services;
+        }
+    }
+
+    class YourDefaultRepository<T> : BaseRepository<T> where T : class
+    {
+        public YourDefaultRepository(IdleBus<IFreeSql> ib) : base(ib.Get(), null, null) { }
+    }
+    class YourDefaultRepository<T, TKey> : BaseRepository<T, TKey> where T : class
+    {
+        public YourDefaultRepository(IdleBus<IFreeSql> ib) : base(ib.Get(), null, null) { }
     }
 }
