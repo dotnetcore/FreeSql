@@ -50,7 +50,9 @@ namespace FreeSql.Oracle.Curd
         {
             if (_table.Primarys.Length == 1)
             {
-                sb.Append(_commonUtils.FormatSql("{0}", _table.Primarys.First().GetMapValue(d)));
+                if (_table.Primarys[0].Attribute.DbType.Contains("NVARCHAR2"))
+                    sb.Append("N");
+                sb.Append(_commonUtils.FormatSql("{0}", _table.Primarys[0].GetMapValue(d)));
                 return;
             }
             sb.Append("(");

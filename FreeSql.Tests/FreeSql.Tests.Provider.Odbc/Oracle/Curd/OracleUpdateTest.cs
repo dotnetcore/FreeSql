@@ -53,6 +53,17 @@ namespace FreeSql.Tests.Odbc.Oracle
                 new ts_source_mpk { id1 = 1, id2 = 7, xx = "a1" },
                 new ts_source_mpk { id1 = 1, id2 = 8, xx = "b122" }
             }).NoneParameter().ToSql().Replace("\r\n", "");
+
+            var uuids = new[]
+            {
+                new tssi01{tint = 1, title = "title01"},
+                new tssi01{tint = 2, title = "title02"},
+                new tssi01{tint = 3, title = "title03"},
+            };
+            g.oracle.Insert(uuids).ExecuteAffrows();
+            g.oracle.Update<tssi01>().SetSource(uuids).ExecuteAffrows();
+
+            var tssi01tb = g.oracle.DbFirst.GetTableByName("tssi01");
         }
         public class ts_source_mpk
         {
@@ -71,7 +82,7 @@ namespace FreeSql.Tests.Odbc.Oracle
         }
         public class tssi01
         {
-            [Column(CanUpdate = false)]
+            [Column(CanUpdate = false, DbType = "nvarchar2(36)")]
             public Guid id { get; set; }
             public int tint { get; set; }
             public string title { get; set; }
