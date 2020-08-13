@@ -407,7 +407,7 @@ a.table_owner || '.' || a.table_name,
 c.column_name,
 c.index_name,
 case when a.uniqueness = 'UNIQUE' then 1 else 0 end,
-case when exists(select 1 from all_constraints where constraint_name = a.index_name and constraint_type = 'P') then 1 else 0 end,
+case when exists(select 1 from all_constraints where index_name = a.index_name and constraint_type = 'P') then 1 else 0 end,
 0,
 case when c.descend = 'DESC' then 1 else 0 end,
 c.column_position
