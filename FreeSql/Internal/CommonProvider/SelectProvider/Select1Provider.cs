@@ -256,13 +256,14 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
 
-        public ISelect<T1> WithSql(string sql)
+        public ISelect<T1> WithSql(string sql, object parms = null)
         {
             this.AsTable((type, old) =>
             {
                 if (type == _tables.First().Table?.Type) return $"( {sql} )";
                 return old;
             });
+            if (parms != null) _params.AddRange(_commonUtils.GetDbParamtersByObject(sql, parms));
             return this;
         }
 

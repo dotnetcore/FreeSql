@@ -1043,9 +1043,18 @@ WHERE (((cast(a.[Id] as nvarchar(100))) in (SELECT b.[Title]
                 });
 
             var testUnionAll = select
-                .WithSql("SELECT * FROM [tb_topic22] where id = 10")
-                .WithSql("SELECT * FROM [tb_topic22] where id = 11")
+                .WithSql("SELECT * FROM [tb_topic22] where id = @id1", new { id1 = 10 })
+                .WithSql("SELECT * FROM [tb_topic22] where id = @id2", new { id2 = 11 })
                 .ToSql(a => new
+                {
+                    a.Id,
+                    a.Clicks
+                });
+
+            var testUnionAllToList = select
+                .WithSql("SELECT * FROM [tb_topic22] where id = @id1", new { id1 = 10 })
+                .WithSql("SELECT * FROM [tb_topic22] where id = @id2", new { id2 = 11 })
+                .ToList(a => new
                 {
                     a.Id,
                     a.Clicks
