@@ -260,7 +260,7 @@ namespace FreeSql.Internal.CommonProvider
         {
             this.AsTable((type, old) =>
             {
-                if (type == _tables.First().Table?.Type) return $"( {sql} )";
+                if (type == _tables[0].Table?.Type && string.IsNullOrEmpty(sql) == false) return $"( {sql} )";
                 return old;
             });
             if (parms != null) _params.AddRange(_commonUtils.GetDbParamtersByObject(sql, parms));

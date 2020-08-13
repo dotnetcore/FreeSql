@@ -36,6 +36,26 @@ namespace FreeSql.Internal.CommonProvider
             _tables.Add(new SelectTableInfo { Table = _commonUtils.GetTableByEntity(typeof(T10)), Alias = $"SP10j", On = null, Type = SelectTableInfoType.From });
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>.WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, string sqlT6, string sqlT7, string sqlT8, string sqlT9, string sqlT10, object parms)
+        {
+            this.AsTable((type, old) =>
+            {
+                if (type == _tables[0].Table?.Type) return $"( {sqlT1} )";
+                if (type == _tables[1].Table?.Type) return $"( {sqlT2} )";
+                if (type == _tables[2].Table?.Type) return $"( {sqlT3} )";
+                if (type == _tables[3].Table?.Type) return $"( {sqlT4} )";
+                if (type == _tables[4].Table?.Type) return $"( {sqlT5} )";
+                if (type == _tables[5].Table?.Type) return $"( {sqlT6} )";
+                if (type == _tables[6].Table?.Type) return $"( {sqlT7} )";
+                if (type == _tables[7].Table?.Type) return $"( {sqlT8} )";
+                if (type == _tables[8].Table?.Type) return $"( {sqlT9} )";
+                if (type == _tables[9].Table?.Type) return $"( {sqlT10} )";
+                return old;
+            });
+            if (parms != null) _params.AddRange(_commonUtils.GetDbParamtersByObject($"{sqlT1};\r\n{sqlT2};\r\n{sqlT3};\r\n{sqlT4};\r\n{sqlT5};\r\n{sqlT6};\r\n{sqlT7};\r\n{sqlT8};\r\n{sqlT9};\r\n{sqlT10}", parms));
+            return this;
+        }
+
         double ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>.Avg<TMember>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TMember>> column)
         {
             if (column == null) return 0;

@@ -55,5 +55,7 @@ namespace FreeSql
 
         ISelect<T1, T2> OrderBy<TMember>(Expression<Func<T1, T2, TMember>> column);
         ISelect<T1, T2> OrderByDescending<TMember>(Expression<Func<T1, T2, TMember>> column);
+
+        ISelect<T1, T2> WithSql(string sqlT1, string sqlT2, object parms = null);
     }
 }

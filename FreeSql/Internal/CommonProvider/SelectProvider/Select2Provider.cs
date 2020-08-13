@@ -20,6 +20,18 @@ namespace FreeSql.Internal.CommonProvider
             _tables.Add(new SelectTableInfo { Table = _commonUtils.GetTableByEntity(typeof(T2)), Alias = $"SP10b", On = null, Type = SelectTableInfoType.From });
         }
 
+        ISelect<T1, T2> ISelect<T1, T2>.WithSql(string sqlT1, string sqlT2, object parms)
+        {
+            this.AsTable((type, old) =>
+            {
+                if (type == _tables[0].Table?.Type && string.IsNullOrEmpty(sqlT1) == false) return $"( {sqlT1} )";
+                if (type == _tables[1].Table?.Type && string.IsNullOrEmpty(sqlT2) == false) return $"( {sqlT2} )";
+                return old;
+            });
+            if (parms != null) _params.AddRange(_commonUtils.GetDbParamtersByObject($"{sqlT1};\r\n{sqlT2}", parms));
+            return this;
+        }
+
         double ISelect<T1, T2>.Avg<TMember>(Expression<Func<T1, T2, TMember>> column)
         {
             if (column == null) return default(double);

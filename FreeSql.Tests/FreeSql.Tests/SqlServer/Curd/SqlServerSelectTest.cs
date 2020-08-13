@@ -1064,6 +1064,17 @@ WHERE (((cast(a.[Id] as nvarchar(100))) in (SELECT b.[Title]
                 .WithSql("SELECT * FROM [tb_topic22] where id = 10")
                 .WithSql("SELECT * FROM [tb_topic22] where id = 11")
                 .ToDataTable("*");
+
+            var multiWithSql = g.sqlite.Select<TestInclude_OneToManyModel1, TestInclude_OneToManyModel2, TestInclude_OneToManyModel3>()
+                .WithSql(
+                    "select * from TestInclude_OneToManyModel1 where id=@id1",
+                    "select * from TestInclude_OneToManyModel2 where model2id=@id2",
+                    null,
+                    new { id1 = 10, id2 = 11, id3 = 13 }
+                )
+                .LeftJoin((a, b, c) => b.model2id == a.id)
+                .LeftJoin((a, b, c) => c.model2111Idaaa == b.model2id)
+                .ToList();
         }
 
         public class TestInclude_OneToManyModel1
