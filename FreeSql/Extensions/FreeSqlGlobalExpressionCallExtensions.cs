@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading;
 using static FreeSql.SqlExtExtensions;
@@ -157,7 +158,19 @@ namespace FreeSql
         }
         public static ISqlOver<TValue> PartitionBy<TValue>(this ISqlOver<TValue> that, object column)
         {
-            expSbLast.Sb.Append(" partition by ").Append(expContext.ParsedContent["column"]).Append(",");
+            var sb = expSbLast.Sb;
+            sb.Append(" partition by ");
+            var exp = expContext.RawExpression["column"];
+            if (exp.NodeType == ExpressionType.New)
+            {
+                var expNew = exp as NewExpression;
+                for (var a = 0; a < expNew.Arguments.Count; a++)
+                {
+                    if (a > 0) sb.Append(",");
+                    sb.Append(expContext.Utility.ParseExpression(expNew.Arguments[a]));
+                }
+            } else
+                sb.Append(expContext.ParsedContent["column"]);
             return that;
         }
         public static ISqlOver<TValue> OrderBy<TValue>(this ISqlOver<TValue> that, object column) => OrderByPriv(that, false);
@@ -170,9 +183,23 @@ namespace FreeSql
                 sb.Append(" order by ");
                 expSbLast.IsOrderBy = true;
             }
-            sb.Append(expContext.ParsedContent["column"]);
-            if (isDesc) sb.Append(" desc");
-            sb.Append(",");
+            var exp = expContext.RawExpression["column"];
+            if (exp.NodeType == ExpressionType.New)
+            {
+                var expNew = exp as NewExpression;
+                for (var a = 0; a < expNew.Arguments.Count; a++)
+                {
+                    sb.Append(expContext.Utility.ParseExpression(expNew.Arguments[a]));
+                    if (isDesc) sb.Append(" desc");
+                    sb.Append(",");
+                }
+            }
+            else
+            {
+                sb.Append(expContext.ParsedContent["column"]);
+                if (isDesc) sb.Append(" desc");
+                sb.Append(",");
+            }
             return that;
         }
         public static TValue ToValue<TValue>(this ISqlOver<TValue> that)
@@ -254,9 +281,23 @@ namespace FreeSql
                 sb.Append(" order by ");
                 expSbLast.IsOrderBy = true;
             }
-            sb.Append(expContext.ParsedContent["column"]);
-            if (isDesc) sb.Append(" desc");
-            sb.Append(",");
+            var exp = expContext.RawExpression["column"];
+            if (exp.NodeType == ExpressionType.New)
+            {
+                var expNew = exp as NewExpression;
+                for (var a = 0; a < expNew.Arguments.Count; a++)
+                {
+                    sb.Append(expContext.Utility.ParseExpression(expNew.Arguments[a]));
+                    if (isDesc) sb.Append(" desc");
+                    sb.Append(",");
+                }
+            }
+            else
+            {
+                sb.Append(expContext.ParsedContent["column"]);
+                if (isDesc) sb.Append(" desc");
+                sb.Append(",");
+            }
             return that;
         }
         public static string ToValue(this IGroupConcat that)
