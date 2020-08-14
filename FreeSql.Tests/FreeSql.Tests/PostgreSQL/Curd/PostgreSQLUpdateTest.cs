@@ -25,9 +25,9 @@ namespace FreeSql.Tests.PostgreSQL
         public void Dywhere()
         {
             Assert.Null(g.pgsql.Update<Topic>().ToSql());
-            Assert.Equal("UPDATE \"tb_topic\" SET title='test' \r\nWHERE (\"id\" = 1 OR \"id\" = 2)", g.pgsql.Update<Topic>(new[] { 1, 2 }).SetRaw("title='test'").ToSql());
+            Assert.Equal("UPDATE \"tb_topic\" SET title='test' \r\nWHERE (\"id\" IN (1,2))", g.pgsql.Update<Topic>(new[] { 1, 2 }).SetRaw("title='test'").ToSql());
             Assert.Equal("UPDATE \"tb_topic\" SET title='test1' \r\nWHERE (\"id\" = 1)", g.pgsql.Update<Topic>(new Topic { Id = 1, Title = "test" }).SetRaw("title='test1'").ToSql());
-            Assert.Equal("UPDATE \"tb_topic\" SET title='test1' \r\nWHERE (\"id\" = 1 OR \"id\" = 2)", g.pgsql.Update<Topic>(new[] { new Topic { Id = 1, Title = "test" }, new Topic { Id = 2, Title = "test" } }).SetRaw("title='test1'").ToSql());
+            Assert.Equal("UPDATE \"tb_topic\" SET title='test1' \r\nWHERE (\"id\" IN (1,2))", g.pgsql.Update<Topic>(new[] { new Topic { Id = 1, Title = "test" }, new Topic { Id = 2, Title = "test" } }).SetRaw("title='test1'").ToSql());
             Assert.Equal("UPDATE \"tb_topic\" SET title='test1' \r\nWHERE (\"id\" = 1)", g.pgsql.Update<Topic>(new { id = 1 }).SetRaw("title='test1'").ToSql());
         }
 
@@ -180,9 +180,9 @@ namespace FreeSql.Tests.PostgreSQL
         public void AsTable()
         {
             Assert.Null(g.pgsql.Update<Topic>().ToSql());
-            Assert.Equal("UPDATE \"tb_topicastable\" SET title='test' \r\nWHERE (\"id\" = 1 OR \"id\" = 2)", g.pgsql.Update<Topic>(new[] { 1, 2 }).SetRaw("title='test'").AsTable(a => "tb_topicAsTable").ToSql());
+            Assert.Equal("UPDATE \"tb_topicastable\" SET title='test' \r\nWHERE (\"id\" IN (1,2))", g.pgsql.Update<Topic>(new[] { 1, 2 }).SetRaw("title='test'").AsTable(a => "tb_topicAsTable").ToSql());
             Assert.Equal("UPDATE \"tb_topicastable\" SET title='test1' \r\nWHERE (\"id\" = 1)", g.pgsql.Update<Topic>(new Topic { Id = 1, Title = "test" }).SetRaw("title='test1'").AsTable(a => "tb_topicAsTable").ToSql());
-            Assert.Equal("UPDATE \"tb_topicastable\" SET title='test1' \r\nWHERE (\"id\" = 1 OR \"id\" = 2)", g.pgsql.Update<Topic>(new[] { new Topic { Id = 1, Title = "test" }, new Topic { Id = 2, Title = "test" } }).SetRaw("title='test1'").AsTable(a => "tb_topicAsTable").ToSql());
+            Assert.Equal("UPDATE \"tb_topicastable\" SET title='test1' \r\nWHERE (\"id\" IN (1,2))", g.pgsql.Update<Topic>(new[] { new Topic { Id = 1, Title = "test" }, new Topic { Id = 2, Title = "test" } }).SetRaw("title='test1'").AsTable(a => "tb_topicAsTable").ToSql());
             Assert.Equal("UPDATE \"tb_topicastable\" SET title='test1' \r\nWHERE (\"id\" = 1)", g.pgsql.Update<Topic>(new { id = 1 }).SetRaw("title='test1'").AsTable(a => "tb_topicAsTable").ToSql());
         }
     }

@@ -286,6 +286,28 @@ namespace FreeSql.Internal
             {
                 return $"{aliasAndDot}{this.QuoteSqlName(pk1.Attribute.Name)} = {this.FormatSql("{0}", Utils.GetDataReaderValue(pk1.Attribute.MapType, dywhere))}";
             }
+            else if (primarys.Length == 1 && dywhere is IEnumerable)
+            {
+                var sb = new StringBuilder();
+                var ie = dywhere as IEnumerable;
+                var ieidx = 0;
+                var isEntityType = false;
+                sb.Append(aliasAndDot).Append(this.QuoteSqlName(pk1.Attribute.Name)).Append(" IN ("); //or会造成扫全表
+                foreach (var i in ie)
+                {
+                    if (ieidx > 0) sb.Append(",");
+                    if (ieidx == 0)
+                    {
+                        var itype = i.GetType();
+                        isEntityType = (itype == table.Type || itype.BaseType == table.Type);
+                    }
+                    if (isEntityType) sb.Append(this.FormatSql("{0}", primarys[0].GetMapValue(i)));
+                    else sb.Append(this.FormatSql("{0}", Utils.GetDataReaderValue(pk1.Attribute.MapType, i)));
+                    ++ieidx;
+                }
+                sb.Append(")");
+                return sb.ToString();
+            }
             else if (dywhere is IEnumerable)
             {
                 var sb = new StringBuilder();

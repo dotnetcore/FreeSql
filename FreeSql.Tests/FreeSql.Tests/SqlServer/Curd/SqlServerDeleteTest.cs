@@ -35,13 +35,13 @@ namespace FreeSql.Tests.SqlServer
         {
             Assert.Null(g.sqlserver.Delete<Topic>().ToSql());
             var sql = g.sqlserver.Delete<Topic>(new[] { 1, 2 }).ToSql();
-            Assert.Equal("DELETE FROM [tb_topic22211] WHERE ([Id] = 1 OR [Id] = 2)", sql);
+            Assert.Equal("DELETE FROM [tb_topic22211] WHERE ([Id] IN (1,2))", sql);
 
             sql = g.sqlserver.Delete<Topic>(new Topic { Id = 1, Title = "test" }).ToSql();
             Assert.Equal("DELETE FROM [tb_topic22211] WHERE ([Id] = 1)", sql);
 
             sql = g.sqlserver.Delete<Topic>(new[] { new Topic { Id = 1, Title = "test" }, new Topic { Id = 2, Title = "test" } }).ToSql();
-            Assert.Equal("DELETE FROM [tb_topic22211] WHERE ([Id] = 1 OR [Id] = 2)", sql);
+            Assert.Equal("DELETE FROM [tb_topic22211] WHERE ([Id] IN (1,2))", sql);
 
             sql = g.sqlserver.Delete<Topic>(new { id = 1 }).ToSql();
             Assert.Equal("DELETE FROM [tb_topic22211] WHERE ([Id] = 1)", sql);
@@ -105,13 +105,13 @@ namespace FreeSql.Tests.SqlServer
         {
             Assert.Null(g.sqlserver.Delete<Topic>().ToSql());
             var sql = g.sqlserver.Delete<Topic>(new[] { 1, 2 }).AsTable(a => "tb_topic22211AsTable").ToSql();
-            Assert.Equal("DELETE FROM [tb_topic22211AsTable] WHERE ([Id] = 1 OR [Id] = 2)", sql);
+            Assert.Equal("DELETE FROM [tb_topic22211AsTable] WHERE ([Id] IN (1,2))", sql);
 
             sql = g.sqlserver.Delete<Topic>(new Topic { Id = 1, Title = "test" }).AsTable(a => "tb_topic22211AsTable").ToSql();
             Assert.Equal("DELETE FROM [tb_topic22211AsTable] WHERE ([Id] = 1)", sql);
 
             sql = g.sqlserver.Delete<Topic>(new[] { new Topic { Id = 1, Title = "test" }, new Topic { Id = 2, Title = "test" } }).AsTable(a => "tb_topic22211AsTable").ToSql();
-            Assert.Equal("DELETE FROM [tb_topic22211AsTable] WHERE ([Id] = 1 OR [Id] = 2)", sql);
+            Assert.Equal("DELETE FROM [tb_topic22211AsTable] WHERE ([Id] IN (1,2))", sql);
 
             sql = g.sqlserver.Delete<Topic>(new { id = 1 }).AsTable(a => "tb_topic22211AsTable").ToSql();
             Assert.Equal("DELETE FROM [tb_topic22211AsTable] WHERE ([Id] = 1)", sql);

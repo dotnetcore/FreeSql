@@ -27,13 +27,13 @@ namespace FreeSql.Tests.ShenTong
         {
             Assert.Null(g.shentong.Delete<Topic>().ToSql());
             var sql = g.shentong.Delete<Topic>(new[] { 1, 2 }).ToSql();
-            Assert.Equal("DELETE FROM \"TB_TOPIC_DEL\" WHERE (\"ID\" = 1 OR \"ID\" = 2)", sql);
+            Assert.Equal("DELETE FROM \"TB_TOPIC_DEL\" WHERE (\"ID\" IN (1,2))", sql);
 
             sql = g.shentong.Delete<Topic>(new Topic { Id = 1, Title = "test" }).ToSql();
             Assert.Equal("DELETE FROM \"TB_TOPIC_DEL\" WHERE (\"ID\" = 1)", sql);
 
             sql = g.shentong.Delete<Topic>(new[] { new Topic { Id = 1, Title = "test" }, new Topic { Id = 2, Title = "test" } }).ToSql();
-            Assert.Equal("DELETE FROM \"TB_TOPIC_DEL\" WHERE (\"ID\" = 1 OR \"ID\" = 2)", sql);
+            Assert.Equal("DELETE FROM \"TB_TOPIC_DEL\" WHERE (\"ID\" IN (1,2))", sql);
 
             sql = g.shentong.Delete<Topic>(new { id = 1 }).ToSql();
             Assert.Equal("DELETE FROM \"TB_TOPIC_DEL\" WHERE (\"ID\" = 1)", sql);
@@ -90,13 +90,13 @@ namespace FreeSql.Tests.ShenTong
         {
             Assert.Null(g.shentong.Delete<Topic>().ToSql());
             var sql = g.shentong.Delete<Topic>(new[] { 1, 2 }).AsTable(a => "TopicAsTable").ToSql();
-            Assert.Equal("DELETE FROM \"TOPICASTABLE\" WHERE (\"ID\" = 1 OR \"ID\" = 2)", sql);
+            Assert.Equal("DELETE FROM \"TOPICASTABLE\" WHERE (\"ID\" IN (1,2))", sql);
 
             sql = g.shentong.Delete<Topic>(new Topic { Id = 1, Title = "test" }).AsTable(a => "TopicAsTable").ToSql();
             Assert.Equal("DELETE FROM \"TOPICASTABLE\" WHERE (\"ID\" = 1)", sql);
 
             sql = g.shentong.Delete<Topic>(new[] { new Topic { Id = 1, Title = "test" }, new Topic { Id = 2, Title = "test" } }).AsTable(a => "TopicAsTable").ToSql();
-            Assert.Equal("DELETE FROM \"TOPICASTABLE\" WHERE (\"ID\" = 1 OR \"ID\" = 2)", sql);
+            Assert.Equal("DELETE FROM \"TOPICASTABLE\" WHERE (\"ID\" IN (1,2))", sql);
 
             sql = g.shentong.Delete<Topic>(new { id = 1 }).AsTable(a => "TopicAsTable").ToSql();
             Assert.Equal("DELETE FROM \"TOPICASTABLE\" WHERE (\"ID\" = 1)", sql);
