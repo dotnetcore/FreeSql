@@ -109,12 +109,12 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
 
-        protected void ValidateVersionAndThrow(int affrows)
+        protected void ValidateVersionAndThrow(int affrows, string sql, DbParameter[] dbParms)
         {
             if (_table.VersionColumn != null && _source.Count > 0)
             {
                 if (affrows != _source.Count)
-                    throw new Exception($"记录可能不存在，或者【行级乐观锁】版本过旧，更新数量{_source.Count}，影响的行数{affrows}。");
+                    throw new DbUpdateVersionException($"记录可能不存在，或者【行级乐观锁】版本过旧，更新数量{_source.Count}，影响的行数{affrows}。", _table, sql, dbParms, affrows, _source.Select(a => (object)a));
                 foreach (var d in _source)
                     _orm.SetEntityIncrByWithPropertyName(_table.Type, d, _table.VersionColumn.CsName, 1);
             }
@@ -299,7 +299,7 @@ namespace FreeSql.Internal.CommonProvider
             try
             {
                 affrows = _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, dbParms);
-                ValidateVersionAndThrow(affrows);
+                ValidateVersionAndThrow(affrows, sql, dbParms);
             }
             catch (Exception ex)
             {

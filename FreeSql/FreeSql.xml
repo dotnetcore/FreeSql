@@ -3237,6 +3237,36 @@
             <param name="type"></param>
             <returns>Dict：key=属性名，value=注释</returns>
         </member>
+        <member name="P:FreeSql.Internal.DbUpdateVersionException.Table">
+            <summary>
+            更新实体的元数据
+            </summary>
+        </member>
+        <member name="P:FreeSql.Internal.DbUpdateVersionException.Sql">
+            <summary>
+            执行更新的 SQL
+            </summary>
+        </member>
+        <member name="P:FreeSql.Internal.DbUpdateVersionException.DbParams">
+            <summary>
+            执行更新命令的参数
+            </summary>
+        </member>
+        <member name="P:FreeSql.Internal.DbUpdateVersionException.Affrows">
+            <summary>
+            执行更新命令影响的行
+            </summary>
+        </member>
+        <member name="P:FreeSql.Internal.DbUpdateVersionException.EntitySourceCount">
+            <summary>
+            更新的实体数量
+            </summary>
+        </member>
+        <member name="P:FreeSql.Internal.DbUpdateVersionException.EntitySource">
+            <summary>
+            更新的实体
+            </summary>
+        </member>
         <member name="M:FreeSql.Internal.GlobalFilter.Apply``1(System.String,System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})">
             <summary>
             创建一个过滤器

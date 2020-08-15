@@ -168,7 +168,7 @@ namespace FreeSql.Internal.CommonProvider
             try
             {
                 affrows = await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, dbParms);
-                ValidateVersionAndThrow(affrows);
+                ValidateVersionAndThrow(affrows, sql, dbParms);
             }
             catch (Exception ex)
             {

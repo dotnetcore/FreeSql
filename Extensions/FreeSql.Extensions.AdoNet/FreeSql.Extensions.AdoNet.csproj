@@ -26,7 +26,7 @@
   </ItemGroup>
   
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.0|AnyCPU'">
-    <DocumentationFile>Volo.Abp.Dapper.FreeSqlExtensions.xml</DocumentationFile>
+    <DocumentationFile>FreeSql.Extensions.AdoNet.xml</DocumentationFile>
     <WarningLevel>3</WarningLevel>
   </PropertyGroup>
   
