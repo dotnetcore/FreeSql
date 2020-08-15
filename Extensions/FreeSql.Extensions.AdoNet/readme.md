@@ -2,6 +2,10 @@
 
 ## 如果在 abp-vnext 中使用？
 
+本方法依赖 Volo.Abp.Dapper，所以也依赖 Volo.Abp.EntityFrameworkCore
+
+提示：FreeSql 兼容 EFCore 99% 的实体特性
+
 > dotnet add package FreeSql.Extensions.AdoNet
 
 ```csharp
