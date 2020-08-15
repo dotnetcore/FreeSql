@@ -1,6 +1,7 @@
 ﻿using FreeSql;
 using FreeSql.DataAnnotations;
 using FreeSql.Extensions;
+using FreeSql.Internal.CommonProvider;
 using FreeSql.Internal.Model;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -69,7 +70,7 @@ namespace base_entity
 
                 .UseConnectionString(FreeSql.DataType.Sqlite, "data source=test.db;max pool size=5")
 
-                //.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=2")
+                .UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=2")
 
                 //.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3")
 
@@ -97,6 +98,9 @@ namespace base_entity
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
+
+            var names = (fsql.Select<object>() as Select0Provider)._commonUtils.SplitTableName("`Backups.ProductStockBak`");
+
 
             var sql = fsql.CodeFirst.GetComparisonDDLStatements(typeof(EMSServerModel.Model.User), "testxsx001");
 
