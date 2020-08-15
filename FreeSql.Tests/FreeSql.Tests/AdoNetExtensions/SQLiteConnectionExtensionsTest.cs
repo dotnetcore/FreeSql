@@ -1,21 +1,23 @@
-using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.Common;
+using System.Data.SQLite;
 using Xunit;
 
-namespace Tests.MySqlConnectionExtensions {
+namespace FreeSql.Tests.AdoNetExtensions.SQLiteConnectionExtensions {
 	public class Methods {
 
-		string _connectString = "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=5";
+		string _connectString = "Data Source=|DataDirectory|/document.db;Attachs=xxxtb.db;Pooling=true;Max Pool Size=5";
 
 		public Methods() {
-			g.mysql.CodeFirst.SyncStructure<TestConnectionExt>();
+			g.sqlite.CodeFirst.SyncStructure<TestConnectionExt>();
 		}
 
 		[Fact]
 		public void Insert() {
 			var affrows = 0;
-			using (var conn = new MySqlConnection(_connectString)) {
+			using (var conn = new SQLiteConnection(_connectString)) {
 				var item = new TestConnectionExt { title = "testinsert" };
 				affrows = conn.Insert<TestConnectionExt>().AppendData(item).ExecuteAffrows();
 				conn.Close();
@@ -25,7 +27,7 @@ namespace Tests.MySqlConnectionExtensions {
 		[Fact]
 		public void Update() {
 			var affrows = 0;
-			using (var conn = new MySqlConnection(_connectString)) {
+			using (var conn = new SQLiteConnection(_connectString)) {
 				var item = new TestConnectionExt { title = "testupdate" };
 				affrows = conn.Insert<TestConnectionExt>().AppendData(item).ExecuteAffrows();
 				Assert.Equal(1, affrows);
@@ -38,7 +40,7 @@ namespace Tests.MySqlConnectionExtensions {
 		[Fact]
 		public void Delete() {
 			var affrows = 0;
-			using (var conn = new MySqlConnection(_connectString)) {
+			using (var conn = new SQLiteConnection(_connectString)) {
 				var item = new TestConnectionExt { title = "testdelete" };
 				affrows = conn.Insert<TestConnectionExt>().AppendData(item).ExecuteAffrows();
 				Assert.Equal(1, affrows);
@@ -51,7 +53,7 @@ namespace Tests.MySqlConnectionExtensions {
 		public void Select() {
 			var list = new List<TestConnectionExt>();
 			var affrows = 0;
-			using (var conn = new MySqlConnection(_connectString)) {
+			using (var conn = new SQLiteConnection(_connectString)) {
 				var item = new TestConnectionExt { title = "testselect" };
 				affrows = conn.Insert<TestConnectionExt>().AppendData(item).ExecuteAffrows();
 				Assert.Equal(1, affrows);
