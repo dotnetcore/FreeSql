@@ -40,6 +40,7 @@ namespace base_entity
         public class Products : BaseEntity<Products, int>
         {
             public string title { get; set; }
+            public int testint { get; set; }
         }
 
         static AsyncLocal<IUnitOfWork> _asyncUow = new AsyncLocal<IUnitOfWork>();
@@ -187,6 +188,16 @@ namespace base_entity
       ""Field"" : ""title"",
       ""Operator"" : 8,
       ""Value"" : ""product-4""
+    },
+    {
+      ""Field"" : ""testint"",
+      ""Operator"" : 8,
+      ""Value"" : 11
+    },
+    {
+      ""Field"" : ""testint"",
+      ""Operator"" : 8,
+      ""Value"" : ""12""
     }
   ]
 }
