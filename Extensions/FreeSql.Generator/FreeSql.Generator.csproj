@@ -6,7 +6,7 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <IsPackable>true</IsPackable>
     <PackAsTool>true</PackAsTool>
-    <Authors>ncc;YeXiangQin</Authors>
+    <Authors>FreeSql;ncc;YeXiangQin</Authors>
     <Company>2881099</Company>
     <Product>FreeSql</Product>
     <Description>使用 FreeSql 快速生成数据库的实体类，安装：dotnet tool install -g FreeSql.Generator</Description>

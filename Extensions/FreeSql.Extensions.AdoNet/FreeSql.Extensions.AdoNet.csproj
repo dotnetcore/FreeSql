@@ -4,7 +4,7 @@
     <TargetFrameworks>netstandard2.0;net45;net40</TargetFrameworks>
     <Version>1.8.0-preview0815</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Authors>ncc;YeXiangQin</Authors>
+    <Authors>FreeSql;ncc;YeXiangQin</Authors>
     <Description>FreeSql AdoNet 扩展包，增加 IDbConnection/IDbTransaction 对象的扩展方法 Select/Insert/Update/Delete 实现 CRUD。</Description>
     <PackageProjectUrl>https://github.com/2881099/FreeSql</PackageProjectUrl>
     <RepositoryUrl>https://github.com/2881099/FreeSql</RepositoryUrl>
