@@ -1,6 +1,7 @@
 using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Xunit;
 
 namespace FreeSql.Tests.AdoNetExtensions.MySqlConnectionExtensions {
@@ -10,6 +11,12 @@ namespace FreeSql.Tests.AdoNetExtensions.MySqlConnectionExtensions {
 
 		public Methods() {
 			g.mysql.CodeFirst.SyncStructure<TestConnectionExt>();
+			using (var conn = new MySqlConnection(_connectString))
+			{
+				var fsql = conn.GetIFreeSql();
+				fsql.CodeFirst.IsNoneCommandParameter = true;
+				fsql.Aop.CommandBefore += (_, e) => Trace.WriteLine("SQL: " + e.Command.CommandText);
+			}
 		}
 
 		[Fact]
