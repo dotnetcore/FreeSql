@@ -17,6 +17,7 @@ using System.Threading;
 
 public static partial class FreeSqlGlobalExtensions
 {
+    #region Type 对象扩展方法
     static Lazy<Dictionary<Type, bool>> _dicIsNumberType = new Lazy<Dictionary<Type, bool>>(() => new Dictionary<Type, bool>
     {
         [typeof(sbyte)] = true,
@@ -167,6 +168,7 @@ public static partial class FreeSqlGlobalExtensions
         }
         return dict;
     });
+    #endregion
 
     /// <summary>
     /// 测量两个经纬度的距离，返回单位：米
@@ -183,6 +185,7 @@ public static partial class FreeSqlGlobalExtensions
         return 2 * Math.Asin(Math.Sqrt(Math.Pow(Math.Sin((radLat1 - radLat2) / 2), 2) + Math.Cos(radLat1) * Math.Cos(radLat2) * Math.Pow(Math.Sin((radLng1 - radLng2) / 2), 2))) * 6378137;
     }
 
+    #region Enum 对象扩展方法
     static ConcurrentDictionary<Type, FieldInfo[]> _dicGetFields = new ConcurrentDictionary<Type, FieldInfo[]>();
     public static object GetEnum<T>(this IDataReader dr, int index)
     {
@@ -195,7 +198,6 @@ public static partial class FreeSqlGlobalExtensions
         }
         return null;
     }
-
     public static string ToDescriptionOrString(this Enum item)
     {
         string name = item.ToString();
@@ -218,6 +220,7 @@ public static partial class FreeSqlGlobalExtensions
         }
         return ret;
     }
+    #endregion
 
     /// <summary>
     /// 将 IEnumable&lt;T&gt; 转成 ISelect&lt;T&gt;，以便使用 FreeSql 的查询功能。此方法用于 Lambda 表达式中，快速进行集合导航的查询。
