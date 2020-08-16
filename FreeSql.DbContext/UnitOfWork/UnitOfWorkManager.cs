@@ -85,11 +85,12 @@ namespace FreeSql
         /// <param name="propagation">事务传播方式</param>
         /// <param name="isolationLevel">事务隔离级别</param>
         /// <returns></returns>
-        public IUnitOfWork Begin(Propagation propagation = Propagation.Requierd, IsolationLevel? isolationLevel = null)
+        public IUnitOfWork Begin(Propagation propagation = Propagation.Required, IsolationLevel? isolationLevel = null)
         {
+            if (propagation == Propagation.Requierd) propagation = Propagation.Required;
             switch (propagation)
             {
-                case Propagation.Requierd: return FindedUowCreateVirtual() ?? CreateUow(isolationLevel);
+                case Propagation.Required: return FindedUowCreateVirtual() ?? CreateUow(isolationLevel);
                 case Propagation.Supports: return FindedUowCreateVirtual() ?? CreateUowNothing(_allUows.LastOrDefault()?.IsNotSupported ?? false);
                 case Propagation.Mandatory: return FindedUowCreateVirtual() ?? throw new Exception("Propagation_Mandatory: 使用当前事务，如果没有当前事务，就抛出异常");
                 case Propagation.NotSupported: return CreateUowNothing(true);
@@ -252,7 +253,7 @@ namespace FreeSql
         /// <summary>
         /// 如果当前没有事务，就新建一个事务，如果已存在一个事务中，加入到这个事务中，默认的选择。
         /// </summary>
-        Requierd,
+        Required,
         /// <summary>
         /// 支持当前事务，如果没有当前事务，就以非事务方法执行。
         /// </summary>
@@ -272,6 +273,13 @@ namespace FreeSql
         /// <summary>
         /// 以嵌套事务方式执行。
         /// </summary>
-        Nested
+        Nested,
+
+
+        /// <summary>
+        /// 错误的命名，请使用 Required，在 2.0.0 删除
+        /// </summary>
+        [Obsolete("错误的命名，请使用 Required，在 2.0.0 删除")]
+        Requierd = 404
     }
 }

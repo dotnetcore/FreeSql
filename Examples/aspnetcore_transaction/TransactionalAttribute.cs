@@ -14,7 +14,7 @@ namespace FreeSql
     [AttributeUsage(AttributeTargets.Method)]
     public class TransactionalAttribute : DynamicProxyAttribute, IActionFilter
     {
-        public Propagation Propagation { get; set; } = Propagation.Requierd;
+        public Propagation Propagation { get; set; } = Propagation.Required;
         public IsolationLevel IsolationLevel { get => _IsolationLevelPriv.Value; set => _IsolationLevelPriv = value; }
         IsolationLevel? _IsolationLevelPriv;
 
