@@ -174,13 +174,18 @@ namespace FreeSql.Internal.CommonProvider
             _tables[0].Parameter = select.Parameters[0];
             return this.InternalToList<TReturn>(select.Body);
         }
-        
         public List<TDto> ToList<TDto>() => ToList(GetToListDtoSelector<TDto>());
         Expression<Func<T1, TDto>> GetToListDtoSelector<TDto>()
         {
             return Expression.Lambda<Func<T1, TDto>>(
                 typeof(TDto).InternalNewExpression(),
                 _tables[0].Parameter ?? Expression.Parameter(typeof(T1), "a"));
+        }
+        public void ToChunk<TReturn>(Expression<Func<T1, TReturn>> select, int size, Action<FetchCallbackArgs<List<TReturn>>> done)
+        {
+            if (select == null || done == null) return;
+            _tables[0].Parameter = select.Parameters[0];
+            this.InternalToChunk<TReturn>(select.Body, size, done);
         }
 
         public DataTable ToDataTable<TReturn>(Expression<Func<T1, TReturn>> select)

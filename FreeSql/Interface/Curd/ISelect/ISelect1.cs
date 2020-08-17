@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FreeSql.Internal.Model;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -56,6 +57,14 @@ namespace FreeSql
         /// <typeparam name="TDto"></typeparam>
         /// <returns></returns>
         List<TDto> ToList<TDto>();
+        /// <summary>
+        /// 执行SQL查询，分块返回数据，可减少内存开销。比如读取10万条数据，每次返回100条处理。
+        /// </summary>
+        /// <typeparam name="TReturn">返回类型</typeparam>
+        /// <param name="select">选择列</param>
+        /// <param name="size">数据块的大小</param>
+        /// <param name="done">处理数据块</param>
+        void ToChunk<TReturn>(Expression<Func<T1, TReturn>> select, int size, Action<FetchCallbackArgs<List<TReturn>>> done);
 
         /// <summary>
         /// 执行SQL查询，返回指定字段的记录的第一条记录，记录不存在时返回 TReturn 默认值

@@ -370,6 +370,12 @@ namespace orm_vs
                 testlist2.AddRange(fetch.Object);
             });
 
+            var testlist22 = new List<object>();
+            fsql.Select<Song, Song_tag>().LeftJoin((a, b) => a.id == b.song_id).ToChunk((a, b) => new { a.title, a.create_time, b.tag_id }, 2, fetch =>
+            {
+                testlist22.AddRange(fetch.Object);
+            });
+
             //sugar.Aop.OnLogExecuted = (s, e) =>
             //{
             //    Trace.WriteLine(s);

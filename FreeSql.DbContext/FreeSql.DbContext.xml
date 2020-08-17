@@ -130,13 +130,6 @@
             清空状态数据
             </summary>
         </member>
-        <member name="M:FreeSql.DbSet`1.RemoveAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
-            <summary>
-            根据 lambda 条件删除数据
-            </summary>
-            <param name="predicate"></param>
-            <returns></returns>
-        </member>
         <member name="M:FreeSql.DbSet`1.Add(`0)">
             <summary>
             添加
@@ -421,7 +414,7 @@
             事务传播方式
             </summary>
         </member>
-        <member name="F:FreeSql.Propagation.Requierd">
+        <member name="F:FreeSql.Propagation.Required">
             <summary>
             如果当前没有事务，就新建一个事务，如果已存在一个事务中，加入到这个事务中，默认的选择。
             </summary>
@@ -449,6 +442,11 @@
         <member name="F:FreeSql.Propagation.Nested">
             <summary>
             以嵌套事务方式执行。
+            </summary>
+        </member>
+        <member name="F:FreeSql.Propagation.Requierd">
+            <summary>
+            错误的命名，请使用 Required，在 2.0.0 删除
             </summary>
         </member>
         <member name="M:FreeSqlDbContextExtensions.Entity``1(FreeSql.ICodeFirst,System.Action{FreeSql.Extensions.EfCoreFluentApi.EfCoreTableFluent{``0}})">

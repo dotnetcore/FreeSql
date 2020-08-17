@@ -109,7 +109,6 @@ namespace FreeSql.Internal.CommonProvider
             for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
             return this.InternalToList<TReturn>(select?.Body);
         }
-
         List<TDto> ISelect<T1, T2, T3, T4, T5, T6, T7>.ToList<TDto>() => (this as ISelect<T1, T2, T3, T4, T5, T6, T7>).ToList(GetToListDtoSelector<TDto>());
         Expression<Func<T1, T2, T3, T4, T5, T6, T7, TDto>> GetToListDtoSelector<TDto>()
         {
@@ -122,6 +121,12 @@ namespace FreeSql.Internal.CommonProvider
                 Expression.Parameter(typeof(T5), "e"),
                 Expression.Parameter(typeof(T6), "f"),
                 Expression.Parameter(typeof(T7), "g"));
+        }
+        public void ToChunk<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, TReturn>> select, int size, Action<FetchCallbackArgs<List<TReturn>>> done)
+        {
+            if (select == null || done == null) return;
+            for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
+            this.InternalToChunk<TReturn>(select.Body, size, done);
         }
 
         DataTable ISelect<T1, T2, T3, T4, T5, T6, T7>.ToDataTable<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, TReturn>> select)

@@ -130,6 +130,12 @@ namespace FreeSql.Internal.CommonProvider
                 Expression.Parameter(typeof(T8), "h"),
                 Expression.Parameter(typeof(T9), "i"));
         }
+        public void ToChunk<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TReturn>> select, int size, Action<FetchCallbackArgs<List<TReturn>>> done)
+        {
+            if (select == null || done == null) return;
+            for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
+            this.InternalToChunk<TReturn>(select.Body, size, done);
+        }
 
         DataTable ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.ToDataTable<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TReturn>> select)
         {
