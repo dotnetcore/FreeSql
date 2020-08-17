@@ -2467,6 +2467,13 @@
             当前线程的事务
             </summary>
         </member>
+        <member name="M:FreeSql.IAdo.GetDbParamtersByObject(System.Object)">
+            <summary>
+            将 new { id = 1 } 或者 Dictionary&lt;string, object&gt; 转换为 DbParameter[]
+            </summary>
+            <param name="obj">new { id = 1 } 或者 Dictionary&lt;string, object&gt;</param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.IAdo.ExecuteReader(System.Action{FreeSql.Internal.Model.FetchCallbackArgs{System.Data.Common.DbDataReader}},System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
             <summary>
             查询，若使用读写分离，查询【从库】条件cmdText.StartsWith("SELECT ")，否则查询【主库】

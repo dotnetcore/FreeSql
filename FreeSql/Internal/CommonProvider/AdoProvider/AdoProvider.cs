@@ -18,6 +18,7 @@ namespace FreeSql.Internal.CommonProvider
         protected abstract void ReturnConnection(IObjectPool<DbConnection> pool, Object<DbConnection> conn, Exception ex);
         protected abstract DbCommand CreateCommand();
         protected abstract DbParameter[] GetDbParamtersByObject(string sql, object obj);
+        public DbParameter[] GetDbParamtersByObject(object obj) => GetDbParamtersByObject("*", obj);
 
         protected bool IsTracePerformance => _util?._orm?.Aop.CommandAfterHandler != null;
 

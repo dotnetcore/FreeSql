@@ -1218,6 +1218,7 @@ namespace FreeSql.Internal
         public static T[] GetDbParamtersByObject<T>(string sql, object obj, string paramPrefix, Func<string, Type, object, T> constructorParamter)
         {
             if (string.IsNullOrEmpty(sql) || obj == null) return new T[0];
+            var isCheckSql = sql != "*";
             var ttype = typeof(T);
             var type = obj.GetType();
             if (type == ttype) return new[] { (T)Convert.ChangeType(obj, type) };
@@ -1227,7 +1228,7 @@ namespace FreeSql.Internal
             {
                 foreach (var key in dic.Keys)
                 {
-                    if (string.IsNullOrEmpty(paramPrefix) == false && sql.IndexOf($"{paramPrefix}{key}", StringComparison.CurrentCultureIgnoreCase) == -1) continue;
+                    if (isCheckSql && string.IsNullOrEmpty(paramPrefix) == false && sql.IndexOf($"{paramPrefix}{key}", StringComparison.CurrentCultureIgnoreCase) == -1) continue;
                     var val = dic[key];
                     var valType = val == null ? typeof(string) : val.GetType();
                     if (valType == ttype) ret.Add((T)Convert.ChangeType(val, ttype));
@@ -1239,7 +1240,7 @@ namespace FreeSql.Internal
                 var ps = type.GetPropertiesDictIgnoreCase().Values;
                 foreach (var p in ps)
                 {
-                    if (string.IsNullOrEmpty(paramPrefix) == false && sql.IndexOf($"{paramPrefix}{p.Name}", StringComparison.CurrentCultureIgnoreCase) == -1) continue;
+                    if (isCheckSql && string.IsNullOrEmpty(paramPrefix) == false && sql.IndexOf($"{paramPrefix}{p.Name}", StringComparison.CurrentCultureIgnoreCase) == -1) continue;
                     var pvalue = p.GetValue(obj, null);
                     if (p.PropertyType == ttype) ret.Add((T)Convert.ChangeType(pvalue, ttype));
                     else ret.Add(constructorParamter(p.Name, p.PropertyType, pvalue));

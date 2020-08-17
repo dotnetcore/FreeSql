@@ -102,6 +102,12 @@ namespace base_entity
             var names = (fsql.Select<object>() as Select0Provider)._commonUtils.SplitTableName("`Backups.ProductStockBak`");
 
 
+            var dbparams = fsql.Ado.GetDbParamtersByObject(new { id = 1, name = "xxx" });
+
+
+
+
+
             var sql = fsql.CodeFirst.GetComparisonDDLStatements(typeof(EMSServerModel.Model.User), "testxsx001");
 
             var test01 = EMSServerModel.Model.User.Select.IncludeMany(a => a.Roles).ToList();

@@ -56,6 +56,13 @@ namespace FreeSql
         #endregion
 
         /// <summary>
+        /// 将 new { id = 1 } 或者 Dictionary&lt;string, object&gt; 转换为 DbParameter[]
+        /// </summary>
+        /// <param name="obj">new { id = 1 } 或者 Dictionary&lt;string, object&gt;</param>
+        /// <returns></returns>
+        DbParameter[] GetDbParamtersByObject(object obj);
+
+        /// <summary>
         /// 查询，若使用读写分离，查询【从库】条件cmdText.StartsWith("SELECT ")，否则查询【主库】
         /// </summary>
         /// <param name="fetchHandler"></param>
