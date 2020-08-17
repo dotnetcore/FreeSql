@@ -52,15 +52,20 @@ namespace FreeSql.Internal.CommonProvider
             var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
             _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             var ret = new List<TTuple>();
-            var flagStr = $"ToListField:{field}";
             Exception exception = null;
             try
             {
-                _orm.Ado.ExecuteReader(_connection, _transaction, fetch =>
+                if (type.IsClass)
+                    ret = _orm.Ado.Query<TTuple>(_connection, _transaction, CommandType.Text, sql, dbParms);
+                else
                 {
-                    var read = Utils.ExecuteArrayRowReadClassOrTuple(flagStr, type, null, fetch.Object, 0, _commonUtils);
-                    ret.Add((TTuple)read.Value);
-                }, CommandType.Text, sql, dbParms);
+                    var flagStr = $"ToListField:{field}";
+                    _orm.Ado.ExecuteReader(_connection, _transaction, fetch =>
+                    {
+                        var read = Utils.ExecuteArrayRowReadClassOrTuple(flagStr, type, null, fetch.Object, 0, _commonUtils);
+                        ret.Add((TTuple)read.Value);
+                    }, CommandType.Text, sql, dbParms);
+                }
             }
             catch (Exception ex)
             {
@@ -748,16 +753,21 @@ namespace FreeSql.Internal.CommonProvider
             var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
             _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             var ret = new List<TTuple>();
-            var flagStr = $"ToListField:{field}";
             Exception exception = null;
             try
             {
-                await _orm.Ado.ExecuteReaderAsync(_connection, _transaction, fetch =>
+                if (type.IsClass)
+                    ret = await _orm.Ado.QueryAsync<TTuple>(_connection, _transaction, CommandType.Text, sql, dbParms);
+                else
                 {
-                    var read = Utils.ExecuteArrayRowReadClassOrTuple(flagStr, type, null, fetch.Object, 0, _commonUtils);
-                    ret.Add((TTuple)read.Value);
-                    return Task.FromResult(false);
-                }, CommandType.Text, sql, dbParms);
+                    var flagStr = $"ToListField:{field}";
+                    await _orm.Ado.ExecuteReaderAsync(_connection, _transaction, fetch =>
+                    {
+                        var read = Utils.ExecuteArrayRowReadClassOrTuple(flagStr, type, null, fetch.Object, 0, _commonUtils);
+                        ret.Add((TTuple)read.Value);
+                        return Task.FromResult(false);
+                    }, CommandType.Text, sql, dbParms);
+                }
             }
             catch (Exception ex)
             {

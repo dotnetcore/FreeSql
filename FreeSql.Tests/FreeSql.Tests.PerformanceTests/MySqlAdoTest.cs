@@ -73,6 +73,42 @@ namespace FreeSql.Tests.PerformanceTest
             time.Stop();
             sb.AppendLine($"Elapsed: {time.Elapsed}; Query Dynamic Counts: {t3.Count}; ORM: FreeSql*");
 
+            var t411 = g.mysql.Select<xxx>().Limit(1).ToList<xxx_dto1>("id,title,url").FirstOrDefault();
+            var t412 = g.mysql.Select<xxx>().Limit(1).Where(a => a.Id == t411.Id).ToList<xxx_dto1>("id,url,title").FirstOrDefault();
+            var t413 = g.mysql.Select<xxx>().Limit(1).Where(a => a.Id == t411.Id).ToList<xxx_dto2>("id,title,url").FirstOrDefault();
+            var t414 = g.mysql.Select<xxx>().Limit(1).Where(a => a.Id == t411.Id).ToList<xxx_dto2>("id,url,title").FirstOrDefault();
+            var t415 = g.mysql.Select<xxx>().Limit(1).Where(a => a.Id == t411.Id).ToList<xxx_dto2>("url,title,id").FirstOrDefault();
+            var t416 = g.mysql.Select<xxx>().Limit(1).Where(a => a.Id == t411.Id).ToList<xxx_dto2>("title,url,id").FirstOrDefault();
+
+            Assert.Equal(t411.Title, t412.Title);
+            Assert.Equal(t412.Title, t413.Title);
+            Assert.Equal(t413.Title, t414.Title);
+            Assert.Equal(t414.Title, t415.Title);
+            Assert.Equal(t415.Title, t416.Title);
+
+            Assert.Equal(t411.Url, t412.Url);
+            Assert.Equal(t412.Url, t413.Url);
+            Assert.Equal(t413.Url, t414.Url);
+            Assert.Equal(t414.Url, t415.Url);
+            Assert.Equal(t415.Url, t416.Url);
+
+            Assert.Equal(t411.Id, t412.Id);
+            Assert.Equal(t412.Id, t413.Id);
+            Assert.Equal(t413.Id, t414.Id);
+            Assert.Equal(t414.Id, t415.Id);
+            Assert.Equal(t415.Id, t416.Id);
+        }
+        class xxx_dto1
+        {
+            public int Id { get; set; }
+            public string Title { get; set; }
+            public string Url { get; set; }
+        }
+        class xxx_dto2
+        {
+            public int Id { get; set; }
+            public string Url { get; set; }
+            public string Title { get; set; }
         }
 
         [Fact]
