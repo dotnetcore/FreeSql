@@ -512,6 +512,20 @@ namespace FreeSql.Tests.MySql
             sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a LEFT JOIN TestTypeInfo b on b.Guid = a.TypeGuid and b.Name = ?bname", sql);
             query.ToList();
+
+            sql = select.ToSql(a => a.Type.Parent);
+            Assert.Equal(@"SELECT a__Type__Parent.`Id` as1, a__Type__Parent.`Name` as2 
+FROM `tb_topic` a 
+LEFT JOIN `TestTypeInfo` a__Type ON a__Type.`Guid` = a.`TypeGuid` 
+LEFT JOIN `TestTypeParentInfo` a__Type__Parent ON a__Type__Parent.`Id` = a__Type.`ParentId`", sql);
+            var ccdata1 = select.ToList(a => a.Type.Parent);
+
+            sql = select.Include(a => a.Type.Parent).ToSql(a => a.Type);
+            Assert.Equal(@"SELECT a__Type.`Guid` as1, a__Type.`ParentId` as2, a__Type.`Name` as3, a__Type__Parent.`Id` as4, a__Type__Parent.`Name` as5 
+FROM `tb_topic` a 
+LEFT JOIN `TestTypeInfo` a__Type ON a__Type.`Guid` = a.`TypeGuid` 
+LEFT JOIN `TestTypeParentInfo` a__Type__Parent ON a__Type__Parent.`Id` = a__Type.`ParentId`", sql);
+            var ccdata2 = select.Include(a => a.Type.Parent).ToList(a => a.Type);
         }
         [Fact]
         public void InnerJoin()

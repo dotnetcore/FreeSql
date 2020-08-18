@@ -83,7 +83,7 @@ namespace FreeSql.Internal
                     return false;
                 case ExpressionType.Parameter:
                 case ExpressionType.MemberAccess:
-                    if (_common.GetTableByEntity(exp.Type) != null && 
+                    if (_common.GetTableByEntity(exp.Type) != null &&
                         //判断 [JsonMap] 并非导航对象
                         (exp.NodeType == ExpressionType.Parameter || exp is MemberExpression expMem && (
                             _common.GetTableByEntity(expMem.Expression.Type)?.ColumnsByCs.ContainsKey(expMem.Member.Name) == false ||
@@ -111,6 +111,30 @@ namespace FreeSql.Internal
                             field.Append(", ").Append(_common.QuoteReadColumn(child.CsType, child.MapType, child.DbField));
                             if (index >= 0) field.Append(_common.FieldAsAlias($"as{++index}"));
                             parent.Childs.Add(child);
+                        }
+                        if (_tables.Count > 1) { //如果下级导航属性被 Include 过，则将他们也查询出来
+                            foreach (var memProp in tb.Properties.Values)
+                            {
+                                var memtbref = tb.GetTableRef(memProp.Name, false);
+                                if (memtbref == null) continue;
+                                switch (memtbref.RefType)
+                                {
+                                    case TableRefType.ManyToMany:
+                                    case TableRefType.OneToMany:
+                                        continue;
+                                }
+                                if (_tables.Any(a => a.Alias == $"{map.First().Table.Alias}__{memProp.Name}") == false) continue;
+
+                                var child = new ReadAnonymousTypeInfo
+                                {
+                                    Property = memProp,
+                                    CsName = memProp.Name,
+                                    CsType = memProp.PropertyType,
+                                    MapType = memProp.PropertyType
+                                };
+                                parent.Childs.Add(child);
+                                ReadAnonymousField(_tables, field, child, ref index, Expression.MakeMemberAccess(exp, memProp), grouping, whereCascadeExpression, false);
+                            }
                         }
                     }
                     else
