@@ -56,7 +56,7 @@ namespace FreeSql.Internal.CommonProvider
 
             if (ex == null)
             {
-                _util?._orm?.Aop.CommandAfterHandler?.Invoke(_util._orm, new Aop.CommandAfterEventArgs(pc.before, null, logtxt.ToString()));
+                _util?._orm?.Aop.CommandAfterHandler?.Invoke(_util._orm, new Aop.CommandAfterEventArgs(pc.before, ex, logtxt.ToString()));
                 return;
             }
 
@@ -79,7 +79,7 @@ namespace FreeSql.Internal.CommonProvider
                     RollbackTransaction(ex);
             }
 
-            _util?._orm?.Aop.CommandAfterHandler?.Invoke(_util._orm, new Aop.CommandAfterEventArgs(pc.before, null, logtxt.ToString()));
+            _util?._orm?.Aop.CommandAfterHandler?.Invoke(_util._orm, new Aop.CommandAfterEventArgs(pc.before, ex, logtxt.ToString()));
 
             cmd.Parameters.Clear();
             if (isThrowException)
