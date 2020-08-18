@@ -332,6 +332,9 @@ namespace FreeSql.Tests
             cts[1].Goodss.Add(new Goods { Name = "商品55" });
             repo.Update(cts);
 
+            var cts2 = repo.Select.WhereDynamic(cts).IncludeMany(a => a.Goodss).ToList();
+            cts2[0].Goodss[0].Name += 123;
+            repo.Update(cts2[0]);
         }
         [Table(Name = "EAUNL_OTM_CT")]
         class Cagetory
@@ -490,7 +493,9 @@ namespace FreeSql.Tests
             var repo = g.sqlite.GetRepository<Song>();
             repo.DbContextOptions.EnableAddOrUpdateNavigateList = true; //打开级联保存功能
             repo.Insert(ss);
-            //repo.SaveMany(ss[0], "Tags"); //指定保存 Tags 多对多属性
+
+            ss[0].Tags[0].TagName = "流行101";
+            repo.SaveMany(ss[0], "Tags"); //指定保存 Tags 多对多属性
 
             ss[0].Name = "爱你一万年.mp5";
             ss[0].Tags.Clear();

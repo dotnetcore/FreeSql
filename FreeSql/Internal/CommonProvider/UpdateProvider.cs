@@ -350,12 +350,12 @@ namespace FreeSql.Internal.CommonProvider
                 if (d == null) continue;
                 foreach (var col in table.Columns.Values)
                 {
-                    object val = col.GetMapValue(d);
+                    object val = col.GetValue(d);
                     var auditArgs = new Aop.AuditValueEventArgs(Aop.AuditValueType.Update, col, table.Properties[col.CsName], val);
                     orm.Aop.AuditValueHandler(sender, auditArgs);
                     if (auditArgs.IsChanged)
                     {
-                        col.SetMapValue(d, val = auditArgs.Value);
+                        col.SetValue(d, val = auditArgs.Value);
                         if (changedDict != null && changedDict.ContainsKey(col.Attribute.Name) == false)
                             changedDict.Add(col.Attribute.Name, true);
                     }
@@ -370,12 +370,12 @@ namespace FreeSql.Internal.CommonProvider
                 throw new Exception($"操作的数据类型({data.GetType().DisplayCsharp()}) 与 AsType({table.Type.DisplayCsharp()}) 不一致，请检查。");
             foreach (var col in table.Columns.Values)
             {
-                object val = col.GetMapValue(data);
+                object val = col.GetValue(data);
                 var auditArgs = new Aop.AuditValueEventArgs(Aop.AuditValueType.Update, col, table.Properties[col.CsName], val);
                 orm.Aop.AuditValueHandler(sender, auditArgs);
                 if (auditArgs.IsChanged)
                 {
-                    col.SetMapValue(data, val = auditArgs.Value);
+                    col.SetValue(data, val = auditArgs.Value);
                     if (changedDict != null && changedDict.ContainsKey(col.Attribute.Name) == false)
                         changedDict.Add(col.Attribute.Name, true);
                 }
@@ -403,18 +403,18 @@ namespace FreeSql.Internal.CommonProvider
 
         protected void SetPriv(ColumnInfo col, object value)
         {
-            object paramVal = null;
-            if (col.Attribute.MapType == col.CsType) paramVal = value;
-            else paramVal = Utils.GetDataReaderValue(col.Attribute.MapType, value);
+            object val = null;
+            if (col.Attribute.MapType == col.CsType) val = value;
+            else val = Utils.GetDataReaderValue(col.Attribute.MapType, value);
             _set.Append(", ").Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ");
             if (_noneParameter)
             {
-                _set.Append(_commonUtils.GetNoneParamaterSqlValue(_params, "u", col.Attribute.MapType, paramVal));
+                _set.Append(_commonUtils.GetNoneParamaterSqlValue(_params, "u", col.Attribute.MapType, val));
             }
             else
             {
                 _set.Append(_commonUtils.QuoteWriteParamter(col.Attribute.MapType, $"{_commonUtils.QuoteParamterName("p_")}{_params.Count}"));
-                _commonUtils.AppendParamter(_params, null, col, col.Attribute.MapType, paramVal);
+                _commonUtils.AppendParamter(_params, null, col, col.Attribute.MapType, val);
             }
         }
         public IUpdate<T1> Set<TMember>(Expression<Func<T1, TMember>> column, TMember value)
@@ -565,7 +565,7 @@ namespace FreeSql.Internal.CommonProvider
                 var sb = new StringBuilder();
 
                 sb.Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ");
-                sb.Append(thenValue(_commonUtils.GetNoneParamaterSqlValue(_paramsSource, "u", col.Attribute.MapType, col.GetMapValue(_source.First()))));
+                sb.Append(thenValue(_commonUtils.GetNoneParamaterSqlValue(_paramsSource, "u", col.Attribute.MapType, col.GetDbValue(_source.First()))));
 
                 return sb.ToString();
 
@@ -588,7 +588,7 @@ namespace FreeSql.Internal.CommonProvider
                     cwsb.Append(" \r\nWHEN ");
                     ToSqlWhen(cwsb, _table.Primarys, d);
                     cwsb.Append(" THEN ");
-                    var val = col.GetMapValue(d);
+                    var val = col.GetDbValue(d);
                     cwsb.Append(thenValue(_commonUtils.GetNoneParamaterSqlValue(_paramsSource, "u", col.Attribute.MapType, val)));
                     if (val == null || val == DBNull.Value) nulls++;
                 }
@@ -660,7 +660,7 @@ namespace FreeSql.Internal.CommonProvider
                             sb.Append(col.DbUpdateValue);
                         else
                         {
-                            var val = col.GetMapValue(_source.First());
+                            var val = col.GetDbValue(_source.First());
                             if (_noneParameter)
                                 sb.Append(_commonUtils.GetNoneParamaterSqlValue(_paramsSource, "u", col.Attribute.MapType, val));
                             else
@@ -705,7 +705,7 @@ namespace FreeSql.Internal.CommonProvider
                                 cwsb.Append(" \r\nWHEN ");
                                 ToSqlWhen(cwsb, _table.Primarys, d);
                                 cwsb.Append(" THEN ");
-                                var val = col.GetMapValue(d);
+                                var val = col.GetDbValue(d);
                                 if (_noneParameter)
                                     cwsb.Append(_commonUtils.GetNoneParamaterSqlValue(_paramsSource, "u", col.Attribute.MapType, val));
                                 else

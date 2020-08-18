@@ -88,14 +88,14 @@ namespace FreeSql.Odbc.SqlServer
         {
             if (_table.Primarys.Length == 1)
             {
-                sb.Append(_commonUtils.FormatSql("{0}", _table.Primarys.First().GetMapValue(d)));
+                sb.Append(_commonUtils.FormatSql("{0}", _table.Primarys[0].GetDbValue(d)));
                 return;
             }
             var pkidx = 0;
             foreach (var pk in _table.Primarys)
             {
                 if (pkidx > 0) sb.Append(" + '+' + ");
-                sb.Append("cast(").Append(_commonUtils.FormatSql("{0}", pk.GetMapValue(d))).Append(" as varchar)");
+                sb.Append("cast(").Append(_commonUtils.FormatSql("{0}", pk.GetDbValue(d))).Append(" as varchar)");
                 ++pkidx;
             }
         }

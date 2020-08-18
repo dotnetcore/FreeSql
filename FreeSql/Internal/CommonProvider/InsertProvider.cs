@@ -147,30 +147,28 @@ namespace FreeSql.Internal.CommonProvider
                 throw new Exception($"操作的数据类型({data.GetType().DisplayCsharp()}) 与 AsType({table.Type.DisplayCsharp()}) 不一致，请检查。");
             foreach (var col in table.Columns.Values)
             {
-                object val = col.GetMapValue(data);
+                object val = col.GetValue(data);
                 if (orm.Aop.AuditValueHandler != null)
                 {
                     var auditArgs = new Aop.AuditValueEventArgs(Aop.AuditValueType.Insert, col, table.Properties[col.CsName], val);
                     orm.Aop.AuditValueHandler(sender, auditArgs);
                     if (auditArgs.IsChanged)
                     {
-                        col.SetMapValue(data, val = auditArgs.Value);
+                        col.SetValue(data, val = auditArgs.Value);
                         if (changedDict != null && changedDict.ContainsKey(col.Attribute.Name) == false)
                             changedDict.Add(col.Attribute.Name, true);
                     }
                 }
                 if (col.Attribute.IsPrimary)
                 {
+                    val = col.GetDbValue(data);
                     if (col.Attribute.MapType.NullableTypeOrThis() == typeof(Guid) && (val == null || (Guid)val == Guid.Empty))
-                        col.SetMapValue(data, val = FreeUtil.NewMongodbId());
+                        col.SetValue(data, val = FreeUtil.NewMongodbId());
                     else if (col.CsType.NullableTypeOrThis() == typeof(Guid))
                     {
-                        var guidVal = orm.GetEntityValueWithPropertyName(table.Type, data, col.CsName);
-                        if (guidVal == null || (Guid)guidVal == Guid.Empty)
-                        {
-                            orm.SetEntityValueWithPropertyName(table.Type, data, col.CsName, FreeUtil.NewMongodbId());
-                            val = col.GetMapValue(data);
-                        }
+                        val = col.GetValue(data);
+                        if (val == null || (Guid)val == Guid.Empty)
+                            col.SetValue(data, val = FreeUtil.NewMongodbId());
                     }
                 }
             }
@@ -548,7 +546,7 @@ namespace FreeSql.Internal.CommonProvider
                         sb.Append(col.DbInsertValue);
                     else
                     {
-                        object val = col.GetMapValue(d);
+                        object val = col.GetDbValue(d);
                         if (val == null && col.Attribute.IsNullable == false) val = col.CsType == typeof(string) ? "" : Utils.GetDataReaderValue(col.CsType.NullableTypeOrThis(), null);//#384
                         if (_noneParameter)
                             sb.Append(_commonUtils.GetNoneParamaterSqlValue(specialParams, _noneParameterFlag, col.Attribute.MapType, val));
@@ -588,7 +586,7 @@ namespace FreeSql.Internal.CommonProvider
                 var rowIndex = 0;
                 foreach (var col in dtCols)
                 {
-                    var val = col.Item1.GetMapValue(d);
+                    var val = col.Item1.GetDbValue(d);
                     if (col.Item3 == true)
                     {
                         //if (val == null) throw new Exception($"[{didx}].{col.Item1.CsName} 值不可为 null；DataTable 限制不可使用 int?/long? 可空类型，IInsert.ToDataTable 将映射成 int/long，因此不可接受 null 值");

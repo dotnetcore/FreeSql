@@ -54,14 +54,14 @@ namespace FreeSql.MsAccess.Curd
         {
             if (_table.Primarys.Length == 1)
             {
-                sb.Append(_commonUtils.FormatSql("{0}", _table.Primarys.First().GetMapValue(d)));
+                sb.Append(_commonUtils.FormatSql("{0}", _table.Primarys[0].GetDbValue(d)));
                 return;
             }
             var pkidx = 0;
             foreach (var pk in _table.Primarys)
             {
                 if (pkidx > 0) sb.Append(" + '+' + ");
-                sb.Append(MsAccessUtils.GetCastSql(_commonUtils.FormatSql("{0}", pk.GetMapValue(d)), typeof(string)));
+                sb.Append(MsAccessUtils.GetCastSql(_commonUtils.FormatSql("{0}", pk.GetDbValue(d)), typeof(string)));
                 ++pkidx;
             }
         }

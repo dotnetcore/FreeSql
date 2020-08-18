@@ -1,8 +1,10 @@
 using FreeSql.DataAnnotations;
+using FreeSql.Internal.CommonProvider;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Intrinsics.X86;
 using Xunit;
 
 namespace FreeSql.Tests.MySql
@@ -1310,6 +1312,15 @@ WHERE ((b.`IsFinished` OR a.`TaskType` = 3) AND b.`EnabledMark` = 1)", groupsql1
                 new TestInclude_OneToManyModel4{ model3333Id333 = model3_2.id, title444 = "testmodel3_4__333" }
             };
             Assert.Equal(5, g.mysql.Insert(model4s).ExecuteAffrows());
+
+            var sel = g.mysql.Select<TestInclude_OneToManyModel2, TestInclude_OneToManyModel3>();
+            //var tb1 = (sel as Select0Provider)._tables[1];
+            //tb1.Type = Internal.Model.SelectTableInfoType.LeftJoin;
+            //tb1.On = $"b.id = ({g.mysql.Select<TestInclude_OneToManyModel3>().As("b2").Where("a.model2id = model2111Idaaa").Limit(1).ToSql("id")})";
+            var sql = sel
+                .LeftJoin((a,b) => b.id == g.mysql.Select<TestInclude_OneToManyModel3>().As("b2").Where(b2 => a.model2id == b2.model2111Idaaa).First(b2 => b2.id))
+                .ToSql((a, b) => new { a, b });
+
 
             var t0 = g.mysql.Select<TestInclude_OneToManyModel2>()
                 .IncludeMany(a => a.childs.Where(m3 => m3.model2111Idaaa == a.model2id))

@@ -47,14 +47,14 @@ namespace FreeSql.Odbc.Default
         {
             if (_table.Primarys.Length == 1)
             {
-                sb.Append(_commonUtils.FormatSql("{0}", _table.Primarys.First().GetMapValue(d)));
+                sb.Append(_commonUtils.FormatSql("{0}", _table.Primarys[0].GetDbValue(d)));
                 return;
             }
             var pkidx = 0;
             foreach (var pk in _table.Primarys)
             {
                 if (pkidx > 0) sb.Append(" + '+' + ");
-                sb.Append(_utils.Adapter.CastSql(_commonUtils.FormatSql("{0}", pk.GetMapValue(d)), _utils.Adapter.MappingOdbcTypeVarChar));
+                sb.Append(_utils.Adapter.CastSql(_commonUtils.FormatSql("{0}", pk.GetDbValue(d)), _utils.Adapter.MappingOdbcTypeVarChar));
                 ++pkidx;
             }
         }

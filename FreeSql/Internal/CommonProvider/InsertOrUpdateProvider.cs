@@ -78,12 +78,12 @@ namespace FreeSql.Internal.CommonProvider
                 if (d == null) continue;
                 foreach (var col in table.Columns.Values)
                 {
-                    object val = col.GetMapValue(d);
+                    object val = col.GetValue(d);
                     var auditArgs = new Aop.AuditValueEventArgs(Aop.AuditValueType.InsertOrUpdate, col, table.Properties[col.CsName], val);
                     orm.Aop.AuditValueHandler(sender, auditArgs);
                     if (auditArgs.IsChanged)
                     {
-                        col.SetMapValue(d, val = auditArgs.Value);
+                        col.SetValue(d, val = auditArgs.Value);
                         if (changedDict != null && changedDict.ContainsKey(col.Attribute.Name) == false)
                             changedDict.Add(col.Attribute.Name, true);
                     }
@@ -98,12 +98,12 @@ namespace FreeSql.Internal.CommonProvider
                 throw new Exception($"操作的数据类型({data.GetType().DisplayCsharp()}) 与 AsType({table.Type.DisplayCsharp()}) 不一致，请检查。");
             foreach (var col in table.Columns.Values)
             {
-                object val = col.GetMapValue(data);
+                object val = col.GetValue(data);
                 var auditArgs = new Aop.AuditValueEventArgs(Aop.AuditValueType.InsertOrUpdate, col, table.Properties[col.CsName], val);
                 orm.Aop.AuditValueHandler(sender, auditArgs);
                 if (auditArgs.IsChanged)
                 {
-                    col.SetMapValue(data, val = auditArgs.Value);
+                    col.SetValue(data, val = auditArgs.Value);
                     if (changedDict != null && changedDict.ContainsKey(col.Attribute.Name) == false)
                         changedDict.Add(col.Attribute.Name, true);
                 }
@@ -166,7 +166,7 @@ namespace FreeSql.Internal.CommonProvider
                         sb.Append(col.DbInsertValue);
                     else
                     {
-                        object val = col.GetMapValue(d);
+                        object val = col.GetDbValue(d);
                         sb.Append(_commonUtils.GetNoneParamaterSqlValue(dbParams, "cu", col.Attribute.MapType, val));
                     }
                     if (didx == 0) sb.Append(" as ").Append(col.Attribute.Name);

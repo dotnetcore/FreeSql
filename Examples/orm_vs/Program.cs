@@ -50,6 +50,15 @@ namespace orm_vs
                 //optionsBuilder.UseMySql("Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Min Pool Size=21;Max Pool Size=21");
                 //optionsBuilder.UseNpgsql("Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=21");
             }
+
+            protected override void OnModelCreating(ModelBuilder modelBuilder)
+            {
+                base.OnModelCreating(modelBuilder);
+
+                modelBuilder.Entity<Song>()
+                    .Property(a => a.create_time)
+                    .HasConversion(a => int.Parse(a.ToString()), a => new DateTime(a));
+            }
         }
 
         static void Main(string[] args)

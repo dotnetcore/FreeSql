@@ -3307,6 +3307,26 @@
             总批次数量
             </summary>
         </member>
+        <member name="M:FreeSql.Internal.Model.ColumnInfo.GetDbValue(System.Object)">
+            <summary>
+            获取 obj.CsName 属性值 MapType 之后的数据库值
+            </summary>
+            <param name="obj"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.Internal.Model.ColumnInfo.GetValue(System.Object)">
+            <summary>
+            获取 obj.CsName 属性原始值（不经过 MapType）
+            </summary>
+            <param name="obj"></param>
+        </member>
+        <member name="M:FreeSql.Internal.Model.ColumnInfo.SetValue(System.Object,System.Object)">
+            <summary>
+            设置 obj.CsName 属性值
+            </summary>
+            <param name="obj"></param>
+            <param name="val"></param>
+        </member>
         <member name="T:FreeSql.Internal.Model.DynamicFilterInfo">
             <summary>
             动态过滤条件

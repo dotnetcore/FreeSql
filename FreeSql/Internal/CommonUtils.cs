@@ -277,7 +277,7 @@ namespace FreeSql.Internal
                 {
                     if (pkidx > 0) sb.Append(" AND ");
                     sb.Append(aliasAndDot).Append(this.QuoteSqlName(pk.Attribute.Name));
-                    sb.Append(this.FormatSql(" = {0}", pk.GetMapValue(dywhere)));
+                    sb.Append(this.FormatSql(" = {0}", pk.GetDbValue(dywhere)));
                     ++pkidx;
                 }
                 return sb.ToString();
@@ -301,7 +301,7 @@ namespace FreeSql.Internal
                         var itype = i.GetType();
                         isEntityType = (itype == table.Type || itype.BaseType == table.Type);
                     }
-                    if (isEntityType) sb.Append(this.FormatSql("{0}", primarys[0].GetMapValue(i)));
+                    if (isEntityType) sb.Append(this.FormatSql("{0}", primarys[0].GetDbValue(i)));
                     else sb.Append(this.FormatSql("{0}", Utils.GetDataReaderValue(pk1.Attribute.MapType, i)));
                     ++ieidx;
                 }
@@ -352,7 +352,7 @@ namespace FreeSql.Internal
             {
                 var sbin = new StringBuilder();
                 sbin.Append(aliasAndDot).Append(this.QuoteSqlName(pk1.Attribute.Name));
-                var indt = its.Select(a => pk1.GetMapValue(a)).Where(a => a != null).ToArray();
+                var indt = its.Select(a => pk1.GetDbValue(a)).Where(a => a != null).ToArray();
                 if (indt.Any() == false) return null;
                 if (indt.Length == 1) sbin.Append(" = ").Append(this.FormatSql("{0}", indt.First()));
                 else sbin.Append(" IN (").Append(string.Join(",", indt.Select(a => this.FormatSql("{0}", a)))).Append(")");
@@ -365,7 +365,7 @@ namespace FreeSql.Internal
             {
                 var filter = "";
                 foreach (var pk in table.Primarys)
-                    filter += $" AND {aliasAndDot}{this.QuoteSqlName(pk.Attribute.Name)} = {this.FormatSql("{0}", pk.GetMapValue(item))}";
+                    filter += $" AND {aliasAndDot}{this.QuoteSqlName(pk.Attribute.Name)} = {this.FormatSql("{0}", pk.GetDbValue(item))}";
                 if (string.IsNullOrEmpty(filter)) continue;
                 if (sb != null)
                 {

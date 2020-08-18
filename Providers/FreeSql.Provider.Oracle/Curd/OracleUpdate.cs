@@ -52,7 +52,7 @@ namespace FreeSql.Oracle.Curd
             {
                 if (_table.Primarys[0].Attribute.DbType.Contains("NVARCHAR2"))
                     sb.Append("N");
-                sb.Append(_commonUtils.FormatSql("{0}", _table.Primarys[0].GetMapValue(d)));
+                sb.Append(_commonUtils.FormatSql("{0}", _table.Primarys[0].GetDbValue(d)));
                 return;
             }
             sb.Append("(");
@@ -60,7 +60,7 @@ namespace FreeSql.Oracle.Curd
             foreach (var pk in _table.Primarys)
             {
                 if (pkidx > 0) sb.Append(" || '+' || ");
-                sb.Append(_commonUtils.FormatSql("{0}", pk.GetMapValue(d)));
+                sb.Append(_commonUtils.FormatSql("{0}", pk.GetDbValue(d)));
                 ++pkidx;
             }
             sb.Append(")");
