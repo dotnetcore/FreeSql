@@ -214,7 +214,7 @@ namespace FreeSql.Internal
                             if (initAssignExp == null) continue;
                             var child = new ReadAnonymousTypeInfo
                             {
-                                Property = initExp.Type.GetProperty(initExp.Bindings[a].Member.Name, BindingFlags.Public | BindingFlags.Instance),
+                                Property = initExp.Type.GetProperty(initExp.Bindings[a].Member.Name, BindingFlags.Public | BindingFlags.Instance), //#427 不能使用 BindingFlags.IgnoreCase
                                 CsName = initExp.Bindings[a].Member.Name,
                                 CsType = initAssignExp.Expression.Type,
                                 MapType = initAssignExp.Expression.Type
