@@ -102,7 +102,7 @@ namespace FreeSql.Internal
                         {
                             var child = new ReadAnonymousTypeInfo
                             {
-                                Property = tb.Properties.TryGetValue(map[idx].Column.CsName, out var tryprop) ? tryprop : tb.Type.GetProperty(map[idx].Column.CsName, BindingFlags.Public | BindingFlags.IgnoreCase | BindingFlags.Instance),
+                                Property = tb.Properties.TryGetValue(map[idx].Column.CsName, out var tryprop) ? tryprop : tb.Type.GetProperty(map[idx].Column.CsName, BindingFlags.Public | BindingFlags.Instance),
                                 CsName = map[idx].Column.CsName,
                                 DbField = $"{map[idx].Table.Alias}.{_common.QuoteSqlName(map[idx].Column.Attribute.Name)}",
                                 CsType = map[idx].Column.CsType,
@@ -214,7 +214,7 @@ namespace FreeSql.Internal
                             if (initAssignExp == null) continue;
                             var child = new ReadAnonymousTypeInfo
                             {
-                                Property = initExp.Type.GetProperty(initExp.Bindings[a].Member.Name, BindingFlags.Public | BindingFlags.IgnoreCase | BindingFlags.Instance),
+                                Property = initExp.Type.GetProperty(initExp.Bindings[a].Member.Name, BindingFlags.Public | BindingFlags.Instance),
                                 CsName = initExp.Bindings[a].Member.Name,
                                 CsType = initAssignExp.Expression.Type,
                                 MapType = initAssignExp.Expression.Type

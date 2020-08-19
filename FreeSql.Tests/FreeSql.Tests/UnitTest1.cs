@@ -435,9 +435,24 @@ namespace FreeSql.Tests
         }
         public enum TestUpdateModelEnum { x1, x2, x3 }
 
+        public class Cadre
+        {
+            public int? education { get; set; }
+            public int? Education { get; set; }
+        }
+        public class TbCadre
+        {
+            public Guid Id { get; set; }
+            public int? Education2 { get; set; }
+        }
+
         [Fact]
         public void Test1()
         {
+            g.sqlite.Insert(new[] { new TbCadre { Education2 = 10 }, new TbCadre { Education2 = 11 } }).ExecuteAffrows();
+            var tst102 = g.sqlite.Select<TbCadre>().First(a => new Cadre { Education = a.Education2 });
+
+
             var testemoji = new TestGuidId { xxx = "💐🌸💮🌹🌺🌻🌼🌷🌱🌿🍀" };
             Assert.Equal(1, g.sqlserver.Insert(testemoji).ExecuteAffrows());
             var emoji = g.sqlserver.Select<TestGuidId>().Where(a => a.Id == testemoji.Id).First();
