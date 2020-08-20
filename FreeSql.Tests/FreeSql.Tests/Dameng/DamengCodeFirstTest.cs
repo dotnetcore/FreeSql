@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Data;
 using System.Linq;
 using System.Text;
 using Xunit;
@@ -11,6 +12,45 @@ namespace FreeSql.Tests.Dameng
 {
     public class DamengCodeFirstTest
     {
+        [Fact]
+        public void StringLength36()
+        {
+            using (var conn = g.dameng.Ado.MasterPool.Get())
+            {
+                var cmd = conn.Value.CreateCommand();
+                cmd.CommandText = @"SELECT a.""ID"", a.""CREATORID"" 
+FROM ""TS_SL361"" a 
+WHERE (a.""ID"" = 1) AND ROWNUM < 2";
+                using (var dr = cmd.ExecuteReader())
+                {
+                    if (dr.Read())
+                    {
+                        var id1 = dr.GetInt64(0);
+                        var creatorId1 = dr.GetString(1);
+
+                        var id = dr.GetValue(0);
+                        //var creatorId = dr.GetValue(1); //±¨´í
+                    }
+                }
+            }
+
+            //var repo = g.dameng.GetRepository<TS_SL361, long>();
+
+            //var item1 = new TS_SL361 { CreatorId = "xxx '123 " };
+            //repo.Insert(item1);
+            //var item2 = repo.Get(item1.Id);
+
+            //Assert.Equal(item1.CreatorId, item2.CreatorId);
+        }
+        class TS_SL361
+        {
+            [Column(IsIdentity = true)]
+            public long Id { get; set; }
+            [Column(StringLength = 36)]
+            public string CreatorId { get; set; }
+        }
+
+
         [Fact]
         public void Text_StringLength_1()
         {

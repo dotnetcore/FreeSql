@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using Xunit;
 
@@ -12,6 +13,25 @@ namespace FreeSql.Tests.Oracle
 {
     public class OracleCodeFirstTest
     {
+        [Fact]
+        public void StringLength36()
+        {
+            var repo = g.oracle.GetRepository<TS_SL361, long>();
+
+            var item1 = new TS_SL361 { CreatorId = "xxx '123 " };
+            repo.Insert(item1);
+            var item2 = repo.Get(item1.Id);
+
+            Assert.Equal(item1.CreatorId, item2.CreatorId);
+        }
+        class TS_SL361
+        {
+            [Column(IsIdentity = true)]
+            public long Id { get; set; }
+            [Column(StringLength = 36)]
+            public string CreatorId { get; set; }
+        }
+
         [Fact]
         public void NClob_StringLength_1()
         {
