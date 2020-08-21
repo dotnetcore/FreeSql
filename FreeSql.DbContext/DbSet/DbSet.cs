@@ -277,6 +277,7 @@ namespace FreeSql
                     case DataType.OdbcSqlServer:
                     case DataType.PostgreSQL:
                     case DataType.OdbcPostgreSQL:
+                    case DataType.KingbaseES:
                     case DataType.OdbcKingbaseES:
                     case DataType.ShenTong:
                         return true;

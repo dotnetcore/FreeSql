@@ -430,6 +430,7 @@ public static partial class FreeSqlGlobalExtensions
             {
                 case DataType.PostgreSQL:
                 case DataType.OdbcPostgreSQL:
+                case DataType.KingbaseES:
                 case DataType.OdbcKingbaseES:
                 case DataType.ShenTong: //神通测试未通过
                 case DataType.SqlServer:
@@ -487,6 +488,7 @@ public static partial class FreeSqlGlobalExtensions
         {
             case DataType.PostgreSQL:
             case DataType.OdbcPostgreSQL:
+            case DataType.KingbaseES:
             case DataType.OdbcKingbaseES:
             case DataType.ShenTong: //神通测试未通过
             case DataType.MySql:

@@ -246,6 +246,11 @@ namespace FreeSql
                         if (type == null) throwNotFind("FreeSql.Provider.ShenTong.dll", "FreeSql.ShenTong.ShenTongProvider<>");
                         break;
 
+                    case DataType.KingbaseES:
+                        type = Type.GetType("FreeSql.KingbaseES.KingbaseESProvider`1,FreeSql.Provider.KingbaseES")?.MakeGenericType(typeof(TMark));
+                        if (type == null) throwNotFind("FreeSql.Provider.KingbaseES.dll", "FreeSql.KingbaseES.KingbaseESProvider<>");
+                        break;
+
                     default: throw new Exception("未指定 UseConnectionString 或者 UseConnectionFactory");
                 }
             }

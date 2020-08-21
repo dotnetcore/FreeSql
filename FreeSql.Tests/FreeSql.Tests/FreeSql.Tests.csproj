@@ -38,6 +38,7 @@
       <ProjectReference Include="..\..\FreeSql.DbContext\FreeSql.DbContext.csproj" />
       <ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />
       <ProjectReference Include="..\..\Providers\FreeSql.Provider.Dameng\FreeSql.Provider.Dameng.csproj" />
+      <ProjectReference Include="..\..\Providers\FreeSql.Provider.KingbaseES\FreeSql.Provider.KingbaseES.csproj" />
       <ProjectReference Include="..\..\Providers\FreeSql.Provider.MsAccess\FreeSql.Provider.MsAccess.csproj" />
       <ProjectReference Include="..\..\Providers\FreeSql.Provider.MySql\FreeSql.Provider.MySql.csproj" />
       <ProjectReference Include="..\..\Providers\FreeSql.Provider.Oracle\FreeSql.Provider.Oracle.csproj" />
@@ -51,12 +52,15 @@
       <Reference Include="DmProvider">
         <HintPath>..\..\Providers\FreeSql.Provider.Dameng\lib\DmProvider\netstandard2.0\DmProvider.dll</HintPath>
       </Reference>
-    <Reference Include="System.Data.OscarClient">
-      <HintPath>..\..\Providers\FreeSql.Provider.ShenTong\lib\System.Data.OscarClient.dll</HintPath>
-    </Reference>
-    <Reference Include="Mono.Security">
-      <HintPath>..\..\Providers\FreeSql.Provider.ShenTong\lib\Mono.Security.dll</HintPath>
-    </Reference>
+      <Reference Include="System.Data.OscarClient">
+        <HintPath>..\..\Providers\FreeSql.Provider.ShenTong\lib\System.Data.OscarClient.dll</HintPath>
+      </Reference>
+      <Reference Include="Mono.Security">
+        <HintPath>..\..\Providers\FreeSql.Provider.ShenTong\lib\Mono.Security.dll</HintPath>
+      </Reference>
+      <Reference Include="Kdbndp">
+        <HintPath>..\..\Providers\FreeSql.Provider.KingbaseES\lib\Kdbndp.dll</HintPath>
+      </Reference>
     </ItemGroup>
 
 </Project>

@@ -183,7 +183,7 @@ new Colorful.Formatter("推荐在实体类目录创建 gen.bat，双击它重新
                             case "oracle": ArgsDbType = DataType.Oracle; break;
                             case "sqlite": ArgsDbType = DataType.Sqlite; break;
                             case "dameng": ArgsDbType = DataType.Dameng; break;
-                            case "odbckingbasees": ArgsDbType = DataType.OdbcKingbaseES; break;
+                            case "kingbasees": ArgsDbType = DataType.KingbaseES; break;
                             case "shentong": ArgsDbType = DataType.ShenTong; break;
                             default: throw new ArgumentException($"-DB 参数错误，不支持的类型：\"{dbargs[0]}\"");
                         }

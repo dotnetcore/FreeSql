@@ -148,4 +148,18 @@ public class g
         .Build();
     });
     public static IFreeSql shentong => shentongLazy.Value;
+
+    static Lazy<IFreeSql> kingbaseESLazy = new Lazy<IFreeSql>(() => new FreeSql.FreeSqlBuilder()
+        .UseConnectionString(FreeSql.DataType.KingbaseES, "Server=127.0.0.1;Port=54321;UID=USER2;PWD=123456789;database=TDB2")
+        //.UseConnectionFactory(FreeSql.DataType.KingbaseES, () => new Kdbndp.KdbndpConnection("Server=127.0.0.1;Port=54321;UID=USER2;PWD=123456789;database=TDB2"))
+        .UseAutoSyncStructure(true)
+        .UseLazyLoading(true)
+        .UseNameConvert(FreeSql.Internal.NameConvertType.ToUpper)
+        .UseNoneCommandParameter(true)
+
+        .UseMonitorCommand(
+            cmd => Trace.WriteLine(cmd.CommandText), //监听SQL命令对象，在执行前
+            (cmd, traceLog) => Console.WriteLine(traceLog))
+        .Build());
+    public static IFreeSql kingbaseES => kingbaseESLazy.Value;
 }

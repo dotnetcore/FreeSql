@@ -247,6 +247,7 @@ namespace FreeSql.Internal
                             break;
                         case DataType.PostgreSQL:
                         case DataType.OdbcPostgreSQL:
+                        case DataType.KingbaseES:
                         case DataType.OdbcKingbaseES:
                         case DataType.ShenTong:
                             if (strlen < 0) colattr.DbType = "TEXT";
@@ -295,6 +296,7 @@ namespace FreeSql.Internal
                             break;
                         case DataType.PostgreSQL:
                         case DataType.OdbcPostgreSQL:
+                        case DataType.KingbaseES:
                         case DataType.OdbcKingbaseES:
                         case DataType.ShenTong: //驱动引发的异常:“System.Data.OscarClient.OscarException”(位于 System.Data.OscarClient.dll 中)
                             colattr.DbType = "BYTEA"; //变长二进制串

@@ -617,6 +617,7 @@ namespace FreeSql.Internal.CommonProvider
                     break;
                 case DataType.PostgreSQL:
                 case DataType.OdbcPostgreSQL:
+                case DataType.KingbaseES:
                 case DataType.OdbcKingbaseES:
                     _tosqlAppendContent = $" for update{(noawait ? " nowait" : "")}";
                     break;
