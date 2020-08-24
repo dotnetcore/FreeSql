@@ -95,6 +95,27 @@ namespace FreeSql.Internal.CommonProvider
             var props = tb?.Properties ?? type.GetPropertiesDictIgnoreCase();
             return props;
         }
+
+        public bool ExecuteConnectTest()
+        {
+            try
+            {
+                switch (DataType)
+                {
+                    case DataType.Oracle:
+                    case DataType.OdbcOracle:
+                        ExecuteNonQuery(" SELECT 1 FROM dual");
+                        return true;
+                }
+                ExecuteNonQuery(" SELECT 1");
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         public List<T> Query<T>(string cmdText, object parms = null) => Query<T>(null, null, null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
         public List<T> Query<T>(DbTransaction transaction, string cmdText, object parms = null) => Query<T>(null, null, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
         public List<T> Query<T>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null) => Query<T>(null, connection, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));

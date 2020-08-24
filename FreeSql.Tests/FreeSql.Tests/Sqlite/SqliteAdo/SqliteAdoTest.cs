@@ -17,6 +17,12 @@ namespace FreeSql.Tests.Sqlite
         {
             var t2 = g.sqlite.Ado.SlavePools.Count;
         }
+
+        [Fact]
+        public void ExecuteTest()
+        {
+            Assert.True(g.sqlite.Ado.ExecuteConnectTest());
+        }
         [Fact]
         public void ExecuteReader()
         {

@@ -19,6 +19,11 @@ namespace FreeSql.Tests.MySqlConnector
         }
 
         [Fact]
+        public void ExecuteTest()
+        {
+            Assert.True(g.mysql.Ado.ExecuteConnectTest());
+        }
+        [Fact]
         public void ExecuteReader()
         {
 

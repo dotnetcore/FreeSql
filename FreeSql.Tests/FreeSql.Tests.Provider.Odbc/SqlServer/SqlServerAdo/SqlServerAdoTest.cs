@@ -21,6 +21,11 @@ namespace FreeSql.Tests.Odbc.SqlServer
         }
 
         [Fact]
+        public void ExecuteTest()
+        {
+            Assert.True(g.sqlserver.Ado.ExecuteConnectTest());
+        }
+        [Fact]
         public void ExecuteReader()
         {
 

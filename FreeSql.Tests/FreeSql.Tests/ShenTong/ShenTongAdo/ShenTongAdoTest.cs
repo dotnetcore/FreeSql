@@ -19,6 +19,11 @@ namespace FreeSql.Tests.ShenTong
         }
 
         [Fact]
+        public void ExecuteTest()
+        {
+            Assert.True(g.shentong.Ado.ExecuteConnectTest());
+        }
+        [Fact]
         public void ExecuteReader()
         {
 

@@ -14,6 +14,26 @@ namespace FreeSql.Internal.CommonProvider
 {
     partial class AdoProvider
     {
+        async public Task<bool> ExecuteConnectTestAsync()
+        {
+            try
+            {
+                switch (DataType)
+                {
+                    case DataType.Oracle:
+                    case DataType.OdbcOracle:
+                        await ExecuteNonQueryAsync(" SELECT 1 FROM dual");
+                        return true;
+                }
+                await ExecuteNonQueryAsync(" SELECT 1");
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         public Task<List<T>> QueryAsync<T>(string cmdText, object parms = null) => QueryAsync<T>(null, null, null, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
         public Task<List<T>> QueryAsync<T>(DbTransaction transaction, string cmdText, object parms = null) => QueryAsync<T>(null, null, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));
         public Task<List<T>> QueryAsync<T>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null) => QueryAsync<T>(null, connection, transaction, CommandType.Text, cmdText, GetDbParamtersByObject(cmdText, parms));

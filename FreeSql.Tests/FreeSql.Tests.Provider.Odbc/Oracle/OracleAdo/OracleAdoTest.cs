@@ -19,6 +19,11 @@ namespace FreeSql.Tests.Odbc.Oracle
         }
 
         [Fact]
+        public void ExecuteTest()
+        {
+            Assert.True(g.oracle.Ado.ExecuteConnectTest());
+        }
+        [Fact]
         public void ExecuteReader()
         {
 

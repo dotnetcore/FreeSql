@@ -19,6 +19,11 @@ namespace FreeSql.Tests.PostgreSQL
         }
 
         [Fact]
+        public void ExecuteTest()
+        {
+            Assert.True(g.pgsql.Ado.ExecuteConnectTest());
+        }
+        [Fact]
         public void ExecuteReader()
         {
 

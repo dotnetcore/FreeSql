@@ -19,6 +19,11 @@ namespace FreeSql.Tests.Dameng
         }
 
         [Fact]
+        public void ExecuteTest()
+        {
+            Assert.True(g.dameng.Ado.ExecuteConnectTest());
+        }
+        [Fact]
         public void ExecuteReader()
         {
 

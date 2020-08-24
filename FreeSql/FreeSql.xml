@@ -2479,6 +2479,14 @@
             <param name="obj">new { id = 1 } 或者 Dictionary&lt;string, object&gt;</param>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.IAdo.ExecuteConnectTest">
+            <summary>
+            测试数据库是否连接正确，本方法执行如下命令：<para></para>
+            MySql/SqlServer/PostgreSQL/达梦/人大金仓/神通: SELECT 1<para></para>
+            Oracle: SELECT 1 FROM dual<para></para>
+            </summary>
+            <returns>true: 成功, false: 失败</returns>
+        </member>
         <member name="M:FreeSql.IAdo.ExecuteReader(System.Action{FreeSql.Internal.Model.FetchCallbackArgs{System.Data.Common.DbDataReader}},System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
             <summary>
             查询，若使用读写分离，查询【从库】条件cmdText.StartsWith("SELECT ")，否则查询【主库】
@@ -2617,6 +2625,14 @@
             <param name="cmdText"></param>
             <param name="parms"></param>
             <returns></returns>
+        </member>
+        <member name="M:FreeSql.IAdo.ExecuteConnectTestAsync">
+            <summary>
+            测试数据库是否连接正确，本方法执行如下命令：<para></para>
+            MySql/SqlServer/PostgreSQL/达梦/人大金仓/神通: SELECT 1<para></para>
+            Oracle: SELECT 1 FROM dual<para></para>
+            </summary>
+            <returns>true: 成功, false: 失败</returns>
         </member>
         <member name="M:FreeSql.IAdo.ExecuteReaderAsync(System.Func{FreeSql.Internal.Model.FetchCallbackArgs{System.Data.Common.DbDataReader},System.Threading.Tasks.Task},System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
             <summary>

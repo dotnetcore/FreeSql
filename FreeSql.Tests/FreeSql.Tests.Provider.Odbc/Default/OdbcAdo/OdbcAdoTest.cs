@@ -20,6 +20,11 @@ namespace FreeSql.Tests.Odbc.Default
         }
 
         [Fact]
+        public void ExecuteTest()
+        {
+            Assert.True(g.odbc.Ado.ExecuteConnectTest());
+        }
+        [Fact]
         public void ExecuteReader()
         {
 

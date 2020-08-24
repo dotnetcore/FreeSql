@@ -63,6 +63,14 @@ namespace FreeSql
         DbParameter[] GetDbParamtersByObject(object obj);
 
         /// <summary>
+        /// 测试数据库是否连接正确，本方法执行如下命令：<para></para>
+        /// MySql/SqlServer/PostgreSQL/达梦/人大金仓/神通: SELECT 1<para></para>
+        /// Oracle: SELECT 1 FROM dual<para></para>
+        /// </summary>
+        /// <returns>true: 成功, false: 失败</returns>
+        bool ExecuteConnectTest();
+
+        /// <summary>
         /// 查询，若使用读写分离，查询【从库】条件cmdText.StartsWith("SELECT ")，否则查询【主库】
         /// </summary>
         /// <param name="fetchHandler"></param>
@@ -243,6 +251,14 @@ namespace FreeSql
 #if net40
 #else
         #region async
+        /// <summary>
+        /// 测试数据库是否连接正确，本方法执行如下命令：<para></para>
+        /// MySql/SqlServer/PostgreSQL/达梦/人大金仓/神通: SELECT 1<para></para>
+        /// Oracle: SELECT 1 FROM dual<para></para>
+        /// </summary>
+        /// <returns>true: 成功, false: 失败</returns>
+        Task<bool> ExecuteConnectTestAsync();
+
         /// <summary>
         /// 查询，若使用读写分离，查询【从库】条件cmdText.StartsWith("SELECT ")，否则查询【主库】
         /// </summary>

@@ -19,6 +19,11 @@ namespace FreeSql.Tests.Odbc.KingbaseES
         }
 
         [Fact]
+        public void ExecuteTest()
+        {
+            Assert.True(g.kingbaseES.Ado.ExecuteConnectTest());
+        }
+        [Fact]
         public void ExecuteReader()
         {
 
