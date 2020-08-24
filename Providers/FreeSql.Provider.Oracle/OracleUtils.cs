@@ -28,7 +28,7 @@ namespace FreeSql.Oracle
             var ret = new OracleParameter { ParameterName = QuoteParamterName(parameterName), OracleDbType = dbtype, Value = value };
             if (col != null)
             {
-                var dbtype2 = (OracleDbType)_orm.DbFirst.GetDbType(new DatabaseModel.DbColumnInfo { DbTypeTextFull = col.Attribute.DbType.Replace("NOT NULL", "").Trim(), DbTypeText = col.DbTypeText });
+                var dbtype2 = (OracleDbType)_orm.DbFirst.GetDbType(new DatabaseModel.DbColumnInfo { DbTypeTextFull = col.Attribute.DbType.Replace("NOT NULL", "").Replace(" NULL", "").Trim(), DbTypeText = col.DbTypeText });
                 switch (dbtype2)
                 {
                     case OracleDbType.Char:

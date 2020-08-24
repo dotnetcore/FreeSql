@@ -19,6 +19,51 @@ namespace FreeSql.Tests.PostgreSQL
     public class PostgreSQLCodeFirstTest
     {
         [Fact]
+        public void DateTime_1()
+        {
+            var item1 = new TS_DATETIME01 { CreateTime = DateTime.Now };
+            Assert.Equal(1, g.pgsql.Insert(item1).ExecuteAffrows());
+
+            var item2 = g.pgsql.Select<TS_DATETIME01>().Where(a => a.Id == item1.Id).First();
+            Assert.NotNull(item2.CreateTime);
+            Assert.True(1 > Math.Abs(item2.CreateTime.Value.Subtract(item1.CreateTime.Value).TotalSeconds));
+
+            item1.CreateTime = DateTime.Now;
+            Assert.Equal(1, g.pgsql.Update<TS_DATETIME01>().SetSource(item1).ExecuteAffrows());
+            item2 = g.pgsql.Select<TS_DATETIME01>().Where(a => a.Id == item1.Id).First();
+            Assert.NotNull(item2.CreateTime);
+            Assert.True(1 > Math.Abs(item2.CreateTime.Value.Subtract(item1.CreateTime.Value).TotalSeconds));
+        }
+        class TS_DATETIME01
+        {
+            public Guid Id { get; set; }
+            [Column(DbType = "timestamp NULL")]
+            public DateTime? CreateTime { get; set; }
+        }
+        [Fact]
+        public void DateTime_2()
+        {
+            var item1 = new TS_DATETIME02 { CreateTime = DateTime.Now };
+            Assert.Equal(1, g.pgsql.Insert(item1).ExecuteAffrows());
+
+            var item2 = g.pgsql.Select<TS_DATETIME02>().Where(a => a.Id == item1.Id).First();
+            Assert.NotNull(item2.CreateTime);
+            Assert.True(1 > Math.Abs(item2.CreateTime.Value.Subtract(item1.CreateTime.Value).TotalSeconds));
+
+            item1.CreateTime = DateTime.Now;
+            Assert.Equal(1, g.pgsql.Update<TS_DATETIME02>().SetSource(item1).ExecuteAffrows());
+            item2 = g.pgsql.Select<TS_DATETIME02>().Where(a => a.Id == item1.Id).First();
+            Assert.NotNull(item2.CreateTime);
+            Assert.True(1 > Math.Abs(item2.CreateTime.Value.Subtract(item1.CreateTime.Value).TotalSeconds));
+        }
+        class TS_DATETIME02
+        {
+            public Guid Id { get; set; }
+            [Column(DbType = "timestamp NOT NULL")]
+            public DateTime? CreateTime { get; set; }
+        }
+
+        [Fact]
         public void Blob()
         {
             var str1 = string.Join(",", Enumerable.Range(0, 10000).Select(a => "我是中国人"));

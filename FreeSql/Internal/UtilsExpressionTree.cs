@@ -453,12 +453,12 @@ namespace FreeSql.Internal
             foreach (var col in trytb.Primarys)
             {
                 col.Attribute.IsNullable = false;
-                col.Attribute.DbType = col.Attribute.DbType.Replace("NOT NULL", "").Trim();
+                col.Attribute.DbType = col.Attribute.DbType.Replace("NOT NULL", "").Replace(" NULL", "").Trim();
             }
             foreach (var col in trytb.Columns.Values)
             {
                 var ltp = @"\(([^\)]+)\)";
-                col.DbTypeText = Regex.Replace(col.Attribute.DbType.Replace("NOT NULL", "").Trim(), ltp, "");
+                col.DbTypeText = Regex.Replace(col.Attribute.DbType.Replace("NOT NULL", "").Replace(" NULL", "").Trim(), ltp, "");
                 var m = Regex.Match(col.Attribute.DbType, ltp);
                 if (m.Success == false) continue;
                 var sizeStr = m.Groups[1].Value.Trim();
@@ -884,7 +884,7 @@ namespace FreeSql.Internal
                             foreach (var col in tbmid.Primarys)
                             {
                                 col.Attribute.IsNullable = false;
-                                col.Attribute.DbType = col.Attribute.DbType.Replace("NOT NULL", "").Trim();
+                                col.Attribute.DbType = col.Attribute.DbType.Replace("NOT NULL", "").Replace(" NULL", "").Trim();
                             }
                         }
                     }
