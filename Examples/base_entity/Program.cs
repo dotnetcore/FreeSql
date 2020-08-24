@@ -51,18 +51,26 @@ namespace base_entity
             public CollationTypeEnum val { get; set; } = CollationTypeEnum.Binary;
         }
 
+        class Sys_reg_user
+        {
+            public Guid Id { get; set; }
+            public Guid OwnerId { get; set; }
+            public string UnionId { get; set; }
+
+            [Navigate(nameof(OwnerId))]
+            public Sys_owner Owner { get; set; }
+        }
+        class Sys_owner
+        {
+            public Guid Id { get; set; }
+            public Guid RegUserId { get; set; }
+
+            [Navigate(nameof(RegUserId))]
+            public Sys_reg_user RegUser { get; set; }
+        }
+
         static void Main(string[] args)
         {
-//            var result2 = Newtonsoft.Json.JsonConvert.DeserializeObject<TestEnumCls>(@"
-//{
-//  ""val"": ""Binary""
-//}");
-//            var result1 = System.Text.Json.JsonSerializer.Deserialize<TestEnumCls>(@"
-//{
-//  ""val"": ""Binary""
-//}");
-
-
             #region 初始化 IFreeSql
             var fsql = new FreeSql.FreeSqlBuilder()
                 .UseAutoSyncStructure(true)
@@ -99,6 +107,15 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+            var tsql1 = fsql.Select<Sys_reg_user>()
+                .Include(a => a.Owner)
+                .Where(a => a.UnionId == "xxx")
+                .ToSql();
+            var tsql2 = fsql.Select<Sys_owner>()
+                .Where(a => a.RegUser.UnionId == "xxx2")
+                .ToSql();
+
+
             var names = (fsql.Select<object>() as Select0Provider)._commonUtils.SplitTableName("`Backups.ProductStockBak`");
 
 
@@ -124,19 +141,22 @@ namespace base_entity
 
             var wdy1 = JsonConvert.DeserializeObject<DynamicFilterInfo>(@"
 {
-  ""Logic"" : ""Or"",
+  ""Logic"" : ""And"",
   ""Filters"" :
   [
     {
-      ""Field"" : ""title"",
-      ""Operator"" : ""eq"",
-      ""Value"" : ""product-1"",
+      ""Logic"" : ""Or"",
       ""Filters"" :
       [
         {
           ""Field"" : ""title"",
           ""Operator"" : ""contains"",
           ""Value"" : ""product-1111"",
+        },
+        {
+          ""Field"" : ""title"",
+          ""Operator"" : ""contains"",
+          ""Value"" : ""product-2222"",
         }
       ]
     },
@@ -212,7 +232,9 @@ namespace base_entity
   ]
 }
 ", config);
+            Products.Select.WhereDynamicFilter(wdy1).ToList();
             Products.Select.WhereDynamicFilter(wdy2).ToList();
+
 
             var items1 = Products.Select.Limit(10).OrderByDescending(a => a.CreateTime).ToList();
             var items2 = fsql.Select<Products>().Limit(10).OrderByDescending(a => a.CreateTime).ToList();

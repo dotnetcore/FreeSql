@@ -292,9 +292,11 @@ namespace FreeSql.Internal
                 var ie = dywhere as IEnumerable;
                 var ieidx = 0;
                 var isEntityType = false;
+                var isAny = false;
                 sb.Append(aliasAndDot).Append(this.QuoteSqlName(pk1.Attribute.Name)).Append(" IN ("); //or会造成扫全表
                 foreach (var i in ie)
                 {
+                    isAny = true;
                     if (ieidx > 0) sb.Append(",");
                     if (ieidx == 0)
                     {
@@ -305,6 +307,7 @@ namespace FreeSql.Internal
                     else sb.Append(this.FormatSql("{0}", Utils.GetDataReaderValue(pk1.Attribute.MapType, i)));
                     ++ieidx;
                 }
+                if (isAny == false) return "";
                 sb.Append(")");
                 return sb.ToString();
             }
