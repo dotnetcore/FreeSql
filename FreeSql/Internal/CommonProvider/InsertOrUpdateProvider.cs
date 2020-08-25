@@ -72,30 +72,15 @@ namespace FreeSql.Internal.CommonProvider
         public static void AuditDataValue(object sender, IEnumerable<T1> data, IFreeSql orm, TableInfo table, Dictionary<string, bool> changedDict)
         {
             if (data?.Any() != true) return;
-            if (orm.Aop.AuditValueHandler == null) return;
             foreach (var d in data)
-            {
-                if (d == null) continue;
-                foreach (var col in table.Columns.Values)
-                {
-                    object val = col.GetValue(d);
-                    var auditArgs = new Aop.AuditValueEventArgs(Aop.AuditValueType.InsertOrUpdate, col, table.Properties[col.CsName], val);
-                    orm.Aop.AuditValueHandler(sender, auditArgs);
-                    if (auditArgs.ValueIsChanged)
-                    {
-                        col.SetValue(d, val = auditArgs.Value);
-                        if (changedDict != null && changedDict.ContainsKey(col.Attribute.Name) == false)
-                            changedDict.Add(col.Attribute.Name, true);
-                    }
-                }
-            }
+                AuditDataValue(sender, d, orm, table, changedDict);
         }
         public static void AuditDataValue(object sender, T1 data, IFreeSql orm, TableInfo table, Dictionary<string, bool> changedDict)
         {
-            if (orm.Aop.AuditValueHandler == null) return;
             if (data == null) return;
             if (typeof(T1) == typeof(object) && new[] { table.Type, table.TypeLazy }.Contains(data.GetType()) == false)
                 throw new Exception($"操作的数据类型({data.GetType().DisplayCsharp()}) 与 AsType({table.Type.DisplayCsharp()}) 不一致，请检查。");
+            if (orm.Aop.AuditValueHandler == null) return;
             foreach (var col in table.Columns.Values)
             {
                 object val = col.GetValue(data);
