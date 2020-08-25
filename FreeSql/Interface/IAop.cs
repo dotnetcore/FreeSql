@@ -58,6 +58,12 @@ namespace FreeSql
         EventHandler<Aop.AuditValueEventArgs> AuditValueHandler { get; }
 
         /// <summary>
+        /// ADO.NET DataReader 拦截
+        /// </summary>
+        event EventHandler<Aop.AuditDataReaderEventArgs> AuditDataReader;
+        EventHandler<Aop.AuditDataReaderEventArgs> AuditDataReaderHandler { get; }
+
+        /// <summary>
         /// 监视数据库命令对象(执行前，调试)
         /// </summary>
         event EventHandler<Aop.CommandBeforeEventArgs> CommandBefore;
@@ -318,13 +324,57 @@ namespace FreeSql.Aop
             set
             {
                 _value = value;
-                this.IsChanged = true;
+                this.ValueIsChanged = true;
             }
         }
         private object _value;
-        public bool IsChanged { get; private set; }
+        public bool ValueIsChanged { get; private set; }
     }
     public enum AuditValueType { Update, Insert, InsertOrUpdate }
+    #endregion
+
+    #region AuditDataReader
+    public class AuditDataReaderEventArgs : EventArgs
+    {
+        public AuditDataReaderEventArgs(DbDataReader dataReader, int index)
+        {
+            this.DataReader = dataReader;
+            this.Index = index;
+        }
+
+        /// <summary>
+        /// ADO.NET 数据流读取对象
+        /// </summary>
+        public DbDataReader DataReader { get; }
+        /// <summary>
+        /// DataReader 对应的 Index 位置
+        /// </summary>
+        public int Index { get; }
+        /// <summary>
+        /// 获取 Index 对应的值，也可以设置拦截的新值
+        /// </summary>
+        public object Value
+        {
+            get
+            {
+                if (_valueIsGeted == false)
+                {
+                    _value = DataReader.GetValue(Index);
+                    _valueIsGeted = true;
+                }
+                return _value;
+            }
+            set
+            {
+                _value = value;
+                ValueIsChanged = true;
+                _valueIsGeted = true;
+            }
+        }
+        private object _value;
+        internal bool _valueIsGeted;
+        public bool ValueIsChanged { get; private set; }
+    }
     #endregion
 
     #region CommandBefore/After

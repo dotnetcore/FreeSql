@@ -1324,7 +1324,14 @@ namespace FreeSql.Internal
         internal static PropertyInfo PropertyDataReaderFieldCount = typeof(DbDataReader).GetProperty("FieldCount");
         internal static object InternalDataReaderGetValue(CommonUtils commonUtil, DbDataReader dr, int index)
         {
-            if (commonUtil._orm.Ado.DataType == DataType.Dameng && dr.IsDBNull(index)) return null;
+            var orm = commonUtil._orm;
+            if (orm.Aop.AuditDataReaderHandler != null)
+            {
+                var args = new Aop.AuditDataReaderEventArgs(dr, index);
+                orm.Aop.AuditDataReaderHandler(orm, args);
+                return args.Value;
+            }
+            if (orm.Ado.DataType == DataType.Dameng && dr.IsDBNull(index)) return null; //OdbcDameng 不会报错
             return dr.GetValue(index);
         }
         internal static RowInfo ExecuteArrayRowReadClassOrTuple(string flagStr, Type typeOrg, int[] indexes, DbDataReader row, int dataIndex, CommonUtils _commonUtils)
@@ -1447,7 +1454,7 @@ namespace FreeSql.Internal
                                 var name = row2.GetName(a);
                                 //expando[name] = row2.GetValue(a);
                                 if (expandodic.ContainsKey(name)) continue;
-                                expandodic.Add(name, row2.GetValue(a));
+                                expandodic.Add(name, Utils.InternalDataReaderGetValue(_commonUtils, row2, a));
                             }
                             //expando = expandodic;
                             return new RowInfo(expandodic, fc);

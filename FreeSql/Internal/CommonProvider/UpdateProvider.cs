@@ -353,7 +353,7 @@ namespace FreeSql.Internal.CommonProvider
                     object val = col.GetValue(d);
                     var auditArgs = new Aop.AuditValueEventArgs(Aop.AuditValueType.Update, col, table.Properties[col.CsName], val);
                     orm.Aop.AuditValueHandler(sender, auditArgs);
-                    if (auditArgs.IsChanged)
+                    if (auditArgs.ValueIsChanged)
                     {
                         col.SetValue(d, val = auditArgs.Value);
                         if (changedDict != null && changedDict.ContainsKey(col.Attribute.Name) == false)
@@ -373,7 +373,7 @@ namespace FreeSql.Internal.CommonProvider
                 object val = col.GetValue(data);
                 var auditArgs = new Aop.AuditValueEventArgs(Aop.AuditValueType.Update, col, table.Properties[col.CsName], val);
                 orm.Aop.AuditValueHandler(sender, auditArgs);
-                if (auditArgs.IsChanged)
+                if (auditArgs.ValueIsChanged)
                 {
                     col.SetValue(data, val = auditArgs.Value);
                     if (changedDict != null && changedDict.ContainsKey(col.Attribute.Name) == false)

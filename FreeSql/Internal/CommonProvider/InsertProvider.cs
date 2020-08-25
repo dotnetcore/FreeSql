@@ -152,7 +152,7 @@ namespace FreeSql.Internal.CommonProvider
                 {
                     var auditArgs = new Aop.AuditValueEventArgs(Aop.AuditValueType.Insert, col, table.Properties[col.CsName], val);
                     orm.Aop.AuditValueHandler(sender, auditArgs);
-                    if (auditArgs.IsChanged)
+                    if (auditArgs.ValueIsChanged)
                     {
                         col.SetValue(data, val = auditArgs.Value);
                         if (changedDict != null && changedDict.ContainsKey(col.Attribute.Name) == false)

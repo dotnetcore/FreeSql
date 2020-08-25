@@ -18,6 +18,7 @@ namespace FreeSql.Internal.CommonProvider
         public event EventHandler<Aop.SyncStructureAfterEventArgs> SyncStructureAfter;
 
         public event EventHandler<Aop.AuditValueEventArgs> AuditValue;
+        public event EventHandler<Aop.AuditDataReaderEventArgs> AuditDataReader;
 
         public event EventHandler<Aop.CommandBeforeEventArgs> CommandBefore;
         public event EventHandler<Aop.CommandAfterEventArgs> CommandAfter;
@@ -36,6 +37,7 @@ namespace FreeSql.Internal.CommonProvider
         public EventHandler<Aop.SyncStructureAfterEventArgs> SyncStructureAfterHandler => SyncStructureAfter;
 
         public EventHandler<Aop.AuditValueEventArgs> AuditValueHandler => AuditValue;
+        public EventHandler<Aop.AuditDataReaderEventArgs> AuditDataReaderHandler => AuditDataReader;
 
         public EventHandler<Aop.CommandBeforeEventArgs> CommandBeforeHandler => CommandBefore;
         public EventHandler<Aop.CommandAfterEventArgs> CommandAfterHandler => CommandAfter;

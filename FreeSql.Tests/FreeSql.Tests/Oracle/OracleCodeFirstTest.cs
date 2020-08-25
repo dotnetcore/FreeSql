@@ -4,15 +4,62 @@ using Oracle.ManagedDataAccess.Client;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Threading;
 using Xunit;
 
 namespace FreeSql.Tests.Oracle
 {
     public class OracleCodeFirstTest
     {
+        [Fact]
+        public void StringNullToEmpty()
+        {
+            using (var fsql = new FreeSql.FreeSqlBuilder()
+                .UseConnectionString(FreeSql.DataType.Oracle, "user id=1user;password=123456;data source=//127.0.0.1:1521/XE;Pooling=true;Max Pool Size=5;min pool size=1")
+                .UseAutoSyncStructure(true)
+                //.UseGenerateCommandParameterWithLambda(true)
+                .UseLazyLoading(true)
+                .UseNameConvert(FreeSql.Internal.NameConvertType.ToUpper)
+                //.UseNoneCommandParameter(true)
+
+                .UseMonitorCommand(
+                    cmd => Trace.WriteLine("\r\n线程" + Thread.CurrentThread.ManagedThreadId + ": " + cmd.CommandText) //监听SQL命令对象，在执行前
+                    //, (cmd, traceLog) => Console.WriteLine(traceLog)
+                    )
+                .Build())
+            {
+                var repo = fsql.GetRepository<TS_SL361, long>();
+
+                var item1 = new TS_SL361 { CreatorId = "" };
+                repo.Insert(item1);
+                var item2 = repo.Get(item1.Id);
+
+                Assert.Null(item2.CreatorId);
+
+                fsql.Aop.AuditDataReader += (_, e) =>
+                {
+                    if (e.DataReader.GetFieldType(e.Index) == typeof(string) && e.Value == DBNull.Value)
+                        e.Value = "";
+                };
+
+                item1 = new TS_SL361 { CreatorId = "" };
+                repo.Insert(item1);
+                item2 = repo.Get(item1.Id);
+
+                Assert.Equal(item1.CreatorId, item2.CreatorId);
+            }
+        }
+        class TS_SNTE
+        {
+            [Column(IsIdentity = true)]
+            public long Id { get; set; }
+            public string CreatorId { get; set; }
+        }
+
         [Fact]
         public void StringLength36()
         {
