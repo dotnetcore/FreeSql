@@ -551,6 +551,20 @@ namespace FreeSql.Internal.CommonProvider
                                 fiValueList.Add(string.Concat(fiValueIeItem));
                             return fiValueList.ToArray();
                         }
+                        var fiValueType = fi.Value.GetType();
+                        if (fiValueType.FullName == "System.Text.Json.JsonElement")
+                        {
+                            var fiValueKind = fiValueType.GetProperty("ValueKind").GetValue(fi.Value, null).ToString();
+                            if (fiValueKind == "Array")
+                            {
+                                fiValueIe = fiValueType.GetMethod("EnumerateArray", new Type[0])?.Invoke(fi.Value, null) as IEnumerable;
+                                var fiValueList = new List<string>();
+                                foreach (var fiValueIeItem in fiValueIe)
+                                    fiValueList.Add(string.Concat(fiValueIeItem));
+                                return fiValueList.ToArray();
+                            }
+                            return fi.Value.ToString().Split(',');
+                        }
                         return new string[0];
                     }
 

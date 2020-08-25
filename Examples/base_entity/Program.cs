@@ -175,6 +175,16 @@ namespace base_entity
       ""Operator"" : ""eq"",
       ""Value"" : ""product-4""
     },
+    {
+      ""Field"" : ""testint"",
+      ""Operator"" : ""Range"",
+      ""Value"" : [100,200]
+    },
+    {
+      ""Field"" : ""testint"",
+      ""Operator"" : ""Range"",
+      ""Value"" : [""101"",""202""]
+    },
   ]
 }
 "); 
@@ -228,13 +238,22 @@ namespace base_entity
       ""Field"" : ""testint"",
       ""Operator"" : 8,
       ""Value"" : ""12""
+    },
+    {
+      ""Field"" : ""testint"",
+      ""Operator"" : ""Range"",
+      ""Value"" : [100,200]
+    },
+    {
+      ""Field"" : ""testint"",
+      ""Operator"" : ""Range"",
+      ""Value"" : [""101"",""202""]
     }
   ]
 }
 ", config);
             Products.Select.WhereDynamicFilter(wdy1).ToList();
             Products.Select.WhereDynamicFilter(wdy2).ToList();
-
 
             var items1 = Products.Select.Limit(10).OrderByDescending(a => a.CreateTime).ToList();
             var items2 = fsql.Select<Products>().Limit(10).OrderByDescending(a => a.CreateTime).ToList();
