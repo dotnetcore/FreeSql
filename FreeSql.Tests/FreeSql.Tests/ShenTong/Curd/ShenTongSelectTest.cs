@@ -883,7 +883,8 @@ namespace FreeSql.Tests.ShenTong
                     b.Key,
                     cou = b.Count(),
                     sum2 = b.Sum(b.Value.TypeGuid),
-                    sum3 = b.Sum(b.Value.Type.Parent.Id)
+                    sum3 = b.Sum(b.Value.Type.Parent.Id),
+                    Name = aggsql1 == null ? "未定义类型" : b.Key
                 });
         }
         [Fact]

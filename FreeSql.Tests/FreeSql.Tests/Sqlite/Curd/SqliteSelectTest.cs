@@ -773,7 +773,23 @@ namespace FreeSql.Tests.Sqlite
                     sum2 = b.Sum(b.Value.TypeGuid),
                     sum3 = b.Sum(b.Value.Type.Parent.Id)
                 });
+
+
+
+            var aggsql4 = select
+                .GroupBy(a => a.Title)
+                .ToList(b => new TestGroupByDto01
+                {
+                    Name = b.Key,
+                    TotalCount = b.Count()
+                });
         }
+        class TestGroupByDto01
+        {
+            public string Name { get; set; }
+            public int TotalCount { get; set; }
+        }
+
         [Fact]
         public void ToAggregate()
         {

@@ -142,7 +142,9 @@ namespace FreeSql.Internal
                         if (grouping != null && exp is MemberExpression expMem2 && expMem2.Member.Name == "Key" && expMem2.Expression.Type.FullName.StartsWith("FreeSql.ISelectGroupingAggregate`"))
                         {
                             field.Append(grouping._field);
+                            var parentProp = parent.Property;
                             grouping._map.CopyTo(parent);
+                            parent.Property = parentProp; //若不加此行，会引用 GroupBy(..).ToList(a => new Dto { key = a.Key }) null 错误，CopyTo 之后 Property 变为 null
                             return false;
                         }
                         parent.CsType = exp.Type;
