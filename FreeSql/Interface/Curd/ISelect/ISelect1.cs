@@ -346,6 +346,15 @@ namespace FreeSql
         /// <returns></returns>
         ISelect<T1> OrderBy<TMember>(bool condition, Expression<Func<T1, TMember>> column);
         /// <summary>
+        /// 按列排序，OrderByIf(true, a => a.Time)
+        /// </summary>
+        /// <typeparam name="TMember"></typeparam>
+        /// <param name="condition">true 时生效</param>
+        /// <param name="column"></param>
+        /// <param name="descending">true: DESC, false: ASC</param>
+        /// <returns></returns>
+        ISelect<T1> OrderByIf<TMember>(bool condition, Expression<Func<T1, TMember>> column, bool descending = false);
+        /// <summary>
         /// 按列倒向排序，OrderByDescending(a => a.Time)
         /// </summary>
         /// <param name="column">列</param>

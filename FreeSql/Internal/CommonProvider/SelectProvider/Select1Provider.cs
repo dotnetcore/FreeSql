@@ -160,6 +160,8 @@ namespace FreeSql.Internal.CommonProvider
             _tables[0].Parameter = column.Parameters[0];
             return this.InternalOrderByDescending(column.Body);
         }
+        public ISelect<T1> OrderByIf<TMember>(bool condition, Expression<Func<T1, TMember>> column, bool descending = false) =>
+            descending ? this.OrderByDescending(condition, column) : this.OrderBy(condition, column);
 
         public decimal Sum<TMember>(Expression<Func<T1, TMember>> column)
         {
