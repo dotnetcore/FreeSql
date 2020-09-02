@@ -23,7 +23,7 @@ namespace FreeSql.SqlServer
             base._util = util;
             if (connectionFactory != null)
             {
-                var pool = new FreeSql.Internal.CommonProvider.DbConnectionPool(DataType.Sqlite, connectionFactory);
+                var pool = new FreeSql.Internal.CommonProvider.DbConnectionPool(DataType.SqlServer, connectionFactory);
                 MasterPool = pool;
                 _CreateCommandConnection = pool.TestConnection;
                 return;
