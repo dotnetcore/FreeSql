@@ -170,6 +170,14 @@ namespace FreeSql
         /// <returns></returns>
         IUpdate<T1> Where(Expression<Func<T1, bool>> exp);
         /// <summary>
+        /// lambda表达式条件，仅支持实体基础成员（不包含导航对象）<para></para>
+        /// 若想使用导航对象，请使用 ISelect.ToUpdate() 方法
+        /// </summary>
+        /// <param name="condition">true 时生效</param>
+        /// <param name="exp">lambda表达式条件</param>
+        /// <returns></returns>
+        IUpdate<T1> WhereIf(bool condition, Expression<Func<T1, bool>> exp);
+        /// <summary>
         /// 原生sql语法条件，Where("id = ?id", new { id = 1 })<para></para>
         /// 提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
         /// </summary>
