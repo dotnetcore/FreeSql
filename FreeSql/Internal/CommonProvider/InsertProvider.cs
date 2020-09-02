@@ -171,6 +171,8 @@ namespace FreeSql.Internal.CommonProvider
                             col.SetValue(data, val = FreeUtil.NewMongodbId());
                     }
                 }
+                if (val == null && col.Attribute.MapType == typeof(string) && col.Attribute.IsNullable == false)
+                    col.SetValue(data, val = "");
             }
         }
 

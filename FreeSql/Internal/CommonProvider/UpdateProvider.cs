@@ -359,6 +359,8 @@ namespace FreeSql.Internal.CommonProvider
                         if (changedDict != null && changedDict.ContainsKey(col.Attribute.Name) == false)
                             changedDict.Add(col.Attribute.Name, true);
                     }
+                    if (val == null && col.Attribute.MapType == typeof(string) && col.Attribute.IsNullable == false)
+                        col.SetValue(data, val = "");
                 }
             }
         }
@@ -379,6 +381,8 @@ namespace FreeSql.Internal.CommonProvider
                     if (changedDict != null && changedDict.ContainsKey(col.Attribute.Name) == false)
                         changedDict.Add(col.Attribute.Name, true);
                 }
+                if (val == null && col.Attribute.MapType == typeof(string) && col.Attribute.IsNullable == false)
+                    col.SetValue(data, val = "");
             }
         }
 
