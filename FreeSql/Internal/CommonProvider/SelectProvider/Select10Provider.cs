@@ -98,6 +98,13 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalOrderByDescending(column?.Body);
         }
 
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>.OrderByIf<TMember>(bool condition, Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TMember>> column, bool descending)
+        {
+            if (condition == false || column == null) this.InternalOrderBy(column?.Body);
+            for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
+            return descending ? this.InternalOrderByDescending(column?.Body) : this.InternalOrderBy(column?.Body);
+        }
+
         decimal ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>.Sum<TMember>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TMember>> column)
         {
             if (column == null) this.InternalOrderBy(column?.Body);
