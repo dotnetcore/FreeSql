@@ -232,7 +232,7 @@ namespace FreeSql.Tests
                     EdiId1 = SqlExt.Max(a.Key).Over().PartitionBy(new { a.Value.EdiId, a.Value.Id }).OrderByDescending(new { a.Value.EdiId, a.Value.Id }).ToValue(),
                     EdiId2 = SqlExt.Max(a.Key).Over().PartitionBy(a.Value.EdiId).OrderByDescending(a.Value.Id).ToValue(),
 
-                    Sub1 = g.sqlite.Select<Edi>().Where(b => b.Id == a.Key).Count()
+                    Sub1 = g.sqlserver.Select<Edi>().Where(b => b.Id == a.Key).Count()
                 });
 
             var sqlextGroupConcat = g.mysql.Select<Edi, EdiItem>()

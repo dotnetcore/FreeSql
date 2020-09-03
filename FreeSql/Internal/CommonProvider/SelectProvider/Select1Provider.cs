@@ -274,7 +274,13 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
 
-        public bool Any(Expression<Func<T1, bool>> exp) => this.Where(exp).Any();
+        public bool Any(Expression<Func<T1, bool>> exp)
+        {
+            var oldwhere = _where.ToString();
+            var ret = this.Where(exp).Any();
+            _where.Clear().Append(oldwhere);
+            return ret;
+        }
 
         public TReturn ToOne<TReturn>(Expression<Func<T1, TReturn>> select) => this.Limit(1).ToList(select).FirstOrDefault();
         public TDto ToOne<TDto>() => this.Limit(1).ToList<TDto>().FirstOrDefault();
@@ -1083,7 +1089,13 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalToAggregateAsync<TReturn>(select?.Body);
         }
 
-        public Task<bool> AnyAsync(Expression<Func<T1, bool>> exp) => this.Where(exp).AnyAsync();
+        async public Task<bool> AnyAsync(Expression<Func<T1, bool>> exp)
+        {
+            var oldwhere = _where.ToString();
+            var ret = await this.Where(exp).AnyAsync();
+            _where.Clear().Append(oldwhere);
+            return ret;
+        }
         async public Task<TReturn> ToOneAsync<TReturn>(Expression<Func<T1, TReturn>> select) => (await this.Limit(1).ToListAsync(select)).FirstOrDefault();
         async public Task<TDto> ToOneAsync<TDto>() => (await this.Limit(1).ToListAsync<TDto>()).FirstOrDefault();
         public Task<TReturn> FirstAsync<TReturn>(Expression<Func<T1, TReturn>> select) => this.ToOneAsync(select);

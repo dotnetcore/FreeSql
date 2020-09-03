@@ -189,7 +189,10 @@ namespace FreeSql.Internal.CommonProvider
         {
             if (exp == null) return this.Any();
             for (var a = 0; a < exp.Parameters.Count; a++) _tables[a].Parameter = exp.Parameters[a];
-            return this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp?.Body, null, _whereCascadeExpression, _params)).Any();
+            var oldwhere = _where.ToString();
+            var ret = this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp?.Body, null, _whereCascadeExpression, _params)).Any();
+            _where.Clear().Append(oldwhere);
+            return ret;
         }
 
         TReturn ISelect<T1, T2, T3, T4, T5, T6, T7>.ToOne<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, TReturn>> select) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7>).Limit(1).ToList(select).FirstOrDefault();
@@ -248,11 +251,14 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalToDataTableAsync(select?.Body);
         }
 
-        Task<bool> ISelect<T1, T2, T3, T4, T5, T6, T7>.AnyAsync(Expression<Func<T1, T2, T3, T4, T5, T6, T7, bool>> exp)
+        async Task<bool> ISelect<T1, T2, T3, T4, T5, T6, T7>.AnyAsync(Expression<Func<T1, T2, T3, T4, T5, T6, T7, bool>> exp)
         {
-            if (exp == null) return this.AnyAsync();
+            if (exp == null) return await this.AnyAsync();
             for (var a = 0; a < exp.Parameters.Count; a++) _tables[a].Parameter = exp.Parameters[a];
-            return this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp?.Body, null, _whereCascadeExpression, _params)).AnyAsync();
+            var oldwhere = _where.ToString();
+            var ret = await this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp?.Body, null, _whereCascadeExpression, _params)).AnyAsync();
+            _where.Clear().Append(oldwhere);
+            return ret;
         }
 
         async Task<TReturn> ISelect<T1, T2, T3, T4, T5, T6, T7>.ToOneAsync<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, TReturn>> select) => (await (this as ISelect<T1, T2, T3, T4, T5, T6, T7>).Limit(1).ToListAsync(select)).FirstOrDefault();
