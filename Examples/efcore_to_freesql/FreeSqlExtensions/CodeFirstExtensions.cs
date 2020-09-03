@@ -1,4 +1,5 @@
-﻿using FreeSql;
+﻿using efcore_to_freesql.Entitys;
+using FreeSql;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using System;
@@ -68,5 +69,113 @@ public static class CodeFirstExtensions
                 }
             });
         }
+    }
+
+    public static void EfCoreFluentApiTestGeneric(this ICodeFirst cf)
+    {
+        cf.Entity<Song>(eb =>
+        {
+            eb.ToTable("tb_song1");
+            eb.Ignore(a => a.Field1);
+            eb.Property(a => a.Title).HasColumnType("varchar(50)").IsRequired();
+            eb.Property(a => a.Url).HasMaxLength(100);
+
+            eb.Property(a => a.RowVersion).IsRowVersion();
+            eb.Property(a => a.CreateTime).HasDefaultValueSql("current_timestamp");
+
+            eb.HasKey(a => a.Id);
+            eb.HasIndex(a => a.Title).IsUnique().HasName("idx_tb_song1111");
+
+            //一对多、多对一
+            eb.HasOne(a => a.Type).HasForeignKey(a => a.TypeId).WithMany(a => a.Songs);
+
+            //多对多
+            eb.HasMany(a => a.Tags).WithMany(a => a.Songs, typeof(Song_tag));
+        });
+        cf.Entity<SongType>(eb =>
+        {
+            eb.ToTable("tb_songtype1");
+            eb.HasMany(a => a.Songs).WithOne(a => a.Type).HasForeignKey(a => a.TypeId);
+
+            eb.HasData(new[]
+            {
+                new SongType
+                {
+                    Id = 1,
+                    Name = "流行",
+                    Songs = new List<Song>(new[]
+                    {
+                        new Song{ Title = "真的爱你" },
+                        new Song{ Title = "爱你一万年" },
+                    })
+                },
+                new SongType
+                {
+                    Id = 2,
+                    Name = "乡村",
+                    Songs = new List<Song>(new[]
+                    {
+                        new Song{ Title = "乡里乡亲" },
+                    })
+                },
+            });
+        });
+
+        cf.SyncStructure<SongType>();
+        cf.SyncStructure<Song>();
+    }
+
+    public static void EfCoreFluentApiTestDynamic(this ICodeFirst cf)
+    {
+        cf.Entity(typeof(Song), eb =>
+        {
+            eb.ToTable("tb_song2");
+            eb.Ignore("Field1");
+            eb.Property("Title").HasColumnType("varchar(50)").IsRequired();
+            eb.Property("Url").HasMaxLength(100);
+
+            eb.Property("RowVersion").IsRowVersion();
+            eb.Property("CreateTime").HasDefaultValueSql("current_timestamp");
+
+            eb.HasKey("Id");
+            eb.HasIndex("Title").IsUnique().HasName("idx_tb_song2222");
+
+            //一对多、多对一
+            eb.HasOne("Type").HasForeignKey("TypeId").WithMany("Songs");
+
+            //多对多
+            eb.HasMany("Tags").WithMany("Songs", typeof(Song_tag));
+        });
+        cf.Entity(typeof(SongType), eb =>
+        {
+            eb.ToTable("tb_songtype2");
+            eb.HasMany("Songs").WithOne("Type").HasForeignKey("TypeId");
+
+            eb.HasData(new[]
+            {
+                new SongType
+                {
+                    Id = 1,
+                    Name = "流行",
+                    Songs = new List<Song>(new[]
+                    {
+                        new Song{ Title = "真的爱你" },
+                        new Song{ Title = "爱你一万年" },
+                    })
+                },
+                new SongType
+                {
+                    Id = 2,
+                    Name = "乡村",
+                    Songs = new List<Song>(new[]
+                    {
+                        new Song{ Title = "乡里乡亲" },
+                    })
+                },
+            });
+        });
+
+        cf.SyncStructure<SongType>();
+        cf.SyncStructure<Song>();
     }
 }
