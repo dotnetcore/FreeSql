@@ -27,10 +27,10 @@ namespace efcore_to_freesql
                 .UseAutoSyncStructure(true)
                 .Build();
 
-            //FreeSqlDbContextExtensions.EfCoreFluentApiTestGeneric(Fsql);
-            FreeSqlDbContextExtensions.EfCoreFluentApiTestDynamic(Fsql);
+            //Fsql.CodeFirst.EfCoreFluentApiTestGeneric();
+            Fsql.CodeFirst.EfCoreFluentApiTestDynamic();
 
-            DBContexts.BaseDBContext.Fsql = Fsql;
+            BaseDBContext.Fsql = Fsql;
 
             var sql11 = Fsql.Select<Topic1>().ToSql();
             //SELECT a."Id", a."Title", a."CreateTime" FROM "Topic1" a
