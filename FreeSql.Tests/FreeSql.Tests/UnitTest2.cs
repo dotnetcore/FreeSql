@@ -280,6 +280,12 @@ namespace FreeSql.Tests
             var kwrepo = g.sqlite.GetRepository<userinfo>();
             kwrepo.Insert(u1);
 
+            g.sqlite.GlobalFilter.ApplyIf<gf_t1>("random_filter", () => new Random().Next(0, 2) % 2 == 0 ? true : false, a => a.rowstate > 0);
+
+            Enumerable.Range(0, 10).ToList().ForEach(aidx =>
+            {
+                var sql1 = g.sqlite.Select<gf_t1>().ToSql();
+            });
 
             g.sqlite.GlobalFilter.Apply<gf_t1>("gft1", a => a.rowstate > -1 && g.sqlite.Select<gf_t2>().Any(b => b.id == a.id))
                 .Apply<gf_t2>("gft2", a => a.rowstate > -2)
