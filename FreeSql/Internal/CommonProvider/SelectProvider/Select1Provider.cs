@@ -210,6 +210,11 @@ namespace FreeSql.Internal.CommonProvider
             _tables[0].Parameter = select.Parameters[0];
             return this.InternalToAggregate<TReturn>(select?.Body);
         }
+        public ISelect<T1> Aggregate<TReturn>(Expression<Func<ISelectGroupingAggregate<T1>, TReturn>> select, out TReturn result)
+        {
+            result = ToAggregate(select);
+            return this;
+        }
 
         public ISelect<T1> Where(Expression<Func<T1, bool>> exp) => WhereIf(true, exp);
         public ISelect<T1> WhereIf(bool condition, Expression<Func<T1, bool>> exp)

@@ -812,6 +812,10 @@ namespace FreeSql.Tests.Dameng
         public void ToAggregate()
         {
             var sql = select.ToAggregate(a => new { sum = a.Sum(a.Key.Id + 11.11), avg = a.Avg(a.Key.Id), count = a.Count(), max = a.Max(a.Key.Id), min = a.Min(a.Key.Id) });
+
+            select
+                .Aggregate(a => new { sum = a.Sum(a.Key.Id), count = a.Count() }, out var output)
+                .ToList();
         }
         [Fact]
         public void OrderBy()

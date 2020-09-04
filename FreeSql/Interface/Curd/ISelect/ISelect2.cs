@@ -40,6 +40,7 @@ namespace FreeSql
 
         string ToSql<TReturn>(Expression<Func<T1, T2, TReturn>> select, FieldAliasOptions fieldAlias = FieldAliasOptions.AsIndex);
         TReturn ToAggregate<TReturn>(Expression<Func<ISelectGroupingAggregate<T1>, ISelectGroupingAggregate<T2>, TReturn>> select);
+        ISelect<T1, T2> Aggregate<TReturn>(Expression<Func<ISelectGroupingAggregate<T1>, ISelectGroupingAggregate<T2>, TReturn>> select, out TReturn result);
         decimal Sum<TMember>(Expression<Func<T1, T2, TMember>> column);
         TMember Min<TMember>(Expression<Func<T1, T2, TMember>> column);
         TMember Max<TMember>(Expression<Func<T1, T2, TMember>> column);

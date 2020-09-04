@@ -2032,6 +2032,18 @@
             <param name="select"></param>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.ISelect`1.Aggregate``1(System.Linq.Expressions.Expression{System.Func{FreeSql.ISelectGroupingAggregate{`0},``0}},``0@)">
+            <summary>
+            执行SQL查询，返回指定字段的聚合结果给 output 参数<para></para>
+            fsql.Select&lt;T&gt;()<para></para>
+            .Aggregate(a =&gt; new { count = a.Count, sum = a.Sum(a.Key.Price) }, out var agg)<para></para>
+            .Page(1, 10).ToList();
+            </summary>
+            <typeparam name="TReturn"></typeparam>
+            <param name="select"></param>
+            <param name="result"></param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.ISelect`1.Sum``1(System.Linq.Expressions.Expression{System.Func{`0,``0}})">
             <summary>
             求和

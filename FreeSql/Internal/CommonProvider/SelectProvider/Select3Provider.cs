@@ -97,6 +97,11 @@ namespace FreeSql.Internal.CommonProvider
             for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
             return this.InternalToAggregate<TReturn>(select?.Body);
         }
+        ISelect<T1, T2, T3> ISelect<T1, T2, T3>.Aggregate<TReturn>(Expression<Func<ISelectGroupingAggregate<T1>, ISelectGroupingAggregate<T2>, ISelectGroupingAggregate<T3>, TReturn>> select, out TReturn result)
+        {
+            result = (this as ISelect<T1, T2, T3>).ToAggregate(select);
+            return this;
+        }
 
         List<TReturn> ISelect<T1, T2, T3>.ToList<TReturn>(Expression<Func<T1, T2, T3, TReturn>> select)
         {

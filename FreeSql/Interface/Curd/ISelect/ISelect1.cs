@@ -110,6 +110,17 @@ namespace FreeSql
         /// <param name="select"></param>
         /// <returns></returns>
         TReturn ToAggregate<TReturn>(Expression<Func<ISelectGroupingAggregate<T1>, TReturn>> select);
+        /// <summary>
+        /// 执行SQL查询，返回指定字段的聚合结果给 output 参数<para></para>
+        /// fsql.Select&lt;T&gt;()<para></para>
+        /// .Aggregate(a =&gt; new { count = a.Count, sum = a.Sum(a.Key.Price) }, out var agg)<para></para>
+        /// .Page(1, 10).ToList();
+        /// </summary>
+        /// <typeparam name="TReturn"></typeparam>
+        /// <param name="select"></param>
+        /// <param name="result"></param>
+        /// <returns></returns>
+        ISelect<T1> Aggregate<TReturn>(Expression<Func<ISelectGroupingAggregate<T1>, TReturn>> select, out TReturn result);
 
         /// <summary>
         /// 求和
