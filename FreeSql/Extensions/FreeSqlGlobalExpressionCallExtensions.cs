@@ -105,6 +105,19 @@ namespace FreeSql
         #endregion
 
         /// <summary>
+        /// isnull、ifnull、coalesce、nvl
+        /// </summary>
+        /// <typeparam name="TValue"></typeparam>
+        /// <param name="value"></param>
+        /// <param name="defaultValue"></param>
+        /// <returns></returns>
+        public static TValue IsNull<TValue>(TValue value, TValue defaultValue)
+        {
+            expContext.Value.Result = expContext.Value._commonExp._common.IsNull(expContext.Value.ParsedContent["value"], expContext.Value.ParsedContent["defaultValue"]);
+            return default(TValue);
+        }
+
+        /// <summary>
         /// case when .. then .. end
         /// </summary>
         /// <returns></returns>
@@ -311,7 +324,7 @@ namespace FreeSql
         public interface IGroupConcat { }
         #endregion
 
-        #region string.Join 反射处理，此块代卖用于反射，所以别修改定义
+        #region string.Join 反射处理，此块代码用于反射，所以别修改定义
         public static string StringJoinSqliteGroupConcat(object column, object delimiter)
         {
             expContext.Result = $"group_concat({expContext.ParsedContent["column"]},{expContext.ParsedContent["delimiter"]})";

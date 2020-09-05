@@ -233,6 +233,12 @@ namespace FreeSql.Tests
                     EdiId2 = SqlExt.Max(a.Key).Over().PartitionBy(a.Value.EdiId).OrderByDescending(a.Value.Id).ToValue(),
                 });
 
+            var sqlextIsNull = g.sqlserver.Select<EdiItem>()
+                .ToSql(a => new
+                {
+                    nvl = SqlExt.IsNull(a.EdiId, 0)
+                });
+
             var sqlextGroupConcat = g.mysql.Select<Edi, EdiItem>()
                 .InnerJoin((a, b) => b.Id == a.Id)
                 .ToSql((a, b) => new

@@ -1103,6 +1103,15 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.SqlExt.IsNull``1(``0,``0)">
+            <summary>
+            isnull、ifnull、coalesce、nvl
+            </summary>
+            <typeparam name="TValue"></typeparam>
+            <param name="value"></param>
+            <param name="defaultValue"></param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.SqlExt.Case">
             <summary>
             case when .. then .. end
