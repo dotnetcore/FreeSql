@@ -13,7 +13,7 @@ namespace FreeSql
         static object _dicCurdLock = new object();
         static IFreeSql GetCrud(IDbConnection dbconn)
         {
-            if (dbconn == null) throw new ArgumentNullException($"{nameof(dbconn)} 不能为 null"); ;
+            if (dbconn == null) throw new ArgumentNullException($"{nameof(dbconn)} 不能为 null");
             Type dbconType = dbconn.GetType();
             var connType = dbconType.UnderlyingSystemType;
             if (_dicCurd.TryGetValue(connType, out var fsql)) return fsql;

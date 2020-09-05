@@ -202,9 +202,12 @@ namespace FreeSql.Internal.CommonProvider
             try
             {
                 if (_transaction == null)
-                    this.WithTransaction(_orm.Ado.TransactionCurrentThread);
+                {
+                    var threadTransaction = _orm.Ado.TransactionCurrentThread;
+                    if (threadTransaction != null) this.WithTransaction(threadTransaction);
+                }
 
-                if (_transaction != null)
+                if (_transaction != null || _orm.Ado.MasterPool == null)
                 {
                     _source = ss.Item1;
                     _SplitSourceByIdentityValueIsNullFlag = 1;
@@ -305,9 +308,12 @@ namespace FreeSql.Internal.CommonProvider
             try
             {
                 if (_transaction == null)
-                    this.WithTransaction(_orm.Ado.TransactionCurrentThread);
+                {
+                    var threadTransaction = _orm.Ado.TransactionCurrentThread;
+                    if (threadTransaction != null) this.WithTransaction(threadTransaction);
+                }
 
-                if (_transaction != null)
+                if (_transaction != null || _orm.Ado.MasterPool == null)
                 {
                     _source = ss.Item1;
                     _SplitSourceByIdentityValueIsNullFlag = 1;

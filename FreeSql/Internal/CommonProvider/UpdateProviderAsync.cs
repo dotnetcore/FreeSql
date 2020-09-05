@@ -29,7 +29,10 @@ namespace FreeSql.Internal.CommonProvider
                 return ret;
             }
             if (_transaction == null)
-                this.WithTransaction(_orm.Ado.TransactionCurrentThread);
+            {
+                var threadTransaction = _orm.Ado.TransactionCurrentThread;
+                if (threadTransaction != null) this.WithTransaction(threadTransaction);
+            }
 
             var before = new Aop.TraceBeforeEventArgs("SplitExecuteAffrowsAsync", null);
             _orm.Aop.TraceBeforeHandler?.Invoke(this, before);
@@ -47,6 +50,7 @@ namespace FreeSql.Internal.CommonProvider
                 }
                 else
                 {
+                    if (_orm.Ado.MasterPool == null) throw new Exception("Ado.MasterPool 值为 null，该操作无法自启用事务，请显式传递【事务对象】解决");
                     using (var conn = await _orm.Ado.MasterPool.GetAsync())
                     {
                         _transaction = conn.Value.BeginTransaction();
@@ -98,7 +102,10 @@ namespace FreeSql.Internal.CommonProvider
                 return ret;
             }
             if (_transaction == null)
-                this.WithTransaction(_orm.Ado.TransactionCurrentThread);
+            {
+                var threadTransaction = _orm.Ado.TransactionCurrentThread;
+                if (threadTransaction != null) this.WithTransaction(threadTransaction);
+            }
 
             var before = new Aop.TraceBeforeEventArgs("SplitExecuteUpdatedAsync", null);
             _orm.Aop.TraceBeforeHandler?.Invoke(this, before);
@@ -116,6 +123,7 @@ namespace FreeSql.Internal.CommonProvider
                 }
                 else
                 {
+                    if (_orm.Ado.MasterPool == null) throw new Exception("Ado.MasterPool 值为 null，该操作无法自启用事务，请显式传递【事务对象】解决");
                     using (var conn = await _orm.Ado.MasterPool.GetAsync())
                     {
                         _transaction = conn.Value.BeginTransaction();
