@@ -170,11 +170,84 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalSum(column.Body);
         }
 
+        class IncludeManyNewInit
+        {
+            public TableInfo Table { get; }
+            public Dictionary<string, IncludeManyNewInit> Childs { get; } = new Dictionary<string, IncludeManyNewInit>();
+            public Expression CurrentExpression { get; }
+            public bool IsOutputPrimary { get; set; }
+            public IncludeManyNewInit(TableInfo table, Expression currentExpression)
+            {
+                this.Table = table;
+                this.CurrentExpression = currentExpression;
+            }
+        }
         public List<TReturn> ToList<TReturn>(Expression<Func<T1, TReturn>> select)
         {
             if (select == null) return this.InternalToList<TReturn>(select?.Body);
             _tables[0].Parameter = select.Parameters[0];
-            return this.InternalToList<TReturn>(select.Body);
+            if (_includeToList?.Any() != true) return this.InternalToList<TReturn>(select.Body);
+
+            var findIncludeMany = new List<string>();
+            var map = new ReadAnonymousTypeInfo();
+            var field = new StringBuilder();
+            var index = 0;
+            _commonExpression.ReadAnonymousField(_tables, field, map, ref index, select.Body, this, null, _whereCascadeExpression, findIncludeMany, true);
+            var af = new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null);
+            if (findIncludeMany.Any() == false) return this.ToListMapReaderPrivate<TReturn>(af, null);
+
+            var parmExp = Expression.Parameter(_tables[0].Table.Type, _tables[0].Alias);
+            var incNewInit = new IncludeManyNewInit(_tables[0].Table, parmExp);
+            foreach (var inc in _includeInfo)
+            {
+                var curIncNewInit = incNewInit;
+                Expression curParmExp = parmExp;
+                for (var a = 0; a < inc.Value.Length - 1; a++)
+                {
+                    curParmExp = Expression.MakeMemberAccess(parmExp, inc.Value[a].Member);
+                    if (curIncNewInit.Childs.ContainsKey(inc.Value[a].Member.Name) == false)
+                        curIncNewInit.Childs.Add(inc.Value[a].Member.Name, curIncNewInit = new IncludeManyNewInit(_orm.CodeFirst.GetTableByEntity(inc.Value[a].Type), curParmExp));
+                    else
+                        curIncNewInit = curIncNewInit.Childs[inc.Value[a].Member.Name];
+                }
+                curIncNewInit.IsOutputPrimary = true;
+            }
+            MemberInitExpression GetIncludeManyNewInitExpression(IncludeManyNewInit imni)
+            {
+                var bindings = new List<MemberBinding>();
+                if (imni.IsOutputPrimary) bindings.AddRange(imni.Table.Primarys.Select(a => Expression.Bind(imni.Table.Properties[a.CsName], Expression.MakeMemberAccess(imni.CurrentExpression, imni.Table.Properties[a.CsName]))));
+                if (imni.Childs.Any()) bindings.AddRange(imni.Childs.Select(a => Expression.Bind(imni.Table.Properties[a.Key], GetIncludeManyNewInitExpression(a.Value))));
+                return Expression.MemberInit(imni.Table.Type.InternalNewExpression(), bindings);
+            }
+
+            var otherNewInit = GetIncludeManyNewInitExpression(incNewInit); //获取 IncludeMany 包含的最简化字段
+            if (otherNewInit.Bindings.Any() == false) return this.ToListMapReaderPrivate<TReturn>(af, null);
+
+            var otherMap = new ReadAnonymousTypeInfo();
+            field.Clear();
+            _commonExpression.ReadAnonymousField(_tables, field, otherMap, ref index, otherNewInit, this, null, _whereCascadeExpression, null, true);
+            var otherRet = new List<object>();
+            var otherAf = new ReadAnonymousTypeOtherInfo(field.ToString(), otherMap, otherRet);
+
+            af.fillIncludeMany = new List<NativeTuple<string, IList, int>>();
+            var ret = this.ToListMapReaderPrivate<TReturn>(af, new[] { otherAf });
+            this.SetList(otherRet.Select(a => (T1)a).ToList()); //级联加载
+
+            foreach (var fim in af.fillIncludeMany)
+            {
+                var splitKeys = fim.Item1.Split('.');
+                var otherRetItem = otherRet[fim.Item3];
+                var otherRetItemType = _tables[0].Table.Type;
+                foreach(var splitKey in splitKeys)
+                {
+                    otherRetItem = _orm.GetEntityValueWithPropertyName(otherRetItemType, otherRetItem, splitKey);
+                    otherRetItemType = _orm.CodeFirst.GetTableByEntity(otherRetItemType).Properties[splitKey].PropertyType;
+                }
+                if (otherRetItem == null) continue;
+                var otherList = otherRetItem as IEnumerable;
+                foreach (var otherListItem in otherList) fim.Item2.Add(otherListItem);
+            }
+            return ret;
         }
         public List<TDto> ToList<TDto>() => ToList(GetToListDtoSelector<TDto>());
         Expression<Func<T1, TDto>> GetToListDtoSelector<TDto>()
@@ -1031,6 +1104,11 @@ namespace FreeSql.Internal.CommonProvider
             });
             _includeToListAsync.Add(listObj => includeToListSyncOrAsync(listObj, true));
 #endif
+            var includeValue = new MemberExpression[members.Count + 1];
+            for (var a = 0; a < members.Count; a++) includeValue[a] = members[a];
+            includeValue[includeValue.Length - 1] = expBody as MemberExpression;
+            var includeKey = $"{string.Join(".", includeValue.Select(a => a.Member.Name))}";
+            if (_includeInfo.ContainsKey(includeKey) == false) _includeInfo.Add(includeKey, includeValue);
             return this;
         }
 

@@ -37,6 +37,7 @@ namespace FreeSql.Internal.CommonProvider
 #else
         public List<Func<object, Task>> _includeToListAsync = new List<Func<object, Task>>();
 #endif
+        public Dictionary<string, MemberExpression[]> _includeInfo = new Dictionary<string, MemberExpression[]>();
         public bool _distinct;
         public Expression _selectExpression;
         public List<LambdaExpression> _whereCascadeExpression = new List<LambdaExpression>();
@@ -57,6 +58,7 @@ namespace FreeSql.Internal.CommonProvider
 #else
             _includeToListAsync.Clear();
 #endif
+            _includeInfo.Clear();
             _selectExpression = null;
             _whereCascadeExpression.Clear();
             _whereGlobalFilter = _orm.GlobalFilter.GetFilters();

@@ -28,13 +28,13 @@ namespace FreeSql.Internal
         }
 
         internal const int ReadAnonymousFieldAsCsName = -53129;
-        public bool ReadAnonymousField(List<SelectTableInfo> _tables, StringBuilder field, ReadAnonymousTypeInfo parent, ref int index, Expression exp, SelectGroupingProvider grouping, List<LambdaExpression> whereCascadeExpression, bool isAllDtoMap)
+        public bool ReadAnonymousField(List<SelectTableInfo> _tables, StringBuilder field, ReadAnonymousTypeInfo parent, ref int index, Expression exp, Select0Provider select, SelectGroupingProvider grouping, List<LambdaExpression> whereCascadeExpression, List<string> findIncludeMany, bool isAllDtoMap)
         {
             Func<ExpTSC> getTSC = () => new ExpTSC { _tables = _tables, grouping = grouping, tbtype = SelectTableInfoType.From, isQuoteName = true, isDisableDiyParse = false, style = ExpressionStyle.Where, whereCascadeExpression = whereCascadeExpression };
             switch (exp.NodeType)
             {
-                case ExpressionType.Quote: return ReadAnonymousField(_tables, field, parent, ref index, (exp as UnaryExpression)?.Operand, grouping, whereCascadeExpression, isAllDtoMap);
-                case ExpressionType.Lambda: return ReadAnonymousField(_tables, field, parent, ref index, (exp as LambdaExpression)?.Body, grouping, whereCascadeExpression, isAllDtoMap);
+                case ExpressionType.Quote: return ReadAnonymousField(_tables, field, parent, ref index, (exp as UnaryExpression)?.Operand, select, grouping, whereCascadeExpression, findIncludeMany, isAllDtoMap);
+                case ExpressionType.Lambda: return ReadAnonymousField(_tables, field, parent, ref index, (exp as LambdaExpression)?.Body, select, grouping, whereCascadeExpression, findIncludeMany, isAllDtoMap);
                 case ExpressionType.Negate:
                 case ExpressionType.NegateChecked:
                     parent.DbField = $"-({ExpressionLambdaToSql(exp, getTSC())})";
@@ -43,7 +43,7 @@ namespace FreeSql.Internal
                     else if (index == ReadAnonymousFieldAsCsName && string.IsNullOrEmpty(parent.CsName) == false) field.Append(_common.FieldAsAlias(parent.CsName));
                     if (parent.CsType == null && exp.Type.IsValueType) parent.CsType = exp.Type;
                     return false;
-                case ExpressionType.Convert: return ReadAnonymousField(_tables, field, parent, ref index, (exp as UnaryExpression)?.Operand, grouping, whereCascadeExpression, isAllDtoMap);
+                case ExpressionType.Convert: return ReadAnonymousField(_tables, field, parent, ref index, (exp as UnaryExpression)?.Operand, select, grouping, whereCascadeExpression, findIncludeMany, isAllDtoMap);
                 case ExpressionType.Constant:
                     var constExp = exp as ConstantExpression;
                     //处理自定义SQL语句，如： ToList(new { 
@@ -133,12 +133,36 @@ namespace FreeSql.Internal
                                     MapType = memProp.PropertyType
                                 };
                                 parent.Childs.Add(child);
-                                ReadAnonymousField(_tables, field, child, ref index, Expression.MakeMemberAccess(exp, memProp), grouping, whereCascadeExpression, false);
+                                ReadAnonymousField(_tables, field, child, ref index, Expression.MakeMemberAccess(exp, memProp), select, grouping, whereCascadeExpression, findIncludeMany, false);
                             }
                         }
                     }
                     else
                     {
+                        if (select != null && findIncludeMany != null && select._includeToList.Any() && exp.Type.IsGenericType && 
+                            typeof(IEnumerable).IsAssignableFrom(exp.Type) && 
+                            typeof(ICollection<>).MakeGenericType(exp.Type.GetGenericArguments().FirstOrDefault()).IsAssignableFrom(exp.Type))
+                        {
+                            var includeKey = "";
+                            var memExp = exp as MemberExpression;
+                            while (memExp != null)
+                            {
+                                includeKey = $"{memExp.Member.Name}.{includeKey}";
+                                if (memExp.Expression.NodeType == ExpressionType.Parameter) break;
+                                memExp = memExp.Expression as MemberExpression;
+                            }
+                            if (memExp != null && string.IsNullOrEmpty(includeKey) == false)
+                            {
+                                includeKey = includeKey.TrimEnd('.');
+                                if (select._includeInfo.ContainsKey(includeKey))
+                                {
+                                    parent.IncludeManyKey = includeKey;
+                                    parent.CsType = exp.Type.GetGenericArguments().FirstOrDefault();
+                                    findIncludeMany?.Add(includeKey);
+                                    return false;
+                                }
+                            }
+                        }
                         if (grouping != null && exp is MemberExpression expMem2 && expMem2.Member.Name == "Key" && expMem2.Expression.Type.FullName.StartsWith("FreeSql.ISelectGroupingAggregate`"))
                         {
                             field.Append(grouping._field);
@@ -173,7 +197,7 @@ namespace FreeSql.Internal
                                 MapType = initExp.NewExpression.Arguments[a].Type
                             };
                             parent.Childs.Add(child);
-                            ReadAnonymousField(_tables, field, child, ref index, initExp.NewExpression.Arguments[a], grouping, whereCascadeExpression, false);
+                            ReadAnonymousField(_tables, field, child, ref index, initExp.NewExpression.Arguments[a], select, grouping, whereCascadeExpression, findIncludeMany, false);
                         }
                     }
                     else if (isAllDtoMap && _tables != null && _tables.Any() && initExp.NewExpression.Type != _tables.FirstOrDefault().Table.Type)
@@ -196,7 +220,7 @@ namespace FreeSql.Internal
                                 };
                                 parent.Childs.Add(child);
                                 if (dtTb.Parameter != null)
-                                    ReadAnonymousField(_tables, field, child, ref index, Expression.Property(dtTb.Parameter, dtTb.Table.Properties[trydtocol.CsName]), grouping, whereCascadeExpression, isAllDtoMap);
+                                    ReadAnonymousField(_tables, field, child, ref index, Expression.Property(dtTb.Parameter, dtTb.Table.Properties[trydtocol.CsName]), select, grouping, whereCascadeExpression, findIncludeMany, isAllDtoMap);
                                 else
                                 {
                                     child.DbField = $"{dtTb.Alias}.{_common.QuoteSqlName(trydtocol.Attribute.Name)}";
@@ -222,7 +246,7 @@ namespace FreeSql.Internal
                                 MapType = initAssignExp.Expression.Type
                             };
                             parent.Childs.Add(child);
-                            ReadAnonymousField(_tables, field, child, ref index, initAssignExp.Expression, grouping, whereCascadeExpression, false);
+                            ReadAnonymousField(_tables, field, child, ref index, initAssignExp.Expression, select, grouping, whereCascadeExpression, findIncludeMany, false);
                         }
                     }
                     if (parent.Childs.Any() == false) throw new Exception($"映射异常：{initExp.NewExpression.Type.Name} 没有一个属性名相同");
@@ -255,7 +279,7 @@ namespace FreeSql.Internal
                                 MapType = newExp.Arguments[a].Type
                             };
                             parent.Childs.Add(child);
-                            ReadAnonymousField(_tables, field, child, ref index, newExp.Arguments[a], grouping, whereCascadeExpression, false);
+                            ReadAnonymousField(_tables, field, child, ref index, newExp.Arguments[a], select, grouping, whereCascadeExpression, findIncludeMany, false);
                         }
                     }
                     else
@@ -279,7 +303,7 @@ namespace FreeSql.Internal
                                 };
                                 parent.Childs.Add(child);
                                 if (dtTb.Parameter != null)
-                                    ReadAnonymousField(_tables, field, child, ref index, Expression.Property(dtTb.Parameter, dtTb.Table.Properties[trydtocol.CsName]), grouping, whereCascadeExpression, isAllDtoMap);
+                                    ReadAnonymousField(_tables, field, child, ref index, Expression.Property(dtTb.Parameter, dtTb.Table.Properties[trydtocol.CsName]), select, grouping, whereCascadeExpression, findIncludeMany, isAllDtoMap);
                                 else
                                 {
                                     child.DbField = $"{dtTb.Alias}.{_common.QuoteSqlName(trydtocol.Attribute.Name)}";
@@ -300,9 +324,9 @@ namespace FreeSql.Internal
             if (parent.CsType == null && exp.Type.IsValueType) parent.CsType = exp.Type;
             return false;
         }
-        public object ReadAnonymous(ReadAnonymousTypeInfo parent, DbDataReader dr, ref int index, bool notRead, ReadAnonymousDbValueRef dbValue)
+        public object ReadAnonymous(ReadAnonymousTypeInfo parent, DbDataReader dr, ref int index, bool notRead, ReadAnonymousDbValueRef dbValue, int rowIndex, List<NativeTuple<string, IList, int>> fillIncludeMany)
         {
-            if (parent.Childs.Any() == false)
+            if (parent.Childs.Any() == false && string.IsNullOrEmpty(parent.IncludeManyKey))
             {
                 if (notRead)
                 {
@@ -316,19 +340,24 @@ namespace FreeSql.Internal
                 if (parent.CsType != parent.MapType) 
                     objval = Utils.GetDataReaderValue(parent.MapType, objval);
                 objval = Utils.GetDataReaderValue(parent.CsType, objval);
-                if (parent.Property != null && parent.CsType != parent.Property.PropertyType) 
+                if (parent.Property != null && parent.CsType != parent.Property.PropertyType)
                     objval = Utils.GetDataReaderValue(parent.Property.PropertyType, objval);
                 return objval;
             }
             var ctorParmsLength = 0;
             object ret;
-            if (parent.IsDefaultCtor || parent.IsEntity || (ctorParmsLength = parent.Consturctor.GetParameters()?.Length ?? 0) == 0)
+            if (string.IsNullOrEmpty(parent.IncludeManyKey) == false)
+            {
+                ret = typeof(List<>).MakeGenericType(parent.CsType).CreateInstanceGetDefaultValue();
+                fillIncludeMany?.Add(NativeTuple.Create(parent.IncludeManyKey, ret as IList, rowIndex));
+            }
+            else if (parent.IsDefaultCtor || parent.IsEntity || (ctorParmsLength = parent.Consturctor.GetParameters()?.Length ?? 0) == 0)
                 ret = parent.CsType?.CreateInstanceGetDefaultValue() ?? parent.Consturctor.Invoke(null);
             else
             {
                 var ctorParms = new object[ctorParmsLength];
                 for (var c = 0; c < ctorParmsLength; c++)
-                    ctorParms[c] = ReadAnonymous(parent.Childs[c], dr, ref index, notRead, null);
+                    ctorParms[c] = ReadAnonymous(parent.Childs[c], dr, ref index, notRead, null, rowIndex, fillIncludeMany);
                 ret = parent.Consturctor.Invoke(ctorParms);
             }
 
@@ -337,7 +366,7 @@ namespace FreeSql.Internal
             {
                 var prop = parent.Childs[b].Property;
                 var dbval = parent.IsEntity ? new ReadAnonymousDbValueRef() : null;
-                var objval = ReadAnonymous(parent.Childs[b], dr, ref index, notRead, dbval);
+                var objval = ReadAnonymous(parent.Childs[b], dr, ref index, notRead, dbval, rowIndex, fillIncludeMany);
                 if (isnull == false && parent.IsEntity && dbval.DbValue == null && parent.Table != null && parent.Table.ColumnsByCs.TryGetValue(parent.Childs[b].CsName, out var trycol) && trycol.Attribute.IsPrimary)
                     isnull = true;
                 if (isnull == false && prop.CanWrite)
