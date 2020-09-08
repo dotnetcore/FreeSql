@@ -1,0 +1,47 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0;net45</TargetFrameworks>
+		<Version>1.9.0-preview0906</Version>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<Authors>FreeSql;ncc;YeXiangQin</Authors>
+		<Description>FreeSql 数据库实现，基于 MySql 5.6，Ado.Net 驱动是 MySqlConnector</Description>
+		<PackageProjectUrl>https://github.com/2881099/FreeSql</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/2881099/FreeSql</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageTags>FreeSql;ORM</PackageTags>
+		<PackageId>$(AssemblyName)</PackageId>
+    <PackageIcon>logo.png</PackageIcon>
+		<Title>$(AssemblyName)</Title>
+		<IsPackable>true</IsPackable>
+		<GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+		<SignAssembly>true</SignAssembly>
+		<AssemblyOriginatorKeyFile>key.snk</AssemblyOriginatorKeyFile>
+		<DelaySign>false</DelaySign>
+	</PropertyGroup>
+
+  <ItemGroup>
+    <None Include="../../logo.png" Pack="true" PackagePath="\" />
+  </ItemGroup>
+  
+	<ItemGroup>
+		<PackageReference Include="MySqlConnector" Version="1.0.1" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Compile Include="../FreeSql.Provider.MySql/**/*.cs" Exclude="../FreeSql.Provider.MySql/obj/**/*" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Compile Remove="..\FreeSql.Provider.MySql\MySqlUtils.cs" />
+	</ItemGroup>
+	
+	<ItemGroup>
+		<ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />
+	</ItemGroup>
+
+  <PropertyGroup>
+    <DefineConstants>MySqlConnector</DefineConstants>
+  </PropertyGroup>
+  
+</Project>

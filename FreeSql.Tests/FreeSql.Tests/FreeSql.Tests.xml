@@ -1,0 +1,618 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>FreeSql.Tests</name>
+    </assembly>
+    <members>
+        <member name="M:FreeSql.Tests.MySql.MySqlCodeFirstTest.Tb_alltype.Save">
+            <summary>
+            保存或添加，如果主键有值则尝试 Update，如果影响的行为 0 则尝试 Insert
+            </summary>
+        </member>
+        <member name="T:FreeSql.Tests.SqlServer.SqlServerCodeFirstTest.tbdot01">
+            <summary>
+            表中带点
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerCodeFirstTest.tbdot01.id">
+            <summary>
+            主键
+            </summary>
+        </member>
+        <member name="T:FreeSql.Tests.UnitTest1.NewsArticle">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest1.NewsArticle.ArticleId">
+            <summary>
+            
+            </summary>        
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest1.NewsArticle.ArticleTitle">
+            <summary>
+            
+            </summary>        
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest1.NewsArticle.CategoryId">
+            <summary>
+            
+            </summary>        
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest1.NewsArticle.ChannelId">
+            <summary>
+            
+            </summary>        
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest1.NewsArticle.TypeId">
+            <summary>
+            类型
+            </summary>        
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest1.NewsArticle.Summary">
+            <summary>
+            内容简介
+            </summary>        
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest1.NewsArticle.Thumbnail">
+            <summary>
+            缩略图
+            </summary>        
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest1.NewsArticle.Hits">
+            <summary>
+            点击量
+            </summary>        
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest1.NewsArticle.IsDisplay">
+            <summary>
+            
+            </summary>        
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest1.NewsArticle.Status">
+            <summary>
+            
+            </summary>        
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest1.NewsArticle.CreateTime">
+            <summary>
+            
+            </summary>        
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest1.NewsArticle.ReleaseTime">
+            <summary>
+            
+            </summary>        
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest1.Templates.Id2">
+            <summary>
+            测试中文重命名id
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest1.Class1.name">
+            <summary>
+            姓名
+            </summary>
+        </member>
+        <member name="T:FreeSql.Tests.ExamPaper">
+            <summary>
+            试卷表
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.ExamPaper.AssessmentPlanId">
+            <summary>
+            考核计划ID
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.ExamPaper.TotalScore">
+            <summary>
+            总分
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModulePermission.Id">
+            <summary>
+            菜单权限ID
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModulePermission.SysModuleId">
+            <summary>
+            菜单主键ID
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModulePermission.SysModuleButtonId">
+            <summary>
+            按钮主键ID
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModulePermission.Status">
+            <summary>
+            菜单权限
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModule.Id">
+            <summary>
+            主键
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModule.ParentId">
+            <summary>
+            父级ID
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModule.Name">
+            <summary>
+            名称
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModule.Icon">
+            <summary>
+            图标
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModule.UrlAddress">
+            <summary>
+            链接地址
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModule.IsShow">
+            <summary>
+            是否公开
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModule.Sort">
+            <summary>
+            排序
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModule.Description">
+            <summary>
+            备注
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModule.CreateTime">
+            <summary>
+            创建日期
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModuleButton.Id">
+            <summary>
+            按钮主键
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModuleButton.Name">
+            <summary>
+            名称
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModuleButton.EventName">
+            <summary>
+            事件名称
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModuleButton.EnCode">
+            <summary>
+            编码
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModuleButton.Icon">
+            <summary>
+            图标
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModuleButton.Sort">
+            <summary>
+            排序
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModuleButton.CreateTime">
+            <summary>
+            创建日期
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.Comment.Text">
+            <summary>
+            回复的文本内容
+            </summary>
+        </member>
+        <member name="M:FreeSql.Tests.DbFunc.SetDbParameter(System.String,System.Int32)">
+            <summary>
+            设置表达式中的 string 参数化长度，优化执行计划
+            </summary>
+            <param name="that"></param>
+            <param name="size"></param>
+            <returns></returns>
+        </member>
+        <member name="T:FreeSql.Tests.UnitTest3.BaseModel">
+            <summary>
+            父级
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest3.BaseModel.UserID">
+            <summary>
+            创建人
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest3.BaseModel.CreateTime">
+            <summary>
+            创建时间
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest3.BaseModel.Description">
+            <summary>
+            备注
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest3.Menu.Name">
+            <summary>
+            菜单名称
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest3.Menu.EnName">
+            <summary>
+            英文名称
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest3.Menu.Url">
+            <summary>
+            链接地址
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest3.Menu.ParentID">
+            <summary>
+            父级菜单 一级为 0
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest3.Menu.OperationIds">
+            <summary>
+            按钮操作 逗号分隔
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest3.Menu.Parent">
+            <summary>
+            导航属性
+            </summary>
+        </member>
+        <member name="T:SaleIDO.Entity.Storeage.AdjustPriceOrder">
+            <summary>
+            调价单
+            </summary>
+        </member>
+        <member name="T:SaleIDO.Entity.Storeage.AdjustPriceDetail">
+            <summary>
+            调价单产品明细
+            </summary>
+        </member>
+        <member name="P:SaleIDO.Entity.Storeage.AdjustPriceDetail.OldLabelPrice">
+            <summary>
+            原标签价
+            </summary>
+        </member>
+        <member name="P:SaleIDO.Entity.Storeage.AdjustPriceDetail.NewMarketCostPrice">
+            <summary>
+            新的市场成本价
+            </summary>
+        </member>
+        <member name="P:SaleIDO.Entity.Storeage.AdjustPriceDetail.NewLabelPriceRate">
+            <summary>
+            新的标签价倍率
+            </summary>
+        </member>
+        <member name="P:SaleIDO.Entity.Storeage.AdjustPriceDetail.NewLabelPrice">
+            <summary>
+            新标签价
+            </summary>
+        </member>
+        <member name="T:Zeus.Utility.Entity.EntityBase`1">
+            <summary>
+            实体类基类
+            </summary>
+        </member>
+        <member name="M:Zeus.Utility.Entity.EntityBase`1.#ctor">
+            <summary>
+            初始化一个<see cref="T:Zeus.Utility.Entity.EntityBase`1"/>类型的新实例
+            </summary>
+        </member>
+        <member name="P:Zeus.Utility.Entity.EntityBase`1.ID">
+            <summary>
+            获取或设置主键
+            </summary>
+        </member>
+        <member name="P:Zeus.Utility.Entity.EntityBase`1.CreatedAt">
+            <summary>
+            创建时间
+            </summary>
+        </member>
+        <member name="M:Zeus.Utility.Entity.EntityBase`1.Equals(System.Object)">
+            <summary>
+            判断两个实体是否是同一数据记录的实体
+            </summary>
+            <param name="obj">要比较的实体信息</param>
+            <returns></returns>
+        </member>
+        <member name="M:Zeus.Utility.Entity.EntityBase`1.IsKeyEqual(`0,`0)">
+            <summary>
+            实体Id是否相等
+            </summary>
+        </member>
+        <member name="M:Zeus.Utility.Entity.EntityBase`1.GetHashCode">
+            <summary>
+            用作特定类型的哈希函数
+            </summary>
+            <returns>
+            当前 <see cref="T:System.Object"/> 的哈希代码。<br/>
+            如果<c>Id</c>为<c>null</c>则返回0，
+            如果不为<c>null</c>则返回<c>Id</c>对应的哈希值
+            </returns>
+        </member>
+        <member name="T:Zeus.Utility.Entity.IEntity`1">
+            <summary>
+            数据模型接口
+            </summary>
+        </member>
+        <member name="P:Zeus.Utility.Entity.IEntity`1.ID">
+            <summary>
+            实体唯一标识，主键
+            </summary>
+        </member>
+        <member name="P:Zeus.Utility.Entity.IEntity`1.CreatedAt">
+            <summary>
+            创建时间
+            </summary>
+        </member>
+        <member name="T:Zeus.Domain.Enum.IdentityType">
+            <summary>
+            登录类型
+            </summary>
+        </member>
+        <member name="T:Zeus.SystemUser">
+            <summary>
+            用户表
+            </summary>
+        </member>
+        <member name="P:Zeus.SystemUser.DisplayName">
+            <summary>
+            显示名称
+            </summary>
+        </member>
+        <member name="P:Zeus.SystemUser.RealName">
+            <summary>
+            真实名称
+            </summary>
+        </member>
+        <member name="P:Zeus.SystemUser.Gender">
+            <summary>
+            性别
+            </summary>
+        </member>
+        <member name="P:Zeus.SystemUser.Birthday">
+            <summary>
+            生日
+            </summary>
+        </member>
+        <member name="P:Zeus.SystemUser.AvaterURL">
+            <summary>
+            头像URL地址
+            </summary>
+        </member>
+        <member name="P:Zeus.SystemUser.Remark">
+            <summary>
+            备注
+            </summary>
+        </member>
+        <member name="P:Zeus.SystemUser.IsEnabled">
+            <summary>
+            启用标志
+            </summary>
+        </member>
+        <member name="P:Zeus.SystemUser.IsDeleted">
+            <summary>
+            删除标志
+            </summary>
+        </member>
+        <member name="P:Zeus.SystemUser.SystemUserAuthentication_List">
+            <summary>
+            所属用户认证记录
+            </summary>
+        </member>
+        <member name="T:Zeus.SystemUserAuthentication">
+            <summary>
+            用户认证表
+            </summary>
+        </member>
+        <member name="P:Zeus.SystemUserAuthentication.SystemUserID">
+            <summary>
+            用户表ID
+            </summary>
+        </member>
+        <member name="P:Zeus.SystemUserAuthentication.SystemUser">
+            <summary>
+            用户
+            </summary>
+        </member>
+        <member name="P:Zeus.SystemUserAuthentication.IdentityType">
+            <summary>
+            登录类型
+            </summary>
+        </member>
+        <member name="P:Zeus.SystemUserAuthentication.Identifier">
+            <summary>
+            登录标识
+            </summary>
+        </member>
+        <member name="P:Zeus.SystemUserAuthentication.Credential">
+            <summary>
+            登录凭证
+            </summary>
+        </member>
+        <member name="P:Zeus.SystemUserAuthentication.IsVerified">
+            <summary>
+            验证标志
+            </summary>
+        </member>
+        <member name="T:kwlib.departments">
+            <summary>
+            部门表  
+            </summary>    
+        </member>
+        <member name="P:kwlib.departments.deptid">
+            <summary>
+            部门ID  
+            </summary>
+        </member>
+        <member name="P:kwlib.departments.supdeptid">
+            <summary>
+            上级部门ID  
+            </summary>
+        </member>
+        <member name="P:kwlib.departments.pDepartments">
+            <summary>
+            上级部门对象
+            </summary>
+        </member>
+        <member name="P:kwlib.departments.managerid">
+            <summary>
+            部门主管ID  
+            </summary>
+        </member>
+        <member name="P:kwlib.departments.manager">
+            <summary>
+            部门主管对象
+            </summary>
+        </member>
+        <member name="P:kwlib.departments.deptcode">
+            <summary>
+            部门代码
+            </summary>
+        </member>
+        <member name="P:kwlib.departments.deptname">
+            <summary>
+            部门名称  
+            </summary>
+        </member>
+        <member name="T:kwlib.userinfo">
+            <summary>
+            员工表 
+            </summary>    
+        </member>
+        <member name="P:kwlib.userinfo.userid">
+            <summary>
+            员工ID  
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.badgenumber">
+            <summary>
+            考勤号码  
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.ssn">
+            <summary>
+            编号
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.IDCardNo">
+            <summary>
+            身份证  
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.name">
+            <summary>
+            姓名  
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.title">
+            <summary>
+            职务
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.birthday">
+            <summary>
+            生日
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.hiredday">
+            <summary>
+            入职时间  
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.hetongdate">
+            <summary>
+            合同日期  
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.street">
+            <summary>
+            家庭地址
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.zip">
+            <summary>
+            邮编  
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.ophone">
+            <summary>
+            办公电话  
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.pager">
+            <summary>
+            行动电话
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.fphone">
+            <summary>
+            家庭电话  
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.CardNo">
+            <summary>
+            卡号  
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.email">
+            <summary>
+            邮件地址  
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.idcardvalidtime">
+            <summary>
+            身份证有效期
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.homeaddress">
+            <summary>
+            籍贯  
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.minzu">
+            <summary>
+            民族
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.leavedate">
+            <summary>
+            离职日期  
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.loginpass">
+            <summary>
+            登录密码  
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.picurl">
+            <summary>
+            相片地址  
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.managerid">
+            <summary>
+            上级主管ID  
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.pManager">
+            <summary>
+            上级主管对象
+            </summary>
+        </member>
+    </members>
+</doc>

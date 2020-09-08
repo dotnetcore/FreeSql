@@ -1,0 +1,113 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>FreeSql.Tests.Provider.Odbc</name>
+    </assembly>
+    <members>
+        <member name="M:FreeSql.Tests.Odbc.MySql.MySqlCodeFirstTest.Tb_alltype.Save">
+            <summary>
+            保存或添加，如果主键有值则尝试 Update，如果影响的行为 0 则尝试 Insert
+            </summary>
+        </member>
+        <member name="T:FreeSql.Tests.Odbc.SqlServer.SqlServerCodeFirstTest.tbdot01">
+            <summary>
+            表中带点
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Odbc.SqlServer.SqlServerCodeFirstTest.tbdot01.id">
+            <summary>
+            主键
+            </summary>
+        </member>
+        <member name="T:FreeSql.Tests.Odbc.UnitTest1.NewsArticle">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Odbc.UnitTest1.NewsArticle.ArticleId">
+            <summary>
+            
+            </summary>        
+        </member>
+        <member name="P:FreeSql.Tests.Odbc.UnitTest1.NewsArticle.ArticleTitle">
+            <summary>
+            
+            </summary>        
+        </member>
+        <member name="P:FreeSql.Tests.Odbc.UnitTest1.NewsArticle.CategoryId">
+            <summary>
+            
+            </summary>        
+        </member>
+        <member name="P:FreeSql.Tests.Odbc.UnitTest1.NewsArticle.ChannelId">
+            <summary>
+            
+            </summary>        
+        </member>
+        <member name="P:FreeSql.Tests.Odbc.UnitTest1.NewsArticle.TypeId">
+            <summary>
+            类型
+            </summary>        
+        </member>
+        <member name="P:FreeSql.Tests.Odbc.UnitTest1.NewsArticle.Summary">
+            <summary>
+            内容简介
+            </summary>        
+        </member>
+        <member name="P:FreeSql.Tests.Odbc.UnitTest1.NewsArticle.Thumbnail">
+            <summary>
+            缩略图
+            </summary>        
+        </member>
+        <member name="P:FreeSql.Tests.Odbc.UnitTest1.NewsArticle.Hits">
+            <summary>
+            点击量
+            </summary>        
+        </member>
+        <member name="P:FreeSql.Tests.Odbc.UnitTest1.NewsArticle.IsDisplay">
+            <summary>
+            
+            </summary>        
+        </member>
+        <member name="P:FreeSql.Tests.Odbc.UnitTest1.NewsArticle.Status">
+            <summary>
+            
+            </summary>        
+        </member>
+        <member name="P:FreeSql.Tests.Odbc.UnitTest1.NewsArticle.CreateTime">
+            <summary>
+            
+            </summary>        
+        </member>
+        <member name="P:FreeSql.Tests.Odbc.UnitTest1.NewsArticle.ReleaseTime">
+            <summary>
+            
+            </summary>        
+        </member>
+        <member name="P:FreeSql.Tests.Odbc.UnitTest1.Templates.Id2">
+            <summary>
+            测试中文重命名id
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Odbc.UnitTest1.Class1.name">
+            <summary>
+            姓名
+            </summary>
+        </member>
+        <member name="T:FreeSql.Tests.Odbc.ExamPaper">
+            <summary>
+            试卷表
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Odbc.ExamPaper.AssessmentPlanId">
+            <summary>
+            考核计划ID
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Odbc.ExamPaper.TotalScore">
+            <summary>
+            总分
+            </summary>
+        </member>
+    </members>
+</doc>

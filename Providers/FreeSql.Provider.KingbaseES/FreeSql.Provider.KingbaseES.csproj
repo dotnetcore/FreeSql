@@ -1,0 +1,45 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+    <TargetFrameworks>netstandard2.0;net461</TargetFrameworks>
+		<Version>1.9.0-preview0906</Version>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<Authors>FreeSql;ncc;YeXiangQin</Authors>
+		<Description>FreeSql 数据库实现，基于 人大金仓数据库 Ado.Net (Kdbndp)</Description>
+		<PackageProjectUrl>https://github.com/2881099/FreeSql</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/2881099/FreeSql</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageTags>FreeSql;ORM;人大金仓;金仓;Kdbndp</PackageTags>
+		<PackageId>$(AssemblyName)</PackageId>
+    <PackageIcon>logo.png</PackageIcon>
+		<Title>$(AssemblyName)</Title>
+		<IsPackable>true</IsPackable>
+		<GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+	</PropertyGroup>
+
+  <ItemGroup>
+    <None Include="../../logo.png" Pack="true" PackagePath="\" />
+    <None Include="lib\Kdbndp.dll" Pack="true" PackagePath="\lib\netstandard2.0\" />
+    <None Include="lib\Kdbndp.dll" Pack="true" PackagePath="\lib\net461\" />
+    <None Include="lib/**/*.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Kdbndp">
+      <HintPath>lib\Kdbndp.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <DefineConstants>ns20;netstandard20</DefineConstants>
+  </PropertyGroup>
+
+</Project>
