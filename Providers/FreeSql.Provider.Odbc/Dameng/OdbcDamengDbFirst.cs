@@ -358,8 +358,8 @@ where {(ignoreCase ? "lower(a.owner)" : "a.owner")} in ({databaseIn}) and {loc8}
                 ds2item[1] = row[1];
                 ds2item[2] = Regex.Replace(string.Concat(row[2]), @"\(\d+\)", "");
                 ds2item[4] = OdbcDamengCodeFirst.GetDamengSqlTypeFullName(new object[] { row[1], row[2], row[3], row[4], row[5], row[6] });
-                ds2item[5] = string.Concat(row[7]) == "1";
-                ds2item[6] = string.Concat(row[8]) == "1";
+                ds2item[5] = string.Concat(row[7]);
+                ds2item[6] = string.Concat(row[8]);
                 ds2item[7] = string.Concat(row[9]);
                 ds2item[8] = string.Concat(row[10]);
                 ds2.Add(ds2item);
