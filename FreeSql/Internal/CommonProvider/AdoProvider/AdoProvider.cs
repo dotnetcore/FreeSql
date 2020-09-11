@@ -106,6 +106,9 @@ namespace FreeSql.Internal.CommonProvider
                     case DataType.OdbcOracle:
                         ExecuteNonQuery(" SELECT 1 FROM dual");
                         return true;
+                    case DataType.Firebird:
+                        ExecuteNonQuery(" SELECT FIRST 1 1 FROM rdb$database");
+                        return true;
                 }
                 ExecuteNonQuery(" SELECT 1");
                 return true;

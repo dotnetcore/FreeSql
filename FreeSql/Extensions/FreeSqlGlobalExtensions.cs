@@ -393,7 +393,7 @@ public static partial class FreeSqlGlobalExtensions
     #region AsTreeCte(..) 递归查询
     /// <summary>
     /// 使用递归 CTE 查询树型的所有子记录，或者所有父记录。<para></para>
-    /// 通过测试的数据库：MySql8.0、SqlServer、PostgreSQL、Oracle、Sqlite、达梦、人大金仓<para></para>
+    /// 通过测试的数据库：MySql8.0、SqlServer、PostgreSQL、Oracle、Sqlite、Firebird、达梦、人大金仓<para></para>
     /// 返回隐藏字段：.ToList(a =&gt; new { item = a, level = "a.cte_level", path = "a.cte_path" })
     /// </summary>
     /// <typeparam name="T1"></typeparam>
@@ -435,6 +435,7 @@ public static partial class FreeSqlGlobalExtensions
                 case DataType.ShenTong: //神通测试未通过
                 case DataType.SqlServer:
                 case DataType.OdbcSqlServer:
+                case DataType.Firebird:
                     sql1ctePath = select._commonExpression.ExpressionWhereLambda(select._tables, Expression.Call(typeof(Convert).GetMethod("ToString", new Type[] { typeof(string) }), pathSelector?.Body), null, null, null);
                     break;
                 default:
@@ -493,6 +494,7 @@ public static partial class FreeSqlGlobalExtensions
             case DataType.ShenTong: //神通测试未通过
             case DataType.MySql:
             case DataType.OdbcMySql:
+            case DataType.Firebird:
                 nsselsb.Append("RECURSIVE ");
                 break;
         }

@@ -49,6 +49,11 @@ namespace FreeSql
         /// <summary>
         /// 北京人大金仓信息技术股份有限公司，基于 Kdbndp.dll 的实现
         /// </summary>
-        KingbaseES
+        KingbaseES,
+
+        /// <summary>
+        /// Firebird 是一个跨平台的关系数据库，能作为多用户环境下的数据库服务器运行，也提供嵌入式数据库的实现
+        /// </summary>
+        Firebird
     }
 }

@@ -4,6 +4,11 @@
         <name>FreeSql.Tests</name>
     </assembly>
     <members>
+        <member name="P:FreeSql.Tests.Firebird.FirebirdCodeFirstTest.AddUniquesInfo.id">
+            <summary>
+            编号
+            </summary>
+        </member>
         <member name="M:FreeSql.Tests.MySql.MySqlCodeFirstTest.Tb_alltype.Save">
             <summary>
             保存或添加，如果主键有值则尝试 Update，如果影响的行为 0 则尝试 Insert

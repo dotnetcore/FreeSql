@@ -38,6 +38,7 @@
       <ProjectReference Include="..\..\FreeSql.DbContext\FreeSql.DbContext.csproj" />
       <ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />
       <ProjectReference Include="..\..\Providers\FreeSql.Provider.Dameng\FreeSql.Provider.Dameng.csproj" />
+      <ProjectReference Include="..\..\Providers\FreeSql.Provider.Firebird\FreeSql.Provider.Firebird.csproj" />
       <ProjectReference Include="..\..\Providers\FreeSql.Provider.KingbaseES\FreeSql.Provider.KingbaseES.csproj" />
       <ProjectReference Include="..\..\Providers\FreeSql.Provider.MsAccess\FreeSql.Provider.MsAccess.csproj" />
       <ProjectReference Include="..\..\Providers\FreeSql.Provider.MySql\FreeSql.Provider.MySql.csproj" />

@@ -145,6 +145,12 @@ namespace FreeSql.Internal.CommonProvider
             {
                 if (didx > 0) sb.Append(" \r\nUNION ALL\r\n ");
                 sb.Append("SELECT ");
+                switch (_orm.Ado.DataType)
+                {
+                    case DataType.Firebird:
+                        sb.Append("FIRST 1 ");
+                        break;
+                }
                 var colidx2 = 0;
                 foreach (var col in _table.Columns.Values)
                 {
@@ -166,6 +172,9 @@ namespace FreeSql.Internal.CommonProvider
                     case DataType.OdbcDameng:
                     case DataType.Dameng:
                         sb.Append(" FROM dual");
+                        break;
+                    case DataType.Firebird:
+                        sb.Append(" FROM rdb$database");
                         break;
                 }
                 ++didx;

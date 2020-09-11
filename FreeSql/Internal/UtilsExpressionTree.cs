@@ -275,6 +275,11 @@ namespace FreeSql.Internal
                             if (strlen < 0) colattr.DbType = "LONGTEXT";
                             else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
                             break;
+                        case DataType.Firebird:
+                            charPatten = @"(CHAR|CHAR2|CHARACTER|TEXT)\s*(\([^\)]*\))?";
+                            if (strlen < 0) colattr.DbType = "BLOB SUB_TYPE 1";
+                            else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
+                            break;
                     }
                 }
                 if (colattr.MapType == typeof(byte[]) && colattr.StringLength != 0)
@@ -317,6 +322,9 @@ namespace FreeSql.Internal
                         case DataType.MsAccess:
                             if (strlen < 0) colattr.DbType = "BLOB";
                             else colattr.DbType = Regex.Replace(colattr.DbType, bytePatten, $"$1({strlen})");
+                            break;
+                        case DataType.Firebird:
+                            colattr.DbType = "BLOB";
                             break;
                     }
                 }

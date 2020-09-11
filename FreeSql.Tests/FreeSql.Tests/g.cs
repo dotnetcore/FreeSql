@@ -162,4 +162,19 @@ public class g
             (cmd, traceLog) => Console.WriteLine(traceLog))
         .Build());
     public static IFreeSql kingbaseES => kingbaseESLazy.Value;
+
+    static Lazy<IFreeSql> firebirdLazy = new Lazy<IFreeSql>(() => new FreeSql.FreeSqlBuilder()
+        .UseConnectionString(FreeSql.DataType.Firebird, @"database=localhost:D:\fbdata\EXAMPLES.fdb;user=sysdba;password=123456;max pool size=5")
+        //.UseConnectionFactory(FreeSql.DataType.Firebird, () => new FirebirdSql.Data.FirebirdClient.FbConnection(@"database=localhost:D:\fbdata\EXAMPLES.fdb;user=sysdba;password=123456;max pool size=5"))
+        .UseAutoSyncStructure(true)
+        .UseLazyLoading(true)
+        .UseNameConvert(FreeSql.Internal.NameConvertType.ToUpper)
+        //.UseNoneCommandParameter(true)
+
+        .UseMonitorCommand(
+            cmd => Trace.WriteLine(cmd.CommandText), //监听SQL命令对象，在执行前
+            (cmd, traceLog) => Console.WriteLine(traceLog))
+        .Build());
+    public static IFreeSql firebird => firebirdLazy.Value;
+
 }

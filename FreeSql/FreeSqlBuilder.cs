@@ -251,6 +251,11 @@ namespace FreeSql
                         if (type == null) throwNotFind("FreeSql.Provider.KingbaseES.dll", "FreeSql.KingbaseES.KingbaseESProvider<>");
                         break;
 
+                    case DataType.Firebird:
+                        type = Type.GetType("FreeSql.Firebird.FirebirdProvider`1,FreeSql.Provider.Firebird")?.MakeGenericType(typeof(TMark));
+                        if (type == null) throwNotFind("FreeSql.Provider.Firebird.dll", "FreeSql.Firebird.FirebirdProvider<>");
+                        break;
+
                     default: throw new Exception("未指定 UseConnectionString 或者 UseConnectionFactory");
                 }
             }

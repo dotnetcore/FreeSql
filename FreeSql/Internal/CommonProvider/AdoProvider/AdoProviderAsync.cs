@@ -24,6 +24,9 @@ namespace FreeSql.Internal.CommonProvider
                     case DataType.OdbcOracle:
                         await ExecuteNonQueryAsync(" SELECT 1 FROM dual");
                         return true;
+                    case DataType.Firebird:
+                        await ExecuteNonQueryAsync(" SELECT FIRST 1 1 FROM rdb$database");
+                        return true;
                 }
                 await ExecuteNonQueryAsync(" SELECT 1");
                 return true;

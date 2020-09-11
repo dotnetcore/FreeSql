@@ -522,10 +522,11 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
 
-        public virtual string ToSql() => ToSqlValuesOrSelectUnionAll(true);
+        public virtual string ToSql() => ToSqlValuesOrSelectUnionAllExtension102(true, null, null);
 
-        public string ToSqlValuesOrSelectUnionAll(bool isValues = true) => ToSqlValuesOrSelectUnionAllExtension101(isValues, null);
-        public string ToSqlValuesOrSelectUnionAllExtension101(bool isValues, Action<object, int, StringBuilder> onrow)
+        public string ToSqlValuesOrSelectUnionAll(bool isValues = true) => ToSqlValuesOrSelectUnionAllExtension102(isValues, null, null);
+        public string ToSqlValuesOrSelectUnionAllExtension101(bool isValues, Action<object, int, StringBuilder> onrow) => ToSqlValuesOrSelectUnionAllExtension102(isValues, null, onrow);
+        public string ToSqlValuesOrSelectUnionAllExtension102(bool isValues, Action<object, int, StringBuilder> onrowPre, Action<object, int, StringBuilder> onrow)
         {
             if (_source == null || _source.Any() == false) return null;
             var sb = new StringBuilder();
@@ -549,6 +550,7 @@ namespace FreeSql.Internal.CommonProvider
             {
                 if (didx > 0) sb.Append(isValues ? ", " : " \r\nUNION ALL\r\n ");
                 sb.Append(isValues ? "(" : "SELECT ");
+                onrowPre?.Invoke(d, didx, sb);
                 var colidx2 = 0;
                 foreach (var col in _table.Columns.Values)
                 {

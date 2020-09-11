@@ -287,6 +287,7 @@ namespace FreeSql.Internal.CommonProvider
                 case DataType.OdbcDameng: //达梦不能这样
                 case DataType.Oracle:
                 case DataType.OdbcOracle:
+                case DataType.Firebird:
                     break;
                 default:
                     _select = "SELECT ";
@@ -334,6 +335,7 @@ namespace FreeSql.Internal.CommonProvider
                 case DataType.OdbcDameng: //达梦不能这样
                 case DataType.Oracle:
                 case DataType.OdbcOracle:
+                case DataType.Firebird:
                     break;
                 default:
                     var beforeSql = this._select;
@@ -359,6 +361,7 @@ namespace FreeSql.Internal.CommonProvider
                 case DataType.OdbcDameng: //达梦不能这样
                 case DataType.Oracle:
                 case DataType.OdbcOracle:
+                case DataType.Firebird:
                     break;
                 default:
                     var beforeSql = this._select;
@@ -647,6 +650,9 @@ namespace FreeSql.Internal.CommonProvider
                     break;
                 case DataType.ShenTong: //神通测试中发现，不支持 nowait
                     _tosqlAppendContent = " for update";
+                    break;
+                case DataType.Firebird:
+                    _tosqlAppendContent = " for update with lock";
                     break;
             }
             return this as TSelect;
