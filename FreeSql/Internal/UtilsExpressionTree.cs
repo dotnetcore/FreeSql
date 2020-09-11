@@ -1230,11 +1230,12 @@ namespace FreeSql.Internal
             {
                 foreach (var key in dic.Keys)
                 {
-                    if (isCheckSql && string.IsNullOrEmpty(paramPrefix) == false && sql.IndexOf($"{paramPrefix}{key}", StringComparison.CurrentCultureIgnoreCase) == -1) continue;
+                    var dbkey = key.ToString().TrimStart('@', '?', ':');
+                    if (isCheckSql && string.IsNullOrEmpty(paramPrefix) == false && sql.IndexOf($"{paramPrefix}{dbkey}", StringComparison.CurrentCultureIgnoreCase) == -1) continue;
                     var val = dic[key];
                     var valType = val == null ? typeof(string) : val.GetType();
                     if (valType == ttype) ret.Add((T)Convert.ChangeType(val, ttype));
-                    else ret.Add(constructorParamter(key.ToString(), valType, val));
+                    else ret.Add(constructorParamter(dbkey, valType, val));
                 }
             }
             else
