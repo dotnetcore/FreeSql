@@ -53,7 +53,7 @@ namespace FreeSql.Tests.FirebirdExpression
         [Fact]
         public void StringJoin()
         {
-            var fsql = g.sqlite;
+            var fsql = g.firebird;
             fsql.Delete<StringJoin01>().Where("1=1").ExecuteAffrows();
             fsql.Insert(new[] { new StringJoin01 { name = "北京" }, new StringJoin01 { name = "上海" }, new StringJoin01 { name = "深圳" }, }).ExecuteAffrows();
 

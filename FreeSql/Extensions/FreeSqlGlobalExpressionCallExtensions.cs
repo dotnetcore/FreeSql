@@ -358,6 +358,11 @@ namespace FreeSql
             expContext.Result = $"listagg(to_char({expContext.ParsedContent["column"]}),{expContext.ParsedContent["delimiter"]}) within group({orderby})";
             return null;
         }
+        public static string StringJoinFirebirdList(object column, object delimiter)
+        {
+            expContext.Result = $"list({expContext.ParsedContent["column"]},{expContext.ParsedContent["delimiter"]})";
+            return null;
+        }
         #endregion
     }
 }
