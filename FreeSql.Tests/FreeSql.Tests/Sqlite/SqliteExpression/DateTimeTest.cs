@@ -49,17 +49,6 @@ namespace FreeSql.Tests.SqliteExpression
             data.Add(select.Where(a => a.CreateTime.ToString().Equals(DateTime.Now)).ToList());
             data.Add(select.Where(a => a.Type.Time.AddYears(1).ToString().Equals(DateTime.Now)).ToList());
             data.Add(select.Where(a => a.Type.Parent.Time2.AddYears(1).ToString().Equals(DateTime.Now)).ToList());
-            //SELECT a.`Id` as1, a.`Clicks` as2, a.`TypeGuid` as3, a.`Title` as4, a.`CreateTime` as5 
-            //FROM `tb_topic111333` a 
-            //WHERE ((date_format(a.`CreateTime`, '%Y-%m-%d %H:%i:%s.%f') = now()));
-
-            //SELECT a.`Id` as1, a.`Clicks` as2, a.`TypeGuid` as3, a__Type.`Guid` as4, a__Type.`ParentId` as5, a__Type.`Name` as6, a__Type.`Time` as7, a.`Title` as8, a.`CreateTime` as9 
-            //FROM `tb_topic111333` a, `TestTypeInfo333` a__Type 
-            //WHERE ((date_format(date_add(a__Type.`Time`, interval (1) year), '%Y-%m-%d %H:%i:%s.%f') = now()));
-
-            //SELECT a.`Id` as1, a.`Clicks` as2, a.`TypeGuid` as3, a__Type.`Guid` as4, a__Type.`ParentId` as5, a__Type.`Name` as6, a__Type.`Time` as7, a.`Title` as8, a.`CreateTime` as9 
-            //FROM `tb_topic111333` a, `TestTypeInfo333` a__Type, `TestTypeParentInfo23123` a__Type__Parent 
-            //WHERE ((date_format(date_add(a__Type__Parent.`Time2`, interval (1) year), '%Y-%m-%d %H:%i:%s.%f') = now()))
 
             g.sqlite.Insert(new Topic()).ExecuteAffrows();
             var dtn = DateTime.Parse("2020-1-1 0:0:0");

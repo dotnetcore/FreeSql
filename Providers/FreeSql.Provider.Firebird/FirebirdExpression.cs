@@ -1,11 +1,10 @@
 ﻿using FreeSql.Internal;
-using FreeSql.Internal.Model;
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace FreeSql.Firebird
 {
@@ -41,7 +40,7 @@ namespace FreeSql.Firebird
                             case "System.UInt16": return $"cast({getExp(operandExp)} as integer)";
                             case "System.UInt32": return $"cast({getExp(operandExp)} as bigint)";
                             case "System.UInt64": return $"cast({getExp(operandExp)} as decimal(21,0))";
-                            case "System.Guid": return $"substring(cast({getExp(operandExp)} as char) from 1 for 36)";
+                            case "System.Guid": return $"substring(cast({getExp(operandExp)} as char(36)) from 1 for 36)";
                         }
                     }
                     break;
@@ -69,7 +68,7 @@ namespace FreeSql.Firebird
                                 case "System.UInt16": return $"cast({getExp(callExp.Arguments[0])} as integer)";
                                 case "System.UInt32": return $"cast({getExp(callExp.Arguments[0])} as bigint)";
                                 case "System.UInt64": return $"cast({getExp(callExp.Arguments[0])} as decimal(18,0))";
-                                case "System.Guid": return $"substring(cast({getExp(callExp.Arguments[0])} as char) from 1 for 36)";
+                                case "System.Guid": return $"substring(cast({getExp(callExp.Arguments[0])} as char(36)) from 1 for 36)";
                             }
                             return null;
                         case "NewGuid":
@@ -84,7 +83,7 @@ namespace FreeSql.Firebird
                             if (callExp.Method.DeclaringType.IsNumberType()) return "rand()";
                             return null;
                         case "ToString":
-                            if (callExp.Object != null) return callExp.Arguments.Count == 0 ? $"cast({getExp(callExp.Object)} as char)" : null;
+                            if (callExp.Object != null) return callExp.Arguments.Count == 0 ? $"cast({getExp(callExp.Object)} as blob sub_type 1)" : null;
                             return null;
                     }
 
@@ -401,7 +400,41 @@ namespace FreeSql.Firebird
                         break;
                     case "Equals": return $"({left} = {args1})";
                     case "CompareTo": return $"datediff(second from {left} to {args1})";
-                    case "ToString": return exp.Arguments.Count == 0 ? $"cast({left} as varchar(50))" : null;
+                    case "ToString":
+                        if (left.EndsWith(" as timestamp)") == false && left.StartsWith("timestamp") == false) left = $"cast({left} as timestamp)";
+                        if (exp.Arguments.Count == 0) return $"lpad(extract(year from {left}),4,'0')||'-'||lpad(extract(month from {left}),2,'0')||'-'||lpad(extract(day from {left}),2,'0')||' '||lpad(extract(hour from {left}),2,'0')||':'||lpad(extract(minute from {left}),2,'0')||':'||lpad(trunc(extract(second from {left})),2,'0')";
+                        switch (args1.TrimStart('N'))
+                        {
+                            case "'yyyyMMdd'": return $"lpad(extract(year from {left}),4,'0')||lpad(extract(month from {left}),2,'0')||lpad(extract(day from {left}),2,'0')";
+                            case "'yyyyMM'": return $"lpad(extract(year from {left}),4,'0')||lpad(extract(month from {left}),2,'0')";
+                            case "'yyyy'": return $"lpad(extract(year from {left}),4,'0')";
+                        }
+                        var isMatched = false;
+                        args1 = Regex.Replace(args1, "(yyyy|yy|MM|M|dd|d|HH|H|hh|h|mm|m|ss|s|tt|t)", m =>
+                        {
+                            isMatched = true;
+                            switch (m.Groups[1].Value)
+                            {
+                                case "yyyy": return $"'||lpad(extract(year from {left}),4,'0')||'";
+                                case "yy": return $"'||substring(lpad(extract(year from {left}),4,'0') from 3 for 2)||'";
+                                case "MM": return $"'||lpad(extract(month from {left}),2,'0')||'";
+                                case "M": return $"'||extract(month from {left})||'";
+                                case "dd": return $"'||lpad(extract(day from {left}),2,'0')||'";
+                                case "d": return $"'||extract(day from {left})||'";
+                                case "HH": return $"'||lpad(extract(hour from {left}),2,'0')||'";
+                                case "H": return $"'||extract(hour from {left})||'";
+                                case "hh": return $"'||case when mod(extract(hour from {left}),12) = 0 then '12' else lpad(mod(extract(hour from {left}),12),2,'0') end||'";
+                                case "h": return $"'||trim(case when mod(extract(hour from {left}),12) = 0 then '12' else mod(extract(hour from {left}),12) end)||'";
+                                case "mm": return $"'||lpad(extract(minute from {left}),2,'0')||'";
+                                case "m": return $"'||extract(minute from {left})||'";
+                                case "ss": return $"'||lpad(trunc(extract(second from {left})),2,'0')||'";
+                                case "s": return $"'||trunc(extract(second from {left}))||'";
+                                case "tt": return $"'||case when extract(hour from {left}) >= 12 then 'PM' else 'AM' end||'";
+                                case "t": return $"'||case when extract(hour from {left}) >= 12 then 'P' else 'A' end||'";
+                            }
+                            return m.Groups[0].Value;
+                        });
+                        return isMatched == false ? args1 : $"({args1})";
                 }
             }
             return null;
