@@ -921,7 +921,7 @@ FROM ""TB_TOPIC22"" a", subquery);
             var subquery = select.Where(a => select.As("b").ToList(b => b.Title).Contains(a.Id.ToString())).ToSql();
             Assert.Equal(@"SELECT a.""ID"", a.""CLICKS"", a.""TYPEGUID"", a.""TITLE"", a.""CREATETIME"" 
 FROM ""TB_TOPIC22"" a 
-WHERE (((cast(a.""ID"" as char)) in (SELECT b.""TITLE"" 
+WHERE (((cast(a.""ID"" as blob sub_type 1)) in (SELECT b.""TITLE"" 
     FROM ""TB_TOPIC22"" b)))", subquery);
             var subqueryList = select.Where(a => select.As("b").ToList(b => b.Title).Contains(a.Id.ToString())).ToList();
         }

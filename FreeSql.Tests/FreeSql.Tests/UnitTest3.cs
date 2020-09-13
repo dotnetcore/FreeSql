@@ -190,6 +190,79 @@ namespace FreeSql.Tests
 ;
 ", ddlsql);
 
+            var select16Sql1 = g.sqlite.Select<userinfo, userinfo, userinfo, userinfo, userinfo, userinfo, userinfo, userinfo, userinfo, userinfo, userinfo, userinfo, userinfo, userinfo, userinfo, userinfo>()
+                .InnerJoin((a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p) => b.userid == a.userid)
+                .InnerJoin((a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p) => c.userid == b.userid)
+                .InnerJoin((a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p) => d.userid == c.userid)
+                .InnerJoin((a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p) => e.userid == d.userid)
+                .InnerJoin((a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p) => f.userid == e.userid)
+                .InnerJoin((a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p) => g.userid == f.userid)
+                .InnerJoin((a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p) => h.userid == g.userid)
+                .InnerJoin((a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p) => i.userid == h.userid)
+                .InnerJoin((a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p) => j.userid == i.userid)
+                .InnerJoin((a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p) => k.userid == j.userid)
+                .InnerJoin((a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p) => l.userid == k.userid)
+                .InnerJoin((a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p) => m.userid == l.userid)
+                .InnerJoin((a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p) => n.userid == m.userid)
+                .InnerJoin((a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p) => o.userid == n.userid)
+                .InnerJoin((a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p) => p.userid == o.userid)
+                .ToSql((a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p) => p);
+            Assert.Equal(@"SELECT p.""userid"" as1, p.""badgenumber"" as2, p.""ssn"" as3, p.""IDCardNo"" as4, p.""name"" as5, p.""title"" as6, p.""birthday"" as7, p.""hiredday"" as8, p.""hetongdate"" as9, p.""street"" as10, p.""zip"" as11, p.""ophone"" as12, p.""pager"" as13, p.""fphone"" as14, p.""CardNo"" as15, p.""email"" as16, p.""idcardvalidtime"" as17, p.""homeaddress"" as18, p.""minzu"" as19, p.""leavedate"" as20, p.""loginpass"" as21, p.""picurl"" as22, p.""managerid"" as23 
+FROM ""userinfo"" a 
+INNER JOIN ""userinfo"" b ON b.""userid"" = a.""userid"" 
+INNER JOIN ""userinfo"" c ON c.""userid"" = b.""userid"" 
+INNER JOIN ""userinfo"" d ON d.""userid"" = c.""userid"" 
+INNER JOIN ""userinfo"" e ON e.""userid"" = d.""userid"" 
+INNER JOIN ""userinfo"" f ON f.""userid"" = e.""userid"" 
+INNER JOIN ""userinfo"" g ON g.""userid"" = f.""userid"" 
+INNER JOIN ""userinfo"" h ON h.""userid"" = g.""userid"" 
+INNER JOIN ""userinfo"" i ON i.""userid"" = h.""userid"" 
+INNER JOIN ""userinfo"" j ON j.""userid"" = i.""userid"" 
+INNER JOIN ""userinfo"" k ON k.""userid"" = j.""userid"" 
+INNER JOIN ""userinfo"" l ON l.""userid"" = k.""userid"" 
+INNER JOIN ""userinfo"" m ON m.""userid"" = l.""userid"" 
+INNER JOIN ""userinfo"" n ON n.""userid"" = m.""userid"" 
+INNER JOIN ""userinfo"" o ON o.""userid"" = n.""userid"" 
+INNER JOIN ""userinfo"" p ON p.""userid"" = o.""userid""", select16Sql1);
+            var select16Sql2 = g.sqlite.Select<userinfo>()
+                .From<userinfo, userinfo, userinfo, userinfo, userinfo, userinfo, userinfo, userinfo, userinfo, userinfo, userinfo, userinfo, userinfo, userinfo, userinfo>(
+                    (s, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p) => s
+                    .InnerJoin(a => b.userid == a.userid)
+                    .InnerJoin(a => c.userid == b.userid)
+                    .InnerJoin(a => d.userid == c.userid)
+                    .InnerJoin(a => e.userid == d.userid)
+                    .InnerJoin(a => f.userid == e.userid)
+                    .InnerJoin(a => g.userid == f.userid)
+                    .InnerJoin(a => h.userid == g.userid)
+                    .InnerJoin(a => i.userid == h.userid)
+                    .InnerJoin(a => j.userid == i.userid)
+                    .InnerJoin(a => k.userid == j.userid)
+                    .InnerJoin(a => l.userid == k.userid)
+                    .InnerJoin(a => m.userid == l.userid)
+                    .InnerJoin(a => n.userid == m.userid)
+                    .InnerJoin(a => o.userid == n.userid)
+                    .InnerJoin(a => p.userid == o.userid)
+                )
+                .ToSql((a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p) => p);
+            Assert.Equal(@"SELECT p.""userid"" as1, p.""badgenumber"" as2, p.""ssn"" as3, p.""IDCardNo"" as4, p.""name"" as5, p.""title"" as6, p.""birthday"" as7, p.""hiredday"" as8, p.""hetongdate"" as9, p.""street"" as10, p.""zip"" as11, p.""ophone"" as12, p.""pager"" as13, p.""fphone"" as14, p.""CardNo"" as15, p.""email"" as16, p.""idcardvalidtime"" as17, p.""homeaddress"" as18, p.""minzu"" as19, p.""leavedate"" as20, p.""loginpass"" as21, p.""picurl"" as22, p.""managerid"" as23 
+FROM ""userinfo"" a 
+INNER JOIN ""userinfo"" b ON b.""userid"" = a.""userid"" 
+INNER JOIN ""userinfo"" c ON c.""userid"" = b.""userid"" 
+INNER JOIN ""userinfo"" d ON d.""userid"" = c.""userid"" 
+INNER JOIN ""userinfo"" e ON e.""userid"" = d.""userid"" 
+INNER JOIN ""userinfo"" f ON f.""userid"" = e.""userid"" 
+INNER JOIN ""userinfo"" g ON g.""userid"" = f.""userid"" 
+INNER JOIN ""userinfo"" h ON h.""userid"" = g.""userid"" 
+INNER JOIN ""userinfo"" i ON i.""userid"" = h.""userid"" 
+INNER JOIN ""userinfo"" j ON j.""userid"" = i.""userid"" 
+INNER JOIN ""userinfo"" k ON k.""userid"" = j.""userid"" 
+INNER JOIN ""userinfo"" l ON l.""userid"" = k.""userid"" 
+INNER JOIN ""userinfo"" m ON m.""userid"" = l.""userid"" 
+INNER JOIN ""userinfo"" n ON n.""userid"" = m.""userid"" 
+INNER JOIN ""userinfo"" o ON o.""userid"" = n.""userid"" 
+INNER JOIN ""userinfo"" p ON p.""userid"" = o.""userid""", select16Sql2);
+
+
             var sqlxx = g.pgsql.InsertOrUpdate<userinfo>().SetSource(new userinfo { userid = 10 }).UpdateColumns(a => new { a.birthday, a.CardNo }).ToSql();
 
             var aff1 = g.sqlite.GetRepository<Edi, long>().Delete(10086);

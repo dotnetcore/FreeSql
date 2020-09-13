@@ -329,10 +329,7 @@
         </member>
         <member name="M:FreeSql.IBaseRepository`1.BeginEdit(System.Collections.Generic.List{`0})">
             <summary>
-            开始编辑数据，然后调用方法 EndEdit 分析出添加、修改、删除 SQL 语句进行执行<para></para>
-            场景：winform 加载表数据后，一顿添加、修改、删除操作之后，最后才点击【保存】<para></para><para></para>
-            示例：https://github.com/dotnetcore/FreeSql/issues/397<para></para>
-            注意：* 本方法只支持单表操作，不支持导航属性级联保存
+            开始编辑数据，然后调用方法 EndEdit 分析出添加�方法只支持单表操作，不支持导航属性级联保存
             </summary>
             <param name="data"></param>
         </member>
@@ -526,6 +523,15 @@
             <returns></returns>
         </member>
         <member name="M:FreeSqlDbContextExtensions.CreateUnitOfWork(IFreeSql)">
+            <summary>
+            创建基于仓储功能的工作单元，务必使用 using 包含使用
+            </summary>
+            <param name="that"></param>
+            <returns></returns>
+        </member>
+    </members>
+</doc>
+me="M:FreeSqlDbContextExtensions.CreateUnitOfWork(IFreeSql)">
             <summary>
             创建基于仓储功能的工作单元，务必使用 using 包含使用
             </summary>
