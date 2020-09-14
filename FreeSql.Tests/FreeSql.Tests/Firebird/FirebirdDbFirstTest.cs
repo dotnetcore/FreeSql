@@ -36,6 +36,11 @@ namespace FreeSql.Tests.Firebird
         public void ExistsTable()
         {
             var fsql = g.firebird;
+            try
+            {
+                fsql.Ado.ExecuteNonQuery("drop table test_existstb011");
+            }
+            catch { }
             Assert.False(fsql.DbFirst.ExistsTable("test_existstb011"));
             Assert.False(fsql.DbFirst.ExistsTable("test_existstb011", false));
             fsql.CodeFirst.SyncStructure(typeof(test_existstb011));

@@ -408,7 +408,18 @@ namespace FreeSql
             foreach (var item in data)
             {
                 if (_dicUpdateTimes.ContainsKey(item))
+                {
+                    var itemCopy = CreateEntityState(item).Value;
                     await DbContextFlushCommandAsync();
+                    if (_table.VersionColumn != null)
+                    {
+                        var itemVersion = _db.OrmOriginal.GetEntityValueWithPropertyName(_entityType, item, _table.VersionColumn.CsName);
+                        _db.OrmOriginal.MapEntityValue(_entityType, itemCopy, item);
+                        _db.OrmOriginal.SetEntityValueWithPropertyName(_entityType, item, _table.VersionColumn.CsName, itemVersion);
+                    }
+                    else
+                        _db.OrmOriginal.MapEntityValue(_entityType, itemCopy, item);
+                }
                 _dicUpdateTimes.Add(item, 1);
 
                 var state = CreateEntityState(item);
