@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net45;net40</TargetFrameworks>
-    <Version>1.9.0-preview0912</Version>
+    <Version>1.9.0-preview0915</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>FreeSql;ncc;YeXiangQin</Authors>
     <Description>FreeSql 扩展包，实现 linq queryable 和 linq to sql 语法进行开发.</Description>
