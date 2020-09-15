@@ -69,6 +69,7 @@ namespace FreeSql.Dameng
                 case "tinyint":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["number(3)"]);
                     return DmDbType.Byte;
+                case "int":
                 case "integer":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["number(11)"]);
                     return DmDbType.Int32;
