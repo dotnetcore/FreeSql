@@ -85,37 +85,27 @@ new Colorful.Formatter("v" + string.Join(".", typeof(ConsoleApp).Assembly.GetNam
   > {1} {2} 1 {3} 0,0,0,0 {4} MyProject {5} ""MySql,Data Source=127.0.0.1;...""
 
      -Razor 1                  * 选择模板：实体类+特性
-     
      -Razor 2                  * 选择模板：实体类+特性+导航属性
-     
      -Razor ""d:\diy.cshtml""    * 自定义模板文件
-     
-     -NameOptions              * 总共4个布尔值，分别对应：
-                               # 首字母大写
-                               # 首字母大写,其他小写
-                               # 全部小写
-                               # 下划线转驼峰
-                               
+
+     -NameOptions              * 4个布尔值对应：
+                                 首字母大写
+                                 首字母大写,其他小写
+                                 全部小写
+                                 下划线转驼峰
+
      -NameSpace                * 命名空间
-     
-     -DB ""{6},Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=数据库;Charset=utf8;SslMode=none;Max pool size=2""
-     
-     -DB ""{7},Data Source=.;Integrated Security=True;Initial Catalog=数据库;Pooling=true;Max Pool Size=2""
-     
-     -DB ""{8},Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=数据库;Pooling=true;Maximum Pool Size=2""
-     
-     -DB ""{9},user id=user1;password=123456;data source=//127.0.0.1:1521/XE;Pooling=true;Max Pool Size=2""
 
-     -DB ""{10},Data Source=document.db""
-     
+     -DB ""{6},data source=127.0.0.1;port=3306;user id=root;password=root;initial catalog=数据库;charset=utf8;sslmode=none;max pool size=2""
+     -DB ""{7},data source=.;integrated security=True;initial catalog=数据库;pooling=true;max pool size=2""
+     -DB ""{8},host=192.168.164.10;port=5432;username=postgres;password=123456;database=数据库;pooling=true;maximum pool size=2""
+     -DB ""{9},user id=user1;password=123456;data source=//127.0.0.1:1521/XE;pooling=true;max pool size=2""
+     -DB ""{10},data source=document.db""
+     -DB ""{14},database=localhost:D:\fbdata\EXAMPLES.fdb;user=sysdba;password=123456;max pool size=2""
      -DB ""{11},server=127.0.0.1;port=5236;user id=2user;password=123456789;database=2user;poolsize=2""
-                               {11} 达梦数据库
-
-     -DB ""{12},Driver={KingbaseES 8.2 ODBC Driver ANSI};Server=127.0.0.1;Port=54321;UID=USER2;PWD=123456789;database=数据库""
-                               {12} 人大金仓数据库
-
-     -DB ""{13},HOST=192.168.164.10;PORT=2003;DATABASE=OSRDB;USERNAME=SYSDBA;PASSWORD=szoscar55;MAXPOOLSIZE=2""
-                               {13} 神舟通用数据库
+     -DB ""{12},server=127.0.0.1;port=54321;uid=USER2;pwd=123456789;database=数据库""
+     -DB ""{13},host=192.168.164.10;port=2003;database=数据库;username=SYSDBA;password=szoscar55;maxpoolsize=2""
+                               * {11}(达梦数据库)、{12}(人大金仓数据库)、{13}(神舟通用数据库)
 
      -Filter                   Table+View+StoreProcedure
                                默认生成：表+视图+存储过程
@@ -124,12 +114,11 @@ new Colorful.Formatter("v" + string.Join(".", typeof(ConsoleApp).Assembly.GetNam
      -Match                    正则表达式，只生成匹配的表，如：dbo\.TB_.+
 
      -FileName                 文件名，默认：{name}.cs
-
      -Output                   保存路径，默认为当前 shell 所在目录
-                               {14}
+                               {15}
 
 ", Color.SlateGray,
-new Colorful.Formatter("使用 FreeSql 快速生成数据库的实体类", Color.SlateGray),
+new Colorful.Formatter("FreeSql 快速生成数据库的实体类", Color.SlateGray),
 new Colorful.Formatter("FreeSql.Generator", Color.White),
 new Colorful.Formatter("-Razor", Color.ForestGreen),
 new Colorful.Formatter("-NameOptions", Color.ForestGreen),
@@ -141,8 +130,9 @@ new Colorful.Formatter("PostgreSQL", Color.Yellow),
 new Colorful.Formatter("Oracle", Color.Yellow),
 new Colorful.Formatter("Sqlite", Color.Yellow),
 new Colorful.Formatter("Dameng", Color.Yellow),
-new Colorful.Formatter("OdbcKingbaseES", Color.Yellow),
+new Colorful.Formatter("KingbaseES", Color.Yellow),
 new Colorful.Formatter("ShenTong", Color.Yellow),
+new Colorful.Formatter("Firebird", Color.Yellow),
 new Colorful.Formatter("推荐在实体类目录创建 gen.bat，双击它重新所有实体类", Color.ForestGreen)
 );
                 wait.Set();
@@ -182,6 +172,7 @@ new Colorful.Formatter("推荐在实体类目录创建 gen.bat，双击它重新
                             case "postgresql": ArgsDbType = DataType.PostgreSQL; break;
                             case "oracle": ArgsDbType = DataType.Oracle; break;
                             case "sqlite": ArgsDbType = DataType.Sqlite; break;
+                            case "firebird": ArgsDbType = DataType.Firebird; break;
                             case "dameng": ArgsDbType = DataType.Dameng; break;
                             case "kingbasees": ArgsDbType = DataType.KingbaseES; break;
                             case "shentong": ArgsDbType = DataType.ShenTong; break;
