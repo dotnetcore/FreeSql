@@ -921,7 +921,13 @@ namespace FreeSql.Internal
                                         fsqlType = fsql?.GetType();
                                         if (fsqlType == null) break;
                                         var fsqlSelect0 = fsql as Select0Provider;
-                                        if (exp3.Method.Name != "ToList") fsqlSelect0._limit = 1;
+                                        switch (exp3.Method.Name) {
+                                            case "Any": //exists
+                                            case "ToOne":
+                                            case "First":
+                                                fsqlSelect0._limit = 1; //#462
+                                                break;
+                                        }
                                         if (tsc.dbParams != null) fsqlSelect0._params = tsc.dbParams;
                                         fsqltables = fsqlSelect0._tables;
                                         //fsqltables[0].Alias = $"{tsc._tables[0].Alias}_{fsqltables[0].Alias}";

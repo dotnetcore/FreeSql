@@ -933,8 +933,7 @@ namespace FreeSql.Tests.PostgreSQL
                 count = (long)select.As("b").Sum(b => b.Id)
             });
             Assert.Equal(@"SELECT a.""id"" as1, a.""clicks"" as2, a.""typeguid"" as3, a.""title"" as4, a.""createtime"" as5, (SELECT sum(b.""id"") 
-    FROM ""tb_topic"" b 
-    limit 1) as6 
+    FROM ""tb_topic"" b) as6 
 FROM ""tb_topic"" a", subquery);
             var subqueryList = select.ToList(a => new
             {
@@ -951,8 +950,7 @@ FROM ""tb_topic"" a", subquery);
                 count = select.As("b").Min(b => b.Id)
             });
             Assert.Equal(@"SELECT a.""id"" as1, a.""clicks"" as2, a.""typeguid"" as3, a.""title"" as4, a.""createtime"" as5, (SELECT min(b.""id"") 
-    FROM ""tb_topic"" b 
-    limit 1) as6 
+    FROM ""tb_topic"" b) as6 
 FROM ""tb_topic"" a", subquery);
             var subqueryList = select.ToList(a => new
             {
@@ -969,8 +967,7 @@ FROM ""tb_topic"" a", subquery);
                 count = select.As("b").Max(b => b.Id)
             });
             Assert.Equal(@"SELECT a.""id"" as1, a.""clicks"" as2, a.""typeguid"" as3, a.""title"" as4, a.""createtime"" as5, (SELECT max(b.""id"") 
-    FROM ""tb_topic"" b 
-    limit 1) as6 
+    FROM ""tb_topic"" b) as6 
 FROM ""tb_topic"" a", subquery);
             var subqueryList = select.ToList(a => new
             {
@@ -987,8 +984,7 @@ FROM ""tb_topic"" a", subquery);
                 count = select.As("b").Avg(b => b.Id)
             });
             Assert.Equal(@"SELECT a.""id"" as1, a.""clicks"" as2, a.""typeguid"" as3, a.""title"" as4, a.""createtime"" as5, (SELECT avg(b.""id"") 
-    FROM ""tb_topic"" b 
-    limit 1) as6 
+    FROM ""tb_topic"" b) as6 
 FROM ""tb_topic"" a", subquery);
             var subqueryList = select.ToList(a => new
             {

@@ -810,7 +810,7 @@ namespace FreeSql.Tests.Odbc.SqlServer
                 all = a,
                 count = (long)select.As("b").Sum(b => b.Id)
             });
-            Assert.Equal(@"SELECT a.[Id] as1, a.[Clicks] as2, a.[TypeGuid] as3, a.[Title] as4, a.[CreateTime] as5, (SELECT TOP 1 sum(b.[Id]) 
+            Assert.Equal(@"SELECT a.[Id] as1, a.[Clicks] as2, a.[TypeGuid] as3, a.[Title] as4, a.[CreateTime] as5, (SELECT sum(b.[Id]) 
     FROM [tb_topic22] b) as6 
 FROM [tb_topic22] a", subquery);
             var subqueryList = select.ToList(a => new
@@ -827,7 +827,7 @@ FROM [tb_topic22] a", subquery);
                 all = a,
                 count = select.As("b").Min(b => b.Id)
             });
-            Assert.Equal(@"SELECT a.[Id] as1, a.[Clicks] as2, a.[TypeGuid] as3, a.[Title] as4, a.[CreateTime] as5, (SELECT TOP 1 min(b.[Id]) 
+            Assert.Equal(@"SELECT a.[Id] as1, a.[Clicks] as2, a.[TypeGuid] as3, a.[Title] as4, a.[CreateTime] as5, (SELECT min(b.[Id]) 
     FROM [tb_topic22] b) as6 
 FROM [tb_topic22] a", subquery);
             var subqueryList = select.ToList(a => new
@@ -844,7 +844,7 @@ FROM [tb_topic22] a", subquery);
                 all = a,
                 count = select.As("b").Max(b => b.Id)
             });
-            Assert.Equal(@"SELECT a.[Id] as1, a.[Clicks] as2, a.[TypeGuid] as3, a.[Title] as4, a.[CreateTime] as5, (SELECT TOP 1 max(b.[Id]) 
+            Assert.Equal(@"SELECT a.[Id] as1, a.[Clicks] as2, a.[TypeGuid] as3, a.[Title] as4, a.[CreateTime] as5, (SELECT max(b.[Id]) 
     FROM [tb_topic22] b) as6 
 FROM [tb_topic22] a", subquery);
             var subqueryList = select.ToList(a => new
@@ -861,7 +861,7 @@ FROM [tb_topic22] a", subquery);
                 all = a,
                 count = select.As("b").Avg(b => b.Id)
             });
-            Assert.Equal(@"SELECT a.[Id] as1, a.[Clicks] as2, a.[TypeGuid] as3, a.[Title] as4, a.[CreateTime] as5, (SELECT TOP 1 avg(b.[Id]) 
+            Assert.Equal(@"SELECT a.[Id] as1, a.[Clicks] as2, a.[TypeGuid] as3, a.[Title] as4, a.[CreateTime] as5, (SELECT avg(b.[Id]) 
     FROM [tb_topic22] b) as6 
 FROM [tb_topic22] a", subquery);
             var subqueryList = select.ToList(a => new
