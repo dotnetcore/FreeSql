@@ -192,6 +192,6 @@ L*y 58元、花花 88元、麦兜很乖 50元、网络来者 2000元、John 99.9
 
 > Thank you for your donation
 
-- [Alipay](https://www.cnblogs.com/FreeSql/gallery/image/290628.html)
+- [Alipay](https://www.cnblogs.com/FreeSql/gallery/image/338860.html)
 
-- [WeChat](https://www.cnblogs.com/FreeSql/gallery/image/290627.html)
+- [WeChat](https://www.cnblogs.com/FreeSql/gallery/image/338859.html)
