@@ -30,7 +30,7 @@ namespace FreeSql.Internal
         internal const int ReadAnonymousFieldAsCsName = -53129;
         public bool ReadAnonymousField(List<SelectTableInfo> _tables, StringBuilder field, ReadAnonymousTypeInfo parent, ref int index, Expression exp, Select0Provider select, SelectGroupingProvider grouping, List<LambdaExpression> whereCascadeExpression, List<string> findIncludeMany, bool isAllDtoMap)
         {
-            Func<ExpTSC> getTSC = () => new ExpTSC { _tables = _tables, grouping = grouping, tbtype = SelectTableInfoType.From, isQuoteName = true, isDisableDiyParse = false, style = ExpressionStyle.Where, whereCascadeExpression = whereCascadeExpression };
+            Func<ExpTSC> getTSC = () => new ExpTSC { _tables = _tables, grouping = grouping, tbtype = SelectTableInfoType.From, isQuoteName = true, isDisableDiyParse = false, style = ExpressionStyle.Where, whereCascadeExpression = whereCascadeExpression, dbParams = select?._params }; //#462 添加 DbParams 解决
             switch (exp.NodeType)
             {
                 case ExpressionType.Quote: return ReadAnonymousField(_tables, field, parent, ref index, (exp as UnaryExpression)?.Operand, select, grouping, whereCascadeExpression, findIncludeMany, isAllDtoMap);
