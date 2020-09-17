@@ -152,6 +152,7 @@ namespace FreeSql
         internal class ExpSbInfo
         {
             public StringBuilder Sb { get; } = new StringBuilder();
+            public bool IsOver = false;
             public bool IsOrderBy = false;
             public bool IsDistinct = false;
         }
@@ -161,12 +162,13 @@ namespace FreeSql
         {
             if (expSb.Value == null) expSb.Value = new List<ExpSbInfo>();
             expSb.Value.Add(new ExpSbInfo());
-            expSbLast.Sb.Append(sqlFunc).Append(" ");
+            expSbLast.Sb.Append(sqlFunc);
             return null;
         }
         public static ISqlOver<TValue> Over<TValue>(this ISqlOver<TValue> that)
         {
-            expSbLast.Sb.Append("over(");
+            expSbLast.Sb.Append(" over(");
+            expSbLast.IsOver = true;
             return that;
         }
         public static ISqlOver<TValue> PartitionBy<TValue>(this ISqlOver<TValue> that, object column)
@@ -218,9 +220,10 @@ namespace FreeSql
         public static TValue ToValue<TValue>(this ISqlOver<TValue> that)
         {
             var sql = expSbLast.Sb.ToString().TrimEnd(',');
+            if (expSbLast.IsOver) sql = $"{sql})";
             expSbLast.Sb.Clear();
             expSb.Value.RemoveAt(expSb.Value.Count - 1);
-            expContext.Result = $"{sql})";
+            expContext.Result = sql;
             return default;
         }
         public interface ISqlOver<TValue> { }

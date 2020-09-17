@@ -177,6 +177,17 @@ namespace FreeSql.Tests
         [Fact]
         public void Test03()
         {
+            var sqlextMax112 = g.sqlserver.Select<EdiItem>()
+                .GroupBy(a => a.Id)
+                .ToSql(a => new
+                {
+                    Id = a.Key,
+                    EdiId1 = SqlExt.Max(a.Key).Over().PartitionBy(new { a.Value.EdiId, a.Value.Id }).OrderByDescending(new { a.Value.EdiId, a.Value.Id }).ToValue(),
+                    EdiId2 = SqlExt.Max(a.Key).Over().PartitionBy(a.Value.EdiId).OrderByDescending(a.Value.Id).ToValue(),
+                    EdiId3 = SqlExt.Sum(a.Key).ToValue(),
+                    EdiId4 = a.Sum(a.Key)
+                });
+
             Assert.Throws<ArgumentException>(() => g.sqlite.Update<testUpdateNonePk>().SetSource(new testUpdateNonePk()).ExecuteAffrows());
 
             g.sqlite.Insert(new testInsertNullable()).NoneParameter().ExecuteAffrows();
@@ -304,6 +315,8 @@ INNER JOIN ""userinfo"" p ON p.""userid"" = o.""userid""", select16Sql2);
                     Id = a.Key, 
                     EdiId1 = SqlExt.Max(a.Key).Over().PartitionBy(new { a.Value.EdiId, a.Value.Id }).OrderByDescending(new { a.Value.EdiId, a.Value.Id }).ToValue(),
                     EdiId2 = SqlExt.Max(a.Key).Over().PartitionBy(a.Value.EdiId).OrderByDescending(a.Value.Id).ToValue(),
+                    EdiId3 = SqlExt.Sum(a.Key).ToValue(),
+                    EdiId4 = a.Sum(a.Key)
                 });
 
             var sqlextIsNull = g.sqlserver.Select<EdiItem>()
