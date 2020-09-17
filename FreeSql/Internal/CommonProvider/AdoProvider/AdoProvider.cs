@@ -91,9 +91,10 @@ namespace FreeSql.Internal.CommonProvider
 
         internal Dictionary<string, PropertyInfo> GetQueryTypeProperties(Type type)
         {
-            var tb = _util.GetTableByEntity(type);
-            var props = tb?.Properties ?? type.GetPropertiesDictIgnoreCase();
-            return props;
+            return type.GetPropertiesDictIgnoreCase(); //与 ExecuteArrayRowReadClassOrTuple 顺序同步，防止【延时属性】获取到位置不对的问题
+            //var tb = _util.GetTableByEntity(type);
+            //var props = tb?.Properties ?? type.GetPropertiesDictIgnoreCase();
+            //return props;
         }
 
         public bool ExecuteConnectTest()
