@@ -124,6 +124,49 @@ namespace FreeSql.Internal.CommonProvider
             to._whereCascadeExpression = new List<LambdaExpression>(from._whereCascadeExpression.ToArray());
             to._whereGlobalFilter = new List<GlobalFilter.Item>(from._whereGlobalFilter.ToArray());
         }
+
+        public Expression ConvertStringPropertyToExpression(string property)
+        {
+            if (string.IsNullOrEmpty(property)) return null;
+            var field = property.Split('.').Select(a => a.Trim()).ToArray();
+            Expression exp = null;
+
+            if (field.Length == 1)
+            {
+                foreach (var tb in _tables)
+                {
+                    if (tb.Table.ColumnsByCs.TryGetValue(field[0], out var col) &&
+                        tb.Table.Properties.TryGetValue(field[0], out var prop))
+                    {
+                        tb.Parameter = Expression.Parameter(tb.Table.Type, tb.Alias);
+                        exp = Expression.MakeMemberAccess(tb.Parameter, prop);
+                        break;
+                    }
+                }
+                if (exp == null) throw new Exception($"无法匹配 {property}");
+            }
+            else
+            {
+                var firstTb = _tables[0];
+                var firstTbs = _tables.Where(a => a.AliasInit == field[0]).ToArray();
+                if (firstTbs.Length == 1) firstTb = firstTbs[0];
+
+                firstTb.Parameter = Expression.Parameter(firstTb.Table.Type, firstTb.Alias);
+                var currentType = firstTb.Table.Type;
+                Expression currentExp = firstTb.Parameter;
+
+                for (var x = 0; x < field.Length; x++)
+                {
+                    var tmp1 = field[x];
+                    if (_commonUtils.GetTableByEntity(currentType).Properties.TryGetValue(tmp1, out var prop) == false)
+                        throw new ArgumentException($"{currentType.DisplayCsharp()} 无法找到属性名 {tmp1}");
+                    currentType = prop.PropertyType;
+                    currentExp = Expression.MakeMemberAccess(currentExp, prop);
+                }
+                exp = currentExp;
+            }
+            return exp;
+        }
     }
 
     public abstract partial class Select0Provider<TSelect, T1> : Select0Provider, ISelect0<TSelect, T1> where TSelect : class where T1 : class
@@ -440,49 +483,6 @@ namespace FreeSql.Internal.CommonProvider
             _where.Append(" AND (").Append(sql).Append(")");
             if (parms != null) _params.AddRange(_commonUtils.GetDbParamtersByObject(sql, parms));
             return this as TSelect;
-        }
-
-        public Expression ConvertStringPropertyToExpression(string property)
-        {
-            if (string.IsNullOrEmpty(property)) return null;
-            var field = property.Split('.').Select(a => a.Trim()).ToArray();
-            Expression exp = null;
-
-            if (field.Length == 1)
-            {
-                foreach (var tb in _tables)
-                {
-                    if (tb.Table.ColumnsByCs.TryGetValue(field[0], out var col) &&
-                        tb.Table.Properties.TryGetValue(field[0], out var prop))
-                    {
-                        tb.Parameter = Expression.Parameter(tb.Table.Type, tb.Alias);
-                        exp = Expression.MakeMemberAccess(tb.Parameter, prop);
-                        break;
-                    }
-                }
-                if (exp == null) throw new Exception($"无法匹配 {property}");
-            }
-            else
-            {
-                var firstTb = _tables[0];
-                var firstTbs = _tables.Where(a => a.AliasInit == field[0]).ToArray();
-                if (firstTbs.Length == 1) firstTb = firstTbs[0];
-
-                firstTb.Parameter = Expression.Parameter(firstTb.Table.Type, firstTb.Alias);
-                var currentType = firstTb.Table.Type;
-                Expression currentExp = firstTb.Parameter;
-
-                for (var x = 0; x < field.Length; x++)
-                {
-                    var tmp1 = field[x];
-                    if (_commonUtils.GetTableByEntity(currentType).Properties.TryGetValue(tmp1, out var prop) == false)
-                        throw new ArgumentException($"{currentType.DisplayCsharp()} 无法找到属性名 {tmp1}");
-                    currentType = prop.PropertyType;
-                    currentExp = Expression.MakeMemberAccess(currentExp, prop);
-                }
-                exp = currentExp;
-            }
-            return exp;
         }
 
         public TSelect OrderByPropertyName(string property, bool isAscending = true) => OrderByPropertyNameIf(true, property, isAscending);
