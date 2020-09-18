@@ -337,6 +337,23 @@ namespace FreeSql
         /// <param name="parms">参数</param>
         /// <returns></returns>
         TSelect OrderBy(bool condition, string sql, object parms = null);
+        /// <summary>
+        /// 按属性名字符串排序（支持导航属性）<para></para>
+        /// 属性名：Name<para></para>导航属性：Parent.Name<para></para>多表：b.Name
+        /// </summary>
+        /// <param name="property">属性名：Name<para></para>导航属性：Parent.Name<para></para>多表：b.Name</param>
+        /// <param name="isAscending">顺序 | 倒序</param>
+        /// <returns></returns>
+        TSelect OrderByPropertyName(string property, bool isAscending = true);
+        /// <summary>
+        /// 按属性名字符串排序（支持导航属性）<para></para>
+        /// 属性名：Name<para></para>导航属性：Parent.Name<para></para>多表：b.Name
+        /// </summary>
+        /// <param name="condition">true 时生效</param>
+        /// <param name="property">属性名：Name<para></para>导航属性：Parent.Name<para></para>多表：b.Name</param>
+        /// <param name="isAscending">顺序 | 倒序</param>
+        /// <returns></returns>
+        TSelect OrderByPropertyNameIf(bool condition, string property, bool isAscending = true);
 
         /// <summary>
         /// 查询向后偏移行数

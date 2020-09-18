@@ -2304,6 +2304,67 @@ WHERE ((a.""CreateTime"" >= '2010-10-10 00:00:00' AND a.""CreateTime"" < '2010-1
 FROM ""D_District"" a 
 LEFT JOIN ""D_District"" a__Parent ON a__Parent.""Code"" = a.""ParentCode"" 
 WHERE ((not((a.""Code"") LIKE '%val1%') AND not((a.""Name"") LIKE 'val2%') OR not((a.""Name"") LIKE '%val3') OR a.""ParentCode"" <> 'val4' OR a__Parent.""Code"" = 'val11' AND (a__Parent.""Name"") LIKE '%val22%' OR a__Parent.""Name"" = 'val33' OR a__Parent.""ParentCode"" = 'val44'))", sql);
+
+            sql = fsql.Select<VM_District_Parent>().OrderByPropertyName("Parent.Name").WhereDynamicFilter(JsonConvert.DeserializeObject<DynamicFilterInfo>(@"
+{
+  ""Logic"" : ""Or"",
+  ""Filters"" :
+  [
+    {
+      ""Field"" : ""Code"",
+      ""Operator"" : ""NotContains"",
+      ""Value"" : ""val1"",
+      ""Filters"" :
+      [
+        {
+          ""Field"" : ""Name"",
+          ""Operator"" : ""NotStartsWith"",
+          ""Value"" : ""val2"",
+        }
+      ]
+    },
+    {
+      ""Field"" : ""Name"",
+      ""Operator"" : ""NotEndsWith"",
+      ""Value"" : ""val3""
+    },
+    {
+      ""Field"" : ""ParentCode"",
+      ""Operator"" : ""NotEqual"",
+      ""Value"" : ""val4""
+    },
+
+    {
+      ""Field"" : ""Parent.Code"",
+      ""Operator"" : ""eq"",
+      ""Value"" : ""val11"",
+      ""Filters"" :
+      [
+        {
+          ""Field"" : ""Parent.Name"",
+          ""Operator"" : ""contains"",
+          ""Value"" : ""val22"",
+        }
+      ]
+    },
+    {
+      ""Field"" : ""Parent.Name"",
+      ""Operator"" : ""eq"",
+      ""Value"" : ""val33""
+    },
+    {
+      ""Field"" : ""Parent.ParentCode"",
+      ""Operator"" : ""eq"",
+      ""Value"" : ""val44""
+    }
+  ]
+}
+")).ToSql();
+            Assert.Equal(@"SELECT a.""Code"", a.""Name"", a.""CreateTime"", a.""testint"", a.""ParentCode"", a__Parent.""Code"" as6, a__Parent.""Name"" as7, a__Parent.""CreateTime"" as8, a__Parent.""testint"" as9, a__Parent.""ParentCode"" as10 
+FROM ""D_District"" a 
+LEFT JOIN ""D_District"" a__Parent ON a__Parent.""Code"" = a.""ParentCode"" 
+WHERE ((not((a.""Code"") LIKE '%val1%') AND not((a.""Name"") LIKE 'val2%') OR not((a.""Name"") LIKE '%val3') OR a.""ParentCode"" <> 'val4' OR a__Parent.""Code"" = 'val11' AND (a__Parent.""Name"") LIKE '%val22%' OR a__Parent.""Name"" = 'val33' OR a__Parent.""ParentCode"" = 'val44')) 
+ORDER BY a__Parent.""Name""", sql);
         }
     }
 }
