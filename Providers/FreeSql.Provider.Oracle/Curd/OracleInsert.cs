@@ -104,7 +104,7 @@ namespace FreeSql.Oracle.Curd
                 _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
                 try
                 {
-                    ret = _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, _params);
+                    ret = _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, _commandTimeout, _params);
                 }
                 catch (Exception ex)
                 {
@@ -127,7 +127,7 @@ namespace FreeSql.Oracle.Curd
             _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             try
             {
-                _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, dbParms);
+                _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms);
                 long.TryParse(string.Concat(identParam.Value), out ret);
             }
             catch (Exception ex)
@@ -173,7 +173,7 @@ namespace FreeSql.Oracle.Curd
                 _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
                 try
                 {
-                    ret = await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, _params);
+                    ret = await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, _commandTimeout, _params);
                 }
                 catch (Exception ex)
                 {
@@ -196,7 +196,7 @@ namespace FreeSql.Oracle.Curd
             _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             try
             {
-                await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, dbParms);
+                await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms);
                 long.TryParse(string.Concat(identParam.Value), out ret);
             }
             catch (Exception ex)

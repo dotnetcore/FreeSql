@@ -22,6 +22,12 @@ namespace FreeSql
         /// <param name="connection"></param>
         /// <returns></returns>
         IUpdate<T1> WithConnection(DbConnection connection);
+        /// <summary>
+        /// 命令超时设置(秒)
+        /// </summary>
+        /// <param name="timeout"></param>
+        /// <returns></returns>
+        IUpdate<T1> CommandTimeout(int timeout);
 
         /// <summary>
         /// 不使用参数化，可通过 IFreeSql.CodeFirst.IsNotCommandParameter 全局性设置

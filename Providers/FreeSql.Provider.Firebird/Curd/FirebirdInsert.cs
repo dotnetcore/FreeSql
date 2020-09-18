@@ -51,7 +51,7 @@ namespace FreeSql.Firebird.Curd
                 _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
                 try
                 {
-                    ret = _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, _params);
+                    ret = _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, _commandTimeout, _params);
                 }
                 catch (Exception ex)
                 {
@@ -70,7 +70,7 @@ namespace FreeSql.Firebird.Curd
             _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             try
             {
-                long.TryParse(string.Concat(_orm.Ado.ExecuteScalar(_connection, _transaction, CommandType.Text, sql, _params)), out ret);
+                long.TryParse(string.Concat(_orm.Ado.ExecuteScalar(_connection, _transaction, CommandType.Text, sql, _commandTimeout, _params)), out ret);
             }
             catch (Exception ex)
             {
@@ -106,7 +106,7 @@ namespace FreeSql.Firebird.Curd
             Exception exception = null;
             try
             {
-                ret = _orm.Ado.Query<T1>(_connection, _transaction, CommandType.Text, sql, _params);
+                ret = _orm.Ado.Query<T1>(_connection, _transaction, CommandType.Text, sql, _commandTimeout, _params);
             }
             catch (Exception ex)
             {
@@ -151,7 +151,7 @@ namespace FreeSql.Firebird.Curd
                 _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
                 try
                 {
-                    ret = await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, _params);
+                    ret = await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, _commandTimeout, _params);
                 }
                 catch (Exception ex)
                 {
@@ -170,7 +170,7 @@ namespace FreeSql.Firebird.Curd
             _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             try
             {
-                long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync(_connection, _transaction, CommandType.Text, sql, _params)), out ret);
+                long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync(_connection, _transaction, CommandType.Text, sql, _commandTimeout, _params)), out ret);
             }
             catch (Exception ex)
             {
@@ -206,7 +206,7 @@ namespace FreeSql.Firebird.Curd
             Exception exception = null;
             try
             {
-                ret = await _orm.Ado.QueryAsync<T1>(_connection, _transaction, CommandType.Text, sql, _params);
+                ret = await _orm.Ado.QueryAsync<T1>(_connection, _transaction, CommandType.Text, sql, _commandTimeout, _params);
             }
             catch (Exception ex)
             {

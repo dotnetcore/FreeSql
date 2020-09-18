@@ -118,7 +118,7 @@ namespace FreeSql.Odbc.MySql
             Exception exception = null;
             try
             {
-                ret = _mysqlInsert.InternalOrm.Ado.ExecuteNonQuery(_mysqlInsert.InternalConnection, _mysqlInsert.InternalTransaction, CommandType.Text, sql, _mysqlInsert.InternalParams);
+                ret = _mysqlInsert.InternalOrm.Ado.ExecuteNonQuery(_mysqlInsert.InternalConnection, _mysqlInsert.InternalTransaction, CommandType.Text, sql, _mysqlInsert._commandTimeout, _mysqlInsert.InternalParams);
             }
             catch (Exception ex)
             {
@@ -147,7 +147,7 @@ namespace FreeSql.Odbc.MySql
             Exception exception = null;
             try
             {
-                ret = await _mysqlInsert.InternalOrm.Ado.ExecuteNonQueryAsync(_mysqlInsert.InternalConnection, _mysqlInsert.InternalTransaction, CommandType.Text, sql, _mysqlInsert.InternalParams);
+                ret = await _mysqlInsert.InternalOrm.Ado.ExecuteNonQueryAsync(_mysqlInsert.InternalConnection, _mysqlInsert.InternalTransaction, CommandType.Text, sql, _mysqlInsert._commandTimeout, _mysqlInsert.InternalParams);
             }
             catch (Exception ex)
             {

@@ -39,6 +39,12 @@ namespace FreeSql
         /// <param name="connection"></param>
         /// <returns></returns>
         TSelect WithConnection(DbConnection connection);
+        /// <summary>
+        /// 命令超时设置(秒)
+        /// </summary>
+        /// <param name="timeout"></param>
+        /// <returns></returns>
+        TSelect CommandTimeout(int timeout);
 
         /// <summary>
         /// 审核或跟踪 ToList 即将返回的数据

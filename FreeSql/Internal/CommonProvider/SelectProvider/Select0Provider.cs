@@ -31,6 +31,7 @@ namespace FreeSql.Internal.CommonProvider
         public CommonExpression _commonExpression;
         public DbTransaction _transaction;
         public DbConnection _connection;
+        public int _commandTimeout = 0;
         public Action<object> _trackToList;
         public List<Action<object>> _includeToList = new List<Action<object>>();
 #if net40
@@ -153,6 +154,11 @@ namespace FreeSql.Internal.CommonProvider
         {
             if (_transaction?.Connection != connection) _transaction = null;
             _connection = connection;
+            return this as TSelect;
+        }
+        public TSelect CommandTimeout(int timeout)
+        {
+            _commandTimeout = timeout;
             return this as TSelect;
         }
 

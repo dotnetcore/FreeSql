@@ -53,7 +53,7 @@ namespace FreeSql.MySql.Curd
             Exception exception = null;
             try
             {
-                ret = long.TryParse(string.Concat(_orm.Ado.ExecuteScalar(_connection, _transaction, CommandType.Text, sql, _params)), out var trylng) ? trylng : 0;
+                ret = long.TryParse(string.Concat(_orm.Ado.ExecuteScalar(_connection, _transaction, CommandType.Text, sql, _commandTimeout, _params)), out var trylng) ? trylng : 0;
             }
             catch (Exception ex)
             {
@@ -89,7 +89,7 @@ namespace FreeSql.MySql.Curd
             Exception exception = null;
             try
             {
-                ret = _orm.Ado.Query<T1>(_table.TypeLazy ?? _table.Type, _connection, _transaction, CommandType.Text, sql, _params);
+                ret = _orm.Ado.Query<T1>(_table.TypeLazy ?? _table.Type, _connection, _transaction, CommandType.Text, sql, _commandTimeout, _params);
             }
             catch (Exception ex)
             {
@@ -122,7 +122,7 @@ namespace FreeSql.MySql.Curd
             Exception exception = null;
             try
             {
-                ret = long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync(_connection, _transaction, CommandType.Text, sql, _params)), out var trylng) ? trylng : 0;
+                ret = long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync(_connection, _transaction, CommandType.Text, sql, _commandTimeout, _params)), out var trylng) ? trylng : 0;
             }
             catch (Exception ex)
             {
@@ -158,7 +158,7 @@ namespace FreeSql.MySql.Curd
             Exception exception = null;
             try
             {
-                ret = await _orm.Ado.QueryAsync<T1>(_table.TypeLazy ?? _table.Type, _connection, _transaction, CommandType.Text, sql, _params);
+                ret = await _orm.Ado.QueryAsync<T1>(_table.TypeLazy ?? _table.Type, _connection, _transaction, CommandType.Text, sql, _commandTimeout, _params);
             }
             catch (Exception ex)
             {

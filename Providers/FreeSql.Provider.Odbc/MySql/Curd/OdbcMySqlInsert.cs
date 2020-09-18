@@ -48,7 +48,7 @@ namespace FreeSql.Odbc.MySql
             if (string.IsNullOrEmpty(sql)) return 0;
 
             Object<DbConnection> poolConn = null;
-            var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, string.Concat(sql, "; SELECT LAST_INSERT_ID();"), _params);
+            var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, string.Concat(sql, "; SELECT LAST_INSERT_ID();", _commandTimeout), _params);
             _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             long ret = 0;
             Exception exception = null;
@@ -61,8 +61,8 @@ namespace FreeSql.Odbc.MySql
                     poolConn = _orm.Ado.MasterPool.Get();
                     conn = poolConn.Value;
                 }
-                _orm.Ado.ExecuteNonQuery(conn, _transaction, CommandType.Text, sql, _params);
-                ret = long.TryParse(string.Concat(_orm.Ado.ExecuteScalar(conn, _transaction, CommandType.Text, " SELECT LAST_INSERT_ID()")), out var trylng) ? trylng : 0;
+                _orm.Ado.ExecuteNonQuery(conn, _transaction, CommandType.Text, sql, _commandTimeout, _params);
+                ret = long.TryParse(string.Concat(_orm.Ado.ExecuteScalar(conn, _transaction, CommandType.Text, " SELECT LAST_INSERT_ID()", _commandTimeout)), out var trylng) ? trylng : 0;
             }
             catch (Exception ex)
             {
@@ -101,7 +101,7 @@ namespace FreeSql.Odbc.MySql
             Exception exception = null;
             try
             {
-                ret = _orm.Ado.Query<T1>(_table.TypeLazy ?? _table.Type, _connection, _transaction, CommandType.Text, sql, _params);
+                ret = _orm.Ado.Query<T1>(_table.TypeLazy ?? _table.Type, _connection, _transaction, CommandType.Text, sql, _commandTimeout, _params);
             }
             catch (Exception ex)
             {
@@ -141,8 +141,8 @@ namespace FreeSql.Odbc.MySql
                     poolConn = _orm.Ado.MasterPool.Get();
                     conn = poolConn.Value;
                 }
-                await _orm.Ado.ExecuteNonQueryAsync(conn, _transaction, CommandType.Text, sql, _params);
-                ret = long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync(conn, _transaction, CommandType.Text, " SELECT LAST_INSERT_ID()")), out var trylng) ? trylng : 0;
+                await _orm.Ado.ExecuteNonQueryAsync(conn, _transaction, CommandType.Text, sql, _commandTimeout, _params);
+                ret = long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync(conn, _transaction, CommandType.Text, " SELECT LAST_INSERT_ID()", _commandTimeout)), out var trylng) ? trylng : 0;
             }
             catch (Exception ex)
             {
@@ -181,7 +181,7 @@ namespace FreeSql.Odbc.MySql
             Exception exception = null;
             try
             {
-                ret = await _orm.Ado.QueryAsync<T1>(_table.TypeLazy ?? _table.Type, _connection, _transaction, CommandType.Text, sql, _params);
+                ret = await _orm.Ado.QueryAsync<T1>(_table.TypeLazy ?? _table.Type, _connection, _transaction, CommandType.Text, sql, _commandTimeout, _params);
             }
             catch (Exception ex)
             {

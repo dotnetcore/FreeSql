@@ -51,7 +51,7 @@ namespace FreeSql.MySql.Curd
             Exception exception = null;
             try
             {
-                ret = _orm.Ado.Query<T1>(_table.TypeLazy ?? _table.Type, _connection, _transaction, CommandType.Text, sql, dbParms);
+                ret = _orm.Ado.Query<T1>(_table.TypeLazy ?? _table.Type, _connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms);
                 ValidateVersionAndThrow(ret.Count, sql, dbParms);
             }
             catch (Exception ex)
@@ -132,7 +132,7 @@ namespace FreeSql.MySql.Curd
             Exception exception = null;
             try
             {
-                ret = await _orm.Ado.QueryAsync<T1>(_table.TypeLazy ?? _table.Type, _connection, _transaction, CommandType.Text, sql, dbParms);
+                ret = await _orm.Ado.QueryAsync<T1>(_table.TypeLazy ?? _table.Type, _connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms);
                 ValidateVersionAndThrow(ret.Count, sql, dbParms);
             }
             catch (Exception ex)

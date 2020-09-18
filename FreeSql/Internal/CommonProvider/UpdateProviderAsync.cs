@@ -175,7 +175,7 @@ namespace FreeSql.Internal.CommonProvider
             Exception exception = null;
             try
             {
-                affrows = await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, dbParms);
+                affrows = await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms);
                 ValidateVersionAndThrow(affrows, sql, dbParms);
             }
             catch (Exception ex)

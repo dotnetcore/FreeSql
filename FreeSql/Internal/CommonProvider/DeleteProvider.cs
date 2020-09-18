@@ -24,6 +24,7 @@ namespace FreeSql.Internal.CommonProvider
         public List<DbParameter> _params = new List<DbParameter>();
         public DbTransaction _transaction;
         public DbConnection _connection;
+        public int _commandTimeout = 0;
         public Action<StringBuilder> _interceptSql;
 
         public DeleteProvider(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere)
@@ -57,6 +58,11 @@ namespace FreeSql.Internal.CommonProvider
             _connection = connection;
             return this;
         }
+        public IDelete<T1> CommandTimeout(int timeout)
+        {
+            _commandTimeout = timeout;
+            return this;
+        }
 
         public int ExecuteAffrows()
         {
@@ -69,7 +75,7 @@ namespace FreeSql.Internal.CommonProvider
             Exception exception = null;
             try
             {
-                affrows = _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, dbParms);
+                affrows = _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms);
             }
             catch (Exception ex)
             {

@@ -35,6 +35,7 @@ namespace FreeSql.Internal.CommonProvider
         public Action<BatchProgressStatus<T1>> _batchProgress;
         public DbTransaction _transaction;
         public DbConnection _connection;
+        public int _commandTimeout = 0;
         public Action<StringBuilder> _interceptSql;
 
         public UpdateProvider(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere)
@@ -86,6 +87,11 @@ namespace FreeSql.Internal.CommonProvider
         {
             if (_transaction?.Connection != connection) _transaction = null;
             _connection = connection;
+            return this;
+        }
+        public IUpdate<T1> CommandTimeout(int timeout)
+        {
+            _commandTimeout = timeout;
             return this;
         }
 
@@ -306,7 +312,7 @@ namespace FreeSql.Internal.CommonProvider
             Exception exception = null;
             try
             {
-                affrows = _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, dbParms);
+                affrows = _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms);
                 ValidateVersionAndThrow(affrows, sql, dbParms);
             }
             catch (Exception ex)

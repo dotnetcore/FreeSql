@@ -42,8 +42,8 @@ namespace FreeSql.Odbc.Default
                     poolConn = _orm.Ado.MasterPool.Get();
                     conn = poolConn.Value;
                 }
-                _orm.Ado.ExecuteNonQuery(conn, _transaction, CommandType.Text, sql, _params);
-                ret = long.TryParse(string.Concat(_orm.Ado.ExecuteScalar(conn, _transaction, CommandType.Text, $" {_utils.Adapter.InsertAfterGetIdentitySql}")), out var trylng) ? trylng : 0;
+                _orm.Ado.ExecuteNonQuery(conn, _transaction, CommandType.Text, sql, _commandTimeout, _params);
+                ret = long.TryParse(string.Concat(_orm.Ado.ExecuteScalar(conn, _transaction, CommandType.Text, $" {_utils.Adapter.InsertAfterGetIdentitySql}", _commandTimeout)), out var trylng) ? trylng : 0;
             }
             catch (Exception ex)
             {
@@ -88,8 +88,8 @@ namespace FreeSql.Odbc.Default
                     poolConn = _orm.Ado.MasterPool.Get();
                     conn = poolConn.Value;
                 }
-                await _orm.Ado.ExecuteNonQueryAsync(conn, _transaction, CommandType.Text, sql, _params);
-                ret = long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync(conn, _transaction, CommandType.Text, $" {_utils.Adapter.InsertAfterGetIdentitySql}")), out var trylng) ? trylng : 0;
+                await _orm.Ado.ExecuteNonQueryAsync(conn, _transaction, CommandType.Text, sql, _commandTimeout, _params);
+                ret = long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync(conn, _transaction, CommandType.Text, $" {_utils.Adapter.InsertAfterGetIdentitySql}", _commandTimeout)), out var trylng) ? trylng : 0;
             }
             catch (Exception ex)
             {

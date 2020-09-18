@@ -32,7 +32,7 @@ namespace FreeSql.Sqlite.Curd
             Exception exception = null;
             try
             {
-                long.TryParse(string.Concat(_orm.Ado.ExecuteScalar(_connection, _transaction, CommandType.Text, sql, _params)), out ret);
+                long.TryParse(string.Concat(_orm.Ado.ExecuteScalar(_connection, _transaction, CommandType.Text, sql, _commandTimeout, _params)), out ret);
             }
             catch (Exception ex)
             {
@@ -75,7 +75,7 @@ namespace FreeSql.Sqlite.Curd
             Exception exception = null;
             try
             {
-                long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync(_connection, _transaction, CommandType.Text, sql, _params)), out ret);
+                long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync(_connection, _transaction, CommandType.Text, sql, _commandTimeout, _params)), out ret);
             }
             catch (Exception ex)
             {

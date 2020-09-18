@@ -159,7 +159,7 @@ namespace FreeSql.Odbc.KingbaseES
             Exception exception = null;
             try
             {
-                ret = _pgsqlInsert.InternalOrm.Ado.ExecuteNonQuery(_pgsqlInsert.InternalConnection, _pgsqlInsert.InternalTransaction, CommandType.Text, sql, _pgsqlInsert.InternalParams);
+                ret = _pgsqlInsert.InternalOrm.Ado.ExecuteNonQuery(_pgsqlInsert.InternalConnection, _pgsqlInsert.InternalTransaction, CommandType.Text, sql, _pgsqlInsert._commandTimeout, _pgsqlInsert.InternalParams);
             }
             catch (Exception ex)
             {
@@ -188,7 +188,7 @@ namespace FreeSql.Odbc.KingbaseES
             Exception exception = null;
             try
             {
-                ret = await _pgsqlInsert.InternalOrm.Ado.ExecuteNonQueryAsync(_pgsqlInsert.InternalConnection, _pgsqlInsert.InternalTransaction, CommandType.Text, sql, _pgsqlInsert.InternalParams);
+                ret = await _pgsqlInsert.InternalOrm.Ado.ExecuteNonQueryAsync(_pgsqlInsert.InternalConnection, _pgsqlInsert.InternalTransaction, CommandType.Text, sql, _pgsqlInsert._commandTimeout, _pgsqlInsert.InternalParams);
             }
             catch (Exception ex)
             {

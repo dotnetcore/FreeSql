@@ -159,7 +159,7 @@ namespace FreeSql.KingbaseES
             Exception exception = null;
             try
             {
-                ret = _insert.InternalOrm.Ado.ExecuteNonQuery(_insert.InternalConnection, _insert.InternalTransaction, CommandType.Text, sql, _insert.InternalParams);
+                ret = _insert.InternalOrm.Ado.ExecuteNonQuery(_insert.InternalConnection, _insert.InternalTransaction, CommandType.Text, sql, _insert._commandTimeout, _insert.InternalParams);
             }
             catch (Exception ex)
             {
@@ -188,7 +188,7 @@ namespace FreeSql.KingbaseES
             Exception exception = null;
             try
             {
-                ret = await _insert.InternalOrm.Ado.ExecuteNonQueryAsync(_insert.InternalConnection, _insert.InternalTransaction, CommandType.Text, sql, _insert.InternalParams);
+                ret = await _insert.InternalOrm.Ado.ExecuteNonQueryAsync(_insert.InternalConnection, _insert.InternalTransaction, CommandType.Text, sql, _insert._commandTimeout, _insert.InternalParams);
             }
             catch (Exception ex)
             {

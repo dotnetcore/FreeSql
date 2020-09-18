@@ -21,6 +21,12 @@ namespace FreeSql
         /// <param name="connection"></param>
         /// <returns></returns>
         IDelete<T1> WithConnection(DbConnection connection);
+        /// <summary>
+        /// 命令超时设置(秒)
+        /// </summary>
+        /// <param name="timeout"></param>
+        /// <returns></returns>
+        IDelete<T1> CommandTimeout(int timeout);
 
         /// <summary>
         /// lambda表达式条件，仅支持实体基础成员（不包含导航对象）<para></para>

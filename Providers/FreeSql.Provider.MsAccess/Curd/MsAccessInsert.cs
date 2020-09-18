@@ -36,7 +36,7 @@ namespace FreeSql.MsAccess.Curd
             Exception exception = null;
             try
             {
-                affrows = _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, _params);
+                affrows = _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, _commandTimeout, _params);
             }
             catch (Exception ex)
             {
@@ -67,14 +67,14 @@ namespace FreeSql.MsAccess.Curd
                     using (var conn = _orm.Ado.MasterPool.Get())
                     {
                         _connection = conn.Value;
-                        _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, _params);
-                        long.TryParse(string.Concat(_orm.Ado.ExecuteScalar(_connection, _transaction, CommandType.Text, "SELECT @@identity", _params)), out ret);
+                        _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, _commandTimeout, _params);
+                        long.TryParse(string.Concat(_orm.Ado.ExecuteScalar(_connection, _transaction, CommandType.Text, "SELECT @@identity", _commandTimeout, _params)), out ret);
                     }
                 }
                 else
                 {
-                    _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, _params);
-                    long.TryParse(string.Concat(_orm.Ado.ExecuteScalar(_connection, _transaction, CommandType.Text, "SELECT @@identity", _params)), out ret);
+                    _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, _commandTimeout, _params);
+                    long.TryParse(string.Concat(_orm.Ado.ExecuteScalar(_connection, _transaction, CommandType.Text, "SELECT @@identity", _commandTimeout, _params)), out ret);
                 }
             }
             catch (Exception ex)
@@ -115,7 +115,7 @@ namespace FreeSql.MsAccess.Curd
             Exception exception = null;
             try
             {
-                affrows = await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, _params);
+                affrows = await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, _commandTimeout, _params);
             }
             catch (Exception ex)
             {
@@ -146,14 +146,14 @@ namespace FreeSql.MsAccess.Curd
                     using (var conn = await _orm.Ado.MasterPool.GetAsync())
                     {
                         _connection = conn.Value;
-                        await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, _params);
-                        long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync(_connection, _transaction, CommandType.Text, "SELECT @@identity", _params)), out ret);
+                        await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, _commandTimeout, _params);
+                        long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync(_connection, _transaction, CommandType.Text, "SELECT @@identity", _commandTimeout, _params)), out ret);
                     }
                 }
                 else
                 {
-                    await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, _params);
-                    long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync(_connection, _transaction, CommandType.Text, "SELECT @@identity", _params)), out ret);
+                    await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, _commandTimeout, _params);
+                    long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync(_connection, _transaction, CommandType.Text, "SELECT @@identity", _commandTimeout, _params)), out ret);
                 }
             }
             catch (Exception ex)

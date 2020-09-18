@@ -31,6 +31,7 @@ namespace FreeSql.Internal.CommonProvider
         public DbParameter[] _params;
         public DbTransaction _transaction;
         public DbConnection _connection;
+        public int _commandTimeout = 0;
 
         public InsertProvider(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression)
         {
@@ -76,6 +77,11 @@ namespace FreeSql.Internal.CommonProvider
         {
             if (_transaction?.Connection != connection) _transaction = null;
             _connection = connection;
+            return this;
+        }
+        public IInsert<T1> CommandTimeout(int timeout)
+        {
+            _commandTimeout = timeout;
             return this;
         }
 
@@ -451,7 +457,7 @@ namespace FreeSql.Internal.CommonProvider
             Exception exception = null;
             try
             {
-                affrows = _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, _params);
+                affrows = _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, _commandTimeout, _params);
             }
             catch (Exception ex)
             {

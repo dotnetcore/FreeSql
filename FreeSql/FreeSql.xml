@@ -1267,6 +1267,13 @@
             <param name="connection"></param>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.IDelete`1.CommandTimeout(System.Int32)">
+            <summary>
+            命令超时设置(秒)
+            </summary>
+            <param name="timeout"></param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.IDelete`1.Where(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
             <summary>
             lambda表达式条件，仅支持实体基础成员（不包含导航对象）<para></para>
@@ -1367,6 +1374,13 @@
             指定事务对象
             </summary>
             <param name="connection"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IInsert`1.CommandTimeout(System.Int32)">
+            <summary>
+            命令超时设置(秒)
+            </summary>
+            <param name="timeout"></param>
             <returns></returns>
         </member>
         <member name="M:FreeSql.IInsert`1.AppendData(`0)">
@@ -1517,6 +1531,13 @@
             <param name="connection"></param>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.IInsertOrUpdate`1.CommandTimeout(System.Int32)">
+            <summary>
+            命令超时设置(秒)
+            </summary>
+            <param name="timeout"></param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.IInsertOrUpdate`1.SetSource(`0)">
             <summary>
             添加或更新，设置实体
@@ -1601,6 +1622,13 @@
             指定连接对象
             </summary>
             <param name="connection"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.ISelect0`2.CommandTimeout(System.Int32)">
+            <summary>
+            命令超时设置(秒)
+            </summary>
+            <param name="timeout"></param>
             <returns></returns>
         </member>
         <member name="M:FreeSql.ISelect0`2.TrackToList(System.Action{System.Object})">
@@ -2461,6 +2489,13 @@
             <param name="connection"></param>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.IUpdate`1.CommandTimeout(System.Int32)">
+            <summary>
+            命令超时设置(秒)
+            </summary>
+            <param name="timeout"></param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.IUpdate`1.NoneParameter(System.Boolean)">
             <summary>
             不使用参数化，可通过 IFreeSql.CodeFirst.IsNotCommandParameter 全局性设置
@@ -2751,12 +2786,13 @@
             <param name="obj">new { id = 1 } 或者 Dictionary&lt;string, object&gt;</param>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.IAdo.ExecuteConnectTest">
+        <member name="M:FreeSql.IAdo.ExecuteConnectTest(System.Int32)">
             <summary>
             测试数据库是否连接正确，本方法执行如下命令：<para></para>
             MySql/SqlServer/PostgreSQL/达梦/人大金仓/神通: SELECT 1<para></para>
             Oracle: SELECT 1 FROM dual<para></para>
             </summary>
+            <param name="commandTimeout">命令超时设置(秒)</param>
             <returns>true: 成功, false: 失败</returns>
         </member>
         <member name="M:FreeSql.IAdo.ExecuteReader(System.Action{FreeSql.Internal.Model.FetchCallbackArgs{System.Data.Common.DbDataReader}},System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
@@ -2898,12 +2934,13 @@
             <param name="parms"></param>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.IAdo.ExecuteConnectTestAsync">
+        <member name="M:FreeSql.IAdo.ExecuteConnectTestAsync(System.Int32)">
             <summary>
             测试数据库是否连接正确，本方法执行如下命令：<para></para>
             MySql/SqlServer/PostgreSQL/达梦/人大金仓/神通: SELECT 1<para></para>
             Oracle: SELECT 1 FROM dual<para></para>
             </summary>
+            <param name="commandTimeout">命令超时设置(秒)</param>
             <returns>true: 成功, false: 失败</returns>
         </member>
         <member name="M:FreeSql.IAdo.ExecuteReaderAsync(System.Func{FreeSql.Internal.Model.FetchCallbackArgs{System.Data.Common.DbDataReader},System.Threading.Tasks.Task},System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">

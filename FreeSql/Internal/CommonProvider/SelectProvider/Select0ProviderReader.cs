@@ -29,7 +29,7 @@ namespace FreeSql.Internal.CommonProvider
             Exception exception = null;
             try
             {
-                ret = _orm.Ado.ExecuteDataTable(_connection, _transaction, CommandType.Text, sql, dbParms);
+                ret = _orm.Ado.ExecuteDataTable(_connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms);
             }
             catch (Exception ex)
             {
@@ -56,7 +56,7 @@ namespace FreeSql.Internal.CommonProvider
             try
             {
                 if (type.IsClass)
-                    ret = _orm.Ado.Query<TTuple>(_connection, _transaction, CommandType.Text, sql, dbParms);
+                    ret = _orm.Ado.Query<TTuple>(_connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms);
                 else
                 {
                     var flagStr = $"ToListField:{field}";
@@ -64,7 +64,7 @@ namespace FreeSql.Internal.CommonProvider
                     {
                         var read = Utils.ExecuteArrayRowReadClassOrTuple(flagStr, type, null, fetch.Object, 0, _commonUtils);
                         ret.Add((TTuple)read.Value);
-                    }, CommandType.Text, sql, dbParms);
+                    }, CommandType.Text, sql, _commandTimeout, dbParms);
                 }
             }
             catch (Exception ex)
@@ -99,7 +99,7 @@ namespace FreeSql.Internal.CommonProvider
                             other.retlist.Add(_commonExpression.ReadAnonymous(other.read, fetch.Object, ref idx, false, null, retCount, null));
                     }
                     retCount++;
-                }, CommandType.Text, sql, dbParms);
+                }, CommandType.Text, sql, _commandTimeout, dbParms);
             }
             catch (Exception ex)
             {
@@ -166,7 +166,7 @@ namespace FreeSql.Internal.CommonProvider
                             foreach (var other in otherData)
                                 other.retlist.Clear();
                     }
-                }, CommandType.Text, sql, dbParms);
+                }, CommandType.Text, sql, _commandTimeout, dbParms);
             }
             catch (Exception ex)
             {
@@ -234,7 +234,7 @@ namespace FreeSql.Internal.CommonProvider
 
                         ret.Object.Clear();
                     }
-                }, CommandType.Text, sql, dbParms);
+                }, CommandType.Text, sql, _commandTimeout, dbParms);
             }
             catch (Exception ex)
             {
@@ -279,7 +279,7 @@ namespace FreeSql.Internal.CommonProvider
                 {
                     var item = af.Read(_orm, fetch.Object);
                     ret.Add(keySelector(item), elementSelector(item));
-                }, CommandType.Text, sql, dbParms);
+                }, CommandType.Text, sql, _commandTimeout, dbParms);
             }
             catch (Exception ex)
             {
@@ -314,7 +314,7 @@ namespace FreeSql.Internal.CommonProvider
                         foreach (var other in otherData)
                             other.retlist.Add(_commonExpression.ReadAnonymous(other.read, fetch.Object, ref index, false, null, retCount, null));
                     retCount++;
-                }, CommandType.Text, sql, dbParms);
+                }, CommandType.Text, sql, _commandTimeout, dbParms);
             }
             catch (Exception ex)
             {
@@ -694,7 +694,7 @@ namespace FreeSql.Internal.CommonProvider
             Exception exception = null;
             try
             {
-                ret = _orm.Ado.ExecuteDataTable(_connection, _transaction, CommandType.Text, sql, dbParms);
+                ret = _orm.Ado.ExecuteDataTable(_connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms);
             }
             catch (Exception ex)
             {
@@ -734,7 +734,7 @@ namespace FreeSql.Internal.CommonProvider
             Exception exception = null;
             try
             {
-                ret = await _orm.Ado.ExecuteDataTableAsync(_connection, _transaction, CommandType.Text, sql, dbParms);
+                ret = await _orm.Ado.ExecuteDataTableAsync(_connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms);
             }
             catch (Exception ex)
             {
@@ -761,7 +761,7 @@ namespace FreeSql.Internal.CommonProvider
             try
             {
                 if (type.IsClass)
-                    ret = await _orm.Ado.QueryAsync<TTuple>(_connection, _transaction, CommandType.Text, sql, dbParms);
+                    ret = await _orm.Ado.QueryAsync<TTuple>(_connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms);
                 else
                 {
                     var flagStr = $"ToListField:{field}";
@@ -770,7 +770,7 @@ namespace FreeSql.Internal.CommonProvider
                         var read = Utils.ExecuteArrayRowReadClassOrTuple(flagStr, type, null, fetch.Object, 0, _commonUtils);
                         ret.Add((TTuple)read.Value);
                         return Task.FromResult(false);
-                    }, CommandType.Text, sql, dbParms);
+                    }, CommandType.Text, sql, _commandTimeout, dbParms);
                 }
             }
             catch (Exception ex)
@@ -807,7 +807,7 @@ namespace FreeSql.Internal.CommonProvider
                     }
                     retCount++;
                     return Task.FromResult(false);
-                }, CommandType.Text, sql, dbParms);
+                }, CommandType.Text, sql, _commandTimeout, dbParms);
             }
             catch (Exception ex)
             {
@@ -859,7 +859,7 @@ namespace FreeSql.Internal.CommonProvider
                     var item = af.Read(_orm, fetch.Object);
                     ret.Add(keySelector(item), elementSelector(item));
                     return Task.FromResult(false);
-                }, CommandType.Text, sql, dbParms);
+                }, CommandType.Text, sql, _commandTimeout, dbParms);
             }
             catch (Exception ex)
             {
@@ -895,7 +895,7 @@ namespace FreeSql.Internal.CommonProvider
                             other.retlist.Add(_commonExpression.ReadAnonymous(other.read, fetch.Object, ref index, false, null, retCount, null));
                     retCount++;
                     return Task.FromResult(false);
-                }, CommandType.Text, sql, dbParms);
+                }, CommandType.Text, sql, _commandTimeout, dbParms);
             }
             catch (Exception ex)
             {
@@ -950,7 +950,7 @@ namespace FreeSql.Internal.CommonProvider
             Exception exception = null;
             try
             {
-                ret = await _orm.Ado.ExecuteDataTableAsync(_connection, _transaction, CommandType.Text, sql, dbParms);
+                ret = await _orm.Ado.ExecuteDataTableAsync(_connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms);
             }
             catch (Exception ex)
             {

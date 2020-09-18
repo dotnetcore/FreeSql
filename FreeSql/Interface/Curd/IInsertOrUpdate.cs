@@ -21,6 +21,12 @@ namespace FreeSql
         /// <param name="connection"></param>
         /// <returns></returns>
         IInsertOrUpdate<T1> WithConnection(DbConnection connection);
+        /// <summary>
+        /// 命令超时设置(秒)
+        /// </summary>
+        /// <param name="timeout"></param>
+        /// <returns></returns>
+        IInsertOrUpdate<T1> CommandTimeout(int timeout);
 
         /// <summary>
         /// 添加或更新，设置实体
