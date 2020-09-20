@@ -44,7 +44,8 @@ namespace FreeSql
                     case DataType.KingbaseES:
                     case DataType.OdbcKingbaseES:
                     case DataType.ShenTong:
-                        if (_tableIdentitys.Length == 1 && _table.Primarys.Length == 1)
+                    case DataType.Firebird: //firebird 只支持单条插入 returning
+                        if (_tableIdentitys.Length == 1)
                         {
                             await DbContextFlushCommandAsync();
                             var idtval = await this.OrmInsert(data).ExecuteIdentityAsync();
@@ -68,7 +69,7 @@ namespace FreeSql
                         }
                         return;
                     default:
-                        if (_tableIdentitys.Length == 1 && _table.Primarys.Length == 1)
+                        if (_tableIdentitys.Length == 1)
                         {
                             await DbContextFlushCommandAsync();
                             var idtval = await this.OrmInsert(data).ExecuteIdentityAsync();

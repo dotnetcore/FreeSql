@@ -44,6 +44,7 @@ namespace FreeSql
                     case DataType.KingbaseES:
                     case DataType.OdbcKingbaseES:
                     case DataType.ShenTong:
+                    case DataType.Firebird: //firebird 只支持单条插入 returning
                         if (_tableIdentitys.Length == 1)
                         {
                             DbContextFlushCommand();
