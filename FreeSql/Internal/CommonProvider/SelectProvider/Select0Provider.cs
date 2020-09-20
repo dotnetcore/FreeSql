@@ -377,7 +377,9 @@ namespace FreeSql.Internal.CommonProvider
             if (_tables[0].Table.Primarys.Any() == false) throw new Exception($"ToDelete 功能要求实体类 {_tables[0].Table.CsName} 必须有主键");
             var del = _orm.Delete<T1>() as DeleteProvider<T1>;
             if (_tables[0].Table.Type != typeof(T1)) del.AsType(_tables[0].Table.Type);
-            if (_params.Any()) del.GetType().GetField("_params", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(del, new List<DbParameter>(_params.ToArray()));
+            if (_params.Any()) del._params = new List<DbParameter>(_params.ToArray());
+            if (_whereGlobalFilter.Any()) del._whereGlobalFilter = new List<GlobalFilter.Item>(_whereGlobalFilter.ToArray());
+            del.WithConnection(_connection).WithTransaction(_transaction).CommandTimeout(_commandTimeout);
             switch (_orm.Ado.DataType)
             {
                 case DataType.Dameng:
@@ -403,7 +405,9 @@ namespace FreeSql.Internal.CommonProvider
             if (_tables[0].Table.Primarys.Any() == false) throw new Exception($"ToUpdate 功能要求实体类 {_tables[0].Table.CsName} 必须有主键");
             var upd = _orm.Update<T1>() as UpdateProvider<T1>;
             if (_tables[0].Table.Type != typeof(T1)) upd.AsType(_tables[0].Table.Type);
-            if (_params.Any()) upd.GetType().GetField("_params", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(upd, new List<DbParameter>(_params.ToArray()));
+            if (_params.Any()) upd._params = new List<DbParameter>(_params.ToArray());
+            if (_whereGlobalFilter.Any()) upd._whereGlobalFilter = new List<GlobalFilter.Item>(_whereGlobalFilter.ToArray());
+            upd.WithConnection(_connection).WithTransaction(_transaction).CommandTimeout(_commandTimeout);
             switch (_orm.Ado.DataType)
             {
                 case DataType.Dameng:
