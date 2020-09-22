@@ -175,7 +175,9 @@ namespace FreeSql.Internal
                         parent.DbField = ExpressionLambdaToSql(exp, getTSC());
                         field.Append(", ").Append(parent.DbField);
                         if (index >= 0) field.Append(_common.FieldAsAlias($"as{++index}"));
-                        else if (index == ReadAnonymousFieldAsCsName && string.IsNullOrEmpty(parent.CsName) == false) field.Append(_common.FieldAsAlias(parent.CsName));
+                        else if (index == ReadAnonymousFieldAsCsName && string.IsNullOrEmpty(parent.CsName) == false && 
+                            parent.DbField.EndsWith(_common.QuoteSqlName(parent.CsName), StringComparison.CurrentCultureIgnoreCase) == false //DbField 和 CsName 相同的时候，不处理
+                            ) field.Append(_common.FieldAsAlias(parent.CsName));
                         parent.MapType = SearchColumnByField(_tables, null, parent.DbField)?.Attribute.MapType ?? exp.Type;
                         return false;
                     }

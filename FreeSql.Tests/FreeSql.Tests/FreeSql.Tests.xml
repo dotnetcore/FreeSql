@@ -9,6 +9,21 @@
             编号
             </summary>
         </member>
+        <member name="P:FreeSql.Tests.Issues._467.PayOrder.Money">
+            <summary>
+            收款金额
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._467.PayOrder.OrderTime">
+            <summary>
+            订单时间
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._467.PayOrder.PayOrderId">
+            <summary>
+            支付Id
+            </summary>
+        </member>
         <member name="M:FreeSql.Tests.MySql.MySqlCodeFirstTest.Tb_alltype.Save">
             <summary>
             保存或添加，如果主键有值则尝试 Update，如果影响的行为 0 则尝试 Insert
