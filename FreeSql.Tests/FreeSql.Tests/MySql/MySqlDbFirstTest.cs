@@ -32,6 +32,9 @@ namespace FreeSql.Tests.MySql
             Assert.Equal(t1.Columns.Count, t2.Columns.Count);
             var t3 = fsql.DbFirst.GetTableByName("notexists_tb");
             Assert.Null(t3);
+
+            var t11 = fsql.DbFirst.GetTableByName("blog");
+
         }
 
         [Fact]

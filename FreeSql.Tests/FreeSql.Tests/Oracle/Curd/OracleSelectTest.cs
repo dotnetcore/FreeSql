@@ -909,10 +909,10 @@ FROM ""TB_TOPIC22"" a", subquery);
             Assert.Equal(@"SELECT a.""ID"" as1, a.""CLICKS"" as2, a.""TYPEGUID"" as3, a.""TITLE"" as4, a.""CREATETIME"" as5, (SELECT avg(b.""ID"") 
     FROM ""TB_TOPIC22"" b) as6 
 FROM ""TB_TOPIC22"" a", subquery);
-            var subqueryList = select.Limit(100).ToList(a => new
+            var subqueryList = select.Limit(10).ToList(a => new
             {
                 all = a,
-                count = select.As("b").Avg(b => b.Id)
+                count = select.As("b").Limit(10).Avg(b => b.Id)
             });
         }
         [Fact]
