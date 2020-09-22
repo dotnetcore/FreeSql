@@ -1,5 +1,7 @@
-﻿using RazorEngine.Templating;
+﻿using FreeSql.DatabaseModel;
+using RazorEngine.Templating;
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -111,7 +113,7 @@ new Colorful.Formatter("v" + string.Join(".", typeof(ConsoleApp).Assembly.GetNam
                                默认生成：表+视图+存储过程
                                如果不想生成视图和存储过程 -Filter View+StoreProcedure
 
-     -Match                    正则表达式，只生成匹配的表，如：dbo\.TB_.+
+     -Match                    表名或正则表达式，只生成匹配的表，如：dbo\.TB_.+
 
      -FileName                 文件名，默认：{name}.cs
      -Output                   保存路径，默认为当前 shell 所在目录
@@ -219,7 +221,18 @@ new Colorful.Formatter("推荐在实体类目录创建 gen.bat，双击它重新
                 .UseMonitorCommand(cmd => Console.WriteFormatted(cmd.CommandText + "\r\n", Color.SlateGray))
                 .Build())
             {
-                var tables = fsql.DbFirst.GetTablesByDatabase();
+                List<DbTableInfo> tables = new List<DbTableInfo>();
+                if (string.IsNullOrEmpty(ArgsMatch) == false)
+                {
+                    try
+                    {
+                        var matchTable = fsql.DbFirst.GetTableByName(ArgsMatch);
+                        if (matchTable != null) tables.Add(matchTable);
+                    }
+                    catch { }
+                }
+                if (tables.Any() == false)
+                    tables = fsql.DbFirst.GetTablesByDatabase();
                 var outputTables = tables;
 
                 //开始生成操作
