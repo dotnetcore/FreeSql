@@ -1463,13 +1463,15 @@ namespace FreeSql.Internal
                                 var name = row2.GetName(a);
                                 //expando[name] = row2.GetValue(a);
                                 if (expandodic.ContainsKey(name)) continue;
-                                expandodic.Add(name, Utils.InternalDataReaderGetValue(_commonUtils, row2, a));
+                                expandodic.Add(name, Utils.InternalDataReaderGetValue(commonUtils2, row2, a));
                             }
                             //expando = expandodic;
                             return new RowInfo(expandodic, fc);
                         };
                         return dynamicFunc;// Expression.Lambda<Func<Type, int[], DbDataReader, int, RowInfo>>(null);
                     }
+
+                    if (type.IsAnonymousType()) return ExecuteArrayRowReadAnonymousType;
 
                     //类注入属性
                     var typetb = GetTableByEntity(type, _commonUtils);
@@ -1596,12 +1598,13 @@ namespace FreeSql.Internal
                         var propIndex = 0;
                         foreach (var prop in props)
                         {
-                            if (typetb.ColumnsByCsIgnore.ContainsKey(prop.Name))
+                            if (typetb?.ColumnsByCsIgnore.ContainsKey(prop.Name) == true)
                             {
                                 ++propIndex;
                                 continue;
                             }
-                            var readType = typetb.ColumnsByCs.TryGetValue(prop.Name, out var trycol) ? trycol.Attribute.MapType : prop.PropertyType;
+                            ColumnInfo trycol = null;
+                            var readType = typetb?.ColumnsByCs.TryGetValue(prop.Name, out trycol) == true ? trycol.Attribute.MapType : prop.PropertyType;
 
                             var ispkExp = new List<Expression>();
                             var propGetSetMethod = prop.GetSetMethod(true);
@@ -1698,6 +1701,18 @@ namespace FreeSql.Internal
                         Expression.Block(new[] { retExp, readExp, tryidxExp, readpknullExp, readpkvalExp, readExpsIndex, indexesLengthExp }.Concat(readExpValueParms), blockExp), new[] { typeExp, indexesExp, rowExp, dataIndexExp, commonUtilExp }).Compile();
                 });
             return func(typeOrg, indexes, row, dataIndex, _commonUtils);
+        }
+
+        internal static RowInfo ExecuteArrayRowReadAnonymousType(Type type2, int[] indexes2, DbDataReader row2, int dataindex2, CommonUtils commonUtils2)
+        {
+            var ctor = type2.InternalGetTypeConstructor0OrFirst();
+            var ctorParms = new object[ctor.GetParameters().Length];
+            if (indexes2?.Length != ctorParms.Length)
+                indexes2 = ctor.GetParameters().Select(c => row2.GetOrdinal(c.Name)).ToArray();
+
+            for (var c = 0; c < ctorParms.Length; c++)
+                ctorParms[c] = Utils.InternalDataReaderGetValue(commonUtils2, row2, indexes2[c]);
+            return new RowInfo(ctor.Invoke(ctorParms), ctorParms.Length);
         }
 
         internal static MethodInfo MethodExecuteArrayRowReadClassOrTuple = typeof(Utils).GetMethod("ExecuteArrayRowReadClassOrTuple", BindingFlags.Static | BindingFlags.NonPublic);
