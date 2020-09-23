@@ -33,6 +33,8 @@ namespace FreeSql.Tests.Oracle
             Assert.Equal(t1.Columns.Count, t2.Columns.Count);
             var t3 = fsql.DbFirst.GetTableByName("notexists_tb");
             Assert.Null(t3);
+
+            var t4 = fsql.DbFirst.GetTableByName("V_DTOS_DT");
         }
 
         [Fact]

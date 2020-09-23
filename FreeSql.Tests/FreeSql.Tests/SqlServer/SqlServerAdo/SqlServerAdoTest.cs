@@ -1,5 +1,6 @@
 using FreeSql.DataAnnotations;
 using FreeSql.Tests.DataContext.SqlServer;
+using Microsoft.Data.SqlClient;
 using NetTaste;
 using System;
 using System.Collections.Generic;
@@ -47,7 +48,14 @@ namespace FreeSql.Tests.SqlServer
         [Fact]
         public void ExecuteNonQuery()
         {
-
+            var ps = new[]
+            {
+                new SqlParameter("@TableName", "tb1"),
+                new SqlParameter("@FInterID", System.Data.SqlDbType.Int)
+            };
+            ps[1].Direction = System.Data.ParameterDirection.Output;
+            g.sqlserver.Ado.ExecuteNonQuery(System.Data.CommandType.StoredProcedure, "dbo.GetICMaxNum", ps);
+            Assert.Equal(100, ps[1].Value);
         }
         [Fact]
         public void ExecuteScalar()
