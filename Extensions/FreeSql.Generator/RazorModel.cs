@@ -196,11 +196,11 @@ public class RazorModel {
 					if (defval != null)
 					{
 						sb.Add("InsertValueSql = \"" + defval.Replace("\"", "\\\"") + "\"");
-						sb.Add("CanInsert = false");
+						//sb.Add("CanInsert = false");
 					}
 				}
-				else
-					sb.Add("CanInsert = false");
+				//else
+					//sb.Add("CanInsert = false");
 			}
 		}
 		if (sb.Any() == false) return null;
