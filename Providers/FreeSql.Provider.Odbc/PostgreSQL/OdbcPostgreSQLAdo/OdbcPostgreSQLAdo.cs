@@ -62,7 +62,7 @@ namespace FreeSql.Odbc.PostgreSQL
             return string.Concat("'", param.ToString().Replace("'", "''"), "'");
         }
 
-        protected override DbCommand CreateCommand()
+        public override DbCommand CreateCommand()
         {
             return new OdbcCommand();
         }
@@ -74,6 +74,6 @@ namespace FreeSql.Odbc.PostgreSQL
             else pool.Return(conn);
         }
 
-        protected override DbParameter[] GetDbParamtersByObject(string sql, object obj) => _util.GetDbParamtersByObject(sql, obj);
+        public override DbParameter[] GetDbParamtersByObject(string sql, object obj) => _util.GetDbParamtersByObject(sql, obj);
     }
 }

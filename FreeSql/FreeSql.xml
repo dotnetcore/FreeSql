@@ -2805,6 +2805,21 @@
             <param name="obj">new { id = 1 } 或者 Dictionary&lt;string, object&gt;</param>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.IAdo.CommandFluent(System.String,System.Object)">
+            <summary>
+            SQL 命令执行类，fsql.Ado.CommandFluent("select * from user where age > ?age", new { age = 25 })<para></para>
+            .WithConnection(connection)<para></para>
+            .WithTransaction(transaction)<para></para>
+            .WithParameter("age", 25)<para></para>
+            .WithParameter("id", 11)<para></para>
+            .CommandType(CommandType.Text)<para></para>
+            .CommandTimeout(60)<para></para>
+            .Query&lt;T&gt;(); 或者 ExecuteNonQuery/ExecuteScalar/ExecuteDataTable/ExecuteDataSet/ExecuteArray
+            </summary>
+            <param name="cmdText"></param>
+            <param name="parms"></param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.IAdo.ExecuteConnectTest(System.Int32)">
             <summary>
             测试数据库是否连接正确，本方法执行如下命令：<para></para>
@@ -3672,6 +3687,43 @@
             <param name="name">名字</param>
             <param name="condition">委托，返回值为 true 时才生效</param>
             <param name="where">表达式</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.Internal.Model.AdoCommandFluent.WithConnection(System.Data.Common.DbConnection)">
+            <summary>
+            使用指定 DbConnection 连接执行
+            </summary>
+            <param name="conn"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.Internal.Model.AdoCommandFluent.WithTransaction(System.Data.Common.DbTransaction)">
+            <summary>
+            使用指定 DbTransaction 事务执行
+            </summary>
+            <param name="tran"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.Internal.Model.AdoCommandFluent.WithParameter(System.String,System.Object,System.Action{System.Data.Common.DbParameter})">
+            <summary>
+            增加参数化对象
+            </summary>
+            <param name="parameterName">参数名</param>
+            <param name="value">参数值</param>
+            <param name="modify">修改本次创建好的参数化对象，比如将 parameterName 参数修改为 Output 类型</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.Internal.Model.AdoCommandFluent.CommandType(System.Data.CommandType)">
+            <summary>
+            设置执行的命令类型，SQL文本、或存储过程
+            </summary>
+            <param name="commandType"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.Internal.Model.AdoCommandFluent.CommandTimeout(System.Int32)">
+            <summary>
+            设置命令执行超时（秒）
+            </summary>
+            <param name="commandTimeout"></param>
             <returns></returns>
         </member>
         <member name="P:FreeSql.Internal.Model.BatchProgressStatus`1.Data">

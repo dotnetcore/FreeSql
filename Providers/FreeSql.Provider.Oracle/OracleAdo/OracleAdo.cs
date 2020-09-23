@@ -61,7 +61,7 @@ namespace FreeSql.Oracle
             //if (param is string) return string.Concat('N', nparms[a]);
         }
 
-        protected override DbCommand CreateCommand()
+        public override DbCommand CreateCommand()
         {
             var cmd = new OracleCommand();
             cmd.BindByName = true;
@@ -75,6 +75,6 @@ namespace FreeSql.Oracle
             else pool.Return(conn);
         }
 
-        protected override DbParameter[] GetDbParamtersByObject(string sql, object obj) => _util.GetDbParamtersByObject(sql, obj);
+        public override DbParameter[] GetDbParamtersByObject(string sql, object obj) => _util.GetDbParamtersByObject(sql, obj);
     }
 }

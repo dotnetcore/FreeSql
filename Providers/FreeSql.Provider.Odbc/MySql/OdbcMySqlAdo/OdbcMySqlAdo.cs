@@ -61,7 +61,7 @@ namespace FreeSql.Odbc.MySql
             return string.Concat("'", param.ToString().Replace("'", "''").Replace("\\", "\\\\"), "'");
         }
 
-        protected override DbCommand CreateCommand()
+        public override DbCommand CreateCommand()
         {
             return new OdbcCommand();
         }
@@ -73,6 +73,6 @@ namespace FreeSql.Odbc.MySql
             else pool.Return(conn);
         }
 
-        protected override DbParameter[] GetDbParamtersByObject(string sql, object obj) => _util.GetDbParamtersByObject(sql, obj);
+        public override DbParameter[] GetDbParamtersByObject(string sql, object obj) => _util.GetDbParamtersByObject(sql, obj);
     }
 }

@@ -82,6 +82,8 @@ public static partial class FreeSqlSqlServerGlobalExtensions
             if (batchSize.HasValue) bulkCopy.BatchSize = batchSize.Value;
             if (bulkCopyTimeout.HasValue) bulkCopy.BulkCopyTimeout = bulkCopyTimeout.Value;
             bulkCopy.DestinationTableName = dt.TableName;
+            for (int i = 0; i < dt.Columns.Count; i++)
+                bulkCopy.ColumnMappings.Add(dt.Columns[i].ColumnName, dt.Columns[i].ColumnName);
             bulkCopy.WriteToServer(dt);
         };
 
@@ -157,6 +159,8 @@ public static partial class FreeSqlSqlServerGlobalExtensions
             if (batchSize.HasValue) bulkCopy.BatchSize = batchSize.Value;
             if (bulkCopyTimeout.HasValue) bulkCopy.BulkCopyTimeout = bulkCopyTimeout.Value;
             bulkCopy.DestinationTableName = dt.TableName;
+            for (int i = 0; i < dt.Columns.Count; i++)
+                bulkCopy.ColumnMappings.Add(dt.Columns[i].ColumnName, dt.Columns[i].ColumnName);
             return bulkCopy.WriteToServerAsync(dt);
         };
 

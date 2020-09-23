@@ -63,6 +63,21 @@ namespace FreeSql
         DbParameter[] GetDbParamtersByObject(object obj);
 
         /// <summary>
+        /// SQL 命令执行类，fsql.Ado.CommandFluent("select * from user where age > ?age", new { age = 25 })<para></para>
+        /// .WithConnection(connection)<para></para>
+        /// .WithTransaction(transaction)<para></para>
+        /// .WithParameter("age", 25)<para></para>
+        /// .WithParameter("id", 11)<para></para>
+        /// .CommandType(CommandType.Text)<para></para>
+        /// .CommandTimeout(60)<para></para>
+        /// .Query&lt;T&gt;(); 或者 ExecuteNonQuery/ExecuteScalar/ExecuteDataTable/ExecuteDataSet/ExecuteArray
+        /// </summary>
+        /// <param name="cmdText"></param>
+        /// <param name="parms"></param>
+        /// <returns></returns>
+        AdoCommandFluent CommandFluent(string cmdText, object parms = null);
+
+        /// <summary>
         /// 测试数据库是否连接正确，本方法执行如下命令：<para></para>
         /// MySql/SqlServer/PostgreSQL/达梦/人大金仓/神通: SELECT 1<para></para>
         /// Oracle: SELECT 1 FROM dual<para></para>

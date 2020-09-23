@@ -16,8 +16,8 @@ namespace FreeSql.Internal.CommonProvider
     {
 
         protected abstract void ReturnConnection(IObjectPool<DbConnection> pool, Object<DbConnection> conn, Exception ex);
-        protected abstract DbCommand CreateCommand();
-        protected abstract DbParameter[] GetDbParamtersByObject(string sql, object obj);
+        public abstract DbCommand CreateCommand();
+        public abstract DbParameter[] GetDbParamtersByObject(string sql, object obj);
         public DbParameter[] GetDbParamtersByObject(object obj) => GetDbParamtersByObject("*", obj);
 
         protected bool IsTracePerformance => _util?._orm?.Aop.CommandAfterHandler != null;
@@ -28,6 +28,7 @@ namespace FreeSql.Internal.CommonProvider
         public string ConnectionString { get; }
         public string[] SlaveConnectionStrings { get; }
         public Guid Identifier { get; }
+
         protected CommonUtils _util { get; set; }
         protected int slaveUnavailables = 0;
         private object slaveLock = new object();
@@ -96,6 +97,8 @@ namespace FreeSql.Internal.CommonProvider
             //var props = tb?.Properties ?? type.GetPropertiesDictIgnoreCase();
             //return props;
         }
+
+        public AdoCommandFluent CommandFluent(string cmdText, object parms = null) => new AdoCommandFluent(this, cmdText, parms);
 
         public bool ExecuteConnectTest(int commandTimeout = 0)
         {

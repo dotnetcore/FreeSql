@@ -64,7 +64,7 @@ namespace FreeSql.Sqlite
         }
 
         DbConnection _CreateCommandConnection;
-        protected override DbCommand CreateCommand()
+        public override DbCommand CreateCommand()
         {
             if (_CreateCommandConnection != null)
             {
@@ -82,6 +82,6 @@ namespace FreeSql.Sqlite
             else pool.Return(conn);
         }
 
-        protected override DbParameter[] GetDbParamtersByObject(string sql, object obj) => _util.GetDbParamtersByObject(sql, obj);
+        public override DbParameter[] GetDbParamtersByObject(string sql, object obj) => _util.GetDbParamtersByObject(sql, obj);
     }
 }
