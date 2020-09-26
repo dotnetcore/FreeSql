@@ -14,28 +14,29 @@ namespace FreeSql.Tests.Issues
         [Fact]
         public void SelectTest()
         {
-            IFreeSql fsql = new FreeSql.FreeSqlBuilder()
-                        .UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=1")
-                       //.UseNameConvert(FreeSql.Internal.NameConvertType.ToUpper)
-                       .UseGenerateCommandParameterWithLambda(true)
-                       .UseAutoSyncStructure(true)
-                        .UseMonitorCommand(cmd => Trace.WriteLine("\r\n线程" + Thread.CurrentThread.ManagedThreadId + ": " + cmd.CommandText))
-                        .Build();
+            using (IFreeSql fsql = new FreeSql.FreeSqlBuilder()
+                .UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=1")
+                //.UseNameConvert(FreeSql.Internal.NameConvertType.ToUpper)
+                .UseGenerateCommandParameterWithLambda(true)
+                .UseAutoSyncStructure(true)
+                .UseMonitorCommand(cmd => Trace.WriteLine("\r\n线程" + Thread.CurrentThread.ManagedThreadId + ": " + cmd.CommandText))
+                .Build())
+            {
+                var orderSql = fsql
+                    .Select<PayOrder>()
+                    .As(nameof(PayOrder).ToLower())
+                    .Where(p => p.Status == 1)
+                    .ToSql(p => new
+                    {
+                        p.PayOrderId,
+                        p.Money,
+                        p.OrderTime
+                    }, FreeSql.FieldAliasOptions.AsProperty);
 
-            var orderSql = fsql
-                .Select<PayOrder>()
-                .As(nameof(PayOrder).ToLower())
-                .Where(p => p.Status == 1)
-                .ToSql(p => new
-                {
-                    p.PayOrderId,
-                    p.Money,
-                    p.OrderTime
-                }, FreeSql.FieldAliasOptions.AsProperty);
-
-            Assert.Equal(@"SELECT payorder.""PayOrderId"", payorder.""Money"", payorder.""OrderTime"" 
+                Assert.Equal(@"SELECT payorder.""PayOrderId"", payorder.""Money"", payorder.""OrderTime"" 
 FROM ""pay_order"" payorder 
 WHERE (payorder.""Status"" = 1)", orderSql);
+            }
         }
 
         [JsonObject(MemberSerialization.OptIn), Table(Name = "pay_order", DisableSyncStructure = true)]

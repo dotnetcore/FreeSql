@@ -451,6 +451,8 @@ public static partial class FreeSqlGlobalExtensions
                 });
             sql2ctePath = $"{sql2ctePath} as cte_path, ";
         }
+        if (select._orm.CodeFirst.IsAutoSyncStructure)
+            (select._orm.CodeFirst as CodeFirstProvider)._dicSycedTryAdd(tb.Type, cteName); //#476
         var sql2 = select
             .AsAlias((type, old) => type == tb.Type ? old.Replace("wct2", "wct1") : old)
             .AsTable((type, old) => type == tb.Type ? cteName : old)
