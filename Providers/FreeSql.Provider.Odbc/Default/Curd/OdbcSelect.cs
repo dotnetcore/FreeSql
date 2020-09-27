@@ -34,18 +34,9 @@ namespace FreeSql.Odbc.Default
                 if (_distinct) sb.Append("DISTINCT ");
                 if (_limit > 0 && _utils.Adapter.SelectTopStyle == OdbcAdapter.SelecTopStyle.Top) sb.Append("TOP ").Append(_skip + _limit).Append(" ");
                 sb.Append(field);
-                if (_skip > 0)
-                {
-                    if (string.IsNullOrEmpty(_orderby))
-                    {
-                        var pktb = _tables.Where(a => a.Table.Primarys.Any()).FirstOrDefault();
-                        if (pktb != null) _orderby = string.Concat(" \r\nORDER BY ", pktb.Alias, ".", _commonUtils.QuoteSqlName(pktb?.Table.Primarys.First().Attribute.Name));
-                        else _orderby = string.Concat(" \r\nORDER BY ", _tables.First().Alias, ".", _commonUtils.QuoteSqlName(_tables.First().Table.Columns.First().Value.Attribute.Name));
-                    }
-                    sb.Append(", ROW_NUMBER() OVER(").Append(_orderby).Append(") AS __rownum__");
-
+                if (_skip > 0 && _utils.Adapter.SelectTopStyle == OdbcAdapter.SelecTopStyle.Top)
                     throw new NotImplementedException("FreeSql.Odbc.Default 未实现 Skip/Offset 功能，如果需要分页请使用判断上一次 id");
-                }
+
                 sb.Append(" \r\nFROM ");
                 var tbsjoin = _tables.Where(a => a.Type != SelectTableInfoType.From).ToArray();
                 var tbsfrom = _tables.Where(a => a.Type == SelectTableInfoType.From).ToArray();
@@ -116,13 +107,11 @@ namespace FreeSql.Odbc.Default
                     if (string.IsNullOrEmpty(_having) == false)
                         sb.Append(" \r\nHAVING ").Append(_having.Substring(5));
                 }
-                if (_skip <= 0)
-                    sb.Append(_orderby);
-                else
-                    sb.Insert(0, "WITH t AS ( ").Append(" ) SELECT t.* FROM t where __rownum__ > ").Append(_skip);
+                sb.Append(_orderby);
+                if (_limit > 0 && _utils.Adapter.SelectTopStyle == OdbcAdapter.SelecTopStyle.Limit) sb.Append(" \r\nLIMIT ").Append(_limit);
+                if (_skip > 0 && _utils.Adapter.SelectTopStyle == OdbcAdapter.SelecTopStyle.Limit) sb.Append(" \r\nOFFSET ").Append(_skip);
 
                 sbnav.Clear();
-                if (_limit > 0 && _utils.Adapter.SelectTopStyle == OdbcAdapter.SelecTopStyle.Limit) sb.Append(" \r\nLIMIT ").Append(_skip + _limit);
                 if (tbUnionsGt0) sb.Append(") ftb");
             }
             return sb.Append(_tosqlAppendContent).ToString();
