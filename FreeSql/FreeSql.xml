@@ -292,6 +292,11 @@
             <param name="exp"></param>
             <returns></returns>
         </member>
+        <member name="P:FreeSql.DataAnnotations.ExpressionCallContext.IUtility.CommonUtils">
+            <summary>
+            (非公开)内部公共工具类方法
+            </summary>
+        </member>
         <member name="T:FreeSql.DataAnnotations.IndexAttribute">
             <summary>
             索引设置，如：[Index("{tablename}_idx_01", "name")]

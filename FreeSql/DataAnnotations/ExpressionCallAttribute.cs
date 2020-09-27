@@ -85,6 +85,11 @@ namespace FreeSql.DataAnnotations
             /// <param name="exp"></param>
             /// <returns></returns>
             string ParseExpression(Expression exp);
+
+            /// <summary>
+            /// (非公开)内部公共工具类方法
+            /// </summary>
+            CommonUtils CommonUtils { get; }
         }
 
         class DefaultUtility : IUtility
@@ -92,8 +97,8 @@ namespace FreeSql.DataAnnotations
             internal ExpressionCallContext _context;
 
             public TableInfo GetTableByEntity(Type entityType) => _context?._commonExp._common.GetTableByEntity(entityType);
-
             public string ParseExpression(Expression exp) => _context?._commonExp.ExpressionLambdaToSql(exp, _context._tsc.CloneDisableDiyParse());
+            public CommonUtils CommonUtils => _context?._commonExp._common;
         }
     }
 }
