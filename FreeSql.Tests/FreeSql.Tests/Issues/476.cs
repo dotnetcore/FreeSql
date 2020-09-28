@@ -14,7 +14,7 @@ namespace FreeSql.Tests.Issues
         [Fact]
         public void SelectTest()
         {
-            var fsql = g.mysql;
+            var fsql = g.sqlite;
             var repo = fsql.GetRepository<AreaEntity>();
             var list = repo.Select.Where(m => m.Name == "辽宁省").AsTreeCte().ToList();
         }
