@@ -1648,6 +1648,12 @@ WHERE (((cast(a.""Id"" as character)) in (SELECT b.""Title""
             Assert.Equal(1, songs22[1].Tags.Count);
             Assert.Equal(1, songs22[2].Tags.Count);
 
+            var asongs222211 = g.sqlite.Select<Song>()
+                .IncludeMany(a => a.Tags.Take(1).Select(b => new Tag { Name = b.Name }),
+                    then => then.IncludeMany(t => t.Songs.Take(1).Select(b => new Song { Id = b.Id, Title = b.Title })))
+                .Where(a => a.Id == song1.Id || a.Id == song2.Id || a.Id == song3.Id)
+                .ToList();
+
             var atags33 = g.sqlite.Select<Song_tag>()
                 .Include(a => a.Tag.Parent)
                 .IncludeMany(a => a.Tag.Songs.Take(1).Select(b => new Song { Id = b.Id, Title = b.Title }))

@@ -806,6 +806,15 @@ namespace FreeSql.Internal.CommonProvider
                         var tmpMemberInfo = tbrefCol.Table.Properties[tbrefCol.CsName];
                         newinitExpBindings.Add(Expression.Bind(tmpMemberInfo, Expression.MakeMemberAccess(selectExp.Parameters[0], tmpMemberInfo)));
                     }
+                    if (subSelect._includeToList.Any()) //如果还有向下 IncludeMany，要把它的主键也查出来
+                    {
+                        foreach (var tbrefPkCol in _commonUtils.GetTableByEntity(tbref.RefEntityType).Primarys)
+                        {
+                            if (newinitExpBindings.Any(a => a.Member.Name == tbrefPkCol.CsName)) continue;
+                            var tmpMemberInfo = tbrefPkCol.Table.Properties[tbrefPkCol.CsName];
+                            newinitExpBindings.Add(Expression.Bind(tmpMemberInfo, Expression.MakeMemberAccess(selectExp.Parameters[0], tmpMemberInfo)));
+                        }
+                    }
                     Expression newinitExp = Expression.MemberInit(tmpinitExp.NewExpression, newinitExpBindings.ToList());
                     var selectExpParam = subSelect._tables[0].Parameter ?? Expression.Parameter(typeof(TNavigate), subSelectT1Alias);
                     newinitExp = new NewExpressionVisitor(selectExpParam, selectExp.Parameters[0]).Replace(newinitExp);
