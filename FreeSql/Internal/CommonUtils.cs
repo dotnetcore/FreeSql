@@ -451,56 +451,69 @@ namespace FreeSql.Internal
         /// <returns>Dict：key=属性名，value=注释</returns>
         public static Dictionary<string, string> GetProperyCommentBySummary(Type type)
         {
-            if (type.Assembly.IsDynamic) return null;
-            //动态生成的程序集，访问不了 Assembly.Location/Assembly.CodeBase
-            var regex = new Regex(@"\.(dll|exe)", RegexOptions.IgnoreCase);
-            var xmlPath = regex.Replace(type.Assembly.Location, ".xml");
-            if (File.Exists(xmlPath) == false)
+            return LocalGetComment(type, 0);
+
+            Dictionary<string, string> LocalGetComment(Type localType, int level)
             {
-                if (string.IsNullOrEmpty(type.Assembly.CodeBase)) return null;
-                xmlPath = regex.Replace(type.Assembly.CodeBase, ".xml");
-                if (xmlPath.StartsWith("file:///") && Uri.TryCreate(xmlPath, UriKind.Absolute, out var tryuri))
-                    xmlPath = tryuri.LocalPath;
-                if (File.Exists(xmlPath) == false) return null;
+                if (localType.Assembly.IsDynamic) return null;
+                //动态生成的程序集，访问不了 Assembly.Location/Assembly.CodeBase
+                var regex = new Regex(@"\.(dll|exe)", RegexOptions.IgnoreCase);
+                var xmlPath = regex.Replace(localType.Assembly.Location, ".xml");
+                if (File.Exists(xmlPath) == false)
+                {
+                    if (string.IsNullOrEmpty(localType.Assembly.CodeBase)) return null;
+                    xmlPath = regex.Replace(localType.Assembly.CodeBase, ".xml");
+                    if (xmlPath.StartsWith("file:///") && Uri.TryCreate(xmlPath, UriKind.Absolute, out var tryuri))
+                        xmlPath = tryuri.LocalPath;
+                    if (File.Exists(xmlPath) == false) return null;
+                }
+
+                var dic = new Dictionary<string, string>();
+                var sReader = new StringReader(File.ReadAllText(xmlPath));
+                using (var xmlReader = XmlReader.Create(sReader))
+                {
+                    XPathDocument xpath = null;
+                    try
+                    {
+                        xpath = new XPathDocument(xmlReader);
+                    }
+                    catch
+                    {
+                        return null;
+                    }
+                    var xmlNav = xpath.CreateNavigator();
+
+                    var className = (localType.IsNested ? $"{localType.Namespace}.{localType.DeclaringType.Name}.{localType.Name}" : $"{localType.Namespace}.{localType.Name}").Trim('.');
+                    var node = xmlNav.SelectSingleNode($"/doc/members/member[@name='T:{className}']/summary");
+                    if (node != null)
+                    {
+                        var comment = node.InnerXml.Trim(' ', '\r', '\n', '\t');
+                        if (string.IsNullOrEmpty(comment) == false) dic.Add("", comment); //class注释
+                    }
+
+                    var props = localType.GetPropertiesDictIgnoreCase().Values;
+                    foreach (var prop in props)
+                    {
+                        className = (prop.DeclaringType.IsNested ? $"{prop.DeclaringType.Namespace}.{prop.DeclaringType.DeclaringType.Name}.{prop.DeclaringType.Name}" : $"{prop.DeclaringType.Namespace}.{prop.DeclaringType.Name}").Trim('.');
+                        node = xmlNav.SelectSingleNode($"/doc/members/member[@name='P:{className}.{prop.Name}']/summary");
+                        if (node == null)
+                        {
+                            if (level == 0 && prop.DeclaringType.Assembly != localType.Assembly)
+                            {
+                                var cbs = LocalGetComment(prop.DeclaringType, level + 1);
+                                if (cbs != null && cbs.TryGetValue(prop.Name, out var otherComment) && string.IsNullOrEmpty(otherComment) == false)
+                                    dic.Add(prop.Name, otherComment);
+                            }
+                            continue;
+                        }
+                        var comment = node.InnerXml.Trim(' ', '\r', '\n', '\t');
+                        if (string.IsNullOrEmpty(comment)) continue;
+
+                        dic.Add(prop.Name, comment);
+                    }
+                }
+                return dic;
             }
-
-            var dic = new Dictionary<string, string>();
-            var sReader = new StringReader(File.ReadAllText(xmlPath));
-            using (var xmlReader = XmlReader.Create(sReader))
-            {
-                XPathDocument xpath = null;
-                try
-                {
-                    xpath = new XPathDocument(xmlReader);
-                }
-                catch
-                {
-                    return null;
-                }
-                var xmlNav = xpath.CreateNavigator();
-
-                var className = (type.IsNested ? $"{type.Namespace}.{type.DeclaringType.Name}.{type.Name}" : $"{type.Namespace}.{type.Name}").Trim('.');
-                var node = xmlNav.SelectSingleNode($"/doc/members/member[@name='T:{className}']/summary");
-                if (node != null)
-                {
-                    var comment = node.InnerXml.Trim(' ', '\r', '\n', '\t');
-                    if (string.IsNullOrEmpty(comment) == false) dic.Add("", comment); //class注释
-                }
-
-                var props = type.GetPropertiesDictIgnoreCase().Values;
-                foreach (var prop in props)
-                {
-                    className = (prop.DeclaringType.IsNested ? $"{prop.DeclaringType.Namespace}.{prop.DeclaringType.DeclaringType.Name}.{prop.DeclaringType.Name}" : $"{prop.DeclaringType.Namespace}.{prop.DeclaringType.Name}").Trim('.');
-                    node = xmlNav.SelectSingleNode($"/doc/members/member[@name='P:{className}.{prop.Name}']/summary");
-                    if (node == null) continue;
-                    var comment = node.InnerXml.Trim(' ', '\r', '\n', '\t');
-                    if (string.IsNullOrEmpty(comment)) continue;
-
-                    dic.Add(prop.Name, comment);
-                }
-            }
-
-            return dic;
         }
 
         public static void PrevReheatConnectionPool(ObjectPool<DbConnection> pool, int minPoolSize)

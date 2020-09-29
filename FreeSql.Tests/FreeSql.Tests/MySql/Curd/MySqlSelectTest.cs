@@ -825,13 +825,13 @@ LEFT JOIN `TestTypeParentInfo` a__Type__Parent ON a__Type__Parent.`Id` = a__Type
                 .WhereIf(false, a => b.ParentId == 20));
             sql = query2.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a, `TestTypeInfo` b, `TestTypeParentInfo` c", sql);
-            query2.ToList();
+            query2.Limit(100).ToList();
 
             //������϶����㲻��
             query = select.WhereIf(false, "a.clicks > 100 and a.id = ?id", new { id = 10 });
             sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` FROM `tb_topic` a", sql);
-            query.ToList();
+            query.Limit(100).ToList();
         }
         [Fact]
         public void WhereExists()
