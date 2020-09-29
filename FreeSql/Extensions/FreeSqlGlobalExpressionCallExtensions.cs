@@ -117,6 +117,45 @@ namespace FreeSql
             return default(TValue);
         }
 
+        #region 大小判断
+        /// <summary>
+        /// 大于 &gt;
+        /// </summary>
+        /// <returns></returns>
+        public static bool GreaterThan<TValue>(TValue value1, TValue value2)
+        {
+            expContext.Value.Result = $"{expContext.Value.ParsedContent["value1"]} > {expContext.Value.ParsedContent["value2"]}";
+            return false;
+        }
+        /// <summary>
+        /// 大于或等于 &gt;=
+        /// </summary>
+        /// <returns></returns>
+        public static bool GreaterThanOrEqual<TValue>(TValue value1, TValue value2)
+        {
+            expContext.Value.Result = $"{expContext.Value.ParsedContent["value1"]} >= {expContext.Value.ParsedContent["value2"]}";
+            return false;
+        }
+        /// <summary>
+        /// 小于 &lt;
+        /// </summary>
+        /// <returns></returns>
+        public static bool LessThan<TValue>(TValue value1, TValue value2)
+        {
+            expContext.Value.Result = $"{expContext.Value.ParsedContent["value1"]} < {expContext.Value.ParsedContent["value2"]}";
+            return false;
+        }
+        /// <summary>
+        /// 小于或等于 &lt;=
+        /// </summary>
+        /// <returns></returns>
+        public static bool LessThanOrEqual<TValue>(TValue value1, TValue value2)
+        {
+            expContext.Value.Result = $"{expContext.Value.ParsedContent["value1"]} <= {expContext.Value.ParsedContent["value2"]}";
+            return false;
+        }
+        #endregion
+
         /// <summary>
         /// case when .. then .. end
         /// </summary>

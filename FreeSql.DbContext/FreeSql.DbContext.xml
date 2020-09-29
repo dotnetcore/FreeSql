@@ -130,6 +130,13 @@
             清空状态数据
             </summary>
         </member>
+        <member name="M:FreeSql.DbSet`1.RemoveAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
+            <summary>
+            根据 lambda 条件删除数据
+            </summary>
+            <param name="predicate"></param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.DbSet`1.Add(`0)">
             <summary>
             添加
@@ -172,10 +179,6 @@
             </summary>
             <param name="data"></param>
         </member>
-        <member name="M:FreeSql.DbSet`1.BeginEdit(System.Collections.Generic.List{`0})">
-            <summary>
-            开始编辑数据，然后调用方法 EndEdit 分析出添加、修改、删除 SQL 语句进行执行<para></para>
-            场景：winform 加载表数据后，一顿添加ember>
         <member name="M:FreeSql.DbSet`1.BeginEdit(System.Collections.Generic.List{`0})">
             <summary>
             开始编辑数据，然后调用方法 EndEdit 分析出添加、修改、删除 SQL 语句进行执行<para></para>
@@ -527,6 +530,17 @@
             创建基于仓储功能的工作单元，务必使用 using 包含使用
             </summary>
             <param name="that"></param>
+            <returns></returns>
+        </member>
+    </members>
+</doc>
+Microsoft.Extensions.DependencyInjection.FreeSqlRepositoryDependencyInjection.AddFreeRepository(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Action{FreeSql.FluentDataFilter},System.Reflection.Assembly[])">
+            <summary>
+            批量注入 Repository，可以参考代码自行调整
+            </summary>
+            <param name="services"></param>
+            <param name="globalDataFilter"></param>
+            <param name="assemblies"></param>
             <returns></returns>
         </member>
     </members>

@@ -2174,13 +2174,33 @@ WHERE (((cast(a.""Id"" as character)) in (SELECT b.""Title""
       ""Field"" : ""CreateTime"",
       ""Operator"" : ""GreaterThanOrEqual"",
       ""Value"" : ""2010-10-10""
+    },
+    {
+        ""Field"" : ""Name"",
+        ""Operator"" : ""GreaterThan"",
+        ""Value"" : ""val31"",
+    },
+    {
+        ""Field"" : ""Name"",
+        ""Operator"" : ""GreaterThanOrEqual"",
+        ""Value"" : ""val32"",
+    },
+    {
+        ""Field"" : ""Name"",
+        ""Operator"" : ""LessThan"",
+        ""Value"" : ""val33"",
+    },
+    {
+        ""Field"" : ""Name"",
+        ""Operator"" : ""LessThanOrEqual"",
+        ""Value"" : ""val34"",
     }
   ]
 }
 ")).ToSql();
             Assert.Equal(@"SELECT a.""Code"", a.""Name"", a.""CreateTime"", a.""testint"", a.""ParentCode"" 
 FROM ""D_District"" a 
-WHERE (((a.""Code"") LIKE '%val1%' AND (a.""Name"") LIKE 'val2%' OR (a.""Name"") LIKE '%val3' OR a.""ParentCode"" = 'val4' OR a.""CreateTime"" >= '2010-10-10 00:00:00'))", sql);
+WHERE (((a.""Code"") LIKE '%val1%' AND (a.""Name"") LIKE 'val2%' OR (a.""Name"") LIKE '%val3' OR a.""ParentCode"" = 'val4' OR a.""CreateTime"" >= '2010-10-10 00:00:00' OR a.""Name"" > 'val31' OR a.""Name"" >= 'val32' OR a.""Name"" < 'val33' OR a.""Name"" <= 'val34'))", sql);
 
             sql = fsql.Select<VM_District_Parent>().WhereDynamicFilter(JsonConvert.DeserializeObject<DynamicFilterInfo>(@"
 {
