@@ -17,7 +17,7 @@ public static partial class FreeSqlDbContextExtensions
     }
 
     /// <summary>
-    /// 不跟踪查询的实体数据（在不需要更新其数据时使用），可提长查询性能
+    /// 不跟踪查询的实体数据（在不需要更新其数据时使用），可提升查询性能
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="select"></param>
