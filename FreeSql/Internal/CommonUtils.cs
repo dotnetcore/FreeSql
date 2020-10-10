@@ -333,7 +333,10 @@ namespace FreeSql.Internal
                 var psidx = 0;
                 foreach (var p in ps)
                 {
-                    if (table.Columns.TryGetValue(p.Name, out var trycol) == false) continue;
+                    table.Columns.TryGetValue(p.Name, out var trycol);
+                    if (trycol == null) table.ColumnsByCs.TryGetValue(p.Name, out trycol);
+                    if (trycol == null) continue;
+
                     if (psidx > 0) sb.Append(" AND ");
                     sb.Append(aliasAndDot).Append(this.QuoteSqlName(trycol.Attribute.Name));
                     sb.Append(this.FormatSql(" = {0}", Utils.GetDataReaderValue(trycol.Attribute.MapType, p.GetValue(dywhere, null))));

@@ -156,18 +156,18 @@ namespace FreeSql.Tests
             }
         }
 
-        class testInsertNullable
-        {
-            [Column(IsNullable = false, IsIdentity = true)]
-            public long Id { get; set; }
+class testInsertNullable
+{
+    [Column(IsNullable = false, IsIdentity = true)]
+    public long Id { get; set; }
 
-            [Column(IsNullable = false)]
-            public string str1 { get; set; }
-            [Column(IsNullable = false)]
-            public int? int1 { get; set; }
-            [Column(IsNullable = true)]
-            public int int2 { get; set; }
-        }
+    [Column(IsNullable = false)]
+    public string str1 { get; set; }
+    [Column(IsNullable = false)]
+    public int? int1 { get; set; }
+    [Column(IsNullable = true)]
+    public int int2 { get; set; }
+}
 
         class testUpdateNonePk
         {
@@ -177,6 +177,12 @@ namespace FreeSql.Tests
         [Fact]
         public void Test03()
         {
+            var updateSql = g.sqlite.Update<object>()
+                .AsType(typeof(testInsertNullable))
+                .SetDto(new { str1 = "xxx" })
+                .WhereDynamic(1)
+                .ToSql();
+
             var sqlextMax112 = g.sqlserver.Select<EdiItem>()
                 .GroupBy(a => a.Id)
                 .ToSql(a => new
