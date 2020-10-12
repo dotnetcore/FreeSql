@@ -151,7 +151,7 @@ public static partial class FreeSqlGlobalExtensions
     {
         var ret = _dicInternalGetTypeConstructor0OrFirst.GetOrAdd(that, tp =>
             tp.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new Type[0], null) ??
-            tp.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).FirstOrDefault());
+            tp.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).OrderBy(a => a.IsPublic ? 0 : 1).FirstOrDefault());
         if (ret == null && isThrow) throw new ArgumentException($"{that.FullName} 类型无方法访问构造函数");
         return ret;
     }

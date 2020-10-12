@@ -69,6 +69,24 @@ namespace base_entity
             public Sys_reg_user RegUser { get; set; }
         }
 
+        public class tttorder
+        {
+            [Column(IsPrimary = true)]
+            public long Id { get; set; }
+            public string Title { get; set; }
+            public int Quantity { get; set; }
+            public decimal Price { get; set; }
+
+
+            public tttorder(string title, int quantity, decimal price)
+            {
+                Id = DateTime.Now.Ticks;
+                Title = title;
+                Quantity = quantity;
+                Price = price;
+            }
+        }
+
         static void Main(string[] args)
         {
             #region 初始化 IFreeSql
@@ -106,6 +124,11 @@ namespace base_entity
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
+
+            fsql.Insert(new tttorder("xx1", 1, 10)).ExecuteAffrows();
+            fsql.Insert(new tttorder("xx2", 2, 20)).ExecuteAffrows();
+
+            var tttorders = fsql.Select<tttorder>().Limit(2).ToList();
 
             var tsql1 = fsql.Select<Sys_reg_user>()
                 .Include(a => a.Owner)
