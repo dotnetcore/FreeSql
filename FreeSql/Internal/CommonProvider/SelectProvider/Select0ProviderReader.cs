@@ -711,12 +711,21 @@ namespace FreeSql.Internal.CommonProvider
 
         protected TReturn InternalToAggregate<TReturn>(Expression select)
         {
-            var map = new ReadAnonymousTypeInfo();
-            var field = new StringBuilder();
-            var index = 0;
+            var tmpOrderBy = _orderby;
+            _orderby = null; //解决 select count(1) from t order by id 这样的 SQL 错误
+            try
+            {
+                var map = new ReadAnonymousTypeInfo();
+                var field = new StringBuilder();
+                var index = 0;
 
-            _commonExpression.ReadAnonymousField(_tables, field, map, ref index, select, null, null, _whereCascadeExpression, null, false); //不走 DTO 映射，不处理 IncludeMany
-            return this.ToListMapReader<TReturn>(new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null)).FirstOrDefault();
+                _commonExpression.ReadAnonymousField(_tables, field, map, ref index, select, null, null, _whereCascadeExpression, null, false); //不走 DTO 映射，不处理 IncludeMany
+                return this.ToListMapReader<TReturn>(new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null)).FirstOrDefault();
+            }
+            finally
+            {
+                _orderby = tmpOrderBy;
+            }
         }
 
         public TSelect InternalWhere(Expression exp) => exp == null ? this as TSelect : this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp, null, _whereCascadeExpression, _params));
@@ -967,12 +976,21 @@ namespace FreeSql.Internal.CommonProvider
 
         async protected Task<TReturn> InternalToAggregateAsync<TReturn>(Expression select)
         {
-            var map = new ReadAnonymousTypeInfo();
-            var field = new StringBuilder();
-            var index = 0;
+            var tmpOrderBy = _orderby;
+            _orderby = null; //解决 select count(1) from t order by id 这样的 SQL 错误
+            try
+            {
+                var map = new ReadAnonymousTypeInfo();
+                var field = new StringBuilder();
+                var index = 0;
 
-            _commonExpression.ReadAnonymousField(_tables, field, map, ref index, select, null, null, _whereCascadeExpression, null, false); //不走 DTO 映射，不处理 IncludeMany
-            return (await this.ToListMapReaderAsync<TReturn>(new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null))).FirstOrDefault();
+                _commonExpression.ReadAnonymousField(_tables, field, map, ref index, select, null, null, _whereCascadeExpression, null, false); //不走 DTO 映射，不处理 IncludeMany
+                return (await this.ToListMapReaderAsync<TReturn>(new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null))).FirstOrDefault();
+            }
+            finally
+            {
+                _orderby = tmpOrderBy;
+            }
         }
 #endif
         #endregion
