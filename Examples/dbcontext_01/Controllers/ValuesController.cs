@@ -44,6 +44,8 @@ namespace dbcontext_01.Controllers
 
                 var song = new Song { Title = "empty" };
                 repos2Song.Insert(song);
+                song.Title = "empty01";
+                repos2Song.Update(song);
                 id = song.Id;
 
                 var adds = Enumerable.Range(0, 100)

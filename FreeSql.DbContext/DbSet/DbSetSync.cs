@@ -410,7 +410,7 @@ namespace FreeSql
                 _db._entityChangeReport.AddRange(data.Select(a => new DbContext.EntityChangeReport.ChangeInfo
                 {
                     Object = a.Value,
-                    BeforeObject = _states.TryGetValue(a.Key, out var beforeVal) ? beforeVal.Value : null,
+                    BeforeObject = _states.TryGetValue(a.Key, out var beforeVal) ? CreateEntityState(beforeVal.Value).Value : null,
                     Type = DbContext.EntityChangeType.Update
                 }));
 
