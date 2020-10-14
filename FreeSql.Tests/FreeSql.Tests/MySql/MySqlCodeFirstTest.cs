@@ -421,6 +421,13 @@ namespace FreeSql.Tests.MySql
 
             var items = select.ToList();
             var itemstb = select.ToDataTable();
+
+            var sql1 = select.Where(a => a.testFieldInt == (int)Tb_alltypeTESTFIELDENUM1.E2).ToSql();
+            var sql2id = (int)Tb_alltypeTESTFIELDENUM1.E2;
+            var sql2 = select.Where(a => a.testFieldInt == sql2id).ToSql();
+            var sql3id = Tb_alltypeTESTFIELDENUM1.E2;
+            var sql4 = select.Where(a => a.testFieldInt == (int)sql3id).ToSql();
+
         }
 
 
