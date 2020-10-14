@@ -228,7 +228,7 @@ namespace FreeSql.Internal
                     col.DbDefaultValue = colattr.InsertValueSql;
                     col.DbInsertValue = colattr.InsertValueSql;
                 }
-                if (colattr.MapType == typeof(string) && colattr.StringLength != 0)
+                if (colattr.MapType.NullableTypeOrThis() == typeof(string) && colattr.StringLength != 0)
                 {
                     int strlen = colattr.StringLength;
                     var charPatten = @"(CHARACTER|CHAR2|CHAR)\s*(\([^\)]*\))?";
@@ -328,8 +328,10 @@ namespace FreeSql.Internal
                             break;
                     }
                 }
-                if (colattr.MapType == typeof(decimal) && colattr.Precision > 0)
+                if (colattr.MapType.NullableTypeOrThis() == typeof(decimal) && (colattr.Precision > 0 || colattr.Scale > 0))
                 {
+                    if (colattr.Precision <= 0) colattr.Precision = 10;
+                    if (colattr.Scale <= 0) colattr.Scale = 0;
                     var decimalPatten = @"(DECIMAL|NUMERIC|NUMBER)\s*(\([^\)]*\))?";
                     colattr.DbType = Regex.Replace(colattr.DbType, decimalPatten, $"$1({colattr.Precision},{colattr.Scale})");
                 }

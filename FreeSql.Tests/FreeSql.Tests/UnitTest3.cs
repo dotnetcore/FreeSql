@@ -156,18 +156,21 @@ namespace FreeSql.Tests
             }
         }
 
-class testInsertNullable
-{
-    [Column(IsNullable = false, IsIdentity = true)]
-    public long Id { get; set; }
+        class testInsertNullable
+        {
+            [Column(IsNullable = false, IsIdentity = true)]
+            public long Id { get; set; }
 
-    [Column(IsNullable = false)]
-    public string str1 { get; set; }
-    [Column(IsNullable = false)]
-    public int? int1 { get; set; }
-    [Column(IsNullable = true)]
-    public int int2 { get; set; }
-}
+            [Column(IsNullable = false)]
+            public string str1 { get; set; }
+            [Column(IsNullable = false)]
+            public int? int1 { get; set; }
+            [Column(IsNullable = true)]
+            public int int2 { get; set; }
+
+            [Column(Precision = 10, Scale = 5)]
+            public decimal? price { get; set; }
+        }
 
         class testUpdateNonePk
         {
