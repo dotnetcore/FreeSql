@@ -142,34 +142,34 @@ namespace FreeSql.Tests.PostgreSQLExpression
         public void Jsonb()
         {
 
-            var sql1 = select.Where(a => a.testFieldJToken.Contains(JToken.Parse("{a:1}"))).ToList();
-            var sql2 = select.Where(a => a.testFieldJToken.Contains(JToken.Parse("{a:1}")) == false).ToList();
-            var sql111 = select.Where(a => a.testFieldJToken.Contains("{a:1}")).ToList();
-            var sql222 = select.Where(a => a.testFieldJToken.Contains("{a:1}") == false).ToList();
+            var sql1 = select.Where(a => a.testFieldJToken.Contains(JToken.Parse("{a:1}"))).Limit(10).ToList();
+            var sql2 = select.Where(a => a.testFieldJToken.Contains(JToken.Parse("{a:1}")) == false).Limit(10).ToList();
+            var sql111 = select.Where(a => a.testFieldJToken.Contains("{\"a\":1}")).Limit(10).ToList();
+            var sql222 = select.Where(a => a.testFieldJToken.Contains("{\"a\":1}") == false).Limit(10).ToList();
 
-            var sql3 = select.Where(a => a.testFieldJObject.ContainsKey("a")).ToList();
-            var sql4 = select.Where(a => a.testFieldJObject.ContainsKey("a") == false).ToList();
+            var sql3 = select.Where(a => a.testFieldJObject.ContainsKey("a")).Limit(10).ToList();
+            var sql4 = select.Where(a => a.testFieldJObject.ContainsKey("a") == false).Limit(10).ToList();
 
-            var sql5 = select.Where(a => a.testFieldJArray.Contains(1)).ToList();
-            var sql6 = select.Where(a => a.testFieldJArray.Contains(1) == false).ToList();
-            var sql555 = select.Where(a => a.testFieldJArray.Contains(1)).ToList();
-            var sql666 = select.Where(a => a.testFieldJArray.Contains(1) == false).ToList();
+            var sql5 = select.Where(a => a.testFieldJArray.Contains(1)).Limit(10).ToList();
+            var sql6 = select.Where(a => a.testFieldJArray.Contains(1) == false).Limit(10).ToList();
+            var sql555 = select.Where(a => a.testFieldJArray.Contains(1)).Limit(10).ToList();
+            var sql666 = select.Where(a => a.testFieldJArray.Contains(1) == false).Limit(10).ToList();
 
-            //var sql7 = select.Where(a => a.testFieldJToken.Any()).ToList();
-            //var sql8 = select.Where(a => a.testFieldJToken.Any() == false).ToList();
+            //var sql7 = select.Where(a => a.testFieldJToken.Any()).Limit(10).ToList();
+            //var sql8 = select.Where(a => a.testFieldJToken.Any() == false).Limit(10).ToList();
 
-            var sql9 = select.Where(a => a.testFieldJArray.Any()).ToList();
-            var sql10 = select.Where(a => a.testFieldJArray.Any() == false).ToList();
+            var sql9 = select.Where(a => a.testFieldJArray.Any()).Limit(10).ToList();
+            var sql10 = select.Where(a => a.testFieldJArray.Any() == false).Limit(10).ToList();
 
-            //var sql11 = select.ToList(a => a.testFieldJToken.Concat(JToken.Parse("{a:1}")));
-            //var sql12 = select.ToList(a => a.testFieldJObject.Concat(JToken.Parse("{a:1}")));
-            //var sql13 = select.ToList(a => a.testFieldJArray.Concat(JToken.Parse("{a:1}")));
+            //var sql11 = select.Limit(10).ToList(a => a.testFieldJToken.Concat(JToken.Parse("{a:1}")));
+            //var sql12 = select.Limit(10).ToList(a => a.testFieldJObject.Concat(JToken.Parse("{a:1}")));
+            //var sql13 = select.Limit(10).ToList(a => a.testFieldJArray.Concat(JToken.Parse("{a:1}")));
 
-            //var sql14 = select.Where(a => a.testFieldJToken.Count() > 0).ToList();
-            //var sql15 = select.Where(a => a.testFieldJObject.Count > 0).ToList();
-            var sql16 = select.Where(a => a.testFieldJArray.Count() > 0).ToList();
-            var sql17 = select.Where(a => a.testFieldJArray.LongCount() > 0).ToList();
-            var sql18 = select.Where(a => a.testFieldJArray.Count > 0).ToList();
+            //var sql14 = select.Where(a => a.testFieldJToken.Count() > 0).Limit(10).ToList();
+            //var sql15 = select.Where(a => a.testFieldJObject.Count > 0).Limit(10).ToList();
+            var sql16 = select.Where(a => a.testFieldJArray.Count() > 0).Limit(10).ToList();
+            var sql17 = select.Where(a => a.testFieldJArray.LongCount() > 0).Limit(10).ToList();
+            var sql18 = select.Where(a => a.testFieldJArray.Count > 0).Limit(10).ToList();
         }
 
         [Fact]

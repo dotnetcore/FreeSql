@@ -680,8 +680,10 @@ namespace FreeSql.Internal
                 case ExpressionType.ConvertChecked:
                     //var othercExp = ExpressionLambdaToSqlOther(exp, tsc);
                     //if (string.IsNullOrEmpty(othercExp) == false) return othercExp;
-                    if (exp.IsParameter()) return ExpressionLambdaToSql((exp as UnaryExpression)?.Operand, tsc);
-                    return formatSql(Expression.Lambda(exp).Compile().DynamicInvoke(), tsc.mapType, tsc.mapColumnTmp, tsc.dbParams); //bug: Where(a => a.Id = (int)enum)
+                    var expOperand = (exp as UnaryExpression)?.Operand;
+                    if (expOperand.Type.NullableTypeOrThis().IsEnum && exp.IsParameter() == false)
+                        return formatSql(Expression.Lambda(exp).Compile().DynamicInvoke(), tsc.mapType, tsc.mapColumnTmp, tsc.dbParams); //bug: Where(a => a.Id = (int)enum)
+                    return ExpressionLambdaToSql(expOperand, tsc);
                 case ExpressionType.Negate:
                 case ExpressionType.NegateChecked: return "-" + ExpressionLambdaToSql((exp as UnaryExpression)?.Operand, tsc);
                 case ExpressionType.Constant: return formatSql((exp as ConstantExpression)?.Value, tsc.mapType, tsc.mapColumnTmp, null);

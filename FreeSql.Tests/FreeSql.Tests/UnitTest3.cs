@@ -205,7 +205,8 @@ namespace FreeSql.Tests
   ""Id"" INTEGER PRIMARY KEY AUTOINCREMENT, 
   ""str1"" NVARCHAR(255) NOT NULL, 
   ""int1"" INTEGER NOT NULL, 
-  ""int2"" INTEGER 
+  ""int2"" INTEGER , 
+  ""price"" DECIMAL(10,5)
 ) 
 ;
 ", ddlsql);
