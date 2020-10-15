@@ -11,6 +11,85 @@ namespace FreeSql.Tests.Odbc.MySql
     public class MySqlCodeFirstTest
     {
         [Fact]
+        public void EnumStartValue1()
+        {
+            var fsql = g.mysql;
+            fsql.Delete<TS_ESV1>().Where("1=1").ExecuteAffrows();
+
+            var repo = fsql.GetRepository<TS_ESV1>();
+            var item1 = repo.Insert(new TS_ESV1 { Status = TS_TSV1_Status.Status1 });
+            Assert.True(fsql.Select<TS_ESV1>().Where(a => a.Id == item1.Id).Any());
+            Assert.Equal(TS_TSV1_Status.Status1, fsql.Select<TS_ESV1>().Where(a => a.Id == item1.Id).First().Status);
+            Assert.Equal(TS_TSV1_Status.Status1, fsql.Select<TS_ESV1>().Where(a => a.Id == item1.Id).First(a => a.Status));
+            Assert.True(repo.Select.Where(a => a.Id == item1.Id).Any());
+            Assert.Equal(TS_TSV1_Status.Status1, repo.Select.Where(a => a.Id == item1.Id).First().Status);
+            Assert.Equal(TS_TSV1_Status.Status1, repo.Select.Where(a => a.Id == item1.Id).First(a => a.Status));
+
+            Assert.Equal($"UPDATE `TS_ESV1` SET `Status` = 'Status1' WHERE (`Id` = '{item1.Id}')", fsql.Update<TS_ESV1>().Where(a => a.Id == item1.Id).NoneParameter().Set(a => a.Status, TS_TSV1_Status.Status1).ToSql().Replace("\r\n", ""));
+            Assert.Equal($"UPDATE `TS_ESV1` SET `Status` = 'Status2' WHERE (`Id` = '{item1.Id}')", fsql.Update<TS_ESV1>().Where(a => a.Id == item1.Id).NoneParameter().Set(a => a.Status, TS_TSV1_Status.Status2).ToSql().Replace("\r\n", ""));
+            Assert.Equal($"UPDATE `TS_ESV1` SET `Status` = 'Status3' WHERE (`Id` = '{item1.Id}')", fsql.Update<TS_ESV1>().Where(a => a.Id == item1.Id).NoneParameter().Set(a => a.Status, TS_TSV1_Status.Status3).ToSql().Replace("\r\n", ""));
+            Assert.Equal($"UPDATE `TS_ESV1` SET `Status` = 'Status1' WHERE (`Id` = '{item1.Id}')", fsql.Update<TS_ESV1>().Where(a => a.Id == item1.Id).NoneParameter().Set(a => a.Status == TS_TSV1_Status.Status1).ToSql().Replace("\r\n", ""));
+            Assert.Equal($"UPDATE `TS_ESV1` SET `Status` = 'Status2' WHERE (`Id` = '{item1.Id}')", fsql.Update<TS_ESV1>().Where(a => a.Id == item1.Id).NoneParameter().Set(a => a.Status == TS_TSV1_Status.Status2).ToSql().Replace("\r\n", ""));
+            Assert.Equal($"UPDATE `TS_ESV1` SET `Status` = 'Status3' WHERE (`Id` = '{item1.Id}')", fsql.Update<TS_ESV1>().Where(a => a.Id == item1.Id).NoneParameter().Set(a => a.Status == TS_TSV1_Status.Status3).ToSql().Replace("\r\n", ""));
+
+            item1.Status = TS_TSV1_Status.Status1;
+            repo.Update(item1);
+            Assert.True(fsql.Select<TS_ESV1>().Where(a => a.Id == item1.Id).Any());
+            Assert.Equal(TS_TSV1_Status.Status1, fsql.Select<TS_ESV1>().Where(a => a.Id == item1.Id).First().Status);
+            Assert.Equal(TS_TSV1_Status.Status1, fsql.Select<TS_ESV1>().Where(a => a.Id == item1.Id).First(a => a.Status));
+            Assert.True(repo.Select.Where(a => a.Id == item1.Id).Any());
+            Assert.Equal(TS_TSV1_Status.Status1, repo.Select.Where(a => a.Id == item1.Id).First().Status);
+            Assert.Equal(TS_TSV1_Status.Status1, repo.Select.Where(a => a.Id == item1.Id).First(a => a.Status));
+
+            item1.Status = TS_TSV1_Status.Status2;
+            repo.Update(item1);
+            Assert.True(fsql.Select<TS_ESV1>().Where(a => a.Id == item1.Id).Any());
+            Assert.Equal(TS_TSV1_Status.Status2, fsql.Select<TS_ESV1>().Where(a => a.Id == item1.Id).First().Status);
+            Assert.Equal(TS_TSV1_Status.Status2, fsql.Select<TS_ESV1>().Where(a => a.Id == item1.Id).First(a => a.Status));
+            Assert.True(repo.Select.Where(a => a.Id == item1.Id).Any());
+            Assert.Equal(TS_TSV1_Status.Status2, repo.Select.Where(a => a.Id == item1.Id).First().Status);
+            Assert.Equal(TS_TSV1_Status.Status2, repo.Select.Where(a => a.Id == item1.Id).First(a => a.Status));
+
+            item1.Status = TS_TSV1_Status.Status3;
+            repo.Update(item1);
+            Assert.True(fsql.Select<TS_ESV1>().Where(a => a.Id == item1.Id).Any());
+            Assert.Equal(TS_TSV1_Status.Status3, fsql.Select<TS_ESV1>().Where(a => a.Id == item1.Id).First().Status);
+            Assert.Equal(TS_TSV1_Status.Status3, fsql.Select<TS_ESV1>().Where(a => a.Id == item1.Id).First(a => a.Status));
+            Assert.True(repo.Select.Where(a => a.Id == item1.Id).Any());
+            Assert.Equal(TS_TSV1_Status.Status3, repo.Select.Where(a => a.Id == item1.Id).First().Status);
+            Assert.Equal(TS_TSV1_Status.Status3, repo.Select.Where(a => a.Id == item1.Id).First(a => a.Status));
+
+            item1.Status = TS_TSV1_Status.Status3;
+            fsql.GetRepository<TS_ESV1>().Update(item1);
+            Assert.True(fsql.Select<TS_ESV1>().Where(a => a.Id == item1.Id).Any());
+            Assert.Equal(TS_TSV1_Status.Status3, fsql.Select<TS_ESV1>().Where(a => a.Id == item1.Id).First().Status);
+            Assert.Equal(TS_TSV1_Status.Status3, fsql.Select<TS_ESV1>().Where(a => a.Id == item1.Id).First(a => a.Status));
+            Assert.True(repo.Select.Where(a => a.Id == item1.Id).Any());
+            Assert.Equal(TS_TSV1_Status.Status3, repo.Select.Where(a => a.Id == item1.Id).First().Status);
+            Assert.Equal(TS_TSV1_Status.Status3, repo.Select.Where(a => a.Id == item1.Id).First(a => a.Status));
+
+            item1.Status = TS_TSV1_Status.Status2;
+            fsql.GetRepository<TS_ESV1>().Update(item1);
+            Assert.True(fsql.Select<TS_ESV1>().Where(a => a.Id == item1.Id).Any());
+            Assert.Equal(TS_TSV1_Status.Status2, fsql.Select<TS_ESV1>().Where(a => a.Id == item1.Id).First().Status);
+            Assert.Equal(TS_TSV1_Status.Status2, fsql.Select<TS_ESV1>().Where(a => a.Id == item1.Id).First(a => a.Status));
+            Assert.True(repo.Select.Where(a => a.Id == item1.Id).Any());
+            Assert.Equal(TS_TSV1_Status.Status2, repo.Select.Where(a => a.Id == item1.Id).First().Status);
+            Assert.Equal(TS_TSV1_Status.Status2, repo.Select.Where(a => a.Id == item1.Id).First(a => a.Status));
+        }
+        public class TS_ESV1
+        {
+            public Guid Id { get; set; }
+            public TS_TSV1_Status Status { get; set; }
+        }
+        public enum TS_TSV1_Status
+        {
+            Status1 = 1,
+            Status2 = 3,
+            Status3 = 5
+        }
+
+        [Fact]
         public void StringLength()
         {
             var dll = g.mysql.CodeFirst.GetComparisonDDLStatements<TS_SLTB>();

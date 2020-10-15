@@ -163,7 +163,11 @@ public static partial class FreeSqlGlobalExtensions
         var dict = new Dictionary<string, PropertyInfo>(StringComparer.CurrentCultureIgnoreCase);
         foreach (var prop in props)
         {
-            if (dict.ContainsKey(prop.Name)) continue;
+            if (dict.TryGetValue(prop.Name, out var existsProp))
+            {
+                if (existsProp.DeclaringType != prop) dict[prop.Name] = prop;
+                continue;
+            }
             dict.Add(prop.Name, prop);
         }
         return dict;

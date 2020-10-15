@@ -42,12 +42,7 @@ public class g
 
     static Lazy<IFreeSql> sqlserverLazy = new Lazy<IFreeSql>(() => new FreeSql.FreeSqlBuilder()
         .UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3")
-        //.UseConnectionFactory(FreeSql.DataType.SqlServer, () => new Microsoft.Data.SqlClient.SqlConnection("Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;"))
-        //.UseConnectionFactory(FreeSql.DataType.SqlServer, () => new System.Data.SqlClient.SqlConnection("Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;"))
-        //.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=192.168.164.129;uid=sa;pwd=123456;Initial Catalog=ds_shop;Pooling=true;Max Pool Size=3")
-        //.UseConnectionFactory(FreeSql.DataType.SqlServer, () => new System.Data.SqlClient.SqlConnection("Data Source=192.168.164.129;uid=sa;pwd=123456;Initial Catalog=ds_shop;Pooling=true;"))
         .UseAutoSyncStructure(true)
-        //.UseGenerateCommandParameterWithLambda(true)
         .UseMonitorCommand(
             cmd => Trace.WriteLine("\r\n线程" + Thread.CurrentThread.ManagedThreadId + ": " + cmd.CommandText) //监听SQL命令对象，在执行前
             //, (cmd, traceLog) => Console.WriteLine(traceLog)
