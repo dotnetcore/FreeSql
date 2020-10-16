@@ -13,6 +13,7 @@ namespace FreeSql
 #if net40
 #else
         Task<bool> AnyAsync(Expression<Func<T1, T2, T3, T4, T5, T6, bool>> exp);
+        Task<int> InsertIntoAsync<TTargetEntity>(string tableName, Expression<Func<T1, T2, T3, T4, T5, T6, TTargetEntity>> select) where TTargetEntity : class;
         Task<DataTable> ToDataTableAsync<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, TReturn>> select);
         Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, TReturn>> select);
         Task<List<TDto>> ToListAsync<TDto>();
@@ -29,6 +30,7 @@ namespace FreeSql
 #endif
 
         bool Any(Expression<Func<T1, T2, T3, T4, T5, T6, bool>> exp);
+        int InsertInto<TTargetEntity>(string tableName, Expression<Func<T1, T2, T3, T4, T5, T6, TTargetEntity>> select) where TTargetEntity : class;
         DataTable ToDataTable<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, TReturn>> select);
         List<TReturn> ToList<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, TReturn>> select);
         List<TDto> ToList<TDto>();

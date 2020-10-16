@@ -106,6 +106,7 @@ namespace FreeSql.Internal.CommonProvider
             for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
             return this.InternalToList<TReturn>(select?.Body);
         }
+
         List<TDto> ISelect<T1, T2>.ToList<TDto>() => (this as ISelect<T1, T2>).ToList(GetToListDtoSelector<TDto>());
         Expression<Func<T1, T2, TDto>> GetToListDtoSelector<TDto>()
         {
@@ -114,6 +115,7 @@ namespace FreeSql.Internal.CommonProvider
                 _tables[0].Parameter ?? Expression.Parameter(typeof(T1), "a"),
                 Expression.Parameter(typeof(T2), "b"));
         }
+
         public void ToChunk<TReturn>(Expression<Func<T1, T2, TReturn>> select, int size, Action<FetchCallbackArgs<List<TReturn>>> done)
         {
             if (select == null || done == null) return;
@@ -126,6 +128,13 @@ namespace FreeSql.Internal.CommonProvider
             if (select == null) return this.InternalToDataTable(select?.Body);
             for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
             return this.InternalToDataTable(select?.Body);
+        }
+
+        int ISelect<T1, T2>.InsertInto<TTargetEntity>(string tableName, Expression<Func<T1, T2, TTargetEntity>> select)
+        {
+            if (select == null) return this.InternalInsertInto<TTargetEntity>(tableName, select);
+            for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
+            return this.InternalInsertInto<TTargetEntity>(tableName, select?.Body);
         }
 
         string ISelect<T1, T2>.ToSql<TReturn>(Expression<Func<T1, T2, TReturn>> select, FieldAliasOptions fieldAlias)
@@ -234,6 +243,13 @@ namespace FreeSql.Internal.CommonProvider
             if (select == null) return this.InternalToDataTableAsync(select?.Body);
             for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
             return this.InternalToDataTableAsync(select?.Body);
+        }
+
+        Task<int> ISelect<T1, T2>.InsertIntoAsync<TTargetEntity>(string tableName, Expression<Func<T1, T2, TTargetEntity>> select)
+        {
+            if (select == null) return this.InternalInsertIntoAsync<TTargetEntity>(tableName, select);
+            for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
+            return this.InternalInsertIntoAsync<TTargetEntity>(tableName, select?.Body);
         }
 
         async Task<bool> ISelect<T1, T2>.AnyAsync(Expression<Func<T1, T2, bool>> exp)

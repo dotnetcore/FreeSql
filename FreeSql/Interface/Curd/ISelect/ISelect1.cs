@@ -15,6 +15,7 @@ namespace FreeSql
 #else
         Task<bool> AnyAsync(Expression<Func<T1, bool>> exp);
 
+        Task<int> InsertIntoAsync<TTargetEntity>(string tableName, Expression<Func<T1, TTargetEntity>> select) where TTargetEntity : class;
         Task<DataTable> ToDataTableAsync<TReturn>(Expression<Func<T1, TReturn>> select);
         Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<T1, TReturn>> select);
         Task<List<TDto>> ToListAsync<TDto>();
@@ -37,6 +38,15 @@ namespace FreeSql
         /// <param name="exp">lambda表达式</param>
         /// <returns></returns>
         bool Any(Expression<Func<T1, bool>> exp);
+
+        /// <summary>
+        /// 将查询转换为 INSERT INTO tableName SELECT ... FROM t 执行插入
+        /// </summary>
+        /// <typeparam name="TTargetEntity"></typeparam>
+        /// <param name="tableName">指定插入的表名，若为 null 则使用 TTargetEntity 实体表名</param>
+        /// <param name="select">选择列</param>
+        /// <returns>返回影响的行数</returns>
+        int InsertInto<TTargetEntity>(string tableName, Expression<Func<T1, TTargetEntity>> select) where TTargetEntity : class;
 
         /// <summary>
         /// 执行SQL查询，返回 DataTable

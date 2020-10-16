@@ -392,6 +392,8 @@ namespace FreeSql.Internal.CommonProvider
 
         public override List<T1> ToList(bool includeNestedMembers = false) => base.ToList(_isIncluded || includeNestedMembers);
 
+        public int InsertInto<TTargetEntity>(string tableName, Expression<Func<T1, TTargetEntity>> select) where TTargetEntity : class => base.InternalInsertInto<TTargetEntity>(tableName, select);
+
         bool _isIncluded = false;
         public ISelect<T1> Include<TNavigate>(Expression<Func<T1, TNavigate>> navigateSelector) where TNavigate : class
         {
@@ -1252,6 +1254,8 @@ namespace FreeSql.Internal.CommonProvider
             return ret;
         }
         public Task<List<TDto>> ToListAsync<TDto>() => ToListAsync(GetToListDtoSelector<TDto>());
+
+        public Task<int> InsertIntoAsync<TTargetEntity>(string tableName, Expression<Func<T1, TTargetEntity>> select) where TTargetEntity : class => base.InternalInsertIntoAsync<TTargetEntity>(tableName, select);
 
         public Task<DataTable> ToDataTableAsync<TReturn>(Expression<Func<T1, TReturn>> select)
         {

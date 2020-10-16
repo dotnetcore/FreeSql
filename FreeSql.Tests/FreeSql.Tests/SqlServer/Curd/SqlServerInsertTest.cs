@@ -100,6 +100,11 @@ namespace FreeSql.Tests.SqlServer
             Assert.Equal(1, insert.AppendData(items.First()).ExecuteAffrows());
             Assert.Equal(10, insert.AppendData(items).NoneParameter().ExecuteAffrows());
 
+            Assert.Equal(10, g.sqlserver.Select<Topic>().Limit(10).InsertInto(null, a => new Topic
+            {
+                Title = a.Title
+            }));
+
             //items = Enumerable.Range(0, 9989).Select(a => new Topic { Title = "newtitle" + a, CreateTime = DateTime.Now }).ToList();
             //Assert.Equal(9989, g.sqlserver.Insert<Topic>(items).ExecuteAffrows());
 

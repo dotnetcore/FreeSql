@@ -38,15 +38,15 @@ namespace FreeSql.Internal.CommonProvider
         {
             this.AsTable((type, old) =>
             {
-                if (type == _tables[0].Table?.Type && string.IsNullOrEmpty(sqlT1) == false) return $"( {sqlT1} )";
-                if (type == _tables[1].Table?.Type && string.IsNullOrEmpty(sqlT2) == false) return $"( {sqlT2} )";
-                if (type == _tables[2].Table?.Type && string.IsNullOrEmpty(sqlT3) == false) return $"( {sqlT3} )";
-                if (type == _tables[3].Table?.Type && string.IsNullOrEmpty(sqlT4) == false) return $"( {sqlT4} )";
-                if (type == _tables[4].Table?.Type && string.IsNullOrEmpty(sqlT5) == false) return $"( {sqlT5} )";
-                if (type == _tables[5].Table?.Type && string.IsNullOrEmpty(sqlT6) == false) return $"( {sqlT6} )";
-                if (type == _tables[6].Table?.Type && string.IsNullOrEmpty(sqlT7) == false) return $"( {sqlT7} )";
-                if (type == _tables[7].Table?.Type && string.IsNullOrEmpty(sqlT8) == false) return $"( {sqlT8} )";
-                if (type == _tables[8].Table?.Type && string.IsNullOrEmpty(sqlT9) == false) return $"( {sqlT9} )";
+                if (type == _tables[0].Table?.Type) return $"( {sqlT1} )";
+                if (type == _tables[1].Table?.Type) return $"( {sqlT2} )";
+                if (type == _tables[2].Table?.Type) return $"( {sqlT3} )";
+                if (type == _tables[3].Table?.Type) return $"( {sqlT4} )";
+                if (type == _tables[4].Table?.Type) return $"( {sqlT5} )";
+                if (type == _tables[5].Table?.Type) return $"( {sqlT6} )";
+                if (type == _tables[6].Table?.Type) return $"( {sqlT7} )";
+                if (type == _tables[7].Table?.Type) return $"( {sqlT8} )";
+                if (type == _tables[8].Table?.Type) return $"( {sqlT9} )";
                 return old;
             });
             if (parms != null) _params.AddRange(_commonUtils.GetDbParamtersByObject($"{sqlT1};\r\n{sqlT2};\r\n{sqlT3};\r\n{sqlT4};\r\n{sqlT5};\r\n{sqlT6};\r\n{sqlT7};\r\n{sqlT8};\r\n{sqlT9}", parms));
@@ -55,7 +55,7 @@ namespace FreeSql.Internal.CommonProvider
 
         double ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.Avg<TMember>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TMember>> column)
         {
-            if (column == null) return default(double);
+            if (column == null) return 0;
             for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
             return this.InternalAvg(column?.Body);
         }
@@ -155,6 +155,14 @@ namespace FreeSql.Internal.CommonProvider
             for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
             return this.InternalToDataTable(select?.Body);
         }
+
+        int ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.InsertInto<TTargetEntity>(string tableName, Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TTargetEntity>> select)
+        {
+            if (select == null) return this.InternalInsertInto<TTargetEntity>(tableName, select);
+            for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
+            return this.InternalInsertInto<TTargetEntity>(tableName, select?.Body);
+        }
+
         string ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.ToSql<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TReturn>> select, FieldAliasOptions fieldAlias)
         {
             if (select == null) return this.InternalToSql<TReturn>(select?.Body, fieldAlias);
@@ -168,12 +176,14 @@ namespace FreeSql.Internal.CommonProvider
             for (var a = 0; a < exp.Parameters.Count; a++) _tables[a].Parameter = exp.Parameters[a];
             return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
         }
+
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.InnerJoin(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, bool>> exp)
         {
             if (exp == null) return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
             for (var a = 0; a < exp.Parameters.Count; a++) _tables[a].Parameter = exp.Parameters[a];
             return this.InternalJoin(exp?.Body, SelectTableInfoType.InnerJoin);
         }
+
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.RightJoin(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, bool>> exp)
         {
             if (exp == null) return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
@@ -187,11 +197,12 @@ namespace FreeSql.Internal.CommonProvider
             for (var a = 0; a < exp.Parameters.Count; a++) _tables[a].Parameter = exp.Parameters[a];
             return this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp?.Body, null, _whereCascadeExpression, _params));
         }
+
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.WhereIf(bool condition, Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, bool>> exp)
         {
-            if (condition == false || exp == null) return this;
+            if (condition == false || exp == null) return this.Where(null);
             for (var a = 0; a < exp.Parameters.Count; a++) _tables[a].Parameter = exp.Parameters[a];
-            return this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp?.Body, null, _whereCascadeExpression, _params));
+            return condition ? this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp?.Body, null, _whereCascadeExpression, _params)) : this;
         }
 
         bool ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.Any(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, bool>> exp)
@@ -210,25 +221,6 @@ namespace FreeSql.Internal.CommonProvider
 
 #if net40
 #else
-        async Task<bool> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.AnyAsync(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, bool>> exp)
-        {
-            if (exp == null) return await this.AnyAsync();
-            for (var a = 0; a < exp.Parameters.Count; a++) _tables[a].Parameter = exp.Parameters[a];
-            var oldwhere = _where.ToString();
-            var ret = await this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp?.Body, null, _whereCascadeExpression, _params)).AnyAsync();
-            _where.Clear().Append(oldwhere);
-            return ret;
-        }
-
-        Task<DataTable> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.ToDataTableAsync<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TReturn>> select)
-        {
-            if (select == null) return this.InternalToDataTableAsync(select?.Body);
-            for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
-            return this.InternalToDataTableAsync(select?.Body);
-        }
-
-        Task<List<TDto>> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.ToListAsync<TDto>() => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>).ToListAsync(GetToListDtoSelector<TDto>());
-
         Task<double> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.AvgAsync<TMember>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TMember>> column)
         {
             if (column == null) return Task.FromResult(default(double));
@@ -269,6 +261,31 @@ namespace FreeSql.Internal.CommonProvider
             if (select == null) return this.InternalToListAsync<TReturn>(select?.Body);
             for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
             return this.InternalToListAsync<TReturn>(select?.Body);
+        }
+        Task<List<TDto>> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.ToListAsync<TDto>() => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>).ToListAsync(GetToListDtoSelector<TDto>());
+
+        Task<DataTable> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.ToDataTableAsync<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TReturn>> select)
+        {
+            if (select == null) return this.InternalToDataTableAsync(select?.Body);
+            for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
+            return this.InternalToDataTableAsync(select?.Body);
+        }
+
+        Task<int> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.InsertIntoAsync<TTargetEntity>(string tableName, Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TTargetEntity>> select)
+        {
+            if (select == null) return this.InternalInsertIntoAsync<TTargetEntity>(tableName, select);
+            for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
+            return this.InternalInsertIntoAsync<TTargetEntity>(tableName, select?.Body);
+        }
+
+        async Task<bool> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.AnyAsync(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, bool>> exp)
+        {
+            if (exp == null) return await this.AnyAsync();
+            for (var a = 0; a < exp.Parameters.Count; a++) _tables[a].Parameter = exp.Parameters[a];
+            var oldwhere = _where.ToString();
+            var ret = await this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp?.Body, null, _whereCascadeExpression, _params)).AnyAsync();
+            _where.Clear().Append(oldwhere);
+            return ret;
         }
 
         async Task<TReturn> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.ToOneAsync<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TReturn>> select) => (await (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>).Limit(1).ToListAsync(select)).FirstOrDefault();

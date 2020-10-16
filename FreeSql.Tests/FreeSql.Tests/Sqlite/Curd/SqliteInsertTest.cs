@@ -89,6 +89,11 @@ namespace FreeSql.Tests.Sqlite
 
             Assert.Equal(1, insert.AppendData(items.First()).ExecuteAffrows());
             Assert.Equal(10, insert.AppendData(items).ExecuteAffrows());
+
+            Assert.Equal(10, g.sqlite.Select<Topic>().Limit(10).InsertInto(null, a => new Topic
+            {
+                Title = a.Title
+            }));
         }
         [Fact]
         public void ExecuteIdentity()

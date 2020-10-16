@@ -683,6 +683,61 @@ namespace FreeSql.Internal.CommonProvider
             var af = this.GetExpressionField(select, fieldAlias);
             return this.ToSql(af.field);
         }
+        protected string InternalGetInsertIntoToSql<TTargetEntity>(string tableName, Expression select)
+        {
+            var tb = _orm.CodeFirst.GetTableByEntity(typeof(TTargetEntity));
+            if (tb == null) throw new ArgumentException($"ISelect.InsertInto() 类型错误: {typeof(TTargetEntity).DisplayCsharp()}");
+            if (string.IsNullOrEmpty(tableName)) tableName = tb.DbName;
+            if (_orm.CodeFirst.IsSyncStructureToLower) tableName = tableName.ToLower();
+            if (_orm.CodeFirst.IsSyncStructureToUpper) tableName = tableName.ToUpper();
+
+            var map = new ReadAnonymousTypeInfo();
+            var field = new StringBuilder();
+            var index = -10000; //临时规则，不返回 as1
+
+            _commonExpression.ReadAnonymousField(_tables, field, map, ref index, select, null, null, _whereCascadeExpression, null, false); //不走 DTO 映射，不处理 IncludeMany
+            
+            var childs = map.Childs;
+            if (childs.Any() == false) throw new ArgumentException($"ISelect.InsertInto() 未选择属性: {typeof(TTargetEntity).DisplayCsharp()}");
+            foreach(var col in tb.Columns.Values)
+            {
+                if (col.Attribute.IsIdentity && string.IsNullOrEmpty(col.DbInsertValue)) continue;
+                if (col.Attribute.CanInsert == false) continue;
+                if (childs.Any(a => a.CsName == col.CsName)) continue;
+                var dbfield = string.IsNullOrWhiteSpace(col.DbInsertValue) == false ? col.DbInsertValue : col.DbDefaultValue;
+                childs.Add(new ReadAnonymousTypeInfo { DbField = dbfield, CsName = col.CsName });
+            }
+            var selectField = string.Join(", ", childs.Select(a => a.DbField));
+            var selectSql = this.ToSql(selectField);
+            var insertField = string.Join(", ", childs.Select(a => _commonUtils.QuoteSqlName(tb.Columns[a.CsName].Attribute.Name)));
+            var sql = $"INSERT INTO {_commonUtils.QuoteSqlName(tableName)}({insertField})\r\n{selectSql}";
+            return sql;
+        }
+        public int InternalInsertInto<TTargetEntity>(string tableName, Expression select)
+        {
+            var sql = this.InternalGetInsertIntoToSql<TTargetEntity>(tableName, select);
+            var dbParms = _params.ToArray();
+            var tb = _orm.CodeFirst.GetTableByEntity(typeof(TTargetEntity));
+            var before = new Aop.CurdBeforeEventArgs(tb.Type, tb, Aop.CurdType.Insert, sql, dbParms);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
+            int ret = 0;
+            Exception exception = null;
+            try
+            {
+                ret = _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms);
+            }
+            catch (Exception ex)
+            {
+                exception = ex;
+                throw ex;
+            }
+            finally
+            {
+                var after = new Aop.CurdAfterEventArgs(before, exception, ret);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
+            }
+            return ret;
+        }
 
         protected DataTable InternalToDataTable(Expression select)
         {
@@ -948,6 +1003,32 @@ namespace FreeSql.Internal.CommonProvider
         async protected Task<decimal> InternalSumAsync(Expression exp) => (await this.ToListAsync<decimal>($"sum({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}){_commonUtils.FieldAsAlias("as1")}")).Sum();
 
         protected Task<List<TReturn>> InternalToListAsync<TReturn>(Expression select) => this.ToListMapReaderAsync<TReturn>(this.GetExpressionField(select));
+
+        async public Task<int> InternalInsertIntoAsync<TTargetEntity>(string tableName, Expression select)
+        {
+            var sql = this.InternalGetInsertIntoToSql<TTargetEntity>(tableName, select);
+            var dbParms = _params.ToArray();
+            var tb = _orm.CodeFirst.GetTableByEntity(typeof(TTargetEntity));
+            var before = new Aop.CurdBeforeEventArgs(tb.Type, tb, Aop.CurdType.Insert, sql, dbParms);
+            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
+            int ret = 0;
+            Exception exception = null;
+            try
+            {
+                ret = await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms);
+            }
+            catch (Exception ex)
+            {
+                exception = ex;
+                throw ex;
+            }
+            finally
+            {
+                var after = new Aop.CurdAfterEventArgs(before, exception, ret);
+                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
+            }
+            return ret;
+        }
 
         async protected Task<DataTable> InternalToDataTableAsync(Expression select)
         {

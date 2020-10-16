@@ -177,6 +177,11 @@ INTO ""TB_TOPIC_INSERT""(""CLICKS"") VALUES(:Clicks_9)
 
             Assert.Equal(1, insert.AppendData(items.First()).ExecuteAffrows());
             Assert.Equal(10, insert.AppendData(items).ExecuteAffrows());
+
+            Assert.Equal(10, g.oracle.Select<Topic>().Limit(10).InsertInto(null, a => new Topic
+            {
+                Title = a.Title
+            }));
         }
         [Fact]
         public void ExecuteIdentity()

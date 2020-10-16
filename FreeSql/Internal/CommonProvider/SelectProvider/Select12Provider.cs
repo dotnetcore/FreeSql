@@ -168,6 +168,13 @@ namespace FreeSql.Internal.CommonProvider
             return this.InternalToDataTable(select?.Body);
         }
 
+        int ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>.InsertInto<TTargetEntity>(string tableName, Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TTargetEntity>> select)
+        {
+            if (select == null) return this.InternalInsertInto<TTargetEntity>(tableName, select);
+            for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
+            return this.InternalInsertInto<TTargetEntity>(tableName, select?.Body);
+        }
+
         string ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>.ToSql<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TReturn>> select, FieldAliasOptions fieldAlias)
         {
             if (select == null) return this.InternalToSql<TReturn>(select?.Body, fieldAlias);
@@ -274,6 +281,13 @@ namespace FreeSql.Internal.CommonProvider
             if (select == null) return this.InternalToDataTableAsync(select?.Body);
             for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
             return this.InternalToDataTableAsync(select?.Body);
+        }
+
+        Task<int> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>.InsertIntoAsync<TTargetEntity>(string tableName, Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TTargetEntity>> select)
+        {
+            if (select == null) return this.InternalInsertIntoAsync<TTargetEntity>(tableName, select);
+            for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
+            return this.InternalInsertIntoAsync<TTargetEntity>(tableName, select?.Body);
         }
 
         async Task<bool> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>.AnyAsync(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, bool>> exp)

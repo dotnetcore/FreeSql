@@ -92,6 +92,11 @@ namespace FreeSql.Tests.MsAccess
 
             //items = Enumerable.Range(0, 9989).Select(a => new Topic { Title = "newtitle" + a, CreateTime = DateTime.Now }).ToList();
             //Assert.Equal(9989, g.msaccess.Insert<Topic>(items).ExecuteAffrows());
+
+            Assert.Equal(10, g.msaccess.Select<Topic>().Limit(10).InsertInto(null, a => new Topic
+            {
+                Title = a.Title
+            }));
         }
         [Fact]
         public void ExecuteIdentity()
