@@ -204,6 +204,7 @@ namespace FreeSql.Internal
                     }
                     else if (isAllDtoMap && _tables != null && _tables.Any() && initExp.NewExpression.Type != _tables.FirstOrDefault().Table.Type)
                     {
+                        var dicBindings = initExp.Bindings?.Select(a => a.Member.Name).Distinct().ToDictionary(a => a, a => false);
                         //dto 映射
                         var dtoProps = initExp.NewExpression.Type.GetPropertiesDictIgnoreCase().Values;
                         foreach (var dtoProp in dtoProps)
@@ -212,6 +213,7 @@ namespace FreeSql.Internal
                             {
                                 if (dtTb.Table.ColumnsByCs.TryGetValue(dtoProp.Name, out var trydtocol) == false) continue;
                                 if (trydtocol.Attribute.IsIgnore == true) continue;
+                                if (dicBindings?.ContainsKey(dtoProp.Name) == true) continue;
 
                                 var child = new ReadAnonymousTypeInfo
                                 {
