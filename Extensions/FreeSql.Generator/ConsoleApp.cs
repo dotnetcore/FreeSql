@@ -23,6 +23,7 @@ namespace FreeSql.Generator
         string ArgsFilter { get; }
         string ArgsMatch { get; }
         string ArgsFileName { get; }
+        bool ArgsReadKey { get; }
         internal string ArgsOutput { get; private set; }
 
         public ConsoleApp(string[] args, ManualResetEvent wait)
@@ -62,6 +63,7 @@ new Colorful.Formatter("v" + string.Join(".", typeof(ConsoleApp).Assembly.GetNam
             ArgsFilter = "";
             ArgsMatch = "";
             ArgsFileName = "{name}.cs";
+            ArgsReadKey = true;
             Action<string> setArgsOutput = value =>
             {
                 ArgsOutput = value;
@@ -196,6 +198,10 @@ new Colorful.Formatter("推荐在实体类目录创建 gen.bat，双击它重新
                         ArgsFileName = args[a + 1];
                         a++;
                         break;
+                    case "-readkey":
+                        ArgsReadKey = args[a + 1].Trim() == "1";
+                        a++;
+                        break;
                     case "-output":
                         setArgsOutput(args[a + 1]);
                         a++;
@@ -321,7 +327,8 @@ FreeSql.Generator -Razor ""__razor.cshtml.txt"" -NameOptions {string.Join(",", A
 
             Console.WriteFormatted($"\r\n[{DateTime.Now.ToString("MM-dd HH:mm:ss")}] 生成完毕，总共生成了 {outputCounter} 个文件，目录：\"{ArgsOutput}\"\r\n", Color.DarkGreen);
 
-            Console.ReadKey();
+            if (ArgsReadKey)
+                Console.ReadKey();
             wait.Set();
         }
     }
