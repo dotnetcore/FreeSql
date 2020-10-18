@@ -160,7 +160,7 @@ namespace FreeSql.Firebird
                     tboldname = null; //如果新表已经存在，不走改表名逻辑
 
                 //对比字段，只可以修改类型、增加字段、有限的修改字段名；保证安全不删除字段
-                var sql = _commonUtils.FormatSql(@"
+                var sql = _commonUtils.FormatSql($@"
 select
 trim(a.rdb$field_name),
 case
@@ -176,12 +176,12 @@ case
     coalesce((select ' SUB_TYPE ' || rdb$type from rdb$types where b.rdb$field_type = 261 and rdb$type = b.rdb$field_sub_type and rdb$field_name = 'RDB$FIELD_SUB_TYPE' rows 1),'')
   end || trim(case when b.rdb$dimensions = 1 then '[]' else '' end),
 case when a.rdb$null_flag = 1 then 0 else 1 end,
-case when a.rdb$identity_type = 1 then 1 else 0 end,
+{((_orm.Ado as FirebirdAdo)?.IsFirebird2_5 == true ? "0" : "case when a.rdb$identity_type = 1 then 1 else 0 end")},
 a.rdb$description
 from rdb$relation_fields a
 inner join rdb$fields b on b.rdb$field_name = a.rdb$field_source
 inner join rdb$relations d on d.rdb$relation_name = a.rdb$relation_name
-where a.rdb$system_flag = 0 and trim(d.rdb$relation_name) = {0}
+where a.rdb$system_flag = 0 and trim(d.rdb$relation_name) = {{0}}
 order by a.rdb$relation_name, a.rdb$field_position", tboldname ?? tbname);
                 var ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
                 var tbstruct = ds.ToDictionary(a => string.Concat(a[0]), a =>

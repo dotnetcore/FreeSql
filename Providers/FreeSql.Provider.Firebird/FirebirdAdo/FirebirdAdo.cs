@@ -35,6 +35,29 @@ namespace FreeSql.Firebird
                 }
             }
         }
+
+        public bool IsFirebird2_5 => ServerVersion.Contains("Firebird 2.5");
+        public string ServerVersion
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_serverVersion) && MasterPool != null)
+                    using (var conn = MasterPool.Get())
+                    {
+                        try
+                        {
+                            _serverVersion = conn.Value.ServerVersion;
+                        }
+                        catch
+                        {
+                            _serverVersion = "3.0.0";
+                        }
+                    }
+                return _serverVersion;
+            }
+        }
+        string _serverVersion;
+
         public override object AddslashesProcessParam(object param, Type mapType, ColumnInfo mapColumn)
         {
             if (param == null) return "NULL";
