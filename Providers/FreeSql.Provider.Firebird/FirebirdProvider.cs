@@ -41,6 +41,13 @@ namespace FreeSql.Firebird
 
             this.DbFirst = new FirebirdDbFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
             this.CodeFirst = new FirebirdCodeFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
+
+            if ((this.Ado as FirebirdAdo).IsFirebird2_5)
+                this.Aop.ConfigEntityProperty += (_, e) =>
+                {
+                    if (e.Property.PropertyType.NullableTypeOrThis() == typeof(bool))
+                        e.ModifyResult.MapType = typeof(short);
+                };
         }
 
         internal CommonUtils InternalCommonUtils { get; }
