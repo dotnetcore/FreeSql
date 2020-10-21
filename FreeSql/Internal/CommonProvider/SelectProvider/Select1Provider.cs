@@ -23,7 +23,6 @@ namespace FreeSql.Internal.CommonProvider
         public Select1Provider(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere) : base(orm, commonUtils, commonExpression, dywhere)
         {
             _whereGlobalFilter = _orm.GlobalFilter.GetFilters();
-            _whereCascadeExpression.AddRange(_whereGlobalFilter.Select(a => a.Where));
         }
 
         protected ISelect<T1> InternalFrom(LambdaExpression lambdaExp)
@@ -199,7 +198,7 @@ namespace FreeSql.Internal.CommonProvider
             var map = new ReadAnonymousTypeInfo();
             var field = new StringBuilder();
             var index = 0;
-            _commonExpression.ReadAnonymousField(_tables, field, map, ref index, select.Body, this, null, _whereCascadeExpression, findIncludeMany, true);
+            _commonExpression.ReadAnonymousField(_tables, field, map, ref index, select.Body, this, null, _whereGlobalFilter, findIncludeMany, true);
             var af = new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null);
             if (findIncludeMany.Any() == false) return this.ToListMapReaderPrivate<TReturn>(af, null);
 
@@ -232,7 +231,7 @@ namespace FreeSql.Internal.CommonProvider
 
             var otherMap = new ReadAnonymousTypeInfo();
             field.Clear();
-            _commonExpression.ReadAnonymousField(_tables, field, otherMap, ref index, otherNewInit, this, null, _whereCascadeExpression, null, true);
+            _commonExpression.ReadAnonymousField(_tables, field, otherMap, ref index, otherNewInit, this, null, _whereGlobalFilter, null, true);
             var otherRet = new List<object>();
             var otherAf = new ReadAnonymousTypeOtherInfo(field.ToString(), otherMap, otherRet);
 
@@ -361,7 +360,7 @@ namespace FreeSql.Internal.CommonProvider
 
         public ISelect<T1> WhereCascade(Expression<Func<T1, bool>> exp)
         {
-            if (exp != null) _whereCascadeExpression.Add(exp);
+            if (exp != null) _whereGlobalFilter.Add(new GlobalFilter.Item { Name = "WhereCascade", Only = false, Where = exp });
             return this;
         }
 
@@ -806,8 +805,8 @@ namespace FreeSql.Internal.CommonProvider
                 if (_tableRules?.Any() == true)
                     foreach (var tr in _tableRules) subSelect.AsTable(tr);
 
-                if (_whereCascadeExpression.Any())
-                    subSelect._whereCascadeExpression.AddRange(_whereCascadeExpression.ToArray());
+                if (_whereGlobalFilter.Any())
+                    subSelect._whereGlobalFilter.AddRange(_whereGlobalFilter.ToArray());
 
                 //subSelect._aliasRule = _aliasRule; //把 SqlServer 查询锁传递下去
                 then?.Invoke(subSelect);
@@ -957,11 +956,11 @@ namespace FreeSql.Internal.CommonProvider
                             {
                                 if (z > 0) sbJoin.Append(" AND ");
                                 sbJoin.Append($"midtb.{_commonUtils.QuoteSqlName(tbref.MiddleColumns[tbref.Columns.Count + z].Attribute.Name)} = a.{_commonUtils.QuoteSqlName(tbref.RefColumns[z].Attribute.Name)}");
-                                if (_whereCascadeExpression.Any())
+                                if (_whereGlobalFilter.Any())
                                 {
-                                    var cascade = _commonExpression.GetWhereCascadeSql(new SelectTableInfo { Alias = "midtb", AliasInit = "midtb", Table = tbrefMid, Type = SelectTableInfoType.InnerJoin }, _whereCascadeExpression, true);
+                                    var cascade = _commonExpression.GetWhereCascadeSql(new SelectTableInfo { Alias = "midtb", AliasInit = "midtb", Table = tbrefMid, Type = SelectTableInfoType.InnerJoin }, _whereGlobalFilter, true);
                                     if (string.IsNullOrEmpty(cascade) == false)
-                                        sbJoin.Append(" AND (").Append(cascade).Append(")");
+                                        sbJoin.Append(" AND ").Append(cascade);
                                 }
                             }
                             subSelect.InnerJoin(sbJoin.ToString());
@@ -1196,7 +1195,7 @@ namespace FreeSql.Internal.CommonProvider
             var map = new ReadAnonymousTypeInfo();
             var field = new StringBuilder();
             var index = 0;
-            _commonExpression.ReadAnonymousField(_tables, field, map, ref index, select.Body, this, null, _whereCascadeExpression, findIncludeMany, true);
+            _commonExpression.ReadAnonymousField(_tables, field, map, ref index, select.Body, this, null, _whereGlobalFilter, findIncludeMany, true);
             var af = new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null);
             if (findIncludeMany.Any() == false) return await this.ToListMapReaderPrivateAsync<TReturn>(af, null);
 
@@ -1229,7 +1228,7 @@ namespace FreeSql.Internal.CommonProvider
 
             var otherMap = new ReadAnonymousTypeInfo();
             field.Clear();
-            _commonExpression.ReadAnonymousField(_tables, field, otherMap, ref index, otherNewInit, this, null, _whereCascadeExpression, null, true);
+            _commonExpression.ReadAnonymousField(_tables, field, otherMap, ref index, otherNewInit, this, null, _whereGlobalFilter, null, true);
             var otherRet = new List<object>();
             var otherAf = new ReadAnonymousTypeOtherInfo(field.ToString(), otherMap, otherRet);
 

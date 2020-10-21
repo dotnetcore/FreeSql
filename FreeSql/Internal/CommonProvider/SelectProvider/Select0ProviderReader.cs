@@ -353,7 +353,7 @@ namespace FreeSql.Internal.CommonProvider
             var field = new StringBuilder();
             var index = fieldAlias == FieldAliasOptions.AsProperty ? CommonExpression.ReadAnonymousFieldAsCsName : 0;
 
-            _commonExpression.ReadAnonymousField(_tables, field, map, ref index, newexp, this, null, _whereCascadeExpression, null, true);
+            _commonExpression.ReadAnonymousField(_tables, field, map, ref index, newexp, this, null, _whereGlobalFilter, null, true);
             return new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null);
         }
         static ConcurrentDictionary<string, GetAllFieldExpressionTreeInfo> _dicGetAllFieldExpressionTree = new ConcurrentDictionary<string, GetAllFieldExpressionTreeInfo>();
@@ -656,14 +656,14 @@ namespace FreeSql.Internal.CommonProvider
             var field = new StringBuilder();
             var index = -10000; //临时规则，不返回 as1
 
-            _commonExpression.ReadAnonymousField(_tables, field, map, ref index, columns, null, null, _whereCascadeExpression, null, false); //不走 DTO 映射，不处理 IncludeMany
+            _commonExpression.ReadAnonymousField(_tables, field, map, ref index, columns, null, null, _whereGlobalFilter, null, false); //不走 DTO 映射，不处理 IncludeMany
             var sql = field.ToString();
             this.GroupBy(sql.Length > 0 ? sql.Substring(2) : null);
             return new SelectGroupingProvider<TKey, TValue>(_orm, this, map, sql, _commonExpression, _tables);
         }
         public TSelect InternalJoin(Expression exp, SelectTableInfoType joinType)
         {
-            _commonExpression.ExpressionJoinLambda(_tables, joinType, exp, null, _whereCascadeExpression);
+            _commonExpression.ExpressionJoinLambda(_tables, joinType, exp, null, _whereGlobalFilter);
             return this as TSelect;
         }
         protected TSelect InternalJoin<T2>(Expression exp, SelectTableInfoType joinType)
@@ -671,7 +671,7 @@ namespace FreeSql.Internal.CommonProvider
             var tb = _commonUtils.GetTableByEntity(typeof(T2));
             if (tb == null) throw new ArgumentException("T2 类型错误");
             _tables.Add(new SelectTableInfo { Table = tb, Alias = $"IJ{_tables.Count}", On = null, Type = joinType });
-            _commonExpression.ExpressionJoinLambda(_tables, joinType, exp, null, _whereCascadeExpression);
+            _commonExpression.ExpressionJoinLambda(_tables, joinType, exp, null, _whereGlobalFilter);
             return this as TSelect;
         }
         protected TSelect InternalOrderBy(Expression column) => this.OrderBy(_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, column, true, null));
@@ -695,7 +695,7 @@ namespace FreeSql.Internal.CommonProvider
             var field = new StringBuilder();
             var index = -10000; //临时规则，不返回 as1
 
-            _commonExpression.ReadAnonymousField(_tables, field, map, ref index, select, null, null, _whereCascadeExpression, null, false); //不走 DTO 映射，不处理 IncludeMany
+            _commonExpression.ReadAnonymousField(_tables, field, map, ref index, select, null, null, _whereGlobalFilter, null, false); //不走 DTO 映射，不处理 IncludeMany
             
             var childs = map.Childs;
             if (childs.Any() == false) throw new ArgumentException($"ISelect.InsertInto() 未选择属性: {typeof(TTargetEntity).DisplayCsharp()}");
@@ -774,7 +774,7 @@ namespace FreeSql.Internal.CommonProvider
                 var field = new StringBuilder();
                 var index = 0;
 
-                _commonExpression.ReadAnonymousField(_tables, field, map, ref index, select, null, null, _whereCascadeExpression, null, false); //不走 DTO 映射，不处理 IncludeMany
+                _commonExpression.ReadAnonymousField(_tables, field, map, ref index, select, null, null, _whereGlobalFilter, null, false); //不走 DTO 映射，不处理 IncludeMany
                 return this.ToListMapReader<TReturn>(new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null)).FirstOrDefault();
             }
             finally
@@ -783,7 +783,7 @@ namespace FreeSql.Internal.CommonProvider
             }
         }
 
-        public TSelect InternalWhere(Expression exp) => exp == null ? this as TSelect : this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp, null, _whereCascadeExpression, _params));
+        public TSelect InternalWhere(Expression exp) => exp == null ? this as TSelect : this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp, null, _whereGlobalFilter, _params));
 
         #region Async
 #if net40
@@ -1065,7 +1065,7 @@ namespace FreeSql.Internal.CommonProvider
                 var field = new StringBuilder();
                 var index = 0;
 
-                _commonExpression.ReadAnonymousField(_tables, field, map, ref index, select, null, null, _whereCascadeExpression, null, false); //不走 DTO 映射，不处理 IncludeMany
+                _commonExpression.ReadAnonymousField(_tables, field, map, ref index, select, null, null, _whereGlobalFilter, null, false); //不走 DTO 映射，不处理 IncludeMany
                 return (await this.ToListMapReaderAsync<TReturn>(new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null))).FirstOrDefault();
             }
             finally

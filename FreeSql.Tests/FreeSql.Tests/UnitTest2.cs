@@ -244,10 +244,22 @@ namespace FreeSql.Tests
             public int id { get; set; }
             public string title { get; set; }
         }
+        public class otot3 : otot1
+        {
+
+        }
 
         [Fact]
         public void Test02()
         {
+            g.sqlite.GlobalFilter
+                .ApplyOnly<otot1>("id1", a => a.name == "123");
+
+            var sqlonly = g.sqlite.Select<otot1, otot2, otot3>()
+                .InnerJoin((a, b, c) => a.id == b.id)
+                .InnerJoin((a, b, c) => b.id == c.id)
+                .ToSql();
+
             g.sqlite.Update<TestIgnoreDefaultValue>(Guid.Empty).Set(a => a.ct1 == a.ct2).ExecuteAffrows();
 
             g.sqlite.Insert(new otot1 { name = "otot1_name1" }).ExecuteAffrows();

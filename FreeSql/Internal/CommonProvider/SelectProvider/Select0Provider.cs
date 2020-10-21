@@ -41,7 +41,6 @@ namespace FreeSql.Internal.CommonProvider
         public Dictionary<string, MemberExpression[]> _includeInfo = new Dictionary<string, MemberExpression[]>();
         public bool _distinct;
         public Expression _selectExpression;
-        public List<LambdaExpression> _whereCascadeExpression = new List<LambdaExpression>();
         public List<GlobalFilter.Item> _whereGlobalFilter;
 
         int _disposeCounter;
@@ -61,9 +60,7 @@ namespace FreeSql.Internal.CommonProvider
 #endif
             _includeInfo.Clear();
             _selectExpression = null;
-            _whereCascadeExpression.Clear();
-            _whereGlobalFilter = _orm.GlobalFilter.GetFilters();
-            _whereCascadeExpression.AddRange(_whereGlobalFilter.Select(a => a.Where));
+            _whereGlobalFilter.Clear();
         }
 
         public static void CopyData(Select0Provider from, Select0Provider to, ReadOnlyCollection<ParameterExpression> lambParms)
@@ -121,7 +118,6 @@ namespace FreeSql.Internal.CommonProvider
 #endif
             to._distinct = from._distinct;
             to._selectExpression = from._selectExpression;
-            to._whereCascadeExpression = new List<LambdaExpression>(from._whereCascadeExpression.ToArray());
             to._whereGlobalFilter = new List<GlobalFilter.Item>(from._whereGlobalFilter.ToArray());
         }
 
@@ -633,7 +629,6 @@ namespace FreeSql.Internal.CommonProvider
             if (_whereGlobalFilter.Any() == false) return this as TSelect;
             if (name?.Any() != true)
             {
-                _whereCascadeExpression.RemoveRange(0, _whereGlobalFilter.Count);
                 _whereGlobalFilter.Clear();
                 return this as TSelect;
             }
@@ -642,7 +637,6 @@ namespace FreeSql.Internal.CommonProvider
                 if (n == null) continue;
                 var idx = _whereGlobalFilter.FindIndex(a => string.Compare(a.Name, n, true) == 0);
                 if (idx == -1) continue;
-                _whereCascadeExpression.RemoveAt(idx);
                 _whereGlobalFilter.RemoveAt(idx);
             }
             return this as TSelect;
