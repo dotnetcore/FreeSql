@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net45;net40</TargetFrameworks>
-		<Version>1.10.0-preview1020</Version>
+		<Version>1.10.0</Version>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>FreeSql;ncc;YeXiangQin</Authors>
 		<Description>FreeSql 数据库实现，基于 Oracle 11</Description>
@@ -26,11 +26,11 @@
   </ItemGroup>
   
 	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-	  <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="2.19.80" />
+	  <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="2.19.90" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net45' or '$(TargetFramework)' == 'net40'">
-		<PackageReference Include="Oracle.ManagedDataAccess" Version="19.8.0" />
+		<PackageReference Include="Oracle.ManagedDataAccess" Version="19.9.0" />
 	</ItemGroup>
 	
 	<ItemGroup>
