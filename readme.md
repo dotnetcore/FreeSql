@@ -182,7 +182,8 @@ Elapsed: 00:00:00.6495301; Query Entity Counts: 131072; ORM: Dapper
 [tky753](https://github.com/tky753)、
 [feijie999](https://github.com/feijie999)、
 constantine、
-[JohnZhou2020](https://github.com/JohnZhou2020)
+[JohnZhou2020](https://github.com/JohnZhou2020)、
+[mafeng8](https://github.com/mafeng8)
 
 QQ群：4336577(已满)、8578575(在线)、52508226(在线)
 

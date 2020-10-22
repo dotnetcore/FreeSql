@@ -140,25 +140,25 @@ namespace FreeSql.Odbc.MySql
                                 foreach (var tbcol in tb.Primarys) sb.Append(_commonUtils.QuoteSqlName(tbcol.Attribute.Name)).Append(", ");
                                 sb.Remove(sb.Length - 2, 2).Append("),");
                             }
-                            sb.Remove(sb.Length - 1, 1);
-                            sb.Append("\r\n) Engine=InnoDB");
-                            if (string.IsNullOrEmpty(tb.Comment) == false)
-                                sb.Append(" Comment=").Append(_commonUtils.FormatSql("{0}", tb.Comment));
-                            sb.Append(";\r\n");
-                            //创建表的索引
+                            //创建表的索引，感谢 @mafeng8，这样写可以支持自增不是主键的情况
                             foreach (var uk in tb.Indexes)
                             {
-                                sb.Append("CREATE ");
+                                sb.Append(" \r\n  ");
                                 if (uk.IsUnique) sb.Append("UNIQUE ");
-                                sb.Append("INDEX ").Append(_commonUtils.QuoteSqlName(ReplaceIndexName(uk.Name, tbname[1]))).Append(" ON ").Append(createTableName).Append("(");
+                                sb.Append("INDEX ").Append(_commonUtils.QuoteSqlName(ReplaceIndexName(uk.Name, tbname[1]))).Append("(");
                                 foreach (var tbcol in uk.Columns)
                                 {
                                     sb.Append(_commonUtils.QuoteSqlName(tbcol.Column.Attribute.Name));
                                     if (tbcol.IsDesc) sb.Append(" DESC");
                                     sb.Append(", ");
                                 }
-                                sb.Remove(sb.Length - 2, 2).Append(");\r\n");
+                                sb.Remove(sb.Length - 2, 2).Append("),");
                             }
+                            sb.Remove(sb.Length - 1, 1);
+                            sb.Append("\r\n) Engine=InnoDB");
+                            if (string.IsNullOrEmpty(tb.Comment) == false)
+                                sb.Append(" Comment=").Append(_commonUtils.FormatSql("{0}", tb.Comment));
+                            sb.Append(";\r\n");
                             continue;
                         }
                         //如果新表，旧表在一个数据库下，直接修改表名
