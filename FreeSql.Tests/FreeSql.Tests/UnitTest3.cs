@@ -177,9 +177,37 @@ namespace FreeSql.Tests
             public string name { get; set; }
         }
 
+        class tq01
+        {
+            public Guid id { get; set; }
+        }
+        class t102
+        {
+            public Guid id { get; set; }
+            public bool isxx { get; set; }
+        }
+
         [Fact]
         public void Test03()
         {
+            var testisnullsql1 = g.sqlite.Select<t102>().Where(a => SqlExt.IsNull(a.isxx, false).Equals( true)).ToSql();
+            var testisnullsql2 = g.sqlite.Select<t102>().Where(a => SqlExt.IsNull(a.isxx, false).Equals(false)).ToSql();
+
+            var guid1 = Guid.NewGuid();
+            var guid2 = Guid.NewGuid();
+            var guid3 = Guid.NewGuid();
+            var tqsql = g.sqlite.Select<tq01, t102, t102>()
+                .WithSql(
+                    g.sqlite.Select<tq01>().As("sub1").Where(a => a.id == guid1).ToSql(),
+                    g.sqlite.Select<t102>().As("sub2").Where(a => a.id == guid2).ToSql(),
+                    g.sqlite.Select<t102>().As("sub3").Where(a => a.id == guid3).ToSql()
+                )
+                .LeftJoin((a, b, c) => a.id == b.id)
+                .LeftJoin((a, b, c) => b.id == c.id)
+                .ToSql();
+                
+
+
             var updateSql = g.sqlite.Update<object>()
                 .AsType(typeof(testInsertNullable))
                 .SetDto(new { str1 = "xxx" })

@@ -604,23 +604,27 @@ namespace FreeSql.Internal
             }
             if (leftExp.Type.NullableTypeOrThis() == typeof(bool) && (leftExp.NodeType != ExpressionType.MemberAccess && rightExp.NodeType != ExpressionType.MemberAccess))
             {
-                if (oper == "=")
+                var leftExpCall = leftExp as MethodCallExpression;
+                if (leftExpCall == null || !(leftExpCall.Method.DeclaringType == typeof(SqlExt) && leftExpCall.Method.Name == nameof(SqlExt.IsNull)))
                 {
-                    var trueVal = formatSql(true, null, null, null);
-                    var falseVal = formatSql(false, null, null, null);
-                    if (left == trueVal) return right;
-                    else if (left == falseVal) return $"not({right})";
-                    else if (right == trueVal) return left;
-                    else if (right == falseVal) return $"not({left})";
-                }
-                else if (oper == "<>")
-                {
-                    var trueVal = formatSql(true, null, null, null);
-                    var falseVal = formatSql(false, null, null, null);
-                    if (left == trueVal) return $"not({right})";
-                    else if (left == falseVal) return right;
-                    else if (right == trueVal) return $"not({left})";
-                    else if (right == falseVal) return left;
+                    if (oper == "=")
+                    {
+                        var trueVal = formatSql(true, null, null, null);
+                        var falseVal = formatSql(false, null, null, null);
+                        if (left == trueVal) return right;
+                        else if (left == falseVal) return $"not({right})";
+                        else if (right == trueVal) return left;
+                        else if (right == falseVal) return $"not({left})";
+                    }
+                    else if (oper == "<>")
+                    {
+                        var trueVal = formatSql(true, null, null, null);
+                        var falseVal = formatSql(false, null, null, null);
+                        if (left == trueVal) return $"not({right})";
+                        else if (left == falseVal) return right;
+                        else if (right == trueVal) return $"not({left})";
+                        else if (right == falseVal) return left;
+                    }
                 }
             }
             if (left == "NULL")
