@@ -1,0 +1,17 @@
+name: Publish 
+on:
+    push:
+        branches:
+            - master
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Sync to Gitee 💕
+              uses: wearerequired/git-mirror-action@master
+              env:
+                  SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+              with:
+                  source-repo: "git@github.com:dotnetcore/freesql.git"
+                  destination-repo: "git@gitee.com:FreeSql/FreeSql-ORM.git"
