@@ -130,6 +130,13 @@
             清空状态数据
             </summary>
         </member>
+        <member name="M:FreeSql.DbSet`1.RemoveAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
+            <summary>
+            根据 lambda 条件删除数据
+            </summary>
+            <param name="predicate"></param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.DbSet`1.Add(`0)">
             <summary>
             添加
@@ -350,24 +357,6 @@
             <param name="isCreate">若未开启事务，则开启</param>
             <returns></returns>
         </member>
-        <member name="P:FreeSql.IUnitOfWork.Enable">
-            <summary>
-            是否启用工作单元
-            </summary>
-        </member>
-        <member name="M:FreeSql.IUnitOfWork.Close">
-            <summary>
-            禁用工作单元
-            <exception cref="T:System.Exception"></exception>
-            <para></para>
-            若已开启事务（已有Insert/Update/Delete操作），调用此方法将发生异常，建议在执行逻辑前调用
-            </summary>
-        </member>
-        <member name="M:FreeSql.IUnitOfWork.Open">
-            <summary>
-            开启工作单元
-            </summary>
-        </member>
         <member name="P:FreeSql.IUnitOfWork.EntityChangeReport">
             <summary>
             工作单元内的实体变化跟踪
@@ -442,11 +431,6 @@
         <member name="F:FreeSql.Propagation.Nested">
             <summary>
             以嵌套事务方式执行。
-            </summary>
-        </member>
-        <member name="F:FreeSql.Propagation.Requierd">
-            <summary>
-            错误的命名，请使用 Required，在 2.0.0 删除
             </summary>
         </member>
         <member name="M:FreeSqlDbContextExtensions.Entity``1(FreeSql.ICodeFirst,System.Action{FreeSql.Extensions.EfCoreFluentApi.EfCoreTableFluent{``0}})">
@@ -525,13 +509,13 @@
             <param name="that"></param>
             <returns></returns>
         </member>
-    </members>
-</doc>
-me="M:FreeSqlDbContextExtensions.CreateUnitOfWork(IFreeSql)">
+        <member name="M:Microsoft.Extensions.DependencyInjection.FreeSqlRepositoryDependencyInjection.AddFreeRepository(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Action{FreeSql.FluentDataFilter},System.Reflection.Assembly[])">
             <summary>
-            创建基于仓储功能的工作单元，务必使用 using 包含使用
+            批量注入 Repository，可以参考代码自行调整
             </summary>
-            <param name="that"></param>
+            <param name="services"></param>
+            <param name="globalDataFilter"></param>
+            <param name="assemblies"></param>
             <returns></returns>
         </member>
     </members>
