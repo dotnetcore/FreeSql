@@ -112,15 +112,16 @@ namespace FreeSql.Internal.CommonProvider
 
         void TransactionInternal(IsolationLevel? isolationLevel, Action handler)
         {
+            var requireTran = TransactionCurrentThread == null;
             try
             {
-                BeginTransaction(isolationLevel);
+                if (requireTran) BeginTransaction(isolationLevel);
                 handler();
-                CommitTransaction();
+                if (requireTran) CommitTransaction();
             }
             catch (Exception ex)
             {
-                RollbackTransaction(ex);
+                if (requireTran) RollbackTransaction(ex);
                 throw ex;
             }
         }

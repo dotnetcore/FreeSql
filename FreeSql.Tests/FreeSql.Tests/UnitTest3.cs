@@ -187,9 +187,25 @@ namespace FreeSql.Tests
             public bool isxx { get; set; }
         }
 
+        public class tcate01
+        {
+            [Column(IsIdentity = true)]
+            public int? Id { get; set; }
+        }
+        public class tshop01
+        {
+            public Guid Id { get; set; }
+
+            public int cateId { get; set; }
+            public tcate01 cate { get; set; }
+        }
+
         [Fact]
         public void Test03()
         {
+            var tshop01sql = g.sqlite.Select<tshop01>().Include(a => a.cate).ToSql();
+
+
             var testisnullsql1 = g.sqlite.Select<t102>().Where(a => SqlExt.IsNull(a.isxx, false).Equals( true)).ToSql();
             var testisnullsql2 = g.sqlite.Select<t102>().Where(a => SqlExt.IsNull(a.isxx, false).Equals(false)).ToSql();
 

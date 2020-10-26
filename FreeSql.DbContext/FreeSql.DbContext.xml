@@ -130,13 +130,6 @@
             清空状态数据
             </summary>
         </member>
-        <member name="M:FreeSql.DbSet`1.RemoveAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
-            <summary>
-            根据 lambda 条件删除数据
-            </summary>
-            <param name="predicate"></param>
-            <returns></returns>
-        </member>
         <member name="M:FreeSql.DbSet`1.Add(`0)">
             <summary>
             添加
@@ -526,6 +519,15 @@
             <returns></returns>
         </member>
         <member name="M:FreeSqlDbContextExtensions.CreateUnitOfWork(IFreeSql)">
+            <summary>
+            创建基于仓储功能的工作单元，务必使用 using 包含使用
+            </summary>
+            <param name="that"></param>
+            <returns></returns>
+        </member>
+    </members>
+</doc>
+me="M:FreeSqlDbContextExtensions.CreateUnitOfWork(IFreeSql)">
             <summary>
             创建基于仓储功能的工作单元，务必使用 using 包含使用
             </summary>
