@@ -66,7 +66,7 @@ namespace FreeSql.Tests.ShenTongExpression
         [Fact]
         public void Format()
         {
-            var item = g.shentong.GetRepository<Topic>().Insert(new Topic { Clicks = 101, Title = "ÎÒÊÇÖĞ¹úÈË101", CreateTime = DateTime.Parse("2020-7-5") });
+            var item = g.shentong.GetRepository<Topic>().Insert(new Topic { Clicks = 101, Title = "æˆ‘æ˜¯ä¸­å›½äºº101", CreateTime = DateTime.Parse("2020-7-5") });
             var sql = select.WhereDynamic(item).ToSql(a => new
             {
                 str = $"x{a.Id + 1}z-{a.CreateTime.ToString("yyyyMM")}{a.Title}",
@@ -89,9 +89,9 @@ WHERE (a.""ID"" = {item.Id})", sql);
         [Fact]
         public void Format4()
         { 
-            //3¸ö {} Ê±£¬Arguments ½âÎö³öÀ´ÊÇ·Ö¿ªµÄ
-            //4¸ö {} Ê±£¬Arguments[1] Ö»ÄÜ½âÎöÕâ¸ö³öÀ´£¬È»ºóÀïÃæÊÇ NewArray []
-            var item = g.shentong.GetRepository<Topic>().Insert(new Topic { Clicks = 101, Title = "ÎÒÊÇÖĞ¹úÈË101", CreateTime = DateTime.Parse("2020-7-5") });
+            //3ä¸ª {} æ—¶ï¼ŒArguments è§£æå‡ºæ¥æ˜¯åˆ†å¼€çš„
+            //4ä¸ª {} æ—¶ï¼ŒArguments[1] åªèƒ½è§£æè¿™ä¸ªå‡ºæ¥ï¼Œç„¶åé‡Œé¢æ˜¯ NewArray []
+            var item = g.shentong.GetRepository<Topic>().Insert(new Topic { Clicks = 101, Title = "æˆ‘æ˜¯ä¸­å›½äºº101", CreateTime = DateTime.Parse("2020-7-5") });
             var sql = select.WhereDynamic(item).ToSql(a => new
             {
                 str = $"x{a.Id + 1}z-{a.CreateTime.ToString("yyyyMM")}{a.Title}{a.Title}",

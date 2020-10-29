@@ -36,7 +36,7 @@ namespace FreeSql.Tests.DamengMapType
             [Column(MapType = typeof(string))]
             public BigInteger? bigintegernullable_to_string { get; set; }
         }
-        public enum ToStringMapEnum { ÖÐ¹úÈË, abc, Ïã¸Û }
+        public enum ToStringMapEnum { ä¸­å›½äºº, abc, é¦™æ¸¯ }
         [Fact]
         public void Enum1()
         {
@@ -44,11 +44,11 @@ namespace FreeSql.Tests.DamengMapType
             var orm = g.dameng;
             var item = new ToStringMap { };
             Assert.Equal(1, orm.Insert<ToStringMap>().AppendData(item).ExecuteAffrows());
-            var find = orm.Select<ToStringMap>().Where(a => a.id == item.id && a.enum_to_string == ToStringMapEnum.ÖÐ¹úÈË).First();
+            var find = orm.Select<ToStringMap>().Where(a => a.id == item.id && a.enum_to_string == ToStringMapEnum.ä¸­å›½äºº).First();
             Assert.NotNull(find);
             Assert.Equal(item.id, find.id);
             Assert.Equal(item.enum_to_string, find.enum_to_string);
-            Assert.Equal(ToStringMapEnum.ÖÐ¹úÈË, find.enum_to_string);
+            Assert.Equal(ToStringMapEnum.ä¸­å›½äºº, find.enum_to_string);
 
             item = new ToStringMap { enum_to_string = ToStringMapEnum.abc };
             Assert.Equal(1, orm.Insert<ToStringMap>().AppendData(item).ExecuteAffrows());
@@ -59,28 +59,28 @@ namespace FreeSql.Tests.DamengMapType
             Assert.Equal(ToStringMapEnum.abc, find.enum_to_string);
 
             //update all
-            item.enum_to_string = ToStringMapEnum.Ïã¸Û;
+            item.enum_to_string = ToStringMapEnum.é¦™æ¸¯;
             Assert.Equal(1, orm.Update<ToStringMap>().SetSource(item).ExecuteAffrows());
-            find = orm.Select<ToStringMap>().Where(a => a.id == item.id && a.enum_to_string == ToStringMapEnum.Ïã¸Û).First();
+            find = orm.Select<ToStringMap>().Where(a => a.id == item.id && a.enum_to_string == ToStringMapEnum.é¦™æ¸¯).First();
             Assert.NotNull(find);
             Assert.Equal(item.id, find.id);
             Assert.Equal(item.enum_to_string, find.enum_to_string);
-            Assert.Equal(ToStringMapEnum.Ïã¸Û, find.enum_to_string);
+            Assert.Equal(ToStringMapEnum.é¦™æ¸¯, find.enum_to_string);
 
-            item.enum_to_string = ToStringMapEnum.ÖÐ¹úÈË;
+            item.enum_to_string = ToStringMapEnum.ä¸­å›½äºº;
             Assert.Equal(1, orm.Update<ToStringMap>().SetSource(item).ExecuteAffrows());
-            find = orm.Select<ToStringMap>().Where(a => a.id == item.id && a.enum_to_string == ToStringMapEnum.ÖÐ¹úÈË).First();
+            find = orm.Select<ToStringMap>().Where(a => a.id == item.id && a.enum_to_string == ToStringMapEnum.ä¸­å›½äºº).First();
             Assert.NotNull(find);
             Assert.Equal(item.id, find.id);
             Assert.Equal(item.enum_to_string, find.enum_to_string);
-            Assert.Equal(ToStringMapEnum.ÖÐ¹úÈË, find.enum_to_string);
+            Assert.Equal(ToStringMapEnum.ä¸­å›½äºº, find.enum_to_string);
 
             //update set
-            Assert.Equal(1, orm.Update<ToStringMap>().Where(a => a.id == item.id).Set(a => a.enum_to_string, ToStringMapEnum.Ïã¸Û).ExecuteAffrows());
-            find = orm.Select<ToStringMap>().Where(a => a.id == item.id && a.enum_to_string == ToStringMapEnum.Ïã¸Û).First();
+            Assert.Equal(1, orm.Update<ToStringMap>().Where(a => a.id == item.id).Set(a => a.enum_to_string, ToStringMapEnum.é¦™æ¸¯).ExecuteAffrows());
+            find = orm.Select<ToStringMap>().Where(a => a.id == item.id && a.enum_to_string == ToStringMapEnum.é¦™æ¸¯).First();
             Assert.NotNull(find);
             Assert.Equal(item.id, find.id);
-            Assert.Equal(ToStringMapEnum.Ïã¸Û, find.enum_to_string);
+            Assert.Equal(ToStringMapEnum.é¦™æ¸¯, find.enum_to_string);
 
             Assert.Equal(1, orm.Update<ToStringMap>().Where(a => a.id == item.id).Set(a => a.enum_to_string, ToStringMapEnum.abc).ExecuteAffrows());
             find = orm.Select<ToStringMap>().Where(a => a.id == item.id && a.enum_to_string == ToStringMapEnum.abc).First();
@@ -89,8 +89,8 @@ namespace FreeSql.Tests.DamengMapType
             Assert.Equal(ToStringMapEnum.abc, find.enum_to_string);
 
             //delete
-            Assert.Equal(0, orm.Delete<ToStringMap>().Where(a => a.id == item.id && a.enum_to_string == ToStringMapEnum.ÖÐ¹úÈË).ExecuteAffrows());
-            Assert.Equal(0, orm.Delete<ToStringMap>().Where(a => a.id == item.id && a.enum_to_string == ToStringMapEnum.Ïã¸Û).ExecuteAffrows());
+            Assert.Equal(0, orm.Delete<ToStringMap>().Where(a => a.id == item.id && a.enum_to_string == ToStringMapEnum.ä¸­å›½äºº).ExecuteAffrows());
+            Assert.Equal(0, orm.Delete<ToStringMap>().Where(a => a.id == item.id && a.enum_to_string == ToStringMapEnum.é¦™æ¸¯).ExecuteAffrows());
             Assert.Equal(1, orm.Delete<ToStringMap>().Where(a => a.id == item.id && a.enum_to_string == ToStringMapEnum.abc).ExecuteAffrows());
             Assert.Null(orm.Select<ToStringMap>().Where(a => a.id == item.id).First());
         }
@@ -99,22 +99,22 @@ namespace FreeSql.Tests.DamengMapType
         {
             //insert
             var orm = g.dameng;
-            var item = new ToStringMap { enumnullable_to_string = ToStringMapEnum.ÖÐ¹úÈË };
+            var item = new ToStringMap { enumnullable_to_string = ToStringMapEnum.ä¸­å›½äºº };
             Assert.Equal(1, orm.Insert<ToStringMap>().AppendData(item).ExecuteAffrows());
-            var find = orm.Select<ToStringMap>().Where(a => a.id == item.id && a.enumnullable_to_string == ToStringMapEnum.ÖÐ¹úÈË).First();
+            var find = orm.Select<ToStringMap>().Where(a => a.id == item.id && a.enumnullable_to_string == ToStringMapEnum.ä¸­å›½äºº).First();
             Assert.NotNull(find);
             Assert.Equal(item.id, find.id);
             Assert.Equal(item.enumnullable_to_string, find.enumnullable_to_string);
-            Assert.Equal(ToStringMapEnum.ÖÐ¹úÈË, find.enumnullable_to_string);
+            Assert.Equal(ToStringMapEnum.ä¸­å›½äºº, find.enumnullable_to_string);
 
             //update all
-            item.enumnullable_to_string = ToStringMapEnum.Ïã¸Û;
+            item.enumnullable_to_string = ToStringMapEnum.é¦™æ¸¯;
             Assert.Equal(1, orm.Update<ToStringMap>().SetSource(item).ExecuteAffrows());
-            find = orm.Select<ToStringMap>().Where(a => a.id == item.id && a.enumnullable_to_string == ToStringMapEnum.Ïã¸Û).First();
+            find = orm.Select<ToStringMap>().Where(a => a.id == item.id && a.enumnullable_to_string == ToStringMapEnum.é¦™æ¸¯).First();
             Assert.NotNull(find);
             Assert.Equal(item.id, find.id);
             Assert.Equal(item.enumnullable_to_string, find.enumnullable_to_string);
-            Assert.Equal(ToStringMapEnum.Ïã¸Û, find.enumnullable_to_string);
+            Assert.Equal(ToStringMapEnum.é¦™æ¸¯, find.enumnullable_to_string);
 
             //update set
             Assert.Equal(1, orm.Update<ToStringMap>().Where(a => a.id == item.id).Set(a => a.enumnullable_to_string, ToStringMapEnum.abc).ExecuteAffrows());
@@ -124,8 +124,8 @@ namespace FreeSql.Tests.DamengMapType
             Assert.Equal(ToStringMapEnum.abc, find.enumnullable_to_string);
 
             //delete
-            Assert.Equal(0, orm.Delete<ToStringMap>().Where(a => a.id == item.id && a.enumnullable_to_string == ToStringMapEnum.ÖÐ¹úÈË).ExecuteAffrows());
-            Assert.Equal(0, orm.Delete<ToStringMap>().Where(a => a.id == item.id && a.enumnullable_to_string == ToStringMapEnum.Ïã¸Û).ExecuteAffrows());
+            Assert.Equal(0, orm.Delete<ToStringMap>().Where(a => a.id == item.id && a.enumnullable_to_string == ToStringMapEnum.ä¸­å›½äºº).ExecuteAffrows());
+            Assert.Equal(0, orm.Delete<ToStringMap>().Where(a => a.id == item.id && a.enumnullable_to_string == ToStringMapEnum.é¦™æ¸¯).ExecuteAffrows());
             Assert.NotNull(orm.Select<ToStringMap>().Where(a => a.id == item.id).First());
         }
         [Fact]

@@ -81,7 +81,7 @@ namespace FreeSql.Tests.SqlServerExpression
                 Assert.Equal(dt.ToString("yyyy"), select.First(a => dt.ToString("yyyy")));
                 Assert.Equal(dt.ToString("HH:mm:ss"), select.First(a => dt.ToString("HH:mm:ss")));
                 Assert.Equal(dt.ToString("yyyy MM dd HH mm ss yy M d H hh h"), select.First(a => dt.ToString("yyyy MM dd HH mm ss yy M d H hh h")));
-                Assert.Equal(dt.ToString("yyyy MM dd HH mm ss yy M d H hh h m s tt t").Replace("ÉÏÎç", "AM").Replace("ÏÂÎç", "PM").Replace("ÉÏ", "A").Replace("ÏÂ", "P"), select.First(a => dt.ToString("yyyy MM dd HH mm ss yy M d H hh h m s tt t")));
+                Assert.Equal(dt.ToString("yyyy MM dd HH mm ss yy M d H hh h m s tt t").Replace("ä¸Šåˆ", "AM").Replace("ä¸‹åˆ", "PM").Replace("ä¸Š", "A").Replace("ä¸‹", "P"), select.First(a => dt.ToString("yyyy MM dd HH mm ss yy M d H hh h m s tt t")));
             }
         }
         [Fact]
@@ -293,7 +293,7 @@ namespace FreeSql.Tests.SqlServerExpression
             data.Add(select.Where(a => a.Type.Parent.Time2.Subtract(TimeSpan.FromDays(1)) > a.CreateTime).ToList());
         }
         [Fact]
-        public void Á½¸öÈÕÆÚÏà¼õ_Ğ§¹ûÍ¬Subtract()
+        public void ä¸¤ä¸ªæ—¥æœŸç›¸å‡_æ•ˆæœåŒSubtract()
         {
             var data = new List<object>();
             data.Add(select.Where(a => (a.CreateTime - DateTime.Now).TotalSeconds > 0).ToList());

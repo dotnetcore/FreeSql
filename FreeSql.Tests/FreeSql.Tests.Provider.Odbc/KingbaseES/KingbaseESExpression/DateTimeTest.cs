@@ -576,7 +576,7 @@ namespace FreeSql.Tests.Odbc.KingbaseESExpression
             //WHERE ((a__Type__Parent."TIME2"-numtodsinterval((1)*86400,'second')) > a."CREATETIME")
         }
         [Fact]
-        public void 两个日期相减_效果同Subtract()
+        public void 涓や釜鏃ユ湡鐩稿噺_鏁堟灉鍚孲ubtract()
         {
             var data = new List<object>();
             //data.Add(select.Where(a => (a.CreateTime - DateTime.Now).TotalSeconds > 0).ToList());

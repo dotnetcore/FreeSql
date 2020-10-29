@@ -55,7 +55,7 @@ namespace FreeSql.Tests.KingbaseESExpression
         {
             var fsql = g.kingbaseES;
             fsql.Delete<StringJoin01>().Where("1=1").ExecuteAffrows();
-            fsql.Insert(new[] { new StringJoin01 { name = "±±¾©" }, new StringJoin01 { name = "ÉÏº£" }, new StringJoin01 { name = "ÉîÛÚ" }, }).ExecuteAffrows();
+            fsql.Insert(new[] { new StringJoin01 { name = "ï¿½ï¿½ï¿½ï¿½" }, new StringJoin01 { name = "ï¿½Ïºï¿½" }, new StringJoin01 { name = "ï¿½ï¿½ï¿½ï¿½" }, }).ExecuteAffrows();
 
             var val1 = string.Join(",", fsql.Select<StringJoin01>().ToList(a => a.name));
             var val2 = fsql.Select<StringJoin01>().ToList(a => string.Join(",", fsql.Select<StringJoin01>().As("b").ToList(b => b.name)));
@@ -96,7 +96,7 @@ namespace FreeSql.Tests.KingbaseESExpression
         [Fact]
         public void Format()
         {
-            var item = g.kingbaseES.GetRepository<Topic>().Insert(new Topic { Clicks = 101, Title = "ÎÒÊÇÖÐ¹úÈË101", CreateTime = DateTime.Parse("2020-7-5") });
+            var item = g.kingbaseES.GetRepository<Topic>().Insert(new Topic { Clicks = 101, Title = "ï¿½ï¿½ï¿½ï¿½ï¿½Ð¹ï¿½ï¿½ï¿½101", CreateTime = DateTime.Parse("2020-7-5") });
             var sql = select.WhereDynamic(item).ToSql(a => new
             {
                 str = $"x{a.Id + 1}z-{a.CreateTime.ToString("yyyyMM")}{a.Title}",
@@ -119,9 +119,9 @@ WHERE (a.""ID"" = {item.Id})", sql);
         [Fact]
         public void Format4()
         {
-            //3¸ö {} Ê±£¬Arguments ½âÎö³öÀ´ÊÇ·Ö¿ªµÄ
-            //4¸ö {} Ê±£¬Arguments[1] Ö»ÄÜ½âÎöÕâ¸ö³öÀ´£¬È»ºóÀïÃæÊÇ NewArray []
-            var item = g.kingbaseES.GetRepository<Topic>().Insert(new Topic { Clicks = 101, Title = "ÎÒÊÇÖÐ¹úÈË101", CreateTime = DateTime.Parse("2020-7-5") });
+            //3ï¿½ï¿½ {} Ê±ï¿½ï¿½Arguments ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç·Ö¿ï¿½ï¿½ï¿½
+            //4ï¿½ï¿½ {} Ê±ï¿½ï¿½Arguments[1] Ö»ï¿½Ü½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ NewArray []
+            var item = g.kingbaseES.GetRepository<Topic>().Insert(new Topic { Clicks = 101, Title = "ï¿½ï¿½ï¿½ï¿½ï¿½Ð¹ï¿½ï¿½ï¿½101", CreateTime = DateTime.Parse("2020-7-5") });
             var sql = select.WhereDynamic(item).ToSql(a => new
             {
                 str = $"x{a.Id + 1}z-{a.CreateTime.ToString("yyyyMM")}{a.Title}{a.Title}",

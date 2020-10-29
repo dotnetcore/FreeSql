@@ -55,7 +55,7 @@ namespace FreeSql.Tests.SqliteExpression
         {
             var fsql = g.sqlite;
             fsql.Delete<StringJoin01>().Where("1=1").ExecuteAffrows();
-            fsql.Insert(new[] { new StringJoin01 { name = "±±¾©" }, new StringJoin01 { name = "ÉÏº£" }, new StringJoin01 { name = "ÉîÛÚ" }, }).ExecuteAffrows();
+            fsql.Insert(new[] { new StringJoin01 { name = "åŒ—äº¬" }, new StringJoin01 { name = "ä¸Šæµ·" }, new StringJoin01 { name = "æ·±åœ³" }, }).ExecuteAffrows();
 
             var val1 = string.Join(",", fsql.Select<StringJoin01>().ToList(a => a.name));
             var val2 = fsql.Select<StringJoin01>().ToList(a => string.Join(",", fsql.Select<StringJoin01>().As("b").ToList(b => b.name)));
@@ -96,7 +96,7 @@ namespace FreeSql.Tests.SqliteExpression
         [Fact]
         public void Format()
         {
-            var item = g.sqlite.GetRepository<Topic>().Insert(new Topic { Clicks = 101, Title = "ÎÒÊÇÖĞ¹úÈË101", CreateTime = DateTime.Parse("2020-7-5") });
+            var item = g.sqlite.GetRepository<Topic>().Insert(new Topic { Clicks = 101, Title = "æˆ‘æ˜¯ä¸­å›½äºº101", CreateTime = DateTime.Parse("2020-7-5") });
             var sql = select.WhereDynamic(item).ToSql(a => new
             {
                 str = $"x{a.Id + 1}z-{a.CreateTime.ToString("yyyyMM")}{a.Title}",
@@ -119,9 +119,9 @@ WHERE (a.""Id"" = {item.Id})", sql);
         [Fact]
         public void Format4()
         {
-            //3¸ö {} Ê±£¬Arguments ½âÎö³öÀ´ÊÇ·Ö¿ªµÄ
-            //4¸ö {} Ê±£¬Arguments[1] Ö»ÄÜ½âÎöÕâ¸ö³öÀ´£¬È»ºóÀïÃæÊÇ NewArray []
-            var item = g.sqlite.GetRepository<Topic>().Insert(new Topic { Clicks = 101, Title = "ÎÒÊÇÖĞ¹úÈË101", CreateTime = DateTime.Parse("2020-7-5") });
+            //3ä¸ª {} æ—¶ï¼ŒArguments è§£æå‡ºæ¥æ˜¯åˆ†å¼€çš„
+            //4ä¸ª {} æ—¶ï¼ŒArguments[1] åªèƒ½è§£æè¿™ä¸ªå‡ºæ¥ï¼Œç„¶åé‡Œé¢æ˜¯ NewArray []
+            var item = g.sqlite.GetRepository<Topic>().Insert(new Topic { Clicks = 101, Title = "æˆ‘æ˜¯ä¸­å›½äºº101", CreateTime = DateTime.Parse("2020-7-5") });
             var sql = select.WhereDynamic(item).ToSql(a => new
             {
                 str = $"x{a.Id + 1}z-{a.CreateTime.ToString("yyyyMM")}{a.Title}{a.Title}",
