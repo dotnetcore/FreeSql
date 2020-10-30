@@ -18,6 +18,10 @@ namespace FreeSql.Odbc.Oracle
             Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, tsc);
             switch (exp.NodeType)
             {
+                case ExpressionType.ArrayLength:
+                    var arrOper = (exp as UnaryExpression)?.Operand;
+                    if (arrOper.Type == typeof(byte[])) return $"dbms_lob.getlength({getExp(arrOper)})";
+                    break;
                 case ExpressionType.Convert:
                     var operandExp = (exp as UnaryExpression)?.Operand;
                     var gentype = exp.Type.NullableTypeOrThis();

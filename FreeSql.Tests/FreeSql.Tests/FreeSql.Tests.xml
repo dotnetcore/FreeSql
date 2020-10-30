@@ -24,6 +24,86 @@
             支付Id
             </summary>
         </member>
+        <member name="P:FreeSql.Tests.Issues._507.BodyAuditEntity.ClassId">
+            <summary>
+            班期标识-BodyScheduleEntity班期主键
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._507.BodyAuditEntity.Name">
+            <summary>
+            姓名
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._507.BodyAuditEntity.Birthday">
+            <summary>
+            出生日期
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._507.BodyAuditEntity.IdCard">
+            <summary>
+            身份证
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._507.BodyAuditEntity.TelPhone">
+            <summary>
+            联系电话
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._507.BodyAuditEntity.SchoolName">
+            <summary>
+            学校名称
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._507.BodyAuditEntity.StuCCNL">
+            <summary>
+            初潮年龄
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._507.BodyAuditEntity.Address">
+            <summary>
+            联系地址
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._507.BodyAuditEntity.CheckUserId">
+            <summary>
+            审核人标识
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._507.BodyAuditEntity.CheckUserName">
+            <summary>
+            审核人
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._507.BodyAuditEntity.CheckTime">
+            <summary>
+            审核时间
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._507.BodyAuditEntity.RefuseReason">
+            <summary>
+            拒绝原因
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._507.BodyAuditEntity.CollectionDate">
+            <summary>
+            采集时间
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._507.BodyAuditEntity.AttachmentId">
+            <summary>
+            附件标识（多附件）
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._507.BodyAuditEntity.Sex">
+            <summary>
+            性别
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._507.BodyAuditEntity.ClassInfo">
+            <summary>
+            班期信息
+            </summary>
+        </member>
         <member name="M:FreeSql.Tests.MySql.MySqlCodeFirstTest.Tb_alltype.Save">
             <summary>
             保存或添加，如果主键有值则尝试 Update，如果影响的行为 0 则尝试 Insert

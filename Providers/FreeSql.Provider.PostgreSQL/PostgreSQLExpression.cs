@@ -20,6 +20,12 @@ namespace FreeSql.PostgreSQL
             Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, tsc);
             switch (exp.NodeType)
             {
+                case ExpressionType.ArrayLength:
+                    var arrOper = (exp as UnaryExpression)?.Operand;
+                    var arrOperExp = getExp(arrOper);
+                    if (arrOperExp.StartsWith("(") || arrOperExp.EndsWith(")")) return $"array_length(array[{arrOperExp.TrimStart('(').TrimEnd(')')}],1)";
+                    if (arrOper.Type == typeof(byte[])) return $"octet_length({getExp(arrOper)})";
+                    return $"case when {arrOperExp} is null then 0 else array_length({arrOperExp},1) end";
                 case ExpressionType.Convert:
                     var operandExp = (exp as UnaryExpression)?.Operand;
                     var gentype = exp.Type.NullableTypeOrThis();
@@ -46,10 +52,6 @@ namespace FreeSql.PostgreSQL
                         }
                     }
                     break;
-                case ExpressionType.ArrayLength:
-                    var arrOperExp = getExp((exp as UnaryExpression).Operand);
-                    if (arrOperExp.StartsWith("(") || arrOperExp.EndsWith(")")) return $"array_length(array[{arrOperExp.TrimStart('(').TrimEnd(')')}],1)";
-                    return $"case when {arrOperExp} is null then 0 else array_length({arrOperExp},1) end";
                 case ExpressionType.Call:
                     var callExp = exp as MethodCallExpression;
 

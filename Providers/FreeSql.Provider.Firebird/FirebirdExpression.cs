@@ -18,6 +18,10 @@ namespace FreeSql.Firebird
             Func<Expression, string> getExp = exparg => ExpressionLambdaToSql(exparg, tsc);
             switch (exp.NodeType)
             {
+                case ExpressionType.ArrayLength:
+                    var arrOper = (exp as UnaryExpression)?.Operand;
+                    if (arrOper.Type == typeof(byte[])) return $"octet_length({getExp(arrOper)})";
+                    break;
                 case ExpressionType.Convert:
                     var operandExp = (exp as UnaryExpression)?.Operand;
                     var gentype = exp.Type.NullableTypeOrThis();
