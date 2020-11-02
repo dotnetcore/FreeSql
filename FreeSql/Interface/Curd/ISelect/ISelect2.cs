@@ -54,6 +54,7 @@ namespace FreeSql
 
         ISelect<T1, T2> Where(Expression<Func<T1, T2, bool>> exp);
         ISelect<T1, T2> WhereIf(bool condition, Expression<Func<T1, T2, bool>> exp);
+        ISelect<T1, T2> Where(Expression<Func<NativeTuple<T1, T2>, bool>> exp);
 
         ISelectGrouping<TKey, NativeTuple<T1, T2>> GroupBy<TKey>(Expression<Func<T1, T2, TKey>> exp);
 

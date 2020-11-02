@@ -379,6 +379,11 @@ WHERE ROWNUM < 11";
             var dkkdksdjgj22 = g.mysql.Select<TaskBuild>().Where(a => a.OptionsEntity04 > DateTime.Now.Subtract(dt1970).TotalSeconds).ToSql();
 
 
+            var xxxhzytuple = g.sqlserver.Select<Templates, TaskBuild>()
+                .Where(a => a.Item1.Code == "xxx" && a.Item2.OptionsEntity03 == true)
+                .ToSql();
+
+
             var xxxkdkd = g.oracle.Select<Templates, TaskBuild>()
                 .InnerJoin((a,b) => true)
                 .Where((a,b) => (DateTime.Now - a.EditTime).TotalMinutes > 100)

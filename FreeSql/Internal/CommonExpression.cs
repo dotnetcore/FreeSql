@@ -1664,6 +1664,39 @@ namespace FreeSql.Internal
             }
         }
 
+        internal class ReplaceHzyTupleToMultiParam : ExpressionVisitor
+        {
+            private List<SelectTableInfo> tables;
+            private ParameterExpression[] parameters;
+            public LambdaExpression Modify(LambdaExpression lambda, List<SelectTableInfo> tables)
+            {
+                this.tables = tables;
+                parameters = tables.Select(a => a.Parameter ?? Expression.Parameter(a.Table.Type, a.Alias)).ToArray();
+                var exp = Visit(lambda.Body);
+                return Expression.Lambda(exp, parameters);
+            }
+
+            protected override Expression VisitMember(MemberExpression node)
+            {
+                int widx;
+                if (node.Expression?.NodeType == ExpressionType.MemberAccess)
+                {
+                    var parent = node.Expression as MemberExpression;
+                    if (parent.Expression?.NodeType == ExpressionType.Parameter &&
+                        parent.Expression.Type.Name.StartsWith("NativeTuple`") == true &&
+                        int.TryParse(parent.Member.Name.Replace("Item", ""), out widx) && widx > 0 && widx <= tables.Count)
+                        return Expression.Property(parameters[widx - 1], node.Member.Name);
+                }
+
+                if (node.Expression?.NodeType == ExpressionType.Parameter &&
+                    node.Expression.Type.Name.StartsWith("NativeTuple`") == true &&
+                    int.TryParse(node.Member.Name.Replace("Item", ""), out widx) && widx > 0 && widx <= tables.Count)
+                    return parameters[widx - 1];
+
+                return base.VisitMember(node);
+            }
+        }
+
         public string formatSql(object obj, Type mapType, ColumnInfo mapColumn, List<DbParameter> dbParams)
         {
             //参数化设置，日后优化

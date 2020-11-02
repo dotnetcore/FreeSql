@@ -60,7 +60,7 @@ namespace FreeSql.Internal.CommonProvider
 #endif
             _includeInfo.Clear();
             _selectExpression = null;
-            _whereGlobalFilter.Clear();
+            _whereGlobalFilter?.Clear();
         }
 
         public static void CopyData(Select0Provider from, Select0Provider to, ReadOnlyCollection<ParameterExpression> lambParms)

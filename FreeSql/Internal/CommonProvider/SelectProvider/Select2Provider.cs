@@ -178,6 +178,14 @@ namespace FreeSql.Internal.CommonProvider
             return this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp?.Body, null, _whereGlobalFilter, _params));
         }
 
+        ISelect<T1, T2> ISelect<T1, T2>.Where(Expression<Func<NativeTuple<T1, T2>, bool>> exp)
+        {
+            if (exp == null) return this.Where(null);
+            var exp2 = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
+            for (var a = 0; a < exp2.Parameters.Count; a++) _tables[a].Parameter = exp2.Parameters[a];
+            return this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp2, null, _whereGlobalFilter, _params));
+        }
+
         bool ISelect<T1, T2>.Any(Expression<Func<T1, T2, bool>> exp)
         {
             if (exp == null) return this.Any();
