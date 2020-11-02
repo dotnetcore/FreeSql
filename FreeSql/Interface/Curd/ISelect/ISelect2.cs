@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace FreeSql
 {
-    public interface ISelect<T1, T2> : ISelect0<ISelect<T1, T2>, T1> where T1 : class where T2 : class
+    public interface ISelect<T1, T2> : ISelect0<ISelect<T1, T2>, T1> where T2 : class
     {
 
 #if net40

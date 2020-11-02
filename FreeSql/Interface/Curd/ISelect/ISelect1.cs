@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace FreeSql
 {
-    public interface ISelect<T1> : ISelect0<ISelect<T1>, T1> where T1 : class
+    public interface ISelect<T1> : ISelect0<ISelect<T1>, T1>
     {
 
 #if net40

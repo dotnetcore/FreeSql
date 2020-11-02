@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace FreeSql
 {
-    public partial interface ISelect0<TSelect, T1> where T1 : class
+    public partial interface ISelect0<TSelect, T1>
     {
 
 #if net40

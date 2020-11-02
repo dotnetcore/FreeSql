@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 
 namespace FreeSql
 {
-    public interface ISelectFromExpression<T1> where T1 : class
+    public interface ISelectFromExpression<T1>
     {
 
         ISelectFromExpression<T1> LeftJoin(Expression<Func<T1, bool>> exp);

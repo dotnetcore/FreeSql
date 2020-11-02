@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FreeSql
 {
-    public interface IDelete<T1> where T1 : class
+    public interface IDelete<T1>
     {
 
         /// <summary>

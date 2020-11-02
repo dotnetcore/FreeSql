@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace FreeSql
 {
-    public interface IUpdate<T1> where T1 : class
+    public interface IUpdate<T1>
     {
 
         /// <summary>
