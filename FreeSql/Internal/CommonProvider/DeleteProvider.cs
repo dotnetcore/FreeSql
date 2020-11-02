@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 namespace FreeSql.Internal.CommonProvider
 {
 
-    public abstract partial class DeleteProvider<T1> : IDelete<T1> where T1 : class
+    public abstract partial class DeleteProvider<T1> : IDelete<T1>
     {
         public IFreeSql _orm;
         public CommonUtils _commonUtils;

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace FreeSql.Odbc.MySql
 {
 
-    class OdbcMySqlDelete<T1> : Internal.CommonProvider.DeleteProvider<T1> where T1 : class
+    class OdbcMySqlDelete<T1> : Internal.CommonProvider.DeleteProvider<T1>
     {
         public OdbcMySqlDelete(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere)
             : base(orm, commonUtils, commonExpression, dywhere)

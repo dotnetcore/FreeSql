@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace FreeSql.Firebird.Curd
 {
 
-    class FirebirdDelete<T1> : Internal.CommonProvider.DeleteProvider<T1> where T1 : class
+    class FirebirdDelete<T1> : Internal.CommonProvider.DeleteProvider<T1>
     {
         public FirebirdDelete(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere)
             : base(orm, commonUtils, commonExpression, dywhere)

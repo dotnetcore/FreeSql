@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace FreeSql.Odbc.Dameng
 {
 
-    class OdbcDamengUpdate<T1> : Internal.CommonProvider.UpdateProvider<T1> where T1 : class
+    class OdbcDamengUpdate<T1> : Internal.CommonProvider.UpdateProvider<T1>
     {
 
         public OdbcDamengUpdate(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere)

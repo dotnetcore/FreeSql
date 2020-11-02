@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace FreeSql.SqlServer.Curd
 {
 
-    class SqlServerDelete<T1> : Internal.CommonProvider.DeleteProvider<T1> where T1 : class
+    class SqlServerDelete<T1> : Internal.CommonProvider.DeleteProvider<T1>
     {
         public SqlServerDelete(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere)
             : base(orm, commonUtils, commonExpression, dywhere)

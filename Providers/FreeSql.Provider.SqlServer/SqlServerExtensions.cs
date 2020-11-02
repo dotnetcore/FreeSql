@@ -30,7 +30,7 @@ public static partial class FreeSqlSqlServerGlobalExtensions
     /// <param name="lockType"></param>
     /// <param name="rule">多表查询时的锁规则</param>
     /// <returns></returns>
-    public static ISelect<T> WithLock<T>(this ISelect<T> that, SqlServerLock lockType = SqlServerLock.NoLock, Dictionary<Type, bool> rule = null) where T : class 
+    public static ISelect<T> WithLock<T>(this ISelect<T> that, SqlServerLock lockType = SqlServerLock.NoLock, Dictionary<Type, bool> rule = null)
         => rule == null ? 
         that.AsAlias((type, old) => $"{old} With({lockType.ToString()})") :
         that.AsAlias((type, old) => rule.TryGetValue(type, out var trybool) && trybool ? $"{old} With({lockType.ToString()})" : old);

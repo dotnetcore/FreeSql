@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace FreeSql.PostgreSQL.Curd
 {
 
-    class PostgreSQLUpdate<T1> : Internal.CommonProvider.UpdateProvider<T1> where T1 : class
+    class PostgreSQLUpdate<T1> : Internal.CommonProvider.UpdateProvider<T1>
     {
 
         public PostgreSQLUpdate(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere)

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace FreeSql.Odbc.KingbaseES
 {
 
-    class OdbcKingbaseESDelete<T1> : Internal.CommonProvider.DeleteProvider<T1> where T1 : class
+    class OdbcKingbaseESDelete<T1> : Internal.CommonProvider.DeleteProvider<T1>
     {
         public OdbcKingbaseESDelete(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere)
             : base(orm, commonUtils, commonExpression, dywhere)

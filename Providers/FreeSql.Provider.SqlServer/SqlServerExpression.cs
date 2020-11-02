@@ -320,6 +320,7 @@ namespace FreeSql.SqlServer
                         if (exp.Method.Name == "StartsWith") return $"({left}) LIKE {(args0Value.EndsWith("'") ? args0Value.Insert(args0Value.Length - 1, "%") : $"(cast({args0Value} as nvarchar(max))+'%')")}";
                         if (exp.Method.Name == "EndsWith") return $"({left}) LIKE {(args0Value.StartsWith("'") ? args0Value.Insert(1, "%") : $"('%'+cast({args0Value} as nvarchar(max)))")}";
                         if (args0Value.StartsWith("'") && args0Value.EndsWith("'")) return $"({left}) LIKE {args0Value.Insert(1, "%").Insert(args0Value.Length, "%")}";
+                        if (args0Value.StartsWith("N'") && args0Value.EndsWith("'")) return $"({left}) LIKE {args0Value.Insert(2, "%").Insert(args0Value.Length, "%")}";
                         return $"({left}) LIKE ('%'+cast({args0Value} as nvarchar(max))+'%')";
                     case "ToLower": return $"lower({left})";
                     case "ToUpper": return $"upper({left})";

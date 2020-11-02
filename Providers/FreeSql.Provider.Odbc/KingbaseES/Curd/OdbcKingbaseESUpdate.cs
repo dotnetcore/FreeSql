@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace FreeSql.Odbc.KingbaseES
 {
 
-    class OdbcKingbaseESUpdate<T1> : Internal.CommonProvider.UpdateProvider<T1> where T1 : class
+    class OdbcKingbaseESUpdate<T1> : Internal.CommonProvider.UpdateProvider<T1>
     {
 
         public OdbcKingbaseESUpdate(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere)

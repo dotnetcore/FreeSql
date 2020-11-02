@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 namespace FreeSql.ShenTong.Curd
 {
 
-    class ShenTongUpdate<T1> : Internal.CommonProvider.UpdateProvider<T1> where T1 : class
+    class ShenTongUpdate<T1> : Internal.CommonProvider.UpdateProvider<T1>
     {
 
         public ShenTongUpdate(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere)

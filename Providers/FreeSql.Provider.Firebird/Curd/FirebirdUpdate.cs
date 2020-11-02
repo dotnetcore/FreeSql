@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace FreeSql.Firebird.Curd
 {
 
-    class FirebirdUpdate<T1> : Internal.CommonProvider.UpdateProvider<T1> where T1 : class
+    class FirebirdUpdate<T1> : Internal.CommonProvider.UpdateProvider<T1>
     {
 
         public FirebirdUpdate(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere)

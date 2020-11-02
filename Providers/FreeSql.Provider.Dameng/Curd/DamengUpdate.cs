@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace FreeSql.Dameng.Curd
 {
 
-    class DamengUpdate<T1> : Internal.CommonProvider.UpdateProvider<T1> where T1 : class
+    class DamengUpdate<T1> : Internal.CommonProvider.UpdateProvider<T1>
     {
 
         public DamengUpdate(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere)

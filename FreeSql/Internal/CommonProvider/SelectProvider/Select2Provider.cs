@@ -10,7 +10,6 @@ namespace FreeSql.Internal.CommonProvider
 {
 
     public abstract class Select2Provider<T1, T2> : Select0Provider<ISelect<T1, T2>, T1>, ISelect<T1, T2>
-            where T1 : class
             where T2 : class
     {
 

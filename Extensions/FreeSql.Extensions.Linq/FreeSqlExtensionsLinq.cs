@@ -40,7 +40,7 @@ public static class FreeSqlExtensionsLinqSql
     /// <summary>
     /// 【linq to sql】专用扩展方法，不建议直接使用
     /// </summary>
-    public static ISelect<TReturn> Select<T1, TReturn>(this ISelect<T1> that, Expression<Func<T1, TReturn>> select) where T1 : class where TReturn : class
+    public static ISelect<TReturn> Select<T1, TReturn>(this ISelect<T1> that, Expression<Func<T1, TReturn>> select)
     {
         var s1p = that as Select1Provider<T1>;
         if (typeof(TReturn) == typeof(T1)) return that as ISelect<TReturn>;
@@ -48,7 +48,7 @@ public static class FreeSqlExtensionsLinqSql
         s1p._selectExpression = select.Body;
         if (s1p._orm.CodeFirst.IsAutoSyncStructure)
             (s1p._orm.CodeFirst as CodeFirstProvider)._dicSycedTryAdd(typeof(TReturn)); //._dicSyced.TryAdd(typeof(TReturn), true);
-        var ret = s1p._orm.Select<TReturn>() as Select1Provider<TReturn>;
+        var ret = (s1p._orm as BaseDbProvider).CreateSelectProvider<TReturn>(null) as Select1Provider<TReturn>;
         Select0Provider.CopyData(s1p, ret, null);
         return ret;
     }

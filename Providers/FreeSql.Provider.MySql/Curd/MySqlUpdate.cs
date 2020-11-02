@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace FreeSql.MySql.Curd
 {
 
-    class MySqlUpdate<T1> : Internal.CommonProvider.UpdateProvider<T1> where T1 : class
+    class MySqlUpdate<T1> : Internal.CommonProvider.UpdateProvider<T1>
     {
 
         public MySqlUpdate(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere)

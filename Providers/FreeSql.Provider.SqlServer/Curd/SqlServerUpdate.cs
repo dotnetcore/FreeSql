@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace FreeSql.SqlServer.Curd
 {
 
-    class SqlServerUpdate<T1> : Internal.CommonProvider.UpdateProvider<T1> where T1 : class
+    class SqlServerUpdate<T1> : Internal.CommonProvider.UpdateProvider<T1>
     {
 
         public SqlServerUpdate(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere)

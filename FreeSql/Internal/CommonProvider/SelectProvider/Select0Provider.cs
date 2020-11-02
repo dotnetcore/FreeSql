@@ -165,7 +165,7 @@ namespace FreeSql.Internal.CommonProvider
         }
     }
 
-    public abstract partial class Select0Provider<TSelect, T1> : Select0Provider, ISelect0<TSelect, T1> where TSelect : class where T1 : class
+    public abstract partial class Select0Provider<TSelect, T1> : Select0Provider, ISelect0<TSelect, T1> where TSelect : class
     {
         public Select0Provider(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere)
         {
@@ -371,7 +371,7 @@ namespace FreeSql.Internal.CommonProvider
         public IDelete<T1> ToDelete()
         {
             if (_tables[0].Table.Primarys.Any() == false) throw new Exception($"ToDelete 功能要求实体类 {_tables[0].Table.CsName} 必须有主键");
-            var del = _orm.Delete<T1>() as DeleteProvider<T1>;
+            var del = (_orm as BaseDbProvider).CreateDeleteProvider<T1>(null) as DeleteProvider<T1>;
             if (_tables[0].Table.Type != typeof(T1)) del.AsType(_tables[0].Table.Type);
             if (_params.Any()) del._params = new List<DbParameter>(_params.ToArray());
             if (_whereGlobalFilter.Any()) del._whereGlobalFilter = new List<GlobalFilter.Item>(_whereGlobalFilter.ToArray());
@@ -399,7 +399,7 @@ namespace FreeSql.Internal.CommonProvider
         public IUpdate<T1> ToUpdate()
         {
             if (_tables[0].Table.Primarys.Any() == false) throw new Exception($"ToUpdate 功能要求实体类 {_tables[0].Table.CsName} 必须有主键");
-            var upd = _orm.Update<T1>() as UpdateProvider<T1>;
+            var upd = (_orm as BaseDbProvider).CreateUpdateProvider<T1>(null) as UpdateProvider<T1>;
             if (_tables[0].Table.Type != typeof(T1)) upd.AsType(_tables[0].Table.Type);
             if (_params.Any()) upd._params = new List<DbParameter>(_params.ToArray());
             if (_whereGlobalFilter.Any()) upd._whereGlobalFilter = new List<GlobalFilter.Item>(_whereGlobalFilter.ToArray());

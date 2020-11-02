@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace FreeSql.Oracle.Curd
 {
 
-    class OracleDelete<T1> : Internal.CommonProvider.DeleteProvider<T1> where T1 : class
+    class OracleDelete<T1> : Internal.CommonProvider.DeleteProvider<T1>
     {
         public OracleDelete(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere)
             : base(orm, commonUtils, commonExpression, dywhere)

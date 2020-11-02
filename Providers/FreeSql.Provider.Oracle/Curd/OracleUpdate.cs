@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace FreeSql.Oracle.Curd
 {
 
-    class OracleUpdate<T1> : Internal.CommonProvider.UpdateProvider<T1> where T1 : class
+    class OracleUpdate<T1> : Internal.CommonProvider.UpdateProvider<T1>
     {
 
         public OracleUpdate(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere)

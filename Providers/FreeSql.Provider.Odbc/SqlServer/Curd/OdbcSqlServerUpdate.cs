@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace FreeSql.Odbc.SqlServer
 {
 
-    class OdbcSqlServerUpdate<T1> : Internal.CommonProvider.UpdateProvider<T1> where T1 : class
+    class OdbcSqlServerUpdate<T1> : Internal.CommonProvider.UpdateProvider<T1>
     {
 
         public OdbcSqlServerUpdate(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere)

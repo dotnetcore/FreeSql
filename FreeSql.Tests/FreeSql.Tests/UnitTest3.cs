@@ -244,6 +244,10 @@ namespace FreeSql.Tests
             Assert.Throws<ArgumentException>(() => g.sqlite.Update<testUpdateNonePk>().SetSource(new testUpdateNonePk()).ExecuteAffrows());
 
             g.sqlite.Insert(new testInsertNullable()).NoneParameter().ExecuteAffrows();
+
+
+            g.sqlite.Select<testInsertNullable>().Select(a => a.Id).ToList();
+
             var ddlsql = g.sqlite.CodeFirst.GetComparisonDDLStatements(typeof(testInsertNullable), "tb123123");
             Assert.Equal(@"CREATE TABLE IF NOT EXISTS ""main"".""tb123123"" (  
   ""Id"" INTEGER PRIMARY KEY AUTOINCREMENT, 

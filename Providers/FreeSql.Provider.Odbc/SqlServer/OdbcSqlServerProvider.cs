@@ -1,34 +1,19 @@
-﻿using FreeSql.Internal;
-using FreeSql.Internal.CommonProvider;
+﻿using FreeSql.Internal.CommonProvider;
 using System;
-using System.Collections.Generic;
-using System.Data;
 using System.Data.Common;
 using System.Threading;
 
 namespace FreeSql.Odbc.SqlServer
 {
 
-    public class OdbcSqlServerProvider<TMark> : IFreeSql<TMark>
+    public class OdbcSqlServerProvider<TMark> : BaseDbProvider, IFreeSql<TMark>
     {
+        public override ISelect<T1> CreateSelectProvider<T1>(object dywhere) => new OdbcSqlServerSelect<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, dywhere);
+        public override IInsert<T1> CreateInsertProvider<T1>() => new OdbcSqlServerInsert<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression);
+        public override IUpdate<T1> CreateUpdateProvider<T1>(object dywhere) => new OdbcSqlServerUpdate<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, dywhere);
+        public override IDelete<T1> CreateDeleteProvider<T1>(object dywhere) => new OdbcSqlServerDelete<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, dywhere);
+        public override IInsertOrUpdate<T1> CreateInsertOrUpdateProvider<T1>() => new OdbcSqlServerInsertOrUpdate<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression);
 
-        public ISelect<T1> Select<T1>() where T1 : class => new OdbcSqlServerSelect<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, null);
-        public ISelect<T1> Select<T1>(object dywhere) where T1 : class => new OdbcSqlServerSelect<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, dywhere);
-        public IInsert<T1> Insert<T1>() where T1 : class => new OdbcSqlServerInsert<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression);
-        public IInsert<T1> Insert<T1>(T1 source) where T1 : class => this.Insert<T1>().AppendData(source);
-        public IInsert<T1> Insert<T1>(T1[] source) where T1 : class => this.Insert<T1>().AppendData(source);
-        public IInsert<T1> Insert<T1>(List<T1> source) where T1 : class => this.Insert<T1>().AppendData(source);
-        public IInsert<T1> Insert<T1>(IEnumerable<T1> source) where T1 : class => this.Insert<T1>().AppendData(source);
-        public IUpdate<T1> Update<T1>() where T1 : class => new OdbcSqlServerUpdate<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, null);
-        public IUpdate<T1> Update<T1>(object dywhere) where T1 : class => new OdbcSqlServerUpdate<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, dywhere);
-        public IDelete<T1> Delete<T1>() where T1 : class => new OdbcSqlServerDelete<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, null);
-        public IDelete<T1> Delete<T1>(object dywhere) where T1 : class => new OdbcSqlServerDelete<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, dywhere);
-        public IInsertOrUpdate<T1> InsertOrUpdate<T1>() where T1 : class => new OdbcSqlServerInsertOrUpdate<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression);
-
-        public IAdo Ado { get; }
-        public IAop Aop { get; }
-        public ICodeFirst CodeFirst { get; }
-        public IDbFirst DbFirst { get; }
         public OdbcSqlServerProvider(string masterConnectionString, string[] slaveConnectionString, Func<DbConnection> connectionFactory = null)
         {
             this.InternalCommonUtils = new OdbcSqlServerUtils(this);
@@ -53,17 +38,9 @@ namespace FreeSql.Odbc.SqlServer
                 }
         }
 
-        internal CommonUtils InternalCommonUtils { get; }
-        internal CommonExpression InternalCommonExpression { get; }
-
-        public void Transaction(Action handler) => Ado.Transaction(handler);
-        public void Transaction(IsolationLevel isolationLevel, Action handler) => Ado.Transaction(isolationLevel, handler);
-
-        public GlobalFilter GlobalFilter { get; } = new GlobalFilter();
-
         ~OdbcSqlServerProvider() => this.Dispose();
         int _disposeCounter;
-        public void Dispose()
+        public override void Dispose()
         {
             if (Interlocked.Increment(ref _disposeCounter) != 1) return;
             (this.Ado as AdoProvider)?.Dispose();

@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 namespace FreeSql.Internal.CommonProvider
 {
 
-    public abstract partial class UpdateProvider<T1> : IUpdate<T1> where T1 : class
+    public abstract partial class UpdateProvider<T1> : IUpdate<T1>
     {
         public IFreeSql _orm;
         public CommonUtils _commonUtils;
