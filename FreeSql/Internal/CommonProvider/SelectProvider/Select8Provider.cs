@@ -9,14 +9,9 @@ using System.Threading.Tasks;
 namespace FreeSql.Internal.CommonProvider
 {
 
+
     public abstract class Select8Provider<T1, T2, T3, T4, T5, T6, T7, T8> : Select0Provider<ISelect<T1, T2, T3, T4, T5, T6, T7, T8>, T1>, ISelect<T1, T2, T3, T4, T5, T6, T7, T8>
-            where T2 : class
-            where T3 : class
-            where T4 : class
-            where T5 : class
-            where T6 : class
-            where T7 : class
-            where T8 : class
+            where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class
     {
 
         public Select8Provider(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere) : base(orm, commonUtils, commonExpression, dywhere)
@@ -29,23 +24,24 @@ namespace FreeSql.Internal.CommonProvider
             _tables.Add(new SelectTableInfo { Table = _commonUtils.GetTableByEntity(typeof(T6)), Alias = $"SP10f", On = null, Type = SelectTableInfoType.From });
             _tables.Add(new SelectTableInfo { Table = _commonUtils.GetTableByEntity(typeof(T7)), Alias = $"SP10g", On = null, Type = SelectTableInfoType.From });
             _tables.Add(new SelectTableInfo { Table = _commonUtils.GetTableByEntity(typeof(T8)), Alias = $"SP10h", On = null, Type = SelectTableInfoType.From });
+
         }
 
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8> ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, string sqlT6, string sqlT7, string sqlT8, object parms)
         {
             this.AsTable((type, old) =>
             {
-                if (type == _tables[0].Table?.Type && string.IsNullOrEmpty(sqlT1) == false) return $"( {sqlT1} )";
-                if (type == _tables[1].Table?.Type && string.IsNullOrEmpty(sqlT2) == false) return $"( {sqlT2} )";
-                if (type == _tables[2].Table?.Type && string.IsNullOrEmpty(sqlT3) == false) return $"( {sqlT3} )";
-                if (type == _tables[3].Table?.Type && string.IsNullOrEmpty(sqlT4) == false) return $"( {sqlT4} )";
-                if (type == _tables[4].Table?.Type && string.IsNullOrEmpty(sqlT5) == false) return $"( {sqlT5} )";
-                if (type == _tables[5].Table?.Type && string.IsNullOrEmpty(sqlT6) == false) return $"( {sqlT6} )";
-                if (type == _tables[6].Table?.Type && string.IsNullOrEmpty(sqlT7) == false) return $"( {sqlT7} )";
-                if (type == _tables[7].Table?.Type && string.IsNullOrEmpty(sqlT8) == false) return $"( {sqlT8} )";
+                if (type == _tables[1].Table?.Type && string.IsNullOrEmpty(sqlT2) == false) return $"({sqlT2})";
+                if (type == _tables[2].Table?.Type && string.IsNullOrEmpty(sqlT3) == false) return $"({sqlT3})";
+                if (type == _tables[3].Table?.Type && string.IsNullOrEmpty(sqlT4) == false) return $"({sqlT4})";
+                if (type == _tables[4].Table?.Type && string.IsNullOrEmpty(sqlT5) == false) return $"({sqlT5})";
+                if (type == _tables[5].Table?.Type && string.IsNullOrEmpty(sqlT6) == false) return $"({sqlT6})";
+                if (type == _tables[6].Table?.Type && string.IsNullOrEmpty(sqlT7) == false) return $"({sqlT7})";
+                if (type == _tables[7].Table?.Type && string.IsNullOrEmpty(sqlT8) == false) return $"({sqlT8})";
+
                 return old;
             });
-            if (parms != null) _params.AddRange(_commonUtils.GetDbParamtersByObject($"{sqlT1};\r\n{sqlT2};\r\n{sqlT3};\r\n{sqlT4};\r\n{sqlT5};\r\n{sqlT6};\r\n{sqlT7};\r\n{sqlT8}", parms));
+            if (parms != null) _params.AddRange(_commonUtils.GetDbParamtersByObject($"{sqlT2};\r\n{sqlT3};\r\n{sqlT4};\r\n{sqlT5};\r\n{sqlT6};\r\n{sqlT7};\r\n{sqlT8};", parms));
             return this;
         }
 
@@ -123,20 +119,15 @@ namespace FreeSql.Internal.CommonProvider
             for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
             return this.InternalToList<TReturn>(select?.Body);
         }
+
         List<TDto> ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.ToList<TDto>() => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8>).ToList(GetToListDtoSelector<TDto>());
         Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, TDto>> GetToListDtoSelector<TDto>()
         {
             return Expression.Lambda<Func<T1, T2, T3, T4, T5, T6, T7, T8, TDto>>(
                 typeof(TDto).InternalNewExpression(),
-                _tables[0].Parameter ?? Expression.Parameter(typeof(T1), "a"),
-                Expression.Parameter(typeof(T2), "b"),
-                Expression.Parameter(typeof(T3), "c"),
-                Expression.Parameter(typeof(T4), "d"),
-                Expression.Parameter(typeof(T5), "e"),
-                Expression.Parameter(typeof(T6), "f"),
-                Expression.Parameter(typeof(T7), "g"),
-                Expression.Parameter(typeof(T8), "h"));
+                _tables[0].Parameter ?? Expression.Parameter(typeof(T1), "a"), Expression.Parameter(typeof(T2), "b"), Expression.Parameter(typeof(T3), "c"), Expression.Parameter(typeof(T4), "d"), Expression.Parameter(typeof(T5), "e"), Expression.Parameter(typeof(T6), "f"), Expression.Parameter(typeof(T7), "g"), Expression.Parameter(typeof(T8), "h"));
         }
+
         public void ToChunk<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, TReturn>> select, int size, Action<FetchCallbackArgs<List<TReturn>>> done)
         {
             if (select == null || done == null) return;
@@ -214,6 +205,135 @@ namespace FreeSql.Internal.CommonProvider
         TReturn ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.First<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, TReturn>> select) => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8>).Limit(1).ToList(select).FirstOrDefault();
         TDto ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.First<TDto>() => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8>).Limit(1).ToList<TDto>().FirstOrDefault();
 
+
+
+
+
+        #region HzyTuple 元组
+
+        double ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.Avg<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8>, TMember>> column)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(column, _tables);
+            return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8>).Avg((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, TMember>>)expModify);
+        }
+
+        ISelectGrouping<TKey, NativeTuple<T1, T2, T3, T4, T5, T6, T7, T8>> ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.GroupBy<TKey>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8>, TKey>> exp)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
+            return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8>).GroupBy((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, TKey>>)expModify);
+        }
+
+        TMember ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.Max<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8>, TMember>> column)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(column, _tables);
+            return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8>).Max((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, TMember>>)expModify);
+        }
+
+        TMember ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.Min<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8>, TMember>> column)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(column, _tables);
+            return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8>).Min<TMember>((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, TMember>>)expModify);
+        }
+
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8> ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.OrderBy<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8>, TMember>> column)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(column, _tables);
+            return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8>).OrderBy<TMember>((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, TMember>>)expModify);
+        }
+
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8> ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.OrderByDescending<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8>, TMember>> column)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(column, _tables);
+            return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8>).OrderByDescending<TMember>((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, TMember>>)expModify);
+        }
+
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8> ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.OrderByIf<TMember>(bool condition, Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8>, TMember>> column, bool descending)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(column, _tables);
+            return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8>).OrderByIf<TMember>(condition, (Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, TMember>>)expModify, descending);
+        }
+
+        decimal ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.Sum<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8>, TMember>> column)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(column, _tables);
+            return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8>).Sum<TMember>((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, TMember>>)expModify);
+        }
+
+        List<TReturn> ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.ToList<TReturn>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8>, TReturn>> select)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
+            return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8>).ToList<TReturn>((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, TReturn>>)expModify);
+        }
+
+        public void ToChunk<TReturn>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8>, TReturn>> select, int size, Action<FetchCallbackArgs<List<TReturn>>> done)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
+            (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8>).ToChunk<TReturn>((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, TReturn>>)expModify, size, done);
+        }
+
+        DataTable ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.ToDataTable<TReturn>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8>, TReturn>> select)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
+            return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8>).ToDataTable<TReturn>((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, TReturn>>)expModify);
+        }
+
+        int ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.InsertInto<TTargetEntity>(string tableName, Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8>, TTargetEntity>> select)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
+            return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8>).InsertInto<TTargetEntity>(tableName, (Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, TTargetEntity>>)expModify);
+        }
+
+        string ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.ToSql<TReturn>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8>, TReturn>> select, FieldAliasOptions fieldAlias)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
+            return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8>).ToSql<TReturn>((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, TReturn>>)expModify, fieldAlias);
+        }
+
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8> ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.LeftJoin(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8>, bool>> exp)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
+            return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8>).LeftJoin((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, bool>>)expModify);
+        }
+
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8> ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.InnerJoin(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8>, bool>> exp)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
+            return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8>).InnerJoin((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, bool>>)expModify);
+        }
+
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8> ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.RightJoin(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8>, bool>> exp)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
+            return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8>).RightJoin((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, bool>>)expModify);
+        }
+
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8> ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.Where(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8>, bool>> exp)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
+            return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8>).Where((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, bool>>)expModify);
+        }
+
+        ISelect<T1, T2, T3, T4, T5, T6, T7, T8> ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.WhereIf(bool condition, Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8>, bool>> exp)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
+            return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8>).WhereIf(condition, (Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, bool>>)expModify);
+        }
+
+        bool ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.Any(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8>, bool>> exp)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
+            return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8>).Any((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, bool>>)expModify);
+        }
+
+        TReturn ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.ToOne<TReturn>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8>, TReturn>> select)
+            => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8>).Limit(1).ToList(select).FirstOrDefault();
+        TReturn ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.First<TReturn>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8>, TReturn>> select)
+            => (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8>).Limit(1).ToList(select).FirstOrDefault();
+
+        #endregion
+
+
+
 #if net40
 #else
         Task<double> ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.AvgAsync<TMember>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, TMember>> column)
@@ -287,6 +407,69 @@ namespace FreeSql.Internal.CommonProvider
         async Task<TReturn> ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.FirstAsync<TReturn>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, TReturn>> select) => (await (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8>).Limit(1).ToListAsync(select)).FirstOrDefault();
         async Task<TDto> ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.FirstAsync<TDto>() => (await (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8>).Limit(1).ToListAsync<TDto>()).FirstOrDefault();
 
+
+
+
+        #region HzyTuple 元组
+
+        Task<double> ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.AvgAsync<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8>, TMember>> column)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(column, _tables);
+            return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8>).AvgAsync<TMember>((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, TMember>>)expModify);
+        }
+
+        Task<TMember> ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.MaxAsync<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8>, TMember>> column)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(column, _tables);
+            return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8>).MaxAsync<TMember>((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, TMember>>)expModify);
+        }
+
+        Task<TMember> ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.MinAsync<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8>, TMember>> column)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(column, _tables);
+            return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8>).MinAsync<TMember>((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, TMember>>)expModify);
+        }
+
+        Task<decimal> ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.SumAsync<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8>, TMember>> column)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(column, _tables);
+            return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8>).SumAsync<TMember>((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, TMember>>)expModify);
+        }
+
+        Task<List<TReturn>> ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.ToListAsync<TReturn>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8>, TReturn>> select)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
+            return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8>).ToListAsync<TReturn>((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, TReturn>>)expModify);
+        }
+
+        Task<DataTable> ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.ToDataTableAsync<TReturn>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8>, TReturn>> select)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
+            return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8>).ToDataTableAsync<TReturn>((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, TReturn>>)expModify);
+        }
+
+        Task<int> ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.InsertIntoAsync<TTargetEntity>(string tableName, Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8>, TTargetEntity>> select)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
+            return (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8>).InsertIntoAsync<TTargetEntity>(tableName, (Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, TTargetEntity>>)expModify);
+        }
+
+        async Task<bool> ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.AnyAsync(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8>, bool>> exp)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
+            return await (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8>).AnyAsync((Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, bool>>)expModify);
+        }
+
+        async Task<TReturn> ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.ToOneAsync<TReturn>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8>, TReturn>> select)
+            => (await (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8>).Limit(1).ToListAsync(select)).FirstOrDefault();
+        async Task<TReturn> ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.FirstAsync<TReturn>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8>, TReturn>> select)
+            => (await (this as ISelect<T1, T2, T3, T4, T5, T6, T7, T8>).Limit(1).ToListAsync(select)).FirstOrDefault();
+
+
+        #endregion
+
 #endif
     }
+
+
 }

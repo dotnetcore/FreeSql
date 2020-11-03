@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace FreeSql
 {
+
     public interface ISelect<T1, T2, T3, T4, T5, T6, T7> : ISelect0<ISelect<T1, T2, T3, T4, T5, T6, T7>, T1> where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class
     {
 
@@ -27,6 +28,24 @@ namespace FreeSql
         Task<TMember> MinAsync<TMember>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, TMember>> column);
         Task<TMember> MaxAsync<TMember>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, TMember>> column);
         Task<double> AvgAsync<TMember>(Expression<Func<T1, T2, T3, T4, T5, T6, T7, TMember>> column);
+
+        #region HzyTuple 元组
+
+        Task<bool> AnyAsync(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7>, bool>> exp);
+        Task<int> InsertIntoAsync<TTargetEntity>(string tableName, Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7>, TTargetEntity>> select) where TTargetEntity : class;
+        Task<DataTable> ToDataTableAsync<TReturn>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7>, TReturn>> select);
+        Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7>, TReturn>> select);
+
+        Task<TReturn> ToOneAsync<TReturn>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7>, TReturn>> select);
+        Task<TReturn> FirstAsync<TReturn>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7>, TReturn>> select);
+
+        Task<decimal> SumAsync<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7>, TMember>> column);
+        Task<TMember> MinAsync<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7>, TMember>> column);
+        Task<TMember> MaxAsync<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7>, TMember>> column);
+        Task<double> AvgAsync<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7>, TMember>> column);
+
+        #endregion
+
 #endif
 
         bool Any(Expression<Func<T1, T2, T3, T4, T5, T6, T7, bool>> exp);
@@ -62,5 +81,40 @@ namespace FreeSql
         ISelect<T1, T2, T3, T4, T5, T6, T7> OrderByIf<TMember>(bool condition, Expression<Func<T1, T2, T3, T4, T5, T6, T7, TMember>> column, bool descending = false);
 
         ISelect<T1, T2, T3, T4, T5, T6, T7> WithSql(string sqlT1, string sqlT2, string sqlT3, string sqlT4, string sqlT5, string sqlT6, string sqlT7, object parms = null);
+
+        #region HzyTuple 元组
+
+        bool Any(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7>, bool>> exp);
+        int InsertInto<TTargetEntity>(string tableName, Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7>, TTargetEntity>> select) where TTargetEntity : class;
+        DataTable ToDataTable<TReturn>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7>, TReturn>> select);
+        List<TReturn> ToList<TReturn>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7>, TReturn>> select);
+        void ToChunk<TReturn>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7>, TReturn>> select, int size, Action<FetchCallbackArgs<List<TReturn>>> done);
+
+        TReturn ToOne<TReturn>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7>, TReturn>> select);
+        TReturn First<TReturn>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7>, TReturn>> select);
+
+        string ToSql<TReturn>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7>, TReturn>> select, FieldAliasOptions fieldAlias = FieldAliasOptions.AsIndex);
+        decimal Sum<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7>, TMember>> column);
+        TMember Min<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7>, TMember>> column);
+        TMember Max<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7>, TMember>> column);
+        double Avg<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7>, TMember>> column);
+
+        ISelect<T1, T2, T3, T4, T5, T6, T7> LeftJoin(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7>, bool>> exp);
+        ISelect<T1, T2, T3, T4, T5, T6, T7> InnerJoin(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7>, bool>> exp);
+        ISelect<T1, T2, T3, T4, T5, T6, T7> RightJoin(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7>, bool>> exp);
+
+        ISelect<T1, T2, T3, T4, T5, T6, T7> Where(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7>, bool>> exp);
+        ISelect<T1, T2, T3, T4, T5, T6, T7> WhereIf(bool condition, Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7>, bool>> exp);
+
+        ISelectGrouping<TKey, NativeTuple<T1, T2, T3, T4, T5, T6, T7>> GroupBy<TKey>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7>, TKey>> exp);
+
+        ISelect<T1, T2, T3, T4, T5, T6, T7> OrderBy<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7>, TMember>> column);
+        ISelect<T1, T2, T3, T4, T5, T6, T7> OrderByDescending<TMember>(Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7>, TMember>> column);
+        ISelect<T1, T2, T3, T4, T5, T6, T7> OrderByIf<TMember>(bool condition, Expression<Func<HzyTuple<T1, T2, T3, T4, T5, T6, T7>, TMember>> column, bool descending = false);
+
+        #endregion
+
     }
+
+
 }

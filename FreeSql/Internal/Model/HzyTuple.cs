@@ -1,91 +1,6 @@
-﻿﻿namespace HzySql.Models
+﻿namespace FreeSql.Internal.Model
 {
-    using HzySql.Interface;
-
-    public class HzyTuple
-    {
-        /// <summary>
-        /// 在 拉姆达表达式 where 表达式中使用 w => w.In(w.t1.Member_ID, guidsArray)
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="obj"></param>
-        /// <param name="array"></param>
-        /// <returns></returns>
-        public bool In<T, T2>(T field, params T2[] array) => true;
-
-        /// <summary>
-        /// 子查询 只能在 Where 中使用
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="field"></param>
-        /// <param name="iCurdBase"></param>
-        /// <returns></returns>
-        public bool In<T, T2>(T field, T2 iCurdBase) where T2 : ISqlContext => true;
-
-        /// <summary>
-        /// 在 拉姆达表达式 where 表达式中使用 w => w.NotIn(w.t1.Member_ID, guidsArray)
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="obj"></param>
-        /// <param name="array"></param>
-        /// <returns></returns>
-        public bool NotIn<T, T2>(T field, params T2[] array) => true;
-
-        /// <summary>
-        /// 子查询 只能在 Where 中使用
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="field"></param>
-        /// <param name="iCurdBase"></param>
-        /// <returns></returns>
-        public bool NotIn<T, T2>(T field, T2 iCurdBase) where T2 : ISqlContext => true;
-
-        /// <summary>
-        /// like %123% 只能在 Where 中使用
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public bool Like<T, T2>(T field, T2 value) => true;
-
-        /// <summary>
-        /// like 123% 只能在 Where 中使用
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public bool LikeStart<T, T2>(T field, T2 value) => true;
-
-        /// <summary>
-        /// like %123 只能在 Where 中使用
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public bool LikeEnd<T, T2>(T field, T2 value) => true;
-
-        /// <summary>
-        /// 一般在Where 条件中使用 例如 : w.HzySql("convert(varchar(50),UserName,23) > convert(varchar(50),GetDate(),23)")
-        /// 一般用来支持这种语法》CONVERT(varchar(100), GETDATE(), 23)    -- 2006-05-16 
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="obj"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public bool HzySql(string value) => true;
-
-        /// <summary>
-        /// 一般在Where 条件中使用 例如 : w.HzySql<DateTime>("convert(varchar(50),UserName,23)") > DateTime.Now.ToString("yyyy-MM-dd")
-        /// 一般用来支持这种语法》CONVERT(varchar(100), GETDATE(), 23)    -- 2006-05-16 
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="obj"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public TR HzySql<TR>(string value) => default(TR);
-    }
-
-    public class HzyTuple<T> : HzyTuple
+    public class HzyTuple<T>
     {
         public HzyTuple(T t)
         {
@@ -96,7 +11,7 @@
     }
 
 
-    public class HzyTuple<T1, T2> : HzyTuple
+    public class HzyTuple<T1, T2>
     {
         public HzyTuple(T1 t1, T2 t2)
         {
@@ -108,7 +23,7 @@
     }
 
 
-    public class HzyTuple<T1, T2, T3> : HzyTuple
+    public class HzyTuple<T1, T2, T3>
     {
         public HzyTuple(T1 t1, T2 t2, T3 t3)
         {
@@ -121,7 +36,7 @@
     }
 
 
-    public class HzyTuple<T1, T2, T3, T4> : HzyTuple
+    public class HzyTuple<T1, T2, T3, T4> 
     {
         public HzyTuple(T1 t1, T2 t2, T3 t3, T4 t4)
         {
@@ -135,7 +50,7 @@
     }
 
 
-    public class HzyTuple<T1, T2, T3, T4, T5> : HzyTuple
+    public class HzyTuple<T1, T2, T3, T4, T5> 
     {
         public HzyTuple(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5)
         {
@@ -150,7 +65,7 @@
     }
 
 
-    public class HzyTuple<T1, T2, T3, T4, T5, T6> : HzyTuple
+    public class HzyTuple<T1, T2, T3, T4, T5, T6> 
     {
         public HzyTuple(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6)
         {
@@ -166,7 +81,7 @@
     }
 
 
-    public class HzyTuple<T1, T2, T3, T4, T5, T6, T7> : HzyTuple
+    public class HzyTuple<T1, T2, T3, T4, T5, T6, T7> 
     {
         public HzyTuple(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7)
         {
@@ -183,7 +98,7 @@
     }
 
 
-    public class HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8> : HzyTuple
+    public class HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8> 
     {
         public HzyTuple(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8)
         {
@@ -201,7 +116,7 @@
     }
 
 
-    public class HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9> : HzyTuple
+    public class HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9>
     {
         public HzyTuple(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8, T9 t9)
         {
@@ -220,7 +135,7 @@
     }
 
 
-    public class HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> : HzyTuple
+    public class HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> 
     {
         public HzyTuple(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8, T9 t9, T10 t10)
         {
@@ -240,7 +155,7 @@
     }
 
 
-    public class HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> : HzyTuple
+    public class HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>
     {
         public HzyTuple(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8, T9 t9, T10 t10, T11 t11)
         {
@@ -261,7 +176,7 @@
     }
 
 
-    public class HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> : HzyTuple
+    public class HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>
     {
         public HzyTuple(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8, T9 t9, T10 t10, T11 t11, T12 t12)
         {
@@ -283,7 +198,7 @@
     }
 
 
-    public class HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> : HzyTuple
+    public class HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>
     {
         public HzyTuple(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8, T9 t9, T10 t10, T11 t11, T12 t12, T13 t13)
         {
@@ -306,7 +221,7 @@
     }
 
 
-    public class HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> : HzyTuple
+    public class HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>
     {
         public HzyTuple(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8, T9 t9, T10 t10, T11 t11, T12 t12, T13 t13, T14 t14)
         {
@@ -330,7 +245,7 @@
     }
 
 
-    public class HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> : HzyTuple
+    public class HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>
     {
         public HzyTuple(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8, T9 t9, T10 t10, T11 t11, T12 t12, T13 t13, T14 t14, T15 t15)
         {
@@ -355,7 +270,7 @@
     }
 
 
-    public class HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> : HzyTuple
+    public class HzyTuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>
     {
         public HzyTuple(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8, T9 t9, T10 t10, T11 t11, T12 t12, T13 t13, T14 t14, T15 t15, T16 t16)
         {

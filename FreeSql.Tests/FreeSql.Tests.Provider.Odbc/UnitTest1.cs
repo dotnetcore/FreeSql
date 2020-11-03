@@ -380,7 +380,7 @@ WHERE ROWNUM < 11";
 
 
             var xxxhzytuple = g.sqlserver.Select<Templates, TaskBuild>()
-                .Where(a => a.Item1.Code == "xxx" && a.Item2.OptionsEntity03 == true)
+                .Where(a => a.t1.Code == "xxx" && a.t2.OptionsEntity03 == true)
                 .ToSql();
 
 

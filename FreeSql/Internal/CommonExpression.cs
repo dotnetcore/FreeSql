@@ -1689,14 +1689,14 @@ namespace FreeSql.Internal
                 {
                     var parent = node.Expression as MemberExpression;
                     if (parent.Expression?.NodeType == ExpressionType.Parameter &&
-                        parent.Expression.Type.Name.StartsWith("NativeTuple`") == true &&
-                        int.TryParse(parent.Member.Name.Replace("Item", ""), out widx) && widx > 0 && widx <= tables.Count)
+                        parent.Expression.Type.Name.StartsWith("HzyTuple`") == true &&
+                        int.TryParse(parent.Member.Name.Replace("t", ""), out widx) && widx > 0 && widx <= tables.Count)
                         return Expression.Property(parameters[widx - 1], node.Member.Name);
                 }
 
                 if (node.Expression?.NodeType == ExpressionType.Parameter &&
-                    node.Expression.Type.Name.StartsWith("NativeTuple`") == true &&
-                    int.TryParse(node.Member.Name.Replace("Item", ""), out widx) && widx > 0 && widx <= tables.Count)
+                    node.Expression.Type.Name.StartsWith("HzyTuple`") == true &&
+                    int.TryParse(node.Member.Name.Replace("t", ""), out widx) && widx > 0 && widx <= tables.Count)
                     return parameters[widx - 1];
 
                 return base.VisitMember(node);
