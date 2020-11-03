@@ -29,7 +29,11 @@
     <DocumentationFile>FreeSql.Extensions.Linq.xml</DocumentationFile>
     <WarningLevel>3</WarningLevel>
   </PropertyGroup>
-
+  
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net40'">
+    <DefineConstants>net40</DefineConstants>
+  </PropertyGroup>
+  
   <ItemGroup>
     <ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />
   </ItemGroup>

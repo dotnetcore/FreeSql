@@ -11,12 +11,10 @@ using System.Threading.Tasks;
 
 namespace FreeSql.Internal.CommonProvider
 {
-    public class SelectGroupingProvider
+    public class SelectGroupingProvider : BaseDiyMemberExpression
     {
         public IFreeSql _orm;
         public Select0Provider _select;
-        public ReadAnonymousTypeInfo _map;
-        public string _field;
         public CommonExpression _comonExp;
         public List<SelectTableInfo> _tables;
 
@@ -30,7 +28,7 @@ namespace FreeSql.Internal.CommonProvider
             _tables = tables;
         }
 
-        public string GetSelectGroupingMapString(Expression[] members)
+        public override string ParseExp(Expression[] members)
         {
             if (members.Any() == false) return _map.DbField;
             var parentName = ((members.FirstOrDefault() as MemberExpression)?.Expression as MemberExpression)?.Member.Name;
