@@ -191,6 +191,10 @@ namespace FreeSql.Tests
         {
             [Column(IsIdentity = true)]
             public int? Id { get; set; }
+
+            public string name { get; set; }
+            [Navigate(nameof(tshop01.cateId))]
+            public List<tshop01> tshops { get; set; }
         }
         public class tshop01
         {
@@ -203,7 +207,28 @@ namespace FreeSql.Tests
         [Fact]
         public void Test03()
         {
+            g.sqlite.Delete<tcate01>().Where("1=1").ExecuteAffrows();
+            g.sqlite.Delete<tshop01>().Where("1=1").ExecuteAffrows();
+            var tshoprepo = g.sqlite.GetRepository<tcate01>();
+            tshoprepo.DbContextOptions.EnableAddOrUpdateNavigateList = true;
+            tshoprepo.Insert(new tcate01[]
+            {
+                new tcate01 { name = "tcate1", tshops = new List<tshop01>{ new tshop01(), new tshop01(), new tshop01() } },
+                new tcate01 { name = "tcate1", tshops = new List<tshop01>{ new tshop01(), new tshop01(), new tshop01() } }
+            });
+
             var tshop01sql = g.sqlite.Select<tshop01>().Include(a => a.cate).ToSql();
+            var tshop02sql = g.sqlite.Select<tshop01>().IncludeByPropertyName("cate").ToSql();
+
+            var tshop03sql = g.sqlite.Select<tshop01>().IncludeMany(a => a.cate.tshops).ToSql();
+            var tshop04sql = g.sqlite.Select<tshop01>().IncludeByPropertyName("cate.tshops").ToSql();
+
+            var tshop01lst = g.sqlite.Select<tshop01>().Include(a => a.cate).ToList();
+            var tshop02lst = g.sqlite.Select<tshop01>().IncludeByPropertyName("cate").ToList();
+
+            var tshop03lst = g.sqlite.Select<tshop01>().IncludeMany(a => a.cate.tshops).ToList();
+            var tshop04lst = g.sqlite.Select<tshop01>().IncludeByPropertyName("cate.tshops").ToList();
+
 
 
             var testisnullsql1 = g.sqlite.Select<t102>().Where(a => SqlExt.IsNull(a.isxx, false).Equals( true)).ToSql();

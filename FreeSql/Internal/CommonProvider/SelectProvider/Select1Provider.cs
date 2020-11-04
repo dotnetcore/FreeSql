@@ -392,6 +392,36 @@ namespace FreeSql.Internal.CommonProvider
 
         public int InsertInto<TTargetEntity>(string tableName, Expression<Func<T1, TTargetEntity>> select) where TTargetEntity : class => base.InternalInsertInto<TTargetEntity>(tableName, select);
 
+        public ISelect<T1> IncludeByPropertyName(string property)
+        {
+            var exp = ConvertStringPropertyToExpression(property, true);
+            if (exp == null) throw new ArgumentException($"{nameof(property)} 无法解析为表达式树");
+            var memExp = exp as MemberExpression;
+            if (memExp == null) throw new ArgumentException($"{nameof(property)} 无法解析为表达式树2");
+            var parTb = _commonUtils.GetTableByEntity(memExp.Expression.Type);
+            if (parTb == null) throw new ArgumentException($"{nameof(property)} 无法解析为表达式树3");
+            var parTbref = parTb.GetTableRef(memExp.Member.Name, true);
+            if (parTbref == null) throw new ArgumentException($"{nameof(property)} 不是有效的导航属性");
+            switch (parTbref.RefType)
+            {
+                case TableRefType.ManyToMany:
+                case TableRefType.OneToMany:
+                    var funcType = typeof(Func<,>).MakeGenericType(_tables[0].Table.Type, typeof(IEnumerable<>).MakeGenericType(parTbref.RefEntityType));
+                    var navigateSelector = Expression.Lambda(funcType, exp, _tables[0].Parameter);
+                    var incMethod = this.GetType().GetMethod("IncludeMany");
+                    if (incMethod == null) throw new Exception("运行时错误，反射获取 IncludeMany 方法失败");
+                    incMethod.MakeGenericMethod(parTbref.RefEntityType).Invoke(this, new object[] { navigateSelector, null });
+                    break;
+                case TableRefType.ManyToOne:
+                case TableRefType.OneToOne:
+                    _isIncluded = true;
+                    var curTb = _commonUtils.GetTableByEntity(exp.Type);
+                    _commonExpression.ExpressionWhereLambda(_tables, Expression.MakeMemberAccess(exp, curTb.Properties[curTb.ColumnsByCs.First().Value.CsName]), null, null, null);
+                    break;
+            }
+            return this;
+        }
+
         bool _isIncluded = false;
         public ISelect<T1> Include<TNavigate>(Expression<Func<T1, TNavigate>> navigateSelector) where TNavigate : class
         {

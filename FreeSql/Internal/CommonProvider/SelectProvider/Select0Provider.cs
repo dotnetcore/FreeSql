@@ -121,13 +121,13 @@ namespace FreeSql.Internal.CommonProvider
             to._whereGlobalFilter = new List<GlobalFilter.Item>(from._whereGlobalFilter.ToArray());
         }
 
-        public Expression ConvertStringPropertyToExpression(string property)
+        public Expression ConvertStringPropertyToExpression(string property, bool fromFirstTable = false)
         {
             if (string.IsNullOrEmpty(property)) return null;
             var field = property.Split('.').Select(a => a.Trim()).ToArray();
             Expression exp = null;
 
-            if (field.Length == 1)
+            if (field.Length == 1 && fromFirstTable == false)
             {
                 foreach (var tb in _tables)
                 {

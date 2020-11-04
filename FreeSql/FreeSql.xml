@@ -2345,6 +2345,13 @@
             <param name="then">即能 ThenInclude，还可以二次过滤（这个 EFCore 做不到？）</param>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.ISelect`1.IncludeByPropertyName(System.String)">
+            <summary>
+            按属性名字符串进行 Include/IncludeMany 操作
+            </summary>
+            <param name="property"></param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.ISelect`1.WithSql(System.String,System.Object)">
             <summary>
             实现 select .. from ( select ... from t ) a 这样的功能<para></para>

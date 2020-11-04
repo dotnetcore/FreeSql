@@ -334,6 +334,13 @@ namespace FreeSql
         ISelect<T1> IncludeMany<TNavigate>(Expression<Func<T1, IEnumerable<TNavigate>>> navigateSelector, Action<ISelect<TNavigate>> then = null) where TNavigate : class;
 
         /// <summary>
+        /// 按属性名字符串进行 Include/IncludeMany 操作
+        /// </summary>
+        /// <param name="property"></param>
+        /// <returns></returns>
+        ISelect<T1> IncludeByPropertyName(string property);
+
+        /// <summary>
         /// 实现 select .. from ( select ... from t ) a 这样的功能<para></para>
         /// 使用 AsTable 方法也可以达到效果<para></para>
         /// 示例：WithSql("select * from id=?id", new { id = 1 })<para></para>
