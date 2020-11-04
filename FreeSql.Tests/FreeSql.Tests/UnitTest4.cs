@@ -42,6 +42,13 @@ namespace FreeSql.Tests
                     .OrderBy(w => w.t1.AddTime)
                     .ToSql();
 
+            var xxxhzytupleGroupBy = g.sqlite.Select<Templates, TaskBuild>()
+                    .LeftJoin(w => w.t1.Id2 == w.t2.TemplatesId)
+                    .Where(w => w.t1.Code == "xxx" && w.t2.OptionsEntity03 == true)
+                    .GroupBy(w => new { w.t1 })
+                    .OrderBy(w => w.Key.t1.AddTime)
+                    .ToSql(w => new { w.Key.t1 });
+
         }
 
 
