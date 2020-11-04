@@ -166,7 +166,7 @@ namespace FreeSql.Internal.CommonProvider
                     else
                     {
                         object val = col.GetDbValue(d);
-                        sb.Append(_commonUtils.GetNoneParamaterSqlValue(dbParams, "cu", col.Attribute.MapType, val));
+                        sb.Append(_commonUtils.GetNoneParamaterSqlValue(dbParams, "cu", col, col.Attribute.MapType, val));
                     }
                     if (didx == 0) sb.Append(" as ").Append(col.Attribute.Name);
                     ++colidx2;

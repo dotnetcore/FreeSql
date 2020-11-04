@@ -69,7 +69,7 @@ namespace FreeSql.Odbc.Oracle
                         object val = col.GetDbValue(d);
                         if (val == null && col.Attribute.IsNullable == false) val = col.CsType == typeof(string) ? "" : Utils.GetDataReaderValue(col.CsType.NullableTypeOrThis(), null);//#384
                         if (_noneParameter)
-                            sb.Append(_commonUtils.GetNoneParamaterSqlValue(specialParams, _noneParameterFlag, col.Attribute.MapType, val));
+                            sb.Append(_commonUtils.GetNoneParamaterSqlValue(specialParams, _noneParameterFlag, col, col.Attribute.MapType, val));
                         else
                         {
                             sb.Append(_commonUtils.QuoteWriteParamter(col.Attribute.MapType, _commonUtils.QuoteParamterName($"{col.CsName}_{didx}")));

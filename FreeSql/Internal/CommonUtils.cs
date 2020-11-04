@@ -23,7 +23,7 @@ namespace FreeSql.Internal
     public abstract class CommonUtils
     {
 
-        public abstract string GetNoneParamaterSqlValue(List<DbParameter> specialParams, string specialParamFlag, Type type, object value);
+        public abstract string GetNoneParamaterSqlValue(List<DbParameter> specialParams, string specialParamFlag, ColumnInfo col, Type type, object value);
         public abstract DbParameter AppendParamter(List<DbParameter> _params, string parameterName, ColumnInfo col, Type type, object value);
         public abstract DbParameter[] GetDbParamtersByObject(string sql, object obj);
         public abstract string FormatSql(string sql, params object[] args);
@@ -267,7 +267,7 @@ namespace FreeSql.Internal
             var pk1 = primarys.FirstOrDefault();
             if (primarys.Length == 1 && (type == pk1.CsType || type.IsNumberType() && pk1.CsType.IsNumberType()))
             {
-                return $"{aliasAndDot}{this.QuoteSqlName(pk1.Attribute.Name)} = {this.FormatSql("{0}", Utils.GetDataReaderValue(pk1.Attribute.MapType, dywhere))}";
+                return $"{aliasAndDot}{this.QuoteSqlName(pk1.Attribute.Name)} = {GetNoneParamaterSqlValue(null, null, pk1, pk1.Attribute.MapType, Utils.GetDataReaderValue(pk1.Attribute.MapType, dywhere))}";
             }
             else if (primarys.Length > 0 && (type == table.Type || type.BaseType == table.Type))
             {
@@ -276,15 +276,15 @@ namespace FreeSql.Internal
                 foreach (var pk in primarys)
                 {
                     if (pkidx > 0) sb.Append(" AND ");
-                    sb.Append(aliasAndDot).Append(this.QuoteSqlName(pk.Attribute.Name));
-                    sb.Append(this.FormatSql(" = {0}", pk.GetDbValue(dywhere)));
+                    sb.Append(aliasAndDot).Append(this.QuoteSqlName(pk.Attribute.Name)).Append(" = ");
+                    sb.Append(GetNoneParamaterSqlValue(null, null, pk, pk.Attribute.MapType, pk.GetDbValue(dywhere)));
                     ++pkidx;
                 }
                 return sb.ToString();
             }
             else if (primarys.Length == 1 && type == typeof(string))
             {
-                return $"{aliasAndDot}{this.QuoteSqlName(pk1.Attribute.Name)} = {this.FormatSql("{0}", Utils.GetDataReaderValue(pk1.Attribute.MapType, dywhere))}";
+                return $"{aliasAndDot}{this.QuoteSqlName(pk1.Attribute.Name)} = {GetNoneParamaterSqlValue(null, null, pk1, pk1.Attribute.MapType, Utils.GetDataReaderValue(pk1.Attribute.MapType, dywhere))}";
             }
             else if (primarys.Length == 1 && dywhere is IEnumerable)
             {
@@ -303,8 +303,8 @@ namespace FreeSql.Internal
                         var itype = i.GetType();
                         isEntityType = (itype == table.Type || itype.BaseType == table.Type);
                     }
-                    if (isEntityType) sb.Append(this.FormatSql("{0}", primarys[0].GetDbValue(i)));
-                    else sb.Append(this.FormatSql("{0}", Utils.GetDataReaderValue(pk1.Attribute.MapType, i)));
+                    if (isEntityType) sb.Append(GetNoneParamaterSqlValue(null, null, primarys[0], primarys[0].Attribute.MapType, primarys[0].GetDbValue(i)));
+                    else sb.Append(GetNoneParamaterSqlValue(null, null, pk1, pk1.Attribute.MapType, Utils.GetDataReaderValue(pk1.Attribute.MapType, i)));
                     ++ieidx;
                 }
                 if (isAny == false) return "";
@@ -338,8 +338,8 @@ namespace FreeSql.Internal
                     if (trycol == null) continue;
 
                     if (psidx > 0) sb.Append(" AND ");
-                    sb.Append(aliasAndDot).Append(this.QuoteSqlName(trycol.Attribute.Name));
-                    sb.Append(this.FormatSql(" = {0}", Utils.GetDataReaderValue(trycol.Attribute.MapType, p.GetValue(dywhere, null))));
+                    sb.Append(aliasAndDot).Append(this.QuoteSqlName(trycol.Attribute.Name)).Append(" = ");
+                    sb.Append(GetNoneParamaterSqlValue(null, null, trycol, trycol.Attribute.MapType, Utils.GetDataReaderValue(trycol.Attribute.MapType, p.GetValue(dywhere, null))));
                     ++psidx;
                 }
                 if (psidx == 0) return "";
@@ -360,8 +360,8 @@ namespace FreeSql.Internal
                 sbin.Append(aliasAndDot).Append(this.QuoteSqlName(pk1.Attribute.Name));
                 var indt = its.Select(a => pk1.GetDbValue(a)).Where(a => a != null).ToArray();
                 if (indt.Any() == false) return null;
-                if (indt.Length == 1) sbin.Append(" = ").Append(this.FormatSql("{0}", indt.First()));
-                else sbin.Append(" IN (").Append(string.Join(",", indt.Select(a => this.FormatSql("{0}", a)))).Append(")");
+                if (indt.Length == 1) sbin.Append(" = ").Append(GetNoneParamaterSqlValue(null, null, pk1, pk1.Attribute.MapType, indt.First()));
+                else sbin.Append(" IN (").Append(string.Join(",", indt.Select(a => GetNoneParamaterSqlValue(null, null, pk1, pk1.Attribute.MapType, a)))).Append(")");
                 return sbin.ToString();
             }
             var dicpk = its.Length > 5 ? new Dictionary<string, bool>() : null;
@@ -371,7 +371,7 @@ namespace FreeSql.Internal
             {
                 var filter = "";
                 foreach (var pk in table.Primarys)
-                    filter += $" AND {aliasAndDot}{this.QuoteSqlName(pk.Attribute.Name)} = {this.FormatSql("{0}", pk.GetDbValue(item))}";
+                    filter += $" AND {aliasAndDot}{this.QuoteSqlName(pk.Attribute.Name)} = {GetNoneParamaterSqlValue(null, null, pk, pk.Attribute.MapType, pk.GetDbValue(item))}";
                 if (string.IsNullOrEmpty(filter)) continue;
                 if (sb != null)
                 {

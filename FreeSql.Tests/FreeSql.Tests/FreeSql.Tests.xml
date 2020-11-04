@@ -104,6 +104,41 @@
             班期信息
             </summary>
         </member>
+        <member name="P:FreeSql.Tests.Issues._519.ST_Stock519.StoreHouse">
+            <summary>
+            库位
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._519.ST_Stock519.Works">
+            <summary>
+            工厂
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._519.ST_Stock519.MaterialCode">
+            <summary>
+            物料号
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._519.ST_Stock519.BatchCode">
+            <summary>
+            条码号
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._519.ST_Stock519.CreatedTime">
+            <summary>
+            创建时间
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._519.ST_Stock519.CreatorID">
+            <summary>
+            创建人
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._519.ST_Stock519.CreatorName">
+            <summary>
+            创建人名称
+            </summary>
+        </member>
         <member name="M:FreeSql.Tests.MySql.MySqlCodeFirstTest.Tb_alltype.Save">
             <summary>
             保存或添加，如果主键有值则尝试 Update，如果影响的行为 0 则尝试 Insert

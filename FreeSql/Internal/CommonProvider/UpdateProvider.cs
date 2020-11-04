@@ -427,7 +427,7 @@ namespace FreeSql.Internal.CommonProvider
             _set.Append(", ").Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ");
             if (_noneParameter)
             {
-                _set.Append(_commonUtils.GetNoneParamaterSqlValue(_params, "u", col.Attribute.MapType, val));
+                _set.Append(_commonUtils.GetNoneParamaterSqlValue(_params, "u", col, col.Attribute.MapType, val));
             }
             else
             {
@@ -588,7 +588,7 @@ namespace FreeSql.Internal.CommonProvider
                 var sb = new StringBuilder();
 
                 sb.Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ");
-                sb.Append(thenValue(_commonUtils.GetNoneParamaterSqlValue(_paramsSource, "u", col.Attribute.MapType, col.GetDbValue(_source.First()))));
+                sb.Append(thenValue(_commonUtils.GetNoneParamaterSqlValue(_paramsSource, "u", col, col.Attribute.MapType, col.GetDbValue(_source.First()))));
 
                 return sb.ToString();
 
@@ -612,7 +612,7 @@ namespace FreeSql.Internal.CommonProvider
                     ToSqlWhen(cwsb, _table.Primarys, d);
                     cwsb.Append(" THEN ");
                     var val = col.GetDbValue(d);
-                    cwsb.Append(thenValue(_commonUtils.GetNoneParamaterSqlValue(_paramsSource, "u", col.Attribute.MapType, val)));
+                    cwsb.Append(thenValue(_commonUtils.GetNoneParamaterSqlValue(_paramsSource, "u", col, col.Attribute.MapType, val)));
                     if (val == null || val == DBNull.Value) nulls++;
                 }
                 cwsb.Append(" END");
@@ -685,7 +685,7 @@ namespace FreeSql.Internal.CommonProvider
                         {
                             var val = col.GetDbValue(_source.First());
                             if (_noneParameter)
-                                sb.Append(_commonUtils.GetNoneParamaterSqlValue(_paramsSource, "u", col.Attribute.MapType, val));
+                                sb.Append(_commonUtils.GetNoneParamaterSqlValue(_paramsSource, "u", col, col.Attribute.MapType, val));
                             else
                             {
                                 sb.Append(_commonUtils.QuoteWriteParamter(col.Attribute.MapType, _commonUtils.QuoteParamterName($"p_{_paramsSource.Count}")));
@@ -730,7 +730,7 @@ namespace FreeSql.Internal.CommonProvider
                                 cwsb.Append(" THEN ");
                                 var val = col.GetDbValue(d);
                                 if (_noneParameter)
-                                    cwsb.Append(_commonUtils.GetNoneParamaterSqlValue(_paramsSource, "u", col.Attribute.MapType, val));
+                                    cwsb.Append(_commonUtils.GetNoneParamaterSqlValue(_paramsSource, "u", col, col.Attribute.MapType, val));
                                 else
                                 {
                                     cwsb.Append(_commonUtils.QuoteWriteParamter(col.Attribute.MapType, _commonUtils.QuoteParamterName($"p_{_paramsSource.Count}")));
