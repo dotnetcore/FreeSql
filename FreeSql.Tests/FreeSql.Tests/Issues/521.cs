@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using Xunit;
@@ -17,6 +18,18 @@ namespace FreeSql.Tests.Issues
         public void SelectTest()
         {
             IFreeSql fsql = g.sqlserver;
+
+            //fsql.Aop.AuditValue += (s, e) => {
+            //    if (e.Column.CsType == typeof(long)
+            //        && e.Property.GetCustomAttribute<SnowflakeAttribute>(false) != null
+            //        && e.Value?.ToString() == "0")
+            //    {
+            //        e.Value = 1;
+            //    }
+
+            //};
+
+
             fsql.Delete<ts521>().Where("1=1").ExecuteAffrows();
             fsql.Insert(new ts521 { ID = 1000000000000000001 }).ExecuteAffrows();
 
@@ -28,6 +41,7 @@ namespace FreeSql.Tests.Issues
         class ts521
         {
             [Key]
+            [Snowflake]
             public long ID { get; set; }
 
             [Description("名字")]
@@ -44,5 +58,6 @@ namespace FreeSql.Tests.Issues
             [Column(IsVersion = true, InsertValueSql = "1")]
             public long Version { get; set; }
         }
+        public class SnowflakeAttribute: Attribute { }
     }
 }

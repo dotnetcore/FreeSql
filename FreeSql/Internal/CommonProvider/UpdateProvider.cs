@@ -374,7 +374,7 @@ namespace FreeSql.Internal.CommonProvider
                             changedDict.Add(col.Attribute.Name, true);
                     }
                     if (val == null && col.Attribute.MapType == typeof(string) && col.Attribute.IsNullable == false)
-                        col.SetValue(data, val = "");
+                        col.SetValue(d, val = "");
                 }
             }
         }
