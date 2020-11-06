@@ -98,7 +98,7 @@ var logRepository = fsql.GetGuidRepository<Log>(null, oldname => $"{oldname}_{Da
 
 ## 兼容问题
 
-FreeSql 支持多种数据库，分别为 MySql/SqlServer/PostgreSQL/Oracle/Sqlite/达梦/人大金仓/MsAccess，虽然他们都为关系型数据库，但各自有着独特的技术亮点，有许多亮点值得我们使用；
+FreeSql 支持多种数据库，分别为 MySql/SqlServer/PostgreSQL/Oracle/Sqlite/达梦/人大金仓/翰高/MsAccess，虽然他们都为关系型数据库，但各自有着独特的技术亮点，有许多亮点值得我们使用；
 
 比如 SqlServer 提供的 output inserted 特性，在表使用了自增或数据库定义了默认值的时候，使用它可以快速将 insert 的数据返回。PostgreSQL 也有相应的功能，如此方便却不是每个数据库都支持。
 
