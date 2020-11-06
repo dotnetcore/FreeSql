@@ -1622,12 +1622,12 @@ namespace FreeSql.Internal
                     var errorKey = FreeUtil.Sha1($"{(isMultitb ? 1 : 0)},{fl.Where.ToString()}");
                     if (dicSqlError.ContainsKey(errorKey)) continue;
 
-                    var visitor = new ReplaceVisitor();
+                    var visitor = new ReplaceParameterVisitor();
                     try
                     {
                         var expExp = Expression.Lambda(
                             typeof(Func<,>).MakeGenericType(tb.Table.Type, typeof(bool)),
-                            new ReplaceVisitor().Modify(fl.Where, newParameter),
+                            new ReplaceParameterVisitor().Modify(fl.Where, newParameter),
                             newParameter
                         );
                         var whereSql = ExpressionLambdaToSql(expExp.Body, new ExpTSC { _tables = 
@@ -1652,7 +1652,7 @@ namespace FreeSql.Internal
             }
             return null;
         }
-        internal class ReplaceVisitor : ExpressionVisitor
+        public class ReplaceParameterVisitor : ExpressionVisitor
         {
             private ParameterExpression parameter;
             private ParameterExpression oldParameter;
@@ -1670,7 +1670,7 @@ namespace FreeSql.Internal
             }
         }
 
-        internal class ReplaceHzyTupleToMultiParam : ExpressionVisitor
+        public class ReplaceHzyTupleToMultiParam : ExpressionVisitor
         {
             private List<SelectTableInfo> tables;
             private ParameterExpression[] parameters;

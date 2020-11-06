@@ -1,4 +1,5 @@
-﻿using FreeSql.Internal.Model;
+﻿using FreeSql.Internal.CommonProvider;
+using FreeSql.Internal.Model;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -13,6 +14,8 @@ namespace FreeSql
 {
     public interface ISelectedQuery<TOut>
     {
+        Select0Provider SelectOwner { get; }
+
 #if net40
 #else
         Task<List<TOut>> ToListAsync();
@@ -78,6 +81,8 @@ namespace FreeSql.Internal.CommonProvider
             }
             return read.DbField;
         }
+
+        public Select0Provider SelectOwner => _select;
 
 #if net40
 #else
