@@ -178,14 +178,14 @@ namespace FreeSql.Internal
                             parent.Property = parentProp; //若不加此行，会引用 GroupBy(..).ToList(a => new Dto { key = a.Key }) null 错误，CopyTo 之后 Property 变为 null
                             return false;
                         }
-                        parent.CsType = exp.Type;
+                        if (parent.CsType == null) parent.CsType = exp.Type;
                         parent.DbField = ExpressionLambdaToSql(exp, getTSC());
                         field.Append(", ").Append(parent.DbField);
                         if (index >= 0) field.Append(_common.FieldAsAlias($"as{++index}"));
                         else if (index == ReadAnonymousFieldAsCsName && string.IsNullOrEmpty(parent.CsName) == false && 
                             parent.DbField.EndsWith(_common.QuoteSqlName(parent.CsName), StringComparison.CurrentCultureIgnoreCase) == false //DbField 和 CsName 相同的时候，不处理
                             ) field.Append(_common.FieldAsAlias(parent.CsName));
-                        parent.MapType = SearchColumnByField(_tables, null, parent.DbField)?.Attribute.MapType ?? exp.Type;
+                        if (parent.MapType == null) parent.MapType = SearchColumnByField(_tables, null, parent.DbField)?.Attribute.MapType ?? exp.Type;
                         return false;
                     }
                     return false;
