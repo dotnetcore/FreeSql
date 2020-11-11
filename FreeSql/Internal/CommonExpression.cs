@@ -273,9 +273,9 @@ namespace FreeSql.Internal
                             {
                                 if (a.NodeType != ExpressionType.Constant) return true;
                                 var constVal = (a as ConstantExpression)?.Value;
-                                if (constVal == null) return true;
-                                if (object.Equals(constVal, a.Type.CreateInstanceGetDefaultValue()) == false) return true;
-                                return false;
+                                if (constVal == null) return false; //- 修复 实体类拥有构造参数时，ToList\<DTO\> 映射查询无效的 bug；
+                                if (object.Equals(constVal, a.Type.CreateInstanceGetDefaultValue())) return false;
+                                return true;
                             })
                         ))
                     {

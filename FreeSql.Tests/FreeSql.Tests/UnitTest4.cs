@@ -15,6 +15,7 @@ namespace FreeSql.Tests
         {
             public ts_record parent { get; set; }
         }
+        public record ts_record_dto(DateTime Date, int TemperatureC, string Summary);
 
         [Fact]
         public void LeftJoinNull01()
@@ -24,6 +25,8 @@ namespace FreeSql.Tests
             fsql.Delete<ts_record>().Where("1=1").ExecuteAffrows();
             fsql.Insert(new ts_record(DateTime.Now, 1, 2, "123")).ExecuteAffrows();
             var fores = fsql.Select<ts_record>().ToList();
+            var fores_dtos1 = fsql.Select<ts_record>().ToList<ts_record_dto>();
+            var fores_dtos2 = fsql.Select<ts_record>().ToList(a => new ts_record_dto(a.Date, a.TemperatureC, a.Summary));
 
 
 
