@@ -10,10 +10,23 @@ namespace FreeSql.Tests
 {
     public class UnitTest4
     {
+
+        public record ts_record(DateTime Date, int TemperatureC, int TemperatureF, string Summary)
+        {
+            public ts_record parent { get; set; }
+        }
+
         [Fact]
         public void LeftJoinNull01()
         {
             var fsql = g.sqlite;
+
+            fsql.Delete<ts_record>().Where("1=1").ExecuteAffrows();
+            fsql.Insert(new ts_record(DateTime.Now, 1, 2, "123")).ExecuteAffrows();
+            var fores = fsql.Select<ts_record>().ToList();
+
+
+
             fsql.Delete<leftjoin_null01>().Where("1=1").ExecuteAffrows();
             fsql.Delete<leftjoin_null02>().Where("1=1").ExecuteAffrows();
 
