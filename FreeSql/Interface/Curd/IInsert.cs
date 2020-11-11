@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Linq.Expressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FreeSql
@@ -157,9 +158,9 @@ namespace FreeSql
 
 #if net40
 #else
-        Task<int> ExecuteAffrowsAsync();
-        Task<long> ExecuteIdentityAsync();
-        Task<List<T1>> ExecuteInsertedAsync();
+        Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default);
+        Task<long> ExecuteIdentityAsync(CancellationToken cancellationToken = default);
+        Task<List<T1>> ExecuteInsertedAsync(CancellationToken cancellationToken = default);
 #endif
     }
 }

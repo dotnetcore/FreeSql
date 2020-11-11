@@ -8,6 +8,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FreeSql.Internal.CommonProvider
@@ -17,14 +18,14 @@ namespace FreeSql.Internal.CommonProvider
     {
 #if net40
 #else
-        async protected Task<int> SplitExecuteAffrowsAsync(int valuesLimit, int parameterLimit)
+        async protected Task<int> SplitExecuteAffrowsAsync(int valuesLimit, int parameterLimit, CancellationToken cancellationToken = default)
         {
             var ss = SplitSource(valuesLimit, parameterLimit);
             var ret = 0;
             if (ss.Length <= 1)
             {
                 if (_source?.Any() == true) _batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, 1, 1));
-                ret = await this.RawExecuteAffrowsAsync();
+                ret = await this.RawExecuteAffrowsAsync(cancellationToken);
                 ClearData();
                 return ret;
             }
@@ -45,7 +46,7 @@ namespace FreeSql.Internal.CommonProvider
                     {
                         _source = ss[a];
                         _batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, a + 1, ss.Length));
-                        ret += await this.RawExecuteAffrowsAsync();
+                        ret += await this.RawExecuteAffrowsAsync(cancellationToken);
                     }
                 }
                 else
@@ -62,7 +63,7 @@ namespace FreeSql.Internal.CommonProvider
                             {
                                 _source = ss[a];
                                 _batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, a + 1, ss.Length));
-                                ret += await this.RawExecuteAffrowsAsync();
+                                ret += await this.RawExecuteAffrowsAsync(cancellationToken);
                             }
                             _transaction.Commit();
                             _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, "提交", null));
@@ -90,14 +91,14 @@ namespace FreeSql.Internal.CommonProvider
             ClearData();
             return ret;
         }
-        async protected Task<List<T1>> SplitExecuteUpdatedAsync(int valuesLimit, int parameterLimit)
+        async protected Task<List<T1>> SplitExecuteUpdatedAsync(int valuesLimit, int parameterLimit, CancellationToken cancellationToken = default)
         {
             var ss = SplitSource(valuesLimit, parameterLimit);
             var ret = new List<T1>();
             if (ss.Length <= 1)
             {
                 if (_source?.Any() == true) _batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, 1, 1));
-                ret = await this.RawExecuteUpdatedAsync();
+                ret = await this.RawExecuteUpdatedAsync(cancellationToken);
                 ClearData();
                 return ret;
             }
@@ -118,7 +119,7 @@ namespace FreeSql.Internal.CommonProvider
                     {
                         _source = ss[a]; 
                         _batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, a + 1, ss.Length));
-                        ret.AddRange(await this.RawExecuteUpdatedAsync());
+                        ret.AddRange(await this.RawExecuteUpdatedAsync(cancellationToken));
                     }
                 }
                 else
@@ -135,7 +136,7 @@ namespace FreeSql.Internal.CommonProvider
                             {
                                 _source = ss[a];
                                 _batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, a + 1, ss.Length));
-                                ret.AddRange(await this.RawExecuteUpdatedAsync());
+                                ret.AddRange(await this.RawExecuteUpdatedAsync(cancellationToken));
                             }
                             _transaction.Commit();
                             _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, "提交", null));
@@ -164,7 +165,7 @@ namespace FreeSql.Internal.CommonProvider
             return ret;
         }
 
-        async protected Task<int> RawExecuteAffrowsAsync()
+        async protected Task<int> RawExecuteAffrowsAsync(CancellationToken cancellationToken = default)
         {
             var sql = this.ToSql();
             if (string.IsNullOrEmpty(sql)) return 0;
@@ -175,7 +176,7 @@ namespace FreeSql.Internal.CommonProvider
             Exception exception = null;
             try
             {
-                affrows = await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms);
+                affrows = await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms, cancellationToken);
                 ValidateVersionAndThrow(affrows, sql, dbParms);
             }
             catch (Exception ex)
@@ -190,10 +191,10 @@ namespace FreeSql.Internal.CommonProvider
             }
             return affrows;
         }
-        protected abstract Task<List<T1>> RawExecuteUpdatedAsync();
+        protected abstract Task<List<T1>> RawExecuteUpdatedAsync(CancellationToken cancellationToken = default);
 
-        public abstract Task<int> ExecuteAffrowsAsync();
-        public abstract Task<List<T1>> ExecuteUpdatedAsync();
+        public abstract Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default);
+        public abstract Task<List<T1>> ExecuteUpdatedAsync(CancellationToken cancellationToken = default);
 #endif
     }
 }

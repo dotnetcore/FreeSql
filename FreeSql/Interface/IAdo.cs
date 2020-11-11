@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FreeSql
@@ -274,7 +275,7 @@ namespace FreeSql
         /// </summary>
         /// <param name="commandTimeout">命令超时设置(秒)</param>
         /// <returns>true: 成功, false: 失败</returns>
-        Task<bool> ExecuteConnectTestAsync(int commandTimeout = 0);
+        Task<bool> ExecuteConnectTestAsync(int commandTimeout = 0, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// 查询，若使用读写分离，查询【从库】条件cmdText.StartsWith("SELECT ")，否则查询【主库】
@@ -283,26 +284,26 @@ namespace FreeSql
         /// <param name="cmdType"></param>
         /// <param name="cmdText"></param>
         /// <param name="cmdParms"></param>
-        Task ExecuteReaderAsync(Func<FetchCallbackArgs<DbDataReader>, Task> readerHander, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-        Task ExecuteReaderAsync(DbTransaction transaction, Func<FetchCallbackArgs<DbDataReader>, Task> readerHander, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-        Task ExecuteReaderAsync(DbConnection connection, DbTransaction transaction, Func<FetchCallbackArgs<DbDataReader>, Task> readerHander, CommandType cmdType, string cmdText, int cmdTimeout, params DbParameter[] cmdParms);
+        Task ExecuteReaderAsync(Func<FetchCallbackArgs<DbDataReader>, Task> readerHander, CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
+        Task ExecuteReaderAsync(DbTransaction transaction, Func<FetchCallbackArgs<DbDataReader>, Task> readerHander, CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
+        Task ExecuteReaderAsync(DbConnection connection, DbTransaction transaction, Func<FetchCallbackArgs<DbDataReader>, Task> readerHander, CommandType cmdType, string cmdText, int cmdTimeout, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
         /// <summary>
         /// 查询，ExecuteReaderAsync(dr => {}, "select * from user where age > ?age", new { age = 25 })<para></para>
         /// 提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
         /// </summary>
         /// <param name="cmdText"></param>
         /// <param name="parms"></param>
-        Task ExecuteReaderAsync(Func<FetchCallbackArgs<DbDataReader>, Task> readerHander, string cmdText, object parms = null);
-        Task ExecuteReaderAsync(DbTransaction transaction, Func<FetchCallbackArgs<DbDataReader>, Task> readerHander, string cmdText, object parms = null);
-        Task ExecuteReaderAsync(DbConnection connection, DbTransaction transaction, Func<FetchCallbackArgs<DbDataReader>, Task> readerHander, string cmdText, object parms = null);
+        Task ExecuteReaderAsync(Func<FetchCallbackArgs<DbDataReader>, Task> readerHander, string cmdText, object parms = null, CancellationToken cancellationToken = default);
+        Task ExecuteReaderAsync(DbTransaction transaction, Func<FetchCallbackArgs<DbDataReader>, Task> readerHander, string cmdText, object parms = null, CancellationToken cancellationToken = default);
+        Task ExecuteReaderAsync(DbConnection connection, DbTransaction transaction, Func<FetchCallbackArgs<DbDataReader>, Task> readerHander, string cmdText, object parms = null, CancellationToken cancellationToken = default);
         /// <summary>
         /// 查询
         /// </summary>
         /// <param name="cmdText"></param>
         /// <param name="cmdParms"></param>
-        Task<object[][]> ExecuteArrayAsync(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-        Task<object[][]> ExecuteArrayAsync(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-        Task<object[][]> ExecuteArrayAsync(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, int cmdTimeout, params DbParameter[] cmdParms);
+        Task<object[][]> ExecuteArrayAsync(CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
+        Task<object[][]> ExecuteArrayAsync(DbTransaction transaction, CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
+        Task<object[][]> ExecuteArrayAsync(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, int cmdTimeout, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
         /// <summary>
         /// 查询，ExecuteArrayAsync("select * from user where age > ?age", new { age = 25 })<para></para>
         /// 提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
@@ -310,17 +311,17 @@ namespace FreeSql
         /// <param name="cmdText"></param>
         /// <param name="parms"></param>
         /// <returns></returns>
-        Task<object[][]> ExecuteArrayAsync(string cmdText, object parms = null);
-        Task<object[][]> ExecuteArrayAsync(DbTransaction transaction, string cmdText, object parms = null);
-        Task<object[][]> ExecuteArrayAsync(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null);
+        Task<object[][]> ExecuteArrayAsync(string cmdText, object parms = null, CancellationToken cancellationToken = default);
+        Task<object[][]> ExecuteArrayAsync(DbTransaction transaction, string cmdText, object parms = null, CancellationToken cancellationToken = default);
+        Task<object[][]> ExecuteArrayAsync(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null, CancellationToken cancellationToken = default);
         /// <summary>
         /// 查询
         /// </summary>
         /// <param name="cmdText"></param>
         /// <param name="cmdParms"></param>
-        Task<DataSet> ExecuteDataSetAsync(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-        Task<DataSet> ExecuteDataSetAsync(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-        Task<DataSet> ExecuteDataSetAsync(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, int cmdTimeout, params DbParameter[] cmdParms);
+        Task<DataSet> ExecuteDataSetAsync(CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
+        Task<DataSet> ExecuteDataSetAsync(DbTransaction transaction, CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
+        Task<DataSet> ExecuteDataSetAsync(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, int cmdTimeout, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
         /// <summary>
         /// 查询，ExecuteDataSetAsync("select * from user where age > ?age; select 2", new { age = 25 })<para></para>
         /// 提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
@@ -328,17 +329,17 @@ namespace FreeSql
         /// <param name="cmdText"></param>
         /// <param name="parms"></param>
         /// <returns></returns>
-        Task<DataSet> ExecuteDataSetAsync(string cmdText, object parms = null);
-        Task<DataSet> ExecuteDataSetAsync(DbTransaction transaction, string cmdText, object parms = null);
-        Task<DataSet> ExecuteDataSetAsync(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null);
+        Task<DataSet> ExecuteDataSetAsync(string cmdText, object parms = null, CancellationToken cancellationToken = default);
+        Task<DataSet> ExecuteDataSetAsync(DbTransaction transaction, string cmdText, object parms = null, CancellationToken cancellationToken = default);
+        Task<DataSet> ExecuteDataSetAsync(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null, CancellationToken cancellationToken = default);
         /// <summary>
         /// 查询
         /// </summary>
         /// <param name="cmdText"></param>
         /// <param name="cmdParms"></param>
-        Task<DataTable> ExecuteDataTableAsync(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-        Task<DataTable> ExecuteDataTableAsync(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-        Task<DataTable> ExecuteDataTableAsync(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, int cmdTimeout, params DbParameter[] cmdParms);
+        Task<DataTable> ExecuteDataTableAsync(CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
+        Task<DataTable> ExecuteDataTableAsync(DbTransaction transaction, CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
+        Task<DataTable> ExecuteDataTableAsync(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, int cmdTimeout, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
         /// <summary>
         /// 查询，ExecuteDataTableAsync("select * from user where age > ?age", new { age = 25 })<para></para>
         /// 提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
@@ -346,18 +347,18 @@ namespace FreeSql
         /// <param name="cmdText"></param>
         /// <param name="parms"></param>
         /// <returns></returns>
-        Task<DataTable> ExecuteDataTableAsync(string cmdText, object parms = null);
-        Task<DataTable> ExecuteDataTableAsync(DbTransaction transaction, string cmdText, object parms = null);
-        Task<DataTable> ExecuteDataTableAsync(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null);
+        Task<DataTable> ExecuteDataTableAsync(string cmdText, object parms = null, CancellationToken cancellationToken = default);
+        Task<DataTable> ExecuteDataTableAsync(DbTransaction transaction, string cmdText, object parms = null, CancellationToken cancellationToken = default);
+        Task<DataTable> ExecuteDataTableAsync(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null, CancellationToken cancellationToken = default);
         /// <summary>
         /// 在【主库】执行
         /// </summary>
         /// <param name="cmdType"></param>
         /// <param name="cmdText"></param>
         /// <param name="cmdParms"></param>
-        Task<int> ExecuteNonQueryAsync(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-        Task<int> ExecuteNonQueryAsync(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-        Task<int> ExecuteNonQueryAsync(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, int cmdTimeout, params DbParameter[] cmdParms);
+        Task<int> ExecuteNonQueryAsync(CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
+        Task<int> ExecuteNonQueryAsync(DbTransaction transaction, CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
+        Task<int> ExecuteNonQueryAsync(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, int cmdTimeout, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
         /// <summary>
         /// 在【主库】执行，ExecuteNonQueryAsync("delete from user where age > ?age", new { age = 25 })<para></para>
         /// 提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
@@ -365,18 +366,18 @@ namespace FreeSql
         /// <param name="cmdText"></param>
         /// <param name="parms"></param>
         /// <returns></returns>
-        Task<int> ExecuteNonQueryAsync(string cmdText, object parms = null);
-        Task<int> ExecuteNonQueryAsync(DbTransaction transaction, string cmdText, object parms = null);
-        Task<int> ExecuteNonQueryAsync(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null);
+        Task<int> ExecuteNonQueryAsync(string cmdText, object parms = null, CancellationToken cancellationToken = default);
+        Task<int> ExecuteNonQueryAsync(DbTransaction transaction, string cmdText, object parms = null, CancellationToken cancellationToken = default);
+        Task<int> ExecuteNonQueryAsync(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null, CancellationToken cancellationToken = default);
         /// <summary>
         /// 在【主库】执行
         /// </summary>
         /// <param name="cmdType"></param>
         /// <param name="cmdText"></param>
         /// <param name="cmdParms"></param>
-        Task<object> ExecuteScalarAsync(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-        Task<object> ExecuteScalarAsync(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-        Task<object> ExecuteScalarAsync(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, int cmdTimeout, params DbParameter[] cmdParms);
+        Task<object> ExecuteScalarAsync(CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
+        Task<object> ExecuteScalarAsync(DbTransaction transaction, CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
+        Task<object> ExecuteScalarAsync(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, int cmdTimeout, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
         /// <summary>
         /// 在【主库】执行，ExecuteScalarAsync("select 1 from user where age > ?age", new { age = 25 })<para></para>
         /// 提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
@@ -384,9 +385,9 @@ namespace FreeSql
         /// <param name="cmdText"></param>
         /// <param name="parms"></param>
         /// <returns></returns>
-        Task<object> ExecuteScalarAsync(string cmdText, object parms = null);
-        Task<object> ExecuteScalarAsync(DbTransaction transaction, string cmdText, object parms = null);
-        Task<object> ExecuteScalarAsync(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null);
+        Task<object> ExecuteScalarAsync(string cmdText, object parms = null, CancellationToken cancellationToken = default);
+        Task<object> ExecuteScalarAsync(DbTransaction transaction, string cmdText, object parms = null, CancellationToken cancellationToken = default);
+        Task<object> ExecuteScalarAsync(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// 执行SQL返回对象集合，QueryAsync&lt;User&gt;("select * from user where age > ?age", new SqlParameter { ParameterName = "age", Value = 25 })
@@ -396,10 +397,10 @@ namespace FreeSql
         /// <param name="cmdText"></param>
         /// <param name="cmdParms"></param>
         /// <returns></returns>
-        Task<List<T>> QueryAsync<T>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-        Task<List<T>> QueryAsync<T>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-        Task<List<T>> QueryAsync<T>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, int cmdTimeout, params DbParameter[] cmdParms);
-        Task<List<T>> QueryAsync<T>(Type resultType, DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, int cmdTimeout, params DbParameter[] cmdParms);
+        Task<List<T>> QueryAsync<T>(CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
+        Task<List<T>> QueryAsync<T>(DbTransaction transaction, CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
+        Task<List<T>> QueryAsync<T>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, int cmdTimeout, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
+        Task<List<T>> QueryAsync<T>(Type resultType, DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, int cmdTimeout, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
         /// <summary>
         /// 执行SQL返回对象集合，QueryAsync&lt;User&gt;("select * from user where age > ?age", new { age = 25 })<para></para>
         /// 提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
@@ -408,9 +409,9 @@ namespace FreeSql
         /// <param name="cmdText"></param>
         /// <param name="parms"></param>
         /// <returns></returns>
-        Task<List<T>> QueryAsync<T>(string cmdText, object parms = null);
-        Task<List<T>> QueryAsync<T>(DbTransaction transaction, string cmdText, object parms = null);
-        Task<List<T>> QueryAsync<T>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null);
+        Task<List<T>> QueryAsync<T>(string cmdText, object parms = null, CancellationToken cancellationToken = default);
+        Task<List<T>> QueryAsync<T>(DbTransaction transaction, string cmdText, object parms = null, CancellationToken cancellationToken = default);
+        Task<List<T>> QueryAsync<T>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// 执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > ?age; select * from address", new SqlParameter { ParameterName = "age", Value = 25 })
@@ -420,9 +421,9 @@ namespace FreeSql
         /// <param name="cmdText"></param>
         /// <param name="cmdParms"></param>
         /// <returns></returns>
-        Task<NativeTuple<List<T1>, List<T2>>> QueryAsync<T1, T2>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-        Task<NativeTuple<List<T1>, List<T2>>> QueryAsync<T1, T2>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-        Task<NativeTuple<List<T1>, List<T2>>> QueryAsync<T1, T2>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, int cmdTimeout, params DbParameter[] cmdParms);
+        Task<NativeTuple<List<T1>, List<T2>>> QueryAsync<T1, T2>(CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
+        Task<NativeTuple<List<T1>, List<T2>>> QueryAsync<T1, T2>(DbTransaction transaction, CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
+        Task<NativeTuple<List<T1>, List<T2>>> QueryAsync<T1, T2>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, int cmdTimeout, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
         /// <summary>
         /// 执行SQL返回对象集合，Query&lt;User, Address&gt;("select * from user where age > ?age; select * from address", new { age = 25 })<para></para>
         /// 提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
@@ -431,28 +432,28 @@ namespace FreeSql
         /// <param name="cmdText"></param>
         /// <param name="parms"></param>
         /// <returns></returns>
-        Task<NativeTuple<List<T1>, List<T2>>> QueryAsync<T1, T2>(string cmdText, object parms = null);
-        Task<NativeTuple<List<T1>, List<T2>>> QueryAsync<T1, T2>(DbTransaction transaction, string cmdText, object parms = null);
-        Task<NativeTuple<List<T1>, List<T2>>> QueryAsync<T1, T2>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null);
+        Task<NativeTuple<List<T1>, List<T2>>> QueryAsync<T1, T2>(string cmdText, object parms = null, CancellationToken cancellationToken = default);
+        Task<NativeTuple<List<T1>, List<T2>>> QueryAsync<T1, T2>(DbTransaction transaction, string cmdText, object parms = null, CancellationToken cancellationToken = default);
+        Task<NativeTuple<List<T1>, List<T2>>> QueryAsync<T1, T2>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null, CancellationToken cancellationToken = default);
 
-        Task<NativeTuple<List<T1>, List<T2>, List<T3>>> QueryAsync<T1, T2, T3>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-        Task<NativeTuple<List<T1>, List<T2>, List<T3>>> QueryAsync<T1, T2, T3>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-        Task<NativeTuple<List<T1>, List<T2>, List<T3>>> QueryAsync<T1, T2, T3>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, int cmdTimeout, params DbParameter[] cmdParms);
-        Task<NativeTuple<List<T1>, List<T2>, List<T3>>> QueryAsync<T1, T2, T3>(string cmdText, object parms = null);
-        Task<NativeTuple<List<T1>, List<T2>, List<T3>>> QueryAsync<T1, T2, T3>(DbTransaction transaction, string cmdText, object parms = null);
-        Task<NativeTuple<List<T1>, List<T2>, List<T3>>> QueryAsync<T1, T2, T3>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null);
-        Task<NativeTuple<List<T1>, List<T2>, List<T3>, List<T4>>> QueryAsync<T1, T2, T3, T4>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-        Task<NativeTuple<List<T1>, List<T2>, List<T3>, List<T4>>> QueryAsync<T1, T2, T3, T4>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-        Task<NativeTuple<List<T1>, List<T2>, List<T3>, List<T4>>> QueryAsync<T1, T2, T3, T4>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, int cmdTimeout, params DbParameter[] cmdParms);
-        Task<NativeTuple<List<T1>, List<T2>, List<T3>, List<T4>>> QueryAsync<T1, T2, T3, T4>(string cmdText, object parms = null);
-        Task<NativeTuple<List<T1>, List<T2>, List<T3>, List<T4>>> QueryAsync<T1, T2, T3, T4>(DbTransaction transaction, string cmdText, object parms = null);
-        Task<NativeTuple<List<T1>, List<T2>, List<T3>, List<T4>>> QueryAsync<T1, T2, T3, T4>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null);
-        Task<NativeTuple<List<T1>, List<T2>, List<T3>, List<T4>, List<T5>>> QueryAsync<T1, T2, T3, T4, T5>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-        Task<NativeTuple<List<T1>, List<T2>, List<T3>, List<T4>, List<T5>>> QueryAsync<T1, T2, T3, T4, T5>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
-        Task<NativeTuple<List<T1>, List<T2>, List<T3>, List<T4>, List<T5>>> QueryAsync<T1, T2, T3, T4, T5>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, int cmdTimeout, params DbParameter[] cmdParms);
-        Task<NativeTuple<List<T1>, List<T2>, List<T3>, List<T4>, List<T5>>> QueryAsync<T1, T2, T3, T4, T5>(string cmdText, object parms = null);
-        Task<NativeTuple<List<T1>, List<T2>, List<T3>, List<T4>, List<T5>>> QueryAsync<T1, T2, T3, T4, T5>(DbTransaction transaction, string cmdText, object parms = null);
-        Task<NativeTuple<List<T1>, List<T2>, List<T3>, List<T4>, List<T5>>> QueryAsync<T1, T2, T3, T4, T5>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null);
+        Task<NativeTuple<List<T1>, List<T2>, List<T3>>> QueryAsync<T1, T2, T3>(CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
+        Task<NativeTuple<List<T1>, List<T2>, List<T3>>> QueryAsync<T1, T2, T3>(DbTransaction transaction, CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
+        Task<NativeTuple<List<T1>, List<T2>, List<T3>>> QueryAsync<T1, T2, T3>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, int cmdTimeout, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
+        Task<NativeTuple<List<T1>, List<T2>, List<T3>>> QueryAsync<T1, T2, T3>(string cmdText, object parms = null, CancellationToken cancellationToken = default);
+        Task<NativeTuple<List<T1>, List<T2>, List<T3>>> QueryAsync<T1, T2, T3>(DbTransaction transaction, string cmdText, object parms = null, CancellationToken cancellationToken = default);
+        Task<NativeTuple<List<T1>, List<T2>, List<T3>>> QueryAsync<T1, T2, T3>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null, CancellationToken cancellationToken = default);
+        Task<NativeTuple<List<T1>, List<T2>, List<T3>, List<T4>>> QueryAsync<T1, T2, T3, T4>(CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
+        Task<NativeTuple<List<T1>, List<T2>, List<T3>, List<T4>>> QueryAsync<T1, T2, T3, T4>(DbTransaction transaction, CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
+        Task<NativeTuple<List<T1>, List<T2>, List<T3>, List<T4>>> QueryAsync<T1, T2, T3, T4>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, int cmdTimeout, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
+        Task<NativeTuple<List<T1>, List<T2>, List<T3>, List<T4>>> QueryAsync<T1, T2, T3, T4>(string cmdText, object parms = null, CancellationToken cancellationToken = default);
+        Task<NativeTuple<List<T1>, List<T2>, List<T3>, List<T4>>> QueryAsync<T1, T2, T3, T4>(DbTransaction transaction, string cmdText, object parms = null, CancellationToken cancellationToken = default);
+        Task<NativeTuple<List<T1>, List<T2>, List<T3>, List<T4>>> QueryAsync<T1, T2, T3, T4>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null, CancellationToken cancellationToken = default);
+        Task<NativeTuple<List<T1>, List<T2>, List<T3>, List<T4>, List<T5>>> QueryAsync<T1, T2, T3, T4, T5>(CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
+        Task<NativeTuple<List<T1>, List<T2>, List<T3>, List<T4>, List<T5>>> QueryAsync<T1, T2, T3, T4, T5>(DbTransaction transaction, CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
+        Task<NativeTuple<List<T1>, List<T2>, List<T3>, List<T4>, List<T5>>> QueryAsync<T1, T2, T3, T4, T5>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, int cmdTimeout, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
+        Task<NativeTuple<List<T1>, List<T2>, List<T3>, List<T4>, List<T5>>> QueryAsync<T1, T2, T3, T4, T5>(string cmdText, object parms = null, CancellationToken cancellationToken = default);
+        Task<NativeTuple<List<T1>, List<T2>, List<T3>, List<T4>, List<T5>>> QueryAsync<T1, T2, T3, T4, T5>(DbTransaction transaction, string cmdText, object parms = null, CancellationToken cancellationToken = default);
+        Task<NativeTuple<List<T1>, List<T2>, List<T3>, List<T4>, List<T5>>> QueryAsync<T1, T2, T3, T4, T5>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null, CancellationToken cancellationToken = default);
         #endregion
 #endif
     }

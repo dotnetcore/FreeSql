@@ -6,6 +6,7 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FreeSql.Firebird.Curd
@@ -123,19 +124,19 @@ namespace FreeSql.Firebird.Curd
 
 #if net40
 #else
-        public override Task<int> ExecuteAffrowsAsync()
+        public override Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default)
         {
             base.NoneParameter(_source?.Count > 1);
-            return base.SplitExecuteAffrowsAsync(_batchValuesLimit > 0 ? _batchValuesLimit : 200, _batchParameterLimit > 0 ? _batchParameterLimit : 999);
+            return base.SplitExecuteAffrowsAsync(_batchValuesLimit > 0 ? _batchValuesLimit : 200, _batchParameterLimit > 0 ? _batchParameterLimit : 999, cancellationToken);
         }
-        public override Task<long> ExecuteIdentityAsync()
+        public override Task<long> ExecuteIdentityAsync(CancellationToken cancellationToken = default)
         {
             base.NoneParameter(_source?.Count > 1);
-            return base.SplitExecuteIdentityAsync(_batchValuesLimit > 0 ? _batchValuesLimit : 200, _batchParameterLimit > 0 ? _batchParameterLimit : 999);
+            return base.SplitExecuteIdentityAsync(_batchValuesLimit > 0 ? _batchValuesLimit : 200, _batchParameterLimit > 0 ? _batchParameterLimit : 999, cancellationToken);
         }
-        public override Task<List<T1>> ExecuteInsertedAsync() => base.SplitExecuteInsertedAsync(1, 1000);
+        public override Task<List<T1>> ExecuteInsertedAsync(CancellationToken cancellationToken = default) => base.SplitExecuteInsertedAsync(1, 1000, cancellationToken);
 
-        async protected override Task<long> RawExecuteIdentityAsync()
+        async protected override Task<long> RawExecuteIdentityAsync(CancellationToken cancellationToken = default)
         {
             var sql = this.ToSql();
             if (string.IsNullOrEmpty(sql)) return 0;
@@ -151,7 +152,7 @@ namespace FreeSql.Firebird.Curd
                 _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
                 try
                 {
-                    ret = await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, _commandTimeout, _params);
+                    ret = await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, _commandTimeout, _params, cancellationToken);
                 }
                 catch (Exception ex)
                 {
@@ -170,7 +171,7 @@ namespace FreeSql.Firebird.Curd
             _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             try
             {
-                long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync(_connection, _transaction, CommandType.Text, sql, _commandTimeout, _params)), out ret);
+                long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync(_connection, _transaction, CommandType.Text, sql, _commandTimeout, _params, cancellationToken)), out ret);
             }
             catch (Exception ex)
             {
@@ -184,7 +185,7 @@ namespace FreeSql.Firebird.Curd
             }
             return ret;
         }
-        async protected override Task<List<T1>> RawExecuteInsertedAsync()
+        async protected override Task<List<T1>> RawExecuteInsertedAsync(CancellationToken cancellationToken = default)
         {
             var sql = this.ToSql();
             if (string.IsNullOrEmpty(sql)) return new List<T1>();
@@ -206,7 +207,7 @@ namespace FreeSql.Firebird.Curd
             Exception exception = null;
             try
             {
-                ret = await _orm.Ado.QueryAsync<T1>(_connection, _transaction, CommandType.Text, sql, _commandTimeout, _params);
+                ret = await _orm.Ado.QueryAsync<T1>(_connection, _transaction, CommandType.Text, sql, _commandTimeout, _params, cancellationToken);
             }
             catch (Exception ex)
             {

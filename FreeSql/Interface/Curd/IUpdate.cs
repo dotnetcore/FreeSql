@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq.Expressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FreeSql
@@ -249,8 +250,8 @@ namespace FreeSql
 
 #if net40
 #else
-        Task<int> ExecuteAffrowsAsync();
-        Task<List<T1>> ExecuteUpdatedAsync();
+        Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default);
+        Task<List<T1>> ExecuteUpdatedAsync(CancellationToken cancellationToken = default);
 #endif
     }
 }

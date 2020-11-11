@@ -8,6 +8,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FreeSql.Internal.CommonProvider
@@ -292,7 +293,7 @@ namespace FreeSql.Internal.CommonProvider
         }
 #if net40
 #else
-        async public Task<int> RawExecuteAffrowsAsync()
+        async public Task<int> RawExecuteAffrowsAsync(CancellationToken cancellationToken = default)
         {
             var sql = this.ToSql();
             if (string.IsNullOrEmpty(sql)) return 0;
@@ -302,7 +303,7 @@ namespace FreeSql.Internal.CommonProvider
             Exception exception = null;
             try
             {
-                affrows = await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, _commandTimeout, _params);
+                affrows = await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, _commandTimeout, _params, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -316,7 +317,7 @@ namespace FreeSql.Internal.CommonProvider
             }
             return affrows;
         }
-        async public Task<int> ExecuteAffrowsAsync()
+        async public Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default)
         {
             var affrows = 0;
             var ss = SplitSourceByIdentityValueIsNull(_source);
@@ -332,10 +333,10 @@ namespace FreeSql.Internal.CommonProvider
                 {
                     _source = ss.Item1;
                     _SplitSourceByIdentityValueIsNullFlag = 1;
-                    affrows += await this.RawExecuteAffrowsAsync();
+                    affrows += await this.RawExecuteAffrowsAsync(cancellationToken);
                     _source = ss.Item2;
                     _SplitSourceByIdentityValueIsNullFlag = 2;
-                    affrows += await this.RawExecuteAffrowsAsync();
+                    affrows += await this.RawExecuteAffrowsAsync(cancellationToken);
                 }
                 else
                 {
@@ -348,10 +349,10 @@ namespace FreeSql.Internal.CommonProvider
                         {
                             _source = ss.Item1;
                             _SplitSourceByIdentityValueIsNullFlag = 1;
-                            affrows += await this.RawExecuteAffrowsAsync();
+                            affrows += await this.RawExecuteAffrowsAsync(cancellationToken);
                             _source = ss.Item2;
                             _SplitSourceByIdentityValueIsNullFlag = 2;
-                            affrows += await this.RawExecuteAffrowsAsync();
+                            affrows += await this.RawExecuteAffrowsAsync(cancellationToken);
                             _transaction.Commit();
                             _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, "提交", null));
                         }
