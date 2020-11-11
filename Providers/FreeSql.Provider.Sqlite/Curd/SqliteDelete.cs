@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FreeSql.Sqlite.Curd
@@ -22,7 +23,7 @@ namespace FreeSql.Sqlite.Curd
 
 #if net40
 #else
-        public override Task<List<T1>> ExecuteDeletedAsync()
+        public override Task<List<T1>> ExecuteDeletedAsync(CancellationToken cancellationToken = default)
         {
             throw new NotImplementedException();
         }

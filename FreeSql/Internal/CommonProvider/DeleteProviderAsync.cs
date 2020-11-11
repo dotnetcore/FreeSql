@@ -5,6 +5,7 @@ using System.Data;
 using System.Data.Common;
 using System.Linq.Expressions;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FreeSql.Internal.CommonProvider
@@ -13,7 +14,7 @@ namespace FreeSql.Internal.CommonProvider
     {
 #if net40
 #else
-        async public Task<int> ExecuteAffrowsAsync()
+        async public Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default)
         {
             var sql = this.ToSql();
             if (string.IsNullOrEmpty(sql)) return 0;
@@ -24,7 +25,7 @@ namespace FreeSql.Internal.CommonProvider
             Exception exception = null;
             try
             {
-                affrows = await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms);
+                affrows = await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -39,7 +40,7 @@ namespace FreeSql.Internal.CommonProvider
             this.ClearData();
             return affrows;
         }
-        public abstract Task<List<T1>> ExecuteDeletedAsync();
+        public abstract Task<List<T1>> ExecuteDeletedAsync(CancellationToken cancellationToken = default);
 #endif
     }
 }

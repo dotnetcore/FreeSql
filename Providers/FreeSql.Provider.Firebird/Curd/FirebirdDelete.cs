@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FreeSql.Firebird.Curd
@@ -56,7 +57,7 @@ namespace FreeSql.Firebird.Curd
 
 #if net40
 #else
-        async public override Task<List<T1>> ExecuteDeletedAsync()
+        async public override Task<List<T1>> ExecuteDeletedAsync(CancellationToken cancellationToken = default)
         {
             var sql = this.ToSql();
             if (string.IsNullOrEmpty(sql)) return new List<T1>();
@@ -79,7 +80,7 @@ namespace FreeSql.Firebird.Curd
             Exception exception = null;
             try
             {
-                ret = await _orm.Ado.QueryAsync<T1>(_connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms);
+                ret = await _orm.Ado.QueryAsync<T1>(_connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms, cancellationToken);
             }
             catch (Exception ex)
             {
