@@ -1,0 +1,7 @@
+﻿[*.cs]
+
+# Default severity for analyzer diagnostics with category 'Style'
+dotnet_analyzer_diagnostic.category-Style.severity = none
+
+# CS0649: 从未对字段“TransactionalAttribute._uowManager”赋值，字段将一直保持其默认值 null
+dotnet_diagnostic.CS0649.severity = none

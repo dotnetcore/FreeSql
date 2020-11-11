@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net452</TargetFrameworks>
-    <Version>2.0.0-preview1109</Version>
+		<Version>2.0.0-preview1109</Version>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>FreeSql;ncc;YeXiangQin</Authors>
 		<Description>FreeSql 数据库实现，基于 Firebird</Description>
@@ -12,7 +12,7 @@
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageTags>FreeSql;ORM;Firebird;火鸟</PackageTags>
 		<PackageId>$(AssemblyName)</PackageId>
-    <PackageIcon>logo.png</PackageIcon>
+		<PackageIcon>logo.png</PackageIcon>
 		<Title>$(AssemblyName)</Title>
 		<IsPackable>true</IsPackable>
 		<GenerateAssemblyInfo>true</GenerateAssemblyInfo>
@@ -21,16 +21,16 @@
 		<DelaySign>false</DelaySign>
 	</PropertyGroup>
 
-  <ItemGroup>
-    <None Include="../../logo.png" Pack="true" PackagePath="\" />
-  </ItemGroup>
+	<ItemGroup>
+		<None Include="../../logo.png" Pack="true" PackagePath="\" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="FirebirdSql.Data.FirebirdClient" Version="7.5.0" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="FirebirdSql.Data.FirebirdClient" Version="7.5.0" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />
+	</ItemGroup>
 
 </Project>

@@ -18,8 +18,8 @@ namespace orm_vs
     class Program
     {
         static IFreeSql fsql = new FreeSql.FreeSqlBuilder()
-                .UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=20")
-                //.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=20")
+                //.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=20")
+                .UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=20")
                 //.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=20")
                 .UseAutoSyncStructure(false)
                 .UseNoneCommandParameter(true)
@@ -30,10 +30,10 @@ namespace orm_vs
         {
             get => new SqlSugarClient(new ConnectionConfig()
             {
-                ConnectionString = "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Min Pool Size=20;Max Pool Size=20",
-                DbType = DbType.SqlServer,
-                //ConnectionString = "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Min Pool Size=20;Max Pool Size=20",
-                //DbType = DbType.MySql,
+                //ConnectionString = "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Min Pool Size=20;Max Pool Size=20",
+                //DbType = DbType.SqlServer,
+                ConnectionString = "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Min Pool Size=20;Max Pool Size=20",
+                DbType = DbType.MySql,
                 //ConnectionString = "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=21",
                 //DbType = DbType.PostgreSQL,
                 IsAutoCloseConnection = true,
@@ -46,8 +46,8 @@ namespace orm_vs
             public DbSet<Song> Songs { get; set; }
             protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
             {
-                optionsBuilder.UseSqlServer(@"Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Min Pool Size=21;Max Pool Size=21");
-                //optionsBuilder.UseMySql("Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Min Pool Size=21;Max Pool Size=21");
+                //optionsBuilder.UseSqlServer(@"Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Min Pool Size=21;Max Pool Size=21");
+                optionsBuilder.UseMySql("Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Min Pool Size=21;Max Pool Size=21");
                 //optionsBuilder.UseNpgsql("Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=21");
             }
 
@@ -481,11 +481,11 @@ namespace orm_vs
             {
                 using (var db = new SongContext())
                 {
-                    db.Songs.Take(size).AsNoTracking().ToList();
+                    //db.Songs.Take(size).AsNoTracking().ToList();
                 }
             }
             sw.Stop();
-            sb.AppendLine($"EFCore Select {size}条数据，循环{forTime}次，耗时{sw.ElapsedMilliseconds}ms");
+            sb.AppendLine($"EFCore Select {size}条数据，循环{forTime}次，耗时{sw.ElapsedMilliseconds}ms .net5.0无效");
 
             sw.Restart();
             using (var conn = fsql.Ado.MasterPool.Get())
@@ -513,8 +513,8 @@ namespace orm_vs
             using (var db = new SongContext())
             {
                 //db.Configuration.AutoDetectChangesEnabled = false;
-                db.Songs.AddRange(songs.First());
-                db.SaveChanges();
+                //db.Songs.AddRange(songs.First());
+                //db.SaveChanges(); //.net5.0 throw Microsoft.EntityFrameworkCore.DbUpdateException
             }
             Stopwatch sw = new Stopwatch();
 
@@ -552,12 +552,12 @@ namespace orm_vs
                 using (var db = new SongContext())
                 {
                     //db.Configuration.AutoDetectChangesEnabled = false;
-                    db.Songs.AddRange(songs.ToArray());
-                    db.SaveChanges();
+                    //db.Songs.AddRange(songs.ToArray());
+                    //db.SaveChanges(); //.net5.0 throw Microsoft.EntityFrameworkCore.DbUpdateException
                 }
             }
             sw.Stop();
-            sb.AppendLine($"EFCore Insert {size}条数据，循环{forTime}次，耗时{sw.ElapsedMilliseconds}ms\r\n");
+            sb.AppendLine($"EFCore Insert {size}条数据，循环{forTime}次，耗时{sw.ElapsedMilliseconds}ms .net5.0无效\r\n");
         }
 
         static void Update(StringBuilder sb, int forTime, int size)
@@ -599,12 +599,12 @@ namespace orm_vs
                 using (var db = new SongContext())
                 {
                     //db.Configuration.AutoDetectChangesEnabled = false;
-                    db.Songs.UpdateRange(songs.ToArray());
-                    db.SaveChanges();
+                    //db.Songs.UpdateRange(songs.ToArray());
+                    //db.SaveChanges();
                 }
             }
             sw.Stop();
-            sb.AppendLine($"EFCore Update {size}条数据，循环{forTime}次，耗时{sw.ElapsedMilliseconds}ms\r\n");
+            sb.AppendLine($"EFCore Update {size}条数据，循环{forTime}次，耗时{sw.ElapsedMilliseconds}ms .net5.0无效\r\n");
         }
     }
 

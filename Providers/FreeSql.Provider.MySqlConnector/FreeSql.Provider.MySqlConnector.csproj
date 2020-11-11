@@ -12,7 +12,7 @@
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageTags>FreeSql;ORM;MySql;MariaDB;Tidb</PackageTags>
 		<PackageId>$(AssemblyName)</PackageId>
-    <PackageIcon>logo.png</PackageIcon>
+		<PackageIcon>logo.png</PackageIcon>
 		<Title>$(AssemblyName)</Title>
 		<IsPackable>true</IsPackable>
 		<GenerateAssemblyInfo>true</GenerateAssemblyInfo>
@@ -21,27 +21,27 @@
 		<DelaySign>false</DelaySign>
 	</PropertyGroup>
 
-  <ItemGroup>
-    <None Include="../../logo.png" Pack="true" PackagePath="\" />
-  </ItemGroup>
-  
 	<ItemGroup>
-		<PackageReference Include="MySqlConnector" Version="1.0.1" />
+		<None Include="../../logo.png" Pack="true" PackagePath="\" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="MySqlConnector" Version="1.1.0" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<Compile Include="../FreeSql.Provider.MySql/**/*.cs" Exclude="../FreeSql.Provider.MySql/obj/**/*" />
 	</ItemGroup>
 	<ItemGroup>
-	  <Compile Remove="..\FreeSql.Provider.MySql\MySqlUtils.cs" />
+		<Compile Remove="..\FreeSql.Provider.MySql\MySqlUtils.cs" />
 	</ItemGroup>
-	
+
 	<ItemGroup>
 		<ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />
 	</ItemGroup>
 
-  <PropertyGroup>
-    <DefineConstants>MySqlConnector</DefineConstants>
-  </PropertyGroup>
-  
+	<PropertyGroup>
+		<DefineConstants>MySqlConnector</DefineConstants>
+	</PropertyGroup>
+
 </Project>

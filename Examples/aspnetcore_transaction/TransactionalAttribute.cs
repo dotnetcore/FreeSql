@@ -19,7 +19,9 @@ namespace FreeSql
         IsolationLevel? _IsolationLevelPriv;
 
         [DynamicProxyFromServices]
+#pragma warning disable IDE0044 // 添加只读修饰符
         UnitOfWorkManager _uowManager;
+#pragma warning restore IDE0044 // 添加只读修饰符
         IUnitOfWork _uow;
 
         public override Task Before(DynamicProxyBeforeArguments args) => OnBefore(_uowManager);

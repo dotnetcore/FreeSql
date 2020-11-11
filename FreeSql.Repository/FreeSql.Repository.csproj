@@ -1,31 +1,31 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;netcoreapp31;netcoreapp30;netcoreapp22;netcoreapp21;net45;net40</TargetFrameworks>
-    <Version>2.0.0-preview1109</Version>
-    <Authors>FreeSql;ncc;YeXiangQin</Authors>
-    <Description>FreeSql Implementation of General Repository, Support MySql/SqlServer/PostgreSQL/Oracle/Sqlite/Firebird/达梦/人大金仓/神舟通用/翰高/Access, and read/write separation、and split table.</Description>
-    <PackageProjectUrl>https://github.com/2881099/FreeSql/wiki/Repository</PackageProjectUrl>
-    <PackageTags>FreeSql ORM Repository</PackageTags>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <RepositoryType>git</RepositoryType>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageId>$(AssemblyName)</PackageId>
-    <PackageIcon>logo.png</PackageIcon>
-    <Title>$(AssemblyName)</Title>
-    <IsPackable>true</IsPackable>
-    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
-    <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>key.snk</AssemblyOriginatorKeyFile>
-    <DelaySign>false</DelaySign>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0;net50;netcoreapp31;netcoreapp21;net45;net40</TargetFrameworks>
+		<Version>2.0.0-preview1109</Version>
+		<Authors>FreeSql;ncc;YeXiangQin</Authors>
+		<Description>FreeSql Implementation of General Repository, Support MySql/SqlServer/PostgreSQL/Oracle/Sqlite/Firebird/达梦/人大金仓/神舟通用/翰高/Access, and read/write separation、and split table.</Description>
+		<PackageProjectUrl>https://github.com/2881099/FreeSql/wiki/Repository</PackageProjectUrl>
+		<PackageTags>FreeSql ORM Repository</PackageTags>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<RepositoryType>git</RepositoryType>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageId>$(AssemblyName)</PackageId>
+		<PackageIcon>logo.png</PackageIcon>
+		<Title>$(AssemblyName)</Title>
+		<IsPackable>true</IsPackable>
+		<GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+		<SignAssembly>true</SignAssembly>
+		<AssemblyOriginatorKeyFile>key.snk</AssemblyOriginatorKeyFile>
+		<DelaySign>false</DelaySign>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <None Include="../logo.png" Pack="true" PackagePath="\" />
-  </ItemGroup>
-  
-  <ItemGroup>
-    <ProjectReference Include="..\FreeSql.DbContext\FreeSql.DbContext.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<None Include="../logo.png" Pack="true" PackagePath="\" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\FreeSql.DbContext\FreeSql.DbContext.csproj" />
+	</ItemGroup>
 
 </Project>

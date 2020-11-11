@@ -12,7 +12,7 @@
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageTags>FreeSql;ORM;sqlite</PackageTags>
 		<PackageId>$(AssemblyName)</PackageId>
-    <PackageIcon>logo.png</PackageIcon>
+		<PackageIcon>logo.png</PackageIcon>
 		<Title>$(AssemblyName)</Title>
 		<IsPackable>true</IsPackable>
 		<GenerateAssemblyInfo>true</GenerateAssemblyInfo>
@@ -21,23 +21,23 @@
 		<DelaySign>false</DelaySign>
 	</PropertyGroup>
 
-  <ItemGroup>
-    <None Include="../../logo.png" Pack="true" PackagePath="\" />
-  </ItemGroup>
-
-  <ItemGroup>
-	  <PackageReference Include="System.Data.SQLite.Core" Version="1.0.113.1" />
+	<ItemGroup>
+		<None Include="../../logo.png" Pack="true" PackagePath="\" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />
+		<PackageReference Include="System.Data.SQLite.Core" Version="1.0.113.6" />
 	</ItemGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <DefineConstants>ns20;netstandard20</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net40'">
-    <DefineConstants>net40</DefineConstants>
-  </PropertyGroup>
-  
+	<ItemGroup>
+		<ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />
+	</ItemGroup>
+
+	<PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+		<DefineConstants>ns20;netstandard20</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net40'">
+		<DefineConstants>net40</DefineConstants>
+	</PropertyGroup>
+
 </Project>

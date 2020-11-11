@@ -12,7 +12,7 @@
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageTags>FreeSql;ORM;SqlServer;mssql</PackageTags>
 		<PackageId>$(AssemblyName)</PackageId>
-    <PackageIcon>logo.png</PackageIcon>
+		<PackageIcon>logo.png</PackageIcon>
 		<Title>$(AssemblyName)</Title>
 		<IsPackable>true</IsPackable>
 		<GenerateAssemblyInfo>true</GenerateAssemblyInfo>
@@ -21,26 +21,26 @@
 		<AssemblyOriginatorKeyFile>key.snk</AssemblyOriginatorKeyFile>
 	</PropertyGroup>
 
-  <ItemGroup>
-    <None Include="../../logo.png" Pack="true" PackagePath="\" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net451'">
-    <PackageReference Include="System.Data.SqlClient" Version="4.8.2" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="2.0.1" />
-  </ItemGroup>
-
 	<ItemGroup>
-	  <ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />
+		<None Include="../../logo.png" Pack="true" PackagePath="\" />
 	</ItemGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <DefineConstants>microsoft</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net40'">
-    <DefineConstants>net40</DefineConstants>
-  </PropertyGroup>
-  
+	<ItemGroup Condition="'$(TargetFramework)' == 'net451'">
+		<PackageReference Include="System.Data.SqlClient" Version="4.8.2" />
+	</ItemGroup>
+	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+		<PackageReference Include="Microsoft.Data.SqlClient" Version="2.0.1" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />
+	</ItemGroup>
+
+	<PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+		<DefineConstants>microsoft</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net40'">
+		<DefineConstants>net40</DefineConstants>
+	</PropertyGroup>
+
 </Project>

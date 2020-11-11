@@ -12,7 +12,7 @@
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageTags>FreeSql;ORM;Oracle</PackageTags>
 		<PackageId>$(AssemblyName)</PackageId>
-    <PackageIcon>logo.png</PackageIcon>
+		<PackageIcon>logo.png</PackageIcon>
 		<Title>$(AssemblyName)</Title>
 		<IsPackable>true</IsPackable>
 		<GenerateAssemblyInfo>true</GenerateAssemblyInfo>
@@ -21,25 +21,25 @@
 		<DelaySign>false</DelaySign>
 	</PropertyGroup>
 
-  <ItemGroup>
-    <None Include="../../logo.png" Pack="true" PackagePath="\" />
-  </ItemGroup>
-  
+	<ItemGroup>
+		<None Include="../../logo.png" Pack="true" PackagePath="\" />
+	</ItemGroup>
+
 	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-	  <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="2.19.90" />
+		<PackageReference Include="Oracle.ManagedDataAccess.Core" Version="2.19.91" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net45' or '$(TargetFramework)' == 'net40'">
 		<PackageReference Include="Oracle.ManagedDataAccess" Version="19.9.0" />
 	</ItemGroup>
-	
+
 	<ItemGroup>
-	  <ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />
+		<ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />
 	</ItemGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net40'">
-    <DefineConstants>net40</DefineConstants>
-  </PropertyGroup>
-  
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net40'">
+		<DefineConstants>net40</DefineConstants>
+	</PropertyGroup>
+
 </Project>
-	
+

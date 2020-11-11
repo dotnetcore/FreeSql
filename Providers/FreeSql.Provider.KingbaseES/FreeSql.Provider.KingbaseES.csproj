@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net461</TargetFrameworks>
+		<TargetFrameworks>netstandard2.0;net461</TargetFrameworks>
 		<Version>2.0.0-preview1109</Version>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>FreeSql;ncc;YeXiangQin</Authors>
@@ -12,34 +12,34 @@
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageTags>FreeSql;ORM;人大金仓;金仓;Kdbndp</PackageTags>
 		<PackageId>$(AssemblyName)</PackageId>
-    <PackageIcon>logo.png</PackageIcon>
+		<PackageIcon>logo.png</PackageIcon>
 		<Title>$(AssemblyName)</Title>
 		<IsPackable>true</IsPackable>
 		<GenerateAssemblyInfo>true</GenerateAssemblyInfo>
 	</PropertyGroup>
 
-  <ItemGroup>
-    <None Include="../../logo.png" Pack="true" PackagePath="\" />
-    <None Include="lib\Kdbndp.dll" Pack="true" PackagePath="\lib\netstandard2.0\" />
-    <None Include="lib\Kdbndp.dll" Pack="true" PackagePath="\lib\net461\" />
-    <None Include="lib/**/*.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
+	<ItemGroup>
+		<None Include="../../logo.png" Pack="true" PackagePath="\" />
+		<None Include="lib\Kdbndp.dll" Pack="true" PackagePath="\lib\netstandard2.0\" />
+		<None Include="lib\Kdbndp.dll" Pack="true" PackagePath="\lib\net461\" />
+		<None Include="lib/**/*.dll">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="Kdbndp">
-      <HintPath>lib\Kdbndp.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-  </ItemGroup>
+	<ItemGroup>
+		<Reference Include="Kdbndp">
+			<HintPath>lib\Kdbndp.dll</HintPath>
+			<Private>false</Private>
+		</Reference>
+	</ItemGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <DefineConstants>ns20;netstandard20</DefineConstants>
-  </PropertyGroup>
+	<PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+		<DefineConstants>ns20;netstandard20</DefineConstants>
+	</PropertyGroup>
 
 </Project>

@@ -99,7 +99,9 @@ namespace FreeSql
             catch (Exception ex)
             {
                 _fsql?.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(_tranBefore, "失败", ex));
+#pragma warning disable CA2200 // 再次引发以保留堆栈详细信息
                 throw ex;
+#pragma warning restore CA2200 // 再次引发以保留堆栈详细信息
             }
             return _tran;
         }
@@ -123,7 +125,9 @@ namespace FreeSql
             {
                 if (isCommited == false)
                     _fsql?.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(_tranBefore, "提交失败", ex));
+#pragma warning disable CA2200 // 再次引发以保留堆栈详细信息
                 throw ex;
+#pragma warning restore CA2200 // 再次引发以保留堆栈详细信息
             }
             finally
             {
@@ -147,7 +151,9 @@ namespace FreeSql
             {
                 if (isRollbacked == false)
                     _fsql?.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(_tranBefore, "回滚失败", ex));
+#pragma warning disable CA2200 // 再次引发以保留堆栈详细信息
                 throw ex;
+#pragma warning restore CA2200 // 再次引发以保留堆栈详细信息
             }
             finally
             {
