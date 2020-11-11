@@ -3,6 +3,7 @@ using System;
 using System.Data;
 using System.Linq.Expressions;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FreeSql.Odbc.MySql
@@ -136,7 +137,7 @@ namespace FreeSql.Odbc.MySql
 
 #if net40
 #else
-        async public Task<long> ExecuteAffrowsAsync()
+        async public Task<long> ExecuteAffrowsAsync(CancellationToken cancellationToken = default)
         {
             var sql = this.ToSql();
             if (string.IsNullOrEmpty(sql)) return 0;
@@ -147,7 +148,7 @@ namespace FreeSql.Odbc.MySql
             Exception exception = null;
             try
             {
-                ret = await _mysqlInsert.InternalOrm.Ado.ExecuteNonQueryAsync(_mysqlInsert.InternalConnection, _mysqlInsert.InternalTransaction, CommandType.Text, sql, _mysqlInsert._commandTimeout, _mysqlInsert.InternalParams);
+                ret = await _mysqlInsert.InternalOrm.Ado.ExecuteNonQueryAsync(_mysqlInsert.InternalConnection, _mysqlInsert.InternalTransaction, CommandType.Text, sql, _mysqlInsert._commandTimeout, _mysqlInsert.InternalParams, cancellationToken);
             }
             catch (Exception ex)
             {
