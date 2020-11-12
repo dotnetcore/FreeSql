@@ -21,11 +21,12 @@ namespace FreeSql.Internal.CommonProvider
     {
         public DataTable ToDataTable(string field = null)
         {
+            DataTable ret = null;
+            if (_cancel?.Invoke() == true) return ret;
             var sql = this.ToSql(field);
             var dbParms = _params.ToArray();
             var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
             _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
-            DataTable ret = null;
             Exception exception = null;
             try
             {
@@ -46,12 +47,13 @@ namespace FreeSql.Internal.CommonProvider
 
         public List<TTuple> ToList<TTuple>(string field)
         {
+            var ret = new List<TTuple>();
+            if (_cancel?.Invoke() == true) return ret;
             var sql = this.ToSql(field);
             var type = typeof(TTuple);
             var dbParms = _params.ToArray();
             var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
             _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
-            var ret = new List<TTuple>();
             Exception exception = null;
             try
             {
@@ -81,10 +83,11 @@ namespace FreeSql.Internal.CommonProvider
         }
         internal List<T1> ToListAfPrivate(string sql, GetAllFieldExpressionTreeInfo af, ReadAnonymousTypeOtherInfo[] otherData)
         {
+            var ret = new List<T1>();
+            if (_cancel?.Invoke() == true) return ret;
             var dbParms = _params.ToArray();
             var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
             _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
-            var ret = new List<T1>();
             var retCount = 0;
             Exception exception = null;
             try
@@ -133,6 +136,7 @@ namespace FreeSql.Internal.CommonProvider
         #region ToChunk
         internal void ToListAfChunkPrivate(int chunkSize, Action<FetchCallbackArgs<List<T1>>> chunkDone, string sql, GetAllFieldExpressionTreeInfo af, ReadAnonymousTypeOtherInfo[] otherData)
         {
+            if (_cancel?.Invoke() == true) return;
             var dbParms = _params.ToArray();
             var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
             _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
@@ -208,6 +212,7 @@ namespace FreeSql.Internal.CommonProvider
 
         internal void ToListMrChunkPrivate<TReturn>(int chunkSize, Action<FetchCallbackArgs<List<TReturn>>> chunkDone, string sql, ReadAnonymousTypeAfInfo af)
         {
+            if (_cancel?.Invoke() == true) return;
             var type = typeof(TReturn);
             var dbParms = _params.ToArray();
             var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
@@ -266,12 +271,14 @@ namespace FreeSql.Internal.CommonProvider
         {
             if (keySelector == null) throw new ArgumentNullException(nameof(keySelector));
             if (elementSelector == null) throw new ArgumentNullException(nameof(elementSelector));
+
+            var ret = new Dictionary<TKey, TElement>();
+            if (_cancel?.Invoke() == true) return ret;
             var af = this.GetAllFieldExpressionTreeLevel2();
             var sql = this.ToSql(af.Field);
             var dbParms = _params.ToArray();
             var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
             _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
-            var ret = new Dictionary<TKey, TElement>();
             Exception exception = null;
             try
             {
@@ -297,11 +304,12 @@ namespace FreeSql.Internal.CommonProvider
 
         internal List<TReturn> ToListMrPrivate<TReturn>(string sql, ReadAnonymousTypeAfInfo af, ReadAnonymousTypeOtherInfo[] otherData)
         {
+            var ret = new List<TReturn>();
+            if (_cancel?.Invoke() == true) return ret;
             var type = typeof(TReturn);
             var dbParms = _params.ToArray();
             var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
             _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
-            var ret = new List<TReturn>();
             var retCount = 0;
             Exception exception = null;
             try
@@ -715,12 +723,13 @@ namespace FreeSql.Internal.CommonProvider
         }
         public int InternalInsertInto<TTargetEntity>(string tableName, Expression select)
         {
+            int ret = 0;
+            if (_cancel?.Invoke() == true) return ret;
             var sql = this.InternalGetInsertIntoToSql<TTargetEntity>(tableName, select);
             var dbParms = _params.ToArray();
             var tb = _orm.CodeFirst.GetTableByEntity(typeof(TTargetEntity));
             var before = new Aop.CurdBeforeEventArgs(tb.Type, tb, Aop.CurdType.Insert, sql, dbParms);
             _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
-            int ret = 0;
             Exception exception = null;
             try
             {
@@ -741,11 +750,12 @@ namespace FreeSql.Internal.CommonProvider
 
         protected DataTable InternalToDataTable(Expression select)
         {
+            DataTable ret = null;
+            if (_cancel?.Invoke() == true) return ret;
             var sql = this.InternalToSql<int>(select, FieldAliasOptions.AsProperty); //DataTable 使用 AsProperty
             var dbParms = _params.ToArray();
             var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
             _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
-            DataTable ret = null;
             Exception exception = null;
             try
             {
@@ -790,11 +800,12 @@ namespace FreeSql.Internal.CommonProvider
 #else
         async public Task<DataTable> ToDataTableAsync(string field, CancellationToken cancellationToken)
         {
+            DataTable ret = null;
+            if (_cancel?.Invoke() == true) return ret;
             var sql = this.ToSql(field);
             var dbParms = _params.ToArray();
             var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
             _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
-            DataTable ret = null;
             Exception exception = null;
             try
             {
@@ -815,12 +826,13 @@ namespace FreeSql.Internal.CommonProvider
 
         async public Task<List<TTuple>> ToListAsync<TTuple>(string field, CancellationToken cancellationToken)
         {
+            var ret = new List<TTuple>();
+            if (_cancel?.Invoke() == true) return ret;
             var sql = this.ToSql(field);
             var type = typeof(TTuple);
             var dbParms = _params.ToArray();
             var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
             _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
-            var ret = new List<TTuple>();
             Exception exception = null;
             try
             {
@@ -852,10 +864,11 @@ namespace FreeSql.Internal.CommonProvider
 
         async internal Task<List<T1>> ToListAfPrivateAsync(string sql, GetAllFieldExpressionTreeInfo af, ReadAnonymousTypeOtherInfo[] otherData, CancellationToken cancellationToken)
         {
+            var ret = new List<T1>();
+            if (_cancel?.Invoke() == true) return ret;
             var dbParms = _params.ToArray();
             var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
             _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
-            var ret = new List<T1>();
             var retCount = 0;
             Exception exception = null;
             try
@@ -909,12 +922,14 @@ namespace FreeSql.Internal.CommonProvider
         {
             if (keySelector == null) throw new ArgumentNullException(nameof(keySelector));
             if (elementSelector == null) throw new ArgumentNullException(nameof(elementSelector));
+
+            var ret = new Dictionary<TKey, TElement>();
+            if (_cancel?.Invoke() == true) return ret;
             var af = this.GetAllFieldExpressionTreeLevel2();
             var sql = this.ToSql(af.Field);
             var dbParms = _params.ToArray();
             var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
             _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
-            var ret = new Dictionary<TKey, TElement>();
             Exception exception = null;
             try
             {
@@ -941,11 +956,12 @@ namespace FreeSql.Internal.CommonProvider
 
         async internal Task<List<TReturn>> ToListMrPrivateAsync<TReturn>(string sql, ReadAnonymousTypeAfInfo af, ReadAnonymousTypeOtherInfo[] otherData, CancellationToken cancellationToken)
         {
+            var ret = new List<TReturn>();
+            if (_cancel?.Invoke() == true) return ret;
             var type = typeof(TReturn);
             var dbParms = _params.ToArray();
             var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
             _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
-            var ret = new List<TReturn>();
             var retCount = 0;
             Exception exception = null;
             try
@@ -1006,12 +1022,13 @@ namespace FreeSql.Internal.CommonProvider
 
         async public Task<int> InternalInsertIntoAsync<TTargetEntity>(string tableName, Expression select, CancellationToken cancellationToken)
         {
+            int ret = 0;
+            if (_cancel?.Invoke() == true) return ret;
             var sql = this.InternalGetInsertIntoToSql<TTargetEntity>(tableName, select);
             var dbParms = _params.ToArray();
             var tb = _orm.CodeFirst.GetTableByEntity(typeof(TTargetEntity));
             var before = new Aop.CurdBeforeEventArgs(tb.Type, tb, Aop.CurdType.Insert, sql, dbParms);
             _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
-            int ret = 0;
             Exception exception = null;
             try
             {
@@ -1032,11 +1049,12 @@ namespace FreeSql.Internal.CommonProvider
 
         async protected Task<DataTable> InternalToDataTableAsync(Expression select, CancellationToken cancellationToken)
         {
+            DataTable ret = null;
+            if (_cancel?.Invoke() == true) return ret;
             var sql = this.InternalToSql<int>(select, FieldAliasOptions.AsProperty); //DataTable 使用 AsProperty
             var dbParms = _params.ToArray();
             var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
             _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
-            DataTable ret = null;
             Exception exception = null;
             try
             {

@@ -42,6 +42,7 @@ namespace FreeSql.Internal.CommonProvider
         public bool _distinct;
         public Expression _selectExpression;
         public List<GlobalFilter.Item> _whereGlobalFilter;
+        public Func<bool> _cancel;
 
         int _disposeCounter;
         ~Select0Provider()
@@ -61,6 +62,7 @@ namespace FreeSql.Internal.CommonProvider
             _includeInfo.Clear();
             _selectExpression = null;
             _whereGlobalFilter?.Clear();
+            _cancel = null;
         }
 
         public static void CopyData(Select0Provider from, Select0Provider to, ReadOnlyCollection<ParameterExpression> lambParms)
@@ -119,6 +121,7 @@ namespace FreeSql.Internal.CommonProvider
             to._distinct = from._distinct;
             to._selectExpression = from._selectExpression;
             to._whereGlobalFilter = new List<GlobalFilter.Item>(from._whereGlobalFilter.ToArray());
+            to._cancel = from._cancel;
         }
 
         public Expression ConvertStringPropertyToExpression(string property, bool fromFirstTable = false)
@@ -180,6 +183,12 @@ namespace FreeSql.Internal.CommonProvider
         public TSelect TrackToList(Action<object> track)
         {
             _trackToList = track;
+            return this as TSelect;
+        }
+
+        public TSelect Cancel(Func<bool> cancel)
+        {
+            _cancel = cancel;
             return this as TSelect;
         }
 

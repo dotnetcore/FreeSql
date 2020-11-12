@@ -1160,6 +1160,15 @@
             <param name="column"></param>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.SqlExt.FindInSet``1(``0,System.String)">
+            <summary>
+            MySql find_in_set(str, strlist)
+            </summary>
+            <typeparam name="TValue"></typeparam>
+            <param name="str"></param>
+            <param name="strlist"></param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.SqlExt.StringAgg(System.Object,System.Object)">
             <summary>
             PostgreSQL string_agg(.., ..)
@@ -1638,6 +1647,17 @@
             <summary>
             使用属性名作为字段别名
             </summary>
+        </member>
+        <member name="M:FreeSql.ISelect0`2.Cancel(System.Func{System.Boolean})">
+            <summary>
+            控制取消本次查询<para></para>
+            * 不会产生额外的异常<para></para>
+            * 取消成功，则不执行 SQL 命令<para></para>
+            * 取消成功，直接返回没有记录时候的返回值<para></para>
+            * 取消成功，如 List&lt;T&gt; 返回 0 元素列表，不是 null，仍然是旧机制<para></para>
+            </summary>
+            <param name="cancel">返回 true，则不会执行 SQL 命令</param>
+            <returns></returns>
         </member>
         <member name="M:FreeSql.ISelect0`2.WithTransaction(System.Data.Common.DbTransaction)">
             <summary>
@@ -2331,6 +2351,15 @@
             <param name="navigateSelector">选择一个导航属性</param>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.ISelect`1.IncludeIf``1(System.Boolean,System.Linq.Expressions.Expression{System.Func{`0,``0}})">
+            <summary>
+            贪婪加载导航属性，如果查询中已经使用了 a.Parent.Parent 类似表达式，则可以无需此操作
+            </summary>
+            <typeparam name="TNavigate"></typeparam>
+            <param name="condition">true 时生效</param>
+            <param name="navigateSelector">选择一个导航属性</param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.ISelect`1.IncludeMany``1(System.Linq.Expressions.Expression{System.Func{`0,System.Collections.Generic.IEnumerable{``0}}},System.Action{FreeSql.ISelect{``0}})">
             <summary>
             贪婪加载集合的导航属性，其实是分两次查询，ToList 后进行了数据重装<para></para>
@@ -2349,6 +2378,14 @@
             <summary>
             按属性名字符串进行 Include/IncludeMany 操作
             </summary>
+            <param name="property"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.ISelect`1.IncludeByPropertyNameIf(System.Boolean,System.String)">
+            <summary>
+            按属性名字符串进行 Include/IncludeMany 操作
+            </summary>
+            <param name="condition">true 时生效</param>
             <param name="property"></param>
             <returns></returns>
         </member>

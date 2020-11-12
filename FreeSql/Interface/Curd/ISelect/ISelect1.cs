@@ -321,6 +321,14 @@ namespace FreeSql
         /// <returns></returns>
         ISelect<T1> Include<TNavigate>(Expression<Func<T1, TNavigate>> navigateSelector) where TNavigate : class;
         /// <summary>
+        /// 贪婪加载导航属性，如果查询中已经使用了 a.Parent.Parent 类似表达式，则可以无需此操作
+        /// </summary>
+        /// <typeparam name="TNavigate"></typeparam>
+        /// <param name="condition">true 时生效</param>
+        /// <param name="navigateSelector">选择一个导航属性</param>
+        /// <returns></returns>
+        ISelect<T1> IncludeIf<TNavigate>(bool condition, Expression<Func<T1, TNavigate>> navigateSelector) where TNavigate : class;
+        /// <summary>
         /// 贪婪加载集合的导航属性，其实是分两次查询，ToList 后进行了数据重装<para></para>
         /// 文档：https://github.com/2881099/FreeSql/wiki/%e8%b4%aa%e5%a9%aa%e5%8a%a0%e8%bd%bd#%E5%AF%BC%E8%88%AA%E5%B1%9E%E6%80%A7-onetomanymanytomany
         /// </summary>
@@ -340,6 +348,13 @@ namespace FreeSql
         /// <param name="property"></param>
         /// <returns></returns>
         ISelect<T1> IncludeByPropertyName(string property);
+        /// <summary>
+        /// 按属性名字符串进行 Include/IncludeMany 操作
+        /// </summary>
+        /// <param name="condition">true 时生效</param>
+        /// <param name="property"></param>
+        /// <returns></returns>
+        ISelect<T1> IncludeByPropertyNameIf(bool condition, string property);
 
         /// <summary>
         /// 实现 select .. from ( select ... from t ) a 这样的功能<para></para>

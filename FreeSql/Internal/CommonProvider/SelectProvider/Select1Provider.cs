@@ -393,6 +393,7 @@ namespace FreeSql.Internal.CommonProvider
 
         public int InsertInto<TTargetEntity>(string tableName, Expression<Func<T1, TTargetEntity>> select) where TTargetEntity : class => base.InternalInsertInto<TTargetEntity>(tableName, select);
 
+        public ISelect<T1> IncludeByPropertyNameIf(bool condition, string property) => condition ? IncludeByPropertyName(property) : this;
         public ISelect<T1> IncludeByPropertyName(string property)
         {
             var exp = ConvertStringPropertyToExpression(property, true);
@@ -424,6 +425,7 @@ namespace FreeSql.Internal.CommonProvider
         }
 
         bool _isIncluded = false;
+        public ISelect<T1> IncludeIf<TNavigate>(bool condition, Expression<Func<T1, TNavigate>> navigateSelector) where TNavigate : class => condition ? Include(navigateSelector) : this;
         public ISelect<T1> Include<TNavigate>(Expression<Func<T1, TNavigate>> navigateSelector) where TNavigate : class
         {
             var expBody = navigateSelector?.Body;

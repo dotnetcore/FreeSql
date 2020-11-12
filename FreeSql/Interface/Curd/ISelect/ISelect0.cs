@@ -31,6 +31,17 @@ namespace FreeSql
 #endif
 
         /// <summary>
+        /// 控制取消本次查询<para></para>
+        /// * 不会产生额外的异常<para></para>
+        /// * 取消成功，则不执行 SQL 命令<para></para>
+        /// * 取消成功，直接返回没有记录时候的返回值<para></para>
+        /// * 取消成功，如 List&lt;T&gt; 返回 0 元素列表，不是 null，仍然是旧机制<para></para>
+        /// </summary>
+        /// <param name="cancel">返回 true，则不会执行 SQL 命令</param>
+        /// <returns></returns>
+        TSelect Cancel(Func<bool> cancel);
+
+        /// <summary>
         /// 指定事务对象
         /// </summary>
         /// <param name="transaction"></param>
