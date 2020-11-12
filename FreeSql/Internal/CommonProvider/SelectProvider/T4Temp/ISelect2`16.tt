@@ -3,9 +3,10 @@
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
 
 <#
-    if (1 == 2)
+    if (1 == 1)
     {
 #>
 using FreeSql.Internal.Model;
@@ -13,6 +14,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq.Expressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FreeSql
@@ -49,36 +51,36 @@ public interface ISelect<<#=NewStr #>> : ISelect0<ISelect<<#=NewStr #>>, T1> <#=
 
 #if net40
 #else
-        Task<bool> AnyAsync(Expression<Func<<#=NewStr #>, bool>> exp);
-        Task<int> InsertIntoAsync<TTargetEntity>(string tableName, Expression<Func<<#=NewStr #>, TTargetEntity>> select) where TTargetEntity : class;
-        Task<DataTable> ToDataTableAsync<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select);
-        Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select);
-        Task<List<TDto>> ToListAsync<TDto>();
+        Task<bool> AnyAsync(Expression<Func<<#=NewStr #>, bool>> exp, CancellationToken cancellationToken);
+        Task<int> InsertIntoAsync<TTargetEntity>(string tableName, Expression<Func<<#=NewStr #>, TTargetEntity>> select, CancellationToken cancellationToken) where TTargetEntity : class;
+        Task<DataTable> ToDataTableAsync<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select, CancellationToken cancellationToken);
+        Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select, CancellationToken cancellationToken);
+        Task<List<TDto>> ToListAsync<TDto>(CancellationToken cancellationToken);
 
-        Task<TReturn> ToOneAsync<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select);
-        Task<TReturn> FirstAsync<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select);
-        Task<TDto> FirstAsync<TDto>();
+        Task<TReturn> ToOneAsync<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select, CancellationToken cancellationToken);
+        Task<TReturn> FirstAsync<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select, CancellationToken cancellationToken);
+        Task<TDto> FirstAsync<TDto>(CancellationToken cancellationToken);
 
-        Task<TReturn> ToAggregateAsync<TReturn>(Expression<Func<<#=string.Join(",",ISelectGroupingAggregate)#>, TReturn>> select);
-        Task<decimal> SumAsync<TMember>(Expression<Func<<#=NewStr #>, TMember>> column);
-        Task<TMember> MinAsync<TMember>(Expression<Func<<#=NewStr #>, TMember>> column);
-        Task<TMember> MaxAsync<TMember>(Expression<Func<<#=NewStr #>, TMember>> column);
-        Task<double> AvgAsync<TMember>(Expression<Func<<#=NewStr #>, TMember>> column);
+        Task<TReturn> ToAggregateAsync<TReturn>(Expression<Func<<#=string.Join(",",ISelectGroupingAggregate)#>, TReturn>> select, CancellationToken cancellationToken);
+        Task<decimal> SumAsync<TMember>(Expression<Func<<#=NewStr #>, TMember>> column, CancellationToken cancellationToken);
+        Task<TMember> MinAsync<TMember>(Expression<Func<<#=NewStr #>, TMember>> column, CancellationToken cancellationToken);
+        Task<TMember> MaxAsync<TMember>(Expression<Func<<#=NewStr #>, TMember>> column, CancellationToken cancellationToken);
+        Task<double> AvgAsync<TMember>(Expression<Func<<#=NewStr #>, TMember>> column, CancellationToken cancellationToken);
 
         #region HzyTuple 元组
 
-        Task<bool> AnyAsync(Expression<Func<HzyTuple<<#=NewStr #>>, bool>> exp);
-        Task<int> InsertIntoAsync<TTargetEntity>(string tableName, Expression<Func<HzyTuple<<#=NewStr #>>, TTargetEntity>> select) where TTargetEntity : class;
-        Task<DataTable> ToDataTableAsync<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select);
-        Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select);
+        Task<bool> AnyAsync(Expression<Func<HzyTuple<<#=NewStr #>>, bool>> exp, CancellationToken cancellationToken);
+        Task<int> InsertIntoAsync<TTargetEntity>(string tableName, Expression<Func<HzyTuple<<#=NewStr #>>, TTargetEntity>> select, CancellationToken cancellationToken) where TTargetEntity : class;
+        Task<DataTable> ToDataTableAsync<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select, CancellationToken cancellationToken);
+        Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select, CancellationToken cancellationToken);
 
-        Task<TReturn> ToOneAsync<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select);
-        Task<TReturn> FirstAsync<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select);
+        Task<TReturn> ToOneAsync<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select, CancellationToken cancellationToken);
+        Task<TReturn> FirstAsync<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select, CancellationToken cancellationToken);
 
-        Task<decimal> SumAsync<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column);
-        Task<TMember> MinAsync<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column);
-        Task<TMember> MaxAsync<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column);
-        Task<double> AvgAsync<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column);
+        Task<decimal> SumAsync<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column, CancellationToken cancellationToken);
+        Task<TMember> MinAsync<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column, CancellationToken cancellationToken);
+        Task<TMember> MaxAsync<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column, CancellationToken cancellationToken);
+        Task<double> AvgAsync<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column, CancellationToken cancellationToken);
 
         #endregion
 

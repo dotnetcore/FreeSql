@@ -3,6 +3,7 @@ using FreeSql.Internal.Model;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading;
 #if microsoft
 using Microsoft.Data.SqlClient;
 #else
@@ -146,7 +147,7 @@ public static partial class FreeSqlSqlServerGlobalExtensions
     }
 #if net40
 #else
-    async public static Task ExecuteSqlBulkCopyAsync<T>(this IInsert<T> that, SqlBulkCopyOptions copyOptions = SqlBulkCopyOptions.Default, int? batchSize = null, int? bulkCopyTimeout = null) where T : class
+    async public static Task ExecuteSqlBulkCopyAsync<T>(this IInsert<T> that, SqlBulkCopyOptions copyOptions = SqlBulkCopyOptions.Default, int? batchSize = null, int? bulkCopyTimeout = null, CancellationToken cancellationToken = default) where T : class
     {
         var insert = that as FreeSql.SqlServer.Curd.SqlServerInsert<T>;
         if (insert == null) throw new Exception("ExecuteSqlBulkCopyAsync 是 FreeSql.Provider.SqlServer 特有的功能");
@@ -161,7 +162,7 @@ public static partial class FreeSqlSqlServerGlobalExtensions
             bulkCopy.DestinationTableName = dt.TableName;
             for (int i = 0; i < dt.Columns.Count; i++)
                 bulkCopy.ColumnMappings.Add(dt.Columns[i].ColumnName, dt.Columns[i].ColumnName);
-            return bulkCopy.WriteToServerAsync(dt);
+            return bulkCopy.WriteToServerAsync(dt, cancellationToken);
         };
 
         try
@@ -194,7 +195,7 @@ public static partial class FreeSqlSqlServerGlobalExtensions
                 if (conn.State != System.Data.ConnectionState.Open)
                 {
                     isNotOpen = true;
-                    await conn.OpenAsync();
+                    await conn.OpenAsync(cancellationToken);
                 }
                 try
                 {

@@ -3,6 +3,7 @@
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
 
 <#
     if (1 == 2)
@@ -14,12 +15,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FreeSql.Internal.CommonProvider
 {
-
-	<#
+<#
     var Str = "";
     var whereStr = "";
     var ISelectGroupingAggregate = new List<string>();
@@ -40,9 +41,7 @@ namespace FreeSql.Internal.CommonProvider
     {
         Str += "T" + i + ",";
         var NewStr = Str.Substring(0, Str.Length - 1);
-#>
-
-        <#
+#><#
         if (i > 1)
         {
             whereStr += $"where T{i} : class ";
@@ -50,9 +49,7 @@ namespace FreeSql.Internal.CommonProvider
             _tables.Append("_tables.Add(new SelectTableInfo { Table = _commonUtils.GetTableByEntity(typeof(T" + i +
                            ")), Alias = $\"SP10" + abc[i - 1] + "\", On = null, Type = SelectTableInfoType.From });\r\n");
             
-        } #>
-
-        <#
+        } #><#
         {
             ISelectGroupingAggregate.Add($"ISelectGroupingAggregate<T{i}>");
             WithSql.Add($"string sqlT{i}");
@@ -62,9 +59,7 @@ namespace FreeSql.Internal.CommonProvider
                            ") == false) return $\"({sqlT" + i + "})\";\r\n");
             GetDbParamtersByObject.Add("{sqlT" + i + "}");
             
-        } #>
-
-        <#
+        } #><#
         if (i == 1) continue; #>
 
     public abstract class Select<#=i #>Provider<<#=NewStr #>> : Select0Provider<ISelect<<#=NewStr #>>, T1>, ISelect<<#=NewStr #>>
@@ -379,134 +374,134 @@ namespace FreeSql.Internal.CommonProvider
 
 #if net40
 #else
-        Task<double> ISelect<<#=NewStr #>>.AvgAsync<TMember>(Expression<Func<<#=NewStr #>, TMember>> column)
+        Task<double> ISelect<<#=NewStr #>>.AvgAsync<TMember>(Expression<Func<<#=NewStr #>, TMember>> column, CancellationToken cancellationToken)
         {
             if (column == null) return Task.FromResult(default(double));
             for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
-            return this.InternalAvgAsync(column?.Body);
+            return this.InternalAvgAsync(column?.Body, cancellationToken);
         }
 
-        Task<TMember> ISelect<<#=NewStr #>>.MaxAsync<TMember>(Expression<Func<<#=NewStr #>, TMember>> column)
+        Task<TMember> ISelect<<#=NewStr #>>.MaxAsync<TMember>(Expression<Func<<#=NewStr #>, TMember>> column, CancellationToken cancellationToken)
         {
             if (column == null) return Task.FromResult(default(TMember));
             for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
-            return this.InternalMaxAsync<TMember>(column?.Body);
+            return this.InternalMaxAsync<TMember>(column?.Body, cancellationToken);
         }
 
-        Task<TMember> ISelect<<#=NewStr #>>.MinAsync<TMember>(Expression<Func<<#=NewStr #>, TMember>> column)
+        Task<TMember> ISelect<<#=NewStr #>>.MinAsync<TMember>(Expression<Func<<#=NewStr #>, TMember>> column, CancellationToken cancellationToken)
         {
             if (column == null) return Task.FromResult(default(TMember));
             for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
-            return this.InternalMinAsync<TMember>(column?.Body);
+            return this.InternalMinAsync<TMember>(column?.Body, cancellationToken);
         }
 
-        Task<decimal> ISelect<<#=NewStr #>>.SumAsync<TMember>(Expression<Func<<#=NewStr #>, TMember>> column)
+        Task<decimal> ISelect<<#=NewStr #>>.SumAsync<TMember>(Expression<Func<<#=NewStr #>, TMember>> column, CancellationToken cancellationToken)
         {
             if (column == null) this.InternalOrderBy(column?.Body);
             for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
-            return this.InternalSumAsync(column?.Body);
+            return this.InternalSumAsync(column?.Body, cancellationToken);
         }
 
-        Task<TReturn> ISelect<<#=NewStr #>>.ToAggregateAsync<TReturn>(Expression<Func<<#=string.Join(",", ISelectGroupingAggregate) #>, TReturn>> select)
+        Task<TReturn> ISelect<<#=NewStr #>>.ToAggregateAsync<TReturn>(Expression<Func<<#=string.Join(",", ISelectGroupingAggregate) #>, TReturn>> select, CancellationToken cancellationToken)
         {
             if (select == null) return Task.FromResult(default(TReturn));
             for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
-            return this.InternalToAggregateAsync<TReturn>(select?.Body);
+            return this.InternalToAggregateAsync<TReturn>(select?.Body, cancellationToken);
         }
 
-        Task<List<TReturn>> ISelect<<#=NewStr #>>.ToListAsync<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select)
+        Task<List<TReturn>> ISelect<<#=NewStr #>>.ToListAsync<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select, CancellationToken cancellationToken)
         {
-            if (select == null) return this.InternalToListAsync<TReturn>(select?.Body);
+            if (select == null) return this.InternalToListAsync<TReturn>(select?.Body, cancellationToken);
             for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
-            return this.InternalToListAsync<TReturn>(select?.Body);
+            return this.InternalToListAsync<TReturn>(select?.Body, cancellationToken);
         }
-        Task<List<TDto>> ISelect<<#=NewStr #>>.ToListAsync<TDto>() => (this as ISelect<<#=NewStr #>>).ToListAsync(GetToListDtoSelector<TDto>());
+        Task<List<TDto>> ISelect<<#=NewStr #>>.ToListAsync<TDto>(CancellationToken cancellationToken) => (this as ISelect<<#=NewStr #>>).ToListAsync(GetToListDtoSelector<TDto>(), cancellationToken);
 
-        Task<DataTable> ISelect<<#=NewStr #>>.ToDataTableAsync<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select)
+        Task<DataTable> ISelect<<#=NewStr #>>.ToDataTableAsync<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select, CancellationToken cancellationToken)
         {
-            if (select == null) return this.InternalToDataTableAsync(select?.Body);
+            if (select == null) return this.InternalToDataTableAsync(select?.Body, cancellationToken);
             for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
-            return this.InternalToDataTableAsync(select?.Body);
+            return this.InternalToDataTableAsync(select?.Body, cancellationToken);
         }
 
-        Task<int> ISelect<<#=NewStr #>>.InsertIntoAsync<TTargetEntity>(string tableName, Expression<Func<<#=NewStr #>, TTargetEntity>> select)
+        Task<int> ISelect<<#=NewStr #>>.InsertIntoAsync<TTargetEntity>(string tableName, Expression<Func<<#=NewStr #>, TTargetEntity>> select, CancellationToken cancellationToken)
         {
-            if (select == null) return this.InternalInsertIntoAsync<TTargetEntity>(tableName, select);
+            if (select == null) return this.InternalInsertIntoAsync<TTargetEntity>(tableName, select, cancellationToken);
             for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
-            return this.InternalInsertIntoAsync<TTargetEntity>(tableName, select?.Body);
+            return this.InternalInsertIntoAsync<TTargetEntity>(tableName, select?.Body, cancellationToken);
         }
 
-        async Task<bool> ISelect<<#=NewStr #>>.AnyAsync(Expression<Func<<#=NewStr #>, bool>> exp)
+        async Task<bool> ISelect<<#=NewStr #>>.AnyAsync(Expression<Func<<#=NewStr #>, bool>> exp, CancellationToken cancellationToken)
         {
             if (exp == null) return await this.AnyAsync();
             for (var a = 0; a < exp.Parameters.Count; a++) _tables[a].Parameter = exp.Parameters[a];
             var oldwhere = _where.ToString();
-            var ret = await this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp?.Body, null, _whereGlobalFilter, _params)).AnyAsync();
+            var ret = await this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp?.Body, null, _whereGlobalFilter, _params)).AnyAsync(cancellationToken);
             _where.Clear().Append(oldwhere);
             return ret;
         }
 
-        async Task<TReturn> ISelect<<#=NewStr #>>.ToOneAsync<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select) => (await (this as ISelect<<#=NewStr #>>).Limit(1).ToListAsync(select)).FirstOrDefault();
-        async Task<TReturn> ISelect<<#=NewStr #>>.FirstAsync<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select) => (await (this as ISelect<<#=NewStr #>>).Limit(1).ToListAsync(select)).FirstOrDefault();
-        async Task<TDto> ISelect<<#=NewStr #>>.FirstAsync<TDto>() => (await (this as ISelect<<#=NewStr #>>).Limit(1).ToListAsync<TDto>()).FirstOrDefault();
+        async Task<TReturn> ISelect<<#=NewStr #>>.ToOneAsync<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select, CancellationToken cancellationToken) => (await (this as ISelect<<#=NewStr #>>).Limit(1).ToListAsync(select, cancellationToken)).FirstOrDefault();
+        async Task<TReturn> ISelect<<#=NewStr #>>.FirstAsync<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select, CancellationToken cancellationToken) => (await (this as ISelect<<#=NewStr #>>).Limit(1).ToListAsync(select, cancellationToken)).FirstOrDefault();
+        async Task<TDto> ISelect<<#=NewStr #>>.FirstAsync<TDto>(CancellationToken cancellationToken) => (await (this as ISelect<<#=NewStr #>>).Limit(1).ToListAsync<TDto>(cancellationToken)).FirstOrDefault();
 
 
 
 
         #region HzyTuple 元组
 
-        Task<double> ISelect<<#=NewStr #>>.AvgAsync<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column)
+        Task<double> ISelect<<#=NewStr #>>.AvgAsync<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column, CancellationToken cancellationToken)
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(column, _tables);
-            return (this as ISelect<<#=NewStr #>>).AvgAsync((Expression<Func<<#=NewStr #>, TMember>>)expModify);
+            return (this as ISelect<<#=NewStr #>>).AvgAsync((Expression<Func<<#=NewStr #>, TMember>>)expModify, cancellationToken);
         }
 
-        Task<TMember> ISelect<<#=NewStr #>>.MaxAsync<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column)
+        Task<TMember> ISelect<<#=NewStr #>>.MaxAsync<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column, CancellationToken cancellationToken)
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(column, _tables);
-            return (this as ISelect<<#=NewStr #>>).MaxAsync((Expression<Func<<#=NewStr #>, TMember>>)expModify);
+            return (this as ISelect<<#=NewStr #>>).MaxAsync((Expression<Func<<#=NewStr #>, TMember>>)expModify, cancellationToken);
         }
 
-        Task<TMember> ISelect<<#=NewStr #>>.MinAsync<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column)
+        Task<TMember> ISelect<<#=NewStr #>>.MinAsync<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column, CancellationToken cancellationToken)
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(column, _tables);
-            return (this as ISelect<<#=NewStr #>>).MinAsync((Expression<Func<<#=NewStr #>, TMember>>)expModify);
+            return (this as ISelect<<#=NewStr #>>).MinAsync((Expression<Func<<#=NewStr #>, TMember>>)expModify, cancellationToken);
         }
 
-        Task<decimal> ISelect<<#=NewStr #>>.SumAsync<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column)
+        Task<decimal> ISelect<<#=NewStr #>>.SumAsync<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column, CancellationToken cancellationToken)
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(column, _tables);
-            return (this as ISelect<<#=NewStr #>>).SumAsync((Expression<Func<<#=NewStr #>, TMember>>)expModify);
+            return (this as ISelect<<#=NewStr #>>).SumAsync((Expression<Func<<#=NewStr #>, TMember>>)expModify, cancellationToken);
         }
 
-        Task<List<TReturn>> ISelect<<#=NewStr #>>.ToListAsync<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select)
+        Task<List<TReturn>> ISelect<<#=NewStr #>>.ToListAsync<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select, CancellationToken cancellationToken)
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
-            return (this as ISelect<<#=NewStr #>>).ToListAsync((Expression<Func<<#=NewStr #>, TReturn>>)expModify);
+            return (this as ISelect<<#=NewStr #>>).ToListAsync((Expression<Func<<#=NewStr #>, TReturn>>)expModify, cancellationToken);
         }
 
-        Task<DataTable> ISelect<<#=NewStr #>>.ToDataTableAsync<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select)
+        Task<DataTable> ISelect<<#=NewStr #>>.ToDataTableAsync<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select, CancellationToken cancellationToken)
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
-            return (this as ISelect<<#=NewStr #>>).ToDataTableAsync((Expression<Func<<#=NewStr #>, TReturn>>)expModify);
+            return (this as ISelect<<#=NewStr #>>).ToDataTableAsync((Expression<Func<<#=NewStr #>, TReturn>>)expModify, cancellationToken);
         }
 
-        Task<int> ISelect<<#=NewStr #>>.InsertIntoAsync<TTargetEntity>(string tableName, Expression<Func<HzyTuple<<#=NewStr #>>, TTargetEntity>> select)
+        Task<int> ISelect<<#=NewStr #>>.InsertIntoAsync<TTargetEntity>(string tableName, Expression<Func<HzyTuple<<#=NewStr #>>, TTargetEntity>> select, CancellationToken cancellationToken)
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
-            return (this as ISelect<<#=NewStr #>>).InsertIntoAsync(tableName,(Expression<Func<<#=NewStr #>, TTargetEntity>>)expModify);
+            return (this as ISelect<<#=NewStr #>>).InsertIntoAsync(tableName,(Expression<Func<<#=NewStr #>, TTargetEntity>>)expModify, cancellationToken);
         }
 
-        async Task<bool> ISelect<<#=NewStr #>>.AnyAsync(Expression<Func<HzyTuple<<#=NewStr #>>, bool>> exp)
+        async Task<bool> ISelect<<#=NewStr #>>.AnyAsync(Expression<Func<HzyTuple<<#=NewStr #>>, bool>> exp, CancellationToken cancellationToken)
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
-            return await (this as ISelect<<#=NewStr #>>).AnyAsync((Expression<Func<<#=NewStr #>, bool>>)expModify);
+            return await (this as ISelect<<#=NewStr #>>).AnyAsync((Expression<Func<<#=NewStr #>, bool>>)expModify, cancellationToken);
         }
 
-        async Task<TReturn> ISelect<<#=NewStr #>>.ToOneAsync<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select) 
-            => (await (this as ISelect<<#=NewStr #>>).Limit(1).ToListAsync(select)).FirstOrDefault();
-        async Task<TReturn> ISelect<<#=NewStr #>>.FirstAsync<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select) 
-            => (await (this as ISelect<<#=NewStr #>>).Limit(1).ToListAsync(select)).FirstOrDefault();
+        async Task<TReturn> ISelect<<#=NewStr #>>.ToOneAsync<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select, CancellationToken cancellationToken) 
+            => (await (this as ISelect<<#=NewStr #>>).Limit(1).ToListAsync(select, cancellationToken)).FirstOrDefault();
+        async Task<TReturn> ISelect<<#=NewStr #>>.FirstAsync<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select, CancellationToken cancellationToken) 
+            => (await (this as ISelect<<#=NewStr #>>).Limit(1).ToListAsync(select, cancellationToken)).FirstOrDefault();
 
 
         #endregion

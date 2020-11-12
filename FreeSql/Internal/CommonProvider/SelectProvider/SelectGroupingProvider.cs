@@ -7,6 +7,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FreeSql.Internal.CommonProvider
@@ -98,7 +99,7 @@ namespace FreeSql.Internal.CommonProvider
             var method = _select.GetType().GetMethod("OrderBy", new[] { typeof(string), typeof(object) });
             method.Invoke(_select, new object[] { isDescending ? $"{sql} DESC" : sql, null });
         }
-        public object InternalToList(Expression select, Type elementType, bool isAsync)
+        public object InternalToList(Expression select, Type elementType)
         {
             var map = new ReadAnonymousTypeInfo();
             var field = new StringBuilder();
@@ -106,7 +107,7 @@ namespace FreeSql.Internal.CommonProvider
 
             _comonExp.ReadAnonymousField(null, field, map, ref index, select, null, this, null, null, false);
             if (map.Childs.Any() == false && map.MapType == null) map.MapType = elementType;
-            var method = _select.GetType().GetMethod(isAsync ? "ToListMapReaderAsync" : "ToListMapReader", BindingFlags.Instance | BindingFlags.NonPublic);
+            var method = _select.GetType().GetMethod("ToListMapReader", BindingFlags.Instance | BindingFlags.NonPublic);
             method = method.MakeGenericMethod(elementType);
             return method.Invoke(_select, new object[] { new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null) });
         }
@@ -194,15 +195,26 @@ namespace FreeSql.Internal.CommonProvider
         }
 
         public List<TReturn> Select<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select) => ToList(select);
-        public List<TReturn> ToList<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select) => InternalToList(select, typeof(TReturn), false) as List<TReturn>;
+        public List<TReturn> ToList<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select) => InternalToList(select, typeof(TReturn)) as List<TReturn>;
         public Dictionary<TKey, TElement> ToDictionary<TElement>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TElement>> elementSelector) => InternalToKeyValuePairs(elementSelector, typeof(TElement)).ToDictionary(a => (TKey)a.Key, a => (TElement)a.Value);
 
 #if net40
 #else
-        async public Task<long> CountAsync() => long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync(_select._connection, _select._transaction, CommandType.Text, $"select count(1) from ({this.ToSql($"1{_comonExp._common.FieldAsAlias("as1")}")}) fta", _select._commandTimeout, _select._params.ToArray())), out var trylng) ? trylng : default(long);
+        async public Task<long> CountAsync(CancellationToken cancellationToken = default) => long.TryParse(string.Concat(await _orm.Ado.ExecuteScalarAsync(_select._connection, _select._transaction, CommandType.Text, $"select count(1) from ({this.ToSql($"1{_comonExp._common.FieldAsAlias("as1")}")}) fta", _select._commandTimeout, _select._params.ToArray(), cancellationToken)), out var trylng) ? trylng : default(long);
 
-        public Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select) => InternalToList(select, typeof(TReturn), true) as Task<List<TReturn>>;
-        async public Task<Dictionary<TKey, TElement>> ToDictionaryAsync<TElement>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TElement>> elementSelector)
+        public Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select, CancellationToken cancellationToken = default)
+        {
+            var map = new ReadAnonymousTypeInfo();
+            var field = new StringBuilder();
+            var index = 0;
+
+            _comonExp.ReadAnonymousField(null, field, map, ref index, select, null, this, null, null, false);
+            if (map.Childs.Any() == false && map.MapType == null) map.MapType = typeof(TReturn);
+            var method = _select.GetType().GetMethod("ToListMapReaderAsync", BindingFlags.Instance | BindingFlags.NonPublic);
+            method = method.MakeGenericMethod(typeof(TReturn));
+            return method.Invoke(_select, new object[] { new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null), cancellationToken }) as Task<List<TReturn>>;
+        }
+        async public Task<Dictionary<TKey, TElement>> ToDictionaryAsync<TElement>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TElement>> elementSelector, CancellationToken cancellationToken = default)
         {
             var map = new ReadAnonymousTypeInfo();
             var field = new StringBuilder();
@@ -213,7 +225,7 @@ namespace FreeSql.Internal.CommonProvider
             var method = _select.GetType().GetMethod("ToListMapReaderPrivateAsync", BindingFlags.Instance | BindingFlags.NonPublic);
             method = method.MakeGenericMethod(typeof(TElement));
             var otherAf = new ReadAnonymousTypeOtherInfo(_field, _map, new List<object>());
-            var values = await (method.Invoke(_select, new object[] { new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null), new[] { otherAf } }) as Task<List<TElement>>);
+            var values = await (method.Invoke(_select, new object[] { new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null), new[] { otherAf }, cancellationToken }) as Task<List<TElement>>);
             return otherAf.retlist.Select((a, b) => new KeyValuePair<TKey, TElement>((TKey)a, values[b])).ToDictionary(a => a.Key, a => a.Value);
         }
 #endif

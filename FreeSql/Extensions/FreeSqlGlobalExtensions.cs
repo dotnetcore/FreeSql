@@ -14,6 +14,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 public static partial class FreeSqlGlobalExtensions
 {
@@ -305,7 +306,7 @@ public static partial class FreeSqlGlobalExtensions
 
 #if net40
 #else
-    async public static System.Threading.Tasks.Task<List<T1>> IncludeManyAsync<T1, TNavigate>(this List<T1> list, IFreeSql orm, Expression<Func<T1, IEnumerable<TNavigate>>> navigateSelector, Action<ISelect<TNavigate>> then = null) where T1 : class where TNavigate : class
+    async public static Task<List<T1>> IncludeManyAsync<T1, TNavigate>(this List<T1> list, IFreeSql orm, Expression<Func<T1, IEnumerable<TNavigate>>> navigateSelector, Action<ISelect<TNavigate>> then = null, CancellationToken cancellationToken = default) where T1 : class where TNavigate : class
     {
         if (list == null || list.Any() == false) return list;
         if (orm.CodeFirst.IsAutoSyncStructure)
@@ -315,7 +316,7 @@ public static partial class FreeSqlGlobalExtensions
                 (orm.CodeFirst as CodeFirstProvider)._dicSycedTryAdd(typeof(T1)); //._dicSyced.TryAdd(typeof(TReturn), true);
         }
         var select = orm.Select<T1>().IncludeMany(navigateSelector, then) as Select1Provider<T1>;
-        await select.SetListAsync(list);
+        await select.SetListAsync(list, cancellationToken);
         return list;
     }
 #endif
@@ -338,8 +339,8 @@ public static partial class FreeSqlGlobalExtensions
                 a.RefType == FreeSql.Internal.Model.TableRefType.OneToMany &&
                 a.RefEntityType == tb.Type).ToArray();
 
-        if (navs.Length != 1) return select.ToList();
         var list = select.ToList();
+        if (navs.Length != 1) return list;
 
         select._trackToList = null;
         select._includeToList.Clear();
@@ -352,7 +353,7 @@ public static partial class FreeSqlGlobalExtensions
     }
 #if net40
 #else
-    async public static System.Threading.Tasks.Task<List<T1>> ToTreeListAsync<T1>(this ISelect<T1> that) where T1 : class
+    async public static Task<List<T1>> ToTreeListAsync<T1>(this ISelect<T1> that, CancellationToken cancellationToken = default) where T1 : class
     {
         var select = that as Select1Provider<T1>;
         var tb = select._tables[0].Table;
@@ -361,8 +362,8 @@ public static partial class FreeSqlGlobalExtensions
                 a.RefType == FreeSql.Internal.Model.TableRefType.OneToMany &&
                 a.RefEntityType == tb.Type).ToArray();
 
-        if (navs.Length != 1) return await select.ToListAsync();
-        var list = await select.ToListAsync();
+        var list = await select.ToListAsync(false, cancellationToken);
+        if (navs.Length != 1) return list;
 
         select._trackToList = null;
         select._includeToList.Clear();
@@ -370,7 +371,7 @@ public static partial class FreeSqlGlobalExtensions
         var navigateSelector = Expression.Lambda<Func<T1, IEnumerable<T1>>>(Expression.MakeMemberAccess(navigateSelectorParamExp, navs[0].Property), navigateSelectorParamExp);
         select.IncludeMany(navigateSelector);
         select._includeManySubListOneToManyTempValue1 = list;
-        select.SetList(list);
+        await select.SetListAsync(list, cancellationToken);
         return list.Except(list.SelectMany(a => FreeSql.Extensions.EntityUtil.EntityUtilExtensions.GetEntityValueWithPropertyName(select._orm, tb.Type, a, navs[0].Property.Name) as IEnumerable<T1>)).ToList();
     }
 #endif

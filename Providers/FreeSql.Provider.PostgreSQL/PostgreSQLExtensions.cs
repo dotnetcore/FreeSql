@@ -5,6 +5,7 @@ using System;
 using System.Data;
 using System.Linq.Expressions;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 public static partial class FreeSqlPostgreSQLGlobalExtensions
@@ -119,7 +120,7 @@ public static partial class FreeSqlPostgreSQLGlobalExtensions
 
 #if net45
 #else
-    async public static Task ExecutePgCopyAsync<T>(this IInsert<T> that) where T : class
+    async public static Task ExecutePgCopyAsync<T>(this IInsert<T> that, CancellationToken cancellationToken = default) where T : class
     {
         var insert = that as FreeSql.PostgreSQL.Curd.PostgreSQLInsert<T>;
         if (insert == null) throw new Exception("ExecutePgCopyAsync 是 FreeSql.Provider.PostgreSQL 特有的功能");
@@ -139,7 +140,7 @@ public static partial class FreeSqlPostgreSQLGlobalExtensions
             using (var writer = conn.BeginBinaryImport(copyFromCommand.ToString()))
             {
                 foreach (DataRow item in dt.Rows)
-                    await writer.WriteRowAsync(System.Threading.CancellationToken.None, item.ItemArray);
+                    await writer.WriteRowAsync(cancellationToken, item.ItemArray);
                 writer.Complete();
             }
             copyFromCommand.Clear();
@@ -165,7 +166,7 @@ public static partial class FreeSqlPostgreSQLGlobalExtensions
                 if (conn.State != System.Data.ConnectionState.Open)
                 {
                     isNotOpen = true;
-                    await conn.OpenAsync();
+                    await conn.OpenAsync(cancellationToken);
                 }
                 try
                 {

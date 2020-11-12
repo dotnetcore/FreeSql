@@ -24,6 +24,18 @@
 	<ItemGroup>
 		<None Include="../logo.png" Pack="true" PackagePath="\" />
 	</ItemGroup>
+
+	<ItemGroup>
+	  <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Compile Update="Internal\CommonProvider\SelectProvider\T4Temp\TextTemplate1.cs">
+	    <DesignTime>True</DesignTime>
+	    <AutoGen>True</AutoGen>
+	    <DependentUpon>TextTemplate1.tt</DependentUpon>
+	  </Compile>
+	</ItemGroup>
   
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
 		<DocumentationFile>FreeSql.xml</DocumentationFile>

@@ -788,7 +788,7 @@ namespace FreeSql.Internal.CommonProvider
         #region Async
 #if net40
 #else
-        async public Task<DataTable> ToDataTableAsync(string field = null)
+        async public Task<DataTable> ToDataTableAsync(string field, CancellationToken cancellationToken)
         {
             var sql = this.ToSql(field);
             var dbParms = _params.ToArray();
@@ -798,7 +798,7 @@ namespace FreeSql.Internal.CommonProvider
             Exception exception = null;
             try
             {
-                ret = await _orm.Ado.ExecuteDataTableAsync(_connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms);
+                ret = await _orm.Ado.ExecuteDataTableAsync(_connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -813,7 +813,7 @@ namespace FreeSql.Internal.CommonProvider
             return ret;
         }
 
-        async public Task<List<TTuple>> ToListAsync<TTuple>(string field)
+        async public Task<List<TTuple>> ToListAsync<TTuple>(string field, CancellationToken cancellationToken)
         {
             var sql = this.ToSql(field);
             var type = typeof(TTuple);
@@ -825,7 +825,7 @@ namespace FreeSql.Internal.CommonProvider
             try
             {
                 if (type.IsClass)
-                    ret = await _orm.Ado.QueryAsync<TTuple>(_connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms);
+                    ret = await _orm.Ado.QueryAsync<TTuple>(_connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms, cancellationToken);
                 else
                 {
                     var flagStr = $"ToListField:{field}";
@@ -834,7 +834,7 @@ namespace FreeSql.Internal.CommonProvider
                         var read = Utils.ExecuteArrayRowReadClassOrTuple(flagStr, type, null, fetch.Object, 0, _commonUtils);
                         ret.Add((TTuple)read.Value);
                         return Task.FromResult(false);
-                    }, CommandType.Text, sql, _commandTimeout, dbParms);
+                    }, CommandType.Text, sql, _commandTimeout, dbParms, cancellationToken);
                 }
             }
             catch (Exception ex)
@@ -850,7 +850,7 @@ namespace FreeSql.Internal.CommonProvider
             return ret;
         }
 
-        async internal Task<List<T1>> ToListAfPrivateAsync(string sql, GetAllFieldExpressionTreeInfo af, ReadAnonymousTypeOtherInfo[] otherData)
+        async internal Task<List<T1>> ToListAfPrivateAsync(string sql, GetAllFieldExpressionTreeInfo af, ReadAnonymousTypeOtherInfo[] otherData, CancellationToken cancellationToken)
         {
             var dbParms = _params.ToArray();
             var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
@@ -871,7 +871,7 @@ namespace FreeSql.Internal.CommonProvider
                     }
                     retCount++;
                     return Task.FromResult(false);
-                }, CommandType.Text, sql, _commandTimeout, dbParms);
+                }, CommandType.Text, sql, _commandTimeout, dbParms, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -883,12 +883,12 @@ namespace FreeSql.Internal.CommonProvider
                 var after = new Aop.CurdAfterEventArgs(before, exception, ret);
                 _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
-            foreach (var include in _includeToListAsync) await include?.Invoke(ret);
+            foreach (var include in _includeToListAsync) await include?.Invoke(ret, cancellationToken);
             _trackToList?.Invoke(ret);
             return ret;
         }
 
-        internal Task<List<T1>> ToListPrivateAsync(GetAllFieldExpressionTreeInfo af, ReadAnonymousTypeOtherInfo[] otherData)
+        internal Task<List<T1>> ToListPrivateAsync(GetAllFieldExpressionTreeInfo af, ReadAnonymousTypeOtherInfo[] otherData, CancellationToken cancellationToken)
         {
             string sql = null;
             if (otherData?.Length > 0)
@@ -901,11 +901,11 @@ namespace FreeSql.Internal.CommonProvider
             else
                 sql = this.ToSql(af.Field);
 
-            return ToListAfPrivateAsync(sql, af, otherData);
+            return ToListAfPrivateAsync(sql, af, otherData, cancellationToken);
         }
 
-        public Task<Dictionary<TKey, T1>> ToDictionaryAsync<TKey>(Func<T1, TKey> keySelector) => ToDictionaryAsync(keySelector, a => a);
-        async public Task<Dictionary<TKey, TElement>> ToDictionaryAsync<TKey, TElement>(Func<T1, TKey> keySelector, Func<T1, TElement> elementSelector)
+        public Task<Dictionary<TKey, T1>> ToDictionaryAsync<TKey>(Func<T1, TKey> keySelector, CancellationToken cancellationToken) => ToDictionaryAsync(keySelector, a => a, cancellationToken);
+        async public Task<Dictionary<TKey, TElement>> ToDictionaryAsync<TKey, TElement>(Func<T1, TKey> keySelector, Func<T1, TElement> elementSelector, CancellationToken cancellationToken)
         {
             if (keySelector == null) throw new ArgumentNullException(nameof(keySelector));
             if (elementSelector == null) throw new ArgumentNullException(nameof(elementSelector));
@@ -923,7 +923,7 @@ namespace FreeSql.Internal.CommonProvider
                     var item = af.Read(_orm, fetch.Object);
                     ret.Add(keySelector(item), elementSelector(item));
                     return Task.FromResult(false);
-                }, CommandType.Text, sql, _commandTimeout, dbParms);
+                }, CommandType.Text, sql, _commandTimeout, dbParms, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -939,7 +939,7 @@ namespace FreeSql.Internal.CommonProvider
             return ret;
         }
 
-        async internal Task<List<TReturn>> ToListMrPrivateAsync<TReturn>(string sql, ReadAnonymousTypeAfInfo af, ReadAnonymousTypeOtherInfo[] otherData)
+        async internal Task<List<TReturn>> ToListMrPrivateAsync<TReturn>(string sql, ReadAnonymousTypeAfInfo af, ReadAnonymousTypeOtherInfo[] otherData, CancellationToken cancellationToken)
         {
             var type = typeof(TReturn);
             var dbParms = _params.ToArray();
@@ -959,7 +959,7 @@ namespace FreeSql.Internal.CommonProvider
                             other.retlist.Add(_commonExpression.ReadAnonymous(other.read, fetch.Object, ref index, false, null, retCount, null));
                     retCount++;
                     return Task.FromResult(false);
-                }, CommandType.Text, sql, _commandTimeout, dbParms);
+                }, CommandType.Text, sql, _commandTimeout, dbParms, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -972,11 +972,11 @@ namespace FreeSql.Internal.CommonProvider
                 _orm.Aop.CurdAfterHandler?.Invoke(this, after);
             }
             if (typeof(TReturn) == typeof(T1))
-                foreach (var include in _includeToListAsync) await include?.Invoke(ret);
+                foreach (var include in _includeToListAsync) await include?.Invoke(ret, cancellationToken);
             _trackToList?.Invoke(ret);
             return ret;
         }
-        internal Task<List<TReturn>> ToListMapReaderPrivateAsync<TReturn>(ReadAnonymousTypeAfInfo af, ReadAnonymousTypeOtherInfo[] otherData)
+        internal Task<List<TReturn>> ToListMapReaderPrivateAsync<TReturn>(ReadAnonymousTypeAfInfo af, ReadAnonymousTypeOtherInfo[] otherData, CancellationToken cancellationToken)
         {
             string sql = null;
             if (otherData?.Length > 0)
@@ -989,22 +989,22 @@ namespace FreeSql.Internal.CommonProvider
             else
                 sql = this.ToSql(af.field);
 
-            return ToListMrPrivateAsync<TReturn>(sql, af, otherData);
+            return ToListMrPrivateAsync<TReturn>(sql, af, otherData, cancellationToken);
         }
-        protected Task<List<TReturn>> ToListMapReaderAsync<TReturn>(ReadAnonymousTypeAfInfo af) => ToListMapReaderPrivateAsync<TReturn>(af, null);
+        protected Task<List<TReturn>> ToListMapReaderAsync<TReturn>(ReadAnonymousTypeAfInfo af, CancellationToken cancellationToken) => ToListMapReaderPrivateAsync<TReturn>(af, null, cancellationToken);
 
-        async protected Task<double> InternalAvgAsync(Expression exp)
+        async protected Task<double> InternalAvgAsync(Expression exp, CancellationToken cancellationToken)
         {
-            var list = await this.ToListAsync<double>($"avg({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}){_commonUtils.FieldAsAlias("as1")}");
+            var list = await this.ToListAsync<double>($"avg({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}){_commonUtils.FieldAsAlias("as1")}", cancellationToken);
             return list.Sum() / list.Count;
         }
-        async protected Task<TMember> InternalMaxAsync<TMember>(Expression exp) => (await this.ToListAsync<TMember>($"max({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}){_commonUtils.FieldAsAlias("as1")}")).Max();
-        async protected Task<TMember> InternalMinAsync<TMember>(Expression exp) => (await this.ToListAsync<TMember>($"min({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}){_commonUtils.FieldAsAlias("as1")}")).Min();
-        async protected Task<decimal> InternalSumAsync(Expression exp) => (await this.ToListAsync<decimal>($"sum({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}){_commonUtils.FieldAsAlias("as1")}")).Sum();
+        async protected Task<TMember> InternalMaxAsync<TMember>(Expression exp, CancellationToken cancellationToken) => (await this.ToListAsync<TMember>($"max({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}){_commonUtils.FieldAsAlias("as1")}", cancellationToken)).Max();
+        async protected Task<TMember> InternalMinAsync<TMember>(Expression exp, CancellationToken cancellationToken) => (await this.ToListAsync<TMember>($"min({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}){_commonUtils.FieldAsAlias("as1")}", cancellationToken)).Min();
+        async protected Task<decimal> InternalSumAsync(Expression exp, CancellationToken cancellationToken) => (await this.ToListAsync<decimal>($"sum({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}){_commonUtils.FieldAsAlias("as1")}", cancellationToken)).Sum();
 
-        protected Task<List<TReturn>> InternalToListAsync<TReturn>(Expression select) => this.ToListMapReaderAsync<TReturn>(this.GetExpressionField(select));
+        protected Task<List<TReturn>> InternalToListAsync<TReturn>(Expression select, CancellationToken cancellationToken) => this.ToListMapReaderAsync<TReturn>(this.GetExpressionField(select), cancellationToken);
 
-        async public Task<int> InternalInsertIntoAsync<TTargetEntity>(string tableName, Expression select)
+        async public Task<int> InternalInsertIntoAsync<TTargetEntity>(string tableName, Expression select, CancellationToken cancellationToken)
         {
             var sql = this.InternalGetInsertIntoToSql<TTargetEntity>(tableName, select);
             var dbParms = _params.ToArray();
@@ -1015,7 +1015,7 @@ namespace FreeSql.Internal.CommonProvider
             Exception exception = null;
             try
             {
-                ret = await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms);
+                ret = await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -1030,7 +1030,7 @@ namespace FreeSql.Internal.CommonProvider
             return ret;
         }
 
-        async protected Task<DataTable> InternalToDataTableAsync(Expression select)
+        async protected Task<DataTable> InternalToDataTableAsync(Expression select, CancellationToken cancellationToken)
         {
             var sql = this.InternalToSql<int>(select, FieldAliasOptions.AsProperty); //DataTable 使用 AsProperty
             var dbParms = _params.ToArray();
@@ -1040,7 +1040,7 @@ namespace FreeSql.Internal.CommonProvider
             Exception exception = null;
             try
             {
-                ret = await _orm.Ado.ExecuteDataTableAsync(_connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms);
+                ret = await _orm.Ado.ExecuteDataTableAsync(_connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -1055,7 +1055,7 @@ namespace FreeSql.Internal.CommonProvider
             return ret;
         }
 
-        async protected Task<TReturn> InternalToAggregateAsync<TReturn>(Expression select)
+        async protected Task<TReturn> InternalToAggregateAsync<TReturn>(Expression select, CancellationToken cancellationToken)
         {
             var tmpOrderBy = _orderby;
             _orderby = null; //解决 select count(1) from t order by id 这样的 SQL 错误
@@ -1066,7 +1066,7 @@ namespace FreeSql.Internal.CommonProvider
                 var index = 0;
 
                 _commonExpression.ReadAnonymousField(_tables, field, map, ref index, select, null, null, _whereGlobalFilter, null, false); //不走 DTO 映射，不处理 IncludeMany
-                return (await this.ToListMapReaderAsync<TReturn>(new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null))).FirstOrDefault();
+                return (await this.ToListMapReaderAsync<TReturn>(new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null), cancellationToken)).FirstOrDefault();
             }
             finally
             {

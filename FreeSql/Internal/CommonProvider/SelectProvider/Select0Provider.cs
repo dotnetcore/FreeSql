@@ -36,7 +36,7 @@ namespace FreeSql.Internal.CommonProvider
         public List<Action<object>> _includeToList = new List<Action<object>>();
 #if net40
 #else
-        public List<Func<object, Task>> _includeToListAsync = new List<Func<object, Task>>();
+        public List<Func<object, CancellationToken, Task>> _includeToListAsync = new List<Func<object, CancellationToken, Task>>();
 #endif
         public Dictionary<string, MemberExpression[]> _includeInfo = new Dictionary<string, MemberExpression[]>();
         public bool _distinct;
@@ -114,7 +114,7 @@ namespace FreeSql.Internal.CommonProvider
             to._includeToList = new List<Action<object>>(from._includeToList.ToArray());
 #if net40
 #else
-            to._includeToListAsync = new List<Func<object, Task>>(from._includeToListAsync.ToArray());
+            to._includeToListAsync = new List<Func<object, CancellationToken, Task>>(from._includeToListAsync.ToArray());
 #endif
             to._distinct = from._distinct;
             to._selectExpression = from._selectExpression;
@@ -716,35 +716,35 @@ namespace FreeSql.Internal.CommonProvider
 
 #if net40
 #else
-        async public Task<bool> AnyAsync()
+        async public Task<bool> AnyAsync(CancellationToken cancellationToken = default)
         {
             this.Limit(1);
-            return (await this.ToListAsync<int>($"1{_commonUtils.FieldAsAlias("as1")}")).Sum() > 0; //这里的 Sum 为了分表查询
+            return (await this.ToListAsync<int>($"1{_commonUtils.FieldAsAlias("as1")}", cancellationToken)).Sum() > 0; //这里的 Sum 为了分表查询
         }
-        async public Task<long> CountAsync()
+        async public Task<long> CountAsync(CancellationToken cancellationToken = default)
         {
             var tmpOrderBy = _orderby;
             _orderby = null;
             try
             {
-                return (await this.ToListAsync<int>($"count(1){_commonUtils.FieldAsAlias("as1")}")).Sum(); //这里的 Sum 为了分表查询
+                return (await this.ToListAsync<int>($"count(1){_commonUtils.FieldAsAlias("as1")}", cancellationToken)).Sum(); //这里的 Sum 为了分表查询
             }
             finally
             {
                 _orderby = tmpOrderBy;
             }
         }
-        public virtual Task<List<T1>> ToListAsync(bool includeNestedMembers = false)
+        public virtual Task<List<T1>> ToListAsync(bool includeNestedMembers = false, CancellationToken cancellationToken = default)
         {
-            if (_selectExpression != null) return this.InternalToListAsync<T1>(_selectExpression);
-            return this.ToListPrivateAsync(includeNestedMembers == false ? this.GetAllFieldExpressionTreeLevel2() : this.GetAllFieldExpressionTreeLevelAll(), null);
+            if (_selectExpression != null) return this.InternalToListAsync<T1>(_selectExpression, cancellationToken);
+            return this.ToListPrivateAsync(includeNestedMembers == false ? this.GetAllFieldExpressionTreeLevel2() : this.GetAllFieldExpressionTreeLevelAll(), null, cancellationToken);
         }
-        async public Task<T1> ToOneAsync()
+        async public Task<T1> ToOneAsync(CancellationToken cancellationToken = default)
         {
             this.Limit(1);
-            return (await this.ToListAsync()).FirstOrDefault();
+            return (await this.ToListAsync(false, cancellationToken)).FirstOrDefault();
         }
-        public Task<T1> FirstAsync() => this.ToOneAsync();
+        public Task<T1> FirstAsync(CancellationToken cancellationToken = default) => this.ToOneAsync(cancellationToken);
 #endif
     }
 }

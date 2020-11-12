@@ -8,6 +8,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FreeSql
@@ -18,12 +19,12 @@ namespace FreeSql
 
 #if net40
 #else
-        Task<List<TOut>> ToListAsync();
-        Task<TOut> ToOneAsync();
-        Task<TOut> FirstAsync();
+        Task<List<TOut>> ToListAsync(CancellationToken cancellationToken = default);
+        Task<TOut> ToOneAsync(CancellationToken cancellationToken = default);
+        Task<TOut> FirstAsync(CancellationToken cancellationToken = default);
 
-        Task<bool> AnyAsync();
-        Task<long> CountAsync();
+        Task<bool> AnyAsync(CancellationToken cancellationToken = default);
+        Task<long> CountAsync(CancellationToken cancellationToken = default);
 #endif
 
         List<TOut> ToList();
@@ -86,24 +87,24 @@ namespace FreeSql.Internal.CommonProvider
 
 #if net40
 #else
-        public Task<List<TOut>> ToListAsync()
+        public Task<List<TOut>> ToListAsync(CancellationToken cancellationToken = default)
         {
             var method = _select.GetType().GetMethod("ToListMapReaderAsync", BindingFlags.Instance | BindingFlags.NonPublic);
             method = method.MakeGenericMethod(typeof(TOut));
-            return method.Invoke(_select, new object[] { new ReadAnonymousTypeAfInfo(_map, _field.Length > 0 ? _field.Remove(0, 2).ToString() : null) }) as Task<List<TOut>>;
+            return method.Invoke(_select, new object[] { new ReadAnonymousTypeAfInfo(_map, _field.Length > 0 ? _field.Remove(0, 2).ToString() : null), cancellationToken }) as Task<List<TOut>>;
         }
-        async public Task<TOut> ToOneAsync() => (await ToListAsync()).FirstOrDefault();
-        public Task<TOut> FirstAsync() => ToOneAsync();
+        async public Task<TOut> ToOneAsync(CancellationToken cancellationToken = default) => (await ToListAsync(cancellationToken)).FirstOrDefault();
+        public Task<TOut> FirstAsync(CancellationToken cancellationToken = default) => ToOneAsync(cancellationToken);
 
-        public Task<bool> AnyAsync()
+        public Task<bool> AnyAsync(CancellationToken cancellationToken = default)
         {
-            var method = _select.GetType().GetMethod("AnyAsync", new Type[0]);
-            return method.Invoke(_select, new object[0]) as Task<bool>;
+            var method = _select.GetType().GetMethod("AnyAsync", new Type[] { typeof(CancellationToken) });
+            return method.Invoke(_select, new object[] { cancellationToken }) as Task<bool>;
         }
-        public Task<long> CountAsync()
+        public Task<long> CountAsync(CancellationToken cancellationToken = default)
         {
-            var method = _select.GetType().GetMethod("CountAsync", new Type[0]);
-            return method.Invoke(_select, new object[0]) as Task<long>;
+            var method = _select.GetType().GetMethod("CountAsync", new Type[] { typeof(CancellationToken) });
+            return method.Invoke(_select, new object[] { cancellationToken }) as Task<long>;
         }
 #endif
 

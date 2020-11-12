@@ -213,6 +213,10 @@ namespace FreeSql.Tests.Dameng
             var ddd = g.dameng.Select<District>().LeftJoin(d => d.ParentCode == d.Parent.Code).ToTreeList();
             Assert.Single(ddd);
             Assert.Equal(2, ddd[0].Childs.Count);
+
+            ddd = g.dameng.Select<District>().LeftJoin(d => d.ParentCode == d.Parent.Code).ToTreeListAsync().Result;
+            Assert.Single(ddd);
+            Assert.Equal(2, ddd[0].Childs.Count);
         }
         public class District
         {

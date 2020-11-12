@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FreeSql
@@ -13,23 +14,23 @@ namespace FreeSql
 
 #if net40
 #else
-        Task<bool> AnyAsync(Expression<Func<T1, bool>> exp);
+        Task<bool> AnyAsync(Expression<Func<T1, bool>> exp, CancellationToken cancellationToken = default);
 
-        Task<int> InsertIntoAsync<TTargetEntity>(string tableName, Expression<Func<T1, TTargetEntity>> select) where TTargetEntity : class;
-        Task<DataTable> ToDataTableAsync<TReturn>(Expression<Func<T1, TReturn>> select);
-        Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<T1, TReturn>> select);
-        Task<List<TDto>> ToListAsync<TDto>();
+        Task<int> InsertIntoAsync<TTargetEntity>(string tableName, Expression<Func<T1, TTargetEntity>> select, CancellationToken cancellationToken = default) where TTargetEntity : class;
+        Task<DataTable> ToDataTableAsync<TReturn>(Expression<Func<T1, TReturn>> select, CancellationToken cancellationToken = default);
+        Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<T1, TReturn>> select, CancellationToken cancellationToken = default);
+        Task<List<TDto>> ToListAsync<TDto>(CancellationToken cancellationToken = default);
         
-        Task<TReturn> ToOneAsync<TReturn>(Expression<Func<T1, TReturn>> select);
-        Task<TDto> ToOneAsync<TDto>();
-        Task<TReturn> FirstAsync<TReturn>(Expression<Func<T1, TReturn>> select);
-        Task<TDto> FirstAsync<TDto>();
+        Task<TReturn> ToOneAsync<TReturn>(Expression<Func<T1, TReturn>> select, CancellationToken cancellationToken = default);
+        Task<TDto> ToOneAsync<TDto>(CancellationToken cancellationToken = default);
+        Task<TReturn> FirstAsync<TReturn>(Expression<Func<T1, TReturn>> select, CancellationToken cancellationToken = default);
+        Task<TDto> FirstAsync<TDto>(CancellationToken cancellationToken = default);
         
-        Task<TReturn> ToAggregateAsync<TReturn>(Expression<Func<ISelectGroupingAggregate<T1>, TReturn>> select);
-        Task<decimal> SumAsync<TMember>(Expression<Func<T1, TMember>> column);
-        Task<TMember> MinAsync<TMember>(Expression<Func<T1, TMember>> column);
-        Task<TMember> MaxAsync<TMember>(Expression<Func<T1, TMember>> column);
-        Task<double> AvgAsync<TMember>(Expression<Func<T1, TMember>> column);
+        Task<TReturn> ToAggregateAsync<TReturn>(Expression<Func<ISelectGroupingAggregate<T1>, TReturn>> select, CancellationToken cancellationToken = default);
+        Task<decimal> SumAsync<TMember>(Expression<Func<T1, TMember>> column, CancellationToken cancellationToken = default);
+        Task<TMember> MinAsync<TMember>(Expression<Func<T1, TMember>> column, CancellationToken cancellationToken = default);
+        Task<TMember> MaxAsync<TMember>(Expression<Func<T1, TMember>> column, CancellationToken cancellationToken = default);
+        Task<double> AvgAsync<TMember>(Expression<Func<T1, TMember>> column, CancellationToken cancellationToken = default);
 #endif
 
         /// <summary>

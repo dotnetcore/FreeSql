@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 #if MySqlConnector
 using MySqlConnector;
 #else
@@ -89,7 +90,7 @@ public static class FreeSqlMySqlConnectorGlobalExtensions
     }
 #if net40
 #else
-    async public static Task ExecuteMySqlBulkCopyAsync<T>(this IInsert<T> that, int? bulkCopyTimeout = null) where T : class
+    async public static Task ExecuteMySqlBulkCopyAsync<T>(this IInsert<T> that, int? bulkCopyTimeout = null, CancellationToken cancellationToken = default) where T : class
     {
         var insert = that as FreeSql.MySql.Curd.MySqlInsert<T>;
         if (insert == null) throw new Exception("ExecuteMySqlBulkCopyAsync 是 FreeSql.Provider.MySqlConnector 特有的功能");
@@ -101,7 +102,7 @@ public static class FreeSqlMySqlConnectorGlobalExtensions
         {
             if (bulkCopyTimeout.HasValue) bulkCopy.BulkCopyTimeout = bulkCopyTimeout.Value;
             bulkCopy.DestinationTableName = dt.TableName;
-            return bulkCopy.WriteToServerAsync(dt);
+            return bulkCopy.WriteToServerAsync(dt, cancellationToken);
         };
 
         try
@@ -124,7 +125,7 @@ public static class FreeSqlMySqlConnectorGlobalExtensions
                 if (conn.State != System.Data.ConnectionState.Open)
                 {
                     isNotOpen = true;
-                    conn.Open();
+                    await conn.OpenAsync(cancellationToken);
                 }
                 try
                 {
@@ -133,7 +134,7 @@ public static class FreeSqlMySqlConnectorGlobalExtensions
                 finally
                 {
                     if (isNotOpen)
-                        conn.Close();
+                        await conn.CloseAsync();
                 }
             }
             else

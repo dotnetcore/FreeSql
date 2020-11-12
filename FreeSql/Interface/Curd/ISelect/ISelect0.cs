@@ -5,6 +5,7 @@ using System.Data;
 using System.Data.Common;
 using System.Linq.Expressions;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FreeSql
@@ -16,17 +17,17 @@ namespace FreeSql
 
 #if net40
 #else
-        Task<DataTable> ToDataTableAsync(string field = null);
-        Task<Dictionary<TKey, T1>> ToDictionaryAsync<TKey>(Func<T1, TKey> keySelector);
-        Task<Dictionary<TKey, TElement>> ToDictionaryAsync<TKey, TElement>(Func<T1, TKey> keySelector, Func<T1, TElement> elementSelector);
-        Task<List<T1>> ToListAsync(bool includeNestedMembers = false);
-        Task<List<TTuple>> ToListAsync<TTuple>(string field);
+        Task<DataTable> ToDataTableAsync(string field = null, CancellationToken cancellationToken = default);
+        Task<Dictionary<TKey, T1>> ToDictionaryAsync<TKey>(Func<T1, TKey> keySelector, CancellationToken cancellationToken = default);
+        Task<Dictionary<TKey, TElement>> ToDictionaryAsync<TKey, TElement>(Func<T1, TKey> keySelector, Func<T1, TElement> elementSelector, CancellationToken cancellationToken = default);
+        Task<List<T1>> ToListAsync(bool includeNestedMembers = false, CancellationToken cancellationToken = default);
+        Task<List<TTuple>> ToListAsync<TTuple>(string field, CancellationToken cancellationToken = default);
 
-        Task<T1> ToOneAsync();
-        Task<T1> FirstAsync();
+        Task<T1> ToOneAsync(CancellationToken cancellationToken = default);
+        Task<T1> FirstAsync(CancellationToken cancellationToken = default);
 
-        Task<bool> AnyAsync();
-        Task<long> CountAsync();
+        Task<bool> AnyAsync(CancellationToken cancellationToken = default);
+        Task<long> CountAsync(CancellationToken cancellationToken = default);
 #endif
 
         /// <summary>
