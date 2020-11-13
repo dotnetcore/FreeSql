@@ -1,6 +1,7 @@
 ﻿using FreeSql;
 using FreeSql.DataAnnotations;
 using FreeSql.Internal.CommonProvider;
+using FreeSql.Internal.ObjectPool;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -378,10 +379,12 @@ public static partial class FreeSqlGlobalExtensions
     #endregion
 
     #region AsTreeCte(..) 递归查询
+    static ConcurrentDictionary<string, string> _dicMySqlVersion = new ConcurrentDictionary<string, string>();
     /// <summary>
     /// 使用递归 CTE 查询树型的所有子记录，或者所有父记录。<para></para>
     /// 通过测试的数据库：MySql8.0、SqlServer、PostgreSQL、Oracle、Sqlite、Firebird、达梦、人大金仓、翰高<para></para>
-    /// 返回隐藏字段：.ToList(a =&gt; new { item = a, level = "a.cte_level", path = "a.cte_path" })
+    /// 返回隐藏字段：.ToList(a =&gt; new { item = a, level = "a.cte_level", path = "a.cte_path" })<para></para>
+    /// * v2.0.0 兼容 MySql5.6 向上或向下查询，但不支持 pathSelector/pathSeparator 详细：https://github.com/dotnetcore/FreeSql/issues/536
     /// </summary>
     /// <typeparam name="T1"></typeparam>
     /// <param name="that"></param>
@@ -409,6 +412,69 @@ public static partial class FreeSqlGlobalExtensions
         var cteName = "as_tree_cte";
         if (select._orm.CodeFirst.IsSyncStructureToLower) cteName = cteName.ToLower();
         if (select._orm.CodeFirst.IsSyncStructureToUpper) cteName = cteName.ToUpper();
+
+        switch (select._orm.Ado.DataType) //MySql5.6
+        {
+            case DataType.MySql:
+            case DataType.OdbcMySql:
+                var mysqlConnectionString = select._orm.Ado?.ConnectionString ?? select._connection?.ConnectionString ?? "";
+                if (_dicMySqlVersion.TryGetValue(mysqlConnectionString, out var mysqlVersion) == false)
+                {
+                    if (select._orm.Ado?.ConnectionString != null)
+                    {
+                        using (var mysqlconn = select._orm.Ado.MasterPool.Get())
+                            mysqlVersion = mysqlconn.Value.ServerVersion;
+                    }
+                    else if (select._connection != null)
+                    {
+                        var isclosed = select._connection.State != ConnectionState.Open;
+                        if (isclosed) select._connection.Open();
+                        mysqlVersion = select._connection.ServerVersion;
+                        if (isclosed) select._connection.Close();
+                    }
+                }
+                if (int.TryParse((mysqlVersion ?? "").Split('.')[0], out var mysqlVersionFirst) && mysqlVersionFirst < 8)
+                {
+                    if (tbref.Columns.Count > 1) throw new ArgumentException($"{tb.Type.FullName} 是父子关系，但是 MySql 8.0 以下版本中不支持组合多主键");
+                    var mysql56Sql = "";
+                    if (up == false)
+                    {
+                        mysql56Sql = $@"SELECT cte_tbc.cte_level, {select.GetAllFieldExpressionTreeLevel2().Field}
+  FROM (
+    SELECT @cte_ids as cte_ids, (
+      SELECT @cte_ids := group_concat({select._commonUtils.QuoteSqlName(tbref.Columns[0].Attribute.Name)}) 
+      FROM {select._commonUtils.QuoteSqlName(tb.DbName)} 
+      WHERE find_in_set({select._commonUtils.QuoteSqlName(tbref.RefColumns[0].Attribute.Name)}, @cte_ids)
+    ) as cte_cids, @cte_level := @cte_idcte_levels + 1 as cte_level
+    FROM {select._commonUtils.QuoteSqlName(tb.DbName)}, (
+      SELECT @cte_ids := a.{select._commonUtils.QuoteSqlName(tbref.Columns[0].Attribute.Name)}, @cte_idcte_levels := 0 
+      FROM {select._commonUtils.QuoteSqlName(tb.DbName)} a
+      WHERE 1=1{select._where}
+      LIMIT 1) cte_tbb
+    WHERE @cte_ids IS NOT NULL
+  ) cte_tbc, {select._commonUtils.QuoteSqlName(tb.DbName)} a
+  WHERE find_in_set(a.{select._commonUtils.QuoteSqlName(tbref.Columns[0].Attribute.Name)}, cte_tbc.cte_ids)";
+                        select.WithSql(mysql56Sql).OrderBy("a.cte_level DESC");
+                        select._where.Clear();
+                        return select;
+                    }
+                    mysql56Sql = $@"SELECT cte_tbc.cte_level, {select.GetAllFieldExpressionTreeLevel2().Field}
+FROM (
+    SELECT @cte_pid as cte_id, (SELECT @cte_pid := {select._commonUtils.QuoteSqlName(tbref.RefColumns[0].Attribute.Name)} FROM {select._commonUtils.QuoteSqlName(tb.DbName)} WHERE {select._commonUtils.QuoteSqlName(tbref.Columns[0].Attribute.Name)} = cte_id) as cte_pid, @cte_level := @cte_level + 1 as cte_level
+    FROM {select._commonUtils.QuoteSqlName(tb.DbName)}, (
+      SELECT @cte_pid := a.{select._commonUtils.QuoteSqlName(tbref.Columns[0].Attribute.Name)}, @cte_level := 0 
+      FROM {select._commonUtils.QuoteSqlName(tb.DbName)} a
+      WHERE 1=1{select._where}
+      LIMIT 1) cte_tbb
+) cte_tbc
+JOIN {select._commonUtils.QuoteSqlName(tb.DbName)} a ON cte_tbc.cte_id = a.{select._commonUtils.QuoteSqlName(tbref.Columns[0].Attribute.Name)}";
+                    select.WithSql(mysql56Sql).OrderBy("a.cte_level");
+                    select._where.Clear();
+                    return select;
+                }
+                break;
+        }
+
         var sql1ctePath = "";
         if (pathSelector != null)
         {

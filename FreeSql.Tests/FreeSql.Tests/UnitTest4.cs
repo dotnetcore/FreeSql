@@ -30,7 +30,7 @@ namespace FreeSql.Tests
             });
             Assert.Equal(id, item2.xxx);
 
-            fsql.Delete<ts_iif>().Where("1=1").ExecuteAffrows();
+            fsql.Delete<ts_iif_topic>().Where("1=1").ExecuteAffrows();
             fsql.Delete<ts_iif_type>().Where("1=1").ExecuteAffrows();
             var typeid = Guid.NewGuid();
             fsql.Insert(new ts_iif_type { id = typeid, name = "type001" }).ExecuteAffrows();
