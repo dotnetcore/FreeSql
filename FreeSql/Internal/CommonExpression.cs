@@ -70,6 +70,11 @@ namespace FreeSql.Internal
                     else if (index == ReadAnonymousFieldAsCsName && string.IsNullOrEmpty(parent.CsName) == false) field.Append(_common.FieldAsAlias(parent.CsName));
                     if (parent.CsType == null && exp.Type.IsValueType) parent.CsType = exp.Type;
                     return false;
+                case ExpressionType.Conditional:
+                    var condExp = exp as ConditionalExpression;
+                    if (condExp.Test.IsParameter() == false) return ReadAnonymousField(_tables, field, parent, ref index,
+                        (bool)Expression.Lambda(condExp.Test).Compile().DynamicInvoke() ? condExp.IfTrue : condExp.IfFalse, select, diymemexp, whereGlobalFilter, findIncludeMany, isAllDtoMap);
+                    break;
                 case ExpressionType.Call:
                     var callExp = exp as MethodCallExpression;
                     //处理自定义SQL语句，如： ToList(new { 
@@ -703,11 +708,28 @@ namespace FreeSql.Internal
                 case ExpressionType.Conditional:
                     var condExp = exp as ConditionalExpression;
                     var conditionalTestOldMapType = tsc.SetMapTypeReturnOld(null);
-                    var conditionalTestSql = ExpressionLambdaToSql(condExp.Test, tsc);
-                    tsc.SetMapTypeReturnOld(conditionalTestOldMapType);
-                    var conditionalSql = _common.IIF(conditionalTestSql, ExpressionLambdaToSql(condExp.IfTrue, tsc), ExpressionLambdaToSql(condExp.IfFalse, tsc));
-                    tsc.SetMapTypeReturnOld(null);
-                    return conditionalSql;
+                    if (condExp.Test.IsParameter())
+                    {
+                        var conditionalTestSql = ExpressionLambdaToSql(condExp.Test, tsc);
+                        tsc.SetMapTypeReturnOld(conditionalTestOldMapType);
+                        var conditionalSql = _common.IIF(conditionalTestSql, ExpressionLambdaToSql(condExp.IfTrue, tsc), ExpressionLambdaToSql(condExp.IfFalse, tsc));
+                        tsc.SetMapTypeReturnOld(null);
+                        return conditionalSql;
+                    }
+                    if ((bool)Expression.Lambda(condExp.Test).Compile().DynamicInvoke())
+                    {
+                        tsc.SetMapTypeReturnOld(conditionalTestOldMapType);
+                        var conditionalSql = ExpressionLambdaToSql(condExp.IfTrue, tsc);
+                        tsc.SetMapTypeReturnOld(null);
+                        return conditionalSql;
+                    }
+                    else
+                    {
+                        tsc.SetMapTypeReturnOld(conditionalTestOldMapType);
+                        var conditionalSql = ExpressionLambdaToSql(condExp.IfFalse, tsc);
+                        tsc.SetMapTypeReturnOld(null);
+                        return conditionalSql;
+                    }
                 case ExpressionType.Call:
                     tsc.mapType = null;
                     var exp3 = exp as MethodCallExpression;

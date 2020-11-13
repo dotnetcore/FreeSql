@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FreeSql.DataAnnotations;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
@@ -10,6 +11,98 @@ namespace FreeSql.Tests
 {
     public class UnitTest4
     {
+
+        public record ts_iif(Guid id, string title);
+        [Fact]
+        public void IIF()
+        {
+            var fsql = g.sqlserver;
+            fsql.Delete<ts_iif>().Where("1=1").ExecuteAffrows();
+            var id = Guid.NewGuid();
+            fsql.Insert(new ts_iif(id, "001")).ExecuteAffrows();
+
+            var item = fsql.Select<ts_iif>().Where(a => a.id == (id != Guid.NewGuid() ? id : a.id)).First();
+            Assert.Equal(id, item.id);
+
+            var item2 = fsql.Select<ts_iif>().First(a => new
+            {
+                xxx = id != Guid.NewGuid() ? a.id : Guid.Empty
+            });
+            Assert.Equal(id, item2.xxx);
+
+            fsql.Delete<ts_iif>().Where("1=1").ExecuteAffrows();
+            fsql.Delete<ts_iif_type>().Where("1=1").ExecuteAffrows();
+            var typeid = Guid.NewGuid();
+            fsql.Insert(new ts_iif_type { id = typeid, name = "type001" }).ExecuteAffrows();
+            fsql.Insert(new ts_iif_topic { id = id, typeid = typeid, title = "title001" }).ExecuteAffrows();
+
+            var more1 = true;
+            var more2 = (bool?)true;
+            var more3 = (bool?)false;
+            var more4 = (bool?)null;
+            var moreitem = fsql.Select<ts_iif_topic>().First(a => new
+            {
+                a.id,
+                a.title,
+                a.type
+            });
+            Assert.Equal(id, moreitem.id);
+            Assert.Equal("title001", moreitem.title);
+            Assert.Equal(typeid, moreitem.type.id);
+            Assert.Equal("type001", moreitem.type.name);
+            var moreitem1 = fsql.Select<ts_iif_topic>().First(a => new
+            {
+                a.id,
+                a.title,
+                type1 = more1 == true ? a.type : null,
+            });
+            Assert.Equal(id, moreitem1.id);
+            Assert.Equal("title001", moreitem1.title);
+            Assert.Equal(typeid, moreitem1.type1.id);
+            Assert.Equal("type001", moreitem1.type1.name);
+            var moreitem2 = fsql.Select<ts_iif_topic>().First(a => new
+            {
+                a.id,
+                a.title,
+                type2 = more2 == true ? a.type : null,
+            });
+            Assert.Equal(id, moreitem2.id);
+            Assert.Equal("title001", moreitem2.title);
+            Assert.Equal(typeid, moreitem2.type2.id);
+            Assert.Equal("type001", moreitem2.type2.name);
+            var moreitem3 = fsql.Select<ts_iif_topic>().First(a => new
+            {
+                a.id,
+                a.title,
+                type3 = more3 == true ? a.type : null,
+            });
+            Assert.Equal(id, moreitem3.id);
+            Assert.Equal("title001", moreitem3.title);
+            Assert.Null(moreitem3.type3);
+            var moreitem4 = fsql.Select<ts_iif_topic>().First(a => new
+            {
+                a.id,
+                a.title,
+                type4 = more4 == true ? a.type : null,
+            });
+            Assert.Equal(id, moreitem4.id);
+            Assert.Equal("title001", moreitem4.title);
+            Assert.Null(moreitem4.type4);
+        }
+        class ts_iif_topic
+        {
+            public Guid id { get; set; }
+            public Guid typeid { get; set; }
+            [Navigate(nameof(typeid))]
+            public ts_iif_type type { get; set; }
+            public string title { get; set; }
+        }
+        class ts_iif_type
+        {
+            public Guid id { get; set; }
+            public string name { get; set; }
+        }
+        
 
         public record ts_record(DateTime Date, int TemperatureC, int TemperatureF, string Summary)
         {
