@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 
 #if net40
@@ -12,14 +13,14 @@ namespace FreeSql
 {
     partial class DbContext
     {
-        async public virtual Task<int> SaveChangesAsync()
+        async public virtual Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
-            await FlushCommandAsync();
+            await FlushCommandAsync(cancellationToken);
             return SaveChangesSuccess();
         }
 
-        static ConcurrentDictionary<Type, ConcurrentDictionary<string, Func<object, object[], Task<int>>>> _dicFlushCommandDbSetBatchAsync = new ConcurrentDictionary<Type, ConcurrentDictionary<string, Func<object, object[], Task<int>>>>();
-        async internal Task FlushCommandAsync()
+        static ConcurrentDictionary<Type, ConcurrentDictionary<string, Func<object, object[], CancellationToken, Task<int>>>> _dicFlushCommandDbSetBatchAsync = new ConcurrentDictionary<Type, ConcurrentDictionary<string, Func<object, object[], CancellationToken, Task<int>>>>();
+        async internal Task FlushCommandAsync(CancellationToken cancellationToken)
         {
             if (isFlushCommanding) return;
             if (_prevCommands.Any() == false) return;
@@ -31,25 +32,26 @@ namespace FreeSql
             Task<int> dbsetBatch(string method)
             {
                 var tryfunc = _dicFlushCommandDbSetBatchAsync
-                    .GetOrAdd(oldinfo.stateType, stateType => new ConcurrentDictionary<string, Func<object, object[], Task<int>>>())
+                    .GetOrAdd(oldinfo.stateType, stateType => new ConcurrentDictionary<string, Func<object, object[], CancellationToken, Task<int>>>())
                     .GetOrAdd(method, methodName =>
                     {
                         var arrType = oldinfo.stateType.MakeArrayType();
                         var dbsetType = oldinfo.dbSet.GetType().BaseType;
-                        var dbsetTypeMethod = dbsetType.GetMethod(methodName, BindingFlags.NonPublic | BindingFlags.Instance, null, new[] { arrType }, null);
+                        var dbsetTypeMethod = dbsetType.GetMethod(methodName, BindingFlags.NonPublic | BindingFlags.Instance, null, new[] { arrType, typeof(CancellationToken) }, null);
 
                         var returnTarget = Expression.Label(typeof(Task<int>));
                         var parm1DbSet = Expression.Parameter(typeof(object));
                         var parm2Vals = Expression.Parameter(typeof(object[]));
+                        var parm3CancelToken = Expression.Parameter(typeof(CancellationToken));
                         var var1Vals = Expression.Variable(arrType);
-                        return Expression.Lambda<Func<object, object[], Task<int>>>(Expression.Block(
+                        return Expression.Lambda<Func<object, object[], CancellationToken, Task<int>>>(Expression.Block(
                             new[] { var1Vals },
                             Expression.Assign(var1Vals, Expression.Convert(global::FreeSql.Internal.Utils.GetDataReaderValueBlockExpression(arrType, parm2Vals), arrType)),
-                            Expression.Return(returnTarget, Expression.Call(Expression.Convert(parm1DbSet, dbsetType), dbsetTypeMethod, var1Vals)),
+                            Expression.Return(returnTarget, Expression.Call(Expression.Convert(parm1DbSet, dbsetType), dbsetTypeMethod, var1Vals, parm3CancelToken)),
                             Expression.Label(returnTarget, Expression.Default(typeof(Task<int>)))
-                        ), new[] { parm1DbSet, parm2Vals }).Compile();
+                        ), new[] { parm1DbSet, parm2Vals, parm3CancelToken }).Compile();
                     });
-                return tryfunc(oldinfo.dbSet, states.ToArray());
+                return tryfunc(oldinfo.dbSet, states.ToArray(), cancellationToken);
             }
             async Task funcDelete()
             {

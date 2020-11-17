@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 
 #if net40
@@ -14,22 +15,22 @@ namespace FreeSql
 {
     partial class DbSet<TEntity>
     {
-        Task DbContextFlushCommandAsync()
+        Task DbContextFlushCommandAsync(CancellationToken cancellationToken)
         {
             _dicUpdateTimes.Clear();
-            return _db.FlushCommandAsync();
+            return _db.FlushCommandAsync(cancellationToken);
         }
 
-        async Task<int> DbContextBatchAddAsync(EntityState[] adds)
+        async Task<int> DbContextBatchAddAsync(EntityState[] adds, CancellationToken cancellationToken)
         {
             if (adds.Any() == false) return 0;
-            var affrows = await this.OrmInsert(adds.Select(a => a.Value)).ExecuteAffrowsAsync();
+            var affrows = await this.OrmInsert(adds.Select(a => a.Value)).ExecuteAffrowsAsync(cancellationToken);
             _db._entityChangeReport.AddRange(adds.Select(a => new DbContext.EntityChangeReport.ChangeInfo { Object = a.Value, Type = DbContext.EntityChangeType.Insert }));
             return affrows;
         }
 
         #region Add
-        async Task AddPrivAsync(TEntity data, bool isCheck)
+        async Task AddPrivAsync(TEntity data, bool isCheck, CancellationToken cancellationToken)
         {
             if (isCheck && CanAdd(data, true) == false) return;
             if (_tableIdentitys.Length > 0)
@@ -47,38 +48,38 @@ namespace FreeSql
                     case DataType.Firebird: //firebird 只支持单条插入 returning
                         if (_tableIdentitys.Length == 1)
                         {
-                            await DbContextFlushCommandAsync();
-                            var idtval = await this.OrmInsert(data).ExecuteIdentityAsync();
+                            await DbContextFlushCommandAsync(cancellationToken);
+                            var idtval = await this.OrmInsert(data).ExecuteIdentityAsync(cancellationToken);
                             IncrAffrows(1);
                             _db.OrmOriginal.SetEntityIdentityValueWithPrimary(_entityType, data, idtval);
                             _db._entityChangeReport.Add(new DbContext.EntityChangeReport.ChangeInfo { Object = data, Type = DbContext.EntityChangeType.Insert });
                             Attach(data);
                             if (_db.Options.EnableAddOrUpdateNavigateList)
-                                await AddOrUpdateNavigateListAsync(data, true);
+                                await AddOrUpdateNavigateListAsync(data, true, null, cancellationToken);
                         }
                         else
                         {
-                            await DbContextFlushCommandAsync();
-                            var newval = (await this.OrmInsert(data).ExecuteInsertedAsync()).First();
+                            await DbContextFlushCommandAsync(cancellationToken);
+                            var newval = (await this.OrmInsert(data).ExecuteInsertedAsync(cancellationToken)).First();
                             _db._entityChangeReport.Add(new DbContext.EntityChangeReport.ChangeInfo { Object = newval, Type = DbContext.EntityChangeType.Insert });
                             IncrAffrows(1);
                             _db.OrmOriginal.MapEntityValue(_entityType, newval, data);
                             Attach(newval);
                             if (_db.Options.EnableAddOrUpdateNavigateList)
-                                await AddOrUpdateNavigateListAsync(data, true);
+                                await AddOrUpdateNavigateListAsync(data, true, null, cancellationToken);
                         }
                         return;
                     default:
                         if (_tableIdentitys.Length == 1)
                         {
-                            await DbContextFlushCommandAsync();
-                            var idtval = await this.OrmInsert(data).ExecuteIdentityAsync();
+                            await DbContextFlushCommandAsync(cancellationToken);
+                            var idtval = await this.OrmInsert(data).ExecuteIdentityAsync(cancellationToken);
                             IncrAffrows(1);
                             _db.OrmOriginal.SetEntityIdentityValueWithPrimary(_entityType, data, idtval);
                             _db._entityChangeReport.Add(new DbContext.EntityChangeReport.ChangeInfo { Object = data, Type = DbContext.EntityChangeType.Insert });
                             Attach(data);
                             if (_db.Options.EnableAddOrUpdateNavigateList)
-                                await AddOrUpdateNavigateListAsync(data, true);
+                                await AddOrUpdateNavigateListAsync(data, true, null, cancellationToken);
                         }
                         return;
                 }
@@ -86,15 +87,15 @@ namespace FreeSql
             EnqueueToDbContext(DbContext.EntityChangeType.Insert, CreateEntityState(data));
             Attach(data);
             if (_db.Options.EnableAddOrUpdateNavigateList)
-                await AddOrUpdateNavigateListAsync(data, true);
+                await AddOrUpdateNavigateListAsync(data, true, null, cancellationToken);
         }
-        public Task AddAsync(TEntity data) => AddPrivAsync(data, true);
-        async public Task AddRangeAsync(IEnumerable<TEntity> data)
+        public Task AddAsync(TEntity data, CancellationToken cancellationToken = default) => AddPrivAsync(data, true, cancellationToken);
+        async public Task AddRangeAsync(IEnumerable<TEntity> data, CancellationToken cancellationToken = default)
         {
             if (CanAdd(data, true) == false) return;
             if (data.ElementAtOrDefault(1) == default(TEntity))
             {
-                await AddAsync(data.First());
+                await AddAsync(data.First(), cancellationToken);
                 return;
             }
             if (_tableIdentitys.Length > 0)
@@ -109,8 +110,8 @@ namespace FreeSql
                     case DataType.KingbaseES:
                     case DataType.OdbcKingbaseES:
                     case DataType.ShenTong:
-                        await DbContextFlushCommandAsync();
-                        var rets = await this.OrmInsert(data).ExecuteInsertedAsync();
+                        await DbContextFlushCommandAsync(cancellationToken);
+                        var rets = await this.OrmInsert(data).ExecuteInsertedAsync(cancellationToken);
                         if (rets.Count != data.Count()) throw new Exception($"特别错误：批量添加失败，{_db.OrmOriginal.Ado.DataType} 的返回数据，与添加的数目不匹配");
                         _db._entityChangeReport.AddRange(rets.Select(a => new DbContext.EntityChangeReport.ChangeInfo { Object = a, Type = DbContext.EntityChangeType.Insert }));
                         var idx = 0;
@@ -120,11 +121,11 @@ namespace FreeSql
                         AttachRange(rets);
                         if (_db.Options.EnableAddOrUpdateNavigateList)
                             foreach (var item in data)
-                                await AddOrUpdateNavigateListAsync(item, true);
+                                await AddOrUpdateNavigateListAsync(item, true, null, cancellationToken);
                         return;
                     default:
                         foreach (var s in data)
-                            await AddPrivAsync(s, false);
+                            await AddPrivAsync(s, false, cancellationToken);
                         return;
                 }
             }
@@ -136,11 +137,11 @@ namespace FreeSql
                 AttachRange(data);
                 if (_db.Options.EnableAddOrUpdateNavigateList)
                     foreach (var item in data)
-                        await AddOrUpdateNavigateListAsync(item, true);
+                        await AddOrUpdateNavigateListAsync(item, true, null, cancellationToken);
             }
         }
 
-        async public Task SaveManyAsync(TEntity item, string propertyName)
+        async public Task SaveManyAsync(TEntity item, string propertyName, CancellationToken cancellationToken = default)
         {
             if (item == null) return;
             if (string.IsNullOrEmpty(propertyName)) return;
@@ -156,15 +157,15 @@ namespace FreeSql
                     throw new ArgumentException($"{_table.Type.FullName} 类型的属性 {propertyName} 不是 OneToMany 或 ManyToMany 特性");
             }
 
-            await DbContextFlushCommandAsync();
+            await DbContextFlushCommandAsync(cancellationToken);
             var oldEnable = _db.Options.EnableAddOrUpdateNavigateList;
             _db.Options.EnableAddOrUpdateNavigateList = false;
             try
             {
-                await AddOrUpdateNavigateListAsync(item, false, propertyName);
+                await AddOrUpdateNavigateListAsync(item, false, propertyName, cancellationToken);
                 if (tref.RefType == Internal.Model.TableRefType.OneToMany)
                 {
-                    await DbContextFlushCommandAsync();
+                    await DbContextFlushCommandAsync(cancellationToken);
                     //删除没有保存的数据，求出主体的条件
                     var deleteWhereParentParam = Expression.Parameter(typeof(object), "a");
                     Expression whereParentExp = null;
@@ -189,7 +190,7 @@ namespace FreeSql
                         subDelete.WhereDynamic(propValEach, true);
                         break;
                     }
-                    await subDelete.ExecuteAffrowsAsync();
+                    await subDelete.ExecuteAffrowsAsync(cancellationToken);
                 }
             }
             finally
@@ -197,7 +198,7 @@ namespace FreeSql
                 _db.Options.EnableAddOrUpdateNavigateList = oldEnable;
             }
         }
-        async Task AddOrUpdateNavigateListAsync(TEntity item, bool isAdd, string propertyName = null)
+        async Task AddOrUpdateNavigateListAsync(TEntity item, bool isAdd, string propertyName, CancellationToken cancellationToken)
         {
             Func<PropertyInfo, Task> action = async prop =>
             {
@@ -225,9 +226,9 @@ namespace FreeSql
                             curList.Add(propValItem);
                             var flagExists = refSet.ExistsInStates(propValItem);
                             if (flagExists == false)
-                                flagExists = await refSet.Select.WhereDynamic(propValItem).AnyAsync();
+                                flagExists = await refSet.Select.WhereDynamic(propValItem).AnyAsync(cancellationToken);
                             if (refSet.CanAdd(propValItem, false) && flagExists != true)
-                                await refSet.AddAsync(propValItem);
+                                await refSet.AddAsync(propValItem, cancellationToken);
                         }
                         var midSelectParam = Expression.Parameter(typeof(object), "a");
                         var midWheres = new List<Expression<Func<object, bool>>>();
@@ -246,7 +247,7 @@ namespace FreeSql
                                 .WithTransaction(_uow?.GetOrBeginTransaction());
                             foreach (var midWhere in midWheres) delall.Where(midWhere);
                             var sql = delall.ToSql();
-                            await delall.ExecuteAffrowsAsync();
+                            await delall.ExecuteAffrowsAsync(cancellationToken);
                             _db._entityChangeReport.Add(new DbContext.EntityChangeReport.ChangeInfo { Object = sql, Type = DbContext.EntityChangeType.SqlRaw });
                         }
                         else //保存
@@ -257,7 +258,7 @@ namespace FreeSql
                             {
                                 var midSelect = midSet.Select;
                                 foreach (var midWhere in midWheres) midSelect.Where(midWhere);
-                                midList = await midSelect.ToListAsync();
+                                midList = await midSelect.ToListAsync(false, cancellationToken);
                             }
                             else
                                 midList = new List<object>();
@@ -307,7 +308,7 @@ namespace FreeSql
                                 }
                                 midListAdd.Add(newItem);
                             }
-                            await midSet.AddRangeAsync(midListAdd);
+                            await midSet.AddRangeAsync(midListAdd, cancellationToken);
                         }
                         break;
                     case Internal.Model.TableRefType.OneToMany:
@@ -318,7 +319,7 @@ namespace FreeSql
                                 var val = FreeSql.Internal.Utils.GetDataReaderValue(tref.RefColumns[colidx].CsType, _db.OrmOriginal.GetEntityValueWithPropertyName(_table.Type, item, tref.Columns[colidx].CsName));
                                 _db.OrmOriginal.SetEntityValueWithPropertyName(tref.RefEntityType, propValItem, tref.RefColumns[colidx].CsName, val);
                             }
-                            await refSet.AddOrUpdateAsync(propValItem);
+                            await refSet.AddOrUpdateAsync(propValItem, cancellationToken);
                         }
                         break;
                 }
@@ -333,9 +334,9 @@ namespace FreeSql
         #endregion
 
         #region UpdateAsync
-        Task<int> DbContextBatchUpdateAsync(EntityState[] ups) => DbContextBatchUpdatePrivAsync(ups, false);
-        Task<int> DbContextBatchUpdateNowAsync(EntityState[] ups) => DbContextBatchUpdatePrivAsync(ups, true);
-        async Task<int> DbContextBatchUpdatePrivAsync(EntityState[] ups, bool isLiveUpdate)
+        Task<int> DbContextBatchUpdateAsync(EntityState[] ups, CancellationToken cancellationToken) => DbContextBatchUpdatePrivAsync(ups, false, cancellationToken);
+        Task<int> DbContextBatchUpdateNowAsync(EntityState[] ups, CancellationToken cancellationToken) => DbContextBatchUpdatePrivAsync(ups, true, cancellationToken);
+        async Task<int> DbContextBatchUpdatePrivAsync(EntityState[] ups, bool isLiveUpdate, CancellationToken cancellationToken)
         {
             if (ups.Any() == false) return 0;
             var uplst1 = ups[ups.Length - 1];
@@ -370,7 +371,7 @@ namespace FreeSql
                     return ups.Length == data.Count ? -998 : -997;
 
                 var update = this.OrmUpdate(null).SetSource(data.Select(a => a.Value)).IgnoreColumns(cuig);
-                var affrows = await update.ExecuteAffrowsAsync();
+                var affrows = await update.ExecuteAffrowsAsync(cancellationToken);
                 _db._entityChangeReport.AddRange(data.Select(a => new DbContext.EntityChangeReport.ChangeInfo { 
                     Object = a.Value, 
                     BeforeObject = _states.TryGetValue(a.Key, out var beforeVal) ? CreateEntityState(beforeVal.Value).Value : null, 
@@ -390,20 +391,20 @@ namespace FreeSql
             //等待下次对比再保存
             return 0;
         }
-        async public Task UpdateAsync(TEntity data)
+        async public Task UpdateAsync(TEntity data, CancellationToken cancellationToken = default)
         {
             var exists = ExistsInStates(data);
             if (exists == null) throw new Exception($"不可更新，未设置主键的值：{_db.OrmOriginal.GetEntityString(_entityType, data)}");
             if (exists == false)
             {
-                var olddata = await OrmSelect(data).FirstAsync();
+                var olddata = await OrmSelect(data).FirstAsync(cancellationToken);
                 if (olddata == null) throw new Exception($"不可更新，数据库不存在该记录：{_db.OrmOriginal.GetEntityString(_entityType, data)}");
             }
 
-            await UpdateRangePrivAsync(new[] { data }, true);
+            await UpdateRangePrivAsync(new[] { data }, true, cancellationToken);
         }
-        public Task UpdateRangeAsync(IEnumerable<TEntity> data) => UpdateRangePrivAsync(data, true);
-        async Task UpdateRangePrivAsync(IEnumerable<TEntity> data, bool isCheck)
+        public Task UpdateRangeAsync(IEnumerable<TEntity> data, CancellationToken cancellationToken = default) => UpdateRangePrivAsync(data, true, cancellationToken);
+        async Task UpdateRangePrivAsync(IEnumerable<TEntity> data, bool isCheck, CancellationToken cancellationToken)
         {
             if (CanUpdate(data, true) == false) return;
             foreach (var item in data)
@@ -411,7 +412,7 @@ namespace FreeSql
                 if (_dicUpdateTimes.ContainsKey(item))
                 {
                     var itemCopy = CreateEntityState(item).Value;
-                    await DbContextFlushCommandAsync();
+                    await DbContextFlushCommandAsync(cancellationToken);
                     if (_table.VersionColumn != null)
                     {
                         var itemVersion = _db.OrmOriginal.GetEntityValueWithPropertyName(_entityType, item, _table.VersionColumn.CsName);
@@ -429,32 +430,27 @@ namespace FreeSql
             }
             if (_db.Options.EnableAddOrUpdateNavigateList)
                 foreach (var item in data)
-                    await AddOrUpdateNavigateListAsync(item, false);
+                    await AddOrUpdateNavigateListAsync(item, false, null, cancellationToken);
         }
         #endregion
 
         #region RemoveAsync
-        async Task<int> DbContextBatchRemoveAsync(EntityState[] dels)
+        async Task<int> DbContextBatchRemoveAsync(EntityState[] dels, CancellationToken cancellationToken)
         {
             if (dels.Any() == false) return 0;
-            var affrows = await this.OrmDelete(dels.Select(a => a.Value)).ExecuteAffrowsAsync();
+            var affrows = await this.OrmDelete(dels.Select(a => a.Value)).ExecuteAffrowsAsync(cancellationToken);
             _db._entityChangeReport.AddRange(dels.Select(a => new DbContext.EntityChangeReport.ChangeInfo { Object = a.Value, Type = DbContext.EntityChangeType.Delete }));
             return affrows;
         }
-        /// <summary>
-        /// 根据 lambda 条件删除数据
-        /// </summary>
-        /// <param name="predicate"></param>
-        /// <returns></returns>
-        async public Task<int> RemoveAsync(Expression<Func<TEntity, bool>> predicate)
+        async public Task<int> RemoveAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
         {
-            await DbContextFlushCommandAsync();
-            return await this.OrmDelete(null).Where(predicate).ExecuteAffrowsAsync();
+            await DbContextFlushCommandAsync(cancellationToken);
+            return await this.OrmDelete(null).Where(predicate).ExecuteAffrowsAsync(cancellationToken);
         }
         #endregion
 
         #region AddOrUpdateAsync
-        async public Task AddOrUpdateAsync(TEntity data)
+        async public Task AddOrUpdateAsync(TEntity data, CancellationToken cancellationToken = default)
         {
             if (data == null) throw new ArgumentNullException(nameof(data));
             if (_table.Primarys.Any() == false) throw new Exception($"不可添加，实体没有主键：{_db.OrmOriginal.GetEntityString(_entityType, data)}");
@@ -462,23 +458,23 @@ namespace FreeSql
             var flagExists = ExistsInStates(data);
             if (flagExists == false)
             {
-                var olddata = await OrmSelect(data).FirstAsync();
+                var olddata = await OrmSelect(data).FirstAsync(cancellationToken);
                 flagExists = olddata != null;
             }
 
             if (flagExists == true && CanUpdate(data, false))
             {
-                await DbContextFlushCommandAsync();
+                await DbContextFlushCommandAsync(cancellationToken);
                 var affrows = _db._affrows;
-                await UpdateRangePrivAsync(new[] { data }, false);
-                await DbContextFlushCommandAsync();
+                await UpdateRangePrivAsync(new[] { data }, false, cancellationToken);
+                await DbContextFlushCommandAsync(cancellationToken);
                 affrows = _db._affrows - affrows;
                 if (affrows > 0) return;
             }
             if (CanAdd(data, false))
             {
                 _db.OrmOriginal.ClearEntityPrimaryValueWithIdentity(_entityType, data);
-                await AddPrivAsync(data, false);
+                await AddPrivAsync(data, false, cancellationToken);
             }
         }
         #endregion

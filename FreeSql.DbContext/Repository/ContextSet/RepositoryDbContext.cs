@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FreeSql
@@ -81,9 +82,9 @@ namespace FreeSql
         }
 #if net40
 #else
-        async public override Task<int> SaveChangesAsync()
+        async public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
-            await FlushCommandAsync();
+            await FlushCommandAsync(cancellationToken);
             return SaveChangesSuccess();
         }
 #endif

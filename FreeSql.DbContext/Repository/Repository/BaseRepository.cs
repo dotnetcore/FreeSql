@@ -189,7 +189,7 @@ namespace FreeSql
         }
 
         public virtual int Delete(TKey id) => Delete(CheckTKeyAndReturnIdEntity(id));
-        public virtual TEntity Find(TKey id) => Select.WhereDynamic(CheckTKeyAndReturnIdEntity(id)).ToOne();
-        public TEntity Get(TKey id) => Find(id);
+        public virtual TEntity Find(TKey id) => _dbset.OrmSelectInternal(CheckTKeyAndReturnIdEntity(id)).ToOne();
+        public TEntity Get(TKey id) => _dbset.OrmSelectInternal(CheckTKeyAndReturnIdEntity(id)).ToOne();
     }
 }

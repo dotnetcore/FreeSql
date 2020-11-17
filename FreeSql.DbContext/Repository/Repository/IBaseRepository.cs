@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FreeSql
@@ -98,17 +99,17 @@ namespace FreeSql
 
 #if net40
 #else
-        Task<TEntity> InsertAsync(TEntity entity);
-        Task<List<TEntity>> InsertAsync(IEnumerable<TEntity> entitys);
+        Task<TEntity> InsertAsync(TEntity entity, CancellationToken cancellationToken = default);
+        Task<List<TEntity>> InsertAsync(IEnumerable<TEntity> entitys, CancellationToken cancellationToken = default);
 
-        Task<int> UpdateAsync(TEntity entity);
-        Task<int> UpdateAsync(IEnumerable<TEntity> entitys);
-        Task<TEntity> InsertOrUpdateAsync(TEntity entity);
-        Task SaveManyAsync(TEntity entity, string propertyName);
+        Task<int> UpdateAsync(TEntity entity, CancellationToken cancellationToken = default);
+        Task<int> UpdateAsync(IEnumerable<TEntity> entitys, CancellationToken cancellationToken = default);
+        Task<TEntity> InsertOrUpdateAsync(TEntity entity, CancellationToken cancellationToken = default);
+        Task SaveManyAsync(TEntity entity, string propertyName, CancellationToken cancellationToken = default);
 
-        Task<int> DeleteAsync(TEntity entity);
-        Task<int> DeleteAsync(IEnumerable<TEntity> entitys);
-        Task<int> DeleteAsync(Expression<Func<TEntity, bool>> predicate);
+        Task<int> DeleteAsync(TEntity entity, CancellationToken cancellationToken = default);
+        Task<int> DeleteAsync(IEnumerable<TEntity> entitys, CancellationToken cancellationToken = default);
+        Task<int> DeleteAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default);
 #endif
     }
 
@@ -121,9 +122,9 @@ namespace FreeSql
 
 #if net40
 #else
-        Task<TEntity> GetAsync(TKey id);
-        Task<TEntity> FindAsync(TKey id);
-        Task<int> DeleteAsync(TKey id);
+        Task<TEntity> GetAsync(TKey id, CancellationToken cancellationToken = default);
+        Task<TEntity> FindAsync(TKey id, CancellationToken cancellationToken = default);
+        Task<int> DeleteAsync(TKey id, CancellationToken cancellationToken = default);
 #endif
     }
 }
