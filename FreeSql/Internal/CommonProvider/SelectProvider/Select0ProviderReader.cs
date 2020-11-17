@@ -475,10 +475,13 @@ namespace FreeSql.Internal.CommonProvider
                                         Expression.GreaterThan(readExpDataIndex, dataIndexExp),
                                         Expression.Assign(dataIndexExp, readExpDataIndex)
                                     ),
-                                    Expression.IfThenElse(
-                                        Expression.NotEqual(readExpValue, Expression.Constant(null)),
-                                        Expression.Assign(curExp, Expression.Convert(readExpValue, typei)),
-                                        Expression.Assign(curExp, Expression.Constant(null, typei))
+                                    Expression.IfThen(
+                                        Expression.NotEqual(retExp, Expression.Constant(null)),
+                                        Expression.IfThenElse(
+                                            Expression.NotEqual(readExpValue, Expression.Constant(null)),
+                                            Expression.Assign(curExp, Expression.Convert(readExpValue, typei)),
+                                            Expression.Assign(curExp, Expression.Constant(null, typei))
+                                        )
                                     )
                                 }),
                                 Expression.Block(

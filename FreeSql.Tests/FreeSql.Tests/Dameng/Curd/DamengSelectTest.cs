@@ -336,6 +336,7 @@ namespace FreeSql.Tests.Dameng
             var sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", a__Type.\"GUID\", a__Type.\"PARENTID\", a__Type.\"NAME\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a LEFT JOIN \"TESTTYPEINFO\" a__Type ON a__Type.\"GUID\" = a.\"TYPEGUID\"", sql);
             query.ToList();
+            query.ToList(true);
 
             query = select.LeftJoin(a => a.Type.Guid == a.TypeGuid && a.Type.Name == "xxx");
             sql = query.ToSql().Replace("\r\n", "");
@@ -475,6 +476,7 @@ namespace FreeSql.Tests.Dameng
             var sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", a__Type.\"GUID\", a__Type.\"PARENTID\", a__Type.\"NAME\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a RIGHT JOIN \"TESTTYPEINFO\" a__Type ON a__Type.\"GUID\" = a.\"TYPEGUID\"", sql);
             query.ToList();
+            query.ToList(true);
 
             query = select.RightJoin(a => a.Type.Guid == a.TypeGuid && a.Type.Name == "xxx");
             sql = query.ToSql().Replace("\r\n", "");
