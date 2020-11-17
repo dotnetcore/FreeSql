@@ -331,7 +331,7 @@ to_char(b.comments),
 nvl(FREESQL_LONG_TO_CHAR_DEFAULT(a.table_name, a.column_name),'')
 from all_tab_cols a
 left join all_col_comments b on b.owner = a.owner and b.table_name = a.table_name and b.column_name = a.column_name
-where {(ignoreCase ? "lower(a.owner)" : "a.owner")} in ({databaseIn}) and {loc8}
+where {(ignoreCase ? "lower(a.owner)" : "a.owner")} in ({databaseIn}) and {loc8} and a.column_id is not null
 ";
             ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
             if (ds == null) return loc1;

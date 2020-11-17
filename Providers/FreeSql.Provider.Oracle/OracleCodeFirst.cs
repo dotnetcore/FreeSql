@@ -198,7 +198,7 @@ nvl((select 1 from user_triggers where upper(trigger_name)=upper('{Utils.GetCsNa
 b.comments
 from all_tab_columns a
 left join all_col_comments b on b.owner = a.owner and b.table_name = a.table_name and b.column_name = a.column_name
-where a.owner={{0}} and a.table_name={{1}}", tboldname ?? tbname);
+where a.owner={{0}} and a.table_name={{1}} and a.column_id is not null", tboldname ?? tbname);
                 var ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
                 var tbstruct = ds.ToDictionary(a => string.Concat(a[0]), a =>
                 {
