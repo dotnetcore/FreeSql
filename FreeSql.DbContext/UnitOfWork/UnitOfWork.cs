@@ -111,7 +111,7 @@ namespace FreeSql
             var isCommited = false;
             try
             {
-                if (_tran != null)
+                if (_tran != null && _tran.Connection != null)
                 {
                     _tran.Commit();
                     isCommited = true;
@@ -140,7 +140,7 @@ namespace FreeSql
             var isRollbacked = false;
             try
             {
-                if (_tran != null)
+                if (_tran != null && _tran.Connection != null)
                 {
                     _tran.Rollback();
                     isRollbacked = true;
