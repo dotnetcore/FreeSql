@@ -111,9 +111,9 @@ namespace FreeSql
             var isCommited = false;
             try
             {
-                if (_tran != null && _tran.Connection != null)
+                if (_tran != null)
                 {
-                    _tran.Commit();
+                    if (_tran.Connection != null) _tran.Commit();
                     isCommited = true;
                     _fsql?.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(_tranBefore, "提交", null));
 
@@ -140,9 +140,9 @@ namespace FreeSql
             var isRollbacked = false;
             try
             {
-                if (_tran != null && _tran.Connection != null)
+                if (_tran != null)
                 {
-                    _tran.Rollback();
+                    if (_tran.Connection != null) _tran.Rollback();
                     isRollbacked = true;
                     _fsql?.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(_tranBefore, "回滚", null));
                 }
