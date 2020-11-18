@@ -104,9 +104,7 @@ public static partial class FreeSqlSqlServerGlobalExtensions
             }
             else if (insert.InternalTransaction != null)
             {
-                using (var bulkCopy = copyOptions == SqlBulkCopyOptions.Default ?
-                    new SqlBulkCopy(insert.InternalTransaction.Connection as SqlConnection) :
-                    new SqlBulkCopy(insert.InternalTransaction.Connection as SqlConnection, copyOptions, insert.InternalTransaction as SqlTransaction))
+                using (var bulkCopy = new SqlBulkCopy(insert.InternalTransaction.Connection as SqlConnection, copyOptions, insert.InternalTransaction as SqlTransaction))
                 {
                     writeToServer(bulkCopy);
                 }
@@ -181,9 +179,7 @@ public static partial class FreeSqlSqlServerGlobalExtensions
             }
             else if (insert.InternalTransaction != null)
             {
-                using (var bulkCopy = copyOptions == SqlBulkCopyOptions.Default ?
-                    new SqlBulkCopy(insert.InternalTransaction.Connection as SqlConnection) :
-                    new SqlBulkCopy(insert.InternalTransaction.Connection as SqlConnection, copyOptions, insert.InternalTransaction as SqlTransaction))
+                using (var bulkCopy = new SqlBulkCopy(insert.InternalTransaction.Connection as SqlConnection, copyOptions, insert.InternalTransaction as SqlTransaction))
                 {
                     await writeToServerAsync(bulkCopy);
                 }

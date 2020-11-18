@@ -57,7 +57,7 @@ public static class FreeSqlMySqlConnectorGlobalExtensions
             }
             else if (insert.InternalTransaction != null)
             {
-                writeToServer(new MySqlBulkCopy(insert.InternalTransaction.Connection as MySqlConnection));
+                writeToServer(new MySqlBulkCopy(insert.InternalTransaction.Connection as MySqlConnection, insert.InternalTransaction as MySqlTransaction));
             }
             else if (insert.InternalConnection != null)
             {
@@ -116,7 +116,7 @@ public static class FreeSqlMySqlConnectorGlobalExtensions
             }
             else if (insert.InternalTransaction != null)
             {
-                await writeToServer(new MySqlBulkCopy(insert.InternalTransaction.Connection as MySqlConnection));
+                await writeToServer(new MySqlBulkCopy(insert.InternalTransaction.Connection as MySqlConnection, insert.InternalTransaction as MySqlTransaction));
             }
             else if (insert.InternalConnection != null)
             {

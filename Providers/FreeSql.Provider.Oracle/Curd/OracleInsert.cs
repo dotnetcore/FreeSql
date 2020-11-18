@@ -20,6 +20,10 @@ namespace FreeSql.Oracle.Curd
         {
         }
 
+        internal IFreeSql InternalOrm => _orm as IFreeSql;
+        internal DbConnection InternalConnection => _connection;
+        internal DbTransaction InternalTransaction => _transaction;
+
         public override int ExecuteAffrows() => base.SplitExecuteAffrows(_batchValuesLimit > 0 ? _batchValuesLimit : 500, _batchParameterLimit > 0 ? _batchParameterLimit : 999);
         public override long ExecuteIdentity() => base.SplitExecuteIdentity(_batchValuesLimit > 0 ? _batchValuesLimit : 500, _batchParameterLimit > 0 ? _batchParameterLimit : 999);
         public override List<T1> ExecuteInserted() => base.SplitExecuteInserted(_batchValuesLimit > 0 ? _batchValuesLimit : 500, _batchParameterLimit > 0 ? _batchParameterLimit : 999);

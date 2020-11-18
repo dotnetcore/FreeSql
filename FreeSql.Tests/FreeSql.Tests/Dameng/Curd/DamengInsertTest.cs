@@ -200,6 +200,16 @@ INTO ""TB_TOPIC_INSERT""(""CLICKS"") VALUES(900)
             //var items2 = insert.AppendData(items).ExecuteInserted();
         }
 
+        //[Fact]
+        //public void ExecuteDmBulkCopy()
+        //{
+        //    var items = new List<Topic>();
+        //    for (var a = 0; a < 10; a++) items.Add(new Topic { Id = a + 1, Title = $"newtitle{a}", Clicks = a * 100, CreateTime = DateTime.Now });
+
+        //    insert.AppendData(items).InsertIdentity().ExecuteDmBulkCopy();
+        //    //Dm.DmException:¡°The fastloading dll not loading!¡±
+        //}
+
         [Fact]
         public void AsTable()
         {

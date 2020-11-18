@@ -201,6 +201,26 @@ INTO ""TB_TOPIC_INSERT""(""CLICKS"") VALUES(:Clicks_9)
         }
 
         [Fact]
+        public void ExecuteOracleBulkCopy()
+        {
+            var items = new List<Topic_bulkcopy>();
+            for (var a = 0; a < 10; a++) items.Add(new Topic_bulkcopy { Title = $"newtitle{a}", Clicks = a * 100, CreateTime = DateTime.Now });
+
+            g.oracle.Insert<Topic_bulkcopy>().AppendData(items).InsertIdentity().ExecuteOracleBulkCopy();
+            //insert.AppendData(items).IgnoreColumns(a => new { a.CreateTime, a.Clicks }).ExecuteSqlBulkCopy();
+            // System.NotSupportedException:“DataSet does not support System.Nullable<>.”
+        }
+        [Table(Name = "tb_topic_bulkcopy")]
+        class Topic_bulkcopy
+        {
+            public Guid Id { get; set; }
+            public int? Clicks { get; set; }
+            public TestTypeInfo Type { get; set; }
+            public string Title { get; set; }
+            public DateTime CreateTime { get; set; }
+        }
+
+        [Fact]
         public void AsTable()
         {
             var items = new List<Topic>();
