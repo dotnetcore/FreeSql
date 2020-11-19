@@ -37,6 +37,7 @@ namespace FreeSql.Internal.CommonProvider
         public DbConnection _connection;
         public int _commandTimeout = 0;
         public Action<StringBuilder> _interceptSql;
+        public byte[] _updateVersionValue;
 
         public UpdateProvider(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere)
         {
@@ -75,6 +76,9 @@ namespace FreeSql.Internal.CommonProvider
             _paramsSource.Clear();
             IgnoreCanUpdate();
             _whereGlobalFilter = _orm.GlobalFilter.GetFilters();
+            _batchProgress = null;
+            _interceptSql = null;
+            _updateVersionValue = null;
         }
 
         public IUpdate<T1> WithTransaction(DbTransaction transaction)
@@ -122,7 +126,12 @@ namespace FreeSql.Internal.CommonProvider
                 if (affrows != _source.Count)
                     throw new DbUpdateVersionException($"记录可能不存在，或者【行级乐观锁】版本过旧，更新数量{_source.Count}，影响的行数{affrows}。", _table, sql, dbParms, affrows, _source.Select(a => (object)a));
                 foreach (var d in _source)
-                    _orm.SetEntityIncrByWithPropertyName(_table.Type, d, _table.VersionColumn.CsName, 1);
+                {
+                    if (_table.VersionColumn.Attribute.MapType == typeof(byte[]))
+                        _orm.SetEntityValueWithPropertyName(_table.Type, d, _table.VersionColumn.CsName, _updateVersionValue);
+                    else
+                        _orm.SetEntityIncrByWithPropertyName(_table.Type, d, _table.VersionColumn.CsName, 1);
+                }
             }
         }
 
@@ -768,7 +777,13 @@ namespace FreeSql.Internal.CommonProvider
             if (_table.VersionColumn != null)
             {
                 var vcname = _commonUtils.QuoteSqlName(_table.VersionColumn.Attribute.Name);
-                sb.Append(", ").Append(vcname).Append(" = ").Append(_commonUtils.IsNull(vcname, 0)).Append(" + 1");
+                if (_table.VersionColumn.Attribute.MapType == typeof(byte[]))
+                {
+                    _updateVersionValue = Utils.GuidToBytes(Guid.NewGuid());
+                    sb.Append(", ").Append(vcname).Append(" = ").Append(_commonUtils.GetNoneParamaterSqlValue(_paramsSource, "uv", _table.VersionColumn, _table.VersionColumn.Attribute.MapType, _updateVersionValue));
+                }
+                else
+                    sb.Append(", ").Append(vcname).Append(" = ").Append(_commonUtils.IsNull(vcname, 0)).Append(" + 1");
             }
 
             sb.Append(" \r\nWHERE ");

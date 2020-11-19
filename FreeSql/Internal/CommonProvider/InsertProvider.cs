@@ -179,6 +179,8 @@ namespace FreeSql.Internal.CommonProvider
                 }
                 if (val == null && col.Attribute.MapType == typeof(string) && col.Attribute.IsNullable == false)
                     col.SetValue(data, val = "");
+                if (val == null && col.Attribute.MapType == typeof(byte[]) && col.Attribute.IsVersion)
+                    col.SetValue(data, val = Utils.GuidToBytes(Guid.NewGuid()));
             }
         }
 

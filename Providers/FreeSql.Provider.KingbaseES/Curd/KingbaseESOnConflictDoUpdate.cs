@@ -125,7 +125,7 @@ namespace FreeSql.KingbaseES
 
                         if (colidx > 0) sb.Append(", \r\n");
 
-                        if (col.Attribute.IsVersion == true)
+                        if (col.Attribute.IsVersion == true && col.Attribute.MapType != typeof(byte[]))
                         {
                             var field = _insert.InternalCommonUtils.QuoteSqlName(col.Attribute.Name);
                             sb.Append(field).Append(" = ").Append(_insert.InternalCommonUtils.QuoteSqlName(_insert.InternalTable.DbName)).Append(".").Append(field).Append(" + 1");

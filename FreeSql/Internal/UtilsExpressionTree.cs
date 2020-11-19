@@ -282,6 +282,7 @@ namespace FreeSql.Internal
                             break;
                     }
                 }
+                if (colattr.MapType == typeof(byte[]) && colattr.IsVersion == true) colattr.StringLength = 16;
                 if (colattr.MapType == typeof(byte[]) && colattr.StringLength != 0)
                 {
                     int strlen = colattr.StringLength;
@@ -346,8 +347,8 @@ namespace FreeSql.Internal
             trytb.VersionColumn = trytb.Columns.Values.Where(a => a.Attribute.IsVersion == true).LastOrDefault();
             if (trytb.VersionColumn != null)
             {
-                if (trytb.VersionColumn.Attribute.MapType.IsNullableType() || trytb.VersionColumn.Attribute.MapType.IsNumberType() == false)
-                    throw new Exception($"属性{trytb.VersionColumn.CsName} 被标注为行锁（乐观锁）(IsVersion)，但其必须为数字类型，并且不可为 Nullable");
+                if (trytb.VersionColumn.Attribute.MapType.IsNullableType() || trytb.VersionColumn.Attribute.MapType.IsNumberType() == false && trytb.VersionColumn.Attribute.MapType != typeof(byte[]))
+                    throw new Exception($"属性{trytb.VersionColumn.CsName} 被标注为行锁（乐观锁）(IsVersion)，但其必须为数字类型 或者 byte[]，并且不可为 Nullable");
             }
 
             var indexesDict = new Dictionary<string, IndexInfo>(StringComparer.CurrentCultureIgnoreCase);
@@ -1742,18 +1743,18 @@ namespace FreeSql.Internal
             act(info, value);
         }
 
-        static BigInteger ToBigInteger(string that)
+        public static BigInteger ToBigInteger(string that)
         {
             if (string.IsNullOrEmpty(that)) return 0;
             if (BigInteger.TryParse(that, System.Globalization.NumberStyles.Any, null, out var trybigint)) return trybigint;
             return 0;
         }
-        static string ToStringConcat(object obj)
+        public static string ToStringConcat(object obj)
         {
             if (obj == null) return null;
             return string.Concat(obj);
         }
-        static byte[] GuidToBytes(Guid guid)
+        public static byte[] GuidToBytes(Guid guid)
         {
             var bytes = new byte[16];
             var guidN = guid.ToString("N");
@@ -1761,12 +1762,12 @@ namespace FreeSql.Internal
                 bytes[a / 2] = byte.Parse($"{guidN[a]}{guidN[a + 1]}", System.Globalization.NumberStyles.HexNumber);
             return bytes;
         }
-        static Guid BytesToGuid(byte[] bytes)
+        public static Guid BytesToGuid(byte[] bytes)
         {
             if (bytes == null) return Guid.Empty;
             return Guid.TryParse(BitConverter.ToString(bytes, 0, Math.Min(bytes.Length, 36)).Replace("-", ""), out var tryguid) ? tryguid : Guid.Empty;
         }
-        static char StringToChar(string str)
+        public static char StringToChar(string str)
         {
             if (string.IsNullOrEmpty(str)) return default(char);
             return str.ToCharArray(0, 1)[0];
@@ -1793,8 +1794,8 @@ namespace FreeSql.Internal
         static MethodInfo MethodTimeSpanTryParse = typeof(TimeSpan).GetMethod("TryParse", new[] { typeof(string), typeof(TimeSpan).MakeByRefType() });
         static MethodInfo MethodDateTimeTryParse = typeof(DateTime).GetMethod("TryParse", new[] { typeof(string), typeof(DateTime).MakeByRefType() });
         static MethodInfo MethodDateTimeOffsetTryParse = typeof(DateTimeOffset).GetMethod("TryParse", new[] { typeof(string), typeof(DateTimeOffset).MakeByRefType() });
-        static MethodInfo MethodToString = typeof(Utils).GetMethod("ToStringConcat", BindingFlags.NonPublic | BindingFlags.Static, null, new[] { typeof(object) }, null);
-        static MethodInfo MethodBigIntegerParse = typeof(Utils).GetMethod("ToBigInteger", BindingFlags.NonPublic | BindingFlags.Static, null, new[] { typeof(string) }, null);
+        static MethodInfo MethodToString = typeof(Utils).GetMethod("ToStringConcat", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(object) }, null);
+        static MethodInfo MethodBigIntegerParse = typeof(Utils).GetMethod("ToBigInteger", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(string) }, null);
         static PropertyInfo PropertyDateTimeOffsetDateTime = typeof(DateTimeOffset).GetProperty("DateTime", BindingFlags.Instance | BindingFlags.Public);
         static PropertyInfo PropertyDateTimeTicks = typeof(DateTime).GetProperty("Ticks", BindingFlags.Instance | BindingFlags.Public);
         static ConstructorInfo CtorDateTimeOffsetArgsTicks = typeof(DateTimeOffset). GetConstructor(new[] { typeof(long), typeof(TimeSpan) });
@@ -1802,9 +1803,9 @@ namespace FreeSql.Internal
         static MethodInfo MethodEncodingGetBytes = typeof(Encoding).GetMethod("GetBytes", new[] { typeof(string) });
         static MethodInfo MethodEncodingGetString = typeof(Encoding).GetMethod("GetString", new[] { typeof(byte[]) });
         static MethodInfo MethodStringToCharArray = typeof(string).GetMethod("ToCharArray", new Type[0]);
-        static MethodInfo MethodStringToChar = typeof(Utils).GetMethod("StringToChar", BindingFlags.NonPublic | BindingFlags.Static, null, new[] { typeof(string) }, null);
-        static MethodInfo MethodGuidToBytes = typeof(Utils).GetMethod("GuidToBytes", BindingFlags.NonPublic | BindingFlags.Static, null, new[] { typeof(Guid) }, null);
-        static MethodInfo MethodBytesToGuid = typeof(Utils).GetMethod("BytesToGuid", BindingFlags.NonPublic | BindingFlags.Static, null, new[] { typeof(byte[]) }, null);
+        static MethodInfo MethodStringToChar = typeof(Utils).GetMethod("StringToChar", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(string) }, null);
+        static MethodInfo MethodGuidToBytes = typeof(Utils).GetMethod("GuidToBytes", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(Guid) }, null);
+        static MethodInfo MethodBytesToGuid = typeof(Utils).GetMethod("BytesToGuid", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(byte[]) }, null);
 
         public static ConcurrentBag<Func<LabelTarget, Expression, Type, Expression>> GetDataReaderValueBlockExpressionSwitchTypeFullName = new ConcurrentBag<Func<LabelTarget, Expression, Type, Expression>>();
         public static ConcurrentBag<Func<LabelTarget, Expression, Expression, Type, Expression>> GetDataReaderValueBlockExpressionObjectToStringIfThenElse = new ConcurrentBag<Func<LabelTarget, Expression, Expression, Type, Expression>>();

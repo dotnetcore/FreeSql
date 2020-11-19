@@ -1,4 +1,5 @@
 ﻿using FreeSql.DataAnnotations;
+using FreeSql.Internal;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -11,6 +12,54 @@ namespace FreeSql.Tests
 {
     public class UnitTest4
     {
+        [Fact]
+        public void VersionByte()
+        {
+            var fsql = g.mysql;
+            fsql.Delete<ts_ver_byte>().Where("1=1").ExecuteAffrows();
+            var id = Guid.NewGuid();
+            Assert.Equal(1, fsql.Insert(new ts_ver_byte { id = id, title = "001" }).ExecuteAffrows());
+
+            var item = fsql.Select<ts_ver_byte>(id).First();
+            item.title = "002";
+            Assert.Equal(1, fsql.Update<ts_ver_byte>().SetSource(item).ExecuteAffrows());
+            item.title = "003";
+            Assert.Equal(1, fsql.Update<ts_ver_byte>().SetSource(item).ExecuteAffrows());
+
+            item.version = Utils.GuidToBytes(Guid.NewGuid());
+            item.title = "004";
+            Assert.Throws<DbUpdateVersionException>(() => fsql.Update<ts_ver_byte>().SetSource(item).ExecuteAffrows());
+
+            fsql.Delete<ts_ver_byte>().Where("1=1").ExecuteAffrows();
+            Assert.Equal(2, fsql.Insert(new[] { new ts_ver_byte { id = Guid.NewGuid(), title = "001" }, new ts_ver_byte { id = Guid.NewGuid(), title = "0011" } }).ExecuteAffrows());
+            var items = fsql.Select<ts_ver_byte>().OrderBy(a => a.title).ToList();
+            Assert.Equal(2, items.Count);
+            items[0].title = "002";
+            items[1].title = "0022";
+            Assert.Equal(2, fsql.Update<ts_ver_byte>().SetSource(items).ExecuteAffrows());
+            items[0].title = "003";
+            items[1].title = "0033";
+            Assert.Equal(2, fsql.Update<ts_ver_byte>().SetSource(items).ExecuteAffrows());
+
+            items[0].version = Utils.GuidToBytes(Guid.NewGuid());
+            items[0].title = "004";
+            items[1].title = "0044";
+            Assert.Throws<DbUpdateVersionException>(() => fsql.Update<ts_ver_byte>().SetSource(items).ExecuteAffrows());
+
+            items[0].version = Utils.GuidToBytes(Guid.NewGuid());
+            items[1].version = Utils.GuidToBytes(Guid.NewGuid());
+            items[0].title = "004";
+            items[1].title = "0044";
+            Assert.Throws<DbUpdateVersionException>(() => fsql.Update<ts_ver_byte>().SetSource(items).ExecuteAffrows());
+        }
+        class ts_ver_byte
+        {
+            public Guid id { get; set; }
+            public string title { get; set; }
+            [Column(IsVersion = true)]
+            public byte[] version { get; set; }
+        }
+
 
         public record ts_iif(Guid id, string title);
         [Fact]

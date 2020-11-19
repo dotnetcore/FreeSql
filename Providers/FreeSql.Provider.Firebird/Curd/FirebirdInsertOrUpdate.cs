@@ -41,7 +41,7 @@ namespace FreeSql.Firebird.Curd
                 if (_doNothing == false && cols.Any())
                     sb.Append("WHEN MATCHED THEN \r\n")
                         .Append("  update set ").Append(string.Join(", ", cols.Select(a =>
-                            a.Attribute.IsVersion ?
+                            a.Attribute.IsVersion && a.Attribute.MapType != typeof(byte[]) ?
                             $"{_commonUtils.QuoteSqlName(a.Attribute.Name)} = t1.{_commonUtils.QuoteSqlName(a.Attribute.Name)} + 1" :
                             $"{_commonUtils.QuoteSqlName(a.Attribute.Name)} = t2.{a.Attribute.Name}"
                             ))).Append(" \r\n");

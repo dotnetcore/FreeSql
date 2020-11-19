@@ -85,7 +85,7 @@ namespace FreeSql.MySql.Curd
 
                     if (colidx > 0) sb.Append(", \r\n");
 
-                    if (col.Attribute.IsVersion == true)
+                    if (col.Attribute.IsVersion == true && col.Attribute.MapType != typeof(byte[]))
                     {
                         var field = _mysqlInsert.InternalCommonUtils.QuoteSqlName(col.Attribute.Name);
                         sb.Append(field).Append(" = ").Append(field).Append(" + 1");
