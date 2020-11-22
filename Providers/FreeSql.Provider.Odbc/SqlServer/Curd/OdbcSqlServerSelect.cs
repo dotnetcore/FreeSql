@@ -38,7 +38,8 @@ namespace FreeSql.Odbc.SqlServer
                 var sbnav = new StringBuilder();
                 sb.Append(_select);
                 if (_distinct) sb.Append("DISTINCT ");
-                if (_limit > 0) sb.Append("TOP ").Append(_skip + _limit).Append(" ");
+                //if (_limit > 0) sb.Append("TOP ").Append(_skip + _limit).Append(" "); //TOP 会引发 __rownum__ 无序的问题
+                if (_skip <= 0 && _limit > 0) sb.Append("TOP ").Append(_limit).Append(" ");
                 sb.Append(field);
                 if (_skip > 0)
                 {
@@ -123,7 +124,7 @@ namespace FreeSql.Odbc.SqlServer
                 if (_skip <= 0)
                     sb.Append(_orderby);
                 else
-                    sb.Insert(0, "WITH t AS ( ").Append(" ) SELECT t.* FROM t where __rownum__ > ").Append(_skip);
+                    sb.Insert(0, "WITH t AS ( ").Append(" ) SELECT t.* FROM t where __rownum__ between ").Append(_skip + 1).Append(" and ").Append(_skip + _limit);
 
                 sbnav.Clear();
                 if (tbUnionsGt0) sb.Append(") ftb");
