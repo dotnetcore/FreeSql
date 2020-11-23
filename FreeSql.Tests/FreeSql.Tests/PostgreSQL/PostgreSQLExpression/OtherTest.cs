@@ -175,9 +175,10 @@ namespace FreeSql.Tests.PostgreSQLExpression
         [Fact]
         public void HStore()
         {
-
             var sql1 = select.Where(a => a.testFieldHStore.ContainsKey("a")).ToList();
             var sql2 = select.Where(a => a.testFieldHStore.ContainsKey("a") == false).ToList();
+
+            var sql3 = select.Where(a => a.testFieldHStore["a"] == "xxx").ToList();
         }
 
         [Table(Name = "tb_alltype")]

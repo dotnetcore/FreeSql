@@ -118,11 +118,12 @@ namespace FreeSql.KingbaseES
                     if (objType != null || objType.IsArrayOrList())
                     {
                         string left = null;
-                        if (objType.FullName == typeof(Dictionary<string, string>).FullName)
+                        if (objType == typeof(Dictionary<string, string>))
                         {
                             left = objExp == null ? null : getExp(objExp);
                             switch (callExp.Method.Name)
                             {
+                                case "get_Item": return $"{left}->{getExp(callExp.Arguments[argIndex])}";
                                 case "Contains":
                                     var right = getExp(callExp.Arguments[argIndex]);
                                     return $"({left} @> ({right}))";
