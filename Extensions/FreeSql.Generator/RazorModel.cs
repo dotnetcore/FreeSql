@@ -217,8 +217,9 @@ public class RazorModel {
 			else if (defval.StartsWith("('") && defval.EndsWith("')")) defval = defval.Substring(2, defval.Length - 4).Replace("''", "'");
 			else if (defval.StartsWith("(") && defval.EndsWith(")")) defval = defval.Substring(1, defval.Length - 2);
 			else return null;
+			if (defval.StartsWith("N'") && defval.EndsWith("'")) defval = defval.Substring(1);
 		}
-		else if ((cstype == typeof(string) && defval.StartsWith("'") && defval.EndsWith("'::character varying") ||
+		if ((cstype == typeof(string) && defval.StartsWith("'") && defval.EndsWith("'::character varying") ||
 			cstype == typeof(Guid) && defval.StartsWith("'") && defval.EndsWith("'::uuid")
 			) && (fsql.Ado.DataType == DataType.PostgreSQL || fsql.Ado.DataType == DataType.OdbcPostgreSQL ||
 				fsql.Ado.DataType == DataType.KingbaseES || fsql.Ado.DataType == DataType.OdbcKingbaseES ||
