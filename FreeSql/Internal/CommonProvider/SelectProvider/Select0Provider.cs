@@ -696,7 +696,11 @@ namespace FreeSql.Internal.CommonProvider
         public long Count()
         {
             var tmpOrderBy = _orderby;
+            var tmpSkip = _skip;
+            var tmpLimit = _limit;
             _orderby = null; //解决 select count(1) from t order by id 这样的 SQL 错误
+            _skip = 0;
+            _limit = 0;
             try
             {
                 return this.ToList<int>($"count(1){_commonUtils.FieldAsAlias("as1")}").Sum(); //这里的 Sum 为了分表查询
@@ -704,6 +708,8 @@ namespace FreeSql.Internal.CommonProvider
             finally
             {
                 _orderby = tmpOrderBy;
+                _skip = tmpSkip;
+                _limit = tmpLimit;
             }
         }
         public TSelect Count(out long count)
@@ -733,7 +739,11 @@ namespace FreeSql.Internal.CommonProvider
         async public Task<long> CountAsync(CancellationToken cancellationToken = default)
         {
             var tmpOrderBy = _orderby;
+            var tmpSkip = _skip;
+            var tmpLimit = _limit;
             _orderby = null;
+            _skip = 0;
+            _limit = 0;
             try
             {
                 return (await this.ToListAsync<int>($"count(1){_commonUtils.FieldAsAlias("as1")}", cancellationToken)).Sum(); //这里的 Sum 为了分表查询
@@ -741,6 +751,8 @@ namespace FreeSql.Internal.CommonProvider
             finally
             {
                 _orderby = tmpOrderBy;
+                _skip = tmpSkip;
+                _limit = tmpLimit;
             }
         }
         public virtual Task<List<T1>> ToListAsync(bool includeNestedMembers = false, CancellationToken cancellationToken = default)
