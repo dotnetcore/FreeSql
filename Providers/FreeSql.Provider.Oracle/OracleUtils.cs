@@ -54,14 +54,16 @@ namespace FreeSql.Oracle
         public override DbParameter[] GetDbParamtersByObject(string sql, object obj) =>
             Utils.GetDbParamtersByObject<OracleParameter>(sql, obj, ":", (name, type, value) =>
             {
-                var dbtype = (OracleDbType)_orm.CodeFirst.GetDbInfo(type)?.type;
+                var dbtypeint = _orm.CodeFirst.GetDbInfo(type)?.type;
+                var dbtype = dbtypeint != null ? (OracleDbType?)dbtypeint : null;
                 if (dbtype == OracleDbType.Boolean)
                 {
                     if (value == null) value = null;
                     else value = (bool)value == true ? 1 : 0;
                     dbtype = OracleDbType.Int16;
                 }
-                var ret = new OracleParameter { ParameterName = $":{name}", OracleDbType = dbtype, Value = value };
+                var ret = new OracleParameter { ParameterName = $":{name}", Value = value };
+                if (dbtype != null) ret.OracleDbType = dbtype.Value;
                 return ret;
             });
 

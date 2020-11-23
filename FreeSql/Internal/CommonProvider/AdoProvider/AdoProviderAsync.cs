@@ -1,11 +1,13 @@
 ﻿using FreeSql.Internal.Model;
 using FreeSql.Internal.ObjectPool;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -755,8 +757,24 @@ namespace FreeSql.Internal.CommonProvider
                 foreach (var parm in cmdParms)
                 {
                     if (parm == null) continue;
+                    var isnew = false;
                     if (parm.Value == null) parm.Value = DBNull.Value;
-                    cmd.Parameters.Add(parm);
+                    else
+                    {
+                        if (parm.Value is Array || parm.Value is IList)
+                        {
+                            cmd.CommandText = Regex.Replace(cmd.CommandText, @"\s+(in|In|IN|iN)\s+[\:\?\@]" + parm.ParameterName.TrimStart('@', '?', ':'), m =>
+                            {
+                                isnew = true;
+                                var arr = parm.Value as IEnumerable;
+                                if (arr == null) return " IS NULL";
+                                var vals = new List<object>();
+                                foreach (var val in arr) vals.Add(val);
+                                return $" in {_util.FormatSql("{0}", new object[] { vals })}";
+                            });
+                        }
+                    }
+                    if (isnew == false) cmd.Parameters.Add(parm);
                 }
             }
 

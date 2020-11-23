@@ -53,6 +53,8 @@ namespace FreeSql.Tests.Firebird
             var t4 = g.firebird.Ado.Query<(int, string, string)>("select * from \"TB_TOPIC22\"");
 
             var t5 = g.firebird.Ado.Query<dynamic>("select * from \"TB_TOPIC22\"");
+
+            var t6 = g.firebird.Ado.Query<xxx>("select * from \"TB_TOPIC22\" where \"ID\" in @ids", new { ids = new[] { 1, 2, 3 } });
         }
 
         [Fact]

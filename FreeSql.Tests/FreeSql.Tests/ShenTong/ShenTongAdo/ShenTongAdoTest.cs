@@ -54,6 +54,8 @@ namespace FreeSql.Tests.ShenTong
             var t4 = g.shentong.Ado.Query<(int, string, string)>("select * from xxx");
 
             var t5 = g.shentong.Ado.Query<dynamic>("select * from xxx");
+
+            var t6 = g.shentong.Ado.Query<xxx>("select * from xxx where id in @ids", new { ids = new[] { "1", "2", "3" } });
         }
 
         [Fact]

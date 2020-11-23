@@ -95,6 +95,8 @@ namespace FreeSql.Tests.SqlServer
 
             var t5 = g.sqlserver.Ado.Query<dynamic>("select * from xxx where Id = @Id",
                 new Dictionary<string, object> { ["id"] = 1 });
+
+            var t6 = g.sqlserver.Ado.Query<xxx>("select * from xxx where id in @ids", new { ids = new[] { 1, 2, 3 } });
         }
 
         [Fact]

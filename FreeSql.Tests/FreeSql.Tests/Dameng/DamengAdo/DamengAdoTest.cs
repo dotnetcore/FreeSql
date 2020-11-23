@@ -53,6 +53,8 @@ namespace FreeSql.Tests.Dameng
             var t4 = g.dameng.Ado.Query<(int, string, string)>("select * from \"TB_TOPIC\"");
 
             var t5 = g.dameng.Ado.Query<dynamic>("select * from \"TB_TOPIC\"");
+
+            var t6 = g.dameng.Ado.Query<xxx>("select * from \"TB_TOPIC\" where \"ID\" in @ids", new { ids = new[] { 1, 2, 3 } });
         }
 
         [Fact]

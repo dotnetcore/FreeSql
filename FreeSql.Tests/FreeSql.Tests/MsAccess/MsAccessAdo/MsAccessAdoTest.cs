@@ -59,6 +59,8 @@ namespace FreeSql.Tests.MsAccess
             var t4 = g.msaccess.Ado.Query<(int, string, string)>("select * from [song]");
 
             var t5 = g.msaccess.Ado.Query<dynamic>("select * from [song]");
+
+            var t6 = g.msaccess.Ado.Query<xxx>("select * from song where id in @ids", new { ids = new[] { 1, 2, 3 } });
         }
 
         [Fact]
