@@ -125,6 +125,8 @@ namespace FreeSql.Internal.CommonProvider
             }
         }
 
+        public T QuerySingle<T>(string cmdText, object parms = null) => Query<T>(cmdText, parms).FirstOrDefault();
+        public T QuerySingle<T>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => Query<T>(cmdType, cmdText, cmdParms).FirstOrDefault();
         public List<T> Query<T>(string cmdText, object parms = null) => Query<T>(null, null, null, CommandType.Text, cmdText, 0, GetDbParamtersByObject(cmdText, parms));
         public List<T> Query<T>(DbTransaction transaction, string cmdText, object parms = null) => Query<T>(null, null, transaction, CommandType.Text, cmdText, 0, GetDbParamtersByObject(cmdText, parms));
         public List<T> Query<T>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null) => Query<T>(null, connection, transaction, CommandType.Text, cmdText, 0, GetDbParamtersByObject(cmdText, parms));

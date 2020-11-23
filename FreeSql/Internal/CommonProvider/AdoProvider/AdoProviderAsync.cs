@@ -40,6 +40,8 @@ namespace FreeSql.Internal.CommonProvider
             }
         }
 
+        async public Task<T> QuerySingleAsync<T>(string cmdText, object parms = null, CancellationToken cancellationToken = default) => (await QueryAsync<T>(cmdText, parms, cancellationToken)).FirstOrDefault();
+        async public Task<T> QuerySingleAsync<T>(CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default) => (await QueryAsync<T>(cmdType, cmdText, cmdParms, cancellationToken)).FirstOrDefault();
         public Task<List<T>> QueryAsync<T>(string cmdText, object parms = null, CancellationToken cancellationToken = default) => QueryAsync<T>(null, null, null, CommandType.Text, cmdText, 0, GetDbParamtersByObject(cmdText, parms), cancellationToken);
         public Task<List<T>> QueryAsync<T>(DbTransaction transaction, string cmdText, object parms = null, CancellationToken cancellationToken = default) => QueryAsync<T>(null, null, transaction, CommandType.Text, cmdText, 0, GetDbParamtersByObject(cmdText, parms), cancellationToken);
         public Task<List<T>> QueryAsync<T>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null, CancellationToken cancellationToken = default) => QueryAsync<T>(null, connection, transaction, CommandType.Text, cmdText, 0, GetDbParamtersByObject(cmdText, parms), cancellationToken);

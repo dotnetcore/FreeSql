@@ -215,6 +215,7 @@ namespace FreeSql
         List<T> Query<T>(DbTransaction transaction, CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
         List<T> Query<T>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, int cmdTimeout, params DbParameter[] cmdParms);
         List<T> Query<T>(Type resultType, DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, int cmdTimeout, params DbParameter[] cmdParms);
+        T QuerySingle<T>(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
         /// <summary>
         /// 执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > ?age", new { age = 25 })<para></para>
         /// 提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
@@ -226,6 +227,7 @@ namespace FreeSql
         List<T> Query<T>(string cmdText, object parms = null);
         List<T> Query<T>(DbTransaction transaction, string cmdText, object parms = null);
         List<T> Query<T>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null);
+        T QuerySingle<T>(string cmdText, object parms = null);
 
         /// <summary>
         /// 执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > ?age; select * from address", new SqlParameter { ParameterName = "age", Value = 25 })
@@ -425,6 +427,7 @@ namespace FreeSql
         Task<List<T>> QueryAsync<T>(DbTransaction transaction, CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
         Task<List<T>> QueryAsync<T>(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, int cmdTimeout, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
         Task<List<T>> QueryAsync<T>(Type resultType, DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, int cmdTimeout, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
+        Task<T> QuerySingleAsync<T>(string cmdText, object parms = null, CancellationToken cancellationToken = default);
         /// <summary>
         /// 执行SQL返回对象集合，QueryAsync&lt;User&gt;("select * from user where age > ?age", new { age = 25 })<para></para>
         /// 提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
@@ -437,6 +440,7 @@ namespace FreeSql
         Task<List<T>> QueryAsync<T>(string cmdText, object parms = null, CancellationToken cancellationToken = default);
         Task<List<T>> QueryAsync<T>(DbTransaction transaction, string cmdText, object parms = null, CancellationToken cancellationToken = default);
         Task<List<T>> QueryAsync<T>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null, CancellationToken cancellationToken = default);
+        Task<T> QuerySingleAsync<T>(CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// 执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > ?age; select * from address", new SqlParameter { ParameterName = "age", Value = 25 })
