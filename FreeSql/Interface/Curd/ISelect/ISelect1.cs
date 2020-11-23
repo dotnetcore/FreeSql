@@ -242,6 +242,7 @@ namespace FreeSql
         /// <typeparam name="T2"></typeparam>
         /// <typeparam name="T3"></typeparam>
         /// <typeparam name="T4"></typeparam>
+        /// <typeparam name="T5"></typeparam>
         /// <param name="exp">lambda表达式</param>
         /// <returns></returns>
         ISelect<T1> Where<T2, T3, T4, T5>(Expression<Func<T1, T2, T3, T4, T5, bool>> exp) where T2 : class where T3 : class where T4 : class where T5 : class;

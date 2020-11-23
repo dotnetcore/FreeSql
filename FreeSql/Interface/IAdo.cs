@@ -101,6 +101,7 @@ namespace FreeSql
         /// 查询，ExecuteReader(dr => {}, "select * from user where age > ?age", new { age = 25 })<para></para>
         /// 提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
         /// </summary>
+        /// <param name="fetchHandler"></param>
         /// <param name="cmdText"></param>
         /// <param name="parms"></param>
         void ExecuteReader(Action<FetchCallbackArgs<DbDataReader>> fetchHandler, string cmdText, object parms = null);
@@ -109,6 +110,7 @@ namespace FreeSql
         /// <summary>
         /// 查询
         /// </summary>
+        /// <param name="cmdType"></param>
         /// <param name="cmdText"></param>
         /// <param name="cmdParms"></param>
         object[][] ExecuteArray(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
@@ -127,6 +129,7 @@ namespace FreeSql
         /// <summary>
         /// 查询
         /// </summary>
+        /// <param name="cmdType"></param>
         /// <param name="cmdText"></param>
         /// <param name="cmdParms"></param>
         DataSet ExecuteDataSet(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
@@ -145,6 +148,7 @@ namespace FreeSql
         /// <summary>
         /// 查询
         /// </summary>
+        /// <param name="cmdType"></param>
         /// <param name="cmdText"></param>
         /// <param name="cmdParms"></param>
         DataTable ExecuteDataTable(CommandType cmdType, string cmdText, params DbParameter[] cmdParms);
@@ -227,6 +231,7 @@ namespace FreeSql
         /// 执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > ?age; select * from address", new SqlParameter { ParameterName = "age", Value = 25 })
         /// </summary>
         /// <typeparam name="T1"></typeparam>
+        /// <typeparam name="T2"></typeparam>
         /// <param name="cmdType"></param>
         /// <param name="cmdText"></param>
         /// <param name="cmdParms"></param>
@@ -239,6 +244,7 @@ namespace FreeSql
         /// 提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
         /// </summary>
         /// <typeparam name="T1"></typeparam>
+        /// <typeparam name="T2"></typeparam>
         /// <param name="cmdText"></param>
         /// <param name="parms"></param>
         /// <returns></returns>
@@ -274,6 +280,7 @@ namespace FreeSql
         /// Oracle: SELECT 1 FROM dual<para></para>
         /// </summary>
         /// <param name="commandTimeout">命令超时设置(秒)</param>
+        /// <param name="cancellationToken"></param>
         /// <returns>true: 成功, false: 失败</returns>
         Task<bool> ExecuteConnectTestAsync(int commandTimeout = 0, CancellationToken cancellationToken = default);
 
@@ -284,6 +291,7 @@ namespace FreeSql
         /// <param name="cmdType"></param>
         /// <param name="cmdText"></param>
         /// <param name="cmdParms"></param>
+        /// <param name="cancellationToken"></param>
         Task ExecuteReaderAsync(Func<FetchCallbackArgs<DbDataReader>, Task> readerHander, CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
         Task ExecuteReaderAsync(DbTransaction transaction, Func<FetchCallbackArgs<DbDataReader>, Task> readerHander, CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
         Task ExecuteReaderAsync(DbConnection connection, DbTransaction transaction, Func<FetchCallbackArgs<DbDataReader>, Task> readerHander, CommandType cmdType, string cmdText, int cmdTimeout, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
@@ -291,16 +299,20 @@ namespace FreeSql
         /// 查询，ExecuteReaderAsync(dr => {}, "select * from user where age > ?age", new { age = 25 })<para></para>
         /// 提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
         /// </summary>
+        /// <param name="readerHander"></param>
         /// <param name="cmdText"></param>
         /// <param name="parms"></param>
+        /// <param name="cancellationToken"></param>
         Task ExecuteReaderAsync(Func<FetchCallbackArgs<DbDataReader>, Task> readerHander, string cmdText, object parms = null, CancellationToken cancellationToken = default);
         Task ExecuteReaderAsync(DbTransaction transaction, Func<FetchCallbackArgs<DbDataReader>, Task> readerHander, string cmdText, object parms = null, CancellationToken cancellationToken = default);
         Task ExecuteReaderAsync(DbConnection connection, DbTransaction transaction, Func<FetchCallbackArgs<DbDataReader>, Task> readerHander, string cmdText, object parms = null, CancellationToken cancellationToken = default);
         /// <summary>
         /// 查询
         /// </summary>
+        /// <param name="cmdType"></param>
         /// <param name="cmdText"></param>
         /// <param name="cmdParms"></param>
+        /// <param name="cancellationToken"></param>
         Task<object[][]> ExecuteArrayAsync(CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
         Task<object[][]> ExecuteArrayAsync(DbTransaction transaction, CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
         Task<object[][]> ExecuteArrayAsync(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, int cmdTimeout, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
@@ -310,6 +322,7 @@ namespace FreeSql
         /// </summary>
         /// <param name="cmdText"></param>
         /// <param name="parms"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
         Task<object[][]> ExecuteArrayAsync(string cmdText, object parms = null, CancellationToken cancellationToken = default);
         Task<object[][]> ExecuteArrayAsync(DbTransaction transaction, string cmdText, object parms = null, CancellationToken cancellationToken = default);
@@ -317,8 +330,10 @@ namespace FreeSql
         /// <summary>
         /// 查询
         /// </summary>
+        /// <param name="cmdType"></param>
         /// <param name="cmdText"></param>
         /// <param name="cmdParms"></param>
+        /// <param name="cancellationToken"></param>
         Task<DataSet> ExecuteDataSetAsync(CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
         Task<DataSet> ExecuteDataSetAsync(DbTransaction transaction, CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
         Task<DataSet> ExecuteDataSetAsync(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, int cmdTimeout, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
@@ -328,6 +343,7 @@ namespace FreeSql
         /// </summary>
         /// <param name="cmdText"></param>
         /// <param name="parms"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
         Task<DataSet> ExecuteDataSetAsync(string cmdText, object parms = null, CancellationToken cancellationToken = default);
         Task<DataSet> ExecuteDataSetAsync(DbTransaction transaction, string cmdText, object parms = null, CancellationToken cancellationToken = default);
@@ -335,8 +351,10 @@ namespace FreeSql
         /// <summary>
         /// 查询
         /// </summary>
+        /// <param name="cmdType"></param>
         /// <param name="cmdText"></param>
         /// <param name="cmdParms"></param>
+        /// <param name="cancellationToken"></param>
         Task<DataTable> ExecuteDataTableAsync(CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
         Task<DataTable> ExecuteDataTableAsync(DbTransaction transaction, CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
         Task<DataTable> ExecuteDataTableAsync(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, int cmdTimeout, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
@@ -346,6 +364,7 @@ namespace FreeSql
         /// </summary>
         /// <param name="cmdText"></param>
         /// <param name="parms"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
         Task<DataTable> ExecuteDataTableAsync(string cmdText, object parms = null, CancellationToken cancellationToken = default);
         Task<DataTable> ExecuteDataTableAsync(DbTransaction transaction, string cmdText, object parms = null, CancellationToken cancellationToken = default);
@@ -356,6 +375,7 @@ namespace FreeSql
         /// <param name="cmdType"></param>
         /// <param name="cmdText"></param>
         /// <param name="cmdParms"></param>
+        /// <param name="cancellationToken"></param>
         Task<int> ExecuteNonQueryAsync(CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
         Task<int> ExecuteNonQueryAsync(DbTransaction transaction, CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
         Task<int> ExecuteNonQueryAsync(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, int cmdTimeout, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
@@ -365,6 +385,7 @@ namespace FreeSql
         /// </summary>
         /// <param name="cmdText"></param>
         /// <param name="parms"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
         Task<int> ExecuteNonQueryAsync(string cmdText, object parms = null, CancellationToken cancellationToken = default);
         Task<int> ExecuteNonQueryAsync(DbTransaction transaction, string cmdText, object parms = null, CancellationToken cancellationToken = default);
@@ -375,6 +396,7 @@ namespace FreeSql
         /// <param name="cmdType"></param>
         /// <param name="cmdText"></param>
         /// <param name="cmdParms"></param>
+        /// <param name="cancellationToken"></param>
         Task<object> ExecuteScalarAsync(CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
         Task<object> ExecuteScalarAsync(DbTransaction transaction, CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
         Task<object> ExecuteScalarAsync(DbConnection connection, DbTransaction transaction, CommandType cmdType, string cmdText, int cmdTimeout, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
@@ -384,6 +406,7 @@ namespace FreeSql
         /// </summary>
         /// <param name="cmdText"></param>
         /// <param name="parms"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
         Task<object> ExecuteScalarAsync(string cmdText, object parms = null, CancellationToken cancellationToken = default);
         Task<object> ExecuteScalarAsync(DbTransaction transaction, string cmdText, object parms = null, CancellationToken cancellationToken = default);
@@ -396,6 +419,7 @@ namespace FreeSql
         /// <param name="cmdType"></param>
         /// <param name="cmdText"></param>
         /// <param name="cmdParms"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
         Task<List<T>> QueryAsync<T>(CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
         Task<List<T>> QueryAsync<T>(DbTransaction transaction, CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
@@ -408,6 +432,7 @@ namespace FreeSql
         /// <typeparam name="T"></typeparam>
         /// <param name="cmdText"></param>
         /// <param name="parms"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
         Task<List<T>> QueryAsync<T>(string cmdText, object parms = null, CancellationToken cancellationToken = default);
         Task<List<T>> QueryAsync<T>(DbTransaction transaction, string cmdText, object parms = null, CancellationToken cancellationToken = default);
@@ -417,9 +442,11 @@ namespace FreeSql
         /// 执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > ?age; select * from address", new SqlParameter { ParameterName = "age", Value = 25 })
         /// </summary>
         /// <typeparam name="T1"></typeparam>
+        /// <typeparam name="T2"></typeparam>
         /// <param name="cmdType"></param>
         /// <param name="cmdText"></param>
         /// <param name="cmdParms"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
         Task<NativeTuple<List<T1>, List<T2>>> QueryAsync<T1, T2>(CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
         Task<NativeTuple<List<T1>, List<T2>>> QueryAsync<T1, T2>(DbTransaction transaction, CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default);
@@ -429,8 +456,10 @@ namespace FreeSql
         /// 提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
         /// </summary>
         /// <typeparam name="T1"></typeparam>
+        /// <typeparam name="T2"></typeparam>
         /// <param name="cmdText"></param>
         /// <param name="parms"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
         Task<NativeTuple<List<T1>, List<T2>>> QueryAsync<T1, T2>(string cmdText, object parms = null, CancellationToken cancellationToken = default);
         Task<NativeTuple<List<T1>, List<T2>>> QueryAsync<T1, T2>(DbTransaction transaction, string cmdText, object parms = null, CancellationToken cancellationToken = default);

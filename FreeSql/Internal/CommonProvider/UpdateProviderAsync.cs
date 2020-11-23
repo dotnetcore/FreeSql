@@ -72,7 +72,7 @@ namespace FreeSql.Internal.CommonProvider
                         {
                             _transaction.Rollback();
                             _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, "回滚", ex));
-                            throw ex;
+                            throw;
                         }
                         _transaction = null;
                     }
@@ -81,7 +81,7 @@ namespace FreeSql.Internal.CommonProvider
             catch (Exception ex)
             {
                 exception = ex;
-                throw ex;
+                throw;
             }
             finally
             {
@@ -145,7 +145,7 @@ namespace FreeSql.Internal.CommonProvider
                         {
                             _transaction.Rollback();
                             _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, "回滚", ex));
-                            throw ex;
+                            throw;
                         }
                         _transaction = null;
                     }
@@ -154,7 +154,7 @@ namespace FreeSql.Internal.CommonProvider
             catch (Exception ex)
             {
                 exception = ex;
-                throw ex;
+                throw;
             }
             finally
             {
@@ -182,7 +182,7 @@ namespace FreeSql.Internal.CommonProvider
             catch (Exception ex)
             {
                 exception = ex;
-                throw ex;
+                throw;
             }
             finally
             {

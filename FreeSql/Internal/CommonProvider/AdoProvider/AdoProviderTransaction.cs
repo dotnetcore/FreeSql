@@ -57,7 +57,7 @@ namespace FreeSql.Internal.CommonProvider
                 MasterPool.Return(conn);
                 var after = new Aop.TraceAfterEventArgs(before, "", ex);
                 _util?._orm?.Aop.TraceAfterHandler?.Invoke(this, after);
-                throw ex;
+                throw;
             }
             if (_trans.ContainsKey(tid)) CommitTransaction();
             _trans.TryAdd(tid, tran);
@@ -122,7 +122,7 @@ namespace FreeSql.Internal.CommonProvider
             catch (Exception ex)
             {
                 if (requireTran) RollbackTransaction(ex);
-                throw ex;
+                throw;
             }
         }
 

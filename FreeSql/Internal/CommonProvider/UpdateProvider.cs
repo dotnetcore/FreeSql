@@ -215,7 +215,7 @@ namespace FreeSql.Internal.CommonProvider
                         {
                             _transaction.Rollback();
                             _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, "回滚", ex));
-                            throw ex;
+                            throw;
                         }
                         _transaction = null;
                     }
@@ -224,7 +224,7 @@ namespace FreeSql.Internal.CommonProvider
             catch (Exception ex)
             {
                 exception = ex;
-                throw ex;
+                throw;
             }
             finally
             {
@@ -289,7 +289,7 @@ namespace FreeSql.Internal.CommonProvider
                         {
                             _transaction.Rollback();
                             _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, "回滚", ex));
-                            throw ex;
+                            throw;
                         }
                         _transaction = null;
                     }
@@ -298,7 +298,7 @@ namespace FreeSql.Internal.CommonProvider
             catch (Exception ex)
             {
                 exception = ex;
-                throw ex;
+                throw;
             }
             finally
             {
@@ -327,7 +327,7 @@ namespace FreeSql.Internal.CommonProvider
             catch (Exception ex)
             {
                 exception = ex;
-                throw ex;
+                throw;
             }
             finally
             {
@@ -555,7 +555,7 @@ namespace FreeSql.Internal.CommonProvider
         public IUpdate<T1> Where(string sql, object parms = null)
         {
             if (string.IsNullOrEmpty(sql)) return this;
-            _where.Append(" AND (").Append(sql).Append(")");
+            _where.Append(" AND (").Append(sql).Append(')');
             if (parms != null) _params.AddRange(_commonUtils.GetDbParamtersByObject(sql, parms));
             return this;
         }
@@ -587,7 +587,7 @@ namespace FreeSql.Internal.CommonProvider
         {
             if (_source.Any() == false) return null;
             if (_table.ColumnsByCs.ContainsKey(CsName) == false) throw new Exception($"找不到 {CsName} 对应的列");
-            if (thenValue == null) throw new ArgumentNullException("thenValue 参数不可为 null");
+            if (thenValue == null) throw new ArgumentNullException(nameof(thenValue));
 
             if (_source.Count == 0) return null;
             if (_source.Count == 1)
@@ -626,7 +626,7 @@ namespace FreeSql.Internal.CommonProvider
                 }
                 cwsb.Append(" END");
                 if (nulls == _source.Count) sb.Append("NULL");
-                else sb.Append(cwsb.ToString());
+                else sb.Append(cwsb);
                 cwsb.Clear();
 
                 return sb.ToString();
@@ -752,7 +752,7 @@ namespace FreeSql.Internal.CommonProvider
                             else
                             {
                                 ToSqlCaseWhenEnd(cwsb, col);
-                                sb.Append(cwsb.ToString());
+                                sb.Append(cwsb);
                             }
                             cwsb.Clear();
                         }
@@ -790,7 +790,7 @@ namespace FreeSql.Internal.CommonProvider
             if (_source.Any())
             {
                 if (_table.Primarys.Any() == false) throw new ArgumentException($"{_table.Type.DisplayCsharp()} 没有定义主键，无法使用 SetSource，请尝试 SetDto");
-                sb.Append("(").Append(_commonUtils.WhereItems(_table, "", _source)).Append(")");
+                sb.Append('(').Append(_commonUtils.WhereItems(_table, "", _source)).Append(')');
             }
 
             if (_where.Length > 0)

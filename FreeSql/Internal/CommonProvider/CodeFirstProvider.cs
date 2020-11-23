@@ -119,7 +119,7 @@ namespace FreeSql.Internal.CommonProvider
             catch (Exception ex)
             {
                 exception = ex;
-                throw ex;
+                throw;
             }
             finally
             {

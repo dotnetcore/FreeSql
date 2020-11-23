@@ -57,6 +57,7 @@ namespace FreeSql
         /// </summary>
         /// <typeparam name="TReturn">返回类型</typeparam>
         /// <param name="select">选择列</param>
+        /// <param name="fieldAlias"></param>
         /// <returns></returns>
         string ToSql<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select, FieldAliasOptions fieldAlias = FieldAliasOptions.AsIndex);
         /// <summary>

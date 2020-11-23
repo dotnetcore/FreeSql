@@ -269,7 +269,7 @@ namespace FreeSql.Internal.CommonProvider
                         {
                             _transaction.Rollback();
                             _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, "回滚", ex));
-                            throw ex;
+                            throw;
                         }
                         _transaction = null;
                     }
@@ -278,7 +278,7 @@ namespace FreeSql.Internal.CommonProvider
             catch (Exception ex)
             {
                 exception = ex;
-                throw ex;
+                throw;
             }
             finally
             {
@@ -350,7 +350,7 @@ namespace FreeSql.Internal.CommonProvider
                         {
                             _transaction.Rollback();
                             _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, "回滚", ex));
-                            throw ex;
+                            throw;
                         }
                         _transaction = null;
                     }
@@ -359,7 +359,7 @@ namespace FreeSql.Internal.CommonProvider
             catch (Exception ex)
             {
                 exception = ex;
-                throw ex;
+                throw;
             }
             finally
             {
@@ -429,7 +429,7 @@ namespace FreeSql.Internal.CommonProvider
                         {
                             _transaction.Rollback();
                             _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, "回滚", ex));
-                            throw ex;
+                            throw;
                         }
                         _transaction = null;
                     }
@@ -438,7 +438,7 @@ namespace FreeSql.Internal.CommonProvider
             catch (Exception ex)
             {
                 exception = ex;
-                throw ex;
+                throw;
             }
             finally
             {
@@ -464,7 +464,7 @@ namespace FreeSql.Internal.CommonProvider
             catch (Exception ex)
             {
                 exception = ex;
-                throw ex;
+                throw;
             }
             finally
             {
@@ -538,7 +538,7 @@ namespace FreeSql.Internal.CommonProvider
         {
             if (_source == null || _source.Any() == false) return null;
             var sb = new StringBuilder();
-            sb.Append("INSERT INTO ").Append(_commonUtils.QuoteSqlName(TableRuleInvoke())).Append("(");
+            sb.Append("INSERT INTO ").Append(_commonUtils.QuoteSqlName(TableRuleInvoke())).Append('(');
             var colidx = 0;
             foreach (var col in _table.Columns.Values)
             {
@@ -582,7 +582,7 @@ namespace FreeSql.Internal.CommonProvider
                     }
                     ++colidx2;
                 }
-                if (isValues) sb.Append(")");
+                if (isValues) sb.Append(')');
                 onrow?.Invoke(d, didx, sb);
                 ++didx;
             }

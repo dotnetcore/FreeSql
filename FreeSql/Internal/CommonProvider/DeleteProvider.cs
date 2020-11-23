@@ -80,7 +80,7 @@ namespace FreeSql.Internal.CommonProvider
             catch (Exception ex)
             {
                 exception = ex;
-                throw ex;
+                throw;
             }
             finally
             {
@@ -102,7 +102,7 @@ namespace FreeSql.Internal.CommonProvider
         {
             if (string.IsNullOrEmpty(sql)) return this;
             if (++_whereTimes > 1) _where.Append(" AND ");
-            _where.Append("(").Append(sql).Append(")");
+            _where.Append('(').Append(sql).Append(')');
             if (parms != null) _params.AddRange(_commonUtils.GetDbParamtersByObject(sql, parms));
             return this;
         }

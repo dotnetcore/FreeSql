@@ -14,6 +14,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.XPath;
@@ -297,7 +298,7 @@ namespace FreeSql.Internal
                 foreach (var i in ie)
                 {
                     isAny = true;
-                    if (ieidx > 0) sb.Append(",");
+                    if (ieidx > 0) sb.Append(',');
                     if (ieidx == 0)
                     {
                         var itype = i.GetType();
@@ -308,7 +309,7 @@ namespace FreeSql.Internal
                     ++ieidx;
                 }
                 if (isAny == false) return "";
-                sb.Append(")");
+                sb.Append(')');
                 return sb.ToString();
             }
             else if (dywhere is IEnumerable)
@@ -361,7 +362,7 @@ namespace FreeSql.Internal
                 var indt = its.Select(a => pk1.GetDbValue(a)).Where(a => a != null).ToArray();
                 if (indt.Any() == false) return null;
                 if (indt.Length == 1) sbin.Append(" = ").Append(GetNoneParamaterSqlValue(null, null, pk1, pk1.Attribute.MapType, indt.First()));
-                else sbin.Append(" IN (").Append(string.Join(",", indt.Select(a => GetNoneParamaterSqlValue(null, null, pk1, pk1.Attribute.MapType, a)))).Append(")");
+                else sbin.Append(" IN (").Append(string.Join(",", indt.Select(a => GetNoneParamaterSqlValue(null, null, pk1, pk1.Attribute.MapType, a)))).Append(')');
                 return sbin.ToString();
             }
             var dicpk = its.Length > 5 ? new Dictionary<string, bool>() : null;
@@ -377,7 +378,7 @@ namespace FreeSql.Internal
                 {
                     sb.Append(" OR (");
                     sb.Append(filter.Substring(5));
-                    sb.Append(")");
+                    sb.Append(')');
                     ++iidx;
                 }
                 if (dicpk != null)
@@ -399,7 +400,7 @@ namespace FreeSql.Internal
                 {
                     sb.Append(" OR (");
                     sb.Append(fil.Key);
-                    sb.Append(")");
+                    sb.Append(')');
                 }
             }
             return iidx == 1 ? sb.Remove(0, 5).Remove(sb.Length - 1, 1).ToString() : sb.Remove(0, 4).ToString();
@@ -447,6 +448,7 @@ namespace FreeSql.Internal
             }
         }
 
+        static int _CodeBaseNotSupportedException = 0;
         /// <summary>
         /// 通过属性的注释文本，通过 xml 读取
         /// </summary>
@@ -464,7 +466,17 @@ namespace FreeSql.Internal
                 var xmlPath = regex.Replace(localType.Assembly.Location, ".xml");
                 if (File.Exists(xmlPath) == false)
                 {
-                    if (string.IsNullOrEmpty(localType.Assembly.CodeBase)) return null;
+                    if (_CodeBaseNotSupportedException == 1) return null;
+                    try
+                    {
+                        if (string.IsNullOrEmpty(localType.Assembly.CodeBase)) return null;
+                    }
+                    catch (NotSupportedException) //NotSupportedException: CodeBase is not supported on assemblies loaded from a single-file bundle.
+                    {
+                        Interlocked.Exchange(ref _CodeBaseNotSupportedException, 1);
+                        return null;
+                    }
+
                     xmlPath = regex.Replace(localType.Assembly.CodeBase, ".xml");
                     if (xmlPath.StartsWith("file:///") && Uri.TryCreate(xmlPath, UriKind.Absolute, out var tryuri))
                         xmlPath = tryuri.LocalPath;

@@ -56,6 +56,7 @@ public static partial class FreeSqlGlobalExtensions
     /// 获取 Type 的原始 c# 文本表示
     /// </summary>
     /// <param name="type"></param>
+    /// <param name="isNameSpace"></param>
     /// <returns></returns>
     internal static string DisplayCsharp(this Type type, bool isNameSpace = true)
     {
@@ -88,14 +89,14 @@ public static partial class FreeSqlGlobalExtensions
         if (genericParameters.Any() == false)
             return sb.Append(type.Name).ToString();
 
-        sb.Append(type.Name.Remove(type.Name.IndexOf('`'))).Append("<");
+        sb.Append(type.Name.Remove(type.Name.IndexOf('`'))).Append('<');
         var genericTypeIndex = 0;
         foreach (var genericType in genericParameters)
         {
             if (genericTypeIndex++ > 0) sb.Append(", ");
             sb.Append(DisplayCsharp(genericType, true));
         }
-        return sb.Append(">").ToString();
+        return sb.Append('>').ToString();
     }
     internal static string DisplayCsharp(this MethodInfo method, bool isOverride)
     {
@@ -109,7 +110,7 @@ public static partial class FreeSqlGlobalExtensions
         if (method.IsStatic) sb.Append("static ");
         if (method.IsAbstract && method.DeclaringType.IsInterface == false) sb.Append("abstract ");
         if (method.IsVirtual && method.DeclaringType.IsInterface == false) sb.Append(isOverride ? "override " : "virtual ");
-        sb.Append(method.ReturnType.DisplayCsharp()).Append(" ").Append(method.Name);
+        sb.Append(method.ReturnType.DisplayCsharp()).Append(' ').Append(method.Name);
 
         var genericParameters = method.GetGenericArguments();
         if (method.DeclaringType.IsNested && method.DeclaringType.DeclaringType.IsGenericType)
@@ -121,11 +122,11 @@ public static partial class FreeSqlGlobalExtensions
             genericParameters = dic.Values.ToArray();
         }
         if (genericParameters.Any())
-            sb.Append("<")
+            sb.Append('<')
                 .Append(string.Join(", ", genericParameters.Select(a => a.DisplayCsharp())))
-                .Append(">");
+                .Append('>');
 
-        sb.Append("(").Append(string.Join(", ", method.GetParameters().Select(a => $"{a.ParameterType.DisplayCsharp()} {a.Name}"))).Append(")");
+        sb.Append('(').Append(string.Join(", ", method.GetParameters().Select(a => $"{a.ParameterType.DisplayCsharp()} {a.Name}"))).Append(')');
         return sb.ToString();
     }
     public static object CreateInstanceGetDefaultValue(this Type that)
@@ -283,7 +284,10 @@ public static partial class FreeSqlGlobalExtensions
     /// 示例：new List&lt;Song&gt;(new[] { song1, song2, song3 }).IncludeMany(g.sqlite, a => a.Tags);<para></para>
     /// 文档：https://github.com/2881099/FreeSql/wiki/%e8%b4%aa%e5%a9%aa%e5%8a%a0%e8%bd%bd#%E5%AF%BC%E8%88%AA%E5%B1%9E%E6%80%A7-onetomanymanytomany
     /// </summary>
+    /// <typeparam name="T1"></typeparam>
     /// <typeparam name="TNavigate"></typeparam>
+    /// <param name="list"></param>
+    /// <param name="orm"></param>
     /// <param name="navigateSelector">选择一个集合的导航属性，如： .IncludeMany(a => a.Tags)<para></para>
     /// 可以 .Where 设置临时的关系映射，如： .IncludeMany(a => a.Tags.Where(tag => tag.TypeId == a.Id))<para></para>
     /// 可以 .Take(5) 每个子集合只取5条，如： .IncludeMany(a => a.Tags.Take(5))<para></para>
@@ -538,7 +542,7 @@ JOIN {select._commonUtils.QuoteSqlName(tb.DbName)} a ON cte_tbc.cte_id = a.{sele
             .OrderBy(up, "a.cte_level desc") as Select1Provider<T1>;
 
         var nsselsb = new StringBuilder();
-        if (AdoProvider.IsFromSlave(select._select) == false) nsselsb.Append(" "); //读写分离规则，如果强制读主库，则在前面加个空格
+        if (AdoProvider.IsFromSlave(select._select) == false) nsselsb.Append(' '); //读写分离规则，如果强制读主库，则在前面加个空格
         nsselsb.Append("WITH ");
         switch (select._orm.Ado.DataType)
         {
