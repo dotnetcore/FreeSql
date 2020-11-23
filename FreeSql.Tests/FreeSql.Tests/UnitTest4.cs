@@ -1,4 +1,5 @@
-﻿using FreeSql.DataAnnotations;
+﻿using AME.Helpers;
+using FreeSql.DataAnnotations;
 using FreeSql.Internal;
 using System;
 using System.Collections.Generic;
@@ -15,6 +16,20 @@ namespace FreeSql.Tests
         [Fact]
         public void VersionByte()
         {
+            g.sqlserver.Insert(new AppSettingII
+            {
+                 
+            }).ExecuteAffrows();
+            var item33 = g.sqlserver.Select<AppSettingII>().ToList();
+            var sql22 = g.sqlserver.Select<AppSettingII>()
+                .OrderBy(a => a.ID)
+                .Count(out var total)
+                .Page(1, 10).ToSql();
+            var items22 = g.sqlserver.Select<AppSettingII>().WithSql(sql22).ToList();
+
+            var defv1 = typeof(decimal).CreateInstanceGetDefaultValue();
+            var defv2 = typeof(decimal?).CreateInstanceGetDefaultValue();
+           
             var fsql = g.mysql;
             fsql.Delete<ts_ver_byte>().Where("1=1").ExecuteAffrows();
             var id = Guid.NewGuid();

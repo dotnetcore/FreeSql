@@ -524,6 +524,19 @@ namespace FreeSql.Internal
                 var isLazy = vp != null && vp.Item1 != null && !string.IsNullOrEmpty(trytbTypeLazyName);
 
                 AddTableRef(common, trytb, pnv, isLazy, vp, cscode);
+                if (trytb.GetTableRef(pnv.Name, false) == null)
+                {
+                    trytb.ColumnsByCsIgnore.Add(pnv.Name, new ColumnInfo
+                    {
+                        Table = trytb,
+                        CsName = pnv.Name,
+                        CsType = pnv.PropertyType,
+                        Attribute = new ColumnAttribute
+                        {
+                            IsIgnore = true
+                        }
+                    });
+                }
             }
             if (cscode?.Length > cscodeLength)
             {

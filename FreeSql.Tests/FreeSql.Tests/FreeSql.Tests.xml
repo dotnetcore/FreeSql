@@ -407,6 +407,372 @@
             导航属性
             </summary>
         </member>
+        <member name="P:AME.Helpers.AppSettingII.SettingName">
+            <summary>
+            配置名称
+            </summary>
+        </member>
+        <member name="P:AME.Helpers.AppSettingII.FilePath">
+            <summary>
+            配置文件路径
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.filterStock">
+            <summary>
+            管理:商品库存过滤
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.filterStockVIP">
+            <summary>
+            销售:商品库存过滤
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.filterStatusVIP">
+            <summary>
+            销售:商品状态过滤
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.filterStatusVIPstr">
+            <summary>
+            销售:商品状态过滤字符串形式
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.categories2OrderBy">
+            <summary>
+            销售父类排序
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.categoriesOrderBy">
+            <summary>
+            销售类别排序
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.productOrderBy">
+            <summary>
+            销售商品排序
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.vipIndex">
+            <summary>
+            自定义首页
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.lockVIPDatas">
+            <summary>
+            用户资料锁定
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.disabledOrderSingleQuantity">
+            <summary>
+            禁止单位[件]
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.guestID">
+            <summary>
+            指定游客账号ID
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.email">
+            <summary>
+            默认注册email后缀
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.code">
+            <summary>
+            默认Code
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.pickupListOrderBy">
+            <summary>
+            配货单列表排序
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.pickupOrderBy">
+            <summary>
+            配货单据排序
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.useLiteCategoriesBar">
+            <summary>
+            使用紧凑型左类别条
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.appPhotoUrl">
+            <summary>
+            旧版app图片路径,用于导入
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.showAppPanel">
+            <summary>
+            显示APP面板
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.h5url">
+            <summary>
+            H5的Url
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.useMonitorCommand">
+            <summary>
+            监控输出SQL语句
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.enableBataFunction">
+            <summary>
+            打开内测功能
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.categoriesDisplayID">
+            <summary>
+            类别供应商显示序号
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.importOrderSkipQuantityZero">
+            <summary>
+            导入单据过滤数量0的行
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.importOrderSkipStockZero">
+            <summary>
+            导入单据过滤库存0的行
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.printA4_3_to_Ticket">
+            <summary>
+            打印通道3重定向到小票
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.taxDetalisCalculationAccuracyMethod2">
+            <summary>
+            精度计算:使用格式化2位后再累加
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.forceSyncCategoryIDSupplierID">
+            <summary>
+            测试功能:强制同步类别ID,供应商ID, 用于误删除商品表恢复数据
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.useORM">
+            <summary>
+            使用极速版
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.useMoreFacturaSeriel">
+            <summary>
+            使用多发票序列
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.useExCheckOutDSP">
+            <summary>
+            显示独立结账提示窗体
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.analysisOrderPostcode">
+            <summary>
+            结账前提示输入邮编
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.cellReadonlyToGreen">
+            <summary>
+            只读的单元格显示大字体
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.interfacePath">
+            <summary>
+            接口历史文件地址
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.customerStar">
+            <summary>
+            客户评级
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.customerDisableDel">
+            <summary>
+            客户供应商删除限制
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.autoSend">
+            <summary>
+            导出资料自动传送
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII._FTPs">
+            <summary>
+            FTP资料
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.expOrderWithName">
+            <summary>
+            导出单据使用名称替换条码
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.warmupDataConnection">
+            <summary>
+            预热数据连接
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.orderSearchIncName">
+            <summary>
+            销售单内部查找包含名称模糊查找
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.orderItemDuplicateReminder">
+            <summary>
+            销售单商品重复提示
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.vPfiltersVO">
+            <summary>
+            VP过滤VO单据
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.vPfiltersVOwithAmount">
+            <summary>
+            VP过滤VO单据并过滤金额
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.expOrderWithInvoiceID">
+            <summary>
+            导出单据附加发票号码到备注
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.vipUseWebAPI">
+            <summary>
+            优先用webapi或者本机连接
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.comparisonOrderCompleteReadonly">
+            <summary>
+            比对-销售数量完整后不能再更改
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.comparisonOrderSuperAlert">
+            <summary>
+            比对-超数量提醒
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.comparisonOnlyQtqCorrctCheck">
+            <summary>
+            比对-点货数量正确才打勾
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.comparisonPurchasePriceAddTax">
+            <summary>
+            比对-进价加税
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.comparisonUnitpriceAuto1">
+            <summary>
+            比对-售价为零,进价相同,自动使用系统售价
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.comparisonDefaultAdditionalQuantity">
+            <summary>
+            比对-数量默认为追加
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.salesCalcWeightTotal">
+            <summary>
+            销售-计算重量总计
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.testMonthlyOff">
+            <summary>
+            测试年结送优惠券/月结送优惠券,宽松条件方式
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.comparisonUseSuppliersSalesPriceFormula">
+            <summary>
+            比对-调用供应商的销售价公式
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.comparisonGrossFormulaII">
+            <summary>
+            比对-毛利率公式II => 毛利率 =（1－不含税进价/不含税售价）×100%
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.comparisonRounding">
+            <summary>
+            比对-四舍五入
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.doNotCloseListOfOrders">
+            <summary>
+            打开单据不关闭挂单列表
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.salesEnableLote">
+            <summary>
+            销售-启用Lote
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.orderSubtotalUseOldMethod">
+            <summary>
+            精度计算:发票含税单据合计直接使用商品合计,不反算税率合计
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.ticketWithJsonRemark">
+            <summary>
+            小票:打印Json格式收货地址
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.ticketClientDataII">
+            <summary>
+            小票:打印客户资料地址II
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.ticketWithRemark">
+            <summary>
+            小票:打印备注
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.ticketWithRemarkLite">
+            <summary>
+            小票:打印部分备注
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.a4WithJsonRemark">
+            <summary>
+            大票:打印Json格式收货地址
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.a4WithClientDataII">
+            <summary>
+            大票:打印收货地址(客户资料地址II)
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.autoAppCustomerNameTransToPinyin">
+            <summary>
+            小程序客户名称自动转拼音
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.autoAppSaveInfoII2miniOrders">
+            <summary>
+            更新客户资料到原始小程序单据
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.formMiniWebAPPWindowMax">
+            <summary>
+            小程序单据窗口最大化
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.formMiniWebAppAutoLoadOrderDetails">
+            <summary>
+            小程序单据自动调入详单
+            </summary>
+        </member>
+        <!-- Badly formed XML comment ignored for member "F:AME.Helpers.AppSettingII.formUsingCouponAutoClose" -->
+        <member name="F:AME.Helpers.AppSettingII.alertProductStatus">
+            <summary>
+            提醒非正常商品状态
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.newPrintModel">
+            <summary>
+            新打印模块
+            </summary>
+        </member>
         <member name="T:SaleIDO.Entity.Storeage.AdjustPriceOrder">
             <summary>
             调价单
