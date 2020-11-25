@@ -33,6 +33,9 @@ namespace FreeSql.Tests.Dameng
             Assert.Equal(t1.Columns.Count, t2.Columns.Count);
             var t3 = fsql.DbFirst.GetTableByName("notexists_tb");
             Assert.Null(t3);
+
+            var t4 = fsql.DbFirst.GetTableByName("v_2user_v1");
+            Assert.NotNull(t4);
         }
 
         [Fact]
