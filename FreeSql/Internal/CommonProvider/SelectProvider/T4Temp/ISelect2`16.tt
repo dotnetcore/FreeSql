@@ -51,36 +51,36 @@ public interface ISelect<<#=NewStr #>> : ISelect0<ISelect<<#=NewStr #>>, T1> <#=
 
 #if net40
 #else
-        Task<bool> AnyAsync(Expression<Func<<#=NewStr #>, bool>> exp, CancellationToken cancellationToken);
-        Task<int> InsertIntoAsync<TTargetEntity>(string tableName, Expression<Func<<#=NewStr #>, TTargetEntity>> select, CancellationToken cancellationToken) where TTargetEntity : class;
-        Task<DataTable> ToDataTableAsync<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select, CancellationToken cancellationToken);
-        Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select, CancellationToken cancellationToken);
-        Task<List<TDto>> ToListAsync<TDto>(CancellationToken cancellationToken);
+        Task<bool> AnyAsync(Expression<Func<<#=NewStr #>, bool>> exp, CancellationToken cancellationToken = default);
+        Task<int> InsertIntoAsync<TTargetEntity>(string tableName, Expression<Func<<#=NewStr #>, TTargetEntity>> select, CancellationToken cancellationToken = default) where TTargetEntity : class;
+        Task<DataTable> ToDataTableAsync<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select, CancellationToken cancellationToken = default);
+        Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select, CancellationToken cancellationToken = default);
+        Task<List<TDto>> ToListAsync<TDto>(CancellationToken cancellationToken = default);
 
-        Task<TReturn> ToOneAsync<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select, CancellationToken cancellationToken);
-        Task<TReturn> FirstAsync<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select, CancellationToken cancellationToken);
-        Task<TDto> FirstAsync<TDto>(CancellationToken cancellationToken);
+        Task<TReturn> ToOneAsync<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select, CancellationToken cancellationToken = default);
+        Task<TReturn> FirstAsync<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select, CancellationToken cancellationToken = default);
+        Task<TDto> FirstAsync<TDto>(CancellationToken cancellationToken = default);
 
-        Task<TReturn> ToAggregateAsync<TReturn>(Expression<Func<<#=string.Join(",",ISelectGroupingAggregate)#>, TReturn>> select, CancellationToken cancellationToken);
-        Task<decimal> SumAsync<TMember>(Expression<Func<<#=NewStr #>, TMember>> column, CancellationToken cancellationToken);
-        Task<TMember> MinAsync<TMember>(Expression<Func<<#=NewStr #>, TMember>> column, CancellationToken cancellationToken);
-        Task<TMember> MaxAsync<TMember>(Expression<Func<<#=NewStr #>, TMember>> column, CancellationToken cancellationToken);
-        Task<double> AvgAsync<TMember>(Expression<Func<<#=NewStr #>, TMember>> column, CancellationToken cancellationToken);
+        Task<TReturn> ToAggregateAsync<TReturn>(Expression<Func<<#=string.Join(",",ISelectGroupingAggregate)#>, TReturn>> select, CancellationToken cancellationToken = default);
+        Task<decimal> SumAsync<TMember>(Expression<Func<<#=NewStr #>, TMember>> column, CancellationToken cancellationToken = default);
+        Task<TMember> MinAsync<TMember>(Expression<Func<<#=NewStr #>, TMember>> column, CancellationToken cancellationToken = default);
+        Task<TMember> MaxAsync<TMember>(Expression<Func<<#=NewStr #>, TMember>> column, CancellationToken cancellationToken = default);
+        Task<double> AvgAsync<TMember>(Expression<Func<<#=NewStr #>, TMember>> column, CancellationToken cancellationToken = default);
 
         #region HzyTuple 元组
 
-        Task<bool> AnyAsync(Expression<Func<HzyTuple<<#=NewStr #>>, bool>> exp, CancellationToken cancellationToken);
-        Task<int> InsertIntoAsync<TTargetEntity>(string tableName, Expression<Func<HzyTuple<<#=NewStr #>>, TTargetEntity>> select, CancellationToken cancellationToken) where TTargetEntity : class;
-        Task<DataTable> ToDataTableAsync<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select, CancellationToken cancellationToken);
-        Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select, CancellationToken cancellationToken);
+        Task<bool> AnyAsync(Expression<Func<HzyTuple<<#=NewStr #>>, bool>> exp, CancellationToken cancellationToken = default);
+        Task<int> InsertIntoAsync<TTargetEntity>(string tableName, Expression<Func<HzyTuple<<#=NewStr #>>, TTargetEntity>> select, CancellationToken cancellationToken = default) where TTargetEntity : class;
+        Task<DataTable> ToDataTableAsync<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select, CancellationToken cancellationToken = default);
+        Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select, CancellationToken cancellationToken = default);
 
-        Task<TReturn> ToOneAsync<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select, CancellationToken cancellationToken);
-        Task<TReturn> FirstAsync<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select, CancellationToken cancellationToken);
+        Task<TReturn> ToOneAsync<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select, CancellationToken cancellationToken = default);
+        Task<TReturn> FirstAsync<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select, CancellationToken cancellationToken = default);
 
-        Task<decimal> SumAsync<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column, CancellationToken cancellationToken);
-        Task<TMember> MinAsync<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column, CancellationToken cancellationToken);
-        Task<TMember> MaxAsync<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column, CancellationToken cancellationToken);
-        Task<double> AvgAsync<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column, CancellationToken cancellationToken);
+        Task<decimal> SumAsync<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column, CancellationToken cancellationToken = default);
+        Task<TMember> MinAsync<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column, CancellationToken cancellationToken = default);
+        Task<TMember> MaxAsync<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column, CancellationToken cancellationToken = default);
+        Task<double> AvgAsync<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column, CancellationToken cancellationToken = default);
 
         #endregion
 
