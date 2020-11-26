@@ -762,7 +762,11 @@
             小程序单据自动调入详单
             </summary>
         </member>
-        <!-- Badly formed XML comment ignored for member "F:AME.Helpers.AppSettingII.formUsingCouponAutoClose" -->
+        <member name="F:AME.Helpers.AppSettingII.formUsingCouponAutoClose">
+            <summary>
+            使用会员卡优惠券窗口自动关闭
+            </summary>
+        </member>
         <member name="F:AME.Helpers.AppSettingII.alertProductStatus">
             <summary>
             提醒非正常商品状态

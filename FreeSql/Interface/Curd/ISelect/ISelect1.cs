@@ -360,7 +360,7 @@ namespace FreeSql
         /// <summary>
         /// 实现 select .. from ( select ... from t ) a 这样的功能<para></para>
         /// 使用 AsTable 方法也可以达到效果<para></para>
-        /// 示例：WithSql("select * from id=?id", new { id = 1 })<para></para>
+        /// 示例：WithSql("select * from id=@id", new { id = 1 })<para></para>
         /// 提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
         /// </summary>
         /// <param name="sql">SQL语句</param>

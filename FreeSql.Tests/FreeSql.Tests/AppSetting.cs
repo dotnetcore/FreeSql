@@ -917,7 +917,7 @@ namespace AME.Helpers
         public bool FormMiniWebAppAutoLoadOrderDetails { get => formMiniWebAppAutoLoadOrderDetails; set { if (SetProperty(ref formMiniWebAppAutoLoadOrderDetails, value)) SaveAI(); } }
 
         /// <summary>
-        /// 使用会员卡&优惠券窗口自动关闭
+        /// 使用会员卡优惠券窗口自动关闭
         /// </summary>
         bool formUsingCouponAutoClose = true;
         [DisplayName("自动关闭")]

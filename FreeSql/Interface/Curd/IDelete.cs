@@ -45,7 +45,7 @@ namespace FreeSql
         /// <returns></returns>
         IDelete<T1> WhereIf(bool condition, Expression<Func<T1, bool>> exp);
         /// <summary>
-        /// 原生sql语法条件，Where("id = ?id", new { id = 1 })<para></para>
+        /// 原生sql语法条件，Where("id = @id", new { id = 1 })<para></para>
         /// 提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
         /// </summary>
         /// <param name="sql">sql语法条件</param>

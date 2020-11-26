@@ -151,7 +151,7 @@ namespace FreeSql
         /// <returns></returns>
         IUpdate<T1> SetIf<TMember>(bool condition, Expression<Func<T1, TMember>> exp);
         /// <summary>
-        /// 设置值，自定义SQL语法，SetRaw("title = ?title", new { title = "newtitle" })<para></para>
+        /// 设置值，自定义SQL语法，SetRaw("title = @title", new { title = "newtitle" })<para></para>
         /// 提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
         /// </summary>
         /// <param name="sql">sql语法</param>
@@ -185,7 +185,7 @@ namespace FreeSql
         /// <returns></returns>
         IUpdate<T1> WhereIf(bool condition, Expression<Func<T1, bool>> exp);
         /// <summary>
-        /// 原生sql语法条件，Where("id = ?id", new { id = 1 })<para></para>
+        /// 原生sql语法条件，Where("id = @id", new { id = 1 })<para></para>
         /// 提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
         /// </summary>
         /// <param name="sql">sql语法条件</param>

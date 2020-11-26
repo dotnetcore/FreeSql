@@ -1362,7 +1362,7 @@
         </member>
         <member name="M:FreeSql.IDelete`1.Where(System.String,System.Object)">
             <summary>
-            原生sql语法条件，Where("id = ?id", new { id = 1 })<para></para>
+            原生sql语法条件，Where("id = @id", new { id = 1 })<para></para>
             提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
             </summary>
             <param name="sql">sql语法条件</param>
@@ -1904,7 +1904,7 @@
         </member>
         <member name="M:FreeSql.ISelect0`2.LeftJoin(System.String,System.Object)">
             <summary>
-            左联查询，使用原生sql语法，LeftJoin("type b on b.id = a.id and b.clicks > ?clicks", new { clicks = 1 })<para></para>
+            左联查询，使用原生sql语法，LeftJoin("type b on b.id = a.id and b.clicks > @clicks", new { clicks = 1 })<para></para>
             提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
             </summary>
             <param name="sql">sql语法条件</param>
@@ -1913,7 +1913,7 @@
         </member>
         <member name="M:FreeSql.ISelect0`2.InnerJoin(System.String,System.Object)">
             <summary>
-            联接查询，使用原生sql语法，InnerJoin("type b on b.id = a.id and b.clicks > ?clicks", new { clicks = 1 })<para></para>
+            联接查询，使用原生sql语法，InnerJoin("type b on b.id = a.id and b.clicks > @clicks", new { clicks = 1 })<para></para>
             提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
             </summary>
             <param name="sql">sql语法条件</param>
@@ -1922,7 +1922,7 @@
         </member>
         <member name="M:FreeSql.ISelect0`2.RightJoin(System.String,System.Object)">
             <summary>
-            右联查询，使用原生sql语法，RightJoin("type b on b.id = a.id and b.clicks > ?clicks", new { clicks = 1 })<para></para>
+            右联查询，使用原生sql语法，RightJoin("type b on b.id = a.id and b.clicks > @clicks", new { clicks = 1 })<para></para>
             提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
             </summary>
             <param name="sql">sql语法条件</param>
@@ -1939,7 +1939,7 @@
         </member>
         <member name="M:FreeSql.ISelect0`2.Where(System.String,System.Object)">
             <summary>
-            原生sql语法条件，Where("id = ?id", new { id = 1 })<para></para>
+            原生sql语法条件，Where("id = @id", new { id = 1 })<para></para>
             提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
             </summary>
             <param name="sql">sql语法条件</param>
@@ -1948,7 +1948,7 @@
         </member>
         <member name="M:FreeSql.ISelect0`2.WhereIf(System.Boolean,System.String,System.Object)">
             <summary>
-            原生sql语法条件，WhereIf(true, "id = ?id", new { id = 1 })<para></para>
+            原生sql语法条件，WhereIf(true, "id = @id", new { id = 1 })<para></para>
             提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
             </summary>
             <param name="condition">true 时生效</param>
@@ -1988,7 +1988,7 @@
         </member>
         <member name="M:FreeSql.ISelect0`2.GroupBy(System.String,System.Object)">
             <summary>
-            按原生sql语法分组，GroupBy("concat(name, ?cc)", new { cc = 1 })<para></para>
+            按原生sql语法分组，GroupBy("concat(name, @cc)", new { cc = 1 })<para></para>
             提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
             </summary>
             <param name="sql">sql语法</param>
@@ -1997,7 +1997,7 @@
         </member>
         <member name="M:FreeSql.ISelect0`2.Having(System.String,System.Object)">
             <summary>
-            按原生sql语法聚合条件过滤，Having("count(name) = ?cc", new { cc = 1 })<para></para>
+            按原生sql语法聚合条件过滤，Having("count(name) = @cc", new { cc = 1 })<para></para>
             提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
             </summary>
             <param name="sql">sql语法条件</param>
@@ -2006,7 +2006,7 @@
         </member>
         <member name="M:FreeSql.ISelect0`2.OrderBy(System.String,System.Object)">
             <summary>
-            按原生sql语法排序，OrderBy("count(name) + ?cc desc", new { cc = 1 })<para></para>
+            按原生sql语法排序，OrderBy("count(name) + @cc desc", new { cc = 1 })<para></para>
             提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
             </summary>
             <param name="sql">sql语法</param>
@@ -2015,7 +2015,7 @@
         </member>
         <member name="M:FreeSql.ISelect0`2.OrderBy(System.Boolean,System.String,System.Object)">
             <summary>
-            按原生sql语法排序，OrderBy(true, "count(name) + ?cc desc", new { cc = 1 })<para></para>
+            按原生sql语法排序，OrderBy(true, "count(name) + @cc desc", new { cc = 1 })<para></para>
             提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
             </summary>
             <param name="condition">true 时生效</param>
@@ -2425,7 +2425,7 @@
             <summary>
             实现 select .. from ( select ... from t ) a 这样的功能<para></para>
             使用 AsTable 方法也可以达到效果<para></para>
-            示例：WithSql("select * from id=?id", new { id = 1 })<para></para>
+            示例：WithSql("select * from id=@id", new { id = 1 })<para></para>
             提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
             </summary>
             <param name="sql">SQL语句</param>
@@ -2760,7 +2760,7 @@
         </member>
         <member name="M:FreeSql.IUpdate`1.SetRaw(System.String,System.Object)">
             <summary>
-            设置值，自定义SQL语法，SetRaw("title = ?title", new { title = "newtitle" })<para></para>
+            设置值，自定义SQL语法，SetRaw("title = @title", new { title = "newtitle" })<para></para>
             提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
             </summary>
             <param name="sql">sql语法</param>
@@ -2796,7 +2796,7 @@
         </member>
         <member name="M:FreeSql.IUpdate`1.Where(System.String,System.Object)">
             <summary>
-            原生sql语法条件，Where("id = ?id", new { id = 1 })<para></para>
+            原生sql语法条件，Where("id = @id", new { id = 1 })<para></para>
             提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
             </summary>
             <param name="sql">sql语法条件</param>
@@ -2922,7 +2922,7 @@
         </member>
         <member name="M:FreeSql.IAdo.CommandFluent(System.String,System.Object)">
             <summary>
-            SQL 命令执行类，fsql.Ado.CommandFluent("select * from user where age > ?age", new { age = 25 })<para></para>
+            SQL 命令执行类，fsql.Ado.CommandFluent("select * from user where age > @age", new { age = 25 })<para></para>
             .WithConnection(connection)<para></para>
             .WithTransaction(transaction)<para></para>
             .WithParameter("age", 25)<para></para>
@@ -2955,7 +2955,7 @@
         </member>
         <member name="M:FreeSql.IAdo.ExecuteReader(System.Action{FreeSql.Internal.Model.FetchCallbackArgs{System.Data.Common.DbDataReader}},System.String,System.Object)">
             <summary>
-            查询，ExecuteReader(dr => {}, "select * from user where age > ?age", new { age = 25 })<para></para>
+            查询，ExecuteReader(dr => {}, "select * from user where age > @age", new { age = 25 })<para></para>
             提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
             </summary>
             <param name="fetchHandler"></param>
@@ -2972,7 +2972,7 @@
         </member>
         <member name="M:FreeSql.IAdo.ExecuteArray(System.String,System.Object)">
             <summary>
-            查询，ExecuteArray("select * from user where age > ?age", new { age = 25 })<para></para>
+            查询，ExecuteArray("select * from user where age > @age", new { age = 25 })<para></para>
             提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
             </summary>
             <param name="cmdText"></param>
@@ -2989,7 +2989,7 @@
         </member>
         <member name="M:FreeSql.IAdo.ExecuteDataSet(System.String,System.Object)">
             <summary>
-            查询，ExecuteDataSet("select * from user where age > ?age; select 2", new { age = 25 })<para></para>
+            查询，ExecuteDataSet("select * from user where age > @age; select 2", new { age = 25 })<para></para>
             提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
             </summary>
             <param name="cmdText"></param>
@@ -3006,7 +3006,7 @@
         </member>
         <member name="M:FreeSql.IAdo.ExecuteDataTable(System.String,System.Object)">
             <summary>
-            查询，ExecuteDataTable("select * from user where age > ?age", new { age = 25 })<para></para>
+            查询，ExecuteDataTable("select * from user where age > @age", new { age = 25 })<para></para>
             提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
             </summary>
             <param name="cmdText"></param>
@@ -3023,7 +3023,7 @@
         </member>
         <member name="M:FreeSql.IAdo.ExecuteNonQuery(System.String,System.Object)">
             <summary>
-            在【主库】执行，ExecuteNonQuery("delete from user where age > ?age", new { age = 25 })<para></para>
+            在【主库】执行，ExecuteNonQuery("delete from user where age > @age", new { age = 25 })<para></para>
             提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
             </summary>
             <param name="cmdText"></param>
@@ -3040,7 +3040,7 @@
         </member>
         <member name="M:FreeSql.IAdo.ExecuteScalar(System.String,System.Object)">
             <summary>
-            在【主库】执行，ExecuteScalar("select 1 from user where age > ?age", new { age = 25 })<para></para>
+            在【主库】执行，ExecuteScalar("select 1 from user where age > @age", new { age = 25 })<para></para>
             提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
             </summary>
             <param name="cmdText"></param>
@@ -3049,7 +3049,7 @@
         </member>
         <member name="M:FreeSql.IAdo.Query``1(System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
             <summary>
-            执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > ?age", new SqlParameter { ParameterName = "age", Value = 25 })
+            执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > @age", new SqlParameter { ParameterName = "age", Value = 25 })
             </summary>
             <typeparam name="T"></typeparam>
             <param name="cmdType"></param>
@@ -3059,7 +3059,7 @@
         </member>
         <member name="M:FreeSql.IAdo.Query``1(System.String,System.Object)">
             <summary>
-            执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > ?age", new { age = 25 })<para></para>
+            执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > @age", new { age = 25 })<para></para>
             提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
             </summary>
             <typeparam name="T"></typeparam>
@@ -3069,7 +3069,7 @@
         </member>
         <member name="M:FreeSql.IAdo.Query``2(System.Data.CommandType,System.String,System.Data.Common.DbParameter[])">
             <summary>
-            执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > ?age; select * from address", new SqlParameter { ParameterName = "age", Value = 25 })
+            执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > @age; select * from address", new SqlParameter { ParameterName = "age", Value = 25 })
             </summary>
             <typeparam name="T1"></typeparam>
             <typeparam name="T2"></typeparam>
@@ -3080,7 +3080,7 @@
         </member>
         <member name="M:FreeSql.IAdo.Query``2(System.String,System.Object)">
             <summary>
-            执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > ?age; select * from address", new { age = 25 })<para></para>
+            执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > @age; select * from address", new { age = 25 })<para></para>
             提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
             </summary>
             <typeparam name="T1"></typeparam>
@@ -3111,7 +3111,7 @@
         </member>
         <member name="M:FreeSql.IAdo.ExecuteReaderAsync(System.Func{FreeSql.Internal.Model.FetchCallbackArgs{System.Data.Common.DbDataReader},System.Threading.Tasks.Task},System.String,System.Object,System.Threading.CancellationToken)">
             <summary>
-            查询，ExecuteReaderAsync(dr => {}, "select * from user where age > ?age", new { age = 25 })<para></para>
+            查询，ExecuteReaderAsync(dr => {}, "select * from user where age > @age", new { age = 25 })<para></para>
             提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
             </summary>
             <param name="readerHander"></param>
@@ -3130,7 +3130,7 @@
         </member>
         <member name="M:FreeSql.IAdo.ExecuteArrayAsync(System.String,System.Object,System.Threading.CancellationToken)">
             <summary>
-            查询，ExecuteArrayAsync("select * from user where age > ?age", new { age = 25 })<para></para>
+            查询，ExecuteArrayAsync("select * from user where age > @age", new { age = 25 })<para></para>
             提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
             </summary>
             <param name="cmdText"></param>
@@ -3149,7 +3149,7 @@
         </member>
         <member name="M:FreeSql.IAdo.ExecuteDataSetAsync(System.String,System.Object,System.Threading.CancellationToken)">
             <summary>
-            查询，ExecuteDataSetAsync("select * from user where age > ?age; select 2", new { age = 25 })<para></para>
+            查询，ExecuteDataSetAsync("select * from user where age > @age; select 2", new { age = 25 })<para></para>
             提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
             </summary>
             <param name="cmdText"></param>
@@ -3168,7 +3168,7 @@
         </member>
         <member name="M:FreeSql.IAdo.ExecuteDataTableAsync(System.String,System.Object,System.Threading.CancellationToken)">
             <summary>
-            查询，ExecuteDataTableAsync("select * from user where age > ?age", new { age = 25 })<para></para>
+            查询，ExecuteDataTableAsync("select * from user where age > @age", new { age = 25 })<para></para>
             提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
             </summary>
             <param name="cmdText"></param>
@@ -3187,7 +3187,7 @@
         </member>
         <member name="M:FreeSql.IAdo.ExecuteNonQueryAsync(System.String,System.Object,System.Threading.CancellationToken)">
             <summary>
-            在【主库】执行，ExecuteNonQueryAsync("delete from user where age > ?age", new { age = 25 })<para></para>
+            在【主库】执行，ExecuteNonQueryAsync("delete from user where age > @age", new { age = 25 })<para></para>
             提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
             </summary>
             <param name="cmdText"></param>
@@ -3206,7 +3206,7 @@
         </member>
         <member name="M:FreeSql.IAdo.ExecuteScalarAsync(System.String,System.Object,System.Threading.CancellationToken)">
             <summary>
-            在【主库】执行，ExecuteScalarAsync("select 1 from user where age > ?age", new { age = 25 })<para></para>
+            在【主库】执行，ExecuteScalarAsync("select 1 from user where age > @age", new { age = 25 })<para></para>
             提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
             </summary>
             <param name="cmdText"></param>
@@ -3216,7 +3216,7 @@
         </member>
         <member name="M:FreeSql.IAdo.QueryAsync``1(System.Data.CommandType,System.String,System.Data.Common.DbParameter[],System.Threading.CancellationToken)">
             <summary>
-            执行SQL返回对象集合，QueryAsync&lt;User&gt;("select * from user where age > ?age", new SqlParameter { ParameterName = "age", Value = 25 })
+            执行SQL返回对象集合，QueryAsync&lt;User&gt;("select * from user where age > @age", new SqlParameter { ParameterName = "age", Value = 25 })
             </summary>
             <typeparam name="T"></typeparam>
             <param name="cmdType"></param>
@@ -3227,7 +3227,7 @@
         </member>
         <member name="M:FreeSql.IAdo.QueryAsync``1(System.String,System.Object,System.Threading.CancellationToken)">
             <summary>
-            执行SQL返回对象集合，QueryAsync&lt;User&gt;("select * from user where age > ?age", new { age = 25 })<para></para>
+            执行SQL返回对象集合，QueryAsync&lt;User&gt;("select * from user where age > @age", new { age = 25 })<para></para>
             提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
             </summary>
             <typeparam name="T"></typeparam>
@@ -3238,7 +3238,7 @@
         </member>
         <member name="M:FreeSql.IAdo.QueryAsync``2(System.Data.CommandType,System.String,System.Data.Common.DbParameter[],System.Threading.CancellationToken)">
             <summary>
-            执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > ?age; select * from address", new SqlParameter { ParameterName = "age", Value = 25 })
+            执行SQL返回对象集合，Query&lt;User&gt;("select * from user where age > @age; select * from address", new SqlParameter { ParameterName = "age", Value = 25 })
             </summary>
             <typeparam name="T1"></typeparam>
             <typeparam name="T2"></typeparam>
@@ -3250,7 +3250,7 @@
         </member>
         <member name="M:FreeSql.IAdo.QueryAsync``2(System.String,System.Object,System.Threading.CancellationToken)">
             <summary>
-            执行SQL返回对象集合，Query&lt;User, Address&gt;("select * from user where age > ?age; select * from address", new { age = 25 })<para></para>
+            执行SQL返回对象集合，Query&lt;User, Address&gt;("select * from user where age > @age; select * from address", new { age = 25 })<para></para>
             提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
             </summary>
             <typeparam name="T1"></typeparam>

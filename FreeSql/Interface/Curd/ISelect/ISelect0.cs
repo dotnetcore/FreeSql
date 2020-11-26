@@ -238,7 +238,7 @@ namespace FreeSql
         TSelect RightJoin<T2>(Expression<Func<T1, T2, bool>> exp);
 
         /// <summary>
-        /// 左联查询，使用原生sql语法，LeftJoin("type b on b.id = a.id and b.clicks > ?clicks", new { clicks = 1 })<para></para>
+        /// 左联查询，使用原生sql语法，LeftJoin("type b on b.id = a.id and b.clicks > @clicks", new { clicks = 1 })<para></para>
         /// 提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
         /// </summary>
         /// <param name="sql">sql语法条件</param>
@@ -246,7 +246,7 @@ namespace FreeSql
         /// <returns></returns>
         TSelect LeftJoin(string sql, object parms = null);
         /// <summary>
-        /// 联接查询，使用原生sql语法，InnerJoin("type b on b.id = a.id and b.clicks > ?clicks", new { clicks = 1 })<para></para>
+        /// 联接查询，使用原生sql语法，InnerJoin("type b on b.id = a.id and b.clicks > @clicks", new { clicks = 1 })<para></para>
         /// 提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
         /// </summary>
         /// <param name="sql">sql语法条件</param>
@@ -254,7 +254,7 @@ namespace FreeSql
         /// <returns></returns>
         TSelect InnerJoin(string sql, object parms = null);
         /// <summary>
-        /// 右联查询，使用原生sql语法，RightJoin("type b on b.id = a.id and b.clicks > ?clicks", new { clicks = 1 })<para></para>
+        /// 右联查询，使用原生sql语法，RightJoin("type b on b.id = a.id and b.clicks > @clicks", new { clicks = 1 })<para></para>
         /// 提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
         /// </summary>
         /// <param name="sql">sql语法条件</param>
@@ -270,7 +270,7 @@ namespace FreeSql
         TSelect RawJoin(string sql);
 
         /// <summary>
-        /// 原生sql语法条件，Where("id = ?id", new { id = 1 })<para></para>
+        /// 原生sql语法条件，Where("id = @id", new { id = 1 })<para></para>
         /// 提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
         /// </summary>
         /// <param name="sql">sql语法条件</param>
@@ -278,7 +278,7 @@ namespace FreeSql
         /// <returns></returns>
         TSelect Where(string sql, object parms = null);
         /// <summary>
-        /// 原生sql语法条件，WhereIf(true, "id = ?id", new { id = 1 })<para></para>
+        /// 原生sql语法条件，WhereIf(true, "id = @id", new { id = 1 })<para></para>
         /// 提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
         /// </summary>
         /// <param name="condition">true 时生效</param>
@@ -318,7 +318,7 @@ namespace FreeSql
         TSelect ForUpdate(bool nowait = false);
 
         /// <summary>
-        /// 按原生sql语法分组，GroupBy("concat(name, ?cc)", new { cc = 1 })<para></para>
+        /// 按原生sql语法分组，GroupBy("concat(name, @cc)", new { cc = 1 })<para></para>
         /// 提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
         /// </summary>
         /// <param name="sql">sql语法</param>
@@ -326,7 +326,7 @@ namespace FreeSql
         /// <returns></returns>
         TSelect GroupBy(string sql, object parms = null);
         /// <summary>
-        /// 按原生sql语法聚合条件过滤，Having("count(name) = ?cc", new { cc = 1 })<para></para>
+        /// 按原生sql语法聚合条件过滤，Having("count(name) = @cc", new { cc = 1 })<para></para>
         /// 提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
         /// </summary>
         /// <param name="sql">sql语法条件</param>
@@ -335,7 +335,7 @@ namespace FreeSql
         TSelect Having(string sql, object parms = null);
 
         /// <summary>
-        /// 按原生sql语法排序，OrderBy("count(name) + ?cc desc", new { cc = 1 })<para></para>
+        /// 按原生sql语法排序，OrderBy("count(name) + @cc desc", new { cc = 1 })<para></para>
         /// 提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
         /// </summary>
         /// <param name="sql">sql语法</param>
@@ -343,7 +343,7 @@ namespace FreeSql
         /// <returns></returns>
         TSelect OrderBy(string sql, object parms = null);
         /// <summary>
-        /// 按原生sql语法排序，OrderBy(true, "count(name) + ?cc desc", new { cc = 1 })<para></para>
+        /// 按原生sql语法排序，OrderBy(true, "count(name) + @cc desc", new { cc = 1 })<para></para>
         /// 提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
         /// </summary>
         /// <param name="condition">true 时生效</param>
