@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net461;net452;net451;net45</TargetFrameworks>
-		<Version>2.0.100</Version>
+		<Version>2.0.101</Version>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>FreeSql;ncc;YeXiangQin</Authors>
 		<Description>FreeSql 数据库实现，基于 PostgreSQL 9.5</Description>
@@ -30,10 +30,9 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'net461'">
-		<PackageReference Include="Npgsql.LegacyPostgis" Version="4.1.5" />
-		<PackageReference Include="Npgsql.NetTopologySuite" Version="4.1.5" />
+		<PackageReference Include="Npgsql.LegacyPostgis" Version="4.1.6" />
+		<PackageReference Include="Npgsql.NetTopologySuite" Version="4.1.6" />
 	</ItemGroup>
-
 	<ItemGroup Condition="'$(TargetFramework)' == 'net452' or '$(TargetFramework)' == 'net451' or '$(TargetFramework)' == 'net45'">
 		<PackageReference Include="Npgsql.LegacyPostgis" Version="4.0.11" />
 	</ItemGroup>
@@ -41,7 +40,6 @@
 	<PropertyGroup Condition="'$(TargetFramework)' == 'net452' or '$(TargetFramework)' == 'net451' or '$(TargetFramework)' == 'net45'">
 		<DefineConstants>net45</DefineConstants>
 	</PropertyGroup>
-
 	<PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'net461'">
 		<DefineConstants>nts</DefineConstants>
 	</PropertyGroup>

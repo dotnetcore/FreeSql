@@ -57,7 +57,7 @@ namespace FreeSql.SqlServer.Curd
             catch (Exception ex)
             {
                 exception = ex;
-                throw ex;
+                throw;
             }
             finally
             {
@@ -141,7 +141,7 @@ namespace FreeSql.SqlServer.Curd
             catch (Exception ex)
             {
                 exception = ex;
-                throw ex;
+                throw;
             }
             finally
             {

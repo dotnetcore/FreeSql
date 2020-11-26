@@ -13,9 +13,38 @@ namespace FreeSql.Tests
 {
     public class UnitTest4
     {
+        class ts_lawsuit
+        {
+            public Guid id { get; set; }
+            public Guid lawsuit_member_id { get; set; }
+            public Guid lawsuit_memberObligee_id { get; set; }
+
+            public ts_lawsuit_member ts_lawsuit_member { get; set; }
+            public ts_lawsuit_member ts_lawsuit_memberObligee { get; set; }
+
+        }
+        class ts_lawsuit_member
+        {
+            public Guid id { get; set; }
+            public string title { get; set; }
+        }
+
         [Fact]
         public void VersionByte()
         {
+            var ts_lawsuititem = new ts_lawsuit { id = Guid.NewGuid(), lawsuit_memberObligee_id = Guid.NewGuid(), lawsuit_member_id = Guid.NewGuid() };
+            g.mysql.Insert(new[]
+            {
+                new ts_lawsuit_member{id = ts_lawsuititem.lawsuit_member_id, title = "ts_lawsuit_member_title"},
+                new ts_lawsuit_member{id = ts_lawsuititem.lawsuit_memberObligee_id, title = "ts_lawsuit_memberObligee_title"}
+            }).ExecuteAffrows();
+            g.mysql.Insert(ts_lawsuititem).ExecuteAffrows();
+
+            var xxx = g.mysql.Select<ts_lawsuit>()
+                .LeftJoin(a => a.ts_lawsuit_member.id == a.lawsuit_member_id)
+                .LeftJoin(a => a.ts_lawsuit_memberObligee.id == a.lawsuit_memberObligee_id)
+                .First();
+
             g.sqlserver.Insert(new AppSettingII
             {
                  

@@ -186,7 +186,7 @@ namespace FreeSql.Oracle.Curd
                 catch (Exception ex)
                 {
                     exception = ex;
-                    throw ex;
+                    throw;
                 }
                 finally
                 {
@@ -210,7 +210,7 @@ namespace FreeSql.Oracle.Curd
             catch (Exception ex)
             {
                 exception = ex;
-                throw ex;
+                throw;
             }
             finally
             {
@@ -255,7 +255,7 @@ namespace FreeSql.Oracle.Curd
                 catch (Exception ex)
                 {
                     exception = ex;
-                    throw ex;
+                    throw;
                 }
                 finally
                 {
@@ -279,7 +279,7 @@ namespace FreeSql.Oracle.Curd
             catch (Exception ex)
             {
                 exception = ex;
-                throw ex;
+                throw;
             }
             finally
             {

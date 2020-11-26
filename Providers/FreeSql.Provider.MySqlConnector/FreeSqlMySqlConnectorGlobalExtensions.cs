@@ -98,11 +98,11 @@ public static class FreeSqlMySqlConnectorGlobalExtensions
         var dt = that.ToDataTable();
         if (dt.Rows.Count == 0) return;
 
-        Func<MySqlBulkCopy, Task> writeToServer = bulkCopy =>
+        Func<MySqlBulkCopy, Task> writeToServer = async bulkCopy =>
         {
             if (bulkCopyTimeout.HasValue) bulkCopy.BulkCopyTimeout = bulkCopyTimeout.Value;
             bulkCopy.DestinationTableName = dt.TableName;
-            return bulkCopy.WriteToServerAsync(dt, cancellationToken);
+            await bulkCopy.WriteToServerAsync(dt, cancellationToken);
         };
 
         try

@@ -524,19 +524,6 @@ namespace FreeSql.Internal
                 var isLazy = vp != null && vp.Item1 != null && !string.IsNullOrEmpty(trytbTypeLazyName);
 
                 AddTableRef(common, trytb, pnv, isLazy, vp, cscode);
-                if (trytb.GetTableRef(pnv.Name, false) == null)
-                {
-                    trytb.ColumnsByCsIgnore.Add(pnv.Name, new ColumnInfo
-                    {
-                        Table = trytb,
-                        CsName = pnv.Name,
-                        CsType = pnv.PropertyType,
-                        Attribute = new ColumnAttribute
-                        {
-                            IsIgnore = true
-                        }
-                    });
-                }
             }
             if (cscode?.Length > cscodeLength)
             {
@@ -1620,8 +1607,12 @@ namespace FreeSql.Internal
                                 continue;
                             }
                             ColumnInfo trycol = null;
-                            var readType = typetb?.ColumnsByCs.TryGetValue(prop.Name, out trycol) == true ? trycol.Attribute.MapType : prop.PropertyType;
-
+                            if (typetb != null && typetb.ColumnsByCs.TryGetValue(prop.Name, out trycol) == false)
+                            {
+                                ++propIndex;
+                                continue;
+                            }
+                            var readType = trycol?.Attribute.MapType ?? prop.PropertyType;
                             var ispkExp = new List<Expression>();
                             var propGetSetMethod = prop.GetSetMethod(true);
                             Expression readVal = Expression.Assign(readpkvalExp, Expression.Call(MethodDataReaderGetValue, new Expression[] { commonUtilExp, rowExp, tryidxExp }));
