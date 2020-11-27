@@ -14,12 +14,12 @@ FreeSql is a powerful O/RM component, supports .NET Core 2.1+, .NET Framework 4.
 
 </div>
 
-- 🛠 Support CodeFirst mode, support data migration even when using Access database.
-- 💻 Support DbFirst mode, support import entity class from database, or use [Entity Class Generation Tool](https://github.com/2881099/FreeSql/wiki/DbFirst) to generate entity class.
+- 🛠 Support CodeFirst data migration.
+- 💻 Support DbFirst import entity class from database, or use [Generation Tool](https://github.com/2881099/FreeSql/wiki/DbFirst).
 - ⛳ Support advanced type mapping, such as PostgreSQL array type, etc.
-- ✒ Support large number of expression functions, and highly customizable analysis.
-- 🏁 Support one-to-many and many-to-many greedy loading of navigation properties, and lazy loading.
-- 📃 Support Read/Write separation, Splitting Table/Database, Filters, Optimistic Locking and pessimistic locking.
+- 🌲 Support expression functions, and customizable analysis.
+- 🏁 Support one-to-many and many-to-many navigation properties, include and lazy loading.
+- 📃 Support Read/Write separation, Splitting Table/Database, Global filters, Optimistic and pessimistic locker.
 - 🌳 Support MySql/SqlServer/PostgreSQL/Oracle/Sqlite/Firebird/达梦/人大金仓/神舟通用/翰高/Access, etc.
 
 QQ Groups：4336577(full)、**8578575(available)**、**52508226(available)**
@@ -28,25 +28,22 @@ QQ Groups：4336577(full)、**8578575(available)**、**52508226(available)**
 
 | | |
 | - | - |
-| <img src="https://github.com/dotnetcore/FreeSql/raw/master/Examples/restful/001.png" width="30" height="46"/> |&nbsp;&nbsp;[Introduction](https://www.cnblogs.com/FreeSql/p/11531300.html)&nbsp;&nbsp;\|&nbsp;&nbsp;[Select](https://github.com/2881099/FreeSql/wiki/%e6%9f%a5%e8%af%a2)&nbsp;&nbsp;\|&nbsp;&nbsp;[Update](https://github.com/2881099/FreeSql/wiki/%e4%bf%ae%e6%94%b9)&nbsp;&nbsp;\|&nbsp;&nbsp;[Insert](https://github.com/2881099/FreeSql/wiki/%e6%b7%bb%e5%8a%a0)&nbsp;&nbsp;\|&nbsp;&nbsp;[Delete](https://github.com/2881099/FreeSql/wiki/%e5%88%a0%e9%99%a4)&nbsp;&nbsp;|
-| <img src="https://github.com/dotnetcore/FreeSql/raw/master/Examples/restful/002.png" width="30" height="46"/> |&nbsp;&nbsp;[Expression Functions](https://github.com/2881099/FreeSql/wiki/%e8%a1%a8%e8%be%be%e5%bc%8f%e5%87%bd%e6%95%b0)&nbsp;&nbsp;\|&nbsp;&nbsp;[CodeFirst](https://github.com/2881099/FreeSql/wiki/CodeFirst)&nbsp;&nbsp;\|&nbsp;&nbsp;[DbFirst](https://github.com/2881099/FreeSql/wiki/DbFirst)&nbsp;&nbsp;\|&nbsp;&nbsp;[Filters](https://github.com/2881099/FreeSql/wiki/%e8%bf%87%e6%bb%a4%e5%99%a8)&nbsp;&nbsp;|
-| <img src="https://github.com/dotnetcore/FreeSql/raw/master/Examples/restful/003.png" width="30" height="46"/> |&nbsp;&nbsp;[Repository](https://github.com/2881099/FreeSql/wiki/Repository)&nbsp;&nbsp;\|&nbsp;&nbsp;[UnitOfWork](https://github.com/2881099/FreeSql/wiki/%e5%b7%a5%e4%bd%9c%e5%8d%95%e5%85%83)&nbsp;&nbsp;\|&nbsp;&nbsp;[AOP](https://github.com/2881099/FreeSql/wiki/AOP)&nbsp;&nbsp;\|&nbsp;&nbsp;[DbContext](https://github.com/2881099/FreeSql/wiki/DbContext)&nbsp;&nbsp;|
-| <img src="https://github.com/dotnetcore/FreeSql/raw/master/Examples/restful/004.png" width="30" height="46"/> |&nbsp;&nbsp;[Read/Write Separation](https://github.com/2881099/FreeSql/wiki/%e8%af%bb%e5%86%99%e5%88%86%e7%a6%bb)&nbsp;&nbsp;\|&nbsp;&nbsp;[Splitting Table/Database](https://github.com/2881099/FreeSql/wiki/%e5%88%86%e8%a1%a8%e5%88%86%e5%ba%93)&nbsp;&nbsp;\|&nbsp;&nbsp;[Mysterious Technology](https://github.com/2881099/FreeSql/wiki/%E9%AA%9A%E6%93%8D%E4%BD%9C)&nbsp;&nbsp;\|&nbsp;&nbsp;[FAQ](https://github.com/dotnetcore/FreeSql/wiki/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98)&nbsp;&nbsp;\|&nbsp;&nbsp;[*Update Notes*](https://github.com/2881099/FreeSql/wiki/%e6%9b%b4%e6%96%b0%e6%97%a5%e5%bf%97)&nbsp;&nbsp;|
+| [Select](https://github.com/2881099/FreeSql/wiki/%e6%9f%a5%e8%af%a2)&nbsp;&nbsp;\|&nbsp;&nbsp;[Update](https://github.com/2881099/FreeSql/wiki/%e4%bf%ae%e6%94%b9)&nbsp;&nbsp;\|&nbsp;&nbsp;[Insert](https://github.com/2881099/FreeSql/wiki/%e6%b7%bb%e5%8a%a0)&nbsp;&nbsp;\|&nbsp;&nbsp;[Delete](https://github.com/2881099/FreeSql/wiki/%e5%88%a0%e9%99%a4)&nbsp;&nbsp;[FAQ](https://github.com/dotnetcore/FreeSql/wiki/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98)&nbsp;&nbsp;\|&nbsp;&nbsp;[*Update Notes*](https://github.com/2881099/FreeSql/wiki/%e6%9b%b4%e6%96%b0%e6%97%a5%e5%bf%97)&nbsp;&nbsp;|
+| [Expression Functions](https://github.com/2881099/FreeSql/wiki/%e8%a1%a8%e8%be%be%e5%bc%8f%e5%87%bd%e6%95%b0)&nbsp;&nbsp;\|&nbsp;&nbsp;[CodeFirst](https://github.com/2881099/FreeSql/wiki/CodeFirst)&nbsp;&nbsp;\|&nbsp;&nbsp;[DbFirst](https://github.com/2881099/FreeSql/wiki/DbFirst)&nbsp;&nbsp;\|&nbsp;&nbsp;[Filters](https://github.com/2881099/FreeSql/wiki/%e8%bf%87%e6%bb%a4%e5%99%a8)&nbsp;&nbsp;|
+| [Repository](https://github.com/2881099/FreeSql/wiki/Repository)&nbsp;&nbsp;\|&nbsp;&nbsp;[UnitOfWork](https://github.com/2881099/FreeSql/wiki/%e5%b7%a5%e4%bd%9c%e5%8d%95%e5%85%83)&nbsp;&nbsp;\|&nbsp;&nbsp;[AOP](https://github.com/2881099/FreeSql/wiki/AOP)&nbsp;&nbsp;\|&nbsp;&nbsp;[DbContext](https://github.com/2881099/FreeSql/wiki/DbContext)&nbsp;&nbsp;|
+| [Read/Write Separation](https://github.com/2881099/FreeSql/wiki/%e8%af%bb%e5%86%99%e5%88%86%e7%a6%bb)&nbsp;&nbsp;\|&nbsp;&nbsp;[Splitting Table/Database](https://github.com/2881099/FreeSql/wiki/%e5%88%86%e8%a1%a8%e5%88%86%e5%ba%93)&nbsp;&nbsp;\|&nbsp;&nbsp;[Mysterious Technology](https://github.com/2881099/FreeSql/wiki/%E9%AA%9A%E6%93%8D%E4%BD%9C)&nbsp;&nbsp;\|&nbsp;&nbsp;|
 
 > FreeSql provides a variety of usage habits, and there is always one that suits you:
 
 - Use FreeSql, keep the original usage.
-- Use [FreeSql.Repository](https://github.com/2881099/FreeSql/wiki/Repository), for those who are accustomed to storage models and work units.
-- Use [FreeSql.DbContext](https://github.com/2881099/FreeSql/wiki/DbContext), a bit like how efcore is used.
-- Or use [FreeSql.BaseEntity](https://github.com/2881099/FreeSql/tree/master/Examples/base_entity), which is extremely simple.
+- Use [FreeSql.Repository](https://github.com/2881099/FreeSql/wiki/Repository), Repository + UnitOfWork.
+- Use [FreeSql.DbContext](https://github.com/2881099/FreeSql/wiki/DbContext), Like efcore.
+- Or use [FreeSql.BaseEntity](https://github.com/2881099/FreeSql/tree/master/Examples/base_entity), Simple mode.
 
 > Some open source projects that use FreeSql:
 
-- [Zhontai.net Admin, Management System](https://github.com/zhontai/Admin.Core)
+- [Zhontai.net Admin Management System](https://github.com/zhontai/Admin.Core)
 - [A simple and practical CMS implemented by .NET Core](https://github.com/luoyunchong/lin-cms-dotnetcore)
-- [iusaas.com SaaS, Enterprise Application Management System](https://github.com/alonsoalon/TenantSite.Server)
-- [EasyCms, CMS management system used by enterprises and institutions](https://github.com/jasonyush/EasyCMS)
-- [Content management system](https://github.com/hejiyong/fscms)
 
 <p align="center">
   <img src="https://github.com/dotnetcore/FreeSql/raw/master/functions11.png"/>

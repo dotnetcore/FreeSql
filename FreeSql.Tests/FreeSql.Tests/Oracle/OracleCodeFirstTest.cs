@@ -51,6 +51,14 @@ namespace FreeSql.Tests.Oracle
                 item2 = repo.Get(item1.Id);
 
                 Assert.Equal(item1.CreatorId, item2.CreatorId);
+
+                fsql.Aop.AuditDataReader -= fsql.Aop.AuditDataReaderHandler;
+
+                item1 = new TS_SL361 { CreatorId = "" };
+                repo.Insert(item1);
+                item2 = repo.Get(item1.Id);
+
+                Assert.Null(item2.CreatorId);
             }
         }
         class TS_SNTE

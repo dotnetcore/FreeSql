@@ -513,8 +513,14 @@ namespace FreeSql.Internal.CommonProvider
                 };
             });
         }
+        static EventHandler<Aop.AuditDataReaderEventArgs> _OldAuditDataReaderHandler;
         public GetAllFieldExpressionTreeInfo GetAllFieldExpressionTreeLevel2()
         {
+            if (_OldAuditDataReaderHandler != _orm.Aop.AuditDataReaderHandler)
+            {
+                _OldAuditDataReaderHandler = _orm.Aop.AuditDataReaderHandler; //清除单表 ExppressionTree
+                _dicGetAllFieldExpressionTree.TryRemove($"{_orm.Ado.DataType}-{_tables[0].Table.DbName}-{_tables[0].Alias}-{_tables[0].Type}", out var oldet);
+            }
             return _dicGetAllFieldExpressionTree.GetOrAdd(string.Join("+", _tables.Select(a => $"{_orm.Ado.DataType}-{a.Table.DbName}-{a.Alias}-{a.Type}")), s =>
             {
                 var tb1 = _tables.First().Table;
@@ -621,18 +627,6 @@ namespace FreeSql.Internal.CommonProvider
                             )
                     });
                 }
-                if (otherindex == 0)
-                { //不读导航属性，优化单表读取性能
-                    blockExp.Clear();
-                    blockExp.AddRange(new Expression[] {
-                        Expression.Assign(dataIndexExp, Expression.Constant(0)),
-                        Expression.Assign(readExp, Expression.Call(Utils.MethodExecuteArrayRowReadClassOrTuple, new Expression[] { Expression.Constant(null, typeof(string)), Expression.Constant(type), Expression.Constant(null, typeof(int[])), rowExp, dataIndexExp, Expression.Constant(_commonUtils) })),
-                        Expression.IfThen(
-                            Expression.NotEqual(readExpValue, Expression.Constant(null)),
-                            Expression.Assign(retExp, Expression.Convert(readExpValue, type))
-                        )
-                    });
-                }
                 if (tb1.TypeLazy != null)
                     blockExp.Add(
                         Expression.IfThen(
@@ -640,6 +634,66 @@ namespace FreeSql.Internal.CommonProvider
                             Expression.Call(retExp, tb1.TypeLazySetOrm, ormExp)
                         )
                     ); //将 orm 传递给 lazy
+                if (otherindex == 0)
+                {
+                    //不读导航属性，优化单表读取性能
+                    blockExp.Clear();
+                    blockExp.AddRange(new Expression[]{
+                        Expression.Assign(retExp, type.InternalNewExpression()),
+                        Expression.Assign(dataIndexExp, Expression.Constant(0))
+                    });
+                    var colidx = 0;
+                    foreach (var col in tb.Table.Columns.Values)
+                    {
+                        var drvalType = col.Attribute.MapType.NullableTypeOrThis();
+                        var propGetSetMethod = tb.Table.Properties[col.CsName].GetSetMethod(true);
+                        if (col.CsType == col.Attribute.MapType &&
+                            _orm.Aop.AuditDataReaderHandler == null &&
+                            _dicMethodDataReaderGetValue.TryGetValue(col.Attribute.MapType.NullableTypeOrThis(), out var drGetValueMethod))
+                        {
+                            Expression drvalExp = Expression.Call(rowExp, drGetValueMethod, Expression.Constant(colidx));
+                            if (col.CsType.IsNullableType()) drvalExp = Expression.Convert(drvalExp, col.CsType);
+                            drvalExp = Expression.Condition(Expression.Call(rowExp, _MethodDataReaderIsDBNull, Expression.Constant(colidx)), Expression.Default(col.CsType), drvalExp);
+
+                            if (drvalType.IsArray || drvalType.IsEnum || Utils.dicExecuteArrayRowReadClassOrTuple.ContainsKey(drvalType))
+                            {
+                                var drvalExpCatch = Utils.GetDataReaderValueBlockExpression(
+                                    col.CsType,
+                                    Expression.Call(Utils.MethodDataReaderGetValue, new Expression[] { Expression.Constant(_commonUtils), rowExp, Expression.Constant(colidx) })
+                                );
+                                blockExp.Add(Expression.TryCatch(
+                                    Expression.Call(retExp, propGetSetMethod, drvalExp),
+                                    Expression.Catch(typeof(Exception),
+                                        Expression.Call(retExp, propGetSetMethod, Expression.Convert(drvalExpCatch, col.CsType))
+                                        //Expression.Throw(Expression.Constant(new Exception($"{_commonUtils.QuoteSqlName(col.Attribute.Name)} is NULL，除非设置特性 [Column(IsNullable = false)]")))
+                                    )));
+                            }
+                            else
+                            {
+                                blockExp.Add(Expression.TryCatch(
+                                    Expression.Call(retExp, propGetSetMethod, drvalExp),
+                                    Expression.Catch(typeof(Exception),
+                                        Expression.Call(retExp, propGetSetMethod, Expression.Default(col.CsType))
+                                        //Expression.Throw(Expression.Constant(new Exception($"{_commonUtils.QuoteSqlName(col.Attribute.Name)} is NULL，除非设置特性 [Column(IsNullable = false)]")))
+                                    )));
+                            }
+                        }
+                        else
+                        {
+                            if (drvalType.IsArray || drvalType.IsEnum || Utils.dicExecuteArrayRowReadClassOrTuple.ContainsKey(drvalType))
+                            {
+                                var drvalExp = Utils.GetDataReaderValueBlockExpression(
+                                    col.CsType,
+                                    Expression.Call(Utils.MethodDataReaderGetValue, new Expression[] { Expression.Constant(_commonUtils), rowExp, Expression.Constant(colidx) })
+                                );
+                                blockExp.Add(Expression.Call(retExp, propGetSetMethod, Expression.Convert(drvalExp, col.CsType)));
+                            }
+                        }
+                        colidx++;
+                    }
+                    if (tb1.TypeLazy != null)
+                        blockExp.Add(Expression.Call(retExp, tb1.TypeLazySetOrm, ormExp)); //将 orm 传递给 lazy
+                }
                 blockExp.AddRange(new Expression[] {
                     Expression.Return(returnTarget, retExp),
                     Expression.Label(returnTarget, Expression.Default(type))
@@ -651,6 +705,18 @@ namespace FreeSql.Internal.CommonProvider
                 };
             });
         }
+        static MethodInfo _MethodDataReaderIsDBNull = typeof(DbDataReader).GetMethod("IsDBNull", new Type[] { typeof(int) });
+        static Dictionary<Type, MethodInfo> _dicMethodDataReaderGetValue = new Dictionary<Type, MethodInfo>
+        {
+            [typeof(bool)] = typeof(DbDataReader).GetMethod("GetBoolean", new Type[] { typeof(int) }),
+            [typeof(int)] = typeof(DbDataReader).GetMethod("GetInt32", new Type[] { typeof(int) }),
+            [typeof(long)] = typeof(DbDataReader).GetMethod("GetInt64", new Type[] { typeof(int) }),
+            [typeof(double)] = typeof(DbDataReader).GetMethod("GetDouble", new Type[] { typeof(int) }),
+            [typeof(float)] = typeof(DbDataReader).GetMethod("GetFloat", new Type[] { typeof(int) }),
+            [typeof(decimal)] = typeof(DbDataReader).GetMethod("GetDecimal", new Type[] { typeof(int) }),
+            [typeof(DateTime)] = typeof(DbDataReader).GetMethod("GetDateTime", new Type[] { typeof(int) }),
+            [typeof(string)] = typeof(DbDataReader).GetMethod("GetString", new Type[] { typeof(int) }),
+        };
 
         protected double InternalAvg(Expression exp)
         {
