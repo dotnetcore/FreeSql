@@ -216,3 +216,7 @@ L*y 58元、花花 88元、麦兜很乖 50元、网络来者 2000元、John 99.9
 - [Alipay](https://www.cnblogs.com/FreeSql/gallery/image/338860.html)
 
 - [WeChat](https://www.cnblogs.com/FreeSql/gallery/image/338859.html)
+
+## 🗄 License (许可证)
+
+[MIT](LICENSE)

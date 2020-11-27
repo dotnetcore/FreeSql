@@ -1,6 +1,6 @@
 <h1 align="center"> 🦄 FreeSql </h1><div align="center">
 
-FreeSql is a powerful object-relational mapping (O/RM) component, supports .NET Core 2.1+, .NET Framework 4.0+, and Xamarin.
+FreeSql is a powerful O/RM component, supports .NET Core 2.1+, .NET Framework 4.0+, and Xamarin.
 
 [![nuget](https://img.shields.io/nuget/v/FreeSql.svg?style=flat-square)](https://www.nuget.org/packages/FreeSql) 
 [![stats](https://img.shields.io/nuget/dt/FreeSql.svg?style=flat-square)](https://www.nuget.org/stats/packages/FreeSql?groupby=Version) 
@@ -28,10 +28,10 @@ QQ Groups：4336577(full)、**8578575(available)**、**52508226(available)**
 
 | | |
 | - | - |
-| <img src="https://github.com/dotnetcore/FreeSql/raw/master/Examples/restful/001.png" width="30" height="46"/> | [《Introduction for Newcomer》](https://www.cnblogs.com/FreeSql/p/11531300.html) \| [《Select》](https://github.com/2881099/FreeSql/wiki/%e6%9f%a5%e8%af%a2) \| [《Update》](https://github.com/2881099/FreeSql/wiki/%e4%bf%ae%e6%94%b9) \| [《Insert》](https://github.com/2881099/FreeSql/wiki/%e6%b7%bb%e5%8a%a0) \| [《Delete》](https://github.com/2881099/FreeSql/wiki/%e5%88%a0%e9%99%a4) |
-| <img src="https://github.com/dotnetcore/FreeSql/raw/master/Examples/restful/002.png" width="30" height="46"/> | [《Expression Function》](https://github.com/2881099/FreeSql/wiki/%e8%a1%a8%e8%be%be%e5%bc%8f%e5%87%bd%e6%95%b0) \| [《CodeFirst》](https://github.com/2881099/FreeSql/wiki/CodeFirst) \| [《DbFirst》](https://github.com/2881099/FreeSql/wiki/DbFirst) \| [《Filters》](https://github.com/2881099/FreeSql/wiki/%e8%bf%87%e6%bb%a4%e5%99%a8) |
-| <img src="https://github.com/dotnetcore/FreeSql/raw/master/Examples/restful/003.png" width="30" height="46"/> | [《Repository》](https://github.com/2881099/FreeSql/wiki/Repository) \| [《UnitOfWork》](https://github.com/2881099/FreeSql/wiki/%e5%b7%a5%e4%bd%9c%e5%8d%95%e5%85%83) \| [《AOP》](https://github.com/2881099/FreeSql/wiki/AOP) \| [《DbContext》](https://github.com/2881099/FreeSql/wiki/DbContext) |
-| <img src="https://github.com/dotnetcore/FreeSql/raw/master/Examples/restful/004.png" width="30" height="46"/> | [《Read and Write Separation》](https://github.com/2881099/FreeSql/wiki/%e8%af%bb%e5%86%99%e5%88%86%e7%a6%bb) \| [《Splitting Table and Splitting Database》](https://github.com/2881099/FreeSql/wiki/%e5%88%86%e8%a1%a8%e5%88%86%e5%ba%93) \| [《Mysterious Technology》](https://github.com/2881099/FreeSql/wiki/%E9%AA%9A%E6%93%8D%E4%BD%9C) \| [《FAQ》](https://github.com/dotnetcore/FreeSql/wiki/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98)  \| [*Update Notes*](https://github.com/2881099/FreeSql/wiki/%e6%9b%b4%e6%96%b0%e6%97%a5%e5%bf%97) |
+| <img src="https://github.com/dotnetcore/FreeSql/raw/master/Examples/restful/001.png" width="30" height="46"/> | [Introduction](https://www.cnblogs.com/FreeSql/p/11531300.html) \| [Select](https://github.com/2881099/FreeSql/wiki/%e6%9f%a5%e8%af%a2) \| [Update](https://github.com/2881099/FreeSql/wiki/%e4%bf%ae%e6%94%b9) \| [Insert](https://github.com/2881099/FreeSql/wiki/%e6%b7%bb%e5%8a%a0) \| [Delete](https://github.com/2881099/FreeSql/wiki/%e5%88%a0%e9%99%a4) |
+| <img src="https://github.com/dotnetcore/FreeSql/raw/master/Examples/restful/002.png" width="30" height="46"/> | [Expression Functions](https://github.com/2881099/FreeSql/wiki/%e8%a1%a8%e8%be%be%e5%bc%8f%e5%87%bd%e6%95%b0) \| [CodeFirst](https://github.com/2881099/FreeSql/wiki/CodeFirst) \| [DbFirst](https://github.com/2881099/FreeSql/wiki/DbFirst) \| [Filters](https://github.com/2881099/FreeSql/wiki/%e8%bf%87%e6%bb%a4%e5%99%a8) |
+| <img src="https://github.com/dotnetcore/FreeSql/raw/master/Examples/restful/003.png" width="30" height="46"/> | [Repository](https://github.com/2881099/FreeSql/wiki/Repository) \| [UnitOfWork](https://github.com/2881099/FreeSql/wiki/%e5%b7%a5%e4%bd%9c%e5%8d%95%e5%85%83) \| [AOP](https://github.com/2881099/FreeSql/wiki/AOP) \| [DbContext](https://github.com/2881099/FreeSql/wiki/DbContext) |
+| <img src="https://github.com/dotnetcore/FreeSql/raw/master/Examples/restful/004.png" width="30" height="46"/> | [Read/Write Separation](https://github.com/2881099/FreeSql/wiki/%e8%af%bb%e5%86%99%e5%88%86%e7%a6%bb) \| [Splitting Table/Database](https://github.com/2881099/FreeSql/wiki/%e5%88%86%e8%a1%a8%e5%88%86%e5%ba%93) \| [Mysterious Technology](https://github.com/2881099/FreeSql/wiki/%E9%AA%9A%E6%93%8D%E4%BD%9C) \| [FAQ](https://github.com/dotnetcore/FreeSql/wiki/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98)  \| [*Update Notes*](https://github.com/2881099/FreeSql/wiki/%e6%9b%b4%e6%96%b0%e6%97%a5%e5%bf%97) |
 
 > FreeSql provides a variety of usage habits, and there is always one that suits you:
 
@@ -215,3 +215,7 @@ L*y 58元、花花 88元、麦兜很乖 50元、网络来者 2000元、John 99.9
 - [Alipay](https://www.cnblogs.com/FreeSql/gallery/image/338860.html)
 
 - [WeChat](https://www.cnblogs.com/FreeSql/gallery/image/338859.html)
+
+## 🗄 License
+
+[MIT](LICENSE)
