@@ -314,6 +314,17 @@ namespace FreeSql.Tests.Sqlite
             var itemstb = select.ToDataTable();
         }
 
+        [Fact]
+        public void UpdateSetFlag()
+        {
+            var sql1 = g.sqlite.Update<TableAllType>()
+                .Set(a => a.Enum2 | TableAllTypeEnumType2.f2)
+                .Where(a => a.Id == 10)
+                .ToSql();
+            Assert.Equal(@"UPDATE ""tb_alltype"" SET ""Enum2"" = (""Enum2"" | 1), ""DateTime"" = datetime(current_timestamp,'localtime'), ""DateTimeOffSet"" = datetime(current_timestamp,'localtime'), ""DateTimeNullable"" = datetime(current_timestamp,'localtime'), ""DateTimeOffSetNullable"" = datetime(current_timestamp,'localtime') 
+WHERE (""Id"" = 10)", sql1);
+        }
+
         [Table(Name = "tb_alltype")]
         class TableAllType
         {

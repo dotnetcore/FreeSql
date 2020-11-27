@@ -13,6 +13,88 @@ namespace FreeSql.Tests
 {
     public class UnitTest4
     {
+        [Fact]
+        public void SelectN_SubSelectN()
+        {
+            var fsql = g.sqlite;
+            var plansql1 = fsql.Select<ts_tplan, ts_tproductmode, ts_tflowversion, ts_tproflow>()
+                .LeftJoin((a, b, c, d) => a.pmcode == b.pmcode)
+                .LeftJoin((a, b, c, d) => b.pmcode == c.pmcode && c.isdefault == 1)
+                .InnerJoin((a, b, c, d) => c.fvcode == d.fvcode)
+                .ToSql((a, b, c, d) => new
+                {
+                    a.billcode,
+                    b.pmname,
+                    d.techcode
+                });
+
+            var plansql2 = fsql.Select<ts_tplan, ts_tproductmode, ts_tflowversion, ts_tproflow>()
+                .LeftJoin((a, b, c, d) => a.pmcode == b.pmcode)
+                .LeftJoin((a, b, c, d) => b.pmcode == c.pmcode && c.isdefault == 1)
+                .InnerJoin((a, b, c, d) => c.fvcode == d.fvcode)
+                .ToSql((a, b, c, d) => new
+                {
+                    a.billcode,
+                    b.pmname,
+                    d.techcode,
+                    planQty = fsql.Select<ts_tproduct_catering, ts_tproduct_catering_detail>()
+                        .InnerJoin((e, f) => e.code == f.pccode)
+                        .Where((e, f) => a.code == e.plancode)
+                        .Count()
+                });
+            Assert.Equal(@"SELECT a.""billcode"" as1, b.""pmname"" as2, d.""techcode"" as3, (SELECT count(1) 
+    FROM ""ts_tproduct_catering"" e 
+    INNER JOIN ""ts_tproduct_catering_detail"" f ON e.""code"" = f.""pccode"" 
+    WHERE (a.""code"" = e.""plancode"")) as4 
+FROM ""ts_tplan"" a 
+LEFT JOIN ""ts_tproductmode"" b ON a.""pmcode"" = b.""pmcode"" 
+LEFT JOIN ""ts_tflowversion"" c ON b.""pmcode"" = c.""pmcode"" AND c.""isdefault"" = 1 
+INNER JOIN ""ts_tproflow"" d ON c.""fvcode"" = d.""fvcode""", plansql2);
+        }
+        class ts_tplan
+        {
+            public string code { get; set; }
+            public string pmcode { get; set; }
+            public string billcode { get; set; }
+        }
+        class ts_tproductmode
+        {
+            public string pmcode { get; set; }
+            public string pmname { get; set; }
+        }
+        class ts_tflowversion
+        {
+            public string fvcode { get; set; }
+            public string pmcode { get; set; }
+            public int isdefault { get; set; }
+        }
+        class ts_tproflow
+        {
+            public string fvcode { get; set; }
+            public string techcode { get; set; }
+        }
+        class ts_tproduct_catering
+        {
+            public string code { get; set; }
+            public string plancode { get; set; }
+        }
+        class ts_tproduct_catering_detail
+        {
+            public string pccode { get; set; }
+        }
+        class ts_tmain_record
+        {
+            public string code { get; set; }
+            public string barcode { get; set; }
+        }
+        class ts_tprocess_record
+        {
+            public string mrcode { get; set; }
+            public string barcode { get; set; }
+            public string techcode { get; set; }
+            public int assemres { get; set; }
+        }
+
         class ts_lawsuit
         {
             public Guid id { get; set; }

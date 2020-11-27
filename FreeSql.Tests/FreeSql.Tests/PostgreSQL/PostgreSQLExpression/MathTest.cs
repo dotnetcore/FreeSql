@@ -78,79 +78,79 @@ namespace FreeSql.Tests.PostgreSQLExpression
         public void Exp()
         {
             var data = new List<object>();
-            data.Add(select.Where(a => Math.Exp(1) == a.Clicks + 1).ToList());
+            data.Add(select.Where(a => a.Clicks < 100).Where(a => Math.Exp(1) == a.Clicks + 1).Limit(10).ToList());
         }
         [Fact]
         public void Log()
         {
             var data = new List<object>();
-            //data.Add(select.Where(a => Math.Log(a.Clicks + 0.5) == a.Clicks + 1).ToList());
+            //data.Add(select.Where(a => a.Clicks < 100).Where(a => Math.Log(a.Clicks + 0.5) == a.Clicks + 1).Limit(10).ToList());
         }
         [Fact]
         public void Log10()
         {
             var data = new List<object>();
-            //data.Add(select.Where(a => Math.Log10(a.Clicks + 0.5) == a.Clicks + 1).ToList());
+            //data.Add(select.Where(a => a.Clicks < 100).Where(a => Math.Log10(a.Clicks + 0.5) == a.Clicks + 1).Limit(10).ToList());
         }
         [Fact]
         public void Pow()
         {
             var data = new List<object>();
-            data.Add(select.Where(a => Math.Pow(2, a.Clicks) == a.Clicks + 1).ToList());
+            data.Add(select.Where(a => a.Clicks < 100).Where(a => Math.Pow(2, a.Clicks) == a.Clicks + 1).Limit(10).ToList());
         }
         [Fact]
         public void Sqrt()
         {
             var data = new List<object>();
-            data.Add(select.Where(a => Math.Sqrt(Math.Pow(2, a.Clicks)) == a.Clicks + 1).ToList());
+            data.Add(select.Where(a => a.Clicks < 100).Where(a => Math.Sqrt(Math.Pow(2, a.Clicks)) == a.Clicks + 1).Limit(10).ToList());
         }
         [Fact]
         public void Cos()
         {
             var data = new List<object>();
-            data.Add(select.Where(a => Math.Cos(Math.Pow(2, a.Clicks)) == a.Clicks + 1).ToList());
+            data.Add(select.Where(a => a.Clicks < 100).Where(a => Math.Cos(Math.Pow(2, a.Clicks)) == a.Clicks + 1).Limit(10).ToList());
         }
         [Fact]
         public void Sin()
         {
             var data = new List<object>();
-            data.Add(select.Where(a => Math.Sin(Math.Pow(2, a.Clicks)) == a.Clicks + 1).ToList());
+            data.Add(select.Where(a => a.Clicks < 100).Where(a => Math.Sin(Math.Pow(2, a.Clicks)) == a.Clicks + 1).Limit(10).ToList());
         }
         [Fact]
         public void Tan()
         {
             var data = new List<object>();
-            data.Add(select.Where(a => Math.Tan(Math.Pow(2, a.Clicks)) == a.Clicks + 1).ToList());
+            data.Add(select.Where(a => a.Clicks < 100).Where(a => Math.Tan(Math.Pow(2, a.Clicks)) == a.Clicks + 1).Limit(10).ToList());
         }
         [Fact]
         public void Acos()
         {
             var data = new List<object>();
-            //data.Add(select.Where(a => Math.Acos(Math.Pow(2, a.Clicks)) == a.Clicks + 1).ToList());
+            //data.Add(select.Where(a => a.Clicks < 100).Where(a => Math.Acos(Math.Pow(2, a.Clicks)) == a.Clicks + 1).Limit(10).ToList());
         }
         [Fact]
         public void Asin()
         {
             var data = new List<object>();
-            //data.Add(select.Where(a => Math.Asin(Math.Pow(2, a.Clicks)) == a.Clicks + 1).ToList());
+            //data.Add(select.Where(a => a.Clicks < 100).Where(a => Math.Asin(Math.Pow(2, a.Clicks)) == a.Clicks + 1).Limit(10).ToList());
         }
         [Fact]
         public void Atan()
         {
             var data = new List<object>();
-            data.Add(select.Where(a => Math.Atan(Math.Pow(2, a.Clicks)) == a.Clicks + 1).ToList());
+            data.Add(select.Where(a => a.Clicks < 100).Where(a => Math.Atan(Math.Pow(2, a.Clicks)) == a.Clicks + 1).Limit(10).ToList());
         }
         [Fact]
         public void Atan2()
         {
             var data = new List<object>();
-            data.Add(select.Where(a => Math.Atan2(2, a.Clicks) == a.Clicks + 1).ToList());
+            data.Add(select.Where(a => a.Clicks < 100).Where(a => Math.Atan2(2, a.Clicks) == a.Clicks + 1).Limit(10).ToList());
         }
         [Fact]
         public void Truncate()
         {
             var data = new List<object>();
-            data.Add(select.Where(a => Math.Truncate(a.Clicks * 1.0 / 3) == a.Clicks + 1).ToList());
+            data.Add(select.Where(a => a.Clicks < 100).Where(a => Math.Truncate(a.Clicks * 1.0 / 3) == a.Clicks + 1).Limit(10).ToList());
         }
     }
 }

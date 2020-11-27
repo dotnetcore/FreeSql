@@ -1009,8 +1009,11 @@ namespace FreeSql.Internal
                                                 {
                                                     if (fsqltable1SetAlias == false)
                                                     {
-                                                        fsqltables[0].Alias = (argExp as LambdaExpression).Parameters.First().Name;
                                                         fsqltable1SetAlias = true;
+                                                        var argExpLambda = argExp as LambdaExpression;
+                                                        var fsqlTypeGenericArgs = fsqlType.GetGenericArguments();
+                                                        for (var gai = 0; gai < fsqlTypeGenericArgs.Length && gai < argExpLambda.Parameters.Count; gai++)
+                                                            fsqltables[gai].Alias = argExpLambda.Parameters[gai].Name;
                                                     }
                                                 }
                                                 args[a] = argExp ?? Expression.Lambda(arg3Exp).Compile().DynamicInvoke();

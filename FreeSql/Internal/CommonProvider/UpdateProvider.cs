@@ -457,6 +457,11 @@ namespace FreeSql.Internal.CommonProvider
         {
             var body = exp?.Body;
             var nodeType = body?.NodeType;
+            if (nodeType == ExpressionType.Convert)
+            {
+                body = (body as UnaryExpression)?.Operand;
+                nodeType = body?.NodeType;
+            }
             switch (nodeType)
             {
                 case ExpressionType.Equal:
@@ -499,7 +504,7 @@ namespace FreeSql.Internal.CommonProvider
             if (body is BinaryExpression == false &&
                 nodeType != ExpressionType.Call) return this;
             var cols = new List<SelectColumnInfo>();
-            var expt = _commonExpression.ExpressionWhereLambdaNoneForeignObject(null, _table, cols, exp, null, null);
+            var expt = _commonExpression.ExpressionWhereLambdaNoneForeignObject(null, _table, cols, body, null, null);
             if (cols.Any() == false) return this;
             foreach (var col in cols)
             {
