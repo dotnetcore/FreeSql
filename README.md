@@ -18,7 +18,7 @@ FreeSql is a powerful O/RM component, supports .NET Core 2.1+, .NET Framework 4.
 - 💻 Support DbFirst mode, support import entity class from database, or use [Entity Class Generation Tool](https://github.com/2881099/FreeSql/wiki/DbFirst) to generate entity class.
 - ⛳ Support advanced type mapping, such as PostgreSQL array type, etc.
 - ✒ Support large number of expression functions, and highly customizable analysis.
-- 🏁 Support Support one-to-many and many-to-many greedy loading of navigation properties, and lazy loading.
+- 🏁 Support one-to-many and many-to-many greedy loading of navigation properties, and lazy loading.
 - 📃 Support Read/Write separation, Splitting Table/Database, Filters, Optimistic Locking and pessimistic locking.
 - 🌳 Support MySql/SqlServer/PostgreSQL/Oracle/Sqlite/Firebird/达梦/人大金仓/神舟通用/翰高/Access, etc.
 
