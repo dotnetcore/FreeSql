@@ -43,7 +43,7 @@ QQ Groups：4336577(full)、**8578575(available)**、**52508226(available)**
 > Some open source projects that use FreeSql:
 
 - [Zhontai.net Admin Management System](https://github.com/zhontai/Admin.Core)
-- [A simple and practical CMS implemented by .NET Core](https://github.com/luoyunchong/lin-cms-dotnetcore)
+- [A simple CMS implemented by .NET5](https://github.com/luoyunchong/lin-cms-dotnetcore)
 
 <p align="center">
   <img src="https://github.com/dotnetcore/FreeSql/raw/master/functions11.png"/>
