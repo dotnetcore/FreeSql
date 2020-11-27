@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>aspnetcore_transaction</name>
+    </assembly>
+    <members>
+        <member name="P:aspnetcore_transaction.Controllers.Song.Id">
+            <summary>
+            自增
+            </summary>
+        </member>
+        <member name="T:FreeSql.TransactionalAttribute">
+            <summary>
+            使用事务执行，请查看 Program.cs 代码开启动态代理
+            </summary>
+        </member>
+    </members>
+</doc>

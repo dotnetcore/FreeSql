@@ -2,7 +2,8 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace efcore_to_freesql.Entitys {
+namespace efcore_to_freesql.Entitys
+{
 
     public class Topic2
     {

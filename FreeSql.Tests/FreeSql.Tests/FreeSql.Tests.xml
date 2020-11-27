@@ -1,0 +1,1123 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>FreeSql.Tests</name>
+    </assembly>
+    <members>
+        <member name="P:FreeSql.Tests.Firebird.FirebirdCodeFirstTest.AddUniquesInfo.id">
+            <summary>
+            编号
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._467.PayOrder.Money">
+            <summary>
+            收款金额
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._467.PayOrder.OrderTime">
+            <summary>
+            订单时间
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._467.PayOrder.PayOrderId">
+            <summary>
+            支付Id
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._507.BodyAuditEntity.ClassId">
+            <summary>
+            班期标识-BodyScheduleEntity班期主键
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._507.BodyAuditEntity.Name">
+            <summary>
+            姓名
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._507.BodyAuditEntity.Birthday">
+            <summary>
+            出生日期
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._507.BodyAuditEntity.IdCard">
+            <summary>
+            身份证
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._507.BodyAuditEntity.TelPhone">
+            <summary>
+            联系电话
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._507.BodyAuditEntity.SchoolName">
+            <summary>
+            学校名称
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._507.BodyAuditEntity.StuCCNL">
+            <summary>
+            初潮年龄
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._507.BodyAuditEntity.Address">
+            <summary>
+            联系地址
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._507.BodyAuditEntity.CheckUserId">
+            <summary>
+            审核人标识
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._507.BodyAuditEntity.CheckUserName">
+            <summary>
+            审核人
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._507.BodyAuditEntity.CheckTime">
+            <summary>
+            审核时间
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._507.BodyAuditEntity.RefuseReason">
+            <summary>
+            拒绝原因
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._507.BodyAuditEntity.CollectionDate">
+            <summary>
+            采集时间
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._507.BodyAuditEntity.AttachmentId">
+            <summary>
+            附件标识（多附件）
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._507.BodyAuditEntity.Sex">
+            <summary>
+            性别
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._507.BodyAuditEntity.ClassInfo">
+            <summary>
+            班期信息
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._519.ST_Stock519.StoreHouse">
+            <summary>
+            库位
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._519.ST_Stock519.Works">
+            <summary>
+            工厂
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._519.ST_Stock519.MaterialCode">
+            <summary>
+            物料号
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._519.ST_Stock519.BatchCode">
+            <summary>
+            条码号
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._519.ST_Stock519.CreatedTime">
+            <summary>
+            创建时间
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._519.ST_Stock519.CreatorID">
+            <summary>
+            创建人
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._519.ST_Stock519.CreatorName">
+            <summary>
+            创建人名称
+            </summary>
+        </member>
+        <member name="M:FreeSql.Tests.MySql.MySqlCodeFirstTest.Tb_alltype.Save">
+            <summary>
+            保存或添加，如果主键有值则尝试 Update，如果影响的行为 0 则尝试 Insert
+            </summary>
+        </member>
+        <member name="T:FreeSql.Tests.SqlServer.SqlServerCodeFirstTest.tbdot01">
+            <summary>
+            表中带点
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.SqlServer.SqlServerCodeFirstTest.tbdot01.id">
+            <summary>
+            主键
+            </summary>
+        </member>
+        <member name="T:FreeSql.Tests.UnitTest1.NewsArticle">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest1.NewsArticle.ArticleId">
+            <summary>
+            
+            </summary>        
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest1.NewsArticle.ArticleTitle">
+            <summary>
+            
+            </summary>        
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest1.NewsArticle.CategoryId">
+            <summary>
+            
+            </summary>        
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest1.NewsArticle.ChannelId">
+            <summary>
+            
+            </summary>        
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest1.NewsArticle.TypeId">
+            <summary>
+            类型
+            </summary>        
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest1.NewsArticle.Summary">
+            <summary>
+            内容简介
+            </summary>        
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest1.NewsArticle.Thumbnail">
+            <summary>
+            缩略图
+            </summary>        
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest1.NewsArticle.Hits">
+            <summary>
+            点击量
+            </summary>        
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest1.NewsArticle.IsDisplay">
+            <summary>
+            
+            </summary>        
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest1.NewsArticle.Status">
+            <summary>
+            
+            </summary>        
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest1.NewsArticle.CreateTime">
+            <summary>
+            
+            </summary>        
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest1.NewsArticle.ReleaseTime">
+            <summary>
+            
+            </summary>        
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest1.Templates.Id2">
+            <summary>
+            测试中文重命名id
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest1.Class1.name">
+            <summary>
+            姓名
+            </summary>
+        </member>
+        <member name="T:FreeSql.Tests.ExamPaper">
+            <summary>
+            试卷表
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.ExamPaper.AssessmentPlanId">
+            <summary>
+            考核计划ID
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.ExamPaper.TotalScore">
+            <summary>
+            总分
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModulePermission.Id">
+            <summary>
+            菜单权限ID
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModulePermission.SysModuleId">
+            <summary>
+            菜单主键ID
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModulePermission.SysModuleButtonId">
+            <summary>
+            按钮主键ID
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModulePermission.Status">
+            <summary>
+            菜单权限
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModule.Id">
+            <summary>
+            主键
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModule.ParentId">
+            <summary>
+            父级ID
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModule.Name">
+            <summary>
+            名称
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModule.Icon">
+            <summary>
+            图标
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModule.UrlAddress">
+            <summary>
+            链接地址
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModule.IsShow">
+            <summary>
+            是否公开
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModule.Sort">
+            <summary>
+            排序
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModule.Description">
+            <summary>
+            备注
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModule.CreateTime">
+            <summary>
+            创建日期
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModuleButton.Id">
+            <summary>
+            按钮主键
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModuleButton.Name">
+            <summary>
+            名称
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModuleButton.EventName">
+            <summary>
+            事件名称
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModuleButton.EnCode">
+            <summary>
+            编码
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModuleButton.Icon">
+            <summary>
+            图标
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModuleButton.Sort">
+            <summary>
+            排序
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.SysModuleButton.CreateTime">
+            <summary>
+            创建日期
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest2.Comment.Text">
+            <summary>
+            回复的文本内容
+            </summary>
+        </member>
+        <member name="M:FreeSql.Tests.DbFunc.SetDbParameter(System.String,System.Int32)">
+            <summary>
+            设置表达式中的 string 参数化长度，优化执行计划
+            </summary>
+            <param name="that"></param>
+            <param name="size"></param>
+            <returns></returns>
+        </member>
+        <member name="T:FreeSql.Tests.UnitTest3.BaseModel">
+            <summary>
+            父级
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest3.BaseModel.UserID">
+            <summary>
+            创建人
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest3.BaseModel.CreateTime">
+            <summary>
+            创建时间
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest3.BaseModel.Description">
+            <summary>
+            备注
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest3.Menu.Name">
+            <summary>
+            菜单名称
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest3.Menu.EnName">
+            <summary>
+            英文名称
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest3.Menu.Url">
+            <summary>
+            链接地址
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest3.Menu.ParentID">
+            <summary>
+            父级菜单 一级为 0
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest3.Menu.OperationIds">
+            <summary>
+            按钮操作 逗号分隔
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.UnitTest3.Menu.Parent">
+            <summary>
+            导航属性
+            </summary>
+        </member>
+        <member name="P:AME.Helpers.AppSettingII.SettingName">
+            <summary>
+            配置名称
+            </summary>
+        </member>
+        <member name="P:AME.Helpers.AppSettingII.FilePath">
+            <summary>
+            配置文件路径
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.filterStock">
+            <summary>
+            管理:商品库存过滤
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.filterStockVIP">
+            <summary>
+            销售:商品库存过滤
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.filterStatusVIP">
+            <summary>
+            销售:商品状态过滤
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.filterStatusVIPstr">
+            <summary>
+            销售:商品状态过滤字符串形式
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.categories2OrderBy">
+            <summary>
+            销售父类排序
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.categoriesOrderBy">
+            <summary>
+            销售类别排序
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.productOrderBy">
+            <summary>
+            销售商品排序
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.vipIndex">
+            <summary>
+            自定义首页
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.lockVIPDatas">
+            <summary>
+            用户资料锁定
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.disabledOrderSingleQuantity">
+            <summary>
+            禁止单位[件]
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.guestID">
+            <summary>
+            指定游客账号ID
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.email">
+            <summary>
+            默认注册email后缀
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.code">
+            <summary>
+            默认Code
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.pickupListOrderBy">
+            <summary>
+            配货单列表排序
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.pickupOrderBy">
+            <summary>
+            配货单据排序
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.useLiteCategoriesBar">
+            <summary>
+            使用紧凑型左类别条
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.appPhotoUrl">
+            <summary>
+            旧版app图片路径,用于导入
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.showAppPanel">
+            <summary>
+            显示APP面板
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.h5url">
+            <summary>
+            H5的Url
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.useMonitorCommand">
+            <summary>
+            监控输出SQL语句
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.enableBataFunction">
+            <summary>
+            打开内测功能
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.categoriesDisplayID">
+            <summary>
+            类别供应商显示序号
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.importOrderSkipQuantityZero">
+            <summary>
+            导入单据过滤数量0的行
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.importOrderSkipStockZero">
+            <summary>
+            导入单据过滤库存0的行
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.printA4_3_to_Ticket">
+            <summary>
+            打印通道3重定向到小票
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.taxDetalisCalculationAccuracyMethod2">
+            <summary>
+            精度计算:使用格式化2位后再累加
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.forceSyncCategoryIDSupplierID">
+            <summary>
+            测试功能:强制同步类别ID,供应商ID, 用于误删除商品表恢复数据
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.useORM">
+            <summary>
+            使用极速版
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.useMoreFacturaSeriel">
+            <summary>
+            使用多发票序列
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.useExCheckOutDSP">
+            <summary>
+            显示独立结账提示窗体
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.analysisOrderPostcode">
+            <summary>
+            结账前提示输入邮编
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.cellReadonlyToGreen">
+            <summary>
+            只读的单元格显示大字体
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.interfacePath">
+            <summary>
+            接口历史文件地址
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.customerStar">
+            <summary>
+            客户评级
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.customerDisableDel">
+            <summary>
+            客户供应商删除限制
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.autoSend">
+            <summary>
+            导出资料自动传送
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII._FTPs">
+            <summary>
+            FTP资料
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.expOrderWithName">
+            <summary>
+            导出单据使用名称替换条码
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.warmupDataConnection">
+            <summary>
+            预热数据连接
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.orderSearchIncName">
+            <summary>
+            销售单内部查找包含名称模糊查找
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.orderItemDuplicateReminder">
+            <summary>
+            销售单商品重复提示
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.vPfiltersVO">
+            <summary>
+            VP过滤VO单据
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.vPfiltersVOwithAmount">
+            <summary>
+            VP过滤VO单据并过滤金额
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.expOrderWithInvoiceID">
+            <summary>
+            导出单据附加发票号码到备注
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.vipUseWebAPI">
+            <summary>
+            优先用webapi或者本机连接
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.comparisonOrderCompleteReadonly">
+            <summary>
+            比对-销售数量完整后不能再更改
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.comparisonOrderSuperAlert">
+            <summary>
+            比对-超数量提醒
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.comparisonOnlyQtqCorrctCheck">
+            <summary>
+            比对-点货数量正确才打勾
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.comparisonPurchasePriceAddTax">
+            <summary>
+            比对-进价加税
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.comparisonUnitpriceAuto1">
+            <summary>
+            比对-售价为零,进价相同,自动使用系统售价
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.comparisonDefaultAdditionalQuantity">
+            <summary>
+            比对-数量默认为追加
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.salesCalcWeightTotal">
+            <summary>
+            销售-计算重量总计
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.testMonthlyOff">
+            <summary>
+            测试年结送优惠券/月结送优惠券,宽松条件方式
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.comparisonUseSuppliersSalesPriceFormula">
+            <summary>
+            比对-调用供应商的销售价公式
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.comparisonGrossFormulaII">
+            <summary>
+            比对-毛利率公式II => 毛利率 =（1－不含税进价/不含税售价）×100%
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.comparisonRounding">
+            <summary>
+            比对-四舍五入
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.doNotCloseListOfOrders">
+            <summary>
+            打开单据不关闭挂单列表
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.salesEnableLote">
+            <summary>
+            销售-启用Lote
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.orderSubtotalUseOldMethod">
+            <summary>
+            精度计算:发票含税单据合计直接使用商品合计,不反算税率合计
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.ticketWithJsonRemark">
+            <summary>
+            小票:打印Json格式收货地址
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.ticketClientDataII">
+            <summary>
+            小票:打印客户资料地址II
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.ticketWithRemark">
+            <summary>
+            小票:打印备注
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.ticketWithRemarkLite">
+            <summary>
+            小票:打印部分备注
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.a4WithJsonRemark">
+            <summary>
+            大票:打印Json格式收货地址
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.a4WithClientDataII">
+            <summary>
+            大票:打印收货地址(客户资料地址II)
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.autoAppCustomerNameTransToPinyin">
+            <summary>
+            小程序客户名称自动转拼音
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.autoAppSaveInfoII2miniOrders">
+            <summary>
+            更新客户资料到原始小程序单据
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.formMiniWebAPPWindowMax">
+            <summary>
+            小程序单据窗口最大化
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.formMiniWebAppAutoLoadOrderDetails">
+            <summary>
+            小程序单据自动调入详单
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.formUsingCouponAutoClose">
+            <summary>
+            使用会员卡优惠券窗口自动关闭
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.alertProductStatus">
+            <summary>
+            提醒非正常商品状态
+            </summary>
+        </member>
+        <member name="F:AME.Helpers.AppSettingII.newPrintModel">
+            <summary>
+            新打印模块
+            </summary>
+        </member>
+        <member name="T:SaleIDO.Entity.Storeage.AdjustPriceOrder">
+            <summary>
+            调价单
+            </summary>
+        </member>
+        <member name="T:SaleIDO.Entity.Storeage.AdjustPriceDetail">
+            <summary>
+            调价单产品明细
+            </summary>
+        </member>
+        <member name="P:SaleIDO.Entity.Storeage.AdjustPriceDetail.OldLabelPrice">
+            <summary>
+            原标签价
+            </summary>
+        </member>
+        <member name="P:SaleIDO.Entity.Storeage.AdjustPriceDetail.NewMarketCostPrice">
+            <summary>
+            新的市场成本价
+            </summary>
+        </member>
+        <member name="P:SaleIDO.Entity.Storeage.AdjustPriceDetail.NewLabelPriceRate">
+            <summary>
+            新的标签价倍率
+            </summary>
+        </member>
+        <member name="P:SaleIDO.Entity.Storeage.AdjustPriceDetail.NewLabelPrice">
+            <summary>
+            新标签价
+            </summary>
+        </member>
+        <member name="T:Zeus.Utility.Entity.EntityBase`1">
+            <summary>
+            实体类基类
+            </summary>
+        </member>
+        <member name="M:Zeus.Utility.Entity.EntityBase`1.#ctor">
+            <summary>
+            初始化一个<see cref="T:Zeus.Utility.Entity.EntityBase`1"/>类型的新实例
+            </summary>
+        </member>
+        <member name="P:Zeus.Utility.Entity.EntityBase`1.ID">
+            <summary>
+            获取或设置主键
+            </summary>
+        </member>
+        <member name="P:Zeus.Utility.Entity.EntityBase`1.CreatedAt">
+            <summary>
+            创建时间
+            </summary>
+        </member>
+        <member name="M:Zeus.Utility.Entity.EntityBase`1.Equals(System.Object)">
+            <summary>
+            判断两个实体是否是同一数据记录的实体
+            </summary>
+            <param name="obj">要比较的实体信息</param>
+            <returns></returns>
+        </member>
+        <member name="M:Zeus.Utility.Entity.EntityBase`1.IsKeyEqual(`0,`0)">
+            <summary>
+            实体Id是否相等
+            </summary>
+        </member>
+        <member name="M:Zeus.Utility.Entity.EntityBase`1.GetHashCode">
+            <summary>
+            用作特定类型的哈希函数
+            </summary>
+            <returns>
+            当前 <see cref="T:System.Object"/> 的哈希代码。<br/>
+            如果<c>Id</c>为<c>null</c>则返回0，
+            如果不为<c>null</c>则返回<c>Id</c>对应的哈希值
+            </returns>
+        </member>
+        <member name="T:Zeus.Utility.Entity.IEntity`1">
+            <summary>
+            数据模型接口
+            </summary>
+        </member>
+        <member name="P:Zeus.Utility.Entity.IEntity`1.ID">
+            <summary>
+            实体唯一标识，主键
+            </summary>
+        </member>
+        <member name="P:Zeus.Utility.Entity.IEntity`1.CreatedAt">
+            <summary>
+            创建时间
+            </summary>
+        </member>
+        <member name="T:Zeus.Domain.Enum.IdentityType">
+            <summary>
+            登录类型
+            </summary>
+        </member>
+        <member name="T:Zeus.SystemUser">
+            <summary>
+            用户表
+            </summary>
+        </member>
+        <member name="P:Zeus.SystemUser.DisplayName">
+            <summary>
+            显示名称
+            </summary>
+        </member>
+        <member name="P:Zeus.SystemUser.RealName">
+            <summary>
+            真实名称
+            </summary>
+        </member>
+        <member name="P:Zeus.SystemUser.Gender">
+            <summary>
+            性别
+            </summary>
+        </member>
+        <member name="P:Zeus.SystemUser.Birthday">
+            <summary>
+            生日
+            </summary>
+        </member>
+        <member name="P:Zeus.SystemUser.AvaterURL">
+            <summary>
+            头像URL地址
+            </summary>
+        </member>
+        <member name="P:Zeus.SystemUser.Remark">
+            <summary>
+            备注
+            </summary>
+        </member>
+        <member name="P:Zeus.SystemUser.IsEnabled">
+            <summary>
+            启用标志
+            </summary>
+        </member>
+        <member name="P:Zeus.SystemUser.IsDeleted">
+            <summary>
+            删除标志
+            </summary>
+        </member>
+        <member name="P:Zeus.SystemUser.SystemUserAuthentication_List">
+            <summary>
+            所属用户认证记录
+            </summary>
+        </member>
+        <member name="T:Zeus.SystemUserAuthentication">
+            <summary>
+            用户认证表
+            </summary>
+        </member>
+        <member name="P:Zeus.SystemUserAuthentication.SystemUserID">
+            <summary>
+            用户表ID
+            </summary>
+        </member>
+        <member name="P:Zeus.SystemUserAuthentication.SystemUser">
+            <summary>
+            用户
+            </summary>
+        </member>
+        <member name="P:Zeus.SystemUserAuthentication.IdentityType">
+            <summary>
+            登录类型
+            </summary>
+        </member>
+        <member name="P:Zeus.SystemUserAuthentication.Identifier">
+            <summary>
+            登录标识
+            </summary>
+        </member>
+        <member name="P:Zeus.SystemUserAuthentication.Credential">
+            <summary>
+            登录凭证
+            </summary>
+        </member>
+        <member name="P:Zeus.SystemUserAuthentication.IsVerified">
+            <summary>
+            验证标志
+            </summary>
+        </member>
+        <member name="T:kwlib.departments">
+            <summary>
+            部门表  
+            </summary>    
+        </member>
+        <member name="P:kwlib.departments.deptid">
+            <summary>
+            部门ID  
+            </summary>
+        </member>
+        <member name="P:kwlib.departments.supdeptid">
+            <summary>
+            上级部门ID  
+            </summary>
+        </member>
+        <member name="P:kwlib.departments.pDepartments">
+            <summary>
+            上级部门对象
+            </summary>
+        </member>
+        <member name="P:kwlib.departments.managerid">
+            <summary>
+            部门主管ID  
+            </summary>
+        </member>
+        <member name="P:kwlib.departments.manager">
+            <summary>
+            部门主管对象
+            </summary>
+        </member>
+        <member name="P:kwlib.departments.deptcode">
+            <summary>
+            部门代码
+            </summary>
+        </member>
+        <member name="P:kwlib.departments.deptname">
+            <summary>
+            部门名称  
+            </summary>
+        </member>
+        <member name="T:kwlib.userinfo">
+            <summary>
+            员工表 
+            </summary>    
+        </member>
+        <member name="P:kwlib.userinfo.userid">
+            <summary>
+            员工ID  
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.badgenumber">
+            <summary>
+            考勤号码  
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.ssn">
+            <summary>
+            编号
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.IDCardNo">
+            <summary>
+            身份证  
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.name">
+            <summary>
+            姓名  
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.title">
+            <summary>
+            职务
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.birthday">
+            <summary>
+            生日
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.hiredday">
+            <summary>
+            入职时间  
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.hetongdate">
+            <summary>
+            合同日期  
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.street">
+            <summary>
+            家庭地址
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.zip">
+            <summary>
+            邮编  
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.ophone">
+            <summary>
+            办公电话  
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.pager">
+            <summary>
+            行动电话
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.fphone">
+            <summary>
+            家庭电话  
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.CardNo">
+            <summary>
+            卡号  
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.email">
+            <summary>
+            邮件地址  
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.idcardvalidtime">
+            <summary>
+            身份证有效期
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.homeaddress">
+            <summary>
+            籍贯  
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.minzu">
+            <summary>
+            民族
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.leavedate">
+            <summary>
+            离职日期  
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.loginpass">
+            <summary>
+            登录密码  
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.picurl">
+            <summary>
+            相片地址  
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.managerid">
+            <summary>
+            上级主管ID  
+            </summary>
+        </member>
+        <member name="P:kwlib.userinfo.pManager">
+            <summary>
+            上级主管对象
+            </summary>
+        </member>
+    </members>
+</doc>

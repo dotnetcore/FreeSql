@@ -1,0 +1,41 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;net45;net40</TargetFrameworks>
+    <Version>2.0.101</Version>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Authors>FreeSql;ncc;YeXiangQin</Authors>
+    <Description>FreeSql 扩展包，实现 linq queryable 和 linq to sql 语法进行开发.</Description>
+    <PackageProjectUrl>https://github.com/2881099/FreeSql</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/2881099/FreeSql</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>FreeSql;ORM</PackageTags>
+    <PackageId>$(AssemblyName)</PackageId>
+    <PackageIcon>logo.png</PackageIcon>
+    <Title>$(AssemblyName)</Title>
+    <IsPackable>true</IsPackable>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>key.snk</AssemblyOriginatorKeyFile>
+    <DelaySign>false</DelaySign>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="../../logo.png" Pack="true" PackagePath="\" />
+  </ItemGroup>
+  
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.0|AnyCPU'">
+    <DocumentationFile>FreeSql.Extensions.Linq.xml</DocumentationFile>
+    <WarningLevel>3</WarningLevel>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net40'">
+    <DefineConstants>net40</DefineConstants>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />
+  </ItemGroup>
+
+</Project>

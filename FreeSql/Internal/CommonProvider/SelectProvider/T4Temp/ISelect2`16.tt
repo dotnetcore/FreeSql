@@ -1,0 +1,163 @@
+﻿<#@ template language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+
+<#
+    if (1 == 1)
+    {
+#>
+using FreeSql.Internal.Model;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Linq.Expressions;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace FreeSql
+{
+
+	<#
+    var Str = "";
+    var whereStr = "";
+    var ISelectGroupingAggregate = new List<string>();
+    var WithSql=new List<string>();
+    for (int i = 1; i < 17; i++)
+    {
+        Str += "T" + i + ",";
+        var NewStr = Str.Substring(0, Str.Length - 1);
+#>
+
+        <#
+        if (i > 1)
+        {
+            whereStr += $"where T{i} : class ";
+        } #>
+
+        <#
+        {
+            ISelectGroupingAggregate.Add($"ISelectGroupingAggregate<T{i}>");
+            WithSql.Add($"string sqlT{i}");
+        } #>
+
+        <#
+        if (i == 1) continue; #>
+
+public interface ISelect<<#=NewStr #>> : ISelect0<ISelect<<#=NewStr #>>, T1> <#=whereStr #>
+    {
+
+#if net40
+#else
+        Task<bool> AnyAsync(Expression<Func<<#=NewStr #>, bool>> exp, CancellationToken cancellationToken = default);
+        Task<int> InsertIntoAsync<TTargetEntity>(string tableName, Expression<Func<<#=NewStr #>, TTargetEntity>> select, CancellationToken cancellationToken = default) where TTargetEntity : class;
+        Task<DataTable> ToDataTableAsync<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select, CancellationToken cancellationToken = default);
+        Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select, CancellationToken cancellationToken = default);
+        Task<List<TDto>> ToListAsync<TDto>(CancellationToken cancellationToken = default);
+
+        Task<TReturn> ToOneAsync<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select, CancellationToken cancellationToken = default);
+        Task<TReturn> FirstAsync<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select, CancellationToken cancellationToken = default);
+        Task<TDto> FirstAsync<TDto>(CancellationToken cancellationToken = default);
+
+        Task<TReturn> ToAggregateAsync<TReturn>(Expression<Func<<#=string.Join(",",ISelectGroupingAggregate)#>, TReturn>> select, CancellationToken cancellationToken = default);
+        Task<decimal> SumAsync<TMember>(Expression<Func<<#=NewStr #>, TMember>> column, CancellationToken cancellationToken = default);
+        Task<TMember> MinAsync<TMember>(Expression<Func<<#=NewStr #>, TMember>> column, CancellationToken cancellationToken = default);
+        Task<TMember> MaxAsync<TMember>(Expression<Func<<#=NewStr #>, TMember>> column, CancellationToken cancellationToken = default);
+        Task<double> AvgAsync<TMember>(Expression<Func<<#=NewStr #>, TMember>> column, CancellationToken cancellationToken = default);
+
+        #region HzyTuple 元组
+
+        Task<bool> AnyAsync(Expression<Func<HzyTuple<<#=NewStr #>>, bool>> exp, CancellationToken cancellationToken = default);
+        Task<int> InsertIntoAsync<TTargetEntity>(string tableName, Expression<Func<HzyTuple<<#=NewStr #>>, TTargetEntity>> select, CancellationToken cancellationToken = default) where TTargetEntity : class;
+        Task<DataTable> ToDataTableAsync<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select, CancellationToken cancellationToken = default);
+        Task<List<TReturn>> ToListAsync<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select, CancellationToken cancellationToken = default);
+
+        Task<TReturn> ToOneAsync<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select, CancellationToken cancellationToken = default);
+        Task<TReturn> FirstAsync<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select, CancellationToken cancellationToken = default);
+
+        Task<decimal> SumAsync<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column, CancellationToken cancellationToken = default);
+        Task<TMember> MinAsync<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column, CancellationToken cancellationToken = default);
+        Task<TMember> MaxAsync<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column, CancellationToken cancellationToken = default);
+        Task<double> AvgAsync<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column, CancellationToken cancellationToken = default);
+
+        #endregion
+
+#endif
+
+        bool Any(Expression<Func<<#=NewStr #>, bool>> exp);
+        int InsertInto<TTargetEntity>(string tableName, Expression<Func<<#=NewStr #>, TTargetEntity>> select) where TTargetEntity : class;
+        DataTable ToDataTable<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select);
+        List<TReturn> ToList<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select); 
+        List<TDto> ToList<TDto>();
+        void ToChunk<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select, int size, Action<FetchCallbackArgs<List<TReturn>>> done);
+
+        TReturn ToOne<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select);
+        TReturn First<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select);
+        TDto First<TDto>();
+
+        string ToSql<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select, FieldAliasOptions fieldAlias = FieldAliasOptions.AsIndex);
+        TReturn ToAggregate<TReturn>(Expression<Func<<#=string.Join(",",ISelectGroupingAggregate)#>, TReturn>> select);
+        ISelect<<#=NewStr #>> Aggregate<TReturn>(Expression<Func<<#=string.Join(",",ISelectGroupingAggregate)#>, TReturn>> select, out TReturn result);
+        decimal Sum<TMember>(Expression<Func<<#=NewStr #>, TMember>> column);
+        TMember Min<TMember>(Expression<Func<<#=NewStr #>, TMember>> column);
+        TMember Max<TMember>(Expression<Func<<#=NewStr #>, TMember>> column);
+        double Avg<TMember>(Expression<Func<<#=NewStr #>, TMember>> column);
+
+        ISelect<<#=NewStr #>> LeftJoin(Expression<Func<<#=NewStr #>, bool>> exp);
+        ISelect<<#=NewStr #>> InnerJoin(Expression<Func<<#=NewStr #>, bool>> exp);
+        ISelect<<#=NewStr #>> RightJoin(Expression<Func<<#=NewStr #>, bool>> exp);
+
+        ISelect<<#=NewStr #>> Where(Expression<Func<<#=NewStr #>, bool>> exp);
+        ISelect<<#=NewStr #>> WhereIf(bool condition, Expression<Func<<#=NewStr #>, bool>> exp);
+
+        ISelectGrouping<TKey, NativeTuple<<#=NewStr #>>> GroupBy<TKey>(Expression<Func<<#=NewStr #>, TKey>> exp);
+
+        ISelect<<#=NewStr #>> OrderBy<TMember>(Expression<Func<<#=NewStr #>, TMember>> column);
+        ISelect<<#=NewStr #>> OrderByDescending<TMember>(Expression<Func<<#=NewStr #>, TMember>> column);
+        ISelect<<#=NewStr #>> OrderByIf<TMember>(bool condition, Expression<Func<<#=NewStr #>, TMember>> column, bool descending = false);
+
+        ISelect<<#=NewStr #>> WithSql(<#=string.Join(",",WithSql)#>, object parms = null);
+
+        #region HzyTuple 元组
+
+        bool Any(Expression<Func<HzyTuple<<#=NewStr #>>, bool>> exp);
+        int InsertInto<TTargetEntity>(string tableName, Expression<Func<HzyTuple<<#=NewStr #>>, TTargetEntity>> select) where TTargetEntity : class;
+        DataTable ToDataTable<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select);
+        List<TReturn> ToList<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select); 
+        void ToChunk<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select, int size, Action<FetchCallbackArgs<List<TReturn>>> done);
+
+        TReturn ToOne<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select);
+        TReturn First<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select);
+
+        string ToSql<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select, FieldAliasOptions fieldAlias = FieldAliasOptions.AsIndex);
+        decimal Sum<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column);
+        TMember Min<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column);
+        TMember Max<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column);
+        double Avg<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column);
+
+        ISelect<<#=NewStr #>> LeftJoin(Expression<Func<HzyTuple<<#=NewStr #>>, bool>> exp);
+        ISelect<<#=NewStr #>> InnerJoin(Expression<Func<HzyTuple<<#=NewStr #>>, bool>> exp);
+        ISelect<<#=NewStr #>> RightJoin(Expression<Func<HzyTuple<<#=NewStr #>>, bool>> exp);
+
+        ISelect<<#=NewStr #>> Where(Expression<Func<HzyTuple<<#=NewStr #>>, bool>> exp);
+        ISelect<<#=NewStr #>> WhereIf(bool condition, Expression<Func<HzyTuple<<#=NewStr #>>, bool>> exp);
+
+        ISelectGrouping<TKey, NativeTuple<<#=NewStr #>>> GroupBy<TKey>(Expression<Func<HzyTuple<<#=NewStr #>>, TKey>> exp);
+
+        ISelect<<#=NewStr #>> OrderBy<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column);
+        ISelect<<#=NewStr #>> OrderByDescending<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column);
+        ISelect<<#=NewStr #>> OrderByIf<TMember>(bool condition, Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column, bool descending = false);
+
+        #endregion
+
+    }
+
+	<#
+    } #>
+}
+
+
+<#
+    } #>

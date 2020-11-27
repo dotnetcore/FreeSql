@@ -1,0 +1,519 @@
+﻿<#@ template language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+
+<#
+    if (1 == 2)
+    {
+#>
+using FreeSql.Internal.Model;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace FreeSql.Internal.CommonProvider
+{
+<#
+    var Str = "";
+    var whereStr = "";
+    var ISelectGroupingAggregate = new List<string>();
+    var WithSql = new List<string>();
+
+    List<string> SyncStructure = new List<string>();
+    StringBuilder _tables = new StringBuilder();
+    StringBuilder AsTable = new StringBuilder();
+    var GetDbParamtersByObject = new List<string>();
+    var GetToListDtoSelector = new List<string>();
+    string[] abc = new[]
+    {
+        "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v",
+        "w",
+        "x", "y", "z"
+    };
+    for (int i = 1; i < 17; i++)
+    {
+        Str += "T" + i + ",";
+        var NewStr = Str.Substring(0, Str.Length - 1);
+#><#
+        if (i > 1)
+        {
+            whereStr += $"where T{i} : class ";
+            SyncStructure.Add($"typeof(T{i})");
+            _tables.Append("_tables.Add(new SelectTableInfo { Table = _commonUtils.GetTableByEntity(typeof(T" + i +
+                           ")), Alias = $\"SP10" + abc[i - 1] + "\", On = null, Type = SelectTableInfoType.From });\r\n");
+            
+        } #><#
+        {
+            ISelectGroupingAggregate.Add($"ISelectGroupingAggregate<T{i}>");
+            WithSql.Add($"string sqlT{i}");
+            GetToListDtoSelector.Add("Expression.Parameter(typeof(T" + i + "), \"" + (abc[i - 1]) + "\")");
+            
+            AsTable.Append("if (type == _tables[" + (i - 1) + "].Table?.Type && string.IsNullOrEmpty(sqlT" + i +
+                           ") == false) return $\"({sqlT" + i + "})\";\r\n");
+            GetDbParamtersByObject.Add("{sqlT" + i + "}");
+            
+        } #><#
+        if (i == 1) continue; #>
+
+    public abstract class Select<#=i #>Provider<<#=NewStr #>> : Select0Provider<ISelect<<#=NewStr #>>, T1>, ISelect<<#=NewStr #>>
+            <#=whereStr #>
+    {
+
+        public Select<#=i #>Provider(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere) : base(orm, commonUtils, commonExpression, dywhere)
+        {
+            if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(<#=string.Join(",", SyncStructure) #>);
+            <#=_tables.ToString() #>
+        }
+
+        ISelect<<#=NewStr #>> ISelect<<#=NewStr #>>.WithSql(<#=string.Join(",", WithSql) #>, object parms)
+        {
+            this.AsTable((type, old) =>
+            {
+                <#=AsTable.ToString() #>
+                return old;
+            });
+            if (parms != null) _params.AddRange(_commonUtils.GetDbParamtersByObject($"<#=string.Join(";\\r\\n", GetDbParamtersByObject) #>", parms));
+            return this;
+        }
+
+        double ISelect<<#=NewStr #>>.Avg<TMember>(Expression<Func<<#=NewStr #>, TMember>> column)
+        {
+            if (column == null) return default(double);
+            for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
+            return this.InternalAvg(column?.Body);
+        }
+
+        ISelectGrouping<TKey, NativeTuple<<#=NewStr #>>> ISelect<<#=NewStr #>>.GroupBy<TKey>(Expression<Func<<#=NewStr #>, TKey>> exp)
+        {
+            if (exp == null) return this.InternalGroupBy<TKey, NativeTuple<<#=NewStr #>>>(exp?.Body);
+            for (var a = 0; a < exp.Parameters.Count; a++) _tables[a].Parameter = exp.Parameters[a];
+            return this.InternalGroupBy<TKey, NativeTuple<<#=NewStr #>>>(exp?.Body);
+        }
+
+        TMember ISelect<<#=NewStr #>>.Max<TMember>(Expression<Func<<#=NewStr #>, TMember>> column)
+        {
+            if (column == null) return default(TMember);
+            for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
+            return this.InternalMax<TMember>(column?.Body);
+        }
+
+        TMember ISelect<<#=NewStr #>>.Min<TMember>(Expression<Func<<#=NewStr #>, TMember>> column)
+        {
+            if (column == null) return default(TMember);
+            for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
+            return this.InternalMin<TMember>(column?.Body);
+        }
+
+        ISelect<<#=NewStr #>> ISelect<<#=NewStr #>>.OrderBy<TMember>(Expression<Func<<#=NewStr #>, TMember>> column)
+        {
+            if (column == null) this.InternalOrderBy(column?.Body);
+            for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
+            return this.InternalOrderBy(column?.Body);
+        }
+
+        ISelect<<#=NewStr #>> ISelect<<#=NewStr #>>.OrderByDescending<TMember>(Expression<Func<<#=NewStr #>, TMember>> column)
+        {
+            if (column == null) this.InternalOrderBy(column?.Body);
+            for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
+            return this.InternalOrderByDescending(column?.Body);
+        }
+
+        ISelect<<#=NewStr #>> ISelect<<#=NewStr #>>.OrderByIf<TMember>(bool condition, Expression<Func<<#=NewStr #>, TMember>> column, bool descending)
+        {
+            if (condition == false || column == null) this.InternalOrderBy(column?.Body);
+            for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
+            return descending ? this.InternalOrderByDescending(column?.Body) : this.InternalOrderBy(column?.Body);
+        }
+
+        decimal ISelect<<#=NewStr #>>.Sum<TMember>(Expression<Func<<#=NewStr #>, TMember>> column)
+        {
+            if (column == null) this.InternalOrderBy(column?.Body);
+            for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
+            return this.InternalSum(column?.Body);
+        }
+
+        TReturn ISelect<<#=NewStr #>>.ToAggregate<TReturn>(Expression<Func<<#=string.Join(",", ISelectGroupingAggregate) #>, TReturn>> select)
+        {
+            if (select == null) return default(TReturn);
+            for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
+            return this.InternalToAggregate<TReturn>(select?.Body);
+        }
+        ISelect<<#=NewStr #>> ISelect<<#=NewStr #>>.Aggregate<TReturn>(Expression<Func<<#=string.Join(",", ISelectGroupingAggregate) #>, TReturn>> select, out TReturn result)
+        {
+            result = (this as ISelect<<#=NewStr #>>).ToAggregate(select);
+            return this;
+        }
+
+        List<TReturn> ISelect<<#=NewStr #>>.ToList<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select)
+        {
+            if (select == null) return this.InternalToList<TReturn>(select?.Body);
+            for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
+            return this.InternalToList<TReturn>(select?.Body);
+        }
+
+        List<TDto> ISelect<<#=NewStr #>>.ToList<TDto>() => (this as ISelect<<#=NewStr #>>).ToList(GetToListDtoSelector<TDto>());
+        Expression<Func<<#=NewStr #>, TDto>> GetToListDtoSelector<TDto>()
+        {
+            return Expression.Lambda<Func<<#=NewStr #>, TDto>>(
+                typeof(TDto).InternalNewExpression(),
+                _tables[0].Parameter ?? <#=string.Join(",", GetToListDtoSelector) #>);
+        }
+
+        public void ToChunk<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select, int size, Action<FetchCallbackArgs<List<TReturn>>> done)
+        {
+            if (select == null || done == null) return;
+            for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
+            this.InternalToChunk<TReturn>(select.Body, size, done);
+        }
+
+        DataTable ISelect<<#=NewStr #>>.ToDataTable<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select)
+        {
+            if (select == null) return this.InternalToDataTable(select?.Body);
+            for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
+            return this.InternalToDataTable(select?.Body);
+        }
+
+        int ISelect<<#=NewStr #>>.InsertInto<TTargetEntity>(string tableName, Expression<Func<<#=NewStr #>, TTargetEntity>> select)
+        {
+            if (select == null) return this.InternalInsertInto<TTargetEntity>(tableName, select);
+            for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
+            return this.InternalInsertInto<TTargetEntity>(tableName, select?.Body);
+        }
+
+        string ISelect<<#=NewStr #>>.ToSql<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select, FieldAliasOptions fieldAlias)
+        {
+            if (select == null) return this.InternalToSql<TReturn>(select?.Body, fieldAlias);
+            for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
+            return this.InternalToSql<TReturn>(select?.Body, fieldAlias);
+        }
+
+        ISelect<<#=NewStr #>> ISelect<<#=NewStr #>>.LeftJoin(Expression<Func<<#=NewStr #>, bool>> exp)
+        {
+            if (exp == null) return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
+            for (var a = 0; a < exp.Parameters.Count; a++) _tables[a].Parameter = exp.Parameters[a];
+            return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
+        }
+
+        ISelect<<#=NewStr #>> ISelect<<#=NewStr #>>.InnerJoin(Expression<Func<<#=NewStr #>, bool>> exp)
+        {
+            if (exp == null) return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
+            for (var a = 0; a < exp.Parameters.Count; a++) _tables[a].Parameter = exp.Parameters[a];
+            return this.InternalJoin(exp?.Body, SelectTableInfoType.InnerJoin);
+        }
+
+        ISelect<<#=NewStr #>> ISelect<<#=NewStr #>>.RightJoin(Expression<Func<<#=NewStr #>, bool>> exp)
+        {
+            if (exp == null) return this.InternalJoin(exp?.Body, SelectTableInfoType.LeftJoin);
+            for (var a = 0; a < exp.Parameters.Count; a++) _tables[a].Parameter = exp.Parameters[a];
+            return this.InternalJoin(exp?.Body, SelectTableInfoType.RightJoin);
+        }
+
+        ISelect<<#=NewStr #>> ISelect<<#=NewStr #>>.Where(Expression<Func<<#=NewStr #>, bool>> exp)
+        {
+            if (exp == null) return this.Where(null);
+            for (var a = 0; a < exp.Parameters.Count; a++) _tables[a].Parameter = exp.Parameters[a];
+            return this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp?.Body, null, _whereGlobalFilter, _params));
+        }
+
+        ISelect<<#=NewStr #>> ISelect<<#=NewStr #>>.WhereIf(bool condition, Expression<Func<<#=NewStr #>, bool>> exp)
+        {
+            if (condition == false || exp == null) return this;
+            for (var a = 0; a < exp.Parameters.Count; a++) _tables[a].Parameter = exp.Parameters[a];
+            return this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp?.Body, null, _whereGlobalFilter, _params));
+        }
+
+        bool ISelect<<#=NewStr #>>.Any(Expression<Func<<#=NewStr #>, bool>> exp)
+        {
+            if (exp == null) return this.Any();
+            for (var a = 0; a < exp.Parameters.Count; a++) _tables[a].Parameter = exp.Parameters[a];
+            var oldwhere = _where.ToString();
+            var ret = this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp?.Body, null, _whereGlobalFilter, _params)).Any();
+            _where.Clear().Append(oldwhere);
+            return ret;
+        }
+
+        TReturn ISelect<<#=NewStr #>>.ToOne<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select) => (this as ISelect<<#=NewStr #>>).Limit(1).ToList(select).FirstOrDefault();
+        TReturn ISelect<<#=NewStr #>>.First<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select) => (this as ISelect<<#=NewStr #>>).Limit(1).ToList(select).FirstOrDefault();
+        TDto ISelect<<#=NewStr #>>.First<TDto>() => (this as ISelect<<#=NewStr #>>).Limit(1).ToList<TDto>().FirstOrDefault();
+
+
+
+
+
+        #region HzyTuple 元组
+
+        double ISelect<<#=NewStr #>>.Avg<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(column, _tables);
+            return (this as ISelect<<#=NewStr #>>).Avg((Expression<Func<<#=NewStr #>, TMember>>)expModify);
+        }
+
+        ISelectGrouping<TKey, NativeTuple<<#=NewStr #>>> ISelect<<#=NewStr #>>.GroupBy<TKey>(Expression<Func<HzyTuple<<#=NewStr #>>, TKey>> exp)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
+            return (this as ISelect<<#=NewStr #>>).GroupBy((Expression<Func<<#=NewStr #>, TKey>>)expModify);
+        }
+
+        TMember ISelect<<#=NewStr #>>.Max<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(column, _tables);
+            return (this as ISelect<<#=NewStr #>>).Max((Expression<Func<<#=NewStr #>, TMember>>)expModify);
+        }
+
+        TMember ISelect<<#=NewStr #>>.Min<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(column, _tables);
+            return (this as ISelect<<#=NewStr #>>).Min((Expression<Func<<#=NewStr #>, TMember>>)expModify);
+        }
+
+        ISelect<<#=NewStr #>> ISelect<<#=NewStr #>>.OrderBy<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(column, _tables);
+            return (this as ISelect<<#=NewStr #>>).OrderBy((Expression<Func<<#=NewStr #>, TMember>>)expModify);
+        }
+
+        ISelect<<#=NewStr #>> ISelect<<#=NewStr #>>.OrderByDescending<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(column, _tables);
+            return (this as ISelect<<#=NewStr #>>).OrderByDescending((Expression<Func<<#=NewStr #>, TMember>>)expModify);
+        }
+
+        ISelect<<#=NewStr #>> ISelect<<#=NewStr #>>.OrderByIf<TMember>(bool condition, Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column, bool descending)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(column, _tables);
+            return (this as ISelect<<#=NewStr #>>).OrderByIf(condition,(Expression<Func<<#=NewStr #>, TMember>>)expModify,descending);
+        }
+
+        decimal ISelect<<#=NewStr #>>.Sum<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(column, _tables);
+            return (this as ISelect<<#=NewStr #>>).Sum((Expression<Func<<#=NewStr #>, TMember>>)expModify);
+        }
+
+        List<TReturn> ISelect<<#=NewStr #>>.ToList<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
+            return (this as ISelect<<#=NewStr #>>).ToList((Expression<Func<<#=NewStr #>, TReturn>>)expModify);
+        }
+
+        public void ToChunk<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select, int size, Action<FetchCallbackArgs<List<TReturn>>> done)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
+            (this as ISelect<<#=NewStr #>>).ToChunk((Expression<Func<<#=NewStr #>, TReturn>>)expModify,size,done);
+        }
+
+        DataTable ISelect<<#=NewStr #>>.ToDataTable<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
+            return (this as ISelect<<#=NewStr #>>).ToDataTable((Expression<Func<<#=NewStr #>, TReturn>>)expModify);
+        }
+
+        int ISelect<<#=NewStr #>>.InsertInto<TTargetEntity>(string tableName, Expression<Func<HzyTuple<<#=NewStr #>>, TTargetEntity>> select)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
+            return (this as ISelect<<#=NewStr #>>).InsertInto(tableName,(Expression<Func<<#=NewStr #>, TTargetEntity>>)expModify);
+        }
+
+        string ISelect<<#=NewStr #>>.ToSql<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select, FieldAliasOptions fieldAlias)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
+            return (this as ISelect<<#=NewStr #>>).ToSql((Expression<Func<<#=NewStr #>, TReturn>>)expModify,fieldAlias);
+        }
+
+        ISelect<<#=NewStr #>> ISelect<<#=NewStr #>>.LeftJoin(Expression<Func<HzyTuple<<#=NewStr #>>, bool>> exp)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
+            return (this as ISelect<<#=NewStr #>>).LeftJoin((Expression<Func<<#=NewStr #>, bool>>)expModify);
+        }
+
+        ISelect<<#=NewStr #>> ISelect<<#=NewStr #>>.InnerJoin(Expression<Func<HzyTuple<<#=NewStr #>>, bool>> exp)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
+            return (this as ISelect<<#=NewStr #>>).InnerJoin((Expression<Func<<#=NewStr #>, bool>>)expModify);
+        }
+
+        ISelect<<#=NewStr #>> ISelect<<#=NewStr #>>.RightJoin(Expression<Func<HzyTuple<<#=NewStr #>>, bool>> exp)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
+            return (this as ISelect<<#=NewStr #>>).RightJoin((Expression<Func<<#=NewStr #>, bool>>)expModify);
+        }
+
+        ISelect<<#=NewStr #>> ISelect<<#=NewStr #>>.Where(Expression<Func<HzyTuple<<#=NewStr #>>, bool>> exp)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
+            return (this as ISelect<<#=NewStr #>>).Where((Expression<Func<<#=NewStr #>, bool>>)expModify);
+        }
+
+        ISelect<<#=NewStr #>> ISelect<<#=NewStr #>>.WhereIf(bool condition, Expression<Func<HzyTuple<<#=NewStr #>>, bool>> exp)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
+            return (this as ISelect<<#=NewStr #>>).WhereIf(condition,(Expression<Func<<#=NewStr #>, bool>>)expModify);
+        }
+
+        bool ISelect<<#=NewStr #>>.Any(Expression<Func<HzyTuple<<#=NewStr #>>, bool>> exp)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
+            return (this as ISelect<<#=NewStr #>>).Any((Expression<Func<<#=NewStr #>, bool>>)expModify);
+        }
+
+        TReturn ISelect<<#=NewStr #>>.ToOne<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select) 
+            => (this as ISelect<<#=NewStr #>>).Limit(1).ToList(select).FirstOrDefault();
+        TReturn ISelect<<#=NewStr #>>.First<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select) 
+            => (this as ISelect<<#=NewStr #>>).Limit(1).ToList(select).FirstOrDefault();
+
+        #endregion
+
+
+
+#if net40
+#else
+        Task<double> ISelect<<#=NewStr #>>.AvgAsync<TMember>(Expression<Func<<#=NewStr #>, TMember>> column, CancellationToken cancellationToken)
+        {
+            if (column == null) return Task.FromResult(default(double));
+            for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
+            return this.InternalAvgAsync(column?.Body, cancellationToken);
+        }
+
+        Task<TMember> ISelect<<#=NewStr #>>.MaxAsync<TMember>(Expression<Func<<#=NewStr #>, TMember>> column, CancellationToken cancellationToken)
+        {
+            if (column == null) return Task.FromResult(default(TMember));
+            for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
+            return this.InternalMaxAsync<TMember>(column?.Body, cancellationToken);
+        }
+
+        Task<TMember> ISelect<<#=NewStr #>>.MinAsync<TMember>(Expression<Func<<#=NewStr #>, TMember>> column, CancellationToken cancellationToken)
+        {
+            if (column == null) return Task.FromResult(default(TMember));
+            for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
+            return this.InternalMinAsync<TMember>(column?.Body, cancellationToken);
+        }
+
+        Task<decimal> ISelect<<#=NewStr #>>.SumAsync<TMember>(Expression<Func<<#=NewStr #>, TMember>> column, CancellationToken cancellationToken)
+        {
+            if (column == null) this.InternalOrderBy(column?.Body);
+            for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
+            return this.InternalSumAsync(column?.Body, cancellationToken);
+        }
+
+        Task<TReturn> ISelect<<#=NewStr #>>.ToAggregateAsync<TReturn>(Expression<Func<<#=string.Join(",", ISelectGroupingAggregate) #>, TReturn>> select, CancellationToken cancellationToken)
+        {
+            if (select == null) return Task.FromResult(default(TReturn));
+            for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
+            return this.InternalToAggregateAsync<TReturn>(select?.Body, cancellationToken);
+        }
+
+        Task<List<TReturn>> ISelect<<#=NewStr #>>.ToListAsync<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select, CancellationToken cancellationToken)
+        {
+            if (select == null) return this.InternalToListAsync<TReturn>(select?.Body, cancellationToken);
+            for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
+            return this.InternalToListAsync<TReturn>(select?.Body, cancellationToken);
+        }
+        Task<List<TDto>> ISelect<<#=NewStr #>>.ToListAsync<TDto>(CancellationToken cancellationToken) => (this as ISelect<<#=NewStr #>>).ToListAsync(GetToListDtoSelector<TDto>(), cancellationToken);
+
+        Task<DataTable> ISelect<<#=NewStr #>>.ToDataTableAsync<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select, CancellationToken cancellationToken)
+        {
+            if (select == null) return this.InternalToDataTableAsync(select?.Body, cancellationToken);
+            for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
+            return this.InternalToDataTableAsync(select?.Body, cancellationToken);
+        }
+
+        Task<int> ISelect<<#=NewStr #>>.InsertIntoAsync<TTargetEntity>(string tableName, Expression<Func<<#=NewStr #>, TTargetEntity>> select, CancellationToken cancellationToken)
+        {
+            if (select == null) return this.InternalInsertIntoAsync<TTargetEntity>(tableName, select, cancellationToken);
+            for (var a = 0; a < select.Parameters.Count; a++) _tables[a].Parameter = select.Parameters[a];
+            return this.InternalInsertIntoAsync<TTargetEntity>(tableName, select?.Body, cancellationToken);
+        }
+
+        async Task<bool> ISelect<<#=NewStr #>>.AnyAsync(Expression<Func<<#=NewStr #>, bool>> exp, CancellationToken cancellationToken)
+        {
+            if (exp == null) return await this.AnyAsync();
+            for (var a = 0; a < exp.Parameters.Count; a++) _tables[a].Parameter = exp.Parameters[a];
+            var oldwhere = _where.ToString();
+            var ret = await this.Where(_commonExpression.ExpressionWhereLambda(_tables, exp?.Body, null, _whereGlobalFilter, _params)).AnyAsync(cancellationToken);
+            _where.Clear().Append(oldwhere);
+            return ret;
+        }
+
+        async Task<TReturn> ISelect<<#=NewStr #>>.ToOneAsync<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select, CancellationToken cancellationToken) => (await (this as ISelect<<#=NewStr #>>).Limit(1).ToListAsync(select, cancellationToken)).FirstOrDefault();
+        async Task<TReturn> ISelect<<#=NewStr #>>.FirstAsync<TReturn>(Expression<Func<<#=NewStr #>, TReturn>> select, CancellationToken cancellationToken) => (await (this as ISelect<<#=NewStr #>>).Limit(1).ToListAsync(select, cancellationToken)).FirstOrDefault();
+        async Task<TDto> ISelect<<#=NewStr #>>.FirstAsync<TDto>(CancellationToken cancellationToken) => (await (this as ISelect<<#=NewStr #>>).Limit(1).ToListAsync<TDto>(cancellationToken)).FirstOrDefault();
+
+
+
+
+        #region HzyTuple 元组
+
+        Task<double> ISelect<<#=NewStr #>>.AvgAsync<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column, CancellationToken cancellationToken)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(column, _tables);
+            return (this as ISelect<<#=NewStr #>>).AvgAsync((Expression<Func<<#=NewStr #>, TMember>>)expModify, cancellationToken);
+        }
+
+        Task<TMember> ISelect<<#=NewStr #>>.MaxAsync<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column, CancellationToken cancellationToken)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(column, _tables);
+            return (this as ISelect<<#=NewStr #>>).MaxAsync((Expression<Func<<#=NewStr #>, TMember>>)expModify, cancellationToken);
+        }
+
+        Task<TMember> ISelect<<#=NewStr #>>.MinAsync<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column, CancellationToken cancellationToken)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(column, _tables);
+            return (this as ISelect<<#=NewStr #>>).MinAsync((Expression<Func<<#=NewStr #>, TMember>>)expModify, cancellationToken);
+        }
+
+        Task<decimal> ISelect<<#=NewStr #>>.SumAsync<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column, CancellationToken cancellationToken)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(column, _tables);
+            return (this as ISelect<<#=NewStr #>>).SumAsync((Expression<Func<<#=NewStr #>, TMember>>)expModify, cancellationToken);
+        }
+
+        Task<List<TReturn>> ISelect<<#=NewStr #>>.ToListAsync<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select, CancellationToken cancellationToken)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
+            return (this as ISelect<<#=NewStr #>>).ToListAsync((Expression<Func<<#=NewStr #>, TReturn>>)expModify, cancellationToken);
+        }
+
+        Task<DataTable> ISelect<<#=NewStr #>>.ToDataTableAsync<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select, CancellationToken cancellationToken)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
+            return (this as ISelect<<#=NewStr #>>).ToDataTableAsync((Expression<Func<<#=NewStr #>, TReturn>>)expModify, cancellationToken);
+        }
+
+        Task<int> ISelect<<#=NewStr #>>.InsertIntoAsync<TTargetEntity>(string tableName, Expression<Func<HzyTuple<<#=NewStr #>>, TTargetEntity>> select, CancellationToken cancellationToken)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(select, _tables);
+            return (this as ISelect<<#=NewStr #>>).InsertIntoAsync(tableName,(Expression<Func<<#=NewStr #>, TTargetEntity>>)expModify, cancellationToken);
+        }
+
+        async Task<bool> ISelect<<#=NewStr #>>.AnyAsync(Expression<Func<HzyTuple<<#=NewStr #>>, bool>> exp, CancellationToken cancellationToken)
+        {
+            var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
+            return await (this as ISelect<<#=NewStr #>>).AnyAsync((Expression<Func<<#=NewStr #>, bool>>)expModify, cancellationToken);
+        }
+
+        async Task<TReturn> ISelect<<#=NewStr #>>.ToOneAsync<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select, CancellationToken cancellationToken) 
+            => (await (this as ISelect<<#=NewStr #>>).Limit(1).ToListAsync(select, cancellationToken)).FirstOrDefault();
+        async Task<TReturn> ISelect<<#=NewStr #>>.FirstAsync<TReturn>(Expression<Func<HzyTuple<<#=NewStr #>>, TReturn>> select, CancellationToken cancellationToken) 
+            => (await (this as ISelect<<#=NewStr #>>).Limit(1).ToListAsync(select, cancellationToken)).FirstOrDefault();
+
+
+        #endregion
+
+#endif
+    }
+
+
+	<#
+    } #>
+}
+
+
+<#
+    } #>

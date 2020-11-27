@@ -1,0 +1,48 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <IsPackable>true</IsPackable>
+    <PackAsTool>true</PackAsTool>
+    <Authors>FreeSql;ncc;YeXiangQin</Authors>
+    <Company>2881099</Company>
+    <Product>FreeSql</Product>
+    <Description>使用 FreeSql 快速生成数据库的实体类，安装：dotnet tool install -g FreeSql.Generator</Description>
+    <PackageProjectUrl>https://github.com/2881099/FreeSql</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/2881099/FreeSql</RepositoryUrl>
+    <Version>2.0.101</Version>
+    <PackageTags>FreeSql DbFirst 实体生成器</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Colorful.Console" Version="1.2.9" />
+    <PackageReference Include="RazorEngine.NetCore" Version="2.2.6" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="DmProvider">
+      <HintPath>..\..\Providers\FreeSql.Provider.Dameng\lib\DmProvider\netstandard2.0\DmProvider.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System.Data.OscarClient">
+      <HintPath>..\..\Providers\FreeSql.Provider.ShenTong\lib\System.Data.OscarClient.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Providers\FreeSql.Provider.Dameng\FreeSql.Provider.Dameng.csproj" />
+    <ProjectReference Include="..\..\Providers\FreeSql.Provider.Firebird\FreeSql.Provider.Firebird.csproj" />
+    <ProjectReference Include="..\..\Providers\FreeSql.Provider.KingbaseES\FreeSql.Provider.KingbaseES.csproj" />
+    <ProjectReference Include="..\..\Providers\FreeSql.Provider.MySqlConnector\FreeSql.Provider.MySqlConnector.csproj" />
+    <ProjectReference Include="..\..\Providers\FreeSql.Provider.Oracle\FreeSql.Provider.Oracle.csproj" />
+    <ProjectReference Include="..\..\Providers\FreeSql.Provider.PostgreSQL\FreeSql.Provider.PostgreSQL.csproj" />
+    <ProjectReference Include="..\..\Providers\FreeSql.Provider.ShenTong\FreeSql.Provider.ShenTong.csproj" />
+    <ProjectReference Include="..\..\Providers\FreeSql.Provider.Sqlite\FreeSql.Provider.Sqlite.csproj" />
+    <ProjectReference Include="..\..\Providers\FreeSql.Provider.SqlServer\FreeSql.Provider.SqlServer.csproj" />
+  </ItemGroup>
+
+</Project>

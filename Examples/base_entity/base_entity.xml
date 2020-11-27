@@ -1,0 +1,198 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>base_entity</name>
+    </assembly>
+    <members>
+        <member name="P:UserGroup.GroupName">
+            <summary>
+            组名
+            </summary>
+        </member>
+        <member name="P:User1.Username">
+            <summary>
+            登陆名
+            </summary>
+        </member>
+        <member name="P:User1.Nickname">
+            <summary>
+            昵称
+            </summary>
+        </member>
+        <member name="P:User1.Avatar">
+            <summary>
+            头像
+            </summary>
+        </member>
+        <member name="P:User1.Description">
+            <summary>
+            描述
+            </summary>
+        </member>
+        <member name="T:EMSServerModel.Model.Role">
+            <summary>
+            角色表
+            </summary>
+        </member>
+        <member name="P:EMSServerModel.Model.Role.RoleId">
+            <summary>
+            角色编号
+            </summary>
+        </member>
+        <member name="P:EMSServerModel.Model.Role.RoleName">
+            <summary>
+            角色名称
+            </summary>
+        </member>
+        <member name="P:EMSServerModel.Model.Role.RoleDesc">
+            <summary>
+            角色描述
+            </summary>
+        </member>
+        <member name="P:EMSServerModel.Model.Role.IsEnable">
+            <summary>
+            启用
+            </summary>
+        </member>
+        <member name="P:EMSServerModel.Model.Role.Users">
+            <summary>
+            角色用户多对多导航
+            </summary>
+        </member>
+        <member name="T:EMSServerModel.Model.User">
+            <summary>
+            用户表bb123123
+            </summary>
+        </member>
+        <member name="P:EMSServerModel.Model.User.UserId">
+            <summary>
+            编号
+            </summary>
+        </member>
+        <member name="P:EMSServerModel.Model.User.Avatar">
+            <summary>
+            头像
+            </summary>
+        </member>
+        <member name="P:EMSServerModel.Model.User.UserName">
+            <summary>
+            姓名
+            </summary>
+        </member>
+        <member name="P:EMSServerModel.Model.User.NickName">
+            <summary>
+            艺名
+            </summary>
+        </member>
+        <member name="P:EMSServerModel.Model.User.Tel">
+            <summary>
+            电话
+            </summary>
+        </member>
+        <member name="P:EMSServerModel.Model.User.Sex">
+            <summary>
+            性别
+            </summary>
+        </member>
+        <member name="P:EMSServerModel.Model.User.UID">
+            <summary>
+            证件号
+            </summary>
+        </member>
+        <member name="P:EMSServerModel.Model.User.DateOfBirth">
+            <summary>
+            生日
+            </summary>
+        </member>
+        <member name="P:EMSServerModel.Model.User.PlaceOfBirth">
+            <summary>
+            出生地
+            </summary>
+        </member>
+        <member name="P:EMSServerModel.Model.User.Addr">
+            <summary>
+            居住地
+            </summary>
+        </member>
+        <member name="P:EMSServerModel.Model.User.Pwd">
+            <summary>
+            密码
+            </summary>
+        </member>
+        <member name="P:EMSServerModel.Model.User.DeptId">
+            <summary>
+            部门编号
+            </summary>
+        </member>
+        <member name="P:EMSServerModel.Model.User.TitleId">
+            <summary>
+            职务编号
+            </summary>
+        </member>
+        <member name="P:EMSServerModel.Model.User.Nationality">
+            <summary>
+            国籍
+            </summary>
+        </member>
+        <member name="P:EMSServerModel.Model.User.Handler">
+            <summary>
+            经手人
+            </summary>
+        </member>
+        <member name="P:EMSServerModel.Model.User.IsEnable">
+            <summary>
+            启用
+            </summary>
+        </member>
+        <member name="P:EMSServerModel.Model.User.Memos">
+            <summary>
+            备注
+            </summary>
+        </member>
+        <member name="P:EMSServerModel.Model.User.Roles">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="T:EMSServerModel.Model.Sex">
+            <summary>
+            性别枚举
+            </summary>
+        </member>
+        <member name="F:EMSServerModel.Model.Sex.女">
+            <summary>
+            女=0
+            </summary>
+        </member>
+        <member name="F:EMSServerModel.Model.Sex.男">
+            <summary>
+            男=1
+            </summary>
+        </member>
+        <member name="T:EMSServerModel.Model.UserRole">
+            <summary>
+            用户角色关系表aa111
+            </summary>
+        </member>
+        <member name="P:EMSServerModel.Model.UserRole.RoleId">
+            <summary>
+            角色编号1
+            </summary>
+        </member>
+        <member name="P:EMSServerModel.Model.UserRole.Roles">
+            <summary>
+            角色导航
+            </summary>
+        </member>
+        <member name="P:EMSServerModel.Model.UserRole.UserId">
+            <summary>
+            用户编号
+            </summary>
+        </member>
+        <member name="P:EMSServerModel.Model.UserRole.Users">
+            <summary>
+            用户导航
+            </summary>
+        </member>
+    </members>
+</doc>

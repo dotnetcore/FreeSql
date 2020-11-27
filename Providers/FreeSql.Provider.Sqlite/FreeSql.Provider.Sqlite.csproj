@@ -1,28 +1,43 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>netstandard2.0</TargetFramework>
-		<Version>0.6.1</Version>
+		<TargetFrameworks>netstandard2.0;net45;net40</TargetFrameworks>
+		<Version>2.0.101</Version>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-		<Authors>YeXiangQin</Authors>
-		<Description>FreeSql 数据库实现，基于 Sqlite 3.0</Description>
+		<Authors>FreeSql;ncc;YeXiangQin</Authors>
+		<Description>FreeSql 数据库实现，基于 Sqlite 3.0，支持 .NetCore、.NetFramework、Xamarin</Description>
 		<PackageProjectUrl>https://github.com/2881099/FreeSql</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/2881099/FreeSql</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-		<PackageTags>FreeSql;ORM</PackageTags>
+		<PackageTags>FreeSql;ORM;sqlite</PackageTags>
 		<PackageId>$(AssemblyName)</PackageId>
+		<PackageIcon>logo.png</PackageIcon>
 		<Title>$(AssemblyName)</Title>
 		<IsPackable>true</IsPackable>
 		<GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+		<SignAssembly>true</SignAssembly>
+		<AssemblyOriginatorKeyFile>key.snk</AssemblyOriginatorKeyFile>
+		<DelaySign>false</DelaySign>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="System.Data.SQLite.Core" Version="1.0.110" />
+		<None Include="../../logo.png" Pack="true" PackagePath="\" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />
+		<PackageReference Include="System.Data.SQLite.Core" Version="1.0.113.6" />
 	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />
+	</ItemGroup>
+
+	<PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+		<DefineConstants>ns20;netstandard20</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net40'">
+		<DefineConstants>net40</DefineConstants>
+	</PropertyGroup>
 
 </Project>
