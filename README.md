@@ -38,7 +38,7 @@ QQ Groups：4336577(full)、**8578575(available)**、**52508226(available)**
 - Use FreeSql, keep the original usage.
 - Use [FreeSql.Repository](https://github.com/2881099/FreeSql/wiki/Repository), Repository + UnitOfWork.
 - Use [FreeSql.DbContext](https://github.com/2881099/FreeSql/wiki/DbContext), Like efcore.
-- Or use [FreeSql.BaseEntity](https://github.com/2881099/FreeSql/tree/master/Examples/base_entity), Simple mode.
+- Use [FreeSql.BaseEntity](https://github.com/2881099/FreeSql/tree/master/Examples/base_entity), Simple mode.
 
 > Some open source projects that use FreeSql:
 
