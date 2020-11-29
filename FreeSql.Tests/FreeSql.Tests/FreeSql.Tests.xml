@@ -139,6 +139,21 @@
             创建人名称
             </summary>
         </member>
+        <member name="P:FreeSql.Tests.Issues._576.SysRole.Guid">
+            <summary>
+            GUID
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._576.SysRole.RoleName">
+            <summary>
+            角色名称
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._576.SysRole.Sort">
+            <summary>
+            角色排序
+            </summary>
+        </member>
         <member name="M:FreeSql.Tests.MySql.MySqlCodeFirstTest.Tb_alltype.Save">
             <summary>
             保存或添加，如果主键有值则尝试 Update，如果影响的行为 0 则尝试 Insert

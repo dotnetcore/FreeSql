@@ -786,7 +786,7 @@ namespace FreeSql.Internal.CommonProvider
             }
             var selectField = string.Join(", ", childs.Select(a => a.DbField));
             var selectSql = this.ToSql(selectField);
-            var insertField = string.Join(", ", childs.Select(a => _commonUtils.QuoteSqlName(tb.Columns[a.CsName].Attribute.Name)));
+            var insertField = string.Join(", ", childs.Select(a => _commonUtils.QuoteSqlName(tb.ColumnsByCs[a.CsName].Attribute.Name)));
             var sql = $"INSERT INTO {_commonUtils.QuoteSqlName(tableName)}({insertField})\r\n{selectSql}";
             return sql;
         }
