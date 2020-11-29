@@ -12,26 +12,26 @@ using Xunit;
 
 namespace FreeSql.Tests.Issues
 {
+	[ExpressionCall]
+	public static class _576Extensions
+	{
+		public static ThreadLocal<ExpressionCallContext> expContext = new ThreadLocal<ExpressionCallContext>();
+
+		/// <summary>
+		/// 自定义表达式树函数解析
+		/// </summary>
+		/// <param name="that"></param>
+		/// <param name="withinCode"></param>
+		/// <returns></returns>
+		public static string ToNormalWithinCodeGuid([RawValue] this Guid that, string withinCode)
+		{
+			expContext.Value.Result = $"{expContext.Value.ParsedContent["withinCode"]} || '{that.ToString("N")}'";
+			return null;
+		}
+	}
+
 	public class _576
 	{
-		[ExpressionCall]
-		public static class _576Extensions
-		{
-			public static ThreadLocal<ExpressionCallContext> expContext = new ThreadLocal<ExpressionCallContext>();
-
-			/// <summary>
-			/// 自定义表达式树函数解析
-			/// </summary>
-			/// <param name="that"></param>
-			/// <param name="withinCode"></param>
-			/// <returns></returns>
-			public static string ToNormalWithinCodeGuid([RawValue] this Guid that, string withinCode)
-			{
-				expContext.Value.Result = $"{expContext.Value.ParsedContent["withinCode"]} || '{that.ToString("N")}'";
-				return null;
-			}
-		}
-
 		[Fact]
 		public void InsertInto()
 		{

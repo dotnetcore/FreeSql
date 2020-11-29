@@ -139,6 +139,14 @@
             创建人名称
             </summary>
         </member>
+        <member name="M:FreeSql.Tests.Issues._576Extensions.ToNormalWithinCodeGuid(System.Guid,System.String)">
+            <summary>
+            自定义表达式树函数解析
+            </summary>
+            <param name="that"></param>
+            <param name="withinCode"></param>
+            <returns></returns>
+        </member>
         <member name="P:FreeSql.Tests.Issues._576.SysRole.Guid">
             <summary>
             GUID
