@@ -4,6 +4,8 @@ using Microsoft.Data.SqlClient;
 using NetTaste;
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.Common;
 using Xunit;
 
 namespace FreeSql.Tests.SqlServer
@@ -43,7 +45,7 @@ namespace FreeSql.Tests.SqlServer
         [Fact]
         public void ExecuteArray()
         {
-
+            
         }
         [Fact]
         public void ExecuteNonQuery()
@@ -51,12 +53,48 @@ namespace FreeSql.Tests.SqlServer
             var ps = new[]
             {
                 new SqlParameter("@TableName", "tb1"),
-                new SqlParameter("@FInterID", System.Data.SqlDbType.Int)
+                new SqlParameter("@FInterID", SqlDbType.Int)
             };
             ps[1].Direction = System.Data.ParameterDirection.Output;
-            g.sqlserver.Ado.ExecuteNonQuery(System.Data.CommandType.StoredProcedure, "dbo.GetICMaxNum", ps);
+            g.sqlserver.Ado.ExecuteNonQuery(CommandType.StoredProcedure, "dbo.GetICMaxNum", ps);
             Assert.Equal(100, ps[1].Value);
         }
+
+        [Fact]
+        public void ComandFluent()
+        {
+            var fsql = g.sqlserver;
+
+            DbParameter p2 = null;
+            fsql.Ado.CommandFluent("dbo.GetICMaxNum")
+                .CommandType(CommandType.StoredProcedure)
+                .WithParameter("TableName", "tb1")
+                .WithParameter("FInterID", null, p =>
+                {
+                    p2 = p;
+                    p.DbType = DbType.Int32;
+                    p.Direction = ParameterDirection.Output;
+                })
+                .ExecuteNonQuery();
+            Assert.Equal(100, p2.Value);
+
+            DbParameter p3 = null;
+            fsql.Ado.CommandFluent("dbo.GetICMaxNum", new Dictionary<string, object>
+                {
+                    ["TableName"] = "tb1"
+                    // 更多参数
+                })
+                .WithParameter("FInterID", null, p =>
+                {
+                    p3 = p;
+                    p.DbType = DbType.Int32;
+                    p.Direction = ParameterDirection.Output;
+                })
+                .CommandType(CommandType.StoredProcedure)
+                .ExecuteNonQuery();
+            Assert.Equal(100, p3.Value);
+        }
+
         [Fact]
         public void ExecuteScalar()
         {
