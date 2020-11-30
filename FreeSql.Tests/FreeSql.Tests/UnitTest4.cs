@@ -14,6 +14,42 @@ namespace FreeSql.Tests
     public class UnitTest4
     {
         [Fact]
+        public void SelectLambdaParameter()
+        {
+            using (var fsql = new FreeSql.FreeSqlBuilder()
+                .UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;min pool size=1;Max Pool Size=51")
+                .UseAutoSyncStructure(true)
+                .UseGenerateCommandParameterWithLambda(true)
+                .UseMonitorCommand(
+                    cmd => Trace.WriteLine("\r\n线程" + Thread.CurrentThread.ManagedThreadId + ": " + cmd.CommandText) //监听SQL命令对象，在执行前
+                    //, (cmd, traceLog) => Console.WriteLine(traceLog)
+                    )
+                .Build())
+            {
+                fsql.Delete<ts_slp01>().Where("1=1").ExecuteAffrows();
+
+                var testItem = new ts_slp01();
+                var sql1 = fsql.Select<ts_slp01>().Where(a => a.name == testItem.GetTestName1()).ToSql();
+                var sql2 = fsql.Select<ts_slp01>().Where(a => a.name == testItem.GetTestName2()).ToSql();
+
+                Assert.Equal(@"SELECT a.[id], a.[name] 
+FROM [ts_slp01] a 
+WHERE (a.[name] = @exp_0)", sql1);
+                Assert.Equal(@"SELECT a.[id], a.[name] 
+FROM [ts_slp01] a 
+WHERE (a.[name]  IS  NULL)", sql2);
+            }
+        }
+        class ts_slp01
+        {
+            public Guid id { get; set; }
+            public string name { get; set; }
+
+            public string GetTestName1() => "xxx";
+            public string GetTestName2() => null;
+        }
+
+        [Fact]
         public void SelectN_SubSelectN()
         {
             var fsql = g.sqlite;
