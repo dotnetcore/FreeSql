@@ -31,7 +31,7 @@ namespace FreeSql.MySql
                     //    break;
                     default:
                         dbtype = dbtype2;
-                        if (col.DbSize != 0) ret.Size = col.DbSize;
+                        //if (col.DbSize != 0) ret.Size = col.DbSize;
                         if (col.DbPrecision != 0) ret.Precision = col.DbPrecision;
                         if (col.DbScale != 0) ret.Scale = col.DbScale;
                         break;

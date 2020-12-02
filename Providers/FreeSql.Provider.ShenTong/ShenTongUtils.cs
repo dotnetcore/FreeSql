@@ -80,7 +80,7 @@ namespace FreeSql.ShenTong
                 if (dbtype != OscarDbType.Oidvector)
                 {
                     ret.OscarDbType = dbtype;
-                    if (col.DbSize != 0) ret.Size = col.DbSize;
+                    //if (col.DbSize != 0) ret.Size = col.DbSize;
                     if (col.DbPrecision != 0) ret.Precision = col.DbPrecision;
                     if (col.DbScale != 0) ret.Scale = col.DbScale;
                 }

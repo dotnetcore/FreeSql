@@ -19,6 +19,31 @@ namespace FreeSql.Tests.PostgreSQL
     public class PostgreSQLCodeFirstTest
     {
         [Fact]
+        public void InsertUpdateParameter()
+        {
+            var fsql = g.pgsql;
+            fsql.CodeFirst.SyncStructure<ts_iupstr_bak>();
+            var item = new ts_iupstr { id = Guid.NewGuid(), title = string.Join(",", Enumerable.Range(0, 2000).Select(a => "我是中国人")) };
+            Assert.Equal(1, fsql.Insert(item).ExecuteAffrows());
+            var find = fsql.Select<ts_iupstr>().Where(a => a.id == item.id).First();
+            Assert.NotNull(find);
+            Assert.Equal(find.id, item.id);
+            Assert.Equal(find.title, item.title);
+        }
+        [Table(Name = "ts_iupstr_bak", DisableSyncStructure = true)]
+        class ts_iupstr
+        {
+            public Guid id { get; set; }
+            public string title { get; set; }
+        }
+        class ts_iupstr_bak
+        {
+            public Guid id { get; set; }
+            [Column(StringLength = -1)]
+            public string title { get; set; }
+        }
+
+        [Fact]
         public void DateTime_1()
         {
             var item1 = new TS_DATETIME01 { CreateTime = DateTime.Now };

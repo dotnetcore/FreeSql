@@ -23,7 +23,7 @@ namespace FreeSql.Dameng
             {
                 case DmDbType.Bit:
                     if (value == null) value = null;
-                    else value = (bool)value == true ? 1 : 0;
+                    else value = (bool) value == true ? 1 : 0;
                     dbtype = DmDbType.Int32;
                     break;
                
