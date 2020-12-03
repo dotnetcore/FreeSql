@@ -1,8 +1,12 @@
 ﻿using FreeSql;
 using FreeSql.Internal;
+using FreeSql.Internal.CommonProvider;
+using FreeSql.Internal.Model;
+using FreeSql.Internal.ObjectPool;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Text;
 
 namespace FreeSql
@@ -18,11 +22,39 @@ namespace FreeSql
         {
             if (fsql == null) return null;
             var scopedfsql = fsql as DbContextScopedFreeSql;
-            if (scopedfsql == null) return new DbContextScopedFreeSql { _originalFsql = fsql, _resolveDbContext = resolveDbContext, _resolveUnitOfWork = resolveUnitOfWork };
+            if (scopedfsql == null)
+                return new DbContextScopedFreeSql
+                {
+                    _originalFsql = fsql,
+                    _resolveDbContext = resolveDbContext,
+                    _resolveUnitOfWork = resolveUnitOfWork,
+                    Ado = new ScopeTransactionAdo(fsql.Ado as AdoProvider, () =>
+                    {
+                        var db = resolveDbContext?.Invoke();
+                        db?.FlushCommand();
+                        return resolveUnitOfWork?.Invoke()?.GetOrBeginTransaction();
+                    })
+                };
             return Create(scopedfsql._originalFsql, resolveDbContext, resolveUnitOfWork);
         }
 
-        public IAdo Ado => _originalFsql.Ado;
+        class ScopeTransactionAdo : AdoProvider
+        {
+            AdoProvider _ado;
+            public ScopeTransactionAdo(AdoProvider ado, Func<DbTransaction> resolveTran) : base(ado.DataType, null, null)
+            {
+                _ado = ado;
+                base.ResolveTransaction = resolveTran;
+                base.ConnectionString = ado.ConnectionString;
+                base.SlaveConnectionStrings = ado.SlaveConnectionStrings;
+                base.Identifier = ado.Identifier;
+            }
+            public override object AddslashesProcessParam(object param, Type mapType, ColumnInfo mapColumn) => _ado.AddslashesProcessParam(param, mapType, mapColumn);
+            public override DbCommand CreateCommand() => _ado.CreateCommand();
+            public override DbParameter[] GetDbParamtersByObject(string sql, object obj) => _ado.GetDbParamtersByObject(sql, obj);
+            public override void ReturnConnection(IObjectPool<DbConnection> pool, Object<DbConnection> conn, Exception ex) => _ado.ReturnConnection(pool, conn, ex);
+        }
+        public IAdo Ado { get; private set; }
         public IAop Aop => _originalFsql.Aop;
         public ICodeFirst CodeFirst => _originalFsql.CodeFirst;
         public IDbFirst DbFirst => _originalFsql.DbFirst;

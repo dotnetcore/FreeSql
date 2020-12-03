@@ -10,6 +10,9 @@ namespace FreeSql
     /// </summary>
     public interface IUnitOfWork : IDisposable
     {
+        /// <summary>
+        /// 该对象 Select/Delete/Insert/Update/InsertOrUpdate 与工作单元事务保持一致，可省略传递 WithTransaction
+        /// </summary>
         IFreeSql Orm { get; }
 
         /// <summary>

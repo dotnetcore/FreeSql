@@ -70,7 +70,7 @@ namespace FreeSql.MsAccess
             return new OleDbCommand();
         }
 
-        protected override void ReturnConnection(IObjectPool<DbConnection> pool, Object<DbConnection> conn, Exception ex)
+        public override void ReturnConnection(IObjectPool<DbConnection> pool, Object<DbConnection> conn, Exception ex)
         {
             var rawPool = pool as MsAccessConnectionPool;
             if (rawPool != null) rawPool.Return(conn, ex);

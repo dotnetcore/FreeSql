@@ -130,6 +130,7 @@ namespace FreeSql.Tests
                     flowRepos = uow.GetRepository<FlowModel>();
                     flowRepos.Insert(flow);
                     flowRepos.Orm.Select<FlowModel>().ToList();
+                    flowRepos.Orm.Ado.ExecuteConnectTest();
                     uow.Commit();
                 }
             }

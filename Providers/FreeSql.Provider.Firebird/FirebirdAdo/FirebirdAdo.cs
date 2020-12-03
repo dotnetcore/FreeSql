@@ -96,7 +96,7 @@ namespace FreeSql.Firebird
             return new FbCommand();
         }
 
-        protected override void ReturnConnection(IObjectPool<DbConnection> pool, Object<DbConnection> conn, Exception ex)
+        public override void ReturnConnection(IObjectPool<DbConnection> pool, Object<DbConnection> conn, Exception ex)
         {
             var rawPool = pool as FirebirdConnectionPool;
             if (rawPool != null) rawPool.Return(conn, ex);

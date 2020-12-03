@@ -84,7 +84,7 @@ namespace FreeSql.PostgreSQL
             return new NpgsqlCommand();
         }
 
-        protected override void ReturnConnection(IObjectPool<DbConnection> pool, Object<DbConnection> conn, Exception ex)
+        public override void ReturnConnection(IObjectPool<DbConnection> pool, Object<DbConnection> conn, Exception ex)
         {
             var rawPool = pool as PostgreSQLConnectionPool;
             if (rawPool != null) rawPool.Return(conn, ex);

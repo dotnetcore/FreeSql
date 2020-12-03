@@ -782,7 +782,7 @@ namespace FreeSql.Internal.CommonProvider
 
             if (connection == null)
             {
-                var tran = transaction;
+                var tran = transaction ?? ResolveTransaction?.Invoke();
 
                 if (tran != null)
                 {

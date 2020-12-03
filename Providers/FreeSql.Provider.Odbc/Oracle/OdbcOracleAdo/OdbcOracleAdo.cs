@@ -66,7 +66,7 @@ namespace FreeSql.Odbc.Oracle
             return new OdbcCommand();
         }
 
-        protected override void ReturnConnection(IObjectPool<DbConnection> pool, Object<DbConnection> conn, Exception ex)
+        public override void ReturnConnection(IObjectPool<DbConnection> pool, Object<DbConnection> conn, Exception ex)
         {
             var rawPool = pool as OdbcOracleConnectionPool;
             if (rawPool != null) rawPool.Return(conn, ex);

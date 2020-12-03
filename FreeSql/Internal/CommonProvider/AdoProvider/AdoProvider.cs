@@ -17,7 +17,7 @@ namespace FreeSql.Internal.CommonProvider
     public abstract partial class AdoProvider : IAdo, IDisposable
     {
 
-        protected abstract void ReturnConnection(IObjectPool<DbConnection> pool, Object<DbConnection> conn, Exception ex);
+        public abstract void ReturnConnection(IObjectPool<DbConnection> pool, Object<DbConnection> conn, Exception ex);
         public abstract DbCommand CreateCommand();
         public abstract DbParameter[] GetDbParamtersByObject(string sql, object obj);
         public DbParameter[] GetDbParamtersByObject(object obj) => GetDbParamtersByObject("*", obj);
@@ -27,14 +27,15 @@ namespace FreeSql.Internal.CommonProvider
         public IObjectPool<DbConnection> MasterPool { get; protected set; }
         public List<IObjectPool<DbConnection>> SlavePools { get; } = new List<IObjectPool<DbConnection>>();
         public DataType DataType { get; }
-        public string ConnectionString { get; }
-        public string[] SlaveConnectionStrings { get; }
-        public Guid Identifier { get; }
+        public string ConnectionString { get; protected set; }
+        public string[] SlaveConnectionStrings { get; protected set; }
+        public Guid Identifier { get; protected set; }
 
         protected CommonUtils _util { get; set; }
         protected int slaveUnavailables = 0;
         private object slaveLock = new object();
         private Random slaveRandom = new Random();
+        protected Func<DbTransaction> ResolveTransaction;
 
         public AdoProvider(DataType dataType, string connectionString, string[] slaveConnectionStrings)
         {
@@ -876,7 +877,7 @@ namespace FreeSql.Internal.CommonProvider
 
             if (connection == null)
             {
-                var tran = transaction ?? TransactionCurrentThread;
+                var tran = transaction ?? ResolveTransaction?.Invoke() ?? TransactionCurrentThread;
                 if (tran != null && connection == null)
                 {
                     cmd.Connection = tran.Connection;

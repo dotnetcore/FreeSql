@@ -94,7 +94,7 @@ namespace FreeSql.SqlServer
             return new SqlCommand();
         }
 
-        protected override void ReturnConnection(IObjectPool<DbConnection> pool, Object<DbConnection> conn, Exception ex)
+        public override void ReturnConnection(IObjectPool<DbConnection> pool, Object<DbConnection> conn, Exception ex)
         {
             var rawPool = pool as SqlServerConnectionPool;
             if (rawPool != null) rawPool.Return(conn, ex);
