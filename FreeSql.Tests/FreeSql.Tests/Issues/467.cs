@@ -22,7 +22,7 @@ namespace FreeSql.Tests.Issues
                 .UseMonitorCommand(cmd => Trace.WriteLine("\r\n线程" + Thread.CurrentThread.ManagedThreadId + ": " + cmd.CommandText))
                 .Build())
             {
-                var orderSql = fsql
+                var orderSql1 = fsql
                     .Select<PayOrder>()
                     .As(nameof(PayOrder).ToLower())
                     .Where(p => p.Status == 1)
@@ -35,7 +35,22 @@ namespace FreeSql.Tests.Issues
 
                 Assert.Equal(@"SELECT payorder.""PayOrderId"", payorder.""Money"", payorder.""OrderTime"" 
 FROM ""pay_order"" payorder 
-WHERE (payorder.""Status"" = 1)", orderSql);
+WHERE (payorder.""Status"" = 1)", orderSql1);
+                
+                var orderSql2 = fsql
+                    .Select<PayOrder>()
+                    .As(nameof(PayOrder).ToLower())
+                    .Where(p => p.Status == 1)
+                    .ToSql(p => new
+                    {
+                        p.PayOrderId,
+                        p.Money,
+                        NewOrderTime = p.OrderTime
+                    }, FreeSql.FieldAliasOptions.AsProperty);
+
+                Assert.Equal(@"SELECT payorder.""PayOrderId"", payorder.""Money"", payorder.""OrderTime"" ""NewOrderTime"" 
+FROM ""pay_order"" payorder 
+WHERE (payorder.""Status"" = 1)", orderSql2);
             }
         }
 
