@@ -22,7 +22,7 @@ namespace FreeSql.Tests.Issues
                 Name = w.Address,
                 No = w.Number.ToString()
             }, FieldAliasOptions.AsProperty);
-            Assert.Equal(@"SELECT cast(a.""Number"" as character) CardNumber, ((a.""CommType"" + 1)) CardType, a.""Address"" Name, cast(a.""Number"" as character) No 
+            Assert.Equal(@"SELECT cast(a.""Number"" as character) ""CardNumber"", ((a.""CommType"" + 1)) ""CardType"", a.""Address"" ""Name"", cast(a.""Number"" as character) ""No"" 
 FROM ""WorkSite"" a", sql);
         }
 

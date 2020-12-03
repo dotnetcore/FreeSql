@@ -1126,12 +1126,12 @@ WHERE (((cast(a.`Id` as char)) in (SELECT b.`Title`
                     WF_ProcessInstance = p
                 });
 
-            Assert.Equal(@"SELECT max(a.`Id`) TaskId, max(a.`Type`) TaskType, a.`ProcessId`, a.`NodeId`, a.`NodeName` 
+            Assert.Equal(@"SELECT max(a.`Id`) `TaskId`, max(a.`Type`) `TaskType`, a.`ProcessId`, a.`NodeId`, a.`NodeName` 
 FROM `WF_Task` a 
 WHERE (a.`IsFinished` = 1 AND (a.`AuditorId` = '1' OR a.`AuditorId` = '1cb71584-a6dd-4b26-8c88-ed9fb8cf87a3')) 
 GROUP BY a.`ProcessId`, a.`NodeId`, a.`NodeName`", sqltmp12);
             Assert.Equal(@"SELECT a.`TaskId` as1, a.`TaskType` as2, a.`ProcessId` as3, a.`NodeId` as4, a.`NodeName` as5, b.`Id` as6, b.`TaskType` as7, b.`ProcessId` as8, b.`NodeId` as9, b.`CreateTime` as10, b.`IsFinished` as11, b.`EnabledMark` as12 
-FROM ( SELECT max(a.`Id`) TaskId, max(a.`Type`) TaskType, a.`ProcessId`, a.`NodeId`, a.`NodeName` 
+FROM ( SELECT max(a.`Id`) `TaskId`, max(a.`Type`) `TaskType`, a.`ProcessId`, a.`NodeId`, a.`NodeName` 
     FROM `WF_Task` a 
     WHERE (a.`IsFinished` = 1 AND (a.`AuditorId` = '1' OR a.`AuditorId` = '1cb71584-a6dd-4b26-8c88-ed9fb8cf87a3')) 
     GROUP BY a.`ProcessId`, a.`NodeId`, a.`NodeName` ) a 
