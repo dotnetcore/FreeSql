@@ -50,6 +50,14 @@ namespace FreeSql
                     providerType = Type.GetType("FreeSql.ShenTong.ShenTongProvider`1,FreeSql.Provider.ShenTong")?.MakeGenericType(connType);
                     if (providerType == null) throw new Exception("缺少 FreeSql 数据库实现包：FreeSql.Provider.ShenTong.dll，可前往 nuget 下载");
                     break;
+                case "KdbndpConnection":
+                    providerType = Type.GetType("FreeSql.KingbaseES.KingbaseESProvider`1,FreeSql.Provider.KingbaseES")?.MakeGenericType(connType);
+                    if (providerType == null) throw new Exception("缺少 FreeSql 数据库实现包：FreeSql.Provider.KingbaseES.dll，可前往 nuget 下载");
+                    break;
+                case "FbConnection":
+                    providerType = Type.GetType("FreeSql.Firebird.FirebirdProvider`1,FreeSql.Provider.Firebird")?.MakeGenericType(connType);
+                    if (providerType == null) throw new Exception("缺少 FreeSql 数据库实现包：FreeSql.Provider.Firebird.dll，可前往 nuget 下载");
+                    break;
                 default:
                     throw new Exception("未实现");
             }
