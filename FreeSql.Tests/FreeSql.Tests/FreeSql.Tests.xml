@@ -162,6 +162,131 @@
             角色排序
             </summary>
         </member>
+        <member name="T:FreeSql.Tests.Issues._595.TXL_JXSDH">
+            <summary>
+            导入单位信息
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._595.TXL_JXSDH.DHID">
+            <summary>
+            主键
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._595.TXL_JXSDH.CCODE">
+            <summary>
+            单位编码
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._595.TXL_JXSDH.CNAME">
+            <summary>
+            单位名称
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._595.TXL_JXSDH.BGDH">
+            <summary>
+            办公电话
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._595.TXL_JXSDH.GZDM">
+            <summary>
+            工作店面
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._595.TXL_JXSDH.YGXM">
+            <summary>
+            员工姓名
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._595.TXL_JXSDH.GWMC">
+            <summary>
+            岗位名称
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._595.TXL_JXSDH.SJHM">
+            <summary>
+            联系电话
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._595.TXL_JXSDH.GSDZ">
+            <summary>
+            公司地址
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._595.TXL_JXSDH.REMARK">
+            <summary>
+            备注
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._595.TXL_JXSDH.SF">
+            <summary>
+            公司所在省份
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._595.TXL_JXSDH.SFXNY">
+            <summary>
+            是否新能源，0是1否
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._595.TXL_JXSDH.SHI">
+            <summary>
+            公司所在市
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._595.TXL_JXSDH.SSDQ">
+            <summary>
+            所属大区
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._595.TXL_JXSDH.SSJLB">
+            <summary>
+            所属经理部
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._595.TXL_JXSDH.YXJLMZ">
+            <summary>
+            区域经理名字
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._595.TXL_JXSDH.YXJLSJ">
+            <summary>
+            区域经理手机
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._595.TXL_JXSDH.YXJLZH">
+            <summary>
+            区域经理账号
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._595.TXL_JXSDH.CREATEDATE">
+            <summary>
+            创建日期
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._595.TXL_JXSDH.CREATELOGINNAME">
+            <summary>
+            创建人账号
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._595.TXL_JXSDH.CREATER">
+            <summary>
+            创建人
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._595.TXL_JXSDH.UPDATEDATE">
+            <summary>
+            修改日期
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._595.TXL_JXSDH.UPDATELOGINNAME">
+            <summary>
+            修改人账号
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._595.TXL_JXSDH.UPDATER">
+            <summary>
+            修改人
+            </summary>
+        </member>
         <member name="M:FreeSql.Tests.MySql.MySqlCodeFirstTest.Tb_alltype.Save">
             <summary>
             保存或添加，如果主键有值则尝试 Update，如果影响的行为 0 则尝试 Insert
