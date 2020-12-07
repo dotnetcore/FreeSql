@@ -195,63 +195,63 @@ namespace FreeSql
         /// <param name="that"></param>
         /// <returns></returns>
         public static ISelect<T1, T2> Select<T1, T2>(this IDbConnection that) where T1 : class where T2 : class =>
-            GetCrud(that).Select<T1>().From<T2>((s, b) => s);
+            Select<T1>(that).From<T2>((s, b) => s);
         /// <summary>
         /// 多表查询
         /// </summary>
         /// <param name="that"></param>
         /// <returns></returns>
         public static ISelect<T1, T2, T3> Select<T1, T2, T3>(this IDbConnection that) where T1 : class where T2 : class where T3 : class =>
-            GetCrud(that).Select<T1>().From<T2, T3>((s, b, c) => s);
+            Select<T1>(that).From<T2, T3>((s, b, c) => s);
         /// <summary>
         /// 多表查询
         /// </summary>
         /// <param name="that"></param>
         /// <returns></returns>
         public static ISelect<T1, T2, T3, T4> Select<T1, T2, T3, T4>(this IDbConnection that) where T1 : class where T2 : class where T3 : class where T4 : class =>
-            GetCrud(that).Select<T1>().From<T2, T3, T4>((s, b, c, d) => s);
+            Select<T1>(that).From<T2, T3, T4>((s, b, c, d) => s);
         /// <summary>
         /// 多表查询
         /// </summary>
         /// <param name="that"></param>
         /// <returns></returns>
         public static ISelect<T1, T2, T3, T4, T5> Select<T1, T2, T3, T4, T5>(this IDbConnection that) where T1 : class where T2 : class where T3 : class where T4 : class where T5 : class =>
-            GetCrud(that).Select<T1>().From<T2, T3, T4, T5>((s, b, c, d, e) => s);
+            Select<T1>(that).From<T2, T3, T4, T5>((s, b, c, d, e) => s);
         /// <summary>
         /// 多表查询
         /// </summary>
         /// <param name="that"></param>
         /// <returns></returns>
         public static ISelect<T1, T2, T3, T4, T5, T6> Select<T1, T2, T3, T4, T5, T6>(this IDbConnection that) where T1 : class where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class =>
-            GetCrud(that).Select<T1>().From<T2, T3, T4, T5, T6>((s, b, c, d, e, f) => s);
+            Select<T1>(that).From<T2, T3, T4, T5, T6>((s, b, c, d, e, f) => s);
         /// <summary>
         /// 多表查询
         /// </summary>
         /// <param name="that"></param>
         /// <returns></returns>
         public static ISelect<T1, T2, T3, T4, T5, T6, T7> Select<T1, T2, T3, T4, T5, T6, T7>(this IDbConnection that) where T1 : class where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class =>
-            GetCrud(that).Select<T1>().From<T2, T3, T4, T5, T6, T7>((s, b, c, d, e, f, g) => s);
+            Select<T1>(that).From<T2, T3, T4, T5, T6, T7>((s, b, c, d, e, f, g) => s);
         /// <summary>
         /// 多表查询
         /// </summary>
         /// <param name="that"></param>
         /// <returns></returns>
         public static ISelect<T1, T2, T3, T4, T5, T6, T7, T8> Select<T1, T2, T3, T4, T5, T6, T7, T8>(this IDbConnection that) where T1 : class where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class =>
-            GetCrud(that).Select<T1>().From<T2, T3, T4, T5, T6, T7, T8>((s, b, c, d, e, f, g, h) => s);
+            Select<T1>(that).From<T2, T3, T4, T5, T6, T7, T8>((s, b, c, d, e, f, g, h) => s);
         /// <summary>
         /// 多表查询
         /// </summary>
         /// <param name="that"></param>
         /// <returns></returns>
         public static ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9> Select<T1, T2, T3, T4, T5, T6, T7, T8, T9>(this IDbConnection that) where T1 : class where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class =>
-            GetCrud(that).Select<T1>().From<T2, T3, T4, T5, T6, T7, T8, T9>((s, b, c, d, e, f, g, h, i) => s);
+            Select<T1>(that).From<T2, T3, T4, T5, T6, T7, T8, T9>((s, b, c, d, e, f, g, h, i) => s);
         /// <summary>
         /// 多表查询
         /// </summary>
         /// <param name="that"></param>
         /// <returns></returns>
         public static ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> Select<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(this IDbConnection that) where T1 : class where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class =>
-            GetCrud(that).Select<T1>().From<T2, T3, T4, T5, T6, T7, T8, T9, T10>((s, b, c, d, e, f, g, h, i, j) => s);
+            Select<T1>(that).From<T2, T3, T4, T5, T6, T7, T8, T9, T10>((s, b, c, d, e, f, g, h, i, j) => s);
         #endregion
 
         #region IDbTransaction
@@ -365,55 +365,55 @@ namespace FreeSql
         /// </summary>
         /// <returns></returns>
         public static ISelect<T1, T2> Select<T1, T2>(this IDbTransaction that) where T1 : class where T2 : class =>
-            GetCrud(that).Select<T1>().From<T2>((s, b) => s);
+            Select<T1>(that).From<T2>((s, b) => s);
         /// <summary>
         /// 多表查询
         /// </summary>
         /// <returns></returns>
         public static ISelect<T1, T2, T3> Select<T1, T2, T3>(this IDbTransaction that) where T1 : class where T2 : class where T3 : class =>
-            GetCrud(that).Select<T1>().From<T2, T3>((s, b, c) => s);
+            Select<T1>(that).From<T2, T3>((s, b, c) => s);
         /// <summary>
         /// 多表查询
         /// </summary>
         /// <returns></returns>
         public static ISelect<T1, T2, T3, T4> Select<T1, T2, T3, T4>(this IDbTransaction that) where T1 : class where T2 : class where T3 : class where T4 : class =>
-            GetCrud(that).Select<T1>().From<T2, T3, T4>((s, b, c, d) => s);
+            Select<T1>(that).From<T2, T3, T4>((s, b, c, d) => s);
         /// <summary>
         /// 多表查询
         /// </summary>
         /// <returns></returns>
         public static ISelect<T1, T2, T3, T4, T5> Select<T1, T2, T3, T4, T5>(this IDbTransaction that) where T1 : class where T2 : class where T3 : class where T4 : class where T5 : class =>
-            GetCrud(that).Select<T1>().From<T2, T3, T4, T5>((s, b, c, d, e) => s);
+            Select<T1>(that).From<T2, T3, T4, T5>((s, b, c, d, e) => s);
         /// <summary>
         /// 多表查询
         /// </summary>
         /// <returns></returns>
         public static ISelect<T1, T2, T3, T4, T5, T6> Select<T1, T2, T3, T4, T5, T6>(this IDbTransaction that) where T1 : class where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class =>
-            GetCrud(that).Select<T1>().From<T2, T3, T4, T5, T6>((s, b, c, d, e, f) => s);
+            Select<T1>(that).From<T2, T3, T4, T5, T6>((s, b, c, d, e, f) => s);
         /// <summary>
         /// 多表查询
         /// </summary>
         /// <returns></returns>
         public static ISelect<T1, T2, T3, T4, T5, T6, T7> Select<T1, T2, T3, T4, T5, T6, T7>(this IDbTransaction that) where T1 : class where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class =>
-            GetCrud(that).Select<T1>().From<T2, T3, T4, T5, T6, T7>((s, b, c, d, e, f, g) => s);
+            Select<T1>(that).From<T2, T3, T4, T5, T6, T7>((s, b, c, d, e, f, g) => s);
         /// <summary>
         /// 多表查询
         /// </summary>
         /// <returns></returns>
         public static ISelect<T1, T2, T3, T4, T5, T6, T7, T8> Select<T1, T2, T3, T4, T5, T6, T7, T8>(this IDbTransaction that) where T1 : class where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class =>
-            GetCrud(that).Select<T1>().From<T2, T3, T4, T5, T6, T7, T8>((s, b, c, d, e, f, g, h) => s);
+            Select<T1>(that).From<T2, T3, T4, T5, T6, T7, T8>((s, b, c, d, e, f, g, h) => s);
         /// <summary>
         /// 多表查询
         /// </summary>
         /// <returns></returns>
         public static ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9> Select<T1, T2, T3, T4, T5, T6, T7, T8, T9>(this IDbTransaction that) where T1 : class where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class =>
-            GetCrud(that).Select<T1>().From<T2, T3, T4, T5, T6, T7, T8, T9>((s, b, c, d, e, f, g, h, i) => s);
+            Select<T1>(that).From<T2, T3, T4, T5, T6, T7, T8, T9>((s, b, c, d, e, f, g, h, i) => s);
         /// <summary>
         /// 多表查询
         /// </summary>
         /// <returns></returns>
         public static ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> Select<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(this IDbTransaction that) where T1 : class where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class =>
-            GetCrud(that).Select<T1>().From<T2, T3, T4, T5, T6, T7, T8, T9, T10>((s, b, c, d, e, f, g, h, i, j) => s);
+            Select<T1>(that).From<T2, T3, T4, T5, T6, T7, T8, T9, T10>((s, b, c, d, e, f, g, h, i, j) => s);
         #endregion
 
         #endregion
