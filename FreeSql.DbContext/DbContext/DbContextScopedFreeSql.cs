@@ -48,6 +48,8 @@ namespace FreeSql
                 base.ConnectionString = ado.ConnectionString;
                 base.SlaveConnectionStrings = ado.SlaveConnectionStrings;
                 base.Identifier = ado.Identifier;
+                base.MasterPool = ado.MasterPool;
+                base._util = ado._util;
             }
             public override object AddslashesProcessParam(object param, Type mapType, ColumnInfo mapColumn) => _ado.AddslashesProcessParam(param, mapType, mapColumn);
             public override DbCommand CreateCommand() => _ado.CreateCommand();

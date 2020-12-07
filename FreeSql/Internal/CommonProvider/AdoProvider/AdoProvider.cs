@@ -31,7 +31,7 @@ namespace FreeSql.Internal.CommonProvider
         public string[] SlaveConnectionStrings { get; protected set; }
         public Guid Identifier { get; protected set; }
 
-        protected CommonUtils _util { get; set; }
+        public CommonUtils _util { get; set; }
         protected int slaveUnavailables = 0;
         private object slaveLock = new object();
         private Random slaveRandom = new Random();

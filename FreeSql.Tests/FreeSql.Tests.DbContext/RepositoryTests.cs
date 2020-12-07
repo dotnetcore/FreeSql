@@ -500,6 +500,35 @@ namespace FreeSql.Tests
         }
 
         [Fact]
+        public void OrmScoped()
+        {
+            var fsql = g.sqlserver;
+            //fsql.Aop.CommandBefore += (s, e) =>
+            //{
+            //    Console.WriteLine(e.Command.CommandText);
+            //};
+
+            var repo = fsql.GetRepository<ts_repo_update_bit>();
+            repo.Orm.Ado.ExecuteNonQuery("select 1");
+
+            using (var ctx = fsql.CreateDbContext())
+            {
+                ctx.Orm.Ado.ExecuteNonQuery("select 1");
+            }
+
+            using (var uow = fsql.CreateUnitOfWork())
+            {
+                uow.Orm.Ado.ExecuteNonQuery("select 1");
+            }
+
+            using (var uow = fsql.CreateUnitOfWork())
+            {
+                repo.UnitOfWork = uow;
+                repo.Orm.Ado.ExecuteNonQuery("select 1");
+            }
+        }
+
+        [Fact]
         public void UpdateBit()
         {
             var fsql = g.sqlserver;
