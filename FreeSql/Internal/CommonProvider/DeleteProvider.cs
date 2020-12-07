@@ -98,9 +98,10 @@ namespace FreeSql.Internal.CommonProvider
             if (condition == false || exp == null) return this;
             return this.Where(_commonExpression.ExpressionWhereLambdaNoneForeignObject(null, _table, null, exp?.Body, null, _params));
         }
-        public IDelete<T1> Where(string sql, object parms = null)
+        public IDelete<T1> Where(string sql, object parms = null) => WhereIf(true, sql, parms);
+        public IDelete<T1> WhereIf(bool condition, string sql, object parms = null)
         {
-            if (string.IsNullOrEmpty(sql)) return this;
+            if (condition == false || string.IsNullOrEmpty(sql)) return this;
             if (++_whereTimes > 1) _where.Append(" AND ");
             _where.Append('(').Append(sql).Append(')');
             if (parms != null) _params.AddRange(_commonUtils.GetDbParamtersByObject(sql, parms));

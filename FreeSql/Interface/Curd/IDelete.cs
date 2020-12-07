@@ -53,6 +53,15 @@ namespace FreeSql
         /// <returns></returns>
         IDelete<T1> Where(string sql, object parms = null);
         /// <summary>
+        /// 原生sql语法条件，Where("id = @id", new { id = 1 })<para></para>
+        /// 提示：parms 参数还可以传 Dictionary&lt;string, object&gt;
+        /// </summary>
+        /// <param name="condition">true 时生效</param>
+        /// <param name="sql">sql语法条件</param>
+        /// <param name="parms">参数</param>
+        /// <returns></returns>
+        IDelete<T1> WhereIf(bool condition, string sql, object parms = null);
+        /// <summary>
         /// 传入实体，将主键作为条件
         /// </summary>
         /// <param name="item">实体</param>
