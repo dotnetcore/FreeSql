@@ -130,6 +130,7 @@ namespace FreeSql.Internal.CommonProvider
         int _disposeCounter;
         public void Dispose()
         {
+            if (ResolveTransaction != null) return;
             if (Interlocked.Increment(ref _disposeCounter) != 1) return;
             try
             {
