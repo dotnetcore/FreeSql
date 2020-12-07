@@ -498,5 +498,80 @@ namespace FreeSql.Tests
             public Guid Id { get; set; }
             public string Name { get; set; }
         }
+
+        [Fact]
+        public void UpdateBit()
+        {
+            var fsql = g.sqlserver;
+
+            fsql.Delete<ts_repo_update_bit>().Where("1=1").ExecuteAffrows();
+            var id = fsql.Insert(new ts_repo_update_bit()).ExecuteIdentity();
+            Assert.True(id > 0);
+            var repo = fsql.GetRepository<ts_repo_update_bit>();
+            var item = repo.Select.WhereDynamic(id).First();
+            Assert.Equal(item.id, id);
+            Assert.False(item.bool_val);
+
+            item.bool_val = true;
+            repo.Update(item);
+            item = repo.Select.WhereDynamic(id).First();
+            Assert.Equal(item.id, id);
+            Assert.True(item.bool_val);
+
+            item.bool_val = false;
+            repo.Update(item);
+            item = repo.Select.WhereDynamic(id).First();
+            Assert.Equal(item.id, id);
+            Assert.False(item.bool_val);
+
+            item.bool_val = false;
+            repo.Update(item);
+            item = repo.Select.WhereDynamic(id).First();
+            Assert.Equal(item.id, id);
+            Assert.False(item.bool_val);
+
+
+
+            item.bool_val = true;
+            repo.InsertOrUpdate(item);
+            item = repo.Select.WhereDynamic(id).First();
+            Assert.Equal(item.id, id);
+            Assert.True(item.bool_val);
+
+            item.bool_val = false;
+            repo.InsertOrUpdate(item);
+            item = repo.Select.WhereDynamic(id).First();
+            Assert.Equal(item.id, id);
+            Assert.False(item.bool_val);
+
+            item.bool_val = false;
+            repo.InsertOrUpdate(item);
+            item = repo.Select.WhereDynamic(id).First();
+            Assert.Equal(item.id, id);
+            Assert.False(item.bool_val);
+
+
+
+            repo.InsertOrUpdate(new ts_repo_update_bit { id = item.id, bool_val = true });
+            item = repo.Select.WhereDynamic(id).First();
+            Assert.Equal(item.id, id);
+            Assert.True(item.bool_val);
+
+            repo.InsertOrUpdate(new ts_repo_update_bit { id = item.id, bool_val = false });
+            item = repo.Select.WhereDynamic(id).First();
+            Assert.Equal(item.id, id);
+            Assert.False(item.bool_val);
+
+            repo.InsertOrUpdate(new ts_repo_update_bit { id = item.id, bool_val = false });
+            item = repo.Select.WhereDynamic(id).First();
+            Assert.Equal(item.id, id);
+            Assert.False(item.bool_val);
+        }
+        class ts_repo_update_bit
+        {
+            [Column(IsIdentity = true)]
+            public int id { get; set; }
+            public bool bool_val { get; set; }
+        }
     }
 }
