@@ -27,6 +27,10 @@ namespace aspnetcore_transaction.Controllers
         virtual public object Get([FromServices] BaseRepository<Song> repoSong, [FromServices] BaseRepository<Detail> repoDetail, [FromServices] SongRepository repoSong2,
             [FromServices] SongService serviceSong)
         {
+            //repoSong.Insert(new Song());
+            //repoDetail.Insert(new Detail());
+            //repoSong2.Insert(new Song());
+
             serviceSong.Test1();
             return "111";
         }

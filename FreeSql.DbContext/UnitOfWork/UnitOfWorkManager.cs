@@ -13,7 +13,8 @@ namespace FreeSql
     /// </summary>
     public class UnitOfWorkManager : IDisposable
     {
-        DbContextScopedFreeSql _ormScoped;
+        internal DbContextScopedFreeSql _ormScoped;
+        internal IFreeSql OrmOriginal => _ormScoped?._originalFsql;
         public IFreeSql Orm => _ormScoped;
         List<UowInfo> _rawUows = new List<UowInfo>();
         List<UowInfo> _allUows = new List<UowInfo>();
@@ -136,7 +137,7 @@ namespace FreeSql
         }
         IUnitOfWork CreateUow(IsolationLevel? isolationLevel)
         {
-            var uow = new UnitOfWorkOrginal(new UnitOfWork(Orm));
+            var uow = new UnitOfWorkOrginal(new UnitOfWork(OrmOriginal));
             var uowInfo = new UowInfo(uow, UowInfo.UowType.Orginal, false);
             if (isolationLevel != null) uow.IsolationLevel = isolationLevel.Value;
             try { uow.GetOrBeginTransaction(); }
