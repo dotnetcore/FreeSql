@@ -17,7 +17,10 @@ namespace FreeSql.Tests.Issues
 		[Fact]
 		public void AdoNet()
 		{
-            using (var conn = g.mysql.Ado.MasterPool.Get())
+            var fsql = g.mysql;
+            fsql.Select<park_sys_users, park_sys_userrole>();
+
+            using (var conn = fsql.Ado.MasterPool.Get())
             {
                 var list = conn.Value.Select<park_sys_users, park_sys_userrole>()
                     .LeftJoin((rs, le) => rs.user_id == le.ur_userid)
