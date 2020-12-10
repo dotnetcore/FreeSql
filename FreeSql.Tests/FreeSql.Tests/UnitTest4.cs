@@ -14,6 +14,45 @@ namespace FreeSql.Tests
     public class UnitTest4
     {
         [Fact]
+        public void OneToManyLazyloading()
+        {
+            var fsql = g.sqlite;
+            fsql.Delete<ts_otm_ll_01>().Where("1=1").ExecuteAffrows();
+            fsql.Delete<ts_otm_ll_02>().Where("1=1").ExecuteAffrows();
+
+            var repo = fsql.GetRepository<ts_otm_ll_01>();
+            repo.DbContextOptions.EnableAddOrUpdateNavigateList = true;
+            repo.Insert(new ts_otm_ll_01
+            {
+                name = "001",
+                ll_02s = new List<ts_otm_ll_02>(new[] {
+                    new ts_otm_ll_02 { title = "sub_001" },
+                    new ts_otm_ll_02 { title = "sub_002" },
+                    new ts_otm_ll_02 { title = "sub_003" }
+                })
+            });
+
+            var item = fsql.Select<ts_otm_ll_01>().First();
+            Assert.NotNull(item);
+            var childs = item.ll_02s;
+            Assert.NotNull(childs);
+            Assert.Equal(3, childs.Count);
+        }
+        public class ts_otm_ll_01
+        {
+            public Guid id { get; set; }
+            public string name { get; set; }
+            [Navigate(nameof(ts_otm_ll_02.ll_01id))]
+            public virtual List<ts_otm_ll_02> ll_02s { get; set; }
+        }
+        public class ts_otm_ll_02
+        {
+            public Guid id { get; set; }
+            public Guid ll_01id { get; set; }
+            public string title { get; set; }
+        }
+
+        [Fact]
         public void SelectLambdaParameter()
         {
             using (var fsql = new FreeSql.FreeSqlBuilder()
