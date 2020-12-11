@@ -253,6 +253,8 @@ namespace FreeSql.Tests
             var cts2 = repo.Select.WhereDynamic(cts).IncludeMany(a => a.Goodss).ToList();
             cts2[0].Goodss[0].Name += 123;
             repo.Update(cts2[0]);
+            cts2[0].Goodss[0].Name += 333;
+            repo.SaveMany(cts2[0], "Goodss");
         }
         [Table(Name = "EAUNL_OTM_CT")]
         class Cagetory
@@ -270,6 +272,76 @@ namespace FreeSql.Tests
             public Guid CagetoryId { get; set; }
             public string Name { get; set; }
         }
+
+        [Fact]
+        public void EnableAddOrUpdateNavigateList_OneToMany_lazyloading()
+        {
+            var repo = g.sqlite.GetRepository<CagetoryLD>();
+            repo.DbContextOptions.EnableAddOrUpdateNavigateList = true;
+            var cts = new[] {
+                new CagetoryLD
+                {
+                    Name = "分类1",
+                    Goodss = new List<GoodsLD>(new[]
+                    {
+                        new GoodsLD { Name = "商品1" },
+                        new GoodsLD { Name = "商品2" },
+                        new GoodsLD { Name = "商品3" }
+                    })
+                },
+                new CagetoryLD
+                {
+                    Name = "分类2",
+                    Goodss = new List<GoodsLD>(new[]
+                    {
+                        new GoodsLD { Name = "商品4" },
+                        new GoodsLD { Name = "商品5" }
+                    })
+                }
+            };
+            repo.Insert(cts);
+            cts[0].Name = "分类11";
+            cts[0].Goodss.Clear();
+            cts[1].Name = "分类22";
+            cts[1].Goodss.Clear();
+            repo.Update(cts);
+            cts[0].Name = "分类111";
+            cts[0].Goodss.Clear();
+            cts[0].Goodss.Add(new GoodsLD { Name = "商品33" });
+            cts[1].Name = "分类222";
+            cts[1].Goodss.Clear();
+            cts[1].Goodss.Add(new GoodsLD { Name = "商品55" });
+            repo.Update(cts);
+
+            var cts2 = repo.Select.WhereDynamic(cts).IncludeMany(a => a.Goodss).ToList();
+            cts2[0].Goodss[0].Name += 123;
+            repo.Update(cts2[0]);
+            cts2[0].Goodss[0].Name += 333;
+            repo.SaveMany(cts2[0], "Goodss");
+
+            cts2 = repo.Select.WhereDynamic(cts).ToList();
+            cts2[0].Goodss[0].Name += 123;
+            repo.Update(cts2[0]);
+            cts2[0].Goodss[0].Name += 333;
+            repo.SaveMany(cts2[0], "Goodss");
+        }
+        [Table(Name = "EAUNL_OTM_CTLD")]
+        public class CagetoryLD
+        {
+            public Guid Id { get; set; }
+            public string Name { get; set; }
+
+            [Navigate("CagetoryId")]
+            public virtual List<GoodsLD> Goodss { get; set; }
+        }
+        [Table(Name = "EAUNL_OTM_GDLD")]
+        public class GoodsLD
+        {
+            public Guid Id { get; set; }
+            public Guid CagetoryId { get; set; }
+            public string Name { get; set; }
+        }
+
         [Fact]
         public void SaveMany_OneToMany()
         {
