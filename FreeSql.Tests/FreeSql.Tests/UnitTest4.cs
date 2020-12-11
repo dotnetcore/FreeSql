@@ -14,6 +14,120 @@ namespace FreeSql.Tests
     public class UnitTest4
     {
         [Fact]
+        public void GroupSubSelect()
+        {
+            var fsql = g.sqlite;
+            fsql.Delete<ts_group_sub_select01>().Where("1=1").ExecuteAffrows();
+
+            var affrows = fsql.Insert(new[]{
+                new ts_group_sub_select01
+                {
+                    code = "code_01",
+                    seqid = 1,
+                    name = "name_01"
+                },
+                new ts_group_sub_select01
+                {
+                    code = "code_02",
+                    seqid = 2,
+                    name = "name_02"
+                }
+            }).ExecuteAffrows();
+            Assert.Equal(2, affrows);
+
+            var sql = fsql.Select<ts_group_sub_select01>()
+                .GroupBy(a => new
+                {
+                    a.code,
+                    a.seqid,
+                    a.name
+                })
+                .ToSql(g => new
+                {
+                    g.Key.code,
+                    g.Key.seqid,
+                    g.Key.name,
+                    number = fsql.Select<ts_group_sub_select01>()
+                        .Where(o => o.seqid == 6)
+                        .Count(),
+                    number2 = 3,
+                    number3 = 5
+                });
+            Assert.Equal(@"SELECT a.""code"" as1, a.""seqid"" as2, a.""name"" as3, (SELECT count(1) 
+    FROM ""ts_group_sub_select01"" o 
+    WHERE (o.""seqid"" = 6)) as4, 3 as5, 5 as6 
+FROM ""ts_group_sub_select01"" a 
+GROUP BY a.""code"", a.""seqid"", a.""name""", sql);
+            Assert.Equal(2, fsql.Select<ts_group_sub_select01>()
+                .GroupBy(a => new
+                {
+                    a.code,
+                    a.seqid,
+                    a.name
+                })
+                .ToList(g => new
+                {
+                    g.Key.code,
+                    g.Key.seqid,
+                    g.Key.name,
+                    number = fsql.Select<ts_group_sub_select01>()
+                        .Where(o => o.seqid == 6)
+                        .Count(),
+                    number2 = 3,
+                    number3 = 5
+                }).Count);
+
+            sql = fsql.Select<ts_group_sub_select01>()
+                .GroupBy(a => new
+                {
+                    a.code,
+                    a.seqid,
+                    a.name
+                })
+                .ToSql(g => new
+                {
+                    g.Key.code,
+                    g.Key.seqid,
+                    g.Key.name,
+                    number = fsql.Select<ts_group_sub_select01>()
+                        .Where(o => o.seqid == g.Key.seqid)
+                        .Count(),
+                    number2 = 3,
+                    number3 = 5
+                });
+            Assert.Equal(@"SELECT a.""code"" as1, a.""seqid"" as2, a.""name"" as3, (SELECT count(1) 
+    FROM ""ts_group_sub_select01"" o 
+    WHERE (o.""seqid"" = a.""seqid"")) as4, 3 as5, 5 as6 
+FROM ""ts_group_sub_select01"" a 
+GROUP BY a.""code"", a.""seqid"", a.""name""", sql);
+            Assert.Equal(2, fsql.Select<ts_group_sub_select01>()
+                .GroupBy(a => new
+                {
+                    a.code,
+                    a.seqid,
+                    a.name
+                })
+                .ToList(g => new
+                {
+                    g.Key.code,
+                    g.Key.seqid,
+                    g.Key.name,
+                    number = fsql.Select<ts_group_sub_select01>()
+                        .Where(o => o.seqid == g.Key.seqid)
+                        .Count(),
+                    number2 = 3,
+                    number3 = 5
+                }).Count);
+        }
+        class ts_group_sub_select01
+        {
+            public Guid id { get; set; }
+            public string code { get; set; }
+            public int seqid { get; set; }
+            public string name { get; set; }
+        }
+
+        [Fact]
         public void OneToManyLazyloading()
         {
             var fsql = g.sqlite;

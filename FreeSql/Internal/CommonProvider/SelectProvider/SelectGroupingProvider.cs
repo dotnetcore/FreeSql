@@ -142,7 +142,11 @@ namespace FreeSql.Internal.CommonProvider
         public SelectGroupingProvider(IFreeSql orm, Select0Provider select, ReadAnonymousTypeInfo map, string field, CommonExpression comonExp, List<SelectTableInfo> tables)
             :base(orm, select, map, field, comonExp, tables) { }
 
-        public string ToSql<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select, FieldAliasOptions fieldAlias = FieldAliasOptions.AsIndex) => InternalToSql(select, fieldAlias);
+        public string ToSql<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select, FieldAliasOptions fieldAlias = FieldAliasOptions.AsIndex)
+        {
+            _lambdaParameter = select?.Parameters[0];
+            return InternalToSql(select, fieldAlias);
+        }
         public string ToSql(string field)
         {
             if (string.IsNullOrEmpty(field))
@@ -180,23 +184,34 @@ namespace FreeSql.Internal.CommonProvider
 
         public ISelectGrouping<TKey, TValue> Having(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, bool>> exp)
         {
+            _lambdaParameter = exp?.Parameters[0];
             InternalHaving(exp);
             return this;
         }
         public ISelectGrouping<TKey, TValue> OrderBy<TMember>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TMember>> column)
         {
+            _lambdaParameter = column?.Parameters[0];
             InternalOrderBy(column, false);
             return this;
         }
         public ISelectGrouping<TKey, TValue> OrderByDescending<TMember>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TMember>> column)
         {
+            _lambdaParameter = column?.Parameters[0];
             InternalOrderBy(column, true);
             return this;
         }
 
         public List<TReturn> Select<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select) => ToList(select);
-        public List<TReturn> ToList<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select) => InternalToList(select, typeof(TReturn)) as List<TReturn>;
-        public Dictionary<TKey, TElement> ToDictionary<TElement>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TElement>> elementSelector) => InternalToKeyValuePairs(elementSelector, typeof(TElement)).ToDictionary(a => (TKey)a.Key, a => (TElement)a.Value);
+        public List<TReturn> ToList<TReturn>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TReturn>> select)
+        {
+            _lambdaParameter = select?.Parameters[0];
+            return InternalToList(select, typeof(TReturn)) as List<TReturn>;
+        }
+        public Dictionary<TKey, TElement> ToDictionary<TElement>(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, TElement>> elementSelector)
+        {
+            _lambdaParameter = elementSelector?.Parameters[0];
+            return InternalToKeyValuePairs(elementSelector, typeof(TElement)).ToDictionary(a => (TKey)a.Key, a => (TElement)a.Value);
+        }
 
 #if net40
 #else
@@ -208,6 +223,7 @@ namespace FreeSql.Internal.CommonProvider
             var field = new StringBuilder();
             var index = 0;
 
+            _lambdaParameter = select?.Parameters[0];
             _comonExp.ReadAnonymousField(null, field, map, ref index, select, null, this, null, null, false);
             if (map.Childs.Any() == false && map.MapType == null) map.MapType = typeof(TReturn);
             var method = _select.GetType().GetMethod("ToListMapReaderAsync", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -220,6 +236,7 @@ namespace FreeSql.Internal.CommonProvider
             var field = new StringBuilder();
             var index = 0;
 
+            _lambdaParameter = elementSelector?.Parameters[0];
             _comonExp.ReadAnonymousField(null, field, map, ref index, elementSelector, null, this, null, null, false);
             if (map.Childs.Any() == false && map.MapType == null) map.MapType = typeof(TElement);
             var method = _select.GetType().GetMethod("ToListMapReaderPrivateAsync", BindingFlags.Instance | BindingFlags.NonPublic);

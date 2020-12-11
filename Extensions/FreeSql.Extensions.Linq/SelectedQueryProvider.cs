@@ -161,6 +161,7 @@ namespace FreeSql.Internal.CommonProvider
         public ISelectedQuery<TOut> OrderByIf<TMember>(bool condition, Expression<Func<TOut, TMember>> column, bool descending = false)
         {
             if (condition == false) return this;
+            _lambdaParameter = column?.Parameters[0];
             var sql = _comonExp.ExpressionWhereLambda(null, column, this, null, null);
             var method = _select.GetType().GetMethod("OrderBy", new[] { typeof(string), typeof(object) });
             method.Invoke(_select, new object[] { descending ? $"{sql} DESC" : sql, null });
@@ -172,6 +173,7 @@ namespace FreeSql.Internal.CommonProvider
         public ISelectedQuery<TOut> WhereIf(bool condition, Expression<Func<TOut, bool>> exp)
         {
             if (condition == false) return this;
+            _lambdaParameter = exp?.Parameters[0];
             var sql = _comonExp.ExpressionWhereLambda(null, exp, this, null, null);
             var method = _select.GetType().GetMethod("Where", new[] { typeof(string), typeof(object) });
             method.Invoke(_select, new object[] { sql, null });

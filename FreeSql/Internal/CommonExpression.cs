@@ -18,6 +18,10 @@ namespace FreeSql.Internal
 {
     public abstract class BaseDiyMemberExpression
     {
+        /// <summary>
+        /// 临时 LambdaExpression.Parameter
+        /// </summary>
+        public ParameterExpression _lambdaParameter;
         public ReadAnonymousTypeInfo _map;
         public string _field;
         public abstract string ParseExp(Expression[] members);
@@ -676,6 +680,7 @@ namespace FreeSql.Internal
         static ConcurrentDictionary<Type, bool> _dicTypeExistsExpressionCallAttribute = new ConcurrentDictionary<Type, bool>();
         static ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>> _dicMethodExistsExpressionCallAttribute = new ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>>();
         static ConcurrentDictionary<Type, FieldInfo[]> _dicTypeExpressionCallClassContextFields = new ConcurrentDictionary<Type, FieldInfo[]>();
+        static ThreadLocal<List<BaseDiyMemberExpression>> _subSelectParentDiyMemExps = new ThreadLocal<List<BaseDiyMemberExpression>>(); //子查询的所有父自定义查询，比如分组之后的子查询
         public string ExpressionLambdaToSql(Expression exp, ExpTSC tsc)
         {
             if (exp == null) return "";
@@ -982,14 +987,20 @@ namespace FreeSql.Internal
                                         fsqltables = fsqlSelect0._tables;
                                         //fsqltables[0].Alias = $"{tsc._tables[0].Alias}_{fsqltables[0].Alias}";
                                         if (fsqltables != tsc._tables)
-                                            fsqltables.AddRange(tsc._tables.Select(a => new SelectTableInfo
+                                        {
+                                            if (tsc._tables == null && tsc.diymemexp == null) throw new NotSupportedException($"这个特别的子查询不能解析"); //2020-12-11 IUpdate 条件不支持子查询
+                                            if (tsc._tables != null) //groupby is null
                                             {
-                                                Alias = a.Alias,
-                                                On = "1=1",
-                                                Table = a.Table,
-                                                Type = SelectTableInfoType.Parent,
-                                                Parameter = a.Parameter
-                                            }));
+                                                fsqltables.AddRange(tsc._tables.Select(a => new SelectTableInfo
+                                                {
+                                                    Alias = a.Alias,
+                                                    On = "1=1",
+                                                    Table = a.Table,
+                                                    Type = SelectTableInfoType.Parent,
+                                                    Parameter = a.Parameter
+                                                }));
+                                            }
+                                        }
                                         if (tsc.whereGlobalFilter?.Any() == true)
                                         {
                                             var fsqlGlobalFilter = fsqlSelect0._whereGlobalFilter;
@@ -1030,7 +1041,28 @@ namespace FreeSql.Internal
                                                 //if (args[a] == null) ExpressionLambdaToSql(call3Exp.Arguments[a], fsqltables, null, null, SelectTableInfoType.From, true);
                                             }
                                         }
-                                        method.Invoke(fsql, args);
+                                        var isSubSelectPdme = tsc._tables == null && tsc.diymemexp != null;
+                                        try
+                                        {
+                                            if (isSubSelectPdme)
+                                            {
+                                                if (_subSelectParentDiyMemExps.Value == null) _subSelectParentDiyMemExps.Value = new List<BaseDiyMemberExpression>();
+                                                _subSelectParentDiyMemExps.Value.Add(tsc.diymemexp);
+                                            }
+                                            method.Invoke(fsql, args);
+                                        }
+                                        finally
+                                        {
+                                            if (isSubSelectPdme)
+                                            {
+                                                var psgpdmes = _subSelectParentDiyMemExps.Value;
+                                                if (psgpdmes != null)
+                                                {
+                                                    psgpdmes.RemoveAt(psgpdmes.Count - 1);
+                                                    if (psgpdmes.Count == 0) _subSelectParentDiyMemExps.Value = null;
+                                                }
+                                            }
+                                        }
                                     }
                                     if (fsql == null) asSelectBefores.Push(exp3tmp);
                                 }
@@ -1301,6 +1333,16 @@ namespace FreeSql.Internal
                         var bidx = expStackFirst.Type.FullName.StartsWith("FreeSql.ISelectGroupingAggregate`") ? 2 : 1; //.Key .Value
                         var expText = tsc.diymemexp.ParseExp(expStack.Where((a, b) => b >= bidx).ToArray());
                         if (string.IsNullOrEmpty(expText) == false) return expText;
+                    }
+                    var psgpdymes = _subSelectParentDiyMemExps.Value; //解决：分组之后的子查询解析
+                    if (psgpdymes?.Any() == true)
+                    {
+                        var expStackFirst = expStack.First();
+                        if (expStackFirst.NodeType == ExpressionType.Parameter)
+                        {
+                            var expText = psgpdymes.Where(a => a._lambdaParameter == expStackFirst).FirstOrDefault()?.ParseExp(expStack.Where((a, b) => b >= 2).ToArray());
+                            if (string.IsNullOrEmpty(expText) == false) return expText;
+                        }
                     }
 
                     if (tsc._tables == null)
