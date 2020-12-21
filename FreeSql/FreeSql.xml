@@ -115,6 +115,13 @@
             decimal/numeric 类型的小数位长度
             </summary>
         </member>
+        <member name="P:FreeSql.DataAnnotations.ColumnAttribute.RereadSql">
+            <summary>
+            设置重读功能<para></para>
+            [Column(RereadSql = &quot;{0}.STAsText()&quot;)]<para></para>
+            查询：SELECT a.[id], a.[geo].STAsText() FROM table a
+            </summary>
+        </member>
         <member name="M:FreeSql.DataAnnotations.ColumnFluent.Name(System.String)">
             <summary>
             数据库列名

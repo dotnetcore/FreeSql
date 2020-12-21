@@ -115,5 +115,16 @@ namespace FreeSql.DataAnnotations
         /// decimal/numeric 类型的小数位长度
         /// </summary>
         public int Scale { get => _Scale ?? 0; set => _Scale = value; }
+
+        ///// <summary>
+        ///// 写入格式化，比如 geography::STGeomFromText({0},4236)
+        ///// </summary>
+        //public string AuditWriteSql { get; set; }
+        /// <summary>
+        /// 设置重读功能<para></para>
+        /// [Column(RereadSql = &quot;{0}.STAsText()&quot;)]<para></para>
+        /// 查询：SELECT a.[id], a.[geo].STAsText() FROM table a
+        /// </summary>
+        public string RereadSql { get; set; }
     }
 }

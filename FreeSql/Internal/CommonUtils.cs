@@ -53,7 +53,14 @@ namespace FreeSql.Internal
         public abstract string Now { get; }
         public abstract string NowUtc { get; }
         public abstract string QuoteWriteParamter(Type type, string paramterName);
-        public abstract string QuoteReadColumn(Type type, Type mapType, string columnName);
+        protected abstract string QuoteReadColumnAdapter(Type type, Type mapType, string columnName);
+        public string QuoteReadColumn(ColumnInfo col, Type type, Type mapType, string columnName)
+        {
+            var result = QuoteReadColumnAdapter(type, mapType, columnName);
+            if (string.IsNullOrWhiteSpace(col?.Attribute.RereadSql) == false)
+                return string.Format(col.Attribute.RereadSql, result);
+            return result;
+        }
         public virtual string FieldAsAlias(string alias) => $" {alias}";
         public virtual string IIF(string test, string ifTrue, string ifElse) => $"case when {test} then {ifTrue} else {ifElse} end";
         public static string BytesSqlRaw(byte[] bytes)

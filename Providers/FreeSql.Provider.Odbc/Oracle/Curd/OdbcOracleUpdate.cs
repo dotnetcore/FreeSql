@@ -33,7 +33,7 @@ namespace FreeSql.Odbc.Oracle
             if (_table.Primarys.Length == 1)
             {
                 var pk = _table.Primarys.First();
-                caseWhen.Append(_commonUtils.QuoteReadColumn(pk.CsType, pk.Attribute.MapType, _commonUtils.QuoteSqlName(pk.Attribute.Name)));
+                caseWhen.Append(_commonUtils.QuoteReadColumn(pk, pk.CsType, pk.Attribute.MapType, _commonUtils.QuoteSqlName(pk.Attribute.Name)));
                 return;
             }
             caseWhen.Append("(");
@@ -41,7 +41,7 @@ namespace FreeSql.Odbc.Oracle
             foreach (var pk in _table.Primarys)
             {
                 if (pkidx > 0) caseWhen.Append(" || '+' || ");
-                caseWhen.Append(_commonUtils.QuoteReadColumn(pk.CsType, pk.Attribute.MapType, _commonUtils.QuoteSqlName(pk.Attribute.Name)));
+                caseWhen.Append(_commonUtils.QuoteReadColumn(pk, pk.CsType, pk.Attribute.MapType, _commonUtils.QuoteSqlName(pk.Attribute.Name)));
                 ++pkidx;
             }
             caseWhen.Append(")");

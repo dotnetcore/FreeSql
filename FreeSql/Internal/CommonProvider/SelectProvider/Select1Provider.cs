@@ -1025,7 +1025,7 @@ namespace FreeSql.Internal.CommonProvider
                                         Property = tbrefMid.Properties[col.CsName]
                                     };
                                     read.Childs.Add(child);
-                                    field.Append(", ").Append(_commonUtils.QuoteReadColumn(child.CsType, child.MapType, child.DbField));
+                                    field.Append(", ").Append(_commonUtils.QuoteReadColumn(col, child.CsType, child.MapType, child.DbField));
                                 }
                                 otherData = new ReadAnonymousTypeAfInfo(read, field.ToString());
                             }
