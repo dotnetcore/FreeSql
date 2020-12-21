@@ -1,6 +1,7 @@
 ﻿using AME.Helpers;
 using FreeSql.DataAnnotations;
 using FreeSql.Internal;
+using FreeSql.Internal.CommonProvider;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -13,6 +14,174 @@ namespace FreeSql.Tests
 {
     public class UnitTest4
     {
+        [Fact]
+        public void WithLambdaParameter01()
+        {
+            using (var fsql = new FreeSql.FreeSqlBuilder()
+                .UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=6")
+                .UseAutoSyncStructure(true)
+                .UseGenerateCommandParameterWithLambda(true)
+                .UseMonitorCommand(
+                    cmd => Trace.WriteLine("\r\n线程" + Thread.CurrentThread.ManagedThreadId + ": " + cmd.CommandText) //监听SQL命令对象，在执行前
+                    //, (cmd, traceLog) => Console.WriteLine(traceLog)
+                    )
+                .UseLazyLoading(true)
+                .Build())
+            {
+                fsql.Delete<ts_wlp01>().Where("1=1").ExecuteAffrows();
+
+                var id1 = Guid.NewGuid();
+                var id2 = Guid.NewGuid();
+                var affrows = fsql.Insert(new[] {
+                    new ts_wlp01
+                    {
+                        id = id1,
+                        status = ts_wlp01_status.completed,
+                    },
+                    new ts_wlp01
+                    {
+                        id = id2,
+                        status = ts_wlp01_status.pending,
+                    }
+                }).ExecuteAffrows();
+                Assert.Equal(2, affrows);
+                var items = fsql.Select<ts_wlp01>().OrderBy(a => a.status).ToList();
+                Assert.Equal(2, items.Count);
+                Assert.Equal(id1, items[0].id);
+                Assert.Equal(ts_wlp01_status.completed, items[0].status);
+                Assert.Equal(id2, items[1].id);
+                Assert.Equal(ts_wlp01_status.pending, items[1].status);
+
+                var item1Select = fsql.Select<ts_wlp01>().Where(a => a.status == ts_wlp01_status.completed);
+                var item1S0p = item1Select as Select0Provider;
+                Assert.Single(item1S0p._params);
+                var p0 = item1S0p._params[0];
+                Assert.Equal(p0.DbType, System.Data.DbType.String);
+                Assert.Equal(p0.Value, "completed");
+                items = item1Select.ToList();
+                Assert.Single(items);
+                Assert.Equal(id1, items[0].id);
+                Assert.Equal(ts_wlp01_status.completed, items[0].status);
+
+                var item2Select = fsql.Select<ts_wlp01>().Where(a => a.status == ts_wlp01_status.pending);
+                var item2S0p = item2Select as Select0Provider;
+                Assert.Single(item2S0p._params);
+                p0 = item2S0p._params[0];
+                Assert.Equal(p0.DbType, System.Data.DbType.String);
+                Assert.Equal(p0.Value, "pending");
+                items = item2Select.ToList();
+                Assert.Single(items);
+                Assert.Equal(id2, items[0].id);
+                Assert.Equal(ts_wlp01_status.pending, items[0].status);
+
+                // use var
+                var item1status = ts_wlp01_status.completed;
+                item1Select = fsql.Select<ts_wlp01>().Where(a => a.status == item1status);
+                item1S0p = item1Select as Select0Provider;
+                Assert.Single(item1S0p._params);
+                p0 = item1S0p._params[0];
+                Assert.Equal(p0.DbType, System.Data.DbType.String);
+                Assert.Equal(p0.Value, "completed");
+                items = item1Select.ToList();
+                Assert.Single(items);
+                Assert.Equal(id1, items[0].id);
+                Assert.Equal(item1status, items[0].status);
+
+                var item2status = ts_wlp01_status.pending;
+                item2Select = fsql.Select<ts_wlp01>().Where(a => a.status == item2status);
+                item2S0p = item2Select as Select0Provider;
+                Assert.Single(item2S0p._params);
+                p0 = item2S0p._params[0];
+                Assert.Equal(p0.DbType, System.Data.DbType.String);
+                Assert.Equal(p0.Value, "pending");
+                items = item2Select.ToList();
+                Assert.Single(items);
+                Assert.Equal(id2, items[0].id);
+                Assert.Equal(item2status, items[0].status);
+            }
+        }
+        class ts_wlp01
+        {
+            public Guid id { get; set; }
+            [Column(MapType = typeof(string), StringLength = 20)]
+            public ts_wlp01_status status { get; set; }
+        }
+        enum ts_wlp01_status { pending, completed, failed }
+        [Fact]
+        public void NonoLambdaParameter()
+        {
+            var fsql = g.sqlserver;
+            fsql.Delete<ts_wlp02>().Where("1=1").ExecuteAffrows();
+
+            var id1 = Guid.NewGuid();
+            var id2 = Guid.NewGuid();
+            var affrows = fsql.Insert(new[] {
+                    new ts_wlp02
+                    {
+                        id = id1,
+                        status = ts_wlp02_status.completed,
+                    },
+                    new ts_wlp02
+                    {
+                        id = id2,
+                        status = ts_wlp02_status.pending,
+                    }
+                }).ExecuteAffrows();
+            Assert.Equal(2, affrows);
+            var items = fsql.Select<ts_wlp02>().OrderBy(a => a.status).ToList();
+            Assert.Equal(2, items.Count);
+            Assert.Equal(id1, items[0].id);
+            Assert.Equal(ts_wlp02_status.completed, items[0].status);
+            Assert.Equal(id2, items[1].id);
+            Assert.Equal(ts_wlp02_status.pending, items[1].status);
+
+            var item1Select = fsql.Select<ts_wlp02>().Where(a => a.status == ts_wlp02_status.completed);
+            Assert.Equal(@"SELECT a.[id], a.[status] 
+FROM [ts_wlp02] a 
+WHERE (a.[status] = N'completed')", item1Select.ToSql());
+            items = item1Select.ToList();
+            Assert.Single(items);
+            Assert.Equal(id1, items[0].id);
+            Assert.Equal(ts_wlp02_status.completed, items[0].status);
+
+            var item2Select = fsql.Select<ts_wlp02>().Where(a => a.status == ts_wlp02_status.pending);
+            Assert.Equal(@"SELECT a.[id], a.[status] 
+FROM [ts_wlp02] a 
+WHERE (a.[status] = N'pending')", item2Select.ToSql());
+            items = item2Select.ToList();
+            Assert.Single(items);
+            Assert.Equal(id2, items[0].id);
+            Assert.Equal(ts_wlp02_status.pending, items[0].status);
+
+            // use var
+            var item1status = ts_wlp02_status.completed;
+            item1Select = fsql.Select<ts_wlp02>().Where(a => a.status == item1status);
+            Assert.Equal(@"SELECT a.[id], a.[status] 
+FROM [ts_wlp02] a 
+WHERE (a.[status] = N'completed')", item1Select.ToSql());
+            items = item1Select.ToList();
+            Assert.Single(items);
+            Assert.Equal(id1, items[0].id);
+            Assert.Equal(item1status, items[0].status);
+
+            var item2status = ts_wlp02_status.pending;
+            item2Select = fsql.Select<ts_wlp02>().Where(a => a.status == item2status);
+            Assert.Equal(@"SELECT a.[id], a.[status] 
+FROM [ts_wlp02] a 
+WHERE (a.[status] = N'pending')", item2Select.ToSql());
+            items = item2Select.ToList();
+            Assert.Single(items);
+            Assert.Equal(id2, items[0].id);
+            Assert.Equal(item2status, items[0].status);
+        }
+        class ts_wlp02
+        {
+            public Guid id { get; set; }
+            [Column(MapType = typeof(string), StringLength = 20)]
+            public ts_wlp02_status status { get; set; }
+        }
+        enum ts_wlp02_status { pending, completed, failed }
+
         [Fact]
         public void GroupSubSelect()
         {

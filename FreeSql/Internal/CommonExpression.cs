@@ -550,6 +550,20 @@ namespace FreeSql.Internal
         }
         public string ExpressionBinary(string oper, Expression leftExp, Expression rightExp, ExpTSC tsc)
         {
+            if (
+                leftExp.Type == rightExp.Type &&
+
+                leftExp.NodeType == ExpressionType.Convert &&
+                leftExp is UnaryExpression leftExpUexp &&
+                leftExpUexp.Operand?.Type.NullableTypeOrThis().IsEnum == true &&
+
+                rightExp.NodeType == ExpressionType.Convert &&
+                rightExp is UnaryExpression rightExpUexp &&
+                rightExpUexp.Operand?.Type.NullableTypeOrThis().IsEnum == true)
+            {
+                leftExp = leftExpUexp.Operand;
+                rightExp = rightExpUexp.Operand;
+            }
             switch (oper)
             {
                 case "OR":

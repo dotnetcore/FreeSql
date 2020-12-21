@@ -169,7 +169,7 @@ public static partial class FreeSqlGlobalExtensions
         {
             if (dict.TryGetValue(prop.Name, out var existsProp))
             {
-                if (existsProp.DeclaringType != prop) dict[prop.Name] = prop;
+                if (existsProp.DeclaringType != prop.DeclaringType) dict[prop.Name] = prop;
                 continue;
             }
             dict.Add(prop.Name, prop);
