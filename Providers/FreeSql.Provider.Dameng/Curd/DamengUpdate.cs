@@ -32,7 +32,7 @@ namespace FreeSql.Dameng.Curd
             if (_table.Primarys.Length == 1)
             {
                 var pk = _table.Primarys.First();
-                caseWhen.Append(_commonUtils.QuoteReadColumn(pk, pk.CsType, pk.Attribute.MapType, _commonUtils.QuoteSqlName(pk.Attribute.Name)));
+                caseWhen.Append(_commonUtils.RereadColumn(pk, _commonUtils.QuoteSqlName(pk.Attribute.Name)));
                 return;
             }
             caseWhen.Append("(");
@@ -40,7 +40,7 @@ namespace FreeSql.Dameng.Curd
             foreach (var pk in _table.Primarys)
             {
                 if (pkidx > 0) caseWhen.Append(" || '+' || ");
-                caseWhen.Append(_commonUtils.QuoteReadColumn(pk, pk.CsType, pk.Attribute.MapType, _commonUtils.QuoteSqlName(pk.Attribute.Name)));
+                caseWhen.Append(_commonUtils.RereadColumn(pk, _commonUtils.QuoteSqlName(pk.Attribute.Name)));
                 ++pkidx;
             }
             caseWhen.Append(")");

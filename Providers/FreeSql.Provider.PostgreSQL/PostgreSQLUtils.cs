@@ -159,7 +159,7 @@ namespace FreeSql.PostgreSQL
         public override string Now => "current_timestamp";
         public override string NowUtc => "(current_timestamp at time zone 'UTC')";
 
-        public override string QuoteWriteParamter(Type type, string paramterName) => paramterName;
+        public override string QuoteWriteParamterAdapter(Type type, string paramterName) => paramterName;
         protected override string QuoteReadColumnAdapter(Type type, Type mapType, string columnName) => columnName;
 
         static ConcurrentDictionary<Type, bool> _dicIsAssignableFromPostgisGeometry = new ConcurrentDictionary<Type, bool>();

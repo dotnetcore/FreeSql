@@ -131,7 +131,7 @@ namespace FreeSql.Internal
                                 CsType = map[idx].Column.CsType,
                                 MapType = map[idx].Column.Attribute.MapType
                             };
-                            field.Append(", ").Append(_common.QuoteReadColumn(map[idx].Column, child.CsType, child.MapType, child.DbField));
+                            field.Append(", ").Append(_common.RereadColumn(map[idx].Column, child.DbField));
                             if (index >= 0) field.Append(_common.FieldAsAlias($"as{++index}"));
                             parent.Childs.Add(child);
                         }

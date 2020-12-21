@@ -415,7 +415,7 @@ namespace FreeSql.Internal.CommonProvider
                             if (tbiindex > 0 && colidx == 0) field.Append("\r\n");
                         }
                         var quoteName = _commonUtils.QuoteSqlName(col.Attribute.Name);
-                        field.Append(_commonUtils.QuoteReadColumn(col, col.CsType, col.Attribute.MapType, $"{tbi.Alias}.{quoteName}"));
+                        field.Append(_commonUtils.RereadColumn(col, $"{tbi.Alias}.{quoteName}"));
                         ++index;
                         if (dicfield.ContainsKey(quoteName)) field.Append(_commonUtils.FieldAsAlias($"as{index}"));
                         else dicfield.Add(quoteName, true);
@@ -555,7 +555,7 @@ namespace FreeSql.Internal.CommonProvider
                     { //普通字段
                         if (index > 0) field.Append(", ");
                         var quoteName = _commonUtils.QuoteSqlName(col.Attribute.Name);
-                        field.Append(_commonUtils.QuoteReadColumn(col, col.CsType, col.Attribute.MapType, $"{tb.Alias}.{quoteName}"));
+                        field.Append(_commonUtils.RereadColumn(col, $"{tb.Alias}.{quoteName}"));
                         ++index;
                         if (dicfield.ContainsKey(quoteName)) field.Append(_commonUtils.FieldAsAlias($"as{index}"));
                         else dicfield.Add(quoteName, true);
@@ -578,7 +578,7 @@ namespace FreeSql.Internal.CommonProvider
                         {
                             if (index > 0) field.Append(", ");
                             var quoteName = _commonUtils.QuoteSqlName(col2.Attribute.Name);
-                            field.Append(_commonUtils.QuoteReadColumn(col2, col2.CsType, col2.Attribute.MapType, $"{tb2.Alias}.{quoteName}"));
+                            field.Append(_commonUtils.RereadColumn(col2, $"{tb2.Alias}.{quoteName}"));
                             ++index;
                             ++otherindex;
                             if (dicfield.ContainsKey(quoteName)) field.Append(_commonUtils.FieldAsAlias($"as{index}"));
