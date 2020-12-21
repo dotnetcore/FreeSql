@@ -698,7 +698,7 @@ namespace FreeSql.Internal.CommonProvider
 
                             var colsql = _noneParameter ? _commonUtils.GetNoneParamaterSqlValue(_paramsSource, "u", col, col.Attribute.MapType, val) :
                                 _commonUtils.QuoteWriteParamterAdapter(col.Attribute.MapType, _commonUtils.QuoteParamterName($"p_{_paramsSource.Count}"));
-                            _set.Append(_commonUtils.RewriteColumn(col, colsql));
+                            sb.Append(_commonUtils.RewriteColumn(col, colsql));
                             if (_noneParameter == false)
                                 _commonUtils.AppendParamter(_paramsSource, null, col, col.Attribute.MapType, val);
                         }
@@ -742,7 +742,7 @@ namespace FreeSql.Internal.CommonProvider
 
                                 var colsql = _noneParameter ? _commonUtils.GetNoneParamaterSqlValue(_paramsSource, "u", col, col.Attribute.MapType, val) :
                                     _commonUtils.QuoteWriteParamterAdapter(col.Attribute.MapType, _commonUtils.QuoteParamterName($"p_{_paramsSource.Count}"));
-                                _set.Append(_commonUtils.RewriteColumn(col, colsql));
+                                cwsb.Append(_commonUtils.RewriteColumn(col, colsql));
                                 if (_noneParameter == false)
                                     _commonUtils.AppendParamter(_paramsSource, null, col, col.Attribute.MapType, val);
                                 if (val == null || val == DBNull.Value) nulls++;

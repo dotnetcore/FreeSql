@@ -13,6 +13,217 @@ namespace FreeSql.Tests.SqlServer
     public class SqlServerCodeFirstTest
     {
         [Fact]
+        public void GeographyCrud()
+        {
+            var fsql = g.sqlserver;
+            fsql.Delete<ts_geocrud01>().Where("1=1").ExecuteAffrows();
+            var id1 = Guid.NewGuid();
+            var geo1 = "LINESTRING (-122.36 47.656, -122.343 47.656)";
+            Assert.Equal(1, fsql.Insert(new ts_geocrud01 { id = id1, geo = geo1 }).ExecuteAffrows());
+            var item1 = fsql.Select<ts_geocrud01>().Where(a => a.id == id1).First();
+            Assert.NotNull(item1);
+            Assert.Equal(id1, item1.id);
+            Assert.Equal(geo1, item1.geo);
+
+            //NoneParameter
+            fsql.Delete<ts_geocrud01>().Where("1=1").ExecuteAffrows();
+            id1 = Guid.NewGuid();
+            geo1 = "LINESTRING (-122.36 47.656, -122.343 47.656)";
+            Assert.Equal(1, fsql.Insert(new ts_geocrud01 { id = id1, geo = geo1 }).NoneParameter().ExecuteAffrows());
+            item1 = fsql.Select<ts_geocrud01>().Where(a => a.id == id1).First();
+            Assert.NotNull(item1);
+            Assert.Equal(id1, item1.id);
+            Assert.Equal(geo1, item1.geo);
+
+            var item2 = fsql.Select<ts_geocrud01>().Where(a => a.id == id1).First(a => a.geo);
+            Assert.Equal(geo1, item2);
+            var item3 = fsql.Select<ts_geocrud01>().Where(a => a.id == id1).First(a => new { a.geo });
+            Assert.Equal(geo1, item3.geo);
+            var item4 = fsql.Select<ts_geocrud01>().Where(a => a.id == id1).First(a => new ts_geocrud01 { geo = a.geo });
+            Assert.Equal(geo1, item4.geo);
+            var item5 = fsql.Select<ts_geocrud01>().Where(a => a.id == id1).ToList<ts_geocurd01_dto1>().FirstOrDefault();
+            Assert.Equal(geo1, item5.geo);
+            var item6 = fsql.Select<ts_geocrud01>().Where(a => a.id == id1).First(a => new ts_geocurd01_dto1 { geo = a.geo });
+            Assert.Equal(geo1, item6.geo);
+
+            //Update SetSource
+            geo1 = "COMPOUNDCURVE (CIRCULARSTRING (-122.358 47.653, -122.348 47.649, -122.348 47.658), CIRCULARSTRING (-122.348 47.658, -122.358 47.658, -122.358 47.653))";
+            item1.geo = geo1;
+            Assert.Equal(1, fsql.Update<ts_geocrud01>().SetSource(item1).ExecuteAffrows());
+            item1 = fsql.Select<ts_geocrud01>().Where(a => a.id == id1).First();
+            Assert.NotNull(item1);
+            Assert.Equal(id1, item1.id);
+            Assert.Equal(geo1, item1.geo);
+
+            item2 = fsql.Select<ts_geocrud01>().Where(a => a.id == id1).First(a => a.geo);
+            Assert.Equal(geo1, item2);
+            item3 = fsql.Select<ts_geocrud01>().Where(a => a.id == id1).First(a => new { a.geo });
+            Assert.Equal(geo1, item3.geo);
+            item4 = fsql.Select<ts_geocrud01>().Where(a => a.id == id1).First(a => new ts_geocrud01 { geo = a.geo });
+            Assert.Equal(geo1, item4.geo);
+            item5 = fsql.Select<ts_geocrud01>().Where(a => a.id == id1).ToList<ts_geocurd01_dto1>().FirstOrDefault();
+            Assert.Equal(geo1, item5.geo);
+            item6 = fsql.Select<ts_geocrud01>().Where(a => a.id == id1).First(a => new ts_geocurd01_dto1 { geo = a.geo });
+            Assert.Equal(geo1, item6.geo);
+
+            //Update SetSource NoneParameter
+            geo1 = "COMPOUNDCURVE (CIRCULARSTRING (-122.358 47.653, -122.348 47.649, -122.348 47.658), CIRCULARSTRING (-122.348 47.658, -122.358 47.658, -122.358 47.653))";
+            item1.geo = geo1;
+            Assert.Equal(1, fsql.Update<ts_geocrud01>().SetSource(item1).NoneParameter().ExecuteAffrows());
+            item1 = fsql.Select<ts_geocrud01>().Where(a => a.id == id1).First();
+            Assert.NotNull(item1);
+            Assert.Equal(id1, item1.id);
+            Assert.Equal(geo1, item1.geo);
+
+            item2 = fsql.Select<ts_geocrud01>().Where(a => a.id == id1).First(a => a.geo);
+            Assert.Equal(geo1, item2);
+            item3 = fsql.Select<ts_geocrud01>().Where(a => a.id == id1).First(a => new { a.geo });
+            Assert.Equal(geo1, item3.geo);
+            item4 = fsql.Select<ts_geocrud01>().Where(a => a.id == id1).First(a => new ts_geocrud01 { geo = a.geo });
+            Assert.Equal(geo1, item4.geo);
+            item5 = fsql.Select<ts_geocrud01>().Where(a => a.id == id1).ToList<ts_geocurd01_dto1>().FirstOrDefault();
+            Assert.Equal(geo1, item5.geo);
+            item6 = fsql.Select<ts_geocrud01>().Where(a => a.id == id1).First(a => new ts_geocurd01_dto1 { geo = a.geo });
+            Assert.Equal(geo1, item6.geo);
+
+            //Update Set
+            geo1 = "POLYGON ((-122.358 47.653, -122.348 47.649, -122.348 47.658, -122.358 47.658, -122.358 47.653))";
+            Assert.Equal(1, fsql.Update<ts_geocrud01>().Where(a => a.id == id1).Set(a => a.geo, geo1).ExecuteAffrows());
+            item1 = fsql.Select<ts_geocrud01>().Where(a => a.id == id1).First();
+            Assert.NotNull(item1);
+            Assert.Equal(id1, item1.id);
+            Assert.Equal(geo1, item1.geo);
+
+            item2 = fsql.Select<ts_geocrud01>().Where(a => a.id == id1).First(a => a.geo);
+            Assert.Equal(geo1, item2);
+            item3 = fsql.Select<ts_geocrud01>().Where(a => a.id == id1).First(a => new { a.geo });
+            Assert.Equal(geo1, item3.geo);
+            item4 = fsql.Select<ts_geocrud01>().Where(a => a.id == id1).First(a => new ts_geocrud01 { geo = a.geo });
+            Assert.Equal(geo1, item4.geo);
+            item5 = fsql.Select<ts_geocrud01>().Where(a => a.id == id1).ToList<ts_geocurd01_dto1>().FirstOrDefault();
+            Assert.Equal(geo1, item5.geo);
+            item6 = fsql.Select<ts_geocrud01>().Where(a => a.id == id1).First(a => new ts_geocurd01_dto1 { geo = a.geo });
+            Assert.Equal(geo1, item6.geo);
+
+            //Update Set NoneParameter
+            geo1 = "POLYGON ((-122.358 47.653, -122.348 47.649, -122.348 47.658, -122.358 47.658, -122.358 47.653))";
+            Assert.Equal(1, fsql.Update<ts_geocrud01>().NoneParameter().Where(a => a.id == id1).Set(a => a.geo, geo1).ExecuteAffrows());
+            item1 = fsql.Select<ts_geocrud01>().Where(a => a.id == id1).First();
+            Assert.NotNull(item1);
+            Assert.Equal(id1, item1.id);
+            Assert.Equal(geo1, item1.geo);
+
+            item2 = fsql.Select<ts_geocrud01>().Where(a => a.id == id1).First(a => a.geo);
+            Assert.Equal(geo1, item2);
+            item3 = fsql.Select<ts_geocrud01>().Where(a => a.id == id1).First(a => new { a.geo });
+            Assert.Equal(geo1, item3.geo);
+            item4 = fsql.Select<ts_geocrud01>().Where(a => a.id == id1).First(a => new ts_geocrud01 { geo = a.geo });
+            Assert.Equal(geo1, item4.geo);
+            item5 = fsql.Select<ts_geocrud01>().Where(a => a.id == id1).ToList<ts_geocurd01_dto1>().FirstOrDefault();
+            Assert.Equal(geo1, item5.geo);
+            item6 = fsql.Select<ts_geocrud01>().Where(a => a.id == id1).First(a => new ts_geocurd01_dto1 { geo = a.geo });
+            Assert.Equal(geo1, item6.geo);
+
+            //Update Set Multi
+            geo1 = "LINESTRING (-122.36 47.656, -122.343 47.656)";
+            Assert.Equal(1, fsql.Update<ts_geocrud01>().Where(a => a.id == id1).Set(a => new
+            {
+                geo = geo1
+            }).ExecuteAffrows());
+            item1 = fsql.Select<ts_geocrud01>().Where(a => a.id == id1).First();
+            Assert.NotNull(item1);
+            Assert.Equal(id1, item1.id);
+            Assert.Equal(geo1, item1.geo);
+
+            item2 = fsql.Select<ts_geocrud01>().Where(a => a.id == id1).First(a => a.geo);
+            Assert.Equal(geo1, item2);
+            item3 = fsql.Select<ts_geocrud01>().Where(a => a.id == id1).First(a => new { a.geo });
+            Assert.Equal(geo1, item3.geo);
+            item4 = fsql.Select<ts_geocrud01>().Where(a => a.id == id1).First(a => new ts_geocrud01 { geo = a.geo });
+            Assert.Equal(geo1, item4.geo);
+            item5 = fsql.Select<ts_geocrud01>().Where(a => a.id == id1).ToList<ts_geocurd01_dto1>().FirstOrDefault();
+            Assert.Equal(geo1, item5.geo);
+            item6 = fsql.Select<ts_geocrud01>().Where(a => a.id == id1).First(a => new ts_geocurd01_dto1 { geo = a.geo });
+            Assert.Equal(geo1, item6.geo);
+
+            //Update Set Multi NoneParameter
+            geo1 = "LINESTRING (-122.36 47.656, -122.343 47.656)";
+            Assert.Equal(1, fsql.Update<ts_geocrud01>().NoneParameter().Where(a => a.id == id1).Set(a => new
+            {
+                geo = geo1
+            }).ExecuteAffrows());
+            item1 = fsql.Select<ts_geocrud01>().Where(a => a.id == id1).First();
+            Assert.NotNull(item1);
+            Assert.Equal(id1, item1.id);
+            Assert.Equal(geo1, item1.geo);
+
+            item2 = fsql.Select<ts_geocrud01>().Where(a => a.id == id1).First(a => a.geo);
+            Assert.Equal(geo1, item2);
+            item3 = fsql.Select<ts_geocrud01>().Where(a => a.id == id1).First(a => new { a.geo });
+            Assert.Equal(geo1, item3.geo);
+            item4 = fsql.Select<ts_geocrud01>().Where(a => a.id == id1).First(a => new ts_geocrud01 { geo = a.geo });
+            Assert.Equal(geo1, item4.geo);
+            item5 = fsql.Select<ts_geocrud01>().Where(a => a.id == id1).ToList<ts_geocurd01_dto1>().FirstOrDefault();
+            Assert.Equal(geo1, item5.geo);
+            item6 = fsql.Select<ts_geocrud01>().Where(a => a.id == id1).First(a => new ts_geocurd01_dto1 { geo = a.geo });
+            Assert.Equal(geo1, item6.geo);
+
+            //批量
+            fsql.Delete<ts_geocrud01>().Where("1=1").ExecuteAffrows();
+            id1 = Guid.NewGuid();
+            geo1 = "LINESTRING (-122.36 47.656, -122.343 47.656)";
+            var id2 = Guid.NewGuid();
+            var geo2 = "POLYGON ((-122.358 47.653, -122.348 47.649, -122.348 47.658, -122.358 47.658, -122.358 47.653))";
+            Assert.Equal(2, fsql.Insert(new[] { new ts_geocrud01 { id = id1, geo = geo1 }, new ts_geocrud01 { id = id2, geo = geo2 } }).ExecuteAffrows());
+            var items = fsql.Select<ts_geocrud01>().ToList();
+            Assert.Equal(2, items.Count);
+
+            items[0].geo = "POLYGON EMPTY";
+            items[1].geo = "LINESTRING (0 0, 2 2, 1 0)";
+            Assert.Equal(2, fsql.Update<ts_geocrud01>().SetSource(items).ExecuteAffrows());
+            item1 = fsql.Select<ts_geocrud01>().Where(a => a.id == items[0].id).First();
+            Assert.NotNull(item1);
+            Assert.Equal(items[0].id, item1.id);
+            Assert.Equal(items[0].geo, item1.geo);
+            item1 = fsql.Select<ts_geocrud01>().Where(a => a.id == items[1].id).First();
+            Assert.NotNull(item1);
+            Assert.Equal(items[1].id, item1.id);
+            Assert.Equal(items[1].geo, item1.geo);
+
+            //批量 NoneParameter
+            fsql.Delete<ts_geocrud01>().Where("1=1").ExecuteAffrows();
+            id1 = Guid.NewGuid();
+            geo1 = "LINESTRING (-122.36 47.656, -122.343 47.656)";
+            id2 = Guid.NewGuid();
+            geo2 = "POLYGON ((-122.358 47.653, -122.348 47.649, -122.348 47.658, -122.358 47.658, -122.358 47.653))";
+            Assert.Equal(2, fsql.Insert(new[] { new ts_geocrud01 { id = id1, geo = geo1 }, new ts_geocrud01 { id = id2, geo = geo2 } }).NoneParameter().ExecuteAffrows());
+            items = fsql.Select<ts_geocrud01>().ToList();
+            Assert.Equal(2, items.Count);
+
+            items[0].geo = "POLYGON EMPTY";
+            items[1].geo = "LINESTRING (0 0, 2 2, 1 0)";
+            Assert.Equal(2, fsql.Update<ts_geocrud01>().NoneParameter().SetSource(items).ExecuteAffrows());
+            item1 = fsql.Select<ts_geocrud01>().Where(a => a.id == items[0].id).First();
+            Assert.NotNull(item1);
+            Assert.Equal(items[0].id, item1.id);
+            Assert.Equal(items[0].geo, item1.geo);
+            item1 = fsql.Select<ts_geocrud01>().Where(a => a.id == items[1].id).First();
+            Assert.NotNull(item1);
+            Assert.Equal(items[1].id, item1.id);
+            Assert.Equal(items[1].geo, item1.geo);
+        }
+        class ts_geocrud01
+        {
+            public Guid id { get; set; }
+            [Column(DbType = "geography", RewriteSql = "geography::STGeomFromText({0},4236)", RereadSql = "{0}.STAsText()")]
+            public string geo { get; set; }
+        }
+        class ts_geocurd01_dto1
+        {
+            public string geo { get; set; }
+        }
+
+        [Fact]
         public void InsertUpdateParameter()
         {
             var fsql = g.sqlserver;

@@ -195,8 +195,14 @@ namespace FreeSql.Internal
                             return false;
                         }
                         if (parent.CsType == null) parent.CsType = exp.Type;
-                        parent.DbField = ExpressionLambdaToSql(exp, getTSC());
-                        field.Append(", ").Append(parent.DbField);
+                        var pdbfield = parent.DbField = ExpressionLambdaToSql(exp, getTSC());
+                        if (parent.MapType == null || _tables?.Any(a => a.Table.IsRereadSql) == true)
+                        {
+                            var findcol = SearchColumnByField(_tables, null, parent.DbField);
+                            if (parent.MapType == null) parent.MapType = findcol?.Attribute.MapType ?? exp.Type;
+                            if (findcol != null) pdbfield = _common.RereadColumn(findcol, pdbfield);
+                        }
+                        field.Append(", ").Append(pdbfield);
                         if (index >= 0) field.Append(_common.FieldAsAlias($"as{++index}"));
                         else if (index == ReadAnonymousFieldAsCsName && string.IsNullOrEmpty(parent.CsName) == false)
                         {
@@ -204,7 +210,6 @@ namespace FreeSql.Internal
                             if (parent.DbField.EndsWith(csname, StringComparison.CurrentCultureIgnoreCase) == false) //DbField 和 CsName 相同的时候，不处理
                                 field.Append(_common.FieldAsAlias(csname));
                         }
-                        if (parent.MapType == null) parent.MapType = SearchColumnByField(_tables, null, parent.DbField)?.Attribute.MapType ?? exp.Type;
                         return false;
                     }
                     return false;
@@ -254,7 +259,7 @@ namespace FreeSql.Internal
                                 else
                                 {
                                     child.DbField = $"{dtTb.Alias}.{_common.QuoteSqlName(trydtocol.Attribute.Name)}";
-                                    field.Append(", ").Append(child.DbField);
+                                    field.Append(", ").Append(_common.RereadColumn(trydtocol, child.DbField));
                                     if (index >= 0) field.Append(_common.FieldAsAlias($"as{++index}"));
                                 }
                                 break;
@@ -336,7 +341,7 @@ namespace FreeSql.Internal
                                     ReadAnonymousField(_tables, field, child, ref index, Expression.Property(dtTb.Parameter, dtTb.Table.Properties[trydtocol.CsName]), select, diymemexp, whereGlobalFilter, findIncludeMany, isAllDtoMap);
                                 else
                                 {
-                                    child.DbField = $"{dtTb.Alias}.{_common.QuoteSqlName(trydtocol.Attribute.Name)}";
+                                    child.DbField = _common.RereadColumn(trydtocol, $"{dtTb.Alias}.{_common.QuoteSqlName(trydtocol.Attribute.Name)}");
                                     field.Append(", ").Append(child.DbField);
                                     if (index >= 0) field.Append(_common.FieldAsAlias($"as{++index}"));
                                 }

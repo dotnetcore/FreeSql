@@ -57,7 +57,7 @@ namespace FreeSql.Internal
         public string RewriteColumn(ColumnInfo col, string sql)
         {
             if (string.IsNullOrWhiteSpace(col?.Attribute.RewriteSql) == false)
-                return string.Format(col.Attribute.RereadSql, sql);
+                return string.Format(col.Attribute.RewriteSql, sql);
             return sql;
         }
         public string RereadColumn(ColumnInfo col, string columnName)
@@ -170,6 +170,8 @@ namespace FreeSql.Internal
                 if (!string.IsNullOrEmpty(trycol.InsertValueSql)) attr.InsertValueSql = trycol.InsertValueSql;
                 if (trycol._Precision != null) attr.Precision = trycol.Precision;
                 if (trycol._Scale != null) attr.Scale = trycol.Scale;
+                if (!string.IsNullOrEmpty(trycol.RewriteSql)) attr.RewriteSql = trycol.RewriteSql;
+                if (!string.IsNullOrEmpty(trycol.RereadSql)) attr.RereadSql = trycol.RereadSql;
             }
             var attrs = proto.GetCustomAttributes(typeof(ColumnAttribute), false);
             foreach (var tryattrobj in attrs)
@@ -193,6 +195,8 @@ namespace FreeSql.Internal
                 if (!string.IsNullOrEmpty(tryattr.InsertValueSql)) attr.InsertValueSql = tryattr.InsertValueSql; 
                 if (tryattr._Precision != null) attr.Precision = tryattr.Precision;
                 if (tryattr._Scale != null) attr.Scale = tryattr.Scale;
+                if (!string.IsNullOrEmpty(tryattr.RewriteSql)) attr.RewriteSql = tryattr.RewriteSql;
+                if (!string.IsNullOrEmpty(tryattr.RereadSql)) attr.RereadSql = tryattr.RereadSql;
             }
             ColumnAttribute ret = null;
             if (!string.IsNullOrEmpty(attr.Name)) ret = attr;
@@ -212,6 +216,8 @@ namespace FreeSql.Internal
             if (!string.IsNullOrEmpty(attr.InsertValueSql)) ret = attr;
             if (attr._Precision != null) ret = attr;
             if (attr._Scale != null) ret = attr;
+            if (!string.IsNullOrEmpty(attr.RewriteSql)) ret = attr;
+            if (!string.IsNullOrEmpty(attr.RereadSql)) ret = attr;
             if (ret != null && ret.MapType == null) ret.MapType = proto.PropertyType;
             return ret;
         }

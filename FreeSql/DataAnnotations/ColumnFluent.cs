@@ -189,5 +189,31 @@ namespace FreeSql.DataAnnotations
             _column.Scale = scale;
             return this;
         }
+
+        /// <summary>
+        /// 重写功能<para></para>
+        /// 比如：[Column(RewriteSql = &quot;geography::STGeomFromText({0},4236)&quot;)]<para></para>
+        /// 插入：INSERT INTO [table]([geo]) VALUES(geography::STGeomFromText('...',4236))<para></para>
+        /// 提示：更新也生效
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public ColumnFluent RewriteSql(string value)
+        {
+            _column.RewriteSql = value;
+            return this;
+        }
+        /// <summary>
+        /// 重读功能<para></para>
+        /// 比如：[Column(RereadSql = &quot;{0}.STAsText()&quot;)]<para></para>
+        /// 查询：SELECT a.[id], a.[geo].STAsText() FROM [table] a
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public ColumnFluent RereadSql(string value)
+        {
+            _column.RereadSql = value;
+            return this;
+        }
     }
 }

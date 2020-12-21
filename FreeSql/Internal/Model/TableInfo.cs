@@ -23,6 +23,7 @@ namespace FreeSql.Internal.Model
         public string DbOldName { get; set; }
         public bool DisableSyncStructure { get; set; }
         public string Comment { get; internal set; }
+        public bool IsRereadSql { get; internal set; }
 
         public ColumnInfo VersionColumn { get; set; }
 
