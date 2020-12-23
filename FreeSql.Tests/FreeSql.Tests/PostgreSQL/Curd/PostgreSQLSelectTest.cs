@@ -897,6 +897,17 @@ namespace FreeSql.Tests.PostgreSQL
             var sql = select.OrderBy(a => new Random().NextDouble()).ToList();
         }
         [Fact]
+        public void OrderByRandom()
+        {
+            var t1 = select.OrderByRandom().Limit(10).ToSql("1");
+            Assert.Equal(@"SELECT 1 
+FROM ""tb_topic"" a 
+ORDER BY random() 
+limit 10", t1);
+            var t2 = select.OrderByRandom().Limit(10).ToList();
+        }
+
+        [Fact]
         public void Skip_Offset()
         {
             var sql = select.Offset(10).Limit(10).ToList();

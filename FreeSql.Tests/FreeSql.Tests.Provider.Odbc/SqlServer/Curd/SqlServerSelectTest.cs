@@ -775,6 +775,16 @@ namespace FreeSql.Tests.Odbc.SqlServer
             var sql = select.OrderBy(a => new Random().NextDouble()).ToList();
         }
         [Fact]
+        public void OrderByRandom()
+        {
+            var t1 = select.OrderByRandom().Limit(10).ToSql("1");
+            Assert.Equal(@"SELECT TOP 10 1 
+FROM [tb_topic22] a 
+ORDER BY newid()", t1);
+            var t2 = select.OrderByRandom().Limit(10).ToList();
+        }
+
+        [Fact]
         public void Skip_Offset()
         {
             var sql = select.Offset(10).Limit(10).ToList();

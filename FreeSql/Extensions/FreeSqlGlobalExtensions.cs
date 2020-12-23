@@ -579,4 +579,44 @@ SELECT ");
     }
     #endregion
 
+    #region OrderBy Random 随机排序
+
+    /// <summary>
+    /// 随机排序<para></para>
+    /// 支持：MySql/SqlServer/PostgreSQL/Oracle/Sqlite/Firebird/达梦/金仓/神通<para></para>
+    /// 不支持：MsAcess
+    /// </summary>
+    /// <returns></returns>
+    public static TSelect OrderByRandom<TSelect, T1>(this ISelect0<TSelect, T1> that) where TSelect : class
+    {
+        var s0p = that as Select0Provider;
+        switch (s0p._orm.Ado.DataType)
+        {
+            case DataType.MySql:
+            case DataType.OdbcMySql:
+                return that.OrderBy("rand()");
+            case DataType.SqlServer:
+            case DataType.OdbcSqlServer:
+                return that.OrderBy("newid()");
+            case DataType.PostgreSQL:
+            case DataType.OdbcPostgreSQL:
+            case DataType.KingbaseES:
+            case DataType.OdbcKingbaseES:
+            case DataType.ShenTong:
+                return that.OrderBy("random()");
+            case DataType.Oracle:
+            case DataType.Dameng:
+            case DataType.OdbcOracle:
+            case DataType.OdbcDameng:
+                return that.OrderBy("dbms_random.value");
+            case DataType.Sqlite:
+                return that.OrderBy("random()");
+            //case DataType.MsAccess:
+            //    return that.OrderBy("rnd()");
+            case DataType.Firebird:
+                return that.OrderBy("rand()");
+        }
+        throw new NotSupportedException($"{s0p._orm.Ado.DataType} 不支持 OrderByRandom 随机排序");
+    }
+    #endregion
 }

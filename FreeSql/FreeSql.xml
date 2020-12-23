@@ -4495,6 +4495,14 @@
             <param name="level">递归层级</param>
             <returns></returns>
         </member>
+        <member name="M:FreeSqlGlobalExtensions.OrderByRandom``2(FreeSql.ISelect0{``0,``1})">
+            <summary>
+            随机排序<para></para>
+            支持：MySql/SqlServer/PostgreSQL/Oracle/Sqlite/Firebird/达梦/金仓/神通<para></para>
+            不支持：MsAcess
+            </summary>
+            <returns></returns>
+        </member>
         <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.And``1(System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}},System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})">
             <summary>
             使用 and 拼接两个 lambda 表达式
