@@ -700,6 +700,7 @@ namespace FreeSql.Internal
         static ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>> _dicMethodExistsExpressionCallAttribute = new ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>>();
         static ConcurrentDictionary<Type, FieldInfo[]> _dicTypeExpressionCallClassContextFields = new ConcurrentDictionary<Type, FieldInfo[]>();
         static ThreadLocal<List<BaseDiyMemberExpression>> _subSelectParentDiyMemExps = new ThreadLocal<List<BaseDiyMemberExpression>>(); //子查询的所有父自定义查询，比如分组之后的子查询
+        static ConcurrentDictionary<Type, MethodInfo> _dicSelectMethodToSql = new ConcurrentDictionary<Type, MethodInfo>();
         public string ExpressionLambdaToSql(Expression exp, ExpTSC tsc)
         {
             if (exp == null) return "";
@@ -1161,16 +1162,16 @@ namespace FreeSql.Internal
                                                     if (mn == 0) fsqlManyWhereExp = tmpExp;
                                                     else fsqlManyWhereExp = Expression.AndAlso(fsqlManyWhereExp, tmpExp);
                                                 }
-                                                fsqltables.Add(new SelectTableInfo { Alias = manySubSelectWhereParam.Name, Parameter = manySubSelectWhereParam, Table = manyTb, Type = SelectTableInfoType.Parent });
-                                                fsqlWhere.Invoke(fsql, new object[] { Expression.Lambda(fsqlManyWhereExp, fsqlWhereParam) });
-                                                var sql2 = fsqlType.GetMethod("ToSql", new Type[] { typeof(string) })?.Invoke(fsql, new object[] { "1" })?.ToString();
-                                                if (string.IsNullOrEmpty(sql2) == false)
-                                                    manySubSelectExpBoy = Expression.Call(manySubSelectExpBoy, manySubSelectWhereSql, Expression.Constant($"exists({sql2.Replace(" \r\n", " \r\n    ")})"), Expression.Constant(null));
                                                 MethodInfo manySubSelectAggMethod = null;
                                                 switch (exp3.Method.Name) //https://github.com/dotnetcore/FreeSql/issues/362
                                                 {
                                                     case "Any":
                                                     case "Count":
+                                                        fsqltables.Add(new SelectTableInfo { Alias = manySubSelectWhereParam.Name, Parameter = manySubSelectWhereParam, Table = manyTb, Type = SelectTableInfoType.Parent });
+                                                        fsqlWhere.Invoke(fsql, new object[] { Expression.Lambda(fsqlManyWhereExp, fsqlWhereParam) });
+                                                        var sql2 = fsqlType.GetMethod("ToSql", new Type[] { typeof(string) })?.Invoke(fsql, new object[] { "1" })?.ToString();
+                                                        if (string.IsNullOrEmpty(sql2) == false)
+                                                            manySubSelectExpBoy = Expression.Call(manySubSelectExpBoy, manySubSelectWhereSql, Expression.Constant($"exists({sql2.Replace(" \r\n", " \r\n    ")})"), Expression.Constant(null));
                                                         manySubSelectAggMethod = _dicExpressionLambdaToSqlAsSelectAggMethodInfo.GetOrAdd(parm123Ref.RefMiddleEntityType, _ => new ConcurrentDictionary<string, MethodInfo>()).GetOrAdd(exp3.Method.Name, exp3MethodName =>
                                                             typeof(ISelect0<,>).MakeGenericType(typeof(ISelect<>).MakeGenericType(parm123Ref.RefMiddleEntityType), parm123Ref.RefMiddleEntityType).GetMethod(exp3MethodName, new Type[0]));
                                                         manySubSelectExpBoy = Expression.Call(manySubSelectExpBoy, manySubSelectAggMethod);
@@ -1182,7 +1183,28 @@ namespace FreeSql.Internal
                                                     case "ToList":
                                                     case "ToOne":
                                                     case "First":
-                                                        throw new ArgumentException($"ManyToMany 导航属性 .AsSelect() 暂时不可用于 Sum/Avg/Max/Min/First/ToOne/ToList 方法");
+                                                        //解析：string.Join(",", w.Roles.AsSelect().ToList(b => b.RoleName)
+                                                        var exp3Args0 = (exp3.Arguments[0] as UnaryExpression)?.Operand as LambdaExpression;
+                                                        manySubSelectAggMethod = _dicSelectMethodToSql.GetOrAdd(fsqlType, fsqlType2 =>
+                                                            fsqlType2.GetMethods().Where(a => a.Name == "ToSql" && a.GetParameters().Length == 2 && a.GetParameters()[1].ParameterType == typeof(FieldAliasOptions) && a.GetGenericArguments().Length == 1).FirstOrDefault());
+                                                        if (manySubSelectAggMethod == null || exp3Args0 == null) throw new ArgumentException($"ManyToMany 导航属性 .AsSelect() 暂时不可用于 Sum/Avg/Max/Min/First/ToOne/ToList 方法");
+                                                        manySubSelectAggMethod = manySubSelectAggMethod.MakeGenericMethod(exp3Args0.ReturnType);
+                                                        var fsqls0p = fsql as Select0Provider;
+                                                        var fsqls0pWhere = fsqls0p._where.ToString();
+                                                        fsqls0p._where.Clear();
+                                                        var fsqltablesLast = new SelectTableInfo { Alias = manySubSelectWhereParam.Name, Parameter = manySubSelectWhereParam, Table = manyTb, Type = SelectTableInfoType.InnerJoin };
+                                                        fsqltables.Add(fsqltablesLast);
+                                                        fsqlWhere.Invoke(fsql, new object[] { Expression.Lambda(fsqlManyWhereExp, fsqlWhereParam) });
+                                                        fsqltablesLast.NavigateCondition = fsqls0p._where.ToString();
+                                                        if (fsqltablesLast.NavigateCondition.StartsWith(" AND (")) fsqltablesLast.NavigateCondition = fsqltablesLast.NavigateCondition.Substring(6, fsqltablesLast.NavigateCondition.Length - 7);
+                                                        fsqls0p._where.Clear().Append(fsqls0pWhere);
+                                                        var tsc3 = tsc.CloneDisableDiyParse();
+                                                        tsc3._tables = tsc._tables.ToList();
+                                                        var where2 = ExpressionLambdaToSql(Expression.Lambda(manySubSelectWhereExp, manySubSelectWhereParam), tsc3);
+                                                        if (string.IsNullOrEmpty(where2) == false) fsqls0p._where.Append(" AND (").Append(where2).Append(")");
+                                                        var sql3 = manySubSelectAggMethod.Invoke(fsql, new object[] { exp3Args0, FieldAliasOptions.AsProperty }) as string;
+                                                        asSelectBefores.Clear();
+                                                        return $"({sql3.Replace(" \r\n", " \r\n    ")})";
                                                 }
                                                 asSelectBefores.Clear();
                                                 return ExpressionLambdaToSql(manySubSelectExpBoy, tsc);

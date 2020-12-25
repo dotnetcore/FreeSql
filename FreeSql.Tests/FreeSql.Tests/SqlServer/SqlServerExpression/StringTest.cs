@@ -97,6 +97,150 @@ namespace FreeSql.Tests.SqlServerExpression
         }
 
         [Fact]
+        public void StringJoin02()
+        {
+            var fsql = g.sqlserver;
+            fsql.Delete<StringJoin02User>().Where("1=1").ExecuteAffrows();
+            fsql.Delete<StringJoin02Role>().Where("1=1").ExecuteAffrows();
+            fsql.Delete<StringJoin02UserRole>().Where("1=1").ExecuteAffrows();
+
+            var users = fsql.Insert(new[]
+            {
+                new StringJoin02User { UserName = "user01" },
+                new StringJoin02User { UserName = "user02" }
+            }).ExecuteInserted();
+
+            var roles = fsql.Insert(new[]
+            {
+                new StringJoin02Role { RoleName = "role01" },
+                new StringJoin02Role { RoleName = "role02" },
+                new StringJoin02Role { RoleName = "role03" }
+            }).ExecuteInserted();
+
+            fsql.Insert(new[]
+            {
+                new StringJoin02UserRole{ UserId = users[0].Id, RoleId = roles[0].Id },
+                new StringJoin02UserRole{ UserId = users[0].Id, RoleId = roles[1].Id },
+                new StringJoin02UserRole{ UserId = users[0].Id, RoleId = roles[2].Id },
+
+                new StringJoin02UserRole{ UserId = users[1].Id, RoleId = roles[0].Id },
+                new StringJoin02UserRole{ UserId = users[1].Id, RoleId = roles[2].Id },
+            }).ExecuteAffrows();
+
+            var repo = fsql.GetRepository<StringJoin02User>();
+            var result = repo.Select.ToList(w =>
+                new
+                {
+                    w.Id,
+                    w.UserName,
+                    当前角色 = string.Join(",", repo.Orm
+                        .Select<StringJoin02UserRole, StringJoin02Role>()
+                        .LeftJoin((b, c) => b.RoleId == c.Id)
+                        .Where((b, c) => b.UserId == w.Id)
+                        .ToList((b, c) => c.RoleName))
+                });
+            Assert.Equal(2, result.Count);
+            Assert.Equal(users[0].Id, result[0].Id);
+            Assert.Equal("user01", result[0].UserName);
+            Assert.Equal("role01,role02,role03", result[0].当前角色);
+
+            Assert.Equal(users[1].Id, result[1].Id);
+            Assert.Equal("user02", result[1].UserName);
+            Assert.Equal("role01,role03", result[1].当前角色);
+        }
+        class StringJoin02User
+        {
+            [Column(IsIdentity = true)]
+            public int Id { get; set; }
+            public string UserName { get; set; }
+        }
+        class StringJoin02Role
+        {
+            [Column(IsIdentity = true)]
+            public int Id { get; set; }
+            public string RoleName { get; set; }
+        }
+        class StringJoin02UserRole
+        {
+            public int UserId { get; set; }
+            public int RoleId { get; set; }
+        }
+
+        [Fact]
+        public void StringJoin03()
+        {
+            var fsql = g.sqlserver;
+            fsql.Delete<StringJoin03User>().Where("1=1").ExecuteAffrows();
+            fsql.Delete<StringJoin03Role>().Where("1=1").ExecuteAffrows();
+            fsql.Delete<StringJoin03UserRole>().Where("1=1").ExecuteAffrows();
+
+            var users = fsql.Insert(new[]
+            {
+                new StringJoin03User { UserName = "user01" },
+                new StringJoin03User { UserName = "user02" }
+            }).ExecuteInserted();
+
+            var roles = fsql.Insert(new[]
+            {
+                new StringJoin03Role { RoleName = "role01" },
+                new StringJoin03Role { RoleName = "role02" },
+                new StringJoin03Role { RoleName = "role03" }
+            }).ExecuteInserted();
+
+            fsql.Insert(new[]
+            {
+                new StringJoin03UserRole{ UserId = users[0].Id, RoleId = roles[0].Id },
+                new StringJoin03UserRole{ UserId = users[0].Id, RoleId = roles[1].Id },
+                new StringJoin03UserRole{ UserId = users[0].Id, RoleId = roles[2].Id },
+
+                new StringJoin03UserRole{ UserId = users[1].Id, RoleId = roles[0].Id },
+                new StringJoin03UserRole{ UserId = users[1].Id, RoleId = roles[2].Id },
+            }).ExecuteAffrows();
+
+            var repo = fsql.GetRepository<StringJoin03User>();
+            var result = repo.Select.ToList(w =>
+                new
+                {
+                    w.Id,
+                    w.UserName,
+                    当前角色 = string.Join(",", w.Roles.AsSelect().ToList(b => b.RoleName))
+                });
+            Assert.Equal(2, result.Count);
+            Assert.Equal(users[0].Id, result[0].Id);
+            Assert.Equal("user01", result[0].UserName);
+            Assert.Equal("role01,role02,role03", result[0].当前角色);
+
+            Assert.Equal(users[1].Id, result[1].Id);
+            Assert.Equal("user02", result[1].UserName);
+            Assert.Equal("role01,role03", result[1].当前角色);
+        }
+        class StringJoin03User
+        {
+            [Column(IsIdentity = true)]
+            public int Id { get; set; }
+            public string UserName { get; set; }
+
+            [Navigate(ManyToMany = typeof(StringJoin03UserRole))]
+            public List<StringJoin03Role> Roles { get; set; }
+        }
+        class StringJoin03Role
+        {
+            [Column(IsIdentity = true)]
+            public int Id { get; set; }
+            public string RoleName { get; set; }
+
+            [Navigate(ManyToMany = typeof(StringJoin03UserRole))]
+            public List<StringJoin03User> Users { get; set; }
+        }
+        class StringJoin03UserRole
+        {
+            public int UserId { get; set; }
+            public int RoleId { get; set; }
+            public StringJoin03User User { get; set; }
+            public StringJoin03Role Role { get; set; }
+        }
+
+        [Fact]
         public void First()
         {
             Assert.Equal('x', select.First(a => "x1".First()));
