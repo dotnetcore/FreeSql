@@ -135,9 +135,29 @@ namespace FreeSql.Tests.SqlServerExpression
                     w.UserName,
                     当前角色 = string.Join(",", repo.Orm
                         .Select<StringJoin02UserRole, StringJoin02Role>()
-                        .LeftJoin((b, c) => b.RoleId == c.Id)
-                        .Where((b, c) => b.UserId == w.Id)
-                        .ToList((b, c) => c.RoleName))
+                        .LeftJoin((a, c) => a.RoleId == c.Id)
+                        .Where((a, c) => a.UserId == w.Id)
+                        .ToList((a, c) => c.RoleName))
+                });
+            Assert.Equal(2, result.Count);
+            Assert.Equal(users[0].Id, result[0].Id);
+            Assert.Equal("user01", result[0].UserName);
+            Assert.Equal("role01,role02,role03", result[0].当前角色);
+
+            Assert.Equal(users[1].Id, result[1].Id);
+            Assert.Equal("user02", result[1].UserName);
+            Assert.Equal("role01,role03", result[1].当前角色);
+
+            result = repo.Select.ToList(w =>
+                new
+                {
+                    w.Id,
+                    w.UserName,
+                    当前角色 = string.Join(",", repo.Orm
+                        .Select<StringJoin02UserRole, StringJoin02Role>()
+                        .LeftJoin(b => b.t1.RoleId == b.t2.Id)
+                        .Where(b => b.t1.UserId == w.Id)
+                        .ToList(b => b.t2.RoleName))
                 });
             Assert.Equal(2, result.Count);
             Assert.Equal(users[0].Id, result[0].Id);

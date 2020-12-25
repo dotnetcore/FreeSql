@@ -1053,8 +1053,17 @@ namespace FreeSql.Internal
                                                         fsqltable1SetAlias = true;
                                                         var argExpLambda = argExp as LambdaExpression;
                                                         var fsqlTypeGenericArgs = fsqlType.GetGenericArguments();
-                                                        for (var gai = 0; gai < fsqlTypeGenericArgs.Length && gai < argExpLambda.Parameters.Count; gai++)
-                                                            fsqltables[gai].Alias = argExpLambda.Parameters[gai].Name;
+
+                                                        if (argExpLambda.Parameters.Count == 1 && argExpLambda.Parameters[0].Type.FullName.StartsWith("FreeSql.Internal.Model.HzyTuple`"))
+                                                        {
+                                                            for (var gai = 0; gai < fsqlTypeGenericArgs.Length; gai++)
+                                                                fsqltables[gai].Alias = "ht" + (gai + 1);
+                                                        }
+                                                        else
+                                                        {
+                                                            for (var gai = 0; gai < fsqlTypeGenericArgs.Length && gai < argExpLambda.Parameters.Count; gai++)
+                                                                fsqltables[gai].Alias = argExpLambda.Parameters[gai].Name;
+                                                        }
                                                     }
                                                 }
                                                 args[a] = argExp ?? Expression.Lambda(arg3Exp).Compile().DynamicInvoke();
@@ -1249,7 +1258,10 @@ namespace FreeSql.Internal
                                             tscClone1.subSelect001 = fsql as Select0Provider; //#405 Oracle within group(order by ..)
                                             tscClone1.isDisableDiyParse = false;
                                             tscClone1._tables = fsqltables;
-                                            var sqlSum = fsqlType.GetMethod("ToSql", new Type[] { typeof(string) })?.Invoke(fsql, new object[] { $"{exp3.Method.Name.ToLower()}({ExpressionLambdaToSql(exp3.Arguments.FirstOrDefault(), tscClone1)})" })?.ToString();
+                                            var exp3Args0 = (exp3.Arguments.FirstOrDefault() as UnaryExpression)?.Operand as LambdaExpression;
+                                            if (exp3Args0.Parameters.Count == 1 && exp3Args0.Parameters[0].Type.FullName.StartsWith("FreeSql.Internal.Model.HzyTuple`"))
+                                                exp3Args0 = new ReplaceHzyTupleToMultiParam().Modify(exp3Args0, fsqltables);
+                                            var sqlSum = fsqlType.GetMethod("ToSql", new Type[] { typeof(string) })?.Invoke(fsql, new object[] { $"{exp3.Method.Name.ToLower()}({ExpressionLambdaToSql(exp3Args0, tscClone1)})" })?.ToString();
                                             if (string.IsNullOrEmpty(sqlSum) == false)
                                                 return $"({sqlSum.Replace(" \r\n", " \r\n    ")})";
                                             break;
@@ -1260,7 +1272,10 @@ namespace FreeSql.Internal
                                             tscClone2.subSelect001 = fsql as Select0Provider; //#405 Oracle within group(order by ..)
                                             tscClone2.isDisableDiyParse = false;
                                             tscClone2._tables = fsqltables;
-                                            var sqlFirst = fsqlType.GetMethod("ToSql", new Type[] { typeof(string) })?.Invoke(fsql, new object[] { ExpressionLambdaToSql(exp3.Arguments.FirstOrDefault(), tscClone2) })?.ToString();
+                                            var exp3Args02 = (exp3.Arguments.FirstOrDefault() as UnaryExpression)?.Operand as LambdaExpression;
+                                            if (exp3Args02.Parameters.Count == 1 && exp3Args02.Parameters[0].Type.FullName.StartsWith("FreeSql.Internal.Model.HzyTuple`"))
+                                                exp3Args02 = new ReplaceHzyTupleToMultiParam().Modify(exp3Args02, fsqltables);
+                                            var sqlFirst = fsqlType.GetMethod("ToSql", new Type[] { typeof(string) })?.Invoke(fsql, new object[] { ExpressionLambdaToSql(exp3Args02, tscClone2) })?.ToString();
                                             if (string.IsNullOrEmpty(sqlFirst) == false)
                                                 return $"({sqlFirst.Replace(" \r\n", " \r\n    ")})";
                                             break;
@@ -1794,8 +1809,8 @@ namespace FreeSql.Internal
             private ParameterExpression[] parameters;
             public LambdaExpression Modify(LambdaExpression lambda, List<SelectTableInfo> tables)
             {
-                this.tables = tables;
-                parameters = tables.Select(a => a.Parameter ?? Expression.Parameter(a.Table.Type, a.Alias)).ToArray();
+                this.tables = tables.Where(a => a.Type != SelectTableInfoType.Parent).ToList();
+                parameters = this.tables.Select(a => a.Parameter ?? Expression.Parameter(a.Table.Type, a.Alias)).ToArray();
                 var exp = Visit(lambda.Body);
                 return Expression.Lambda(exp, parameters);
             }
