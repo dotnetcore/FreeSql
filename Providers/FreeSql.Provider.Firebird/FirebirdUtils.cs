@@ -43,9 +43,11 @@ namespace FreeSql.Firebird
         public override DbParameter[] GetDbParamtersByObject(string sql, object obj) =>
             Utils.GetDbParamtersByObject<DbParameter>(sql, obj, "@", (name, type, value) =>
             {
-                var ret = new FbParameter { ParameterName = $"@{name}", Value = value };
+                var ret = new FbParameter { ParameterName = $"@{name}" };
                 var tp = _orm.CodeFirst.GetDbInfo(type)?.type;
                 if (tp != null) ret.FbDbType = (FbDbType)tp.Value;
+                else ret.FbDbType = FbDbType.Text;
+                ret.Value = value;
                 return ret;
             });
 

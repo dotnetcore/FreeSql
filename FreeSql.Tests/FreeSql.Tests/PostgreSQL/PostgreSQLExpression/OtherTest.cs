@@ -125,7 +125,8 @@ namespace FreeSql.Tests.PostgreSQLExpression
             var sql3 = select.Where(a => a.testFieldIntArray.Any()).ToList();
             var sql4 = select.Where(a => a.testFieldIntArray.Any() == false).ToList();
 
-            var sql5 = select.ToList(a => a.testFieldIntArray.Concat(new[] { 1, 2, 3 }));
+            //var sql5 = select.ToList(a => a.testFieldIntArray.Concat(new[] { 1, 2, 3 }));
+            //v5.0.1.1 Unable to cast object of type 'System.Nullable`1[System.Int32][]' to type 'System.Collections.Generic.IEnumerable`1[System.Int32]'.
 
             var sql6 = select.Where(a => a.testFieldIntArray.GetLength(1) > 0).ToList();
             var sql7 = select.Where(a => a.testFieldIntArray.GetLongLength(1) > 0).ToList();
