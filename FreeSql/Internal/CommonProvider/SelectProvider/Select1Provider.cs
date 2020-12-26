@@ -655,7 +655,7 @@ namespace FreeSql.Internal.CommonProvider
                     if (membersExpNotNull == null) membersExpNotNull = expNotNull;
                     else membersExpNotNull = Expression.AndAlso(membersExpNotNull, expNotNull);
                 }
-                members.Clear();
+                //members.Clear(); 此行影响 ToChunk 第二次
 
                 var listValueExp = Expression.Parameter(typeof(List<TNavigate>), "listValue");
                 var setListValue = membersExpNotNull == null ?

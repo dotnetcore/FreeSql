@@ -748,6 +748,10 @@ namespace FreeSql.Tests.Dameng
 
             var fkfjfj = select.GroupBy(a => a.Title)
                 .ToList(a => a.Sum(a.Value.TypeGuid));
+            var fkfjfj2 = select.GroupBy(a => a.Title)
+                .Page(2, 10)
+                .OrderBy(a => a.Key)
+                .ToList(a => a.Sum(a.Value.TypeGuid));
 
             var aggsql1 = select
                 .GroupBy(a => a.Title)

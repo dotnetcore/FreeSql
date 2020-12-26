@@ -1568,6 +1568,19 @@ WHERE (((cast(a.""Id"" as character)) in (SELECT b.""Title""
             Assert.Equal(1, songs1[1].Tags.Count);
             Assert.Equal(3, songs1[2].Tags.Count);
 
+            var songs1chunks = new List<Song>();
+            g.sqlite.Select<Song>()
+                .IncludeMany(a => a.Tags)
+                .Where(a => a.Id == song1.Id || a.Id == song2.Id || a.Id == song3.Id)
+                .ToChunk(2, ft =>
+                {
+                    songs1chunks.AddRange(ft.Object);
+                });
+            Assert.Equal(3, songs1.Count);
+            Assert.Equal(2, songs1[0].Tags.Count);
+            Assert.Equal(1, songs1[1].Tags.Count);
+            Assert.Equal(3, songs1[2].Tags.Count);
+
             var songs2 = g.sqlite.Select<Song>()
                 .IncludeMany(a => a.Tags,
                     then => then.IncludeMany(t => t.Songs))
@@ -1584,6 +1597,15 @@ WHERE (((cast(a.""Id"" as character)) in (SELECT b.""Title""
                 .Where(a => a.Tag.Id == tag1.Id || a.Tag.Id == tag2.Id)
                 .ToList(true);
 
+            var tags3chunks = new List<Song_tag>();
+            g.sqlite.Select<Song_tag>()
+                .Include(a => a.Tag.Parent)
+                .IncludeMany(a => a.Tag.Songs)
+                .Where(a => a.Tag.Id == tag1.Id || a.Tag.Id == tag2.Id)
+                .ToChunk(2, ft =>
+                {
+                    tags3chunks.AddRange(ft.Object);
+                });
 
             var songs11 = g.sqlite.Select<Song>()
                 .IncludeMany(a => a.Tags.Take(1))
