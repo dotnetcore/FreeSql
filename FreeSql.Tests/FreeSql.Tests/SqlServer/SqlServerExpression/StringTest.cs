@@ -135,9 +135,9 @@ namespace FreeSql.Tests.SqlServerExpression
                     w.UserName,
                     µ±Ç°½ÇÉ« = string.Join(",", repo.Orm
                         .Select<StringJoin02UserRole, StringJoin02Role>()
-                        .LeftJoin((a, c) => a.RoleId == c.Id)
-                        .Where((a, c) => a.UserId == w.Id)
-                        .ToList((a, c) => c.RoleName))
+                        .LeftJoin((b, c) => b.RoleId == c.Id)
+                        .Where((b, c) => b.UserId == w.Id)
+                        .ToList((b, c) => c.RoleName))
                 });
             Assert.Equal(2, result.Count);
             Assert.Equal(users[0].Id, result[0].Id);

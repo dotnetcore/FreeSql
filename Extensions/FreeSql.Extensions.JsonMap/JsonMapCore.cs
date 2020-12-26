@@ -55,7 +55,7 @@ public static class FreeSqlJsonMapCoreExtensions
                     FreeSql.Internal.Utils.GetDataReaderValueBlockExpressionObjectToStringIfThenElse.Add((LabelTarget returnTarget, Expression valueExp, Expression elseExp, Type type) =>
                     {
                         return Expression.IfThenElse(
-                            Expression.TypeEqual(valueExp, e.Property.PropertyType),
+                            Expression.TypeIs(valueExp, e.Property.PropertyType),
                             Expression.Return(returnTarget, Expression.Call(MethodJsonConvertSerializeObject, Expression.Convert(valueExp, typeof(object)), Expression.Constant(settings)), typeof(object)),
                             elseExp);
                     });
