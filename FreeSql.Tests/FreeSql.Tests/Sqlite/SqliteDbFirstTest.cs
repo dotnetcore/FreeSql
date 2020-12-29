@@ -60,5 +60,24 @@ namespace FreeSql.Tests.Sqlite
         {
             public Guid id { get; set; }
         }
+
+        [Fact]
+        public void TestIdentity()
+        {
+            var fsql = g.sqlite;
+            fsql.CodeFirst.SyncStructure<ts_identity01>();
+
+            var tb = fsql.DbFirst.GetTableByName("ts_identity01");
+            Assert.NotNull(tb);
+            Assert.True(tb.Primarys.Count == 1);
+            Assert.True(tb.Primarys[0].IsIdentity);
+        }
+        class ts_identity01
+        {
+            [Column(IsIdentity = true)]
+            public int id { get; set; }
+
+            public string name { get; set; }
+        }
     }
 }

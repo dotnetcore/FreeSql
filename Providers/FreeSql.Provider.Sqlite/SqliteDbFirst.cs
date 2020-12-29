@@ -287,7 +287,7 @@ from {db}.sqlite_master where type='table'{(tbname == null ? "" : $" and {(ignor
                             ds2item[2] = Regex.Replace(string.Concat(col[2]), @"\(\d+(\b*,\b*\d+)?\)", "").ToUpper();
                             ds2item[4] = string.Concat(col[2]).ToUpper();
                             ds2item[5] = string.Concat(col[5]) == "0" && string.Concat(col[3]) == "0" ? 1 : 0;
-                            ds2item[6] = is_identity;
+                            ds2item[6] = is_identity ? 1 : 0;
                             ds2item[7] = string.Concat(col[5]) == "1" ? 1 : 0;
                             ds2item[8] = "";
                             ds2item[9] = string.Concat(col[4]);
