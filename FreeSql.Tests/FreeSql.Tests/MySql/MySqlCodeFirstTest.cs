@@ -269,6 +269,28 @@ namespace FreeSql.Tests.MySql
         }
 
         [Fact]
+        public void Text_MaxLength_2()
+        {
+            var str1 = string.Join(",", Enumerable.Range(0, 10000).Select(a => "我是中国人"));
+
+            var item1 = new TS_TEXT041 { Data = str1 };
+            Assert.Equal(1, g.mysql.Insert(item1).ExecuteAffrows());
+
+            var item2 = g.mysql.Select<TS_TEXT041>().Where(a => a.Id == item1.Id).First();
+            Assert.Equal(str1, item2.Data);
+
+            //NoneParameter
+            item1 = new TS_TEXT041 { Data = str1 };
+            Assert.Equal(1, g.mysql.Insert(item1).NoneParameter().ExecuteAffrows());
+        }
+        class TS_TEXT041
+        {
+            public Guid Id { get; set; }
+            [MaxLength(-2)]
+            public string Data { get; set; }
+        }
+
+        [Fact]
         public void LongText()
         {
             var str1 = string.Join(",", Enumerable.Range(0, 10000).Select(a => "我是中国人"));
