@@ -79,7 +79,7 @@ namespace FreeSql.Internal.CommonProvider
 
         ISelect<T1, T2> ISelect<T1, T2>.OrderByIf<TMember>(bool condition, Expression<Func<T1, T2, TMember>> column, bool descending)
         {
-            if (condition == false || column == null) this.InternalOrderBy(column?.Body);
+            if (condition == false || column == null) return this;
             for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
             return descending ? this.InternalOrderByDescending(column?.Body) : this.InternalOrderBy(column?.Body);
         }
@@ -533,7 +533,7 @@ namespace FreeSql.Internal.CommonProvider
 
         ISelect<T1, T2, T3> ISelect<T1, T2, T3>.OrderByIf<TMember>(bool condition, Expression<Func<T1, T2, T3, TMember>> column, bool descending)
         {
-            if (condition == false || column == null) this.InternalOrderBy(column?.Body);
+            if (condition == false || column == null) return this;
             for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
             return descending ? this.InternalOrderByDescending(column?.Body) : this.InternalOrderBy(column?.Body);
         }
@@ -989,7 +989,7 @@ namespace FreeSql.Internal.CommonProvider
 
         ISelect<T1, T2, T3, T4> ISelect<T1, T2, T3, T4>.OrderByIf<TMember>(bool condition, Expression<Func<T1, T2, T3, T4, TMember>> column, bool descending)
         {
-            if (condition == false || column == null) this.InternalOrderBy(column?.Body);
+            if (condition == false || column == null) return this;
             for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
             return descending ? this.InternalOrderByDescending(column?.Body) : this.InternalOrderBy(column?.Body);
         }
@@ -1447,7 +1447,7 @@ namespace FreeSql.Internal.CommonProvider
 
         ISelect<T1, T2, T3, T4, T5> ISelect<T1, T2, T3, T4, T5>.OrderByIf<TMember>(bool condition, Expression<Func<T1, T2, T3, T4, T5, TMember>> column, bool descending)
         {
-            if (condition == false || column == null) this.InternalOrderBy(column?.Body);
+            if (condition == false || column == null) return this;
             for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
             return descending ? this.InternalOrderByDescending(column?.Body) : this.InternalOrderBy(column?.Body);
         }
@@ -1907,7 +1907,7 @@ namespace FreeSql.Internal.CommonProvider
 
         ISelect<T1, T2, T3, T4, T5, T6> ISelect<T1, T2, T3, T4, T5, T6>.OrderByIf<TMember>(bool condition, Expression<Func<T1, T2, T3, T4, T5, T6, TMember>> column, bool descending)
         {
-            if (condition == false || column == null) this.InternalOrderBy(column?.Body);
+            if (condition == false || column == null) return this;
             for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
             return descending ? this.InternalOrderByDescending(column?.Body) : this.InternalOrderBy(column?.Body);
         }
@@ -2369,7 +2369,7 @@ namespace FreeSql.Internal.CommonProvider
 
         ISelect<T1, T2, T3, T4, T5, T6, T7> ISelect<T1, T2, T3, T4, T5, T6, T7>.OrderByIf<TMember>(bool condition, Expression<Func<T1, T2, T3, T4, T5, T6, T7, TMember>> column, bool descending)
         {
-            if (condition == false || column == null) this.InternalOrderBy(column?.Body);
+            if (condition == false || column == null) return this;
             for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
             return descending ? this.InternalOrderByDescending(column?.Body) : this.InternalOrderBy(column?.Body);
         }
@@ -2833,7 +2833,7 @@ namespace FreeSql.Internal.CommonProvider
 
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8> ISelect<T1, T2, T3, T4, T5, T6, T7, T8>.OrderByIf<TMember>(bool condition, Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, TMember>> column, bool descending)
         {
-            if (condition == false || column == null) this.InternalOrderBy(column?.Body);
+            if (condition == false || column == null) return this;
             for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
             return descending ? this.InternalOrderByDescending(column?.Body) : this.InternalOrderBy(column?.Body);
         }
@@ -3299,7 +3299,7 @@ namespace FreeSql.Internal.CommonProvider
 
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9>.OrderByIf<TMember>(bool condition, Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TMember>> column, bool descending)
         {
-            if (condition == false || column == null) this.InternalOrderBy(column?.Body);
+            if (condition == false || column == null) return this;
             for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
             return descending ? this.InternalOrderByDescending(column?.Body) : this.InternalOrderBy(column?.Body);
         }
@@ -3767,7 +3767,7 @@ namespace FreeSql.Internal.CommonProvider
 
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>.OrderByIf<TMember>(bool condition, Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TMember>> column, bool descending)
         {
-            if (condition == false || column == null) this.InternalOrderBy(column?.Body);
+            if (condition == false || column == null) return this;
             for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
             return descending ? this.InternalOrderByDescending(column?.Body) : this.InternalOrderBy(column?.Body);
         }
@@ -4237,7 +4237,7 @@ namespace FreeSql.Internal.CommonProvider
 
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>.OrderByIf<TMember>(bool condition, Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TMember>> column, bool descending)
         {
-            if (condition == false || column == null) this.InternalOrderBy(column?.Body);
+            if (condition == false || column == null) return this;
             for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
             return descending ? this.InternalOrderByDescending(column?.Body) : this.InternalOrderBy(column?.Body);
         }
@@ -4709,7 +4709,7 @@ namespace FreeSql.Internal.CommonProvider
 
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>.OrderByIf<TMember>(bool condition, Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TMember>> column, bool descending)
         {
-            if (condition == false || column == null) this.InternalOrderBy(column?.Body);
+            if (condition == false || column == null) return this;
             for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
             return descending ? this.InternalOrderByDescending(column?.Body) : this.InternalOrderBy(column?.Body);
         }
@@ -5183,7 +5183,7 @@ namespace FreeSql.Internal.CommonProvider
 
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>.OrderByIf<TMember>(bool condition, Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TMember>> column, bool descending)
         {
-            if (condition == false || column == null) this.InternalOrderBy(column?.Body);
+            if (condition == false || column == null) return this;
             for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
             return descending ? this.InternalOrderByDescending(column?.Body) : this.InternalOrderBy(column?.Body);
         }
@@ -5659,7 +5659,7 @@ namespace FreeSql.Internal.CommonProvider
 
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>.OrderByIf<TMember>(bool condition, Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TMember>> column, bool descending)
         {
-            if (condition == false || column == null) this.InternalOrderBy(column?.Body);
+            if (condition == false || column == null) return this;
             for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
             return descending ? this.InternalOrderByDescending(column?.Body) : this.InternalOrderBy(column?.Body);
         }
@@ -6137,7 +6137,7 @@ namespace FreeSql.Internal.CommonProvider
 
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>.OrderByIf<TMember>(bool condition, Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TMember>> column, bool descending)
         {
-            if (condition == false || column == null) this.InternalOrderBy(column?.Body);
+            if (condition == false || column == null) return this;
             for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
             return descending ? this.InternalOrderByDescending(column?.Body) : this.InternalOrderBy(column?.Body);
         }
@@ -6617,7 +6617,7 @@ namespace FreeSql.Internal.CommonProvider
 
         ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>.OrderByIf<TMember>(bool condition, Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TMember>> column, bool descending)
         {
-            if (condition == false || column == null) this.InternalOrderBy(column?.Body);
+            if (condition == false || column == null) return this;
             for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
             return descending ? this.InternalOrderByDescending(column?.Body) : this.InternalOrderBy(column?.Body);
         }

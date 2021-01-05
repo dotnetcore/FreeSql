@@ -127,7 +127,7 @@ namespace FreeSql.Internal.CommonProvider
 
         ISelect<<#=NewStr #>> ISelect<<#=NewStr #>>.OrderByIf<TMember>(bool condition, Expression<Func<<#=NewStr #>, TMember>> column, bool descending)
         {
-            if (condition == false || column == null) this.InternalOrderBy(column?.Body);
+            if (condition == false || column == null) return this;
             for (var a = 0; a < column.Parameters.Count; a++) _tables[a].Parameter = column.Parameters[a];
             return descending ? this.InternalOrderByDescending(column?.Body) : this.InternalOrderBy(column?.Body);
         }
@@ -288,7 +288,7 @@ namespace FreeSql.Internal.CommonProvider
         ISelect<<#=NewStr #>> ISelect<<#=NewStr #>>.OrderByIf<TMember>(bool condition, Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column, bool descending)
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(column, _tables);
-            return (this as ISelect<<#=NewStr #>>).OrderByIf(condition,(Expression<Func<<#=NewStr #>, TMember>>)expModify,descending);
+            return (this as ISelect<<#=NewStr #>>).OrderByIf(condition, (Expression<Func<<#=NewStr #>, TMember>>)expModify,descending);
         }
 
         decimal ISelect<<#=NewStr #>>.Sum<TMember>(Expression<Func<HzyTuple<<#=NewStr #>>, TMember>> column)
@@ -354,7 +354,7 @@ namespace FreeSql.Internal.CommonProvider
         ISelect<<#=NewStr #>> ISelect<<#=NewStr #>>.WhereIf(bool condition, Expression<Func<HzyTuple<<#=NewStr #>>, bool>> exp)
         {
             var expModify = new CommonExpression.ReplaceHzyTupleToMultiParam().Modify(exp, _tables);
-            return (this as ISelect<<#=NewStr #>>).WhereIf(condition,(Expression<Func<<#=NewStr #>, bool>>)expModify);
+            return (this as ISelect<<#=NewStr #>>).WhereIf(condition, (Expression<Func<<#=NewStr #>, bool>>)expModify);
         }
 
         bool ISelect<<#=NewStr #>>.Any(Expression<Func<HzyTuple<<#=NewStr #>>, bool>> exp)
