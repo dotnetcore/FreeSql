@@ -100,7 +100,7 @@ namespace FreeSql.Dameng
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["interval day(2) to second(6)"]);
                     return DmDbType.Time;
                 case "date":
-                    _dicDbToCs.TryAdd(dbfull, _dicDbToCs["date(7)"]);
+                    _dicDbToCs.TryAdd(dbfull, _dicDbToCs["date"]);
                     return DmDbType.DateTime;
                 case "timestamp":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["timestamp(6)"]);
@@ -184,7 +184,7 @@ namespace FreeSql.Dameng
                 { "number(10,2)", new DbToCs("(decimal?)", "decimal.Parse({0})", "{0}.ToString()", "decimal?", typeof(decimal), typeof(decimal?), "{0}.Value", "GetDecimal") },
 
                 { "interval day(2) to second(6)", new DbToCs("(TimeSpan?)", "TimeSpan.Parse(double.Parse({0}))", "{0}.Ticks.ToString()", "TimeSpan?", typeof(TimeSpan), typeof(TimeSpan?), "{0}.Value", "GetValue") },
-                { "date(7)", new DbToCs("(DateTime?)", "new DateTime(long.Parse({0}))", "{0}.Ticks.ToString()", "DateTime?", typeof(DateTime), typeof(DateTime?), "{0}.Value", "GetValue") },
+                { "date", new DbToCs("(DateTime?)", "new DateTime(long.Parse({0}))", "{0}.Ticks.ToString()", "DateTime?", typeof(DateTime), typeof(DateTime?), "{0}.Value", "GetValue") },
                 { "timestamp(6)", new DbToCs("(DateTime?)", "new DateTime(long.Parse({0}))", "{0}.Ticks.ToString()", "DateTime?", typeof(DateTime), typeof(DateTime?), "{0}.Value", "GetValue") },
                 { "timestamp(6) with local time zone", new DbToCs("(DateTime?)", "new DateTime(long.Parse({0}))", "{0}.Ticks.ToString()", "DateTime?", typeof(DateTime), typeof(DateTime?), "{0}.Value", "GetValue") },
 
