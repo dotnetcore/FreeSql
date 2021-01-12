@@ -1030,7 +1030,7 @@ namespace FreeSql.Internal
                                         {
                                             var fsqlGlobalFilter = fsqlSelect0._whereGlobalFilter;
                                             if (fsqlGlobalFilter != tsc.whereGlobalFilter)
-                                                fsqlGlobalFilter.AddRange(tsc.whereGlobalFilter);
+                                                fsqlGlobalFilter.AddRange(tsc.whereGlobalFilter.Where(b => !fsqlGlobalFilter.Any(a => a.Name == b.Name)));
                                         }
                                     }
                                     else if (fsqlType != null)

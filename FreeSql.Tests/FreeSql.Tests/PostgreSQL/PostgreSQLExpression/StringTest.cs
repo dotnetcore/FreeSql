@@ -72,6 +72,9 @@ namespace FreeSql.Tests.PostgreSQLExpression
             val1 = string.Join("**", fsql.Select<StringJoin01>().ToList(a => a.id));
             val2 = fsql.Select<StringJoin01>().ToList(a => string.Join("**", fsql.Select<StringJoin01>().As("b").ToList(b => b.id)));
             Assert.Equal(val1, val2[0]);
+
+            fsql.GlobalFilter.Apply<StringJoin01>("test001", a => a.name.Length > 0);
+            val2 = fsql.Select<StringJoin01>().ToList(a => string.Join("**", fsql.Select<StringJoin01>().As("b").ToList(b => b.id)));
         }
         class StringJoin01
         {
