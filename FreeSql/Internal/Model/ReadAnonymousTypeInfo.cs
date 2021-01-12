@@ -9,6 +9,7 @@ namespace FreeSql.Internal.Model
     public class ReadAnonymousTypeInfo
     {
         public PropertyInfo Property { get; set; }
+        public FieldInfo ReflectionField { get; set; }
         public string CsName { get; set; }
         public Type CsType { get; set; }
         public Type MapType { get; set; }
@@ -23,6 +24,7 @@ namespace FreeSql.Internal.Model
         public void CopyTo(ReadAnonymousTypeInfo target)
         {
             target.Property = Property;
+            target.ReflectionField = ReflectionField;
             target.CsName = CsName;
             target.CsType = CsType;
             target.MapType = MapType;

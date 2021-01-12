@@ -280,6 +280,7 @@ namespace FreeSql.Internal
                                 CsType = initAssignExp.Expression.Type,
                                 MapType = initAssignExp.Expression.Type
                             };
+                            if (child.Property == null) child.ReflectionField = initExp.Type.GetField(initExp.Bindings[a].Member.Name, BindingFlags.Public | BindingFlags.Instance);
                             parent.Childs.Add(child);
                             ReadAnonymousField(_tables, field, child, ref index, initAssignExp.Expression, select, diymemexp, whereGlobalFilter, findIncludeMany, false);
                         }
@@ -399,13 +400,17 @@ namespace FreeSql.Internal
             var isnull = notRead;
             for (var b = ctorParmsLength; b < parent.Childs.Count; b++)
             {
-                var prop = parent.Childs[b].Property;
                 var dbval = parent.IsEntity ? new ReadAnonymousDbValueRef() : null;
                 var objval = ReadAnonymous(parent.Childs[b], dr, ref index, notRead, dbval, rowIndex, fillIncludeMany);
                 if (isnull == false && parent.IsEntity && dbval.DbValue == null && parent.Table != null && parent.Table.ColumnsByCs.TryGetValue(parent.Childs[b].CsName, out var trycol) && trycol.Attribute.IsPrimary)
                     isnull = true;
-                if (isnull == false && prop.CanWrite)
-                    prop.SetValue(ret, objval, null);
+
+                if (isnull == false)
+                {
+                    var prop = parent.Childs[b].Property;
+                    if (prop?.CanWrite == true) prop.SetValue(ret, objval, null);
+                    else if (prop == null) parent.Childs[b].ReflectionField?.SetValue(ret, objval);
+                }
             }
             return isnull ? null : ret;
         }
