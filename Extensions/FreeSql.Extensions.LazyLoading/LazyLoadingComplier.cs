@@ -49,7 +49,7 @@ namespace FreeSql.Extensions.LazyLoading
                     if (!dll.EndsWith(".dll", StringComparison.OrdinalIgnoreCase) &&
                         !dll.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)) continue;
 
-                    Console.WriteLine(dll);
+                    //Console.WriteLine(dll);
                     var dllName = string.Empty;
                     var idx = dll.LastIndexOf('/');
                     if (idx != -1) dllName = dll.Substring(idx + 1);

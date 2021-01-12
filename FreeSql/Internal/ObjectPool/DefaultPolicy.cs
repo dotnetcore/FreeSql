@@ -33,7 +33,6 @@ namespace FreeSql.Internal.ObjectPool
 
         public void OnGet(Object<T> obj)
         {
-            //Console.WriteLine("Get: " + obj);
             OnGetObject?.Invoke(obj);
         }
 
@@ -41,7 +40,6 @@ namespace FreeSql.Internal.ObjectPool
 #else
         public Task OnGetAsync(Object<T> obj)
         {
-            //Console.WriteLine("GetAsync: " + obj);
             OnGetObject?.Invoke(obj);
             return Task.FromResult(true);
         }
@@ -54,7 +52,6 @@ namespace FreeSql.Internal.ObjectPool
 
         public void OnReturn(Object<T> obj)
         {
-            //Console.WriteLine("Return: " + obj);
         }
 
         public bool OnCheckAvailable(Object<T> obj)

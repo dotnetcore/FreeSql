@@ -9,6 +9,40 @@ using System.Threading.Tasks;
 
 namespace FreeSql.Internal.ObjectPool
 {
+    internal class TestTrace
+    {
+        internal static void WriteLine(string text, ConsoleColor backgroundColor)
+        {
+            try //#643
+            {
+                var bgcolor = Console.BackgroundColor;
+                var forecolor = Console.ForegroundColor;
+                Console.BackgroundColor = backgroundColor;
+
+                switch (backgroundColor)
+                {
+                    case ConsoleColor.Yellow:
+                        Console.ForegroundColor = ConsoleColor.White;
+                        break;
+                    case ConsoleColor.DarkGreen:
+                        Console.ForegroundColor = ConsoleColor.White;
+                        break;
+                }
+                Console.Write(text);
+                Console.BackgroundColor = bgcolor;
+                Console.ForegroundColor = forecolor;
+                Console.WriteLine();
+            }
+            catch
+            {
+                try
+                {
+                    System.Diagnostics.Debug.WriteLine(text);
+                }
+                catch { }
+            }
+        }
+    }
 
     /// <summary>
     /// 对象池管理类
@@ -74,16 +108,7 @@ namespace FreeSql.Internal.ObjectPool
             {
 
                 if (UnavailableException != null)
-                {
-                    var bgcolor = Console.BackgroundColor;
-                    var forecolor = Console.ForegroundColor;
-                    Console.BackgroundColor = ConsoleColor.DarkYellow;
-                    Console.ForegroundColor = ConsoleColor.White;
-                    Console.Write($"【{Policy.Name}】恢复检查时间：{DateTime.Now.AddSeconds(interval)}");
-                    Console.BackgroundColor = bgcolor;
-                    Console.ForegroundColor = forecolor;
-                    Console.WriteLine();
-                }
+                    TestTrace.WriteLine($"【{Policy.Name}】恢复检查时间：{DateTime.Now.AddSeconds(interval)}", ConsoleColor.DarkYellow);
 
                 while (UnavailableException != null)
                 {
@@ -97,7 +122,7 @@ namespace FreeSql.Internal.ObjectPool
                     try
                     {
 
-                        var conn = getFree(false);
+                        var conn = GetFree(false);
                         if (conn == null) throw new Exception($"CheckAvailable 无法获得资源，{this.Statistics}");
 
                         try
@@ -116,14 +141,7 @@ namespace FreeSql.Internal.ObjectPool
                     }
                     catch (Exception ex)
                     {
-                        var bgcolor = Console.BackgroundColor;
-                        var forecolor = Console.ForegroundColor;
-                        Console.BackgroundColor = ConsoleColor.DarkYellow;
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.Write($"【{Policy.Name}】仍然不可用，下一次恢复检查时间：{DateTime.Now.AddSeconds(interval)}，错误：({ex.Message})");
-                        Console.BackgroundColor = bgcolor;
-                        Console.ForegroundColor = forecolor;
-                        Console.WriteLine();
+                        TestTrace.WriteLine($"【{Policy.Name}】仍然不可用，下一次恢复检查时间：{DateTime.Now.AddSeconds(interval)}，错误：({ex.Message})", ConsoleColor.DarkYellow);
                     }
                 }
 
@@ -160,14 +178,7 @@ namespace FreeSql.Internal.ObjectPool
 
                 Policy.OnAvailable();
 
-                var bgcolor = Console.BackgroundColor;
-                var forecolor = Console.ForegroundColor;
-                Console.BackgroundColor = ConsoleColor.DarkGreen;
-                Console.ForegroundColor = ConsoleColor.White;
-                Console.Write($"【{Policy.Name}】已恢复工作");
-                Console.BackgroundColor = bgcolor;
-                Console.ForegroundColor = forecolor;
-                Console.WriteLine();
+                TestTrace.WriteLine($"【{Policy.Name}】已恢复工作", ConsoleColor.DarkGreen);
             }
         }
 
@@ -177,7 +188,7 @@ namespace FreeSql.Internal.ObjectPool
             try
             {
 
-                var conn = getFree(false);
+                var conn = GetFree(false);
                 if (conn == null) throw new Exception($"LiveCheckAvailable 无法获得资源，{this.Statistics}");
 
                 try
@@ -260,7 +271,7 @@ namespace FreeSql.Internal.ObjectPool
         /// 获取可用资源，或创建资源
         /// </summary>
         /// <returns></returns>
-        private Object<T> getFree(bool checkAvailable)
+        private Object<T> GetFree(bool checkAvailable)
         {
 
             if (running == false)
@@ -300,7 +311,7 @@ namespace FreeSql.Internal.ObjectPool
         public Object<T> Get(TimeSpan? timeout = null)
         {
 
-            var obj = getFree(true);
+            var obj = GetFree(true);
 
             if (obj == null)
             {
@@ -357,7 +368,7 @@ namespace FreeSql.Internal.ObjectPool
         async public Task<Object<T>> GetAsync()
         {
 
-            var obj = getFree(true);
+            var obj = GetFree(true);
 
             if (obj == null)
             {

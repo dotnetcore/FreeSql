@@ -4316,7 +4316,7 @@
             </summary>
             <param name="policy">策略</param>
         </member>
-        <member name="M:FreeSql.Internal.ObjectPool.ObjectPool`1.getFree(System.Boolean)">
+        <member name="M:FreeSql.Internal.ObjectPool.ObjectPool`1.GetFree(System.Boolean)">
             <summary>
             获取可用资源，或创建资源
             </summary>
