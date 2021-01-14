@@ -243,7 +243,8 @@ namespace FreeSql
 
                         if (curList.Any() == false) //全部删除
                         {
-                            var delall = _db.OrmOriginal.Delete<object>().AsType(tref.RefMiddleEntityType)
+                            var delall = _db.OrmOriginal.Delete<object>()
+                                .AsType(tref.RefMiddleEntityType)
                                 .WithTransaction(_uow?.GetOrBeginTransaction());
                             foreach (var midWhere in midWheres) delall.Where(midWhere);
                             var sql = delall.ToSql();
