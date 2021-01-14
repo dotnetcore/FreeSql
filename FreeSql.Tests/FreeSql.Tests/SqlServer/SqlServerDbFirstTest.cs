@@ -1,6 +1,7 @@
 using FreeSql.DataAnnotations;
 using FreeSql.Tests.DataContext.SqlServer;
 using System;
+using System.Linq;
 using Xunit;
 
 namespace FreeSql.Tests.SqlServer
@@ -34,6 +35,11 @@ namespace FreeSql.Tests.SqlServer
         {
             var fsql = g.sqlserver;
             var t1 = fsql.DbFirst.GetTableByName("tb_alltype");
+
+            //var rm = new RazorModel(fsql, "xxx", new[] { false, false, false, false }, new System.Collections.Generic.List<DatabaseModel.DbTableInfo>(new[] { t1 }), t1);
+            //var t1colstr = t1.Columns.Where(a => a.Name == "testFieldString").FirstOrDefault();
+            //var t1colstr_defval = rm.GetColumnDefaultValue(t1colstr, false);
+
             var t2 = fsql.DbFirst.GetTableByName("dbo.tb_alltype");
             Assert.NotNull(t1);
             Assert.NotNull(t2);
