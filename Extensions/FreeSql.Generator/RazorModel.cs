@@ -220,6 +220,7 @@ public class RazorModel {
 			if (defval.StartsWith("N'") && defval.EndsWith("'")) defval = defval.Substring(1);
 			if (cstype == typeof(Guid) && string.Compare(defval, "newid()", true) == 0) return $"Guid.NewGuid()";
 			if (cstype == typeof(string) && string.Compare(defval, "newid()", true) == 0) return $"Guid.NewGuid().ToString().ToUpper()";
+			if (defval == "NULL") return null;
 		}
 		if ((cstype == typeof(string) && defval.StartsWith("'") && defval.EndsWith("'::character varying") ||
 			cstype == typeof(Guid) && defval.StartsWith("'") && defval.EndsWith("'::uuid")
