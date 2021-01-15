@@ -217,7 +217,7 @@ namespace FreeSql
                 if (_table.ColumnsByCsIgnore.ContainsKey(prop.Name)) return;
                 if (_table.ColumnsByCs.ContainsKey(prop.Name)) return;
 
-                var tref = _table.GetTableRef(prop.Name, true);
+                var tref = _table.GetTableRef(prop.Name, false); //防止非正常的导航属性报错
                 if (tref == null) return;
                 switch (tref.RefType)
                 {
