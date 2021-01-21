@@ -20,10 +20,8 @@
 
 	<ItemGroup>
 		<None Include="../../logo.png" Pack="true" PackagePath="\" />
-		<None Include="lib\System.Data.OscarClient.dll" Pack="true" PackagePath="\lib\netstandard2.0\" />
 		<None Include="lib\System.Data.OscarClient.dll" Pack="true" PackagePath="\lib\net45\" />
 		<None Include="lib\System.Data.OscarClient.dll" Pack="true" PackagePath="\lib\net40\" />
-		<None Include="lib\Mono.Security.dll" Pack="true" PackagePath="\lib\netstandard2.0\" />
 		<None Include="lib\Mono.Security.dll" Pack="true" PackagePath="\lib\net45\" />
 		<None Include="lib\Mono.Security.dll" Pack="true" PackagePath="\lib\net40\" />
 		<None Include="lib/**/*.dll">
@@ -35,7 +33,10 @@
 		<ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />
 	</ItemGroup>
 
-	<ItemGroup>
+	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+		<PackageReference Include="Oscar.Data.SqlClient" Version="1.0.8.1" />
+	</ItemGroup>
+	<ItemGroup Condition="'$(TargetFramework)' != 'netstandard2.0'">
 		<Reference Include="System.Data.OscarClient">
 			<HintPath>lib\System.Data.OscarClient.dll</HintPath>
 			<Private>false</Private>
