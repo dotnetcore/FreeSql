@@ -18,7 +18,7 @@ namespace FreeSql.Tests.Issues
 		public void MySqlInsertOrUpdate()
 		{
             var fsql = g.mysql;
-			var rst = fsql.Insert<Song_Tag>(new[] { new Song_Tag { SongId = 1, TagId = 1 } })
+			var rst = fsql.Insert(new[] { new Song_Tag { SongId = 1, TagId = 1 } })
 				.NoneParameter()
 				.MySqlIgnoreInto()
 				.ToSql();
