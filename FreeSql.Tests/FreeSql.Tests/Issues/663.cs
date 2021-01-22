@@ -22,9 +22,17 @@ namespace FreeSql.Tests.Issues
 				.NoneParameter()
 				.MySqlIgnoreInto()
 				.ToSql();
+			Assert.Equal(@"INSERT IGNORE INTO `Song_Tag663`(`SongId`, `TagId`) VALUES(1, 1)", rst);
 
-			Assert.Equal(@"INSERT IGNORE INTO `Song_Tagg663`(`SongId`, `TagId`) VALUES(1, 1)", rst);
-			
+			rst = fsql.InsertOrUpdate<Song_Tag>()
+				.SetSource(new[] { new Song_Tag { SongId = 1, TagId = 1 } })
+				.IfExistsDoNothing()
+				.ToSql();
+			Assert.Equal(@"INSERT INTO `Song_Tag663`(`SongId`, `TagId`) SELECT 1, 1 
+ FROM dual WHERE NOT EXISTS(SELECT 1 
+    FROM `Song_Tag663` a 
+    WHERE (a.`SongId` = 1 AND a.`TagId` = 1) 
+    limit 0,1)", rst);
 		}
 
 		[Table(Name = "Song663")]
@@ -35,7 +43,7 @@ namespace FreeSql.Tests.Issues
 			public string Text { set; get; }
 			public List<Tag> Tags { set; get; }
 		}
-		[Table(Name = "Song_Tagg663")]
+		[Table(Name = "Song_Tag663")]
 		class Song_Tag
 		{
 			public int SongId { set; get; }
