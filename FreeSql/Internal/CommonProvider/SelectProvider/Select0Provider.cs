@@ -154,7 +154,7 @@ namespace FreeSql.Internal.CommonProvider
                 var currentType = firstTb.Table.Type;
                 Expression currentExp = firstTb.Parameter;
 
-                for (var x = 0; x < field.Length; x++)
+                for (var x = firstTbs.Length == 1 ? 1 : 0; x < field.Length; x++)
                 {
                     var tmp1 = field[x];
                     if (_commonUtils.GetTableByEntity(currentType).Properties.TryGetValue(tmp1, out var prop) == false)
