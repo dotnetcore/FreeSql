@@ -1188,6 +1188,14 @@
             <param name="defaultValue"></param>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.SqlExt.DistinctCount``1(``0)">
+            <summary>
+            count(distinct name)
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="column"></param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.SqlExt.GreaterThan``1(``0,``0)">
             <summary>
             大于 &gt;

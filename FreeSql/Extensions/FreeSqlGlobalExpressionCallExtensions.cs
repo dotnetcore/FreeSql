@@ -117,6 +117,18 @@ namespace FreeSql
             return default(TValue);
         }
 
+        /// <summary>
+        /// count(distinct name)
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="column"></param>
+        /// <returns></returns>
+        public static long DistinctCount<T>(T column)
+        {
+            expContext.Value.Result = $"count(distinct {expContext.Value.ParsedContent["column"]})";
+            return 0;
+        }
+
         #region 大小判断
         /// <summary>
         /// 大于 &gt;

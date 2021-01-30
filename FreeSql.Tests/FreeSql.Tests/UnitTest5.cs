@@ -15,6 +15,18 @@ namespace FreeSql.Tests
     public class UnitTest5
     {
         [Fact]
+        public void TestDistinctCount()
+        {
+            var fsql = g.sqlite;
+
+            var sql = fsql.Select<ts_up_dywhere01>().ToSql(a => SqlExt.DistinctCount(a.status));
+            fsql.Select<ts_up_dywhere01>().Aggregate(a => SqlExt.DistinctCount(a.Key.status), out var count);
+
+            Assert.Equal(@"SELECT count(distinct a.""status"") as1 
+FROM ""ts_up_dywhere01"" a", sql);
+        }
+
+        [Fact]
         public void TestUpdateDyWhere()
         {
             var fsql = g.sqlite;
