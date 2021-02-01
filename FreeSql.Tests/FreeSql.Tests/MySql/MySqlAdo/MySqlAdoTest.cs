@@ -54,6 +54,8 @@ namespace FreeSql.Tests.MySql
             var t5 = g.mysql.Ado.Query<dynamic>("select * from song");
 
             var t6 = g.mysql.Ado.Query<xxx>("select * from song where id in ?ids", new { ids = new[] { 1, 2, 3 } });
+
+            var t7 = g.mysql.Ado.Query<xxx>("select * from song where title in ?titles", new { titles = new[] { "title1", "title2", "title2" } });
         }
 
         [Fact]

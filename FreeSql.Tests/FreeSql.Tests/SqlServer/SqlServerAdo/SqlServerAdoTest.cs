@@ -135,6 +135,9 @@ namespace FreeSql.Tests.SqlServer
                 new Dictionary<string, object> { ["id"] = 1 });
 
             var t6 = g.sqlserver.Ado.Query<xxx>("select * from xxx where id in @ids", new { ids = new[] { 1, 2, 3 } });
+
+            var t7 = g.sqlserver.Ado.Query<xxx>("select * from xxx where title in @titles", new { titles = new[] { "title1", "title2", "title2" } });
+
         }
 
         [Fact]
