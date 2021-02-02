@@ -15,6 +15,49 @@ namespace FreeSql.Tests
     public class UnitTest5
     {
         [Fact]
+        public void DebugUpdateSet01()
+        {
+            var fsql = g.mysql;
+
+            var report = new
+            {
+                NotTaxCostPrice = 47.844297M,
+                ProductId = Guid.Empty,
+                MerchantId = Guid.Empty,
+            };
+            var sql = fsql.Update<ProductStockBak>()
+                .NoneParameter()
+                .Set(a => a.NotTaxTotalCostPrice == report.NotTaxCostPrice * a.CurrentQty)
+                .Set(a => a.NotTaxCostPrice, report.NotTaxCostPrice)
+                .Where(x => x.ProductId == report.ProductId && x.MerchantId == report.MerchantId)
+                .ToSql();
+            Assert.Equal(@"UPDATE `ProductStockBak` SET `NotTaxTotalCostPrice` = 47.844297 * `CurrentQty`, `NotTaxCostPrice` = 47.844297 
+WHERE (`ProductId` = '00000000-0000-0000-0000-000000000000' AND `MerchantId` = '00000000-0000-0000-0000-000000000000')", sql);
+        }
+        public partial class ProductStockBak
+        {
+            [Column(IsPrimary = true)]
+            public Guid ProductStockBakId { get; set; }
+
+            public DateTime BakTime { get; set; }
+            public Guid GoodsId { get; set; }
+            public Guid ProductId { get; set; }
+            public Guid MerchantId { get; set; }
+            public string ProductCode { get; set; }
+            public string Barcode { get; set; }
+            public long CurrentQty { get; set; }
+            public long UsableQty { get; set; }
+            public long OrderQty { get; set; }
+            public long LockQty { get; set; }
+            public decimal CostPrice { get; set; }
+            public decimal TotalCostPrice { get; set; }
+            public decimal NotTaxCostPrice { get; set; }
+            public decimal NotTaxTotalCostPrice { get; set; }
+            public DateTime? CreationTime { get; set; }
+            public DateTime? LastModificationTime { get; set; }
+        }
+
+        [Fact]
         public void TestDistinctCount()
         {
             var fsql = g.sqlite;
