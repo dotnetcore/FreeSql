@@ -20,16 +20,16 @@ namespace FreeSql
         {
             var select = base.OrmSelect(dywhere);
 
-            var filters = (_repo.DataFilter as DataFilter<TEntity>)._filters.Where(a => a.Value.IsEnabled == true);
-            foreach (var filter in filters) select.Where(filter.Value.Expression);
-            return select.AsTable(_repo.AsTableSelectValueInternal);
+            var filters = (_repo.DataFilter as DataFilter<TEntity>)._filters;
+            foreach (var filter in filters.Where(a => a.Value.IsEnabled == true)) select.Where(filter.Value.Expression);
+            return select.AsTable(_repo.AsTableSelectValueInternal).DisableGlobalFilter(filters.Where(a => a.Value.IsEnabled == false).Select(a => a.Key).ToArray());
         }
         internal ISelect<TEntity> OrmSelectInternal(object dywhere) => OrmSelect(dywhere);
         protected override IUpdate<TEntity> OrmUpdate(IEnumerable<TEntity> entitys)
         {
             var update = base.OrmUpdate(entitys);
-            var filters = (_repo.DataFilter as DataFilter<TEntity>)._filters.Where(a => a.Value.IsEnabled == true);
-            foreach (var filter in filters)
+            var filters = (_repo.DataFilter as DataFilter<TEntity>)._filters;
+            foreach (var filter in filters.Where(a => a.Value.IsEnabled == true))
             {
                 if (entitys != null)
                     foreach (var entity in entitys)
@@ -37,15 +37,15 @@ namespace FreeSql
                             throw new Exception($"FreeSql.Repository Update 失败，因为设置了过滤器 {filter.Key}: {filter.Value.Expression}，更新的数据不符合 {_db.OrmOriginal.GetEntityString(_entityType, entity)}");
                 update.Where(filter.Value.Expression);
             }
-            return update.AsTable(_repo.AsTableValueInternal);
+            return update.AsTable(_repo.AsTableValueInternal).DisableGlobalFilter(filters.Where(a => a.Value.IsEnabled == false).Select(a => a.Key).ToArray());
         }
         internal IUpdate<TEntity> OrmUpdateInternal(IEnumerable<TEntity> entitys) => OrmUpdate(entitys);
         protected override IDelete<TEntity> OrmDelete(object dywhere)
         {
             var delete = base.OrmDelete(dywhere);
-            var filters = (_repo.DataFilter as DataFilter<TEntity>)._filters.Where(a => a.Value.IsEnabled == true);
-            foreach (var filter in filters) delete.Where(filter.Value.Expression);
-            return delete.AsTable(_repo.AsTableValueInternal);
+            var filters = (_repo.DataFilter as DataFilter<TEntity>)._filters;
+            foreach (var filter in filters.Where(a => a.Value.IsEnabled == true)) delete.Where(filter.Value.Expression);
+            return delete.AsTable(_repo.AsTableValueInternal).DisableGlobalFilter(filters.Where(a => a.Value.IsEnabled == false).Select(a => a.Key).ToArray());
         }
         internal IDelete<TEntity> OrmDeleteInternal(object dywhere) => OrmDelete(dywhere);
         protected override IInsert<TEntity> OrmInsert(TEntity entity) => OrmInsert(new[] { entity });
