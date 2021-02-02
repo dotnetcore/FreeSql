@@ -698,18 +698,23 @@ namespace FreeSql.Internal.CommonProvider
             var tmpOrderBy = _orderby;
             var tmpSkip = _skip;
             var tmpLimit = _limit;
+            var tmpDistinct = _distinct;
             _orderby = null; //解决 select count(1) from t order by id 这样的 SQL 错误
             _skip = 0;
             _limit = 0;
+            _distinct = false;
             try
             {
-                return this.ToList<int>($"count(1){_commonUtils.FieldAsAlias("as1")}").Sum(); //这里的 Sum 为了分表查询
+                var countField = "1";
+                if (tmpDistinct && _selectExpression != null) countField = $"distinct {this.GetExpressionField(_selectExpression, FieldAliasOptions.AsProperty).field}";
+                return this.ToList<int>($"count({countField}){_commonUtils.FieldAsAlias("as1")}").Sum(); //这里的 Sum 为了分表查询
             }
             finally
             {
                 _orderby = tmpOrderBy;
                 _skip = tmpSkip;
                 _limit = tmpLimit;
+                _distinct = tmpDistinct;
             }
         }
         public TSelect Count(out long count)
@@ -741,18 +746,23 @@ namespace FreeSql.Internal.CommonProvider
             var tmpOrderBy = _orderby;
             var tmpSkip = _skip;
             var tmpLimit = _limit;
+            var tmpDistinct = _distinct;
             _orderby = null;
             _skip = 0;
             _limit = 0;
+            _distinct = false;
             try
             {
-                return (await this.ToListAsync<int>($"count(1){_commonUtils.FieldAsAlias("as1")}", cancellationToken)).Sum(); //这里的 Sum 为了分表查询
+                var countField = "1";
+                if (tmpDistinct && _selectExpression != null) countField = $"distinct {this.GetExpressionField(_selectExpression, FieldAliasOptions.AsProperty).field}";
+                return (await this.ToListAsync<int>($"count({countField}){_commonUtils.FieldAsAlias("as1")}", cancellationToken)).Sum(); //这里的 Sum 为了分表查询
             }
             finally
             {
                 _orderby = tmpOrderBy;
                 _skip = tmpSkip;
                 _limit = tmpLimit;
+                _distinct = tmpDistinct;
             }
         }
         public virtual Task<List<T1>> ToListAsync(bool includeNestedMembers = false, CancellationToken cancellationToken = default)

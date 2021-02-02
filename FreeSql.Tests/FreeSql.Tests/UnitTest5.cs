@@ -24,6 +24,12 @@ namespace FreeSql.Tests
 
             Assert.Equal(@"SELECT count(distinct a.""status"") as1 
 FROM ""ts_up_dywhere01"" a", sql);
+
+            sql = fsql.Select<ts_up_dywhere01>().Select(a => new { a.status }).Distinct().ToSql();
+            fsql.Select<ts_up_dywhere01>().Select(a => new { a.status }).Distinct().Count(out count);
+
+            Assert.Equal(@"SELECT DISTINCT a.""status"" as1 
+FROM ""ts_up_dywhere01"" a", sql);
         }
 
         [Fact]

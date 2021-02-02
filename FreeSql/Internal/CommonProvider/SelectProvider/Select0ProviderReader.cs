@@ -516,6 +516,15 @@ namespace FreeSql.Internal.CommonProvider
         static EventHandler<Aop.AuditDataReaderEventArgs> _OldAuditDataReaderHandler;
         public GetAllFieldExpressionTreeInfo GetAllFieldExpressionTreeLevel2()
         {
+            if (_selectExpression != null) //ToSql
+            {
+                var af = this.GetExpressionField(_selectExpression);
+                return new GetAllFieldExpressionTreeInfo
+                {
+                    Field = af.field,
+                    Read = (dr, idx) => throw new Exception("GetAllFieldExpressionTreeInfo.Read Is Null")
+                };
+            }
             if (_OldAuditDataReaderHandler != _orm.Aop.AuditDataReaderHandler)
             {
                 _OldAuditDataReaderHandler = _orm.Aop.AuditDataReaderHandler; //清除单表 ExppressionTree
