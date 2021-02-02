@@ -536,6 +536,9 @@ JOIN {select._commonUtils.QuoteSqlName(tb.DbName)} a ON cte_tbc.cte_id = a.{sele
             .ToSql($"wct1.cte_level + 1 as cte_level, {sql2ctePath}{sql2Field}").Trim();
 
         var newSelect = select._orm.Select<T1>()
+            .WithConnection(select._connection)
+            .WithTransaction(select._transaction)
+            .TrackToList(select._trackToList)
             .AsType(tb.Type)
             .AsTable((type, old) => type == tb.Type ? cteName : old)
             .WhereIf(level > 0, $"a.cte_level < {level + 1}")
