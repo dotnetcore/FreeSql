@@ -91,6 +91,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Provider.KingbaseES
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Provider.Firebird", "Providers\FreeSql.Provider.Firebird\FreeSql.Provider.Firebird.csproj", "{101B11D2-7780-4E14-9B72-77F5D69B3DF9}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Provider.Custom", "Providers\FreeSql.Provider.Custom\FreeSql.Provider.Custom.csproj", "{0DBAA21C-39B2-4AAD-A43D-88E67ED239D1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -557,6 +559,18 @@ Global
 		{101B11D2-7780-4E14-9B72-77F5D69B3DF9}.Release|x64.Build.0 = Release|Any CPU
 		{101B11D2-7780-4E14-9B72-77F5D69B3DF9}.Release|x86.ActiveCfg = Release|Any CPU
 		{101B11D2-7780-4E14-9B72-77F5D69B3DF9}.Release|x86.Build.0 = Release|Any CPU
+		{0DBAA21C-39B2-4AAD-A43D-88E67ED239D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0DBAA21C-39B2-4AAD-A43D-88E67ED239D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0DBAA21C-39B2-4AAD-A43D-88E67ED239D1}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0DBAA21C-39B2-4AAD-A43D-88E67ED239D1}.Debug|x64.Build.0 = Debug|Any CPU
+		{0DBAA21C-39B2-4AAD-A43D-88E67ED239D1}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0DBAA21C-39B2-4AAD-A43D-88E67ED239D1}.Debug|x86.Build.0 = Debug|Any CPU
+		{0DBAA21C-39B2-4AAD-A43D-88E67ED239D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0DBAA21C-39B2-4AAD-A43D-88E67ED239D1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0DBAA21C-39B2-4AAD-A43D-88E67ED239D1}.Release|x64.ActiveCfg = Release|Any CPU
+		{0DBAA21C-39B2-4AAD-A43D-88E67ED239D1}.Release|x64.Build.0 = Release|Any CPU
+		{0DBAA21C-39B2-4AAD-A43D-88E67ED239D1}.Release|x86.ActiveCfg = Release|Any CPU
+		{0DBAA21C-39B2-4AAD-A43D-88E67ED239D1}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -589,6 +603,7 @@ Global
 		{3D2BD8EC-253A-437F-B4C8-74BC0D91429B} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
 		{CDD6A896-F6DF-44CB-B430-06B383916EB0} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
 		{101B11D2-7780-4E14-9B72-77F5D69B3DF9} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
+		{0DBAA21C-39B2-4AAD-A43D-88E67ED239D1} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {089687FD-5D25-40AB-BA8A-A10D1E137F98}

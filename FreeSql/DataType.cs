@@ -54,6 +54,12 @@ namespace FreeSql
         /// <summary>
         /// Firebird 是一个跨平台的关系数据库，能作为多用户环境下的数据库服务器运行，也提供嵌入式数据库的实现
         /// </summary>
-        Firebird
+        Firebird,
+
+        /// <summary>
+        /// 自定义适配器，访问任何数据库<para></para>
+        /// 注意：该类型不提供 DbFirst/CodeFirst 功能
+        /// </summary>
+        Custom
     }
 }
