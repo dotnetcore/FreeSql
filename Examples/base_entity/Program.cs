@@ -208,6 +208,11 @@ namespace base_entity
       ""Operator"" : ""Range"",
       ""Value"" : [""101"",""202""]
     },
+    {
+      ""Field"" : ""testint"",
+      ""Operator"" : ""contains"",
+      ""Value"" : ""123""
+    },
   ]
 }
 "); 

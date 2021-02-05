@@ -2424,6 +2424,47 @@ FROM ""D_District"" a
 LEFT JOIN ""D_District"" a__Parent ON a__Parent.""Code"" = a.""ParentCode"" 
 WHERE ((not((a.""Code"") LIKE '%val1%') AND not((a.""Name"") LIKE 'val2%') OR not((a.""Name"") LIKE '%val3') OR a.""ParentCode"" <> 'val4' OR a__Parent.""Code"" = 'val11' AND (a__Parent.""Name"") LIKE '%val22%' OR a__Parent.""Name"" = 'val33' OR a__Parent.""ParentCode"" = 'val44')) 
 ORDER BY a__Parent.""Name""", sql);
+
+            sql = fsql.Select<ts_dyfilter_enum01>().WhereDynamicFilter(JsonConvert.DeserializeObject<DynamicFilterInfo>(@"
+{
+  ""Logic"" : ""Or"",
+  ""Filters"" :
+  [
+    {
+      ""Field"" : ""name"",
+      ""Operator"" : ""NotEndsWith"",
+      ""Value"" : ""testname01""
+    },
+    {
+      ""Field"" : ""no"",
+      ""Operator"" : ""NotEndsWith"",
+      ""Value"" : ""testname01""
+    },
+    {
+      ""Field"" : ""id"",
+      ""Operator"" : ""NotEndsWith"",
+      ""Value"" : ""testname01""
+    },
+    {
+      ""Field"" : ""status"",
+      ""Operator"" : ""eq"",
+      ""Value"" : ""finished""
+    },
+  ]
+}
+")).ToSql();
+            Assert.Equal(@"SELECT a.""id"", a.""name"", a.""no"", a.""status"" 
+FROM ""ts_dyfilter_enum01"" a 
+WHERE ((not((a.""name"") LIKE '%testname01') OR not((a.""no"") LIKE '%testname01') OR not((a.""id"") LIKE '%testname01') OR a.""status"" = 2))", sql);
         }
+
+        class ts_dyfilter_enum01
+        {
+            public Guid id { get; set; }
+            public string name { get; set; }
+            public int no { get; set; }
+            public ts_dyfilter_enum01_status status { get; set; }
+        }
+        public enum ts_dyfilter_enum01_status { staring, stoped, finished }
     }
 }

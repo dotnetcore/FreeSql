@@ -526,6 +526,17 @@ namespace FreeSql.Internal.CommonProvider
                     Expression exp = ConvertStringPropertyToExpression(fi.Field);
                     switch (fi.Operator)
                     {
+                        case DynamicFilterOperator.Contains:
+                        case DynamicFilterOperator.StartsWith:
+                        case DynamicFilterOperator.EndsWith:
+                        case DynamicFilterOperator.NotContains:
+                        case DynamicFilterOperator.NotStartsWith:
+                        case DynamicFilterOperator.NotEndsWith:
+                            if (exp.Type != typeof(string)) exp = Expression.TypeAs(exp, typeof(string));
+                            break;
+                    }
+                    switch (fi.Operator)
+                    {
                         case DynamicFilterOperator.Contains: exp = Expression.Call(exp, MethodStringContains, Expression.Constant(Utils.GetDataReaderValue(exp.Type, fi.Value?.ToString()), exp.Type)); break;
                         case DynamicFilterOperator.StartsWith: exp = Expression.Call(exp, MethodStringStartsWith, Expression.Constant(Utils.GetDataReaderValue(exp.Type, fi.Value?.ToString()), exp.Type)); break;
                         case DynamicFilterOperator.EndsWith: exp = Expression.Call(exp, MethodStringEndsWith, Expression.Constant(Utils.GetDataReaderValue(exp.Type, fi.Value?.ToString()), exp.Type)); break;
