@@ -9,24 +9,27 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-public class RazorModel {
-	public RazorModel(IFreeSql fsql, string nameSpace, bool[] NameOptions, List<DbTableInfo> tables, DbTableInfo table) {
+public class RazorModel
+{
+	public RazorModel(IFreeSql fsql, string nameSpace, bool[] NameOptions, List<DbTableInfo> tables, DbTableInfo table)
+	{
 		this.fsql = fsql;
-        this.NameSpace = nameSpace;
-        this.NameOptions = NameOptions;
-        this.tables = tables;
+		this.NameSpace = nameSpace;
+		this.NameOptions = NameOptions;
+		this.tables = tables;
 		this.table = table;
 	}
 
 	public IFreeSql fsql { get; set; }
 	public bool[] NameOptions { get; set; }
-	public  List<DbTableInfo> tables { get; set; }
+	public List<DbTableInfo> tables { get; set; }
 	public DbTableInfo table { get; set; }
 	public List<DbColumnInfo> columns => this.table.Columns;
 	public string NameSpace { get; set; }
-    public string FullTableName => $"{(new[] { "public", "dbo" }.Contains(table.Schema) ? "" : table.Schema)}.{table.Name}".TrimStart('.');
+	public string FullTableName => $"{(new[] { "public", "dbo" }.Contains(table.Schema) ? "" : table.Schema)}.{table.Name}".TrimStart('.');
 
-	public string GetCsName(string name) {
+	public string GetCsName(string name)
+	{
 		name = Regex.Replace(name.TrimStart('@', '.'), @"[^\w]", "_");
 		name = char.IsLetter(name, 0) ? name : string.Concat("_", name);
 		if (NameOptions[0]) name = UFString(name);
@@ -35,18 +38,21 @@ public class RazorModel {
 		if (NameOptions[3]) name = string.Join("", name.Split('_').Select(a => UFString(a)));
 		return name;
 	}
-	public string UFString(string text) {
+	public string UFString(string text)
+	{
 		text = Regex.Replace(text, @"[^\w]", "_");
 		if (text.Length <= 1) return text.ToUpper();
 		else return text.Substring(0, 1).ToUpper() + text.Substring(1, text.Length - 1);
 	}
-	public string LFString(string text) {
+	public string LFString(string text)
+	{
 		text = Regex.Replace(text, @"[^\w]", "_");
 		if (text.Length <= 1) return text.ToLower();
 		else return text.Substring(0, 1).ToLower() + text.Substring(1, text.Length - 1);
 	}
 
-	public string GetCsType(DbColumnInfo col) {
+	public string GetCsType(DbColumnInfo col)
+	{
 		if (fsql.Ado.DataType == FreeSql.DataType.MySql)
 			if (col.DbType == (int)MySqlDbType.Enum || col.DbType == (int)MySqlDbType.Set)
 				return $"{this.GetCsName(this.FullTableName)}{this.GetCsName(col.Name).ToUpper()}{(col.IsNullable ? "?" : "")}";
@@ -181,9 +187,10 @@ public class RazorModel {
 
 			if (dbinfo != null && dbinfo.isnullable != col.IsNullable)
 			{
-				if (col.IsNullable && fsql.DbFirst.GetCsType(col).Contains("?") == false && col.CsType.IsValueType)
+				var cstype = fsql.DbFirst.GetCsType(col);
+				if (col.IsNullable && cstype.Contains("?") == false && col.CsType.IsValueType)
 					sb.Add("IsNullable = true");
-				if (col.IsNullable == false && fsql.DbFirst.GetCsType(col).Contains("?") == true)
+				if (col.IsNullable == false && (cstype.Contains("?") == true || cstype == "string"))
 					sb.Add("IsNullable = false");
 			}
 
@@ -200,7 +207,7 @@ public class RazorModel {
 					}
 				}
 				//else
-					//sb.Add("CanInsert = false");
+				//sb.Add("CanInsert = false");
 			}
 		}
 		if (sb.Any() == false) return null;
@@ -260,8 +267,10 @@ public class RazorModel {
 	{
 		if (fsql.Ado.DataType != FreeSql.DataType.MySql && fsql.Ado.DataType != FreeSql.DataType.OdbcMySql) return null;
 		var sb = new StringBuilder();
-		foreach (var col in table.Columns) {
-			if (col.DbType == (int)MySqlDbType.Enum || col.DbType == (int)MySqlDbType.Set) {
+		foreach (var col in table.Columns)
+		{
+			if (col.DbType == (int)MySqlDbType.Enum || col.DbType == (int)MySqlDbType.Set)
+			{
 				if (col.DbType == (int)MySqlDbType.Set) sb.Append("\r\n\t[Flags]");
 				sb.Append($"\r\n\tpublic enum {this.GetCsName(this.FullTableName)}{this.GetCsName(col.Name).ToUpper()}");
 				if (col.DbType == (int)MySqlDbType.Set) sb.Append(" : long");
@@ -272,10 +281,12 @@ public class RazorModel {
 				int unknow_idx = 0;
 				string exp2 = string.Concat(col.DbTypeTextFull);
 				int quote_pos = -1;
-				while (true) {
+				while (true)
+				{
 					int first_pos = quote_pos = exp2.IndexOf('\'', quote_pos + 1);
 					if (quote_pos == -1) break;
-					while (true) {
+					while (true)
+					{
 						quote_pos = exp2.IndexOf('\'', quote_pos + 1);
 						if (quote_pos == -1) break;
 						int r_cout = 0;
@@ -284,7 +295,8 @@ public class RazorModel {
 						//	else break;
 						//}
 						while (exp2[++quote_pos] == '\'') r_cout++;
-						if (r_cout % 2 == 0/* && quote_pos - first_pos > 2*/) {
+						if (r_cout % 2 == 0/* && quote_pos - first_pos > 2*/)
+						{
 							string str2 = exp2.Substring(first_pos + 1, quote_pos - first_pos - 2).Replace("''", "'");
 							if (Regex.IsMatch(str2, @"^[\u0391-\uFFE5a-zA-Z_\$][\u0391-\uFFE5a-zA-Z_\$\d]*$"))
 								slkdgjlksdjg += ", " + str2;
