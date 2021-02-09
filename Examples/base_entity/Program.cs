@@ -174,7 +174,7 @@ namespace base_entity
         {
           ""Field"" : ""title"",
           ""Operator"" : ""contains"",
-          ""Value"" : ""product-1111"",
+          ""Value"" : """",
         },
         {
           ""Field"" : ""title"",

@@ -514,6 +514,7 @@ namespace FreeSql.Internal.CommonProvider
         {
             if (filter == null) return this as TSelect;
             var sb = new StringBuilder();
+            if (IsIgnoreFilter(filter)) filter.Field = "";
             ParseFilter(DynamicFilterLogic.And, filter, true);
             this.Where(sb.ToString());
             sb.Clear();
@@ -622,12 +623,17 @@ namespace FreeSql.Internal.CommonProvider
                 }
                 if (fi.Filters?.Any() == true)
                 {
-                    if (string.IsNullOrEmpty(fi.Field) == false)
-                        sb.Append(" AND ");
-                    if (fi.Logic == DynamicFilterLogic.Or) sb.Append("(");
-                    for (var x = 0; x < fi.Filters.Count; x++)
-                        ParseFilter(fi.Logic, fi.Filters[x], x == fi.Filters.Count - 1);
-                    if (fi.Logic == DynamicFilterLogic.Or) sb.Append(")");
+                    fi.Filters = fi.Filters.Where(a => IsIgnoreFilter(a) == false).ToList(); //忽略 like '%%'
+
+                    if (fi.Filters.Any())
+                    {
+                        if (string.IsNullOrEmpty(fi.Field) == false)
+                            sb.Append(" AND ");
+                        if (fi.Logic == DynamicFilterLogic.Or) sb.Append("(");
+                        for (var x = 0; x < fi.Filters.Count; x++)
+                            ParseFilter(fi.Logic, fi.Filters[x], x == fi.Filters.Count - 1);
+                        if (fi.Logic == DynamicFilterLogic.Or) sb.Append(")");
+                    }
                 }
 
                 if (isend == false)
@@ -641,6 +647,13 @@ namespace FreeSql.Internal.CommonProvider
                         }
                     }
                 }
+            }
+
+            bool IsIgnoreFilter(DynamicFilterInfo testFilter)
+            {
+                return string.IsNullOrEmpty(testFilter.Field) == false &&
+                    new[] { DynamicFilterOperator.Contains, DynamicFilterOperator.StartsWith, DynamicFilterOperator.EndsWith }.Contains(testFilter.Operator) &&
+                    string.IsNullOrEmpty(testFilter.Value?.ToString());
             }
         }
 
