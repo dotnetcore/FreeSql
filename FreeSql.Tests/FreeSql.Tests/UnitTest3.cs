@@ -668,7 +668,7 @@ INNER JOIN ""userinfo"" p ON p.""userid"" = o.""userid""", select16Sql2);
             fsql.Insert<OrderDetail>(new OrderDetail { OrderNo = "1002", ItemNo = "I011", Qty = 1 }).ExecuteAffrows();
             fsql.Insert<OrderDetail>(new OrderDetail { OrderNo = "1002", ItemNo = "I012", Qty = 1 }).ExecuteAffrows();
             fsql.Insert<OrderDetail>(new OrderDetail { OrderNo = "1002", ItemNo = "I013", Qty = 1 }).ExecuteAffrows();
-            fsql.Ado.Query<object>("select * from orderdetail left join ordermain on orderdetail.orderno=ordermain.orderno where ordermain.orderno='1001'");
+            fsql.Ado.Query<object>("select * from OrderDetail left join OrderMain on OrderDetail.OrderNo=OrderMain.OrderNo where OrderMain.OrderNo='1001'");
 
 
             g.oracle.Delete<SendInfo>().Where("1=1").ExecuteAffrows();
