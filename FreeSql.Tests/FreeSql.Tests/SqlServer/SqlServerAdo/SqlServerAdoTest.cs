@@ -131,12 +131,12 @@ namespace FreeSql.Tests.SqlServer
 
             var t4 = g.sqlserver.Ado.Query<(int, int, string, string DateTime)>("select * from xxx");
 
-            var t5 = g.sqlserver.Ado.Query<dynamic>("select * from xxx where Id = @Id",
+            var t5 = g.sqlserver.Ado.Query<dynamic>("select * from xxx where Id = @id",
                 new Dictionary<string, object> { ["id"] = 1 });
 
-            var t6 = g.sqlserver.Ado.Query<xxx>("select * from xxx where id in @ids", new { ids = new[] { 1, 2, 3 } });
+            var t6 = g.sqlserver.Ado.Query<xxx>("select * from xxx where Id in @ids", new { ids = new[] { 1, 2, 3 } });
 
-            var t7 = g.sqlserver.Ado.Query<xxx>("select * from xxx where title in @titles", new { titles = new[] { "title1", "title2", "title2" } });
+            var t7 = g.sqlserver.Ado.Query<xxx>("select * from xxx where Title in @titles", new { titles = new[] { "title1", "title2", "title2" } });
 
         }
 

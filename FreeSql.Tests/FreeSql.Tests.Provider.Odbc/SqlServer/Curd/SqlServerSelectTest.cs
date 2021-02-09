@@ -128,7 +128,7 @@ namespace FreeSql.Tests.Odbc.SqlServer
             //Assert.Equal(9989, g.sqlserver.Insert<Topic>(items).NoneParameter().ExecuteAffrows());
 
             var dt1 = select.Limit(10).ToDataTable();
-            var dt2 = select.Limit(10).ToDataTable("id, getdate()");
+            var dt2 = select.Limit(10).ToDataTable("Id, getdate()");
             var dt3 = select.Limit(10).ToDataTable(a => new { a.Id, a.Type.Name, now = DateTime.Now });
         }
         class TestDto
@@ -899,7 +899,7 @@ WHERE (((cast(a.[Id] as nvarchar(100))) in (SELECT b.[Title]
         public void AsTable()
         {
 
-            var listt = select.AsTable((a, b) => "(select * from tb_topic22 where clicks > 10)").Page(1, 10).ToList();
+            var listt = select.AsTable((a, b) => "(select * from tb_topic22 where Clicks > 10)").Page(1, 10).ToList();
 
             Func<Type, string, string> tableRule = (type, oldname) =>
             {

@@ -145,7 +145,7 @@ namespace FreeSql.Tests.SqlServer
             //Assert.Equal(9989, g.sqlserver.Insert<Topic>(items).NoneParameter().ExecuteAffrows());
 
             var dt1 = select.Limit(10).ToDataTable();
-            var dt2 = select.Limit(10).ToDataTable("id, getdate()");
+            var dt2 = select.Limit(10).ToDataTable("Id, getdate()");
             var dt3 = select.Limit(10).ToDataTable(a => new { a.Id, a.Type.Name, now = DateTime.Now });
         }
         class TestDto
@@ -609,9 +609,9 @@ namespace FreeSql.Tests.SqlServer
             query2.ToList();
 
             //������϶����㲻��
-            query = select.Where("a.clicks > 100 and a.id = @id", new { id = 10 });
+            query = select.Where("a.Clicks > 100 and a.Id = @id", new { id = 10 });
             sql = query.ToSql().Replace("\r\n", "");
-            Assert.Equal("SELECT a.[Id], a.[Clicks], a.[TypeGuid], a.[Title], a.[CreateTime] FROM [tb_topic22] a WHERE (a.clicks > 100 and a.id = @id)", sql);
+            Assert.Equal("SELECT a.[Id], a.[Clicks], a.[TypeGuid], a.[Title], a.[CreateTime] FROM [tb_topic22] a WHERE (a.Clicks > 100 and a.Id = @id)", sql);
             query.ToList();
         }
         [Fact]
@@ -657,9 +657,9 @@ namespace FreeSql.Tests.SqlServer
             query2.ToList();
 
             //������϶����㲻��
-            query = select.WhereIf(true, "a.clicks > 100 and a.id = @id", new { id = 10 });
+            query = select.WhereIf(true, "a.Clicks > 100 and a.Id = @id", new { id = 10 });
             sql = query.ToSql().Replace("\r\n", "");
-            Assert.Equal("SELECT a.[Id], a.[Clicks], a.[TypeGuid], a.[Title], a.[CreateTime] FROM [tb_topic22] a WHERE (a.clicks > 100 and a.id = @id)", sql);
+            Assert.Equal("SELECT a.[Id], a.[Clicks], a.[TypeGuid], a.[Title], a.[CreateTime] FROM [tb_topic22] a WHERE (a.Clicks > 100 and a.Id = @id)", sql);
             query.ToList();
 
             // ==========================================WhereIf(false)
@@ -704,7 +704,7 @@ namespace FreeSql.Tests.SqlServer
             query2.ToList();
 
             //������϶����㲻��
-            query = select.WhereIf(false, "a.clicks > 100 and a.id = @id", new { id = 10 });
+            query = select.WhereIf(false, "a.Clicks > 100 and a.Id = @id", new { id = 10 });
             sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.[Id], a.[Clicks], a.[TypeGuid], a.[Title], a.[CreateTime] FROM [tb_topic22] a", sql);
             query.ToList();
@@ -955,7 +955,7 @@ WHERE (((cast(a.[Id] as nvarchar(100))) in (SELECT b.[Title]
         public void AsTable()
         {
 
-            var listt = select.AsTable((a, b) => "(select * from tb_topic22 where clicks > 10)").Page(1, 10).ToList();
+            var listt = select.AsTable((a, b) => "(select * from tb_topic22 where Clicks > 10)").Page(1, 10).ToList();
 
             Func<Type, string, string> tableRule = (type, oldname) =>
             {
@@ -1053,8 +1053,8 @@ WHERE (((cast(a.[Id] as nvarchar(100))) in (SELECT b.[Title]
                 });
 
             var testUnionAll = select
-                .WithSql("SELECT * FROM [tb_topic22] where id = @id1", new { id1 = 10 })
-                .WithSql("SELECT * FROM [tb_topic22] where id = @id2", new { id2 = 11 })
+                .WithSql("SELECT * FROM [tb_topic22] where Id = @id1", new { id1 = 10 })
+                .WithSql("SELECT * FROM [tb_topic22] where Id = @id2", new { id2 = 11 })
                 .ToSql(a => new
                 {
                     a.Id,
@@ -1062,8 +1062,8 @@ WHERE (((cast(a.[Id] as nvarchar(100))) in (SELECT b.[Title]
                 });
 
             var testUnionAllToList = select
-                .WithSql("SELECT * FROM [tb_topic22] where id = @id1", new { id1 = 10 })
-                .WithSql("SELECT * FROM [tb_topic22] where id = @id2", new { id2 = 11 })
+                .WithSql("SELECT * FROM [tb_topic22] where Id = @id1", new { id1 = 10 })
+                .WithSql("SELECT * FROM [tb_topic22] where Id = @id2", new { id2 = 11 })
                 .ToList(a => new
                 {
                     a.Id,
@@ -1071,13 +1071,13 @@ WHERE (((cast(a.[Id] as nvarchar(100))) in (SELECT b.[Title]
                 });
 
             var testUnionAll2 = g.sqlite.Select<object>()
-                .WithSql("SELECT * FROM [tb_topic22] where id = 10")
-                .WithSql("SELECT * FROM [tb_topic22] where id = 11")
+                .WithSql("SELECT * FROM [tb_topic22] where Id = 10")
+                .WithSql("SELECT * FROM [tb_topic22] where Id = 11")
                 .ToDataTable("*");
 
             var multiWithSql = g.sqlite.Select<TestInclude_OneToManyModel1, TestInclude_OneToManyModel2, TestInclude_OneToManyModel3>()
                 .WithSql(
-                    "select * from TestInclude_OneToManyModel1 where id=@id1",
+                    "select * from TestInclude_OneToManyModel1 where Id=@id1",
                     "select * from TestInclude_OneToManyModel2 where model2id=@id2",
                     null,
                     new { id1 = 10, id2 = 11, id3 = 13 }

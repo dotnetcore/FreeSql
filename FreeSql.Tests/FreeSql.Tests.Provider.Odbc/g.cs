@@ -19,7 +19,7 @@ public class g
     public static IFreeSql mysql => mysqlLazy.Value;
 
     static Lazy<IFreeSql> sqlserverLazy = new Lazy<IFreeSql>(() => new FreeSql.FreeSqlBuilder()
-        .UseConnectionString(FreeSql.DataType.OdbcSqlServer, "Driver={SQL Server};Server=.;Persist Security Info=False;Trusted_Connection=Yes;Integrated Security=True;DATABASE=freesqlTest_odbc;Pooling=true;Max pool size=3")
+        .UseConnectionString(FreeSql.DataType.OdbcSqlServer, "Driver={SQL Server};Server=.;Persist Security Info=False;Trusted_Connection=Yes;Integrated Security=True;DATABASE=issues684_odbc;Pooling=true;Max pool size=3")
         //.UseConnectionFactory(FreeSql.DataType.OdbcSqlServer, () => new System.Data.Odbc.OdbcConnection("Driver={SQL Server};Server=.;Persist Security Info=False;Trusted_Connection=Yes;Integrated Security=True;DATABASE=freesqlTest_odbc;Pooling=true;"))
         //.UseConnectionString(FreeSql.DataType.OdbcSqlServer, "Driver={SQL Server};Server=192.168.164.129;Persist Security Info=False;Trusted_Connection=Yes;UID=sa;PWD=123456;DATABASE=ds_shop;")
         //.UseConnectionFactory(FreeSql.DataType.OdbcSqlServer, () => new System.Data.Odbc.OdbcConnection("Driver={SQL Server};Server=192.168.164.129;Persist Security Info=False;Trusted_Connection=Yes;UID=sa;PWD=123456;DATABASE=ds_shop;"))

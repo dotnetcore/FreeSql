@@ -193,10 +193,10 @@ namespace FreeSql.Tests.SqlServer
             g.sqlserver.Insert<Topic>().AppendData(new Topic()).ExecuteAffrows();
 
             var items = g.sqlserver.Select<Topic>().Limit(2).ToList();
-            g.sqlserver.Update<Topic>(items).SetRaw("title='test'").ExecuteUpdated();
+            g.sqlserver.Update<Topic>(items).SetRaw("Title='test'").ExecuteUpdated();
 
             items = g.sqlserver.Select<Topic>().Limit(2).ToList();
-            var result = g.sqlserver.Update<Topic>(items).SetRaw("title='test'").ExecuteUpdatedAsync().Result;
+            var result = g.sqlserver.Update<Topic>(items).SetRaw("Title='test'").ExecuteUpdatedAsync().Result;
         }
 
         [Fact]

@@ -253,17 +253,17 @@ ELSE
                     var sql = string.Format(@"
 use [{0}];
 select
-a.name 'Column'
+a.name 'column'
 ,b.name + case 
- when b.name in ('Char', 'VarChar', 'NChar', 'NVarChar', 'Binary', 'VarBinary') then '(' + 
+ when b.name in ('char', 'varchar', 'nchar', 'nvarchar', 'binary', 'varbinary') then '(' + 
   case when a.max_length = -1 then 'MAX' 
-  when b.name in ('NChar', 'NVarchar') then cast(a.max_length / 2 as varchar)
+  when b.name in ('nchar', 'nvarchar') then cast(a.max_length / 2 as varchar)
   else cast(a.max_length as varchar) end + ')'
- when b.name in ('Numeric', 'Decimal') then '(' + cast(a.precision as varchar) + ',' + cast(a.scale as varchar) + ')'
- else '' end as 'SqlType'
-,case when a.is_nullable = 1 then '1' else '0' end 'IsNullable'
-,case when a.is_identity = 1 then '1' else '0' end 'IsIdentity'
-,(select value from sys.extended_properties where major_id = a.object_id AND minor_id = a.column_id AND name = 'MS_Description') 'Comment'
+ when b.name in ('numeric', 'decimal') then '(' + cast(a.precision as varchar) + ',' + cast(a.scale as varchar) + ')'
+ else '' end as 'sqltype'
+,case when a.is_nullable = 1 then '1' else '0' end 'isnullable'
+,case when a.is_identity = 1 then '1' else '0' end 'isidentity'
+,(select value from sys.extended_properties where major_id = a.object_id AND minor_id = a.column_id AND name = 'MS_Description') 'comment'
 from sys.columns a
 inner join sys.types b on b.user_type_id = a.user_type_id
 left join sys.tables d on d.object_id = a.object_id

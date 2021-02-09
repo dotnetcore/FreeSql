@@ -164,35 +164,35 @@ use [{olddatabase}];
 use [{db}];
 select * from (
 select 
- a.Object_id
-,b.name 'Owner'
-,a.name 'Name'
-,(select value from sys.extended_properties where major_id = a.object_id AND minor_id = 0 AND name = 'MS_Description') 'Comment'
+ a.object_id
+,b.name 'owner'
+,a.name 'name'
+,(select value from sys.extended_properties where major_id = a.object_id AND minor_id = 0 AND name = 'MS_Description') 'comment'
 ,'TABLE' type
 from sys.tables a
 inner join sys.schemas b on b.schema_id = a.schema_id
 where not(b.name = 'dbo' and a.name = 'sysdiagrams')
 union all
 select
- a.Object_id
-,b.name 'Owner'
-,a.name 'Name'
-,(select value from sys.extended_properties where major_id = a.object_id AND minor_id = 0 AND name = 'MS_Description') 'Comment'
+ a.object_id
+,b.name 'owner'
+,a.name 'name'
+,(select value from sys.extended_properties where major_id = a.object_id AND minor_id = 0 AND name = 'MS_Description') 'comment'
 ,'VIEW' type
 from sys.views a
 inner join sys.schemas b on b.schema_id = a.schema_id
 union all
 select 
- a.Object_id
-,b.name 'Owner'
-,a.name 'Name'
-,(select value from sys.extended_properties where major_id = a.object_id AND minor_id = 0 AND name = 'MS_Description') 'Comment'
+ a.object_id
+,b.name 'owner'
+,a.name 'name'
+,(select value from sys.extended_properties where major_id = a.object_id AND minor_id = 0 AND name = 'MS_Description') 'comment'
 ,'StoreProcedure' type
 from sys.procedures a
 inner join sys.schemas b on b.schema_id = a.schema_id
 where a.type = 'P' and charindex('diagram', a.name) = 0
-) ft_dbf{(tbname == null ? "" : _commonUtils.FormatSql(" where lower([owner])={0} and lower([Name])={1}", new[] { tbname[1], tbname[2] }))}
-order by type desc, [owner], [Name];
+) ft_dbf{(tbname == null ? "" : _commonUtils.FormatSql(" where lower([owner])={0} and lower([name])={1}", new[] { tbname[1], tbname[2] }))}
+order by type desc, [owner], [name];
 use [{olddatabase}];
 ";
                 var ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
@@ -261,21 +261,21 @@ use [{olddatabase}];
 
 select 
 isnull(e.name,'') + '.' + isnull(d.name,'')
-,a.Object_id
-,a.name 'Column'
-,b.name 'Type'
+,a.object_id
+,a.name 'column'
+,b.name 'type'
 ,case
- when b.name in ('Text', 'NText', 'Image') then -1
- when b.name in ('NChar', 'NVarchar') then a.max_length / 2
- else a.max_length end 'Length'
+ when b.name in ('text', 'ntext', 'image') then -1
+ when b.name in ('nchar', 'nvarchar') then a.max_length / 2
+ else a.max_length end 'length'
 ,b.name + case 
- when b.name in ('Char', 'VarChar', 'NChar', 'NVarChar', 'Binary', 'VarBinary') then '(' + 
+ when b.name in ('char', 'varchar', 'nchar', 'nvarchar', 'binary', 'varbinary') then '(' + 
   case when a.max_length = -1 then 'MAX' 
-  when b.name in ('NChar', 'NVarchar') then cast(a.max_length / 2 as varchar)
+  when b.name in ('nchar', 'nvarchar') then cast(a.max_length / 2 as varchar)
   else cast(a.max_length as varchar) end + ')'
- when b.name in ('Numeric', 'Decimal') then '(' + cast(a.precision as varchar) + ',' + cast(a.scale as varchar) + ')'
- else '' end as 'SqlType'
-,( select value from sys.extended_properties where major_id = a.object_id AND minor_id = a.column_id AND name = 'MS_Description') 'Comment'
+ when b.name in ('numeric', 'decimal') then '(' + cast(a.precision as varchar) + ',' + cast(a.scale as varchar) + ')'
+ else '' end as 'sqltype'
+,( select value from sys.extended_properties where major_id = a.object_id AND minor_id = a.column_id AND name = 'MS_Description') 'comment'
 {0} a
 inner join sys.types b on b.user_type_id = a.user_type_id
 left join sys.tables d on d.object_id = a.object_id
@@ -283,9 +283,9 @@ left join sys.schemas e on e.schema_id = d.schema_id{2}
 where {1}
 ";
                 sql = string.Format(tsql_place, @"
-,a.is_nullable 'IsNullable'
-,a.is_identity 'IsIdentity'
-,f.text as 'DefaultValue'
+,a.is_nullable 'isnullable'
+,a.is_identity 'isidentity'
+,f.text as 'defaultvalue'
 from sys.columns", loc8.ToString().Replace("a.table_name", "a.object_id"), @"
 left join syscomments f on f.id = a.default_object_id
 ");
@@ -295,9 +295,9 @@ left join syscomments f on f.id = a.default_object_id
                     string.Format(tsql_place.Replace(
                         " select value from sys.extended_properties where major_id = a.object_id AND minor_id = a.column_id",
                         " select value from sys.extended_properties where major_id = a.object_id AND minor_id = a.parameter_id"), @"
-,cast(0 as bit) 'IsNullable'
-,a.is_output 'IsIdentity'
-,'' as 'DefaultValue'
+,cast(0 as bit) 'isnullable'
+,a.is_output 'isidentity'
+,'' as 'defaultvalue'
 from sys.parameters", loc88.ToString().Replace("a.table_name", "a.object_id"), "");
                 }
                 sql = $"use [{db}];{sql};use [{olddatabase}]; ";
@@ -340,13 +340,13 @@ from sys.parameters", loc88.ToString().Replace("a.table_name", "a.object_id"), "
                 sql = $@"
 use [{db}];
 select 
- a.object_id 'Object_id'
-,c.name 'Column'
-,b.name 'Index_id'
-,b.is_unique 'IsUnique'
-,b.is_primary_key 'IsPrimaryKey'
-,cast(case when b.type_desc = 'CLUSTERED' then 1 else 0 end as bit) 'IsClustered'
-,case when a.is_descending_key = 1 then 1 else 0 end 'IsDesc'
+ a.object_id 'object_id'
+,c.name 'column'
+,b.name 'index_id'
+,b.is_unique 'isunique'
+,b.is_primary_key 'isprimarykey'
+,cast(case when b.type_desc = 'CLUSTERED' then 1 else 0 end as bit) 'isclustered'
+,case when a.is_descending_key = 1 then 1 else 0 end 'isdesc'
 from sys.index_columns a
 inner join sys.indexes b on b.object_id = a.object_id and b.index_id = a.index_id
 left join sys.columns c on c.object_id = a.object_id and c.column_id = a.column_id
@@ -408,14 +408,14 @@ use [{olddatabase}];
                     sql = $@"
 use [{db}];
 select 
- b.object_id 'Object_id'
-,c.name 'Column'
-,e.name 'FKId'
+ b.object_id 'object_id'
+,c.name 'column'
+,e.name 'fkid'
 ,a.referenced_object_id
-,cast(1 as bit) 'IsForeignKey'
-,d.name 'Referenced_Column'
-,null 'Referenced_Sln'
-,null 'Referenced_Table'
+,cast(1 as bit) 'isforeignkey'
+,d.name 'referenced_column'
+,null 'referenced_sln'
+,null 'referenced_table'
 from sys.foreign_key_columns a
 inner join sys.tables b on b.object_id = a.parent_object_id
 inner join sys.columns c on c.object_id = a.parent_object_id and c.column_id = a.parent_column_id
