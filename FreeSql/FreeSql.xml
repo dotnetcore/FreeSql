@@ -3458,6 +3458,11 @@
             参数化命令
             </summary>
         </member>
+        <member name="P:FreeSql.Aop.CurdBeforeEventArgs.States">
+            <summary>
+            状态数据，可与 CurdAfter 共享
+            </summary>
+        </member>
         <member name="P:FreeSql.Aop.CurdAfterEventArgs.Exception">
             <summary>
             发生的错误
@@ -3486,6 +3491,11 @@
         <member name="P:FreeSql.Aop.SyncStructureBeforeEventArgs.EntityTypes">
             <summary>
             实体类型
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.SyncStructureBeforeEventArgs.States">
+            <summary>
+            状态数据，可与 SyncStructureAfter 共享
             </summary>
         </member>
         <member name="P:FreeSql.Aop.SyncStructureAfterEventArgs.Sql">
@@ -3548,6 +3558,11 @@
             标识符，可将 CommandBefore 与 CommandAfter 进行匹配
             </summary>
         </member>
+        <member name="P:FreeSql.Aop.CommandBeforeEventArgs.States">
+            <summary>
+            状态数据，可与 CommandAfter 共享
+            </summary>
+        </member>
         <member name="P:FreeSql.Aop.CommandAfterEventArgs.Exception">
             <summary>
             发生的错误
@@ -3571,6 +3586,11 @@
         <member name="P:FreeSql.Aop.TraceBeforeEventArgs.Identifier">
             <summary>
             标识符，可将 TraceBeforeEventArgs 与 TraceAfterEventArgs 进行匹配
+            </summary>
+        </member>
+        <member name="P:FreeSql.Aop.TraceBeforeEventArgs.States">
+            <summary>
+            状态数据，可与 TraceAfter 共享
             </summary>
         </member>
         <member name="P:FreeSql.Aop.TraceAfterEventArgs.Remark">

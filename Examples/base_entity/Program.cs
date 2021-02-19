@@ -125,6 +125,42 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+            //fsql.Aop.CommandBefore += (s, e) =>
+            //{
+            //    e.States["xxx"] = 111;
+            //};
+            //fsql.Aop.CommandAfter += (s, e) =>
+            //{
+            //    var xxx = e.States["xxx"];
+            //};
+
+            //fsql.Aop.TraceBefore += (s, e) =>
+            //{
+            //    e.States["xxx"] = 222;
+            //};
+            //fsql.Aop.TraceAfter += (s, e) =>
+            //{
+            //    var xxx = e.States["xxx"];
+            //};
+
+            //fsql.Aop.SyncStructureBefore += (s, e) =>
+            //{
+            //    e.States["xxx"] = 333;
+            //};
+            //fsql.Aop.SyncStructureAfter += (s, e) =>
+            //{
+            //    var xxx = e.States["xxx"];
+            //};
+
+            //fsql.Aop.CurdBefore += (s, e) =>
+            //{
+            //    e.States["xxx"] = 444;
+            //};
+            //fsql.Aop.CurdAfter += (s, e) =>
+            //{
+            //    var xxx = e.States["xxx"];
+            //};
+
             fsql.Insert(new tttorder("xx1", 1, 10)).ExecuteAffrows();
             fsql.Insert(new tttorder("xx2", 2, 20)).ExecuteAffrows();
 
