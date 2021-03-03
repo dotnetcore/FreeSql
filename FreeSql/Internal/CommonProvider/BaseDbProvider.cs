@@ -26,18 +26,18 @@ namespace FreeSql.Internal.CommonProvider
         public IDelete<T1> Delete<T1>(object dywhere) where T1 : class => CreateDeleteProvider<T1>(dywhere);
         public IInsertOrUpdate<T1> InsertOrUpdate<T1>() where T1 : class => CreateInsertOrUpdateProvider<T1>();
 
-        public IAdo Ado { get; protected set; }
-        public IAop Aop { get; protected set; }
-        public ICodeFirst CodeFirst { get; protected set; }
+        public virtual IAdo Ado { get; protected set; }
+        public virtual IAop Aop { get; protected set; }
+        public virtual ICodeFirst CodeFirst { get; protected set; }
         public virtual IDbFirst DbFirst { get; protected set; }
 
-        public CommonUtils InternalCommonUtils { get; protected set; }
-        public CommonExpression InternalCommonExpression { get; protected set; }
+        public virtual CommonUtils InternalCommonUtils { get; protected set; }
+        public virtual CommonExpression InternalCommonExpression { get; protected set; }
 
         public void Transaction(Action handler) => Ado.Transaction(handler);
         public void Transaction(IsolationLevel isolationLevel, Action handler) => Ado.Transaction(isolationLevel, handler);
 
-        public GlobalFilter GlobalFilter { get; } = new GlobalFilter();
+        public virtual GlobalFilter GlobalFilter { get; } = new GlobalFilter();
         public abstract void Dispose();
     }
 }

@@ -9,14 +9,15 @@ namespace FreeSql
     {
         #region Ado.net 扩展方法，类似于 Dapper
 
-        static Dictionary<Type, IFreeSql> _dicCurd = new Dictionary<Type, IFreeSql>();
+        static Dictionary<string, IFreeSql> _dicCurd = new Dictionary<string, IFreeSql>();
         static object _dicCurdLock = new object();
         static IFreeSql GetCrud(IDbConnection dbconn)
         {
             if (dbconn == null) throw new ArgumentNullException($"{nameof(dbconn)} 不能为 null");
+            if (dbconn.ConnectionString == null) throw new ArgumentNullException($"{nameof(dbconn)}.ConnectionString 不能为 null");
             Type dbconType = dbconn.GetType();
             var connType = dbconType.UnderlyingSystemType;
-            if (_dicCurd.TryGetValue(connType, out var fsql)) return fsql;
+            if (_dicCurd.TryGetValue(dbconn.ConnectionString, out var fsql)) return fsql;
 
             Type providerType = null;
             switch (connType.Name)
@@ -63,9 +64,9 @@ namespace FreeSql
             }
             lock (_dicCurdLock)
             {
-                if (_dicCurd.TryGetValue(connType, out fsql)) return fsql;
+                if (_dicCurd.TryGetValue(dbconn.ConnectionString, out fsql)) return fsql;
                 lock (_dicCurdLock)
-                    _dicCurd.Add(connType, fsql = Activator.CreateInstance(providerType, new object[] { null, null, null }) as IFreeSql);
+                    _dicCurd.Add(dbconn.ConnectionString, fsql = Activator.CreateInstance(providerType, new object[] { null, null, null }) as IFreeSql);
             }
             return fsql;
         }

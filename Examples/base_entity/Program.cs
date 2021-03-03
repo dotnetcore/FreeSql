@@ -6,6 +6,7 @@ using FreeSql.Internal.Model;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.Data.Odbc;
 using System.Data.SqlClient;
 using System.Data.SQLite;
@@ -87,6 +88,17 @@ namespace base_entity
             }
         }
 
+        class B
+        {
+            public long Id { get; set; }
+        }
+
+        class A
+        {
+            public long BId { get; set; }
+            public B B { get; set; }
+        }
+
         static void Main(string[] args)
         {
             #region 初始化 IFreeSql
@@ -121,9 +133,22 @@ namespace base_entity
 
                 .UseMonitorCommand(umcmd => Console.WriteLine(umcmd.CommandText))
                 .UseLazyLoading(true)
+                .UseGenerateCommandParameterWithLambda(true)
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
+
+            fsql.UseJsonMap();
+            var bid1 = 10;
+            var list1 = fsql.Select<A>()
+                .Where(a => a.BId == bid1);
+            var aid1 = 11;
+            var select2 = fsql.Select<B>();
+            (select2 as Select0Provider)._params = (list1 as Select0Provider)._params;
+            var list2 = select2
+                .Where(a => list1.ToList(B => B.BId).Contains(a.Id))
+                .Where(a => a.Id == aid1)
+                .ToSql();
 
             //fsql.Aop.CommandBefore += (s, e) =>
             //{
