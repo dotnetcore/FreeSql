@@ -253,6 +253,19 @@ namespace FreeSql.Tests
         public void Test02()
         {
             g.sqlite.GlobalFilter
+                .Apply<otot1>("id2", a => a.name == "123");
+
+            var sqlo1 = g.sqlite.Select<otot1, otot2, otot3>()
+                .InnerJoin((a, b, c) => a.id == b.id)
+                .InnerJoin((a, b, c) => b.id == c.id)
+                .ToSql();
+
+            var sqlo2 = g.sqlite.GetRepository<otot3>()
+                .Select
+                .ToSql();
+
+
+            g.sqlite.GlobalFilter
                 .ApplyOnly<otot1>("id1", a => a.name == "123");
 
             var sqlonly = g.sqlite.Select<otot1, otot2, otot3>()
