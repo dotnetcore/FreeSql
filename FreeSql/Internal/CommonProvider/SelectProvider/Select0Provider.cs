@@ -240,7 +240,8 @@ namespace FreeSql.Internal.CommonProvider
         }
         public TSelect RightJoin(Expression<Func<T1, bool>> exp)
         {
-            if (exp == null) return this as TSelect; _tables[0].Parameter = exp.Parameters[0];
+            if (exp == null) return this as TSelect; 
+            _tables[0].Parameter = exp.Parameters[0];
             return this.InternalJoin(exp?.Body, SelectTableInfoType.RightJoin);
         }
         public TSelect LeftJoin<T2>(Expression<Func<T1, T2, bool>> exp)
