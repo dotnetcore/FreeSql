@@ -436,6 +436,7 @@ public static partial class FreeSqlGlobalExtensions
                         mysqlVersion = select._connection.ServerVersion;
                         if (isclosed) select._connection.Close();
                     }
+                    _dicMySqlVersion.TryAdd(mysqlConnectionString, mysqlVersion);
                 }
                 if (int.TryParse((mysqlVersion ?? "").Split('.')[0], out var mysqlVersionFirst) && mysqlVersionFirst < 8)
                 {
