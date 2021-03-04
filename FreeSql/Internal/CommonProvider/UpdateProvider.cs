@@ -669,6 +669,7 @@ namespace FreeSql.Internal.CommonProvider
             if (entityType == _table.Type) return this;
             var newtb = _commonUtils.GetTableByEntity(entityType);
             _table = newtb ?? throw new Exception("IUpdate.AsType 参数错误，请传入正确的实体类型");
+            _tempPrimarys = _table.Primarys;
             if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(entityType);
             IgnoreCanUpdate();
             return this;

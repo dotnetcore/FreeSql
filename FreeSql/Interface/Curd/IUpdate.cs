@@ -72,9 +72,9 @@ namespace FreeSql
         /// 注意：实体必须定义主键，并且最终会自动附加条件 where id in (source.Id)
         /// </summary>
         /// <param name="source">实体集合</param>
-        /// <param name="primarys">根据主键更新，a => a.Name | a => new{a.Name,a.Time} | a => new[]{"name","time"}</param>
+        /// <param name="tempPrimarys">根据临时主键更新，a => a.Name | a => new{a.Name,a.Time} | a => new[]{"name","time"}</param>
         /// <returns></returns>
-        IUpdate<T1> SetSource(IEnumerable<T1> source, Expression<Func<T1, object>> primarys = null);
+        IUpdate<T1> SetSource(IEnumerable<T1> source, Expression<Func<T1, object>> tempPrimarys = null);
         /// <summary>
         /// 更新数据，设置更新的实体，同时设置忽略的列<para></para>
         /// 忽略 null 属性：fsql.Update&lt;T&gt;().SetSourceAndIgnore(item, colval => colval == null)<para></para>
