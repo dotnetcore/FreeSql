@@ -71,16 +71,16 @@ namespace FreeSql.PostgreSQL.Curd
 
         protected override void ToSqlCase(StringBuilder caseWhen, ColumnInfo[] primarys)
         {
-            if (_table.Primarys.Length == 1)
+            if (primarys.Length == 1)
             {
-                var pk = _table.Primarys.First();
+                var pk = primarys.First();
                 if (string.IsNullOrEmpty(InternalTableAlias) == false) caseWhen.Append(InternalTableAlias).Append(".");
                 caseWhen.Append(_commonUtils.RereadColumn(pk, _commonUtils.QuoteSqlName(pk.Attribute.Name)));
                 return;
             }
             caseWhen.Append("(");
             var pkidx = 0;
-            foreach (var pk in _table.Primarys)
+            foreach (var pk in primarys)
             {
                 if (pkidx > 0) caseWhen.Append(" || '+' || ");
                 if (string.IsNullOrEmpty(InternalTableAlias) == false) caseWhen.Append(InternalTableAlias).Append(".");
@@ -92,14 +92,14 @@ namespace FreeSql.PostgreSQL.Curd
 
         protected override void ToSqlWhen(StringBuilder sb, ColumnInfo[] primarys, object d)
         {
-            if (_table.Primarys.Length == 1)
+            if (primarys.Length == 1)
             {
-                sb.Append(_commonUtils.FormatSql("{0}", _table.Primarys[0].GetDbValue(d)));
+                sb.Append(_commonUtils.FormatSql("{0}", primarys[0].GetDbValue(d)));
                 return;
             }
             sb.Append("(");
             var pkidx = 0;
-            foreach (var pk in _table.Primarys)
+            foreach (var pk in primarys)
             {
                 if (pkidx > 0) sb.Append(" || '+' || ");
                 sb.Append(_commonUtils.FormatSql("{0}", pk.GetDbValue(d))).Append("::text");

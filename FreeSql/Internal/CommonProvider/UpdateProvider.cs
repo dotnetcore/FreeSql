@@ -22,6 +22,7 @@ namespace FreeSql.Internal.CommonProvider
         public Dictionary<string, bool> _ignore = new Dictionary<string, bool>(StringComparer.CurrentCultureIgnoreCase);
         public Dictionary<string, bool> _auditValueChangedDict = new Dictionary<string, bool>(StringComparer.CurrentCultureIgnoreCase);
         public TableInfo _table;
+        public ColumnInfo[] _tempPrimarys;
         public Func<string, string> _tableRule;
         public StringBuilder _where = new StringBuilder();
         public List<GlobalFilter.Item> _whereGlobalFilter;
@@ -45,6 +46,7 @@ namespace FreeSql.Internal.CommonProvider
             _commonUtils = commonUtils;
             _commonExpression = commonExpression;
             _table = _commonUtils.GetTableByEntity(typeof(T1));
+            _tempPrimarys = _table.Primarys;
             _noneParameter = _orm.CodeFirst.IsNoneCommandParameter;
             this.Where(_commonUtils.WhereObject(_table, "", dywhere));
             if (_orm.CodeFirst.IsAutoSyncStructure && typeof(T1) != typeof(object)) _orm.CodeFirst.SyncStructure<T1>();
@@ -410,11 +412,17 @@ namespace FreeSql.Internal.CommonProvider
         }
 
         public IUpdate<T1> SetSource(T1 source) => this.SetSource(new[] { source });
-        public IUpdate<T1> SetSource(IEnumerable<T1> source)
+        public IUpdate<T1> SetSource(IEnumerable<T1> source, Expression<Func<T1, object>> tempPrimarys = null)
         {
             if (source == null || source.Any() == false) return this;
             AuditDataValue(this, source, _orm, _table, _auditValueChangedDict);
             _source.AddRange(source.Where(a => a != null));
+
+            if (tempPrimarys != null)
+            {
+                var cols = _commonExpression.ExpressionSelectColumns_MemberAccess_New_NewArrayInit(null, tempPrimarys?.Body, false, null).Distinct().ToDictionary(a => a);
+                _tempPrimarys = cols.Keys.Select(a => _table.ColumnsByCs.TryGetValue(a, out var col) ? col : null).ToArray().Where(a => a != null).ToArray();
+            }
             return this;
         }
         public IUpdate<T1> SetSourceIgnore(T1 source, Func<object, bool> ignore)
@@ -562,7 +570,7 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
         public IUpdate<T1> Where(T1 item) => this.Where(new[] { item });
-        public IUpdate<T1> Where(IEnumerable<T1> items) => this.Where(_commonUtils.WhereItems(_table, "", items));
+        public IUpdate<T1> Where(IEnumerable<T1> items) => this.Where(_commonUtils.WhereItems(_table.Primarys, "", items));
         public IUpdate<T1> WhereDynamic(object dywhere, bool not = false) => not == false ?
             this.Where(_commonUtils.WhereObject(_table, "", dywhere)) :
             this.Where($"not({_commonUtils.WhereObject(_table, "", dywhere)})");
@@ -608,7 +616,7 @@ namespace FreeSql.Internal.CommonProvider
             {
                 var caseWhen = new StringBuilder();
                 caseWhen.Append("CASE ");
-                ToSqlCase(caseWhen, _table.Primarys);
+                ToSqlCase(caseWhen, _tempPrimarys);
                 var cw = caseWhen.ToString();
 
                 var col = _table.ColumnsByCs[CsName];
@@ -620,7 +628,7 @@ namespace FreeSql.Internal.CommonProvider
                 foreach (var d in _source)
                 {
                     cwsb.Append(" \r\nWHEN ");
-                    ToSqlWhen(cwsb, _table.Primarys, d);
+                    ToSqlWhen(cwsb, _tempPrimarys, d);
                     cwsb.Append(" THEN ");
                     var val = col.GetDbValue(d);
                     cwsb.Append(thenValue(_commonUtils.RewriteColumn(col, _commonUtils.GetNoneParamaterSqlValue(_paramsSource, "u", col, col.Attribute.MapType, val))));
@@ -685,6 +693,7 @@ namespace FreeSql.Internal.CommonProvider
                 foreach (var col in _table.Columns.Values)
                 {
                     if (col.Attribute.IsPrimary) continue;
+                    if (_tempPrimarys.Any(a => a.CsName == col.CsName)) continue;
                     if (col.Attribute.IsIdentity == false && col.Attribute.IsVersion == false && _ignore.ContainsKey(col.Attribute.Name) == false)
                     {
                         if (colidx > 0) sb.Append(", ");
@@ -710,11 +719,11 @@ namespace FreeSql.Internal.CommonProvider
             }
             else if (_source.Count > 1)
             { //批量保存 Source
-                if (_table.Primarys.Any() == false) return null;
+                if (_tempPrimarys.Any() == false) return null;
 
                 var caseWhen = new StringBuilder();
                 caseWhen.Append("CASE ");
-                ToSqlCase(caseWhen, _table.Primarys);
+                ToSqlCase(caseWhen, _tempPrimarys);
                 var cw = caseWhen.ToString();
 
                 _paramsSource.Clear();
@@ -722,6 +731,7 @@ namespace FreeSql.Internal.CommonProvider
                 foreach (var col in _table.Columns.Values)
                 {
                     if (col.Attribute.IsPrimary) continue;
+                    if (_tempPrimarys.Any(a => a.CsName == col.CsName)) continue;
                     if (col.Attribute.IsIdentity == false && col.Attribute.IsVersion == false && _ignore.ContainsKey(col.Attribute.Name) == false)
                     {
                         if (colidx > 0) sb.Append(", ");
@@ -736,7 +746,7 @@ namespace FreeSql.Internal.CommonProvider
                             foreach (var d in _source)
                             {
                                 cwsb.Append(" \r\nWHEN ");
-                                ToSqlWhen(cwsb, _table.Primarys, d);
+                                ToSqlWhen(cwsb, _tempPrimarys, d);
                                 cwsb.Append(" THEN ");
                                 var val = col.GetDbValue(d);
 
@@ -789,8 +799,8 @@ namespace FreeSql.Internal.CommonProvider
             sb.Append(" \r\nWHERE ");
             if (_source.Any())
             {
-                if (_table.Primarys.Any() == false) throw new ArgumentException($"{_table.Type.DisplayCsharp()} 没有定义主键，无法使用 SetSource，请尝试 SetDto");
-                sb.Append('(').Append(_commonUtils.WhereItems(_table, "", _source)).Append(')');
+                if (_tempPrimarys.Any() == false) throw new ArgumentException($"{_table.Type.DisplayCsharp()} 没有定义主键，无法使用 SetSource，请尝试 SetDto");
+                sb.Append('(').Append(_commonUtils.WhereItems(_tempPrimarys, "", _source)).Append(')');
             }
 
             if (_where.Length > 0)

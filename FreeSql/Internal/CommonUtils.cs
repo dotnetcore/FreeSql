@@ -367,14 +367,14 @@ namespace FreeSql.Internal
             }
         }
 
-        public string WhereItems<TEntity>(TableInfo table, string aliasAndDot, IEnumerable<TEntity> items)
+        public string WhereItems<TEntity>(ColumnInfo[] primarys, string aliasAndDot, IEnumerable<TEntity> items)
         {
             if (items == null || items.Any() == false) return null;
-            if (table.Primarys.Any() == false) return null;
+            if (primarys.Any() == false) return null;
             var its = items.Where(a => a != null).ToArray();
 
-            var pk1 = table.Primarys.FirstOrDefault();
-            if (table.Primarys.Length == 1)
+            var pk1 = primarys.FirstOrDefault();
+            if (primarys.Length == 1)
             {
                 var sbin = new StringBuilder();
                 sbin.Append(aliasAndDot).Append(this.QuoteSqlName(pk1.Attribute.Name));
@@ -390,7 +390,7 @@ namespace FreeSql.Internal
             foreach (var item in its)
             {
                 var filter = "";
-                foreach (var pk in table.Primarys)
+                foreach (var pk in primarys)
                     filter += $" AND {aliasAndDot}{this.QuoteSqlName(pk.Attribute.Name)} = {RewriteColumn(pk, GetNoneParamaterSqlValue(null, null, pk, pk.Attribute.MapType, pk.GetDbValue(item)))}";
                 if (string.IsNullOrEmpty(filter)) continue;
                 if (sb != null)
