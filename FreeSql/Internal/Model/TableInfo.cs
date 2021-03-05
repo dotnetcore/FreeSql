@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 namespace FreeSql.Internal.Model
@@ -43,6 +44,86 @@ namespace FreeSql.Internal.Model
             }
             return tryref;
         }
+
+        //public void CopyTo(TableInfo target)
+        //{
+        //    target.Type = this.Type;
+        //    target.TypeLazy = this.TypeLazy;
+        //    target.TypeLazySetOrm = this.TypeLazySetOrm;
+        //    foreach (var prop in this.Properties) target.Properties.Add(prop.Key, prop.Value);
+        //    foreach (var col in this.Columns) target.Columns.Add(col.Key, cloneColumn(col.Value));
+        //    foreach (var col in this.ColumnsByCs) target.ColumnsByCs.Add(col.Key, getOrCloneColumn(col.Value));
+        //    foreach (var col in this.ColumnsByCsIgnore) target.ColumnsByCsIgnore.Add(col.Key, getOrCloneColumn(col.Value));
+        //    target.ColumnsByPosition = this.ColumnsByPosition.Select(col => getOrCloneColumn(col)).ToArray();
+        //    target.Primarys = this.Primarys.Select(col => getOrCloneColumn(col)).ToArray();
+        //    target.Indexes = this.Indexes.Select(idx => new IndexInfo
+        //    {
+        //        IsUnique = idx.IsUnique,
+        //        Name = idx.Name,
+        //        Columns = idx.Columns.Select(col => new IndexColumnInfo
+        //        {
+        //            Column = getOrCloneColumn(col.Column),
+        //            IsDesc = col.IsDesc
+        //        }).ToArray()
+        //    }).ToArray();
+        //    target.CsName = this.CsName;
+        //    target.DbName = this.DbName;
+        //    target.DbOldName = this.DbOldName;
+        //    target.DisableSyncStructure = this.DisableSyncStructure;
+        //    target.Comment = this.Comment;
+        //    target.IsRereadSql = this.IsRereadSql;
+        //    target.VersionColumn = getOrCloneColumn(this.VersionColumn);
+        //    foreach (var rf in this._refs) target._refs.TryAdd(rf.Key, new TableRef
+        //    {
+                 
+        //    });
+
+
+        //    ColumnInfo getOrCloneColumn(ColumnInfo col)
+        //    {
+        //        if (target.Columns.TryGetValue(col.Attribute.Name, out var trycol)) return trycol;
+        //        return cloneColumn(col);
+        //    }
+        //    ColumnInfo cloneColumn(ColumnInfo col)
+        //    {
+        //        return new ColumnInfo
+        //        {
+        //            Table = target,
+        //            CsName = col.CsName,
+        //            CsType = col.CsType,
+        //            Attribute = new ColumnAttribute
+        //            {
+        //                Name = col.Attribute.Name,
+        //                OldName = col.Attribute.OldName,
+        //                DbType = col.Attribute.DbType,
+        //                _IsPrimary = col.Attribute._IsPrimary,
+        //                _IsIdentity = col.Attribute._IsIdentity,
+        //                _IsNullable = col.Attribute._IsNullable,
+        //                _IsIgnore = col.Attribute._IsIgnore,
+        //                _IsVersion = col.Attribute._IsVersion,
+        //                MapType = col.Attribute.MapType,
+        //                _Position = col.Attribute._Position,
+        //                _CanInsert = col.Attribute._CanInsert,
+        //                _CanUpdate = col.Attribute._CanUpdate,
+        //                ServerTime = col.Attribute.ServerTime,
+        //                _StringLength = col.Attribute._StringLength,
+        //                InsertValueSql = col.Attribute.InsertValueSql,
+        //                _Precision = col.Attribute._Precision,
+        //                _Scale = col.Attribute._Scale,
+        //                RewriteSql = col.Attribute.RewriteSql,
+        //                RereadSql = col.Attribute.RereadSql,
+        //            },
+        //            Comment = col.Comment,
+        //            DbTypeText = col.DbTypeText,
+        //            DbDefaultValue = col.DbDefaultValue,
+        //            DbInsertValue = col.DbInsertValue,
+        //            DbUpdateValue = col.DbUpdateValue,
+        //            DbSize = col.DbSize,
+        //            DbPrecision = col.DbPrecision,
+        //            DbScale = col.DbScale
+        //        };
+        //    }
+        //}
     }
 
     public class TableRef
