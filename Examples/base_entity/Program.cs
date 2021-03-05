@@ -138,6 +138,15 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+            for (var a = 0; a < 1000; a++)
+            {
+                fsql.Transaction(() =>
+                {
+                    var tran = fsql.Ado.TransactionCurrentThread;
+                    tran.Rollback();
+                });
+            }
+
             fsql.UseJsonMap();
             var bid1 = 10;
             var list1 = fsql.Select<A>()
