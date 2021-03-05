@@ -28,6 +28,7 @@ namespace FreeSql
 
             PrevCommandInfo oldinfo = null;
             var states = new List<object>();
+            var flagFuncUpdateLaststate = false;
 
             Task<int> dbsetBatch(string method)
             {
@@ -77,7 +78,11 @@ namespace FreeSql
                 { //没有执行更新
                     var laststate = states[states.Count - 1];
                     states.Clear();
-                    if (affrows == -997) states.Add(laststate); //保留最后一个
+                    if (affrows == -997)
+                    {
+                        flagFuncUpdateLaststate = true;
+                        states.Add(laststate); //保留最后一个
+                    }
                 }
                 if (affrows > 0)
                 {
@@ -85,7 +90,11 @@ namespace FreeSql
                     var islastNotUpdated = states.Count != affrows;
                     var laststate = states[states.Count - 1];
                     states.Clear();
-                    if (islastNotUpdated) states.Add(laststate); //保留最后一个
+                    if (islastNotUpdated)
+                    {
+                        flagFuncUpdateLaststate = true;
+                        states.Add(laststate); //保留最后一个
+                    }
                 }
             };
 
@@ -94,6 +103,7 @@ namespace FreeSql
                 var info = _prevCommands.Any() ? _prevCommands.Dequeue() : null;
                 if (oldinfo == null) oldinfo = info;
                 var isLiveUpdate = false;
+                flagFuncUpdateLaststate = false;
 
                 if (_prevCommands.Any() == false && states.Any() ||
                     info != null && oldinfo.changeType != info.changeType ||
@@ -130,6 +140,9 @@ namespace FreeSql
                 {
                     states.Add(info.state);
                     oldinfo = info;
+
+                    if (flagFuncUpdateLaststate && oldinfo.changeType == EntityChangeType.Update) //马上与上个元素比较
+                        await funcUpdate(isLiveUpdate);
                 }
             }
             isFlushCommanding = false;
