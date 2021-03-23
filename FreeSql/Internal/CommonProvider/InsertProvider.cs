@@ -179,7 +179,7 @@ namespace FreeSql.Internal.CommonProvider
                 }
                 if (val == null && col.Attribute.MapType == typeof(string) && col.Attribute.IsNullable == false)
                     col.SetValue(data, val = "");
-                if (val == null && col.Attribute.MapType == typeof(byte[]) && col.Attribute.IsVersion)
+                if (col.Attribute.MapType == typeof(byte[]) && (val == null || (val is byte[] bytes && bytes.Length == 0)) && col.Attribute.IsVersion)
                     col.SetValue(data, val = Utils.GuidToBytes(Guid.NewGuid()));
             }
         }
