@@ -2614,6 +2614,13 @@
             <param name="pageSize">每页多少</param>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.ISelectGrouping`2.Page(FreeSql.Internal.Model.BasePagingInfo)">
+            <summary>
+            分页
+            </summary>
+            <param name="pagingInfo">分页信息</param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.ISelectGrouping`2.Count">
             <summary>
             查询的记录数量

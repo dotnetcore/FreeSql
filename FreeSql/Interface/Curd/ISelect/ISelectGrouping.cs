@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FreeSql.Internal.Model;
+using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
@@ -100,6 +101,13 @@ namespace FreeSql
         /// <param name="pageSize">每页多少</param>
         /// <returns></returns>
         ISelectGrouping<TKey, TValue> Page(int pageNumber, int pageSize);
+
+        /// <summary>
+        /// 分页
+        /// </summary>
+        /// <param name="pagingInfo">分页信息</param>
+        /// <returns></returns>
+        ISelectGrouping<TKey, TValue> Page(BasePagingInfo pagingInfo);
 
         /// <summary>
         /// 查询的记录数量
