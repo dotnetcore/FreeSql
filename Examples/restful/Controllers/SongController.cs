@@ -25,6 +25,18 @@ namespace restful.Controllers
             return _fsql.Select<Song>().WhereIf(!string.IsNullOrEmpty(key), a => a.Title.Contains(key)).Page(page, limit).ToListAsync();
         }
 
+        /// <summary>
+        /// curl -X GET "http://localhost:5000/restapi/Songs/GetPagingItems?key=FreeSql&PageNumber=2&PageSize=10" -H  "accept: text/plain"
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="pagingInfo"></param>
+        /// <returns></returns>
+        [HttpGet("GetPagingItems")]
+        public Task<List<Song>> GetPagingItems([FromQuery] string key, [FromQuery] PagingInfo pagingInfo)
+        {
+            return _fsql.Select<Song>().WhereIf(!string.IsNullOrEmpty(key), a => a.Title.Contains(key)).Page(pagingInfo).ToListAsync();
+        }
+
         [HttpGet("{id}")]
         public Task<Song> GetItem([FromRoute] int id)
         {
