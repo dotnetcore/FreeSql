@@ -403,6 +403,13 @@ namespace FreeSql
         TSelect Page(int pageNumber, int pageSize);
 
         /// <summary>
+        /// 分页
+        /// </summary>
+        /// <param name="pagingInfo">分页信息</param>
+        /// <returns></returns>
+        TSelect Page(BasePagingInfo pagingInfo);
+
+        /// <summary>
         /// 查询数据前，去重
         /// <para>
         /// .Distinct().ToList(x => x.GroupName) 对指定字段去重

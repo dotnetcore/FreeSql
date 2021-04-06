@@ -201,6 +201,14 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
 
+        public ISelectGrouping<TKey, TValue> Page(BasePagingInfo pagingInfo)
+        {
+            pagingInfo.Count = this.Count();
+            _groupBySkip = Math.Max(0, pagingInfo.PageNumber - 1) * pagingInfo.PageSize;
+            _groupByLimit = pagingInfo.PageSize;
+            return this;
+        }
+
         public long Count() => _select._cancel?.Invoke() == true ? 0 : long.TryParse(string.Concat(_orm.Ado.ExecuteScalar(_select._connection, _select._transaction, CommandType.Text, $"select count(1) from ({this.ToSql($"1{_comonExp._common.FieldAsAlias("as1")}")}) fta", _select._commandTimeout, _select._params.ToArray())), out var trylng) ? trylng : default(long);
         public ISelectGrouping<TKey, TValue> Count(out long count)
         {

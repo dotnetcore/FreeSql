@@ -319,6 +319,13 @@ namespace FreeSql.Internal.CommonProvider
             return this.Limit(pageSize) as TSelect;
         }
 
+        public TSelect Page(BasePagingInfo pagingInfo)
+        {
+            pagingInfo.Count = this.Count();
+            this.Skip(Math.Max(0, pagingInfo.PageNumber - 1) * pagingInfo.PageSize);
+            return this.Limit(pagingInfo.PageSize) as TSelect;
+        }
+
         public TSelect Skip(int offset)
         {
             _skip = offset;

@@ -2136,6 +2136,13 @@
             <param name="pageSize">每页多少</param>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.ISelect0`2.Page(FreeSql.Internal.Model.BasePagingInfo)">
+            <summary>
+            分页
+            </summary>
+            <param name="pagingInfo">分页信息</param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.ISelect0`2.Distinct">
             <summary>
             查询数据前，去重
@@ -2605,6 +2612,13 @@
             </summary>
             <param name="pageNumber">第几页</param>
             <param name="pageSize">每页多少</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.ISelectGrouping`2.Page(FreeSql.Internal.Model.BasePagingInfo)">
+            <summary>
+            分页
+            </summary>
+            <param name="pagingInfo">分页信息</param>
             <returns></returns>
         </member>
         <member name="M:FreeSql.ISelectGrouping`2.Count">
@@ -3975,6 +3989,26 @@
             </summary>
             <param name="commandTimeout"></param>
             <returns></returns>
+        </member>
+        <member name="T:FreeSql.Internal.Model.BasePagingInfo">
+            <summary>
+            分页信息
+            </summary>
+        </member>
+        <member name="P:FreeSql.Internal.Model.BasePagingInfo.PageNumber">
+            <summary>
+            第几页，从1开始
+            </summary>
+        </member>
+        <member name="P:FreeSql.Internal.Model.BasePagingInfo.PageSize">
+            <summary>
+            每页多少
+            </summary>
+        </member>
+        <member name="P:FreeSql.Internal.Model.BasePagingInfo.Count">
+            <summary>
+            查询的记录数量
+            </summary>
         </member>
         <member name="P:FreeSql.Internal.Model.BatchProgressStatus`1.Data">
             <summary>
