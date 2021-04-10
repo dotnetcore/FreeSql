@@ -16,9 +16,9 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 3.1.101
+        dotnet-version: 5.0.202
     - name: Exclude example projects
-      run:  dotnet sln FreeSql.sln remove Examples/**/*.csproj
+      run:  dotnet sln FreeSql.sln remove Examples/**/*.csproj FreeSql.Tests/**/*.csproj
     - name: Install dependencies
       run: dotnet restore
     - name: Build solution
@@ -34,9 +34,13 @@ jobs:
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: 3.1.101
+          dotnet-version: 5.0.202
+      - name: Remove Examples
+        run: dotnet sln FreeSql.sln remove (ls -r Examples/**/*.csproj)
+      - name: Remove FreeSql.Tests 
+        run:  dotnet sln FreeSql.sln remove (ls -r FreeSql.Tests/**/*.csproj)
       - name: Install dependencies
-        run: dotnet sln FreeSql.sln remove (ls -r Examples/**/*.csproj);dotnet restore
+        run:  dotnet nuget add source https://api.nuget.org/v3/index.json -n nuget.org --configfile $env:APPDATA\NuGet\NuGet.Config && dotnet restore
       - name: Setup DocFX
         uses: crazy-max/ghaction-chocolatey@v1
         with:
