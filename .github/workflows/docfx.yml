@@ -7,9 +7,27 @@ on:
     branches: [master]
 
 jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.101
+    - name: Exclude example projects
+      run: dotnet sln FreeSql.sln remove (ls -r Examples/**/*.csproj)
+    - name: Install dependencies
+      run: dotnet restore
+    - name: Build solution
+      run: dotnet build --configuration Release --no-restore
+    
   generate-docs:
     runs-on: windows-latest
-
+    needs: build
+    
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -18,7 +36,7 @@ jobs:
         with:
           dotnet-version: 3.1.101
       - name: Install dependencies
-        run: dotnet restore
+        run: dotnet sln FreeSql.sln remove (ls -r Examples/**/*.csproj);dotnet restore
       - name: Setup DocFX
         uses: crazy-max/ghaction-chocolatey@v1
         with:
