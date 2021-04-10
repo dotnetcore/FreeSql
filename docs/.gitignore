@@ -1,0 +1,15 @@
+###############
+#    folder   #
+###############
+/**/DROP/
+/**/TEMP/
+/**/packages/
+/**/bin/
+/**/obj/
+_site
+/freesql/provider/*.yml
+/freesql/provider/.manifest
+/freesql/repository/*.yml
+/freesql/repository/.manifest
+/api/*.yml
+/api/.manifest

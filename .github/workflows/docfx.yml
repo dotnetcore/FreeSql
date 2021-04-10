@@ -1,0 +1,37 @@
+name: .NET Core Deploy Docfx
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  generate-docs:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 3.1.101
+      - name: Install dependencies
+        run: dotnet restore
+      - name: Setup DocFX
+        uses: crazy-max/ghaction-chocolatey@v1
+        with:
+          args: install docfx --version 2.56.7
+      - name: DocFX Build
+        working-directory: docs
+        run: docfx docfx.json
+        continue-on-error: false
+      - name: Publish
+        if: github.event_name == 'push'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: docs/_site
+          cname: github.com
+          force_orphan: true
