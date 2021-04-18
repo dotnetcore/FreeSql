@@ -1,0 +1,11 @@
+- name: FreeSql Documentation
+  href: api/
+  homepage: api/index.md
+
+- name: Repository Documentation
+  href: freesql/repository/
+  homepage: freesql/repository/index.md
+
+- name: Provider Documentation
+  href: freesql/provider/
+  homepage: freesql/provider/index.md
