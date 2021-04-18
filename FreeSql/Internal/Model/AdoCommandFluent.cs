@@ -60,6 +60,7 @@ namespace FreeSql.Internal.Model
         public AdoCommandFluent WithParameter(string parameterName, object value, Action<DbParameter> modify = null)
         {
             var param = this.Ado.GetDbParamtersByObject(new Dictionary<string, object> { [parameterName] = value }).FirstOrDefault();
+            if (CmdType == System.Data.CommandType.StoredProcedure) param.ParameterName = parameterName; //#739
             modify?.Invoke(param);
             this.CmdParameters.Add(param);
             return this;
