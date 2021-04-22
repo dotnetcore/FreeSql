@@ -40,7 +40,7 @@ jobs:
       - name: Remove FreeSql.Tests 
         run:  dotnet sln FreeSql.sln remove (ls -r FreeSql.Tests/**/*.csproj)
       - name: Install dependencies
-        run:  dotnet nuget add source https://api.nuget.org/v3/index.json -n nuget.org --configfile $env:APPDATA\NuGet\NuGet.Config && dotnet restore
+        run:  dotnet restore
       - name: Setup DocFX
         uses: crazy-max/ghaction-chocolatey@v1
         with:
