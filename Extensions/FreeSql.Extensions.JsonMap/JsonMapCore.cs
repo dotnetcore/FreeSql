@@ -7,6 +7,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+using FreeSql;
 
 public static class FreeSqlJsonMapCoreExtensions
 {
@@ -49,7 +50,37 @@ public static class FreeSqlJsonMapCoreExtensions
             if (isJsonMap)
             {
                 e.ModifyResult.MapType = typeof(string);
-                e.ModifyResult.StringLength = -2;
+                
+                // pgsql默认使用jsonb，如果Column特性指定了DbType/TypeName，则优先使用特性指定的数据类型
+                var typeName =
+                    (e.Property.GetCustomAttributes(typeof(ColumnAttribute), false).FirstOrDefault() as ColumnAttribute)
+                    ?.DbType;
+                if (string.IsNullOrWhiteSpace(typeName))
+                {
+                    var attr = e.Property
+                        .GetCustomAttributes(false)
+                        .FirstOrDefault(a => ((a as Attribute)?.TypeId as Type)?.FullName ==
+                                             "System.ComponentModel.DataAnnotations.Schema.ColumnAttribute");
+                    if (attr != null)
+                    {
+                        typeName = attr.GetType().GetProperties()
+                            .FirstOrDefault(a => a.PropertyType == typeof(string) && a.Name == "TypeName")
+                            ?.GetValue(attr, null)?.ToString();
+                    }
+                }
+                
+                if (string.IsNullOrWhiteSpace(typeName))
+                {
+                    if (s is IFreeSql freeSql && (freeSql.Ado.DataType == DataType.PostgreSQL || freeSql.Ado.DataType == DataType.OdbcPostgreSQL))
+                    {
+                        e.ModifyResult.DbType = "jsonb";   
+                    }
+                    else
+                    {
+                        e.ModifyResult.StringLength = -2;
+                    }
+                }
+                
                 if (_dicTypes.TryAdd(e.Property.PropertyType, true))
                 {
                     FreeSql.Internal.Utils.GetDataReaderValueBlockExpressionObjectToStringIfThenElse.Add((LabelTarget returnTarget, Expression valueExp, Expression elseExp, Type type) =>
