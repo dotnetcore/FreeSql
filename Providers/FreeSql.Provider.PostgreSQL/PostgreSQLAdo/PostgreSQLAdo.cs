@@ -7,6 +7,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data.Common;
+using System.Linq;
 using System.Text;
 using System.Threading;
 
@@ -65,12 +66,22 @@ namespace FreeSql.PostgreSQL
             {
                 var pgdics = isdic ? param as Dictionary<string, string> :
                     param as IEnumerable<KeyValuePair<string, string>>;
-                if (pgdics == null) return string.Concat("''::hstore");
-                var pghstore = new StringBuilder();
-                pghstore.Append("'");
-                foreach (var dic in pgdics)
-                    pghstore.Append("\"").Append(dic.Key.Replace("'", "''")).Append("\"=>")
-                        .Append(dic.Key.Replace("'", "''")).Append(",");
+                
+                var pghstore = new StringBuilder("'");
+                var pairs = pgdics.ToArray();
+                
+                for (var i = 0; i < pairs.Length; i++)
+                {
+                    if (i != 0) pghstore.Append(",");
+
+                    pghstore.AppendFormat("\"{0}\"=>", pairs[i].Key.Replace("'", "''"));
+
+                    if (pairs[i].Value == null)
+                        pghstore.Append("NULL");
+                    else
+                        pghstore.AppendFormat("\"{0}\"", pairs[i].Value.Replace("'", "''"));
+                }
+                
                 return pghstore.Append("'::hstore");
             }
             else if (param is IEnumerable)
