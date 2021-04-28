@@ -545,6 +545,7 @@ namespace FreeSql.Internal.CommonProvider
                     if (_ignore.ContainsKey(trycol.Attribute.Name)) continue;
                     SetPriv(trycol, kv.Value);
                 }
+                return this;
             }
             var dtoProps = dto.GetType().GetProperties();
             foreach (var dtoProp in dtoProps)
