@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net452;net451;net45;net40</TargetFrameworks>
-		<Version>2.3.200</Version>
+		<Version>2.5.100</Version>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>FreeSql;ncc;YeXiangQin</Authors>
 		<Description>FreeSql 数据库实现，基于 MySql 5.6，Ado.Net 驱动是 MySql.Data（Oracle官方）</Description>

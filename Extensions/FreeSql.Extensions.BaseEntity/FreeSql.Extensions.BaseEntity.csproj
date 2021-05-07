@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net45;net40</TargetFrameworks>
-    <Version>2.3.200</Version>
+    <Version>2.5.100</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>FreeSql;ncc;YeXiangQin</Authors>
     <Description>BaseEntity 是一种极简单的 CodeFirst 开发方式，特别对单表或多表CRUD，利用继承节省了每个实体类的重复属性（创建时间、ID等字段），软件删除等功能，进行 crud 操作时不必时常考虑仓储的使用.</Description>

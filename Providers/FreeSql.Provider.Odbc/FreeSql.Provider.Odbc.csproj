@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net45;net40</TargetFrameworks>
-		<Version>2.3.200</Version>
+		<Version>2.5.100</Version>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>FreeSql;ncc;YeXiangQin</Authors>
 		<Description>FreeSql 数据库 Odbc 实现，基于 {Oracle}、{SQL Server}、{MySQL ODBC 8.0 Unicode Driver}、{PostgreSQL Unicode(x64)}、{DM8 ODBC Driver} 专用访问实现，以及通用 Odbc 访问所有数据库</Description>

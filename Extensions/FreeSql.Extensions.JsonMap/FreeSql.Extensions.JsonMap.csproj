@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net45;net40</TargetFrameworks>
-    <Version>2.3.200</Version>
+    <Version>2.5.100</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>FreeSql;ncc;YeXiangQin</Authors>
     <Description>FreeSql 扩展包，可实现实体类属性为对象时，以JSON形式映射存储.</Description>

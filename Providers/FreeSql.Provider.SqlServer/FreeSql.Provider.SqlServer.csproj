@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net50;net451;net45;net40</TargetFrameworks>
-		<Version>2.3.200</Version>
+		<Version>2.5.100</Version>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>FreeSql;ncc;YeXiangQin</Authors>
 		<Description>FreeSql 数据库实现，基于 SqlServer 2005+，并根据版本适配分页方法：row_number 或 offset fetch next</Description>
