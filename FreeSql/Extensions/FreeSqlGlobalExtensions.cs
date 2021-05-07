@@ -545,6 +545,15 @@ JOIN {select._commonUtils.QuoteSqlName(tb.DbName)} a ON cte_tbc.cte_id = a.{sele
             .WhereIf(level > 0, $"a.cte_level < {level + 1}")
             .OrderBy(up, "a.cte_level desc") as Select1Provider<T1>;
 
+        newSelect._params = new List<DbParameter>(select._params.ToArray());
+        newSelect._includeInfo = select._includeInfo;
+        newSelect._includeManySubListOneToManyTempValue1 = select._includeManySubListOneToManyTempValue1;
+        newSelect._includeToList = select._includeToList;
+#if net40
+#else
+        newSelect._includeToListAsync = select._includeToListAsync;
+#endif
+
         var nsselsb = new StringBuilder();
         if (AdoProvider.IsFromSlave(select._select) == false) nsselsb.Append(' '); //读写分离规则，如果强制读主库，则在前面加个空格
         nsselsb.Append("WITH ");
