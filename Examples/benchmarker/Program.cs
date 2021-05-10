@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.Data.SqlClient;
 using System.Linq;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using SqlSugar;
 
@@ -28,7 +28,7 @@ namespace FreeSql.Bechmarker
     public class Orm
     {
         public static IFreeSql fsql = new FreeSql.FreeSqlBuilder()
-                .UseConnectionString(FreeSql.DataType.SqlServer, 
+                .UseConnectionString(FreeSql.DataType.SqlServer,
                     "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=20",
                     typeof(FreeSql.SqlServer.SqlServerProvider<>))
                 //.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=20")
@@ -286,4 +286,3 @@ values('{song.Create_time.Value.ToString("yyyy-MM-dd HH:mm:ss")}',{(song.Is_dele
         public string Url { get; set; }
     }
 }
-

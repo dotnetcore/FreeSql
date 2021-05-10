@@ -10,18 +10,11 @@
 		<PackageReference Include="Dapper" Version="2.0.78" />
 		<PackageReference Include="Microsoft.Data.SqlClient" Version="2.1.0" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="5.0.0" />
+		<PackageReference Include="SqlSugarCore" Version="5.0.2.9" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Reference Include="FreeSql">
-	    <HintPath>..\..\FreeSql\bin\Release\netstandard2.0\FreeSql.dll</HintPath>
-	  </Reference>
-	  <Reference Include="FreeSql.Provider.SqlServer">
-	    <HintPath>..\..\Providers\FreeSql.Provider.SqlServer\bin\Release\netstandard2.0\FreeSql.Provider.SqlServer.dll</HintPath>
-	  </Reference>
-	  <Reference Include="SqlSugar">
-	    <HintPath>..\..\..\SqlSugar-SqlSugar5 (1)\SqlSugar-SqlSugar5\Src\Asp.NetCore2\SqlSeverTest\SqlSugar\bin\Release\netstandard2.0\SqlSugar.dll</HintPath>
-	  </Reference>
+		<ProjectReference Include="..\..\Providers\FreeSql.Provider.SqlServerForSystem\FreeSql.Provider.SqlServerForSystem.csproj" />
 	</ItemGroup>
 
 </Project>
