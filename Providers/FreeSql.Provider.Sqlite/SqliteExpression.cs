@@ -1,10 +1,10 @@
-﻿using FreeSql.Internal;
-using System;
+﻿using System;
 using System.Collections;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Text.RegularExpressions;
+using FreeSql.Internal;
 
 namespace FreeSql.Sqlite
 {
@@ -309,10 +309,10 @@ namespace FreeSql.Sqlite
                     case "IndexOf":
                         var indexOfFindStr = getExp(exp.Arguments[0]);
                         //if (exp.Arguments.Count > 1 && exp.Arguments[1].Type.FullName == "System.Int32") {
-                        //	var locateArgs1 = getExp(exp.Arguments[1]);
-                        //	if (long.TryParse(locateArgs1, out var testtrylng2)) locateArgs1 = (testtrylng2 + 1).ToString();
-                        //	else locateArgs1 += "+1";
-                        //	return $"(instr({left}, {indexOfFindStr}, {locateArgs1})-1)";
+                        //  var locateArgs1 = getExp(exp.Arguments[1]);
+                        //  if (long.TryParse(locateArgs1, out var testtrylng2)) locateArgs1 = (testtrylng2 + 1).ToString();
+                        //  else locateArgs1 += "+1";
+                        //  return $"(instr({left}, {indexOfFindStr}, {locateArgs1})-1)";
                         //}
                         return $"(instr({left}, {indexOfFindStr})-1)";
                     case "PadLeft":
@@ -417,7 +417,7 @@ namespace FreeSql.Sqlite
                     case "AddDays": return $"datetime({left},({args1})||' days')";
                     case "AddHours": return $"datetime({left},({args1})||' hours')";
                     case "AddMilliseconds": return $"datetime({left},(({args1})/1000)||' seconds')";
-                    case "AddMinutes": return $"datetime({left},({args1})||' seconds')";
+                    case "AddMinutes": return $"datetime({left},({args1})||' minutes')";
                     case "AddMonths": return $"datetime({left},({args1})||' months')";
                     case "AddSeconds": return $"datetime({left},({args1})||' seconds')";
                     case "AddTicks": return $"datetime({left},(({args1})/10000000)||' seconds')";
@@ -481,7 +481,7 @@ namespace FreeSql.Sqlite
                                     var argsSptsA = argsSpts[a];
                                     if (argsSptsA.StartsWith("'")) argsSptsA = argsSptsA.Substring(1);
                                     if (argsSptsA.EndsWith("'")) argsSptsA = argsSptsA.Remove(argsSptsA.Length - 1);
-                                    argsSpts[a] = argsFinds.Any(m => argsSptsA.Contains(m)) ? $"strftime('{argsSptsA}',{left})" : $"'{argsSptsA}'"; 
+                                    argsSpts[a] = argsFinds.Any(m => argsSptsA.Contains(m)) ? $"strftime('{argsSptsA}',{left})" : $"'{argsSptsA}'";
                                     break;
                             }
                         }
