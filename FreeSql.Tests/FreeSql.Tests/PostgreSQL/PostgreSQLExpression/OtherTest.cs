@@ -171,6 +171,8 @@ namespace FreeSql.Tests.PostgreSQLExpression
             var sql16 = select.Where(a => a.testFieldJArray.Count() > 0).Limit(10).ToList();
             var sql17 = select.Where(a => a.testFieldJArray.LongCount() > 0).Limit(10).ToList();
             var sql18 = select.Where(a => a.testFieldJArray.Count > 0).Limit(10).ToList();
+
+            var sql19 = select.First(a => a.testFieldJToken["a"]);
         }
 
         [Fact]

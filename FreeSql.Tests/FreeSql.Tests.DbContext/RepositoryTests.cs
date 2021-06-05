@@ -2,12 +2,34 @@ using FreeSql.DataAnnotations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace FreeSql.Tests
 {
     public class RepositoryTests
     {
+        /// <summary>
+        /// 更一条无法更新。
+        /// </summary>
+        /// <returns></returns>
+        [Fact]
+        public async Task Updatemysql()
+        {
+            var item1 = new AddUpdateInfo();
+            g.mysql.Insert(item1).ExecuteAffrows();
+            var item2 = new AddUpdateInfo();
+            g.mysql.Insert(item2).ExecuteAffrows();
+            var item3 = new AddUpdateInfo();
+            g.mysql.Insert(item3).ExecuteAffrows();
+
+            var repos = g.mysql.GetGuidRepository<AddUpdateInfo>();
+            var items = repos.Select.WhereDynamic(new[] { item1, item2, item3 }).ToList();
+            items[0].Title = "88";
+            //items[1].Title = "88";
+            items[2].Title = "88";
+            int x = await repos.UpdateAsync(items);
+        }
 
         [Fact]
         public void AddUpdate()

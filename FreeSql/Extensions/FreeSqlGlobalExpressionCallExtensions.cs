@@ -174,6 +174,26 @@ namespace FreeSql
         /// <returns></returns>
         public static ICaseWhenEnd Case() => SqlExtExtensions.Case();
         /// <summary>
+        /// case when .. then .. end
+        /// </summary>
+        /// <typeparam name="TInput"></typeparam>
+        /// <typeparam name="TOutput"></typeparam>
+        /// <param name="input"></param>
+        /// <param name="dict"></param>
+        /// <returns></returns>
+        public static TOutput CaseDict<TInput, TOutput>(TInput input, [RawValue] Dictionary<TInput, TOutput> dict)
+        {
+            var ec = expContext.Value;
+            var sb = new StringBuilder();
+            sb.Append("case");
+            foreach (var kv in dict)
+                sb.Append(" when ").Append(ec.ParsedContent["input"]).Append(" = ").Append(ec.FormatSql(kv.Key))
+                    .Append(" then ").Append(ec.FormatSql(kv.Value));
+            sb.Append(" end");
+            ec.Result = sb.ToString();
+            return default;
+        }
+        /// <summary>
         /// MySql group_concat(distinct .. order by .. separator ..)
         /// </summary>
         /// <param name="column"></param>

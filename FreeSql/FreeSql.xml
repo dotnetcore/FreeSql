@@ -1232,6 +1232,16 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.SqlExt.CaseDict``2(``0,System.Collections.Generic.Dictionary{``0,``1})">
+            <summary>
+            case when .. then .. end
+            </summary>
+            <typeparam name="TInput"></typeparam>
+            <typeparam name="TOutput"></typeparam>
+            <param name="input"></param>
+            <param name="dict"></param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.SqlExt.GroupConcat(System.Object)">
             <summary>
             MySql group_concat(distinct .. order by .. separator ..)

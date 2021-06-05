@@ -133,7 +133,11 @@ namespace FreeSql
                 if (isLiveUpdate || oldinfo.changeType == EntityChangeType.Update)
                 {
                     if (states.Any())
+                    {
                         await funcUpdate(isLiveUpdate);
+                        if (info?.changeType == EntityChangeType.Update)
+                            flagFuncUpdateLaststate = true;
+                    }
                 }
 
                 if (info != null)
