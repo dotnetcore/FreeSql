@@ -1,0 +1,9 @@
+blank_issues_enabled: true
+
+contact_links:
+  - name: 使用问题 🗨️
+    url: https://github.com/dotnetcore/FreeSql/discussions
+    about: 使用过程中的疑问请发布到这里
+  - name: 文档错误 📚
+    url: https://github.com/2881099/FreeSql.Wiki.VuePress/issues/new
+    about: 关于文档相关的错误请提交到这里
