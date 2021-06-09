@@ -1,4 +1,4 @@
-﻿using FreeSql.Internal.Model;
+using FreeSql.Internal.Model;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -373,7 +373,7 @@ namespace FreeSql.Internal.CommonProvider
         }
         public GetAllFieldExpressionTreeInfo GetAllFieldExpressionTreeLevelAll()
         {
-            return _dicGetAllFieldExpressionTree.GetOrAdd($"*{string.Join("+", _tables.Select(a => $"{_orm.Ado.DataType}-{a.Table.DbName}-{a.Alias}-{a.Type}"))}", s =>
+            return _dicGetAllFieldExpressionTree.GetOrAdd($"*{string.Join("+", _tables.Select(a => $"{_orm.Ado.DataType}-{a.Table.DbName}-{a.Table.CsName}-{a.Alias}-{a.Type}"))}", s =>
             {
                 var type = _tables.First().Table.TypeLazy ?? _tables.First().Table.Type;
                 var ormExp = Expression.Parameter(typeof(IFreeSql), "orm");
@@ -528,9 +528,9 @@ namespace FreeSql.Internal.CommonProvider
             if (_OldAuditDataReaderHandler != _orm.Aop.AuditDataReaderHandler)
             {
                 _OldAuditDataReaderHandler = _orm.Aop.AuditDataReaderHandler; //清除单表 ExppressionTree
-                _dicGetAllFieldExpressionTree.TryRemove($"{_orm.Ado.DataType}-{_tables[0].Table.DbName}-{_tables[0].Alias}-{_tables[0].Type}", out var oldet);
+                _dicGetAllFieldExpressionTree.TryRemove($"{_orm.Ado.DataType}-{_tables[0].Table.DbName}-{_tables[0].Table.CsName}-{_tables[0].Alias}-{_tables[0].Type}", out var oldet);
             }
-            return _dicGetAllFieldExpressionTree.GetOrAdd(string.Join("+", _tables.Select(a => $"{_orm.Ado.DataType}-{a.Table.DbName}-{a.Alias}-{a.Type}")), s =>
+            return _dicGetAllFieldExpressionTree.GetOrAdd(string.Join("+", _tables.Select(a => $"{_orm.Ado.DataType}-{a.Table.DbName}-{a.Table.CsName}-{a.Alias}-{a.Type}")), s =>
             {
                 var tb1 = _tables.First().Table;
                 var type = tb1.TypeLazy ?? tb1.Type;
