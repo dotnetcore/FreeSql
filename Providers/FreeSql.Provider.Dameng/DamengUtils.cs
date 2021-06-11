@@ -56,7 +56,8 @@ namespace FreeSql.Dameng
                         case DmDbType.Char:
                         case DmDbType.VarChar:
                         case DmDbType.Text:
-                            value = string.Concat(value);
+                            if(value != null)
+                                value = string.Concat(value);
                             break;
                     }
                 }
