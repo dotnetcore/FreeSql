@@ -1,10 +1,10 @@
-﻿using System;
+﻿using FreeSql.Internal;
+using System;
 using System.Collections;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Text.RegularExpressions;
-using FreeSql.Internal;
 
 namespace FreeSql.Sqlite
 {
@@ -201,17 +201,17 @@ namespace FreeSql.Sqlite
             switch (exp.Member.Name)
             {
                 case "Date": return $"date({left})";
-                case "TimeOfDay": return $"strftime('%s',{left})";
-                case "DayOfWeek": return $"strftime('%w',{left})";
-                case "Day": return $"strftime('%d',{left})";
-                case "DayOfYear": return $"strftime('%j',{left})";
-                case "Month": return $"strftime('%m',{left})";
-                case "Year": return $"strftime('%Y',{left})";
-                case "Hour": return $"strftime('%H',{left})";
-                case "Minute": return $"strftime('%M',{left})";
-                case "Second": return $"strftime('%S',{left})";
-                case "Millisecond": return $"(strftime('%f',{left})-strftime('%S',{left}))";
-                case "Ticks": return $"(strftime('%s',{left})*10000000+621355968000000000)";
+                case "TimeOfDay": return $"strftime('%H:%M:%f',{left})";
+                case "DayOfWeek": return $"CAST(strftime('%w',{left}) AS INTEGER) ";
+                case "Day": return $"CAST(strftime('%d',{left}) AS INTEGER) ";
+                case "DayOfYear": return $"CAST(strftime('%j',{left}) AS INTEGER) ";
+                case "Month": return $"CAST(strftime('%m',{left}) AS INTEGER) ";
+                case "Year": return $"CAST(strftime('%Y',{left}) AS INTEGER) ";
+                case "Hour": return $"CAST(strftime('%H',{left}) AS INTEGER) ";
+                case "Minute": return $"CAST(strftime('%M',{left}) AS INTEGER) ";
+                case "Second": return $"CAST(strftime('%S',{left}) AS INTEGER) ";
+                case "Millisecond": return $"CAST(strftime('%f',{left})*1000.0%1000.0 AS INTEGER)";
+                case "Ticks": return $"CAST(((strftime( '%J',{left}) - 1721425.5 ) * {TimeSpan.TicksPerDay} ) AS INTEGER ) ";//精度到毫秒
             }
             return null;
         }
