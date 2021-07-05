@@ -2,6 +2,7 @@
 using FreeSql.DataAnnotations;
 using FreeSql.Internal;
 using FreeSql.Internal.CommonProvider;
+using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -33,6 +34,46 @@ namespace FreeSql.Tests
                 .ToSql();
             Assert.Equal(@"UPDATE `ProductStockBak` SET `NotTaxTotalCostPrice` = 47.844297 * `CurrentQty`, `NotTaxCostPrice` = 47.844297 
 WHERE (`ProductId` = '00000000-0000-0000-0000-000000000000' AND `MerchantId` = '00000000-0000-0000-0000-000000000000')", sql);
+
+
+            //fsql.Aop.CommandBefore += (_, e) =>
+            //{
+            //    foreach (MySqlParameter cp in e.Command.Parameters)
+            //        if (cp.MySqlDbType == MySqlDbType.Enum) cp.MySqlDbType = MySqlDbType.Int32;
+            //};
+
+            var aaa = fsql.Ado.QuerySingle<string>("select ?et", new Dictionary<string, object>
+            {
+                ["et"] = SystemUserType.StroeAdmin
+            });
+
+            using (var conn = fsql.Ado.MasterPool.Get())
+            {
+                var cmd = conn.Value.CreateCommand();
+                cmd.CommandText = "select ?et";
+                cmd.Parameters.Add(new MySqlParameter("et", SystemUserType.StroeAdmin));
+                var aaa2 = cmd.ExecuteScalar();
+            }
+        }
+
+        public enum SystemUserType
+        {
+            /// <summary>
+            /// 未知的权限
+            /// </summary>
+            Unknow = 0,
+            /// <summary>
+            /// 超级管理员
+            /// </summary>
+            SuperAdmin = 1,
+            /// <summary>
+            /// 机构管理员
+            /// </summary>
+            TenantAdmin = 2,
+            /// <summary>
+            /// 门店管理员
+            /// </summary>
+            StroeAdmin = 3
         }
         public partial class ProductStockBak
         {

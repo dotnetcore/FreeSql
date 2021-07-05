@@ -1688,6 +1688,9 @@ WHERE (((to_char(a.""ID"")) in (SELECT b.""TITLE""
             Assert.Equal(5, g.dameng.Select<ToUpd1Pk>().Count());
             Assert.Equal(5, g.dameng.Select<ToUpd1Pk>().Where(a => a.name.StartsWith("nick")).Count());
 
+            var toupdateSql1 = g.dameng.Select<ToUpd1Pk>().Where(a => a.name.StartsWith("name")).ToUpdate().Set(a => a.name, "nick?").ToSql();
+            var toupdateSql2 = g.dameng.Select<ToUpd1Pk>().AsTable((_, old) => "toupd1pk_test").Where(a => a.name.StartsWith("name")).ToUpdate().Set(a => a.name, "nick?").ToSql();
+
             g.dameng.Select<ToUpd2Pk>().ToDelete().ExecuteAffrows();
             Assert.Equal(0, g.dameng.Select<ToUpd2Pk>().Count());
             g.dameng.Insert(new[] {

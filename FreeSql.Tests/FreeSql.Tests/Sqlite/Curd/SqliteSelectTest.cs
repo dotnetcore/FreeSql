@@ -172,6 +172,10 @@ namespace FreeSql.Tests.Sqlite
                 this.name = name;
             }
         }
+        class TestDto3
+        {
+            public string title { get; set; } //这是join表的属性
+        }
         class TestDtoLeftJoin
         {
             [Column(IsPrimary = true)]
@@ -208,6 +212,8 @@ namespace FreeSql.Tests.Sqlite
             var testDto213 = select.Limit(10).ToList(a => new TestDto2 { });
             var testDto214 = select.Limit(10).ToList(a => new TestDto2() { });
             var testDto215 = select.Limit(10).ToList<TestDto2>();
+            var testDto216 = select.Limit(10).ToList<TestDto3>();
+
 
             var testDto2211 = select.LeftJoin(a => a.Type.Guid == a.TypeGuid).Limit(10).ToList(a => new TestDto2(a.Id, a.Title));
             var testDto2222 = select.LeftJoin(a => a.Type.Guid == a.TypeGuid).Limit(10).ToList(a => new TestDto2());

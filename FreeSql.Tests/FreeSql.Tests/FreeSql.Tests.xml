@@ -555,6 +555,26 @@
             导航属性
             </summary>
         </member>
+        <member name="F:FreeSql.Tests.UnitTest5.SystemUserType.Unknow">
+            <summary>
+            未知的权限
+            </summary>
+        </member>
+        <member name="F:FreeSql.Tests.UnitTest5.SystemUserType.SuperAdmin">
+            <summary>
+            超级管理员
+            </summary>
+        </member>
+        <member name="F:FreeSql.Tests.UnitTest5.SystemUserType.TenantAdmin">
+            <summary>
+            机构管理员
+            </summary>
+        </member>
+        <member name="F:FreeSql.Tests.UnitTest5.SystemUserType.StroeAdmin">
+            <summary>
+            门店管理员
+            </summary>
+        </member>
         <member name="P:AME.Helpers.AppSettingII.SettingName">
             <summary>
             配置名称
