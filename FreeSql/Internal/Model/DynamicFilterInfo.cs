@@ -13,6 +13,7 @@ namespace FreeSql.Internal.Model
     /// <summary>
     /// 动态过滤条件
     /// </summary>
+    [Serializable]
     public class DynamicFilterInfo
     {
         /// <summary>

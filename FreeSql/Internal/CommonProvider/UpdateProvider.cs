@@ -351,8 +351,9 @@ namespace FreeSql.Internal.CommonProvider
         {
             var cols = columns.Distinct().ToDictionary(a => a);
             _ignore.Clear();
+            IgnoreCanUpdate();
             foreach (var col in _table.Columns.Values)
-                if (cols.ContainsKey(col.Attribute.Name) == true || cols.ContainsKey(col.CsName) == true)
+                if (!_ignore.ContainsKey(col.Attribute.Name) && (cols.ContainsKey(col.Attribute.Name) == true || cols.ContainsKey(col.CsName) == true))
                     _ignore.Add(col.Attribute.Name, true);
             return this;
         }
