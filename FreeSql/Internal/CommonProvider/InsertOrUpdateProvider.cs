@@ -169,7 +169,7 @@ namespace FreeSql.Internal.CommonProvider
                         object val = col.GetDbValue(d);
                         sb.Append(_commonUtils.RewriteColumn(col, _commonUtils.GetNoneParamaterSqlValue(dbParams, "cu", col, col.Attribute.MapType, val)));
                     }
-                    if (didx == 0) sb.Append(" as ").Append(col.Attribute.Name);
+                    if (didx == 0) sb.Append(" as ").Append(_commonUtils.QuoteSqlName(col.Attribute.Name));
                     ++colidx2;
                 }
                 switch (_orm.Ado.DataType)

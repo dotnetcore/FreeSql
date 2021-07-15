@@ -35,7 +35,7 @@ namespace FreeSql.Odbc.Dameng
 
                 var sb = new StringBuilder().Append("MERGE INTO ").Append(_commonUtils.QuoteSqlName(TableRuleInvoke())).Append(" t1 \r\nUSING (");
                 WriteSourceSelectUnionAll(data, sb, dbParams);
-                sb.Append(" ) t2 ON (").Append(string.Join(" AND ", _table.Primarys.Select(a => $"t1.{_commonUtils.QuoteSqlName(a.Attribute.Name)} = t2.{a.Attribute.Name}"))).Append(") \r\n");
+                sb.Append(" ) t2 ON (").Append(string.Join(" AND ", _table.Primarys.Select(a => $"t1.{_commonUtils.QuoteSqlName(a.Attribute.Name)} = t2.{_commonUtils.QuoteSqlName(a.Attribute.Name)}"))).Append(") \r\n");
 
                 var cols = _table.Columns.Values.Where(a => a.Attribute.IsPrimary == false && a.Attribute.CanUpdate == true && _updateIgnore.ContainsKey(a.Attribute.Name) == false);
                 if (_doNothing == false && cols.Any())
@@ -43,14 +43,14 @@ namespace FreeSql.Odbc.Dameng
                         .Append("  update set ").Append(string.Join(", ", cols.Select(a =>
                             a.Attribute.IsVersion && a.Attribute.MapType != typeof(byte[]) ?
                             $"{_commonUtils.QuoteSqlName(a.Attribute.Name)} = t1.{_commonUtils.QuoteSqlName(a.Attribute.Name)} + 1" :
-                            $"{_commonUtils.QuoteSqlName(a.Attribute.Name)} = t2.{a.Attribute.Name}"
+                            $"{_commonUtils.QuoteSqlName(a.Attribute.Name)} = t2.{_commonUtils.QuoteSqlName(a.Attribute.Name)}"
                             ))).Append(" \r\n");
 
                 cols = _table.Columns.Values.Where(a => a.Attribute.CanInsert == true);
                 if (cols.Any())
                     sb.Append("WHEN NOT MATCHED THEN \r\n")
                         .Append("  insert (").Append(string.Join(", ", cols.Select(a => _commonUtils.QuoteSqlName(a.Attribute.Name)))).Append(") \r\n")
-                        .Append("  values (").Append(string.Join(", ", cols.Select(a => $"t2.{a.Attribute.Name}"))).Append(")");
+                        .Append("  values (").Append(string.Join(", ", cols.Select(a => $"t2.{_commonUtils.QuoteSqlName(a.Attribute.Name)}"))).Append(")");
 
                 return sb.ToString();
             }
