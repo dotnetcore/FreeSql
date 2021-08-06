@@ -1,12 +1,15 @@
-﻿using FreeSql;
+﻿#if NET40
 using FreeSql.DataAnnotations;
 using System;
-using System.Data;
-using System.Diagnostics;
-using System.Linq.Expressions;
-using System.Threading;
+
+#else
+using FreeSql.DataAnnotations;
+using System;
 using System.Threading.Tasks;
 
+#endif
+
+// ReSharper disable once CheckNamespace
 namespace FreeSql
 {
     /// <summary>
@@ -21,9 +24,9 @@ namespace FreeSql
     {
         static BaseEntity()
         {
-            var tkeyType = typeof(TKey)?.NullableTypeOrThis();
-            if (tkeyType == typeof(int) || tkeyType == typeof(long))
-                BaseEntity.ConfigEntity(typeof(TEntity), t => t.Property("Id").IsIdentity(true));
+            var keyType = typeof(TKey).NullableTypeOrThis();
+            if (keyType == typeof(int) || keyType == typeof(long))
+                ConfigEntity(typeof(TEntity), t => t.Property("Id").IsIdentity(true));
         }
 
         /// <summary>
@@ -32,14 +35,13 @@ namespace FreeSql
         [Column(Position = 1)]
         public virtual TKey Id { get; set; }
 
-#if net40
-#else
+#if !NET40
         /// <summary>
         /// 根据主键值获取数据
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        async public static Task<TEntity> FindAsync(TKey id)
+        public static async Task<TEntity> FindAsync(TKey id)
         {
             var item = await Select.WhereDynamic(id).FirstAsync();
             (item as BaseEntity<TEntity>)?.Attach();
@@ -69,15 +71,18 @@ namespace FreeSql
     {
         bool UpdateIsDeleted(bool value)
         {
-            if (this.Repository == null)
+            if (Repository is null)
+            {
                 return Orm.Update<TEntity>(this as TEntity)
-                    .WithTransaction(_resolveUow?.Invoke()?.GetOrBeginTransaction())
-                    .Set(a => (a as BaseEntity).IsDeleted, this.IsDeleted = value).ExecuteAffrows() == 1;
+                          .WithTransaction(_resolveUow?.Invoke()?.GetOrBeginTransaction())
+                          .Set(a => (a as BaseEntity).IsDeleted, IsDeleted = value).ExecuteAffrows() == 1;
+            }
 
-            this.IsDeleted = value;
-            this.Repository.UnitOfWork = _resolveUow?.Invoke();
-            return this.Repository.Update(this as TEntity) == 1;
+            IsDeleted = value;
+            Repository.UnitOfWork = _resolveUow?.Invoke();
+            return Repository.Update(this as TEntity) == 1;
         }
+
         /// <summary>
         /// 删除数据
         /// </summary>
@@ -85,18 +90,21 @@ namespace FreeSql
         /// <returns></returns>
         public virtual bool Delete(bool physicalDelete = false)
         {
-            if (physicalDelete == false) return this.UpdateIsDeleted(true);
-            if (this.Repository == null) 
+            if (physicalDelete == false)
+                return UpdateIsDeleted(true);
+
+            if (Repository is null)
                 return Orm.Delete<TEntity>(this as TEntity).ExecuteAffrows() == 1;
 
-            this.Repository.UnitOfWork = _resolveUow?.Invoke();
-            return this.Repository.Delete(this as TEntity) == 1;
+            Repository.UnitOfWork = _resolveUow?.Invoke();
+            return Repository.Delete(this as TEntity) == 1;
         }
+
         /// <summary>
         /// 恢复删除的数据
         /// </summary>
         /// <returns></returns>
-        public virtual bool Restore() => this.UpdateIsDeleted(false);
+        public virtual bool Restore() => UpdateIsDeleted(false);
 
         /// <summary>
         /// 更新数据
@@ -104,26 +112,29 @@ namespace FreeSql
         /// <returns></returns>
         public virtual bool Update()
         {
-            this.UpdateTime = DateTime.Now;
-            if (this.Repository == null)
+            UpdateTime = DateTime.Now;
+            if (Repository is null)
+            {
                 return Orm.Update<TEntity>()
-                    .WithTransaction(_resolveUow?.Invoke()?.GetOrBeginTransaction())
-                    .SetSource(this as TEntity).ExecuteAffrows() == 1;
+                          .WithTransaction(_resolveUow?.Invoke()?.GetOrBeginTransaction())
+                          .SetSource(this as TEntity).ExecuteAffrows() == 1;
+            }
 
-            this.Repository.UnitOfWork = _resolveUow?.Invoke();
-            return this.Repository.Update(this as TEntity) == 1;
+            Repository.UnitOfWork = _resolveUow?.Invoke();
+            return Repository.Update(this as TEntity) == 1;
         }
+
         /// <summary>
         /// 插入数据
         /// </summary>
         public virtual TEntity Insert()
         {
-            this.CreateTime = DateTime.Now;
-            if (this.Repository == null)
-                this.Repository = Orm.GetRepository<TEntity>();
+            CreateTime = DateTime.Now;
+            if (Repository is null)
+                Repository = Orm.GetRepository<TEntity>();
 
-            this.Repository.UnitOfWork = _resolveUow?.Invoke();
-            return this.Repository.Insert(this as TEntity);
+            Repository.UnitOfWork = _resolveUow?.Invoke();
+            return Repository.Insert(this as TEntity);
         }
 
         /// <summary>
@@ -132,12 +143,12 @@ namespace FreeSql
         /// <returns></returns>
         public virtual TEntity Save()
         {
-            this.UpdateTime = DateTime.Now;
-            if (this.Repository == null)
-                this.Repository = Orm.GetRepository<TEntity>();
+            UpdateTime = DateTime.Now;
+            if (Repository is null)
+                Repository = Orm.GetRepository<TEntity>();
 
-            this.Repository.UnitOfWork = _resolveUow?.Invoke();
-            return this.Repository.InsertOrUpdate(this as TEntity);
+            Repository.UnitOfWork = _resolveUow?.Invoke();
+            return Repository.InsertOrUpdate(this as TEntity);
         }
 
         /// <summary>
@@ -146,11 +157,11 @@ namespace FreeSql
         /// <param name="navigatePropertyName">导航属性名</param>
         public virtual void SaveMany(string navigatePropertyName)
         {
-            if (this.Repository == null)
-                this.Repository = Orm.GetRepository<TEntity>();
+            if (Repository is null)
+                Repository = Orm.GetRepository<TEntity>();
 
-            this.Repository.UnitOfWork = _resolveUow?.Invoke();
-            this.Repository.SaveMany(this as TEntity, navigatePropertyName);
+            Repository.UnitOfWork = _resolveUow?.Invoke();
+            Repository.SaveMany(this as TEntity, navigatePropertyName);
         }
     }
 }

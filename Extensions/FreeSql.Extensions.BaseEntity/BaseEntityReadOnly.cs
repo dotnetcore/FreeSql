@@ -1,15 +1,14 @@
-﻿
-using FreeSql.DataAnnotations;
+﻿using FreeSql.DataAnnotations;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Data.Common;
 using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 
+// ReSharper disable once CheckNamespace
 namespace FreeSql
 {
     /// <summary>
@@ -19,6 +18,7 @@ namespace FreeSql
     public abstract class BaseEntity
     {
         internal static IFreeSql _ormPriv;
+
         /// <summary>
         /// 全局 IFreeSql orm 对象
         /// </summary>
@@ -26,6 +26,7 @@ namespace FreeSql
 .UseAutoSyncStructure(true)
 .UseConnectionString(DataType.Sqlite, ""data source=test.db;max pool size=5"")
 .Build());");
+
         internal static Func<IUnitOfWork> _resolveUow;
 
         /// <summary>
@@ -52,21 +53,24 @@ namespace FreeSql
                         _ormPriv.CodeFirst.ConfigEntity(cei.EntityType, cei.Fluent);
                 }
             }
+
             _resolveUow = resolveUow;
         }
-        
+
         class ConfigEntityInfo
         {
             public Type EntityType;
             public Action<TableFluent> Fluent;
         }
-        static ConcurrentQueue<ConfigEntityInfo> _configEntityQueues = new ConcurrentQueue<ConfigEntityInfo>();
-        static object _configEntityLock = new object();
+
+        static ConcurrentQueue<ConfigEntityInfo> _configEntityQueues = new();
+        static object _configEntityLock = new();
+
         internal static void ConfigEntity(Type entityType, Action<TableFluent> fluent)
         {
             lock (_configEntityLock)
             {
-                if (_ormPriv == null)
+                if (_ormPriv is null)
                     _configEntityQueues.Enqueue(new ConfigEntityInfo { EntityType = entityType, Fluent = fluent });
                 else
                     _ormPriv.CodeFirst.ConfigEntity(entityType, fluent);
@@ -78,16 +82,19 @@ namespace FreeSql
         /// </summary>
         [Column(Position = -4)]
         public virtual DateTime CreateTime { get; set; } = DateTime.Now;
+
         /// <summary>
         /// 更新时间
         /// </summary>
         [Column(Position = -3)]
         public virtual DateTime UpdateTime { get; set; }
+
         /// <summary>
         /// 逻辑删除
         /// </summary>
         [Column(Position = -2)]
         public virtual bool IsDeleted { get; set; }
+
         /// <summary>
         /// 排序
         /// </summary>
@@ -107,25 +114,29 @@ namespace FreeSql
             get
             {
                 var select = Orm.Select<TEntity>()
-                    .TrackToList(TrackToList) //自动为每个元素 Attach
-                    .WithTransaction(_resolveUow?.Invoke()?.GetOrBeginTransaction(false));
+                                .TrackToList(TrackToList) //自动为每个元素 Attach
+                                .WithTransaction(_resolveUow?.Invoke()?.GetOrBeginTransaction(false));
                 return select.WhereCascade(a => (a as BaseEntity).IsDeleted == false);
             }
         }
 
         static void TrackToList(object list)
         {
-            if (list == null) return;
-            var ls = list as IList<TEntity>;
-            if (ls == null)
+            if (list is null)
+                return;
+
+            if (list is not IList<TEntity> ls)
             {
-                var ie = list as IEnumerable;
-                if (ie == null) return;
+                if (list is not IEnumerable ie)
+                    return;
+
                 var isFirst = true;
+
                 IBaseRepository<TEntity> berepo = null;
+
                 foreach (var item in ie)
                 {
-                    if (item == null) return;
+                    if (item is null) return;
                     if (isFirst)
                     {
                         isFirst = false;
@@ -135,28 +146,36 @@ namespace FreeSql
                         if (Orm.CodeFirst.GetTableByEntity(itemType)?.Primarys.Any() != true) return;
                         if (item is BaseEntity<TEntity> == false) return;
                     }
-                    var beitem = item as BaseEntity<TEntity>;
-                    if (beitem != null)
+
+                    if (item is BaseEntity<TEntity> entity)
                     {
-                        if (berepo == null) berepo = Orm.GetRepository<TEntity>();
-                        beitem.Repository = berepo;
-                        beitem.Attach();
+                        berepo ??= Orm.GetRepository<TEntity>();
+                        entity.Repository = berepo;
+                        entity.Attach();
                     }
                 }
+
                 return;
             }
-            if (ls.Any() == false) return;
-            if (ls.FirstOrDefault() is BaseEntity<TEntity> == false) return;
-            if (Orm.CodeFirst.GetTableByEntity(typeof(TEntity))?.Primarys.Any() != true) return;
+
+            if (ls.Any() == false)
+                return;
+
+            if (ls.FirstOrDefault() is not BaseEntity<TEntity>)
+                return;
+
+            if (Orm.CodeFirst.GetTableByEntity(typeof(TEntity))?.Primarys.Any() != true)
+                return;
+
             IBaseRepository<TEntity> repo = null;
+
             foreach (var item in ls)
             {
-                var beitem = item as BaseEntity<TEntity>;
-                if (beitem != null)
+                if (item is BaseEntity<TEntity> entity)
                 {
-                    if (repo == null) repo = Orm.GetRepository<TEntity>();
-                    beitem.Repository = repo;
-                    beitem.Attach();
+                    repo ??= Orm.GetRepository<TEntity>();
+                    entity.Repository = repo;
+                    entity.Attach();
                 }
             }
         }
@@ -167,6 +186,7 @@ namespace FreeSql
         /// <param name="exp">lambda表达式</param>
         /// <returns></returns>
         public static ISelect<TEntity> Where(Expression<Func<TEntity, bool>> exp) => Select.Where(exp);
+
         /// <summary>
         /// 查询条件，Where(true, a => a.Id > 10)，支导航对象查询，Where(true, a => a.Author.Email == "2881099@qq.com")
         /// </summary>
@@ -185,11 +205,9 @@ namespace FreeSql
         /// </summary>
         public TEntity Attach()
         {
-            if (this.Repository == null)
-                this.Repository = Orm.GetRepository<TEntity>();
-
+            Repository ??= Orm.GetRepository<TEntity>();
             var item = this as TEntity;
-            this.Repository.Attach(item);
+            Repository.Attach(item);
             return item;
         }
     }
