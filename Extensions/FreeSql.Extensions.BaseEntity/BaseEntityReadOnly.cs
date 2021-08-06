@@ -8,7 +8,9 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 
-// ReSharper disable once CheckNamespace
+// ReSharper disable CheckNamespace
+// ReSharper disable InconsistentNaming
+// ReSharper disable InconsistentlySynchronizedField
 namespace FreeSql
 {
     /// <summary>
@@ -19,13 +21,16 @@ namespace FreeSql
     {
         internal static IFreeSql _ormPriv;
 
+        private const string ErrorMessageTemplate = @"使用前请初始化：
+BaseEntity.Initialization(new FreeSqlBuilder()
+        .UseAutoSyncStructure(true)
+        .UseConnectionString(DataType.Sqlite, ""data source=test.db;max pool size=5"")
+        .Build());";
+
         /// <summary>
         /// 全局 IFreeSql orm 对象
         /// </summary>
-        public static IFreeSql Orm => _ormPriv ?? throw new Exception(@"使用前请初始化 BaseEntity.Initialization(new FreeSqlBuilder()
-.UseAutoSyncStructure(true)
-.UseConnectionString(DataType.Sqlite, ""data source=test.db;max pool size=5"")
-.Build());");
+        public static IFreeSql Orm => _ormPriv ?? throw new Exception(ErrorMessageTemplate);
 
         internal static Func<IUnitOfWork> _resolveUow;
 
@@ -63,8 +68,8 @@ namespace FreeSql
             public Action<TableFluent> Fluent;
         }
 
-        static ConcurrentQueue<ConfigEntityInfo> _configEntityQueues = new();
-        static object _configEntityLock = new();
+        static readonly ConcurrentQueue<ConfigEntityInfo> _configEntityQueues = new();
+        static readonly object _configEntityLock = new();
 
         internal static void ConfigEntity(Type entityType, Action<TableFluent> fluent)
         {
@@ -131,26 +136,29 @@ namespace FreeSql
                     return;
 
                 var isFirst = true;
-
-                IBaseRepository<TEntity> berepo = null;
+                IBaseRepository<TEntity> baseRepo = null;
 
                 foreach (var item in ie)
                 {
-                    if (item is null) return;
+                    if (item is null)
+                    {
+                        return;
+                    }
+
                     if (isFirst)
                     {
                         isFirst = false;
                         var itemType = item.GetType();
                         if (itemType == typeof(object)) return;
-                        if (itemType.FullName.Contains("FreeSqlLazyEntity__")) itemType = itemType.BaseType;
+                        if (itemType.FullName!.Contains("FreeSqlLazyEntity__")) itemType = itemType.BaseType;
                         if (Orm.CodeFirst.GetTableByEntity(itemType)?.Primarys.Any() != true) return;
-                        if (item is BaseEntity<TEntity> == false) return;
+                        if (item is not BaseEntity<TEntity>) return;
                     }
 
                     if (item is BaseEntity<TEntity> entity)
                     {
-                        berepo ??= Orm.GetRepository<TEntity>();
-                        entity.Repository = berepo;
+                        baseRepo ??= Orm.GetRepository<TEntity>();
+                        entity.Repository = baseRepo;
                         entity.Attach();
                     }
                 }
