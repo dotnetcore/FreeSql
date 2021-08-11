@@ -1,34 +1,37 @@
-﻿# 前言
+﻿[中文](README.zh-CN.md) | **English**
 
-尝试过 ado.net、dapper、ef，以及Repository仓储，甚至自己还写过生成器工具，以便做常规CRUD操作。
+# Preface
 
-它们日常操作不方便之处：
+I have tried ADO.NET, Dapper, EF, and Repository storage, and even wrote a generator tool myself to do common CRUD operations.
 
-- 每次使用前需要声明，再操作；
+Their operation is inconvenient:
 
-- 很多人一个实体类，对应一个操作类（或DAL、DbContext、Repository）；
+- Need to declare before use;
 
-BaseEntity 是一种极简单的 CodeFirst 开发方式，特别对单表或多表CRUD，利用继承节省了每个实体类的重复属性（创建时间、ID等字段），软件删除等功能，进行 crud 操作时不必时常考虑仓储的使用；
+- Each entity class corresponds to an operation class (or DAL, DbContext, Repository).
 
-本文介绍 BaseEntity 一种极简约的 CRUD 操作方法。
+BaseEntity is a very simple way of CodeFirst development, especially for single-table or multi-table CRUD operations. BaseEntity uses "inheritance" to save the repetitive code (creation time, ID and other fields) and functions of each entity class, and at the same time, it is not necessary to consider the use of repository when performing CURD operations.
 
-# 功能特点
 
-- 自动迁移实体结构（CodeFirst），到数据库；
+This article will introduce a very simple CRUD operation method of BaseEntity.
 
-- 直接操作实体的方法，进行 CRUD 操作；
+# Features
 
-- 简化用户定义实体类型，省去主键、常用字段的配置（如CreateTime、UpdateTime）；
+- Automatically migrate the entity structure (CodeFirst) to the database;
 
-- 实现单表、多表查询的软删除逻辑；
+- Directly perform CRUD operations on entities;
 
-# 声明
+- Simplify user-defined entity types, eliminating hard-coded primary keys, common fields and their configuration (such as CreateTime, UpdateTime);
+
+- Logic delete of single-table and multi-table query;
+
+# Declaring
 
 > dotnet add package FreeSql.Extensions.BaseEntity
 
 > dotnet add package FreeSql.Provider.Sqlite
 
-1、定义一个主键 int 并且自增的实体类型，BaseEntity TKey 指定为 int/long 时，会认为主键是自增；
+1. Define an auto-increment primary key of type `int`. When the `TKey` of `BaseEntity` is specified as `int/long`, the primary key will be considered as auto-increment;
 
 ```csharp
 public class UserGroup : BaseEntity<UserGroup, int>
@@ -37,7 +40,7 @@ public class UserGroup : BaseEntity<UserGroup, int>
 }
 ```
 
-如果不想主键是自增键，可以重写属性：
+If you don't want the primary key to be an auto-increment key, you can override the attribute:
 
 ```csharp
 public class UserGroup : BaseEntity<UserGroup, int>
@@ -47,9 +50,9 @@ public class UserGroup : BaseEntity<UserGroup, int>
     public string GroupName { get; set; }
 }
 ```
-> 有关更多实体的特性配置，请参考资料：https://github.com/2881099/FreeSql/wiki/%e5%ae%9e%e4%bd%93%e7%89%b9%e6%80%a7
+> For more information about the attributes of entities, please refer to: https://github.com/dotnetcore/FreeSql/wiki/Entity-Attributes
 
-2、定义一个主键 Guid 的实体类型，保存数据时会自动产生有序不重复的 Guid 值（不用自己指定 Guid.NewGuid()）；
+2. Define an entity whose primary key is Guid type, when saving data, it will automatically generate ordered and non-repeated Guid values (you don't need to specify `Guid.NewGuid()` yourself);
 
 ```csharp
 public class User : BaseEntity<UserGroup, Guid>
@@ -58,42 +61,42 @@ public class User : BaseEntity<UserGroup, Guid>
 }
 ```
 
-# CRUD 使用
+# Usage of CRUD
 
 ```csharp
-//添加
-var item = new UserGroup { GroupName = "组一" };
+//Insert Data
+var item = new UserGroup { GroupName = "Group One" };
 item.Insert();
 
-//更新
-item.GroupName = "组二";
+//Update Data
+item.GroupName = "Group Two";
 item.Update();
 
-//添加或更新
+//Insert or Update Data
 item.Save();
 
-//软删除
+//Logic Delete
 item.Delete();
 
-//恢复软删除
+//Recover Logic Delete
 item.Restore();
 
-//根据主键获取对象
+//Get the object by the primary key
 var item = UserGroup.Find(1);
 
-//查询数据
+//Query Data
 var items = UserGroup.Where(a => a.Id > 10).ToList();
 ```
 
-实体类型.Select 是一个查询对象，使用方法和 FreeSql.ISelect 一样；
+`{ENTITY_TYPE}.Select` returns a query object, the same as `FreeSql.ISelect`.
 
-支持多表查询时，软删除条件会附加在每个表中；
+In the multi-table query, the logic delete condition will be attached to the query of each table.
 
-> 有关更多查询方法，请参考资料：https://github.com/2881099/FreeSql/wiki/%e6%9f%a5%e8%af%a2
+> For more information about query data, please refer to: https://github.com/2881099/FreeSql/wiki/Query-Data
 
-# 事务建议
+# Transaction Suggestion
 
-由于 AsyncLocal 平台兼容不好，所以交给外部管理事务。
+Because the `AsyncLocal` platform is not compatible, the transaction is managed by the outside.
 
 ```csharp
 static AsyncLocal<IUnitOfWork> _asyncUow = new AsyncLocal<IUnitOfWork>();
@@ -101,11 +104,11 @@ static AsyncLocal<IUnitOfWork> _asyncUow = new AsyncLocal<IUnitOfWork>();
 BaseEntity.Initialization(fsql, () => _asyncUow.Value);
 ```
 
-在 Scoped 开始时： _asyncUow.Value = fsql.CreateUnitOfWork(); (也可以使用 UnitOfWorkManager 对象获取 uow)
+At the beginning of `Scoped`: `_asyncUow.Value = fsql.CreateUnitOfWork();` (You can also use the `UnitOfWorkManager` object to get uow)
 
-在 Scoped 结束时：_asyncUow.Value = null;
+At the end of `Scoped`: `_asyncUow.Value = null;`
 
-如下：
+as follows:
 
 ```csharp
 using (var uow = fsql.CreateUnitOfWork())
@@ -114,7 +117,7 @@ using (var uow = fsql.CreateUnitOfWork())
 
     try
     {
-        //todo ... BaseEntity 内部 curd 方法保持使用 uow 事务
+        //todo ... BaseEntity internal CURD method keeps using uow transaction
     }
     finally
     {
