@@ -5,7 +5,6 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
 using System.Threading;
 
 public static class FreeSqlJsonMapCoreExtensions
@@ -19,11 +18,12 @@ public static class FreeSqlJsonMapCoreExtensions
     public static ColumnFluent JsonMap(this ColumnFluent col)
     {
         _dicJsonMapFluentApi.GetOrAdd(col._entityType, et => new ConcurrentDictionary<string, bool>())
-            .GetOrAdd(col._property.Name, pn => true);
+                            .GetOrAdd(col._property.Name, pn => true);
         return col;
     }
 
     /// <summary>
+    /// When the entity class property is <see cref="object"/> and the attribute is marked as <see cref="JsonMapAttribute"/>, map storage in JSON format. <br />
     /// 当实体类属性为【对象】时，并且标记特性 [JsonMap] 时，该属性将以JSON形式映射存储
     /// </summary>
     /// <returns></returns>
@@ -43,7 +43,7 @@ public static class FreeSqlJsonMapCoreExtensions
             });
         }
 
-        that.Aop.ConfigEntityProperty += new EventHandler<FreeSql.Aop.ConfigEntityPropertyEventArgs>((s, e) =>
+        that.Aop.ConfigEntityProperty += (s, e) =>
         {
             var isJsonMap = e.Property.GetCustomAttributes(typeof(JsonMapAttribute), false).Any() || _dicJsonMapFluentApi.TryGetValue(e.EntityType, out var tryjmfu) && tryjmfu.ContainsKey(e.Property.Name);
             if (isJsonMap)
@@ -61,7 +61,6 @@ public static class FreeSqlJsonMapCoreExtensions
                     });
                 }
             }
-        });
+        };
     }
 }
-
