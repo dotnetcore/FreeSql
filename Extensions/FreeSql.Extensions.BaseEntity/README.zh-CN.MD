@@ -1,4 +1,6 @@
-﻿# 前言
+﻿**中文** | [English](README.MD)
+
+# 前言
 
 尝试过 ado.net、dapper、ef，以及Repository仓储，甚至自己还写过生成器工具，以便做常规CRUD操作。
 
@@ -47,7 +49,7 @@ public class UserGroup : BaseEntity<UserGroup, int>
     public string GroupName { get; set; }
 }
 ```
-> 有关更多实体的特性配置，请参考资料：https://github.com/2881099/FreeSql/wiki/%e5%ae%9e%e4%bd%93%e7%89%b9%e6%80%a7
+> 有关更多实体的特性配置，请参考资料：https://github.com/dotnetcore/FreeSql/wiki/%e5%ae%9e%e4%bd%93%e7%89%b9%e6%80%a7
 
 2、定义一个主键 Guid 的实体类型，保存数据时会自动产生有序不重复的 Guid 值（不用自己指定 Guid.NewGuid()）；
 
