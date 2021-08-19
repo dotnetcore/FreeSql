@@ -171,10 +171,14 @@ namespace FreeSql
             if (string.IsNullOrEmpty(_masterConnectionString) && _connectionFactory == null) throw new Exception("参数 masterConnectionString 不可为空，请检查 UseConnectionString");
             IFreeSql<TMark> ret = null;
             var type = _providerType;
-            if (type?.IsGenericType == true) type = type.MakeGenericType(typeof(TMark));
-            if (type == null)
+            if (type != null)
             {
-                Action<string, string> throwNotFind = (dll, providerType) => throw new Exception($"缺少 FreeSql 数据库实现包：{dll}，可前往 nuget 下载；如果存在 {dll} 依然报错（原因是环境问题导致反射不到类型），请在 UseConnectionString/UseConnectionFactory 第三个参数手工传入 typeof({providerType})");
+			    if (type.IsGenericTypeDefinition)
+			        type = type.MakeGenericType(typeof(TMark));
+			}
+			else
+			{
+				Action<string, string> throwNotFind = (dll, providerType) => throw new Exception($"缺少 FreeSql 数据库实现包：{dll}，可前往 nuget 下载；如果存在 {dll} 依然报错（原因是环境问题导致反射不到类型），请在 UseConnectionString/UseConnectionFactory 第三个参数手工传入 typeof({providerType})");
                 switch (_dataType)
                 {
                     case DataType.MySql:
