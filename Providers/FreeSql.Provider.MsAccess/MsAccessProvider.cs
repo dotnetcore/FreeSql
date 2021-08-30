@@ -15,7 +15,7 @@ namespace FreeSql.MsAccess
         public override IDelete<T1> CreateDeleteProvider<T1>(object dywhere) => new MsAccessDelete<T1>(this, this.InternalCommonUtils, this.InternalCommonExpression, dywhere);
         public override IInsertOrUpdate<T1> CreateInsertOrUpdateProvider<T1>() => throw new NotImplementedException();
 
-        public override IDbFirst DbFirst => throw new NotImplementedException("FreeSql.Provider.Sqlite 未实现该功能");
+        public override IDbFirst DbFirst => throw new NotImplementedException("FreeSql.Provider.MsAccess 未实现该功能");
         public MsAccessProvider(string masterConnectionString, string[] slaveConnectionString, Func<DbConnection> connectionFactory = null)
         {
             this.InternalCommonUtils = new MsAccessUtils(this);

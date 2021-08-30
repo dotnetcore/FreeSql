@@ -1,9 +1,11 @@
-﻿FreeSql 扩展包，将值对象映射成 typeof(string)，安装扩展包：
+﻿[中文](README.zh-CN.MD) | **English**
+
+FreeSql extension package, map *ValueObject* to `typeof(string)`, install the extension package:
 
 > dotnet add package FreeSql.Extensions.JsonMap
 
 ```csharp
-fsql.UseJsonMap(); //开启功能
+fsql.UseJsonMap(); //Turn on function
 
 class TestConfig
 {

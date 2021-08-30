@@ -4,7 +4,10 @@ using FreeSql.DatabaseModel;
 using FreeSql.Internal.CommonProvider;
 using MySqlConnector;
 using System;
+using System.CodeDom;
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -50,7 +53,17 @@ public class RazorModel
 		if (text.Length <= 1) return text.ToLower();
 		else return text.Substring(0, 1).ToLower() + text.Substring(1, text.Length - 1);
 	}
-
+	private string LiteralString(string text)
+	{
+		using (var writer = new StringWriter())
+		{
+			using (var provider = CodeDomProvider.CreateProvider("CSharp"))
+			{
+				provider.GenerateCodeFromExpression(new CodePrimitiveExpression(text), writer, null);
+				return writer.ToString();
+			}
+		}
+	}
 	public string GetCsType(DbColumnInfo col)
 	{
 		if (fsql.Ado.DataType == FreeSql.DataType.MySql)
@@ -250,10 +263,10 @@ public class RazorModel
 			if (cstype == typeof(decimal)) return defval + "M";
 			return defval;
 		}
-		if (cstype == typeof(Guid) && Guid.TryParse(defval, out var tryguid)) return isInsertValueSql ? (fsql.Select<TestTb>() as Select0Provider)._commonUtils.FormatSql("{0}", defval) : $"Guid.Parse(\"{defval.Replace("\r\n", "\\r\\n").Replace("\"", "\\\"")}\")";
-		if (cstype == typeof(DateTime) && DateTime.TryParse(defval, out var trydt)) return isInsertValueSql ? (fsql.Select<TestTb>() as Select0Provider)._commonUtils.FormatSql("{0}", defval) : $"DateTime.Parse(\"{defval.Replace("\r\n", "\\r\\n").Replace("\"", "\\\"")}\")";
-		if (cstype == typeof(TimeSpan) && TimeSpan.TryParse(defval, out var tryts)) return isInsertValueSql ? (fsql.Select<TestTb>() as Select0Provider)._commonUtils.FormatSql("{0}", defval) : $"TimeSpan.Parse(\"{defval.Replace("\r\n", "\\r\\n").Replace("\"", "\\\"")}\")";
-		if (cstype == typeof(string)) return isInsertValueSql ? (fsql.Select<TestTb>() as Select0Provider)._commonUtils.FormatSql("{0}", defval) : $"\"{defval.Replace("\r\n", "\\r\\n").Replace("\"", "\\\"")}\"";
+		if (cstype == typeof(Guid) && Guid.TryParse(defval, out var tryguid)) return isInsertValueSql ? (fsql.Select<TestTb>() as Select0Provider)._commonUtils.FormatSql("{0}", defval) : $"Guid.Parse({LiteralString(defval)})";
+		if (cstype == typeof(DateTime) && DateTime.TryParse(defval, out var trydt)) return isInsertValueSql ? (fsql.Select<TestTb>() as Select0Provider)._commonUtils.FormatSql("{0}", defval) : $"DateTime.Parse({LiteralString(defval)})";
+		if (cstype == typeof(TimeSpan) && TimeSpan.TryParse(defval, out var tryts)) return isInsertValueSql ? (fsql.Select<TestTb>() as Select0Provider)._commonUtils.FormatSql("{0}", defval) : $"TimeSpan.Parse({LiteralString(defval)})";
+		if (cstype == typeof(string)) return isInsertValueSql ? (fsql.Select<TestTb>() as Select0Provider)._commonUtils.FormatSql("{0}", defval) : LiteralString(defval);
 		if (cstype == typeof(bool)) return isInsertValueSql ? defval : (defval == "1" || defval == "t" ? "true" : "false");
 		if (fsql.Ado.DataType == DataType.MySql || fsql.Ado.DataType == DataType.OdbcMySql)
 			if (col.DbType == (int)MySqlDbType.Enum || col.DbType == (int)MySqlDbType.Set)

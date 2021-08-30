@@ -5,7 +5,7 @@ FreeSql is a powerful O/RM component, supports .NET Core 2.1+, .NET Framework 4.
 [![Member project of .NET Core Community](https://img.shields.io/badge/member%20project%20of-NCC-9e20c9.svg)](https://github.com/dotnetcore) 
 [![nuget](https://img.shields.io/nuget/v/FreeSql.svg?style=flat-square)](https://www.nuget.org/packages/FreeSql) 
 [![stats](https://img.shields.io/nuget/dt/FreeSql.svg?style=flat-square)](https://www.nuget.org/stats/packages/FreeSql?groupby=Version) 
-[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/2881099/FreeSql/master/LICENSE.txt)
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/dotnetcore/FreeSql/master/LICENSE.txt)
 
 <p>
     <span>English</span> |  
@@ -15,30 +15,30 @@ FreeSql is a powerful O/RM component, supports .NET Core 2.1+, .NET Framework 4.
 </div>
 
 - 🛠 Support CodeFirst data migration.
-- 💻 Support DbFirst import entity class from database, or use [Generation Tool](https://github.com/2881099/FreeSql/wiki/DbFirst).
+- 💻 Support DbFirst import entity class from database, or use [Generation Tool](https://github.com/dotnetcore/FreeSql/wiki/DbFirst).
 - ⛳ Support advanced type mapping, such as PostgreSQL array type, etc.
 - 🌲 Support expression functions, and customizable analysis.
 - 🏁 Support one-to-many and many-to-many navigation properties, include and lazy loading.
 - 📃 Support Read/Write separation, Splitting Table/Database, Global filters, Optimistic and pessimistic locker.
-- 🌳 Support MySql/SqlServer/PostgreSQL/Oracle/Sqlite/Firebird/达梦/人大金仓/神舟通用/翰高/华为GaussDB/Access, etc.
+- 🌳 Support MySql/SqlServer/PostgreSQL/Oracle/Sqlite/Firebird/Dameng/人大金仓/Shentong Database/翰高/HUAWEI GaussDB/Access, etc.
 
-QQ Groups：4336577(full)、**8578575(full)**、**52508226(available)**
+QQ Groups：4336577(full)、8578575(full)、**52508226(available)**
 
 ## 📚 Documentation
 
 | |
 | - |
-| [Get started](https://www.cnblogs.com/FreeSql/p/11531300.html)&nbsp;&nbsp;\|&nbsp;&nbsp;[Select](https://github.com/2881099/FreeSql/wiki/%e6%9f%a5%e8%af%a2)&nbsp;&nbsp;\|&nbsp;&nbsp;[Update](https://github.com/2881099/FreeSql/wiki/%e4%bf%ae%e6%94%b9)&nbsp;&nbsp;\|&nbsp;&nbsp;[Insert](https://github.com/2881099/FreeSql/wiki/%e6%b7%bb%e5%8a%a0)&nbsp;&nbsp;\|&nbsp;&nbsp;[Delete](https://github.com/2881099/FreeSql/wiki/%e5%88%a0%e9%99%a4)&nbsp;&nbsp;\|&nbsp;&nbsp;[FAQ](https://github.com/dotnetcore/FreeSql/wiki/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98)&nbsp;&nbsp;|
-| [Expression](https://github.com/2881099/FreeSql/wiki/%e8%a1%a8%e8%be%be%e5%bc%8f%e5%87%bd%e6%95%b0)&nbsp;&nbsp;\|&nbsp;&nbsp;[CodeFirst](https://github.com/2881099/FreeSql/wiki/CodeFirst)&nbsp;&nbsp;\|&nbsp;&nbsp;[DbFirst](https://github.com/2881099/FreeSql/wiki/DbFirst)&nbsp;&nbsp;\|&nbsp;&nbsp;[Filters](https://github.com/2881099/FreeSql/wiki/%e8%bf%87%e6%bb%a4%e5%99%a8)&nbsp;&nbsp;\|&nbsp;&nbsp;[AOP](https://github.com/2881099/FreeSql/wiki/AOP)&nbsp;&nbsp;|
-| [Repository](https://github.com/2881099/FreeSql/wiki/Repository)&nbsp;&nbsp;\|&nbsp;&nbsp;[UnitOfWork](https://github.com/2881099/FreeSql/wiki/%e5%b7%a5%e4%bd%9c%e5%8d%95%e5%85%83)&nbsp;&nbsp;\|&nbsp;&nbsp;[DbContext](https://github.com/2881099/FreeSql/wiki/DbContext)&nbsp;&nbsp;\|&nbsp;&nbsp;[ADO](https://github.com/2881099/FreeSql/wiki/ADO)&nbsp;&nbsp;|
-| [Read/Write](https://github.com/2881099/FreeSql/wiki/%e8%af%bb%e5%86%99%e5%88%86%e7%a6%bb)&nbsp;&nbsp;\|&nbsp;&nbsp;[Splitting Table](https://github.com/2881099/FreeSql/wiki/%e5%88%86%e8%a1%a8%e5%88%86%e5%ba%93)&nbsp;&nbsp;\|&nbsp;&nbsp;[Hide tech](https://github.com/2881099/FreeSql/wiki/%E9%AA%9A%E6%93%8D%E4%BD%9C)&nbsp;&nbsp;\|&nbsp;&nbsp;[*Update Notes*](https://github.com/2881099/FreeSql/wiki/%e6%9b%b4%e6%96%b0%e6%97%a5%e5%bf%97)&nbsp;&nbsp;|
+| [Get started](https://www.cnblogs.com/FreeSql/p/11531300.html)&nbsp;&nbsp;\|&nbsp;&nbsp;[Select](https://github.com/dotnetcore/FreeSql/wiki/Query-Data)&nbsp;&nbsp;\|&nbsp;&nbsp;[Update](https://github.com/dotnetcore/FreeSql/wiki/Update-Data)&nbsp;&nbsp;\|&nbsp;&nbsp;[Insert](https://github.com/dotnetcore/FreeSql/wiki/Insert-Data)&nbsp;&nbsp;\|&nbsp;&nbsp;[Delete](https://github.com/dotnetcore/FreeSql/wiki/Delete-Data)&nbsp;&nbsp;\|&nbsp;&nbsp;[FAQ](https://github.com/dotnetcore/FreeSql/wiki/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98)&nbsp;&nbsp;|
+| [Expression](https://github.com/dotnetcore/FreeSql/wiki/%e8%a1%a8%e8%be%be%e5%bc%8f%e5%87%bd%e6%95%b0)&nbsp;&nbsp;\|&nbsp;&nbsp;[CodeFirst](https://github.com/dotnetcore/FreeSql/wiki/CodeFirst)&nbsp;&nbsp;\|&nbsp;&nbsp;[DbFirst](https://github.com/2881099/FreeSql/wiki/DbFirst)&nbsp;&nbsp;\|&nbsp;&nbsp;[Filters](https://github.com/dotnetcore/FreeSql/wiki/%e8%bf%87%e6%bb%a4%e5%99%a8)&nbsp;&nbsp;\|&nbsp;&nbsp;[AOP](https://github.com/2881099/FreeSql/wiki/AOP)&nbsp;&nbsp;|
+| [Repository](https://github.com/dotnetcore/FreeSql/wiki/Repository)&nbsp;&nbsp;\|&nbsp;&nbsp;[UnitOfWork](https://github.com/dotnetcore/FreeSql/wiki/%e5%b7%a5%e4%bd%9c%e5%8d%95%e5%85%83)&nbsp;&nbsp;\|&nbsp;&nbsp;[DbContext](https://github.com/dotnetcore/FreeSql/wiki/DbContext)&nbsp;&nbsp;\|&nbsp;&nbsp;[ADO](https://github.com/2881099/FreeSql/wiki/ADO)&nbsp;&nbsp;|
+| [Read/Write](https://github.com/dotnetcore/FreeSql/wiki/%e8%af%bb%e5%86%99%e5%88%86%e7%a6%bb)&nbsp;&nbsp;\|&nbsp;&nbsp;[Splitting Table](https://github.com/dotnetcore/FreeSql/wiki/%e5%88%86%e8%a1%a8%e5%88%86%e5%ba%93)&nbsp;&nbsp;\|&nbsp;&nbsp;[Hide tech](https://github.com/dotnetcore/FreeSql/wiki/%E9%AA%9A%E6%93%8D%E4%BD%9C)&nbsp;&nbsp;\|&nbsp;&nbsp;[*Update Notes*](https://github.com/dotnetcore/FreeSql/wiki/%e6%9b%b4%e6%96%b0%e6%97%a5%e5%bf%97)&nbsp;&nbsp;|
 
 > Please select a development mode:
 
 - Use FreeSql, keep the original usage.
-- Use [FreeSql.Repository](https://github.com/2881099/FreeSql/wiki/Repository), Repository + UnitOfWork.
-- Use [FreeSql.DbContext](https://github.com/2881099/FreeSql/wiki/DbContext), Like efcore.
-- Use [FreeSql.BaseEntity](https://github.com/2881099/FreeSql/tree/master/Examples/base_entity), Simple mode.
+- Use [FreeSql.Repository](https://github.com/dotnetcore/FreeSql/wiki/Repository), Repository + UnitOfWork.
+- Use [FreeSql.DbContext](https://github.com/dotnetcore/FreeSql/wiki/DbContext), Like efcore.
+- Use [FreeSql.BaseEntity](https://github.com/dotnetcore/FreeSql/tree/master/Examples/base_entity), Simple mode.
 
 > Some open source projects that use FreeSql:
 
@@ -113,7 +113,7 @@ fsql.Select<YourType>()
   .OrderByDescending(a => a.Id)
   .ToList()
 ```
-[More..](https://github.com/2881099/FreeSql/wiki/%e6%9f%a5%e8%af%a2)
+[More..](https://github.com/dotnetcore/FreeSql/wiki/%e6%9f%a5%e8%af%a2)
 
 ```csharp
 fsql.Select<Song>().Where(a => new[] { 1, 2, 3 }.Contains(a.Id)).ToList();
@@ -122,7 +122,7 @@ fsql.Select<Song>().Where(a => a.CreateTime.Date == DateTime.Today).ToList();
 
 fsql.Select<Song>().OrderBy(a => Guid.NewGuid()).Limit(10).ToList();
 ```
-[More..](https://github.com/2881099/FreeSql/wiki/%e8%a1%a8%e8%be%be%e5%bc%8f%e5%87%bd%e6%95%b0) 
+[More..](https://github.com/dotnetcore/FreeSql/wiki/%e8%a1%a8%e8%be%be%e5%bc%8f%e5%87%bd%e6%95%b0) 
 
 ### 🚁 Repository
 
@@ -175,7 +175,7 @@ Elapsed: 00:00:00.6707125; ToList Entity Counts: 131072; ORM: FreeSql*
 Elapsed: 00:00:00.6495301; Query Entity Counts: 131072; ORM: Dapper
 ```
 
-[More..](https://github.com/2881099/FreeSql/wiki/%e6%80%a7%e8%83%bd)
+[More..](https://github.com/dotnetcore/FreeSql/wiki/%e6%80%a7%e8%83%bd)
 
 ## 👯 Contributors
 
