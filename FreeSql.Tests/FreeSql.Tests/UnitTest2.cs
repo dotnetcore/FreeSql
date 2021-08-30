@@ -316,6 +316,13 @@ namespace FreeSql.Tests
                 .ToList();
             g.sqlite.Update<gf_t1>().NoneParameter().Set(a => a.rowstate + 1).Where(a => a.rowstate >= 0).ExecuteAffrows();
 
+            var dddd2sql1 = g.sqlite.Select<gf_t1>()
+                .DisableGlobalFilter()
+                .ToUpdate()
+                //.DisableGlobalFilter()
+                .Set(a => a.rowstate, 10)
+                .ToSql();
+
             var dtot2 = g.sqlite.Select<gf_t1>().ToList(a => new gfDto
             {
                 dto2 = new dfDto2

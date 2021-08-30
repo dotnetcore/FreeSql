@@ -145,6 +145,7 @@ namespace FreeSql.Tests.MySqlMapType
         {
             //insert
             var orm = g.mysql;
+
             var item = new EnumTestMap { };
             Assert.Equal(1, orm.Insert<EnumTestMap>().AppendData(item).ExecuteAffrows());
             var find = orm.Select<EnumTestMap>().Where(a => a.id == item.id && a.enum_to_int == ToStringMapEnum.ÖÐ¹úÈË).First();

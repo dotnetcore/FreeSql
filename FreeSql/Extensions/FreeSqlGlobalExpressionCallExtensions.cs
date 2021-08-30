@@ -56,6 +56,17 @@ namespace FreeSql
     {
         internal static ThreadLocal<ExpressionCallContext> expContext = new ThreadLocal<ExpressionCallContext>();
 
+        //public static bool BitAnd<TEnum>(TEnum enum1, [RawValue] TEnum enum2)
+        //{
+        //    expContext.Value.Result = $"({expContext.Value.ParsedContent["enum1"]} & {Convert.ToInt32(enum2)}) = {Convert.ToInt32(enum2)}";
+        //    return false;
+        //}
+        //public static bool BitOr<TEnum>(TEnum enum1, [RawValue] TEnum enum2)
+        //{
+        //    expContext.Value.Result = $"({expContext.Value.ParsedContent["enum1"]} | {Convert.ToInt32(enum2)}) = {Convert.ToInt32(enum2)}";
+        //    return false;
+        //}
+
         #region SqlServer/PostgreSQL over
         /// <summary>
         /// rank() over(order by ...)
