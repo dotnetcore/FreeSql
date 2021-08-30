@@ -404,6 +404,7 @@ public static partial class FreeSqlGlobalExtensions
         int level = -1) where T1 : class
     {
         var select = that as Select1Provider<T1>;
+        select._is_AsTreeCte = true;
         var tb = select._tables[0].Table;
         var navs = tb.Properties.Select(a => tb.GetTableRef(a.Key, false))
             .Where(a => a != null &&
@@ -545,6 +546,7 @@ JOIN {select._commonUtils.QuoteSqlName(tb.DbName)} a ON cte_tbc.cte_id = a.{sele
             .WhereIf(level > 0, $"a.cte_level < {level + 1}")
             .OrderBy(up, "a.cte_level desc") as Select1Provider<T1>;
 
+        newSelect._is_AsTreeCte = true;
         newSelect._params = new List<DbParameter>(select._params.ToArray());
         newSelect._includeInfo = select._includeInfo;
         newSelect._includeManySubListOneToManyTempValue1 = select._includeManySubListOneToManyTempValue1;

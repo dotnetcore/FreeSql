@@ -6,7 +6,11 @@
     <members>
         <member name="T:FreeSql.BaseEntity`2">
             <summary>
+            Entity base class, including CreateTime/UpdateTime/IsDeleted, the CRUD methods, and ID primary key definition.
+            <para></para>
             包括 CreateTime/UpdateTime/IsDeleted、CRUD 方法、以及 ID 主键定义 的实体基类
+            <para></para>
+            When TKey is int/long, the Id is set to be an auto-incremented primary key
             <para></para>
             当 TKey 为 int/long 时，Id 主键被设为自增值主键
             </summary>
@@ -15,11 +19,13 @@
         </member>
         <member name="P:FreeSql.BaseEntity`2.Id">
             <summary>
+            Primary key <br />
             主键
             </summary>
         </member>
         <member name="M:FreeSql.BaseEntity`2.FindAsync(`1)">
             <summary>
+            Get data based on the value of the primary key <br />
             根据主键值获取数据
             </summary>
             <param name="id"></param>
@@ -27,6 +33,7 @@
         </member>
         <member name="M:FreeSql.BaseEntity`2.Find(`1)">
             <summary>
+            Get data based on the value of the primary key <br />
             根据主键值获取数据
             </summary>
             <param name="id"></param>
@@ -34,49 +41,61 @@
         </member>
         <member name="T:FreeSql.BaseEntity`1">
             <summary>
+            Entity base class, including CreateTime/UpdateTime/IsDeleted, and sync/async CRUD methods.
+            <para></para>
             包括 CreateTime/UpdateTime/IsDeleted、以及 CRUD 异步和同步方法的实体基类
             </summary>
             <typeparam name="TEntity"></typeparam>
         </member>
         <member name="M:FreeSql.BaseEntity`1.Delete(System.Boolean)">
             <summary>
+            To delete data <br />
             删除数据
             </summary>
-            <param name="physicalDelete">是否物理删除</param>
+            <param name="physicalDelete">To flag whether to delete the physical level of the data</param>
             <returns></returns>
         </member>
         <member name="M:FreeSql.BaseEntity`1.Restore">
             <summary>
+            To recover deleted data <br />
             恢复删除的数据
             </summary>
             <returns></returns>
         </member>
         <member name="M:FreeSql.BaseEntity`1.Update">
             <summary>
+            To update data <br />
             更新数据
             </summary>
             <returns></returns>
         </member>
         <member name="M:FreeSql.BaseEntity`1.Insert">
             <summary>
+            To insert data <br />
             插入数据
             </summary>
         </member>
         <member name="M:FreeSql.BaseEntity`1.Save">
             <summary>
+            To insert or update data <br />
             更新或插入
             </summary>
             <returns></returns>
         </member>
         <member name="M:FreeSql.BaseEntity`1.SaveMany(System.String)">
             <summary>
+            To completely save the navigation properties of the entity in the form of sub-tables. <br />
             【完整】保存导航属性，子表
             </summary>
-            <param name="navigatePropertyName">导航属性名</param>
+            <param name="navigatePropertyName">Navigation property name</param>
         </member>
         <member name="T:FreeSql.BaseEntityAsync`2">
             <summary>
+            Entity base class, including CreateTime/UpdateTime/IsDeleted, the async CRUD methods, and ID primary key definition.
+            <para></para>
             包括 CreateTime/UpdateTime/IsDeleted、CRUD 异步方法、以及 ID 主键定义 的实体基类
+            <para></para>
+            When TKey is int/long, the Id is set to be an auto-incremented primary key
             <para></para>
             当 TKey 为 int/long 时，Id 主键被设为自增值主键
             </summary>
@@ -85,11 +104,13 @@
         </member>
         <member name="P:FreeSql.BaseEntityAsync`2.Id">
             <summary>
+            Primary key <br />
             主键
             </summary>
         </member>
         <member name="M:FreeSql.BaseEntityAsync`2.FindAsync(`1)">
             <summary>
+            Get data based on the value of the primary key <br />
             根据主键值获取数据
             </summary>
             <param name="id"></param>
@@ -97,106 +118,138 @@
         </member>
         <member name="T:FreeSql.BaseEntityAsync`1">
             <summary>
+            Entity base class, including CreateTime/UpdateTime/IsDeleted, and async CRUD methods.
+            <para></para>
             包括 CreateTime/UpdateTime/IsDeleted、以及 CRUD 异步方法的实体基类
             </summary>
             <typeparam name="TEntity"></typeparam>
         </member>
         <member name="M:FreeSql.BaseEntityAsync`1.DeleteAsync(System.Boolean)">
             <summary>
+            To delete data <br />
             删除数据
             </summary>
-            <param name="physicalDelete">是否物理删除</param>
+            <param name="physicalDelete">To flag whether to delete the physical level of the data</param>
             <returns></returns>
         </member>
         <member name="M:FreeSql.BaseEntityAsync`1.RestoreAsync">
             <summary>
+            To recover deleted data <br />
             恢复删除的数据
             </summary>
             <returns></returns>
         </member>
         <member name="M:FreeSql.BaseEntityAsync`1.UpdateAsync">
             <summary>
+            To update data <br />
             更新数据
             </summary>
             <returns></returns>
         </member>
         <member name="M:FreeSql.BaseEntityAsync`1.InsertAsync">
             <summary>
+            To insert data <br />
             插入数据
             </summary>
         </member>
         <member name="M:FreeSql.BaseEntityAsync`1.SaveAsync">
             <summary>
+            To insert or update data <br />
             更新或插入
             </summary>
             <returns></returns>
         </member>
         <member name="M:FreeSql.BaseEntityAsync`1.SaveManyAsync(System.String)">
             <summary>
+            To completely save the navigation properties of the entity in the form of sub-tables. <br />
             【完整】保存导航属性，子表
             </summary>
-            <param name="navigatePropertyName">导航属性名</param>
+            <param name="navigatePropertyName">Navigation property name</param>
         </member>
         <member name="T:FreeSql.BaseEntity">
             <summary>
+            Entity base class, including CreateTime/UpdateTime/IsDeleted.
+            <para></para>
             包括 CreateTime/UpdateTime/IsDeleted 的实体基类
             </summary>
         </member>
         <member name="P:FreeSql.BaseEntity.Orm">
             <summary>
-            全局 IFreeSql orm 对象
+            Global IFreeSql ORM Object <br />
+            全局 IFreeSql ORM 对象
             </summary>
         </member>
         <member name="M:FreeSql.BaseEntity.Initialization(IFreeSql,System.Func{FreeSql.IUnitOfWork})">
             <summary>
-            初始化BaseEntity
-            BaseEntity.Initialization(new FreeSqlBuilder()
+            To initialize the BaseEntity <br />
+            初始化 BaseEntity
             <para></para>
-            .UseAutoSyncStructure(true)
-            <para></para>
-            .UseConnectionString(DataType.Sqlite, "data source=test.db;max pool size=5")
-            <para></para>
-            .Build());
+            BaseEntity.Initialization( <br />
+              new FreeSqlBuilder() <br />
+                .UseAutoSyncStructure(true) <br />
+                .UseConnectionString(DataType.Sqlite, "data source=test.db;max pool size=5") <br />
+                .Build());
             </summary>
-            <param name="fsql">IFreeSql orm 对象</param>
+            <param name="fsql">IFreeSql ORM Object</param>
             <param name="resolveUow">工作单元(事务)委托，如果不使用事务请传 null<para></para>解释：由于AsyncLocal平台兼容不好，所以交给外部管理</param>
         </member>
         <member name="P:FreeSql.BaseEntity.CreateTime">
             <summary>
+            Created time <br />
             创建时间
             </summary>
         </member>
         <member name="P:FreeSql.BaseEntity.UpdateTime">
             <summary>
+            Updated time <br />
             更新时间
             </summary>
         </member>
         <member name="P:FreeSql.BaseEntity.IsDeleted">
             <summary>
+            Logical Delete <br />
             逻辑删除
             </summary>
         </member>
         <member name="P:FreeSql.BaseEntity.Sort">
             <summary>
+            Sort <br />
             排序
             </summary>
         </member>
+        <member name="T:FreeSql.BaseEntityReadOnly`1">
+            <summary>
+            A readonly entity base class, including CreateTime/UpdateTime/IsDeleted.
+            <para></para>
+            包括 CreateTime/UpdateTime/IsDeleted 的只读实体基类
+            </summary>
+            <typeparam name="TEntity"></typeparam>
+        </member>
         <member name="P:FreeSql.BaseEntityReadOnly`1.Select">
             <summary>
+            To query data <br />
             查询数据
             </summary>
             <returns></returns>
         </member>
         <member name="M:FreeSql.BaseEntityReadOnly`1.Where(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
             <summary>
-            查询条件，Where(a => a.Id > 10)，支持导航对象查询，Where(a => a.Author.Email == "2881099@qq.com")
+            Query conditions <br />
+            查询条件，Where(a => a.Id> 10)
+            <para></para>
+            Support navigation object query <br />
+            支持导航对象查询，Where(a => a.Author.Email == "2881099@qq.com")
             </summary>
             <param name="exp">lambda表达式</param>
             <returns></returns>
         </member>
         <member name="M:FreeSql.BaseEntityReadOnly`1.WhereIf(System.Boolean,System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
             <summary>
-            查询条件，Where(true, a => a.Id > 10)，支导航对象查询，Where(true, a => a.Author.Email == "2881099@qq.com")
+            Query conditions <br />
+            查询条件，Where(true, a => a.Id > 10)
+            <para></para>
+            Support navigation object query <br />
+            支导航对象查询，Where(true, a => a.Author.Email == "2881099@qq.com")
             </summary>
             <param name="condition">true 时生效</param>
             <param name="exp">lambda表达式</param>
@@ -204,12 +257,14 @@
         </member>
         <member name="P:FreeSql.BaseEntityReadOnly`1.Repository">
             <summary>
+            Repository object. <br />
             仓储对象
             </summary>
         </member>
         <member name="M:FreeSql.BaseEntityReadOnly`1.Attach">
             <summary>
-            附加实体，在更新数据时，只更新变化的部分
+            To Attach entities. When updating data, only the changed part is updated. <br />
+            附加实体。在更新数据时，只更新变化的部分
             </summary>
         </member>
     </members>

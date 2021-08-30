@@ -43,6 +43,7 @@ namespace FreeSql.Internal.CommonProvider
         public Expression _selectExpression;
         public List<GlobalFilter.Item> _whereGlobalFilter;
         public Func<bool> _cancel;
+        public bool _is_AsTreeCte;
 
         int _disposeCounter;
         ~Select0Provider()
@@ -122,6 +123,7 @@ namespace FreeSql.Internal.CommonProvider
             to._selectExpression = from._selectExpression;
             to._whereGlobalFilter = new List<GlobalFilter.Item>(from._whereGlobalFilter.ToArray());
             to._cancel = from._cancel;
+            to._is_AsTreeCte = from._is_AsTreeCte;
         }
 
         public Expression ConvertStringPropertyToExpression(string property, bool fromFirstTable = false)
@@ -393,8 +395,11 @@ namespace FreeSql.Internal.CommonProvider
             if (_params.Any()) del._params = new List<DbParameter>(_params.ToArray());
             if (_whereGlobalFilter.Any()) del._whereGlobalFilter = new List<GlobalFilter.Item>(_whereGlobalFilter.ToArray());
             del.WithConnection(_connection).WithTransaction(_transaction).CommandTimeout(_commandTimeout);
-            var trytbname = "";
-            del.AsTable(old => GetTableRuleUnions().FirstOrDefault()?.TryGetValue(_tables[0].Table.Type, out trytbname) == true ? trytbname : null);
+            if (_is_AsTreeCte == false)
+            {
+                var trytbname = "";
+                del.AsTable(old => GetTableRuleUnions().FirstOrDefault()?.TryGetValue(_tables[0].Table.Type, out trytbname) == true && trytbname.IndexOf(' ') == -1 ? trytbname : null);
+            }
             switch (_orm.Ado.DataType)
             {
                 case DataType.Dameng:
@@ -423,8 +428,11 @@ namespace FreeSql.Internal.CommonProvider
             if (_params.Any()) upd._params = new List<DbParameter>(_params.ToArray());
             if (_whereGlobalFilter.Any()) upd._whereGlobalFilter = new List<GlobalFilter.Item>(_whereGlobalFilter.ToArray());
             upd.WithConnection(_connection).WithTransaction(_transaction).CommandTimeout(_commandTimeout);
-            var trytbname = "";
-            upd.AsTable(old => GetTableRuleUnions().FirstOrDefault()?.TryGetValue(_tables[0].Table.Type, out trytbname) == true ? trytbname : null);
+            if (_is_AsTreeCte == false)
+            {
+                var trytbname = "";
+                upd.AsTable(old => GetTableRuleUnions().FirstOrDefault()?.TryGetValue(_tables[0].Table.Type, out trytbname) == true && trytbname.IndexOf(' ') == -1 ? trytbname : null);
+            }
             switch (_orm.Ado.DataType)
             {
                 case DataType.Dameng:
