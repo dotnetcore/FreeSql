@@ -164,6 +164,8 @@ namespace FreeSql
 
         public DbContext.EntityChangeReport EntityChangeReport { get; } = new DbContext.EntityChangeReport();
 
+        public Dictionary<string, object> States { get; } = new Dictionary<string, object>();
+
         ~UnitOfWork() => this.Dispose();
         int _disposeCounter;
         public void Dispose()

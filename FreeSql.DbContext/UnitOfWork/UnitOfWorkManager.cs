@@ -188,6 +188,7 @@ namespace FreeSql
             public IFreeSql Orm => _baseUow.Orm;
             public IsolationLevel? IsolationLevel { get => _baseUow.IsolationLevel; set => _baseUow.IsolationLevel = value; }
             public DbContext.EntityChangeReport EntityChangeReport => _baseUow.EntityChangeReport;
+            public Dictionary<string, object> States => _baseUow.States;
 
             public DbTransaction GetOrBeginTransaction(bool isCreate = true) => _baseUow.GetOrBeginTransaction(isCreate);
             public void Commit() => _baseUow.Commit();
@@ -206,6 +207,7 @@ namespace FreeSql
             public IFreeSql Orm => _baseUow.Orm;
             public IsolationLevel? IsolationLevel { get => _baseUow.IsolationLevel; set { } }
             public DbContext.EntityChangeReport EntityChangeReport => _baseUow.EntityChangeReport;
+            public Dictionary<string, object> States => _baseUow.States;
 
             public DbTransaction GetOrBeginTransaction(bool isCreate = true) => _baseUow.GetOrBeginTransaction(isCreate);
             public void Commit() { }
@@ -220,6 +222,7 @@ namespace FreeSql
             public IFreeSql Orm => _fsql;
             public IsolationLevel? IsolationLevel { get; set; }
             public DbContext.EntityChangeReport EntityChangeReport { get; } = new DbContext.EntityChangeReport();
+            public Dictionary<string, object> States { get; } = new Dictionary<string, object>();
 
             public DbTransaction GetOrBeginTransaction(bool isCreate = true) => null;
             public void Commit()

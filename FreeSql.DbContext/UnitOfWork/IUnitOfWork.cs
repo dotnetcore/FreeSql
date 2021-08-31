@@ -32,5 +32,10 @@ namespace FreeSql
         /// 工作单元内的实体变化跟踪
         /// </summary>
         DbContext.EntityChangeReport EntityChangeReport { get; }
+
+        /// <summary>
+        /// 用户自定义的状态数据，便于扩展
+        /// </summary>
+        Dictionary<string, object> States { get; }
     }
 }

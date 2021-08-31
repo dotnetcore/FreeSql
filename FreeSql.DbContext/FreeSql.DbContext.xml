@@ -365,6 +365,11 @@
             工作单元内的实体变化跟踪
             </summary>
         </member>
+        <member name="P:FreeSql.IUnitOfWork.States">
+            <summary>
+            自定义的状态数据
+            </summary>
+        </member>
         <member name="P:FreeSql.UnitOfWork.DebugBeingUsed">
             <summary>
             正在使用中的工作单元（调试）
