@@ -367,7 +367,7 @@
         </member>
         <member name="P:FreeSql.IUnitOfWork.States">
             <summary>
-            自定义的状态数据
+            用户自定义的状态数据，便于扩展
             </summary>
         </member>
         <member name="P:FreeSql.UnitOfWork.DebugBeingUsed">
@@ -515,15 +515,6 @@
             创建基于仓储功能的工作单元，务必使用 using 包含使用
             </summary>
             <param name="that"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Microsoft.Extensions.DependencyInjection.FreeSqlRepositoryDependencyInjection.AddFreeRepository(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Action{FreeSql.FluentDataFilter},System.Reflection.Assembly[])">
-            <summary>
-            批量注入 Repository，可以参考代码自行调整
-            </summary>
-            <param name="services"></param>
-            <param name="globalDataFilter"></param>
-            <param name="assemblies"></param>
             <returns></returns>
         </member>
     </members>
