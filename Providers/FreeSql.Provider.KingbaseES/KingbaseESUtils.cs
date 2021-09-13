@@ -57,7 +57,7 @@ namespace FreeSql.KingbaseES
                 return dicGetParamterValue.TryGetValue(type.FullName, out var trydicarr) ? trydicarr(value) : value;
             }
             if (type.IsNullableType()) type = type.GetGenericArguments().First();
-            if (type.IsEnum) return (int)value;
+            if (type.IsEnum) return Convert.ChangeType(value, type.GetEnumUnderlyingType());
             if (dicGetParamterValue.TryGetValue(type.FullName, out var trydic)) return trydic(value);
             return value;
         }
