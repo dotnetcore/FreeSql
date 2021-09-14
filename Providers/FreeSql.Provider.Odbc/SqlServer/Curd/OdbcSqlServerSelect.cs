@@ -42,15 +42,16 @@ namespace FreeSql.Odbc.SqlServer
                 if (_skip <= 0 && _limit > 0) sb.Append("TOP ").Append(_limit).Append(" ");
                 sb.Append(field);
 
-                if (string.IsNullOrEmpty(_orderby))
+                if (_limit > 0)
                 {
-                    var pktb = _tables.Where(a => a.Table.Primarys.Any()).FirstOrDefault();
-                    if (pktb != null) _orderby = string.Concat(" \r\nORDER BY ", pktb.Alias, ".", _commonUtils.QuoteSqlName(pktb?.Table.Primarys.First().Attribute.Name));
-                    else _orderby = string.Concat(" \r\nORDER BY ", _tables.First().Alias, ".", _commonUtils.QuoteSqlName(_tables.First().Table.Columns.First().Value.Attribute.Name));
-                }
-                if (_skip > 0)
-                {
-                    sb.Append(", ROW_NUMBER() OVER(").Append(_orderby).Append(") AS __rownum__");
+                    if (string.IsNullOrEmpty(_orderby))
+                    {
+                        var pktb = _tables.Where(a => a.Table.Primarys.Any()).FirstOrDefault();
+                        if (pktb != null) _orderby = string.Concat(" \r\nORDER BY ", pktb.Alias, ".", _commonUtils.QuoteSqlName(pktb?.Table.Primarys.First().Attribute.Name));
+                        else _orderby = string.Concat(" \r\nORDER BY ", _tables.First().Alias, ".", _commonUtils.QuoteSqlName(_tables.First().Table.Columns.First().Value.Attribute.Name));
+                    }
+                    if (_skip > 0) // 注意这个判断，大于 0 才使用 ROW_NUMBER ，否则属于第一页直接使用 TOP
+                        sb.Append(", ROW_NUMBER() OVER(").Append(_orderby).Append(") AS __rownum__");
                 }
                 sb.Append(" \r\nFROM ");
                 var tbsjoin = _tables.Where(a => a.Type != SelectTableInfoType.From).ToArray();
