@@ -37,6 +37,10 @@ namespace FreeSql.Internal.CommonProvider
             _commonUtils = commonUtils;
             _commonExpression = commonExpression;
             _table = _commonUtils.GetTableByEntity(typeof(T1));
+            if (_table == null)
+            {
+                throw new Exception($"InsertOrUpdate<>的泛型参数 不支持 {typeof(T1)},请传递您的实体类");
+            }
             if (_orm.CodeFirst.IsAutoSyncStructure && typeof(T1) != typeof(object)) _orm.CodeFirst.SyncStructure<T1>();
             IdentityColumn = _table.Primarys.Where(a => a.Attribute.IsIdentity).FirstOrDefault();
         }
