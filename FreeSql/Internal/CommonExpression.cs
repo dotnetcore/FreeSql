@@ -1004,6 +1004,18 @@ namespace FreeSql.Internal
                                         var fsqlSelect0 = fsql as Select0Provider;
                                         switch (exp3.Method.Name) {
                                             case "Any": //exists
+                                                switch (_ado.DataType)
+                                                {
+                                                    case DataType.Oracle:
+                                                    case DataType.OdbcOracle:
+                                                    case DataType.Dameng:
+                                                    case DataType.OdbcDameng:
+                                                        break;
+                                                    default:
+                                                        fsqlSelect0._limit = 1; //#462 ORACLE rownum <= 2 会影响索引变慢
+                                                        break;
+                                                }
+                                                break;
                                             case "ToOne":
                                             case "First":
                                                 fsqlSelect0._limit = 1; //#462
