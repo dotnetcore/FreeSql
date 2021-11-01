@@ -46,7 +46,7 @@ QQ Groups：4336577(full)、8578575(full)、**52508226(available)**
 - [A simple CMS implemented by .NET5](https://github.com/luoyunchong/lin-cms-dotnetcore)
 
 <p align="center">
-  <img src="https://github.com/dotnetcore/FreeSql/raw/master/functions11.png"/>
+  <img src="https://github.com/dotnetcore/FreeSql/raw/master/functions12.png"/>
 </p>
 
 ## 🚀 Quick start
