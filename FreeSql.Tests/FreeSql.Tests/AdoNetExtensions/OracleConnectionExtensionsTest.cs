@@ -6,7 +6,7 @@ using Xunit;
 namespace FreeSql.Tests.AdoNetExtensions.OracleConnectionExtensions {
 	public class Methods {
 
-		string _connectString = "user id=user1;password=123456;data source=//127.0.0.1:1521/XE;Pooling=true;Max Pool Size=5";
+		string _connectString = "user id=1user;password=123456;data source=//127.0.0.1:1521/XE;Pooling=true;Max Pool Size=5";
 
 		public Methods() {
 			g.oracle.CodeFirst.SyncStructure<TestConnectionExt>();

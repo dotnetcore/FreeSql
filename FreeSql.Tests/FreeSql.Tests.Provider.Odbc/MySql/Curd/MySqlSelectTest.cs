@@ -1019,6 +1019,14 @@ FROM `tb_topic` a
 WHERE (((cast(a.`Id` as char)) in (SELECT b.`Title` 
     FROM `tb_topic` b)))", subquery);
             var subqueryList = select.Where(a => select.As("b").ToList(b => b.Title).Contains(a.Id.ToString())).ToList();
+
+            subquery = select.Where(a => select.As("b").Limit(10).ToList(b => b.Title).Contains(a.Id.ToString())).ToSql();
+            Assert.Equal(@"SELECT a.`Id`, a.`Clicks`, a.`TypeGuid`, a.`Title`, a.`CreateTime` 
+FROM `tb_topic` a 
+WHERE (((cast(a.`Id` as char)) in ( SELECT * FROM (SELECT b.`Title` 
+    FROM `tb_topic` b 
+    limit 0,10) ftblmt50 )))", subquery);
+            subqueryList = select.Where(a => select.As("b").Limit(10).ToList(b => b.Title).Contains(a.Id.ToString())).ToList();
         }
         [Fact]
         public void As()

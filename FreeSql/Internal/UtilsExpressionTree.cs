@@ -1348,7 +1348,12 @@ namespace FreeSql.Internal
                 orm.Aop.AuditDataReaderHandler(orm, args);
                 return args.Value;
             }
-            if (orm.Ado.DataType == DataType.Dameng && dr.IsDBNull(index)) return null; //OdbcDameng 不会报错
+            switch (orm.Ado.DataType)
+            {
+                case DataType.Dameng: //OdbcDameng 不会报错
+                    if (dr.IsDBNull(index)) return null;
+                    break;
+            }
             return dr.GetValue(index);
         }
         internal static RowInfo ExecuteArrayRowReadClassOrTuple(string flagStr, Type typeOrg, int[] indexes, DbDataReader row, int dataIndex, CommonUtils _commonUtils)

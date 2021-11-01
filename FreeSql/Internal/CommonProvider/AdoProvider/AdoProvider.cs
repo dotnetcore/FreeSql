@@ -557,7 +557,7 @@ namespace FreeSql.Internal.CommonProvider
         public void ExecuteReader(Action<FetchCallbackArgs<DbDataReader>> fetchHandler, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteReader(null, null, fetchHandler, cmdType, cmdText, 0, cmdParms);
         public void ExecuteReader(DbTransaction transaction, Action<FetchCallbackArgs<DbDataReader>> fetchHandler, CommandType cmdType, string cmdText, params DbParameter[] cmdParms) => ExecuteReader(null, transaction, fetchHandler, cmdType, cmdText, 0, cmdParms);
         public void ExecuteReader(DbConnection connection, DbTransaction transaction, Action<FetchCallbackArgs<DbDataReader>> fetchHandler, CommandType cmdType, string cmdText, int cmdTimeout, params DbParameter[] cmdParms) => ExecuteReaderMultiple(1, connection, transaction, (fetch, result) => fetchHandler(fetch), null, cmdType, cmdText, cmdTimeout, cmdParms);
-        void ExecuteReaderMultiple(int multipleResult, DbConnection connection, DbTransaction transaction, Action<FetchCallbackArgs<DbDataReader>, int> fetchHandler, Action<DbDataReader, int> schemaHandler, CommandType cmdType, string cmdText, int cmdTimeout, params DbParameter[] cmdParms)
+        public void ExecuteReaderMultiple(int multipleResult, DbConnection connection, DbTransaction transaction, Action<FetchCallbackArgs<DbDataReader>, int> fetchHandler, Action<DbDataReader, int> schemaHandler, CommandType cmdType, string cmdText, int cmdTimeout, params DbParameter[] cmdParms)
         {
             if (string.IsNullOrEmpty(cmdText)) return;
             var dt = DateTime.Now;

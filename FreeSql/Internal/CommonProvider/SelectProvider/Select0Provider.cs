@@ -702,7 +702,7 @@ namespace FreeSql.Internal.CommonProvider
             {
                 case DataType.MySql:
                 case DataType.OdbcMySql:
-                    _tosqlAppendContent = " for update";
+                    _tosqlAppendContent = $"{_tosqlAppendContent} for update";
                     break;
                 case DataType.SqlServer:
                 case DataType.OdbcSqlServer:
@@ -712,21 +712,21 @@ namespace FreeSql.Internal.CommonProvider
                 case DataType.OdbcPostgreSQL:
                 case DataType.KingbaseES:
                 case DataType.OdbcKingbaseES:
-                    _tosqlAppendContent = $" for update{(noawait ? " nowait" : "")}";
+                    _tosqlAppendContent = $"{_tosqlAppendContent} for update{(noawait ? " nowait" : "")}";
                     break;
                 case DataType.Oracle:
                 case DataType.OdbcOracle:
                 case DataType.Dameng:
                 case DataType.OdbcDameng:
-                    _tosqlAppendContent = $" for update{(noawait ? " nowait" : "")}";
+                    _tosqlAppendContent = $"{_tosqlAppendContent} for update{(noawait ? " nowait" : "")}";
                     break;
                 case DataType.Sqlite:
                     break;
                 case DataType.ShenTong: //神通测试中发现，不支持 nowait
-                    _tosqlAppendContent = " for update";
+                    _tosqlAppendContent = $"{_tosqlAppendContent} for update";
                     break;
                 case DataType.Firebird:
-                    _tosqlAppendContent = " for update with lock";
+                    _tosqlAppendContent = $"{_tosqlAppendContent} for update with lock";
                     break;
             }
             return this as TSelect;

@@ -1,13 +1,13 @@
 ﻿using FreeSql.Internal;
 using FreeSql.Internal.CommonProvider;
 using FreeSql.PostgreSQL.Curd;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Npgsql.LegacyPostgis;
 using NpgsqlTypes;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Data;
 using System.Data.Common;
 using System.Linq.Expressions;
 using System.Net;
@@ -63,19 +63,39 @@ namespace FreeSql.PostgreSQL
             Utils.dicExecuteArrayRowReadClassOrTuple[typeof(JObject)] = true;
             Utils.dicExecuteArrayRowReadClassOrTuple[typeof(JArray)] = true;
 
+            var MethodJTokenFromObject = typeof(JToken).GetMethod("FromObject", new[] { typeof(object) });
+            var MethodJObjectFromObject = typeof(JObject).GetMethod("FromObject", new[] { typeof(object) });
+            var MethodJArrayFromObject = typeof(JArray).GetMethod("FromObject", new[] { typeof(object) });
             var MethodJTokenParse = typeof(JToken).GetMethod("Parse", new[] { typeof(string) });
             var MethodJObjectParse = typeof(JObject).GetMethod("Parse", new[] { typeof(string) });
             var MethodJArrayParse = typeof(JArray).GetMethod("Parse", new[] { typeof(string) });
+            var MethodJsonConvertDeserializeObject = typeof(JsonConvert).GetMethod("DeserializeObject", new[] { typeof(string), typeof(Type) });
             Utils.GetDataReaderValueBlockExpressionSwitchTypeFullName.Add((LabelTarget returnTarget, Expression valueExp, Type type) =>
             {
                 switch (type.FullName)
                 {
-                    case "Newtonsoft.Json.Linq.JToken": return Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodJTokenParse, Expression.Convert(valueExp, typeof(string))), typeof(JToken)));
-                    case "Newtonsoft.Json.Linq.JObject": return Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodJObjectParse, Expression.Convert(valueExp, typeof(string))), typeof(JObject)));
-                    case "Newtonsoft.Json.Linq.JArray": return Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodJArrayParse, Expression.Convert(valueExp, typeof(string))), typeof(JArray)));
-                    case "Npgsql.LegacyPostgis.PostgisGeometry": return Expression.Return(returnTarget, valueExp);
-                    case "NetTopologySuite.Geometries.Geometry": return Expression.Return(returnTarget, valueExp);
+                    case "Newtonsoft.Json.Linq.JToken":
+                        return Expression.IfThenElse(
+                            Expression.TypeIs(valueExp, typeof(string)),
+                            Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodJTokenParse, Expression.Convert(valueExp, typeof(string))), typeof(JToken))),
+                            Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodJTokenFromObject, valueExp), typeof(JToken))));
+                    case "Newtonsoft.Json.Linq.JObject":
+                        return Expression.IfThenElse(
+                            Expression.TypeIs(valueExp, typeof(string)),
+                            Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodJObjectParse, Expression.Convert(valueExp, typeof(string))), typeof(JObject))),
+                            Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodJObjectFromObject, valueExp), typeof(JObject))));
+                    case "Newtonsoft.Json.Linq.JArray":
+                        return Expression.IfThenElse(
+                            Expression.TypeIs(valueExp, typeof(string)),
+                            Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodJArrayParse, Expression.Convert(valueExp, typeof(string))), typeof(JArray))),
+                            Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodJArrayFromObject, valueExp), typeof(JArray))));
+                    case "Npgsql.LegacyPostgis.PostgisGeometry": 
+                        return Expression.Return(returnTarget, valueExp);
+                    case "NetTopologySuite.Geometries.Geometry": 
+                        return Expression.Return(returnTarget, valueExp);
                 }
+                if (typeof(IList).IsAssignableFrom(type))
+                    return Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodJsonConvertDeserializeObject, Expression.Convert(valueExp, typeof(string)), Expression.Constant(type, typeof(Type))), type));
                 return null;
             });
         }

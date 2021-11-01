@@ -399,7 +399,6 @@ where a.table_schema IN ({0}) and a.table_name IN ({1}) and a.index_name <> 'PRI
             var scripts = ddl.Split(new string[] { ";\r\n" }, StringSplitOptions.None).Where(a => string.IsNullOrEmpty(a.Trim()) == false).ToArray();
 
             if (scripts.Any() == false) return 0;
-            if (scripts.Length == 1) return base.ExecuteDDLStatements(ddl);
 
             var affrows = 0;
             foreach (var script in scripts)

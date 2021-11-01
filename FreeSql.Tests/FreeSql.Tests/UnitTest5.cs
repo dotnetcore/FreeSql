@@ -3,6 +3,7 @@ using FreeSql.DataAnnotations;
 using FreeSql.Internal;
 using FreeSql.Internal.CommonProvider;
 using MySql.Data.MySqlClient;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -15,6 +16,35 @@ namespace FreeSql.Tests
 {
     public class UnitTest5
     {
+
+        [Fact]
+        public void TestJsonb01()
+        {
+            var fsql = g.pgsql;
+            fsql.Delete<TestJsonb01Cls1>().Where("1=1").ExecuteAffrows();
+
+            var item = new TestJsonb01Cls1
+            {
+                jsonb01 = new List<int> { 1, 5, 10, 20 },
+                jsonb02 = new List<long> { 11, 51, 101, 201 },
+                jsonb03 = new List<string> { "12", "52", "102", "202" },
+            };
+            fsql.Insert(item).ExecuteAffrows();
+
+            var items = fsql.Select<TestJsonb01Cls1>().ToList();
+        }
+
+        public class TestJsonb01Cls1
+        {
+            public Guid id { get; set; }
+            [Column(MapType = typeof(JArray))]
+            public List<int> jsonb01 { get; set; }
+            [Column(MapType = typeof(JToken))]
+            public List<long> jsonb02 { get; set; }
+            [Column(MapType = typeof(JToken))]
+            public List<string> jsonb03 { get; set; }
+        }
+
         [Fact]
         public void DebugUpdateSet01()
         {

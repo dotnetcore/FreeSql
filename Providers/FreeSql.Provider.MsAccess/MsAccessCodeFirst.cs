@@ -471,7 +471,6 @@ namespace FreeSql.MsAccess
             var scripts = ddl.Split(new string[] { ";\r\n" }, StringSplitOptions.None).Where(a => string.IsNullOrEmpty(a.Trim()) == false).ToArray();
 
             if (scripts.Any() == false) return 0;
-            if (scripts.Length == 1) return base.ExecuteDDLStatements(ddl);
 
             var affrows = 0;
             foreach (var script in scripts)

@@ -1012,6 +1012,14 @@ FROM ""tb_topic"" a
 WHERE ((((a.""id"")::text) in (SELECT b.""title"" 
     FROM ""tb_topic"" b)))", subquery);
             var subqueryList = select.Where(a => select.As("b").ToList(b => b.Title).Contains(a.Id.ToString())).ToList();
+
+            subquery = select.Where(a => select.As("b").Limit(10).ToList(b => b.Title).Contains(a.Id.ToString())).ToSql();
+            Assert.Equal(@"SELECT a.""id"", a.""clicks"", a.""typeguid"", a.""title"", a.""createtime"" 
+FROM ""tb_topic"" a 
+WHERE ((((a.""id"")::text) in (SELECT b.""title"" 
+    FROM ""tb_topic"" b 
+    limit 10)))", subquery);
+            subqueryList = select.Where(a => select.As("b").Limit(10).ToList(b => b.Title).Contains(a.Id.ToString())).ToList();
         }
         [Fact]
         public void As()

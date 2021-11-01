@@ -128,7 +128,7 @@ namespace FreeSql.Internal.CommonProvider
             }
         }
 
-        public virtual int ExecuteDDLStatements(string ddl) => _orm.Ado.ExecuteNonQuery(CommandType.Text, ddl);
+        public virtual int ExecuteDDLStatements(string ddl) => string.IsNullOrWhiteSpace(ddl) ? 0 : _orm.Ado.ExecuteNonQuery(CommandType.Text, ddl);
 
         public static string ReplaceIndexName(string indexName, string tbname) => string.IsNullOrEmpty(indexName) ? indexName : Regex.Replace(indexName, @"\{\s*TableName\s*\}", tbname, RegexOptions.IgnoreCase);
     }

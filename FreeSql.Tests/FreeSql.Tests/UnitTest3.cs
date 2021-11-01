@@ -633,7 +633,7 @@ INNER JOIN ""userinfo"" p ON p.""userid"" = o.""userid""", select16Sql2);
                 .UseLazyLoading(true)
                 .Build());
             ib.Register("db2", () => new FreeSql.FreeSqlBuilder()
-                .UseConnectionString(FreeSql.DataType.Oracle, "user id=user1;password=123456;data source=//127.0.0.1:1521/XE;Pooling=true;Max Pool Size=3")
+                .UseConnectionString(FreeSql.DataType.Oracle, "user id=1user;password=123456;data source=//127.0.0.1:1521/XE;Pooling=true;Max Pool Size=3")
                 .UseAutoSyncStructure(true)
                 .UseGenerateCommandParameterWithLambda(true)
                 .UseLazyLoading(true)

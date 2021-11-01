@@ -934,6 +934,13 @@ FROM ""TB_TOPIC22"" a
 WHERE (((cast(a.""ID"" as blob sub_type 1)) in (SELECT b.""TITLE"" 
     FROM ""TB_TOPIC22"" b)))", subquery);
             var subqueryList = select.Where(a => select.As("b").ToList(b => b.Title).Contains(a.Id.ToString())).ToList();
+
+            subquery = select.Where(a => select.As("b").Limit(10).ToList(b => b.Title).Contains(a.Id.ToString())).ToSql();
+            Assert.Equal(@"SELECT a.""ID"", a.""CLICKS"", a.""TYPEGUID"", a.""TITLE"", a.""CREATETIME"" 
+FROM ""TB_TOPIC22"" a 
+WHERE (((cast(a.""ID"" as blob sub_type 1)) in (SELECT FIRST 10 b.""TITLE"" 
+    FROM ""TB_TOPIC22"" b)))", subquery);
+            subqueryList = select.Where(a => select.As("b").Limit(10).ToList(b => b.Title).Contains(a.Id.ToString())).ToList();
         }
         [Fact]
         public void As()
