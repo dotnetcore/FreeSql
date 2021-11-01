@@ -20,7 +20,7 @@ FreeSql 是一款功能强大的对象关系映射（O/RM）组件，支持 .NET
 - ✒ 支持 丰富的表达式函数，以及灵活的自定义解析；
 - 🏁 支持 导航属性一对多、多对多贪婪加载，以及延时加载；
 - 📃 支持 读写分离、分表分库、过滤器、乐观锁、悲观锁；
-- 🌳 支持 MySql/SqlServer/PostgreSQL/Oracle/Sqlite/Firebird/达梦/人大金仓/神舟通用/翰高/华为GaussDB/Access 等数据库；
+- 🌳 支持 MySql/SqlServer/PostgreSQL/Oracle/Sqlite/Firebird/达梦/人大金仓/神舟通用/南大通用/翰高/Access 等数据库；
 
 QQ群：4336577(已满)、8578575(已满)、52508226(在线)
 
