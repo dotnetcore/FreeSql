@@ -172,8 +172,8 @@ namespace FreeSql.MySql
         public List<DbTableInfo> GetTables(string[] database, string tablename, bool ignoreCase)
         {
             var loc1 = new List<DbTableInfo>();
-            var loc2 = new Dictionary<string, DbTableInfo>();
-            var loc3 = new Dictionary<string, Dictionary<string, DbColumnInfo>>();
+            var loc2 = new Dictionary<string, DbTableInfo>(StringComparer.CurrentCultureIgnoreCase);
+            var loc3 = new Dictionary<string, Dictionary<string, DbColumnInfo>>(StringComparer.CurrentCultureIgnoreCase);
             string[] tbname = null;
             if (string.IsNullOrEmpty(tablename) == false)
             {
@@ -228,7 +228,7 @@ where {(ignoreCase ? "lower(a.table_schema)" : "a.table_schema")} in ({databaseI
                     schema = "";
                 }
                 loc2.Add(table_id, new DbTableInfo { Id = table_id, Schema = schema, Name = table, Comment = comment, Type = type });
-                loc3.Add(table_id, new Dictionary<string, DbColumnInfo>());
+                loc3.Add(table_id, new Dictionary<string, DbColumnInfo>(StringComparer.CurrentCultureIgnoreCase));
                 switch (type)
                 {
                     case DbTableType.TABLE:
@@ -337,8 +337,8 @@ where {(ignoreCase ? "lower(a.table_schema)" : "a.table_schema")} in ({databaseI
             ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
             if (ds == null) return loc1;
 
-            var indexColumns = new Dictionary<string, Dictionary<string, DbIndexInfo>>();
-            var uniqueColumns = new Dictionary<string, Dictionary<string, DbIndexInfo>>();
+            var indexColumns = new Dictionary<string, Dictionary<string, DbIndexInfo>>(StringComparer.CurrentCultureIgnoreCase);
+            var uniqueColumns = new Dictionary<string, Dictionary<string, DbIndexInfo>>(StringComparer.CurrentCultureIgnoreCase);
             foreach (var row in ds)
             {
                 string table_id = string.Concat(row[0]);
@@ -357,14 +357,14 @@ where {(ignoreCase ? "lower(a.table_schema)" : "a.table_schema")} in ({databaseI
                 Dictionary<string, DbIndexInfo> loc10 = null;
                 DbIndexInfo loc11 = null;
                 if (!indexColumns.TryGetValue(table_id, out loc10))
-                    indexColumns.Add(table_id, loc10 = new Dictionary<string, DbIndexInfo>());
+                    indexColumns.Add(table_id, loc10 = new Dictionary<string, DbIndexInfo>(StringComparer.CurrentCultureIgnoreCase));
                 if (!loc10.TryGetValue(index_id, out loc11))
                     loc10.Add(index_id, loc11 = new DbIndexInfo());
                 loc11.Columns.Add(new DbIndexColumnInfo { Column = loc9, IsDesc = is_desc });
                 if (is_unique && !is_primary_key)
                 {
                     if (!uniqueColumns.TryGetValue(table_id, out loc10))
-                        uniqueColumns.Add(table_id, loc10 = new Dictionary<string, DbIndexInfo>());
+                        uniqueColumns.Add(table_id, loc10 = new Dictionary<string, DbIndexInfo>(StringComparer.CurrentCultureIgnoreCase));
                     if (!loc10.TryGetValue(index_id, out loc11))
                         loc10.Add(index_id, loc11 = new DbIndexInfo());
                     loc11.Columns.Add(new DbIndexColumnInfo { Column = loc9, IsDesc = is_desc });
@@ -400,7 +400,7 @@ where {(ignoreCase ? "lower(a.constraint_schema)" : "a.constraint_schema")} in (
                 ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
                 if (ds == null) return loc1;
 
-                var fkColumns = new Dictionary<string, Dictionary<string, DbForeignInfo>>();
+                var fkColumns = new Dictionary<string, Dictionary<string, DbForeignInfo>>(StringComparer.CurrentCultureIgnoreCase);
                 foreach (var row in ds)
                 {
                     string table_id = string.Concat(row[0]);
@@ -423,7 +423,7 @@ where {(ignoreCase ? "lower(a.constraint_schema)" : "a.constraint_schema")} in (
                     Dictionary<string, DbForeignInfo> loc12 = null;
                     DbForeignInfo loc13 = null;
                     if (!fkColumns.TryGetValue(table_id, out loc12))
-                        fkColumns.Add(table_id, loc12 = new Dictionary<string, DbForeignInfo>());
+                        fkColumns.Add(table_id, loc12 = new Dictionary<string, DbForeignInfo>(StringComparer.CurrentCultureIgnoreCase));
                     if (!loc12.TryGetValue(fk_id, out loc13))
                         loc12.Add(fk_id, loc13 = new DbForeignInfo { Table = loc2[table_id], ReferencedTable = loc10 });
                     loc13.Columns.Add(loc9);
