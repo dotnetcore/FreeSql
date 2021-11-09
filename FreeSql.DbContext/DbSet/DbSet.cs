@@ -220,6 +220,31 @@ namespace FreeSql
         }
 
         /// <summary>
+        /// 比较实体，计算出值发生变化的属性，以及属性变化的前后值
+        /// </summary>
+        /// <param name="newdata">最新的实体对象，它将与附加实体的状态对比</param>
+        /// <returns></returns>
+        public Dictionary<string, object[]> CompareState(TEntity newdata)
+        {
+            if (newdata == null) return null;
+            if (_table.Primarys.Any() == false) throw new Exception($"不可比较，实体没有主键：{_db.OrmOriginal.GetEntityString(_entityType, newdata)}");
+            var key = _db.OrmOriginal.GetEntityKeyString(_entityType, newdata, false);
+            if (string.IsNullOrEmpty(key)) throw new Exception($"不可比较，未设置主键的值：{_db.OrmOriginal.GetEntityString(_entityType, newdata)}");
+            if (_states.TryGetValue(key, out var oldState) == false || oldState == null)
+                return _table.ColumnsByCs.ToDictionary(a => a.Key, a => new object[]
+                {
+                    _db.OrmOriginal.GetEntityValueWithPropertyName(_entityType, newdata, a.Key),
+                    null
+                });
+
+            return _db.OrmOriginal.CompareEntityValueReturnColumns(_entityType, oldState.Value, newdata, false).ToDictionary(a => a, a => new object[]
+            {
+                _db.OrmOriginal.GetEntityValueWithPropertyName(_entityType, newdata, a),
+                _db.OrmOriginal.GetEntityValueWithPropertyName(_entityType, oldState.Value, a)
+            });
+        }
+
+        /// <summary>
         /// 清空状态数据
         /// </summary>
         public void FlushState()

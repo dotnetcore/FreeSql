@@ -212,6 +212,17 @@ namespace FreeSql
             this.Set<TEntity>().AttachOnlyPrimary(data);
             return this;
         }
+
+        /// <summary>
+        /// 比较实体，计算出值发生变化的属性，以及属性变化的前后值
+        /// </summary>
+        /// <param name="newdata">最新的实体对象，它将与附加实体的状态对比</param>
+        /// <returns></returns>
+        public Dictionary<string, object[]> CompareState<TEntity>(TEntity newdata) where TEntity : class
+        {
+            CheckEntityTypeOrThrow(typeof(TEntity));
+            return this.Set<TEntity>().CompareState(newdata);
+        }
 #if net40
 #else
         public Task AddAsync<TEntity>(TEntity data) where TEntity : class

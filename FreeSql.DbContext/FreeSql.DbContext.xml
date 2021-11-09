@@ -62,6 +62,13 @@
             <typeparam name="TEntity"></typeparam>
             <param name="data"></param>
         </member>
+        <member name="M:FreeSql.DbContext.CompareState``1(``0)">
+            <summary>
+            比较实体，计算出值发生变化的属性，以及属性变化的前后值
+            </summary>
+            <param name="newdata">最新的实体对象，它将与附加实体的状态对比</param>
+            <returns></returns>
+        </member>
         <member name="P:FreeSql.DbContext.EntityChangeReport.ChangeInfo.BeforeObject">
             <summary>
             Type = Update 的时候，获取更新之前的对象
@@ -129,6 +136,13 @@
             附加实体，并且只附加主键值，可用于不更新属性值为null或默认值的字段
             </summary>
             <param name="data"></param>
+        </member>
+        <member name="M:FreeSql.DbSet`1.CompareState(`0)">
+            <summary>
+            比较实体，计算出值发生变化的属性，以及属性变化的前后值
+            </summary>
+            <param name="newdata">最新的实体对象，它将与附加实体的状态对比</param>
+            <returns></returns>
         </member>
         <member name="M:FreeSql.DbSet`1.FlushState">
             <summary>
@@ -313,6 +327,13 @@
             附加实体，并且只附加主键值，可用于不更新属性值为null或默认值的字段
             </summary>
             <param name="data"></param>
+        </member>
+        <member name="M:FreeSql.IBaseRepository`1.CompareState(`0)">
+            <summary>
+            比较实体，计算出值发生变化的属性，以及属性变化的前后值
+            </summary>
+            <param name="newdata">最新的实体对象，它将与附加实体的状态对比</param>
+            <returns></returns>
         </member>
         <member name="M:FreeSql.IBaseRepository`1.SaveMany(`0,System.String)">
             <summary>

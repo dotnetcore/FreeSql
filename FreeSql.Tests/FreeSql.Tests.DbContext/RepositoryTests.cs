@@ -28,6 +28,7 @@ namespace FreeSql.Tests
             items[0].Title = "88";
             //items[1].Title = "88";
             items[2].Title = "88";
+            var changed = repos.CompareState(items[0]);
             int x = await repos.UpdateAsync(items);
         }
 
