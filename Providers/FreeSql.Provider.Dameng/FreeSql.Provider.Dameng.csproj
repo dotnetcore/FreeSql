@@ -21,8 +21,8 @@
 	<ItemGroup>
 		<None Include="../../logo.png" Pack="true" PackagePath="\" />
 		<None Include="lib\DmProvider\netstandard2.0\DmProvider.dll" Pack="true" PackagePath="\lib\netstandard2.0\" />
-		<None Include="lib\DmProvider\net20\DmProvider.dll" Pack="true" PackagePath="\lib\net45\" />
-		<None Include="lib\DmProvider\net20\DmProvider.dll" Pack="true" PackagePath="\lib\net40\" />
+		<None Include="lib\DmProvider\net40\DmProvider.dll" Pack="true" PackagePath="\lib\net45\" />
+		<None Include="lib\DmProvider\net40\DmProvider.dll" Pack="true" PackagePath="\lib\net40\" />
 		<None Include="lib/**/*.dll">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>

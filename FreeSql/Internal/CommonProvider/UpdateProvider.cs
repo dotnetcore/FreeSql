@@ -677,7 +677,7 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
 
-        public string ToSql()
+        public virtual string ToSql()
         {
             if (_where.Length == 0 && _source.Any() == false) return null;
 

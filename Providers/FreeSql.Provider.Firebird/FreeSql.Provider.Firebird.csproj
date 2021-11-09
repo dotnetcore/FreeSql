@@ -25,7 +25,10 @@
 		<None Include="../../logo.png" Pack="true" PackagePath="\" />
 	</ItemGroup>
 
-	<ItemGroup>
+	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+		<PackageReference Include="FirebirdSql.Data.FirebirdClient" Version="8.5.3" />
+	</ItemGroup>
+	<ItemGroup Condition="'$(TargetFramework)' == 'net452'">
 		<PackageReference Include="FirebirdSql.Data.FirebirdClient" Version="7.10.1" />
 	</ItemGroup>
 
