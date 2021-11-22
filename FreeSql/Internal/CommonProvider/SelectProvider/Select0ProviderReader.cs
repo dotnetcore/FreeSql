@@ -760,8 +760,32 @@ namespace FreeSql.Internal.CommonProvider
             _commonExpression.ExpressionJoinLambda(_tables, joinType, exp, null, _whereGlobalFilter);
             return this as TSelect;
         }
-        protected TSelect InternalOrderBy(Expression column) => this.OrderBy(_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, column, true, null));
-        protected TSelect InternalOrderByDescending(Expression column) => this.OrderBy($"{_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, column, true, null)} DESC");
+        protected TSelect InternalOrderBy(Expression column)
+        {
+            if (column.NodeType == ExpressionType.Lambda) column = (column as LambdaExpression)?.Body;
+            switch (column?.NodeType)
+            {
+                case ExpressionType.New:
+                    var newExp = column as NewExpression;
+                    if (newExp == null) break;
+                    for (var a = 0; a < newExp.Members.Count; a++) this.OrderBy(_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, newExp.Arguments[a], true, null));
+                    return this as TSelect;
+            }
+            return this.OrderBy(_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, column, true, null));
+        }
+        protected TSelect InternalOrderByDescending(Expression column)
+        {
+            if (column.NodeType == ExpressionType.Lambda) column = (column as LambdaExpression)?.Body;
+            switch (column?.NodeType)
+            {
+                case ExpressionType.New:
+                    var newExp = column as NewExpression;
+                    if (newExp == null) break;
+                    for (var a = 0; a < newExp.Members.Count; a++) this.OrderBy($"{_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, newExp.Arguments[a], true, null)} DESC");
+                    return this as TSelect;
+            }
+            return this.OrderBy($"{_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, column, true, null)} DESC");
+        }
 
         public List<TReturn> InternalToList<TReturn>(Expression select) => this.ToListMapReader<TReturn>(this.GetExpressionField(select));
         protected string InternalToSql<TReturn>(Expression select, FieldAliasOptions fieldAlias = FieldAliasOptions.AsIndex)

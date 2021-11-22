@@ -693,6 +693,7 @@ namespace FreeSql.Tests.Sqlite
             .Having(a => a.Count() > 0 && a.Avg(a.Key.mod4) > 0 && a.Max(a.Key.mod4) > 0)
             .Having(a => a.Count() < 300 || a.Avg(a.Key.mod4) < 100)
             .OrderBy(a => a.Key.tt2)
+            .OrderByDescending(a => new { a.Key.tt2, a.Key.mod4 })
             .OrderByDescending(a => a.Count())
             .Offset(10)
             .Limit(2)
@@ -804,7 +805,17 @@ namespace FreeSql.Tests.Sqlite
         [Fact]
         public void OrderBy()
         {
-            var sql = select.OrderBy(a => new Random().NextDouble()).ToList();
+            var sql = select.OrderBy(a => new Random().NextDouble()).ToSql();
+
+            sql = select.OrderBy(a => a.Id).OrderBy(a => a.Title).OrderByDescending(a => a.CreateTime).ToSql();
+            Assert.Equal(@"SELECT a.""Id"", a.""Clicks"", a.""TypeGuid"", a.""Title"", a.""CreateTime"" 
+FROM ""tb_topic22"" a 
+ORDER BY a.""Id"", a.""Title"", a.""CreateTime"" DESC", sql);
+
+            sql = select.OrderBy(a => new { a.Id, a.Title }).OrderByDescending(a => a.CreateTime).ToSql();
+            Assert.Equal(@"SELECT a.""Id"", a.""Clicks"", a.""TypeGuid"", a.""Title"", a.""CreateTime"" 
+FROM ""tb_topic22"" a 
+ORDER BY a.""Id"", a.""Title"", a.""CreateTime"" DESC", sql);
         }
         [Fact]
         public void OrderByRandom()
