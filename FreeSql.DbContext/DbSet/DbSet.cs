@@ -223,7 +223,7 @@ namespace FreeSql
         /// 比较实体，计算出值发生变化的属性，以及属性变化的前后值
         /// </summary>
         /// <param name="newdata">最新的实体对象，它将与附加实体的状态对比</param>
-        /// <returns></returns>
+        /// <returns>key: 属性名, value: [旧值, 新值]</returns>
         public Dictionary<string, object[]> CompareState(TEntity newdata)
         {
             if (newdata == null) return null;

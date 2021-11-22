@@ -30,8 +30,8 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-		<PackageReference Include="Npgsql.LegacyPostgis" Version="5.0.10" />
-		<PackageReference Include="Npgsql.NetTopologySuite" Version="5.0.10" />
+		<PackageReference Include="Npgsql.LegacyPostgis" Version="5.0.11" />
+		<PackageReference Include="Npgsql.NetTopologySuite" Version="5.0.11" />
 	</ItemGroup>
 	<ItemGroup Condition="'$(TargetFramework)' == 'net461'">
 		<PackageReference Include="Npgsql.LegacyPostgis" Version="4.1.7" />

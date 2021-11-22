@@ -113,6 +113,13 @@ namespace FreeSql.SqlServer
                 var ts = (TimeSpan)value;
                 value = $"{ts.Hours}:{ts.Minutes}:{ts.Seconds}.{ts.Milliseconds}";
             }
+#if net60
+            if (type == typeof(TimeOnly) || type == typeof(TimeOnly?))
+            {
+                var ts = (TimeOnly)value;
+                value = $"{ts.Hour}:{ts.Minute}:{ts.Second}.{ts.Millisecond}";
+            }
+#endif
             return string.Format(CultureInfo.InvariantCulture, "{0}", (_orm.Ado as AdoProvider).AddslashesProcessParam(value, type, col));
         }
     }

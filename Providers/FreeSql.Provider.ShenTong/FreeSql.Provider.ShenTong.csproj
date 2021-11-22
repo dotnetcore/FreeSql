@@ -34,7 +34,7 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-		<PackageReference Include="Oscar.Data.SqlClient" Version="1.0.8.2" />
+		<PackageReference Include="Oscar.Data.SqlClient" Version="4.0.5" />
 	</ItemGroup>
 	<ItemGroup Condition="'$(TargetFramework)' != 'netstandard2.0'">
 		<Reference Include="System.Data.OscarClient">
