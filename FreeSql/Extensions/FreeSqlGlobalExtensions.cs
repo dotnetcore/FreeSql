@@ -495,6 +495,7 @@ JOIN {select._commonUtils.QuoteSqlName(tb.DbName)} a ON cte_tbc.cte_id = a.{sele
                 case DataType.SqlServer:
                 case DataType.OdbcSqlServer:
                 case DataType.Firebird:
+                case DataType.ClickHouse:
                     sql1ctePath = select._commonExpression.ExpressionWhereLambda(select._tables, Expression.Call(typeof(Convert).GetMethod("ToString", new Type[] { typeof(string) }), pathSelector?.Body), null, null, null);
                     break;
                 default:
@@ -609,6 +610,7 @@ SELECT ");
         {
             case DataType.MySql:
             case DataType.OdbcMySql:
+            case DataType.ClickHouse:
                 return that.OrderBy("rand()");
             case DataType.SqlServer:
             case DataType.OdbcSqlServer:

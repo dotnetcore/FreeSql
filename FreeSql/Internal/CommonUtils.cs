@@ -54,7 +54,7 @@ namespace FreeSql.Internal
         public abstract string NowUtc { get; }
         public abstract string QuoteWriteParamterAdapter(Type type, string paramterName);
         protected abstract string QuoteReadColumnAdapter(Type type, Type mapType, string columnName);
-        public string RewriteColumn(ColumnInfo col, string sql)
+        public virtual string RewriteColumn(ColumnInfo col, string sql)
         {
             if (string.IsNullOrWhiteSpace(col?.Attribute.RewriteSql) == false)
                 return string.Format(col.Attribute.RewriteSql, sql);

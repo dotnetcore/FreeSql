@@ -60,6 +60,7 @@ namespace FreeSql
         /// 自定义适配器，访问任何数据库<para></para>
         /// 注意：该类型不提供 DbFirst/CodeFirst 功能
         /// </summary>
-        Custom
+        Custom,
+        ClickHouse
     }
 }

@@ -180,6 +180,7 @@ new Colorful.Formatter("推荐在实体类目录创建 gen.bat，双击它重新
                             case "dameng": ArgsDbType = DataType.Dameng; break;
                             case "kingbasees": ArgsDbType = DataType.KingbaseES; break;
                             case "shentong": ArgsDbType = DataType.ShenTong; break;
+                            case "clickhouse": ArgsDbType = DataType.ClickHouse; break;
                             default: throw new ArgumentException($"-DB 参数错误，不支持的类型：\"{dbargs[0]}\"");
                         }
                         ArgsConnectionString = dbargs[1].Trim();

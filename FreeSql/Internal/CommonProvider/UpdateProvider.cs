@@ -445,7 +445,7 @@ namespace FreeSql.Internal.CommonProvider
             _set.Append(", ").Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ");
 
             var colsql = _noneParameter ? _commonUtils.GetNoneParamaterSqlValue(_params, "u", col, col.Attribute.MapType, val) :
-                _commonUtils.QuoteWriteParamterAdapter(col.Attribute.MapType, $"{_commonUtils.QuoteParamterName("p_")}{_params.Count}");
+                _commonUtils.QuoteWriteParamterAdapter(col.Attribute.MapType, _commonUtils.QuoteParamterName($"p_{_params.Count}"));
             _set.Append(_commonUtils.RewriteColumn(col, colsql));
             if (_noneParameter == false)
                 _commonUtils.AppendParamter(_params, null, col, col.Attribute.MapType, val);

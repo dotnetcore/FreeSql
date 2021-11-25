@@ -265,6 +265,11 @@ namespace FreeSql
                         if (type == null) throwNotFind("FreeSql.Provider.Custom.dll", "FreeSql.Custom.CustomProvider<>");
                         break;
 
+                    case DataType.ClickHouse:
+                        type = Type.GetType("FreeSql.ClickHouse.ClickHouseProvider`1,FreeSql.Provider.ClickHouse")?.MakeGenericType(typeof(TMark));
+                        if (type == null) throwNotFind("FreeSql.Provider.ClickHouse.dll", "FreeSql.ClickHouse.ClickHouseProvider<>");
+                        break;
+
                     default: throw new Exception("未指定 UseConnectionString 或者 UseConnectionFactory");
                 }
             }
