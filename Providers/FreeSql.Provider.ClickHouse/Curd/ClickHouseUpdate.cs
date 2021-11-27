@@ -68,7 +68,10 @@ namespace FreeSql.ClickHouse.Curd
             }
             sb.Append(")");
         }
-
+        protected override void ToSqlCaseWhenEnd(StringBuilder sb, ColumnInfo col)
+        {
+            sb.Insert(sb.Length - 4, $" ELSE {_commonUtils.QuoteSqlName(col.Attribute.Name)}");
+        }
 #if net40
 #else
         public override Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default) => base.SplitExecuteAffrowsAsync(_batchRowsLimit > 0 ? _batchRowsLimit : 500, _batchParameterLimit > 0 ? _batchParameterLimit : 3000, cancellationToken);

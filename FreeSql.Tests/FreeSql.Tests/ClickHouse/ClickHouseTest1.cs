@@ -173,6 +173,7 @@ namespace FreeSql.Tests.MySql
             var repository=fsql.GetRepository<TestAuditValue>();
             var list = repository.Select.ToList();
             list.ForEach(o=>o.UpdateTime = DateTime.Now);
+            list.ForEach(o => o.Enable = true);
             repository.Update(list);
 
         }
@@ -182,6 +183,7 @@ namespace FreeSql.Tests.MySql
         {
             var fsql = g.clickHouse;
             var state=fsql.GetRepository<TestAuditValue>().UpdateDiy.Set(o=>o.UpdateTime,DateTime.Now).Where(o=>1==1).ExecuteAffrows();
+            //var state1 = fsql.GetRepository<TestAuditValue>().UpdateDiy.Set(o => o.UpdateTime, null).Where(o => 1 == 1).ExecuteAffrows();
 
 
         }
