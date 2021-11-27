@@ -14,7 +14,7 @@ namespace FreeSql.ClickHouse
     {
 
         public ClickHouseAdo() : base(DataType.ClickHouse, null, null) { }
-        public ClickHouseAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.MySql, masterConnectionString, slaveConnectionStrings)
+        public ClickHouseAdo(CommonUtils util, string masterConnectionString, string[] slaveConnectionStrings, Func<DbConnection> connectionFactory) : base(DataType.ClickHouse, masterConnectionString, slaveConnectionStrings)
         {
             base._util = util;
             if (connectionFactory != null)
@@ -50,7 +50,7 @@ namespace FreeSql.ClickHouse
             else if (decimal.TryParse(string.Concat(param), out var trydec))
                 return param;
             else if (param is DateTime || param is DateTime?)
-                return string.Concat("'", ((DateTime)param).ToString("yyyy-MM-dd HH:mm:ss.fff"), "'");
+                return string.Concat("'", ((DateTime)param).ToString("yyyy-MM-dd HH:mm:ss"), "'");
             else if (param is TimeSpan || param is TimeSpan?)
                 return ((TimeSpan)param).Ticks / 10;
             else if (param is byte[])

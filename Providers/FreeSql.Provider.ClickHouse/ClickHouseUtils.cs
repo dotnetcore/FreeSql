@@ -35,6 +35,10 @@ namespace FreeSql.ClickHouse
                         if (col.DbScale != 0) ret.Scale = col.DbScale;
                         break;
                 }
+                if (value is bool)
+                {
+                    ret.Value = (bool)value ? 1 : 0;
+                }
             }
 
             ret.DbType = dbtype;
@@ -56,9 +60,10 @@ namespace FreeSql.ClickHouse
             });
         public override string RewriteColumn(ColumnInfo col, string sql)
         {
+            col.Attribute.DbType = col.Attribute.DbType.Replace(" NOT NULL", "");
             if (string.IsNullOrWhiteSpace(col?.Attribute.RewriteSql) == false)
                 return string.Format(col.Attribute.RewriteSql, sql);
-            return string.Format(sql, col.CsType.Name);
+            return string.Format(sql, col.Attribute.DbType);
         }
         public override string FormatSql(string sql, params object[] args) => sql?.FormatClickHouse(args);
         public override string QuoteSqlName(params string[] name)

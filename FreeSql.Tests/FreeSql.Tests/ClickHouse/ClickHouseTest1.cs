@@ -11,13 +11,31 @@ namespace FreeSql.Tests.MySql
 
         class TestAuditValue
         {
-            public Guid id { get; set; }
+            [FreeSql.DataAnnotations.Column(IsPrimary = true)]
+            public long Id { get; set; }
             [Now]
-            public DateTime createtime { get; set; }
+            public DateTime CreateTime { get; set; }
+
+            [FreeSql.DataAnnotations.Column(IsNullable = true )]
+            public string Name { get; set; }
+
+            [FreeSql.DataAnnotations.Column(IsNullable = false)]
+            public int Age { get; set; }
+
+            public bool State { get; set; }
+
+            [FreeSql.DataAnnotations.Column(IsNullable = true)]
+            public bool Enable { get; set; }
+
+            public DateTime? UpdateTime { get; set; }
+
+            public int? Points { get; set; }
         }
         [FreeSql.DataAnnotations.Table(Name = "ClickHouseTest")]
         public class TestClickHouse
         {
+            [FreeSql.DataAnnotations.Column(IsPrimary = true)]
+            [Now]
             public long Id { get; set; }
 
             public string Name { get; set; }
@@ -27,21 +45,29 @@ namespace FreeSql.Tests.MySql
         [Fact]
         public void AuditValue()
         {
-            var date = DateTime.Now.Date;
-            var item = new TestAuditValue();
-
+            var id  = BitConverter.ToInt64(Guid.NewGuid().ToByteArray(), 0);
+            var item = new TestClickHouse();
+            item.Id = id;
+            item.Name = "李四";
             EventHandler<Aop.AuditValueEventArgs> audit = (s, e) =>
-             {
-                 if (e.Property.GetCustomAttribute<NowAttribute>(false) != null)
-                     e.Value = DateTime.Now.Date;
-             };
-            g.mysql.Aop.AuditValue += audit;
+            {
+                if (e.Property.GetCustomAttribute<NowAttribute>(false) != null)
+                    e.Value = BitConverter.ToInt64(Guid.NewGuid().ToByteArray(), 0);
+            };
+            g.clickHouse.Aop.AuditValue += audit;
 
-            g.mysql.Insert(item).ExecuteAffrows();
+            g.clickHouse.Insert(item).ExecuteAffrows();
 
-            g.mysql.Aop.AuditValue -= audit;
+            g.clickHouse.Aop.AuditValue -= audit;
 
-            Assert.Equal(item.createtime, date);
+            Assert.Equal(item.Id, id);
+        }
+
+
+        [Fact]
+        public void CreateTalbe()
+        {
+            g.clickHouse.CodeFirst.SyncStructure<TestAuditValue>();
         }
 
         [Fact]
@@ -61,6 +87,7 @@ namespace FreeSql.Tests.MySql
             var items = fsql.Select<TestClickHouse>().Where(o=>o.Id>900).OrderByDescending(o=>o.Id).ToList();
             Assert.Equal(100, items.Count);
         }
+
         [Fact]
         public void TestPage()
         {
@@ -72,6 +99,7 @@ namespace FreeSql.Tests.MySql
                 .Count(out var count).ToList();
             Assert.Equal(100, list.Count);
         }
+
         [Fact]
         public void TestDelete()
         {
@@ -81,6 +109,7 @@ namespace FreeSql.Tests.MySql
             var count2 = fsql.Select<TestClickHouse>().Count();
             Assert.NotEqual(count1, count2);
         }
+
         [Fact]
         public void TestUpdate()
         {
@@ -88,6 +117,72 @@ namespace FreeSql.Tests.MySql
             fsql.Update<TestClickHouse>().Where(o => o.Id > 900)
                 .Set(o=>o.Name,"修改后的值")
                 .ExecuteAffrows();
+
+        }
+
+        [Fact]
+        public void TestRepositorySelect()
+        {
+            var fsql = g.clickHouse;
+            var list=fsql.GetRepository<TestClickHouse>().Where(o => o.Id > 900)
+                .ToList();
+
+        }
+
+        [Fact]
+        public void TestRepositoryInsert()
+        {
+            var fsql = g.clickHouse;
+            long id = BitConverter.ToInt64(Guid.NewGuid().ToByteArray(),0);
+            var list=fsql.GetRepository<TestClickHouse>().Insert(new TestClickHouse { Id= id, Name="张三"});
+            var data=fsql.GetRepository<TestClickHouse,long>().Get(id);
+        }
+
+        [Fact]
+        public void TestDateTime()
+        {
+            var fsql = g.clickHouse;
+            long id = BitConverter.ToInt64(Guid.NewGuid().ToByteArray(), 0);
+            DateTime createTime=DateTime.Now;
+            fsql.Insert(new TestAuditValue {
+                Id = id, CreateTime = createTime, Age =18,Name="张三"
+            }).ExecuteAffrows();
+            
+            var date1 = fsql.GetRepository<TestAuditValue>().Where(o => o.CreateTime == createTime)
+                .ToList();
+            var date2 = fsql.GetRepository<TestAuditValue>().Where(o => o.CreateTime.Date == createTime.Date)
+                .ToList();
+            var date3 = fsql.GetRepository<TestAuditValue>().Where(o => o.CreateTime.Year == createTime.Year)
+                .ToList();
+            var date4 = fsql.GetRepository<TestAuditValue>().Where(o => o.CreateTime.Month == createTime.Month)
+                .ToList();
+            var date5 = fsql.GetRepository<TestAuditValue>().Where(o => o.CreateTime.Second == createTime.Second)
+                .ToList();
+            var date6 = fsql.GetRepository<TestAuditValue>().Where(o => o.CreateTime.Millisecond == createTime.Millisecond)
+                .ToList();
+            var date7 = fsql.GetRepository<TestAuditValue>().Where(o => o.CreateTime.AddSeconds(10) < createTime)
+                .ToList();
+
+        }
+
+        [Fact]
+        public void TestRepositoryUpdateTime()
+        {
+            //暂时无法修改
+            var fsql = g.clickHouse;
+            var repository=fsql.GetRepository<TestAuditValue>();
+            var list = repository.Select.ToList();
+            list.ForEach(o=>o.UpdateTime = DateTime.Now);
+            repository.Update(list);
+
+        }
+
+        [Fact]
+        public void TestUpdateTime()
+        {
+            var fsql = g.clickHouse;
+            var state=fsql.GetRepository<TestAuditValue>().UpdateDiy.Set(o=>o.UpdateTime,DateTime.Now).Where(o=>1==1).ExecuteAffrows();
+
 
         }
 

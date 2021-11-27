@@ -201,7 +201,10 @@ namespace FreeSql.ClickHouse
                 return null;
             }
             var left = ExpressionLambdaToSql(exp.Expression, tsc);
-
+            if ((exp.Expression as MemberExpression)?.Expression.NodeType == ExpressionType.Constant)
+                left = $"toDateTime({left})";
+            
+            //IsDate(left);
             switch (exp.Member.Name)
             {
                 case "Date": return $"toDate({left})";
@@ -218,6 +221,19 @@ namespace FreeSql.ClickHouse
                 case "Ticks": return $"(dateDiff(second, toDate('0001-1-1'), toDateTime({left}))*10000000+621355968000000000)";
             }
             return null;
+        }
+        public bool IsInt(string _string)
+        {
+            if (string.IsNullOrEmpty(_string))
+                return false;
+            int i = 0;
+            return int.TryParse(_string, out i);
+        }
+        public bool IsDate(string date)
+        {
+            if (string.IsNullOrEmpty(date))
+                return true;
+            return DateTime.TryParse(date, out var time);
         }
         public override string ExpressionLambdaToSqlMemberAccessTimeSpan(MemberExpression exp, ExpTSC tsc)
         {

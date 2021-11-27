@@ -26,43 +26,67 @@ namespace FreeSql.ClickHouse
         public int GetDbType(DbColumnInfo column) => (int)GetClickHouseDbType(column);
         DbType GetClickHouseDbType(DbColumnInfo column)
         {
-            var is_unsigned = column.DbTypeTextFull.ToLower().EndsWith(" unsigned");
+            if (column.DbTypeText == "Nullable")
+            {
+                column.DbTypeText = column.DbTypeTextFull;
+                   //(?<=\()(\S +)(?=\))
+            }
             switch (column.DbTypeText.ToLower())
             {
                 case "bit":
                 case "tinyint":
                 case "bool":
                 case "sbyte":
-                case "Int8": return DbType.SByte;
+                case "int8":
+                case "nullable(int8)": return DbType.SByte;
                 case "byte":
-                case "UInt8": return DbType.Byte;
+                case "uint8":
+                case "nullable(uint8)": return DbType.Byte;
                 case "smallint":
-                case "Int16": return DbType.Int16;
-                case "UInt16": return DbType.UInt16;
-                case "Int32":
-                case "int": return DbType.Int32;
+                case "int16":
+                case "nullable(int16)": return DbType.Int16;
+                case "uint16":
+                case "nullable(uint16)": return DbType.UInt16;
+                case "int32":
+                case "int":
+                case "nullable(int32)": return DbType.Int32;
                 case "uint":
-                case "UInt32": return DbType.UInt32;
+                case "uint32":
+                case "nullable(uint32)": return DbType.UInt32;
                 case "bigint":
-                case "Int64":
-                case "long": return DbType.Int64;
-                case "UInt64":
-                case "ulong": return DbType.UInt64;
+                case "int64":
+                case "long":
+                case "nullable(int64)": return DbType.Int64;
+                case "uint64":
+                case "ulong":
+                case "nullable(uint64)": return DbType.UInt64;
                 case "real":
                 case "Float64":
-                case "double": return DbType.Double;
+                case "double":
+                case "nullable(float64)": return DbType.Double;
                 case "Float32":
-                case "float": return DbType.Single;
-                case "date": return DbType.Date;
-                case "datetime": return DbType.DateTime;
-                case "datetime64": return DbType.DateTime;
+                case "float":
+                case "nullable(float32)": return DbType.Single;
+                case "date":
+                case "nullable(date)": return DbType.Date;
+                case "datetime":
+                case "nullable(datetime)": return DbType.DateTime;
+                case "datetime64":
+                case "nullable(datetime64)": return DbType.DateTime;
                 case "tinytext":
                 case "text": 
                 case "mediumtext":
                 case "longtext":
                 case "char":
+                case "string":
+                case "nullable(string)":
                 case "varchar": return DbType.String;
-                default: return DbType.String;
+                default:
+                    {
+                        if (column.DbTypeText.ToLower().Contains("datetime")) 
+                            return DbType.DateTime;
+                        return DbType.String;
+                    }
             }
         }
 
