@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 using Xunit;
+using System.Linq;
+using System.Collections;
+using System.Diagnostics;
 
 namespace FreeSql.Tests.MySql
 {
@@ -32,13 +35,18 @@ namespace FreeSql.Tests.MySql
             public int? Points { get; set; }
         }
         [FreeSql.DataAnnotations.Table(Name = "ClickHouseTest")]
-        public class TestClickHouse
+        public class TestClickHouse : IEnumerable
         {
             [FreeSql.DataAnnotations.Column(IsPrimary = true)]
             [Now]
             public long Id { get; set; }
 
             public string Name { get; set; }
+            public IEnumerator GetEnumerator()
+            {
+                yield return Id;
+                yield return Name;
+            }
         }
         class NowAttribute: Attribute { }
 
@@ -73,9 +81,10 @@ namespace FreeSql.Tests.MySql
         [Fact]
         public void TestInsert()
         {
+            Stopwatch stopwatch =new Stopwatch();
             var fsql = g.clickHouse;
             List<TestClickHouse> list=new List<TestClickHouse>();
-            for (int i = 0; i < 1000; i++)
+            for (int i = 0; i < 1000000; i++)
             {
                 list.Add(new TestClickHouse()
                 {
@@ -83,9 +92,13 @@ namespace FreeSql.Tests.MySql
                     Name = $"测试{i}"
                 });
             }
+            fsql.Delete<TestClickHouse>().Where(t => 1 == 1).ExecuteAffrows();
+            stopwatch.Start();
             fsql.Insert(list).ExecuteAffrows();
-            var items = fsql.Select<TestClickHouse>().Where(o=>o.Id>900).OrderByDescending(o=>o.Id).ToList();
-            Assert.Equal(100, items.Count);
+            stopwatch.Stop();
+            Debug.WriteLine(list.Count+"条用时：" +stopwatch.ElapsedMilliseconds.ToString());
+            //var items = fsql.Select<TestClickHouse>().Where(o=>o.Id>900).OrderByDescending(o=>o.Id).ToList();
+            //Assert.Equal(100, items.Count);
         }
 
         [Fact]

@@ -24,7 +24,11 @@ namespace FreeSql.ClickHouse.Curd
         internal Dictionary<string, bool> InternalIgnore => _ignore;
         public override string ToSql()
         {
-            return base.ToSql()?.Replace("UPDATE", "ALTER TABLE").Replace("SET", "UPDATE");
+            var sql = base.ToSql();
+            sql = sql.Remove(0, 6).Insert(0, "ALTER TABLE");
+            var index = sql.IndexOf(" SET ");
+            sql = sql.Remove(index, 5).Insert(index, " UPDATE ");
+            return sql;
         }
         internal void InternalResetSource(List<T1> source) => _source = source;
         internal string InternalWhereCaseSource(string CsName, Func<string, string> thenValue) => WhereCaseSource(CsName, thenValue);
