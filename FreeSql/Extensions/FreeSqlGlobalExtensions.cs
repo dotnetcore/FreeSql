@@ -58,7 +58,7 @@ public static partial class FreeSqlGlobalExtensions
     /// <param name="type"></param>
     /// <param name="isNameSpace"></param>
     /// <returns></returns>
-    internal static string DisplayCsharp(this Type type, bool isNameSpace = true)
+    public static string DisplayCsharp(this Type type, bool isNameSpace = true)
     {
         if (type == null) return null;
         if (type == typeof(void)) return "void";

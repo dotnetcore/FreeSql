@@ -945,6 +945,126 @@
             新打印模块
             </summary>
         </member>
+        <member name="T:XY.Model.Business.CollectDataEntity">
+            <summary>
+            实时数据
+            </summary>
+        </member>
+        <member name="P:XY.Model.Business.CollectDataEntity.Guid">
+            <summary>
+            Guid
+            </summary>
+        </member>
+        <member name="P:XY.Model.Business.CollectDataEntity.TenantId">
+            <summary>
+            租户Id
+            </summary>
+        </member>
+        <member name="P:XY.Model.Business.CollectDataEntity.Version">
+            <summary>
+            版本
+            </summary>
+        </member>
+        <member name="P:XY.Model.Business.CollectDataEntity.IsDeleted">
+            <summary>
+            是否删除
+            </summary>
+        </member>
+        <member name="P:XY.Model.Business.CollectDataEntity.CreatedUserId">
+            <summary>
+            创建者Id
+            </summary>
+        </member>
+        <member name="P:XY.Model.Business.CollectDataEntity.CreatedUserName">
+            <summary>
+            创建者
+            </summary>
+        </member>
+        <member name="P:XY.Model.Business.CollectDataEntity.CreatedTime">
+            <summary>
+            创建时间
+            </summary>
+        </member>
+        <member name="P:XY.Model.Business.CollectDataEntity.ModifiedUserId">
+            <summary>
+            修改者Id
+            </summary>
+        </member>
+        <member name="P:XY.Model.Business.CollectDataEntity.ModifiedUserName">
+            <summary>
+            修改者
+            </summary>
+        </member>
+        <member name="P:XY.Model.Business.CollectDataEntity.ModifiedTime">
+            <summary>
+            修改时间
+            </summary>
+        </member>
+        <member name="P:XY.Model.Business.CollectDataEntity.DataFlag">
+            <summary>
+            数据标识
+            </summary>
+        </member>
+        <member name="P:XY.Model.Business.CollectDataEntity.Id">
+            <summary>
+            主键Id
+            </summary>
+        </member>
+        <member name="P:XY.Model.Business.CollectDataEntity.EquipmentCode">
+            <summary>
+            设备编号
+            </summary>
+        </member>
+        <member name="P:XY.Model.Business.CollectDataEntity.PropertyCode">
+            <summary>
+            数据编号，如为空使用默认数据
+            </summary>
+        </member>
+        <member name="P:XY.Model.Business.CollectDataEntity.PropertyName">
+            <summary>
+             数据名称，如为空使用默认数据
+            </summary>
+        </member>
+        <member name="P:XY.Model.Business.CollectDataEntity.IsValueOrStateChanged">
+            <summary>
+            数值或状态是否变更
+            </summary>
+        </member>
+        <member name="P:XY.Model.Business.CollectDataEntity.NumericValue">
+            <summary>
+            采集数值
+            </summary>
+        </member>
+        <member name="P:XY.Model.Business.CollectDataEntity.Remark">
+            <summary>
+            备注
+            </summary>
+        </member>
+        <member name="P:XY.Model.Business.CollectDataEntity.ServiceFlag">
+            <summary>
+            服务标记
+            </summary>
+        </member>
+        <member name="P:XY.Model.Business.CollectDataEntity.StrState">
+            <summary>
+            状态
+            </summary>
+        </member>
+        <member name="P:XY.Model.Business.CollectDataEntity.StrValue">
+            <summary>
+            文本数值
+            </summary>
+        </member>
+        <member name="P:XY.Model.Business.CollectDataEntity.UnitStr">
+            <summary>
+            单位
+            </summary>
+        </member>
+        <member name="P:XY.Model.Business.CollectDataEntity.CollectTime">
+            <summary>
+            采集时间
+            </summary>
+        </member>
         <member name="T:SaleIDO.Entity.Storeage.AdjustPriceOrder">
             <summary>
             调价单

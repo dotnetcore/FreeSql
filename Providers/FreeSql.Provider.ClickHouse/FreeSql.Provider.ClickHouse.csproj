@@ -1,11 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
+		<!--;netcoreapp2.2;net472-->
 		<TargetFrameworks>netstandard2.1</TargetFrameworks>
 		<Version>2.6.100</Version>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-		<Authors>FreeSql;ncc;YeXiangQin</Authors>
-		<Description>FreeSql 数据库自定义适配，访问所有数据库</Description>
+		<Authors>FreeSql;ncc;YeXiangQin;ChenBo</Authors>
+		<Description>FreeSql 数据库实现，基于 ClickHouse.Client Ado.net</Description>
 		<PackageProjectUrl>https://github.com/2881099/FreeSql</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/2881099/FreeSql</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>

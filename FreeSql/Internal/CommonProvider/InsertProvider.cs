@@ -210,7 +210,7 @@ namespace FreeSql.Internal.CommonProvider
                 ret[a] = _source.GetRange(a * takeMax, Math.Min(takeMax, _source.Count - a * takeMax));
             return ret;
         }
-        protected int SplitExecuteAffrows(int valuesLimit, int parameterLimit)
+        protected virtual int SplitExecuteAffrows(int valuesLimit, int parameterLimit)
         {
             var ss = SplitSource(valuesLimit, parameterLimit);
             var ret = 0;
