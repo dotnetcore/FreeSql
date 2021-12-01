@@ -40,7 +40,10 @@ namespace FreeSql.Extensions.Linq
                 yield return item;
             }
         }
-        IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return (IEnumerator)GetEnumerator();
+        }
 
         public Type ElementType => typeof(QueryableProvider<TCurrent, TSource>);
         public Expression Expression => _expression;
