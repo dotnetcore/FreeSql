@@ -35,7 +35,7 @@ namespace FreeSql.ClickHouse
                             case "System.Byte": return $"cast({getExp(operandExp)} as Int8)";
                             case "System.Char": return $"substr(cast({getExp(operandExp)} as String), 1, 1)";
                             case "System.DateTime": return $"cast({getExp(operandExp)} as DateTime)";
-                            case "System.Decimal": return $"cast({getExp(operandExp)} as Float64)";
+                            case "System.Decimal": return $"cast({getExp(operandExp)} as Decimal128(19))";
                             case "System.Double": return $"cast({getExp(operandExp)} as Float64)";
                             case "System.Int16": return $"cast({getExp(operandExp)} as Int16)";
                             case "System.Int32": return $"cast({getExp(operandExp)} as Int32)";
@@ -63,7 +63,7 @@ namespace FreeSql.ClickHouse
                                 case "System.Byte": return $"cast({getExp(callExp.Arguments[0])} as Int8)";
                                 case "System.Char": return $"substr(cast({getExp(callExp.Arguments[0])} as String), 1, 1)";
                                 case "System.DateTime": return $"cast({getExp(callExp.Arguments[0])} as DateTime)";
-                                case "System.Decimal": return $"cast({getExp(callExp.Arguments[0])} as Float64)";
+                                case "System.Decimal": return $"cast({getExp(callExp.Arguments[0])} as Decimal128(19))";
                                 case "System.Double": return $"cast({getExp(callExp.Arguments[0])} as Float64)";
                                 case "System.Int16": return $"cast({getExp(callExp.Arguments[0])} as Int16)";
                                 case "System.Int32": return $"cast({getExp(callExp.Arguments[0])} as Int32)";
@@ -556,7 +556,7 @@ namespace FreeSql.ClickHouse
                     case "ToByte": return $"cast({getExp(exp.Arguments[0])} as Int8)";
                     case "ToChar": return $"substr(cast({getExp(exp.Arguments[0])} as String), 1, 1)";
                     case "ToDateTime": return $"cast({getExp(exp.Arguments[0])} as DateTime)";
-                    case "ToDecimal": return $"cast({getExp(exp.Arguments[0])} as Float64)";
+                    case "ToDecimal": return $"cast({getExp(exp.Arguments[0])} as Decimal128(19))";
                     case "ToDouble": return $"cast({getExp(exp.Arguments[0])} as Float64)";
                     case "ToInt16":
                     case "ToInt32":

@@ -293,18 +293,20 @@ namespace FreeSql.ClickHouse.Curd
 
 #if net40
 #else
-        public override Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default) => base.SplitExecuteAffrowsAsync(_batchRowsLimit > 0 ? _batchRowsLimit : 500, _batchParameterLimit > 0 ? _batchParameterLimit : 3000, cancellationToken);
-        public override Task<List<T1>> ExecuteUpdatedAsync(CancellationToken cancellationToken = default) => base.SplitExecuteUpdatedAsync(_batchRowsLimit > 0 ? _batchRowsLimit : 500, _batchParameterLimit > 0 ? _batchParameterLimit : 3000, cancellationToken);
+        public override Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default) => SplitExecuteAffrowsAsync(_batchRowsLimit > 0 ? _batchRowsLimit : 500, _batchParameterLimit > 0 ? _batchParameterLimit : 3000, cancellationToken);
+        public override Task<List<T1>> ExecuteUpdatedAsync(CancellationToken cancellationToken = default) => SplitExecuteUpdatedAsync(_batchRowsLimit > 0 ? _batchRowsLimit : 500, _batchParameterLimit > 0 ? _batchParameterLimit : 3000, cancellationToken);
         protected override Task<List<T1>> RawExecuteUpdatedAsync(CancellationToken cancellationToken = default) => throw new NotImplementedException("FreeSql.ClickHouse.Custom 未实现该功能 未实现该功能");
 
         async protected override Task<int> SplitExecuteAffrowsAsync(int valuesLimit, int parameterLimit, CancellationToken cancellationToken = default)
+        
         {
             var ss = SplitSource(valuesLimit, parameterLimit);
             var ret = 0;
             if (ss.Length <= 1)
             {
                 if (_source?.Any() == true) _batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, 1, 1));
-                ret = await this.RawExecuteAffrowsAsync(cancellationToken);
+                await this.RawExecuteAffrowsAsync(cancellationToken);
+                ret = _source.Count;
                 ClearData();
                 return ret;
             }
@@ -319,7 +321,8 @@ namespace FreeSql.ClickHouse.Curd
                 {
                     _source = ss[a];
                     _batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, a + 1, ss.Length));
-                    ret += await this.RawExecuteAffrowsAsync(cancellationToken);
+                    await this.RawExecuteAffrowsAsync(cancellationToken);
+                    ret += _source.Count;
                 }
             }
             catch (Exception ex)

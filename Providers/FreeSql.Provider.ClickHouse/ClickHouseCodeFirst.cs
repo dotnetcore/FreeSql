@@ -35,6 +35,7 @@ namespace FreeSql.ClickHouse
 
                 { typeof(double).FullName, CsToDb.New(DbType.Double, "Float64", "Float64", false, false, 0) },{ typeof(double?).FullName, CsToDb.New(DbType.Double, "Float64", "Nullable(Float64)", false, true, null) },
                 { typeof(float).FullName, CsToDb.New(DbType.Single, "Float32","Float32", false, false, 0) },{ typeof(float?).FullName, CsToDb.New(DbType.Single, "Float32","Nullable(Float32)", false, true, null) },
+                { typeof(decimal).FullName, CsToDb.New(DbType.Decimal, "Decimal128(19)","Decimal128(19)", false, false, 0) },{ typeof(decimal?).FullName, CsToDb.New(DbType.Decimal, "Nullable(Decimal128(19))","Nullable(Decimal128(19))", false, true, null) },
 
                 { typeof(DateTime).FullName, CsToDb.New(DbType.DateTime, "DateTime('Asia/Shanghai')", "DateTime('Asia/Shanghai')", false, false, new DateTime(1970,1,1)) },{ typeof(DateTime?).FullName, CsToDb.New(DbType.DateTime, "DateTime('Asia/Shanghai')", "Nullable(DateTime('Asia/Shanghai'))", false, true, null) },
 
@@ -114,13 +115,14 @@ namespace FreeSql.ClickHouse
                             foreach (var uk in tb.Indexes)
                             {
                                 sb.Append(" \r\n  ");
-                                sb.Append("INDEX ").Append(_commonUtils.QuoteSqlName(ReplaceIndexName(uk.Name, tbname[1]))).Append("(");
+                                sb.Append("INDEX ").Append(_commonUtils.QuoteSqlName(ReplaceIndexName(uk.Name, tbname[1])));
                                 foreach (var tbcol in uk.Columns)
                                 {
+                                    sb.Append(" ");
                                     sb.Append(_commonUtils.QuoteSqlName(tbcol.Column.Attribute.Name));
-                                    sb.Append("TYPE set(8192) GRANULARITY 5, ");
+                                    sb.Append("TYPE set(8192) GRANULARITY 5,  ");
                                 }
-                                sb.Remove(sb.Length - 2, 2).Append("),");
+                                sb.Remove(sb.Length - 2, 2);
                             }
                             sb.Remove(sb.Length - 1, 1);
                             sb.Append("\r\n) ");

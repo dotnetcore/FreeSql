@@ -67,6 +67,9 @@ namespace FreeSql.ClickHouse
                 case "Float32":
                 case "float":
                 case "nullable(float32)": return DbType.Single;
+                case "decimal":
+                case "decimal128":
+                case "nullable(decimal128)": return DbType.Decimal;
                 case "date":
                 case "nullable(date)": return DbType.Date;
                 case "datetime":
@@ -103,6 +106,7 @@ namespace FreeSql.ClickHouse
 
                 { (int)DbType.Double, new DbToCs("(double?)", "double.Parse({0})", "{0}.ToString()", "double?", typeof(double), typeof(double?), "{0}.Value", "GetDouble") },
                 { (int)DbType.Single, new DbToCs("(float?)", "float.Parse({0})", "{0}.ToString()", "float?", typeof(float), typeof(float?), "{0}.Value", "GetFloat") },
+                { (int)DbType.Decimal, new DbToCs("(decimal?)", "decimal.Parse({0})", "{0}.ToString()", "decimal?", typeof(decimal), typeof(decimal?), "{0}.Value", "GetDecimal") },
 
                 { (int)DbType.Date, new DbToCs("(DateTime?)", "new DateTime(long.Parse({0}))", "{0}.Ticks.ToString()", "DateTime?", typeof(DateTime), typeof(DateTime?), "{0}.Value", "GetDateTime") },
                 { (int)DbType.Date, new DbToCs("(DateTime?)", "new DateTime(long.Parse({0}))", "{0}.Ticks.ToString()", "DateTime?", typeof(DateTime), typeof(DateTime?), "{0}.Value", "GetDateTime") },

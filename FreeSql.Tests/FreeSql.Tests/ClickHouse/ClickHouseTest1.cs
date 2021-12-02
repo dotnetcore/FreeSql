@@ -36,18 +36,14 @@ namespace FreeSql.Tests.MySql
             public int? Points { get; set; }
         }
         [FreeSql.DataAnnotations.Table(Name = "ClickHouseTest")]
-        public class TestClickHouse : IEnumerable
+        public class TestClickHouse
         {
             [FreeSql.DataAnnotations.Column(IsPrimary = true, IsIdentity = true)]
             [Now]
             public long Id { get; set; }
 
             public string Name { get; set; }
-            public IEnumerator GetEnumerator()
-            {
-                yield return Id;
-                yield return Name;
-            }
+            public Decimal Money { get; set; }
         }
         class NowAttribute: Attribute { }
 
@@ -228,6 +224,41 @@ namespace FreeSql.Tests.MySql
             stopwatch.Start();
             repository.Update(list);
             stopwatch.Stop();
+            Debug.WriteLine("更新用时：" + stopwatch.ElapsedMilliseconds.ToString());
+
+        }
+        [Fact]
+        public async void TestInsertUpdateData()
+        {
+            //g.clickHouse.CodeFirst.SyncStructure<CollectDataEntity>();
+            Stopwatch stopwatch = new Stopwatch();
+            var fsql = g.clickHouse;
+            var repository=fsql.GetRepository<CollectDataEntity>();
+            await repository.DeleteAsync(o=>o.Id>0);
+            List<CollectDataEntity> tables = new List<CollectDataEntity>();
+            for (int i = 1; i < 3; i++)
+            {
+                tables.Add(new CollectDataEntity
+                {
+                    Id = new Random().Next(),
+                    CollectTime = DateTime.Now,
+                    DataFlag = "1",
+                    EquipmentCode = "11",
+                    UnitStr = "111",
+                    PropertyCode = "1111",
+                    NumericValue=1111.1119999912500M
+                });
+            }
+
+            var insert = repository.Orm.Insert(tables);
+            insert.ExecuteAffrows();
+            var list = repository.Orm.Select<CollectDataEntity>().ToList();
+            //var list = repository.Insert(tables);
+            //var list = repository.Select.ToList();
+            //list.ForEach(o=>o.EquipmentCode = "666");
+            //stopwatch.Start();
+            //await repository.UpdateAsync(list);
+            //stopwatch.Stop();
             Debug.WriteLine("更新用时：" + stopwatch.ElapsedMilliseconds.ToString());
 
         }

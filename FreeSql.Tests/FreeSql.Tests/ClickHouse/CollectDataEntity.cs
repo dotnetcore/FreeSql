@@ -113,10 +113,11 @@ namespace XY.Model.Business
         /// 数值或状态是否变更
         /// </summary>
         public bool IsValueOrStateChanged { get; set; }
-    
+
         /// <summary>
         /// 采集数值
         /// </summary>
+        [Column(StringLength = 18)]
         public decimal? NumericValue { get; set; }
     
         /// <summary>

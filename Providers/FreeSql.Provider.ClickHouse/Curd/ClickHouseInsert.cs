@@ -55,7 +55,6 @@ namespace FreeSql.ClickHouse.Curd
             {
                 try
                 {
-                    Debug.WriteLine($"开始执行时间：{DateTime.Now}");
                     before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, null, _params);
                     _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
                     using var bulkCopyInterface = new ClickHouseBulkCopy(_orm.Ado.MasterPool.Get().Value as ClickHouseConnection)
@@ -170,9 +169,9 @@ namespace FreeSql.ClickHouse.Curd
 
 #if net40
 #else
-        public override Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default) => base.SplitExecuteAffrowsAsync(_batchValuesLimit > 0 ? _batchValuesLimit : int.MaxValue, _batchValuesLimit > 0 ? _batchValuesLimit : int.MaxValue, cancellationToken);
-        public override Task<long> ExecuteIdentityAsync(CancellationToken cancellationToken = default) => base.SplitExecuteIdentityAsync(_batchValuesLimit > 0 ? _batchValuesLimit : int.MaxValue, _batchValuesLimit > 0 ? _batchValuesLimit : int.MaxValue, cancellationToken);
-        public override Task<List<T1>> ExecuteInsertedAsync(CancellationToken cancellationToken = default) => base.SplitExecuteInsertedAsync(_batchValuesLimit > 0 ? _batchValuesLimit : int.MaxValue, _batchValuesLimit > 0 ? _batchValuesLimit : int.MaxValue, cancellationToken);
+        public override Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default) => SplitExecuteAffrowsAsync(_batchValuesLimit > 0 ? _batchValuesLimit : int.MaxValue, _batchValuesLimit > 0 ? _batchValuesLimit : int.MaxValue, cancellationToken);
+        public override Task<long> ExecuteIdentityAsync(CancellationToken cancellationToken = default) => SplitExecuteIdentityAsync(_batchValuesLimit > 0 ? _batchValuesLimit : int.MaxValue, _batchValuesLimit > 0 ? _batchValuesLimit : int.MaxValue, cancellationToken);
+        public override Task<List<T1>> ExecuteInsertedAsync(CancellationToken cancellationToken = default) => SplitExecuteInsertedAsync(_batchValuesLimit > 0 ? _batchValuesLimit : int.MaxValue, _batchValuesLimit > 0 ? _batchValuesLimit : int.MaxValue, cancellationToken);
 
         async protected override Task<long> RawExecuteIdentityAsync(CancellationToken cancellationToken = default)
         {
@@ -255,7 +254,8 @@ namespace FreeSql.ClickHouse.Curd
             if (ss.Length == 1)
             {
                 _batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, 1, 1));
-                ret = await this.RawExecuteAffrowsAsync(cancellationToken);
+                await this.RawExecuteAffrowsAsync(cancellationToken);
+                ret = _source.Count;
                 ClearData();
                 return ret;
             }
@@ -269,7 +269,8 @@ namespace FreeSql.ClickHouse.Curd
                 {
                     _source = ss[a];
                     _batchProgress?.Invoke(new BatchProgressStatus<T1>(_source, a + 1, ss.Length));
-                    ret += await this.RawExecuteAffrowsAsync(cancellationToken);
+                    await this.RawExecuteAffrowsAsync(cancellationToken);
+                    ret += _source.Count;
                 }
             }
             catch (Exception ex)
