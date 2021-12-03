@@ -17,7 +17,7 @@ namespace FreeSql.Internal.CommonProvider
     {
 #if net40
 #else
-        async protected Task<int> SplitExecuteAffrowsAsync(int valuesLimit, int parameterLimit, CancellationToken cancellationToken = default)
+        async protected virtual Task<int> SplitExecuteAffrowsAsync(int valuesLimit, int parameterLimit, CancellationToken cancellationToken = default)
         {
             var ss = SplitSource(valuesLimit, parameterLimit);
             var ret = 0;
@@ -96,7 +96,7 @@ namespace FreeSql.Internal.CommonProvider
             return ret;
         }
 
-        async protected Task<long> SplitExecuteIdentityAsync(int valuesLimit, int parameterLimit, CancellationToken cancellationToken = default)
+        async protected virtual Task<long> SplitExecuteIdentityAsync(int valuesLimit, int parameterLimit, CancellationToken cancellationToken = default)
         {
             var ss = SplitSource(valuesLimit, parameterLimit);
             long ret = 0;
@@ -177,7 +177,7 @@ namespace FreeSql.Internal.CommonProvider
             return ret;
         }
 
-        async protected Task<List<T1>> SplitExecuteInsertedAsync(int valuesLimit, int parameterLimit, CancellationToken cancellationToken = default)
+        async protected virtual Task<List<T1>> SplitExecuteInsertedAsync(int valuesLimit, int parameterLimit, CancellationToken cancellationToken = default)
         {
             var ss = SplitSource(valuesLimit, parameterLimit);
             var ret = new List<T1>();

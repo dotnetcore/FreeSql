@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29324.140
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql", "FreeSql\FreeSql.csproj", "{AF9C50EC-6EB6-494B-9B3B-7EDBA6FD0EBB}"
 EndProject
@@ -100,6 +100,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 		README.zh-CN.md = README.zh-CN.md
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreeSql.Provider.ClickHouse", "Providers\FreeSql.Provider.ClickHouse\FreeSql.Provider.ClickHouse.csproj", "{86C56235-5D37-4422-807B-B31681C7D01C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -579,6 +581,18 @@ Global
 		{0DBAA21C-39B2-4AAD-A43D-88E67ED239D1}.Release|x64.Build.0 = Release|Any CPU
 		{0DBAA21C-39B2-4AAD-A43D-88E67ED239D1}.Release|x86.ActiveCfg = Release|Any CPU
 		{0DBAA21C-39B2-4AAD-A43D-88E67ED239D1}.Release|x86.Build.0 = Release|Any CPU
+		{86C56235-5D37-4422-807B-B31681C7D01C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{86C56235-5D37-4422-807B-B31681C7D01C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{86C56235-5D37-4422-807B-B31681C7D01C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{86C56235-5D37-4422-807B-B31681C7D01C}.Debug|x64.Build.0 = Debug|Any CPU
+		{86C56235-5D37-4422-807B-B31681C7D01C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{86C56235-5D37-4422-807B-B31681C7D01C}.Debug|x86.Build.0 = Debug|Any CPU
+		{86C56235-5D37-4422-807B-B31681C7D01C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{86C56235-5D37-4422-807B-B31681C7D01C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{86C56235-5D37-4422-807B-B31681C7D01C}.Release|x64.ActiveCfg = Release|Any CPU
+		{86C56235-5D37-4422-807B-B31681C7D01C}.Release|x64.Build.0 = Release|Any CPU
+		{86C56235-5D37-4422-807B-B31681C7D01C}.Release|x86.ActiveCfg = Release|Any CPU
+		{86C56235-5D37-4422-807B-B31681C7D01C}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -612,6 +626,7 @@ Global
 		{CDD6A896-F6DF-44CB-B430-06B383916EB0} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
 		{101B11D2-7780-4E14-9B72-77F5D69B3DF9} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
 		{0DBAA21C-39B2-4AAD-A43D-88E67ED239D1} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
+		{86C56235-5D37-4422-807B-B31681C7D01C} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {089687FD-5D25-40AB-BA8A-A10D1E137F98}

@@ -118,7 +118,7 @@ namespace FreeSql.Internal
                     var leftBt = colattr.DbType.IndexOf('(');
                     colattr.DbType = colattr.DbType.Substring(0, leftBt).ToUpper() + colattr.DbType.Substring(leftBt);
                 }
-                else
+                else if(common._orm.Ado.DataType != DataType.ClickHouse)
                     colattr.DbType = colattr.DbType.ToUpper();
 
                 if (colattrIsNull == false && colattrIsNullable == true) colattr.DbType = colattr.DbType.Replace("NOT NULL", "");
@@ -129,12 +129,13 @@ namespace FreeSql.Internal
                 if (common.CodeFirst.IsSyncStructureToLower) colattr.Name = colattr.Name.ToLower();
                 if (common.CodeFirst.IsSyncStructureToUpper) colattr.Name = colattr.Name.ToUpper();
 
-                if ((colattr.IsNullable != true || colattr.IsIdentity == true || colattr.IsPrimary == true) && colattr.DbType.Contains("NOT NULL") == false)
+                if ((colattr.IsNullable != true || colattr.IsIdentity == true || colattr.IsPrimary == true) && colattr.DbType.Contains("NOT NULL") == false && common._orm.Ado.DataType != DataType.ClickHouse)
                 {
                     colattr.IsNullable = false;
                     colattr.DbType = Regex.Replace(colattr.DbType, @"\bNULL\b", "").Trim() + " NOT NULL";
                 }
                 if (colattr.IsNullable == true && colattr.DbType.Contains("NOT NULL")) colattr.DbType = colattr.DbType.Replace("NOT NULL", "");
+                else if (colattr.IsNullable == true && !colattr.DbType.Contains("Nullable") && common._orm.Ado.DataType == DataType.ClickHouse)colattr.DbType = $"Nullable({colattr.DbType})" ;
                 colattr.DbType = Regex.Replace(colattr.DbType, @"\([^\)]+\)", m =>
                 {
                     var tmpLt = Regex.Replace(m.Groups[0].Value, @"\s", "");

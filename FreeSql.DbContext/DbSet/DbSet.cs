@@ -305,6 +305,7 @@ namespace FreeSql
                     case DataType.KingbaseES:
                     case DataType.OdbcKingbaseES:
                     case DataType.ShenTong:
+                    case DataType.ClickHouse:
                         return true;
                     default:
                         if (_tableIdentitys.Length == 1 && _table.Primarys.Length == 1)
@@ -320,6 +321,7 @@ namespace FreeSql
                     if (isThrow) throw new Exception($"不可添加，已存在于状态管理：{_db.OrmOriginal.GetEntityString(_entityType, data)}");
                     return false;
                 }
+                if (_db.OrmOriginal.Ado.DataType == DataType.ClickHouse) return true;
                 var idval = _db.OrmOriginal.GetEntityIdentityValueWithPrimary(_entityType, data);
                 if (idval > 0)
                 {
