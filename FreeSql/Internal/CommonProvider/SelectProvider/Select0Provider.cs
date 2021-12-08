@@ -544,16 +544,33 @@ namespace FreeSql.Internal.CommonProvider
             {
                 if (string.IsNullOrEmpty(fi.Field) == false)
                 {
-                    Expression exp = ConvertStringPropertyToExpression(fi.Field);
+                    Expression exp = null;
                     switch (fi.Operator)
                     {
+                        case DynamicFilterOperator.Custom:
+                            var fiValueCustomArray = fi.Field?.ToString().Split(new[] { ' ' }, 2);
+                            if (fiValueCustomArray.Length != 2) throw new ArgumentException("Custom 要求 Field 应该空格分割，并且长度为 2，格式：{静态方法名}{空格}{反射信息}");
+                            if (string.IsNullOrWhiteSpace(fiValueCustomArray[0])) throw new ArgumentException("Custom {静态方法名}不能为空，格式：{静态方法名}{空格}{反射信息}");
+                            if (string.IsNullOrWhiteSpace(fiValueCustomArray[1])) throw new ArgumentException("Custom {反射信息}不能为空，格式：{静态方法名}{空格}{反射信息}");
+                            var fiValue1Type = Type.GetType(fiValueCustomArray[1]);
+                            if (fiValue1Type == null) throw new ArgumentException($"Custom 找到对应的{{反射信息}}：{fiValueCustomArray[1]}");
+                            var fiValue0Method = fiValue1Type.GetMethod(fiValueCustomArray[0], new Type[] { typeof(string) });
+                            if (fiValue0Method == null) throw new ArgumentException($"Custom 找到对应的{{静态方法名}}：{fiValueCustomArray[0]}");
+                            var fiValue0MethodReturn = fiValue0Method?.Invoke(null, new object[] { fi.Value?.ToString() })?.ToString();
+                            exp = Expression.Call(typeof(SqlExt).GetMethod("InternalRawSql", BindingFlags.NonPublic | BindingFlags.Static), Expression.Constant(fiValue0MethodReturn, typeof(string)));
+                            break;
+
                         case DynamicFilterOperator.Contains:
                         case DynamicFilterOperator.StartsWith:
                         case DynamicFilterOperator.EndsWith:
                         case DynamicFilterOperator.NotContains:
                         case DynamicFilterOperator.NotStartsWith:
                         case DynamicFilterOperator.NotEndsWith:
+                            exp = ConvertStringPropertyToExpression(fi.Field);
                             if (exp.Type != typeof(string)) exp = Expression.TypeAs(exp, typeof(string));
+                            break;
+                        default:
+                            exp = ConvertStringPropertyToExpression(fi.Field);
                             break;
                     }
                     switch (fi.Operator)
@@ -579,7 +596,7 @@ namespace FreeSql.Internal.CommonProvider
                             if (fiValueRangeArray.Length != 2) throw new ArgumentException($"Range 要求 Value 应该逗号分割，并且长度为 2");
                             exp = Expression.AndAlso(
                                 Expression.GreaterThanOrEqual(exp, Expression.Constant(Utils.GetDataReaderValue(exp.Type, fiValueRangeArray[0]), exp.Type)),
-                                Expression.LessThan(exp, Expression.Constant(Utils.GetDataReaderValue(exp.Type, fiValueRangeArray[1]), exp.Type))); 
+                                Expression.LessThan(exp, Expression.Constant(Utils.GetDataReaderValue(exp.Type, fiValueRangeArray[1]), exp.Type)));
                             break;
                         case DynamicFilterOperator.DateRange:
                             var fiValueDateRangeArray = getFiListValue();

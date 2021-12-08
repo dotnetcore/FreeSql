@@ -140,6 +140,17 @@ namespace FreeSql
             return 0;
         }
 
+        /// <summary>
+        /// 注意：使用者自己承担【注入风险】
+        /// </summary>
+        /// <param name="sql"></param>
+        /// <returns></returns>
+        static bool InternalRawSql([RawValue] string sql)
+        {
+            expContext.Value.Result = sql;
+            return false;
+        }
+
         #region 大小判断
         /// <summary>
         /// 大于 &gt;
