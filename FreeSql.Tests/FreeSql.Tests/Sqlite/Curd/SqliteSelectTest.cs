@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Text;
 using Xunit;
+using FreeSql.Internal.CommonProvider;
 
 namespace FreeSql.Tests.Sqlite
 {
@@ -149,6 +150,7 @@ namespace FreeSql.Tests.Sqlite
             var dt1 = select.Limit(10).ToDataTable();
             var dt2 = select.Limit(10).ToDataTable("id, 111222");
             var dt3 = select.Limit(10).ToDataTable(a => new { a.Id, a.Type.Name, now = DateTime.Now });
+            var dt4 = select.Limit(10).ToDataTableByPropertyName(new[] { "a.Id", "a.Type.Name", "Title", "clicks" });
         }
         class TestDto
         {
@@ -368,6 +370,9 @@ namespace FreeSql.Tests.Sqlite
             var query = select.LeftJoin(a => a.Type.Guid == a.TypeGuid);
             var sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.\"Id\", a.\"Clicks\", a.\"TypeGuid\", a__Type.\"Guid\", a__Type.\"ParentId\", a__Type.\"Name\", a.\"Title\", a.\"CreateTime\" FROM \"tb_topic22\" a LEFT JOIN \"TestTypeInfo\" a__Type ON a__Type.\"Guid\" = a.\"TypeGuid\"", sql);
+            (query as Select0Provider)._tables.Where(a => a.Table.Type == typeof(TestTypeInfo))
+                .First()
+                .Type = SelectTableInfoType.InnerJoin; 
             query.ToList();
 
             query = select.LeftJoin(a => a.Type.Guid == a.TypeGuid && a.Type.Name == "xxx");

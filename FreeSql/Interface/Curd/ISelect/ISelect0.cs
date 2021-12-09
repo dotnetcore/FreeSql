@@ -72,6 +72,12 @@ namespace FreeSql
         /// </summary>
         /// <returns></returns>
         DataTable ToDataTable(string field = null);
+        /// <summary>
+        /// 执行SQL查询，返回 properties 指定的实体类属性，并以 DataTable 接收
+        /// </summary>
+        /// <param name="properties">属性名：Name<para></para>导航属性：Parent.Name<para></para>多表：b.Name</param>
+        /// <returns></returns>
+        DataTable ToDataTableByPropertyName(string[] properties);
 
         /// <summary>
         /// 以字典的形式返回查询结果<para></para>
