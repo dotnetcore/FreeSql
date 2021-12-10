@@ -553,9 +553,10 @@ namespace FreeSql.Internal.CommonProvider
                             if (string.IsNullOrWhiteSpace(fiValueCustomArray[0])) throw new ArgumentException("Custom {静态方法名}不能为空，格式：{静态方法名}{空格}{反射信息}");
                             if (string.IsNullOrWhiteSpace(fiValueCustomArray[1])) throw new ArgumentException("Custom {反射信息}不能为空，格式：{静态方法名}{空格}{反射信息}");
                             var fiValue1Type = Type.GetType(fiValueCustomArray[1]);
-                            if (fiValue1Type == null) throw new ArgumentException($"Custom 找到对应的{{反射信息}}：{fiValueCustomArray[1]}");
+                            if (fiValue1Type == null) throw new ArgumentException($"Custom 找不到对应的{{反射信息}}：{fiValueCustomArray[1]}");
                             var fiValue0Method = fiValue1Type.GetMethod(fiValueCustomArray[0], new Type[] { typeof(string) });
-                            if (fiValue0Method == null) throw new ArgumentException($"Custom 找到对应的{{静态方法名}}：{fiValueCustomArray[0]}");
+                            if (fiValue0Method == null) throw new ArgumentException($"Custom 找不到对应的{{静态方法名}}：{fiValueCustomArray[0]}");
+                            if (MethodIsDynamicFilterCustomAttribute(fiValue0Method) == false) throw new ArgumentException($"Custom 对应的{{静态方法名}}：{fiValueCustomArray[0]} 未设置 [DynamicFilterCustomAttribute] 特性");
                             var fiValue0MethodReturn = fiValue0Method?.Invoke(null, new object[] { fi.Value?.ToString() })?.ToString();
                             exp = Expression.Call(typeof(SqlExt).GetMethod("InternalRawSql", BindingFlags.NonPublic | BindingFlags.Static), Expression.Constant(fiValue0MethodReturn, typeof(string)));
                             break;
@@ -693,6 +694,21 @@ namespace FreeSql.Internal.CommonProvider
                     string.IsNullOrEmpty(testFilter.Value?.ToString());
             }
         }
+        static ConcurrentDictionary<MethodInfo, bool> _dicMethodIsDynamicFilterCustomAttribute = new ConcurrentDictionary<MethodInfo, bool>();
+        static bool MethodIsDynamicFilterCustomAttribute(MethodInfo method) => _dicMethodIsDynamicFilterCustomAttribute.GetOrAdd(method, m =>
+        {
+            object[] attrs = null;
+            try
+            {
+                attrs = m.GetCustomAttributes(false).ToArray(); //.net core 反射存在版本冲突问题，导致该方法异常
+            }
+            catch { }
+
+            var dyattr = attrs?.Where(a => {
+                return ((a as Attribute)?.TypeId as Type)?.Name == "DynamicFilterCustomAttribute";
+            }).FirstOrDefault();
+            return dyattr != null;
+        });
 
         public TSelect DisableGlobalFilter(params string[] name)
         {

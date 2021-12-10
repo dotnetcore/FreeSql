@@ -131,10 +131,17 @@ namespace FreeSql.Internal.Model
         /// {<para></para>
         /// public class DynamicFilterCustom<para></para>
         /// {<para></para>
+        /// [DynamicFilterCustom]<para></para>
         /// public static string RawSql(string value) => value;<para></para>
         /// }<para></para>
         /// }<para></para>
         /// </summary>
         Custom
     }
+
+    /// <summary>
+    /// 授权 DynamicFilter 支持 Custom 自定义解析
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Method)]
+    public class DynamicFilterCustomAttribute : Attribute { }
 }
