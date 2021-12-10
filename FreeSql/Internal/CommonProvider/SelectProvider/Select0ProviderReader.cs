@@ -919,6 +919,25 @@ namespace FreeSql.Internal.CommonProvider
         #region Async
 #if net40
 #else
+        public Task<DataTable> ToDataTableByPropertyNameAsync(string[] properties, CancellationToken cancellationToken)
+        {
+            if (properties?.Any() != true) throw new ArgumentException($"properties 参数不能为空");
+            var sbfield = new StringBuilder();
+            for (var propIdx = 0; propIdx < properties.Length; propIdx++)
+            {
+                var property = properties[propIdx];
+                var exp = ConvertStringPropertyToExpression(property);
+                if (exp == null) throw new Exception($"{property} 属性名无法找到");
+                var field = _commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null);
+                if (propIdx > 0) sbfield.Append(", ");
+                sbfield.Append(field);
+                //if (field != property)
+                sbfield.Append(_commonUtils.FieldAsAlias(_commonUtils.QuoteSqlName("test").Replace("test", property)));
+            }
+            var sbfieldStr = sbfield.ToString();
+            sbfield.Clear();
+            return ToDataTableAsync(sbfieldStr, cancellationToken);
+        }
         async public Task<DataTable> ToDataTableAsync(string field, CancellationToken cancellationToken)
         {
             DataTable ret = null;

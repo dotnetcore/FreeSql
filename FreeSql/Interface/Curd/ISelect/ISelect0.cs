@@ -18,6 +18,7 @@ namespace FreeSql
 #if net40
 #else
         Task<DataTable> ToDataTableAsync(string field = null, CancellationToken cancellationToken = default);
+        Task<DataTable> ToDataTableByPropertyNameAsync(string[] properties, CancellationToken cancellationToken = default);
         Task<Dictionary<TKey, T1>> ToDictionaryAsync<TKey>(Func<T1, TKey> keySelector, CancellationToken cancellationToken = default);
         Task<Dictionary<TKey, TElement>> ToDictionaryAsync<TKey, TElement>(Func<T1, TKey> keySelector, Func<T1, TElement> elementSelector, CancellationToken cancellationToken = default);
         Task<List<T1>> ToListAsync(bool includeNestedMembers = false, CancellationToken cancellationToken = default);
