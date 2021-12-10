@@ -204,7 +204,7 @@ namespace FreeSql.Sqlite
                     DbTypeText = type,
                     DbTypeTextFull = sqlType,
                     Table = loc2[table_id],
-                    Coment = comment,
+                    Comment = comment,
                     DefaultValue = defaultValue,
                     Position = position
                 });
