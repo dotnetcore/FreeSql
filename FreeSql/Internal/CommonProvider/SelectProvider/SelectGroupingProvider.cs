@@ -159,6 +159,7 @@ namespace FreeSql.Internal.CommonProvider
                 case DataType.OdbcOracle:
                 case DataType.Dameng:
                 case DataType.OdbcDameng: //Oracle、Dameng 分组时，嵌套分页
+                case DataType.GBase:
                     isNestedPageSql = true;
                     break;
                 default:

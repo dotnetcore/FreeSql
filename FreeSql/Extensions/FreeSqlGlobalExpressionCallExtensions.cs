@@ -471,6 +471,15 @@ namespace FreeSql
             expContext.Result = $"list({expContext.ParsedContent["column"]},{expContext.ParsedContent["delimiter"]})";
             return null;
         }
+        public static string StringJoinGBaseWmConcatText(object column, object delimiter)
+        {
+            if (expContext.ParsedContent["delimiter"] == "','")
+                expContext.Result = $"wm_concat_text({expContext.ParsedContent["column"]})";
+            else
+                throw new NotImplementedException("GBase 暂时不支持逗号以外的分割符");
+            //expContext.Result = $"replace(wm_concat_text({expContext.ParsedContent["column"]}), ',', {expContext.ParsedContent["delimiter"]})";
+            return null;
+        }
         #endregion
     }
 }
