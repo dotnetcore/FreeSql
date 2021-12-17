@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
-		<Version>2.6.100</Version>
+		<Version>3.0.100</Version>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>FreeSql;GBase</Authors>
 		<Description>FreeSql 数据库实现，基于 南大通用 8.0</Description>
