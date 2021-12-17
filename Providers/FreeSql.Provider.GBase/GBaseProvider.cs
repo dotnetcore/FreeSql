@@ -1,8 +1,10 @@
 ﻿using FreeSql.GBase.Curd;
 using FreeSql.Internal.CommonProvider;
 using System;
+using System.Data;
 using System.Data.Common;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 
@@ -27,6 +29,26 @@ namespace FreeSql.GBase
 
             this.DbFirst = new GBaseDbFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
             this.CodeFirst = new GBaseCodeFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
+
+            this.Aop.CommandBefore += (_, e) =>
+            {
+                if (e.Command.CommandType == CommandType.StoredProcedure)
+                {
+                    if (e.Command.CommandText.Trim().StartsWith("{call ", StringComparison.OrdinalIgnoreCase) == false)
+                    {
+                        var args = string.Join(", ", Enumerable.Range(0, e.Command.Parameters.Count)
+                            .Select(a => "?"));
+                        var cmdText = $"{{call {e.Command.CommandText}({args})}}";
+
+                        foreach (DbParameter parameter in e.Command.Parameters)
+                        {
+                            if (parameter.DbType == DbType.String && parameter.Size <= 0)
+                                parameter.Size = 255;
+                        }
+                        e.Command.CommandText = cmdText;
+                    }
+                }
+            };
 
             this.Aop.AuditDataReader += (_, e) =>
             {
