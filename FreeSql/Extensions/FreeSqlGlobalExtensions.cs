@@ -520,11 +520,11 @@ JOIN {select._commonUtils.QuoteSqlName(tb.DbName)} a ON cte_tbc.cte_id = a.{sele
             }
             sql1ctePath = $"{sql1ctePath} as cte_path, ";
         }
-        var sql1 = select.ToSql($"0 as cte_level, {sql1ctePath}{select.GetAllFieldExpressionTreeLevel2().Field}").Trim();
+        var sql1 = select.ToSql($"0 as cte_level, {sql1ctePath}{select.GetAllFieldExpressionTreeLevel2(false).Field}").Trim();
 
         select._where.Clear();
         select.As("wct2");
-        var sql2Field = select.GetAllFieldExpressionTreeLevel2().Field;
+        var sql2Field = select.GetAllFieldExpressionTreeLevel2(false).Field;
         var sql2InnerJoinOn = up == false ?
             string.Join(" and ", tbref.Columns.Select((a, z) => $"wct2.{select._commonUtils.QuoteSqlName(tbref.RefColumns[z].Attribute.Name)} = wct1.{select._commonUtils.QuoteSqlName(a.Attribute.Name)}")) :
             string.Join(" and ", tbref.Columns.Select((a, z) => $"wct2.{select._commonUtils.QuoteSqlName(a.Attribute.Name)} = wct1.{select._commonUtils.QuoteSqlName(tbref.RefColumns[z].Attribute.Name)}"));
