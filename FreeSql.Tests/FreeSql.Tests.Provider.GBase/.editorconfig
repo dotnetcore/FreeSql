@@ -1,0 +1,4 @@
+﻿[*.cs]
+
+# xUnit2000: Constants and literals should be the expected argument
+dotnet_diagnostic.xUnit2000.severity = none

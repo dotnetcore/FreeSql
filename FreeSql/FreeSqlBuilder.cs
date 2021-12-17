@@ -270,6 +270,11 @@ namespace FreeSql
                         if (type == null) throwNotFind("FreeSql.Provider.ClickHouse.dll", "FreeSql.ClickHouse.ClickHouseProvider<>");
                         break;
 
+                    case DataType.GBase:
+                        type = Type.GetType("FreeSql.GBase.GBaseProvider`1,FreeSql.Provider.GBase")?.MakeGenericType(typeof(TMark));
+                        if (type == null) throwNotFind("FreeSql.Provider.GBase.dll", "FreeSql.GBase.GBaseProvider<>");
+                        break;
+
                     default: throw new Exception("未指定 UseConnectionString 或者 UseConnectionFactory");
                 }
             }

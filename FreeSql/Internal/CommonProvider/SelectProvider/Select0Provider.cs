@@ -352,6 +352,7 @@ namespace FreeSql.Internal.CommonProvider
                 case DataType.Oracle:
                 case DataType.OdbcOracle:
                 case DataType.Firebird:
+                case DataType.GBase:
                     break;
                 default:
                     _select = "SELECT ";
@@ -407,6 +408,7 @@ namespace FreeSql.Internal.CommonProvider
                 case DataType.Oracle:
                 case DataType.OdbcOracle:
                 case DataType.Firebird:
+                case DataType.GBase:
                     break;
                 default:
                     var beforeSql = this._select;
@@ -440,6 +442,7 @@ namespace FreeSql.Internal.CommonProvider
                 case DataType.Oracle:
                 case DataType.OdbcOracle:
                 case DataType.Firebird:
+                case DataType.GBase:
                     break;
                 default:
                     var beforeSql = this._select;
@@ -755,6 +758,7 @@ namespace FreeSql.Internal.CommonProvider
                     break;
                 case DataType.Sqlite:
                     break;
+                case DataType.GBase:
                 case DataType.ShenTong: //神通测试中发现，不支持 nowait
                     _tosqlAppendContent = $"{_tosqlAppendContent} for update";
                     break;
