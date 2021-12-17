@@ -48,15 +48,19 @@ public static partial class FreeSqlDamengGlobalExtensions
         {
             if (insert.InternalConnection == null && insert.InternalTransaction == null)
             {
-                using (var conn = insert.InternalOrm.Ado.MasterPool.Get())
-                {
-                    using (var bulkCopy = copyOptions == DmBulkCopyOptions.Default ?
-                        new DmBulkCopy(conn.Value as DmConnection) :
-                        new DmBulkCopy(conn.Value as DmConnection, copyOptions, insert.InternalTransaction as DmTransaction))
-                    {
+                if (insert._orm.Ado?.TransactionCurrentThread != null)
+                    using (var bulkCopy = new DmBulkCopy(insert._orm.Ado.TransactionCurrentThread.Connection as DmConnection, copyOptions, insert._orm.Ado.TransactionCurrentThread as DmTransaction))
                         writeToServer(bulkCopy);
+                else
+                    using (var conn = insert.InternalOrm.Ado.MasterPool.Get())
+                    {
+                        using (var bulkCopy = copyOptions == DmBulkCopyOptions.Default ?
+                            new DmBulkCopy(conn.Value as DmConnection) :
+                            new DmBulkCopy(conn.Value as DmConnection, copyOptions, insert.InternalTransaction as DmTransaction))
+                        {
+                            writeToServer(bulkCopy);
+                        }
                     }
-                }
             }
             else if (insert.InternalTransaction != null)
             {
