@@ -332,7 +332,7 @@ from sys.parameters", loc88.ToString().Replace("a.table_name", "a.object_id"), "
                         DbTypeText = type,
                         DbTypeTextFull = sqlType,
                         Table = loc2[object_id],
-                        Coment = comment,
+                        Comment = comment,
                         DefaultValue = defaultValue,
                         Position = ++position
                     });

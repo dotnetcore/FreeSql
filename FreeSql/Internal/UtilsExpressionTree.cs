@@ -204,6 +204,36 @@ namespace FreeSql.Internal
                 //    else if (Math.Abs(dt.Subtract(DateTime.UtcNow).TotalSeconds) < 60)
                 //        col.DbDefaultValue = common.NowUtc;
                 //}
+
+                if (common._orm.Ado.DataType == DataType.GBase)
+                {
+                    if (colattr.IsIdentity == true)
+                    {
+                        var colType = col.CsType.NullableTypeOrThis();
+                        if (colType == typeof(int) || colType == typeof(uint))
+                            colattr.DbType = "SERIAL";
+                        else if (colType == typeof(long) || colType == typeof(ulong))
+                            colattr.DbType = "SERIAL8";
+                    }
+                    if (colattr.MapType.NullableTypeOrThis() == typeof(DateTime))
+                    {
+                        if (colattr._Precision == null)
+                        {
+                            colattr.DbType = "DATETIME YEAR TO FRACTION(3)";
+                            colattr.Precision = 3;
+                            col.DbPrecision = 3;
+                        }
+                        else if (colattr._Precision == 0)
+                        {
+                            colattr.DbType = "DATETIME YEAR TO SECOND";
+                        }
+                        else if (colattr._Precision > 0)
+                        {
+                            colattr.DbType = $"DATETIME YEAR TO FRACTION({colattr.Precision})";
+                            col.DbPrecision = (byte)colattr.Precision;
+                        }
+                    }
+                }
                 if (colattr.ServerTime != DateTimeKind.Unspecified && new[] { typeof(DateTime), typeof(DateTimeOffset) }.Contains(colattr.MapType.NullableTypeOrThis()))
                 {
                     var commonNow = common.Now;
@@ -283,6 +313,10 @@ namespace FreeSql.Internal
                             if (strlen < 0) colattr.DbType = "BLOB SUB_TYPE 1";
                             else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
                             break;
+                        case DataType.GBase:
+                            if (strlen < 0) colattr.DbType = "TEXT";
+                            else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
+                            break;
                     }
                 }
                 if (colattr.MapType == typeof(byte[]) && colattr.IsVersion == true) colattr.StringLength = 16;
@@ -329,6 +363,9 @@ namespace FreeSql.Internal
                             break;
                         case DataType.Firebird:
                             colattr.DbType = "BLOB";
+                            break;
+                        case DataType.GBase:
+                            colattr.DbType = "BYTE";
                             break;
                     }
                 }
@@ -1352,6 +1389,7 @@ namespace FreeSql.Internal
             switch (orm.Ado.DataType)
             {
                 case DataType.Dameng: //OdbcDameng 不会报错
+                case DataType.GBase:
                     if (dr.IsDBNull(index)) return null;
                     break;
             }

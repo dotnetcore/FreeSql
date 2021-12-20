@@ -120,6 +120,28 @@ namespace FreeSql.Internal.Model
         /// not in (1,2,3)<para></para>
         /// 此时 Value 的值格式为逗号分割：value1,value2,value3... 或者数组
         /// </summary>
-        NotAny
+        NotAny,
+
+        /// <summary>
+        /// 自定义解析，此时 Field 为反射信息，Value 为静态方法的参数(string)<para></para>
+        /// 示范：{ Operator: "Custom", Field: "RawSql webapp1.DynamicFilterCustom,webapp1", Value: "(id,name) in ((1,'k'),(2,'m'))" }<para></para>
+        /// 注意：使用者自己承担【注入风险】<para></para>
+        /// 静态方法定义示范：<para></para>
+        /// namespace webapp1<para></para>
+        /// {<para></para>
+        /// public class DynamicFilterCustom<para></para>
+        /// {<para></para>
+        /// [DynamicFilterCustom]<para></para>
+        /// public static string RawSql(string value) => value;<para></para>
+        /// }<para></para>
+        /// }<para></para>
+        /// </summary>
+        Custom
     }
+
+    /// <summary>
+    /// 授权 DynamicFilter 支持 Custom 自定义解析
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Method)]
+    public class DynamicFilterCustomAttribute : Attribute { }
 }

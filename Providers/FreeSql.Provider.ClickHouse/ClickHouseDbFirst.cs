@@ -299,7 +299,7 @@ where {(ignoreCase ? "lower(a.table_schema)" : "a.table_schema")} in ({databaseI
                     DbTypeText = type,
                     DbTypeTextFull = sqlType,
                     Table = loc2[table_id],
-                    Coment = comment,
+                    Comment = comment,
                     DefaultValue = defaultValue,
                     Position = ++position
                 });

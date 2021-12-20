@@ -45,9 +45,18 @@ namespace FreeSql.DatabaseModel
         /// </summary>
         public bool IsNullable { get; set; }
         /// <summary>
+        /// 备注，早期编码时少按了一个字母，请使用 Comment
+        /// </summary>
+        [Obsolete("早期编码时少按了一个字母，请使用 Comment")]
+        public string Coment
+        {
+            get => Comment;
+            set => Comment = value;
+        }
+        /// <summary>
         /// 备注
         /// </summary>
-        public string Coment { get; set; }
+        public string Comment { get; set; }
         /// <summary>
         /// 数据库默认值
         /// </summary>

@@ -25,6 +25,7 @@ namespace FreeSql.Internal.CommonProvider
                 {
                     case DataType.Oracle:
                     case DataType.OdbcOracle:
+                    case DataType.GBase:
                         await ExecuteNonQueryAsync(null, null, CommandType.Text, " SELECT 1 FROM dual", commandTimeout, null, cancellationToken);
                         return true;
                     case DataType.Firebird:
@@ -476,7 +477,7 @@ namespace FreeSql.Internal.CommonProvider
         public Task ExecuteReaderAsync(Func<FetchCallbackArgs<DbDataReader>, Task> fetchHandler, CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default) => ExecuteReaderAsync(null, null, fetchHandler, cmdType, cmdText, 0, cmdParms, cancellationToken);
         public Task ExecuteReaderAsync(DbTransaction transaction, Func<FetchCallbackArgs<DbDataReader>, Task> fetchHandler, CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default) => ExecuteReaderAsync(null, transaction, fetchHandler, cmdType, cmdText, 0, cmdParms, cancellationToken);
         public Task ExecuteReaderAsync(DbConnection connection, DbTransaction transaction, Func<FetchCallbackArgs<DbDataReader>, Task> fetchHandler, CommandType cmdType, string cmdText, int cmdTimeout, DbParameter[] cmdParms, CancellationToken cancellationToken = default) => ExecuteReaderMultipleAsync(1, connection, transaction, (fetch, result) => fetchHandler(fetch), null, cmdType, cmdText, cmdTimeout, cmdParms, cancellationToken);
-        public async Task ExecuteReaderMultipleAsync(int multipleResult, DbConnection connection, DbTransaction transaction, Func<FetchCallbackArgs<DbDataReader>, int, Task> fetchHandler, Action<DbDataReader, int> schemaHandler, CommandType cmdType, string cmdText, int cmdTimeout, DbParameter[] cmdParms, CancellationToken cancellationToken = default)
+        async public Task ExecuteReaderMultipleAsync(int multipleResult, DbConnection connection, DbTransaction transaction, Func<FetchCallbackArgs<DbDataReader>, int, Task> fetchHandler, Action<DbDataReader, int> schemaHandler, CommandType cmdType, string cmdText, int cmdTimeout, DbParameter[] cmdParms, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(cmdText)) return;
             var dt = DateTime.Now;

@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>FreeSql.Tests.Provider.GBase</name>
+    </assembly>
+    <members>
+        <member name="P:FreeSql.Tests.GBase.GBaseCodeFirstTest.AddUniquesInfo.id">
+            <summary>
+            编号
+            </summary>
+        </member>
+    </members>
+</doc>

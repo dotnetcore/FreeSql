@@ -418,9 +418,25 @@ public static partial class FreeSqlGlobalExtensions
         if (select._orm.CodeFirst.IsSyncStructureToLower) cteName = cteName.ToLower();
         if (select._orm.CodeFirst.IsSyncStructureToUpper) cteName = cteName.ToUpper();
 
-        switch (select._orm.Ado.DataType) //MySql5.6
+        switch (select._orm.Ado.DataType)
         {
-            case DataType.MySql:
+            case DataType.GBase:
+                //select t.parentid, t.subid, level
+                //from a_test t
+                //start with subid = '7'
+                //connect by prior subid =  parentid;
+                var gbsb = new StringBuilder();
+                var gbsbWhere = select._where.ToString();
+                select._where.Clear();
+                if (gbsbWhere.StartsWith(" AND ")) gbsbWhere = gbsbWhere.Remove(0, 5);
+                gbsb.Append(select._tosqlAppendContent).Append(" \r\nstart with ").Append(gbsbWhere).Append(" \r\nconnect by prior ");
+                if (up) gbsb.Append("a.").Append(select._commonUtils.QuoteSqlName(tbref.Columns[0].Attribute.Name)).Append(" = ").Append("a.").Append(select._commonUtils.QuoteSqlName(tbref.RefColumns[0].Attribute.Name));
+                else gbsb.Append("a.").Append(select._commonUtils.QuoteSqlName(tbref.Columns[0].Attribute.Name)).Append(" = ").Append("a.").Append(select._commonUtils.QuoteSqlName(tbref.RefColumns[0].Attribute.Name));
+                var gbswstr = gbsb.ToString();
+                gbsb.Clear();
+                select.AsAlias((_, old) => $"{old} {gbswstr}");
+                return select;
+            case DataType.MySql: //MySql5.6
             case DataType.OdbcMySql:
                 var mysqlConnectionString = select._orm.Ado?.ConnectionString ?? select._connection?.ConnectionString ?? "";
                 if (_dicMySqlVersion.TryGetValue(mysqlConnectionString, out var mysqlVersion) == false)
@@ -504,11 +520,11 @@ JOIN {select._commonUtils.QuoteSqlName(tb.DbName)} a ON cte_tbc.cte_id = a.{sele
             }
             sql1ctePath = $"{sql1ctePath} as cte_path, ";
         }
-        var sql1 = select.ToSql($"0 as cte_level, {sql1ctePath}{select.GetAllFieldExpressionTreeLevel2().Field}").Trim();
+        var sql1 = select.ToSql($"0 as cte_level, {sql1ctePath}{select.GetAllFieldExpressionTreeLevel2(false).Field}").Trim();
 
         select._where.Clear();
         select.As("wct2");
-        var sql2Field = select.GetAllFieldExpressionTreeLevel2().Field;
+        var sql2Field = select.GetAllFieldExpressionTreeLevel2(false).Field;
         var sql2InnerJoinOn = up == false ?
             string.Join(" and ", tbref.Columns.Select((a, z) => $"wct2.{select._commonUtils.QuoteSqlName(tbref.RefColumns[z].Attribute.Name)} = wct1.{select._commonUtils.QuoteSqlName(a.Attribute.Name)}")) :
             string.Join(" and ", tbref.Columns.Select((a, z) => $"wct2.{select._commonUtils.QuoteSqlName(a.Attribute.Name)} = wct1.{select._commonUtils.QuoteSqlName(tbref.RefColumns[z].Attribute.Name)}"));
@@ -580,6 +596,7 @@ JOIN {select._commonUtils.QuoteSqlName(tb.DbName)} a ON cte_tbc.cte_id = a.{sele
             case DataType.OdbcOracle:
             case DataType.Dameng: //递归 WITH 子句必须具有列别名列表
             case DataType.OdbcDameng:
+            case DataType.GBase:
                 nsselsb.Append($"(cte_level, {(pathSelector == null ? "" : "cte_path, ")}{sql2Field.Replace("wct2.", "")})");
                 break;
         }

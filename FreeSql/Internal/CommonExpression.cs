@@ -1011,6 +1011,7 @@ namespace FreeSql.Internal
                                                     case DataType.OdbcOracle:
                                                     case DataType.Dameng:
                                                     case DataType.OdbcDameng:
+                                                    case DataType.GBase:
                                                         break;
                                                     default:
                                                         fsqlSelect0._limit = 1; //#462 ORACLE rownum <= 2 会影响索引变慢
@@ -1305,6 +1306,7 @@ namespace FreeSql.Internal
                                                     {
                                                         case DataType.MySql:
                                                         case DataType.OdbcMySql:
+                                                        case DataType.GBase:
                                                             if (exp3.Method.Name == "ToList")
                                                                 return $"( SELECT * FROM ({sqlFirst.Replace(" \r\n", " \r\n    ")}) ftblmt50 )";
                                                             break;
@@ -1877,6 +1879,7 @@ namespace FreeSql.Internal
             {
                 if (obj == null) return "NULL";
                 var paramName = $"exp_{dbParams.Count}";
+                if (_common._orm?.Ado.DataType == DataType.GBase) paramName = "?";
                 var parm = _common.AppendParamter(dbParams, paramName, mapColumn,
                     mapType ?? mapColumn?.Attribute.MapType ?? obj?.GetType(), mapType == null ? obj : Utils.GetDataReaderValue(mapType, obj));
                 return _common.QuoteParamterName(paramName);

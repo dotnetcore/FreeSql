@@ -40,7 +40,7 @@ namespace FreeSql
             {
                 _dbsetPriv?.Dispose();
                 _dbPriv?.Dispose();
-                this.DataFilter.Dispose();
+                this.DataFilter?.Dispose();
             }
             finally
             {
