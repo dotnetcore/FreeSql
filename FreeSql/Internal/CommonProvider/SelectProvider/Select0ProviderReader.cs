@@ -19,6 +19,25 @@ namespace FreeSql.Internal.CommonProvider
 {
     partial class Select0Provider<TSelect, T1>
     {
+        public DataTable ToDataTableByPropertyName(string[] properties)
+        {
+            if (properties?.Any() != true) throw new ArgumentException($"properties 参数不能为空");
+            var sbfield = new StringBuilder();
+            for (var propIdx = 0; propIdx < properties.Length; propIdx++)
+            {
+                var property = properties[propIdx];
+                var exp = ConvertStringPropertyToExpression(property);
+                if (exp == null) throw new Exception($"{property} 属性名无法找到");
+                var field = _commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null);
+                if (propIdx > 0) sbfield.Append(", ");
+                sbfield.Append(field);
+                //if (field != property)
+                sbfield.Append(_commonUtils.FieldAsAlias(_commonUtils.QuoteSqlName("test").Replace("test", property)));
+            }
+            var sbfieldStr = sbfield.ToString();
+            sbfield.Clear();
+            return ToDataTable(sbfieldStr);
+        }
         public DataTable ToDataTable(string field = null)
         {
             DataTable ret = null;
@@ -514,7 +533,7 @@ namespace FreeSql.Internal.CommonProvider
             });
         }
         static EventHandler<Aop.AuditDataReaderEventArgs> _OldAuditDataReaderHandler;
-        public GetAllFieldExpressionTreeInfo GetAllFieldExpressionTreeLevel2()
+        public GetAllFieldExpressionTreeInfo GetAllFieldExpressionTreeLevel2(bool isRereadSql = true)
         {
             if (_selectExpression != null) //ToSql
             {
@@ -530,7 +549,7 @@ namespace FreeSql.Internal.CommonProvider
                 _OldAuditDataReaderHandler = _orm.Aop.AuditDataReaderHandler; //清除单表 ExppressionTree
                 _dicGetAllFieldExpressionTree.TryRemove($"{_orm.Ado.DataType}-{_tables[0].Table.DbName}-{_tables[0].Table.CsName}-{_tables[0].Alias}-{_tables[0].Type}", out var oldet);
             }
-            return _dicGetAllFieldExpressionTree.GetOrAdd(string.Join("+", _tables.Select(a => $"{_orm.Ado.DataType}-{a.Table.DbName}-{a.Table.CsName}-{a.Alias}-{a.Type}")), s =>
+            return _dicGetAllFieldExpressionTree.GetOrAdd(string.Join("+", _tables.Select(a => $"{_orm.Ado.DataType}-{a.Table.DbName}-{a.Table.CsName}-{a.Alias}-{a.Type}-{(isRereadSql ? 1 : 0)}")), s =>
             {
                 var tb1 = _tables.First().Table;
                 var type = tb1.TypeLazy ?? tb1.Type;
@@ -564,7 +583,8 @@ namespace FreeSql.Internal.CommonProvider
                     { //普通字段
                         if (index > 0) field.Append(", ");
                         var quoteName = _commonUtils.QuoteSqlName(col.Attribute.Name);
-                        field.Append(_commonUtils.RereadColumn(col, $"{tb.Alias}.{quoteName}"));
+                        if (isRereadSql) field.Append(_commonUtils.RereadColumn(col, $"{tb.Alias}.{quoteName}"));
+                        else field.Append($"{tb.Alias}.{quoteName}");
                         ++index;
                         if (dicfield.ContainsKey(quoteName)) field.Append(_commonUtils.FieldAsAlias($"as{index}"));
                         else dicfield.Add(quoteName, true);
@@ -587,7 +607,8 @@ namespace FreeSql.Internal.CommonProvider
                         {
                             if (index > 0) field.Append(", ");
                             var quoteName = _commonUtils.QuoteSqlName(col2.Attribute.Name);
-                            field.Append(_commonUtils.RereadColumn(col2, $"{tb2.Alias}.{quoteName}"));
+                            if (isRereadSql) field.Append(_commonUtils.RereadColumn(col2, $"{tb2.Alias}.{quoteName}"));
+                            else field.Append($"{tb2.Alias}.{quoteName}");
                             ++index;
                             ++otherindex;
                             if (dicfield.ContainsKey(quoteName)) field.Append(_commonUtils.FieldAsAlias($"as{index}"));
@@ -760,8 +781,32 @@ namespace FreeSql.Internal.CommonProvider
             _commonExpression.ExpressionJoinLambda(_tables, joinType, exp, null, _whereGlobalFilter);
             return this as TSelect;
         }
-        protected TSelect InternalOrderBy(Expression column) => this.OrderBy(_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, column, true, null));
-        protected TSelect InternalOrderByDescending(Expression column) => this.OrderBy($"{_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, column, true, null)} DESC");
+        protected TSelect InternalOrderBy(Expression column)
+        {
+            if (column.NodeType == ExpressionType.Lambda) column = (column as LambdaExpression)?.Body;
+            switch (column?.NodeType)
+            {
+                case ExpressionType.New:
+                    var newExp = column as NewExpression;
+                    if (newExp == null) break;
+                    for (var a = 0; a < newExp.Members.Count; a++) this.OrderBy(_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, newExp.Arguments[a], true, null));
+                    return this as TSelect;
+            }
+            return this.OrderBy(_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, column, true, null));
+        }
+        protected TSelect InternalOrderByDescending(Expression column)
+        {
+            if (column.NodeType == ExpressionType.Lambda) column = (column as LambdaExpression)?.Body;
+            switch (column?.NodeType)
+            {
+                case ExpressionType.New:
+                    var newExp = column as NewExpression;
+                    if (newExp == null) break;
+                    for (var a = 0; a < newExp.Members.Count; a++) this.OrderBy($"{_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, newExp.Arguments[a], true, null)} DESC");
+                    return this as TSelect;
+            }
+            return this.OrderBy($"{_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, column, true, null)} DESC");
+        }
 
         public List<TReturn> InternalToList<TReturn>(Expression select) => this.ToListMapReader<TReturn>(this.GetExpressionField(select));
         protected string InternalToSql<TReturn>(Expression select, FieldAliasOptions fieldAlias = FieldAliasOptions.AsIndex)
@@ -876,6 +921,25 @@ namespace FreeSql.Internal.CommonProvider
         #region Async
 #if net40
 #else
+        public Task<DataTable> ToDataTableByPropertyNameAsync(string[] properties, CancellationToken cancellationToken)
+        {
+            if (properties?.Any() != true) throw new ArgumentException($"properties 参数不能为空");
+            var sbfield = new StringBuilder();
+            for (var propIdx = 0; propIdx < properties.Length; propIdx++)
+            {
+                var property = properties[propIdx];
+                var exp = ConvertStringPropertyToExpression(property);
+                if (exp == null) throw new Exception($"{property} 属性名无法找到");
+                var field = _commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null);
+                if (propIdx > 0) sbfield.Append(", ");
+                sbfield.Append(field);
+                //if (field != property)
+                sbfield.Append(_commonUtils.FieldAsAlias(_commonUtils.QuoteSqlName("test").Replace("test", property)));
+            }
+            var sbfieldStr = sbfield.ToString();
+            sbfield.Clear();
+            return ToDataTableAsync(sbfieldStr, cancellationToken);
+        }
         async public Task<DataTable> ToDataTableAsync(string field, CancellationToken cancellationToken)
         {
             DataTable ret = null;

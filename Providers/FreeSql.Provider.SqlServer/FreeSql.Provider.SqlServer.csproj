@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net60;net50;net451;net45;net40</TargetFrameworks>
-		<Version>2.6.100</Version>
+		<Version>3.0.100</Version>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>FreeSql;ncc;YeXiangQin</Authors>
 		<Description>FreeSql 数据库实现，基于 SqlServer 2005+，并根据版本适配分页方法：row_number 或 offset fetch next</Description>
@@ -29,7 +29,7 @@
 		<PackageReference Include="System.Data.SqlClient" Version="4.8.3" />
 	</ItemGroup>
 	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'net60' or '$(TargetFramework)' == 'net50'">
-		<PackageReference Include="Microsoft.Data.SqlClient" Version="3.0.1" />
+		<PackageReference Include="Microsoft.Data.SqlClient" Version="4.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -42,5 +42,8 @@
 	<PropertyGroup Condition="'$(TargetFramework)' == 'net40'">
 		<DefineConstants>net40</DefineConstants>
 	</PropertyGroup>
-
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net60'">
+		<DefineConstants>net60;microsoft</DefineConstants>
+	</PropertyGroup>
+	
 </Project>

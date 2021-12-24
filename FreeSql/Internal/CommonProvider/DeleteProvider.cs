@@ -157,7 +157,7 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
 
-        public string ToSql()
+        public virtual string ToSql()
         {
             if (_whereTimes <= 0) return null;
             var sb = new StringBuilder().Append("DELETE FROM ").Append(_commonUtils.QuoteSqlName(TableRuleInvoke())).Append(" WHERE ").Append(_where);

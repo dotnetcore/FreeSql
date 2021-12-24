@@ -37,6 +37,9 @@ namespace FreeSql.SqlServer
                 { typeof(TimeSpan).FullName, CsToDb.New(SqlDbType.Time, "time","time NOT NULL", false, false, 0) },{ typeof(TimeSpan?).FullName, CsToDb.New(SqlDbType.Time, "time", "time",false, true, null) },
                 { typeof(DateTime).FullName, CsToDb.New(SqlDbType.DateTime, "datetime", "datetime NOT NULL", false, false, new DateTime(1970,1,1)) },{ typeof(DateTime?).FullName, CsToDb.New(SqlDbType.DateTime, "datetime", "datetime", false, true, null) },
                 { typeof(DateTimeOffset).FullName, CsToDb.New(SqlDbType.DateTimeOffset, "datetimeoffset", "datetimeoffset NOT NULL", false, false, new DateTimeOffset(new DateTime(1970,1,1), TimeSpan.Zero)) },{ typeof(DateTimeOffset?).FullName, CsToDb.New(SqlDbType.DateTimeOffset, "datetimeoffset", "datetimeoffset", false, true, null) },
+#if net60
+                { typeof(DateOnly).FullName, CsToDb.New(SqlDbType.Date, "date", "date NOT NULL", false, false, new DateTime(1970,1,1)) },{ typeof(DateOnly?).FullName, CsToDb.New(SqlDbType.Date, "date", "date", false, true, null) },
+#endif
 
                 { typeof(byte[]).FullName, CsToDb.New(SqlDbType.VarBinary, "varbinary", "varbinary(255)", false, null, new byte[0]) },
                 { typeof(string).FullName, CsToDb.New(SqlDbType.NVarChar, "nvarchar", "nvarchar(255)", false, null, "") },

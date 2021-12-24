@@ -50,10 +50,11 @@ public static class FreeSqlMySqlConnectorGlobalExtensions
         {
             if (insert.InternalConnection == null && insert.InternalTransaction == null)
             {
-                using (var conn = insert.InternalOrm.Ado.MasterPool.Get())
-                {
-                    writeToServer(new MySqlBulkCopy(conn.Value as MySqlConnection));
-                }
+                if (insert._orm.Ado?.TransactionCurrentThread != null)
+                    writeToServer(new MySqlBulkCopy(insert._orm.Ado.TransactionCurrentThread.Connection as MySqlConnection, insert._orm.Ado?.TransactionCurrentThread as MySqlTransaction));
+                else
+                    using (var conn = insert.InternalOrm.Ado.MasterPool.Get())
+                        writeToServer(new MySqlBulkCopy(conn.Value as MySqlConnection));
             }
             else if (insert.InternalTransaction != null)
             {
@@ -109,10 +110,11 @@ public static class FreeSqlMySqlConnectorGlobalExtensions
         {
             if (insert.InternalConnection == null && insert.InternalTransaction == null)
             {
-                using (var conn = insert.InternalOrm.Ado.MasterPool.Get())
-                {
-                    await writeToServer(new MySqlBulkCopy(conn.Value as MySqlConnection));
-                }
+                if (insert._orm.Ado?.TransactionCurrentThread != null)
+                    await writeToServer(new MySqlBulkCopy(insert._orm.Ado.TransactionCurrentThread.Connection as MySqlConnection, insert._orm.Ado?.TransactionCurrentThread as MySqlTransaction));
+                else
+                    using (var conn = insert.InternalOrm.Ado.MasterPool.Get())
+                        await writeToServer(new MySqlBulkCopy(conn.Value as MySqlConnection));
             }
             else if (insert.InternalTransaction != null)
             {

@@ -72,6 +72,15 @@ namespace FreeSql.SqlServer
                 if (param.Equals(DateTimeOffset.MinValue) == true) param = new DateTimeOffset(new DateTime(1970, 1, 1), TimeSpan.Zero);
                 return string.Concat("'", ((DateTimeOffset)param).ToString("yyyy-MM-dd HH:mm:ss.fff zzzz"), "'");
             }
+#if net60
+            else if (param is DateOnly || param is DateOnly?)
+            {
+                if (param.Equals(DateOnly.MinValue) == true) param = new DateOnly(1970, 1, 1);
+                return string.Concat("'", ((DateOnly)param).ToString("yyyy-MM-dd"), "'");
+            }
+            else if (param is TimeOnly || param is TimeOnly?)
+                return ((TimeOnly)param).ToTimeSpan().TotalSeconds;
+#endif
             else if (param is TimeSpan || param is TimeSpan?)
                 return ((TimeSpan)param).TotalSeconds;
             else if (param is byte[])

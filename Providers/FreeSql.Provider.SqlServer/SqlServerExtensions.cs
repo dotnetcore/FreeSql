@@ -92,15 +92,19 @@ public static partial class FreeSqlSqlServerGlobalExtensions
         {
             if (insert.InternalConnection == null && insert.InternalTransaction == null)
             {
-                using (var conn = insert.InternalOrm.Ado.MasterPool.Get())
-                {
-                    using (var bulkCopy = copyOptions == SqlBulkCopyOptions.Default ?
-                        new SqlBulkCopy(conn.Value as SqlConnection) :
-                        new SqlBulkCopy(conn.Value as SqlConnection, copyOptions, null))
-                    {
+                if (insert._orm.Ado?.TransactionCurrentThread != null)
+                    using (var bulkCopy = new SqlBulkCopy(insert._orm.Ado.TransactionCurrentThread.Connection as SqlConnection, copyOptions, insert._orm.Ado.TransactionCurrentThread as SqlTransaction))
                         writeToServer(bulkCopy);
+                else
+                    using (var conn = insert.InternalOrm.Ado.MasterPool.Get())
+                    {
+                        using (var bulkCopy = copyOptions == SqlBulkCopyOptions.Default ?
+                            new SqlBulkCopy(conn.Value as SqlConnection) :
+                            new SqlBulkCopy(conn.Value as SqlConnection, copyOptions, null))
+                        {
+                            writeToServer(bulkCopy);
+                        }
                     }
-                }
             }
             else if (insert.InternalTransaction != null)
             {
@@ -167,15 +171,19 @@ public static partial class FreeSqlSqlServerGlobalExtensions
         {
             if (insert.InternalConnection == null && insert.InternalTransaction == null)
             {
-                using (var conn = await insert.InternalOrm.Ado.MasterPool.GetAsync())
-                {
-                    using (var bulkCopy = copyOptions == SqlBulkCopyOptions.Default ?
-                        new SqlBulkCopy(conn.Value as SqlConnection) :
-                        new SqlBulkCopy(conn.Value as SqlConnection, copyOptions, null))
-                    {
+                if (insert._orm.Ado?.TransactionCurrentThread != null)
+                    using (var bulkCopy = new SqlBulkCopy(insert._orm.Ado.TransactionCurrentThread.Connection as SqlConnection, copyOptions, insert._orm.Ado.TransactionCurrentThread as SqlTransaction))
                         await writeToServerAsync(bulkCopy);
+                else
+                    using (var conn = await insert.InternalOrm.Ado.MasterPool.GetAsync())
+                    {
+                        using (var bulkCopy = copyOptions == SqlBulkCopyOptions.Default ?
+                            new SqlBulkCopy(conn.Value as SqlConnection) :
+                            new SqlBulkCopy(conn.Value as SqlConnection, copyOptions, null))
+                        {
+                            await writeToServerAsync(bulkCopy);
+                        }
                     }
-                }
             }
             else if (insert.InternalTransaction != null)
             {

@@ -34,6 +34,29 @@ namespace FreeSql.Tests
             var items = fsql.Select<TestJsonb01Cls1>().ToList();
         }
 
+        [Fact]
+        public void TestClickHouse()
+        {
+            var fsql = g.mysql;
+            fsql.Delete<TestJsonb01Cls1>().Where("1=1").ExecuteAffrows();
+
+            var item = new TestJsonb01Cls1
+            {
+                jsonb01 = new List<int> { 1, 5, 10, 20 },
+                jsonb02 = new List<long> { 11, 51, 101, 201 },
+                jsonb03 = new List<string> { "12", "52", "102", "202" },
+            };
+            fsql.Insert(item).ExecuteAffrows();
+
+        }
+        [FreeSql.DataAnnotations.Table(Name = "ClickHouseTest")]
+        public class ClickHouse
+        {
+            public long Id { get; set; }
+
+            public string Name { get; set; }
+        }
+
         public class TestJsonb01Cls1
         {
             public Guid id { get; set; }

@@ -1,12 +1,15 @@
 using FreeSql.DataAnnotations;
 using FreeSql.Internal.Model;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Text;
 using Xunit;
+using FreeSql.Internal.CommonProvider;
 
 namespace FreeSql.Tests.Sqlite
 {
@@ -147,6 +150,7 @@ namespace FreeSql.Tests.Sqlite
             var dt1 = select.Limit(10).ToDataTable();
             var dt2 = select.Limit(10).ToDataTable("id, 111222");
             var dt3 = select.Limit(10).ToDataTable(a => new { a.Id, a.Type.Name, now = DateTime.Now });
+            var dt4 = select.Limit(10).ToDataTableByPropertyName(new[] { "a.Id", "a.Type.Name", "Title", "clicks" });
         }
         class TestDto
         {
@@ -366,6 +370,9 @@ namespace FreeSql.Tests.Sqlite
             var query = select.LeftJoin(a => a.Type.Guid == a.TypeGuid);
             var sql = query.ToSql().Replace("\r\n", "");
             Assert.Equal("SELECT a.\"Id\", a.\"Clicks\", a.\"TypeGuid\", a__Type.\"Guid\", a__Type.\"ParentId\", a__Type.\"Name\", a.\"Title\", a.\"CreateTime\" FROM \"tb_topic22\" a LEFT JOIN \"TestTypeInfo\" a__Type ON a__Type.\"Guid\" = a.\"TypeGuid\"", sql);
+            (query as Select0Provider)._tables.Where(a => a.Table.Type == typeof(TestTypeInfo))
+                .First()
+                .Type = SelectTableInfoType.InnerJoin; 
             query.ToList();
 
             query = select.LeftJoin(a => a.Type.Guid == a.TypeGuid && a.Type.Name == "xxx");
@@ -693,6 +700,7 @@ namespace FreeSql.Tests.Sqlite
             .Having(a => a.Count() > 0 && a.Avg(a.Key.mod4) > 0 && a.Max(a.Key.mod4) > 0)
             .Having(a => a.Count() < 300 || a.Avg(a.Key.mod4) < 100)
             .OrderBy(a => a.Key.tt2)
+            .OrderByDescending(a => new { a.Key.tt2, a.Key.mod4 })
             .OrderByDescending(a => a.Count())
             .Offset(10)
             .Limit(2)
@@ -804,7 +812,17 @@ namespace FreeSql.Tests.Sqlite
         [Fact]
         public void OrderBy()
         {
-            var sql = select.OrderBy(a => new Random().NextDouble()).ToList();
+            var sql = select.OrderBy(a => new Random().NextDouble()).ToSql();
+
+            sql = select.OrderBy(a => a.Id).OrderBy(a => a.Title).OrderByDescending(a => a.CreateTime).ToSql();
+            Assert.Equal(@"SELECT a.""Id"", a.""Clicks"", a.""TypeGuid"", a.""Title"", a.""CreateTime"" 
+FROM ""tb_topic22"" a 
+ORDER BY a.""Id"", a.""Title"", a.""CreateTime"" DESC", sql);
+
+            sql = select.OrderBy(a => new { a.Id, a.Title }).OrderByDescending(a => a.CreateTime).ToSql();
+            Assert.Equal(@"SELECT a.""Id"", a.""Clicks"", a.""TypeGuid"", a.""Title"", a.""CreateTime"" 
+FROM ""tb_topic22"" a 
+ORDER BY a.""Id"", a.""Title"", a.""CreateTime"" DESC", sql);
         }
         [Fact]
         public void OrderByRandom()
@@ -1222,7 +1240,7 @@ WHERE (((cast(a.""Id"" as character)) in (SELECT b.""Title""
             //---- Select ----
 
             var at0 = g.sqlite.Select<TestInclude_OneToManyModel2>()
-                .IncludeMany(a => a.childs.Where(m3 => m3.model2111Idaaa == a.model2id).Select(m3 => new TestInclude_OneToManyModel3 {  id = m3.id }))
+                .IncludeMany(a => a.childs.Where(m3 => m3.model2111Idaaa == a.model2id).Select(m3 => new TestInclude_OneToManyModel3 { id = m3.id }))
                 .Where(a => a.model2id <= model1.id)
                 .ToList();
             var at001 = g.sqlite.Select<TestInclude_OneToManyModel2>()
@@ -1230,19 +1248,23 @@ WHERE (((cast(a.""Id"" as character)) in (SELECT b.""Title""
                 .Where(a => a.model2id <= model1.id)
                 .ToList(a => new
                 {
-                    a.model2id, a.childs, childs2 = a.childs
+                    a.model2id,
+                    a.childs,
+                    childs2 = a.childs
                 });
 
             var at1 = g.sqlite.Select<TestInclude_OneToManyModel1>()
                 .IncludeMany(a => a.model2.childs.Where(m3 => m3.model2111Idaaa == a.model2.model2id).Select(m3 => new TestInclude_OneToManyModel3 { id = m3.id }))
                 .Where(a => a.id <= model1.id)
-                .ToList(); 
+                .ToList();
             var at111 = g.sqlite.Select<TestInclude_OneToManyModel1>()
                  .IncludeMany(a => a.model2.childs.Where(m3 => m3.model2111Idaaa == a.model2.model2id).Select(m3 => new TestInclude_OneToManyModel3 { id = m3.id }))
                  .Where(a => a.id <= model1.id)
                  .ToList(a => new
                  {
-                     a.id, a.model2.childs, childs2 = a.model2.childs
+                     a.id,
+                     a.model2.childs,
+                     childs2 = a.model2.childs
                  });
 
             var at2 = g.sqlite.Select<TestInclude_OneToManyModel1>()
@@ -1256,7 +1278,9 @@ WHERE (((cast(a.""Id"" as character)) in (SELECT b.""Title""
                 .Where(a => a.id <= model1.id)
                 .ToList(a => new
                 {
-                    a.id, a.model2.childs, childs2 = a.model2.childs
+                    a.id,
+                    a.model2.childs,
+                    childs2 = a.model2.childs
                 });
 
             var at00 = g.sqlite.Select<TestInclude_OneToManyModel2>()
@@ -1268,7 +1292,9 @@ WHERE (((cast(a.""Id"" as character)) in (SELECT b.""Title""
                 .Where(a => a.model2id <= model1.id)
                 .ToList(a => new
                 {
-                    a.model2id, a.childs, childs2 = a.childs
+                    a.model2id,
+                    a.childs,
+                    childs2 = a.childs
                 });
 
             var at11 = g.sqlite.Select<TestInclude_OneToManyModel1>()
@@ -1279,9 +1305,11 @@ WHERE (((cast(a.""Id"" as character)) in (SELECT b.""Title""
                 .IncludeMany(a => a.model2.childs.Take(1).Where(m3 => m3.model2111Idaaa == a.model2.model2id).Select(m3 => new TestInclude_OneToManyModel3 { id = m3.id }))
                 .Where(a => a.id <= model1.id)
                 .ToList(a => new
-                 {
-                     a.id, a.model2.childs, childs2 = a.model2.childs
-                 });
+                {
+                    a.id,
+                    a.model2.childs,
+                    childs2 = a.model2.childs
+                });
 
             var at22 = g.sqlite.Select<TestInclude_OneToManyModel1>()
                 .IncludeMany(a => a.model2.childs.Take(1).Where(m3 => m3.model2111Idaaa == a.model2.model2id).Select(m3 => new TestInclude_OneToManyModel3 { id = m3.id }),
@@ -1294,7 +1322,9 @@ WHERE (((cast(a.""Id"" as character)) in (SELECT b.""Title""
                 .Where(a => a.id <= model1.id)
                 .ToList(a => new
                 {
-                    a.id, a.model2.childs, childs2 = a.model2.childs
+                    a.id,
+                    a.model2.childs,
+                    childs2 = a.model2.childs
                 });
         }
 
@@ -1713,7 +1743,9 @@ WHERE (((cast(a.""Id"" as character)) in (SELECT b.""Title""
                .Where(a => a.Id == song1.Id || a.Id == song2.Id || a.Id == song3.Id)
                .ToList(a => new
                {
-                   a.Id, a.Is_deleted, a.Tags
+                   a.Id,
+                   a.Is_deleted,
+                   a.Tags
                });
         }
 
@@ -2470,6 +2502,33 @@ ORDER BY a__Parent.""Name""", sql);
             Assert.Equal(@"SELECT a.""id"", a.""name"", a.""no"", a.""status"" 
 FROM ""ts_dyfilter_enum01"" a 
 WHERE ((not((a.""name"") LIKE '%testname01') OR not((a.""no"") LIKE '%testname01') OR not((a.""id"") LIKE '%testname01') OR a.""status"" = 2))", sql);
+
+            sql = fsql.Select<ts_dyfilter_enum01>().WhereDynamicFilter(JsonConvert.DeserializeObject<DynamicFilterInfo>(@"
+{
+  ""Logic"" : ""Or"",
+  ""Filters"" :
+  [
+    {
+      ""Field"" : ""MyRawSql FreeSql.Tests.Sqlite.DynamicFilterMyCustom,FreeSql.Tests"",
+      ""Operator"" : ""Custom"",
+      ""Value"" : ""(name,no) in (('testname01','testname01'))""
+    },
+    {
+      ""Field"" : ""no"",
+      ""Operator"" : ""NotEndsWith"",
+      ""Value"" : ""testname01""
+    },
+    {
+      ""Field"" : ""MyRawSql FreeSql.Tests.Sqlite.DynamicFilterMyCustom,FreeSql.Tests"",
+      ""Operator"" : ""Custom"",
+      ""Value"" : ""(id,status) in (('testname01','finished'))""
+    },
+  ]
+}
+")).ToSql();
+            Assert.Equal(@"SELECT a.""id"", a.""name"", a.""no"", a.""status"" 
+FROM ""ts_dyfilter_enum01"" a 
+WHERE (((name,no) in (('testname01','testname01')) OR not((a.""no"") LIKE '%testname01') OR (id,status) in (('testname01','finished'))))", sql);
         }
 
         class ts_dyfilter_enum01
@@ -2480,5 +2539,38 @@ WHERE ((not((a.""name"") LIKE '%testname01') OR not((a.""no"") LIKE '%testname01
             public ts_dyfilter_enum01_status status { get; set; }
         }
         public enum ts_dyfilter_enum01_status { staring, stoped, finished }
+    }
+
+    public class DynamicFilterMyCustom
+    {
+        [DynamicFilterCustom]
+        public static string MyRawSql(string value) => value;
+
+        public static string TupleIn(string value)
+        {
+            var sb = new StringBuilder();
+            var array = JArray.Parse(value);
+            var row = 0;
+            foreach(JObject item in array)
+            {
+                if (row++ == 0)
+                {
+                    sb.Append("(");
+                    var propNames = item.Properties().Select(a => a.Name);
+                    sb.Append(string.Join(", ", propNames));
+                    sb.Append(") IN (");
+                }
+                if (row == array.Count - 1)
+                {
+                    sb.Append(")");
+                }
+                if (row > 1) sb.Append(", ");
+                sb.Append("(");
+                var propValues = item.Values().Select(a => a?.ToString().Replace("'", "''")); //注入处理
+                sb.Append(string.Join(", ", propValues));
+                sb.Append(")");
+            }
+            return sb.ToString();
+        }
     }
 }

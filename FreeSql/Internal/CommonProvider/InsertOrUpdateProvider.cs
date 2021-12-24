@@ -182,6 +182,7 @@ namespace FreeSql.Internal.CommonProvider
                     case DataType.Oracle:
                     case DataType.OdbcDameng:
                     case DataType.Dameng:
+                    case DataType.GBase:
                         sb.Append(" FROM dual");
                         break;
                     case DataType.Firebird:
