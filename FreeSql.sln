@@ -111,6 +111,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Provider.Sqlite.Dat
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Provider.Sqlite.Data.Core", "Providers\FreeSql.Provider.Sqlite.Data.Core\FreeSql.Provider.Sqlite.Data.Core.csproj", "{21D41ACD-46B6-4716-B390-065725DD72DD}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeSql.Tests.Provider.Sqlite.Data", "FreeSql.Tests\FreeSql.Tests.Provider.Sqlite.Data\FreeSql.Tests.Provider.Sqlite.Data.csproj", "{C863551A-4791-4BE2-8741-ABAD7B650C95}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -649,6 +651,18 @@ Global
 		{21D41ACD-46B6-4716-B390-065725DD72DD}.Release|x64.Build.0 = Release|Any CPU
 		{21D41ACD-46B6-4716-B390-065725DD72DD}.Release|x86.ActiveCfg = Release|Any CPU
 		{21D41ACD-46B6-4716-B390-065725DD72DD}.Release|x86.Build.0 = Release|Any CPU
+		{C863551A-4791-4BE2-8741-ABAD7B650C95}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C863551A-4791-4BE2-8741-ABAD7B650C95}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C863551A-4791-4BE2-8741-ABAD7B650C95}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{C863551A-4791-4BE2-8741-ABAD7B650C95}.Debug|x64.Build.0 = Debug|Any CPU
+		{C863551A-4791-4BE2-8741-ABAD7B650C95}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C863551A-4791-4BE2-8741-ABAD7B650C95}.Debug|x86.Build.0 = Debug|Any CPU
+		{C863551A-4791-4BE2-8741-ABAD7B650C95}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C863551A-4791-4BE2-8741-ABAD7B650C95}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C863551A-4791-4BE2-8741-ABAD7B650C95}.Release|x64.ActiveCfg = Release|Any CPU
+		{C863551A-4791-4BE2-8741-ABAD7B650C95}.Release|x64.Build.0 = Release|Any CPU
+		{C863551A-4791-4BE2-8741-ABAD7B650C95}.Release|x86.ActiveCfg = Release|Any CPU
+		{C863551A-4791-4BE2-8741-ABAD7B650C95}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
