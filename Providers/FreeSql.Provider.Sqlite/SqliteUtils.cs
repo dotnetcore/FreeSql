@@ -4,7 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+#if MicrosoftData
+using Microsoft.Data.Sqlite;
+#else
 using System.Data.SQLite;
+#endif
 using System.Globalization;
 
 namespace FreeSql.Sqlite
@@ -33,7 +37,11 @@ namespace FreeSql.Sqlite
                     dbtype = DbType.Int64;
                     break;
             }
+#if MicrosoftData
+            var ret = new SqliteParameter();
+#else
             var ret = new SQLiteParameter();
+#endif
             ret.ParameterName = QuoteParamterName(parameterName);
             ret.DbType = dbtype;
             ret.Value = value;
@@ -62,7 +70,11 @@ namespace FreeSql.Sqlite
                             break;
                     }
                 }
+#if MicrosoftData
+                var ret = new SqliteParameter();
+#else
                 var ret = new SQLiteParameter();
+#endif
                 ret.ParameterName = $"@{name}";
                 if (dbtype != null) ret.DbType = dbtype.Value;
                 ret.Value = value;

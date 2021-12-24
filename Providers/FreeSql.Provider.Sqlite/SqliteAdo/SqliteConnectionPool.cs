@@ -4,7 +4,11 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+#if MicrosoftData
+using Microsoft.Data.Sqlite;
+#else
 using System.Data.SQLite;
+#endif
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -34,7 +38,11 @@ namespace FreeSql.Sqlite
 
         public void Return(Object<DbConnection> obj, Exception exception, bool isRecreate = false)
         {
+#if MicrosoftData
+            if (exception != null && exception is SqliteException)
+#else
             if (exception != null && exception is SQLiteException)
+#endif
             {
                 try { if (obj.Value.Ping() == false) obj.Value.OpenAndAttach(policy.Attaches); } catch { base.SetUnavailable(exception); }
             }
@@ -128,7 +136,11 @@ namespace FreeSql.Sqlite
 
         public DbConnection OnCreate()
         {
+#if MicrosoftData
+            var conn = new SqliteConnection(_connectionString);
+#else
             var conn = new SQLiteConnection(_connectionString);
+#endif
             return conn;
         }
 
