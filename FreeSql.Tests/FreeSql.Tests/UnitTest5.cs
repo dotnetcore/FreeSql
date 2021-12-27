@@ -16,6 +16,53 @@ namespace FreeSql.Tests
 {
     public class UnitTest5
     {
+        [Fact]
+        public void TestLambdaParameterWhereIn()
+        {
+            using (var fsql = new FreeSql.FreeSqlBuilder()
+                .UseConnectionString(FreeSql.DataType.Sqlite, @"Data Source=|DataDirectory|\TestLambdaParameterWhereIn.db")
+                .UseAutoSyncStructure(true)
+                .UseGenerateCommandParameterWithLambda(true)
+                .UseLazyLoading(true)
+                .UseMonitorCommand(
+                    cmd => Trace.WriteLine("\r\n线程" + Thread.CurrentThread.ManagedThreadId + ": " + cmd.CommandText) //监听SQL命令对象，在执行前
+                    //, (cmd, traceLog) => Console.WriteLine(traceLog)
+                    )
+                .Build())
+            {
+
+                string dwId = "123456";
+                string yhId = "654321";
+
+                var sql = fsql.Select<wygl_wygs_gzry_wyglqyModelTest1>()
+                      .Where(a => a.dw_id == dwId &&
+                         fsql.Select<wygl_wygs_gzry_wyglqyModel>()
+                               .Where(b => b.yh_id == yhId).ToList(b => b.wyqy_id).Contains(a.wyqy_id)
+                      );
+
+                var sql1 = sql.ToSql();
+                Assert.Equal(@"SELECT a.""dw_id"", a.""wyqy_id"" 
+FROM ""wygl_wygs_gzry_wyglqyModelTest1"" a 
+WHERE (a.""dw_id"" = @exp_0 AND ((a.""wyqy_id"") in (SELECT b.""wyqy_id"" 
+    FROM ""wygl_wygs_gzry_wyglqyModel"" b 
+    WHERE (b.""yh_id"" = @exp_1))))", sql1);
+                Assert.Equal(2, (sql as Select0Provider)._params.Count);
+                Assert.Equal("123456", (sql as Select0Provider)._params[0].Value);
+                Assert.Equal("654321", (sql as Select0Provider)._params[1].Value);
+            }
+        }
+        class wygl_wygs_gzry_wyglqyModelTest1
+        {
+            public string dw_id { get; set; }
+            public string wyqy_id { get; set; }
+        }
+        class wygl_wygs_gzry_wyglqyModel
+        {
+            public string yh_id { get; set; }
+            public string wyqy_id { get; set; }
+        }
+
+
 
         [Fact]
         public void TestJsonb01()
