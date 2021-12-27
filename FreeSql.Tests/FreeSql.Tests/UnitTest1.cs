@@ -24,7 +24,7 @@ namespace FreeSql.Tests
     {
         public static T TryTo<T>(this string that)
         {
-            return (T)Internal.Utils.GetDataReaderValue(typeof(T), that);
+            return (T)FreeSql.Internal.Utils.GetDataReaderValue(typeof(T), that);
         }
 
         public static string FormatDateTime()
@@ -311,7 +311,7 @@ namespace FreeSql.Tests
             public TaskBuild Parent { get; set; }
         }
 
-        
+
 
         void parseExp(object sender, Aop.ParseExpressionEventArgs e)
         {
@@ -323,7 +323,7 @@ namespace FreeSql.Tests
                     if (callExp.Method.Name == "TryTo")
                     {
                         e.Result = Expression.Lambda(
-                            typeof(Func<>).MakeGenericType(callExp.Method.GetGenericArguments().FirstOrDefault()), 
+                            typeof(Func<>).MakeGenericType(callExp.Method.GetGenericArguments().FirstOrDefault()),
                             e.Expression).Compile().DynamicInvoke()?.ToString();
                         return;
                     }
@@ -464,10 +464,11 @@ namespace FreeSql.Tests
             emoji = g.sqlserver.Select<TestGuidId>().Where(a => a.Id == testemoji.Id).First();
             Assert.Equal("💐🌸💮🌹🌺🌻🌼🌷🌱🌿🍀", emoji.xxx);
 
-            var _model = new TestUpdateModel { 
-                F_EmpId = "xx11", 
-                F_RoleType = TestUpdateModelEnum.x2, 
-                F_UseType = TestUpdateModelEnum.x3 
+            var _model = new TestUpdateModel
+            {
+                F_EmpId = "xx11",
+                F_RoleType = TestUpdateModelEnum.x2,
+                F_UseType = TestUpdateModelEnum.x3
             };
             var testsql2008 = g.sqlserver.Update<TestUpdateModel>()
                 .Where(a => a.F_EmpId == _model.F_EmpId)
@@ -578,7 +579,7 @@ namespace FreeSql.Tests
 
             var gkjdjd = g.sqlite.Select<AuthorTest>().Where(a => a.Post.AsSelect().Count() > 0).ToList();
 
-            var testrunsql1 =  g.mysql.Select<TaskBuild>().Where(a => a.OptionsEntity04 > DateTime.Now.AddDays(0).ToString("yyyyMMdd").TryTo<int>()).ToSql();
+            var testrunsql1 = g.mysql.Select<TaskBuild>().Where(a => a.OptionsEntity04 > DateTime.Now.AddDays(0).ToString("yyyyMMdd").TryTo<int>()).ToSql();
             var testrunsql2 = g.pgsql.Select<TaskBuild>().Where(a => a.OptionsEntity04 > DateTime.Now.AddDays(0).ToString("yyyyMMdd").TryTo<int>()).ToSql();
             var testrunsql3 = g.sqlserver.Select<TaskBuild>().Where(a => a.OptionsEntity04 > DateTime.Now.AddDays(0).ToString("yyyyMMdd").TryTo<int>()).ToSql();
             var testrunsql4 = g.oracle.Select<TaskBuild>().Where(a => a.OptionsEntity04 > DateTime.Now.AddDays(0).ToString("yyyyMMdd").TryTo<int>()).ToSql();
@@ -600,18 +601,18 @@ namespace FreeSql.Tests
 
             IFreeSql fsql = new FreeSql.FreeSqlBuilder()
               .UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=7")
-              .UseNameConvert(Internal.NameConvertType.PascalCaseToUnderscoreWithLower)
+              .UseNameConvert(FreeSql.Internal.NameConvertType.PascalCaseToUnderscoreWithLower)
               .UseNoneCommandParameter(true)
               .UseAutoSyncStructure(true) //自动同步实体结构到数据库
               .UseMonitorCommand(a => Trace.WriteLine(a.CommandText))
               .Build();
 
             var data = fsql.Select<Post>().ToList(r => new
-                {
-                    Id = r.Id,
-                    Name = r.AuthorId.ToString(),
-                    AuthorName = r.Author.Name,
-                });
+            {
+                Id = r.Id,
+                Name = r.AuthorId.ToString(),
+                AuthorName = r.Author.Name,
+            });
 
             //g.mysql.Aop.AuditValue += (s, e) =>
             //{
@@ -636,8 +637,8 @@ namespace FreeSql.Tests
                 .Include(a => a.MedicalRecord)
                 .ToSql();
 
-            var dkdkd = g.mysql.Select<TaskBuild>().AsTable((t,old) => "TaskBuild22")
-                .ToList< TestDto>(a => new TestDto()
+            var dkdkd = g.mysql.Select<TaskBuild>().AsTable((t, old) => "TaskBuild22")
+                .ToList<TestDto>(a => new TestDto()
                 {
                     Id = a.Id,
                     IsLeaf = g.mysql.Select<TaskBuild>().AsTable((t, old) => "TaskBuild22").Any(b => b.TemplatesId == a.Id)
@@ -645,13 +646,13 @@ namespace FreeSql.Tests
 
 
             var xxxkdkd = g.oracle.Select<Templates, TaskBuild>()
-                .InnerJoin((a,b) => true)
-                .Where((a,b) => (DateTime.Now - a.EditTime).TotalMinutes > 100)
-                .OrderBy((a,b) => g.oracle.Select<Templates>().Where(c => b.Id == c.Id2).Count())
+                .InnerJoin((a, b) => true)
+                .Where((a, b) => (DateTime.Now - a.EditTime).TotalMinutes > 100)
+                .OrderBy((a, b) => g.oracle.Select<Templates>().Where(c => b.Id == c.Id2).Count())
                 .ToSql();
-            
 
-            g.oracle.Aop.SyncStructureAfter += (s, e) => 
+
+            g.oracle.Aop.SyncStructureAfter += (s, e) =>
                 Trace.WriteLine(e.Sql);
 
             g.oracle.CodeFirst.SyncStructure<Class1>();
@@ -729,7 +730,7 @@ namespace FreeSql.Tests
                  .ToSql(a => new NewsArticleDto
                  {
                      ArticleTitle = a.Key,
-                      ChannelId = (int)a.Sum(a.Value.Item1.OptionsEntity04)
+                     ChannelId = (int)a.Sum(a.Value.Item1.OptionsEntity04)
                  });
 
             var testgrpsql2 = g.sqlite.Select<TaskBuild>()
@@ -1004,7 +1005,7 @@ namespace FreeSql.Tests
                     cou = b.Count(),
                     sum = b.Sum(b.Key.yyyy),
                     sum2 = b.Sum(b.Value.TypeGuid)
-                }); 
+                });
             var aggtolist22 = select
                  .GroupBy(a => new { a.Title, yyyy = string.Concat(a.CreateTime.Year, '-', a.CreateTime.Month) })
                  .ToDictionaryAsync(b => new
