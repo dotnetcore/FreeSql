@@ -266,12 +266,13 @@ namespace FreeSql.Internal
                 {
                     int strlen = colattr.StringLength;
                     var charPatten = @"(CHARACTER|CHAR2|CHAR)\s*(\([^\)]*\))?";
+                    var strNotNull = colattr.IsNullable == false ? " NOT NULL" : "";
                     switch (common._orm.Ado.DataType)
                     {
                         case DataType.MySql:
                         case DataType.OdbcMySql:
-                            if (strlen == -2) colattr.DbType = "LONGTEXT";
-                            else if (strlen < 0) colattr.DbType = "TEXT";
+                            if (strlen == -2) colattr.DbType = $"LONGTEXT{strNotNull}";
+                            else if (strlen < 0) colattr.DbType = $"TEXT{strNotNull}";
                             else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
                             break;
                         case DataType.SqlServer:
@@ -284,15 +285,15 @@ namespace FreeSql.Internal
                         case DataType.KingbaseES:
                         case DataType.OdbcKingbaseES:
                         case DataType.ShenTong:
-                            if (strlen < 0) colattr.DbType = "TEXT";
+                            if (strlen < 0) colattr.DbType = $"TEXT{strNotNull}";
                             else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
                             break;
                         case DataType.Oracle:
-                            if (strlen < 0) colattr.DbType = "NCLOB"; //v1.3.2+ https://github.com/dotnetcore/FreeSql/issues/259
+                            if (strlen < 0) colattr.DbType = $"NCLOB{strNotNull}"; //v1.3.2+ https://github.com/dotnetcore/FreeSql/issues/259
                             else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
                             break;
                         case DataType.Dameng:
-                            if (strlen < 0) colattr.DbType = "TEXT";
+                            if (strlen < 0) colattr.DbType = $"TEXT{strNotNull}";
                             else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
                             break;
                         case DataType.OdbcOracle:
@@ -301,21 +302,21 @@ namespace FreeSql.Internal
                             else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
                             break;
                         case DataType.Sqlite:
-                            if (strlen < 0) colattr.DbType = "TEXT";
+                            if (strlen < 0) colattr.DbType = $"TEXT{strNotNull}";
                             else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
                             break;
                         case DataType.MsAccess:
                             charPatten = @"(CHAR|CHAR2|CHARACTER|TEXT)\s*(\([^\)]*\))?";
-                            if (strlen < 0) colattr.DbType = "LONGTEXT";
+                            if (strlen < 0) colattr.DbType = $"LONGTEXT{strNotNull}";
                             else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
                             break;
                         case DataType.Firebird:
                             charPatten = @"(CHAR|CHAR2|CHARACTER|TEXT)\s*(\([^\)]*\))?";
-                            if (strlen < 0) colattr.DbType = "BLOB SUB_TYPE 1";
+                            if (strlen < 0) colattr.DbType = $"BLOB SUB_TYPE 1{strNotNull}";
                             else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
                             break;
                         case DataType.GBase:
-                            if (strlen < 0) colattr.DbType = "TEXT";
+                            if (strlen < 0) colattr.DbType = $"TEXT{strNotNull}";
                             else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
                             break;
                     }
@@ -325,12 +326,13 @@ namespace FreeSql.Internal
                 {
                     int strlen = colattr.StringLength;
                     var bytePatten = @"(VARBINARY|BINARY|BYTEA)\s*(\([^\)]*\))?";
+                    var strNotNull = colattr.IsNullable == false ? " NOT NULL" : "";
                     switch (common._orm.Ado.DataType)
                     {
                         case DataType.MySql:
                         case DataType.OdbcMySql:
-                            if (strlen == -2) colattr.DbType = "LONGBLOB";
-                            else if (strlen < 0) colattr.DbType = "BLOB";
+                            if (strlen == -2) colattr.DbType = $"LONGBLOB{strNotNull}";
+                            else if (strlen < 0) colattr.DbType = $"BLOB{strNotNull}";
                             else colattr.DbType = Regex.Replace(colattr.DbType, bytePatten, $"$1({strlen})");
                             break;
                         case DataType.SqlServer:
@@ -343,30 +345,30 @@ namespace FreeSql.Internal
                         case DataType.KingbaseES:
                         case DataType.OdbcKingbaseES:
                         case DataType.ShenTong: //驱动引发的异常:“System.Data.OscarClient.OscarException”(位于 System.Data.OscarClient.dll 中)
-                            colattr.DbType = "BYTEA"; //变长二进制串
+                            colattr.DbType = $"BYTEA{strNotNull}"; //变长二进制串
                             break;
                         case DataType.Oracle:
-                            colattr.DbType = "BLOB";
+                            colattr.DbType = $"BLOB{strNotNull}";
                             break;
                         case DataType.Dameng:
-                            colattr.DbType = "BLOB";
+                            colattr.DbType = $"BLOB{strNotNull}";
                             break;
                         case DataType.OdbcOracle:
                         case DataType.OdbcDameng:
-                            colattr.DbType = "BLOB";
+                            colattr.DbType = $"BLOB{strNotNull}";
                             break;
                         case DataType.Sqlite:
-                            colattr.DbType = "BLOB";
+                            colattr.DbType = $"BLOB{strNotNull}";
                             break;
                         case DataType.MsAccess:
-                            if (strlen < 0) colattr.DbType = "BLOB";
+                            if (strlen < 0) colattr.DbType = $"BLOB{strNotNull}";
                             else colattr.DbType = Regex.Replace(colattr.DbType, bytePatten, $"$1({strlen})");
                             break;
                         case DataType.Firebird:
-                            colattr.DbType = "BLOB";
+                            colattr.DbType = $"BLOB{strNotNull}";
                             break;
                         case DataType.GBase:
-                            colattr.DbType = "BYTE";
+                            colattr.DbType = $"BYTE{strNotNull}";
                             break;
                     }
                 }
