@@ -82,6 +82,7 @@ public class g
 
     static Lazy<IFreeSql> sqliteLazy = new Lazy<IFreeSql>(() => new FreeSql.FreeSqlBuilder()
         .UseConnectionString(FreeSql.DataType.Sqlite, @"Data Source=|DataDirectory|\document.db;Attachs=xxxtb.db;")
+        //.UseConnectionFactory(FreeSql.DataType.Sqlite, () => new Microsoft.Data.Sqlite.SqliteConnection(@"Data Source=documentCore.db"))
         //.UseConnectionFactory(FreeSql.DataType.Sqlite, () =>
         //{
         //    var conn = new System.Data.SQLite.SQLiteConnection(@"Data Source=|DataDirectory|\document.db;Pooling=true;");
