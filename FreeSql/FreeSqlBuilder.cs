@@ -201,7 +201,7 @@ namespace FreeSql
                         break;
                     case DataType.Sqlite:
                         type = Type.GetType("FreeSql.Sqlite.SqliteProvider`1,FreeSql.Provider.Sqlite")?.MakeGenericType(typeof(TMark));
-                        if (type == null) type = Type.GetType("FreeSql.Sqlite.SqliteProvider`1,FreeSql.Provider.Sqlite.Data.Core")?.MakeGenericType(typeof(TMark)); //FreeSql.Provider.Sqlite.Data.dll
+                        if (type == null) type = Type.GetType("FreeSql.Sqlite.SqliteProvider`1,FreeSql.Provider.SqliteCore")?.MakeGenericType(typeof(TMark)); //Microsoft.Data.Sqlite.Core.dll
                         if (type == null) throwNotFind("FreeSql.Provider.Sqlite.dll", "FreeSql.Sqlite.SqliteProvider<>");
                         break;
 
