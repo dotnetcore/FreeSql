@@ -1,5 +1,4 @@
-﻿using IBM.Data.Informix;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data.Odbc;
 using System.Diagnostics;

@@ -29,10 +29,4 @@
       <ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />
       <ProjectReference Include="..\..\Providers\FreeSql.Provider.GBase\FreeSql.Provider.GBase.csproj" />
     </ItemGroup>
-
-	<ItemGroup>
-		<Reference Include="GeneralData.EntityFrameworkCore.GBase.DataProvider">
-			<HintPath>d:\testcode\GeneralData.EntityFrameworkCore.GBase.DataProvider.dll</HintPath>
-		</Reference>
-	</ItemGroup>
 </Project>
