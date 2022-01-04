@@ -1066,24 +1066,31 @@ namespace FreeSql.Internal
                                             else
                                             {
                                                 var argExp = (arg3Exp as UnaryExpression)?.Operand;
-                                                if (argExp != null && argExp.NodeType == ExpressionType.Lambda)
+                                                if (argExp != null)
                                                 {
-                                                    if (fsqltable1SetAlias == false)
+                                                    if (argExp.NodeType == ExpressionType.Lambda)
                                                     {
-                                                        fsqltable1SetAlias = true;
-                                                        var argExpLambda = argExp as LambdaExpression;
-                                                        var fsqlTypeGenericArgs = fsqlType.GetGenericArguments();
+                                                        if (fsqltable1SetAlias == false)
+                                                        {
+                                                            fsqltable1SetAlias = true;
+                                                            var argExpLambda = argExp as LambdaExpression;
+                                                            var fsqlTypeGenericArgs = fsqlType.GetGenericArguments();
 
-                                                        if (argExpLambda.Parameters.Count == 1 && argExpLambda.Parameters[0].Type.FullName.StartsWith("FreeSql.Internal.Model.HzyTuple`"))
-                                                        {
-                                                            for (var gai = 0; gai < fsqlTypeGenericArgs.Length; gai++)
-                                                                fsqltables[gai].Alias = "ht" + (gai + 1);
+                                                            if (argExpLambda.Parameters.Count == 1 && argExpLambda.Parameters[0].Type.FullName.StartsWith("FreeSql.Internal.Model.HzyTuple`"))
+                                                            {
+                                                                for (var gai = 0; gai < fsqlTypeGenericArgs.Length; gai++)
+                                                                    fsqltables[gai].Alias = "ht" + (gai + 1);
+                                                            }
+                                                            else
+                                                            {
+                                                                for (var gai = 0; gai < fsqlTypeGenericArgs.Length && gai < argExpLambda.Parameters.Count; gai++)
+                                                                    fsqltables[gai].Alias = argExpLambda.Parameters[gai].Name;
+                                                            }
                                                         }
-                                                        else
-                                                        {
-                                                            for (var gai = 0; gai < fsqlTypeGenericArgs.Length && gai < argExpLambda.Parameters.Count; gai++)
-                                                                fsqltables[gai].Alias = argExpLambda.Parameters[gai].Name;
-                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        argExp = null;
                                                     }
                                                 }
                                                 args[a] = argExp ?? Expression.Lambda(arg3Exp).Compile().DynamicInvoke();

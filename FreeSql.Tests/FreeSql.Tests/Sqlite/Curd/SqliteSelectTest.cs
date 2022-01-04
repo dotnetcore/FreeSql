@@ -689,6 +689,18 @@ namespace FreeSql.Tests.Sqlite
                 .Any()
                 ).Any()
             ).ToList();
+
+            sql2222 = select.Where(a =>
+                select.Where(b => b.Id == a.Id && 
+                    select
+                        .Where(c => c.Id == b.Id)
+                        .Where(d => d.Id == a.Id)
+                        .Where(e => e.Id == b.Id)
+                        .WhereIf(!sql2222.Any(), e => e.Id > 0)
+                        .WhereIf(sql2222.Any(), e => e.Id >= 0)
+                        .Any()
+                ).Any()
+            ).ToList();
         }
         [Fact]
         public void GroupBy()
