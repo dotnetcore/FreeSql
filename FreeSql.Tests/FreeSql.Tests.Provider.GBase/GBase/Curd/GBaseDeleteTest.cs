@@ -1,5 +1,4 @@
 using FreeSql.DataAnnotations;
-using IBM.Data.Informix;
 using System;
 using System.Collections.Generic;
 using System.Linq;
