@@ -291,6 +291,11 @@ new Colorful.Formatter("推荐在实体类目录创建 gen.bat，双击它重新
                     plus.AppendLine();
 
                     var outputFile = $"{ArgsOutput}{ArgsFileName.Replace("{name}", model.GetCsName(table.Name))}";
+                    
+                    var outputDirectory = outputFile.Substring(0, outputFile.LastIndexOf('/') + 1);
+                    if (!string.IsNullOrWhiteSpace(outputDirectory) && !Directory.Exists(outputDirectory))
+                        Directory.CreateDirectory(outputDirectory);
+
                     File.WriteAllText(outputFile, plus.ToString());
                     switch (table.Type)
                     {
