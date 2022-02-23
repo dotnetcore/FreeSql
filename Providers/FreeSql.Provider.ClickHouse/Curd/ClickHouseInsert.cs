@@ -50,20 +50,23 @@ namespace FreeSql.ClickHouse.Curd
         {
             var affrows = 0;
             Exception exception = null;
-            Aop.CurdBeforeEventArgs before=null;
-            if (_source.Count>1)
+            Aop.CurdBeforeEventArgs before = null;
+            if (_source.Count > 1)
             {
                 try
                 {
                     before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, null, _params);
                     _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
-                    using var bulkCopyInterface = new ClickHouseBulkCopy(_orm.Ado.MasterPool.Get().Value as ClickHouseConnection)
+                    using (var conn = _orm.Ado.MasterPool.Get())
                     {
-                        DestinationTableName = _table.DbName,
-                        BatchSize = _source.Count
-                    };
-                    var data=ToDataTable();
-                    bulkCopyInterface.WriteToServerAsync(data, default).Wait();
+                        using var bulkCopyInterface = new ClickHouseBulkCopy(conn.Value as ClickHouseConnection)
+                        {
+                            DestinationTableName = _table.DbName,
+                            BatchSize = _source.Count
+                        };
+                        var data = ToDataTable();
+                        bulkCopyInterface.WriteToServerAsync(data, default).Wait();
+                    }
                     return affrows;
                 }
                 catch (Exception ex)
@@ -172,6 +175,63 @@ namespace FreeSql.ClickHouse.Curd
         public override Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default) => SplitExecuteAffrowsAsync(_batchValuesLimit > 0 ? _batchValuesLimit : int.MaxValue, _batchValuesLimit > 0 ? _batchValuesLimit : int.MaxValue, cancellationToken);
         public override Task<long> ExecuteIdentityAsync(CancellationToken cancellationToken = default) => SplitExecuteIdentityAsync(_batchValuesLimit > 0 ? _batchValuesLimit : int.MaxValue, _batchValuesLimit > 0 ? _batchValuesLimit : int.MaxValue, cancellationToken);
         public override Task<List<T1>> ExecuteInsertedAsync(CancellationToken cancellationToken = default) => SplitExecuteInsertedAsync(_batchValuesLimit > 0 ? _batchValuesLimit : int.MaxValue, _batchValuesLimit > 0 ? _batchValuesLimit : int.MaxValue, cancellationToken);
+
+        async protected override Task<int> RawExecuteAffrowsAsync(CancellationToken cancellationToken = default)
+        {
+            var affrows = 0;
+            Exception exception = null;
+            Aop.CurdBeforeEventArgs before = null;
+            if (_source.Count > 1)
+            {
+                try
+                {
+                    before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, null, _params);
+                    _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
+                    using (var conn = await _orm.Ado.MasterPool.GetAsync())
+                    {
+                        using var bulkCopyInterface = new ClickHouseBulkCopy(conn.Value as ClickHouseConnection)
+                        {
+                            DestinationTableName = _table.DbName,
+                            BatchSize = _source.Count
+                        };
+                        var data = ToDataTable();
+                        await bulkCopyInterface.WriteToServerAsync(data, default);
+                    }
+                    return affrows;
+                }
+                catch (Exception ex)
+                {
+                    exception = ex;
+                    throw ex;
+                }
+                finally
+                {
+                    var after = new Aop.CurdAfterEventArgs(before, exception, affrows);
+                    _orm.Aop.CurdAfterHandler?.Invoke(this, after);
+                }
+            }
+            else
+            {
+                var sql = this.ToSql();
+                before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
+                _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
+                try
+                {
+                    affrows = await _orm.Ado.ExecuteNonQueryAsync(_connection, null, CommandType.Text, sql, _commandTimeout, _params);
+                }
+                catch (Exception ex)
+                {
+                    exception = ex;
+                    throw ex;
+                }
+                finally
+                {
+                    var after = new Aop.CurdAfterEventArgs(before, exception, affrows);
+                    _orm.Aop.CurdAfterHandler?.Invoke(this, after);
+                }
+                return affrows;
+            }
+        }
 
         async protected override Task<long> RawExecuteIdentityAsync(CancellationToken cancellationToken = default)
         {
