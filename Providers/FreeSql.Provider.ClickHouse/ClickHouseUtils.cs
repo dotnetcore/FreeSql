@@ -7,11 +7,11 @@ using System.Data.Common;
 using System.Globalization;
 using System.Data;
 using ClickHouse.Client.ADO.Parameters;
+using System.Text.RegularExpressions;
 
 namespace FreeSql.ClickHouse
 {
-
-    class ClickHouseUtils : CommonUtils
+    internal class ClickHouseUtils : CommonUtils
     {
         public ClickHouseUtils(IFreeSql orm) : base(orm)
         {
@@ -21,7 +21,7 @@ namespace FreeSql.ClickHouse
         {
             if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
             var dbtype = (DbType)_orm.CodeFirst.GetDbInfo(type)?.type;
-            DbParameter ret = new ClickHouseDbParameter { ParameterName = parameterName, DbType= dbtype, Value = value };//QuoteParamterName(parameterName)
+            DbParameter ret = new ClickHouseDbParameter { ParameterName = parameterName, DbType = dbtype, Value = value };//QuoteParamterName(parameterName)
             if (col != null)
             {
                 var dbtype2 = (DbType)_orm.DbFirst.GetDbType(new DatabaseModel.DbColumnInfo { DbTypeText = col.DbTypeText, DbTypeTextFull = col.Attribute.DbType, MaxLength = col.DbSize });
@@ -53,19 +53,28 @@ namespace FreeSql.ClickHouse
                 var tp = _orm.CodeFirst.GetDbInfo(type)?.type;
                 if (tp != null)
                 {
-
-                  ret.DbType = (DbType)tp.Value;
+                    ret.DbType = (DbType)tp.Value;
                 }
                 return ret;
             });
+
         public override string RewriteColumn(ColumnInfo col, string sql)
         {
             col.Attribute.DbType = col.Attribute.DbType.Replace(" NOT NULL", "");
             if (string.IsNullOrWhiteSpace(col?.Attribute.RewriteSql) == false)
                 return string.Format(col.Attribute.RewriteSql, sql);
-            return string.Format(sql, col.Attribute.DbType);
+            if (Regex.IsMatch(sql, @"\{\{[\w\d]+_+\d:\{\d\}\}\}"))
+            {
+                return string.Format(sql, col.Attribute.DbType);
+            }
+            else
+            {
+                return sql;
+            }
         }
+
         public override string FormatSql(string sql, params object[] args) => sql?.FormatClickHouse(args);
+
         public override string QuoteSqlName(params string[] name)
         {
             if (name.Length == 1)
@@ -79,6 +88,7 @@ namespace FreeSql.ClickHouse
             }
             return $"`{string.Join("`.`", name)}`";
         }
+
         public override string TrimQuoteSqlName(string name)
         {
             var nametrim = name.Trim();
@@ -86,12 +96,19 @@ namespace FreeSql.ClickHouse
                 return nametrim; //原生SQL
             return $"{nametrim.Trim('`').Replace("`.`", ".").Replace(".`", ".")}";
         }
+
         public override string[] SplitTableName(string name) => GetSplitTableNames(name, '`', '`', 2);
+
         public override string QuoteParamterName(string name) => $"{{{{{name}:{{0}}}}}}";
+
         public override string IsNull(string sql, object value) => $"ifnull({sql}, {value})";
+
         public override string StringConcat(string[] objs, Type[] types) => $"concat({string.Join(", ", objs)})";
+
         public override string Mod(string left, string right, Type leftType, Type rightType) => $"{left} % {right}";
+
         public override string Div(string left, string right, Type leftType, Type rightType) => $"{left} div {right}";
+
         public override string Now => "now()";
         public override string NowUtc => "now('UTC')";
 
@@ -108,6 +125,7 @@ namespace FreeSql.ClickHouse
             }
             return paramterName;
         }
+
         protected override string QuoteReadColumnAdapter(Type type, Type mapType, string columnName)
         {
             switch (mapType.FullName)
