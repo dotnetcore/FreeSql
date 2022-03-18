@@ -14,6 +14,7 @@ namespace FreeSql
         DataType _dataType;
         string _masterConnectionString;
         string[] _slaveConnectionString;
+        int[] _slaveWeights;
         Func<DbConnection> _connectionFactory;
         bool _isAutoSyncStructure = false;
         bool _isSyncStructureToLower = false;
@@ -53,6 +54,12 @@ namespace FreeSql
         {
             if (_connectionFactory != null) throw new Exception("已经指定了 UseConnectionFactory，不能再指定 UseSlave");
             _slaveConnectionString = slaveConnectionString;
+            return this;
+        }
+        public FreeSqlBuilder UseSlaveWeight(params int[] slaveWeights)
+        {
+            if (_slaveConnectionString?.Length != slaveWeights.Length) throw new Exception("SlaveConnectionString 数量与 SlaveWeights 不相同");
+            _slaveWeights = slaveWeights;
             return this;
         }
         /// <summary>
@@ -458,6 +465,9 @@ namespace FreeSql
 
                 ret.Ado.MasterPool.Policy.IsAutoDisposeWithSystem = _isExitAutoDisposePool;
                 ret.Ado.SlavePools.ForEach(a => a.Policy.IsAutoDisposeWithSystem = _isExitAutoDisposePool);
+                if (_slaveWeights != null)
+                    for (var x = 0; x < _slaveWeights.Length; x++)
+                        ret.Ado.SlavePools[x].Policy.Weight = _slaveWeights[x];
             }
 
             return ret;

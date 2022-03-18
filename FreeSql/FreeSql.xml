@@ -4314,6 +4314,11 @@
             后台定时检查可用性间隔秒数
             </summary>
         </member>
+        <member name="P:FreeSql.Internal.ObjectPool.IPolicy`1.Weight">
+            <summary>
+            权重
+            </summary>
+        </member>
         <member name="M:FreeSql.Internal.ObjectPool.IPolicy`1.OnCreate">
             <summary>
             对象池的对象被创建时

@@ -52,6 +52,7 @@ namespace FreeSql.Odbc.MySql
         public bool IsThrowGetTimeoutException { get; set; } = true;
         public bool IsAutoDisposeWithSystem { get; set; } = true;
         public int CheckAvailableInterval { get; set; } = 5;
+        public int Weight { get; set; } = 1;
 
         static ConcurrentDictionary<string, int> dicConnStrIncr = new ConcurrentDictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
         private string _connectionString;

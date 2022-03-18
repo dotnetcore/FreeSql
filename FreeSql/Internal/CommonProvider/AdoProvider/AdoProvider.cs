@@ -582,7 +582,20 @@ namespace FreeSql.Internal.CommonProvider
                     if (availables.Any())
                     {
                         isSlave = true;
-                        pool = availables.Count == 1 ? availables[0] : availables[slaveRandom.Next(availables.Count)];
+                        if (availables.Count == 1) pool = availables[0];
+                        else
+                        {
+                            var rnd = slaveRandom.Next(availables.Sum(a => a.Policy.Weight));
+                            for(var a = 0; a < availables.Count; a++)
+                            {
+                                rnd -= availables[a].Policy.Weight;
+                                if (rnd < 0)
+                                {
+                                    pool = availables[a];
+                                    break;
+                                }
+                            }
+                        }
                     }
                 }
             }

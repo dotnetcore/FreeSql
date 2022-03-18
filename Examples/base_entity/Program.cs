@@ -106,9 +106,12 @@ namespace base_entity
                 .UseAutoSyncStructure(true)
                 .UseNoneCommandParameter(true)
 
-                .UseConnectionString(FreeSql.DataType.Sqlite, "data source=test.db;max pool size=5")
+                .UseConnectionString(FreeSql.DataType.Sqlite, "data source=test1.db;max pool size=5")
+                .UseSlave("data source=test1.db", "data source=test2.db", "data source=test3.db", "data source=test4.db")
+                .UseSlaveWeight(10, 1, 1, 5)
 
-                .UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=2")
+
+                //.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=2")
 
                 //.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3")
 
@@ -131,12 +134,15 @@ namespace base_entity
 
                 //.UseConnectionString(FreeSql.DataType.OdbcDameng, "Driver={DM8 ODBC DRIVER};Server=127.0.0.1:5236;Persist Security Info=False;Trusted_Connection=Yes;UID=USER1;PWD=123456789")
 
-                .UseMonitorCommand(umcmd => Console.WriteLine(umcmd.CommandText))
+                .UseMonitorCommand(null, (umcmd, log) => Console.WriteLine(umcmd.Connection.ConnectionString + ":" + umcmd.CommandText))
                 .UseLazyLoading(true)
                 .UseGenerateCommandParameterWithLambda(true)
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
+
+            for (var a = 0; a < 10000; a++)
+                fsql.Select<User1>().First();
 
             for (var a = 0; a < 1000; a++)
             {
