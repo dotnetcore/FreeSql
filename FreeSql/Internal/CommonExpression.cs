@@ -591,6 +591,8 @@ namespace FreeSql.Internal
                         if (rightExp.Type.NullableTypeOrThis() == typeof(TimeSpan))
                             return ExpressionLambdaToSql(Expression.Call(leftExp, MethodDateTimeSubtractTimeSpan, rightExp), tsc);
                     }
+                    if (oper == "OR")
+                        return $"({GetBoolString(ExpressionLambdaToSql(leftExp, tsc))} {oper} {GetBoolString(ExpressionLambdaToSql(rightExp, tsc))})";
                     return $"({ExpressionLambdaToSql(leftExp, tsc)} {oper} {ExpressionLambdaToSql(rightExp, tsc)})";
                 case "=":
                 case "<>":
