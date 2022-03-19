@@ -18,7 +18,12 @@ namespace FreeSql
         /// <param name="database"></param>
         /// <returns></returns>
         List<DbTableInfo> GetTablesByDatabase(params string[] database);
-
+        /// <summary>
+        /// 获取指定数据库的表名
+        /// </summary>
+        /// <param name="database"></param>
+        /// <returns></returns>
+        List<string> GetTablesNameByDatabase(params string[] database);
         /// <summary>
         /// 获取指定单表信息，包括列详情、主键、唯一键、索引、备注
         /// </summary>

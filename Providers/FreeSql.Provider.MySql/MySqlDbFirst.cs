@@ -480,6 +480,29 @@ where {(ignoreCase ? "lower(a.constraint_schema)" : "a.constraint_schema")} in (
             return loc1;
         }
 
+        public List<string> GetTablesNameByDatabase(params string[] database)
+        {
+            if (database == null || database.Any() == false)
+            {
+                using (var conn = _orm.Ado.MasterPool.Get())
+                {
+                    if (string.IsNullOrEmpty(conn.Value.Database)) return new List<string>();
+                    database = new[] { conn.Value.Database };
+                }
+            }
+
+            var databaseIn = string.Join(",", database.Select(a => _commonUtils.FormatSql("{0}", a)));
+            var sql = $@"
+select 
+a.table_name 'table'
+from information_schema.tables a
+where lower(a.table_schema) in ({databaseIn})";
+            var ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
+            var result = new List<string>();
+            if (ds == null) return result;
+            result.AddRange(ds.Select(z => z[0] as string));
+            return result;
+        }
         public List<DbEnumInfo> GetEnumsByDatabase(params string[] database)
         {
             return new List<DbEnumInfo>();

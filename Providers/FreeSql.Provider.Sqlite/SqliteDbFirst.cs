@@ -380,6 +380,26 @@ from {db}.sqlite_master where type='table'{(tbname == null ? "" : $" and {(ignor
             return loc1;
         }
 
+        public List<string> GetTablesNameByDatabase(params string[] database)
+        {
+            if (database == null || database.Any() == false)
+                database = GetDatabases().ToArray();
+            if (database.Any() == false) return new List<string>();
+            var result = new List<string>();
+            foreach (var db in database)
+            {
+                var sql = $@"
+select 
+tbl_name
+from {db}.sqlite_master where type='table'";
+                var ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
+                if (ds == null) continue;
+                result.AddRange(ds.Select(z => z[0] as string));
+            }
+            return result;
+        }
+
+
         public List<DbEnumInfo> GetEnumsByDatabase(params string[] database)
         {
             return new List<DbEnumInfo>();

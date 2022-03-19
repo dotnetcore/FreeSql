@@ -519,6 +519,49 @@ use [{olddatabase}];
             return tables;
         }
 
+
+        public List<string> GetTablesNameByDatabase(params string[] database)
+        {
+            var olddatabase = "";
+            using (var conn = _orm.Ado.MasterPool.Get(TimeSpan.FromSeconds(5)))
+            {
+                olddatabase = conn.Value.Database;
+            }
+            
+            string[] dbs = database == null || database.Any() == false ? new[] { olddatabase } : database;
+
+            var result = new List<string>();
+            foreach (var db in dbs)
+            {
+                if (string.IsNullOrEmpty(db)) continue;
+                var sql = $@"use [{db}];
+select * from (
+select 
+a.name 'name'
+from sys.tables a
+inner join sys.schemas b on b.schema_id = a.schema_id
+where not(b.name = 'dbo' and a.name = 'sysdiagrams')
+union all
+select
+a.name 'name'
+from sys.views a
+inner join sys.schemas b on b.schema_id = a.schema_id
+union all
+select 
+a.name 'name'
+from sys.procedures a
+inner join sys.schemas b on b.schema_id = a.schema_id
+where a.type = 'P' and charindex('diagram', a.name) = 0
+) ft_dbf
+order by [name] desc;
+use [{olddatabase}];
+";
+                var ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
+                if (ds == null) return result;
+                result.AddRange(ds.Select(z => z[0] as string));
+            }
+            return result;
+        }
         public List<DbEnumInfo> GetEnumsByDatabase(params string[] database)
         {
             return new List<DbEnumInfo>();

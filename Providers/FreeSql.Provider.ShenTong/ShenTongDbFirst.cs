@@ -504,6 +504,46 @@ where {loc8.ToString().Replace("a.table_name", "a.pktable_schem || '.' || a.pkta
             return tables;
         }
 
+        public List<string> GetTablesNameByDatabase(params string[] database)
+        {
+            var olddatabase = "";
+            using (var conn = _orm.Ado.MasterPool.Get(TimeSpan.FromSeconds(5)))
+            {
+                olddatabase = conn.Value.Database;
+            }
+
+            string[] dbs = database == null || database.Any() == false ? new[] { olddatabase } : database;
+
+            var result = new List<string>();
+            foreach (var db in dbs)
+            {
+                if (string.IsNullOrEmpty(db) || string.Compare(db, olddatabase, true) != 0) continue;
+                var sql = $@"
+select
+a.relname
+from sys_class a
+
+where 
+a.relkind in ('r') 
+and 
+a.relname not in ('PUBLIC.SPATIAL_REF_SYS')
+
+union all
+
+select
+
+a.relname,
+from sys_class a
+where 
+a.relkind in ('m','v') 
+and a.relname not in ('PUBLIC.GEOGRAPHY_COLUMNS','PUBLIC.GEOMETRY_COLUMNS','PUBLIC.RASTER_COLUMNS','PUBLIC.RASTER_OVERVIEWS','PUBLIC.DBA_JOBS')
+";
+                var ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
+                if (ds == null) return result;
+                result.AddRange(ds.Select(z => z[0] as string));
+            }
+            return result;
+        }
         public List<DbEnumInfo> GetEnumsByDatabase(params string[] database) => new List<DbEnumInfo>();
     }
 }

@@ -577,6 +577,36 @@ and {(ignoreCase ? "lower(a.owner)" : "a.owner")} in ({databaseIn}) and {loc8}
             return loc1;
         }
 
+        public List<string> GetTablesNameByDatabase(params string[] database)
+        {
+            if (database == null || database.Any() == false)
+            {
+                var userUsers = _orm.Ado.ExecuteScalar(" select username from user_users")?.ToString();
+                if (string.IsNullOrEmpty(userUsers)) return new List<string>();
+                database = new[] { userUsers };
+            }
+
+            var databaseIn = string.Join(",", database.Select(a => _commonUtils.FormatSql("{0}", a)));
+            var result = new List<string>();
+            var sql = $@"
+select
+a.table_name
+from all_tables a
+
+where lower(a.owner) in ({databaseIn})
+
+UNION ALL
+
+select
+a.view_name
+from all_views a
+where lower(a.owner) in ({databaseIn})
+";
+            var ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
+            if (ds == null) return result;
+            result.AddRange(ds.Select(z => z[0] as string));
+            return result;
+        }
         public List<DbEnumInfo> GetEnumsByDatabase(params string[] database)
         {
             return new List<DbEnumInfo>();

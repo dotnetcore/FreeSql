@@ -493,6 +493,43 @@ where {loc8.ToString().Replace("a.table_name", "ns.nspname || '.' || b.relname")
             return tables;
         }
 
+        public List<string> GetTablesNameByDatabase(params string[] database)
+        {
+            var olddatabase = "";
+            using (var conn = _orm.Ado.MasterPool.Get(TimeSpan.FromSeconds(5)))
+            {
+                olddatabase = conn.Value.Database;
+            }
+            string[] dbs = database == null || database.Any() == false ? new[] { olddatabase } : database;
+
+            var result = new List<string>();
+            foreach (var db in dbs)
+            {
+                if (string.IsNullOrEmpty(db) || string.Compare(db, olddatabase, true) != 0) continue;
+
+                var sql = $@"select
+a.tablename 
+from sys_tables a
+where 
+a.schemaname not in ('SYS_CATALOG', 'INFORMATION_SCHEMA', 'TOPOLOGY', 'SYSAUDIT', 'SYSLOGICAL', 'SYS_TEMP_1', 'SYS_TOAST', 'SYS_TOAST_TEMP_1', 'XLOG_RECORD_READ')
+and 
+a.tablename not in ('PUBLIC.SPATIAL_REF_SYS')
+
+union all
+
+select
+a.relname
+from sys_class a
+where a.relkind in ('m','v') 
+and
+a.relname not in ('PUBLIC.GEOGRAPHY_COLUMNS','PUBLIC.GEOMETRY_COLUMNS','PUBLIC.RASTER_COLUMNS','PUBLIC.RASTER_OVERVIEWS')
+;";
+                var ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
+                if (ds == null) return result;
+                result.AddRange(ds.Select(z => z[0] as string));
+            }
+            return result;
+        }
         public class GetEnumsByDatabaseQueryInfo
         {
             public string name { get; set; }

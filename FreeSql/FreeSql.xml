@@ -3774,6 +3774,13 @@
             <param name="database"></param>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.IDbFirst.GetTablesNameByDatabase(System.String[])">
+            <summary>
+            获取指定数据库的表名
+            </summary>
+            <param name="database"></param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.IDbFirst.GetTableByName(System.String,System.Boolean)">
             <summary>
             获取指定单表信息，包括列详情、主键、唯一键、索引、备注

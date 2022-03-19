@@ -383,6 +383,17 @@ where {0}", loc8);
             return loc1;
         }
 
+        public List<string> GetTablesNameByDatabase(params string[] database)
+        {
+            var sql = @"
+                select
+                trim(rdb$relation_name) as name
+                from rdb$relations
+                where rdb$system_flag=0;";
+            var ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
+            if (ds == null) return new List<string>();
+            return ds.Select(z => z[0] as string).ToList();
+        }
         public List<DbEnumInfo> GetEnumsByDatabase(params string[] database)
         {
             return new List<DbEnumInfo>();
