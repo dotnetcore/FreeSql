@@ -31,7 +31,7 @@ namespace FreeSql.ClickHouse
                 column.DbTypeText = column.DbTypeTextFull;
                    //(?<=\()(\S +)(?=\))
             }
-            switch (column.DbTypeText.ToLower())
+            switch (column.DbTypeText?.ToLower())
             {
                 case "bit":
                 case "tinyint":
@@ -86,7 +86,7 @@ namespace FreeSql.ClickHouse
                 case "varchar": return DbType.String;
                 default:
                     {
-                        if (column.DbTypeText.ToLower().Contains("datetime")) 
+                        if (column.DbTypeText?.ToLower().Contains("datetime") == true) 
                             return DbType.DateTime;
                         return DbType.String;
                     }

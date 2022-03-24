@@ -23,6 +23,27 @@ namespace FreeSql.Tests.MsAccess
         }
 
         [Fact]
+        public void InsertDictionary()
+        {
+            var fsql = g.msaccess;
+            Dictionary<string, object> dic = new Dictionary<string, object>();
+            dic.Add("id", 1);
+            dic.Add("name", "xxxx");
+            var diclist = new List<Dictionary<string, object>>();
+            diclist.Add(dic);
+            diclist.Add(new Dictionary<string, object>
+            {
+                ["id"] = 2,
+                ["name"] = "yyyy"
+            });
+
+            var sql1 = fsql.Insert(dic).AsTable("table1").ToSql();
+            Assert.Equal(@"INSERT INTO [table1]([id], [name]) VALUES(1, 'xxxx')", sql1);
+            var sql2 = fsql.Insert(diclist).AsTable("table1").ToSql();
+            Assert.Equal(@"INSERT INTO [table1]([id], [name]) VALUES(1, 'xxxx'), (2, 'yyyy')", sql2);
+        }
+
+        [Fact]
         public void AppendData()
         {
             var items = new List<Topic>();

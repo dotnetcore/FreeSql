@@ -29,10 +29,10 @@ namespace FreeSql.Odbc.KingbaseES
         OdbcType GetSqlDbType(DbColumnInfo column)
         {
             var dbtype = column.DbTypeText;
-            var isarray = dbtype.EndsWith("[]");
+            var isarray = dbtype?.EndsWith("[]") == true;
             if (isarray) dbtype = dbtype.Remove(dbtype.Length - 2);
             var ret = OdbcType.VarChar;
-            switch (dbtype.ToLower().TrimStart('_'))
+            switch (dbtype?.ToLower().TrimStart('_'))
             {
                 case "tinyint": ret = OdbcType.TinyInt; break;
                 case "int2": ret = OdbcType.SmallInt; break;

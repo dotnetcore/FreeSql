@@ -49,10 +49,10 @@ namespace FreeSql.Odbc.PostgreSQL
         OdbcType GetOdbcType(DbColumnInfo column)
         {
             var dbtype = column.DbTypeText;
-            var isarray = dbtype.EndsWith("[]");
+            var isarray = dbtype?.EndsWith("[]") == true;
             if (isarray) dbtype = dbtype.Remove(dbtype.Length - 2);
             OdbcType ret = OdbcType.VarChar;
-            switch (dbtype.ToLower().TrimStart('_'))
+            switch (dbtype?.ToLower().TrimStart('_'))
             {
                 case "int2": ret = OdbcType.SmallInt; break;
                 case "int4": ret = OdbcType.Int; break;

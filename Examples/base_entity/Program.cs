@@ -141,6 +141,22 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+            Dictionary<string, object> dic = new Dictionary<string, object>();
+            dic.Add("id", 1);
+            dic.Add("name", "xxxx");
+            var diclist = new List<Dictionary<string, object>>();
+            diclist.Add(dic);
+            diclist.Add(new Dictionary<string, object>
+            {
+                ["id"] = 2,
+                ["name"] = "yyyy"
+            });
+
+            var sqss = fsql.Insert(dic).AsTable("table1").ToSql();
+            var sqss2 = fsql.Insert(diclist).AsTable("table1").ToSql();
+            sqss = fsql.Insert(dic).AsTable("table1").NoneParameter(false).ToSql();
+            sqss2 = fsql.Insert(diclist).AsTable("table1").NoneParameter(false).ToSql();
+
             for (var a = 0; a < 10000; a++)
                 fsql.Select<User1>().First();
 

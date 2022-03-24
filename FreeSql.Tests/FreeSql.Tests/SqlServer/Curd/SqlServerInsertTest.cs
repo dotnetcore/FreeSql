@@ -33,6 +33,31 @@ namespace FreeSql.Tests.SqlServer
         }
 
         [Fact]
+        public void InsertDictionary()
+        {
+            var fsql = g.sqlserver;
+            Dictionary<string, object> dic = new Dictionary<string, object>();
+            dic.Add("id", 1);
+            dic.Add("name", "xxxx");
+            var diclist = new List<Dictionary<string, object>>();
+            diclist.Add(dic);
+            diclist.Add(new Dictionary<string, object>
+            {
+                ["id"] = 2,
+                ["name"] = "yyyy"
+            });
+
+            var sql1 = fsql.Insert(dic).AsTable("table1").ToSql();
+            Assert.Equal(@"INSERT INTO [table1]([id], [name]) VALUES(@id_0, @name_0)", sql1);
+            var sql2 = fsql.Insert(diclist).AsTable("table1").ToSql();
+            Assert.Equal(@"INSERT INTO [table1]([id], [name]) VALUES(@id_0, @name_0), (@id_1, @name_1)", sql2);
+            var sql3 = fsql.Insert(dic).AsTable("table1").NoneParameter().ToSql();
+            Assert.Equal(@"INSERT INTO [table1]([id], [name]) VALUES(1, N'xxxx')", sql3);
+            var sql4 = fsql.Insert(diclist).AsTable("table1").NoneParameter().ToSql();
+            Assert.Equal(@"INSERT INTO [table1]([id], [name]) VALUES(1, N'xxxx'), (2, N'yyyy')", sql4);
+        }
+
+        [Fact]
         public void AppendData()
         {
             var items = new List<Topic>();

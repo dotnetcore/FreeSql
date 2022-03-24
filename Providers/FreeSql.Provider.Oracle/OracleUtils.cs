@@ -18,17 +18,18 @@ namespace FreeSql.Oracle
         public override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, ColumnInfo col, Type type, object value)
         {
             if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
-            var dbtype = (OracleDbType)_orm.CodeFirst.GetDbInfo(type)?.type;
+            var dbtype = (OracleDbType?)_orm.CodeFirst.GetDbInfo(type)?.type;
             if (dbtype == OracleDbType.Boolean)
             {
                 if (value == null) value = null;
                 else value = (bool)value == true ? 1 : 0;
                 dbtype = OracleDbType.Int16;
             }
-            var ret = new OracleParameter { ParameterName = QuoteParamterName(parameterName), OracleDbType = dbtype, Value = value };
+            var ret = new OracleParameter { ParameterName = QuoteParamterName(parameterName), Value = value };
+            if (dbtype != null) ret.OracleDbType = dbtype.Value;
             if (col != null)
             {
-                var dbtype2 = (OracleDbType)_orm.DbFirst.GetDbType(new DatabaseModel.DbColumnInfo { DbTypeTextFull = col.Attribute.DbType.Replace("NOT NULL", "").Replace(" NULL", "").Trim(), DbTypeText = col.DbTypeText });
+                var dbtype2 = (OracleDbType)_orm.DbFirst.GetDbType(new DatabaseModel.DbColumnInfo { DbTypeTextFull = col.Attribute.DbType?.Replace("NOT NULL", "").Replace(" NULL", "").Trim(), DbTypeText = col.DbTypeText });
                 switch (dbtype2)
                 {
                     case OracleDbType.Char:

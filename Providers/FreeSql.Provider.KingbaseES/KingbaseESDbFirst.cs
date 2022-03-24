@@ -29,10 +29,10 @@ namespace FreeSql.KingbaseES
         KdbndpDbType GetSqlDbType(DbColumnInfo column)
         {
             var dbtype = column.DbTypeText;
-            var isarray = dbtype.EndsWith("[]");
+            var isarray = dbtype?.EndsWith("[]") == true;
             if (isarray) dbtype = dbtype.Remove(dbtype.Length - 2);
             var ret = KdbndpDbType.Unknown;
-            switch (dbtype.ToLower().TrimStart('_'))
+            switch (dbtype?.ToLower().TrimStart('_'))
             {
                 case "tinyint": ret = KdbndpDbType.Smallint; break;
                 case "int2": ret = KdbndpDbType.Smallint; break;

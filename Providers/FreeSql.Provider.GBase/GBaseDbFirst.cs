@@ -28,7 +28,7 @@ namespace FreeSql.GBase
         {
             var dbtype = column.DbTypeText;
             OdbcType ret = OdbcType.VarChar;
-            switch (dbtype.ToLower().TrimStart('_'))
+            switch (dbtype?.ToLower().TrimStart('_'))
             {
                 case "int8":
                 case "serial8":

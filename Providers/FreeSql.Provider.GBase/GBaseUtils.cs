@@ -19,7 +19,7 @@ namespace FreeSql.GBase
         {
             if (string.IsNullOrEmpty(parameterName)) parameterName = "?";
             var ret = new OdbcParameter { ParameterName = "?", Value = value };
-            var dbtype = (OdbcType)_orm.CodeFirst.GetDbInfo(type)?.type;
+            var dbtype = (OdbcType?)_orm.CodeFirst.GetDbInfo(type)?.type;
             if (col != null)
             {
                 var dbtype2 = (OdbcType)_orm.DbFirst.GetDbType(new DatabaseModel.DbColumnInfo { DbTypeText = col.DbTypeText, DbTypeTextFull = col.Attribute.DbType, MaxLength = col.DbSize });
@@ -35,7 +35,7 @@ namespace FreeSql.GBase
                         break;
                 }
             }
-            ret.OdbcType = dbtype;
+            ret.OdbcType = dbtype ?? default;
             _params?.Add(ret);
             return ret;
         }

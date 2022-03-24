@@ -27,7 +27,7 @@ namespace FreeSql.Dameng
         public int GetDbType(DbColumnInfo column) => (int)GetSqlDbType(column);
         DmDbType GetSqlDbType(DbColumnInfo column)
         {
-            var dbfull = column.DbTypeTextFull.ToLower();
+            var dbfull = column.DbTypeTextFull?.ToLower();
             switch (dbfull)
             {
                 case "number(1)": return DmDbType.Bit;
@@ -55,7 +55,7 @@ namespace FreeSql.Dameng
 
                 case "char(36)": return DmDbType.Char;
             }
-            switch (column.DbTypeText.ToLower())
+            switch (column.DbTypeText?.ToLower())
             {
                 case "bit":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["number(1)"]);
@@ -157,7 +157,7 @@ namespace FreeSql.Dameng
                     return DmDbType.Double;
                 case "rowid":
                 default:
-                    _dicDbToCs.TryAdd(dbfull, _dicDbToCs["nvarchar2(255)"]);
+                    if (dbfull != null) _dicDbToCs.TryAdd(dbfull, _dicDbToCs["nvarchar2(255)"]);
                     return DmDbType.VarChar;
             }
             throw new NotImplementedException($"未实现 {column.DbTypeTextFull} 类型映射");

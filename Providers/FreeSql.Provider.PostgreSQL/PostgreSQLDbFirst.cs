@@ -55,10 +55,10 @@ namespace FreeSql.PostgreSQL
         NpgsqlDbType GetNpgsqlDbType(DbColumnInfo column)
         {
             var dbtype = column.DbTypeText;
-            var isarray = dbtype.EndsWith("[]");
+            var isarray = dbtype?.EndsWith("[]") == true;
             if (isarray) dbtype = dbtype.Remove(dbtype.Length - 2);
             NpgsqlDbType ret = NpgsqlDbType.Unknown;
-            switch (dbtype.ToLower().TrimStart('_'))
+            switch (dbtype?.ToLower().TrimStart('_'))
             {
                 case "int2": ret = NpgsqlDbType.Smallint; break;
                 case "int4": ret = NpgsqlDbType.Integer; break;

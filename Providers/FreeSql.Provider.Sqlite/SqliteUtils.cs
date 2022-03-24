@@ -23,7 +23,7 @@ namespace FreeSql.Sqlite
         public override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, ColumnInfo col, Type type, object value)
         {
             if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
-            var dbtype = (DbType)_orm.CodeFirst.GetDbInfo(type)?.type;
+            var dbtype = (DbType?)_orm.CodeFirst.GetDbInfo(type)?.type;
             switch (dbtype)
             {
                 case DbType.Guid:
@@ -43,7 +43,7 @@ namespace FreeSql.Sqlite
             var ret = new SQLiteParameter();
 #endif
             ret.ParameterName = QuoteParamterName(parameterName);
-            ret.DbType = dbtype;
+            ret.DbType = dbtype ?? default;
             ret.Value = value;
             _params?.Add(ret);
             return ret;

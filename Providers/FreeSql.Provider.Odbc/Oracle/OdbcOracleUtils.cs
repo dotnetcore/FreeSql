@@ -18,7 +18,7 @@ namespace FreeSql.Odbc.Oracle
         public override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, ColumnInfo col, Type type, object value)
         {
             if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
-            var dbtype = (OdbcType)_orm.CodeFirst.GetDbInfo(type)?.type;
+            var dbtype = (OdbcType?)_orm.CodeFirst.GetDbInfo(type)?.type;
             switch (dbtype)
             {
                 case OdbcType.Bit:
@@ -36,7 +36,7 @@ namespace FreeSql.Odbc.Oracle
                     value = string.Concat(value);
                     break;
             }
-            var ret = new OdbcParameter { ParameterName = QuoteParamterName(parameterName), OdbcType = dbtype, Value = value };
+            var ret = new OdbcParameter { ParameterName = QuoteParamterName(parameterName), OdbcType = dbtype ?? default, Value = value };
             _params?.Add(ret);
             return ret;
         }
@@ -44,7 +44,7 @@ namespace FreeSql.Odbc.Oracle
         public override DbParameter[] GetDbParamtersByObject(string sql, object obj) =>
             Utils.GetDbParamtersByObject<OdbcParameter>(sql, obj, null, (name, type, value) =>
             {
-                var dbtype = (OdbcType)_orm.CodeFirst.GetDbInfo(type)?.type;
+                var dbtype = (OdbcType?)_orm.CodeFirst.GetDbInfo(type)?.type;
                 switch (dbtype)
                 {
                     case OdbcType.Bit:
@@ -62,7 +62,7 @@ namespace FreeSql.Odbc.Oracle
                         value = string.Concat(value);
                         break;
                 }
-                var ret = new OdbcParameter { ParameterName = $":{name}", OdbcType = dbtype, Value = value };
+                var ret = new OdbcParameter { ParameterName = $":{name}", OdbcType = dbtype ?? default, Value = value };
                 return ret;
             });
 

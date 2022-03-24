@@ -20,8 +20,8 @@ namespace FreeSql.ClickHouse
         public override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, ColumnInfo col, Type type, object value)
         {
             if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
-            var dbtype = (DbType)_orm.CodeFirst.GetDbInfo(type)?.type;
-            DbParameter ret = new ClickHouseDbParameter { ParameterName = parameterName, DbType = dbtype, Value = value };//QuoteParamterName(parameterName)
+            var dbtype = (DbType?)_orm.CodeFirst.GetDbInfo(type)?.type;
+            DbParameter ret = new ClickHouseDbParameter { ParameterName = parameterName, DbType = dbtype ?? default, Value = value };//QuoteParamterName(parameterName)
             if (col != null)
             {
                 var dbtype2 = (DbType)_orm.DbFirst.GetDbType(new DatabaseModel.DbColumnInfo { DbTypeText = col.DbTypeText, DbTypeTextFull = col.Attribute.DbType, MaxLength = col.DbSize });
@@ -40,8 +40,6 @@ namespace FreeSql.ClickHouse
                     ret.Value = (bool)value ? 1 : 0;
                 }
             }
-
-            ret.DbType = dbtype;
             _params?.Add(ret);
             return ret;
         }
@@ -52,9 +50,7 @@ namespace FreeSql.ClickHouse
                 DbParameter ret = new ClickHouseDbParameter { ParameterName = $"?{name}", Value = value };
                 var tp = _orm.CodeFirst.GetDbInfo(type)?.type;
                 if (tp != null)
-                {
                     ret.DbType = (DbType)tp.Value;
-                }
                 return ret;
             });
 
@@ -64,13 +60,9 @@ namespace FreeSql.ClickHouse
             if (string.IsNullOrWhiteSpace(col?.Attribute.RewriteSql) == false)
                 return string.Format(col.Attribute.RewriteSql, sql);
             if (Regex.IsMatch(sql, @"\{\{[\w\d]+_+\d:\{\d\}\}\}"))
-            {
                 return string.Format(sql, col.Attribute.DbType);
-            }
             else
-            {
                 return sql;
-            }
         }
 
         public override string FormatSql(string sql, params object[] args) => sql?.FormatClickHouse(args);

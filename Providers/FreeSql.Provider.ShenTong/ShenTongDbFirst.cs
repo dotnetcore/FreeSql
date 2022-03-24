@@ -30,10 +30,10 @@ namespace FreeSql.ShenTong
         OscarDbType GetOscarDbType(DbColumnInfo column)
         {
             var dbtype = column.DbTypeText;
-            var isarray = dbtype.EndsWith("[]");
+            var isarray = dbtype?.EndsWith("[]") == true;
             if (isarray) dbtype = dbtype.Remove(dbtype.Length - 2);
             OscarDbType ret = OscarDbType.Oidvector;
-            switch (dbtype.ToLower().TrimStart('_'))
+            switch (dbtype?.ToLower().TrimStart('_'))
             {
                 case "int2": ret = OscarDbType.SmallInt; break;
                 case "int4": ret = OscarDbType.Integer; break;

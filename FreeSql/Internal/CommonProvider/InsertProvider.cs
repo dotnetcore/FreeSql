@@ -9,6 +9,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using System.Collections;
 
 namespace FreeSql.Internal.CommonProvider
 {
@@ -115,6 +116,7 @@ namespace FreeSql.Internal.CommonProvider
         {
             if (source != null)
             {
+                GetDictionaryTableInfo(source, _orm, ref _table);
                 AuditDataValue(this, source, _orm, _table, _auditValueChangedDict);
                 _source.Add(source);
             }
@@ -124,6 +126,7 @@ namespace FreeSql.Internal.CommonProvider
         {
             if (source != null)
             {
+                GetDictionaryTableInfo(source.FirstOrDefault(), _orm, ref _table);
                 AuditDataValue(this, source, _orm, _table, _auditValueChangedDict);
                 _source.AddRange(source);
             }
@@ -134,11 +137,48 @@ namespace FreeSql.Internal.CommonProvider
             if (source != null)
             {
                 source = source.Where(a => a != null).ToList();
+                GetDictionaryTableInfo(source.FirstOrDefault(), _orm, ref _table);
                 AuditDataValue(this, source, _orm, _table, _auditValueChangedDict);
                 _source.AddRange(source);
 
             }
             return this;
+        }
+        public static void GetDictionaryTableInfo(T1 source, IFreeSql orm, ref TableInfo table)
+        {
+            if (table == null && typeof(T1) == typeof(Dictionary<string, object>))
+            {
+                var dic = source as Dictionary<string, object>;
+                table = new TableInfo();
+                table.Type = typeof(Dictionary<string, object>);
+                table.CsName = dic.TryGetValue("", out var tryval) ? string.Concat(tryval) : "";
+                table.DbName = table.CsName;
+                table.DisableSyncStructure = true;
+                table.IsDictionaryType = true;
+                var colpos = new List<ColumnInfo>();
+                foreach (var kv in dic)
+                {
+                    var colName = kv.Key;
+                    if (orm.CodeFirst.IsSyncStructureToLower) colName = colName.ToLower();
+                    if (orm.CodeFirst.IsSyncStructureToUpper) colName = colName.ToUpper();
+                    var col = new ColumnInfo
+                    {
+                        CsName = kv.Key,
+                        Table = table,
+                        Attribute = new DataAnnotations.ColumnAttribute
+                        {
+                            Name = colName,
+                            MapType = typeof(object)
+                        },
+                        CsType = typeof(object)
+                    };
+                    table.Columns.Add(colName, col);
+                    table.ColumnsByCs.Add(kv.Key, col);
+                    colpos.Add(col);
+                }
+                table.ColumnsByPosition = colpos.ToArray();
+                colpos.Clear();
+            }
         }
         public static void AuditDataValue(object sender, IEnumerable<T1> data, IFreeSql orm, TableInfo table, Dictionary<string, bool> changedDict)
         {
@@ -148,7 +188,7 @@ namespace FreeSql.Internal.CommonProvider
         }
         public static void AuditDataValue(object sender, T1 data, IFreeSql orm, TableInfo table, Dictionary<string, bool> changedDict)
         {
-            if (data == null) return;
+            if (data == null || table == null) return;
             if (typeof(T1) == typeof(object) && new[] { table.Type, table.TypeLazy }.Contains(data.GetType()) == false)
                 throw new Exception($"操作的数据类型({data.GetType().DisplayCsharp()}) 与 AsType({table.Type.DisplayCsharp()}) 不一致，请检查。");
             foreach (var col in table.Columns.Values)
@@ -505,18 +545,24 @@ namespace FreeSql.Internal.CommonProvider
 
         protected string TableRuleInvoke()
         {
-            if (_tableRule == null) return _table.DbName;
-            var newname = _tableRule(_table.DbName);
-            if (newname == _table.DbName) return _table.DbName;
-            if (string.IsNullOrEmpty(newname)) return _table.DbName;
+            var tbname = _table?.DbName ?? "";
+            if (_tableRule == null) return tbname;
+            var newname = _tableRule(tbname);
+            if (newname == tbname) return tbname;
+            if (string.IsNullOrEmpty(newname)) return tbname;
             if (_orm.CodeFirst.IsSyncStructureToLower) newname = newname.ToLower();
             if (_orm.CodeFirst.IsSyncStructureToUpper) newname = newname.ToUpper();
-            if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(_table.Type, newname);
+            if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(_table?.Type, newname);
             return newname;
         }
         public IInsert<T1> AsTable(Func<string, string> tableRule)
         {
             _tableRule = tableRule;
+            return this;
+        }
+        public IInsert<T1> AsTable(string tableName)
+        {
+            _tableRule = (oldname) => tableName;
             return this;
         }
         public IInsert<T1> AsType(Type entityType)

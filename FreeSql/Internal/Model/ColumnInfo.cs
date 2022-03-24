@@ -31,6 +31,7 @@ namespace FreeSql.Internal.Model
         /// <returns></returns>
         public object GetDbValue(object obj)
         {
+            if (Table.IsDictionaryType) return (obj as Dictionary<string, object>)?.TryGetValue(CsName, out var tryval) == true ? tryval : null;
             var dbval = Table.GetPropertyValue(obj, CsName);
             //if (ConversionCsToDb != null) dbval = ConversionCsToDb(dbval);
             if (Attribute.MapType != CsType) dbval = Utils.GetDataReaderValue(Attribute.MapType, dbval);
@@ -40,7 +41,11 @@ namespace FreeSql.Internal.Model
         /// 获取 obj.CsName 属性原始值（不经过 MapType）
         /// </summary>
         /// <param name="obj"></param>
-        public object GetValue(object obj) => Table.GetPropertyValue(obj, CsName);
+        public object GetValue(object obj)
+        {
+            if (Table.IsDictionaryType) return (obj as Dictionary<string, object>)?.TryGetValue(CsName, out var tryval) == true ? tryval : null;
+            return Table.GetPropertyValue(obj, CsName);
+        }
         /// <summary>
         /// 设置 obj.CsName 属性值
         /// </summary>
