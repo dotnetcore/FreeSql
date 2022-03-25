@@ -88,14 +88,14 @@ namespace FreeSql.Internal.CommonProvider
         }
         public static void AuditDataValue(object sender, T1 data, IFreeSql orm, TableInfo table, Dictionary<string, bool> changedDict)
         {
-            if (data == null) return;
+            if (data == null || table == null) return;
             if (typeof(T1) == typeof(object) && new[] { table.Type, table.TypeLazy }.Contains(data.GetType()) == false)
                 throw new Exception($"操作的数据类型({data.GetType().DisplayCsharp()}) 与 AsType({table.Type.DisplayCsharp()}) 不一致，请检查。");
             if (orm.Aop.AuditValueHandler == null) return;
             foreach (var col in table.Columns.Values)
             {
                 object val = col.GetValue(data);
-                var auditArgs = new Aop.AuditValueEventArgs(Aop.AuditValueType.InsertOrUpdate, col, table.Properties[col.CsName], val);
+                var auditArgs = new Aop.AuditValueEventArgs(Aop.AuditValueType.InsertOrUpdate, col, table.Properties.TryGetValue(col.CsName, out var tryprop) ? tryprop : null, val);
                 orm.Aop.AuditValueHandler(sender, auditArgs);
                 if (auditArgs.ValueIsChanged)
                 {

@@ -51,7 +51,17 @@ namespace FreeSql.Internal.Model
         /// </summary>
         /// <param name="obj"></param>
         /// <param name="val"></param>
-        public void SetValue(object obj, object val) => Table.SetPropertyValue(obj, CsName, Utils.GetDataReaderValue(CsType, val));
+        public void SetValue(object obj, object val)
+        {
+            if (Table.IsDictionaryType)
+            {
+                var dic = obj as Dictionary<string, object>;
+                if (dic.ContainsKey(CsName)) dic[CsName] = val;
+                else dic.Add(CsName, val);
+                return;
+            }
+            Table.SetPropertyValue(obj, CsName, Utils.GetDataReaderValue(CsType, val));
+        }
 
 
 

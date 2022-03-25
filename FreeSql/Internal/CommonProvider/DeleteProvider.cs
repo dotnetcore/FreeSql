@@ -147,6 +147,11 @@ namespace FreeSql.Internal.CommonProvider
             _tableRule = tableRule;
             return this;
         }
+        public IDelete<T1> AsTable(string tableName)
+        {
+            _tableRule = (oldname) => tableName;
+            return this;
+        }
         public IDelete<T1> AsType(Type entityType)
         {
             if (entityType == typeof(object)) throw new Exception("IDelete.AsType 参数不支持指定为 object");

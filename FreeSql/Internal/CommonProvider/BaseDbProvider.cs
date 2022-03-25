@@ -15,7 +15,11 @@ namespace FreeSql.Internal.CommonProvider
 
         public ISelect<T1> Select<T1>() where T1 : class => CreateSelectProvider<T1>(null);
         public ISelect<T1> Select<T1>(object dywhere) where T1 : class => CreateSelectProvider<T1>(dywhere);
-        public IInsert<T1> Insert<T1>() where T1 : class => CreateInsertProvider<T1>();
+        public IInsert<T1> Insert<T1>() where T1 : class
+        {
+            if (typeof(T1) == typeof(Dictionary<string, object>)) throw new Exception("请使用 fsql.InsertDict(dict) 方法插入字典数据");
+            return CreateInsertProvider<T1>();
+        }
         public IInsert<T1> Insert<T1>(T1 source) where T1 : class => this.Insert<T1>().AppendData(source);
         public IInsert<T1> Insert<T1>(T1[] source) where T1 : class => this.Insert<T1>().AppendData(source);
         public IInsert<T1> Insert<T1>(List<T1> source) where T1 : class => this.Insert<T1>().AppendData(source);

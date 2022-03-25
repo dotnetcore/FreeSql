@@ -141,6 +141,11 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+            fsql.Aop.AuditValue += new EventHandler<FreeSql.Aop.AuditValueEventArgs>((_, e) =>
+            {
+                
+            });
+
             Dictionary<string, object> dic = new Dictionary<string, object>();
             dic.Add("id", 1);
             dic.Add("name", "xxxx");
@@ -152,10 +157,31 @@ namespace base_entity
                 ["name"] = "yyyy"
             });
 
-            var sqss = fsql.Insert(dic).AsTable("table1").ToSql();
-            var sqss2 = fsql.Insert(diclist).AsTable("table1").ToSql();
-            sqss = fsql.Insert(dic).AsTable("table1").NoneParameter(false).ToSql();
-            sqss2 = fsql.Insert(diclist).AsTable("table1").NoneParameter(false).ToSql();
+            var sqss = fsql.InsertDict(dic).AsTable("table1").ToSql();
+            var sqss2 = fsql.InsertDict(diclist).AsTable("table1").ToSql();
+            sqss = fsql.InsertDict(dic).AsTable("table1").NoneParameter(false).ToSql();
+            sqss2 = fsql.InsertDict(diclist).AsTable("table1").NoneParameter(false).ToSql();
+
+            var sqlupd1 = fsql.UpdateDict(dic).AsTable("table1").WherePrimary("id").ToSql();
+            var sqlupd2 = fsql.UpdateDict(diclist).AsTable("table1").WherePrimary("id").ToSql();
+            var sqlupd11 = fsql.UpdateDict(dic).AsTable("table1").WherePrimary("id").NoneParameter(false).ToSql();
+            var sqlupd22 = fsql.UpdateDict(diclist).AsTable("table1").WherePrimary("id").NoneParameter(false).ToSql();
+
+            var sqldel1 = fsql.DeleteDict(dic).AsTable("table1").ToSql();
+            var sqldel2 = fsql.DeleteDict(diclist).AsTable("table1").ToSql();
+            diclist[1]["title"] = "newtitle";
+            var sqldel3 = fsql.DeleteDict(diclist).AsTable("table1").ToSql();
+            diclist.Clear();
+            diclist.Add(new Dictionary<string, object>
+            {
+                ["id"] = 1
+            });
+            diclist.Add(new Dictionary<string, object>
+            {
+                ["id"] = 2
+            });
+            var sqldel4 = fsql.DeleteDict(diclist).AsTable("table1").ToSql();
+
 
             for (var a = 0; a < 10000; a++)
                 fsql.Select<User1>().First();

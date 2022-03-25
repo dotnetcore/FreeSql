@@ -45,13 +45,13 @@ namespace FreeSql.Tests.MySql
                 ["name"] = "yyyy"
             });
 
-            var sql1 = fsql.Insert(dic).AsTable("table1").ToSql();
+            var sql1 = fsql.InsertDict(dic).AsTable("table1").ToSql();
             Assert.Equal(@"INSERT INTO `table1`(`id`, `name`) VALUES(?id_0, ?name_0)", sql1);
-            var sql2 = fsql.Insert(diclist).AsTable("table1").ToSql();
+            var sql2 = fsql.InsertDict(diclist).AsTable("table1").ToSql();
             Assert.Equal(@"INSERT INTO `table1`(`id`, `name`) VALUES(?id_0, ?name_0), (?id_1, ?name_1)", sql2);
-            var sql3 = fsql.Insert(dic).AsTable("table1").NoneParameter().ToSql();
+            var sql3 = fsql.InsertDict(dic).AsTable("table1").NoneParameter().ToSql();
             Assert.Equal(@"INSERT INTO `table1`(`id`, `name`) VALUES(1, 'xxxx')", sql3);
-            var sql4 = fsql.Insert(diclist).AsTable("table1").NoneParameter().ToSql();
+            var sql4 = fsql.InsertDict(diclist).AsTable("table1").NoneParameter().ToSql();
             Assert.Equal(@"INSERT INTO `table1`(`id`, `name`) VALUES(1, 'xxxx'), (2, 'yyyy')", sql4);
         }
 

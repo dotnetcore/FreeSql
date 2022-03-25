@@ -37,9 +37,9 @@ namespace FreeSql.Tests.MsAccess
                 ["name"] = "yyyy"
             });
 
-            var sql1 = fsql.Insert(dic).AsTable("table1").ToSql();
+            var sql1 = fsql.InsertDict(dic).AsTable("table1").ToSql();
             Assert.Equal(@"INSERT INTO [table1]([id], [name]) VALUES(1, 'xxxx')", sql1);
-            var sql2 = fsql.Insert(diclist).AsTable("table1").ToSql();
+            var sql2 = fsql.InsertDict(diclist).AsTable("table1").ToSql();
             Assert.Equal(@"INSERT INTO [table1]([id], [name]) VALUES(1, 'xxxx'), (2, 'yyyy')", sql2);
         }
 

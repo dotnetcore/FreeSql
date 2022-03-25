@@ -1,6 +1,7 @@
 ﻿using FreeSql;
 using FreeSql.DataAnnotations;
 using FreeSql.Internal.CommonProvider;
+using FreeSql.Internal.Model;
 using FreeSql.Internal.ObjectPool;
 using System;
 using System.Collections;
@@ -651,6 +652,275 @@ SELECT ");
                 return that.OrderBy("rand()");
         }
         throw new NotSupportedException($"{s0p._orm.Ado.DataType} 不支持 OrderByRandom 随机排序");
+    }
+    #endregion
+
+    #region IFreeSql Insert/Update/Delete Dictionary<string, object>
+    /// <summary>
+    /// 插入数据字典 Dictionary&lt;string, object&gt;
+    /// </summary>
+    /// <param name="source"></param>
+    /// <returns></returns>
+    public static InsertDictImpl InsertDict(this IFreeSql freesql, Dictionary<string, object> source)
+    {
+        var insertDict = new InsertDictImpl(freesql);
+        insertDict._insertProvider.AppendData(source);
+        return insertDict;
+    }
+    /// <summary>
+    /// 插入数据字典，传入 Dictionary&lt;string, object&gt; 集合
+    /// </summary>
+    /// <param name="source"></param>
+    /// <returns></returns>
+    public static InsertDictImpl InsertDict(this IFreeSql freesql, IEnumerable<Dictionary<string, object>> source)
+    {
+        var insertDict = new InsertDictImpl(freesql);
+        insertDict._insertProvider.AppendData(source);
+        return insertDict;
+    }
+    /// <summary>
+    /// 更新数据字典 Dictionary&lt;string, object&gt;
+    /// </summary>
+    /// <param name="source"></param>
+    /// <returns></returns>
+    public static UpdateDictImpl UpdateDict(this IFreeSql freesql, Dictionary<string, object> source)
+    {
+        var updateDict = new UpdateDictImpl(freesql);
+        updateDict._updateProvider.SetSource(source);
+        return updateDict;
+    }
+    /// <summary>
+    /// 更新数据字典，传入 Dictionary&lt;string, object&gt; 集合
+    /// </summary>
+    /// <param name="source"></param>
+    /// <returns></returns>
+    public static UpdateDictImpl UpdateDict(this IFreeSql freesql, IEnumerable<Dictionary<string, object>> source)
+    {
+        var updateDict = new UpdateDictImpl(freesql);
+        updateDict._updateProvider.SetSource(source);
+        return updateDict;
+    }
+    /// <summary>
+    /// 删除数据字典 Dictionary&lt;string, object&gt;
+    /// </summary>
+    /// <param name="source"></param>
+    /// <returns></returns>
+    public static DeleteDictImpl DeleteDict(this IFreeSql freesql, Dictionary<string, object> source)
+    {
+        var deleteDict = new DeleteDictImpl(freesql);
+        UpdateProvider<Dictionary<string, object>>.GetDictionaryTableInfo(source, deleteDict._deleteProvider._orm, ref deleteDict._deleteProvider._table);
+        var primarys = UpdateDictImpl.GetPrimarys(deleteDict._deleteProvider._table, source.Keys.ToArray());
+        deleteDict._deleteProvider.Where(deleteDict._deleteProvider._commonUtils.WhereItems(primarys, "", new[] { source }));
+        return deleteDict;
+    }
+    /// <summary>
+    /// 删除数据字典，传入 Dictionary&lt;string, object&gt; 集合
+    /// </summary>
+    /// <param name="source"></param>
+    /// <returns></returns>
+    public static DeleteDictImpl DeleteDict(this IFreeSql freesql, IEnumerable<Dictionary<string, object>> source)
+    {
+        DeleteDictImpl deleteDict = null;
+        if (source.Select(a => string.Join(",", a.Keys)).Distinct().Count() == 1)
+        {
+            deleteDict = new DeleteDictImpl(freesql);
+            var sourceFirst = source.FirstOrDefault();
+            UpdateProvider<Dictionary<string, object>>.GetDictionaryTableInfo(sourceFirst, deleteDict._deleteProvider._orm, ref deleteDict._deleteProvider._table);
+            var primarys = UpdateDictImpl.GetPrimarys(deleteDict._deleteProvider._table, sourceFirst.Keys.ToArray());
+            deleteDict._deleteProvider.Where(deleteDict._deleteProvider._commonUtils.WhereItems(primarys, "", source));
+            return deleteDict;
+        }
+        foreach (var item in source)
+        {
+            var tmpDelteDict = DeleteDict(freesql, item);
+            if (deleteDict == null) deleteDict = tmpDelteDict;
+            else deleteDict._deleteProvider._where.Append(" OR ").Append(tmpDelteDict._deleteProvider._where);
+        }
+        return deleteDict ?? new DeleteDictImpl(freesql);
+    }
+
+    public class InsertDictImpl
+    {
+        internal readonly InsertProvider<Dictionary<string, object>> _insertProvider;
+        internal InsertDictImpl(IFreeSql orm)
+        {
+            _insertProvider = (orm as BaseDbProvider ?? throw new Exception("IFreeSql 无法转换成 BaseDbProvider"))
+                .CreateInsertProvider<Dictionary<string, object>>() as InsertProvider<Dictionary<string, object>>;
+        }
+
+        public InsertDictImpl AsTable(string tableName)
+        {
+            _insertProvider.AsTable(tableName);
+            return this;
+        }
+
+        public InsertDictImpl BatchOptions(int valuesLimit, int parameterLimit, bool autoTransaction = true)
+        {
+            _insertProvider.BatchOptions(valuesLimit, parameterLimit, autoTransaction);
+            return this;
+        }
+        public InsertDictImpl BatchProgress(Action<BatchProgressStatus<Dictionary<string, object>>> callback)
+        {
+            _insertProvider.BatchProgress(callback);
+            return this;
+        }
+
+        public InsertDictImpl CommandTimeout(int timeout)
+        {
+            _insertProvider.CommandTimeout(timeout);
+            return this;
+        }
+
+        public int ExecuteAffrows() => _insertProvider.ExecuteAffrows();
+        public long ExecuteIdentity() => _insertProvider.ExecuteAffrows();
+        public List<Dictionary<string, object>> ExecuteInserted() => _insertProvider.ExecuteInserted();
+
+#if net40
+#else
+        public Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default) => _insertProvider.ExecuteAffrowsAsync(cancellationToken);
+        public Task<long> ExecuteIdentityAsync(CancellationToken cancellationToken = default) => _insertProvider.ExecuteIdentityAsync(cancellationToken);
+        public Task<List<Dictionary<string, object>>> ExecuteInsertedAsync(CancellationToken cancellationToken = default) => _insertProvider.ExecuteInsertedAsync(cancellationToken);
+#endif
+
+        public InsertDictImpl NoneParameter(bool isNotCommandParameter = true)
+        {
+            _insertProvider.NoneParameter(isNotCommandParameter);
+            return this;
+        }
+
+        public DataTable ToDataTable() => _insertProvider.ToDataTable();
+        public string ToSql() => _insertProvider.ToSql();
+
+        public InsertDictImpl WithConnection(DbConnection connection)
+        {
+            _insertProvider.WithConnection(connection);
+            return this;
+        }
+        public InsertDictImpl WithTransaction(DbTransaction transaction)
+        {
+            _insertProvider.WithTransaction(transaction);
+            return this;
+        }
+    }
+    public class UpdateDictImpl
+    {
+        internal readonly UpdateProvider<Dictionary<string, object>> _updateProvider;
+        internal UpdateDictImpl(IFreeSql orm)
+        {
+            _updateProvider = (orm as BaseDbProvider ?? throw new Exception("IFreeSql 无法转换成 BaseDbProvider"))
+                .CreateUpdateProvider<Dictionary<string, object>>(null) as UpdateProvider<Dictionary<string, object>>;
+        }
+
+        public UpdateDictImpl WherePrimary(params string[] primarys)
+        {
+            _updateProvider._tempPrimarys = GetPrimarys(_updateProvider._table, primarys);
+            return this;
+        }
+        public static ColumnInfo[] GetPrimarys(TableInfo table, params string[] primarys)
+        {
+            if (primarys?.Any() != true) throw new ArgumentException(nameof(primarys));
+            var pks = new List<ColumnInfo>();
+            foreach (var primary in primarys)
+            {
+                if (table.ColumnsByCs.TryGetValue(string.Concat(primary), out var col)) pks.Add(col);
+                else throw new Exception($"GetPrimarys 传递的参数 \"{primary}\" 不正确，它不属于字典数据的键名");
+            }
+            return pks.ToArray();
+        }
+
+        public UpdateDictImpl AsTable(string tableName)
+        {
+            _updateProvider.AsTable(tableName);
+            return this;
+        }
+
+        public UpdateDictImpl BatchOptions(int rowsLimit, int parameterLimit, bool autoTransaction = true)
+        {
+            _updateProvider.BatchOptions(rowsLimit, parameterLimit, autoTransaction);
+            return this;
+        }
+        public UpdateDictImpl BatchProgress(Action<BatchProgressStatus<Dictionary<string, object>>> callback)
+        {
+            _updateProvider.BatchProgress(callback);
+            return this;
+        }
+
+        public UpdateDictImpl CommandTimeout(int timeout)
+        {
+            _updateProvider.CommandTimeout(timeout);
+            return this;
+        }
+
+        public int ExecuteAffrows() => _updateProvider.ExecuteAffrows();
+        public List<Dictionary<string, object>> ExecuteUpdated() => _updateProvider.ExecuteUpdated();
+
+#if net40
+#else
+        public Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default) => _updateProvider.ExecuteAffrowsAsync(cancellationToken);
+        public Task<List<Dictionary<string, object>>> ExecuteUpdatedAsync(CancellationToken cancellationToken = default) => _updateProvider.ExecuteUpdatedAsync(cancellationToken);
+#endif
+
+        public UpdateDictImpl NoneParameter(bool isNotCommandParameter = true)
+        {
+            _updateProvider.NoneParameter(isNotCommandParameter);
+            return this;
+        }
+
+        public string ToSql() => _updateProvider.ToSql();
+
+        public UpdateDictImpl WithConnection(DbConnection connection)
+        {
+            _updateProvider.WithConnection(connection);
+            return this;
+        }
+        public UpdateDictImpl WithTransaction(DbTransaction transaction)
+        {
+            _updateProvider.WithTransaction(transaction);
+            return this;
+        }
+    }
+    public class DeleteDictImpl
+    {
+        internal readonly DeleteProvider<Dictionary<string, object>> _deleteProvider;
+        internal DeleteDictImpl(IFreeSql orm)
+        {
+            _deleteProvider = (orm as BaseDbProvider ?? throw new Exception("IFreeSql 无法转换成 BaseDbProvider"))
+                .CreateDeleteProvider<Dictionary<string, object>>(null) as DeleteProvider<Dictionary<string, object>>;
+        }
+
+        public DeleteDictImpl AsTable(string tableName)
+        {
+            _deleteProvider.AsTable(tableName);
+            return this;
+        }
+
+        public DeleteDictImpl CommandTimeout(int timeout)
+        {
+            _deleteProvider.CommandTimeout(timeout);
+            return this;
+        }
+
+        public int ExecuteAffrows() => _deleteProvider.ExecuteAffrows();
+        public List<Dictionary<string, object>> ExecuteDeleted() => _deleteProvider.ExecuteDeleted();
+
+#if net40
+#else
+        public Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default) => _deleteProvider.ExecuteAffrowsAsync(cancellationToken);
+        public Task<List<Dictionary<string, object>>> ExecuteDeletedAsync(CancellationToken cancellationToken = default) => _deleteProvider.ExecuteDeletedAsync(cancellationToken);
+#endif
+
+        public string ToSql() => _deleteProvider.ToSql();
+
+        public DeleteDictImpl WithConnection(DbConnection connection)
+        {
+            _deleteProvider.WithConnection(connection);
+            return this;
+        }
+        public DeleteDictImpl WithTransaction(DbTransaction transaction)
+        {
+            _deleteProvider.WithTransaction(transaction);
+            return this;
+        }
     }
     #endregion
 }

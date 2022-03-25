@@ -1490,6 +1490,13 @@
             <param name="tableRule"></param>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.IDelete`1.AsTable(System.String)">
+            <summary>
+            设置表名
+            </summary>
+            <param name="tableName"></param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.IDelete`1.AsType(System.Type)">
             <summary>
             动态Type，在使用 Delete&lt;object&gt; 后使用本方法，指定实体类型
@@ -2951,6 +2958,13 @@
             设置表名规则，可用于分库/分表，参数1：默认表名；返回值：新表名；
             </summary>
             <param name="tableRule"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.IUpdate`1.AsTable(System.String)">
+            <summary>
+            设置表名
+            </summary>
+            <param name="tableName"></param>
             <returns></returns>
         </member>
         <member name="M:FreeSql.IUpdate`1.AsType(System.Type)">
@@ -4637,6 +4651,48 @@
             支持：MySql/SqlServer/PostgreSQL/Oracle/Sqlite/Firebird/达梦/金仓/神通<para></para>
             不支持：MsAcess
             </summary>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSqlGlobalExtensions.InsertDict(IFreeSql,System.Collections.Generic.Dictionary{System.String,System.Object})">
+            <summary>
+            插入数据字典 Dictionary&lt;string, object&gt;
+            </summary>
+            <param name="source"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSqlGlobalExtensions.InsertDict(IFreeSql,System.Collections.Generic.IEnumerable{System.Collections.Generic.Dictionary{System.String,System.Object}})">
+            <summary>
+            插入数据字典，传入 Dictionary&lt;string, object&gt; 集合
+            </summary>
+            <param name="source"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSqlGlobalExtensions.UpdateDict(IFreeSql,System.Collections.Generic.Dictionary{System.String,System.Object})">
+            <summary>
+            更新数据字典 Dictionary&lt;string, object&gt;
+            </summary>
+            <param name="source"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSqlGlobalExtensions.UpdateDict(IFreeSql,System.Collections.Generic.IEnumerable{System.Collections.Generic.Dictionary{System.String,System.Object}})">
+            <summary>
+            更新数据字典，传入 Dictionary&lt;string, object&gt; 集合
+            </summary>
+            <param name="source"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSqlGlobalExtensions.DeleteDict(IFreeSql,System.Collections.Generic.Dictionary{System.String,System.Object})">
+            <summary>
+            删除数据字典 Dictionary&lt;string, object&gt;
+            </summary>
+            <param name="source"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSqlGlobalExtensions.DeleteDict(IFreeSql,System.Collections.Generic.IEnumerable{System.Collections.Generic.Dictionary{System.String,System.Object}})">
+            <summary>
+            删除数据字典，传入 Dictionary&lt;string, object&gt; 集合
+            </summary>
+            <param name="source"></param>
             <returns></returns>
         </member>
         <member name="M:System.Linq.Expressions.LambadaExpressionExtensions.And``1(System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}},System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})">

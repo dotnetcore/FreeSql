@@ -37,15 +37,15 @@ namespace FreeSql.Tests.Firebird
                 ["name"] = "yyyy"
             });
 
-            var sql1 = fsql.Insert(dic).AsTable("table1").ToSql();
+            var sql1 = fsql.InsertDict(dic).AsTable("table1").ToSql();
             Assert.Equal(@"INSERT INTO ""TABLE1""(""ID"", ""NAME"") VALUES(@id_0, @name_0)", sql1);
-            var sql2 = fsql.Insert(diclist).AsTable("table1").ToSql();
+            var sql2 = fsql.InsertDict(diclist).AsTable("table1").ToSql();
             Assert.Equal(@"INSERT INTO ""TABLE1""(""ID"", ""NAME"") SELECT FIRST 1 @id_0, @name_0 FROM rdb$database 
 UNION ALL
  SELECT FIRST 1 @id_1, @name_1 FROM rdb$database", sql2);
-            var sql3 = fsql.Insert(dic).AsTable("table1").NoneParameter().ToSql();
+            var sql3 = fsql.InsertDict(dic).AsTable("table1").NoneParameter().ToSql();
             Assert.Equal(@"INSERT INTO ""TABLE1""(""ID"", ""NAME"") VALUES(1, 'xxxx')", sql3);
-            var sql4 = fsql.Insert(diclist).AsTable("table1").NoneParameter().ToSql();
+            var sql4 = fsql.InsertDict(diclist).AsTable("table1").NoneParameter().ToSql();
             Assert.Equal(@"INSERT INTO ""TABLE1""(""ID"", ""NAME"") SELECT FIRST 1 1, 'xxxx' FROM rdb$database 
 UNION ALL
  SELECT FIRST 1 2, 'yyyy' FROM rdb$database", sql4);
