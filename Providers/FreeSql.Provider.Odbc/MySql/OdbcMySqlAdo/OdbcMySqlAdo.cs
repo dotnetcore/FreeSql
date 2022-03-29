@@ -46,7 +46,7 @@ namespace FreeSql.Odbc.MySql
             else if (param is char)
                 return string.Concat("'", param.ToString().Replace("'", "''").Replace("\\", "\\\\").Replace('\0', ' '), "'");
             else if (param is Enum)
-                return string.Concat("'", param.ToString().Replace("'", "''").Replace("\\", "\\\\"), "'"); //((Enum)val).ToInt64();
+                return string.Concat("'", param.ToString().Replace("'", "''").Replace("\\", "\\\\").Replace(", ", ","), "'"); //((Enum)val).ToInt64();
             else if (decimal.TryParse(string.Concat(param), out var trydec))
                 return param;
             else if (param is DateTime || param is DateTime?)
