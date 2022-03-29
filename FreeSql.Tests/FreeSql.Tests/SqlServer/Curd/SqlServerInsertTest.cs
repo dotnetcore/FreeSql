@@ -36,6 +36,8 @@ namespace FreeSql.Tests.SqlServer
         public void InsertDictionary()
         {
             var fsql = g.sqlserver;
+            fsql.Delete<object>().AsTable("table1dict").Where("1=1").ExecuteAffrows();
+
             Dictionary<string, object> dic = new Dictionary<string, object>();
             dic.Add("id", 1);
             dic.Add("name", "xxxx");
@@ -55,6 +57,27 @@ namespace FreeSql.Tests.SqlServer
             Assert.Equal(@"INSERT INTO [table1]([id], [name]) VALUES(1, N'xxxx')", sql3);
             var sql4 = fsql.InsertDict(diclist).AsTable("table1").NoneParameter().ToSql();
             Assert.Equal(@"INSERT INTO [table1]([id], [name]) VALUES(1, N'xxxx'), (2, N'yyyy')", sql4);
+
+            Assert.Equal(1, fsql.InsertDict(dic).AsTable("table1dict").ExecuteAffrows());
+            Assert.Equal(1, fsql.DeleteDict(dic).AsTable("table1dict").ExecuteAffrows());
+            Assert.Equal(1, fsql.InsertDict(dic).AsTable("table1dict").NoneParameter().ExecuteAffrows());
+            Assert.Equal(1, fsql.DeleteDict(dic).AsTable("table1dict").ExecuteAffrows());
+
+            Assert.Equal(2, fsql.InsertDict(diclist).AsTable("table1dict").ExecuteAffrows());
+            Assert.Equal(2, fsql.DeleteDict(diclist).AsTable("table1dict").ExecuteAffrows());
+            Assert.Equal(2, fsql.InsertDict(diclist).AsTable("table1dict").NoneParameter().ExecuteAffrows());
+            Assert.Equal(2, fsql.DeleteDict(diclist).AsTable("table1dict").ExecuteAffrows());
+
+
+            var dicRet = fsql.InsertDict(dic).AsTable("table1dict").ExecuteInserted();
+            dicRet = fsql.DeleteDict(dic).AsTable("table1dict").ExecuteDeleted();
+            dicRet = fsql.InsertDict(dic).AsTable("table1dict").NoneParameter().ExecuteInserted();
+            dicRet = fsql.DeleteDict(dic).AsTable("table1dict").ExecuteDeleted();
+
+            dicRet = fsql.InsertDict(diclist).AsTable("table1dict").ExecuteInserted();
+            dicRet = fsql.DeleteDict(diclist).AsTable("table1dict").ExecuteDeleted();
+            dicRet = fsql.InsertDict(diclist).AsTable("table1dict").NoneParameter().ExecuteInserted();
+            dicRet = fsql.DeleteDict(diclist).AsTable("table1dict").ExecuteDeleted();
         }
 
         [Fact]

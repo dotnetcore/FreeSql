@@ -1507,7 +1507,7 @@ namespace FreeSql.Internal
                             ), new[] { typeExp, indexesExp, rowExp, dataIndexExp, commonUtilExp }).Compile();
                     }
 
-                    if (type == typeof(object) && indexes != null)
+                    if (type == typeof(object) && indexes != null || type == typeof(Dictionary<string, object>))
                     {
                         Func<Type, int[], DbDataReader, int, CommonUtils, RowInfo> dynamicFunc = (type2, indexes2, row2, dataindex2, commonUtils2) =>
                         {

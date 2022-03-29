@@ -772,7 +772,7 @@ SELECT ");
         }
 
         public int ExecuteAffrows() => _insertProvider.ExecuteAffrows();
-        public long ExecuteIdentity() => _insertProvider.ExecuteAffrows();
+        public long ExecuteIdentity() => _insertProvider.ExecuteIdentity();
         public List<Dictionary<string, object>> ExecuteInserted() => _insertProvider.ExecuteInserted();
 
 #if net40
