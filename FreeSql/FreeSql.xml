@@ -1748,6 +1748,13 @@
             <param name="tableRule"></param>
             <returns></returns>
         </member>
+        <member name="M:FreeSql.IInsertOrUpdate`1.AsTable(System.String)">
+            <summary>
+            设置表名
+            </summary>
+            <param name="tableName"></param>
+            <returns></returns>
+        </member>
         <member name="M:FreeSql.IInsertOrUpdate`1.AsType(System.Type)">
             <summary>
             动态Type，在使用 Update&lt;object&gt; 后使用本方法，指定实体类型
@@ -4677,6 +4684,22 @@
         <member name="M:FreeSqlGlobalExtensions.UpdateDict(IFreeSql,System.Collections.Generic.IEnumerable{System.Collections.Generic.Dictionary{System.String,System.Object}})">
             <summary>
             更新数据字典，传入 Dictionary&lt;string, object&gt; 集合
+            </summary>
+            <param name="source"></param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSqlGlobalExtensions.InsertOrUpdateDict(IFreeSql,System.Collections.Generic.Dictionary{System.String,System.Object})">
+            <summary>
+            插入或更新数据字典，此功能依赖数据库特性（低版本可能不支持），参考如下：<para></para>
+            MySql 5.6+: on duplicate key update<para></para>
+            PostgreSQL 9.4+: on conflict do update<para></para>
+            SqlServer 2008+: merge into<para></para>
+            Oracle 11+: merge into<para></para>
+            Sqlite: replace into<para></para>
+            达梦: merge into<para></para>
+            人大金仓：on conflict do update<para></para>
+            神通：merge into<para></para>
+            MsAccess：不支持<para></para>
             </summary>
             <param name="source"></param>
             <returns></returns>

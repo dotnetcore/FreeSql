@@ -655,7 +655,7 @@ SELECT ");
     }
     #endregion
 
-    #region IFreeSql Insert/Update/Delete Dictionary<string, object>
+    #region IFreeSql Insert/Update/InsertOrUpdate/Delete Dictionary<string, object>
     /// <summary>
     /// 插入数据字典 Dictionary&lt;string, object&gt;
     /// </summary>
@@ -701,6 +701,32 @@ SELECT ");
         return updateDict;
     }
     /// <summary>
+    /// 插入或更新数据字典，此功能依赖数据库特性（低版本可能不支持），参考如下：<para></para>
+    /// MySql 5.6+: on duplicate key update<para></para>
+    /// PostgreSQL 9.4+: on conflict do update<para></para>
+    /// SqlServer 2008+: merge into<para></para>
+    /// Oracle 11+: merge into<para></para>
+    /// Sqlite: replace into<para></para>
+    /// 达梦: merge into<para></para>
+    /// 人大金仓：on conflict do update<para></para>
+    /// 神通：merge into<para></para>
+    /// MsAccess：不支持<para></para>
+    /// </summary>
+    /// <param name="source"></param>
+    /// <returns></returns>
+    public static InsertOrUpdateDictImpl InsertOrUpdateDict(this IFreeSql freesql, Dictionary<string, object> source)
+    {
+        var insertOrUpdateDict = new InsertOrUpdateDictImpl(freesql);
+        insertOrUpdateDict._insertOrUpdateProvider.SetSource(source);
+        return insertOrUpdateDict;
+    }
+    public static InsertOrUpdateDictImpl InsertOrUpdateDict(this IFreeSql freesql, IEnumerable<Dictionary<string, object>> source)
+    {
+        var insertOrUpdateDict = new InsertOrUpdateDictImpl(freesql);
+        insertOrUpdateDict._insertOrUpdateProvider.SetSource(source);
+        return insertOrUpdateDict;
+    }
+    /// <summary>
     /// 删除数据字典 Dictionary&lt;string, object&gt;
     /// </summary>
     /// <param name="source"></param>
@@ -739,6 +765,7 @@ SELECT ");
         return deleteDict ?? new DeleteDictImpl(freesql);
     }
 
+    #region InsertDictImpl
     public class InsertDictImpl
     {
         internal readonly InsertProvider<Dictionary<string, object>> _insertProvider;
@@ -802,6 +829,9 @@ SELECT ");
             return this;
         }
     }
+    #endregion
+
+    #region UpdateDictImpl
     public class UpdateDictImpl
     {
         internal readonly UpdateProvider<Dictionary<string, object>> _updateProvider;
@@ -826,6 +856,15 @@ SELECT ");
                 else throw new Exception($"GetPrimarys 传递的参数 \"{primary}\" 不正确，它不属于字典数据的键名");
             }
             return pks.ToArray();
+        }
+        public static void SetTablePrimary(TableInfo table, params string[] primarys)
+        {
+            foreach (var primary in primarys)
+            {
+                if (table.ColumnsByCs.TryGetValue(string.Concat(primary), out var col)) col.Attribute.IsPrimary = true;
+                else throw new Exception($"GetPrimarys 传递的参数 \"{primary}\" 不正确，它不属于字典数据的键名");
+            }
+            table.Primarys = table.Columns.Where(a => a.Value.Attribute.IsPrimary).Select(a => a.Value).ToArray();
         }
 
         public UpdateDictImpl AsTable(string tableName)
@@ -879,6 +918,63 @@ SELECT ");
             return this;
         }
     }
+    #endregion
+
+    #region InsertOrUpdateDictImpl
+    public class InsertOrUpdateDictImpl
+    {
+        internal readonly InsertOrUpdateProvider<Dictionary<string, object>> _insertOrUpdateProvider;
+        internal InsertOrUpdateDictImpl(IFreeSql orm)
+        {
+            _insertOrUpdateProvider = (orm as BaseDbProvider ?? throw new Exception("IFreeSql 无法转换成 BaseDbProvider"))
+                .CreateInsertOrUpdateProvider<Dictionary<string, object>>() as InsertOrUpdateProvider<Dictionary<string, object>>;
+        }
+
+        public InsertOrUpdateDictImpl WherePrimary(params string[] primarys)
+        {
+            UpdateDictImpl.SetTablePrimary(_insertOrUpdateProvider._table, primarys);
+            return this;
+        }
+
+        public InsertOrUpdateDictImpl AsTable(string tableName)
+        {
+            _insertOrUpdateProvider.AsTable(tableName);
+            return this;
+        }
+
+        public InsertOrUpdateDictImpl CommandTimeout(int timeout)
+        {
+            _insertOrUpdateProvider.CommandTimeout(timeout);
+            return this;
+        }
+
+        public int ExecuteAffrows() => _insertOrUpdateProvider.ExecuteAffrows();
+#if net40
+#else
+        public Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default) => _insertOrUpdateProvider.ExecuteAffrowsAsync(cancellationToken);
+#endif
+        public InsertOrUpdateDictImpl IfExistsDoNothing()
+        {
+            _insertOrUpdateProvider.IfExistsDoNothing();
+            return this;
+        }
+
+        public string ToSql() => _insertOrUpdateProvider.ToSql();
+
+        public InsertOrUpdateDictImpl WithConnection(DbConnection connection)
+        {
+            _insertOrUpdateProvider.WithConnection(connection);
+            return this;
+        }
+        public InsertOrUpdateDictImpl WithTransaction(DbTransaction transaction)
+        {
+            _insertOrUpdateProvider.WithTransaction(transaction);
+            return this;
+        }
+    }
+    #endregion
+
+    #region DeleteDictImpl
     public class DeleteDictImpl
     {
         internal readonly DeleteProvider<Dictionary<string, object>> _deleteProvider;
@@ -922,5 +1018,7 @@ SELECT ");
             return this;
         }
     }
+    #endregion
+
     #endregion
 }

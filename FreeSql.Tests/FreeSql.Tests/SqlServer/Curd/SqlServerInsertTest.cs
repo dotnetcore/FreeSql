@@ -78,6 +78,12 @@ namespace FreeSql.Tests.SqlServer
             dicRet = fsql.DeleteDict(diclist).AsTable("table1dict").ExecuteDeleted();
             dicRet = fsql.InsertDict(diclist).AsTable("table1dict").NoneParameter().ExecuteInserted();
             dicRet = fsql.DeleteDict(diclist).AsTable("table1dict").ExecuteDeleted();
+
+            sql1 = fsql.InsertOrUpdateDict(dic).AsTable("table1").WherePrimary("id").ToSql();
+            sql2 = fsql.InsertOrUpdateDict(diclist).AsTable("table1").WherePrimary("id").ToSql();
+
+            sql1 = fsql.InsertOrUpdateDict(dic).AsTable("table1").WherePrimary("name").ToSql();
+            sql2 = fsql.InsertOrUpdateDict(diclist).AsTable("table1").WherePrimary("name").ToSql();
         }
 
         [Fact]
