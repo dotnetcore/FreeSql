@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<!--;netcoreapp2.2;net472-->
 		<TargetFrameworks>netstandard2.1</TargetFrameworks>
-		<Version>3.2.100</Version>
+		<Version>3.2.200</Version>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>FreeSql;ncc;YeXiangQin;ChenBo</Authors>
 		<Description>FreeSql 数据库实现，基于 ClickHouse.Client Ado.net</Description>
