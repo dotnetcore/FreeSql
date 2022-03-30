@@ -1887,11 +1887,14 @@ namespace FreeSql.Internal
             if (_common.CodeFirst.IsGenerateCommandParameterWithLambda && dbParams != null)
             {
                 if (obj == null) return "NULL";
-                var paramName = $"exp_{dbParams.Count}";
-                if (_common._orm?.Ado.DataType == DataType.GBase) paramName = "?";
-                var parm = _common.AppendParamter(dbParams, paramName, mapColumn,
-                    mapType ?? mapColumn?.Attribute.MapType ?? obj?.GetType(), mapType == null ? obj : Utils.GetDataReaderValue(mapType, obj));
-                return _common.QuoteParamterName(paramName);
+                var type = mapType ?? mapColumn?.Attribute.MapType ?? obj?.GetType();
+                if (_common.CodeFirst.GetDbInfo(type) != null)
+                {
+                    var paramName = $"exp_{dbParams.Count}";
+                    if (_common._orm?.Ado.DataType == DataType.GBase) paramName = "?";
+                    var parm = _common.AppendParamter(dbParams, paramName, mapColumn, type, mapType == null ? obj : Utils.GetDataReaderValue(mapType, obj));
+                    return _common.QuoteParamterName(paramName);
+                }
             }
             return string.Format(CultureInfo.InvariantCulture, "{0}", _ado.AddslashesProcessParam(obj, mapType, mapColumn));
             //return string.Concat(_ado.AddslashesProcessParam(obj, mapType, mapColumn));
