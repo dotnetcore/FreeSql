@@ -110,6 +110,7 @@ namespace FreeSql.Internal.CommonProvider
         public bool IsThrowGetTimeoutException { get; set; } = true;
         public bool IsAutoDisposeWithSystem { get; set; } = true;
         public int CheckAvailableInterval { get; set; } = 5;
+        public int Weight { get; set; } = 1;
 
         public DbConnection OnCreate()
         {

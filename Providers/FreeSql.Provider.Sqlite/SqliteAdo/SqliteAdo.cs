@@ -5,7 +5,11 @@ using System;
 using System.Collections;
 using System.Data;
 using System.Data.Common;
+#if MicrosoftData
+using Microsoft.Data.Sqlite;
+#else
 using System.Data.SQLite;
+#endif
 using System.Text;
 using System.Threading;
 
@@ -72,7 +76,12 @@ namespace FreeSql.Sqlite
                 cmd.Connection = null;
                 return cmd;
             }
-            return new SQLiteCommand();
+#if MicrosoftData
+                return new SqliteCommand();
+#else
+                return new SQLiteCommand();
+#endif
+
         }
 
         public override void ReturnConnection(IObjectPool<DbConnection> pool, Object<DbConnection> conn, Exception ex)

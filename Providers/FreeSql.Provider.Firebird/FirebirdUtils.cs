@@ -19,7 +19,7 @@ namespace FreeSql.Firebird
         {
             if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
             var ret = new FbParameter { ParameterName = QuoteParamterName(parameterName), Value = value };
-            var dbtype = (FbDbType)_orm.CodeFirst.GetDbInfo(type)?.type;
+            var dbtype = (FbDbType?)_orm.CodeFirst.GetDbInfo(type)?.type;
             if (col != null)
             {
                 var dbtype2 = (FbDbType)_orm.DbFirst.GetDbType(new DatabaseModel.DbColumnInfo { DbTypeText = col.DbTypeText, DbTypeTextFull = col.Attribute.DbType, MaxLength = col.DbSize });
@@ -35,7 +35,7 @@ namespace FreeSql.Firebird
                         break;
                 }
             }
-            ret.FbDbType = dbtype;
+            ret.FbDbType = dbtype ?? default;
             _params?.Add(ret);
             return ret;
         }

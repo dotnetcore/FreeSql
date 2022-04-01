@@ -48,15 +48,19 @@ public static partial class FreeSqlOracleGlobalExtensions
         {
             if (insert.InternalConnection == null && insert.InternalTransaction == null)
             {
-                using (var conn = insert.InternalOrm.Ado.MasterPool.Get())
-                {
-                    using (var bulkCopy = copyOptions == OracleBulkCopyOptions.Default ?
-                        new OracleBulkCopy(conn.Value as OracleConnection) :
-                        new OracleBulkCopy(conn.Value as OracleConnection, copyOptions))
-                    {
+                if (insert._orm.Ado?.TransactionCurrentThread != null)
+                    using (var bulkCopy = new OracleBulkCopy(insert._orm.Ado.TransactionCurrentThread.Connection as OracleConnection, copyOptions))
                         writeToServer(bulkCopy);
+                else
+                    using (var conn = insert.InternalOrm.Ado.MasterPool.Get())
+                    {
+                        using (var bulkCopy = copyOptions == OracleBulkCopyOptions.Default ?
+                            new OracleBulkCopy(conn.Value as OracleConnection) :
+                            new OracleBulkCopy(conn.Value as OracleConnection, copyOptions))
+                        {
+                            writeToServer(bulkCopy);
+                        }
                     }
-                }
             }
             else if (insert.InternalTransaction != null)
             {

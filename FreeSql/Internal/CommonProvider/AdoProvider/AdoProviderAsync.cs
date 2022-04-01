@@ -25,6 +25,7 @@ namespace FreeSql.Internal.CommonProvider
                 {
                     case DataType.Oracle:
                     case DataType.OdbcOracle:
+                    case DataType.GBase:
                         await ExecuteNonQueryAsync(null, null, CommandType.Text, " SELECT 1 FROM dual", commandTimeout, null, cancellationToken);
                         return true;
                     case DataType.Firebird:
@@ -78,7 +79,7 @@ namespace FreeSql.Internal.CommonProvider
             }, cmdType, cmdText, cmdTimeout, cmdParms, cancellationToken);
             return ret;
         }
-        #region QueryAsync multi
+#region QueryAsync multi
         public Task<NativeTuple<List<T1>, List<T2>>> QueryAsync<T1, T2>(string cmdText, object parms = null, CancellationToken cancellationToken = default) => QueryAsync<T1, T2>(null, null, CommandType.Text, cmdText, 0, GetDbParamtersByObject(cmdText, parms), cancellationToken);
         public Task<NativeTuple<List<T1>, List<T2>>> QueryAsync<T1, T2>(DbTransaction transaction, string cmdText, object parms = null, CancellationToken cancellationToken = default) => QueryAsync<T1, T2>(null, transaction, CommandType.Text, cmdText, 0, GetDbParamtersByObject(cmdText, parms), cancellationToken);
         public Task<NativeTuple<List<T1>, List<T2>>> QueryAsync<T1, T2>(DbConnection connection, DbTransaction transaction, string cmdText, object parms = null, CancellationToken cancellationToken = default) => QueryAsync<T1, T2>(connection, transaction, CommandType.Text, cmdText, 0, GetDbParamtersByObject(cmdText, parms), cancellationToken);
@@ -468,7 +469,7 @@ namespace FreeSql.Internal.CommonProvider
             }, null, cmdType, cmdText, cmdTimeout, cmdParms, cancellationToken);
             return NativeTuple.Create(ret1, ret2, ret3, ret4, ret5);
         }
-        #endregion
+#endregion
 
         public Task ExecuteReaderAsync(Func<FetchCallbackArgs<DbDataReader>, Task> fetchHandler, string cmdText, object parms = null, CancellationToken cancellationToken = default) => ExecuteReaderAsync(null, null, fetchHandler, CommandType.Text, cmdText, 0, GetDbParamtersByObject(cmdText, parms), cancellationToken);
         public Task ExecuteReaderAsync(DbTransaction transaction, Func<FetchCallbackArgs<DbDataReader>, Task> fetchHandler, string cmdText, object parms = null, CancellationToken cancellationToken = default) => ExecuteReaderAsync(null, transaction, fetchHandler, CommandType.Text, cmdText, 0, GetDbParamtersByObject(cmdText, parms), cancellationToken);
@@ -476,7 +477,7 @@ namespace FreeSql.Internal.CommonProvider
         public Task ExecuteReaderAsync(Func<FetchCallbackArgs<DbDataReader>, Task> fetchHandler, CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default) => ExecuteReaderAsync(null, null, fetchHandler, cmdType, cmdText, 0, cmdParms, cancellationToken);
         public Task ExecuteReaderAsync(DbTransaction transaction, Func<FetchCallbackArgs<DbDataReader>, Task> fetchHandler, CommandType cmdType, string cmdText, DbParameter[] cmdParms, CancellationToken cancellationToken = default) => ExecuteReaderAsync(null, transaction, fetchHandler, cmdType, cmdText, 0, cmdParms, cancellationToken);
         public Task ExecuteReaderAsync(DbConnection connection, DbTransaction transaction, Func<FetchCallbackArgs<DbDataReader>, Task> fetchHandler, CommandType cmdType, string cmdText, int cmdTimeout, DbParameter[] cmdParms, CancellationToken cancellationToken = default) => ExecuteReaderMultipleAsync(1, connection, transaction, (fetch, result) => fetchHandler(fetch), null, cmdType, cmdText, cmdTimeout, cmdParms, cancellationToken);
-        public async Task ExecuteReaderMultipleAsync(int multipleResult, DbConnection connection, DbTransaction transaction, Func<FetchCallbackArgs<DbDataReader>, int, Task> fetchHandler, Action<DbDataReader, int> schemaHandler, CommandType cmdType, string cmdText, int cmdTimeout, DbParameter[] cmdParms, CancellationToken cancellationToken = default)
+        async public Task ExecuteReaderMultipleAsync(int multipleResult, DbConnection connection, DbTransaction transaction, Func<FetchCallbackArgs<DbDataReader>, int, Task> fetchHandler, Action<DbDataReader, int> schemaHandler, CommandType cmdType, string cmdText, int cmdTimeout, DbParameter[] cmdParms, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(cmdText)) return;
             var dt = DateTime.Now;
@@ -756,6 +757,7 @@ namespace FreeSql.Internal.CommonProvider
 
             if (cmdParms != null)
             {
+                var dbpool = MasterPool as FreeSql.Internal.CommonProvider.DbConnectionPool;
                 foreach (var parm in cmdParms)
                 {
                     if (parm == null) continue;
@@ -776,7 +778,32 @@ namespace FreeSql.Internal.CommonProvider
                             });
                         }
                     }
-                    if (isnew == false) cmd.Parameters.Add(parm);
+                    if (isnew == false)
+                    {
+                        if (dbpool == null) cmd.Parameters.Add(parm);
+                        else
+                        {
+                            var newparm = cmd.CreateParameter(); // UseConnectionFactory 转换 DbParameter
+                            if (newparm.GetType() == parm.GetType()) cmd.Parameters.Add(parm);
+                            else
+                            {
+                                newparm.DbType = parm.DbType;
+                                newparm.Direction = parm.Direction;
+                                newparm.ParameterName = parm.ParameterName;
+#if net40 || net45
+#else
+                                newparm.Precision = parm.Precision;
+                                newparm.Scale = parm.Scale;
+#endif
+                                newparm.Size = parm.Size;
+                                newparm.SourceColumn = parm.SourceColumn;
+                                newparm.SourceColumnNullMapping = parm.SourceColumnNullMapping;
+                                newparm.SourceVersion = parm.SourceVersion;
+                                newparm.Value = parm.Value;
+                                cmd.Parameters.Add(newparm);
+                            }
+                        }
+                    }
                 }
             }
 

@@ -49,6 +49,11 @@ namespace FreeSql.Internal.ObjectPool
         int CheckAvailableInterval { get; set; }
 
         /// <summary>
+        /// 权重
+        /// </summary>
+        int Weight { get; set; }
+
+        /// <summary>
         /// 对象池的对象被创建时
         /// </summary>
         /// <returns>返回被创建的对象</returns>

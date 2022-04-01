@@ -55,10 +55,10 @@ namespace FreeSql.PostgreSQL
         NpgsqlDbType GetNpgsqlDbType(DbColumnInfo column)
         {
             var dbtype = column.DbTypeText;
-            var isarray = dbtype.EndsWith("[]");
+            var isarray = dbtype?.EndsWith("[]") == true;
             if (isarray) dbtype = dbtype.Remove(dbtype.Length - 2);
             NpgsqlDbType ret = NpgsqlDbType.Unknown;
-            switch (dbtype.ToLower().TrimStart('_'))
+            switch (dbtype?.ToLower().TrimStart('_'))
             {
                 case "int2": ret = NpgsqlDbType.Smallint; break;
                 case "int4": ret = NpgsqlDbType.Integer; break;
@@ -432,7 +432,7 @@ where {loc8.ToString().Replace("a.table_name", "ns.nspname || '.' || c.relname")
                         DbTypeText = type,
                         DbTypeTextFull = sqlType,
                         Table = loc2[object_id],
-                        Coment = comment,
+                        Comment = comment,
                         DefaultValue = defaultValue,
                         Position = ++position
                     });
@@ -475,14 +475,14 @@ where {loc8.ToString().Replace("a.table_name", "ns.nspname || '.' || d.relname")
                     var inkey = string.Concat(row[7]).Split(' ');
                     var attnum = int.Parse(string.Concat(row[8]));
                     attnum = int.Parse(inkey[attnum - 1]);
-                    foreach (string tc in loc3[object_id].Keys)
-                    {
-                        if (loc3[object_id][tc].DbTypeText.EndsWith("[]"))
-                        {
-                            column = tc;
-                            break;
-                        }
-                    }
+                    //foreach (string tc in loc3[object_id].Keys) //bug: https://github.com/2881099/FreeSql.Wiki.VuePress/issues/9
+                    //{
+                    //    if (loc3[object_id][tc].DbTypeText.EndsWith("[]"))
+                    //    {
+                    //        column = tc;
+                    //        break;
+                    //    }
+                    //}
                     if (loc3.ContainsKey(object_id) == false || loc3[object_id].ContainsKey(column) == false) continue;
                     var loc9 = loc3[object_id][column];
                     if (loc9.IsPrimary == false && is_primary_key) loc9.IsPrimary = is_primary_key;

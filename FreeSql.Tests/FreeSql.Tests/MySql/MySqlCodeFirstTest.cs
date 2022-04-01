@@ -11,6 +11,49 @@ namespace FreeSql.Tests.MySql
 {
     public class MySqlCodeFirstTest
     {
+        public enum EnumTest009
+        {
+            A, B, C
+        }
+
+        [Flags]
+        public enum SetTest009
+        {
+            A = 1, B = 2, C = 4
+        }
+
+        public class TestTable009
+        {
+            [Column(IsPrimary = true, IsIdentity = true)]
+            public int Id { get; set; }
+
+            public EnumTest009 ColEnumTest { get; set; }
+
+            public SetTest009 ColSetTest { get; set; }
+        }
+
+        [Fact]
+        public void TestEnumToSet009()
+        {
+            var fsql = g.mysql;
+            //插入
+            //insert into TestTable(ColEnumTest,ColSetTest) values('B','A,B');
+            //insert into TestTable(ColEnumTest,ColSetTest) values(1,3);
+            var sql1 = fsql.Insert<TestTable009>().NoneParameter().AppendData(new TestTable009
+            {
+                ColEnumTest = EnumTest009.B,
+                ColSetTest = SetTest009.A | SetTest009.B
+            }).ToSql();
+            Assert.Equal("INSERT INTO `TestTable009`(`ColEnumTest`, `ColSetTest`) VALUES('B', 'A,B')", sql1);
+
+            //查询 扩展方法 contains
+            //select * from TestTable t where FIND_IN_SET('A',t.ColSetTest)>0
+            //select * from TestTable t where t.ColSetTest&1
+            var sql2 = fsql.Select<TestTable009>().Where(i => (i.ColSetTest & SetTest009.A) == SetTest009.A).ToSql();
+            var sql3 = fsql.Select<TestTable009>().Where(i => (i.ColSetTest & SetTest009.C) == SetTest009.C).ToSql();
+        }
+
+
         [Fact]
         public void InsertUpdateParameter()
         {

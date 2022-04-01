@@ -223,7 +223,7 @@ namespace FreeSql
         /// 比较实体，计算出值发生变化的属性，以及属性变化的前后值
         /// </summary>
         /// <param name="newdata">最新的实体对象，它将与附加实体的状态对比</param>
-        /// <returns></returns>
+        /// <returns>key: 属性名, value: [旧值, 新值]</returns>
         public Dictionary<string, object[]> CompareState(TEntity newdata)
         {
             if (newdata == null) return null;
@@ -305,6 +305,7 @@ namespace FreeSql
                     case DataType.KingbaseES:
                     case DataType.OdbcKingbaseES:
                     case DataType.ShenTong:
+                    case DataType.ClickHouse:
                         return true;
                     default:
                         if (_tableIdentitys.Length == 1 && _table.Primarys.Length == 1)
@@ -320,6 +321,7 @@ namespace FreeSql
                     if (isThrow) throw new Exception($"不可添加，已存在于状态管理：{_db.OrmOriginal.GetEntityString(_entityType, data)}");
                     return false;
                 }
+                if (_db.OrmOriginal.Ado.DataType == DataType.ClickHouse) return true;
                 var idval = _db.OrmOriginal.GetEntityIdentityValueWithPrimary(_entityType, data);
                 if (idval > 0)
                 {

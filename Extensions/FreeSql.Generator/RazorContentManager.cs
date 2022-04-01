@@ -63,9 +63,9 @@ namespace @gen.NameSpace {
 
 	@foreach (var col in gen.columns) {
 
-		if (string.IsNullOrEmpty(col.Coment) == false) {
+		if (string.IsNullOrEmpty(col.Comment) == false) {
 		@:/// <summary>
-		@:/// @col.Coment.Replace(""\r\n"", ""\n"").Replace(""\n"", ""\r\n		/// "")
+		@:/// @col.Comment.Replace(""\r\n"", ""\n"").Replace(""\n"", ""\r\n		/// "")
 		@:/// </summary>
 		}
 		@:@(""[JsonProperty"" + GetAttributeString(gen.GetColumnAttribute(col, true)) + ""]"")
@@ -154,9 +154,9 @@ namespace @gen.NameSpace {
 		var findfks = fks.Where(fkaa => fkaa.Columns.Where(fkaac1 => fkaac1.Name == col.Name).Any());
 		var csname = gen.GetCsName(col.Name);
 
-		if (string.IsNullOrEmpty(col.Coment) == false) {
+		if (string.IsNullOrEmpty(col.Comment) == false) {
 		@:/// <summary>
-		@:/// @col.Coment.Replace(""\r\n"", ""\n"").Replace(""\n"", ""\r\n		/// "")
+		@:/// @col.Comment.Replace(""\r\n"", ""\n"").Replace(""\n"", ""\r\n		/// "")
 		@:/// </summary>
 		}
 		@:@(""[JsonProperty"" + GetAttributeString(gen.GetColumnAttribute(col, true)) + ""]"")

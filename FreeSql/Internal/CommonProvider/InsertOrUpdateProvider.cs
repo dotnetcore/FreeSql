@@ -29,7 +29,7 @@ namespace FreeSql.Internal.CommonProvider
         public DbTransaction _transaction;
         public DbConnection _connection;
         public int _commandTimeout = 0;
-        public ColumnInfo IdentityColumn { get; }
+        public ColumnInfo IdentityColumn { get; private set; }
 
         public InsertOrUpdateProvider(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression)
         {
@@ -37,12 +37,10 @@ namespace FreeSql.Internal.CommonProvider
             _commonUtils = commonUtils;
             _commonExpression = commonExpression;
             _table = _commonUtils.GetTableByEntity(typeof(T1));
-            if (_table == null)
-            {
+            if (_table == null && typeof(T1) != typeof(Dictionary<string, object>))
                 throw new Exception($"InsertOrUpdate<>的泛型参数 不支持 {typeof(T1)},请传递您的实体类");
-            }
             if (_orm.CodeFirst.IsAutoSyncStructure && typeof(T1) != typeof(object)) _orm.CodeFirst.SyncStructure<T1>();
-            IdentityColumn = _table.Primarys.Where(a => a.Attribute.IsIdentity).FirstOrDefault();
+            IdentityColumn = _table?.Primarys.Where(a => a.Attribute.IsIdentity).FirstOrDefault();
         }
 
         protected void ClearData()
@@ -88,14 +86,14 @@ namespace FreeSql.Internal.CommonProvider
         }
         public static void AuditDataValue(object sender, T1 data, IFreeSql orm, TableInfo table, Dictionary<string, bool> changedDict)
         {
-            if (data == null) return;
+            if (data == null || table == null) return;
             if (typeof(T1) == typeof(object) && new[] { table.Type, table.TypeLazy }.Contains(data.GetType()) == false)
                 throw new Exception($"操作的数据类型({data.GetType().DisplayCsharp()}) 与 AsType({table.Type.DisplayCsharp()}) 不一致，请检查。");
             if (orm.Aop.AuditValueHandler == null) return;
             foreach (var col in table.Columns.Values)
             {
                 object val = col.GetValue(data);
-                var auditArgs = new Aop.AuditValueEventArgs(Aop.AuditValueType.InsertOrUpdate, col, table.Properties[col.CsName], val);
+                var auditArgs = new Aop.AuditValueEventArgs(Aop.AuditValueType.InsertOrUpdate, col, table.Properties.TryGetValue(col.CsName, out var tryprop) ? tryprop : null, val);
                 orm.Aop.AuditValueHandler(sender, auditArgs);
                 if (auditArgs.ValueIsChanged)
                 {
@@ -112,6 +110,7 @@ namespace FreeSql.Internal.CommonProvider
         public IInsertOrUpdate<T1> SetSource(IEnumerable<T1> source)
         {
             if (source == null || source.Any() == false) return this;
+            UpdateProvider<T1>.GetDictionaryTableInfo(source.FirstOrDefault(), _orm, ref _table);
             AuditDataValue(this, source, _orm, _table, _auditValueChangedDict);
             _source.AddRange(source.Where(a => a != null));
             return this;
@@ -139,6 +138,11 @@ namespace FreeSql.Internal.CommonProvider
             _tableRule = tableRule;
             return this;
         }
+        public IInsertOrUpdate<T1> AsTable(string tableName)
+        {
+            _tableRule = (oldname) => tableName;
+            return this;
+        }
         public IInsertOrUpdate<T1> AsType(Type entityType)
         {
             if (entityType == typeof(object)) throw new Exception("IInsertOrUpdate.AsType 参数不支持指定为 object");
@@ -146,6 +150,7 @@ namespace FreeSql.Internal.CommonProvider
             var newtb = _commonUtils.GetTableByEntity(entityType);
             _table = newtb ?? throw new Exception("IInsertOrUpdate.AsType 参数错误，请传入正确的实体类型");
             if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(entityType);
+            IdentityColumn = _table.Primarys.Where(a => a.Attribute.IsIdentity).FirstOrDefault();
             return this;
         }
 
@@ -182,6 +187,7 @@ namespace FreeSql.Internal.CommonProvider
                     case DataType.Oracle:
                     case DataType.OdbcDameng:
                     case DataType.Dameng:
+                    case DataType.GBase:
                         sb.Append(" FROM dual");
                         break;
                     case DataType.Firebird:

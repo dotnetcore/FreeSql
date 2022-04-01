@@ -9,6 +9,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using System.Collections;
 
 namespace FreeSql.Internal.CommonProvider
 {
@@ -115,6 +116,7 @@ namespace FreeSql.Internal.CommonProvider
         {
             if (source != null)
             {
+                UpdateProvider<T1>.GetDictionaryTableInfo(source, _orm, ref _table);
                 AuditDataValue(this, source, _orm, _table, _auditValueChangedDict);
                 _source.Add(source);
             }
@@ -124,6 +126,7 @@ namespace FreeSql.Internal.CommonProvider
         {
             if (source != null)
             {
+                UpdateProvider<T1>.GetDictionaryTableInfo(source.FirstOrDefault(), _orm, ref _table);
                 AuditDataValue(this, source, _orm, _table, _auditValueChangedDict);
                 _source.AddRange(source);
             }
@@ -134,6 +137,7 @@ namespace FreeSql.Internal.CommonProvider
             if (source != null)
             {
                 source = source.Where(a => a != null).ToList();
+                UpdateProvider<T1>.GetDictionaryTableInfo(source.FirstOrDefault(), _orm, ref _table);
                 AuditDataValue(this, source, _orm, _table, _auditValueChangedDict);
                 _source.AddRange(source);
 
@@ -148,7 +152,7 @@ namespace FreeSql.Internal.CommonProvider
         }
         public static void AuditDataValue(object sender, T1 data, IFreeSql orm, TableInfo table, Dictionary<string, bool> changedDict)
         {
-            if (data == null) return;
+            if (data == null || table == null) return;
             if (typeof(T1) == typeof(object) && new[] { table.Type, table.TypeLazy }.Contains(data.GetType()) == false)
                 throw new Exception($"操作的数据类型({data.GetType().DisplayCsharp()}) 与 AsType({table.Type.DisplayCsharp()}) 不一致，请检查。");
             foreach (var col in table.Columns.Values)
@@ -156,7 +160,7 @@ namespace FreeSql.Internal.CommonProvider
                 object val = col.GetValue(data);
                 if (orm.Aop.AuditValueHandler != null)
                 {
-                    var auditArgs = new Aop.AuditValueEventArgs(Aop.AuditValueType.Insert, col, table.Properties[col.CsName], val);
+                    var auditArgs = new Aop.AuditValueEventArgs(Aop.AuditValueType.Insert, col, table.Properties.TryGetValue(col.CsName, out var tryprop) ? tryprop : null, val);
                     orm.Aop.AuditValueHandler(sender, auditArgs);
                     if (auditArgs.ValueIsChanged)
                     {
@@ -210,7 +214,7 @@ namespace FreeSql.Internal.CommonProvider
                 ret[a] = _source.GetRange(a * takeMax, Math.Min(takeMax, _source.Count - a * takeMax));
             return ret;
         }
-        protected int SplitExecuteAffrows(int valuesLimit, int parameterLimit)
+        protected virtual int SplitExecuteAffrows(int valuesLimit, int parameterLimit)
         {
             var ss = SplitSource(valuesLimit, parameterLimit);
             var ret = 0;
@@ -505,18 +509,24 @@ namespace FreeSql.Internal.CommonProvider
 
         protected string TableRuleInvoke()
         {
-            if (_tableRule == null) return _table.DbName;
-            var newname = _tableRule(_table.DbName);
-            if (newname == _table.DbName) return _table.DbName;
-            if (string.IsNullOrEmpty(newname)) return _table.DbName;
+            var tbname = _table?.DbName ?? "";
+            if (_tableRule == null) return tbname;
+            var newname = _tableRule(tbname);
+            if (newname == tbname) return tbname;
+            if (string.IsNullOrEmpty(newname)) return tbname;
             if (_orm.CodeFirst.IsSyncStructureToLower) newname = newname.ToLower();
             if (_orm.CodeFirst.IsSyncStructureToUpper) newname = newname.ToUpper();
-            if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(_table.Type, newname);
+            if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(_table?.Type, newname);
             return newname;
         }
         public IInsert<T1> AsTable(Func<string, string> tableRule)
         {
             _tableRule = tableRule;
+            return this;
+        }
+        public IInsert<T1> AsTable(string tableName)
+        {
+            _tableRule = (oldname) => tableName;
             return this;
         }
         public IInsert<T1> AsType(Type entityType)

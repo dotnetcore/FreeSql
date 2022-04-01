@@ -6,7 +6,7 @@ using Xunit;
 namespace FreeSql.Tests.AdoNetExtensions.SqlConnectionExtensions {
 	public class Methods {
 
-		string _connectString = "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=5";
+		string _connectString = "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=5;TrustServerCertificate=true";
 
 		public Methods() {
 			g.sqlserver.CodeFirst.SyncStructure<TestConnectionExt>();

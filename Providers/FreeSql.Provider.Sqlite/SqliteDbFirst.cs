@@ -26,7 +26,7 @@ namespace FreeSql.Sqlite
         public int GetDbType(DbColumnInfo column) => (int)GetSqlDbType(column);
         DbType GetSqlDbType(DbColumnInfo column)
         {
-            var dbfull = column.DbTypeTextFull.ToLower();
+            var dbfull = column.DbTypeTextFull?.ToLower();
             switch (dbfull)
             {
                 case "boolean": return DbType.Boolean;
@@ -50,7 +50,7 @@ namespace FreeSql.Sqlite
 
                 case "character(36)": return DbType.AnsiString;
             }
-            switch (column.DbTypeText.ToLower())
+            switch (column.DbTypeText?.ToLower())
             {
                 case "int":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["integer"]);
@@ -99,7 +99,7 @@ namespace FreeSql.Sqlite
                     return DbType.String;
 
                 default:
-                    _dicDbToCs.TryAdd(dbfull, _dicDbToCs["nvarchar(255)"]);
+                    if (dbfull != null) _dicDbToCs.TryAdd(dbfull, _dicDbToCs["nvarchar(255)"]);
                     return DbType.String;
             }
             throw new NotImplementedException($"未实现 {column.DbTypeTextFull} 类型映射");
@@ -204,7 +204,7 @@ namespace FreeSql.Sqlite
                     DbTypeText = type,
                     DbTypeTextFull = sqlType,
                     Table = loc2[table_id],
-                    Coment = comment,
+                    Comment = comment,
                     DefaultValue = defaultValue,
                     Position = position
                 });

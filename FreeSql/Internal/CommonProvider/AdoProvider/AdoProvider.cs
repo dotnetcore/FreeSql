@@ -111,6 +111,7 @@ namespace FreeSql.Internal.CommonProvider
                 {
                     case DataType.Oracle:
                     case DataType.OdbcOracle:
+                    case DataType.GBase:
                         ExecuteNonQuery(null, null, CommandType.Text, " SELECT 1 FROM dual", commandTimeout);
                         return true;
                     case DataType.Firebird:
@@ -581,7 +582,20 @@ namespace FreeSql.Internal.CommonProvider
                     if (availables.Any())
                     {
                         isSlave = true;
-                        pool = availables.Count == 1 ? availables[0] : availables[slaveRandom.Next(availables.Count)];
+                        if (availables.Count == 1) pool = availables[0];
+                        else
+                        {
+                            var rnd = slaveRandom.Next(availables.Sum(a => a.Policy.Weight));
+                            for(var a = 0; a < availables.Count; a++)
+                            {
+                                rnd -= availables[a].Policy.Weight;
+                                if (rnd < 0)
+                                {
+                                    pool = availables[a];
+                                    break;
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -851,6 +865,7 @@ namespace FreeSql.Internal.CommonProvider
 
             if (cmdParms != null)
             {
+                var dbpool = MasterPool as FreeSql.Internal.CommonProvider.DbConnectionPool;
                 foreach (var parm in cmdParms)
                 {
                     if (parm == null) continue;
@@ -871,7 +886,32 @@ namespace FreeSql.Internal.CommonProvider
                             });
                         }
                     }
-                    if (isnew == false) cmd.Parameters.Add(parm);
+                    if (isnew == false)
+                    {
+                        if (dbpool == null) cmd.Parameters.Add(parm);
+                        else
+                        {
+                            var newparm = cmd.CreateParameter(); // UseConnectionFactory 转换 DbParameter
+                            if (newparm.GetType() == parm.GetType()) cmd.Parameters.Add(parm);
+                            else
+                            {
+                                newparm.DbType = parm.DbType;
+                                newparm.Direction = parm.Direction;
+                                newparm.ParameterName = parm.ParameterName;
+#if net40 || net45
+#else
+                                newparm.Precision = parm.Precision;
+                                newparm.Scale = parm.Scale;
+#endif
+                                newparm.Size = parm.Size;
+                                newparm.SourceColumn = parm.SourceColumn;
+                                newparm.SourceColumnNullMapping = parm.SourceColumnNullMapping;
+                                newparm.SourceVersion = parm.SourceVersion;
+                                newparm.Value = parm.Value;
+                                cmd.Parameters.Add(newparm);
+                            }
+                        }
+                    }
                 }
             }
 

@@ -16,6 +16,74 @@ namespace FreeSql.Tests
 {
     public class UnitTest5
     {
+        // DTO
+        public class TestDto
+        {
+            public decimal ratio { get; set; }
+            public bool is_lock { get; set; }
+        }
+        [Fact]
+        public void TestDoubleWhereBug()
+        {
+            var fsql = g.mysql;
+            // 测试例子
+            var test = new TestDto();
+            test.ratio = 2.1M;
+            var sql = fsql.Update<TestDto>().Set(m => new TestDto
+            {
+                is_lock = test.ratio < 1  //这里生成的SQL语句有问题 ratio = 0.9 或 1.9 或 2.1 等等都是生成的是1
+            }).Where(m => test.ratio < 1).ToSql();
+            Assert.Equal(@"UPDATE TestDto SET is_lock = 2.1 < 1
+WHERE (2.1 < 1)", sql);
+        }
+
+        [Fact]
+        public void TestLambdaParameterWhereIn()
+        {
+            using (var fsql = new FreeSql.FreeSqlBuilder()
+                .UseConnectionString(FreeSql.DataType.Sqlite, @"Data Source=|DataDirectory|\TestLambdaParameterWhereIn.db")
+                .UseAutoSyncStructure(true)
+                .UseGenerateCommandParameterWithLambda(true)
+                .UseLazyLoading(true)
+                .UseMonitorCommand(
+                    cmd => Trace.WriteLine("\r\n线程" + Thread.CurrentThread.ManagedThreadId + ": " + cmd.CommandText) //监听SQL命令对象，在执行前
+                    //, (cmd, traceLog) => Console.WriteLine(traceLog)
+                    )
+                .Build())
+            {
+
+                string dwId = "123456";
+                string yhId = "654321";
+
+                var sql = fsql.Select<wygl_wygs_gzry_wyglqyModelTest1>()
+                      .Where(a => a.dw_id == dwId &&
+                         fsql.Select<wygl_wygs_gzry_wyglqyModel>()
+                               .Where(b => b.yh_id == yhId).ToList(b => b.wyqy_id).Contains(a.wyqy_id)
+                      );
+
+                var sql1 = sql.ToSql();
+                Assert.Equal(@"SELECT a.""dw_id"", a.""wyqy_id"" 
+FROM ""wygl_wygs_gzry_wyglqyModelTest1"" a 
+WHERE (a.""dw_id"" = @exp_0 AND ((a.""wyqy_id"") in (SELECT b.""wyqy_id"" 
+    FROM ""wygl_wygs_gzry_wyglqyModel"" b 
+    WHERE (b.""yh_id"" = @exp_1))))", sql1);
+                Assert.Equal(2, (sql as Select0Provider)._params.Count);
+                Assert.Equal("123456", (sql as Select0Provider)._params[0].Value);
+                Assert.Equal("654321", (sql as Select0Provider)._params[1].Value);
+            }
+        }
+        class wygl_wygs_gzry_wyglqyModelTest1
+        {
+            public string dw_id { get; set; }
+            public string wyqy_id { get; set; }
+        }
+        class wygl_wygs_gzry_wyglqyModel
+        {
+            public string yh_id { get; set; }
+            public string wyqy_id { get; set; }
+        }
+
+
 
         [Fact]
         public void TestJsonb01()
@@ -32,6 +100,29 @@ namespace FreeSql.Tests
             fsql.Insert(item).ExecuteAffrows();
 
             var items = fsql.Select<TestJsonb01Cls1>().ToList();
+        }
+
+        [Fact]
+        public void TestClickHouse()
+        {
+            var fsql = g.mysql;
+            fsql.Delete<TestJsonb01Cls1>().Where("1=1").ExecuteAffrows();
+
+            var item = new TestJsonb01Cls1
+            {
+                jsonb01 = new List<int> { 1, 5, 10, 20 },
+                jsonb02 = new List<long> { 11, 51, 101, 201 },
+                jsonb03 = new List<string> { "12", "52", "102", "202" },
+            };
+            fsql.Insert(item).ExecuteAffrows();
+
+        }
+        [FreeSql.DataAnnotations.Table(Name = "ClickHouseTest")]
+        public class ClickHouse
+        {
+            public long Id { get; set; }
+
+            public string Name { get; set; }
         }
 
         public class TestJsonb01Cls1

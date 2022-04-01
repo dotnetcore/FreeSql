@@ -227,6 +227,12 @@ namespace FreeSql
         /// <returns></returns>
         IUpdate<T1> AsTable(Func<string, string> tableRule);
         /// <summary>
+        /// 设置表名
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <returns></returns>
+        IUpdate<T1> AsTable(string tableName);
+        /// <summary>
         /// 动态Type，在使用 Update&lt;object&gt; 后使用本方法，指定实体类型
         /// </summary>
         /// <param name="entityType"></param>

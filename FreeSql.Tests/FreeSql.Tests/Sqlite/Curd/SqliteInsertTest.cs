@@ -23,6 +23,31 @@ namespace FreeSql.Tests.Sqlite
         }
 
         [Fact]
+        public void InsertDictionary()
+        {
+            var fsql = g.sqlite;
+            Dictionary<string, object> dic = new Dictionary<string, object>();
+            dic.Add("id", 1);
+            dic.Add("name", "xxxx");
+            var diclist = new List<Dictionary<string, object>>();
+            diclist.Add(dic);
+            diclist.Add(new Dictionary<string, object>
+            {
+                ["id"] = 2,
+                ["name"] = "yyyy"
+            });
+
+            var sql1 = fsql.InsertDict(dic).AsTable("table1").ToSql();
+            Assert.Equal(@"INSERT INTO ""table1""(""id"", ""name"") VALUES(@id_0, @name_0)", sql1);
+            var sql2 = fsql.InsertDict(diclist).AsTable("table1").ToSql();
+            Assert.Equal(@"INSERT INTO ""table1""(""id"", ""name"") VALUES(@id_0, @name_0), (@id_1, @name_1)", sql2);
+            var sql3 = fsql.InsertDict(dic).AsTable("table1").NoneParameter().ToSql();
+            Assert.Equal(@"INSERT INTO ""table1""(""id"", ""name"") VALUES(1, 'xxxx')", sql3);
+            var sql4 = fsql.InsertDict(diclist).AsTable("table1").NoneParameter().ToSql();
+            Assert.Equal(@"INSERT INTO ""table1""(""id"", ""name"") VALUES(1, 'xxxx'), (2, 'yyyy')", sql4);
+        }
+
+        [Fact]
         public void AppendData()
         {
             var items = new List<Topic>();

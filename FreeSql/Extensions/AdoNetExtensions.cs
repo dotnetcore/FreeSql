@@ -59,6 +59,10 @@ namespace FreeSql
                     providerType = Type.GetType("FreeSql.Firebird.FirebirdProvider`1,FreeSql.Provider.Firebird")?.MakeGenericType(connType);
                     if (providerType == null) throw new Exception("缺少 FreeSql 数据库实现包：FreeSql.Provider.Firebird.dll，可前往 nuget 下载");
                     break;
+                case "ClickHouseConnection":
+                    providerType = Type.GetType("FreeSql.ClickHouse.ClickHouseProvider`1,FreeSql.Provider.ClickHouse")?.MakeGenericType(connType);
+                    if (providerType == null) throw new Exception("缺少 FreeSql 数据库实现包：FreeSql.Provider.ClickHouse.dll，可前往 nuget 下载");
+                    break;
                 default:
                     throw new Exception("未实现");
             }

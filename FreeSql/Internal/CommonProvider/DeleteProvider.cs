@@ -147,6 +147,11 @@ namespace FreeSql.Internal.CommonProvider
             _tableRule = tableRule;
             return this;
         }
+        public IDelete<T1> AsTable(string tableName)
+        {
+            _tableRule = (oldname) => tableName;
+            return this;
+        }
         public IDelete<T1> AsType(Type entityType)
         {
             if (entityType == typeof(object)) throw new Exception("IDelete.AsType 参数不支持指定为 object");
@@ -157,7 +162,7 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
 
-        public string ToSql()
+        public virtual string ToSql()
         {
             if (_whereTimes <= 0) return null;
             var sb = new StringBuilder().Append("DELETE FROM ").Append(_commonUtils.QuoteSqlName(TableRuleInvoke())).Append(" WHERE ").Append(_where);

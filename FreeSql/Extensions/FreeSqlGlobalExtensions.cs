@@ -1,6 +1,7 @@
 ﻿using FreeSql;
 using FreeSql.DataAnnotations;
 using FreeSql.Internal.CommonProvider;
+using FreeSql.Internal.Model;
 using FreeSql.Internal.ObjectPool;
 using System;
 using System.Collections;
@@ -58,7 +59,7 @@ public static partial class FreeSqlGlobalExtensions
     /// <param name="type"></param>
     /// <param name="isNameSpace"></param>
     /// <returns></returns>
-    internal static string DisplayCsharp(this Type type, bool isNameSpace = true)
+    public static string DisplayCsharp(this Type type, bool isNameSpace = true)
     {
         if (type == null) return null;
         if (type == typeof(void)) return "void";
@@ -418,9 +419,25 @@ public static partial class FreeSqlGlobalExtensions
         if (select._orm.CodeFirst.IsSyncStructureToLower) cteName = cteName.ToLower();
         if (select._orm.CodeFirst.IsSyncStructureToUpper) cteName = cteName.ToUpper();
 
-        switch (select._orm.Ado.DataType) //MySql5.6
+        switch (select._orm.Ado.DataType)
         {
-            case DataType.MySql:
+            case DataType.GBase:
+                //select t.parentid, t.subid, level
+                //from a_test t
+                //start with subid = '7'
+                //connect by prior subid =  parentid;
+                var gbsb = new StringBuilder();
+                var gbsbWhere = select._where.ToString();
+                select._where.Clear();
+                if (gbsbWhere.StartsWith(" AND ")) gbsbWhere = gbsbWhere.Remove(0, 5);
+                gbsb.Append(select._tosqlAppendContent).Append(" \r\nstart with ").Append(gbsbWhere).Append(" \r\nconnect by prior ");
+                if (up) gbsb.Append("a.").Append(select._commonUtils.QuoteSqlName(tbref.Columns[0].Attribute.Name)).Append(" = ").Append("a.").Append(select._commonUtils.QuoteSqlName(tbref.RefColumns[0].Attribute.Name));
+                else gbsb.Append("a.").Append(select._commonUtils.QuoteSqlName(tbref.Columns[0].Attribute.Name)).Append(" = ").Append("a.").Append(select._commonUtils.QuoteSqlName(tbref.RefColumns[0].Attribute.Name));
+                var gbswstr = gbsb.ToString();
+                gbsb.Clear();
+                select.AsAlias((_, old) => $"{old} {gbswstr}");
+                return select;
+            case DataType.MySql: //MySql5.6
             case DataType.OdbcMySql:
                 var mysqlConnectionString = select._orm.Ado?.ConnectionString ?? select._connection?.ConnectionString ?? "";
                 if (_dicMySqlVersion.TryGetValue(mysqlConnectionString, out var mysqlVersion) == false)
@@ -495,6 +512,7 @@ JOIN {select._commonUtils.QuoteSqlName(tb.DbName)} a ON cte_tbc.cte_id = a.{sele
                 case DataType.SqlServer:
                 case DataType.OdbcSqlServer:
                 case DataType.Firebird:
+                case DataType.ClickHouse:
                     sql1ctePath = select._commonExpression.ExpressionWhereLambda(select._tables, Expression.Call(typeof(Convert).GetMethod("ToString", new Type[] { typeof(string) }), pathSelector?.Body), null, null, null);
                     break;
                 default:
@@ -503,11 +521,11 @@ JOIN {select._commonUtils.QuoteSqlName(tb.DbName)} a ON cte_tbc.cte_id = a.{sele
             }
             sql1ctePath = $"{sql1ctePath} as cte_path, ";
         }
-        var sql1 = select.ToSql($"0 as cte_level, {sql1ctePath}{select.GetAllFieldExpressionTreeLevel2().Field}").Trim();
+        var sql1 = select.ToSql($"0 as cte_level, {sql1ctePath}{select.GetAllFieldExpressionTreeLevel2(false).Field}").Trim();
 
         select._where.Clear();
         select.As("wct2");
-        var sql2Field = select.GetAllFieldExpressionTreeLevel2().Field;
+        var sql2Field = select.GetAllFieldExpressionTreeLevel2(false).Field;
         var sql2InnerJoinOn = up == false ?
             string.Join(" and ", tbref.Columns.Select((a, z) => $"wct2.{select._commonUtils.QuoteSqlName(tbref.RefColumns[z].Attribute.Name)} = wct1.{select._commonUtils.QuoteSqlName(a.Attribute.Name)}")) :
             string.Join(" and ", tbref.Columns.Select((a, z) => $"wct2.{select._commonUtils.QuoteSqlName(a.Attribute.Name)} = wct1.{select._commonUtils.QuoteSqlName(tbref.RefColumns[z].Attribute.Name)}"));
@@ -579,6 +597,7 @@ JOIN {select._commonUtils.QuoteSqlName(tb.DbName)} a ON cte_tbc.cte_id = a.{sele
             case DataType.OdbcOracle:
             case DataType.Dameng: //递归 WITH 子句必须具有列别名列表
             case DataType.OdbcDameng:
+            case DataType.GBase:
                 nsselsb.Append($"(cte_level, {(pathSelector == null ? "" : "cte_path, ")}{sql2Field.Replace("wct2.", "")})");
                 break;
         }
@@ -609,6 +628,7 @@ SELECT ");
         {
             case DataType.MySql:
             case DataType.OdbcMySql:
+            case DataType.ClickHouse:
                 return that.OrderBy("rand()");
             case DataType.SqlServer:
             case DataType.OdbcSqlServer:
@@ -633,5 +653,372 @@ SELECT ");
         }
         throw new NotSupportedException($"{s0p._orm.Ado.DataType} 不支持 OrderByRandom 随机排序");
     }
+    #endregion
+
+    #region IFreeSql Insert/Update/InsertOrUpdate/Delete Dictionary<string, object>
+    /// <summary>
+    /// 插入数据字典 Dictionary&lt;string, object&gt;
+    /// </summary>
+    /// <param name="source"></param>
+    /// <returns></returns>
+    public static InsertDictImpl InsertDict(this IFreeSql freesql, Dictionary<string, object> source)
+    {
+        var insertDict = new InsertDictImpl(freesql);
+        insertDict._insertProvider.AppendData(source);
+        return insertDict;
+    }
+    /// <summary>
+    /// 插入数据字典，传入 Dictionary&lt;string, object&gt; 集合
+    /// </summary>
+    /// <param name="source"></param>
+    /// <returns></returns>
+    public static InsertDictImpl InsertDict(this IFreeSql freesql, IEnumerable<Dictionary<string, object>> source)
+    {
+        var insertDict = new InsertDictImpl(freesql);
+        insertDict._insertProvider.AppendData(source);
+        return insertDict;
+    }
+    /// <summary>
+    /// 更新数据字典 Dictionary&lt;string, object&gt;
+    /// </summary>
+    /// <param name="source"></param>
+    /// <returns></returns>
+    public static UpdateDictImpl UpdateDict(this IFreeSql freesql, Dictionary<string, object> source)
+    {
+        var updateDict = new UpdateDictImpl(freesql);
+        updateDict._updateProvider.SetSource(source);
+        return updateDict;
+    }
+    /// <summary>
+    /// 更新数据字典，传入 Dictionary&lt;string, object&gt; 集合
+    /// </summary>
+    /// <param name="source"></param>
+    /// <returns></returns>
+    public static UpdateDictImpl UpdateDict(this IFreeSql freesql, IEnumerable<Dictionary<string, object>> source)
+    {
+        var updateDict = new UpdateDictImpl(freesql);
+        updateDict._updateProvider.SetSource(source);
+        return updateDict;
+    }
+    /// <summary>
+    /// 插入或更新数据字典，此功能依赖数据库特性（低版本可能不支持），参考如下：<para></para>
+    /// MySql 5.6+: on duplicate key update<para></para>
+    /// PostgreSQL 9.4+: on conflict do update<para></para>
+    /// SqlServer 2008+: merge into<para></para>
+    /// Oracle 11+: merge into<para></para>
+    /// Sqlite: replace into<para></para>
+    /// 达梦: merge into<para></para>
+    /// 人大金仓：on conflict do update<para></para>
+    /// 神通：merge into<para></para>
+    /// MsAccess：不支持<para></para>
+    /// </summary>
+    /// <param name="source"></param>
+    /// <returns></returns>
+    public static InsertOrUpdateDictImpl InsertOrUpdateDict(this IFreeSql freesql, Dictionary<string, object> source)
+    {
+        var insertOrUpdateDict = new InsertOrUpdateDictImpl(freesql);
+        insertOrUpdateDict._insertOrUpdateProvider.SetSource(source);
+        return insertOrUpdateDict;
+    }
+    public static InsertOrUpdateDictImpl InsertOrUpdateDict(this IFreeSql freesql, IEnumerable<Dictionary<string, object>> source)
+    {
+        var insertOrUpdateDict = new InsertOrUpdateDictImpl(freesql);
+        insertOrUpdateDict._insertOrUpdateProvider.SetSource(source);
+        return insertOrUpdateDict;
+    }
+    /// <summary>
+    /// 删除数据字典 Dictionary&lt;string, object&gt;
+    /// </summary>
+    /// <param name="source"></param>
+    /// <returns></returns>
+    public static DeleteDictImpl DeleteDict(this IFreeSql freesql, Dictionary<string, object> source)
+    {
+        var deleteDict = new DeleteDictImpl(freesql);
+        UpdateProvider<Dictionary<string, object>>.GetDictionaryTableInfo(source, deleteDict._deleteProvider._orm, ref deleteDict._deleteProvider._table);
+        var primarys = UpdateDictImpl.GetPrimarys(deleteDict._deleteProvider._table, source.Keys.ToArray());
+        deleteDict._deleteProvider.Where(deleteDict._deleteProvider._commonUtils.WhereItems(primarys, "", new[] { source }));
+        return deleteDict;
+    }
+    /// <summary>
+    /// 删除数据字典，传入 Dictionary&lt;string, object&gt; 集合
+    /// </summary>
+    /// <param name="source"></param>
+    /// <returns></returns>
+    public static DeleteDictImpl DeleteDict(this IFreeSql freesql, IEnumerable<Dictionary<string, object>> source)
+    {
+        DeleteDictImpl deleteDict = null;
+        if (source.Select(a => string.Join(",", a.Keys)).Distinct().Count() == 1)
+        {
+            deleteDict = new DeleteDictImpl(freesql);
+            var sourceFirst = source.FirstOrDefault();
+            UpdateProvider<Dictionary<string, object>>.GetDictionaryTableInfo(sourceFirst, deleteDict._deleteProvider._orm, ref deleteDict._deleteProvider._table);
+            var primarys = UpdateDictImpl.GetPrimarys(deleteDict._deleteProvider._table, sourceFirst.Keys.ToArray());
+            deleteDict._deleteProvider.Where(deleteDict._deleteProvider._commonUtils.WhereItems(primarys, "", source));
+            return deleteDict;
+        }
+        foreach (var item in source)
+        {
+            var tmpDelteDict = DeleteDict(freesql, item);
+            if (deleteDict == null) deleteDict = tmpDelteDict;
+            else deleteDict._deleteProvider._where.Append(" OR ").Append(tmpDelteDict._deleteProvider._where);
+        }
+        return deleteDict ?? new DeleteDictImpl(freesql);
+    }
+
+    #region InsertDictImpl
+    public class InsertDictImpl
+    {
+        internal readonly InsertProvider<Dictionary<string, object>> _insertProvider;
+        internal InsertDictImpl(IFreeSql orm)
+        {
+            _insertProvider = (orm as BaseDbProvider ?? throw new Exception("IFreeSql 无法转换成 BaseDbProvider"))
+                .CreateInsertProvider<Dictionary<string, object>>() as InsertProvider<Dictionary<string, object>>;
+        }
+
+        public InsertDictImpl AsTable(string tableName)
+        {
+            _insertProvider.AsTable(tableName);
+            return this;
+        }
+
+        public InsertDictImpl BatchOptions(int valuesLimit, int parameterLimit, bool autoTransaction = true)
+        {
+            _insertProvider.BatchOptions(valuesLimit, parameterLimit, autoTransaction);
+            return this;
+        }
+        public InsertDictImpl BatchProgress(Action<BatchProgressStatus<Dictionary<string, object>>> callback)
+        {
+            _insertProvider.BatchProgress(callback);
+            return this;
+        }
+
+        public InsertDictImpl CommandTimeout(int timeout)
+        {
+            _insertProvider.CommandTimeout(timeout);
+            return this;
+        }
+
+        public int ExecuteAffrows() => _insertProvider.ExecuteAffrows();
+        public long ExecuteIdentity() => _insertProvider.ExecuteIdentity();
+        public List<Dictionary<string, object>> ExecuteInserted() => _insertProvider.ExecuteInserted();
+
+#if net40
+#else
+        public Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default) => _insertProvider.ExecuteAffrowsAsync(cancellationToken);
+        public Task<long> ExecuteIdentityAsync(CancellationToken cancellationToken = default) => _insertProvider.ExecuteIdentityAsync(cancellationToken);
+        public Task<List<Dictionary<string, object>>> ExecuteInsertedAsync(CancellationToken cancellationToken = default) => _insertProvider.ExecuteInsertedAsync(cancellationToken);
+#endif
+
+        public InsertDictImpl NoneParameter(bool isNotCommandParameter = true)
+        {
+            _insertProvider.NoneParameter(isNotCommandParameter);
+            return this;
+        }
+
+        public DataTable ToDataTable() => _insertProvider.ToDataTable();
+        public string ToSql() => _insertProvider.ToSql();
+
+        public InsertDictImpl WithConnection(DbConnection connection)
+        {
+            _insertProvider.WithConnection(connection);
+            return this;
+        }
+        public InsertDictImpl WithTransaction(DbTransaction transaction)
+        {
+            _insertProvider.WithTransaction(transaction);
+            return this;
+        }
+    }
+    #endregion
+
+    #region UpdateDictImpl
+    public class UpdateDictImpl
+    {
+        internal readonly UpdateProvider<Dictionary<string, object>> _updateProvider;
+        internal UpdateDictImpl(IFreeSql orm)
+        {
+            _updateProvider = (orm as BaseDbProvider ?? throw new Exception("IFreeSql 无法转换成 BaseDbProvider"))
+                .CreateUpdateProvider<Dictionary<string, object>>(null) as UpdateProvider<Dictionary<string, object>>;
+        }
+
+        public UpdateDictImpl WherePrimary(params string[] primarys)
+        {
+            _updateProvider._tempPrimarys = GetPrimarys(_updateProvider._table, primarys);
+            return this;
+        }
+        public static ColumnInfo[] GetPrimarys(TableInfo table, params string[] primarys)
+        {
+            if (primarys?.Any() != true) throw new ArgumentException(nameof(primarys));
+            var pks = new List<ColumnInfo>();
+            foreach (var primary in primarys)
+            {
+                if (table.ColumnsByCs.TryGetValue(string.Concat(primary), out var col)) pks.Add(col);
+                else throw new Exception($"GetPrimarys 传递的参数 \"{primary}\" 不正确，它不属于字典数据的键名");
+            }
+            return pks.ToArray();
+        }
+        public static void SetTablePrimary(TableInfo table, params string[] primarys)
+        {
+            foreach (var primary in primarys)
+            {
+                if (table.ColumnsByCs.TryGetValue(string.Concat(primary), out var col)) col.Attribute.IsPrimary = true;
+                else throw new Exception($"GetPrimarys 传递的参数 \"{primary}\" 不正确，它不属于字典数据的键名");
+            }
+            table.Primarys = table.Columns.Where(a => a.Value.Attribute.IsPrimary).Select(a => a.Value).ToArray();
+        }
+
+        public UpdateDictImpl AsTable(string tableName)
+        {
+            _updateProvider.AsTable(tableName);
+            return this;
+        }
+
+        public UpdateDictImpl BatchOptions(int rowsLimit, int parameterLimit, bool autoTransaction = true)
+        {
+            _updateProvider.BatchOptions(rowsLimit, parameterLimit, autoTransaction);
+            return this;
+        }
+        public UpdateDictImpl BatchProgress(Action<BatchProgressStatus<Dictionary<string, object>>> callback)
+        {
+            _updateProvider.BatchProgress(callback);
+            return this;
+        }
+
+        public UpdateDictImpl CommandTimeout(int timeout)
+        {
+            _updateProvider.CommandTimeout(timeout);
+            return this;
+        }
+
+        public int ExecuteAffrows() => _updateProvider.ExecuteAffrows();
+        public List<Dictionary<string, object>> ExecuteUpdated() => _updateProvider.ExecuteUpdated();
+
+#if net40
+#else
+        public Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default) => _updateProvider.ExecuteAffrowsAsync(cancellationToken);
+        public Task<List<Dictionary<string, object>>> ExecuteUpdatedAsync(CancellationToken cancellationToken = default) => _updateProvider.ExecuteUpdatedAsync(cancellationToken);
+#endif
+
+        public UpdateDictImpl NoneParameter(bool isNotCommandParameter = true)
+        {
+            _updateProvider.NoneParameter(isNotCommandParameter);
+            return this;
+        }
+
+        public string ToSql() => _updateProvider.ToSql();
+
+        public UpdateDictImpl WithConnection(DbConnection connection)
+        {
+            _updateProvider.WithConnection(connection);
+            return this;
+        }
+        public UpdateDictImpl WithTransaction(DbTransaction transaction)
+        {
+            _updateProvider.WithTransaction(transaction);
+            return this;
+        }
+    }
+    #endregion
+
+    #region InsertOrUpdateDictImpl
+    public class InsertOrUpdateDictImpl
+    {
+        internal readonly InsertOrUpdateProvider<Dictionary<string, object>> _insertOrUpdateProvider;
+        internal InsertOrUpdateDictImpl(IFreeSql orm)
+        {
+            _insertOrUpdateProvider = (orm as BaseDbProvider ?? throw new Exception("IFreeSql 无法转换成 BaseDbProvider"))
+                .CreateInsertOrUpdateProvider<Dictionary<string, object>>() as InsertOrUpdateProvider<Dictionary<string, object>>;
+        }
+
+        public InsertOrUpdateDictImpl WherePrimary(params string[] primarys)
+        {
+            UpdateDictImpl.SetTablePrimary(_insertOrUpdateProvider._table, primarys);
+            return this;
+        }
+
+        public InsertOrUpdateDictImpl AsTable(string tableName)
+        {
+            _insertOrUpdateProvider.AsTable(tableName);
+            return this;
+        }
+
+        public InsertOrUpdateDictImpl CommandTimeout(int timeout)
+        {
+            _insertOrUpdateProvider.CommandTimeout(timeout);
+            return this;
+        }
+
+        public int ExecuteAffrows() => _insertOrUpdateProvider.ExecuteAffrows();
+#if net40
+#else
+        public Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default) => _insertOrUpdateProvider.ExecuteAffrowsAsync(cancellationToken);
+#endif
+        public InsertOrUpdateDictImpl IfExistsDoNothing()
+        {
+            _insertOrUpdateProvider.IfExistsDoNothing();
+            return this;
+        }
+
+        public string ToSql() => _insertOrUpdateProvider.ToSql();
+
+        public InsertOrUpdateDictImpl WithConnection(DbConnection connection)
+        {
+            _insertOrUpdateProvider.WithConnection(connection);
+            return this;
+        }
+        public InsertOrUpdateDictImpl WithTransaction(DbTransaction transaction)
+        {
+            _insertOrUpdateProvider.WithTransaction(transaction);
+            return this;
+        }
+    }
+    #endregion
+
+    #region DeleteDictImpl
+    public class DeleteDictImpl
+    {
+        internal readonly DeleteProvider<Dictionary<string, object>> _deleteProvider;
+        internal DeleteDictImpl(IFreeSql orm)
+        {
+            _deleteProvider = (orm as BaseDbProvider ?? throw new Exception("IFreeSql 无法转换成 BaseDbProvider"))
+                .CreateDeleteProvider<Dictionary<string, object>>(null) as DeleteProvider<Dictionary<string, object>>;
+        }
+
+        public DeleteDictImpl AsTable(string tableName)
+        {
+            _deleteProvider.AsTable(tableName);
+            return this;
+        }
+
+        public DeleteDictImpl CommandTimeout(int timeout)
+        {
+            _deleteProvider.CommandTimeout(timeout);
+            return this;
+        }
+
+        public int ExecuteAffrows() => _deleteProvider.ExecuteAffrows();
+        public List<Dictionary<string, object>> ExecuteDeleted() => _deleteProvider.ExecuteDeleted();
+
+#if net40
+#else
+        public Task<int> ExecuteAffrowsAsync(CancellationToken cancellationToken = default) => _deleteProvider.ExecuteAffrowsAsync(cancellationToken);
+        public Task<List<Dictionary<string, object>>> ExecuteDeletedAsync(CancellationToken cancellationToken = default) => _deleteProvider.ExecuteDeletedAsync(cancellationToken);
+#endif
+
+        public string ToSql() => _deleteProvider.ToSql();
+
+        public DeleteDictImpl WithConnection(DbConnection connection)
+        {
+            _deleteProvider.WithConnection(connection);
+            return this;
+        }
+        public DeleteDictImpl WithTransaction(DbTransaction transaction)
+        {
+            _deleteProvider.WithTransaction(transaction);
+            return this;
+        }
+    }
+    #endregion
+
     #endregion
 }

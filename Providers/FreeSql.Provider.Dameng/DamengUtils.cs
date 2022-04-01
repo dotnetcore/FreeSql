@@ -18,7 +18,7 @@ namespace FreeSql.Dameng
         public override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, ColumnInfo col, Type type, object value)
         {
             if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
-            var dbtype = (DmDbType)_orm.CodeFirst.GetDbInfo(type)?.type;
+            var dbtype = (DmDbType?)_orm.CodeFirst.GetDbInfo(type)?.type;
             switch (dbtype)
             {
                 case DmDbType.Bit:
@@ -40,7 +40,7 @@ namespace FreeSql.Dameng
                     }
                     break;
             }
-            var ret = new DmParameter { ParameterName = QuoteParamterName(parameterName), DmSqlType = dbtype, Value = value };
+            var ret = new DmParameter { ParameterName = QuoteParamterName(parameterName), DmSqlType = dbtype ?? default, Value = value };
             _params?.Add(ret);
             return ret;
         }

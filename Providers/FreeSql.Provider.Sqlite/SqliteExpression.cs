@@ -118,10 +118,10 @@ namespace FreeSql.Sqlite
                         tsc.SetMapColumnTmp(null);
                         var args1 = getExp(callExp.Arguments[argIndex]);
                         var oldMapType = tsc.SetMapTypeReturnOld(tsc.mapTypeTmp);
-                        var oldDbParams = tsc.SetDbParamsReturnOld(null);
+                        //var oldDbParams = tsc.SetDbParamsReturnOld(null); #900 UseGenerateCommandParameterWithLambda(true) 子查询 bug
                         var left = objExp == null ? null : getExp(objExp);
                         tsc.SetMapColumnTmp(null).SetMapTypeReturnOld(oldMapType);
-                        tsc.SetDbParamsReturnOld(oldDbParams);
+                        //tsc.SetDbParamsReturnOld(oldDbParams);
                         switch (callExp.Method.Name)
                         {
                             case "Contains":
@@ -366,8 +366,21 @@ namespace FreeSql.Sqlite
             {
                 case "Abs": return $"abs({getExp(exp.Arguments[0])})";
                 case "Sign": return $"sign({getExp(exp.Arguments[0])})";
+#if MicrosoftData
+                case "Floor":
+                    {
+                        var funExp = getExp(exp.Arguments[0]);
+                        return $"cast({funExp} as int) - ({funExp} < cast({funExp} as int))";
+                    };
+                case "Ceiling":
+                    {
+                        var funExp = getExp(exp.Arguments[0]);
+                        return $"cast ({funExp} as int ) + ({funExp} > cast ({funExp} as int ))";
+                    };
+#else
                 case "Floor": return $"floor({getExp(exp.Arguments[0])})";
                 case "Ceiling": return $"ceiling({getExp(exp.Arguments[0])})";
+#endif
                 case "Round":
                     if (exp.Arguments.Count > 1 && exp.Arguments[1].Type.FullName == "System.Int32") return $"round({getExp(exp.Arguments[0])}, {getExp(exp.Arguments[1])})";
                     return $"round({getExp(exp.Arguments[0])})";

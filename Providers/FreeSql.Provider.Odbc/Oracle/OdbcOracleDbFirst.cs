@@ -27,7 +27,7 @@ namespace FreeSql.Odbc.Oracle
         public int GetDbType(DbColumnInfo column) => (int)GetSqlDbType(column);
         OdbcType GetSqlDbType(DbColumnInfo column)
         {
-            var dbfull = column.DbTypeTextFull.ToLower();
+            var dbfull = column.DbTypeTextFull?.ToLower();
             switch (dbfull)
             {
                 case "number(1)": return OdbcType.Bit;
@@ -55,7 +55,7 @@ namespace FreeSql.Odbc.Oracle
 
                 case "char(36 char)": return OdbcType.Char;
             }
-            switch (column.DbTypeText.ToLower())
+            switch (column.DbTypeText?.ToLower())
             {
                 case "number":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["number(10,2)"]);
@@ -110,7 +110,7 @@ namespace FreeSql.Odbc.Oracle
                     return OdbcType.Double;
                 case "rowid":
                 default:
-                    _dicDbToCs.TryAdd(dbfull, _dicDbToCs["nvarchar2(255)"]);
+                    if (dbfull != null) _dicDbToCs.TryAdd(dbfull, _dicDbToCs["nvarchar2(255)"]);
                     return OdbcType.NVarChar;
             }
             throw new NotImplementedException($"未实现 {column.DbTypeTextFull} 类型映射");
@@ -379,7 +379,7 @@ where {(ignoreCase ? "lower(a.owner)" : "a.owner")} in ({databaseIn}) and {loc8}
                     DbTypeText = type,
                     DbTypeTextFull = sqlType,
                     Table = loc2[table_id],
-                    Coment = comment,
+                    Comment = comment,
                     DefaultValue = defaultValue,
                     Position = ++position
                 });

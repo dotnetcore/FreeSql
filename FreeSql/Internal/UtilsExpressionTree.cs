@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Linq.Expressions;
@@ -118,7 +119,7 @@ namespace FreeSql.Internal
                     var leftBt = colattr.DbType.IndexOf('(');
                     colattr.DbType = colattr.DbType.Substring(0, leftBt).ToUpper() + colattr.DbType.Substring(leftBt);
                 }
-                else
+                else if (common._orm.Ado.DataType != DataType.ClickHouse)
                     colattr.DbType = colattr.DbType.ToUpper();
 
                 if (colattrIsNull == false && colattrIsNullable == true) colattr.DbType = colattr.DbType.Replace("NOT NULL", "");
@@ -129,12 +130,13 @@ namespace FreeSql.Internal
                 if (common.CodeFirst.IsSyncStructureToLower) colattr.Name = colattr.Name.ToLower();
                 if (common.CodeFirst.IsSyncStructureToUpper) colattr.Name = colattr.Name.ToUpper();
 
-                if ((colattr.IsNullable != true || colattr.IsIdentity == true || colattr.IsPrimary == true) && colattr.DbType.Contains("NOT NULL") == false)
+                if ((colattr.IsNullable != true || colattr.IsIdentity == true || colattr.IsPrimary == true) && colattr.DbType.Contains("NOT NULL") == false && common._orm.Ado.DataType != DataType.ClickHouse)
                 {
                     colattr.IsNullable = false;
                     colattr.DbType = Regex.Replace(colattr.DbType, @"\bNULL\b", "").Trim() + " NOT NULL";
                 }
                 if (colattr.IsNullable == true && colattr.DbType.Contains("NOT NULL")) colattr.DbType = colattr.DbType.Replace("NOT NULL", "");
+                else if (colattr.IsNullable == true && !colattr.DbType.Contains("Nullable") && common._orm.Ado.DataType == DataType.ClickHouse) colattr.DbType = $"Nullable({colattr.DbType})";
                 colattr.DbType = Regex.Replace(colattr.DbType, @"\([^\)]+\)", m =>
                 {
                     var tmpLt = Regex.Replace(m.Groups[0].Value, @"\s", "");
@@ -203,6 +205,36 @@ namespace FreeSql.Internal
                 //    else if (Math.Abs(dt.Subtract(DateTime.UtcNow).TotalSeconds) < 60)
                 //        col.DbDefaultValue = common.NowUtc;
                 //}
+
+                if (common._orm.Ado.DataType == DataType.GBase)
+                {
+                    if (colattr.IsIdentity == true)
+                    {
+                        var colType = col.CsType.NullableTypeOrThis();
+                        if (colType == typeof(int) || colType == typeof(uint))
+                            colattr.DbType = "SERIAL";
+                        else if (colType == typeof(long) || colType == typeof(ulong))
+                            colattr.DbType = "SERIAL8";
+                    }
+                    if (colattr.MapType.NullableTypeOrThis() == typeof(DateTime))
+                    {
+                        if (colattr._Precision == null)
+                        {
+                            colattr.DbType = "DATETIME YEAR TO FRACTION(3)";
+                            colattr.Precision = 3;
+                            col.DbPrecision = 3;
+                        }
+                        else if (colattr._Precision == 0)
+                        {
+                            colattr.DbType = "DATETIME YEAR TO SECOND";
+                        }
+                        else if (colattr._Precision > 0)
+                        {
+                            colattr.DbType = $"DATETIME YEAR TO FRACTION({colattr.Precision})";
+                            col.DbPrecision = (byte)colattr.Precision;
+                        }
+                    }
+                }
                 if (colattr.ServerTime != DateTimeKind.Unspecified && new[] { typeof(DateTime), typeof(DateTimeOffset) }.Contains(colattr.MapType.NullableTypeOrThis()))
                 {
                     var commonNow = common.Now;
@@ -234,12 +266,13 @@ namespace FreeSql.Internal
                 {
                     int strlen = colattr.StringLength;
                     var charPatten = @"(CHARACTER|CHAR2|CHAR)\s*(\([^\)]*\))?";
+                    var strNotNull = colattr.IsNullable == false ? " NOT NULL" : "";
                     switch (common._orm.Ado.DataType)
                     {
                         case DataType.MySql:
                         case DataType.OdbcMySql:
-                            if (strlen == -2) colattr.DbType = "LONGTEXT";
-                            else if (strlen < 0) colattr.DbType = "TEXT";
+                            if (strlen == -2) colattr.DbType = $"LONGTEXT{strNotNull}";
+                            else if (strlen < 0) colattr.DbType = $"TEXT{strNotNull}";
                             else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
                             break;
                         case DataType.SqlServer:
@@ -252,15 +285,15 @@ namespace FreeSql.Internal
                         case DataType.KingbaseES:
                         case DataType.OdbcKingbaseES:
                         case DataType.ShenTong:
-                            if (strlen < 0) colattr.DbType = "TEXT";
+                            if (strlen < 0) colattr.DbType = $"TEXT{strNotNull}";
                             else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
                             break;
                         case DataType.Oracle:
-                            if (strlen < 0) colattr.DbType = "NCLOB"; //v1.3.2+ https://github.com/dotnetcore/FreeSql/issues/259
+                            if (strlen < 0) colattr.DbType = $"NCLOB{strNotNull}"; //v1.3.2+ https://github.com/dotnetcore/FreeSql/issues/259
                             else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
                             break;
                         case DataType.Dameng:
-                            if (strlen < 0) colattr.DbType = "TEXT";
+                            if (strlen < 0) colattr.DbType = $"TEXT{strNotNull}";
                             else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
                             break;
                         case DataType.OdbcOracle:
@@ -269,17 +302,21 @@ namespace FreeSql.Internal
                             else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
                             break;
                         case DataType.Sqlite:
-                            if (strlen < 0) colattr.DbType = "TEXT";
+                            if (strlen < 0) colattr.DbType = $"TEXT{strNotNull}";
                             else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
                             break;
                         case DataType.MsAccess:
                             charPatten = @"(CHAR|CHAR2|CHARACTER|TEXT)\s*(\([^\)]*\))?";
-                            if (strlen < 0) colattr.DbType = "LONGTEXT";
+                            if (strlen < 0) colattr.DbType = $"LONGTEXT{strNotNull}";
                             else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
                             break;
                         case DataType.Firebird:
                             charPatten = @"(CHAR|CHAR2|CHARACTER|TEXT)\s*(\([^\)]*\))?";
-                            if (strlen < 0) colattr.DbType = "BLOB SUB_TYPE 1";
+                            if (strlen < 0) colattr.DbType = $"BLOB SUB_TYPE 1{strNotNull}";
+                            else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
+                            break;
+                        case DataType.GBase:
+                            if (strlen < 0) colattr.DbType = $"TEXT{strNotNull}";
                             else colattr.DbType = Regex.Replace(colattr.DbType, charPatten, $"$1({strlen})");
                             break;
                     }
@@ -289,12 +326,13 @@ namespace FreeSql.Internal
                 {
                     int strlen = colattr.StringLength;
                     var bytePatten = @"(VARBINARY|BINARY|BYTEA)\s*(\([^\)]*\))?";
+                    var strNotNull = colattr.IsNullable == false ? " NOT NULL" : "";
                     switch (common._orm.Ado.DataType)
                     {
                         case DataType.MySql:
                         case DataType.OdbcMySql:
-                            if (strlen == -2) colattr.DbType = "LONGBLOB";
-                            else if (strlen < 0) colattr.DbType = "BLOB";
+                            if (strlen == -2) colattr.DbType = $"LONGBLOB{strNotNull}";
+                            else if (strlen < 0) colattr.DbType = $"BLOB{strNotNull}";
                             else colattr.DbType = Regex.Replace(colattr.DbType, bytePatten, $"$1({strlen})");
                             break;
                         case DataType.SqlServer:
@@ -307,27 +345,30 @@ namespace FreeSql.Internal
                         case DataType.KingbaseES:
                         case DataType.OdbcKingbaseES:
                         case DataType.ShenTong: //驱动引发的异常:“System.Data.OscarClient.OscarException”(位于 System.Data.OscarClient.dll 中)
-                            colattr.DbType = "BYTEA"; //变长二进制串
+                            colattr.DbType = $"BYTEA{strNotNull}"; //变长二进制串
                             break;
                         case DataType.Oracle:
-                            colattr.DbType = "BLOB";
+                            colattr.DbType = $"BLOB{strNotNull}";
                             break;
                         case DataType.Dameng:
-                            colattr.DbType = "BLOB";
+                            colattr.DbType = $"BLOB{strNotNull}";
                             break;
                         case DataType.OdbcOracle:
                         case DataType.OdbcDameng:
-                            colattr.DbType = "BLOB";
+                            colattr.DbType = $"BLOB{strNotNull}";
                             break;
                         case DataType.Sqlite:
-                            colattr.DbType = "BLOB";
+                            colattr.DbType = $"BLOB{strNotNull}";
                             break;
                         case DataType.MsAccess:
-                            if (strlen < 0) colattr.DbType = "BLOB";
+                            if (strlen < 0) colattr.DbType = $"BLOB{strNotNull}";
                             else colattr.DbType = Regex.Replace(colattr.DbType, bytePatten, $"$1({strlen})");
                             break;
                         case DataType.Firebird:
-                            colattr.DbType = "BLOB";
+                            colattr.DbType = $"BLOB{strNotNull}";
+                            break;
+                        case DataType.GBase:
+                            colattr.DbType = $"BYTE{strNotNull}";
                             break;
                     }
                 }
@@ -1234,12 +1275,13 @@ namespace FreeSql.Internal
         });
 
         public static T[] GetDbParamtersByObject<T>(string sql, object obj, string paramPrefix, Func<string, Type, object, T> constructorParamter)
+            where T : IDataParameter
         {
             if (string.IsNullOrEmpty(sql) || obj == null) return new T[0];
             var isCheckSql = sql != "*";
             var ttype = typeof(T);
             var type = obj.GetType();
-            if (type == ttype) return new[] { (T)Convert.ChangeType(obj, type) };
+            if (ttype.IsAssignableFrom(type)) return new[] { (T)obj };
             var ret = new List<T>();
             var dic = obj as IDictionary;
             if (dic != null)
@@ -1250,7 +1292,7 @@ namespace FreeSql.Internal
                     if (isCheckSql && string.IsNullOrEmpty(paramPrefix) == false && sql.IndexOf($"{paramPrefix}{dbkey}", StringComparison.CurrentCultureIgnoreCase) == -1) continue;
                     var val = dic[key];
                     var valType = val == null ? typeof(string) : val.GetType();
-                    if (valType == ttype) ret.Add((T)Convert.ChangeType(val, ttype));
+                    if (ttype.IsAssignableFrom(valType)) ret.Add((T)val);
                     else ret.Add(constructorParamter(dbkey, valType, val));
                 }
             }
@@ -1261,7 +1303,7 @@ namespace FreeSql.Internal
                 {
                     if (isCheckSql && string.IsNullOrEmpty(paramPrefix) == false && sql.IndexOf($"{paramPrefix}{p.Name}", StringComparison.CurrentCultureIgnoreCase) == -1) continue;
                     var pvalue = p.GetValue(obj, null);
-                    if (p.PropertyType == ttype) ret.Add((T)Convert.ChangeType(pvalue, ttype));
+                    if (ttype.IsAssignableFrom(p.PropertyType)) ret.Add((T)pvalue);
                     else ret.Add(constructorParamter(p.Name, p.PropertyType, pvalue));
                 }
             }
@@ -1333,7 +1375,7 @@ namespace FreeSql.Internal
                 this.Value = value;
                 this.DataIndex = dataIndex;
             }
-            public static ConstructorInfo Constructor = typeof(RowInfo). GetConstructor(new[] { typeof(object), typeof(int) });
+            public static ConstructorInfo Constructor = typeof(RowInfo).GetConstructor(new[] { typeof(object), typeof(int) });
             public static PropertyInfo PropertyValue = typeof(RowInfo).GetProperty("Value");
             public static PropertyInfo PropertyDataIndex = typeof(RowInfo).GetProperty("DataIndex");
         }
@@ -1351,6 +1393,7 @@ namespace FreeSql.Internal
             switch (orm.Ado.DataType)
             {
                 case DataType.Dameng: //OdbcDameng 不会报错
+                case DataType.GBase:
                     if (dr.IsDBNull(index)) return null;
                     break;
             }
@@ -1464,7 +1507,7 @@ namespace FreeSql.Internal
                             ), new[] { typeExp, indexesExp, rowExp, dataIndexExp, commonUtilExp }).Compile();
                     }
 
-                    if (type == typeof(object) && indexes != null)
+                    if (type == typeof(object) && indexes != null || type == typeof(Dictionary<string, object>))
                     {
                         Func<Type, int[], DbDataReader, int, CommonUtils, RowInfo> dynamicFunc = (type2, indexes2, row2, dataindex2, commonUtils2) =>
                         {
@@ -1812,7 +1855,7 @@ namespace FreeSql.Internal
         static MethodInfo MethodBigIntegerParse = typeof(Utils).GetMethod("ToBigInteger", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(string) }, null);
         static PropertyInfo PropertyDateTimeOffsetDateTime = typeof(DateTimeOffset).GetProperty("DateTime", BindingFlags.Instance | BindingFlags.Public);
         static PropertyInfo PropertyDateTimeTicks = typeof(DateTime).GetProperty("Ticks", BindingFlags.Instance | BindingFlags.Public);
-        static ConstructorInfo CtorDateTimeOffsetArgsTicks = typeof(DateTimeOffset). GetConstructor(new[] { typeof(long), typeof(TimeSpan) });
+        static ConstructorInfo CtorDateTimeOffsetArgsTicks = typeof(DateTimeOffset).GetConstructor(new[] { typeof(long), typeof(TimeSpan) });
         static Encoding DefaultEncoding = Encoding.UTF8;
         static MethodInfo MethodEncodingGetBytes = typeof(Encoding).GetMethod("GetBytes", new[] { typeof(string) });
         static MethodInfo MethodEncodingGetString = typeof(Encoding).GetMethod("GetString", new[] { typeof(byte[]) });
@@ -1831,7 +1874,7 @@ namespace FreeSql.Internal
             {
                 if (type.IsArray)
                 {
-                    switch (type.FullName) 
+                    switch (type.FullName)
                     {
                         case "System.Byte[]":
                             return Expression.IfThenElse(

@@ -140,6 +140,17 @@ namespace FreeSql
             return 0;
         }
 
+        /// <summary>
+        /// 注意：使用者自己承担【注入风险】
+        /// </summary>
+        /// <param name="sql"></param>
+        /// <returns></returns>
+        static bool InternalRawSql([RawValue] string sql)
+        {
+            expContext.Value.Result = sql;
+            return false;
+        }
+
         #region 大小判断
         /// <summary>
         /// 大于 &gt;
@@ -458,6 +469,15 @@ namespace FreeSql
         public static string StringJoinFirebirdList(object column, object delimiter)
         {
             expContext.Result = $"list({expContext.ParsedContent["column"]},{expContext.ParsedContent["delimiter"]})";
+            return null;
+        }
+        public static string StringJoinGBaseWmConcatText(object column, object delimiter)
+        {
+            if (expContext.ParsedContent["delimiter"] == "','")
+                expContext.Result = $"wm_concat_text({expContext.ParsedContent["column"]})";
+            else
+                throw new NotImplementedException("GBase 暂时不支持逗号以外的分割符");
+            //expContext.Result = $"replace(wm_concat_text({expContext.ParsedContent["column"]}), ',', {expContext.ParsedContent["delimiter"]})";
             return null;
         }
         #endregion

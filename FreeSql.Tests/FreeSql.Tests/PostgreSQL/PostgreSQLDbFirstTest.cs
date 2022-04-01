@@ -24,6 +24,17 @@ namespace FreeSql.Tests.PostgreSQL
         public void GetTableByName()
         {
             var fsql = g.pgsql;
+
+            fsql.Ado.ExecuteNonQuery(@"CREATE TABLE IF NOT EXISTS public.table_test
+(
+    id integer NOT NULL,
+    coin_list money[],
+    PRIMARY KEY (id)
+)");
+            var t111 = fsql.DbFirst.GetTableByName("table_test");
+            Assert.True(t111.Columns.Find(a => a.Name == "id").IsPrimary);
+            Assert.False(t111.Columns.Find(a => a.Name == "coin_list").IsPrimary);
+
             var t1 = fsql.DbFirst.GetTableByName("tb_alltype");
             var t2 = fsql.DbFirst.GetTableByName("public.tb_alltype");
             Assert.NotNull(t1);

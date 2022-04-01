@@ -30,8 +30,8 @@ namespace FreeSql.MySql
         public int GetDbType(DbColumnInfo column) => (int)GetMySqlDbType(column);
         MySqlDbType GetMySqlDbType(DbColumnInfo column)
         {
-            var is_unsigned = column.DbTypeTextFull.ToLower().EndsWith(" unsigned");
-            switch (column.DbTypeText.ToLower())
+            var is_unsigned = column.DbTypeTextFull?.ToLower().EndsWith(" unsigned") == true;
+            switch (column.DbTypeText?.ToLower())
             {
                 case "bit": return MySqlDbType.Bit;
 
@@ -314,7 +314,7 @@ where {(ignoreCase ? "lower(a.table_schema)" : "a.table_schema")} in ({databaseI
                     DbTypeText = type,
                     DbTypeTextFull = sqlType,
                     Table = loc2[table_id],
-                    Coment = comment,
+                    Comment = comment,
                     DefaultValue = defaultValue,
                     Position = ++position
                 });

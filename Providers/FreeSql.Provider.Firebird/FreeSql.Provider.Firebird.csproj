@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net452</TargetFrameworks>
-		<Version>2.6.100</Version>
+		<Version>3.2.300</Version>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>FreeSql;ncc;YeXiangQin</Authors>
 		<Description>FreeSql 数据库实现，基于 Firebird</Description>
@@ -26,7 +26,7 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-		<PackageReference Include="FirebirdSql.Data.FirebirdClient" Version="8.5.3" />
+		<PackageReference Include="FirebirdSql.Data.FirebirdClient" Version="8.5.4" />
 	</ItemGroup>
 	<ItemGroup Condition="'$(TargetFramework)' == 'net452'">
 		<PackageReference Include="FirebirdSql.Data.FirebirdClient" Version="7.10.1" />

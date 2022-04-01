@@ -60,6 +60,13 @@ namespace FreeSql
         /// 自定义适配器，访问任何数据库<para></para>
         /// 注意：该类型不提供 DbFirst/CodeFirst 功能
         /// </summary>
-        Custom
+        Custom,
+
+        ClickHouse,
+
+        /// <summary>
+        /// 天津南大通用数据技术股份有限公司成立于2004年,是国产数据库、大数据领域的知名企业，基于 Odbc 的实现
+        /// </summary>
+        GBase
     }
 }

@@ -7,6 +7,19 @@ using System.Threading;
 
 public class g
 {
+    static Lazy<IFreeSql> clickHouseLazy = new Lazy<IFreeSql>(() => new FreeSql.FreeSqlBuilder()
+    .UseConnectionString(FreeSql.DataType.ClickHouse, "Compress=False;BufferSize=32768;SocketTimeout=10000;CheckCompressedHash=False;Encrypt=False;Compressor=lz4;Host=192.168.0.121;Port=8125;Database=PersonnelLocation;Username=root;Password=+riQ8V9D")
+    //.UseConnectionFactory(FreeSql.DataType.MySql, () => new MySql.Data.MySqlClient.MySqlConnection("Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;"))
+    //.UseConnectionString(FreeSql.DataType.MySql, "Data Source=192.168.164.10;Port=33061;User ID=root;Password=root;Initial Catalog=cccddd_mysqlconnector;Charset=utf8;SslMode=none;Max pool size=10")
+    //.UseAutoSyncStructure(true)
+    //.UseGenerateCommandParameterWithLambda(true)
+    .UseMonitorCommand(
+        cmd => Debug.WriteLine("\r\n线程" + Thread.CurrentThread.ManagedThreadId + ": " + cmd.CommandText) //监听SQL命令对象，在执行前
+                                                                                                         //, (cmd, traceLog) => Console.WriteLine(traceLog)
+        )
+    .UseLazyLoading(true)
+    .Build());
+    public static IFreeSql clickHouse => clickHouseLazy.Value;
 
     static Lazy<IFreeSql> mysqlLazy = new Lazy<IFreeSql>(() => new FreeSql.FreeSqlBuilder()
         .UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=5;Allow User Variables=True")
@@ -41,7 +54,7 @@ public class g
     public static IFreeSql pgsql => pgsqlLazy.Value;
 
     static Lazy<IFreeSql> sqlserverLazy = new Lazy<IFreeSql>(() => new FreeSql.FreeSqlBuilder()
-        .UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=issues684;Pooling=true;Max Pool Size=3")
+        .UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=issues684;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
         .UseAutoSyncStructure(true)
         .UseMonitorCommand(
             cmd => Trace.WriteLine("\r\n线程" + Thread.CurrentThread.ManagedThreadId + ": " + cmd.CommandText) //监听SQL命令对象，在执行前
@@ -69,6 +82,7 @@ public class g
 
     static Lazy<IFreeSql> sqliteLazy = new Lazy<IFreeSql>(() => new FreeSql.FreeSqlBuilder()
         .UseConnectionString(FreeSql.DataType.Sqlite, @"Data Source=|DataDirectory|\document.db;Attachs=xxxtb.db;")
+        //.UseConnectionFactory(FreeSql.DataType.Sqlite, () => new Microsoft.Data.Sqlite.SqliteConnection(@"Data Source=documentCore.db"))
         //.UseConnectionFactory(FreeSql.DataType.Sqlite, () =>
         //{
         //    var conn = new System.Data.SQLite.SQLiteConnection(@"Data Source=|DataDirectory|\document.db;Pooling=true;");

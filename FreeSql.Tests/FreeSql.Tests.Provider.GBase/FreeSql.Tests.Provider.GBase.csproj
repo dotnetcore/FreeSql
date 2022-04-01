@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net5.0</TargetFramework>
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+        <DocumentationFile>FreeSql.Tests.Provider.GBase.xml</DocumentationFile>
+        <WarningLevel>3</WarningLevel>
+		<NoWarn>1701;1702;1591</NoWarn>
+        <!--<Prefer32Bit>false</Prefer32Bit>
+        <PlatformTarget>x86</PlatformTarget>-->
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.3" />
+        <PackageReference Include="xunit" Version="2.4.1" />
+        <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
+	
+    <ItemGroup>
+      <ProjectReference Include="..\..\Extensions\FreeSql.Extensions.LazyLoading\FreeSql.Extensions.LazyLoading.csproj" />
+      <ProjectReference Include="..\..\Extensions\FreeSql.Extensions.Linq\FreeSql.Extensions.Linq.csproj" />
+      <ProjectReference Include="..\..\FreeSql.DbContext\FreeSql.DbContext.csproj" />
+      <ProjectReference Include="..\..\FreeSql\FreeSql.csproj" />
+      <ProjectReference Include="..\..\Providers\FreeSql.Provider.GBase\FreeSql.Provider.GBase.csproj" />
+    </ItemGroup>
+</Project>

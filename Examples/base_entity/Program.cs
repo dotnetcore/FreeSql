@@ -106,9 +106,12 @@ namespace base_entity
                 .UseAutoSyncStructure(true)
                 .UseNoneCommandParameter(true)
 
-                .UseConnectionString(FreeSql.DataType.Sqlite, "data source=test.db;max pool size=5")
+                .UseConnectionString(FreeSql.DataType.Sqlite, "data source=test1.db;max pool size=5")
+                .UseSlave("data source=test1.db", "data source=test2.db", "data source=test3.db", "data source=test4.db")
+                .UseSlaveWeight(10, 1, 1, 5)
 
-                .UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=2")
+
+                //.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=2")
 
                 //.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3")
 
@@ -131,12 +134,57 @@ namespace base_entity
 
                 //.UseConnectionString(FreeSql.DataType.OdbcDameng, "Driver={DM8 ODBC DRIVER};Server=127.0.0.1:5236;Persist Security Info=False;Trusted_Connection=Yes;UID=USER1;PWD=123456789")
 
-                .UseMonitorCommand(umcmd => Console.WriteLine(umcmd.CommandText))
+                .UseMonitorCommand(null, (umcmd, log) => Console.WriteLine(umcmd.Connection.ConnectionString + ":" + umcmd.CommandText))
                 .UseLazyLoading(true)
                 .UseGenerateCommandParameterWithLambda(true)
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
+
+            fsql.Aop.AuditValue += new EventHandler<FreeSql.Aop.AuditValueEventArgs>((_, e) =>
+            {
+                
+            });
+
+            Dictionary<string, object> dic = new Dictionary<string, object>();
+            dic.Add("id", 1);
+            dic.Add("name", "xxxx");
+            var diclist = new List<Dictionary<string, object>>();
+            diclist.Add(dic);
+            diclist.Add(new Dictionary<string, object>
+            {
+                ["id"] = 2,
+                ["name"] = "yyyy"
+            });
+
+            var sqss = fsql.InsertDict(dic).AsTable("table1").ToSql();
+            var sqss2 = fsql.InsertDict(diclist).AsTable("table1").ToSql();
+            sqss = fsql.InsertDict(dic).AsTable("table1").NoneParameter(false).ToSql();
+            sqss2 = fsql.InsertDict(diclist).AsTable("table1").NoneParameter(false).ToSql();
+
+            var sqlupd1 = fsql.UpdateDict(dic).AsTable("table1").WherePrimary("id").ToSql();
+            var sqlupd2 = fsql.UpdateDict(diclist).AsTable("table1").WherePrimary("id").ToSql();
+            var sqlupd11 = fsql.UpdateDict(dic).AsTable("table1").WherePrimary("id").NoneParameter(false).ToSql();
+            var sqlupd22 = fsql.UpdateDict(diclist).AsTable("table1").WherePrimary("id").NoneParameter(false).ToSql();
+
+            var sqldel1 = fsql.DeleteDict(dic).AsTable("table1").ToSql();
+            var sqldel2 = fsql.DeleteDict(diclist).AsTable("table1").ToSql();
+            diclist[1]["title"] = "newtitle";
+            var sqldel3 = fsql.DeleteDict(diclist).AsTable("table1").ToSql();
+            diclist.Clear();
+            diclist.Add(new Dictionary<string, object>
+            {
+                ["id"] = 1
+            });
+            diclist.Add(new Dictionary<string, object>
+            {
+                ["id"] = 2
+            });
+            var sqldel4 = fsql.DeleteDict(diclist).AsTable("table1").ToSql();
+
+
+            for (var a = 0; a < 10000; a++)
+                fsql.Select<User1>().First();
 
             for (var a = 0; a < 1000; a++)
             {

@@ -591,6 +591,8 @@ namespace FreeSql.Internal
                         if (rightExp.Type.NullableTypeOrThis() == typeof(TimeSpan))
                             return ExpressionLambdaToSql(Expression.Call(leftExp, MethodDateTimeSubtractTimeSpan, rightExp), tsc);
                     }
+                    if (oper == "OR")
+                        return $"({GetBoolString(ExpressionLambdaToSql(leftExp, tsc))} {oper} {GetBoolString(ExpressionLambdaToSql(rightExp, tsc))})";
                     return $"({ExpressionLambdaToSql(leftExp, tsc)} {oper} {ExpressionLambdaToSql(rightExp, tsc)})";
                 case "=":
                 case "<>":
@@ -1011,6 +1013,7 @@ namespace FreeSql.Internal
                                                     case DataType.OdbcOracle:
                                                     case DataType.Dameng:
                                                     case DataType.OdbcDameng:
+                                                    case DataType.GBase:
                                                         break;
                                                     default:
                                                         fsqlSelect0._limit = 1; //#462 ORACLE rownum <= 2 会影响索引变慢
@@ -1065,24 +1068,31 @@ namespace FreeSql.Internal
                                             else
                                             {
                                                 var argExp = (arg3Exp as UnaryExpression)?.Operand;
-                                                if (argExp != null && argExp.NodeType == ExpressionType.Lambda)
+                                                if (argExp != null)
                                                 {
-                                                    if (fsqltable1SetAlias == false)
+                                                    if (argExp.NodeType == ExpressionType.Lambda)
                                                     {
-                                                        fsqltable1SetAlias = true;
-                                                        var argExpLambda = argExp as LambdaExpression;
-                                                        var fsqlTypeGenericArgs = fsqlType.GetGenericArguments();
+                                                        if (fsqltable1SetAlias == false)
+                                                        {
+                                                            fsqltable1SetAlias = true;
+                                                            var argExpLambda = argExp as LambdaExpression;
+                                                            var fsqlTypeGenericArgs = fsqlType.GetGenericArguments();
 
-                                                        if (argExpLambda.Parameters.Count == 1 && argExpLambda.Parameters[0].Type.FullName.StartsWith("FreeSql.Internal.Model.HzyTuple`"))
-                                                        {
-                                                            for (var gai = 0; gai < fsqlTypeGenericArgs.Length; gai++)
-                                                                fsqltables[gai].Alias = "ht" + (gai + 1);
+                                                            if (argExpLambda.Parameters.Count == 1 && argExpLambda.Parameters[0].Type.FullName.StartsWith("FreeSql.Internal.Model.HzyTuple`"))
+                                                            {
+                                                                for (var gai = 0; gai < fsqlTypeGenericArgs.Length; gai++)
+                                                                    fsqltables[gai].Alias = "ht" + (gai + 1);
+                                                            }
+                                                            else
+                                                            {
+                                                                for (var gai = 0; gai < fsqlTypeGenericArgs.Length && gai < argExpLambda.Parameters.Count; gai++)
+                                                                    fsqltables[gai].Alias = argExpLambda.Parameters[gai].Name;
+                                                            }
                                                         }
-                                                        else
-                                                        {
-                                                            for (var gai = 0; gai < fsqlTypeGenericArgs.Length && gai < argExpLambda.Parameters.Count; gai++)
-                                                                fsqltables[gai].Alias = argExpLambda.Parameters[gai].Name;
-                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        argExp = null;
                                                     }
                                                 }
                                                 args[a] = argExp ?? Expression.Lambda(arg3Exp).Compile().DynamicInvoke();
@@ -1305,6 +1315,7 @@ namespace FreeSql.Internal
                                                     {
                                                         case DataType.MySql:
                                                         case DataType.OdbcMySql:
+                                                        case DataType.GBase:
                                                             if (exp3.Method.Name == "ToList")
                                                                 return $"( SELECT * FROM ({sqlFirst.Replace(" \r\n", " \r\n    ")}) ftblmt50 )";
                                                             break;
@@ -1876,10 +1887,14 @@ namespace FreeSql.Internal
             if (_common.CodeFirst.IsGenerateCommandParameterWithLambda && dbParams != null)
             {
                 if (obj == null) return "NULL";
-                var paramName = $"exp_{dbParams.Count}";
-                var parm = _common.AppendParamter(dbParams, paramName, mapColumn,
-                    mapType ?? mapColumn?.Attribute.MapType ?? obj?.GetType(), mapType == null ? obj : Utils.GetDataReaderValue(mapType, obj));
-                return _common.QuoteParamterName(paramName);
+                var type = mapType ?? mapColumn?.Attribute.MapType ?? obj?.GetType();
+                if (_common.CodeFirst.GetDbInfo(type) != null)
+                {
+                    var paramName = $"exp_{dbParams.Count}";
+                    if (_common._orm?.Ado.DataType == DataType.GBase) paramName = "?";
+                    var parm = _common.AppendParamter(dbParams, paramName, mapColumn, type, mapType == null ? obj : Utils.GetDataReaderValue(mapType, obj));
+                    return _common.QuoteParamterName(paramName);
+                }
             }
             return string.Format(CultureInfo.InvariantCulture, "{0}", _ado.AddslashesProcessParam(obj, mapType, mapColumn));
             //return string.Concat(_ado.AddslashesProcessParam(obj, mapType, mapColumn));

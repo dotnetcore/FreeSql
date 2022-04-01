@@ -14,6 +14,7 @@ public static class FreeSqlJsonMapCoreExtensions
     static MethodInfo MethodJsonConvertDeserializeObject = typeof(JsonConvert).GetMethod("DeserializeObject", new[] { typeof(string), typeof(Type) });
     static MethodInfo MethodJsonConvertSerializeObject = typeof(JsonConvert).GetMethod("SerializeObject", new[] { typeof(object), typeof(JsonSerializerSettings) });
     static ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>> _dicJsonMapFluentApi = new ConcurrentDictionary<Type, ConcurrentDictionary<string, bool>>();
+    static object _concurrentObj = new object();
 
     public static ColumnFluent JsonMap(this ColumnFluent col)
     {
@@ -52,13 +53,17 @@ public static class FreeSqlJsonMapCoreExtensions
                 e.ModifyResult.StringLength = -2;
                 if (_dicTypes.TryAdd(e.Property.PropertyType, true))
                 {
-                    FreeSql.Internal.Utils.GetDataReaderValueBlockExpressionObjectToStringIfThenElse.Add((LabelTarget returnTarget, Expression valueExp, Expression elseExp, Type type) =>
+                    lock (_concurrentObj)
                     {
-                        return Expression.IfThenElse(
-                            Expression.TypeIs(valueExp, e.Property.PropertyType),
-                            Expression.Return(returnTarget, Expression.Call(MethodJsonConvertSerializeObject, Expression.Convert(valueExp, typeof(object)), Expression.Constant(settings)), typeof(object)),
-                            elseExp);
-                    });
+                        FreeSql.Internal.Utils.dicExecuteArrayRowReadClassOrTuple[e.Property.PropertyType] = true;
+                        FreeSql.Internal.Utils.GetDataReaderValueBlockExpressionObjectToStringIfThenElse.Add((LabelTarget returnTarget, Expression valueExp, Expression elseExp, Type type) =>
+                        {
+                            return Expression.IfThenElse(
+                                Expression.TypeIs(valueExp, e.Property.PropertyType),
+                                Expression.Return(returnTarget, Expression.Call(MethodJsonConvertSerializeObject, Expression.Convert(valueExp, typeof(object)), Expression.Constant(settings)), typeof(object)),
+                                elseExp);
+                        });
+                    }
                 }
             }
         };

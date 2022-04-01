@@ -46,7 +46,7 @@ namespace FreeSql.Internal.CommonProvider
             _commonUtils = commonUtils;
             _commonExpression = commonExpression;
             _table = _commonUtils.GetTableByEntity(typeof(T1));
-            _tempPrimarys = _table.Primarys;
+            _tempPrimarys = _table?.Primarys ?? new ColumnInfo[0];
             _noneParameter = _orm.CodeFirst.IsNoneCommandParameter;
             this.Where(_commonUtils.WhereObject(_table, "", dywhere));
             if (_orm.CodeFirst.IsAutoSyncStructure && typeof(T1) != typeof(object)) _orm.CodeFirst.SyncStructure<T1>();
@@ -60,7 +60,7 @@ namespace FreeSql.Internal.CommonProvider
         protected void IgnoreCanUpdate()
         {
             if (_table == null || _table.Type == typeof(object)) return;
-            foreach (var col in _table.Columns.Values)
+            foreach (var col in _table?.Columns.Values)
                 if (col.Attribute.CanUpdate == false && _ignore.ContainsKey(col.Attribute.Name) == false)
                     _ignore.Add(col.Attribute.Name, true);
         }
@@ -138,7 +138,7 @@ namespace FreeSql.Internal.CommonProvider
         }
 
         #region 参数化数据限制，或values数量限制
-        internal List<T1>[] SplitSource(int valuesLimit, int parameterLimit)
+        protected internal List<T1>[] SplitSource(int valuesLimit, int parameterLimit)
         {
             valuesLimit = valuesLimit - 1;
             parameterLimit = parameterLimit - 1;
@@ -163,7 +163,7 @@ namespace FreeSql.Internal.CommonProvider
                 ret[a] = _source.GetRange(a * takeMax, Math.Min(takeMax, _source.Count - a * takeMax));
             return ret;
         }
-        protected int SplitExecuteAffrows(int valuesLimit, int parameterLimit)
+        protected virtual int SplitExecuteAffrows(int valuesLimit, int parameterLimit)
         {
             var ss = SplitSource(valuesLimit, parameterLimit);
             var ret = 0;
@@ -237,7 +237,7 @@ namespace FreeSql.Internal.CommonProvider
             return ret;
         }
 
-        protected List<T1> SplitExecuteUpdated(int valuesLimit, int parameterLimit)
+        protected virtual List<T1> SplitExecuteUpdated(int valuesLimit, int parameterLimit)
         {
             var ss = SplitSource(valuesLimit, parameterLimit);
             var ret = new List<T1>();
@@ -377,7 +377,7 @@ namespace FreeSql.Internal.CommonProvider
                 foreach (var col in table.Columns.Values)
                 {
                     object val = col.GetValue(d);
-                    var auditArgs = new Aop.AuditValueEventArgs(Aop.AuditValueType.Update, col, table.Properties[col.CsName], val);
+                    var auditArgs = new Aop.AuditValueEventArgs(Aop.AuditValueType.Update, col, table.Properties.TryGetValue(col.CsName, out var tryprop) ? tryprop : null, val);
                     orm.Aop.AuditValueHandler(sender, auditArgs);
                     if (auditArgs.ValueIsChanged)
                     {
@@ -393,13 +393,13 @@ namespace FreeSql.Internal.CommonProvider
         public static void AuditDataValue(object sender, T1 data, IFreeSql orm, TableInfo table, Dictionary<string, bool> changedDict)
         {
             if (orm.Aop.AuditValueHandler == null) return;
-            if (data == null) return;
+            if (data == null || table == null) return;
             if (typeof(T1) == typeof(object) && new[] { table.Type, table.TypeLazy }.Contains(data.GetType()) == false)
                 throw new Exception($"操作的数据类型({data.GetType().DisplayCsharp()}) 与 AsType({table.Type.DisplayCsharp()}) 不一致，请检查。");
             foreach (var col in table.Columns.Values)
             {
                 object val = col.GetValue(data);
-                var auditArgs = new Aop.AuditValueEventArgs(Aop.AuditValueType.Update, col, table.Properties[col.CsName], val);
+                var auditArgs = new Aop.AuditValueEventArgs(Aop.AuditValueType.Update, col, table.Properties.TryGetValue(col.CsName, out var tryprop) ? tryprop : null, val);
                 orm.Aop.AuditValueHandler(sender, auditArgs);
                 if (auditArgs.ValueIsChanged)
                 {
@@ -412,10 +412,49 @@ namespace FreeSql.Internal.CommonProvider
             }
         }
 
+        public static void GetDictionaryTableInfo(T1 source, IFreeSql orm, ref TableInfo table)
+        {
+            if (table == null && typeof(T1) == typeof(Dictionary<string, object>))
+            {
+                if (source == null) throw new ArgumentNullException(nameof(source));
+                var dic = source as Dictionary<string, object>;
+                table = new TableInfo();
+                table.Type = typeof(Dictionary<string, object>);
+                table.CsName = dic.TryGetValue("", out var tryval) ? string.Concat(tryval) : "";
+                table.DbName = table.CsName;
+                table.DisableSyncStructure = true;
+                table.IsDictionaryType = true;
+                var colpos = new List<ColumnInfo>();
+                foreach (var kv in dic)
+                {
+                    var colName = kv.Key;
+                    if (orm.CodeFirst.IsSyncStructureToLower) colName = colName.ToLower();
+                    if (orm.CodeFirst.IsSyncStructureToUpper) colName = colName.ToUpper();
+                    var col = new ColumnInfo
+                    {
+                        CsName = kv.Key,
+                        Table = table,
+                        Attribute = new DataAnnotations.ColumnAttribute
+                        {
+                            Name = colName,
+                            MapType = typeof(object)
+                        },
+                        CsType = typeof(object)
+                    };
+                    table.Columns.Add(colName, col);
+                    table.ColumnsByCs.Add(kv.Key, col);
+                    colpos.Add(col);
+                }
+                table.ColumnsByPosition = colpos.ToArray();
+                colpos.Clear();
+            }
+        }
+
         public IUpdate<T1> SetSource(T1 source) => this.SetSource(new[] { source });
         public IUpdate<T1> SetSource(IEnumerable<T1> source, Expression<Func<T1, object>> tempPrimarys = null)
         {
             if (source == null || source.Any() == false) return this;
+            GetDictionaryTableInfo(source.FirstOrDefault(), _orm, ref _table);
             AuditDataValue(this, source, _orm, _table, _auditValueChangedDict);
             _source.AddRange(source.Where(a => a != null));
 
@@ -445,7 +484,7 @@ namespace FreeSql.Internal.CommonProvider
             _set.Append(", ").Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ");
 
             var colsql = _noneParameter ? _commonUtils.GetNoneParamaterSqlValue(_params, "u", col, col.Attribute.MapType, val) :
-                _commonUtils.QuoteWriteParamterAdapter(col.Attribute.MapType, $"{_commonUtils.QuoteParamterName("p_")}{_params.Count}");
+                _commonUtils.QuoteWriteParamterAdapter(col.Attribute.MapType, _commonUtils.QuoteParamterName($"p_{_params.Count}"));
             _set.Append(_commonUtils.RewriteColumn(col, colsql));
             if (_noneParameter == false)
                 _commonUtils.AppendParamter(_params, null, col, col.Attribute.MapType, val);
@@ -487,7 +526,8 @@ namespace FreeSql.Internal.CommonProvider
                             var memberName = initExp.Bindings[a].Member.Name;
                             if (_table.ColumnsByCsIgnore.ContainsKey(memberName)) continue;
                             if (_table.ColumnsByCs.TryGetValue(memberName, out var col) == false) throw new Exception($"找不到属性：{memberName}");
-                            var memberValue = _commonExpression.ExpressionLambdaToSql(initAssignExp.Expression, new CommonExpression.ExpTSC { isQuoteName = true, mapType = col.Attribute.MapType });
+                            var memberValue = _commonExpression.ExpressionLambdaToSql(initAssignExp.Expression, new CommonExpression.ExpTSC { isQuoteName = true, 
+                                mapType = initAssignExp.Expression is BinaryExpression ? null : col.Attribute.MapType });
                             _setIncr.Append(", ").Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ").Append(memberValue);
                         }
                     }
@@ -501,7 +541,8 @@ namespace FreeSql.Internal.CommonProvider
                             var memberName = newExp.Members[a].Name;
                             if (_table.ColumnsByCsIgnore.ContainsKey(memberName)) continue;
                             if (_table.ColumnsByCs.TryGetValue(memberName, out var col) == false) throw new Exception($"找不到属性：{memberName}");
-                            var memberValue = _commonExpression.ExpressionLambdaToSql(newExp.Arguments[a], new CommonExpression.ExpTSC { isQuoteName = true, mapType = col.Attribute.MapType });
+                            var memberValue = _commonExpression.ExpressionLambdaToSql(newExp.Arguments[a], new CommonExpression.ExpTSC { isQuoteName = true, 
+                                mapType = newExp.Arguments[a] is BinaryExpression ? null : col.Attribute.MapType });
                             _setIncr.Append(", ").Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ").Append(memberValue);
                         }
                     }
@@ -663,6 +704,11 @@ namespace FreeSql.Internal.CommonProvider
         public IUpdate<T1> AsTable(Func<string, string> tableRule)
         {
             _tableRule = tableRule;
+            return this;
+        }
+        public IUpdate<T1> AsTable(string tableName)
+        {
+            _tableRule = (oldname) => tableName;
             return this;
         }
         public IUpdate<T1> AsType(Type entityType)

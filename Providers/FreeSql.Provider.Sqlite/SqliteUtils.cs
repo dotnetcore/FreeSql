@@ -4,7 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+#if MicrosoftData
+using Microsoft.Data.Sqlite;
+#else
 using System.Data.SQLite;
+#endif
 using System.Globalization;
 
 namespace FreeSql.Sqlite
@@ -19,7 +23,7 @@ namespace FreeSql.Sqlite
         public override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, ColumnInfo col, Type type, object value)
         {
             if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
-            var dbtype = (DbType)_orm.CodeFirst.GetDbInfo(type)?.type;
+            var dbtype = (DbType?)_orm.CodeFirst.GetDbInfo(type)?.type;
             switch (dbtype)
             {
                 case DbType.Guid:
@@ -33,9 +37,13 @@ namespace FreeSql.Sqlite
                     dbtype = DbType.Int64;
                     break;
             }
+#if MicrosoftData
+            var ret = new SqliteParameter();
+#else
             var ret = new SQLiteParameter();
+#endif
             ret.ParameterName = QuoteParamterName(parameterName);
-            ret.DbType = dbtype;
+            ret.DbType = dbtype ?? default;
             ret.Value = value;
             _params?.Add(ret);
             return ret;
@@ -62,7 +70,11 @@ namespace FreeSql.Sqlite
                             break;
                     }
                 }
+#if MicrosoftData
+                var ret = new SqliteParameter();
+#else
                 var ret = new SQLiteParameter();
+#endif
                 ret.ParameterName = $"@{name}";
                 if (dbtype != null) ret.DbType = dbtype.Value;
                 ret.Value = value;
