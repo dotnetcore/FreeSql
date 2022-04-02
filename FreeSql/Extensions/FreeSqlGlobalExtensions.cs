@@ -771,8 +771,7 @@ SELECT ");
         internal readonly InsertProvider<Dictionary<string, object>> _insertProvider;
         internal InsertDictImpl(IFreeSql orm)
         {
-            _insertProvider = (orm as BaseDbProvider ?? throw new Exception("IFreeSql 无法转换成 BaseDbProvider"))
-                .CreateInsertProvider<Dictionary<string, object>>() as InsertProvider<Dictionary<string, object>>;
+            _insertProvider = orm.Insert<Dictionary<string, object>>() as InsertProvider<Dictionary<string, object>>;
         }
 
         public InsertDictImpl AsTable(string tableName)
@@ -837,8 +836,7 @@ SELECT ");
         internal readonly UpdateProvider<Dictionary<string, object>> _updateProvider;
         internal UpdateDictImpl(IFreeSql orm)
         {
-            _updateProvider = (orm as BaseDbProvider ?? throw new Exception("IFreeSql 无法转换成 BaseDbProvider"))
-                .CreateUpdateProvider<Dictionary<string, object>>(null) as UpdateProvider<Dictionary<string, object>>;
+            _updateProvider = orm.Update<Dictionary<string, object>>(null) as UpdateProvider<Dictionary<string, object>>;
         }
 
         public UpdateDictImpl WherePrimary(params string[] primarys)
@@ -926,8 +924,7 @@ SELECT ");
         internal readonly InsertOrUpdateProvider<Dictionary<string, object>> _insertOrUpdateProvider;
         internal InsertOrUpdateDictImpl(IFreeSql orm)
         {
-            _insertOrUpdateProvider = (orm as BaseDbProvider ?? throw new Exception("IFreeSql 无法转换成 BaseDbProvider"))
-                .CreateInsertOrUpdateProvider<Dictionary<string, object>>() as InsertOrUpdateProvider<Dictionary<string, object>>;
+            _insertOrUpdateProvider = orm.InsertOrUpdate<Dictionary<string, object>>() as InsertOrUpdateProvider<Dictionary<string, object>>;
         }
 
         public InsertOrUpdateDictImpl WherePrimary(params string[] primarys)
@@ -980,8 +977,7 @@ SELECT ");
         internal readonly DeleteProvider<Dictionary<string, object>> _deleteProvider;
         internal DeleteDictImpl(IFreeSql orm)
         {
-            _deleteProvider = (orm as BaseDbProvider ?? throw new Exception("IFreeSql 无法转换成 BaseDbProvider"))
-                .CreateDeleteProvider<Dictionary<string, object>>(null) as DeleteProvider<Dictionary<string, object>>;
+            _deleteProvider = orm.Delete<Dictionary<string, object>>(null) as DeleteProvider<Dictionary<string, object>>;
         }
 
         public DeleteDictImpl AsTable(string tableName)
