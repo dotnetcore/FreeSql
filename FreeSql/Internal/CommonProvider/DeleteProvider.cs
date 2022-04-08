@@ -10,8 +10,7 @@ using System.Threading.Tasks;
 
 namespace FreeSql.Internal.CommonProvider
 {
-
-    public abstract partial class DeleteProvider<T1> : IDelete<T1>
+    public abstract partial class DeleteProvider
     {
         public IFreeSql _orm;
         public CommonUtils _commonUtils;
@@ -26,7 +25,10 @@ namespace FreeSql.Internal.CommonProvider
         public DbConnection _connection;
         public int _commandTimeout = 0;
         public Action<StringBuilder> _interceptSql;
+    }
 
+    public abstract partial class DeleteProvider<T1> : DeleteProvider, IDelete<T1>
+    {
         public DeleteProvider(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere)
         {
             _orm = orm;
@@ -66,28 +68,32 @@ namespace FreeSql.Internal.CommonProvider
 
         public int ExecuteAffrows()
         {
-            var sql = this.ToSql();
-            if (string.IsNullOrEmpty(sql)) return 0;
-            var dbParms = _params.ToArray();
-            var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Delete, sql, dbParms);
-            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             var affrows = 0;
-            Exception exception = null;
-            try
+            DbParameter[] dbParms = null;
+            ToSqlFetch(sb =>
             {
-                affrows = _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms);
-            }
-            catch (Exception ex)
-            {
-                exception = ex;
-                throw;
-            }
-            finally
-            {
-                var after = new Aop.CurdAfterEventArgs(before, exception, affrows);
-                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
-            }
-            this.ClearData();
+                if (dbParms == null) dbParms = _params.ToArray();
+                var sql = sb.ToString();
+                var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Delete, sql, dbParms);
+                _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
+
+                Exception exception = null;
+                try
+                {
+                    affrows += _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms);
+                }
+                catch (Exception ex)
+                {
+                    exception = ex;
+                    throw;
+                }
+                finally
+                {
+                    var after = new Aop.CurdAfterEventArgs(before, exception, affrows);
+                    _orm.Aop.CurdAfterHandler?.Invoke(this, after);
+                }
+            });
+            if (dbParms != null) this.ClearData();
             return affrows;
         }
         public abstract List<T1> ExecuteDeleted();
@@ -165,16 +171,77 @@ namespace FreeSql.Internal.CommonProvider
         public virtual string ToSql()
         {
             if (_whereTimes <= 0) return null;
-            var sb = new StringBuilder().Append("DELETE FROM ").Append(_commonUtils.QuoteSqlName(TableRuleInvoke())).Append(" WHERE ").Append(_where);
+            var sb = new StringBuilder();
+            ToSqlFetch(sql =>
+            {
+                sb.Append(sql).Append("\r\n\r\n;\r\n\r\n");
+            });
+            if (sb.Length > 0) sb.Remove(sb.Length - 9, 9);
+            return sb.ToString();
+        }
+
+        public void ToSqlFetch(Action<StringBuilder> fetch)
+        {
+            if (_whereTimes <= 0) return;
+            var newwhere = new StringBuilder().Append(" WHERE ").Append(_where);
 
             if (_whereGlobalFilter.Any())
             {
                 var globalFilterCondi = _commonExpression.GetWhereCascadeSql(new SelectTableInfo { Table = _table }, _whereGlobalFilter, false);
                 if (string.IsNullOrEmpty(globalFilterCondi) == false)
-                    sb.Append(" AND ").Append(globalFilterCondi);
+                    newwhere.Append(" AND ").Append(globalFilterCondi);
             }
+
+            var sb = new StringBuilder();
+            if (_table.AsTableImpl != null)
+            {
+                var names = _table.AsTableImpl.GetTableNamesBySqlWhere(newwhere.ToString(), _params, _table, _commonUtils);
+                foreach (var name in names)
+                {
+                    _tableRule = old => name;
+                    sb.Clear().Append("DELETE FROM ").Append(_commonUtils.QuoteSqlName(TableRuleInvoke())).Append(newwhere);
+                    _interceptSql?.Invoke(sb);
+                    fetch(sb);
+                }
+                return;
+            }
+
+            sb.Insert(0, _commonUtils.QuoteSqlName(TableRuleInvoke())).Insert(0, "DELETE FROM ");
             _interceptSql?.Invoke(sb);
-            return sb.ToString();
+            fetch(sb);
         }
+#if net40
+#else
+        async public Task ToSqlFetchAsync(Func<StringBuilder, Task> fetchAsync)
+        {
+            if (_whereTimes <= 0) return;
+            var newwhere = new StringBuilder().Append(" WHERE ").Append(_where);
+
+            if (_whereGlobalFilter.Any())
+            {
+                var globalFilterCondi = _commonExpression.GetWhereCascadeSql(new SelectTableInfo { Table = _table }, _whereGlobalFilter, false);
+                if (string.IsNullOrEmpty(globalFilterCondi) == false)
+                    newwhere.Append(" AND ").Append(globalFilterCondi);
+            }
+
+            var sb = new StringBuilder();
+            if (_table.AsTableImpl != null)
+            {
+                var names = _table.AsTableImpl.GetTableNamesBySqlWhere(newwhere.ToString(), _params, _table, _commonUtils);
+                foreach (var name in names)
+                {
+                    _tableRule = old => name;
+                    sb.Clear().Append("DELETE FROM ").Append(_commonUtils.QuoteSqlName(TableRuleInvoke())).Append(newwhere);
+                    _interceptSql?.Invoke(sb);
+                    await fetchAsync(sb);
+                }
+                return;
+            }
+
+            sb.Insert(0, _commonUtils.QuoteSqlName(TableRuleInvoke())).Insert(0, "DELETE FROM ");
+            _interceptSql?.Invoke(sb);
+            await fetchAsync(sb);
+        }
+#endif
     }
 }

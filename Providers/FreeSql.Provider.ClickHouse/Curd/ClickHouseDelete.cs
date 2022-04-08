@@ -16,20 +16,16 @@ namespace FreeSql.ClickHouse.Curd
         {
         }
 
-        public override List<T1> ExecuteDeleted()
-        {
-            throw new NotImplementedException("FreeSql.ClickHouse.Curd 暂未实现");
-        }
+        public override List<T1> ExecuteDeleted() => throw new NotImplementedException("FreeSql.Provider.ClickHouse 未实现该功能");
+
         public override string ToSql()
         {
-            return base.ToSql().Replace("DELETE FROM", "ALTER TABLE").Replace("WHERE", "DELETE WHERE");
+            return base.ToSql().Replace("DELETE FROM ", "ALTER TABLE ").Replace(" WHERE ", " DELETE WHERE ");
         }
+
 #if net40
 #else
-        public override Task<List<T1>> ExecuteDeletedAsync(CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException("FreeSql.ClickHouse.Curd 暂未实现");
-        }
+        public override Task<List<T1>> ExecuteDeletedAsync(CancellationToken cancellationToken = default) => throw new NotImplementedException("FreeSql.Provider.ClickHouse 未实现该功能");
 #endif
     }
 }

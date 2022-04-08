@@ -99,6 +99,14 @@ namespace base_entity
             public B B { get; set; }
         }
 
+        [Table(Name = "as_table_log_{yyyyMMdd}", AsTable = "createtime=2022-1-1(1 month)")]
+        class AsTableLog
+        {
+            public Guid id { get; set; }
+            public string msg { get; set; }
+            public DateTime createtime { get; set; }
+        }
+
         static void Main(string[] args)
         {
             #region 初始化 IFreeSql
@@ -140,6 +148,24 @@ namespace base_entity
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
+
+            var sqlatb = fsql.Insert(new[]
+            {
+                new AsTableLog{ msg = "msg01", createtime = DateTime.Parse("2022-1-1 13:00:11") },
+                new AsTableLog{ msg = "msg02", createtime = DateTime.Parse("2022-1-2 14:00:12") },
+                new AsTableLog{ msg = "msg03", createtime = DateTime.Parse("2022-2-2 15:00:13") },
+                new AsTableLog{ msg = "msg04", createtime = DateTime.Parse("2022-2-8 15:00:13") },
+                new AsTableLog{ msg = "msg05", createtime = DateTime.Parse("2022-3-8 15:00:13") },
+                new AsTableLog{ msg = "msg06", createtime = DateTime.Parse("2022-4-8 15:00:13") },
+                new AsTableLog{ msg = "msg07", createtime = DateTime.Parse("2022-6-8 15:00:13") }
+            }).NoneParameter();
+            var sqlat = sqlatb.ToSql();
+            var sqlatr = sqlatb.ExecuteAffrows();
+
+            var sqlatc = fsql.Delete<AsTableLog>().Where(a => a.id == Guid.NewGuid() && a.createtime.Between(DateTime.Parse("2022-3-1"), DateTime.Parse("2022-5-1")));
+            var sqlatca = sqlatc.ToSql();
+            var sqlatcr = sqlatc.ExecuteAffrows();
+
 
             fsql.Aop.AuditValue += new EventHandler<FreeSql.Aop.AuditValueEventArgs>((_, e) =>
             {

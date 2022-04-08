@@ -95,7 +95,9 @@ namespace FreeSql.Internal.CommonProvider
         {
             if (objects == null) return;
             var syncObjects = objects.Where(a => a.entityType != null && a.entityType != typeof(object) && _dicSycedGetOrAdd(a.entityType).ContainsKey(GetTableNameLowerOrUpper(a.tableName)) == false && GetTableByEntity(a.entityType)?.DisableSyncStructure == false)
-                .Select(a => new TypeAndName(a.entityType, GetTableNameLowerOrUpper(a.tableName))).ToArray();
+                .Select(a => new TypeAndName(a.entityType, GetTableNameLowerOrUpper(a.tableName)))
+                .Where(a => !(string.IsNullOrEmpty(a.tableName) == true && GetTableByEntity(a.entityType)?.AsTableImpl != null))
+                .ToArray();
             if (syncObjects.Any() == false) return;
             var before = new Aop.SyncStructureBeforeEventArgs(syncObjects.Select(a => a.entityType).ToArray());
             _orm.Aop.SyncStructureBeforeHandler?.Invoke(this, before);

@@ -27,6 +27,8 @@ namespace FreeSql.Internal.Model
         public bool IsRereadSql { get; internal set; }
         public bool IsDictionaryType { get; internal set; }
 
+        public IAsTable AsTableImpl { get; internal set; }
+        public ColumnInfo AsTableColumn { get; internal set; }
         public ColumnInfo VersionColumn { get; set; }
 
         ConcurrentDictionary<string, TableRef> _refs { get; } = new ConcurrentDictionary<string, TableRef>(StringComparer.CurrentCultureIgnoreCase);

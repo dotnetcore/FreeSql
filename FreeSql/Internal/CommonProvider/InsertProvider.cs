@@ -14,12 +14,11 @@ using System.Collections;
 namespace FreeSql.Internal.CommonProvider
 {
 
-    public abstract partial class InsertProvider<T1> : IInsert<T1> where T1 : class
+    public abstract partial class InsertProvider
     {
         public IFreeSql _orm;
         public CommonUtils _commonUtils;
         public CommonExpression _commonExpression;
-        public List<T1> _source = new List<T1>();
         public Dictionary<string, bool> _ignore = new Dictionary<string, bool>(StringComparer.CurrentCultureIgnoreCase);
         public Dictionary<string, bool> _auditValueChangedDict = new Dictionary<string, bool>(StringComparer.CurrentCultureIgnoreCase);
         public TableInfo _table;
@@ -28,11 +27,17 @@ namespace FreeSql.Internal.CommonProvider
         public bool _noneParameter, _insertIdentity;
         public int _batchValuesLimit, _batchParameterLimit;
         public bool _batchAutoTransaction = true;
-        public Action<BatchProgressStatus<T1>> _batchProgress;
         public DbParameter[] _params;
         public DbTransaction _transaction;
         public DbConnection _connection;
         public int _commandTimeout = 0;
+    }
+
+    public abstract partial class InsertProvider<T1> : InsertProvider, IInsert<T1> where T1 : class
+    {
+        public List<T1> _source = new List<T1>();
+        internal List<T1> _sourceOld;
+        public Action<BatchProgressStatus<T1>> _batchProgress;
 
         public InsertProvider(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression)
         {
@@ -43,6 +48,7 @@ namespace FreeSql.Internal.CommonProvider
             _noneParameter = _orm.CodeFirst.IsNoneCommandParameter;
             if (_orm.CodeFirst.IsAutoSyncStructure && typeof(T1) != typeof(object)) _orm.CodeFirst.SyncStructure<T1>();
             IgnoreCanInsert();
+            _sourceOld = _source;
         }
 
         /// <summary>
@@ -62,6 +68,7 @@ namespace FreeSql.Internal.CommonProvider
             _batchProgress = null;
             _insertIdentity = false;
             _source.Clear();
+            _sourceOld = _source;
             _ignore.Clear();
             _auditValueChangedDict.Clear();
             _params = null;
@@ -189,7 +196,7 @@ namespace FreeSql.Internal.CommonProvider
         }
 
         #region 参数化数据限制，或values数量限制
-        protected List<T1>[] SplitSource(int valuesLimit, int parameterLimit)
+        protected List<T1>[] SplitSource(int valuesLimit, int parameterLimit, bool isAsTableSplited = false)
         {
             valuesLimit = valuesLimit - 1;
             parameterLimit = parameterLimit - 1;
@@ -197,6 +204,28 @@ namespace FreeSql.Internal.CommonProvider
             if (parameterLimit <= 0) parameterLimit = 999;
             if (_source == null || _source.Any() == false) return new List<T1>[0];
             if (_source.Count == 1) return new[] { _source };
+
+            if (_table.AsTableImpl != null && isAsTableSplited == false)
+            {
+                var atarr = _source.Select(a => new
+                {
+                    item = a,
+                    splitKey = _table.AsTableImpl.GetTableNameByColumnValue(_table.AsTableColumn.GetValue(a), true)
+                }).GroupBy(a => a.splitKey, a => a.item).ToArray();
+                if (atarr.Length > 1)
+                {
+                    var oldSource = _source;
+                    var arrret = new List<List<T1>>();
+                    foreach (var item in atarr)
+                    {
+                        _source = item.ToList();
+                        var itemret = SplitSource(valuesLimit + 1, parameterLimit + 1, true);
+                        arrret.AddRange(itemret);
+                    }
+                    _source = oldSource;
+                    return arrret.ToArray();
+                }
+            }
 
             var takeMax = valuesLimit;
             if (_noneParameter == false)
@@ -510,8 +539,8 @@ namespace FreeSql.Internal.CommonProvider
         protected string TableRuleInvoke()
         {
             var tbname = _table?.DbName ?? "";
-            if (_tableRule == null) return tbname;
-            var newname = _tableRule(tbname);
+            if (_tableRule == null && _table.AsTableImpl == null) return tbname;
+            var newname = _table.AsTableImpl?.GetTableNameByColumnValue(_source.Any() ? _table.AsTableColumn.GetValue(_source.FirstOrDefault()) : DateTime.Now) ?? _tableRule(tbname);
             if (newname == tbname) return tbname;
             if (string.IsNullOrEmpty(newname)) return tbname;
             if (_orm.CodeFirst.IsSyncStructureToLower) newname = newname.ToLower();
@@ -540,14 +569,38 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
 
-        public virtual string ToSql() => ToSqlValuesOrSelectUnionAllExtension102(true, null, null);
+        public virtual string ToSql() => ToSqlValuesOrSelectUnionAllExtension103(true, null, null, false);
 
-        public string ToSqlValuesOrSelectUnionAll(bool isValues = true) => ToSqlValuesOrSelectUnionAllExtension102(isValues, null, null);
-        public string ToSqlValuesOrSelectUnionAllExtension101(bool isValues, Action<object, int, StringBuilder> onrow) => ToSqlValuesOrSelectUnionAllExtension102(isValues, null, onrow);
-        public string ToSqlValuesOrSelectUnionAllExtension102(bool isValues, Action<object, int, StringBuilder> onrowPre, Action<object, int, StringBuilder> onrow)
+        public string ToSqlValuesOrSelectUnionAll(bool isValues = true) => ToSqlValuesOrSelectUnionAllExtension103(isValues, null, null, false);
+        public string ToSqlValuesOrSelectUnionAllExtension101(bool isValues, Action<object, int, StringBuilder> onrow) => ToSqlValuesOrSelectUnionAllExtension103(isValues, null, onrow, false);
+        public string ToSqlValuesOrSelectUnionAllExtension102(bool isValues, Action<object, int, StringBuilder> onrowPre, Action<object, int, StringBuilder> onrow) => ToSqlValuesOrSelectUnionAllExtension103(isValues, null, onrow, false);
+        string ToSqlValuesOrSelectUnionAllExtension103(bool isValues, Action<object, int, StringBuilder> onrowPre, Action<object, int, StringBuilder> onrow, bool isAsTableSplited)
         {
             if (_source == null || _source.Any() == false) return null;
             var sb = new StringBuilder();
+
+            if (_table.AsTableImpl != null && isAsTableSplited == false && _source == _sourceOld)
+            {
+                var atarr = _source.Select(a => new
+                {
+                    item = a,
+                    splitKey = _table.AsTableImpl.GetTableNameByColumnValue(_table.AsTableColumn.GetValue(a), true)
+                }).GroupBy(a => a.splitKey, a => a.item).ToArray();
+                if (atarr.Length > 1)
+                {
+                    var oldSource = _source;
+                    var arrret = new List<List<T1>>();
+                    foreach (var item in atarr)
+                    {
+                        _source = item.ToList();
+                        sb.Append(ToSqlValuesOrSelectUnionAllExtension103(isValues, onrowPre, onrow, true)).Append("\r\n\r\n;\r\n\r\n");
+                    }
+                    _source = oldSource;
+                    if (sb.Length > 0) sb.Remove(sb.Length - 9, 9);
+                    return sb.ToString();
+                }
+            }
+            
             sb.Append("INSERT INTO ").Append(_commonUtils.QuoteSqlName(TableRuleInvoke())).Append('(');
             var colidx = 0;
             foreach (var col in _table.Columns.Values)
