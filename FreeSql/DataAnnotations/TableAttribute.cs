@@ -105,7 +105,7 @@ namespace FreeSql.DataAnnotations
         void ExpandTable(DateTime beginTime, DateTime endTime)
         {
             if (beginTime > endTime) endTime = _nextTimeFunc(beginTime);
-            while (beginTime < endTime)
+            while (beginTime <= endTime)
             {
                 var dtstr = beginTime.ToString(_tableNameFormat.Groups[1].Value);
                 var name = _tableName.Replace(_tableNameFormat.Groups[0].Value, dtstr);
@@ -139,10 +139,10 @@ namespace FreeSql.DataAnnotations
             var dt = ParseColumnValue(columnValue);
             if (dt < _allTablesTime.Last()) throw new Exception($"分表字段值 \"{dt.ToString("yyyy-MM-dd HH:mm:ss")}\" 不能小于 \"{_beginTime.ToString("yyyy-MM-dd HH:mm:ss")} \"");
             var tmpTime = _nextTimeFunc(_lastTime);
-            if (dt > tmpTime && autoExpand)
+            if (dt >= tmpTime && autoExpand)
             {
                 // 自动建表
-                ExpandTable(tmpTime, _nextTimeFunc(dt));
+                ExpandTable(tmpTime, dt);
             }
             for (var a = 0; a < _allTables.Count; a++)
                 if (dt >= _allTablesTime[a])

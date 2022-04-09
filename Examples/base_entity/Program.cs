@@ -99,7 +99,7 @@ namespace base_entity
             public B B { get; set; }
         }
 
-        [Table(Name = "as_table_log_{yyyyMMdd}", AsTable = "createtime=2022-1-1(1 month)")]
+        [Table(Name = "as_table_log_{yyyyMM}", AsTable = "createtime=2022-1-1(1 month)")]
         class AsTableLog
         {
             public Guid id { get; set; }
@@ -157,7 +157,8 @@ namespace base_entity
                 new AsTableLog{ msg = "msg04", createtime = DateTime.Parse("2022-2-8 15:00:13") },
                 new AsTableLog{ msg = "msg05", createtime = DateTime.Parse("2022-3-8 15:00:13") },
                 new AsTableLog{ msg = "msg06", createtime = DateTime.Parse("2022-4-8 15:00:13") },
-                new AsTableLog{ msg = "msg07", createtime = DateTime.Parse("2022-6-8 15:00:13") }
+                new AsTableLog{ msg = "msg07", createtime = DateTime.Parse("2022-6-8 15:00:13") },
+                new AsTableLog{ msg = "msg07", createtime = DateTime.Parse("2022-7-1") }
             };
             var sqlatb = fsql.Insert(testitems).NoneParameter();
             var sqlat = sqlatb.ToSql();
@@ -187,13 +188,17 @@ namespace base_entity
             var sqlatd501 = sqlatd5.ToSql();
             var sqlatd502 = sqlatd5.ExecuteAffrows();
 
-            var sqlatd6 = fsql.Update<AsTableLog>(Guid.NewGuid()).Set(a => a.msg == "newmsg").Where(a => a.createtime > DateTime.Parse("2022-3-1"));
+            var sqlatd6 = fsql.Update<AsTableLog>(Guid.NewGuid()).Set(a => a.msg == "newmsg").Where(a => a.createtime > DateTime.Parse("2022-3-1") && a.createtime < DateTime.Parse("2022-5-1"));
             var sqlatd601 = sqlatd6.ToSql();
             var sqlatd602 = sqlatd6.ExecuteAffrows();
 
-            var sqlatd7 = fsql.Update<AsTableLog>(Guid.NewGuid()).Set(a => a.msg == "newmsg").Where(a => a.createtime < DateTime.Parse("2022-5-1"));
+            var sqlatd7 = fsql.Update<AsTableLog>(Guid.NewGuid()).Set(a => a.msg == "newmsg").Where(a => a.createtime > DateTime.Parse("2022-3-1"));
             var sqlatd701 = sqlatd7.ToSql();
             var sqlatd702 = sqlatd7.ExecuteAffrows();
+
+            var sqlatd8 = fsql.Update<AsTableLog>(Guid.NewGuid()).Set(a => a.msg == "newmsg").Where(a => a.createtime < DateTime.Parse("2022-5-1"));
+            var sqlatd801 = sqlatd8.ToSql();
+            var sqlatd802 = sqlatd8.ExecuteAffrows();
 
             fsql.Aop.AuditValue += new EventHandler<FreeSql.Aop.AuditValueEventArgs>((_, e) =>
             {
