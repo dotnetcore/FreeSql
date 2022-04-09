@@ -51,6 +51,11 @@ namespace FreeSql.DataAnnotations
 
                 tb.AsTableColumn = tb.Columns.TryGetValue(atm.Groups[1].Value, out var trycol) ? trycol :
                     tb.ColumnsByCs.TryGetValue(atm.Groups[1].Value, out trycol) ? trycol : throw new Exception($"[Table(AsTable = xx)] 设置的属性名 {atm.Groups[1].Value} 不存在");
+                if (tb.AsTableColumn.Attribute.MapType.NullableTypeOrThis() != typeof(DateTime))
+                {
+                    tb.AsTableColumn = null;
+                    throw new Exception($"[Table(AsTable = xx)] 设置的属性名 {atm.Groups[1].Value} 不是 DateTime 类型");
+                }
                 int.TryParse(atm.Groups[5].Value, out var atm5);
                 string atm6 = atm.Groups[6].Value.ToLower();
                 tb.AsTableImpl = new DateTimeAsTableImpl(Name, DateTime.Parse($"{atm.Groups[2].Value}-{atm.Groups[3].Value}-{atm.Groups[4].Value}"), dt =>
@@ -73,13 +78,14 @@ namespace FreeSql.DataAnnotations
         /// <summary>
         /// 所有分表名
         /// </summary>
-        ICollection<string> AllTables { get; }
+        string[] AllTables { get; }
         string GetTableNameByColumnValue(object columnValue, bool autoExpand = false);
-        ICollection<string> GetTableNamesByColumnValueRange(object columnValue1, object columnValue2);
-        ICollection<string> GetTableNamesBySqlWhere(string sqlWhere, List<DbParameter> dbParams, SelectTableInfo tb, CommonUtils commonUtils);
+        string[] GetTableNamesByColumnValueRange(object columnValue1, object columnValue2);
+        string[] GetTableNamesBySqlWhere(string sqlWhere, List<DbParameter> dbParams, SelectTableInfo tb, CommonUtils commonUtils);
     }
     class DateTimeAsTableImpl : IAsTable
     {
+        readonly object _lock = new object();
         readonly List<string> _allTables = new List<string>();
         readonly List<DateTime> _allTablesTime = new List<DateTime>();
         readonly DateTime _beginTime;
@@ -105,15 +111,18 @@ namespace FreeSql.DataAnnotations
         void ExpandTable(DateTime beginTime, DateTime endTime)
         {
             if (beginTime > endTime) endTime = _nextTimeFunc(beginTime);
-            while (beginTime <= endTime)
+            lock (_lock)
             {
-                var dtstr = beginTime.ToString(_tableNameFormat.Groups[1].Value);
-                var name = _tableName.Replace(_tableNameFormat.Groups[0].Value, dtstr);
-                if (_allTables.Contains(name)) throw new ArgumentException($"tableName：{_tableName} 生成了相同的分表名");
-                _allTables.Insert(0, name);
-                _allTablesTime.Insert(0, beginTime);
-                _lastTime = beginTime;
-                beginTime = _nextTimeFunc(beginTime);
+                while (beginTime <= endTime)
+                {
+                    var dtstr = beginTime.ToString(_tableNameFormat.Groups[1].Value);
+                    var name = _tableName.Replace(_tableNameFormat.Groups[0].Value, dtstr);
+                    if (_allTables.Contains(name)) throw new ArgumentException($"tableName：{_tableName} 生成了相同的分表名");
+                    _allTables.Insert(0, name);
+                    _allTablesTime.Insert(0, beginTime);
+                    _lastTime = beginTime;
+                    beginTime = _nextTimeFunc(beginTime);
+                }
             }
         }
         DateTime ParseColumnValue(object columnValue)
@@ -137,54 +146,62 @@ namespace FreeSql.DataAnnotations
         public string GetTableNameByColumnValue(object columnValue, bool autoExpand = false)
         {
             var dt = ParseColumnValue(columnValue);
-            if (dt < _allTablesTime.Last()) throw new Exception($"分表字段值 \"{dt.ToString("yyyy-MM-dd HH:mm:ss")}\" 不能小于 \"{_beginTime.ToString("yyyy-MM-dd HH:mm:ss")} \"");
+            if (dt < _beginTime) throw new Exception($"分表字段值 \"{dt.ToString("yyyy-MM-dd HH:mm:ss")}\" 不能小于 \"{_beginTime.ToString("yyyy-MM-dd HH:mm:ss")} \"");
             var tmpTime = _nextTimeFunc(_lastTime);
             if (dt >= tmpTime && autoExpand)
             {
                 // 自动建表
                 ExpandTable(tmpTime, dt);
             }
-            for (var a = 0; a < _allTables.Count; a++)
-                if (dt >= _allTablesTime[a])
-                    return _allTables[a];
+            lock (_lock)
+            {
+                var allTablesCount = _allTablesTime.Count;
+                for (var a = 0; a < allTablesCount; a++)
+                    if (dt >= _allTablesTime[a])
+                        return _allTables[a];
+            }
             throw new Exception($"分表字段值 \"{dt.ToString("yyyy-MM-dd HH:mm:ss")}\" 未匹配到分表名");
         }
-        public ICollection<string> GetTableNamesByColumnValueRange(object columnValue1, object columnValue2)
+        public string[] GetTableNamesByColumnValueRange(object columnValue1, object columnValue2)
         {
             var dt1 = ParseColumnValue(columnValue1);
             var dt2 = ParseColumnValue(columnValue2);
             if (dt1 > dt2) return new string[0];
 
-            int dt1idx = 0, dt2idx = 0;
-            if (dt1 < _allTablesTime.Last()) dt1idx = _allTablesTime.Count - 1;
-            else
+            lock (_lock)
             {
-                for (var a = _allTablesTime.Count - 2; a > -1; a--)
+                int dt1idx = 0, dt2idx = 0;
+                var allTablesCount = _allTablesTime.Count;
+                if (dt1 < _beginTime) dt1idx = allTablesCount - 1;
+                else
                 {
-                    if (dt1 < _allTablesTime[a])
+                    for (var a = allTablesCount - 2; a > -1; a--)
                     {
-                        dt1idx = a + 1;
-                        break;
+                        if (dt1 < _allTablesTime[a])
+                        {
+                            dt1idx = a + 1;
+                            break;
+                        }
                     }
                 }
-            }
-            if (dt2 > _allTablesTime.First()) dt2idx = 0;
-            else
-            {
-                for (var a = 0; a < _allTablesTime.Count; a++)
+                if (dt2 > _allTablesTime.First()) dt2idx = 0;
+                else
                 {
-                    if (dt2 >= _allTablesTime[a])
+                    for (var a = 0; a < allTablesCount; a++)
                     {
-                        dt2idx = a;
-                        break;
+                        if (dt2 >= _allTablesTime[a])
+                        {
+                            dt2idx = a;
+                            break;
+                        }
                     }
                 }
-            }
-            if (dt2idx == -1) return new string[0];
+                if (dt2idx == -1) return new string[0];
 
-            if (dt1idx == _allTables.Count - 1 && dt2idx == 0) return _allTables;
-            var names = _allTables.GetRange(dt2idx, dt1idx - dt2idx + 1);
-            return names;
+                if (dt1idx == allTablesCount - 1 && dt2idx == 0) return _allTables.ToArray();
+                var names = _allTables.GetRange(dt2idx, dt1idx - dt2idx + 1).ToArray();
+                return names;
+            }
         }
 
         static readonly ConcurrentDictionary<string, Regex[]> _dicRegSqlWhereDateTimes = new ConcurrentDictionary<string, Regex[]>();
@@ -239,9 +256,9 @@ namespace FreeSql.DataAnnotations
         /// </summary>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public ICollection<string> GetTableNamesBySqlWhere(string sqlWhere, List<DbParameter> dbParams, SelectTableInfo tb, CommonUtils commonUtils)
+        public string[] GetTableNamesBySqlWhere(string sqlWhere, List<DbParameter> dbParams, SelectTableInfo tb, CommonUtils commonUtils)
         {
-            if (string.IsNullOrWhiteSpace(sqlWhere)) return _allTables;
+            if (string.IsNullOrWhiteSpace(sqlWhere)) return AllTables;
             var quoteParameterName = commonUtils.QuoteParamterName("");
             var quoteParameterNameCharArray = quoteParameterName.ToCharArray();
             var columnName = commonUtils.QuoteSqlName(tb.Table.AsTableColumn.Attribute.Name);
@@ -278,9 +295,9 @@ namespace FreeSql.DataAnnotations
                 if (val1 == null) throw new Exception($"未能解析分表字段值 {sqlWhere}");
                 return LocalGetTables2(m.Groups[1].Value, ParseColumnValue(val1));
             }
-            return _allTables;
+            return AllTables;
 
-            ICollection<string> LocalGetTables(string opt1, string opt2, DateTime val1, DateTime val2)
+            string[] LocalGetTables(string opt1, string opt2, DateTime val1, DateTime val2)
             {
                 switch (opt1)
                 {
@@ -319,9 +336,9 @@ namespace FreeSql.DataAnnotations
                         }
                         break;
                 }
-                return _allTables;
+                return AllTables;
             }
-            ICollection<string> LocalGetTables2(string opt, DateTime val1)
+            string[] LocalGetTables2(string opt, DateTime val1)
             {
                 switch (m.Groups[1].Value)
                 {
@@ -336,10 +353,19 @@ namespace FreeSql.DataAnnotations
                     case ">=":
                         return GetTableNamesByColumnValueRange(val1, _lastTime);
                 }
-                return _allTables;
+                return AllTables;
             }
         }
 
-        public ICollection<string> AllTables => _allTables;
+        public string[] AllTables
+        {
+            get
+            {
+                lock (_lock)
+                {
+                    return _allTables.ToArray();
+                }
+            }
+        }
     }
 }

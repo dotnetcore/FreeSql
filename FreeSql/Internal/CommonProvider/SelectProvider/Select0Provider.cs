@@ -469,8 +469,8 @@ namespace FreeSql.Internal.CommonProvider
                     if (tb.Table.AsTableImpl != null)
                     {
                         string[] aret = null;
-                        if (_where.Length == 0) aret = tb.Table.AsTableImpl.AllTables.ToArray();
-                        else aret = tb.Table.AsTableImpl.GetTableNamesBySqlWhere(_where.ToString(), _params, tb, _commonUtils).ToArray();
+                        if (_where.Length == 0) aret = tb.Table.AsTableImpl.AllTables;
+                        else aret = tb.Table.AsTableImpl.GetTableNamesBySqlWhere(_where.ToString(), _params, tb, _commonUtils);
                         if (aret.Any() == false) aret = tb.Table.AsTableImpl.AllTables.Take(1).ToArray();
 
                         for (var a = 0; a < aret.Length; a++)
