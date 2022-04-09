@@ -75,9 +75,6 @@ namespace FreeSql.DataAnnotations
 
     public interface IAsTable
     {
-        /// <summary>
-        /// 所有分表名
-        /// </summary>
         string[] AllTables { get; }
         string GetTableNameByColumnValue(object columnValue, bool autoExpand = false);
         string[] GetTableNamesByColumnValueRange(object columnValue1, object columnValue2);

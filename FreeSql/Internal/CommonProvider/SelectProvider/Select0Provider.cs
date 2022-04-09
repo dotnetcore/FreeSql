@@ -460,13 +460,14 @@ namespace FreeSql.Internal.CommonProvider
         protected List<Dictionary<Type, string>> GetTableRuleUnions()
         {
             var unions = new List<Dictionary<Type, string>>();
-            var trs = _tableRules.Any() ? _tableRules : new List<Func<Type, string, string>>();
+            var trs = _tableRules.Any() ? _tableRules : new List<Func<Type, string, string>>(new [] { new Func<Type, string, string>((type, oldname) => null) });
 
-            if (trs.Any() == false)
+            if (trs.Count == 1 && _tables.Any(a => a.Table.AsTableImpl != null && string.IsNullOrWhiteSpace(trs[0](a.Table.Type, a.Table.DbName)) == true))
             {
                 string[] LocalGetTableNames(SelectTableInfo tb)
                 {
-                    if (tb.Table.AsTableImpl != null)
+                    var trname = trs[0](tb.Table.Type, tb.Table.DbName);
+                    if (tb.Table.AsTableImpl != null && string.IsNullOrWhiteSpace(trname) == true)
                     {
                         string[] aret = null;
                         if (_where.Length == 0) aret = tb.Table.AsTableImpl.AllTables;
@@ -480,6 +481,18 @@ namespace FreeSql.Internal.CommonProvider
                             if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(tb.Table.Type, aret[a]);
                         }
                         return aret;
+                    }
+                    if (string.IsNullOrWhiteSpace(trname) == false)
+                    {
+                        if (trname.IndexOf(' ') == -1) //还可以这样：select.AsTable((a, b) => "(select * from tb_topic where clicks > 10)").Page(1, 10).ToList()
+                        {
+                            if (_orm.CodeFirst.IsSyncStructureToLower) trname = trname.ToLower();
+                            if (_orm.CodeFirst.IsSyncStructureToUpper) trname = trname.ToUpper();
+                            if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(tb.Table.Type, trname);
+                        }
+                        else
+                            trname = trname.Replace(" \r\n", " \r\n    ");
+                        return new string[] { trname };
                     }
                     return new string[] { tb.Table.DbName };
                 }
