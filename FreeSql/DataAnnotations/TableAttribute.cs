@@ -76,7 +76,7 @@ namespace FreeSql.DataAnnotations
         ICollection<string> AllTables { get; }
         string GetTableNameByColumnValue(object columnValue, bool autoExpand = false);
         ICollection<string> GetTableNamesByColumnValueRange(object columnValue1, object columnValue2);
-        ICollection<string> GetTableNamesBySqlWhere(string sqlWhere, List<DbParameter> dbParams, TableInfo table, CommonUtils commonUtils);
+        ICollection<string> GetTableNamesBySqlWhere(string sqlWhere, List<DbParameter> dbParams, SelectTableInfo tb, CommonUtils commonUtils);
     }
     class DateTimeAsTableImpl : IAsTable
     {
@@ -192,7 +192,7 @@ namespace FreeSql.DataAnnotations
         {
             return _dicRegSqlWhereDateTimes.GetOrAdd($"{columnName},{quoteParameterName}", cn =>
             {
-                cn = columnName.Replace(@"\[", @"\\[").Replace(@"\]", @"\\]");
+                cn = columnName.Replace("[", "\\[").Replace("]", "\\]").Replace(".", "\\.");
                 return new[]
                 {
                     new Regex($@"({cn}\s*(<|<=|>|>=|=|between)\s*)(datetime|cdate|to_date)\(('[^']+')\)", RegexOptions.IgnoreCase),
@@ -239,15 +239,22 @@ namespace FreeSql.DataAnnotations
         /// </summary>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public ICollection<string> GetTableNamesBySqlWhere(string sqlWhere, List<DbParameter> dbParams, TableInfo table, CommonUtils commonUtils)
+        public ICollection<string> GetTableNamesBySqlWhere(string sqlWhere, List<DbParameter> dbParams, SelectTableInfo tb, CommonUtils commonUtils)
         {
+            if (string.IsNullOrWhiteSpace(sqlWhere)) return _allTables;
             var quoteParameterName = commonUtils.QuoteParamterName("");
             var quoteParameterNameCharArray = quoteParameterName.ToCharArray();
-            var regs = GetRegSqlWhereDateTimes(commonUtils.QuoteSqlName(table.AsTableColumn.Attribute.Name), quoteParameterName);
+            var columnName = commonUtils.QuoteSqlName(tb.Table.AsTableColumn.Attribute.Name);
+            var regs = GetRegSqlWhereDateTimes($"{(string.IsNullOrWhiteSpace(tb.Alias) ? "" : $"{tb.Alias}.")}{commonUtils.QuoteSqlName(tb.Table.AsTableColumn.Attribute.Name)}", quoteParameterName);
             for (var a = 0; a < 16; a++) sqlWhere = regs[a].Replace(sqlWhere, "$1$4");
 
             var m = regs[16].Match(sqlWhere);
             if (m.Success) return GetTableNamesByColumnValueRange(m.Groups[1].Value, m.Groups[2].Value);
+            m = m = regs[18].Match(sqlWhere);
+            if (m.Success) return LocalGetTables(m.Groups[1].Value, m.Groups[3].Value, ParseColumnValue(m.Groups[2].Value), ParseColumnValue(m.Groups[4].Value));
+            m = regs[20].Match(sqlWhere);
+            if (m.Success) return LocalGetTables2(m.Groups[1].Value, ParseColumnValue(m.Groups[2].Value));
+
             m = m = regs[17].Match(sqlWhere);
             if (m.Success)
             {
@@ -256,8 +263,6 @@ namespace FreeSql.DataAnnotations
                 if (val1 == null || val2 == null) throw new Exception($"未能解析分表字段值 {sqlWhere}");
                 return GetTableNamesByColumnValueRange(val1, val2);
             }
-            m = m = regs[18].Match(sqlWhere);
-            if (m.Success) return LocalGetTables(m.Groups[1].Value, m.Groups[3].Value, ParseColumnValue(m.Groups[2].Value), ParseColumnValue(m.Groups[4].Value));
             m = regs[19].Match(sqlWhere);
             if (m.Success)
             {
@@ -266,8 +271,6 @@ namespace FreeSql.DataAnnotations
                 if (val1 == null || val2 == null) throw new Exception($"未能解析分表字段值 {sqlWhere}");
                 return LocalGetTables(m.Groups[1].Value, m.Groups[3].Value, ParseColumnValue(val1), ParseColumnValue(val2));
             }
-            m = regs[20].Match(sqlWhere);
-            if (m.Success) return LocalGetTables2(m.Groups[1].Value, ParseColumnValue(m.Groups[2].Value));
             m = regs[21].Match(sqlWhere);
             if (m.Success)
             {

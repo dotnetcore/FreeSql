@@ -411,7 +411,7 @@
             所有分表名
             </summary>
         </member>
-        <member name="M:FreeSql.DataAnnotations.DateTimeAsTableImpl.GetTableNamesBySqlWhere(System.String,System.Collections.Generic.List{System.Data.Common.DbParameter},FreeSql.Internal.Model.TableInfo,FreeSql.Internal.CommonUtils)">
+        <member name="M:FreeSql.DataAnnotations.DateTimeAsTableImpl.GetTableNamesBySqlWhere(System.String,System.Collections.Generic.List{System.Data.Common.DbParameter},FreeSql.Internal.Model.SelectTableInfo,FreeSql.Internal.CommonUtils)">
             <summary>
             可以匹配以下条件（支持参数化）：<para></para>
             `field` BETWEEN '2022-01-01 00:00:00' AND '2022-03-01 00:00:00'<para></para>

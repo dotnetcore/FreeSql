@@ -803,7 +803,7 @@ namespace FreeSql.Internal.CommonProvider
             var sb = new StringBuilder();
             if (_table.AsTableImpl != null)
             {
-                var names = _table.AsTableImpl.GetTableNamesBySqlWhere(newwhere.ToString(), _params, _table, _commonUtils);
+                var names = _table.AsTableImpl.GetTableNamesBySqlWhere(newwhere.ToString(), _params, new SelectTableInfo { Table = _table }, _commonUtils);
                 foreach (var name in names)
                 {
                     _tableRule = old => name;
@@ -835,7 +835,7 @@ namespace FreeSql.Internal.CommonProvider
             var sb = new StringBuilder();
             if (_table.AsTableImpl != null)
             {
-                var names = _table.AsTableImpl.GetTableNamesBySqlWhere(newwhere.ToString(), _params, _table, _commonUtils);
+                var names = _table.AsTableImpl.GetTableNamesBySqlWhere(newwhere.ToString(), _params, new SelectTableInfo { Table = _table }, _commonUtils);
                 foreach (var name in names)
                 {
                     _tableRule = old => name;

@@ -115,8 +115,8 @@ namespace base_entity
                 .UseNoneCommandParameter(true)
 
                 .UseConnectionString(FreeSql.DataType.Sqlite, "data source=test1.db;max pool size=5")
-                .UseSlave("data source=test1.db", "data source=test2.db", "data source=test3.db", "data source=test4.db")
-                .UseSlaveWeight(10, 1, 1, 5)
+                //.UseSlave("data source=test1.db", "data source=test2.db", "data source=test3.db", "data source=test4.db")
+                //.UseSlaveWeight(10, 1, 1, 5)
 
 
                 //.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=2")
@@ -199,6 +199,26 @@ namespace base_entity
             var sqlatd8 = fsql.Update<AsTableLog>(Guid.NewGuid()).Set(a => a.msg == "newmsg").Where(a => a.createtime < DateTime.Parse("2022-5-1"));
             var sqlatd801 = sqlatd8.ToSql();
             var sqlatd802 = sqlatd8.ExecuteAffrows();
+
+            var sqls1 = fsql.Select<AsTableLog>();
+            var sqls101 = sqls1.ToSql();
+            var sqls102 = sqls1.ToList();
+
+            var sqls2 = fsql.Select<AsTableLog>().Where(a => a.createtime.Between(DateTime.Parse("2022-3-1"), DateTime.Parse("2022-5-1")));
+            var sqls201 = sqls2.ToSql();
+            var sqls202 = sqls2.ToList();
+
+            var sqls3 = fsql.Select<AsTableLog>().Where(a => a.createtime > DateTime.Parse("2022-3-1") && a.createtime < DateTime.Parse("2022-5-1"));
+            var sqls301 = sqls3.ToSql();
+            var sqls302 = sqls3.ToList();
+
+            var sqls4 = fsql.Select<AsTableLog>().Where(a => a.createtime > DateTime.Parse("2022-3-1"));
+            var sqls401 = sqls4.ToSql();
+            var sqls402 = sqls4.ToList();
+
+            var sqls5 = fsql.Select<AsTableLog>().Where(a => a.createtime < DateTime.Parse("2022-5-1"));
+            var sqls501 = sqls5.ToSql();
+            var sqls502 = sqls5.ToList();
 
             fsql.Aop.AuditValue += new EventHandler<FreeSql.Aop.AuditValueEventArgs>((_, e) =>
             {

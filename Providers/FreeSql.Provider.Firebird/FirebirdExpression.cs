@@ -32,7 +32,7 @@ namespace FreeSql.Firebird
                             case "System.Boolean": return $"({getExp(operandExp)} not in ('0','false'))";
                             case "System.Byte": return $"cast({getExp(operandExp)} as smallint)";
                             case "System.Char": return $"substring(cast({getExp(operandExp)} as varchar(10)) from 1 for 1)";
-                            case "System.DateTime": return $"cast({getExp(operandExp)} as timestamp)";
+                            case "System.DateTime": return ExpressionConstDateTime(operandExp) ?? $"cast({getExp(operandExp)} as timestamp)";
                             case "System.Decimal": return $"cast({getExp(operandExp)} as decimal(18,6))";
                             case "System.Double": return $"cast({getExp(operandExp)} as decimal(18,10))";
                             case "System.Int16": return $"cast({getExp(operandExp)} as smallint)";
@@ -60,7 +60,7 @@ namespace FreeSql.Firebird
                                 case "System.Boolean": return $"({getExp(callExp.Arguments[0])} not in ('0','false'))";
                                 case "System.Byte": return $"cast({getExp(callExp.Arguments[0])} as smallint)";
                                 case "System.Char": return $"substring(cast({getExp(callExp.Arguments[0])} as varchar(10)) from 1 for 1)";
-                                case "System.DateTime": return $"cast({getExp(callExp.Arguments[0])} as timestamp)";
+                                case "System.DateTime": return ExpressionConstDateTime(callExp.Arguments[0]) ?? $"cast({getExp(callExp.Arguments[0])} as timestamp)";
                                 case "System.Decimal": return $"cast({getExp(callExp.Arguments[0])} as decimal(18,6))";
                                 case "System.Double": return $"cast({getExp(callExp.Arguments[0])} as decimal(18,10))";
                                 case "System.Int16": return $"cast({getExp(callExp.Arguments[0])} as smallint)";
@@ -389,10 +389,10 @@ namespace FreeSql.Firebird
                         var isLeapYearArgs1 = getExp(exp.Arguments[0]);
                         return $"mod({isLeapYearArgs1},4)=0 AND mod({isLeapYearArgs1},100)<>0 OR mod({isLeapYearArgs1},400)=0";
 
-                    case "Parse": return $"cast({getExp(exp.Arguments[0])} as timestamp)";
+                    case "Parse": return ExpressionConstDateTime(exp.Arguments[0]) ?? $"cast({getExp(exp.Arguments[0])} as timestamp)";
                     case "ParseExact":
                     case "TryParse":
-                    case "TryParseExact": return $"cast({getExp(exp.Arguments[0])} as timestamp)";
+                    case "TryParseExact": return ExpressionConstDateTime(exp.Arguments[0]) ?? $"cast({getExp(exp.Arguments[0])} as timestamp)";
                 }
             }
             else
@@ -504,7 +504,7 @@ namespace FreeSql.Firebird
                     case "ToBoolean": return $"({getExp(exp.Arguments[0])} not in ('0','false'))";
                     case "ToByte": return $"cast({getExp(exp.Arguments[0])} as smallint)";
                     case "ToChar": return $"substring(cast({getExp(exp.Arguments[0])} as varchar(10)) from 1 for 1)";
-                    case "ToDateTime": return $"cast({getExp(exp.Arguments[0])} as timestamp)";
+                    case "ToDateTime": return ExpressionConstDateTime(exp.Arguments[0]) ?? $"cast({getExp(exp.Arguments[0])} as timestamp)";
                     case "ToDecimal": return $"cast({getExp(exp.Arguments[0])} as decimal(18,6))";
                     case "ToDouble": return $"cast({getExp(exp.Arguments[0])} as decimal(18,10))";
                     case "ToInt16": return $"cast({getExp(exp.Arguments[0])} as smallint)";

@@ -32,7 +32,7 @@ namespace FreeSql.Sqlite
                             case "System.Boolean": return $"({getExp(operandExp)} not in ('0','false'))";
                             case "System.Byte": return $"cast({getExp(operandExp)} as int2)";
                             case "System.Char": return $"substr(cast({getExp(operandExp)} as character), 1, 1)";
-                            case "System.DateTime": return $"datetime({getExp(operandExp)})";
+                            case "System.DateTime": return ExpressionConstDateTime(operandExp) ?? $"datetime({getExp(operandExp)})";
                             case "System.Decimal": return $"cast({getExp(operandExp)} as decimal(36,18))";
                             case "System.Double": return $"cast({getExp(operandExp)} as double)";
                             case "System.Int16":
@@ -60,7 +60,7 @@ namespace FreeSql.Sqlite
                                 case "System.Boolean": return $"({getExp(callExp.Arguments[0])} not in ('0','false'))";
                                 case "System.Byte": return $"cast({getExp(callExp.Arguments[0])} as int2)";
                                 case "System.Char": return $"substr(cast({getExp(callExp.Arguments[0])} as character), 1, 1)";
-                                case "System.DateTime": return $"datetime({getExp(callExp.Arguments[0])})";
+                                case "System.DateTime": return ExpressionConstDateTime(callExp.Arguments[0]) ?? $"datetime({getExp(callExp.Arguments[0])})";
                                 case "System.Decimal": return $"cast({getExp(callExp.Arguments[0])} as decimal(36,18))";
                                 case "System.Double": return $"cast({getExp(callExp.Arguments[0])} as double)";
                                 case "System.Int16":
@@ -415,10 +415,10 @@ namespace FreeSql.Sqlite
                         var isLeapYearArgs1 = getExp(exp.Arguments[0]);
                         return $"(({isLeapYearArgs1})%4=0 AND ({isLeapYearArgs1})%100<>0 OR ({isLeapYearArgs1})%400=0)";
 
-                    case "Parse": return $"datetime({getExp(exp.Arguments[0])})";
+                    case "Parse": return ExpressionConstDateTime(exp.Arguments[0]) ?? $"datetime({getExp(exp.Arguments[0])})";
                     case "ParseExact":
                     case "TryParse":
-                    case "TryParseExact": return $"datetime({getExp(exp.Arguments[0])})";
+                    case "TryParseExact": return ExpressionConstDateTime(exp.Arguments[0]) ?? $"datetime({getExp(exp.Arguments[0])})";
                 }
             }
             else
@@ -551,7 +551,7 @@ namespace FreeSql.Sqlite
                     case "ToBoolean": return $"({getExp(exp.Arguments[0])} not in ('0','false'))";
                     case "ToByte": return $"cast({getExp(exp.Arguments[0])} as int2)";
                     case "ToChar": return $"substr(cast({getExp(exp.Arguments[0])} as character), 1, 1)";
-                    case "ToDateTime": return $"datetime({getExp(exp.Arguments[0])})";
+                    case "ToDateTime": return ExpressionConstDateTime(exp.Arguments[0]) ?? $"datetime({getExp(exp.Arguments[0])})";
                     case "ToDecimal": return $"cast({getExp(exp.Arguments[0])} as decimal(36,18))";
                     case "ToDouble": return $"cast({getExp(exp.Arguments[0])} as double)";
                     case "ToInt16":

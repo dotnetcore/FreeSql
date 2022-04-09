@@ -35,7 +35,7 @@ namespace FreeSql.ShenTong
                             case "System.Boolean": return $"(({getExp(operandExp)})::text not in ('0','false','f','no'))";
                             case "System.Byte": return $"({getExp(operandExp)})::int2";
                             case "System.Char": return $"substr(({getExp(operandExp)})::char, 1, 1)";
-                            case "System.DateTime": return $"({getExp(operandExp)})::timestamp";
+                            case "System.DateTime": return ExpressionConstDateTime(operandExp) ?? $"({getExp(operandExp)})::timestamp";
                             case "System.Decimal": return $"({getExp(operandExp)})::numeric";
                             case "System.Double": return $"({getExp(operandExp)})::float8";
                             case "System.Int16": return $"({getExp(operandExp)})::int2";
@@ -63,7 +63,7 @@ namespace FreeSql.ShenTong
                                 case "System.Boolean": return $"(({getExp(callExp.Arguments[0])})::text not in ('0','false','f','no'))";
                                 case "System.Byte": return $"({getExp(callExp.Arguments[0])})::int2";
                                 case "System.Char": return $"substr(({getExp(callExp.Arguments[0])})::char, 1, 1)";
-                                case "System.DateTime": return $"({getExp(callExp.Arguments[0])})::timestamp";
+                                case "System.DateTime": return ExpressionConstDateTime(callExp.Arguments[0]) ?? $"({getExp(callExp.Arguments[0])})::timestamp";
                                 case "System.Decimal": return $"({getExp(callExp.Arguments[0])})::numeric";
                                 case "System.Double": return $"({getExp(callExp.Arguments[0])})::float8";
                                 case "System.Int16": return $"({getExp(callExp.Arguments[0])})::int2";
@@ -448,10 +448,10 @@ namespace FreeSql.ShenTong
                         var isLeapYearArgs1 = getExp(exp.Arguments[0]);
                         return $"(({isLeapYearArgs1})%4=0 AND ({isLeapYearArgs1})%100<>0 OR ({isLeapYearArgs1})%400=0)";
 
-                    case "Parse": return $"({getExp(exp.Arguments[0])})::timestamp";
+                    case "Parse": return ExpressionConstDateTime(exp.Arguments[0]) ?? $"({getExp(exp.Arguments[0])})::timestamp";
                     case "ParseExact":
                     case "TryParse":
-                    case "TryParseExact": return $"({getExp(exp.Arguments[0])})::timestamp";
+                    case "TryParseExact": return ExpressionConstDateTime(exp.Arguments[0]) ?? $"({getExp(exp.Arguments[0])})::timestamp";
                 }
             }
             else
@@ -585,7 +585,7 @@ namespace FreeSql.ShenTong
                     case "ToBoolean": return $"(({getExp(exp.Arguments[0])})::text not in ('0','false','f','no'))";
                     case "ToByte": return $"({getExp(exp.Arguments[0])})::int2";
                     case "ToChar": return $"substr(({getExp(exp.Arguments[0])})::char, 1, 1)";
-                    case "ToDateTime": return $"({getExp(exp.Arguments[0])})::timestamp";
+                    case "ToDateTime": return ExpressionConstDateTime(exp.Arguments[0]) ?? $"({getExp(exp.Arguments[0])})::timestamp";
                     case "ToDecimal": return $"({getExp(exp.Arguments[0])})::numeric";
                     case "ToDouble": return $"({getExp(exp.Arguments[0])})::float8";
                     case "ToInt16": return $"({getExp(exp.Arguments[0])})::int2";

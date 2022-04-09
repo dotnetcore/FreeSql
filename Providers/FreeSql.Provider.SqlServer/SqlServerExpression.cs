@@ -32,7 +32,7 @@ namespace FreeSql.SqlServer
                             case "System.Boolean": return $"(cast({getExp(operandExp)} as varchar) not in ('0','false'))";
                             case "System.Byte": return $"cast({getExp(operandExp)} as tinyint)";
                             case "System.Char": return $"substring(cast({getExp(operandExp)} as nvarchar),1,1)";
-                            case "System.DateTime": return $"cast({getExp(operandExp)} as datetime)";
+                            case "System.DateTime": return ExpressionConstDateTime(operandExp) ?? $"cast({getExp(operandExp)} as datetime)";
                             case "System.Decimal": return $"cast({getExp(operandExp)} as decimal(36,18))";
                             case "System.Double": return $"cast({getExp(operandExp)} as decimal(32,16))";
                             case "System.Int16": return $"cast({getExp(operandExp)} as smallint)";
@@ -62,7 +62,7 @@ namespace FreeSql.SqlServer
                                 case "System.Boolean": return $"(cast({getExp(callExp.Arguments[0])} as varchar) not in ('0','false'))";
                                 case "System.Byte": return $"cast({getExp(callExp.Arguments[0])} as tinyint)";
                                 case "System.Char": return $"substring(cast({getExp(callExp.Arguments[0])} as nvarchar),1,1)";
-                                case "System.DateTime": return $"cast({getExp(callExp.Arguments[0])} as datetime)";
+                                case "System.DateTime": return ExpressionConstDateTime(callExp.Arguments[0]) ?? $"cast({getExp(callExp.Arguments[0])} as datetime)";
                                 case "System.Decimal": return $"cast({getExp(callExp.Arguments[0])} as decimal(36,18))";
                                 case "System.Double": return $"cast({getExp(callExp.Arguments[0])} as decimal(32,16))";
                                 case "System.Int16": return $"cast({getExp(callExp.Arguments[0])} as smallint)";
@@ -400,10 +400,10 @@ namespace FreeSql.SqlServer
                         var isLeapYearArgs1 = getExp(exp.Arguments[0]);
                         return $"(({isLeapYearArgs1})%4=0 AND ({isLeapYearArgs1})%100<>0 OR ({isLeapYearArgs1})%400=0)";
 
-                    case "Parse": return $"cast({getExp(exp.Arguments[0])} as datetime)";
+                    case "Parse": return ExpressionConstDateTime(exp.Arguments[0]) ?? $"cast({getExp(exp.Arguments[0])} as datetime)";
                     case "ParseExact":
                     case "TryParse":
-                    case "TryParseExact": return $"cast({getExp(exp.Arguments[0])} as datetime)";
+                    case "TryParseExact": return ExpressionConstDateTime(exp.Arguments[0]) ?? $"cast({getExp(exp.Arguments[0])} as datetime)";
                 }
             }
             else
@@ -524,7 +524,7 @@ namespace FreeSql.SqlServer
                     case "ToBoolean": return $"(cast({getExp(exp.Arguments[0])} as varchar) not in ('0','false'))";
                     case "ToByte": return $"cast({getExp(exp.Arguments[0])} as tinyint)";
                     case "ToChar": return $"substring(cast({getExp(exp.Arguments[0])} as nvarchar),1,1)";
-                    case "ToDateTime": return $"cast({getExp(exp.Arguments[0])} as datetime)";
+                    case "ToDateTime": return ExpressionConstDateTime(exp.Arguments[0]) ?? $"cast({getExp(exp.Arguments[0])} as datetime)";
                     case "ToDecimal": return $"cast({getExp(exp.Arguments[0])} as decimal(36,18))";
                     case "ToDouble": return $"cast({getExp(exp.Arguments[0])} as decimal(32,16))";
                     case "ToInt16": return $"cast({getExp(exp.Arguments[0])} as smallint)";
