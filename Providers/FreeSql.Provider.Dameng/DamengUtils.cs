@@ -40,7 +40,9 @@ namespace FreeSql.Dameng
                     }
                     break;
             }
-            var ret = new DmParameter { ParameterName = QuoteParamterName(parameterName), DmSqlType = dbtype ?? default, Value = value };
+            var ret = new DmParameter { ParameterName = QuoteParamterName(parameterName) };
+            if (dbtype != null) ret.DmSqlType = dbtype.Value;
+            ret.Value = value;
             _params?.Add(ret);
             return ret;
         }

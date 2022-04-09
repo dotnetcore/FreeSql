@@ -95,7 +95,7 @@ WHERE (a__Parent__Parent.Name = '粤语')", t0);
             var t1 = g.gbase.Select<Tag>().Where(a => a.Tags.AsSelect().Any(t => t.Parent.Id == 10)).ToSql();
             Assert.Equal(@"SELECT a.Id, a.Parent_id, a.Ddd, a.Name 
 FROM Tag a 
-WHERE (exists(SELECT FIRST 1 1 
+WHERE (exists(SELECT 1 
     FROM Tag t 
     LEFT JOIN Tag t__Parent ON t__Parent.Id = t.Parent_id 
     WHERE (t__Parent.Id = 10) AND (t.Parent_id = a.Id)))", t1);
@@ -104,9 +104,9 @@ WHERE (exists(SELECT FIRST 1 1
             var t2 = g.gbase.Select<Song>().Where(s => s.Tags.AsSelect().Any(t => t.Name == "国语")).ToSql();
             Assert.Equal(@"SELECT a.Id, a.Create_time, a.Is_deleted, a.Title, a.Url 
 FROM Song a 
-WHERE (exists(SELECT FIRST 1 1 
+WHERE (exists(SELECT 1 
     FROM Song_tag Mt_Ms 
-    WHERE (Mt_Ms.Song_id = a.Id) AND (exists(SELECT FIRST 1 1 
+    WHERE (Mt_Ms.Song_id = a.Id) AND (exists(SELECT 1 
         FROM Tag t 
         WHERE (t.Name = '国语') AND (t.Id = Mt_Ms.Tag_id)))))", t2);
         }

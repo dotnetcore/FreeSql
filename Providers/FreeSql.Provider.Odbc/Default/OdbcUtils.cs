@@ -18,9 +18,10 @@ namespace FreeSql.Odbc.Default
         {
             if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
             if (value?.Equals(DateTime.MinValue) == true) value = new DateTime(1970, 1, 1);
-            var ret = new OdbcParameter { ParameterName = QuoteParamterName(parameterName), Value = value };
+            var ret = new OdbcParameter { ParameterName = QuoteParamterName(parameterName) };
             var tp = _orm.CodeFirst.GetDbInfo(type)?.type;
             if (tp != null) ret.OdbcType = (OdbcType)tp.Value;
+            ret.Value = value;
             _params?.Add(ret);
             return ret;
         }
@@ -29,9 +30,10 @@ namespace FreeSql.Odbc.Default
             Utils.GetDbParamtersByObject<OdbcParameter>(sql, obj, null, (name, type, value) =>
             {
                 if (value?.Equals(DateTime.MinValue) == true) value = new DateTime(1970, 1, 1);
-                var ret = new OdbcParameter { ParameterName = $"@{name}", Value = value };
+                var ret = new OdbcParameter { ParameterName = $"@{name}" };
                 var tp = _orm.CodeFirst.GetDbInfo(type)?.type;
                 if (tp != null) ret.OdbcType = (OdbcType)tp.Value;
+                ret.Value = value;
                 return ret;
             });
 

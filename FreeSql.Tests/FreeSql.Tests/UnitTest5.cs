@@ -33,7 +33,7 @@ namespace FreeSql.Tests
             {
                 is_lock = test.ratio < 1  //这里生成的SQL语句有问题 ratio = 0.9 或 1.9 或 2.1 等等都是生成的是1
             }).Where(m => test.ratio < 1).ToSql();
-            Assert.Equal(@"UPDATE TestDto SET is_lock = 2.1 < 1
+            Assert.Equal(@"UPDATE `TestDto` SET `is_lock` = 2.1 < 1 
 WHERE (2.1 < 1)", sql);
         }
 

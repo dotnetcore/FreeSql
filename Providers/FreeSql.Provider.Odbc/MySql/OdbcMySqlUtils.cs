@@ -18,10 +18,10 @@ namespace FreeSql.Odbc.MySql
         public override DbParameter AppendParamter(List<DbParameter> _params, string parameterName, ColumnInfo col, Type type, object value)
         {
             if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
-            var ret = new OdbcParameter { ParameterName = QuoteParamterName(parameterName), Value = value };
+            var ret = new OdbcParameter { ParameterName = QuoteParamterName(parameterName) };
             var tp = _orm.CodeFirst.GetDbInfo(type)?.type;
-            if (tp != null)
-                ret.OdbcType = (OdbcType)tp.Value;
+            if (tp != null) ret.OdbcType = (OdbcType)tp.Value;
+            ret.Value = value;
             _params?.Add(ret);
             return ret;
         }
@@ -29,10 +29,10 @@ namespace FreeSql.Odbc.MySql
         public override DbParameter[] GetDbParamtersByObject(string sql, object obj) =>
             Utils.GetDbParamtersByObject<OdbcParameter>(sql, obj, null, (name, type, value) =>
             {
-                var ret = new OdbcParameter { ParameterName = $"?{name}", Value = value };
+                var ret = new OdbcParameter { ParameterName = $"?{name}" };
                 var tp = _orm.CodeFirst.GetDbInfo(type)?.type;
-                if (tp != null)
-                    ret.OdbcType = (OdbcType)tp.Value;
+                if (tp != null) ret.OdbcType = (OdbcType)tp.Value;
+                ret.Value = value;
                 return ret;
             });
 

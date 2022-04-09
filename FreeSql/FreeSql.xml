@@ -406,11 +406,6 @@
             按时分表：[Table(Name = "log_{yyyyMMddHH}", AsTable = "create_time=2022-5-1(6 hour)")]<para></para>
             </summary>
         </member>
-        <member name="P:FreeSql.DataAnnotations.IAsTable.AllTables">
-            <summary>
-            所有分表名
-            </summary>
-        </member>
         <member name="M:FreeSql.DataAnnotations.DateTimeAsTableImpl.GetTableNamesBySqlWhere(System.String,System.Collections.Generic.List{System.Data.Common.DbParameter},FreeSql.Internal.Model.SelectTableInfo,FreeSql.Internal.CommonUtils)">
             <summary>
             可以匹配以下条件（支持参数化）：<para></para>

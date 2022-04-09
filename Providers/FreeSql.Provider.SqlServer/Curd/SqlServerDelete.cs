@@ -41,9 +41,9 @@ namespace FreeSql.SqlServer.Curd
                 var sql = sb.ToString();
                 var validx = sql.IndexOf(" WHERE ");
                 if (validx == -1) throw new ArgumentException("找不到 WHERE ");
-                sb.Clear().Append(sql.Substring(0, validx))
+                sql = sb.Clear().Append(sql.Substring(0, validx))
                     .Append(sbret)
-                    .Append(sql.Substring(validx));
+                    .Append(sql.Substring(validx)).ToString();
 
                 var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Delete, sql, dbParms);
                 _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
@@ -98,9 +98,9 @@ namespace FreeSql.SqlServer.Curd
                 var sql = sb.ToString();
                 var validx = sql.IndexOf(" WHERE ");
                 if (validx == -1) throw new ArgumentException("找不到 WHERE ");
-                sb.Clear().Append(sql.Substring(0, validx))
+                sql = sb.Clear().Append(sql.Substring(0, validx))
                     .Append(sbret)
-                    .Append(sql.Substring(validx));
+                    .Append(sql.Substring(validx)).ToString();
 
                 var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Delete, sql, dbParms);
                 _orm.Aop.CurdBeforeHandler?.Invoke(this, before);

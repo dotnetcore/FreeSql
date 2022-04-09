@@ -25,8 +25,9 @@ namespace FreeSql.Oracle
                 else value = (bool)value == true ? 1 : 0;
                 dbtype = OracleDbType.Int16;
             }
-            var ret = new OracleParameter { ParameterName = QuoteParamterName(parameterName), Value = value };
+            var ret = new OracleParameter { ParameterName = QuoteParamterName(parameterName) };
             if (dbtype != null) ret.OracleDbType = dbtype.Value;
+            ret.Value = value;
             if (col != null)
             {
                 var dbtype2 = (OracleDbType)_orm.DbFirst.GetDbType(new DatabaseModel.DbColumnInfo { DbTypeTextFull = col.Attribute.DbType?.Replace("NOT NULL", "").Replace(" NULL", "").Trim(), DbTypeText = col.DbTypeText });
@@ -63,8 +64,9 @@ namespace FreeSql.Oracle
                     else value = (bool)value == true ? 1 : 0;
                     dbtype = OracleDbType.Int16;
                 }
-                var ret = new OracleParameter { ParameterName = $":{name}", Value = value };
+                var ret = new OracleParameter { ParameterName = $":{name}" };
                 if (dbtype != null) ret.OracleDbType = dbtype.Value;
+                ret.Value = value;
                 return ret;
             });
 

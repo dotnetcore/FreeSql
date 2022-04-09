@@ -584,7 +584,7 @@ namespace FreeSql.Internal.CommonProvider
 
         public string ToSqlValuesOrSelectUnionAll(bool isValues = true) => ToSqlValuesOrSelectUnionAllExtension103(isValues, null, null, false);
         public string ToSqlValuesOrSelectUnionAllExtension101(bool isValues, Action<object, int, StringBuilder> onrow) => ToSqlValuesOrSelectUnionAllExtension103(isValues, null, onrow, false);
-        public string ToSqlValuesOrSelectUnionAllExtension102(bool isValues, Action<object, int, StringBuilder> onrowPre, Action<object, int, StringBuilder> onrow) => ToSqlValuesOrSelectUnionAllExtension103(isValues, null, onrow, false);
+        public string ToSqlValuesOrSelectUnionAllExtension102(bool isValues, Action<object, int, StringBuilder> onrowPre, Action<object, int, StringBuilder> onrow) => ToSqlValuesOrSelectUnionAllExtension103(isValues, onrowPre, onrow, false);
         string ToSqlValuesOrSelectUnionAllExtension103(bool isValues, Action<object, int, StringBuilder> onrowPre, Action<object, int, StringBuilder> onrow, bool isAsTableSplited)
         {
             if (_source == null || _source.Any() == false) return null;

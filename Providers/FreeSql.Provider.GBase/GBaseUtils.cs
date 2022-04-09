@@ -35,7 +35,7 @@ namespace FreeSql.GBase
                         break;
                 }
             }
-            ret.OdbcType = dbtype ?? default;
+            if (dbtype != null) ret.OdbcType = dbtype.Value;
             _params?.Add(ret);
             return ret;
         }

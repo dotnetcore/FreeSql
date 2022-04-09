@@ -106,7 +106,7 @@ WHERE (strftime('%Y',a."CreateTime") = 2021)
 
             var d1 = fsql.Select<Users>().Where(r => r.CreateTime.Month == month).ToList();
             var d2 = fsql.Select<Users>().Where(r => r.CreateTime.Year == year).ToList();
-            var d5 = fsql.Select<Users>().Where(r => r.CreateTime.Year == 2021).ToList();
+            var d5 = fsql.Select<Users>().Where(r => r.CreateTime.Year == 2022).ToList();
 
             Assert.Single(dmonth1);
             Assert.Single(d1);
