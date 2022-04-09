@@ -149,7 +149,7 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
-            var sqlatb = fsql.Insert(new[]
+            var testitems = new[]
             {
                 new AsTableLog{ msg = "msg01", createtime = DateTime.Parse("2022-1-1 13:00:11") },
                 new AsTableLog{ msg = "msg02", createtime = DateTime.Parse("2022-1-2 14:00:12") },
@@ -158,7 +158,8 @@ namespace base_entity
                 new AsTableLog{ msg = "msg05", createtime = DateTime.Parse("2022-3-8 15:00:13") },
                 new AsTableLog{ msg = "msg06", createtime = DateTime.Parse("2022-4-8 15:00:13") },
                 new AsTableLog{ msg = "msg07", createtime = DateTime.Parse("2022-6-8 15:00:13") }
-            }).NoneParameter();
+            };
+            var sqlatb = fsql.Insert(testitems).NoneParameter();
             var sqlat = sqlatb.ToSql();
             var sqlatr = sqlatb.ExecuteAffrows();
 
@@ -166,6 +167,33 @@ namespace base_entity
             var sqlatca = sqlatc.ToSql();
             var sqlatcr = sqlatc.ExecuteAffrows();
 
+            var sqlatd1 = fsql.Update<AsTableLog>().SetSource(testitems[0]);
+            var sqlatd101 = sqlatd1.ToSql();
+            var sqlatd102 = sqlatd1.ExecuteAffrows();
+
+            var sqlatd2 = fsql.Update<AsTableLog>().SetSource(testitems[5]);
+            var sqlatd201 = sqlatd2.ToSql();
+            var sqlatd202 = sqlatd2.ExecuteAffrows();
+
+            var sqlatd3 = fsql.Update<AsTableLog>().SetSource(testitems);
+            var sqlatd301 = sqlatd3.ToSql();
+            var sqlatd302 = sqlatd3.ExecuteAffrows();
+
+            var sqlatd4 = fsql.Update<AsTableLog>(Guid.NewGuid()).Set(a => a.msg == "newmsg");
+            var sqlatd401 = sqlatd4.ToSql();
+            var sqlatd402 = sqlatd4.ExecuteAffrows();
+
+            var sqlatd5 = fsql.Update<AsTableLog>(Guid.NewGuid()).Set(a => a.msg == "newmsg").Where(a => a.createtime.Between(DateTime.Parse("2022-3-1"), DateTime.Parse("2022-5-1")));
+            var sqlatd501 = sqlatd5.ToSql();
+            var sqlatd502 = sqlatd5.ExecuteAffrows();
+
+            var sqlatd6 = fsql.Update<AsTableLog>(Guid.NewGuid()).Set(a => a.msg == "newmsg").Where(a => a.createtime > DateTime.Parse("2022-3-1"));
+            var sqlatd601 = sqlatd6.ToSql();
+            var sqlatd602 = sqlatd6.ExecuteAffrows();
+
+            var sqlatd7 = fsql.Update<AsTableLog>(Guid.NewGuid()).Set(a => a.msg == "newmsg").Where(a => a.createtime < DateTime.Parse("2022-5-1"));
+            var sqlatd701 = sqlatd7.ToSql();
+            var sqlatd702 = sqlatd7.ExecuteAffrows();
 
             fsql.Aop.AuditValue += new EventHandler<FreeSql.Aop.AuditValueEventArgs>((_, e) =>
             {

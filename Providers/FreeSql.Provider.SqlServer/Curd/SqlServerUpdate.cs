@@ -3,6 +3,7 @@ using FreeSql.Internal.Model;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -25,45 +26,54 @@ namespace FreeSql.SqlServer.Curd
 
         protected override List<T1> RawExecuteUpdated()
         {
-            var sql = this.ToSql();
-            if (string.IsNullOrEmpty(sql)) return new List<T1>();
-
-            var sb = new StringBuilder();
-            sb.Append(" OUTPUT ");
-            var colidx = 0;
-            foreach (var col in _table.Columns.Values)
-            {
-                if (colidx > 0) sb.Append(", ");
-                sb.Append(_commonUtils.RereadColumn(col, $"INSERTED.{_commonUtils.QuoteSqlName(col.Attribute.Name)}")).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
-                ++colidx;
-            }
-
-            var validx = sql.IndexOf(" \r\nWHERE ");
-            if (validx == -1) throw new ArgumentException("找不到 WHERE ");
-            sb.Insert(0, sql.Substring(0, validx));
-            sb.Append(sql.Substring(validx));
-
-            sql = sb.ToString();
-            var dbParms = _params.Concat(_paramsSource).ToArray();
-            var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Update, sql, dbParms);
-            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             var ret = new List<T1>();
-            Exception exception = null;
-            try
+            DbParameter[] dbParms = null;
+            StringBuilder sbret = null;
+            ToSqlFetch(sb =>
             {
-                ret = _orm.Ado.Query<T1>(_table.TypeLazy ?? _table.Type, _connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms);
-                ValidateVersionAndThrow(ret.Count, sql, dbParms);
-            }
-            catch (Exception ex)
-            {
-                exception = ex;
-                throw;
-            }
-            finally
-            {
-                var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
-            }
+                if (dbParms == null)
+                {
+                    dbParms = _params.Concat(_paramsSource).ToArray();
+                    sbret = new StringBuilder();
+                    sbret.Append(" OUTPUT ");
+
+                    var colidx = 0;
+                    foreach (var col in _table.Columns.Values)
+                    {
+                        if (colidx > 0) sbret.Append(", ");
+                        sbret.Append(_commonUtils.RereadColumn(col, $"INSERTED.{_commonUtils.QuoteSqlName(col.Attribute.Name)}")).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
+                        ++colidx;
+                    }
+                }
+                var sql = sb.ToString();
+                var validx = sql.IndexOf(" WHERE ");
+                if (validx == -1) throw new ArgumentException("找不到 WHERE ");
+                sb.Clear().Append(sql.Substring(0, validx))
+                    .Append(sbret)
+                    .Append(sql.Substring(validx));
+
+                var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Update, sql, dbParms);
+                _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
+
+                Exception exception = null;
+                try
+                {
+                    var rettmp = _orm.Ado.Query<T1>(_table.TypeLazy ?? _table.Type, _connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms);
+                    ValidateVersionAndThrow(rettmp.Count, sql, dbParms);
+                    ret.AddRange(rettmp);
+                }
+                catch (Exception ex)
+                {
+                    exception = ex;
+                    throw ex;
+                }
+                finally
+                {
+                    var after = new Aop.CurdAfterEventArgs(before, exception, ret);
+                    _orm.Aop.CurdAfterHandler?.Invoke(this, after);
+                }
+            });
+            sbret?.Clear();
             return ret;
         }
 
@@ -109,45 +119,54 @@ namespace FreeSql.SqlServer.Curd
 
         async protected override Task<List<T1>> RawExecuteUpdatedAsync(CancellationToken cancellationToken = default)
         {
-            var sql = this.ToSql();
-            if (string.IsNullOrEmpty(sql)) return new List<T1>();
-
-            var sb = new StringBuilder();
-            sb.Append(" OUTPUT ");
-            var colidx = 0;
-            foreach (var col in _table.Columns.Values)
-            {
-                if (colidx > 0) sb.Append(", ");
-                sb.Append(_commonUtils.RereadColumn(col, $"INSERTED.{_commonUtils.QuoteSqlName(col.Attribute.Name)}")).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
-                ++colidx;
-            }
-
-            var validx = sql.IndexOf(" \r\nWHERE ");
-            if (validx == -1) throw new ArgumentException("找不到 WHERE ");
-            sb.Insert(0, sql.Substring(0, validx));
-            sb.Append(sql.Substring(validx));
-
-            sql = sb.ToString();
-            var dbParms = _params.Concat(_paramsSource).ToArray();
-            var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Update, sql, dbParms);
-            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             var ret = new List<T1>();
-            Exception exception = null;
-            try
+            DbParameter[] dbParms = null;
+            StringBuilder sbret = null;
+            await ToSqlFetchAsync(async sb =>
             {
-                ret = await _orm.Ado.QueryAsync<T1>(_table.TypeLazy ?? _table.Type, _connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms, cancellationToken);
-                ValidateVersionAndThrow(ret.Count, sql, dbParms);
-            }
-            catch (Exception ex)
-            {
-                exception = ex;
-                throw;
-            }
-            finally
-            {
-                var after = new Aop.CurdAfterEventArgs(before, exception, ret);
-                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
-            }
+                if (dbParms == null)
+                {
+                    dbParms = _params.Concat(_paramsSource).ToArray();
+                    sbret = new StringBuilder();
+                    sbret.Append(" OUTPUT ");
+
+                    var colidx = 0;
+                    foreach (var col in _table.Columns.Values)
+                    {
+                        if (colidx > 0) sbret.Append(", ");
+                        sbret.Append(_commonUtils.RereadColumn(col, $"INSERTED.{_commonUtils.QuoteSqlName(col.Attribute.Name)}")).Append(" as ").Append(_commonUtils.QuoteSqlName(col.CsName));
+                        ++colidx;
+                    }
+                }
+                var sql = sb.ToString();
+                var validx = sql.IndexOf(" WHERE ");
+                if (validx == -1) throw new ArgumentException("找不到 WHERE ");
+                sb.Clear().Append(sql.Substring(0, validx))
+                    .Append(sbret)
+                    .Append(sql.Substring(validx));
+
+                var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Update, sql, dbParms);
+                _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
+
+                Exception exception = null;
+                try
+                {
+                    var rettmp = await _orm.Ado.QueryAsync<T1>(_table.TypeLazy ?? _table.Type, _connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms, cancellationToken);
+                    ValidateVersionAndThrow(rettmp.Count, sql, dbParms);
+                    ret.AddRange(rettmp);
+                }
+                catch (Exception ex)
+                {
+                    exception = ex;
+                    throw ex;
+                }
+                finally
+                {
+                    var after = new Aop.CurdAfterEventArgs(before, exception, ret);
+                    _orm.Aop.CurdAfterHandler?.Invoke(this, after);
+                }
+            });
+            sbret?.Clear();
             return ret;
         }
 #endif

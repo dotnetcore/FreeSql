@@ -540,7 +540,18 @@ namespace FreeSql.Internal.CommonProvider
         {
             var tbname = _table?.DbName ?? "";
             if (_tableRule == null && _table.AsTableImpl == null) return tbname;
-            var newname = _table.AsTableImpl?.GetTableNameByColumnValue(_source.Any() ? _table.AsTableColumn.GetValue(_source.FirstOrDefault()) : DateTime.Now) ?? _tableRule(tbname);
+            string newname = null;
+            if (_table.AsTableImpl != null)
+            {
+                if (_source.Any())
+                    newname = _table.AsTableImpl.GetTableNameByColumnValue(_table.AsTableColumn.GetValue(_source.FirstOrDefault()));
+                else if (_tableRule == null)
+                    newname = _table.AsTableImpl.GetTableNameByColumnValue(DateTime.Now);
+                else
+                    newname = _tableRule(_table.DbName);
+            }
+            else
+                newname = _tableRule(_table.DbName);
             if (newname == tbname) return tbname;
             if (string.IsNullOrEmpty(newname)) return tbname;
             if (_orm.CodeFirst.IsSyncStructureToLower) newname = newname.ToLower();

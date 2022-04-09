@@ -80,27 +80,7 @@ namespace FreeSql.ClickHouse.Curd
                     _orm.Aop.CurdAfterHandler?.Invoke(this, after);
                 }
             }
-            else
-            {
-                var sql = this.ToSql();
-                before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
-                _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
-                try
-                {
-                    affrows = _orm.Ado.ExecuteNonQuery(_connection, null, CommandType.Text, sql, _commandTimeout, _params);
-                }
-                catch (Exception ex)
-                {
-                    exception = ex;
-                    throw ex;
-                }
-                finally
-                {
-                    var after = new Aop.CurdAfterEventArgs(before, exception, affrows);
-                    _orm.Aop.CurdAfterHandler?.Invoke(this, after);
-                }
-                return affrows;
-            }
+            return base.RawExecuteAffrows();
         }
 
         private IDictionary<string, object> GetValue<T>(T u, System.Reflection.PropertyInfo[] columns)
@@ -210,27 +190,7 @@ namespace FreeSql.ClickHouse.Curd
                     _orm.Aop.CurdAfterHandler?.Invoke(this, after);
                 }
             }
-            else
-            {
-                var sql = this.ToSql();
-                before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Insert, sql, _params);
-                _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
-                try
-                {
-                    affrows = await _orm.Ado.ExecuteNonQueryAsync(_connection, null, CommandType.Text, sql, _commandTimeout, _params);
-                }
-                catch (Exception ex)
-                {
-                    exception = ex;
-                    throw ex;
-                }
-                finally
-                {
-                    var after = new Aop.CurdAfterEventArgs(before, exception, affrows);
-                    _orm.Aop.CurdAfterHandler?.Invoke(this, after);
-                }
-                return affrows;
-            }
+            return await base.RawExecuteAffrowsAsync(cancellationToken);
         }
 
         async protected override Task<long> RawExecuteIdentityAsync(CancellationToken cancellationToken = default)
