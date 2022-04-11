@@ -693,6 +693,13 @@ namespace FreeSql.Internal.CommonProvider
                         else
                             val = Utils.GetDataReaderValue(col.Item2, val);
                     }
+                    switch (_orm.Ado.DataType)
+                    {
+                        case DataType.SqlServer:
+                        case DataType.OdbcSqlServer:
+                            if (val?.Equals(DateTime.MinValue) == true) val = new DateTime(1970, 1, 1);
+                            break;
+                    }
                     row[rowIndex++] = val;
                 }
                 dt.Rows.Add(row);
