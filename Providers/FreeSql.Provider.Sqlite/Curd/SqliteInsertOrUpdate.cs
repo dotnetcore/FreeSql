@@ -37,6 +37,7 @@ namespace FreeSql.Sqlite.Curd
                     .NoneParameter(true) as Internal.CommonProvider.InsertProvider<T1>;
                 insert._noneParameterFlag = flagInsert ? "c" : "cu";
                 insert._source = data;
+                insert._table = _table;
 
                 string sql = "";
                 if (IdentityColumn != null && flagInsert) sql = insert.ToSql();

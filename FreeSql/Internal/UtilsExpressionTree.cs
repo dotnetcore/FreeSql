@@ -2267,5 +2267,162 @@ namespace FreeSql.Internal
             name = Regex.Replace(name.TrimStart('@'), @"[^\w]", "_");
             return char.IsLetter(name, 0) ? name : string.Concat("_", name);
         }
+
+        public static string ReplaceSqlConstString(string sql, Dictionary<string, string> parms)
+        {
+            var nsb = new StringBuilder();
+            var sidx = 0;
+            var pidx = 0;
+            while (sidx < sql.Length)
+            {
+                var chr = sql[sidx++];
+                if (chr != '\'')
+                {
+                    nsb.Append(chr);
+                    continue;
+                }
+                var startIdx = sidx;
+                var startLength = 0;
+                while (sidx < sql.Length)
+                {
+                    var chrb = sql[sidx++];
+                    if (chrb != '\'')
+                    {
+                        startLength++;
+                        continue;
+                    }
+                    if (sidx < sql.Length && sql[sidx] == '\'')
+                    {
+                        startLength += 2;
+                        continue;
+                    }
+                    break;
+                }
+                if (startLength > 0)
+                {
+                    var pvalue = sql.Substring(startIdx, startLength).Replace("''", "'");
+                    var pname = parms.Where(a => a.Value == pvalue).Select(a => a.Key).FirstOrDefault();
+                    if (string.IsNullOrEmpty(pname))
+                    {
+                        while (true)
+                        {
+                            pidx++;
+                            pname = $"@p{pidx}";
+                            if (parms.ContainsKey(pname) == false) break;
+                        }
+                    }
+                    nsb.Append(pname);
+                    if (parms.ContainsKey(pname) == false) parms.Add(pname, pvalue);
+                }
+            }
+            return nsb.ToString();
+        }
+
+        internal static string ParseSqlWhereLevel1(string sql)
+        {
+            var dictParms = new Dictionary<string, string>();
+            var rawsql = ReplaceSqlConstString(sql, dictParms).Trim();
+            sql = Regex.Replace(rawsql, @"[\r\n\t]", " ");
+            var remidx = sql.IndexOf("WHERE ");
+            if (remidx != -1) sql = sql.Substring(remidx + 6);
+
+            var sidx = 0;
+            var ltcou = 0;
+            var ltidxStack = new Stack<int>();
+            while (sidx < sql.Length)
+            {
+                var chr = sql[sidx++];
+                if (chr == '(')
+                {
+                    ltcou++;
+                    ltidxStack.Push(sidx - 1);
+                }
+                if (chr == ')')
+                {
+                    ltcou--;
+                    var ltidx = ltidxStack.Pop();
+                    if (ltidx == 0 && sidx == sql.Length - 1)
+                        break;
+                    var sqlLeft = ltidx == 0 ? "" : sql.Remove(ltidx);
+                    var sqlMid = sql.Substring(ltidx, sidx - ltidx);
+                    var sqlMidNew = "";
+                    var sqlRight = sidx == sql.Length - 1 ? "" : sql.Substring(sidx + 1);
+                    var mLeft = Regex.Match(sqlLeft, @" (and|or|not)\s*$", RegexOptions.IgnoreCase);
+                    if (mLeft.Success)
+                    {
+                        switch (mLeft.Groups[1].Value)
+                        {
+                            case "and":
+                                sqlMidNew = sqlMid.Substring(1, sqlMid.Length - 2);
+                                break;
+                            case "or":
+                                break;
+                            case "not":
+                                break;
+                        }
+                    }
+                    sidx -= sqlMid.Length - sqlMidNew.Length;
+                    sql = $"{sqlLeft}{sqlMidNew}{sqlRight}";
+                }
+            }
+            return sql;
+        }
+
+        static string ParseSqlWhereLevel12(string sql)
+        {
+            var dictParms = new Dictionary<string, string>();
+            var rawsql = ReplaceSqlConstString(sql, dictParms);
+            sql = Regex.Replace(rawsql, @"[\r\n\t]", " ");
+            var remidx = sql.IndexOf("WHERE ");
+            if (remidx != -1) sql = sql.Substring(remidx + 6);
+
+            Dictionary<string, string> dicSqlParts = new Dictionary<string, string>();
+            var nsb = new StringBuilder();
+            var swliRoot = new SqlWhereLogicInfo();
+            var swliCurrent = swliRoot;
+
+            LocalParseSqlWhere(sql);
+            return nsb.ToString();
+
+            void LocalParseSqlWhere(string sqlPart)
+            {
+                var sidx = 0;
+                var ltcou = 0;
+                var ltidxStack = new Stack<int>();
+                while (sidx < sqlPart.Length)
+                {
+                    var chr = sqlPart[sidx++];
+                    if (chr == '(')
+                    {
+                        ltcou++;
+                        ltidxStack.Push(sidx - 1);
+                        //swliCurrent.Filters.Add()
+                    }
+                    if (chr == ')')
+                    {
+                        ltcou--;
+                        var ltidx = ltidxStack.Pop();
+                        var pvalue = sqlPart.Substring(ltidx, sidx - ltidx);
+                        break;
+                        //var pname = $"@p_{Guid.NewGuid().ToString("N")}";
+                        //dicSqlParts.Add(pname, pvalue);
+                        //LocalParseSqlWhere(sqlPart);
+                        //var ltsql = sqlPart.Substring(Math.Max(0, ltidx - 5), ltidx);
+                        //if (Regex.IsMatch(ltsql, @"(and|or|not)$"))
+                        //    ltsb.Last().Append("1=1");
+                    }
+                }
+            }
+        }
+
+        class SqlWhereLogicInfo
+        {
+            public string Field { get; set; }
+            public string Operator { get; set; }
+            public object Value { get; set; }
+
+            public DynamicFilterLogic Logic { get; set; }
+            public List<SqlWhereLogicInfo> Filters { get; set; }
+        }
     }
 }

@@ -149,20 +149,20 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
-var testitems = new[]
-{
-    new AsTableLog{ msg = "msg01", createtime = DateTime.Parse("2022-1-1 13:00:11") },
-    new AsTableLog{ msg = "msg02", createtime = DateTime.Parse("2022-1-2 14:00:12") },
-    new AsTableLog{ msg = "msg03", createtime = DateTime.Parse("2022-2-2 15:00:13") },
-    new AsTableLog{ msg = "msg04", createtime = DateTime.Parse("2022-2-8 15:00:13") },
-    new AsTableLog{ msg = "msg05", createtime = DateTime.Parse("2022-3-8 15:00:13") },
-    new AsTableLog{ msg = "msg06", createtime = DateTime.Parse("2022-4-8 15:00:13") },
-    new AsTableLog{ msg = "msg07", createtime = DateTime.Parse("2022-6-8 15:00:13") },
-    new AsTableLog{ msg = "msg07", createtime = DateTime.Parse("2022-7-1") }
-};
-var sqlatb = fsql.Insert(testitems).NoneParameter();
-var sqlat = sqlatb.ToSql();
-var sqlatr = sqlatb.ExecuteAffrows();
+            var testitems = new[]
+            {
+                new AsTableLog{ msg = "msg01", createtime = DateTime.Parse("2022-1-1 13:00:11") },
+                new AsTableLog{ msg = "msg02", createtime = DateTime.Parse("2022-1-2 14:00:12") },
+                new AsTableLog{ msg = "msg03", createtime = DateTime.Parse("2022-2-2 15:00:13") },
+                new AsTableLog{ msg = "msg04", createtime = DateTime.Parse("2022-2-8 15:00:13") },
+                new AsTableLog{ msg = "msg05", createtime = DateTime.Parse("2022-3-8 15:00:13") },
+                new AsTableLog{ msg = "msg06", createtime = DateTime.Parse("2022-4-8 15:00:13") },
+                new AsTableLog{ msg = "msg07", createtime = DateTime.Parse("2022-6-8 15:00:13") },
+                new AsTableLog{ msg = "msg07", createtime = DateTime.Parse("2022-7-1") }
+            };
+            var sqlatb = fsql.Insert(testitems).NoneParameter();
+            var sqlat = sqlatb.ToSql();
+            var sqlatr = sqlatb.ExecuteAffrows();
 
             var sqlatc = fsql.Delete<AsTableLog>().Where(a => a.id == Guid.NewGuid() && a.createtime.Between(DateTime.Parse("2022-3-1"), DateTime.Parse("2022-5-1")));
             var sqlatca = sqlatc.ToSql();

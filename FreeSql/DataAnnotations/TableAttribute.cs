@@ -209,14 +209,14 @@ namespace FreeSql.DataAnnotations
                 cn = columnName.Replace("[", "\\[").Replace("]", "\\]").Replace(".", "\\.");
                 return new[]
                 {
-                    new Regex($@"({cn}\s*(<|<=|>|>=|=|between)\s*)(datetime|cdate|to_date)\(('[^']+')\)", RegexOptions.IgnoreCase),
-                    new Regex($@"({cn}\s*(<|<=|>|>=|=|between)(\s*))to_timestamp\(('[^']+')\s*,\s*'YYYY-MM-DD[^']+'\)", RegexOptions.IgnoreCase),
-                    new Regex($@"({cn}\s*(<|<=|>|>=|=|between)(\s*))cast\(('[^']+') as (datetime|timestamp)\)", RegexOptions.IgnoreCase),
-                    new Regex($@"({cn}\s*(<|<=|>|>=|=|between)(\s*))('[^']+')::(datetime|timestamp)", RegexOptions.IgnoreCase),
-                    new Regex($@"({cn}\s*(between)\s+'[^']+'\s+and\s+)(datetime|cdate|to_date)\(('[^']+')\)", RegexOptions.IgnoreCase),
-                    new Regex($@"({cn}\s*(between)\s+'[^']+'\s+and(\s+))to_timestamp\(('[^']+')\s*,\s*'YYYY-MM-DD[^']+'\)", RegexOptions.IgnoreCase),
-                    new Regex($@"({cn}\s*(between)\s+'[^']+'\s+and(\s+))cast\(('[^']+') as (datetime|timestamp)\)", RegexOptions.IgnoreCase),
-                    new Regex($@"({cn}\s*(between)\s+'[^']+'\s+and(\s+))('[^']+')::(datetime|timestamp)", RegexOptions.IgnoreCase),
+                    //new Regex($@"({cn}\s*(<|<=|>|>=|=|between)\s*)(datetime|cdate|to_date)\(('[^']+')\)", RegexOptions.IgnoreCase),
+                    //new Regex($@"({cn}\s*(<|<=|>|>=|=|between)(\s*))to_timestamp\(('[^']+')\s*,\s*'YYYY-MM-DD[^']+'\)", RegexOptions.IgnoreCase),
+                    //new Regex($@"({cn}\s*(<|<=|>|>=|=|between)(\s*))cast\(('[^']+') as (datetime|timestamp)\)", RegexOptions.IgnoreCase),
+                    //new Regex($@"({cn}\s*(<|<=|>|>=|=|between)(\s*))('[^']+')::(datetime|timestamp)", RegexOptions.IgnoreCase),
+                    //new Regex($@"({cn}\s*(between)\s+'[^']+'\s+and\s+)(datetime|cdate|to_date)\(('[^']+')\)", RegexOptions.IgnoreCase),
+                    //new Regex($@"({cn}\s*(between)\s+'[^']+'\s+and(\s+))to_timestamp\(('[^']+')\s*,\s*'YYYY-MM-DD[^']+'\)", RegexOptions.IgnoreCase),
+                    //new Regex($@"({cn}\s*(between)\s+'[^']+'\s+and(\s+))cast\(('[^']+') as (datetime|timestamp)\)", RegexOptions.IgnoreCase),
+                    //new Regex($@"({cn}\s*(between)\s+'[^']+'\s+and(\s+))('[^']+')::(datetime|timestamp)", RegexOptions.IgnoreCase),
 
                     new Regex($@"({cn}\s*(<|<=|>|>=|=)\s*)(datetime|cdate|to_date)\(({quoteParameterName}[\w_]+)\)", RegexOptions.IgnoreCase),
                     new Regex($@"({cn}\s*(<|<=|>|>=|=)(\s*))to_timestamp\(({quoteParameterName}[\w_]+)\s*,\s*'YYYY-MM-DD[^']+'\)", RegexOptions.IgnoreCase),
@@ -228,13 +228,13 @@ namespace FreeSql.DataAnnotations
                     new Regex($@"({cn}\s*(between)\s+{quoteParameterName}[\w_]+\s+and(\s+))({quoteParameterName}[^w_]+)::(datetime|timestamp)", RegexOptions.IgnoreCase),
 
 
-                    new Regex($@"{cn}\s*between\s*'([^']+)'\s*and\s*'([^']+)'", RegexOptions.IgnoreCase),
+                    new Regex($@"{cn}\s*between\s*'([^']+)'\s*and\s*'([^']+)'", RegexOptions.IgnoreCase), //预留暂时不用
                     new Regex($@"{cn}\s*between\s*{quoteParameterName}([\w_]+)\s*and\s*{quoteParameterName}([\w_]+)", RegexOptions.IgnoreCase),
 
-                    new Regex($@"{cn}\s*(<|<=|>|>=)\s*'([^']+)'\s*and\s*{cn}\s*(<|<=|>|>=)\s*'([^']+)'", RegexOptions.IgnoreCase),
+                    new Regex($@"{cn}\s*(<|<=|>|>=)\s*'([^']+)'\s*and\s*{cn}\s*(<|<=|>|>=)\s*'([^']+)'", RegexOptions.IgnoreCase), //预留暂时不用
                     new Regex($@"{cn}\s*(<|<=|>|>=)\s*{quoteParameterName}([\w_]+)\s*and\s*{cn}\s*(<|<=|>|>=)\s*{quoteParameterName}([\w_]+)", RegexOptions.IgnoreCase),
 
-                    new Regex($@"{cn}\s*(<|<=|>|>=)\s*'([^']+)'", RegexOptions.IgnoreCase),
+                    new Regex($@"{cn}\s*(<|<=|>|>=)\s*'([^']+)'", RegexOptions.IgnoreCase), //预留暂时不用
                     new Regex($@"{cn}\s*(<|<=|>|>=)\s*{quoteParameterName}([\w_]+)", RegexOptions.IgnoreCase),
                 };
             });
@@ -256,44 +256,53 @@ namespace FreeSql.DataAnnotations
         public string[] GetTableNamesBySqlWhere(string sqlWhere, List<DbParameter> dbParams, SelectTableInfo tb, CommonUtils commonUtils)
         {
             if (string.IsNullOrWhiteSpace(sqlWhere)) return AllTables;
+            var dictParams = new Dictionary<string, string>();
+            var newSqlWhere = Utils.ReplaceSqlConstString(sqlWhere, dictParams);
+            var tsqlWhere = Utils.ParseSqlWhereLevel1(sqlWhere);
+
             var quoteParameterName = commonUtils.QuoteParamterName("");
             var quoteParameterNameCharArray = quoteParameterName.ToCharArray();
             var columnName = commonUtils.QuoteSqlName(tb.Table.AsTableColumn.Attribute.Name);
             var regs = GetRegSqlWhereDateTimes($"{(string.IsNullOrWhiteSpace(tb.Alias) ? "" : $"{tb.Alias}.")}{commonUtils.QuoteSqlName(tb.Table.AsTableColumn.Attribute.Name)}", quoteParameterName);
-            for (var a = 0; a < 16; a++) sqlWhere = regs[a].Replace(sqlWhere, "$1$4");
+            for (var a = 0; a < 8; a++) newSqlWhere = regs[a].Replace(newSqlWhere, "$1$4");
 
-            var m = regs[16].Match(sqlWhere);
-            if (m.Success) return GetTableNamesByColumnValueRange(m.Groups[1].Value, m.Groups[2].Value);
-            m = m = regs[18].Match(sqlWhere);
-            if (m.Success) return LocalGetTables(m.Groups[1].Value, m.Groups[3].Value, ParseColumnValue(m.Groups[2].Value), ParseColumnValue(m.Groups[4].Value));
-            m = regs[20].Match(sqlWhere);
-            if (m.Success) return LocalGetTables2(m.Groups[1].Value, ParseColumnValue(m.Groups[2].Value));
+            //var m = regs[8].Match(newSqlWhere);
+            //if (m.Success) return GetTableNamesByColumnValueRange(m.Groups[1].Value, m.Groups[2].Value);
+            //m = m = regs[10].Match(newSqlWhere);
+            //if (m.Success) return LocalGetTables(m.Groups[1].Value, m.Groups[3].Value, ParseColumnValue(m.Groups[2].Value), ParseColumnValue(m.Groups[4].Value));
+            //m = regs[12].Match(newSqlWhere);
+            //if (m.Success) return LocalGetTables2(m.Groups[1].Value, ParseColumnValue(m.Groups[2].Value));
 
-            m = m = regs[17].Match(sqlWhere);
+            var m = regs[9].Match(newSqlWhere);
             if (m.Success)
             {
-                var val1 = dbParams.Where(a => a.ParameterName.Trim(quoteParameterNameCharArray) == m.Groups[2].Value).FirstOrDefault();
-                var val2 = dbParams.Where(a => a.ParameterName.Trim(quoteParameterNameCharArray) == m.Groups[4].Value).FirstOrDefault();
+                var val1 = LocalGetParamValue(m.Groups[1].Value);
+                var val2 = LocalGetParamValue(m.Groups[2].Value);
                 if (val1 == null || val2 == null) throw new Exception($"未能解析分表字段值 {sqlWhere}");
                 return GetTableNamesByColumnValueRange(val1, val2);
             }
-            m = regs[19].Match(sqlWhere);
+            m = regs[11].Match(newSqlWhere);
             if (m.Success)
             {
-                var val1 = dbParams.Where(a => a.ParameterName.Trim(quoteParameterNameCharArray) == m.Groups[2].Value).FirstOrDefault();
-                var val2 = dbParams.Where(a => a.ParameterName.Trim(quoteParameterNameCharArray) == m.Groups[4].Value).FirstOrDefault();
+                var val1 = LocalGetParamValue(m.Groups[2].Value);
+                var val2 = LocalGetParamValue(m.Groups[4].Value);
                 if (val1 == null || val2 == null) throw new Exception($"未能解析分表字段值 {sqlWhere}");
                 return LocalGetTables(m.Groups[1].Value, m.Groups[3].Value, ParseColumnValue(val1), ParseColumnValue(val2));
             }
-            m = regs[21].Match(sqlWhere);
+            m = regs[13].Match(newSqlWhere);
             if (m.Success)
             {
-                var val1 = dbParams.Where(a => a.ParameterName.Trim(quoteParameterNameCharArray) == m.Groups[2].Value).FirstOrDefault();
+                var val1 = LocalGetParamValue(m.Groups[2].Value);
                 if (val1 == null) throw new Exception($"未能解析分表字段值 {sqlWhere}");
                 return LocalGetTables2(m.Groups[1].Value, ParseColumnValue(val1));
             }
             return AllTables;
 
+            object LocalGetParamValue(string paramName)
+            {
+                if (dictParams.TryGetValue(quoteParameterName + paramName, out var trydictVal)) return trydictVal;
+                return dbParams.Where(a => a.ParameterName.Trim(quoteParameterNameCharArray) == m.Groups[2].Value).FirstOrDefault()?.Value;
+            }
             string[] LocalGetTables(string opt1, string opt2, DateTime val1, DateTime val2)
             {
                 switch (opt1)
@@ -317,7 +326,7 @@ namespace FreeSql.DataAnnotations
                         break;
                     case ">":
                     case ">=":
-                        if (opt1 == ">") val1 = val1.AddSeconds(1); 
+                        if (opt1 == ">") val1 = val1.AddSeconds(1);
                         switch (opt2)
                         {
                             case "<":

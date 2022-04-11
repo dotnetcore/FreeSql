@@ -35,6 +35,7 @@ namespace FreeSql.Odbc.PostgreSQL
                     .WithTransaction(_transaction)
                     .NoneParameter(true) as Internal.CommonProvider.InsertProvider<T1>;
                 insert._source = data;
+                insert._table = _table;
                 insert._noneParameterFlag = flagInsert ? "cuc" : "cu";
 
                 string sql = "";
