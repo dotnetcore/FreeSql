@@ -239,7 +239,7 @@ namespace FreeSql.Internal.CommonProvider
                 return;
             }
 
-            sb.Insert(0, _commonUtils.QuoteSqlName(TableRuleInvoke())).Insert(0, "DELETE FROM ");
+            sb.Append("DELETE FROM ").Append(_commonUtils.QuoteSqlName(TableRuleInvoke())).Append(newwhere);
             _interceptSql?.Invoke(sb);
             await fetchAsync(sb);
             sb.Clear();
