@@ -170,7 +170,7 @@ namespace FreeSql.Internal.CommonProvider
 
         public virtual string ToSql()
         {
-            if (_whereTimes <= 0) return null;
+            if (_whereTimes <= 0 || _where.Length == 0) return null;
             var sb = new StringBuilder();
             ToSqlFetch(sql =>
             {
@@ -182,7 +182,7 @@ namespace FreeSql.Internal.CommonProvider
 
         public void ToSqlFetch(Action<StringBuilder> fetch)
         {
-            if (_whereTimes <= 0) return;
+            if (_whereTimes <= 0 || _where.Length == 0) return;
             var newwhere = new StringBuilder().Append(" WHERE ").Append(_where);
 
             if (_whereGlobalFilter.Any())
@@ -215,7 +215,7 @@ namespace FreeSql.Internal.CommonProvider
 #else
         async public Task ToSqlFetchAsync(Func<StringBuilder, Task> fetchAsync)
         {
-            if (_whereTimes <= 0) return;
+            if (_whereTimes <= 0 || _where.Length == 0) return;
             var newwhere = new StringBuilder().Append(" WHERE ").Append(_where);
 
             if (_whereGlobalFilter.Any())

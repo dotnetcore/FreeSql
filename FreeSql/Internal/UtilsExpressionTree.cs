@@ -2268,11 +2268,19 @@ namespace FreeSql.Internal
             return char.IsLetter(name, 0) ? name : string.Concat("_", name);
         }
 
-        public static string ReplaceSqlConstString(string sql, Dictionary<string, string> parms)
+        public static string ReplaceSqlConstString(string sql, Dictionary<string, string> parms, string paramPrefix = "@")
         {
             var nsb = new StringBuilder();
             var sidx = 0;
             var pidx = 0;
+            var ptmpPrefix = "";
+            while (true)
+            {
+                pidx++;
+                ptmpPrefix = $"{paramPrefix}p{pidx}";
+                if (sql.Contains(ptmpPrefix) == false) break;
+            }
+            pidx = 0;
             while (sidx < sql.Length)
             {
                 var chr = sql[sidx++];
@@ -2307,7 +2315,7 @@ namespace FreeSql.Internal
                         while (true)
                         {
                             pidx++;
-                            pname = $"@p{pidx}";
+                            pname = $"{ptmpPrefix}{pidx}";
                             if (parms.ContainsKey(pname) == false) break;
                         }
                     }
@@ -2326,46 +2334,72 @@ namespace FreeSql.Internal
             var remidx = sql.IndexOf("WHERE ");
             if (remidx != -1) sql = sql.Substring(remidx + 6);
 
-            var sidx = 0;
-            var ltcou = 0;
-            var ltidxStack = new Stack<int>();
-            while (sidx < sql.Length)
+            //sql = Regex.Replace(sql, @"\s*([@:\?][\w_]+)\s*(<|<=|>|>=|=)\s*((\w+)\s*\.)?([\w_]+)");
+            return LocalProcessBrackets(sql);
+
+
+            string LocalProcessBrackets(string locsql)
             {
-                var chr = sql[sidx++];
-                if (chr == '(')
+                var sidx = 0;
+                var ltcou = 0;
+                var ltidxStack = new Stack<int>();
+                while (sidx < locsql.Length)
                 {
-                    ltcou++;
-                    ltidxStack.Push(sidx - 1);
-                }
-                if (chr == ')')
-                {
-                    ltcou--;
-                    var ltidx = ltidxStack.Pop();
-                    if (ltidx == 0 && sidx == sql.Length - 1)
-                        break;
-                    var sqlLeft = ltidx == 0 ? "" : sql.Remove(ltidx);
-                    var sqlMid = sql.Substring(ltidx, sidx - ltidx);
-                    var sqlMidNew = "";
-                    var sqlRight = sidx == sql.Length - 1 ? "" : sql.Substring(sidx + 1);
-                    var mLeft = Regex.Match(sqlLeft, @" (and|or|not)\s*$", RegexOptions.IgnoreCase);
-                    if (mLeft.Success)
+                    var chr = locsql[sidx++];
+                    if (chr == '(')
                     {
-                        switch (mLeft.Groups[1].Value)
-                        {
-                            case "and":
-                                sqlMidNew = sqlMid.Substring(1, sqlMid.Length - 2);
-                                break;
-                            case "or":
-                                break;
-                            case "not":
-                                break;
-                        }
+                        ltcou++;
+                        ltidxStack.Push(sidx - 1);
                     }
-                    sidx -= sqlMid.Length - sqlMidNew.Length;
-                    sql = $"{sqlLeft}{sqlMidNew}{sqlRight}";
+                    if (chr == ')')
+                    {
+                        ltcou--;
+                        var ltidx = ltidxStack.Pop();
+                        var ltidx2 = ltidx;
+                        var sidx2 = sidx;
+                        while(sidx < locsql.Length)
+                        {
+                            var chr2 = locsql[sidx];
+                            if (chr2 == ')')
+                            {
+                                if (ltidxStack.First() == ltidx - 1)
+                                {
+                                    ltidx = ltidxStack.Pop();
+                                    sidx++;
+                                }
+                            }
+                            break;
+                        }
+                        if (ltidx == 0 && sidx == locsql.Length)
+                        {
+                            locsql = locsql.Substring(1, sidx - 2);
+                            break;
+                        }
+                        var sqlLeft = ltidx == 0 ? "" : locsql.Remove(ltidx);
+                        var sqlMid = locsql.Substring(ltidx, sidx - ltidx);
+                        var sqlMidNew = sqlMid;
+                        var sqlRight = sidx == locsql.Length ? "" : locsql.Substring(sidx);
+                        var mLeft = Regex.Match(sqlLeft, @" (and|or|not)\s*$", RegexOptions.IgnoreCase);
+                        if (mLeft.Success)
+                        {
+                            switch (mLeft.Groups[1].Value)
+                            {
+                                case "and":
+                                    sqlMidNew = sqlMid.Substring(1, sqlMid.Length - 2).Trim();
+                                    break;
+                                case "or":
+                                    sqlMidNew = "";
+                                    break;
+                                case "not":
+                                    break;
+                            }
+                        }
+                        sidx -= sqlMid.Length - sqlMidNew.Length;
+                        locsql = $"{sqlLeft}{sqlMidNew}{sqlRight}";
+                    }
                 }
+                return locsql;
             }
-            return sql;
         }
 
         static string ParseSqlWhereLevel12(string sql)

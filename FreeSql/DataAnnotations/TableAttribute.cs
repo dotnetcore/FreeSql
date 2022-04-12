@@ -256,13 +256,14 @@ namespace FreeSql.DataAnnotations
         public string[] GetTableNamesBySqlWhere(string sqlWhere, List<DbParameter> dbParams, SelectTableInfo tb, CommonUtils commonUtils)
         {
             if (string.IsNullOrWhiteSpace(sqlWhere)) return AllTables;
-            var dictParams = new Dictionary<string, string>();
-            var newSqlWhere = Utils.ReplaceSqlConstString(sqlWhere, dictParams);
-            var tsqlWhere = Utils.ParseSqlWhereLevel1(sqlWhere);
-
             var quoteParameterName = commonUtils.QuoteParamterName("");
             var quoteParameterNameCharArray = quoteParameterName.ToCharArray();
             var columnName = commonUtils.QuoteSqlName(tb.Table.AsTableColumn.Attribute.Name);
+
+            var dictParams = new Dictionary<string, string>();
+            var newSqlWhere = Utils.ReplaceSqlConstString(sqlWhere, dictParams, quoteParameterName);
+            //var tsqlWhere = Utils.ParseSqlWhereLevel1(sqlWhere);
+
             var regs = GetRegSqlWhereDateTimes($"{(string.IsNullOrWhiteSpace(tb.Alias) ? "" : $"{tb.Alias}.")}{commonUtils.QuoteSqlName(tb.Table.AsTableColumn.Attribute.Name)}", quoteParameterName);
             for (var a = 0; a < 8; a++) newSqlWhere = regs[a].Replace(newSqlWhere, "$1$4");
 
