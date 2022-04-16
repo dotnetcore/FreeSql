@@ -36,7 +36,9 @@ namespace FreeSql.Odbc.Oracle
                     value = string.Concat(value);
                     break;
             }
-            var ret = new OdbcParameter { ParameterName = QuoteParamterName(parameterName), OdbcType = dbtype ?? default, Value = value };
+            var ret = new OdbcParameter { ParameterName = QuoteParamterName(parameterName) };
+            if (dbtype != null) ret.OdbcType = dbtype.Value;
+            ret.Value = value;
             _params?.Add(ret);
             return ret;
         }
@@ -62,7 +64,9 @@ namespace FreeSql.Odbc.Oracle
                         value = string.Concat(value);
                         break;
                 }
-                var ret = new OdbcParameter { ParameterName = $":{name}", OdbcType = dbtype ?? default, Value = value };
+                var ret = new OdbcParameter { ParameterName = $":{name}" };
+                if (dbtype != null) ret.OdbcType = dbtype.Value;
+                ret.Value = value;
                 return ret;
             });
 

@@ -1690,6 +1690,7 @@ namespace FreeSql.Internal
         public abstract string ExpressionLambdaToSqlCallTimeSpan(MethodCallExpression exp, ExpTSC tsc);
         public abstract string ExpressionLambdaToSqlCallConvert(MethodCallExpression exp, ExpTSC tsc);
         public abstract string ExpressionLambdaToSqlOther(Expression exp, ExpTSC tsc);
+        public string ExpressionConstDateTime(Expression exp) => exp is ConstantExpression operandExpConst ? formatSql(Utils.GetDataReaderValue(typeof(DateTime), operandExpConst.Value), null, null, null) : null;
 
         public enum ExpressionStyle
         {

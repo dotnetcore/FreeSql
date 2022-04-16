@@ -12,13 +12,11 @@ using System.Threading.Tasks;
 
 namespace FreeSql.Internal.CommonProvider
 {
-
-    public abstract partial class UpdateProvider<T1> : IUpdate<T1>
+    public abstract partial class UpdateProvider
     {
         public IFreeSql _orm;
         public CommonUtils _commonUtils;
         public CommonExpression _commonExpression;
-        public List<T1> _source = new List<T1>();
         public Dictionary<string, bool> _ignore = new Dictionary<string, bool>(StringComparer.CurrentCultureIgnoreCase);
         public Dictionary<string, bool> _auditValueChangedDict = new Dictionary<string, bool>(StringComparer.CurrentCultureIgnoreCase);
         public TableInfo _table;
@@ -33,12 +31,18 @@ namespace FreeSql.Internal.CommonProvider
         public bool _noneParameter;
         public int _batchRowsLimit, _batchParameterLimit;
         public bool _batchAutoTransaction = true;
-        public Action<BatchProgressStatus<T1>> _batchProgress;
         public DbTransaction _transaction;
         public DbConnection _connection;
         public int _commandTimeout = 0;
         public Action<StringBuilder> _interceptSql;
         public byte[] _updateVersionValue;
+    }
+
+    public abstract partial class UpdateProvider<T1> : UpdateProvider, IUpdate<T1>
+    {
+        public List<T1> _source = new List<T1>();
+        public List<T1> _sourceOld;
+        public Action<BatchProgressStatus<T1>> _batchProgress;
 
         public UpdateProvider(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere)
         {
@@ -52,6 +56,7 @@ namespace FreeSql.Internal.CommonProvider
             if (_orm.CodeFirst.IsAutoSyncStructure && typeof(T1) != typeof(object)) _orm.CodeFirst.SyncStructure<T1>();
             IgnoreCanUpdate();
             _whereGlobalFilter = _orm.GlobalFilter.GetFilters();
+            _sourceOld = _source;
         }
 
         /// <summary>
@@ -69,6 +74,7 @@ namespace FreeSql.Internal.CommonProvider
             _batchRowsLimit = _batchParameterLimit = 0;
             _batchAutoTransaction = true;
             _source.Clear();
+            _sourceOld = _source;
             _ignore.Clear();
             _auditValueChangedDict.Clear();
             _where.Clear();
@@ -138,7 +144,7 @@ namespace FreeSql.Internal.CommonProvider
         }
 
         #region 参数化数据限制，或values数量限制
-        protected internal List<T1>[] SplitSource(int valuesLimit, int parameterLimit)
+        protected internal List<T1>[] SplitSource(int valuesLimit, int parameterLimit, bool isAsTableSplited = false)
         {
             valuesLimit = valuesLimit - 1;
             parameterLimit = parameterLimit - 1;
@@ -146,6 +152,28 @@ namespace FreeSql.Internal.CommonProvider
             if (parameterLimit <= 0) parameterLimit = 999;
             if (_source == null || _source.Any() == false) return new List<T1>[0];
             if (_source.Count == 1) return new[] { _source };
+
+            if (_table.AsTableImpl != null && isAsTableSplited == false)
+            {
+                var atarr = _source.Select(a => new
+                {
+                    item = a,
+                    splitKey = _table.AsTableImpl.GetTableNameByColumnValue(_table.AsTableColumn.GetValue(a), true)
+                }).GroupBy(a => a.splitKey, a => a.item).ToArray();
+                if (atarr.Length > 1)
+                {
+                    var oldSource = _source;
+                    var arrret = new List<List<T1>>();
+                    foreach (var item in atarr)
+                    {
+                        _source = item.ToList();
+                        var itemret = SplitSource(valuesLimit + 1, parameterLimit + 1, true);
+                        arrret.AddRange(itemret);
+                    }
+                    _source = oldSource;
+                    return arrret.ToArray();
+                }
+            }
 
             var takeMax = valuesLimit;
             if (_noneParameter == false)
@@ -314,28 +342,33 @@ namespace FreeSql.Internal.CommonProvider
 
         protected int RawExecuteAffrows()
         {
-            var sql = this.ToSql();
-            if (string.IsNullOrEmpty(sql)) return 0;
-            var dbParms = _params.Concat(_paramsSource).ToArray();
-            var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Update, sql, dbParms);
-            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             var affrows = 0;
-            Exception exception = null;
-            try
+            DbParameter[] dbParms = null;
+            ToSqlFetch(sb =>
             {
-                affrows = _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms);
-                ValidateVersionAndThrow(affrows, sql, dbParms);
-            }
-            catch (Exception ex)
-            {
-                exception = ex;
-                throw;
-            }
-            finally
-            {
-                var after = new Aop.CurdAfterEventArgs(before, exception, affrows);
-                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
-            }
+                if (dbParms == null) dbParms = _params.Concat(_paramsSource).ToArray();
+                var sql = sb.ToString();
+                var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Update, sql, dbParms);
+                _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
+
+                Exception exception = null;
+                try
+                {
+                    var affrowstmp = _orm.Ado.ExecuteNonQuery(_connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms);
+                    ValidateVersionAndThrow(affrowstmp, sql, dbParms);
+                    affrows += affrowstmp;
+                }
+                catch (Exception ex)
+                {
+                    exception = ex;
+                    throw;
+                }
+                finally
+                {
+                    var after = new Aop.CurdAfterEventArgs(before, exception, affrows);
+                    _orm.Aop.CurdAfterHandler?.Invoke(this, after);
+                }
+            });
             return affrows;
         }
 
@@ -692,8 +725,19 @@ namespace FreeSql.Internal.CommonProvider
 
         protected string TableRuleInvoke()
         {
-            if (_tableRule == null) return _table.DbName;
-            var newname = _tableRule(_table.DbName);
+            if (_tableRule == null && _table.AsTableImpl == null) return _table.DbName;
+            string newname = null;
+            if (_table.AsTableImpl != null)
+            {
+                if (_source.Any())
+                    newname = _table.AsTableImpl.GetTableNameByColumnValue(_table.AsTableColumn.GetValue(_source.FirstOrDefault()));
+                else if (_tableRule == null)
+                    newname = _table.AsTableImpl.GetTableNameByColumnValue(DateTime.Now);
+                else
+                    newname = _tableRule(_table.DbName);
+            }
+            else
+                newname = _tableRule(_table.DbName);
             if (newname == _table.DbName) return _table.DbName;
             if (string.IsNullOrEmpty(newname)) return _table.DbName;
             if (_orm.CodeFirst.IsSyncStructureToLower) newname = newname.ToLower();
@@ -725,9 +769,114 @@ namespace FreeSql.Internal.CommonProvider
 
         public virtual string ToSql()
         {
-            if (_where.Length == 0 && _source.Any() == false) return null;
+            if (_source.Any())
+            {
+                var sb1 = new StringBuilder();
+                ToSqlExtension110(sb1, false);
+                return sb1.ToString();
+            }
+
+            if (_where.Length == 0) return null;
+
+            var sb2 = new StringBuilder();
+            ToSqlFetch(sql =>
+            {
+                sb2.Append(sql).Append("\r\n\r\n;\r\n\r\n");
+            });
+            if (sb2.Length > 0) sb2.Remove(sb2.Length - 9, 9);
+            return sb2.ToString();
+        }
+
+        public void ToSqlFetch(Action<StringBuilder> fetch)
+        {
+            if (_source.Any())
+            {
+                var sb1 = new StringBuilder();
+                ToSqlExtension110(sb1, false);
+                fetch(sb1);
+                return;
+            }
+            if (_where.Length == 0) return;
+            var newwhere = new StringBuilder();
+            ToSqlWhere(newwhere);
 
             var sb = new StringBuilder();
+            if (_table.AsTableImpl != null)
+            {
+                var names = _table.AsTableImpl.GetTableNamesBySqlWhere(newwhere.ToString(), _params, new SelectTableInfo { Table = _table }, _commonUtils);
+                foreach (var name in names)
+                {
+                    _tableRule = old => name;
+                    ToSqlExtension110(sb.Clear(), true);
+                    fetch(sb);
+                }
+                return;
+            }
+
+            ToSqlExtension110(sb, true);
+            fetch(sb);
+        }
+#if net40
+#else
+        async public Task ToSqlFetchAsync(Func<StringBuilder, Task> fetchAsync)
+        {
+            if (_source.Any())
+            {
+                var sb1 = new StringBuilder();
+                ToSqlExtension110(sb1, false);
+                await fetchAsync(sb1);
+                sb1.Clear();
+                return;
+            }
+            if (_where.Length == 0) return;
+            var newwhere = new StringBuilder();
+            ToSqlWhere(newwhere);
+
+            var sb = new StringBuilder();
+            if (_table.AsTableImpl != null)
+            {
+                var names = _table.AsTableImpl.GetTableNamesBySqlWhere(newwhere.ToString(), _params, new SelectTableInfo { Table = _table }, _commonUtils);
+                foreach (var name in names)
+                {
+                    _tableRule = old => name;
+                    ToSqlExtension110(sb.Clear(), true);
+                    await fetchAsync(sb);
+                }
+                return;
+            }
+
+            ToSqlExtension110(sb, true);
+            await fetchAsync(sb);
+            sb.Clear();
+        }
+#endif
+        public virtual void ToSqlExtension110(StringBuilder sb, bool isAsTableSplited)
+        {
+            if (_where.Length == 0 && _source.Any() == false) return;
+
+            if (_table.AsTableImpl != null && isAsTableSplited == false && _source == _sourceOld && _source.Any())
+            {
+                var atarr = _source.Select(a => new
+                {
+                    item = a,
+                    splitKey = _table.AsTableImpl.GetTableNameByColumnValue(_table.AsTableColumn.GetValue(a))
+                }).GroupBy(a => a.splitKey, a => a.item).ToArray();
+                if (atarr.Length > 1)
+                {
+                    var oldSource = _source;
+                    var arrret = new List<List<T1>>();
+                    foreach (var item in atarr)
+                    {
+                        _source = item.ToList();
+                        ToSqlExtension110(sb, true);
+                        sb.Append("\r\n\r\n;\r\n\r\n");
+                    }
+                    _source = oldSource;
+                    if (sb.Length > 0) sb.Remove(sb.Length - 9, 9);
+                    return;
+                }
+            }
+
             sb.Append("UPDATE ").Append(_commonUtils.QuoteSqlName(TableRuleInvoke())).Append(" SET ");
 
             if (_set.Length > 0)
@@ -763,12 +912,12 @@ namespace FreeSql.Internal.CommonProvider
                         ++colidx;
                     }
                 }
-                if (colidx == 0) return null;
+                if (colidx == 0) return;
 
             }
             else if (_source.Count > 1)
             { //批量保存 Source
-                if (_tempPrimarys.Any() == false) return null;
+                if (_tempPrimarys.Any() == false) return;
 
                 var caseWhen = new StringBuilder();
                 caseWhen.Append("CASE ");
@@ -818,10 +967,10 @@ namespace FreeSql.Internal.CommonProvider
                         ++colidx;
                     }
                 }
-                if (colidx == 0) return null;
+                if (colidx == 0) return;
             }
             else if (_setIncr.Length == 0)
-                return null;
+                return;
 
             if (_setIncr.Length > 0)
                 sb.Append(_set.Length > 0 ? _setIncr.ToString() : _setIncr.ToString().Substring(2));
@@ -844,7 +993,13 @@ namespace FreeSql.Internal.CommonProvider
                 else
                     sb.Append(", ").Append(vcname).Append(" = ").Append(_commonUtils.IsNull(vcname, 0)).Append(" + 1");
             }
+            ToSqlWhere(sb);
+            _interceptSql?.Invoke(sb);
+            return;
+        }
 
+        public virtual void ToSqlWhere(StringBuilder sb)
+        {
             sb.Append(" \r\nWHERE ");
             if (_source.Any())
             {
@@ -868,9 +1023,6 @@ namespace FreeSql.Internal.CommonProvider
                 if (string.IsNullOrEmpty(versionCondi) == false)
                     sb.Append(" AND ").Append(versionCondi);
             }
-
-            _interceptSql?.Invoke(sb);
-            return sb.ToString();
         }
     }
 }

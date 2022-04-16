@@ -34,7 +34,7 @@ namespace FreeSql.ClickHouse
                             case "System.Boolean": return $"({getExp(operandExp)} not in ('0','false'))";
                             case "System.Byte": return $"cast({getExp(operandExp)} as Int8)";
                             case "System.Char": return $"substr(cast({getExp(operandExp)} as String), 1, 1)";
-                            case "System.DateTime": return $"cast({getExp(operandExp)} as DateTime)";
+                            case "System.DateTime": return ExpressionConstDateTime(operandExp) ?? $"cast({getExp(operandExp)} as DateTime)";
                             case "System.Decimal": return $"cast({getExp(operandExp)} as Decimal128(19))";
                             case "System.Double": return $"cast({getExp(operandExp)} as Float64)";
                             case "System.Int16": return $"cast({getExp(operandExp)} as Int16)";
@@ -62,7 +62,7 @@ namespace FreeSql.ClickHouse
                                 case "System.Boolean": return $"({getExp(callExp.Arguments[0])} not in ('0','false'))";
                                 case "System.Byte": return $"cast({getExp(callExp.Arguments[0])} as Int8)";
                                 case "System.Char": return $"substr(cast({getExp(callExp.Arguments[0])} as String), 1, 1)";
-                                case "System.DateTime": return $"cast({getExp(callExp.Arguments[0])} as DateTime)";
+                                case "System.DateTime": return ExpressionConstDateTime(callExp.Arguments[0]) ?? $"cast({getExp(callExp.Arguments[0])} as DateTime)";
                                 case "System.Decimal": return $"cast({getExp(callExp.Arguments[0])} as Decimal128(19))";
                                 case "System.Double": return $"cast({getExp(callExp.Arguments[0])} as Float64)";
                                 case "System.Int16": return $"cast({getExp(callExp.Arguments[0])} as Int16)";
@@ -419,10 +419,10 @@ namespace FreeSql.ClickHouse
                         var isLeapYearArgs1 = getExp(exp.Arguments[0]);
                         return $"(({isLeapYearArgs1})%4=0 AND ({isLeapYearArgs1})%100<>0 OR ({isLeapYearArgs1})%400=0)";
 
-                    case "Parse": return $"cast({getExp(exp.Arguments[0])} as DateTime)";
+                    case "Parse": return ExpressionConstDateTime(exp.Arguments[0]) ?? $"cast({getExp(exp.Arguments[0])} as DateTime)";
                     case "ParseExact":
                     case "TryParse":
-                    case "TryParseExact": return $"cast({getExp(exp.Arguments[0])} as DateTime)";
+                    case "TryParseExact": return ExpressionConstDateTime(exp.Arguments[0]) ?? $"cast({getExp(exp.Arguments[0])} as DateTime)";
                 }
             }
             else
@@ -555,7 +555,7 @@ namespace FreeSql.ClickHouse
                     case "ToBoolean": return $"({getExp(exp.Arguments[0])} not in ('0','false'))";
                     case "ToByte": return $"cast({getExp(exp.Arguments[0])} as Int8)";
                     case "ToChar": return $"substr(cast({getExp(exp.Arguments[0])} as String), 1, 1)";
-                    case "ToDateTime": return $"cast({getExp(exp.Arguments[0])} as DateTime)";
+                    case "ToDateTime": return ExpressionConstDateTime(exp.Arguments[0]) ?? $"cast({getExp(exp.Arguments[0])} as DateTime)";
                     case "ToDecimal": return $"cast({getExp(exp.Arguments[0])} as Decimal128(19))";
                     case "ToDouble": return $"cast({getExp(exp.Arguments[0])} as Float64)";
                     case "ToInt16":

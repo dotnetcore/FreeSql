@@ -460,7 +460,67 @@ namespace FreeSql.Internal.CommonProvider
         protected List<Dictionary<Type, string>> GetTableRuleUnions()
         {
             var unions = new List<Dictionary<Type, string>>();
-            var trs = _tableRules.Any() ? _tableRules : new List<Func<Type, string, string>>(new[] { new Func<Type, string, string>((type, oldname) => null) });
+            var trs = _tableRules.Any() ? _tableRules : new List<Func<Type, string, string>>(new [] { new Func<Type, string, string>((type, oldname) => null) });
+
+            if (trs.Count == 1 && _tables.Any(a => a.Table.AsTableImpl != null && string.IsNullOrWhiteSpace(trs[0](a.Table.Type, a.Table.DbName)) == true))
+            {
+                string[] LocalGetTableNames(SelectTableInfo tb)
+                {
+                    var trname = trs[0](tb.Table.Type, tb.Table.DbName);
+                    if (tb.Table.AsTableImpl != null && string.IsNullOrWhiteSpace(trname) == true)
+                    {
+                        string[] aret = null;
+                        if (_where.Length == 0) aret = tb.Table.AsTableImpl.AllTables;
+                        else aret = tb.Table.AsTableImpl.GetTableNamesBySqlWhere(_where.ToString(), _params, tb, _commonUtils);
+                        if (aret.Any() == false) aret = tb.Table.AsTableImpl.AllTables.Take(1).ToArray();
+
+                        for (var a = 0; a < aret.Length; a++)
+                        {
+                            if (_orm.CodeFirst.IsSyncStructureToLower) aret[a] = aret[a].ToLower();
+                            if (_orm.CodeFirst.IsSyncStructureToUpper) aret[a] = aret[a].ToUpper();
+                            if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(tb.Table.Type, aret[a]);
+                        }
+                        return aret;
+                    }
+                    if (string.IsNullOrWhiteSpace(trname) == false)
+                    {
+                        if (trname.IndexOf(' ') == -1) //还可以这样：select.AsTable((a, b) => "(select * from tb_topic where clicks > 10)").Page(1, 10).ToList()
+                        {
+                            if (_orm.CodeFirst.IsSyncStructureToLower) trname = trname.ToLower();
+                            if (_orm.CodeFirst.IsSyncStructureToUpper) trname = trname.ToUpper();
+                            if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(tb.Table.Type, trname);
+                        }
+                        else
+                            trname = trname.Replace(" \r\n", " \r\n    ");
+                        return new string[] { trname };
+                    }
+                    return new string[] { tb.Table.DbName };
+                }
+                var tbnames = _tables.GroupBy(a => a.Table.Type).Select(g => _tables.Where(a => a.Table.Type == g.Key).FirstOrDefault()).Select(a => new { Tb = a, Names = LocalGetTableNames(a) }).ToList();
+                var dict = new Dictionary<Type, string>();
+                tbnames.ForEach(a =>
+                {
+                    dict.Add(a.Tb.Table.Type, a.Names[0]);
+                });
+                unions.Add(dict);
+                for (var a = 0; a < tbnames.Count; a++)
+                {
+                    if (tbnames[a].Names.Length <= 1) continue;
+                    var unionsCount = unions.Count;
+                    for (var b = 1; b < tbnames[a].Names.Length; b++)
+                    {
+                        for (var d = 0; d < unionsCount; d++)
+                        {
+                            dict = new Dictionary<Type, string>();
+                            foreach (var uit in unions[d])
+                                dict.Add(uit.Key, uit.Key == tbnames[a].Tb.Table.Type ? tbnames[a].Names[b] : uit.Value);
+                            unions.Add(dict);
+                        }
+                    }
+                }
+                return unions;
+            }
+            if (trs.Any() == false) trs.Add(new Func<Type, string, string>((type, oldname) => null));
             foreach (var tr in trs)
             {
                 var dict = new Dictionary<Type, string>();

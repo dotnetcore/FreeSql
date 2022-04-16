@@ -11,7 +11,9 @@ using System.Data.Odbc;
 using System.Data.SqlClient;
 using System.Data.SQLite;
 using System.Diagnostics;
+using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -99,24 +101,53 @@ namespace base_entity
             public B B { get; set; }
         }
 
+        [Table(Name = "as_table_log_{yyyyMM}", AsTable = "createtime=2022-1-1(1 month)")]
+        class AsTableLog
+        {
+            public Guid id { get; set; }
+            public string msg { get; set; }
+            public DateTime createtime { get; set; }
+        }
+
+        public class SomeEntity
+        {
+            [Column(IsIdentity = true)]
+            public int Id { get; set; }
+            [Column(MapType = typeof(JToken))]
+            public Customer Customer { get; set; }
+        }
+
+        public class Customer    // Mapped to a JSON column in the table
+        {
+            public string Name { get; set; }
+            public int Age { get; set; }
+            public Order[] Orders { get; set; }
+        }
+
+        public class Order       // Part of the JSON column
+        {
+            public decimal Price { get; set; }
+            public string ShippingAddress { get; set; }
+        }
+
         static void Main(string[] args)
         {
             #region 初始化 IFreeSql
             var fsql = new FreeSql.FreeSqlBuilder()
-                .UseAutoSyncStructure(true)
+                //.UseAutoSyncStructure(true)
                 .UseNoneCommandParameter(true)
 
                 .UseConnectionString(FreeSql.DataType.Sqlite, "data source=test1.db;max pool size=5")
-                .UseSlave("data source=test1.db", "data source=test2.db", "data source=test3.db", "data source=test4.db")
-                .UseSlaveWeight(10, 1, 1, 5)
+                //.UseSlave("data source=test1.db", "data source=test2.db", "data source=test3.db", "data source=test4.db")
+                //.UseSlaveWeight(10, 1, 1, 5)
 
 
                 //.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=2")
 
                 //.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3")
 
-                //.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=2")
-                //.UseNameConvert(FreeSql.Internal.NameConvertType.ToLower)
+                .UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=2")
+                .UseNameConvert(FreeSql.Internal.NameConvertType.ToLower)
 
                 //.UseConnectionString(FreeSql.DataType.Oracle, "user id=user1;password=123456;data source=//127.0.0.1:1521/XE;Pooling=true;Max Pool Size=2")
                 //.UseNameConvert(FreeSql.Internal.NameConvertType.ToUpper)
@@ -140,6 +171,147 @@ namespace base_entity
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
+
+            fsql.Aop.ParseExpression += (_, e) =>
+            {
+                //解析 POCO Jsonb   a.Customer.Name
+                if (e.Expression is MemberExpression memExp)
+                {
+                    var parentMemExps = new Stack<MemberExpression>();
+                    parentMemExps.Push(memExp);
+                    while (true)
+                    {
+                        switch (memExp.Expression.NodeType)
+                        {
+                            case ExpressionType.MemberAccess:
+                                memExp = memExp.Expression as MemberExpression;
+                                if (memExp == null) return;
+                                parentMemExps.Push(memExp);
+                                break;
+                            case ExpressionType.Parameter:
+                                var tb = fsql.CodeFirst.GetTableByEntity(memExp.Expression.Type);
+                                if (tb == null) return;
+                                if (tb.ColumnsByCs.TryGetValue(parentMemExps.Pop().Member.Name, out var trycol) == false) return;
+                                if (new[] { typeof(JToken), typeof(JObject), typeof(JArray) }.Contains(trycol.Attribute.MapType.NullableTypeOrThis()) == false) return;
+                                var tmpcol = tb.ColumnsByPosition.OrderBy(a => a.Attribute.Name.Length).First();
+                                var result = e.FreeParse(Expression.MakeMemberAccess(memExp.Expression, tb.Properties[tmpcol.CsName]));
+                                result = result.Replace(tmpcol.Attribute.Name, trycol.Attribute.Name);
+                                while (parentMemExps.Any())
+                                {
+                                    memExp = parentMemExps.Pop();
+                                    result = $"{result}->>'{memExp.Member.Name}'";
+                                }
+                                e.Result = result;
+                                return;
+                        }
+                    }
+                }
+            };
+
+            var methodJsonConvertDeserializeObject = typeof(JsonConvert).GetMethod("DeserializeObject", new[] { typeof(string), typeof(Type) });
+            var methodJsonConvertSerializeObject = typeof(JsonConvert).GetMethod("SerializeObject", new[] { typeof(object), typeof(JsonSerializerSettings) });
+            var jsonConvertSettings = JsonConvert.DefaultSettings?.Invoke() ?? new JsonSerializerSettings();
+            FreeSql.Internal.Utils.dicExecuteArrayRowReadClassOrTuple[typeof(Customer)] = true;
+            FreeSql.Internal.Utils.GetDataReaderValueBlockExpressionObjectToStringIfThenElse.Add((LabelTarget returnTarget, Expression valueExp, Expression elseExp, Type type) =>
+            {
+                return Expression.IfThenElse(
+                    Expression.TypeIs(valueExp, typeof(Customer)),
+                    Expression.Return(returnTarget, Expression.Call(methodJsonConvertSerializeObject, Expression.Convert(valueExp, typeof(object)), Expression.Constant(jsonConvertSettings)), typeof(object)),
+                    elseExp);
+            });
+            FreeSql.Internal.Utils.GetDataReaderValueBlockExpressionSwitchTypeFullName.Add((LabelTarget returnTarget, Expression valueExp, Type type) =>
+            {
+                if (type == typeof(Customer)) return Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(methodJsonConvertDeserializeObject, Expression.Convert(valueExp, typeof(string)), Expression.Constant(type)), type));
+                return null;
+            });
+
+            var seid = fsql.Insert(new SomeEntity
+            {
+                Customer = JsonConvert.DeserializeObject<Customer>(@"{
+    ""Age"": 25,
+    ""Name"": ""Joe"",
+    ""Orders"": [
+        { ""OrderPrice"": 9, ""ShippingAddress"": ""Some address 1"" },
+        { ""OrderPrice"": 23, ""ShippingAddress"": ""Some address 2"" }
+    ]
+}")
+            }).ExecuteIdentity();
+            var selist = fsql.Select<SomeEntity>().ToList();
+
+            var joes = fsql.Select<SomeEntity>()
+                .Where(e => e.Customer.Name == "Joe")
+                .ToSql();
+
+            var testitems = new[]
+            {
+                new AsTableLog{ msg = "msg01", createtime = DateTime.Parse("2022-1-1 13:00:11") },
+                new AsTableLog{ msg = "msg02", createtime = DateTime.Parse("2022-1-2 14:00:12") },
+                new AsTableLog{ msg = "msg03", createtime = DateTime.Parse("2022-2-2 15:00:13") },
+                new AsTableLog{ msg = "msg04", createtime = DateTime.Parse("2022-2-8 15:00:13") },
+                new AsTableLog{ msg = "msg05", createtime = DateTime.Parse("2022-3-8 15:00:13") },
+                new AsTableLog{ msg = "msg06", createtime = DateTime.Parse("2022-4-8 15:00:13") },
+                new AsTableLog{ msg = "msg07", createtime = DateTime.Parse("2022-6-8 15:00:13") },
+                new AsTableLog{ msg = "msg07", createtime = DateTime.Parse("2022-7-1") }
+            };
+            var sqlatb = fsql.Insert(testitems).NoneParameter();
+            var sqlat = sqlatb.ToSql();
+            var sqlatr = sqlatb.ExecuteAffrows();
+
+            var sqlatc = fsql.Delete<AsTableLog>().Where(a => a.id == Guid.NewGuid() && a.createtime.Between(DateTime.Parse("2022-3-1"), DateTime.Parse("2022-5-1")));
+            var sqlatca = sqlatc.ToSql();
+            var sqlatcr = sqlatc.ExecuteAffrows();
+
+            var sqlatd1 = fsql.Update<AsTableLog>().SetSource(testitems[0]);
+            var sqlatd101 = sqlatd1.ToSql();
+            var sqlatd102 = sqlatd1.ExecuteAffrows();
+
+            var sqlatd2 = fsql.Update<AsTableLog>().SetSource(testitems[5]);
+            var sqlatd201 = sqlatd2.ToSql();
+            var sqlatd202 = sqlatd2.ExecuteAffrows();
+
+            var sqlatd3 = fsql.Update<AsTableLog>().SetSource(testitems);
+            var sqlatd301 = sqlatd3.ToSql();
+            var sqlatd302 = sqlatd3.ExecuteAffrows();
+
+            var sqlatd4 = fsql.Update<AsTableLog>(Guid.NewGuid()).Set(a => a.msg == "newmsg");
+            var sqlatd401 = sqlatd4.ToSql();
+            var sqlatd402 = sqlatd4.ExecuteAffrows();
+
+            var sqlatd5 = fsql.Update<AsTableLog>(Guid.NewGuid()).Set(a => a.msg == "newmsg").Where(a => a.createtime.Between(DateTime.Parse("2022-3-1"), DateTime.Parse("2022-5-1")));
+            var sqlatd501 = sqlatd5.ToSql();
+            var sqlatd502 = sqlatd5.ExecuteAffrows();
+
+            var sqlatd6 = fsql.Update<AsTableLog>(Guid.NewGuid()).Set(a => a.msg == "newmsg").Where(a => a.createtime > DateTime.Parse("2022-3-1") && a.createtime < DateTime.Parse("2022-5-1"));
+            var sqlatd601 = sqlatd6.ToSql();
+            var sqlatd602 = sqlatd6.ExecuteAffrows();
+
+            var sqlatd7 = fsql.Update<AsTableLog>(Guid.NewGuid()).Set(a => a.msg == "newmsg").Where(a => a.createtime > DateTime.Parse("2022-3-1"));
+            var sqlatd701 = sqlatd7.ToSql();
+            var sqlatd702 = sqlatd7.ExecuteAffrows();
+
+            var sqlatd8 = fsql.Update<AsTableLog>(Guid.NewGuid()).Set(a => a.msg == "newmsg").Where(a => a.createtime < DateTime.Parse("2022-5-1"));
+            var sqlatd801 = sqlatd8.ToSql();
+            var sqlatd802 = sqlatd8.ExecuteAffrows();
+
+            var sqls1 = fsql.Select<AsTableLog>();
+            var sqls101 = sqls1.ToSql();
+            var sqls102 = sqls1.ToList();
+
+            var sqls2 = fsql.Select<AsTableLog>().Where(a => a.createtime.Between(DateTime.Parse("2022-3-1"), DateTime.Parse("2022-5-1")));
+            var sqls201 = sqls2.ToSql();
+            var sqls202 = sqls2.ToList();
+
+            var sqls3 = fsql.Select<AsTableLog>().Where(a => a.createtime > DateTime.Parse("2022-3-1") && a.createtime < DateTime.Parse("2022-5-1"));
+            var sqls301 = sqls3.ToSql();
+            var sqls302 = sqls3.ToList();
+
+            var sqls4 = fsql.Select<AsTableLog>().Where(a => a.createtime > DateTime.Parse("2022-3-1"));
+            var sqls401 = sqls4.ToSql();
+            var sqls402 = sqls4.ToList();
+
+            var sqls5 = fsql.Select<AsTableLog>().Where(a => a.createtime < DateTime.Parse("2022-5-1"));
+            var sqls501 = sqls5.ToSql();
+            var sqls502 = sqls5.ToList();
 
             fsql.Aop.AuditValue += new EventHandler<FreeSql.Aop.AuditValueEventArgs>((_, e) =>
             {

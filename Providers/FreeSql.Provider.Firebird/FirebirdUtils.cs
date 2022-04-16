@@ -35,7 +35,7 @@ namespace FreeSql.Firebird
                         break;
                 }
             }
-            ret.FbDbType = dbtype ?? default;
+            if (dbtype != null) ret.FbDbType = dbtype.Value;
             _params?.Add(ret);
             return ret;
         }

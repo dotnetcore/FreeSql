@@ -21,7 +21,9 @@ namespace FreeSql.ClickHouse
         {
             if (string.IsNullOrEmpty(parameterName)) parameterName = $"p_{_params?.Count}";
             var dbtype = (DbType?)_orm.CodeFirst.GetDbInfo(type)?.type;
-            DbParameter ret = new ClickHouseDbParameter { ParameterName = parameterName, DbType = dbtype ?? default, Value = value };//QuoteParamterName(parameterName)
+            DbParameter ret = new ClickHouseDbParameter { ParameterName = parameterName };//QuoteParamterName(parameterName)
+            if (dbtype != null) ret.DbType = dbtype.Value;
+            ret.Value = value;
             if (col != null)
             {
                 var dbtype2 = (DbType)_orm.DbFirst.GetDbType(new DatabaseModel.DbColumnInfo { DbTypeText = col.DbTypeText, DbTypeTextFull = col.Attribute.DbType, MaxLength = col.DbSize });

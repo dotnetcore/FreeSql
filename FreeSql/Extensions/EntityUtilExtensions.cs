@@ -604,7 +604,15 @@ namespace FreeSql.Extensions.EntityUtil
                 exps.Add(Expression.Label(returnTarget, Expression.Constant(new string[0])));
                 return Expression.Lambda<Func<object, object, bool, string[]>>(Expression.Block(new[] { var1Ret, var1Parm, var2Parm }, exps), new[] { parm1, parm2, parm3 }).Compile();
             });
-            return func(entity1, entity2, isEqual);
+            var result = func(entity1, entity2, isEqual);
+            var tmptb = orm.CodeFirst.GetTableByEntity(entityType);
+            if (tmptb.ColumnsByCanUpdateDbUpdateValue.Length > 0) {
+                if (isEqual && result.Length + tmptb.ColumnsByCanUpdateDbUpdateValue.Length == tmptb.ColumnsByCs.Count)
+                    return result.Concat(tmptb.ColumnsByCanUpdateDbUpdateValue.Select(a => a.Attribute.Name)).ToArray();
+                if (!isEqual && result.Length == tmptb.ColumnsByCanUpdateDbUpdateValue.Length)
+                    return new string[0];
+            }
+            return result;
         }
 
         static ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object, string, int>>> _dicSetEntityIncrByWithPropertyName = new ConcurrentDictionary<DataType, ConcurrentDictionary<Type, Action<object, string, int>>>();

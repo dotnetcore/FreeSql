@@ -46,7 +46,10 @@ namespace FreeSql.MySql
                 if (value != null) ret.Value = (value as MygisGeometry).AsText();
             }
             else
-                ret.MySqlDbType = dbtype ?? default;
+            {
+                if (dbtype != null)
+                    ret.MySqlDbType = dbtype.Value;
+            }
             _params?.Add(ret);
             return ret;
         }

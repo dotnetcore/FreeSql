@@ -397,6 +397,31 @@
             禁用 CodeFirst 同步结构迁移
             </summary>
         </member>
+        <member name="P:FreeSql.DataAnnotations.TableAttribute.AsTable">
+            <summary>
+            格式：属性名=开始时间(递增)<para></para>
+            按年分表：[Table(Name = "log_{yyyy}", AsTable = "create_time=2022-1-1(1 year)")]<para></para>
+            按月分表：[Table(Name = "log_{yyyyMM}", AsTable = "create_time=2022-5-1(1 month)")]<para></para>
+            按日分表：[Table(Name = "log_{yyyyMMdd}", AsTable = "create_time=2022-5-1(5 day)")]<para></para>
+            按时分表：[Table(Name = "log_{yyyyMMddHH}", AsTable = "create_time=2022-5-1(6 hour)")]<para></para>
+            </summary>
+        </member>
+        <member name="M:FreeSql.DataAnnotations.DateTimeAsTableImpl.GetTableNamesBySqlWhere(System.String,System.Collections.Generic.List{System.Data.Common.DbParameter},FreeSql.Internal.Model.SelectTableInfo,FreeSql.Internal.CommonUtils)">
+            <summary>
+            可以匹配以下条件（支持参数化）：<para></para>
+            `field` BETWEEN '2022-01-01 00:00:00' AND '2022-03-01 00:00:00'<para></para>
+            `field` &gt; '2022-01-01 00:00:00' AND `field` &lt; '2022-03-01 00:00:00'<para></para>
+            `field` &gt; '2022-01-01 00:00:00' AND `field` &lt;= '2022-03-01 00:00:00'<para></para>
+            `field` &gt;= '2022-01-01 00:00:00' AND `field` &lt; '2022-03-01 00:00:00'<para></para>
+            `field` &gt;= '2022-01-01 00:00:00' AND `field` &lt;= '2022-03-01 00:00:00'<para></para>
+            `field` &gt; '2022-01-01 00:00:00'<para></para>
+            `field` &gt;= '2022-01-01 00:00:00'<para></para>
+            `field` &lt; '2022-01-01 00:00:00'<para></para>
+            `field` &lt;= '2022-01-01 00:00:00'<para></para>
+            </summary>
+            <returns></returns>
+            <exception cref="T:System.Exception"></exception>
+        </member>
         <member name="M:FreeSql.DataAnnotations.TableFluent.Name(System.String)">
             <summary>
             数据库表名

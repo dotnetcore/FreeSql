@@ -16,17 +16,11 @@ namespace FreeSql.MsAccess.Curd
         {
         }
 
-        public override List<T1> ExecuteDeleted()
-        {
-            throw new NotImplementedException();
-        }
+        public override List<T1> ExecuteDeleted() => throw new NotImplementedException("FreeSql.Provider.MsAccess 未实现该功能");
 
 #if net40
 #else
-        public override Task<List<T1>> ExecuteDeletedAsync(CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException();
-        }
+        public override Task<List<T1>> ExecuteDeletedAsync(CancellationToken cancellationToken = default) => throw new NotImplementedException("FreeSql.Provider.MsAccess 未实现该功能");
 #endif
     }
 }

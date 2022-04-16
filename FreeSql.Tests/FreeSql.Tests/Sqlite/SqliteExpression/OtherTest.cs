@@ -77,6 +77,8 @@ namespace FreeSql.Tests.SqliteExpression
         {
             IEnumerable<int> testlinqlist = new List<int>(new[] { 1, 2, 3 });
             var testlinq = select.Where(a => testlinqlist.Contains(a.Int)).ToList();
+            var testlinq2list = new string[] { };
+            var testlinq2 = g.sqlite.Delete<TableAllType>().Where(a => testlinq2list.Contains(a.String)).ToSql();
 
             //in not in
             var sql111 = select.Where(a => new[] { 1, 2, 3 }.Contains(a.Int)).ToList();

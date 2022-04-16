@@ -44,7 +44,8 @@ namespace FreeSql.MySql
             }
             else
             {
-                ret.MySqlDbType = dbtype ?? default;
+                if (dbtype != null)
+                    ret.MySqlDbType = dbtype.Value;
                 if (ret.MySqlDbType == MySqlDbType.Enum && value != null)
                     ret.Value = EnumValueToMySql(value);
             }

@@ -167,28 +167,33 @@ namespace FreeSql.Internal.CommonProvider
 
         async protected Task<int> RawExecuteAffrowsAsync(CancellationToken cancellationToken = default)
         {
-            var sql = this.ToSql();
-            if (string.IsNullOrEmpty(sql)) return 0;
-            var dbParms = _params.Concat(_paramsSource).ToArray();
-            var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Update, sql, dbParms);
-            _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             var affrows = 0;
-            Exception exception = null;
-            try
+            DbParameter[] dbParms = null;
+            await ToSqlFetchAsync(async sb =>
             {
-                affrows = await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms, cancellationToken);
-                ValidateVersionAndThrow(affrows, sql, dbParms);
-            }
-            catch (Exception ex)
-            {
-                exception = ex;
-                throw;
-            }
-            finally
-            {
-                var after = new Aop.CurdAfterEventArgs(before, exception, affrows);
-                _orm.Aop.CurdAfterHandler?.Invoke(this, after);
-            }
+                if (dbParms == null) dbParms = _params.Concat(_paramsSource).ToArray();
+                var sql = sb.ToString();
+                var before = new Aop.CurdBeforeEventArgs(_table.Type, _table, Aop.CurdType.Update, sql, dbParms);
+                _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
+
+                Exception exception = null;
+                try
+                {
+                    var affrowstmp = await _orm.Ado.ExecuteNonQueryAsync(_connection, _transaction, CommandType.Text, sql, _commandTimeout, dbParms, cancellationToken);
+                    ValidateVersionAndThrow(affrowstmp, sql, dbParms);
+                    affrows += affrowstmp;
+                }
+                catch (Exception ex)
+                {
+                    exception = ex;
+                    throw;
+                }
+                finally
+                {
+                    var after = new Aop.CurdAfterEventArgs(before, exception, affrows);
+                    _orm.Aop.CurdAfterHandler?.Invoke(this, after);
+                }
+            });
             return affrows;
         }
         protected abstract Task<List<T1>> RawExecuteUpdatedAsync(CancellationToken cancellationToken = default);

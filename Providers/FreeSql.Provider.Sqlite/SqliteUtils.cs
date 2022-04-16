@@ -43,7 +43,7 @@ namespace FreeSql.Sqlite
             var ret = new SQLiteParameter();
 #endif
             ret.ParameterName = QuoteParamterName(parameterName);
-            ret.DbType = dbtype ?? default;
+            if (dbtype != null) ret.DbType = dbtype.Value;
             ret.Value = value;
             _params?.Add(ret);
             return ret;

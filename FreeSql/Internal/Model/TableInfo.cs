@@ -17,6 +17,7 @@ namespace FreeSql.Internal.Model
         public Dictionary<string, ColumnInfo> ColumnsByCs { get; set; } = new Dictionary<string, ColumnInfo>(StringComparer.CurrentCultureIgnoreCase);
         public Dictionary<string, ColumnInfo> ColumnsByCsIgnore { get; set; } = new Dictionary<string, ColumnInfo>(StringComparer.CurrentCultureIgnoreCase);
         public ColumnInfo[] ColumnsByPosition { get; set; }
+        public ColumnInfo[] ColumnsByCanUpdateDbUpdateValue { get; set; }
         public ColumnInfo[] Primarys { get; set; }
         public IndexInfo[] Indexes { get; set; }
         public string CsName { get; set; }
@@ -27,6 +28,8 @@ namespace FreeSql.Internal.Model
         public bool IsRereadSql { get; internal set; }
         public bool IsDictionaryType { get; internal set; }
 
+        public IAsTable AsTableImpl { get; internal set; }
+        public ColumnInfo AsTableColumn { get; internal set; }
         public ColumnInfo VersionColumn { get; set; }
 
         ConcurrentDictionary<string, TableRef> _refs { get; } = new ConcurrentDictionary<string, TableRef>(StringComparer.CurrentCultureIgnoreCase);

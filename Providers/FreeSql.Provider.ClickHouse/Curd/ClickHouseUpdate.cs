@@ -65,11 +65,33 @@ namespace FreeSql.ClickHouse.Curd
             sb.Append(")");
         }
 
-        public override string ToSql()
+        public override void ToSqlExtension110(StringBuilder sb, bool isAsTableSplited)
         {
-            if (_where.Length == 0 && _source.Any() == false) return null;
+            if (_where.Length == 0 && _source.Any() == false) return;
 
-            var sb = new StringBuilder();
+            if (_table.AsTableImpl != null && isAsTableSplited == false && _source == _sourceOld && _source.Any())
+            {
+                var atarr = _source.Select(a => new
+                {
+                    item = a,
+                    splitKey = _table.AsTableImpl.GetTableNameByColumnValue(_table.AsTableColumn.GetValue(a))
+                }).GroupBy(a => a.splitKey, a => a.item).ToArray();
+                if (atarr.Length > 1)
+                {
+                    var oldSource = _source;
+                    var arrret = new List<List<T1>>();
+                    foreach (var item in atarr)
+                    {
+                        _source = item.ToList();
+                        ToSqlExtension110(sb, true);
+                        sb.Append("\r\n\r\n;\r\n\r\n");
+                    }
+                    _source = oldSource;
+                    if (sb.Length > 0) sb.Remove(sb.Length - 9, 9);
+                    return;
+                }
+            }
+
             sb.Append("ALTER TABLE ").Append(_commonUtils.QuoteSqlName(TableRuleInvoke())).Append(" UPDATE ");
 
             if (_set.Length > 0)
@@ -105,12 +127,12 @@ namespace FreeSql.ClickHouse.Curd
                         ++colidx;
                     }
                 }
-                if (colidx == 0) return null;
+                if (colidx == 0) return;
 
             }
             else if (_source.Count > 1)
             { //批量保存 Source
-                if (_tempPrimarys.Any() == false) return null;
+                if (_tempPrimarys.Any() == false) return;
 
                 var caseWhen = new StringBuilder();
                 ToSqlCase(caseWhen, _tempPrimarys);
@@ -160,10 +182,10 @@ namespace FreeSql.ClickHouse.Curd
                         ++colidx;
                     }
                 }
-                if (colidx == 0) return null;
+                if (colidx == 0) return;
             }
             else if (_setIncr.Length == 0)
-                return null;
+                return;
 
             if (_setIncr.Length > 0)
                 sb.Append(_set.Length > 0 ? _setIncr.ToString() : _setIncr.ToString().Substring(2));
@@ -186,33 +208,9 @@ namespace FreeSql.ClickHouse.Curd
                 else
                     sb.Append(", ").Append(vcname).Append(" = ").Append(_commonUtils.IsNull(vcname, 0)).Append(" + 1");
             }
-
-            sb.Append(" \r\nWHERE ");
-            if (_source.Any())
-            {
-                if (_tempPrimarys.Any() == false) throw new ArgumentException($"{_table.Type.DisplayCsharp()} 没有定义主键，无法使用 SetSource，请尝试 SetDto");
-                sb.Append('(').Append(_commonUtils.WhereItems(_tempPrimarys, "", _source)).Append(')');
-            }
-
-            if (_where.Length > 0)
-                sb.Append(_source.Any() ? _where.ToString() : _where.ToString().Substring(5));
-
-            if (_whereGlobalFilter.Any())
-            {
-                var globalFilterCondi = _commonExpression.GetWhereCascadeSql(new SelectTableInfo { Table = _table }, _whereGlobalFilter, false);
-                if (string.IsNullOrEmpty(globalFilterCondi) == false)
-                    sb.Append(" AND ").Append(globalFilterCondi);
-            }
-
-            if (_table.VersionColumn != null)
-            {
-                var versionCondi = WhereCaseSource(_table.VersionColumn.CsName, sqlval => sqlval);
-                if (string.IsNullOrEmpty(versionCondi) == false)
-                    sb.Append(" AND ").Append(versionCondi);
-            }
-
+            ToSqlWhere(sb);
             _interceptSql?.Invoke(sb);
-            return sb.ToString();
+            return;
         }
 
         protected override int SplitExecuteAffrows(int valuesLimit, int parameterLimit)

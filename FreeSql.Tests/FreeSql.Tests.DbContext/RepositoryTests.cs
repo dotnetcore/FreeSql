@@ -593,6 +593,55 @@ namespace FreeSql.Tests
             public Guid Id { get; set; }
             public string Name { get; set; }
         }
+        [Fact]
+        public void BeginEditIdentity()
+        {
+            g.sqlite.Delete<BeginEdit02>().Where("1=1").ExecuteAffrows();
+            var repo = g.sqlite.GetRepository<BeginEdit02>();
+            var cts = new[] {
+                new BeginEdit02 { Name = "分类1" },
+                new BeginEdit02 { Name = "分类1_1" },
+                new BeginEdit02 { Name = "分类1_2" },
+                new BeginEdit02 { Name = "分类1_3" },
+                new BeginEdit02 { Name = "分类2" },
+                new BeginEdit02 { Name = "分类2_1" },
+                new BeginEdit02 { Name = "分类2_2" }
+            }.ToList();
+            repo.Insert(cts);
+
+            repo.BeginEdit(cts);
+
+            cts.Add(new BeginEdit02 { Name = "分类2_3" });
+            cts[0].Name = "123123";
+            cts.RemoveAt(1);
+
+            Assert.Equal(3, repo.EndEdit());
+
+            g.sqlite.Delete<BeginEdit02>().Where("1=1").ExecuteAffrows();
+            repo = g.sqlite.GetRepository<BeginEdit02>();
+            cts = repo.Select.ToList();
+            repo.BeginEdit(cts);
+
+            cts.AddRange(new[] {
+                new BeginEdit02 { Name = "分类1" },
+                new BeginEdit02 { Name = "分类1_1" },
+                new BeginEdit02 { Name = "分类1_2" },
+                new BeginEdit02 { Name = "分类1_3" },
+                new BeginEdit02 { Name = "分类2" },
+                new BeginEdit02 { Name = "分类2_1" },
+                new BeginEdit02 { Name = "分类2_2" }
+            });
+
+            Assert.Equal(7, repo.EndEdit());
+        }
+        class BeginEdit02
+        {
+            [Column(IsIdentity = true)]
+            public int Id { get; set; }
+            public string Name { get; set; }
+            [Column(ServerTime = DateTimeKind.Utc)]
+            public DateTime UpdateTime { get; set; }
+        }
 
         [Fact]
         public void OrmScoped()

@@ -393,6 +393,7 @@ namespace FreeSql.Internal
                 if (trytb.VersionColumn.Attribute.MapType.IsNullableType() || trytb.VersionColumn.Attribute.MapType.IsNumberType() == false && trytb.VersionColumn.Attribute.MapType != typeof(byte[]))
                     throw new Exception($"属性{trytb.VersionColumn.CsName} 被标注为行锁（乐观锁）(IsVersion)，但其必须为数字类型 或者 byte[]，并且不可为 Nullable");
             }
+            tbattr?.ParseAsTable(trytb);
 
             var indexesDict = new Dictionary<string, IndexInfo>(StringComparer.CurrentCultureIgnoreCase);
             //从数据库查找主键、自增、索引
@@ -483,6 +484,7 @@ namespace FreeSql.Internal
             trytb.ColumnsByPosition = columnsList.Where(a => a.Attribute.Position > 0).OrderBy(a => a.Attribute.Position)
                 .Concat(columnsList.Where(a => a.Attribute.Position == 0))
                 .Concat(columnsList.Where(a => a.Attribute.Position < 0).OrderBy(a => a.Attribute.Position)).ToArray();
+            trytb.ColumnsByCanUpdateDbUpdateValue = columnsList.Where(a => a.Attribute.CanUpdate == true && string.IsNullOrEmpty(a.DbUpdateValue) == false).ToArray();
 
             trytb.Primarys = trytb.Columns.Values.Where(a => a.Attribute.IsPrimary == true).ToArray();
             if (trytb.Primarys.Any() == false)
@@ -2265,6 +2267,197 @@ namespace FreeSql.Internal
         {
             name = Regex.Replace(name.TrimStart('@'), @"[^\w]", "_");
             return char.IsLetter(name, 0) ? name : string.Concat("_", name);
+        }
+
+        public static string ReplaceSqlConstString(string sql, Dictionary<string, string> parms, string paramPrefix = "@")
+        {
+            var nsb = new StringBuilder();
+            var sidx = 0;
+            var pidx = 0;
+            var ptmpPrefix = "";
+            while (true)
+            {
+                pidx++;
+                ptmpPrefix = $"{paramPrefix}p{pidx}";
+                if (sql.Contains(ptmpPrefix) == false) break;
+            }
+            pidx = 0;
+            while (sidx < sql.Length)
+            {
+                var chr = sql[sidx++];
+                if (chr != '\'')
+                {
+                    nsb.Append(chr);
+                    continue;
+                }
+                var startIdx = sidx;
+                var startLength = 0;
+                while (sidx < sql.Length)
+                {
+                    var chrb = sql[sidx++];
+                    if (chrb != '\'')
+                    {
+                        startLength++;
+                        continue;
+                    }
+                    if (sidx < sql.Length && sql[sidx] == '\'')
+                    {
+                        startLength += 2;
+                        continue;
+                    }
+                    break;
+                }
+                if (startLength > 0)
+                {
+                    var pvalue = sql.Substring(startIdx, startLength).Replace("''", "'");
+                    var pname = parms.Where(a => a.Value == pvalue).Select(a => a.Key).FirstOrDefault();
+                    if (string.IsNullOrEmpty(pname))
+                    {
+                        while (true)
+                        {
+                            pidx++;
+                            pname = $"{ptmpPrefix}{pidx}";
+                            if (parms.ContainsKey(pname) == false) break;
+                        }
+                    }
+                    nsb.Append(pname);
+                    if (parms.ContainsKey(pname) == false) parms.Add(pname, pvalue);
+                }
+            }
+            return nsb.ToString();
+        }
+
+        internal static string ParseSqlWhereLevel1(string sql)
+        {
+            var dictParms = new Dictionary<string, string>();
+            var rawsql = ReplaceSqlConstString(sql, dictParms).Trim();
+            sql = Regex.Replace(rawsql, @"[\r\n\t]", " ");
+            var remidx = sql.IndexOf("WHERE ");
+            if (remidx != -1) sql = sql.Substring(remidx + 6);
+
+            //sql = Regex.Replace(sql, @"\s*([@:\?][\w_]+)\s*(<|<=|>|>=|=)\s*((\w+)\s*\.)?([\w_]+)");
+            return LocalProcessBrackets(sql);
+
+
+            string LocalProcessBrackets(string locsql)
+            {
+                var sidx = 0;
+                var ltcou = 0;
+                var ltidxStack = new Stack<int>();
+                while (sidx < locsql.Length)
+                {
+                    var chr = locsql[sidx++];
+                    if (chr == '(')
+                    {
+                        ltcou++;
+                        ltidxStack.Push(sidx - 1);
+                    }
+                    if (chr == ')')
+                    {
+                        ltcou--;
+                        var ltidx = ltidxStack.Pop();
+                        var ltidx2 = ltidx;
+                        var sidx2 = sidx;
+                        while(sidx < locsql.Length)
+                        {
+                            var chr2 = locsql[sidx];
+                            if (chr2 == ')')
+                            {
+                                if (ltidxStack.First() == ltidx - 1)
+                                {
+                                    ltidx = ltidxStack.Pop();
+                                    sidx++;
+                                }
+                            }
+                            break;
+                        }
+                        if (ltidx == 0 && sidx == locsql.Length)
+                        {
+                            locsql = locsql.Substring(1, sidx - 2);
+                            break;
+                        }
+                        var sqlLeft = ltidx == 0 ? "" : locsql.Remove(ltidx);
+                        var sqlMid = locsql.Substring(ltidx, sidx - ltidx);
+                        var sqlMidNew = sqlMid;
+                        var sqlRight = sidx == locsql.Length ? "" : locsql.Substring(sidx);
+                        var mLeft = Regex.Match(sqlLeft, @" (and|or|not)\s*$", RegexOptions.IgnoreCase);
+                        if (mLeft.Success)
+                        {
+                            switch (mLeft.Groups[1].Value)
+                            {
+                                case "and":
+                                    sqlMidNew = sqlMid.Substring(1, sqlMid.Length - 2).Trim();
+                                    break;
+                                case "or":
+                                    sqlMidNew = "";
+                                    break;
+                                case "not":
+                                    break;
+                            }
+                        }
+                        sidx -= sqlMid.Length - sqlMidNew.Length;
+                        locsql = $"{sqlLeft}{sqlMidNew}{sqlRight}";
+                    }
+                }
+                return locsql;
+            }
+        }
+
+        static string ParseSqlWhereLevel12(string sql)
+        {
+            var dictParms = new Dictionary<string, string>();
+            var rawsql = ReplaceSqlConstString(sql, dictParms);
+            sql = Regex.Replace(rawsql, @"[\r\n\t]", " ");
+            var remidx = sql.IndexOf("WHERE ");
+            if (remidx != -1) sql = sql.Substring(remidx + 6);
+
+            Dictionary<string, string> dicSqlParts = new Dictionary<string, string>();
+            var nsb = new StringBuilder();
+            var swliRoot = new SqlWhereLogicInfo();
+            var swliCurrent = swliRoot;
+
+            LocalParseSqlWhere(sql);
+            return nsb.ToString();
+
+            void LocalParseSqlWhere(string sqlPart)
+            {
+                var sidx = 0;
+                var ltcou = 0;
+                var ltidxStack = new Stack<int>();
+                while (sidx < sqlPart.Length)
+                {
+                    var chr = sqlPart[sidx++];
+                    if (chr == '(')
+                    {
+                        ltcou++;
+                        ltidxStack.Push(sidx - 1);
+                        //swliCurrent.Filters.Add()
+                    }
+                    if (chr == ')')
+                    {
+                        ltcou--;
+                        var ltidx = ltidxStack.Pop();
+                        var pvalue = sqlPart.Substring(ltidx, sidx - ltidx);
+                        break;
+                        //var pname = $"@p_{Guid.NewGuid().ToString("N")}";
+                        //dicSqlParts.Add(pname, pvalue);
+                        //LocalParseSqlWhere(sqlPart);
+                        //var ltsql = sqlPart.Substring(Math.Max(0, ltidx - 5), ltidx);
+                        //if (Regex.IsMatch(ltsql, @"(and|or|not)$"))
+                        //    ltsb.Last().Append("1=1");
+                    }
+                }
+            }
+        }
+
+        class SqlWhereLogicInfo
+        {
+            public string Field { get; set; }
+            public string Operator { get; set; }
+            public object Value { get; set; }
+
+            public DynamicFilterLogic Logic { get; set; }
+            public List<SqlWhereLogicInfo> Filters { get; set; }
         }
     }
 }

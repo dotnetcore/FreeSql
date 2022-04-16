@@ -125,7 +125,9 @@ namespace FreeSql.Internal
             {
                 if (!string.IsNullOrEmpty(trytb.Name)) attr.Name = trytb.Name;
                 if (!string.IsNullOrEmpty(trytb.OldName)) attr.OldName = trytb.OldName;
-                if (trytb._DisableSyncStructure != null) attr._DisableSyncStructure = trytb.DisableSyncStructure;
+                if (trytb._DisableSyncStructure != null) attr._DisableSyncStructure = trytb.DisableSyncStructure; 
+                if (!string.IsNullOrEmpty(trytb.AsTable)) attr.AsTable = trytb.AsTable;
+
             }
             var attrs = type.GetCustomAttributes(typeof(TableAttribute), false);
             foreach (var tryattrobj in attrs)
@@ -135,10 +137,12 @@ namespace FreeSql.Internal
                 if (!string.IsNullOrEmpty(tryattr.Name)) attr.Name = tryattr.Name;
                 if (!string.IsNullOrEmpty(tryattr.OldName)) attr.OldName = tryattr.OldName;
                 if (tryattr._DisableSyncStructure != null) attr._DisableSyncStructure = tryattr.DisableSyncStructure;
+                if (!string.IsNullOrEmpty(tryattr.AsTable)) attr.AsTable = tryattr.AsTable;
             }
             if (!string.IsNullOrEmpty(attr.Name)) return attr;
             if (!string.IsNullOrEmpty(attr.OldName)) return attr;
             if (attr._DisableSyncStructure != null) return attr;
+            if (!string.IsNullOrEmpty(attr.AsTable)) return attr;
             return null;
         }
         public ColumnAttribute GetEntityColumnAttribute(Type type, PropertyInfo proto)

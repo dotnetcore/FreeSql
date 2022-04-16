@@ -35,4 +35,6 @@ public class g
     });
     public static IFreeSql gbase => gbaseLazy.Value;
 
+    //su - gbasedbt
+    //oninit -vy
 }

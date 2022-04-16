@@ -62,6 +62,7 @@ namespace FreeSql.Dameng.Curd
                     .WithTransaction(_transaction)
                     .NoneParameter(true) as Internal.CommonProvider.InsertProvider<T1>;
                 insert._source = data;
+                insert._table = _table;
                 var sql = insert.ToSql();
                 if (string.IsNullOrEmpty(sql)) return null;
                 if (insert._params?.Any() == true) dbParams.AddRange(insert._params);
