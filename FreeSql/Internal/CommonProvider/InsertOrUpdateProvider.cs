@@ -124,13 +124,25 @@ namespace FreeSql.Internal.CommonProvider
 
         protected string TableRuleInvoke()
         {
-            if (_tableRule == null) return _table.DbName;
-            var newname = _tableRule(_table.DbName);
-            if (newname == _table.DbName) return _table.DbName;
-            if (string.IsNullOrEmpty(newname)) return _table.DbName;
+            var tbname = _table?.DbName ?? "";
+            if (_tableRule == null && _table.AsTableImpl == null) return tbname;
+            string newname = null;
+            if (_table.AsTableImpl != null)
+            {
+                if (_source.Any())
+                    newname = _table.AsTableImpl.GetTableNameByColumnValue(_table.AsTableColumn.GetValue(_source.FirstOrDefault()));
+                else if (_tableRule == null)
+                    newname = _table.AsTableImpl.GetTableNameByColumnValue(DateTime.Now);
+                else
+                    newname = _tableRule(_table.DbName);
+            }
+            else
+                newname = _tableRule(_table.DbName);
+            if (newname == tbname) return tbname;
+            if (string.IsNullOrEmpty(newname)) return tbname;
             if (_orm.CodeFirst.IsSyncStructureToLower) newname = newname.ToLower();
             if (_orm.CodeFirst.IsSyncStructureToUpper) newname = newname.ToUpper();
-            if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(_table.Type, newname);
+            if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(_table?.Type, newname);
             return newname;
         }
         public IInsertOrUpdate<T1> AsTable(Func<string, string> tableRule)
@@ -204,20 +216,35 @@ namespace FreeSql.Internal.CommonProvider
         /// </summary>
         /// <param name="source"></param>
         /// <returns></returns>
-        public NativeTuple<List<T1>, List<T1>> SplitSourceByIdentityValueIsNull(List<T1> source)
+        public NativeTuple<List<T1>[], List<T1>[]> SplitSourceByIdentityValueIsNull(List<T1> source)
         {
-            if (_SplitSourceByIdentityValueIsNullFlag == 1) return NativeTuple.Create(source, new List<T1>());
-            if (_SplitSourceByIdentityValueIsNullFlag == 2) return NativeTuple.Create(new List<T1>(), source);
-            if (IdentityColumn == null) return NativeTuple.Create(source, new List<T1>());
-            var ret = NativeTuple.Create(new List<T1>(), new List<T1>());
+            if (_SplitSourceByIdentityValueIsNullFlag == 1) return NativeTuple.Create(new[] { source }, new List<T1>[0]);
+            if (_SplitSourceByIdentityValueIsNullFlag == 2) return NativeTuple.Create(new List<T1>[0], new[] { source });
+            if (IdentityColumn == null) return NativeTuple.Create(LocalSplitSourceByAsTable(source), new List<T1>[0]);
+            var item1 = new List<T1>();
+            var item2 = new List<T1>();
             foreach (var item in source)
             {
                 if (object.Equals(_orm.GetEntityValueWithPropertyName(_table.Type, item, IdentityColumn.CsName), IdentityColumn.CsType.CreateInstanceGetDefaultValue()))
-                    ret.Item2.Add(item); //自增无值的，记录为直接插入
+                    item2.Add(item); //自增无值的，记录为直接插入
                 else
-                    ret.Item1.Add(item);
+                    item1.Add(item);
             }
-            return ret;
+            return NativeTuple.Create(LocalSplitSourceByAsTable(item1), LocalSplitSourceByAsTable(item2));
+
+            List<T1>[] LocalSplitSourceByAsTable(List<T1> loc1)
+            {
+                if (_table.AsTableImpl != null)
+                {
+                    var atarr = loc1.Select(a => new
+                    {
+                        item = a,
+                        splitKey = _table.AsTableImpl.GetTableNameByColumnValue(_table.AsTableColumn.GetValue(a), true)
+                    }).GroupBy(a => a.splitKey, a => a.item).Select(a => a.ToList()).ToArray();
+                    return atarr;
+                }
+                return new[] { loc1 };
+            }
         }
 
         public abstract string ToSql();
@@ -235,12 +262,18 @@ namespace FreeSql.Internal.CommonProvider
 
                 if (_transaction != null || _orm.Ado.MasterPool == null)
                 {
-                    _source = ss.Item1;
                     _SplitSourceByIdentityValueIsNullFlag = 1;
-                    affrows += this.RawExecuteAffrows();
-                    _source = ss.Item2;
+                    foreach (var tmpsource in ss.Item1)
+                    {
+                        _source = tmpsource; 
+                        affrows += this.RawExecuteAffrows();
+                    }
                     _SplitSourceByIdentityValueIsNullFlag = 2;
-                    affrows += this.RawExecuteAffrows();
+                    foreach (var tmpsource in ss.Item2)
+                    {
+                        _source = tmpsource;
+                        affrows += this.RawExecuteAffrows();
+                    }
                 }
                 else
                 {
@@ -251,12 +284,18 @@ namespace FreeSql.Internal.CommonProvider
                         _orm.Aop.TraceBeforeHandler?.Invoke(this, transBefore);
                         try
                         {
-                            _source = ss.Item1;
                             _SplitSourceByIdentityValueIsNullFlag = 1;
-                            affrows += this.RawExecuteAffrows();
-                            _source = ss.Item2;
+                            foreach (var tmpsource in ss.Item1)
+                            {
+                                _source = tmpsource;
+                                affrows += this.RawExecuteAffrows();
+                            }
                             _SplitSourceByIdentityValueIsNullFlag = 2;
-                            affrows += this.RawExecuteAffrows();
+                            foreach (var tmpsource in ss.Item2)
+                            {
+                                _source = tmpsource;
+                                affrows += this.RawExecuteAffrows();
+                            }
                             _transaction.Commit();
                             _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, "提交", null));
                         }
@@ -341,12 +380,18 @@ namespace FreeSql.Internal.CommonProvider
 
                 if (_transaction != null || _orm.Ado.MasterPool == null)
                 {
-                    _source = ss.Item1;
                     _SplitSourceByIdentityValueIsNullFlag = 1;
-                    affrows += await this.RawExecuteAffrowsAsync(cancellationToken);
-                    _source = ss.Item2;
+                    foreach (var tmpsource in ss.Item1)
+                    {
+                        _source = tmpsource;
+                        affrows += await this.RawExecuteAffrowsAsync(cancellationToken);
+                    }
                     _SplitSourceByIdentityValueIsNullFlag = 2;
-                    affrows += await this.RawExecuteAffrowsAsync(cancellationToken);
+                    foreach (var tmpsource in ss.Item2)
+                    {
+                        _source = tmpsource;
+                        affrows += await this.RawExecuteAffrowsAsync(cancellationToken);
+                    }
                 }
                 else
                 {
@@ -357,12 +402,18 @@ namespace FreeSql.Internal.CommonProvider
                         _orm.Aop.TraceBeforeHandler?.Invoke(this, transBefore);
                         try
                         {
-                            _source = ss.Item1;
                             _SplitSourceByIdentityValueIsNullFlag = 1;
-                            affrows += await this.RawExecuteAffrowsAsync(cancellationToken);
-                            _source = ss.Item2;
+                            foreach (var tmpsource in ss.Item1)
+                            {
+                                _source = tmpsource;
+                                affrows += await this.RawExecuteAffrowsAsync(cancellationToken);
+                            }
                             _SplitSourceByIdentityValueIsNullFlag = 2;
-                            affrows += await this.RawExecuteAffrowsAsync(cancellationToken);
+                            foreach (var tmpsource in ss.Item2)
+                            {
+                                _source = tmpsource;
+                                affrows += await this.RawExecuteAffrowsAsync(cancellationToken);
+                            }
                             _transaction.Commit();
                             _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, "提交", null));
                         }
