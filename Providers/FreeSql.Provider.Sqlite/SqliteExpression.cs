@@ -317,11 +317,12 @@ namespace FreeSql.Sqlite
                         //}
                         return $"(instr({left}, {indexOfFindStr})-1)";
                     case "PadLeft":
-                        if (exp.Arguments.Count == 1) return $"lpad({left}, {getExp(exp.Arguments[0])})";
-                        return $"lpad({left}, {getExp(exp.Arguments[0])}, {getExp(exp.Arguments[1])})";
+                        if (exp.Arguments.Count == 1) return $"padl({left}, {getExp(exp.Arguments[0])})";
+                        return $"leftstr(REPLACE(padl({left}, {getExp(exp.Arguments[0])}),' ',{getExp(exp.Arguments[1])}),{getExp(exp.Arguments[0])}-length({left}))||{left}";
                     case "PadRight":
-                        if (exp.Arguments.Count == 1) return $"rpad({left}, {getExp(exp.Arguments[0])})";
-                        return $"rpad({left}, {getExp(exp.Arguments[0])}, {getExp(exp.Arguments[1])})";
+                        var totalWidthValue = getExp(exp.Arguments[0]);
+                        if (exp.Arguments.Count == 1) return $"padr({left}, {totalWidthValue})";
+                        return $"{left}||rightstr(REPLACE(padr({left},{totalWidthValue}),' ',{getExp(exp.Arguments[1])}),CASE WHEN {totalWidthValue}-length({left})<=0 THEN 0 ELSE {totalWidthValue}-length({left})END)";
                     case "Trim":
                     case "TrimStart":
                     case "TrimEnd":
