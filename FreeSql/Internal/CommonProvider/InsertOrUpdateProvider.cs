@@ -218,6 +218,7 @@ namespace FreeSql.Internal.CommonProvider
         /// <returns></returns>
         public NativeTuple<List<T1>[], List<T1>[]> SplitSourceByIdentityValueIsNull(List<T1> source)
         {
+            if (source.Any() == false) return NativeTuple.Create(new List<T1>[0], new List<T1>[0]);
             if (_SplitSourceByIdentityValueIsNullFlag == 1) return NativeTuple.Create(new[] { source }, new List<T1>[0]);
             if (_SplitSourceByIdentityValueIsNullFlag == 2) return NativeTuple.Create(new List<T1>[0], new[] { source });
             if (IdentityColumn == null) return NativeTuple.Create(LocalSplitSourceByAsTable(source), new List<T1>[0]);
@@ -234,6 +235,7 @@ namespace FreeSql.Internal.CommonProvider
 
             List<T1>[] LocalSplitSourceByAsTable(List<T1> loc1)
             {
+                if (loc1.Any() == false) return new List<T1>[0];
                 if (_table.AsTableImpl != null)
                 {
                     var atarr = loc1.Select(a => new

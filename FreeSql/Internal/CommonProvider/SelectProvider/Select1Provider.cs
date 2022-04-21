@@ -255,12 +255,16 @@ namespace FreeSql.Internal.CommonProvider
             }
             return ret;
         }
-        public List<TDto> ToList<TDto>() => ToList(GetToListDtoSelector<TDto>());
+        public List<TDto> ToList<TDto>() => typeof(T1) == typeof(TDto) ? ToList() as List<TDto> : ToList(GetToListDtoSelector<TDto>());
         Expression<Func<T1, TDto>> GetToListDtoSelector<TDto>()
         {
+            var expParam = _tables[0].Parameter ?? Expression.Parameter(typeof(T1), "a");
+            var expBinds = _tables[0].Table.Columns.Where(a => a.Value.CsType != a.Value.Attribute.MapType)
+                .Select(a => Expression.Bind(typeof(TDto).GetProperty(a.Value.CsName), Expression.MakeMemberAccess(expParam, _tables[0].Table.Properties[a.Value.CsName])))
+                .ToArray();
             return Expression.Lambda<Func<T1, TDto>>(
-                typeof(TDto).InternalNewExpression(),
-                _tables[0].Parameter ?? Expression.Parameter(typeof(T1), "a"));
+                Expression.MemberInit(typeof(TDto).InternalNewExpression(), expBinds),
+                expParam);
         }
         public void ToChunk<TReturn>(Expression<Func<T1, TReturn>> select, int size, Action<FetchCallbackArgs<List<TReturn>>> done)
         {
@@ -1284,7 +1288,7 @@ namespace FreeSql.Internal.CommonProvider
             }
             return ret;
         }
-        public Task<List<TDto>> ToListAsync<TDto>(CancellationToken cancellationToken = default) => ToListAsync(GetToListDtoSelector<TDto>(), cancellationToken);
+        async public Task<List<TDto>> ToListAsync<TDto>(CancellationToken cancellationToken = default) => typeof(T1) == typeof(TDto) ? await ToListAsync(false, cancellationToken) as List<TDto> : await ToListAsync(GetToListDtoSelector<TDto>(), cancellationToken);
 
         public Task<int> InsertIntoAsync<TTargetEntity>(string tableName, Expression<Func<T1, TTargetEntity>> select, CancellationToken cancellationToken = default) where TTargetEntity : class => base.InternalInsertIntoAsync<TTargetEntity>(tableName, select, cancellationToken);
 
