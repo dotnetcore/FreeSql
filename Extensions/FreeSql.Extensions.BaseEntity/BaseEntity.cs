@@ -80,12 +80,10 @@ namespace FreeSql
     {
         bool UpdateIsDeleted(bool value)
         {
-            if (Repository is null)
-            {
+            if (Repository == null)
                 return Orm.Update<TEntity>(this as TEntity)
-                          .WithTransaction(_resolveUow?.Invoke()?.GetOrBeginTransaction())
-                          .Set(a => (a as BaseEntity).IsDeleted, IsDeleted = value).ExecuteAffrows() == 1;
-            }
+                    .WithTransaction(_resolveUow?.Invoke()?.GetOrBeginTransaction())
+                    .Set(a => (a as BaseEntity).IsDeleted, IsDeleted = value).ExecuteAffrows() == 1;
 
             IsDeleted = value;
             Repository.UnitOfWork = _resolveUow?.Invoke();
@@ -103,7 +101,7 @@ namespace FreeSql
             if (physicalDelete == false)
                 return UpdateIsDeleted(true);
 
-            if (Repository is null)
+            if (Repository == null)
                 return Orm.Delete<TEntity>(this as TEntity).ExecuteAffrows() == 1;
 
             Repository.UnitOfWork = _resolveUow?.Invoke();
@@ -125,12 +123,10 @@ namespace FreeSql
         public virtual bool Update()
         {
             UpdateTime = DateTime.Now;
-            if (Repository is null)
-            {
+            if (Repository == null)
                 return Orm.Update<TEntity>()
-                          .WithTransaction(_resolveUow?.Invoke()?.GetOrBeginTransaction())
-                          .SetSource(this as TEntity).ExecuteAffrows() == 1;
-            }
+                    .WithTransaction(_resolveUow?.Invoke()?.GetOrBeginTransaction())
+                    .SetSource(this as TEntity).ExecuteAffrows() == 1;
 
             Repository.UnitOfWork = _resolveUow?.Invoke();
             return Repository.Update(this as TEntity) == 1;
@@ -143,7 +139,8 @@ namespace FreeSql
         public virtual TEntity Insert()
         {
             CreateTime = DateTime.Now;
-            Repository ??= Orm.GetRepository<TEntity>();
+            if (Repository == null) 
+                Repository = Orm.GetRepository<TEntity>();
             Repository.UnitOfWork = _resolveUow?.Invoke();
             return Repository.Insert(this as TEntity);
         }
@@ -156,7 +153,8 @@ namespace FreeSql
         public virtual TEntity Save()
         {
             UpdateTime = DateTime.Now;
-            Repository ??= Orm.GetRepository<TEntity>();
+            if (Repository == null) 
+                Repository = Orm.GetRepository<TEntity>();
             Repository.UnitOfWork = _resolveUow?.Invoke();
             return Repository.InsertOrUpdate(this as TEntity);
         }
@@ -168,7 +166,8 @@ namespace FreeSql
         /// <param name="navigatePropertyName">Navigation property name</param>
         public virtual void SaveMany(string navigatePropertyName)
         {
-            Repository ??= Orm.GetRepository<TEntity>();
+            if (Repository == null) 
+                Repository = Orm.GetRepository<TEntity>();
             Repository.UnitOfWork = _resolveUow?.Invoke();
             Repository.SaveMany(this as TEntity, navigatePropertyName);
         }

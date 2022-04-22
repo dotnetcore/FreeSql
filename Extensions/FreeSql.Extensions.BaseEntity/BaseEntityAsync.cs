@@ -67,12 +67,10 @@ namespace FreeSql
 #if !NET40
         async Task<bool> UpdateIsDeletedAsync(bool value)
         {
-            if (Repository is null)
-            {
+            if (Repository == null)
                 return await Orm.Update<TEntity>(this as TEntity)
-                                .WithTransaction(_resolveUow?.Invoke()?.GetOrBeginTransaction())
-                                .Set(a => (a as BaseEntity).IsDeleted, IsDeleted = value).ExecuteAffrowsAsync() == 1;
-            }
+                    .WithTransaction(_resolveUow?.Invoke()?.GetOrBeginTransaction())
+                    .Set(a => (a as BaseEntity).IsDeleted, IsDeleted = value).ExecuteAffrowsAsync() == 1;
 
             IsDeleted = value;
             Repository.UnitOfWork = _resolveUow?.Invoke();
@@ -90,7 +88,7 @@ namespace FreeSql
             if (physicalDelete == false)
                 return await UpdateIsDeletedAsync(true);
 
-            if (Repository is null)
+            if (Repository == null)
                 return await Orm.Delete<TEntity>(this as TEntity).ExecuteAffrowsAsync() == 1;
 
             Repository.UnitOfWork = _resolveUow?.Invoke();
@@ -112,12 +110,10 @@ namespace FreeSql
         public virtual async Task<bool> UpdateAsync()
         {
             UpdateTime = DateTime.Now;
-            if (Repository is null)
-            {
+            if (Repository == null)
                 return await Orm.Update<TEntity>()
-                                .WithTransaction(_resolveUow?.Invoke()?.GetOrBeginTransaction())
-                                .SetSource(this as TEntity).ExecuteAffrowsAsync() == 1;
-            }
+                    .WithTransaction(_resolveUow?.Invoke()?.GetOrBeginTransaction())
+                    .SetSource(this as TEntity).ExecuteAffrowsAsync() == 1;
 
             Repository.UnitOfWork = _resolveUow?.Invoke();
             return await Repository.UpdateAsync(this as TEntity) == 1;
@@ -130,7 +126,8 @@ namespace FreeSql
         public virtual Task<TEntity> InsertAsync()
         {
             CreateTime = DateTime.Now;
-            Repository ??= Orm.GetRepository<TEntity>();
+            if (Repository == null) 
+                Repository = Orm.GetRepository<TEntity>();
             Repository.UnitOfWork = _resolveUow?.Invoke();
             return Repository.InsertAsync(this as TEntity);
         }
@@ -143,7 +140,8 @@ namespace FreeSql
         public virtual Task<TEntity> SaveAsync()
         {
             UpdateTime = DateTime.Now;
-            Repository ??= Orm.GetRepository<TEntity>();
+            if (Repository == null) 
+                Repository = Orm.GetRepository<TEntity>();
             Repository.UnitOfWork = _resolveUow?.Invoke();
             return Repository.InsertOrUpdateAsync(this as TEntity);
         }
@@ -155,7 +153,8 @@ namespace FreeSql
         /// <param name="navigatePropertyName">Navigation property name</param>
         public virtual Task SaveManyAsync(string navigatePropertyName)
         {
-            Repository ??= Orm.GetRepository<TEntity>();
+            if (Repository == null) 
+                Repository = Orm.GetRepository<TEntity>();
             Repository.UnitOfWork = _resolveUow?.Invoke();
             return Repository.SaveManyAsync(this as TEntity, navigatePropertyName);
         }

@@ -173,26 +173,6 @@
             包括 CreateTime/UpdateTime/IsDeleted 的实体基类
             </summary>
         </member>
-        <member name="P:FreeSql.BaseEntity.Orm">
-            <summary>
-            Global IFreeSql ORM Object <br />
-            全局 IFreeSql ORM 对象
-            </summary>
-        </member>
-        <member name="M:FreeSql.BaseEntity.Initialization(IFreeSql,System.Func{FreeSql.IUnitOfWork})">
-            <summary>
-            To initialize the BaseEntity <br />
-            初始化 BaseEntity
-            <para></para>
-            BaseEntity.Initialization( <br />
-              new FreeSqlBuilder() <br />
-                .UseAutoSyncStructure(true) <br />
-                .UseConnectionString(DataType.Sqlite, "data source=test.db;max pool size=5") <br />
-                .Build());
-            </summary>
-            <param name="fsql">IFreeSql ORM Object</param>
-            <param name="resolveUow">工作单元(事务)委托，如果不使用事务请传 null<para></para>解释：由于AsyncLocal平台兼容不好，所以交给外部管理</param>
-        </member>
         <member name="P:FreeSql.BaseEntity.CreateTime">
             <summary>
             Created time <br />

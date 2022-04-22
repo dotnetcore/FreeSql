@@ -21,48 +21,29 @@ namespace FreeSql
     [Table(DisableSyncStructure = true)]
     public abstract class BaseEntity
     {
-        internal static IFreeSql _ormPriv;
-
-        private const string ErrorMessageTemplate = @"使用前请初始化：
-BaseEntity.Initialization(new FreeSqlBuilder()
-        .UseAutoSyncStructure(true)
-        .UseConnectionString(DataType.Sqlite, ""data source=test.db;max pool size=5"")
-        .Build());";
-
-        /// <summary>
-        /// Global IFreeSql ORM Object <br />
-        /// 全局 IFreeSql ORM 对象
-        /// </summary>
-        public static IFreeSql Orm => _ormPriv ?? throw new Exception(ErrorMessageTemplate);
-
+        static Func<IFreeSql> _resoleOrm;
         internal static Func<IUnitOfWork> _resolveUow;
 
-        /// <summary>
-        /// To initialize the BaseEntity <br />
-        /// 初始化 BaseEntity
-        /// <para></para>
-        /// BaseEntity.Initialization( <br />
-        ///   new FreeSqlBuilder() <br />
-        ///     .UseAutoSyncStructure(true) <br />
-        ///     .UseConnectionString(DataType.Sqlite, "data source=test.db;max pool size=5") <br />
-        ///     .Build());
-        /// </summary>
-        /// <param name="fsql">IFreeSql ORM Object</param>
-        /// <param name="resolveUow">工作单元(事务)委托，如果不使用事务请传 null<para></para>解释：由于AsyncLocal平台兼容不好，所以交给外部管理</param>
+        public static IFreeSql Orm => _resoleOrm?.Invoke() ?? throw new Exception("BaseEntity.Initialization 初始化错误，获取到 IFreeSql 是 null");
+
         public static void Initialization(IFreeSql fsql, Func<IUnitOfWork> resolveUow)
         {
-            _ormPriv = fsql;
-            _ormPriv.Aop.CurdBefore += (s, e) => Trace.WriteLine($"\r\n线程{Thread.CurrentThread.ManagedThreadId}: {e.Sql}\r\n");
+            fsql.Aop.CurdBefore += (s, e) => Trace.WriteLine($"\r\n线程{Thread.CurrentThread.ManagedThreadId}: {e.Sql}\r\n");
+            Initialization(() => fsql, resolveUow);
+        }
+        public static void Initialization(Func<IFreeSql> resoleOrm, Func<IUnitOfWork> resolveUow)
+        {
+            _resoleOrm = resoleOrm;
+            _resolveUow = resolveUow;
+
             if (_configEntityQueues.Any())
             {
                 lock (_configEntityLock)
                 {
                     while (_configEntityQueues.TryDequeue(out var cei))
-                        _ormPriv.CodeFirst.ConfigEntity(cei.EntityType, cei.Fluent);
+                        Orm.CodeFirst.ConfigEntity(cei.EntityType, cei.Fluent);
                 }
             }
-
-            _resolveUow = resolveUow;
         }
 
         class ConfigEntityInfo
@@ -71,17 +52,17 @@ BaseEntity.Initialization(new FreeSqlBuilder()
             public Action<TableFluent> Fluent;
         }
 
-        static readonly ConcurrentQueue<ConfigEntityInfo> _configEntityQueues = new();
-        static readonly object _configEntityLock = new();
+        static readonly ConcurrentQueue<ConfigEntityInfo> _configEntityQueues = new ConcurrentQueue<ConfigEntityInfo>();
+        static readonly object _configEntityLock = new object();
 
         internal static void ConfigEntity(Type entityType, Action<TableFluent> fluent)
         {
             lock (_configEntityLock)
             {
-                if (_ormPriv is null)
+                if (_resoleOrm?.Invoke() == null)
                     _configEntityQueues.Enqueue(new ConfigEntityInfo { EntityType = entityType, Fluent = fluent });
                 else
-                    _ormPriv.CodeFirst.ConfigEntity(entityType, fluent);
+                    Orm.CodeFirst.ConfigEntity(entityType, fluent);
             }
         }
 
@@ -133,69 +114,59 @@ BaseEntity.Initialization(new FreeSqlBuilder()
             get
             {
                 var select = Orm.Select<TEntity>()
-                                .TrackToList(TrackToList) //自动为每个元素 Attach
-                                .WithTransaction(_resolveUow?.Invoke()?.GetOrBeginTransaction(false));
+                    .TrackToList(TrackToList) //自动为每个元素 Attach
+                    .WithTransaction(_resolveUow?.Invoke()?.GetOrBeginTransaction(false));
                 return select.WhereCascade(a => (a as BaseEntity).IsDeleted == false);
             }
         }
 
         static void TrackToList(object list)
         {
-            if (list is null)
-                return;
+            if (list == null) return;
 
-            if (list is not IList<TEntity> ls)
+            var ls = list as IList<TEntity>;
+            if (ls == null)
             {
-                if (list is not IEnumerable ie)
-                    return;
+                var ie = list as IEnumerable;
+                if (ie == null) return;
 
                 var isFirst = true;
                 IBaseRepository<TEntity> baseRepo = null;
 
                 foreach (var item in ie)
                 {
-                    if (item is null)
-                    {
-                        return;
-                    }
+                    if (item == null) return;
 
                     if (isFirst)
                     {
                         isFirst = false;
                         var itemType = item.GetType();
                         if (itemType == typeof(object)) return;
-                        if (itemType.FullName!.Contains("FreeSqlLazyEntity__")) itemType = itemType.BaseType;
+                        if (itemType.FullName.Contains("FreeSqlLazyEntity__")) itemType = itemType.BaseType;
                         if (Orm.CodeFirst.GetTableByEntity(itemType)?.Primarys.Any() != true) return;
-                        if (item is not BaseEntity<TEntity>) return;
+                        if (item is BaseEntity<TEntity> == false) return;
                     }
 
                     if (item is BaseEntity<TEntity> entity)
                     {
-                        baseRepo ??= Orm.GetRepository<TEntity>();
+                        if (baseRepo == null) baseRepo = Orm.GetRepository<TEntity>();
                         entity.Repository = baseRepo;
                         entity.Attach();
                     }
                 }
-
                 return;
             }
 
-            if (ls.Any() == false)
-                return;
-
-            if (ls.FirstOrDefault() is not BaseEntity<TEntity>)
-                return;
-
-            if (Orm.CodeFirst.GetTableByEntity(typeof(TEntity))?.Primarys.Any() != true)
-                return;
+            if (ls.Any() == false) return;
+            if (ls.FirstOrDefault() is BaseEntity<TEntity> == false) return;
+            if (Orm.CodeFirst.GetTableByEntity(typeof(TEntity))?.Primarys.Any() != true) return;
 
             IBaseRepository<TEntity> repo = null;
-
             foreach (var item in ls)
             {
                 if (item is BaseEntity<TEntity> entity)
                 {
-                    repo ??= Orm.GetRepository<TEntity>();
+                    if (repo == null) repo = Orm.GetRepository<TEntity>();
                     entity.Repository = repo;
                     entity.Attach();
                 }
@@ -237,7 +208,8 @@ BaseEntity.Initialization(new FreeSqlBuilder()
         /// </summary>
         public TEntity Attach()
         {
-            Repository ??= Orm.GetRepository<TEntity>();
+            if (Repository == null) 
+                Repository = Orm.GetRepository<TEntity>();
             var item = this as TEntity;
             Repository.Attach(item);
             return item;

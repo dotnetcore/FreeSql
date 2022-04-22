@@ -95,6 +95,17 @@ var items = UserGroup.Where(a => a.Id > 10).ToList();
 
 # 事务建议
 
+1、同线程事务，不支持异步：
+
+```c#
+fsql.Transaction(() =>
+{
+    //todo ...
+})
+```;
+
+2、如果你是异步控
+
 由于 AsyncLocal 平台兼容不好，所以交给外部管理事务。
 
 ```csharp
@@ -103,7 +114,7 @@ static AsyncLocal<IUnitOfWork> _asyncUow = new AsyncLocal<IUnitOfWork>();
 BaseEntity.Initialization(fsql, () => _asyncUow.Value);
 ```
 
-在 Scoped 开始时： _asyncUow.Value = fsql.CreateUnitOfWork(); (也可以使用 UnitOfWorkManager 对象获取 uow)
+在 Scoped 开始时：_asyncUow.Value = fsql.CreateUnitOfWork(); (也可以使用 UnitOfWorkManager 对象获取 uow)
 
 在 Scoped 结束时：_asyncUow.Value = null;
 

@@ -139,7 +139,7 @@ namespace base_entity
             public int TypeGuid { get; set; }
             public string Title { get; set; }
             public DateTime CreateTime { get; set; }
-            [Column(MapType = typeof(JArray))]
+            [JsonMap]
             public List<int> CouponIds { get; set; }
         }
         class TopicMapTypeToListDtoMap
@@ -167,7 +167,7 @@ namespace base_entity
 
                 //.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
 
-                .UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=2")
+                //.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=2")
                 //.UseNameConvert(FreeSql.Internal.NameConvertType.ToLower)
 
                 //.UseConnectionString(FreeSql.DataType.Oracle, "user id=user1;password=123456;data source=//127.0.0.1:1521/XE;Pooling=true;Max Pool Size=2")
@@ -193,7 +193,7 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
-            //fsql.UseJsonMap();
+            fsql.UseJsonMap();
 
             fsql.Delete<TopicMapTypeToListDto>().Where("1=1").ExecuteAffrows();
             fsql.Insert(new[]
