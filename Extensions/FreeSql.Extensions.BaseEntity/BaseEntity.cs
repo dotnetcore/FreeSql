@@ -83,7 +83,8 @@ namespace FreeSql
             if (Repository == null)
                 return Orm.Update<TEntity>(this as TEntity)
                     .WithTransaction(_resolveUow?.Invoke()?.GetOrBeginTransaction())
-                    .Set(a => (a as BaseEntity).IsDeleted, IsDeleted = value).ExecuteAffrows() == 1;
+                    .Set(a => (a as BaseEntity).IsDeleted, IsDeleted = value)
+                    .ExecuteAffrows() == 1;
 
             IsDeleted = value;
             Repository.UnitOfWork = _resolveUow?.Invoke();
@@ -102,7 +103,9 @@ namespace FreeSql
                 return UpdateIsDeleted(true);
 
             if (Repository == null)
-                return Orm.Delete<TEntity>(this as TEntity).ExecuteAffrows() == 1;
+                return Orm.Delete<TEntity>(this as TEntity)
+                    .WithTransaction(_resolveUow?.Invoke()?.GetOrBeginTransaction())
+                    .ExecuteAffrows() == 1;
 
             Repository.UnitOfWork = _resolveUow?.Invoke();
             return Repository.Delete(this as TEntity) == 1;
@@ -126,7 +129,8 @@ namespace FreeSql
             if (Repository == null)
                 return Orm.Update<TEntity>()
                     .WithTransaction(_resolveUow?.Invoke()?.GetOrBeginTransaction())
-                    .SetSource(this as TEntity).ExecuteAffrows() == 1;
+                    .SetSource(this as TEntity)
+                    .ExecuteAffrows() == 1;
 
             Repository.UnitOfWork = _resolveUow?.Invoke();
             return Repository.Update(this as TEntity) == 1;

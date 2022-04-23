@@ -26,11 +26,7 @@ namespace FreeSql
 
         public static IFreeSql Orm => _resoleOrm?.Invoke() ?? throw new Exception("BaseEntity.Initialization 初始化错误，获取到 IFreeSql 是 null");
 
-        public static void Initialization(IFreeSql fsql, Func<IUnitOfWork> resolveUow)
-        {
-            fsql.Aop.CurdBefore += (s, e) => Trace.WriteLine($"\r\n线程{Thread.CurrentThread.ManagedThreadId}: {e.Sql}\r\n");
-            Initialization(() => fsql, resolveUow);
-        }
+        public static void Initialization(IFreeSql fsql, Func<IUnitOfWork> resolveUow) => Initialization(() => fsql, resolveUow);
         public static void Initialization(Func<IFreeSql> resoleOrm, Func<IUnitOfWork> resolveUow)
         {
             _resoleOrm = resoleOrm;
