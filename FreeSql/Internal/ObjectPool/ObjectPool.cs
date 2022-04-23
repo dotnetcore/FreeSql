@@ -108,7 +108,7 @@ namespace FreeSql.Internal.ObjectPool
             {
 
                 if (UnavailableException != null)
-                    TestTrace.WriteLine($"【{Policy.Name}】恢复检查时间：{DateTime.Now.AddSeconds(interval)}", ConsoleColor.DarkYellow);
+                    TestTrace.WriteLine($"【{Policy.Name}】Next recovery time：{DateTime.Now.AddSeconds(interval)}", ConsoleColor.DarkYellow);
 
                 while (UnavailableException != null)
                 {
@@ -123,12 +123,12 @@ namespace FreeSql.Internal.ObjectPool
                     {
 
                         var conn = GetFree(false);
-                        if (conn == null) throw new Exception($"CheckAvailable 无法获得资源，{this.Statistics}");
+                        if (conn == null) throw new Exception($"CheckAvailable: Failed to get resource {this.Statistics}");
 
                         try
                         {
 
-                            if (Policy.OnCheckAvailable(conn) == false) throw new Exception("CheckAvailable 应抛出异常，代表仍然不可用。");
+                            if (Policy.OnCheckAvailable(conn) == false) throw new Exception("CheckAvailable: An exception needs to be thrown");
                             break;
 
                         }
@@ -141,7 +141,7 @@ namespace FreeSql.Internal.ObjectPool
                     }
                     catch (Exception ex)
                     {
-                        TestTrace.WriteLine($"【{Policy.Name}】仍然不可用，下一次恢复检查时间：{DateTime.Now.AddSeconds(interval)}，错误：({ex.Message})", ConsoleColor.DarkYellow);
+                        TestTrace.WriteLine($"【{Policy.Name}】Next recovery time: {DateTime.Now.AddSeconds(interval)} ({ex.Message})", ConsoleColor.DarkYellow);
                     }
                 }
 
@@ -178,7 +178,7 @@ namespace FreeSql.Internal.ObjectPool
 
                 Policy.OnAvailable();
 
-                TestTrace.WriteLine($"【{Policy.Name}】已恢复工作", ConsoleColor.DarkGreen);
+                TestTrace.WriteLine($"【{Policy.Name}】Recovered", ConsoleColor.DarkGreen);
             }
         }
 
@@ -189,12 +189,12 @@ namespace FreeSql.Internal.ObjectPool
             {
 
                 var conn = GetFree(false);
-                if (conn == null) throw new Exception($"LiveCheckAvailable 无法获得资源，{this.Statistics}");
+                if (conn == null) throw new Exception($"LiveCheckAvailable: Failed to get resource {this.Statistics}");
 
                 try
                 {
 
-                    if (Policy.OnCheckAvailable(conn) == false) throw new Exception("LiveCheckAvailable 应抛出异常，代表仍然不可用。");
+                    if (Policy.OnCheckAvailable(conn) == false) throw new Exception("LiveCheckAvailable: An exception needs to be thrown");
 
                 }
                 finally
@@ -275,10 +275,11 @@ namespace FreeSql.Internal.ObjectPool
         {
 
             if (running == false)
-                throw new ObjectDisposedException($"【{Policy.Name}】对象池已释放，无法访问。");
+                throw new ObjectDisposedException($"【{Policy.Name}】The ObjectPool has been disposed, see: https://github.com/dotnetcore/FreeSql/discussions/1079");
 
             if (checkAvailable && UnavailableException != null)
-                throw new Exception($"【{Policy.Name}】状态不可用，等待后台检查程序恢复方可使用。{UnavailableException?.Message}");
+                throw new Exception($"【{Policy.Name}】Block access and wait for recovery: {UnavailableException?.Message}, see: https://github.com/dotnetcore/FreeSql/discussions/1080", UnavailableException);
+            //throw new Exception($"【{Policy.Name}】状态不可用，等待后台检查程序恢复方可使用。{UnavailableException?.Message}");
 
             if ((_freeObjects.TryPop(out var obj) == false || obj == null) && _allObjects.Count < Policy.PoolSize)
             {
@@ -340,7 +341,7 @@ namespace FreeSql.Internal.ObjectPool
                     Policy.OnGetTimeout();
 
                     if (Policy.IsThrowGetTimeoutException)
-                        throw new TimeoutException($"ObjectPool.Get 获取超时（{timeout.Value.TotalSeconds}秒）。");
+                        throw new TimeoutException($"【{Policy.Name}】ObjectPool.Get() timeout {timeout.Value.TotalSeconds} seconds, see: https://github.com/dotnetcore/FreeSql/discussions/1081");
 
                     return null;
                 }
@@ -374,7 +375,7 @@ namespace FreeSql.Internal.ObjectPool
             {
 
                 if (Policy.AsyncGetCapacity > 0 && _getAsyncQueue.Count >= Policy.AsyncGetCapacity - 1)
-                    throw new OutOfMemoryException($"ObjectPool.GetAsync 无可用资源且队列过长，Policy.AsyncGetCapacity = {Policy.AsyncGetCapacity}。");
+                    throw new OutOfMemoryException($"【{Policy.Name}】ObjectPool.GetAsync() The queue is too long. Policy.AsyncGetCapacity = {Policy.AsyncGetCapacity}");
 
                 var tcs = new TaskCompletionSource<Object<T>>();
 
