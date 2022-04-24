@@ -127,9 +127,9 @@ namespace FreeSql
         protected ConcurrentDictionary<string, EntityState> _states = new ConcurrentDictionary<string, EntityState>();
         TableInfo _tablePriv;
         protected TableInfo _table => _tablePriv ?? (_tablePriv = _db.OrmOriginal.CodeFirst.GetTableByEntity(_entityType));
-        ColumnInfo[] _tableIdentitysPriv, _tableServerTimesPriv;
+        ColumnInfo[] _tableIdentitysPriv, _tableReturnColumnsPriv;
         protected ColumnInfo[] _tableIdentitys => _tableIdentitysPriv ?? (_tableIdentitysPriv = _table.Primarys.Where(a => a.Attribute.IsIdentity).ToArray());
-        protected ColumnInfo[] _tableServerTimes => _tableServerTimesPriv ?? (_tableServerTimesPriv = _table.Primarys.Where(a => a.Attribute.ServerTime != DateTimeKind.Unspecified).ToArray());
+        protected ColumnInfo[] _tableReturnColumns => _tableReturnColumnsPriv ?? (_tableReturnColumnsPriv = _table.ColumnsByPosition.Where(a => a.Attribute.IsPrimary && a.Attribute.IsIdentity || string.IsNullOrWhiteSpace(a.DbInsertValue) == false).ToArray());
         protected Type _entityType = typeof(TEntity);
         public Type EntityType => _entityType;
 
@@ -146,7 +146,7 @@ namespace FreeSql
             _entityType = entityType;
             _tablePriv = newtb ?? throw new Exception("DbSet.AsType 参数错误，请传入正确的实体类型");
             _tableIdentitysPriv = null;
-            _tableServerTimesPriv = null;
+            _tableReturnColumnsPriv = null;
             return this;
         }
 

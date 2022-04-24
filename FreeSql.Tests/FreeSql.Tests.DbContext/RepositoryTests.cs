@@ -596,8 +596,9 @@ namespace FreeSql.Tests
         [Fact]
         public void BeginEditIdentity()
         {
-            g.sqlite.Delete<BeginEdit02>().Where("1=1").ExecuteAffrows();
-            var repo = g.sqlite.GetRepository<BeginEdit02>();
+            var fsql = g.sqlserver;
+            fsql.Delete<BeginEdit02>().Where("1=1").ExecuteAffrows();
+            var repo = fsql.GetRepository<BeginEdit02>();
             var cts = new[] {
                 new BeginEdit02 { Name = "分类1" },
                 new BeginEdit02 { Name = "分类1_1" },
@@ -617,8 +618,8 @@ namespace FreeSql.Tests
 
             Assert.Equal(3, repo.EndEdit());
 
-            g.sqlite.Delete<BeginEdit02>().Where("1=1").ExecuteAffrows();
-            repo = g.sqlite.GetRepository<BeginEdit02>();
+            fsql.Delete<BeginEdit02>().Where("1=1").ExecuteAffrows();
+            repo = fsql.GetRepository<BeginEdit02>();
             cts = repo.Select.ToList();
             repo.BeginEdit(cts);
 

@@ -32,7 +32,7 @@ namespace FreeSql
         void AddPriv(TEntity data, bool isCheck)
         {
             if (isCheck && CanAdd(data, true) == false) return;
-            if (_tableIdentitys.Length > 0)
+            if (_tableReturnColumns.Length > 0)
             {
                 //有自增，马上执行
                 switch (_db.OrmOriginal.Ado.DataType)
@@ -45,7 +45,7 @@ namespace FreeSql
                     case DataType.OdbcKingbaseES:
                     case DataType.ShenTong:
                     case DataType.Firebird: //firebird 只支持单条插入 returning
-                        if (_tableIdentitys.Length == 1)
+                        if (_tableIdentitys.Length == 1 && _tableReturnColumns.Length == 1)
                         {
                             DbContextFlushCommand();
                             var idtval = this.OrmInsert(data).ExecuteIdentity();
@@ -101,7 +101,7 @@ namespace FreeSql
                 Add(data.First());
                 return;
             }
-            if (_tableIdentitys.Length > 0)
+            if (_tableReturnColumns.Length > 0)
             {
                 //有自增，马上执行
                 switch (_db.OrmOriginal.Ado.DataType)

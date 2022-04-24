@@ -6,6 +6,7 @@ using FreeSql.Internal.Model;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data.Odbc;
 using System.Data.SqlClient;
@@ -229,6 +230,31 @@ namespace base_entity
             {
                 CouponIds = a.CouponIds
             });
+
+            int LocalConcurrentDictionaryIsTypeKey(Type dictType, int level = 1)
+            {
+                if (dictType.IsGenericType == false) return 0;
+                if (dictType.GetGenericTypeDefinition() != typeof(ConcurrentDictionary<,>)) return 0;
+                var typeargs = dictType.GetGenericArguments();
+                if (typeargs[0] == typeof(Type) || typeargs[0] == typeof(ColumnInfo) || typeargs[0] == typeof(TableInfo)) return level;
+                if (level > 2) return 0;
+                return LocalConcurrentDictionaryIsTypeKey(typeargs[1], level + 1);
+            }
+
+            var fds = typeof(FreeSql.Internal.Utils).GetFields(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public)
+                .Where(a => LocalConcurrentDictionaryIsTypeKey(a.FieldType) > 0).ToArray();
+            var ttypes1 = typeof(IFreeSql).Assembly.GetTypes().Select(a => new
+            {
+                Type = a,
+                ConcurrentDictionarys = a.GetFields(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public)
+                    .Where(b => LocalConcurrentDictionaryIsTypeKey(b.FieldType) > 0).ToArray()
+            }).Where(a => a.ConcurrentDictionarys.Length > 0).ToArray();
+            var ttypes2 = typeof(IBaseRepository).Assembly.GetTypes().Select(a => new
+            {
+                Type = a,
+                ConcurrentDictionarys = a.GetFields(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public)
+                    .Where(b => LocalConcurrentDictionaryIsTypeKey(b.FieldType) > 0).ToArray()
+            }).Where(a => a.ConcurrentDictionarys.Length > 0).ToArray();
 
             #region pgsql poco
             //            fsql.Aop.ParseExpression += (_, e) =>
