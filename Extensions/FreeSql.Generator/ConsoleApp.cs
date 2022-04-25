@@ -291,7 +291,7 @@ new Colorful.Formatter("推荐在实体类目录创建 gen.bat，双击它重新
                     plus.AppendLine();
 
                     var outputFile = $"{ArgsOutput}{ArgsFileName.Replace("{name}", model.GetCsName(table.Name))}";
-                    File.WriteAllText(outputFile, plus.ToString());
+                    File.WriteAllText(outputFile, plus.ToString(), Encoding.UTF8);
                     switch (table.Type)
                     {
                         case DatabaseModel.DbTableType.TABLE:
@@ -314,14 +314,14 @@ new Colorful.Formatter("推荐在实体类目录创建 gen.bat，双击它重新
                 var razorCshtml = ArgsOutput + "__razor.cshtml.txt";
                 if (File.Exists(razorCshtml) == false)
                 {
-                    File.WriteAllText(razorCshtml, ArgsRazor);
+                    File.WriteAllText(razorCshtml, ArgsRazor, Encoding.UTF8);
                     Console.WriteFormatted(" OUT -> " + razorCshtml + "    (以后) 编辑它自定义模板生成\r\n", Color.Magenta);
                     ++outputCounter;
                 }
 
                 File.WriteAllText(rebuildBat, $@"
 FreeSql.Generator -Razor ""__razor.cshtml.txt"" -NameOptions {string.Join(",", ArgsNameOptions.Select(a => a ? 1 : 0))} -NameSpace {ArgsNameSpace} -DB ""{ArgsDbType},{ArgsConnectionString}""{(string.IsNullOrEmpty(ArgsFilter) ? "" : $" -Filter \"{ArgsFilter}\"")}{(string.IsNullOrEmpty(ArgsMatch) ? "" : $" -Match \"{ArgsMatch}\"")} -FileName ""{ArgsFileName}""
-");
+", Encoding.UTF8);
                 Console.WriteFormatted(" OUT -> " + rebuildBat + "    (以后) 双击它重新生成实体\r\n", Color.Magenta);
                 ++outputCounter;
             }
