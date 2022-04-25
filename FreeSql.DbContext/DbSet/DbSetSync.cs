@@ -50,7 +50,7 @@ namespace FreeSql
                             DbContextFlushCommand();
                             var idtval = this.OrmInsert(data).ExecuteIdentity();
                             IncrAffrows(1);
-                            _db.OrmOriginal.SetEntityIdentityValueWithPrimary(_entityType, data, idtval);
+                            _db.OrmOriginal.SetEntityValueWithPropertyName(_entityType, data, _tableIdentitys[0].CsName, idtval);
                             _db._entityChangeReport.Add(new DbContext.EntityChangeReport.ChangeInfo { Object = data, Type = DbContext.EntityChangeType.Insert });
                             Attach(data);
                             if (_db.Options.EnableAddOrUpdateNavigateList)
@@ -74,7 +74,7 @@ namespace FreeSql
                             DbContextFlushCommand();
                             var idtval = this.OrmInsert(data).ExecuteIdentity();
                             IncrAffrows(1);
-                            _db.OrmOriginal.SetEntityIdentityValueWithPrimary(_entityType, data, idtval);
+                            _db.OrmOriginal.SetEntityValueWithPropertyName(_entityType, data, _tableIdentitys[0].CsName, idtval);
                             _db._entityChangeReport.Add(new DbContext.EntityChangeReport.ChangeInfo { Object = data, Type = DbContext.EntityChangeType.Insert });
                             Attach(data);
                             if (_db.Options.EnableAddOrUpdateNavigateList)
