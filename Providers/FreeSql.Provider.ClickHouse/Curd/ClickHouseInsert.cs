@@ -99,7 +99,7 @@ namespace FreeSql.ClickHouse.Curd
                 }
                 return dic;
             }
-            catch (Exception e)
+            catch
             {
                 throw;
             }
