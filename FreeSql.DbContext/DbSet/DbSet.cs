@@ -128,8 +128,8 @@ namespace FreeSql
         TableInfo _tablePriv;
         protected TableInfo _table => _tablePriv ?? (_tablePriv = _db.OrmOriginal.CodeFirst.GetTableByEntity(_entityType));
         ColumnInfo[] _tableIdentitysPriv, _tableReturnColumnsPriv;
-        protected ColumnInfo[] _tableIdentitys => _tableIdentitysPriv ?? (_tableIdentitysPriv = _table.Primarys.Where(a => a.Attribute.IsIdentity).ToArray());
-        protected ColumnInfo[] _tableReturnColumns => _tableReturnColumnsPriv ?? (_tableReturnColumnsPriv = _table.ColumnsByPosition.Where(a => a.Attribute.IsPrimary && a.Attribute.IsIdentity || string.IsNullOrWhiteSpace(a.DbInsertValue) == false).ToArray());
+        protected ColumnInfo[] _tableIdentitys => _tableIdentitysPriv ?? (_tableIdentitysPriv = _table.ColumnsByPosition.Where(a => a.Attribute.IsIdentity).ToArray());
+        protected ColumnInfo[] _tableReturnColumns => _tableReturnColumnsPriv ?? (_tableReturnColumnsPriv = _table.ColumnsByPosition.Where(a => a.Attribute.IsIdentity || string.IsNullOrWhiteSpace(a.DbInsertValue) == false).ToArray());
         protected Type _entityType = typeof(TEntity);
         public Type EntityType => _entityType;
 
