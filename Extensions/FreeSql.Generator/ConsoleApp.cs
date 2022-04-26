@@ -29,16 +29,16 @@ namespace FreeSql.Generator
         public ConsoleApp(string[] args, ManualResetEvent wait)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-            var gb2312 = Encoding.GetEncoding("GB2312");
-            if (gb2312 != null)
-            {
-                try
-                {
-                    Console.OutputEncoding = gb2312;
-                    Console.InputEncoding = gb2312;
-                }
-                catch { }
-            }
+            //var gb2312 = Encoding.GetEncoding("GB2312");
+            //if (gb2312 != null)
+            //{
+            //    try
+            //    {
+            //        Console.OutputEncoding = gb2312;
+            //        Console.InputEncoding = gb2312;
+            //    }
+            //    catch { }
+            //}
 
             //var ntjson = Assembly.LoadFile(@"C:\Users\28810\Desktop\testfreesql\bin\Debug\netcoreapp2.2\publish\testfreesql.dll");
 
