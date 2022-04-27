@@ -99,7 +99,7 @@ fsql.Select<Tag>().IncludeMany(a => a.Tags, then => then.Where(sub => sub.Name =
 //ManyToMany
 fsql.Select<Song>()
   .IncludeMany(a => a.Tags, then => then.Where(sub => sub.Name == "foo"))
-  .Where(s => s.Tags.AsSelect().Any(t => t.Name == "Chinese"))
+  .Where(s => s.Tags.Any(t => t.Name == "Chinese"))
   .ToList();
 
 //Other
@@ -107,7 +107,7 @@ fsql.Select<YourType>()
   .Where(a => a.IsDelete == 0)
   .WhereIf(keyword != null, a => a.UserName.Contains(keyword))
   .WhereIf(role_id > 0, a => a.RoleId == role_id)
-  .Where(a => a.Nodes.AsSelect().Any(t => t.Parent.Id == t.UserId))
+  .Where(a => a.Nodes.Any(t => t.Parent.Id == t.UserId))
   .Count(out var total)
   .Page(page, size)
   .OrderByDescending(a => a.Id)

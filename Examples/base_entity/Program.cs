@@ -23,7 +23,7 @@ using System.Threading.Tasks;
 
 namespace base_entity
 {
-    class Program
+    static class Program
     {
         class TestConfig
         {
@@ -195,6 +195,17 @@ namespace base_entity
             #endregion
 
             fsql.UseJsonMap();
+
+            //var txt1 = fsql.Ado.Query<(string, string)>("select '꧁꫞꯭丑小鸭꫞꧂', '123123中国人' from dual");
+
+            fsql.Insert(new Order { ShippingAddress = "'꧁꫞꯭丑小鸭꫞꧂'" }).ExecuteAffrows();
+            fsql.Insert(new Order { ShippingAddress = "'123123中国人'" }).ExecuteAffrows();
+            var lst1 = fsql.Select<Order>().ToList();
+
+            var lst2 = fsql.Select<Order>().ToListIgnore(a => new
+            {
+                a.ShippingAddress
+            });
 
             fsql.Delete<TopicMapTypeToListDto>().Where("1=1").ExecuteAffrows();
             fsql.Insert(new[]
@@ -793,6 +804,49 @@ namespace base_entity
 
             Console.WriteLine("按任意键结束。。。");
             Console.ReadKey();
+        }
+
+        public static List<T1> ToListIgnore<T1>(this ISelect<T1> that, Expression<Func<T1, object>> selector)
+        {
+            if (selector == null) return that.ToList();
+            var s0p = that as Select0Provider;
+            var tb = s0p._tables[0];
+            var parmExp = tb.Parameter ?? Expression.Parameter(tb.Table.Type, tb.Alias);
+            var initExps = tb.Table.Columns.Values
+                .Where(a => a.Attribute.IsIgnore == false)
+                .Select(a => new
+                {
+                    exp = Expression.Bind(tb.Table.Properties[a.CsName], Expression.MakeMemberAccess(parmExp, tb.Table.Properties[a.CsName])),
+                    ignored = TestMemberExpressionVisitor.IsExists(selector, Expression.MakeMemberAccess(parmExp, tb.Table.Properties[a.CsName]))
+                })
+                .Where(a => a.ignored == false)
+                .Select(a => a.exp)
+                .ToArray();
+            var lambda = Expression.Lambda<Func<T1, T1>>(
+                Expression.MemberInit(
+                    Expression.New(tb.Table.Type),
+                    initExps
+                ),
+                parmExp
+            );
+            return that.ToList(lambda);
+        }
+        class TestMemberExpressionVisitor : ExpressionVisitor
+        {
+            public string MemberExpString;
+            public bool Result { get; private set; }
+
+            public static bool IsExists(Expression selector, Expression memberExp)
+            {
+                var visitor = new TestMemberExpressionVisitor { MemberExpString = memberExp.ToString() };
+                visitor.Visit(selector);
+                return visitor.Result;
+            }
+            protected override Expression VisitMember(MemberExpression node)
+            {
+                if (!Result && node.ToString() == MemberExpString) Result = true;
+                return node;
+            }
         }
     }
 }

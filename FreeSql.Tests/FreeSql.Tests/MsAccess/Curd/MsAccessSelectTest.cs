@@ -1,4 +1,4 @@
-using FreeSql.DataAnnotations;
+﻿using FreeSql.DataAnnotations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -72,35 +72,150 @@ namespace FreeSql.Tests.MsAccess
         [Fact]
         public void AsSelect()
         {
+            var fsql = g.msaccess;
+
             //OneToOne、ManyToOne
-            var t0 = g.msaccess.Select<Tag>().Where(a => a.Parent.Parent.Name == "粤语").ToSql();
-            //SELECT a.[Id], a.[Parent_id], a__Parent.[Id] as3, a__Parent.[Parent_id] as4, a__Parent.[Ddd], a__Parent.[Name], a.[Ddd] as7, a.[Name] as8 
-            //FROM [Tag] a 
-            //LEFT JOIN [Tag] a__Parent ON a__Parent.[Id] = a.[Parent_id] 
-            //LEFT JOIN [Tag] a__Parent__Parent ON a__Parent__Parent.[Id] = a__Parent.[Parent_id] 
-            //WHERE (a__Parent__Parent.[Name] = '粤语')
+            var t0 = fsql.Select<Tag>().Where(a => a.Parent.Parent.Name == "粤语").ToSql();
+            fsql.Select<Tag>().Where(a => a.Parent.Parent.Name == "粤语").First();
+            Assert.Equal(@"SELECT a.[Id], a.[Parent_id], a__Parent.[Id] as as3, a__Parent.[Parent_id] as as4, a__Parent.[Ddd], a__Parent.[Name], a.[Ddd] as as7, a.[Name] as as8 
+FROM ([Tag] a 
+LEFT JOIN [Tag] a__Parent ON (a__Parent.[Id] = a.[Parent_id]))  
+LEFT JOIN [Tag] a__Parent__Parent ON (a__Parent__Parent.[Id] = a__Parent.[Parent_id]) 
+WHERE (a__Parent__Parent.[Name] = '粤语')", t0);
 
             //OneToMany
-            var t1 = g.msaccess.Select<Tag>().Where(a => a.Tags.AsSelect().Any(t => t.Parent.Id == 10)).ToSql();
-            //SELECT a.[Id], a.[Parent_id], a.[Ddd], a.[Name] 
-            //FROM [Tag] a 
-            //WHERE (exists(SELECT 1 
-            //    FROM [Tag] t 
-            //    LEFT JOIN [Tag] t__Parent ON t__Parent.[Id] = t.[Parent_id] 
-            //    WHERE (t__Parent.[Id] = 10) AND (t.[Parent_id] = a.[Id]) 
-            //    limit 0,1))
+            var t1 = fsql.Select<Tag>().Where(a => a.Tags.AsSelect().Any(t => t.Parent.Id == 10)).ToSql();
+            fsql.Select<Tag>().Where(a => a.Tags.AsSelect().Any(t => t.Parent.Id == 10)).First();
+            Assert.Equal(@"SELECT a.[Id], a.[Parent_id], a.[Ddd], a.[Name] 
+FROM [Tag] a 
+WHERE (exists(SELECT TOP 1 1 
+    FROM [Tag] t 
+    LEFT JOIN [Tag] t__Parent ON (t__Parent.[Id] = t.[Parent_id]) 
+    WHERE (t__Parent.[Id] = 10) AND (t.[Parent_id] = a.[Id])))", t1);
+            var t11 = fsql.Select<Tag>().Where(a => a.Tags.Any(t => t.Parent.Id == 10)).ToSql();
+            fsql.Select<Tag>().Where(a => a.Tags.Any(t => t.Parent.Id == 10)).First();
+            Assert.Equal(@"SELECT a.[Id], a.[Parent_id], a.[Ddd], a.[Name] 
+FROM [Tag] a 
+WHERE (exists(SELECT TOP 1 1 
+    FROM [Tag] t 
+    LEFT JOIN [Tag] t__Parent ON (t__Parent.[Id] = t.[Parent_id]) 
+    WHERE (t.[Parent_id] = a.[Id]) AND (t__Parent.[Id] = 10)))", t11);
+            var t12 = fsql.Select<Tag>().Where(a => a.Parent.Tags.Any(t => t.Parent.Id == 10)).ToSql();
+            fsql.Select<Tag>().Where(a => a.Parent.Tags.Any(t => t.Parent.Id == 10)).First();
+            Assert.Equal(@"SELECT a.[Id], a.[Parent_id], a__Parent.[Id] as as3, a__Parent.[Parent_id] as as4, a__Parent.[Ddd], a__Parent.[Name], a.[Ddd] as as7, a.[Name] as as8 
+FROM [Tag] a 
+LEFT JOIN [Tag] a__Parent ON (a__Parent.[Id] = a.[Parent_id]) 
+WHERE (exists(SELECT TOP 1 1 
+    FROM [Tag] t 
+    LEFT JOIN [Tag] t__Parent ON (t__Parent.[Id] = t.[Parent_id]) 
+    WHERE (t.[Parent_id] = a__Parent.[Id]) AND (t__Parent.[Id] = 10)))", t12);
+            var t13 = fsql.Select<Tag>().Where(a => a.Tags.Where(t => t.Parent.Id == 10).Any()).ToSql();
+            fsql.Select<Tag>().Where(a => a.Tags.Where(t => t.Parent.Id == 10).Any()).First();
+            Assert.Equal(@"SELECT a.[Id], a.[Parent_id], a.[Ddd], a.[Name] 
+FROM [Tag] a 
+WHERE (exists(SELECT TOP 1 1 
+    FROM [Tag] t 
+    LEFT JOIN [Tag] t__Parent ON (t__Parent.[Id] = t.[Parent_id]) 
+    WHERE (t.[Parent_id] = a.[Id]) AND (t__Parent.[Id] = 10)))", t13);
+            var t14 = fsql.Select<Tag>().Where(a => a.Parent.Tags.Where(t => t.Parent.Id == 10).Any()).ToSql();
+            fsql.Select<Tag>().Where(a => a.Parent.Tags.Where(t => t.Parent.Id == 10).Any()).First();
+            Assert.Equal(@"SELECT a.[Id], a.[Parent_id], a__Parent.[Id] as as3, a__Parent.[Parent_id] as as4, a__Parent.[Ddd], a__Parent.[Name], a.[Ddd] as as7, a.[Name] as as8 
+FROM [Tag] a 
+LEFT JOIN [Tag] a__Parent ON (a__Parent.[Id] = a.[Parent_id]) 
+WHERE (exists(SELECT TOP 1 1 
+    FROM [Tag] t 
+    LEFT JOIN [Tag] t__Parent ON (t__Parent.[Id] = t.[Parent_id]) 
+    WHERE (t.[Parent_id] = a__Parent.[Id]) AND (t__Parent.[Id] = 10)))", t14);
+            var t15 = fsql.Select<Tag>().Where(a => a.Parent.Tags.Where(t => t.Parent.Id == 10).Select(t => t.Name).ToList().Contains(a.Name)).ToSql();
+            fsql.Select<Tag>().Where(a => a.Parent.Tags.Where(t => t.Parent.Id == 10).Select(t => t.Name).ToList().Contains(a.Name)).First();
+            Assert.Equal(@"SELECT a.[Id], a.[Parent_id], a__Parent.[Id] as as3, a__Parent.[Parent_id] as as4, a__Parent.[Ddd], a__Parent.[Name], a.[Ddd] as as7, a.[Name] as as8 
+FROM [Tag] a 
+LEFT JOIN [Tag] a__Parent ON (a__Parent.[Id] = a.[Parent_id]) 
+WHERE (((a.[Name]) in (SELECT t.[Name] as as1 
+    FROM [Tag] t 
+    LEFT JOIN [Tag] t__Parent ON (t__Parent.[Id] = t.[Parent_id]) 
+    WHERE (t.[Parent_id] = a__Parent.[Id]) AND (t__Parent.[Id] = 10))))", t15);
+
 
             //ManyToMany
-            var t2 = g.msaccess.Select<Song>().Where(s => s.Tags.AsSelect().Any(t => t.Name == "国语")).ToSql();
-            //SELECT a.[Id], a.[Create_time], a.[Is_deleted], a.[Title], a.[Url] 
-            //FROM [Song] a
-            //WHERE(exists(SELECT 1
-            //    FROM [Song_tag] Mt_Ms
-            //    WHERE(Mt_Ms.[Song_id] = a.[Id]) AND(exists(SELECT 1
-            //        FROM [Tag] t
-            //        WHERE(t.[Name] = '国语') AND(t.[Id] = Mt_Ms.[Tag_id])
-            //        limit 0, 1))
-            //    limit 0, 1))
+            var t2 = fsql.Select<Song>().Where(s => s.Tags.AsSelect().Any(t => t.Name == "国语")).ToSql();
+            fsql.Select<Song>().Where(s => s.Tags.AsSelect().Any(t => t.Name == "国语")).First();
+            Assert.Equal(@"SELECT a.[Id], a.[Create_time], a.[Is_deleted], a.[Title], a.[Url] 
+FROM [Song] a 
+WHERE (exists(SELECT TOP 1 1 
+    FROM [Song_tag] Mt_Ms 
+    WHERE (Mt_Ms.[Song_id] = a.[Id]) AND (exists(SELECT TOP 1 1 
+        FROM [Tag] t 
+        WHERE (t.[Name] = '国语') AND (t.[Id] = Mt_Ms.[Tag_id])))))", t2);
+            var t21 = fsql.Select<Song>().Where(s => s.Tags.Any(t => t.Name == "国语")).ToSql();
+            fsql.Select<Song>().Where(s => s.Tags.Any(t => t.Name == "国语")).First();
+            Assert.Equal(@"SELECT a.[Id], a.[Create_time], a.[Is_deleted], a.[Title], a.[Url] 
+FROM [Song] a 
+WHERE (exists(SELECT TOP 1 1 
+    FROM [Tag] t 
+    WHERE (exists(SELECT TOP 1 1 
+        FROM [Song_tag] Mt_Ma 
+        WHERE (Mt_Ma.[Tag_id] = t.[Id]) AND (Mt_Ma.[Song_id] = a.[Id]))) AND (t.[Name] = '国语')))", t21);
+            var t22 = fsql.Select<Song>().Where(s => s.Tags.Where(t => t.Name == "国语").Any()).ToSql();
+            fsql.Select<Song>().Where(s => s.Tags.Where(t => t.Name == "国语").Any()).First();
+            Assert.Equal(@"SELECT a.[Id], a.[Create_time], a.[Is_deleted], a.[Title], a.[Url] 
+FROM [Song] a 
+WHERE (exists(SELECT TOP 1 1 
+    FROM [Tag] t 
+    WHERE (exists(SELECT TOP 1 1 
+        FROM [Song_tag] Mt_Ma 
+        WHERE (Mt_Ma.[Tag_id] = t.[Id]) AND (Mt_Ma.[Song_id] = a.[Id]))) AND (t.[Name] = '国语')))", t22);
+            var t23 = fsql.Select<Tag>().Where(t => t.Parent.Songs.Any(s => s.Title == "中国人")).ToSql();
+            fsql.Select<Tag>().Where(t => t.Parent.Songs.Any(s => s.Title == "中国人")).First();
+            Assert.Equal(@"SELECT a.[Id], a.[Parent_id], a__Parent.[Id] as as3, a__Parent.[Parent_id] as as4, a__Parent.[Ddd], a__Parent.[Name], a.[Ddd] as as7, a.[Name] as as8 
+FROM [Tag] a 
+LEFT JOIN [Tag] a__Parent ON (a__Parent.[Id] = a.[Parent_id]) 
+WHERE (exists(SELECT TOP 1 1 
+    FROM [Song] s 
+    WHERE (exists(SELECT TOP 1 1 
+        FROM [Song_tag] Ms_Ma__Parent 
+        WHERE (Ms_Ma__Parent.[Song_id] = s.[Id]) AND (Ms_Ma__Parent.[Tag_id] = a__Parent.[Id]))) AND (s.[Title] = '中国人')))", t23);
+            var t24 = fsql.Select<Tag>().Where(t => t.Parent.Songs.Where(s => s.Title == "中国人").Any()).ToSql();
+            fsql.Select<Tag>().Where(t => t.Parent.Songs.Where(s => s.Title == "中国人").Any()).First();
+            Assert.Equal(@"SELECT a.[Id], a.[Parent_id], a__Parent.[Id] as as3, a__Parent.[Parent_id] as as4, a__Parent.[Ddd], a__Parent.[Name], a.[Ddd] as as7, a.[Name] as as8 
+FROM [Tag] a 
+LEFT JOIN [Tag] a__Parent ON (a__Parent.[Id] = a.[Parent_id]) 
+WHERE (exists(SELECT TOP 1 1 
+    FROM [Song] s 
+    WHERE (exists(SELECT TOP 1 1 
+        FROM [Song_tag] Ms_Ma__Parent 
+        WHERE (Ms_Ma__Parent.[Song_id] = s.[Id]) AND (Ms_Ma__Parent.[Tag_id] = a__Parent.[Id]))) AND (s.[Title] = '中国人')))", t24);
+            var t25 = fsql.Select<Tag>().Where(t => t.Parent.Songs.Where(s => s.Title == "中国人").Select(s => s.Title).ToList().Contains(t.Name)).ToSql();
+            fsql.Select<Tag>().Where(t => t.Parent.Songs.Where(s => s.Title == "中国人").Select(s => s.Title).ToList().Contains(t.Name)).First();
+            Assert.Equal(@"SELECT a.[Id], a.[Parent_id], a__Parent.[Id] as as3, a__Parent.[Parent_id] as as4, a__Parent.[Ddd], a__Parent.[Name], a.[Ddd] as as7, a.[Name] as as8 
+FROM [Tag] a 
+LEFT JOIN [Tag] a__Parent ON (a__Parent.[Id] = a.[Parent_id]) 
+WHERE (((a.[Name]) in (SELECT s.[Title] as as1 
+    FROM [Song] s 
+    WHERE (exists(SELECT TOP 1 1 
+        FROM [Song_tag] Ms_Ma__Parent 
+        WHERE (Ms_Ma__Parent.[Song_id] = s.[Id]) AND (Ms_Ma__Parent.[Tag_id] = a__Parent.[Id]))) AND (s.[Title] = '中国人'))))", t25);
+
+
+            var t3 = fsql.Select<Song>().First(r => new
+            {
+                r.Title,
+                c2 = r.Tags.Count,
+                c3 = r.Tags.Count(),
+                c4 = r.Tags.Count(tag => tag.Id > 0),
+                s1 = r.Tags.Sum(b => b.Id + 0),
+                a1 = r.Tags.Average(b => b.Id + 1),
+                m1 = r.Tags.Max(b => b.Id + 2),
+                m2 = r.Tags.Min(b => b.Id + 3),
+                f1 = r.Tags.Select(b => b.Name).First(),
+
+                count = r.Tags.AsSelect().Count(),
+                sum = r.Tags.AsSelect().Sum(b => b.Id + 0),
+                avg = r.Tags.AsSelect().Avg(b => b.Id + 1),
+                max = r.Tags.AsSelect().Max(b => b.Id + 2),
+                min = r.Tags.AsSelect().Min(b => b.Id + 3),
+                first = r.Tags.AsSelect().First(b => b.Name)
+            });
         }
 
         [Fact]

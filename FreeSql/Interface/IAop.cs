@@ -92,11 +92,14 @@ namespace FreeSql.Aop
     #region ParseExpression
     public class ParseExpressionEventArgs : EventArgs
     {
-        public ParseExpressionEventArgs(Expression expression, Func<Expression, string> freeParse)
+        public ParseExpressionEventArgs(Expression expression, Func<Expression, string> freeParse, List<SelectTableInfo> tables)
         {
             this.Expression = expression;
             this.FreeParse = freeParse;
+            this.Tables = tables;
         }
+
+        public List<SelectTableInfo> Tables { get; }
 
         /// <summary>
         /// 内置解析功能，可辅助您进行解析

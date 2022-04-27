@@ -714,10 +714,15 @@ namespace FreeSql.Internal
         {
             if (exp == null) return "";
             if (tsc.dbParams != null && tsc.mapColumnTmp != null && tsc.mapColumnTmp.CsType.NullableTypeOrThis() != exp.Type) tsc.SetMapColumnTmp(null);
-            if (tsc.isDisableDiyParse == false && _common._orm.Aop.ParseExpressionHandler != null)
+            if (tsc.isDisableDiyParse == false)
             {
-                var args = new Aop.ParseExpressionEventArgs(exp, ukexp => ExpressionLambdaToSql(ukexp, tsc.CloneDisableDiyParse()));
-                _common._orm.Aop.ParseExpressionHandler?.Invoke(this, args);
+                var args = new Aop.ParseExpressionEventArgs(exp, ukexp => ExpressionLambdaToSql(ukexp, tsc.CloneDisableDiyParse()), tsc._tables);
+                if (_common._orm.Aop.ParseExpressionHandler != null)
+                {
+                    _common._orm.Aop.ParseExpressionHandler(this, args);
+                    if (string.IsNullOrEmpty(args.Result) == false) return args.Result;
+                }
+                ParseExpressionNoAsSelect(this, args);
                 if (string.IsNullOrEmpty(args.Result) == false) return args.Result;
             }
             switch (exp.NodeType)
@@ -1240,6 +1245,26 @@ namespace FreeSql.Internal
                                                         tsc3._tables = tsc._tables.ToList();
                                                         var where2 = ExpressionLambdaToSql(Expression.Lambda(manySubSelectWhereExp, manySubSelectWhereParam), tsc3);
                                                         if (string.IsNullOrEmpty(where2) == false) fsqls0p._where.Append(" AND (").Append(where2).Append(")");
+
+                                                        switch (exp3.Method.Name)
+                                                        {
+                                                            case "Sum":
+                                                            case "Min":
+                                                            case "Max":
+                                                            case "Avg":
+                                                                var map = new ReadAnonymousTypeInfo();
+                                                                var field = new StringBuilder();
+                                                                var index = -1;
+
+                                                                for (var a = 0; a < exp3Args0.Parameters.Count; a++) fsqls0p._tables[a].Parameter = exp3Args0.Parameters[a];
+                                                                ReadAnonymousField(fsqls0p._tables, field, map, ref index, exp3Args0, null, null, null, null, false);
+                                                                var fieldSql = field.Length > 0 ? field.Remove(0, 2).ToString() : null;
+
+                                                                var sql4 = fsqlType.GetMethod("ToSql", new Type[] { typeof(string) })?.Invoke(fsql, new object[] { $"{exp3.Method.Name.ToLower()}({fieldSql})" })?.ToString();
+                                                                asSelectBefores.Clear();
+                                                                return $"({sql4.Replace(" \r\n", " \r\n    ")})";
+                                                        }
+
                                                         var sql3 = manySubSelectAggMethod.Invoke(fsql, new object[] { exp3Args0, FieldAliasOptions.AsProperty }) as string;
                                                         asSelectBefores.Clear();
                                                         return $"({sql3.Replace(" \r\n", " \r\n    ")})";
@@ -1899,6 +1924,284 @@ namespace FreeSql.Internal
             }
             return string.Format(CultureInfo.InvariantCulture, "{0}", _ado.AddslashesProcessParam(obj, mapType, mapColumn));
             //return string.Concat(_ado.AddslashesProcessParam(obj, mapType, mapColumn));
+        }
+
+        public static void ParseExpressionNoAsSelect(object sender, Aop.ParseExpressionEventArgs e)
+        {
+            if (e.Expression.NodeType != ExpressionType.Call &&
+                (e.Expression as MemberExpression)?.Member.Name != "Count") return;
+            var exp3Stack = new Stack<Expression>();
+            var exp3tmp = e.Expression;
+            while (exp3tmp != null)
+            {
+                exp3Stack.Push(exp3tmp);
+                switch (exp3tmp.NodeType)
+                {
+                    case ExpressionType.Call:
+                        var exp3tmpCall = (exp3tmp as MethodCallExpression);
+                        if (exp3tmpCall.Type.FullName.StartsWith("FreeSql.ISelect`") && exp3tmpCall.Method.Name == "AsSelect" && exp3tmpCall.Object == null) return;
+                        exp3tmp = exp3tmpCall.Object == null ? exp3tmpCall.Arguments.FirstOrDefault() : exp3tmpCall.Object;
+                        continue;
+                    case ExpressionType.MemberAccess:
+                        exp3tmp = (exp3tmp as MemberExpression).Expression;
+                        continue;
+                    case ExpressionType.Parameter:
+                        exp3tmp = null;
+                        continue;
+                }
+                return;
+            }
+            exp3tmp = exp3Stack.Pop();
+            if (exp3tmp.NodeType != ExpressionType.Parameter) return;
+            if (exp3tmp.Type.FullName.StartsWith("FreeSql.ISelectGroupingAggregate")) return;
+            var commonExp = sender as FreeSql.Internal.CommonExpression;
+            if (commonExp == null) return;
+            var exp3Tb = commonExp._common.GetTableByEntity(exp3tmp.Type);
+            if (exp3Tb == null) return;
+            var paramExp = exp3tmp as ParameterExpression;
+            Select1Provider<object> select = null;
+            TableRef memberTbref = null;
+            MemberExpression memberExp = null;
+            bool selectSetAliased = false;
+
+            void LocalSetSelectProviderAlias(string alias)
+            {
+                if (selectSetAliased) return;
+                selectSetAliased = true;
+                select._tables[0].Alias = alias;
+                select._tables[0].AliasInit = alias;
+                switch (memberTbref.RefType)
+                {
+                    case TableRefType.ManyToMany:
+                        var mtmReftbname = e.FreeParse(Expression.MakeMemberAccess(memberExp.Expression, exp3Tb.Properties[exp3Tb.ColumnsByPosition[0].CsName]));
+                        mtmReftbname = mtmReftbname.Substring(0, mtmReftbname.Length - commonExp._common.QuoteSqlName(exp3Tb.ColumnsByPosition[0].Attribute.Name).Length - 1);
+                        var midSelect = commonExp._common._orm.Select<object>().As($"M{select._tables[0].Alias}_M{mtmReftbname}").AsType(memberTbref.RefMiddleEntityType) as Select1Provider<object>;
+                        switch (commonExp._ado.DataType)
+                        {
+                            case DataType.Oracle:
+                            case DataType.OdbcOracle:
+                            case DataType.Dameng:
+                            case DataType.OdbcDameng:
+                            case DataType.GBase:
+                                break;
+                            default:
+                                midSelect.Limit(1); //#462 ORACLE rownum <= 2 会影响索引变慢
+                                break;
+                        }
+                        for (var tidx = 0; tidx < memberTbref.RefColumns.Count; tidx++)
+                            midSelect.Where($"{midSelect._tables[0].Alias}.{commonExp._common.QuoteSqlName(memberTbref.MiddleColumns[memberTbref.Columns.Count + tidx].Attribute.Name)} = {select._tables[0].Alias}.{commonExp._common.QuoteSqlName(memberTbref.RefColumns[tidx].Attribute.Name)}");
+                        for (var tidx = 0; tidx < memberTbref.Columns.Count; tidx++)
+                            midSelect.Where($"{midSelect._tables[0].Alias}.{commonExp._common.QuoteSqlName(memberTbref.MiddleColumns[tidx].Attribute.Name)} = {mtmReftbname}.{commonExp._common.QuoteSqlName(memberTbref.Columns[tidx].Attribute.Name)}");
+                        select.Where($"exists({midSelect.ToSql("1").Replace(" \r\n", " \r\n    ")})");
+                        break;
+                    case TableRefType.OneToMany:
+                        var omtReftbname = e.FreeParse(Expression.MakeMemberAccess(memberExp.Expression, exp3Tb.Properties[exp3Tb.ColumnsByPosition[0].CsName]));
+                        omtReftbname = omtReftbname.Substring(0, omtReftbname.Length - commonExp._common.QuoteSqlName(exp3Tb.ColumnsByPosition[0].Attribute.Name).Length - 1);
+                        for (var tidx = 0; tidx < memberTbref.Columns.Count; tidx++)
+                            select.Where($"{select._tables[0].Alias}.{commonExp._common.QuoteSqlName(memberTbref.RefColumns[tidx].Attribute.Name)} = {omtReftbname}.{commonExp._common.QuoteSqlName(memberTbref.Columns[tidx].Attribute.Name)}");
+                        break;
+                }
+
+            }
+            void LocalInitSelectProvider()
+            {
+                select = commonExp._common._orm.Select<object>().AsType(memberTbref.RefEntityType) as Select1Provider<object>;
+                select._tables.AddRange(e.Tables.Select(a => new SelectTableInfo
+                {
+                    Alias = a.Alias,
+                    On = "1=1",
+                    Table = a.Table,
+                    Type = SelectTableInfoType.Parent,
+                    Parameter = a.Parameter
+                }));
+            }
+            while (true)
+            {
+                var exp4 = exp3Stack.Pop();
+                if (exp4.NodeType == ExpressionType.MemberAccess)
+                {
+                    var tmpExp = exp4 as MemberExpression;
+                    if (tmpExp.Member.Name == "Count" && select != null)
+                    {
+                        if (exp3Stack.Any()) return;
+                        LocalSetSelectProviderAlias("tbcou");
+                        e.Result = $"({select.ToSql("count(1)").Replace(" \r\n", " \r\n    ")})";
+                        return;
+                    }
+                    if (select != null) return;
+                    memberExp = tmpExp;
+                    memberTbref = exp3Tb.GetTableRef(memberExp.Member.Name, false);
+                    if (memberTbref == null) return;
+                    switch (memberTbref.RefType)
+                    {
+                        case TableRefType.ManyToOne:
+                        case TableRefType.OneToOne:
+                            exp3Tb = commonExp._common.GetTableByEntity(memberExp.Type);
+                            if (exp3Tb == null) return;
+                            continue;
+                        case TableRefType.ManyToMany:
+                            if (select != null) return;
+                            LocalInitSelectProvider();
+                            continue;
+                        case TableRefType.OneToMany:
+                            if (select != null) return;
+                            LocalInitSelectProvider();
+                            continue;
+                    }
+                }
+                if (exp4.NodeType == ExpressionType.Call)
+                {
+                    if (select == null) return;
+                    var callExp = exp4 as MethodCallExpression;
+                    switch (callExp.Method.Name)
+                    {
+                        case "Any":
+                            if (callExp.Arguments.Count == 2)
+                            {
+                                select._tables[0].Parameter = (callExp.Arguments[1] as LambdaExpression)?.Parameters.FirstOrDefault();
+                                LocalSetSelectProviderAlias(select._tables[0].Parameter.Name);
+                                select.InternalWhere(callExp.Arguments[1]);
+                            }
+                            switch (commonExp._ado.DataType)
+                            {
+                                case DataType.Oracle:
+                                case DataType.OdbcOracle:
+                                case DataType.Dameng:
+                                case DataType.OdbcDameng:
+                                case DataType.GBase:
+                                    break;
+                                default:
+                                    select._limit = 1; //#462 ORACLE rownum <= 2 会影响索引变慢
+                                    break;
+                            }
+                            if (exp3Stack.Any()) return;
+                            LocalSetSelectProviderAlias("tbany");
+                            e.Result = $"exists({select.ToSql("1").Replace(" \r\n", " \r\n    ")})";
+                            return;
+                        case "Max":
+                        case "Min":
+                        case "Sum":
+                        case "Average":
+                            if (callExp.Arguments.Count == 2)
+                            {
+                                var aggregateMethodName = callExp.Method.Name == "Average" ? "avg" : callExp.Method.Name.ToLower();
+                                if (exp3Stack.Any()) return;
+                                select._tables[0].Parameter = (callExp.Arguments[1] as LambdaExpression)?.Parameters.FirstOrDefault();
+                                LocalSetSelectProviderAlias(select._tables[0].Parameter.Name);
+
+                                var map = new ReadAnonymousTypeInfo();
+                                var field = new StringBuilder();
+                                var index = -1;
+
+                                commonExp.ReadAnonymousField(select._tables, field, map, ref index, callExp.Arguments[1], null, null, null, null, false);
+                                var fieldSql = field.Length > 0 ? field.Remove(0, 2).ToString() : null;
+
+                                e.Result = $"({select.ToSql($"{aggregateMethodName}({fieldSql})").Replace(" \r\n", " \r\n    ")})";
+                                return;
+                            }
+                            throw throwCallExp($"不支持 {callExp.Arguments.Count}个参数的方法");
+                        case "Count":
+                            if (callExp.Arguments.Count == 2)
+                            {
+                                select._tables[0].Parameter = (callExp.Arguments[1] as LambdaExpression)?.Parameters.FirstOrDefault();
+                                LocalSetSelectProviderAlias(select._tables[0].Parameter.Name);
+                                select.InternalWhere(callExp.Arguments[1]);
+                            }
+                            if (exp3Stack.Any()) return;
+                            LocalSetSelectProviderAlias("tbcou");
+                            e.Result = $"({select.ToSql("count(1)").Replace(" \r\n", " \r\n    ")})";
+                            return;
+
+                        case "First":
+                            select.Limit(1);
+                            if (callExp.Arguments.Count == 1)
+                            {
+                                if (exp3Stack.Any()) return;
+                                LocalSetSelectProviderAlias("tbfirst");
+                                e.Result = $"({select.ToSql().Replace(" \r\n", " \r\n    ")})";
+                                return;
+                            }
+                            throw throwCallExp(" 不支持");
+                        case "ToList":
+                            if (callExp.Arguments.Count == 1)
+                            {
+                                if (exp3Stack.Any()) return;
+                                LocalSetSelectProviderAlias("tbtolist");
+                                e.Result = $"({select.ToSql().Replace(" \r\n", " \r\n    ")})";
+                                return;
+                            }
+                            throw throwCallExp(" 不支持");
+                        case "Contains":
+                            if (callExp.Arguments.Count == 2)
+                            {
+                                if (exp3Stack.Any()) return;
+                                select._tables[0].Parameter = (callExp.Arguments[1] as LambdaExpression)?.Parameters.FirstOrDefault();
+                                LocalSetSelectProviderAlias(select._tables[0].Parameter.Name);
+                                e.Result = $"({e.FreeParse(callExp.Arguments[1])}) in {select.ToSql().Replace(" \r\n", " \r\n    ")})";
+                                return;
+                            }
+                            throw throwCallExp($" 不支持 {callExp.Arguments.Count}个参数的方法");
+
+                        case "Distinct":
+                            if (callExp.Arguments.Count == 1)
+                            {
+                                select.Distinct();
+                                break;
+                            }
+                            throw throwCallExp(" 不支持");
+                        case "OrderBy":
+                            select._tables[0].Parameter = (callExp.Arguments[1] as LambdaExpression)?.Parameters.FirstOrDefault();
+                            LocalSetSelectProviderAlias(select._tables[0].Parameter.Name);
+                            select.OrderByReflection(callExp.Arguments[1] as LambdaExpression as LambdaExpression, false);
+                            break;
+                        case "OrderByDescending":
+                            select._tables[0].Parameter = (callExp.Arguments[1] as LambdaExpression)?.Parameters.FirstOrDefault();
+                            LocalSetSelectProviderAlias(select._tables[0].Parameter.Name);
+                            select.OrderByReflection(callExp.Arguments[1] as LambdaExpression as LambdaExpression, true);
+                            break;
+                        case "ThenBy":
+                            select._tables[0].Parameter = (callExp.Arguments[1] as LambdaExpression)?.Parameters.FirstOrDefault();
+                            LocalSetSelectProviderAlias(select._tables[0].Parameter.Name);
+                            select.OrderByReflection(callExp.Arguments[1] as LambdaExpression as LambdaExpression, false);
+                            break;
+                        case "ThenByDescending":
+                            select._tables[0].Parameter = (callExp.Arguments[1] as LambdaExpression)?.Parameters.FirstOrDefault();
+                            LocalSetSelectProviderAlias(select._tables[0].Parameter.Name);
+                            select.OrderByReflection(callExp.Arguments[1] as LambdaExpression as LambdaExpression, true);
+                            break;
+
+                        case "Where":
+                            var whereParam = callExp.Arguments[1] as LambdaExpression;
+                            if (whereParam?.Parameters.Count == 1)
+                            {
+                                select._tables[0].Parameter = whereParam.Parameters.FirstOrDefault();
+                                LocalSetSelectProviderAlias(select._tables[0].Parameter.Name);
+                                select.InternalWhere(whereParam);
+                                break;
+                            }
+                            throw throwCallExp(" 不支持");
+
+                        case "Skip":
+                            select.Offset((int)callExp.Arguments[1].GetConstExprValue());
+                            break;
+                        case "Take":
+                            select.Limit((int)callExp.Arguments[1].GetConstExprValue());
+                            break;
+
+                        case "Select":
+                            var selectParam = callExp.Arguments[1] as LambdaExpression;
+                            if (selectParam?.Parameters.Count == 1)
+                            {
+                                select._tables[0].Parameter = selectParam.Parameters.FirstOrDefault();
+                                LocalSetSelectProviderAlias(select._tables[0].Parameter.Name);
+                                select._selectExpression = selectParam;
+                                break;
+                            }
+                            throw throwCallExp(" 不支持");
+                    }
+                    Exception throwCallExp(string message) => new Exception($"解析失败 {callExp.Method.Name} {message}");
+                }
+            }
         }
     }
 }

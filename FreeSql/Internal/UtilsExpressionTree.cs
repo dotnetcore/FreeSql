@@ -41,6 +41,7 @@ namespace FreeSql.Internal
             if (common.CodeFirst.GetDbInfo(entity) != null) return null;
             if (typeof(IEnumerable).IsAssignableFrom(entity) && entity.IsGenericType == true) return null;
             if (entity.IsArray) return null;
+            if (entity.FullName.StartsWith("FreeSql.ISelectGroupingAggregate`")) return null;
 
             object entityDefault = null;
             try
