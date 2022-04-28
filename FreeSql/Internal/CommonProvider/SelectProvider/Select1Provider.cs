@@ -259,8 +259,15 @@ namespace FreeSql.Internal.CommonProvider
         Expression<Func<T1, TDto>> GetToListDtoSelector<TDto>()
         {
             var expParam = _tables[0].Parameter ?? Expression.Parameter(typeof(T1), "a");
-            var expBinds = _tables[0].Table.Columns.Where(a => a.Value.CsType != a.Value.Attribute.MapType)
-                .Select(a => Expression.Bind(typeof(TDto).GetProperty(a.Value.CsName), Expression.MakeMemberAccess(expParam, _tables[0].Table.Properties[a.Value.CsName])))
+            var expBinds = _tables[0].Table.Columns
+                .Where(a => a.Value.CsType != a.Value.Attribute.MapType)
+                .Select(a => new { DtoProperty = typeof(TDto).GetProperty(a.Value.CsName), EntityProperty = _tables[0].Table.Properties[a.Value.CsName], Column = a.Value })
+                .Where(a => a.DtoProperty != null)
+                .Select(a => 
+                    a.DtoProperty.PropertyType == a.EntityProperty.PropertyType ?
+                    Expression.Bind(a.DtoProperty, Expression.MakeMemberAccess(expParam, a.EntityProperty)) :
+                    Expression.Bind(a.DtoProperty, Expression.Convert(Expression.MakeMemberAccess(expParam, a.EntityProperty), a.DtoProperty.PropertyType))
+                )
                 .ToArray();
             return Expression.Lambda<Func<T1, TDto>>(
                 Expression.MemberInit(typeof(TDto).InternalNewExpression(), expBinds),
