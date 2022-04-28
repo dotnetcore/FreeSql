@@ -49,7 +49,7 @@ QQ群：4336577(已满)、8578575(已满)、52508226(在线)
 - [内容管理系统](https://github.com/hejiyong/fscms)
 
 <p align="center">
-  <img src="https://github.com/dotnetcore/FreeSql/raw/master/functions12.png"/>
+  <img src="https://github.com/dotnetcore/FreeSql/raw/master/functions13.png"/>
 </p>
 
 ## 🚀 快速入门
