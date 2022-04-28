@@ -80,8 +80,9 @@ namespace FreeSql
                             Attach(data);
                             if (_db.Options.EnableAddOrUpdateNavigateList)
                                 await AddOrUpdateNavigateListAsync(data, true, null, cancellationToken);
+                            return;
                         }
-                        return;
+                        break;
                 }
             }
             EnqueueToDbContext(DbContext.EntityChangeType.Insert, CreateEntityState(data));
@@ -124,21 +125,22 @@ namespace FreeSql
                                 await AddOrUpdateNavigateListAsync(item, true, null, cancellationToken);
                         return;
                     default:
-                        foreach (var s in data)
-                            await AddPrivAsync(s, false, cancellationToken);
-                        return;
+                        if (_tableIdentitys.Length == 1 && _tableReturnColumns.Length == 1)
+                        {
+                            foreach (var s in data)
+                                await AddPrivAsync(s, false, cancellationToken);
+                            return;
+                        }
+                        break;
                 }
             }
-            else
-            {
-                //进入队列，等待 SaveChanges 时执行
+            //进入队列，等待 SaveChanges 时执行
+            foreach (var item in data)
+                EnqueueToDbContext(DbContext.EntityChangeType.Insert, CreateEntityState(item));
+            AttachRange(data);
+            if (_db.Options.EnableAddOrUpdateNavigateList)
                 foreach (var item in data)
-                    EnqueueToDbContext(DbContext.EntityChangeType.Insert, CreateEntityState(item));
-                AttachRange(data);
-                if (_db.Options.EnableAddOrUpdateNavigateList)
-                    foreach (var item in data)
-                        await AddOrUpdateNavigateListAsync(item, true, null, cancellationToken);
-            }
+                    await AddOrUpdateNavigateListAsync(item, true, null, cancellationToken);
         }
 
         async public Task SaveManyAsync(TEntity item, string propertyName, CancellationToken cancellationToken = default)

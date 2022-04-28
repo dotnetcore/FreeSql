@@ -159,6 +159,13 @@ namespace base_entity
             public DateTime CreateTime { get; set; }
         }
 
+
+        class CommandTimeoutCascade : IDisposable
+        {
+            public static AsyncLocal<int> _asyncLocalTimeout = new AsyncLocal<int>();
+            public CommandTimeoutCascade(int timeout) => _asyncLocalTimeout.Value = timeout;
+            public void Dispose() => _asyncLocalTimeout.Value = 0;
+        }
         static void Main(string[] args)
         {
             #region 初始化 IFreeSql
@@ -200,6 +207,21 @@ namespace base_entity
                 .Build();
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
+
+            fsql.Aop.CommandBefore += (_, e) =>
+            {
+                if (CommandTimeoutCascade._asyncLocalTimeout.Value > 0)
+                    e.Command.CommandTimeout = CommandTimeoutCascade._asyncLocalTimeout.Value;
+            };
+
+            using (new CommandTimeoutCascade(1000))
+            {
+                fsql.Select<Order>().ToList();
+                fsql.Select<Order>().ToList();
+                fsql.Select<Order>().ToList();
+            }
+
+
 
             fsql.UseJsonMap();
 

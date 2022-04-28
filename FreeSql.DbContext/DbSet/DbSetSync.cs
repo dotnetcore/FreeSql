@@ -79,8 +79,9 @@ namespace FreeSql
                             Attach(data);
                             if (_db.Options.EnableAddOrUpdateNavigateList)
                                 AddOrUpdateNavigateList(data, true, null);
+                            return;
                         }
-                        return;
+                        break;
                 }
             }
             EnqueueToDbContext(DbContext.EntityChangeType.Insert, CreateEntityState(data));
@@ -127,21 +128,22 @@ namespace FreeSql
                                 AddOrUpdateNavigateList(item, true, null);
                         return;
                     default:
-                        foreach (var s in data)
-                            AddPriv(s, false);
-                        return;
+                        if (_tableIdentitys.Length == 1 && _tableReturnColumns.Length == 1)
+                        {
+                            foreach (var s in data)
+                                AddPriv(s, false);
+                            return;
+                        }
+                        break;
                 }
             }
-            else
-            {
-                //进入队列，等待 SaveChanges 时执行
+            //进入队列，等待 SaveChanges 时执行
+            foreach (var item in data)
+                EnqueueToDbContext(DbContext.EntityChangeType.Insert, CreateEntityState(item));
+            AttachRange(data);
+            if (_db.Options.EnableAddOrUpdateNavigateList)
                 foreach (var item in data)
-                    EnqueueToDbContext(DbContext.EntityChangeType.Insert, CreateEntityState(item));
-                AttachRange(data);
-                if (_db.Options.EnableAddOrUpdateNavigateList)
-                    foreach (var item in data)
-                        AddOrUpdateNavigateList(item, true, null);
-            }
+                    AddOrUpdateNavigateList(item, true, null);
         }
 
         /// <summary>

@@ -1718,6 +1718,10 @@ WHERE (((to_char(a.""ID"")) in (SELECT b.""TITLE""
             Assert.Equal(2, g.oracle.Select<ToDel1Pk>().Where(a => a.name.StartsWith("name")).ToDelete().ExecuteAffrows());
             Assert.Equal(3, g.oracle.Select<ToDel1Pk>().Count());
             Assert.Equal(3, g.oracle.Select<ToDel1Pk>().Where(a => a.name.StartsWith("nick")).Count());
+            Assert.Equal(2, g.oracle.Select<ToDel1Pk>().OrderBy(a => a.name).Limit(2).ToDelete().ExecuteAffrows());
+            Assert.Equal(1, g.oracle.Select<ToDel1Pk>().Count());
+            Assert.Equal(1, g.oracle.Select<ToDel1Pk>().Where(a => a.name.StartsWith("nick")).Count());
+            Assert.Equal("nick3", g.oracle.Select<ToDel1Pk>().ToList()[0].name);
 
             g.oracle.Select<ToDel2Pk>().ToDelete().ExecuteAffrows();
             Assert.Equal(0, g.oracle.Select<ToDel2Pk>().Count());
