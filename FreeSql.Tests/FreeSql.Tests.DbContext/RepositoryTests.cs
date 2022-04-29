@@ -1,4 +1,4 @@
-using FreeSql.DataAnnotations;
+ï»¿using FreeSql.DataAnnotations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +10,7 @@ namespace FreeSql.Tests
     public class RepositoryTests
     {
         /// <summary>
-        /// ¸üÒ»ÌõÎŞ·¨¸üĞÂ¡£
+        /// æ›´ä¸€æ¡æ— æ³•æ›´æ–°ã€‚
         /// </summary>
         /// <returns></returns>
         [Fact]
@@ -70,12 +70,12 @@ namespace FreeSql.Tests
             repos.Attach(item);
 
             item.Title = "xxx";
-            repos.Update(item); //ÕâĞĞÖ´ĞĞ UPDATE "AddUpdateInfo" SET "Title" = 'xxx' WHERE("Id" = '1942fb53-9700-411d-8895-ce4cecdf3257')
+            repos.Update(item); //è¿™è¡Œæ‰§è¡Œ UPDATE "AddUpdateInfo" SET "Title" = 'xxx' WHERE("Id" = '1942fb53-9700-411d-8895-ce4cecdf3257')
             Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(item));
 
-            repos.Update(item); //ÕâĞĞ²»Ö´ĞĞ SQL£¬Î´±ä»¯
+            repos.Update(item); //è¿™è¡Œä¸æ‰§è¡Œ SQLï¼Œæœªå˜åŒ–
 
-            repos.AttachOnlyPrimary(item).Update(item); //ÕâĞĞ¸üĞÂ×´Ì¬Öµ£¬Ö»ÓĞÖ÷¼üÖµ´æÔÚ£¬Ö´ĞĞ¸üĞÂ set title = xxx
+            repos.AttachOnlyPrimary(item).Update(item); //è¿™è¡Œæ›´æ–°çŠ¶æ€å€¼ï¼Œåªæœ‰ä¸»é”®å€¼å­˜åœ¨ï¼Œæ‰§è¡Œæ›´æ–° set title = xxx
 
             Console.WriteLine(repos.UpdateDiy.Where(a => a.Id == item.Id).Set(a => a.Clicks + 1).ToSql());
             repos.UpdateDiy.Where(a => a.Id == item.Id).Set(a => a.Clicks + 1).ExecuteAffrows();
@@ -140,7 +140,7 @@ namespace FreeSql.Tests
                 var flowRepos = fsql.GetRepository<FlowModel>();
                 flowRepos.Insert(flow);
 
-                //ÊÂÎñÌí¼Ó
+                //äº‹åŠ¡æ·»åŠ 
                 flow = new FlowModel()
                 {
                     CreateTime = DateTime.Now,
@@ -192,7 +192,7 @@ namespace FreeSql.Tests
                     var uowFlowRepos = uow.GetRepository<FlowModel>();
                     uowFlowRepos.Insert(flow);
                     uowFlowRepos.Orm.Select<FlowModel>().ToList();
-                    //²»µ÷ÓÃcommit½«²»»áÌá½»Êı¾İ¿â¸ü¸Ä
+                    //ä¸è°ƒç”¨commitå°†ä¸ä¼šæäº¤æ•°æ®åº“æ›´æ”¹
                     //uow.Commit();
                 }
                 Assert.False(flowRepos.Select.Any(a => a.UserId == 1 && a.Name == "aaa"));
@@ -241,36 +241,36 @@ namespace FreeSql.Tests
             var cts = new[] {
                 new Cagetory
                 {
-                    Name = "·ÖÀà1",
+                    Name = "åˆ†ç±»1",
                     Goodss = new List<Goods>(new[]
                     {
-                        new Goods { Name = "ÉÌÆ·1" },
-                        new Goods { Name = "ÉÌÆ·2" },
-                        new Goods { Name = "ÉÌÆ·3" }
+                        new Goods { Name = "å•†å“1" },
+                        new Goods { Name = "å•†å“2" },
+                        new Goods { Name = "å•†å“3" }
                     })
                 },
                 new Cagetory
                 {
-                    Name = "·ÖÀà2",
+                    Name = "åˆ†ç±»2",
                     Goodss = new List<Goods>(new[]
                     {
-                        new Goods { Name = "ÉÌÆ·4" },
-                        new Goods { Name = "ÉÌÆ·5" }
+                        new Goods { Name = "å•†å“4" },
+                        new Goods { Name = "å•†å“5" }
                     })
                 }
             };
             repo.Insert(cts);
-            cts[0].Name = "·ÖÀà11";
+            cts[0].Name = "åˆ†ç±»11";
             cts[0].Goodss.Clear();
-            cts[1].Name = "·ÖÀà22";
+            cts[1].Name = "åˆ†ç±»22";
             cts[1].Goodss.Clear();
             repo.Update(cts);
-            cts[0].Name = "·ÖÀà111";
+            cts[0].Name = "åˆ†ç±»111";
             cts[0].Goodss.Clear();
-            cts[0].Goodss.Add(new Goods { Name = "ÉÌÆ·33" });
-            cts[1].Name = "·ÖÀà222";
+            cts[0].Goodss.Add(new Goods { Name = "å•†å“33" });
+            cts[1].Name = "åˆ†ç±»222";
             cts[1].Goodss.Clear();
-            cts[1].Goodss.Add(new Goods { Name = "ÉÌÆ·55" });
+            cts[1].Goodss.Add(new Goods { Name = "å•†å“55" });
             repo.Update(cts);
 
             var cts2 = repo.Select.WhereDynamic(cts).IncludeMany(a => a.Goodss).ToList();
@@ -304,36 +304,36 @@ namespace FreeSql.Tests
             var cts = new[] {
                 new CagetoryLD
                 {
-                    Name = "·ÖÀà1",
+                    Name = "åˆ†ç±»1",
                     Goodss = new List<GoodsLD>(new[]
                     {
-                        new GoodsLD { Name = "ÉÌÆ·1" },
-                        new GoodsLD { Name = "ÉÌÆ·2" },
-                        new GoodsLD { Name = "ÉÌÆ·3" }
+                        new GoodsLD { Name = "å•†å“1" },
+                        new GoodsLD { Name = "å•†å“2" },
+                        new GoodsLD { Name = "å•†å“3" }
                     })
                 },
                 new CagetoryLD
                 {
-                    Name = "·ÖÀà2",
+                    Name = "åˆ†ç±»2",
                     Goodss = new List<GoodsLD>(new[]
                     {
-                        new GoodsLD { Name = "ÉÌÆ·4" },
-                        new GoodsLD { Name = "ÉÌÆ·5" }
+                        new GoodsLD { Name = "å•†å“4" },
+                        new GoodsLD { Name = "å•†å“5" }
                     })
                 }
             };
             repo.Insert(cts);
-            cts[0].Name = "·ÖÀà11";
+            cts[0].Name = "åˆ†ç±»11";
             cts[0].Goodss.Clear();
-            cts[1].Name = "·ÖÀà22";
+            cts[1].Name = "åˆ†ç±»22";
             cts[1].Goodss.Clear();
             repo.Update(cts);
-            cts[0].Name = "·ÖÀà111";
+            cts[0].Name = "åˆ†ç±»111";
             cts[0].Goodss.Clear();
-            cts[0].Goodss.Add(new GoodsLD { Name = "ÉÌÆ·33" });
-            cts[1].Name = "·ÖÀà222";
+            cts[0].Goodss.Add(new GoodsLD { Name = "å•†å“33" });
+            cts[1].Name = "åˆ†ç±»222";
             cts[1].Goodss.Clear();
-            cts[1].Goodss.Add(new GoodsLD { Name = "ÉÌÆ·55" });
+            cts[1].Goodss.Add(new GoodsLD { Name = "å•†å“55" });
             repo.Update(cts);
 
             var cts2 = repo.Select.WhereDynamic(cts).IncludeMany(a => a.Goodss).ToList();
@@ -369,52 +369,52 @@ namespace FreeSql.Tests
         public void SaveMany_OneToMany()
         {
             var repo = g.sqlite.GetRepository<Cagetory>();
-            repo.DbContextOptions.EnableAddOrUpdateNavigateList = false; //¹Ø±Õ¼¶Áª±£´æ¹¦ÄÜ
+            repo.DbContextOptions.EnableAddOrUpdateNavigateList = false; //å…³é—­çº§è”ä¿å­˜åŠŸèƒ½
             var cts = new[] {
                 new Cagetory
                 {
-                    Name = "·ÖÀà1",
+                    Name = "åˆ†ç±»1",
                     Goodss = new List<Goods>(new[]
                     {
-                        new Goods { Name = "ÉÌÆ·1" },
-                        new Goods { Name = "ÉÌÆ·2" },
-                        new Goods { Name = "ÉÌÆ·3" }
+                        new Goods { Name = "å•†å“1" },
+                        new Goods { Name = "å•†å“2" },
+                        new Goods { Name = "å•†å“3" }
                     })
                 },
                 new Cagetory
                 {
-                    Name = "·ÖÀà2",
+                    Name = "åˆ†ç±»2",
                     Goodss = new List<Goods>(new[]
                     {
-                        new Goods { Name = "ÉÌÆ·4" },
-                        new Goods { Name = "ÉÌÆ·5" }
+                        new Goods { Name = "å•†å“4" },
+                        new Goods { Name = "å•†å“5" }
                     })
                 }
             };
             repo.Insert(cts);
-            repo.SaveMany(cts[0], "Goodss"); //Ö¸¶¨±£´æ Goodss Ò»¶Ô¶àÊôĞÔ
-            repo.SaveMany(cts[1], "Goodss"); //Ö¸¶¨±£´æ Goodss Ò»¶Ô¶àÊôĞÔ
+            repo.SaveMany(cts[0], "Goodss"); //æŒ‡å®šä¿å­˜ Goodss ä¸€å¯¹å¤šå±æ€§
+            repo.SaveMany(cts[1], "Goodss"); //æŒ‡å®šä¿å­˜ Goodss ä¸€å¯¹å¤šå±æ€§
             cts[0].Goodss.RemoveAt(1);
             cts[1].Goodss.RemoveAt(1);
-            repo.SaveMany(cts[0], "Goodss"); //Ö¸¶¨±£´æ Goodss Ò»¶Ô¶àÊôĞÔ
-            repo.SaveMany(cts[1], "Goodss"); //Ö¸¶¨±£´æ Goodss Ò»¶Ô¶àÊôĞÔ
+            repo.SaveMany(cts[0], "Goodss"); //æŒ‡å®šä¿å­˜ Goodss ä¸€å¯¹å¤šå±æ€§
+            repo.SaveMany(cts[1], "Goodss"); //æŒ‡å®šä¿å­˜ Goodss ä¸€å¯¹å¤šå±æ€§
 
-            cts[0].Name = "·ÖÀà11";
+            cts[0].Name = "åˆ†ç±»11";
             cts[0].Goodss.Clear();
-            cts[1].Name = "·ÖÀà22";
+            cts[1].Name = "åˆ†ç±»22";
             cts[1].Goodss.Clear();
             repo.Update(cts);
-            repo.SaveMany(cts[0], "Goodss"); //Ö¸¶¨±£´æ Goodss Ò»¶Ô¶àÊôĞÔ
-            repo.SaveMany(cts[1], "Goodss"); //Ö¸¶¨±£´æ Goodss Ò»¶Ô¶àÊôĞÔ
-            cts[0].Name = "·ÖÀà111";
+            repo.SaveMany(cts[0], "Goodss"); //æŒ‡å®šä¿å­˜ Goodss ä¸€å¯¹å¤šå±æ€§
+            repo.SaveMany(cts[1], "Goodss"); //æŒ‡å®šä¿å­˜ Goodss ä¸€å¯¹å¤šå±æ€§
+            cts[0].Name = "åˆ†ç±»111";
             cts[0].Goodss.Clear();
-            cts[0].Goodss.Add(new Goods { Name = "ÉÌÆ·33" });
-            cts[1].Name = "·ÖÀà222";
+            cts[0].Goodss.Add(new Goods { Name = "å•†å“33" });
+            cts[1].Name = "åˆ†ç±»222";
             cts[1].Goodss.Clear();
-            cts[1].Goodss.Add(new Goods { Name = "ÉÌÆ·55" });
+            cts[1].Goodss.Add(new Goods { Name = "å•†å“55" });
             repo.Update(cts);
-            repo.SaveMany(cts[0], "Goodss"); //Ö¸¶¨±£´æ Goodss Ò»¶Ô¶àÊôĞÔ
-            repo.SaveMany(cts[1], "Goodss"); //Ö¸¶¨±£´æ Goodss Ò»¶Ô¶àÊôĞÔ
+            repo.SaveMany(cts[0], "Goodss"); //æŒ‡å®šä¿å­˜ Goodss ä¸€å¯¹å¤šå±æ€§
+            repo.SaveMany(cts[1], "Goodss"); //æŒ‡å®šä¿å­˜ Goodss ä¸€å¯¹å¤šå±æ€§
         }
 
         [Fact]
@@ -425,42 +425,42 @@ namespace FreeSql.Tests
             var cts = new[] {
                 new CagetoryParent
                 {
-                    Name = "·ÖÀà1",
+                    Name = "åˆ†ç±»1",
                     Childs = new List<CagetoryParent>(new[]
                     {
-                        new CagetoryParent { Name = "·ÖÀà1_1" },
-                        new CagetoryParent { Name = "·ÖÀà1_2" },
-                        new CagetoryParent { Name = "·ÖÀà1_3" }
+                        new CagetoryParent { Name = "åˆ†ç±»1_1" },
+                        new CagetoryParent { Name = "åˆ†ç±»1_2" },
+                        new CagetoryParent { Name = "åˆ†ç±»1_3" }
                     })
                 },
                 new CagetoryParent
                 {
-                    Name = "·ÖÀà2",
+                    Name = "åˆ†ç±»2",
                     Childs = new List<CagetoryParent>(new[]
                     {
-                        new CagetoryParent { Name = "·ÖÀà2_1" },
-                        new CagetoryParent { Name = "·ÖÀà2_2" }
+                        new CagetoryParent { Name = "åˆ†ç±»2_1" },
+                        new CagetoryParent { Name = "åˆ†ç±»2_2" }
                     })
                 }
             };
-            repo.DbContextOptions.EnableAddOrUpdateNavigateList = true; //´ò¿ª¼¶Áª±£´æ¹¦ÄÜ
+            repo.DbContextOptions.EnableAddOrUpdateNavigateList = true; //æ‰“å¼€çº§è”ä¿å­˜åŠŸèƒ½
             repo.Insert(cts);
 
             var notreelist1 = repo.Select.ToList();
             var treelist1 = repo.Select.ToTreeList();
 
-            //repo.SaveMany(cts[0], "Childs"); //Ö¸¶¨±£´æ Childs Ò»¶Ô¶àÊôĞÔ
-            cts[0].Name = "·ÖÀà11";
+            //repo.SaveMany(cts[0], "Childs"); //æŒ‡å®šä¿å­˜ Childs ä¸€å¯¹å¤šå±æ€§
+            cts[0].Name = "åˆ†ç±»11";
             cts[0].Childs.Clear();
-            cts[1].Name = "·ÖÀà22";
+            cts[1].Name = "åˆ†ç±»22";
             cts[1].Childs.Clear();
             repo.Update(cts);
-            cts[0].Name = "·ÖÀà111";
+            cts[0].Name = "åˆ†ç±»111";
             cts[0].Childs.Clear();
-            cts[0].Childs.Add(new CagetoryParent { Name = "·ÖÀà1_33" });
-            cts[1].Name = "·ÖÀà222";
+            cts[0].Childs.Add(new CagetoryParent { Name = "åˆ†ç±»1_33" });
+            cts[1].Name = "åˆ†ç±»222";
             cts[1].Childs.Clear();
-            cts[1].Childs.Add(new CagetoryParent { Name = "·ÖÀà2_22" });
+            cts[1].Childs.Add(new CagetoryParent { Name = "åˆ†ç±»2_22" });
             repo.Update(cts);
             var treelist2 = repo.Select.ToTreeList();
         }
@@ -479,16 +479,16 @@ namespace FreeSql.Tests
         public void EnableAddOrUpdateNavigateList_ManyToMany()
         {
             var tags = new[] {
-                new Tag { TagName = "Á÷ĞĞ" },
-                new Tag { TagName = "80ºó" },
-                new Tag { TagName = "00ºó" },
-                new Tag { TagName = "Ò¡¹ö" }
+                new Tag { TagName = "æµè¡Œ" },
+                new Tag { TagName = "80å" },
+                new Tag { TagName = "00å" },
+                new Tag { TagName = "æ‘‡æ»š" }
             };
             var ss = new[]
             {
                 new Song
                 {
-                    Name = "°®ÄãÒ»ÍòÄê.mp3",
+                    Name = "çˆ±ä½ ä¸€ä¸‡å¹´.mp3",
                     Tags = new List<Tag>(new[]
                     {
                         tags[0], tags[1]
@@ -496,7 +496,7 @@ namespace FreeSql.Tests
                 },
                 new Song
                 {
-                    Name = "Àî°×.mp3",
+                    Name = "æç™½.mp3",
                     Tags = new List<Tag>(new[]
                     {
                         tags[0], tags[2]
@@ -504,23 +504,23 @@ namespace FreeSql.Tests
                 }
             };
             var repo = g.sqlite.GetRepository<Song>();
-            repo.DbContextOptions.EnableAddOrUpdateNavigateList = true; //´ò¿ª¼¶Áª±£´æ¹¦ÄÜ
+            repo.DbContextOptions.EnableAddOrUpdateNavigateList = true; //æ‰“å¼€çº§è”ä¿å­˜åŠŸèƒ½
             repo.Insert(ss);
 
-            ss[0].Tags[0].TagName = "Á÷ĞĞ101";
-            repo.SaveMany(ss[0], "Tags"); //Ö¸¶¨±£´æ Tags ¶à¶Ô¶àÊôĞÔ
+            ss[0].Tags[0].TagName = "æµè¡Œ101";
+            repo.SaveMany(ss[0], "Tags"); //æŒ‡å®šä¿å­˜ Tags å¤šå¯¹å¤šå±æ€§
 
-            ss[0].Name = "°®ÄãÒ»ÍòÄê.mp5";
+            ss[0].Name = "çˆ±ä½ ä¸€ä¸‡å¹´.mp5";
             ss[0].Tags.Clear();
             ss[0].Tags.Add(tags[0]);
-            ss[1].Name = "Àî°×.mp5";
+            ss[1].Name = "æç™½.mp5";
             ss[1].Tags.Clear();
             ss[1].Tags.Add(tags[3]);
             repo.Update(ss);
 
-            ss[0].Name = "°®ÄãÒ»ÍòÄê.mp4";
+            ss[0].Name = "çˆ±ä½ ä¸€ä¸‡å¹´.mp4";
             ss[0].Tags.Clear();
-            ss[1].Name = "Àî°×.mp4";
+            ss[1].Name = "æç™½.mp4";
             ss[1].Tags.Clear();
             repo.Update(ss);
         }
@@ -553,19 +553,19 @@ namespace FreeSql.Tests
             g.sqlite.Delete<BeginEdit01>().Where("1=1").ExecuteAffrows();
             var repo = g.sqlite.GetRepository<BeginEdit01>();
             var cts = new[] {
-                new BeginEdit01 { Name = "·ÖÀà1" },
-                new BeginEdit01 { Name = "·ÖÀà1_1" },
-                new BeginEdit01 { Name = "·ÖÀà1_2" },
-                new BeginEdit01 { Name = "·ÖÀà1_3" },
-                new BeginEdit01 { Name = "·ÖÀà2" },
-                new BeginEdit01 { Name = "·ÖÀà2_1" },
-                new BeginEdit01 { Name = "·ÖÀà2_2" }
+                new BeginEdit01 { Name = "åˆ†ç±»1" },
+                new BeginEdit01 { Name = "åˆ†ç±»1_1" },
+                new BeginEdit01 { Name = "åˆ†ç±»1_2" },
+                new BeginEdit01 { Name = "åˆ†ç±»1_3" },
+                new BeginEdit01 { Name = "åˆ†ç±»2" },
+                new BeginEdit01 { Name = "åˆ†ç±»2_1" },
+                new BeginEdit01 { Name = "åˆ†ç±»2_2" }
             }.ToList();
             repo.Insert(cts);
 
             repo.BeginEdit(cts);
 
-            cts.Add(new BeginEdit01 { Name = "·ÖÀà2_3" });
+            cts.Add(new BeginEdit01 { Name = "åˆ†ç±»2_3" });
             cts[0].Name = "123123";
             cts.RemoveAt(1);
 
@@ -577,13 +577,13 @@ namespace FreeSql.Tests
             repo.BeginEdit(cts);
 
             cts.AddRange(new[] {
-                new BeginEdit01 { Name = "·ÖÀà1" },
-                new BeginEdit01 { Name = "·ÖÀà1_1" },
-                new BeginEdit01 { Name = "·ÖÀà1_2" },
-                new BeginEdit01 { Name = "·ÖÀà1_3" },
-                new BeginEdit01 { Name = "·ÖÀà2" },
-                new BeginEdit01 { Name = "·ÖÀà2_1" },
-                new BeginEdit01 { Name = "·ÖÀà2_2" }
+                new BeginEdit01 { Name = "åˆ†ç±»1" },
+                new BeginEdit01 { Name = "åˆ†ç±»1_1" },
+                new BeginEdit01 { Name = "åˆ†ç±»1_2" },
+                new BeginEdit01 { Name = "åˆ†ç±»1_3" },
+                new BeginEdit01 { Name = "åˆ†ç±»2" },
+                new BeginEdit01 { Name = "åˆ†ç±»2_1" },
+                new BeginEdit01 { Name = "åˆ†ç±»2_2" }
             });
 
             Assert.Equal(7, repo.EndEdit());
@@ -600,19 +600,19 @@ namespace FreeSql.Tests
             fsql.Delete<BeginEdit02>().Where("1=1").ExecuteAffrows();
             var repo = fsql.GetRepository<BeginEdit02>();
             var cts = new[] {
-                new BeginEdit02 { Name = "·ÖÀà1" },
-                new BeginEdit02 { Name = "·ÖÀà1_1" },
-                new BeginEdit02 { Name = "·ÖÀà1_2" },
-                new BeginEdit02 { Name = "·ÖÀà1_3" },
-                new BeginEdit02 { Name = "·ÖÀà2" },
-                new BeginEdit02 { Name = "·ÖÀà2_1" },
-                new BeginEdit02 { Name = "·ÖÀà2_2" }
+                new BeginEdit02 { Name = "åˆ†ç±»1" },
+                new BeginEdit02 { Name = "åˆ†ç±»1_1" },
+                new BeginEdit02 { Name = "åˆ†ç±»1_2" },
+                new BeginEdit02 { Name = "åˆ†ç±»1_3" },
+                new BeginEdit02 { Name = "åˆ†ç±»2" },
+                new BeginEdit02 { Name = "åˆ†ç±»2_1" },
+                new BeginEdit02 { Name = "åˆ†ç±»2_2" }
             }.ToList();
             repo.Insert(cts);
 
             repo.BeginEdit(cts);
 
-            cts.Add(new BeginEdit02 { Name = "·ÖÀà2_3" });
+            cts.Add(new BeginEdit02 { Name = "åˆ†ç±»2_3" });
             cts[0].Name = "123123";
             cts.RemoveAt(1);
 
@@ -624,13 +624,13 @@ namespace FreeSql.Tests
             repo.BeginEdit(cts);
 
             cts.AddRange(new[] {
-                new BeginEdit02 { Name = "·ÖÀà1" },
-                new BeginEdit02 { Name = "·ÖÀà1_1" },
-                new BeginEdit02 { Name = "·ÖÀà1_2" },
-                new BeginEdit02 { Name = "·ÖÀà1_3" },
-                new BeginEdit02 { Name = "·ÖÀà2" },
-                new BeginEdit02 { Name = "·ÖÀà2_1" },
-                new BeginEdit02 { Name = "·ÖÀà2_2" }
+                new BeginEdit02 { Name = "åˆ†ç±»1" },
+                new BeginEdit02 { Name = "åˆ†ç±»1_1" },
+                new BeginEdit02 { Name = "åˆ†ç±»1_2" },
+                new BeginEdit02 { Name = "åˆ†ç±»1_3" },
+                new BeginEdit02 { Name = "åˆ†ç±»2" },
+                new BeginEdit02 { Name = "åˆ†ç±»2_1" },
+                new BeginEdit02 { Name = "åˆ†ç±»2_2" }
             });
 
             Assert.Equal(7, repo.EndEdit());
@@ -746,6 +746,70 @@ namespace FreeSql.Tests
             [Column(IsIdentity = true)]
             public int id { get; set; }
             public bool bool_val { get; set; }
+        }
+
+        [Fact]
+        public void InsertIdentity()
+        {
+            var fsql = g.mysql;
+            fsql.Delete<TaskDetailTeam>().Where("1=1").ExecuteAffrows();
+
+            var repo = fsql.GetRepository<TaskDetailTeam>();
+            
+            var team = new TaskDetailTeam();
+            repo.Insert(team);
+
+            team = new TaskDetailTeam
+            {
+                TaskId = 1,
+                UserId = 11,
+                IsYanShou = 1,
+                AccessType = "xxxAccessType1"
+            };
+            repo.Insert(team);
+
+            var teams = new[]
+            {
+                new TaskDetailTeam
+                {
+                    TaskId = 2,
+                    UserId = 22,
+                    IsYanShou = 2,
+                    AccessType = "xxxAccessType2"
+                },new TaskDetailTeam
+                {
+                    TaskId = 3,
+                    UserId = 33,
+                    IsYanShou = 3,
+                    AccessType = "xxxAccessType3"
+                }
+            };
+            repo.Insert(teams);
+        }
+
+        [Table(Name = "task_detail_team")]
+        public class TaskDetailTeam
+        {
+            [Column(Name = "id", IsPrimary = true, IsIdentity = true)]
+            public int Id { get; set; }
+
+            [Column(Name = "createdAt", DbType = "datetime", ServerTime = DateTimeKind.Local, CanUpdate = false)]
+            public DateTime CreatedAt { get; set; }
+
+            [Column(Name = "taskId")]
+            public int TaskId { get; set; }
+
+            [Column(Name = "updatedAt", DbType = "datetime", ServerTime = DateTimeKind.Local)]
+            public DateTime UpdatedAt { get; set; }
+
+            [Column(Name = "userId")]
+            public int UserId { get; set; }
+
+            [Column(Name = "is_yanshou")]
+            public int IsYanShou { get; set; }
+
+            [Column(IsIgnore = true)]
+            public string AccessType { get; set; }
         }
     }
 }

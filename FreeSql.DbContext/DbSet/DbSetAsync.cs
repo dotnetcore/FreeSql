@@ -125,7 +125,7 @@ namespace FreeSql
                                 await AddOrUpdateNavigateListAsync(item, true, null, cancellationToken);
                         return;
                     default:
-                        if (_tableIdentitys.Length == 1 && _tableReturnColumns.Length == 1)
+                        if (_tableIdentitys.Length == 1)
                         {
                             foreach (var s in data)
                                 await AddPrivAsync(s, false, cancellationToken);

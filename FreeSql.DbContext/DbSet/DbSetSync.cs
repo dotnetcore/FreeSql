@@ -128,7 +128,7 @@ namespace FreeSql
                                 AddOrUpdateNavigateList(item, true, null);
                         return;
                     default:
-                        if (_tableIdentitys.Length == 1 && _tableReturnColumns.Length == 1)
+                        if (_tableIdentitys.Length == 1)
                         {
                             foreach (var s in data)
                                 AddPriv(s, false);
