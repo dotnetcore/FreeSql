@@ -12,6 +12,7 @@ using System.Data.Common;
 using System.Linq.Expressions;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Reflection;
 using System.Threading;
 
 namespace FreeSql.PostgreSQL
@@ -70,6 +71,7 @@ namespace FreeSql.PostgreSQL
             var MethodJObjectParse = typeof(JObject).GetMethod("Parse", new[] { typeof(string) });
             var MethodJArrayParse = typeof(JArray).GetMethod("Parse", new[] { typeof(string) });
             var MethodJsonConvertDeserializeObject = typeof(JsonConvert).GetMethod("DeserializeObject", new[] { typeof(string), typeof(Type) });
+            var MethodToString = typeof(Utils).GetMethod("ToStringConcat", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(object) }, null);
             Utils.GetDataReaderValueBlockExpressionSwitchTypeFullName.Add((LabelTarget returnTarget, Expression valueExp, Type type) =>
             {
                 switch (type.FullName)
@@ -95,7 +97,10 @@ namespace FreeSql.PostgreSQL
                         return Expression.Return(returnTarget, valueExp);
                 }
                 if (typeof(IList).IsAssignableFrom(type))
-                    return Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodJsonConvertDeserializeObject, Expression.Convert(valueExp, typeof(string)), Expression.Constant(type, typeof(Type))), type));
+                    return Expression.IfThenElse(
+                        Expression.TypeIs(valueExp, typeof(string)),
+                        Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodJsonConvertDeserializeObject, Expression.Convert(valueExp, typeof(string)), Expression.Constant(type, typeof(Type))), type)),
+                        Expression.Return(returnTarget, Expression.TypeAs(Expression.Call(MethodJsonConvertDeserializeObject, Expression.Convert(Expression.Call(MethodToString, valueExp), typeof(string)), Expression.Constant(type, typeof(Type))), type)));
                 return null;
             });
         }

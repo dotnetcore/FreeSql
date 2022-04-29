@@ -14,6 +14,16 @@
             编号
             </summary>
         </member>
+        <member name="P:FreeSql.Tests.Issues._1092.Test.Name">
+            <summary> 
+            会员ID
+            </summary>
+        </member>
+        <member name="P:FreeSql.Tests.Issues._1092.Test.Ids">
+            <summary> 
+            会员ID
+            </summary>
+        </member>
         <member name="P:FreeSql.Tests.Issues._467.PayOrder.Money">
             <summary>
             收款金额
