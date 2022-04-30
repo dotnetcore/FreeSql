@@ -1281,6 +1281,11 @@ WHERE (((cast(a.""Id"" as character)) in (SELECT b.""Title""
             };
             Assert.Equal(5, g.sqlite.Insert(model4s).ExecuteAffrows());
 
+            var by0 = g.sqlite.Select<TestInclude_OneToManyModel2>()
+                .Where(a => a.model2id <= model1.id)
+                .ToList();
+            by0.IncludeMany(g.sqlite, "childs", "model2111Idaaa=model2id", 2, "id");
+
             var t0 = g.sqlite.Select<TestInclude_OneToManyModel2>()
                 .IncludeMany(a => a.childs.Where(m3 => m3.model2111Idaaa == a.model2id))
                 .Where(a => a.model2id <= model1.id)

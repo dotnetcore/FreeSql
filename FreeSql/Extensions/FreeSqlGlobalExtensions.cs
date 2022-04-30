@@ -282,8 +282,8 @@ public static partial class FreeSqlGlobalExtensions
     #region IncludeMany
     /// <summary>
     /// 本方法实现从已知的内存 List 数据，进行和 ISelect.IncludeMany 相同功能的贪婪加载<para></para>
-    /// 示例：new List&lt;Song&gt;(new[] { song1, song2, song3 }).IncludeMany(g.sqlite, a => a.Tags);<para></para>
-    /// 文档：https://github.com/2881099/FreeSql/wiki/%e8%b4%aa%e5%a9%aa%e5%8a%a0%e8%bd%bd#%E5%AF%BC%E8%88%AA%E5%B1%9E%E6%80%A7-onetomanymanytomany
+    /// 示例：new List&lt;Song&gt;(new[] { song1, song2, song3 }).IncludeMany(fsql, a => a.Tags);<para></para>
+    /// 文档：https://github.com/dotnetcore/FreeSql/wiki/%E8%B4%AA%E5%A9%AA%E5%8A%A0%E8%BD%BD
     /// </summary>
     /// <typeparam name="T1"></typeparam>
     /// <typeparam name="TNavigate"></typeparam>
@@ -309,7 +309,6 @@ public static partial class FreeSqlGlobalExtensions
         select.SetList(list);
         return list;
     }
-
 #if net40
 #else
     async public static Task<List<T1>> IncludeManyAsync<T1, TNavigate>(this List<T1> list, IFreeSql orm, Expression<Func<T1, IEnumerable<TNavigate>>> navigateSelector, Action<ISelect<TNavigate>> then = null, CancellationToken cancellationToken = default) where T1 : class where TNavigate : class
@@ -326,6 +325,109 @@ public static partial class FreeSqlGlobalExtensions
         return list;
     }
 #endif
+    /// <summary>
+    /// 本方法实现从已知的内存 List 数据，进行和 ISelect.IncludeMany 相同功能的贪婪加载<para></para>
+    /// 示例：new List&lt;Song&gt;(new[] { song1, song2, song3 }).IncludeMany(fsql, "Tags", "ParentId=Id", 5, "Id,Name");<para></para>
+    /// 文档：https://github.com/dotnetcore/FreeSql/wiki/%E8%B4%AA%E5%A9%AA%E5%8A%A0%E8%BD%BD
+    /// </summary>
+    /// <typeparam name="T1"></typeparam>
+    /// <param name="list"></param>
+    /// <param name="orm"></param>
+    /// <param name="property">选择一个集合属性</param>
+    /// <param name="where">设置临时的关系映射，格式：子类属性=T1属性</param>
+    /// <param name="take">每个子集合只取条数</param>
+    /// <param name="select">设置只查询部分字段</param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentException"></exception>
+    /// <exception cref="Exception"></exception>
+    public static List<T1> IncludeMany<T1>(this List<T1> list, IFreeSql orm, string property, string where = null, int take = 0, string select = null) where T1 : class
+    {
+        if (list == null || list.Any() == false) return list;
+        IncludeManyByPropertyNameCommonGetSelect<T1>(orm, property, where, take, select).SetList(list);
+        return list;
+    }
+#if net40
+#else
+    async public static Task<List<T1>> IncludeManyAsync<T1>(this List<T1> list, IFreeSql orm, string property, string where = null, int take = 0, string select = null) where T1 : class
+    {
+        if (list == null || list.Any() == false) return list;
+        await IncludeManyByPropertyNameCommonGetSelect<T1>(orm, property, where, take, select).SetListAsync(list);
+        return list;
+    }
+#endif
+
+    static Select1Provider<T1> IncludeManyByPropertyNameCommonGetSelect<T1>(IFreeSql orm, string property, string where = null, int take = 0, string select = null) where T1 : class
+    {
+        if (orm.CodeFirst.IsAutoSyncStructure)
+        {
+            var tb = orm.CodeFirst.GetTableByEntity(typeof(T1));
+            if (tb == null || tb.Primarys.Any() == false)
+                (orm.CodeFirst as CodeFirstProvider)._dicSycedTryAdd(typeof(T1)); //._dicSyced.TryAdd(typeof(TReturn), true);
+        }
+        var sel = orm.Select<T1>() as Select1Provider<T1>;
+        var exp = sel.ConvertStringPropertyToExpression(property, true);
+        if (exp == null) throw new ArgumentException($"{nameof(property)} 无法解析为表达式树");
+        var propElementType = exp.Type.GetGenericArguments().FirstOrDefault() ?? exp.Type.GetElementType();
+        var reftb = orm.CodeFirst.GetTableByEntity(propElementType);
+        if (reftb == null) throw new ArgumentException($"{nameof(property)} 参数错误，它不是集合属性，必须为 IList<T> 或者 ICollection<T>");
+
+        if (string.IsNullOrWhiteSpace(where) == false)
+        {
+            var refparamExp = Expression.Parameter(reftb.Type);
+            var reffuncType = typeof(Func<,>).MakeGenericType(reftb.Type, typeof(bool));
+            var refWhereMethod = Select0Provider.GetMethodEnumerable("Where").MakeGenericMethod(reftb.Type);
+
+            var whereSplit = where.Split(',');
+            Expression whereExp = null;
+            for (var a = 0; a < whereSplit.Length; a++)
+            {
+                var keyval = whereSplit[a].Split('=').Select(x => x.Trim()).Where(x => string.IsNullOrWhiteSpace(x) == false).ToArray();
+                if (keyval.Length != 2) throw new ArgumentException($"{nameof(where)} 参数错误，格式 \"TopicId=Id，多组使用逗号连接\" ");
+
+                if (reftb.ColumnsByCs.TryGetValue(keyval[0], out var keycol) == false)
+                    throw new ArgumentException($"{nameof(where)} 参数错误，{where[a]} 不是有效的属性名，在实体类 {reftb.Type.DisplayCsharp()} 无法找到");
+                if (sel._tables[0].Table.ColumnsByCs.TryGetValue(keyval[1], out var valcol) == false)
+                    throw new ArgumentException($"{nameof(where)} 参数错误，{where[a + 1]} 不是有效的属性名，在实体类 {sel._tables[0].Table.Type.DisplayCsharp()} 无法找到");
+
+                var tmpExp = Expression.Equal(
+                    Expression.Convert(Expression.MakeMemberAccess(refparamExp, reftb.Properties[keyval[0]]), valcol.CsType),
+                    Expression.MakeMemberAccess(sel._tables[0].Parameter, sel._tables[0].Table.Properties[keyval[1]]));
+                whereExp = whereExp == null ? tmpExp : Expression.And(whereExp, tmpExp);
+            }
+            whereExp = Expression.Lambda(reffuncType, whereExp, refparamExp);
+            exp = Expression.Call(refWhereMethod, exp, whereExp);
+        }
+        if (take > 0)
+        {
+            var takeMethod = Select0Provider.GetMethodEnumerable("Take").MakeGenericMethod(reftb.Type);
+            exp = Expression.Call(takeMethod, exp, Expression.Constant(take, typeof(int)));
+        }
+        if (select?.Any() == true)
+        {
+            var refparamExp = Expression.Parameter(reftb.Type);
+            var reffuncType = typeof(Func<,>).MakeGenericType(reftb.Type, reftb.Type);
+            var refWhereMethod = Select0Provider.GetMethodEnumerable("Select").MakeGenericMethod(reftb.Type, reftb.Type);
+
+            Expression memberInitExp = Expression.MemberInit(
+                reftb.Type.InternalNewExpression(),
+                select.Split(',').Select(x => x.Trim()).Where(x => string.IsNullOrWhiteSpace(x) == false).Select(a =>
+                {
+                    if (reftb.ColumnsByCs.TryGetValue(a, out var col) == false)
+                        throw new ArgumentException($"{nameof(select)} 参数错误，{a} 不是有效的属性名，在实体类 {reftb.Type.DisplayCsharp()} 无法找到");
+                    return Expression.Bind(reftb.Properties[col.CsName], Expression.MakeMemberAccess(refparamExp, reftb.Properties[col.CsName]));
+                }).ToArray());
+
+            memberInitExp = Expression.Lambda(reffuncType, memberInitExp, refparamExp);
+            exp = Expression.Call(refWhereMethod, exp, memberInitExp);
+        }
+
+        var funcType = typeof(Func<,>).MakeGenericType(sel._tables[0].Table.Type, typeof(IEnumerable<>).MakeGenericType(reftb.Type));
+        var navigateSelector = Expression.Lambda(funcType, exp, sel._tables[0].Parameter);
+        var incMethod = sel.GetType().GetMethod("IncludeMany");
+        if (incMethod == null) throw new Exception("运行时错误，反射获取 IncludeMany 方法失败");
+        incMethod.MakeGenericMethod(reftb.Type).Invoke(sel, new object[] { navigateSelector, null });
+        return sel;
+    }
     #endregion
 
     #region ToTreeList() 父子分类

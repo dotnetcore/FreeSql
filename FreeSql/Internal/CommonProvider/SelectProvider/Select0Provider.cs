@@ -168,6 +168,18 @@ namespace FreeSql.Internal.CommonProvider
             }
             return exp;
         }
+
+        public static MethodInfo MethodStringContains = typeof(string).GetMethod("Contains", new[] { typeof(string) });
+        public static MethodInfo MethodStringStartsWith = typeof(string).GetMethod("StartsWith", new[] { typeof(string) });
+        public static MethodInfo MethodStringEndsWith = typeof(string).GetMethod("EndsWith", new[] { typeof(string) });
+        static ConcurrentDictionary<string, MethodInfo> MethodEnumerableDic = new ConcurrentDictionary<string, MethodInfo>();
+        public static MethodInfo GetMethodEnumerable(string methodName) => MethodEnumerableDic.GetOrAdd(methodName, et =>
+        {
+            var methods = typeof(Enumerable).GetMethods().Where(a => a.Name == et);
+            if (et == "Select") 
+                return methods.Where(a => a.GetParameters()[1].ParameterType.GetGenericTypeDefinition() == typeof(Func<,>)).FirstOrDefault();
+            return methods.FirstOrDefault();
+        });
     }
 
     public abstract partial class Select0Provider<TSelect, T1> : Select0Provider, ISelect0<TSelect, T1> where TSelect : class
@@ -588,11 +600,6 @@ namespace FreeSql.Internal.CommonProvider
             return this.OrderBy($"{field} DESC");
         }
 
-        static MethodInfo MethodStringContains = typeof(string).GetMethod("Contains", new[] { typeof(string) });
-        static MethodInfo MethodStringStartsWith = typeof(string).GetMethod("StartsWith", new[] { typeof(string) });
-        static MethodInfo MethodStringEndsWith = typeof(string).GetMethod("EndsWith", new[] { typeof(string) });
-        static ConcurrentDictionary<Type, MethodInfo> MethodEnumerableContainsDic = new ConcurrentDictionary<Type, MethodInfo>();
-        static MethodInfo GetMethodEnumerableContains(Type elementType) => MethodEnumerableContainsDic.GetOrAdd(elementType, et => typeof(Enumerable).GetMethods().Where(a => a.Name == "Contains").FirstOrDefault().MakeGenericMethod(elementType));
         public TSelect WhereDynamicFilter(DynamicFilterInfo filter)
         {
             if (filter == null) return this as TSelect;
@@ -686,7 +693,7 @@ namespace FreeSql.Internal.CommonProvider
                             var fiValueAnyArray = getFiListValue();
                             if (fiValueAnyArray.Length == 0) break;
                             var fiValueAnyArrayType = exp.Type.MakeArrayType();
-                            exp = Expression.Call(GetMethodEnumerableContains(exp.Type), Expression.Constant(Utils.GetDataReaderValue(fiValueAnyArrayType, fiValueAnyArray), fiValueAnyArrayType), exp);
+                            exp = Expression.Call(GetMethodEnumerable("Contains").MakeGenericMethod(exp.Type), Expression.Constant(Utils.GetDataReaderValue(fiValueAnyArrayType, fiValueAnyArray), fiValueAnyArrayType), exp);
                             if (fi.Operator == DynamicFilterOperator.NotAny) exp = Expression.Not(exp);
                             break;
                     }

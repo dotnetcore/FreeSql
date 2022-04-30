@@ -2540,7 +2540,7 @@
         <member name="M:FreeSql.ISelect`1.IncludeMany``1(System.Linq.Expressions.Expression{System.Func{`0,System.Collections.Generic.IEnumerable{``0}}},System.Action{FreeSql.ISelect{``0}})">
             <summary>
             贪婪加载集合的导航属性，其实是分两次查询，ToList 后进行了数据重装<para></para>
-            文档：https://github.com/2881099/FreeSql/wiki/%e8%b4%aa%e5%a9%aa%e5%8a%a0%e8%bd%bd#%E5%AF%BC%E8%88%AA%E5%B1%9E%E6%80%A7-onetomanymanytomany
+            文档：https://github.com/dotnetcore/FreeSql/wiki/%E8%B4%AA%E5%A9%AA%E5%8A%A0%E8%BD%BD
             </summary>
             <typeparam name="TNavigate"></typeparam>
             <param name="navigateSelector">选择一个集合的导航属性，如： .IncludeMany(a => a.Tags)<para></para>
@@ -4638,8 +4638,8 @@
         <member name="M:FreeSqlGlobalExtensions.IncludeMany``2(System.Collections.Generic.List{``0},IFreeSql,System.Linq.Expressions.Expression{System.Func{``0,System.Collections.Generic.IEnumerable{``1}}},System.Action{FreeSql.ISelect{``1}})">
             <summary>
             本方法实现从已知的内存 List 数据，进行和 ISelect.IncludeMany 相同功能的贪婪加载<para></para>
-            示例：new List&lt;Song&gt;(new[] { song1, song2, song3 }).IncludeMany(g.sqlite, a => a.Tags);<para></para>
-            文档：https://github.com/2881099/FreeSql/wiki/%e8%b4%aa%e5%a9%aa%e5%8a%a0%e8%bd%bd#%E5%AF%BC%E8%88%AA%E5%B1%9E%E6%80%A7-onetomanymanytomany
+            示例：new List&lt;Song&gt;(new[] { song1, song2, song3 }).IncludeMany(fsql, a => a.Tags);<para></para>
+            文档：https://github.com/dotnetcore/FreeSql/wiki/%E8%B4%AA%E5%A9%AA%E5%8A%A0%E8%BD%BD
             </summary>
             <typeparam name="T1"></typeparam>
             <typeparam name="TNavigate"></typeparam>
@@ -4652,6 +4652,23 @@
             </param>
             <param name="then">即能 ThenInclude，还可以二次过滤（这个 EFCore 做不到？）</param>
             <returns></returns>
+        </member>
+        <member name="M:FreeSqlGlobalExtensions.IncludeMany``1(System.Collections.Generic.List{``0},IFreeSql,System.String,System.String,System.Int32,System.String)">
+            <summary>
+            本方法实现从已知的内存 List 数据，进行和 ISelect.IncludeMany 相同功能的贪婪加载<para></para>
+            示例：new List&lt;Song&gt;(new[] { song1, song2, song3 }).IncludeMany(fsql, "Tags", "ParentId=Id", 5, "Id,Name");<para></para>
+            文档：https://github.com/dotnetcore/FreeSql/wiki/%E8%B4%AA%E5%A9%AA%E5%8A%A0%E8%BD%BD
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <param name="list"></param>
+            <param name="orm"></param>
+            <param name="property">选择一个集合属性</param>
+            <param name="where">设置临时的关系映射，格式：子类属性=T1属性</param>
+            <param name="take">每个子集合只取条数</param>
+            <param name="select">设置只查询部分字段</param>
+            <returns></returns>
+            <exception cref="T:System.ArgumentException"></exception>
+            <exception cref="T:System.Exception"></exception>
         </member>
         <member name="M:FreeSqlGlobalExtensions.ToTreeList``1(FreeSql.ISelect{``0})">
             <summary>
