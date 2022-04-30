@@ -315,23 +315,32 @@ namespace FreeSql.Internal
                 var sb = new StringBuilder();
                 var ie = dywhere as IEnumerable;
                 var ieidx = 0;
+                var ieidx1ret = "";
                 var isEntityType = false;
-                var isAny = false;
+
                 sb.Append(aliasAndDot).Append(this.QuoteSqlName(pk1.Attribute.Name)).Append(" IN ("); //or会造成扫全表
+                var idx = 0;
                 foreach (var i in ie)
                 {
-                    isAny = true;
-                    if (ieidx > 0) sb.Append(',');
                     if (ieidx == 0)
                     {
                         var itype = i.GetType();
                         isEntityType = (itype == table.Type || itype.BaseType == table.Type);
                     }
-                    if (isEntityType) sb.Append(RewriteColumn(primarys[0], GetNoneParamaterSqlValue(null, null, primarys[0], primarys[0].Attribute.MapType, primarys[0].GetDbValue(i))));
-                    else sb.Append(RewriteColumn(pk1, GetNoneParamaterSqlValue(null, null, pk1, pk1.Attribute.MapType, Utils.GetDataReaderValue(pk1.Attribute.MapType, i))));
-                    ++ieidx;
+                    if (++idx > 500)
+                    {
+                        sb.Append(") OR ").Append(aliasAndDot).Append(this.QuoteSqlName(pk1.Attribute.Name)).Append(" IN ("); //500元素分割
+                        idx = 1;
+                    }
+                    if (idx > 1) sb.Append(",");
+                    var val = isEntityType ? RewriteColumn(primarys[0], GetNoneParamaterSqlValue(null, null, primarys[0], primarys[0].Attribute.MapType, primarys[0].GetDbValue(i))) :
+                        RewriteColumn(pk1, GetNoneParamaterSqlValue(null, null, pk1, pk1.Attribute.MapType, Utils.GetDataReaderValue(pk1.Attribute.MapType, i)));
+                    sb.Append(val);
+                    if (ieidx == 0) ieidx1ret = $"{aliasAndDot}{this.QuoteSqlName(pk1.Attribute.Name)} = {val}";
+                    ieidx++;
                 }
-                if (isAny == false) return "";
+                if (ieidx == 0) return "";
+                if (ieidx == 1) return ieidx1ret;
                 sb.Append(')');
                 return sb.ToString();
             }
@@ -380,12 +389,27 @@ namespace FreeSql.Internal
             var pk1 = primarys.FirstOrDefault();
             if (primarys.Length == 1)
             {
-                var sbin = new StringBuilder();
-                sbin.Append(aliasAndDot).Append(this.QuoteSqlName(pk1.Attribute.Name));
                 var indt = its.Select(a => pk1.GetDbValue(a)).Where(a => a != null).ToArray();
                 if (indt.Any() == false) return null;
+                var sbin = new StringBuilder();
+                sbin.Append(aliasAndDot).Append(this.QuoteSqlName(pk1.Attribute.Name));
                 if (indt.Length == 1) sbin.Append(" = ").Append(RewriteColumn(pk1, GetNoneParamaterSqlValue(null, null, pk1, pk1.Attribute.MapType, indt.First())));
-                else sbin.Append(" IN (").Append(string.Join(",", indt.Select(a => RewriteColumn(pk1, GetNoneParamaterSqlValue(null, null, pk1, pk1.Attribute.MapType, a))))).Append(')');
+                else
+                {
+                    sbin.Append(" IN (");
+                    var idx = 0;
+                    foreach (var z in indt)
+                    {
+                        if (++idx > 500)
+                        {
+                            sbin.Append(") OR ").Append(aliasAndDot).Append(this.QuoteSqlName(pk1.Attribute.Name)).Append(" IN ("); //500元素分割
+                            idx = 1;
+                        }
+                        if (idx > 1) sbin.Append(",");
+                        sbin.Append(RewriteColumn(pk1, GetNoneParamaterSqlValue(null, null, pk1, pk1.Attribute.MapType, z)));
+                    }
+                    sbin.Append(')');
+                }
                 return sbin.ToString();
             }
             var dicpk = its.Length > 5 ? new Dictionary<string, bool>() : null;
