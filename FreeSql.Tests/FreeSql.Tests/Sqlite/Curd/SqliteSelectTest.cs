@@ -1300,6 +1300,11 @@ WHERE (((cast(a.""Id"" as character)) in (SELECT b.""Title""
                     childs2 = a.childs
                 });
 
+
+            var by1 = g.sqlite.Select<TestInclude_OneToManyModel1>()
+                .Where(a => a.id <= model1.id)
+                .ToList();
+            by1.IncludeMany(g.sqlite, "model2.childs", "model2111Idaaa=model2id");
             var t1 = g.sqlite.Select<TestInclude_OneToManyModel1>()
                 .IncludeMany(a => a.model2.childs.Where(m3 => m3.model2111Idaaa == a.model2.model2id))
                 .Where(a => a.id <= model1.id)

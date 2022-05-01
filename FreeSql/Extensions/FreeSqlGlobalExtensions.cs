@@ -367,6 +367,10 @@ public static partial class FreeSqlGlobalExtensions
         var sel = orm.Select<T1>() as Select1Provider<T1>;
         var exp = sel.ConvertStringPropertyToExpression(property, true);
         if (exp == null) throw new ArgumentException($"{nameof(property)} 无法解析为表达式树");
+        var memExp = exp as MemberExpression;
+        if (memExp == null) throw new ArgumentException($"{nameof(property)} 无法解析为表达式树2");
+        var parTb = orm.CodeFirst.GetTableByEntity(memExp.Expression.Type);
+        if (parTb == null) throw new ArgumentException($"{nameof(property)} 无法解析为表达式树3");
         var propElementType = exp.Type.GetGenericArguments().FirstOrDefault() ?? exp.Type.GetElementType();
         var reftb = orm.CodeFirst.GetTableByEntity(propElementType);
         if (reftb == null) throw new ArgumentException($"{nameof(property)} 参数错误，它不是集合属性，必须为 IList<T> 或者 ICollection<T>");
@@ -385,13 +389,13 @@ public static partial class FreeSqlGlobalExtensions
                 if (keyval.Length != 2) throw new ArgumentException($"{nameof(where)} 参数错误，格式 \"TopicId=Id，多组使用逗号连接\" ");
 
                 if (reftb.ColumnsByCs.TryGetValue(keyval[0], out var keycol) == false)
-                    throw new ArgumentException($"{nameof(where)} 参数错误，{where[a]} 不是有效的属性名，在实体类 {reftb.Type.DisplayCsharp()} 无法找到");
-                if (sel._tables[0].Table.ColumnsByCs.TryGetValue(keyval[1], out var valcol) == false)
-                    throw new ArgumentException($"{nameof(where)} 参数错误，{where[a + 1]} 不是有效的属性名，在实体类 {sel._tables[0].Table.Type.DisplayCsharp()} 无法找到");
+                    throw new ArgumentException($"{nameof(where)} 参数错误，{keyval[0]} 不是有效的属性名，在实体类 {reftb.Type.DisplayCsharp()} 无法找到");
+                if (parTb.ColumnsByCs.TryGetValue(keyval[1], out var valcol) == false)
+                    throw new ArgumentException($"{nameof(where)} 参数错误，{keyval[1]} 不是有效的属性名，在实体类 {parTb.Type.DisplayCsharp()} 无法找到");
 
                 var tmpExp = Expression.Equal(
                     Expression.Convert(Expression.MakeMemberAccess(refparamExp, reftb.Properties[keyval[0]]), valcol.CsType),
-                    Expression.MakeMemberAccess(sel._tables[0].Parameter, sel._tables[0].Table.Properties[keyval[1]]));
+                    Expression.MakeMemberAccess(memExp.Expression, parTb.Properties[keyval[1]]));
                 whereExp = whereExp == null ? tmpExp : Expression.And(whereExp, tmpExp);
             }
             whereExp = Expression.Lambda(reffuncType, whereExp, refparamExp);
