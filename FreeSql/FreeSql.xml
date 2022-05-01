@@ -4653,22 +4653,23 @@
             <param name="then">即能 ThenInclude，还可以二次过滤（这个 EFCore 做不到？）</param>
             <returns></returns>
         </member>
-        <member name="M:FreeSqlGlobalExtensions.IncludeMany``1(System.Collections.Generic.List{``0},IFreeSql,System.String,System.String,System.Int32,System.String)">
+        <member name="M:FreeSqlGlobalExtensions.IncludeByPropertyName``1(System.Collections.Generic.List{``0},IFreeSql,System.String,System.String,System.Int32,System.String)">
             <summary>
-            本方法实现从已知的内存 List 数据，进行和 ISelect.IncludeMany 相同功能的贪婪加载<para></para>
-            示例：new List&lt;Song&gt;(new[] { song1, song2, song3 }).IncludeMany(fsql, "Tags", "ParentId=Id", 5, "Id,Name");<para></para>
+            本方法实现从已知的内存 List 数据，进行和 ISelect.IncludeMany/Include 相同功能的贪婪加载<para></para>
+            集合：new List&lt;Song&gt;(new[] { song1, song2, song3 }).IncludeByPropertyName(fsql, "Tags", "ParentId=Id", 5, "Id,Name");<para></para>
+            普通：new List&lt;Song&gt;(new[] { song1, song2, song3 }).IncludeByPropertyName(fsql, "Catetory"); <para></para>
+            －－－普通属性 where/take/select 参数将无效<para></para>
             文档：https://github.com/dotnetcore/FreeSql/wiki/%E8%B4%AA%E5%A9%AA%E5%8A%A0%E8%BD%BD
             </summary>
             <typeparam name="T1"></typeparam>
             <param name="list"></param>
             <param name="orm"></param>
-            <param name="property">选择一个集合属性</param>
-            <param name="where">设置临时的关系映射，格式：子类属性=T1属性</param>
-            <param name="take">每个子集合只取条数</param>
-            <param name="select">设置只查询部分字段</param>
+            <param name="property">选择一个集合或普通属性</param>
+            <param name="where">设置临时的子集合关系映射，格式：子类属性=T1属性</param>
+            <param name="take">设置子集合只取条数</param>
+            <param name="select">设置子集合只查询部分字段</param>
             <returns></returns>
             <exception cref="T:System.ArgumentException"></exception>
-            <exception cref="T:System.Exception"></exception>
         </member>
         <member name="M:FreeSqlGlobalExtensions.ToTreeList``1(FreeSql.ISelect{``0})">
             <summary>

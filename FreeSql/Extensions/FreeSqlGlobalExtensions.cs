@@ -326,36 +326,77 @@ public static partial class FreeSqlGlobalExtensions
     }
 #endif
     /// <summary>
-    /// 本方法实现从已知的内存 List 数据，进行和 ISelect.IncludeMany 相同功能的贪婪加载<para></para>
-    /// 示例：new List&lt;Song&gt;(new[] { song1, song2, song3 }).IncludeMany(fsql, "Tags", "ParentId=Id", 5, "Id,Name");<para></para>
+    /// 本方法实现从已知的内存 List 数据，进行和 ISelect.IncludeMany/Include 相同功能的贪婪加载<para></para>
+    /// 集合：new List&lt;Song&gt;(new[] { song1, song2, song3 }).IncludeByPropertyName(fsql, "Tags", "ParentId=Id", 5, "Id,Name");<para></para>
+    /// 普通：new List&lt;Song&gt;(new[] { song1, song2, song3 }).IncludeByPropertyName(fsql, "Catetory"); <para></para>
+    /// －－－普通属性 where/take/select 参数将无效<para></para>
     /// 文档：https://github.com/dotnetcore/FreeSql/wiki/%E8%B4%AA%E5%A9%AA%E5%8A%A0%E8%BD%BD
     /// </summary>
     /// <typeparam name="T1"></typeparam>
     /// <param name="list"></param>
     /// <param name="orm"></param>
-    /// <param name="property">选择一个集合属性</param>
-    /// <param name="where">设置临时的关系映射，格式：子类属性=T1属性</param>
-    /// <param name="take">每个子集合只取条数</param>
-    /// <param name="select">设置只查询部分字段</param>
+    /// <param name="property">选择一个集合或普通属性</param>
+    /// <param name="where">设置临时的子集合关系映射，格式：子类属性=T1属性</param>
+    /// <param name="take">设置子集合只取条数</param>
+    /// <param name="select">设置子集合只查询部分字段</param>
     /// <returns></returns>
     /// <exception cref="ArgumentException"></exception>
-    /// <exception cref="Exception"></exception>
-    public static List<T1> IncludeMany<T1>(this List<T1> list, IFreeSql orm, string property, string where = null, int take = 0, string select = null) where T1 : class
+    public static List<T1> IncludeByPropertyName<T1>(this List<T1> list, IFreeSql orm, string property, string where = null, int take = 0, string select = null) where T1 : class
     {
-        if (list == null || list.Any() == false) return list;
-        IncludeManyByPropertyNameCommonGetSelect<T1>(orm, property, where, take, select).SetList(list);
+        if (orm.CodeFirst.IsAutoSyncStructure)
+        {
+            var tb = orm.CodeFirst.GetTableByEntity(typeof(T1));
+            if (tb == null || tb.Primarys.Any() == false)
+                (orm.CodeFirst as CodeFirstProvider)._dicSycedTryAdd(typeof(T1)); //._dicSyced.TryAdd(typeof(TReturn), true);
+        }
+        var props = property.Split('.');
+        var t1tb = orm.CodeFirst.GetTableByEntity(typeof(T1));
+        var t1sel = orm.Select<T1>() as Select1Provider<T1>;
+        var t1expFul = t1sel.ConvertStringPropertyToExpression(property, true);
+        var t1exp = props.Length == 1 ? t1expFul : t1sel.ConvertStringPropertyToExpression(props[0], true);
+        if (t1expFul == null) throw new ArgumentException($"{nameof(property)} 无法解析为表达式树");
+        var propElementType = t1expFul.Type.GetGenericArguments().FirstOrDefault() ?? t1expFul.Type.GetElementType();
+        if (propElementType != null) //IncludeMany
+        {
+            if (props.Length > 1)
+                IncludeByPropertyName(list, orm, string.Join(".", props.Take(props.Length - 1)));
+            IncludeManyByPropertyNameCommonGetSelect<T1>(orm, property, where, take, select).SetList(list);
+            return list;
+        }
+        var tbtr = t1tb.GetTableRef(props[0], true);
+        if (tbtr == null) throw new ArgumentException($"{nameof(property)} 参数错误，它不是有效的导航属性");
+        var reftb = orm.CodeFirst.GetTableByEntity(t1exp.Type);
+        var refsel = orm.Select<object>().AsType(t1exp.Type) as Select1Provider<object>;
+        if (props.Length > 1)
+        {
+            var refexp = refsel.ConvertStringPropertyToExpression(string.Join(".", props.Skip(1)), true);
+            refsel.Include(Expression.Lambda<Func<object, object>>(refexp, refsel._tables[0].Parameter));
+        }
+        var listdic = list.Select(item =>
+        {
+            var refitem = t1exp.Type.CreateInstanceGetDefaultValue();
+            for (var a = 0; a < tbtr.Columns.Count; a++)
+            {
+                var colval = FreeSql.Extensions.EntityUtil.EntityUtilExtensions.GetPropertyValue(t1tb, item, tbtr.Columns[a].CsName);
+                FreeSql.Extensions.EntityUtil.EntityUtilExtensions.SetPropertyValue(reftb, refitem, tbtr.RefColumns[a].CsName, colval);
+            }
+            return new
+            {
+                item,
+                refitem,
+                key = FreeSql.Extensions.EntityUtil.EntityUtilExtensions.GetEntityKeyString(orm, reftb.Type, refitem, false)
+            };
+        }).GroupBy(a => a.key).ToDictionary(a => a.Key, a => a);
+        refsel.WhereDynamic(listdic.Values.Select(a => a.First().refitem).ToList());
+        var reflist = refsel.ToList();
+        reflist.ForEach(refitem =>
+        {
+            var key = FreeSql.Extensions.EntityUtil.EntityUtilExtensions.GetEntityKeyString(orm, reftb.Type, refitem, false);
+            foreach (var listitem in listdic[key])
+                FreeSql.Extensions.EntityUtil.EntityUtilExtensions.SetPropertyValue(t1tb, listitem.item, property, refitem);
+        });
         return list;
     }
-#if net40
-#else
-    async public static Task<List<T1>> IncludeManyAsync<T1>(this List<T1> list, IFreeSql orm, string property, string where = null, int take = 0, string select = null) where T1 : class
-    {
-        if (list == null || list.Any() == false) return list;
-        await IncludeManyByPropertyNameCommonGetSelect<T1>(orm, property, where, take, select).SetListAsync(list);
-        return list;
-    }
-#endif
-
     static Select1Provider<T1> IncludeManyByPropertyNameCommonGetSelect<T1>(IFreeSql orm, string property, string where = null, int take = 0, string select = null) where T1 : class
     {
         if (orm.CodeFirst.IsAutoSyncStructure)
@@ -432,9 +473,9 @@ public static partial class FreeSqlGlobalExtensions
         incMethod.MakeGenericMethod(reftb.Type).Invoke(sel, new object[] { navigateSelector, null });
         return sel;
     }
-    #endregion
+#endregion
 
-    #region ToTreeList() 父子分类
+#region ToTreeList() 父子分类
     /// <summary>
     /// 查询数据，加工为树型 List 返回<para></para>
     /// 注意：实体需要配置父子导航属性
@@ -487,9 +528,9 @@ public static partial class FreeSqlGlobalExtensions
         return list.Except(list.SelectMany(a => FreeSql.Extensions.EntityUtil.EntityUtilExtensions.GetEntityValueWithPropertyName(select._orm, tb.Type, a, navs[0].Property.Name) as IEnumerable<T1>)).ToList();
     }
 #endif
-    #endregion
+#endregion
 
-    #region AsTreeCte(..) 递归查询
+#region AsTreeCte(..) 递归查询
     static ConcurrentDictionary<string, string> _dicMySqlVersion = new ConcurrentDictionary<string, string>();
     /// <summary>
     /// 使用递归 CTE 查询树型的所有子记录，或者所有父记录。<para></para>
@@ -717,9 +758,9 @@ SELECT ");
         nsselsb.Clear();
         return newSelect;
     }
-    #endregion
+#endregion
 
-    #region OrderBy Random 随机排序
+#region OrderBy Random 随机排序
 
     /// <summary>
     /// 随机排序<para></para>
@@ -759,9 +800,9 @@ SELECT ");
         }
         throw new NotSupportedException($"{s0p._orm.Ado.DataType} 不支持 OrderByRandom 随机排序");
     }
-    #endregion
+#endregion
 
-    #region IFreeSql Insert/Update/InsertOrUpdate/Delete Dictionary<string, object>
+#region IFreeSql Insert/Update/InsertOrUpdate/Delete Dictionary<string, object>
     /// <summary>
     /// 插入数据字典 Dictionary&lt;string, object&gt;
     /// </summary>
@@ -871,7 +912,7 @@ SELECT ");
         return deleteDict ?? new DeleteDictImpl(freesql);
     }
 
-    #region InsertDictImpl
+#region InsertDictImpl
     public class InsertDictImpl
     {
         internal readonly InsertProvider<Dictionary<string, object>> _insertProvider;
@@ -934,9 +975,9 @@ SELECT ");
             return this;
         }
     }
-    #endregion
+#endregion
 
-    #region UpdateDictImpl
+#region UpdateDictImpl
     public class UpdateDictImpl
     {
         internal readonly UpdateProvider<Dictionary<string, object>> _updateProvider;
@@ -1022,9 +1063,9 @@ SELECT ");
             return this;
         }
     }
-    #endregion
+#endregion
 
-    #region InsertOrUpdateDictImpl
+#region InsertOrUpdateDictImpl
     public class InsertOrUpdateDictImpl
     {
         internal readonly InsertOrUpdateProvider<Dictionary<string, object>> _insertOrUpdateProvider;
@@ -1075,9 +1116,9 @@ SELECT ");
             return this;
         }
     }
-    #endregion
+#endregion
 
-    #region DeleteDictImpl
+#region DeleteDictImpl
     public class DeleteDictImpl
     {
         internal readonly DeleteProvider<Dictionary<string, object>> _deleteProvider;
@@ -1120,7 +1161,7 @@ SELECT ");
             return this;
         }
     }
-    #endregion
+#endregion
 
-    #endregion
+#endregion
 }
