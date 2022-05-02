@@ -475,7 +475,7 @@ public static partial class FreeSqlGlobalExtensions
     }
 #endregion
 
-#region ToTreeList() 父子分类
+    #region ToTreeList() 父子分类
     /// <summary>
     /// 查询数据，加工为树型 List 返回<para></para>
     /// 注意：实体需要配置父子导航属性
@@ -528,9 +528,9 @@ public static partial class FreeSqlGlobalExtensions
         return list.Except(list.SelectMany(a => FreeSql.Extensions.EntityUtil.EntityUtilExtensions.GetEntityValueWithPropertyName(select._orm, tb.Type, a, navs[0].Property.Name) as IEnumerable<T1>)).ToList();
     }
 #endif
-#endregion
+    #endregion
 
-#region AsTreeCte(..) 递归查询
+    #region AsTreeCte(..) 递归查询
     static ConcurrentDictionary<string, string> _dicMySqlVersion = new ConcurrentDictionary<string, string>();
     /// <summary>
     /// 使用递归 CTE 查询树型的所有子记录，或者所有父记录。<para></para>
@@ -758,10 +758,9 @@ SELECT ");
         nsselsb.Clear();
         return newSelect;
     }
-#endregion
+    #endregion
 
-#region OrderBy Random 随机排序
-
+    #region OrderBy Random 随机排序
     /// <summary>
     /// 随机排序<para></para>
     /// 支持：MySql/SqlServer/PostgreSQL/Oracle/Sqlite/Firebird/达梦/金仓/神通<para></para>
@@ -800,9 +799,9 @@ SELECT ");
         }
         throw new NotSupportedException($"{s0p._orm.Ado.DataType} 不支持 OrderByRandom 随机排序");
     }
-#endregion
+    #endregion
 
-#region IFreeSql Insert/Update/InsertOrUpdate/Delete Dictionary<string, object>
+    #region InsertDict/UpdateDict/InsertOrUpdateDict/DeleteDict
     /// <summary>
     /// 插入数据字典 Dictionary&lt;string, object&gt;
     /// </summary>
@@ -912,7 +911,7 @@ SELECT ");
         return deleteDict ?? new DeleteDictImpl(freesql);
     }
 
-#region InsertDictImpl
+    #region InsertDictImpl
     public class InsertDictImpl
     {
         internal readonly InsertProvider<Dictionary<string, object>> _insertProvider;
@@ -975,9 +974,9 @@ SELECT ");
             return this;
         }
     }
-#endregion
+    #endregion
 
-#region UpdateDictImpl
+    #region UpdateDictImpl
     public class UpdateDictImpl
     {
         internal readonly UpdateProvider<Dictionary<string, object>> _updateProvider;
@@ -1063,9 +1062,9 @@ SELECT ");
             return this;
         }
     }
-#endregion
+    #endregion
 
-#region InsertOrUpdateDictImpl
+    #region InsertOrUpdateDictImpl
     public class InsertOrUpdateDictImpl
     {
         internal readonly InsertOrUpdateProvider<Dictionary<string, object>> _insertOrUpdateProvider;
@@ -1116,9 +1115,9 @@ SELECT ");
             return this;
         }
     }
-#endregion
+    #endregion
 
-#region DeleteDictImpl
+    #region DeleteDictImpl
     public class DeleteDictImpl
     {
         internal readonly DeleteProvider<Dictionary<string, object>> _deleteProvider;
@@ -1161,7 +1160,9 @@ SELECT ");
             return this;
         }
     }
-#endregion
+    #endregion
 
 #endregion
+
+
 }
