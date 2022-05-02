@@ -373,6 +373,8 @@ WHERE (((a.""Name"") in (SELECT s.""Title"" as1
             var ddd = g.sqlite.Select<District>().LeftJoin(d => d.ParentCode == d.Parent.Code).ToTreeList();
             Assert.Single(ddd);
             Assert.Equal(2, ddd[0].Childs.Count);
+
+            var sql = g.sqlite.Delete<District>().Where(a => a.Code == "001").ToSqlCascade();
         }
         public class District
         {
@@ -1281,6 +1283,7 @@ WHERE (((cast(a.""Id"" as character)) in (SELECT b.""Title""
             };
             Assert.Equal(5, g.sqlite.Insert(model4s).ExecuteAffrows());
 
+
             var by0 = g.sqlite.Select<TestInclude_OneToManyModel2>()
                 .Where(a => a.model2id <= model1.id)
                 .ToList();
@@ -1305,6 +1308,8 @@ WHERE (((cast(a.""Id"" as character)) in (SELECT b.""Title""
                 .Where(a => a.id <= model1.id)
                 .ToList();
             by1.IncludeByPropertyName(g.sqlite, "model2.childs", "model2111Idaaa=model2id");
+
+            by1.IncludeByPropertyNameAsync(g.sqlite, "model2.childs", "model2111Idaaa=model2id");
             var t1 = g.sqlite.Select<TestInclude_OneToManyModel1>()
                 .IncludeMany(a => a.model2.childs.Where(m3 => m3.model2111Idaaa == a.model2.model2id))
                 .Where(a => a.id <= model1.id)
@@ -2232,6 +2237,8 @@ WHERE (((cast(a.""Id"" as character)) in (SELECT b.""Title""
                     }
                 })
             });
+
+            var sql = g.sqlite.Delete<VM_District_Child>().Where(a => a.Code == "100000").ToSqlCascade();
 
             var t1 = fsql.Select<VM_District_Parent>()
                 .InnerJoin(a => a.ParentCode == a.Parent.Code)

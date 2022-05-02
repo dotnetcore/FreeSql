@@ -201,7 +201,8 @@ public static partial class FreeSqlGlobalExtensions
         var value = dr.GetString(index);
         var t = typeof(T);
         var fs = _dicGetFields.GetOrAdd(t, t2 => t2.GetFields());
-        foreach (var f in fs) {
+        foreach (var f in fs)
+        {
             var attr = f.GetCustomAttributes(typeof(DescriptionAttribute), false)?.FirstOrDefault() as DescriptionAttribute;
             if (attr?.Description == value || f.Name == value) return Enum.Parse(t, f.Name, true);
         }
@@ -343,6 +344,29 @@ public static partial class FreeSqlGlobalExtensions
     /// <exception cref="ArgumentException"></exception>
     public static List<T1> IncludeByPropertyName<T1>(this List<T1> list, IFreeSql orm, string property, string where = null, int take = 0, string select = null) where T1 : class
     {
+#if net40
+        return IncludeByPropertyNameSyncOrAsync<T1>(false, list, orm, property, where, take, select);
+#else
+        var task = IncludeByPropertyNameSyncOrAsync<T1>(false, list, orm, property, where, take, select);
+        if (task.Exception != null) throw task.Exception.InnerException ?? task.Exception;
+        return task.Result;
+#endif
+    }
+#if net40
+#else
+    public static Task<List<T1>> IncludeByPropertyNameAsync<T1>(this List<T1> list, IFreeSql orm, string property, string where = null, int take = 0, string select = null) where T1 : class
+    {
+        return IncludeByPropertyNameSyncOrAsync<T1>(true, list, orm, property, where, take, select);
+    }
+#endif
+    static
+#if net40
+        List<T1>
+#else
+        async Task<List<T1>>
+#endif
+        IncludeByPropertyNameSyncOrAsync<T1>(bool isAsync, List<T1> list, IFreeSql orm, string property, string where = null, int take = 0, string select = null) where T1 : class
+    {
         if (orm.CodeFirst.IsAutoSyncStructure)
         {
             var tb = orm.CodeFirst.GetTableByEntity(typeof(T1));
@@ -360,7 +384,13 @@ public static partial class FreeSqlGlobalExtensions
         {
             if (props.Length > 1)
                 IncludeByPropertyName(list, orm, string.Join(".", props.Take(props.Length - 1)));
-            IncludeManyByPropertyNameCommonGetSelect<T1>(orm, property, where, take, select).SetList(list);
+            var imsel = IncludeManyByPropertyNameCommonGetSelect<T1>(orm, property, where, take, select);
+#if net40
+            imsel.SetList(list);
+#else
+            if (isAsync) await imsel.SetListAsync(list);
+            else imsel.SetList(list);
+#endif
             return list;
         }
         var tbtr = t1tb.GetTableRef(props[0], true);
@@ -388,7 +418,13 @@ public static partial class FreeSqlGlobalExtensions
             };
         }).GroupBy(a => a.key).ToDictionary(a => a.Key, a => a);
         refsel.WhereDynamic(listdic.Values.Select(a => a.First().refitem).ToList());
+
+#if net40
         var reflist = refsel.ToList();
+#else
+        var reflist = isAsync ? await refsel.ToListAsync() : refsel.ToList();
+#endif
+
         reflist.ForEach(refitem =>
         {
             var key = FreeSql.Extensions.EntityUtil.EntityUtilExtensions.GetEntityKeyString(orm, reftb.Type, refitem, false);
@@ -473,7 +509,7 @@ public static partial class FreeSqlGlobalExtensions
         incMethod.MakeGenericMethod(reftb.Type).Invoke(sel, new object[] { navigateSelector, null });
         return sel;
     }
-#endregion
+    #endregion
 
     #region ToTreeList() 父子分类
     /// <summary>
@@ -1162,7 +1198,7 @@ SELECT ");
     }
     #endregion
 
-#endregion
+    #endregion
 
-
+    
 }
