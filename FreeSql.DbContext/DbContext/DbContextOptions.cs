@@ -24,6 +24,16 @@ namespace FreeSql
         public bool EnableAddOrUpdateNavigate { get; set; } = false;
 
         /// <summary>
+        /// 因增加支持 OneToOne 级联保存，请了解机制，已改名为 EnableAddOrUpdateNavigate
+        /// </summary>
+        [Obsolete("因增加支持 OneToOne 级联保存，请了解机制，已改名为 EnableAddOrUpdateNavigate")]
+        public bool EnableAddOrUpdateNavigateList
+        {
+            get => EnableAddOrUpdateNavigate;
+            set => EnableAddOrUpdateNavigate = value;
+        }
+
+        /// <summary>
         /// 使用无参数化设置（对应 IInsert/IUpdate）
         /// </summary>
         public bool? NoneParameter { get; set; }
