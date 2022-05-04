@@ -210,7 +210,7 @@ namespace FreeSql.Tests
             g.sqlite.Delete<tcate01>().Where("1=1").ExecuteAffrows();
             g.sqlite.Delete<tshop01>().Where("1=1").ExecuteAffrows();
             var tshoprepo = g.sqlite.GetRepository<tcate01>();
-            tshoprepo.DbContextOptions.EnableAddOrUpdateNavigate = true;
+            tshoprepo.DbContextOptions.EnableCascadeSave = true;
             tshoprepo.Insert(new tcate01[]
             {
                 new tcate01 { name = "tcate1", tshops = new List<tshop01>{ new tshop01(), new tshop01(), new tshop01() } },

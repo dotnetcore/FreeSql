@@ -194,7 +194,7 @@ namespace FreeSql.Tests.Odbc.Oracle
 
             g.oracle.Delete<District>().Where("1=1").ExecuteAffrows();
             var repo = g.oracle.GetRepository<District>();
-            repo.DbContextOptions.EnableAddOrUpdateNavigate = true;
+            repo.DbContextOptions.EnableCascadeSave = true;
             repo.Insert(new District
             {
                 Code = "001",
@@ -1720,7 +1720,7 @@ WHERE (((to_char(a.""ID"")) in (SELECT b.""TITLE""
             var fsql = g.oracle;
             fsql.Delete<BaseDistrict>().Where("1=1").ExecuteAffrows();
             var repo = fsql.GetRepository<VM_District_Child>();
-            repo.DbContextOptions.EnableAddOrUpdateNavigate = true;
+            repo.DbContextOptions.EnableCascadeSave = true;
             repo.DbContextOptions.NoneParameter = true;
             repo.Insert(new VM_District_Child
             {

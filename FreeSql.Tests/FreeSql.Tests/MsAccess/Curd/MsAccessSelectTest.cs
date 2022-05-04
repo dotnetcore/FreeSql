@@ -300,7 +300,7 @@ WHERE (((a.[Name]) in (SELECT s.[Title] as as1
 
             g.msaccess.Delete<District>().Where("1=1").ExecuteAffrows();
             var repo = g.msaccess.GetRepository<District>();
-            repo.DbContextOptions.EnableAddOrUpdateNavigate = true;
+            repo.DbContextOptions.EnableCascadeSave = true;
             repo.Insert(new District
             {
                 Code = "001",
@@ -1645,7 +1645,7 @@ WHERE (((cstr(a.[Id])) in (SELECT TOP 10 b.[Title]
             var fsql = g.msaccess;
             fsql.Delete<BaseDistrict>().Where("1=1").ExecuteAffrows();
             var repo = fsql.GetRepository<VM_District_Child>();
-            repo.DbContextOptions.EnableAddOrUpdateNavigate = true;
+            repo.DbContextOptions.EnableCascadeSave = true;
             repo.DbContextOptions.NoneParameter = true;
             repo.Insert(new VM_District_Child
             {

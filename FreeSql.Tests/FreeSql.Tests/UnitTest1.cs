@@ -830,7 +830,7 @@ namespace FreeSql.Tests
             ).ToSql();
 
 
-            g.sqlite.SetDbContextOptions(opt => opt.EnableAddOrUpdateNavigate = true);
+            g.sqlite.SetDbContextOptions(opt => opt.EnableCascadeSave = true);
             var trepo = g.sqlite.GetGuidRepository<TaskBuild>();
             trepo.Insert(new TaskBuild
             {
@@ -1146,7 +1146,7 @@ namespace FreeSql.Tests
             };
 
             var repo = g.mysql.GetRepository<Order>();
-            repo.DbContextOptions.EnableAddOrUpdateNavigate = true;
+            repo.DbContextOptions.EnableCascadeSave = true;
             repo.Insert(neworder);
 
             var order = g.mysql.Select<Order>().Where(a => a.Id == neworder.Id).ToOne(); //查询订单表

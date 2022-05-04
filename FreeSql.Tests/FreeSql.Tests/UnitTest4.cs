@@ -304,7 +304,7 @@ GROUP BY a.""code"", a.""seqid"", a.""name""", sql);
             fsql.Delete<ts_otm_ll_02>().Where("1=1").ExecuteAffrows();
 
             var repo = fsql.GetRepository<ts_otm_ll_01>();
-            repo.DbContextOptions.EnableAddOrUpdateNavigate = true;
+            repo.DbContextOptions.EnableCascadeSave = true;
             repo.Insert(new ts_otm_ll_01
             {
                 name = "001",

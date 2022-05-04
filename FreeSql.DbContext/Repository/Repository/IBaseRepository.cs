@@ -86,13 +86,11 @@ namespace FreeSql
         int Delete(IEnumerable<TEntity> entitys);
         int Delete(Expression<Func<TEntity, bool>> predicate);
         /// <summary>
-        /// 根据设置的导航属性，递归查询删除 OneToOne/OneToMany/ManyToMany 数据，并返回已删除的数据
+        /// 根据设置的 OneToOne/OneToMany/ManyToMany 导航属性，级联查询所有的数据库记录，删除并返回它们
         /// </summary>
-        /// <param name="entity"></param>
+        /// <param name="predicate"></param>
         /// <returns></returns>
-        List<object> DeleteCascade(TEntity entity);
-        List<object> DeleteCascade(IEnumerable<TEntity> entitys);
-        List<object> DeleteCascade(Expression<Func<TEntity, bool>> predicate);
+        List<object> RemoveCascadeByDatabase(Expression<Func<TEntity, bool>> predicate);
 
         /// <summary>
         /// 开始编辑数据，然后调用方法 EndEdit 分析出添加、修改、删除 SQL 语句进行执行<para></para>
@@ -124,9 +122,7 @@ namespace FreeSql
         Task<int> DeleteAsync(TEntity entity, CancellationToken cancellationToken = default);
         Task<int> DeleteAsync(IEnumerable<TEntity> entitys, CancellationToken cancellationToken = default);
         Task<int> DeleteAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default);
-        Task<List<object>> DeleteCascade(TEntity entity, CancellationToken cancellationToken = default);
-        Task<List<object>> DeleteCascade(IEnumerable<TEntity> entitys, CancellationToken cancellationToken = default);
-        Task<List<object>> DeleteCascade(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default);
+        Task<List<object>> RemoveCascadeByDatabaseAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default);
 #endif
     }
 
@@ -136,14 +132,12 @@ namespace FreeSql
         TEntity Get(TKey id);
         TEntity Find(TKey id);
         int Delete(TKey id);
-        List<object> DeleteCascade(TKey id);
 
 #if net40
 #else
         Task<TEntity> GetAsync(TKey id, CancellationToken cancellationToken = default);
         Task<TEntity> FindAsync(TKey id, CancellationToken cancellationToken = default);
         Task<int> DeleteAsync(TKey id, CancellationToken cancellationToken = default);
-        Task<List<object>> DeleteCascadeAsync(TKey id, CancellationToken cancellationToken = default);
 #endif
     }
 }

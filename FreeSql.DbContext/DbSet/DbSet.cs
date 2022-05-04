@@ -166,6 +166,15 @@ namespace FreeSql
         {
             ds.AttachRange(_states.Values.OrderBy(a => a.Time).Select(a => a.Value).ToArray());
         }
+        void StatesRemoveByObjects(IEnumerable<object> data)
+        {
+            if (data == null) return;
+            foreach (var item in data)
+            {
+                var stateKey = _db.OrmOriginal.GetEntityKeyString(_entityType, item, false);
+                _states.TryRemove(stateKey, out var trystate);
+            }
+        }
 
         public class EntityState
         {

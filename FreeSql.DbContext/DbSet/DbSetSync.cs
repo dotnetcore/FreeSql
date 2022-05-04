@@ -53,7 +53,7 @@ namespace FreeSql
                             _db.OrmOriginal.SetEntityValueWithPropertyName(_entityType, data, _tableIdentitys[0].CsName, idtval);
                             _db._entityChangeReport.Add(new DbContext.EntityChangeReport.ChangeInfo { Object = data, Type = DbContext.EntityChangeType.Insert });
                             Attach(data);
-                            if (_db.Options.EnableAddOrUpdateNavigate)
+                            if (_db.Options.EnableCascadeSave)
                                 AddOrUpdateNavigate(data, true, null);
                         }
                         else
@@ -64,7 +64,7 @@ namespace FreeSql
                             IncrAffrows(1);
                             _db.OrmOriginal.MapEntityValue(_entityType, newval, data);
                             Attach(newval);
-                            if (_db.Options.EnableAddOrUpdateNavigate)
+                            if (_db.Options.EnableCascadeSave)
                                 AddOrUpdateNavigate(data, true, null);
                         }
                         return;
@@ -77,7 +77,7 @@ namespace FreeSql
                             _db.OrmOriginal.SetEntityValueWithPropertyName(_entityType, data, _tableIdentitys[0].CsName, idtval);
                             _db._entityChangeReport.Add(new DbContext.EntityChangeReport.ChangeInfo { Object = data, Type = DbContext.EntityChangeType.Insert });
                             Attach(data);
-                            if (_db.Options.EnableAddOrUpdateNavigate)
+                            if (_db.Options.EnableCascadeSave)
                                 AddOrUpdateNavigate(data, true, null);
                             return;
                         }
@@ -86,7 +86,7 @@ namespace FreeSql
             }
             EnqueueToDbContext(DbContext.EntityChangeType.Insert, CreateEntityState(data));
             Attach(data);
-            if (_db.Options.EnableAddOrUpdateNavigate)
+            if (_db.Options.EnableCascadeSave)
                 AddOrUpdateNavigate(data, true, null);
         }
         /// <summary>
@@ -123,7 +123,7 @@ namespace FreeSql
                             _db.OrmOriginal.MapEntityValue(_entityType, rets[idx++], s);
                         IncrAffrows(rets.Count);
                         AttachRange(rets);
-                        if (_db.Options.EnableAddOrUpdateNavigate)
+                        if (_db.Options.EnableCascadeSave)
                             foreach (var item in data)
                                 AddOrUpdateNavigate(item, true, null);
                         return;
@@ -141,7 +141,7 @@ namespace FreeSql
             foreach (var item in data)
                 EnqueueToDbContext(DbContext.EntityChangeType.Insert, CreateEntityState(item));
             AttachRange(data);
-            if (_db.Options.EnableAddOrUpdateNavigate)
+            if (_db.Options.EnableCascadeSave)
                 foreach (var item in data)
                     AddOrUpdateNavigate(item, true, null);
         }
@@ -172,8 +172,8 @@ namespace FreeSql
             }
 
             DbContextFlushCommand();
-            var oldEnable = _db.Options.EnableAddOrUpdateNavigate;
-            _db.Options.EnableAddOrUpdateNavigate = false;
+            var oldEnable = _db.Options.EnableCascadeSave;
+            _db.Options.EnableCascadeSave = false;
             try
             {
                 AddOrUpdateNavigate(item, false, propertyName);
@@ -209,7 +209,7 @@ namespace FreeSql
             }
             finally
             {
-                _db.Options.EnableAddOrUpdateNavigate = oldEnable;
+                _db.Options.EnableCascadeSave = oldEnable;
             }
         }
         void AddOrUpdateNavigate(TEntity item, bool isAdd, string propertyName)
@@ -488,7 +488,7 @@ namespace FreeSql
                 state.OldValue = item;
                 EnqueueToDbContext(DbContext.EntityChangeType.Update, state);
             }
-            if (_db.Options.EnableAddOrUpdateNavigate)
+            if (_db.Options.EnableCascadeSave)
                 foreach (var item in data)
                     AddOrUpdateNavigate(item, false, null);
         }
@@ -510,6 +510,11 @@ namespace FreeSql
         public void Remove(TEntity data) => RemoveRange(new[] { data });
         public void RemoveRange(IEnumerable<TEntity> data)
         {
+            if (_db.Options.EnableCascadeSave)
+            {
+                RemoveRangeCascadeByMemoryOrDatabase(data, true);
+                return;
+            }
             if (CanRemove(data, true) == false) return;
             foreach (var item in data)
             {
@@ -608,8 +613,8 @@ namespace FreeSql
             if (data == null) data = _dataEditing;
             var beforeAffrows = 0;
             if (data == null) return 0;
-            var oldEnable = _db.Options.EnableAddOrUpdateNavigate;
-            _db.Options.EnableAddOrUpdateNavigate = false;
+            var oldEnable = _db.Options.EnableCascadeSave;
+            _db.Options.EnableCascadeSave = false;
             try
             {
                 DbContextFlushCommand();
@@ -651,7 +656,7 @@ namespace FreeSql
             {
                 _dataEditing = null;
                 _statesEditing.Clear();
-                _db.Options.EnableAddOrUpdateNavigate = oldEnable;
+                _db.Options.EnableCascadeSave = oldEnable;
             }
             return _db._affrows - beforeAffrows;
         }
@@ -659,33 +664,31 @@ namespace FreeSql
 
         #region RemoveCascade
         /// <summary>
-        /// 根据设置的导航属性，递归查询删除 OneToOne/OneToMany/ManyToMany 数据，并返回已删除的数据
+        /// 根据设置的 OneToOne/OneToMany/ManyToMany 导航属性，级联查询所有的数据库记录，删除并返回它们
         /// </summary>
-        /// <param name="data"></param>
+        /// <param name="predicate"></param>
         /// <returns></returns>
-        public List<object> RemoveCascade(TEntity data) => RemoveRangeCascade(new[] { data });
-        public List<object> RemoveCascade(Expression<Func<TEntity, bool>> predicate) => RemoveRangeCascade(Select.Where(predicate).ToList());
-        public List<object> RemoveRangeCascade(IEnumerable<TEntity> data)
+        public List<object> RemoveCascadeByDatabase(Expression<Func<TEntity, bool>> predicate) => RemoveRangeCascadeByMemoryOrDatabase(Select.Where(predicate).ToList(), false);
+        internal protected List<object> RemoveRangeCascadeByMemoryOrDatabase(IEnumerable<TEntity> data, bool inMemory)
         {
-            var returnDeleted = new List<object>();
+            var returnDeleted = inMemory ? null : new List<object>();
             if (data?.Any() != true) return returnDeleted;
-            DbContextFlushCommand();
-            var fsql = _db.Orm;
             if (LocalGetNavigates(_table).Any() == false)
             {
                 if (CanRemove(data, true) == false) return returnDeleted;
-                foreach (var item in data) //防止清除 Identity/Guid
+                foreach (var item in data) //不直接调用 Remove，防止清除 Identity/Guid
                 {
                     var state = CreateEntityState(item);
                     _states.TryRemove(state.Key, out var trystate);
+                    if (inMemory) _db.OrmOriginal.ClearEntityPrimaryValueWithIdentityAndGuid(_entityType, item);
 
                     EnqueueToDbContext(DbContext.EntityChangeType.Delete, state);
                 }
-                DbContextFlushCommand();
-                returnDeleted.AddRange(data.Select(a => (object)a));
+                returnDeleted?.AddRange(data.Select(a => (object)a));
                 return returnDeleted;
             }
 
+            var fsql = _db.Orm;
             var commonUtils = (fsql.Select<object>() as Internal.CommonProvider.Select0Provider)._commonUtils;
             var eachdic = new Dictionary<string, bool>();
             var rootItems = data.Select(a => (object)a).ToArray();
@@ -693,6 +696,7 @@ namespace FreeSql
             rootDbSet.AsType(_table.Type);
             rootDbSet.AttachRange(rootItems);
             LocalEach(rootDbSet, rootItems, true);
+            rootDbSet.FlushState();
             return returnDeleted;
 
             List<NativeTuple<TableRef, PropertyInfo>> LocalGetNavigates(TableInfo tb)
@@ -722,21 +726,31 @@ namespace FreeSql
                 {
                     foreach (var oto in otos)
                     {
-                        var childTable = fsql.CodeFirst.GetTableByEntity(oto.Item1.RefEntityType);
-                        var childDbSet = _db.Set<object>();
-                        childDbSet.AsType(oto.Item1.RefEntityType);
-                        var refitems = items.Select(item =>
+                        var refset = _db.Set<object>();
+                        refset.AsType(oto.Item1.RefEntityType);
+
+                        if (inMemory)
                         {
-                            var refitem = oto.Item1.RefEntityType.CreateInstanceGetDefaultValue();
-                            for (var a = 0; a < oto.Item1.Columns.Count; a++)
+                            var refitems = items.Select(item => FreeSql.Extensions.EntityUtil.EntityUtilExtensions.GetPropertyValue(tb, item, oto.Item2.Name)).Where(item => item != null).ToList();
+                            refset.AttachRange(refitems);
+                            LocalEach(refset, refitems, false);
+                        }
+                        else
+                        {
+                            var reftb = fsql.CodeFirst.GetTableByEntity(oto.Item1.RefEntityType);
+                            var refwhereItems = items.Select(item =>
                             {
-                                var colval = FreeSql.Extensions.EntityUtil.EntityUtilExtensions.GetPropertyValue(tb, item, oto.Item1.Columns[a].CsName);
-                                FreeSql.Extensions.EntityUtil.EntityUtilExtensions.SetPropertyValue(childTable, refitem, oto.Item1.RefColumns[a].CsName, colval);
-                            }
-                            return refitem;
-                        }).ToList();
-                        var childs = childDbSet.Select.Where(commonUtils.WhereItems(oto.Item1.RefColumns.ToArray(), "a.", refitems)).ToList();
-                        LocalEach(childDbSet, childs, false);
+                                var refitem = oto.Item1.RefEntityType.CreateInstanceGetDefaultValue();
+                                for (var a = 0; a < oto.Item1.Columns.Count; a++)
+                                {
+                                    var colval = FreeSql.Extensions.EntityUtil.EntityUtilExtensions.GetPropertyValue(tb, item, oto.Item1.Columns[a].CsName);
+                                    FreeSql.Extensions.EntityUtil.EntityUtilExtensions.SetPropertyValue(reftb, refitem, oto.Item1.RefColumns[a].CsName, colval);
+                                }
+                                return refitem;
+                            }).ToList();
+                            var refitems = refset.Select.Where(commonUtils.WhereItems(oto.Item1.RefColumns.ToArray(), "a.", refwhereItems)).ToList();
+                            LocalEach(refset, refitems, false);
+                        }
                     }
                 }
 
@@ -745,21 +759,38 @@ namespace FreeSql
                 {
                     foreach (var otm in otms)
                     {
-                        var childTable = fsql.CodeFirst.GetTableByEntity(otm.Item1.RefEntityType);
-                        var childDbSet = _db.Set<object>();
-                        childDbSet.AsType(otm.Item1.RefEntityType);
-                        var refitems = items.Select(item =>
+                        var refset = _db.Set<object>();
+                        refset.AsType(otm.Item1.RefEntityType);
+
+                        if (inMemory)
                         {
-                            var refitem = otm.Item1.RefEntityType.CreateInstanceGetDefaultValue();
-                            for (var a = 0; a < otm.Item1.Columns.Count; a++)
+                            var refitems = items.Select(item =>
                             {
-                                var colval = FreeSql.Extensions.EntityUtil.EntityUtilExtensions.GetPropertyValue(tb, item, otm.Item1.Columns[a].CsName);
-                                FreeSql.Extensions.EntityUtil.EntityUtilExtensions.SetPropertyValue(childTable, refitem, otm.Item1.RefColumns[a].CsName, colval);
-                            }
-                            return refitem;
-                        }).ToList();
-                        var childs = childDbSet.Select.Where(commonUtils.WhereItems(otm.Item1.RefColumns.ToArray(), "a.", refitems)).ToList();
-                        LocalEach(childDbSet, childs, true);
+                                var reflist = new List<object>();
+                                var reflistie = FreeSql.Extensions.EntityUtil.EntityUtilExtensions.GetPropertyValue(tb, item, otm.Item2.Name) as IEnumerable;
+                                if (reflistie == null) return null;
+                                foreach (var refitem in reflistie) reflist.Add(refitem);
+                                return reflist;
+                            }).Where(itemlst => itemlst != null).SelectMany(itemlst => itemlst).ToList();
+                            refset.AttachRange(refitems);
+                            LocalEach(refset, refitems, true);
+                        }
+                        else
+                        {
+                            var reftb = fsql.CodeFirst.GetTableByEntity(otm.Item1.RefEntityType);
+                            var refwhereItems = items.Select(item =>
+                            {
+                                var refitem = otm.Item1.RefEntityType.CreateInstanceGetDefaultValue();
+                                for (var a = 0; a < otm.Item1.Columns.Count; a++)
+                                {
+                                    var colval = FreeSql.Extensions.EntityUtil.EntityUtilExtensions.GetPropertyValue(tb, item, otm.Item1.Columns[a].CsName);
+                                    FreeSql.Extensions.EntityUtil.EntityUtilExtensions.SetPropertyValue(reftb, refitem, otm.Item1.RefColumns[a].CsName, colval);
+                                }
+                                return refitem;
+                            }).ToList();
+                            var childs = refset.Select.Where(commonUtils.WhereItems(otm.Item1.RefColumns.ToArray(), "a.", refwhereItems)).ToList();
+                            LocalEach(refset, childs, true);
+                        }
                     }
                 }
 
@@ -768,49 +799,86 @@ namespace FreeSql
                 {
                     foreach (var mtm in mtms)
                     {
+                        var midset = _db.Set<object>();
+                        midset.AsType(mtm.Item1.RefMiddleEntityType);
                         var childTable = fsql.CodeFirst.GetTableByEntity(mtm.Item1.RefMiddleEntityType);
-                        var childDbSet = _db.Set<object>();
-                        childDbSet.AsType(mtm.Item1.RefMiddleEntityType);
-                        var miditems = items.Select(item =>
+
+                        if (inMemory)
                         {
-                            var refitem = mtm.Item1.RefMiddleEntityType.CreateInstanceGetDefaultValue();
-                            for (var a = 0; a < mtm.Item1.Columns.Count; a++)
+                            var miditems = items.Select(item =>
                             {
-                                var colval = FreeSql.Extensions.EntityUtil.EntityUtilExtensions.GetPropertyValue(tb, item, mtm.Item1.Columns[a].CsName);
-                                FreeSql.Extensions.EntityUtil.EntityUtilExtensions.SetPropertyValue(childTable, refitem, mtm.Item1.MiddleColumns[a].CsName, colval);
-                            }
-                            return refitem;
-                        }).ToList();
-                        var childs = childDbSet.Select.Where(commonUtils.WhereItems(mtm.Item1.MiddleColumns.Take(mtm.Item1.Columns.Count).ToArray(), "a.", miditems)).ToList();
-                        LocalEach(childDbSet, childs, true);
+                                var midlist = new List<object>();
+                                var refitems = FreeSql.Extensions.EntityUtil.EntityUtilExtensions.GetPropertyValue(tb, item, mtm.Item2.Name) as IEnumerable;
+                                if (refitems == null) return null;
+                                var reftb = fsql.CodeFirst.GetTableByEntity(mtm.Item1.RefEntityType);
+                                foreach (var refitem in refitems)
+                                {
+                                    var miditem = mtm.Item1.RefMiddleEntityType.CreateInstanceGetDefaultValue();
+                                    for (var a = 0; a < mtm.Item1.Columns.Count; a++)
+                                    {
+                                        var colval = FreeSql.Extensions.EntityUtil.EntityUtilExtensions.GetPropertyValue(tb, item, mtm.Item1.Columns[a].CsName);
+                                        FreeSql.Extensions.EntityUtil.EntityUtilExtensions.SetPropertyValue(childTable, miditem, mtm.Item1.MiddleColumns[a].CsName, colval);
+                                    }
+                                    for (var a = 0; a < mtm.Item1.RefColumns.Count; a++)
+                                    {
+                                        var colval = FreeSql.Extensions.EntityUtil.EntityUtilExtensions.GetPropertyValue(reftb, refitem, mtm.Item1.RefColumns[a].CsName);
+                                        FreeSql.Extensions.EntityUtil.EntityUtilExtensions.SetPropertyValue(childTable, miditem, mtm.Item1.MiddleColumns[a + mtm.Item1.Columns.Count].CsName, colval);
+                                    }
+                                    midlist.Add(miditem);
+                                }
+                                return midlist;
+                            }).Where(midlist => midlist != null).SelectMany(midlist => midlist).ToList();
+                            midset.AttachRange(miditems);
+                            LocalEach(midset, miditems, true);
+                        }
+                        else
+                        {
+                            var miditems = items.Select(item =>
+                            {
+                                var refitem = mtm.Item1.RefMiddleEntityType.CreateInstanceGetDefaultValue();
+                                for (var a = 0; a < mtm.Item1.Columns.Count; a++)
+                                {
+                                    var colval = FreeSql.Extensions.EntityUtil.EntityUtilExtensions.GetPropertyValue(tb, item, mtm.Item1.Columns[a].CsName);
+                                    FreeSql.Extensions.EntityUtil.EntityUtilExtensions.SetPropertyValue(childTable, refitem, mtm.Item1.MiddleColumns[a].CsName, colval);
+                                }
+                                return refitem;
+                            }).ToList();
+                            var childs = midset.Select.Where(commonUtils.WhereItems(mtm.Item1.MiddleColumns.Take(mtm.Item1.Columns.Count).ToArray(), "a.", miditems)).ToList();
+                            LocalEach(midset, childs, true);
+                        }
                     }
                 }
 
                 if (dbset == rootDbSet)
                 {
                     if (CanRemove(data, true) == false) return;
-                    foreach (var item in data) //防止清除 Identity/Guid
+                    foreach (var item in data) //不直接调用 Remove，防止清除 Identity/Guid
                     {
                         var state = CreateEntityState(item);
                         _states.TryRemove(state.Key, out var trystate);
+                        if (inMemory) _db.OrmOriginal.ClearEntityPrimaryValueWithIdentityAndGuid(_entityType, item);
 
                         EnqueueToDbContext(DbContext.EntityChangeType.Delete, state);
                     }
-                    DbContextFlushCommand();
                 }
                 else
                 {
                     if (dbset.CanRemove(items, true) == false) return;
-                    foreach (var item in items) //防止清除 Identity/Guid
+                    foreach (var item in items) //不直接调用 dbset.Remove，防止清除 Identity/Guid
                     {
                         var state = dbset.CreateEntityState(item);
                         dbset._states.TryRemove(state.Key, out var trystate);
+                        if (inMemory) _db.OrmOriginal.ClearEntityPrimaryValueWithIdentityAndGuid(dbset.EntityType, item);
 
                         dbset.EnqueueToDbContext(DbContext.EntityChangeType.Delete, state);
                     }
-                    dbset.DbContextFlushCommand();
+
+                    var rawset = _db.Set(dbset.EntityType);
+                    var statesRemove = typeof(DbSet<>).MakeGenericType(dbset.EntityType).GetMethod("StatesRemoveByObjects", BindingFlags.NonPublic | BindingFlags.Instance, null, new[] { typeof(IEnumerable<object>) }, null);
+                    if (statesRemove == null) throw new Exception("找不到方法 DbSet<>.StatesRemoveByObjects");
+                    statesRemove.Invoke(rawset, new object[] { items });
                 }
-                returnDeleted.AddRange(items);
+                returnDeleted?.AddRange(items);
             }
         }
         #endregion

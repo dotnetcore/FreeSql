@@ -194,7 +194,7 @@ namespace FreeSql.Tests.Odbc.KingbaseES
 
             g.kingbaseES.Delete<District>().Where("1=1").ExecuteAffrows();
             var repo = g.kingbaseES.GetRepository<District>();
-            repo.DbContextOptions.EnableAddOrUpdateNavigate = true;
+            repo.DbContextOptions.EnableCascadeSave = true;
             repo.Insert(new District
             {
                 Code = "001",
@@ -1677,7 +1677,7 @@ WHERE ((((a.""ID"")::text) in (SELECT b.""TITLE""
             var fsql = g.kingbaseES;
             fsql.Delete<BaseDistrict>().Where("1=1").ExecuteAffrows();
             var repo = fsql.GetRepository<VM_District_Child>();
-            repo.DbContextOptions.EnableAddOrUpdateNavigate = true;
+            repo.DbContextOptions.EnableCascadeSave = true;
             repo.DbContextOptions.NoneParameter = true;
             repo.Insert(new VM_District_Child
             {

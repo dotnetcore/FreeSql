@@ -94,9 +94,12 @@ namespace FreeSql
             _dbset.RemoveRange(entitys);
             return _db.SaveChanges();
         }
-        public List<object> DeleteCascade(TEntity entity) => _dbset.RemoveCascade(entity);
-        public List<object> DeleteCascade(IEnumerable<TEntity> entitys) => _dbset.RemoveRangeCascade(entitys);
-        public List<object> DeleteCascade(Expression<Func<TEntity, bool>> predicate) => _dbset.RemoveCascade(predicate);
+        public List<object> RemoveCascadeByDatabase(Expression<Func<TEntity, bool>> predicate)
+        {
+            var list = _dbset.RemoveCascadeByDatabase(predicate);
+            var affrows = _db.SaveChanges();
+            return list;
+        }
 
         public virtual TEntity Insert(TEntity entity)
         {
@@ -192,7 +195,6 @@ namespace FreeSql
             return ret;
         }
 
-        public virtual List<object> DeleteCascade(TKey id) => _dbset.RemoveCascade(Find(id));
         public virtual int Delete(TKey id) => Delete(CheckTKeyAndReturnIdEntity(id));
         public virtual TEntity Find(TKey id) => _dbset.OrmSelectInternal(CheckTKeyAndReturnIdEntity(id)).ToOne();
         public TEntity Get(TKey id) => _dbset.OrmSelectInternal(CheckTKeyAndReturnIdEntity(id)).ToOne();

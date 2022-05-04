@@ -46,7 +46,7 @@ namespace FreeSql
                     _optionsPriv = new DbContextOptions();
                     if (FreeSqlDbContextExtensions._dicSetDbContextOptions.TryGetValue(OrmOriginal.Ado.Identifier, out var opt))
                     {
-                        _optionsPriv.EnableAddOrUpdateNavigate = opt.EnableAddOrUpdateNavigate;
+                        _optionsPriv.EnableCascadeSave = opt.EnableCascadeSave;
                         _optionsPriv.EnableGlobalFilter = opt.EnableGlobalFilter;
                         _optionsPriv.NoneParameter = opt.NoneParameter;
                         _optionsPriv.OnEntityChange = opt.OnEntityChange;
@@ -225,29 +225,29 @@ namespace FreeSql
         }
 #if net40
 #else
-        public Task AddAsync<TEntity>(TEntity data) where TEntity : class
+        public Task AddAsync<TEntity>(TEntity data, CancellationToken cancellationToken = default) where TEntity : class
         {
             CheckEntityTypeOrThrow(typeof(TEntity));
-            return this.Set<TEntity>().AddAsync(data);
+            return this.Set<TEntity>().AddAsync(data, cancellationToken);
         }
-        public Task AddRangeAsync<TEntity>(IEnumerable<TEntity> data) where TEntity : class => this.Set<TEntity>().AddRangeAsync(data);
+        public Task AddRangeAsync<TEntity>(IEnumerable<TEntity> data, CancellationToken cancellationToken = default) where TEntity : class => this.Set<TEntity>().AddRangeAsync(data, cancellationToken);
 
-        public Task UpdateAsync<TEntity>(TEntity data) where TEntity : class
+        public Task UpdateAsync<TEntity>(TEntity data, CancellationToken cancellationToken = default) where TEntity : class
         {
             CheckEntityTypeOrThrow(typeof(TEntity));
-            return this.Set<TEntity>().UpdateAsync(data);
+            return this.Set<TEntity>().UpdateAsync(data, cancellationToken);
         }
-        public Task UpdateRangeAsync<TEntity>(IEnumerable<TEntity> data) where TEntity : class => this.Set<TEntity>().UpdateRangeAsync(data);
+        public Task UpdateRangeAsync<TEntity>(IEnumerable<TEntity> data, CancellationToken cancellationToken = default) where TEntity : class => this.Set<TEntity>().UpdateRangeAsync(data, cancellationToken);
 
-        public Task AddOrUpdateAsync<TEntity>(TEntity data) where TEntity : class
+        public Task AddOrUpdateAsync<TEntity>(TEntity data, CancellationToken cancellationToken = default) where TEntity : class
         {
             CheckEntityTypeOrThrow(typeof(TEntity));
-            return this.Set<TEntity>().AddOrUpdateAsync(data);
+            return this.Set<TEntity>().AddOrUpdateAsync(data, cancellationToken);
         }
-        public Task SaveManyAsync<TEntity>(TEntity data, string propertyName) where TEntity : class
+        public Task SaveManyAsync<TEntity>(TEntity data, string propertyName, CancellationToken cancellationToken = default) where TEntity : class
         {
             CheckEntityTypeOrThrow(typeof(TEntity));
-            return this.Set<TEntity>().SaveManyAsync(data, propertyName);
+            return this.Set<TEntity>().SaveManyAsync(data, propertyName, cancellationToken);
         }
 #endif
         #endregion

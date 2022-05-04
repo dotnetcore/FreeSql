@@ -21,16 +21,16 @@ namespace FreeSql
         /// - 属性集合为空时(!=null)，删除他们的所有关联数据（中间表）<para></para>
         /// - 属性集合不为空时，与数据库存在的关联数据（中间表）完全对比，计算出应该删除和添加的记录
         /// </summary>
-        public bool EnableAddOrUpdateNavigate { get; set; } = false;
+        public bool EnableCascadeSave { get; set; } = false;
 
         /// <summary>
-        /// 因增加支持 OneToOne 级联保存，请了解机制，已改名为 EnableAddOrUpdateNavigate
+        /// 因增加支持 OneToOne 级联保存，和基于内存的级联删除，已改名为 EnableCascadeSave
         /// </summary>
-        [Obsolete("因增加支持 OneToOne 级联保存，请了解机制，已改名为 EnableAddOrUpdateNavigate")]
+        [Obsolete("因增加支持 OneToOne 级联保存，和基于内存的级联删除，已改名为 EnableCascadeSave")]
         public bool EnableAddOrUpdateNavigateList
         {
-            get => EnableAddOrUpdateNavigate;
-            set => EnableAddOrUpdateNavigate = value;
+            get => EnableCascadeSave;
+            set => EnableCascadeSave = value;
         }
 
         /// <summary>

@@ -270,7 +270,7 @@ namespace FreeSql.Tests.Odbc.PostgreSQL
 
             g.pgsql.Delete<District>().Where("1=1").ExecuteAffrows();
             var repo = g.pgsql.GetRepository<District>();
-            repo.DbContextOptions.EnableAddOrUpdateNavigate = true;
+            repo.DbContextOptions.EnableCascadeSave = true;
             repo.Insert(new District
             {
                 Code = "001",
@@ -1780,7 +1780,7 @@ WHERE ((((a.""id"")::text) in (SELECT b.""title""
             var fsql = g.pgsql;
             fsql.Delete<BaseDistrict>().Where("1=1").ExecuteAffrows();
             var repo = fsql.GetRepository<VM_District_Child>();
-            repo.DbContextOptions.EnableAddOrUpdateNavigate = true;
+            repo.DbContextOptions.EnableCascadeSave = true;
             repo.DbContextOptions.NoneParameter = true;
             repo.Insert(new VM_District_Child
             {

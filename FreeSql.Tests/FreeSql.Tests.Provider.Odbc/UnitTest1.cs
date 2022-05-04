@@ -532,7 +532,7 @@ WHERE ROWNUM < 11";
             ).ToSql();
 
 
-            g.mysql.SetDbContextOptions(opt => opt.EnableAddOrUpdateNavigate = true);
+            g.mysql.SetDbContextOptions(opt => opt.EnableCascadeSave = true);
             var trepo = g.mysql.GetGuidRepository<TaskBuild>();
             trepo.Insert(new TaskBuild
             {

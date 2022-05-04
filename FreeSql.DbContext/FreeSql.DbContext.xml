@@ -89,7 +89,7 @@
             刷新队列中的命令
             </summary>
         </member>
-        <member name="P:FreeSql.DbContextOptions.EnableAddOrUpdateNavigate">
+        <member name="P:FreeSql.DbContextOptions.EnableCascadeSave">
             <summary>
             是否开启 一对一(OneToOne)、一对多(OneToMany)、多对多(ManyToMany) 级联保存功能<para></para>
             <para></para>
@@ -107,7 +107,7 @@
         </member>
         <member name="P:FreeSql.DbContextOptions.EnableAddOrUpdateNavigateList">
             <summary>
-            因增加支持 OneToOne 级联保存，请了解机制，已改名为 EnableAddOrUpdateNavigate
+            因增加支持 OneToOne 级联保存，和基于内存的级联删除，已改名为 EnableCascadeSave
             </summary>
         </member>
         <member name="P:FreeSql.DbContextOptions.NoneParameter">
@@ -216,11 +216,11 @@
             <param name="data">可选参数：手工传递最终的 data 值进行对比<para></para>默认：如果不传递，则使用 BeginEdit 传入的 data 引用进行对比</param>
             <returns></returns>
         </member>
-        <member name="M:FreeSql.DbSet`1.RemoveCascade(`0)">
+        <member name="M:FreeSql.DbSet`1.RemoveCascadeByDatabase(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
             <summary>
-            根据设置的导航属性，递归查询删除 OneToOne/OneToMany/ManyToMany 数据，并返回已删除的数据
+            根据设置的 OneToOne/OneToMany/ManyToMany 导航属性，级联查询所有的数据库记录，删除并返回它们
             </summary>
-            <param name="data"></param>
+            <param name="predicate"></param>
             <returns></returns>
         </member>
         <member name="M:FreeSql.Extensions.EfCoreFluentApi.EfCoreColumnFluent.Help">
@@ -237,7 +237,7 @@
         </member>
         <member name="M:FreeSql.Extensions.EfCoreFluentApi.EfCoreTableFluent.HasData(System.Collections.Generic.IEnumerable{System.Object})">
             <summary>
-            使用 Repository + EnableAddOrUpdateNavigate + NoneParameter 方式插入种子数据
+            使用 Repository + EnableCascadeSave + NoneParameter 方式插入种子数据
             </summary>
             <param name="data"></param>
             <returns></returns>
@@ -250,7 +250,7 @@
         </member>
         <member name="M:FreeSql.Extensions.EfCoreFluentApi.EfCoreTableFluent`1.HasData(System.Collections.Generic.IEnumerable{`0})">
             <summary>
-            使用 Repository + EnableAddOrUpdateNavigate + NoneParameter 方式插入种子数据
+            使用 Repository + EnableCascadeSave + NoneParameter 方式插入种子数据
             </summary>
             <param name="data"></param>
             <returns></returns>
@@ -360,11 +360,11 @@
             <param name="entity">实体对象</param>
             <param name="propertyName">属性名</param>
         </member>
-        <member name="M:FreeSql.IBaseRepository`1.DeleteCascade(`0)">
+        <member name="M:FreeSql.IBaseRepository`1.RemoveCascadeByDatabase(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
             <summary>
-            根据设置的导航属性，递归查询删除 OneToOne/OneToMany/ManyToMany 数据，并返回已删除的数据
+            根据设置的 OneToOne/OneToMany/ManyToMany 导航属性，级联查询所有的数据库记录，删除并返回它们
             </summary>
-            <param name="entity"></param>
+            <param name="predicate"></param>
             <returns></returns>
         </member>
         <member name="M:FreeSql.IBaseRepository`1.BeginEdit(System.Collections.Generic.List{`0})">
@@ -557,15 +557,6 @@
             创建基于仓储功能的工作单元，务必使用 using 包含使用
             </summary>
             <param name="that"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Microsoft.Extensions.DependencyInjection.FreeSqlRepositoryDependencyInjection.AddFreeRepository(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Action{FreeSql.FluentDataFilter},System.Reflection.Assembly[])">
-            <summary>
-            批量注入 Repository，可以参考代码自行调整
-            </summary>
-            <param name="services"></param>
-            <param name="globalDataFilter"></param>
-            <param name="assemblies"></param>
             <returns></returns>
         </member>
     </members>

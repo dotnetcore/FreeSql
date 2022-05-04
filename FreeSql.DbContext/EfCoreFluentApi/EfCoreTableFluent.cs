@@ -242,7 +242,7 @@ namespace FreeSql.Extensions.EfCoreFluentApi
         }
 
         /// <summary>
-        /// 使用 Repository + EnableAddOrUpdateNavigate + NoneParameter 方式插入种子数据
+        /// 使用 Repository + EnableCascadeSave + NoneParameter 方式插入种子数据
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
@@ -263,7 +263,7 @@ namespace FreeSql.Extensions.EfCoreFluentApi
                     if (_fsql.Select<object>().AsType(et).Any()) continue;
 
                     var repo = _fsql.GetRepository<object>();
-                    repo.DbContextOptions.EnableAddOrUpdateNavigate = true;
+                    repo.DbContextOptions.EnableCascadeSave = true;
                     repo.DbContextOptions.NoneParameter = true;
                     repo.AsType(et);
                     repo.Insert(sd);

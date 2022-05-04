@@ -155,7 +155,7 @@ namespace FreeSql.Tests
 
             g.sqlite.SetDbContextOptions(opt =>
             {
-                //opt.EnableAddOrUpdateNavigate = false;
+                //opt.EnableCascadeSave = false;
             });
 
             g.mysql.Insert<testenumWhere>().AppendData(new testenumWhere { type = testenumWhereType.Blaaa }).ExecuteAffrows();
@@ -167,7 +167,7 @@ namespace FreeSql.Tests
 
             using (var ctx = g.sqlite.CreateDbContext())
             {
-                ctx.Options.EnableAddOrUpdateNavigate = true;
+                ctx.Options.EnableCascadeSave = true;
                 var tags = ctx.Set<Tag>().Select.IncludeMany(a => a.Tags).ToList();
 
                 var tag = new Tag
@@ -199,7 +199,7 @@ namespace FreeSql.Tests
 
             using (var ctx = g.sqlite.CreateDbContext())
             {
-                ctx.Options.EnableAddOrUpdateNavigate = true;
+                ctx.Options.EnableCascadeSave = true;
                 var tag = ctx.Set<Tag>().Select.First();
                 tag.Tags.Add(new Tag { Name = "sub3" });
                 tag.Name = Guid.NewGuid().ToString();
