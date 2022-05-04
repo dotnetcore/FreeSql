@@ -124,6 +124,9 @@ namespace FreeSql
         Task<int> DeleteAsync(TEntity entity, CancellationToken cancellationToken = default);
         Task<int> DeleteAsync(IEnumerable<TEntity> entitys, CancellationToken cancellationToken = default);
         Task<int> DeleteAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default);
+        Task<List<object>> DeleteCascade(TEntity entity, CancellationToken cancellationToken = default);
+        Task<List<object>> DeleteCascade(IEnumerable<TEntity> entitys, CancellationToken cancellationToken = default);
+        Task<List<object>> DeleteCascade(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default);
 #endif
     }
 
@@ -140,6 +143,7 @@ namespace FreeSql
         Task<TEntity> GetAsync(TKey id, CancellationToken cancellationToken = default);
         Task<TEntity> FindAsync(TKey id, CancellationToken cancellationToken = default);
         Task<int> DeleteAsync(TKey id, CancellationToken cancellationToken = default);
+        Task<List<object>> DeleteCascadeAsync(TKey id, CancellationToken cancellationToken = default);
 #endif
     }
 }
