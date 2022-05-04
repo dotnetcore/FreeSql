@@ -1913,9 +1913,9 @@ WHERE (((cast(a.""ID"" as blob sub_type 1)) in (SELECT FIRST 10 b.""TITLE""
             Assert.Equal("110100", t4[2].item.Code);
             Assert.Equal("110101", t4[3].item.Code);
             Assert.Equal("中国", t4[0].path);
-            Assert.Equal("中国 -> 北京", t4[1].path);
-            Assert.Equal("中国 -> 北京 -> 北京市", t4[2].path);
-            Assert.Equal("中国 -> 北京 -> 东城区", t4[3].path);
+            Assert.Equal("中国 -> 北京 ", t4[1].path);
+            Assert.Equal("中国 -> 北京  -> 北京市", t4[2].path);
+            Assert.Equal("中国 -> 北京  -> 东城区", t4[3].path);
 
             t4 = fsql.Select<VM_District_Child>().Where(a => a.Name == "中国").AsTreeCte(a => a.Name + "[" + a.Code + "]").OrderBy(a => a.Code)
                 .ToList(a => new { item = a, level = Convert.ToInt32("a.cte_level"), path = "a.cte_path" });
@@ -1925,9 +1925,9 @@ WHERE (((cast(a.""ID"" as blob sub_type 1)) in (SELECT FIRST 10 b.""TITLE""
             Assert.Equal("110100", t4[2].item.Code);
             Assert.Equal("110101", t4[3].item.Code);
             Assert.Equal("中国[100000]", t4[0].path);
-            Assert.Equal("中国[100000] -> 北京[110000]", t4[1].path);
-            Assert.Equal("中国[100000] -> 北京[110000] -> 北京市[110100]", t4[2].path);
-            Assert.Equal("中国[100000] -> 北京[110000] -> 东城区[110101]", t4[3].path);
+            Assert.Equal("中国[100000] -> 北京 [110000]", t4[1].path);
+            Assert.Equal("中国[100000] -> 北京 [110000] -> 北京市[110100]", t4[2].path);
+            Assert.Equal("中国[100000] -> 北京 [110000] -> 东城区[110101]", t4[3].path);
 
             var select = fsql.Select<VM_District_Child>()
                 .Where(a => a.Name == "中国")
