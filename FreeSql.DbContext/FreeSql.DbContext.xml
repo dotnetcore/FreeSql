@@ -99,7 +99,7 @@
             - 保存的时候，由于数据库中记录非常之多，那么只想保存子表的部分数据，或者只需要添加，如何操作？<para></para>
             <para></para>
             【多对多】模型下，我们对中间表的保存是完整对比操作，对外部实体的操作只作新增（*注意不会更新）<para></para>
-            - 属性集合为空时，删除他们的所有关联数据（中间表）<para></para>
+            - 属性集合为空时(!=null)，删除他们的所有关联数据（中间表）<para></para>
             - 属性集合不为空时，与数据库存在的关联数据（中间表）完全对比，计算出应该删除和添加的记录
             </summary>
         </member>
@@ -207,6 +207,13 @@
             注意：* 本方法只支持单表操作，不支持导航属性级联保存
             </summary>
             <param name="data">可选参数：手工传递最终的 data 值进行对比<para></para>默认：如果不传递，则使用 BeginEdit 传入的 data 引用进行对比</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.DbSet`1.RemoveCascade(`0)">
+            <summary>
+            根据设置的导航属性，递归查询删除 OneToOne/OneToMany/ManyToMany 数据，并返回已删除的数据
+            </summary>
+            <param name="data"></param>
             <returns></returns>
         </member>
         <member name="M:FreeSql.Extensions.EfCoreFluentApi.EfCoreColumnFluent.Help">
@@ -345,6 +352,13 @@
             </summary>
             <param name="entity">实体对象</param>
             <param name="propertyName">属性名</param>
+        </member>
+        <member name="M:FreeSql.IBaseRepository`1.DeleteCascade(`0)">
+            <summary>
+            根据设置的导航属性，递归查询删除 OneToOne/OneToMany/ManyToMany 数据，并返回已删除的数据
+            </summary>
+            <param name="entity"></param>
+            <returns></returns>
         </member>
         <member name="M:FreeSql.IBaseRepository`1.BeginEdit(System.Collections.Generic.List{`0})">
             <summary>
@@ -536,6 +550,15 @@
             创建基于仓储功能的工作单元，务必使用 using 包含使用
             </summary>
             <param name="that"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.FreeSqlRepositoryDependencyInjection.AddFreeRepository(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Action{FreeSql.FluentDataFilter},System.Reflection.Assembly[])">
+            <summary>
+            批量注入 Repository，可以参考代码自行调整
+            </summary>
+            <param name="services"></param>
+            <param name="globalDataFilter"></param>
+            <param name="assemblies"></param>
             <returns></returns>
         </member>
     </members>

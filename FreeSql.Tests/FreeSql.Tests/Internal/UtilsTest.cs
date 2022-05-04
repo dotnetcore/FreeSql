@@ -148,7 +148,7 @@ UNION ALL
 SELECT  * from (SELECT a.""id"", a.""msg"", a.""createtime""
 FROM ""as_table_log_202201"" a
 WHERE (a.""createtime"" < '2022-05-01 00:00:00')) ftb", dict);
-            Assert.Equal(1, dict.Count);
+            Assert.Single(dict);
             sql3 = sql2;
             dict.Select(a => sql3 = sql3.Replace(a.Key, "{0}".FormatMySql(a.Value))).ToList();
             Assert.Equal(sql1, sql3);

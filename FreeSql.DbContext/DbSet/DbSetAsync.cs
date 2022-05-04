@@ -209,16 +209,26 @@ namespace FreeSql
 
                 var tref = _table.GetTableRef(prop.Name, false); //防止非正常的导航属性报错
                 if (tref == null) return;
+                DbSet<object> refSet = null;
                 switch (tref.RefType)
                 {
                     case Internal.Model.TableRefType.OneToOne:
+                        //var propValItem = GetItemValue(item, prop);
+                        //for (var colidx = 0; colidx < tref.Columns.Count; colidx++)
+                        //{
+                        //    var val = FreeSql.Internal.Utils.GetDataReaderValue(tref.RefColumns[colidx].CsType, _db.OrmOriginal.GetEntityValueWithPropertyName(_table.Type, item, tref.Columns[colidx].CsName));
+                        //    _db.OrmOriginal.SetEntityValueWithPropertyName(tref.RefEntityType, propValItem, tref.RefColumns[colidx].CsName, val);
+                        //}
+                        //if (isAdd) await refSet.AddAsync(propValItem);
+                        //else await refSet.AddOrUpdateAsync(propValItem);
+                        //return;
                     case Internal.Model.TableRefType.ManyToOne:
                         return;
                 }
 
                 var propValEach = GetItemValue(item, prop) as IEnumerable;
                 if (propValEach == null) return;
-                DbSet<object> refSet = GetDbSetObject(tref.RefEntityType);
+                refSet = GetDbSetObject(tref.RefEntityType);
                 switch (tref.RefType)
                 {
                     case Internal.Model.TableRefType.ManyToMany:

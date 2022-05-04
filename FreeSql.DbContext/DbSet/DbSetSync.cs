@@ -221,16 +221,26 @@ namespace FreeSql
 
                 var tref = _table.GetTableRef(prop.Name, false); //防止非正常的导航属性报错
                 if (tref == null) return;
+                DbSet<object> refSet = null;
                 switch (tref.RefType)
                 {
                     case Internal.Model.TableRefType.OneToOne:
+                        //var propValItem = GetItemValue(item, prop);
+                        //for (var colidx = 0; colidx < tref.Columns.Count; colidx++)
+                        //{
+                        //    var val = FreeSql.Internal.Utils.GetDataReaderValue(tref.RefColumns[colidx].CsType, _db.OrmOriginal.GetEntityValueWithPropertyName(_table.Type, item, tref.Columns[colidx].CsName));
+                        //    _db.OrmOriginal.SetEntityValueWithPropertyName(tref.RefEntityType, propValItem, tref.RefColumns[colidx].CsName, val);
+                        //}
+                        //if (isAdd) refSet.Add(propValItem);
+                        //else refSet.AddOrUpdate(propValItem);
+                        //return;
                     case Internal.Model.TableRefType.ManyToOne:
                         return;
                 }
 
                 var propValEach = GetItemValue(item, prop) as IEnumerable;
                 if (propValEach == null) return;
-                DbSet<object> refSet = GetDbSetObject(tref.RefEntityType);
+                refSet = GetDbSetObject(tref.RefEntityType);
                 switch (tref.RefType)
                 {
                     case Internal.Model.TableRefType.ManyToMany:
@@ -639,6 +649,164 @@ namespace FreeSql
                 _db.Options.EnableAddOrUpdateNavigateList = oldEnable;
             }
             return _db._affrows - beforeAffrows;
+        }
+        #endregion
+
+        #region RemoveCascade
+        /// <summary>
+        /// 根据设置的导航属性，递归查询删除 OneToOne/OneToMany/ManyToMany 数据，并返回已删除的数据
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public List<object> RemoveCascade(TEntity data) => RemoveRangeCascade(new[] { data });
+        public List<object> RemoveCascade(Expression<Func<TEntity, bool>> predicate) => RemoveRangeCascade(Select.Where(predicate).ToList());
+        public List<object> RemoveRangeCascade(IEnumerable<TEntity> data)
+        {
+            var returnDeleted = new List<object>();
+            if (data?.Any() != true) return returnDeleted;
+            DbContextFlushCommand();
+            var fsql = _db.Orm;
+            if (LocalGetNavigates(_table).Any() == false)
+            {
+                if (CanRemove(data, true) == false) return returnDeleted;
+                foreach (var item in data) //防止清除 Identity/Guid
+                {
+                    var state = CreateEntityState(item);
+                    _states.TryRemove(state.Key, out var trystate);
+
+                    EnqueueToDbContext(DbContext.EntityChangeType.Delete, state);
+                }
+                DbContextFlushCommand();
+                returnDeleted.AddRange(data.Select(a => (object)a));
+                return returnDeleted;
+            }
+
+            var commonUtils = (fsql.Select<object>() as Internal.CommonProvider.Select0Provider)._commonUtils;
+            var eachdic = new Dictionary<string, bool>();
+            var rootItems = data.Select(a => (object)a).ToArray();
+            var rootDbSet = _db.Set<object>();
+            rootDbSet.AsType(_table.Type);
+            rootDbSet.AttachRange(rootItems);
+            LocalEach(rootDbSet, rootItems, true);
+            return returnDeleted;
+
+            List<NativeTuple<TableRef, PropertyInfo>> LocalGetNavigates(TableInfo tb)
+            {
+                return tb.Properties.Where(a => tb.ColumnsByCs.ContainsKey(a.Key) == false)
+                    .Select(a => new NativeTuple<TableRef, PropertyInfo>(tb.GetTableRef(a.Key, false), a.Value))
+                    .Where(a => a.Item1 != null && a.Item1.RefType != TableRefType.ManyToOne)
+                    .ToList();
+            }
+            void LocalEach(DbSet<object> dbset, IEnumerable<object> items, bool isOneToOne)
+            {
+                items = items?.Where(item =>
+                {
+                    var itemkeyStr = FreeSql.Extensions.EntityUtil.EntityUtilExtensions.GetEntityKeyString(fsql, dbset.EntityType, item, false);
+                    var eachdicKey = $"{dbset.EntityType.FullName},{itemkeyStr}";
+                    if (eachdic.ContainsKey(eachdicKey)) return false;
+                    eachdic.Add(eachdicKey, true);
+                    return true;
+                }).ToList();
+                if (items?.Any() != true) return;
+
+                var tb = fsql.CodeFirst.GetTableByEntity(dbset.EntityType);
+                var navs = LocalGetNavigates(tb);
+
+                var otos = navs.Where(a => a.Item1.RefType == TableRefType.OneToOne).ToList();
+                if (isOneToOne && otos.Any())
+                {
+                    foreach (var oto in otos)
+                    {
+                        var childTable = fsql.CodeFirst.GetTableByEntity(oto.Item1.RefEntityType);
+                        var childDbSet = _db.Set<object>();
+                        childDbSet.AsType(oto.Item1.RefEntityType);
+                        var refitems = items.Select(item =>
+                        {
+                            var refitem = oto.Item1.RefEntityType.CreateInstanceGetDefaultValue();
+                            for (var a = 0; a < oto.Item1.Columns.Count; a++)
+                            {
+                                var colval = FreeSql.Extensions.EntityUtil.EntityUtilExtensions.GetPropertyValue(tb, item, oto.Item1.Columns[a].CsName);
+                                FreeSql.Extensions.EntityUtil.EntityUtilExtensions.SetPropertyValue(childTable, refitem, oto.Item1.RefColumns[a].CsName, colval);
+                            }
+                            return refitem;
+                        }).ToList();
+                        var childs = childDbSet.Select.Where(commonUtils.WhereItems(oto.Item1.RefColumns.ToArray(), "a.", refitems)).ToList();
+                        LocalEach(childDbSet, childs, false);
+                    }
+                }
+
+                var otms = navs.Where(a => a.Item1.RefType == TableRefType.OneToMany).ToList();
+                if (otms.Any())
+                {
+                    foreach (var otm in otms)
+                    {
+                        var childTable = fsql.CodeFirst.GetTableByEntity(otm.Item1.RefEntityType);
+                        var childDbSet = _db.Set<object>();
+                        childDbSet.AsType(otm.Item1.RefEntityType);
+                        var refitems = items.Select(item =>
+                        {
+                            var refitem = otm.Item1.RefEntityType.CreateInstanceGetDefaultValue();
+                            for (var a = 0; a < otm.Item1.Columns.Count; a++)
+                            {
+                                var colval = FreeSql.Extensions.EntityUtil.EntityUtilExtensions.GetPropertyValue(tb, item, otm.Item1.Columns[a].CsName);
+                                FreeSql.Extensions.EntityUtil.EntityUtilExtensions.SetPropertyValue(childTable, refitem, otm.Item1.RefColumns[a].CsName, colval);
+                            }
+                            return refitem;
+                        }).ToList();
+                        var childs = childDbSet.Select.Where(commonUtils.WhereItems(otm.Item1.RefColumns.ToArray(), "a.", refitems)).ToList();
+                        LocalEach(childDbSet, childs, true);
+                    }
+                }
+
+                var mtms = navs.Where(a => a.Item1.RefType == TableRefType.ManyToMany).ToList();
+                if (mtms.Any())
+                {
+                    foreach (var mtm in mtms)
+                    {
+                        var childTable = fsql.CodeFirst.GetTableByEntity(mtm.Item1.RefMiddleEntityType);
+                        var childDbSet = _db.Set<object>();
+                        childDbSet.AsType(mtm.Item1.RefMiddleEntityType);
+                        var miditems = items.Select(item =>
+                        {
+                            var refitem = mtm.Item1.RefMiddleEntityType.CreateInstanceGetDefaultValue();
+                            for (var a = 0; a < mtm.Item1.Columns.Count; a++)
+                            {
+                                var colval = FreeSql.Extensions.EntityUtil.EntityUtilExtensions.GetPropertyValue(tb, item, mtm.Item1.Columns[a].CsName);
+                                FreeSql.Extensions.EntityUtil.EntityUtilExtensions.SetPropertyValue(childTable, refitem, mtm.Item1.MiddleColumns[a].CsName, colval);
+                            }
+                            return refitem;
+                        }).ToList();
+                        var childs = childDbSet.Select.Where(commonUtils.WhereItems(mtm.Item1.MiddleColumns.Take(mtm.Item1.Columns.Count).ToArray(), "a.", miditems)).ToList();
+                        LocalEach(childDbSet, childs, true);
+                    }
+                }
+
+                if (dbset == rootDbSet)
+                {
+                    if (CanRemove(data, true) == false) return;
+                    foreach (var item in data) //防止清除 Identity/Guid
+                    {
+                        var state = CreateEntityState(item);
+                        _states.TryRemove(state.Key, out var trystate);
+
+                        EnqueueToDbContext(DbContext.EntityChangeType.Delete, state);
+                    }
+                    DbContextFlushCommand();
+                }
+                else
+                {
+                    if (dbset.CanRemove(items, true) == false) return;
+                    foreach (var item in items) //防止清除 Identity/Guid
+                    {
+                        var state = dbset.CreateEntityState(item);
+                        dbset._states.TryRemove(state.Key, out var trystate);
+
+                        dbset.EnqueueToDbContext(DbContext.EntityChangeType.Delete, state);
+                    }
+                    dbset.DbContextFlushCommand();
+                }
+                returnDeleted.AddRange(items);
+            }
         }
         #endregion
     }

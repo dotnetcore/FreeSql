@@ -373,8 +373,6 @@ WHERE (((a.""Name"") in (SELECT s.""Title"" as1
             var ddd = g.sqlite.Select<District>().LeftJoin(d => d.ParentCode == d.Parent.Code).ToTreeList();
             Assert.Single(ddd);
             Assert.Equal(2, ddd[0].Childs.Count);
-
-            var sql = g.sqlite.Delete<District>().Where(a => a.Code == "001").ToSqlCascade();
         }
         public class District
         {
@@ -2237,8 +2235,6 @@ WHERE (((cast(a.""Id"" as character)) in (SELECT b.""Title""
                     }
                 })
             });
-
-            var sql = g.sqlite.Delete<VM_District_Child>().Where(a => a.Code == "100000").ToSqlCascade();
 
             var t1 = fsql.Select<VM_District_Parent>()
                 .InnerJoin(a => a.ParentCode == a.Parent.Code)
