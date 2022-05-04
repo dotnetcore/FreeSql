@@ -135,7 +135,7 @@ fsql.Select<Song>().OrderBy(a => Guid.NewGuid()).Limit(10).ToList();
 [Transactional]
 public void Add() {
   var repo = ioc.GetService<BaseRepository<Tag>>();
-  repo.DbContextOptions.EnableAddOrUpdateNavigateList = true;
+  repo.DbContextOptions.EnableAddOrUpdateNavigate = true;
 
   var item = new Tag {
     Name = "testaddsublist",

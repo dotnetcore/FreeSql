@@ -54,8 +54,8 @@ namespace FreeSql
                             _db.OrmOriginal.SetEntityValueWithPropertyName(_entityType, data, _tableIdentitys[0].CsName, idtval);
                             _db._entityChangeReport.Add(new DbContext.EntityChangeReport.ChangeInfo { Object = data, Type = DbContext.EntityChangeType.Insert });
                             Attach(data);
-                            if (_db.Options.EnableAddOrUpdateNavigateList)
-                                await AddOrUpdateNavigateListAsync(data, true, null, cancellationToken);
+                            if (_db.Options.EnableAddOrUpdateNavigate)
+                                await AddOrUpdateNavigateAsync(data, true, null, cancellationToken);
                         }
                         else
                         {
@@ -65,8 +65,8 @@ namespace FreeSql
                             IncrAffrows(1);
                             _db.OrmOriginal.MapEntityValue(_entityType, newval, data);
                             Attach(newval);
-                            if (_db.Options.EnableAddOrUpdateNavigateList)
-                                await AddOrUpdateNavigateListAsync(data, true, null, cancellationToken);
+                            if (_db.Options.EnableAddOrUpdateNavigate)
+                                await AddOrUpdateNavigateAsync(data, true, null, cancellationToken);
                         }
                         return;
                     default:
@@ -78,8 +78,8 @@ namespace FreeSql
                             _db.OrmOriginal.SetEntityValueWithPropertyName(_entityType, data, _tableIdentitys[0].CsName, idtval);
                             _db._entityChangeReport.Add(new DbContext.EntityChangeReport.ChangeInfo { Object = data, Type = DbContext.EntityChangeType.Insert });
                             Attach(data);
-                            if (_db.Options.EnableAddOrUpdateNavigateList)
-                                await AddOrUpdateNavigateListAsync(data, true, null, cancellationToken);
+                            if (_db.Options.EnableAddOrUpdateNavigate)
+                                await AddOrUpdateNavigateAsync(data, true, null, cancellationToken);
                             return;
                         }
                         break;
@@ -87,8 +87,8 @@ namespace FreeSql
             }
             EnqueueToDbContext(DbContext.EntityChangeType.Insert, CreateEntityState(data));
             Attach(data);
-            if (_db.Options.EnableAddOrUpdateNavigateList)
-                await AddOrUpdateNavigateListAsync(data, true, null, cancellationToken);
+            if (_db.Options.EnableAddOrUpdateNavigate)
+                await AddOrUpdateNavigateAsync(data, true, null, cancellationToken);
         }
         public Task AddAsync(TEntity data, CancellationToken cancellationToken = default) => AddPrivAsync(data, true, cancellationToken);
         async public Task AddRangeAsync(IEnumerable<TEntity> data, CancellationToken cancellationToken = default)
@@ -120,9 +120,9 @@ namespace FreeSql
                             _db.OrmOriginal.MapEntityValue(_entityType, rets[idx++], s);
                         IncrAffrows(rets.Count);
                         AttachRange(rets);
-                        if (_db.Options.EnableAddOrUpdateNavigateList)
+                        if (_db.Options.EnableAddOrUpdateNavigate)
                             foreach (var item in data)
-                                await AddOrUpdateNavigateListAsync(item, true, null, cancellationToken);
+                                await AddOrUpdateNavigateAsync(item, true, null, cancellationToken);
                         return;
                     default:
                         if (_tableIdentitys.Length == 1)
@@ -138,9 +138,9 @@ namespace FreeSql
             foreach (var item in data)
                 EnqueueToDbContext(DbContext.EntityChangeType.Insert, CreateEntityState(item));
             AttachRange(data);
-            if (_db.Options.EnableAddOrUpdateNavigateList)
+            if (_db.Options.EnableAddOrUpdateNavigate)
                 foreach (var item in data)
-                    await AddOrUpdateNavigateListAsync(item, true, null, cancellationToken);
+                    await AddOrUpdateNavigateAsync(item, true, null, cancellationToken);
         }
 
         async public Task SaveManyAsync(TEntity item, string propertyName, CancellationToken cancellationToken = default)
@@ -160,11 +160,11 @@ namespace FreeSql
             }
 
             await DbContextFlushCommandAsync(cancellationToken);
-            var oldEnable = _db.Options.EnableAddOrUpdateNavigateList;
-            _db.Options.EnableAddOrUpdateNavigateList = false;
+            var oldEnable = _db.Options.EnableAddOrUpdateNavigate;
+            _db.Options.EnableAddOrUpdateNavigate = false;
             try
             {
-                await AddOrUpdateNavigateListAsync(item, false, propertyName, cancellationToken);
+                await AddOrUpdateNavigateAsync(item, false, propertyName, cancellationToken);
                 if (tref.RefType == Internal.Model.TableRefType.OneToMany)
                 {
                     await DbContextFlushCommandAsync(cancellationToken);
@@ -197,10 +197,10 @@ namespace FreeSql
             }
             finally
             {
-                _db.Options.EnableAddOrUpdateNavigateList = oldEnable;
+                _db.Options.EnableAddOrUpdateNavigate = oldEnable;
             }
         }
-        async Task AddOrUpdateNavigateListAsync(TEntity item, bool isAdd, string propertyName, CancellationToken cancellationToken)
+        async Task AddOrUpdateNavigateAsync(TEntity item, bool isAdd, string propertyName, CancellationToken cancellationToken)
         {
             Func<PropertyInfo, Task> action = async prop =>
             {
@@ -213,15 +213,17 @@ namespace FreeSql
                 switch (tref.RefType)
                 {
                     case Internal.Model.TableRefType.OneToOne:
-                        //var propValItem = GetItemValue(item, prop);
-                        //for (var colidx = 0; colidx < tref.Columns.Count; colidx++)
-                        //{
-                        //    var val = FreeSql.Internal.Utils.GetDataReaderValue(tref.RefColumns[colidx].CsType, _db.OrmOriginal.GetEntityValueWithPropertyName(_table.Type, item, tref.Columns[colidx].CsName));
-                        //    _db.OrmOriginal.SetEntityValueWithPropertyName(tref.RefEntityType, propValItem, tref.RefColumns[colidx].CsName, val);
-                        //}
-                        //if (isAdd) await refSet.AddAsync(propValItem);
-                        //else await refSet.AddOrUpdateAsync(propValItem);
-                        //return;
+                        refSet = GetDbSetObject(tref.RefEntityType);
+                        var propValItem = GetItemValue(item, prop);
+                        if (propValItem == null) return;
+                        for (var colidx = 0; colidx < tref.Columns.Count; colidx++)
+                        {
+                            var val = FreeSql.Internal.Utils.GetDataReaderValue(tref.RefColumns[colidx].CsType, _db.OrmOriginal.GetEntityValueWithPropertyName(_table.Type, item, tref.Columns[colidx].CsName));
+                            _db.OrmOriginal.SetEntityValueWithPropertyName(tref.RefEntityType, propValItem, tref.RefColumns[colidx].CsName, val);
+                        }
+                        if (isAdd) await refSet.AddAsync(propValItem);
+                        else await refSet.AddOrUpdateAsync(propValItem);
+                        return;
                     case Internal.Model.TableRefType.ManyToOne:
                         return;
                 }
@@ -441,9 +443,9 @@ namespace FreeSql
                 state.OldValue = item;
                 EnqueueToDbContext(DbContext.EntityChangeType.Update, state);
             }
-            if (_db.Options.EnableAddOrUpdateNavigateList)
+            if (_db.Options.EnableAddOrUpdateNavigate)
                 foreach (var item in data)
-                    await AddOrUpdateNavigateListAsync(item, false, null, cancellationToken);
+                    await AddOrUpdateNavigateAsync(item, false, null, cancellationToken);
         }
         #endregion
 

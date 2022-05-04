@@ -38,7 +38,7 @@ namespace FreeSql.Sqlite.Curd
             catch (Exception ex)
             {
                 exception = ex;
-                throw ex;
+                throw;
             }
             finally
             {
@@ -81,7 +81,7 @@ namespace FreeSql.Sqlite.Curd
             catch (Exception ex)
             {
                 exception = ex;
-                throw ex;
+                throw;
             }
             finally
             {

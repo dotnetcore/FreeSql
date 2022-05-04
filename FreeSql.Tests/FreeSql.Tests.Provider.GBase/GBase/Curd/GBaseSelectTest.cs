@@ -191,7 +191,7 @@ WHERE (exists(SELECT 1
 
             g.gbase.Delete<District>().Where("1=1").ExecuteAffrows();
             var repo = g.gbase.GetRepository<District>();
-            repo.DbContextOptions.EnableAddOrUpdateNavigateList = true;
+            repo.DbContextOptions.EnableAddOrUpdateNavigate = true;
             repo.Insert(new District
             {
                 Code = "001",
@@ -1704,7 +1704,7 @@ WHERE (((cast(a.Id as varchar(8000))) in ( SELECT * FROM (SELECT FIRST 10 b.Titl
             var fsql = g.gbase;
             fsql.Delete<BaseDistrict>().Where("1=1").ExecuteAffrows();
             var repo = fsql.GetRepository<VM_District_Child>();
-            repo.DbContextOptions.EnableAddOrUpdateNavigateList = true;
+            repo.DbContextOptions.EnableAddOrUpdateNavigate = true;
             repo.DbContextOptions.NoneParameter = true;
             repo.Insert(new VM_District_Child
             {

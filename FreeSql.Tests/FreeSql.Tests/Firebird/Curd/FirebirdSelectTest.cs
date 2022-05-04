@@ -309,7 +309,7 @@ WHERE (((a.""NAME"") in (SELECT s.""TITLE"" as1
 
             g.firebird.Delete<District>().Where("1=1").ExecuteAffrows();
             var repo = g.firebird.GetRepository<District>();
-            repo.DbContextOptions.EnableAddOrUpdateNavigateList = true;
+            repo.DbContextOptions.EnableAddOrUpdateNavigate = true;
             repo.Insert(new District
             {
                 Code = "001",
@@ -1834,7 +1834,7 @@ WHERE (((cast(a.""ID"" as blob sub_type 1)) in (SELECT FIRST 10 b.""TITLE""
             var fsql = g.firebird;
             fsql.Delete<BaseDistrict>().Where("1=1").ExecuteAffrows();
             var repo = fsql.GetRepository<VM_District_Child>();
-            repo.DbContextOptions.EnableAddOrUpdateNavigateList = true;
+            repo.DbContextOptions.EnableAddOrUpdateNavigate = true;
             repo.DbContextOptions.NoneParameter = true;
             repo.Insert(new VM_District_Child
             {

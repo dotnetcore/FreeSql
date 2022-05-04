@@ -1,4 +1,4 @@
-using FreeSql.DataAnnotations;
+﻿using FreeSql.DataAnnotations;
 using FreeSql.Internal.Model;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -234,7 +234,7 @@ namespace FreeSql.Tests.Sqlite
 
             g.sqlite.Delete<District>().Where("1=1").ExecuteAffrows();
             var repo = g.sqlite.GetRepository<District>();
-            repo.DbContextOptions.EnableAddOrUpdateNavigateList = true;
+            repo.DbContextOptions.EnableAddOrUpdateNavigate = true;
             repo.Insert(new District
             {
                 Code = "001",
@@ -2072,7 +2072,7 @@ WHERE (((cast(a.""Id"" as character)) in (SELECT b.""Title""
             var fsql = g.sqlite;
             fsql.Delete<BaseDistrict>().Where("1=1").ExecuteAffrows();
             var repo = fsql.GetRepository<VM_District_Child>();
-            repo.DbContextOptions.EnableAddOrUpdateNavigateList = true;
+            repo.DbContextOptions.EnableAddOrUpdateNavigate = true;
             repo.DbContextOptions.NoneParameter = true;
             repo.Insert(new VM_District_Child
             {

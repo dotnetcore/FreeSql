@@ -309,7 +309,7 @@ WHERE (((a.""NAME"") in (SELECT s.""TITLE"" as1
 
             g.oracle.Delete<District>().Where("1=1").ExecuteAffrows();
             var repo = g.oracle.GetRepository<District>();
-            repo.DbContextOptions.EnableAddOrUpdateNavigateList = true;
+            repo.DbContextOptions.EnableAddOrUpdateNavigate = true;
             repo.Insert(new District
             {
                 Code = "001",
@@ -1843,7 +1843,7 @@ WHERE (((to_char(a.""ID"")) in (SELECT b.""TITLE""
             var fsql = g.oracle;
             fsql.Delete<BaseDistrict>().Where("1=1").ExecuteAffrows();
             var repo = fsql.GetRepository<VM_District_Child>();
-            repo.DbContextOptions.EnableAddOrUpdateNavigateList = true;
+            repo.DbContextOptions.EnableAddOrUpdateNavigate = true;
             repo.DbContextOptions.NoneParameter = true;
             repo.Insert(new VM_District_Child
             {

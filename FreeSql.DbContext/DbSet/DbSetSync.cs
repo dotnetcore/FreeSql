@@ -53,8 +53,8 @@ namespace FreeSql
                             _db.OrmOriginal.SetEntityValueWithPropertyName(_entityType, data, _tableIdentitys[0].CsName, idtval);
                             _db._entityChangeReport.Add(new DbContext.EntityChangeReport.ChangeInfo { Object = data, Type = DbContext.EntityChangeType.Insert });
                             Attach(data);
-                            if (_db.Options.EnableAddOrUpdateNavigateList)
-                                AddOrUpdateNavigateList(data, true, null);
+                            if (_db.Options.EnableAddOrUpdateNavigate)
+                                AddOrUpdateNavigate(data, true, null);
                         }
                         else
                         {
@@ -64,8 +64,8 @@ namespace FreeSql
                             IncrAffrows(1);
                             _db.OrmOriginal.MapEntityValue(_entityType, newval, data);
                             Attach(newval);
-                            if (_db.Options.EnableAddOrUpdateNavigateList)
-                                AddOrUpdateNavigateList(data, true, null);
+                            if (_db.Options.EnableAddOrUpdateNavigate)
+                                AddOrUpdateNavigate(data, true, null);
                         }
                         return;
                     default:
@@ -77,8 +77,8 @@ namespace FreeSql
                             _db.OrmOriginal.SetEntityValueWithPropertyName(_entityType, data, _tableIdentitys[0].CsName, idtval);
                             _db._entityChangeReport.Add(new DbContext.EntityChangeReport.ChangeInfo { Object = data, Type = DbContext.EntityChangeType.Insert });
                             Attach(data);
-                            if (_db.Options.EnableAddOrUpdateNavigateList)
-                                AddOrUpdateNavigateList(data, true, null);
+                            if (_db.Options.EnableAddOrUpdateNavigate)
+                                AddOrUpdateNavigate(data, true, null);
                             return;
                         }
                         break;
@@ -86,8 +86,8 @@ namespace FreeSql
             }
             EnqueueToDbContext(DbContext.EntityChangeType.Insert, CreateEntityState(data));
             Attach(data);
-            if (_db.Options.EnableAddOrUpdateNavigateList)
-                AddOrUpdateNavigateList(data, true, null);
+            if (_db.Options.EnableAddOrUpdateNavigate)
+                AddOrUpdateNavigate(data, true, null);
         }
         /// <summary>
         /// 添加
@@ -123,9 +123,9 @@ namespace FreeSql
                             _db.OrmOriginal.MapEntityValue(_entityType, rets[idx++], s);
                         IncrAffrows(rets.Count);
                         AttachRange(rets);
-                        if (_db.Options.EnableAddOrUpdateNavigateList)
+                        if (_db.Options.EnableAddOrUpdateNavigate)
                             foreach (var item in data)
-                                AddOrUpdateNavigateList(item, true, null);
+                                AddOrUpdateNavigate(item, true, null);
                         return;
                     default:
                         if (_tableIdentitys.Length == 1)
@@ -141,9 +141,9 @@ namespace FreeSql
             foreach (var item in data)
                 EnqueueToDbContext(DbContext.EntityChangeType.Insert, CreateEntityState(item));
             AttachRange(data);
-            if (_db.Options.EnableAddOrUpdateNavigateList)
+            if (_db.Options.EnableAddOrUpdateNavigate)
                 foreach (var item in data)
-                    AddOrUpdateNavigateList(item, true, null);
+                    AddOrUpdateNavigate(item, true, null);
         }
 
         /// <summary>
@@ -172,11 +172,11 @@ namespace FreeSql
             }
 
             DbContextFlushCommand();
-            var oldEnable = _db.Options.EnableAddOrUpdateNavigateList;
-            _db.Options.EnableAddOrUpdateNavigateList = false;
+            var oldEnable = _db.Options.EnableAddOrUpdateNavigate;
+            _db.Options.EnableAddOrUpdateNavigate = false;
             try
             {
-                AddOrUpdateNavigateList(item, false, propertyName);
+                AddOrUpdateNavigate(item, false, propertyName);
                 if (tref.RefType == Internal.Model.TableRefType.OneToMany)
                 {
                     DbContextFlushCommand();
@@ -209,10 +209,10 @@ namespace FreeSql
             }
             finally
             {
-                _db.Options.EnableAddOrUpdateNavigateList = oldEnable;
+                _db.Options.EnableAddOrUpdateNavigate = oldEnable;
             }
         }
-        void AddOrUpdateNavigateList(TEntity item, bool isAdd, string propertyName)
+        void AddOrUpdateNavigate(TEntity item, bool isAdd, string propertyName)
         {
             Action<PropertyInfo> action = prop =>
             {
@@ -225,15 +225,17 @@ namespace FreeSql
                 switch (tref.RefType)
                 {
                     case Internal.Model.TableRefType.OneToOne:
-                        //var propValItem = GetItemValue(item, prop);
-                        //for (var colidx = 0; colidx < tref.Columns.Count; colidx++)
-                        //{
-                        //    var val = FreeSql.Internal.Utils.GetDataReaderValue(tref.RefColumns[colidx].CsType, _db.OrmOriginal.GetEntityValueWithPropertyName(_table.Type, item, tref.Columns[colidx].CsName));
-                        //    _db.OrmOriginal.SetEntityValueWithPropertyName(tref.RefEntityType, propValItem, tref.RefColumns[colidx].CsName, val);
-                        //}
-                        //if (isAdd) refSet.Add(propValItem);
-                        //else refSet.AddOrUpdate(propValItem);
-                        //return;
+                        refSet = GetDbSetObject(tref.RefEntityType);
+                        var propValItem = GetItemValue(item, prop);
+                        if (propValItem == null) return;
+                        for (var colidx = 0; colidx < tref.Columns.Count; colidx++)
+                        {
+                            var val = FreeSql.Internal.Utils.GetDataReaderValue(tref.RefColumns[colidx].CsType, _db.OrmOriginal.GetEntityValueWithPropertyName(_table.Type, item, tref.Columns[colidx].CsName));
+                            _db.OrmOriginal.SetEntityValueWithPropertyName(tref.RefEntityType, propValItem, tref.RefColumns[colidx].CsName, val);
+                        }
+                        if (isAdd) refSet.Add(propValItem);
+                        else refSet.AddOrUpdate(propValItem);
+                        return;
                     case Internal.Model.TableRefType.ManyToOne:
                         return;
                 }
@@ -483,9 +485,9 @@ namespace FreeSql
                 state.OldValue = item;
                 EnqueueToDbContext(DbContext.EntityChangeType.Update, state);
             }
-            if (_db.Options.EnableAddOrUpdateNavigateList)
+            if (_db.Options.EnableAddOrUpdateNavigate)
                 foreach (var item in data)
-                    AddOrUpdateNavigateList(item, false, null);
+                    AddOrUpdateNavigate(item, false, null);
         }
         #endregion
 
@@ -603,8 +605,8 @@ namespace FreeSql
             if (data == null) data = _dataEditing;
             var beforeAffrows = 0;
             if (data == null) return 0;
-            var oldEnable = _db.Options.EnableAddOrUpdateNavigateList;
-            _db.Options.EnableAddOrUpdateNavigateList = false;
+            var oldEnable = _db.Options.EnableAddOrUpdateNavigate;
+            _db.Options.EnableAddOrUpdateNavigate = false;
             try
             {
                 DbContextFlushCommand();
@@ -646,7 +648,7 @@ namespace FreeSql
             {
                 _dataEditing = null;
                 _statesEditing.Clear();
-                _db.Options.EnableAddOrUpdateNavigateList = oldEnable;
+                _db.Options.EnableAddOrUpdateNavigate = oldEnable;
             }
             return _db._affrows - beforeAffrows;
         }

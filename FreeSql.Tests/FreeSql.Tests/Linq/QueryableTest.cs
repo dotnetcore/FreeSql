@@ -59,7 +59,7 @@ namespace FreeSql.Tests.Linq
                 }
             };
             var repo = fsql.GetRepository<qt01>();
-            repo.DbContextOptions.EnableAddOrUpdateNavigateList = true;
+            repo.DbContextOptions.EnableAddOrUpdateNavigate = true;
             repo.Insert(sd);
 
             Assert.True(fsql.Select<qt01>().AsQueryable().Any());

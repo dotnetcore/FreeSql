@@ -1,4 +1,4 @@
-using FreeSql.DataAnnotations;
+ï»¿using FreeSql.DataAnnotations;
 using FreeSql;
 using System;
 using System.Collections.Generic;
@@ -75,7 +75,7 @@ namespace FreeSql.Tests
                 tags.Add(new Tag
                 {
                     Ddd = DateTime.Now.Second,
-                    Name = "test_manytoMany_01_ÖĞ¹ú2234234"
+                    Name = "test_manytoMany_01_ä¸­å›½2234234"
                 });
                 tags[0].Name = "123123";
                 tags.RemoveAt(1);
@@ -99,36 +99,36 @@ namespace FreeSql.Tests
                 var tag1 = new Tag
                 {
                     Ddd = DateTime.Now.Second,
-                    Name = "test_manytoMany_01_ÖĞ¹ú"
+                    Name = "test_manytoMany_01_ä¸­å›½"
                 };
                 var tag2 = new Tag
                 {
                     Ddd = DateTime.Now.Second,
-                    Name = "test_manytoMany_02_ÃÀ¹ú"
+                    Name = "test_manytoMany_02_ç¾å›½"
                 };
                 var tag3 = new Tag
                 {
                     Ddd = DateTime.Now.Second,
-                    Name = "test_manytoMany_03_ÈÕ±¾"
+                    Name = "test_manytoMany_03_æ—¥æœ¬"
                 };
                 ctx.AddRange(new[] { tag1, tag2, tag3 });
 
                 var song1 = new Song
                 {
                     Create_time = DateTime.Now,
-                    Title = "test_manytoMany_01_ÎÒÊÇÖĞ¹úÈË.mp3",
+                    Title = "test_manytoMany_01_æˆ‘æ˜¯ä¸­å›½äºº.mp3",
                     Url = "http://ww.baidu.com/"
                 };
                 var song2 = new Song
                 {
                     Create_time = DateTime.Now,
-                    Title = "test_manytoMany_02_°®ÄãÒ»ÍòÄê.mp3",
+                    Title = "test_manytoMany_02_çˆ±ä½ ä¸€ä¸‡å¹´.mp3",
                     Url = "http://ww.163.com/"
                 };
                 var song3 = new Song
                 {
                     Create_time = DateTime.Now,
-                    Title = "test_manytoMany_03_Ç§ÄêµÈÒ»»Ø.mp3",
+                    Title = "test_manytoMany_03_åƒå¹´ç­‰ä¸€å›.mp3",
                     Url = "http://ww.sina.com/"
                 };
                 ctx.AddRange(new[] { song1, song2, song3 });
@@ -155,7 +155,7 @@ namespace FreeSql.Tests
 
             g.sqlite.SetDbContextOptions(opt =>
             {
-                //opt.EnableAddOrUpdateNavigateList = false;
+                //opt.EnableAddOrUpdateNavigate = false;
             });
 
             g.mysql.Insert<testenumWhere>().AppendData(new testenumWhere { type = testenumWhereType.Blaaa }).ExecuteAffrows();
@@ -163,11 +163,11 @@ namespace FreeSql.Tests
             var sql = g.mysql.Select<testenumWhere>().Where(a => a.type == testenumWhereType.Blaaa).ToSql();
             var tolist = g.mysql.Select<testenumWhere>().Where(a => a.type == testenumWhereType.Blaaa).ToList();
 
-            //Ö§³Ö 1¶Ô¶à ¼¶Áª±£´æ
+            //æ”¯æŒ 1å¯¹å¤š çº§è”ä¿å­˜
 
             using (var ctx = g.sqlite.CreateDbContext())
             {
-                ctx.Options.EnableAddOrUpdateNavigateList = true;
+                ctx.Options.EnableAddOrUpdateNavigate = true;
                 var tags = ctx.Set<Tag>().Select.IncludeMany(a => a.Tags).ToList();
 
                 var tag = new Tag
@@ -195,11 +195,11 @@ namespace FreeSql.Tests
         [Fact]
         public void Update()
         {
-            //²éÑ¯ 1¶Ô¶à£¬ÔÙ¼¶Áª±£´æ
+            //æŸ¥è¯¢ 1å¯¹å¤šï¼Œå†çº§è”ä¿å­˜
 
             using (var ctx = g.sqlite.CreateDbContext())
             {
-                ctx.Options.EnableAddOrUpdateNavigateList = true;
+                ctx.Options.EnableAddOrUpdateNavigate = true;
                 var tag = ctx.Set<Tag>().Select.First();
                 tag.Tags.Add(new Tag { Name = "sub3" });
                 tag.Name = Guid.NewGuid().ToString();

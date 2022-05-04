@@ -401,7 +401,7 @@ WHERE (((a.""name"") in (SELECT s.""title"" as1
 
             g.pgsql.Delete<District>().Where("1=1").ExecuteAffrows();
             var repo = g.pgsql.GetRepository<District>();
-            repo.DbContextOptions.EnableAddOrUpdateNavigateList = true;
+            repo.DbContextOptions.EnableAddOrUpdateNavigate = true;
             repo.Insert(new District
             {
                 Code = "001",
@@ -1927,7 +1927,7 @@ WHERE ((((a.""id"")::text) in (SELECT b.""title""
             var fsql = g.pgsql;
             fsql.Delete<BaseDistrict>().Where("1=1").ExecuteAffrows();
             var repo = fsql.GetRepository<VM_District_Child>();
-            repo.DbContextOptions.EnableAddOrUpdateNavigateList = true;
+            repo.DbContextOptions.EnableAddOrUpdateNavigate = true;
             repo.DbContextOptions.NoneParameter = true;
             repo.Insert(new VM_District_Child
             {

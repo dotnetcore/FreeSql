@@ -50,7 +50,7 @@ namespace FreeSql.MySql.Curd
                 catch (Exception ex)
                 {
                     exception = ex;
-                    throw ex;
+                    throw;
                 }
                 finally
                 {
@@ -101,7 +101,7 @@ namespace FreeSql.MySql.Curd
                 catch (Exception ex)
                 {
                     exception = ex;
-                    throw ex;
+                    throw;
                 }
                 finally
                 {

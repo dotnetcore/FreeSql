@@ -15,18 +15,17 @@ namespace FreeSql.Tests
             var fsql = g.sqlite;
             var groupRepo = fsql.GetRepository<DeleteCascadeUserGroup>();
             var userRepo = fsql.GetRepository<DeleteCascadeUser>();
+            userRepo.DbContextOptions.EnableAddOrUpdateNavigate = true;
             //OneToOne
             fsql.Delete<DeleteCascadeUser>().Where("1=1").ExecuteAffrows();
             fsql.Delete<DeleteCascadeUserExt>().Where("1=1").ExecuteAffrows();
-            var user = new DeleteCascadeUser { Username = "admin01", Password = "pwd01" };
+            var user = new DeleteCascadeUser { Username = "admin01", Password = "pwd01", UserExt = new DeleteCascadeUserExt { Remark = "用户备注01" } };
             userRepo.Insert(user);
-            var userExt = new DeleteCascadeUserExt { UserId = user.Id, Remark = "用户备注01" };
-            Assert.Equal(1, fsql.Insert(userExt).ExecuteAffrows());
             var ret = userRepo.DeleteCascade(user);
             Assert.Equal(2, ret.Count);
             Assert.IsType<DeleteCascadeUserExt>(ret[0]);
-            Assert.Equal(userExt.UserId, (ret[0] as DeleteCascadeUserExt).UserId);
-            Assert.Equal(userExt.Remark, (ret[0] as DeleteCascadeUserExt).Remark);
+            Assert.Equal(user.UserExt.UserId, (ret[0] as DeleteCascadeUserExt).UserId);
+            Assert.Equal(user.UserExt.Remark, (ret[0] as DeleteCascadeUserExt).Remark);
             Assert.IsType<DeleteCascadeUser>(ret[1]);
             Assert.Equal(user.Id, (ret[1] as DeleteCascadeUser).Id);
             Assert.Equal(user.Username, (ret[1] as DeleteCascadeUser).Username);
@@ -35,15 +34,13 @@ namespace FreeSql.Tests
             //OneToOne 先删除 UserExt
             fsql.Delete<DeleteCascadeUser>().Where("1=1").ExecuteAffrows();
             fsql.Delete<DeleteCascadeUserExt>().Where("1=1").ExecuteAffrows();
-            user = new DeleteCascadeUser { Username = "admin01", Password = "pwd01" };
+            user = new DeleteCascadeUser { Username = "admin01", Password = "pwd01", UserExt = new DeleteCascadeUserExt { Remark = "用户备注01" } };
             userRepo.Insert(user);
-            userExt = new DeleteCascadeUserExt { UserId = user.Id, Remark = "用户备注01" };
-            Assert.Equal(1, fsql.Insert(userExt).ExecuteAffrows());
-            ret = fsql.GetRepository<DeleteCascadeUserExt>().DeleteCascade(userExt);
+            ret = fsql.GetRepository<DeleteCascadeUserExt>().DeleteCascade(user.UserExt);
             Assert.Equal(2, ret.Count);
             Assert.IsType<DeleteCascadeUserExt>(ret[1]);
-            Assert.Equal(userExt.UserId, (ret[1] as DeleteCascadeUserExt).UserId);
-            Assert.Equal(userExt.Remark, (ret[1] as DeleteCascadeUserExt).Remark);
+            Assert.Equal(user.UserExt.UserId, (ret[1] as DeleteCascadeUserExt).UserId);
+            Assert.Equal(user.UserExt.Remark, (ret[1] as DeleteCascadeUserExt).Remark);
             Assert.IsType<DeleteCascadeUser>(ret[0]);
             Assert.Equal(user.Id, (ret[0] as DeleteCascadeUser).Id);
             Assert.Equal(user.Username, (ret[0] as DeleteCascadeUser).Username);
@@ -53,38 +50,32 @@ namespace FreeSql.Tests
             fsql.Delete<DeleteCascadeUserGroup>().Where("1=1").ExecuteAffrows();
             fsql.Delete<DeleteCascadeUser>().Where("1=1").ExecuteAffrows();
             fsql.Delete<DeleteCascadeUserExt>().Where("1=1").ExecuteAffrows();
-            groupRepo.DbContextOptions.EnableAddOrUpdateNavigateList = true;
+            groupRepo.DbContextOptions.EnableAddOrUpdateNavigate = true;
             var group = new DeleteCascadeUserGroup
             {
                 GroupName = "group01",
                 Users = new List<DeleteCascadeUser>
                 {
-                    new DeleteCascadeUser { Username = "admin01", Password = "pwd01" },
-                    new DeleteCascadeUser { Username = "admin02", Password = "pwd02" },
-                    new DeleteCascadeUser { Username = "admin03", Password = "pwd03" },
+                    new DeleteCascadeUser { Username = "admin01", Password = "pwd01", UserExt = new DeleteCascadeUserExt { Remark = "用户备注01" } },
+                    new DeleteCascadeUser { Username = "admin02", Password = "pwd02", UserExt = new DeleteCascadeUserExt { Remark = "用户备注02" } },
+                    new DeleteCascadeUser { Username = "admin03", Password = "pwd03", UserExt = new DeleteCascadeUserExt { Remark = "用户备注03" } },
                 }
             };
             groupRepo.Insert(group);
             Assert.Equal(group.Id, group.Users[0].GroupId);
             Assert.Equal(group.Id, group.Users[1].GroupId);
             Assert.Equal(group.Id, group.Users[2].GroupId);
-            var userExt0 = new DeleteCascadeUserExt { UserId = group.Users[0].Id, Remark = "用户备注01" };
-            Assert.Equal(1, fsql.Insert(userExt0).ExecuteAffrows());
-            var userExt1 = new DeleteCascadeUserExt { UserId = group.Users[1].Id, Remark = "用户备注02" };
-            Assert.Equal(1, fsql.Insert(userExt1).ExecuteAffrows());
-            var userExt2 = new DeleteCascadeUserExt { UserId = group.Users[2].Id, Remark = "用户备注03" };
-            Assert.Equal(1, fsql.Insert(userExt2).ExecuteAffrows());
             ret = groupRepo.DeleteCascade(group);
             Assert.Equal(7, ret.Count);
             Assert.IsType<DeleteCascadeUserExt>(ret[0]);
-            Assert.Equal(userExt0.UserId, (ret[0] as DeleteCascadeUserExt).UserId);
-            Assert.Equal(userExt0.Remark, (ret[0] as DeleteCascadeUserExt).Remark);
+            Assert.Equal(group.Users[0].UserExt.UserId, (ret[0] as DeleteCascadeUserExt).UserId);
+            Assert.Equal(group.Users[0].UserExt.Remark, (ret[0] as DeleteCascadeUserExt).Remark);
             Assert.IsType<DeleteCascadeUserExt>(ret[1]);
-            Assert.Equal(userExt1.UserId, (ret[1] as DeleteCascadeUserExt).UserId);
-            Assert.Equal(userExt1.Remark, (ret[1] as DeleteCascadeUserExt).Remark);
+            Assert.Equal(group.Users[1].UserExt.UserId, (ret[1] as DeleteCascadeUserExt).UserId);
+            Assert.Equal(group.Users[1].UserExt.Remark, (ret[1] as DeleteCascadeUserExt).Remark);
             Assert.IsType<DeleteCascadeUserExt>(ret[2]);
-            Assert.Equal(userExt2.UserId, (ret[2] as DeleteCascadeUserExt).UserId);
-            Assert.Equal(userExt2.Remark, (ret[2] as DeleteCascadeUserExt).Remark);
+            Assert.Equal(group.Users[2].UserExt.UserId, (ret[2] as DeleteCascadeUserExt).UserId);
+            Assert.Equal(group.Users[2].UserExt.Remark, (ret[2] as DeleteCascadeUserExt).Remark);
             Assert.IsType<DeleteCascadeUser>(ret[3]);
             Assert.Equal(group.Users[0].Id, (ret[3] as DeleteCascadeUser).Id);
             Assert.Equal(group.Users[0].Username, (ret[3] as DeleteCascadeUser).Username);
@@ -118,39 +109,33 @@ namespace FreeSql.Tests
                 new DeleteCascadeTag { TagName = "tag08" },
             };
             fsql.GetRepository<DeleteCascadeTag>().Insert(tags);
-            groupRepo.DbContextOptions.EnableAddOrUpdateNavigateList = true;
+            groupRepo.DbContextOptions.EnableAddOrUpdateNavigate = true;
             group = new DeleteCascadeUserGroup
             {
                 GroupName = "group01",
                 Users = new List<DeleteCascadeUser>
                 {
-                    new DeleteCascadeUser { Username = "admin01", Password = "pwd01", Tags = new List<DeleteCascadeTag> { tags[0], tags[2], tags[3], tags[6] } },
-                    new DeleteCascadeUser { Username = "admin02", Password = "pwd02", Tags = new List<DeleteCascadeTag> { tags[1], tags[2], tags[5] } },
-                    new DeleteCascadeUser { Username = "admin03", Password = "pwd03", Tags = new List<DeleteCascadeTag> { tags[3], tags[4], tags[6], tags[7] } },
+                    new DeleteCascadeUser { Username = "admin01", Password = "pwd01", UserExt = new DeleteCascadeUserExt { Remark = "用户备注01" }, Tags = new List<DeleteCascadeTag> { tags[0], tags[2], tags[3], tags[6] } },
+                    new DeleteCascadeUser { Username = "admin02", Password = "pwd02", UserExt = new DeleteCascadeUserExt { Remark = "用户备注02" }, Tags = new List<DeleteCascadeTag> { tags[1], tags[2], tags[5] } },
+                    new DeleteCascadeUser { Username = "admin03", Password = "pwd03", UserExt = new DeleteCascadeUserExt { Remark = "用户备注03" }, Tags = new List<DeleteCascadeTag> { tags[3], tags[4], tags[6], tags[7] } },
                 }
             };
             groupRepo.Insert(group);
             Assert.Equal(group.Id, group.Users[0].GroupId);
             Assert.Equal(group.Id, group.Users[1].GroupId);
             Assert.Equal(group.Id, group.Users[2].GroupId);
-            userExt0 = new DeleteCascadeUserExt { UserId = group.Users[0].Id, Remark = "用户备注01" };
-            Assert.Equal(1, fsql.Insert(userExt0).ExecuteAffrows());
-            userExt1 = new DeleteCascadeUserExt { UserId = group.Users[1].Id, Remark = "用户备注02" };
-            Assert.Equal(1, fsql.Insert(userExt1).ExecuteAffrows());
-            userExt2 = new DeleteCascadeUserExt { UserId = group.Users[2].Id, Remark = "用户备注03" };
-            Assert.Equal(1, fsql.Insert(userExt2).ExecuteAffrows());
             ret = groupRepo.DeleteCascade(group);
             Assert.Equal(18, ret.Count);
 
             Assert.IsType<DeleteCascadeUserExt>(ret[0]);
-            Assert.Equal(userExt0.UserId, (ret[0] as DeleteCascadeUserExt).UserId);
-            Assert.Equal(userExt0.Remark, (ret[0] as DeleteCascadeUserExt).Remark);
+            Assert.Equal(group.Users[0].UserExt.UserId, (ret[0] as DeleteCascadeUserExt).UserId);
+            Assert.Equal(group.Users[0].UserExt.Remark, (ret[0] as DeleteCascadeUserExt).Remark);
             Assert.IsType<DeleteCascadeUserExt>(ret[1]);
-            Assert.Equal(userExt1.UserId, (ret[1] as DeleteCascadeUserExt).UserId);
-            Assert.Equal(userExt1.Remark, (ret[1] as DeleteCascadeUserExt).Remark);
+            Assert.Equal(group.Users[1].UserExt.UserId, (ret[1] as DeleteCascadeUserExt).UserId);
+            Assert.Equal(group.Users[1].UserExt.Remark, (ret[1] as DeleteCascadeUserExt).Remark);
             Assert.IsType<DeleteCascadeUserExt>(ret[2]);
-            Assert.Equal(userExt2.UserId, (ret[2] as DeleteCascadeUserExt).UserId);
-            Assert.Equal(userExt2.Remark, (ret[2] as DeleteCascadeUserExt).Remark);
+            Assert.Equal(group.Users[2].UserExt.UserId, (ret[2] as DeleteCascadeUserExt).UserId);
+            Assert.Equal(group.Users[2].UserExt.Remark, (ret[2] as DeleteCascadeUserExt).Remark);
 
             Assert.IsType<DeleteCascadeUserTag>(ret[3]);
             Assert.Equal(group.Users[0].Id, (ret[3] as DeleteCascadeUserTag).UserId);
@@ -480,10 +465,10 @@ namespace FreeSql.Tests
         }
 
         [Fact]
-        public void EnableAddOrUpdateNavigateList_OneToMany()
+        public void EnableAddOrUpdateNavigate_OneToMany()
         {
             var repo = g.sqlite.GetRepository<Cagetory>();
-            repo.DbContextOptions.EnableAddOrUpdateNavigateList = true;
+            repo.DbContextOptions.EnableAddOrUpdateNavigate = true;
             var cts = new[] {
                 new Cagetory
                 {
@@ -543,10 +528,10 @@ namespace FreeSql.Tests
         }
 
         [Fact]
-        public void EnableAddOrUpdateNavigateList_OneToMany_lazyloading()
+        public void EnableAddOrUpdateNavigate_OneToMany_lazyloading()
         {
             var repo = g.sqlite.GetRepository<CagetoryLD>();
-            repo.DbContextOptions.EnableAddOrUpdateNavigateList = true;
+            repo.DbContextOptions.EnableAddOrUpdateNavigate = true;
             var cts = new[] {
                 new CagetoryLD
                 {
@@ -615,7 +600,7 @@ namespace FreeSql.Tests
         public void SaveMany_OneToMany()
         {
             var repo = g.sqlite.GetRepository<Cagetory>();
-            repo.DbContextOptions.EnableAddOrUpdateNavigateList = false; //关闭级联保存功能
+            repo.DbContextOptions.EnableAddOrUpdateNavigate = false; //关闭级联保存功能
             var cts = new[] {
                 new Cagetory
                 {
@@ -664,7 +649,7 @@ namespace FreeSql.Tests
         }
 
         [Fact]
-        public void EnableAddOrUpdateNavigateList_OneToMany_Parent()
+        public void EnableAddOrUpdateNavigate_OneToMany_Parent()
         {
             g.sqlite.Delete<CagetoryParent>().Where("1=1").ExecuteAffrows();
             var repo = g.sqlite.GetRepository<CagetoryParent>();
@@ -689,7 +674,7 @@ namespace FreeSql.Tests
                     })
                 }
             };
-            repo.DbContextOptions.EnableAddOrUpdateNavigateList = true; //打开级联保存功能
+            repo.DbContextOptions.EnableAddOrUpdateNavigate = true; //打开级联保存功能
             repo.Insert(cts);
 
             var notreelist1 = repo.Select.ToList();
@@ -722,7 +707,7 @@ namespace FreeSql.Tests
         }
 
         [Fact]
-        public void EnableAddOrUpdateNavigateList_ManyToMany()
+        public void EnableAddOrUpdateNavigate_ManyToMany()
         {
             var tags = new[] {
                 new Tag { TagName = "流行" },
@@ -750,7 +735,7 @@ namespace FreeSql.Tests
                 }
             };
             var repo = g.sqlite.GetRepository<Song>();
-            repo.DbContextOptions.EnableAddOrUpdateNavigateList = true; //打开级联保存功能
+            repo.DbContextOptions.EnableAddOrUpdateNavigate = true; //打开级联保存功能
             repo.Insert(ss);
 
             ss[0].Tags[0].TagName = "流行101";
