@@ -150,7 +150,7 @@ namespace FreeSql
 
         /// <summary>
         /// 实体类名 -> 数据库表名，命名转换（类名、属性名都生效）<para></para>
-        /// 优先级小于 [Table(Name = "xxx")]、[Column(Name = "xxx")]
+        /// 优先级小于 [Column(Name = "xxx")]
         /// </summary>
         /// <param name="convertType"></param>
         /// <returns></returns>

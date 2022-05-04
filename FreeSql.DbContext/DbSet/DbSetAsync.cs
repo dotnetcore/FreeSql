@@ -328,6 +328,7 @@ namespace FreeSql
                         }
                         break;
                     case Internal.Model.TableRefType.OneToMany:
+                        var addlist = isAdd ? new List<object>() : null;
                         foreach (var propValItem in propValEach)
                         {
                             for (var colidx = 0; colidx < tref.Columns.Count; colidx++)
@@ -335,8 +336,10 @@ namespace FreeSql
                                 var val = FreeSql.Internal.Utils.GetDataReaderValue(tref.RefColumns[colidx].CsType, _db.OrmOriginal.GetEntityValueWithPropertyName(_table.Type, item, tref.Columns[colidx].CsName));
                                 _db.OrmOriginal.SetEntityValueWithPropertyName(tref.RefEntityType, propValItem, tref.RefColumns[colidx].CsName, val);
                             }
-                            await refSet.AddOrUpdateAsync(propValItem, cancellationToken);
+                            if (isAdd) addlist.Add(propValItem);
+                            else await refSet.AddOrUpdateAsync(propValItem, cancellationToken);
                         }
+                        if (isAdd) await refSet.AddRangeAsync(addlist, cancellationToken);
                         break;
                 }
             };
