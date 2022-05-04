@@ -1,5 +1,4 @@
 ﻿<Project>
-
 	<PropertyGroup>
 		<RepositoryUrl>https://github.com/dotnetcore/FreeSql</RepositoryUrl>
 		<IncludeSymbols>true</IncludeSymbols>
