@@ -759,7 +759,9 @@ namespace FreeSql.Internal
                     var conditionalTestOldMapType = tsc.SetMapTypeReturnOld(null);
                     if (condExp.Test.IsParameter())
                     {
-                        var conditionalTestSql = ExpressionLambdaToSql(condExp.Test, tsc);
+                        var condExp2 = condExp.Test;
+                        if (condExp2.NodeType == ExpressionType.MemberAccess) condExp2 = Expression.Equal(condExp2, Expression.Constant(true));
+                        var conditionalTestSql = ExpressionLambdaToSql(condExp2, tsc);
                         tsc.SetMapTypeReturnOld(conditionalTestOldMapType);
                         var conditionalSql = _common.IIF(conditionalTestSql, ExpressionLambdaToSql(condExp.IfTrue, tsc), ExpressionLambdaToSql(condExp.IfFalse, tsc));
                         tsc.SetMapTypeReturnOld(null);
