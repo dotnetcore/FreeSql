@@ -33,7 +33,7 @@ namespace FreeSql.Tests
             fsql.Delete<DeleteCascadeUserExt>().Where("1=1").ExecuteAffrows();
             var user = new DeleteCascadeUser { Username = "admin01", Password = "pwd01", UserExt = new DeleteCascadeUserExt { Remark = "用户备注01" } };
             userRepo.Insert(user);
-            var ret = userRepo.RemoveCascadeByDatabase(a => a.Id == user.Id);
+            var ret = userRepo.DeleteCascadeByDatabase(a => a.Id == user.Id);
             Assert.Equal(2, ret.Count);
             Assert.IsType<DeleteCascadeUserExt>(ret[0]);
             Assert.Equal(user.UserExt.UserId, (ret[0] as DeleteCascadeUserExt).UserId);
@@ -64,7 +64,7 @@ namespace FreeSql.Tests
             fsql.Delete<DeleteCascadeUserExt>().Where("1=1").ExecuteAffrows();
             user = new DeleteCascadeUser { Username = "admin01", Password = "pwd01", UserExt = new DeleteCascadeUserExt { Remark = "用户备注01" } };
             userRepo.Insert(user);
-            ret = userextRepo.RemoveCascadeByDatabase(a => a.UserId == user.UserExt.UserId);
+            ret = userextRepo.DeleteCascadeByDatabase(a => a.UserId == user.UserExt.UserId);
             Assert.Equal(2, ret.Count);
             Assert.IsType<DeleteCascadeUserExt>(ret[1]);
             Assert.Equal(user.UserExt.UserId, (ret[1] as DeleteCascadeUserExt).UserId);
@@ -112,7 +112,7 @@ namespace FreeSql.Tests
             Assert.Equal(group.Id, group.Users[0].GroupId);
             Assert.Equal(group.Id, group.Users[1].GroupId);
             Assert.Equal(group.Id, group.Users[2].GroupId);
-            ret = groupRepo.RemoveCascadeByDatabase(a => a.Id == group.Id);
+            ret = groupRepo.DeleteCascadeByDatabase(a => a.Id == group.Id);
             Assert.Equal(7, ret.Count);
             Assert.IsType<DeleteCascadeUserExt>(ret[0]);
             Assert.Equal(group.Users[0].UserExt.UserId, (ret[0] as DeleteCascadeUserExt).UserId);
@@ -211,7 +211,7 @@ namespace FreeSql.Tests
             Assert.Equal(group.Id, group.Users[0].GroupId);
             Assert.Equal(group.Id, group.Users[1].GroupId);
             Assert.Equal(group.Id, group.Users[2].GroupId);
-            ret = groupRepo.RemoveCascadeByDatabase(a => a.Id == group.Id);
+            ret = groupRepo.DeleteCascadeByDatabase(a => a.Id == group.Id);
             Assert.Equal(18, ret.Count);
 
             Assert.IsType<DeleteCascadeUserExt>(ret[0]);

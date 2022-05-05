@@ -90,7 +90,7 @@ namespace FreeSql
         /// </summary>
         /// <param name="predicate"></param>
         /// <returns></returns>
-        List<object> RemoveCascadeByDatabase(Expression<Func<TEntity, bool>> predicate);
+        List<object> DeleteCascadeByDatabase(Expression<Func<TEntity, bool>> predicate);
 
         /// <summary>
         /// 开始编辑数据，然后调用方法 EndEdit 分析出添加、修改、删除 SQL 语句进行执行<para></para>
@@ -122,7 +122,7 @@ namespace FreeSql
         Task<int> DeleteAsync(TEntity entity, CancellationToken cancellationToken = default);
         Task<int> DeleteAsync(IEnumerable<TEntity> entitys, CancellationToken cancellationToken = default);
         Task<int> DeleteAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default);
-        Task<List<object>> RemoveCascadeByDatabaseAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default);
+        Task<List<object>> DeleteCascadeByDatabaseAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default);
 #endif
     }
 

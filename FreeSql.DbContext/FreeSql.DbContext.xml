@@ -360,7 +360,7 @@
             <param name="entity">实体对象</param>
             <param name="propertyName">属性名</param>
         </member>
-        <member name="M:FreeSql.IBaseRepository`1.RemoveCascadeByDatabase(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
+        <member name="M:FreeSql.IBaseRepository`1.DeleteCascadeByDatabase(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
             <summary>
             根据设置的 OneToOne/OneToMany/ManyToMany 导航属性，级联查询所有的数据库记录，删除并返回它们
             </summary>
@@ -557,15 +557,6 @@
             创建基于仓储功能的工作单元，务必使用 using 包含使用
             </summary>
             <param name="that"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Microsoft.Extensions.DependencyInjection.FreeSqlRepositoryDependencyInjection.AddFreeRepository(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Action{FreeSql.FluentDataFilter},System.Reflection.Assembly[])">
-            <summary>
-            批量注入 Repository，可以参考代码自行调整
-            </summary>
-            <param name="services"></param>
-            <param name="globalDataFilter"></param>
-            <param name="assemblies"></param>
             <returns></returns>
         </member>
     </members>
