@@ -2609,8 +2609,16 @@
         </member>
         <member name="M:FreeSql.ISelectGrouping`2.Having(System.Linq.Expressions.Expression{System.Func{FreeSql.ISelectGroupingAggregate{`0,`1},System.Boolean}})">
             <summary>
-            按聚合条件过滤，Where(a => a.Count() > 10)
+            按聚合条件过滤，Having(a => a.Count() > 10)
             </summary>
+            <param name="exp">lambda表达式</param>
+            <returns></returns>
+        </member>
+        <member name="M:FreeSql.ISelectGrouping`2.HavingIf(System.Boolean,System.Linq.Expressions.Expression{System.Func{FreeSql.ISelectGroupingAggregate{`0,`1},System.Boolean}})">
+            <summary>
+            按聚合条件过滤，HavingIf(true, a => a.Count() > 10)
+            </summary>
+            <param name="condition">true 时生效</param>
             <param name="exp">lambda表达式</param>
             <returns></returns>
         </member>
