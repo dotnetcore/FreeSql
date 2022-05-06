@@ -226,6 +226,7 @@ namespace FreeSql.Internal.CommonProvider
             return this;
         }
 
+        public ISelectGrouping<TKey, TValue> HavingIf(bool condition, Expression<Func<ISelectGroupingAggregate<TKey, TValue>, bool>> exp) => condition ? Having(exp) : this;
         public ISelectGrouping<TKey, TValue> Having(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, bool>> exp)
         {
             _lambdaParameter = exp?.Parameters[0];
