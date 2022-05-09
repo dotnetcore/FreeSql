@@ -1954,7 +1954,33 @@ namespace FreeSql.Internal
                 return;
             }
             exp3tmp = exp3Stack.Pop();
-            if (exp3tmp.NodeType != ExpressionType.Parameter) return;
+            if (exp3tmp.NodeType != ExpressionType.Parameter)
+            {
+                //if (e.Expression.NodeType == ExpressionType.Call)
+                //{
+                //    var rootExpCall = e.Expression as MethodCallExpression;
+                //    if (rootExpCall.Object == null && rootExpCall.Method.Name == "Any" &&
+                //        rootExpCall.Arguments.Count == 2 &&
+                //        rootExpCall.Arguments[0].Type.GetGenericTypeDefinition() == typeof(IEnumerable<>) &&
+                //        rootExpCall.Arguments[1].Type == typeof(Func<,>).MakeGenericType(rootExpCall.Arguments[0].Type.GetGenericArguments()[0], typeof(bool)))
+                //    {
+                //        //e.Tables[0].Parameter
+                //        var anyExp = rootExpCall.Arguments[1];
+                //        while(anyExp.NodeType == ExpressionType.AndAlso)
+                //        {
+
+                //        }
+                //        if (anyExp.NodeType != ExpressionType.AndAlso && anyExp.NodeType != ExpressionType.Equal) return;
+
+
+                //        var array = Expression.Lambda(rootExpCall.Arguments[0]).Compile().DynamicInvoke() as IEnumerable;
+                //        foreach (var arritem in array)
+                //        {
+                //        }
+                //    }
+                //}
+                return;
+            }
             if (exp3tmp.Type.FullName.StartsWith("FreeSql.ISelectGroupingAggregate")) return;
             var commonExp = sender as FreeSql.Internal.CommonExpression;
             if (commonExp == null) return;

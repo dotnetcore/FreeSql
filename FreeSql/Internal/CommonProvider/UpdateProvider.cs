@@ -1003,7 +1003,7 @@ namespace FreeSql.Internal.CommonProvider
             sb.Append(" \r\nWHERE ");
             if (_source.Any())
             {
-                if (_tempPrimarys.Any() == false) throw new ArgumentException($"{_table.Type.DisplayCsharp()} 没有定义主键，无法使用 SetSource，请尝试 SetDto");
+                if (_tempPrimarys.Any() == false) throw new ArgumentException($"{_table.Type.DisplayCsharp()} 没有定义主键，无法使用 SetSource，请尝试 SetDto 或者 SetSource 指定临时主键");
                 sb.Append('(').Append(_commonUtils.WhereItems(_tempPrimarys, "", _source)).Append(')');
             }
 
