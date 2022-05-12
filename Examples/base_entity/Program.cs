@@ -131,7 +131,7 @@ namespace base_entity
             public string ShippingAddress { get; set; }
         }
 
-        [Table(Name = "tb_TopicMapTypeToListDto")]
+        [Table(Name = "tb_tmttld"), OraclePrimaryKeyName("TMTTLD_PK01")]
         class TopicMapTypeToListDto
         {
             [Column(IsIdentity = true, IsPrimary = true)]
@@ -185,8 +185,8 @@ namespace base_entity
                 .UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=2")
                 .UseNameConvert(FreeSql.Internal.NameConvertType.ToLower)
 
-                //.UseConnectionString(FreeSql.DataType.Oracle, "user id=user1;password=123456;data source=//127.0.0.1:1521/XE;Pooling=true;Max Pool Size=2")
-                //.UseNameConvert(FreeSql.Internal.NameConvertType.ToUpper)
+                .UseConnectionString(FreeSql.DataType.Oracle, "user id=user1;password=123456;data source=//127.0.0.1:1521/XE;Pooling=true;Max Pool Size=2")
+                .UseNameConvert(FreeSql.Internal.NameConvertType.ToUpper)
 
 
                 //.UseConnectionString(FreeSql.DataType.OdbcMySql, "Driver={MySQL ODBC 8.0 Unicode Driver};Server=127.0.0.1;Persist Security Info=False;Trusted_Connection=Yes;UID=root;PWD=root;DATABASE=cccddd_odbc;Charset=utf8;SslMode=none;Max pool size=2")
@@ -451,6 +451,10 @@ namespace base_entity
             var sqls5 = fsql.Select<AsTableLog>().Where(a => a.createtime < DateTime.Parse("2022-5-1"));
             var sqls501 = sqls5.ToSql();
             var sqls502 = sqls5.ToList();
+
+            var sqls6 = fsql.Select<AsTableLog>().Where(a => a.createtime < DateTime.Parse("2022-5-1")).Limit(10).OrderBy(a => a.createtime);
+            var sqls601 = sqls6.ToSql();
+            var sqls602 = sqls6.ToList();
 
             fsql.Aop.AuditValue += new EventHandler<FreeSql.Aop.AuditValueEventArgs>((_, e) =>
             {

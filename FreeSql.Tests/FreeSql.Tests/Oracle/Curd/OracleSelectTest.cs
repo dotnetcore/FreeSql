@@ -942,7 +942,7 @@ WHERE (((a.""NAME"") in (SELECT s.""TITLE"" as1
         public void OrderByRandom()
         {
             var t1 = select.OrderByRandom().Limit(10).ToSql("1");
-            Assert.Equal(@"SELECT  t.* FROM (SELECT 1 
+            Assert.Equal(@"SELECT t.* FROM (SELECT 1 
 FROM ""TB_TOPIC22"" a 
 ORDER BY dbms_random.value) t WHERE ROWNUM < 11", t1);
             var t2 = select.OrderByRandom().Limit(10).ToList();
@@ -1138,12 +1138,12 @@ WHERE (((to_char(a.""ID"")) in (SELECT b.""TITLE""
 
             query = select.AsTable((_, old) => old).AsTable((_, old) => old);
             sql = query.ToSql().Replace("\r\n", "");
-            Assert.Equal("SELECT  * from (SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a) ftb UNION ALL SELECT  * from (SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a) ftb", sql);
+            Assert.Equal("SELECT * from (SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a) ftb UNION ALL SELECT * from (SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a) ftb", sql);
             query.ToList();
 
             query = select.AsTable((_, old) => old).AsTable((_, old) => old);
             sql = query.ToSql("count(1) as1").Replace("\r\n", "");
-            Assert.Equal("SELECT  * from (SELECT count(1) as1 FROM \"TB_TOPIC22\" a) ftb UNION ALL SELECT  * from (SELECT count(1) as1 FROM \"TB_TOPIC22\" a) ftb", sql);
+            Assert.Equal("SELECT * from (SELECT count(1) as1 FROM \"TB_TOPIC22\" a) ftb UNION ALL SELECT * from (SELECT count(1) as1 FROM \"TB_TOPIC22\" a) ftb", sql);
             query.Count();
 
             select.AsTable((_, old) => old).AsTable((_, old) => old).Max(a => a.Id);
