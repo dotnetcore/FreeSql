@@ -90,7 +90,7 @@ new Colorful.Formatter("v" + string.Join(".", typeof(ConsoleApp).Assembly.GetNam
 
      -Razor 1                  * 选择模板：实体类+特性
      -Razor 2                  * 选择模板：实体类+特性+导航属性
-     -Razor ""d:\diy.cshtml""    * 自定义模板文件
+     -Razor ""d:\diy.cshtml""    * 自定义模板文件,如乱码请修改为UTF8(不带BOM)编码格式
 
      -NameOptions              * 4个布尔值对应：
                                  首字母大写
@@ -152,7 +152,7 @@ new Colorful.Formatter("推荐在实体类目录创建 gen.bat，双击它重新
                         {
                             case "1": ArgsRazor = RazorContentManager.实体类_特性_cshtml; break;
                             case "2": ArgsRazor = RazorContentManager.实体类_特性_导航属性_cshtml; break;
-                            default: ArgsRazor = File.ReadAllText(args[a + 1]); break;
+                            default: ArgsRazor = File.ReadAllText(args[a + 1], Encoding.UTF8)); break;
                         }
                         a++;
                         break;
