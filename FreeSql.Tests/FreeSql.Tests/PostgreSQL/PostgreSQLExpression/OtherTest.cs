@@ -1,12 +1,10 @@
-using FreeSql.DataAnnotations;
+﻿using FreeSql.DataAnnotations;
 using Newtonsoft.Json.Linq;
-using Npgsql;
 using Npgsql.LegacyPostgis;
 using NpgsqlTypes;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
@@ -18,11 +16,6 @@ namespace FreeSql.Tests.PostgreSQLExpression
     {
 
         ISelect<TableAllType> select => g.pgsql.Select<TableAllType>();
-
-        public OtherTest()
-        {
-            NpgsqlConnection.GlobalTypeMapper.UseLegacyPostgis();
-        }
 
         [Fact]
         public void Div()

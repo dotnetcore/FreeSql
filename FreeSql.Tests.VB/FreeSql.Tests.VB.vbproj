@@ -2,8 +2,7 @@
 
   <PropertyGroup>
     <RootNamespace>FreeSql.Tests.VB</RootNamespace>
-    <TargetFramework>net5.0</TargetFramework>
-
+    <TargetFramework>net6.0</TargetFramework>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 

@@ -12,6 +12,7 @@ using System.Data.Common;
 using System.Linq.Expressions;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Numerics;
 using System.Reflection;
 using System.Threading;
 
@@ -23,6 +24,7 @@ namespace FreeSql.PostgreSQL
 
         static PostgreSQLProvider()
         {
+            Utils.dicExecuteArrayRowReadClassOrTuple[typeof(BigInteger)] = true;
             Utils.dicExecuteArrayRowReadClassOrTuple[typeof(BitArray)] = true;
             Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NpgsqlPoint)] = true;
             Utils.dicExecuteArrayRowReadClassOrTuple[typeof(NpgsqlLine)] = true;
@@ -121,6 +123,14 @@ namespace FreeSql.PostgreSQL
 
             this.DbFirst = new PostgreSQLDbFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
             this.CodeFirst = new PostgreSQLCodeFirst(this, this.InternalCommonUtils, this.InternalCommonExpression);
+
+            //this.Aop.AuditDataReader += (_, e) =>
+            //{
+            //    var dbtype = e.DataReader.GetDataTypeName(e.Index);
+            //    var m = Regex.Match(dbtype, @"numeric\((\d+)\)", RegexOptions.IgnoreCase);
+            //    if (m.Success && int.Parse(m.Groups[1].Value) > 19)
+            //        e.Value = e.DataReader.GetFieldValue<BigInteger>(e.Index);
+            //};
         }
 
         ~PostgreSQLProvider() => this.Dispose();

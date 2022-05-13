@@ -1,14 +1,7 @@
-﻿using FreeSql.DataAnnotations;
-using FreeSql;
+﻿using FreeSql.Internal;
 using System;
-using System.Collections.Generic;
-using Xunit;
-using System.Linq;
-using Newtonsoft.Json.Linq;
-using NpgsqlTypes;
-using Npgsql.LegacyPostgis;
-using FreeSql.Internal;
 using System.Linq.Expressions;
+using Xunit;
 
 namespace FreeSql.ExpressionTree
 {

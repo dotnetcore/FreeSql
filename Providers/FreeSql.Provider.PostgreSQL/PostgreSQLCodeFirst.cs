@@ -10,6 +10,7 @@ using System.Data;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Numerics;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -47,6 +48,7 @@ namespace FreeSql.PostgreSQL
                 { typeof(bool).FullName, CsToDb.New(NpgsqlDbType.Boolean, "bool","bool NOT NULL", null, false, false) },{ typeof(bool?).FullName, CsToDb.New(NpgsqlDbType.Boolean, "bool","bool", null, true, null) },
                 { typeof(Byte[]).FullName, CsToDb.New(NpgsqlDbType.Bytea, "bytea", "bytea", false, null, new byte[0]) },
                 { typeof(BitArray).FullName, CsToDb.New(NpgsqlDbType.Varbit, "varbit", "varbit(64)", false, null, new BitArray(new byte[64])) },
+                { typeof(BigInteger).FullName, CsToDb.New(NpgsqlDbType.Numeric, "numeric", "numeric(78,0) NOT NULL", false, false, 0) },{ typeof(BigInteger?).FullName, CsToDb.New(NpgsqlDbType.Numeric, "numeric", "numeric(78,0)", false, true, null) },
 
                 { typeof(NpgsqlPoint).FullName, CsToDb.New(NpgsqlDbType.Point, "point", "point NOT NULL", false, false, new NpgsqlPoint(0, 0)) },{ typeof(NpgsqlPoint?).FullName, CsToDb.New(NpgsqlDbType.Point, "point", "point", false, true, null) },
                 { typeof(NpgsqlLine).FullName, CsToDb.New(NpgsqlDbType.Line, "line", "line NOT NULL", false, false, new NpgsqlLine(0, 0, 1)) },{ typeof(NpgsqlLine?).FullName, CsToDb.New(NpgsqlDbType.Line, "line", "line", false, true, null) },
