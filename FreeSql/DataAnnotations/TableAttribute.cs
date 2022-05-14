@@ -222,8 +222,8 @@ namespace FreeSql.DataAnnotations
                     new Regex($@"{cn}\s*(<|<=|>|>=)\s*'([^']+)'\s*and\s*{cn}\s*(<|<=|>|>=)\s*'([^']+)'", RegexOptions.IgnoreCase), //预留暂时不用
                     new Regex($@"{cn}\s*(<|<=|>|>=)\s*{qpn}([\w_]+)\s*and\s*{cn}\s*(<|<=|>|>=)\s*{qpn}([\w_]+)", RegexOptions.IgnoreCase),
 
-                    new Regex($@"{cn}\s*(<|<=|>|>=)\s*'([^']+)'", RegexOptions.IgnoreCase), //预留暂时不用
-                    new Regex($@"{cn}\s*(<|<=|>|>=)\s*{qpn}([\w_]+)", RegexOptions.IgnoreCase),
+                    new Regex($@"{cn}\s*(=|<|<=|>|>=)\s*'([^']+)'", RegexOptions.IgnoreCase), //预留暂时不用
+                    new Regex($@"{cn}\s*(=|<|<=|>|>=)\s*{qpn}([\w_]+)", RegexOptions.IgnoreCase),
                 };
             });
         }
@@ -337,6 +337,8 @@ namespace FreeSql.DataAnnotations
             {
                 switch (m.Groups[1].Value)
                 {
+                    case "=":
+                        return GetTableNamesByColumnValueRange(val1, val1);
                     case "<":
                         val1 = val1.AddSeconds(-1);
                         return GetTableNamesByColumnValueRange(_beginTime, val1);
