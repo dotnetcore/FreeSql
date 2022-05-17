@@ -279,7 +279,7 @@ namespace FreeSql.Internal.ObjectPool
 
             if (checkAvailable && UnavailableException != null)
                 throw new Exception($"【{Policy.Name}】Block access and wait for recovery: {UnavailableException?.Message}, see: https://github.com/dotnetcore/FreeSql/discussions/1080", UnavailableException);
-            //throw new Exception($"【{Policy.Name}】状态不可用，等待后台检查程序恢复方可使用。{UnavailableException?.Message}");
+            //throw new Exception($"【{Policy.Name}】Block access and wait for recovery: {UnavailableException?.Message}");
 
             if ((_freeObjects.TryPop(out var obj) == false || obj == null) && _allObjects.Count < Policy.PoolSize)
             {

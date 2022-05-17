@@ -28,17 +28,25 @@ namespace orm_vs
 
         static SqlSugarClient sugar
         {
-            get => new SqlSugarClient(new ConnectionConfig()
+            get
             {
-                //ConnectionString = "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Min Pool Size=20;Max Pool Size=20",
-                //DbType = DbType.SqlServer,
-                ConnectionString = "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Min Pool Size=20;Max Pool Size=20",
-                DbType = DbType.MySql,
-                //ConnectionString = "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=21",
-                //DbType = DbType.PostgreSQL,
-                IsAutoCloseConnection = true,
-                InitKeyType = InitKeyType.Attribute
-            });
+                var db = new SqlSugarClient(new ConnectionConfig()
+                {
+                    //ConnectionString = "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Min Pool Size=20;Max Pool Size=20",
+                    //DbType = DbType.SqlServer,
+                    ConnectionString = "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Min Pool Size=20;Max Pool Size=20",
+                    DbType = DbType.MySql,
+                    //ConnectionString = "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=21",
+                    //DbType = DbType.PostgreSQL,
+                    IsAutoCloseConnection = true,
+                    InitKeyType = InitKeyType.Attribute
+                });
+                db.Aop.OnLogExecuting = (sql, pars) =>
+                {
+                    Console.WriteLine(sql);//输出sql,查看执行sql
+                };
+                return db;
+            }
         }
 
         class SongContext : DbContext
@@ -82,6 +90,12 @@ namespace orm_vs
             var time = new Stopwatch();
 
             var sql222 = fsql.Select<Song>().Where(a => DateTime.Now.Subtract(a.create_time.Value).TotalHours > 0).ToSql();
+
+            var conModels = new List<IConditionalModel>();
+            conModels.Add(new ConditionalModel { FieldName = "`id` = 1 or 1=1; delete from song_tag; -- ", ConditionalType = ConditionalType.Equal, FieldValue = "1" });
+
+            var student = sugar.Queryable<Song>().Where(conModels).ToList();
+
 
             #region ET test
             ////var t31 = fsql.Select<xxx>().ToList();

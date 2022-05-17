@@ -173,7 +173,7 @@ namespace FreeSql.Sqlite
                     catch (Exception ex)
                     {
                         if (_pool.SetUnavailable(ex) == true)
-                            throw new Exception($"【{this.Name}】状态不可用，等待后台检查程序恢复方可使用。{ex.Message}");
+                            throw new Exception($"【{this.Name}】Block access and wait for recovery: {ex.Message}");
                     }
                 }
             }
@@ -203,7 +203,7 @@ namespace FreeSql.Sqlite
                     catch (Exception ex)
                     {
                         if (_pool.SetUnavailable(ex) == true)
-                            throw new Exception($"【{this.Name}】状态不可用，等待后台检查程序恢复方可使用。{ex.Message}");
+                            throw new Exception($"【{this.Name}】Block access and wait for recovery: {ex.Message}");
                     }
                 }
             }
