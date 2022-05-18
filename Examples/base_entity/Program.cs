@@ -271,13 +271,23 @@ namespace base_entity
                 if (CommandTimeoutCascade._asyncLocalTimeout.Value > 0)
                     e.Command.CommandTimeout = CommandTimeoutCascade._asyncLocalTimeout.Value;
             };
-
+            
             using (new CommandTimeoutCascade(1000))
             {
                 fsql.Select<Order>().ToList();
                 fsql.Select<Order>().ToList();
                 fsql.Select<Order>().ToList();
             }
+
+
+            var sql1 = fsql.Select<User1, UserGroup>()
+                .RawJoin("FULL JOIN UserGroup b ON b.id = a.GroupId")
+                .Where((a, b) => a.IsDeleted == false)
+                .ToSql((a, b) => new
+                {
+                    user = a, group = b
+                });
+            sql1 = sql1.Replace("INNER JOIN ", "FULL JOIN ");
 
 
 
