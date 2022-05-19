@@ -337,7 +337,7 @@
     <value>Navigation property {trytbTypeName}. {pnvName} attribute [Navigate] parsing error, property not found at {tbrefTypeName}: {bi}</value>
   </data>
   <data name="NoPrimaryKey_UseSetDto" xml:space="preserve">
-    <value>{tableTypeDisplayCsharp} has no primary key defined and cannot use SetSource. Try SetDto</value>
+    <value>{tableTypeDisplayCsharp} has no primary key defined and cannot use SetSource. Try SetDto or SetSource to specify a temporary primary key</value>
   </data>
   <data name="NoProperty_Defined" xml:space="preserve">
     <value>No properties defined</value>

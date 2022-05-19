@@ -337,7 +337,7 @@
     <value>导航属性 {trytbTypeName}.{pnvName} 特性 [Navigate] 解析错误，在 {tbrefTypeName} 未找到属性：{bi}</value>
   </data>
   <data name="NoPrimaryKey_UseSetDto" xml:space="preserve">
-    <value>{tableTypeDisplayCsharp} 没有定义主键，无法使用 SetSource，请尝试 SetDto</value>
+    <value>{tableTypeDisplayCsharp} 没有定义主键，无法使用 SetSource，请尝试 SetDto 或者 SetSource 指定临时主键</value>
   </data>
   <data name="NoProperty_Defined" xml:space="preserve">
     <value> 没有定义属性 </value>
