@@ -32,7 +32,7 @@ namespace FreeSql
             _dbset.RemoveRange(entitys);
             return _db.SaveChangesAsync(cancellationToken);
         }
-        async public virtual Task<List<object>> RemoveCascadeByDatabaseAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
+        async public virtual Task<List<object>> DeleteCascadeByDatabaseAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
         {
             var list = await _dbset.RemoveCascadeByDatabaseAsync(predicate, cancellationToken);
             var affrows = await _db.SaveChangesAsync(cancellationToken);

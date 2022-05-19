@@ -90,9 +90,11 @@ namespace FreeSql.SqlServer.Curd
                 }
                 foreach (var tb in tbsjoin)
                 {
-                    if (tb.Type == SelectTableInfoType.Parent) continue;
                     switch (tb.Type)
                     {
+                        case SelectTableInfoType.Parent:
+                        case SelectTableInfoType.RawJoin:
+                            continue;
                         case SelectTableInfoType.LeftJoin:
                             sb.Append(" \r\nLEFT JOIN ");
                             break;
@@ -195,9 +197,11 @@ namespace FreeSql.SqlServer.Curd
                 }
                 foreach (var tb in tbsjoin)
                 {
-                    if (tb.Type == SelectTableInfoType.Parent) continue;
                     switch (tb.Type)
                     {
+                        case SelectTableInfoType.Parent:
+                        case SelectTableInfoType.RawJoin:
+                            continue;
                         case SelectTableInfoType.LeftJoin:
                             sb.Append(" \r\nLEFT JOIN ");
                             break;

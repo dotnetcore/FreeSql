@@ -1,4 +1,4 @@
-using FreeSql.DataAnnotations;
+﻿using FreeSql.DataAnnotations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -823,7 +823,7 @@ namespace FreeSql.Tests.Odbc.Oracle
         public void OrderByRandom()
         {
             var t1 = select.OrderByRandom().Limit(10).ToSql("1");
-            Assert.Equal(@"SELECT  t.* FROM (SELECT 1 
+            Assert.Equal(@"SELECT t.* FROM (SELECT 1 
 FROM ""TB_TOPIC22"" a 
 ORDER BY dbms_random.value) t WHERE ROWNUM < 11", t1);
             var t2 = select.OrderByRandom().Limit(10).ToList();
@@ -865,8 +865,8 @@ ORDER BY dbms_random.value) t WHERE ROWNUM < 11", t1);
                 all = a,
                 count = (long)select.As("b").Sum(b => b.Id)
             });
-            Assert.Equal(@"SELECT a.""ID"" as1, a.""CLICKS"" as2, a.""TYPEGUID"" as3, a.""TITLE"" as4, a.""CREATETIME"" as5, (SELECT sum(b.""ID"") 
-    FROM ""TB_TOPIC22"" b) as6 
+            Assert.Equal(@"SELECT a.""ID"" as1, a.""CLICKS"" as2, a.""TYPEGUID"" as3, a.""TITLE"" as4, a.""CREATETIME"" as5, nvl((SELECT sum(b.""ID"") 
+    FROM ""TB_TOPIC22"" b), 0) as6 
 FROM ""TB_TOPIC22"" a", subquery);
             var subqueryList = select.ToList(a => new
             {
@@ -882,8 +882,8 @@ FROM ""TB_TOPIC22"" a", subquery);
                 all = a,
                 count = select.As("b").Min(b => b.Id)
             });
-            Assert.Equal(@"SELECT a.""ID"" as1, a.""CLICKS"" as2, a.""TYPEGUID"" as3, a.""TITLE"" as4, a.""CREATETIME"" as5, (SELECT min(b.""ID"") 
-    FROM ""TB_TOPIC22"" b) as6 
+            Assert.Equal(@"SELECT a.""ID"" as1, a.""CLICKS"" as2, a.""TYPEGUID"" as3, a.""TITLE"" as4, a.""CREATETIME"" as5, nvl((SELECT min(b.""ID"") 
+    FROM ""TB_TOPIC22"" b), 0) as6 
 FROM ""TB_TOPIC22"" a", subquery);
             var subqueryList = select.ToList(a => new
             {
@@ -899,8 +899,8 @@ FROM ""TB_TOPIC22"" a", subquery);
                 all = a,
                 count = select.As("b").Max(b => b.Id)
             });
-            Assert.Equal(@"SELECT a.""ID"" as1, a.""CLICKS"" as2, a.""TYPEGUID"" as3, a.""TITLE"" as4, a.""CREATETIME"" as5, (SELECT max(b.""ID"") 
-    FROM ""TB_TOPIC22"" b) as6 
+            Assert.Equal(@"SELECT a.""ID"" as1, a.""CLICKS"" as2, a.""TYPEGUID"" as3, a.""TITLE"" as4, a.""CREATETIME"" as5, nvl((SELECT max(b.""ID"") 
+    FROM ""TB_TOPIC22"" b), 0) as6 
 FROM ""TB_TOPIC22"" a", subquery);
             var subqueryList = select.ToList(a => new
             {
@@ -916,13 +916,13 @@ FROM ""TB_TOPIC22"" a", subquery);
                 all = a,
                 count = select.As("b").Avg(b => b.Id)
             });
-            Assert.Equal(@"SELECT a.""ID"" as1, a.""CLICKS"" as2, a.""TYPEGUID"" as3, a.""TITLE"" as4, a.""CREATETIME"" as5, (SELECT avg(b.""ID"") 
-    FROM ""TB_TOPIC22"" b) as6 
+            Assert.Equal(@"SELECT a.""ID"" as1, a.""CLICKS"" as2, a.""TYPEGUID"" as3, a.""TITLE"" as4, a.""CREATETIME"" as5, nvl((SELECT avg(b.""ID"") 
+    FROM ""TB_TOPIC22"" b), 0) as6 
 FROM ""TB_TOPIC22"" a", subquery);
-            var subqueryList = select.ToList(a => new
+            var subqueryList = select.Limit(10).ToList(a => new
             {
                 all = a,
-                count = select.As("b").Avg(b => b.Id)
+                count = select.As("b").Limit(10).Avg(b => b.Id)
             });
         }
         [Fact]
@@ -1019,12 +1019,12 @@ WHERE (((to_char(a.""ID"")) in (SELECT b.""TITLE""
 
             query = select.AsTable((_, old) => old).AsTable((_, old) => old);
             sql = query.ToSql().Replace("\r\n", "");
-            Assert.Equal("SELECT  * from (SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a) ftb UNION ALL SELECT  * from (SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a) ftb", sql);
+            Assert.Equal("SELECT * from (SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a) ftb UNION ALL SELECT * from (SELECT a.\"ID\", a.\"CLICKS\", a.\"TYPEGUID\", a.\"TITLE\", a.\"CREATETIME\" FROM \"TB_TOPIC22\" a) ftb", sql);
             query.ToList();
 
             query = select.AsTable((_, old) => old).AsTable((_, old) => old);
             sql = query.ToSql("count(1) as1").Replace("\r\n", "");
-            Assert.Equal("SELECT  * from (SELECT count(1) as1 FROM \"TB_TOPIC22\" a) ftb UNION ALL SELECT  * from (SELECT count(1) as1 FROM \"TB_TOPIC22\" a) ftb", sql);
+            Assert.Equal("SELECT * from (SELECT count(1) as1 FROM \"TB_TOPIC22\" a) ftb UNION ALL SELECT * from (SELECT count(1) as1 FROM \"TB_TOPIC22\" a) ftb", sql);
             query.Count();
 
             select.AsTable((_, old) => old).AsTable((_, old) => old).Max(a => a.Id);

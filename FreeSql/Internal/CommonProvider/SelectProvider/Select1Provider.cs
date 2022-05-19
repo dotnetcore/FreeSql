@@ -993,7 +993,8 @@ namespace FreeSql.Internal.CommonProvider
                             List<object> midList = new List<object>();
                             var tbref2 = _commonUtils.GetTableByEntity(tbref.RefEntityType);
                             var tbrefMid = _commonUtils.GetTableByEntity(tbref.RefMiddleEntityType);
-                            var sbJoin = new StringBuilder().Append($"{_commonUtils.QuoteSqlName(tbrefMid.DbName)} midtb ON ");
+                            var tbrefMidName = _tableRules?.FirstOrDefault()?.Invoke(tbref.RefMiddleEntityType, tbrefMid.DbName) ?? tbrefMid.DbName;
+                            var sbJoin = new StringBuilder().Append($"{_commonUtils.QuoteSqlName(tbrefMidName)} midtb ON ");
                             for (var z = 0; z < tbref.RefColumns.Count; z++)
                             {
                                 if (z > 0) sbJoin.Append(" AND ");

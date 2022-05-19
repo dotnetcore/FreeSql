@@ -1,4 +1,4 @@
-using FreeSql.DataAnnotations;
+﻿using FreeSql.DataAnnotations;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -950,8 +950,8 @@ limit 0,10", t1);
                 all = a,
                 count = (long)select.As("b").Sum(b => b.Id)
             });
-            Assert.Equal(@"SELECT a.`Id` as1, a.`Clicks` as2, a.`TypeGuid` as3, a.`Title` as4, a.`CreateTime` as5, (SELECT sum(b.`Id`) 
-    FROM `tb_topic` b) as6 
+            Assert.Equal(@"SELECT a.`Id` as1, a.`Clicks` as2, a.`TypeGuid` as3, a.`Title` as4, a.`CreateTime` as5, ifnull((SELECT sum(b.`Id`) 
+    FROM `tb_topic` b), 0) as6 
 FROM `tb_topic` a", subquery);
             var subqueryList = select.ToList(a => new
             {
@@ -967,8 +967,8 @@ FROM `tb_topic` a", subquery);
                 all = a,
                 count = select.As("b").Min(b => b.Id)
             });
-            Assert.Equal(@"SELECT a.`Id` as1, a.`Clicks` as2, a.`TypeGuid` as3, a.`Title` as4, a.`CreateTime` as5, (SELECT min(b.`Id`) 
-    FROM `tb_topic` b) as6 
+            Assert.Equal(@"SELECT a.`Id` as1, a.`Clicks` as2, a.`TypeGuid` as3, a.`Title` as4, a.`CreateTime` as5, ifnull((SELECT min(b.`Id`) 
+    FROM `tb_topic` b), 0) as6 
 FROM `tb_topic` a", subquery);
             var subqueryList = select.ToList(a => new
             {
@@ -984,8 +984,8 @@ FROM `tb_topic` a", subquery);
                 all = a,
                 count = select.As("b").Max(b => b.Id)
             });
-            Assert.Equal(@"SELECT a.`Id` as1, a.`Clicks` as2, a.`TypeGuid` as3, a.`Title` as4, a.`CreateTime` as5, (SELECT max(b.`Id`) 
-    FROM `tb_topic` b) as6 
+            Assert.Equal(@"SELECT a.`Id` as1, a.`Clicks` as2, a.`TypeGuid` as3, a.`Title` as4, a.`CreateTime` as5, ifnull((SELECT max(b.`Id`) 
+    FROM `tb_topic` b), 0) as6 
 FROM `tb_topic` a", subquery);
             var subqueryList = select.ToList(a => new
             {
@@ -1001,8 +1001,8 @@ FROM `tb_topic` a", subquery);
                 all = a,
                 count = select.As("b").Avg(b => b.Id)
             });
-            Assert.Equal(@"SELECT a.`Id` as1, a.`Clicks` as2, a.`TypeGuid` as3, a.`Title` as4, a.`CreateTime` as5, (SELECT avg(b.`Id`) 
-    FROM `tb_topic` b) as6 
+            Assert.Equal(@"SELECT a.`Id` as1, a.`Clicks` as2, a.`TypeGuid` as3, a.`Title` as4, a.`CreateTime` as5, ifnull((SELECT avg(b.`Id`) 
+    FROM `tb_topic` b), 0) as6 
 FROM `tb_topic` a", subquery);
             var subqueryList = select.ToList(a => new
             {

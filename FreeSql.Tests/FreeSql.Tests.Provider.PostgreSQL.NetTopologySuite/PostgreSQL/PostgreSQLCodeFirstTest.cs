@@ -1,4 +1,4 @@
-using FreeSql.DataAnnotations;
+ï»¿using FreeSql.DataAnnotations;
 using NetTopologySuite.Geometries;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -11,7 +11,9 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Numerics;
 using System.Text;
+using System.Text.RegularExpressions;
 using Xunit;
 
 namespace FreeSql.Tests.PostgreSQL.NetTopologySuite
@@ -20,10 +22,64 @@ namespace FreeSql.Tests.PostgreSQL.NetTopologySuite
     {
 
         [Fact]
+        public void UInt256Crud2()
+        {
+            var fsql = g.pgsql;
+            fsql.Aop.AuditDataReader += (_, e) =>
+            {
+                var dbtype = e.DataReader.GetDataTypeName(e.Index);
+                var m = Regex.Match(dbtype, @"numeric\((\d+)\)", RegexOptions.IgnoreCase);
+                if (m.Success && int.Parse(m.Groups[1].Value) > 19)
+                    e.Value = e.DataReader.GetFieldValue<BigInteger>(e.Index); //å¦åˆ™ä¼šæŠ¥æº¢å‡ºé”™è¯¯
+            };
+
+            var num = BigInteger.Parse("57896044618658097711785492504343953926634992332820282019728792003956564819968");
+            fsql.Delete<tuint256tb_01>().Where("1=1").ExecuteAffrows();
+            Assert.Equal(1, fsql.Insert(new tuint256tb_01()).ExecuteAffrows());
+            var find = fsql.Select<tuint256tb_01>().ToList();
+            Assert.Single(find);
+            Assert.Equal("0", find[0].Number.ToString());
+            var item = new tuint256tb_01 { Number = num };
+            Assert.Equal(1, fsql.Insert(item).ExecuteAffrows());
+            find = fsql.Select<tuint256tb_01>().Where(a => a.Id == item.Id).ToList();
+            Assert.Single(find);
+            Assert.Equal(item.Number, find[0].Number);
+            num = num - 1;
+            item.Number = num;
+            Assert.Equal(1, fsql.Update<tuint256tb_01>().SetSource(item).ExecuteAffrows());
+            find = fsql.Select<tuint256tb_01>().Where(a => a.Id == item.Id).ToList();
+            Assert.Single(find);
+            Assert.Equal("57896044618658097711785492504343953926634992332820282019728792003956564819967", find[0].Number.ToString());
+
+            num = BigInteger.Parse("57896044618658097711785492504343953926634992332820282019728792003956564819968");
+            fsql.Delete<tuint256tb_01>().Where("1=1").ExecuteAffrows();
+            Assert.Equal(1, fsql.Insert(new tuint256tb_01()).NoneParameter().ExecuteAffrows());
+            find = fsql.Select<tuint256tb_01>().ToList();
+            Assert.Single(find);
+            Assert.Equal("0", find[0].Number.ToString());
+            item = new tuint256tb_01 { Number = num };
+            Assert.Equal(1, fsql.Insert(item).NoneParameter().ExecuteAffrows());
+            find = fsql.Select<tuint256tb_01>().Where(a => a.Id == item.Id).ToList();
+            Assert.Single(find);
+            Assert.Equal(item.Number, find[0].Number);
+            num = num - 1;
+            item.Number = num;
+            Assert.Equal(1, fsql.Update<tuint256tb_01>().NoneParameter().SetSource(item).ExecuteAffrows());
+            find = fsql.Select<tuint256tb_01>().Where(a => a.Id == item.Id).ToList();
+            Assert.Single(find);
+            Assert.Equal("57896044618658097711785492504343953926634992332820282019728792003956564819967", find[0].Number.ToString());
+        }
+        class tuint256tb_01
+        {
+            public Guid Id { get; set; }
+            public BigInteger Number { get; set; }
+        }
+
+        [Fact]
         public void GetComparisonDDLStatements()
         {
             var sql = g.pgsql.CodeFirst.GetComparisonDDLStatements<TableAllType>();
-            Assert.True(string.IsNullOrEmpty(sql)); //²âÊÔÔËĞĞÁ½´Îºó
+            Assert.True(string.IsNullOrEmpty(sql)); //æµ‹è¯•è¿è¡Œä¸¤æ¬¡å
             g.pgsql.Select<TableAllType>();
         }
 
@@ -43,8 +99,8 @@ namespace FreeSql.Tests.PostgreSQL.NetTopologySuite
 
             var item2 = new TableAllType
             {
-                testFieldBitArray = new BitArray(Encoding.UTF8.GetBytes("ÎÒÊÇ")),
-                testFieldBitArrayArray = new[] { new BitArray(Encoding.UTF8.GetBytes("ÖĞ¹ú")), new BitArray(Encoding.UTF8.GetBytes("¹«Ãñ")) },
+                testFieldBitArray = new BitArray(Encoding.UTF8.GetBytes("æˆ‘æ˜¯")),
+                testFieldBitArrayArray = new[] { new BitArray(Encoding.UTF8.GetBytes("ä¸­å›½")), new BitArray(Encoding.UTF8.GetBytes("å…¬æ°‘")) },
                 testFieldBool = true,
                 testFieldBoolArray = new[] { true, true, false, false },
                 testFieldBoolArrayNullable = new bool?[] { true, true, null, false, false },
@@ -53,8 +109,8 @@ namespace FreeSql.Tests.PostgreSQL.NetTopologySuite
                 testFieldByteArray = new byte[] { 0, 1, 2, 3, 4, 5, 6 },
                 testFieldByteArrayNullable = new byte?[] { 0, 1, 2, 3, null, 4, 5, 6 },
                 testFieldByteNullable = byte.MinValue,
-                testFieldBytes = Encoding.UTF8.GetBytes("ÎÒÊÇÖĞ¹úÈË"),
-                testFieldBytesArray = new[] { Encoding.UTF8.GetBytes("ÎÒÊÇÖĞ¹úÈË"), Encoding.UTF8.GetBytes("ÎÒÊÇÖĞ¹úÈË") },
+                testFieldBytes = Encoding.UTF8.GetBytes("æˆ‘æ˜¯ä¸­å›½äºº"),
+                testFieldBytesArray = new[] { Encoding.UTF8.GetBytes("æˆ‘æ˜¯ä¸­å›½äºº"), Encoding.UTF8.GetBytes("æˆ‘æ˜¯ä¸­å›½äºº") },
                 testFieldCidr = (IPAddress.Parse("10.0.0.0"), 8),
                 testFieldCidrArray = new[] { (IPAddress.Parse("10.0.0.0"), 8), (IPAddress.Parse("192.168.0.0"), 16) },
                 testFieldCidrArrayNullable = new (IPAddress, int)?[] { (IPAddress.Parse("10.0.0.0"), 8), null, (IPAddress.Parse("192.168.0.0"), 16) },
@@ -229,9 +285,9 @@ namespace FreeSql.Tests.PostgreSQL.NetTopologySuite
                 testFieldShortArray = new short[] { 1, 2, 3, 4, 5 },
                 testFieldShortArrayNullable = new short?[] { 1, 2, 3, null, 4, 5 },
                 testFieldShortNullable = short.MinValue,
-                testFieldString = "ÎÒÊÇÖĞ¹úÈËstring'\\?!@#$%^&*()_+{}}{~?><<>",
+                testFieldString = "æˆ‘æ˜¯ä¸­å›½äººstring'\\?!@#$%^&*()_+{}}{~?><<>",
                 testFieldChar = 'X',
-                testFieldStringArray = new[] { "ÎÒÊÇÖĞ¹úÈËString1", "ÎÒÊÇÖĞ¹úÈËString2", null, "ÎÒÊÇÖĞ¹úÈËString3" },
+                testFieldStringArray = new[] { "æˆ‘æ˜¯ä¸­å›½äººString1", "æˆ‘æ˜¯ä¸­å›½äººString2", null, "æˆ‘æ˜¯ä¸­å›½äººString3" },
                 testFieldTimeSpan = TimeSpan.FromDays(1),
                 testFieldTimeSpanArray = new[] { TimeSpan.FromDays(1), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(60) },
                 testFieldTimeSpanArrayNullable = new TimeSpan?[] { TimeSpan.FromDays(1), TimeSpan.FromSeconds(10), null, TimeSpan.FromSeconds(60) },

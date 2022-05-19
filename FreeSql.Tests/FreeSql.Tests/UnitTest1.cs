@@ -1,22 +1,16 @@
 ﻿using FreeSql.DataAnnotations;
-using FreeSql;
+using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using Xunit;
-using System.Linq;
-using Newtonsoft.Json.Linq;
-using NpgsqlTypes;
-using Npgsql.LegacyPostgis;
-using System.Linq.Expressions;
-using System.Threading.Tasks;
 using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Threading;
+using System.Threading.Tasks;
+using Xunit;
 using Zeus;
 using Zeus.Domain.Enum;
-using System.ComponentModel.DataAnnotations;
-using System.Reflection;
-using System.Threading;
-using Newtonsoft.Json;
 
 namespace FreeSql.Tests
 {

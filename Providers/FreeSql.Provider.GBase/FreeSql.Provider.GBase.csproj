@@ -28,7 +28,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="System.Data.Odbc" Version="5.0.0" />
+		<PackageReference Include="System.Data.Odbc" Version="6.0.0" />
 	</ItemGroup>
 	
 	<ItemGroup>

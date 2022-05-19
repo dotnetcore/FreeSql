@@ -339,7 +339,8 @@ namespace FreeSql
                         }
                         break;
                     case Internal.Model.TableRefType.OneToMany:
-                        var addlist = isAdd ? new List<object>() : null;
+                        var addList = new List<object>();
+                        var addOrUpdateList = new List<object>();
                         foreach (var propValItem in propValEach)
                         {
                             for (var colidx = 0; colidx < tref.Columns.Count; colidx++)
@@ -347,10 +348,20 @@ namespace FreeSql
                                 var val = FreeSql.Internal.Utils.GetDataReaderValue(tref.RefColumns[colidx].CsType, _db.OrmOriginal.GetEntityValueWithPropertyName(_table.Type, item, tref.Columns[colidx].CsName));
                                 _db.OrmOriginal.SetEntityValueWithPropertyName(tref.RefEntityType, propValItem, tref.RefColumns[colidx].CsName, val);
                             }
-                            if (isAdd) addlist.Add(propValItem);
-                            else refSet.AddOrUpdate(propValItem);
+                            if (isAdd) addList.Add(propValItem);
+                            else
+                            {
+                                var flagExists = refSet.ExistsInStates(propValItem);
+                                if (flagExists == null) addList.Add(propValItem); //自增/Guid
+                                else addOrUpdateList.Add(propValItem); //统一状态管理
+                            }
                         }
-                        if (isAdd) refSet.AddRange(addlist);
+                        if (addList.Any()) refSet.AddRange(addList);
+                        if (addOrUpdateList.Any())
+                        {
+                            var existsList = refSet.Select.WhereDynamic(addOrUpdateList).ToList();
+                            foreach (var aouItem in addOrUpdateList) refSet.AddOrUpdate(aouItem);
+                        }
                         break;
                 }
             };

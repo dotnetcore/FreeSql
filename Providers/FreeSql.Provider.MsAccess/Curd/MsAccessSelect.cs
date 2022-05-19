@@ -78,9 +78,11 @@ namespace FreeSql.MsAccess.Curd
                 }
                 foreach (var tb in tbsjoin)
                 {
-                    if (tb.Type == SelectTableInfoType.Parent) continue;
                     switch (tb.Type)
                     {
+                        case SelectTableInfoType.Parent:
+                        case SelectTableInfoType.RawJoin:
+                            continue;
                         case SelectTableInfoType.LeftJoin:
                             if (ioinCounter++ > 0) sb.Insert(fromIndex, "(").Append(") ");
                             sb.Append(" \r\nLEFT JOIN ");

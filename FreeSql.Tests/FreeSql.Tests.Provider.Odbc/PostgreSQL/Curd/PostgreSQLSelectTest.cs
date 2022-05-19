@@ -1,4 +1,4 @@
-using FreeSql.DataAnnotations;
+﻿using FreeSql.DataAnnotations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -926,8 +926,8 @@ limit 10", t1);
                 all = a,
                 count = (long)select.As("b").Sum(b => b.Id)
             });
-            Assert.Equal(@"SELECT a.""id"" as1, a.""clicks"" as2, a.""typeguid"" as3, a.""title"" as4, a.""createtime"" as5, (SELECT sum(b.""id"") 
-    FROM ""tb_topic"" b) as6 
+            Assert.Equal(@"SELECT a.""id"" as1, a.""clicks"" as2, a.""typeguid"" as3, a.""title"" as4, a.""createtime"" as5, coalesce((SELECT sum(b.""id"") 
+    FROM ""tb_topic"" b), 0) as6 
 FROM ""tb_topic"" a", subquery);
             var subqueryList = select.ToList(a => new
             {
@@ -943,8 +943,8 @@ FROM ""tb_topic"" a", subquery);
                 all = a,
                 count = select.As("b").Min(b => b.Id)
             });
-            Assert.Equal(@"SELECT a.""id"" as1, a.""clicks"" as2, a.""typeguid"" as3, a.""title"" as4, a.""createtime"" as5, (SELECT min(b.""id"") 
-    FROM ""tb_topic"" b) as6 
+            Assert.Equal(@"SELECT a.""id"" as1, a.""clicks"" as2, a.""typeguid"" as3, a.""title"" as4, a.""createtime"" as5, coalesce((SELECT min(b.""id"") 
+    FROM ""tb_topic"" b), 0) as6 
 FROM ""tb_topic"" a", subquery);
             var subqueryList = select.ToList(a => new
             {
@@ -960,8 +960,8 @@ FROM ""tb_topic"" a", subquery);
                 all = a,
                 count = select.As("b").Max(b => b.Id)
             });
-            Assert.Equal(@"SELECT a.""id"" as1, a.""clicks"" as2, a.""typeguid"" as3, a.""title"" as4, a.""createtime"" as5, (SELECT max(b.""id"") 
-    FROM ""tb_topic"" b) as6 
+            Assert.Equal(@"SELECT a.""id"" as1, a.""clicks"" as2, a.""typeguid"" as3, a.""title"" as4, a.""createtime"" as5, coalesce((SELECT max(b.""id"") 
+    FROM ""tb_topic"" b), 0) as6 
 FROM ""tb_topic"" a", subquery);
             var subqueryList = select.ToList(a => new
             {
@@ -977,8 +977,8 @@ FROM ""tb_topic"" a", subquery);
                 all = a,
                 count = select.As("b").Avg(b => b.Id)
             });
-            Assert.Equal(@"SELECT a.""id"" as1, a.""clicks"" as2, a.""typeguid"" as3, a.""title"" as4, a.""createtime"" as5, (SELECT avg(b.""id"") 
-    FROM ""tb_topic"" b) as6 
+            Assert.Equal(@"SELECT a.""id"" as1, a.""clicks"" as2, a.""typeguid"" as3, a.""title"" as4, a.""createtime"" as5, coalesce((SELECT avg(b.""id"") 
+    FROM ""tb_topic"" b), 0) as6 
 FROM ""tb_topic"" a", subquery);
             var subqueryList = select.ToList(a => new
             {

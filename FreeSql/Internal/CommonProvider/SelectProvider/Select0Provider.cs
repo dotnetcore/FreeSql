@@ -302,6 +302,11 @@ namespace FreeSql.Internal.CommonProvider
         {
             if (string.IsNullOrEmpty(sql)) return this as TSelect;
             _join.Append(" \r\n").Append(sql);
+
+            //fsql.Select<User1, UserGroup>().RawJoin("FULL JOIN UserGroup b ON b.id = a.GroupId").ToSql((a, b) => new { user = a, group = b });
+            foreach (var tb in _tables)
+                if (sql.Contains($" {tb.Table.DbName} ") || sql.Contains($" {_commonUtils.QuoteSqlName(tb.Table.DbName)} "))
+                    tb.Type = SelectTableInfoType.RawJoin;
             return this as TSelect;
         }
 

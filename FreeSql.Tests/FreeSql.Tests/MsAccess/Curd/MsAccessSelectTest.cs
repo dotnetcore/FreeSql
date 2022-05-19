@@ -945,8 +945,9 @@ WHERE (((a.[Name]) in (SELECT s.[Title] as as1
                 all = a,
                 count = (long)select.As("b").Sum(b => b.Id)
             });
-            Assert.Equal(@"SELECT a.[Id] as as1, a.[Clicks] as as2, a.[TypeGuid] as as3, a.[Title] as as4, a.[CreateTime] as as5, (SELECT sum(b.[Id]) 
-    FROM [tb_topic22] b) as as6 
+            Assert.Equal(@"SELECT a.[Id] as as1, a.[Clicks] as as2, a.[TypeGuid] as as3, a.[Title] as as4, a.[CreateTime] as as5, iif(isnull((SELECT sum(b.[Id]) 
+    FROM [tb_topic22] b)), 0, (SELECT sum(b.[Id]) 
+    FROM [tb_topic22] b)) as as6 
 FROM [tb_topic22] a", subquery);
             var subqueryList = select.ToList(a => new
             {
@@ -962,8 +963,9 @@ FROM [tb_topic22] a", subquery);
                 all = a,
                 count = select.As("b").Min(b => b.Id)
             });
-            Assert.Equal(@"SELECT a.[Id] as as1, a.[Clicks] as as2, a.[TypeGuid] as as3, a.[Title] as as4, a.[CreateTime] as as5, (SELECT min(b.[Id]) 
-    FROM [tb_topic22] b) as as6 
+            Assert.Equal(@"SELECT a.[Id] as as1, a.[Clicks] as as2, a.[TypeGuid] as as3, a.[Title] as as4, a.[CreateTime] as as5, iif(isnull((SELECT min(b.[Id]) 
+    FROM [tb_topic22] b)), 0, (SELECT min(b.[Id]) 
+    FROM [tb_topic22] b)) as as6 
 FROM [tb_topic22] a", subquery);
             var subqueryList = select.ToList(a => new
             {
@@ -979,8 +981,9 @@ FROM [tb_topic22] a", subquery);
                 all = a,
                 count = select.As("b").Max(b => b.Id)
             });
-            Assert.Equal(@"SELECT a.[Id] as as1, a.[Clicks] as as2, a.[TypeGuid] as as3, a.[Title] as as4, a.[CreateTime] as as5, (SELECT max(b.[Id]) 
-    FROM [tb_topic22] b) as as6 
+            Assert.Equal(@"SELECT a.[Id] as as1, a.[Clicks] as as2, a.[TypeGuid] as as3, a.[Title] as as4, a.[CreateTime] as as5, iif(isnull((SELECT max(b.[Id]) 
+    FROM [tb_topic22] b)), 0, (SELECT max(b.[Id]) 
+    FROM [tb_topic22] b)) as as6 
 FROM [tb_topic22] a", subquery);
             var subqueryList = select.ToList(a => new
             {
@@ -996,8 +999,9 @@ FROM [tb_topic22] a", subquery);
                 all = a,
                 count = select.As("b").Avg(b => b.Id)
             });
-            Assert.Equal(@"SELECT a.[Id] as as1, a.[Clicks] as as2, a.[TypeGuid] as as3, a.[Title] as as4, a.[CreateTime] as as5, (SELECT avg(b.[Id]) 
-    FROM [tb_topic22] b) as as6 
+            Assert.Equal(@"SELECT a.[Id] as as1, a.[Clicks] as as2, a.[TypeGuid] as as3, a.[Title] as as4, a.[CreateTime] as as5, iif(isnull((SELECT avg(b.[Id]) 
+    FROM [tb_topic22] b)), 0, (SELECT avg(b.[Id]) 
+    FROM [tb_topic22] b)) as as6 
 FROM [tb_topic22] a", subquery);
             var subqueryList = select.ToList(a => new
             {

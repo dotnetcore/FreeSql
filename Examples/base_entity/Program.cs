@@ -14,10 +14,12 @@ using System.Data.SQLite;
 using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Numerics;
 using System.Reflection;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -131,7 +133,7 @@ namespace base_entity
             public string ShippingAddress { get; set; }
         }
 
-        [Table(Name = "tb_TopicMapTypeToListDto")]
+        [Table(Name = "tb_tmttld"), OraclePrimaryKeyName("TMTTLD_PK01")]
         class TopicMapTypeToListDto
         {
             [Column(IsIdentity = true, IsPrimary = true)]
@@ -158,8 +160,11 @@ namespace base_entity
             public string Title { get; set; }
             public DateTime CreateTime { get; set; }
         }
-
-
+        class tuint256tb_01
+        {
+            public Guid Id { get; set; }
+            public BigInteger Number { get; set; }
+        }
         class CommandTimeoutCascade : IDisposable
         {
             public static AsyncLocal<int> _asyncLocalTimeout = new AsyncLocal<int>();
@@ -178,12 +183,15 @@ namespace base_entity
                 //.UseSlaveWeight(10, 1, 1, 5)
 
 
+                //.UseConnectionString(FreeSql.DataType.Firebird, @"database=localhost:D:\fbdata\EXAMPLES.fdb;user=sysdba;password=123456;max pool size=5")
+
+
                 //.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=2")
 
                 //.UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=3;TrustServerCertificate=true")
 
-                .UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=2")
-                .UseNameConvert(FreeSql.Internal.NameConvertType.ToLower)
+                //.UseConnectionString(FreeSql.DataType.PostgreSQL, "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=2")
+                //.UseNameConvert(FreeSql.Internal.NameConvertType.ToLower)
 
                 //.UseConnectionString(FreeSql.DataType.Oracle, "user id=user1;password=123456;data source=//127.0.0.1:1521/XE;Pooling=true;Max Pool Size=2")
                 //.UseNameConvert(FreeSql.Internal.NameConvertType.ToUpper)
@@ -208,18 +216,78 @@ namespace base_entity
             BaseEntity.Initialization(fsql, () => _asyncUow.Value);
             #endregion
 
+            if (fsql.Ado.DataType == DataType.PostgreSQL)
+            {
+                fsql.CodeFirst.IsNoneCommandParameter = false;
+                fsql.Aop.AuditDataReader += (_, e) =>
+                {
+                    var dbtype = e.DataReader.GetDataTypeName(e.Index);
+                    var m = Regex.Match(dbtype, @"numeric\((\d+)\)", RegexOptions.IgnoreCase);
+                    if (m.Success && int.Parse(m.Groups[1].Value) > 19)
+                        e.Value = e.DataReader.GetFieldValue<BigInteger>(e.Index); //否则会报溢出错误
+                };
+
+                var num = BigInteger.Parse("57896044618658097711785492504343953926634992332820282019728792003956564819968");
+                fsql.Delete<tuint256tb_01>().Where("1=1").ExecuteAffrows();
+                if (1 != fsql.Insert(new tuint256tb_01()).ExecuteAffrows()) throw new Exception("not equal");
+                var find = fsql.Select<tuint256tb_01>().ToList();
+                if (find.Count != 1) throw new Exception("not single");
+                if ("0" != find[0].Number.ToString()) throw new Exception("not equal");
+                var item = new tuint256tb_01 { Number = num };
+                if (1 != fsql.Insert(item).ExecuteAffrows()) throw new Exception("not equal");
+                find = fsql.Select<tuint256tb_01>().Where(a => a.Id == item.Id).ToList();
+                if (find.Count != 1) throw new Exception("not single");
+                if (item.Number != find[0].Number) throw new Exception("not equal");
+                num = num - 1;
+                item.Number = num;
+                if (1 != fsql.Update<tuint256tb_01>().SetSource(item).ExecuteAffrows()) throw new Exception("not equal");
+                find = fsql.Select<tuint256tb_01>().Where(a => a.Id == item.Id).ToList();
+                if (find.Count != 1) throw new Exception("not single");
+                if ("57896044618658097711785492504343953926634992332820282019728792003956564819967" != find[0].Number.ToString()) throw new Exception("not equal");
+
+                num = BigInteger.Parse("57896044618658097711785492504343953926634992332820282019728792003956564819968");
+                fsql.Delete<tuint256tb_01>().Where("1=1").ExecuteAffrows();
+                if (1 != fsql.Insert(new tuint256tb_01()).NoneParameter().ExecuteAffrows()) throw new Exception("not equal");
+                find = fsql.Select<tuint256tb_01>().ToList();
+                if (find.Count != 1) throw new Exception("not single");
+                if ("0" != find[0].Number.ToString()) throw new Exception("not equal");
+                item = new tuint256tb_01 { Number = num };
+                if (1 != fsql.Insert(item).NoneParameter().ExecuteAffrows()) throw new Exception("not equal");
+                find = fsql.Select<tuint256tb_01>().Where(a => a.Id == item.Id).ToList();
+                if (find.Count != 1) throw new Exception("not single");
+                if (item.Number != find[0].Number) throw new Exception("not equal");
+                num = num - 1;
+                item.Number = num;
+                if (1 != fsql.Update<tuint256tb_01>().NoneParameter().SetSource(item).ExecuteAffrows()) throw new Exception("not equal");
+                find = fsql.Select<tuint256tb_01>().Where(a => a.Id == item.Id).ToList();
+                if (find.Count != 1) throw new Exception("not single");
+                if ("57896044618658097711785492504343953926634992332820282019728792003956564819967" != find[0].Number.ToString()) throw new Exception("not equal");
+            }
+
+
+
             fsql.Aop.CommandBefore += (_, e) =>
             {
                 if (CommandTimeoutCascade._asyncLocalTimeout.Value > 0)
                     e.Command.CommandTimeout = CommandTimeoutCascade._asyncLocalTimeout.Value;
             };
-
+            
             using (new CommandTimeoutCascade(1000))
             {
                 fsql.Select<Order>().ToList();
                 fsql.Select<Order>().ToList();
                 fsql.Select<Order>().ToList();
             }
+
+
+            var sql1 = fsql.Select<User1, UserGroup>()
+                .RawJoin("FULL JOIN UserGroup b ON b.id = a.GroupId")
+                .Where((a, b) => a.IsDeleted == false)
+                .ToSql((a, b) => new
+                {
+                    user = a, group = b
+                });
+            sql1 = sql1.Replace("INNER JOIN ", "FULL JOIN ");
 
 
 
@@ -384,6 +452,14 @@ namespace base_entity
             var sqlat = sqlatb.ToSql();
             var sqlatr = sqlatb.ExecuteAffrows();
 
+            var sqlatc1 = fsql.Delete<AsTableLog>().Where(a => a.id == Guid.NewGuid() && a.createtime == DateTime.Parse("2022-3-8 15:00:13"));
+            var sqlatca1 = sqlatc1.ToSql();
+            var sqlatcr1 = sqlatc1.ExecuteAffrows();
+
+            var sqlatc2 = fsql.Delete<AsTableLog>().Where(a => a.id == Guid.NewGuid() && a.createtime == DateTime.Parse("2021-3-8 15:00:13"));
+            var sqlatca2 = sqlatc2.ToSql();
+            var sqlatcr2 = sqlatc2.ExecuteAffrows();
+
             var sqlatc = fsql.Delete<AsTableLog>().Where(a => a.id == Guid.NewGuid() && a.createtime.Between(DateTime.Parse("2022-3-1"), DateTime.Parse("2022-5-1")));
             var sqlatca = sqlatc.ToSql();
             var sqlatcr = sqlatc.ExecuteAffrows();
@@ -451,6 +527,10 @@ namespace base_entity
             var sqls5 = fsql.Select<AsTableLog>().Where(a => a.createtime < DateTime.Parse("2022-5-1"));
             var sqls501 = sqls5.ToSql();
             var sqls502 = sqls5.ToList();
+
+            var sqls6 = fsql.Select<AsTableLog>().Where(a => a.createtime < DateTime.Parse("2022-5-1")).Limit(10).OrderBy(a => a.createtime);
+            var sqls601 = sqls6.ToSql();
+            var sqls602 = sqls6.ToList();
 
             fsql.Aop.AuditValue += new EventHandler<FreeSql.Aop.AuditValueEventArgs>((_, e) =>
             {

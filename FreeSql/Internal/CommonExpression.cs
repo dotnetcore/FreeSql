@@ -760,7 +760,9 @@ namespace FreeSql.Internal
                     var conditionalTestOldMapType = tsc.SetMapTypeReturnOld(null);
                     if (condExp.Test.IsParameter())
                     {
-                        var conditionalTestSql = ExpressionLambdaToSql(condExp.Test, tsc);
+                        var condExp2 = condExp.Test;
+                        if (condExp2.NodeType == ExpressionType.MemberAccess) condExp2 = Expression.Equal(condExp2, Expression.Constant(true));
+                        var conditionalTestSql = ExpressionLambdaToSql(condExp2, tsc);
                         tsc.SetMapTypeReturnOld(conditionalTestOldMapType);
                         var conditionalSql = _common.IIF(conditionalTestSql, ExpressionLambdaToSql(condExp.IfTrue, tsc), ExpressionLambdaToSql(condExp.IfFalse, tsc));
                         tsc.SetMapTypeReturnOld(null);
@@ -1265,7 +1267,7 @@ namespace FreeSql.Internal
 
                                                                 var sql4 = fsqlType.GetMethod("ToSql", new Type[] { typeof(string) })?.Invoke(fsql, new object[] { $"{exp3.Method.Name.ToLower()}({fieldSql})" })?.ToString();
                                                                 asSelectBefores.Clear();
-                                                                return $"({sql4.Replace(" \r\n", " \r\n    ")})";
+                                                                return _common.IsNull($"({sql4.Replace(" \r\n", " \r\n    ")})", 0);
                                                         }
 
                                                         var sql3 = manySubSelectAggMethod.Invoke(fsql, new object[] { exp3Args0, FieldAliasOptions.AsProperty }) as string;
@@ -1320,7 +1322,7 @@ namespace FreeSql.Internal
                                                 exp3Args0 = new ReplaceHzyTupleToMultiParam().Modify(exp3Args0, fsqltables);
                                             var sqlSum = fsqlType.GetMethod("ToSql", new Type[] { typeof(string) })?.Invoke(fsql, new object[] { $"{exp3.Method.Name.ToLower()}({ExpressionLambdaToSql(exp3Args0, tscClone1)})" })?.ToString();
                                             if (string.IsNullOrEmpty(sqlSum) == false)
-                                                return $"({sqlSum.Replace(" \r\n", " \r\n    ")})";
+                                                return _common.IsNull($"({sqlSum.Replace(" \r\n", " \r\n    ")})", 0);
                                             break;
                                         case "ToList":
                                         case "ToOne":
@@ -1965,7 +1967,33 @@ namespace FreeSql.Internal
                 return;
             }
             exp3tmp = exp3Stack.Pop();
-            if (exp3tmp.NodeType != ExpressionType.Parameter) return;
+            if (exp3tmp.NodeType != ExpressionType.Parameter)
+            {
+                //if (e.Expression.NodeType == ExpressionType.Call)
+                //{
+                //    var rootExpCall = e.Expression as MethodCallExpression;
+                //    if (rootExpCall.Object == null && rootExpCall.Method.Name == "Any" &&
+                //        rootExpCall.Arguments.Count == 2 &&
+                //        rootExpCall.Arguments[0].Type.GetGenericTypeDefinition() == typeof(IEnumerable<>) &&
+                //        rootExpCall.Arguments[1].Type == typeof(Func<,>).MakeGenericType(rootExpCall.Arguments[0].Type.GetGenericArguments()[0], typeof(bool)))
+                //    {
+                //        //e.Tables[0].Parameter
+                //        var anyExp = rootExpCall.Arguments[1];
+                //        while(anyExp.NodeType == ExpressionType.AndAlso)
+                //        {
+
+                //        }
+                //        if (anyExp.NodeType != ExpressionType.AndAlso && anyExp.NodeType != ExpressionType.Equal) return;
+
+
+                //        var array = Expression.Lambda(rootExpCall.Arguments[0]).Compile().DynamicInvoke() as IEnumerable;
+                //        foreach (var arritem in array)
+                //        {
+                //        }
+                //    }
+                //}
+                return;
+            }
             if (exp3tmp.Type.FullName.StartsWith("FreeSql.ISelectGroupingAggregate")) return;
             var commonExp = sender as FreeSql.Internal.CommonExpression;
             if (commonExp == null) return;
@@ -2109,7 +2137,7 @@ namespace FreeSql.Internal
                                 commonExp.ReadAnonymousField(select._tables, field, map, ref index, callExp.Arguments[1], null, null, null, null, false);
                                 var fieldSql = field.Length > 0 ? field.Remove(0, 2).ToString() : null;
 
-                                e.Result = $"({select.ToSql($"{aggregateMethodName}({fieldSql})").Replace(" \r\n", " \r\n    ")})";
+                                e.Result = commonExp._common.IsNull($"({select.ToSql($"{aggregateMethodName}({fieldSql})").Replace(" \r\n", " \r\n    ")})", 0);
                                 return;
                             }
                             throw throwCallExp($"不支持 {callExp.Arguments.Count}个参数的方法");

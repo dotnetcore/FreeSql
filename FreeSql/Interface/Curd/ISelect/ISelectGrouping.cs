@@ -19,11 +19,18 @@ namespace FreeSql
 #endif
 
         /// <summary>
-        /// 按聚合条件过滤，Where(a => a.Count() > 10)
+        /// 按聚合条件过滤，Having(a => a.Count() > 10)
         /// </summary>
         /// <param name="exp">lambda表达式</param>
         /// <returns></returns>
         ISelectGrouping<TKey, TValue> Having(Expression<Func<ISelectGroupingAggregate<TKey, TValue>, bool>> exp);
+        /// <summary>
+        /// 按聚合条件过滤，HavingIf(true, a => a.Count() > 10)
+        /// </summary>
+        /// <param name="condition">true 时生效</param>
+        /// <param name="exp">lambda表达式</param>
+        /// <returns></returns>
+        ISelectGrouping<TKey, TValue> HavingIf(bool condition, Expression<Func<ISelectGroupingAggregate<TKey, TValue>, bool>> exp);
 
         /// <summary>
         /// 按列排序，OrderBy(a => a.Time)

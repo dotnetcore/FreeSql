@@ -94,7 +94,7 @@ namespace FreeSql
             _dbset.RemoveRange(entitys);
             return _db.SaveChanges();
         }
-        public List<object> RemoveCascadeByDatabase(Expression<Func<TEntity, bool>> predicate)
+        public List<object> DeleteCascadeByDatabase(Expression<Func<TEntity, bool>> predicate)
         {
             var list = _dbset.RemoveCascadeByDatabase(predicate);
             var affrows = _db.SaveChanges();

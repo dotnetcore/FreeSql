@@ -22,40 +22,40 @@ namespace FreeSql.Dameng.Curd
                     tb.Cascade = _commonExpression.GetWhereCascadeSql(tb, _whereGlobalFilter, true);
 
             var sb = new StringBuilder();
+            var sbunion = new StringBuilder();
+            var sbnav = new StringBuilder();
             var tbUnionsGt0 = tbUnions.Count > 1;
             for (var tbUnionsIdx = 0; tbUnionsIdx < tbUnions.Count; tbUnionsIdx++)
             {
                 if (tbUnionsIdx > 0) sb.Append("\r\n \r\nUNION ALL\r\n \r\n");
-                if (tbUnionsGt0) sb.Append(_select).Append(" * from (");
                 var tbUnion = tbUnions[tbUnionsIdx];
 
-                var sbnav = new StringBuilder();
-                sb.Append(_select);
-                if (_distinct) sb.Append("DISTINCT ");
-                sb.Append(field);
-                if (string.IsNullOrEmpty(_orderby) && _skip > 0) sb.Append(", ROWNUM AS \"__rownum__\"");
-                sb.Append(" \r\nFROM ");
+                sbunion.Append(_select);
+                if (_distinct) sbunion.Append("DISTINCT ");
+                sbunion.Append(field);
+                if (string.IsNullOrEmpty(_orderby) && _skip > 0) sbunion.Append(", ROWNUM AS \"__rownum__\"");
+                sbunion.Append(" \r\nFROM ");
                 var tbsjoin = _tables.Where(a => a.Type != SelectTableInfoType.From).ToArray();
                 var tbsfrom = _tables.Where(a => a.Type == SelectTableInfoType.From).ToArray();
                 for (var a = 0; a < tbsfrom.Length; a++)
                 {
-                    sb.Append(_commonUtils.QuoteSqlName(tbUnion[tbsfrom[a].Table.Type])).Append(" ").Append(_aliasRule?.Invoke(tbsfrom[a].Table.Type, tbsfrom[a].Alias) ?? tbsfrom[a].Alias);
+                    sbunion.Append(_commonUtils.QuoteSqlName(tbUnion[tbsfrom[a].Table.Type])).Append(" ").Append(_aliasRule?.Invoke(tbsfrom[a].Table.Type, tbsfrom[a].Alias) ?? tbsfrom[a].Alias);
                     if (tbsjoin.Length > 0)
                     {
                         //如果存在 join 查询，则处理 from t1, t2 改为 from t1 inner join t2 on 1 = 1
                         for (var b = 1; b < tbsfrom.Length; b++)
                         {
-                            sb.Append(" \r\nLEFT JOIN ").Append(_commonUtils.QuoteSqlName(tbUnion[tbsfrom[b].Table.Type])).Append(" ").Append(_aliasRule?.Invoke(tbsfrom[b].Table.Type, tbsfrom[b].Alias) ?? tbsfrom[b].Alias);
+                            sbunion.Append(" \r\nLEFT JOIN ").Append(_commonUtils.QuoteSqlName(tbUnion[tbsfrom[b].Table.Type])).Append(" ").Append(_aliasRule?.Invoke(tbsfrom[b].Table.Type, tbsfrom[b].Alias) ?? tbsfrom[b].Alias);
 
-                            if (string.IsNullOrEmpty(tbsfrom[b].NavigateCondition) && string.IsNullOrEmpty(tbsfrom[b].On) && string.IsNullOrEmpty(tbsfrom[b].Cascade)) sb.Append(" ON 1 = 1");
+                            if (string.IsNullOrEmpty(tbsfrom[b].NavigateCondition) && string.IsNullOrEmpty(tbsfrom[b].On) && string.IsNullOrEmpty(tbsfrom[b].Cascade)) sbunion.Append(" ON 1 = 1");
                             else
                             {
                                 var onSql = tbsfrom[b].NavigateCondition ?? tbsfrom[b].On;
-                                sb.Append(" ON ").Append(onSql);
+                                sbunion.Append(" ON ").Append(onSql);
                                 if (string.IsNullOrEmpty(tbsfrom[b].Cascade) == false)
                                 {
-                                    if (string.IsNullOrEmpty(onSql)) sb.Append(tbsfrom[b].Cascade);
-                                    else sb.Append(" AND ").Append(tbsfrom[b].Cascade);
+                                    if (string.IsNullOrEmpty(onSql)) sbunion.Append(tbsfrom[b].Cascade);
+                                    else sbunion.Append(" AND ").Append(tbsfrom[b].Cascade);
                                 }
                             }
                         }
@@ -67,28 +67,30 @@ namespace FreeSql.Dameng.Curd
                         if (!string.IsNullOrEmpty(tbsfrom[a].On)) sbnav.Append(" AND (").Append(tbsfrom[a].On).Append(")");
                         if (a > 0 && !string.IsNullOrEmpty(tbsfrom[a].Cascade)) sbnav.Append(" AND ").Append(tbsfrom[a].Cascade);
                     }
-                    if (a < tbsfrom.Length - 1) sb.Append(", ");
+                    if (a < tbsfrom.Length - 1) sbunion.Append(", ");
                 }
                 foreach (var tb in tbsjoin)
                 {
-                    if (tb.Type == SelectTableInfoType.Parent) continue;
                     switch (tb.Type)
                     {
+                        case SelectTableInfoType.Parent:
+                        case SelectTableInfoType.RawJoin:
+                            continue;
                         case SelectTableInfoType.LeftJoin:
-                            sb.Append(" \r\nLEFT JOIN ");
+                            sbunion.Append(" \r\nLEFT JOIN ");
                             break;
                         case SelectTableInfoType.InnerJoin:
-                            sb.Append(" \r\nINNER JOIN ");
+                            sbunion.Append(" \r\nINNER JOIN ");
                             break;
                         case SelectTableInfoType.RightJoin:
-                            sb.Append(" \r\nRIGHT JOIN ");
+                            sbunion.Append(" \r\nRIGHT JOIN ");
                             break;
                     }
-                    sb.Append(_commonUtils.QuoteSqlName(tbUnion[tb.Table.Type])).Append(" ").Append(_aliasRule?.Invoke(tb.Table.Type, tb.Alias) ?? tb.Alias).Append(" ON ").Append(tb.On ?? tb.NavigateCondition);
-                    if (!string.IsNullOrEmpty(tb.Cascade)) sb.Append(" AND ").Append(tb.Cascade);
+                    sbunion.Append(_commonUtils.QuoteSqlName(tbUnion[tb.Table.Type])).Append(" ").Append(_aliasRule?.Invoke(tb.Table.Type, tb.Alias) ?? tb.Alias).Append(" ON ").Append(tb.On ?? tb.NavigateCondition);
+                    if (!string.IsNullOrEmpty(tb.Cascade)) sbunion.Append(" AND ").Append(tb.Cascade);
                     if (!string.IsNullOrEmpty(tb.On) && !string.IsNullOrEmpty(tb.NavigateCondition)) sbnav.Append(" AND (").Append(tb.NavigateCondition).Append(")");
                 }
-                if (_join.Length > 0) sb.Append(_join);
+                if (_join.Length > 0) sbunion.Append(_join);
 
                 sbnav.Append(_where);
                 if (!string.IsNullOrEmpty(_tables[0].Cascade))
@@ -97,31 +99,39 @@ namespace FreeSql.Dameng.Curd
                 if (string.IsNullOrEmpty(_orderby) && (_skip > 0 || _limit > 0))
                     sbnav.Append(" AND ROWNUM < ").Append(_skip + _limit + 1);
                 if (sbnav.Length > 0)
-                    sb.Append(" \r\nWHERE ").Append(sbnav.Remove(0, 5));
+                    sbunion.Append(" \r\nWHERE ").Append(sbnav.Remove(0, 5));
                 if (string.IsNullOrEmpty(_groupby) == false)
                 {
-                    sb.Append(_groupby);
+                    sbunion.Append(_groupby);
                     if (string.IsNullOrEmpty(_having) == false)
-                        sb.Append(" \r\nHAVING ").Append(_having.Substring(5));
+                        sbunion.Append(" \r\nHAVING ").Append(_having.Substring(5));
                 }
-                sb.Append(_orderby);
+                sbunion.Append(_orderby);
 
                 if (string.IsNullOrEmpty(_orderby))
                 {
                     if (_skip > 0)
-                        sb.Insert(0, $"{_select} t.* FROM (").Append(") t WHERE t.\"__rownum__\" > ").Append(_skip);
+                        sbunion.Insert(0, $"{_select}t.* FROM (").Append(") t WHERE t.\"__rownum__\" > ").Append(_skip);
                 }
                 else
                 {
-                    if (_skip > 0 && _limit > 0) sb.Insert(0, $"{_select} t.* FROM (SELECT rt.*, ROWNUM AS \"__rownum__\" FROM (").Append(") rt WHERE ROWNUM < ").Append(_skip + _limit + 1).Append(") t WHERE t.\"__rownum__\" > ").Append(_skip);
-                    else if (_skip > 0) sb.Insert(0, $"{_select} t.* FROM (").Append(") t WHERE ROWNUM > ").Append(_skip);
-                    else if (_limit > 0) sb.Insert(0, $"{_select} t.* FROM (").Append(") t WHERE ROWNUM < ").Append(_limit + 1);
+                    if (_skip > 0 && _limit > 0) sbunion.Insert(0, $"{_select}t.* FROM (SELECT rt.*, ROWNUM AS \"__rownum__\" FROM (").Append(") rt WHERE ROWNUM < ").Append(_skip + _limit + 1).Append(") t WHERE t.\"__rownum__\" > ").Append(_skip);
+                    else if (_skip > 0) sbunion.Insert(0, $"{_select}t.* FROM (").Append(") t WHERE ROWNUM > ").Append(_skip);
+                    else if (_limit > 0) sbunion.Insert(0, $"{_select}t.* FROM (").Append(") t WHERE ROWNUM < ").Append(_limit + 1);
                 }
 
+                if (tbUnionsGt0) sbunion.Insert(0, $"{_select}* from (").Append(") ftb");
+                sb.Append(sbunion);
                 sbnav.Clear();
-                if (tbUnionsGt0) sb.Append(") ftb");
+                sbunion.Clear();
             }
-            return sb.Append(_tosqlAppendContent).ToString();
+            var sql = sb.Append(_tosqlAppendContent).ToString();
+
+            var aliasGreater30 = 0;
+            foreach (var tb in _tables)
+                if (tb.Alias.Length > 30) sql = sql.Replace(tb.Alias, $"than30_{aliasGreater30++}");
+
+            return sql;
         }
 
         public DamengSelect(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression, object dywhere) : base(orm, commonUtils, commonExpression, dywhere) { }

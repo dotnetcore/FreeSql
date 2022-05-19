@@ -206,36 +206,24 @@ namespace FreeSql.DataAnnotations
         {
             return _dicRegSqlWhereDateTimes.GetOrAdd($"{columnName},{quoteParameterName}", cn =>
             {
-                cn = columnName.Replace("[", "\\[").Replace("]", "\\]").Replace(".", "\\.");
+                cn = columnName.Replace("[", "\\[").Replace("]", "\\]").Replace(".", "\\.").Replace("?", "\\?");
+                var qpn = quoteParameterName.Replace("[", "\\[").Replace("]", "\\]").Replace(".", "\\.").Replace("?", "\\?");
                 return new[]
                 {
-                    //new Regex($@"({cn}\s*(<|<=|>|>=|=|between)\s*)(datetime|cdate|to_date)\(('[^']+')\)", RegexOptions.IgnoreCase),
-                    //new Regex($@"({cn}\s*(<|<=|>|>=|=|between)(\s*))to_timestamp\(('[^']+')\s*,\s*'YYYY-MM-DD[^']+'\)", RegexOptions.IgnoreCase),
-                    //new Regex($@"({cn}\s*(<|<=|>|>=|=|between)(\s*))cast\(('[^']+') as (datetime|timestamp)\)", RegexOptions.IgnoreCase),
-                    //new Regex($@"({cn}\s*(<|<=|>|>=|=|between)(\s*))('[^']+')::(datetime|timestamp)", RegexOptions.IgnoreCase),
-                    //new Regex($@"({cn}\s*(between)\s+'[^']+'\s+and\s+)(datetime|cdate|to_date)\(('[^']+')\)", RegexOptions.IgnoreCase),
-                    //new Regex($@"({cn}\s*(between)\s+'[^']+'\s+and(\s+))to_timestamp\(('[^']+')\s*,\s*'YYYY-MM-DD[^']+'\)", RegexOptions.IgnoreCase),
-                    //new Regex($@"({cn}\s*(between)\s+'[^']+'\s+and(\s+))cast\(('[^']+') as (datetime|timestamp)\)", RegexOptions.IgnoreCase),
-                    //new Regex($@"({cn}\s*(between)\s+'[^']+'\s+and(\s+))('[^']+')::(datetime|timestamp)", RegexOptions.IgnoreCase),
-
-                    new Regex($@"({cn}\s*(<|<=|>|>=|=)\s*)(datetime|cdate|to_date)\(({quoteParameterName}[\w_]+)\)", RegexOptions.IgnoreCase),
-                    new Regex($@"({cn}\s*(<|<=|>|>=|=)(\s*))to_timestamp\(({quoteParameterName}[\w_]+)\s*,\s*'YYYY-MM-DD[^']+'\)", RegexOptions.IgnoreCase),
-                    new Regex($@"({cn}\s*(<|<=|>|>=|=)(\s*))cast\(({quoteParameterName}[^w_]+) as (datetime|timestamp)\)", RegexOptions.IgnoreCase),
-                    new Regex($@"({cn}\s*(<|<=|>|>=|=)(\s*))({quoteParameterName}[^w_]+)::(datetime|timestamp)", RegexOptions.IgnoreCase),
-                    new Regex($@"({cn}\s*(between)\s+{quoteParameterName}[\w_]+\s+and\s+)(datetime|cdate|to_date)\(({quoteParameterName}[\w_]+)\)", RegexOptions.IgnoreCase),
-                    new Regex($@"({cn}\s*(between)\s+{quoteParameterName}[\w_]+\s+and(\s+))to_timestamp\(({quoteParameterName}[\w_]+)\s*,\s*'YYYY-MM-DD[^']+'\)", RegexOptions.IgnoreCase),
-                    new Regex($@"({cn}\s*(between)\s+{quoteParameterName}[\w_]+\s+and(\s+))cast\(({quoteParameterName}[^w_]+) as (datetime|timestamp)\)", RegexOptions.IgnoreCase),
-                    new Regex($@"({cn}\s*(between)\s+{quoteParameterName}[\w_]+\s+and(\s+))({quoteParameterName}[^w_]+)::(datetime|timestamp)", RegexOptions.IgnoreCase),
-
+                    new Regex($@"(\s*)(datetime|cdate|to_date)(\s*)\(\s*({qpn}[\w_]+)\s*\)", RegexOptions.IgnoreCase),
+                    new Regex($@"(\s*)(to_timestamp)(\s*)\(\s*({qpn}[\w_]+)\s*,\s*{qpn}[\w_]+\s*\)", RegexOptions.IgnoreCase),
+                    new Regex($@"(\s*)(cast)(\s*)\(\s*({qpn}[^w_]+)\s+as\s+(datetime|timestamp)\s*\)", RegexOptions.IgnoreCase),
+                    new Regex($@"({qpn}[^w_]+)(\s*)(::)(\s*)(datetime|timestamp)", RegexOptions.IgnoreCase),
+                    new Regex($@"(\s*)(timestamp)(\s*)({qpn}[\w_]+)", RegexOptions.IgnoreCase), //firebird
 
                     new Regex($@"{cn}\s*between\s*'([^']+)'\s*and\s*'([^']+)'", RegexOptions.IgnoreCase), //预留暂时不用
-                    new Regex($@"{cn}\s*between\s*{quoteParameterName}([\w_]+)\s*and\s*{quoteParameterName}([\w_]+)", RegexOptions.IgnoreCase),
+                    new Regex($@"{cn}\s*between\s*{qpn}([\w_]+)\s*and\s*{qpn}([\w_]+)", RegexOptions.IgnoreCase),
 
                     new Regex($@"{cn}\s*(<|<=|>|>=)\s*'([^']+)'\s*and\s*{cn}\s*(<|<=|>|>=)\s*'([^']+)'", RegexOptions.IgnoreCase), //预留暂时不用
-                    new Regex($@"{cn}\s*(<|<=|>|>=)\s*{quoteParameterName}([\w_]+)\s*and\s*{cn}\s*(<|<=|>|>=)\s*{quoteParameterName}([\w_]+)", RegexOptions.IgnoreCase),
+                    new Regex($@"{cn}\s*(<|<=|>|>=)\s*{qpn}([\w_]+)\s*and\s*{cn}\s*(<|<=|>|>=)\s*{qpn}([\w_]+)", RegexOptions.IgnoreCase),
 
-                    new Regex($@"{cn}\s*(<|<=|>|>=)\s*'([^']+)'", RegexOptions.IgnoreCase), //预留暂时不用
-                    new Regex($@"{cn}\s*(<|<=|>|>=)\s*{quoteParameterName}([\w_]+)", RegexOptions.IgnoreCase),
+                    new Regex($@"{cn}\s*(=|<|<=|>|>=)\s*'([^']+)'", RegexOptions.IgnoreCase), //预留暂时不用
+                    new Regex($@"{cn}\s*(=|<|<=|>|>=)\s*{qpn}([\w_]+)", RegexOptions.IgnoreCase),
                 };
             });
         }
@@ -265,16 +253,16 @@ namespace FreeSql.DataAnnotations
             //var tsqlWhere = Utils.ParseSqlWhereLevel1(sqlWhere);
 
             var regs = GetRegSqlWhereDateTimes($"{(string.IsNullOrWhiteSpace(tb.Alias) ? "" : $"{tb.Alias}.")}{commonUtils.QuoteSqlName(tb.Table.AsTableColumn.Attribute.Name)}", quoteParameterName);
-            for (var a = 0; a < 8; a++) newSqlWhere = regs[a].Replace(newSqlWhere, "$1$4");
+            for (var a = 0; a < 5; a++) newSqlWhere = regs[a].Replace(newSqlWhere, "$1$4");
 
-            //var m = regs[8].Match(newSqlWhere);
+            //var m = regs[5].Match(newSqlWhere);
             //if (m.Success) return GetTableNamesByColumnValueRange(m.Groups[1].Value, m.Groups[2].Value);
-            //m = m = regs[10].Match(newSqlWhere);
+            //m = m = regs[7].Match(newSqlWhere);
             //if (m.Success) return LocalGetTables(m.Groups[1].Value, m.Groups[3].Value, ParseColumnValue(m.Groups[2].Value), ParseColumnValue(m.Groups[4].Value));
-            //m = regs[12].Match(newSqlWhere);
+            //m = regs[9].Match(newSqlWhere);
             //if (m.Success) return LocalGetTables2(m.Groups[1].Value, ParseColumnValue(m.Groups[2].Value));
 
-            var m = regs[9].Match(newSqlWhere);
+            var m = regs[6].Match(newSqlWhere);
             if (m.Success)
             {
                 var val1 = LocalGetParamValue(m.Groups[1].Value);
@@ -282,7 +270,7 @@ namespace FreeSql.DataAnnotations
                 if (val1 == null || val2 == null) throw new Exception(CoreStrings.Failed_SubTable_FieldValue(sqlWhere));
                 return GetTableNamesByColumnValueRange(val1, val2);
             }
-            m = regs[11].Match(newSqlWhere);
+            m = regs[8].Match(newSqlWhere);
             if (m.Success)
             {
                 var val1 = LocalGetParamValue(m.Groups[2].Value);
@@ -290,7 +278,7 @@ namespace FreeSql.DataAnnotations
                 if (val1 == null || val2 == null) throw new Exception(CoreStrings.Failed_SubTable_FieldValue(sqlWhere));
                 return LocalGetTables(m.Groups[1].Value, m.Groups[3].Value, ParseColumnValue(val1), ParseColumnValue(val2));
             }
-            m = regs[13].Match(newSqlWhere);
+            m = regs[10].Match(newSqlWhere);
             if (m.Success)
             {
                 var val1 = LocalGetParamValue(m.Groups[2].Value);
@@ -349,6 +337,8 @@ namespace FreeSql.DataAnnotations
             {
                 switch (m.Groups[1].Value)
                 {
+                    case "=":
+                        return GetTableNamesByColumnValueRange(val1, val1);
                     case "<":
                         val1 = val1.AddSeconds(-1);
                         return GetTableNamesByColumnValueRange(_beginTime, val1);

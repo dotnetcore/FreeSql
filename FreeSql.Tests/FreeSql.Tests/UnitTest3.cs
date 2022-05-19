@@ -1,25 +1,13 @@
-﻿using FreeSql.DataAnnotations;
-using FreeSql;
+﻿using FreeSql;
+using FreeSql.DataAnnotations;
+using kwlib;
 using System;
 using System.Collections.Generic;
-using Xunit;
-using System.Linq;
-using Newtonsoft.Json.Linq;
-using NpgsqlTypes;
-using Npgsql.LegacyPostgis;
-using System.Linq.Expressions;
-using System.Threading.Tasks;
-using System.ComponentModel.DataAnnotations;
-using System.Threading;
-using System.Data.SqlClient;
-using kwlib;
 using System.Diagnostics;
-using System.IO;
+using System.Linq;
 using System.Text;
-using Newtonsoft.Json;
-using System.Net.NetworkInformation;
-using System.Net;
-using System.Collections;
+using System.Threading;
+using Xunit;
 
 namespace FreeSql.Tests
 {
