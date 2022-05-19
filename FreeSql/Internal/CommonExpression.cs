@@ -135,7 +135,8 @@ namespace FreeSql.Internal
                             if (index >= 0) field.Append(_common.FieldAsAlias($"as{++index}"));
                             parent.Childs.Add(child);
                         }
-                        if (_tables.Count > 1) { //如果下级导航属性被 Include 过，则将他们也查询出来
+                        if (_tables.Count > 1)
+                        { //如果下级导航属性被 Include 过，则将他们也查询出来
                             foreach (var memProp in tb.Properties.Values)
                             {
                                 var memtbref = tb.GetTableRef(memProp.Name, false);
@@ -162,8 +163,8 @@ namespace FreeSql.Internal
                     }
                     else
                     {
-                        if (select != null && findIncludeMany != null && select._includeToList.Any() && exp.Type.IsGenericType && 
-                            typeof(IEnumerable).IsAssignableFrom(exp.Type) && 
+                        if (select != null && findIncludeMany != null && select._includeToList.Any() && exp.Type.IsGenericType &&
+                            typeof(IEnumerable).IsAssignableFrom(exp.Type) &&
                             typeof(ICollection<>).MakeGenericType(exp.Type.GetGenericArguments().FirstOrDefault()).IsAssignableFrom(exp.Type))
                         {
                             var includeKey = "";
@@ -285,7 +286,7 @@ namespace FreeSql.Internal
                             ReadAnonymousField(_tables, field, child, ref index, initAssignExp.Expression, select, diymemexp, whereGlobalFilter, findIncludeMany, false);
                         }
                     }
-                    if (parent.Childs.Any() == false) throw new Exception($"映射异常：{initExp.NewExpression.Type.Name} 没有一个属性名相同");
+                    if (parent.Childs.Any() == false) throw new Exception(CoreStrings.Mapping_Exception_HasNo_SamePropertyName(initExp.NewExpression.Type.Name));
                     return true;
                 case ExpressionType.New:
                     var newExp = exp as NewExpression;
@@ -350,7 +351,7 @@ namespace FreeSql.Internal
                             }
                         }
                     }
-                    if (parent.Childs.Any() == false) throw new Exception($"映射异常：{newExp.Type.Name} 没有一个属性名相同");
+                    if (parent.Childs.Any() == false) throw new Exception(CoreStrings.Mapping_Exception_HasNo_SamePropertyName(newExp.Type.Name));
                     return true;
             }
             parent.DbField = $"({ExpressionLambdaToSql(exp, getTSC())})";
@@ -367,13 +368,13 @@ namespace FreeSql.Internal
                 if (notRead)
                 {
                     ++index;
-                    if (parent.Property != null) 
+                    if (parent.Property != null)
                         return Utils.GetDataReaderValue(parent.Property.PropertyType, null);
                     return Utils.GetDataReaderValue(parent.CsType, null);
                 }
                 object objval = Utils.InternalDataReaderGetValue(_common, dr, ++index); // dr.GetValue(++index);
                 if (dbValue != null) dbValue.DbValue = objval == DBNull.Value ? null : objval;
-                if (parent.CsType != parent.MapType) 
+                if (parent.CsType != parent.MapType)
                     objval = Utils.GetDataReaderValue(parent.MapType, objval);
                 objval = Utils.GetDataReaderValue(parent.CsType, objval);
                 if (parent.Property != null && parent.CsType != parent.Property.PropertyType)
@@ -468,7 +469,7 @@ namespace FreeSql.Internal
                     var newArrMembers = new List<string>();
                     foreach (var newArrExp in newArr.Expressions) newArrMembers.AddRange(ExpressionSelectColumns_MemberAccess_New_NewArrayInit(_tables, newArrExp, isQuoteName, diymemexp));
                     return newArrMembers.Distinct().Select(a => a.Trim('\'')).ToArray();
-                default: throw new ArgumentException($"无法解析表达式：{exp}");
+                default: throw new ArgumentException(CoreStrings.Unable_Parse_Expression(exp));
             }
             return new string[0];
         }
@@ -623,9 +624,9 @@ namespace FreeSql.Internal
             ColumnInfo rightMapColumn = null;
             var isRightMapType = false;
             if (isLeftMapType) oldMapType = tsc.SetMapTypeReturnOld(leftMapColumn.Attribute.MapType);
-            
+
             var right = ExpressionLambdaToSql(rightExp, tsc);
-            if (right != "NULL" && isLeftMapType && 
+            if (right != "NULL" && isLeftMapType &&
                 //判断参数化后的bug
                 !(right.Contains('@') || right.Contains('?') || right.Contains(':')) &&
                 //三元表达式后，取消此条件 #184
@@ -787,12 +788,13 @@ namespace FreeSql.Internal
                         exp3.Method.GetCustomAttributes(typeof(ExpressionCallAttribute), true).Any()
                         ))
                     {
-                        var ecc = new ExpressionCallContext { 
-                            _commonExp = this, 
-                            _tsc = tsc, 
-                            DataType = _ado.DataType, 
-                            UserParameters = tsc.dbParams == null ? null : new List<DbParameter>(), 
-                            FormatSql = obj => formatSql(obj, null, null, null) 
+                        var ecc = new ExpressionCallContext
+                        {
+                            _commonExp = this,
+                            _tsc = tsc,
+                            DataType = _ado.DataType,
+                            UserParameters = tsc.dbParams == null ? null : new List<DbParameter>(),
+                            FormatSql = obj => formatSql(obj, null, null, null)
                         };
                         var exp3MethodParams = exp3.Method.GetParameters();
                         var dbParamsIndex = tsc.dbParams?.Count;
@@ -852,10 +854,10 @@ namespace FreeSql.Internal
                             else
                                 exp3InvokeParams[a] = ecc;
                         }
-                        var eccFields = _dicTypeExpressionCallClassContextFields.GetOrAdd(exp3.Method.DeclaringType, dttp => 
+                        var eccFields = _dicTypeExpressionCallClassContextFields.GetOrAdd(exp3.Method.DeclaringType, dttp =>
                             dttp.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.GetField | BindingFlags.Static).Where(a => a.FieldType == typeof(ThreadLocal<ExpressionCallContext>)).ToArray());
                         if (eccFields.Any() == false)
-                            throw new Exception($"自定义表达式解析错误：类型 {exp3.Method.DeclaringType} 需要定义 static ThreadLocal<ExpressionCallContext> 字段、字段、字段（重要三次提醒）");
+                            throw new Exception(CoreStrings.Custom_Expression_ParsingError(exp3.Method.DeclaringType));
                         foreach (var eccField in eccFields)
                             typeof(ThreadLocal<ExpressionCallContext>).GetProperty("Value").SetValue(eccField.GetValue(null), ecc, null);
                         try
@@ -999,7 +1001,7 @@ namespace FreeSql.Internal
                                                 fsql = Expression.Lambda(exp3tmpTestCall).Compile().DynamicInvoke();
                                                 var fsqlFindMethod = fsql.GetType().GetMethod(exp3tmpCall.Method.Name, exp3tmpCall.Arguments.Select(a => a.Type).ToArray());
                                                 if (fsqlFindMethod == null)
-                                                    throw new Exception($"无法解析表达式方法 {exp3tmpCall.Method.Name}");
+                                                    throw new Exception(CoreStrings.Unable_Parse_ExpressionMethod(exp3tmpCall.Method.Name));
                                                 var exp3StackOld = exp3Stack;
                                                 exp3Stack = new Stack<Expression>();
                                                 exp3Stack.Push(Expression.Call(Expression.Constant(fsql), fsqlFindMethod, exp3tmpCall.Arguments));
@@ -1010,7 +1012,8 @@ namespace FreeSql.Internal
                                         fsqlType = fsql?.GetType();
                                         if (fsqlType == null) break;
                                         var fsqlSelect0 = fsql as Select0Provider;
-                                        switch (exp3.Method.Name) {
+                                        switch (exp3.Method.Name)
+                                        {
                                             case "Any": //exists
                                                 switch (_ado.DataType)
                                                 {
@@ -1035,7 +1038,7 @@ namespace FreeSql.Internal
                                         //fsqltables[0].Alias = $"{tsc._tables[0].Alias}_{fsqltables[0].Alias}";
                                         if (fsqltables != tsc._tables)
                                         {
-                                            if (tsc._tables == null && tsc.diymemexp == null) throw new NotSupportedException($"这个特别的子查询不能解析"); //2020-12-11 IUpdate 条件不支持子查询
+                                            if (tsc._tables == null && tsc.diymemexp == null) throw new NotSupportedException(CoreStrings.EspeciallySubquery_Cannot_Parsing); //2020-12-11 IUpdate 条件不支持子查询
                                             if (tsc._tables != null) //groupby is null
                                             {
                                                 fsqltables.AddRange(tsc._tables.Select(a => new SelectTableInfo
@@ -1230,7 +1233,7 @@ namespace FreeSql.Internal
                                                         var exp3Args0 = (exp3.Arguments[0] as UnaryExpression)?.Operand as LambdaExpression;
                                                         manySubSelectAggMethod = _dicSelectMethodToSql.GetOrAdd(fsqlType, fsqlType2 =>
                                                             fsqlType2.GetMethods().Where(a => a.Name == "ToSql" && a.GetParameters().Length == 2 && a.GetParameters()[1].ParameterType == typeof(FieldAliasOptions) && a.GetGenericArguments().Length == 1).FirstOrDefault());
-                                                        if (manySubSelectAggMethod == null || exp3Args0 == null) throw new ArgumentException($"ManyToMany 导航属性 .AsSelect() 暂时不可用于 Sum/Avg/Max/Min/First/ToOne/ToList 方法");
+                                                        if (manySubSelectAggMethod == null || exp3Args0 == null) throw new ArgumentException(CoreStrings.ManyToMany_AsSelect_NotSupport_Sum_Avg_etc);
                                                         manySubSelectAggMethod = manySubSelectAggMethod.MakeGenericMethod(exp3Args0.ReturnType);
                                                         var fsqls0p = fsql as Select0Provider;
                                                         var fsqls0pWhere = fsqls0p._where.ToString();
@@ -1358,8 +1361,8 @@ namespace FreeSql.Internal
                     other3Exp = ExpressionLambdaToSqlOther(exp3, tsc);
                     if (string.IsNullOrEmpty(other3Exp) == false) return other3Exp;
                     if (exp3.IsParameter() == false) return formatSql(Expression.Lambda(exp3).Compile().DynamicInvoke(), tsc.mapType, tsc.mapColumnTmp, tsc.dbParams);
-                    if (exp3.Method.DeclaringType == typeof(Enumerable)) throw new Exception($"未实现函数表达式 {exp3} 解析。如果正在操作导航属性集合，请使用 .AsSelect().{exp3.Method.Name}({(exp3.Arguments.Count > 1 ? "..." : "")})");
-                    throw new Exception($"未实现函数表达式 {exp3} 解析");
+                    if (exp3.Method.DeclaringType == typeof(Enumerable)) throw new Exception(CoreStrings.Not_Implemented_Expression_UseAsSelect(exp3, exp3.Method.Name, (exp3.Arguments.Count > 1 ? "..." : "")));
+                    throw new Exception(CoreStrings.Not_Implemented_Expression(exp3));
                 case ExpressionType.Parameter:
                 case ExpressionType.MemberAccess:
                     var exp4 = exp as MemberExpression;
@@ -1434,7 +1437,7 @@ namespace FreeSql.Internal
                                     break;
                                 case ExpressionType.MemberAccess:
                                     var expStackFirstMem = expStack.First() as MemberExpression;
-                                    if (expStackFirstMem.Expression?.NodeType == ExpressionType.Constant) 
+                                    if (expStackFirstMem.Expression?.NodeType == ExpressionType.Constant)
                                         firstValue = (expStackFirstMem.Expression as ConstantExpression)?.Value;
                                     else
                                         return formatSql(Expression.Lambda(exp).Compile().DynamicInvoke(), tsc.mapType, tsc.mapColumnTmp, tsc.dbParams);
@@ -1479,8 +1482,8 @@ namespace FreeSql.Internal
                         if (tb.ColumnsByCs.ContainsKey(memberExp.Member.Name) == false)
                         {
                             if (tb.ColumnsByCsIgnore.ContainsKey(memberExp.Member.Name))
-                                throw new ArgumentException($"{tb.DbName}.{memberExp.Member.Name} 被忽略，请检查 IsIgnore 设置，确认 get/set 为 public");
-                            throw new ArgumentException($"{tb.DbName} 找不到列 {memberExp.Member.Name}");
+                                throw new ArgumentException(CoreStrings.Ignored_Check_Confirm_PublicGetSet(tb.DbName, memberExp.Member.Name));
+                            throw new ArgumentException(CoreStrings.NotFound_Column(tb.DbName, memberExp.Member.Name));
                         }
                         var curcol = tb.ColumnsByCs[memberExp.Member.Name];
                         if (tsc._selectColumnMap != null)
@@ -1497,7 +1500,7 @@ namespace FreeSql.Internal
                         if (tsc.style == ExpressionStyle.SelectColumns)
                         {
                             finds = tsc._tables.Where(a => a.Table.Type == tbtmp.Type && a.Alias == alias).ToArray();
-                            if (finds.Any() == false && alias.Contains("__") == false) 
+                            if (finds.Any() == false && alias.Contains("__") == false)
                                 finds = tsc._tables.Where(a => a.Table.Type == tbtmp.Type).ToArray();
                             if (finds.Any()) finds = new[] { finds.First() };
                         }
@@ -1595,7 +1598,7 @@ namespace FreeSql.Internal
                         switch (exp2.NodeType)
                         {
                             case ExpressionType.Constant:
-                                throw new NotImplementedException("未实现 MemberAccess 下的 Constant");
+                                throw new NotImplementedException($"{CoreStrings.Not_Implemented_MemberAcess_Constant}");
                             case ExpressionType.Parameter:
                             case ExpressionType.MemberAccess:
 
@@ -1666,10 +1669,10 @@ namespace FreeSql.Internal
                                         }
                                     }
                                     if (tb2.ColumnsByCsIgnore.ContainsKey(mp2.Member.Name))
-                                        throw new ArgumentException($"{tb2.DbName}.{mp2.Member.Name} 被忽略，请检查 IsIgnore 设置，确认 get/set 为 public");
+                                        throw new ArgumentException(CoreStrings.Ignored_Check_Confirm_PublicGetSet(tb2.DbName, mp2.Member.Name));
                                     if (tb2.GetTableRef(mp2.Member.Name, false) != null)
-                                        throw new ArgumentException($"{tb2.DbName}.{mp2.Member.Name} 导航属性集合忘了 .AsSelect() 吗？如果在 ToList(a => a.{mp2.Member.Name}) 中使用，请移步参考 IncludeMany 文档。");
-                                    throw new ArgumentException($"{tb2.DbName} 找不到列 {mp2.Member.Name}");
+                                        throw new ArgumentException(CoreStrings.Navigation_Missing_AsSelect(tb2.DbName, mp2.Member.Name));
+                                    throw new ArgumentException(CoreStrings.NotFound_Column(tb2.DbName, mp2.Member.Name));
                                 }
                                 col2 = tb2.ColumnsByCs[mp2.Member.Name];
                                 if (tsc._selectColumnMap != null && find2 != null)
@@ -1834,9 +1837,19 @@ namespace FreeSql.Internal
                             new ReplaceParameterVisitor().Modify(fl.Where, newParameter),
                             newParameter
                         );
-                        var whereSql = ExpressionLambdaToSql(expExp.Body, new ExpTSC { _tables = 
-                            isMultitb ? new List<SelectTableInfo>(new[] { tb }) : null, 
-                            _selectColumnMap = null, diymemexp = null, tbtype = SelectTableInfoType.From, isQuoteName = true, isDisableDiyParse = false, style = ExpressionStyle.Where, currentTable = tb.Table, alias001 = tb.Alias });
+                        var whereSql = ExpressionLambdaToSql(expExp.Body, new ExpTSC
+                        {
+                            _tables =
+                            isMultitb ? new List<SelectTableInfo>(new[] { tb }) : null,
+                            _selectColumnMap = null,
+                            diymemexp = null,
+                            tbtype = SelectTableInfoType.From,
+                            isQuoteName = true,
+                            isDisableDiyParse = false,
+                            style = ExpressionStyle.Where,
+                            currentTable = tb.Table,
+                            alias001 = tb.Alias
+                        });
                         whereSql = GetBoolString(expExp.Body, whereSql);
                         if (isEmpty == false)
                             sb.Append(" AND ");
@@ -2121,7 +2134,7 @@ namespace FreeSql.Internal
                                 e.Result = $"({select.ToSql().Replace(" \r\n", " \r\n    ")})";
                                 return;
                             }
-                            throw throwCallExp(" 不支持");
+                            throw throwCallExp(CoreStrings.Not_Support);
                         case "ToList":
                             if (callExp.Arguments.Count == 1)
                             {
@@ -2130,7 +2143,7 @@ namespace FreeSql.Internal
                                 e.Result = $"({select.ToSql().Replace(" \r\n", " \r\n    ")})";
                                 return;
                             }
-                            throw throwCallExp(" 不支持");
+                            throw throwCallExp(CoreStrings.Not_Support);
                         case "Contains":
                             if (callExp.Arguments.Count == 2)
                             {
@@ -2148,7 +2161,7 @@ namespace FreeSql.Internal
                                 select.Distinct();
                                 break;
                             }
-                            throw throwCallExp(" 不支持");
+                            throw throwCallExp(CoreStrings.Not_Support);
                         case "OrderBy":
                             select._tables[0].Parameter = (callExp.Arguments[1] as LambdaExpression)?.Parameters.FirstOrDefault();
                             LocalSetSelectProviderAlias(select._tables[0].Parameter.Name);
@@ -2179,7 +2192,7 @@ namespace FreeSql.Internal
                                 select.InternalWhere(whereParam);
                                 break;
                             }
-                            throw throwCallExp(" 不支持");
+                            throw throwCallExp(CoreStrings.Not_Support);
 
                         case "Skip":
                             select.Offset((int)callExp.Arguments[1].GetConstExprValue());
@@ -2197,9 +2210,9 @@ namespace FreeSql.Internal
                                 select._selectExpression = selectParam;
                                 break;
                             }
-                            throw throwCallExp(" 不支持");
+                            throw throwCallExp(CoreStrings.Not_Support);
                     }
-                    Exception throwCallExp(string message) => new Exception($"解析失败 {callExp.Method.Name} {message}");
+                    Exception throwCallExp(string message) => new Exception(CoreStrings.Parsing_Failed(callExp.Method.Name,message));
                 }
             }
         }

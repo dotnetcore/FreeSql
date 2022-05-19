@@ -32,7 +32,7 @@ namespace FreeSql
 
                 var type = repos.GetType();
                 Type entityType = (repos as IBaseRepository).EntityType;
-                if (entityType == null) throw new Exception("FreeSql.Repository 设置过滤器失败，原因是对象不属于 IRepository");
+                if (entityType == null) throw new Exception(DbContextStrings.FailedSetFilter_NotBelongIRpository);
 
                 var notExists = _dicSetRepositoryDataFilterConvertFilterNotExists.GetOrAdd(type, t => new ConcurrentDictionary<string, bool>());
                 var newFilter = new Dictionary<string, LambdaExpression>();

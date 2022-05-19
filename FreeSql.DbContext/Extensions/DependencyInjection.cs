@@ -21,7 +21,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 }
                 catch(Exception ex)
                 {
-                    throw new Exception($"AddFreeDbContext 发生错误，请检查 {dbContextType.Name} 的构造参数都已正确注入", ex);
+                    throw new Exception(DbContextStrings.AddFreeDbContextError_CheckConstruction(dbContextType.Name), ex);
                 }
                 if (ctx != null && ctx._ormScoped == null)
                 {
@@ -31,7 +31,7 @@ namespace Microsoft.Extensions.DependencyInjection
                     ctx._optionsPriv = builder._options;
 
                     if (ctx._ormScoped == null)
-                        throw new Exception("请在 OnConfiguring 或 AddFreeDbContext 中配置 UseFreeSql");
+                        throw new Exception(DbContextStrings.ConfigureUseFreeSql);
 
                     ctx.InitPropSets();
                 }

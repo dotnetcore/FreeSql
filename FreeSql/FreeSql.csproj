@@ -21,7 +21,37 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Compile Remove="Properties\Resources.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Remove="Properties\Resources.tt" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<None Include="../logo.png" Pack="true" PackagePath="\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Compile Update="Properties\CoreStrings.Designer.cs">
+	    <DesignTime>True</DesignTime>
+	    <AutoGen>True</AutoGen>
+	    <DependentUpon>CoreStrings.Designer.tt</DependentUpon>
+	  </Compile>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Update="Properties\CoreStrings.Designer.tt">
+	    <Generator>TextTemplatingFileGenerator</Generator>
+	    <LastGenOutput>CoreStrings.Designer.cs</LastGenOutput>
+	  </None>
+		<EmbeddedResource Update="Properties\CoreStrings.resx">
+			<CustomToolNamespace>FreeSql</CustomToolNamespace>
+		</EmbeddedResource>
 	</ItemGroup>
   
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

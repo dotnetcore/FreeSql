@@ -1,0 +1,5 @@
+﻿<#
+    Session["ResourceFile"] = "DbContextStrings.resx";
+    Session["AccessModifier"] = "public";
+#>
+<#@ include file="../../FreeSql/Properties/Resources.tt" #>

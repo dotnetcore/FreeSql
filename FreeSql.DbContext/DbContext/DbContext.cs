@@ -12,12 +12,12 @@ namespace FreeSql
     public abstract partial class DbContext : IDisposable
     {
         internal DbContextScopedFreeSql _ormScoped;
-        internal IFreeSql OrmOriginal => _ormScoped?._originalFsql ?? throw new ArgumentNullException("请在 OnConfiguring 或 AddFreeDbContext 中配置 UseFreeSql");
+        internal IFreeSql OrmOriginal => _ormScoped?._originalFsql ?? throw new ArgumentNullException(DbContextStrings.ConfigureUseFreeSql);
 
         /// <summary>
         /// 该对象 Select/Delete/Insert/Update/InsertOrUpdate 与 DbContext 事务保持一致，可省略传递 WithTransaction
         /// </summary>
-        public IFreeSql Orm => _ormScoped ?? throw new ArgumentNullException("请在 OnConfiguring 或 AddFreeDbContext 中配置 UseFreeSql");
+        public IFreeSql Orm => _ormScoped ?? throw new ArgumentNullException(DbContextStrings.ConfigureUseFreeSql);
 
         #region Property UnitOfWork
         internal bool _isUseUnitOfWork = true; //是否创建工作单元事务
@@ -126,7 +126,7 @@ namespace FreeSql
         void CheckEntityTypeOrThrow(Type entityType)
         {
             if (OrmOriginal.CodeFirst.GetTableByEntity(entityType) == null)
-                throw new ArgumentException($"参数 data 类型错误 {entityType.FullName} ");
+                throw new ArgumentException(DbContextStrings.ParameterDataTypeError(entityType.FullName));
         }
         /// <summary>
         /// 添加

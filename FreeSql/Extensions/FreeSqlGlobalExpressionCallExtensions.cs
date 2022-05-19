@@ -476,7 +476,7 @@ namespace FreeSql
             if (expContext.ParsedContent["delimiter"] == "','")
                 expContext.Result = $"wm_concat_text({expContext.ParsedContent["column"]})";
             else
-                throw new NotImplementedException("GBase 暂时不支持逗号以外的分割符");
+                throw new NotImplementedException(CoreStrings.GBase_NotSupport_OtherThanCommas);
             //expContext.Result = $"replace(wm_concat_text({expContext.ParsedContent["column"]}), ',', {expContext.ParsedContent["delimiter"]})";
             return null;
         }

@@ -186,12 +186,12 @@ namespace FreeSql
         TEntity CheckTKeyAndReturnIdEntity(TKey id)
         {
             var tb = _db.OrmOriginal.CodeFirst.GetTableByEntity(EntityType);
-            if (tb.Primarys.Length != 1) throw new Exception($"实体类型 {EntityType.Name} 主键数量不为 1，无法使用该方法");
-            if (tb.Primarys[0].CsType.NullableTypeOrThis() != typeof(TKey).NullableTypeOrThis()) throw new Exception($"实体类型 {EntityType.Name} 主键类型不为 {typeof(TKey).FullName}，无法使用该方法");
+            if (tb.Primarys.Length != 1) throw new Exception(DbContextStrings.EntityType_PrimaryKeyIsNotOne(EntityType.Name));
+            if (tb.Primarys[0].CsType.NullableTypeOrThis() != typeof(TKey).NullableTypeOrThis()) throw new Exception(DbContextStrings.EntityType_PrimaryKeyError(EntityType.Name, typeof(TKey).FullName));
             var obj = Activator.CreateInstance(tb.Type);
             _db.OrmOriginal.SetEntityValueWithPropertyName(tb.Type, obj, tb.Primarys[0].CsName, id);
-            var  ret = obj as TEntity;
-            if (ret == null) throw new Exception($"实体类型 {EntityType.Name} 无法转换为 {typeof(TEntity).Name}，无法使用该方法");
+            var ret = obj as TEntity;
+            if (ret == null) throw new Exception(DbContextStrings.EntityType_CannotConvert(EntityType.Name, typeof(TEntity).Name));
             return ret;
         }
 

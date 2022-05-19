@@ -22,7 +22,7 @@ namespace FreeSql
 
         public UnitOfWorkManager(IFreeSql fsql)
         {
-            if (fsql == null) throw new ArgumentNullException($"{nameof(UnitOfWorkManager)} 构造参数 {nameof(fsql)} 不能为 null");
+            if (fsql == null) throw new ArgumentNullException(DbContextStrings.UnitOfWorkManager_Construction_CannotBeNull(nameof(UnitOfWorkManager), nameof(fsql)));
             _ormScoped = DbContextScopedFreeSql.Create(fsql, null, () => this.Current);
         }
 
@@ -92,7 +92,7 @@ namespace FreeSql
             {
                 case Propagation.Required: return FindedUowCreateVirtual() ?? CreateUow(isolationLevel);
                 case Propagation.Supports: return FindedUowCreateVirtual() ?? CreateUowNothing(_allUows.LastOrDefault()?.IsNotSupported ?? false);
-                case Propagation.Mandatory: return FindedUowCreateVirtual() ?? throw new Exception("Propagation_Mandatory: 使用当前事务，如果没有当前事务，就抛出异常");
+                case Propagation.Mandatory: return FindedUowCreateVirtual() ?? throw new Exception(DbContextStrings.Propagation_Mandatory);
                 case Propagation.NotSupported: return CreateUowNothing(true);
                 case Propagation.Never:
                     var isNotSupported = _allUows.LastOrDefault()?.IsNotSupported ?? false;
@@ -100,7 +100,7 @@ namespace FreeSql
                     {
                         for (var a = _rawUows.Count - 1; a >= 0; a--)
                             if (_rawUows[a].Uow.GetOrBeginTransaction(false) != null)
-                                throw new Exception("Propagation_Never: 以非事务方式执行操作，如果当前事务存在则抛出异常");
+                                throw new Exception(DbContextStrings.Propagation_Never);
                     }
                     return CreateUowNothing(isNotSupported);
                 case Propagation.Nested: return CreateUow(isolationLevel);
@@ -159,7 +159,7 @@ namespace FreeSql
         {
             public IBaseRepository Repository;
             public IUnitOfWork OrginalUow;
-            
+
             public RepoInfo(IBaseRepository repository)
             {
                 this.Repository = repository;

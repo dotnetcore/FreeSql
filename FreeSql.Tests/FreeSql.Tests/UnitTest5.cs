@@ -16,6 +16,11 @@ namespace FreeSql.Tests
 {
     public class UnitTest5
     {
+        [Fact]
+        public void AsTable_PropertyName_FormatErrorTest1()
+        {
+            CoreStrings.AsTable_PropertyName_FormatError("astable");
+        }
         // DTO
         public class TestDto
         {

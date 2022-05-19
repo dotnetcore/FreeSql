@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -47,7 +48,7 @@ namespace FreeSql.DataAnnotations
 
         public ColumnFluent Property(string proto)
         {
-            if (_properties.TryGetValue(proto, out var tryProto) == false) throw new KeyNotFoundException($"找不到属性名 {proto}");
+            if (_properties.TryGetValue(proto, out var tryProto) == false) throw new KeyNotFoundException(CoreStrings.NotFound_PropertyName(proto));
             var col = _table._columns.GetOrAdd(tryProto.Name, name => new ColumnAttribute { Name = proto });
             return new ColumnFluent(col, tryProto, _entityType);
         }
@@ -61,7 +62,7 @@ namespace FreeSql.DataAnnotations
         /// <returns></returns>
         public TableFluent Navigate(string proto, string bind, Type manyToMany = null)
         {
-            if (_properties.TryGetValue(proto, out var tryProto) == false) throw new KeyNotFoundException($"找不到属性名 {proto}");
+            if (_properties.TryGetValue(proto, out var tryProto) == false) throw new KeyNotFoundException(CoreStrings.NotFound_Property(proto));
             var nav = new NavigateAttribute { Bind = bind, ManyToMany = manyToMany };
             _table._navigates.AddOrUpdate(tryProto.Name, nav, (name, old) => nav);
             return this;
@@ -129,12 +130,12 @@ namespace FreeSql.DataAnnotations
             var exp = column?.Body;
             if (exp?.NodeType == ExpressionType.Convert) exp = (exp as UnaryExpression)?.Operand;
             var proto = (exp as MemberExpression)?.Member;
-            if (proto == null) throw new FormatException($"错误的表达式格式 {column}");
+            if (proto == null) throw new FormatException(CoreStrings.Bad_Expression_Format(column));
             return Property(proto.Name);
         }
         public ColumnFluent Property(string proto)
         {
-            if (_properties.TryGetValue(proto, out var tryProto) == false) throw new KeyNotFoundException($"找不到属性名 {proto}");
+            if (_properties.TryGetValue(proto, out var tryProto) == false) throw new KeyNotFoundException(CoreStrings.NotFound_PropertyName(proto));
             var col = _table._columns.GetOrAdd(tryProto.Name, name => new ColumnAttribute { Name = proto });
             return new ColumnFluent(col, tryProto, typeof(T));
         }
@@ -152,12 +153,12 @@ namespace FreeSql.DataAnnotations
             var exp = proto?.Body;
             if (exp.NodeType == ExpressionType.Convert) exp = (exp as UnaryExpression)?.Operand;
             var member = (exp as MemberExpression)?.Member;
-            if (member == null) throw new FormatException($"错误的表达式格式 {proto}");
+            if (member == null) throw new FormatException(CoreStrings.Bad_Expression_Format(proto));
             return Navigate(member.Name, bind, manyToMany);
         }
         public TableFluent<T> Navigate(string proto, string bind, Type manyToMany = null)
         {
-            if (_properties.TryGetValue(proto, out var tryProto) == false) throw new KeyNotFoundException($"找不到属性名 {proto}");
+            if (_properties.TryGetValue(proto, out var tryProto) == false) throw new KeyNotFoundException(CoreStrings.NotFound_PropertyName(proto));
             var nav = new NavigateAttribute { Bind = bind, ManyToMany = manyToMany };
             _table._navigates.AddOrUpdate(tryProto.Name, nav, (name, old) => nav);
             return this;

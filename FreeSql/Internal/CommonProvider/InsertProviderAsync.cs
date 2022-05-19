@@ -55,7 +55,7 @@ namespace FreeSql.Internal.CommonProvider
                 }
                 else
                 {
-                    if (_orm.Ado.MasterPool == null) throw new Exception("Ado.MasterPool 值为 null，该操作无法自启用事务，请显式传递【事务对象】解决");
+                    if (_orm.Ado.MasterPool == null) throw new Exception(CoreStrings.MasterPool_IsNull_UseTransaction);
                     using (var conn = await _orm.Ado.MasterPool.GetAsync())
                     {
                         _transaction = conn.Value.BeginTransaction();
@@ -70,12 +70,12 @@ namespace FreeSql.Internal.CommonProvider
                                 ret += await this.RawExecuteAffrowsAsync(cancellationToken);
                             }
                             _transaction.Commit();
-                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, "提交", null));
+                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, CoreStrings.Commit, null));
                         }
                         catch (Exception ex)
                         {
                             _transaction.Rollback();
-                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, "回滚", ex));
+                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, CoreStrings.RollBack, ex));
                             throw;
                         }
                         _transaction = null;
@@ -135,7 +135,7 @@ namespace FreeSql.Internal.CommonProvider
                 }
                 else
                 {
-                    if (_orm.Ado.MasterPool == null) throw new Exception("Ado.MasterPool 值为 null，该操作无法自启用事务，请显式传递【事务对象】解决");
+                    if (_orm.Ado.MasterPool == null) throw new Exception(CoreStrings.MasterPool_IsNull_UseTransaction);
                     using (var conn = await _orm.Ado.MasterPool.GetAsync())
                     {
                         _transaction = conn.Value.BeginTransaction();
@@ -151,12 +151,12 @@ namespace FreeSql.Internal.CommonProvider
                                 else ret = await this.RawExecuteIdentityAsync(cancellationToken);
                             }
                             _transaction.Commit();
-                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, "提交", null));
+                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, CoreStrings.Commit, null));
                         }
                         catch (Exception ex)
                         {
                             _transaction.Rollback();
-                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, "回滚", ex));
+                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, CoreStrings.RollBack, ex));
                             throw;
                         }
                         _transaction = null;
@@ -215,7 +215,7 @@ namespace FreeSql.Internal.CommonProvider
                 }
                 else
                 {
-                    if (_orm.Ado.MasterPool == null) throw new Exception("Ado.MasterPool 值为 null，该操作无法自启用事务，请显式传递【事务对象】解决");
+                    if (_orm.Ado.MasterPool == null) throw new Exception(CoreStrings.MasterPool_IsNull_UseTransaction);
                     using (var conn = await _orm.Ado.MasterPool.GetAsync())
                     {
                         _transaction = conn.Value.BeginTransaction();
@@ -230,12 +230,12 @@ namespace FreeSql.Internal.CommonProvider
                                 ret.AddRange(await this.RawExecuteInsertedAsync(cancellationToken));
                             }
                             _transaction.Commit();
-                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, "提交", null));
+                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, CoreStrings.Commit, null));
                         }
                         catch (Exception ex)
                         {
                             _transaction.Rollback();
-                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, "回滚", ex));
+                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, CoreStrings.RollBack, ex));
                             throw;
                         }
                         _transaction = null;
