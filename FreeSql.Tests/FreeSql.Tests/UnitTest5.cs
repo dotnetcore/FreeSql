@@ -16,6 +16,18 @@ namespace FreeSql.Tests
 {
     public class UnitTest5
     {
+
+        [Fact]
+        public void TestConstDtoStringEmpty()
+        {
+            var fsql = g.mysql;
+            var sql = fsql.Select<TestDto>().ToSql(a => new
+            {
+                empty = ""
+            });
+            Assert.Equal(@"SELECT '' as1 
+FROM `TestDto` a", sql);
+        }
         // DTO
         public class TestDto
         {
