@@ -289,6 +289,18 @@ namespace base_entity
                 });
             sql1 = sql1.Replace("INNER JOIN ", "FULL JOIN ");
 
+            //fsql.Select<UserGroup>()
+            //    .ToList(a => new
+            //    {
+            //        users1 = fsql.Select<User1>().Where(b => b.GroupId == a.Id).ToList(false),
+            //        users2 = fsql.Select<User1>().Where(b => b.GroupId == a.Id).ToList(b => new
+            //        {
+            //            userid = b.Id,
+            //            username = b.Username
+            //        }),
+            //        //users3 = fsql.Ado.Query<User1>("select * from user1 where groupid = @id", new { id = a.Id })
+            //    });
+
 
 
             fsql.UseJsonMap();

@@ -1,8 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using FreeSql.Internal;
+using System;
 using System.Collections.Concurrent;
-using System.Linq.Expressions;
+using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 
 namespace FreeSql
 {
@@ -48,8 +49,14 @@ namespace FreeSql
             public Func<TEntity, bool> ExpressionDelegate => _expressionDelegate ?? (_expressionDelegate = Expression?.Compile());
             public bool IsEnabled { get; set; }
         }
+        internal class FilterItemByOrm
+        {
+            public GlobalFilter.Item Filter { get; set; }
+            public bool IsEnabled { get; set; }
+        }
 
         internal ConcurrentDictionary<string, FilterItem> _filters = new ConcurrentDictionary<string, FilterItem>(StringComparer.CurrentCultureIgnoreCase);
+        internal ConcurrentDictionary<string, FilterItemByOrm> _filtersByOrm = new ConcurrentDictionary<string, FilterItemByOrm>(StringComparer.CurrentCultureIgnoreCase);
         public IDataFilter<TEntity> Apply(string filterName, Expression<Func<TEntity, bool>> filterAndValidateExp)
         {
 
@@ -67,6 +74,7 @@ namespace FreeSql
             if (filterName == null || filterName.Any() == false) return new UsingAny(() => { });
 
             List<string> restore = new List<string>();
+            List<string> restoreByOrm = new List<string>();
             foreach (var name in filterName)
             {
                 if (_filters.TryGetValue(name, out var tryfi))
@@ -77,12 +85,33 @@ namespace FreeSql
                         tryfi.IsEnabled = false;
                     }
                 }
+                if (_filtersByOrm.TryGetValue(name, out var tryfiByOrm))
+                {
+                    if (tryfiByOrm.IsEnabled)
+                    {
+                        restoreByOrm.Add(name);
+                        tryfiByOrm.IsEnabled = false;
+                    }
+                }
             }
-            return new UsingAny(() => this.Enable(restore.ToArray()));
+            return new UsingAny(() =>
+            {
+                restore.ForEach(name =>
+                {
+                    if (_filters.TryGetValue(name, out var tryfi) && tryfi.IsEnabled == false)
+                        tryfi.IsEnabled = true;
+                });
+                restoreByOrm.ForEach(name =>
+                {
+                    if (_filtersByOrm.TryGetValue(name, out var tryfiByOrm) && tryfiByOrm.IsEnabled == false)
+                        tryfiByOrm.IsEnabled = true;
+                });
+            });
         }
         public IDisposable DisableAll()
         {
             List<string> restore = new List<string>();
+            List<string> restoreByOrm = new List<string>();
             foreach (var val in _filters)
             {
                 if (val.Value.IsEnabled)
@@ -91,7 +120,27 @@ namespace FreeSql
                     val.Value.IsEnabled = false;
                 }
             }
-            return new UsingAny(() => this.Enable(restore.ToArray()));
+            foreach (var val in _filtersByOrm)
+            {
+                if (val.Value.IsEnabled)
+                {
+                    restoreByOrm.Add(val.Key);
+                    val.Value.IsEnabled = false;
+                }
+            }
+            return new UsingAny(() =>
+            {
+                restore.ForEach(name =>
+                {
+                    if (_filters.TryGetValue(name, out var tryfi) && tryfi.IsEnabled == false)
+                        tryfi.IsEnabled = true;
+                });
+                restoreByOrm.ForEach(name =>
+                {
+                    if (_filtersByOrm.TryGetValue(name, out var tryfiByOrm) && tryfiByOrm.IsEnabled == false)
+                        tryfiByOrm.IsEnabled = true;
+                });
+            });
         }
         class UsingAny : IDisposable
         {
@@ -111,6 +160,7 @@ namespace FreeSql
             if (filterName == null || filterName.Any() == false) return new UsingAny(() => { });
 
             List<string> restore = new List<string>();
+            List<string> restoreByOrm = new List<string>();
             foreach (var name in filterName)
             {
                 if (_filters.TryGetValue(name, out var tryfi))
@@ -121,12 +171,33 @@ namespace FreeSql
                         tryfi.IsEnabled = true;
                     }
                 }
+                if (_filtersByOrm.TryGetValue(name, out var tryfiByOrm))
+                {
+                    if (tryfiByOrm.IsEnabled == false)
+                    {
+                        restoreByOrm.Add(name);
+                        tryfiByOrm.IsEnabled = true;
+                    }
+                }
             }
-            return new UsingAny(() => this.Disable(restore.ToArray()));
+            return new UsingAny(() =>
+            {
+                restore.ForEach(name =>
+                {
+                    if (_filters.TryGetValue(name, out var tryfi) && tryfi.IsEnabled == true)
+                        tryfi.IsEnabled = false;
+                });
+                restoreByOrm.ForEach(name =>
+                {
+                    if (_filtersByOrm.TryGetValue(name, out var tryfiByOrm) && tryfiByOrm.IsEnabled == true)
+                        tryfiByOrm.IsEnabled = false;
+                });
+            });
         }
         public IDisposable EnableAll()
         {
             List<string> restore = new List<string>();
+            List<string> restoreByOrm = new List<string>();
             foreach (var val in _filters)
             {
                 if (val.Value.IsEnabled == false)
@@ -135,13 +206,34 @@ namespace FreeSql
                     val.Value.IsEnabled = true;
                 }
             }
-            return new UsingAny(() => this.Disable(restore.ToArray()));
+            foreach (var val in _filtersByOrm)
+            {
+                if (val.Value.IsEnabled == false)
+                {
+                    restoreByOrm.Add(val.Key);
+                    val.Value.IsEnabled = true;
+                }
+            }
+            return new UsingAny(() =>
+            {
+                restore.ForEach(name =>
+                {
+                    if (_filters.TryGetValue(name, out var tryfi) && tryfi.IsEnabled == true)
+                        tryfi.IsEnabled = false;
+                });
+                restoreByOrm.ForEach(name =>
+                {
+                    if (_filtersByOrm.TryGetValue(name, out var tryfiByOrm) && tryfiByOrm.IsEnabled == true)
+                        tryfiByOrm.IsEnabled = false;
+                });
+            });
         }
 
         public bool IsEnabled(string filterName)
         {
             if (filterName == null) return false;
-            return _filters.TryGetValue(filterName, out var tryfi) ? tryfi.IsEnabled : false;
+            return _filters.TryGetValue(filterName, out var tryfi) ? tryfi.IsEnabled :
+                _filtersByOrm.TryGetValue(filterName, out var tryfiByOrm) ? tryfiByOrm.IsEnabled : false;
         }
 
         ~DataFilter() => this.Dispose();
