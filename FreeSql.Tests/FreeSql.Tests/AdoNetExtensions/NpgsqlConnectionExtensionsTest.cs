@@ -1,16 +1,36 @@
-using Npgsql;
+﻿using Npgsql;
 using System;
 using System.Collections.Generic;
 using Xunit;
 
 namespace FreeSql.Tests.AdoNetExtensions.NpgsqlConnectionExtensions {
-	public class Methods {
+
+    [Collection("AdoNetExtensions")]
+	public class Methods : IDisposable {
 
 		string _connectString = "Host=192.168.164.10;Port=5432;Username=postgres;Password=123456;Database=tedb;Pooling=true;Maximum Pool Size=5";
 
 		public Methods() {
 			g.pgsql.CodeFirst.SyncStructure<TestConnectionExt>();
+            FreeSql.AdoNetExtensions.AdoNetFreeSqlCreated += AdoNetExtensions_AdoNetFreeSqlCreated;
 		}
+        
+        public void Dispose()
+        {
+            FreeSql.AdoNetExtensions.AdoNetFreeSqlCreated -= AdoNetExtensions_AdoNetFreeSqlCreated;
+        }
+
+        private static int _adoNetFreeSqlCreatedCount;
+
+        private static void AdoNetExtensions_AdoNetFreeSqlCreated(object sender, AdoNetFreeSqlCreatedEventArgs e)
+        {
+            Assert.True(sender is NpgsqlConnection, sender.GetType().FullName);
+            Assert.Contains("PostgreSQLProvider", e.FreeSql.GetType().FullName);
+
+            _adoNetFreeSqlCreatedCount++;
+
+            Assert.Equal(1, _adoNetFreeSqlCreatedCount);
+        }
 
 		[Fact]
 		public void Insert() {

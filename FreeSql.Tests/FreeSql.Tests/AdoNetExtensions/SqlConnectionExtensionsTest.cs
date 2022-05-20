@@ -1,18 +1,41 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Microsoft.Data.SqlClient;
 using Xunit;
 
-namespace FreeSql.Tests.AdoNetExtensions.SqlConnectionExtensions {
-	public class Methods {
+namespace FreeSql.Tests.AdoNetExtensions.SqlConnectionExtensions
+{
+    [Collection("AdoNetExtensions")]
+	public class Methods : IDisposable
+    {
 
-		string _connectString = "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=5;TrustServerCertificate=true";
+		string _connectString = "Data Source=.;Integrated Security=True;Initial Catalog=issues684;Pooling=true;Max Pool Size=3;TrustServerCertificate=true";
 
 		public Methods() {
 			g.sqlserver.CodeFirst.SyncStructure<TestConnectionExt>();
+
+            FreeSql.AdoNetExtensions.AdoNetFreeSqlCreated += AdoNetExtensions_AdoNetFreeSqlCreated;
+        }
+
+        public void Dispose()
+        {
+            FreeSql.AdoNetExtensions.AdoNetFreeSqlCreated -= AdoNetExtensions_AdoNetFreeSqlCreated;
+        }
+
+        private static int _adoNetFreeSqlCreatedCount;
+
+        private static void AdoNetExtensions_AdoNetFreeSqlCreated(object sender, AdoNetFreeSqlCreatedEventArgs e)
+		{
+            Assert.True(sender is SqlConnection, sender.GetType().FullName);
+			Assert.Contains("SqlServerProvider", e.FreeSql.GetType().FullName);
+
+            _adoNetFreeSqlCreatedCount++;
+            
+            Assert.Equal(1, _adoNetFreeSqlCreatedCount);
 		}
 
-		[Fact]
+        [Fact]
 		public void Insert() {
 			var affrows = 0;
 			using (var conn = new SqlConnection(_connectString)) {

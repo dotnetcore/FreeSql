@@ -1,17 +1,39 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Data.SQLite;
+using Microsoft.Data.SqlClient;
 using Xunit;
 
 namespace FreeSql.Tests.AdoNetExtensions.SQLiteConnectionExtensions {
-	public class Methods {
+	
+    [Collection("AdoNetExtensions")]
+    public class Methods : IDisposable {
 
 		string _connectString = "Data Source=|DataDirectory|/document.db;Attachs=xxxtb.db;Pooling=true;Max Pool Size=5";
 
 		public Methods() {
 			g.sqlite.CodeFirst.SyncStructure<TestConnectionExt>();
+            
+            FreeSql.AdoNetExtensions.AdoNetFreeSqlCreated += AdoNetExtensions_AdoNetFreeSqlCreated;
+		}
+        
+        public void Dispose()
+        {
+            FreeSql.AdoNetExtensions.AdoNetFreeSqlCreated -= AdoNetExtensions_AdoNetFreeSqlCreated;
+        }
+        
+		private static int _adoNetFreeSqlCreatedCount;
+
+		private static void AdoNetExtensions_AdoNetFreeSqlCreated(object sender, AdoNetFreeSqlCreatedEventArgs e)
+        {
+            Assert.True(sender is SQLiteConnection, sender.GetType().FullName);
+            Assert.Contains("SqliteProvider", e.FreeSql.GetType().FullName);
+            
+            _adoNetFreeSqlCreatedCount++;
+
+            Assert.Equal(1, _adoNetFreeSqlCreatedCount);
 		}
 
 		[Fact]

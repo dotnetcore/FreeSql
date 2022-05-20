@@ -1,16 +1,21 @@
-using MySql.Data.MySqlClient;
+﻿using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Xunit;
 
 namespace FreeSql.Tests.AdoNetExtensions.MySqlConnectionExtensions {
-	public class Methods {
+
+	[Collection("AdoNetExtensions")]
+	public class Methods : IDisposable {
 
 		string _connectString = "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=5";
 
 		public Methods() {
 			g.mysql.CodeFirst.SyncStructure<TestConnectionExt>();
+
+            FreeSql.AdoNetExtensions.AdoNetFreeSqlCreated += AdoNetExtensions_AdoNetFreeSqlCreated;
+            
 			using (var conn = new MySqlConnection(_connectString))
 			{
 				var fsql = conn.GetIFreeSql();
@@ -18,6 +23,25 @@ namespace FreeSql.Tests.AdoNetExtensions.MySqlConnectionExtensions {
 				fsql.Aop.CommandBefore += (_, e) => Trace.WriteLine("SQL: " + e.Command.CommandText);
 			}
 		}
+
+
+        public void Dispose()
+        {
+            FreeSql.AdoNetExtensions.AdoNetFreeSqlCreated -= AdoNetExtensions_AdoNetFreeSqlCreated;
+        }
+
+        private static int _adoNetFreeSqlCreatedCount;
+
+        private static void AdoNetExtensions_AdoNetFreeSqlCreated(object sender, AdoNetFreeSqlCreatedEventArgs e)
+        {
+            Assert.True(sender is MySqlConnection, sender.GetType().FullName);
+            Assert.Contains("MySqlProvider", e.FreeSql.GetType().FullName);
+
+            _adoNetFreeSqlCreatedCount++;
+
+            Assert.Equal(1, _adoNetFreeSqlCreatedCount);
+        }
+
 
 		[Fact]
 		public void Insert() {
