@@ -1040,6 +1040,11 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="P:FreeSql.AdoNetFreeSqlCreatedEventArgs.FreeSql">
+            <summary>
+            创建的 IFreeSql 实例
+            </summary>
+        </member>
         <member name="M:FreeSql.Extensions.EntityUtil.EntityUtilExtensions.GetEntityKeyString(IFreeSql,System.Type,System.Object,System.Boolean,System.String)">
             <summary>
             获取实体的主键值，以 "*|_,[,_|*" 分割，当任意一个主键属性无值时，返回 null

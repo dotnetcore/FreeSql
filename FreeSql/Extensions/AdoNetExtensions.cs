@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -9,16 +10,36 @@ namespace FreeSql
     {
         #region Ado.net 扩展方法，类似于 Dapper
 
-        static Dictionary<string, IFreeSql> _dicCurd = new Dictionary<string, IFreeSql>();
-        static object _dicCurdLock = new object();
+        public static event EventHandler<AdoNetFreeSqlCreatedEventArgs> AdoNetFreeSqlCreated;
+
+        private static ConcurrentDictionary<Type, IFreeSql> _dictCurd = new ConcurrentDictionary<Type, IFreeSql>();
+
         static IFreeSql GetCrud(IDbConnection dbconn)
         {
             if (dbconn == null) throw new ArgumentNullException($"{nameof(dbconn)} 不能为 null");
-            if (dbconn.ConnectionString == null) throw new ArgumentNullException($"{nameof(dbconn)}.ConnectionString 不能为 null");
-            Type dbconType = dbconn.GetType();
-            var connType = dbconType.UnderlyingSystemType;
-            if (_dicCurd.TryGetValue(dbconn.ConnectionString, out var fsql)) return fsql;
+            
+            return _dictCurd.GetOrAdd(dbconn.GetType(), type =>
+            {
+                IFreeSql freeSql = GetCrudInternal(type);
 
+                try
+                {
+                    AdoNetFreeSqlCreated?.Invoke(dbconn, new AdoNetFreeSqlCreatedEventArgs(freeSql));
+                }
+                catch
+                {
+                    freeSql.Dispose();
+                    throw;
+                }
+                
+                return freeSql;
+            });
+        }
+
+        private static IFreeSql GetCrudInternal(Type type)
+        {
+            var connType = type.UnderlyingSystemType;
+            
             Type providerType = null;
             switch (connType.Name)
             {
@@ -66,14 +87,10 @@ namespace FreeSql
                 default:
                     throw new Exception("未实现");
             }
-            lock (_dicCurdLock)
-            {
-                if (_dicCurd.TryGetValue(dbconn.ConnectionString, out fsql)) return fsql;
-                lock (_dicCurdLock)
-                    _dicCurd.Add(dbconn.ConnectionString, fsql = Activator.CreateInstance(providerType, new object[] { null, null, null }) as IFreeSql);
-            }
-            return fsql;
+
+            return Activator.CreateInstance(providerType, new object[] { null, null, null }) as IFreeSql;
         }
+        
         static IFreeSql GetCrud(IDbTransaction dbtran)
         {
             if (dbtran == null) throw new ArgumentNullException($"{nameof(dbtran)} 不能为 null");
@@ -422,5 +439,23 @@ namespace FreeSql
         #endregion
 
         #endregion
+
     }
+
+    #region Ado.net 创建 IFreeSql 实例
+
+    public class AdoNetFreeSqlCreatedEventArgs : EventArgs
+    {
+        public AdoNetFreeSqlCreatedEventArgs(IFreeSql freeSql)
+        {
+            FreeSql = freeSql;
+        }
+        
+        /// <summary>
+        /// 创建的 IFreeSql 实例
+        /// </summary>
+        public IFreeSql FreeSql { get; }
+    }
+
+    #endregion
 }
