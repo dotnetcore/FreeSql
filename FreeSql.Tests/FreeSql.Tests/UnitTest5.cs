@@ -16,10 +16,17 @@ namespace FreeSql.Tests
 {
     public class UnitTest5
     {
+
         [Fact]
-        public void AsTable_PropertyName_FormatErrorTest1()
+        public void TestConstDtoStringEmpty()
         {
-            CoreStrings.AsTable_PropertyName_FormatError("astable");
+            var fsql = g.mysql;
+            var sql = fsql.Select<TestDto>().ToSql(a => new
+            {
+                empty = ""
+            });
+            Assert.Equal(@"SELECT '' as1 
+FROM `TestDto` a", sql);
         }
         // DTO
         public class TestDto

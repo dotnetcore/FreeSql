@@ -29,6 +29,15 @@ namespace FreeSql
             DataFilterUtil.SetRepositoryDataFilter(this, null);
             DataFilter.Apply("", filter);
             AsTable(asTable);
+
+            fsql.GlobalFilter.GetFilters().ForEach(gf =>
+            {
+                (DataFilter as DataFilter<TEntity>)._filtersByOrm.TryAdd(gf.Name, new DataFilter<TEntity>.FilterItemByOrm
+                {
+                    Filter = gf,
+                    IsEnabled = true
+                });
+            });
         }
 
         ~BaseRepository() => this.Dispose();

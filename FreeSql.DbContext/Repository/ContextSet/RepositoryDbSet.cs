@@ -22,8 +22,9 @@ namespace FreeSql
 
             var filters = (_repo.DataFilter as DataFilter<TEntity>)._filters;
             foreach (var filter in filters.Where(a => a.Value.IsEnabled == true)) select.Where(filter.Value.Expression);
-            var disableFilter = filters.Where(a => a.Value.IsEnabled == false).Select(a => a.Key).ToArray();
-            if (disableFilter.Any()) select.DisableGlobalFilter();
+            var disableFilter = filters.Where(a => a.Value.IsEnabled == false).Select(a => a.Key).ToList();
+            disableFilter.AddRange((_repo.DataFilter as DataFilter<TEntity>)._filtersByOrm.Where(a => a.Value.IsEnabled == false).Select(a => a.Key));
+            if (disableFilter.Any()) select.DisableGlobalFilter(disableFilter.ToArray());
             return select;
         }
         internal ISelect<TEntity> OrmSelectInternal(object dywhere) => OrmSelect(dywhere);
@@ -39,8 +40,9 @@ namespace FreeSql
                             throw new Exception(DbContextStrings.UpdateError_Filter(filter.Key, filter.Value.Expression, _db.OrmOriginal.GetEntityString(_entityType, entity)));
                 update.Where(filter.Value.Expression);
             }
-            var disableFilter = filters.Where(a => a.Value.IsEnabled == false).Select(a => a.Key).ToArray();
-            if (disableFilter.Any()) update.DisableGlobalFilter();
+            var disableFilter = filters.Where(a => a.Value.IsEnabled == false).Select(a => a.Key).ToList();
+            disableFilter.AddRange((_repo.DataFilter as DataFilter<TEntity>)._filtersByOrm.Where(a => a.Value.IsEnabled == false).Select(a => a.Key));
+            if (disableFilter.Any()) update.DisableGlobalFilter(disableFilter.ToArray());
             return update;
         }
         internal IUpdate<TEntity> OrmUpdateInternal(IEnumerable<TEntity> entitys) => OrmUpdate(entitys);
@@ -49,8 +51,9 @@ namespace FreeSql
             var delete = base.OrmDelete(dywhere).AsTable(_repo.AsTableValueInternal);
             var filters = (_repo.DataFilter as DataFilter<TEntity>)._filters;
             foreach (var filter in filters.Where(a => a.Value.IsEnabled == true)) delete.Where(filter.Value.Expression);
-            var disableFilter = filters.Where(a => a.Value.IsEnabled == false).Select(a => a.Key).ToArray();
-            if (disableFilter.Any()) delete.DisableGlobalFilter();
+            var disableFilter = filters.Where(a => a.Value.IsEnabled == false).Select(a => a.Key).ToList();
+            disableFilter.AddRange((_repo.DataFilter as DataFilter<TEntity>)._filtersByOrm.Where(a => a.Value.IsEnabled == false).Select(a => a.Key));
+            if (disableFilter.Any()) delete.DisableGlobalFilter(disableFilter.ToArray());
             return delete;
         }
         internal IDelete<TEntity> OrmDeleteInternal(object dywhere) => OrmDelete(dywhere);
