@@ -15,8 +15,14 @@ namespace FreeSql.Tests.Properties
         public DbContextStringsTests(ITestOutputHelper output)
         {
             this.output = output;
-            Thread.CurrentThread.CurrentUICulture = new System.Globalization.CultureInfo("en-US");
-            Thread.CurrentThread.CurrentUICulture = new System.Globalization.CultureInfo("en-US");
+            //Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("zh-Hans");
+            //Thread.CurrentThread.CurrentUICulture = new System.Globalization.CultureInfo("zh-Hans");
+
+            //Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
+            //Thread.CurrentThread.CurrentUICulture = new System.Globalization.CultureInfo("en-US");
+
+            //DbContextStrings.Culture= new System.Globalization.CultureInfo("zh-CN");
+            DbContextStrings.Culture = new System.Globalization.CultureInfo("en-US");
         }
 
         [Fact]

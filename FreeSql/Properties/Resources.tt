@@ -21,6 +21,7 @@
 using System;
 using System.Reflection;
 using System.Resources;
+using System.Globalization;
 <#
     if (!model.NoDiagnostics)
     {
@@ -62,8 +63,25 @@ namespace <#= model.Namespace #>
 #>
     <#= model.AccessModifier #> static class <#= model.Class #>
     {
-        private static readonly ResourceManager _resourceManager
-            = new ResourceManager("<#= model.ResourceName #>", typeof(<#= model.Class #>).Assembly);
+        private static readonly ResourceManager _resourceManager = new ResourceManager("<#= model.ResourceName #>", typeof(<#= model.Class #>).Assembly);
+		
+        private static CultureInfo _resourceCulture;
+		
+        /// <summary>
+        ///   重写当前线程的 CurrentUICulture 属性，对
+        ///   使用此强类型资源类的所有资源查找执行重写。
+        /// </summary>
+        public static CultureInfo Culture
+        {
+            get
+            {
+                return _resourceCulture;
+            }
+            set
+            {
+                _resourceCulture = value;
+            }
+        }
 <#
     foreach (var resource in model.Resources)
     {
@@ -108,7 +126,7 @@ namespace <#= model.Namespace #>
 
         private static string GetString(string name, params string[] formatterNames)
         {
-            var value = _resourceManager.GetString(name);
+            var value = _resourceManager.GetString(name,_resourceCulture);
             for (var i = 0; i < formatterNames.Length; i++)
             {
                 value = value.Replace("{" + formatterNames[i] + "}", "{" + i + "}");
@@ -161,11 +179,10 @@ namespace <#= model.Namespace #>
 
         result.Class = Path.GetFileNameWithoutExtension(resourceFile);
 
-
         result.ResourceName = resourceNamespace + "." + result.Class;
-
+		
         List<ResXDataNode> sortedResources;
-        using (var reader = new ResXResourceReader(resourceFile))
+        using (var reader = new ResXResourceReader(resourceFile.Replace(".resx", ".zh-Hans.resx")))
         {
             reader.UseResXDataNodes = true;
             sortedResources = Enumerable.ToList(

@@ -71,11 +71,11 @@
 			<Generator>TextTemplatingFileGenerator</Generator>
 			<LastGenOutput>DbContextStrings.Designer.cs</LastGenOutput>
 		</None>
-		<EmbeddedResource Update="Properties\DbContextStrings.en-US.resx">
+		<EmbeddedResource Update="Properties\DbContextStrings.resx">
 		  <SubType>Designer</SubType>
 		  <CustomToolNamespace>FreeSql</CustomToolNamespace>
 		</EmbeddedResource>
-		<EmbeddedResource Update="Properties\DbContextStrings.resx">
+		<EmbeddedResource Update="Properties\DbContextStrings.zh-Hans.resx">
 			<CustomToolNamespace>FreeSql</CustomToolNamespace>
 		</EmbeddedResource>
 	</ItemGroup>

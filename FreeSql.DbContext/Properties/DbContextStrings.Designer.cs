@@ -4,6 +4,7 @@
 using System;
 using System.Reflection;
 using System.Resources;
+using System.Globalization;
 using System.Threading;
 
 namespace FreeSql
@@ -19,8 +20,25 @@ namespace FreeSql
     /// </summary>
     public static class DbContextStrings
     {
-        private static readonly ResourceManager _resourceManager
-            = new ResourceManager("FreeSql.DbContext.Properties.DbContextStrings", typeof(DbContextStrings).Assembly);
+        private static readonly ResourceManager _resourceManager = new ResourceManager("FreeSql.DbContext.Properties.DbContextStrings", typeof(DbContextStrings).Assembly);
+		
+        private static CultureInfo _resourceCulture;
+		
+        /// <summary>
+        ///   重写当前线程的 CurrentUICulture 属性，对
+        ///   使用此强类型资源类的所有资源查找执行重写。
+        /// </summary>
+        public static CultureInfo Culture
+        {
+            get
+            {
+                return _resourceCulture;
+            }
+            set
+            {
+                _resourceCulture = value;
+            }
+        }
 
         /// <summary>
         /// AddFreeDbContext 发生错误，请检查 {dbContextTypeName} 的构造参数都已正确注入
@@ -344,7 +362,7 @@ namespace FreeSql
 
         private static string GetString(string name, params string[] formatterNames)
         {
-            var value = _resourceManager.GetString(name);
+            var value = _resourceManager.GetString(name,_resourceCulture);
             for (var i = 0; i < formatterNames.Length; i++)
             {
                 value = value.Replace("{" + formatterNames[i] + "}", "{" + i + "}");

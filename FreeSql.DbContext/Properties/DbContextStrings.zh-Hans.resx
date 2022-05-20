@@ -118,129 +118,129 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="AddFreeDbContextError_CheckConstruction" xml:space="preserve">
-    <value>An error occurred in AddFreeDbContext, check that the construction parameters of {dbContextTypeName} have been injected correctly</value>
+    <value>AddFreeDbContext 发生错误，请检查 {dbContextTypeName} 的构造参数都已正确注入</value>
   </data>
   <data name="CannotAdd_AlreadyExistsInStateManagement" xml:space="preserve">
-    <value>Not addable, already exists in state management: {entityString}</value>
+    <value>不可添加，已存在于状态管理：{entityString}</value>
   </data>
   <data name="CannotAdd_EntityHasNo_PrimaryKey" xml:space="preserve">
-    <value>Not addable, entity has no primary key: {entityString}</value>
+    <value>不可添加，实体没有主键：{entityString}</value>
   </data>
   <data name="CannotAdd_PrimaryKey_NotSet" xml:space="preserve">
-    <value>Not addable, no value for primary key set: {entityString}</value>
+    <value>不可添加，未设置主键的值：{entityString}</value>
   </data>
   <data name="CannotAdd_SelfIncreasingHasValue" xml:space="preserve">
-    <value>Not addable, self-increasing attribute has value: {entityString}</value>
+    <value>不可添加，自增属性有值：{entityString}</value>
   </data>
   <data name="CannotAttach_EntityHasNo_PrimaryKey" xml:space="preserve">
-    <value>Not attachable, entity has no primary key: {entityString}</value>
+    <value>不可附加，实体没有主键：{entityString}</value>
   </data>
   <data name="CannotAttach_PrimaryKey_NotSet" xml:space="preserve">
-    <value>Not attachable, no value for primary key set: {entityString}</value>
+    <value>不可附加，未设置主键的值：{entityString}</value>
   </data>
   <data name="CannotDelete_DataNotTracked_ShouldQuery" xml:space="preserve">
-    <value>Not deletable, data not tracked, should query first: {entityString}</value>
+    <value>不可删除，数据未被跟踪，应该先查询：{entityString}</value>
   </data>
   <data name="CannotDelete_EntityHasNo_PrimaryKey" xml:space="preserve">
-    <value>Not deletable, entity has no primary key: {entityString}</value>
+    <value>不可删除，实体没有主键：{entityString}</value>
   </data>
   <data name="CannotDelete_PrimaryKey_NotSet" xml:space="preserve">
-    <value>Not deletable, no value for primary key set: {entityString}</value>
+    <value>不可删除，未设置主键的值：{entityString}</value>
   </data>
   <data name="CannotEdit_EntityHasNo_PrimaryKey" xml:space="preserve">
-    <value>Not editable, entity has no primary key: {entityString}</value>
+    <value>不可进行编辑，实体没有主键：{entityString}</value>
   </data>
   <data name="CannotUpdate_DataShouldQueryOrAttach" xml:space="preserve">
-    <value>Not updatable, data not tracked, should be queried first or Attach:{entityString}</value>
+    <value>不可更新，数据未被跟踪，应该先查询 或者 Attach：{entityString}</value>
   </data>
   <data name="CannotUpdate_EntityHasNo_PrimaryKey" xml:space="preserve">
-    <value>Not updatable, entity has no primary key: {entityString}</value>
+    <value>不可更新，实体没有主键：{entityString}</value>
   </data>
   <data name="CannotUpdate_PrimaryKey_NotSet" xml:space="preserve">
-    <value>Not updatable, no value for primary key set: {entityString}</value>
+    <value>不可更新，未设置主键的值：{entityString}</value>
   </data>
   <data name="CannotUpdate_RecordDoesNotExist" xml:space="preserve">
-    <value>Not updatable, the record does not exist in the database: {entityString}</value>
+    <value>不可更新，数据库不存在该记录：{entityString}</value>
   </data>
   <data name="ConfigureUseFreeSql" xml:space="preserve">
-    <value>Please configure UseFreeSql in OnConfiguring or AddFreeDbContext</value>
+    <value>请在 OnConfiguring 或 AddFreeDbContext 中配置 UseFreeSql</value>
   </data>
   <data name="DbSetAsType_NotSupport_Object" xml:space="preserve">
-    <value>DbSet. AsType parameter error, please pass in the correct entity type</value>
+    <value>DbSet.AsType 参数错误，请传入正确的实体类型</value>
   </data>
   <data name="EntityType_CannotConvert" xml:space="preserve">
-    <value>Entity type {EntityTypeName} cannot be converted to {name} and cannot use this method</value>
+    <value>实体类型 {EntityTypeName} 无法转换为 {name}，无法使用该方法</value>
   </data>
   <data name="EntityType_PrimaryKeyError" xml:space="preserve">
-    <value>Entity type {EntityTypeName} Primary key type is not {fullName} and cannot be used with this method</value>
+    <value>实体类型 {EntityTypeName} 主键类型不为 {fullName}，无法使用该方法</value>
   </data>
   <data name="EntityType_PrimaryKeyIsNotOne" xml:space="preserve">
-    <value>Entity type {EntityTypeName} Primary key number is not 1 and cannot be used with this method</value>
+    <value>实体类型 {EntityTypeName} 主键数量不为 1，无法使用该方法</value>
   </data>
   <data name="FailedSetFilter_NotBelongIRpository" xml:space="preserve">
-    <value>FreeSql. Repository failed to set filter because object does not belong to IRepository</value>
+    <value>FreeSql.Repository 设置过滤器失败，原因是对象不属于 IRepository</value>
   </data>
   <data name="Incomparable_EntityHasNo_PrimaryKey" xml:space="preserve">
-    <value>Not comparable, entity has no primary key: {entityString}</value>
+    <value>不可比较，实体没有主键：{entityString}</value>
   </data>
   <data name="Incomparable_PrimaryKey_NotSet" xml:space="preserve">
-    <value>Non-comparable, no value for primary key set: {entityString}</value>
+    <value>不可比较，未设置主键的值：{entityString}</value>
   </data>
   <data name="InsertError_Filter" xml:space="preserve">
-    <value>FreeSql. Repository Insert failed because the filter {filterKey}: {filterValueExpression} was set and the inserted data does not conform to {entityString}</value>
+    <value>FreeSql.Repository Insert 失败，因为设置了过滤器 {filterKey}: {filterValueExpression}，插入的数据不符合 {entityString}</value>
   </data>
   <data name="ISelectAsType_ParameterError" xml:space="preserve">
-    <value>ISelect. AsType parameter does not support specifying as object</value>
+    <value>ISelect.AsType 参数不支持指定为 object</value>
   </data>
   <data name="NotFound_Property" xml:space="preserve">
-    <value>Property {propertyName} does not exist for {tableTypeFullName}</value>
+    <value>{tableTypeFullName} 不存在属性 {propertyName}</value>
   </data>
   <data name="NotFoundMethod_StatesRemoveByObjects" xml:space="preserve">
-    <value>Method DbSet&lt;&gt; not found. StatesRemoveByObjects</value>
+    <value>找不到方法 DbSet&lt;&gt;.StatesRemoveByObjects</value>
   </data>
   <data name="ParameterDataTypeError" xml:space="preserve">
-    <value>Parameter data type error {entityTypeFullName}</value>
+    <value>参数 data 类型错误 {entityTypeFullName} </value>
   </data>
   <data name="ParameterError" xml:space="preserve">
-    <value>Parameter error {param}</value>
+    <value>参数错误 {param}</value>
   </data>
   <data name="ParameterError_CannotBeNull" xml:space="preserve">
-    <value>Parameter error {param} cannot be null</value>
+    <value>参数错误 {param} 不能为 null</value>
   </data>
   <data name="ParameterError_IsNot_CollectionProperties" xml:space="preserve">
-    <value>Parameter error {many} is not a collection property</value>
+    <value>参数错误 {many} 不是集合属性</value>
   </data>
   <data name="ParameterError_NotFound_CollectionProperties" xml:space="preserve">
-    <value>Parameter error {many} Collection property does not exist</value>
+    <value>参数错误 {many} 集合属性不存在</value>
   </data>
   <data name="ParameterError_NotFound_Property" xml:space="preserve">
-    <value>Parameter error {one} attribute does not exist</value>
+    <value>参数错误 {one} 属性不存在</value>
   </data>
   <data name="Propagation_Mandatory" xml:space="preserve">
-    <value>Propagation_ Mandatory: With the current transaction, throw an exception if there is no current transaction</value>
+    <value>Propagation_Mandatory: 使用当前事务，如果没有当前事务，就抛出异常</value>
   </data>
   <data name="Propagation_Never" xml:space="preserve">
-    <value>Propagation_ Never: Perform the operation non-transactionally and throw an exception if the current transaction exists</value>
+    <value>Propagation_Never: 以非事务方式执行操作，如果当前事务存在则抛出异常</value>
   </data>
   <data name="PropertyOfType_IsNot_OneToManyOrManyToMany" xml:space="preserve">
-    <value>Property {propertyName} of type {tableTypeFullName} is not OneToMany or ManyToMany attribute</value>
+    <value>{tableTypeFullName} 类型的属性 {propertyName} 不是 OneToMany 或 ManyToMany 特性</value>
   </data>
   <data name="SpecialError_BatchAdditionFailed" xml:space="preserve">
-    <value>Special error: Bulk add failed, {dataType} returned data, does not match the number added</value>
+    <value>特别错误：批量添加失败，{dataType} 的返回数据，与添加的数目不匹配</value>
   </data>
   <data name="SpecialError_UpdateFailedDataNotTracked" xml:space="preserve">
-    <value>Special error: Update failed, data not tracked: {entityString}</value>
+    <value>特别错误：更新失败，数据未被跟踪：{entityString}</value>
   </data>
   <data name="TransactionHasBeenStarted" xml:space="preserve">
-    <value>Transaction opened, unit of work cannot be disabled</value>
+    <value>已开启事务，不能禁用工作单元</value>
   </data>
   <data name="TypeHasSetProperty_IgnoreAttribute" xml:space="preserve">
-    <value>The {tableTypeFullName} type has set the property {propertyName} Ignore the attribute</value>
+    <value>{tableTypeFullName} 类型已设置属性 {propertyName} 忽略特性</value>
   </data>
   <data name="UnitOfWorkManager_Construction_CannotBeNull" xml:space="preserve">
-    <value>The {unitOfWorkManager} constructor parameter {fsql} cannot be null</value>
+    <value>{unitOfWorkManager} 构造参数 {fsql} 不能为 null</value>
   </data>
   <data name="UpdateError_Filter" xml:space="preserve">
-    <value>FreeSql. Repository Update failed because the filter {filterKey}: {filterValueExpression} is set and the updated data does not conform to {entityString}</value>
+    <value>FreeSql.Repository Update 失败，因为设置了过滤器 {filterKey}: {filterValueExpression}，更新的数据不符合{entityString}</value>
   </data>
 </root>

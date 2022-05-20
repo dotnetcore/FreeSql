@@ -4,6 +4,7 @@
 using System;
 using System.Reflection;
 using System.Resources;
+using System.Globalization;
 using System.Threading;
 
 namespace FreeSql
@@ -19,8 +20,25 @@ namespace FreeSql
     /// </summary>
     public static class CoreStrings
     {
-        private static readonly ResourceManager _resourceManager
-            = new ResourceManager("FreeSql.Properties.CoreStrings", typeof(CoreStrings).Assembly);
+        private static readonly ResourceManager _resourceManager = new ResourceManager("FreeSql.Properties.CoreStrings", typeof(CoreStrings).Assembly);
+		
+        private static CultureInfo _resourceCulture;
+		
+        /// <summary>
+        ///   重写当前线程的 CurrentUICulture 属性，对
+        ///   使用此强类型资源类的所有资源查找执行重写。
+        /// </summary>
+        public static CultureInfo Culture
+        {
+            get
+            {
+                return _resourceCulture;
+            }
+            set
+            {
+                _resourceCulture = value;
+            }
+        }
 
         /// <summary>
         /// [Table(AsTable = "{asTable}")] 特性值格式错误
@@ -565,7 +583,7 @@ namespace FreeSql
                 trytbTypeName, pnvName, tbrefTypeName, bi);
 
         /// <summary>
-        /// {tableTypeDisplayCsharp} 没有定义主键，无法使用 SetSource，请尝试 SetDto
+        /// {tableTypeDisplayCsharp} 没有定义主键，无法使用 SetSource，请尝试 SetDto 或者 SetSource 指定临时主键
         /// </summary>
         public static string NoPrimaryKey_UseSetDto(object tableTypeDisplayCsharp)
             => string.Format(
@@ -964,7 +982,7 @@ namespace FreeSql
 
         private static string GetString(string name, params string[] formatterNames)
         {
-            var value = _resourceManager.GetString(name);
+            var value = _resourceManager.GetString(name,_resourceCulture);
             for (var i = 0; i < formatterNames.Length; i++)
             {
                 value = value.Replace("{" + formatterNames[i] + "}", "{" + i + "}");
