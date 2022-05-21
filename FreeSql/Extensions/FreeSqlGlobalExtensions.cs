@@ -157,7 +157,7 @@ public static partial class FreeSqlGlobalExtensions
         var ret = _dicInternalGetTypeConstructor0OrFirst.GetOrAdd(that, tp =>
             tp.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new Type[0], null) ??
             tp.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).OrderBy(a => a.IsPublic ? 0 : 1).FirstOrDefault());
-        if (ret == null && isThrow) throw new ArgumentException($"{that.FullName} 类型无方法访问构造函数");
+        if (ret == null && isThrow) throw new ArgumentException(CoreStrings.Type_Cannot_Access_Constructor(that.FullName));
         return ret;
     }
 
@@ -378,7 +378,7 @@ public static partial class FreeSqlGlobalExtensions
         var t1sel = orm.Select<T1>() as Select1Provider<T1>;
         var t1expFul = t1sel.ConvertStringPropertyToExpression(property, true);
         var t1exp = props.Length == 1 ? t1expFul : t1sel.ConvertStringPropertyToExpression(props[0], true);
-        if (t1expFul == null) throw new ArgumentException($"{nameof(property)} 无法解析为表达式树");
+        if (t1expFul == null) throw new ArgumentException(CoreStrings.Cannot_Resolve_ExpressionTree(nameof(property)));
         var propElementType = t1expFul.Type.GetGenericArguments().FirstOrDefault() ?? t1expFul.Type.GetElementType();
         if (propElementType != null) //IncludeMany
         {
@@ -394,7 +394,7 @@ public static partial class FreeSqlGlobalExtensions
             return list;
         }
         var tbtr = t1tb.GetTableRef(props[0], true);
-        if (tbtr == null) throw new ArgumentException($"{nameof(property)} 参数错误，它不是有效的导航属性");
+        if (tbtr == null) throw new ArgumentException(CoreStrings.ParameterError_NotValid_Navigation(nameof(property)));
         var reftb = orm.CodeFirst.GetTableByEntity(t1exp.Type);
         var refsel = orm.Select<object>().AsType(t1exp.Type) as Select1Provider<object>;
         if (props.Length > 1)
@@ -443,14 +443,14 @@ public static partial class FreeSqlGlobalExtensions
         }
         var sel = orm.Select<T1>() as Select1Provider<T1>;
         var exp = sel.ConvertStringPropertyToExpression(property, true);
-        if (exp == null) throw new ArgumentException($"{nameof(property)} 无法解析为表达式树");
+        if (exp == null) throw new ArgumentException(CoreStrings.Cannot_Resolve_ExpressionTree(nameof(property)));
         var memExp = exp as MemberExpression;
-        if (memExp == null) throw new ArgumentException($"{nameof(property)} 无法解析为表达式树2");
+        if (memExp == null) throw new ArgumentException($"{CoreStrings.Cannot_Resolve_ExpressionTree(nameof(property))}2");
         var parTb = orm.CodeFirst.GetTableByEntity(memExp.Expression.Type);
-        if (parTb == null) throw new ArgumentException($"{nameof(property)} 无法解析为表达式树3");
+        if (parTb == null) throw new ArgumentException($"{CoreStrings.Cannot_Resolve_ExpressionTree(nameof(property))}3");
         var propElementType = exp.Type.GetGenericArguments().FirstOrDefault() ?? exp.Type.GetElementType();
         var reftb = orm.CodeFirst.GetTableByEntity(propElementType);
-        if (reftb == null) throw new ArgumentException($"{nameof(property)} 参数错误，它不是集合属性，必须为 IList<T> 或者 ICollection<T>");
+        if (reftb == null) throw new ArgumentException(CoreStrings.ParameterError_NotValid_Collection(nameof(property)));
 
         if (string.IsNullOrWhiteSpace(where) == false)
         {
@@ -463,12 +463,12 @@ public static partial class FreeSqlGlobalExtensions
             for (var a = 0; a < whereSplit.Length; a++)
             {
                 var keyval = whereSplit[a].Split('=').Select(x => x.Trim()).Where(x => string.IsNullOrWhiteSpace(x) == false).ToArray();
-                if (keyval.Length != 2) throw new ArgumentException($"{nameof(where)} 参数错误，格式 \"TopicId=Id，多组使用逗号连接\" ");
+                if (keyval.Length != 2) throw new ArgumentException(CoreStrings.ParameterError_NotValid_UseCommas(nameof(where)));
 
                 if (reftb.ColumnsByCs.TryGetValue(keyval[0], out var keycol) == false)
-                    throw new ArgumentException($"{nameof(where)} 参数错误，{keyval[0]} 不是有效的属性名，在实体类 {reftb.Type.DisplayCsharp()} 无法找到");
+                    throw new ArgumentException(CoreStrings.ParameterError_NotValid_PropertyName(nameof(where),keyval[0], reftb.Type.DisplayCsharp()));
                 if (parTb.ColumnsByCs.TryGetValue(keyval[1], out var valcol) == false)
-                    throw new ArgumentException($"{nameof(where)} 参数错误，{keyval[1]} 不是有效的属性名，在实体类 {parTb.Type.DisplayCsharp()} 无法找到");
+                    throw new ArgumentException(CoreStrings.ParameterError_NotValid_PropertyName(nameof(where), keyval[1], parTb.Type.DisplayCsharp()));
 
                 var tmpExp = Expression.Equal(
                     Expression.Convert(Expression.MakeMemberAccess(refparamExp, reftb.Properties[keyval[0]]), valcol.CsType),
@@ -494,7 +494,7 @@ public static partial class FreeSqlGlobalExtensions
                 select.Split(',').Select(x => x.Trim()).Where(x => string.IsNullOrWhiteSpace(x) == false).Select(a =>
                 {
                     if (reftb.ColumnsByCs.TryGetValue(a, out var col) == false)
-                        throw new ArgumentException($"{nameof(select)} 参数错误，{a} 不是有效的属性名，在实体类 {reftb.Type.DisplayCsharp()} 无法找到");
+                        throw new ArgumentException(CoreStrings.ParameterError_NotValid_PropertyName(nameof(select), a, reftb.Type.DisplayCsharp()));
                     return Expression.Bind(reftb.Properties[col.CsName], Expression.MakeMemberAccess(refparamExp, reftb.Properties[col.CsName]));
                 }).ToArray());
 
@@ -505,7 +505,7 @@ public static partial class FreeSqlGlobalExtensions
         var funcType = typeof(Func<,>).MakeGenericType(sel._tables[0].Table.Type, typeof(IEnumerable<>).MakeGenericType(reftb.Type));
         var navigateSelector = Expression.Lambda(funcType, exp, sel._tables[0].Parameter);
         var incMethod = sel.GetType().GetMethod("IncludeMany");
-        if (incMethod == null) throw new Exception("运行时错误，反射获取 IncludeMany 方法失败");
+        if (incMethod == null) throw new Exception(CoreStrings.RunTimeError_Reflection_IncludeMany);
         incMethod.MakeGenericMethod(reftb.Type).Invoke(sel, new object[] { navigateSelector, null });
         return sel;
     }
@@ -595,7 +595,7 @@ public static partial class FreeSqlGlobalExtensions
                 a.RefType == FreeSql.Internal.Model.TableRefType.OneToMany &&
                 a.RefEntityType == tb.Type).ToArray();
 
-        if (navs.Length != 1) throw new ArgumentException($"{tb.Type.FullName} 不是父子关系，无法使用该功能");
+        if (navs.Length != 1) throw new ArgumentException(CoreStrings.Entity_NotParentChild_Relationship(tb.Type.FullName));
         var tbref = navs[0];
 
         var cteName = "as_tree_cte";
@@ -641,7 +641,7 @@ public static partial class FreeSqlGlobalExtensions
                 }
                 if (int.TryParse((mysqlVersion ?? "").Split('.')[0], out var mysqlVersionFirst) && mysqlVersionFirst < 8)
                 {
-                    if (tbref.Columns.Count > 1) throw new ArgumentException($"{tb.Type.FullName} 是父子关系，但是 MySql 8.0 以下版本中不支持组合多主键");
+                    if (tbref.Columns.Count > 1) throw new ArgumentException(CoreStrings.Entity_MySQL_VersionsBelow8_NotSupport_Multiple_PrimaryKeys(tb.Type.FullName));
                     var mysql56Sql = "";
                     if (up == false)
                     {
@@ -833,7 +833,7 @@ SELECT ");
             case DataType.Firebird:
                 return that.OrderBy("rand()");
         }
-        throw new NotSupportedException($"{s0p._orm.Ado.DataType} 不支持 OrderByRandom 随机排序");
+        throw new NotSupportedException($"{CoreStrings.Not_Support_OrderByRandom(s0p._orm.Ado.DataType)}");
     }
     #endregion
 
@@ -1033,7 +1033,7 @@ SELECT ");
             foreach (var primary in primarys)
             {
                 if (table.ColumnsByCs.TryGetValue(string.Concat(primary), out var col)) pks.Add(col);
-                else throw new Exception($"GetPrimarys 传递的参数 \"{primary}\" 不正确，它不属于字典数据的键名");
+                else throw new Exception(CoreStrings.GetPrimarys_ParameterError_IsNotDictKey(primary));
             }
             return pks.ToArray();
         }
@@ -1042,7 +1042,7 @@ SELECT ");
             foreach (var primary in primarys)
             {
                 if (table.ColumnsByCs.TryGetValue(string.Concat(primary), out var col)) col.Attribute.IsPrimary = true;
-                else throw new Exception($"GetPrimarys 传递的参数 \"{primary}\" 不正确，它不属于字典数据的键名");
+                else throw new Exception(CoreStrings.GetPrimarys_ParameterError_IsNotDictKey(primary));
             }
             table.Primarys = table.Columns.Where(a => a.Value.Attribute.IsPrimary).Select(a => a.Value).ToArray();
         }

@@ -38,7 +38,7 @@ namespace FreeSql.Internal.CommonProvider
             _commonExpression = commonExpression;
             _table = _commonUtils.GetTableByEntity(typeof(T1));
             if (_table == null && typeof(T1) != typeof(Dictionary<string, object>))
-                throw new Exception($"InsertOrUpdate<>的泛型参数 不支持 {typeof(T1)},请传递您的实体类");
+                throw new Exception(CoreStrings.InsertOrUpdate_NotSuport_Generic_UseEntity(typeof(T1)));
             if (_orm.CodeFirst.IsAutoSyncStructure && typeof(T1) != typeof(object)) _orm.CodeFirst.SyncStructure<T1>();
             IdentityColumn = _table?.Primarys.Where(a => a.Attribute.IsIdentity).FirstOrDefault();
         }
@@ -88,7 +88,7 @@ namespace FreeSql.Internal.CommonProvider
         {
             if (data == null || table == null) return;
             if (typeof(T1) == typeof(object) && new[] { table.Type, table.TypeLazy }.Contains(data.GetType()) == false)
-                throw new Exception($"操作的数据类型({data.GetType().DisplayCsharp()}) 与 AsType({table.Type.DisplayCsharp()}) 不一致，请检查。");
+                throw new Exception(CoreStrings.DataType_AsType_Inconsistent(data.GetType().DisplayCsharp(), table.Type.DisplayCsharp()));
             if (orm.Aop.AuditValueHandler == null) return;
             foreach (var col in table.Columns.Values)
             {
@@ -157,10 +157,10 @@ namespace FreeSql.Internal.CommonProvider
         }
         public IInsertOrUpdate<T1> AsType(Type entityType)
         {
-            if (entityType == typeof(object)) throw new Exception("IInsertOrUpdate.AsType 参数不支持指定为 object");
+            if (entityType == typeof(object)) throw new Exception(CoreStrings.TypeAsType_NotSupport_Object("IInsertOrUpdate"));
             if (entityType == _table.Type) return this;
             var newtb = _commonUtils.GetTableByEntity(entityType);
-            _table = newtb ?? throw new Exception("IInsertOrUpdate.AsType 参数错误，请传入正确的实体类型");
+            _table = newtb ?? throw new Exception(CoreStrings.Type_AsType_Parameter_Error("IInsertOrUpdate"));
             if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(entityType);
             IdentityColumn = _table.Primarys.Where(a => a.Attribute.IsIdentity).FirstOrDefault();
             return this;
@@ -267,7 +267,7 @@ namespace FreeSql.Internal.CommonProvider
                     _SplitSourceByIdentityValueIsNullFlag = 1;
                     foreach (var tmpsource in ss.Item1)
                     {
-                        _source = tmpsource; 
+                        _source = tmpsource;
                         affrows += this.RawExecuteAffrows();
                     }
                     _SplitSourceByIdentityValueIsNullFlag = 2;
@@ -299,12 +299,12 @@ namespace FreeSql.Internal.CommonProvider
                                 affrows += this.RawExecuteAffrows();
                             }
                             _transaction.Commit();
-                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, "提交", null));
+                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, CoreStrings.Commit, null));
                         }
                         catch (Exception ex)
                         {
                             _transaction.Rollback();
-                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, "回滚", ex));
+                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, CoreStrings.RollBack, ex));
                             throw;
                         }
                         _transaction = null;
@@ -417,12 +417,12 @@ namespace FreeSql.Internal.CommonProvider
                                 affrows += await this.RawExecuteAffrowsAsync(cancellationToken);
                             }
                             _transaction.Commit();
-                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, "提交", null));
+                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, CoreStrings.Commit, null));
                         }
                         catch (Exception ex)
                         {
                             _transaction.Rollback();
-                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, "回滚", ex));
+                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, CoreStrings.RollBack, ex));
                             throw;
                         }
                         _transaction = null;

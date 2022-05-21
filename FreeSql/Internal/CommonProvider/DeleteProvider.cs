@@ -160,10 +160,10 @@ namespace FreeSql.Internal.CommonProvider
         }
         public IDelete<T1> AsType(Type entityType)
         {
-            if (entityType == typeof(object)) throw new Exception("IDelete.AsType 参数不支持指定为 object");
+            if (entityType == typeof(object)) throw new Exception(CoreStrings.TypeAsType_NotSupport_Object("IDelete"));
             if (entityType == _table.Type) return this;
             var newtb = _commonUtils.GetTableByEntity(entityType);
-            _table = newtb ?? throw new Exception("IDelete.AsType 参数错误，请传入正确的实体类型");
+            _table = newtb ?? throw new Exception(CoreStrings.Type_AsType_Parameter_Error("IDelete"));
             if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(entityType);
             return this;
         }

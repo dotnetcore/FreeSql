@@ -140,11 +140,11 @@ namespace FreeSql
         /// <returns></returns>
         public DbSet<TEntity> AsType(Type entityType)
         {
-            if (entityType == typeof(object)) throw new Exception("ISelect.AsType 参数不支持指定为 object");
+            if (entityType == typeof(object)) throw new Exception(CoreStrings.TypeAsType_NotSupport_Object("DbSet"));
             if (entityType == _entityType) return this;
             var newtb = _db.OrmOriginal.CodeFirst.GetTableByEntity(entityType);
             _entityType = entityType;
-            _tablePriv = newtb ?? throw new Exception("DbSet.AsType 参数错误，请传入正确的实体类型");
+            _tablePriv = newtb ?? throw new Exception(CoreStrings.Type_AsType_Parameter_Error("DbSet"));
             _tableIdentitysPriv = null;
             _tableReturnColumnsPriv = null;
             return this;
@@ -197,11 +197,11 @@ namespace FreeSql
         public void AttachRange(IEnumerable<TEntity> data)
         {
             if (data == null || data.Any() == false) return;
-            if (_table.Primarys.Any() == false) throw new Exception($"不可附加，实体没有主键：{_db.OrmOriginal.GetEntityString(_entityType, data.First())}");
+            if (_table.Primarys.Any() == false) throw new Exception(DbContextStrings.CannotAttach_EntityHasNo_PrimaryKey(_db.OrmOriginal.GetEntityString(_entityType, data.First())));
             foreach (var item in data)
             {
                 var key = _db.OrmOriginal.GetEntityKeyString(_entityType, item, false);
-                if (string.IsNullOrEmpty(key)) throw new Exception($"不可附加，未设置主键的值：{_db.OrmOriginal.GetEntityString(_entityType, item)}");
+                if (string.IsNullOrEmpty(key)) throw new Exception(DbContextStrings.CannotAttach_PrimaryKey_NotSet(_db.OrmOriginal.GetEntityString(_entityType, item)));
 
                 _states.AddOrUpdate(key, k => CreateEntityState(item), (k, ov) =>
                 {
@@ -236,9 +236,9 @@ namespace FreeSql
         public Dictionary<string, object[]> CompareState(TEntity newdata)
         {
             if (newdata == null) return null;
-            if (_table.Primarys.Any() == false) throw new Exception($"不可比较，实体没有主键：{_db.OrmOriginal.GetEntityString(_entityType, newdata)}");
+            if (_table.Primarys.Any() == false) throw new Exception(DbContextStrings.Incomparable_EntityHasNo_PrimaryKey(_db.OrmOriginal.GetEntityString(_entityType, newdata)));
             var key = _db.OrmOriginal.GetEntityKeyString(_entityType, newdata, false);
-            if (string.IsNullOrEmpty(key)) throw new Exception($"不可比较，未设置主键的值：{_db.OrmOriginal.GetEntityString(_entityType, newdata)}");
+            if (string.IsNullOrEmpty(key)) throw new Exception(DbContextStrings.Incomparable_PrimaryKey_NotSet(_db.OrmOriginal.GetEntityString(_entityType, newdata)));
             if (_states.TryGetValue(key, out var oldState) == false || oldState == null)
                 return _table.ColumnsByCs.ToDictionary(a => a.Key, a => new object[]
                 {
@@ -298,7 +298,7 @@ namespace FreeSql
             }
             if (_table.Primarys.Any() == false)
             {
-                if (isThrow) throw new Exception($"不可添加，实体没有主键：{_db.OrmOriginal.GetEntityString(_entityType, data)}");
+                if (isThrow) throw new Exception(DbContextStrings.CannotAdd_EntityHasNo_PrimaryKey(_db.OrmOriginal.GetEntityString(_entityType, data)));
                 return false;
             }
             FreeSql.Internal.CommonProvider.InsertProvider<TEntity>.AuditDataValue(this, data, _db.OrmOriginal, _table, null);
@@ -319,7 +319,7 @@ namespace FreeSql
                     default:
                         if (_tableIdentitys.Length == 1 && _table.Primarys.Length == 1)
                             return true;
-                        if (isThrow) throw new Exception($"不可添加，未设置主键的值：{_db.OrmOriginal.GetEntityString(_entityType, data)}");
+                        if (isThrow) throw new Exception(DbContextStrings.CannotAdd_PrimaryKey_NotSet(_db.OrmOriginal.GetEntityString(_entityType, data)));
                         return false;
                 }
             }
@@ -327,14 +327,14 @@ namespace FreeSql
             {
                 if (_states.ContainsKey(key))
                 {
-                    if (isThrow) throw new Exception($"不可添加，已存在于状态管理：{_db.OrmOriginal.GetEntityString(_entityType, data)}");
+                    if (isThrow) throw new Exception(DbContextStrings.CannotAdd_AlreadyExistsInStateManagement(_db.OrmOriginal.GetEntityString(_entityType, data)));
                     return false;
                 }
                 if (_db.OrmOriginal.Ado.DataType == DataType.ClickHouse) return true;
                 var idval = _db.OrmOriginal.GetEntityIdentityValueWithPrimary(_entityType, data);
                 if (idval > 0)
                 {
-                    if (isThrow) throw new Exception($"不可添加，自增属性有值：{_db.OrmOriginal.GetEntityString(_entityType, data)}");
+                    if (isThrow) throw new Exception(DbContextStrings.CannotAdd_SelfIncreasingHasValue(_db.OrmOriginal.GetEntityString(_entityType, data)));
                     return false;
                 }
             }
@@ -361,19 +361,19 @@ namespace FreeSql
             }
             if (_table.Primarys.Any() == false)
             {
-                if (isThrow) throw new Exception($"不可更新，实体没有主键：{_db.OrmOriginal.GetEntityString(_entityType, data)}");
+                if (isThrow) throw new Exception(DbContextStrings.CannotUpdate_EntityHasNo_PrimaryKey(_db.OrmOriginal.GetEntityString(_entityType, data)));
                 return false;
             }
             FreeSql.Internal.CommonProvider.UpdateProvider<TEntity>.AuditDataValue(this, data, _db.OrmOriginal, _table, null);
             var key = _db.OrmOriginal.GetEntityKeyString(_entityType, data, false);
             if (string.IsNullOrEmpty(key))
             {
-                if (isThrow) throw new Exception($"不可更新，未设置主键的值：{_db.OrmOriginal.GetEntityString(_entityType, data)}");
+                if (isThrow) throw new Exception(DbContextStrings.CannotUpdate_PrimaryKey_NotSet(_db.OrmOriginal.GetEntityString(_entityType, data)));
                 return false;
             }
             if (_states.TryGetValue(key, out var tryval) == false)
             {
-                if (isThrow) throw new Exception($"不可更新，数据未被跟踪，应该先查询 或者 Attach：{_db.OrmOriginal.GetEntityString(_entityType, data)}");
+                if (isThrow) throw new Exception(DbContextStrings.CannotUpdate_DataShouldQueryOrAttach(_db.OrmOriginal.GetEntityString(_entityType, data)));
                 return false;
             }
             return true;
@@ -399,13 +399,13 @@ namespace FreeSql
             }
             if (_table.Primarys.Any() == false)
             {
-                if (isThrow) throw new Exception($"不可删除，实体没有主键：{_db.OrmOriginal.GetEntityString(_entityType, data)}");
+                if (isThrow) throw new Exception(DbContextStrings.CannotDelete_EntityHasNo_PrimaryKey(_db.OrmOriginal.GetEntityString(_entityType, data)));
                 return false;
             }
             var key = _db.OrmOriginal.GetEntityKeyString(_entityType, data, false);
             if (string.IsNullOrEmpty(key))
             {
-                if (isThrow) throw new Exception($"不可删除，未设置主键的值：{_db.OrmOriginal.GetEntityString(_entityType, data)}");
+                if (isThrow) throw new Exception(DbContextStrings.CannotDelete_PrimaryKey_NotSet(_db.OrmOriginal.GetEntityString(_entityType, data)));
                 return false;
             }
             //if (_states.TryGetValue(key, out var tryval) == false) {

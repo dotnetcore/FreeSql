@@ -4592,6 +4592,653 @@
             BigApple -> bigapple
             </summary>
         </member>
+        <member name="T:FreeSql.CoreStrings">
+            <summary>
+                <para>
+            	    String resources used in FreeSql exceptions, etc.
+                </para>
+                <para>
+            	    These strings are exposed publicly for use by database providers and extensions.
+                    It is unusual for application code to need these strings.
+                </para>
+            </summary>
+        </member>
+        <member name="P:FreeSql.CoreStrings.Culture">
+            <summary>
+              重写当前线程的 CurrentUICulture 属性，对
+              使用此强类型资源类的所有资源查找执行重写。
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.AsTable_PropertyName_FormatError(System.Object)">
+            <summary>
+            [Table(AsTable="{asTable}")] Property value formatted incorrectly
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.AsTable_PropertyName_NotDateTime(System.Object)">
+            <summary>
+            The property name {atmGroupsValue} set by [Table (AsTable = xx)] is not of type DateTime
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.Available_Failed_Get_Resource(System.Object,System.Object)">
+            <summary>
+            {name}: Failed to get resource {statistics}
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.Available_Thrown_Exception(System.Object)">
+            <summary>
+            {name}: An exception needs to be thrown
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.Bad_Expression_Format(System.Object)">
+            <summary>
+            Wrong expression format {column}
+            </summary>
+        </member>
+        <member name="P:FreeSql.CoreStrings.Before_Chunk_Cannot_Use_Select">
+            <summary>
+            Select is not available until the Chunk function
+            </summary>
+        </member>
+        <member name="P:FreeSql.CoreStrings.Begin_Transaction_Then_ForUpdate">
+            <summary>
+            For security reasons, be sure to use ForUpdate after the transaction is open
+            </summary>
+        </member>
+        <member name="P:FreeSql.CoreStrings.Cannot_Be_NULL">
+            <summary>
+            Cannot be null
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.Cannot_Be_NULL_Name(System.Object)">
+            <summary>
+            {name} cannot be null
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.Cannot_Match_Property(System.Object)">
+            <summary>
+            Unable to match {property}
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.Cannot_Resolve_ExpressionTree(System.Object)">
+            <summary>
+            {property} cannot be resolved to an expression tree
+            </summary>
+        </member>
+        <member name="P:FreeSql.CoreStrings.Check_UseConnectionString">
+            <summary>
+            The parameter master ConnectionString cannot be empty, check UseConnectionString
+            </summary>
+        </member>
+        <member name="P:FreeSql.CoreStrings.Commit">
+            <summary>
+            Commit
+            </summary>
+        </member>
+        <member name="P:FreeSql.CoreStrings.Connection_Failed_Switch_Servers">
+            <summary>
+            Connection failed, ready to switch other available servers
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.Custom_Expression_ParsingError(System.Object)">
+            <summary>
+            Custom expression parsing error: type {exp3MethodDeclaringType} needs to define static ThreadLocal&lt;ExpressionCallContext&gt;field, field, field (important three reminders)
+            </summary>
+        </member>
+        <member name="P:FreeSql.CoreStrings.Custom_Reflection_IsNotNull">
+            <summary>
+            Custom {Reflection Information} cannot be empty, format: { static method name }{ space }{ reflection information }
+            </summary>
+        </member>
+        <member name="P:FreeSql.CoreStrings.Custom_StaticMethodName_IsNotNull">
+            <summary>
+            Custom { static method name } cannot be empty, format: { static method name }{ space }{ reflection information }
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.Custom_StaticMethodName_NotSet_DynamicFilterCustom(System.Object)">
+            <summary>
+            Custom corresponding {{ static method name }}:{fiValueCustomArray} The [DynamicFilterCustomAttribute] attribute is not set
+            </summary>
+        </member>
+        <member name="P:FreeSql.CoreStrings.CustomFieldSeparatedBySpaces">
+            <summary>
+            Custom requires that Fields be space-split and 2-length in the format: { static method name }{ space }{ reflection information }
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.DataType_AsType_Inconsistent(System.Object,System.Object)">
+            <summary>
+            The data type of the operation ({dataDisplayCsharp}) is inconsistent with AsType ({tableTypeDisplayCsharp}). Please check.
+            </summary>
+        </member>
+        <member name="P:FreeSql.CoreStrings.DateRange_Comma_Separateda_By2Char">
+            <summary>
+            DateRange requires that Value be comma-separated and 2-length
+            </summary>
+        </member>
+        <member name="P:FreeSql.CoreStrings.DateRange_DateFormat_yyyy">
+            <summary>
+            DateRange requires that the Value [1] format must be: yyyy, yyyy-MM, yyyy-MM-dd, yyyyy-MM-dd HH, yyyy, yyyy-MM-dd HH:mm
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.DbUpdateVersionException_RowLevelOptimisticLock(System.Object,System.Object)">
+            <summary>
+            The record may not exist, or the row level optimistic lock version is out of date, the number of updates {sourceCount}, the number of rows affected {affrows}.
+            </summary>
+        </member>
+        <member name="P:FreeSql.CoreStrings.Different_Number_SlaveConnectionString_SlaveWeights">
+            <summary>
+            The number of SlaveConnectionStrings is not the same as SlaveWeights
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.Duplicate_ColumnAttribute(System.Object)">
+            <summary>
+            ColumnAttribute. Name {colattrName} exists repeatedly, please check (note: case insensitive)
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.Duplicate_PropertyName(System.Object)">
+            <summary>
+            Property name {pName} exists repeatedly, please check (note: case insensitive)
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.Entity_Must_Primary_Key(System.Object,System.Object)">
+            <summary>
+            The {function} feature requires that the entity class {tableCsName} must have a primary key
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.Entity_MySQL_VersionsBelow8_NotSupport_Multiple_PrimaryKeys(System.Object)">
+            <summary>
+            {tbTypeFullName} is a parent-child relationship, but combinations of multiple primary keys are not supported in versions below MySql 8.0
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.Entity_NotParentChild_Relationship(System.Object)">
+            <summary>
+            {tbTypeFullName} is not a parent-child relationship and cannot be used
+            </summary>
+        </member>
+        <member name="P:FreeSql.CoreStrings.EspeciallySubquery_Cannot_Parsing">
+            <summary>
+            This particular subquery cannot be resolved
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.Expression_Error_Use_ParameterExpression(System.Object)">
+            <summary>
+            Expression error, its top object is not ParameterExpression:{exp}
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.Expression_Error_Use_Successive_MemberAccess_Type(System.Object)">
+            <summary>
+            Expression error, it is not a continuous MemberAccess type: {exp}
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.ExpressionTree_Convert_Type_Error(System.Object,System.Object,System.Object,System.Object)">
+            <summary>
+            ExpressionTree conversion type error, value ({value}), type ({valueTypeFullName}), target type ({typeFullName}), Error:{exMessage}
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.Failed_SubTable_FieldValue(System.Object)">
+            <summary>
+            Failed to parse table field value {sqlWhere}
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.Functions_AsTable_NotImplemented(System.Object)">
+            <summary>
+            Function {asTable} not implemented by AsTable
+            </summary>
+        </member>
+        <member name="P:FreeSql.CoreStrings.GBase_NotSupport_OtherThanCommas">
+            <summary>
+            GBase does not support separators other than commas at this time
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.Generated_Same_SubTable(System.Object)">
+            <summary>
+            TableName:{tableName} generated the same table name
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.GetPrimarys_ParameterError_IsNotDictKey(System.Object)">
+            <summary>
+            The parameter'{primary}'passed by GetPrimarys is incorrect and does not belong to the key name of the dictionary data
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.Has_Specified_Cannot_Specified_Second(System.Object,System.Object)">
+            <summary>
+            {first} has already been specified and {second} can no longer be specified
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.Ignored_Check_Confirm_PublicGetSet(System.Object,System.Object)">
+            <summary>
+            {tb2DbName}. {mp2MemberName} is ignored. Check the IsIgnore setting to make sure get/set is public
+            </summary>
+        </member>
+        <member name="P:FreeSql.CoreStrings.Include_ParameterType_Error">
+            <summary>
+            Include parameter type error
+            </summary>
+        </member>
+        <member name="P:FreeSql.CoreStrings.Include_ParameterType_Error_Use_IncludeMany">
+            <summary>
+            Include parameter type is wrong, use IncludeMany for collection properties
+            </summary>
+        </member>
+        <member name="P:FreeSql.CoreStrings.Include_ParameterType_Error_Use_MemberAccess">
+            <summary>
+            Include parameter type is wrong, expression type should be MemberAccess
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.IncludeMany_NotValid_Navigation(System.Object,System.Object)">
+            <summary>
+            The property {collMemMemberName} of IncludeMany type {tbTypeDisplayCsharp} is not a valid navigation property, hint: IsIgnore = true will not be a navigation property
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.IncludeMany_ParameterError_OnlyUseOneParameter(System.Object)">
+            <summary>
+            IncludeMany {navigateSelector} parameter is wrong, Select can only use one parameter's method, the correct format:.Select(t =&gt;new TNavigate{{}})
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.IncludeMany_ParameterError_Select_ReturnConsistentType(System.Object,System.Object)">
+            <summary>
+            IncludeMany {navigateSelector} parameter error, Select lambda parameter return value must match {collMemElementType} type
+            </summary>
+        </member>
+        <member name="P:FreeSql.CoreStrings.IncludeMany_ParameterType_Error_Use_MemberAccess">
+            <summary>
+            IncludeMany parameter 1 has wrong type, expression type should be MemberAccess
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.IncludeMany_ParameterTypeError(System.Object)">
+            <summary>
+            IncludeMany {navigateSelector} parameter type is wrong, correct format: a.collections.Take(1).Where(c =&gt; C.A ID == a.id).Select (a =&gt; new TNavigate{{}})
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.InsertInto_No_Property_Selected(System.Object)">
+            <summary>
+            ISelect. InsertInto() did not select an attribute: {displayCsharp}
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.InsertInto_TypeError(System.Object)">
+            <summary>
+            ISelect. InsertInto() type error: {displayCsharp}
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.InsertOrUpdate_Must_Primary_Key(System.Object)">
+            <summary>
+            The InsertOrUpdate function performs merge into requiring the entity class {CsName} to have a primary key
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.InsertOrUpdate_NotSuport_Generic_UseEntity(System.Object)">
+            <summary>
+            The generic parameter for InsertOrUpdate&lt;&gt;does not support {typeofT1}. Pass in your entity class
+            </summary>
+        </member>
+        <member name="P:FreeSql.CoreStrings.Install_FreeSql_Extensions_LazyLoading">
+            <summary>
+            FreeSql needs to be installed for Delayed Loading. Extensions. LazyLoading. Dll, downloadable to nuget
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.LazyLoading_CompilationError(System.Object,System.Object,System.Object)">
+            <summary>
+            {trytbTypeName} Compilation error: {exMessage}\r\n\r\n{cscode}
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.LazyLoading_EntityMustDeclarePublic(System.Object)">
+            <summary>
+            Entity type {trytbTypeName} must be declared public
+            </summary>
+        </member>
+        <member name="P:FreeSql.CoreStrings.ManyToMany_AsSelect_NotSupport_Sum_Avg_etc">
+            <summary>
+            ManyToMany navigation properties. AsSelect() is temporarily unavailable for the Sum/Avg/Max/Min/First/ToOne/ToList method
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.ManyToMany_NotFound_CorrespondingField(System.Object,System.Object,System.Object,System.Object,System.Object)">
+            <summary>
+            [ManyToMany] Navigation property {trytbTypeName}. {pnvName} did not find a corresponding field in {tbmidCsName}, such as: {midTypePropsTrytbName}{findtrytbPkCsName}, {midTypePropsTrytbName}_ {findtrytbPkCsName}
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.ManyToMany_ParsingError_EntityMissing_PrimaryKey(System.Object,System.Object,System.Object)">
+            <summary>
+            [ManyToMany] Navigation property {trytbTypeName}. {pnvName} parsing error, entity type {tbrefTypeName} missing primary key identity, [Column (IsPrimary = true)]
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.ManyToMany_ParsingError_EntityMustHas_NavigateCollection(System.Object,System.Object,System.Object)">
+            <summary>
+            [ManyToMany] Navigation property {trytbTypeName}. {pnvName} parsing error, entity type {tbrefTypeName} must have a corresponding [Navigate (ManyToMany = x)] collection property
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.ManyToMany_ParsingError_InconsistentType(System.Object,System.Object,System.Object,System.Object,System.Object,System.Object)">
+            <summary>
+            [ManyToMany] Navigation property {trytbTypeName}. {pnvName} parsing error, {tbmidCsName}. {trycolCsName} and {trytbCsName}. {trytbPrimarysCsName} type inconsistent
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.ManyToMany_ParsingError_IntermediateClass_ErrorMessage(System.Object,System.Object,System.Object,System.Object,System.Object)">
+            <summary>
+            [ManyToMany] Navigation property {trytbTypeName}. {pnvName} parsing error, intermediate class {tbmidCsName}.{midTypePropsTrytbName} Error: {exMessage}
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.ManyToMany_ParsingError_IntermediateClass_NotManyToOne_OneToOne(System.Object,System.Object,System.Object,System.Object)">
+            <summary>
+            [ManyToMany] Navigation property {trytbTypeName}. {pnvName} parsing error, intermediate class {tbmidCsName}. The {midTypePropsTrytbName} navigation property is not ManyToOne or OneToOne
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.Mapping_Exception_HasNo_SamePropertyName(System.Object)">
+            <summary>
+            Mapping exception: {name} None of the property names are the same
+            </summary>
+        </member>
+        <member name="P:FreeSql.CoreStrings.MasterPool_IsNull_UseTransaction">
+            <summary>
+            Ado. MasterPool value is null, this operation cannot self-enable transactions, please explicitly pass [transaction object] resolution
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.Missing_FreeSqlProvider_Package(System.Object)">
+            <summary>
+            Missing FreeSql database implementation package: FreeSql. Provider. {Provider}. Dll, downloadable to nuget
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.Missing_FreeSqlProvider_Package_Reason(System.Object,System.Object)">
+            <summary>
+            The FreeSql database implementation package is missing: {dll} can be downloaded to nuget; If there is {dll} and an error still occurs (due to environmental issues that cause the type to be unreflected), manually pass in typeof ({providerType}) in the third parameter of UseConnectionString/UseConnectionFactory
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.Navigation_Bind_Number_Different(System.Object,System.Object,System.Object,System.Object)">
+            <summary>
+            Navigation property {trytbTypeName}. The number of {pnvName} attributes [Navigate] Binds ({bindColumnsCount}) is different from the number of external primary keys ({tbrefPrimarysLength})
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.Navigation_Missing_AsSelect(System.Object,System.Object)">
+            <summary>
+            {tb2DbName}. {mp2MemberName} Navigation Property Collection forgotten. AsSelect()? If used in ToList (a =&gt; a. {mp2MemberName}), step by step to refer to the IncludeMany document.
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.Navigation_Missing_SetProperty(System.Object,System.Object)">
+            <summary>
+            [Navigation Properties]{trytbTypeDisplayCsharp}. Missing set attribute for {pName}
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.Navigation_NotFound_CorrespondingField(System.Object,System.Object,System.Object)">
+            <summary>
+            Navigation property {trytbTypeName}. {pnvName} No corresponding fields were found, such as: {pnvName}{findtbrefPkCsName}, {pnvName}_ {findtbrefPkCsName}. Or use the [Navigate] attribute to specify the relationship mapping.
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.Navigation_ParsingError_EntityMissingPrimaryKey(System.Object,System.Object,System.Object)">
+            <summary>
+            Navigation property {trytbTypeName}. {pnvName} parsing error, entity type {trytcTypeName} missing primary key identity, [Column (IsPrimary = true)]
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.Navigation_ParsingError_InconsistentType(System.Object,System.Object,System.Object,System.Object,System.Object,System.Object)">
+            <summary>
+            Navigation property {trytbTypeName}. {pnvName} parsing error, {trytbCsName}. {trycolCsName} and {tbrefCsName}. {tbrefPrimarysCsName} type inconsistent
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.Navigation_ParsingError_NotFound_Property(System.Object,System.Object,System.Object,System.Object)">
+            <summary>
+            Navigation property {trytbTypeName}. {pnvName} attribute [Navigate] parsing error, property not found at {tbrefTypeName}: {bi}
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.NoPrimaryKey_UseSetDto(System.Object)">
+            <summary>
+            {tableTypeDisplayCsharp} has no primary key defined and cannot use SetSource. Try SetDto or SetSource to specify a temporary primary key
+            </summary>
+        </member>
+        <member name="P:FreeSql.CoreStrings.NoProperty_Defined">
+            <summary>
+            No properties defined
+            </summary>
+        </member>
+        <member name="P:FreeSql.CoreStrings.Not_Implemented">
+            <summary>
+            Not implemented
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.Not_Implemented_Expression(System.Object)">
+            <summary>
+            Function expression {exp} parsing not implemented
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.Not_Implemented_Expression_ParameterUseConstant(System.Object,System.Object)">
+            <summary>
+            Function expression {exp} parsing not implemented, parameter {expArguments} must be constant
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.Not_Implemented_Expression_UseAsSelect(System.Object,System.Object,System.Object)">
+            <summary>
+            Function expression {exp} parsing is not implemented. Use if you are working on a navigation property collection. AsSelect (). {exp3MethodName} ({exp3ArgumentsCount})
+            </summary>
+        </member>
+        <member name="P:FreeSql.CoreStrings.Not_Implemented_MemberAcess_Constant">
+            <summary>
+            Constant under MemberAccess is not implemented
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.Not_Implemented_Name(System.Object)">
+            <summary>
+            {name} is not implemented
+            </summary>
+        </member>
+        <member name="P:FreeSql.CoreStrings.Not_Support">
+            <summary>
+            I won't support it
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.Not_Support_OrderByRandom(System.Object)">
+            <summary>
+            {dataType} does not support OrderByRandom sorting
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.Not_Valid_Navigation_Property(System.Object)">
+            <summary>
+            {property} is not a valid navigation property
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.NotFound_Column(System.Object,System.Object)">
+            <summary>
+            {dbName} Column {memberName} not found
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.NotFound_CsName_Column(System.Object)">
+            <summary>
+            Cannot find the column corresponding to {CsName}
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.NotFound_Property(System.Object)">
+            <summary>
+            Attribute not found: {memberName}
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.NotFound_PropertyName(System.Object)">
+            <summary>
+            Property name {proto} not found
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.NotFound_Reflection(System.Object)">
+            <summary>
+            Custom could not find the corresponding {{ reflection information }}:{fiValueCustomArray}
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.NotFound_Static_MethodName(System.Object)">
+            <summary>
+            Custom could not find the corresponding {{ static method name }}:{fiValueCustomArray}
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.NotFound_Table_Property_AsTable(System.Object)">
+            <summary>
+            The property name {atmGroupsValue} set by [Table(AsTable = xx)] does not exist
+            </summary>
+        </member>
+        <member name="P:FreeSql.CoreStrings.NotSpecified_UseConnectionString_UseConnectionFactory">
+            <summary>
+            No UseConnectionString or UseConnectionFactory specified
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.ObjectPool_Get_Timeout(System.Object,System.Object,System.Object)">
+            <summary>
+            [{policyName}] ObjectPool. {GetName}() timeout {totalSeconds} seconds, see: https://github.com/dotnetcore/FreeSql/discussions/1081
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.ObjectPool_GetAsync_Queue_Long(System.Object,System.Object)">
+            <summary>
+            [{policyName}] ObjectPool. GetAsync() The queue is too long. Policy. AsyncGetCapacity = {asyncGetCapacity}
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.OneToMany_NotFound_CorrespondingField(System.Object,System.Object,System.Object,System.Object,System.Object)">
+            <summary>
+            [OneToMany] Navigation property {trytbTypeName}.{pnvName} did not find a corresponding field in {tbrefCsName}, such as: {findtrytb}{findtrytbPkCsName}, {findtrytb}_{findtrytbPkCsName}
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.OneToMany_ParsingError_InconsistentType(System.Object,System.Object,System.Object,System.Object,System.Object,System.Object)">
+            <summary>
+            [OneToMany] Navigation property {trytbTypeName}.{pnvName} parsing error, {trytbCsName}.{trytbPrimarysCsName} and {tbrefCsName}.{trycolCsName} is of inconsistent type
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.OneToMany_UseNavigate(System.Object,System.Object)">
+            <summary>
+            , {refpropName}{findtrytbPkCsName}, {refpropName}_{findtrytbPkCsName}. Or use the [Navigate] attribute to specify the relationship mapping.
+            </summary>
+        </member>
+        <member name="P:FreeSql.CoreStrings.Parameter_Field_NotSpecified">
+            <summary>
+            Parameter field not specified
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.ParameterError_NotValid_Collection(System.Object)">
+            <summary>
+            The {property} parameter is incorrect, it is not a collection property and must be IList&lt;T&gt;or ICollection&lt;T&gt;
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.ParameterError_NotValid_Navigation(System.Object)">
+            <summary>
+            The {property} parameter is incorrect, it is not a valid navigation property
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.ParameterError_NotValid_PropertyName(System.Object,System.Object,System.Object)">
+            <summary>
+            {where} parameter error, {keyval} is not a valid property name and cannot be found in entity class {reftbTypeDisplayCsharp}
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.ParameterError_NotValid_UseCommas(System.Object)">
+            <summary>
+            {property} parameter error, format "TopicId=Id, multiple groups using comma connection"
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.Parsing_Failed(System.Object,System.Object)">
+            <summary>
+            Parsing failed {callExpMethodName} {message}
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.Policy_ObjectPool_Dispose(System.Object)">
+            <summary>
+            [{policyName}] The ObjectPool has been disposed, see: https://github.com/dotnetcore/FreeSql/discussions/1079
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.Policy_Status_NotAvailable(System.Object,System.Object)">
+            <summary>
+            The {policyName} status is unavailable and cannot be used until the background checker is restored. {UnavailableExceptionMessage}
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.Properties_AsRowLock_Must_Numeric_Byte(System.Object)">
+            <summary>
+            The property {trytbVersionColumnCsName} is labeled as a row lock (optimistic lock) (IsVersion), but it must be a numeric type or byte[], and it cannot be Nullable
+            </summary>
+        </member>
+        <member name="P:FreeSql.CoreStrings.Properties_Cannot_Null">
+            <summary>
+            Properrties parameter cannot be empty
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.Property_Cannot_Find(System.Object)">
+            <summary>
+            {property} property name not found
+            </summary>
+        </member>
+        <member name="P:FreeSql.CoreStrings.Range_Comma_Separateda_By2Char">
+            <summary>
+            Range requires that Value be comma-separated and 2-length
+            </summary>
+        </member>
+        <member name="P:FreeSql.CoreStrings.RollBack">
+            <summary>
+            RollBack
+            </summary>
+        </member>
+        <member name="P:FreeSql.CoreStrings.RunTimeError_Reflection_IncludeMany">
+            <summary>
+            Runtime error, reflection failed to get IncludeMany method
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.Set_Column_IsNullable_False(System.Object)">
+            <summary>
+            {qoteSql} is NULL unless the attribute [Column (IsNullable = false)]
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.SubTableFieldValue_CannotLessThen(System.Object,System.Object)">
+            <summary>
+            Subtable field value'{dt}'cannot be less than'{beginTime}'
+            </summary>
+        </member>
+        <member name="P:FreeSql.CoreStrings.SubTableFieldValue_IsNotNull">
+            <summary>
+            Subtable field value cannot be null
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.SubTableFieldValue_NotConvertDateTime(System.Object)">
+            <summary>
+            The tabular field value'{columnValue}'cannot be converted to DateTime
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.SubTableFieldValue_NotMatchTable(System.Object)">
+            <summary>
+            Table field value'{dt}'does not match table name
+            </summary>
+        </member>
+        <member name="P:FreeSql.CoreStrings.T2_Type_Error">
+            <summary>
+            Type T2 Error
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.TableName_Format_Error(System.Object)">
+            <summary>
+            TableName format error, example: "log_{yyyyMMdd}"
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.Type_AsType_Parameter_Error(System.Object)">
+            <summary>
+            {Type}. AsType parameter error, please pass in the correct entity type
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.Type_Cannot_Access_Constructor(System.Object)">
+            <summary>
+            The {thatFullName} type cannot access the constructor
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.Type_Error_Name(System.Object)">
+            <summary>
+            {name} type error
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.TypeAsType_NotSupport_Object(System.Object)">
+            <summary>
+            {Type}. AsType parameter does not support specifying as object
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.TypeError_CannotUse_IncludeMany(System.Object)">
+            <summary>
+            Type {typeofFullName} error, IncludeMany cannot be used
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.Unable_Parse_Expression(System.Object)">
+            <summary>
+            Unable to parse expression: {exp}
+            </summary>
+        </member>
+        <member name="M:FreeSql.CoreStrings.Unable_Parse_ExpressionMethod(System.Object)">
+            <summary>
+            Unable to parse expression method {exp3tmpCallMethodName}
+            </summary>
+        </member>
+        <member name="P:FreeSql.CoreStrings.Use_InsertDict_Method">
+            <summary>
+            Please use fsql. InsertDict (dict) method inserts dictionary data
+            </summary>
+        </member>
         <member name="M:FreeSqlGlobalExpressionCallExtensions.Between(System.DateTime,System.DateTime,System.DateTime)">
             <summary>
             C#： that >= between &amp;&amp; that &lt;= and<para></para>

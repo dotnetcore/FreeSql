@@ -132,7 +132,7 @@ namespace FreeSql.Internal.CommonProvider
             if (_table.VersionColumn != null && _source.Count > 0)
             {
                 if (affrows != _source.Count)
-                    throw new DbUpdateVersionException($"记录可能不存在，或者【行级乐观锁】版本过旧，更新数量{_source.Count}，影响的行数{affrows}。", _table, sql, dbParms, affrows, _source.Select(a => (object)a));
+                    throw new DbUpdateVersionException(CoreStrings.DbUpdateVersionException_RowLevelOptimisticLock(_source.Count, affrows), _table, sql, dbParms, affrows, _source.Select(a => (object)a));
                 foreach (var d in _source)
                 {
                     if (_table.VersionColumn.Attribute.MapType == typeof(byte[]))
@@ -224,7 +224,7 @@ namespace FreeSql.Internal.CommonProvider
                 }
                 else
                 {
-                    if (_orm.Ado.MasterPool == null) throw new Exception("Ado.MasterPool 值为 null，该操作无法自启用事务，请显式传递【事务对象】解决");
+                    if (_orm.Ado.MasterPool == null) throw new Exception(CoreStrings.MasterPool_IsNull_UseTransaction);
                     using (var conn = _orm.Ado.MasterPool.Get())
                     {
                         _transaction = conn.Value.BeginTransaction();
@@ -239,12 +239,12 @@ namespace FreeSql.Internal.CommonProvider
                                 ret += this.RawExecuteAffrows();
                             }
                             _transaction.Commit();
-                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, "提交", null));
+                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, CoreStrings.Commit, null));
                         }
                         catch (Exception ex)
                         {
                             _transaction.Rollback();
-                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, "回滚", ex));
+                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, CoreStrings.RollBack, ex));
                             throw;
                         }
                         _transaction = null;
@@ -298,7 +298,7 @@ namespace FreeSql.Internal.CommonProvider
                 }
                 else
                 {
-                    if (_orm.Ado.MasterPool == null) throw new Exception("Ado.MasterPool 值为 null，该操作无法自启用事务，请显式传递【事务对象】解决");
+                    if (_orm.Ado.MasterPool == null) throw new Exception(CoreStrings.MasterPool_IsNull_UseTransaction);
                     using (var conn = _orm.Ado.MasterPool.Get())
                     {
                         _transaction = conn.Value.BeginTransaction();
@@ -313,12 +313,12 @@ namespace FreeSql.Internal.CommonProvider
                                 ret.AddRange(this.RawExecuteUpdated());
                             }
                             _transaction.Commit();
-                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, "提交", null));
+                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, CoreStrings.Commit, null));
                         }
                         catch (Exception ex)
                         {
                             _transaction.Rollback();
-                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, "回滚", ex));
+                            _orm.Aop.TraceAfterHandler?.Invoke(this, new Aop.TraceAfterEventArgs(transBefore, CoreStrings.RollBack, ex));
                             throw;
                         }
                         _transaction = null;
@@ -428,7 +428,7 @@ namespace FreeSql.Internal.CommonProvider
             if (orm.Aop.AuditValueHandler == null) return;
             if (data == null || table == null) return;
             if (typeof(T1) == typeof(object) && new[] { table.Type, table.TypeLazy }.Contains(data.GetType()) == false)
-                throw new Exception($"操作的数据类型({data.GetType().DisplayCsharp()}) 与 AsType({table.Type.DisplayCsharp()}) 不一致，请检查。");
+                throw new Exception(CoreStrings.DataType_AsType_Inconsistent(data.GetType().DisplayCsharp(), table.Type.DisplayCsharp()));
             foreach (var col in table.Columns.Values)
             {
                 object val = col.GetValue(data);
@@ -558,9 +558,12 @@ namespace FreeSql.Internal.CommonProvider
                             if (initAssignExp == null) continue;
                             var memberName = initExp.Bindings[a].Member.Name;
                             if (_table.ColumnsByCsIgnore.ContainsKey(memberName)) continue;
-                            if (_table.ColumnsByCs.TryGetValue(memberName, out var col) == false) throw new Exception($"找不到属性：{memberName}");
-                            var memberValue = _commonExpression.ExpressionLambdaToSql(initAssignExp.Expression, new CommonExpression.ExpTSC { isQuoteName = true, 
-                                mapType = initAssignExp.Expression is BinaryExpression ? null : col.Attribute.MapType });
+                            if (_table.ColumnsByCs.TryGetValue(memberName, out var col) == false) throw new Exception(CoreStrings.NotFound_Property(memberName));
+                            var memberValue = _commonExpression.ExpressionLambdaToSql(initAssignExp.Expression, new CommonExpression.ExpTSC
+                            {
+                                isQuoteName = true,
+                                mapType = initAssignExp.Expression is BinaryExpression ? null : col.Attribute.MapType
+                            });
                             _setIncr.Append(", ").Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ").Append(memberValue);
                         }
                     }
@@ -573,9 +576,12 @@ namespace FreeSql.Internal.CommonProvider
                         {
                             var memberName = newExp.Members[a].Name;
                             if (_table.ColumnsByCsIgnore.ContainsKey(memberName)) continue;
-                            if (_table.ColumnsByCs.TryGetValue(memberName, out var col) == false) throw new Exception($"找不到属性：{memberName}");
-                            var memberValue = _commonExpression.ExpressionLambdaToSql(newExp.Arguments[a], new CommonExpression.ExpTSC { isQuoteName = true, 
-                                mapType = newExp.Arguments[a] is BinaryExpression ? null : col.Attribute.MapType });
+                            if (_table.ColumnsByCs.TryGetValue(memberName, out var col) == false) throw new Exception(CoreStrings.NotFound_Property(memberName));
+                            var memberValue = _commonExpression.ExpressionLambdaToSql(newExp.Arguments[a], new CommonExpression.ExpTSC
+                            {
+                                isQuoteName = true,
+                                mapType = newExp.Arguments[a] is BinaryExpression ? null : col.Attribute.MapType
+                            });
                             _setIncr.Append(", ").Append(_commonUtils.QuoteSqlName(col.Attribute.Name)).Append(" = ").Append(memberValue);
                         }
                     }
@@ -672,7 +678,7 @@ namespace FreeSql.Internal.CommonProvider
         protected string WhereCaseSource(string CsName, Func<string, string> thenValue)
         {
             if (_source.Any() == false) return null;
-            if (_table.ColumnsByCs.ContainsKey(CsName) == false) throw new Exception($"找不到 {CsName} 对应的列");
+            if (_table.ColumnsByCs.ContainsKey(CsName) == false) throw new Exception(CoreStrings.NotFound_CsName_Column(CsName));
             if (thenValue == null) throw new ArgumentNullException(nameof(thenValue));
 
             if (_source.Count == 0) return null;
@@ -757,10 +763,10 @@ namespace FreeSql.Internal.CommonProvider
         }
         public IUpdate<T1> AsType(Type entityType)
         {
-            if (entityType == typeof(object)) throw new Exception("IUpdate.AsType 参数不支持指定为 object");
+            if (entityType == typeof(object)) throw new Exception(CoreStrings.TypeAsType_NotSupport_Object("IUpdate"));
             if (entityType == _table.Type) return this;
             var newtb = _commonUtils.GetTableByEntity(entityType);
-            _table = newtb ?? throw new Exception("IUpdate.AsType 参数错误，请传入正确的实体类型");
+            _table = newtb ?? throw new Exception(CoreStrings.Type_AsType_Parameter_Error("IUpdate"));
             _tempPrimarys = _table.Primarys;
             if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(entityType);
             IgnoreCanUpdate();
@@ -1003,7 +1009,7 @@ namespace FreeSql.Internal.CommonProvider
             sb.Append(" \r\nWHERE ");
             if (_source.Any())
             {
-                if (_tempPrimarys.Any() == false) throw new ArgumentException($"{_table.Type.DisplayCsharp()} 没有定义主键，无法使用 SetSource，请尝试 SetDto 或者 SetSource 指定临时主键");
+                if (_tempPrimarys.Any() == false) throw new ArgumentException(CoreStrings.NoPrimaryKey_UseSetDto(_table.Type.DisplayCsharp()));
                 sb.Append('(').Append(_commonUtils.WhereItems(_tempPrimarys, "", _source)).Append(')');
             }
 

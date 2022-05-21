@@ -2,7 +2,6 @@
 using FreeSql.Internal.ObjectPool;
 using System;
 using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -631,7 +630,7 @@ namespace FreeSql.Internal.CommonProvider
                             ReturnConnection(pool, conn, ex); //pool.Return(conn, ex);
                             if (IsTracePerformance) logtxt.Append("Pool.Return: ").Append(DateTime.Now.Subtract(logtxt_dt).TotalMilliseconds).Append("ms Total: ").Append(DateTime.Now.Subtract(dt).TotalMilliseconds).Append("ms");
                         }
-                        LoggerException(pool, pc, new Exception($"连接失败，准备切换其他可用服务器"), dt, logtxt, false);
+                        LoggerException(pool, pc, new Exception(CoreStrings.Connection_Failed_Switch_Servers), dt, logtxt, false);
                         pc.cmd.Parameters.Clear();
                         if (DataType == DataType.Sqlite) pc.cmd.Dispose();
                         ExecuteReaderMultiple(multipleResult, connection, transaction, fetchHandler, schemaHandler, cmdType, cmdText, cmdTimeout, cmdParms);

@@ -47,14 +47,14 @@ namespace FreeSql.DataAnnotations
             {
                 var atm = Regex.Match(AsTable, @"([\w_\d]+)\s*=\s*(\d\d\d\d)\s*\-\s*(\d\d?)\s*\-\s*(\d\d?)\s*\((\d+)\s*(year|month|day|hour)\)", RegexOptions.IgnoreCase);
                 if (atm.Success == false)
-                    throw new Exception($"[Table(AsTable = \"{AsTable}\")] 特性值格式错误");
+                    throw new Exception(CoreStrings.AsTable_PropertyName_FormatError(AsTable));
 
                 tb.AsTableColumn = tb.Columns.TryGetValue(atm.Groups[1].Value, out var trycol) ? trycol :
-                    tb.ColumnsByCs.TryGetValue(atm.Groups[1].Value, out trycol) ? trycol : throw new Exception($"[Table(AsTable = xx)] 设置的属性名 {atm.Groups[1].Value} 不存在");
+                    tb.ColumnsByCs.TryGetValue(atm.Groups[1].Value, out trycol) ? trycol : throw new Exception(CoreStrings.NotFound_Table_Property_AsTable(atm.Groups[1].Value));
                 if (tb.AsTableColumn.Attribute.MapType.NullableTypeOrThis() != typeof(DateTime))
                 {
                     tb.AsTableColumn = null;
-                    throw new Exception($"[Table(AsTable = xx)] 设置的属性名 {atm.Groups[1].Value} 不是 DateTime 类型");
+                    throw new Exception(CoreStrings.AsTable_PropertyName_NotDateTime(atm.Groups[1].Value));
                 }
                 int.TryParse(atm.Groups[5].Value, out var atm5);
                 string atm6 = atm.Groups[6].Value.ToLower();
@@ -67,7 +67,7 @@ namespace FreeSql.DataAnnotations
                         case "day": return dt.AddDays(atm5);
                         case "hour": return dt.AddHours(atm5);
                     }
-                    throw new NotImplementedException($"AsTable 未实现的功能 {AsTable}");
+                    throw new NotImplementedException(CoreStrings.Functions_AsTable_NotImplemented(AsTable));
                 });
             }
         }
@@ -94,13 +94,13 @@ namespace FreeSql.DataAnnotations
 
         public DateTimeAsTableImpl(string tableName, DateTime beginTime, Func<DateTime, DateTime> nextTimeFunc)
         {
-            if (nextTimeFunc == null) throw new ArgumentException($"nextTimeFunc 不可以为 null");
+            if (nextTimeFunc == null) throw new ArgumentException(CoreStrings.Cannot_Be_NULL_Name("nextTimeFunc"));
             beginTime = beginTime.Date; //日期部分作为开始
             _beginTime = beginTime;
             _nextTimeFunc = nextTimeFunc;
             _tableName = tableName;
             _tableNameFormat = _regTableNameFormat.Match(tableName);
-            if (string.IsNullOrEmpty(_tableNameFormat.Groups[1].Value)) throw new ArgumentException("tableName 格式错误，示例：“log_{yyyyMMdd}”");
+            if (string.IsNullOrEmpty(_tableNameFormat.Groups[1].Value)) throw new ArgumentException(CoreStrings.TableName_Format_Error("yyyyMMdd"));
             ExpandTable(beginTime, DateTime.Now);
         }
 
@@ -114,7 +114,7 @@ namespace FreeSql.DataAnnotations
                 {
                     var dtstr = beginTime.ToString(_tableNameFormat.Groups[1].Value);
                     var name = _tableName.Replace(_tableNameFormat.Groups[0].Value, dtstr);
-                    if (_allTables.Contains(name)) throw new ArgumentException($"tableName：{_tableName} 生成了相同的分表名");
+                    if (_allTables.Contains(name)) throw new ArgumentException(CoreStrings.Generated_Same_SubTable(_tableName));
                     _allTables.Insert(0, name);
                     _allTablesTime.Insert(0, beginTime);
                     _lastTime = beginTime;
@@ -124,26 +124,26 @@ namespace FreeSql.DataAnnotations
         }
         DateTime ParseColumnValue(object columnValue)
         {
-            if (columnValue == null) throw new Exception($"分表字段值不能为 null");
+            if (columnValue == null) throw new Exception(CoreStrings.SubTableFieldValue_IsNotNull);
             DateTime dt;
             if (columnValue is DateTime || columnValue is DateTime?)
                 dt = (DateTime)columnValue;
             else if (columnValue is string)
             {
-                if (DateTime.TryParse(string.Concat(columnValue), out dt) == false) throw new Exception($"分表字段值 \"{columnValue}\" 不能转化成 DateTime");
+                if (DateTime.TryParse(string.Concat(columnValue), out dt) == false) throw new Exception(CoreStrings.SubTableFieldValue_NotConvertDateTime(columnValue));
             }
             else if (columnValue is int || columnValue is long)
             {
                 dt = new DateTime(1970, 1, 1).AddSeconds((double)columnValue);
             }
-            else throw new Exception($"分表字段值 \"{columnValue}\" 不能转化成 DateTime");
+            else throw new Exception(CoreStrings.SubTableFieldValue_NotConvertDateTime(columnValue));
             return dt;
         }
 
         public string GetTableNameByColumnValue(object columnValue, bool autoExpand = false)
         {
             var dt = ParseColumnValue(columnValue);
-            if (dt < _beginTime) throw new Exception($"分表字段值 \"{dt.ToString("yyyy-MM-dd HH:mm:ss")}\" 不能小于 \"{_beginTime.ToString("yyyy-MM-dd HH:mm:ss")} \"");
+            if (dt < _beginTime) throw new Exception(CoreStrings.SubTableFieldValue_CannotLessThen(dt.ToString("yyyy-MM-dd HH:mm:ss"), _beginTime.ToString("yyyy-MM-dd HH:mm:ss")));
             var tmpTime = _nextTimeFunc(_lastTime);
             if (dt >= tmpTime && autoExpand)
             {
@@ -157,7 +157,7 @@ namespace FreeSql.DataAnnotations
                     if (dt >= _allTablesTime[a])
                         return _allTables[a];
             }
-            throw new Exception($"分表字段值 \"{dt.ToString("yyyy-MM-dd HH:mm:ss")}\" 未匹配到分表名");
+            throw new Exception(CoreStrings.SubTableFieldValue_NotMatchTable(dt.ToString("yyyy-MM-dd HH:mm:ss")));
         }
         public string[] GetTableNamesByColumnValueRange(object columnValue1, object columnValue2)
         {
@@ -267,7 +267,7 @@ namespace FreeSql.DataAnnotations
             {
                 var val1 = LocalGetParamValue(m.Groups[1].Value);
                 var val2 = LocalGetParamValue(m.Groups[2].Value);
-                if (val1 == null || val2 == null) throw new Exception($"未能解析分表字段值 {sqlWhere}");
+                if (val1 == null || val2 == null) throw new Exception(CoreStrings.Failed_SubTable_FieldValue(sqlWhere));
                 return GetTableNamesByColumnValueRange(val1, val2);
             }
             m = regs[8].Match(newSqlWhere);
@@ -275,14 +275,14 @@ namespace FreeSql.DataAnnotations
             {
                 var val1 = LocalGetParamValue(m.Groups[2].Value);
                 var val2 = LocalGetParamValue(m.Groups[4].Value);
-                if (val1 == null || val2 == null) throw new Exception($"未能解析分表字段值 {sqlWhere}");
+                if (val1 == null || val2 == null) throw new Exception(CoreStrings.Failed_SubTable_FieldValue(sqlWhere));
                 return LocalGetTables(m.Groups[1].Value, m.Groups[3].Value, ParseColumnValue(val1), ParseColumnValue(val2));
             }
             m = regs[10].Match(newSqlWhere);
             if (m.Success)
             {
                 var val1 = LocalGetParamValue(m.Groups[2].Value);
-                if (val1 == null) throw new Exception($"未能解析分表字段值 {sqlWhere}");
+                if (val1 == null) throw new Exception(CoreStrings.Failed_SubTable_FieldValue(sqlWhere));
                 return LocalGetTables2(m.Groups[1].Value, ParseColumnValue(val1));
             }
             return AllTables;

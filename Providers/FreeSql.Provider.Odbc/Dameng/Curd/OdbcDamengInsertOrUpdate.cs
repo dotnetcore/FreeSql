@@ -31,7 +31,7 @@ namespace FreeSql.Odbc.Dameng
 
             string getMergeSql(List<T1> data)
             {
-                if (_table.Primarys.Any() == false) throw new Exception($"InsertOrUpdate 功能执行 merge into 要求实体类 {_table.CsName} 必须有主键");
+                if (_table.Primarys.Any() == false) throw new Exception(CoreStrings.InsertOrUpdate_Must_Primary_Key(_table.CsName));
 
                 var sb = new StringBuilder().Append("MERGE INTO ").Append(_commonUtils.QuoteSqlName(TableRuleInvoke())).Append(" t1 \r\nUSING (");
                 WriteSourceSelectUnionAll(data, sb, dbParams);

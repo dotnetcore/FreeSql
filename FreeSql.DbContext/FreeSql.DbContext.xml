@@ -255,6 +255,233 @@
             <param name="data"></param>
             <returns></returns>
         </member>
+        <member name="T:FreeSql.DbContextStrings">
+            <summary>
+                <para>
+            	    String resources used in FreeSql exceptions, etc.
+                </para>
+                <para>
+            	    These strings are exposed publicly for use by database providers and extensions.
+                    It is unusual for application code to need these strings.
+                </para>
+            </summary>
+        </member>
+        <member name="P:FreeSql.DbContextStrings.Culture">
+            <summary>
+              重写当前线程的 CurrentUICulture 属性，对
+              使用此强类型资源类的所有资源查找执行重写。
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextStrings.AddFreeDbContextError_CheckConstruction(System.Object)">
+            <summary>
+            An error occurred in AddFreeDbContext, check that the construction parameters of {dbContextTypeName} have been injected correctly
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextStrings.CannotAdd_AlreadyExistsInStateManagement(System.Object)">
+            <summary>
+            Not addable, already exists in state management: {entityString}
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextStrings.CannotAdd_EntityHasNo_PrimaryKey(System.Object)">
+            <summary>
+            Not addable, entity has no primary key: {entityString}
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextStrings.CannotAdd_PrimaryKey_NotSet(System.Object)">
+            <summary>
+            Not addable, no value for primary key set: {entityString}
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextStrings.CannotAdd_SelfIncreasingHasValue(System.Object)">
+            <summary>
+            Not addable, self-increasing attribute has value: {entityString}
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextStrings.CannotAttach_EntityHasNo_PrimaryKey(System.Object)">
+            <summary>
+            Not attachable, entity has no primary key: {entityString}
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextStrings.CannotAttach_PrimaryKey_NotSet(System.Object)">
+            <summary>
+            Not attachable, no value for primary key set: {entityString}
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextStrings.CannotDelete_DataNotTracked_ShouldQuery(System.Object)">
+            <summary>
+            Not deletable, data not tracked, should query first: {entityString}
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextStrings.CannotDelete_EntityHasNo_PrimaryKey(System.Object)">
+            <summary>
+            Not deletable, entity has no primary key: {entityString}
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextStrings.CannotDelete_PrimaryKey_NotSet(System.Object)">
+            <summary>
+            Not deletable, no value for primary key set: {entityString}
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextStrings.CannotEdit_EntityHasNo_PrimaryKey(System.Object)">
+            <summary>
+            Not editable, entity has no primary key: {entityString}
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextStrings.CannotUpdate_DataShouldQueryOrAttach(System.Object)">
+            <summary>
+            Not updatable, data not tracked, should be queried first or Attach:{entityString}
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextStrings.CannotUpdate_EntityHasNo_PrimaryKey(System.Object)">
+            <summary>
+            Not updatable, entity has no primary key: {entityString}
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextStrings.CannotUpdate_PrimaryKey_NotSet(System.Object)">
+            <summary>
+            Not updatable, no value for primary key set: {entityString}
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextStrings.CannotUpdate_RecordDoesNotExist(System.Object)">
+            <summary>
+            Not updatable, the record does not exist in the database: {entityString}
+            </summary>
+        </member>
+        <member name="P:FreeSql.DbContextStrings.ConfigureUseFreeSql">
+            <summary>
+            Please configure UseFreeSql in OnConfiguring or AddFreeDbContext
+            </summary>
+        </member>
+        <member name="P:FreeSql.DbContextStrings.DbSetAsType_NotSupport_Object">
+            <summary>
+            DbSet. AsType parameter error, please pass in the correct entity type
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextStrings.EntityType_CannotConvert(System.Object,System.Object)">
+            <summary>
+            Entity type {EntityTypeName} cannot be converted to {name} and cannot use this method
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextStrings.EntityType_PrimaryKeyError(System.Object,System.Object)">
+            <summary>
+            Entity type {EntityTypeName} Primary key type is not {fullName} and cannot be used with this method
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextStrings.EntityType_PrimaryKeyIsNotOne(System.Object)">
+            <summary>
+            Entity type {EntityTypeName} Primary key number is not 1 and cannot be used with this method
+            </summary>
+        </member>
+        <member name="P:FreeSql.DbContextStrings.FailedSetFilter_NotBelongIRpository">
+            <summary>
+            FreeSql. Repository failed to set filter because object does not belong to IRepository
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextStrings.Incomparable_EntityHasNo_PrimaryKey(System.Object)">
+            <summary>
+            Not comparable, entity has no primary key: {entityString}
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextStrings.Incomparable_PrimaryKey_NotSet(System.Object)">
+            <summary>
+            Non-comparable, no value for primary key set: {entityString}
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextStrings.InsertError_Filter(System.Object,System.Object,System.Object)">
+            <summary>
+            FreeSql. Repository Insert failed because the filter {filterKey}: {filterValueExpression} was set and the inserted data does not conform to {entityString}
+            </summary>
+        </member>
+        <member name="P:FreeSql.DbContextStrings.ISelectAsType_ParameterError">
+            <summary>
+            ISelect. AsType parameter does not support specifying as object
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextStrings.NotFound_Property(System.Object,System.Object)">
+            <summary>
+            Property {propertyName} does not exist for {tableTypeFullName}
+            </summary>
+        </member>
+        <member name="P:FreeSql.DbContextStrings.NotFoundMethod_StatesRemoveByObjects">
+            <summary>
+            Method DbSet&lt;&gt; not found. StatesRemoveByObjects
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextStrings.ParameterDataTypeError(System.Object)">
+            <summary>
+            Parameter data type error {entityTypeFullName}
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextStrings.ParameterError(System.Object)">
+            <summary>
+            Parameter error {param}
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextStrings.ParameterError_CannotBeNull(System.Object)">
+            <summary>
+            Parameter error {param} cannot be null
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextStrings.ParameterError_IsNot_CollectionProperties(System.Object)">
+            <summary>
+            Parameter error {many} is not a collection property
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextStrings.ParameterError_NotFound_CollectionProperties(System.Object)">
+            <summary>
+            Parameter error {many} Collection property does not exist
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextStrings.ParameterError_NotFound_Property(System.Object)">
+            <summary>
+            Parameter error {one} attribute does not exist
+            </summary>
+        </member>
+        <member name="P:FreeSql.DbContextStrings.Propagation_Mandatory">
+            <summary>
+            Propagation_ Mandatory: With the current transaction, throw an exception if there is no current transaction
+            </summary>
+        </member>
+        <member name="P:FreeSql.DbContextStrings.Propagation_Never">
+            <summary>
+            Propagation_ Never: Perform the operation non-transactionally and throw an exception if the current transaction exists
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextStrings.PropertyOfType_IsNot_OneToManyOrManyToMany(System.Object,System.Object)">
+            <summary>
+            Property {propertyName} of type {tableTypeFullName} is not OneToMany or ManyToMany attribute
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextStrings.SpecialError_BatchAdditionFailed(System.Object)">
+            <summary>
+            Special error: Bulk add failed, {dataType} returned data, does not match the number added
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextStrings.SpecialError_UpdateFailedDataNotTracked(System.Object)">
+            <summary>
+            Special error: Update failed, data not tracked: {entityString}
+            </summary>
+        </member>
+        <member name="P:FreeSql.DbContextStrings.TransactionHasBeenStarted">
+            <summary>
+            Transaction opened, unit of work cannot be disabled
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextStrings.TypeHasSetProperty_IgnoreAttribute(System.Object,System.Object)">
+            <summary>
+            The {tableTypeFullName} type has set the property {propertyName} Ignore the attribute
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextStrings.UnitOfWorkManager_Construction_CannotBeNull(System.Object,System.Object)">
+            <summary>
+            The {unitOfWorkManager} constructor parameter {fsql} cannot be null
+            </summary>
+        </member>
+        <member name="M:FreeSql.DbContextStrings.UpdateError_Filter(System.Object,System.Object,System.Object)">
+            <summary>
+            FreeSql. Repository Update failed because the filter {filterKey}: {filterValueExpression} is set and the updated data does not conform to {entityString}
+            </summary>
+        </member>
         <member name="M:FreeSql.IRepositoryUnitOfWork.GetRepository``2(System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})">
             <summary>
             在工作单元内创建默认仓库类，工作单元下的仓储操作具有事务特点

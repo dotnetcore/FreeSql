@@ -144,7 +144,7 @@ namespace FreeSql.Internal.CommonProvider
                         break;
                     }
                 }
-                if (exp == null) throw new Exception($"无法匹配 {property}");
+                if (exp == null) throw new Exception(CoreStrings.Cannot_Match_Property(property));
             }
             else
             {
@@ -160,7 +160,7 @@ namespace FreeSql.Internal.CommonProvider
                 {
                     var tmp1 = field[x];
                     if (_commonUtils.GetTableByEntity(currentType).Properties.TryGetValue(tmp1, out var prop) == false)
-                        throw new ArgumentException($"{currentType.DisplayCsharp()} 无法找到属性名 {tmp1}");
+                        throw new ArgumentException($"{currentType.DisplayCsharp()} {CoreStrings.NotFound_PropertyName(tmp1)}");
                     currentType = prop.PropertyType;
                     currentExp = Expression.MakeMemberAccess(currentExp, prop);
                 }
@@ -176,7 +176,7 @@ namespace FreeSql.Internal.CommonProvider
         public static MethodInfo GetMethodEnumerable(string methodName) => MethodEnumerableDic.GetOrAdd(methodName, et =>
         {
             var methods = typeof(Enumerable).GetMethods().Where(a => a.Name == et);
-            if (et == "Select") 
+            if (et == "Select")
                 return methods.Where(a => a.GetParameters()[1].ParameterType.GetGenericTypeDefinition() == typeof(Func<,>)).FirstOrDefault();
             return methods.FirstOrDefault();
         });
@@ -254,7 +254,7 @@ namespace FreeSql.Internal.CommonProvider
         }
         public TSelect RightJoin(Expression<Func<T1, bool>> exp)
         {
-            if (exp == null) return this as TSelect; 
+            if (exp == null) return this as TSelect;
             _tables[0].Parameter = exp.Parameters[0];
             return this.InternalJoin(exp?.Body, SelectTableInfoType.RightJoin);
         }
@@ -407,7 +407,7 @@ namespace FreeSql.Internal.CommonProvider
         }
         public IDelete<T1> ToDelete()
         {
-            if (_tables[0].Table.Primarys.Any() == false) throw new Exception($"ToDelete 功能要求实体类 {_tables[0].Table.CsName} 必须有主键");
+            if (_tables[0].Table.Primarys.Any() == false) throw new Exception(CoreStrings.Entity_Must_Primary_Key("ToDelete", _tables[0].Table.CsName));
             var del = (_orm as BaseDbProvider).CreateDeleteProvider<T1>(null) as DeleteProvider<T1>;
             if (_tables[0].Table.Type != typeof(T1)) del.AsType(_tables[0].Table.Type);
             if (_params.Any()) del._params = new List<DbParameter>(_params.ToArray());
@@ -441,7 +441,7 @@ namespace FreeSql.Internal.CommonProvider
         }
         public IUpdate<T1> ToUpdate()
         {
-            if (_tables[0].Table.Primarys.Any() == false) throw new Exception($"ToUpdate 功能要求实体类 {_tables[0].Table.CsName} 必须有主键");
+            if (_tables[0].Table.Primarys.Any() == false) throw new Exception(CoreStrings.Entity_Must_Primary_Key("ToUpdate", _tables[0].Table.CsName));
             var upd = (_orm as BaseDbProvider).CreateUpdateProvider<T1>(null) as UpdateProvider<T1>;
             if (_tables[0].Table.Type != typeof(T1)) upd.AsType(_tables[0].Table.Type);
             if (_params.Any()) upd._params = new List<DbParameter>(_params.ToArray());
@@ -477,7 +477,7 @@ namespace FreeSql.Internal.CommonProvider
         protected List<Dictionary<Type, string>> GetTableRuleUnions()
         {
             var unions = new List<Dictionary<Type, string>>();
-            var trs = _tableRules.Any() ? _tableRules : new List<Func<Type, string, string>>(new [] { new Func<Type, string, string>((type, oldname) => null) });
+            var trs = _tableRules.Any() ? _tableRules : new List<Func<Type, string, string>>(new[] { new Func<Type, string, string>((type, oldname) => null) });
 
             if (trs.Count == 1 && _tables.Any(a => a.Table.AsTableImpl != null && string.IsNullOrWhiteSpace(trs[0](a.Table.Type, a.Table.DbName)) == true))
             {
@@ -576,10 +576,10 @@ namespace FreeSql.Internal.CommonProvider
         }
         public TSelect AsType(Type entityType)
         {
-            if (entityType == typeof(object)) throw new Exception("ISelect.AsType 参数不支持指定为 object");
+            if (entityType == typeof(object)) throw new Exception(CoreStrings.TypeAsType_NotSupport_Object("ISelect"));
             if (entityType == _tables[0].Table.Type) return this as TSelect;
             var newtb = _commonUtils.GetTableByEntity(entityType);
-            _tables[0].Table = newtb ?? throw new Exception("ISelect.AsType 参数错误，请传入正确的实体类型");
+            _tables[0].Table = newtb ?? throw new Exception(CoreStrings.Type_AsType_Parameter_Error("ISelect"));
             if (_orm.CodeFirst.IsAutoSyncStructure) _orm.CodeFirst.SyncStructure(entityType);
             return this as TSelect;
         }
@@ -624,14 +624,14 @@ namespace FreeSql.Internal.CommonProvider
                     {
                         case DynamicFilterOperator.Custom:
                             var fiValueCustomArray = fi.Field?.ToString().Split(new[] { ' ' }, 2);
-                            if (fiValueCustomArray.Length != 2) throw new ArgumentException("Custom 要求 Field 应该空格分割，并且长度为 2，格式：{静态方法名}{空格}{反射信息}");
-                            if (string.IsNullOrWhiteSpace(fiValueCustomArray[0])) throw new ArgumentException("Custom {静态方法名}不能为空，格式：{静态方法名}{空格}{反射信息}");
-                            if (string.IsNullOrWhiteSpace(fiValueCustomArray[1])) throw new ArgumentException("Custom {反射信息}不能为空，格式：{静态方法名}{空格}{反射信息}");
+                            if (fiValueCustomArray.Length != 2) throw new ArgumentException(CoreStrings.CustomFieldSeparatedBySpaces);
+                            if (string.IsNullOrWhiteSpace(fiValueCustomArray[0])) throw new ArgumentException(CoreStrings.Custom_StaticMethodName_IsNotNull);
+                            if (string.IsNullOrWhiteSpace(fiValueCustomArray[1])) throw new ArgumentException(CoreStrings.Custom_Reflection_IsNotNull);
                             var fiValue1Type = Type.GetType(fiValueCustomArray[1]);
-                            if (fiValue1Type == null) throw new ArgumentException($"Custom 找不到对应的{{反射信息}}：{fiValueCustomArray[1]}");
+                            if (fiValue1Type == null) throw new ArgumentException(CoreStrings.NotFound_Reflection(fiValueCustomArray[1]));
                             var fiValue0Method = fiValue1Type.GetMethod(fiValueCustomArray[0], new Type[] { typeof(string) });
-                            if (fiValue0Method == null) throw new ArgumentException($"Custom 找不到对应的{{静态方法名}}：{fiValueCustomArray[0]}");
-                            if (MethodIsDynamicFilterCustomAttribute(fiValue0Method) == false) throw new ArgumentException($"Custom 对应的{{静态方法名}}：{fiValueCustomArray[0]} 未设置 [DynamicFilterCustomAttribute] 特性");
+                            if (fiValue0Method == null) throw new ArgumentException(CoreStrings.NotFound_Static_MethodName(fiValueCustomArray[0]));
+                            if (MethodIsDynamicFilterCustomAttribute(fiValue0Method) == false) throw new ArgumentException(CoreStrings.Custom_StaticMethodName_NotSet_DynamicFilterCustom(fiValueCustomArray[0]));
                             var fiValue0MethodReturn = fiValue0Method?.Invoke(null, new object[] { fi.Value?.ToString() })?.ToString();
                             exp = Expression.Call(typeof(SqlExt).GetMethod("InternalRawSql", BindingFlags.NonPublic | BindingFlags.Static), Expression.Constant(fiValue0MethodReturn, typeof(string)));
                             break;
@@ -669,20 +669,20 @@ namespace FreeSql.Internal.CommonProvider
                         case DynamicFilterOperator.LessThanOrEqual: exp = Expression.Call(typeof(SqlExt).GetMethod("LessThanOrEqual").MakeGenericMethod(exp.Type), exp, Expression.Constant(Utils.GetDataReaderValue(exp.Type, fi.Value?.ToString()), exp.Type)); break;
                         case DynamicFilterOperator.Range:
                             var fiValueRangeArray = getFiListValue();
-                            if (fiValueRangeArray.Length != 2) throw new ArgumentException($"Range 要求 Value 应该逗号分割，并且长度为 2");
+                            if (fiValueRangeArray.Length != 2) throw new ArgumentException(CoreStrings.Range_Comma_Separateda_By2Char);
                             exp = Expression.AndAlso(
                                 Expression.GreaterThanOrEqual(exp, Expression.Constant(Utils.GetDataReaderValue(exp.Type, fiValueRangeArray[0]), exp.Type)),
                                 Expression.LessThan(exp, Expression.Constant(Utils.GetDataReaderValue(exp.Type, fiValueRangeArray[1]), exp.Type)));
                             break;
                         case DynamicFilterOperator.DateRange:
                             var fiValueDateRangeArray = getFiListValue();
-                            if (fiValueDateRangeArray?.Length != 2) throw new ArgumentException($"DateRange 要求 Value 应该逗号分割，并且长度为 2");
+                            if (fiValueDateRangeArray?.Length != 2) throw new ArgumentException(CoreStrings.DateRange_Comma_Separateda_By2Char);
                             if (Regex.IsMatch(fiValueDateRangeArray[1], @"^\d\d\d\d[\-/]\d\d?[\-/]\d\d?$")) fiValueDateRangeArray[1] = DateTime.Parse(fiValueDateRangeArray[1]).AddDays(1).ToString("yyyy-MM-dd HH:mm:ss");
                             else if (Regex.IsMatch(fiValueDateRangeArray[1], @"^\d\d\d\d[\-/]\d\d?$")) fiValueDateRangeArray[1] = DateTime.Parse($"{fiValueDateRangeArray[1]}-01").AddMonths(1).ToString("yyyy-MM-dd HH:mm:ss");
                             else if (Regex.IsMatch(fiValueDateRangeArray[1], @"^\d\d\d\d$")) fiValueDateRangeArray[1] = DateTime.Parse($"{fiValueDateRangeArray[1]}-01-01").AddYears(1).ToString("yyyy-MM-dd HH:mm:ss");
                             else if (Regex.IsMatch(fiValueDateRangeArray[1], @"^\d\d\d\d[\-/]\d\d?[\-/]\d\d? \d\d?$")) fiValueDateRangeArray[1] = DateTime.Parse($"{fiValueDateRangeArray[1]}:00:00").AddHours(1).ToString("yyyy-MM-dd HH:mm:ss");
                             else if (Regex.IsMatch(fiValueDateRangeArray[1], @"^\d\d\d\d[\-/]\d\d?[\-/]\d\d? \d\d?:\d\d?$")) fiValueDateRangeArray[1] = DateTime.Parse($"{fiValueDateRangeArray[1]}:00").AddMinutes(1).ToString("yyyy-MM-dd HH:mm:ss");
-                            else throw new ArgumentException($"DateRange 要求 Value[1] 格式必须为：yyyy、yyyy-MM、yyyy-MM-dd、yyyy-MM-dd HH、yyyy、yyyy-MM-dd HH:mm");
+                            else throw new ArgumentException(CoreStrings.DateRange_DateFormat_yyyy);
 
                             if (Regex.IsMatch(fiValueDateRangeArray[0], @"^\d\d\d\d[\-/]\d\d?$")) fiValueDateRangeArray[0] = DateTime.Parse($"{fiValueDateRangeArray[0]}-01").ToString("yyyy-MM-dd HH:mm:ss");
                             else if (Regex.IsMatch(fiValueDateRangeArray[0], @"^\d\d\d\d$")) fiValueDateRangeArray[0] = DateTime.Parse($"{fiValueDateRangeArray[0]}-01-01").ToString("yyyy-MM-dd HH:mm:ss");
@@ -779,7 +779,8 @@ namespace FreeSql.Internal.CommonProvider
             }
             catch { }
 
-            var dyattr = attrs?.Where(a => {
+            var dyattr = attrs?.Where(a =>
+            {
                 return ((a as Attribute)?.TypeId as Type)?.Name == "DynamicFilterCustomAttribute";
             }).FirstOrDefault();
             return dyattr != null;
@@ -805,7 +806,7 @@ namespace FreeSql.Internal.CommonProvider
         public TSelect ForUpdate(bool noawait = false)
         {
             if (_transaction == null && _orm.Ado.TransactionCurrentThread == null)
-                throw new Exception("安全起见，请务必在事务开启之后，再使用 ForUpdate");
+                throw new Exception($"{CoreStrings.Begin_Transaction_Then_ForUpdate}");
             switch (_orm.Ado.DataType)
             {
                 case DataType.MySql:

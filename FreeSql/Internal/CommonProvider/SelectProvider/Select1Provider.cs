@@ -32,7 +32,7 @@ namespace FreeSql.Internal.CommonProvider
                 for (var a = 1; a < lambdaExp.Parameters.Count; a++)
                 {
                     var tb = _commonUtils.GetTableByEntity(lambdaExp.Parameters[a].Type);
-                    if (tb == null) throw new ArgumentException($"{lambdaExp.Parameters[a].Name} 类型错误");
+                    if (tb == null) throw new ArgumentException(CoreStrings.Type_Error_Name(lambdaExp.Parameters[a].Name));
                     _tables.Add(new SelectTableInfo { Table = tb, Alias = lambdaExp.Parameters[a].Name, On = null, Type = SelectTableInfoType.From });
                 }
             }
@@ -81,8 +81,7 @@ namespace FreeSql.Internal.CommonProvider
                         case "LeftJoin": this.InternalJoin(expCall.Arguments[0], SelectTableInfoType.LeftJoin); break;
                         case "InnerJoin": this.InternalJoin(expCall.Arguments[0], SelectTableInfoType.InnerJoin); break;
                         case "RightJoin": this.InternalJoin(expCall.Arguments[0], SelectTableInfoType.RightJoin); break;
-
-                        default: throw new NotImplementedException($"未实现 {expCall.Method.Name}");
+                        default: throw new NotImplementedException(CoreStrings.Not_Implemented_Name(expCall.Method.Name));
                     }
                 }
             }
@@ -118,7 +117,7 @@ namespace FreeSql.Internal.CommonProvider
         public abstract ISelect<T1, T2, T3, T4, T5, T6, T7, T8> From<T2, T3, T4, T5, T6, T7, T8>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, ISelectFromExpression<T1>>> exp) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class;
         public abstract ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9> From<T2, T3, T4, T5, T6, T7, T8, T9>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, T9, ISelectFromExpression<T1>>> exp) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class;
         public abstract ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> From<T2, T3, T4, T5, T6, T7, T8, T9, T10>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, T9, T10, ISelectFromExpression<T1>>> exp) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class;
-        
+
         public abstract ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> From<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, ISelectFromExpression<T1>>> exp) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class;
         public abstract ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> From<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, ISelectFromExpression<T1>>> exp) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class;
         public abstract ISelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> From<T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(Expression<Func<ISelectFromExpression<T1>, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, ISelectFromExpression<T1>>> exp) where T2 : class where T3 : class where T4 : class where T5 : class where T6 : class where T7 : class where T8 : class where T9 : class where T10 : class where T11 : class where T12 : class where T13 : class;
@@ -244,7 +243,7 @@ namespace FreeSql.Internal.CommonProvider
                 var splitKeys = fim.Item1.Split('.');
                 var otherRetItem = otherRet[fim.Item3];
                 var otherRetItemType = _tables[0].Table.Type;
-                foreach(var splitKey in splitKeys)
+                foreach (var splitKey in splitKeys)
                 {
                     otherRetItem = _orm.GetEntityValueWithPropertyName(otherRetItemType, otherRetItem, splitKey);
                     otherRetItemType = _orm.CodeFirst.GetTableByEntity(otherRetItemType).Properties[splitKey].PropertyType;
@@ -263,7 +262,7 @@ namespace FreeSql.Internal.CommonProvider
                 .Where(a => a.Value.CsType != a.Value.Attribute.MapType)
                 .Select(a => new { DtoProperty = typeof(TDto).GetProperty(a.Value.CsName), EntityProperty = _tables[0].Table.Properties[a.Value.CsName], Column = a.Value })
                 .Where(a => a.DtoProperty != null)
-                .Select(a => 
+                .Select(a =>
                     a.DtoProperty.PropertyType == a.EntityProperty.PropertyType ?
                     Expression.Bind(a.DtoProperty, Expression.MakeMemberAccess(expParam, a.EntityProperty)) :
                     Expression.Bind(a.DtoProperty, Expression.Convert(Expression.MakeMemberAccess(expParam, a.EntityProperty), a.DtoProperty.PropertyType))
@@ -408,13 +407,13 @@ namespace FreeSql.Internal.CommonProvider
         public ISelect<T1> IncludeByPropertyName(string property)
         {
             var exp = ConvertStringPropertyToExpression(property, true);
-            if (exp == null) throw new ArgumentException($"{nameof(property)} 无法解析为表达式树");
+            if (exp == null) throw new ArgumentException($"{CoreStrings.Cannot_Resolve_ExpressionTree(nameof(property))}");
             var memExp = exp as MemberExpression;
-            if (memExp == null) throw new ArgumentException($"{nameof(property)} 无法解析为表达式树2");
+            if (memExp == null) throw new ArgumentException($"{CoreStrings.Cannot_Resolve_ExpressionTree(nameof(property))}2");
             var parTb = _commonUtils.GetTableByEntity(memExp.Expression.Type);
-            if (parTb == null) throw new ArgumentException($"{nameof(property)} 无法解析为表达式树3");
+            if (parTb == null) throw new ArgumentException($"{CoreStrings.Cannot_Resolve_ExpressionTree(nameof(property))}3");
             var parTbref = parTb.GetTableRef(memExp.Member.Name, true);
-            if (parTbref == null) throw new ArgumentException($"{nameof(property)} 不是有效的导航属性");
+            if (parTbref == null) throw new ArgumentException(CoreStrings.Not_Valid_Navigation_Property(nameof(property)));
             switch (parTbref.RefType)
             {
                 case TableRefType.ManyToMany:
@@ -422,7 +421,7 @@ namespace FreeSql.Internal.CommonProvider
                     var funcType = typeof(Func<,>).MakeGenericType(_tables[0].Table.Type, typeof(IEnumerable<>).MakeGenericType(parTbref.RefEntityType));
                     var navigateSelector = Expression.Lambda(funcType, exp, _tables[0].Parameter);
                     var incMethod = this.GetType().GetMethod("IncludeMany");
-                    if (incMethod == null) throw new Exception("运行时错误，反射获取 IncludeMany 方法失败");
+                    if (incMethod == null) throw new Exception(CoreStrings.RunTimeError_Reflection_IncludeMany);
                     incMethod.MakeGenericMethod(parTbref.RefEntityType).Invoke(this, new object[] { navigateSelector, null });
                     break;
                 case TableRefType.ManyToOne:
@@ -441,10 +440,10 @@ namespace FreeSql.Internal.CommonProvider
         {
             var expBody = navigateSelector?.Body;
             if (expBody == null) return this;
-            if (expBody.NodeType != ExpressionType.MemberAccess) throw new Exception("Include 参数类型错误，表达式类型应该为 MemberAccess");
-            if (typeof(IEnumerable).IsAssignableFrom(expBody.Type)) throw new Exception("Include 参数类型错误，集合属性请使用 IncludeMany");
+            if (expBody.NodeType != ExpressionType.MemberAccess) throw new Exception(CoreStrings.Include_ParameterType_Error_Use_MemberAccess);
+            if (typeof(IEnumerable).IsAssignableFrom(expBody.Type)) throw new Exception(CoreStrings.Include_ParameterType_Error_Use_IncludeMany);
             var tb = _commonUtils.GetTableByEntity(expBody.Type);
-            if (tb == null) throw new Exception("Include 参数类型错误");
+            if (tb == null) throw new Exception(CoreStrings.Include_ParameterType_Error);
 
             _isIncluded = true;
             _tables[0].Parameter = navigateSelector.Parameters[0];
@@ -472,18 +471,18 @@ namespace FreeSql.Internal.CommonProvider
                         isbreak = true;
                         break;
                     default:
-                        throw new Exception($"表达式错误，它不是连续的 MemberAccess 类型：{exp}");
+                        throw new Exception(CoreStrings.Expression_Error_Use_Successive_MemberAccess_Type(exp));
                 }
             }
-            if (param == null) throw new Exception($"表达式错误，它的顶级对象不是 ParameterExpression：{exp}");
+            if (param == null) throw new Exception(CoreStrings.Expression_Error_Use_ParameterExpression(exp));
             return NativeTuple.Create(param, members.ToList());
         }
         static MethodInfo GetEntityValueWithPropertyNameMethod = typeof(EntityUtilExtensions).GetMethod("GetEntityValueWithPropertyName");
         static ConcurrentDictionary<Type, ConcurrentDictionary<string, MethodInfo>> _dicTypeMethod = new ConcurrentDictionary<Type, ConcurrentDictionary<string, MethodInfo>>();
         public ISelect<T1> IncludeMany<TNavigate>(Expression<Func<T1, IEnumerable<TNavigate>>> navigateSelector, Action<ISelect<TNavigate>> then = null) where TNavigate : class
         {
-            var throwNavigateSelector = new Exception("IncludeMany 参数1 类型错误，表达式类型应该为 MemberAccess");
-
+            var throwNavigateSelector = new Exception(CoreStrings.IncludeMany_ParameterType_Error_Use_MemberAccess);
+            
             var expBody = navigateSelector?.Body;
             if (expBody == null) return this;
             if (expBody.NodeType == ExpressionType.Convert) expBody = (expBody as UnaryExpression)?.Operand; //- 兼容 Vb.Net 无法使用 IncludeMany 的问题；
@@ -492,7 +491,7 @@ namespace FreeSql.Internal.CommonProvider
             Expression<Func<TNavigate, TNavigate>> selectExp = null;
             while (expBody.NodeType == ExpressionType.Call)
             {
-                throwNavigateSelector = new Exception($"IncludeMany {nameof(navigateSelector)} 参数类型错误，正确格式： a.collections.Take(1).Where(c => c.aid == a.id).Select(a => new TNavigate {{ }})");
+                throwNavigateSelector = new Exception(CoreStrings.IncludeMany_ParameterTypeError(nameof(navigateSelector)));
                 var callExp = (expBody as MethodCallExpression);
                 switch (callExp.Method.Name)
                 {
@@ -504,7 +503,7 @@ namespace FreeSql.Internal.CommonProvider
                         break;
                     case "Select":
                         selectExp = (callExp.Arguments[1] as Expression<Func<TNavigate, TNavigate>>);
-                        if (selectExp?.Parameters.Count != 1) throw new Exception($"IncludeMany {nameof(navigateSelector)} 参数错误，Select 只可以使用一个参数的方法，正确格式： .Select(t => new TNavigate {{ }})");
+                        if (selectExp?.Parameters.Count != 1) throw new Exception(CoreStrings.IncludeMany_ParameterError_OnlyUseOneParameter(nameof(navigateSelector)));
                         break;
                     default: throw throwNavigateSelector;
                 }
@@ -519,10 +518,10 @@ namespace FreeSql.Internal.CommonProvider
             var tb = _commonUtils.GetTableByEntity(collMem.Expression.Type);
             if (tb == null) throw throwNavigateSelector;
             var collMemElementType = (collMem.Type.IsGenericType ? collMem.Type.GetGenericArguments().FirstOrDefault() : collMem.Type.GetElementType());
-            if (typeof(TNavigate) != collMemElementType) 
-                throw new Exception($"IncludeMany {nameof(navigateSelector)} 参数错误，Select lambda参数返回值必须和 {collMemElementType} 类型一致");
+            if (typeof(TNavigate) != collMemElementType)
+                throw new Exception(CoreStrings.IncludeMany_ParameterError_Select_ReturnConsistentType(nameof(navigateSelector), collMemElementType));
             var tbNav = _commonUtils.GetTableByEntity(typeof(TNavigate));
-            if (tbNav == null) throw new Exception($"类型 {typeof(TNavigate).FullName} 错误，不能使用 IncludeMany");
+            if (tbNav == null) throw new Exception(CoreStrings.TypeError_CannotUse_IncludeMany(typeof(TNavigate).FullName));
 
             if (collMem.Expression.NodeType != ExpressionType.Parameter)
                 _commonExpression.ExpressionWhereLambda(_tables, Expression.MakeMemberAccess(collMem.Expression, tb.Properties[tb.ColumnsByCs.First().Value.CsName]), null, null, null);
@@ -532,7 +531,7 @@ namespace FreeSql.Internal.CommonProvider
             if (whereExp == null)
             {
                 tbref = tb.GetTableRef(collMem.Member.Name, true);
-                if (tbref == null) throw new Exception($"IncludeMany 类型 {tb.Type.DisplayCsharp()} 的属性 {collMem.Member.Name} 不是有效的导航属性，提示：IsIgnore = true 不会成为导航属性");
+                if (tbref == null) throw new Exception(CoreStrings.IncludeMany_NotValid_Navigation(tb.Type.DisplayCsharp(), collMem.Member.Name));
             }
             else
             {
@@ -834,7 +833,7 @@ namespace FreeSql.Internal.CommonProvider
                     dicList.Clear();
                 };
 
-                if (tbref.RefType ==  TableRefType.OneToMany && _includeManySubListOneToManyTempValue1 != null && _includeManySubListOneToManyTempValue1 is List<TNavigate>)
+                if (tbref.RefType == TableRefType.OneToMany && _includeManySubListOneToManyTempValue1 != null && _includeManySubListOneToManyTempValue1 is List<TNavigate>)
                 {
                     fillOneToManyData(_includeManySubListOneToManyTempValue1 as List<TNavigate>, _commonUtils.GetTableByEntity(tbref.RefEntityType));
                     return;

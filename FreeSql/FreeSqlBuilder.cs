@@ -39,7 +39,7 @@ namespace FreeSql
         /// <returns></returns>
         public FreeSqlBuilder UseConnectionString(DataType dataType, string connectionString, Type providerType = null)
         {
-            if (_connectionFactory != null) throw new Exception("已经指定了 UseConnectionFactory，不能再指定 UseConnectionString");
+            if (_connectionFactory != null) throw new Exception(CoreStrings.Has_Specified_Cannot_Specified_Second("UseConnectionFactory", "UseConnectionString"));
             _dataType = dataType;
             _masterConnectionString = connectionString;
             _providerType = providerType;
@@ -52,13 +52,13 @@ namespace FreeSql
         /// <returns></returns>
         public FreeSqlBuilder UseSlave(params string[] slaveConnectionString)
         {
-            if (_connectionFactory != null) throw new Exception("已经指定了 UseConnectionFactory，不能再指定 UseSlave");
+            if (_connectionFactory != null) throw new Exception(CoreStrings.Has_Specified_Cannot_Specified_Second("UseConnectionFactory", "UseSlave"));
             _slaveConnectionString = slaveConnectionString;
             return this;
         }
         public FreeSqlBuilder UseSlaveWeight(params int[] slaveWeights)
         {
-            if (_slaveConnectionString?.Length != slaveWeights.Length) throw new Exception("SlaveConnectionString 数量与 SlaveWeights 不相同");
+            if (_slaveConnectionString?.Length != slaveWeights.Length) throw new Exception(CoreStrings.Different_Number_SlaveConnectionString_SlaveWeights);
             _slaveWeights = slaveWeights;
             return this;
         }
@@ -71,8 +71,8 @@ namespace FreeSql
         /// <returns></returns>
         public FreeSqlBuilder UseConnectionFactory(DataType dataType, Func<DbConnection> connectionFactory, Type providerType = null)
         {
-            if (string.IsNullOrEmpty(_masterConnectionString) == false) throw new Exception("已经指定了 UseConnectionString，不能再指定 UseConnectionFactory");
-            if (_slaveConnectionString?.Any() == true) throw new Exception("已经指定了 UseSlave，不能再指定 UseConnectionFactory");
+            if (string.IsNullOrEmpty(_masterConnectionString) == false) throw new Exception(CoreStrings.Has_Specified_Cannot_Specified_Second("UseConnectionString", "UseConnectionFactory"));
+            if (_slaveConnectionString?.Any() == true) throw new Exception(CoreStrings.Has_Specified_Cannot_Specified_Second("UseSlave", "UseConnectionFactory"));
             _dataType = dataType;
             _connectionFactory = connectionFactory;
             _providerType = providerType;
@@ -175,7 +175,7 @@ namespace FreeSql
         public IFreeSql Build() => Build<IFreeSql>();
         public IFreeSql<TMark> Build<TMark>()
         {
-            if (string.IsNullOrEmpty(_masterConnectionString) && _connectionFactory == null) throw new Exception("参数 masterConnectionString 不可为空，请检查 UseConnectionString");
+            if (string.IsNullOrEmpty(_masterConnectionString) && _connectionFactory == null) throw new Exception(CoreStrings.Check_UseConnectionString);
             IFreeSql<TMark> ret = null;
             var type = _providerType;
             if (type != null)
@@ -185,7 +185,7 @@ namespace FreeSql
             }
             else
             {
-                Action<string, string> throwNotFind = (dll, providerType) => throw new Exception($"缺少 FreeSql 数据库实现包：{dll}，可前往 nuget 下载；如果存在 {dll} 依然报错（原因是环境问题导致反射不到类型），请在 UseConnectionString/UseConnectionFactory 第三个参数手工传入 typeof({providerType})");
+                Action<string, string> throwNotFind = (dll, providerType) => throw new Exception(CoreStrings.Missing_FreeSqlProvider_Package_Reason(dll, providerType));
                 switch (_dataType)
                 {
                     case DataType.MySql:
@@ -283,7 +283,7 @@ namespace FreeSql
                         if (type == null) throwNotFind("FreeSql.Provider.GBase.dll", "FreeSql.GBase.GBaseProvider<>");
                         break;
 
-                    default: throw new Exception("未指定 UseConnectionString 或者 UseConnectionFactory");
+                    default: throw new Exception(CoreStrings.NotSpecified_UseConnectionString_UseConnectionFactory);
                 }
             }
             ret = Activator.CreateInstance(type, new object[] { _masterConnectionString, _slaveConnectionString, _connectionFactory }) as IFreeSql<TMark>;

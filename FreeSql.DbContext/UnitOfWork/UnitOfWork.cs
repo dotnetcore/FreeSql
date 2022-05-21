@@ -55,7 +55,7 @@ namespace FreeSql
         public void Close()
         {
             if (_tran != null)
-                throw new Exception("已开启事务，不能禁用工作单元");
+                throw new Exception(DbContextStrings.TransactionHasBeenStarted);
 
             Enable = false;
         }

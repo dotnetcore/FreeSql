@@ -87,7 +87,7 @@ namespace FreeSql.Internal
                     else colattr.IsIgnore = true;
                     //Navigate 错误提示
                     var pnvAttr = common.GetEntityNavigateAttribute(trytb.Type, p);
-                    if (pnvAttr != null) throw new Exception($"【导航属性】{trytb.Type.DisplayCsharp()}.{p.Name} 缺少 set 属性");
+                    if (pnvAttr != null) throw new Exception(CoreStrings.Navigation_Missing_SetProperty(trytb.Type.DisplayCsharp(),p.Name));
                 }
                 if (tp == null && colattr?.IsIgnore != true)
                 {
@@ -381,8 +381,8 @@ namespace FreeSql.Internal
                     colattr.DbType = Regex.Replace(colattr.DbType, decimalPatten, $"$1({colattr.Precision},{colattr.Scale})");
                 }
 
-                if (trytb.Columns.ContainsKey(colattr.Name)) throw new Exception($"ColumnAttribute.Name {colattr.Name} 重复存在，请检查（注意：不区分大小写）");
-                if (trytb.ColumnsByCs.ContainsKey(p.Name)) throw new Exception($"属性名 {p.Name} 重复存在，请检查（注意：不区分大小写）");
+                if (trytb.Columns.ContainsKey(colattr.Name)) throw new Exception(CoreStrings.Duplicate_ColumnAttribute(colattr.Name));
+                if (trytb.ColumnsByCs.ContainsKey(p.Name)) throw new Exception(CoreStrings.Duplicate_PropertyName(p.Name));
 
                 trytb.Columns.Add(colattr.Name, col);
                 trytb.ColumnsByCs.Add(p.Name, col);
@@ -392,7 +392,7 @@ namespace FreeSql.Internal
             if (trytb.VersionColumn != null)
             {
                 if (trytb.VersionColumn.Attribute.MapType.IsNullableType() || trytb.VersionColumn.Attribute.MapType.IsNumberType() == false && trytb.VersionColumn.Attribute.MapType != typeof(byte[]))
-                    throw new Exception($"属性{trytb.VersionColumn.CsName} 被标注为行锁（乐观锁）(IsVersion)，但其必须为数字类型 或者 byte[]，并且不可为 Nullable");
+                    throw new Exception(CoreStrings.Properties_AsRowLock_Must_Numeric_Byte(trytb.VersionColumn.CsName));
             }
             tbattr?.ParseAsTable(trytb);
 
@@ -550,7 +550,7 @@ namespace FreeSql.Internal
             StringBuilder cscode = null;
             if (common.CodeFirst.IsLazyLoading && propsLazy.Any())
             {
-                if (trytb.Type.IsPublic == false && trytb.Type.IsNestedPublic == false) throw new Exception($"【延时加载】实体类型 {trytbTypeName} 必须声明为 public");
+                if (trytb.Type.IsPublic == false && trytb.Type.IsNestedPublic == false) throw new Exception(CoreStrings.LazyLoading_EntityMustDeclarePublic(trytbTypeName));
 
                 trytbTypeLazyName = $"FreeSqlLazyEntity__{Regex.Replace(trytbTypeName, @"[^\w\d]", "_")}";
 
@@ -576,14 +576,14 @@ namespace FreeSql.Internal
             {
                 cscode.AppendLine("}");
                 Assembly assembly = null;
-                if (MethodLazyLoadingComplier.Value == null) throw new Exception("【延时加载】功能需要安装 FreeSql.Extensions.LazyLoading.dll，可前往 nuget 下载");
+                if (MethodLazyLoadingComplier.Value == null) throw new Exception(CoreStrings.Install_FreeSql_Extensions_LazyLoading);
                 try
                 {
                     assembly = MethodLazyLoadingComplier.Value.Invoke(null, new object[] { cscode.ToString() }) as Assembly;
                 }
                 catch (Exception ex)
                 {
-                    throw new Exception($"【延时加载】{trytbTypeName} 编译错误：{ex.Message}\r\n\r\n{cscode}");
+                    throw new Exception(CoreStrings.LazyLoading_CompilationError(trytbTypeName, ex.Message, cscode)); ;
                 }
                 var type = assembly.GetExportedTypes()/*.DefinedTypes*/.Where(a => a.FullName.EndsWith(trytbTypeLazyName)).FirstOrDefault();
                 trytb.TypeLazy = type;
@@ -618,7 +618,7 @@ namespace FreeSql.Internal
                 if (typeof(IEnumerable).IsAssignableFrom(pnv.PropertyType) == false) return;
                 if (trytb.Primarys.Any() == false)
                 {
-                    nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 解析错误，实体类型 {trytbTypeName} 缺少主键标识，[Column(IsPrimary = true)]");
+                    nvref.Exception = new Exception(CoreStrings.Navigation_ParsingError_EntityMissingPrimaryKey(trytbTypeName, pnv.Name, trytbTypeName));
                     trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                     //if (isLazy) throw nvref.Exception;
                     return;
@@ -651,7 +651,7 @@ namespace FreeSql.Internal
 
                     if (isManyToMany == false)
                     {
-                        nvref.Exception = new Exception($"【ManyToMany】导航属性 {trytbTypeName}.{pnv.Name} 解析错误，实体类型 {tbrefTypeName} 必须存在对应的 [Navigate(ManyToMany = x)] 集合属性");
+                        nvref.Exception = new Exception(CoreStrings.ManyToMany_ParsingError_EntityMustHas_NavigateCollection(trytbTypeName, pnv.Name, tbrefTypeName));
                         trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                         //if (isLazy) throw nvref.Exception;
                         return;
@@ -674,7 +674,7 @@ namespace FreeSql.Internal
                 {
                     if (tbref.Primarys.Any() == false)
                     {
-                        nvref.Exception = new Exception($"【ManyToMany】导航属性 {trytbTypeName}.{pnv.Name} 解析错误，实体类型 {tbrefTypeName} 缺少主键标识，[Column(IsPrimary = true)]");
+                        nvref.Exception = new Exception(CoreStrings.ManyToMany_ParsingError_EntityMissing_PrimaryKey(trytbTypeName, pnv.Name, tbrefTypeName));
                         trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                         //if (isLazy) throw nvref.Exception;
                         return;
@@ -773,7 +773,7 @@ namespace FreeSql.Internal
                         }
                         catch (Exception ex)
                         {
-                            nvref.Exception = new Exception($"【ManyToMany】导航属性 {trytbTypeName}.{pnv.Name} 解析错误，中间类 {tbmid.CsName}.{midTypePropsTrytb.Name} 错误：{ex.Message}");
+                            nvref.Exception = new Exception(CoreStrings.ManyToMany_ParsingError_IntermediateClass_ErrorMessage(trytbTypeName, pnv.Name, tbmid.CsName, midTypePropsTrytb.Name, ex.Message));
                             trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                             //if (isLazy) throw nvref.Exception;
                         }
@@ -781,7 +781,7 @@ namespace FreeSql.Internal
                         {
                             if (trytbTf.RefType != TableRefType.ManyToOne && trytbTf.RefType != TableRefType.OneToOne)
                             {
-                                nvref.Exception = new Exception($"【ManyToMany】导航属性 {trytbTypeName}.{pnv.Name} 解析错误，中间类 {tbmid.CsName}.{midTypePropsTrytb.Name} 导航属性不是【ManyToOne】或【OneToOne】");
+                                nvref.Exception = new Exception(CoreStrings.ManyToMany_ParsingError_IntermediateClass_NotManyToOne_OneToOne(trytbTypeName, pnv.Name, tbmid.CsName, midTypePropsTrytb.Name));
                                 trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                                 //if (isLazy) throw nvref.Exception;
                             }
@@ -820,7 +820,7 @@ namespace FreeSql.Internal
                             }
                             catch (Exception ex)
                             {
-                                nvref.Exception = new Exception($"【ManyToMany】导航属性 {tbrefTypeName}.{pnv.Name} 解析错误，中间类 {tbmid.CsName}.{midTypePropsTbref.Name} 错误：{ex.Message}");
+                                nvref.Exception = new Exception(CoreStrings.ManyToMany_ParsingError_IntermediateClass_ErrorMessage(trytbTypeName, pnv.Name, tbmid.CsName, midTypePropsTbref.Name, ex.Message));
                                 trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                                 //if (isLazy) throw nvref.Exception;
                             }
@@ -828,7 +828,7 @@ namespace FreeSql.Internal
                             {
                                 if (tbrefTf.RefType != TableRefType.ManyToOne && tbrefTf.RefType != TableRefType.OneToOne)
                                 {
-                                    nvref.Exception = new Exception($"【ManyToMany】导航属性 {tbrefTypeName}.{pnv.Name} 解析错误，中间类 {tbmid.CsName}.{midTypePropsTbref.Name} 导航属性不是【ManyToOne】或【OneToOne】");
+                                    nvref.Exception = new Exception(CoreStrings.ManyToMany_ParsingError_IntermediateClass_NotManyToOne_OneToOne(trytbTypeName, pnv.Name, tbmid.CsName, midTypePropsTbref.Name));
                                     trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                                     //if (isLazy) throw nvref.Exception;
                                 }
@@ -866,14 +866,14 @@ namespace FreeSql.Internal
                             }
                             if (trycol != null && trycol.CsType.NullableTypeOrThis() != trytb.Primarys[a].CsType.NullableTypeOrThis())
                             {
-                                nvref.Exception = new Exception($"【ManyToMany】导航属性 {trytbTypeName}.{pnv.Name} 解析错误，{tbmid.CsName}.{trycol.CsName} 和 {trytb.CsName}.{trytb.Primarys[a].CsName} 类型不一致");
+                                nvref.Exception = new Exception(CoreStrings.ManyToMany_ParsingError_InconsistentType(trytbTypeName, pnv.Name, tbmid.CsName, trycol.CsName, trytb.CsName, trytb.Primarys[a].CsName));
                                 trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                                 //if (isLazy) throw nvref.Exception;
                                 break;
                             }
                             if (trycol == null)
                             {
-                                nvref.Exception = new Exception($"【ManyToMany】导航属性 {trytbTypeName}.{pnv.Name} 在 {tbmid.CsName} 中没有找到对应的字段，如：{midTypePropsTrytb.Name}{findtrytbPkCsName}、{midTypePropsTrytb.Name}_{findtrytbPkCsName}");
+                                nvref.Exception = new Exception(CoreStrings.ManyToMany_NotFound_CorrespondingField(trytbTypeName, pnv.Name, tbmid.CsName, midTypePropsTrytb.Name, findtrytbPkCsName));
                                 trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                                 //if (isLazy) throw nvref.Exception;
                                 break;
@@ -906,14 +906,14 @@ namespace FreeSql.Internal
                                 }
                                 if (trycol != null && trycol.CsType.NullableTypeOrThis() != tbref.Primarys[a].CsType.NullableTypeOrThis())
                                 {
-                                    nvref.Exception = new Exception($"【ManyToMany】导航属性 {trytbTypeName}.{pnv.Name} 解析错误，{tbmid.CsName}.{trycol.CsName} 和 {tbref.CsName}.{tbref.Primarys[a].CsName} 类型不一致");
+                                    nvref.Exception = new Exception(CoreStrings.ManyToMany_ParsingError_InconsistentType(trytbTypeName, pnv.Name, tbmid.CsName, trycol.CsName, trytb.CsName, trytb.Primarys[a].CsName));
                                     trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                                     //if (isLazy) throw nvref.Exception;
                                     break;
                                 }
                                 if (trycol == null)
                                 {
-                                    nvref.Exception = new Exception($"【ManyToMany】导航属性 {trytbTypeName}.{pnv.Name} 在 {tbmid.CsName} 中没有找到对应的字段，如：{midTypePropsTbref.Name}{findtbrefPkCsName}、{midTypePropsTbref.Name}_{findtbrefPkCsName}");
+                                    nvref.Exception = new Exception(CoreStrings.ManyToMany_NotFound_CorrespondingField(trytbTypeName, pnv.Name, tbmid.CsName, midTypePropsTrytb.Name, findtbrefPkCsName));
                                     trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                                     //if (isLazy) throw nvref.Exception;
                                     break;
@@ -987,7 +987,7 @@ namespace FreeSql.Internal
                         {
                             if (tbref.ColumnsByCs.TryGetValue(bi, out var trybindcol) == false)
                             {
-                                nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 特性 [Navigate] 解析错误，在 {tbrefTypeName} 未找到属性：{bi}");
+                                nvref.Exception = new Exception(CoreStrings.Navigation_ParsingError_NotFound_Property(trytbTypeName, pnv.Name, tbrefTypeName, bi));
                                 trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                                 //if (isLazy) throw nvref.Exception;
                                 break;
@@ -1003,7 +1003,7 @@ namespace FreeSql.Internal
 
                     if (nvref.Exception == null && bindColumns.Any() && bindColumns.Count != trytb.Primarys.Length)
                     {
-                        nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 特性 [Navigate] Bind 数目({bindColumns.Count}) 与 内部主键数目({trytb.Primarys.Length}) 不相同");
+                        nvref.Exception = new Exception(CoreStrings.Navigation_Bind_Number_Different(trytbTypeName, pnv.Name, bindColumns.Count, trytb.Primarys.Length));
                         trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                         //if (isLazy) throw nvref.Exception;
                     }
@@ -1043,14 +1043,15 @@ namespace FreeSql.Internal
                         }
                         if (trycol != null && trycol.CsType.NullableTypeOrThis() != trytb.Primarys[a].CsType.NullableTypeOrThis())
                         {
-                            nvref.Exception = new Exception($"【OneToMany】导航属性 {trytbTypeName}.{pnv.Name} 解析错误，{trytb.CsName}.{trytb.Primarys[a].CsName} 和 {tbref.CsName}.{trycol.CsName} 类型不一致");
+                            nvref.Exception = new Exception(CoreStrings.OneToMany_ParsingError_InconsistentType(trytbTypeName, pnv.Name, trytb.CsName, trytb.Primarys[a].CsName, tbref.CsName, trycol.CsName));
                             trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                             //if (isLazy) throw nvref.Exception;
                             break;
                         }
                         if (trycol == null)
                         {
-                            nvref.Exception = new Exception($"【OneToMany】导航属性 {trytbTypeName}.{pnv.Name} 在 {tbref.CsName} 中没有找到对应的字段，如：{findtrytb}{findtrytbPkCsName}、{findtrytb}_{findtrytbPkCsName}" + (refprop == null ? "" : $"、{refprop.Name}{findtrytbPkCsName}、{refprop.Name}_{findtrytbPkCsName}。或者使用 [Navigate] 特性指定关系映射。"));
+                            nvref.Exception = new Exception(CoreStrings.OneToMany_NotFound_CorrespondingField(trytbTypeName, pnv.Name, tbref.CsName, findtrytb, findtrytbPkCsName)
+                                + (refprop == null ? "" : CoreStrings.OneToMany_UseNavigate(refprop.Name, findtrytbPkCsName)));
                             trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                             //if (isLazy) throw nvref.Exception;
                             break;
@@ -1127,7 +1128,7 @@ namespace FreeSql.Internal
                 if (tbref == null) return;
                 if (tbref.Primarys.Any() == false)
                 {
-                    nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 解析错误，实体类型 {propTypeName} 缺少主键标识，[Column(IsPrimary = true)]");
+                    nvref.Exception = new Exception(CoreStrings.Navigation_ParsingError_EntityMissingPrimaryKey(trytbTypeName, pnv.Name, propTypeName));
                     trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                     //if (isLazy) throw nvref.Exception;
                 }
@@ -1144,7 +1145,7 @@ namespace FreeSql.Internal
                     {
                         if (trytb.ColumnsByCs.TryGetValue(bi, out var trybindcol) == false)
                         {
-                            nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 特性 [Navigate] 解析错误，在 {trytbTypeName} 未找到属性：{bi}");
+                            nvref.Exception = new Exception(CoreStrings.Navigation_ParsingError_NotFound_Property(trytbTypeName, pnv.Name, trytbTypeName, bi));
                             trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                             //if (isLazy) throw nvref.Exception;
                             break;
@@ -1156,7 +1157,7 @@ namespace FreeSql.Internal
 
                 if (nvref.Exception == null && bindColumns.Any() && bindColumns.Count != tbref.Primarys.Length)
                 {
-                    nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 特性 [Navigate] Bind 数目({bindColumns.Count}) 与 外部主键数目({tbref.Primarys.Length}) 不相同");
+                    nvref.Exception = new Exception(CoreStrings.Navigation_Bind_Number_Different(trytbTypeName, pnv.Name, bindColumns.Count, tbref.Primarys.Length));
                     trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                     //if (isLazy) throw nvref.Exception;
                 }
@@ -1211,14 +1212,14 @@ namespace FreeSql.Internal
                     }
                     if (trycol != null && trycol.CsType.NullableTypeOrThis() != tbref.Primarys[a].CsType.NullableTypeOrThis())
                     {
-                        nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 解析错误，{trytb.CsName}.{trycol.CsName} 和 {tbref.CsName}.{tbref.Primarys[a].CsName} 类型不一致");
+                        nvref.Exception = new Exception(CoreStrings.Navigation_ParsingError_InconsistentType(trytbTypeName, pnv.Name, trytb.CsName, trycol.CsName, tbref.CsName, tbref.Primarys[a].CsName));
                         trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                         //if (isLazy) throw nvref.Exception;
                         break;
                     }
                     if (trycol == null)
                     {
-                        nvref.Exception = new Exception($"导航属性 {trytbTypeName}.{pnv.Name} 没有找到对应的字段，如：{pnv.Name}{findtbrefPkCsName}、{pnv.Name}_{findtbrefPkCsName}。或者使用 [Navigate] 特性指定关系映射。");
+                        nvref.Exception = new Exception(CoreStrings.Navigation_NotFound_CorrespondingField(trytbTypeName, pnv.Name, findtbrefPkCsName));
                         trytb.AddOrUpdateTableRef(pnv.Name, nvref);
                         //if (isLazy) throw nvref.Exception;
                         break;
@@ -1793,7 +1794,7 @@ namespace FreeSql.Internal
                 var parmValue = Expression.Parameter(typeof(object), "value");
                 Expression exp = Expression.Convert(parmInfo, typeObj);
                 foreach (var pro in memberAccessPath.Split('.'))
-                    exp = Expression.PropertyOrField(exp, pro) ?? throw new Exception(string.Concat(exp.Type.FullName, " 没有定义属性 ", pro));
+                    exp = Expression.PropertyOrField(exp, pro) ?? throw new Exception(string.Concat(exp.Type.FullName, CoreStrings.NoProperty_Defined, pro));
 
                 var value2 = Expression.Call(MethodGetDataReaderValue, Expression.Constant(exp.Type), parmValue);
                 var value3 = Expression.Convert(parmValue, typeValue);
@@ -2261,7 +2262,7 @@ namespace FreeSql.Internal
             }
             catch (Exception ex)
             {
-                throw new ArgumentException($"ExpressionTree 转换类型错误，值({string.Concat(value)})，类型({value.GetType().FullName})，目标类型({type.FullName})，{ex.Message}");
+                throw new ArgumentException(CoreStrings.ExpressionTree_Convert_Type_Error(string.Concat(value), value.GetType().FullName, type.FullName, ex.Message));
             }
         }
         public static string GetCsName(string name)
@@ -2359,7 +2360,7 @@ namespace FreeSql.Internal
                         var ltidx = ltidxStack.Pop();
                         var ltidx2 = ltidx;
                         var sidx2 = sidx;
-                        while(sidx < locsql.Length)
+                        while (sidx < locsql.Length)
                         {
                             var chr2 = locsql[sidx];
                             if (chr2 == ')')

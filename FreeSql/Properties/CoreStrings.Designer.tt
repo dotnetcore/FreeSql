@@ -1,0 +1,5 @@
+﻿<#
+    Session["ResourceFile"] = "CoreStrings.resx";
+    Session["AccessModifier"] = "public";
+#>
+<#@ include file="Resources.tt" #>
