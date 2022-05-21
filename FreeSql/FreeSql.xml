@@ -4611,12 +4611,12 @@
         </member>
         <member name="M:FreeSql.CoreStrings.AsTable_PropertyName_FormatError(System.Object)">
             <summary>
-            [Table(AsTable="{asTable}")] Property value formatted incorrectly
+            [Table(AsTable = "{asTable}")] 特性值格式错误
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.AsTable_PropertyName_NotDateTime(System.Object)">
             <summary>
-            The property name {atmGroupsValue} set by [Table (AsTable = xx)] is not of type DateTime
+            [Table(AsTable = xx)] 设置的属性名 {atmGroupsValue} 不是 DateTime 类型
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.Available_Failed_Get_Resource(System.Object,System.Object)">
@@ -4631,612 +4631,612 @@
         </member>
         <member name="M:FreeSql.CoreStrings.Bad_Expression_Format(System.Object)">
             <summary>
-            Wrong expression format {column}
+            错误的表达式格式 {column}
             </summary>
         </member>
         <member name="P:FreeSql.CoreStrings.Before_Chunk_Cannot_Use_Select">
             <summary>
-            Select is not available until the Chunk function
+            Chunk 功能之前不可使用 Select
             </summary>
         </member>
         <member name="P:FreeSql.CoreStrings.Begin_Transaction_Then_ForUpdate">
             <summary>
-            For security reasons, be sure to use ForUpdate after the transaction is open
+            安全起见，请务必在事务开启之后，再使用 ForUpdate
             </summary>
         </member>
         <member name="P:FreeSql.CoreStrings.Cannot_Be_NULL">
             <summary>
-            Cannot be null
+            不能为 null
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.Cannot_Be_NULL_Name(System.Object)">
             <summary>
-            {name} cannot be null
+            {name} 不能为 null
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.Cannot_Match_Property(System.Object)">
             <summary>
-            Unable to match {property}
+            无法匹配 {property}
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.Cannot_Resolve_ExpressionTree(System.Object)">
             <summary>
-            {property} cannot be resolved to an expression tree
+            {property} 无法解析为表达式树
             </summary>
         </member>
         <member name="P:FreeSql.CoreStrings.Check_UseConnectionString">
             <summary>
-            The parameter master ConnectionString cannot be empty, check UseConnectionString
+            参数 masterConnectionString 不可为空，请检查 UseConnectionString
             </summary>
         </member>
         <member name="P:FreeSql.CoreStrings.Commit">
             <summary>
-            Commit
+            提交
             </summary>
         </member>
         <member name="P:FreeSql.CoreStrings.Connection_Failed_Switch_Servers">
             <summary>
-            Connection failed, ready to switch other available servers
+            连接失败，准备切换其他可用服务器
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.Custom_Expression_ParsingError(System.Object)">
             <summary>
-            Custom expression parsing error: type {exp3MethodDeclaringType} needs to define static ThreadLocal&lt;ExpressionCallContext&gt;field, field, field (important three reminders)
+            自定义表达式解析错误：类型 {exp3MethodDeclaringType} 需要定义 static ThreadLocal&lt;ExpressionCallContext&gt; 字段、字段、字段（重要三次提醒）
             </summary>
         </member>
         <member name="P:FreeSql.CoreStrings.Custom_Reflection_IsNotNull">
             <summary>
-            Custom {Reflection Information} cannot be empty, format: { static method name }{ space }{ reflection information }
+            Custom { 反射信息 }不能为空，格式：{ 静态方法名 }{ 空格 }{ 反射信息 }
             </summary>
         </member>
         <member name="P:FreeSql.CoreStrings.Custom_StaticMethodName_IsNotNull">
             <summary>
-            Custom { static method name } cannot be empty, format: { static method name }{ space }{ reflection information }
+            Custom { 静态方法名 }不能为空，格式：{ 静态方法名 }{ 空格 }{ 反射信息 }
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.Custom_StaticMethodName_NotSet_DynamicFilterCustom(System.Object)">
             <summary>
-            Custom corresponding {{ static method name }}:{fiValueCustomArray} The [DynamicFilterCustomAttribute] attribute is not set
+            Custom 对应的{{ 静态方法名 }}：{fiValueCustomArray} 未设置 [DynamicFilterCustomAttribute] 特性
             </summary>
         </member>
         <member name="P:FreeSql.CoreStrings.CustomFieldSeparatedBySpaces">
             <summary>
-            Custom requires that Fields be space-split and 2-length in the format: { static method name }{ space }{ reflection information }
+            Custom 要求 Field 应该空格分割，并且长度为 2，格式：{ 静态方法名 }{ 空格 }{ 反射信息 }
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.DataType_AsType_Inconsistent(System.Object,System.Object)">
             <summary>
-            The data type of the operation ({dataDisplayCsharp}) is inconsistent with AsType ({tableTypeDisplayCsharp}). Please check.
+            操作的数据类型({dataDisplayCsharp}) 与 AsType({tableTypeDisplayCsharp}) 不一致，请检查。
             </summary>
         </member>
         <member name="P:FreeSql.CoreStrings.DateRange_Comma_Separateda_By2Char">
             <summary>
-            DateRange requires that Value be comma-separated and 2-length
+            DateRange 要求 Value 应该逗号分割，并且长度为 2
             </summary>
         </member>
         <member name="P:FreeSql.CoreStrings.DateRange_DateFormat_yyyy">
             <summary>
-            DateRange requires that the Value [1] format must be: yyyy, yyyy-MM, yyyy-MM-dd, yyyyy-MM-dd HH, yyyy, yyyy-MM-dd HH:mm
+            DateRange 要求 Value[1] 格式必须为：yyyy、yyyy-MM、yyyy-MM-dd、yyyy-MM-dd HH、yyyy、yyyy-MM-dd HH:mm
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.DbUpdateVersionException_RowLevelOptimisticLock(System.Object,System.Object)">
             <summary>
-            The record may not exist, or the row level optimistic lock version is out of date, the number of updates {sourceCount}, the number of rows affected {affrows}.
+            记录可能不存在，或者【行级乐观锁】版本过旧，更新数量{sourceCount}，影响的行数{affrows}。
             </summary>
         </member>
         <member name="P:FreeSql.CoreStrings.Different_Number_SlaveConnectionString_SlaveWeights">
             <summary>
-            The number of SlaveConnectionStrings is not the same as SlaveWeights
+            SlaveConnectionString 数量与 SlaveWeights 不相同
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.Duplicate_ColumnAttribute(System.Object)">
             <summary>
-            ColumnAttribute. Name {colattrName} exists repeatedly, please check (note: case insensitive)
+            ColumnAttribute.Name {colattrName} 重复存在，请检查（注意：不区分大小写）
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.Duplicate_PropertyName(System.Object)">
             <summary>
-            Property name {pName} exists repeatedly, please check (note: case insensitive)
+            属性名 {pName} 重复存在，请检查（注意：不区分大小写）
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.Entity_Must_Primary_Key(System.Object,System.Object)">
             <summary>
-            The {function} feature requires that the entity class {tableCsName} must have a primary key
+            {function} 功能要求实体类 {tableCsName} 必须有主键
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.Entity_MySQL_VersionsBelow8_NotSupport_Multiple_PrimaryKeys(System.Object)">
             <summary>
-            {tbTypeFullName} is a parent-child relationship, but combinations of multiple primary keys are not supported in versions below MySql 8.0
+            {tbTypeFullName} 是父子关系，但是 MySql 8.0 以下版本中不支持组合多主键
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.Entity_NotParentChild_Relationship(System.Object)">
             <summary>
-            {tbTypeFullName} is not a parent-child relationship and cannot be used
+            {tbTypeFullName} 不是父子关系，无法使用该功能
             </summary>
         </member>
         <member name="P:FreeSql.CoreStrings.EspeciallySubquery_Cannot_Parsing">
             <summary>
-            This particular subquery cannot be resolved
+            这个特别的子查询不能解析
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.Expression_Error_Use_ParameterExpression(System.Object)">
             <summary>
-            Expression error, its top object is not ParameterExpression:{exp}
+            表达式错误，它的顶级对象不是 ParameterExpression：{exp}
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.Expression_Error_Use_Successive_MemberAccess_Type(System.Object)">
             <summary>
-            Expression error, it is not a continuous MemberAccess type: {exp}
+            表达式错误，它不是连续的 MemberAccess 类型：{exp}
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.ExpressionTree_Convert_Type_Error(System.Object,System.Object,System.Object,System.Object)">
             <summary>
-            ExpressionTree conversion type error, value ({value}), type ({valueTypeFullName}), target type ({typeFullName}), Error:{exMessage}
+            ExpressionTree 转换类型错误，值({value})，类型({valueTypeFullName})，目标类型({typeFullName})，{exMessage}
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.Failed_SubTable_FieldValue(System.Object)">
             <summary>
-            Failed to parse table field value {sqlWhere}
+            未能解析分表字段值 {sqlWhere}
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.Functions_AsTable_NotImplemented(System.Object)">
             <summary>
-            Function {asTable} not implemented by AsTable
+            AsTable 未实现的功能 {asTable}
             </summary>
         </member>
         <member name="P:FreeSql.CoreStrings.GBase_NotSupport_OtherThanCommas">
             <summary>
-            GBase does not support separators other than commas at this time
+            GBase 暂时不支持逗号以外的分割符
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.Generated_Same_SubTable(System.Object)">
             <summary>
-            TableName:{tableName} generated the same table name
+            tableName：{tableName} 生成了相同的分表名
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.GetPrimarys_ParameterError_IsNotDictKey(System.Object)">
             <summary>
-            The parameter'{primary}'passed by GetPrimarys is incorrect and does not belong to the key name of the dictionary data
+            GetPrimarys 传递的参数 "{primary}" 不正确，它不属于字典数据的键名
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.Has_Specified_Cannot_Specified_Second(System.Object,System.Object)">
             <summary>
-            {first} has already been specified and {second} can no longer be specified
+            已经指定了 {first}，不能再指定 {second}
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.Ignored_Check_Confirm_PublicGetSet(System.Object,System.Object)">
             <summary>
-            {tb2DbName}. {mp2MemberName} is ignored. Check the IsIgnore setting to make sure get/set is public
+            {tb2DbName}.{mp2MemberName} 被忽略，请检查 IsIgnore 设置，确认 get/set 为 public
             </summary>
         </member>
         <member name="P:FreeSql.CoreStrings.Include_ParameterType_Error">
             <summary>
-            Include parameter type error
+            Include 参数类型错误
             </summary>
         </member>
         <member name="P:FreeSql.CoreStrings.Include_ParameterType_Error_Use_IncludeMany">
             <summary>
-            Include parameter type is wrong, use IncludeMany for collection properties
+            Include 参数类型错误，集合属性请使用 IncludeMany
             </summary>
         </member>
         <member name="P:FreeSql.CoreStrings.Include_ParameterType_Error_Use_MemberAccess">
             <summary>
-            Include parameter type is wrong, expression type should be MemberAccess
+            Include 参数类型错误，表达式类型应该为 MemberAccess
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.IncludeMany_NotValid_Navigation(System.Object,System.Object)">
             <summary>
-            The property {collMemMemberName} of IncludeMany type {tbTypeDisplayCsharp} is not a valid navigation property, hint: IsIgnore = true will not be a navigation property
+            IncludeMany 类型 {tbTypeDisplayCsharp} 的属性 {collMemMemberName} 不是有效的导航属性，提示：IsIgnore = true 不会成为导航属性
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.IncludeMany_ParameterError_OnlyUseOneParameter(System.Object)">
             <summary>
-            IncludeMany {navigateSelector} parameter is wrong, Select can only use one parameter's method, the correct format:.Select(t =&gt;new TNavigate{{}})
+            IncludeMany {navigateSelector} 参数错误，Select 只可以使用一个参数的方法，正确格式：.Select(t =&gt;new TNavigate {{}})
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.IncludeMany_ParameterError_Select_ReturnConsistentType(System.Object,System.Object)">
             <summary>
-            IncludeMany {navigateSelector} parameter error, Select lambda parameter return value must match {collMemElementType} type
+            IncludeMany {navigateSelector} 参数错误，Select lambda参数返回值必须和 {collMemElementType} 类型一致
             </summary>
         </member>
         <member name="P:FreeSql.CoreStrings.IncludeMany_ParameterType_Error_Use_MemberAccess">
             <summary>
-            IncludeMany parameter 1 has wrong type, expression type should be MemberAccess
+            IncludeMany 参数1 类型错误，表达式类型应该为 MemberAccess
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.IncludeMany_ParameterTypeError(System.Object)">
             <summary>
-            IncludeMany {navigateSelector} parameter type is wrong, correct format: a.collections.Take(1).Where(c =&gt; C.A ID == a.id).Select (a =&gt; new TNavigate{{}})
+            IncludeMany {navigateSelector} 参数类型错误，正确格式： a.collections.Take(1).Where(c =&gt;c.aid == a.id).Select(a=&gt; new TNavigate{{}})
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.InsertInto_No_Property_Selected(System.Object)">
             <summary>
-            ISelect. InsertInto() did not select an attribute: {displayCsharp}
+            ISelect.InsertInto() 未选择属性: {displayCsharp}
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.InsertInto_TypeError(System.Object)">
             <summary>
-            ISelect. InsertInto() type error: {displayCsharp}
+            ISelect.InsertInto() 类型错误: {displayCsharp}
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.InsertOrUpdate_Must_Primary_Key(System.Object)">
             <summary>
-            The InsertOrUpdate function performs merge into requiring the entity class {CsName} to have a primary key
+            InsertOrUpdate 功能执行 merge into 要求实体类 {CsName} 必须有主键
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.InsertOrUpdate_NotSuport_Generic_UseEntity(System.Object)">
             <summary>
-            The generic parameter for InsertOrUpdate&lt;&gt;does not support {typeofT1}. Pass in your entity class
+            InsertOrUpdate&lt;&gt;的泛型参数 不支持 {typeofT1},请传递您的实体类
             </summary>
         </member>
         <member name="P:FreeSql.CoreStrings.Install_FreeSql_Extensions_LazyLoading">
             <summary>
-            FreeSql needs to be installed for Delayed Loading. Extensions. LazyLoading. Dll, downloadable to nuget
+            【延时加载】功能需要安装 FreeSql.Extensions.LazyLoading.dll，可前往 nuget 下载
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.LazyLoading_CompilationError(System.Object,System.Object,System.Object)">
             <summary>
-            {trytbTypeName} Compilation error: {exMessage}\r\n\r\n{cscode}
+            【延时加载】{trytbTypeName} 编译错误：{exMessage}\r\n\r\n{cscode}
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.LazyLoading_EntityMustDeclarePublic(System.Object)">
             <summary>
-            Entity type {trytbTypeName} must be declared public
+            【延时加载】实体类型 {trytbTypeName} 必须声明为 public
             </summary>
         </member>
         <member name="P:FreeSql.CoreStrings.ManyToMany_AsSelect_NotSupport_Sum_Avg_etc">
             <summary>
-            ManyToMany navigation properties. AsSelect() is temporarily unavailable for the Sum/Avg/Max/Min/First/ToOne/ToList method
+            ManyToMany 导航属性 .AsSelect() 暂时不可用于 Sum/Avg/Max/Min/First/ToOne/ToList 方法
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.ManyToMany_NotFound_CorrespondingField(System.Object,System.Object,System.Object,System.Object,System.Object)">
             <summary>
-            [ManyToMany] Navigation property {trytbTypeName}. {pnvName} did not find a corresponding field in {tbmidCsName}, such as: {midTypePropsTrytbName}{findtrytbPkCsName}, {midTypePropsTrytbName}_ {findtrytbPkCsName}
+            【ManyToMany】导航属性 {trytbTypeName}.{pnvName} 在 {tbmidCsName} 中没有找到对应的字段，如：{midTypePropsTrytbName}{findtrytbPkCsName}、{midTypePropsTrytbName}_{findtrytbPkCsName}
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.ManyToMany_ParsingError_EntityMissing_PrimaryKey(System.Object,System.Object,System.Object)">
             <summary>
-            [ManyToMany] Navigation property {trytbTypeName}. {pnvName} parsing error, entity type {tbrefTypeName} missing primary key identity, [Column (IsPrimary = true)]
+            【ManyToMany】导航属性 {trytbTypeName}.{pnvName} 解析错误，实体类型 {tbrefTypeName} 缺少主键标识，[Column(IsPrimary = true)]
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.ManyToMany_ParsingError_EntityMustHas_NavigateCollection(System.Object,System.Object,System.Object)">
             <summary>
-            [ManyToMany] Navigation property {trytbTypeName}. {pnvName} parsing error, entity type {tbrefTypeName} must have a corresponding [Navigate (ManyToMany = x)] collection property
+            【ManyToMany】导航属性 {trytbTypeName}.{pnvName} 解析错误，实体类型 {tbrefTypeName} 必须存在对应的 [Navigate(ManyToMany = x)] 集合属性
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.ManyToMany_ParsingError_InconsistentType(System.Object,System.Object,System.Object,System.Object,System.Object,System.Object)">
             <summary>
-            [ManyToMany] Navigation property {trytbTypeName}. {pnvName} parsing error, {tbmidCsName}. {trycolCsName} and {trytbCsName}. {trytbPrimarysCsName} type inconsistent
+            【ManyToMany】导航属性 {trytbTypeName}.{pnvName} 解析错误，{tbmidCsName}.{trycolCsName} 和 {trytbCsName}.{trytbPrimarysCsName} 类型不一致
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.ManyToMany_ParsingError_IntermediateClass_ErrorMessage(System.Object,System.Object,System.Object,System.Object,System.Object)">
             <summary>
-            [ManyToMany] Navigation property {trytbTypeName}. {pnvName} parsing error, intermediate class {tbmidCsName}.{midTypePropsTrytbName} Error: {exMessage}
+            【ManyToMany】导航属性 {trytbTypeName}.{pnvName} 解析错误，中间类 {tbmidCsName}.{midTypePropsTrytbName} 错误：{exMessage}
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.ManyToMany_ParsingError_IntermediateClass_NotManyToOne_OneToOne(System.Object,System.Object,System.Object,System.Object)">
             <summary>
-            [ManyToMany] Navigation property {trytbTypeName}. {pnvName} parsing error, intermediate class {tbmidCsName}. The {midTypePropsTrytbName} navigation property is not ManyToOne or OneToOne
+            【ManyToMany】导航属性 {trytbTypeName}.{pnvName} 解析错误，中间类 {tbmidCsName}.{midTypePropsTrytbName} 导航属性不是【ManyToOne】或【OneToOne】
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.Mapping_Exception_HasNo_SamePropertyName(System.Object)">
             <summary>
-            Mapping exception: {name} None of the property names are the same
+            映射异常：{name} 没有一个属性名相同
             </summary>
         </member>
         <member name="P:FreeSql.CoreStrings.MasterPool_IsNull_UseTransaction">
             <summary>
-            Ado. MasterPool value is null, this operation cannot self-enable transactions, please explicitly pass [transaction object] resolution
+            Ado.MasterPool 值为 null，该操作无法自启用事务，请显式传递【事务对象】解决
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.Missing_FreeSqlProvider_Package(System.Object)">
             <summary>
-            Missing FreeSql database implementation package: FreeSql. Provider. {Provider}. Dll, downloadable to nuget
+            缺少 FreeSql 数据库实现包：FreeSql.Provider.{Provider}.dll，可前往 nuget 下载
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.Missing_FreeSqlProvider_Package_Reason(System.Object,System.Object)">
             <summary>
-            The FreeSql database implementation package is missing: {dll} can be downloaded to nuget; If there is {dll} and an error still occurs (due to environmental issues that cause the type to be unreflected), manually pass in typeof ({providerType}) in the third parameter of UseConnectionString/UseConnectionFactory
+            缺少 FreeSql 数据库实现包：{dll}，可前往 nuget 下载；如果存在 {dll} 依然报错（原因是环境问题导致反射不到类型），请在 UseConnectionString/UseConnectionFactory 第三个参数手工传入 typeof({providerType})
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.Navigation_Bind_Number_Different(System.Object,System.Object,System.Object,System.Object)">
             <summary>
-            Navigation property {trytbTypeName}. The number of {pnvName} attributes [Navigate] Binds ({bindColumnsCount}) is different from the number of external primary keys ({tbrefPrimarysLength})
+            导航属性 {trytbTypeName}.{pnvName} 特性 [Navigate] Bind 数目({bindColumnsCount}) 与 外部主键数目({tbrefPrimarysLength}) 不相同
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.Navigation_Missing_AsSelect(System.Object,System.Object)">
             <summary>
-            {tb2DbName}. {mp2MemberName} Navigation Property Collection forgotten. AsSelect()? If used in ToList (a =&gt; a. {mp2MemberName}), step by step to refer to the IncludeMany document.
+            {tb2DbName}.{mp2MemberName} 导航属性集合忘了 .AsSelect() 吗？如果在 ToList(a =&gt; a.{mp2MemberName}) 中使用，请移步参考 IncludeMany 文档。
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.Navigation_Missing_SetProperty(System.Object,System.Object)">
             <summary>
-            [Navigation Properties]{trytbTypeDisplayCsharp}. Missing set attribute for {pName}
+            【导航属性】{trytbTypeDisplayCsharp}.{pName} 缺少 set 属性
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.Navigation_NotFound_CorrespondingField(System.Object,System.Object,System.Object)">
             <summary>
-            Navigation property {trytbTypeName}. {pnvName} No corresponding fields were found, such as: {pnvName}{findtbrefPkCsName}, {pnvName}_ {findtbrefPkCsName}. Or use the [Navigate] attribute to specify the relationship mapping.
+            导航属性 {trytbTypeName}.{pnvName} 没有找到对应的字段，如：{pnvName}{findtbrefPkCsName}、{pnvName}_{findtbrefPkCsName}。或者使用 [Navigate] 特性指定关系映射。
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.Navigation_ParsingError_EntityMissingPrimaryKey(System.Object,System.Object,System.Object)">
             <summary>
-            Navigation property {trytbTypeName}. {pnvName} parsing error, entity type {trytcTypeName} missing primary key identity, [Column (IsPrimary = true)]
+            导航属性 {trytbTypeName}.{pnvName} 解析错误，实体类型 {trytcTypeName} 缺少主键标识，[Column(IsPrimary = true)]
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.Navigation_ParsingError_InconsistentType(System.Object,System.Object,System.Object,System.Object,System.Object,System.Object)">
             <summary>
-            Navigation property {trytbTypeName}. {pnvName} parsing error, {trytbCsName}. {trycolCsName} and {tbrefCsName}. {tbrefPrimarysCsName} type inconsistent
+            导航属性 {trytbTypeName}.{pnvName} 解析错误，{trytbCsName}.{trycolCsName} 和 {tbrefCsName}.{tbrefPrimarysCsName} 类型不一致
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.Navigation_ParsingError_NotFound_Property(System.Object,System.Object,System.Object,System.Object)">
             <summary>
-            Navigation property {trytbTypeName}. {pnvName} attribute [Navigate] parsing error, property not found at {tbrefTypeName}: {bi}
+            导航属性 {trytbTypeName}.{pnvName} 特性 [Navigate] 解析错误，在 {tbrefTypeName} 未找到属性：{bi}
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.NoPrimaryKey_UseSetDto(System.Object)">
             <summary>
-            {tableTypeDisplayCsharp} has no primary key defined and cannot use SetSource. Try SetDto or SetSource to specify a temporary primary key
+            {tableTypeDisplayCsharp} 没有定义主键，无法使用 SetSource，请尝试 SetDto 或者 SetSource 指定临时主键
             </summary>
         </member>
         <member name="P:FreeSql.CoreStrings.NoProperty_Defined">
             <summary>
-            No properties defined
+             没有定义属性 
             </summary>
         </member>
         <member name="P:FreeSql.CoreStrings.Not_Implemented">
             <summary>
-            Not implemented
+            未实现
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.Not_Implemented_Expression(System.Object)">
             <summary>
-            Function expression {exp} parsing not implemented
+            未实现函数表达式 {exp} 解析
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.Not_Implemented_Expression_ParameterUseConstant(System.Object,System.Object)">
             <summary>
-            Function expression {exp} parsing not implemented, parameter {expArguments} must be constant
+            未实现函数表达式 {exp} 解析，参数 {expArguments} 必须为常量
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.Not_Implemented_Expression_UseAsSelect(System.Object,System.Object,System.Object)">
             <summary>
-            Function expression {exp} parsing is not implemented. Use if you are working on a navigation property collection. AsSelect (). {exp3MethodName} ({exp3ArgumentsCount})
+            未实现函数表达式 {exp} 解析，如果正在操作导航属性集合，请使用 .AsSelect().{exp3MethodName}({exp3ArgumentsCount})
             </summary>
         </member>
         <member name="P:FreeSql.CoreStrings.Not_Implemented_MemberAcess_Constant">
             <summary>
-            Constant under MemberAccess is not implemented
+            未实现 MemberAccess 下的 Constant
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.Not_Implemented_Name(System.Object)">
             <summary>
-            {name} is not implemented
+            未实现 {name}
             </summary>
         </member>
         <member name="P:FreeSql.CoreStrings.Not_Support">
             <summary>
-            I won't support it
+            不支持
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.Not_Support_OrderByRandom(System.Object)">
             <summary>
-            {dataType} does not support OrderByRandom sorting
+            {dataType} 不支持 OrderByRandom 随机排序
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.Not_Valid_Navigation_Property(System.Object)">
             <summary>
-            {property} is not a valid navigation property
+            {property} 不是有效的导航属性
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.NotFound_Column(System.Object,System.Object)">
             <summary>
-            {dbName} Column {memberName} not found
+            {dbName} 找不到列 {memberName}
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.NotFound_CsName_Column(System.Object)">
             <summary>
-            Cannot find the column corresponding to {CsName}
+            找不到 {CsName} 对应的列
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.NotFound_Property(System.Object)">
             <summary>
-            Attribute not found: {memberName}
+            找不到属性：{memberName}
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.NotFound_PropertyName(System.Object)">
             <summary>
-            Property name {proto} not found
+            找不到属性名 {proto}
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.NotFound_Reflection(System.Object)">
             <summary>
-            Custom could not find the corresponding {{ reflection information }}:{fiValueCustomArray}
+            Custom 找不到对应的{{ 反射信息 }}：{fiValueCustomArray}
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.NotFound_Static_MethodName(System.Object)">
             <summary>
-            Custom could not find the corresponding {{ static method name }}:{fiValueCustomArray}
+            Custom 找不到对应的{{ 静态方法名 }}：{fiValueCustomArray}
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.NotFound_Table_Property_AsTable(System.Object)">
             <summary>
-            The property name {atmGroupsValue} set by [Table(AsTable = xx)] does not exist
+            [Table(AsTable = xx)] 设置的属性名 {atmGroupsValue} 不存在
             </summary>
         </member>
         <member name="P:FreeSql.CoreStrings.NotSpecified_UseConnectionString_UseConnectionFactory">
             <summary>
-            No UseConnectionString or UseConnectionFactory specified
+            未指定 UseConnectionString 或者 UseConnectionFactory
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.ObjectPool_Get_Timeout(System.Object,System.Object,System.Object)">
             <summary>
-            [{policyName}] ObjectPool. {GetName}() timeout {totalSeconds} seconds, see: https://github.com/dotnetcore/FreeSql/discussions/1081
+            【{policyName}】ObjectPool.{GetName}() timeout {totalSeconds} seconds, see: https://github.com/dotnetcore/FreeSql/discussions/1081
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.ObjectPool_GetAsync_Queue_Long(System.Object,System.Object)">
             <summary>
-            [{policyName}] ObjectPool. GetAsync() The queue is too long. Policy. AsyncGetCapacity = {asyncGetCapacity}
+            【{policyName}】ObjectPool.GetAsync() The queue is too long. Policy.AsyncGetCapacity = {asyncGetCapacity}
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.OneToMany_NotFound_CorrespondingField(System.Object,System.Object,System.Object,System.Object,System.Object)">
             <summary>
-            [OneToMany] Navigation property {trytbTypeName}.{pnvName} did not find a corresponding field in {tbrefCsName}, such as: {findtrytb}{findtrytbPkCsName}, {findtrytb}_{findtrytbPkCsName}
+            【OneToMany】导航属性 {trytbTypeName}.{pnvName} 在 {tbrefCsName} 中没有找到对应的字段，如：{findtrytb}{findtrytbPkCsName}、{findtrytb}_{findtrytbPkCsName}
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.OneToMany_ParsingError_InconsistentType(System.Object,System.Object,System.Object,System.Object,System.Object,System.Object)">
             <summary>
-            [OneToMany] Navigation property {trytbTypeName}.{pnvName} parsing error, {trytbCsName}.{trytbPrimarysCsName} and {tbrefCsName}.{trycolCsName} is of inconsistent type
+            【OneToMany】导航属性 {trytbTypeName}.{pnvName} 解析错误，{trytbCsName}.{trytbPrimarysCsName} 和 {tbrefCsName}.{trycolCsName} 类型不一致
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.OneToMany_UseNavigate(System.Object,System.Object)">
             <summary>
-            , {refpropName}{findtrytbPkCsName}, {refpropName}_{findtrytbPkCsName}. Or use the [Navigate] attribute to specify the relationship mapping.
+            、{refpropName}{findtrytbPkCsName}、{refpropName}_{findtrytbPkCsName}。或者使用 [Navigate] 特性指定关系映射。
             </summary>
         </member>
         <member name="P:FreeSql.CoreStrings.Parameter_Field_NotSpecified">
             <summary>
-            Parameter field not specified
+            参数 field 未指定
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.ParameterError_NotValid_Collection(System.Object)">
             <summary>
-            The {property} parameter is incorrect, it is not a collection property and must be IList&lt;T&gt;or ICollection&lt;T&gt;
+            {property} 参数错误，它不是集合属性，必须为 IList&lt;T&gt; 或者 ICollection&lt;T&gt;
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.ParameterError_NotValid_Navigation(System.Object)">
             <summary>
-            The {property} parameter is incorrect, it is not a valid navigation property
+            {property} 参数错误，它不是有效的导航属性
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.ParameterError_NotValid_PropertyName(System.Object,System.Object,System.Object)">
             <summary>
-            {where} parameter error, {keyval} is not a valid property name and cannot be found in entity class {reftbTypeDisplayCsharp}
+            {where} 参数错误，{keyval} 不是有效的属性名，在实体类 {reftbTypeDisplayCsharp} 无法找到
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.ParameterError_NotValid_UseCommas(System.Object)">
             <summary>
-            {property} parameter error, format "TopicId=Id, multiple groups using comma connection"
+            {property} 参数错误，格式 "TopicId=Id，多组使用逗号连接" 
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.Parsing_Failed(System.Object,System.Object)">
             <summary>
-            Parsing failed {callExpMethodName} {message}
+            解析失败 {callExpMethodName} {message}
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.Policy_ObjectPool_Dispose(System.Object)">
             <summary>
-            [{policyName}] The ObjectPool has been disposed, see: https://github.com/dotnetcore/FreeSql/discussions/1079
+            【{policyName}】The ObjectPool has been disposed, see: https://github.com/dotnetcore/FreeSql/discussions/1079
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.Policy_Status_NotAvailable(System.Object,System.Object)">
             <summary>
-            The {policyName} status is unavailable and cannot be used until the background checker is restored. {UnavailableExceptionMessage}
+            【{policyName}】状态不可用，等待后台检查程序恢复方可使用。{UnavailableExceptionMessage}
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.Properties_AsRowLock_Must_Numeric_Byte(System.Object)">
             <summary>
-            The property {trytbVersionColumnCsName} is labeled as a row lock (optimistic lock) (IsVersion), but it must be a numeric type or byte[], and it cannot be Nullable
+            属性{trytbVersionColumnCsName} 被标注为行锁（乐观锁）(IsVersion)，但其必须为数字类型 或者 byte[]，并且不可为 Nullable
             </summary>
         </member>
         <member name="P:FreeSql.CoreStrings.Properties_Cannot_Null">
             <summary>
-            Properrties parameter cannot be empty
+            properties 参数不能为空
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.Property_Cannot_Find(System.Object)">
             <summary>
-            {property} property name not found
+            {property} 属性名无法找到
             </summary>
         </member>
         <member name="P:FreeSql.CoreStrings.Range_Comma_Separateda_By2Char">
             <summary>
-            Range requires that Value be comma-separated and 2-length
+            Range 要求 Value 应该逗号分割，并且长度为 2
             </summary>
         </member>
         <member name="P:FreeSql.CoreStrings.RollBack">
             <summary>
-            RollBack
+            回滚
             </summary>
         </member>
         <member name="P:FreeSql.CoreStrings.RunTimeError_Reflection_IncludeMany">
             <summary>
-            Runtime error, reflection failed to get IncludeMany method
+            运行时错误，反射获取 IncludeMany 方法失败
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.Set_Column_IsNullable_False(System.Object)">
             <summary>
-            {qoteSql} is NULL unless the attribute [Column (IsNullable = false)]
+            {qoteSql} is NULL，除非设置特性 [Column(IsNullable = false)]
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.SubTableFieldValue_CannotLessThen(System.Object,System.Object)">
             <summary>
-            Subtable field value'{dt}'cannot be less than'{beginTime}'
+            分表字段值 "{dt}" 不能小于 "{beginTime} "
             </summary>
         </member>
         <member name="P:FreeSql.CoreStrings.SubTableFieldValue_IsNotNull">
             <summary>
-            Subtable field value cannot be null
+            分表字段值不能为 null
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.SubTableFieldValue_NotConvertDateTime(System.Object)">
             <summary>
-            The tabular field value'{columnValue}'cannot be converted to DateTime
+            分表字段值 "{columnValue}" 不能转化成 DateTime
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.SubTableFieldValue_NotMatchTable(System.Object)">
             <summary>
-            Table field value'{dt}'does not match table name
+            分表字段值 "{dt}" 未匹配到分表名
             </summary>
         </member>
         <member name="P:FreeSql.CoreStrings.T2_Type_Error">
             <summary>
-            Type T2 Error
+            T2 类型错误
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.TableName_Format_Error(System.Object)">
             <summary>
-            TableName format error, example: "log_{yyyyMMdd}"
+            tableName 格式错误，示例：“log_{yyyyMMdd}”
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.Type_AsType_Parameter_Error(System.Object)">
             <summary>
-            {Type}. AsType parameter error, please pass in the correct entity type
+            {Type}.AsType 参数错误，请传入正确的实体类型
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.Type_Cannot_Access_Constructor(System.Object)">
             <summary>
-            The {thatFullName} type cannot access the constructor
+            {thatFullName} 类型无法访问构造函数
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.Type_Error_Name(System.Object)">
             <summary>
-            {name} type error
+            {name} 类型错误
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.TypeAsType_NotSupport_Object(System.Object)">
             <summary>
-            {Type}. AsType parameter does not support specifying as object
+            {Type}.AsType 参数不支持指定为 object
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.TypeError_CannotUse_IncludeMany(System.Object)">
             <summary>
-            Type {typeofFullName} error, IncludeMany cannot be used
+            类型 {typeofFullName} 错误，不能使用 IncludeMany
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.Unable_Parse_Expression(System.Object)">
             <summary>
-            Unable to parse expression: {exp}
+            无法解析表达式：{exp}
             </summary>
         </member>
         <member name="M:FreeSql.CoreStrings.Unable_Parse_ExpressionMethod(System.Object)">
             <summary>
-            Unable to parse expression method {exp3tmpCallMethodName}
+            无法解析表达式方法 {exp3tmpCallMethodName}
             </summary>
         </member>
         <member name="P:FreeSql.CoreStrings.Use_InsertDict_Method">
             <summary>
-            Please use fsql. InsertDict (dict) method inserts dictionary data
+            请使用 fsql.InsertDict(dict) 方法插入字典数据
             </summary>
         </member>
         <member name="M:FreeSqlGlobalExpressionCallExtensions.Between(System.DateTime,System.DateTime,System.DateTime)">

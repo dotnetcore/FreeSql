@@ -687,8 +687,8 @@ Global
 		{D4FEE5C1-6805-4B46-B10B-BE5CC942B883} = {2A381C57-2697-427B-9F10-55DA11FD02E4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {089687FD-5D25-40AB-BA8A-A10D1E137F98}
+		RESX_NeutralResourcesLanguage = en-US
 		RESX_PrefixTranslations = False
-		RESX_NeutralResourcesLanguage = zh-Hans
+		SolutionGuid = {089687FD-5D25-40AB-BA8A-A10D1E137F98}
 	EndGlobalSection
 EndGlobal
