@@ -495,4 +495,7 @@
   <data name="Use_InsertDict_Method" xml:space="preserve">
     <value>请使用 fsql.InsertDict(dict) 方法插入字典数据</value>
   </data>
+  <data name="A" xml:space="preserve">
+    <value>Test</value>
+  </data>
 </root>

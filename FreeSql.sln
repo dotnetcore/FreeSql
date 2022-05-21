@@ -688,7 +688,7 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		RESX_NeutralResourcesLanguage = en-US
-		RESX_PrefixTranslations = False
+		RESX_PrefixTranslations = True
 		SolutionGuid = {089687FD-5D25-40AB-BA8A-A10D1E137F98}
 	EndGlobalSection
 EndGlobal
