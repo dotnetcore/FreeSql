@@ -2546,7 +2546,7 @@ WHERE (((name,no) in (('testname01','testname01')) OR not((a.""no"") LIKE '%test
     public class DynamicFilterMyCustom
     {
         [DynamicFilterCustom]
-        public static string MyRawSql(string value) => value;
+        public static string MyRawSql(object sender, string value) => value;
 
         public static string TupleIn(string value)
         {

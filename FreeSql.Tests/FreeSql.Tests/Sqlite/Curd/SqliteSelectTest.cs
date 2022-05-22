@@ -2664,7 +2664,7 @@ WHERE ((not((a.""name"") LIKE '%testname01') OR not((a.""no"") LIKE '%testname01
       ""Value"" : ""testname01""
     },
     {
-      ""Field"" : ""MyRawSql FreeSql.Tests.Sqlite.DynamicFilterMyCustom,FreeSql.Tests"",
+      ""Field"" : ""MyRawSql2 FreeSql.Tests.Sqlite.DynamicFilterMyCustom,FreeSql.Tests"",
       ""Operator"" : ""Custom"",
       ""Value"" : ""(id,status) in (('testname01','finished'))""
     },
@@ -2689,7 +2689,10 @@ WHERE (((name,no) in (('testname01','testname01')) OR not((a.""no"") LIKE '%test
     public class DynamicFilterMyCustom
     {
         [DynamicFilterCustom]
-        public static string MyRawSql(string value) => value;
+        public static string MyRawSql(object sender, string value) => value;
+
+        [DynamicFilterCustom]
+        public static string MyRawSql2(string value) => value;
 
         public static string TupleIn(string value)
         {

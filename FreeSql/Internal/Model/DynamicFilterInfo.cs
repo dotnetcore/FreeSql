@@ -132,7 +132,7 @@ namespace FreeSql.Internal.Model
         /// public class DynamicFilterCustom<para></para>
         /// {<para></para>
         /// [DynamicFilterCustom]<para></para>
-        /// public static string RawSql(string value) => value;<para></para>
+        /// public static string RawSql(object sender, string value) => value;<para></para>
         /// }<para></para>
         /// }<para></para>
         /// </summary>

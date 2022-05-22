@@ -656,9 +656,13 @@ namespace FreeSql.Internal.CommonProvider
                             var fiValue1Type = Type.GetType(fiValueCustomArray[1]);
                             if (fiValue1Type == null) throw new ArgumentException(CoreStrings.NotFound_Reflection(fiValueCustomArray[1]));
                             var fiValue0Method = fiValue1Type.GetMethod(fiValueCustomArray[0], new Type[] { typeof(string) });
+                            if (fiValue0Method == null) fiValue0Method = fiValue1Type.GetMethod(fiValueCustomArray[0], new Type[] { typeof(object), typeof(string) });
                             if (fiValue0Method == null) throw new ArgumentException(CoreStrings.NotFound_Static_MethodName(fiValueCustomArray[0]));
                             if (MethodIsDynamicFilterCustomAttribute(fiValue0Method) == false) throw new ArgumentException(CoreStrings.Custom_StaticMethodName_NotSet_DynamicFilterCustom(fiValueCustomArray[0]));
-                            var fiValue0MethodReturn = fiValue0Method?.Invoke(null, new object[] { fi.Value?.ToString() })?.ToString();
+                            var fiValue0MethodReturn = fiValue0Method?.Invoke(null, fiValue0Method.GetParameters()
+                                    .Select(a => a.ParameterType == typeof(object) ? (object)this : 
+                                        (a.ParameterType == typeof(string) ? (object)(fi.Value?.ToString()) : (object)null))
+                                    .ToArray())?.ToString();
                             exp = Expression.Call(typeof(SqlExt).GetMethod("InternalRawSql", BindingFlags.NonPublic | BindingFlags.Static), Expression.Constant(fiValue0MethodReturn, typeof(string)));
                             break;
 
