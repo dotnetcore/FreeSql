@@ -24,7 +24,11 @@ namespace FreeSql.Tests.Properties
         public void AsTable_PropertyName_NotDateTimeTest()
         {
             var x = CoreStrings.CustomFieldSeparatedBySpaces;
+            output.WriteLine(x);
             x = CoreStrings.Custom_StaticMethodName_IsNotNull;
+            output.WriteLine(x);
+            x = CoreStrings.Custom_Reflection_IsNotNull;
+            output.WriteLine(x);
             string text = CoreStrings.AsTable_PropertyName_NotDateTime("1");
             output.WriteLine(text);
         }
