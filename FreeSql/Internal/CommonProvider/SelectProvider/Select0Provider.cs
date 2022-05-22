@@ -180,6 +180,31 @@ namespace FreeSql.Internal.CommonProvider
                 return methods.Where(a => a.GetParameters()[1].ParameterType.GetGenericTypeDefinition() == typeof(Func<,>)).FirstOrDefault();
             return methods.FirstOrDefault();
         });
+
+
+        internal static ConcurrentDictionary<int, List<NativeTuple<string, DbParameter[], ReadAnonymousTypeOtherInfo>>> _SameSelectPendingOnlySync = new ConcurrentDictionary<int, List<NativeTuple<string, DbParameter[], ReadAnonymousTypeOtherInfo>>>();
+        internal List<NativeTuple<string, DbParameter[], ReadAnonymousTypeOtherInfo>> CurrentSameSelectPendingOnlySync => _SameSelectPendingOnlySync.TryGetValue(Thread.CurrentThread.ManagedThreadId, out var trycur) ? trycur : null;
+        internal bool ProcessSameSelectPendingOnlySync(List<NativeTuple<string, DbParameter[], ReadAnonymousTypeOtherInfo>> cssps, ref string sql, ReadAnonymousTypeOtherInfo csspsod)
+        {
+            if (cssps != null)
+            {
+                if (cssps.Any() == false || cssps.Last() != null)
+                {
+                    cssps.Add(NativeTuple.Create(sql, _params.ToArray(), csspsod));
+                    return true;
+                }
+                cssps[cssps.Count - 1] = NativeTuple.Create(sql, _params.ToArray(), csspsod);
+                var sbSql = new StringBuilder(); //last == null flush flag
+                for (var a = 0; a < cssps.Count; a++)
+                    sbSql.Append("\r\nUNION ALL\r\nselect * from (").Append(cssps[a].Item1).Append(") ftb");
+                sbSql.Remove(0, 13);
+                if (cssps.Count == 1) sbSql.Remove(0, 15).Remove(sbSql.Length - 5, 5);
+                sql = sbSql.ToString();
+                //dbParms = cssps.Select(a => a.Item2).SelectMany(a => a).ToArray();
+                sbSql.Clear();
+            }
+            return false;
+        }
     }
 
     public abstract partial class Select0Provider<TSelect, T1> : Select0Provider, ISelect0<TSelect, T1> where TSelect : class
@@ -192,6 +217,7 @@ namespace FreeSql.Internal.CommonProvider
             _tables.Add(new SelectTableInfo { Table = _commonUtils.GetTableByEntity(typeof(T1)), Alias = "a", On = null, Type = SelectTableInfoType.From });
             this.Where(_commonUtils.WhereObject(_tables.First().Table, "a.", dywhere));
             if (_orm.CodeFirst.IsAutoSyncStructure && typeof(T1) != typeof(object)) _orm.CodeFirst.SyncStructure<T1>();
+            CurrentSameSelectPendingOnlySync?.ForEach(a => _params.AddRange(a?.Item2 ?? new DbParameter[0]));
         }
 
         public TSelect TrackToList(Action<object> track)
@@ -876,7 +902,8 @@ namespace FreeSql.Internal.CommonProvider
             count = this.Count();
             return this as TSelect;
         }
-        public virtual List<T1> ToList(bool includeNestedMembers = false)
+        public List<T1> ToList() => ToList(false);
+        public virtual List<T1> ToList(bool includeNestedMembers)
         {
             if (_selectExpression != null) return this.InternalToList<T1>(_selectExpression);
             return this.ToListPrivate(includeNestedMembers == false ? this.GetAllFieldExpressionTreeLevel2() : this.GetAllFieldExpressionTreeLevelAll(), null);
