@@ -97,9 +97,14 @@ namespace FreeSql
         /// 3、ToList((a, b, c) => new { a, b, c }) 这样也可以<para></para>
         /// 4、abc 怎么来的？请试试 fsql.Select&lt;T1, T2, T3&gt;()
         /// </summary>
+        /// <returns></returns>
+        List<T1> ToList(); //因为 LambdaExpression 不支持默认参数方法，所以与 ToList(includeNestedMembers) 单独定义
+        /// <summary>
+        /// 执行SQL查询，返回 T1 实体、以及 LeftJoin/InnerJoin/RightJoin 对象
+        /// </summary>
         /// <param name="includeNestedMembers">false: 返回 2级 LeftJoin/InnerJoin/RightJoin 对象；true: 返回所有 LeftJoin/InnerJoin/RightJoin 的导航数据</param>
         /// <returns></returns>
-        List<T1> ToList(bool includeNestedMembers = false);
+        List<T1> ToList(bool includeNestedMembers);
         /// <summary>
         /// 执行SQL查询，分块返回数据，可减少内存开销。比如读取10万条数据，每次返回100条处理。
         /// </summary>

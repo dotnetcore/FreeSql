@@ -209,7 +209,7 @@ namespace base_entity
 
                 //.UseConnectionString(FreeSql.DataType.OdbcDameng, "Driver={DM8 ODBC DRIVER};Server=127.0.0.1:5236;Persist Security Info=False;Trusted_Connection=Yes;UID=USER1;PWD=123456789")
 
-                .UseMonitorCommand(null, (umcmd, log) => Console.WriteLine(umcmd.Connection.ConnectionString + ":" + umcmd.CommandText))
+                .UseMonitorCommand(null, (umcmd, log) => Console.WriteLine(umcmd.Connection.ConnectionString + ":" + umcmd.CommandText + "\r\n"))
                 .UseLazyLoading(true)
                 .UseGenerateCommandParameterWithLambda(true)
                 .Build();
@@ -289,17 +289,26 @@ namespace base_entity
                 });
             sql1 = sql1.Replace("INNER JOIN ", "FULL JOIN ");
 
-            //fsql.Select<UserGroup>()
-            //    .ToList(a => new
-            //    {
-            //        users1 = fsql.Select<User1>().Where(b => b.GroupId == a.Id).ToList(false),
-            //        users2 = fsql.Select<User1>().Where(b => b.GroupId == a.Id).ToList(b => new
-            //        {
-            //            userid = b.Id,
-            //            username = b.Username
-            //        }),
-            //        //users3 = fsql.Ado.Query<User1>("select * from user1 where groupid = @id", new { id = a.Id })
-            //    });
+            var tinc01 = fsql.Select<UserGroup>().IncludeMany(a => a.User1s.Where(b => b.GroupId == a.Id)).ToList();
+            var tsub01 = fsql.Select<UserGroup>()
+                .ToList(a => new
+                {
+                    users1 = fsql.Select<User1>().Where(b => b.GroupId == a.Id).ToList(),
+                    users2 = fsql.Select<User1>().Where(b => b.GroupId == a.Id).ToList(b => new
+                    {
+                        userid = b.Id,
+                        username = b.Username
+                    }),
+                    users3 = fsql.Select<User1>().Limit(10).ToList(),
+                    users4 = fsql.Select<User1>().Limit(10).ToList(b => new
+                    {
+                        userid = b.Id,
+                        username = b.Username
+                    })
+                    //users3 = fsql.Ado.Query<User1>("select * from user1 where groupid = @id", new { id = a.Id })
+                });
+
+            
 
 
 

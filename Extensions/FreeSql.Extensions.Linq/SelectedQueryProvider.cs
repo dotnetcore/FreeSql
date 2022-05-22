@@ -67,7 +67,7 @@ namespace FreeSql.Internal.CommonProvider
             var index = -10000; //临时规则，不返回 as1
 
             if (selector != null) 
-                _comonExp.ReadAnonymousField(_select._tables, field, _map, ref index, selector, null, null, _select._whereGlobalFilter, null, false); //不走 DTO 映射，不处理 IncludeMany
+                _comonExp.ReadAnonymousField(_select._tables, field, _map, ref index, selector, null, null, _select._whereGlobalFilter, null, null, false); //不走 DTO 映射，不处理 IncludeMany
             _field = field.ToString();
         }
 

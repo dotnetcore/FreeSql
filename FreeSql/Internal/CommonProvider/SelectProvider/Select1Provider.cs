@@ -197,7 +197,7 @@ namespace FreeSql.Internal.CommonProvider
             var map = new ReadAnonymousTypeInfo();
             var field = new StringBuilder();
             var index = 0;
-            _commonExpression.ReadAnonymousField(_tables, field, map, ref index, select.Body, this, null, _whereGlobalFilter, findIncludeMany, true);
+            _commonExpression.ReadAnonymousField(_tables, field, map, ref index, select.Body, this, null, _whereGlobalFilter, findIncludeMany, null, true);
             var af = new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null);
             if (findIncludeMany.Any() == false) return this.ToListMapReaderPrivate<TReturn>(af, null);
 
@@ -230,7 +230,7 @@ namespace FreeSql.Internal.CommonProvider
 
             var otherMap = new ReadAnonymousTypeInfo();
             field.Clear();
-            _commonExpression.ReadAnonymousField(_tables, field, otherMap, ref index, otherNewInit, this, null, _whereGlobalFilter, null, true);
+            _commonExpression.ReadAnonymousField(_tables, field, otherMap, ref index, otherNewInit, this, null, _whereGlobalFilter, null, null, true);
             var otherRet = new List<object>();
             var otherAf = new ReadAnonymousTypeOtherInfo(field.ToString(), otherMap, otherRet);
 
@@ -1238,7 +1238,7 @@ namespace FreeSql.Internal.CommonProvider
             var map = new ReadAnonymousTypeInfo();
             var field = new StringBuilder();
             var index = 0;
-            _commonExpression.ReadAnonymousField(_tables, field, map, ref index, select.Body, this, null, _whereGlobalFilter, findIncludeMany, true);
+            _commonExpression.ReadAnonymousField(_tables, field, map, ref index, select.Body, this, null, _whereGlobalFilter, findIncludeMany, null, true);
             var af = new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null);
             if (findIncludeMany.Any() == false) return await this.ToListMapReaderPrivateAsync<TReturn>(af, null, cancellationToken);
 
@@ -1271,7 +1271,7 @@ namespace FreeSql.Internal.CommonProvider
 
             var otherMap = new ReadAnonymousTypeInfo();
             field.Clear();
-            _commonExpression.ReadAnonymousField(_tables, field, otherMap, ref index, otherNewInit, this, null, _whereGlobalFilter, null, true);
+            _commonExpression.ReadAnonymousField(_tables, field, otherMap, ref index, otherNewInit, this, null, _whereGlobalFilter, null, null, true);
             var otherRet = new List<object>();
             var otherAf = new ReadAnonymousTypeOtherInfo(field.ToString(), otherMap, otherRet);
 

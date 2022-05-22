@@ -69,8 +69,8 @@ namespace FreeSql.Internal.CommonProvider
             var ret = new List<TTuple>();
             if (_cancel?.Invoke() == true) return ret;
             var sql = this.ToSql(field);
-            var type = typeof(TTuple);
             var dbParms = _params.ToArray();
+            var type = typeof(TTuple);
             var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
             _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             Exception exception = null;
@@ -118,7 +118,7 @@ namespace FreeSql.Internal.CommonProvider
                     {
                         var idx = af.FieldCount - 1;
                         foreach (var other in otherData)
-                            other.retlist.Add(_commonExpression.ReadAnonymous(other.read, fetch.Object, ref idx, false, null, retCount, null));
+                            other.retlist.Add(_commonExpression.ReadAnonymous(other.read, fetch.Object, ref idx, false, null, retCount, null, null));
                     }
                     retCount++;
                 }, CommandType.Text, sql, _commandTimeout, dbParms);
@@ -139,17 +139,28 @@ namespace FreeSql.Internal.CommonProvider
         }
         internal List<T1> ToListPrivate(GetAllFieldExpressionTreeInfo af, ReadAnonymousTypeOtherInfo[] otherData)
         {
+            var cssps = CurrentSameSelectPendingOnlySync;
+            ReadAnonymousTypeOtherInfo csspsod = null;
+            if (cssps != null)
+            {
+                var ods = new List<ReadAnonymousTypeOtherInfo>();
+                if (otherData?.Any() == true) ods.AddRange(otherData);
+                ods.Add(csspsod = new ReadAnonymousTypeOtherInfo($", {(cssps.Any() && cssps.Last() == null ? cssps.Count - 1 : cssps.Count)}{_commonUtils.FieldAsAlias("fsql_subsel_rowidx")}", new ReadAnonymousTypeInfo { CsType = typeof(int) }, new List<object>()));
+                otherData = ods.ToArray();
+            }
+
             string sql = null;
             if (otherData?.Length > 0)
             {
                 var sbField = new StringBuilder().Append(af.Field);
                 foreach (var other in otherData)
                     sbField.Append(other.field);
-                sql = this.ToSql(sbField.ToString());
+                sql = this.ToSql(sbField.ToString().TrimStart(','));
             }
             else
                 sql = this.ToSql(af.Field);
 
+            if (ProcessSameSelectPendingOnlySync(cssps, ref sql, csspsod)) return new List<T1>();
             return ToListAfPrivate(sql, af, otherData);
         }
         #region ToChunk
@@ -172,7 +183,7 @@ namespace FreeSql.Internal.CommonProvider
                     {
                         var idx = af.FieldCount - 1;
                         foreach (var other in otherData)
-                            other.retlist.Add(_commonExpression.ReadAnonymous(other.read, fetch.Object, ref idx, false, null, ret.Object.Count - 1, null));
+                            other.retlist.Add(_commonExpression.ReadAnonymous(other.read, fetch.Object, ref idx, false, null, ret.Object.Count - 1, null, null));
                     }
                     retCount++;
                     if (chunkSize > 0 && chunkSize == ret.Object.Count)
@@ -216,7 +227,7 @@ namespace FreeSql.Internal.CommonProvider
                 var sbField = new StringBuilder().Append(af.Field);
                 foreach (var other in otherData)
                     sbField.Append(other.field);
-                sql = this.ToSql(sbField.ToString());
+                sql = this.ToSql(sbField.ToString().TrimStart(','));
             }
             else
                 sql = this.ToSql(af.Field);
@@ -245,7 +256,7 @@ namespace FreeSql.Internal.CommonProvider
                 _orm.Ado.ExecuteReader(_connection, _transaction, fetch =>
                 {
                     var index = -1;
-                    ret.Object.Add((TReturn)_commonExpression.ReadAnonymous(af.map, fetch.Object, ref index, false, null, ret.Object.Count, af.fillIncludeMany));
+                    ret.Object.Add((TReturn)_commonExpression.ReadAnonymous(af.map, fetch.Object, ref index, false, null, ret.Object.Count, af.fillIncludeMany, af.fillSubSelectMany));
                     retCount++;
                     if (chunkSize > 0 && chunkSize == ret.Object.Count)
                     {
@@ -325,8 +336,8 @@ namespace FreeSql.Internal.CommonProvider
         {
             var ret = new List<TReturn>();
             if (_cancel?.Invoke() == true) return ret;
-            var type = typeof(TReturn);
             var dbParms = _params.ToArray();
+            var type = typeof(TReturn);
             var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
             _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             var retCount = 0;
@@ -336,10 +347,10 @@ namespace FreeSql.Internal.CommonProvider
                 _orm.Ado.ExecuteReader(_connection, _transaction, fetch =>
                 {
                     var index = -1;
-                    ret.Add((TReturn)_commonExpression.ReadAnonymous(af.map, fetch.Object, ref index, false, null, retCount, af.fillIncludeMany));
+                    ret.Add((TReturn)_commonExpression.ReadAnonymous(af.map, fetch.Object, ref index, false, null, retCount, af.fillIncludeMany, af.fillSubSelectMany));
                     if (otherData != null)
                         foreach (var other in otherData)
-                            other.retlist.Add(_commonExpression.ReadAnonymous(other.read, fetch.Object, ref index, false, null, retCount, null));
+                            other.retlist.Add(_commonExpression.ReadAnonymous(other.read, fetch.Object, ref index, false, null, retCount, null, null));
                     retCount++;
                 }, CommandType.Text, sql, _commandTimeout, dbParms);
             }
@@ -360,17 +371,28 @@ namespace FreeSql.Internal.CommonProvider
         }
         internal List<TReturn> ToListMapReaderPrivate<TReturn>(ReadAnonymousTypeAfInfo af, ReadAnonymousTypeOtherInfo[] otherData)
         {
+            var cssps = CurrentSameSelectPendingOnlySync;
+            ReadAnonymousTypeOtherInfo csspsod = null;
+            if (cssps != null)
+            {
+                var ods = new List<ReadAnonymousTypeOtherInfo>();
+                if (otherData?.Any() == true) ods.AddRange(otherData);
+                ods.Add(csspsod = new ReadAnonymousTypeOtherInfo($", {(cssps.Any() && cssps.Last() == null ? cssps.Count - 1 : cssps.Count)}{_commonUtils.FieldAsAlias("fsql_subsel_rowidx")}", new ReadAnonymousTypeInfo { CsType = typeof(int) }, new List<object>()));
+                otherData = ods.ToArray();
+            }
+
             string sql = null;
             if (otherData?.Length > 0)
             {
                 var sbField = new StringBuilder().Append(af.field);
                 foreach (var other in otherData)
                     sbField.Append(other.field);
-                sql = this.ToSql(sbField.ToString());
+                sql = this.ToSql(sbField.ToString().TrimStart(','));
             }
             else
                 sql = this.ToSql(af.field);
 
+            if (ProcessSameSelectPendingOnlySync(cssps, ref sql, csspsod)) return new List<TReturn>();
             return ToListMrPrivate<TReturn>(sql, af, otherData);
         }
         protected List<TReturn> ToListMapReader<TReturn>(ReadAnonymousTypeAfInfo af) => ToListMapReaderPrivate<TReturn>(af, null);
@@ -380,7 +402,7 @@ namespace FreeSql.Internal.CommonProvider
             var field = new StringBuilder();
             var index = fieldAlias == FieldAliasOptions.AsProperty ? CommonExpression.ReadAnonymousFieldAsCsName : 0;
 
-            _commonExpression.ReadAnonymousField(_tables, field, map, ref index, newexp, this, null, _whereGlobalFilter, null, true);
+            _commonExpression.ReadAnonymousField(_tables, field, map, ref index, newexp, this, null, _whereGlobalFilter, null, null, true);
             return new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null);
         }
         static ConcurrentDictionary<string, GetAllFieldExpressionTreeInfo> _dicGetAllFieldExpressionTree = new ConcurrentDictionary<string, GetAllFieldExpressionTreeInfo>();
@@ -731,6 +753,7 @@ namespace FreeSql.Internal.CommonProvider
                 return new GetAllFieldExpressionTreeInfo
                 {
                     Field = field.ToString(),
+                    FieldCount = index,
                     Read = Expression.Lambda<Func<IFreeSql, DbDataReader, T1>>(Expression.Block(new[] { retExp, dataIndexExp, readExp }, blockExp), new[] { ormExp, rowExp }).Compile()
                 };
             });
@@ -763,7 +786,7 @@ namespace FreeSql.Internal.CommonProvider
             var field = new StringBuilder();
             var index = -10000; //临时规则，不返回 as1
 
-            _commonExpression.ReadAnonymousField(_tables, field, map, ref index, columns, null, null, _whereGlobalFilter, null, false); //不走 DTO 映射，不处理 IncludeMany
+            _commonExpression.ReadAnonymousField(_tables, field, map, ref index, columns, null, null, _whereGlobalFilter, null, null, false); //不走 DTO 映射，不处理 IncludeMany
             var sql = field.ToString();
             this.GroupBy(sql.Length > 0 ? sql.Substring(2) : null);
             return new SelectGroupingProvider<TKey, TValue>(_orm, this, map, sql, _commonExpression, _tables);
@@ -808,7 +831,164 @@ namespace FreeSql.Internal.CommonProvider
             return this.OrderBy($"{_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, column, true, null)} DESC");
         }
 
-        public List<TReturn> InternalToList<TReturn>(Expression select) => this.ToListMapReader<TReturn>(this.GetExpressionField(select));
+        class FindAllMemberExpressionVisitor : ExpressionVisitor
+        {
+            public List<NativeTuple<MemberExpression, ColumnInfo>> Result { get; set; } = new List<NativeTuple<MemberExpression, ColumnInfo>>();
+            Select0Provider _select;
+            public FindAllMemberExpressionVisitor(Select0Provider select) => _select = select;
+
+            protected override Expression VisitMember(MemberExpression node)
+            {
+                var exps = new Stack<Expression>();
+                Expression exp = node;
+                while (exp != null)
+                {
+                    switch (exp.NodeType)
+                    {
+                        case ExpressionType.Parameter:
+                            exps.Push(exp);
+                            exp = null;
+                            continue;
+                        case ExpressionType.MemberAccess:
+                            exps.Push(exp);
+                            exp = (exp as MemberExpression)?.Expression;
+                            continue;
+                    }
+                    return base.VisitMember(node);
+                }
+                if (exps.Any() == false) return base.VisitMember(node);
+                var firstExp = exps.Pop() as ParameterExpression;
+                if (firstExp == null) return base.VisitMember(node);
+                var tb = _select._tables.Find(a => a.Parameter == firstExp)?.Table;
+                if (tb == null) return base.VisitMember(node);
+
+                while (exps.Any())
+                {
+                    var memExp = exps.Pop() as MemberExpression;
+                    if (tb.ColumnsByCs.TryGetValue(memExp.Member.Name, out var trycol) && exps.Any() == false)
+                    {
+                        Result.Add(NativeTuple.Create(node, trycol));
+                        return node;
+                    }
+                    if (tb.Properties.ContainsKey(memExp.Member.Name))
+                    {
+                        tb = _select._commonUtils.GetTableByEntity(memExp.Type);
+                        if (tb == null) return base.VisitMember(node);
+                    }
+                }
+                return base.VisitMember(node);
+            }
+        }
+        class ReplaceMemberExpressionVisitor : ExpressionVisitor
+        {
+            Expression _findExp;
+            Expression _replaceExp;
+            public Expression Replace(Expression exp, Expression find, Expression replace) // object repval)
+            {
+                _findExp = find;
+                _replaceExp = replace;
+                //_replaceExp = Expression.Constant(repval, find.Type);
+                return this.Visit(exp);
+            }
+            protected override Expression VisitMember(MemberExpression node)
+            {
+                if (_findExp == node) return _replaceExp;
+                return base.VisitMember(node);
+            }
+        }
+        public List<TReturn> InternalToList<TReturn>(Expression select)
+        {
+            var map = new ReadAnonymousTypeInfo();
+            var field = new StringBuilder();
+            var index = 0;
+            var findSubSelectMany = new List<Expression>();
+
+            _commonExpression.ReadAnonymousField(_tables, field, map, ref index, select, this, null, _whereGlobalFilter, null, findSubSelectMany, true);
+            var af = new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null);
+            if (findSubSelectMany.Any() == false) return this.ToListMapReaderPrivate<TReturn>(af, new ReadAnonymousTypeOtherInfo[0]);
+
+            af.fillSubSelectMany = new List<NativeTuple<Expression, IList, int>>();
+            //查询 SubSelectMany
+            var otherAfmanys = findSubSelectMany.Select(a =>
+            {
+                var vst = new FindAllMemberExpressionVisitor(this);
+                vst.Visit(a);
+                var finds = vst.Result;
+
+                var afs = new List<NativeTuple<MemberExpression, ColumnInfo, ReadAnonymousTypeOtherInfo>>();
+                foreach (var find in finds)
+                {
+                    var otherMap = new ReadAnonymousTypeInfo();
+                    field.Clear();
+                    _commonExpression.ReadAnonymousField(_tables, field, otherMap, ref index, find.Item1, this, null, _whereGlobalFilter, null, null, true);
+                    var otherRet = new List<object>();
+                    var otherAf = new ReadAnonymousTypeOtherInfo(field.ToString(), otherMap, otherRet);
+                    afs.Add(NativeTuple.Create(find.Item1, find.Item2, otherAf));
+                }
+                return afs;
+            }).ToList();
+            var otherAfdic = otherAfmanys.SelectMany(a => a).GroupBy(a => a.Item1.ToString()).ToDictionary(a => a.Key, a => a.ToList());
+            var otherAfs = otherAfdic.Select(a => a.Value.First().Item3).ToArray();
+            var ret = this.ToListMapReaderPrivate<TReturn>(af, otherAfs);
+            if (ret.Any() == false || otherAfmanys.Any() == false) return ret;
+
+            var rmev = new ReplaceMemberExpressionVisitor();
+
+            for (var a = 0; a < otherAfmanys.Count; a++)
+            {
+                if (otherAfmanys[a].Any() == false)
+                {
+                    var otherList = Expression.Lambda(findSubSelectMany[a]).Compile().DynamicInvoke() as IEnumerable;
+                    foreach (var otherListItem in otherList)
+                        for (int b = a, c = 0; b < af.fillSubSelectMany?.Count; b += otherAfmanys.Count, c++)
+                            af.fillSubSelectMany[b].Item2.Add(otherListItem);
+                    continue;
+                }
+                try
+                {
+                    _SameSelectPendingOnlySync.TryAdd(Thread.CurrentThread.ManagedThreadId, new List<NativeTuple<string, DbParameter[], ReadAnonymousTypeOtherInfo>>());
+                    var newexp = findSubSelectMany[a];
+                    var newexpParms = otherAfmanys[a].Select(d =>
+                    {
+                        var newexpParm = Expression.Parameter(d.Item1.Type);
+                        newexp = rmev.Replace(newexp, d.Item1, newexpParm);
+                        return newexpParm;
+                    }).ToArray();
+                    var newexpFunc = Expression.Lambda(newexp, newexpParms).Compile();
+
+                    var newexpParamVals = otherAfmanys[a].Select(d => otherAfdic[d.Item1.ToString()].First().Item3.retlist).ToArray();
+                    for (int b = a, c = 0; b < af.fillSubSelectMany?.Count; b += otherAfmanys.Count, c++)
+                    {
+                        var vals = newexpParamVals.Select(d => d[c]).ToArray();
+                        if (c == ret.Count - 1) CurrentSameSelectPendingOnlySync.Add(null); //flush flag
+                        var diret = newexpFunc.DynamicInvoke(vals);
+
+                        if (c < ret.Count - 1) continue;
+                        var otherList = diret as IEnumerable;
+                        var cssps = CurrentSameSelectPendingOnlySync;
+                        var retlistidx = 0;
+                        foreach (var otherListItem in otherList)
+                        {
+                            var retlist = cssps[0].Item3.retlist;
+                            while (retlistidx >= retlist.Count)
+                            {
+                                cssps.RemoveAt(0);
+                                retlist = cssps[0].Item3.retlist;
+                                retlistidx = 0;
+                            }
+                            int.TryParse(retlist[retlistidx++]?.ToString(), out var tryrowidx);
+                            af.fillSubSelectMany[tryrowidx * otherAfmanys.Count + a].Item2.Add(otherListItem);
+                        }
+                    }
+                    CurrentSameSelectPendingOnlySync.Clear();
+                }
+                finally
+                {
+                    _SameSelectPendingOnlySync.TryRemove(Thread.CurrentThread.ManagedThreadId, out var oldssps);
+                }
+            }
+            return ret;
+        }
         protected string InternalToSql<TReturn>(Expression select, FieldAliasOptions fieldAlias = FieldAliasOptions.AsIndex)
         {
             var af = this.GetExpressionField(select, fieldAlias);
@@ -826,7 +1006,7 @@ namespace FreeSql.Internal.CommonProvider
             var field = new StringBuilder();
             var index = -10000; //临时规则，不返回 as1
 
-            _commonExpression.ReadAnonymousField(_tables, field, map, ref index, select, null, null, _whereGlobalFilter, null, false); //不走 DTO 映射，不处理 IncludeMany
+            _commonExpression.ReadAnonymousField(_tables, field, map, ref index, select, null, null, _whereGlobalFilter, null, null, false); //不走 DTO 映射，不处理 IncludeMany
             
             var childs = map.Childs;
             if (childs.Any() == false) throw new ArgumentException(CoreStrings.InsertInto_No_Property_Selected(typeof(TTargetEntity).DisplayCsharp()));
@@ -907,7 +1087,7 @@ namespace FreeSql.Internal.CommonProvider
                 var field = new StringBuilder();
                 var index = 0;
 
-                _commonExpression.ReadAnonymousField(_tables, field, map, ref index, select, null, null, _whereGlobalFilter, null, false); //不走 DTO 映射，不处理 IncludeMany
+                _commonExpression.ReadAnonymousField(_tables, field, map, ref index, select, null, null, _whereGlobalFilter, null, null, false); //不走 DTO 映射，不处理 IncludeMany
                 return this.ToListMapReader<TReturn>(new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null)).FirstOrDefault();
             }
             finally
@@ -971,8 +1151,8 @@ namespace FreeSql.Internal.CommonProvider
             var ret = new List<TTuple>();
             if (_cancel?.Invoke() == true) return ret;
             var sql = this.ToSql(field);
-            var type = typeof(TTuple);
             var dbParms = _params.ToArray();
+            var type = typeof(TTuple);
             var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
             _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             Exception exception = null;
@@ -1022,7 +1202,7 @@ namespace FreeSql.Internal.CommonProvider
                     {
                         var idx = af.FieldCount - 1;
                         foreach (var other in otherData)
-                            other.retlist.Add(_commonExpression.ReadAnonymous(other.read, fetch.Object, ref idx, false, null, retCount, null));
+                            other.retlist.Add(_commonExpression.ReadAnonymous(other.read, fetch.Object, ref idx, false, null, retCount, null, null));
                     }
                     retCount++;
                     return Task.FromResult(false);
@@ -1051,7 +1231,7 @@ namespace FreeSql.Internal.CommonProvider
                 var sbField = new StringBuilder().Append(af.Field);
                 foreach (var other in otherData)
                     sbField.Append(other.field);
-                sql = this.ToSql(sbField.ToString());
+                sql = this.ToSql(sbField.ToString().TrimStart(','));
             }
             else
                 sql = this.ToSql(af.Field);
@@ -1100,8 +1280,8 @@ namespace FreeSql.Internal.CommonProvider
         {
             var ret = new List<TReturn>();
             if (_cancel?.Invoke() == true) return ret;
-            var type = typeof(TReturn);
             var dbParms = _params.ToArray();
+            var type = typeof(TReturn);
             var before = new Aop.CurdBeforeEventArgs(_tables[0].Table.Type, _tables[0].Table, Aop.CurdType.Select, sql, dbParms);
             _orm.Aop.CurdBeforeHandler?.Invoke(this, before);
             var retCount = 0;
@@ -1111,10 +1291,10 @@ namespace FreeSql.Internal.CommonProvider
                 await _orm.Ado.ExecuteReaderAsync(_connection, _transaction, fetch =>
                 {
                     var index = -1;
-                    ret.Add((TReturn)_commonExpression.ReadAnonymous(af.map, fetch.Object, ref index, false, null, retCount, af.fillIncludeMany));
+                    ret.Add((TReturn)_commonExpression.ReadAnonymous(af.map, fetch.Object, ref index, false, null, retCount, af.fillIncludeMany, af.fillSubSelectMany));
                     if (otherData != null)
                         foreach (var other in otherData)
-                            other.retlist.Add(_commonExpression.ReadAnonymous(other.read, fetch.Object, ref index, false, null, retCount, null));
+                            other.retlist.Add(_commonExpression.ReadAnonymous(other.read, fetch.Object, ref index, false, null, retCount, null, null));
                     retCount++;
                     return Task.FromResult(false);
                 }, CommandType.Text, sql, _commandTimeout, dbParms, cancellationToken);
@@ -1142,7 +1322,7 @@ namespace FreeSql.Internal.CommonProvider
                 var sbField = new StringBuilder().Append(af.field);
                 foreach (var other in otherData)
                     sbField.Append(other.field);
-                sql = this.ToSql(sbField.ToString());
+                sql = this.ToSql(sbField.ToString().TrimStart(','));
             }
             else
                 sql = this.ToSql(af.field);
@@ -1225,7 +1405,7 @@ namespace FreeSql.Internal.CommonProvider
                 var field = new StringBuilder();
                 var index = 0;
 
-                _commonExpression.ReadAnonymousField(_tables, field, map, ref index, select, null, null, _whereGlobalFilter, null, false); //不走 DTO 映射，不处理 IncludeMany
+                _commonExpression.ReadAnonymousField(_tables, field, map, ref index, select, null, null, _whereGlobalFilter, null, null, false); //不走 DTO 映射，不处理 IncludeMany
                 return (await this.ToListMapReaderAsync<TReturn>(new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null), cancellationToken)).FirstOrDefault();
             }
             finally
