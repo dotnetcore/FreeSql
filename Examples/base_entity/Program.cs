@@ -307,8 +307,26 @@ namespace base_entity
                     })
                     //users3 = fsql.Ado.Query<User1>("select * from user1 where groupid = @id", new { id = a.Id })
                 });
+            var typs = fsql.Select<User1>();
+            var typs2 = typeof(ISelect<User1>).GetInterfaces().SelectMany(a => a.GetMethods().Where(b => b.Name == "ToListAsync")).ToArray();
 
-            
+            var tsub02 = fsql.Select<UserGroup>()
+                .ToListAsync(a => new
+                {
+                    users1 = fsql.Select<User1>().Where(b => b.GroupId == a.Id).ToList(),
+                    users2 = fsql.Select<User1>().Where(b => b.GroupId == a.Id).ToList(b => new
+                    {
+                        userid = b.Id,
+                        username = b.Username
+                    }),
+                    users3 = fsql.Select<User1>().Limit(10).ToList(),
+                    users4 = fsql.Select<User1>().Limit(10).ToList(b => new
+                    {
+                        userid = b.Id,
+                        username = b.Username
+                    })
+                    //users3 = fsql.Ado.Query<User1>("select * from user1 where groupid = @id", new { id = a.Id })
+                }).Result;
 
 
 

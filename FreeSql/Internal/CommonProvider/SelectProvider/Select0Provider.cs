@@ -946,6 +946,7 @@ namespace FreeSql.Internal.CommonProvider
                 _distinct = tmpDistinct;
             }
         }
+        public Task<List<T1>> ToListAsync(CancellationToken cancellationToken = default) => ToListAsync(false, cancellationToken);
         public virtual Task<List<T1>> ToListAsync(bool includeNestedMembers = false, CancellationToken cancellationToken = default)
         {
             if (_selectExpression != null) return this.InternalToListAsync<T1>(_selectExpression, cancellationToken);

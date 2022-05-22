@@ -944,9 +944,11 @@ namespace FreeSql.Internal.CommonProvider
                             af.fillSubSelectMany[b].Item2.Add(otherListItem);
                     continue;
                 }
+                var threadId = Thread.CurrentThread.ManagedThreadId;
                 try
                 {
-                    _SameSelectPendingOnlySync.TryAdd(Thread.CurrentThread.ManagedThreadId, new List<NativeTuple<string, DbParameter[], ReadAnonymousTypeOtherInfo>>());
+                    _SameSelectPendingOnlySync.TryAdd(threadId, new List<NativeTuple<string, DbParameter[], ReadAnonymousTypeOtherInfo>>());
+                    var cssps = CurrentSameSelectPendingOnlySync;
                     var newexp = findSubSelectMany[a];
                     var newexpParms = otherAfmanys[a].Select(d =>
                     {
@@ -960,12 +962,10 @@ namespace FreeSql.Internal.CommonProvider
                     for (int b = a, c = 0; b < af.fillSubSelectMany?.Count; b += otherAfmanys.Count, c++)
                     {
                         var vals = newexpParamVals.Select(d => d[c]).ToArray();
-                        if (c == ret.Count - 1) CurrentSameSelectPendingOnlySync.Add(null); //flush flag
+                        if (c == ret.Count - 1) cssps.Add(null); //flush flag
                         var diret = newexpFunc.DynamicInvoke(vals);
-
                         if (c < ret.Count - 1) continue;
                         var otherList = diret as IEnumerable;
-                        var cssps = CurrentSameSelectPendingOnlySync;
                         var retlistidx = 0;
                         foreach (var otherListItem in otherList)
                         {
@@ -980,11 +980,11 @@ namespace FreeSql.Internal.CommonProvider
                             af.fillSubSelectMany[tryrowidx * otherAfmanys.Count + a].Item2.Add(otherListItem);
                         }
                     }
-                    CurrentSameSelectPendingOnlySync.Clear();
+                    cssps.Clear();
                 }
                 finally
                 {
-                    _SameSelectPendingOnlySync.TryRemove(Thread.CurrentThread.ManagedThreadId, out var oldssps);
+                    _SameSelectPendingOnlySync.TryRemove(threadId, out var oldssps);
                 }
             }
             return ret;
@@ -1225,6 +1225,16 @@ namespace FreeSql.Internal.CommonProvider
 
         internal Task<List<T1>> ToListPrivateAsync(GetAllFieldExpressionTreeInfo af, ReadAnonymousTypeOtherInfo[] otherData, CancellationToken cancellationToken)
         {
+            var cssps = CurrentSameSelectPendingOnlySync;
+            ReadAnonymousTypeOtherInfo csspsod = null;
+            if (cssps != null)
+            {
+                var ods = new List<ReadAnonymousTypeOtherInfo>();
+                if (otherData?.Any() == true) ods.AddRange(otherData);
+                ods.Add(csspsod = new ReadAnonymousTypeOtherInfo($", {(cssps.Any() && cssps.Last() == null ? cssps.Count - 1 : cssps.Count)}{_commonUtils.FieldAsAlias("fsql_subsel_rowidx")}", new ReadAnonymousTypeInfo { CsType = typeof(int) }, new List<object>()));
+                otherData = ods.ToArray();
+            }
+
             string sql = null;
             if (otherData?.Length > 0)
             {
@@ -1236,6 +1246,7 @@ namespace FreeSql.Internal.CommonProvider
             else
                 sql = this.ToSql(af.Field);
 
+            if (ProcessSameSelectPendingOnlySync(cssps, ref sql, csspsod)) return Task.FromResult(new List<T1>());
             return ToListAfPrivateAsync(sql, af, otherData, cancellationToken);
         }
 
@@ -1316,6 +1327,16 @@ namespace FreeSql.Internal.CommonProvider
         }
         internal Task<List<TReturn>> ToListMapReaderPrivateAsync<TReturn>(ReadAnonymousTypeAfInfo af, ReadAnonymousTypeOtherInfo[] otherData, CancellationToken cancellationToken)
         {
+            var cssps = CurrentSameSelectPendingOnlySync;
+            ReadAnonymousTypeOtherInfo csspsod = null;
+            if (cssps != null)
+            {
+                var ods = new List<ReadAnonymousTypeOtherInfo>();
+                if (otherData?.Any() == true) ods.AddRange(otherData);
+                ods.Add(csspsod = new ReadAnonymousTypeOtherInfo($", {(cssps.Any() && cssps.Last() == null ? cssps.Count - 1 : cssps.Count)}{_commonUtils.FieldAsAlias("fsql_subsel_rowidx")}", new ReadAnonymousTypeInfo { CsType = typeof(int) }, new List<object>()));
+                otherData = ods.ToArray();
+            }
+
             string sql = null;
             if (otherData?.Length > 0)
             {
@@ -1327,6 +1348,7 @@ namespace FreeSql.Internal.CommonProvider
             else
                 sql = this.ToSql(af.field);
 
+            if (ProcessSameSelectPendingOnlySync(cssps, ref sql, csspsod)) return Task.FromResult(new List<TReturn>());
             return ToListMrPrivateAsync<TReturn>(sql, af, otherData, cancellationToken);
         }
         protected Task<List<TReturn>> ToListMapReaderAsync<TReturn>(ReadAnonymousTypeAfInfo af, CancellationToken cancellationToken) => ToListMapReaderPrivateAsync<TReturn>(af, null, cancellationToken);
@@ -1340,7 +1362,130 @@ namespace FreeSql.Internal.CommonProvider
         async protected Task<TMember> InternalMinAsync<TMember>(Expression exp, CancellationToken cancellationToken) => (await this.ToListAsync<TMember>($"min({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}){_commonUtils.FieldAsAlias("as1")}", cancellationToken)).Min();
         async protected Task<decimal> InternalSumAsync(Expression exp, CancellationToken cancellationToken) => (await this.ToListAsync<decimal>($"sum({_commonExpression.ExpressionSelectColumn_MemberAccess(_tables, null, SelectTableInfoType.From, exp, true, null)}){_commonUtils.FieldAsAlias("as1")}", cancellationToken)).Sum();
 
-        protected Task<List<TReturn>> InternalToListAsync<TReturn>(Expression select, CancellationToken cancellationToken) => this.ToListMapReaderAsync<TReturn>(this.GetExpressionField(select), cancellationToken);
+        static ConcurrentDictionary<Type, MethodInfo[]> _dicGetMethodsByName = new ConcurrentDictionary<Type, MethodInfo[]>();
+        async protected Task<List<TReturn>> InternalToListAsync<TReturn>(Expression select, CancellationToken cancellationToken)
+        {
+            //【注意】：此异步有特别逻辑，因为要处理子查询集合 ToList -> ToListAsync，原因是 LambdaExpression 表达式树内不支持 await Async
+            var map = new ReadAnonymousTypeInfo();
+            var field = new StringBuilder();
+            var index = 0;
+            var findSubSelectMany = new List<Expression>();
+
+            _commonExpression.ReadAnonymousField(_tables, field, map, ref index, select, this, null, _whereGlobalFilter, null, findSubSelectMany, true);
+            var af = new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null);
+            if (findSubSelectMany.Any() == false) return await this.ToListMapReaderPrivateAsync<TReturn>(af, new ReadAnonymousTypeOtherInfo[0], cancellationToken);
+
+            af.fillSubSelectMany = new List<NativeTuple<Expression, IList, int>>();
+            //查询 SubSelectMany
+            var otherAfmanys = findSubSelectMany.Select(a =>
+            {
+                var vst = new FindAllMemberExpressionVisitor(this);
+                vst.Visit(a);
+                var finds = vst.Result;
+
+                var afs = new List<NativeTuple<MemberExpression, ColumnInfo, ReadAnonymousTypeOtherInfo>>();
+                foreach (var find in finds)
+                {
+                    var otherMap = new ReadAnonymousTypeInfo();
+                    field.Clear();
+                    _commonExpression.ReadAnonymousField(_tables, field, otherMap, ref index, find.Item1, this, null, _whereGlobalFilter, null, null, true);
+                    var otherRet = new List<object>();
+                    var otherAf = new ReadAnonymousTypeOtherInfo(field.ToString(), otherMap, otherRet);
+                    afs.Add(NativeTuple.Create(find.Item1, find.Item2, otherAf));
+                }
+                return afs;
+            }).ToList();
+            var otherAfdic = otherAfmanys.SelectMany(a => a).GroupBy(a => a.Item1.ToString()).ToDictionary(a => a.Key, a => a.ToList());
+            var otherAfs = otherAfdic.Select(a => a.Value.First().Item3).ToArray();
+            var ret = await this.ToListMapReaderPrivateAsync<TReturn>(af, otherAfs, cancellationToken);
+            if (ret.Any() == false || otherAfmanys.Any() == false) return ret;
+
+            var rmev = new ReplaceMemberExpressionVisitor();
+
+            for (var a = 0; a < otherAfmanys.Count; a++)
+            {
+                if (otherAfmanys[a].Any() == false)
+                {
+                    var otherList = Expression.Lambda(findSubSelectMany[a]).Compile().DynamicInvoke() as IEnumerable;
+                    foreach (var otherListItem in otherList)
+                        for (int b = a, c = 0; b < af.fillSubSelectMany?.Count; b += otherAfmanys.Count, c++)
+                            af.fillSubSelectMany[b].Item2.Add(otherListItem);
+                    continue;
+                }
+                var threadId = Thread.CurrentThread.ManagedThreadId; //一定要【注意】 await 会影响该值，以下以容将 ToList 替换成 ToListAsync 后再执行
+                try
+                {
+                    _SameSelectPendingOnlySync.TryAdd(threadId, new List<NativeTuple<string, DbParameter[], ReadAnonymousTypeOtherInfo>>());
+                    var cssps = CurrentSameSelectPendingOnlySync;
+                    var newexp = findSubSelectMany[a];
+                    var newexpParms = otherAfmanys[a].Select(d =>
+                    {
+                        var newexpParm = Expression.Parameter(d.Item1.Type);
+                        newexp = rmev.Replace(newexp, d.Item1, newexpParm);
+                        return newexpParm;
+                    }).ToArray();
+                    var newexpCallExp = (newexp as MethodCallExpression);
+                    if (newexpCallExp?.Object != null) {
+                        var asyncMethods = _dicGetMethodsByName.GetOrAdd(newexpCallExp.Object.Type, dgmbn => dgmbn.GetMethods().Where(c => c.Name == $"{newexpCallExp.Method.Name}Async")
+                            .Concat(dgmbn.GetInterfaces().SelectMany(b => b.GetMethods().Where(c => c.Name == $"{newexpCallExp.Method.Name}Async"))).ToArray());
+                        var asyncMethod = asyncMethods.Length == 1 ? asyncMethods.First() : null;
+                        var newexpMethodGenericArgs = newexpCallExp.Method.GetGenericArguments();
+                        var newexpMethodParmArgs = newexpCallExp.Method.GetParameters();
+                        if (asyncMethods.Length > 1)
+                        {
+                            asyncMethods = asyncMethods
+                                .Where(b =>
+                                {
+                                    var bGenericArgs = b.GetGenericArguments();
+                                    return bGenericArgs.Length == newexpMethodGenericArgs.Length;
+                                })
+                                .Select(b => newexpMethodGenericArgs.Length == 0 ? b : b.MakeGenericMethod(newexpMethodGenericArgs))
+                                .Where(b =>
+                                {
+                                    var bParmArgs = b.GetParameters();
+                                    return bParmArgs.Length - 1 == newexpMethodParmArgs.Length && newexpMethodParmArgs.Where((c, d) => c.ParameterType == bParmArgs[d].ParameterType).Count() == newexpMethodParmArgs.Length;
+                                }).ToArray();
+                            if (asyncMethods.Length == 1) asyncMethod = asyncMethods.First();
+                        }
+                        if (asyncMethod != null)
+                            newexp = Expression.Call(newexpCallExp.Object, asyncMethod, newexpCallExp.Arguments.Concat(new[] { Expression.Constant(cancellationToken, typeof(CancellationToken)) }).ToArray());
+                    }
+                    var newexpFunc = Expression.Lambda(newexp, newexpParms).Compile();
+
+                    var newexpParamVals = otherAfmanys[a].Select(d => otherAfdic[d.Item1.ToString()].First().Item3.retlist).ToArray();
+                    for (int b = a, c = 0; b < af.fillSubSelectMany?.Count; b += otherAfmanys.Count, c++)
+                    {
+                        var vals = newexpParamVals.Select(d => d[c]).ToArray();
+                        if (c == ret.Count - 1) cssps.Add(null); //flush flag
+                        var diretTask = newexpFunc.DynamicInvoke(vals) as Task;
+
+                        if (c < ret.Count - 1) continue;
+                        await diretTask;
+                        var diret = diretTask.GetType().GetProperty("Result").GetValue(diretTask, new object[0]);
+                        var otherList = diret as IEnumerable;
+                        var retlistidx = 0;
+                        foreach (var otherListItem in otherList)
+                        {
+                            var retlist = cssps[0].Item3.retlist;
+                            while (retlistidx >= retlist.Count)
+                            {
+                                cssps.RemoveAt(0);
+                                retlist = cssps[0].Item3.retlist;
+                                retlistidx = 0;
+                            }
+                            int.TryParse(retlist[retlistidx++]?.ToString(), out var tryrowidx);
+                            af.fillSubSelectMany[tryrowidx * otherAfmanys.Count + a].Item2.Add(otherListItem);
+                        }
+                    }
+                    cssps.Clear();
+                }
+                finally
+                {
+                    _SameSelectPendingOnlySync.TryRemove(threadId, out var oldssps);
+                }
+            }
+            return ret;
+        }
 
         async public Task<int> InternalInsertIntoAsync<TTargetEntity>(string tableName, Expression select, CancellationToken cancellationToken)
         {
