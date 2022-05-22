@@ -641,6 +641,7 @@ namespace FreeSql.Internal.CommonProvider
                 if (tbref.Columns.Any() == false) throw throwNavigateSelector;
             }
 
+            if (members.Count >= 2) _isIncluded = true;
 #if net40
             Action<object, bool> includeToListSyncOrAsync = (listObj, isAsync) =>
             {
