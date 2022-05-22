@@ -21,7 +21,7 @@ namespace FreeSql.Tests.Properties
             //Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
             //Thread.CurrentThread.CurrentUICulture = new System.Globalization.CultureInfo("en-US");
 
-            //DbContextStrings.Culture= new System.Globalization.CultureInfo("zh-CN");
+            //DbContextStrings.Culture= new System.Globalization.CultureInfo("zh-Hans");
             DbContextStrings.Culture = new System.Globalization.CultureInfo("en-US");
         }
 
