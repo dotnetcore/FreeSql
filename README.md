@@ -121,6 +121,13 @@ fsql.Select<Song>().Where(a => new[] { 1, 2, 3 }.Contains(a.Id)).ToList();
 fsql.Select<Song>().Where(a => a.CreateTime.Date == DateTime.Today).ToList();
 
 fsql.Select<Song>().OrderBy(a => Guid.NewGuid()).Limit(10).ToList();
+
+fsql.Select<Song>().ToList(a => new
+{
+    a.Id,
+    Tags = fsql.Select<Tag>().ToList(),
+    SongTags = fsql.Select<SongTag>().Where(b => b.TopicId == a.Id).ToList()
+});
 ```
 [More..](https://github.com/dotnetcore/FreeSql/wiki/%e8%a1%a8%e8%be%be%e5%bc%8f%e5%87%bd%e6%95%b0) 
 
