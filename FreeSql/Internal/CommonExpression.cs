@@ -1753,6 +1753,7 @@ namespace FreeSql.Internal
             public Type mapType { get; set; }
             public Type mapTypeTmp { get; set; }
             public ColumnInfo mapColumnTmp { get; set; }
+            public bool isNotSetMapColumnTmp { get; set; }
             public TableInfo currentTable { get; set; }
             public List<GlobalFilter.Item> whereGlobalFilter { get; set; }
             public List<DbParameter> dbParams { get; set; }
@@ -1760,6 +1761,7 @@ namespace FreeSql.Internal
 
             public ExpTSC SetMapColumnTmp(ColumnInfo col)
             {
+                if (isNotSetMapColumnTmp) return this;
                 if (col == null)
                 {
                     this.mapTypeTmp = null;

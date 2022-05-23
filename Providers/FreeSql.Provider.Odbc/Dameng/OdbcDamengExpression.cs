@@ -123,7 +123,9 @@ namespace FreeSql.Odbc.Dameng
                         var args1 = getExp(callExp.Arguments[argIndex]);
                         var oldMapType = tsc.SetMapTypeReturnOld(tsc.mapTypeTmp);
                         //var oldDbParams = tsc.SetDbParamsReturnOld(null); #900 UseGenerateCommandParameterWithLambda(true) 子查询 bug
+                        tsc.isNotSetMapColumnTmp = true;
                         var left = objExp == null ? null : getExp(objExp);
+                        tsc.isNotSetMapColumnTmp = false;
                         tsc.SetMapColumnTmp(null).SetMapTypeReturnOld(oldMapType);
                         //tsc.SetDbParamsReturnOld(oldDbParams);
                         switch (callExp.Method.Name)
