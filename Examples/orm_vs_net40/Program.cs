@@ -14,6 +14,7 @@ namespace orm_vs
         static IFreeSql fsql = new FreeSql.FreeSqlBuilder()
                 .UseConnectionString(FreeSql.DataType.SqlServer, "Data Source=.;Integrated Security=True;Initial Catalog=freesqlTest;Pooling=true;Max Pool Size=20")
                 //.UseConnectionString(FreeSql.DataType.MySql, "Data Source=127.0.0.1;Port=3306;User ID=root;Password=root;Initial Catalog=cccddd;Charset=utf8;SslMode=none;Max pool size=20")
+                .UseConnectionString(FreeSql.DataType.Sqlite, "data source=test1.db;max pool size=5")
                 .UseAutoSyncStructure(false)
                 .UseNoneCommandParameter(true)
                 //.UseConfigEntityFromDbFirst(true)

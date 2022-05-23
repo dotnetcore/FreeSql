@@ -139,13 +139,12 @@ namespace FreeSql.Internal.CommonProvider
         }
         internal List<T1> ToListPrivate(GetAllFieldExpressionTreeInfo af, ReadAnonymousTypeOtherInfo[] otherData)
         {
-            var cssps = CurrentSameSelectPendingOnlySync;
             ReadAnonymousTypeOtherInfo csspsod = null;
-            if (cssps != null)
+            if (_SameSelectPendingShareData != null)
             {
                 var ods = new List<ReadAnonymousTypeOtherInfo>();
                 if (otherData?.Any() == true) ods.AddRange(otherData);
-                ods.Add(csspsod = new ReadAnonymousTypeOtherInfo($", {(cssps.Any() && cssps.Last() == null ? cssps.Count - 1 : cssps.Count)}{_commonUtils.FieldAsAlias("fsql_subsel_rowidx")}", new ReadAnonymousTypeInfo { CsType = typeof(int) }, new List<object>()));
+                ods.Add(csspsod = new ReadAnonymousTypeOtherInfo($", {(_SameSelectPendingShareData.Any() && _SameSelectPendingShareData.Last() == null ? _SameSelectPendingShareData.Count - 1 : _SameSelectPendingShareData.Count)}{_commonUtils.FieldAsAlias("fsql_subsel_rowidx")}", new ReadAnonymousTypeInfo { CsType = typeof(int) }, new List<object>()));
                 otherData = ods.ToArray();
             }
 
@@ -160,7 +159,7 @@ namespace FreeSql.Internal.CommonProvider
             else
                 sql = this.ToSql(af.Field);
 
-            if (ProcessSameSelectPendingOnlySync(cssps, ref sql, csspsod)) return new List<T1>();
+            if (SameSelectPending(ref sql, csspsod)) return new List<T1>();
             return ToListAfPrivate(sql, af, otherData);
         }
         #region ToChunk
@@ -371,13 +370,12 @@ namespace FreeSql.Internal.CommonProvider
         }
         internal List<TReturn> ToListMapReaderPrivate<TReturn>(ReadAnonymousTypeAfInfo af, ReadAnonymousTypeOtherInfo[] otherData)
         {
-            var cssps = CurrentSameSelectPendingOnlySync;
             ReadAnonymousTypeOtherInfo csspsod = null;
-            if (cssps != null)
+            if (_SameSelectPendingShareData != null)
             {
                 var ods = new List<ReadAnonymousTypeOtherInfo>();
                 if (otherData?.Any() == true) ods.AddRange(otherData);
-                ods.Add(csspsod = new ReadAnonymousTypeOtherInfo($", {(cssps.Any() && cssps.Last() == null ? cssps.Count - 1 : cssps.Count)}{_commonUtils.FieldAsAlias("fsql_subsel_rowidx")}", new ReadAnonymousTypeInfo { CsType = typeof(int) }, new List<object>()));
+                ods.Add(csspsod = new ReadAnonymousTypeOtherInfo($", {(_SameSelectPendingShareData.Any() && _SameSelectPendingShareData.Last() == null ? _SameSelectPendingShareData.Count - 1 : _SameSelectPendingShareData.Count)}{_commonUtils.FieldAsAlias("fsql_subsel_rowidx")}", new ReadAnonymousTypeInfo { CsType = typeof(int) }, new List<object>()));
                 otherData = ods.ToArray();
             }
 
@@ -392,7 +390,7 @@ namespace FreeSql.Internal.CommonProvider
             else
                 sql = this.ToSql(af.field);
 
-            if (ProcessSameSelectPendingOnlySync(cssps, ref sql, csspsod)) return new List<TReturn>();
+            if (SameSelectPending(ref sql, csspsod)) return new List<TReturn>();
             return ToListMrPrivate<TReturn>(sql, af, otherData);
         }
         protected List<TReturn> ToListMapReader<TReturn>(ReadAnonymousTypeAfInfo af) => ToListMapReaderPrivate<TReturn>(af, null);
@@ -944,11 +942,9 @@ namespace FreeSql.Internal.CommonProvider
                             af.fillSubSelectMany[b].Item2.Add(otherListItem);
                     continue;
                 }
-                var threadId = Thread.CurrentThread.ManagedThreadId;
+                var sspShareData = new List<NativeTuple<string, DbParameter[], ReadAnonymousTypeOtherInfo>>();
                 try
                 {
-                    _SameSelectPendingOnlySync.TryAdd(threadId, new List<NativeTuple<string, DbParameter[], ReadAnonymousTypeOtherInfo>>());
-                    var cssps = CurrentSameSelectPendingOnlySync;
                     var newexp = findSubSelectMany[a];
                     var newexpParms = otherAfmanys[a].Select(d =>
                     {
@@ -956,35 +952,35 @@ namespace FreeSql.Internal.CommonProvider
                         newexp = rmev.Replace(newexp, d.Item1, newexpParm);
                         return newexpParm;
                     }).ToArray();
+                    newexp = SetSameSelectPendingShareDataWithExpression(newexp, sspShareData);
                     var newexpFunc = Expression.Lambda(newexp, newexpParms).Compile();
 
                     var newexpParamVals = otherAfmanys[a].Select(d => otherAfdic[d.Item1.ToString()].First().Item3.retlist).ToArray();
                     for (int b = a, c = 0; b < af.fillSubSelectMany?.Count; b += otherAfmanys.Count, c++)
                     {
                         var vals = newexpParamVals.Select(d => d[c]).ToArray();
-                        if (c == ret.Count - 1) cssps.Add(null); //flush flag
+                        if (c == ret.Count - 1) sspShareData.Add(null); //flush flag
                         var diret = newexpFunc.DynamicInvoke(vals);
                         if (c < ret.Count - 1) continue;
                         var otherList = diret as IEnumerable;
                         var retlistidx = 0;
                         foreach (var otherListItem in otherList)
                         {
-                            var retlist = cssps[0].Item3.retlist;
+                            var retlist = sspShareData[0].Item3.retlist;
                             while (retlistidx >= retlist.Count)
                             {
-                                cssps.RemoveAt(0);
-                                retlist = cssps[0].Item3.retlist;
+                                sspShareData.RemoveAt(0);
+                                retlist = sspShareData[0].Item3.retlist;
                                 retlistidx = 0;
                             }
                             int.TryParse(retlist[retlistidx++]?.ToString(), out var tryrowidx);
                             af.fillSubSelectMany[tryrowidx * otherAfmanys.Count + a].Item2.Add(otherListItem);
                         }
                     }
-                    cssps.Clear();
                 }
                 finally
                 {
-                    _SameSelectPendingOnlySync.TryRemove(threadId, out var oldssps);
+                    sspShareData.Clear();
                 }
             }
             return ret;
@@ -1225,13 +1221,12 @@ namespace FreeSql.Internal.CommonProvider
 
         internal Task<List<T1>> ToListPrivateAsync(GetAllFieldExpressionTreeInfo af, ReadAnonymousTypeOtherInfo[] otherData, CancellationToken cancellationToken)
         {
-            var cssps = CurrentSameSelectPendingOnlySync;
             ReadAnonymousTypeOtherInfo csspsod = null;
-            if (cssps != null)
+            if (_SameSelectPendingShareData != null)
             {
                 var ods = new List<ReadAnonymousTypeOtherInfo>();
                 if (otherData?.Any() == true) ods.AddRange(otherData);
-                ods.Add(csspsod = new ReadAnonymousTypeOtherInfo($", {(cssps.Any() && cssps.Last() == null ? cssps.Count - 1 : cssps.Count)}{_commonUtils.FieldAsAlias("fsql_subsel_rowidx")}", new ReadAnonymousTypeInfo { CsType = typeof(int) }, new List<object>()));
+                ods.Add(csspsod = new ReadAnonymousTypeOtherInfo($", {(_SameSelectPendingShareData.Any() && _SameSelectPendingShareData.Last() == null ? _SameSelectPendingShareData.Count - 1 : _SameSelectPendingShareData.Count)}{_commonUtils.FieldAsAlias("fsql_subsel_rowidx")}", new ReadAnonymousTypeInfo { CsType = typeof(int) }, new List<object>()));
                 otherData = ods.ToArray();
             }
 
@@ -1246,7 +1241,7 @@ namespace FreeSql.Internal.CommonProvider
             else
                 sql = this.ToSql(af.Field);
 
-            if (ProcessSameSelectPendingOnlySync(cssps, ref sql, csspsod)) return Task.FromResult(new List<T1>());
+            if (SameSelectPending(ref sql, csspsod)) return Task.FromResult(new List<T1>());
             return ToListAfPrivateAsync(sql, af, otherData, cancellationToken);
         }
 
@@ -1327,13 +1322,12 @@ namespace FreeSql.Internal.CommonProvider
         }
         internal Task<List<TReturn>> ToListMapReaderPrivateAsync<TReturn>(ReadAnonymousTypeAfInfo af, ReadAnonymousTypeOtherInfo[] otherData, CancellationToken cancellationToken)
         {
-            var cssps = CurrentSameSelectPendingOnlySync;
             ReadAnonymousTypeOtherInfo csspsod = null;
-            if (cssps != null)
+            if (_SameSelectPendingShareData != null)
             {
                 var ods = new List<ReadAnonymousTypeOtherInfo>();
                 if (otherData?.Any() == true) ods.AddRange(otherData);
-                ods.Add(csspsod = new ReadAnonymousTypeOtherInfo($", {(cssps.Any() && cssps.Last() == null ? cssps.Count - 1 : cssps.Count)}{_commonUtils.FieldAsAlias("fsql_subsel_rowidx")}", new ReadAnonymousTypeInfo { CsType = typeof(int) }, new List<object>()));
+                ods.Add(csspsod = new ReadAnonymousTypeOtherInfo($", {(_SameSelectPendingShareData.Any() && _SameSelectPendingShareData.Last() == null ? _SameSelectPendingShareData.Count - 1 : _SameSelectPendingShareData.Count)}{_commonUtils.FieldAsAlias("fsql_subsel_rowidx")}", new ReadAnonymousTypeInfo { CsType = typeof(int) }, new List<object>()));
                 otherData = ods.ToArray();
             }
 
@@ -1348,7 +1342,7 @@ namespace FreeSql.Internal.CommonProvider
             else
                 sql = this.ToSql(af.field);
 
-            if (ProcessSameSelectPendingOnlySync(cssps, ref sql, csspsod)) return Task.FromResult(new List<TReturn>());
+            if (SameSelectPending(ref sql, csspsod)) return Task.FromResult(new List<TReturn>());
             return ToListMrPrivateAsync<TReturn>(sql, af, otherData, cancellationToken);
         }
         protected Task<List<TReturn>> ToListMapReaderAsync<TReturn>(ReadAnonymousTypeAfInfo af, CancellationToken cancellationToken) => ToListMapReaderPrivateAsync<TReturn>(af, null, cancellationToken);
@@ -1412,11 +1406,9 @@ namespace FreeSql.Internal.CommonProvider
                             af.fillSubSelectMany[b].Item2.Add(otherListItem);
                     continue;
                 }
-                var threadId = Thread.CurrentThread.ManagedThreadId; //一定要【注意】 await 会影响该值，以下以容将 ToList 替换成 ToListAsync 后再执行
+                var sspShareData = new List<NativeTuple<string, DbParameter[], ReadAnonymousTypeOtherInfo>>();
                 try
                 {
-                    _SameSelectPendingOnlySync.TryAdd(threadId, new List<NativeTuple<string, DbParameter[], ReadAnonymousTypeOtherInfo>>());
-                    var cssps = CurrentSameSelectPendingOnlySync;
                     var newexp = findSubSelectMany[a];
                     var newexpParms = otherAfmanys[a].Select(d =>
                     {
@@ -1450,13 +1442,14 @@ namespace FreeSql.Internal.CommonProvider
                         if (asyncMethod != null)
                             newexp = Expression.Call(newexpCallExp.Object, asyncMethod, newexpCallExp.Arguments.Concat(new[] { Expression.Constant(cancellationToken, typeof(CancellationToken)) }).ToArray());
                     }
+                    newexp = SetSameSelectPendingShareDataWithExpression(newexp, sspShareData);
                     var newexpFunc = Expression.Lambda(newexp, newexpParms).Compile();
 
                     var newexpParamVals = otherAfmanys[a].Select(d => otherAfdic[d.Item1.ToString()].First().Item3.retlist).ToArray();
                     for (int b = a, c = 0; b < af.fillSubSelectMany?.Count; b += otherAfmanys.Count, c++)
                     {
                         var vals = newexpParamVals.Select(d => d[c]).ToArray();
-                        if (c == ret.Count - 1) cssps.Add(null); //flush flag
+                        if (c == ret.Count - 1) sspShareData.Add(null); //flush flag
                         var diretTask = newexpFunc.DynamicInvoke(vals) as Task;
 
                         if (c < ret.Count - 1) continue;
@@ -1466,22 +1459,21 @@ namespace FreeSql.Internal.CommonProvider
                         var retlistidx = 0;
                         foreach (var otherListItem in otherList)
                         {
-                            var retlist = cssps[0].Item3.retlist;
+                            var retlist = sspShareData[0].Item3.retlist;
                             while (retlistidx >= retlist.Count)
                             {
-                                cssps.RemoveAt(0);
-                                retlist = cssps[0].Item3.retlist;
+                                sspShareData.RemoveAt(0);
+                                retlist = sspShareData[0].Item3.retlist;
                                 retlistidx = 0;
                             }
                             int.TryParse(retlist[retlistidx++]?.ToString(), out var tryrowidx);
                             af.fillSubSelectMany[tryrowidx * otherAfmanys.Count + a].Item2.Add(otherListItem);
                         }
                     }
-                    cssps.Clear();
                 }
                 finally
                 {
-                    _SameSelectPendingOnlySync.TryRemove(threadId, out var oldssps);
+                    sspShareData.Clear();
                 }
             }
             return ret;

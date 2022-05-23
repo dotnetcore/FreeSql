@@ -297,7 +297,20 @@ namespace base_entity
                     users2 = fsql.Select<User1>().Where(b => b.GroupId == a.Id).ToList(b => new
                     {
                         userid = b.Id,
-                        username = b.Username
+                        username = b.Username,
+                        users11 = fsql.Select<User1>().Where(c => c.GroupId == a.Id).ToList(),
+                        users22 = fsql.Select<User1>().Where(c => c.GroupId == a.Id).ToList(c => new
+                        {
+                            userid = c.Id,
+                            username = c.Username,
+                        }),
+                        groups11 = fsql.Select<UserGroup>().Where(c => c.Id == b.GroupId).ToList(),
+                        groups22 = fsql.Select<UserGroup>().Where(c => c.Id == b.GroupId).ToList(c => new
+                        {
+                            c.Id,
+                            c.GroupName,
+                            username = b.Username,
+                        })
                     }),
                     users3 = fsql.Select<User1>().Limit(10).ToList(),
                     users4 = fsql.Select<User1>().Limit(10).ToList(b => new
@@ -317,7 +330,19 @@ namespace base_entity
                     users2 = fsql.Select<User1>().Where(b => b.GroupId == a.Id).ToList(b => new
                     {
                         userid = b.Id,
-                        username = b.Username
+                        username = b.Username,
+                        users11 = fsql.Select<User1>().Where(c => c.GroupId == a.Id).ToList(),
+                        users22 = fsql.Select<User1>().Where(c => c.GroupId == a.Id).ToList(c => new
+                        {
+                            userid = c.Id,
+                            username = c.Username,
+                        }),
+                        groups11 = fsql.Select<UserGroup>().Where(c => c.Id == b.GroupId).ToList(),
+                        groups22 = fsql.Select<UserGroup>().Where(c => c.Id == b.GroupId).ToList(c => new
+                        {
+                            c.Id, c.GroupName,
+                            username = b.Username,
+                        })
                     }),
                     users3 = fsql.Select<User1>().Limit(10).ToList(),
                     users4 = fsql.Select<User1>().Limit(10).ToList(b => new

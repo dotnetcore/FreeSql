@@ -181,29 +181,67 @@ namespace FreeSql.Internal.CommonProvider
             return methods.FirstOrDefault();
         });
 
-
-        internal static ConcurrentDictionary<int, List<NativeTuple<string, DbParameter[], ReadAnonymousTypeOtherInfo>>> _SameSelectPendingOnlySync = new ConcurrentDictionary<int, List<NativeTuple<string, DbParameter[], ReadAnonymousTypeOtherInfo>>>();
-        internal List<NativeTuple<string, DbParameter[], ReadAnonymousTypeOtherInfo>> CurrentSameSelectPendingOnlySync => _SameSelectPendingOnlySync.TryGetValue(Thread.CurrentThread.ManagedThreadId, out var trycur) ? trycur : null;
-        internal bool ProcessSameSelectPendingOnlySync(List<NativeTuple<string, DbParameter[], ReadAnonymousTypeOtherInfo>> cssps, ref string sql, ReadAnonymousTypeOtherInfo csspsod)
+        public List<NativeTuple<string, DbParameter[], ReadAnonymousTypeOtherInfo>> _SameSelectPendingShareData;
+        internal Select0Provider SetSameSelectPendingShareData(List<NativeTuple<string, DbParameter[], ReadAnonymousTypeOtherInfo>> data)
         {
-            if (cssps != null)
+            _SameSelectPendingShareData = data;
+            _SameSelectPendingShareData?.ForEach(a => _params.AddRange(a?.Item2 ?? new DbParameter[0]));
+            return this;
+        }
+        internal bool SameSelectPending(ref string sql, ReadAnonymousTypeOtherInfo csspsod)
+        {
+            if (_SameSelectPendingShareData != null)
             {
-                if (cssps.Any() == false || cssps.Last() != null)
+                if (_SameSelectPendingShareData.Any() == false || _SameSelectPendingShareData.Last() != null)
                 {
-                    cssps.Add(NativeTuple.Create(sql, _params.ToArray(), csspsod));
+                    _SameSelectPendingShareData.Add(NativeTuple.Create(sql, _params.ToArray(), csspsod));
                     return true;
                 }
-                cssps[cssps.Count - 1] = NativeTuple.Create(sql, _params.ToArray(), csspsod);
+                _SameSelectPendingShareData[_SameSelectPendingShareData.Count - 1] = NativeTuple.Create(sql, _params.ToArray(), csspsod);
                 var sbSql = new StringBuilder(); //last == null flush flag
-                for (var a = 0; a < cssps.Count; a++)
-                    sbSql.Append("\r\nUNION ALL\r\nselect * from (").Append(cssps[a].Item1).Append(") ftb");
+                for (var a = 0; a < _SameSelectPendingShareData.Count; a++)
+                    sbSql.Append("\r\nUNION ALL\r\nselect * from (").Append(_SameSelectPendingShareData[a].Item1).Append(") ftb");
                 sbSql.Remove(0, 13);
-                if (cssps.Count == 1) sbSql.Remove(0, 15).Remove(sbSql.Length - 5, 5);
+                if (_SameSelectPendingShareData.Count == 1) sbSql.Remove(0, 15).Remove(sbSql.Length - 5, 5);
                 sql = sbSql.ToString();
                 //dbParms = cssps.Select(a => a.Item2).SelectMany(a => a).ToArray();
                 sbSql.Clear();
             }
             return false;
+        }
+        internal static Expression SetSameSelectPendingShareDataWithExpression(Expression exp, List<NativeTuple<string, DbParameter[], ReadAnonymousTypeOtherInfo>> data)
+        {
+            var callExp = exp as MethodCallExpression;
+            var callExpStack = new Stack<MethodCallExpression>();
+            callExpStack.Push(callExp);
+            callExp = callExp.Object as MethodCallExpression; //忽略第一个方法
+            while (callExp != null)
+            {
+                if (callExp?.Type.FullName.StartsWith("FreeSql.ISelect`") == true)
+                {
+                    callExpStack.Push(callExp);
+                    callExp = callExp.Object as MethodCallExpression;
+                    continue;
+                }
+                return exp;
+            }
+            callExp = callExpStack.Pop();
+            Expression newExp = Expression.Call(
+                Expression.Convert(callExp, typeof(Select0Provider)),
+                typeof(Select0Provider).GetMethod(nameof(SetSameSelectPendingShareData), BindingFlags.NonPublic | BindingFlags.Instance),
+                Expression.Constant(data, typeof(List<NativeTuple<string, DbParameter[], ReadAnonymousTypeOtherInfo>>))
+            );
+            newExp = Expression.Convert(newExp, callExp.Type);
+            while (callExpStack.Any())
+            {
+                callExp = callExpStack.Pop();
+                newExp = Expression.Call(
+                    newExp,
+                    callExp.Method,
+                    callExp.Arguments
+                );
+            }
+            return newExp;
         }
     }
 
@@ -217,7 +255,6 @@ namespace FreeSql.Internal.CommonProvider
             _tables.Add(new SelectTableInfo { Table = _commonUtils.GetTableByEntity(typeof(T1)), Alias = "a", On = null, Type = SelectTableInfoType.From });
             this.Where(_commonUtils.WhereObject(_tables.First().Table, "a.", dywhere));
             if (_orm.CodeFirst.IsAutoSyncStructure && typeof(T1) != typeof(object)) _orm.CodeFirst.SyncStructure<T1>();
-            CurrentSameSelectPendingOnlySync?.ForEach(a => _params.AddRange(a?.Item2 ?? new DbParameter[0]));
         }
 
         public TSelect TrackToList(Action<object> track)
