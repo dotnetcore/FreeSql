@@ -113,7 +113,7 @@ namespace FreeSql.Odbc.Oracle
                 if (valueString != null)
                 {
                     if (valueString.Length < 4000) return string.Concat("'", valueString.Replace("'", "''"), "'");
-                    var pam = AppendParamter(specialParams, $"p_{specialParams?.Count}{specialParamFlag}", null, type, value);
+                    var pam = AppendParamter(specialParams, $"p_{specialParams?.Count}{specialParamFlag}", col, type, value);
                     return pam.ParameterName;
                 }
             }
@@ -123,7 +123,7 @@ namespace FreeSql.Odbc.Oracle
                 if (valueBytes != null)
                 {
                     if (valueBytes.Length < 4000) return $"hextoraw('{CommonUtils.BytesSqlRaw(valueBytes)}')";
-                    var pam = AppendParamter(specialParams, $"p_{specialParams?.Count}{specialParamFlag}", null, type, value);
+                    var pam = AppendParamter(specialParams, $"p_{specialParams?.Count}{specialParamFlag}", col, type, value);
                     return pam.ParameterName;
                 }
             }

@@ -47,6 +47,9 @@ namespace FreeSql.Oracle
                     case OracleDbType.NClob:
                         ret = new OracleParameter { ParameterName = QuoteParamterName(parameterName), OracleDbType = dbtype2, Value = value };
                         break;
+                    case OracleDbType.Blob:
+                        ret = new OracleParameter { ParameterName = QuoteParamterName(parameterName), OracleDbType = dbtype2, Value = value };
+                        break;
                 }
             }
             _params?.Add(ret);
@@ -113,7 +116,7 @@ namespace FreeSql.Oracle
                 if (valueString != null)
                 {
                     if (valueString.Length < 4000) return string.Concat("'", valueString.Replace("'", "''"), "'");
-                    var pam = AppendParamter(specialParams, $"p_{specialParams?.Count}{specialParamFlag}", null, type, value);
+                    var pam = AppendParamter(specialParams, $"p_{specialParams?.Count}{specialParamFlag}", col, type, value);
                     return pam.ParameterName;
                 }
             }
@@ -123,7 +126,7 @@ namespace FreeSql.Oracle
                 if (valueBytes != null)
                 {
                     if (valueBytes.Length < 4000) return $"hextoraw('{CommonUtils.BytesSqlRaw(valueBytes)}')";
-                    var pam = AppendParamter(specialParams, $"p_{specialParams?.Count}{specialParamFlag}", null, type, value);
+                    var pam = AppendParamter(specialParams, $"p_{specialParams?.Count}{specialParamFlag}", col, type, value);
                     return pam.ParameterName;
                 }
             }
