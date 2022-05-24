@@ -1084,7 +1084,38 @@ namespace FreeSql.Internal.CommonProvider
                 var index = 0;
 
                 _commonExpression.ReadAnonymousField(_tables, field, map, ref index, select, null, null, _whereGlobalFilter, null, null, false); //不走 DTO 映射，不处理 IncludeMany
-                return this.ToListMapReader<TReturn>(new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null)).FirstOrDefault();
+                var af = new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null);
+                if (GetTableRuleUnions().Count <= 1) return this.ToListMapReader<TReturn>(af).FirstOrDefault();
+
+                var affield = af.field;
+                var allMemExps = new FindAllMemberExpressionVisitor(this);
+                allMemExps.Visit(select);
+                field.Clear();
+                var fieldAlias = new Dictionary<string, bool>();
+                var fieldReplaced = new Dictionary<string, bool>();
+                foreach (var memExp in allMemExps.Result)
+                {
+                    var gef = GetExpressionField(memExp.Item1, FieldAliasOptions.AsProperty);
+                    var geffield = gef.field;
+                    if (fieldReplaced.ContainsKey(geffield)) continue;
+                    fieldReplaced.Add(geffield, true);
+
+                    field.Append(", ").Append(gef.field);
+                    if (fieldAlias.ContainsKey(memExp.Item2.Attribute.Name))
+                    {
+                        field.Append(_commonUtils.FieldAsAlias($"aas{fieldAlias.Count}"));
+                        affield = affield.Replace(geffield, $"ftba.aas{fieldAlias.Count}");
+                    }
+                    else
+                    {
+                        fieldAlias.Add(memExp.Item2.Attribute.Name, true);
+                        affield = affield.Replace(geffield, $"ftba.{string.Join(".", geffield.Split('.').Skip(1))}");
+                    }
+                }
+
+                var sql = this.ToSql(field.Remove(0, 2).ToString());
+                sql = $"{_select} {affield} FROM ( \r\n    {sql.Replace("\r\n", "\r\n    ")}\r\n) ftba";
+                return ToListMrPrivate<TReturn>(sql, af, null).FirstOrDefault();
             }
             finally
             {
@@ -1543,7 +1574,38 @@ namespace FreeSql.Internal.CommonProvider
                 var index = 0;
 
                 _commonExpression.ReadAnonymousField(_tables, field, map, ref index, select, null, null, _whereGlobalFilter, null, null, false); //不走 DTO 映射，不处理 IncludeMany
-                return (await this.ToListMapReaderAsync<TReturn>(new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null), cancellationToken)).FirstOrDefault();
+                var af = new ReadAnonymousTypeAfInfo(map, field.Length > 0 ? field.Remove(0, 2).ToString() : null);
+                if (GetTableRuleUnions().Count <= 1) return (await this.ToListMapReaderAsync<TReturn>(af, cancellationToken)).FirstOrDefault();
+
+                var affield = af.field;
+                var allMemExps = new FindAllMemberExpressionVisitor(this);
+                allMemExps.Visit(select);
+                field.Clear();
+                var fieldAlias = new Dictionary<string, bool>();
+                var fieldReplaced = new Dictionary<string, bool>();
+                foreach (var memExp in allMemExps.Result)
+                {
+                    var gef = GetExpressionField(memExp.Item1, FieldAliasOptions.AsProperty);
+                    var geffield = gef.field;
+                    if (fieldReplaced.ContainsKey(geffield)) continue;
+                    fieldReplaced.Add(geffield, true);
+
+                    field.Append(", ").Append(gef.field);
+                    if (fieldAlias.ContainsKey(memExp.Item2.Attribute.Name))
+                    {
+                        field.Append(_commonUtils.FieldAsAlias($"aas{fieldAlias.Count}"));
+                        affield = affield.Replace(geffield, $"ftba.aas{fieldAlias.Count}");
+                    }
+                    else
+                    {
+                        fieldAlias.Add(memExp.Item2.Attribute.Name, true);
+                        affield = affield.Replace(geffield, $"ftba.{string.Join(".", geffield.Split('.').Skip(1))}");
+                    }
+                }
+
+                var sql = this.ToSql(field.Remove(0, 2).ToString());
+                sql = $"{_select} {affield} FROM ( \r\n    {sql.Replace("\r\n", "\r\n    ")}\r\n) ftba";
+                return (await ToListMrPrivateAsync<TReturn>(sql, af, null, cancellationToken)).FirstOrDefault();
             }
             finally
             {

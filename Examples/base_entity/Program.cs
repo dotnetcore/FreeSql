@@ -110,6 +110,7 @@ namespace base_entity
             public Guid id { get; set; }
             public string msg { get; set; }
             public DateTime createtime { get; set; }
+            public int click { get; set; }
         }
 
         public class SomeEntity
@@ -503,14 +504,14 @@ namespace base_entity
 
             var testitems = new[]
             {
-                new AsTableLog{ msg = "msg01", createtime = DateTime.Parse("2022-1-1 13:00:11") },
-                new AsTableLog{ msg = "msg02", createtime = DateTime.Parse("2022-1-2 14:00:12") },
-                new AsTableLog{ msg = "msg03", createtime = DateTime.Parse("2022-2-2 15:00:13") },
-                new AsTableLog{ msg = "msg04", createtime = DateTime.Parse("2022-2-8 15:00:13") },
-                new AsTableLog{ msg = "msg05", createtime = DateTime.Parse("2022-3-8 15:00:13") },
-                new AsTableLog{ msg = "msg06", createtime = DateTime.Parse("2022-4-8 15:00:13") },
-                new AsTableLog{ msg = "msg07", createtime = DateTime.Parse("2022-6-8 15:00:13") },
-                new AsTableLog{ msg = "msg07", createtime = DateTime.Parse("2022-7-1") }
+                new AsTableLog{ msg = "msg01", createtime = DateTime.Parse("2022-1-1 13:00:11"), click = 1 },
+                new AsTableLog{ msg = "msg02", createtime = DateTime.Parse("2022-1-2 14:00:12"), click = 2 },
+                new AsTableLog{ msg = "msg03", createtime = DateTime.Parse("2022-2-2 15:00:13"), click = 3 },
+                new AsTableLog{ msg = "msg04", createtime = DateTime.Parse("2022-2-8 15:00:13"), click = 4 },
+                new AsTableLog{ msg = "msg05", createtime = DateTime.Parse("2022-3-8 15:00:13"), click = 5 },
+                new AsTableLog{ msg = "msg06", createtime = DateTime.Parse("2022-4-8 15:00:13"), click = 6 },
+                new AsTableLog{ msg = "msg07", createtime = DateTime.Parse("2022-6-8 15:00:13"), click = 7 },
+                new AsTableLog{ msg = "msg07", createtime = DateTime.Parse("2022-7-1"), click = 8}
             };
             var sqlatb = fsql.Insert(testitems).NoneParameter();
             var sqlat = sqlatb.ToSql();
@@ -595,6 +596,15 @@ namespace base_entity
             var sqls6 = fsql.Select<AsTableLog>().Where(a => a.createtime < DateTime.Parse("2022-5-1")).Limit(10).OrderBy(a => a.createtime);
             var sqls601 = sqls6.ToSql();
             var sqls602 = sqls6.ToList();
+
+            var sqls7 = fsql.Select<AsTableLog>().Where(a => a.createtime < DateTime.Parse("2022-5-1")).ToAggregate(g => new
+            {
+                sum1 = g.Sum(g.Key.click),
+                cou1 = g.Count(),
+                avg1 = g.Avg(g.Key.click),
+                min = g.Min(g.Key.click),
+                max = g.Max(g.Key.click)
+            });
 
             fsql.Aop.AuditValue += new EventHandler<FreeSql.Aop.AuditValueEventArgs>((_, e) =>
             {
