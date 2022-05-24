@@ -650,7 +650,7 @@ namespace FreeSql.Internal
                 if (enumType.IsEnum)
                 {
                     rightMapColumn = SearchColumnByField(tsc._tables, tsc.currentTable, right);
-                    if (rightMapColumn != null)
+                    if (rightMapColumn == null)
                         right = formatSql(Enum.Parse(enumType, right.StartsWith("N'") ? right.Substring(1).Trim('\'') : right.Trim('\'')), leftMapColumn.Attribute.MapType, leftMapColumn, tsc.dbParams);
                 }
             }
